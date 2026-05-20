@@ -2567,7 +2567,7 @@ codeunit 144101 "Test SEPA CT v03"
     local procedure VerifyStandardEuroSEPAFields(Address: Text; CreditorIBAN: Text)
     begin
         XMLReadHelper.VerifyNodeValueByXPath(
-          '//ns:Document/ns:CstmrCdtTrfInitn/ns:PmtInf/ns:CdtTrfTxInf/ns:Cdtr/ns:PstlAdr/ns:AdrLine', Address);
+          '//ns:Document/ns:CstmrCdtTrfInitn/ns:PmtInf/ns:CdtTrfTxInf/ns:Cdtr/ns:PstlAdr/ns:StrtNm', Address);
         VerifyServiceLevelCode('SEPA');
         VerifyChargeBearerValue('SLEV');
         XMLReadHelper.VerifyNodeValueByXPath(

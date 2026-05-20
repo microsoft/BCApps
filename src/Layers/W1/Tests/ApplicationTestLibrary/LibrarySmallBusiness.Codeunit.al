@@ -367,6 +367,18 @@ codeunit 132213 "Library - Small Business"
         exit(LibraryPurchase.PostPurchaseDocument(PurchaseHeader, false, true));
     end;
 
+    procedure UpdatePurchHeaderDocTotal(var PurchaseHeader: Record "Purchase Header")
+    var
+        ReleasePurchaseDocument: Codeunit "Release Purchase Document";
+    begin
+        CODEUNIT.Run(CODEUNIT::"Release Purchase Document", PurchaseHeader);
+        PurchaseHeader.CalcFields("Amount Including VAT", Amount);
+        PurchaseHeader."Doc. Amount Incl. VAT" := PurchaseHeader."Amount Including VAT";
+        PurchaseHeader."Doc. Amount VAT" := PurchaseHeader."Amount Including VAT" - PurchaseHeader.Amount;
+        PurchaseHeader.Modify(true);
+        ReleasePurchaseDocument.Reopen(PurchaseHeader);
+    end;
+
     procedure SetInvoiceDiscountToCustomer(var Customer: Record Customer; DiscPct: Decimal; MinimumAmount: Decimal; CurrencyCode: Code[10])
     var
         CustInvoiceDisc: Record "Cust. Invoice Disc.";

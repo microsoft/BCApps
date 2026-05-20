@@ -125,7 +125,7 @@ page 8035 "Usage Data Billings"
                 }
                 field("Pricing Unit Cost Surcharge %"; Rec."Pricing Unit Cost Surcharge %")
                 {
-                    ToolTip = 'Specifies the EK surcharge for usage-dependent pricing.';
+                    ToolTip = 'Specifies the unit cost surcharge for usage-dependent pricing.';
                 }
                 field("Billing Line Entry No."; Rec."Billing Line Entry No.")
                 {

@@ -1380,12 +1380,9 @@ codeunit 7307 "Whse.-Activity-Register"
     local procedure InsertRegWhseItemTrkgLine(WhseActivLine: Record "Warehouse Activity Line"; QtyToRegisterBase: Decimal)
     var
         WhseItemTrkgLine2: Record "Whse. Item Tracking Line";
-        NextEntryNo: Integer;
     begin
-        NextEntryNo := WhseItemTrkgLine2.GetLastEntryNo() + 1;
-
         WhseItemTrkgLine2.Init();
-        WhseItemTrkgLine2."Entry No." := NextEntryNo;
+        WhseItemTrkgLine2."Entry No." := WhseItemTrkgLine2.GetNextEntryNo();
         WhseItemTrkgLine2."Item No." := WhseActivLine."Item No.";
         WhseItemTrkgLine2.Description := WhseActivLine.Description;
         WhseItemTrkgLine2."Variant Code" := WhseActivLine."Variant Code";

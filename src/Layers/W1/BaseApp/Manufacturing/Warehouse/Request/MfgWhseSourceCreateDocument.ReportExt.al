@@ -82,10 +82,6 @@ reportextension 7305 "Mfg. WhseSourceCreateDocument" extends "Whse.-Source - Cre
                 end;
 
                 trigger OnPreDataItem()
-#if not CLEAN26
-                var
-                    ManufacturingSetup: Record Microsoft.Manufacturing.Setup."Manufacturing Setup";
-#endif
                 begin
                     if WhseDoc <> WhseDoc::Production then
                         CurrReport.Break();
@@ -108,18 +104,7 @@ reportextension 7305 "Mfg. WhseSourceCreateDocument" extends "Whse.-Source - Cre
 
                     SetRange("Prod. Order No.", ProdOrderHeader."No.");
                     SetRange(Status, Status::Released);
-#if not CLEAN26
-                    if not ManufacturingSetup.IsFeatureKeyFlushingMethodManualWithoutPickEnabled() then
-                        SetFilter(
-                        "Flushing Method", '%1|%2|%3|%4',
-                        "Flushing Method"::Manual,
-                        "Flushing Method"::"Pick + Manual",
-                        "Flushing Method"::"Pick + Forward",
-                        "Flushing Method"::"Pick + Backward")
-                    else
-#endif
-                        SetFilter(
-                        "Flushing Method", '%1|%2|%3',
+                    SetFilter("Flushing Method", '%1|%2|%3',
                         "Flushing Method"::"Pick + Manual",
                         "Flushing Method"::"Pick + Forward",
                         "Flushing Method"::"Pick + Backward");

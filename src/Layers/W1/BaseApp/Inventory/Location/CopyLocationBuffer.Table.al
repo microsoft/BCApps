@@ -23,10 +23,23 @@ table 5712 "Copy Location Buffer"
             Caption = 'Source Location Code';
             TableRelation = Location;
             DataClassification = SystemMetadata;
+
+            trigger OnValidate()
+            var
+                SourceLocation: Record Location;
+            begin
+                if SourceLocation.Get(Rec."Source Location Code") then
+                    "Target Location Name" := SourceLocation.Name;
+            end;
         }
         field(3; "Target Location Code"; Code[10])
         {
             Caption = 'Target Location Code';
+            DataClassification = SystemMetadata;
+        }
+        field(4; "Target Location Name"; Text[100])
+        {
+            Caption = 'Target Location Name';
             DataClassification = SystemMetadata;
         }
         field(11; Zones; Boolean)

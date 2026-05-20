@@ -10,6 +10,7 @@ query 36959 "G/L Accounts"
 {
     Access = Internal;
     QueryType = API;
+    AboutText = 'Provides access to general ledger account master data including account numbers, names, types, income/balance classification, and hierarchy structure. Enables Power BI reports to build chart of accounts hierarchies, categorize financial data, and structure balance sheet and income statement reports.';
     Caption = 'Power BI G/L Accounts';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';

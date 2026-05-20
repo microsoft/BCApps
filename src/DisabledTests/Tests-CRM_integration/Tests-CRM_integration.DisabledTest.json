@@ -838,5 +838,15 @@
     "codeunitId": 139314,
     "codeunitName": "CRM Connection Wizard Tests",
     "method": "VerifyWizardWithExistedSetupCommonFieldsTrue"
+  },
+  {
+    "codeunitId": 139175,
+    "method": "SyncFromCRMKeepsReleasedStatusWhenPrepaymentFullyInvoiced",
+    "codeunitName": "CRM Sales Order Integr. Test"
+  },
+  {
+    "codeunitId": 139175,
+    "method": "SyncFromCRMReopensOrderWhenPrepaymentOutstanding",
+    "codeunitName": "CRM Sales Order Integr. Test"
   }
 ]

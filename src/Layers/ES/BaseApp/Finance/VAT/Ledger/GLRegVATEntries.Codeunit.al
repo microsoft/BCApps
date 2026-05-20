@@ -23,7 +23,8 @@ codeunit 238 "G/L Reg.-VAT Entries"
     begin
         VATEntry.SetCurrentKey("Transaction No.");
         VATEntry.SetRange("Transaction No.", Rec."No.");
-        PAGE.Run(PAGE::"VAT Entries", VATEntry);
+        VATEntry.SetFilter("G/L Register No.", '0|%1', Rec."No.");
+        Page.Run(Page::"VAT Entries", VATEntry);
     end;
 
     var

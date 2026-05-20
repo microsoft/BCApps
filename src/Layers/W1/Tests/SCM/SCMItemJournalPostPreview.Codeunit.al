@@ -353,6 +353,37 @@ codeunit 134777 "SCM Item Journal Post Preview"
         // Handled in ProductionJournalWithPrewviewHandler Handler Function
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure ExtendedPostingPreviewNoWarningForValidItemJournalPosting()
+    var
+        ItemJournalLine: Record "Item Journal Line";
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        ValueEntry: Record "Value Entry";
+        GLEntry: Record "G/L Entry";
+        ItemJnlPost: Codeunit "Item Jnl.-Post";
+        ExtendedGLPostingPreview: TestPage "Extended G/L Posting Preview";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 629775] Extended posting preview should not show inconsistent G/L entries warning when posting item journal with positive adjustment that does not generate G/L entries
+        Initialize();
+
+        // [GIVEN] General Ledger Setup with "Posting Preview Type" = "Extended", Automatic Cost Posting = OFF, Item "I" with positive adjustment 100
+        UpdateGLSetupPostingPreviewType("Posting Preview Type"::Extended);
+        LibraryInventory.SetAutomaticCostPosting(false);
+        InsertItemJournalLine(ItemJournalLine, 1);
+        Commit();
+
+        // [WHEN] Preview posting is invoked for Item Journal
+        ExtendedGLPostingPreview.Trap();
+        asserterror ItemJnlPost.Preview(ItemJournalLine);
+        Assert.AreEqual('', GetLastErrorText, WrongPostPreviewErr + GetLastErrorText);
+
+        // [THEN] Item Ledger Entries and Value Entries are shown in preview, G/L Entries section is empty, no warning about inconsistent G/L entries appears
+        VerifyExtendedPreviewNoGLEntries(ExtendedGLPostingPreview, ItemLedgerEntry.TableCaption(), ValueEntry.TableCaption(), GLEntry.TableCaption());
+        ExtendedGLPostingPreview.OK().Invoke();
+    end;
+
     local procedure Initialize()
     var
         ItemJournalLine: Record "Item Journal Line";
@@ -588,6 +619,35 @@ codeunit 134777 "SCM Item Journal Post Preview"
         LibraryInventory.SelectItemJournalBatchName(ItemJournalBatch, ItemJournalTemplate.Type, ItemJournalTemplate.Name);
         ItemJournalBatch.SetupNewBatch();
         LibraryInventory.ClearItemJournal(ItemJournalTemplate, ItemJournalBatch);
+    end;
+
+    local procedure UpdateGLSetupPostingPreviewType(PostingPreviewType: Enum "Posting Preview Type")
+    var
+        GLSetup: Record "General Ledger Setup";
+    begin
+        GLSetup.Get();
+        GLSetup.Validate("Posting Preview Type", PostingPreviewType);
+        GLSetup.Modify(true);
+    end;
+
+    local procedure VerifyExtendedPreviewNoGLEntries(var ExtendedGLPostingPreview: TestPage "Extended G/L Posting Preview"; ItemLedgerEntryCaption: Text; ValueEntryCaption: Text; GLEntryCaption: Text)
+    begin
+        ExtendedGLPostingPreview.DocEntriesPreviewSubform.First();
+        if ExtendedGLPostingPreview.DocEntriesPreviewSubform."Table Name".Value = ItemLedgerEntryCaption then begin
+            Assert.AreEqual(ItemLedgerEntryCaption, ExtendedGLPostingPreview.DocEntriesPreviewSubform."Table Name".Value, 'Item Ledger Entry expected');
+            Assert.IsTrue(ExtendedGLPostingPreview.DocEntriesPreviewSubform."No. of Records".AsInteger() > 0, 'Item Ledger Entry records expected');
+        end;
+
+        if ExtendedGLPostingPreview.DocEntriesPreviewSubform.Next() then
+            if ExtendedGLPostingPreview.DocEntriesPreviewSubform."Table Name".Value = ValueEntryCaption then begin
+                Assert.AreEqual(ValueEntryCaption, ExtendedGLPostingPreview.DocEntriesPreviewSubform."Table Name".Value, 'Value Entry expected');
+                Assert.IsTrue(ExtendedGLPostingPreview.DocEntriesPreviewSubform."No. of Records".AsInteger() > 0, 'Value Entry records expected');
+            end;
+
+        // Verify no G/L Entries or G/L Entries with 0 records
+        while ExtendedGLPostingPreview.DocEntriesPreviewSubform.Next() do
+            if ExtendedGLPostingPreview.DocEntriesPreviewSubform."Table Name".Value = GLEntryCaption then
+                Assert.AreEqual(0, ExtendedGLPostingPreview.DocEntriesPreviewSubform."No. of Records".AsInteger(), 'G/L Entry records should be 0');
     end;
 
     local procedure VerifyGLPostingPreviewLine(GLPostingPreview: TestPage "G/L Posting Preview"; TableName: Text; ExpectedEntryCount: Integer)

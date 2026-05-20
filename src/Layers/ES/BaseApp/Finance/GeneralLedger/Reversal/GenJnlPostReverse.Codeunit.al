@@ -153,9 +153,9 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
                 GLEntry2.SetRange("Transaction No.", TempTransactionNoInteger.Number);
             OnReverseOnBeforeReverseGLEntry(ReversalEntry2, GenJnlPostLine, GenJournalLine, TempTransactionNoInteger, GLEntry2, GLRegister);
             ReverseGLEntry(
-              GLEntry2, GenJournalLine, TempCustLedgerEntry,
-              TempVendorLedgerEntry, TempEmployeeLedgerEntry, TempBankAccountLedgerEntry, NextDtldCustLedgEntryEntryNo, NextDtldVendLedgEntryEntryNo,
-              NextDtldEmplLedgEntryNo, FAInsertLedgerEntry);
+              GLEntry2, GenJournalLine, GLRegister,
+              TempCustLedgerEntry, TempVendorLedgerEntry, TempEmployeeLedgerEntry, TempBankAccountLedgerEntry,
+              NextDtldCustLedgEntryEntryNo, NextDtldVendLedgEntryEntryNo, NextDtldEmplLedgEntryNo, FAInsertLedgerEntry);
         until TempTransactionNoInteger.Next() = 0;
 
         IsHandled := false;
@@ -204,7 +204,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
         OnAfterReverse(GLRegister, GLRegister2);
     end;
 
-    local procedure ReverseGLEntry(var GLEntry2: Record "G/L Entry"; var GenJournalLine: Record "Gen. Journal Line"; var TempCustLedgerEntry: Record "Cust. Ledger Entry" temporary; var TempVendorLedgerEntry: Record "Vendor Ledger Entry" temporary; var TempEmployeeLedgerEntry: Record "Employee Ledger Entry" temporary; var TempBankAccountLedgerEntry: Record "Bank Account Ledger Entry" temporary; var NextDtldCustLedgEntryEntryNo: Integer; var NextDtldVendLedgEntryEntryNo: Integer; var NextDtldEmplLedgEntryNo: Integer; FAInsertLedgerEntry: Codeunit "FA Insert Ledger Entry")
+    local procedure ReverseGLEntry(var GLEntry2: Record "G/L Entry"; var GenJournalLine: Record "Gen. Journal Line"; var GLRegister: Record "G/L Register"; var TempCustLedgerEntry: Record "Cust. Ledger Entry" temporary; var TempVendorLedgerEntry: Record "Vendor Ledger Entry" temporary; var TempEmployeeLedgerEntry: Record "Employee Ledger Entry" temporary; var TempBankAccountLedgerEntry: Record "Bank Account Ledger Entry" temporary; var NextDtldCustLedgEntryEntryNo: Integer; var NextDtldVendLedgEntryEntryNo: Integer; var NextDtldEmplLedgEntryNo: Integer; FAInsertLedgerEntry: Codeunit "FA Insert Ledger Entry")
     var
         GLEntry: Record "G/L Entry";
         ReversedGLEntry: Record "G/L Entry";
@@ -233,6 +233,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
                 GLEntry."Add.-Currency Credit Amount" := -GLEntry2."Add.-Currency Credit Amount";
                 GLEntry."Entry No." := GenJnlPostLine.GetNextEntryNo();
                 GLEntry."Transaction No." := GenJnlPostLine.GetNextTransactionNo();
+                GLEntry."G/L Register No." := GLRegister."No.";
                 GLEntry."User ID" := CopyStr(UserId(), 1, MaxStrLen(GLEntry2."User ID"));
                 GenJournalLine.Correction :=
                   (GLEntry."Debit Amount" < 0) or (GLEntry."Credit Amount" < 0) or

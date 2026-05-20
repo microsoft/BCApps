@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -1401,6 +1401,11 @@ table 98 "General Ledger Setup"
                 end;
             end;
         }
+        field(210; "Use Concurrent Posting"; Boolean)
+        {
+            Caption = 'Use Concurrent Posting';
+            ToolTip = 'Specifies whether to use concurrent posting when posting journals. Concurrent posting can reduce the time it takes to post journals by allowing multiple batches to be posted at the same time. Enabling this option requires additional configuration and setup, such as setting up a batch job to run the concurrent posting process and ensuring that your system has the necessary resources to support concurrent processing.';
+        }
         field(11003; "Currency Code For EURO"; Code[10])
         {
             Caption = 'Currency Code For EURO';
@@ -1732,6 +1737,12 @@ table 98 "General Ledger Setup"
             AllowedFrom, AllowedTo,
             Rec."Allow Posting From DateFormula", Rec."Allow Posting To DateFormula",
             Rec.RecordId());
+    end;
+
+    procedure UseConcurrentPosting(): Boolean
+    begin
+        GetRecordOnce();
+        exit("Use Concurrent Posting");
     end;
 
     /// <summary>

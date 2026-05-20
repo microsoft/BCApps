@@ -8,10 +8,14 @@ using Microsoft.Finance.Dimension;
 
 page 5951 "Posted Service Invoice Lines"
 {
+    ApplicationArea = Service;
     Caption = 'Posted Service Invoice Lines';
     Editable = false;
     PageType = List;
+    AboutTitle = 'About Posted Service Invoice Lines';
+    AboutText = 'Review detailed line information from posted service invoices, including customer, item, quantity, pricing, and related service order data for financial analysis and reporting.';
     SourceTable = "Service Invoice Line";
+    UsageCategory = History;
 
     layout
     {

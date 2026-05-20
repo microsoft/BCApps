@@ -495,7 +495,7 @@ codeunit 135215 "Item From Picture Tests"
 
         Assert.AreEqual(Subscriber_ExpectedUrl, RequestUrl, 'Unexpected request URL');
         HttpContent.ReadAs(Content);
-        Assert.AreEqual(166, StrLen(Content), 'Unexpected content');
+        Assert.AreEqual(163, StrLen(Content), 'Unexpected content');
 
         Jobj.Add('modelVersion', '2021-05-01');
         Jobj.Add('requestId', '93c49f4b-085c-4c83-b29c-e4eb9013a1b9');

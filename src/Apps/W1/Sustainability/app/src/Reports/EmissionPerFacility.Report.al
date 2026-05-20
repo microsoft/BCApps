@@ -153,7 +153,7 @@ report 6211 "Emission Per Facility"
     var
         ResponsibilityCenter: Record "Responsibility Center";
         ReportingUOMCode: Code[10];
-        SustainabilityAccountName, SustLedgDateFilter, RoundingDirection : Text;
+        SustLedgDateFilter, RoundingDirection : Text;
         ReportingUOMFactor, RoundingPrecision : Decimal;
         ShowDetails, UseReportingUOMFactor : Boolean;
         PeriodLbl: Label 'Period: %1', Comment = '%1 - period filter';

@@ -138,6 +138,14 @@ page 663 "Approval User Setup"
                 RunPageLink = "User ID" = field("User ID");
                 ToolTip = 'Specify how the user receives notifications, for example about approval workflow steps.';
             }
+            action("Approval User Overview")
+            {
+                ApplicationArea = All;
+                Caption = 'Approval User Overview';
+                Image = QualificationOverview;
+                RunObject = Page "Approval User Overview";
+                ToolTip = 'Displays an overview of which users are able to approve specific workflows.';
+            }
         }
         area(Promoted)
         {
@@ -149,6 +157,9 @@ page 663 "Approval User Setup"
                 {
                 }
                 actionref("Notification Setup_Promoted"; "Notification Setup")
+                {
+                }
+                actionref("Approval User Overview_Promoted"; "Approval User Overview")
                 {
                 }
             }

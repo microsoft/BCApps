@@ -16,13 +16,14 @@ codeunit 134933 "Net Cust/Vend Balances Test"
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryUtility: Codeunit "Library - Utility";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
+        LibrarySales: Codeunit "Library - Sales";
+        LibraryPurchase: Codeunit "Library - Purchase";
+        LibrarySetupStorage: Codeunit "Library - Setup Storage";
         IsInitialized: Boolean;
         DescriptionMsg: Label 'Net customer/vendor balances %1 %2', Comment = '%1 %2';
         DocNoMustContainNumberErr: Label 'Document No. must contain a number.';
         PostingDateErr: Label 'Please enter the Posting Date.';
         DocumentNoErr: Label 'Please enter the Document No.';
-        LibrarySales: Codeunit "Library - Sales";
-        LibraryPurchase: Codeunit "Library - Purchase";
         AmountShouldBeEqualErr: Label 'Amount should be equal.';
         DuplicateLineExistsErr: Label 'There is the duplicate journal line in journal template name %2, journal batch name %3, document number %1 applied to %4 %5.',
             Comment = '%1 - document no., %2 - template name, %3 - batch name, %4 - document type, %5 - document no.';
@@ -1194,6 +1195,8 @@ codeunit 134933 "Net Cust/Vend Balances Test"
     end;
 
     local procedure Initialize()
+    var
+        LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"Net Cust/Vend Balances Test");
         LibraryVariableStorage.Clear();
@@ -1201,7 +1204,10 @@ codeunit 134933 "Net Cust/Vend Balances Test"
             exit;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(CODEUNIT::"Net Cust/Vend Balances Test");
 
+        LibraryERMCountryData.UpdatePurchasesPayablesSetup();
         LibraryERM.SetEnableDataCheck(false);
+        LibrarySetupStorage.Save(Database::"Purchases & Payables Setup");
+
         IsInitialized := true;
         LibraryTestInitialize.OnAfterTestSuiteInitialize(CODEUNIT::"Net Cust/Vend Balances Test");
     end;

@@ -12,7 +12,8 @@ codeunit 5911 "Serv Reg.-Show Ledger Entries"
     begin
         ServLedgEntry.Reset();
         ServLedgEntry.SetRange("Entry No.", Rec."From Entry No.", Rec."To Entry No.");
-        PAGE.Run(PAGE::"Service Ledger Entries", ServLedgEntry);
+        ServLedgEntry.SetFilter("Service Register No.", '0|%1', Rec."No.");
+        Page.Run(Page::"Service Ledger Entries", ServLedgEntry);
     end;
 
     var

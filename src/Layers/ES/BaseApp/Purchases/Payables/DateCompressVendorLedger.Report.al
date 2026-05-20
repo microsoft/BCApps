@@ -307,7 +307,8 @@ report 398 "Date Compress Vendor Ledger"
         VendLedgEntry2: Record "Vendor Ledger Entry";
         NewDtldVendLedgEntry: Record "Detailed Vendor Ledg. Entry";
         TempDetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry" temporary;
-        GLentry: Record "G/L Entry";
+        GLEntry: Record "G/L Entry";
+        GLTransaction: Record "G/L Transaction";
         SelectedDim: Record "Selected Dimension";
         TempSelectedDim: Record "Selected Dimension" temporary;
         DimSelectionBuf: Record "Dimension Selection Buffer";
@@ -402,9 +403,12 @@ report 398 "Date Compress Vendor Ledger"
         GLentry."System-Created Entry" := true;
         GLentry."User ID" := CopyStr(UserId(), 1, MaxStrLen(GLentry."User ID"));
         GLentry."Transaction No." := NextTransactionNo;
+        GLEntry."G/L Register No." := GLReg."No.";
         OnInsertRegistersOnBeforeGLentryInsert(GlEntry);
         GLentry.Insert();
         GLentry.Consistent(GLentry.Amount = 0);
+        GLTransaction.InsertFromGLEntry(GLEntry, GLReg);
+
         GLReg."To Entry No." := LastEntryNo;
 
         if GLRegExists then begin

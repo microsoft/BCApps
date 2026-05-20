@@ -119,6 +119,16 @@ page 518 "Purchase Lines"
                     ApplicationArea = Basic, Suite;
                     Visible = false;
                 }
+                field("Purchasing Code"; Rec."Purchasing Code")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Visible = false;
+                }
+                field("Drop Shipment"; Rec."Drop Shipment")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Visible = false;
+                }
                 field("Allocation Account No."; Rec."Selected Alloc. Account No.")
                 {
                     ApplicationArea = All;

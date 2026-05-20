@@ -728,20 +728,20 @@ codeunit 1252 "Match Bank Rec. Lines"
             TempMatchingDetailsBankStatementMatchingBuffer."Date Difference" := TempBankAccLedgerEntryMatchingBuffer."Posting Date" - BankAccReconciliationLine."Transaction Date";
         TempMatchingDetailsBankStatementMatchingBuffer."Amount Difference" := TempBankAccLedgerEntryMatchingBuffer."Remaining Amount" - BankAccReconciliationLine.Difference;
 
-        TempMatchingDetailsBankStatementMatchingBuffer."Doc. No. Score" := BankReconciliationLineTextSimilarityScore(TempBankAccLedgerEntryMatchingBuffer."Document No.", BankAccReconciliationLine, false);
-        TempMatchingDetailsBankStatementMatchingBuffer."Ext. Doc. No. Score" := BankReconciliationLineTextSimilarityScore(TempBankAccLedgerEntryMatchingBuffer."External Document No.", BankAccReconciliationLine, false);
-        TempMatchingDetailsBankStatementMatchingBuffer."Description Score" := BankReconciliationLineTextSimilarityScore(TempBankAccLedgerEntryMatchingBuffer.Description, BankAccReconciliationLine, false);
+        AmountMatched := (TempMatchingDetailsBankStatementMatchingBuffer."Amount Difference" = 0);
+        AmountClose := IsAmountClose(TempBankAccLedgerEntryMatchingBuffer."Remaining Amount", BankAccReconciliationLine.Difference);
+        if not AmountClose then
+            exit(false);
 
-        TempMatchingDetailsBankStatementMatchingBuffer."Doc. No. Exact Score" := BankReconciliationLineTextSimilarityScore(TempBankAccLedgerEntryMatchingBuffer."Document No.", BankAccReconciliationLine, true);
-        TempMatchingDetailsBankStatementMatchingBuffer."Ext. Doc. No. Exact Score" := BankReconciliationLineTextSimilarityScore(TempBankAccLedgerEntryMatchingBuffer."External Document No.", BankAccReconciliationLine, true);
-        TempMatchingDetailsBankStatementMatchingBuffer."Description Exact Score" := BankReconciliationLineTextSimilarityScore(TempBankAccLedgerEntryMatchingBuffer.Description, BankAccReconciliationLine, true);
+        BankReconciliationLineTextSimilarityScores(TempBankAccLedgerEntryMatchingBuffer."Document No.", BankAccReconciliationLine, TempMatchingDetailsBankStatementMatchingBuffer."Doc. No. Score", TempMatchingDetailsBankStatementMatchingBuffer."Doc. No. Exact Score");
+        BankReconciliationLineTextSimilarityScores(TempBankAccLedgerEntryMatchingBuffer."External Document No.", BankAccReconciliationLine, TempMatchingDetailsBankStatementMatchingBuffer."Ext. Doc. No. Score", TempMatchingDetailsBankStatementMatchingBuffer."Ext. Doc. No. Exact Score");
+        BankReconciliationLineTextSimilarityScores(TempBankAccLedgerEntryMatchingBuffer.Description, BankAccReconciliationLine, TempMatchingDetailsBankStatementMatchingBuffer."Description Score", TempMatchingDetailsBankStatementMatchingBuffer."Description Exact Score");
 
         TempMatchingDetailsBankStatementMatchingBuffer."Line No." := BankAccReconciliationLine."Statement Line No.";
         TempMatchingDetailsBankStatementMatchingBuffer."Entry No." := TempBankAccLedgerEntryMatchingBuffer."Entry No.";
         TempMatchingDetailsBankStatementMatchingBuffer."Account Type" := Enum::"Gen. Journal Account Type"::"G/L Account";
         TempMatchingDetailsBankStatementMatchingBuffer."Account No." := '';
 
-        AmountMatched := (TempMatchingDetailsBankStatementMatchingBuffer."Amount Difference" = 0);
         if BankAccReconciliationLine."Transaction Date" <> 0D then
             TransactionDateMatched := (TempMatchingDetailsBankStatementMatchingBuffer."Date Difference" = 0);
         DocumentNoMatched := (TempMatchingDetailsBankStatementMatchingBuffer."Doc. No. Score" >= 80) or (TempMatchingDetailsBankStatementMatchingBuffer."Doc. No. Exact Score" = 100);
@@ -751,8 +751,10 @@ codeunit 1252 "Match Bank Rec. Lines"
         ListOfMatchFields := ListOfMatchedFields(AmountMatched, DocumentNoMatched, ExternalDocumentNoMatched, TransactionDateMatched, false, DescriptionMatched);
         TempMatchingDetailsBankStatementMatchingBuffer."Match Details" := StrSubstNo(MatchDetailsTxt, ListOfMatchFields);
 
-        AmountClose := IsAmountClose(TempBankAccLedgerEntryMatchingBuffer."Remaining Amount", BankAccReconciliationLine.Difference);
-        exit(((DocumentNoMatched or ExternalDocumentNoMatched or DescriptionMatched) and AmountClose) or AmountMatched);
+        if AmountMatched then
+            exit(true);
+
+        exit(DocumentNoMatched or ExternalDocumentNoMatched or DescriptionMatched);
     end;
 
 
@@ -776,48 +778,58 @@ codeunit 1252 "Match Bank Rec. Lines"
     end;
 
     /// <summary>
-    /// Returns a number between 0 and 100, representing the best match between TextToMatch and the BankAccReconciliationLine fields.
+    /// Computes both nearness and exact scores between TextToMatch and all BankAccReconciliationLine text fields in a
+    /// single pass, short-circuiting as soon as both scores reach 100.
+    /// Fields checked in order: Description, Related-Party Name, Additional Transaction Info, Document No.
     /// </summary>
-    /// <param name="TextToMatch"></param>
-    /// <param name="BankAccReconciliationLine"></param>
-    /// <param name="Exact"></param>
-    /// <returns>Returns a number between 0 and 100, representing the TextToMatch matching any of the BankaccReconciliationLine fields.</returns>
-    local procedure BankReconciliationLineTextSimilarityScore(TextToMatch: Text; BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; Exact: Boolean): Integer
+    /// <param name="TextToMatch">The text from the Bank Account Ledger Entry to match against</param>
+    /// <param name="BankAccReconciliationLine">The bank reconciliation line whose fields are compared</param>
+    /// <param name="NearScore">Output: best nearness score (0-100) across all line fields</param>
+    /// <param name="ExactScore">Output: best exact score (0-100) across all line fields</param>
+    local procedure BankReconciliationLineTextSimilarityScores(TextToMatch: Text; BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; var NearScore: Integer; var ExactScore: Integer)
     var
         RecordMatchMgt: Codeunit "Record Match Mgt.";
-        Score: Integer;
-        Max: Integer;
+        FieldNear: Integer;
+        FieldExact: Integer;
     begin
-        if Exact then
-            Score := RecordMatchMgt.CalculateExactStringNearness(BankAccReconciliationLine.Description, TextToMatch, 100)
-        else
-            Score := RecordMatchMgt.CalculateStringNearness(BankAccReconciliationLine.Description, TextToMatch, 4, 100);
+        NearScore := 0;
+        ExactScore := 0;
+        if TextToMatch = '' then
+            exit;
 
-        if Exact then
-            Max := RecordMatchMgt.CalculateExactStringNearness(BankAccReconciliationLine."Related-Party Name", TextToMatch, 100)
-        else
-            Max := RecordMatchMgt.CalculateStringNearness(BankAccReconciliationLine."Related-Party Name", TextToMatch, 4, 100);
+        FieldNear := RecordMatchMgt.CalculateStringNearness(BankAccReconciliationLine.Description, TextToMatch, 4, 100);
+        FieldExact := RecordMatchMgt.CalculateExactStringNearness(BankAccReconciliationLine.Description, TextToMatch, 100);
+        if FieldNear > NearScore then
+            NearScore := FieldNear;
+        if FieldExact > ExactScore then
+            ExactScore := FieldExact;
+        if (NearScore = 100) and (ExactScore = 100) then
+            exit;
 
-        if Max < Score then
-            Max := Score;
+        FieldNear := RecordMatchMgt.CalculateStringNearness(BankAccReconciliationLine."Related-Party Name", TextToMatch, 4, 100);
+        FieldExact := RecordMatchMgt.CalculateExactStringNearness(BankAccReconciliationLine."Related-Party Name", TextToMatch, 100);
+        if FieldNear > NearScore then
+            NearScore := FieldNear;
+        if FieldExact > ExactScore then
+            ExactScore := FieldExact;
+        if (NearScore = 100) and (ExactScore = 100) then
+            exit;
 
-        if Exact then
-            Score := RecordMatchMgt.CalculateExactStringNearness(BankAccReconciliationLine."Additional Transaction Info", TextToMatch, 100)
-        else
-            Score := RecordMatchMgt.CalculateStringNearness(BankAccReconciliationLine."Additional Transaction Info", TextToMatch, 4, 100);
+        FieldNear := RecordMatchMgt.CalculateStringNearness(BankAccReconciliationLine."Additional Transaction Info", TextToMatch, 4, 100);
+        FieldExact := RecordMatchMgt.CalculateExactStringNearness(BankAccReconciliationLine."Additional Transaction Info", TextToMatch, 100);
+        if FieldNear > NearScore then
+            NearScore := FieldNear;
+        if FieldExact > ExactScore then
+            ExactScore := FieldExact;
+        if (NearScore = 100) and (ExactScore = 100) then
+            exit;
 
-        if Max < Score then
-            Max := Score;
-
-        if Exact then
-            Score := RecordMatchMgt.CalculateExactStringNearness(BankAccReconciliationLine."Document No.", TextToMatch, 100)
-        else
-            Score := RecordMatchMgt.CalculateStringNearness(BankAccReconciliationLine."Document No.", TextToMatch, 4, 100);
-
-        if Max < Score then
-            Max := Score;
-
-        exit(Max);
+        FieldNear := RecordMatchMgt.CalculateStringNearness(BankAccReconciliationLine."Document No.", TextToMatch, 4, 100);
+        FieldExact := RecordMatchMgt.CalculateExactStringNearness(BankAccReconciliationLine."Document No.", TextToMatch, 100);
+        if FieldNear > NearScore then
+            NearScore := FieldNear;
+        if FieldExact > ExactScore then
+            ExactScore := FieldExact;
     end;
 
     procedure InitializeBLEMatchingTempTable(var TempBankAccLedgerEntryMatchingBuffer: Record "Ledger Entry Matching Buffer" temporary; var BankAccountLedgerEntry: Record "Bank Account Ledger Entry")

@@ -15,7 +15,6 @@ codeunit 137268 "SCM Package Tracking Fixes"
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibrarySales: Codeunit "Library - Sales";
-        LibrarySmallBusiness: Codeunit "Library - Small Business";
         PackageNumberIsRequired: Label 'You must assign a package number for item %1.', Comment = '%1 - Item No.';
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryWarehouse: Codeunit "Library - Warehouse";
@@ -97,8 +96,6 @@ codeunit 137268 "SCM Package Tracking Fixes"
         CopyPurchaseDocument.SetPurchHeader(PurchaseHeader);
         CopyPurchaseDocument.SetParameters("Purchase Document Type From"::"Posted Receipt", PurchRcptLine."Document No.", true, true);
         CopyPurchaseDocument.Run();
-
-        LibrarySmallBusiness.UpdatePurchHeaderDocTotal(PurchaseHeader);
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
 
         LibraryItemTracking.CheckLastItemLedgerEntry(ItemLedgerEntry, Item."No.", Location.Code, '', '', CDNo[1], -10);

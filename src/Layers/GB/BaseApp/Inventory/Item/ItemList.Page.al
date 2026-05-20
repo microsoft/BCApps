@@ -1439,6 +1439,15 @@ page 31 "Item List"
                                   "No." = field("No.");
                     ToolTip = 'View or edit substitute items that are set up to be traded instead of the item in case it is not available.';
                 }
+                action(ItemStatistics)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Item Statistics';
+                    Image = Statistics;
+                    RunObject = Page "Item Statistics 2";
+                    RunPageLink = "Item No." = field("No.");
+                    ToolTip = 'View item statistics. Summarised sales, inventory value, turnover and aging based on the selected filters, with drill-down to related ledger and value entries.';
+                }
             }
             group(Availability)
             {
@@ -1769,7 +1778,7 @@ page 31 "Item List"
                     action(Action16)
                     {
                         ApplicationArea = Suite;
-                        Caption = 'Statistics';
+                        Caption = 'Advanced Statistics';
                         Image = Statistics;
                         ShortCutKey = 'F7';
                         ToolTip = 'View statistical information, such as the value of posted entries, for the record.';

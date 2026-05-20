@@ -81,7 +81,6 @@ page 409 "Item Variant Picture"
                 begin
                     Rec.TestField("Item No.");
                     Rec.TestField(Code);
-                    Rec.TestField(Description);
                     ConvertedCodeType := Format(Rec.Code);
                     ToFile := DummyPictureEntity.GetDefaultMediaDescription(Rec);
                     ConvertedCodeType := StringConversionManager.RemoveNonAlphaNumericCharacters(ConvertedCodeType);
@@ -126,7 +125,6 @@ page 409 "Item Variant Picture"
         SelectPictureTxt: Label 'Select a picture to upload';
         DeleteExportEnabled: Boolean;
         HideActions: Boolean;
-        MustSpecifyDescriptionErr: Label 'You must add a description to the item variant before you can import a picture.';
         MimeTypeTok: Label 'image/jpeg', Locked = true;
 
     local procedure TakeNewPicture()
@@ -134,7 +132,6 @@ page 409 "Item Variant Picture"
         Rec.Find();
         Rec.TestField("Item No.");
         Rec.TestField(Code);
-        Rec.TestField(Description);
 
         Rec.OnAfterTakeNewPicture(Rec, DoTakeNewPicture());
     end;
@@ -149,8 +146,6 @@ page 409 "Item Variant Picture"
         Rec.Find();
         Rec.TestField("Item No.");
         Rec.TestField(Code);
-        if Rec.Description = '' then
-            Error(MustSpecifyDescriptionErr);
 
         if Rec.Picture.Count > 0 then
             if not Confirm(OverrideImageQst) then

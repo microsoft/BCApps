@@ -20,19 +20,12 @@ codeunit 236 "G/L Reg.-Cust.Ledger"
 
     trigger OnRun()
     begin
-        if GLEntry.Get(Rec."From Entry No.") then
-            FromTransNo := GLEntry."Transaction No.";
-        if GLEntry.Get(Rec."To Entry No.") then
-            ToTransNo := GLEntry."Transaction No.";
-
-        CustLedgEntry.SetRange("Transaction No.", FromTransNo, ToTransNo);
-        PAGE.Run(PAGE::"Customer Ledger Entries", CustLedgEntry);
+        CustLedgEntry.SetRange("Entry No.", Rec."From Entry No.", Rec."To Entry No.");
+        CustLedgEntry.SetFilter("G/L Register No.", '0|%1', Rec."No.");
+        Page.Run(Page::"Customer Ledger Entries", CustLedgEntry);
     end;
 
     var
         CustLedgEntry: Record "Cust. Ledger Entry";
-        GLEntry: Record "G/L Entry";
-        FromTransNo: Integer;
-        ToTransNo: Integer;
 }
 

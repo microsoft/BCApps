@@ -2667,7 +2667,7 @@ codeunit 137305 "SCM Warehouse Reports"
     begin
         LibraryManufacturing.CreateItemManufacturing(
           Item, Item."Costing Method"::Standard, LibraryRandom.RandDec(100, 2), Item."Reordering Policy",
-          Item."Flushing Method", '', '');
+          Item."Flushing Method"::"Pick + Manual", '', '');
         Item.Validate("Reorder Quantity", LibraryRandom.RandDec(100, 2));
         Item.Modify(true);
     end;

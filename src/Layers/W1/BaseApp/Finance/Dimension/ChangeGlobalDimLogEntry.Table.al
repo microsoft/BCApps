@@ -286,6 +286,7 @@ table 483 "Change Global Dim. Log Entry"
         ErrorTraceTagMsg: Label 'Error on the task for table %1 (completed %2 of %3 records): %4.', Comment = '%1- table id; %2 ,%3 - integer values; %4 - error message';
         RerunTraceTagMsg: Label 'Rerun the task for table %1 (start from %2 of %3 records).', Comment = '%1- table id; %2 ,%3 - integer values';
         ScheduledTraceTagMsg: Label 'The task is scheduled for table %1 (%2 records) to start on %3.', Comment = '%1- table id; %2 - integer value; %3 - datetime';
+        TaskStartTraceTagMsg: Label 'Change Global Dimensions task started for a table.', Locked = true;
         TagCategoryTxt: Label 'Change Global Dimensions';
 
     local procedure CalcProgress()
@@ -477,9 +478,13 @@ table 483 "Change Global Dim. Log Entry"
     var
         DefaultDimension: Record "Default Dimension";
         PKFieldRef: FieldRef;
+        PKValue: Text;
     begin
         PKFieldRef := RecRef.Field("Primary Key Field No.");
-        if DefaultDimension.Get(RecRef.Number, Format(PKFieldRef.Value()), DimensionCode) then
+        PKValue := Format(PKFieldRef.Value());
+        if StrLen(PKValue) > MaxStrLen(DefaultDimension."No.") then
+            exit('');
+        if DefaultDimension.Get(RecRef.Number, PKValue, DimensionCode) then
             exit(DefaultDimension."Dimension Value Code");
         exit('');
     end;
@@ -583,7 +588,7 @@ table 483 "Change Global Dim. Log Entry"
     /// </summary>
     procedure SendTraceTagOnError()
     begin
-        Session.LogMessage('00001ZB', StrSubstNo(ErrorTraceTagMsg, "Table ID", "Completed Records", "Total Records", GetLastErrorText), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TagCategoryTxt);
+        Session.LogMessage('00001ZB', StrSubstNo(ErrorTraceTagMsg, "Table ID", "Completed Records", "Total Records", GetLastErrorText), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, GetTraceTagCustomDimensions());
     end;
 
     /// <summary>
@@ -591,7 +596,7 @@ table 483 "Change Global Dim. Log Entry"
     /// </summary>
     procedure SendTraceTagOnRerun()
     begin
-        Session.LogMessage('00001ZC', StrSubstNo(RerunTraceTagMsg, "Table ID", "Completed Records", "Total Records"), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TagCategoryTxt);
+        Session.LogMessage('00001ZC', StrSubstNo(RerunTraceTagMsg, "Table ID", "Completed Records", "Total Records"), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, GetTraceTagCustomDimensions());
     end;
 
     /// <summary>
@@ -599,7 +604,29 @@ table 483 "Change Global Dim. Log Entry"
     /// </summary>
     procedure SendTraceTagOnScheduling()
     begin
-        Session.LogMessage('00001ZD', StrSubstNo(ScheduledTraceTagMsg, "Table ID", "Total Records", Format("Earliest Start Date/Time", 0, 9)), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TagCategoryTxt);
+        Session.LogMessage('00001ZD', StrSubstNo(ScheduledTraceTagMsg, "Table ID", "Total Records", Format("Earliest Start Date/Time", 0, 9)), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, GetTraceTagCustomDimensions());
+    end;
+
+    /// <summary>
+    /// Logs trace information when a scheduled session starts processing a table.
+    /// </summary>
+    procedure SendTraceTagOnTaskStart()
+    begin
+        Session.LogMessage('0000TMZ', TaskStartTraceTagMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, GetTraceTagCustomDimensions());
+    end;
+
+    local procedure GetTraceTagCustomDimensions() CustomDimensions: Dictionary of [Text, Text]
+    begin
+        CustomDimensions.Add('Category', TagCategoryTxt);
+        CustomDimensions.Add('TableId', Format("Table ID"));
+        CustomDimensions.Add('TableName', "Table Name");
+        CustomDimensions.Add('TaskId', Format("Task ID"));
+        CustomDimensions.Add('ParentTableId', Format("Parent Table ID"));
+        CustomDimensions.Add('IsParentTable', Format("Is Parent Table"));
+        CustomDimensions.Add('CompletedRecords', Format("Completed Records"));
+        CustomDimensions.Add('TotalRecords', Format("Total Records"));
+        CustomDimensions.Add('EarliestStart', Format("Earliest Start Date/Time", 0, 9));
+        CustomDimensions.Add('Status', Format(Status));
     end;
 
     /// <summary>

@@ -133,6 +133,7 @@ codeunit 483 "Change Global Dimensions"
 
     trigger OnRun()
     begin
+        Rec.SendTraceTagOnTaskStart();
         if ChangeGlobalDimLogMgt.IsBufferClear() then
             ChangeGlobalDimLogMgt.FillBuffer();
         BindSubscription(ChangeGlobalDimLogMgt);

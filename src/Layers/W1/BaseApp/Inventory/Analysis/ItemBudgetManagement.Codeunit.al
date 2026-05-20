@@ -683,6 +683,8 @@ codeunit 7130 "Item Budget Management"
     end;
 
     procedure CalculateAmount(ValueType: Enum "Item Analysis Value Type"; SetColumnFilter: Boolean; var ItemStatisticsBuf: Record "Item Statistics Buffer"; ItemBudgetName: Record "Item Budget Name"; ItemFilter: Text; SourceTypeFilter: Enum "Analysis Source Type"; SourceNoFilter: Text; DateFilter: Text; GlobalDim1Filter: Text; GlobalDim2Filter: Text; BudgetDim1Filter: Text; BudgetDim2Filter: Text; BudgetDim3Filter: Text; RowDimType: Enum "Item Budget Dimension Type"; RowDimCodeBuf: Record "Dimension Code Buffer"; ColDimType: Enum "Item Budget Dimension Type"; ColDimCodeBuf: Record "Dimension Code Buffer") Result: Decimal
+    var
+        IsHandled: Boolean;
     begin
         SetBufferFilters(
           ItemStatisticsBuf, ItemBudgetName, ItemFilter, SourceTypeFilter, SourceNoFilter,
@@ -690,6 +692,11 @@ codeunit 7130 "Item Budget Management"
         SetDimensionFilters(ItemStatisticsBuf, RowDimType, RowDimCodeBuf);
         if SetColumnFilter then
             SetDimensionFilters(ItemStatisticsBuf, ColDimType, ColDimCodeBuf);
+
+        IsHandled := false;
+        OnCalculateAmountOnBeforeValueTypeCase(ValueType, ItemStatisticsBuf, Result, IsHandled);
+        if IsHandled then
+            exit(Result);
 
         case ValueType of
             ValueType::"Sales Amount":
@@ -715,6 +722,8 @@ codeunit 7130 "Item Budget Management"
     end;
 
     procedure SetAmount(ValueType: Enum "Item Analysis Value Type"; SetColumnFilter: Boolean; var ItemStatisticsBuf: Record "Item Statistics Buffer"; ItemBudgetName: Record "Item Budget Name"; ItemFilter: Text; SourceTypeFilter: Enum "Analysis Source Type"; SourceNoFilter: Text; DateFilter: Text; GlobalDim1Filter: Text; GlobalDim2Filter: Text; BudgetDim1Filter: Text; BudgetDim2Filter: Text; BudgetDim3Filter: Text; RowDimType: Enum "Item Budget Dimension Type"; RowDimCodeBuf: Record "Dimension Code Buffer"; ColDimType: Enum "Item Budget Dimension Type"; ColDimCodeBuf: Record "Dimension Code Buffer"; NewAmount: Decimal)
+    var
+        IsHandled: Boolean;
     begin
         SetBufferFilters(
           ItemStatisticsBuf, ItemBudgetName, ItemFilter, SourceTypeFilter, SourceNoFilter,
@@ -722,6 +731,11 @@ codeunit 7130 "Item Budget Management"
         SetDimensionFilters(ItemStatisticsBuf, RowDimType, RowDimCodeBuf);
         if SetColumnFilter then
             SetDimensionFilters(ItemStatisticsBuf, ColDimType, ColDimCodeBuf);
+
+        IsHandled := false;
+        OnSetAmountOnBeforeValueTypeCase(ValueType, ItemStatisticsBuf, NewAmount, IsHandled);
+        if IsHandled then
+            exit;
 
         case ValueType of
             ValueType::"Sales Amount":
@@ -811,6 +825,16 @@ codeunit 7130 "Item Budget Management"
 
     [IntegrationEvent(false, false)]
     local procedure OnSetAmountOnValueTypeCaseElse(ItemAnalysisValueType: Enum "Item Analysis Value Type"; var ItemStatisticsBuffer: Record "Item Statistics Buffer")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCalculateAmountOnBeforeValueTypeCase(ValueType: Enum "Item Analysis Value Type"; ItemStatisticsBuf: Record "Item Statistics Buffer"; var Result: Decimal; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnSetAmountOnBeforeValueTypeCase(ValueType: Enum "Item Analysis Value Type"; var ItemStatisticsBuf: Record "Item Statistics Buffer"; var NewAmount: Decimal; var IsHandled: Boolean)
     begin
     end;
 }

@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -8,7 +8,6 @@ using Microsoft.Foundation.Navigate;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Manufacturing.Document;
-using Microsoft.Manufacturing.Journal;
 using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Routing;
 using Microsoft.Purchases.Document;
@@ -105,13 +104,20 @@ page 9038 "Production Planner Activities"
                         RunObject = Page "Planning Worksheet";
                         ToolTip = 'Plan supply orders automatically to fulfill new demand.';
                     }
+#if not CLEAN29
                     action("Edit Subcontracting Worksheet")
                     {
                         ApplicationArea = Manufacturing;
-                        Caption = 'Edit Subcontracting Worksheet';
-                        RunObject = Page "Subcontracting Worksheet";
+                        Caption = 'Edit Subcontracting Worksheet (Obsolete)';
+#pragma warning disable AL0432
+                        RunObject = Page Microsoft.Manufacturing.Journal."Subcontracting Worksheet";
+#pragma warning restore AL0432
+                        ObsoleteReason = 'Will be replaced by the Subcontracting App.';
+                        ObsoleteState = Pending;
+                        ObsoleteTag = '29.0';
                         ToolTip = 'Plan outsourcing of operation on released production orders.';
                     }
+#endif
                 }
             }
             cuegroup(Design)
@@ -199,4 +205,3 @@ page 9038 "Production Planner Activities"
         EnvironmentInfo: Codeunit "Environment Information";
         ShowIntelligentCloud: Boolean;
 }
-

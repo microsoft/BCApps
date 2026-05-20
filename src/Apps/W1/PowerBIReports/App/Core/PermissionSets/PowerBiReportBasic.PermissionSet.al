@@ -49,6 +49,7 @@ permissionset 36951 "PowerBi Report Basic"
         page "Working Days" = X,
         page "Working Days Setup" = X,
         page "Working Days Subform" = X,
+        page "PBI Report Deploy. Selection" = X,
         page "Account Categories" = X,
         query "Account Categories" = X,
         query "Resources - PBI API" = X,

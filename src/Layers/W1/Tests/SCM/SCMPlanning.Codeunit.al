@@ -32,6 +32,8 @@ codeunit 137020 "SCM Planning"
         StringsMustBeIdenticalErr: Label 'Strings must be identical.';
         RoutingType: Option Serial,Parallel;
         SalesHeaderMustNotBeFoundErr: Label 'Sales Header must not be found.';
+        ActionMessageShouldBeNewErr: Label 'Action Message should be New';
+        PlannedQtyShouldNotExceedSafetyStockErr: Label 'Planned quantity should not exceed safety stock quantity.';
 
     local procedure GlobalSetup()
     begin
@@ -5200,6 +5202,199 @@ codeunit 137020 "SCM Planning"
         Assert.RecordIsEmpty(RequisitionLine);
     end;
 
+    [Test]
+    [HandlerFunctions('AutomaticReservationConfirmHandler,ReservationModalPageHandler')]
+    [Scope('OnPrem')]
+    procedure DampenerPeriodDoesNotInflateSafetyStockQtyForLotForLotItem()
+    var
+        Item: Record Item;
+        Location: Record Location;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        PurchaseHeader: array[2] of Record "Purchase Header";
+        PurchaseLine: array[2] of Record "Purchase Line";
+        RequisitionLine: Record "Requisition Line";
+        ItemJournalLine: Record "Item Journal Line";
+        ReceiptDate1: Date;
+        ShipmentDate: Date;
+        ReceiptDate2: Date;
+        InventoryQty: Integer;
+        SalesQty: Integer;
+        PurchaseQty1: Integer;
+        PurchaseQty2: Integer;
+        SafetyStockQty: Integer;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 576033] Dampener period should not inflate planned quantity beyond safety stock for Lot-for-Lot item with existing supply and demand
+        Initialize();
+
+        // [GIVEN] Location "L" with Inventory Posting Setup, Components at Location = "L"
+        TestSetup();
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+        LibraryManufacturing.SetComponentsAtLocation(Location.Code);
+
+        // [GIVEN] Item "I" with Lot-for-Lot reordering, Safety Stock, Dampener Period, Lot Accumulation Period
+        SafetyStockQty := LibraryRandom.RandIntInRange(25, 35);
+        LFLItemSetup(Item, true, '', '<4M>', '<4M>', 0, SafetyStockQty, 0);
+
+        // [GIVEN] Positive adjustment for Item "I" at Location "L"
+        InventoryQty := LibraryRandom.RandIntInRange(8, 15);
+        LibraryInventory.CreateItemJournalLineInItemTemplate(ItemJournalLine, Item."No.", Location.Code, '', InventoryQty);
+        LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+
+        // [GIVEN] Sales Order for Item "I" at Location "L", Receipt Date 1 < Shipment Date < Receipt Date 2
+        PurchaseQty1 := LibraryRandom.RandIntInRange(5, 10);
+        PurchaseQty2 := LibraryRandom.RandIntInRange(5, 10);
+        SalesQty := InventoryQty + PurchaseQty1 + PurchaseQty2 + LibraryRandom.RandIntInRange(1, 10);
+        ReceiptDate1 := CalcDate(PlanningStartDate, WorkDate()) + LibraryRandom.RandIntInRange(3, 7);
+        ShipmentDate := ReceiptDate1 + LibraryRandom.RandIntInRange(3, 7);
+        ReceiptDate2 := ShipmentDate + LibraryRandom.RandIntInRange(3, 7);
+        CreateSalesOrder(SalesHeader, SalesLine, Item, SalesQty, ShipmentDate);
+        SalesLine.Validate("Location Code", Location.Code);
+        SalesLine.Modify(true);
+
+        // [GIVEN] Reserve sales line against inventory
+        LibrarySales.AutoReserveSalesLine(SalesLine);
+
+        // [GIVEN] Purchase Order for Item "I" at Location "L"
+        CreatePurchaseOrder(PurchaseHeader[1], PurchaseLine[1], Item, PurchaseQty1, ReceiptDate1);
+        PurchaseLine[1].Validate("Location Code", Location.Code);
+        PurchaseLine[1].Modify(true);
+
+        // [GIVEN] Another Purchase Order for Item "I" at Location "L"
+        CreatePurchaseOrder(PurchaseHeader[2], PurchaseLine[2], Item, PurchaseQty2, ReceiptDate2);
+        PurchaseLine[2].Validate("Location Code", Location.Code);
+        PurchaseLine[2].Modify(true);
+
+        // [WHEN] Calculate Regenerative Plan for Item "I" at Location "L"
+        Item.SetRange("No.", Item."No.");
+        Item.SetRange("Location Filter", Location.Code);
+        LibraryPlanning.CalcRegenPlanForPlanWksh(Item, CalcDate(PlanningStartDate, WorkDate()), CalcDate(PlanningEndDate, WorkDate()));
+
+        // [THEN] Planning suggests exactly 1 line with New action message
+        FilterRequisitionLine(RequisitionLine, Item."No.");
+        RequisitionLine.SetRange("Location Code", Location.Code);
+        RequisitionLine.FindFirst();
+        Assert.AreEqual(RequisitionLine."Action Message"::New, RequisitionLine."Action Message", ActionMessageShouldBeNewErr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure DampenerPeriodAcceptsSupplyWhenUntrackedQtyMeetsSafetyStock()
+    var
+        Item: Record Item;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        RequisitionLine: Record "Requisition Line";
+        SafetyStockQty: Integer;
+        PurchaseQty: Integer;
+        SalesQty: Integer;
+        ReceiptDate: Date;
+        ShipmentDate: Date;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] When untracked quantity on supply >= safety stock, dampener guard does not trigger and supply is accepted in place
+        Initialize();
+
+        // [GIVEN] Item "I" with Lot-for-Lot reordering, Safety Stock = 10, Dampener Period = 4M, Lot Accumulation Period = 4M
+        TestSetup();
+        SafetyStockQty := 10;
+        LFLItemSetup(Item, true, '', '<4M>', '<4M>', 0, SafetyStockQty, 0);
+
+        // [GIVEN] Purchase Order "PO" for Item "I" with Qty = 50 (untracked qty will be >= safety stock)
+        PurchaseQty := 50;
+        ReceiptDate := CalcDate(PlanningStartDate, WorkDate()) + LibraryRandom.RandIntInRange(3, 7);
+        ShipmentDate := ReceiptDate + LibraryRandom.RandIntInRange(3, 7);
+        CreatePurchaseOrder(PurchaseHeader, PurchaseLine, Item, PurchaseQty, ReceiptDate);
+
+        // [GIVEN] Sales Order for Item "I" with Qty = 30, Shipment Date within dampener window after Receipt Date
+        SalesQty := 30;
+        CreateSalesOrder(SalesHeader, SalesLine, Item, SalesQty, ShipmentDate);
+
+        // [WHEN] Calculate Regenerative Plan for Item "I"
+        Item.SetRange("No.", Item."No.");
+        LibraryPlanning.CalcRegenPlanForPlanWksh(Item, CalcDate(PlanningStartDate, WorkDate()), CalcDate(PlanningEndDate, WorkDate()));
+
+        // [THEN] Planning does not create a New requisition line — the existing supply is accepted in place
+        FilterRequisitionLine(RequisitionLine, Item."No.");
+        RequisitionLine.SetRange("Action Message", RequisitionLine."Action Message"::"Resched. & Chg. Qty.");
+        Assert.RecordIsEmpty(RequisitionLine);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ReschedulingPeriodDoesNotInflateSafetyStockQtyForLotForLotItem()
+    var
+        Item: Record Item;
+        Location: Record Location;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        PurchaseHeader: array[2] of Record "Purchase Header";
+        PurchaseLine: array[2] of Record "Purchase Line";
+        RequisitionLine: Record "Requisition Line";
+        ItemJournalLine: Record "Item Journal Line";
+        ReceiptDate1: Date;
+        ShipmentDate: Date;
+        ReceiptDate2: Date;
+        InventoryQty: Integer;
+        SalesQty: Integer;
+        PurchaseQty1: Integer;
+        PurchaseQty2: Integer;
+        SafetyStockQty: Integer;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] Rescheduling period should not inflate planned quantity beyond safety stock for Lot-for-Lot item
+        Initialize();
+
+        // [GIVEN] Location "L" with Inventory Posting Setup
+        TestSetup();
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+        SafetyStockQty := LibraryRandom.RandIntInRange(25, 35);
+        LFLItemSetup(Item, true, '<4M>', '<4M>', '', 0, SafetyStockQty, 0);
+
+        // [GIVEN] Positive adjustment for Item "I" at Location "L"
+        InventoryQty := LibraryRandom.RandIntInRange(8, 15);
+        LibraryInventory.CreateItemJournalLineInItemTemplate(ItemJournalLine, Item."No.", Location.Code, '', InventoryQty);
+        LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+
+        // [GIVEN] Purchase Orders and Sales Order creating supply/demand scenario
+        PurchaseQty1 := LibraryRandom.RandIntInRange(5, 10);
+        PurchaseQty2 := LibraryRandom.RandIntInRange(5, 10);
+        SalesQty := InventoryQty + PurchaseQty1 + PurchaseQty2 + LibraryRandom.RandIntInRange(1, 10);
+        ReceiptDate1 := CalcDate(PlanningStartDate, WorkDate()) + LibraryRandom.RandIntInRange(3, 7);
+        ShipmentDate := ReceiptDate1 + LibraryRandom.RandIntInRange(3, 7);
+        ReceiptDate2 := ShipmentDate + LibraryRandom.RandIntInRange(3, 7);
+        CreateSalesOrder(SalesHeader, SalesLine, Item, SalesQty, ShipmentDate);
+        SalesLine.Validate("Location Code", Location.Code);
+        SalesLine.Modify(true);
+
+        // [GIVEN] Purchase Order 1 for Item "I" at Location "L"
+        CreatePurchaseOrder(PurchaseHeader[1], PurchaseLine[1], Item, PurchaseQty1, ReceiptDate1);
+        PurchaseLine[1].Validate("Location Code", Location.Code);
+        PurchaseLine[1].Modify(true);
+
+        // [GIVEN] Purchase Order 2 for Item "I" at Location "L"
+        CreatePurchaseOrder(PurchaseHeader[2], PurchaseLine[2], Item, PurchaseQty2, ReceiptDate2);
+        PurchaseLine[2].Validate("Location Code", Location.Code);
+        PurchaseLine[2].Modify(true);
+
+        // [WHEN] Calculate Regenerative Plan for Item "I" at Location "L"
+        Item.SetRange("No.", Item."No.");
+        Item.SetRange("Location Filter", Location.Code);
+        LibraryPlanning.CalcRegenPlanForPlanWksh(Item, CalcDate(PlanningStartDate, WorkDate()), CalcDate(PlanningEndDate, WorkDate()));
+
+        // [THEN] Planning suggests lines where planned quantity does not exceed safety stock quantity
+        FilterRequisitionLine(RequisitionLine, Item."No.");
+        RequisitionLine.SetRange("Location Code", Location.Code);
+        RequisitionLine.SetRange("Action Message", RequisitionLine."Action Message"::New);
+        if RequisitionLine.FindSet() then
+            repeat
+                Assert.IsTrue(RequisitionLine.Quantity <= SafetyStockQty, PlannedQtyShouldNotExceedSafetyStockErr);
+            until RequisitionLine.Next() = 0;
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -5455,6 +5650,18 @@ codeunit 137020 "SCM Planning"
     begin
         CalculatePlanPlanWksh.NoPlanningResiliency.SetValue(true);
         CalculatePlanPlanWksh.OK().Invoke();
+    end;
+
+    [ConfirmHandler]
+    procedure AutomaticReservationConfirmHandler(ConfirmMessage: Text[1024]; var Reply: Boolean)
+    begin
+        Reply := true;
+    end;
+
+    [ModalPageHandler]
+    procedure ReservationModalPageHandler(var ReservationPage: TestPage Reservation)
+    begin
+        ReservationPage.OK().Invoke();
     end;
 }
 

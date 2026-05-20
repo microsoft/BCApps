@@ -1060,7 +1060,10 @@ page 233 "Apply Vendor Entries"
         IsHandled: Boolean;
     begin
         IsHandled := false;
-        OnBeforeCalcApplnAmount(Rec, GenJnlLine, PurchHeader, AppliedVendLedgEntry, CalcType, ApplnType, IsHandled);
+        OnBeforeCalcApplnAmount(
+            Rec, GenJnlLine, PurchHeader, AppliedVendLedgEntry, CalcType, ApplnType, IsHandled,
+            ApplnDate, ApplnCurrencyCode, AmountRoundingPrecision, AppliedAmount,
+            ApplnRoundingPrecision, PmtDiscAmount, DifferentCurrenciesInAppln, ApplnRounding, ApplyingAmount);
         if not IsHandled then begin
             AppliedAmount := 0;
             PmtDiscAmount := 0;
@@ -1308,7 +1311,9 @@ page 233 "Apply Vendor Entries"
         IsHandled: Boolean;
     begin
         IsHandled := false;
-        OnBeforeHandledChosenEntries(Type.AsInteger(), CurrentAmount, CurrencyCode, PostingDate, AppliedVendLedgEntry, IsHandled, VendLedgEntry);
+        OnBeforeHandledChosenEntries(
+            Type.AsInteger(), CurrentAmount, CurrencyCode, PostingDate, AppliedVendLedgEntry, IsHandled, VendLedgEntry,
+            PmtDiscAmount, AppliedAmount, DifferentCurrenciesInAppln, ApplnCurrencyCode, GenJnlLine2);
         if IsHandled then
             exit;
 
@@ -1542,7 +1547,7 @@ page 233 "Apply Vendor Entries"
                 CalcVendLedgEntry."Amount to Apply", CalcVendLedgEntry."Currency Code", CurrencyCode, PostingDate);
         end;
 
-        OnAfterExchangeLedgerEntryAmounts(CalcVendLedgEntry, VendLedgEntry, CurrencyCode);
+        OnAfterExchangeLedgerEntryAmounts(CalcVendLedgEntry, VendLedgEntry, CurrencyCode, PostingDate);
     end;
 
     local procedure IsTheApplicationValid()
@@ -1628,7 +1633,7 @@ page 233 "Apply Vendor Entries"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterExchangeLedgerEntryAmounts(var CalcVendorLedgerEntry: Record "Vendor Ledger Entry"; VendorLedgerEntry: Record "Vendor Ledger Entry"; CurrencyCode: Code[10])
+    local procedure OnAfterExchangeLedgerEntryAmounts(var CalcVendorLedgerEntry: Record "Vendor Ledger Entry"; VendorLedgerEntry: Record "Vendor Ledger Entry"; CurrencyCode: Code[10]; PostingDate: Date)
     begin
     end;
 
@@ -1648,7 +1653,7 @@ page 233 "Apply Vendor Entries"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCalcApplnAmount(var VendorLedgerEntry: Record "Vendor Ledger Entry"; var GenJournalLine: Record "Gen. Journal Line"; PurchaseHeader: record "Purchase Header"; AppliedVendLedgEntry: Record "Vendor Ledger Entry"; CalcType: Enum "Vendor Apply Calculation Type"; ApplnType: Enum "Vendor Apply-to Type"; var IsHandled: Boolean)
+    local procedure OnBeforeCalcApplnAmount(var VendorLedgerEntry: Record "Vendor Ledger Entry"; var GenJournalLine: Record "Gen. Journal Line"; PurchaseHeader: record "Purchase Header"; AppliedVendLedgEntry: Record "Vendor Ledger Entry"; CalcType: Enum "Vendor Apply Calculation Type"; ApplnType: Enum "Vendor Apply-to Type"; var IsHandled: Boolean; ApplnDate: Date; ApplnCurrencyCode: Code[10]; AmountRoundingPrecision: Decimal; var AppliedAmount: Decimal; ApplnRoundingPrecision: Decimal; var PmtDiscAmount: Decimal; var DifferentCurrenciesInAppln: Boolean; var ApplnRounding: Decimal; ApplyingAmount: Decimal)
     begin
     end;
 
@@ -1668,7 +1673,7 @@ page 233 "Apply Vendor Entries"
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnBeforeHandledChosenEntries(Type: Option Direct,GenJnlLine,PurchHeader; CurrentAmount: Decimal; CurrencyCode: Code[10]; PostingDate: Date; var AppliedVendLedgEntry: Record "Vendor Ledger Entry"; var IsHandled: Boolean; var VendorLedgerEntry: Record "Vendor Ledger Entry")
+    local procedure OnBeforeHandledChosenEntries(Type: Option Direct,GenJnlLine,PurchHeader; CurrentAmount: Decimal; CurrencyCode: Code[10]; PostingDate: Date; var AppliedVendLedgEntry: Record "Vendor Ledger Entry"; var IsHandled: Boolean; var VendorLedgerEntry: Record "Vendor Ledger Entry"; var PmtDiscAmount: Decimal; var AppliedAmount: Decimal; var DifferentCurrenciesInAppln: Boolean; ApplnCurrencyCode: Code[10]; GenJournalLine2: Record "Gen. Journal Line")
     begin
     end;
 

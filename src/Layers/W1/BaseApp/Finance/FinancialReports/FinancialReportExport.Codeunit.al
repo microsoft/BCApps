@@ -19,25 +19,37 @@ codeunit 8360 "Financial Report Export"
     [EventSubscriber(ObjectType::Table, Database::"Financial Report Schedule", OnAfterInsertEvent, '', true, true)]
     local procedure FinancialReportScheduleOnAfterInsert(var Rec: Record "Financial Report Schedule"; RunTrigger: Boolean)
     begin
-        if RunTrigger then
-            ScheduleJob(Rec);
+        if RunTrigger and not Rec.IsTemporary() then
+            ScheduleJob();
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Financial Report Schedule", OnAfterModifyEvent, '', true, true)]
     local procedure FinancialReportScheduleOnAfterModify(var Rec: Record "Financial Report Schedule"; RunTrigger: Boolean)
     begin
-        if RunTrigger then
-            ScheduleJob(Rec);
+        if RunTrigger and not Rec.IsTemporary() then
+            ScheduleJob();
     end;
 
-    local procedure ScheduleJob(var FinancialReportSchedule: Record "Financial Report Schedule")
+    [EventSubscriber(ObjectType::Table, Database::"Fin. Report Package Schedule", OnAfterInsertEvent, '', true, true)]
+    local procedure FinRepPackageScheduleOnAfterInsert(var Rec: Record "Fin. Report Package Schedule"; RunTrigger: Boolean)
+    begin
+        if RunTrigger and not Rec.IsTemporary() then
+            ScheduleJob();
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Fin. Report Package Schedule", OnAfterModifyEvent, '', true, true)]
+    local procedure FinRepPackageScheduleOnAfterModify(var Rec: Record "Fin. Report Package Schedule"; RunTrigger: Boolean)
+    begin
+        if RunTrigger and not Rec.IsTemporary() then
+            ScheduleJob();
+    end;
+
+    procedure ScheduleJob()
     var
         JobQueueEntry: Record "Job Queue Entry";
         AzureADGraphUser: Codeunit "Azure AD Graph User";
         BlankRecId: RecordId;
     begin
-        if FinancialReportSchedule.IsTemporary() then
-            exit;
         if GetCurrentModuleExecutionContext() <> ExecutionContext::Normal then
             exit;
         if not JobQueueEntry.HasRequiredPermissions() then
@@ -56,7 +68,7 @@ codeunit 8360 "Financial Report Export"
                 JobQueueEntry."Object Type to Run"::Codeunit,
                 Codeunit::"Financial Report Export Job",
                 BlankRecId,
-                10);
+                60);
             JobQueueEntry.Description := JobQueueDescTxt;
             JobQueueEntry.Modify();
         end;

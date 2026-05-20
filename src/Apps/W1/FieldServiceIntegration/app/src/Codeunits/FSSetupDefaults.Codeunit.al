@@ -362,7 +362,7 @@ codeunit 6611 "FS Setup Defaults"
 
         OnAfterResetResourceBookableResourceMapping(IntegrationTableMappingName);
 
-        RecreateJobQueueEntryFromIntTableMapping(IntegrationTableMapping, 1, ShouldRecreateJobQueueEntry, 5);
+        RecreateJobQueueEntryFromIntTableMapping(IntegrationTableMapping, 30, ShouldRecreateJobQueueEntry, 1440);
     end;
 
     internal procedure ResetServiceItemCustomerAssetMapping(var FSConnectionSetup: Record "FS Connection Setup"; IntegrationTableMappingName: Code[20]; ShouldRecreateJobQueueEntry: Boolean)
@@ -431,7 +431,7 @@ codeunit 6611 "FS Setup Defaults"
 
         OnAfterResetServiceItemCustomerAssetMapping(IntegrationTableMappingName);
 
-        RecreateJobQueueEntryFromIntTableMapping(IntegrationTableMapping, 1, ShouldRecreateJobQueueEntry, 5);
+        RecreateJobQueueEntryFromIntTableMapping(IntegrationTableMapping, 30, ShouldRecreateJobQueueEntry, 1440);
     end;
 
     internal procedure ResetLocationMapping(var FSConnectionSetup: Record "FS Connection Setup"; IntegrationTableMappingName: Code[20]; ShouldRecreateJobQueueEntry: Boolean; SkipLocationMandatoryCheck: Boolean)
@@ -485,7 +485,7 @@ codeunit 6611 "FS Setup Defaults"
 
         OnResetLocationMappingOnAfterInsertFieldMapping(IntegrationTableMappingName);
 
-        RecreateJobQueueEntryFromIntTableMapping(IntegrationTableMapping, 1, ShouldRecreateJobQueueEntry, 5);
+        RecreateJobQueueEntryFromIntTableMapping(IntegrationTableMapping, 30, ShouldRecreateJobQueueEntry, 1440);
     end;
 
     local procedure ResetServiceOrderTypeMapping(var FSConnectionSetup: Record "FS Connection Setup"; IntegrationTableMappingName: Code[20]; ShouldRecreateJobQueueEntry: Boolean)
@@ -545,7 +545,7 @@ codeunit 6611 "FS Setup Defaults"
 
         OnResetServiceOrderTypeMappingOnAfterInsertFieldsMapping(IntegrationTableMappingName);
 
-        RecreateJobQueueEntryFromIntTableMapping(IntegrationTableMapping, 1, ShouldRecreateJobQueueEntry, 30);
+        RecreateJobQueueEntryFromIntTableMapping(IntegrationTableMapping, 30, ShouldRecreateJobQueueEntry, 1440);
     end;
 
     local procedure ResetServiceOrderMapping(var FSConnectionSetup: Record "FS Connection Setup"; IntegrationTableMappingName: Code[20]; ShouldRecreateJobQueueEntry: Boolean)

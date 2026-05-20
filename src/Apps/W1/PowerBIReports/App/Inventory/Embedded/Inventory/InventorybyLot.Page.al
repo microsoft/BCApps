@@ -48,11 +48,8 @@ page 37029 "Inventory by Lot"
         ReportPageLbl: Label 'ReportSectionec09da5413c3755982a4', Locked = true;
 
     trigger OnOpenPage()
-    var
-        PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
-        SetupHelper.EnsureUserAcceptedPowerBITerms();
-        ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Inventory Report Id"));
+        ReportId := SetupHelper.OpenPowerBIEmbeddedReportPageValidation("PBI Report Setup"::"Inventory App");
     end;
 }
 

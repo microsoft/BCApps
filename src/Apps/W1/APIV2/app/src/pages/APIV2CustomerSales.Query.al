@@ -11,6 +11,7 @@ query 30000 "APIV2 - Customer Sales"
     EntityName = 'customerSale';
     EntitySetName = 'customerSales';
     QueryType = API;
+    AboutText = 'Aggregated customer sales data including total sales amounts summarized from posted invoices and credit memos. Supports date filtering to analyze sales by customer over specific periods.';
 
     elements
     {

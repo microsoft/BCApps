@@ -158,7 +158,7 @@ codeunit 1521 "Workflow Response Handling"
                     AddResponsePredecessor(
                         SetStatusToPendingApprovalCode(), WorkflowEventHandling.RunWorkflowOnCustomerCreditLimitNotExceededCode());
                     AddResponsePredecessor(
-                SetStatusToPendingApprovalCode(), WorkflowEventHandling.RunWorkflowOnSendJobQueueEntryForApprovalCode());
+                        SetStatusToPendingApprovalCode(), WorkflowEventHandling.RunWorkflowOnSendJobQueueEntryForApprovalCode());
                 end;
             CreateApprovalRequestsCode():
                 begin
@@ -195,7 +195,9 @@ codeunit 1521 "Workflow Response Handling"
                     AddResponsePredecessor(
                         CreateApprovalRequestsCode(), WorkflowEventHandling.RunWorkflowOnSendRequisitionWkshBatchForApprovalCode());
                     AddResponsePredecessor(
-                CreateApprovalRequestsCode(), WorkflowEventHandling.RunWorkflowOnSendJobQueueEntryForApprovalCode());
+                        CreateApprovalRequestsCode(), WorkflowEventHandling.RunWorkflowOnSendJobQueueEntryForApprovalCode());
+                    AddResponsePredecessor(
+                        CreateApprovalRequestsCode(), WorkflowEventHandling.RunWorkflowOnSendVendorBankAccountForApprovalCode());
                 end;
             SendApprovalRequestForApprovalCode():
                 begin
@@ -236,7 +238,9 @@ codeunit 1521 "Workflow Response Handling"
                     AddResponsePredecessor(
                         SendApprovalRequestForApprovalCode(), WorkflowEventHandling.RunWorkflowOnDelegateApprovalRequestCode());
                     AddResponsePredecessor(
-                SendApprovalRequestForApprovalCode(), WorkflowEventHandling.RunWorkflowOnSendJobQueueEntryForApprovalCode());
+                        SendApprovalRequestForApprovalCode(), WorkflowEventHandling.RunWorkflowOnSendJobQueueEntryForApprovalCode());
+                    AddResponsePredecessor(
+                        SendApprovalRequestForApprovalCode(), WorkflowEventHandling.RunWorkflowOnSendVendorBankAccountForApprovalCode());
                 end;
             ReleaseDocumentCode():
                 begin
@@ -258,6 +262,7 @@ codeunit 1521 "Workflow Response Handling"
                     AddResponsePredecessor(OpenDocumentCode(), WorkflowEventHandling.RunWorkflowOnCancelGeneralJournalBatchApprovalRequestCode());
                     AddResponsePredecessor(OpenDocumentCode(), WorkflowEventHandling.RunWorkflowOnCancelItemJournalBatchApprovalRequestCode());
                     AddResponsePredecessor(OpenDocumentCode(), WorkflowEventHandling.RunWorkflowOnCancelRequisitionWkshBatchApprovalRequestCode());
+                    AddResponsePredecessor(OpenDocumentCode(), WorkflowEventHandling.RunWorkflowOnCancelVendorBankAccountApprovalRequestCode());
                 end;
             CancelAllApprovalRequestsCode():
                 begin
@@ -282,7 +287,9 @@ codeunit 1521 "Workflow Response Handling"
                     AddResponsePredecessor(
                         CancelAllApprovalRequestsCode(), WorkflowEventHandling.RunWorkflowOnCancelRequisitionWkshBatchApprovalRequestCode());
                     AddResponsePredecessor(
-                CancelAllApprovalRequestsCode(), WorkflowEventHandling.RunWorkflowOnCancelJobQueueEntryApprovalRequestCode());
+                        CancelAllApprovalRequestsCode(), WorkflowEventHandling.RunWorkflowOnCancelJobQueueEntryApprovalRequestCode());
+                    AddResponsePredecessor(
+                        CancelAllApprovalRequestsCode(), WorkflowEventHandling.RunWorkflowOnCancelVendorBankAccountApprovalRequestCode());
                 end;
             RevertValueForFieldCode():
                 begin
@@ -1107,8 +1114,10 @@ codeunit 1521 "Workflow Response Handling"
     begin
         OnBeforeAddResponseToLibrary(FunctionName, Description);
 
-        if WorkflowResponse.Get(FunctionName) then
+        if WorkflowResponse.Get(FunctionName) then begin
+            AddResponsePredecessors(FunctionName);
             exit;
+        end;
 
         WorkflowResponse.SetRange(Description, Description);
         if not WorkflowResponse.IsEmpty() then begin

@@ -6973,4 +6973,3 @@
         SuggestWorksheetLines.OK().Invoke();
     end;
 }
-

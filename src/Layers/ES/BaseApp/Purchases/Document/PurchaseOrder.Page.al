@@ -2367,6 +2367,8 @@ page 50 "Purchase Order"
         SIIManagement.CombineOperationDescription(Rec."Operation Description", Rec."Operation Description 2", OperationDescription);
         UpdateDocHasRegimeCode();
         StatusStyleTxt := Rec.GetStatusStyleText();
+        BuyFromContact.GetOrClear(Rec."Buy-from Contact No.");
+        PayToContact.GetOrClear(Rec."Pay-to Contact No.");
     end;
 
     trigger OnAfterGetRecord()

@@ -74,7 +74,7 @@ pageextension 99001523 "Subc. Purch. Order" extends "Purchase Order"
                 ApplicationArea = Manufacturing;
                 Caption = 'Print Subcontractor Dispatching List';
                 Image = Print;
-                ToolTip = 'Prints the Dispatching List for the subcontractor.';
+                ToolTip = 'Print the dispatching list for the subcontractor.';
 
                 trigger OnAction()
                 var

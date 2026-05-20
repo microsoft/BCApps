@@ -4100,6 +4100,68 @@
         NotificationLifecycleMgt.RecallAllNotifications();
     end;
 
+    [Test]
+    procedure SalesPrepmtInvAndFinalInvUseSameGenBusPostingGroup()
+    var
+        GenBusPostingGroup: Record "Gen. Business Posting Group";
+        GenPostingSetup: Record "General Posting Setup";
+        GLEntry: Record "G/L Entry";
+        LineGLAccount: Record "G/L Account";
+        SalesHeader: Record "Sales Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        SalesLine: Record "Sales Line";
+        VATPostingSetup: Record "VAT Posting Setup";
+        FinalInvNo: Code[20];
+        PrepmtAccountNo: Code[20];
+        PrepmtInvNo: Code[20];
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 631454] Prepayment invoice and final sales invoice G/L entries on prepayment account use the same Gen. Bus. Posting Group from the line
+        Initialize();
+
+        // [GIVEN] Sales Order "SO" with Prepayment % and a sales line with G/L Account "GA"
+        CreatePrepmtVATSetup(LineGLAccount, LineGLAccount."Gen. Posting Type"::Sale);
+        CustomerNo := CreateCustomerWithPostingSetup(LineGLAccount);
+        CreateSalesHeaderWithPrepaymentPercentage(SalesHeader, CustomerNo);
+        CreateSalesLinesWithQtyToShip(SalesLine, SalesHeader, LineGLAccount);
+
+        // [GIVEN] Create a different Gen. Bus. Posting Group "GB" with General Posting Setup and VAT Posting Setup
+        LibraryERM.FindVATPostingSetup(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT");
+        LibraryERM.CreateGenBusPostingGroup(GenBusPostingGroup);
+        GenBusPostingGroup."Def. VAT Bus. Posting Group" := VATPostingSetup."VAT Bus. Posting Group";
+        GenBusPostingGroup.Modify();
+        LibraryERM.CreateGeneralPostingSetup(GenPostingSetup, GenBusPostingGroup.Code, LineGLAccount."Gen. Prod. Posting Group");
+        LibraryERM.SetGeneralPostingSetupInvtAccounts(GenPostingSetup);
+        LibraryERM.SetGeneralPostingSetupSalesAccounts(GenPostingSetup);
+        GenPostingSetup."Sales Prepayments Account" := LineGLAccount."No.";
+        GenPostingSetup.Modify();
+        LibraryERM.CreateVATPostingSetup(VATPostingSetup, GenBusPostingGroup."Def. VAT Bus. Posting Group", LineGLAccount."VAT Prod. Posting Group");
+
+        // [GIVEN] Gen. Bus. Posting Group on sales line is changed to "GB"
+        SalesLine.Validate("Gen. Bus. Posting Group", GenBusPostingGroup.Code);
+        SalesLine.Modify(true);
+
+        // [WHEN] Post Prepayment Invoice and then post the Sales Order
+        PrepmtInvNo := LibrarySales.PostSalesPrepaymentInvoice(SalesHeader);
+        FinalInvNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [THEN] G/L Entry from prepayment invoice has Gen. Bus. Posting Group = "GB" and G/L Account No. = prepayment account
+        GenPostingSetup.Get(SalesLine."Gen. Bus. Posting Group", SalesLine."Gen. Prod. Posting Group");
+        PrepmtAccountNo := GenPostingSetup.GetSalesPrepmtAccount();
+        FindGLEntryByBusPostingGroup(GLEntry, PrepmtInvNo, GenBusPostingGroup.Code);
+        Assert.AreEqual(PrepmtAccountNo, GLEntry."G/L Account No.", StrSubstNo(AmountErr, GLEntry.FieldCaption("G/L Account No."), PrepmtAccountNo, GLEntry.TableCaption()));
+
+        // [THEN] G/L Entry from final invoice for prepayment reversal has Gen. Bus. Posting Group = "GB"
+        SalesInvoiceHeader.Get(FinalInvNo);
+        FindGLEntryByBusPostingGroup(GLEntry, SalesInvoiceHeader."No.", GenBusPostingGroup.Code);
+        GLEntry.SetRange("G/L Account No.", PrepmtAccountNo);
+        GLEntry.FindFirst();
+        Assert.AreEqual(GenBusPostingGroup.Code, GLEntry."Gen. Bus. Posting Group", StrSubstNo(AmountErr, GLEntry.FieldCaption("Gen. Bus. Posting Group"), GenBusPostingGroup.Code, GLEntry.TableCaption()));
+
+        // Tear down
+        TearDownVATPostingSetup(SalesHeader."VAT Bus. Posting Group");
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";

@@ -152,6 +152,7 @@ permissionset 208 "D365 Basic - Edit"
                   tabledata "Buffer IC Inbox Sales Line" = IMD,
                   tabledata "Buffer IC Inbox Transaction" = IMD,
                   tabledata "Buffer IC InOut Jnl. Line Dim." = IMD,
+                  tabledata "IC API Log" = IMD,
                   tabledata "IC Incoming Notification" = IMD,
                   tabledata "IC Outgoing Notification" = IMD,
                   tabledata Chart = imd,

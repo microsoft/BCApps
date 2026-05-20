@@ -3738,9 +3738,11 @@ codeunit 136102 "Service Contracts"
         LibraryERMCountryData.UpdateSalesReceivablesSetup();
         LibraryERMCountryData.UpdateGeneralPostingSetup();
         InitializeServiceContractTemplates();
+        LibraryERMCountryData.UpdateJournalTemplMandatory(false);
 
         LibrarySetupStorage.Save(DATABASE::"Service Mgt. Setup");
-        LibrarySetupStorage.Save(DATABASE::"Sales & Receivables Setup");
+        LibrarySetupStorage.SaveSalesSetup();
+        LibrarySetupStorage.SaveGeneralLedgerSetup();
 
         isInitialized := true;
         Commit();

@@ -1847,6 +1847,126 @@ codeunit 139175 "CRM Sales Order Integr. Test"
         Assert.AreNotEqual(SalesLine."Reserved Quantity", 0, 'Reserved quantity should not be equal to zero.');
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure SyncFromCRMKeepsReleasedStatusWhenPrepaymentFullyInvoiced()
+    var
+        CRMSalesorder: Record "CRM Salesorder";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        IntegrationTableMapping: Record "Integration Table Mapping";
+        CRMIntTableSubscriber: Codeunit "CRM Int. Table. Subscriber";
+        ExtensionManagement: Codeunit "Extension Management";
+        SourceRecordRef: RecordRef;
+        DestinationRecordRef: RecordRef;
+        CZAdvancePaymentsAppIdTok: Label 'd6636d6f-155e-4490-9979-ec323a6b7c81', Locked = true;
+    begin
+        // [SCENARIO] CRM-to-BC sync must not revert a Released sales order to Open
+        // when its prepayment has been fully invoiced
+
+        // The CZ Advance Payments localization (app id d6636d6f-155e-4490-9979-ec323a6b7c81)
+        // forces TestSalesPrepayment to return false unconditionally, so SetSalesOrderStatus
+        // always picks Released in CZ regardless of prepayment state — this scenario is a no-op
+        // there. The CZ environment also lacks the VAT Posting Setup combinations the W1
+        // prepayment-validation path expects (UpdatePrepmtSetupFields fails on empty VAT Prod.
+        // Posting Group). Skip the test rather than asserting on behavior the localization
+        // deliberately changes.
+        if ExtensionManagement.IsInstalledByAppId(CZAdvancePaymentsAppIdTok) then
+            exit;
+
+        Initialize(true);
+        ClearCRMData();
+
+        // [GIVEN] A coupled CRM Sales Order and BC Sales Header
+        PrepareCRMSalesOrder(CRMSalesorder, 0, 0);
+        CreateSalesOrderInNAV(CRMSalesorder, SalesHeader);
+
+        // [GIVEN] Header has Prepayment % > 0; validate propagates to lines and computes Prepmt. Line Amount
+        SalesHeader.Validate("Prepayment %", LibraryRandom.RandIntInRange(20, 80));
+        SalesHeader.Modify(true);
+
+        // [GIVEN] Each sales line has Prepmt. Amt. Inv. = Prepmt. Line Amount (prepayment fully invoiced)
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        SalesLine.FindSet();
+        repeat
+            SalesLine."Prepmt. Amt. Inv." := SalesLine."Prepmt. Line Amount";
+            SalesLine.Modify();
+        until SalesLine.Next() = 0;
+
+        // [GIVEN] Sales Header is Released
+        SalesHeader.Status := SalesHeader.Status::Released;
+        SalesHeader.Modify();
+
+        // [WHEN] CRM-to-BC sync invokes OnAfterModifyRecord on the subscriber
+        SourceRecordRef.GetTable(CRMSalesorder);
+        DestinationRecordRef.GetTable(SalesHeader);
+        CRMIntTableSubscriber.OnAfterModifyRecord(IntegrationTableMapping, SourceRecordRef, DestinationRecordRef);
+
+        // [THEN] Sales order remains Released
+        SalesHeader.Find();
+        Assert.AreEqual(SalesHeader.Status::Released, SalesHeader.Status,
+            'Released sales order with fully-invoiced prepayment must not revert to Open after CRM sync');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SyncFromCRMReopensOrderWhenPrepaymentOutstanding()
+    var
+        CRMSalesorder: Record "CRM Salesorder";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        IntegrationTableMapping: Record "Integration Table Mapping";
+        CRMIntTableSubscriber: Codeunit "CRM Int. Table. Subscriber";
+        ExtensionManagement: Codeunit "Extension Management";
+        SourceRecordRef: RecordRef;
+        DestinationRecordRef: RecordRef;
+        CZAdvancePaymentsAppIdTok: Label 'd6636d6f-155e-4490-9979-ec323a6b7c81', Locked = true;
+    begin
+        // [SCENARIO] CRM-to-BC sync must still flip status to Open when prepayment invoicing is outstanding
+
+        // The CZ Advance Payments localization (app id d6636d6f-155e-4490-9979-ec323a6b7c81)
+        // subscribes to OnBeforeTestSalesPrepayment and unconditionally returns false because CZ
+        // has its own advance-payment workflow that does not gate Sales Order status on the
+        // standard predicate. In that build SetSalesOrderStatus never flips Released to Open, so
+        // this scenario cannot occur. Skip the test rather than asserting on behavior the
+        // localization deliberately changes.
+        if ExtensionManagement.IsInstalledByAppId(CZAdvancePaymentsAppIdTok) then
+            exit;
+
+        Initialize(true);
+        ClearCRMData();
+
+        // [GIVEN] A coupled CRM Sales Order and BC Sales Header
+        PrepareCRMSalesOrder(CRMSalesorder, 0, 0);
+        CreateSalesOrderInNAV(CRMSalesorder, SalesHeader);
+
+        // [GIVEN] Header has Prepayment % > 0; validate propagates to lines and computes Prepmt. Line Amount
+        SalesHeader.Validate("Prepayment %", LibraryRandom.RandIntInRange(20, 80));
+        SalesHeader.Modify(true);
+
+        // [GIVEN] Lines have Prepmt. Line Amount > 0 and Prepmt. Amt. Inv. = 0 (default — outstanding)
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        Assert.IsTrue(SalesLine.FindFirst(), 'Sales line must exist for the test scenario');
+        Assert.AreNotEqual(0, SalesLine."Prepmt. Line Amount",
+            'Prepmt. Line Amount must be non-zero for the outstanding-prepayment scenario');
+
+        // [GIVEN] Sales Header is force-set to Released, bypassing the prepayment validation guard
+        SalesHeader.Status := SalesHeader.Status::Released;
+        SalesHeader.Modify();
+
+        // [WHEN] CRM-to-BC sync invokes OnAfterModifyRecord on the subscriber
+        SourceRecordRef.GetTable(CRMSalesorder);
+        DestinationRecordRef.GetTable(SalesHeader);
+        CRMIntTableSubscriber.OnAfterModifyRecord(IntegrationTableMapping, SourceRecordRef, DestinationRecordRef);
+
+        // [THEN] Sales order is reopened to Open because prepayment is still outstanding
+        SalesHeader.Find();
+        Assert.AreEqual(SalesHeader.Status::Open, SalesHeader.Status,
+            'Sales order with outstanding prepayment must be reopened to Open status after CRM sync');
+    end;
+
     local procedure Initialize(BidirectionalSOIntegrationEnabled: Boolean)
     var
         CRMConnectionSetup: Record "CRM Connection Setup";

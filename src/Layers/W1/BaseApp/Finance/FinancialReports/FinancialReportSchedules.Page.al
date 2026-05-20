@@ -79,7 +79,7 @@ page 8360 "Financial Report Schedules"
         {
             action(CustomFilters)
             {
-                Caption = 'Custom Filters';
+                Caption = 'Edit Custom Filters';
                 Enabled = Rec.Code <> '';
                 Image = EditFilter;
                 Scope = Repeater;

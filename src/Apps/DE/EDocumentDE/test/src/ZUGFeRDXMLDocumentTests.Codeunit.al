@@ -9,6 +9,8 @@ using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Integration;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.VAT.Clause;
+using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using Microsoft.Foundation.PaymentTerms;
@@ -137,6 +139,25 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
 
         // [THEN] ZUGFeRD Electronic Document is created with buyer reference XX
         VerifyBuyerReference(SalesInvoiceHeader."Your Reference", TempXMLBuffer, '/rsm:CrossIndustryInvoice');
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInZUGFeRDFormatVerifySellerOrderReference();
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO] Export posted sales invoice from sales order creates electronic document in ZUGFeRD format with seller order reference
+        Initialize();
+
+        // [GIVEN] Create and Post Sales Invoice from Sales Order
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceFromOrder());
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] ZUGFeRD Electronic Document is created with seller order reference
+        VerifySellerOrderReference(SalesInvoiceHeader."Order No.", TempXMLBuffer, '/rsm:CrossIndustryInvoice');
     end;
 
     [Test]
@@ -409,6 +430,25 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
     end;
 
     [Test]
+    procedure ExportPostedSalesInvoiceInZUGFeRDFormatVerifyLegalMonetaryTotalWithMultipleLines();
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO] Export posted sales invoice with multiple lines creates ZUGFeRD document where LineTotalAmount equals the sum of all line amounts (BR-CO-10)
+        Initialize();
+
+        // [GIVEN] Create and Post Sales Invoice with two lines.
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocumentWithTwoLines("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] LineTotalAmount reflects the sum of all invoice lines, not just the last line
+        VerifyLegalMonetaryTotal(SalesInvoiceHeader, TempXMLBuffer);
+    end;
+
+    [Test]
     procedure ExportPostedSalesInvoiceInZUGFeRDFormatVerifyInvoiceLine();
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
@@ -469,6 +509,36 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
     end;
 
     [Test]
+    procedure ExportPostedSalesInvoiceInZUGFeRDFormatVerifyVATEXCodeAndExemptionReason();
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        SalesInvoiceLine: Record "Sales Invoice Line";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        TradeTaxTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeSettlement/ram:ApplicableTradeTax', Locked = true;
+        Path: Text;
+    begin
+        // [SCENARIO] Export posted sales invoice creates electronic document in ZUGFeRD format with VATEX code and exemption reason from VAT Clause
+        Initialize();
+
+        // [GIVEN] Create and Post Sales Invoice.
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+
+        // [GIVEN] VAT Clause with VATEX Code 'VATEX-EU-O' and Description 'Not subject to VAT' linked to the VAT Posting Setup
+        SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeader."No.");
+        SalesInvoiceLine.FindFirst();
+        CreateVATClauseWithVATEXCode(SalesInvoiceLine."VAT Bus. Posting Group", SalesInvoiceLine."VAT Prod. Posting Group");
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] ExemptionReasonCode and ExemptionReason are exported with correct values
+        Path := TradeTaxTok + '/ram:ExemptionReasonCode';
+        Assert.AreEqual('VATEX-EU-O', GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Path := TradeTaxTok + '/ram:ExemptionReason';
+        Assert.AreEqual('Not subject to VAT', GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+    end;
+
+    [Test]
     procedure PrintPostedSalesInvoiceWithCustomReportLayout();
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
@@ -492,6 +562,55 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         // [THEN] No XML should be embedded
         PDFTempBlob.CreateInStream(PDFInStream);
         Assert.IsFalse(PDFDocument.GetDocumentAttachmentStream(PDFInStream, TempBlob), 'No Document Attachment should be found.');
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInZUGFeRDFormatVerifyGlobalID()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        SalesInvoiceLine: Record "Sales Invoice Line";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        DocumentTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:IncludedSupplyChainTradeLineItem', Locked = true;
+        Path: Text;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 622248] Export posted sales invoice verifies GlobalID contains Item Reference No. when set
+        Initialize();
+
+        // [GIVEN] Create and Post Sales Invoice with Item Reference No.
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocumentWithItemRefNo("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item));
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] GlobalID element exists with the Item Reference No. value
+        SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeader."No.");
+        SalesInvoiceLine.FindFirst();
+        Path := DocumentTok + '/ram:SpecifiedTradeProduct/ram:GlobalID';
+        Assert.AreEqual(SalesInvoiceLine."Item Reference No.", GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInZUGFeRDFormatNoGlobalIDWhenEmpty()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        DocumentTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:IncludedSupplyChainTradeLineItem', Locked = true;
+        Path: Text;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 622248] Export posted sales invoice does not export GlobalID when Item Reference No. is empty
+        Initialize();
+
+        // [GIVEN] Create and Post Sales Invoice without Item Reference No.
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] GlobalID element does not exist
+        Path := DocumentTok + '/ram:SpecifiedTradeProduct/ram:GlobalID';
+        Assert.IsFalse(NodeExistsByPath(TempXMLBuffer, Path), 'GlobalID should not exist when Item Reference No. is empty');
     end;
 
     #endregion
@@ -560,6 +679,25 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
 
         // [THEN] ZUGFeRD Electronic Document is created with buyer reference XX
         VerifyBuyerReference(SalesCrMemoHeader."Your Reference", TempXMLBuffer, '/rsm:CrossIndustryInvoice');
+    end;
+
+    [Test]
+    procedure ExportPostedSalesCrMemoInZUGFeRDFormatVerifySellerOrderReference();
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO] Export posted sales cr. memo from return order creates electronic document in ZUGFeRD format with seller order reference
+        Initialize();
+
+        // [GIVEN] Create and Post Sales Cr. Memo from Sales Return Order
+        SalesCrMemoHeader.Get(CreateAndPostSalesCrMemoFromReturnOrder());
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] ZUGFeRD Electronic Document is created with seller order reference
+        VerifySellerOrderReference(SalesCrMemoHeader."Return Order No.", TempXMLBuffer, '/rsm:CrossIndustryInvoice');
     end;
 
     [Test]
@@ -775,6 +913,25 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
     end;
 
     [Test]
+    procedure ExportPostedSalesCrMemoInZUGFeRDFormatVerifyLegalMonetaryTotalWithMultipleLines();
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO] Export posted sales cr. memo with multiple lines creates ZUGFeRD document where LineTotalAmount equals the sum of all line amounts (BR-CO-10)
+        Initialize();
+
+        // [GIVEN] Create and Post Sales Cr. Memo with two lines.
+        SalesCrMemoHeader.Get(CreateAndPostSalesDocumentWithTwoLines("Sales Document Type"::"Credit Memo", Enum::"Sales Line Type"::Item, false));
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] LineTotalAmount reflects the sum of all cr. memo lines, not just the last line
+        VerifyLegalMonetaryTotal(SalesCrMemoHeader, TempXMLBuffer);
+    end;
+
+    [Test]
     procedure ExportPostedSalesCrMemoInZUGFeRDFormatVerifyCrMemoLine();
     var
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
@@ -792,6 +949,86 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         // [THEN] ZUGFeRD Electronic Document is created with 2 cr.memo lines
         VerifyCrMemoLine(SalesCrMemoHeader, TempXMLBuffer);
     end;
+
+    [Test]
+    procedure ExportPostedSalesCrMemoInZUGFeRDFormatVerifyVATEXCodeAndExemptionReason();
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        SalesCrMemoLine: Record "Sales Cr.Memo Line";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        TradeTaxTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeSettlement/ram:ApplicableTradeTax', Locked = true;
+        Path: Text;
+    begin
+        // [SCENARIO] Export posted sales cr. memo creates electronic document in ZUGFeRD format with VATEX code and exemption reason from VAT Clause
+        Initialize();
+
+        // [GIVEN] Create and Post Sales Credit Memo.
+        SalesCrMemoHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::"Credit Memo", Enum::"Sales Line Type"::Item, false));
+
+        // [GIVEN] VAT Clause with VATEX Code 'VATEX-EU-O' and Description 'Not subject to VAT' linked to the VAT Posting Setup
+        SalesCrMemoLine.SetRange("Document No.", SalesCrMemoHeader."No.");
+        SalesCrMemoLine.FindFirst();
+        CreateVATClauseWithVATEXCode(SalesCrMemoLine."VAT Bus. Posting Group", SalesCrMemoLine."VAT Prod. Posting Group");
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] ExemptionReasonCode and ExemptionReason are exported with correct values
+        Path := TradeTaxTok + '/ram:ExemptionReasonCode';
+        Assert.AreEqual('VATEX-EU-O', GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Path := TradeTaxTok + '/ram:ExemptionReason';
+        Assert.AreEqual('Not subject to VAT', GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+    end;
+
+    [Test]
+    procedure ExportPostedSalesCrMemoInZUGFeRDFormatVerifyGlobalID()
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        SalesCrMemoLine: Record "Sales Cr.Memo Line";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        DocumentTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:IncludedSupplyChainTradeLineItem', Locked = true;
+        Path: Text;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 622248] Export posted sales cr. memo verifies GlobalID contains Item Reference No. when set
+        Initialize();
+
+        // [GIVEN] Create and Post Sales Cr. Memo with Item Reference No.
+        SalesCrMemoHeader.Get(CreateAndPostSalesDocumentWithItemRefNo("Sales Document Type"::"Credit Memo", Enum::"Sales Line Type"::Item));
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] GlobalID element exists with the Item Reference No. value
+        SalesCrMemoLine.SetRange("Document No.", SalesCrMemoHeader."No.");
+        SalesCrMemoLine.FindFirst();
+        Path := DocumentTok + '/ram:SpecifiedTradeProduct/ram:GlobalID';
+        Assert.AreEqual(SalesCrMemoLine."Item Reference No.", GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+    end;
+
+    [Test]
+    procedure ExportPostedSalesCrMemoInZUGFeRDFormatNoGlobalIDWhenEmpty()
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        DocumentTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:IncludedSupplyChainTradeLineItem', Locked = true;
+        Path: Text;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 622248] Export posted sales cr. memo does not export GlobalID when Item Reference No. is empty
+        Initialize();
+
+        // [GIVEN] Create and Post Sales Cr. Memo without Item Reference No.
+        SalesCrMemoHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::"Credit Memo", Enum::"Sales Line Type"::Item, false));
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] GlobalID element does not exist
+        Path := DocumentTok + '/ram:SpecifiedTradeProduct/ram:GlobalID';
+        Assert.IsFalse(NodeExistsByPath(TempXMLBuffer, Path), 'GlobalID should not exist when Item Reference No. is empty');
+    end;
+
     #endregion
 
     #region ServiceInvoice
@@ -1437,6 +1674,36 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
     end;
 
+    local procedure CreateAndPostSalesDocumentWithItemRefNo(DocumentType: Enum "Sales Document Type"; LineType: Enum "Sales Line Type"): Code[20]
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+    begin
+        SalesHeader.Get(DocumentType, CreateSalesDocumentWithLine(DocumentType, LineType, false));
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        SalesLine.FindFirst();
+        SalesLine."Item Reference No." := LibraryUtility.GenerateGUID();
+        SalesLine.Modify(true);
+        exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+    end;
+
+    local procedure CreateAndPostSalesInvoiceFromOrder(): Code[20]
+    var
+        SalesHeader: Record "Sales Header";
+    begin
+        SalesHeader.Get("Sales Document Type"::Order, CreateSalesDocumentWithLine("Sales Document Type"::Order, Enum::"Sales Line Type"::Item, false));
+        exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+    end;
+
+    local procedure CreateAndPostSalesCrMemoFromReturnOrder(): Code[20]
+    var
+        SalesHeader: Record "Sales Header";
+    begin
+        SalesHeader.Get("Sales Document Type"::"Return Order", CreateSalesDocumentWithLine("Sales Document Type"::"Return Order", Enum::"Sales Line Type"::Item, false));
+        exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+    end;
+
     local procedure CreateAndPostSalesDocumentWithoutPhone(DocumentType: Enum "Sales Document Type"; LineType: Enum "Sales Line Type"): Code[20]
     var
         SalesHeader: Record "Sales Header";
@@ -1954,7 +2221,9 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         Assert.AreEqual(SalesInvoiceHeader."No.", GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Path := DocumentTok + '/rsm:ExchangedDocument/ram:IssueDateTime/udt:DateTimeString';
         Assert.AreEqual(FormatDate(SalesInvoiceHeader."Posting Date"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
-
+        // Verify Seller Order Reference is not present when invoice is posted directly (without order)
+        if SalesInvoiceHeader."Order No." = '' then
+            Assert.IsFalse(NodeExistsByPath(TempXMLBuffer, '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:SellerOrderReferencedDocument'), 'Seller Order Reference should not exist');
     end;
 
     local procedure VerifyHeaderData(SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var TempXMLBuffer: Record "XML Buffer" temporary);
@@ -1968,6 +2237,9 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         Assert.AreEqual(SalesCrMemoHeader."No.", GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Path := DocumentCreditNoteTok + '/rsm:ExchangedDocument/ram:IssueDateTime/udt:DateTimeString';
         Assert.AreEqual(FormatDate(SalesCrMemoHeader."Posting Date"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        // Verify Seller Order Reference is not present when cr. memo is posted directly (without return order)
+        if SalesCrMemoHeader."Return Order No." = '' then
+            Assert.IsFalse(NodeExistsByPath(TempXMLBuffer, '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:SellerOrderReferencedDocument'), 'Seller Order Reference should not exist');
     end;
 
     local procedure VerifyHeaderData(ServiceInvoiceHeader: Record "Service Invoice Header"; var TempXMLBuffer: Record "XML Buffer" temporary)
@@ -2002,6 +2274,14 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
     begin
         Path := DocumentTok + '/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:BuyerReference';
         Assert.AreEqual(BuyerReference, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+    end;
+
+    local procedure VerifySellerOrderReference(OrderNo: Code[20]; var TempXMLBuffer: Record "XML Buffer" temporary; DocumentTok: Text);
+    var
+        Path: Text;
+    begin
+        Path := DocumentTok + '/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:SellerOrderReferencedDocument/ram:IssuerAssignedID';
+        Assert.AreEqual(OrderNo, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
     end;
 
     local procedure VerifySellerData(var TempXMLBuffer: Record "XML Buffer" temporary; DocumentTok: Text);
@@ -2294,6 +2574,8 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimalUnlimited(SalesInvoiceLine."Quantity"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Path := DocumentTok + '/ram:SpecifiedLineTradeSettlement/ram:SpecifiedTradeSettlementLineMonetarySummation/ram:LineTotalAmount';
         Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(SalesInvoiceLine."Amount"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Path := DocumentTok + '/ram:SpecifiedTradeProduct/ram:SellerAssignedID';
+        Assert.AreEqual(SalesInvoiceLine."No.", GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Path := DocumentTok + '/ram:SpecifiedTradeProduct/ram:Name';
         Assert.AreEqual(SalesInvoiceLine."Description", GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Path := DocumentTok + '/ram:SpecifiedLineTradeAgreement/ram:NetPriceProductTradePrice/ram:ChargeAmount';
@@ -2316,6 +2598,8 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimalUnlimited(SalesInvoiceLine."Quantity"), GetLastNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Path := DocumentTok + '/ram:SpecifiedLineTradeSettlement/ram:SpecifiedTradeSettlementLineMonetarySummation/ram:LineTotalAmount';
         Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(SalesInvoiceLine."Amount"), GetLastNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Path := DocumentTok + '/ram:SpecifiedTradeProduct/ram:SellerAssignedID';
+        Assert.AreEqual(SalesInvoiceLine."No.", GetLastNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Path := DocumentTok + '/ram:SpecifiedTradeProduct/ram:Name';
         Assert.AreEqual(SalesInvoiceLine."Description", GetLastNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Path := DocumentTok + '/ram:SpecifiedLineTradeAgreement/ram:NetPriceProductTradePrice/ram:ChargeAmount';
@@ -2376,6 +2660,8 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimalUnlimited(SalesCrMemoLine."Quantity"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Path := DocumentTok + '/ram:SpecifiedLineTradeSettlement/ram:SpecifiedTradeSettlementLineMonetarySummation/ram:LineTotalAmount';
         Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(SalesCrMemoLine."Amount"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Path := DocumentTok + '/ram:SpecifiedTradeProduct/ram:SellerAssignedID';
+        Assert.AreEqual(SalesCrMemoLine."No.", GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Path := DocumentTok + '/ram:SpecifiedTradeProduct/ram:Name';
         Assert.AreEqual(SalesCrMemoLine."Description", GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Path := DocumentTok + '/ram:SpecifiedLineTradeAgreement/ram:NetPriceProductTradePrice/ram:ChargeAmount';
@@ -2398,6 +2684,8 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimalUnlimited(SalesCrMemoLine."Quantity"), GetLastNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Path := DocumentTok + '/ram:SpecifiedLineTradeSettlement/ram:SpecifiedTradeSettlementLineMonetarySummation/ram:LineTotalAmount';
         Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(SalesCrMemoLine."Amount"), GetLastNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Path := DocumentTok + '/ram:SpecifiedTradeProduct/ram:SellerAssignedID';
+        Assert.AreEqual(SalesCrMemoLine."No.", GetLastNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Path := DocumentTok + '/ram:SpecifiedTradeProduct/ram:Name';
         Assert.AreEqual(SalesCrMemoLine."Description", GetLastNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Path := DocumentTok + '/ram:SpecifiedLineTradeAgreement/ram:NetPriceProductTradePrice/ram:ChargeAmount';
@@ -2458,6 +2746,8 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimalUnlimited(ServiceInvoiceLine."Quantity"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Path := DocumentTok + '/ram:SpecifiedLineTradeSettlement/ram:SpecifiedTradeSettlementLineMonetarySummation/ram:LineTotalAmount';
         Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(ServiceInvoiceLine."Amount"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Path := DocumentTok + '/ram:SpecifiedTradeProduct/ram:SellerAssignedID';
+        Assert.AreEqual(ServiceInvoiceLine."No.", GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Path := DocumentTok + '/ram:SpecifiedTradeProduct/ram:Name';
         Assert.AreEqual(ServiceInvoiceLine."Description", GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Path := DocumentTok + '/ram:SpecifiedLineTradeAgreement/ram:NetPriceProductTradePrice/ram:ChargeAmount';
@@ -2474,6 +2764,8 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimalUnlimited(ServiceInvoiceLine."Quantity"), GetLastNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Path := DocumentTok + '/ram:SpecifiedLineTradeSettlement/ram:SpecifiedTradeSettlementLineMonetarySummation/ram:LineTotalAmount';
         Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(ServiceInvoiceLine."Amount"), GetLastNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Path := DocumentTok + '/ram:SpecifiedTradeProduct/ram:SellerAssignedID';
+        Assert.AreEqual(ServiceInvoiceLine."No.", GetLastNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Path := DocumentTok + '/ram:SpecifiedTradeProduct/ram:Name';
         Assert.AreEqual(ServiceInvoiceLine."Description", GetLastNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Path := DocumentTok + '/ram:SpecifiedLineTradeAgreement/ram:NetPriceProductTradePrice/ram:ChargeAmount';
@@ -2502,6 +2794,8 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimalUnlimited(ServiceCrMemoLine."Quantity"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Path := DocumentTok + '/ram:SpecifiedLineTradeSettlement/ram:SpecifiedTradeSettlementLineMonetarySummation/ram:LineTotalAmount';
         Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(ServiceCrMemoLine."Amount"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Path := DocumentTok + '/ram:SpecifiedTradeProduct/ram:SellerAssignedID';
+        Assert.AreEqual(ServiceCrMemoLine."No.", GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Path := DocumentTok + '/ram:SpecifiedTradeProduct/ram:Name';
         Assert.AreEqual(ServiceCrMemoLine."Description", GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Path := DocumentTok + '/ram:SpecifiedLineTradeAgreement/ram:NetPriceProductTradePrice/ram:ChargeAmount';
@@ -2518,6 +2812,8 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimalUnlimited(ServiceCrMemoLine."Quantity"), GetLastNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Path := DocumentTok + '/ram:SpecifiedLineTradeSettlement/ram:SpecifiedTradeSettlementLineMonetarySummation/ram:LineTotalAmount';
         Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(ServiceCrMemoLine."Amount"), GetLastNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Path := DocumentTok + '/ram:SpecifiedTradeProduct/ram:SellerAssignedID';
+        Assert.AreEqual(ServiceCrMemoLine."No.", GetLastNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Path := DocumentTok + '/ram:SpecifiedTradeProduct/ram:Name';
         Assert.AreEqual(ServiceCrMemoLine."Description", GetLastNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Path := DocumentTok + '/ram:SpecifiedLineTradeAgreement/ram:NetPriceProductTradePrice/ram:ChargeAmount';
@@ -2760,6 +3056,23 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         if VarDate = 0D then
             exit('17530101');
         exit(Format(VarDate, 0, '<Year4><Month,2><Day,2>'));
+    end;
+
+    local procedure CreateVATClauseWithVATEXCode(VATBusPostingGroup: Code[20]; VATProductPostingGroup: Code[20])
+    var
+        VATClause: Record "VAT Clause";
+        VATPostingSetup: Record "VAT Posting Setup";
+        VATClauseCode: Code[10];
+    begin
+        VATClauseCode := LibraryUtility.GenerateRandomCode(VATClause.FieldNo(Code), Database::"VAT Clause");
+        VATClause.Init();
+        VATClause.Validate(Code, VATClauseCode);
+        VATClause.Validate(Description, 'Not subject to VAT');
+        VATClause.Validate("VATEX Code", 'VATEX-EU-O');
+        VATClause.Insert(true);
+        VATPostingSetup.Get(VATBusPostingGroup, VATProductPostingGroup);
+        VATPostingSetup.Validate("VAT Clause Code", VATClauseCode);
+        VATPostingSetup.Modify(true);
     end;
 
     local procedure Initialize();

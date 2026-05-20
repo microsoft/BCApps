@@ -137,7 +137,7 @@ page 6108 "Inbound E-Doc. Factbox"
 #endif
 
     var
-        ImportProcessingStatusVisible, Visible : Boolean;
+        ImportProcessingStatusVisible: Boolean;
         EDocSystemCreatedAt: DateTime;
         EDocSystemCreatedBy: Text;
 

@@ -5242,6 +5242,37 @@
     ]
   },
   {
+    "name": "Red Team Scan Test Library",
+    "groups": [
+      {
+        "name": "AllExtensions",
+        "doNotInstall": true
+      },
+      {
+        "name": "Financials",
+        "doNotInstall": true
+      },
+      {
+        "name": "FinancialsExtensions",
+        "doNotInstall": true
+      },
+      {
+        "name": "OnPrem",
+        "doNotInstall": true
+      },
+      {
+        "name": "OnPremExtensions",
+        "doNotInstall": true
+      },
+      {
+        "name": "Internal"
+      },
+      {
+        "name": "TestLibraries"
+      }
+    ]
+  },
+  {
     "name": "AI Evaluate Tool",
     "groups": [
       {
@@ -8432,6 +8463,50 @@
     ]
   },
   {
+    "name": "E-Reporting FR",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      },
+      {
+        "name": "OnPrem",
+        "doNotInstall": true
+      },
+      {
+        "name": "OnPremExtensions",
+        "doNotInstall": true
+      }
+    ]
+  },
+  {
+    "name": "E-Reporting FR Tests",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      },
+      {
+        "name": "OnPrem",
+        "doNotInstall": true
+      },
+      {
+        "name": "OnPremExtensions",
+        "doNotInstall": true
+      }
+    ]
+  },
+  {
     "name": "Field Service Integration",
     "groups": [
       {
@@ -8713,6 +8788,9 @@
       },
       {
         "name": "Internal"
+      },
+      {
+        "name": "ContosoDemoData"
       }
     ]
   },
@@ -8733,6 +8811,108 @@
       },
       {
         "name": "Internal"
+      }
+    ]
+  },
+  {
+    "name": "Expense Agent Demo Data",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      },
+      {
+        "name": "ContosoDemoData"
+      }
+    ]
+  },
+  {
+    "name": "Expense Agent Demo Data (US)",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      },
+      {
+        "name": "ContosoDemoData"
+      }
+    ]
+  },
+  {
+    "name": "Expense Agent Demo Data (GB)",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      },
+      {
+        "name": "ContosoDemoData"
+      }
+    ]
+  },
+  {
+    "name": "Expense Agent Demo Data (CA)",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      },
+      {
+        "name": "ContosoDemoData"
+      }
+    ]
+  },
+  {
+    "name": "Expense Agent Demo Data (NZ)",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      },
+      {
+        "name": "ContosoDemoData"
+      }
+    ]
+  },
+  {
+    "name": "Expense Agent Demo Data (AU)",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      },
+      {
+        "name": "ContosoDemoData"
       }
     ]
   },
@@ -8969,18 +9149,6 @@
     ]
   },
   {
-    "name": "Sales Validation Agent Sample",
-    "groups": [
-      {
-        "name": "AllExtensions",
-        "doNotInstall": true
-      },
-      {
-        "name": "Internal"
-      }
-    ]
-  },
-  {
     "name": "Agent Test Library",
     "groups": [
       {
@@ -9060,6 +9228,23 @@
       }
     ]
   },
+  {
+    "name": "Agent Samples Tests",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      },
+      {
+        "name": "Internal"
+      }
+    ]
+  },
     {
     "name": "AI Development Toolkit",
     "groups": [
@@ -9098,47 +9283,7 @@
     ]
   },
   {
-    "name": "Agent SDK Tests",
-    "groups": [
-      {
-        "name": "AllExtensions",
-        "doNotInstall": true
-      },
-      {
-        "name": "Financials",
-        "doNotInstall": true
-      },
-      {
-        "name": "FinancialsExtensions",
-        "doNotInstall": true
-      },
-      {
-        "name": "Internal"
-      }
-    ]
-  },
-  {
     "name": "Agent Design Experience Test",
-    "groups": [
-      {
-        "name": "AllExtensions",
-        "doNotInstall": true
-      },
-      {
-        "name": "Financials",
-        "doNotInstall": true
-      },
-      {
-        "name": "FinancialsExtensions",
-        "doNotInstall": true
-      },
-      {
-        "name": "Internal"
-      }
-    ]
-  },
-  {
-    "name": "Agent Samples Tests",
     "groups": [
       {
         "name": "AllExtensions",
@@ -9216,17 +9361,6 @@
     ]
   },
   {
-    "name": "Invoice Creation Test Library",
-    "groups": [
-      {
-        "name": "Internal"
-      },
-      {
-        "name": "TestLibraries"
-      }
-    ]
-  },
-  {
     "name": "Payables Agent Tests",
     "groups": [
       {
@@ -9246,6 +9380,30 @@
       }
     ]
   },
+ {
+    "name": "Sales Validation Agent Sample",
+    "groups": [
+      {
+        "name": "AllExtensions",
+        "doNotInstall": true
+      },
+      {
+        "name": "Internal"
+      }
+    ]
+  },
+  {
+    "name": "Sales Validation Agent Sample Test",
+    "groups": [
+      {
+        "name": "AllExtensions",
+        "doNotInstall": true
+      },
+      {
+        "name": "Internal"
+      }
+    ]
+  },  
   {
     "name": "VAT Audit Reports GB",
     "groups": [

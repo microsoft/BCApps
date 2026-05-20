@@ -205,7 +205,7 @@ page 4404 "SOA Email Message"
                     var
                         AgentMessage: Codeunit "Agent Message";
                     begin
-                        AgentMessage.UpdateText(Rec, GlobalMessageText);
+                        AgentMessage.UpdateText(Rec."Task ID", Rec.ID, GlobalMessageText);
                         CurrPage.Update(false);
                     end;
                 }
@@ -229,7 +229,7 @@ page 4404 "SOA Email Message"
                     var
                         AgentMessage: Codeunit "Agent Message";
                     begin
-                        AgentMessage.UpdateText(Rec, GlobalMessageText);
+                        AgentMessage.UpdateText(Rec."Task ID", Rec.ID, GlobalMessageText);
                         CurrPage.Update(false);
                     end;
                 }

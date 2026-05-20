@@ -17,6 +17,7 @@ codeunit 134286 "Non. Ded. VAT Currency"
         LibraryNonDeductibleVAT: Codeunit "Library - NonDeductible VAT";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryJournals: Codeunit "Library - Journals";
+        Assert: Codeunit Assert;
         isInitialized: Boolean;
 
     [Test]
@@ -129,6 +130,46 @@ codeunit 134286 "Non. Ded. VAT Currency"
         // [THEN] "Non-Deductible Base LCY" = 1000
         // [THEN] "Non-Deductible Amount LCY" = 100
         VerifyVATEntry(GenJournalLine."Document No.", GenJournalLine."Posting Date", Base, Amount, NDBase, NDAmount);
+    end;
+
+    [Test]
+    procedure PostPurchInvWithNonDedVATAndACYNoGLConsistencyError()
+    var
+        PurchHeader: Record "Purchase Header";
+        PurchLine: Record "Purchase Line";
+        VATPostingSetup: Record "VAT Posting Setup";
+        CurrencyCode: Code[10];
+        DocNo: Code[20];
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 624215] Posting Purchase Invoice with Non-Deductible VAT and Additional Reporting Currency does not cause G/L Entry consistency error
+        Initialize();
+
+        // [GIVEN] Normal VAT Posting Setup with "VAT %" = 20 and "Non-Deductible VAT %" = 40
+        LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", 20);
+        LibraryNonDeductibleVAT.SetAllowNonDeductibleVATForVATPostingSetup(VATPostingSetup);
+        VATPostingSetup.Validate("Non-Deductible VAT %", 40);
+        VATPostingSetup.Modify(true);
+
+        // [GIVEN] Additional Reporting Currency "C" is enabled with exchange rate = 1.5
+        CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), 1.5, 1.5);
+        LibraryERM.SetAddReportingCurrency(CurrencyCode);
+
+        // [GIVEN] Purchase Invoice "PI" with Normal VAT and Non-Deductible VAT
+        LibraryPurchase.CreatePurchHeader(
+            PurchHeader, PurchHeader."Document Type"::Invoice,
+            LibraryPurchase.CreateVendorWithVATBusPostingGroup(VATPostingSetup."VAT Bus. Posting Group"));
+        LibraryPurchase.CreatePurchaseLine(
+            PurchLine, PurchHeader, PurchLine.Type::Item,
+            LibraryInventory.CreateItemWithVATProdPostingGroup(VATPostingSetup."VAT Prod. Posting Group"), 10);
+        PurchLine.Validate("Direct Unit Cost", 100);
+        PurchLine.Modify(true);
+
+        // [WHEN] Post the Purchase Invoice "PI"
+        DocNo := LibraryPurchase.PostPurchaseDocument(PurchHeader, true, true);
+
+        // [THEN] G/L Entries are balanced in both LCY and ACY
+        VerifyGLEntriesBalanced(DocNo, PurchHeader."Posting Date");
     end;
 
     local procedure Initialize()
@@ -244,5 +285,16 @@ codeunit 134286 "Non. Ded. VAT Currency"
         VATEntry.TestField(Amount, Amount);
         VATEntry.TestField("Non-Deductible VAT Base", NDBase);
         VATEntry.TestField("Non-Deductible VAT Amount", NDAmount);
+    end;
+
+    local procedure VerifyGLEntriesBalanced(DocumentNo: Code[20]; PostingDate: Date)
+    var
+        GLEntry: Record "G/L Entry";
+    begin
+        GLEntry.SetRange("Document No.", DocumentNo);
+        GLEntry.SetRange("Posting Date", PostingDate);
+        GLEntry.CalcSums("Debit Amount", "Credit Amount", "Add.-Currency Debit Amount", "Add.-Currency Credit Amount");
+        Assert.AreEqual(GLEntry."Debit Amount", GLEntry."Credit Amount", 'G/L Entries LCY must be balanced');
+        Assert.AreEqual(GLEntry."Add.-Currency Debit Amount", GLEntry."Add.-Currency Credit Amount", 'G/L Entries ACY must be balanced');
     end;
 }

@@ -13,5 +13,10 @@
     "codeunitId": 139575,
     "codeunitName": "LP Prediction Test",
     "method": "TestBackgroundTaskOnCompanyOpen"
+  },
+  {
+    "codeunitId": 139575,
+    "codeunitName": "LP Prediction Test",
+    "method": "PredictAllPaymentsDoesNotErrorWhenAllInvoicesClosed"
   }
 ]

@@ -1537,6 +1537,7 @@ codeunit 136907 Resource
         LibraryERMCountryData.CreateVATData();
         LibraryERMCountryData.UpdateGeneralPostingSetup();
         LibraryERMCountryData.CreateGeneralPostingSetupData();
+        LibraryERMCountryData.UpdatePurchasesPayablesSetup();
         NoSeriesSetup();
         CreateItemJournalTemplateAndBatch();
         LocationSetup();

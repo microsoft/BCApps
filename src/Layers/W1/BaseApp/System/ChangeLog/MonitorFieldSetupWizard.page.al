@@ -386,7 +386,7 @@ page 1368 "Monitor Field Setup Wizard"
         MonitorUserId: Code[50];
         Step: Option Welcome,"Import Fields","Choose User",Finish;
         NextEnabled, BackEnabled, FinishEnabled, TopBannerVisible : Boolean;
-        ImportSensitiveFields, ImportPersonalFields, ImportCompanyConfidentialFields, DoesUserHasPermission, ShowEmailConnector, OpenMonitorWorksheetPage : Boolean;
+        ImportSensitiveFields, ImportPersonalFields, ImportCompanyConfidentialFields, DoesUserHasPermission, OpenMonitorWorksheetPage : Boolean;
         OpenUserCardMsg: Label 'Do you want to do that now?';
         OpenDataClassificationWorksheetMsg: Label 'View Data Classification Worksheet';
         EmailConnectorMissingQst: Label 'To send notifications about changes in field values you must set up email in Business Central. Do you want to do that now?';

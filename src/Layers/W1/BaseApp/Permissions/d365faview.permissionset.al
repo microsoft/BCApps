@@ -19,6 +19,7 @@ permissionset 2381 "D365 FA, VIEW"
                   tabledata "Depreciation Table Buffer" = R,
                   tabledata "Depreciation Table Header" = R,
                   tabledata "Depreciation Table Line" = R,
+                  tabledata "Adv. Bonus Depreciation Setup" = R,
                   tabledata "FA Allocation" = R,
                   tabledata "FA Buffer Projection" = R,
                   tabledata "FA Class" = R,

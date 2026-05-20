@@ -52,11 +52,18 @@ codeunit 136150 "Service Pages"
     var
         ServiceHeader: Record "Service Header";
         NotificationLifecycleMgt: Codeunit "Notification Lifecycle Mgt.";
+        ReportSelectionMgt: Codeunit "Report Selection Mgt.";
         ServiceOrder: TestPage "Service Order";
     begin
         // [FEATURE] [Print] [Post] [Order]
         // [SCENARIO 268383] Stan does not see confirmation to close service order card page when document fully shiped and invoiced with printing documents
         Initialize();
+
+        // Reset standard report selection
+        if not ReportSelectionMgt.ReportSelectionsExist("Report Selection Usage"::"SM.Invoice", Report::"Service - Invoice") then
+            ReportSelectionMgt.UpdateReportSelection("Report Selection Usage"::"SM.Invoice", '1', Report::"Service - Invoice");
+        if not ReportSelectionMgt.ReportSelectionsExist("Report Selection Usage"::"SM.Shipment", Report::"Service - Shipment") then
+            ReportSelectionMgt.UpdateReportSelection("Report Selection Usage"::"SM.Shipment", '1', Report::"Service - Shipment");
 
         LibraryService.CreateServiceDocumentWithItemServiceLine(ServiceHeader, ServiceHeader."Document Type"::Order);
 
@@ -77,11 +84,16 @@ codeunit 136150 "Service Pages"
     var
         ServiceHeader: Record "Service Header";
         NotificationLifecycleMgt: Codeunit "Notification Lifecycle Mgt.";
+        ReportSelectionMgt: Codeunit "Report Selection Mgt.";
         ServiceInvoice: TestPage "Service Invoices";
     begin
         // [FEATURE] [Print] [Post] [Invoice]
         // [SCENARIO 268383] Stan does not see confirmation to close Service Invoices card page when document fully invoiced with printing documents
         Initialize();
+
+        // Reset standard report selection
+        if not ReportSelectionMgt.ReportSelectionsExist("Report Selection Usage"::"SM.Invoice", Report::"Service - Invoice") then
+            ReportSelectionMgt.UpdateReportSelection("Report Selection Usage"::"SM.Invoice", '1', Report::"Service - Invoice");
 
         LibraryService.CreateServiceDocumentWithItemServiceLine(ServiceHeader, ServiceHeader."Document Type"::Invoice);
 
@@ -103,11 +115,16 @@ codeunit 136150 "Service Pages"
     var
         ServiceHeader: Record "Service Header";
         NotificationLifecycleMgt: Codeunit "Notification Lifecycle Mgt.";
+        ReportSelectionMgt: Codeunit "Report Selection Mgt.";
         ServiceCreditMemo: TestPage "Service Credit Memo";
     begin
         // [FEATURE] [Print] [Post] [Credit Memo]
         // [SCENARIO 268383] Stan does not see confirmation to close service credit memo card page when document fully invoiced with printing documents
         Initialize();
+
+        // Reset standard report selection
+        if not ReportSelectionMgt.ReportSelectionsExist("Report Selection Usage"::"SM.Credit Memo", Report::"Service - Credit Memo") then
+            ReportSelectionMgt.UpdateReportSelection("Report Selection Usage"::"SM.Credit Memo", '1', Report::"Service - Credit Memo");
 
         LibraryService.CreateServiceDocumentWithItemServiceLine(ServiceHeader, ServiceHeader."Document Type"::"Credit Memo");
 

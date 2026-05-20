@@ -48,11 +48,8 @@ page 36991 "EBITDA"
         ReportPageLbl: Label 'ReportSectionab3743c6203831d31beb', Locked = true;
 
     trigger OnOpenPage()
-    var
-        PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
-        SetupHelper.EnsureUserAcceptedPowerBITerms();
-        ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Finance Report Id"));
+        ReportId := SetupHelper.OpenPowerBIEmbeddedReportPageValidation("PBI Report Setup"::"Finance App");
     end;
 }
 

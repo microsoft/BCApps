@@ -323,6 +323,16 @@ page 20 "General Ledger Entries"
                     ApplicationArea = Basic, Suite;
                     Editable = false;
                 }
+                field("G/L Register No."; Rec."G/L Register No.")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Editable = false;
+                }
+                field("Transaction No."; Rec."Transaction No.")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Editable = false;
+                }
                 field("Dimension Set ID"; Rec."Dimension Set ID")
                 {
                     ApplicationArea = Dimensions;

@@ -794,6 +794,11 @@ page 16 "Chart of Accounts"
             Caption = 'Hide blocked accounts';
             Filters = where(Blocked = const(false));
         }
+        view(Uncategorized)
+        {
+            Caption = 'Uncategorized accounts';
+            Filters = where("Account Category" = const(" "));
+        }
     }
 
     trigger OnAfterGetRecord()
@@ -830,6 +835,8 @@ page 16 "Chart of Accounts"
         NoEmphasize: Boolean;
         NameEmphasize: Boolean;
         NameIndent: Integer;
+
+    protected var
         AmountVisible: Boolean;
         DebitCreditVisible: Boolean;
 

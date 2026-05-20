@@ -48,11 +48,8 @@ page 37004 "Sales by Item"
         ReportPageLbl: Label 'ReportSection913651e69467cecd580d', Locked = true;
 
     trigger OnOpenPage()
-    var
-        PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
-        SetupHelper.EnsureUserAcceptedPowerBITerms();
-        ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Sales Report Id"));
+        ReportId := SetupHelper.OpenPowerBIEmbeddedReportPageValidation("PBI Report Setup"::"Sales App");
     end;
 }
 

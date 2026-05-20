@@ -399,7 +399,6 @@ report 31241 "Fixed Asset - An. Dep.Book CZF"
         MainHeadLineText, DepreciationBookText, GroupCodeName, GroupHeadLine, FANoCaption, FADescriptionCaption : Text;
         HeadLineText: array[10] of Text;
         PostingType1, PostingType2, PostingType3 : Text[30];
-        Date, Date2 : array[3] of Date;
         StartingDate, EndingDate, AcquisitionDate1, AcquisitionDate2, DisposalDate1, DisposalDate2 : Date;
         BeforeAmount1, BeforeAmount2, EndingAmount1, EndingAmount2 : Decimal;
         Amounts1, Amounts2 : array[3] of Decimal;

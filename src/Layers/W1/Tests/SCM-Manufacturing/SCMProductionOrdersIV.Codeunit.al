@@ -6,6 +6,7 @@ namespace Microsoft.Manufacturing.Test;
 
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Inventory.BOM;
 using Microsoft.Inventory.Costing;
@@ -26,7 +27,9 @@ using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Sales.Document;
+using System.Environment.Configuration;
 using System.TestLibraries.Utilities;
+using System.Utilities;
 
 codeunit 137083 "SCM Production Orders IV"
 {
@@ -4404,6 +4407,157 @@ codeunit 137083 "SCM Production Orders IV"
         // [THEN] Verify "Variance Type" - "Material - Non Inventory" value for Output item in Page "Inventory - G/L Reconciliation" through InvtGLReconciliationHandler.
     end;
 
+    [Test]
+    [HandlerFunctions('ConfirmHandlerTrue,ReleasedProdOrderPageHandler')]
+    procedure AttachmentsAreCopiedWhenReopeningFinishedProdOrder()
+    var
+        CompItem, ProdItem : Record Item;
+        DocumentAttachment: Record "Document Attachment";
+        FinishedProdOrder, ProductionOrder, ReopenedProdOrder : Record "Production Order";
+        ProdOrderStatusMgt: Codeunit "Prod. Order Status Management";
+        AttachmentDocumentType: Enum "Attachment Document Type";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] Attachments are preserved when a finished production order is reopened.
+        Initialize();
+
+        // [GIVEN] Create Item Setup with Production BOM.
+        CreateItemsSetup(ProdItem, CompItem, LibraryRandom.RandIntInRange(1, 1));
+
+        // [GIVEN] Create and Refresh Released Production Order.
+        CreateAndRefreshReleasedProductionOrder(ProductionOrder, ProdItem."No.", LibraryRandom.RandInt(5), '', '');
+
+        // [GIVEN] Create a document attachment on Production Order.
+        CreateDocumentAttachmentForProdOrder(ProductionOrder);
+
+        // [GIVEN] Post output and change status of Released Production Order to Finished.
+        CreateAndPostOutputJournalWithRunTimeAndUnitCost(ProductionOrder."No.", ProductionOrder.Quantity, 0, 0);
+        ProdOrderStatusMgt.ChangeProdOrderStatus(ProductionOrder, ProductionOrder.Status::Finished, WorkDate(), true);
+
+        // [GIVEN] Verify attachment exists on the Finished Production Order.
+        FinishedProdOrder.Get(FinishedProdOrder.Status::Finished, ProductionOrder."No.");
+        AttachmentDocumentType := AttachmentDocumentType::"Finished Production Order";
+        DocumentAttachment.SetRange("Table ID", Database::"Production Order");
+        DocumentAttachment.SetRange("No.", FinishedProdOrder."No.");
+        DocumentAttachment.SetRange("Document Type", AttachmentDocumentType);
+        Assert.RecordIsNotEmpty(DocumentAttachment);
+
+        // [WHEN] Reopen the Finished Production Order.
+        ProdOrderStatusMgt.ReopenFinishedProdOrder(FinishedProdOrder);
+
+        // [THEN] The reopened Released Production Order has the attachment.
+        ReopenedProdOrder.Get(ReopenedProdOrder.Status::Released, ProductionOrder."No.");
+        Assert.IsTrue(ReopenedProdOrder.Reopened, 'Production Order should be marked as reopened.');
+        AttachmentDocumentType := AttachmentDocumentType::"Released Production Order";
+
+        // [THEN] The Document Attachment table has the attachment record for the reopened production order.
+        DocumentAttachment.Reset();
+        DocumentAttachment.SetRange("Table ID", Database::"Production Order");
+        DocumentAttachment.SetRange("No.", ReopenedProdOrder."No.");
+        DocumentAttachment.SetRange("Document Type", AttachmentDocumentType);
+        Assert.RecordIsNotEmpty(DocumentAttachment);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandlerTrue,ReleasedProdOrderPageHandler')]
+    procedure NotesAreTransferredWhenReopeningFinishedProdOrder()
+    var
+        CompItem, ProdItem : Record Item;
+        FinishedProdOrder, ProductionOrder, ReopenedProdOrder : Record "Production Order";
+        RecordLink: Record "Record Link";
+        ProdOrderStatusMgt: Codeunit "Prod. Order Status Management";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] Notes (Record Links) are preserved when a finished production order is reopened.
+        Initialize();
+
+        // [GIVEN] Create Item Setup with Production BOM.
+        CreateItemsSetup(ProdItem, CompItem, LibraryRandom.RandIntInRange(1, 1));
+
+        // [GIVEN] Create and Refresh Released Production Order.
+        CreateAndRefreshReleasedProductionOrder(ProductionOrder, ProdItem."No.", LibraryRandom.RandInt(5), '', '');
+
+        // [GIVEN] Create a note on Released Production Order.
+        CreateNoteForProdOrder(ProductionOrder);
+
+        // [GIVEN] Post output and change status of Released Production Order to Finished.
+        CreateAndPostOutputJournalWithRunTimeAndUnitCost(ProductionOrder."No.", ProductionOrder.Quantity, 0, 0);
+        ProdOrderStatusMgt.ChangeProdOrderStatus(ProductionOrder, ProductionOrder.Status::Finished, WorkDate(), true);
+
+        // [GIVEN] Verify note exists on the Finished Production Order.
+        FinishedProdOrder.Get(FinishedProdOrder.Status::Finished, ProductionOrder."No.");
+        RecordLink.SetRange("Record ID", FinishedProdOrder.RecordId());
+        RecordLink.SetRange(Type, RecordLink.Type::Note);
+        Assert.RecordIsNotEmpty(RecordLink);
+
+        // [WHEN] Reopen the Finished Production Order.
+        ProdOrderStatusMgt.ReopenFinishedProdOrder(FinishedProdOrder);
+
+        // [THEN] The reopened Released Production Order has the note.
+        ReopenedProdOrder.Get(ReopenedProdOrder.Status::Released, ProductionOrder."No.");
+        RecordLink.Reset();
+        RecordLink.SetRange("Record ID", ReopenedProdOrder.RecordId());
+        RecordLink.SetRange(Type, RecordLink.Type::Note);
+        Assert.RecordIsNotEmpty(RecordLink);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandlerTrue,ReleasedProdOrderPageHandler')]
+    procedure ProdOrderLineAttachmentsAreCopiedWhenReopeningFinishedProdOrder()
+    var
+        CompItem, ProdItem : Record Item;
+        FinishedProdOrder, ProductionOrder : Record "Production Order";
+        ProdOrderLine: Record "Prod. Order Line";
+        ReopenedProdOrderLine: Record "Prod. Order Line";
+        DocumentAttachment: Record "Document Attachment";
+        ProdOrderStatusMgt: Codeunit "Prod. Order Status Management";
+        AttachmentDocumentType: Enum "Attachment Document Type";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] Production order line attachments are preserved when a finished production order is reopened.
+        Initialize();
+
+        // [GIVEN] Create Item Setup with Production BOM.
+        CreateItemsSetup(ProdItem, CompItem, LibraryRandom.RandIntInRange(1, 1));
+
+        // [GIVEN] Create and Refresh Released Production Order.
+        CreateAndRefreshReleasedProductionOrder(ProductionOrder, ProdItem."No.", LibraryRandom.RandInt(5), '', '');
+
+        // [GIVEN] Create a document attachment on Production Order Line.
+        ProdOrderLine.SetRange(Status, ProductionOrder.Status);
+        ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderLine.FindFirst();
+        CreateDocumentAttachmentForProdOrderLine(ProdOrderLine);
+
+        // [GIVEN] Post output and change status of Released Production Order to Finished.
+        CreateAndPostOutputJournalWithRunTimeAndUnitCost(ProductionOrder."No.", ProductionOrder.Quantity, 0, 0);
+        ProdOrderStatusMgt.ChangeProdOrderStatus(ProductionOrder, ProductionOrder.Status::Finished, WorkDate(), true);
+
+        // [GIVEN] Verify attachment exists on the Finished Production Order Line.
+        AttachmentDocumentType := AttachmentDocumentType::"Finished Production Order";
+        DocumentAttachment.SetRange("Table ID", Database::"Prod. Order Line");
+        DocumentAttachment.SetRange("No.", ProductionOrder."No.");
+        DocumentAttachment.SetRange("Document Type", AttachmentDocumentType);
+        Assert.RecordIsNotEmpty(DocumentAttachment);
+
+        // [WHEN] Reopen the Finished Production Order.
+        FinishedProdOrder.Get(FinishedProdOrder.Status::Finished, ProductionOrder."No.");
+        ProdOrderStatusMgt.ReopenFinishedProdOrder(FinishedProdOrder);
+
+        // [THEN] The reopened Production Order Line has the attachment.
+        ReopenedProdOrderLine.SetRange(Status, ReopenedProdOrderLine.Status::Released);
+        ReopenedProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ReopenedProdOrderLine.FindFirst();
+        AttachmentDocumentType := AttachmentDocumentType::"Released Production Order";
+
+        // [THEN] The Document Attachment table has the attachment record for the reopened production order line.
+        DocumentAttachment.Reset();
+        DocumentAttachment.SetRange("Table ID", Database::"Prod. Order Line");
+        DocumentAttachment.SetRange("No.", ReopenedProdOrderLine."Prod. Order No.");
+        DocumentAttachment.SetRange("Document Type", AttachmentDocumentType);
+        Assert.RecordIsNotEmpty(DocumentAttachment);
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"SCM Production Orders IV");
@@ -5181,6 +5335,51 @@ codeunit 137083 "SCM Production Orders IV"
         InventoryReportHeader."Show Warning" := true;
         GetInventoryReport.SetReportHeader(InventoryReportHeader);
         GetInventoryReport.Run(InventoryReportEntry);
+    end;
+
+    local procedure CreateDocumentAttachmentForProdOrder(ProductionOrder: Record "Production Order")
+    var
+        DocumentAttachment: Record "Document Attachment";
+        TempBlob: Codeunit "Temp Blob";
+        RecRef: RecordRef;
+        OutStream: OutStream;
+    begin
+        TempBlob.CreateOutStream(OutStream);
+        OutStream.WriteText(ItemNoLbl);
+        RecRef.GetTable(ProductionOrder);
+        DocumentAttachment.SaveAttachment(RecRef, 'TestAttachment.txt', TempBlob);
+    end;
+
+    local procedure CreateDocumentAttachmentForProdOrderLine(ProdOrderLine: Record "Prod. Order Line")
+    var
+        DocumentAttachment: Record "Document Attachment";
+        TempBlob: Codeunit "Temp Blob";
+        RecRef: RecordRef;
+        OutStream: OutStream;
+    begin
+        TempBlob.CreateOutStream(OutStream);
+        OutStream.WriteText(ItemNoLbl);
+        RecRef.GetTable(ProdOrderLine);
+        DocumentAttachment.SaveAttachment(RecRef, 'TestLineAttachment.txt', TempBlob);
+    end;
+
+    local procedure CreateNoteForProdOrder(ProductionOrder: Record "Production Order")
+    var
+        RecordLink: Record "Record Link";
+        NoteOutStream: OutStream;
+    begin
+        RecordLink.Init();
+        RecordLink.Validate("Record ID", ProductionOrder.RecordId());
+        RecordLink.Validate("Type", RecordLink.Type::Note);
+        RecordLink.Validate("Description", CopyStr(LibraryUtility.GenerateRandomText(50), 1, MaxStrLen(RecordLink.Description)));
+        RecordLink.Validate("Created", CurrentDateTime());
+        RecordLink.Validate("Company", CompanyName());
+        RecordLink.Validate("Notify", false);
+        RecordLink.Insert(true);
+
+        RecordLink.Note.CreateOutStream(NoteOutStream, TextEncoding::UTF8);
+        NoteOutStream.WriteText(TotalCostLbl);
+        RecordLink.Modify(true);
     end;
 
     [ConfirmHandler]

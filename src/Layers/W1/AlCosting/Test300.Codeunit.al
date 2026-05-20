@@ -720,7 +720,7 @@ codeunit 103514 "Test 300"
         Item.Validate("Replenishment System", Item."Replenishment System"::Purchase);
         Item.Validate("Lot Size", 25);
         Item.Validate("Rounding Precision", 0.01);
-        Item.Validate("Flushing Method", Item."Flushing Method"::Manual);
+        Item.Validate("Flushing Method", Item."Flushing Method"::"Pick + Manual");
         Item.Validate("Indirect Cost %", 2);
         Item.Modify(true);
 
@@ -731,7 +731,7 @@ codeunit 103514 "Test 300"
         Item.Validate("Replenishment System", Item."Replenishment System"::Purchase);
         Item.Validate("Lot Size", 100);
         Item.Validate("Rounding Precision", 1);
-        Item.Validate("Flushing Method", Item."Flushing Method"::Manual);
+        Item.Validate("Flushing Method", Item."Flushing Method"::"Pick + Manual");
         Item.Validate("Overhead Rate", 0.01);
         Item.Validate("Indirect Cost %", 3);
         Item.Modify(true);
@@ -743,7 +743,7 @@ codeunit 103514 "Test 300"
         Item.Validate("Replenishment System", Item."Replenishment System"::Purchase);
         Item.Validate("Lot Size", 200);
         Item.Validate("Rounding Precision", 1);
-        Item.Validate("Flushing Method", Item."Flushing Method"::Manual);
+        Item.Validate("Flushing Method", Item."Flushing Method"::"Pick + Manual");
         Item.Validate("Indirect Cost %", 2);
         Item.Modify(true);
 
@@ -754,7 +754,7 @@ codeunit 103514 "Test 300"
         Item.Validate("Replenishment System", Item."Replenishment System"::Purchase);
         Item.Validate("Lot Size", 10);
         Item.Validate("Rounding Precision", 1);
-        Item.Validate("Flushing Method", Item."Flushing Method"::Manual);
+        Item.Validate("Flushing Method", Item."Flushing Method"::"Pick + Manual");
         Item.Validate("Overhead Rate", 0.02);
         Item.Validate("Indirect Cost %", 2);
         Item.Modify(true);
@@ -766,7 +766,7 @@ codeunit 103514 "Test 300"
         Item.Validate("Replenishment System", Item."Replenishment System"::Purchase);
         Item.Validate("Lot Size", 5);
         Item.Validate("Rounding Precision", 1);
-        Item.Validate("Flushing Method", Item."Flushing Method"::Manual);
+        Item.Validate("Flushing Method", Item."Flushing Method"::"Pick + Manual");
         Item.Validate("Overhead Rate", 0.11);
         Item.Modify(true);
 
@@ -777,7 +777,7 @@ codeunit 103514 "Test 300"
         Item.Validate("Replenishment System", Item."Replenishment System"::Purchase);
         Item.Validate("Lot Size", 1000);
         Item.Validate("Rounding Precision", 1);
-        Item.Validate("Flushing Method", Item."Flushing Method"::Manual);
+        Item.Validate("Flushing Method", Item."Flushing Method"::"Pick + Manual");
         Item.Validate("Indirect Cost %", 1);
         Item.Modify(true);
 
@@ -788,7 +788,7 @@ codeunit 103514 "Test 300"
         Item.Validate("Replenishment System", Item."Replenishment System"::Purchase);
         Item.Validate("Lot Size", 25);
         Item.Validate("Rounding Precision", 1);
-        Item.Validate("Flushing Method", Item."Flushing Method"::Manual);
+        Item.Validate("Flushing Method", Item."Flushing Method"::"Pick + Manual");
         Item.Modify(true);
 
         InsertItem('8', Item, 'CM');
@@ -798,7 +798,7 @@ codeunit 103514 "Test 300"
         Item.Validate("Replenishment System", Item."Replenishment System"::Purchase);
         Item.Validate("Lot Size", 1000);
         Item.Validate("Rounding Precision", 1);
-        Item.Validate("Flushing Method", Item."Flushing Method"::Manual);
+        Item.Validate("Flushing Method", Item."Flushing Method"::"Pick + Manual");
         Item.Validate("Indirect Cost %", 2);
         Item.Modify(true);
 
@@ -809,7 +809,7 @@ codeunit 103514 "Test 300"
         Item.Validate("Lot Size", 10);
         Item.Validate("Routing No.", '2');
         Item.Validate("Rounding Precision", 1);
-        Item.Validate("Flushing Method", Item."Flushing Method"::Manual);
+        Item.Validate("Flushing Method", Item."Flushing Method"::"Pick + Manual");
         Item.Validate("Overhead Rate", 0.1);
         Item.Validate("Indirect Cost %", 10);
         Item.Modify(true);
@@ -820,7 +820,7 @@ codeunit 103514 "Test 300"
         Item.Validate("Replenishment System", Item."Replenishment System"::"Prod. Order");
         Item.Validate("Lot Size", 10);
         Item.Validate("Rounding Precision", 1);
-        Item.Validate("Flushing Method", Item."Flushing Method"::Manual);
+        Item.Validate("Flushing Method", Item."Flushing Method"::"Pick + Manual");
         Item.Validate("Overhead Rate", 0.1);
         Item.Validate("Indirect Cost %", 5);
         Item.Modify(true);
@@ -831,7 +831,7 @@ codeunit 103514 "Test 300"
         Item.Validate("Replenishment System", Item."Replenishment System"::"Prod. Order");
         Item.Validate("Lot Size", 10);
         Item.Validate("Rounding Precision", 1);
-        Item.Validate("Flushing Method", Item."Flushing Method"::Manual);
+        Item.Validate("Flushing Method", Item."Flushing Method"::"Pick + Manual");
         Item.Validate("Indirect Cost %", 6);
         Item.Modify(true);
 

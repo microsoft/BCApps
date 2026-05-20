@@ -2933,5 +2933,625 @@
     "codeunitId": 139907,
     "codeunitName": "APIV2 - Fixed Assets E2E",
     "method": "TestModifyFixedAsset"
+  },
+  {
+    "codeunitId": 139908,
+    "method": "TestGetBlanketPurchaseOrders",
+    "codeunitName": "APIV2 - Bl. Purch. Orders E2E"
+  },
+  {
+    "codeunitId": 139908,
+    "method": "TestGetBlanketPurchaseOrderById",
+    "codeunitName": "APIV2 - Bl. Purch. Orders E2E"
+  },
+  {
+    "codeunitId": 139908,
+    "method": "TestExpandDimensionSetLines",
+    "codeunitName": "APIV2 - Bl. Purch. Orders E2E"
+  },
+  {
+    "codeunitId": 139908,
+    "method": "TestExpandAttachments",
+    "codeunitName": "APIV2 - Bl. Purch. Orders E2E"
+  },
+  {
+    "codeunitId": 139908,
+    "method": "TestExpandDocumentAttachments",
+    "codeunitName": "APIV2 - Bl. Purch. Orders E2E"
+  },
+  {
+    "codeunitId": 139908,
+    "method": "TestExpandPdfDocument",
+    "codeunitName": "APIV2 - Bl. Purch. Orders E2E"
+  },
+  {
+    "codeunitId": 139908,
+    "method": "TestExpandLines",
+    "codeunitName": "APIV2 - Bl. Purch. Orders E2E"
+  },
+  {
+    "codeunitId": 139909,
+    "method": "TestGetBlanketSalesOrders",
+    "codeunitName": "APIV2 - Bl. Sales Orders E2E"
+  },
+  {
+    "codeunitId": 139909,
+    "method": "TestGetBlanketSalesOrderById",
+    "codeunitName": "APIV2 - Bl. Sales Orders E2E"
+  },
+  {
+    "codeunitId": 139909,
+    "method": "TestExpandDimensionSetLines",
+    "codeunitName": "APIV2 - Bl. Sales Orders E2E"
+  },
+  {
+    "codeunitId": 139909,
+    "method": "TestExpandAttachments",
+    "codeunitName": "APIV2 - Bl. Sales Orders E2E"
+  },
+  {
+    "codeunitId": 139909,
+    "method": "TestExpandDocumentAttachments",
+    "codeunitName": "APIV2 - Bl. Sales Orders E2E"
+  },
+  {
+    "codeunitId": 139909,
+    "method": "TestExpandPdfDocument",
+    "codeunitName": "APIV2 - Bl. Sales Orders E2E"
+  },
+  {
+    "codeunitId": 139909,
+    "method": "TestExpandLines",
+    "codeunitName": "APIV2 - Bl. Sales Orders E2E"
+  },
+  {
+    "codeunitId": 139917,
+    "method": "TestGetApprovalEntries",
+    "codeunitName": "APIV2 - Approval Entries E2E"
+  },
+  {
+    "codeunitId": 139918,
+    "method": "TestGetApprovalUserSetup",
+    "codeunitName": "APIV2 - Approval UserSetup E2E"
+  },
+  {
+    "codeunitId": 139919,
+    "method": "TestGetPostedApprovalEntries",
+    "codeunitName": "APIV2 PstdApprovalEntries E2E"
+  },
+  {
+    "codeunitId": 139920,
+    "method": "TestGetApprovalEntries",
+    "codeunitName": "APIV2 - Workflow Approvers E2E"
+  },
+  {
+    "codeunitId": 139921,
+    "method": "TestGetApprovalEntries",
+    "codeunitName": "APIV2 - Workflows E2E"
+  },
+  {
+    "codeunitId": 139922,
+    "method": "TestGetPurchaseQuotes",
+    "codeunitName": "APIV2 - Purch. Quotes E2E"
+  },
+  {
+    "codeunitId": 139922,
+    "method": "TestGetPurchaseQuoteById",
+    "codeunitName": "APIV2 - Purch. Quotes E2E"
+  },
+  {
+    "codeunitId": 139922,
+    "method": "TestExpandDimensionSetLines",
+    "codeunitName": "APIV2 - Purch. Quotes E2E"
+  },
+  {
+    "codeunitId": 139922,
+    "method": "TestExpandAttachments",
+    "codeunitName": "APIV2 - Purch. Quotes E2E"
+  },
+  {
+    "codeunitId": 139922,
+    "method": "TestExpandDocumentAttachments",
+    "codeunitName": "APIV2 - Purch. Quotes E2E"
+  },
+  {
+    "codeunitId": 139922,
+    "method": "TestExpandPdfDocument",
+    "codeunitName": "APIV2 - Purch. Quotes E2E"
+  },
+  {
+    "codeunitId": 139922,
+    "method": "TestExpandLines",
+    "codeunitName": "APIV2 - Purch. Quotes E2E"
+  },
+  {
+    "codeunitId": 139923,
+    "method": "TestGetPurchaseReturnOrders",
+    "codeunitName": "APIV2 - Purch. Ret. Orders E2E"
+  },
+  {
+    "codeunitId": 139923,
+    "method": "TestGetPurchaseReturnOrderById",
+    "codeunitName": "APIV2 - Purch. Ret. Orders E2E"
+  },
+  {
+    "codeunitId": 139923,
+    "method": "TestExpandDimensionSetLines",
+    "codeunitName": "APIV2 - Purch. Ret. Orders E2E"
+  },
+  {
+    "codeunitId": 139923,
+    "method": "TestExpandAttachments",
+    "codeunitName": "APIV2 - Purch. Ret. Orders E2E"
+  },
+  {
+    "codeunitId": 139923,
+    "method": "TestExpandDocumentAttachments",
+    "codeunitName": "APIV2 - Purch. Ret. Orders E2E"
+  },
+  {
+    "codeunitId": 139923,
+    "method": "TestExpandPdfDocument",
+    "codeunitName": "APIV2 - Purch. Ret. Orders E2E"
+  },
+  {
+    "codeunitId": 139923,
+    "method": "TestExpandLines",
+    "codeunitName": "APIV2 - Purch. Ret. Orders E2E"
+  },
+  {
+    "codeunitId": 139924,
+    "method": "TestGetSalesReturnOrders",
+    "codeunitName": "APIV2 - Sales Ret. Orders E2E"
+  },
+  {
+    "codeunitId": 139924,
+    "method": "TestGetSalesReturnOrderById",
+    "codeunitName": "APIV2 - Sales Ret. Orders E2E"
+  },
+  {
+    "codeunitId": 139924,
+    "method": "TestExpandDimensionSetLines",
+    "codeunitName": "APIV2 - Sales Ret. Orders E2E"
+  },
+  {
+    "codeunitId": 139924,
+    "method": "TestExpandAttachments",
+    "codeunitName": "APIV2 - Sales Ret. Orders E2E"
+  },
+  {
+    "codeunitId": 139924,
+    "method": "TestExpandDocumentAttachments",
+    "codeunitName": "APIV2 - Sales Ret. Orders E2E"
+  },
+  {
+    "codeunitId": 139924,
+    "method": "TestExpandPdfDocument",
+    "codeunitName": "APIV2 - Sales Ret. Orders E2E"
+  },
+  {
+    "codeunitId": 139924,
+    "method": "TestExpandLines",
+    "codeunitName": "APIV2 - Sales Ret. Orders E2E"
+  },
+  {
+    "codeunitId": 139925,
+    "method": "TestGetAssemblyOrders",
+    "codeunitName": "APIV2 - Assembly Orders E2E"
+  },
+  {
+    "codeunitId": 139925,
+    "method": "TestGetAssemblyOrderById",
+    "codeunitName": "APIV2 - Assembly Orders E2E"
+  },
+  {
+    "codeunitId": 139925,
+    "method": "TestExpandDimensionSetLines",
+    "codeunitName": "APIV2 - Assembly Orders E2E"
+  },
+  {
+    "codeunitId": 139925,
+    "method": "TestExpandAttachments",
+    "codeunitName": "APIV2 - Assembly Orders E2E"
+  },
+  {
+    "codeunitId": 139925,
+    "method": "TestExpandDocumentAttachments",
+    "codeunitName": "APIV2 - Assembly Orders E2E"
+  },
+  {
+    "codeunitId": 139925,
+    "method": "TestExpandPdfDocument",
+    "codeunitName": "APIV2 - Assembly Orders E2E"
+  },
+  {
+    "codeunitId": 139925,
+    "method": "TestExpandLines",
+    "codeunitName": "APIV2 - Assembly Orders E2E"
+  },
+  {
+    "codeunitId": 139926,
+    "method": "TestGetTransferOrders",
+    "codeunitName": "APIV2 - Transfer Orders E2E"
+  },
+  {
+    "codeunitId": 139926,
+    "method": "TestGetTransferOrderById",
+    "codeunitName": "APIV2 - Transfer Orders E2E"
+  },
+  {
+    "codeunitId": 139926,
+    "method": "TestExpandDimensionSetLines",
+    "codeunitName": "APIV2 - Transfer Orders E2E"
+  },
+  {
+    "codeunitId": 139926,
+    "method": "TestExpandAttachments",
+    "codeunitName": "APIV2 - Transfer Orders E2E"
+  },
+  {
+    "codeunitId": 139926,
+    "method": "TestExpandDocumentAttachments",
+    "codeunitName": "APIV2 - Transfer Orders E2E"
+  },
+  {
+    "codeunitId": 139926,
+    "method": "TestExpandPdfDocument",
+    "codeunitName": "APIV2 - Transfer Orders E2E"
+  },
+  {
+    "codeunitId": 139926,
+    "method": "TestExpandLines",
+    "codeunitName": "APIV2 - Transfer Orders E2E"
+  },
+  {
+    "codeunitId": 139927,
+    "method": "TestGetSalesOrderArchives",
+    "codeunitName": "APIV2 - Sales Ord. Arch. E2E"
+  },
+  {
+    "codeunitId": 139927,
+    "method": "TestExpandDimensionSetLines",
+    "codeunitName": "APIV2 - Sales Ord. Arch. E2E"
+  },
+  {
+    "codeunitId": 139927,
+    "method": "TestExpandAttachments",
+    "codeunitName": "APIV2 - Sales Ord. Arch. E2E"
+  },
+  {
+    "codeunitId": 139927,
+    "method": "TestExpandDocumentAttachments",
+    "codeunitName": "APIV2 - Sales Ord. Arch. E2E"
+  },
+  {
+    "codeunitId": 139928,
+    "method": "TestGetPurchaseReturnShipments",
+    "codeunitName": "APIV2 - Purch. Ret. Shpts. E2E"
+  },
+  {
+    "codeunitId": 139928,
+    "method": "TestExpandAttachments",
+    "codeunitName": "APIV2 - Purch. Ret. Shpts. E2E"
+  },
+  {
+    "codeunitId": 139928,
+    "method": "TestExpandDocumentAttachments",
+    "codeunitName": "APIV2 - Purch. Ret. Shpts. E2E"
+  },
+  {
+    "codeunitId": 139928,
+    "method": "TestExpandPdfDocument",
+    "codeunitName": "APIV2 - Purch. Ret. Shpts. E2E"
+  },
+  {
+    "codeunitId": 139908,
+    "method": "TestGetBlanketPurchaseOrders",
+    "codeunitName": "APIV2 - Bl. Purch. Orders E2E"
+  },
+  {
+    "codeunitId": 139908,
+    "method": "TestGetBlanketPurchaseOrderById",
+    "codeunitName": "APIV2 - Bl. Purch. Orders E2E"
+  },
+  {
+    "codeunitId": 139908,
+    "method": "TestExpandDimensionSetLines",
+    "codeunitName": "APIV2 - Bl. Purch. Orders E2E"
+  },
+  {
+    "codeunitId": 139908,
+    "method": "TestExpandAttachments",
+    "codeunitName": "APIV2 - Bl. Purch. Orders E2E"
+  },
+  {
+    "codeunitId": 139908,
+    "method": "TestExpandDocumentAttachments",
+    "codeunitName": "APIV2 - Bl. Purch. Orders E2E"
+  },
+  {
+    "codeunitId": 139908,
+    "method": "TestExpandPdfDocument",
+    "codeunitName": "APIV2 - Bl. Purch. Orders E2E"
+  },
+  {
+    "codeunitId": 139908,
+    "method": "TestExpandLines",
+    "codeunitName": "APIV2 - Bl. Purch. Orders E2E"
+  },
+  {
+    "codeunitId": 139909,
+    "method": "TestGetBlanketSalesOrders",
+    "codeunitName": "APIV2 - Bl. Sales Orders E2E"
+  },
+  {
+    "codeunitId": 139909,
+    "method": "TestGetBlanketSalesOrderById",
+    "codeunitName": "APIV2 - Bl. Sales Orders E2E"
+  },
+  {
+    "codeunitId": 139909,
+    "method": "TestExpandDimensionSetLines",
+    "codeunitName": "APIV2 - Bl. Sales Orders E2E"
+  },
+  {
+    "codeunitId": 139909,
+    "method": "TestExpandAttachments",
+    "codeunitName": "APIV2 - Bl. Sales Orders E2E"
+  },
+  {
+    "codeunitId": 139909,
+    "method": "TestExpandDocumentAttachments",
+    "codeunitName": "APIV2 - Bl. Sales Orders E2E"
+  },
+  {
+    "codeunitId": 139909,
+    "method": "TestExpandPdfDocument",
+    "codeunitName": "APIV2 - Bl. Sales Orders E2E"
+  },
+  {
+    "codeunitId": 139909,
+    "method": "TestExpandLines",
+    "codeunitName": "APIV2 - Bl. Sales Orders E2E"
+  },
+  {
+    "codeunitId": 139917,
+    "method": "TestGetApprovalEntries",
+    "codeunitName": "APIV2 - Approval Entries E2E"
+  },
+  {
+    "codeunitId": 139918,
+    "method": "TestGetApprovalUserSetup",
+    "codeunitName": "APIV2 - Approval UserSetup E2E"
+  },
+  {
+    "codeunitId": 139919,
+    "method": "TestGetPostedApprovalEntries",
+    "codeunitName": "APIV2 PstdApprovalEntries E2E"
+  },
+  {
+    "codeunitId": 139920,
+    "method": "TestGetApprovalEntries",
+    "codeunitName": "APIV2 - Workflow Approvers E2E"
+  },
+  {
+    "codeunitId": 139921,
+    "method": "TestGetApprovalEntries",
+    "codeunitName": "APIV2 - Workflows E2E"
+  },
+  {
+    "codeunitId": 139922,
+    "method": "TestGetPurchaseQuotes",
+    "codeunitName": "APIV2 - Purch. Quotes E2E"
+  },
+  {
+    "codeunitId": 139922,
+    "method": "TestGetPurchaseQuoteById",
+    "codeunitName": "APIV2 - Purch. Quotes E2E"
+  },
+  {
+    "codeunitId": 139922,
+    "method": "TestExpandDimensionSetLines",
+    "codeunitName": "APIV2 - Purch. Quotes E2E"
+  },
+  {
+    "codeunitId": 139922,
+    "method": "TestExpandAttachments",
+    "codeunitName": "APIV2 - Purch. Quotes E2E"
+  },
+  {
+    "codeunitId": 139922,
+    "method": "TestExpandDocumentAttachments",
+    "codeunitName": "APIV2 - Purch. Quotes E2E"
+  },
+  {
+    "codeunitId": 139922,
+    "method": "TestExpandPdfDocument",
+    "codeunitName": "APIV2 - Purch. Quotes E2E"
+  },
+  {
+    "codeunitId": 139922,
+    "method": "TestExpandLines",
+    "codeunitName": "APIV2 - Purch. Quotes E2E"
+  },
+  {
+    "codeunitId": 139923,
+    "method": "TestGetPurchaseReturnOrders",
+    "codeunitName": "APIV2 - Purch. Ret. Orders E2E"
+  },
+  {
+    "codeunitId": 139923,
+    "method": "TestGetPurchaseReturnOrderById",
+    "codeunitName": "APIV2 - Purch. Ret. Orders E2E"
+  },
+  {
+    "codeunitId": 139923,
+    "method": "TestExpandDimensionSetLines",
+    "codeunitName": "APIV2 - Purch. Ret. Orders E2E"
+  },
+  {
+    "codeunitId": 139923,
+    "method": "TestExpandAttachments",
+    "codeunitName": "APIV2 - Purch. Ret. Orders E2E"
+  },
+  {
+    "codeunitId": 139923,
+    "method": "TestExpandDocumentAttachments",
+    "codeunitName": "APIV2 - Purch. Ret. Orders E2E"
+  },
+  {
+    "codeunitId": 139923,
+    "method": "TestExpandPdfDocument",
+    "codeunitName": "APIV2 - Purch. Ret. Orders E2E"
+  },
+  {
+    "codeunitId": 139923,
+    "method": "TestExpandLines",
+    "codeunitName": "APIV2 - Purch. Ret. Orders E2E"
+  },
+  {
+    "codeunitId": 139924,
+    "method": "TestGetSalesReturnOrders",
+    "codeunitName": "APIV2 - Sales Ret. Orders E2E"
+  },
+  {
+    "codeunitId": 139924,
+    "method": "TestGetSalesReturnOrderById",
+    "codeunitName": "APIV2 - Sales Ret. Orders E2E"
+  },
+  {
+    "codeunitId": 139924,
+    "method": "TestExpandDimensionSetLines",
+    "codeunitName": "APIV2 - Sales Ret. Orders E2E"
+  },
+  {
+    "codeunitId": 139924,
+    "method": "TestExpandAttachments",
+    "codeunitName": "APIV2 - Sales Ret. Orders E2E"
+  },
+  {
+    "codeunitId": 139924,
+    "method": "TestExpandDocumentAttachments",
+    "codeunitName": "APIV2 - Sales Ret. Orders E2E"
+  },
+  {
+    "codeunitId": 139924,
+    "method": "TestExpandPdfDocument",
+    "codeunitName": "APIV2 - Sales Ret. Orders E2E"
+  },
+  {
+    "codeunitId": 139924,
+    "method": "TestExpandLines",
+    "codeunitName": "APIV2 - Sales Ret. Orders E2E"
+  },
+  {
+    "codeunitId": 139925,
+    "method": "TestGetAssemblyOrders",
+    "codeunitName": "APIV2 - Assembly Orders E2E"
+  },
+  {
+    "codeunitId": 139925,
+    "method": "TestGetAssemblyOrderById",
+    "codeunitName": "APIV2 - Assembly Orders E2E"
+  },
+  {
+    "codeunitId": 139925,
+    "method": "TestExpandDimensionSetLines",
+    "codeunitName": "APIV2 - Assembly Orders E2E"
+  },
+  {
+    "codeunitId": 139925,
+    "method": "TestExpandAttachments",
+    "codeunitName": "APIV2 - Assembly Orders E2E"
+  },
+  {
+    "codeunitId": 139925,
+    "method": "TestExpandDocumentAttachments",
+    "codeunitName": "APIV2 - Assembly Orders E2E"
+  },
+  {
+    "codeunitId": 139925,
+    "method": "TestExpandPdfDocument",
+    "codeunitName": "APIV2 - Assembly Orders E2E"
+  },
+  {
+    "codeunitId": 139925,
+    "method": "TestExpandLines",
+    "codeunitName": "APIV2 - Assembly Orders E2E"
+  },
+  {
+    "codeunitId": 139926,
+    "method": "TestGetTransferOrders",
+    "codeunitName": "APIV2 - Transfer Orders E2E"
+  },
+  {
+    "codeunitId": 139926,
+    "method": "TestGetTransferOrderById",
+    "codeunitName": "APIV2 - Transfer Orders E2E"
+  },
+  {
+    "codeunitId": 139926,
+    "method": "TestExpandDimensionSetLines",
+    "codeunitName": "APIV2 - Transfer Orders E2E"
+  },
+  {
+    "codeunitId": 139926,
+    "method": "TestExpandAttachments",
+    "codeunitName": "APIV2 - Transfer Orders E2E"
+  },
+  {
+    "codeunitId": 139926,
+    "method": "TestExpandDocumentAttachments",
+    "codeunitName": "APIV2 - Transfer Orders E2E"
+  },
+  {
+    "codeunitId": 139926,
+    "method": "TestExpandPdfDocument",
+    "codeunitName": "APIV2 - Transfer Orders E2E"
+  },
+  {
+    "codeunitId": 139926,
+    "method": "TestExpandLines",
+    "codeunitName": "APIV2 - Transfer Orders E2E"
+  },
+  {
+    "codeunitId": 139927,
+    "method": "TestGetSalesOrderArchives",
+    "codeunitName": "APIV2 - Sales Ord. Arch. E2E"
+  },
+  {
+    "codeunitId": 139927,
+    "method": "TestExpandDimensionSetLines",
+    "codeunitName": "APIV2 - Sales Ord. Arch. E2E"
+  },
+  {
+    "codeunitId": 139927,
+    "method": "TestExpandAttachments",
+    "codeunitName": "APIV2 - Sales Ord. Arch. E2E"
+  },
+  {
+    "codeunitId": 139927,
+    "method": "TestExpandDocumentAttachments",
+    "codeunitName": "APIV2 - Sales Ord. Arch. E2E"
+  },
+  {
+    "codeunitId": 139928,
+    "method": "TestGetPurchaseReturnShipments",
+    "codeunitName": "APIV2 - Purch. Ret. Shpts. E2E"
+  },
+  {
+    "codeunitId": 139928,
+    "method": "TestExpandAttachments",
+    "codeunitName": "APIV2 - Purch. Ret. Shpts. E2E"
+  },
+  {
+    "codeunitId": 139928,
+    "method": "TestExpandDocumentAttachments",
+    "codeunitName": "APIV2 - Purch. Ret. Shpts. E2E"
+  },
+  {
+    "codeunitId": 139928,
+    "method": "TestExpandPdfDocument",
+    "codeunitName": "APIV2 - Purch. Ret. Shpts. E2E"
   }
 ]

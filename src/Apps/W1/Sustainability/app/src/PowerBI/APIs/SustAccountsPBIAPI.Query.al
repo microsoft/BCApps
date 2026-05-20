@@ -6,6 +6,7 @@ query 6219 "Sust Accounts - PBI API"
 {
     Access = Internal;
     QueryType = API;
+    AboutText = 'Provides access to sustainability account master data including account numbers, names, categories, and subcategories. Enables Power BI reports to retrieve the chart of sustainability accounts for structuring emission tracking, environmental impact analysis, and ESG reporting.';
     Caption = 'Power BI Sustainability Entries';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';

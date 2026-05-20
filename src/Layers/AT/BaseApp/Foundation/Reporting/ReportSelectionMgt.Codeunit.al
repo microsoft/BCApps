@@ -339,6 +339,25 @@ codeunit 1901 "Report Selection Mgt."
         end;
     end;
 
+    procedure ReportSelectionsExist(ReportSelectionUsage: Enum "Report Selection Usage"; ReportID: Integer): Boolean
+    var
+        ReportSelections: Record "Report Selections";
+    begin
+        if ReportSelections.Get(ReportSelectionUsage, '1') then
+            exit(ReportSelections."Report ID" = ReportID);
+        exit(false);
+    end;
+
+    procedure UpdateReportSelection(ReportUsage: Enum "Report Selection Usage"; Sequence: Code[10]; ReportID: Integer)
+    var
+        ReportSelections: Record "Report Selections";
+    begin
+        if ReportSelections.Get(ReportUsage, Sequence) then begin
+            ReportSelections.Validate("Report ID", ReportID);
+            ReportSelections.Modify();
+        end;
+    end;
+
     procedure InsertReportSelectionWhse(ReportUsage: Enum "Report Selection Warehouse Usage"; Sequence: Code[10]; ReportID: Integer)
     var
         ReportSelectionWhse: Record "Report Selection Warehouse";

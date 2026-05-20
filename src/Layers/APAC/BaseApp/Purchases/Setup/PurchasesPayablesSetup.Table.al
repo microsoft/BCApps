@@ -215,7 +215,7 @@ table 312 "Purchases & Payables Setup"
         field(35; "Default Posting Date"; Enum "Default Posting Date")
         {
             Caption = 'Default Posting Date';
-            ToolTip = 'Specifies which date must be used as the default posting date on purchase documents. If you select Work Date, the Posting Date field will be populated with the work date at the time of creating a new purchase document. If you select No Date, the Posting Date field will be empty by default and you must manually enter a posting date before posting.';
+            ToolTip = 'Specifies the default posting date for purchase documents that you create manually. If you select Work Date, the Posting Date is set to the current work date when you create a document. If you select No Date, the Posting Date is left blank and must be entered before posting. Does not apply to purchase documents created from e-documents.';
         }
         field(36; "Default Qty. to Receive"; Option)
         {

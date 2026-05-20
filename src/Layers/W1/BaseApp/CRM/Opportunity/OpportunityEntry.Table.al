@@ -385,7 +385,7 @@ table 5093 "Opportunity Entry"
         SalesCycleStage2.SetLoadFields("Chances of Success %", "Completed %", "Date Formula");
         if SalesCycleStage2.Get("Sales Cycle Code", "Sales Cycle Stage") then begin
             SalesCycle.Get("Sales Cycle Code");
-            if ("Chances of Success %" = 0) and (SalesCycleStage2."Chances of Success %" <> 0) then
+            if (("Chances of Success %" = 0) or ("Action Type" in ["Action Type"::Jump, "Action Type"::Skip])) and (SalesCycleStage2."Chances of Success %" <> 0) then
                 "Chances of Success %" := SalesCycleStage2."Chances of Success %";
             "Completed %" := SalesCycleStage2."Completed %";
             case SalesCycle."Probability Calculation" of

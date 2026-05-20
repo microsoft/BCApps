@@ -13,6 +13,10 @@ codeunit 134207 "WF Supported Combinations Test"
         LibraryWorkflow: Codeunit "Library - Workflow";
         LibraryUtility: Codeunit "Library - Utility";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
+        PredecessorShouldExistAfterFirstInitLbl: Label 'Setup: predecessor should exist after first init';
+        ResponseRecordShouldStillExistLbl: Label 'Setup: response record should still exist after deleting combination';
+        PredecessorShouldBeGoneAfterDeletionLbl: Label 'Setup: predecessor should be gone after deletion';
+        PredecessorShouldBeRestoredAfterSecondInitLbl: Label 'Predecessor for CreateApprovalRequests should be restored after second init';
 
     [Test]
     [Scope('OnPrem')]
@@ -629,6 +633,54 @@ codeunit 134207 "WF Supported Combinations Test"
         WFEventResponseCombinations.MatrixResponseSubpage.First();
         Assert.AreEqual(WorkflowResponse1.Description, WFEventResponseCombinations.MatrixResponseSubpage.Cell1.Caption, '');
         Assert.AreEqual(WorkflowResponse2.Description, WFEventResponseCombinations.MatrixResponseSubpage.Cell2.Caption, '');
+    end;
+
+    [Test]
+    procedure ResponsePredecessorsExistAfterDoubleInit()
+    var
+        WFEventResponseCombination: Record "WF Event/Response Combination";
+        WorkflowResponse: Record "Workflow Response";
+        WorkflowResponseHandling: Codeunit "Workflow Response Handling";
+        WorkflowEventHandling: Codeunit "Workflow Event Handling";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] Response predecessors are restored when CreateResponsesLibrary is called a second time
+        Initialize();
+
+        // [GIVEN] Events and responses library created
+        WorkflowEventHandling.CreateEventsLibrary();
+        WorkflowResponseHandling.CreateResponsesLibrary();
+
+        // [GIVEN] A specific response predecessor combination exists
+        Assert.IsTrue(
+            WFEventResponseCombination.Get(
+                WFEventResponseCombination.Type::Response, WorkflowResponseHandling.CreateApprovalRequestsCode(),
+                WFEventResponseCombination."Predecessor Type"::"Event", WorkflowEventHandling.RunWorkflowOnSendPurchaseDocForApprovalCode()),
+            PredecessorShouldExistAfterFirstInitLbl);
+
+        // [GIVEN] That specific predecessor combination is deleted
+        WFEventResponseCombination.Delete();
+
+        // [GIVEN] The response record still exists
+        Assert.IsTrue(WorkflowResponse.Get(WorkflowResponseHandling.CreateApprovalRequestsCode()),
+            ResponseRecordShouldStillExistLbl);
+
+        // [GIVEN] The predecessor combination is confirmed gone
+        Assert.IsFalse(
+            WFEventResponseCombination.Get(
+                WFEventResponseCombination.Type::Response, WorkflowResponseHandling.CreateApprovalRequestsCode(),
+                WFEventResponseCombination."Predecessor Type"::"Event", WorkflowEventHandling.RunWorkflowOnSendPurchaseDocForApprovalCode()),
+            PredecessorShouldBeGoneAfterDeletionLbl);
+
+        // [WHEN] CreateResponsesLibrary is called again (responses already exist)
+        WorkflowResponseHandling.CreateResponsesLibrary();
+
+        // [THEN] The deleted predecessor combination is restored
+        Assert.IsTrue(
+            WFEventResponseCombination.Get(
+                WFEventResponseCombination.Type::Response, WorkflowResponseHandling.CreateApprovalRequestsCode(),
+                WFEventResponseCombination."Predecessor Type"::"Event", WorkflowEventHandling.RunWorkflowOnSendPurchaseDocForApprovalCode()),
+            PredecessorShouldBeRestoredAfterSecondInitLbl);
     end;
 
     local procedure Initialize()

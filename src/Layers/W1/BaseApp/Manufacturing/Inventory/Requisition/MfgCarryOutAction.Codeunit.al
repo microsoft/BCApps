@@ -504,16 +504,10 @@ codeunit 99000818 "Mfg. Carry Out Action"
                     PlanningRoutingLine.Type, PlanningRoutingLine."No.", RequisitionLine."Location Code", false, Enum::"Flushing Method"::Manual);
 
                 FlushingMethod := ProdOrderRoutingLine."Flushing Method";
-                if ProdOrderRoutingLine."Flushing Method" = ProdOrderRoutingLine."Flushing Method"::Manual then
-                    ProdOrderRoutingLine."To-Production Bin Code" :=
-                        ProdOrderWarehouseMgt.GetProdCenterBinCode(
-                            PlanningRoutingLine.Type, PlanningRoutingLine."No.", RequisitionLine."Location Code", true,
-                            FlushingMethod)
-                else
-                    ProdOrderRoutingLine."Open Shop Floor Bin Code" :=
-                        ProdOrderWarehouseMgt.GetProdCenterBinCode(
-                            PlanningRoutingLine.Type, PlanningRoutingLine."No.", RequisitionLine."Location Code", true,
-                            FlushingMethod);
+                ProdOrderRoutingLine."Open Shop Floor Bin Code" :=
+                    ProdOrderWarehouseMgt.GetProdCenterBinCode(
+                        PlanningRoutingLine.Type, PlanningRoutingLine."No.", RequisitionLine."Location Code", true,
+                        FlushingMethod);
 
                 ProdOrderRoutingLine.UpdateDatetime();
                 OnAfterTransferPlanningRtngLine(PlanningRoutingLine, ProdOrderRoutingLine);

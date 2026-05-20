@@ -11,6 +11,7 @@ query 36963 "Vendor Ledg. Entries - PBI API"
 {
     Access = Internal;
     QueryType = API;
+    AboutText = 'Provides access to vendor ledger entries with detailed entry information including due dates, amounts, payment terms, and application data. Enables Power BI reports to analyze accounts payable aging, vendor payment performance, and cash flow forecasting for payables management dashboards.';
     Caption = 'Power BI Vendor Ledger Entries';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';

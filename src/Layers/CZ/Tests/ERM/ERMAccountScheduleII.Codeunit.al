@@ -2501,6 +2501,97 @@
 
     [Test]
     [Scope('OnPrem')]
+    [HandlerFunctions('GLAccountWhereUsedListAccScheduleHandler')]
+    procedure OpenGLAccountWhereUsedToAccScheduleLine()
+    var
+        GLAccount: Record "G/L Account";
+        AccScheduleName: Record "Acc. Schedule Name";
+        AccScheduleLine: Record "Acc. Schedule Line";
+        ChartOfAccounts: TestPage "Chart of Accounts";
+    begin
+        // [SCENARIO] Where-used for G/L Account will correctly show Acc. Schedule Lines totaling on the G/L Account
+        Initialize();
+
+        // [GIVEN] G/L Account that's used in an Acc. Schedule Line
+        LibraryERM.CreateGLAccount(GLAccount);
+        LibraryERM.CreateAccScheduleName(AccScheduleName);
+        CreateAccScheduleLineWithGLAcc(
+            AccScheduleLine, AccScheduleName.Name, GLAccount."No.", AccScheduleLine.Show::Yes);
+
+        LibraryVariableStorage.Enqueue(AccScheduleLine."Schedule Name");
+        LibraryVariableStorage.Enqueue(AccScheduleLine."Row No.");
+        LibraryVariableStorage.Enqueue(GLAccount."No.");
+
+        // [WHEN] Opening where-used for the G/L Account
+        ChartOfAccounts.OpenView();
+        ChartOfAccounts.GoToRecord(GLAccount);
+        ChartOfAccounts."Where-Used List".Invoke();
+
+        // [THEN] The Acc. Schedule Line is shown and opens to the record when show detail is selected
+        // GLAccountWhereUsedListAccScheduleHandler
+    end;
+
+    [ModalPageHandler]
+    procedure GLAccountWhereUsedListAccScheduleHandler(var GLAccWhereUsedList: TestPage "G/L Account Where-Used List")
+    var
+        AccountSchedule: TestPage "Account Schedule";
+    begin
+        AccountSchedule.Trap();
+        GLAccWhereUsedList.ShowDetails.Invoke();
+        Assert.AreEqual(LibraryVariableStorage.DequeueText(), AccountSchedule.CurrentSchedName.Value(), 'Schedule Name on Account Schedule page should match.');
+        Assert.AreEqual(LibraryVariableStorage.DequeueText(), AccountSchedule."Row No.".Value(), 'Row No. on Account Schedule page should match.');
+        Assert.AreEqual(LibraryVariableStorage.DequeueText(), AccountSchedule.Totaling.Value(), 'Totaling on Account Schedule page should match the GL Acc. No.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    [HandlerFunctions('GLAccountWhereUsedListColumnLayoutHandler')]
+    procedure OpenGLAccountWhereUsedToColumnLayout()
+    var
+        GLAccount: Record "G/L Account";
+        ColumnLayoutName: Record "Column Layout Name";
+        ColumnLayout: Record "Column Layout";
+        ChartOfAccounts: TestPage "Chart of Accounts";
+        GLAccWhereUsedList: TestPage "G/L Account Where-Used List";
+    begin
+        // [SCENARIO] Where-used for G/L Account will correctly show Column Layouts totaling on the G/L Account
+        Initialize();
+
+        // [GIVEN] G/L Account that's used in a Column Layout
+        LibraryERM.CreateGLAccount(GLAccount);
+        LibraryERM.CreateColumnLayoutName(ColumnLayoutName);
+        CreateColumnLayoutLine(ColumnLayout, ColumnLayoutName.Name, ColumnLayout."Column Type"::"Net Change", '');
+        ColumnLayout.Validate("G/L Account Totaling", GLAccount."No.");
+        ColumnLayout.Modify();
+
+        LibraryVariableStorage.Enqueue(ColumnLayout."Column Layout Name");
+        LibraryVariableStorage.Enqueue(ColumnLayout."Column No.");
+        LibraryVariableStorage.Enqueue(GLAccount."No.");
+
+        // [WHEN] Opening where-used for the G/L Account
+        ChartOfAccounts.OpenView();
+        ChartOfAccounts.GoToRecord(GLAccount);
+        GLAccWhereUsedList.Trap();
+        ChartOfAccounts."Where-Used List".Invoke();
+
+        // [THEN] The Column Layout is shown and opens to the record when show detail is selected
+        // GLAccountWhereUsedListModalPageHandler
+    end;
+
+    [ModalPageHandler]
+    procedure GLAccountWhereUsedListColumnLayoutHandler(var GLAccWhereUsedList: TestPage "G/L Account Where-Used List")
+    var
+        ColumnLayoutPage: TestPage "Column Layout";
+    begin
+        ColumnLayoutPage.Trap();
+        GLAccWhereUsedList.ShowDetails.Invoke();
+        Assert.AreEqual(LibraryVariableStorage.DequeueText(), ColumnLayoutPage.CurrentColumnName.Value(), 'Column Layout Name on Column Layout page should match.');
+        Assert.AreEqual(LibraryVariableStorage.DequeueText(), ColumnLayoutPage."Column No.".Value(), 'Column No. on Column Layout page should match.');
+        Assert.AreEqual(LibraryVariableStorage.DequeueText(), ColumnLayoutPage.GLAccountTotaling.Value(), 'G/L Account Totaling on Column Layout page should match the GL Acc. No.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure ChangeDateFilterWithDynamicColumnHeading()
     var
         AccScheduleName: Record "Acc. Schedule Name";
@@ -3581,4 +3672,3 @@
         Reply := true;
     end;
 }
-

@@ -24,6 +24,9 @@ codeunit 22200 "Review G/L Entry" implements "G/L Entry Reviewer"
 
     procedure ReviewEntries(var GLEntry: Record "G/L Entry");
     var
+        GLEntryToProcess: Record "G/L Entry";
+        GLEntrySnapshot: Record "G/L Entry";
+        TempGLEntry: Record "G/L Entry" temporary;
         GLEntryReviewLog: Record "G/L Entry Review Log";
 #if not CLEAN27
 #pragma warning disable AL0432
@@ -38,23 +41,47 @@ codeunit 22200 "Review G/L Entry" implements "G/L Entry Reviewer"
         ValidateEntries(GLEntry);
         Identifier := GetNextIdentifier();
         UserName := CopyStr(Database.UserId(), 1, MaxStrLen(UserName));
-        GLEntry.FindSet();
+        // Snapshot the selected rows into a temporary buffer in a single pass.
+        // Iterating with Modify directly on the page-supplied recordset is
+        // unreliable when the selection is large enough that
+        // CurrPage.SetSelectionFilter falls back to marks (e.g. Ctrl+A on
+        // thousands of rows): Modify(true) reloads the record and can drop the
+        // marked cursor mid-iteration, causing only the first few entries to be
+        // processed. The in-memory temp record is immune to that.
+        // Use a local Copy + SetLoadFields so we only fetch the columns the
+        // processing loop actually needs (G/L Entry has 70+ columns) and so
+        // SetLoadFields does not bleed onto the caller's recordset.
+        GLEntrySnapshot.Copy(GLEntry);
+        GLEntrySnapshot.SetLoadFields("Entry No.", "Amount to Review", Amount, "G/L Account No.");
+        GLEntrySnapshot.FindSet();
+        repeat
+            TempGLEntry := GLEntrySnapshot;
+            TempGLEntry.Insert();
+        until GLEntrySnapshot.Next() = 0;
+
+        TempGLEntry.FindSet();
         repeat
             GLEntryReviewLog.Init();
-            GLEntryReviewLog."G/L Entry No." := GLEntry."Entry No.";
+            GLEntryReviewLog."G/L Entry No." := TempGLEntry."Entry No.";
             GLEntryReviewLog."Reviewed Identifier" := Identifier;
             GLEntryReviewLog."Reviewed By" := UserName;
-            if GLEntry."Amount to Review" = 0 then
-                GLEntryReviewLog."Reviewed Amount" := GLEntry.Amount
+            if TempGLEntry."Amount to Review" = 0 then
+                GLEntryReviewLog."Reviewed Amount" := TempGLEntry.Amount
             else
-                GLEntryReviewLog."Reviewed Amount" := GLEntry."Amount to Review";
-            GLEntryReviewLog."G/L Account No." := GLEntry."G/L Account No.";
+                GLEntryReviewLog."Reviewed Amount" := TempGLEntry."Amount to Review";
+            GLEntryReviewLog."G/L Account No." := TempGLEntry."G/L Account No.";
             GLEntryReviewLog."Reviewed At" := CurrentDateTime();
             GLEntryReviewLog.Insert(true);
 
-            GLEntry."Amount to Review" := 0;
-            GLEntry.Modify(true);
-        until GLEntry.Next() = 0;
+            // Only touch the persistent G/L Entry when there is something to
+            // clear. In the typical flow "Amount to Review" is 0 for every
+            // selected row, so this avoids a per-row Get + Modify roundtrip.
+            if TempGLEntry."Amount to Review" <> 0 then begin
+                GLEntryToProcess.Get(TempGLEntry."Entry No.");
+                GLEntryToProcess."Amount to Review" := 0;
+                GLEntryToProcess.Modify(true);
+            end;
+        until TempGLEntry.Next() = 0;
 #if not CLEAN27
 #pragma warning disable AL0432
         OnAfterReviewEntries(GLEntry, GLEntryReviewEntry);
@@ -69,13 +96,31 @@ codeunit 22200 "Review G/L Entry" implements "G/L Entry Reviewer"
 
     procedure UnreviewEntries(var GLEntry: Record "G/L Entry");
     var
+        GLEntrySnapshot: Record "G/L Entry";
         GLEntryReviewLog: Record "G/L Entry Review Log";
+        EntryNos: List of [Integer];
+        EntryNo: Integer;
     begin
         ValidateEntries(GLEntry);
+        // Snapshot the selected entry numbers into a List to avoid losing the
+        // marked cursor when CurrPage.SetSelectionFilter falls back to marks
+        // (large multi-selection via Ctrl+A) and the per-entry DeleteAll
+        // disrupts iteration. Only "Entry No." is needed for the unreview
+        // loop, so a List<Integer> is dramatically lighter than a temp record
+        // (which would allocate the full G/L Entry row structure per entry).
+        // Use a local Copy + SetLoadFields so SetLoadFields does not bleed
+        // onto the caller's recordset.
+        GLEntrySnapshot.Copy(GLEntry);
+        GLEntrySnapshot.SetLoadFields("Entry No.");
+        GLEntrySnapshot.FindSet();
         repeat
-            GLEntryReviewLog.SetRange("G/L Entry No.", GLEntry."Entry No.");
+            EntryNos.Add(GLEntrySnapshot."Entry No.");
+        until GLEntrySnapshot.Next() = 0;
+
+        foreach EntryNo in EntryNos do begin
+            GLEntryReviewLog.SetRange("G/L Entry No.", EntryNo);
             GLEntryReviewLog.DeleteAll(true);
-        until GLEntry.Next() = 0;
+        end;
     end;
 
     procedure ValidateEntries(var GLEntry: Record "G/L Entry")
@@ -100,19 +145,23 @@ codeunit 22200 "Review G/L Entry" implements "G/L Entry Reviewer"
 
     local procedure VerifyThatAllEntriesHaveSamePolicy(var GLEntry: Record "G/L Entry")
     var
+        GLEntryCopy: Record "G/L Entry";
         GLAccount: Record "G/L Account";
         ReviewPolicyType: Enum "Review Policy Type";
         NoMatchingPolicyErr: Label 'All entries must have the same review policy.';
     begin
-        GLEntry.SetLoadFields("G/L Account No.");
-        if GLEntry.FindSet() then begin
-            GLAccount.Get(GLEntry."G/L Account No.");
+        // Use a local copy so SetLoadFields does not bleed onto the caller's
+        // recordset, where it would interfere with later Modify operations.
+        GLEntryCopy.Copy(GLEntry);
+        GLEntryCopy.SetLoadFields("G/L Account No.");
+        if GLEntryCopy.FindSet() then begin
+            GLAccount.Get(GLEntryCopy."G/L Account No.");
             ReviewPolicyType := GLAccount."Review Policy";
             repeat
-                GLAccount.Get(GLEntry."G/L Account No.");
+                GLAccount.Get(GLEntryCopy."G/L Account No.");
                 if GLAccount."Review Policy" <> ReviewPolicyType then
                     Error(NoMatchingPolicyErr);
-            until GLEntry.Next() = 0;
+            until GLEntryCopy.Next() = 0;
         end;
 
     end;
@@ -156,6 +205,31 @@ codeunit 22200 "Review G/L Entry" implements "G/L Entry Reviewer"
             GLEntryReviewSetup.Init();
             GLEntryReviewSetup.Insert();
         end;
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"G/L Entry", 'OnSkipGLEntryByReviewStatus', '', false, false)]
+    local procedure OnSkipGLEntryByReviewStatus(var GLEntry: Record "G/L Entry"; ReviewStatus: Option All,Reviewed,"Not Reviewed"; EvaluationDate: Date; Skip: Boolean)
+    begin
+        if EvaluationDate <> 0D then
+            case ReviewStatus of
+                ReviewStatus::Reviewed:
+                    if GLEntry."Reviewed Date" = 0DT then
+                        Skip := true
+                    else
+                        Skip := (DT2Date(GLEntry."Reviewed Date") > EvaluationDate);
+                ReviewStatus::"Not Reviewed":
+                    if GLEntry."Reviewed Date" = 0DT then
+                        Skip := false
+                    else
+                        Skip := (DT2Date(GLEntry."Reviewed Date") <= EvaluationDate);
+            end
+        else
+            case ReviewStatus of
+                ReviewStatus::Reviewed:
+                    Skip := (GLEntry."Reviewed Date" = 0DT);
+                ReviewStatus::"Not Reviewed":
+                    Skip := (GLEntry."Reviewed Date" <> 0DT);
+            end;
     end;
 
 #if not CLEAN27

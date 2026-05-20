@@ -365,15 +365,16 @@ page 10032 "IRS Forms Guide"
         FeatureTelemetry: Codeunit "Feature Telemetry";
         IRSFormsData: Codeunit "IRS Forms Data";
         KeyVaultClientIRIS: Codeunit "Key Vault Client IRIS";
-        CreateNewSetup, TransferExistingData : Boolean;
         Step: Option Start,Data,Features,Finish;
         DataStepEnabled: Boolean;
         FeaturesStepEnabled, BackActionEnabled, FinishActionEnabled, NextActionEnabled : Boolean;
-        WelcomeStepVisible, TopBannerVisible, SetupCompleted, DataUpgradeAgreed : Boolean;
+        WelcomeStepVisible, TopBannerVisible, SetupCompleted : Boolean;
 #if not CLEAN28
         DataTransferStatus: Text;
         ReviewUpdatedDataTok: Label 'Records from several Base Application tables will be copied to the new IRS Forms App tables. Please review affected data as the data update can take longer in case of large amount of records. In case of large amount of records you can consider a run in background session option. The data update process starts when you finish the guide.';
         ReviewDataLinkTok: Label 'Review affected data';
+        CreateNewSetup, TransferExistingData : Boolean;
+        DataUpgradeAgreed: Boolean;
 #endif
         SetupNotCompletedQst: Label 'Set up of IRS Forms has not been completed.\\Are you sure that you want to exit?';
         ReportingYearMustBeSpecifiedErr: Label 'You must specify the reporting year.';

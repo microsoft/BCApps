@@ -815,20 +815,14 @@ codeunit 134658 "Edit Posted Documents"
         PurchaseLine: array[2] of Record "Purchase Line";
         CashFlowForecast: Record "Cash Flow Forecast";
         CashFlowWorksheetLine: Record "Cash Flow Worksheet Line";
-        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
         LibraryCashFlowHelper: Codeunit "Library - Cash Flow Helper";
         PurchaseInvoice: TestPage "Purchase Invoice";
         CashFlowWorksheet: TestPage "Cash Flow Worksheet";
     begin
-        // [SCENARIO 544391] When Stan runs Suggest Worksheet Lines action from Cash Flow Worksheet page
-        // Then Cash Flow Worksheet Line is not created for a Purchase Order if Prepayment
+        // [SCENARIO 544391] When Stan runs Suggest Worksheet Lines action from Cash Flow Worksheet page 
+        // Then Cash Flow Worksheet Line is not created for a Purchase Order if Prepayment 
         // And Purchase Invoice are completely posted.
         Initialize();
-
-        // [GIVEN] Set Check Doc. Total Amounts as false in Purchases & Payables Setup. // NL
-        PurchasesPayablesSetup.Get();
-        PurchasesPayablesSetup."Check Doc. Total Amounts" := false;
-        PurchasesPayablesSetup.Modify(true);
 
         // [GIVEN] Create a General Posting Setup and Validate Purch. Prepayments Account and Direct Cost Applied Account.
         LibraryERM.CreateGeneralPostingSetupInvt(GeneralPostingSetup);

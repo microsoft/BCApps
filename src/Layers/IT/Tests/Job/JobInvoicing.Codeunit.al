@@ -47,7 +47,7 @@
         UnitPriceMustNotBeZeroErr: Label 'Field Unit Price of Project Journal Line must not be zero.';
         WrongDescriptionInPostedSalesInvoiceErr: Label 'Wrong Description in Sales Invoice Line.';
         TrackingOption: Option "Assign Lot No.","Assign Serial No.";
-        CancelPostedInvoiceQst: Label 'This invoice was posted from a sales order. To cancel it, a sales credit memo will be created and posted. The quantities from the original sales order will be restored, provided the sales order still exists.\ \Do you want to continue?';
+        CancelPostedInvoiceQst: Label 'The posted sales invoice will be canceled, and a sales credit memo will be created and posted.\ \Do you want to continue?';
         CorrectPostedInvoiceQst: Label 'The posted sales invoice will be canceled, and a new version of the sales invoice will automatically be created by the system so that you can make the correction.\ \Do you want to continue?';
         JobMustNotBeBlockedErr: Label 'Project %1 must not be blocked', Comment = '%1 - Project No.';
         ExtDocNoErr: Label 'The actual %1 External Document No. and the expected %2 External Document No. are not equal', Comment = '%1 = Project, %2 = Sales Header';

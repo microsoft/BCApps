@@ -37,6 +37,7 @@ table 5850 "Invt. Document Header"
             trigger OnValidate()
             begin
                 if "No." <> xRec."No." then begin
+                    InvtSetup.Get();
                     NoSeries.TestManual(GetNoSeriesCode());
                     "No. Series" := '';
                 end;

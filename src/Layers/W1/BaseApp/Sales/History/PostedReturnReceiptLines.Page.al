@@ -12,10 +12,14 @@ using Microsoft.Utilities;
 /// </summary>
 page 6663 "Posted Return Receipt Lines"
 {
+    ApplicationArea = SalesReturnOrder;
     Caption = 'Posted Return Receipt Lines';
     Editable = false;
     PageType = List;
+    AboutTitle = 'About Posted Return Receipt Lines';
+    AboutText = 'Review detailed records of items, quantities, and related information for each line in posted sales return receipts, helping you track what has been received from customers and the status of invoicing for those returns.';
     SourceTable = "Return Receipt Line";
+    UsageCategory = History;
 
     layout
     {

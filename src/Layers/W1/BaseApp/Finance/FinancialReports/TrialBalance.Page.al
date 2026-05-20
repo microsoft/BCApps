@@ -581,6 +581,8 @@ page 1393 "Trial Balance"
             CalculateTrialBalance.TransformDictionaryToValues(Descriptions, Values, PeriodCaptionTxt, NoOfColumns, Results);
             TrialBalanceCacheMgt.SaveToCache(Descriptions, Values, PeriodCaptionTxt);
             LoadedFromCache := true;
+            IsError := false;
+            SetStyles();
             Session.LogMessage('0000ODU', PBTSuccessTelemetryMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TrialBalanceTelemetryCategoryTok);
         end
     end;
@@ -620,15 +622,15 @@ page 1393 "Trial Balance"
                 LoadedFromCache := true;
             end;
 
-        if not DataLoaded then
-            if TryLoadTrialBalanceData(LoadFromCache, DataLoaded) then // LoadFromCache is true when called from OnOpenPage
-                if DataLoaded and (NoOfColumns <> 1) then
-                    TrialBalanceCacheMgt.SaveToCache(Descriptions, Values, PeriodCaptionTxt);
+        if not DataLoaded then begin
+            if not TryLoadTrialBalanceData(LoadFromCache, DataLoaded) then // LoadFromCache is true when called from OnOpenPage
+                IsError := true;
+            if not IsError and DataLoaded and (NoOfColumns <> 1) then
+                TrialBalanceCacheMgt.SaveToCache(Descriptions, Values, PeriodCaptionTxt);
+        end;
 
         if DataLoaded then
-            SetStyles()
-        else
-            IsError := true;
+            SetStyles();
     end;
 
     local procedure DrillDown(RowNo: Integer; ColumnNo: Integer)

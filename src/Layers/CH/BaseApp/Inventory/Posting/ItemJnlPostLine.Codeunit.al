@@ -21,6 +21,7 @@ using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Setup;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Projects.Project.Planning;
+using Microsoft.Purchases.Document;
 using Microsoft.Sales.Document;
 using Microsoft.Warehouse.Journal;
 
@@ -147,6 +148,8 @@ codeunit 22 "Item Jnl.-Post Line"
         PostToGlLbl: Label 'Posting to G/L    #1#####', Comment = '%1 is an integer value';
         CanOnlyBeUsedForDropShipmentErr: Label 'This can be only used for Drop Shipment applications.';
         DropShipmentCostApplicationsCannotBeUnappliedErr: Label 'Drop Shipment cost applications cannot be unapplied.';
+        ValuationDateBeforeEarliestAllowedErr: Label 'The Valuation Date %1 is before the Earliest Allowed Valuation Date %2 in Inventory Setup.', Comment = '%1 = Valuation Date, %2 = Earliest Allowed Valuation Date';
+        ApplyToEntryValuationDateErr: Label 'Applying to entry %1 would result in a Valuation Date %2 before the Earliest Allowed Valuation Date %3 in Inventory Setup.', Comment = '%1 = Entry No., %2 = Valuation Date, %3 = Earliest Allowed Valuation Date';
 #pragma warning restore AA0074
 #pragma warning restore AA0470
 
@@ -1430,8 +1433,7 @@ codeunit 22 "Item Jnl.-Post Line"
                     ReservEntry2.SetLoadFields("Source Type", "Source Ref. No.", "Item No.", "Quantity (Base)");
                     OnApplyItemLedgEntryOnAfterSetLoadFieldsOnReservEntry(ReservEntry2);
                     ReservEntry2.Get(ReservEntry."Entry No.", not ReservEntry.Positive);
-                    if (ItemLedgEntry."Entry Type" = ItemLedgEntry."Entry Type"::Transfer) and (ReservEntry2."Source Type" = 39) and (ItemLedgEntry.Quantity < 0) then begin
-                        ReservEngineMgt.CloseReservEntry(ReservEntry, false, false);
+                    if (ItemLedgEntry."Entry Type" = ItemLedgEntry."Entry Type"::Transfer) and (ReservEntry2."Source Type" = DATABASE::"Purchase Line") and (ItemLedgEntry.Quantity < 0) then begin
                         UseReservationApplication := false;
                         StartApplication := true;
                     end else begin
@@ -2517,6 +2519,9 @@ codeunit 22 "Item Jnl.-Post Line"
                 ValueEntry."Valuation Date" := ItemJnlLine."Posting Date";
         end;
 
+        RedirectInvoicingValuationDateToPostingDate(ValueEntry);
+        CheckValuationDateAllowed(ValueEntry);
+
         GetInvtSetup();
         if (ItemJnlLine.Description = Item.Description) and not InvtSetup."Copy Item Descr. to Entries" then
             ValueEntry.Description := ''
@@ -3569,7 +3574,10 @@ codeunit 22 "Item Jnl.-Post Line"
         CostCalcMgt: Codeunit "Cost Calculation Management";
     begin
         if Expected then begin
-            DirCost := ItemJnlLine."Unit Cost" * ItemJnlLine.Quantity + RoundingResidualAmount;
+            if ShouldUseCumulativeRoundingForExpectedCost() then
+                DirCost := ItemJnlLine.Amount + Round(CostCalcMgt.CalcOvhdCost(ItemJnlLine.Amount, ItemJnlLine."Indirect Cost %", ItemJnlLine."Overhead Rate", ItemJnlLine.Quantity), GLSetup."Amount Rounding Precision") + RoundingResidualAmount
+            else
+                DirCost := ItemJnlLine."Unit Cost" * ItemJnlLine.Quantity + RoundingResidualAmount;
             PurchVar := 0;
             PurchVarACY := 0;
             OvhdCost := 0;
@@ -4254,6 +4262,78 @@ codeunit 22 "Item Jnl.-Post Line"
             SourceCodeSetup.Get();
         end;
         InvtSetupRead := true;
+    end;
+
+    local procedure RedirectInvoicingValuationDateToPostingDate(var ValueEntry: Record "Value Entry")
+    var
+        EarliestAllowedValDate: Date;
+    begin
+        if CalledFromAdjustment then
+            exit;
+        if not IsPureInvoicing() then
+            exit;
+
+        GetInvtSetup();
+        EarliestAllowedValDate := InvtSetup."Earliest Allowed Val. Date";
+        if EarliestAllowedValDate = 0D then
+            exit;
+
+        if (ValueEntry."Valuation Date" < EarliestAllowedValDate) and
+           (ItemJnlLine."Posting Date" >= EarliestAllowedValDate)
+        then
+            ValueEntry."Valuation Date" := ItemJnlLine."Posting Date";
+    end;
+
+    local procedure IsPureInvoicing(): Boolean
+    begin
+        exit(
+            (ItemJnlLine.Quantity = 0) and
+            (ItemJnlLine."Invoiced Quantity" <> 0) and
+            (ItemJnlLine."Item Charge No." = '') and
+            not ItemJnlLine.Adjustment and
+            (ItemJnlLine."Value Entry Type" = ItemJnlLine."Value Entry Type"::"Direct Cost"));
+    end;
+
+    local procedure CheckValuationDateAllowed(ValueEntry: Record "Value Entry")
+    var
+        EarliestAllowedValuationDate: Date;
+    begin
+        if CalledFromAdjustment then
+            exit;
+        if IsExemptFromValuationDateCheck() then
+            exit;
+
+        GetInvtSetup();
+        EarliestAllowedValuationDate := InvtSetup."Earliest Allowed Val. Date";
+        if EarliestAllowedValuationDate = 0D then
+            exit;
+
+        if ValueEntry."Valuation Date" < EarliestAllowedValuationDate then
+            if (ItemJnlLine."Applies-to Entry" <> 0) or (ItemJnlLine."Applies-from Entry" <> 0) then
+                Error(
+                    ApplyToEntryValuationDateErr,
+                    GetAppliedEntryNo(),
+                    ValueEntry."Valuation Date",
+                    EarliestAllowedValuationDate)
+            else
+                Error(
+                    ValuationDateBeforeEarliestAllowedErr,
+                    ValueEntry."Valuation Date",
+                    EarliestAllowedValuationDate);
+    end;
+
+    local procedure IsExemptFromValuationDateCheck(): Boolean
+    begin
+        exit(
+            ItemJnlLine.Adjustment or
+            (ItemJnlLine."Value Entry Type" = ItemJnlLine."Value Entry Type"::Rounding));
+    end;
+
+    local procedure GetAppliedEntryNo(): Integer
+    begin
+        if ItemJnlLine."Applies-to Entry" <> 0 then
+            exit(ItemJnlLine."Applies-to Entry");
+        exit(ItemJnlLine."Applies-from Entry");
     end;
 
     local procedure UndoQuantityPosting()
@@ -7660,6 +7740,21 @@ codeunit 22 "Item Jnl.-Post Line"
         exit(false);
     end;
 
+    local procedure ShouldUseCumulativeRoundingForExpectedCost(): Boolean
+    begin
+        if ItemJnlLine."Entry Type" <> ItemJnlLine."Entry Type"::Purchase then
+            exit(false);
+
+        if not (InvtSetup."Automatic Cost Posting") or not (InvtSetup."Expected Cost Posting to G/L") then
+            exit(false);
+
+        if Item."Cost is Adjusted" or Item."Allow Online Adjustment" or
+            (Item."Flushing Method" <> Item."Flushing Method"::Manual) then
+            exit(false);
+
+        exit(true);
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sequence No. Mgt.", 'OnPreviewableLedgerEntry', '', false, false)]
     local procedure OnPreviewableLedgerEntry(TableNo: Integer; var IsPreviewable: Boolean)
     begin
@@ -7693,8 +7788,8 @@ codeunit 22 "Item Jnl.-Post Line"
 
     internal procedure RestoreTempTrackingSpecification(var TempTrackingSpecificationFrom: Record "Tracking Specification" temporary)
     begin
-        TempSplitItemJnlLine.Reset();
-        TempSplitItemJnlLine.DeleteAll();
+        TempTrackingSpecification.Reset();
+        TempTrackingSpecification.DeleteAll();
         if TempTrackingSpecificationFrom.FindSet() then
             repeat
                 TempTrackingSpecification := TempTrackingSpecificationFrom;

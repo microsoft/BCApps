@@ -46,6 +46,32 @@ codeunit 500 "Enum Assignment Management"
         end;
     end;
 
+    procedure GetSalesDocumentTypeFromApproval(ApprovalDocumentType: Enum "Approval Document Type") SalesDocumentType: Enum "Sales Document Type"
+    var
+        IsHandled: Boolean;
+    begin
+        case ApprovalDocumentType of
+            ApprovalDocumentType::Quote:
+                exit(SalesDocumentType::Quote);
+            ApprovalDocumentType::Order:
+                exit(SalesDocumentType::Order);
+            ApprovalDocumentType::Invoice:
+                exit(SalesDocumentType::Invoice);
+            ApprovalDocumentType::"Credit Memo":
+                exit(SalesDocumentType::"Credit Memo");
+            ApprovalDocumentType::"Blanket Order":
+                exit(SalesDocumentType::"Blanket Order");
+            ApprovalDocumentType::"Return Order":
+                exit(SalesDocumentType::"Return Order");
+            else begin
+                IsHandled := false;
+                OnGetSalesDocumentTypeFromApproval(ApprovalDocumentType, SalesDocumentType, IsHandled);
+                if not IsHandled then
+                    Error(DocumentTypeEnumErr, 'Approval', ApprovalDocumentType, 'Sales');
+            end;
+        end;
+    end;
+
     procedure GetSalesIncomingDocumentType(SalesDocumentType: Enum "Sales Document Type") IncomingDocumentType: Enum "Incoming Document Type"
     var
         IsHandled: Boolean;
@@ -95,6 +121,32 @@ codeunit 500 "Enum Assignment Management"
                 OnGetPurchApprovalDocumentType(PurchDocumentType, ApprovalDocumentType, IsHandled);
                 if not IsHandled then
                     error(DocumentTypeEnumErr, 'Purchase', PurchDocumentType, 'Approval');
+            end;
+        end;
+    end;
+
+    procedure GetPurchDocumentTypeFromApproval(ApprovalDocumentType: Enum "Approval Document Type") PurchDocumentType: Enum "Purchase Document Type"
+    var
+        IsHandled: Boolean;
+    begin
+        case ApprovalDocumentType of
+            ApprovalDocumentType::Quote:
+                exit(PurchDocumentType::Quote);
+            ApprovalDocumentType::Order:
+                exit(PurchDocumentType::Order);
+            ApprovalDocumentType::Invoice:
+                exit(PurchDocumentType::Invoice);
+            ApprovalDocumentType::"Credit Memo":
+                exit(PurchDocumentType::"Credit Memo");
+            ApprovalDocumentType::"Blanket Order":
+                exit(PurchDocumentType::"Blanket Order");
+            ApprovalDocumentType::"Return Order":
+                exit(PurchDocumentType::"Return Order");
+            else begin
+                IsHandled := false;
+                OnGetPurchDocumentTypeFromApproval(ApprovalDocumentType, PurchDocumentType, IsHandled);
+                if not IsHandled then
+                    Error(DocumentTypeEnumErr, 'Approval', ApprovalDocumentType, 'Purchase');
             end;
         end;
     end;
@@ -183,12 +235,22 @@ codeunit 500 "Enum Assignment Management"
     end;
 
     [IntegrationEvent(false, false)]
+    local procedure OnGetSalesDocumentTypeFromApproval(ApprovalDocumentType: Enum "Approval Document Type"; var SalesDocumentType: Enum "Sales Document Type"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
     local procedure OnGetSalesIncomingDocumentType(SalesDocumentType: Enum "Sales Document Type"; var IncomingDocumentType: Enum "Incoming Document Type"; var IsHandled: Boolean)
     begin
     end;
 
     [IntegrationEvent(false, false)]
     local procedure OnGetPurchApprovalDocumentType(PurchDocumentType: Enum "Purchase Document Type"; var ApprovalDocumentType: Enum "Approval Document Type"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnGetPurchDocumentTypeFromApproval(ApprovalDocumentType: Enum "Approval Document Type"; var PurchDocumentType: Enum "Purchase Document Type"; var IsHandled: Boolean)
     begin
     end;
 

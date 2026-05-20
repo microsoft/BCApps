@@ -46,6 +46,8 @@ codeunit 21 "Item Jnl.-Check Line"
         DimCausedErr: Label 'A dimension used in item journal line %1, %2, %3 has caused an error. %4.', Comment = '%1 = Journal Template Name; %2 = Journal Batch Name; %3 = Line No.';
         Text011: Label '%1 must not be equal to %2';
         UseInTransitLocationErr: Label 'You can use In-Transit location %1 for transfer orders only.';
+        PostingDateBeforeEarliestAllowedErr: Label 'The Posting Date %1 is before the Earliest Allowed Valuation Date %2 in Inventory Setup.', Comment = '%1 = Posting Date, %2 = Earliest Allowed Valuation Date';
+        AppliesToEntryBeforeEarliestAllowedErr: Label 'You cannot apply to entry %1 because its Posting Date %2 is before the Earliest Allowed Valuation Date %3 in Inventory Setup.', Comment = '%1 = Applies-to Entry No., %2 = Posting Date of applied entry, %3 = Earliest Allowed Valuation Date';
 #pragma warning restore AA0470
 #pragma warning restore AA0074
 
@@ -322,9 +324,70 @@ codeunit 21 "Item Jnl.-Check Line"
         if ShouldShowError then
             InvtPeriod.ShowError(ItemJnlLine."Posting Date");
 
+        CheckEarliestAllowedValuationDate(ItemJnlLine);
+        CheckAppliesToEntryBeforeEarliestAllowedValDate(ItemJnlLine);
+
         if ItemJnlLine."Document Date" <> 0D then
             if ItemJnlLine."Document Date" <> NormalDate(ItemJnlLine."Document Date") then
                 ItemJnlLine.FieldError("Document Date", ErrorInfo.Create(Text000, true));
+    end;
+
+    local procedure CheckEarliestAllowedValuationDate(ItemJnlLine: Record "Item Journal Line")
+    var
+        EarliestAllowedValuationDate: Date;
+    begin
+        if CalledFromAdjustment then
+            exit;
+        if IsExemptFromValuationDateCheck(ItemJnlLine) then
+            exit;
+
+        EarliestAllowedValuationDate := InvtSetup."Earliest Allowed Val. Date";
+        if EarliestAllowedValuationDate = 0D then
+            exit;
+
+        if ItemJnlLine."Posting Date" < EarliestAllowedValuationDate then
+            Error(
+                ErrorInfo.Create(
+                    StrSubstNo(PostingDateBeforeEarliestAllowedErr, ItemJnlLine."Posting Date", EarliestAllowedValuationDate),
+                    true));
+    end;
+
+    local procedure IsExemptFromValuationDateCheck(ItemJnlLine: Record "Item Journal Line"): Boolean
+    begin
+        exit(
+            ItemJnlLine.Adjustment or
+            (ItemJnlLine."Value Entry Type" = ItemJnlLine."Value Entry Type"::Rounding));
+    end;
+
+    local procedure CheckAppliesToEntryBeforeEarliestAllowedValDate(ItemJnlLine: Record "Item Journal Line")
+    var
+        AppliedItemLedgEntry: Record "Item Ledger Entry";
+        EarliestAllowedValuationDate: Date;
+    begin
+        if CalledFromAdjustment then
+            exit;
+        if IsExemptFromValuationDateCheck(ItemJnlLine) then
+            exit;
+        if ItemJnlLine."Applies-to Entry" = 0 then
+            exit;
+
+        EarliestAllowedValuationDate := InvtSetup."Earliest Allowed Val. Date";
+        if EarliestAllowedValuationDate = 0D then
+            exit;
+
+        if not AppliedItemLedgEntry.Get(ItemJnlLine."Applies-to Entry") then
+            exit;
+        if AppliedItemLedgEntry."Posting Date" >= EarliestAllowedValuationDate then
+            exit;
+
+        Error(
+            ErrorInfo.Create(
+                StrSubstNo(
+                    AppliesToEntryBeforeEarliestAllowedErr,
+                    AppliedItemLedgEntry."Entry No.",
+                    AppliedItemLedgEntry."Posting Date",
+                    EarliestAllowedValuationDate),
+                true));
     end;
 
     local procedure CheckDimensions(ItemJnlLine: Record "Item Journal Line")

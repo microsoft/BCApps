@@ -7,12 +7,14 @@ namespace Microsoft.Service.Posting;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Foundation.AuditCodes;
+using Microsoft.Foundation.NoSeries;
 using Microsoft.Inventory.Item;
 using Microsoft.Service.Contract;
 using Microsoft.Service.Document;
 using Microsoft.Service.History;
 using Microsoft.Service.Item;
 using Microsoft.Service.Ledger;
+using Microsoft.Service.Setup;
 
 codeunit 5912 "ServLedgEntries-Post"
 {
@@ -29,6 +31,7 @@ codeunit 5912 "ServLedgEntries-Post"
         ServLedgEntry: Record "Service Ledger Entry";
         WarrantyLedgEntry: Record "Warranty Ledger Entry";
         ServiceRegister: Record "Service Register";
+        ServiceMgtSetup: Record "Service Mgt. Setup";
         Currency: Record Currency;
         CurrExchRate: Record "Currency Exchange Rate";
         ServOrderMgt: Codeunit ServOrderManagement;
@@ -44,16 +47,24 @@ codeunit 5912 "ServLedgEntries-Post"
     procedure InitServiceRegister(var PassedServEntryNo: Integer; var PassedWarrantyEntryNo: Integer)
     var
         SrcCodeSetup: Record "Source Code Setup";
+        SequenceNoMgt: Codeunit "Sequence No. Mgt.";
     begin
+        ServiceMgtSetup.Get();
         NextServLedgerEntryNo := InitServLedgerEntry();
         NextWarrantyLedgerEntryNo := InitWarrantyLedgerEntry();
         PassedServEntryNo := NextServLedgerEntryNo;
         PassedWarrantyEntryNo := NextWarrantyLedgerEntryNo;
 
-        ServiceRegister.Reset();
-        ServiceRegister.LockTable();
-        ServiceRegister."No." := ServiceRegister.GetLastEntryNo() + 1;
+        if ServiceRegister."No." = 0 then
+            SequenceNoMgt.ClearSequenceNoCheck();
+
+        if ServiceMgtSetup.UseLegacyPosting() then begin
+            ServiceRegister.Reset();
+            ServiceRegister.LockTable();
+        end;
+
         ServiceRegister.Init();
+        ServiceRegister."No." := ServiceRegister.GetNextEntryNo(ServiceMgtSetup.UseLegacyPosting());
         ServiceRegister."From Entry No." := NextServLedgerEntryNo;
         ServiceRegister."From Warranty Entry No." := NextWarrantyLedgerEntryNo;
         ServiceRegister."Creation Date" := Today;
@@ -169,8 +180,12 @@ codeunit 5912 "ServLedgEntries-Post"
         if TempServLine."Qty. to Consume" <> 0 then
             ServLedgEntry."Discount Amount" := 0;
         OnBeforeServLedgerEntryInsert(ServLedgEntry, TempServLine, ServItemLine, ServHeader);
+        ServLedgEntry."Service Register No." := ServiceRegister."No.";
         ServLedgEntry.Insert();
-        NextEntryNo := NextEntryNo + 1;
+        if ServiceMgtSetup.UseLegacyPosting() then
+            NextEntryNo := NextEntryNo + 1
+        else
+            NextEntryNo := ServLedgEntry.GetNextEntryNo();
         NextServLedgerEntryNo := NextEntryNo;
 
         exit(ServLedgEntry."Entry No.");
@@ -357,8 +372,12 @@ codeunit 5912 "ServLedgEntries-Post"
             ServLedgEntry."Contract Disc. Amount" := ApplyToServLedgEntry."Contract Disc. Amount";
 
         OnBeforeServLedgerEntrySaleInsert(ServLedgEntry, ServLine, ServItemLine, ServHeader);
+        ServLedgEntry."Service Register No." := ServiceRegister."No.";
         ServLedgEntry.Insert();
-        NextServLedgerEntryNo += 1;
+        if ServiceMgtSetup.UseLegacyPosting() then
+            NextServLedgerEntryNo += 1
+        else
+            NextServLedgerEntryNo := ServLedgEntry.GetNextEntryNo();
         PassedNextEntryNo := NextServLedgerEntryNo;
     end;
 
@@ -464,25 +483,29 @@ codeunit 5912 "ServLedgEntries-Post"
                   ServLedgEntry."Amount (LCY)", ServHeader."Currency Factor"));
         end;
         OnInsertServLedgEntryCrMemoOnBeforeServLedgEntryInsert(ServLedgEntry, ServHeader, ServLine);
+        ServLedgEntry."Service Register No." := ServiceRegister."No.";
         ServLedgEntry.Insert();
-        NextServLedgerEntryNo += 1;
+        if ServiceMgtSetup.UseLegacyPosting() then
+            NextServLedgerEntryNo += 1
+        else
+            NextServLedgerEntryNo := ServLedgEntry.GetNextEntryNo();
         PassedNextEntryNo := NextServLedgerEntryNo;
     end;
 
-    local procedure InsertServLedgerEntryCrMUsage(var NextEntryNo: Integer; var ServHeader: Record "Service Header"; var ServLine: Record "Service Line"; DocNo: Code[20])
+    local procedure InsertServLedgerEntryCrMUsage(var PassedNextEntryNo: Integer; var ServHeader: Record "Service Header"; var ServLine: Record "Service Line"; DocNo: Code[20])
     var
         LineAmount: Decimal;
         IsHandled: Boolean;
     begin
         IsHandled := false;
-        OnBeforeInsertServLedgerEntryCrMUsage(NextEntryNo, ServHeader, ServLine, DocNo, IsHandled);
+        OnBeforeInsertServLedgerEntryCrMUsage(PassedNextEntryNo, ServHeader, ServLine, DocNo, IsHandled);
         if IsHandled then
             exit;
 
         if ServLine."Qty. to Invoice" = 0 then
             exit;
         ServLedgEntry.Init();
-        NextServLedgerEntryNo := NextEntryNo;
+        NextServLedgerEntryNo := PassedNextEntryNo;
         ServLedgEntry."Entry No." := NextServLedgerEntryNo;
 
         ServLedgEntry.CopyFromServHeader(ServHeader);
@@ -538,9 +561,13 @@ codeunit 5912 "ServLedgEntries-Post"
         ServLedgEntry."Unit Cost" := -ServLedgEntry."Unit Cost";
         ServLedgEntry."Unit Price" := -ServLedgEntry."Unit Price";
         OnInsertServLedgerEntryCrMUsageOnBeforeServLedgEntryInsert(ServLedgEntry, ServHeader, ServLine);
+        ServLedgEntry."Service Register No." := ServiceRegister."No.";
         ServLedgEntry.Insert();
-        NextEntryNo := NextEntryNo + 1;
-        NextServLedgerEntryNo := NextEntryNo;
+        if ServiceMgtSetup.UseLegacyPosting() then
+            NextServLedgerEntryNo += 1
+        else
+            NextServLedgerEntryNo := ServLedgEntry.GetNextEntryNo();
+        PassedNextEntryNo := NextServLedgerEntryNo;
     end;
 
     local procedure CopyServicedInfoCrMemoUsage(var ServLine: Record "Service Line")
@@ -623,17 +650,22 @@ codeunit 5912 "ServLedgEntries-Post"
 
     local procedure InitServLedgerEntry(): Integer
     begin
-        // returns NextEntryNo
-        ServLedgEntry.Reset();
-        ServLedgEntry.LockTable();
-        exit(ServLedgEntry.GetLastEntryNo() + 1);
+        if ServiceMgtSetup.UseLegacyPosting() then begin
+            ServLedgEntry.Reset();
+            ServLedgEntry.LockTable();
+            exit(ServLedgEntry.GetLastEntryNo() + 1);
+        end else
+            exit(ServLedgEntry.GetNextEntryNo());
     end;
 
     local procedure InitWarrantyLedgerEntry(): Integer
     begin
-        WarrantyLedgEntry.Reset();
-        WarrantyLedgEntry.LockTable();
-        exit(WarrantyLedgEntry.GetLastEntryNo() + 1);
+        if ServiceMgtSetup.UseLegacyPosting() then begin
+            WarrantyLedgEntry.Reset();
+            WarrantyLedgEntry.LockTable();
+            exit(WarrantyLedgEntry.GetLastEntryNo() + 1);
+        end else
+            exit(WarrantyLedgEntry.GetNextEntryNo());
     end;
 
     procedure ReverseCnsmServLedgEntries(ServiceShipmentLine: Record "Service Shipment Line")
@@ -867,9 +899,13 @@ codeunit 5912 "ServLedgEntries-Post"
                     ServLedgEntry.Open := false;
                     ServLedgEntry.Description := ServLine.Description;
                     OnCreateCreditEntryOnBeforeServLedgEntryInsertFromServiceHeader(ServLedgEntry, ServHeader, ServLine);
+                    ServLedgEntry."Service Register No." := ServiceRegister."No.";
                     ServLedgEntry.Insert();
 
-                    NextServLedgerEntryNo += 1;
+                    if ServiceMgtSetup.UseLegacyPosting() then
+                        NextServLedgerEntryNo += 1
+                    else
+                        NextServLedgerEntryNo := ServLedgEntry.GetNextEntryNo();
                     ServLedgEntry."Entry No." := NextServLedgerEntryNo;
                     ServLedgEntry."Document Type" := ServLedgEntry."Document Type"::"Credit Memo";
                     ServLedgEntry."Entry Type" := ServLedgEntry."Entry Type"::Sale;
@@ -892,7 +928,10 @@ codeunit 5912 "ServLedgEntries-Post"
                     OnCreateCreditEntryOnBeforeServLedgEntryInsertFromServiceHeader(ServLedgEntry, ServHeader, ServLine);
                     ServLedgEntry.Insert();
 
-                    NextServLedgerEntryNo += 1;
+                    if ServiceMgtSetup.UseLegacyPosting() then
+                        NextServLedgerEntryNo += 1
+                    else
+                        NextServLedgerEntryNo := ServLedgEntry.GetNextEntryNo();
                 end;
             DATABASE::"Service Contract Header":
                 begin
@@ -930,9 +969,13 @@ codeunit 5912 "ServLedgEntries-Post"
                     ServLedgEntry."Applies-to Entry No." := ServLine."Appl.-to Service Entry";
 
                     OnCreateCreditEntryOnBeforeServLedgEntryInsert(ServLedgEntry, ServHeader, ServLine);
+                    ServLedgEntry."Service Register No." := ServiceRegister."No.";
                     ServLedgEntry.Insert();
 
-                    NextServLedgerEntryNo += 1;
+                    if ServiceMgtSetup.UseLegacyPosting() then
+                        NextServLedgerEntryNo += 1
+                    else
+                        NextServLedgerEntryNo := ServLedgEntry.GetNextEntryNo();
                 end;
         end;
 
@@ -1120,6 +1163,13 @@ codeunit 5912 "ServLedgEntries-Post"
         end;
 
         exit(false);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sequence No. Mgt.", 'OnPreviewableLedgerEntry', '', false, false)]
+    local procedure OnPreviewableLedgerEntry(TableNo: Integer; var IsPreviewable: Boolean)
+    begin
+        if TableNo in [Database::"Service Ledger Entry", Database::"Service Register"] then
+            IsPreviewable := true;
     end;
 
     [IntegrationEvent(false, false)]

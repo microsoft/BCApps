@@ -10,8 +10,10 @@ using Microsoft.Assembly.Setup;
 using Microsoft.Finance.GeneralLedger.Preview;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Setup;
+using Microsoft.Foundation.Company;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.UOM;
+using Microsoft.Inventory.Availability;
 using Microsoft.Inventory.BOM;
 using Microsoft.Inventory.Costing;
 using Microsoft.Inventory.Item;
@@ -3838,6 +3840,36 @@ codeunit 137096 "SCM Kitting - ATO"
         VerifyAssembledQtyOnAsmOrder(AssemblyHeader."Document Type"::"Blanket Order", Item."No.", QtyToShip);
     end;
 
+    local procedure CreateATOItemWithoutBOM(var Item: Record Item)
+    begin
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Replenishment System", Item."Replenishment System"::Assembly);
+        Item.Validate("Assembly Policy", Item."Assembly Policy"::"Assemble-to-Order");
+        Item.Modify(true);
+    end;
+
+    local procedure EnableItemAvailabilityNotification(NotificationId: Guid)
+    var
+        MyNotifications: Record "My Notifications";
+    begin
+        MyNotifications.InsertDefault(NotificationId, '', '', true);
+        if MyNotifications.Get(UserId(), NotificationId) then begin
+            MyNotifications.Enabled := true;
+            MyNotifications.Modify();
+        end;
+    end;
+
+    local procedure VerifyAsmOrderHasComponentItem(AssemblyHeader: Record "Assembly Header"; ComponentItemNo: Code[20])
+    var
+        AssemblyLine: Record "Assembly Line";
+    begin
+        AssemblyLine.SetRange("Document Type", AssemblyHeader."Document Type");
+        AssemblyLine.SetRange("Document No.", AssemblyHeader."No.");
+        AssemblyLine.SetRange(Type, AssemblyLine.Type::Item);
+        AssemblyLine.SetRange("No.", ComponentItemNo);
+        Assert.RecordIsNotEmpty(AssemblyLine);
+    end;
+
     local procedure DecreaseQtyToShipInAsmOrder(SalesHeader: Record "Sales Header"; ItemNo: Code[20]; Divider: Decimal): Decimal
     var
         SalesLine: Record "Sales Line";
@@ -5530,6 +5562,79 @@ codeunit 137096 "SCM Kitting - ATO"
 
         // [THEN] Verify Blanket Assembly Order Page opened
         BlanketAssemblyOrder."No.".AssertEquals(AssemblyHeader."No.");
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure MakeOrderFromBlanketWhenBOMAddedAfterATOLinkCreated()
+    var
+        CompanyInformation: Record "Company Information";
+        Item: Record Item;
+        SalesHeader: Record "Sales Header";
+        AsmHeaderBlanket: Record "Assembly Header";
+        AsmHeaderOrder: Record "Assembly Header";
+        AsmLine: Record "Assembly Line";
+        SalesOrderHeader: Record "Sales Header";
+        Comp1: Record Item;
+        Comp2: Record Item;
+        BOMComponent: Record "BOM Component";
+        ItemCheckAvail: Codeunit "Item-Check Avail.";
+        SalesOrderNo: Code[20];
+        ShipmentDate: Date;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 631869] Make Order from Blanket Sales Order succeeds when Assembly BOM is added after Blanket Order line was created
+        Initialize();
+
+        // [GIVEN] Item availability notification is enabled and Check-Avail. Period Calc. is blank
+        EnableItemAvailabilityNotification(ItemCheckAvail.GetItemAvailabilityNotificationId());
+        CompanyInformation.Get();
+        Evaluate(CompanyInformation."Check-Avail. Period Calc.", '');
+        CompanyInformation.Modify(true);
+        LibrarySales.SetStockoutWarning(true);
+
+        // [GIVEN] Assemble-to-Order item "I" without Assembly BOM
+        CreateATOItemWithoutBOM(Item);
+
+        // [GIVEN] Blanket Sales Order with line for item "I"
+        ShipmentDate := CalcDate('<+' + Format(LibraryRandom.RandIntInRange(5, 30)) + 'D>', WorkDate2);
+        CreateSaleLineWithShptDate(SalesHeader, SalesHeader."Document Type"::"Blanket Order", Item."No.", '', LibraryRandom.RandIntInRange(5, 20), ShipmentDate, '');
+
+        // [GIVEN] Blanket Assembly Header exists with no Assembly Lines
+        AsmHeaderBlanket.SetRange("Document Type", AsmHeaderBlanket."Document Type"::"Blanket Order");
+        AsmHeaderBlanket.SetRange("Item No.", Item."No.");
+        Assert.RecordCount(AsmHeaderBlanket, 1);
+        AsmHeaderBlanket.FindFirst();
+        AsmLine.SetRange("Document Type", AsmHeaderBlanket."Document Type");
+        AsmLine.SetRange("Document No.", AsmHeaderBlanket."No.");
+        Assert.RecordIsEmpty(AsmLine);
+
+        // [GIVEN] Assembly BOM components are added to item "I" after Blanket Order exists
+        LibraryInventory.CreateItem(Comp1);
+        LibraryInventory.CreateItem(Comp2);
+        LibraryInventory.CreateBOMComponent(
+            BOMComponent, Item."No.", BOMComponent.Type::Item, Comp1."No.", 1, Comp1."Base Unit of Measure");
+        Clear(BOMComponent);
+        LibraryInventory.CreateBOMComponent(
+            BOMComponent, Item."No.", BOMComponent.Type::Item, Comp2."No.", 1, Comp2."Base Unit of Measure");
+
+        // [WHEN] Make Order from Blanket Sales Order
+        SalesOrderNo := LibrarySales.BlanketSalesOrderMakeOrder(SalesHeader);
+
+        // [THEN] Sales Order is created
+        SalesOrderHeader.Get(SalesOrderHeader."Document Type"::Order, SalesOrderNo);
+
+        // [THEN] Assembly Order is created and linked to Sales Order
+        AsmHeaderOrder.SetRange("Document Type", AsmHeaderOrder."Document Type"::Order);
+        AsmHeaderOrder.SetRange("Item No.", Item."No.");
+        Assert.RecordCount(AsmHeaderOrder, 1);
+        AsmHeaderOrder.FindFirst();
+
+        // [THEN] Assembly Order has lines for the components added after the Blanket Order
+        VerifyAsmOrderHasComponentItem(AsmHeaderOrder, Comp1."No.");
+        VerifyAsmOrderHasComponentItem(AsmHeaderOrder, Comp2."No.");
+
+        LibraryNotificationMgt.RecallNotificationsForRecordID(AsmHeaderBlanket.RecordId);
     end;
 
     local procedure VerifyAssembleToOrderLinesPageOpened(SalesHeader: Record "Sales Header"; QtyAssembleToOrder: Decimal)

@@ -569,6 +569,10 @@ codeunit 10035 "Helper IRIS"
         StateName: Text;
     begin
         TrimmedText := DelChr(InputText, '<>', ' ');
+        if TrimmedText = '' then begin
+            StateCode := '';
+            exit(false);
+        end;
         foreach StateName in StateTypeIRIS.Names() do
             if UpperCase(TrimmedText) = UpperCase(StateName) then begin
                 StateCode := StateName;

@@ -169,7 +169,7 @@ report 5196 "Remove Contacts - Refine"
         ReduceRefineSegment.SetTableView("Value Entry");
         ReduceRefineSegment.SetOptions(REPORT::"Remove Contacts - Refine", EntireCompanies);
         IsHandled := false;
-        OnPreReportOnBeforeRunReduceRefineSegment(IsHandled);
+        OnPreReportOnBeforeRunReduceRefineSegment(IsHandled, ReduceRefineSegment);
         if not IsHandled then
             ReduceRefineSegment.RunModal();
     end;
@@ -179,8 +179,8 @@ report 5196 "Remove Contacts - Refine"
     begin
     end;
 
-    [IntegrationEvent(false, false)]
-    local procedure OnPreReportOnBeforeRunReduceRefineSegment(var IsHandled: Boolean)
+    [IntegrationEvent(true, false)]
+    local procedure OnPreReportOnBeforeRunReduceRefineSegment(var IsHandled: Boolean; var ReduceRefineSegment: Report "Remove Contacts")
     begin
     end;
 }

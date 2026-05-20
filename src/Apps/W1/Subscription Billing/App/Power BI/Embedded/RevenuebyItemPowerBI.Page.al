@@ -44,17 +44,8 @@ page 8105 "Revenue by Item Power BI"
         ReportPageLbl: Label 'cd6be9e72c3ae66a3dc4', Locked = true;
 
     trigger OnOpenPage()
-    var
-        PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
-        SetupHelper.EnsureUserAcceptedPowerBITerms();
-#if not CLEAN28
-#pragma warning disable AL0801
-#endif
-        ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Subscription Billing Report Id"));
-#if not CLEAN28
-#pragma warning restore AL0801
-#endif
+        ReportId := SetupHelper.OpenPowerBIEmbeddedReportPageValidation("PBI Report Setup"::"Subscription Billing App");
     end;
 }
 

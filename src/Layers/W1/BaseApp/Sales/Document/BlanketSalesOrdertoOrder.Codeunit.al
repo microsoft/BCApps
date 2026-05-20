@@ -450,6 +450,8 @@ codeunit 87 "Blanket Sales Order to Order"
                         SalesLine."Qty. to Asm. to Order (Base)" := SalesLine."Quantity (Base)";
                         SalesLine."Outstanding Quantity" -= SalesLine."Qty. to Assemble to Order";
                         SalesLine."Outstanding Qty. (Base)" -= SalesLine."Qty. to Asm. to Order (Base)";
+
+                        RefreshBlanketAssemblyBOMIfEmpty(BlanketOrderSalesLine, ATOLink);
                     end;
 
                     ShouldCheckSalesLineItemAvailability := not HideValidationDialog;
@@ -472,6 +474,20 @@ codeunit 87 "Blanket Sales Order to Order"
 
         if ItemCheckAvail.SalesLineCheck(SalesLine) then
             ItemCheckAvail.RaiseUpdateInterruptedError();
+    end;
+
+    local procedure RefreshBlanketAssemblyBOMIfEmpty(var BlanketOrderSalesLine: Record "Sales Line"; ATOLink: Record "Assemble-to-Order Link")
+    var
+        AssemblyHeader: Record "Assembly Header";
+        AssemblyLine: Record "Assembly Line";
+    begin
+        AssemblyLine.SetRange("Document No.", ATOLink."Assembly Document No.");
+        AssemblyLine.SetRange("Document Type", ATOLink."Assembly Document Type");
+        if not AssemblyLine.IsEmpty() then
+            exit;
+
+        if BlanketOrderSalesLine.AsmToOrderExists(AssemblyHeader) then
+            AssemblyHeader.RefreshBOM();
     end;
 
     local procedure IsSalesOrderLineToBeInserted(SalesOrderLine: Record "Sales Line"): Boolean

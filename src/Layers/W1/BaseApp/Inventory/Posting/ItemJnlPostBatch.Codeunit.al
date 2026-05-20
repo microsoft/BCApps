@@ -165,7 +165,7 @@ codeunit 23 "Item Jnl.-Post Batch"
         MakeInventoryAdjustment();
 
         // Update/delete lines
-        OnBeforeUpdateDeleteLines(ItemJnlLine, ItemRegNo);
+        OnBeforeUpdateDeleteLines(ItemJnlLine, ItemRegNo, WhseRegNo);
         if ItemJnlLine."Line No." <> 0 then begin
             if ItemJnlTemplate.Recurring then
                 HandleRecurringLine(ItemJnlLine)
@@ -1188,7 +1188,7 @@ codeunit 23 "Item Jnl.-Post Batch"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeUpdateDeleteLines(var ItemJournalLine: Record "Item Journal Line"; ItemRegNo: Integer)
+    local procedure OnBeforeUpdateDeleteLines(var ItemJournalLine: Record "Item Journal Line"; var ItemRegNo: Integer; var WhseRegNo: Integer)
     begin
     end;
 

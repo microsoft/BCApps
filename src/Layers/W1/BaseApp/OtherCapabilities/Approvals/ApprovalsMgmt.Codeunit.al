@@ -229,6 +229,21 @@ codeunit 1535 "Approvals Mgmt."
     end;
 
     [IntegrationEvent(false, false)]
+    procedure OnSendVendorBankAccountForApproval(var VendorBankAccount: Record "Vendor Bank Account")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    procedure OnCancelVendorBankAccountApprovalRequest(var VendorBankAccount: Record "Vendor Bank Account")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeIsVendorBankApprovalsWorkflowEnabled(var VendorBankAccount: Record "Vendor Bank Account"; var Result: Boolean; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
     local procedure OnPopulateApprovalEntryArgument(var RecRef: RecordRef; var ApprovalEntryArgument: Record "Approval Entry"; WorkflowStepInstance: Record "Workflow Step Instance")
     begin
     end;
@@ -1545,6 +1560,19 @@ codeunit 1535 "Approvals Mgmt."
             WorkflowEventHandling.RunWorkflowOnSendOverdueNotificationsCode()));
     end;
 
+    procedure IsVendorBankApprovalsWorkflowEnabled(var VendorBankAccount: Record "Vendor Bank Account") Result: Boolean
+    var
+        IsHandled: Boolean;
+    begin
+        IsHandled := false;
+        OnBeforeIsVendorBankApprovalsWorkflowEnabled(VendorBankAccount, Result, IsHandled);
+        if IsHandled then
+            exit(Result);
+
+        exit(WorkflowManagement.CanExecuteWorkflow(VendorBankAccount,
+            WorkflowEventHandling.RunWorkflowOnSendVendorBankAccountForApprovalCode()));
+    end;
+
     procedure IsGeneralJournalBatchApprovalsWorkflowEnabled(var GenJournalBatch: Record "Gen. Journal Batch") Result: Boolean
     var
         IsHandled: Boolean;
@@ -1662,6 +1690,16 @@ codeunit 1535 "Approvals Mgmt."
     begin
         if not WorkflowManagement.CanExecuteWorkflow(Vendor, WorkflowEventHandling.RunWorkflowOnSendVendorForApprovalCode()) then begin
             if WorkflowManagement.EnabledWorkflowExist(DATABASE::Vendor, WorkflowEventHandling.RunWorkflowOnVendorChangedCode()) then
+                exit(false);
+            Error(NoWorkflowEnabledErr);
+        end;
+        exit(true);
+    end;
+
+    procedure CheckVendorBankAccountApprovalsWorkflowEnabled(var VendorBankAccount: Record "Vendor Bank Account") Result: Boolean
+    begin
+        if not WorkflowManagement.CanExecuteWorkflow(VendorBankAccount, WorkflowEventHandling.RunWorkflowOnSendVendorBankAccountForApprovalCode()) then begin
+            if WorkflowManagement.EnabledWorkflowExist(DATABASE::"Vendor Bank Account", WorkflowEventHandling.RunWorkflowOnSendVendorBankAccountForApprovalCode()) then
                 exit(false);
             Error(NoWorkflowEnabledErr);
         end;
@@ -1791,6 +1829,17 @@ codeunit 1535 "Approvals Mgmt."
         end;
     end;
 
+    [EventSubscriber(ObjectType::Table, Database::"Requisition Wksh. Name", 'OnMoveRequisitionWkshBatch', '', false, false)]
+    procedure PostApprovalEntriesMoveRequisitionWkshBatch(var Sender: Record "Requisition Wksh. Name"; ToRecordID: RecordID)
+    var
+        RecordRestrictionMgt: Codeunit "Record Restriction Mgt.";
+    begin
+        if PostApprovalEntries(Sender.RecordId(), ToRecordID, '') then begin
+            RecordRestrictionMgt.AllowRecordUsage(Sender);
+            DeleteApprovalEntries(Sender.RecordId());
+        end;
+    end;
+
     [EventSubscriber(ObjectType::Table, Database::"Requisition Wksh. Name", 'OnAfterDeleteEvent', '', false, false)]
     procedure DeleteApprovalEntriesAfterDeleteRequisitionWkshName(var Rec: Record "Requisition Wksh. Name"; RunTrigger: Boolean)
     var
@@ -1813,6 +1862,13 @@ codeunit 1535 "Approvals Mgmt."
 
     [EventSubscriber(ObjectType::Table, Database::"Vendor", 'OnAfterDeleteEvent', '', false, false)]
     procedure DeleteApprovalEntriesAfterDeleteVendor(var Rec: Record Vendor; RunTrigger: Boolean)
+    begin
+        if not Rec.IsTemporary then
+            DeleteApprovalEntries(Rec.RecordId);
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Vendor Bank Account", 'OnAfterDeleteEvent', '', false, false)]
+    procedure DeleteApprovalEntriesAfterDeleteVendorBankAccount(var Rec: Record "Vendor Bank Account"; RunTrigger: Boolean)
     begin
         if not Rec.IsTemporary then
             DeleteApprovalEntries(Rec.RecordId);

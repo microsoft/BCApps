@@ -629,6 +629,78 @@ codeunit 134096 "ERM VAT Return"
         Assert.IsTrue(VATReportList."Attached Documents List".Enabled(), AttachedDocumentsListErr);
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure VATReturnPageEditabilityUpdatesAfterRelease()
+    var
+        VATReportHeader: Record "VAT Report Header";
+        VATReportPage: TestPage "VAT Report";
+    begin
+        // [FEATURE] [VAT Return] [UI]
+        // [SCENARIO 1411] The General group editability on the VAT Report page updates immediately when a VAT Return is released
+
+        LibraryLowerPermissions.SetO365BusFull();
+        LibraryApplicationArea.EnableBasicSetup();
+
+        SetupVATReportsConfiguration(0);
+
+        // [GIVEN] A VAT Return in Open status with required fields filled
+        CreateVATReturn(VATReportHeader, DATE2DMY(WorkDate(), 3));
+        VATReportHeader."Additional Information" := LibraryUtility.GenerateGUID();
+        VATReportHeader.Modify(true);
+
+        // [GIVEN] VAT Report page is open and positioned on the VAT Return
+        VATReportPage.OpenEdit();
+        VATReportPage.Filter.SetFilter("No.", VATReportHeader."No.");
+
+        // [THEN] Page is editable while the VAT Return status is Open
+        Assert.IsTrue(VATReportPage."No.".Editable(), 'Page should be editable when VAT Return status is Open');
+
+        // [WHEN] The VAT Return is released
+        VATReportPage.Release.Invoke();
+
+        // [THEN] Page is no longer editable immediately after release without requiring the page to be closed and reopened
+        Assert.IsFalse(VATReportPage."No.".Editable(), 'Page should not be editable after VAT Return is released');
+
+        LibraryApplicationArea.DisableApplicationAreaSetup();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure VATReturnPageEditabilityUpdatesAfterReopen()
+    var
+        VATReportHeader: Record "VAT Report Header";
+        VATReportPage: TestPage "VAT Report";
+    begin
+        // [FEATURE] [VAT Return] [UI]
+        // [SCENARIO 1411] The General group editability on the VAT Report page updates immediately when a VAT Return is reopened
+
+        LibraryLowerPermissions.SetO365BusFull();
+        LibraryApplicationArea.EnableBasicSetup();
+
+        SetupVATReportsConfiguration(0);
+
+        // [GIVEN] A VAT Return in Released status
+        CreateVATReturn(VATReportHeader, DATE2DMY(WorkDate(), 3));
+        VATReportHeader.Status := VATReportHeader.Status::Released;
+        VATReportHeader.Modify(true);
+
+        // [GIVEN] VAT Report page is open and positioned on the VAT Return
+        VATReportPage.OpenEdit();
+        VATReportPage.Filter.SetFilter("No.", VATReportHeader."No.");
+
+        // [THEN] Page is not editable while the VAT Return status is Released
+        Assert.IsFalse(VATReportPage."No.".Editable(), 'Page should not be editable when VAT Return status is Released');
+
+        // [WHEN] The VAT Return is reopened
+        VATReportPage.Reopen.Invoke();
+
+        // [THEN] Page is editable again immediately after reopen without requiring the page to be closed and reopened
+        Assert.IsTrue(VATReportPage."No.".Editable(), 'Page should be editable after VAT Return is reopened');
+
+        LibraryApplicationArea.DisableApplicationAreaSetup();
+    end;
+
     local procedure Initialize()
     begin
         LibrarySetupStorage.Restore();

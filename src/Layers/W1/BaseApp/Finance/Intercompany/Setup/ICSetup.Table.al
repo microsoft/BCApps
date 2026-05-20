@@ -95,6 +95,11 @@ table 443 "IC Setup"
             Caption = 'Transaction Nofitications';
             InitValue = true;
         }
+        field(10; "Log API Requests"; Boolean)
+        {
+            Caption = 'Log API Requests';
+            DataClassification = SystemMetadata;
+        }
     }
 
     keys

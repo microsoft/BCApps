@@ -1320,6 +1320,60 @@ codeunit 134831 "Alloc. Acc. Purch. E2E Tests"
         Assert.ExpectedTestFieldError(PurchaseHeader.FieldCaption(Status), Format(PurchaseHeader.Status::Open));
     end;
 
+    [Test]
+    procedure TestPostPurchInvoiceWithUnevenFixedAllocationDoesNotError()
+    var
+        DestinationGLAccount: Record "G/L Account";
+        AllocationAccount: Record "Allocation Account";
+        PurchaseHeader: Record "Purchase Header";
+        PurchInvHeader: Record "Purch. Inv. Header";
+        PurchInvLine: Record "Purch. Inv. Line";
+        PostedAmount: Decimal;
+    begin
+        // [FEATURE] [Allocation Account]
+        // [SCENARIO 631502] Posting purchase invoice with fixed allocation account (50/35/15%) and unit cost 
+        //            that causes rounding residual should not produce "line amount invalid" error
+        Initialize();
+
+        // [GIVEN] Destination G/L Account "G"
+        DestinationGLAccount.Get(LibraryERM.CreateGLAccountWithPurchSetup());
+
+        // [GIVEN] Fixed Allocation Account "AA" with three G/L distributions: 50%, 35%, 15%
+        CreateFixedAllocationAccountWithThreeUnevenDistributions(AllocationAccount, DestinationGLAccount."No.");
+
+        // [GIVEN] Purchase Invoice with Allocation Account line, Quantity = 5, Direct Unit Cost = 59.95
+        CreatePurchInvoiceWithAllocationAccount(PurchaseHeader, AllocationAccount."No.", 5, 59.95);
+
+        // [WHEN] Purchase Invoice is posted
+        PurchInvHeader.Get(LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true));
+
+        // [THEN] The invoice posts successfully and total of posted line amounts equals original amount (299.75)
+        PurchInvLine.SetRange("Document No.", PurchInvHeader."No.");
+        PurchInvLine.SetRange("No.", DestinationGLAccount."No.");
+        PurchInvLine.SetRange(Type, PurchInvLine.Type::"G/L Account");
+        Assert.AreEqual(3, PurchInvLine.Count(), 'Three Purchase Invoice Lines should be created from allocation');
+
+        PurchInvLine.FindSet();
+        repeat
+            PostedAmount += PurchInvLine."Line Amount";
+        until PurchInvLine.Next() = 0;
+
+        Assert.AreEqual(299.75, PostedAmount, 'Total posted amount must equal Quantity * Direct Unit Cost');
+    end;
+
+    local procedure CreatePurchInvoiceWithAllocationAccount(var PurchaseHeader: Record "Purchase Header"; AllocationAccountNo: Code[20]; Quantity: Decimal; DirectUnitCost: Decimal)
+    var
+        PurchaseLine: Record "Purchase Line";
+    begin
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, LibraryPurchase.CreateVendorNo());
+        PurchaseHeader.Validate("Vendor Invoice No.", LibraryUtility.GenerateGUID());
+        PurchaseHeader.Modify(true);
+
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::"Allocation Account", AllocationAccountNo, Quantity);
+        PurchaseLine.Validate("Direct Unit Cost", DirectUnitCost);
+        PurchaseLine.Modify(true);
+    end;
+
     local procedure CreateAllocationAccountwithVariableGLDistributionsAndInheritFromParent(
         var AllocationAccount: Record "Allocation Account";
         FirstDimensionValue: Record "Dimension Value";
@@ -1880,6 +1934,41 @@ codeunit 134831 "Alloc. Acc. Purch. E2E Tests"
         // Verify VAT-inclusive amount
         Assert.AreNearlyEqual(ExpectedAmountIncludingVAT, PurchaseLine."Amount Including VAT", 0.01,
             StrSubstNo('Amount Including VAT should be %1 but was %2 for account %3', ExpectedAmountIncludingVAT, PurchaseLine."Amount Including VAT", AccountNo));
+    end;
+
+
+    local procedure CreateFixedAllocationAccountWithThreeUnevenDistributions(var AllocationAccount: Record "Allocation Account"; DestinationAccountNo: Code[20])
+    var
+        AllocAccountDistribution: Record "Alloc. Account Distribution";
+    begin
+        AllocationAccount."No." := Format(LibraryRandom.RandText(5));
+        AllocationAccount."Account Type" := AllocationAccount."Account Type"::Fixed;
+        AllocationAccount."Document Lines Split" := AllocationAccount."Document Lines Split"::"Split Amount";
+        AllocationAccount.Name := Any.AlphabeticText(MaxStrLen(AllocationAccount.Name));
+        AllocationAccount.Insert(true);
+
+        AllocAccountDistribution."Allocation Account No." := AllocationAccount."No.";
+        AllocAccountDistribution."Line No." := 10000;
+        AllocAccountDistribution."Destination Account Type" := AllocAccountDistribution."Destination Account Type"::"G/L Account";
+        AllocAccountDistribution."Destination Account Number" := DestinationAccountNo;
+        AllocAccountDistribution.Share := 50;
+        AllocAccountDistribution.Insert(true);
+
+        Clear(AllocAccountDistribution);
+        AllocAccountDistribution."Allocation Account No." := AllocationAccount."No.";
+        AllocAccountDistribution."Line No." := 20000;
+        AllocAccountDistribution."Destination Account Type" := AllocAccountDistribution."Destination Account Type"::"G/L Account";
+        AllocAccountDistribution."Destination Account Number" := DestinationAccountNo;
+        AllocAccountDistribution.Share := 35;
+        AllocAccountDistribution.Insert(true);
+
+        Clear(AllocAccountDistribution);
+        AllocAccountDistribution."Allocation Account No." := AllocationAccount."No.";
+        AllocAccountDistribution."Line No." := 30000;
+        AllocAccountDistribution."Destination Account Type" := AllocAccountDistribution."Destination Account Type"::"G/L Account";
+        AllocAccountDistribution."Destination Account Number" := DestinationAccountNo;
+        AllocAccountDistribution.Share := 15;
+        AllocAccountDistribution.Insert(true);
     end;
 
     local procedure CreateFixedAllocationAccountWithThreeInheritFromParentDistributions(var AllocationAccount: Record "Allocation Account")

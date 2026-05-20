@@ -176,7 +176,7 @@ page 8082 "Sales Service Commitments"
                 field(PricingUnitCostSurcharPerc; Rec."Pricing Unit Cost Surcharge %")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the surcharge in percent for the debit-side price calculation, if a EK surcharge is to be used.';
+                    ToolTip = 'Specifies the surcharge in percent for the debit-side price calculation, if a unit cost surcharge is to be used.';
                     Editable = PricingUnitCostSurchargeEditable;
                 }
             }

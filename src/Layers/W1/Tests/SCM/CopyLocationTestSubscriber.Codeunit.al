@@ -29,7 +29,7 @@ codeunit 137226 "Copy Location Test Subscriber"
         IsHandled := true;
 
         TempCopyLocationBuffer.Init();
-        TempCopyLocationBuffer."Source Location Code" := Location.Code;
+        TempCopyLocationBuffer.Validate("Source Location Code", Location.Code);
         TempCopyLocationBuffer."Target Location Code" := TargetLocationCode;
         TempCopyLocationBuffer.Zones := CopyAllOptions;
         TempCopyLocationBuffer.Bins := CopyAllOptions;

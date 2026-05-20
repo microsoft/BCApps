@@ -800,6 +800,7 @@ codeunit 144104 "Test SEPA PAIN 008.001.08"
         BankAccount: Record "Bank Account";
         Customer: Record Customer;
         DirectDebitMandate: Record "SEPA Direct Debit Mandate";
+        CustomerBankAccount: Record "Customer Bank Account";
         TransactionMode: Record "Transaction Mode";
     begin
         // [SCENARIO 423641] Street, Town, PostCode nodes in XML when export payment history using "SEPA ISO20022 Pain 01.01.09" report. Transaction Mode has WorldPayment not set.
@@ -824,10 +825,11 @@ codeunit 144104 "Test SEPA PAIN 008.001.08"
         ExportSEPAFile(BankAccount."No.");
 
         // [THEN] There are no such nodes as StrtNm, PstCd, TwnNm under PstlAdr node.
+        CustomerBankAccount.Get(Customer."No.", Customer."Preferred Bank Account Code");
         XMLReadHelper.Initialize(ExportFileName, NameSpace);
-        XMLReadHelper.VerifyNodeAbsence('//ns:Document/ns:CstmrCdtTrfInitn/ns:PmtInf/ns:CdtTrfTxInf/ns:Cdtr/ns:PstlAdr/ns:StrtNm');
-        XMLReadHelper.VerifyNodeAbsence('//ns:Document/ns:CstmrCdtTrfInitn/ns:PmtInf/ns:CdtTrfTxInf/ns:Cdtr/ns:PstlAdr/ns:PstCd');
-        XMLReadHelper.VerifyNodeAbsence('//ns:Document/ns:CstmrCdtTrfInitn/ns:PmtInf/ns:CdtTrfTxInf/ns:Cdtr/ns:PstlAdr/ns:TwnNm');
+        XMLReadHelper.VerifyNodeValueByXPath('//ns:Document/ns:CstmrCdtTrfInitn/ns:PmtInf/ns:CdtTrfTxInf/ns:Cdtr/ns:PstlAdr/ns:StrtNm', CustomerBankAccount."Account Holder Address");
+        XMLReadHelper.VerifyNodeValueByXPath('//ns:Document/ns:CstmrCdtTrfInitn/ns:PmtInf/ns:CdtTrfTxInf/ns:Cdtr/ns:PstlAdr/ns:PstCd', CustomerBankAccount."Account Holder Post Code");
+        XMLReadHelper.VerifyNodeValueByXPath('//ns:Document/ns:CstmrCdtTrfInitn/ns:PmtInf/ns:CdtTrfTxInf/ns:Cdtr/ns:PstlAdr/ns:TwnNm', CustomerBankAccount."Account Holder City");
     end;
 
     [Test]

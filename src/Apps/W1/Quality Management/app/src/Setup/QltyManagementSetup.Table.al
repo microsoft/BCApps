@@ -106,6 +106,7 @@ table 20400 "Qlty. Management Setup"
         {
             Caption = 'Quality Inspection Selection Criteria';
             ToolTip = 'Specifies the checks the system uses to decide if a document-specific transaction should be blocked.';
+            InitValue = "Only the newest inspection/re-inspection";
         }
         field(29; "Warehouse Trigger"; Enum "Qlty. Warehouse Trigger")
         {

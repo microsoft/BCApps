@@ -44,6 +44,7 @@ report 98 "Date Compress General Ledger"
             var
                 SummarizedGLEntryCount: Integer;
                 SkippedEntryNos: Dictionary of [Integer, Boolean];
+                LastProcessedAccountNo: Code[20];
             begin
                 if Amount <> "Remaining Amount" then
                     CurrReport.Skip();
@@ -104,17 +105,19 @@ report 98 "Date Compress General Ledger"
                     DimBufMgt.CollectDimEntryNo(TempSelectedDim, GLEntry2."Dimension Set ID", GLEntry2."Entry No.", 0, false, DimEntryNo);
                     ComprDimEntryNo := DimEntryNo;
                     SummarizeEntry(NewGLEntry, GLEntry2, false, SummarizedGLEntryCount);
+
+                    if not UseDataArchive then
+                        GLEntry2.SetLoadFields(
+                            "G/L Account No.", Amount, "Remaining Amount", "Additional-Currency Amount",
+                            "Dimension Set ID", "Source Currency Amount", "VAT Amount", "Source Currency VAT Amount", "Debit Amount", "Credit Amount",
+                            "Add.-Currency Debit Amount", "Add.-Currency Credit Amount", Quantity);
+
                     while GLEntry2.Next() <> 0 do begin
                         DimBufMgt.CollectDimEntryNo(TempSelectedDim, GLEntry2."Dimension Set ID", GLEntry2."Entry No.", ComprDimEntryNo, true, DimEntryNo);
                         if DimEntryNo = ComprDimEntryNo then
                             SummarizeEntry(NewGLEntry, GLEntry2, false, SummarizedGLEntryCount)
                         else
                             SkippedEntryNos.Add(GLEntry2."Entry No.", false);
-
-                        GLEntry2.SetLoadFields(
-                            Amount, "Remaining Amount", "Additional-Currency Amount",
-                            "Dimension Set ID", "Source Currency Amount", "VAT Amount", "Source Currency VAT Amount", "Debit Amount", "Credit Amount",
-                            "Add.-Currency Debit Amount", "Add.-Currency Credit Amount", Quantity);
                     end;
 
                     DeleteCompressedEntries(GLEntry2, SkippedEntryNos, SummarizedGLEntryCount);
@@ -123,13 +126,23 @@ report 98 "Date Compress General Ledger"
 
                     ComprCollectedEntries();
 
+                    LastProcessedAccountNo := GLEntry2."G/L Account No.";
                     GLEntry2.CopyFilters("G/L Entry");
                     GLEntry2.SetFilter("Posting Date", DateComprMgt.GetDateFilter(GLEntry2."Posting Date", EntrdDateComprReg, true));
-                    GLEntry2.SetLoadFields(
-                        "Posting Date", "G/L Account No.", "Gen. Posting Type", "Gen. Bus. Posting Group", "Gen. Prod. Posting Group", "Document Type", "Document No.",
-                        "Job No.", "Business Unit Code", "Global Dimension 1 Code", "Global Dimension 2 Code", "Journal Templ. Name", Amount, "Remaining Amount", "Additional-Currency Amount",
-                        "Dimension Set ID", "Source Currency Amount", "VAT Amount", "Source Currency VAT Amount", "Debit Amount", "Credit Amount",
-                        "Add.-Currency Debit Amount", "Add.-Currency Credit Amount", Quantity, "User ID");
+
+                    // Skip past already-processed accounts so FindFirst seeks into the index
+                    // instead of scanning through deleted-row ghosts with UPDLOCK.
+                    // FilterGroup(2) keeps this separate from any user "G/L Account No." filter in group 0.
+                    GLEntry2.FilterGroup(2);
+                    GLEntry2.SetFilter("G/L Account No.", '>=%1', LastProcessedAccountNo);
+                    GLEntry2.FilterGroup(0);
+
+                    if not UseDataArchive then
+                        GLEntry2.SetLoadFields(
+                            "Posting Date", "G/L Account No.", "Gen. Posting Type", "Gen. Bus. Posting Group", "Gen. Prod. Posting Group", "Document Type", "Document No.",
+                            "Job No.", "Business Unit Code", "Global Dimension 1 Code", "Global Dimension 2 Code", "Journal Templ. Name", Amount, "Remaining Amount", "Additional-Currency Amount",
+                            "Dimension Set ID", "Source Currency Amount", "VAT Amount", "Source Currency VAT Amount", "Debit Amount", "Credit Amount",
+                            "Add.-Currency Debit Amount", "Add.-Currency Credit Amount", Quantity, "User ID");
                 until not GLEntry2.FindFirst();
 
                 if DateComprReg."No. Records Deleted" >= NoOfDeleted + 10 then begin
@@ -363,6 +376,7 @@ report 98 "Date Compress General Ledger"
         DateComprReg: Record "Date Compr. Register";
         EntrdDateComprReg: Record "Date Compr. Register";
         GLReg: Record "G/L Register";
+        GLTransaction: Record "G/L Transaction";
         EntrdGLEntry: Record "G/L Entry";
         NewGLEntry: Record "G/L Entry";
         GLEntry2: Record "G/L Entry";
@@ -616,7 +630,7 @@ report 98 "Date Compress General Ledger"
         OnAfterInitNewEntry(NewGLEntry);
     end;
 
-    local procedure InsertNewEntry(var NewGLEntry: Record "G/L Entry"; DimEntryNo: Integer)
+    local procedure InsertNewEntry(var GLEntry: Record "G/L Entry"; DimEntryNo: Integer)
     var
         TempDimBuf: Record "Dimension Buffer" temporary;
         TempDimSetEntry: Record "Dimension Set Entry" temporary;
@@ -624,8 +638,11 @@ report 98 "Date Compress General Ledger"
         TempDimBuf.DeleteAll();
         DimBufMgt.GetDimensions(DimEntryNo, TempDimBuf);
         DimMgt.CopyDimBufToDimSetEntry(TempDimBuf, TempDimSetEntry);
-        NewGLEntry."Dimension Set ID" := DimMgt.GetDimensionSetID(TempDimSetEntry);
-        NewGLEntry.Insert();
+        GLEntry."Dimension Set ID" := DimMgt.GetDimensionSetID(TempDimSetEntry);
+        GLEntry."G/L Register No." := GLReg."No.";
+        GLEntry.Insert();
+
+        GLTransaction.InsertFromGLEntry(GLEntry, GLReg);
     end;
 
     local procedure InitializeParameter()

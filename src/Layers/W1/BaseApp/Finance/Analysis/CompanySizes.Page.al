@@ -32,6 +32,10 @@ page 532 "Company Sizes"
                 {
                     ToolTip = 'Specifies the description of the company size.';
                 }
+                field("Small Business"; Rec."Small Business")
+                {
+                    ToolTip = 'Specifies whether this company size category represents a small business.';
+                }
             }
         }
     }

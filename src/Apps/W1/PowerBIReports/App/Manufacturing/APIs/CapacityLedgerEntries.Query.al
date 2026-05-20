@@ -14,6 +14,7 @@ query 36984 "Capacity Ledger Entries"
     Access = Internal;
     Caption = 'Power BI Capacity Ledger Entries';
     QueryType = API;
+    AboutText = 'Provides access to capacity ledger entries including setup time, run time, stop time, output quantities, scrap, and costs. Enables Power BI reports to analyze production efficiency, labor and machine utilization, and manufacturing cost variances.';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';
     ApiVersion = 'v0.5', 'v1.0';

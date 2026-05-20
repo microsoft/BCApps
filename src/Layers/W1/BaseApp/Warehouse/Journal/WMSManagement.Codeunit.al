@@ -116,7 +116,6 @@ codeunit 7302 "WMS Management"
             WhseJnlLine."Reference Document" := WhseJnlLine."Reference Document"::"Job Journal";
         WhseJnlLine."Reference No." := ItemJnlLine."Document No.";
         TransferWhseItemTracking(WhseJnlLine, ItemJnlLine);
-        WhseJnlLine.Description := ItemJnlLine.Description;
         OnAfterCreateWhseJnlLine(WhseJnlLine, ItemJnlLine, ToTransfer);
         exit(true);
     end;
@@ -1021,6 +1020,7 @@ codeunit 7302 "WMS Management"
         WarehouseJournalLine."Qty. (Absolute)" := Abs(WarehouseJournalLine.Quantity);
         WarehouseJournalLine."Qty. (Absolute, Base)" := Abs(QuantityBase);
 
+        WarehouseJournalLine.Description := ItemJournalLine.Description;
         WarehouseJournalLine."Source Code" := ItemJournalLine."Source Code";
         WarehouseJournalLine."Reason Code" := ItemJournalLine."Reason Code";
         WarehouseJournalLine."Registering No. Series" := ItemJournalLine."Posting No. Series";

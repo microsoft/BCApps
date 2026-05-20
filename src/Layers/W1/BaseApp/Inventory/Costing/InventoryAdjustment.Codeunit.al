@@ -498,7 +498,7 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
             if OutbndValueEntry.FindSet() then
                 repeat
                     NeedsAdjustment := not (OutbndValueEntry.Adjustment or ExpCostIsCompletelyInvoiced(OutbndItemLedgEntry, OutbndValueEntry)) and OutbndValueEntry.Inventoriable;
-                    OnAdjustAppliedOutbndEntriesOnBeforeAdjustEntry(OutbndItemLedgEntry, NeedsAdjustment);
+                    OnAdjustAppliedOutbndEntriesOnBeforeAdjustEntry(OutbndItemLedgEntry, OutbndValueEntry, NeedsAdjustment);
                     if NeedsAdjustment then begin
                         OutbndValueEntry.SetRange("Document No.", OutbndValueEntry."Document No.");
                         OutbndValueEntry.SetRange("Document Line No.", OutbndValueEntry."Document Line No.");
@@ -3460,7 +3460,7 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAdjustAppliedOutbndEntriesOnBeforeAdjustEntry(var OutbndItemLedgEntry: Record "Item Ledger Entry"; var NeedsAdjustment: Boolean)
+    local procedure OnAdjustAppliedOutbndEntriesOnBeforeAdjustEntry(var OutbndItemLedgEntry: Record "Item Ledger Entry"; var OutbndValueEntry: Record "Value Entry"; var NeedsAdjustment: Boolean)
     begin
     end;
 

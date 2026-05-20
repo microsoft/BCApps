@@ -61,9 +61,7 @@ using System.Threading;
 /// Key features: Historical transaction tracking, audit trail compliance, transaction reconstruction capability.
 /// Integration: Links to ledger entries via transaction numbers, maintains posting batch relationships.
 /// </remarks>
-#pragma warning disable AL0914
 table 181 "Posted Gen. Journal Line"
-#pragma warning restore AL0914
 {
     Caption = 'Posted Gen. Journal Line';
     LookupPageId = "Posted General Journal";

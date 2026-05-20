@@ -140,6 +140,8 @@ codeunit 20 "Posting Preview Event Handler"
     /// <returns>True if transaction remained consistent throughout preview processing</returns>
     procedure IsTransactionConsistent(): Boolean
     begin
+        if TempGLEntry.IsEmpty() then
+            exit(true);
         exit(TransactionConsistent);
     end;
 

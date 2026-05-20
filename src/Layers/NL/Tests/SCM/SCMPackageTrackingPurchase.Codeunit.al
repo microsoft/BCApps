@@ -15,7 +15,6 @@ codeunit 137265 "SCM Package Tracking Purchase"
         LibraryItemTracking: Codeunit "Library - Item Tracking";
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryWarehouse: Codeunit "Library - Warehouse";
-        LibrarySmallBusiness: Codeunit "Library - Small Business";
         LibraryUtility: Codeunit "Library - Utility";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryRandom: Codeunit "Library - Random";
@@ -650,8 +649,6 @@ codeunit 137265 "SCM Package Tracking Purchase"
 
         LibraryItemTracking.CreatePurchOrderItemTracking(ReservationEntry, PurchaseLine[1], '', '', PackageNo[1, 1], 70);
         LibraryItemTracking.CreatePurchOrderItemTracking(ReservationEntry, PurchaseLine[2], '', '', PackageNo[2, 1], 40);
-
-        LibrarySmallBusiness.UpdatePurchHeaderDocTotal(PurchaseHeader[1]);
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader[1], true, false);
 
         LibraryItemTracking.CheckLastItemLedgerEntry(ItemLedgerEntry, Item[1]."No.", Location.Code, '', '', PackageNo[1, 1], 70);
@@ -719,8 +716,6 @@ codeunit 137265 "SCM Package Tracking Purchase"
               PurchaseInvLine, ItemChargeNo, Item[1]."No.", PurchRcptLine);
         until PurchRcptLine.Next() = 0;
         ItemChargeAssgntSCode.AssignItemCharges(PurchaseInvLine, 1, 1, ItemChargeAssgntSCode.AssignEquallyMenuText());
-
-        LibrarySmallBusiness.UpdatePurchHeaderDocTotal(PurchaseInvHeader);
         LibraryPurchase.PostPurchaseDocument(PurchaseInvHeader, true, true);
     end;
 

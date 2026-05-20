@@ -484,7 +484,7 @@ report 5692 "Calculate Depreciation"
         if not FASetup.BonusDepreciationCorrectlySetup() then
             exit;
 
-        FADepreciationBook.SetLoadFields("Use Bonus Depreciation", "Depreciation Starting Date");
+        FADepreciationBook.SetLoadFields("Use Bonus Depreciation", "Depreciation Starting Date", "Bonus Depreciation %");
         if not FADepreciationBook.Get(TempFAJnlLine."FA No.", DeprBookCode) then
             exit;
 
@@ -542,7 +542,7 @@ report 5692 "Calculate Depreciation"
         if FADeprBookBonusDepreciationAmount.ContainsKey(FADepreciationBook.RecordId) then
             exit(-FADeprBookBonusDepreciationAmount.Get(FADepreciationBook.RecordId))
         else begin
-            BonusDepreciationAmount := -FADepreciationBook.BonusDepreciationAmount(GeneralLedgerSetup, FASetup);
+            BonusDepreciationAmount := -FADepreciationBook.BonusDepreciationAmount();
             FADeprBookBonusDepreciationAmount.Add(FADepreciationBook.RecordId, -BonusDepreciationAmount);
             exit(BonusDepreciationAmount)
         end;
@@ -556,7 +556,7 @@ report 5692 "Calculate Depreciation"
         if not FASetup.BonusDepreciationCorrectlySetup() then
             exit;
 
-        FADepreciationBook.SetLoadFields("Use Bonus Depreciation", "Depreciation Starting Date");
+        FADepreciationBook.SetLoadFields("Use Bonus Depreciation", "Depreciation Starting Date", "Bonus Depreciation %");
         if not FADepreciationBook.Get(TempGenJnlLine."Account No.", DeprBookCode) then
             exit;
 

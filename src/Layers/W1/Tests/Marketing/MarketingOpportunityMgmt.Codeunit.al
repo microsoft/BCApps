@@ -55,6 +55,7 @@ codeunit 136209 "Marketing Opportunity Mgmt"
         OppCardSalesDocTypeErr: Label 'Validation error for Field: Sales Document Type,  Message = ''Your entry of ''%1'' is not an acceptable value for ''Sales Document Type''. (Select Refresh to discard errors)''';
         OppNoNotUpdatedOnSalesQuoteErr: Label 'Opportunity No. not updated on Sales Quote.';
         ToDoCountShouldBeOneErr: Label 'To-do count should be one.';
+        ChancesOfSuccessOverrideErr: Label 'Chances of Success %% should be overridden by Stage value on %1', Comment = '%1 - Action Type';
 
     [Test]
     [HandlerFunctions('ModalFormHandlerOpportunity,FormHandlerUpdateOpportunity')]
@@ -1857,6 +1858,84 @@ codeunit 136209 "Marketing Opportunity Mgmt"
         OpportunityList.Close();
     end;
 
+    [Test]
+    procedure UpdateEstimatesJumpOverridesNonZeroChancesOfSuccess()
+    var
+        OpportunityEntry: Record "Opportunity Entry";
+        SalesCycle: Record "Sales Cycle";
+        SalesCycleStage: Record "Sales Cycle Stage";
+        StageChancesOfSuccess: Decimal;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 630024] Jump action in UpdateEstimates overrides non-zero Chances of Success % from target Sales Cycle Stage
+        Initialize();
+
+        // [GIVEN] Sales Cycle "SC" with Stage "S" having Chances of Success % = 80
+        LibraryMarketing.CreateSalesCycle(SalesCycle);
+        LibraryMarketing.CreateSalesCycleStage(SalesCycleStage, SalesCycle.Code);
+        StageChancesOfSuccess := LibraryRandom.RandIntInRange(50, 90);
+        SalesCycleStage.Validate("Chances of Success %", StageChancesOfSuccess);
+        SalesCycleStage.Validate("Completed %", LibraryRandom.RandInt(100));
+        SalesCycleStage.Modify(true);
+
+        // [GIVEN] Opportunity Entry "OE" with Action Type = Jump and non-zero Chances of Success % different from Stage value
+        CreateOppEntryForUpdateEstimates(
+            OpportunityEntry, SalesCycle.Code, SalesCycleStage.Stage, LibraryRandom.RandIntInRange(10, 40));
+        OpportunityEntry."Action Type" := OpportunityEntry."Action Type"::Jump;
+        OpportunityEntry.Modify();
+
+        // [WHEN] UpdateEstimates is called
+        OpportunityEntry.UpdateEstimates();
+
+        // [THEN] Chances of Success % is overridden by the Stage value
+        OpportunityEntry.Get(OpportunityEntry."Entry No.");
+        Assert.AreEqual(
+            StageChancesOfSuccess,
+            OpportunityEntry."Chances of Success %",
+            StrSubstNo(
+                ChancesOfSuccessOverrideErr,
+                Format(OpportunityEntry."Action Type"::Jump)));
+    end;
+
+    [Test]
+    procedure UpdateEstimatesSkipOverridesNonZeroChancesOfSuccess()
+    var
+        OpportunityEntry: Record "Opportunity Entry";
+        SalesCycle: Record "Sales Cycle";
+        SalesCycleStage: Record "Sales Cycle Stage";
+        StageChancesOfSuccess: Decimal;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 630024] Skip action in UpdateEstimates overrides non-zero Chances of Success % from target Sales Cycle Stage
+        Initialize();
+
+        // [GIVEN] Sales Cycle "SC" with Stage "S" having Chances of Success %.
+        LibraryMarketing.CreateSalesCycle(SalesCycle);
+        LibraryMarketing.CreateSalesCycleStage(SalesCycleStage, SalesCycle.Code);
+        StageChancesOfSuccess := LibraryRandom.RandIntInRange(50, 90);
+        SalesCycleStage.Validate("Chances of Success %", StageChancesOfSuccess);
+        SalesCycleStage.Validate("Completed %", LibraryRandom.RandInt(100));
+        SalesCycleStage.Modify(true);
+
+        // [GIVEN] Opportunity Entry "OE" with Action Type = Skip and non-zero Chances of Success % different from Stage value.
+        CreateOppEntryForUpdateEstimates(
+            OpportunityEntry, SalesCycle.Code, SalesCycleStage.Stage, LibraryRandom.RandIntInRange(10, 40));
+        OpportunityEntry."Action Type" := OpportunityEntry."Action Type"::Skip;
+        OpportunityEntry.Modify();
+
+        // [WHEN] UpdateEstimates is called.
+        OpportunityEntry.UpdateEstimates();
+
+        // [THEN] Chances of Success % is overridden by the Stage value.
+        OpportunityEntry.Get(OpportunityEntry."Entry No.");
+        Assert.AreEqual(
+            StageChancesOfSuccess,
+            OpportunityEntry."Chances of Success %",
+            StrSubstNo(
+                ChancesOfSuccessOverrideErr,
+                Format(OpportunityEntry."Action Type"::Skip)));
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"Marketing Opportunity Mgmt");
@@ -2367,6 +2446,24 @@ codeunit 136209 "Marketing Opportunity Mgmt"
 
         SalesLine.Validate("Unit Price", LibraryRandom.RandDec(20, 2));
         SalesLine.Modify(true);
+    end;
+
+    local procedure CreateOppEntryForUpdateEstimates(
+        var OpportunityEntry: Record "Opportunity Entry";
+        SalesCycleCode: Code[10];
+        SalesCycleStageNo: Integer;
+        ChancesOfSuccess: Decimal)
+    begin
+        OpportunityEntry.Init();
+        OpportunityEntry."Entry No." := LibraryUtility.GetNewRecNo(OpportunityEntry, OpportunityEntry.FieldNo("Entry No."));
+        OpportunityEntry."Sales Cycle Code" := SalesCycleCode;
+        OpportunityEntry."Sales Cycle Stage" := SalesCycleStageNo;
+        OpportunityEntry."Action Taken" := OpportunityEntry."Action Taken"::Jumped;
+        OpportunityEntry."Chances of Success %" := ChancesOfSuccess;
+        OpportunityEntry."Estimated Value (LCY)" := LibraryRandom.RandDec(1000, 2);
+        OpportunityEntry."Date of Change" := WorkDate();
+        OpportunityEntry."Estimated Close Date" := CalcDate('<1M>', WorkDate());
+        OpportunityEntry.Insert();
     end;
 
     [ConfirmHandler]

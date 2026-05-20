@@ -151,7 +151,9 @@ codeunit 1633 "Office Host Provider"
     begin
         if not CanHandle() then
             exit;
-        if not (OfficeHost.CallbackToken in ['', ' ']) then 
+        if TempOfficeAddinContextInternal.IsAppointment() then
+            exit;
+        if not (OfficeHost.CallbackToken in ['', ' ']) then
             Result := OutlookAddInServices.EmailHasAttachments(TempOfficeAddinContextInternal."Item ID", OfficeHost.CallbackToken);
     end;
 
@@ -161,6 +163,8 @@ codeunit 1633 "Office Host Provider"
         OutlookAddInServices: Codeunit "Outlook Add-In Services";
     begin
         if not CanHandle() then
+            exit;
+        if TempOfficeAddinContextInternal.IsAppointment() then
             exit;
 
         if not TempExchangeObjectInternal.IsEmpty() then begin

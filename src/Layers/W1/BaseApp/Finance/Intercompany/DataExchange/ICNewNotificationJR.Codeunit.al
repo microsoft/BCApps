@@ -14,19 +14,27 @@ using System.Telemetry;
 /// </summary>
 codeunit 533 "IC New Notification JR"
 {
-    Permissions = tabledata "IC Outgoing Notification" = m;
+    Permissions = tabledata "IC Outgoing Notification" = m,
+                  tabledata "IC API Log" = rimd;
 
     trigger OnRun()
     var
         ICOutgoingNotification: Record "IC Outgoing Notification";
+        ICAPILogContext: Codeunit "IC API Log Context";
     begin
+        ICAPILogContext.Initialize();
+
         ICOutgoingNotification.SetFilter(Status, '=%1|=%2', ICOutgoingNotification.Status::Created, ICOutgoingNotification.Status::Failed);
-        if not ICOutgoingNotification.FindSet() then
+        if not ICOutgoingNotification.FindSet() then begin
+            ICAPILogContext.Finalize();
             exit;
+        end;
 
         repeat
             SendNotification(ICOutgoingNotification);
         until ICOutgoingNotification.Next() = 0;
+
+        ICAPILogContext.Finalize();
     end;
 
     local procedure SendNotification(var ICOutgoingNotification: Record "IC Outgoing Notification")

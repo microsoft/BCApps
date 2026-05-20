@@ -394,6 +394,9 @@ codeunit 13919 "Import ZUGFeRD Document"
                 end;
             '/' + DocumentType + '/rsm:SupplyChainTradeTransaction/ram:IncludedSupplyChainTradeLineItem/ram:SpecifiedTradeProduct/ram:GlobalID':
                 PurchaseLine."Item Reference No." := CopyStr(TempXMLBuffer.Value, 1, MaxStrLen(PurchaseLine."Item Reference No."));
+            '/' + DocumentType + '/rsm:SupplyChainTradeTransaction/ram:IncludedSupplyChainTradeLineItem/ram:SpecifiedTradeProduct/ram:SellerAssignedID':
+                if PurchaseLine."Item Reference No." = '' then
+                    PurchaseLine."Item Reference No." := CopyStr(TempXMLBuffer.Value, 1, MaxStrLen(PurchaseLine."Item Reference No."));
             '/' + DocumentType + '/rsm:SupplyChainTradeTransaction/ram:IncludedSupplyChainTradeLineItem/ram:SpecifiedLineTradeDelivery/ram:BilledQuantity':
                 if TempXMLBuffer.Value <> '' then
                     Evaluate(PurchaseLine.Quantity, TempXMLBuffer.Value, 9);
@@ -542,6 +545,9 @@ codeunit 13919 "Import ZUGFeRD Document"
                 end;
             '/' + DocumentType + '/rsm:SupplyChainTradeTransaction/ram:IncludedSupplyChainTradeLineItem/ram:SpecifiedTradeProduct/ram:GlobalID':
                 PurchaseLine."Item Reference No." := CopyStr(TempXMLBuffer.Value, 1, MaxStrLen(PurchaseLine."Item Reference No."));
+            '/' + DocumentType + '/rsm:SupplyChainTradeTransaction/ram:IncludedSupplyChainTradeLineItem/ram:SpecifiedTradeProduct/ram:SellerAssignedID':
+                if PurchaseLine."Item Reference No." = '' then
+                    PurchaseLine."Item Reference No." := CopyStr(TempXMLBuffer.Value, 1, MaxStrLen(PurchaseLine."Item Reference No."));
             '/' + DocumentType + '/rsm:SupplyChainTradeTransaction/ram:IncludedSupplyChainTradeLineItem/ram:SpecifiedLineTradeDelivery/ram:BilledQuantity':
                 if TempXMLBuffer.Value <> '' then
                     Evaluate(PurchaseLine.Quantity, TempXMLBuffer.Value, 9);

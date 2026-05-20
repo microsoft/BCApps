@@ -2171,17 +2171,17 @@ codeunit 137294 "SCM Inventory Miscellaneous II"
         Location.Validate("From-Production Bin Code", Bin2.Code);
         Location.Modify(true);
 
-        // [GIVEN] Create Component Item with "Replenishment System" = "Purchase" and "Flushing Method" = "Manual".
+        // [GIVEN] Create Component Item with "Replenishment System" = "Purchase" and "Flushing Method" = "Pick + Manual".
         LibraryInventory.CreateItem(CompItem);
         CompItem.Validate("Replenishment System", CompItem."Replenishment System"::Purchase);
-        CompItem.Validate("Flushing Method", CompItem."Flushing Method"::Manual);
+        CompItem.Validate("Flushing Method", CompItem."Flushing Method"::"Pick + Manual");
         CompItem.Modify();
 
         // [GIVEN] Create Production BOM for Component Item.
         LibraryInventory.CreateItem(ProdItem);
         ProdItem.Validate("Replenishment System", ProdItem."Replenishment System"::"Prod. Order");
         ProdItem.Validate("Manufacturing Policy", ProdItem."Manufacturing Policy"::"Make-to-Stock");
-        ProdItem.Validate("Flushing Method", ProdItem."Flushing Method"::Manual);
+        ProdItem.Validate("Flushing Method", ProdItem."Flushing Method"::"Pick + Manual");
         ProdItem.Validate("Production BOM No.", LibraryManufacturing.CreateCertifiedProductionBOM(ProductionBOMHeader, CompItem."No.", 1));
         ProdItem.Modify();
 
@@ -2252,7 +2252,7 @@ codeunit 137294 "SCM Inventory Miscellaneous II"
         CreateBin(Location.Code, Bin2, false);
         CreateBin(Location.Code, Bin3, true);
 
-        // [GIVEN] Create Component Item with "Replenishment System" = "Purchase" and "Flushing Method" = "Manual".
+        // [GIVEN] Create Component Item with "Replenishment System" = "Purchase" and "Flushing Method" = "Pick + Manual".
         LibraryInventory.CreateItem(CompItem);
 
         // [GIVEN] Create three Bin Content for Component Item.   
@@ -2307,16 +2307,16 @@ codeunit 137294 "SCM Inventory Miscellaneous II"
         // [GIVEN] Set random Quantity between 1 and 100.
         Quantity := LibraryRandom.RandInt(100);
 
-        // [GIVEN] Create Component Item1 with "Replenishment System" = "Purchase" and "Flushing Method" = "Manual".
+        // [GIVEN] Create Component Item1 with "Replenishment System" = "Purchase" and "Flushing Method" = "Pick + Manual".
         LibraryInventory.CreateItem(CompItem);
         CompItem.Validate("Replenishment System", CompItem."Replenishment System"::Purchase);
-        CompItem.Validate("Flushing Method", CompItem."Flushing Method"::Manual);
+        CompItem.Validate("Flushing Method", CompItem."Flushing Method"::"Pick + Manual");
         CompItem.Modify();
 
-        // [GIVEN] Create Component Item2 with "Replenishment System" = "Purchase" and "Flushing Method" = "Manual".
+        // [GIVEN] Create Component Item2 with "Replenishment System" = "Purchase" and "Flushing Method" = "Pick + Manual".
         LibraryInventory.CreateItem(CompItem2);
         CompItem2.Validate("Replenishment System", CompItem2."Replenishment System"::Purchase);
-        CompItem2.Validate("Flushing Method", CompItem2."Flushing Method"::Manual);
+        CompItem2.Validate("Flushing Method", CompItem2."Flushing Method"::"Pick + Manual");
         CompItem2.Validate("Base Unit of Measure", CompItem."Base Unit of Measure");
         CompItem2.Modify();
 
@@ -2327,7 +2327,7 @@ codeunit 137294 "SCM Inventory Miscellaneous II"
         LibraryInventory.CreateItem(ProdItem);
         ProdItem.Validate("Replenishment System", ProdItem."Replenishment System"::"Prod. Order");
         ProdItem.Validate("Manufacturing Policy", ProdItem."Manufacturing Policy"::"Make-to-Stock");
-        ProdItem.Validate("Flushing Method", ProdItem."Flushing Method"::Manual);
+        ProdItem.Validate("Flushing Method", ProdItem."Flushing Method"::"Pick + Manual");
         ProdItem.Validate("Production BOM No.", ProductionBOMHeader."No.");
         ProdItem.Modify();
 
@@ -2769,7 +2769,7 @@ codeunit 137294 "SCM Inventory Miscellaneous II"
         // Random values used are not important for test.
         LibraryManufacturing.CreateItemManufacturing(
           Item, CostingMethod, LibraryRandom.RandDec(50, 2) + LibraryRandom.RandDec(10, 2), ReorderingPolicy,
-          Item."Flushing Method", RoutingNo, ProductionBOMNo);
+          Item."Flushing Method"::"Pick + Manual", RoutingNo, ProductionBOMNo);
         Item.Validate("Manufacturing Policy", ManufacturingPolicy);
         Item.Validate("Replenishment System", ReplenishmentSystem);
         Item.Modify(true);

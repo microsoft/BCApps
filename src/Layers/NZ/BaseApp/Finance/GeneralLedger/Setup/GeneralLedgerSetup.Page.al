@@ -269,6 +269,11 @@ page 118 "General Ledger Setup"
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
                 }
+                field(UseConcurrentPosting; Rec."Use Concurrent Posting")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Importance = Additional;
+                }
             }
             group(Control1900309501)
             {
@@ -1072,6 +1077,7 @@ page 118 "General Ledger Setup"
 #if not CLEAN27
         FinancialReportDefaultsEnabled: Boolean;
 #endif
+
 #pragma warning disable AA0074
         Text001: Label 'Do you want to change all open entries for every customer and vendor that are not blocked?';
         Text002: Label 'If you delete the additional reporting currency, future general ledger entries are posted in LCY only. Deleting the additional reporting currency does not affect already posted general ledger entries.\\Are you sure that you want to delete the additional reporting currency?';

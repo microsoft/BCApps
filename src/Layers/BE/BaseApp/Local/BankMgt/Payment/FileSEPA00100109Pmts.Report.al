@@ -371,8 +371,7 @@ report 2000007 "File SEPA 001.001.09 Pmts"
     var
         XMLNewChild: DotNet XmlNode;
         AddressLine1: Text[110];
-        AddressLine2: Text[60];
-    begin
+        begin
         PaymentInformationCounter := PaymentInformationCounter + 1;
         AddElement(XMLNodeCurr, 'PmtInf', '', '', XMLNewChild);
         XMLNodeCurr := XMLNewChild;
@@ -406,18 +405,20 @@ report 2000007 "File SEPA 001.001.09 Pmts"
         AddElement(XMLNodeCurr, 'PstlAdr', '', '', XMLNewChild);
         XMLNodeCurr := XMLNewChild;
 
+        AddressLine1 := DelChr(CompanyInfo.Address, '<>') + ' ' + DelChr(CompanyInfo."Address 2", '<>');
+        if DelChr(AddressLine1) <> '' then
+            AddElement(XMLNodeCurr, 'StrtNm', CopyStr(AddressLine1, 1, 70), '', XMLNewChild);
+
+        if DelChr(CompanyInfo."Post Code", '<>') <> '' then
+            AddElement(XMLNodeCurr, 'PstCd', CopyStr(DelChr(CompanyInfo."Post Code", '<>'), 1, 16), '', XMLNewChild);
+
+        if DelChr(CompanyInfo.City, '<>') <> '' then
+            AddElement(XMLNodeCurr, 'TwnNm', CopyStr(DelChr(CompanyInfo.City, '<>'), 1, 35), '', XMLNewChild);
+
         GetCountry(CompanyInfo."Country/Region Code");
 
         if Country."ISO Code" <> '' then
             AddElement(XMLNodeCurr, 'Ctry', CopyStr(Country."ISO Code", 1, 2), '', XMLNewChild);
-
-        AddressLine1 := DelChr(CompanyInfo.Address, '<>') + ' ' + DelChr(CompanyInfo."Address 2", '<>');
-        if DelChr(AddressLine1) <> '' then
-            AddElement(XMLNodeCurr, 'AdrLine', CopyStr(AddressLine1, 1, 35), '', XMLNewChild);
-
-        AddressLine2 := DelChr(CompanyInfo."Post Code", '<>') + ' ' + DelChr(CompanyInfo.City, '<>');
-        if DelChr(AddressLine2) <> '' then
-            AddElement(XMLNodeCurr, 'AdrLine', CopyStr(AddressLine2, 1, 35), '', XMLNewChild);
 
         XMLNodeCurr := XMLNodeCurr.ParentNode;
         AddEnterpriseNo(XMLNodeCurr, CompanyInfo."Enterprise No.");
@@ -463,8 +464,7 @@ report 2000007 "File SEPA 001.001.09 Pmts"
         XMLNewChild: DotNet XmlNode;
         RootNode: DotNet XmlNode;
         AddressLine1: Text[110];
-        AddressLine2: Text[60];
-    begin
+        begin
         OnBeforeExportTransactionInformation(PmtJnlLine, PaymentMessage);
 
         GetCVAccount(PmtJnlLine);
@@ -504,17 +504,19 @@ report 2000007 "File SEPA 001.001.09 Pmts"
                     AddElement(XMLNodeCurr, 'PstlAdr', '', '', XMLNewChild);
                     XMLNodeCurr := XMLNewChild;
 
+                    AddressLine1 := DelChr(VendorBankAcc.Address, '<>') + ' ' + DelChr(VendorBankAcc."Address 2", '<>');
+                    if DelChr(AddressLine1) <> '' then
+                        AddElement(XMLNodeCurr, 'StrtNm', CopyStr(AddressLine1, 1, 70), '', XMLNewChild);
+
+                    if DelChr(VendorBankAcc."Post Code", '<>') <> '' then
+                        AddElement(XMLNodeCurr, 'PstCd', CopyStr(DelChr(VendorBankAcc."Post Code", '<>'), 1, 16), '', XMLNewChild);
+
+                    if DelChr(VendorBankAcc.City, '<>') <> '' then
+                        AddElement(XMLNodeCurr, 'TwnNm', CopyStr(DelChr(VendorBankAcc.City, '<>'), 1, 35), '', XMLNewChild);
+
                     GetCountry(VendorBankAcc."Country/Region Code");
                     if Country."ISO Code" <> '' then
                         AddElement(XMLNodeCurr, 'Ctry', CopyStr(Country."ISO Code", 1, 2), '', XMLNewChild);
-
-                    AddressLine1 := DelChr(VendorBankAcc.Address, '<>') + ' ' + DelChr(VendorBankAcc."Address 2", '<>');
-                    if DelChr(AddressLine1) <> '' then
-                        AddElement(XMLNodeCurr, 'AdrLine', CopyStr(AddressLine1, 1, 35), '', XMLNewChild);
-
-                    AddressLine2 := DelChr(VendorBankAcc."Post Code", '<>') + ' ' + DelChr(VendorBankAcc.City, '<>');
-                    if DelChr(AddressLine2) <> '' then
-                        AddElement(XMLNodeCurr, 'AdrLine', CopyStr(AddressLine2, 1, 35), '', XMLNewChild);
                     XMLNodeCurr := XMLNodeCurr.ParentNode;
                     XMLNodeCurr := XMLNodeCurr.ParentNode;
                     XMLNodeCurr := XMLNodeCurr.ParentNode;
@@ -526,17 +528,19 @@ report 2000007 "File SEPA 001.001.09 Pmts"
                     AddElement(XMLNodeCurr, 'PstlAdr', '', '', XMLNewChild);
                     XMLNodeCurr := XMLNewChild;
 
+                    AddressLine1 := DelChr(Vendor.Address, '<>') + ' ' + DelChr(Vendor."Address 2", '<>');
+                    if DelChr(AddressLine1) <> '' then
+                        AddElement(XMLNodeCurr, 'StrtNm', CopyStr(AddressLine1, 1, 70), '', XMLNewChild);
+
+                    if DelChr(Vendor."Post Code", '<>') <> '' then
+                        AddElement(XMLNodeCurr, 'PstCd', CopyStr(DelChr(Vendor."Post Code", '<>'), 1, 16), '', XMLNewChild);
+
+                    if DelChr(Vendor.City, '<>') <> '' then
+                        AddElement(XMLNodeCurr, 'TwnNm', CopyStr(DelChr(Vendor.City, '<>'), 1, 35), '', XMLNewChild);
+
                     GetCountry(Vendor."Country/Region Code");
                     if Country."ISO Code" <> '' then
                         AddElement(XMLNodeCurr, 'Ctry', CopyStr(Country."ISO Code", 1, 2), '', XMLNewChild);
-
-                    AddressLine1 := DelChr(Vendor.Address, '<>') + ' ' + DelChr(Vendor."Address 2", '<>');
-                    if DelChr(AddressLine1) <> '' then
-                        AddElement(XMLNodeCurr, 'AdrLine', CopyStr(AddressLine1, 1, 35), '', XMLNewChild);
-
-                    AddressLine2 := DelChr(Vendor."Post Code", '<>') + ' ' + DelChr(Vendor.City, '<>');
-                    if DelChr(AddressLine2) <> '' then
-                        AddElement(XMLNodeCurr, 'AdrLine', CopyStr(AddressLine2, 1, 35), '', XMLNewChild);
 
                     XMLNodeCurr := XMLNodeCurr.ParentNode;
                     AddEnterpriseNo(XMLNodeCurr, Vendor."Enterprise No.");
@@ -549,17 +553,19 @@ report 2000007 "File SEPA 001.001.09 Pmts"
                     AddElement(XMLNodeCurr, 'PstlAdr', '', '', XMLNewChild);
                     XMLNodeCurr := XMLNewChild;
 
+                    AddressLine1 := DelChr(CustomerBankAcc.Address, '<>') + ' ' + DelChr(CustomerBankAcc."Address 2", '<>');
+                    if DelChr(AddressLine1) <> '' then
+                        AddElement(XMLNodeCurr, 'StrtNm', CopyStr(AddressLine1, 1, 70), '', XMLNewChild);
+
+                    if DelChr(CustomerBankAcc."Post Code", '<>') <> '' then
+                        AddElement(XMLNodeCurr, 'PstCd', CopyStr(DelChr(CustomerBankAcc."Post Code", '<>'), 1, 16), '', XMLNewChild);
+
+                    if DelChr(CustomerBankAcc.City, '<>') <> '' then
+                        AddElement(XMLNodeCurr, 'TwnNm', CopyStr(DelChr(CustomerBankAcc.City, '<>'), 1, 35), '', XMLNewChild);
+
                     GetCountry(CustomerBankAcc."Country/Region Code");
                     if Country."ISO Code" <> '' then
                         AddElement(XMLNodeCurr, 'Ctry', CopyStr(Country."ISO Code", 1, 2), '', XMLNewChild);
-
-                    AddressLine1 := DelChr(CustomerBankAcc.Address, '<>') + ' ' + DelChr(CustomerBankAcc."Address 2", '<>');
-                    if DelChr(AddressLine1) <> '' then
-                        AddElement(XMLNodeCurr, 'AdrLine', CopyStr(AddressLine1, 1, 35), '', XMLNewChild);
-
-                    AddressLine2 := DelChr(CustomerBankAcc."Post Code", '<>') + ' ' + DelChr(CustomerBankAcc.City, '<>');
-                    if DelChr(AddressLine2) <> '' then
-                        AddElement(XMLNodeCurr, 'AdrLine', CopyStr(AddressLine2, 1, 35), '', XMLNewChild);
                     XMLNodeCurr := XMLNodeCurr.ParentNode;
                     XMLNodeCurr := XMLNodeCurr.ParentNode;
                     XMLNodeCurr := XMLNodeCurr.ParentNode;
@@ -571,17 +577,19 @@ report 2000007 "File SEPA 001.001.09 Pmts"
                     AddElement(XMLNodeCurr, 'PstlAdr', '', '', XMLNewChild);
                     XMLNodeCurr := XMLNewChild;
 
+                    AddressLine1 := DelChr(Customer.Address, '<>') + ' ' + DelChr(Customer."Address 2", '<>');
+                    if DelChr(AddressLine1) <> '' then
+                        AddElement(XMLNodeCurr, 'StrtNm', CopyStr(AddressLine1, 1, 70), '', XMLNewChild);
+
+                    if DelChr(Customer."Post Code", '<>') <> '' then
+                        AddElement(XMLNodeCurr, 'PstCd', CopyStr(DelChr(Customer."Post Code", '<>'), 1, 16), '', XMLNewChild);
+
+                    if DelChr(Customer.City, '<>') <> '' then
+                        AddElement(XMLNodeCurr, 'TwnNm', CopyStr(DelChr(Customer.City, '<>'), 1, 35), '', XMLNewChild);
+
                     GetCountry(Customer."Country/Region Code");
                     if Country."ISO Code" <> '' then
                         AddElement(XMLNodeCurr, 'Ctry', CopyStr(Country."ISO Code", 1, 2), '', XMLNewChild);
-
-                    AddressLine1 := DelChr(Customer.Address, '<>') + ' ' + DelChr(Customer."Address 2", '<>');
-                    if DelChr(AddressLine1) <> '' then
-                        AddElement(XMLNodeCurr, 'AdrLine', CopyStr(AddressLine1, 1, 35), '', XMLNewChild);
-
-                    AddressLine2 := DelChr(Customer."Post Code", '<>') + ' ' + DelChr(Customer.City, '<>');
-                    if DelChr(AddressLine2) <> '' then
-                        AddElement(XMLNodeCurr, 'AdrLine', CopyStr(AddressLine2, 1, 35), '', XMLNewChild);
 
                     XMLNodeCurr := XMLNodeCurr.ParentNode;
                     AddEnterpriseNo(XMLNodeCurr, Customer."Enterprise No.");

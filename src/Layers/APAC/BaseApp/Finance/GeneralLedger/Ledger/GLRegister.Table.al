@@ -7,6 +7,7 @@ namespace Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Finance.WithholdingTax;
 using Microsoft.Foundation.AuditCodes;
+using Microsoft.Foundation.NoSeries;
 using Microsoft.Utilities;
 using System.Security.AccessControl;
 
@@ -130,6 +131,17 @@ table 45 "G/L Register"
         {
             Caption = 'Journal Template Name';
         }
+        /// <summary>
+        /// Number of G/L transactions in this register.
+        /// </summary>
+        field(13; "No. of Transactions"; Integer)
+        {
+            CalcFormula = count("G/L Transaction" where("G/L Register No." = field("No.")));
+            Caption = 'No. of Transactions';
+            Editable = false;
+            FieldClass = FlowField;
+            ToolTip = 'Specifies the number of general ledger transactions in this register.';
+        }
         field(28040; "From WHT Entry No."; Integer)
         {
             Caption = 'From WHT Entry No.';
@@ -174,6 +186,22 @@ table 45 "G/L Register"
 
     }
 
+    procedure GetNextEntryNo(UseLegacyPosting: Boolean): Integer
+    begin
+        if not UseLegacyPosting then
+            exit(GetNextEntryNo());
+        Rec.LockTable();
+        exit(GetLastEntryNo() + 1);
+    end;
+
+    [InherentPermissions(PermissionObjectType::TableData, Database::"G/L Register", 'r')]
+    procedure GetNextEntryNo(): Integer
+    var
+        SequenceNoMgt: Codeunit "Sequence No. Mgt.";
+    begin
+        exit(SequenceNoMgt.GetNextSeqNo(DATABASE::"G/L Register"));
+    end;
+
     /// <summary>
     /// Retrieves the last (highest) register number from the G/L Register table.
     /// </summary>
@@ -208,6 +236,27 @@ table 45 "G/L Register"
         "Journal Templ. Name" := TemplateName;
     end;
 
+    procedure UpdateGLEntriesWithRegisterNo()
+    var
+        GLEntry: Record "G/L Entry";
+        GLTransaction: Record "G/L Transaction";
+    begin
+        GLEntry.SetLoadFields("Entry No.", "G/L Register No.", "Transaction No.");
+        GLEntry.SetRange("Entry No.", Rec."From Entry No.", Rec."To Entry No.");
+        if GLEntry.FindSet(true) then
+            repeat
+                if GLEntry."G/L Register No." = 0 then begin
+                    GLEntry."G/L Register No." := Rec."No.";
+                    GLEntry.Modify();
+                    if not GLTransaction.Get(GLEntry."Transaction No.") then begin
+                        GLTransaction.Init();
+                        GLTransaction."No." := GLEntry."Transaction No.";
+                        GLTransaction."G/L Register No." := Rec."No.";
+                        GLTransaction.Insert();
+                    end;
+                end;
+            until GLEntry.Next() = 0;
+    end;
 
     /// <summary>
     /// Integration event raised after initializing a G/L Register record.

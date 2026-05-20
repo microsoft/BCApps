@@ -1288,6 +1288,8 @@ codeunit 1605 "PEPPOL Management"
         InvoiceLineNote := DelChr(Format(SalesLine.Type), '<>');
         InvoicedQuantity := Format(SalesLine.Quantity, 0, 9);
         SalesLineLineAmount := SalesLine."Line Amount";
+        if SalesHeader."Prices Including VAT" and (SalesLine."VAT %" <> 0) then
+            SalesLineLineAmount := Round(SalesLineLineAmount / (1 + SalesLine."VAT %" / 100), 0.01);
         InvoiceLineExtensionAmount := Format(SalesLineLineAmount, 0, 9);
         LineExtensionAmountCurrencyID := GetSalesDocCurrencyCode(SalesHeader);
         InvoiceLineAccountingCost := '';
@@ -1412,7 +1414,10 @@ codeunit 1605 "PEPPOL Management"
 
         InvLnAllowanceChargeIndicator := 'false';
         InvLnAllowanceChargeReason := LineDisAmtTxt;
-        InvLnAllowanceChargeAmount := Format(SalesLine."Line Discount Amount", 0, 9);
+        if SalesHeader."Prices Including VAT" and (SalesLine."VAT %" <> 0) then
+            InvLnAllowanceChargeAmount := Format(Round(SalesLine."Line Discount Amount" / (1 + SalesLine."VAT %" / 100), 0.01), 0, 9)
+        else
+            InvLnAllowanceChargeAmount := Format(SalesLine."Line Discount Amount", 0, 9);
         InvLnAllowanceChargeAmtCurrID := GetSalesDocCurrencyCode(SalesHeader);
     end;
 

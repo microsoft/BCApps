@@ -704,7 +704,7 @@ table 5900 "Service Header"
         field(28; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
-            ToolTip = 'Specifies the code of the location (for example, warehouse or distribution center) of the items specified on the service item lines.';
+            ToolTip = 'Specifies the code of the location (for example, warehouse or distribution center) of the items specified on the service item lines. When you select the customer and the customer has a location assigned, the value is taken from the Customer card. If the customer has no location, but a Responsibility Center is populated, the location code is taken from the Responsibility Center. If neither is specified, the value is taken from Company Information.';
             TableRelation = Location;
 
             trigger OnValidate()

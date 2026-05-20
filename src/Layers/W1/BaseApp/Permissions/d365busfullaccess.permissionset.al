@@ -432,6 +432,7 @@ permissionset 959 "D365 BUS FULL ACCESS"
                   tabledata "Experience Tier Setup" = RIMD,
                   tabledata "Extended Text Header" = RIMD,
                   tabledata "Extended Text Line" = RIMD,
+                  tabledata "Adv. Bonus Depreciation Setup" = RIMD,
                   tabledata "FA Journal Template" = IMD,
                   tabledata "FA Location" = IMD,
                   tabledata "FA Matrix Posting Type" = IMD,

@@ -281,12 +281,19 @@ page 8903 "Manufacturing Manager RC"
                         Caption = 'Requisition Worksheets';
                         RunObject = page "Req. Worksheet";
                     }
+#if not CLEAN29
                     action("Subcontracting Worksheet")
                     {
                         ApplicationArea = Manufacturing;
-                        Caption = 'Subcontracting Worksheets';
+                        Caption = 'Subcontracting Worksheets (Obsolete)';
+#pragma warning disable AL0432
                         RunObject = page "Subcontracting Worksheet";
+#pragma warning restore AL0432
+                        ObsoleteReason = 'Will be replaced by the Subcontracting App.';
+                        ObsoleteState = Pending;
+                        ObsoleteTag = '29.0';
                     }
+#endif
                     action("Recurring Req. Worksheet")
                     {
                         ApplicationArea = Planning;

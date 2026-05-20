@@ -8,6 +8,7 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
+using Microsoft.Inventory.Tracking;
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.Routing;
@@ -47,6 +48,7 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         IsInitialized: Boolean;
         ErrorCounter: Integer;
         ErrorMessageDescriptionList: List of [Text];
+        ItemTrackingWasOpened: Boolean;
         UnitCostCalculation: Option Time,Units;
 
     [Test]
@@ -261,6 +263,58 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         UpdateSubMgmtRoutingLink('');
     end;
 
+    [Test]
+    [HandlerFunctions('ItemTrackingLinesSimpleHandler')]
+    procedure ItemTrackingLinesCanBeOpenedOnNonSubcontractingPurchaseLine()
+    var
+        Item: Record Item;
+        ItemTrackingCode: Record "Item Tracking Code";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Vendor: Record Vendor;
+    begin
+        // [SCENARIO] Opening item tracking lines on a regular (non-subcontracting) purchase line succeeds
+        // [FEATURE] Bug 629884 - The subcontracting extension must not intercept OnBeforeOpenItemTrackingLines for non-subcontracting lines
+
+        Initialize();
+
+        // [GIVEN] An item with lot purchase inbound tracking
+        LibraryInventory.CreateItemTrackingCode(ItemTrackingCode);
+        ItemTrackingCode.Validate("Lot Purchase Inbound Tracking", true);
+        ItemTrackingCode.Modify(true);
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Item Tracking Code", ItemTrackingCode.Code);
+        Item.Modify(true);
+
+        // [GIVEN] A purchase order with a regular (non-subcontracting) purchase line
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", LibraryRandom.RandIntInRange(1, 10));
+
+        // [VERIFY] The purchase line has no subcontracting link (Subc. Purchase Line Type = None)
+        Assert.AreEqual(
+            "Subc. Purchase Line Type"::None, PurchaseLine."Subc. Purchase Line Type",
+            'Purchase line must have Subc. Purchase Line Type = None for this test');
+
+        // [WHEN] Open item tracking lines on the non-subcontracting purchase line
+        // Before fix: the event subscriber always set IsHandled = true, preventing the standard
+        // item tracking page from opening even when the purchase line was not a subcontracting line.
+        ItemTrackingWasOpened := false;
+        PurchaseLine.OpenItemTrackingLines();
+
+        // [THEN] The standard item tracking lines page was opened
+        Assert.IsTrue(
+            ItemTrackingWasOpened,
+            'Item tracking lines page must open for a non-subcontracting purchase line');
+    end;
+
+    [ModalPageHandler]
+    procedure ItemTrackingLinesSimpleHandler(var ItemTrackingLines: TestPage "Item Tracking Lines")
+    begin
+        ItemTrackingWasOpened := true;
+        ItemTrackingLines.OK().Invoke();
+    end;
+
     [PageHandler]
     procedure ErrorPageHandler(var ErrorMessageTestPage: TestPage "Error Messages")
     begin
@@ -334,13 +388,12 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Subc. Purch. Subcont. Test");
         LibrarySetupStorage.Restore();
 
-        SubcontractingMgmtLibrary.Initialize();
-        LibraryMfgManagement.Initialize();
-
         if IsInitialized then
             exit;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Subc. Purch. Subcont. Test");
 
+        SubcontractingMgmtLibrary.Initialize();
+        LibraryMfgManagement.Initialize();
         SubSetupLibrary.InitSetupFields();
         SubSetupLibrary.ConfigureSubManagementForNothingPresentScenario("Subc. Show/Edit Type"::Hide, "Subc. Show/Edit Type"::Hide);
         LibraryERMCountryData.CreateVATData();
@@ -354,19 +407,19 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
 
     local procedure UpdateSubMgmtCommonWorkCenter(WorkCenterNo: Code[20])
     var
-        EsMgmtSetup: Record "Subc. Management Setup";
+        SubManagementSetup: Record "Subc. Management Setup";
     begin
-        EsMgmtSetup.Get();
-        EsMgmtSetup."Common Work Center No." := WorkCenterNo;
-        EsMgmtSetup.Modify();
+        SubManagementSetup.Get();
+        SubManagementSetup."Common Work Center No." := WorkCenterNo;
+        SubManagementSetup.Modify();
     end;
 
     local procedure UpdateSubMgmtRoutingLink(RtngLink: Code[10])
     var
-        EsMgmtSetup: Record "Subc. Management Setup";
+        ManufacturingSetup: Record "Manufacturing Setup";
     begin
-        EsMgmtSetup.Get();
-        EsMgmtSetup."Rtng. Link Code Purch. Prov." := RtngLink;
-        EsMgmtSetup.Modify();
+        ManufacturingSetup.Get();
+        ManufacturingSetup."Rtng. Link Code Purch. Prov." := RtngLink;
+        ManufacturingSetup.Modify();
     end;
 }

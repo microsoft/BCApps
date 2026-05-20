@@ -381,9 +381,11 @@ codeunit 1751 "Data Classification Eval. Data"
         ClassifyPermissionSetInPlan();
         ClassifyFinancialReports();
         ClassifyICBankAccount();
+        ClassifyICAPILog();
         ClassifyAllocationAccounts();
         ClassifyAgents();
         ClassifyOrderTakerAgent();
+        ClassifySalesValidationAgent();
         ClasifyScheduledPerformanceProfiling();
     end;
 
@@ -404,6 +406,11 @@ codeunit 1751 "Data Classification Eval. Data"
         SetTableFieldsToNormal(Database::"Financial Report Audit Log");
         SetTableFieldsToNormal(Database::"Financial Report Status");
         SetFieldToPersonal(Database::"Financial Report User Filters", FinancialReportUserFilters.FieldNo("User ID"));
+        SetTableFieldsToNormal(Database::"Financial Report Package");
+        SetTableFieldsToNormal(Database::"Fin. Report Package Report");
+        SetTableFieldsToNormal(Database::"Fin. Report Package Schedule");
+        SetTableFieldsToNormal(Database::"Fin. Report Package Recipient");
+        SetTableFieldsToNormal(Database::"Fin. Rep. Package Export Log");
         SetFieldToPersonal(Database::"Financial Report Audit Log", FinancialReportAuditLog.FieldNo("User"));
     end;
 
@@ -763,6 +770,7 @@ codeunit 1751 "Data Classification Eval. Data"
         SetTableFieldsToNormal(DATABASE::"Aged Report Entity");
         SetTableFieldsToNormal(DATABASE::"Acc. Schedule Line Entity");
         SetTableFieldsToNormal(DATABASE::"Fixed Asset");
+        SetTableFieldsToNormal(DATABASE::"Adv. Bonus Depreciation Setup");
         SetTableFieldsToNormal(DATABASE::"FA Setup");
         SetTableFieldsToNormal(DATABASE::"FA Posting Type Setup");
         SetTableFieldsToNormal(DATABASE::"FA Posting Group");
@@ -3779,6 +3787,17 @@ codeunit 1751 "Data Classification Eval. Data"
         SetFieldToPersonal(TableNo, RemitAddress.FieldNo(IBAN));
     end;
 
+    local procedure ClassifyICAPILog()
+    var
+        DummyICAPILog: Record "IC API Log";
+        TableNo: Integer;
+    begin
+        TableNo := Database::"IC API Log";
+        SetTableFieldsToNormal(TableNo);
+        SetFieldToPersonal(TableNo, DummyICAPILog.FieldNo("Request Body"));
+        SetFieldToPersonal(TableNo, DummyICAPILog.FieldNo("Response Body"));
+    end;
+
     local procedure ClassifyOrderTakerAgent()
     begin
         SetTableFieldsToNormal(4305); // "SOA Instruction Template"
@@ -3795,6 +3814,11 @@ codeunit 1751 "Data Classification Eval. Data"
         SetTableFieldsToNormal(4587); // SOA Billing Task Setup
         SetFieldToPersonal(4592, 9); // Sender Email
         SetFieldToPersonal(4592, 10); // Sender Name
+    end;
+
+    local procedure ClassifySalesValidationAgent()
+    begin
+        SetTableFieldsToNormal(53607); // "Sales Val. Agent KPI"
     end;
 
     local procedure ClassifyAgents()

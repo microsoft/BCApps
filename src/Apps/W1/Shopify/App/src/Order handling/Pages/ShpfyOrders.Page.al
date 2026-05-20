@@ -341,6 +341,20 @@ page 30115 "Shpfy Orders"
                     Rec.Modify();
                 end;
             }
+            action(ProvideFeedback)
+            {
+                ApplicationArea = All;
+                Caption = 'Provide Feedback';
+                ToolTip = 'Provide feedback on Shopify Connector.';
+                Image = Comment;
+
+                trigger OnAction()
+                var
+                    ShopMgt: Codeunit "Shpfy Shop Mgt.";
+                begin
+                    ShopMgt.RequestFeedback();
+                end;
+            }
         }
         area(navigation)
         {

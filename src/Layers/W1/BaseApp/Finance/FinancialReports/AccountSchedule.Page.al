@@ -3,6 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.FinancialReports;
+using System.Environment;
 using System.Environment.Configuration;
 using System.Integration;
 using System.Integration.Excel;
@@ -141,6 +142,11 @@ page 104 "Account Schedule"
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the totaling type for the financial report line. The type determines which accounts within the totaling interval you specify in the Totaling field will be totaled. ';
+
+                    trigger OnValidate()
+                    begin
+                        UpdateAccountFactbox();
+                    end;
                 }
                 field(Totaling; TotalingDisplayed)
                 {
@@ -155,6 +161,8 @@ page 104 "Account Schedule"
                             TotalingDisplayed := GetAccountCategoryTotalingToDisplay()
                         else
                             Rec.Validate(Totaling, TotalingDisplayed);
+
+                        UpdateAccountFactbox();
                     end;
 
                     trigger OnLookup(var Text: Text): Boolean
@@ -164,6 +172,8 @@ page 104 "Account Schedule"
                             TotalingDisplayed := GetAccountCategoryTotalingToDisplay()
                         else
                             TotalingDisplayed := Rec.Totaling;
+
+                        UpdateAccountFactbox();
                     end;
 
                 }
@@ -256,6 +266,11 @@ page 104 "Account Schedule"
         }
         area(factboxes)
         {
+            part(TotalingAccountsFactbox; "Totaling Accounts Factbox")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'G/L Accounts';
+            }
             systempart(Control1900383207; Links)
             {
                 ApplicationArea = RecordLinks;
@@ -473,16 +488,21 @@ page 104 "Account Schedule"
     trigger OnAfterGetCurrRecord()
     begin
         FormatLines();
+        UpdateAccountFactbox();
     end;
 
     trigger OnOpenPage()
     var
+        ClientTypeManagement: Codeunit "Client Type Management";
         FinancialReportMgt: Codeunit "Financial Report Mgt.";
         ServerSetting: Codeunit "Server Setting";
         OriginalSchedName: Code[10];
         CurrentPageCaption: Text;
     begin
         IsSaaSExcelAddinEnabled := ServerSetting.GetIsSaasExcelAddinEnabled();
+
+        if ClientTypeManagement.GetCurrentClientType() = CLIENTTYPE::ODataV4 then
+            exit;
 
         FinancialReportMgt.LaunchEditRowsWarningNotification();
         OriginalSchedName := CurrentSchedName;
@@ -548,6 +568,14 @@ page 104 "Account Schedule"
             TotalingDisplayed := GetAccountCategoryTotalingToDisplay()
         else
             TotalingDisplayed := Rec.Totaling;
+    end;
+
+    local procedure UpdateAccountFactbox()
+    begin
+        if (Rec.Totaling <> '') and (Rec."Totaling Type" in [Rec."Totaling Type"::"Posting Accounts", Rec."Totaling Type"::"Total Accounts"]) then
+            CurrPage.TotalingAccountsFactbox.Page.SetTotalingFilter(Rec.Totaling)
+        else
+            CurrPage.TotalingAccountsFactbox.Page.SetTotalingFilter('=''''');
     end;
 
     /// <summary>

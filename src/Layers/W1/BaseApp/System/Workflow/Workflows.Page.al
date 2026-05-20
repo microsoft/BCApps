@@ -281,6 +281,14 @@ page 1500 Workflows
                 RunObject = Page "Workflow Templates";
                 ToolTip = 'View the existing workflow templates.';
             }
+            action("Approval User Overview")
+            {
+                ApplicationArea = All;
+                Caption = 'Approval User Overview';
+                Image = QualificationOverview;
+                RunObject = Page "Approval User Overview";
+                ToolTip = 'Displays an overview of which users are able to approve specific workflows.';
+            }
         }
         area(Promoted)
         {
@@ -335,6 +343,9 @@ page 1500 Workflows
             group(Category_Report)
             {
                 Caption = 'Report', Comment = 'Generated from the PromotedActionCategories property index 2.';
+            }
+            actionref("Approval User Overview_Promoted"; "Approval User Overview")
+            {
             }
         }
     }

@@ -319,6 +319,16 @@ page 29 "Vendor Ledger Entries"
                     ApplicationArea = Basic, Suite;
                     Editable = false;
                 }
+                field("G/L Register No."; Rec."G/L Register No.")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Editable = false;
+                }
+                field("Transaction No."; Rec."Transaction No.")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Editable = false;
+                }
                 field("Exported to Payment File"; Rec."Exported to Payment File")
                 {
                     ApplicationArea = Basic, Suite;

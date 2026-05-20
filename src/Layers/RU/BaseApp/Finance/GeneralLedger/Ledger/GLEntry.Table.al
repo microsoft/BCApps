@@ -324,6 +324,8 @@ table 17 "G/L Entry"
         field(52; "Transaction No."; Integer)
         {
             Caption = 'Transaction No.';
+            TableRelation = "G/L Transaction";
+            ToolTip = 'Specifies the transaction number that groups related G/L entries from the same posting.';
         }
         /// <summary>
         /// Debit amount in local currency when transaction increases account balance.
@@ -543,6 +545,16 @@ table 17 "G/L Entry"
             Caption = 'VAT Date';
             ToolTip = 'Specifies the entry''s VAT date.';
             Editable = false;
+        }
+        /// <summary>
+        /// G/L Register number for this entry.
+        /// </summary>
+        field(95; "G/L Register No."; Integer)
+        {
+            Caption = 'G/L Register No.';
+            Editable = false;
+            TableRelation = "G/L Register";
+            ToolTip = 'Specifies the G/L register number that groups related G/L entries from the same posting.';
         }
         /// <summary>
         /// Dimension set ID linking to dimension combinations for this entry.
@@ -881,6 +893,14 @@ table 17 "G/L Entry"
             GeneralLedgerSetupRead := true;
         end;
         exit(GeneralLedgerSetup."Additional Reporting Currency")
+    end;
+
+    [InherentPermissions(PermissionObjectType::TableData, Database::"G/L Entry", 'r')]
+    procedure GetNextEntryNo(): Integer
+    var
+        SequenceNoMgt: Codeunit "Sequence No. Mgt.";
+    begin
+        exit(SequenceNoMgt.GetNextSeqNo(DATABASE::"G/L Entry"));
     end;
 
     /// <summary>
@@ -1257,6 +1277,19 @@ table 17 "G/L Entry"
     /// <param name="GLItemLedgRelation">G/L item ledger relation record</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeShowValueEntries(var ValueEntry: Record "Value Entry"; var GLItemLedgRelation: Record "G/L - Item Ledger Relation")
+    begin
+    end;
+
+    /// <summary>
+    /// Integration event raised by the local functionality report G/L Account Statement.
+    /// Enables apps to filter out G/L Entries based on their review status
+    /// </summary>
+    /// <param name="GLEntry">G/L entry record for filtering</param>
+    /// <param name="ReviewStatus">Specifies whether to filter on reviewed or not reviewed entries</param>
+    /// <param name="EvaluationDate">Specifies the date to be used for filtering on review date</param>
+    /// <param name="Skip">Specifies true if and only if the report should skip the G/L entry based on its review status</param>
+    [IntegrationEvent(false, false)]
+    procedure OnSkipGLEntryByReviewStatus(var GLEntry: Record "G/L Entry"; ReviewStatus: Option All,Reviewed,"Not Reviewed"; EvaluationDate: Date; var Skip: Boolean)
     begin
     end;
 }

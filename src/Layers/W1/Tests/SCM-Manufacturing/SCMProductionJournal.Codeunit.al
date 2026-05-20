@@ -10,6 +10,7 @@ using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Posting;
+using Microsoft.Inventory.Tracking;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.Family;
 using Microsoft.Manufacturing.Journal;
@@ -1978,10 +1979,10 @@ codeunit 137034 "SCM Production Journal"
           Item, Item."Costing Method"::FIFO, RoutingHeader."No.", ProductionBOMHeader."No.", Item."Manufacturing Policy"::"Make-to-Order");
         CreateAndRefreshRelProdOrder(ProductionOrder, ProductionOrder."Source Type"::Item, Item."No.");
         ProductionOrderNo := ProductionOrder."No.";
-         
+
         // [WHEN] Open Production Journal based on Production Order Lines
         OpenProductionJournal(ProductionOrder, ProductionOrderNo);
-         
+
         // [THEN] Verification done in VerifyConsumptionEntriesBasedOnActualOutput after JournalPageHandler captures journal lines
         VerifyConsumptionEntriesBasedOnActualOutput(ProductionOrderNo);
 
@@ -2024,13 +2025,13 @@ codeunit 137034 "SCM Production Journal"
           Item, Item."Costing Method"::FIFO, RoutingHeader."No.", ProductionBOMHeader."No.", Item."Manufacturing Policy"::"Make-to-Order");
         CreateAndRefreshRelProdOrder(ProductionOrder, ProductionOrder."Source Type"::Item, Item."No.");
         ProductionOrderNo := ProductionOrder."No.";
-         
+
         // [GIVEN] Post output in Production Journal
         CreateAndPostOutputJournal(ProductionOrderNo, OperationNo, Item."No.", '', '');
-         
+
         // [WHEN] Open Production Journal based on Production Order Lines
         OpenProductionJournal(ProductionOrder, ProductionOrderNo);
-         
+
         // [THEN] Verification done in VerifyConsumptionEntriesBasedOnActualOutput after JournalPageHandler captures journal lines
         VerifyConsumptionEntriesBasedOnActualOutput(ProductionOrderNo);
 
@@ -2049,7 +2050,7 @@ codeunit 137034 "SCM Production Journal"
         ItemJournalLine: Record "Item Journal Line";
         ComponentQuantity: Decimal;
     begin
-       // [SCENARIO 617913] Verify the Reserve from inventory creates reservation matching Production Order line quantity.
+        // [SCENARIO 617913] Verify the Reserve from inventory creates reservation matching Production Order line quantity.
         Initialize();
 
         // [GIVEN] Generate Random component quantity.
@@ -2077,7 +2078,7 @@ codeunit 137034 "SCM Production Journal"
 
         // [THEN] Verify reserved quantity matches Production component expected quantity.
         ProdOrderComponent.CalcFields("Reserved Quantity");
-        Assert.AreEqual(ProdOrderComponent."Expected Quantity", ProdOrderComponent."Reserved Quantity",ReservedQtyProdCompErr);
+        Assert.AreEqual(ProdOrderComponent."Expected Quantity", ProdOrderComponent."Reserved Quantity", ReservedQtyProdCompErr);
     end;
 
     [Test]
@@ -2182,6 +2183,167 @@ codeunit 137034 "SCM Production Journal"
         Assert.AreEqual(ProdOrderComponent."Expected Quantity", ProdOrderComponent."Reserved Quantity", ReservedQtyProdCompErr);
     end;
 
+    [Test]
+    [HandlerFunctions('PostProdJnlPageHandler,ConfirmHandlerYes,MessageHandler')]
+    [Scope('OnPrem')]
+    procedure NoEntryTypeErrorWhenReopeningProductionJournalAfterPosting()
+    var
+        CompItem: Record Item;
+        ItemJournalLine: Record "Item Journal Line";
+        ProdItem: Record Item;
+        ProductionOrder: Record "Production Order";
+        ProdOrderLine: Record "Prod. Order Line";
+        ProductionJournalMgt: Codeunit "Production Journal Mgt";
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 630641] Reopen Production Journal after posting does not throw Entry Type error
+        Initialize();
+
+        // [GIVEN] Component item "C" with stock, production item "P" with BOM containing "C"
+        LibraryInventory.CreateItem(CompItem);
+        CreateAndPostItemJournal(ItemJournalLine."Entry Type"::"Positive Adjmt.", CompItem."No.", LibraryRandom.RandIntInRange(50, 100));
+        CreateProductionItem(ProdItem, CompItem);
+
+        // [GIVEN] Released production order for item "P", refreshed
+        CreateAndRefreshRelProdOrder(ProductionOrder, ProductionOrder."Source Type"::Item, ProdItem."No.");
+        ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderLine.FindFirst();
+
+        // [GIVEN] Production Journal opened and posted (PostProdJnlPageHandler invokes Post)
+        ProductionJournalMgt.Handling(ProductionOrder, ProdOrderLine."Line No.");
+
+        // [WHEN] Production Journal is reopened for the same production order line
+        ProductionJournalMgt.Handling(ProductionOrder, ProdOrderLine."Line No.");
+
+        // [THEN] No "Entry Type must not be changed when a quantity is reserved" error is thrown
+    end;
+
+    [Test]
+    [HandlerFunctions('JournalPageHandler')]
+    [Scope('OnPrem')]
+    procedure OrphanReservEntryDeletedWhenReopeningProductionJournal()
+    var
+        CompItem: Record Item;
+        ProdItem: Record Item;
+        ItemJournalLine: Record "Item Journal Line";
+        ProductionOrder: Record "Production Order";
+        ProdOrderLine: Record "Prod. Order Line";
+        ReservEntry: Record "Reservation Entry";
+        VerifyReservEntry: Record "Reservation Entry";
+        ProductionJournalMgt: Codeunit "Production Journal Mgt";
+        TemplateName: Code[10];
+        BatchName: Code[10];
+        OrphanLineNo: Integer;
+    begin
+        // [FEATURE] [Production Journal] [Reservation]
+        // [SCENARIO 623216] Orphan reservation entry is deleted when production journal is reopened.
+        Initialize();
+
+        // [GIVEN] Component item "C" with stock, production item "P" with BOM containing "C"
+        LibraryInventory.CreateItem(CompItem);
+        CreateAndPostItemJournal(ItemJournalLine."Entry Type"::"Positive Adjmt.", CompItem."No.", LibraryRandom.RandIntInRange(50, 100));
+        CreateProductionItem(ProdItem, CompItem);
+
+        // [GIVEN] Released production order for item "P", refreshed
+        CreateAndRefreshRelProdOrder(ProductionOrder, ProductionOrder."Source Type"::Item, ProdItem."No.");
+        ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderLine.FindFirst();
+        ProductionOrderNo := ProductionOrder."No.";
+
+        // [GIVEN] Production Journal opened (first Handling call creates journal lines, JournalPageHandler copies to TempItemJournalLine)
+        ProductionJournalMgt.Handling(ProductionOrder, ProdOrderLine."Line No.");
+
+        // [GIVEN] Get template/batch names from TempItemJournalLine (populated by JournalPageHandler)
+        TempItemJournalLine.SetRange("Entry Type", TempItemJournalLine."Entry Type"::Consumption);
+        TempItemJournalLine.FindFirst();
+        TemplateName := TempItemJournalLine."Journal Template Name";
+        BatchName := TempItemJournalLine."Journal Batch Name";
+
+        // [GIVEN] Orphan reservation entry inserted referencing a non-existing journal line
+        OrphanLineNo := LibraryRandom.RandIntInRange(9999999, 9999999); // Line number that won't exist
+
+        InsertOrphanReservationEntry(
+            ReservEntry, TemplateName, BatchName, CompItem."No.", OrphanLineNo,
+            TempItemJournalLine."Entry Type"::Consumption.AsInteger());
+
+        // [WHEN] Production Journal is reopened (second Handling call triggers DeleteJnlLines cleanup)
+        ProductionJournalMgt.Handling(ProductionOrder, ProdOrderLine."Line No.");
+
+        // [THEN] No error is thrown (implicit - test completes)
+        // [THEN] Orphan reservation entry is deleted
+        VerifyReservEntry.SetRange("Source Type", Database::"Item Journal Line");
+        VerifyReservEntry.SetRange("Source ID", TemplateName);
+        VerifyReservEntry.SetRange("Source Batch Name", BatchName);
+        VerifyReservEntry.SetRange("Source Ref. No.", OrphanLineNo);
+        Assert.RecordIsEmpty(VerifyReservEntry);
+    end;
+
+    [Test]
+    [HandlerFunctions('JournalPageHandler')]
+    [Scope('OnPrem')]
+    procedure MultipleOrphanReservEntriesDeletedWhenReopeningProductionJournal()
+    var
+        CompItem: Record Item;
+        ProdItem: Record Item;
+        ItemJournalLine: Record "Item Journal Line";
+        ProductionOrder: Record "Production Order";
+        ProdOrderLine: Record "Prod. Order Line";
+        ReservEntry: array[3] of Record "Reservation Entry";
+        VerifyReservEntry: Record "Reservation Entry";
+        ProductionJournalMgt: Codeunit "Production Journal Mgt";
+        TemplateName: Code[10];
+        BatchName: Code[10];
+        OrphanLineNo: array[3] of Integer;
+        i: Integer;
+    begin
+        // [FEATURE] [Production Journal] [Reservation]
+        // [SCENARIO 623216] Multiple orphan reservation entries are deleted when production journal is reopened.
+        Initialize();
+
+        // [GIVEN] Component item "C" with stock, production item "P" with BOM containing "C"
+        LibraryInventory.CreateItem(CompItem);
+        CreateAndPostItemJournal(ItemJournalLine."Entry Type"::"Positive Adjmt.", CompItem."No.", LibraryRandom.RandIntInRange(50, 100));
+        CreateProductionItem(ProdItem, CompItem);
+
+        // [GIVEN] Released production order for item "P", refreshed
+        CreateAndRefreshRelProdOrder(ProductionOrder, ProductionOrder."Source Type"::Item, ProdItem."No.");
+        ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderLine.FindFirst();
+        ProductionOrderNo := ProductionOrder."No.";
+
+        // [GIVEN] Production Journal opened (first Handling call creates journal lines, JournalPageHandler copies to TempItemJournalLine)
+        ProductionJournalMgt.Handling(ProductionOrder, ProdOrderLine."Line No.");
+
+        // [GIVEN] Get template/batch names from TempItemJournalLine (populated by JournalPageHandler)
+        TempItemJournalLine.SetRange("Entry Type", TempItemJournalLine."Entry Type"::Consumption);
+        TempItemJournalLine.FindFirst();
+        TemplateName := TempItemJournalLine."Journal Template Name";
+        BatchName := TempItemJournalLine."Journal Batch Name";
+
+        // [GIVEN] Multiple orphan reservation entries inserted referencing non-existing journal lines
+        OrphanLineNo[1] := LibraryRandom.RandIntInRange(9999991, 9999991);
+        OrphanLineNo[2] := LibraryRandom.RandIntInRange(9999992, 9999992);
+        OrphanLineNo[3] := LibraryRandom.RandIntInRange(9999993, 9999993);
+        for i := 1 to ArrayLen(OrphanLineNo) do
+            InsertOrphanReservationEntry(
+                ReservEntry[i], TemplateName, BatchName, CompItem."No.", OrphanLineNo[i],
+                TempItemJournalLine."Entry Type"::Consumption.AsInteger());
+
+        // [WHEN] Production Journal is reopened (second Handling call triggers DeleteJnlLines cleanup)
+        ProductionJournalMgt.Handling(ProductionOrder, ProdOrderLine."Line No.");
+
+        // [THEN] No error is thrown (implicit - test completes)
+        // [THEN] All orphan reservation entries are deleted
+        for i := 1 to ArrayLen(OrphanLineNo) do begin
+            VerifyReservEntry.Reset();
+            VerifyReservEntry.SetRange("Source Type", Database::"Item Journal Line");
+            VerifyReservEntry.SetRange("Source ID", TemplateName);
+            VerifyReservEntry.SetRange("Source Batch Name", BatchName);
+            VerifyReservEntry.SetRange("Source Ref. No.", OrphanLineNo[i]);
+            Assert.RecordIsEmpty(VerifyReservEntry);
+        end;
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -2221,7 +2383,7 @@ codeunit 137034 "SCM Production Journal"
         // Random value important for test.
         LibraryManufacturing.CreateItemManufacturing(
           Item, CostingMethod, LibraryRandom.RandInt(50) + 10, Item."Reordering Policy",
-          Item."Flushing Method", RoutingNo, ProductionBOMNo);
+          Item."Flushing Method"::"Pick + Manual", RoutingNo, ProductionBOMNo);
         Item.Validate("Manufacturing Policy", ItemManufacturingPolicy);
         Item.Validate("Replenishment System", Item."Replenishment System"::"Prod. Order");
         Item.Modify(true);
@@ -2523,6 +2685,32 @@ codeunit 137034 "SCM Production Journal"
         LibraryManufacturing.CreateProductionOrder(
           ProductionOrder, ProductionOrder.Status::Released, SourceType, SourceNo, 1);  // Value important.
         LibraryManufacturing.RefreshProdOrder(ProductionOrder, false, true, true, true, false);
+    end;
+
+    local procedure InsertOrphanReservationEntry(var ReservEntry: Record "Reservation Entry"; TemplateName: Code[10]; BatchName: Code[10]; ItemNo: Code[20]; LineNo: Integer; SourceSubtype: Integer)
+    var
+        LastReservEntry: Record "Reservation Entry";
+        NextEntryNo: Integer;
+    begin
+        LastReservEntry.Reset();
+        if LastReservEntry.FindLast() then
+            NextEntryNo := LastReservEntry."Entry No." + 1
+        else
+            NextEntryNo := 1;
+
+        ReservEntry.Init();
+        ReservEntry."Entry No." := NextEntryNo;
+        ReservEntry.Positive := false;
+        ReservEntry.Validate("Item No.", ItemNo);
+        ReservEntry.Validate("Source Type", Database::"Item Journal Line");
+        ReservEntry.Validate("Source ID", TemplateName);
+        ReservEntry.Validate("Source Batch Name", BatchName);
+        ReservEntry.Validate("Source Ref. No.", LineNo);
+        ReservEntry.Validate("Source Subtype", SourceSubtype);
+        ReservEntry.Validate("Source Prod. Order Line", 0);
+        ReservEntry.Validate("Reservation Status", ReservEntry."Reservation Status"::Reservation);
+        ReservEntry.Validate("Quantity (Base)", -1);
+        ReservEntry.Insert();
     end;
 
     local procedure CreateReleasedProdOrderWithTwoLines(var ParentProdOrderLine: Record "Prod. Order Line"; var ChildProdOrderLine: Record "Prod. Order Line")

@@ -4,11 +4,21 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
+/// <summary>
+/// Grants read access to all Avalara E-Document connector tables.
+/// </summary>
 permissionset 6374 "Avalara Read"
 {
     Access = Public;
     Assignable = true;
-    Caption = 'Avalara E-Document Connector - Read';
+    Caption = 'Avalara E-Doc. - Read', MaxLength = 30;
 
-    Permissions = tabledata "Connection Setup" = r;
+    Permissions =
+                tabledata "Activation Header" = r,
+                tabledata "Activation Mandate" = r,
+                tabledata "Avalara Input Field" = r,
+                tabledata "Avl Message Event" = r,
+                tabledata "Avl Message Response Header" = r,
+                tabledata "Connection Setup" = r,
+                tabledata "Media Types" = r;
 }

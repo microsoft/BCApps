@@ -20,7 +20,9 @@ codeunit 137616 "SCM Costing Rollup Sev 4"
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryPatterns: Codeunit "Library - Patterns";
         LibraryWarehouse: Codeunit "Library - Warehouse";
+#if not CLEAN29
         LibraryPlanning: Codeunit "Library - Planning";
+#endif
         LibraryUtility: Codeunit "Library - Utility";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         Assert: Codeunit Assert;
@@ -372,7 +374,7 @@ codeunit 137616 "SCM Costing Rollup Sev 4"
         Assert.AreNearlyEqual(UnitAmount, Item."Unit Cost", GeneralLedgerSetup."Amount Rounding Precision",
           'Item unit cost is updated in situations with negative qty on hand');
     end;
-
+#if not CLEAN29
     [Test]
     [HandlerFunctions('ConsumptionNotFinishedConfirmHandler')]
     [Scope('OnPrem')]
@@ -467,6 +469,7 @@ codeunit 137616 "SCM Costing Rollup Sev 4"
           GeneralLedgerSetup."Amount Rounding Precision",
           'Cost amount (Actual) matches Standard cost');
     end;
+#endif
 
     [Test]
     [Scope('OnPrem')]
@@ -549,7 +552,7 @@ codeunit 137616 "SCM Costing Rollup Sev 4"
           GeneralLedgerSetup."Amount Rounding Precision",
           'Unit cost adjusted to alternative unit of measure');
     end;
-
+#if not CLEAN29
     [Normal]
     local procedure CreateRoutingSetup(var WorkCenter: Record "Work Center"; var RoutingLine: Record "Routing Line"; var RoutingLink: Record "Routing Link")
     var
@@ -639,7 +642,9 @@ codeunit 137616 "SCM Costing Rollup Sev 4"
     local procedure CalculateSubcontractOrder(var WorkCenter: Record "Work Center")
     begin
         WorkCenter.SetRange("No.", WorkCenter."No.");
+#pragma warning disable AL0432
         LibraryManufacturing.CalculateSubcontractOrder(WorkCenter);
+#pragma warning restore AL0432
     end;
 
     [Normal]
@@ -677,7 +682,7 @@ codeunit 137616 "SCM Costing Rollup Sev 4"
         AdjustCostItemEntries.UseRequestPage(false);
         AdjustCostItemEntries.RunModal();
     end;
-
+#endif
     local procedure AdjustCostAndVerify(ItemNo: Code[20]; ExpectedUnitCost: Decimal)
     var
         Item: Record Item;
@@ -905,4 +910,3 @@ codeunit 137616 "SCM Costing Rollup Sev 4"
         Assert.ExpectedMessage(ValueEntriesWerePostedTxt, Message);
     end;
 }
-

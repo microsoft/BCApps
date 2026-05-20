@@ -26,12 +26,12 @@ codeunit 235 "G/L Reg.-Gen. Ledger"
         if IsHandled then
             exit;
 
-        // GLEntry.SETRANGE("Entry No.","From Entry No.","To Entry No.");
         if Rec."From Entry No." > 0 then
             GLEntry.SetRange("Entry No.", Rec."From Entry No.", Rec."To Entry No.")
         else
             GLEntry.SetRange("Entry No.", Rec."To Entry No.", Rec."From Entry No.");
-        PAGE.Run(PAGE::"General Ledger Entries", GLEntry);
+        GLEntry.SetFilter("G/L Register No.", '0|%1', Rec."No.");
+        Page.Run(Page::"General Ledger Entries", GLEntry);
     end;
 
     var

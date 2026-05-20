@@ -138,18 +138,20 @@ codeunit 2005 "Azure AI Usage Impl."
                        ImageAnalysisSetup.GetApiKeyAsSecret().IsEmpty() and (ImageAnalysisSetup."Api Uri" = '') and
                        EnvironmentInfo.IsSaaS()
                     then
-                        if ImageAnalysisManagement.GetImageAnalysisCredentials(ApiKey, ApiUri, LimitType, LimitValueInt) then begin
-                            AzureAIUsage."Original Resource Limit" := LimitValueInt;
-                            AzureAIUsage."Limit Period" := LimitType;
-                            CallModify := true;
-                        end;
+                        if ImageAnalysisManagement.GetImageAnalysisCredentials(ApiKey, ApiUri, LimitType, LimitValueInt) then
+                            if (AzureAIUsage."Original Resource Limit" <> LimitValueInt) or (AzureAIUsage."Limit Period" <> LimitType) then begin
+                                AzureAIUsage."Original Resource Limit" := LimitValueInt;
+                                AzureAIUsage."Limit Period" := LimitType;
+                                CallModify := true;
+                            end;
                 end;
             Service::"Machine Learning":
-                if MLPredictionManagement.GetMachineLearningCredentials(ApiUri250, ApiKey200, LimitType, LimitValue) then begin
-                    AzureAIUsage."Original Resource Limit" := LimitValue;
-                    AzureAIUsage."Limit Period" := LimitType;
-                    CallModify := true;
-                end;
+                if MLPredictionManagement.GetMachineLearningCredentials(ApiUri250, ApiKey200, LimitType, LimitValue) then
+                    if (AzureAIUsage."Original Resource Limit" <> LimitValue) or (AzureAIUsage."Limit Period" <> LimitType) then begin
+                        AzureAIUsage."Original Resource Limit" := LimitValue;
+                        AzureAIUsage."Limit Period" := LimitType;
+                        CallModify := true;
+                    end;
         end;
 
         case AzureAIUsage."Limit Period" of

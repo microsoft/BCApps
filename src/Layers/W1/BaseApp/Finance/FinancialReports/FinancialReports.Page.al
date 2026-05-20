@@ -318,6 +318,14 @@ page 108 "Financial Reports"
                         Page.Run(Page::"Financial Report Category", FinancialReportCategory);
                 end;
             }
+            action(Packages)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Packages';
+                Image = ItemInvoice;
+                RunObject = page "Financial Report Packages";
+                ToolTip = 'View or edit Financial Report Packages. Financial Report Packages combines multiple Financial Reports into a single PDF, which can be exported or emailed on a regular basis.';
+            }
         }
         area(navigation)
         {
@@ -395,6 +403,7 @@ page 108 "Financial Reports"
         {
             actionref(ViewFinancialReport_Promoted; ViewFinancialReport) { }
             actionref(Print_Promoted; Print) { }
+            actionref(Packages_Promoted; Packages) { }
 
             group(Category_Edit)
             {

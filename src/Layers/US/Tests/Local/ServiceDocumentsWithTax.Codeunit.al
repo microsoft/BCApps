@@ -195,6 +195,83 @@ codeunit 144010 "Service Documents With Tax"
         UpdateSalesReceivablesSetup(OldCalcInvDiscount, OldCalcInvDiscount);
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure TaxAmtOnReleasedServiceOrderWithMultipleTaxGroups()
+    var
+        TaxArea: Record "Tax Area";
+        TaxGroup: array[2] of Record "Tax Group";
+        TempVATAmountLine: Record "VAT Amount Line" temporary;
+        TaxJurisdiction: array[2] of Record "Tax Jurisdiction";
+        TaxDetail: Record "Tax Detail";
+        TaxAreaLine: Record "Tax Area Line";
+        Customer: Record Customer;
+        ServiceHeader: Record "Service Header";
+        ServiceItem: Record "Service Item";
+        ServiceLine: Record "Service Line";
+        TotalAmtInclVATFromLines: Decimal;
+        TotalAmtInclVATFromStatistics: Decimal;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 618546] Sum of line "Amount Including VAT" matches total when multiple tax groups exist under a multi-jurisdiction tax area
+
+        Initialize();
+
+        // [GIVEN] Tax area "TA" with two tax jurisdictions "TJ1" and "TJ2"
+        LibraryERM.CreateTaxArea(TaxArea);
+        LibraryERM.CreateTaxJurisdiction(TaxJurisdiction[1]);
+        LibraryERM.CreateTaxJurisdiction(TaxJurisdiction[2]);
+        LibraryERM.CreateTaxAreaLine(TaxAreaLine, TaxArea.Code, TaxJurisdiction[1].Code);
+        LibraryERM.CreateTaxAreaLine(TaxAreaLine, TaxArea.Code, TaxJurisdiction[2].Code);
+
+        // [GIVEN] Two tax groups "TG1" and "TG2" with tax details for each jurisdiction
+        LibraryERM.CreateTaxGroup(TaxGroup[1]);
+        LibraryERM.CreateTaxGroup(TaxGroup[2]);
+        LibraryERM.CreateTaxDetail(TaxDetail, TaxJurisdiction[1].Code, TaxGroup[1].Code, TaxDetail."Tax Type"::"Sales and Use Tax", WorkDate());
+        TaxDetail.Validate("Tax Below Maximum", 6.5);
+        TaxDetail.Modify(true);
+        LibraryERM.CreateTaxDetail(TaxDetail, TaxJurisdiction[2].Code, TaxGroup[1].Code, TaxDetail."Tax Type"::"Sales and Use Tax", WorkDate());
+        TaxDetail.Validate("Tax Below Maximum", 3.8);
+        TaxDetail.Modify(true);
+        LibraryERM.CreateTaxDetail(TaxDetail, TaxJurisdiction[1].Code, TaxGroup[2].Code, TaxDetail."Tax Type"::"Sales and Use Tax", WorkDate());
+        TaxDetail.Validate("Tax Below Maximum", 6.5);
+        TaxDetail.Modify(true);
+        LibraryERM.CreateTaxDetail(TaxDetail, TaxJurisdiction[2].Code, TaxGroup[2].Code, TaxDetail."Tax Type"::"Sales and Use Tax", WorkDate());
+        TaxDetail.Validate("Tax Below Maximum", 3.8);
+        TaxDetail.Modify(true);
+
+        // [GIVEN] Customer "C" with Tax Area "TA" and Tax Liable
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Validate("Tax Area Code", TaxArea.Code);
+        Customer.Validate("Tax Liable", true);
+        Customer.Validate("VAT Bus. Posting Group", '');
+        Customer.Modify(true);
+
+        // [GIVEN] Service Order "SO" with service lines using different tax groups
+        LibraryService.CreateServiceHeader(ServiceHeader, ServiceHeader."Document Type"::Order, Customer."No.");
+        ServiceHeader.Validate("Tax Area Code", TaxArea.Code);
+        ServiceHeader.Validate("Tax Liable", true);
+        ServiceHeader.Modify(true);
+        LibraryService.CreateServiceItem(ServiceItem, Customer."No.");
+
+        CreateServiceLineWithTaxGroup(ServiceLine, ServiceHeader, CreateItem(TaxGroup[1].Code), TaxArea.Code, 1, 500);
+        CreateServiceLineWithTaxGroup(ServiceLine, ServiceHeader, CreateItem(TaxGroup[2].Code), TaxArea.Code, 2, 750);
+        CreateServiceLineWithTaxGroup(ServiceLine, ServiceHeader, CreateItem(TaxGroup[1].Code), TaxArea.Code, 3, 1800);
+
+        // [WHEN] Release the Service Order
+        LibraryService.ReleaseServiceDocument(ServiceHeader);
+
+        // [WHEN] Calculating per-line sum and statistics total
+        TotalAmtInclVATFromLines := CalcSumAmtInclVATFromServiceLines(ServiceHeader);
+        ServiceLine.CalcVATAmountLines(0, ServiceHeader, ServiceLine, TempVATAmountLine, false);
+        TotalAmtInclVATFromStatistics := TempVATAmountLine.GetTotalAmountInclVAT();
+
+        // [THEN] Sum of per-line "Amount Including VAT" equals statistics "Total Incl. Tax"
+        Assert.AreEqual(
+            TotalAmtInclVATFromStatistics, TotalAmtInclVATFromLines,
+            'Sum of per-line Amount Including VAT must match statistics Total Incl. Tax');
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"Service Documents With Tax");
@@ -234,6 +311,29 @@ codeunit 144010 "Service Documents With Tax"
         ServiceLine.Modify(true);
     end;
 
+    local procedure CreateServiceLineWithTaxGroup(var ServiceLine: Record "Service Line"; var ServiceHeader: Record "Service Header"; ItemNo: Code[20]; TaxAreaCode: Code[20]; Quantity: Decimal; UnitPrice: Decimal)
+    begin
+        LibraryService.CreateServiceLine(ServiceLine, ServiceHeader, ServiceLine.Type::Item, ItemNo);
+        ServiceLine.Validate("Tax Area Code", TaxAreaCode);
+        ServiceLine.Validate(Quantity, Quantity);
+        ServiceLine.Validate("Unit Price", UnitPrice);
+        ServiceLine.Modify(true);
+    end;
+
+   local procedure CalcSumAmtInclVATFromServiceLines(ServiceHeader: Record "Service Header"): Decimal
+    var
+        ServiceLine: Record "Service Line";
+        TotalAmtInclVAT: Decimal;
+    begin
+        ServiceLine.SetRange("Document Type", ServiceHeader."Document Type");
+        ServiceLine.SetRange("Document No.", ServiceHeader."No.");
+        ServiceLine.SetFilter(Type, '>0');
+        ServiceLine.SetFilter(Quantity, '<>0');
+        ServiceLine.CalcSums("Amount Including VAT");
+        TotalAmtInclVAT := ServiceLine."Amount Including VAT";
+        exit(TotalAmtInclVAT);
+    end;
+    
     local procedure CreateTaxArea(var TaxArea: Record "Tax Area"; UseExternalTaxEngine: Boolean)
     begin
         LibraryERM.CreateTaxArea(TaxArea);

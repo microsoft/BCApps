@@ -1545,7 +1545,7 @@ report 2 "General Journal - Test"
         if not Employee.Get(GenJnlLine."Account No.") then
             AddError(StrSubstNo(Text031, Employee.TableCaption(), GenJnlLine."Account No."))
         else begin
-            AccName := Employee."No.";
+            AccName := Employee.FullName();
             if Employee."Privacy Blocked" then
                 AddError(StrSubstNo(Text032, Employee.FieldCaption("Privacy Blocked"), false, Employee.TableCaption(), AccName))
         end;

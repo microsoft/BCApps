@@ -17,7 +17,8 @@ permissionset 7568 "Fixed Assets - Admin"
     Assignable = false;
     Caption = 'FA setup';
 
-    Permissions = tabledata "Depreciation Book" = RIMD,
+    Permissions = tabledata "Adv. Bonus Depreciation Setup" = RIMD,
+                  tabledata "Depreciation Book" = RIMD,
                   tabledata "FA Allocation" = RIMD,
                   tabledata "FA Depreciation Book" = RIMD,
                   tabledata "FA Journal Batch" = RIMD,

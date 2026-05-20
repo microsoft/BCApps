@@ -198,6 +198,8 @@ table 61 "Electronic Document Format"
         OnSendElectronicallyOnBeforeDeleteAll(RecordExportBuffer, ClientFileName, DocumentVariant);
 
         RecordExportBuffer.DeleteAll();
+
+        OnAfterSendElectronically(Rec, ClientFileName, DocumentVariant, ElectronicFormat);
     end;
 
 
@@ -482,6 +484,11 @@ table 61 "Electronic Document Format"
 
     [IntegrationEvent(false, false)]
     local procedure OnSendElectronicallyOnAfterRecordExportBufferFileGenerated(var RecordExportBuffer: Record "Record Export Buffer"; RecRef: RecordRef)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterSendElectronically(var ElectronicDocumentFormat: Record "Electronic Document Format"; var ClientFileName: Text[250]; DocumentVariant: Variant; ElectronicFormat: Code[20])
     begin
     end;
 }

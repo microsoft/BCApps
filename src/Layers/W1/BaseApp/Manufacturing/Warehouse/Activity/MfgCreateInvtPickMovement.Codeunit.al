@@ -151,45 +151,27 @@ codeunit 99000899 "Mfg. Create Invt.Pick/Movement"
     end;
 
     local procedure SetFilterProductionLine(var ProdOrderComponent: Record "Prod. Order Component"; ProductionOrder: Record "Production Order"; var WarehouseActivityHeader: Record "Warehouse Activity Header"; var WarehouseSourceFilter: Record "Warehouse Source Filter"; CheckLineExist: Boolean; ApplySourceFilters: Boolean; IsInvtMovement: Boolean): Boolean
-#if not CLEAN26
-    var
-        ManufacturingSetup: Record Microsoft.Manufacturing.Setup."Manufacturing Setup";
-#endif
     begin
-        ProdOrderComponent.SetRange(ProdOrderComponent.Status, ProductionOrder.Status);
-        ProdOrderComponent.SetRange(ProdOrderComponent."Prod. Order No.", ProductionOrder."No.");
+        ProdOrderComponent.SetRange(Status, ProductionOrder.Status);
+        ProdOrderComponent.SetRange("Prod. Order No.", ProductionOrder."No.");
         if not CheckLineExist then
-            ProdOrderComponent.SetRange(ProdOrderComponent."Location Code", WarehouseActivityHeader."Location Code");
-        ProdOrderComponent.SetRange(ProdOrderComponent."Planning Level Code", 0);
+            ProdOrderComponent.SetRange("Location Code", WarehouseActivityHeader."Location Code");
+        ProdOrderComponent.SetRange("Planning Level Code", 0);
         if IsInvtMovement then begin
-            ProdOrderComponent.SetFilter(ProdOrderComponent."Bin Code", '<>%1', '');
-#if not CLEAN26
-            if not ManufacturingSetup.IsFeatureKeyFlushingMethodManualWithoutPickEnabled() then
-                ProdOrderComponent.SetFilter(ProdOrderComponent."Flushing Method", '%1|%2|%3|%4',
-                  ProdOrderComponent."Flushing Method"::Manual,
-                  ProdOrderComponent."Flushing Method"::"Pick + Manual",
-                  ProdOrderComponent."Flushing Method"::"Pick + Forward",
-                  ProdOrderComponent."Flushing Method"::"Pick + Backward")
-            else
-#endif
-                ProdOrderComponent.SetFilter(ProdOrderComponent."Flushing Method", '%1|%2|%3',
-                  ProdOrderComponent."Flushing Method"::"Pick + Manual",
-                  ProdOrderComponent."Flushing Method"::"Pick + Forward",
-                  ProdOrderComponent."Flushing Method"::"Pick + Backward");
+            ProdOrderComponent.SetFilter("Bin Code", '<>%1', '');
+            ProdOrderComponent.SetFilter("Flushing Method", '%1|%2|%3',
+                ProdOrderComponent."Flushing Method"::"Pick + Manual",
+                ProdOrderComponent."Flushing Method"::"Pick + Forward",
+                ProdOrderComponent."Flushing Method"::"Pick + Backward");
         end else
-#if not CLEAN26
-            if not ManufacturingSetup.IsFeatureKeyFlushingMethodManualWithoutPickEnabled() then
-                ProdOrderComponent.SetFilter(ProdOrderComponent."Flushing Method", '%1|%2', ProdOrderComponent."Flushing Method"::Manual, ProdOrderComponent."Flushing Method"::"Pick + Manual")
-            else
-#endif
-                ProdOrderComponent.SetRange(ProdOrderComponent."Flushing Method", ProdOrderComponent."Flushing Method"::"Pick + Manual");
-        ProdOrderComponent.SetFilter(ProdOrderComponent."Remaining Quantity", '>0');
+            ProdOrderComponent.SetRange("Flushing Method", ProdOrderComponent."Flushing Method"::"Pick + Manual");
+        ProdOrderComponent.SetFilter("Remaining Quantity", '>0');
 
         if ApplySourceFilters then begin
-            ProdOrderComponent.SetFilter(ProdOrderComponent."Item No.", WarehouseSourceFilter.GetFilter("Item No. Filter"));
-            ProdOrderComponent.SetFilter(ProdOrderComponent."Variant Code", WarehouseSourceFilter.GetFilter("Variant Code Filter"));
-            ProdOrderComponent.SetFilter(ProdOrderComponent."Due Date", WarehouseSourceFilter.GetFilter("Shipment Date Filter"));
-            ProdOrderComponent.SetFilter(ProdOrderComponent."Prod. Order Line No.", WarehouseSourceFilter.GetFilter("Prod. Order Line No. Filter"));
+            ProdOrderComponent.SetFilter("Item No.", WarehouseSourceFilter.GetFilter("Item No. Filter"));
+            ProdOrderComponent.SetFilter("Variant Code", WarehouseSourceFilter.GetFilter("Variant Code Filter"));
+            ProdOrderComponent.SetFilter("Due Date", WarehouseSourceFilter.GetFilter("Shipment Date Filter"));
+            ProdOrderComponent.SetFilter("Prod. Order Line No.", WarehouseSourceFilter.GetFilter("Prod. Order Line No. Filter"));
         end;
 
         OnBeforeFindProdOrderComp(ProdOrderComponent, ProductionOrder, WarehouseActivityHeader);

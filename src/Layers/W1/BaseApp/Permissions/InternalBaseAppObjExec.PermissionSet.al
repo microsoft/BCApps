@@ -37,6 +37,7 @@ permissionset 23 "Internal BaseApp Obj. - Exec"
                   Table "Permission Conflicts Overview" = X,
                   Codeunit "Application Area Cache" = X,
                   Codeunit "Base Application Logs Delete" = X,
+                  Codeunit "Base Application Logs Truncate" = X,
                   Codeunit "CDS Environment" = X,
                   Codeunit "Company Setup Notification" = X,
                   Codeunit "Contact Business Relation" = X,

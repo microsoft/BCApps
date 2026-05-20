@@ -866,64 +866,9 @@ report 25 "Account Schedule"
     end;
 
     trigger OnPreRendering(var RenderingPayload: JsonObject)
-    var
-        DimPerspectiveName: Record "Dimension Perspective Name";
-        TempDimPerspectiveLine: Record "Dimension Perspective Line" temporary;
-        AccountSchedule: Report "Account Schedule";
-        PDFDocument: Codeunit "PDF Document";
-        DimPerspectiveAccSchMgtHandler: Codeunit DimPerspectiveAccSchMgtHandler;
-        TempBlob: Codeunit "Temp Blob";
-        IDimPerspective: Interface IDimensionPerspective;
-        OutStream: OutStream;
-        Instream: InStream;
-        IsHandled: Boolean;
     begin
-        if DimPerspectiveNameText = '' then
-            exit;
-        if FilteredByDimPerspective then
-            exit;
-
-        DimPerspectiveName.Get(DimPerspectiveNameText);
-
-        AccSchedManagement.CheckPerspectiveAnalysisView(AccSchedName, DimPerspectiveName.Name);
-
-        PDFDocument.Initialize();
-
-        IDimPerspective := DimPerspectiveName."Perspective Type";
-        IDimPerspective.PopulateLineBufferForReporting(DimPerspectiveName, TempDimPerspectiveLine);
-        if TempDimPerspectiveLine.FindSet() then begin
-            BindSubscription(DimPerspectiveAccSchMgtHandler);
-            DimPerspectiveAccSchMgtHandler.SetDimPerspectiveName(DimPerspectiveName);
-            repeat
-                DimPerspectiveAccSchMgtHandler.SetDimPerspectiveLine(TempDimPerspectiveLine);
-
-                Clear(AccountSchedule);
-                if FinancialReportName <> '' then
-                    AccountSchedule.SetFinancialReportName(FinancialReportName);
-                if AccSchedName <> '' then
-                    AccountSchedule.SetAccSchedName(AccSchedName);
-                if ColumnLayoutName <> '' then
-                    AccountSchedule.SetColumnLayoutName(ColumnLayoutName);
-                AccountSchedule.SetFilters(
-                    DateFilter, GLBudgetFilter, CostBudgetFilter, BusinessUnitFilter,
-                    Dim1Filter, Dim2Filter, Dim3Filter, Dim4Filter, CashFlowFilter, NegativeAmountFormat);
-                AccountSchedule.SetFilteredByDimPerspective(true);
-                AccountSchedule.SetBudgetFilterEnable();
-
-                TempBlob.CreateOutStream(OutStream);
-                AccountSchedule.SetFinancialReportDescription(TempDimPerspectiveLine."Perspective Header");
-                IsHandled := false;
-                OnBeforeSaveDimPerspectiveReport(AccountSchedule, TempDimPerspectiveLine, OutStream, IsHandled);
-                if not IsHandled then
-                    AccountSchedule.SaveAs('', ReportFormat::Pdf, OutStream);
-                TempBlob.CreateInStream(Instream);
-                PDFDocument.AddStreamToAppend(Instream);
-
-            until TempDimPerspectiveLine.Next() = 0;
-            UnbindSubscription(DimPerspectiveAccSchMgtHandler);
-        end;
-
-        PDFDocument.ToJson(RenderingPayload);
+        AppendDimPerspectiveReports(RenderingPayload);
+        AppendPackageReports(RenderingPayload);
     end;
 
     var
@@ -931,6 +876,7 @@ report 25 "Account Schedule"
         GLSetup: Record "General Ledger Setup";
         CompanyInfo: Record "Company Information";
         DummyCompanyInfo: Record "Company Information";
+        TempFinReportPackageReport: Record "Fin. Report Package Report" temporary;
         FinancialReportMgt: Codeunit "Financial Report Mgt.";
         AccSchedNameHidden: Code[10];
         FinancialReportDescription: Text;
@@ -1029,6 +975,7 @@ report 25 "Account Schedule"
         ReportRunEventTxt: Label 'Financial Report run from request page: %1', Comment = '%1 = financial report name', Locked = true;
         ContextInitialized: Boolean;
         IntroductionParagraph, ClosingParagraph : Text;
+        PackageCode: Code[20];
 
     protected var
         AccSchedManagement: Codeunit AccSchedManagement;
@@ -1043,6 +990,81 @@ report 25 "Account Schedule"
         Dim2Filter: Text;
         Dim3Filter: Text;
         Dim4Filter: Text;
+
+    local procedure AppendPackageReports(var RenderingPayload: JsonObject)
+    var
+        PDFDocument: Codeunit "PDF Document";
+    begin
+        if not TempFinReportPackageReport.FindSet() then
+            exit;
+
+        PDFDocument.Initialize();
+        repeat
+            AppendPackageReport(PDFDocument, TempFinReportPackageReport);
+        until TempFinReportPackageReport.Next() = 0;
+        RenderingPayload := PDFDocument.ToJson(RenderingPayload);
+    end;
+
+    local procedure AppendDimPerspectiveReports(var RenderingPayload: JsonObject)
+    var
+        DimPerspectiveName: Record "Dimension Perspective Name";
+        TempDimPerspectiveLine: Record "Dimension Perspective Line" temporary;
+        AccountSchedule: Report "Account Schedule";
+        PDFDocument: Codeunit "PDF Document";
+        DimPerspectiveAccSchMgtHandler: Codeunit DimPerspectiveAccSchMgtHandler;
+        TempBlob: Codeunit "Temp Blob";
+        IDimPerspective: Interface IDimensionPerspective;
+        OutStream: OutStream;
+        Instream: InStream;
+        IsHandled: Boolean;
+    begin
+        if DimPerspectiveNameText = '' then
+            exit;
+        if FilteredByDimPerspective then
+            exit;
+
+        DimPerspectiveName.Get(DimPerspectiveNameText);
+
+        AccSchedManagement.CheckPerspectiveAnalysisView(AccSchedName, DimPerspectiveName.Name);
+
+        PDFDocument.Initialize();
+
+        IDimPerspective := DimPerspectiveName."Perspective Type";
+        IDimPerspective.PopulateLineBufferForReporting(DimPerspectiveName, TempDimPerspectiveLine);
+        if TempDimPerspectiveLine.FindSet() then begin
+            BindSubscription(DimPerspectiveAccSchMgtHandler);
+            DimPerspectiveAccSchMgtHandler.SetDimPerspectiveName(DimPerspectiveName);
+            repeat
+                DimPerspectiveAccSchMgtHandler.SetDimPerspectiveLine(TempDimPerspectiveLine);
+
+                Clear(AccountSchedule);
+                if FinancialReportName <> '' then
+                    AccountSchedule.SetFinancialReportName(FinancialReportName);
+                if AccSchedName <> '' then
+                    AccountSchedule.SetAccSchedName(AccSchedName);
+                if ColumnLayoutName <> '' then
+                    AccountSchedule.SetColumnLayoutName(ColumnLayoutName);
+                AccountSchedule.SetFilters(
+                    DateFilter, GLBudgetFilter, CostBudgetFilter, BusinessUnitFilter,
+                    Dim1Filter, Dim2Filter, Dim3Filter, Dim4Filter, CashFlowFilter, NegativeAmountFormat);
+                AccountSchedule.SetFilteredByDimPerspective(true);
+                AccountSchedule.SetBudgetFilterEnable();
+
+                TempBlob.CreateOutStream(OutStream);
+                AccountSchedule.SetFinancialReportDescription(TempDimPerspectiveLine."Perspective Header");
+                IsHandled := false;
+                OnBeforeSaveDimPerspectiveReport(AccountSchedule, TempDimPerspectiveLine, OutStream, IsHandled);
+                if not IsHandled then
+                    AccountSchedule.SaveAs('', ReportFormat::Pdf, OutStream);
+                TempBlob.CreateInStream(Instream);
+                PDFDocument.AddStreamToAppend(Instream);
+
+            until TempDimPerspectiveLine.Next() = 0;
+            UnbindSubscription(DimPerspectiveAccSchMgtHandler);
+        end;
+
+        PDFDocument.ToJson(RenderingPayload);
+    end;
 
     local procedure CalcColumnValueAsText(var AccScheduleLine: Record "Acc. Schedule Line"; var ColumnLayout: Record "Column Layout"; var ColumnHeader: Text; var ValueIsEmpty: Boolean): Text[30]
     var
@@ -1277,6 +1299,11 @@ report 25 "Account Schedule"
     begin
         RunForExport := true;
         StartDateEnabled := true;
+    end;
+
+    procedure SetPackageCode(NewPackageCode: Code[20])
+    begin
+        PackageCode := NewPackageCode;
     end;
 
     procedure SetDimPerspectiveName(DimPerspectiveName: Code[10])
@@ -1644,6 +1671,32 @@ report 25 "Account Schedule"
         RequestOptionsPage.Update(false);
     end;
 
+    procedure AddPackageReportToAppend(var FinReportPackageReport: Record "Fin. Report Package Report")
+    begin
+        TempFinReportPackageReport := FinReportPackageReport;
+        if TempFinReportPackageReport.Insert() then;
+    end;
+
+    local procedure AppendPackageReport(var PDFDocument: Codeunit "PDF Document"; var FinReportPackageReport: Record "Fin. Report Package Report")
+    var
+        AccountSchedule: Report "Account Schedule";
+        TempBlob: Codeunit "Temp Blob";
+        FinReportPackageExportJob: Codeunit "Financial Report Export Job";
+        IsHandled: Boolean;
+        InStr: InStream;
+        OutStr: OutStream;
+        AccScheduleParam: Text;
+    begin
+        AccScheduleParam := FinReportPackageExportJob.InitAccSchFromPackageReport(AccountSchedule, FinReportPackageReport);
+        AccountSchedule.SetRunForExport();
+        TempBlob.CreateOutStream(OutStr);
+        OnBeforeSavePackageReport(AccountSchedule, FinReportPackageReport, AccScheduleParam, OutStr, IsHandled);
+        if not IsHandled then
+            AccountSchedule.SaveAs(AccScheduleParam, ReportFormat::PDF, OutStr);
+        TempBlob.CreateInStream(InStr);
+        PDFDocument.AddStreamToAppend(InStr);
+    end;
+
     local procedure LogUsageTelemetry()
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
@@ -1663,6 +1716,7 @@ report 25 "Account Schedule"
         TelemetryDimensions.Add('Dim2Filter', Dim2Filter);
         TelemetryDimensions.Add('Dim3Filter', Dim3Filter);
         TelemetryDimensions.Add('Dim4Filter', Dim4Filter);
+        TelemetryDimensions.Add('ReportPackDefinitionCode', PackageCode);
 
         FeatureTelemetry.LogUsage('0000O76', 'Financial Report', StrSubstNo(ReportRunEventTxt, FinancialReportName), TelemetryDimensions);
     end;
@@ -1721,4 +1775,10 @@ report 25 "Account Schedule"
     local procedure OnBeforeSaveDimPerspectiveReport(var AccountSchedule: Report "Account Schedule"; DimPerspectiveLine: Record "Dimension Perspective Line"; var OutStr: OutStream; var IsHandled: Boolean)
     begin
     end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeSavePackageReport(var AccountSchedule: Report "Account Schedule"; var FinReportPackageReport: Record "Fin. Report Package Report"; var AccScheduleParam: Text; var OutStr: OutStream; var IsHandled: Boolean)
+    begin
+    end;
+    
 }

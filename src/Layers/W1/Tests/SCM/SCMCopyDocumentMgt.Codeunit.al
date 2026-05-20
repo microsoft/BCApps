@@ -15,6 +15,7 @@ codeunit 137212 "SCM Copy Document Mgt."
         LibrarySales: Codeunit "Library - Sales";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryAssembly: Codeunit "Library - Assembly";
+        LibraryManufacturing: Codeunit "Library - Manufacturing";
         Assert: Codeunit Assert;
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         CopyDocumentMgt: Codeunit "Copy Document Mgt.";
@@ -25,6 +26,7 @@ codeunit 137212 "SCM Copy Document Mgt."
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryRandom: Codeunit "Library - Random";
+        LibraryWarehouse: Codeunit "Library - Warehouse";
         IsInitialized: Boolean;
         MsgCorrectedInvoiceNo: Label 'have a Corrected Invoice No. Do you want to continue?';
         WrongDimensionsCopiedErr: Label 'Wrong dimensions in copied document';
@@ -1623,6 +1625,107 @@ codeunit 137212 "SCM Copy Document Mgt."
         LibraryNotificationMgt.RecallNotificationsForRecord(ToSalesLine);
     end;
 
+    [Test]
+    [HandlerFunctions('PostedSalesShipmentLinesModalPageHandler,MessageHandler')]
+    [Scope('OnPrem')]
+    procedure GetPostedDocLinesToReverseWithMultipleLotsConsolidatesToSingleLine()
+    var
+        Item: Record Item;
+        ItemJournalBatch: Record "Item Journal Batch";
+        ItemJournalLine: Record "Item Journal Line";
+        ItemJournalTemplate: Record "Item Journal Template";
+        Location: Record Location;
+        ProdOrderLine: Record "Prod. Order Line";
+        ProductionOrder: Record "Production Order";
+        ReservationEntry: Record "Reservation Entry";
+        ReturnSalesHeader: Record "Sales Header";
+        ReturnSalesLine: Record "Sales Line";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesShipmentHeader: Record "Sales Shipment Header";
+        LibraryItemTracking: Codeunit "Library - Item Tracking";
+        OrderType: Enum "Create Production Order Type";
+        CustomerNo: Code[20];
+        LotNo: Code[50];
+        LotQty: array[3] of Decimal;
+        TotalQty: Decimal;
+        i: Integer;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 630237] Unexpected Error "The record in table Sales Line already exists." when using the function 'Get Posted Document Lines to Reverse.' 
+        // within a Sales Return Order.
+        Initialize();
+
+        // [GIVEN] Lot-specific tracked item "I" with a Routing.
+        Item.Get(CreateLotTrackedItemWithRouting());
+        Item.Validate("Replenishment System", Item."Replenishment System"::"Prod. Order");
+        Item.Modify(true);
+
+        // [GIVEN] Warehouse with "Use Warehouse" = true, and a location with "Use Inventory" = true.
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+
+        // [GIVEN] Three lots with quantity 2, 3, 4 respectively for item "I".
+        LotQty[1] := 2;
+        LotQty[2] := 3;
+        LotQty[3] := 4;
+        TotalQty := LotQty[1] + LotQty[2] + LotQty[3];
+
+        // [GIVEN] Sales Order for item "I" with quantity = 10
+        CustomerNo := LibrarySales.CreateCustomerNo();
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, CustomerNo);
+        SalesHeader.Validate("Location Code", Location.Code);
+        SalesHeader.Modify(true);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", TotalQty + 1);
+
+        // [GIVEN] Create and release a production order linked to the Sales Order (the production order is for 10 pcs to ensure that the sales line 
+        // is not fully covered by the production order, which would cause the system to skip the "Select Entries" page during sales order posting).
+        LibraryManufacturing.CreateProductionOrderFromSalesOrder(SalesHeader, ProductionOrder.Status::Released, OrderType::ItemOrder);
+        SelectProdOrderLine(ProdOrderLine, Item."No.");
+
+        // [GIVEN] Three Output Journal lines (qty 2, 3, 4) each assigned a same Lot No., posted to create 3 lot-tracked Output ILEs.
+        LibraryInventory.SelectItemJournalTemplateName(ItemJournalTemplate, ItemJournalTemplate.Type::Output);
+        LibraryInventory.SelectItemJournalBatchName(ItemJournalBatch, ItemJournalTemplate.Type, ItemJournalTemplate.Name);
+        LibraryInventory.ClearItemJournal(ItemJournalTemplate, ItemJournalBatch);
+        LotNo := LibraryUtility.GenerateGUID();
+        for i := 1 to 3 do begin
+            LibraryManufacturing.CreateOutputJournal(
+                ItemJournalLine, ItemJournalTemplate, ItemJournalBatch, Item."No.", ProdOrderLine."Prod. Order No.");
+            ItemJournalLine.Validate("Location Code", Location.Code);
+            ItemJournalLine.Validate("Operation No.", '2');
+            ItemJournalLine.Validate("Output Quantity", LotQty[i]);
+            ItemJournalLine.Modify(true);
+            LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, ItemJournalLine, '', LotNo, LotQty[i]);
+        end;
+        LibraryInventory.PostItemJournalLine(ItemJournalTemplate.Name, ItemJournalBatch.Name);
+
+        // [GIVEN] Post the Sales Order with Ship option only - this creates a single shipment line consuming all 3 lots.
+        SalesLine.Validate("Qty. to Ship", TotalQty);
+        SalesLine.Modify(true);
+        LibrarySales.PostSalesDocument(SalesHeader, true, false);
+
+        // [GIVEN] Find the posted shipment.
+        SalesShipmentHeader.SetRange("Order No.", SalesHeader."No.");
+        SalesShipmentHeader.FindFirst();
+
+        // [GIVEN] Create Sales Return Order for the same customer.
+        LibrarySales.CreateSalesHeader(ReturnSalesHeader, ReturnSalesHeader."Document Type"::"Return Order", CustomerNo);
+
+        // [WHEN] Run "Get Posted Document Lines to Reverse" and select the posted shipment.
+        LibraryVariableStorage.Enqueue(SalesShipmentHeader."No.");
+        ReturnSalesHeader.GetPstdDocLinesToReverse();
+
+        // [THEN] Exactly one return line is created (no duplicate key error occurred).
+        ReturnSalesLine.SetRange("Document Type", ReturnSalesHeader."Document Type");
+        ReturnSalesLine.SetRange("Document No.", ReturnSalesHeader."No.");
+        ReturnSalesLine.SetRange(Type, ReturnSalesLine.Type::Item);
+        ReturnSalesLine.SetRange("No.", Item."No.");
+        Assert.RecordCount(ReturnSalesLine, 1);
+
+        // [THEN] The return line has quantity = 9 (consolidated from all 3 lots).
+        ReturnSalesLine.FindFirst();
+        ReturnSalesLine.TestField(Quantity, TotalQty);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -2860,6 +2963,37 @@ codeunit 137212 "SCM Copy Document Mgt."
         PurchaseLine.Modify(true);
     end;
 
+    local procedure CreateLotTrackedItemWithRouting(): Code[20]
+    var
+        Item: Record Item;
+    begin
+        Item.Get(CreateLotTrackedItem());
+        Item.Validate("Routing No.", CreateRoutingNo());
+        Item.Modify(true);
+        exit(Item."No.");
+    end;
+
+    local procedure CreateRoutingNo(): Code[20]
+    var
+        WorkCenter: Record "Work Center";
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+    begin
+        LibraryManufacturing.CreateWorkCenter(WorkCenter);
+        LibraryManufacturing.CreateRoutingHeader(RoutingHeader, RoutingHeader.Type::Serial);
+        LibraryManufacturing.CreateRoutingLine(
+            RoutingHeader, RoutingLine, '', Format(LibraryRandom.RandInt(5)), RoutingLine.Type::"Work Center", WorkCenter."No.");
+        RoutingHeader.Validate(Status, RoutingHeader.Status::Certified);
+        RoutingHeader.Modify(true);
+        exit(RoutingHeader."No.");
+    end;
+
+    local procedure SelectProdOrderLine(var ProdOrderLine: Record "Prod. Order Line"; ItemNo: Code[20])
+    begin
+        ProdOrderLine.SetRange("Item No.", ItemNo);
+        ProdOrderLine.FindFirst();
+    end;
+
     [ModalPageHandler]
     [Scope('OnPrem')]
     procedure ItemTrackingLinesModalPageHandler(var ItemTrackingLines: TestPage "Item Tracking Lines")
@@ -2897,6 +3031,17 @@ codeunit 137212 "SCM Copy Document Mgt."
     begin
         PostedSalesDocumentLines.PostedShipmentsBtn.SetValue(DocType::"Posted Invoices");
         PostedSalesDocumentLines.PostedInvoices.FILTER.SetFilter("Document No.", LibraryVariableStorage.DequeueText());
+        PostedSalesDocumentLines.OK().Invoke();
+    end;
+
+    [ModalPageHandler]
+    [Scope('OnPrem')]
+    procedure PostedSalesShipmentLinesModalPageHandler(var PostedSalesDocumentLines: TestPage "Posted Sales Document Lines")
+    var
+        DocType: Option "Posted Shipments","Posted Invoices","Posted Return Receipts","Posted Cr. Memos";
+    begin
+        PostedSalesDocumentLines.PostedShipmentsBtn.SetValue(DocType::"Posted Shipments");
+        PostedSalesDocumentLines.PostedShpts.FILTER.SetFilter("Document No.", LibraryVariableStorage.DequeueText());
         PostedSalesDocumentLines.OK().Invoke();
     end;
 

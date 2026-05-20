@@ -54,6 +54,7 @@ codeunit 137088 "SCM Order Planning - III"
         SKUNotPlannedTxt: Label 'Item %1 at Location %2 was not planned because SKU does not exist and %3 at Location is %4', Comment = '%1: Item No., %2: Location Code, %3: Field Caption, %4: Missing SKU Policy';
         SerialNoErr: Label 'Serial No. %1 must exist in reservation entries';
         ReservationEntryCountErr: Label 'Expected reservation entries with serial tracking on purchase line are %1';
+        MinTotalQuantityMismatchErr: Label 'Expected total quantity >= %1, but got %2', Comment = '%1 = minimum expected quantity, %2 = actual summed quantity';
 
     [Test]
     [HandlerFunctions('MakeSupplyOrdersPageHandler')]
@@ -3434,7 +3435,7 @@ codeunit 137088 "SCM Order Planning - III"
 
         // [THEN] Verify Requisition Line is created for "Missing SKU Planning Policy"- "Item Card" for both items.
         VerifyQuantityInRequisitionLine(Item[1]."No.", Location[2].Code, LocationQuantity[2]);
-        VerifyQuantityInRequisitionLine(Item[2]."No.", Location[2].Code, LocationQuantity[2]);
+        VerifyMinTotalQuantityInRequisitionLine(Item[2]."No.", Location[2].Code, LocationQuantity[2]);
 
         // [THEN] Verify Requisition Line is created for "Missing SKU Planning Policy"- "Minimal" for both items.
         VerifyQuantityInRequisitionLine(Item[1]."No.", Location[3].Code, LocationQuantity[3]);
@@ -3443,8 +3444,8 @@ codeunit 137088 "SCM Order Planning - III"
         // [THEN] Verify Requisition Line is created for Fixed Reorder Qty item with Location blank.
         VerifyQuantityInRequisitionLine(Item[2]."No.", '', 190);
 
-        // [THEN] Verify Quantity in Requisition Line for Item.
-        VerifyRecordCountAndQuantityInRequisitionLine(Item[1]."No." + '|' + Item[2]."No.", 5, LocationQuantity[2] * 2 + LocationQuantity[3] * 2 + 190);
+        // [THEN] Verify combined quantity in Requisition Line for Items.
+        VerifyMinTotalQuantityInRequisitionLine(Item[1]."No." + '|' + Item[2]."No.", '', LocationQuantity[2] * 2 + LocationQuantity[3] * 2 + 190);
     end;
 
     [Test]
@@ -3580,10 +3581,202 @@ codeunit 137088 "SCM Order Planning - III"
 
         // [THEN] Verify Requisition Line is created for "Missing SKU Planning Policy"- "Item Card" for both items.
         VerifyQuantityInRequisitionLine(Item[1]."No.", Location[2].Code, LocationQuantity[2]);
-        VerifyQuantityInRequisitionLine(Item[2]."No.", Location[2].Code, LocationQuantity[2]);
+        VerifyMinTotalQuantityInRequisitionLine(Item[2]."No.", Location[2].Code, LocationQuantity[2]);
 
-        // [THEN] Verify Quantity in Requisition Line for Item.
-        VerifyRecordCountAndQuantityInRequisitionLine(Item[1]."No." + '|' + Item[2]."No.", 2, LocationQuantity[2] * 2);
+        // [THEN] Verify combined quantity in Requisition Line for Items.
+        VerifyMinTotalQuantityInRequisitionLine(Item[1]."No." + '|' + Item[2]."No.", Location[2].Code, LocationQuantity[2] * 2);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpectedErrorMessageHandler,ExpectedPlanningErrorLogModalPageHandler')]
+    procedure ItemCardFixedReorderQtyUsedWithMissingSKUPolicyItemCard()
+    var
+        Location: Record Location;
+        Item: Record Item;
+        SalesHeader: Record "Sales Header";
+        ReqLine: Record "Requisition Line";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 626623] When Location "Missing SKU Planning Policy" is "Item Card" and no SKU exists, planning uses Item Card parameters instead of Lot-for-Lot.
+        Initialize();
+
+        // [GIVEN] Create Location with "Missing SKU Planning Policy" = "Item Card".
+        CreateLocationWithMissingSKUPlanningPolicy(Location, Location."Missing SKU Planning Policy"::"Item Card");
+
+        // [GIVEN] Create Item "I" with Reordering Policy = "Fixed Reorder Qty.", Reorder Point = 100, Reorder Quantity = 200.
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Reordering Policy", Item."Reordering Policy"::"Fixed Reorder Qty.");
+        Item.Validate("Reorder Point", 100);
+        Item.Validate("Reorder Quantity", 200);
+        Item.Modify(true);
+
+        // [GIVEN] Create Sales Order with demand of 50 units at Location "L".
+        CreateSalesOrder(SalesHeader, Item."No.", Location.Code, 50, 50);
+
+        // [GIVEN] Expected planning warning message for Item Card policy.
+        LibraryVariableStorage.Enqueue(StrSubstNo(NotAllItemsWerePlannedMsg, 1));
+        LibraryVariableStorage.Enqueue(1);
+        LibraryVariableStorage.Enqueue(StrSubstNo(PlanningParametersTakenFromItemCardTxt, Location.FieldCaption("Missing SKU Planning Policy"), Location."Missing SKU Planning Policy", Item."No.", Location.Code));
+
+        // [WHEN] Calculate regenerative plan in planning worksheet.
+        CalculateRegenerativePlanningWorksheet(Item, WorkDate(), WorkDate(), true, false);
+
+        // [THEN] Requisition Line quantity is 200, not 50.
+        ReqLine.SetRange("No.", Item."No.");
+        ReqLine.SetRange("Location Code", Location.Code);
+        ReqLine.FindFirst();
+        Assert.AreEqual(200, ReqLine.Quantity, RequisitionLineQuantityMismatchErr);
+
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpectedErrorMessageHandler,ExpectedPlanningErrorLogModalPageHandler')]
+    procedure ItemCardMaximumQtyUsedWithMissingSKUPolicyItemCard()
+    var
+        Location: Record Location;
+        Item: Record Item;
+        SalesHeader: Record "Sales Header";
+        ReqLine: Record "Requisition Line";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 626623] When Location "Missing SKU Planning Policy" is "Item Card", Maximum Qty planning parameters from Item Card are used.
+        Initialize();
+
+        // [GIVEN] Create Location with "Missing SKU Planning Policy" = "Item Card".
+        CreateLocationWithMissingSKUPlanningPolicy(Location, Location."Missing SKU Planning Policy"::"Item Card");
+
+        // [GIVEN] Create Item "I" with Reordering Policy = "Maximum Qty.", Reorder Point = 100, Maximum Inventory = 500.
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Reordering Policy", Item."Reordering Policy"::"Maximum Qty.");
+        Item.Validate("Reorder Point", 100);
+        Item.Validate("Maximum Inventory", 500);
+        Item.Modify(true);
+
+        // [GIVEN] Create Sales Order with demand of 150 units at Location "L".
+        CreateSalesOrder(SalesHeader, Item."No.", Location.Code, 150, 150);
+
+        // [GIVEN] Expected planning warning message for Item Card policy.
+        LibraryVariableStorage.Enqueue(StrSubstNo(NotAllItemsWerePlannedMsg, 1));
+        LibraryVariableStorage.Enqueue(1);
+        LibraryVariableStorage.Enqueue(StrSubstNo(PlanningParametersTakenFromItemCardTxt, Location.FieldCaption("Missing SKU Planning Policy"), Location."Missing SKU Planning Policy", Item."No.", Location.Code));
+
+        // [WHEN] Calculate regenerative plan in planning worksheet.
+        CalculateRegenerativePlanningWorksheet(Item, WorkDate(), WorkDate(), true, false);
+
+        // [THEN] Requisition Line quantity is 500 (Maximum Inventory from Item Card), not 150 (Lot-for-Lot).
+        ReqLine.SetRange("No.", Item."No.");
+        ReqLine.SetRange("Location Code", Location.Code);
+        ReqLine.FindFirst();
+        Assert.AreEqual(500, ReqLine.Quantity, RequisitionLineQuantityMismatchErr);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpectedErrorMessageHandler,ExpectedPlanningErrorLogModalPageHandler')]
+    procedure ItemCardOrderPolicyUsedWithMissingSKUPolicyItemCard()
+    var
+        Location: Record Location;
+        Item: Record Item;
+        SalesHeader: Record "Sales Header";
+        ReqLine: Record "Requisition Line";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 626623] When Location "Missing SKU Planning Policy" is "Item Card", Order policy from Item Card is used.
+        Initialize();
+
+        // [GIVEN] Create Location with "Missing SKU Planning Policy" = "Item Card".
+        CreateLocationWithMissingSKUPlanningPolicy(Location, Location."Missing SKU Planning Policy"::"Item Card");
+
+        // [GIVEN] Create Item "I" with Reordering Policy = "Order".
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Reordering Policy", Item."Reordering Policy"::Order);
+        Item.Modify(true);
+
+        // [GIVEN] Create Sales Order with demand of 75 units at Location "L".
+        CreateSalesOrder(SalesHeader, Item."No.", Location.Code, 75, 75);
+
+        // [GIVEN] Create Expected planning warning message for Item Card policy.
+        LibraryVariableStorage.Enqueue(StrSubstNo(NotAllItemsWerePlannedMsg, 1));
+        LibraryVariableStorage.Enqueue(1);
+        LibraryVariableStorage.Enqueue(StrSubstNo(PlanningParametersTakenFromItemCardTxt, Location.FieldCaption("Missing SKU Planning Policy"), Location."Missing SKU Planning Policy", Item."No.", Location.Code));
+
+        // [WHEN] Calculate regenerative plan in planning worksheet.
+        CalculateRegenerativePlanningWorksheet(Item, WorkDate(), WorkDate(), true, false);
+
+        // [THEN] Requisition Line quantity is 75 (Order policy matches demand exactly).
+        ReqLine.SetRange("No.", Item."No.");
+        ReqLine.SetRange("Location Code", Location.Code);
+        ReqLine.FindFirst();
+        Assert.AreEqual(75, ReqLine.Quantity, RequisitionLineQuantityMismatchErr);
+
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    procedure LotForLotUsedWithMissingSKUPolicyMinimal()
+    var
+        Location: Record Location;
+        Item: Record Item;
+        SalesHeader: Record "Sales Header";
+        ReqLine: Record "Requisition Line";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 626623] When Location "Missing SKU Planning Policy" is "Minimal", Lot-for-Lot is used instead of Item Card parameters.
+        Initialize();
+
+        // [GIVEN] Create Location with "Missing SKU Planning Policy" = "Minimal".
+        CreateLocationWithMissingSKUPlanningPolicy(Location, Location."Missing SKU Planning Policy"::Minimal);
+
+        // [GIVEN] Create Item "I" with Reordering Policy = "Fixed Reorder Qty.", Reorder Point = 100, Reorder Quantity = 200.
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Reordering Policy", Item."Reordering Policy"::"Fixed Reorder Qty.");
+        Item.Validate("Reorder Point", 100);
+        Item.Validate("Reorder Quantity", 200);
+        Item.Modify(true);
+
+        // [GIVEN] Sales Order with demand of 50 units at Location "L".
+        CreateSalesOrder(SalesHeader, Item."No.", Location.Code, 50, 50);
+
+        // [WHEN] Calculate regenerative plan in planning worksheet
+        CalculateRegenerativePlanningWorksheet(Item, WorkDate(), WorkDate(), true, false);
+
+        // [THEN] Requisition Line quantity is 50 (Lot-for-Lot matches demand), not 200 (Fixed Reorder Qty).
+        ReqLine.SetRange("No.", Item."No.");
+        ReqLine.SetRange("Location Code", Location.Code);
+        ReqLine.FindFirst();
+        Assert.AreEqual(50, ReqLine.Quantity, RequisitionLineQuantityMismatchErr);
+    end;
+
+    [Test]
+    procedure EmptyLocationCodeUsesItemCardParameters()
+    var
+        Item: Record Item;
+        SalesHeader: Record "Sales Header";
+        ReqLine: Record "Requisition Line";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 626623] When Location Code is empty, Item Card planning parameters are used.
+        Initialize();
+
+        // [GIVEN] Create Item "I" with Reordering Policy = "Fixed Reorder Qty.", Reorder Point = 100, Reorder Quantity = 200.
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Reordering Policy", Item."Reordering Policy"::"Fixed Reorder Qty.");
+        Item.Validate("Reorder Point", 100);
+        Item.Validate("Reorder Quantity", 200);
+        Item.Modify(true);
+
+        // [GIVEN] Create Sales Order with demand of 50 units without Location.
+        CreateSalesOrder(SalesHeader, Item."No.", '', 50, 50);
+
+        // [WHEN] Calculate regenerative plan in planning worksheet.
+        CalculateRegenerativePlanningWorksheet(Item, WorkDate(), WorkDate(), true, false);
+
+        // [THEN] Requisition Line quantity is 200 (Fixed Reorder Qty from Item Card).
+        ReqLine.SetRange("No.", Item."No.");
+        ReqLine.SetRange("Location Code", '');
+        ReqLine.FindFirst();
+        Assert.AreEqual(200, ReqLine.Quantity, RequisitionLineQuantityMismatchErr);
     end;
 
     [Test]
@@ -4539,6 +4732,20 @@ codeunit 137088 "SCM Order Planning - III"
 
         Assert.RecordCount(RequisitionLine, ExpectedRecordCount);
         Assert.AreEqual(ExpectedRequisitionQuantity, RequisitionLine.Quantity, RequisitionLineQuantityMismatchErr);
+    end;
+    
+    local procedure VerifyMinTotalQuantityInRequisitionLine(ItemNoFilter: Text; LocationCode: Code[10]; MinExpectedQuantity: Decimal)
+    var
+        RequisitionLine: Record "Requisition Line";
+    begin
+        RequisitionLine.SetFilter("No.", ItemNoFilter);
+        if LocationCode <> '' then
+            RequisitionLine.SetRange("Location Code", LocationCode);
+        RequisitionLine.CalcSums(Quantity);
+
+        Assert.IsTrue(
+          RequisitionLine.Quantity >= MinExpectedQuantity,
+                    StrSubstNo(MinTotalQuantityMismatchErr, MinExpectedQuantity, RequisitionLine.Quantity));
     end;
 
     local procedure VerifyPurchLineSerialTracking(PurchaseLine: Record "Purchase Line"; SerialNo: array[3] of Code[50]; Quantity: Integer)

@@ -7,6 +7,7 @@ namespace Microsoft.Manufacturing.Test;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Location;
+using Microsoft.Inventory.Requisition;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.Family;
@@ -47,6 +48,7 @@ codeunit 137084 "SCM Production Orders V"
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         LibraryUtility: Codeunit "Library - Utility";
         LibraryItemTracking: Codeunit "Library - Item Tracking";
+        LibraryPlanning: Codeunit "Library - Planning";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         SerialItemTrackingMode: Option "None",AssignSerial,SelectSerial,VerifyValue;
         LotItemTrackingMode: Option "None",AssignLot,SelectLot,VerifyValue;
@@ -1232,6 +1234,177 @@ codeunit 137084 "SCM Production Orders V"
         Assert.RecordCount(WarehousePutAwayRequest, 0);
     end;
 
+    [Test]
+    procedure DeletePlanningLinesSucceedsWhenProdOrderLineIsDeleted()
+    var
+        CompItem: Record Item;
+        ProdItem: Record Item;
+        ProductionBOMHeader: Record "Production BOM Header";
+        ProductionOrder: Record "Production Order";
+        ProdOrderLine: Record "Prod. Order Line";
+        RequisitionLine: Record "Requisition Line";
+        ReservationEntry: Record "Reservation Entry";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 630847] Deleting planning worksheet lines succeeds when reservation entry references a deleted prod. order line
+        Initialize();
+
+        // [GIVEN] Create Component item with Replenishment System "Purchase" and Reordering Policy "Order".
+        LibraryInventory.CreateItem(CompItem);
+        CompItem.Validate("Replenishment System", CompItem."Replenishment System"::Purchase);
+        CompItem.Validate("Reordering Policy", CompItem."Reordering Policy"::Order);
+        CompItem.Modify(true);
+
+        // [GIVEN] Create Production item with Replenishment System "Prod. Order" and production BOM containing component.
+        CreateCertifiedProductionBOM(ProductionBOMHeader, CompItem);
+        LibraryInventory.CreateItem(ProdItem);
+        ProdItem.Validate("Replenishment System", ProdItem."Replenishment System"::"Prod. Order");
+        ProdItem.Validate("Reordering Policy", ProdItem."Reordering Policy"::Order);
+        ProdItem.Validate("Production BOM No.", ProductionBOMHeader."No.");
+        ProdItem.Modify(true);
+
+        // [GIVEN] Create Released production order for production item.
+        LibraryManufacturing.CreateProductionOrder(
+            ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, ProdItem."No.", LibraryRandom.RandInt(10));
+        LibraryManufacturing.RefreshProdOrder(ProductionOrder, false, true, true, true, false);
+
+        // [GIVEN] Regenerative plan is calculated for production item creating requisition lines with reservations to prod. order line.
+        ProdItem.SetRecFilter();
+        LibraryPlanning.CalcRegenPlanForPlanWksh(ProdItem, WorkDate(), WorkDate());
+        RequisitionLine.SetRange("No.", ProdItem."No.");
+        RequisitionLine.FindFirst();
+
+        // [GIVEN] Prod. order line is deleted without trigger leaving orphaned reservation entries.
+        ProdOrderLine.SetRange(Status, ProductionOrder.Status);
+        ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderLine.FindLast();
+        ProdOrderLine.Delete(false);
+
+        // [WHEN] Delete all planning worksheet lines for production item "P"
+        RequisitionLine.DeleteAll(true);
+
+        // [THEN] No error occurs and all planning lines are deleted
+        Assert.RecordIsEmpty(RequisitionLine);
+
+        // [THEN] Verify Orphan reservation entries referencing the deleted prod. order line are removed.
+        ReservationEntry.SetRange("Source Type", Database::"Prod. Order Line");
+        ReservationEntry.SetRange("Source Subtype", ProductionOrder.Status.AsInteger());
+        ReservationEntry.SetRange("Source ID", ProductionOrder."No.");
+        Assert.RecordIsEmpty(ReservationEntry);
+    end;
+
+    [Test]
+    procedure DeletePlanningLinesSucceedsWhenProdOrderCompIsDeleted()
+    var
+        CompItem: Record Item;
+        ProdItem: Record Item;
+        ProdOrderComponent: Record "Prod. Order Component";
+        ProductionBOMHeader: Record "Production BOM Header";
+        ProductionOrder: Record "Production Order";
+        RequisitionLine: Record "Requisition Line";
+        ReservationEntry: Record "Reservation Entry";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 630847] Deleting planning worksheet lines succeeds when reservation entry references a deleted prod. order component
+        Initialize();
+
+        // [GIVEN] Create Component item with Replenishment System "Purchase" and Reordering Policy "Order".
+        LibraryInventory.CreateItem(CompItem);
+        CompItem.Validate("Replenishment System", CompItem."Replenishment System"::Purchase);
+        CompItem.Validate("Reordering Policy", CompItem."Reordering Policy"::Order);
+        CompItem.Modify(true);
+
+        // [GIVEN] Create Production item with Replenishment System "Prod. Order" and production BOM containing component.
+        CreateCertifiedProductionBOM(ProductionBOMHeader, CompItem);
+        LibraryInventory.CreateItem(ProdItem);
+        ProdItem.Validate("Replenishment System", ProdItem."Replenishment System"::"Prod. Order");
+        ProdItem.Validate("Reordering Policy", ProdItem."Reordering Policy"::Order);
+        ProdItem.Validate("Production BOM No.", ProductionBOMHeader."No.");
+        ProdItem.Modify(true);
+
+        // [GIVEN] Create Released production order for production item.
+        LibraryManufacturing.CreateProductionOrder(
+            ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, ProdItem."No.", LibraryRandom.RandInt(10));
+        LibraryManufacturing.RefreshProdOrder(ProductionOrder, false, true, true, true, false);
+
+        // [GIVEN] Regenerative plan is calculated for component item creating requisition lines with reservations.
+        CompItem.SetRecFilter();
+        LibraryPlanning.CalcRegenPlanForPlanWksh(CompItem, WorkDate(), WorkDate());
+        RequisitionLine.SetRange("No.", CompItem."No.");
+        RequisitionLine.FindFirst();
+
+        // [GIVEN] Prod. order component is deleted without trigger leaving orphaned reservation entries.
+        ProdOrderComponent.SetRange(Status, ProductionOrder.Status);
+        ProdOrderComponent.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderComponent.FindLast();
+        ProdOrderComponent.Delete(false);
+
+        // [WHEN] Delete all planning worksheet lines for component item.
+        RequisitionLine.DeleteAll(true);
+
+        // [THEN] Verify No error occurs and all planning lines are deleted.
+        Assert.RecordIsEmpty(RequisitionLine);
+
+        // [THEN] Verify orphan reservation entries referencing the deleted prod. order component are removed.
+        ReservationEntry.SetRange("Source Type", Database::"Prod. Order Component");
+        ReservationEntry.SetRange("Source Subtype", ProductionOrder.Status.AsInteger());
+        ReservationEntry.SetRange("Source ID", ProductionOrder."No.");
+        Assert.RecordIsEmpty(ReservationEntry);
+    end;
+
+    [Test]
+    [HandlerFunctions('ItemTrackingLotPageHandler')]
+    procedure DeletePlanningLinesSucceedsForMultiLevelLotTrackedProdOrder()
+    var
+        FinishedItem: Record Item;
+        RawMaterialItem: Record Item;
+        SemiFinishedItem: Record Item;
+        ProdOrderLine: Record "Prod. Order Line";
+        ProductionOrder: Record "Production Order";
+        RequisitionLine: Record "Requisition Line";
+        ItemFilter: Text;
+    begin
+        // [FEATURE] [Planning] [Reservation] [Manufacturing]
+        // [SCENARIO 630847] Deleting planning lines succeeds for multi-level lot-tracked production order.
+        // when prod. order line is deleted via standard Delete(true) with trigger.
+        Initialize();
+
+        // [GIVEN] Create Multi-level BOM chain: RawMaterial (Purchase) -> SemiFinished (Prod. Order, Make-to-Order) -> Finished (Prod. Order, Make-to-Order).
+        // All items are lot-tracked with Reordering Policy "Order".
+        CreateLotTrackedPurchaseItem(RawMaterialItem);
+        CreateLotTrackedProductionItem(SemiFinishedItem, RawMaterialItem);
+        CreateLotTrackedProductionItem(FinishedItem, SemiFinishedItem);
+
+        // [GIVEN] Post positive adjustment with lot tracking for raw material.
+        PostPositiveAdjustmentWithLotTracking(RawMaterialItem."No.", LibraryRandom.RandIntInRange(100, 200));
+
+        // [GIVEN] Create and refresh released production order for finished item (creates multi-level lines).
+        LibraryManufacturing.CreateProductionOrder(
+            ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item,
+            FinishedItem."No.", LibraryRandom.RandInt(10));
+        LibraryManufacturing.RefreshProdOrder(ProductionOrder, false, true, true, true, false);
+
+        // [GIVEN] Delete the last prod. order line via standard Delete(true) with trigger.
+        ProdOrderLine.SetRange(Status, ProductionOrder.Status);
+        ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderLine.FindLast();
+        ProdOrderLine.Delete(true);
+
+        // [GIVEN] Calculate regenerative plan for all items in the multi-level BOM.
+        ItemFilter := StrSubstNo('%1|%2|%3', RawMaterialItem."No.", SemiFinishedItem."No.", FinishedItem."No.");
+        FinishedItem.SetFilter("No.", ItemFilter);
+        LibraryPlanning.CalcRegenPlanForPlanWksh(FinishedItem, WorkDate(), WorkDate());
+
+        // [WHEN] Delete all planning worksheet lines.
+        RequisitionLine.SetFilter("No.", ItemFilter);
+        RequisitionLine.FindFirst();
+        RequisitionLine.DeleteAll(true);
+
+        // [THEN] Verify No error occurs and all planning lines are deleted.
+        Assert.RecordIsEmpty(RequisitionLine);
+        LibraryVariableStorage.Clear();
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"SCM Production Orders V");
@@ -1496,6 +1669,64 @@ codeunit 137084 "SCM Production Orders V"
         ProdOrderLine.SetRange(Status, ProdOrderStatus);
         ProdOrderLine.SetRange("Prod. Order No.", ProdOrderNo);
         ProdOrderLine.FindFirst();
+    end;
+
+    local procedure CreateCertifiedProductionBOM(var ProductionBOMHeader: Record "Production BOM Header"; CompItem: Record Item)
+    var
+        ProductionBOMLine: Record "Production BOM Line";
+    begin
+        LibraryManufacturing.CreateProductionBOMHeader(ProductionBOMHeader, CompItem."Base Unit of Measure");
+        LibraryManufacturing.CreateProductionBOMLine(
+            ProductionBOMHeader, ProductionBOMLine, '', ProductionBOMLine.Type::Item, CompItem."No.", 1);
+        ProductionBOMHeader.Validate(Status, ProductionBOMHeader.Status::Certified);
+        ProductionBOMHeader.Modify(true);
+    end;
+
+    local procedure CreateLotTrackedPurchaseItem(var Item: Record Item)
+    var
+        ItemTrackingCode: Record "Item Tracking Code";
+    begin
+        LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, false, true);
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Item Tracking Code", ItemTrackingCode.Code);
+        Item.Validate("Lot Nos.", LibraryUtility.GetGlobalNoSeriesCode());
+        Item.Validate("Replenishment System", Item."Replenishment System"::Purchase);
+        Item.Validate("Reordering Policy", Item."Reordering Policy"::Order);
+        Item.Modify(true);
+    end;
+
+    local procedure CreateLotTrackedProductionItem(var Item: Record Item; ComponentItem: Record Item)
+    var
+        ItemTrackingCode: Record "Item Tracking Code";
+        ProductionBOMHeader: Record "Production BOM Header";
+    begin
+        LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, false, true);
+        CreateCertifiedProductionBOM(ProductionBOMHeader, ComponentItem);
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Item Tracking Code", ItemTrackingCode.Code);
+        Item.Validate("Lot Nos.", LibraryUtility.GetGlobalNoSeriesCode());
+        Item.Validate("Replenishment System", Item."Replenishment System"::"Prod. Order");
+        Item.Validate("Reordering Policy", Item."Reordering Policy"::Order);
+        Item.Validate("Manufacturing Policy", Item."Manufacturing Policy"::"Make-to-Order");
+        Item.Validate("Production BOM No.", ProductionBOMHeader."No.");
+        Item.Modify(true);
+    end;
+
+    local procedure PostPositiveAdjustmentWithLotTracking(ItemNo: Code[20]; Quantity: Decimal)
+    var
+        ItemJournalTemplate: Record "Item Journal Template";
+        ItemJournalBatch: Record "Item Journal Batch";
+        ItemJournalLine: Record "Item Journal Line";
+    begin
+        LibraryInventory.SelectItemJournalTemplateName(ItemJournalTemplate, ItemJournalTemplate.Type::Item);
+        LibraryInventory.SelectItemJournalBatchName(ItemJournalBatch, ItemJournalTemplate.Type, ItemJournalTemplate.Name);
+        LibraryInventory.ClearItemJournal(ItemJournalTemplate, ItemJournalBatch);
+        LibraryInventory.CreateItemJournalLine(
+            ItemJournalLine, ItemJournalTemplate.Name, ItemJournalBatch.Name,
+            ItemJournalLine."Entry Type"::"Positive Adjmt.", ItemNo, Quantity);
+        LibraryVariableStorage.Enqueue(LotItemTrackingMode::AssignLot);
+        ItemJournalLine.OpenItemTrackingLines(false);
+        LibraryInventory.PostItemJournalLine(ItemJournalTemplate.Name, ItemJournalBatch.Name);
     end;
 
     [MessageHandler]

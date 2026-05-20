@@ -324,9 +324,9 @@ codeunit 137140 "SCM Inventory Documents"
         TransferLine.Modify(true);
 
         // [WHEN] Post the transfer using "Direct Transfer Posting" = "Direct Transfer"
-        SetDirectTransferPosting(1);
+        SetDirectTransferPosting(Enum::"Direct Transfer Posting Type"::"Direct Transfer");
         asserterror LibraryInventory.PostDirectTransferOrder(TransferHeader);
-        SetDirectTransferPosting(0);
+        SetDirectTransferPosting(Enum::"Direct Transfer Posting Type"::"Shipment and Receipt");
     end;
 
     [Test]
@@ -364,9 +364,9 @@ codeunit 137140 "SCM Inventory Documents"
         TransferLine.Modify(true);
 
         // [WHEN] Post the transfer using "Direct Transfer Posting" = "Direct Transfer"
-        SetDirectTransferPosting(1);
+        SetDirectTransferPosting(Enum::"Direct Transfer Posting Type"::"Direct Transfer");
         LibraryInventory.PostDirectTransferOrder(TransferHeader);
-        SetDirectTransferPosting(0);
+        SetDirectTransferPosting(Enum::"Direct Transfer Posting Type"::"Shipment and Receipt");
 
         // [THEN] Item ledger shows 100 pcs of item "I" moved to location "B"
         VerifyItemInventory(Item, ToLocation.Code, Qty);
@@ -1835,7 +1835,7 @@ codeunit 137140 "SCM Inventory Documents"
         //[GIVEN] UpdateInventory setup with Direct Transfer Posting as Direct Transfer
         InventorySetup.Get();
 
-        InventorySetup."Direct Transfer Posting" := InventorySetup."Direct Transfer Posting"::"Direct Transfer";
+        InventorySetup."Direct Transfer Posting Type" := InventorySetup."Direct Transfer Posting Type"::"Direct Transfer";
         InventorySetup.Modify();
         LibraryWarehouse.NoSeriesSetup(WhseSetup);
 
@@ -1975,7 +1975,7 @@ codeunit 137140 "SCM Inventory Documents"
         // [GIVEN] Update Inventory setup with Direct Transfer Posting as Direct Transfer and Prevent Negative Inventory as TRUE
         InventorySetup.Get();
         InventorySetup."Prevent Negative Inventory" := true;
-        InventorySetup."Direct Transfer Posting" := InventorySetup."Direct Transfer Posting"::"Direct Transfer";
+        InventorySetup."Direct Transfer Posting Type" := InventorySetup."Direct Transfer Posting Type"::"Direct Transfer";
         InventorySetup.Modify();
 
         // [GIVEN] Create Two locations: "A" and "B" without Warehouse Setup
@@ -2025,7 +2025,7 @@ codeunit 137140 "SCM Inventory Documents"
         // [GIVEN] Update Inventory Setup with Direct Transfer Posting as Direct Transfer and Prevent Negative Inventory as TRUE
         InventorySetup.Get();
         InventorySetup."Prevent Negative Inventory" := true;
-        InventorySetup."Direct Transfer Posting" := InventorySetup."Direct Transfer Posting"::"Direct Transfer";
+        InventorySetup."Direct Transfer Posting Type" := InventorySetup."Direct Transfer Posting Type"::"Direct Transfer";
         InventorySetup.Modify();
 
         // [GIVEN] Create Two locations: "A" and "B" without Warehouse Setup
@@ -2156,6 +2156,66 @@ codeunit 137140 "SCM Inventory Documents"
         // [THEN] Inventory Receipt should be posted successfully.
         InvtReceiptHeader.SetRange("Receipt No.", DocumentNo);
         Assert.IsTrue(InvtReceiptHeader.FindFirst(), InventoryReceiptErr);
+    end;
+
+    [Test]
+    procedure ValidateManualNoOnInvtReceiptHeaderBeforeInsert()
+    var
+        InvtDocumentHeader: Record "Invt. Document Header";
+        InventorySetup: Record "Inventory Setup";
+        NoSeries: Record "No. Series";
+        ManualNo: Code[20];
+    begin
+        // [SCENARIO 1857] Validating "No." on Invt. Document Header (Receipt) before Insert should not fail even if Inventory Setup has not been retrieved into the table's InvtSetup variable yet.
+        Initialize();
+
+        // [GIVEN] A No. Series allowing manual numbers is configured as Invt. Receipt Nos.
+        NoSeries.Get(LibraryERM.CreateNoSeriesCode());
+        NoSeries.Validate("Manual Nos.", true);
+        NoSeries.Modify(true);
+        InventorySetup.Get();
+        InventorySetup."Invt. Receipt Nos." := NoSeries.Code;
+        InventorySetup.Modify(true);
+        ManualNo := LibraryUtility.GenerateRandomCode20(InvtDocumentHeader.FieldNo("No."), DATABASE::"Invt. Document Header");
+
+        // [WHEN] Creating a new Invt. Document Header with a manual "No." before Insert
+        InvtDocumentHeader.Init();
+        InvtDocumentHeader.Validate("Document Type", InvtDocumentHeader."Document Type"::Receipt);
+        InvtDocumentHeader.Validate("No.", ManualNo);
+        InvtDocumentHeader.Insert(true);
+
+        // [THEN] The record is inserted with the manually assigned number
+        Assert.AreEqual(ManualNo, InvtDocumentHeader."No.", 'Invt. Receipt Header "No." must equal the manually assigned number.');
+    end;
+
+    [Test]
+    procedure ValidateManualNoOnInvtShipmentHeaderBeforeInsert()
+    var
+        InvtDocumentHeader: Record "Invt. Document Header";
+        InventorySetup: Record "Inventory Setup";
+        NoSeries: Record "No. Series";
+        ManualNo: Code[20];
+    begin
+        // [SCENARIO 1857] Validating "No." on Invt. Document Header (Shipment) before Insert should not fail even if Inventory Setup has not been retrieved into the table's InvtSetup variable yet.
+        Initialize();
+
+        // [GIVEN] A No. Series allowing manual numbers is configured as Invt. Shipment Nos.
+        NoSeries.Get(LibraryERM.CreateNoSeriesCode());
+        NoSeries.Validate("Manual Nos.", true);
+        NoSeries.Modify(true);
+        InventorySetup.Get();
+        InventorySetup."Invt. Shipment Nos." := NoSeries.Code;
+        InventorySetup.Modify(true);
+        ManualNo := LibraryUtility.GenerateRandomCode20(InvtDocumentHeader.FieldNo("No."), DATABASE::"Invt. Document Header");
+
+        // [WHEN] Creating a new Invt. Document Header with a manual "No." before Insert
+        InvtDocumentHeader.Init();
+        InvtDocumentHeader.Validate("Document Type", InvtDocumentHeader."Document Type"::Shipment);
+        InvtDocumentHeader.Validate("No.", ManualNo);
+        InvtDocumentHeader.Insert(true);
+
+        // [THEN] The record is inserted with the manually assigned number
+        Assert.AreEqual(ManualNo, InvtDocumentHeader."No.", 'Invt. Shipment Header "No." must equal the manually assigned number.');
     end;
 
     local procedure PostWhseShipmentFromTO(DocumentNo: Code[20])
@@ -2489,7 +2549,7 @@ codeunit 137140 "SCM Inventory Documents"
     begin
         InventorySetup.Get();
         InventorySetup.Validate("Posted Direct Trans. Nos.", LibraryUtility.GetGlobalNoSeriesCode());
-        InventorySetup.Validate("Direct Transfer Posting", InventorySetup."Direct Transfer Posting"::"Direct Transfer");
+        InventorySetup.Validate("Direct Transfer Posting Type", InventorySetup."Direct Transfer Posting Type"::"Direct Transfer");
         InventorySetup.Modify(true);
     end;
 
@@ -2509,12 +2569,12 @@ codeunit 137140 "SCM Inventory Documents"
         InventorySetup.Modify(true);
     end;
 
-    local procedure SetDirectTransferPosting(DirectTransferPosting: Option)
+    local procedure SetDirectTransferPosting(DirectTransferPosting: Enum "Direct Transfer Posting Type")
     var
         InventorySetup: Record "Inventory Setup";
     begin
         InventorySetup.Get();
-        InventorySetup."Direct Transfer Posting" := DirectTransferPosting;
+        InventorySetup."Direct Transfer Posting Type" := DirectTransferPosting;
         InventorySetup.Modify();
     end;
 

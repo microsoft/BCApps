@@ -60,6 +60,7 @@ codeunit 137908 "SCM Assembly Order"
         RoundingErr: Label 'is of lower precision than expected';
         ValueMustBeEqualErr: Label '%1 must be equal to %2 in the %3.', Comment = '%1 = Field Caption , %2 = Expected Value, %3 = Table Caption';
         QtyToConsumeMustBeUpdatedErr: Label 'Quantity to Consume in assembly line must be updated.';
+        ComponentQuantityshouldErr: Label 'Component %1 Quantity should be %2 but was %3';
 
     [Normal]
     local procedure Initialize()
@@ -2539,14 +2540,15 @@ codeunit 137908 "SCM Assembly Order"
         // [GIVEN] Find Assembly Line for first Component Item
         AssemblyLine.SetRange("Document Type", AssemblyHeader."Document Type");
         AssemblyLine.SetRange("Document No.", AssemblyHeader."No.");
-        AssemblyLine.FindSet();
+        AssemblyLine.SetRange("No.", CompItem[1]."No.");
+        AssemblyLine.FindFirst();
 
         ItemUOM.Get(CompItem[1]."No.", CompItem[1]."Base Unit of Measure");
         FindItemUnitOfMeasure(CompItem[1], ItemUOM);
 
         // [THEN] Calculate Expected Assembly Order Quantity.
         ExpectedQuantity := UOMMgt.RoundToItemRndPrecision(
-            AssemblyHeader.Quantity * CompItemQtyPer[1], CompItem[1]."Rounding Precision");
+            AssemblyHeader.Quantity * CompItemQtyPer[1], ItemUOM."Qty. Rounding Precision");
 
         // [THEN]  Calculate Expected Text.
         MustMatchTxt := MatchTxt(AssemblyLine, ExpectedQuantity);
@@ -2555,18 +2557,89 @@ codeunit 137908 "SCM Assembly Order"
         Assert.AreEqual(ExpectedQuantity, AssemblyLine.Quantity, MustMatchTxt);
 
         // [GIVEN] Get next Assembly Line for second Component Item
-        AssemblyLine.Next();
+        AssemblyLine.SetRange("No.", CompItem[2]."No.");
+        AssemblyLine.FindFirst();
         FindItemUnitOfMeasure(CompItem[2], ItemUOM);
 
         // [THEN] Calculate Expected Assembly Order Quantity.
         ExpectedQuantity := UOMMgt.RoundToItemRndPrecision(
-            AssemblyHeader.Quantity * CompItemQtyPer[2], CompItem[2]."Rounding Precision");
+            AssemblyHeader.Quantity * CompItemQtyPer[2], ItemUOM."Qty. Rounding Precision");
 
         // [THEN]  Calculate Expected Text.
         MustMatchTxt := MatchTxt(AssemblyLine, ExpectedQuantity);
 
         // [VERIFY] Assembly Line Quantity when Rounding Precision was not 0.
         Assert.AreEqual(ExpectedQuantity, AssemblyLine.Quantity, MustMatchTxt);
+
+        // Cleanup
+        NotificationLifecycleMgt.RecallAllNotifications();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    [HandlerFunctions('MessageHandler')]
+    procedure AssemblyComponentQtyNotRoundedToWholeWhenUOMPrecisionIsZero()
+    var
+        ParentItem: Record Item;
+        CompItemZeroPrecision: Record Item;
+        CompItemDecimalPrecision: Record Item;
+        BOMComponent: Record "BOM Component";
+        AssemblyHeader: Record "Assembly Header";
+        AssemblyLine: Record "Assembly Line";
+        ItemUOM: Record "Item Unit of Measure";
+        HeaderQty: Decimal;
+        ExpectedQuantity: Decimal;
+    begin
+        // [SCENARIO 624600] Assembly Order Component Quantity should not be rounded to whole number
+        // when UOM Qty. Rounding Precision is 0 (default) and another component has precision 0.01.
+        Initialize();
+
+        // [GIVEN] Parent assembly item with UOM Qty. Rounding Precision = 0 (default)
+        LibraryInventory.CreateItem(ParentItem);
+
+        // [GIVEN] Component Item 1 (CompItemZeroPrecision) with UOM Qty. Rounding Precision = 0 (default)
+        LibraryInventory.CreateItem(CompItemZeroPrecision);
+
+        // [GIVEN] Component Item 2 (CompItemDecimalPrecision) with UOM Qty. Rounding Precision = 0.01
+        LibraryInventory.CreateItem(CompItemDecimalPrecision);
+        ItemUOM.Get(CompItemDecimalPrecision."No.", CompItemDecimalPrecision."Base Unit of Measure");
+        ItemUOM.Validate("Qty. Rounding Precision", 0.01);
+        ItemUOM.Modify();
+
+        // [GIVEN] Assembly BOM for parent with both components, Quantity per = 1
+        LibraryInventory.CreateBOMComponent(
+            BOMComponent, ParentItem."No.", BOMComponent.Type::Item,
+            CompItemZeroPrecision."No.", 1, CompItemZeroPrecision."Base Unit of Measure");
+        LibraryInventory.CreateBOMComponent(
+            BOMComponent, ParentItem."No.", BOMComponent.Type::Item,
+            CompItemDecimalPrecision."No.", 1, CompItemDecimalPrecision."Base Unit of Measure");
+
+        // [GIVEN] Create Assembly Order with decimal header quantity
+        HeaderQty := LibraryRandom.RandDec(100, 2);
+        CreateAssemblyOrderWithoutLines(AssemblyHeader, WorkDate(), ParentItem."No.");
+        AssemblyHeader.Validate(Quantity, HeaderQty);
+        AssemblyHeader.Modify(true);
+
+        // [WHEN] Inspect assembly order lines
+        AssemblyLine.SetRange("Document Type", AssemblyHeader."Document Type");
+        AssemblyLine.SetRange("Document No.", AssemblyHeader."No.");
+        AssemblyLine.SetRange(Type, AssemblyLine.Type::Item);
+        AssemblyLine.FindSet();
+
+        // [THEN] Component Item 1
+        ExpectedQuantity := HeaderQty;
+        Assert.AreEqual(
+            ExpectedQuantity, AssemblyLine.Quantity,
+            StrSubstNo(ComponentQuantityshouldErr,
+                CompItemZeroPrecision."No.", ExpectedQuantity, AssemblyLine.Quantity));
+
+        // [THEN] Component Item 2 
+        AssemblyLine.Next();
+        ExpectedQuantity := HeaderQty;
+        Assert.AreEqual(
+            ExpectedQuantity, AssemblyLine.Quantity,
+            StrSubstNo(ComponentQuantityshouldErr,
+                CompItemDecimalPrecision."No.", ExpectedQuantity, AssemblyLine.Quantity));
 
         // Cleanup
         NotificationLifecycleMgt.RecallAllNotifications();

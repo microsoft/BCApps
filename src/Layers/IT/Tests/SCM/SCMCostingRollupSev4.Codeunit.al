@@ -674,4 +674,3 @@ codeunit 137616 "SCM Costing Rollup Sev 4"
         Assert.ExpectedMessage(ValueEntriesWerePostedTxt, Message);
     end;
 }
-

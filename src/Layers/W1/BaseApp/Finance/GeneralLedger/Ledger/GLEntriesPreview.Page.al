@@ -207,6 +207,18 @@ page 122 "G/L Entries Preview"
                     ApplicationArea = Basic, Suite;
                     Visible = false;
                 }
+                field("Entry No."; Rec."Entry No.")
+                {
+                    ApplicationArea = Basic, Suite;
+                }
+                field("G/L Register No."; Rec."G/L Register No.")
+                {
+                    ApplicationArea = Basic, Suite;
+                }
+                field("Transaction No."; Rec."Transaction No.")
+                {
+                    ApplicationArea = Basic, Suite;
+                }
                 field("Dimension Set ID"; Rec."Dimension Set ID")
                 {
                     ApplicationArea = Dimensions;

@@ -20,5 +20,12 @@
     "allowDownloadingSource": true,
     "includeSourceInSymbolFile": true
   },
+  "internalsVisibleTo": [
+    {
+      "id": "6b247e6a-3229-4ee5-9caa-3b2d7b1d677c",
+      "name": "Envestnet Yodlee Bank Feeds Tests",
+      "publisher": "Microsoft"
+    }
+  ],
   "application": "29.0.0.0"
 }

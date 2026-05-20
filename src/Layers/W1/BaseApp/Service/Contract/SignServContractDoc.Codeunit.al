@@ -68,6 +68,7 @@ codeunit 5944 SignServContractDoc
         Text018: Label 'It is not possible to add new lines to this service contract with the current working date\because it will cause a gap in the invoice period.';
 #pragma warning restore AA0074
         HideDialog: Boolean;
+        NoOfContractsProcessed: Integer;
 #pragma warning disable AA0074
         Text019: Label 'You cannot sign service contract with negative annual amount.';
         Text020: Label 'You cannot sign service contract with zero annual amount when invoice period is different from None.';
@@ -105,7 +106,7 @@ codeunit 5944 SignServContractDoc
 
         FiledServiceContractHeader.FileQuotationBeforeSigning(FromServContractHeader);
 
-        Window.Update(1, 1);
+        UpdateContractProgress();
         WPostLine := 0;
         InvoicingStartingPeriod := false;
         SetInvoicing(FromServContractHeader);
@@ -248,7 +249,7 @@ codeunit 5944 SignServContractDoc
 
         FiledServiceContractHeader.FileQuotationBeforeSigning(ServContractHeader);
 
-        Window.Update(1, 1);
+        UpdateContractProgress();
         WPostLine := 0;
         InvoicingStartingPeriod := false;
         SetInvoicing(ServContractHeader);
@@ -398,7 +399,7 @@ codeunit 5944 SignServContractDoc
 
         FiledServiceContractHeader.FileQuotationBeforeSigning(FromServContractHeader);
 
-        Window.Update(1, 1);
+        UpdateContractProgress();
         WPostLine := 0;
 
         InvoicePrepaid := FromServContractHeader.Prepaid;
@@ -1241,6 +1242,12 @@ codeunit 5944 SignServContractDoc
     [IntegrationEvent(false, false)]
     local procedure OnBeforeToServContractLineInsert(var ToServiceContractLine: Record "Service Contract Line"; FromServiceContractLine: Record "Service Contract Line")
     begin
+    end;
+
+    local procedure UpdateContractProgress()
+    begin
+        NoOfContractsProcessed += 1;
+        Window.Update(1, NoOfContractsProcessed);
     end;
 
     [IntegrationEvent(true, false)]

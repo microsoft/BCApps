@@ -132,7 +132,7 @@ codeunit 5392 "Contoso Inb.Inv. Handler" implements IStructureReceivedEDocument,
 
     local procedure GetDefaultIProcessStructuredDataImplementation(): Interface IProcessStructuredData
     begin
-        exit(Enum::"E-Doc. Process Draft"::"Purchase Document");
+        exit(Enum::"E-Doc. Process Draft"::"Purchase Invoice");
     end;
 
 }

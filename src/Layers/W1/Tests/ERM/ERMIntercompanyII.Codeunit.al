@@ -5774,14 +5774,14 @@ codeunit 134152 "ERM Intercompany II"
         ICOutboxTransaction: Record "IC Outbox Transaction";
         ICPartner: Record "IC Partner";
         FileManagement: Codeunit "File Management";
-        FileNameLbl: Label '%1\%2_1_1.xml', Locked = true;
+        FileNameLbl: Label '%1\%2_%3_1.xml', Locked = true;
     begin
         ICOutboxTransaction.SetFilter("Document No.", DocumentNoFilter);
         ICOutboxTransaction.FindFirst();
         ICPartner.Get(ICOutboxTransaction."IC Partner Code");
         ICOutboxTransaction.ModifyAll("Line Action", ICOutboxTransaction."Line Action"::"Send to IC Partner");
 
-        FileName := StrSubstNo(FileNameLbl, ICPartner."Inbox Details", ICPartner.Code);
+        FileName := StrSubstNo(FileNameLbl, ICPartner."Inbox Details", ICPartner.Code, ICOutboxTransaction."Transaction No.");
         if FileManagement.ServerFileExists(FileName) then
             FileManagement.DeleteServerFile(FileName);
 

@@ -234,6 +234,8 @@ codeunit 560 "CrossIntercompany Connector"
     [TryFunction]
     internal procedure Send(Method: Text; Uri: Text; Content: Text; var HttpResponseBodyText: Text; var ICPartner: Record "IC Partner")
     var
+        ICAPILog: Record "IC API Log";
+        ICAPILogContext: Codeunit "IC API Log Context";
         HttpClient: HttpClient;
         HttpRequestMessage: HttpRequestMessage;
         HttpResponseMessage: HttpResponseMessage;
@@ -245,6 +247,9 @@ codeunit 560 "CrossIntercompany Connector"
 
         HttpClient.Send(HttpRequestMessage, HttpResponseMessage);
         HttpResponseMessage.Content().ReadAs(HttpResponseBodyText);
+
+        ICAPILogContext.RecordLogEntry(ICPartner.Code, ICAPILog.Direction::Outgoing, Method, Uri, Content, HttpResponseBodyText, HttpResponseMessage.HttpStatusCode());
+
         HandleHttpResponse(HttpResponseMessage);
     end;
 

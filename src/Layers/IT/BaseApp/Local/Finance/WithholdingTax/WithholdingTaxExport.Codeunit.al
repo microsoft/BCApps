@@ -253,7 +253,7 @@ codeunit 12132 "Withholding Tax Export"
                     TempWithholdingTaxToExport."Withholding Tax Amount" := 0;
                     TempWithholdingTaxToExport.Reason := TempWithholdingTaxToExport.Reason::" ";
                 end;
-                CreateRecordH(TempWithholdingTaxToExport, TempWithholdingTaxPrevYears, TempContributions, Year, EntryNumber, VendorEntryNumber);
+                CreateRecordH(TempWithholdingTaxToExport, TempWithholdingTaxPrevYears, TempContributions, Year, EntryNumber);
             until TempWithholdingTax.Next() = 0;
     end;
 
@@ -398,7 +398,7 @@ codeunit 12132 "Withholding Tax Export"
               StrSubstNo(CompanyMustHaveFiscalCodeOrVatRegNoErr, CompanyInformation.FieldCaption("Fiscal Code"),
                 CompanyInformation.FieldCaption("VAT Registration No.")));
 
-        WritePositionalValueAmount(18, 8, ConstFormat::NU, FlatFileManagement.GetFileCount(), false); // D-3
+        WritePositionalValueAmount(18, 8, ConstFormat::NU, EntryNumber, false); // D-3
 
         VendorTaxCode := VendorWithholdingTax.GetTaxCode();
         if VendorTaxCode <> '' then
@@ -499,7 +499,7 @@ codeunit 12132 "Withholding Tax Export"
         FlatFileManagement.WriteBlockValue('DA003002', ConstFormat::CB, '1');
     end;
 
-    local procedure CreateRecordH(var TempWithholdingTax: Record "Withholding Tax" temporary; var TempWithholdingTaxPrevYears: Record "Withholding Tax" temporary; var TempContributions: Record Contributions temporary; Year: Integer; EntryNumber: Integer; VendorEntryNumber: Integer)
+    local procedure CreateRecordH(var TempWithholdingTax: Record "Withholding Tax" temporary; var TempWithholdingTaxPrevYears: Record "Withholding Tax" temporary; var TempContributions: Record Contributions temporary; Year: Integer; EntryNumber: Integer)
     var
         VendorWithholdingTax: Record Vendor;
         TaxCode: Code[20];
@@ -528,7 +528,7 @@ codeunit 12132 "Withholding Tax Export"
                 VendorMustHaveFiscalCodeOrVatRegNoErr, VendorWithholdingTax."No.", VendorWithholdingTax.FieldCaption("Fiscal Code"),
                 VendorWithholdingTax.FieldCaption("VAT Registration No.")));
 
-        WritePositionalValueAmount(42, 5, ConstFormat::NU, VendorEntryNumber, false); // H-5
+        WritePositionalValueAmount(42, 5, ConstFormat::NU, EntryNumber, false); // H-5
         FlatFileManagement.WritePositionalValue(47, 17, ConstFormat::NU, '', false); // H-6
         FlatFileManagement.WritePositionalValue(64, 6, ConstFormat::NU, '', false); // H-7
         FlatFileManagement.WritePositionalValue(89, 1, ConstFormat::NU, '', false); // H-11

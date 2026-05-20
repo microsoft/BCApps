@@ -202,6 +202,7 @@ codeunit 136104 "Service Posting - Credit Memo"
         ServiceContractHeader.Get(ServiceContractHeader."Contract Type", ServiceContractHeader."Contract No.");
         ServContractManagement.InitCodeUnit();
         ServContractManagement.CreateInvoice(ServiceContractHeader);
+        ServContractManagement.FinishCodeunit();
         PostServiceInvoice(ServiceContractHeader."Contract No.");
 
         // [WHEN] Create Service Credit Memo by inserting Credit Memo Header and running Get Prepaid Contract Entries.

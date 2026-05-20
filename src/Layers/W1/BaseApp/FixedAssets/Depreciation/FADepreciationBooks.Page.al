@@ -213,10 +213,15 @@ page 5619 "FA Depreciation Books"
                     ApplicationArea = FixedAssets;
                     Visible = BonusDepreciationControlsVisible;
                 }
+                field("Bonus Depreciation %"; Rec."Bonus Depreciation %")
+                {
+                    ApplicationArea = FixedAssets;
+                    Visible = BonusDepreciationControlsVisible;
+                }
                 field("Acquisition Cost"; Rec."Acquisition Cost")
                 {
                     ApplicationArea = FixedAssets;
-                    Visible = true;
+                    Visible = BonusDepreciationControlsVisible;
                 }
                 field("Bonus Depreciation Applied Amount"; Rec."Bonus Depr. Applied Amount")
                 {
@@ -227,7 +232,7 @@ page 5619 "FA Depreciation Books"
                 {
                     Caption = 'Accumulated Depreciation';
                     ApplicationArea = FixedAssets;
-                    Visible = true;
+                    Visible = BonusDepreciationControlsVisible;
                 }
             }
         }

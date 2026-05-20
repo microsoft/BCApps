@@ -32,6 +32,21 @@ codeunit 3305 "Payables Agent Upgrade"
     begin
         RegisterCapability();
         AddBillingTypeToCapability();
+        RegisterTrial();
+    end;
+
+    local procedure RegisterTrial()
+    var
+        PayablesAgent: Codeunit "Payables Agent";
+        PATrial: Codeunit "PA Trial";
+    begin
+        if UpgradeTag.HasUpgradeTag(GetMarkTrialEndedIfPayablesAgentExistsTag()) then
+            exit;
+
+        if PayablesAgent.PayablesAgentExistsAcrossAllCompanies() then
+            PATrial.MarkTrialEnded();
+
+        UpgradeTag.SetUpgradeTag(GetMarkTrialEndedIfPayablesAgentExistsTag());
     end;
 
     local procedure RegisterCapability()
@@ -101,10 +116,16 @@ codeunit 3305 "Payables Agent Upgrade"
         exit('MS-617049-UpdatePayablesAgentSetupToUseUserSecurityId-20260224');
     end;
 
+    local procedure GetMarkTrialEndedIfPayablesAgentExistsTag(): Code[250]
+    begin
+        exit('MS-631300-MarkTrialEndedIfPayablesAgentExists-20260417');
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", OnGetPerDatabaseUpgradeTags, '', false, false)]
     local procedure RegisterPerDatabaseUpgradeTags(var PerDatabaseUpgradeTags: List of [Code[250]])
     begin
         PerDatabaseUpgradeTags.Add(GetAddBillingTypeToPACapabilityTag());
+        PerDatabaseUpgradeTags.Add(GetMarkTrialEndedIfPayablesAgentExistsTag());
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", OnGetPerCompanyUpgradeTags, '', false, false)]

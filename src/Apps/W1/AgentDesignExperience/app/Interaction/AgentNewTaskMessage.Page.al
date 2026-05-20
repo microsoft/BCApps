@@ -375,7 +375,7 @@ page 4359 "Agent New Task Message"
         SaveAsTemplate: Boolean;
         ExternalId: Text[2048];
         MessageExternalId: Text[2048];
-        CreateNewTaskLbl: Label 'Create new task';
+        CreateNewTaskLbl: Label 'Run new task';
         YouMustSetMessageTextErr: Label 'You must set the message text.';
         YouMustSetTaskTitleErr: Label 'You must set the task title.';
         EditTemplateQst: Label 'Template was created. Do you want to edit the template now?';

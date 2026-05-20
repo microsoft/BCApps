@@ -1404,6 +1404,220 @@ codeunit 134252 "Match Bank Reconciliation - UT"
         BankAccReconciliationPage.ApplyBankLedgerEntries."Posting Date".AssertEquals(PostingDate + 1);
     end;
 
+    [Test]
+    [HandlerFunctions('MatchSummaryMsgHandler')]
+    [Scope('OnPrem')]
+    procedure NoAutoMatchWhenAmountFarOffDespiteDocNoMatch()
+    var
+        BankAccReconciliation: Record "Bank Acc. Reconciliation";
+        PostingDate: Date;
+        BankAccountNo: Code[20];
+        StatementNo: Code[20];
+        DocumentNo: Code[20];
+        Description: Text[50];
+        Amount: Decimal;
+        ExpRecLineNo: Integer;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 629803] No match when amount ratio is far off even though document number appears in description
+        Initialize();
+
+        // [GIVEN] Bank ledger entry "BLE" with random amount and document no "D"
+        CreateInputData(PostingDate, BankAccountNo, StatementNo, DocumentNo, Description, Amount);
+        CreateBankAccLedgerEntry(BankAccountNo, PostingDate, DocumentNo, '', Amount, Description);
+
+        // [GIVEN] Bank reconciliation line "BRL" with far-off amount and description equal to "D"
+        CreateBankAccRec(BankAccReconciliation, BankAccountNo, StatementNo);
+        ExpRecLineNo := CreateBankAccRecLine(BankAccReconciliation, PostingDate, CopyStr(DocumentNo, 1, 50), '', Round(Amount / 10, 0.01));
+
+        // [WHEN] Running automatch
+        LibraryVariableStorage.Enqueue(0);
+        LibraryVariableStorage.Enqueue(1);
+        BankAccReconciliation.MatchSingle(0);
+
+        // [THEN] No match is found because amount ratio is too far off
+        VerifyNoMatch(BankAccReconciliation, ExpRecLineNo);
+    end;
+
+    [Test]
+    [HandlerFunctions('MatchSummaryMsgHandler')]
+    [Scope('OnPrem')]
+    procedure AutoMatchExactAmountWithoutTextMatch()
+    var
+        BankAccReconciliation: Record "Bank Acc. Reconciliation";
+        PostingDate: Date;
+        BankAccountNo: Code[20];
+        StatementNo: Code[20];
+        DocumentNo: Code[20];
+        Description: Text[50];
+        Amount: Decimal;
+        ExpMatchedLineNo: Integer;
+        ExpMatchedEntryNo: Integer;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 629803] Exact amount match produces a match even without any text match
+        Initialize();
+
+        // [GIVEN] Bank ledger entry "BLE" with random amount
+        CreateInputData(PostingDate, BankAccountNo, StatementNo, DocumentNo, Description, Amount);
+        ExpMatchedEntryNo := CreateBankAccLedgerEntry(BankAccountNo, PostingDate, DocumentNo, '', Amount, Description);
+
+        // [GIVEN] Bank reconciliation line "BRL" with same amount but no matching text
+        CreateBankAccRec(BankAccReconciliation, BankAccountNo, StatementNo);
+        ExpMatchedLineNo := CreateBankAccRecLine(BankAccReconciliation, PostingDate, '', '', Amount);
+
+        // [WHEN] Running automatch
+        LibraryVariableStorage.Enqueue(1);
+        LibraryVariableStorage.Enqueue(1);
+        BankAccReconciliation.MatchSingle(0);
+
+        // [THEN] Match is found because amount matches exactly
+        VerifyOneToOneMatch(BankAccReconciliation, ExpMatchedLineNo, ExpMatchedEntryNo, Amount);
+    end;
+
+    [Test]
+    [HandlerFunctions('MatchSummaryMsgHandler')]
+    [Scope('OnPrem')]
+    procedure AutoMatchCloseAmountWithDocNoInDescription()
+    var
+        BankAccReconciliation: Record "Bank Acc. Reconciliation";
+        PostingDate: Date;
+        BankAccountNo: Code[20];
+        StatementNo: Code[20];
+        DocumentNo: Code[20];
+        Description: Text[50];
+        Amount: Decimal;
+        ExpMatchedLineNo: Integer;
+        ExpMatchedEntryNo: Integer;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 629803] Close amount with document number in description produces a match
+        Initialize();
+
+        // [GIVEN] Bank ledger entry "BLE" with random amount and document no "D"
+        CreateInputData(PostingDate, BankAccountNo, StatementNo, DocumentNo, Description, Amount);
+        ExpMatchedEntryNo := CreateBankAccLedgerEntry(BankAccountNo, PostingDate, DocumentNo, '', Amount, Description);
+
+        // [GIVEN] Bank reconciliation line "BRL" with close amount and description equal to "D"
+        CreateBankAccRec(BankAccReconciliation, BankAccountNo, StatementNo);
+        ExpMatchedLineNo := CreateBankAccRecLine(BankAccReconciliation, PostingDate, CopyStr(DocumentNo, 1, 50), '', Round(Amount * 0.8, 0.01));
+
+        // [WHEN] Running automatch
+        LibraryVariableStorage.Enqueue(1);
+        LibraryVariableStorage.Enqueue(1);
+        BankAccReconciliation.MatchSingle(0);
+
+        // [THEN] Match is found because amount is close and document number matches in description
+        VerifyOneToOneMatch(BankAccReconciliation, ExpMatchedLineNo, ExpMatchedEntryNo, Amount);
+    end;
+
+    [Test]
+    [HandlerFunctions('MatchSummaryMsgHandler')]
+    [Scope('OnPrem')]
+    procedure NoAutoMatchCloseAmountWithoutTextMatch()
+    var
+        BankAccReconciliation: Record "Bank Acc. Reconciliation";
+        PostingDate: Date;
+        BankAccountNo: Code[20];
+        StatementNo: Code[20];
+        DocumentNo: Code[20];
+        Description: Text[50];
+        Amount: Decimal;
+        ExpRecLineNo: Integer;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 629803] Close amount without any text match produces no match
+        Initialize();
+
+        // [GIVEN] Bank ledger entry "BLE" with random amount
+        CreateInputData(PostingDate, BankAccountNo, StatementNo, DocumentNo, Description, Amount);
+        CreateBankAccLedgerEntry(BankAccountNo, PostingDate, DocumentNo, '', Amount, Description);
+
+        // [GIVEN] Bank reconciliation line "BRL" with close amount but no matching text
+        CreateBankAccRec(BankAccReconciliation, BankAccountNo, StatementNo);
+        ExpRecLineNo := CreateBankAccRecLine(BankAccReconciliation, PostingDate, '', '', Round(Amount * 0.8, 0.01));
+
+        // [WHEN] Running automatch
+        LibraryVariableStorage.Enqueue(0);
+        LibraryVariableStorage.Enqueue(1);
+        BankAccReconciliation.MatchSingle(0);
+
+        // [THEN] No match is found because close amount alone is insufficient without text match
+        VerifyNoMatch(BankAccReconciliation, ExpRecLineNo);
+    end;
+
+    [Test]
+    [HandlerFunctions('MatchSummaryMsgHandler')]
+    [Scope('OnPrem')]
+    procedure AutoMatchCloseAmountWithDocNoInRelatedPartyName()
+    var
+        BankAccReconciliation: Record "Bank Acc. Reconciliation";
+        PostingDate: Date;
+        BankAccountNo: Code[20];
+        StatementNo: Code[20];
+        DocumentNo: Code[20];
+        Description: Text[50];
+        Amount: Decimal;
+        ExpMatchedLineNo: Integer;
+        ExpMatchedEntryNo: Integer;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 629803] Close amount with document number in Related-Party Name produces a match
+        Initialize();
+
+        // [GIVEN] Bank ledger entry "BLE" with random amount and document no "D"
+        CreateInputData(PostingDate, BankAccountNo, StatementNo, DocumentNo, Description, Amount);
+        ExpMatchedEntryNo := CreateBankAccLedgerEntry(BankAccountNo, PostingDate, DocumentNo, '', Amount, Description);
+
+        // [GIVEN] Bank reconciliation line "BRL" with close amount and Related-Party Name equal to "D"
+        CreateBankAccRec(BankAccReconciliation, BankAccountNo, StatementNo);
+        ExpMatchedLineNo := CreateBankAccRecLine(BankAccReconciliation, PostingDate, '', CopyStr(DocumentNo, 1, 50), Round(Amount * 0.8, 0.01));
+
+        // [WHEN] Running automatch
+        LibraryVariableStorage.Enqueue(1);
+        LibraryVariableStorage.Enqueue(1);
+        BankAccReconciliation.MatchSingle(0);
+
+        // [THEN] Match is found because amount is close and document number matches in Related-Party Name
+        VerifyOneToOneMatch(BankAccReconciliation, ExpMatchedLineNo, ExpMatchedEntryNo, Amount);
+    end;
+
+    [Test]
+    [HandlerFunctions('MatchSummaryMsgHandler')]
+    [Scope('OnPrem')]
+    procedure AutoMatchWithEmptyBLEDocNoMatchesOnDescription()
+    var
+        BankAccReconciliation: Record "Bank Acc. Reconciliation";
+        PostingDate: Date;
+        BankAccountNo: Code[20];
+        StatementNo: Code[20];
+        DocumentNo: Code[20];
+        Description: Text[50];
+        Amount: Decimal;
+        ExpMatchedLineNo: Integer;
+        ExpMatchedEntryNo: Integer;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 629803] Exact amount match succeeds when BLE has empty document no but matching description
+        Initialize();
+
+        // [GIVEN] Bank ledger entry "BLE" with random amount, empty document no, and description "X"
+        CreateInputData(PostingDate, BankAccountNo, StatementNo, DocumentNo, Description, Amount);
+        ExpMatchedEntryNo := CreateBankAccLedgerEntry(BankAccountNo, PostingDate, '', '', Amount, Description);
+
+        // [GIVEN] Bank reconciliation line "BRL" with same amount and no matching text
+        CreateBankAccRec(BankAccReconciliation, BankAccountNo, StatementNo);
+        ExpMatchedLineNo := CreateBankAccRecLine(BankAccReconciliation, PostingDate, '', '', Amount);
+
+        // [WHEN] Running automatch
+        LibraryVariableStorage.Enqueue(1);
+        LibraryVariableStorage.Enqueue(1);
+        BankAccReconciliation.MatchSingle(0);
+
+        // [THEN] Match is found because amount matches exactly
+        VerifyOneToOneMatch(BankAccReconciliation, ExpMatchedLineNo, ExpMatchedEntryNo, Amount);
+    end;
+
     local procedure Initialize()
     var
         BankAccReconciliation: Record "Bank Acc. Reconciliation";

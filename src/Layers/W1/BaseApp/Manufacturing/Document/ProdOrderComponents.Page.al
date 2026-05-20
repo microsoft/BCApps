@@ -177,6 +177,11 @@ page 99000818 "Prod. Order Components"
                 {
                     ApplicationArea = Manufacturing;
                 }
+                field("Act. Consumption (Qty)"; Rec."Act. Consumption (Qty)")
+                {
+                    ApplicationArea = Manufacturing;
+                    Caption = 'Consumed Quantity (Base)';
+                }
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;

@@ -122,7 +122,7 @@ codeunit 134784 "Test Transfer Order Post Prev."
         Initialize();
 
         InventorySetup.Get();
-        InventorySetup.Validate("Direct Transfer Posting", InventorySetup."Direct Transfer Posting"::"Receipt and Shipment");
+        InventorySetup.Validate("Direct Transfer Posting Type", InventorySetup."Direct Transfer Posting Type"::"Shipment and Receipt");
         InventorySetup.Modify(true);
 
         // [GIVEN] Create FromLocation, ToLocation and IntransitLocation that will be used to create Transfer Order
@@ -167,7 +167,7 @@ codeunit 134784 "Test Transfer Order Post Prev."
         Initialize();
 
         InventorySetup.Get();
-        InventorySetup.Validate("Direct Transfer Posting", InventorySetup."Direct Transfer Posting"::"Direct Transfer");
+        InventorySetup.Validate("Direct Transfer Posting Type", InventorySetup."Direct Transfer Posting Type"::"Direct Transfer");
         InventorySetup.Modify(true);
 
         // [GIVEN] Create FromLocation, ToLocation and IntransitLocation that will be used to create Transfer Order

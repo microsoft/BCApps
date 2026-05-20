@@ -380,21 +380,12 @@ codeunit 99000878 "Mfg. Create Inventory Put-Away"
     end;
 
     local procedure SetFilterProdCompLine(var ProdOrderComponent: Record "Prod. Order Component"; ProductionOrder: Record "Production Order"; var WarehouseActivityHeader: Record "Warehouse Activity Header"; var WarehouseSourceFilter: Record "Warehouse Source Filter"; CheckLineExist: Boolean; ApplySourceFilters: Boolean): Boolean
-#if not CLEAN26
-    var
-        ManufacturingSetup: Record Microsoft.Manufacturing.Setup."Manufacturing Setup";
-#endif
     begin
         ProdOrderComponent.SetRange(Status, ProductionOrder.Status);
         ProdOrderComponent.SetRange("Prod. Order No.", ProductionOrder."No.");
         if not CheckLineExist then
             ProdOrderComponent.SetRange("Location Code", WarehouseActivityHeader."Location Code");
-#if not CLEAN26
-        if not ManufacturingSetup.IsFeatureKeyFlushingMethodManualWithoutPickEnabled() then
-            ProdOrderComponent.SetFilter(ProdOrderComponent."Flushing Method", '%1|%2', ProdOrderComponent."Flushing Method"::Manual, ProdOrderComponent."Flushing Method"::"Pick + Manual")
-        else
-#endif        
-            ProdOrderComponent.SetRange("Flushing Method", ProdOrderComponent."Flushing Method"::"Pick + Manual");
+        ProdOrderComponent.SetRange("Flushing Method", ProdOrderComponent."Flushing Method"::"Pick + Manual");
         ProdOrderComponent.SetRange("Planning Level Code", 0);
         ProdOrderComponent.SetFilter("Remaining Quantity", '<0');
 

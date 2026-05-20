@@ -964,6 +964,7 @@ codeunit 147200 "ERM VAT Purchase Ledger Corr."
         CustLedgEntry."Entry No." := LibraryUtility.GetNewLineNo(RecRef, CustLedgEntry.FieldNo("Entry No."));
         CustLedgEntry."VAT Entry Type" := VATEntryTypeCode;
         CustLedgEntry.Open := IsOpen;
+        CustLedgEntry."G/L Register No." := 1;
         CustLedgEntry.Insert(true);
     end;
 
@@ -976,6 +977,7 @@ codeunit 147200 "ERM VAT Purchase Ledger Corr."
         VendLedgEntry."Entry No." := LibraryUtility.GetNewLineNo(RecRef, VendLedgEntry.FieldNo("Entry No."));
         VendLedgEntry."VAT Entry Type" := VATEntryTypeCode;
         VendLedgEntry.Open := IsOpen;
+        VendLedgEntry."G/L Register No." := 1;
         VendLedgEntry.Insert(true);
     end;
 

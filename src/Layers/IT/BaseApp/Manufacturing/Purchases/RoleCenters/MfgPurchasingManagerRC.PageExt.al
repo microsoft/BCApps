@@ -5,7 +5,6 @@
 namespace Microsoft.Purchases.RoleCenters;
 
 using Microsoft.Manufacturing.Document;
-using Microsoft.Manufacturing.Journal;
 using Microsoft.Manufacturing.Reports;
 
 pageextension 99000761 "Mfg. Purchasing Manager RC" extends "Purchasing Manager Role Center"
@@ -14,12 +13,19 @@ pageextension 99000761 "Mfg. Purchasing Manager RC" extends "Purchasing Manager 
     {
         addafter("Certificates of Supply")
         {
+#if not CLEAN29
             action("Subcontracting Worksheet")
             {
                 ApplicationArea = Manufacturing;
-                Caption = 'Subcontracting Worksheets';
-                RunObject = page "Subcontracting Worksheet";
+                Caption = 'Subcontracting Worksheets (Obsolete)';
+#pragma warning disable AL0432
+                RunObject = page Microsoft.Manufacturing.Journal."Subcontracting Worksheet";
+#pragma warning restore AL0432
+                ObsoleteReason = 'Will be replaced by the Subcontracting App.';
+                ObsoleteState = Pending;
+                ObsoleteTag = '29.0';
             }
+#endif
         }
         addafter("Jobs")
         {

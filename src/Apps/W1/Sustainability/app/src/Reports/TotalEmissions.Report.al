@@ -168,7 +168,7 @@ report 6212 "Total Emissions"
 
     var
         ReportingUOMCode: Code[10];
-        SustainabilityAccountName, SustLedgDateFilter, RoundingDirection : Text;
+        SustLedgDateFilter, RoundingDirection : Text;
         ShowDetails, UseReportingUOMFactor : Boolean;
         ReportingUOMFactor, RoundingPrecision : Decimal;
         PeriodLbl: Label 'Period: %1', Comment = '%1 - period filter';

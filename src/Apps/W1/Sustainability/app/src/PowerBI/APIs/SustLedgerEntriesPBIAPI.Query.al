@@ -6,6 +6,7 @@ query 6221 "Sust Ledger Entries - PBI API"
 {
     Access = Internal;
     QueryType = API;
+    AboutText = 'Provides access to sustainability ledger entries including emissions data for CO2, CH4, N2O, water and waste intensity, carbon fees, and dimensional breakdowns. Enables Power BI reports to analyze actual environmental impact, track emission trends over time, and generate comprehensive sustainability and carbon footprint reports.';
     Caption = 'Power BI Sustainability Entries';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';

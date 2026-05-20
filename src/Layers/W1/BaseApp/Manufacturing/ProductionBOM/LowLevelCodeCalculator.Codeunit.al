@@ -6,6 +6,7 @@ namespace Microsoft.Inventory.BOM.Tree;
 
 using Microsoft.Inventory.BOM;
 using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Location;
 using Microsoft.Manufacturing.ProductionBOM;
 using System.Threading;
 using System.Utilities;
@@ -88,6 +89,7 @@ codeunit 3687 "Low-Level Code Calculator"
     begin
         // Set nodes on the tree
         PopulateFromItemAndRelatedBOMs(BOMStructure);
+        PopulateFromSKUAndRelatedBOMs(BOMStructure);
         PopulateFromProductionBOMAndLines(BOMStructure);
         PopulateFromBOMComponents(BOMStructure);
     end;
@@ -95,12 +97,14 @@ codeunit 3687 "Low-Level Code Calculator"
     local procedure LockTables()
     var
         Item: Record Item;
+        StockkeepingUnit: Record "Stockkeeping Unit";
         ProductionBOMHeader: Record "Production BOM Header";
         ProductionBOMLine: Record "Production BOM Line";
         ProductionBOMVersion: Record "Production BOM Version";
         BOMComponent: Record "BOM Component";
     begin
         Item.LockTable();
+        StockkeepingUnit.LockTable();
         ProductionBOMHeader.LockTable();
         ProductionBOMLine.LockTable();
         ProductionBOMVersion.LockTable();
@@ -294,6 +298,42 @@ codeunit 3687 "Low-Level Code Calculator"
             exit(true);
 
         exit(VersionManagement.GetBOMVersion(ItemProductionBOMs.Production_BOM_No_, WorkDate(), true) <> '');
+    end;
+
+    local procedure PopulateFromSKUAndRelatedBOMs(BOMStructure: Codeunit "BOM Tree")
+    var
+        StockkeepingUnit: Record "Stockkeeping Unit";
+        Item: Record Item;
+        ProductionBOMHeader: Record "Production BOM Header";
+        VersionManagement: Codeunit VersionManagement;
+        Parent: Codeunit "BOM Node";
+        Child: Codeunit "BOM Node";
+        Progressed: Integer;
+        TotalSKUCount: Integer;
+    begin
+        StockkeepingUnit.SetFilter("Production BOM No.", '<>%1', '');
+        TotalSKUCount := StockkeepingUnit.Count();
+        if TotalSKUCount = 0 then
+            exit;
+
+        if StockkeepingUnit.FindSet() then
+            repeat
+                Progressed += 1;
+                LowLevelCodeParam.ShowDetails(StrSubstNo(RecordDetailsLbl, StockkeepingUnit.TableCaption(), StockkeepingUnit."Item No."), Progressed, TotalSKUCount);
+
+                if Item.Get(StockkeepingUnit."Item No.") and ProductionBOMHeader.Get(StockkeepingUnit."Production BOM No.") then
+                    if (ProductionBOMHeader.Status = ProductionBOMHeader.Status::Certified) or
+                       (VersionManagement.GetBOMVersion(ProductionBOMHeader."No.", WorkDate(), true) <> '')
+                    then begin
+                        Parent.CreateForItem(Item."No.", Item."Low-Level Code", LowLevelCodeParam);
+                        Child.CreateForProdBOM(ProductionBOMHeader."No.", ProductionBOMHeader."Low-Level Code", LowLevelCodeParam);
+
+                        AddChildToParent(BOMStructure, Parent, Child);
+
+                        Clear(Parent);
+                        Clear(Child);
+                    end;
+            until StockkeepingUnit.Next() = 0;
     end;
 
     [IntegrationEvent(false, false)]

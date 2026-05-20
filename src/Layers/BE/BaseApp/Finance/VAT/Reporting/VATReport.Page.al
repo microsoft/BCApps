@@ -449,7 +449,6 @@ page 740 "VAT Report"
     begin
         if Rec."No." <> '' then
             InitPageControllers();
-        IsEditable := Rec.Status = Rec.Status::Open;
     end;
 
     var
@@ -498,6 +497,7 @@ page 740 "VAT Report"
           (Rec.Status = Rec.Status::Closed);
         CalcAndPostVATStatus := Rec.Status = Rec.Status::Accepted;
         ReopenControllerStatus := Rec.Status = Rec.Status::Released;
+        IsEditable := Rec.Status = Rec.Status::Open;
         InitReturnPeriodGroup();
         OnAfterInitPageControllers(Rec, SubmitControllerStatus, MarkAsSubmitControllerStatus, CalcAndPostVATStatus);
     end;

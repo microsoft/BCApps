@@ -342,6 +342,7 @@ report 95 "Date Compress VAT Entries"
         NewVATEntry: Record "VAT Entry";
         VATEntry2: Record "VAT Entry";
         GLEntry: Record "G/L Entry";
+        GLTransaction: Record "G/L Transaction";
         GLEntryVATEntryLink: Record "G/L Entry - VAT Entry Link";
         GLEntryVATEntryLink2: Record "G/L Entry - VAT Entry Link";
         DateComprMgt: Codeunit DateComprMgt;
@@ -428,8 +429,11 @@ report 95 "Date Compress VAT Entries"
         GLEntry."System-Created Entry" := true;
         GLEntry."User ID" := CopyStr(UserId(), 1, MaxStrLen(GLEntry."User ID"));
         GLEntry."Transaction No." := NextTransactionNo;
+        GLEntry."G/L Register No." := GLReg."No.";
         GLEntry.Insert();
         GLEntry.Consistent(GLEntry.Amount = 0);
+        GLTransaction.InsertFromGLEntry(GLEntry, GLReg);
+
         GLReg."To Entry No." := LastGLEntryNo;
         GLReg."To VAT Entry No." := NewVATEntry."Entry No.";
 

@@ -178,7 +178,7 @@ codeunit 200 "Alt. Cust. VAT. Reg. Facade"
             AddFieldChangeBuffer(TempChangeLogEntry, SalesHeader.FieldNo("Gen. Bus. Posting Group"), SalesHeader."Gen. Bus. Posting Group", AltCustVATReg."Gen. Bus. Posting Group");
         if (AltCustVATReg."VAT Bus. Posting Group" <> '') and (SalesHeader."VAT Bus. Posting Group" <> AltCustVATReg."VAT Bus. Posting Group") then
             AddFieldChangeBuffer(TempChangeLogEntry, SalesHeader.FieldNo("VAT Bus. Posting Group"), SalesHeader."VAT Bus. Posting Group", AltCustVATReg."VAT Bus. Posting Group");
-        OnAfterAddTempChangeLogEntryForAltCustVATRegChanges(TempChangeLogEntry, SalesHeader);
+        OnAfterAddTempChangeLogEntryForAltCustVATRegChanges(TempChangeLogEntry, SalesHeader, AltCustVATReg);
     end;
 
     /// <summary>
@@ -243,7 +243,7 @@ codeunit 200 "Alt. Cust. VAT. Reg. Facade"
     /// Integration event raised after adding temporary change log entries for alternative customer VAT registration changes.
     /// </summary>
     [IntegrationEvent(false, false)]
-    local procedure OnAfterAddTempChangeLogEntryForAltCustVATRegChanges(var TempChangeLogEntry: Record "Change Log Entry" temporary; SalesHeader: Record "Sales Header");
+    local procedure OnAfterAddTempChangeLogEntryForAltCustVATRegChanges(var TempChangeLogEntry: Record "Change Log Entry" temporary; SalesHeader: Record "Sales Header"; AltCustVATReg: Record "Alt. Cust. VAT Reg.")
     begin
     end;
 

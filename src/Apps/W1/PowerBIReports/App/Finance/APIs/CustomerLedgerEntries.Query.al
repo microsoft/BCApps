@@ -11,6 +11,7 @@ query 36957 "Customer Ledger Entries"
 {
     Access = Internal;
     QueryType = API;
+    AboutText = 'Provides access to customer ledger entries with detailed entry information including due dates, amounts, payment terms, and application data. Enables Power BI reports to analyze accounts receivable aging, customer payment performance, and cash flow forecasting for receivables management dashboards.';
     Caption = 'Power BI Customer Ledger Entries';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';

@@ -85,9 +85,7 @@ using System.Utilities;
 /// Key integrations: G/L posting routines, dimension management, currency handling, approval workflows, and allocation account processing.
 /// Extensibility: Multiple integration events throughout validation and posting processes enable custom business logic and third-party integrations.
 /// </remarks>
-#pragma warning disable AL0914
 table 81 "Gen. Journal Line"
-#pragma warning restore AL0914
 {
     Caption = 'Gen. Journal Line';
     Permissions = tabledata "Sales Invoice Header" = r,
@@ -6968,7 +6966,7 @@ table 81 "Gen. Journal Line"
 
             if Amount = 0 then begin
                 CustLedgEntry.CalcFields("Remaining Amount");
-                OnGetCustLedgerEntryOnAfterCalcRemainingAmount(CustLedgEntry);
+                OnGetCustLedgerEntryOnAfterCalcRemainingAmount(CustLedgEntry, Rec);
 
                 if "Posting Date" <= CustLedgEntry."Pmt. Discount Date" then
                     Amount := -(CustLedgEntry."Remaining Amount" - CustLedgEntry."Remaining Pmt. Disc. Possible")
@@ -7016,7 +7014,7 @@ table 81 "Gen. Journal Line"
 
             if Amount = 0 then begin
                 VendLedgEntry.CalcFields("Remaining Amount");
-                OnGetVendLedgerEntryOnAfterCalcRemainingAmount(VendLedgEntry);
+                OnGetVendLedgerEntryOnAfterCalcRemainingAmount(VendLedgEntry, Rec);
 
                 if "Posting Date" <= VendLedgEntry."Pmt. Discount Date" then
                     Amount := -(VendLedgEntry."Remaining Amount" - VendLedgEntry."Remaining Pmt. Disc. Possible")
@@ -13899,8 +13897,9 @@ table 81 "Gen. Journal Line"
     /// This event allows developers to add custom logic after the "Remaining Amount" field has been calculated on the Vendor Ledger Entry.
     /// </summary>
     /// <param name="VendorLedgerEntry">The Vendor Ledger Entry record with the calculated "Remaining Amount".</param>
+    /// <param name="GenJournalLine">The Gen. Journal Line record.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnGetVendLedgerEntryOnAfterCalcRemainingAmount(var VendorLedgerEntry: Record "Vendor Ledger Entry")
+    local procedure OnGetVendLedgerEntryOnAfterCalcRemainingAmount(var VendorLedgerEntry: Record "Vendor Ledger Entry"; var GenJournalLine: Record "Gen. Journal Line")
     begin
     end;
 
@@ -13909,8 +13908,9 @@ table 81 "Gen. Journal Line"
     /// This event allows developers to add custom logic after the "Remaining Amount" field has been calculated on the Customer Ledger Entry.
     /// </summary>
     /// <param name="CustLedgerEntry">The Customer Ledger Entry record with the calculated "Remaining Amount".</param>
+    /// <param name="GenJournalLine">The Gen. Journal Line record.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnGetCustLedgerEntryOnAfterCalcRemainingAmount(var CustLedgerEntry: Record "Cust. Ledger Entry")
+    local procedure OnGetCustLedgerEntryOnAfterCalcRemainingAmount(var CustLedgerEntry: Record "Cust. Ledger Entry"; var GenJournalLine: Record "Gen. Journal Line")
     begin
     end;
 

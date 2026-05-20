@@ -617,7 +617,18 @@ codeunit 99000837 "Prod. Order Line-Reserve"
     var
         ProdOrderLine: Record "Prod. Order Line";
     begin
-        ProdOrderLine.Get(ReservationEntry."Source Subtype", ReservationEntry."Source ID", ReservationEntry."Source Prod. Order Line");
+        if not ProdOrderLine.Get(ReservationEntry."Source Subtype", ReservationEntry."Source ID", ReservationEntry."Source Prod. Order Line") then begin
+            ProdOrderLine.Init();
+            ProdOrderLine.Status := Enum::"Production Order Status".FromInteger(ReservationEntry."Source Subtype");
+            ProdOrderLine."Prod. Order No." := ReservationEntry."Source ID";
+            ProdOrderLine."Line No." := ReservationEntry."Source Prod. Order Line";
+            ProdOrderLine."Item No." := ReservationEntry."Item No.";
+            ProdOrderLine."Variant Code" := ReservationEntry."Variant Code";
+            SourceRecordRef.GetTable(ProdOrderLine);
+            OnAfterGetSourceValue(ReservationEntry, SourceRecordRef, ReturnOption);
+            exit(0);
+        end;
+
         SourceRecordRef.GetTable(ProdOrderLine);
         case ReturnOption of
             ReturnOption::"Net Qty. (Base)":

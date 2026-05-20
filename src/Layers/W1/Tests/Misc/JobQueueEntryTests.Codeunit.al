@@ -585,7 +585,7 @@ codeunit 139018 "Job Queue Entry Tests"
         CreateJobQueueEntry(JobQueueEntry, JobQueueEntry.Status::Ready);
         JobQueueEntry."Object Type to Run" := JobQueueEntry."Object Type to Run"::Codeunit;
         JobQueueEntry."Object ID to Run" := Codeunit::"Notification Entry Dispatcher";
-        JobQueueEntry."Starting Time" := DT2Time(CurrentDateTime + 3600000);
+        JobQueueEntry."Starting Time" := GetSafeTimeAfterCurrent();
         JobQueueEntry.Modify(true);
 
         JobQueueLogEntry.DeleteAll();
@@ -597,7 +597,7 @@ codeunit 139018 "Job Queue Entry Tests"
         Assert.AreEqual(0, JobQueueLogEntry.Count(), 'Job queue entry should not have been run');
 
         JobQueueEntry.Get(JobQueueEntry.ID);
-        JobQueueEntry."Starting Time" := DT2Time(CurrentDateTime - 3600000);
+        JobQueueEntry."Starting Time" := GetSafeTimeBeforeCurrent();
         JobQueueEntry.Modify(true);
 
         // [WHEN] The job queue entry is run
@@ -619,7 +619,7 @@ codeunit 139018 "Job Queue Entry Tests"
         CreateJobQueueEntry(JobQueueEntry, JobQueueEntry.Status::Ready);
         JobQueueEntry."Object Type to Run" := JobQueueEntry."Object Type to Run"::Codeunit;
         JobQueueEntry."Object ID to Run" := Codeunit::"Notification Entry Dispatcher";
-        JobQueueEntry."Ending Time" := DT2Time(CurrentDateTime - 3600000);
+        JobQueueEntry."Ending Time" := GetSafeTimeBeforeCurrent();
         JobQueueEntry.Modify(true);
 
         JobQueueLogEntry.DeleteAll();
@@ -631,7 +631,7 @@ codeunit 139018 "Job Queue Entry Tests"
         Assert.AreEqual(0, JobQueueLogEntry.Count(), 'Job queue entry should not have been run');
 
         JobQueueEntry.Get(JobQueueEntry.ID);
-        JobQueueEntry."Ending Time" := DT2Time(CurrentDateTime + 3600000);
+        JobQueueEntry."Ending Time" := GetSafeTimeAfterCurrent();
         JobQueueEntry.Modify(true);
 
         // [WHEN] The job queue entry is run
@@ -667,6 +667,87 @@ codeunit 139018 "Job Queue Entry Tests"
             Error('Error Message Register Id must be null');
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure FinalizeLogEntryDeletedLogEntryReinserts()
+    var
+        JobQueueEntry: Record "Job Queue Entry";
+        JobQueueLogEntry: Record "Job Queue Log Entry";
+        EntryNo: Integer;
+    begin
+        // [FEATURE] [Job Queue Entry] [Job Queue Log Entry]
+        // [SCENARIO 626630] FinalizeLogEntry should handle the case when the log entry was deleted
+        // between InsertLogEntry and FinalizeLogEntry
+
+        // [GIVEN] A Job Queue Entry in "In Process" status
+        JobQueueEntry.Init();
+        JobQueueEntry.Status := JobQueueEntry.Status::"In Process";
+        JobQueueEntry."User Session Started" := CurrentDateTime();
+        JobQueueEntry."Object Type to Run" := JobQueueEntry."Object Type to Run"::Codeunit;
+        JobQueueEntry."Object ID to Run" := Codeunit::"Notification Entry Dispatcher";
+        JobQueueEntry.Insert(true);
+
+        // [GIVEN] A Job Queue Log Entry inserted for this entry
+        JobQueueEntry.InsertLogEntry(JobQueueLogEntry);
+        Commit();
+        EntryNo := JobQueueLogEntry."Entry No.";
+
+        // [GIVEN] The log entry is deleted externally (simulating another session)
+        JobQueueLogEntry.Delete();
+        Commit();
+
+        // [WHEN] FinalizeLogEntry is called on the now-deleted log entry
+        // [THEN] The log entry should be recreated via Insert (not error out)
+        JobQueueEntry.FinalizeLogEntry(JobQueueLogEntry);
+
+        // [THEN] The log entry exists in the database with Success status and End Date/Time set
+        JobQueueLogEntry.Get(EntryNo);
+        JobQueueLogEntry.TestField(Status, JobQueueLogEntry.Status::Success);
+        Assert.AreNotEqual(0DT, JobQueueLogEntry."End Date/Time", 'End Date/Time should be set after finalization');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure FinalizeLogEntryStaleRecordRefreshes()
+    var
+        JobQueueEntry: Record "Job Queue Entry";
+        JobQueueLogEntry: Record "Job Queue Log Entry";
+        JobQueueLogEntry2: Record "Job Queue Log Entry";
+        EntryNo: Integer;
+    begin
+        // [FEATURE] [Job Queue Entry] [Job Queue Log Entry]
+        // [SCENARIO 626630] FinalizeLogEntry should Get the latest record from the database
+        // before calling Modify to avoid stale record version conflicts
+
+        // [GIVEN] A Job Queue Entry in "In Process" status
+        JobQueueEntry.Init();
+        JobQueueEntry.Status := JobQueueEntry.Status::"In Process";
+        JobQueueEntry."User Session Started" := CurrentDateTime();
+        JobQueueEntry."Object Type to Run" := JobQueueEntry."Object Type to Run"::Codeunit;
+        JobQueueEntry."Object ID to Run" := Codeunit::"Notification Entry Dispatcher";
+        JobQueueEntry.Insert(true);
+
+        // [GIVEN] A Job Queue Log Entry inserted for this entry
+        JobQueueEntry.InsertLogEntry(JobQueueLogEntry);
+        Commit();
+        EntryNo := JobQueueLogEntry."Entry No.";
+
+        // [GIVEN] The log entry is modified externally (simulating another session or event subscriber)
+        JobQueueLogEntry2.Get(EntryNo);
+        JobQueueLogEntry2.Description := 'Modified externally';
+        JobQueueLogEntry2.Modify(true);
+        Commit();
+
+        // [WHEN] FinalizeLogEntry is called with the stale in-memory record
+        // [THEN] No error occurs because Get refreshes the record before Modify
+        JobQueueEntry.FinalizeLogEntry(JobQueueLogEntry);
+
+        // [THEN] The log entry has Success status and End Date/Time
+        JobQueueLogEntry.Get(EntryNo);
+        JobQueueLogEntry.TestField(Status, JobQueueLogEntry.Status::Success);
+        Assert.AreNotEqual(0DT, JobQueueLogEntry."End Date/Time", 'End Date/Time should be set after finalization');
+    end;
+
     local procedure CreateJobQueueEntry(var JobQueueEntry: Record "Job Queue Entry"; InitialStatus: Option)
     begin
         JobQueueEntry.Init();
@@ -682,6 +763,20 @@ codeunit 139018 "Job Queue Entry Tests"
         JobQueueEntry.Find();
         JobQueueEntry.TestField(Status, JobQueueEntry.Status::Error);
         JobQueueEntry.TestField("Error Message", ExpectedErrorMessage);
+    end;
+
+    local procedure GetSafeTimeAfterCurrent(): Time
+    begin
+        if DT2Time(CurrentDateTime) >= 230000T then
+            exit(235959T);
+        exit(DT2Time(CurrentDateTime + 3600000));
+    end;
+
+    local procedure GetSafeTimeBeforeCurrent(): Time
+    begin
+        if DT2Time(CurrentDateTime) <= 010000T then
+            exit(000001T);
+        exit(DT2Time(CurrentDateTime - 3600000));
     end;
 
     [PageHandler]

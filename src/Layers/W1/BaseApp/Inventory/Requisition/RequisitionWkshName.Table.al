@@ -128,5 +128,10 @@ table 245 "Requisition Wksh. Name"
         LocalApprovalEntriesExistSentByCurrentUser := ApprovalsMgmt.HasApprovalEntriesSentByCurrentUser(RequisitionWkshName.RecordId());
         EnabledWorksheetBatchWorkflowsExist := WorkflowManagement.EnabledWorkflowExist(Database::"Requisition Wksh. Name", WorkflowEventHandling.RunWorkflowOnSendRequisitionWkshBatchForApprovalCode());
     end;
+
+    [IntegrationEvent(true, false)]
+    procedure OnMoveRequisitionWkshBatch(ToRecordID: RecordId)
+    begin
+    end;
 }
 

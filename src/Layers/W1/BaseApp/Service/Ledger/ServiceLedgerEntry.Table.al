@@ -7,6 +7,7 @@ namespace Microsoft.Service.Ledger;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
@@ -256,8 +257,8 @@ table 5907 "Service Ledger Entry"
         field(40; "Job No."; Code[20])
         {
             Caption = 'Project No.';
+            TableRelation = Job."No.";
             ToolTip = 'Specifies the number of the related project.';
-            TableRelation = Job."No." where("Bill-to Customer No." = field("Bill-to Customer No."));
         }
         field(41; "Gen. Bus. Posting Group"; Code[20])
         {
@@ -366,6 +367,13 @@ table 5907 "Service Ledger Entry"
             Caption = 'External Document No.';
             ToolTip = 'Specifies a document number that refers to the customer''s numbering system.';
         }
+        field(95; "Service Register No."; Integer)
+        {
+            Caption = 'Service Register No.';
+            Editable = false;
+            TableRelation = "Service Register";
+            ToolTip = 'Specifies the service register number that this entry belongs to.';
+        }
         field(480; "Dimension Set ID"; Integer)
         {
             Caption = 'Dimension Set ID';
@@ -472,6 +480,9 @@ table 5907 "Service Ledger Entry"
         {
             SumIndexFields = "Amount (LCY)", "Cost Amount", Quantity, "Charged Qty.";
         }
+        key(Key9; "Service Register No.")
+        {
+        }
     }
 
     fieldgroups
@@ -484,6 +495,18 @@ table 5907 "Service Ledger Entry"
     var
         ServOrderMgt: Codeunit ServOrderManagement;
         DimMgt: Codeunit DimensionManagement;
+
+    /// <summary>
+    /// Gets the next entry number for the Service Ledger Entry table.
+    /// </summary>
+    /// <returns>The next available entry number.</returns>
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Service Ledger Entry", 'r')]
+    procedure GetNextEntryNo(): Integer
+    var
+        SequenceNoMgt: Codeunit "Sequence No. Mgt.";
+    begin
+        exit(SequenceNoMgt.GetNextSeqNo(DATABASE::"Service Ledger Entry"));
+    end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"Service Ledger Entry", 'r')]
     procedure GetLastEntryNo(): Integer;

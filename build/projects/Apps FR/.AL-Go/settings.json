@@ -5,6 +5,7 @@
   "appFolders": [
     "../../../src/Apps/FR/ContosoCoffeeDemoDatasetFR/app",
     "../../../src/Apps/FR/EDocument_FR/demo data",
+    "../../../src/Apps/FR/EDocument_FR/EReportingFR/app",
     "../../../src/Apps/FR/FAReportsFR/app",
     "../../../src/Apps/FR/FECAuditFile/app",
     "../../../src/Apps/FR/HybridBCLast_FR/app",
@@ -55,6 +56,7 @@
     "../../../src/Apps/W1/External File Storage - Azure File Service Connector/App",
     "../../../src/Apps/W1/External File Storage - SFTP Connector/App",
     "../../../src/Apps/W1/External File Storage - SharePoint Connector/App",
+    "../../../src/Apps/W1/External Storage - Document Attachments/App",
     "../../../src/Apps/W1/ExternalEvents/app",
     "../../../src/Apps/W1/FieldServiceIntegration/app",
     "../../../src/Apps/W1/HybridAPI/app",
@@ -119,6 +121,7 @@
     "../../../src/Tools/Test Framework/Test Stability Tools/Prevent Metadata Updates"
   ],
   "testFolders": [
+    "../../../src/Apps/FR/EDocument_FR/EReportingFR/test",
     "../../../src/Apps/FR/FAReportsFR/test",
     "../../../src/Apps/FR/FECAuditFile/test",
     "../../../src/Apps/FR/IntrastatFR/test",
@@ -192,6 +195,7 @@
     "../../../src/Apps/W1/Subcontracting/Test",
     "../../../src/Apps/W1/Subscription Billing/Test",
     "../../../src/Apps/W1/Sustainability/test",
+    "../../../src/Apps/W1/SustainabilityCopilotSuggestion/test",
     "../../../src/Apps/W1/VATGroupManagement/test",
     "../../../src/Apps/W1/WithholdingTax/test",
     "../../../src/Business Foundation/Test",

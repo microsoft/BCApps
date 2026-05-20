@@ -31,7 +31,12 @@ codeunit 10860 "Payment Management"
     ObsoleteTag = '28.0';
 
     trigger OnRun()
+    var
+        IsHandled: Boolean;
     begin
+        OnBeforeRun(IsHandled);
+        if IsHandled then
+            exit;
         CreatePaymentHeaders();
     end;
 
@@ -1192,6 +1197,11 @@ codeunit 10860 "Payment Management"
 
     [IntegrationEvent(false, false)]
     local procedure OnSetPostingGroupOnBeforeCheckPostingGroup(var PaymentLine: Record "Payment Line"; var StepLedger: record "Payment Step Ledger"; var PostingGroup: Code[20])
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeRun(var IsHandled: Boolean)
     begin
     end;
 }

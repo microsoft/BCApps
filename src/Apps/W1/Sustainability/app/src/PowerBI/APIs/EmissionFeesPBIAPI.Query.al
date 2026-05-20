@@ -6,6 +6,7 @@ query 6211 "Emission Fees - PBI API"
 {
     Access = Internal;
     QueryType = API;
+    AboutText = 'Provides access to emission fee configurations including emission types, scope types, carbon fees, and carbon equivalent factors by date range and region. Enables Power BI reports to analyze carbon pricing, calculate emission costs, and support environmental compliance reporting.';
     Caption = 'Power BI Emission Fees';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';

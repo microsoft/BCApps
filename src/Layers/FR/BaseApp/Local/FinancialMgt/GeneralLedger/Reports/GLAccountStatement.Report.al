@@ -33,7 +33,7 @@ report 10842 "G/L Account Statement"
             column(GLAccTableCaptionFilter; "G/L Account".TableCaption + ' : ' + Filter)
             {
             }
-            column(ApplicationStatus; StrSubstNo(Text005, SelectStr(ApplicationStatus + 1, Text006)))
+            column(ApplicationStatus; StrSubstNo(Text005, GLEntriesStatus()))
             {
             }
             column(EvaluationDateStr; StrSubstNo(Text004, EvaluationDateStr))
@@ -145,10 +145,18 @@ report 10842 "G/L Account Statement"
                 }
 
                 trigger OnAfterGetRecord()
+                var
+                    GLEntryCopy: Record "G/L Entry";
+                    Skip: Boolean;
                 begin
                     TotalDebit := TotalDebit + "Debit Amount";
                     TotalCredit := TotalCredit + "Credit Amount";
                     TotalBalance := TotalBalance + "Debit Amount" - "Credit Amount";
+
+                    GLEntryCopy := "G/L Entry";
+                    GLEntryCopy.OnSkipGLEntryByReviewStatus(GLEntryCopy, ReviewStatus, EvaluationDate, Skip);
+                    if Skip then
+                        CurrReport.Skip();
 
                     if EvaluationDate <> 0D then
                         case ApplicationStatus of
@@ -217,9 +225,16 @@ report 10842 "G/L Account Statement"
                     field(GLEntries; ApplicationStatus)
                     {
                         ApplicationArea = Basic, Suite;
-                        Caption = 'G/L Entries';
+                        Caption = 'Application Status';
                         OptionCaption = 'All,Applied,Not Applied';
                         ToolTip = 'Specifies which general ledger entries to include in the report. Choose Applied to include only fully-applied entries. Choose Not Applied to exclude fully-applied entries. Choose All to include all entries.';
+                    }
+                    field(GLEntriesReviewStatus; ReviewStatus)
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Caption = 'Review Status';
+                        OptionCaption = 'All,Reviewed,Not Reviewed';
+                        ToolTip = 'Specifies which general ledger entries to include in the report. Choose Reviewed to include only reviewed entries. Choose Not Reviewed to exclude reviewed entries. Choose All to include all entries.';
                     }
                 }
             }
@@ -240,11 +255,26 @@ report 10842 "G/L Account Statement"
         EvaluationDateStr := '';
     end;
 
+    local procedure GLEntriesStatus(): Text
+    begin
+        if (ApplicationStatus <> ApplicationStatus::All) and (ReviewStatus = ReviewStatus::All) then
+            exit(SelectStr(ApplicationStatus + 1, Text006));
+
+        if (ApplicationStatus = ApplicationStatus::All) and (ReviewStatus <> ReviewStatus::All) then
+            exit(SelectStr(ReviewStatus + 1, ReviewStatusTxt));
+
+        if (ApplicationStatus <> ApplicationStatus::All) and (ReviewStatus <> ReviewStatus::All) then
+            exit(StrSubstNo('%1, %2', SelectStr(ApplicationStatus + 1, Text006), SelectStr(ReviewStatus + 1, ReviewStatusTxt)));
+
+        exit(AllTxt);
+    end;
+
     var
         Text001: Label 'Printed by %1';
         "Filter": Text;
         EvaluationDateStr: Text;
         ApplicationStatus: Option All,Applied,"Not Applied";
+        ReviewStatus: Option All,Reviewed,"Not Reviewed";
         EvaluationDate: Date;
         GLAccBalance: Decimal;
         TotalDebit: Decimal;
@@ -254,6 +284,8 @@ report 10842 "G/L Account Statement"
         Text004: Label 'Evaluation date : %1';
         Text005: Label 'G/L entries : %1';
         Text006: Label 'All,Applied,Not Applied';
+        ReviewStatusTxt: Label 'All,Reviewed,Not Reviewed';
+        AllTxt: Label 'All';
         GLBaljustificationCaptionLbl: Label 'G/L balance justification';
         LetterCaptionLbl: Label 'Letter';
         BalanceCaptionLbl: Label 'Balance';

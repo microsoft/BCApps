@@ -22,12 +22,15 @@ pageextension 99001518 "Subc. Item Card" extends "Item Card"
                 RunPageView = sorting("Vendor No.", "Item No.", "Standard Task Code", "Work Center No.", "Variant Code", "Starting Date", "Unit of Measure Code", "Minimum Quantity", "Currency Code");
                 ToolTip = 'Set up different prices for the item in subcontracting.';
             }
+        }
+        addlast(Functions)
+        {
             action(CreatePurchProvProdBOMRtng)
             {
                 ApplicationArea = Manufacturing;
-                Caption = 'Create purchase provision Prod. BOM/Routing';
+                Caption = 'Create Prod. BOM/Routing';
                 Image = CreateForm;
-                ToolTip = 'Create Production BOM and/or Routing BOM with purchase provision options.';
+                ToolTip = 'Create a Production BOM and/or Routing for the item.';
                 trigger OnAction()
                 var
                     SubcCreateProdRtngExt: Codeunit "Subc. Create Prod. Rtng. Ext.";

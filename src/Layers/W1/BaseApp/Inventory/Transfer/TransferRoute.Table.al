@@ -7,6 +7,7 @@ namespace Microsoft.Inventory.Transfer;
 using Microsoft.Foundation.Calendar;
 using Microsoft.Foundation.Shipping;
 using Microsoft.Inventory.Location;
+using Microsoft.Inventory.Setup;
 
 table 5742 "Transfer Route"
 {
@@ -51,6 +52,28 @@ table 5742 "Transfer Route"
             ToolTip = 'Specifies the code for the service, such as a one-day delivery, that is offered by the shipping agent.';
             TableRelation = "Shipping Agent Services".Code where("Shipping Agent Code" = field("Shipping Agent Code"));
         }
+        field(7; "Direct Transfer"; Boolean)
+        {
+            Caption = 'Direct Transfer';
+            ToolTip = 'Specifies whether the transfer order is a direct transfer. Direct transfers move inventory directly between locations without using an in-transit location.';
+
+            trigger OnValidate()
+            var
+                InventorySetup: Record "Inventory Setup";
+            begin
+                if Rec."Direct Transfer" then begin
+                    InventorySetup.SetLoadFields("Direct Transfer Posting Type");
+                    InventorySetup.Get();
+                    Rec."Direct Transfer Posting" := InventorySetup."Direct Transfer Posting Type";
+                end else
+                    Rec."Direct Transfer Posting" := Rec."Direct Transfer Posting"::" ";
+            end;
+        }
+        field(8; "Direct Transfer Posting"; Enum "Direct Transfer Posting Type")
+        {
+            Caption = 'Direct Transfer Posting';
+            ToolTip = 'Specifies the posting type for direct transfer.';
+        }
     }
 
     keys
@@ -78,6 +101,14 @@ table 5742 "Transfer Route"
 
     procedure GetTransferRoute(TransferFromCode: Code[10]; TransferToCode: Code[10]; var InTransitCode: Code[10]; var ShippingAgentCode: Code[10]; var ShippingAgentServiceCode: Code[10])
     var
+        DirectTransfer: Boolean;
+        DirectTransferPostingType: Enum "Direct Transfer Posting Type";
+    begin
+        GetTransferRoute(TransferFromCode, TransferToCode, InTransitCode, ShippingAgentCode, ShippingAgentServiceCode, DirectTransfer, DirectTransferPostingType);
+    end;
+
+    internal procedure GetTransferRoute(TransferFromCode: Code[10]; TransferToCode: Code[10]; var InTransitCode: Code[10]; var ShippingAgentCode: Code[10]; var ShippingAgentServiceCode: Code[10]; var DirectTransfer: Boolean; var DirectTransferPostingType: Enum "Direct Transfer Posting Type")
+    var
         HasGotRecord: Boolean;
         IsHandled: Boolean;
     begin
@@ -88,18 +119,43 @@ table 5742 "Transfer Route"
 
         if ("Transfer-from Code" <> TransferFromCode) or
            ("Transfer-to Code" <> TransferToCode)
-        then
+        then begin
             if Get(TransferFromCode, TransferToCode) then
                 HasGotRecord := true;
+        end else
+            HasGotRecord := true;
 
         if HasGotRecord then begin
             InTransitCode := "In-Transit Code";
             ShippingAgentCode := "Shipping Agent Code";
             ShippingAgentServiceCode := "Shipping Agent Service Code";
+            DirectTransfer := "Direct Transfer";
+            DirectTransferPostingType := Rec."Direct Transfer Posting";
         end else begin
             InTransitCode := '';
             ShippingAgentCode := '';
             ShippingAgentServiceCode := '';
+            DirectTransfer := false;
+            DirectTransferPostingType := "Direct Transfer Posting Type"::" ";
+        end;
+    end;
+
+    internal procedure GetTransferRoute(TransferFromCode: Code[10]; TransferToCode: Code[10]; var DirectTransfer: Boolean; var DirectTransferPostingType: Enum "Direct Transfer Posting Type")
+    var
+        HasGotRecord: Boolean;
+    begin
+        if ("Transfer-from Code" <> TransferFromCode) or
+           ("Transfer-to Code" <> TransferToCode)
+        then
+            if Get(TransferFromCode, TransferToCode) then
+                HasGotRecord := true;
+
+        if HasGotRecord then begin
+            DirectTransfer := "Direct Transfer";
+            DirectTransferPostingType := Rec."Direct Transfer Posting";
+        end else begin
+            DirectTransfer := false;
+            DirectTransferPostingType := "Direct Transfer Posting Type"::" ";
         end;
     end;
 

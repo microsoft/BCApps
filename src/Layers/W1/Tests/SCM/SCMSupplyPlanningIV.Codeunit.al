@@ -46,16 +46,23 @@ codeunit 137077 "SCM Supply Planning -IV"
         RequisitionLineQtyErr: Label 'The Quantity of component Item on Requisition Line is not correct.';
         RequisitionLineExistenceErr: Label 'Requisition Line expected to %1 for Item %2 and Location %3', Comment = '%1 = "Exist/Not exist", %2 = Item No., %3 = Location code';
         ReqLineExpectedTo: Option "Not Exist",Exist;
+#if not CLEAN29
         RequisitionLineProdOrderErr: Label '"Prod Order No." should be same as Released Production Order';
+#endif
         CloseBOMVersionsQst: Label 'All versions attached to the BOM will be closed';
         NotAllItemsPlannedMsg: Label 'Not all items were planned. A total of %1 items were not planned.', Comment = '%1 = count of items not planned';
+#if not CLEAN29
         PeriodType: Option Day,Week,Month,Quarter,Year,Period;
         AmountType: Option "Net Change","Balance at Date";
         AppliesToEntryMissingErr: Label 'Applies-to Entry must have a value';
         ItemNoErr: Label 'Item No. must be equal';
+#endif
         AmountErr: Label '%1 must be equal to %2', Comment = '%1 = Cost Amount, %2 = Expected Amount';
+#if not CLEAN29
         DimSetIDErr: Label 'Dimension set id on Requisition Line does not match the updated dimension set id on production order line.';
+#endif
         AssemblyOrderCreatedErr: Label 'The assembly order has been created.';
+        SurplusReservationEntryDuplicateErr: Label 'Surplus reservation entry count should not change after planning - no duplicates should be created.';
 
     [Test]
     [Scope('OnPrem')]
@@ -642,7 +649,7 @@ codeunit 137077 "SCM Supply Planning -IV"
         RequisitionLine.TestField("Production BOM No.", ProductionBOMHeader."No.");
         RequisitionLine.TestField("Routing No.", RoutingHeader."No.");
     end;
-
+#if not CLEAN29
     [Test]
     [Scope('OnPrem')]
     procedure CalcSubcontractOrderForReleasedProdOrder()
@@ -906,7 +913,7 @@ codeunit 137077 "SCM Supply Planning -IV"
         VerifyRequisitionLineWithOperationNoForSubcontractingWorksheet(
           ProductionOrder, WorkCenter, Item."No.", RoutingLine2."Operation No.");
     end;
-
+#endif
     [Test]
     [Scope('OnPrem')]
     procedure CalcPlanReqWkshWithCarryOutOrderItemVendorNoError()
@@ -1578,7 +1585,7 @@ codeunit 137077 "SCM Supply Planning -IV"
         // Verify: Verify Starting Time and Ending Time on Planning Worksheet is according to Manufacturing Setup.
         VerifyRequisitionLineStartingAndEndingTime(ChildItemNo);
     end;
-
+#if not CLEAN29
     [Test]
     [Scope('OnPrem')]
     procedure CalcSubcontractOrderAndCarryOutForReleasedProdOrderWithLocation()
@@ -1622,7 +1629,7 @@ codeunit 137077 "SCM Supply Planning -IV"
         // the value of Projected Available Balance equal to ProductionOrder.Quantity on the line that Period Start is WORKDATE
         VerifyItemAvailabilityByPeriod(Item, 0, ProductionOrder.Quantity, ProductionOrder.Quantity);
     end;
-
+#endif
     [Test]
     [HandlerFunctions('MessageHandler,CheckProdOrderStatusPageHandler')]
     [Scope('OnPrem')]
@@ -1803,7 +1810,7 @@ codeunit 137077 "SCM Supply Planning -IV"
         UpdInvSetupLocMandatory(PrevLocMandatory);
         UpdateSetupComponentsAtLocation(PrevComponentsAtLocation);
     end;
-
+#if not CLEAN29
     [Test]
     [Scope('OnPrem')]
     procedure RequisitionLineIsDeletedWhileCalculatingWorksheetForDifferentBatch()
@@ -1840,7 +1847,7 @@ codeunit 137077 "SCM Supply Planning -IV"
         // [THEN] Requisition Worksheet Line "Y" = "X" is created. Line "X" is deleted from Batch "A".
         VerifyRequisitionLineForTwoBatches(RequisitionWkshName.Name, RequisitionWkshName2.Name, Item."No.", ProductionOrder."No.");
     end;
-
+#endif
     [Test]
     [Scope('OnPrem')]
     procedure ReservationDeletedWhenDeletingProdOrderLine()
@@ -1978,7 +1985,7 @@ codeunit 137077 "SCM Supply Planning -IV"
         RequisitionLine[2].TestField("Starting Date-Time", RequisitionLine[1]."Starting Date-Time");
         RequisitionLine[2].TestField("Ending Date-Time", RequisitionLine[1]."Ending Date-Time");
     end;
-
+#if not CLEAN29
     [Test]
     [Scope('OnPrem')]
     procedure CalcChangeSubcontractOrderWithExistingPurchase()
@@ -2016,7 +2023,7 @@ codeunit 137077 "SCM Supply Planning -IV"
         // [THEN] Quantity changed.
         RequisitionLine.TestField(Quantity, NewQty);
     end;
-
+#endif
     [Test]
     [Scope('OnPrem')]
     procedure RegenerativePlanWithFixedReorderQtyConsidersLeadTimeCalculation()
@@ -2178,7 +2185,7 @@ codeunit 137077 "SCM Supply Planning -IV"
         asserterror PlanningWorksheet.CalculateRegenerativePlan.Invoke();
         Assert.ExpectedTestFieldError(ProductionBOMHeader.FieldCaption(Status), Format(ProductionBOMHeader.Status::Certified));
     end;
-
+#if not CLEAN29
     [Test]
     [Scope('OnPrem')]
     procedure SubcontractPurchHeaderNotSavedWhenLineCreationFails()
@@ -2268,7 +2275,7 @@ codeunit 137077 "SCM Supply Planning -IV"
           "Cost Amount (Expected)",
           Round(ProdOrderLine."Unit Cost" * PurchaseLine.Quantity, LibraryERM.GetAmountRoundingPrecision()));
     end;
-
+#endif
     [Test]
     [Scope('OnPrem')]
     procedure PlanWorksheetCarryOutActionSeveralLinesWithSamePurchasingCode()
@@ -3311,7 +3318,7 @@ codeunit 137077 "SCM Supply Planning -IV"
         RequisitionLine.SetRange("Ref. Order No.", ProdOrderLine."Prod. Order No.");
         Assert.RecordIsEmpty(RequisitionLine);
     end;
-
+#if not CLEAN29
     [Test]
     [Scope('OnPrem')]
     procedure ProductionOrderValueEntryRelatedGLProdOrderNo()
@@ -3360,7 +3367,7 @@ codeunit 137077 "SCM Supply Planning -IV"
                 until GLItemLedgerRelation.Next() = 0;
         until ValueEntry.Next() = 0;
     end;
-
+#endif
     [Test]
     procedure DirectUnitCostInPlannedPurchaseOrderCorrespondsOrderDate()
     var
@@ -3438,7 +3445,7 @@ codeunit 137077 "SCM Supply Planning -IV"
 
         // [GIVEN] Transfer header, transfer line with filled shortcut dimensions
         InventorySetup.Get();
-        InventorySetup."Direct Transfer Posting" := InventorySetup."Direct Transfer Posting"::"Direct Transfer";
+        InventorySetup."Direct Transfer Posting Type" := InventorySetup."Direct Transfer Posting Type"::"Direct Transfer";
         InventorySetup.Modify();
 
         CreateItem(Item);
@@ -4218,7 +4225,7 @@ codeunit 137077 "SCM Supply Planning -IV"
         // Teardown: Return "Manufacturing Setup"."Components at Location".
         UpdateSetupComponentsAtLocation(PrevComponentsAtLocation);
     end;
-
+#if not CLEAN29
     [Test]
     [Scope('OnPrem')]
     procedure VerifyNoErrorWhenReceivingSubContractingPurchaseOrder()
@@ -4321,7 +4328,7 @@ codeunit 137077 "SCM Supply Planning -IV"
         PurchRcptLine[2].SetRange(Quantity, -PurchRcptLine[1].Quantity);
         Assert.RecordIsNotEmpty(PurchRcptLine[2]);
     end;
-
+#endif
     [Test]
     procedure AssemblyOrderCostAmountCalculatedFromPlanningWorksheet()
     var
@@ -4362,7 +4369,7 @@ codeunit 137077 "SCM Supply Planning -IV"
         Assert.AreEqual(ExpectedCostAmount, AssemblyHeader."Cost Amount",
             StrSubstNo(AmountErr, AssemblyHeader.FieldCaption("Cost Amount"), ExpectedCostAmount));
     end;
-
+#if not CLEAN29
     [Test]
     procedure VerifyDimensionCalcSubcontractOrderForReleasedProdOrder()
     var
@@ -4396,7 +4403,7 @@ codeunit 137077 "SCM Supply Planning -IV"
         RequisitionLine.FindFirst();
         Assert.AreEqual(NewDimSetID, RequisitionLine."Dimension Set ID", DimSetIDErr);
     end;
-
+#endif
     [Test]
     procedure AssemblyOrdersFromPlanningWorksheet()
     var
@@ -4426,6 +4433,59 @@ codeunit 137077 "SCM Supply Planning -IV"
 
         // [THEN] Verify the assembly order is not printed.
         VerifyNotPrintedAsmOrders(AssemblyHeader);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    [HandlerFunctions('GenericMessageHandler')]
+    procedure NoDuplicateSurplusEntriesAfterChangeOrderTrackingPolicyAndRegenPlan()
+    var
+        Item: Record Item;
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        ReservationEntry: Record "Reservation Entry";
+        ItemJournalLine: Record "Item Journal Line";
+        LotNo: Code[50];
+        Quantity: Decimal;
+        ReservEntryCountBeforePlan: Integer;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 625209] Reservation Entry should not be duplicated after running Planning Worksheet Regenerative Calculation multiple times.
+        Initialize();
+        Quantity := LibraryRandom.RandIntInRange(5, 10);
+
+        // [GIVEN] Lot-tracked item "I" with Order Tracking Policy = "Tracking & Action Message".
+        CreateLotTrackedItemWithOrderTracking(Item);
+
+        // [GIVEN] Post positive inventory at LocationRed with lot "L".
+        LotNo := LibraryUtility.GenerateGUID();
+        CreateItemJournalLine(ItemJournalLine, ItemJournalLine."Entry Type"::"Positive Adjmt.", Item."No.", Quantity);
+        ItemJournalLine.Validate("Location Code", LocationRed.Code);
+        ItemJournalLine.Modify(true);
+        LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, ItemJournalLine, '', LotNo, Quantity);
+        LibraryInventory.PostItemJournalLine(ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name);
+
+        // [GIVEN] Create Transfer Order "T" from RED to BLUE with lot tracking.
+        CreateTransferOrderWithLotTracking(TransferHeader, TransferLine, Item."No.", LocationRed.Code, LocationBlue.Code, Quantity, LotNo);
+
+        // [GIVEN] Post transfer shipment (not receipt) - items are now in-transit.
+        LibraryWarehouse.PostTransferOrder(TransferHeader, true, false);
+
+        // [GIVEN] Run Calculate Regenerative Plan first time.
+        Item.SetRecFilter();
+        LibraryPlanning.CalcRegenPlanForPlanWksh(Item, WorkDate(), CalcDate('<+1M>', WorkDate()));
+
+        // [GIVEN] Count surplus reservation entries for "T" after first planning run.
+        ReservEntryCountBeforePlan := CountTransferLineSurplusReservationEntries(TransferHeader."No.", LotNo);
+
+        // [WHEN] Run Calculate Regenerative Plan second time.
+        LibraryPlanning.CalcRegenPlanForPlanWksh(Item, WorkDate(), CalcDate('<+1M>', WorkDate()));
+
+        // [THEN] Surplus reservation entries for "T" should NOT be doubled after second planning run.
+        Assert.AreEqual(
+            ReservEntryCountBeforePlan,
+            CountTransferLineSurplusReservationEntries(TransferHeader."No.", LotNo),
+            SurplusReservationEntryDuplicateErr);
     end;
 
     local procedure Initialize()
@@ -4531,7 +4591,7 @@ codeunit 137077 "SCM Supply Planning -IV"
         Item.Validate("Include Inventory", true);
         Item.Modify(true);
     end;
-
+#if not CLEAN29
     local procedure CalculateSubcontractingWorksheetForBatch(RequisitionWkshName: Record "Requisition Wksh. Name"; WorkCenter: Record "Work Center")
     var
         RequisitionLine: Record "Requisition Line";
@@ -4547,7 +4607,7 @@ codeunit 137077 "SCM Supply Planning -IV"
         CalculateSubcontracts.UseRequestPage(false);
         CalculateSubcontracts.RunModal();
     end;
-
+#endif
     local procedure CertifyRouting(var RoutingHeader: Record "Routing Header")
     begin
         RoutingHeader.Validate(Status, RoutingHeader.Status::Certified);
@@ -4572,6 +4632,7 @@ codeunit 137077 "SCM Supply Planning -IV"
         UpdateProductionBOMNoOnItem(Item, ProductionBOMHeader."No.");
     end;
 
+#if not CLEAN29
     local procedure CreateItemWithChildReplenishmentPurchaseAsProdBOM(var Item: Record Item) QuantityPer: Decimal
     var
         ProductionBOMHeader: Record "Production BOM Header";
@@ -4583,6 +4644,7 @@ codeunit 137077 "SCM Supply Planning -IV"
         QuantityPer := CreateChildItemAsProdBOM(ChildItem, ProductionBOMHeader, ChildItem."Replenishment System"::Purchase);
         UpdateProductionBOMNoOnItem(Item, ProductionBOMHeader."No.");
     end;
+#endif
 
     local procedure CreateItemWithSKU(var Item: Record Item; var SKU: Record "Stockkeeping Unit"; LocationCode: Code[10])
     begin
@@ -4889,6 +4951,7 @@ codeunit 137077 "SCM Supply Planning -IV"
         RequisitionLine.FindFirst();
     end;
 
+#if not CLEAN29
     local procedure PostPurchaseDocument(var PurchaseLine: Record "Purchase Line"; ToInvoice: Boolean)
     var
         PurchaseHeader: Record "Purchase Header";
@@ -4898,6 +4961,7 @@ codeunit 137077 "SCM Supply Planning -IV"
         PurchaseHeader.Modify(true);
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, ToInvoice);
     end;
+#endif
 
     local procedure CreateWorkCenter(var WorkCenter: Record "Work Center")
     var
@@ -4930,11 +4994,13 @@ codeunit 137077 "SCM Supply Planning -IV"
         PurchaseLine.SetRange("No.", No);
         PurchaseLine.FindFirst();
     end;
-
+#if not CLEAN29
     local procedure CalculateSubcontractOrder(var WorkCenter: Record "Work Center")
     begin
         WorkCenter.SetRange("No.", WorkCenter."No.");
+#pragma warning disable AL0432
         LibraryManufacturing.CalculateSubcontractOrder(WorkCenter);
+#pragma warning restore AL0432
     end;
 
     local procedure CarryOutActionMessageSubcontractWksh(ItemNo: Code[20])
@@ -4944,7 +5010,7 @@ codeunit 137077 "SCM Supply Planning -IV"
         AcceptActionMessage(RequisitionLine, ItemNo);
         LibraryPlanning.CarryOutAMSubcontractWksh(RequisitionLine);
     end;
-
+#endif
     local procedure CreateAndUpdateLocation(var Location: Record Location)
     begin
         LibraryWarehouse.CreateLocationWMS(Location, true, false, false, false, false);
@@ -4981,6 +5047,7 @@ codeunit 137077 "SCM Supply Planning -IV"
           CalcDate('<' + Format(SignFactor * LibraryRandom.RandInt(Days) + IncludeAdditionalPeriod) + 'D>', RelativeDate);
     end;
 
+#if not CLEAN29
     local procedure UpdateProdOrderLineUnitOfMeasureCode(ItemNo: Code[20]; UnitOfMeasureCode: Code[10])
     var
         ProdOrderLine: Record "Prod. Order Line";
@@ -5020,6 +5087,7 @@ codeunit 137077 "SCM Supply Planning -IV"
         CreateRoutingLine(RoutingLine2, RoutingHeader, WorkCenter."No.");
         CertifyRouting(RoutingHeader);
     end;
+#endif
 
     local procedure SelectRequisitionTemplate(var ReqWkshTemplate: Record "Req. Wksh. Template"; Type: Enum "Req. Worksheet Template Type")
     begin
@@ -5027,16 +5095,18 @@ codeunit 137077 "SCM Supply Planning -IV"
         ReqWkshTemplate.SetRange(Recurring, false);
         ReqWkshTemplate.FindFirst();
     end;
-
+#if not CLEAN29
     local procedure CalculateSubcontractsWithProdOrderRoutingLine(ProductionOrderNo: Code[20]; StartingDate: Date)
     var
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
     begin
         ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrderNo);
         ProdOrderRoutingLine.SetRange("Starting Date", StartingDate);
+#pragma warning disable AL0432
         LibraryManufacturing.CalculateSubcontractOrderWithProdOrderRoutingLine(ProdOrderRoutingLine);
+#pragma warning restore AL0432
     end;
-
+#endif
     local procedure CreateSalesOrder(ItemNo: Code[20]; CustomerNo: Code[20])
     begin
         CreateSalesOrder(ItemNo, CustomerNo, LibraryRandom.RandInt(10));
@@ -5482,11 +5552,13 @@ codeunit 137077 "SCM Supply Planning -IV"
         SalesHeader.Get(SalesHeader."Document Type"::Order, SalesLine."Document No.");
     end;
 
+#if not CLEAN29
     local procedure FindValueEntry(var ValueEntry: Record "Value Entry"; ItemNo: Code[20])
     begin
         ValueEntry.SetRange("Item No.", ItemNo);
         ValueEntry.FindFirst();
     end;
+#endif
 
     local procedure CreateReleasedProdOrderFromSalesOrder(ItemNo: Code[20])
     var
@@ -5509,6 +5581,7 @@ codeunit 137077 "SCM Supply Planning -IV"
         LibraryManufacturing.CalculateMachCenterCalendar(MachineCenter[2], CalcDate('<-1W>', WorkDate()), WorkDate());
     end;
 
+#if not CLEAN29
     local procedure VerifyItemAvailabilityByPeriod(Item: Record Item; ScheduledRcpt: Decimal; ScheduledRcpt2: Decimal; ProjAvailableBalance: Decimal)
     var
         ItemCard: TestPage "Item Card";
@@ -5568,7 +5641,7 @@ codeunit 137077 "SCM Supply Planning -IV"
         RequisitionLine.TestField("No.", No);
         VerifyRequisitionLine(RequisitionLine, ProductionOrder, WorkCenter);
     end;
-
+#endif
     local procedure VerifyPurchaseShippingDetails(ItemNo: Code[20]; ShipToCode: Code[10]; ShipToAddress: Text[100])
     var
         PurchaseHeader: Record "Purchase Header";
@@ -5700,6 +5773,7 @@ codeunit 137077 "SCM Supply Planning -IV"
           StrSubstNo(RequisitionLineExistenceErr, ReqLineExists, ItemNo, LocationCode));
     end;
 
+#if not CLEAN29
     local procedure VerifyRequisitionLineForTwoBatches(RequisitionWkshName: Code[10]; RequisitionWkshName2: Code[10]; ItemNo: Code[20]; ProductionOrderNo: Code[20])
     var
         RequisitionLine: Record "Requisition Line";
@@ -5712,6 +5786,7 @@ codeunit 137077 "SCM Supply Planning -IV"
         RequisitionLine.SetRange("Journal Batch Name", RequisitionWkshName);
         Assert.RecordIsEmpty(RequisitionLine);
     end;
+#endif
 
     local procedure VerifyRequisitionLineItemExist(ItemNo: Code[20])
     var
@@ -5895,6 +5970,7 @@ codeunit 137077 "SCM Supply Planning -IV"
         InternalMovementLine.Modify(true);
     end;
 
+#if not CLEAN29
     local procedure VerifyWareHouseEntry(ItemNo: Code[20])
     var
         WarehouseEntry: Record "Warehouse Entry";
@@ -5902,6 +5978,7 @@ codeunit 137077 "SCM Supply Planning -IV"
         WarehouseEntry.FindLast();
         Assert.AreEqual(WarehouseEntry."Item No.", ItemNo, ItemNoErr);
     end;
+#endif
 
     local procedure CreateAssemblyItemWithStandardCost(var Item: Record Item; var CompItem: Record Item; StandardCost: Decimal)
     var
@@ -5929,6 +6006,7 @@ codeunit 137077 "SCM Supply Planning -IV"
             BOMComponent."Resource Usage Type", QuantityPer, true);
     end;
 
+#if not CLEAN29
     local procedure UpdateProductionOrderDimension(ProductionOrderNo: Code[20]) DimensionSetID: Integer
     var
         ProductionOrder: Record "Production Order";
@@ -5953,6 +6031,7 @@ codeunit 137077 "SCM Supply Planning -IV"
         LibraryDimension.FindDimensionValue(DimensionValue, Dimension.Code);
         exit(LibraryDimension.CreateDimSet(OldDimSetID, Dimension.Code, DimensionValue.Code));
     end;
+#endif
 
     local procedure VerifyNotPrintedAsmOrders(var AssemblyHeader: Record "Assembly Header")
     begin
@@ -5961,6 +6040,39 @@ codeunit 137077 "SCM Supply Planning -IV"
             LibraryReportDataset.AssertElementWithValueNotExist('No_AssemblyHeader', AssemblyHeader."No.");
             LibraryReportDataset.GetNextRow();
         until AssemblyHeader.Next() = 0;
+    end;
+
+    local procedure CreateLotTrackedItemWithOrderTracking(var Item: Record Item)
+    begin
+        LibraryItemTracking.CreateLotItem(Item);
+        Item.Validate("Replenishment System", Item."Replenishment System"::Purchase);
+        Item.Validate("Reordering Policy", Item."Reordering Policy"::"Fixed Reorder Qty.");
+        Item.Validate("Reorder Point", LibraryRandom.RandIntInRange(100, 200));
+        Item.Validate("Reorder Quantity", LibraryRandom.RandIntInRange(50, 100));
+        Item.Validate("Order Tracking Policy", Item."Order Tracking Policy"::"Tracking & Action Msg.");
+        Item.Modify(true);
+    end;
+
+    local procedure CreateTransferOrderWithLotTracking(var TransferHeader: Record "Transfer Header"; var TransferLine: Record "Transfer Line"; ItemNo: Code[20]; FromLocationCode: Code[10]; ToLocationCode: Code[10]; Quantity: Decimal; LotNo: Code[50])
+    var
+        ReservationEntry: Record "Reservation Entry";
+    begin
+        SelectTransferRoute(FromLocationCode, ToLocationCode);
+        LibraryWarehouse.CreateTransferHeader(TransferHeader, FromLocationCode, ToLocationCode, LocationInTransit.Code);
+        LibraryWarehouse.CreateTransferLine(TransferHeader, TransferLine, ItemNo, Quantity);
+        LibraryItemTracking.CreateTransferOrderItemTracking(ReservationEntry, TransferLine, '', LotNo, Quantity);
+    end;
+
+    local procedure CountTransferLineSurplusReservationEntries(TransferNo: Code[20]; LotNo: Code[50]): Integer
+    var
+        ReservationEntry: Record "Reservation Entry";
+    begin
+        ReservationEntry.SetRange("Source Type", Database::"Transfer Line");
+        ReservationEntry.SetRange("Source Subtype", 1); // Outbound
+        ReservationEntry.SetRange("Source ID", TransferNo);
+        ReservationEntry.SetRange("Reservation Status", ReservationEntry."Reservation Status"::Surplus);
+        ReservationEntry.SetRange("Lot No.", LotNo);
+        exit(ReservationEntry.Count);
     end;
 
     [RequestPageHandler]
@@ -6088,4 +6200,3 @@ codeunit 137077 "SCM Supply Planning -IV"
         OrderPromisingLines.AcceptButton.Invoke();
     end;
 }
-

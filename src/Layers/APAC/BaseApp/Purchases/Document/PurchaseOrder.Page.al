@@ -2271,6 +2271,8 @@ page 50 "Purchase Order"
         CurrPage.ApprovalFactBox.PAGE.UpdateApprovalEntriesFromSourceRecord(Rec.RecordId());
         ShowWorkflowStatus := CurrPage.WorkflowStatus.PAGE.SetFilterOnWorkflowRecord(Rec.RecordId());
         StatusStyleTxt := Rec.GetStatusStyleText();
+        BuyFromContact.GetOrClear(Rec."Buy-from Contact No.");
+        PayToContact.GetOrClear(Rec."Pay-to Contact No.");
     end;
 
     trigger OnAfterGetRecord()

@@ -492,8 +492,14 @@ codeunit 1685 "Email Logging Invoke"
     end;
 
     local procedure GetInboundOutboundInteraction(var EmailLoggingMessage: Codeunit "Email Logging Message"; var SegmentLine: Record "Segment Line"): Boolean
+    var
+        SenderAddress: Text;
     begin
+        SenderAddress := EmailLoggingMessage.GetSender();
+#if not CLEAN29
         OnBeforeGetInboundOutboundInteraction(EmailLoggingMessage, SegmentLine);
+#endif
+        OnBeforeGetInboundOutboundInteractionForSender(SenderAddress, SegmentLine);
         // Check if in- or out-bound and store sender and recipients in segment line(s)
         if IsSalesperson(EmailLoggingMessage.GetSender(), SegmentLine) then begin
             SegmentLine."Information Flow" := SegmentLine."Information Flow"::Outbound;
@@ -538,8 +544,18 @@ codeunit 1685 "Email Logging Invoke"
         ErrorContext := NewContext;
     end;
 
+#if not CLEAN29
+#pragma warning disable AS0018
     [IntegrationEvent(false, false)]
+    [Obsolete('Use OnBeforeGetInboundOutboundInteractionForSender instead. The "Email Logging Message" codeunit parameter cannot be referenced from external apps, making this event unusable by subscribers.', '29.0')]
     local procedure OnBeforeGetInboundOutboundInteraction(var EmailLoggingMessage: Codeunit "Email Logging Message"; var SegmentLine: Record "Segment Line")
+    begin
+    end;
+#pragma warning restore AS0018
+#endif
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeGetInboundOutboundInteractionForSender(SenderAddress: Text; var SegmentLine: Record "Segment Line")
     begin
     end;
 

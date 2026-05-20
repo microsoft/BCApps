@@ -60,6 +60,16 @@ table 8053 "Subscription Contract Type"
                 end;
             end;
         }
+        field(6; "Allow Diff. Curr. in Vend. UD"; Boolean)
+        {
+            Caption = 'Allow Different Currency in Vendor Usage Data';
+            ToolTip = 'Specifies whether vendor contracts of this type allow usage data with a currency different from the contract currency. If enabled, amounts will be automatically converted to the vendor contract currency when creating usage data billing. If disabled, an error will be raised when the usage data currency differs from the vendor contract currency.';
+        }
+        field(7; "Allow Diff. Curr. in Cust. UD"; Boolean)
+        {
+            Caption = 'Allow Different Currency in Customer Usage Data';
+            ToolTip = 'Specifies whether customer contracts of this type allow usage data with a currency different from the contract currency. If enabled, amounts will be automatically converted to the customer contract currency when creating usage data billing. If disabled, an error will be raised when the usage data currency differs from the customer contract currency.';
+        }
     }
 
     keys

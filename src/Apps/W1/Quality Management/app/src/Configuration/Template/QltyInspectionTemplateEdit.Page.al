@@ -127,7 +127,7 @@ page 20440 "Qlty. Inspection Template Edit"
                     ShowCaption = false;
                     Editable = false;
                     Caption = ' ';
-                    Tooltip = ' ';
+                    ToolTip = 'Select to test the expression with the selected inspection and inspection line.';
 
                     trigger OnDrillDown()
                     var

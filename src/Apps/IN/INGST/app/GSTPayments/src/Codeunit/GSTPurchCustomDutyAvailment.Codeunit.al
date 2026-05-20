@@ -106,6 +106,8 @@ codeunit 18253 "GST Purch CustomDuty Availment"
     begin
         GenJnlLine."FA Availment" := InvoicePostingBuffer."FA Availment";
         GenJnlLine."FA Custom Duty Amount" := InvoicePostingBuffer."FA Custom Duty Amount";
+        if InvoicePostingBuffer."No. of Fixed Asset Cards" > 1 then
+            GenJnlLine."FA Custom Duty Amount" := Round(GenJnlLine."FA Custom Duty Amount" / InvoicePostingBuffer."No. of Fixed Asset Cards");
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"FA Jnl.-Post Line", 'OnBeforePostFixedAssetFromGenJnlLine', '', false, false)]

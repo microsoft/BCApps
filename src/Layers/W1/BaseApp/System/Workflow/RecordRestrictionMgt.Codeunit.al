@@ -27,6 +27,7 @@ codeunit 1550 "Record Restriction Mgt."
 #pragma warning restore AA0470
         RestrictLineUsageDetailsTxt: Label 'The restriction was imposed because the line requires approval.';
         RestrictBatchUsageDetailsTxt: Label 'The restriction was imposed because the journal batch requires approval.';
+        RestrictVendorBankUsageDetailsTxt: Label 'The restriction was imposed because the vendor bank requires approval.';
 
     procedure RestrictRecordUsage(RecVar: Variant; RestrictionDetails: Text)
     var
@@ -252,6 +253,36 @@ codeunit 1550 "Record Restriction Mgt."
         if RequisitionWkshName.Get(RequisitionLine."Worksheet Template Name", RequisitionLine."Journal Batch Name") then
             if ApprovalsMgmt.IsRequisitionWkshBatchApprovalsWorkflowEnabled(RequisitionWkshName) then
                 RestrictRecordUsage(RequisitionWkshName, RestrictBatchUsageDetailsTxt);
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Vendor Bank Account", 'OnAfterInsertEvent', '', false, false)]
+    local procedure RestrictVendorBankAccountAfterInsert(var Rec: Record "Vendor Bank Account")
+    begin
+        if Rec.IsTemporary() then
+            exit;
+
+        RestrictBankAccount(Rec);
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Vendor Bank Account", OnAfterModifyEvent, '', false, false)]
+    local procedure RestrictVendorBankAccountAfterModify(var Rec: Record "Vendor Bank Account"; var xRec: Record "Vendor Bank Account")
+    begin
+        if Rec.IsTemporary() then
+            exit;
+
+        if Format(xRec) <> Format(Rec) then
+            RestrictBankAccount(Rec);
+    end;
+
+    local procedure RestrictBankAccount(var VendorBankAccount: Record "Vendor Bank Account")
+    var
+        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
+    begin
+        if VendorBankAccount.IsTemporary then
+            exit;
+
+        if ApprovalsMgmt.IsVendorBankApprovalsWorkflowEnabled(VendorBankAccount) then
+            RestrictRecordUsage(VendorBankAccount, RestrictVendorBankUsageDetailsTxt);
     end;
 
     [TryFunction]
@@ -599,6 +630,12 @@ codeunit 1550 "Record Restriction Mgt."
         AllowRecordUsage(Rec);
     end;
 
+    [EventSubscriber(ObjectType::Table, Database::"Vendor Bank Account", 'OnBeforeDeleteEvent', '', false, false)]
+    procedure RemoveVendorBankAccountRestrictionsBeforeDelete(var Rec: Record "Vendor Bank Account"; RunTrigger: Boolean)
+    begin
+        AllowRecordUsage(Rec);
+    end;
+
     [EventSubscriber(ObjectType::Table, Database::"Item", 'OnBeforeDeleteEvent', '', false, false)]
     procedure RemoveItemRestrictionsBeforeDelete(var Rec: Record Item; RunTrigger: Boolean)
     begin
@@ -655,6 +692,12 @@ codeunit 1550 "Record Restriction Mgt."
 
     [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnAfterRenameEvent', '', false, false)]
     procedure UpdateRequisitionWkshLineRestrictionsAfterRename(var Rec: Record "Requisition Line"; var xRec: Record "Requisition Line"; RunTrigger: Boolean)
+    begin
+        UpdateRestriction(Rec, xRec);
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Vendor Bank Account", 'OnAfterRenameEvent', '', false, false)]
+    local procedure UpdateVendorBankAccountRestrictionsAfterRename(var Rec: Record "Vendor Bank Account"; var xRec: Record "Vendor Bank Account"; RunTrigger: Boolean)
     begin
         UpdateRestriction(Rec, xRec);
     end;

@@ -113,27 +113,35 @@ codeunit 7328 "Whse. Navigate Mgt."
         var SourceType2: Integer; var SourceNo: Code[20];
         var DocNoFilter: Text; var PostingDateFilter: Text;
         var IsHandled: Boolean)
+    var
+        SkipFindPostedShptLine: Boolean;
+        SkipFindPostedRcptLine: Boolean;
     begin
-        if NoOfRecords(DocumentEntry, Database::"Posted Whse. Receipt Line") = 1 then begin
-            SetPostedWhseRcptLineFilters(DocNoFilter, PostingDateFilter);
-            PostedWhseRcptLine.FindFirst();
-            PostingDate := PostedWhseRcptLine."Posting Date";
-            DocType2 := Format(DocumentEntry."Table Name");
-            DocNo := PostedWhseRcptLine."Posted Source No.";
-            SourceType2 := 2;
-            SourceNo := '';
-            IsHandled := true;
-        end;
-        if NoOfRecords(DocumentEntry, Database::"Posted Whse. Shipment Line") = 1 then begin
-            SetPostedWhseShptLineFilters(DocNoFilter, PostingDateFilter);
-            PostedWhseShptLine.FindFirst();
-            PostingDate := PostedWhseShptLine."Posting Date";
-            DocType2 := Format(DocumentEntry."Table Name");
-            DocNo := PostedWhseShptLine."Posted Source No.";
-            SourceType2 := 1;
-            SourceNo := PostedWhseShptLine."Destination No.";
-            IsHandled := true;
-        end;
+        OnBeforeOnFindRecordsOnAfterSetSource(DocumentEntry, PostingDate, DocType2, DocNo, SourceType2, SourceNo, DocNoFilter, PostingDateFilter, IsHandled, SkipFindPostedShptLine, SkipFindPostedRcptLine);
+
+        if not SkipFindPostedRcptLine then
+            if NoOfRecords(DocumentEntry, Database::"Posted Whse. Receipt Line") = 1 then begin
+                SetPostedWhseRcptLineFilters(DocNoFilter, PostingDateFilter);
+                PostedWhseRcptLine.FindFirst();
+                PostingDate := PostedWhseRcptLine."Posting Date";
+                DocType2 := Format(DocumentEntry."Table Name");
+                DocNo := PostedWhseRcptLine."Posted Source No.";
+                SourceType2 := 2;
+                SourceNo := '';
+                IsHandled := true;
+            end;
+
+        if not SkipFindPostedShptLine then
+            if NoOfRecords(DocumentEntry, Database::"Posted Whse. Shipment Line") = 1 then begin
+                SetPostedWhseShptLineFilters(DocNoFilter, PostingDateFilter);
+                PostedWhseShptLine.FindFirst();
+                PostingDate := PostedWhseShptLine."Posting Date";
+                DocType2 := Format(DocumentEntry."Table Name");
+                DocNo := PostedWhseShptLine."Posted Source No.";
+                SourceType2 := 1;
+                SourceNo := PostedWhseShptLine."Destination No.";
+                IsHandled := true;
+            end;
     end;
 
     local procedure NoOfRecords(var DocumentEntry: Record "Document Entry"; TableID: Integer): Integer
@@ -148,5 +156,10 @@ codeunit 7328 "Whse. Navigate Mgt."
         if not DocumentEntry.FindLast() then
             DocumentEntry.Init();
         exit(DocEntryNoOfRecords);
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeOnFindRecordsOnAfterSetSource(var DocumentEntry: Record "Document Entry"; var PostingDate: Date; var DocType2: Text[100]; var DocNo: Code[20]; var SourceType2: Integer; var SourceNo: Code[20]; var DocNoFilter: Text; var PostingDateFilter: Text; var IsHandled: Boolean; var SkipFindPostedShptLine: Boolean; var SkipFindPostedRcptLine: Boolean)
+    begin
     end;
 }

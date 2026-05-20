@@ -9,7 +9,6 @@ codeunit 303 "Allocate Reserv Cust. Priority" implements "Allocate Reservation"
     var
         DescriptionTxt: Label 'Distribution based on Priority field in the customer card. The program will automatically fulfill all demands when the existing stock is sufficient. In cases of insufficient quantities, the system will prioritize supplying customers with the highest priority.';
 
-
     procedure Allocate(var ReservationWkshLine: Record "Reservation Wksh. Line")
     var
         ReservWkshLine: Record "Reservation Wksh. Line";
@@ -46,9 +45,13 @@ codeunit 303 "Allocate Reserv Cust. Priority" implements "Allocate Reservation"
                         ReservWkshLine.Modify(true);
                     end;
                 until ReservWkshLine.Next() = 0;
-            end else
-                if ReservWkshLine."Rem. Qty. to Reserve (Base)" > 0 then
-                    exit;
+            end else begin
+                IsHandled := false;
+                OnContinueAllocationIfDemandNotFulfilled(ReservWkshLine, IsHandled);
+                if not IsHandled then
+                    if ReservWkshLine."Rem. Qty. to Reserve (Base)" > 0 then
+                        exit;
+            end;
             ReservWkshLine.FindLast();
             ReservWkshLine.SetRange("Item No.");
             ReservWkshLine.SetRange("Variant Code");
@@ -78,6 +81,11 @@ codeunit 303 "Allocate Reserv Cust. Priority" implements "Allocate Reservation"
 
     [IntegrationEvent(false, false)]
     local procedure OnAllocateOnAfterReservationWorksheetLinePrepare(var ReservationWkshLine2: Record "Reservation Wksh. Line"; var ReservationWkshLine: Record "Reservation Wksh. Line"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnContinueAllocationIfDemandNotFulfilled(var ReservationWkshLine: Record "Reservation Wksh. Line"; var IsHandled: Boolean)
     begin
     end;
 }

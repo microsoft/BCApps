@@ -410,7 +410,7 @@ table 290 "VAT Amount Line"
         if IsHandled then
             exit(Result);
 
-        if (("VAT Base" = 0) or ("Amount Including VAT" = 0)) and SkipZeroVatAmounts then
+        if ("VAT Base" = 0) and ("Amount Including VAT" = 0) and SkipZeroVatAmounts then
             exit(false);
 
         Validate(Positive, "Line Amount" >= 0);

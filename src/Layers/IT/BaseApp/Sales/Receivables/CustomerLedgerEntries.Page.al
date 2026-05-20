@@ -310,6 +310,16 @@ page 25 "Customer Ledger Entries"
                     ApplicationArea = Basic, Suite;
                     Editable = false;
                 }
+                field("G/L Register No."; Rec."G/L Register No.")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Editable = false;
+                }
+                field("Transaction No."; Rec."Transaction No.")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Editable = false;
+                }
                 field("Bank Receipt"; Rec."Bank Receipt")
                 {
                     ApplicationArea = Basic, Suite;

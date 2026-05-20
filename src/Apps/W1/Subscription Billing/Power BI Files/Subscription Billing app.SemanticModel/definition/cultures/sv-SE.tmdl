@@ -1,0 +1,731 @@
+cultureInfo sv-SE
+	translations
+		model Model
+			table 'Dimension Sets'
+				caption: Dimensionsuppsättningar
+				column 'Global Dimension 1'
+					caption: Global dimension 1
+				column 'Global Dimension 2'
+					caption: Global dimension 2
+				column 'Shortcut Dimension 3'
+					caption: Genväg dimension 3
+				column 'Shortcut Dimension 4'
+					caption: Genväg dimension 4
+				column 'Shortcut Dimension 5'
+					caption: Genväg dimension 5
+				column 'Shortcut Dimension 6'
+					caption: Genväg dimension 6
+				column 'Shortcut Dimension 7'
+					caption: Genväg dimension 7
+				column 'Shortcut Dimension 8'
+					caption: Genväg dimension 8
+				column id
+					caption: ID
+			table Vendors
+				caption: Leverantörer
+				column 'Vendor No.'
+					caption: Leverantörsnummer
+				column 'Vendor Name'
+					caption: Leverantörsnamn
+				column Address
+					caption: Adress
+				column 'Address 2'
+					caption: Adress 2
+				column City
+					caption: Ort
+				column 'Post Code'
+					caption: Postnummer
+				column State
+					caption: Delstat
+				column 'Country/Region Code'
+					caption: Lands-/regionskod
+				column 'Vendor Posting Group'
+					caption: Leverantörsbokföringsmall
+				column 'Vendor No. & Name'
+					caption: Leverantörsnummer och -namn
+			table Customers
+				caption: Kunder
+				column 'Customer No.'
+					caption: Kundnummer
+				column 'Customer Name'
+					caption: Kundnamn
+				column Address
+					caption: Adress
+				column 'Address 2'
+					caption: Adress 2
+				column City
+					caption: Ort
+				column 'Post Code'
+					caption: Postnummer
+				column State
+					caption: Delstat
+				column 'Country/Region Code'
+					caption: Lands-/regionskod
+				column 'Customer Posting Group'
+					caption: Kundbokföringsmall
+				column 'Customer Price Group'
+					caption: Kundprisgrupp
+				column 'Customer Discount Group'
+					caption: Kundrabattgrupp
+				column 'Customer No. & Name'
+					caption: Kundnummer och -namn
+			table Date
+				caption: Datum
+				column 'Week Day'
+					caption: Vecka Dag
+				column 'Day Type'
+					caption: Typ av dag
+				column 'Calendar Year'
+					caption: Kalender År
+				column 'Calendar Quarter'
+					caption: Kalender Kvartal
+				column 'Calendar Quarter Year'
+					caption: Kalender Kvartal År
+				column 'Calendar Month'
+					caption: Kalender Månad
+				column 'Calendar Month Year'
+					caption: Kalender Månad År
+				column 'Calendar Week'
+					caption: Kalender Vecka
+				column 'Calendar Week Year'
+					caption: Kalender Vecka År
+				column 'Calendar RelativeWeekPos'
+					caption: Kalender RelativtVeckaPos
+				column 'Calendar RelativeMonthPos'
+					caption: Kalender RelativtMånadPos
+				column 'Calendar RelativeQuarterPos'
+					caption: Kalender RelativtKvartalPos
+				column 'Calendar RelativeYearPos'
+					caption: Kalender RelativtÅrPos
+				column 'Calendar StartOfMonth'
+					caption: Kalender StartPåMånad
+				column 'Calendar EndOfMonth'
+					caption: Kalender SlutPåMånad
+				column 'Calendar StartOfQuarter'
+					caption: Kalender StartPåKvartal
+				column 'Calendar EndOfQuarter'
+					caption: Kalender SlutPåKvartal
+				column 'Calendar StartOfYear'
+					caption: Kalender StartPåÅr
+				column 'Calendar EndOfYear'
+					caption: Kalender Årsslut
+				column 'Calendar MonthDays'
+					caption: Kalender MånadDagar
+				column 'Calendar QuarterDays'
+					caption: Kalender KvartalDagar
+				column 'Calendar YearDays'
+					caption: Kalender ÅrDagar
+				column 'Calendar DayOfMonthNumber'
+					caption: Kalender DagIMånadNummer
+				column 'Calendar DayOfQuarterNumber'
+					caption: Kalender DagIKvartalNummer
+				column 'Calendar DayOfYearNumber'
+					caption: Kalender DagIÅrNummer
+				column 'Calendar DatePreviousWeek'
+					caption: Kalender DatumFöregåendeVecka
+				column 'Calendar DatePreviousMonth'
+					caption: Kalender DatumFöregåendeMånad
+				column 'Calendar DatePreviousQuarter'
+					caption: Kalender DatumFöregåendeKvartal
+				column 'Calendar DatePreviousYear'
+					caption: Kalender DatumFöregåendeÅr
+				column 'Fiscal Year'
+					caption: Räkenskapsår
+				column 'Fiscal Quarter'
+					caption: Räkenskapskalender Kvartal
+				column 'Fiscal Quarter Year'
+					caption: Räkenskapskalender Kvartal År
+				column 'Fiscal Month'
+					caption: Räkenskapskalender Månad
+				column 'Fiscal Month Year'
+					caption: Räkenskapskalender Månad År
+				column 'Fiscal Week'
+					caption: Räkenskapskalender Vecka
+				column 'Fiscal Week Year'
+					caption: Räkenskapskalender År Vecka
+				column 'Fiscal RelativeWeekPos'
+					caption: Räkenskapskalender RelativtVeckaPos
+				column 'Fiscal RelativeMonthPos'
+					caption: Räkenskapskalender: RelativtMånadPos
+				column 'Fiscal RelativeQuarterPos'
+					caption: Räkenskapskalender RelativtKvartalPos
+				column 'Fiscal RelativeYearPos'
+					caption: Räkenskapskalender RelativtÅrPos
+				column 'Fiscal StartOfMonth'
+					caption: Räkenskapskalender StartPåMånad
+				column 'Fiscal EndOfMonth'
+					caption: Räkenskapskalender SlutPåMånad
+				column 'Fiscal StartOfQuarter'
+					caption: Räkenskapskalender StartPåKvartal
+				column 'Fiscal EndOfQuarter'
+					caption: Räkenskapskalender SlutPåKvartal
+				column 'Fiscal StartOfYear'
+					caption: Räkenskapskalender StartPåÅr
+				column 'Fiscal EndOfYear'
+					caption: Räkenskapskalender Årsslut
+				column 'Fiscal MonthDays'
+					caption: Räkenskapskalender MånadDagar
+				column 'Fiscal QuarterDays'
+					caption: Räkenskapskalender KvartalDagar
+				column 'Fiscal YearDays'
+					caption: Räkenskapskalender ÅrDagar
+				column 'Fiscal DayOfMonthNumber'
+					caption: Räkenskapskalender DagIMÅnadNummer
+				column 'Fiscal DayOfQuarterNumber'
+					caption: Räkenskapskalender DagIKvartalNummer
+				column 'Fiscal DayOfYearNumber'
+					caption: Räkenskapskalender DagIÅrNummer
+				column 'Fiscal DatePreviousWeek'
+					caption: Räkenskapskalender DatumFöregåendeVecka
+				column 'Fiscal DatePreviousMonth'
+					caption: Räkenskapskalender DatumFöregåendeMånad
+				column 'Fiscal DatePreviousQuarter'
+					caption: Räkenskapskalender DatumFöregåendeKvartal
+				column 'Fiscal DatePreviousYear'
+					caption: Räkenskapskalender DatumFöregåendeÅr
+				column 'FW Year'
+					caption: RV År
+				column 'FW Quarter'
+					caption: RV Kvartal
+				column 'FW Quarter Year'
+					caption: RV Kvartal År
+				column 'FW Month'
+					caption: RV Månad
+				column 'FW Month Year'
+					caption: RV Månad År
+				column 'FW Week'
+					caption: RV Vecka
+				column 'FW Period'
+					caption: RV Period
+				column 'FW Week Year'
+					caption: RV Vecka År
+				column 'FW StartOfWeek'
+					caption: RV StartPåVecka
+				column 'FW EndOfWeek'
+					caption: RV SlutPåVecka
+				column 'FW RelativeWeekPos'
+					caption: RV RelativtVeckaPos
+				column 'FW RelativeMonthPos'
+					caption: RV RelativtMånPos
+				column 'FW RelativeQuarterPos'
+					caption: RV RelativtKvartalPos
+				column 'FW RelativeYearPos'
+					caption: RV RelativtÅrPos
+				column 'FW StartOfMonth'
+					caption: RV StartPåMånad
+				column 'FW EndOfMonth'
+					caption: RV SlutPåMånad
+				column 'FW StartOfQuarter'
+					caption: RV StartPåKvartal
+				column 'FW EndOfQuarter'
+					caption: RV SlutPåKvartal
+				column 'FW StartOfYear'
+					caption: RV StartPåÅr
+				column 'FW EndOfYear'
+					caption: RV Årsslut
+				column 'FW MonthDays'
+					caption: RV MånadDagar
+				column 'FW QuarterDays'
+					caption: RV KvartalDagar
+				column 'FW YearDays'
+					caption: RV ÅrDagar
+				column 'FW DayOfMonthNumber'
+					caption: RV DagPåMånadNummer
+				column 'FW DayOfQuarterNumber'
+					caption: RV DagIKvartalNummer
+				column 'FW DayOfYearNumber'
+					caption: RV DagIÅrNummer
+				column 'FW DatePreviousWeek'
+					caption: RV DatumFöregåendeVecka
+				column 'FW DatePreviousMonth'
+					caption: RV DatumFöregåendeMånad
+				column 'FW DatePreviousQuarter'
+					caption: RV DatumFöregåendeKvartal
+				column 'FW DatePreviousYear'
+					caption: RV DatumFöregåendeÅr
+				column 'Relative Day'
+					caption: Relativt Dag
+				column Sequential365DayNumber
+					caption: Serienummer i 365-dagarsformat
+				column 'Data Range Deferrals'
+					caption: Periodiseringar av dataintervall
+				measure 'No. of Days'
+					caption: Antal dagar
+				hierarchy 'Fiscal Year-Quarter-Month-Week'
+					caption: Räkenskapskalender År-Kvartal-Månad-Vecka
+					level 'Fiscal Year'
+						caption: Räkenskapsår
+					level 'Fiscal Quarter Year'
+						caption: Räkenskapskalender Kvartal År
+					level 'Fiscal Month Year'
+						caption: Räkenskapskalender Månad År
+					level 'Fiscal Week Year'
+						caption: Räkenskapskalender År Vecka
+				hierarchy 'Calendar Year-Quarter-Month-Week'
+					caption: Kalender År-Kvartal-Månad-Vecka
+					level 'Calendar Year'
+						caption: Kalender År
+					level 'Calendar Quarter Year'
+						caption: Kalender Kvartal År
+					level 'Calendar Month Year'
+						caption: Kalender Månad År
+					level 'Calendar Week Year'
+						caption: Kalender Vecka År
+				hierarchy 'FW Year-Quarter-Month-Week'
+					caption: RV År-Kvartal-Månad-Vecka
+					level 'FW Year'
+						caption: RV År
+					level 'FW Quarter Year'
+						caption: RV Kvartal År
+					level 'FW Month Year'
+						caption: RV Månad År
+					level 'FW Week Year'
+						caption: RV Vecka År
+				hierarchy 'Fiscal Year-Month'
+					caption: Räkenskapskalender År-Månad
+					level 'Fiscal Year'
+						caption: Räkenskapsår
+					level 'Fiscal Month Year'
+						caption: Räkenskapskalender Månad År
+				hierarchy 'Fiscal Year-Month-Week'
+					caption: Räkenskapskalender År-Månad-Vecka
+					level 'Fiscal Year'
+						caption: Räkenskapsår
+					level 'Fiscal Month Year'
+						caption: Räkenskapskalender Månad År
+					level 'Fiscal Week Year'
+						caption: Räkenskapskalender År Vecka
+				hierarchy 'Calendar Year-Month'
+					caption: Kalender År-Månad
+					level 'Calendar Year'
+						caption: Kalender År
+					level 'Calendar Month Year'
+						caption: Kalender Månad År
+				hierarchy 'Calendar Year-Month-Week'
+					caption: Kalender År-Månad-Vecka
+					level 'Calendar Year'
+						caption: Kalender År
+					level 'Calendar Month Year'
+						caption: Kalender Månad År
+					level 'Calendar Week Year'
+						caption: Kalender Vecka År
+				hierarchy 'FW Year-Month-Week'
+					caption: RV År-Månad-Vecka
+					level 'FW Year'
+						caption: RV År
+					level 'FW Month Year'
+						caption: RV Månad År
+					level 'FW Week Year'
+						caption: RV Vecka År
+				hierarchy 'FW Year-Quarter-Week'
+					caption: RV År-Kvartal-Vecka
+					level 'FW Year'
+						caption: RV År
+					level 'FW Quarter Year'
+						caption: RV Kvartal År
+					level 'FW Week Year'
+						caption: RV Vecka År
+				hierarchy 'FW Year-Week'
+					caption: RV År-Vecka
+					level 'FW Year'
+						caption: RV År
+					level 'FW Week Year'
+						caption: RV Vecka År
+			table 'Localized Labels'
+				measure 'CONNECT YOUR DATA'
+					caption: ANSLUT DINA DATA
+				measure '1. Download the Finance Connector for Power BI'
+					caption: 1. Ladda ned Finance Connector for Power BI
+				measure '2. Configure Dynamics 365 Business Central'
+					caption: 2. Konfigurera Dynamics 365 Business Central
+				measure 'USE, EDIT AND BUILD YOUR OWN REPORTS'
+					caption: ANVÄND, REDIGERA OCH SKAPA EGNA RAPPORTER
+				measure 'Finance includes a variety of pre-built reports to help you see your data immediately. You are able to edit these reports or build your own report from scratch.'
+					caption: Ekonomi omfattar en mängd olika färdiga rapporter som gör det enkelt att se data direkt. Du kan redigera dessa rapporter eller skapa en egen rapport från grunden.
+				measure 'HELP AND SUPPORT'
+					caption: HJÄLP OCH SUPPORT
+				measure 'For help and support with your new report please visit the Analytics overview documentation.'
+					caption: Hjälp och support med den nya rapporten finns i översiktsdokumentationen för Analys.
+				measure 'for Business Central'
+					caption: för Business Central
+				measure 'Last Refreshed'
+					caption: Uppdaterades senast
+				measure 'Company Name'
+					caption: Företagsnamn
+				measure 'Analysis Entries as of'
+					caption: Analysera transaktioner per
+				measure 'Billing Forecast by Billing Period, Customer and Contract No.'
+					caption: Faktureringsprognos per faktureringsperiod, kund och kontraktsnr
+				measure 'Billing Forecast by Year and Month'
+					caption: Faktureringsprognos per kalenderår och månad
+				measure 'Billing Schedule'
+					caption: Faktureringsschema
+				measure 'Change of Mon. Recurring Revenue by Year and Month'
+					caption: Ändring av månatliga återkommande intäkter per år och månad
+				measure 'Current Date Range:'
+					caption: Aktuellt datumintervall:
+				measure 'Customer Contract Deferrals'
+					caption: Periodiseringar av kundkontrakt
+				measure 'Customer Contract Lines'
+					caption: Kundkontraktsrader
+				measure 'Customer Deferrals (Caption)'
+					caption: Kundperiodiseringar
+				measure 'Mon. Recurring Revenue Analysis'
+					caption: Analys av månatliga återkommande intäkter
+				measure 'Mon. Recurring Revenue and Mon. Recurring Revenue PY by Month'
+					caption: Månatliga återkommande intäkter och månatliga återkommande intäkter FÅ per kalendermånad
+				measure 'Mon. Recurring Revenue and Year-Over-Year Growth by Year and Month'
+					caption: Månatliga återkommande intäkter och tillväxt år för år per kalenderår och månad
+				measure 'Mon. Recurring Revenue by Customer'
+					caption: Månatliga återkommande intäkter per kund
+				measure 'Mon. Recurring Revenue by Salesperson'
+					caption: Månatliga återkommande intäkter per säljare
+				measure 'Mon. Recurring Revenue by Year and Month'
+					caption: Månatliga återkommande intäkter per kalenderår och månad
+				measure 'Mon. Recurring Revenue by Item'
+					caption: Månatliga återkommande intäkter per artikel
+				measure 'Mon. Recurring Revenue by Item Category'
+					caption: Månatliga återkommande intäkter per artikelkategori
+				measure 'Mon. Recurring Revenue Churn and Downgrade by Customer Contract'
+					caption: Månatliga återkommande intäktsbortfall och nedgradering per kundkontrakt
+				measure 'Mon. Recurring Revenue New and Upgrade by Customer Contract'
+					caption: Månatliga återkommande intäkter, nya och nedgradering per kundkontrakt
+				measure 'Monthly Sales and Cost Forecast by Year and Month'
+					caption: Månatlig intäkts- och kostnadsprognos per kalenderår och månad
+				measure 'Monthly Sales and Cost Forecast by Salesperson, Customer and Contract No.'
+					caption: Månatliga intäkter och kostnadsprognos per säljare, kund och kontraktsnr
+				measure 'Released and Deferred Amount by Year and Month'
+					caption: Frisläppt och periodiserat belopp per kalenderår och månad
+				measure 'Revenue Analysis'
+					caption: Intäktsanalys
+				measure 'Revenue by Customer'
+					caption: Intäkt per kund
+				measure 'Revenue by Item'
+					caption: Intäkt per artikel
+				measure 'Revenue by Salesperson'
+					caption: Intäkt per säljare
+				measure 'Revenue Development'
+					caption: Intäktsutveckling
+				measure 'Sales and Cost Forecast'
+					caption: Intäktsprognos
+				measure 'Revenue Year-Over-Year Growth'
+					caption: Tillväxtökning år för år
+				measure 'Subscription Billing Analysis'
+					caption: Analys av Subscription Billing
+				measure 'Subscription Billing Overview'
+					caption: Översikt över Subscription Billing
+				measure 'Top 5 Customers by Mon. Recurring Revenue'
+					caption: 5 främsta kunderna per månatliga återkommande intäkter
+				measure 'Top 5 Vendors by Mon. Recurring Cost'
+					caption: 5 främsta leverantörer per månatlig återkommande kostnad
+				measure 'Total Contract Value Analysis'
+					caption: Analys av totalt kontraktsvärde
+				measure 'Total Contract Value and Total Contract Value PY by Month'
+					caption: Totalt kontraktsvärde och totalt kontraktsvärde FÅ per kalendermånad
+				measure 'Total Contract Value and Year-Over-Year Growth by Year and Month'
+					caption: Totalt kontraktsvärde och tillväxt år för år per kalenderår och månad
+				measure 'Total Contract Value by Year and Month'
+					caption: Totalt kontraktsvärde per kalenderår och månad
+				measure 'Total Contract Value Year-Over-Year Growth'
+					caption: Totalt kontraktsvärde tillväxt år för år
+				measure 'Vendor Contract Deferrals'
+					caption: Kontraktsperiodiseringar för leverantör
+				measure 'Vendor Deferrals (Caption)'
+					caption: Leverantörsperiodiseringar
+				measure 'Back button'
+					caption: Knappen Föregående
+				measure 'Monthly Recurring Revenue, Monthly Recurring Cost, Monthly Net Profit, Active Customers, Total Contract Value, Change in Monthly Recurring Revenue'
+					caption: Månatliga återkommande intäkter, månatlig återkommande kostnad, månatlig nettovinst, aktiva kunder, totalt kontraktsvärde, förändring i månatliga återkommande intäkter
+				measure 'Churn Analysis'
+					caption: Bortfallsanalys
+				measure 'Avg. Mon. Churn Rate % by Year and Month'
+					caption: Genomsnittlig månatlig bortfallsgrad % per år och månad
+			table 'Meta Information'
+				caption: FÖRETAG
+			table Subscription
+				caption: Serviceobjekt
+				column 'Subscription No.'
+					caption: Serviceobjektsnummer
+				column 'Package Code'
+					caption: Paketkod
+				column 'Subscription Desc.'
+					caption: Beskrivning av serviceobjekt
+				column 'Analysis Date'
+					caption: Analysdatum
+				column 'Subscription No. Desc.'
+					caption: Beskrivning av Subscription-nummer
+			table 'Vendor Contract Deferrals'
+				caption: Kontraktsperiodiseringar för leverantör
+				column 'Document Type'
+					caption: Dokumenttyp
+				column 'Document No.'
+					caption: Dokumentnummer
+				column 'Posting Date'
+					caption: Bokföringsdatum
+				column 'Document Posting Date'
+					caption: Dokumentets bokföringsdatum
+				column 'Release Posting Date'
+					caption: Bokföringsdatum för frisläppning
+				column 'G LEntry No.'
+					caption: Transaktionsnummer i redovisning
+				column Discount
+					caption: Rabatt
+				column 'Document Line No.'
+					caption: Dokumentradnr
+			table 'Customer Contract Line'
+				caption: Kundkontraktsrad
+				column 'Subscription Line No.'
+					caption: Ufästelseradnr
+				column Template
+					caption: Mall
+				column 'Customer Contract Line Desc.'
+					caption: Beskrivning av kundkontraktsrad
+				column 'Subscription Start Date'
+					caption: Tjänstens startdatum
+				column 'Subscription End Date'
+					caption: Tjänstens slutdatum
+				column 'Next Billing Date'
+					caption: Nästa faktureringsdatum
+				column 'Billing Base Period'
+					caption: Faktureringsbasperiod
+				column 'Invoicing Item No.'
+					caption: Faktureringsartikelnummer
+				column 'Customer Contract Line No.'
+					caption: Kundkontraktsradnr
+				column 'Notice Period'
+					caption: Uppsägningstid
+				column 'Initial Term'
+					caption: Inledande löptid
+				column 'Extension Term'
+					caption: Tilläggsvillkor
+				column 'Billing Rhythm'
+					caption: Faktureringstakt
+				column 'Cancellation Possible Until'
+					caption: Annullering möjlig till
+				column 'Term Until'
+					caption: Löptid till
+				column 'Renewal Term'
+					caption: Förnyelseperiod
+				column 'Line Active'
+					caption: Aktiv rad
+				column 'Remaining Term'
+					caption: Återstående löptid
+				column 'Billing Rhythm Months'
+					caption: Månader för faktureringstakt
+				column 'Customer Contract No.'
+					caption: Kundkontraktsnummer
+				column 'Is Usage Based Billing'
+					caption: Är användningsbaserad fakturering
+				column 'Source Type'
+					caption: Källtyp
+				column 'Source No.'
+					caption: Ursprungsnr
+			table 'Vendor Contract Line'
+				caption: Leverantörskontraktsrad
+				column 'Subscription Line No.'
+					caption: Ufästelseradnr
+				column Template
+					caption: Mall
+				column 'Vendor Contract Line Desc.'
+					caption: Beskrivning av leverantörskontraktsrad
+				column 'Subscription Start Date'
+					caption: Tjänstens startdatum
+				column 'Subscription End Date'
+					caption: Tjänstens slutdatum
+				column 'Next Billing Date'
+					caption: Nästa faktureringsdatum
+				column 'Vendor Contract Line No.'
+					caption: Leverantörskontraktsradnr
+				column 'Notice Period'
+					caption: Uppsägningstid
+				column 'Initial Term'
+					caption: Inledande löptid
+				column 'Extension Term'
+					caption: Tilläggsvillkor
+				column 'Billing Rhythm'
+					caption: Faktureringstakt
+				column 'Cancellation Possible Until'
+					caption: Annullering möjlig till
+				column 'Term Until'
+					caption: Löptid till
+				column 'Renewal Term'
+					caption: Förnyelseperiod
+				column 'Line Active'
+					caption: Aktiv rad
+				column 'Remaining Term'
+					caption: Återstående löptid
+				column 'Billing Rhythm Months'
+					caption: Månader för faktureringstakt
+				column 'Vendor Contract No.'
+					caption: Leverantörskontraktsnummer
+				column 'Is Latest Version'
+					caption: Är senaste version
+				column 'Is Usage Based Billing'
+					caption: Är användningsbaserad fakturering
+				column 'Source Type'
+					caption: Källtyp
+				column 'Source No.'
+					caption: Ursprungsnr
+			table 'Customer Contract Deferrals'
+				caption: Periodiseringar av kundkontrakt
+				column 'Document Type'
+					caption: Dokumenttyp
+				column 'Document No.'
+					caption: Dokumentnummer
+				column 'Posting Date'
+					caption: Bokföringsdatum
+				column 'Document Line No.'
+					caption: Dokumentradnr
+				column 'Document Posting Date'
+					caption: Dokumentets bokföringsdatum
+				column 'Release Posting Date'
+					caption: Bokföringsdatum för frisläppning
+				column 'G LEntry No.'
+					caption: Transaktionsnummer i redovisning
+			table 'Customer Contract'
+				caption: Kundkontrakt
+				column 'Customer Contract No.'
+					caption: Kundkontraktsnummer
+				column 'Customer Contract Type'
+					caption: Typ av kundkontrakt
+				column 'Customer Contract Description'
+					caption: Beskrivning av kundkontrakt
+				column 'Customer Contract No. Desc.'
+					caption: Beskrivning av kundkontraktsnummer
+			table 'Vendor Contract'
+				caption: Leverantörskontrakt
+				column 'Vendor Contract No.'
+					caption: Leverantörskontraktsnummer
+				column 'Vendor Contract Type'
+					caption: Typ av leverantörskontrakt
+				column 'Vendor Contract Description'
+					caption: Beskrivning av leverantörskontrakt
+				column 'Vendor Contract No. Desc.'
+					caption: Beskrivning av leverantörskontraktsnummer
+			table 'UBB handling'
+				caption: Hantering av ABF
+				column 'Treat Usage Based Billing as constant'
+					caption: Behandla ABF som konstant
+			table 'Is Released'
+				caption: Är släppt
+			table Item
+				caption: Artikel
+				column 'Item No.'
+					caption: Artikelnummer
+				column 'Item Name'
+					caption: Artikelnamn
+				column 'Item Category Code'
+					caption: Artikelkategorikod
+				column 'Item Category Description'
+					caption: Beskrivning av artikelkategori
+				column 'Inventory Posting Group'
+					caption: Lagerbokföringsmall
+				column 'Base Unit of Measure'
+					caption: Basmåttenhet
+				column 'Item No. & Description'
+					caption: Artikelnummer och -beskrivning
+			table 'Analysis Date'
+				caption: Analysdatum
+				column 'Is Initial Version'
+					caption: Är inledande version
+				column 'Is Current Version'
+					caption: Är aktuell version
+			table 'Calc. Group - Time Intelligence for Calendar (Fiscal)'
+				caption: Beräkningsgrupp – Tidsintelligens för kalender (räkenskapskalender)
+				column Perspective
+					caption: Perspektiv
+			table 'Subscription Billing KPIs'
+				caption: KPI:er för Subscription Billing
+				measure 'Mon. Recurring Revenue'
+					caption: MÅI
+				measure 'Mon. Recurring Cost'
+					caption: MÅK
+				measure 'Customer Deferrals'
+					caption: Kundperiodiseringar
+				measure 'Vendor Deferrals'
+					caption: Leverantörsperiodiseringar
+				measure 'Annual Recurring Revenue'
+					caption: KRA
+				measure 'Total Contract Value'
+					caption: TKV
+				measure 'Forecast Sales'
+					caption: Prognosförsäljning
+				measure 'Mon. Recurring Cost PY'
+					caption: MÅK FÅ
+				measure 'Mon. Recurring Cost Δ vs. PY'
+					caption: MÅK Δ jämfört med FÅ
+				measure 'Mon. Recurring Revenue Churn'
+					caption: Bortfall av månatliga återkommande intäkter
+				measure 'Mon. Recurring Revenue PY'
+					caption: MÅI FÅ
+				measure 'Mon. Recurring Revenue New'
+					caption: Ny månatlig återkommande intäkt
+				measure 'Mon. Recurring Revenue Δ vs. PY'
+					caption: Månatliga återkommande intäkter Δ jämfört med FÅ
+				measure 'Mon. Net Profit Amount'
+					caption: NMÅI
+				measure 'Mon. Net Profit %'
+					caption: NMÅI % av MÅI
+				measure 'Mon. Net Profit PY'
+					caption: NMÅI FÅ
+				measure 'Mon. Net Profit Δ vs. PY'
+					caption: NMÅI Δ jämfört med FÅ
+				measure 'Change in Mon. Recurring Revenue'
+					caption: Övergripande förändring för MÅI
+				measure 'Total Contract Value PY'
+					caption: TKV FÅ
+				measure 'Total Contract Value Δ vs. PY'
+					caption: TKV Δ jämfört med FÅ
+				measure 'Last Update Analysis Entries'
+					caption: Senaste uppdatering av analystransaktioner
+				measure 'Last Update Semantic Model'
+					caption: Semantisk modell för senaste uppdatering
+				measure 'Param Environment'
+					caption: Parametermiljö
+				measure 'Param Company'
+					caption: Parameterföretag
+				measure 'Mon. Recurring Revenue Upgrade'
+					caption: Uppgradering av månatliga återkommande intäkter
+				measure 'Mon. Recurring Revenue Change UBB'
+					caption: Förändring av månatliga återkommande intäkter vid ABF
+				measure 'Reporting Currency'
+					caption: Rapporteringsvaluta
+				measure 'Active Customers'
+					caption: Aktiva kunder
+				measure 'Active Customers PY'
+					caption: Aktiva kunder FÅ
+				measure 'Active Customers Δ vs. PY'
+					caption: Aktiva kunder Δ jämfört med FÅ
+				measure 'Customer Billing Forecast'
+					caption: Prognos för kundfakturering
+				measure 'Vendor Billing Forecast'
+					caption: Prognos för leverantörsfakturering
+				measure 'Forecast Costs'
+					caption: Prognoskostnader
+				measure 'Mon. Recurring Revenue Downgrade'
+					caption: Nedgradering av månatliga återkommande intäkter
+				measure 'Selected Date Range'
+					caption: Valt datumintervall
+				measure 'Avg. Mon. Churn Rate %'
+					caption: Genomsnittlig månatlig bortfallsgrad %
+				measure 'Mon. Avg. Downgrade Rate %'
+					caption: Månatlig genomsnittlig nedgraderingsgrad %
+				measure 'Mon. Recurring Revenue Downgrade & Churn'
+					caption: Nedgradering och bortfall av månatliga återkommande intäkter
+			table Salesperson
+				caption: Säljare
+				column 'Salesperson Code'
+					caption: Säljarkod
+				column 'Salesperson Name'
+					caption: Säljarnamn
+			table 'Customer Contract Changes'
+				caption: Ändringar i kundkontrakt
+				column 'Customer Contract Line Key'
+					caption: Nyckel för kundkontraktsrad
+				column Date
+					caption: Datum
+				column 'Change Type'
+					caption: Ändringstyp
+				column 'MRR Delta'
+					caption: Delta för MÅI
+

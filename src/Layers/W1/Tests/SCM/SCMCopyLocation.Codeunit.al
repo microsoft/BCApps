@@ -561,7 +561,7 @@ codeunit 137223 "SCM Copy Location"
     local procedure PrepareCopyLocationBuffer(var CopyLocationBuffer: Record "Copy Location Buffer" temporary; SourceCode: Code[10]; TargetCode: Code[10])
     begin
         CopyLocationBuffer.Init();
-        CopyLocationBuffer."Source Location Code" := SourceCode;
+        CopyLocationBuffer.Validate("Source Location Code", SourceCode);
         CopyLocationBuffer."Target Location Code" := TargetCode;
         CopyLocationBuffer.Zones := false;
         CopyLocationBuffer.Bins := false;

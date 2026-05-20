@@ -19,6 +19,7 @@ codeunit 139546 "Shpfy Shipping Charges Test"
     Subtype = Test;
     TestType = Uncategorized;
     TestPermissions = Disabled;
+    TestHttpRequestPolicy = BlockOutboundRequests;
 
     var
         ShipmentMethod: Record "Shipment Method";
@@ -28,9 +29,9 @@ codeunit 139546 "Shpfy Shipping Charges Test"
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryRandom: Codeunit "Library - Random";
         LibraryAssert: Codeunit "Library Assert";
+        OutboundHttpRequests: Codeunit "Library - Variable Storage";
         CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
-        ShpfyInitializeTest: Codeunit "Shpfy Initialize Test";
-        OrdersAPISubscriber: Codeunit "Shpfy Orders API Subscriber";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
         IsInitialized: Boolean;
 
     trigger OnRun()
@@ -40,6 +41,7 @@ codeunit 139546 "Shpfy Shipping Charges Test"
 
     #region Test Methods
     [Test]
+    [HandlerFunctions('ShippingChargesHttpHandler')]
     procedure UnitTestValidateShopifyOrderShippingAgentServiceMapping()
     var
         OrderHeader: Record "Shpfy Order Header";
@@ -57,16 +59,14 @@ codeunit 139546 "Shpfy Shipping Charges Test"
         Shop := CommunicationMgt.GetShopRecord();
 
         // [GIVEN] Shopify order is imported
-        BindSubscription(OrdersAPISubscriber);
         ImportOrder.SetShop(Shop.Code);
         ImportShopifyOrder(Shop, OrderHeader, ImportOrder, false);
-        UnbindSubscription(OrdersAPISubscriber);
 
         // [GIVEN] Order shipping charges are created for the Shopify order
         CreateOrderShippingCharges(OrderShippingCharges, OrderHeader."Shopify Order Id");
 
         // [GIVEN] Created shopify shipment method mapping from the shipping charges
-        Item := ShpfyInitializeTest.GetDummyItem();
+        Item := InitializeTest.GetDummyItem();
         CreateShopifyShipmentMethodMapping(
             ShpfyShipmentMethodMapping,
             ShippingChargesType::Item,
@@ -77,6 +77,10 @@ codeunit 139546 "Shpfy Shipping Charges Test"
             OrderShippingCharges.Title
         );
 
+        // [GIVEN] Register Expected Outbound API Requests.
+        OutboundHttpRequests.Clear();
+        OutboundHttpRequests.Enqueue('Transactions');
+
         // [WHEN] Order mapping is done
         OrderMapping.DoMapping(OrderHeader);
 
@@ -86,6 +90,7 @@ codeunit 139546 "Shpfy Shipping Charges Test"
     end;
 
     [Test]
+    [HandlerFunctions('ShippingChargesHttpHandler')]
     procedure UnitTestValidateSalesOrderShippingAgentServiceMapping()
     var
         OrderHeader: Record "Shpfy Order Header";
@@ -104,16 +109,14 @@ codeunit 139546 "Shpfy Shipping Charges Test"
         Shop := CommunicationMgt.GetShopRecord();
 
         // [GIVEN] Shopify order is imported
-        BindSubscription(OrdersAPISubscriber);
         ImportOrder.SetShop(Shop.Code);
         ImportShopifyOrder(Shop, OrderHeader, ImportOrder, false);
-        UnbindSubscription(OrdersAPISubscriber);
 
         // [GIVEN] Order shipping charges are created for the Shopify order
         CreateOrderShippingCharges(OrderShippingCharges, OrderHeader."Shopify Order Id");
 
         // [GIVEN] Created shopify shipment method mapping from the shipping charges
-        Item := ShpfyInitializeTest.GetDummyItem();
+        Item := InitializeTest.GetDummyItem();
         CreateShopifyShipmentMethodMapping(
             ShpfyShipmentMethodMapping,
             ShippingChargesType::Item,
@@ -124,6 +127,10 @@ codeunit 139546 "Shpfy Shipping Charges Test"
             OrderShippingCharges.Title
         );
 
+        // [GIVEN] Register Expected Outbound API Requests.
+        OutboundHttpRequests.Clear();
+        OutboundHttpRequests.Enqueue('Transactions');
+
         // [WHEN] Order is processed
         ProcessOrder.Run(OrderHeader);
 
@@ -132,6 +139,7 @@ codeunit 139546 "Shpfy Shipping Charges Test"
     end;
 
     [Test]
+    [HandlerFunctions('ShippingChargesHttpHandler')]
     procedure UnitTestMapShippingChargesForEmptyType()
     var
         OrderHeader: Record "Shpfy Order Header";
@@ -148,10 +156,8 @@ codeunit 139546 "Shpfy Shipping Charges Test"
         Shop := CommunicationMgt.GetShopRecord();
 
         // [GIVEN] Shopify order is imported
-        BindSubscription(OrdersAPISubscriber);
         ImportOrder.SetShop(Shop.Code);
         ImportShopifyOrder(Shop, OrderHeader, ImportOrder, false);
-        UnbindSubscription(OrdersAPISubscriber);
 
         // [GIVEN] Order shipping charges are created for the Shopify order
         CreateOrderShippingCharges(OrderShippingCharges, OrderHeader."Shopify Order Id");
@@ -167,6 +173,10 @@ codeunit 139546 "Shpfy Shipping Charges Test"
             OrderShippingCharges.Title
         );
 
+        // [GIVEN] Register Expected Outbound API Requests.
+        OutboundHttpRequests.Clear();
+        OutboundHttpRequests.Enqueue('Transactions');
+
         // [WHEN] Order is processed
         ProcessOrder.Run(OrderHeader);
 
@@ -180,6 +190,7 @@ codeunit 139546 "Shpfy Shipping Charges Test"
     end;
 
     [Test]
+    [HandlerFunctions('ShippingChargesHttpHandler')]
     procedure UnitTestMapShippingChargesForItemType()
     var
         OrderHeader: Record "Shpfy Order Header";
@@ -197,16 +208,14 @@ codeunit 139546 "Shpfy Shipping Charges Test"
         Shop := CommunicationMgt.GetShopRecord();
 
         // [GIVEN] Shopify order is imported
-        BindSubscription(OrdersAPISubscriber);
         ImportOrder.SetShop(Shop.Code);
         ImportShopifyOrder(Shop, OrderHeader, ImportOrder, false);
-        UnbindSubscription(OrdersAPISubscriber);
 
         // [GIVEN] Order shipping charges are created for the Shopify order
         CreateOrderShippingCharges(OrderShippingCharges, OrderHeader."Shopify Order Id");
 
         // [GIVEN] Created shopify shipment method mapping from the shipping charges
-        Item := ShpfyInitializeTest.GetDummyItem();
+        Item := InitializeTest.GetDummyItem();
         CreateShopifyShipmentMethodMapping(
             ShpfyShipmentMethodMapping,
             ShippingChargesType::Item,
@@ -216,6 +225,10 @@ codeunit 139546 "Shpfy Shipping Charges Test"
             Item."No.",
             OrderShippingCharges.Title
         );
+
+        // [GIVEN] Register Expected Outbound API Requests.
+        OutboundHttpRequests.Clear();
+        OutboundHttpRequests.Enqueue('Transactions');
 
         // [WHEN] Order is processed
         ProcessOrder.Run(OrderHeader);
@@ -230,6 +243,7 @@ codeunit 139546 "Shpfy Shipping Charges Test"
     end;
 
     [Test]
+    [HandlerFunctions('ShippingChargesHttpHandler')]
     procedure UnitTestMapShippingChargesForGLType()
     var
         OrderHeader: Record "Shpfy Order Header";
@@ -247,10 +261,8 @@ codeunit 139546 "Shpfy Shipping Charges Test"
         Shop := CommunicationMgt.GetShopRecord();
 
         // [GIVEN] ShpfyImportOrder.ImportOrder
-        BindSubscription(OrdersAPISubscriber);
         ImportOrder.SetShop(Shop.Code);
         ImportShopifyOrder(Shop, OrderHeader, ImportOrder, false);
-        UnbindSubscription(OrdersAPISubscriber);
 
         // [GIVEN] Order shipping charges are created for the Shopify order
         CreateOrderShippingCharges(OrderShippingCharges, OrderHeader."Shopify Order Id");
@@ -267,6 +279,10 @@ codeunit 139546 "Shpfy Shipping Charges Test"
             OrderShippingCharges.Title
         );
 
+        // [GIVEN] Register Expected Outbound API Requests.
+        OutboundHttpRequests.Clear();
+        OutboundHttpRequests.Enqueue('Transactions');
+
         // [WHEN] Order is processed
         ProcessOrder.Run(OrderHeader);
 
@@ -280,6 +296,7 @@ codeunit 139546 "Shpfy Shipping Charges Test"
     end;
 
     [Test]
+    [HandlerFunctions('ShippingChargesHttpHandler')]
     procedure UnitTestMapShippingChargesForItemChargeType()
     var
         OrderHeader: Record "Shpfy Order Header";
@@ -298,10 +315,8 @@ codeunit 139546 "Shpfy Shipping Charges Test"
         Shop := CommunicationMgt.GetShopRecord();
 
         // [GIVEN] ShpfyImportOrder.ImportOrder
-        BindSubscription(OrdersAPISubscriber);
         ImportOrder.SetShop(Shop.Code);
         ImportShopifyOrder(Shop, OrderHeader, ImportOrder, false);
-        UnbindSubscription(OrdersAPISubscriber);
 
         // [GIVEN] Order shipping charges are created for the Shopify order
         CreateOrderShippingCharges(OrderShippingCharges, OrderHeader."Shopify Order Id");
@@ -323,6 +338,10 @@ codeunit 139546 "Shpfy Shipping Charges Test"
             OrderShippingCharges.Title
         );
 
+        // [GIVEN] Register Expected Outbound API Requests.
+        OutboundHttpRequests.Clear();
+        OutboundHttpRequests.Enqueue('Transactions');
+
         // [WHEN] Order is processed
         ProcessOrder.Run(OrderHeader);
 
@@ -336,15 +355,48 @@ codeunit 139546 "Shpfy Shipping Charges Test"
     end;
     #endregion
 
+    [HttpClientHandler]
+    internal procedure ShippingChargesHttpHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    var
+        RequestType: Text;
+        Body: Text;
+    begin
+        if not InitializeTest.VerifyRequestUrl(Request.Path, Shop."Shopify URL") then
+            exit(true);
+
+        if OutboundHttpRequests.Length() > 0 then begin
+            RequestType := OutboundHttpRequests.DequeueText();
+            case RequestType of
+                'Transactions':
+                    begin
+                        Body := NavApp.GetResourceAsText('Order Handling/OrderTransactionResult.txt', TextEncoding::UTF8);
+                        Response.Content.WriteFrom(Body);
+                    end;
+                'CompanyLocation':
+                    begin
+                        Body := NavApp.GetResourceAsText('Order Handling/CompanyLocationResult.txt', TextEncoding::UTF8);
+                        Response.Content.WriteFrom(Body.Replace('{{LocationId}}', '0'));
+                    end;
+            end;
+        end else
+            Response.Content.WriteFrom('{"data":{}}');
+        exit(false);
+    end;
+
     #region Local Procedures
     local procedure Initialize()
     var
         ShippingTime: DateFormula;
+        AccessToken: SecretText;
     begin
         if IsInitialized then
             exit;
 
         Codeunit.Run(Codeunit::"Shpfy Initialize Test");
+        Shop := CommunicationMgt.GetShopRecord();
+
+        AccessToken := LibraryRandom.RandText(20);
+        InitializeTest.RegisterAccessTokenForShop(Shop.GetStoreName(), AccessToken);
 
         Evaluate(ShippingTime, '<1W>');
         CreateShipmentMethod(ShipmentMethod);
@@ -387,7 +439,6 @@ codeunit 139546 "Shpfy Shipping Charges Test"
     end;
 
     local procedure ImportShopifyOrder(var ShopifyShop: Record "Shpfy Shop"; var OrderHeader: Record "Shpfy Order Header"; var OrdersToImport: Record "Shpfy Orders to Import"; var ImportOrder: Codeunit "Shpfy Import Order"; var JShopifyOrder: JsonObject; var JShopifyLineItems: JsonArray)
-    var
     begin
         ImportOrder.ImportCreateAndUpdateOrderHeaderFromMock(ShopifyShop.Code, OrdersToImport.Id, JShopifyOrder);
         ImportOrder.ImportCreateAndUpdateOrderLinesFromMock(OrdersToImport.Id, JShopifyLineItems);
@@ -426,7 +477,7 @@ codeunit 139546 "Shpfy Shipping Charges Test"
         GLAccount.Get(LibraryERM.CreateGLAccountWithVATPostingSetup(VATPostingSetup, Enum::"General Posting Type"::Sale));
         GLAccount."Direct Posting" := true;
 
-        ShpfyInitializeTest.CreateVATPostingSetup(Shop."VAT Bus. Posting Group", GLAccount."VAT Prod. Posting Group");
+        InitializeTest.CreateVATPostingSetup(Shop."VAT Bus. Posting Group", GLAccount."VAT Prod. Posting Group");
 
         GLAccount.Modify(false);
     end;

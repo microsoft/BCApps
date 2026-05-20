@@ -22,7 +22,8 @@ codeunit 238 "G/L Reg.-VAT Entries"
     trigger OnRun()
     begin
         VATEntry.SetRange("Entry No.", Rec."From VAT Entry No.", Rec."To VAT Entry No.");
-        PAGE.Run(PAGE::"VAT Entries", VATEntry);
+        VATEntry.SetFilter("G/L Register No.", '0|%1', Rec."No.");
+        Page.Run(Page::"VAT Entries", VATEntry);
     end;
 
     var

@@ -76,5 +76,5 @@ $currentMajorMinor = Get-ConfigValue -Key "repoVersion" -ConfigType AL-Go
 $expectedPlatformVersion = "$($currentMajorMinor).0.0" # This can be hardcoded to a specific platform version if needed during version updates
 Test-ApplicationManifests -Path $allPaths -ExpectedAppVersion "$($currentMajorMinor).0.0" -ExpectedPlatformVersion $expectedPlatformVersion
 
-# Test that we are not adding new uncategorized tests (W1 only) - Disabled for now 
+# Test that we are not adding new uncategorized tests (W1 only) - Disabled for now
 # Test-ApplicationTestTypes -SourceCodePaths $w1OnlyPaths -Exceptions $allowedUncategorizedTests

@@ -1336,10 +1336,10 @@ codeunit 137929 "SCM Orders UI"
         // [GIVEN] Create Warehouse Employee for the Location.
         CreateWarehouseEmployee(Location.Code);
 
-        // [GIVEN] Two Component items with Manual flushing and one Production item.
-        CreateComponentItem(Item[1], "Flushing Method"::Manual);
-        CreateComponentItem(Item[2], "Flushing Method"::Manual);
-        CreateProductionItem(ProdItem, "Manufacturing Policy"::"Make-to-Stock", "Flushing Method"::Manual);
+        // [GIVEN] Two Component items with Pick + Manual flushing and one Production item.
+        CreateComponentItem(Item[1], "Flushing Method"::"Pick + Manual");
+        CreateComponentItem(Item[2], "Flushing Method"::"Pick + Manual");
+        CreateProductionItem(ProdItem, "Manufacturing Policy"::"Make-to-Stock", "Flushing Method"::"Pick + Manual");
 
         // [GIVEN] Production BOM with both components
         CreateProductionBOMWithComponents(ProductionBOMHeader, Item[1]."No.", Item[2]."No.");

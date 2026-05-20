@@ -573,14 +573,11 @@ page 6550 "Whse. Item Tracking Lines"
     end;
 
     trigger OnInsertRecord(BelowxRec: Boolean): Boolean
-    var
-        WhseItemTrackingLine2: Record "Whse. Item Tracking Line";
     begin
         FormUpdated := true;
         if not Rec.TrackingExists() then
             exit(false);
-        if WhseItemTrackingLine2.FindLast() then;
-        Rec."Entry No." := WhseItemTrackingLine2."Entry No." + 1;
+        Rec."Entry No." := Rec.GetNextEntryNo();
         exit(true);
     end;
 
@@ -914,7 +911,6 @@ page 6550 "Whse. Item Tracking Lines"
 
     procedure InsertItemTrackingLine(WhseWrkshLine: Record "Whse. Worksheet Line"; WhseEntry: Record "Warehouse Entry"; QtyToEmpty: Decimal)
     var
-        WhseItemTrackingLine2: Record "Whse. Item Tracking Line";
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -937,8 +933,7 @@ page 6550 "Whse. Item Tracking Lines"
         Rec."Variant Code" := WhseWrkshLine."Variant Code";
         if (Rec."Expiration Date" <> 0D) and (FormSourceType = Database::"Internal Movement Line") then
             Rec.InitExpirationDate();
-        if WhseItemTrackingLine2.FindLast() then;
-        Rec."Entry No." := WhseItemTrackingLine2."Entry No." + 1;
+        Rec."Entry No." := Rec.GetNextEntryNo();
         OnBeforeItemTrackingLineInsert(Rec, WhseWrkshLine, WhseEntry);
         Rec.Insert();
     end;

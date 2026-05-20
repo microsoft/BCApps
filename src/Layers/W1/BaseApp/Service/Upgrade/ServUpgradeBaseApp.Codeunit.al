@@ -45,6 +45,7 @@ codeunit 104059 "Serv. Upgrade BaseApp"
         UpgradeServiceItemWorksheetReportSelection();
         UpdateServiceEntries();
         EnableDeleteFiledContractsWithRelatedMainContract();
+        UpgradeServiceReportSelections();
 
         if not UpgradeTag.HasUpgradeTag(GetVATDateFieldServiceBlankUpgrade()) then begin
             UpdateServiceBlankEntries();
@@ -238,6 +239,16 @@ codeunit 104059 "Serv. Upgrade BaseApp"
         UpgradeTag.SetUpgradeTag(GetEnableDeleteFiledContractsWithRelatedMainContractUpgradeTag());
     end;
 
+    local procedure UpgradeServiceReportSelections()
+    begin
+        if UpgradeTag.HasUpgradeTag(GetLocalServiceReportsUpgradeTag()) then
+            exit;
+
+        // Only for selected countries with customized Service Document reports
+
+        UpgradeTag.SetUpgradeTag(GetLocalServiceReportsUpgradeTag());
+    end;
+
     // Upgrade definitions
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", 'OnGetPerCompanyUpgradeTags', '', true, false)]
@@ -247,6 +258,7 @@ codeunit 104059 "Serv. Upgrade BaseApp"
         PerCompanyUpgradeTags.Add(GetVATDateFieldServiceBlankUpgrade());
         PerCompanyUpgradeTags.Add(GetServiceItemWorksheetSelectionUpgradeTag());
         PerCompanyUpgradeTags.Add(GetEnableDeleteFiledContractsWithRelatedMainContractUpgradeTag());
+        PerCompanyUpgradeTags.Add(GetLocalServiceReportsUpgradeTag());
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::Microsoft.Foundation.Company."Company-Initialize", 'OnCompanyInitialize', '', true, false)]
@@ -274,5 +286,10 @@ codeunit 104059 "Serv. Upgrade BaseApp"
     internal procedure GetEnableDeleteFiledContractsWithRelatedMainContractUpgradeTag(): Code[250]
     begin
         exit('MS-366089-EnableDeleteFiledContractsWithRelatedMainContractUpgradeTag-20241001');
+    end;
+
+    internal procedure GetLocalServiceReportsUpgradeTag(): Code[250]
+    begin
+        exit('MS-622000-LocalServiceReportsUpgradeTag-20260310');
     end;
 }

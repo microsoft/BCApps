@@ -47,7 +47,6 @@
 
     local procedure Initialize()
     var
-        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
         PurchasePrice: Record "Purchase Price";
         SalesPrice: Record "Sales Price";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -63,9 +62,6 @@
         // Removing special prices
         PurchasePrice.DeleteAll(true);
         SalesPrice.DeleteAll(true);
-        PurchasesPayablesSetup.Get();
-        PurchasesPayablesSetup.Validate("Check Doc. Total Amounts", false);
-        PurchasesPayablesSetup.Modify(true);
 
         LibraryJob.ConfigureGeneralPosting();
         LibraryJob.ConfigureVATPosting();
@@ -646,7 +642,6 @@
         JobTask: Record "Job Task";
         JobPlanningLine: Record "Job Planning Line";
         JobLedgerEntry: Record "Job Ledger Entry";
-        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         UnitOfMeasure: Record "Unit of Measure";
@@ -654,11 +649,6 @@
     begin
         // [SCENARIO 551005] Total Unit Cost in Job Ledger Entry having Currency Code is calculated based on Unit of Measure Code selected.
         Initialize();
-
-        // [GIVEN] Set Check Doc. Total Amounts as false in Purchases & Payables Setup. // NL
-        PurchasesPayablesSetup.Get();
-        PurchasesPayablesSetup."Check Doc. Total Amounts" := false;
-        PurchasesPayablesSetup.Modify(true);
 
         // [GIVEN] Create a Currency.
         LibraryERM.CreateCurrency(Currency);

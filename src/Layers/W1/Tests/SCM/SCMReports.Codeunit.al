@@ -443,6 +443,121 @@ codeunit 137309 "SCM Reports"
         VerifySubcontractorDispatchListReport(ProductionOrder, ProdOrderRoutingLine);
     end;
 
+    [Test]
+    [HandlerFunctions('CapacityTaskListRequestPageHandler')]
+    [Scope('OnPrem')]
+    procedure CapacityTaskListDateFilterFiltersRoutingLines()
+    var
+        Item: Record Item;
+        ProductionBOMHeader: Record "Production BOM Header";
+        RoutingHeader: Record "Routing Header";
+        ProductionOrder: array[2] of Record "Production Order";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        ExcludedDate: Date;
+    begin
+        // [SCENARIO 622280] Date filter in report "Capacity Task List" filters inner routing lines.
+        // [GIVEN] Two released production orders for the same item/routing sharing the same work center.
+        Initialize();
+        CreateManufacturingItem(
+          Item, Item."Costing Method"::Standard, ProductionBOMHeader.Status::Certified, RoutingHeader.Status::Certified);
+
+        LibraryManufacturing.CreateProductionOrder(
+          ProductionOrder[1], ProductionOrder[1].Status::Released, ProductionOrder[1]."Source Type"::Item,
+          Item."No.", LibraryRandom.RandDec(10, 2));
+        LibraryManufacturing.RefreshProdOrder(ProductionOrder[1], true, true, true, true, false);
+
+        LibraryManufacturing.CreateProductionOrder(
+          ProductionOrder[2], ProductionOrder[2].Status::Released, ProductionOrder[2]."Source Type"::Item,
+          Item."No.", LibraryRandom.RandDec(10, 2));
+        LibraryManufacturing.RefreshProdOrder(ProductionOrder[2], true, true, true, true, false);
+
+        // [GIVEN] The first production order's routing line has Starting Date = WorkDate.
+        ProdOrderRoutingLine.SetRange(Status, ProdOrderRoutingLine.Status::Released);
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder[1]."No.");
+        ProdOrderRoutingLine.FindFirst();
+        ProdOrderRoutingLine.Validate("Starting Date", WorkDate());
+        ProdOrderRoutingLine.Validate("Starting Date-Time", CreateDateTime(WorkDate(), ProdOrderRoutingLine."Starting Time"));
+        ProdOrderRoutingLine.Modify(true);
+
+        // [GIVEN] The second production order's routing line has a Starting Date far in the future.
+        ExcludedDate := CalcDate('<+1Y>', WorkDate());
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder[2]."No.");
+        ProdOrderRoutingLine.FindFirst();
+        ProdOrderRoutingLine.Validate("Starting Date", ExcludedDate);
+        ProdOrderRoutingLine.Validate("Starting Date-Time", CreateDateTime(ExcludedDate, ProdOrderRoutingLine."Starting Time"));
+        ProdOrderRoutingLine.Modify(true);
+
+        // [WHEN] Run Capacity Task List report filtered on Starting Date = WorkDate only.
+        ProdOrderRoutingLine.Reset();
+        ProdOrderRoutingLine.SetRange(Type, ProdOrderRoutingLine.Type::"Work Center");
+        ProdOrderRoutingLine.SetRange("No.", ProdOrderRoutingLine."No.");
+        ProdOrderRoutingLine.SetRange("Starting Date", WorkDate());
+        Commit();
+        REPORT.Run(REPORT::"Capacity Task List", true, false, ProdOrderRoutingLine);
+
+        // [THEN] Report contains routing line from ProdOrder[1] and not from ProdOrder[2].
+        LibraryReportDataset.LoadDataSetFile();
+        LibraryReportDataset.AssertElementWithValueExists('PONo_ProdOrderRtngLine', ProductionOrder[1]."No.");
+        LibraryReportDataset.AssertElementWithValueNotExist('PONo_ProdOrderRtngLine', ProductionOrder[2]."No.");
+    end;
+
+    [Test]
+    [HandlerFunctions('CapacityTaskListRequestPageHandler')]
+    [Scope('OnPrem')]
+    procedure CapacityTaskListNoDateFilterShowsAllRoutingLines()
+    var
+        Item: Record Item;
+        ProductionBOMHeader: Record "Production BOM Header";
+        RoutingHeader: Record "Routing Header";
+        ProductionOrder: array[2] of Record "Production Order";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        FutureDate: Date;
+    begin
+        // [SCENARIO 622280] Capacity Task List report without date filter shows all routing lines.
+        // [GIVEN] Two released production orders for the same item/routing sharing the same work center.
+        Initialize();
+        CreateManufacturingItem(
+          Item, Item."Costing Method"::Standard, ProductionBOMHeader.Status::Certified, RoutingHeader.Status::Certified);
+
+        LibraryManufacturing.CreateProductionOrder(
+          ProductionOrder[1], ProductionOrder[1].Status::Released, ProductionOrder[1]."Source Type"::Item,
+          Item."No.", LibraryRandom.RandDec(10, 2));
+        LibraryManufacturing.RefreshProdOrder(ProductionOrder[1], true, true, true, true, false);
+
+        LibraryManufacturing.CreateProductionOrder(
+          ProductionOrder[2], ProductionOrder[2].Status::Released, ProductionOrder[2]."Source Type"::Item,
+          Item."No.", LibraryRandom.RandDec(10, 2));
+        LibraryManufacturing.RefreshProdOrder(ProductionOrder[2], true, true, true, true, false);
+
+        // [GIVEN] The first production order's routing line has Starting Date = WorkDate.
+        ProdOrderRoutingLine.SetRange(Status, ProdOrderRoutingLine.Status::Released);
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder[1]."No.");
+        ProdOrderRoutingLine.FindFirst();
+        ProdOrderRoutingLine.Validate("Starting Date", WorkDate());
+        ProdOrderRoutingLine.Validate("Starting Date-Time", CreateDateTime(WorkDate(), ProdOrderRoutingLine."Starting Time"));
+        ProdOrderRoutingLine.Modify(true);
+
+        // [GIVEN] The second production order's routing line has a Starting Date far in the future.
+        FutureDate := CalcDate('<+1Y>', WorkDate());
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder[2]."No.");
+        ProdOrderRoutingLine.FindFirst();
+        ProdOrderRoutingLine.Validate("Starting Date", FutureDate);
+        ProdOrderRoutingLine.Validate("Starting Date-Time", CreateDateTime(FutureDate, ProdOrderRoutingLine."Starting Time"));
+        ProdOrderRoutingLine.Modify(true);
+
+        // [WHEN] Run Capacity Task List report without date filter.
+        ProdOrderRoutingLine.Reset();
+        ProdOrderRoutingLine.SetRange(Type, ProdOrderRoutingLine.Type::"Work Center");
+        ProdOrderRoutingLine.SetRange("No.", ProdOrderRoutingLine."No.");
+        Commit();
+        REPORT.Run(REPORT::"Capacity Task List", true, false, ProdOrderRoutingLine);
+
+        // [THEN] Report contains routing lines from both production orders.
+        LibraryReportDataset.LoadDataSetFile();
+        LibraryReportDataset.AssertElementWithValueExists('PONo_ProdOrderRtngLine', ProductionOrder[1]."No.");
+        LibraryReportDataset.AssertElementWithValueExists('PONo_ProdOrderRtngLine', ProductionOrder[2]."No.");
+    end;
+
     [HandlerFunctions('BinContentCreationWkshtRequestPageHandler')]
     [Scope('OnPrem')]
     procedure BinContentCreateWorksheetReport()
@@ -2770,6 +2885,13 @@ codeunit 137309 "SCM Reports"
     begin
         ItemList.GoToKey(LibraryVariableStorage.DequeueText());
         ItemList.OK().Invoke();
+    end;
+
+    [RequestPageHandler]
+    [Scope('OnPrem')]
+    procedure CapacityTaskListRequestPageHandler(var CapacityTaskList: TestRequestPage "Capacity Task List")
+    begin
+        CapacityTaskList.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 
 }

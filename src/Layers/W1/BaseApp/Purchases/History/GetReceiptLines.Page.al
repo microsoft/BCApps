@@ -155,6 +155,11 @@ page 5709 "Get Receipt Lines"
                     ApplicationArea = Suite;
                     Visible = false;
                 }
+                field("Purchasing Code"; Rec."Purchasing Code")
+                {
+                    ApplicationArea = Suite;
+                    Visible = false;
+                }
             }
         }
         area(factboxes)

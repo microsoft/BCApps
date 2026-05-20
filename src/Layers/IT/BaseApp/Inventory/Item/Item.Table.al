@@ -3344,13 +3344,19 @@ table 27 Item
         exit(Round("Unit Price" / (1 + CalcVAT()), GLSetup."Unit-Amount Rounding Precision"));
     end;
 
-    procedure GetFirstItemNoFromLookup(ItemText: Text): Code[20]
+    procedure GetFirstItemNoFromLookup(ItemText: Text) FoundItemNo: Code[20]
     var
         Item: Record Item;
         SearchFilter: Text;
+        IsHandled, SuppressAdvancedItemSearch : Boolean;
     begin
+        OnBeforeGetFirstItemNoFromLookup(ItemText, FoundItemNo, SuppressAdvancedItemSearch, IsHandled);
+        if IsHandled then
+            exit(FoundItemNo);
+
         if ItemText = '' then
             exit('');
+
         Item.SetLoadFields("No.");
         if StrLen(ItemText) <= MaxStrLen(Item."No.") then
             if Item.Get(ItemText) then
@@ -3359,22 +3365,26 @@ table 27 Item
             Item.SetFilter("No.", ItemText + '*');
             if Item.FindFirst() then
                 exit(Item."No.");
+
             Item.SetRange("No.");
         end;
 
-        // Filter the same way as in item lookup/dropdown, ref. fieldgroup for DropDown
-        SearchFilter := '@*' + ItemText + '*';
-        Item.FilterGroup(-1);
-        Item.SetFilter("No.", SearchFilter);
-        Item.SetFilter("No. 2", SearchFilter);
-        Item.SetFilter(Description, SearchFilter);
-        Item.SetFilter(GTIN, SearchFilter);
-        Item.SetFilter("Vendor Item No.", SearchFilter);
-        Item.SetFilter("Common Item No.", SearchFilter);
-        Item.SetFilter("Shelf No.", SearchFilter);
-        Item.FilterGroup(0);
-        if Item.FindFirst() then
-            exit(Item."No.");
+        if not SuppressAdvancedItemSearch then begin
+            // Filter the same way as in item lookup/dropdown, ref. fieldgroup for DropDown
+            SearchFilter := '@*' + ItemText + '*';
+            Item.FilterGroup(-1);
+            Item.SetFilter("No.", SearchFilter);
+            Item.SetFilter("No. 2", SearchFilter);
+            Item.SetFilter(Description, SearchFilter);
+            Item.SetFilter(GTIN, SearchFilter);
+            Item.SetFilter("Vendor Item No.", SearchFilter);
+            Item.SetFilter("Common Item No.", SearchFilter);
+            Item.SetFilter("Shelf No.", SearchFilter);
+            Item.FilterGroup(0);
+            if Item.FindFirst() then
+                exit(Item."No.");
+        end;
+
         Error(SelectItemErr);
     end;
 
@@ -4418,6 +4428,18 @@ table 27 Item
 
     [InternalEvent(false)]
     local procedure OnShouldTryCostFromSKUOnCheckSKUCostOnMfg(var ShouldExit: Boolean)
+    begin
+    end;
+
+    /// <summary>
+    /// Raised before the GetFirstItemNoFromLookup procedure resolves an item number from the given text.
+    /// </summary>
+    /// <param name="ItemText">The text used to search for the item.</param>
+    /// <param name="FoundItemNo">The item number resolved from the lookup. Set this to return a custom result.</param>
+    /// <param name="SuppressAdvancedItemSearch">Set to true to skip the advanced wildcard search across item fields.</param>
+    /// <param name="IsHandled">Set to true to skip the default lookup logic and use the value in FoundItemNo.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeGetFirstItemNoFromLookup(ItemText: Text; var FoundItemNo: Code[20]; var SuppressAdvancedItemSearch: Boolean; var IsHandled: Boolean)
     begin
     end;
 }

@@ -360,12 +360,13 @@ report 11564 "SR G/L Acc Sheet Foreign Curr"
                 if StartDate > 0D then begin
                     SetRange("Date Filter", 0D, ClosingDate(StartDate - 1));
 
-                        CalcFields("Net Change");
-                        GlBalance := "Net Change";
-                        GLAccountSourceCurrency.Get("No.", "Source Currency Code");
+                    CalcFields("Net Change");
+                    GlBalance := "Net Change";
+                    if ("Source Currency Code" <> '') and GLAccountSourceCurrency.Get("No.", "Source Currency Code") then begin
                         GLAccountSourceCurrency.SetRange("Date Filter", 0D, ClosingDate(StartDate - 1));
                         GLAccountSourceCurrency.CalcFields("Source Curr. Balance at Date");
                         FcyAcyBalance := GLAccountSourceCurrency."Source Curr. Balance at Date";
+                    end;
                     SetFilter("Date Filter", GlJourDateFilter);
                 end;
 

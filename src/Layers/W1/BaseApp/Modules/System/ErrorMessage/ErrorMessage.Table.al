@@ -405,8 +405,6 @@ table 700 "Error Message"
 
         AssertRecordTemporaryOrInContext();
 
-        Rec.ID := FindLastMessageID() + 1;
-
         Rec.Init();
         Rec.Validate("Message Type", MessageType);
         Rec.Validate("Message", CopyStr(NewDescription, 1, MaxStrLen(Rec."Message")));
@@ -418,6 +416,8 @@ table 700 "Error Message"
         else
             if Rec."Message Type" = Rec."Message Type"::Error then
                 Rec.SetErrorCallStack(ErrorMessageMgt.GetCurrCallStack());
+
+        Rec.ID := Rec.IsTemporary() ? FindLastMessageID() + 1 : 0;
         Rec.Insert(true);
 
         exit(Rec.ID);
@@ -476,10 +476,10 @@ table 700 "Error Message"
     begin
         if (GetLastErrorCode() <> '') and (GetLastErrorText() <> '') then begin
             if ErrorMessageMgt.GetLastContext(Rec) then begin
-                Rec.ID := FindLastMessageID() + 1;
                 Rec.Validate("Message Type", Rec."Message Type"::Error);
                 Rec.Validate("Message", CopyStr(GetLastErrorText(), 1, MaxStrLen(Rec."Message")));
                 Rec.SetErrorCallStack(GetLastErrorCallStack());
+                Rec.ID := Rec.IsTemporary() ? FindLastMessageID() + 1 : 0;
                 Rec.Insert(true);
             end else
                 Rec.LogSimpleMessage("Message Type"::Error, GetLastErrorText(), GetLastErrorCallStack());
@@ -502,15 +502,12 @@ table 700 "Error Message"
 
     local procedure FindLastMessageID(): Integer
     var
-        ErrorMessage: Record "Error Message";
         TempErrorMessage: Record "Error Message" temporary;
     begin
-        if Rec.IsTemporary() then begin
-            TempErrorMessage.Copy(Rec, true);
-            exit(TempErrorMessage.FindLastID());
-        end;
-        ErrorMessage.Copy(Rec);
-        exit(ErrorMessage.FindLastID());
+        TempErrorMessage.Copy(Rec, true);
+        TempErrorMessage.Reset();
+        if TempErrorMessage.FindLast() then
+            exit(TempErrorMessage.ID);
     end;
 
     procedure FindLastID(): Integer

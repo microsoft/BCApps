@@ -246,7 +246,7 @@ table 6012 "Service Line Archive"
         field(45; "Job No."; Code[20])
         {
             Caption = 'Project No.';
-            TableRelation = Job."No." where("Bill-to Customer No." = field("Bill-to Customer No."));
+            TableRelation = Job."No.";
         }
         field(46; "Job Task No."; Code[20])
         {

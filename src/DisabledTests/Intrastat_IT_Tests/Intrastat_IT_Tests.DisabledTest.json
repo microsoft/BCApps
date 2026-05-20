@@ -48,5 +48,10 @@
     "codeunitId": 139511,
     "codeunitName": "Intrastat IT Test",
     "method": "GetPartnerIDFromVATRegNoOfSalesShipment"
+  },
+  {
+    "codeunitId": 139511,
+    "codeunitName": "Intrastat IT Test",
+    "method": "ValidateIntrastatReportLineDateWithQuarterlyPeriod"
   }
 ]

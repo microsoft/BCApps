@@ -11,6 +11,7 @@ query 30001 "APIV2 - Vendor Purchases"
     EntityName = 'vendorPurchase';
     EntitySetName = 'vendorPurchases';
     QueryType = API;
+    AboutText = 'Aggregated vendor purchase data including total purchase amounts summarized from vendor ledger entries. Supports date filtering to analyze purchasing spend by vendor over specific periods.';
 
     elements
     {

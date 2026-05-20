@@ -6,6 +6,7 @@ namespace Microsoft.Inventory.Costing;
 
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Ledger;
+using Microsoft.Inventory.Setup;
 using System.Telemetry;
 
 codeunit 5806 "Item Ledger Entry-Edit"
@@ -28,27 +29,40 @@ codeunit 5806 "Item Ledger Entry-Edit"
     begin
         if ItemLedgerEntry.FindSet() then
             repeat
-                if Item.Get(ItemLedgerEntry."Item No.") then begin
-                    Item."Cost is Adjusted" := false;
-                    Item.Modify();
+                if not IsItemLedgEntryBeforeEarliestAllowedValDate(ItemLedgerEntry) then begin
+                    if Item.Get(ItemLedgerEntry."Item No.") then begin
+                        Item."Cost is Adjusted" := false;
+                        Item.Modify();
 
-                    FeatureTelemetry.LogUsage('0000MEK', CostIsAdjustedResetTok, ItemCostIsAdjustedResetTok);
-                end else
-                    Item.Init();
+                        FeatureTelemetry.LogUsage('0000MEK', CostIsAdjustedResetTok, ItemCostIsAdjustedResetTok);
+                    end else
+                        Item.Init();
 
-                if Item."Costing Method" = Item."Costing Method"::Average then begin
-                    if ItemLedgerEntry."Applies-to Entry" <> 0 then
-                        if ItemLedgerEntry.Positive then
-                            ItemLedgerEntry.SetAppliedEntryToAdjust(true)
-                        else
-                            if AppliedItemLedgerEntry.Get(ItemLedgerEntry."Applies-to Entry") then
-                                AppliedItemLedgerEntry.SetAppliedEntryToAdjust(true);
-                end else begin
-                    if not ItemLedgerEntry.Positive then
-                        Error(NegativeEntryErr);
-                    ItemLedgerEntry.SetAppliedEntryToAdjust(true);
-                    ItemApplicationEntry.SetOutboundsNotUpdated(ItemLedgerEntry);
+                    if Item."Costing Method" = Item."Costing Method"::Average then begin
+                        if ItemLedgerEntry."Applies-to Entry" <> 0 then
+                            if ItemLedgerEntry.Positive then
+                                ItemLedgerEntry.SetAppliedEntryToAdjust(true)
+                            else
+                                if AppliedItemLedgerEntry.Get(ItemLedgerEntry."Applies-to Entry") then
+                                    if not IsItemLedgEntryBeforeEarliestAllowedValDate(AppliedItemLedgerEntry) then
+                                        AppliedItemLedgerEntry.SetAppliedEntryToAdjust(true);
+                    end else begin
+                        if not ItemLedgerEntry.Positive then
+                            Error(NegativeEntryErr);
+                        ItemLedgerEntry.SetAppliedEntryToAdjust(true);
+                        ItemApplicationEntry.SetOutboundsNotUpdated(ItemLedgerEntry);
+                    end;
                 end;
             until ItemLedgerEntry.Next() = 0;
+    end;
+
+    local procedure IsItemLedgEntryBeforeEarliestAllowedValDate(ItemLedgerEntry: Record "Item Ledger Entry"): Boolean
+    var
+        InventorySetup: Record "Inventory Setup";
+    begin
+        InventorySetup.GetRecordOnce();
+        exit(
+            (InventorySetup."Earliest Allowed Val. Date" <> 0D) and
+            (ItemLedgerEntry."Posting Date" < InventorySetup."Earliest Allowed Val. Date"));
     end;
 }

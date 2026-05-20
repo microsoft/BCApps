@@ -199,9 +199,6 @@ report 5405 "Calc. Consumption"
     procedure CreateConsumpJnlLine(LocationCode: Code[10]; BinCode: Code[20]; OriginalQtyToPost: Decimal)
     var
         Location: Record Location;
-#if not CLEAN26
-        ManufacturingSetup: Record Microsoft.Manufacturing.Setup."Manufacturing Setup";
-#endif
 #if not CLEAN27
         SubcontractingMgt: Codeunit SubcontractingManagement;
         WorkCenter: Record "Work Center";
@@ -216,12 +213,7 @@ report 5405 "Calc. Consumption"
 
         Window.Update(3, QtyToPost);
 
-#if not CLEAN26
-        if not ManufacturingSetup.IsFeatureKeyFlushingMethodManualWithoutPickEnabled() then
-            ShouldAdjustQty := "Prod. Order Component"."Flushing Method" in ["Prod. Order Component"."Flushing Method"::Manual, "Prod. Order Component"."Flushing Method"::"Pick + Manual", "Prod. Order Component"."Flushing Method"::Forward, "Prod. Order Component"."Flushing Method"::"Pick + Forward"]
-        else
-#endif
-            ShouldAdjustQty := "Prod. Order Component"."Flushing Method" in ["Prod. Order Component"."Flushing Method"::"Pick + Manual", "Prod. Order Component"."Flushing Method"::Forward, "Prod. Order Component"."Flushing Method"::"Pick + Forward"];
+        ShouldAdjustQty := "Prod. Order Component"."Flushing Method" in ["Prod. Order Component"."Flushing Method"::"Pick + Manual", "Prod. Order Component"."Flushing Method"::Forward, "Prod. Order Component"."Flushing Method"::"Pick + Forward"];
         if ShouldAdjustQty then begin
             Location.SetLoadFields("Prod. Consump. Whse. Handling");
             if Location.Get(LocationCode) and (Location."Prod. Consump. Whse. Handling" = Location."Prod. Consump. Whse. Handling"::"Warehouse Pick (mandatory)") then

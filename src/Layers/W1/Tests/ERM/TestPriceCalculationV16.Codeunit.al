@@ -16,6 +16,7 @@ codeunit 134159 "Test Price Calculation - V16"
         LibraryJob: Codeunit "Library - Job";
         LibraryMarketing: Codeunit "Library - Marketing";
         LibraryNotificationMgt: Codeunit "Library - Notification Mgt.";
+        LibraryPlanning: Codeunit "Library - Planning";
         LibraryPriceCalculation: Codeunit "Library - Price Calculation";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryRandom: Codeunit "Library - Random";
@@ -23,7 +24,6 @@ codeunit 134159 "Test Price Calculation - V16"
         LibraryResource: Codeunit "Library - Resource";
         LibrarySales: Codeunit "Library - Sales";
         LibraryService: Codeunit "Library - Service";
-        LibraryPlanning: Codeunit "Library - Planning";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryWarehouse: Codeunit "Library - Warehouse";
@@ -5845,7 +5845,7 @@ codeunit 134159 "Test Price Calculation - V16"
 
         // [GIVEN] Active Price List for 'All Customers'
         LibraryPriceCalculation.CreatePriceHeader(PriceListHeader, "Price Type"::Sale, "Price Source Type"::"All Customers", '');
-        
+
         // [GIVEN] Price Line for customer discount group 'D' and Item Discount Group = X
         LibraryPriceCalculation.CreatePriceListLine(
             PriceListLine, PriceListHeader.Code, "Price Type"::Sale, PriceListLine."Source Type"::"Customer Disc. Group", CustomerDiscountGroup.Code, "Price Amount Type"::Discount, "Price Asset Type"::"Item Discount Group", ItemDiscountGroup.Code);
@@ -5899,6 +5899,617 @@ codeunit 134159 "Test Price Calculation - V16"
             StrSubstNo(ErrorMessage, SalesLine.FieldCaption("Line Discount %"), DiscountPct, SalesLine.TableCaption()));
 
         // Cleanup: Restore default handler
+        LibraryPriceCalculation.SetupDefaultHandler(OldHandler);
+    end;
+
+    [Test]
+    procedure ServiceLineUnitCostFromPurchasePriceList()
+    var
+        Customer: Record Customer;
+        Item: Record Item;
+        PriceListLine: Record "Price List Line";
+        ServiceHeader: Record "Service Header";
+        ServiceLine: Record "Service Line";
+        OldHandler: Enum "Price Calculation Handler";
+        ExpectedDirectUnitCost: Decimal;
+    begin
+        // [FEATURE] [AI test 0.3] [Service] [Item] [Purchase Price]
+        // [SCENARIO 625254] Unit Cost on Service Line is set from Direct Unit Cost in Purchase Price List when item is added
+        Initialize();
+        PriceListLine.DeleteAll();
+
+        // [GIVEN] Default price calculation is 'V16'
+        OldHandler := LibraryPriceCalculation.SetupDefaultHandler("Price Calculation Handler"::"Business Central (Version 16.0)");
+
+        // [GIVEN] Create a new Customer.
+        LibrarySales.CreateCustomer(Customer);
+
+        // [GIVEN] Create a new Item with Unit cost and Unit price.
+        //LibraryInventory.CreateItem(Item);
+        LibraryInventory.CreateItemWithUnitPriceAndUnitCost(Item, 0, LibraryRandom.RandDecInRange(10, 50, 2));
+        // Item.Validate("Unit Cost", LibraryRandom.RandDecInRange(10, 50, 2));
+        // Item.Modify(true);
+
+        // [GIVEN] Create a new Purchase Price List Line for "All Vendors" for Item with "Direct Unit Cost".
+        ExpectedDirectUnitCost := LibraryRandom.RandDecInRange(100, 200, 2);
+        LibraryPriceCalculation.CreatePurchPriceLine(
+            PriceListLine, '', "Price Source Type"::"All Vendors", '', "Price Asset Type"::Item, Item."No.");
+        PriceListLine.Validate("Direct Unit Cost", ExpectedDirectUnitCost);
+        PriceListLine.Validate("Status", PriceListLine.Status::Active);
+        PriceListLine.Modify(true);
+
+        // [GIVEN] Create a new Service Order for Customer with one line for Item.
+        LibraryService.CreateServiceHeader(ServiceHeader, ServiceHeader."Document Type"::Order, Customer."No.");
+        LibraryService.CreateServiceLine(ServiceLine, ServiceHeader, ServiceLine.Type::Item, Item."No.");
+
+        // [WHEN] Validate Quantity on Service Line
+        ServiceLine.Validate(Quantity, LibraryRandom.RandIntInRange(1, 10));
+
+        // [THEN] The "Unit Cost (LCY)" is set to "Direct Unit Cost" from Purchase Price List Line.
+        Assert.AreEqual(
+            ExpectedDirectUnitCost, ServiceLine."Unit Cost (LCY)",
+            StrSubstNo(
+                ValueMustBeEqualErr, ServiceLine.FieldCaption("Unit Cost (LCY)"), ExpectedDirectUnitCost, ServiceLine.TableCaption()));
+
+        LibraryPriceCalculation.SetupDefaultHandler(OldHandler);
+    end;
+
+    [Test]
+    procedure ServiceLineUnitCostNotResetOnQuantityValidate()
+    var
+        Customer: Record Customer;
+        Item: Record Item;
+        PriceListLine: Record "Price List Line";
+        ServiceHeader: Record "Service Header";
+        ServiceLine: Record "Service Line";
+        OldHandler: Enum "Price Calculation Handler";
+        ExpectedDirectUnitCost: Decimal;
+        MinQty: Decimal;
+    begin
+        // [FEATURE] [AI test 0.3] [Service] [Item] [Purchase Price]
+        // [SCENARIO 625254] Unit Cost on Service Line is not reset to 0 when Quantity is validated with a Purchase Price List.
+        Initialize();
+        PriceListLine.DeleteAll();
+
+        // [GIVEN] Default price calculation is 'V16'
+        OldHandler := LibraryPriceCalculation.SetupDefaultHandler("Price Calculation Handler"::"Business Central (Version 16.0)");
+
+        // [GIVEN] Create a new Customer.
+        LibrarySales.CreateCustomer(Customer);
+
+        // [GIVEN] Create a new Item.
+        LibraryInventory.CreateItem(Item);
+
+        // [GIVEN] Create a new Purchase Price List Line for "All Vendors" for Item with Direct Unit Cost and Minimum Quantity.
+        ExpectedDirectUnitCost := LibraryRandom.RandDecInRange(100, 200, 2);
+        MinQty := LibraryRandom.RandIntInRange(5, 10);
+        LibraryPriceCalculation.CreatePurchPriceLine(
+            PriceListLine, '', "Price Source Type"::"All Vendors", '', "Price Asset Type"::Item, Item."No.");
+        PriceListLine.Validate("Direct Unit Cost", ExpectedDirectUnitCost);
+        PriceListLine.Validate("Minimum Quantity", MinQty);
+        PriceListLine.Validate("Status", PriceListLine.Status::Active);
+        PriceListLine.Modify(true);
+
+        // [GIVEN] Create a new Service Order for Customer with one line for Item.
+        LibraryService.CreateServiceHeader(ServiceHeader, ServiceHeader."Document Type"::Order, Customer."No.");
+        LibraryService.CreateServiceLine(ServiceLine, ServiceHeader, ServiceLine.Type::Item, Item."No.");
+
+        // [WHEN] Validate Quantity to match Minimum Quantity.
+        ServiceLine.Validate(Quantity, MinQty);
+
+        // [THEN] The "Unit Cost (LCY)" is set to "Direct Unit Cost" from Purchase Price List Line.
+        Assert.AreEqual(
+            ExpectedDirectUnitCost, ServiceLine."Unit Cost (LCY)",
+            StrSubstNo(
+                ValueMustBeEqualErr, ServiceLine.FieldCaption("Unit Cost (LCY)"), ExpectedDirectUnitCost, ServiceLine.TableCaption()));
+
+        LibraryPriceCalculation.SetupDefaultHandler(OldHandler);
+    end;
+
+    [Test]
+    procedure DiscountPreservedWhenSpuriousZeroPctVariantLineExists()
+    var
+        Customer: Record Customer;
+        CustomerDiscountGroup: Record "Customer Discount Group";
+        Item: Record Item;
+        ItemVariant: Record "Item Variant";
+        ItemDiscountGroup: Record "Item Discount Group";
+        PriceListHeader: Record "Price List Header";
+        PriceListLine: Record "Price List Line";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        OldHandler: Enum "Price Calculation Handler";
+        DiscountPct: Decimal;
+    begin
+        // [FEATURE] [SalesPrice] [Item] [Variant] [Discount]
+        // [SCENARIO] Generic discount is preserved when a "Price & Discount" price list line with 0% discount and variant exists
+        Initialize();
+
+        // [GIVEN] Default price calculation is 'V16'
+        OldHandler := LibraryPriceCalculation.SetupDefaultHandler("Price Calculation Handler"::"Business Central (Version 16.0)");
+
+        // [GIVEN] Customer 'A' with Customer Discount Group 'D'
+        LibrarySales.CreateCustomer(Customer);
+        LibraryERM.CreateCustomerDiscountGroup(CustomerDiscountGroup);
+        Customer."Customer Disc. Group" := CustomerDiscountGroup.Code;
+        Customer.Modify(true);
+
+        // [GIVEN] Item 'I' with Variant 'V' and Item Discount Group 'X'
+        LibraryInventory.CreateItem(Item);
+        LibraryERM.CreateItemDiscountGroup(ItemDiscountGroup);
+        Item."Item Disc. Group" := ItemDiscountGroup.Code;
+        Item.Modify();
+        LibraryInventory.CreateItemVariant(ItemVariant, Item."No.");
+
+        DiscountPct := LibraryRandom.RandIntInRange(5, 20);
+
+        // [GIVEN] Active Discount Price List: 10% discount for Item Discount Group (no variant)
+        LibraryPriceCalculation.CreatePriceHeader(PriceListHeader, "Price Type"::Sale, "Price Source Type"::"All Customers", '');
+        LibraryPriceCalculation.CreatePriceListLine(
+            PriceListLine, PriceListHeader.Code, "Price Type"::Sale, PriceListLine."Source Type"::"Customer Disc. Group", CustomerDiscountGroup.Code, "Price Amount Type"::Discount, "Price Asset Type"::"Item Discount Group", ItemDiscountGroup.Code);
+        PriceListLine.Validate("Line Discount %", DiscountPct);
+        PriceListLine.Status := "Price Status"::Active;
+        PriceListLine.Modify(true);
+
+        Clear(PriceListLine);
+        Clear(PriceListHeader);
+
+        // [GIVEN] Active "Price & Discount" Price List (alphabetically before the discount list) with Item+Variant, Unit Price set, 0% discount
+        LibraryPriceCalculation.CreatePriceHeader(PriceListHeader, "Price Type"::Sale, "Price Source Type"::"All Customers", '');
+        LibraryPriceCalculation.CreatePriceListLine(
+            PriceListLine, PriceListHeader, "Price Amount Type"::Any, "Price Asset Type"::Item, Item."No.");
+        PriceListLine.Validate("Variant Code", ItemVariant.Code);
+        PriceListLine.Validate("Unit Price", LibraryRandom.RandDecInRange(50, 100, 2));
+        PriceListLine.Validate("Line Discount %", 0);
+        PriceListLine.Status := "Price Status"::Active;
+        PriceListLine.Modify(true);
+
+        // [GIVEN] Sales Quote for Customer 'A' with Item 'I'
+        LibrarySales.CreateSalesHeader(SalesHeader, "Sales Document Type"::Quote, Customer."No.");
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, "Sales Line Type"::Item, Item."No.", 1);
+
+        // [WHEN] Validate Variant Code 'V' on Sales Line
+        SalesLine.Validate("Variant Code", ItemVariant.Code);
+
+        // [THEN] Line Discount % is still the generic discount (not cleared to 0)
+        Assert.AreEqual(DiscountPct, SalesLine."Line Discount %",
+            StrSubstNo(ValueMustBeEqualErr, SalesLine.FieldCaption("Line Discount %"), DiscountPct, SalesLine.TableCaption()));
+
+        // Cleanup
+        LibraryPriceCalculation.SetupDefaultHandler(OldHandler);
+    end;
+
+    [Test]
+    procedure VariantSpecificDiscountOverridesHigherGenericDiscount()
+    var
+        Customer: Record Customer;
+        CustomerDiscountGroup: Record "Customer Discount Group";
+        Item: Record Item;
+        ItemVariant: Record "Item Variant";
+        ItemDiscountGroup: Record "Item Discount Group";
+        PriceListHeader: Record "Price List Header";
+        PriceListLine: Record "Price List Line";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        OldHandler: Enum "Price Calculation Handler";
+        GenericDiscountPct: Decimal;
+        VariantDiscountPct: Decimal;
+    begin
+        // [FEATURE] [SalesPrice] [Item] [Variant] [Discount]
+        // [SCENARIO] Variant-specific discount overrides a higher generic discount due to specificity
+        Initialize();
+
+        // [GIVEN] Default price calculation is 'V16'
+        OldHandler := LibraryPriceCalculation.SetupDefaultHandler("Price Calculation Handler"::"Business Central (Version 16.0)");
+
+        // [GIVEN] Customer 'A' with Customer Discount Group 'D'
+        LibrarySales.CreateCustomer(Customer);
+        LibraryERM.CreateCustomerDiscountGroup(CustomerDiscountGroup);
+        Customer."Customer Disc. Group" := CustomerDiscountGroup.Code;
+        Customer.Modify(true);
+
+        // [GIVEN] Item 'I' with Variant 'V' and Item Discount Group 'X'
+        LibraryInventory.CreateItem(Item);
+        LibraryERM.CreateItemDiscountGroup(ItemDiscountGroup);
+        Item."Item Disc. Group" := ItemDiscountGroup.Code;
+        Item.Modify();
+        LibraryInventory.CreateItemVariant(ItemVariant, Item."No.");
+
+        GenericDiscountPct := LibraryRandom.RandIntInRange(15, 25);
+        VariantDiscountPct := LibraryRandom.RandIntInRange(5, 14);
+
+        // [GIVEN] Active Price List with generic discount 20% for Item Discount Group (no variant)
+        LibraryPriceCalculation.CreatePriceHeader(PriceListHeader, "Price Type"::Sale, "Price Source Type"::"All Customers", '');
+        LibraryPriceCalculation.CreatePriceListLine(
+            PriceListLine, PriceListHeader.Code, "Price Type"::Sale, PriceListLine."Source Type"::"Customer Disc. Group", CustomerDiscountGroup.Code, "Price Amount Type"::Discount, "Price Asset Type"::"Item Discount Group", ItemDiscountGroup.Code);
+        PriceListLine.Validate("Line Discount %", GenericDiscountPct);
+        PriceListLine.Status := "Price Status"::Active;
+        PriceListLine.Modify(true);
+
+        Clear(PriceListLine);
+
+        // [GIVEN] Active Price List with variant-specific discount for Item + Variant 'V'
+        LibraryPriceCalculation.CreatePriceListLine(
+            PriceListLine, PriceListHeader.Code, "Price Type"::Sale, PriceListLine."Source Type"::"Customer Disc. Group", CustomerDiscountGroup.Code, "Price Amount Type"::Discount, "Price Asset Type"::Item, Item."No.");
+        PriceListLine.Validate("Variant Code", ItemVariant.Code);
+        PriceListLine.Validate("Line Discount %", VariantDiscountPct);
+        PriceListLine.Status := "Price Status"::Active;
+        PriceListLine.Modify(true);
+
+        // [GIVEN] Sales Quote for Customer 'A' with Item 'I'
+        LibrarySales.CreateSalesHeader(SalesHeader, "Sales Document Type"::Quote, Customer."No.");
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, "Sales Line Type"::Item, Item."No.", 1);
+
+        // [THEN] Without variant, generic discount applies
+        Assert.AreEqual(GenericDiscountPct, SalesLine."Line Discount %",
+            StrSubstNo(ValueMustBeEqualErr, SalesLine.FieldCaption("Line Discount %"), GenericDiscountPct, SalesLine.TableCaption()));
+
+        // [WHEN] Validate Variant Code 'V' on Sales Line
+        SalesLine.Validate("Variant Code", ItemVariant.Code);
+
+        // [THEN] Variant-specific discount overrides generic (specificity wins)
+        Assert.AreEqual(VariantDiscountPct, SalesLine."Line Discount %",
+            StrSubstNo(ValueMustBeEqualErr, SalesLine.FieldCaption("Line Discount %"), VariantDiscountPct, SalesLine.TableCaption()));
+
+        // Cleanup
+        LibraryPriceCalculation.SetupDefaultHandler(OldHandler);
+    end;
+
+    [Test]
+    procedure VariantDiscountSelectedWhenSpuriousZeroPctAndRealVariantDiscountExist()
+    var
+        Customer: Record Customer;
+        CustomerDiscountGroup: Record "Customer Discount Group";
+        Item: Record Item;
+        ItemVariant: Record "Item Variant";
+        ItemDiscountGroup: Record "Item Discount Group";
+        PriceListHeader: Record "Price List Header";
+        PriceListLine: Record "Price List Line";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        OldHandler: Enum "Price Calculation Handler";
+        GenericDiscountPct: Decimal;
+        VariantDiscountPct: Decimal;
+    begin
+        // [FEATURE] [SalesPrice] [Item] [Variant] [Discount]
+        // [SCENARIO] When generic discount, spurious 0% variant line, and real variant discount all exist, the real variant discount wins
+        Initialize();
+
+        // [GIVEN] Default price calculation is 'V16'
+        OldHandler := LibraryPriceCalculation.SetupDefaultHandler("Price Calculation Handler"::"Business Central (Version 16.0)");
+
+        // [GIVEN] Customer 'A' with Customer Discount Group 'D'
+        LibrarySales.CreateCustomer(Customer);
+        LibraryERM.CreateCustomerDiscountGroup(CustomerDiscountGroup);
+        Customer."Customer Disc. Group" := CustomerDiscountGroup.Code;
+        Customer.Modify(true);
+
+        // [GIVEN] Item 'I' with Variant 'V' and Item Discount Group 'X'
+        LibraryInventory.CreateItem(Item);
+        LibraryERM.CreateItemDiscountGroup(ItemDiscountGroup);
+        Item."Item Disc. Group" := ItemDiscountGroup.Code;
+        Item.Modify();
+        LibraryInventory.CreateItemVariant(ItemVariant, Item."No.");
+
+        GenericDiscountPct := LibraryRandom.RandIntInRange(10, 20);
+        VariantDiscountPct := LibraryRandom.RandIntInRange(3, 9);
+
+        // [GIVEN] Active Discount Price List: generic discount for Item Discount Group (no variant)
+        LibraryPriceCalculation.CreatePriceHeader(PriceListHeader, "Price Type"::Sale, "Price Source Type"::"All Customers", '');
+        LibraryPriceCalculation.CreatePriceListLine(
+            PriceListLine, PriceListHeader.Code, "Price Type"::Sale, PriceListLine."Source Type"::"Customer Disc. Group", CustomerDiscountGroup.Code, "Price Amount Type"::Discount, "Price Asset Type"::"Item Discount Group", ItemDiscountGroup.Code);
+        PriceListLine.Validate("Line Discount %", GenericDiscountPct);
+        PriceListLine.Status := "Price Status"::Active;
+        PriceListLine.Modify(true);
+
+        Clear(PriceListLine);
+
+        // [GIVEN] Active Discount Price List: variant-specific discount for Item + Variant 'V'
+        LibraryPriceCalculation.CreatePriceListLine(
+            PriceListLine, PriceListHeader.Code, "Price Type"::Sale, PriceListLine."Source Type"::"Customer Disc. Group", CustomerDiscountGroup.Code, "Price Amount Type"::Discount, "Price Asset Type"::Item, Item."No.");
+        PriceListLine.Validate("Variant Code", ItemVariant.Code);
+        PriceListLine.Validate("Line Discount %", VariantDiscountPct);
+        PriceListLine.Status := "Price Status"::Active;
+        PriceListLine.Modify(true);
+
+        Clear(PriceListLine);
+        Clear(PriceListHeader);
+
+        // [GIVEN] Active "Price & Discount" Price List with Item+Variant, Unit Price set, 0% discount (spurious)
+        LibraryPriceCalculation.CreatePriceHeader(PriceListHeader, "Price Type"::Sale, "Price Source Type"::"All Customers", '');
+        LibraryPriceCalculation.CreatePriceListLine(
+            PriceListLine, PriceListHeader, "Price Amount Type"::Any, "Price Asset Type"::Item, Item."No.");
+        PriceListLine.Validate("Variant Code", ItemVariant.Code);
+        PriceListLine.Validate("Unit Price", LibraryRandom.RandDecInRange(50, 100, 2));
+        PriceListLine.Validate("Line Discount %", 0);
+        PriceListLine.Status := "Price Status"::Active;
+        PriceListLine.Modify(true);
+
+        // [GIVEN] Sales Quote for Customer 'A' with Item 'I'
+        LibrarySales.CreateSalesHeader(SalesHeader, "Sales Document Type"::Quote, Customer."No.");
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, "Sales Line Type"::Item, Item."No.", 1);
+
+        // [THEN] Without variant, generic discount applies
+        Assert.AreEqual(GenericDiscountPct, SalesLine."Line Discount %",
+            StrSubstNo(ValueMustBeEqualErr, SalesLine.FieldCaption("Line Discount %"), GenericDiscountPct, SalesLine.TableCaption()));
+
+        // [WHEN] Validate Variant Code 'V' on Sales Line
+        SalesLine.Validate("Variant Code", ItemVariant.Code);
+
+        // [THEN] Real variant-specific discount wins (spurious 0% line is ignored)
+        Assert.AreEqual(VariantDiscountPct, SalesLine."Line Discount %",
+            StrSubstNo(ValueMustBeEqualErr, SalesLine.FieldCaption("Line Discount %"), VariantDiscountPct, SalesLine.TableCaption()));
+
+        // Cleanup
+        LibraryPriceCalculation.SetupDefaultHandler(OldHandler);
+    end;
+
+    [Test]
+    procedure SalesLineResourceUnitCostWhenWorkTypeBeforeQuantity()
+    var
+        Customer: Record Customer;
+        Resource: Record Resource;
+        PriceListLine: Record "Price List Line";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        WorkType: Record "Work Type";
+        OldHandler: Enum "Price Calculation Handler";
+        ResourceUnitCost: Decimal;
+        PriceListUnitCost: Decimal;
+        MinimumQuantity: Decimal;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 620474] Sales line resource unit cost when work type code is entered before quantity.
+        Initialize();
+
+        // [GIVEN] Default price calculation is 'V16'.
+        OldHandler := LibraryPriceCalculation.SetupDefaultHandler("Price Calculation Handler"::"Business Central (Version 16.0)");
+
+        // [GIVEN] Work Type "WT".
+        LibraryResource.CreateWorkType(WorkType);
+
+        // [GIVEN] Customer "C".
+        LibrarySales.CreateCustomer(Customer);
+
+        // [GIVEN] Resource "R", where "Unit Cost" is random value.
+        ResourceUnitCost := LibraryRandom.RandDecInRange(10, 50, 2);
+        LibraryResource.CreateResource(Resource, Customer."VAT Bus. Posting Group");
+        Resource.Validate("Unit Cost", ResourceUnitCost);
+        Resource.Modify(true);
+
+        // [GIVEN] Purchase Price List line for "All Vendors" for Resource "R" with "Work Type Code" = "WT", "Minimum Quantity", "Unit Cost".
+        MinimumQuantity := LibraryRandom.RandIntInRange(1, 3);
+        PriceListUnitCost := LibraryRandom.RandDecInRange(60, 100, 2);
+        LibraryPriceCalculation.CreatePurchPriceLine(
+            PriceListLine, '', "Price Source Type"::"All Vendors", '', "Price Asset Type"::Resource, Resource."No.");
+        PriceListLine."Work Type Code" := WorkType.Code;
+        PriceListLine.Validate("Minimum Quantity", MinimumQuantity);
+        PriceListLine.Validate("Unit Cost", PriceListUnitCost);
+        PriceListLine.Status := PriceListLine."Status"::Active;
+        PriceListLine.Modify(true);
+
+        // [GIVEN] Sales Order for Customer "C".
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, Customer."No.");
+
+        // [GIVEN] Sales Line with "Type" = 'Resource', "No." = "R" (enter resource first).
+        LibrarySales.CreateSalesLineSimple(SalesLine, SalesHeader);
+        SalesLine.Validate(Type, SalesLine.Type::Resource);
+        SalesLine.Validate("No.", Resource."No.");
+
+        // [GIVEN] Validate "Work Type Code" = "WT" (enter work type code second).
+        SalesLine.Validate("Work Type Code", WorkType.Code);
+
+        // [WHEN] Validate "Quantity" (enter quantity last).
+        SalesLine.Validate(Quantity, MinimumQuantity);
+        SalesLine.Modify(true);
+
+        // [THEN] "Unit Cost (LCY)" is from the Purchase Price List line.
+        Assert.AreEqual(
+            PriceListUnitCost,
+            SalesLine."Unit Cost (LCY)",
+            StrSubstNo(
+                ValueMustBeEqualErr,
+                SalesLine.FieldCaption("Unit Cost (LCY)"),
+                PriceListUnitCost,
+                SalesLine.TableCaption()));
+
+        // Cleanup
+        LibraryPriceCalculation.SetupDefaultHandler(OldHandler);
+    end;
+
+    [Test]
+    procedure SalesLineResourceUnitCostWhenQuantityBeforeWorkType()
+    var
+        Customer: Record Customer;
+        Resource: Record Resource;
+        PriceListLine: Record "Price List Line";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        WorkType: Record "Work Type";
+        OldHandler: Enum "Price Calculation Handler";
+        ResourceUnitCost: Decimal;
+        PriceListUnitCost: Decimal;
+        MinimumQuantity: Decimal;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 620474] Sales line resource unit cost when quantity is entered before work type code.
+        Initialize();
+
+        // [GIVEN] Default price calculation is 'V16'.
+        OldHandler := LibraryPriceCalculation.SetupDefaultHandler("Price Calculation Handler"::"Business Central (Version 16.0)");
+
+        // [GIVEN] Work Type "WT".
+        LibraryResource.CreateWorkType(WorkType);
+
+        // [GIVEN] Customer "C".
+        LibrarySales.CreateCustomer(Customer);
+
+        // [GIVEN] Resource "R", where "Unit Cost" is random value.
+        ResourceUnitCost := LibraryRandom.RandDecInRange(10, 50, 2);
+        LibraryResource.CreateResource(Resource, Customer."VAT Bus. Posting Group");
+        Resource.Validate("Unit Cost", ResourceUnitCost);
+        Resource.Modify(true);
+
+        // [GIVEN] Purchase Price List line for "All Vendors" for Resource "R" with "Work Type Code" = "WT", "Minimum Quantity", "Unit Cost".
+        MinimumQuantity := LibraryRandom.RandIntInRange(1, 3);
+        PriceListUnitCost := LibraryRandom.RandDecInRange(60, 100, 2);
+        LibraryPriceCalculation.CreatePurchPriceLine(
+            PriceListLine, '', "Price Source Type"::"All Vendors", '', "Price Asset Type"::Resource, Resource."No.");
+        PriceListLine."Work Type Code" := WorkType.Code;
+        PriceListLine.Validate("Minimum Quantity", MinimumQuantity);
+        PriceListLine.Validate("Unit Cost", PriceListUnitCost);
+        PriceListLine.Status := PriceListLine."Status"::Active;
+        PriceListLine.Modify(true);
+
+        // [GIVEN] Sales Order for Customer "C".
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, Customer."No.");
+
+        // [GIVEN] Sales Line with "Type" = 'Resource', "No." = "R" (enter resource first).
+        LibrarySales.CreateSalesLineSimple(SalesLine, SalesHeader);
+        SalesLine.Validate(Type, SalesLine.Type::Resource);
+        SalesLine.Validate("No.", Resource."No.");
+
+        // [GIVEN] Validate "Quantity" (enter quantity second).
+        SalesLine.Validate(Quantity, MinimumQuantity);
+
+        // [WHEN] Validate "Work Type Code" = "WT" (enter work type code last).
+        SalesLine.Validate("Work Type Code", WorkType.Code);
+        SalesLine.Modify(true);
+
+        // [THEN] "Unit Cost (LCY)" is from the Purchase Price List line.
+        // The sequence of entries should not affect the result.
+        Assert.AreEqual(
+            PriceListUnitCost,
+            SalesLine."Unit Cost (LCY)",
+            StrSubstNo(
+                ValueMustBeEqualErr,
+                SalesLine.FieldCaption("Unit Cost (LCY)"),
+                PriceListUnitCost,
+                SalesLine.TableCaption()));
+
+        // Cleanup
+        LibraryPriceCalculation.SetupDefaultHandler(OldHandler);
+    end;
+
+    [Test]
+    procedure SalesLineResourceUnitCostIsNetWhenSalesHeaderPricesInclVAT()
+    var
+        Customer: Record Customer;
+        PriceListLine: Record "Price List Line";
+        Resource: Record Resource;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        VATPostingSetup: Record "VAT Posting Setup";
+        OldHandler: Enum "Price Calculation Handler";
+    begin
+        // [SCENARIO 1588] Resource Unit Cost (LCY) on a sales line is not grossed up by VAT
+        // when the sales header has Prices Including VAT = true and the purchase price list
+        // line stores a net cost (Price Includes VAT = false).
+        Initialize();
+
+        // [GIVEN] Default price calculation handler is 'V16'.
+        OldHandler := LibraryPriceCalculation.SetupDefaultHandler("Price Calculation Handler"::"Business Central (Version 16.0)");
+
+        // [GIVEN] VAT Posting Setup with Normal VAT.
+        LibraryERM.FindVATPostingSetup(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT");
+
+        // [GIVEN] Customer 'C' with Prices Including VAT = true.
+        Customer.Get(LibrarySales.CreateCustomerWithVATBusPostingGroup(VATPostingSetup."VAT Bus. Posting Group"));
+        Customer.Validate("Prices Including VAT", true);
+        Customer.Modify(true);
+
+        // [GIVEN] Resource 'R' with the matching VAT posting groups.
+        Resource.Get(CreateResource(VATPostingSetup."VAT Bus. Posting Group", VATPostingSetup."VAT Prod. Posting Group"));
+
+        // [GIVEN] Purchase price list line for 'R' where "Price Includes VAT" is false and "Unit Cost" is a net value.
+        LibraryPriceCalculation.CreatePurchPriceLine(
+            PriceListLine, '', "Price Source Type"::"All Vendors", '', "Price Asset Type"::Resource, Resource."No.");
+        PriceListLine."Unit Cost" := LibraryRandom.RandDecInRange(40, 80, 2);
+        PriceListLine.Status := "Price Status"::Active;
+        PriceListLine.Modify();
+
+        // [GIVEN] Sales Order for Customer 'C'.
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, Customer."No.");
+
+        // [WHEN] A sales line is added for Resource 'R'.
+        LibrarySales.CreateSalesLineSimple(SalesLine, SalesHeader);
+        SalesLine.Validate(Type, SalesLine.Type::Resource);
+        SalesLine.Validate("No.", Resource."No.");
+        SalesLine.Validate(Quantity, 1);
+        SalesLine.Modify(true);
+
+        // [THEN] "Unit Cost (LCY)" equals the net Unit Cost from the price list line and is not multiplied by VAT%.
+        Assert.AreNearlyEqual(
+            PriceListLine."Unit Cost",
+            SalesLine."Unit Cost (LCY)",
+            0.01,
+            StrSubstNo(ValueMustBeEqualErr, SalesLine.FieldCaption("Unit Cost (LCY)"), PriceListLine."Unit Cost", SalesLine.TableCaption()));
+
+        // Cleanup
+        LibraryPriceCalculation.SetupDefaultHandler(OldHandler);
+    end;
+
+    [Test]
+    procedure SalesLineResourceUnitCostIsNetWhenPurchasePriceLineHasGrossCost()
+    var
+        Customer: Record Customer;
+        ExpectedNetCost: Decimal;
+        PriceListLine: Record "Price List Line";
+        Resource: Record Resource;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        VATPostingSetup: Record "VAT Posting Setup";
+        OldHandler: Enum "Price Calculation Handler";
+        GrossCost: Decimal;
+    begin
+        // [SCENARIO 1588] Resource Unit Cost (LCY) on a sales line is converted to net
+        // when the purchase price list line stores a gross cost (Price Includes VAT = true),
+        // even when the sales header has Prices Including VAT = true.
+        Initialize();
+
+        // [GIVEN] Default price calculation handler is 'V16'.
+        OldHandler := LibraryPriceCalculation.SetupDefaultHandler("Price Calculation Handler"::"Business Central (Version 16.0)");
+
+        // [GIVEN] VAT Posting Setup with Normal VAT.
+        LibraryERM.FindVATPostingSetup(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT");
+
+        // [GIVEN] Customer 'C' with Prices Including VAT = true.
+        Customer.Get(LibrarySales.CreateCustomerWithVATBusPostingGroup(VATPostingSetup."VAT Bus. Posting Group"));
+        Customer.Validate("Prices Including VAT", true);
+        Customer.Modify(true);
+
+        // [GIVEN] Resource 'R' with the matching VAT posting groups.
+        Resource.Get(CreateResource(VATPostingSetup."VAT Bus. Posting Group", VATPostingSetup."VAT Prod. Posting Group"));
+
+        // [GIVEN] Purchase price list line for 'R' where "Price Includes VAT" is true (gross cost).
+        GrossCost := LibraryRandom.RandDecInRange(60, 100, 2);
+        ExpectedNetCost := Round(GrossCost / (1 + VATPostingSetup."VAT %" / 100), 0.01);
+        LibraryPriceCalculation.CreatePurchPriceLine(
+            PriceListLine, '', "Price Source Type"::"All Vendors", '', "Price Asset Type"::Resource, Resource."No.");
+        PriceListLine."Price Includes VAT" := true;
+        PriceListLine."VAT Bus. Posting Gr. (Price)" := VATPostingSetup."VAT Bus. Posting Group";
+        PriceListLine."Unit Cost" := GrossCost;
+        PriceListLine.Status := "Price Status"::Active;
+        PriceListLine.Modify();
+
+        // [GIVEN] Sales Order for Customer 'C'.
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, Customer."No.");
+
+        // [WHEN] A sales line is added for Resource 'R'.
+        LibrarySales.CreateSalesLineSimple(SalesLine, SalesHeader);
+        SalesLine.Validate(Type, SalesLine.Type::Resource);
+        SalesLine.Validate("No.", Resource."No.");
+        SalesLine.Validate(Quantity, 1);
+        SalesLine.Modify(true);
+
+        // [THEN] "Unit Cost (LCY)" is the gross cost divided by (1 + VAT%) - the net cost.
+        Assert.AreNearlyEqual(
+            ExpectedNetCost,
+            SalesLine."Unit Cost (LCY)",
+            0.01,
+            StrSubstNo(ValueMustBeEqualErr, SalesLine.FieldCaption("Unit Cost (LCY)"), ExpectedNetCost, SalesLine.TableCaption()));
+
+        // Cleanup
         LibraryPriceCalculation.SetupDefaultHandler(OldHandler);
     end;
 

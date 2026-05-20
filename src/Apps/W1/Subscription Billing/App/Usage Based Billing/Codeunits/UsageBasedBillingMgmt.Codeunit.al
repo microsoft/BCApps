@@ -53,7 +53,7 @@ codeunit 8029 "Usage Based Billing Mgmt."
                     end;
                 i += 1;
                 UsageDataSubscription2.Modify(false);
-                UsageDataSubscription2.UpdateServiceObjectNoForUsageDataGenericImport();
+                UsageDataSubscription2.UpdateSubscriptionHeaderNoInImportedData();
             until UsageDataSubscription.Next() = 0;
             ProgressBox.Close();
         end;

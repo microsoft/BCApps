@@ -518,7 +518,7 @@ page 52 "Purchase Credit Memo"
                 {
                     ApplicationArea = Location;
                     Importance = Additional;
-                    ToolTip = 'Specifies the location where the items are to be shipped. This field acts as the default location for new lines. You can update the location code for individual lines as needed.';
+                    ToolTip = 'Specifies the code for the location from where the items are shipped. When you select the vendor and the vendor has a location assigned, the value is taken from the Vendor card. If the vendor has no location, but a Responsibility Center is populated, the location code is taken from the Responsibility Center. If neither is specified, the value is taken from Company Information. This field acts as the default location for new lines. You can update the location code for individual lines as needed.';
                 }
                 field(Correction; Rec.Correction)
                 {

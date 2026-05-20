@@ -142,8 +142,23 @@ table 5804 "Avg. Cost Adjmt. Entry Point"
     end;
 
     procedure UpdateValuationDate(ValueEntry: Record "Value Entry")
+    var
+        InventorySetup: Record "Inventory Setup";
     begin
+        InventorySetup.GetRecordOnce();
         Rec.ReadIsolation(IsolationLevel::ReadUnCommitted);
+
+        if (InventorySetup."Earliest Allowed Val. Date" <> 0D) and
+           (ValueEntry."Valuation Date" < InventorySetup."Earliest Allowed Val. Date")
+        then begin
+            // Call for the side effect of priming Rec's keys (Item No., Valuation Date, Location Code, Variant Code)
+            // so UpdateNextValuations() can build its cascade filter. Do not collapse into exit() - the cascade forward
+            // from a pre-cutoff Value Entry is intentional and required for correct post-cutoff signaling.
+            ValuationExists(ValueEntry);
+            UpdateNextValuations();
+            exit;
+        end;
+
         if ValuationExists(ValueEntry) then begin
             if not "Cost Is Adjusted" then
                 exit;
@@ -164,6 +179,7 @@ table 5804 "Avg. Cost Adjmt. Entry Point"
     local procedure UpdateNextValuations()
     var
         CopyOfAvgCostAdjmtPoint: Record "Avg. Cost Adjmt. Entry Point";
+        InventorySetup: Record "Inventory Setup";
     begin
         CopyOfAvgCostAdjmtPoint.Copy(Rec);
         SetCurrentKey("Item No.", "Cost Is Adjusted");
@@ -176,7 +192,11 @@ table 5804 "Avg. Cost Adjmt. Entry Point"
             SetRange("Location Code", "Location Code");
             SetRange("Variant Code", "Variant Code");
         end;
-        SetFilter("Valuation Date", '>%1', "Valuation Date");
+        InventorySetup.GetRecordOnce();
+        if InventorySetup."Earliest Allowed Val. Date" <> 0D then
+            SetFilter("Valuation Date", '>%1&>=%2', "Valuation Date", InventorySetup."Earliest Allowed Val. Date")
+        else
+            SetFilter("Valuation Date", '>%1', "Valuation Date");
         ModifyAll("Cost Is Adjusted", false);
         Copy(CopyOfAvgCostAdjmtPoint);
     end;

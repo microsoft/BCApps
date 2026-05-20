@@ -201,6 +201,32 @@ page 4350 "Custom Agent Setup"
                         end;
                     }
                 }
+
+                group(AgentModelGroup)
+                {
+                    Caption = 'Agent model';
+                    InstructionalText = 'Choose the model the agent uses to complete tasks. Auto means the agent uses the default model that can change over time.';
+
+                    field(AgentModelName; SelectedModelDisplayName)
+                    {
+                        ApplicationArea = All;
+                        Caption = 'Model';
+                        ToolTip = 'Specifies the model used by the agent. Auto means the agent uses the default model.';
+                        Editable = false;
+                        AssistEdit = true;
+
+                        trigger OnAssistEdit()
+                        var
+                            TempAgentModel: Record "Agent Model" temporary;
+                        begin
+                            BuildTempAgentModelLookup(TempAgentModel, SelectedModelId);
+                            if Page.RunModal(Page::"Agent Model List", TempAgentModel) <> Action::LookupOK then
+                                exit;
+
+                            ApplySelectedAgentModel(TempAgentModel);
+                        end;
+                    }
+                }
                 group(TestYourAgent)
                 {
                     Caption = 'Test your agent';
@@ -310,6 +336,7 @@ page 4350 "Custom Agent Setup"
         Rec."User Security ID" := TempAgentSetupBuffer."User Security ID";
         ApplyCustomAgentSetupValues();
         ApplyUserSettingsValues();
+        ApplyModelSelection();
 
         Commit();
         if TempAgentSetupBuffer.State = TempAgentSetupBuffer.State::Enabled then
@@ -356,6 +383,92 @@ page 4350 "Custom Agent Setup"
             Agent.SetProfile(TempAgentSetupBuffer."User Security ID", TempUserSettingsRecord."Profile ID", TempUserSettingsRecord."App ID");
     end;
 
+    local procedure ApplyModelSelection()
+    var
+        Agent: Record Agent;
+    begin
+        if not IsModelUpdated then
+            exit;
+
+        if IsNullGuid(TempAgentSetupBuffer."User Security ID") then
+            exit;
+
+        if not Agent.Get(TempAgentSetupBuffer."User Security ID") then
+            exit;
+
+        Agent.Validate("Model ID", SelectedModelId);
+        Agent.Modify(true);
+    end;
+
+    local procedure InitModelDisplay()
+    var
+        Agent: Codeunit "Agent";
+    begin
+        if IsNullGuid(TempAgentSetupBuffer."User Security ID") then begin
+            SelectedModelId := '';
+            SelectedModelDisplayName := AutoLbl;
+            exit;
+        end;
+
+        SelectedModelId := Agent.GetModelId(TempAgentSetupBuffer."User Security ID");
+        SelectedModelDisplayName := Agent.GetModelName(TempAgentSetupBuffer."User Security ID");
+    end;
+
+    local procedure InsertAutoAgentModel(var TempAgentModel: Record "Agent Model" temporary)
+    begin
+        TempAgentModel.Init();
+        TempAgentModel."Model ID" := GetAutoModelLookupId();
+        TempAgentModel."Model Name" := AutoLbl;
+        TempAgentModel.Availability := TempAgentModel.Availability::Available;
+        TempAgentModel."Retirement Date" := 0D;
+        TempAgentModel.Insert();
+    end;
+
+    local procedure BuildTempAgentModelLookup(var TempAgentModel: Record "Agent Model" temporary; CurrentModelId: Code[30])
+    var
+        AgentModel: Record "Agent Model";
+    begin
+        TempAgentModel.Reset();
+        TempAgentModel.DeleteAll();
+
+        InsertAutoAgentModel(TempAgentModel);
+
+        AgentModel.SetFilter(Availability, '%1|%2', AgentModel.Availability::Preview, AgentModel.Availability::Available);
+        if AgentModel.FindSet() then
+            repeat
+                TempAgentModel := AgentModel;
+                TempAgentModel.Insert();
+            until AgentModel.Next() = 0;
+
+        if CurrentModelId = '' then begin
+            if TempAgentModel.Get(GetAutoModelLookupId()) then;
+            exit;
+        end;
+
+        if TempAgentModel.Get(CurrentModelId) then;
+    end;
+
+    local procedure ApplySelectedAgentModel(var TempAgentModel: Record "Agent Model" temporary)
+    begin
+        if TempAgentModel."Model ID" = GetAutoModelLookupId() then
+            SelectedModelId := ''
+        else
+            SelectedModelId := TempAgentModel."Model ID";
+
+        if SelectedModelId = '' then
+            SelectedModelDisplayName := AutoLbl
+        else
+            SelectedModelDisplayName := TempAgentModel."Model Name";
+
+        IsUpdated := true;
+        IsModelUpdated := true;
+    end;
+
+    local procedure GetAutoModelLookupId(): Code[30]
+    begin
+        exit(CopyStr(AutoLookupModelIdTok, 1, 30));
+    end;
+
     local procedure UpdateControls()
     var
         CustomAgentSetup: Codeunit "Custom Agent Setup";
@@ -395,6 +508,9 @@ page 4350 "Custom Agent Setup"
             UserSettings.GetUserSettings(TempAgentSetupBuffer."User Security ID", TempUserSettingsRecord);
             ProfileDisplayName := UserSettings.GetProfileName(TempUserSettingsRecord);
         end;
+
+        if not IsModelUpdated then
+            InitModelDisplay();
     end;
 
     local procedure IsAgentConfiguredCheck()
@@ -454,11 +570,16 @@ page 4350 "Custom Agent Setup"
         AgentType: Text;
         AgentName: Text[50];
         ProfileDisplayName: Text;
+        SelectedModelId: Code[30];
+        SelectedModelDisplayName: Text;
+        IsModelUpdated: Boolean;
         IsUpdated: Boolean;
         IsFirstTimeSetup: Boolean;
         WasAgentActiveOnOpen: Boolean;
         OpenEditInstructionsPage: Boolean;
         IsAccessControlUpdated: Boolean;
+        AutoLbl: Label 'Auto';
+        AutoLookupModelIdTok: Label 'AUTO', Locked = true;
         CustomAgentIsNotEnabledInCopilotCapabilitiesErr: Label 'The custom agent capability is not enabled in Copilot capabilities.\\Please enable the capability before setting up the agent.';
         AgentMustHaveInstructionsErr: Label 'The agent must have instructions assigned.';
         ProfileMustBeSetErr: Label 'The agent must have a profile assigned which is not the default profile.';

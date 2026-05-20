@@ -2,6 +2,8 @@ codeunit 134992 "ERM Financial Reports IV"
 {
     Subtype = Test;
     TestPermissions = NonRestrictive;
+    Permissions = TableData "Cust. Ledger Entry" = rimd,
+                  TableData "Detailed Cust. Ledg. Entry" = rimd;
 
     trigger OnRun()
     begin
@@ -812,6 +814,164 @@ codeunit 134992 "ERM Financial Reports IV"
         VATEntry.TestField(Type, VATEntry.Type::Settlement);
     end;
 
+    [Test]
+    [HandlerFunctions('ReconcileCustVendAccsRPH')]
+    [Scope('OnPrem')]
+    procedure ReconcileCustVendAccsIncludesBlankPostingGroupEntries()
+    var
+        Customer: Record Customer;
+        CustomerPostingGroup: Record "Customer Posting Group";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        GLAccount: Record "G/L Account";
+        ExplicitAmount: Decimal;
+        BlankPGAmount: Decimal;
+    begin
+        // [SCENARIO] Report 33 "Reconcile Cust. and Vend. Accs" includes Detailed Cust. Ledger Entries
+        // with blank "Posting Group" by attributing them to the customer's current master posting group.
+        Initialize();
+
+        // [GIVEN] Customer "C" with Customer Posting Group "CPG" whose Receivables Account is "G"
+        LibraryERM.CreateGLAccount(GLAccount);
+        CustomerPostingGroup.Init();
+        CustomerPostingGroup.Code := LibraryUtility.GenerateGUID();
+        CustomerPostingGroup."Receivables Account" := GLAccount."No.";
+        CustomerPostingGroup.Insert();
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Validate("Customer Posting Group", CustomerPostingGroup.Code);
+        Customer.Modify(true);
+
+        // [GIVEN] Cust. Ledger Entry for customer "C"
+        CustLedgerEntry.FindLast();
+        CustLedgerEntry.Init();
+        CustLedgerEntry."Entry No." += 1;
+        CustLedgerEntry."Customer No." := Customer."No.";
+        CustLedgerEntry."Posting Date" := WorkDate();
+        CustLedgerEntry."Customer Posting Group" := CustomerPostingGroup.Code;
+        CustLedgerEntry.Insert();
+
+        // [GIVEN] Detailed entry with explicit Posting Group = "CPG" and Amount (LCY) = 100
+        ExplicitAmount := 100;
+        DtldCustLedgEntry.FindLast();
+        DtldCustLedgEntry.Init();
+        DtldCustLedgEntry."Entry No." += 1;
+        DtldCustLedgEntry."Cust. Ledger Entry No." := CustLedgerEntry."Entry No.";
+        DtldCustLedgEntry."Customer No." := Customer."No.";
+        DtldCustLedgEntry."Posting Date" := WorkDate();
+        DtldCustLedgEntry."Entry Type" := DtldCustLedgEntry."Entry Type"::"Initial Entry";
+        DtldCustLedgEntry."Posting Group" := CustomerPostingGroup.Code;
+        DtldCustLedgEntry."Amount (LCY)" := ExplicitAmount;
+        DtldCustLedgEntry."Ledger Entry Amount" := true;
+        DtldCustLedgEntry.Insert();
+
+        // [GIVEN] Detailed entry with blank Posting Group (legacy data) and Amount (LCY) = 200
+        BlankPGAmount := 200;
+        DtldCustLedgEntry."Entry No." += 1;
+        DtldCustLedgEntry."Posting Group" := '';
+        DtldCustLedgEntry."Amount (LCY)" := BlankPGAmount;
+        DtldCustLedgEntry.Insert();
+
+        // [WHEN] Run Reconcile Cust. and Vend. Accs report filtered to the receivables G/L Account
+        GLAccount.SetRecFilter();
+        GLAccount.SetRange("Date Filter", WorkDate(), WorkDate());
+        Commit();
+        REPORT.Run(REPORT::"Reconcile Cust. and Vend. Accs", true, false, GLAccount);
+
+        // [THEN] The report Amount for posting group "CPG" includes both entries (100 + 200 = 300)
+        LibraryReportDataset.LoadDataSetFile();
+        LibraryReportDataset.SetRange('ReconCustVendBufferPostingGroup', CustomerPostingGroup.Code);
+        LibraryReportDataset.GetNextRow();
+        LibraryReportDataset.AssertCurrentRowValueEquals('Amount', ExplicitAmount + BlankPGAmount);
+    end;
+
+    [Test]
+    [HandlerFunctions('ReconcileCustVendAccsRPH')]
+    [Scope('OnPrem')]
+    procedure ReconcileCustVendAccsBlankPGMultipleCustomers()
+    var
+        Customer: array[2] of Record Customer;
+        CustomerPostingGroup: Record "Customer Posting Group";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        GLAccount: Record "G/L Account";
+        BlankPGAmount: array[2] of Decimal;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] Report 33 aggregates blank-posting-group Detailed Cust. Ledger Entries across multiple customers in the same posting group
+        Initialize();
+
+        // [GIVEN] Customer Posting Group "CPG" with Receivables Account "G"
+        LibraryERM.CreateGLAccount(GLAccount);
+        CustomerPostingGroup.Init();
+        CustomerPostingGroup.Code := LibraryUtility.GenerateGUID();
+        CustomerPostingGroup."Receivables Account" := GLAccount."No.";
+        CustomerPostingGroup.Insert();
+        LibrarySales.CreateCustomer(Customer[1]);
+        Customer[1].Validate("Customer Posting Group", CustomerPostingGroup.Code);
+        Customer[1].Modify(true);
+
+        // [GIVEN] Second Customer "C2" assigned to the same Customer Posting Group "CPG"
+        LibrarySales.CreateCustomer(Customer[2]);
+        Customer[2].Validate("Customer Posting Group", CustomerPostingGroup.Code);
+        Customer[2].Modify(true);
+
+        // [GIVEN] Cust. Ledger Entry and Detailed entry with blank Posting Group for Customer "C1" with Amount = 150
+        BlankPGAmount[1] := 150;
+        CustLedgerEntry.FindLast();
+        CustLedgerEntry.Init();
+        CustLedgerEntry."Entry No." += 1;
+        CustLedgerEntry."Customer No." := Customer[1]."No.";
+        CustLedgerEntry."Posting Date" := WorkDate();
+        CustLedgerEntry."Customer Posting Group" := CustomerPostingGroup.Code;
+        CustLedgerEntry.Insert();
+
+        DtldCustLedgEntry.FindLast();
+        DtldCustLedgEntry.Init();
+        DtldCustLedgEntry."Entry No." += 1;
+        DtldCustLedgEntry."Cust. Ledger Entry No." := CustLedgerEntry."Entry No.";
+        DtldCustLedgEntry."Customer No." := Customer[1]."No.";
+        DtldCustLedgEntry."Posting Date" := WorkDate();
+        DtldCustLedgEntry."Entry Type" := DtldCustLedgEntry."Entry Type"::"Initial Entry";
+        DtldCustLedgEntry."Posting Group" := '';
+        DtldCustLedgEntry."Amount (LCY)" := BlankPGAmount[1];
+        DtldCustLedgEntry."Ledger Entry Amount" := true;
+        DtldCustLedgEntry.Insert();
+
+        // [GIVEN] Cust. Ledger Entry and Detailed entry with blank Posting Group for Customer "C2" with Amount = 250
+        BlankPGAmount[2] := 250;
+        CustLedgerEntry.FindLast();
+        CustLedgerEntry.Init();
+        CustLedgerEntry."Entry No." += 1;
+        CustLedgerEntry."Customer No." := Customer[2]."No.";
+        CustLedgerEntry."Posting Date" := WorkDate();
+        CustLedgerEntry."Customer Posting Group" := CustomerPostingGroup.Code;
+        CustLedgerEntry.Insert();
+
+        DtldCustLedgEntry.FindLast();
+        DtldCustLedgEntry.Init();
+        DtldCustLedgEntry."Entry No." += 1;
+        DtldCustLedgEntry."Cust. Ledger Entry No." := CustLedgerEntry."Entry No.";
+        DtldCustLedgEntry."Customer No." := Customer[2]."No.";
+        DtldCustLedgEntry."Posting Date" := WorkDate();
+        DtldCustLedgEntry."Entry Type" := DtldCustLedgEntry."Entry Type"::"Initial Entry";
+        DtldCustLedgEntry."Posting Group" := '';
+        DtldCustLedgEntry."Amount (LCY)" := BlankPGAmount[2];
+        DtldCustLedgEntry."Ledger Entry Amount" := true;
+        DtldCustLedgEntry.Insert();
+
+        // [WHEN] Run Reconcile Cust. and Vend. Accs report filtered to the receivables G/L Account
+        GLAccount.SetRecFilter();
+        GLAccount.SetRange("Date Filter", WorkDate(), WorkDate());
+        Commit();
+        REPORT.Run(REPORT::"Reconcile Cust. and Vend. Accs", true, false, GLAccount);
+
+        // [THEN] The report Amount for posting group "CPG" includes amounts from both customers (150 + 250 = 400)
+        LibraryReportDataset.LoadDataSetFile();
+        LibraryReportDataset.SetRange('ReconCustVendBufferPostingGroup', CustomerPostingGroup.Code);
+        LibraryReportDataset.GetNextRow();
+        LibraryReportDataset.AssertCurrentRowValueEquals('Amount', BlankPGAmount[1] + BlankPGAmount[2]);
+    end;
+
     local procedure Initialize()
     var
         ObjectOptions: Record "Object Options";
@@ -1405,6 +1565,13 @@ codeunit 134992 "ERM Financial Reports IV"
     procedure ConfirmHandlerWithVariable(Question: Text[1024]; var Reply: Boolean)
     begin
         Reply := LibraryVariableStorage.DequeueBoolean();
+    end;
+
+    [RequestPageHandler]
+    [Scope('OnPrem')]
+    procedure ReconcileCustVendAccsRPH(var ReconcileCustVendAccs: TestRequestPage "Reconcile Cust. and Vend. Accs")
+    begin
+        ReconcileCustVendAccs.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 }
 

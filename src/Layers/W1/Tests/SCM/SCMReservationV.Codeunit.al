@@ -11,19 +11,20 @@ codeunit 137272 "SCM Reservation V"
 
     var
         Assert: Codeunit Assert;
-        LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        LibraryERM: Codeunit "Library - ERM";
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryItemTracking: Codeunit "Library - Item Tracking";
+        LibraryManufacturing: Codeunit "Library - Manufacturing";
         LibraryPurchase: Codeunit "Library - Purchase";
+        LibraryRandom: Codeunit "Library - Random";
         LibrarySales: Codeunit "Library - Sales";
+        LibrarySetupStorage: Codeunit "Library - Setup Storage";
+        LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        LibraryUtility: Codeunit "Library - Utility";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryWarehouse: Codeunit "Library - Warehouse";
-        LibraryManufacturing: Codeunit "Library - Manufacturing";
-        LibraryRandom: Codeunit "Library - Random";
-        LibrarySetupStorage: Codeunit "Library - Setup Storage";
+        NotificationLifecycleMgt: Codeunit "Notification Lifecycle Mgt.";
         ReservationManagement: Codeunit "Reservation Management";
-        LibraryUtility: Codeunit "Library - Utility";
-        LibraryERM: Codeunit "Library - ERM";
         isInitialized: Boolean;
         ExpectedMessage: Label 'The Credit Memo doesn''t have a Corrected Invoice No. Do you want to continue?';
         WrongQuantityErr: Label 'Wrong Quantity in Purchase Line for Item %1.';
@@ -1289,6 +1290,118 @@ codeunit 137272 "SCM Reservation V"
         // [THEN] Verify Total Reserved Quantity field in the Reservation Order page using ReservationFromCurrentLine Handler.
     end;
 
+    [Test]
+    [HandlerFunctions('ManualReserveConfirmHandler')]
+    procedure AutoReserveCalledOnceWhenDefaultItemQtyAndReserveAlways()
+    var
+        Item: Record Item;
+        SalesHeader: Record "Sales Header";
+        SalesOrder: TestPage "Sales Order";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 630696] Entering Item No. with Default Item Quantity enabled and Reserve Always triggers AutoReserve only once
+        Initialize();
+
+        // [GIVEN] Create a new Item with Reserve = Always.
+        CreateReserveItem(Item);
+
+        // [GIVEN] Sales & Receivables Setup with Default Item Quantity enabled
+        SetDefaultItemQuantityInSalesReceivablesSetup(true);
+
+        // [GIVEN] Create a new Sales Order.
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, LibrarySales.CreateCustomerNo());
+
+        // [GIVEN] Enqueue expected confirm count
+        LibraryVariableStorage.Enqueue(0);
+
+        // [WHEN] Enter Item No. on Sales Order Subform line page
+        SalesOrder.OpenEdit();
+        SalesOrder.Filter.SetFilter("No.", SalesHeader."No.");
+        SalesOrder.SalesLines.Type.SetValue('Item');
+        SalesOrder.SalesLines."No.".SetValue(Item."No.");
+        SalesOrder.SalesLines.Quantity.AssertEquals(1);
+        SalesOrder.Close();
+
+        // [THEN] Confirm dialog for manual reservation appeared exactly once (counter = 1)
+        Assert.AreEqual(1, LibraryVariableStorage.DequeueInteger(), 'AutoReserve confirm dialog should be triggered exactly once');
+
+        LibraryVariableStorage.AssertEmpty();
+        NotificationLifecycleMgt.RecallAllNotifications();
+    end;
+
+    [Test]
+    [HandlerFunctions('ManualReserveConfirmHandler')]
+    procedure AutoReserveStillWorksFromQuantityFieldWhenReserveAlways()
+    var
+        Item: Record Item;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesOrder: TestPage "Sales Order";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 630696] Changing Quantity on Sales Order Subform with Reserve Always triggers AutoReserve correctly
+        Initialize();
+
+        // [GIVEN] Create a new Item with Reserve = Always.
+        CreateReserveItem(Item);
+
+        // [GIVEN] Sales & Receivables Setup with Default Item Quantity disabled.
+        SetDefaultItemQuantityInSalesReceivablesSetup(false);
+
+        // [GIVEN] Create a new Sales Order.
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, LibrarySales.CreateCustomerNo());
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 0);
+
+        // [GIVEN] Enqueue expected confirm count
+        LibraryVariableStorage.Enqueue(0);
+
+        // [WHEN] Change Quantity to 1 on Sales Order Subform
+        SalesOrder.OpenEdit();
+        SalesOrder.Filter.SetFilter("No.", SalesHeader."No.");
+        SalesOrder.SalesLines.First();
+        SalesOrder.SalesLines.Quantity.AssertEquals(0);
+        SalesOrder.SalesLines.Quantity.SetValue(1);
+        SalesOrder.Close();
+
+        // [THEN] Confirm dialog for manual reservation appeared exactly once (counter = 1)
+        Assert.AreEqual(1, LibraryVariableStorage.DequeueInteger(), 'AutoReserve confirm dialog should be triggered exactly once');
+
+        LibraryVariableStorage.AssertEmpty();
+        NotificationLifecycleMgt.RecallAllNotifications();
+    end;
+
+    [Test]
+    procedure NoAutoReserveWhenDefaultItemQtyDisabledAndReserveAlways()
+    var
+        Item: Record Item;
+        SalesHeader: Record "Sales Header";
+        SalesOrder: TestPage "Sales Order";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 630696] Entering Item No. with Default Item Quantity disabled and Reserve Always does not trigger AutoReserve
+        Initialize();
+
+        // [GIVEN] Create a new Item with Reserve = Always.
+        CreateReserveItem(Item);
+
+        // [GIVEN] Sales & Receivables Setup with Default Item Quantity disabled
+        SetDefaultItemQuantityInSalesReceivablesSetup(false);
+
+        // [GIVEN] Create a new Sales Order.
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, LibrarySales.CreateCustomerNo());
+
+        // [WHEN] Enter Item No. on Sales Order Subform line (Quantity stays 0)
+        SalesOrder.OpenEdit();
+        SalesOrder.Filter.SetFilter("No.", SalesHeader."No.");
+        SalesOrder.SalesLines.Type.SetValue('Item');
+        SalesOrder.SalesLines."No.".SetValue(Item."No.");
+        SalesOrder.SalesLines.Quantity.AssertEquals(0);
+        SalesOrder.Close();
+
+        // [THEN] No confirm dialog appears (no handler needed, test would fail if unexpected dialog appears)
+        NotificationLifecycleMgt.RecallAllNotifications();
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -1308,6 +1421,7 @@ codeunit 137272 "SCM Reservation V"
         isInitialized := true;
         Commit();
         LibrarySetupStorage.Save(DATABASE::"Purchases & Payables Setup");
+        LibrarySetupStorage.Save(Database::"Sales & Receivables Setup");
         LibraryTestInitialize.OnAfterTestSuiteInitialize(CODEUNIT::"SCM Reservation V");
     end;
 
@@ -1942,6 +2056,25 @@ codeunit 137272 "SCM Reservation V"
         Assert.RecordIsNotEmpty(SalesShipmentHeader);
     end;
 
+    local procedure CreateReserveItem(var Item: Record Item)
+    begin
+        LibraryInventory.CreateItem(Item);
+        Item.Validate(Reserve, Item.Reserve::Always);
+        Item.Modify(true);
+    end;
+
+    local procedure SetDefaultItemQuantityInSalesReceivablesSetup(DefaultItemQuantity: Boolean)
+    var
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
+    begin
+        SalesReceivablesSetup.Get();
+        if SalesReceivablesSetup."Default Item Quantity" = DefaultItemQuantity then
+            exit;
+
+        SalesReceivablesSetup.Validate("Default Item Quantity", DefaultItemQuantity);
+        SalesReceivablesSetup.Modify(true);
+    end;
+
     [MessageHandler]
     [Scope('OnPrem')]
     procedure MessageHandler(Message: Text[1024])
@@ -2109,6 +2242,17 @@ codeunit 137272 "SCM Reservation V"
         Reservation.TotalReservedQuantity.AssertEquals(LibraryVariableStorage.DequeueDecimal());
         Reservation.TotalAvailableQuantity.AssertEquals(LibraryVariableStorage.DequeueDecimal());
         Reservation.OK().Invoke();
+    end;
+
+    [ConfirmHandler]
+    procedure ManualReserveConfirmHandler(Question: Text[1024]; var Reply: Boolean)
+    var
+        ConfirmCount: Integer;
+    begin
+        ConfirmCount := LibraryVariableStorage.DequeueInteger();
+        ConfirmCount += 1;
+        LibraryVariableStorage.Enqueue(ConfirmCount);
+        Reply := false;
     end;
 }
 

@@ -15,7 +15,6 @@ codeunit 137264 "SCM Package Tracking Sales"
         LibraryItemTracking: Codeunit "Library - Item Tracking";
         LibraryReservation: Codeunit "Create Reserv. Entry";
         LibrarySales: Codeunit "Library - Sales";
-        LibrarySmallBusiness: Codeunit "Library - Small Business";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
@@ -1233,7 +1232,6 @@ codeunit 137264 "SCM Package Tracking Sales"
           Qty[DocType::Order], LibraryRandom.RandDec(100, 2));
         CreatePurchLineTracking(PurchaseLine, ReservationEntry, false, Qty[DocType::Order], SerialNo, '', PackageNo);
 
-        LibrarySmallBusiness.UpdatePurchHeaderDocTotal(PurchaseHeader);
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
 
         LibraryPurchase.CreatePurchaseCreditMemoWithLocation(PurchaseHeader, Vendor."No.", Location.Code);
@@ -1241,7 +1239,6 @@ codeunit 137264 "SCM Package Tracking Sales"
           PurchaseLine, PurchaseHeader, Item."No.", LibraryRandom.RandDec(100, 2), Qty[DocType::"Credit Memo"]);
         CreateCreditMemoTracking(PurchaseLine, ReservationEntry, false, Qty[DocType::"Credit Memo"], SerialNo, '', PackageNo);
 
-        LibrarySmallBusiness.UpdatePurchHeaderDocTotal(PurchaseHeader);
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
 
         FindLastReturnShipment(ReturnShipmentHeader, Vendor."No.");
@@ -1292,7 +1289,6 @@ codeunit 137264 "SCM Package Tracking Sales"
           Qty[DocType::Order], LibraryRandom.RandDec(100, 2));
         CreatePurchLineTracking(PurchaseLine, ReservationEntry, false, Qty[DocType::Order], SerialNo, LotNo, PackageNo);
 
-        LibrarySmallBusiness.UpdatePurchHeaderDocTotal(PurchaseHeader);
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
 
         LibraryPurchase.CreatePurchaseCreditMemoWithLocation(PurchaseHeader, Vendor."No.", Location.Code);
@@ -1300,7 +1296,6 @@ codeunit 137264 "SCM Package Tracking Sales"
           PurchaseLine, PurchaseHeader, Item."No.", LibraryRandom.RandDec(100, 2), Qty[DocType::"Credit Memo"]);
         CreateCreditMemoTracking(PurchaseLine, ReservationEntry, false, Qty[DocType::"Credit Memo"], SerialNo, LotNo, PackageNo);
 
-        LibrarySmallBusiness.UpdatePurchHeaderDocTotal(PurchaseHeader);
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
 
         FindLastReturnShipment(ReturnShipmentHeader, Vendor."No.");
@@ -1352,7 +1347,6 @@ codeunit 137264 "SCM Package Tracking Sales"
           Qty[DocType::Order], LibraryRandom.RandDec(100, 2));
         CreatePurchLineTracking(PurchaseLine, ReservationEntry, true, Qty[DocType::Order], SerialNo, LotNo, PackageNo);
 
-        LibrarySmallBusiness.UpdatePurchHeaderDocTotal(PurchaseHeader);
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
 
         LibraryPurchase.CreatePurchaseCreditMemoWithLocation(PurchaseHeader, Vendor."No.", Location.Code);
@@ -1360,7 +1354,6 @@ codeunit 137264 "SCM Package Tracking Sales"
           PurchaseLine, PurchaseHeader, Item."No.", LibraryRandom.RandDec(100, 2), Qty[DocType::"Credit Memo"]);
         CreateCreditMemoTracking(PurchaseLine, ReservationEntry, true, Qty[DocType::"Credit Memo"], SerialNo, LotNo, PackageNo);
 
-        LibrarySmallBusiness.UpdatePurchHeaderDocTotal(PurchaseHeader);
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
 
         FindLastReturnShipment(ReturnShipmentHeader, Vendor."No.");

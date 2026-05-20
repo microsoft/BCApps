@@ -284,9 +284,10 @@ table 36 "Sales Header"
                     exit;
 
                 if BilltoCustomerNoChanged and not IsHandled then
-                    if xRec."Bill-to Customer No." = '' then
-                        InitRecord()
-                    else
+                    if xRec."Bill-to Customer No." = '' then begin
+                        SkipDocNoOccurrenceReset := true;
+                        InitRecord();
+                    end else
                         if ConfirmBillToCustomerChange() then begin
                             OnValidateBillToCustomerNoOnAfterConfirmed(Rec);
 
@@ -847,7 +848,7 @@ table 36 "Sales Header"
         field(28; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
-            ToolTip = 'Specifies the location from where items are to be shipped. This field acts as the default location for new lines. You can update the location code for individual lines as needed.';
+            ToolTip = 'Specifies the code for the location from where the items are shipped. When you select the customer and the customer has a location assigned, the value is taken from the Customer card. If the customer has no location, but a Responsibility Center is populated, the location code is taken from the Responsibility Center. If neither is specified, the value is taken from Company Information. This field acts as the default location for new lines. You can update the location code for individual lines as needed.';
             TableRelation = Location where("Use As In-Transit" = const(false));
 
             trigger OnValidate()
@@ -3095,7 +3096,9 @@ table 36 "Sales Header"
                     end;
                 end;
 
-                if ("Sell-to Customer No." <> '') and ("Sell-to Contact No." <> '') then
+                if ("Sell-to Customer No." <> '') and ("Sell-to Contact No." <> '') and
+                   ("Document Type" <> "Document Type"::Quote)
+                then
                     CheckContactRelatedToCustomerCompany("Sell-to Contact No.", "Sell-to Customer No.");
 
                 IsHandled := false;
@@ -3951,6 +3954,7 @@ table 36 "Sales Header"
         SkipSellToContact: Boolean;
         SkipBillToContact: Boolean;
         SkipTaxCalculation: Boolean;
+        SkipDocNoOccurrenceReset: Boolean;
 
     /// <summary>
     /// Initializes a new sales header with a new document number from the number series.
@@ -4043,8 +4047,9 @@ table 36 "Sales Header"
 
         IsHandled := false;
         OnInitRecordOnBeforeGetNextArchiveDocOccurrenceNo(Rec, IsHandled);
-        if not IsHandled then
+        if (not IsHandled) and (not SkipDocNoOccurrenceReset) then
             "Doc. No. Occurrence" := ArchiveManagement.GetNextOccurrenceNo(DATABASE::"Sales Header", Rec."Document Type".AsInteger(), Rec."No.");
+        SkipDocNoOccurrenceReset := false;
 
         OnAfterInitRecord(Rec);
     end;
@@ -5576,8 +5581,11 @@ table 36 "Sales Header"
                 "Sell-to Contact" := Cust.Contact;
             end;
         if "Sell-to Contact No." <> '' then
-            if OfficeContact.Get("Sell-to Contact No.") then
+            if OfficeContact.Get("Sell-to Contact No.") then begin
                 OfficeContact.CheckIfPrivacyBlockedGeneric();
+                if OfficeContact."E-Mail" <> '' then
+                    Validate("Sell-to E-Mail", OfficeContact."E-Mail");
+            end;
 
         OnAfterUpdateSellToCont(Rec, Cust, OfficeContact, HideValidationDialog);
     end;
@@ -5678,6 +5686,10 @@ table 36 "Sales Header"
             Validate("Sell-to Phone No.", Cont."Phone No.");
         end else begin
             if "Document Type" = "Document Type"::Quote then begin
+                if "Sell-to Customer No." <> '' then begin
+                    "Sell-to Customer No." := '';
+                    "Bill-to Customer No." := '';
+                end;
                 if not GetContactAsCompany(Cont, SearchContact) then
                     SearchContact := Cont;
                 "Sell-to Customer Name" := SearchContact."Company Name";
@@ -9524,7 +9536,7 @@ table 36 "Sales Header"
             exit(Result);
 
         Contact.FilterGroup(2);
-        if "Sell-to Customer No." <> '' then
+        if ("Sell-to Customer No." <> '') and ("Document Type" <> "Document Type"::Quote) then
             if Contact.Get("Sell-to Contact No.") then
                 Contact.SetRange("Company No.", Contact."Company No.")
             else

@@ -67,6 +67,28 @@ page 130462 "Test Input Groups"
     {
         area(Processing)
         {
+            action(DeleteSelected)
+            {
+                Caption = 'Delete Selected';
+                ToolTip = 'Delete the selected test input groups and their entries.';
+                Image = Delete;
+                Scope = Repeater;
+
+                trigger OnAction()
+                var
+                    TestInputGroup: Record "Test Input Group";
+                begin
+                    CurrPage.SetSelectionFilter(TestInputGroup);
+                    if TestInputGroup.IsEmpty() then
+                        exit;
+
+                    if not Confirm(DeleteSelectedQst) then
+                        exit;
+
+                    TestInputGroup.DeleteAll(true);
+                    CurrPage.Update(false);
+                end;
+            }
             fileuploadaction(ImportDataInputs)
             {
                 Caption = 'Import data-driven test inputs';
@@ -90,9 +112,15 @@ page 130462 "Test Input Groups"
         }
         area(Promoted)
         {
+            actionref(DeleteSelected_Promoted; DeleteSelected)
+            {
+            }
             actionref(ImportDefinition_Promoted; ImportDataInputs)
             {
             }
         }
     }
+
+    var
+        DeleteSelectedQst: Label 'Are you sure you want to delete the selected test input groups?';
 }

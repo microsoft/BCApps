@@ -559,7 +559,9 @@ codeunit 2679 "Purchase Alloc. Acc. Mgt."
             end else begin
                 AmountRoundingPrecision := AllocationAccountMgt.GetCurrencyRoundingPrecision(PurchaseLine."Currency Code");
                 PurchaseLine.Validate("Direct Unit Cost", Round(AllocationLine.Amount / PurchaseLine.Quantity, AmountRoundingPrecision));
-                PurchaseLine.Validate("Line Amount", AllocationLine.Amount);
+                PurchaseLine."Line Amount" := AllocationLine.Amount;
+                PurchaseLine.Amount := AllocationLine.Amount;
+                PurchaseLine."Line Discount Amount" := 0;
             end;
         end else begin
             PurchaseLine.Validate("Direct Unit Cost", AllocationPurchaseLine."Direct Unit Cost");

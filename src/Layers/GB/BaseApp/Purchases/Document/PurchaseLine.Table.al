@@ -1593,7 +1593,7 @@ table 39 "Purchase Line"
                         FieldError("VAT Bus. Posting Group", StrSubstNo(Text1041003, "VAT Bus. Posting Group"));
 #endif
 
-                    ShouldUpdateUnitCost := PurchHeader."Prices Including VAT" and (Rec.Type in [Rec.Type::Item, Rec.Type::Resource]);
+                    ShouldUpdateUnitCost := PurchHeader."Prices Including VAT" and (Rec.Type in [Rec.Type::"G/L Account", Rec.Type::Item, Rec.Type::Resource]);
                     OnValidateVATProdPostingGroupOnAfterCalcShouldUpdateUnitCost(Rec, VATPostingSetup, ShouldUpdateUnitCost);
                     if ShouldUpdateUnitCost then
                         Validate("Direct Unit Cost",
@@ -3175,6 +3175,7 @@ table 39 "Purchase Line"
             Caption = 'Purchasing Code';
             Editable = false;
             TableRelation = Purchasing;
+            ToolTip = 'Specifies the purchasing code associated with the purchase line.';
 
             trigger OnValidate()
             var
@@ -6848,6 +6849,25 @@ table 39 "Purchase Line"
     procedure SetSkipTaxCalulation(Skip: Boolean)
     begin
         SkipTaxCalculation := Skip;
+    end;
+
+    /// <summary>
+    /// Sets the global HideValidationDialog flag.
+    /// </summary>
+    /// <param name="NewHideValidationDialog">The new value of the flag.</param>
+    procedure SetHideValidationDialog(NewHideValidationDialog: Boolean)
+    begin
+        HideValidationDialog := NewHideValidationDialog;
+        OnAfterSetHideValidationDialog(Rec, NewHideValidationDialog);
+    end;
+
+    /// <summary>
+    /// Gets the global HideValidationDialog flag.
+    /// </summary>
+    /// <returns>The value of the flag.</returns>
+    procedure GetHideValidationDialog(): Boolean
+    begin
+        exit(HideValidationDialog);
     end;
 
     /// <summary>
@@ -12303,6 +12323,16 @@ table 39 "Purchase Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnValidateGenBusPostingGroupOnBeforeValidateVATBusPostingGroup(var PurchaseLine: Record "Purchase Line"; var ValidateVATBusPostingGroup: Boolean)
+    begin
+    end;
+
+    /// <summary>
+    /// Raised after setting the hide validation dialog flag on the purchase line.
+    /// </summary>
+    /// <param name="PurchaseLine">The purchase line being processed.</param>
+    /// <param name="NewHideValidationDialog">The new hide validation dialog value.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterSetHideValidationDialog(var PurchaseLine: Record "Purchase Line"; NewHideValidationDialog: Boolean)
     begin
     end;
 }

@@ -67,7 +67,7 @@ codeunit 4581 "SOA Send Replies"
             end;
 
             if TryReply(InputAgentTaskMessage, OutputAgentTaskMessage, SOASetup) then begin
-                AgentMessage.SetStatusToSent(OutputAgentTaskMessage);
+                AgentMessage.SetStatusToSent(OutputAgentTaskMessage."Task ID", OutputAgentTaskMessage."ID");
                 FeatureTelemetry.LogUsage('0000NDS', SOASetupCU.GetFeatureName(), TelemetryEmailReplySentLbl, TelemetryDimensions);
             end else begin
                 AllSentSuccessfully := false;

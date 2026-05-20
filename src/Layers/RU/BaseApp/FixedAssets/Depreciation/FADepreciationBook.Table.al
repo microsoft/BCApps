@@ -885,10 +885,13 @@ table 5612 "FA Depreciation Book"
                     Rec.CalcFields(Depreciation);
                     if Rec.Depreciation <> 0 then
                         Error(CannotUseBonusDepreciationDepreciationStartedErr);
+
+                    Rec."Bonus Depreciation %" := GetApplicableBonusDeprPct(FASetup);
                 end else begin
                     Rec.CalcFields("Bonus Depr. Applied Amount");
                     if Rec."Bonus Depr. Applied Amount" <> 0 then
                         Error(CannotTurnOffBonusDepreciationAlreadyAppliedErr);
+                    Rec."Bonus Depreciation %" := 0;
                 end;
             end;
         }
@@ -904,6 +907,33 @@ table 5612 "FA Depreciation Book"
                                                                "FA Posting Category" = const(" "),
                                                                "FA Posting Type" = const("FA Ledger Entry FA Posting Type"::"Bonus Depreciation"),
                                                                "FA Posting Date" = field("FA Posting Date Filter")));
+        }
+        field(66; "Bonus Depreciation %"; Decimal)
+        {
+            Caption = 'Bonus Depreciation %';
+            ToolTip = 'Specifies the bonus depreciation percentage for this fixed asset.';
+            DecimalPlaces = 0 : 2;
+            MinValue = 0;
+            MaxValue = 100;
+            AutoFormatType = 0;
+
+            trigger OnValidate()
+            var
+                FASetup: Record "FA Setup";
+                MaxPct: Decimal;
+            begin
+                if not Rec."Use Bonus Depreciation" then
+                    exit;
+
+                Rec.CalcFields("Bonus Depr. Applied Amount");
+                if Rec."Bonus Depr. Applied Amount" <> 0 then
+                    Error(CannotTurnOffBonusDepreciationAlreadyAppliedErr);
+
+                FASetup.Get();
+                MaxPct := GetApplicableBonusDeprPct(FASetup);
+                if Rec."Bonus Depreciation %" > MaxPct then
+                    Error(BonusDeprPctExceedsMaxErr, MaxPct);
+            end;
         }
         field(70; "Default FA Depreciation Book"; Boolean)
         {
@@ -1186,14 +1216,43 @@ table 5612 "FA Depreciation Book"
         MustBeStraightLineTxt: Label '%1 must be Straight-Line if %2 is %3 in %4: %5.', Comment = '%1="Depreciation Method" Field Caption %2="Use Accounting Period" Field Caption %3="Use Accounting Period" Field Value %4="Depreciation Book" Table Caption %5="Depreciation Book" Value of field Code';
         CannotUseBonusDepreciationDepreciationStartedErr: Label 'Bonus depreciation cannot be used because depreciation has already started for this fixed asset.';
         NotEligibleForBonusDepreciationErr: Label 'This fixed asset is not eligible for bonus depreciation.';
-        BonusDepreciationNotSetupCorrectlyErr: Label 'Bonus depreciation is not set up correctly in the Fixed Asset Setup.';
+        BonusDepreciationNotSetupCorrectlyErr: Label 'You must open Fixed Asset Setup and set up the effective date and percentage for bonus depreciation.';
         CannotTurnOffBonusDepreciationAlreadyAppliedErr: Label 'Bonus depreciation has already been applied to this fixed asset.';
         BonusDepreciationAlreadyAppliedErr: Label 'The bonus depreciation has already been applied for this depreciation book. This change is making the fixed asset not eligible for bonus depreciation.';
         BonusDepreciationTurnedOnErr: Label 'You must uncheck Use Bonus Depreciation, because this change is making the fixed asset not eligible for bonus depreciation.';
+        BonusDeprPctExceedsMaxErr: Label 'The bonus depreciation percentage cannot exceed the applicable maximum of %1%.', Comment = '%1 = maximum percentage';
 
     protected var
         FA: Record "Fixed Asset";
         DeprBook: Record "Depreciation Book";
+
+    procedure EligibleForBonusDepreciation(FASetup: Record "FA Setup"): Boolean
+    var
+        AdvBonusDeprSetup: Record "Adv. Bonus Depreciation Setup";
+        FixedAsset: Record "Fixed Asset";
+        FAClassCode: Code[10];
+    begin
+        if not FASetup.BonusDepreciationCorrectlySetup() then
+            exit(false);
+
+        if Rec."Depreciation Starting Date" = 0D then
+            exit(false);
+
+        if Rec."Depreciation Starting Date" >= FASetup."Bonus Depr. Effective Date" then
+            exit(true);
+
+        FixedAsset.SetLoadFields("FA Class Code");
+        if FixedAsset.Get(Rec."FA No.") then
+            FAClassCode := FixedAsset."FA Class Code";
+
+        AdvBonusDeprSetup.SetCurrentKey("Effective Date", "FA Class Code");
+        AdvBonusDeprSetup.SetFilter("Effective Date", '<=%1', Rec."Depreciation Starting Date");
+        AdvBonusDeprSetup.SetFilter("FA Class Code", '%1|%2', '', FAClassCode);
+        if not AdvBonusDeprSetup.IsEmpty() then
+            exit(true);
+
+        exit(false);
+    end;
 
     local procedure AdjustLinearMethod(var Amount1: Decimal; var Amount2: Decimal)
     var
@@ -1231,17 +1290,6 @@ table 5612 "FA Depreciation Book"
             end;
 
         OnAfterModifyDeprFields(Rec);
-    end;
-
-    procedure EligibleForBonusDepreciation(FASetup: Record "FA Setup"): Boolean
-    begin
-        if not FASetup.BonusDepreciationCorrectlySetup() then
-            exit(false);
-
-        if Rec."Depreciation Starting Date" = 0D then
-            exit(false);
-
-        exit(Rec."Depreciation Starting Date" >= FASetup."Bonus Depr. Effective Date");
     end;
 
     internal procedure BonusDepreciationApplied(): Boolean
@@ -1292,14 +1340,18 @@ table 5612 "FA Depreciation Book"
 
         if Rec."Depreciation Starting Date" = 0D then begin
             Rec."Use Bonus Depreciation" := false;
+            Rec."Bonus Depreciation %" := 0;
             exit;
         end;
 
-        if Rec."Depreciation Starting Date" >= FASetup."Bonus Depr. Effective Date" then begin
+        if Rec.EligibleForBonusDepreciation(FASetup) then begin
             Rec."Use Bonus Depreciation" := true;
+            Rec."Bonus Depreciation %" := GetApplicableBonusDeprPct(FASetup);
             FeatureTelemetry.LogUsage('0000SEM', 'Fixed Asset', 'Using Bonus Depreciation');
-        end else
+        end else begin
             Rec."Use Bonus Depreciation" := false;
+            Rec."Bonus Depreciation %" := 0;
+        end;
     end;
 
     procedure CalcDeprPeriod()
@@ -1566,20 +1618,6 @@ table 5612 "FA Depreciation Book"
         FALedgerEntry.SetRange("FA Posting Type", FALedgerEntry."FA Posting Type"::"Bonus Depreciation")
     end;
 
-    internal procedure BonusDepreciationAmount(GeneralLedgerSetup: Record "General Ledger Setup"; FASetup: Record "FA Setup"): Decimal
-    begin
-        Rec.CalcFields("Acquisition Cost");
-        exit(Round(Rec."Acquisition Cost" * FASetup."Bonus Depreciation %" * 0.01, GeneralLedgerSetup."Amount Rounding Precision"));
-    end;
-
-    internal procedure BonusDepreciationAmount(FASetup: Record "FA Setup"): Decimal
-    var
-        GeneralLedgerSetup: Record "General Ledger Setup";
-    begin
-        GeneralLedgerSetup.Get();
-        exit(BonusDepreciationAmount(GeneralLedgerSetup, FASetup));
-    end;
-
     [Scope('OnPrem')]
     procedure GetStatus(FANo: Code[20]; DeprBookCode: Code[10]): Integer
     var
@@ -1666,6 +1704,46 @@ table 5612 "FA Depreciation Book"
 
         if "Disposal Date" > 0D then
             "Book Value" := 0;
+    end;
+
+    local procedure GetApplicableBonusDeprPct(FASetup: Record "FA Setup"): Decimal
+    var
+        AdvBonusDeprSetup: Record "Adv. Bonus Depreciation Setup";
+        FixedAsset: Record "Fixed Asset";
+        FAClassCode: Code[10];
+        BestPct: Decimal;
+        BestDate: Date;
+    begin
+        FixedAsset.SetLoadFields("FA Class Code");
+        if FixedAsset.Get(Rec."FA No.") then
+            FAClassCode := FixedAsset."FA Class Code";
+
+        if FASetup."Bonus Depr. Effective Date" <= Rec."Depreciation Starting Date" then begin
+            BestPct := FASetup."Bonus Depreciation %";
+            BestDate := FASetup."Bonus Depr. Effective Date";
+        end;
+
+        AdvBonusDeprSetup.SetCurrentKey("Effective Date", "FA Class Code");
+        AdvBonusDeprSetup.SetFilter("Effective Date", '<=%1', Rec."Depreciation Starting Date");
+        if AdvBonusDeprSetup.FindSet() then
+            repeat
+                if (AdvBonusDeprSetup."FA Class Code" = '') or (AdvBonusDeprSetup."FA Class Code" = FAClassCode) then
+                    if AdvBonusDeprSetup."Effective Date" >= BestDate then begin
+                        BestPct := AdvBonusDeprSetup."Bonus Depreciation %";
+                        BestDate := AdvBonusDeprSetup."Effective Date";
+                    end;
+            until AdvBonusDeprSetup.Next() = 0;
+
+        exit(BestPct);
+    end;
+
+    internal procedure BonusDepreciationAmount(): Decimal
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+    begin
+        GeneralLedgerSetup.Get();
+        Rec.CalcFields("Acquisition Cost");
+        exit(Round(Rec."Acquisition Cost" * Rec."Bonus Depreciation %" * 0.01, GeneralLedgerSetup."Amount Rounding Precision"));
     end;
 
     local procedure SetBookValueAfterDisposalFiltersOnFALedgerEntry(var FALedgerEntry: Record "FA Ledger Entry")

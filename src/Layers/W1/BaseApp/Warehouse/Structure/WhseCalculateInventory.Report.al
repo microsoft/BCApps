@@ -124,7 +124,7 @@ report 7390 "Whse. Calculate Inventory"
 
                 "Bin Content".CopyFilter("Location Code", "Location Code");
                 "Bin Content".CopyFilter("Zone Code", "Zone Code");
-                    "Bin Content".CopyFilter("Bin Code", "Bin Code");
+                "Bin Content".CopyFilter("Bin Code", "Bin Code");
                 "Bin Content".CopyFilter("Item No.", "Item No.");
                 "Bin Content".CopyFilter("Variant Code", "Variant Code");
                 "Bin Content".CopyFilter("Unit of Measure Code", "Unit of Measure Code");
@@ -267,11 +267,20 @@ report 7390 "Whse. Calculate Inventory"
     var
         WhseEntry: Record "Warehouse Entry";
         ItemUOM: Record "Item Unit of Measure";
-        ItemTrackingSetup: Record "Item Tracking Setup";
+        TempItemTrackingSetup: Record "Item Tracking Setup";
         ItemTrackingMgt: Codeunit "Item Tracking Management";
+        WhseEntryTrackingDistinct: Query "Whse. Entry Tracking Distinct";
+        ProcessedKeys: Dictionary of [Text, Boolean];
+        EffectiveKey: Text;
         ExpDate: Date;
         EntriesExist: Boolean;
         IsHandled: Boolean;
+        ProcessNext: Boolean;
+        ProcessRecord: Boolean;
+        SerialNoActive: Boolean;
+        LotNoActive: Boolean;
+        PackageNoActive: Boolean;
+        WhseEntryTrackingDistinctRead: Boolean;
     begin
         if NextLineNo = 0 then begin
             WhseJnlLine.LockTable();
@@ -286,86 +295,112 @@ report 7390 "Whse. Calculate Inventory"
 
         GetLocation(BinContent."Location Code");
 
-        if CheckSerialTrackingEnabled(BinContent."Item No.") then
-            WhseEntry.SetCurrentKey(
-              "Item No.", "Bin Code", "Location Code", "Variant Code",
-              "Unit of Measure Code", "Serial No.", "Package No.", "Entry Type")
-        else
-            WhseEntry.SetCurrentKey(
-              "Item No.", "Bin Code", "Location Code", "Variant Code",
-              "Unit of Measure Code", "Lot No.", "Serial No.", "Package No.", "Entry Type");
-
+        WhseEntry.SetCurrentKey("Item No.", "Bin Code", "Location Code", "Variant Code", "Unit of Measure Code", "Lot No.", "Serial No.");
         WhseEntry.SetRange("Item No.", BinContent."Item No.");
         WhseEntry.SetRange("Bin Code", BinContent."Bin Code");
         WhseEntry.SetRange("Location Code", BinContent."Location Code");
         WhseEntry.SetRange("Variant Code", BinContent."Variant Code");
         WhseEntry.SetRange("Unit of Measure Code", BinContent."Unit of Measure Code");
+        WhseEntry.SetLoadFields("Serial No.", "Lot No.", "Package No.", "Warranty Date", "Expiration Date", "Qty. (Base)");
         OnInsertWhseJnlLineOnAfterWhseEntrySetFilters(WhseEntry, "Bin Content");
-        if WhseEntry.FindSet() or ZeroQty then
-            repeat
-                if CheckSerialOrLotTrackingEnabled(BinContent."Item No.") then
-                    WhseEntry.SetTrackingFilterFromWhseEntryForSerialOrLotTrackedItem(WhseEntry)
-                else
-                    WhseEntry.SetTrackingFilterFromWhseEntry(WhseEntry);
-                WhseEntry.CalcSums("Qty. (Base)");
-                if (WhseEntry."Qty. (Base)" <> 0) or ZeroQty then begin
-                    ItemUOM.Get(BinContent."Item No.", BinContent."Unit of Measure Code");
-                    NextLineNo := NextLineNo + 10000;
-                    WhseJnlLine.Init();
-                    WhseJnlLine."Line No." := NextLineNo;
-                    WhseJnlLine.Validate("Registering Date", RegisteringDate);
-                    WhseJnlLine.Validate("Entry Type", WhseJnlLine."Entry Type"::"Positive Adjmt.");
-                    WhseJnlLine.Validate("Whse. Document No.", NextDocNo);
-                    WhseJnlLine.Validate("Item No.", BinContent."Item No.");
-                    WhseJnlLine.Validate("Variant Code", BinContent."Variant Code");
-                    WhseJnlLine.Validate("Location Code", BinContent."Location Code");
-                    WhseJnlLine."From Bin Code" := Location."Adjustment Bin Code";
-                    WhseJnlLine."From Zone Code" := Bin."Zone Code";
-                    WhseJnlLine."From Bin Type Code" := Bin."Bin Type Code";
-                    WhseJnlLine.Validate("To Zone Code", BinContent."Zone Code");
-                    WhseJnlLine.Validate("To Bin Code", BinContent."Bin Code");
-                    WhseJnlLine.Validate("Zone Code", BinContent."Zone Code");
-                    WhseJnlLine.SetProposal(StockProposal);
-                    WhseJnlLine.Validate("Bin Code", BinContent."Bin Code");
-                    WhseJnlLine.Validate("Source Code", SourceCodeSetup."Whse. Phys. Invt. Journal");
-                    WhseJnlLine.Validate("Unit of Measure Code", BinContent."Unit of Measure Code");
-                    WhseJnlLine.CopyTrackingFromWhseEntry(WhseEntry);
-                    WhseJnlLine."Warranty Date" := WhseEntry."Warranty Date";
-                    ItemTrackingSetup.CopyTrackingFromWhseEntry(WhseEntry);
-                    ExpDate := ItemTrackingMgt.ExistingExpirationDate(WhseJnlLine."Item No.", WhseJnlLine."Variant Code", ItemTrackingSetup, false, EntriesExist);
-                    if EntriesExist then
-                        WhseJnlLine."Expiration Date" := ExpDate
-                    else
-                        WhseJnlLine."Expiration Date" := WhseEntry."Expiration Date";
-                    WhseJnlLine."Phys. Inventory" := true;
 
-                    WhseJnlLine."Qty. (Calculated)" := Round(WhseEntry."Qty. (Base)" / ItemUOM."Qty. per Unit of Measure", UOMMgt.QtyRndPrecision());
-                    WhseJnlLine."Qty. (Calculated) (Base)" := WhseEntry."Qty. (Base)";
+        // Performance: enumerate distinct tracking combinations via SQL GROUP BY instead of iterating every Warehouse Entry.
+        GetSpecificTrackingOptions(BinContent."Item No.", SerialNoActive, LotNoActive, PackageNoActive);
+        WhseEntryTrackingDistinct.SetRange(Item_No_, BinContent."Item No.");
+        WhseEntryTrackingDistinct.SetRange(Bin_Code, BinContent."Bin Code");
+        WhseEntryTrackingDistinct.SetRange(Location_Code, BinContent."Location Code");
+        WhseEntryTrackingDistinct.SetRange(Variant_Code, BinContent."Variant Code");
+        WhseEntryTrackingDistinct.SetRange(Unit_of_Measure_Code, BinContent."Unit of Measure Code");
+        if WhseEntryTrackingDistinct.Open() then begin
+            WhseEntryTrackingDistinctRead := WhseEntryTrackingDistinct.Read();
+            ProcessNext := WhseEntryTrackingDistinctRead or ZeroQty;
+            while ProcessNext do begin
+                // Reset tracking filters; only the dimensions enabled for the item will be re-applied below.
+                WhseEntry.SetRange("Serial No.");
+                WhseEntry.SetRange("Lot No.");
+                WhseEntry.SetRange("Package No.");
 
-                    IsHandled := false;
-                    OnInsertWhseJnlLineOnBeforeValidateQtyPhysInventory(WhseJnlLine, WhseEntry, IsHandled);
-                    if not IsHandled then begin
-                        WhseJnlLine.Validate("Qty. (Phys. Inventory)", WhseJnlLine."Qty. (Calculated)");
-                        WhseJnlLine.Validate("Qty. (Phys. Inventory) (Base)", WhseEntry."Qty. (Base)");
+                ProcessRecord := true;
+                if WhseEntryTrackingDistinctRead then begin
+                    // Collapse query rows that differ only in inactive tracking dimensions to avoid duplicate journal lines.
+                    EffectiveKey := BuildSpecificTrackingKey(WhseEntryTrackingDistinct, SerialNoActive, LotNoActive, PackageNoActive);
+                    if ProcessedKeys.ContainsKey(EffectiveKey) then
+                        ProcessRecord := false
+                    else begin
+                        ProcessedKeys.Add(EffectiveKey, true);
+                        if SerialNoActive then
+                            WhseEntry.SetRange("Serial No.", WhseEntryTrackingDistinct.Serial_No_);
+                        if LotNoActive then
+                            WhseEntry.SetRange("Lot No.", WhseEntryTrackingDistinct.Lot_No_);
+                        if PackageNoActive then
+                            WhseEntry.SetRange("Package No.", WhseEntryTrackingDistinct.Package_No_);
                     end;
-
-                    if Location."Use ADCS" then
-                        WhseJnlLine.Validate("Qty. (Phys. Inventory)", 0);
-                    WhseJnlLine."Registering No. Series" := WhseJnlBatch."Registering No. Series";
-                    WhseJnlLine."Whse. Document Type" :=
-                      WhseJnlLine."Whse. Document Type"::"Whse. Phys. Inventory";
-                    if WhseJnlBatch."Reason Code" <> '' then
-                        WhseJnlLine."Reason Code" := WhseJnlBatch."Reason Code";
-                    WhseJnlLine."Phys Invt Counting Period Code" := PhysInvtCountCode;
-                    WhseJnlLine."Phys Invt Counting Period Type" := CycleSourceType;
-
-                    OnBeforeWhseJnlLineInsert(WhseJnlLine, WhseEntry, NextLineNo);
-                    WhseJnlLine.Insert(true);
-                    OnAfterWhseJnlLineInsert(WhseJnlLine, NextLineNo, "Bin Content");
                 end;
-                if WhseEntry.Find('+') then;
-                WhseEntry.ClearTrackingFilter();
-            until WhseEntry.Next() = 0;
+
+                if ProcessRecord then
+                    if WhseEntry.FindFirst() or ZeroQty then begin
+                        WhseEntry.CalcSums("Qty. (Base)");
+                        if (WhseEntry."Qty. (Base)" <> 0) or ZeroQty then begin
+                            ItemUOM.Get(BinContent."Item No.", BinContent."Unit of Measure Code");
+                            NextLineNo += 10000;
+                            WhseJnlLine.Init();
+                            WhseJnlLine."Line No." := NextLineNo;
+                            WhseJnlLine.Validate("Registering Date", RegisteringDate);
+                            WhseJnlLine.Validate("Entry Type", WhseJnlLine."Entry Type"::"Positive Adjmt.");
+                            WhseJnlLine.Validate("Whse. Document No.", NextDocNo);
+                            WhseJnlLine.Validate("Item No.", BinContent."Item No.");
+                            WhseJnlLine.Validate("Variant Code", BinContent."Variant Code");
+                            WhseJnlLine.Validate("Location Code", BinContent."Location Code");
+                            WhseJnlLine."From Bin Code" := Location."Adjustment Bin Code";
+                            WhseJnlLine."From Zone Code" := Bin."Zone Code";
+                            WhseJnlLine."From Bin Type Code" := Bin."Bin Type Code";
+                            WhseJnlLine.Validate("To Zone Code", BinContent."Zone Code");
+                            WhseJnlLine.Validate("To Bin Code", BinContent."Bin Code");
+                            WhseJnlLine.Validate("Zone Code", BinContent."Zone Code");
+                            WhseJnlLine.SetProposal(StockProposal);
+                            WhseJnlLine.Validate("Bin Code", BinContent."Bin Code");
+                            WhseJnlLine.Validate("Source Code", SourceCodeSetup."Whse. Phys. Invt. Journal");
+                            WhseJnlLine.Validate("Unit of Measure Code", BinContent."Unit of Measure Code");
+                            WhseJnlLine.CopyTrackingFromWhseEntry(WhseEntry);
+                            WhseJnlLine."Warranty Date" := WhseEntry."Warranty Date";
+                            TempItemTrackingSetup.CopyTrackingFromWhseEntry(WhseEntry);
+                            ExpDate := ItemTrackingMgt.ExistingExpirationDate(WhseJnlLine."Item No.", WhseJnlLine."Variant Code", TempItemTrackingSetup, false, EntriesExist);
+                            if EntriesExist then
+                                WhseJnlLine."Expiration Date" := ExpDate
+                            else
+                                WhseJnlLine."Expiration Date" := WhseEntry."Expiration Date";
+                            WhseJnlLine."Phys. Inventory" := true;
+
+                            WhseJnlLine."Qty. (Calculated)" := Round(WhseEntry."Qty. (Base)" / ItemUOM."Qty. per Unit of Measure", UOMMgt.QtyRndPrecision());
+                            WhseJnlLine."Qty. (Calculated) (Base)" := WhseEntry."Qty. (Base)";
+
+                            IsHandled := false;
+                            OnInsertWhseJnlLineOnBeforeValidateQtyPhysInventory(WhseJnlLine, WhseEntry, IsHandled);
+                            if not IsHandled then begin
+                                WhseJnlLine.Validate("Qty. (Phys. Inventory)", WhseJnlLine."Qty. (Calculated)");
+                                WhseJnlLine.Validate("Qty. (Phys. Inventory) (Base)", WhseEntry."Qty. (Base)");
+                            end;
+
+                            if Location."Use ADCS" then
+                                WhseJnlLine.Validate("Qty. (Phys. Inventory)", 0);
+                            WhseJnlLine."Registering No. Series" := WhseJnlBatch."Registering No. Series";
+                            WhseJnlLine."Whse. Document Type" :=
+                              WhseJnlLine."Whse. Document Type"::"Whse. Phys. Inventory";
+                            if WhseJnlBatch."Reason Code" <> '' then
+                                WhseJnlLine."Reason Code" := WhseJnlBatch."Reason Code";
+                            WhseJnlLine."Phys Invt Counting Period Code" := PhysInvtCountCode;
+                            WhseJnlLine."Phys Invt Counting Period Type" := CycleSourceType;
+
+                            OnBeforeWhseJnlLineInsert(WhseJnlLine, WhseEntry, NextLineNo);
+                            WhseJnlLine.Insert(true);
+                            OnAfterWhseJnlLineInsert(WhseJnlLine, NextLineNo, "Bin Content");
+                        end;
+                    end;
+                ProcessNext := WhseEntryTrackingDistinct.Read();
+            end;
+        end;
+
+        WhseEntryTrackingDistinct.Close();
     end;
 
     procedure InitializeRequest(NewRegisteringDate: Date; WhseDocNo: Code[20]; ItemsNotOnInvt: Boolean)
@@ -429,30 +464,49 @@ report 7390 "Whse. Calculate Inventory"
         StockProposal := NewValue;
     end;
 
-    local procedure CheckSerialTrackingEnabled(ItemNo: Code[20]): Boolean
+    local procedure GetSpecificTrackingOptions(ItemNo: Code[20]; var SerialNoActive: Boolean; var LotNoActive: Boolean; var PackageNoActive: Boolean)
     var
         Item: Record Item;
         ItemTrackingCode: Record "Item Tracking Code";
-    begin
-        Item.Get(ItemNo);
-        if not ItemTrackingCode.Get(Item."Item Tracking Code") then
-            exit(false);
-
-        if (ItemTrackingCode."Lot Specific Tracking" or ItemTrackingCode."Lot Warehouse Tracking") then
-            exit(false);
-
-        if (ItemTrackingCode."SN Specific Tracking" and ItemTrackingCode."SN Warehouse Tracking") then
-            exit(true);
-    end;
-
-    local procedure CheckSerialOrLotTrackingEnabled(ItemNo: Code[20]): Boolean
-    var
-        Item: Record Item;
         PhysInvTrackingMgt: Codeunit "Phys. Invt. Tracking Mgt.";
     begin
-        Item.Get(ItemNo);
-        if PhysInvTrackingMgt.GetTrackingNosFromWhse(Item) then
-            exit(true);
+        // Determines which tracking dimensions drive grouping for the item.
+        // Defaults to all dimensions active so untracked items still group by blank tracking values.
+        SerialNoActive := true;
+        LotNoActive := true;
+        PackageNoActive := true;
+
+        if not Item.Get(ItemNo) then
+            exit;
+
+        if not PhysInvTrackingMgt.GetTrackingNosFromWhse(Item) then
+            exit;
+
+        if not ItemTrackingCode.Get(Item."Item Tracking Code") then
+            exit;
+
+        SerialNoActive := ItemTrackingCode."SN Specific Tracking" and ItemTrackingCode."SN Warehouse Tracking";
+        LotNoActive := ItemTrackingCode."Lot Specific Tracking" and ItemTrackingCode."Lot Warehouse Tracking";
+        PackageNoActive := ItemTrackingCode."Package Specific Tracking" and ItemTrackingCode."Package Warehouse Tracking";
+    end;
+
+    local procedure BuildSpecificTrackingKey(var WhseEntryTrackingDistinct: Query "Whse. Entry Tracking Distinct"; SerialNoActive: Boolean; LotNoActive: Boolean; PackageNoActive: Boolean): Text
+    var
+        SerialNo: Code[50];
+        LotNo: Code[50];
+        PackageNo: Code[50];
+        Separator: Char;
+    begin
+        // Builds a deduplication key using only active dimensions; inactive dimensions contribute blank.
+        // Uses a non-printable separator (NUL) to prevent collisions if Code values contain printable delimiters.
+        Separator := 0;
+        if SerialNoActive then
+            SerialNo := WhseEntryTrackingDistinct.Serial_No_;
+        if LotNoActive then
+            LotNo := WhseEntryTrackingDistinct.Lot_No_;
+        if PackageNoActive then
+            PackageNo := WhseEntryTrackingDistinct.Package_No_;
+        exit(SerialNo + Separator + LotNo + Separator + PackageNo);
     end;
 
     [IntegrationEvent(false, false)]

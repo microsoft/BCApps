@@ -1099,6 +1099,8 @@ table 5767 "Warehouse Activity Line"
 
     procedure AutofillQtyToHandleOnLine(var WarehouseActivityLine: Record "Warehouse Activity Line")
     begin
+        OnBeforeAutofillQtyToHandleOnLine(WarehouseActivityLine);
+
         WarehouseActivityLine.Validate("Qty. to Handle", WarehouseActivityLine."Qty. Outstanding");
         if WarehouseActivityLine."Qty. to Handle (Base)" <> WarehouseActivityLine."Qty. Outstanding (Base)" then
             WarehouseActivityLine.Validate("Qty. to Handle (Base)", WarehouseActivityLine."Qty. Outstanding (Base)");
@@ -1111,6 +1113,7 @@ table 5767 "Warehouse Activity Line"
 
     procedure DeleteQtyToHandleOnLine(var WarehouseActivityLine: Record "Warehouse Activity Line")
     begin
+        OnBeforeDeleteQtyToHandleOnLine(WarehouseActivityLine);
         WarehouseActivityLine.Validate("Qty. to Handle", 0);
         WarehouseActivityLine.Modify();
     end;
@@ -3817,6 +3820,16 @@ table 5767 "Warehouse Activity Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCopyItemTrackingToRelatedLine(WarehouseActivityLine: Record "Warehouse Activity Line"; xWarehouseActivityLine: Record "Warehouse Activity Line"; FieldNo: Integer; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeAutofillQtyToHandleOnLine(var WarehouseActivityLine: Record "Warehouse Activity Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeDeleteQtyToHandleOnLine(var WarehouseActivityLine: Record "Warehouse Activity Line")
     begin
     end;
 }

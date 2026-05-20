@@ -704,11 +704,19 @@ codeunit 139915 "Sales Service Commitment Test"
     begin
         Initialize();
         SetupAdditionalServiceCommPackageLine(Enum::"Service Partner"::Vendor);
+
+        ServiceCommPackageLine.SetRange("Subscription Package Code", ServiceCommitmentPackage.Code);
+        ServiceCommPackageLine.FindSet(true);
+        repeat
+            ServiceCommPackageLine."Usage Based Billing" := true;
+            ServiceCommPackageLine."Usage Based Pricing" := Enum::"Usage Based Pricing"::"Usage Quantity";
+            ServiceCommPackageLine."Pricing Unit Cost Surcharge %" := LibraryRandom.RandDec(50, 2);
+            ServiceCommPackageLine.Modify(false);
+        until ServiceCommPackageLine.Next() = 0;
+
         ContractTestLibrary.SetupSalesServiceCommitmentItemAndAssignToServiceCommitmentPackage(Item, Enum::"Item Service Commitment Type"::"Sales with Service Commitment", ServiceCommitmentPackage.Code);
         LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Quote, '');
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, Enum::"Sales Line Type"::Item, Item."No.", LibraryRandom.RandIntInRange(1, 100));
-        SalesServiceCommitment.FilterOnSalesLine(SalesLine);
-        SalesServiceCommitment.FindSet();
 
         ArchiveManagement.ArchSalesDocumentNoConfirm(SalesHeader);
 
@@ -746,6 +754,9 @@ codeunit 139915 "Sales Service Commitment Test"
                 SalesServiceCommArchive.TestField("Customer Price Group", SalesServiceCommitment."Customer Price Group");
                 SalesServiceCommArchive.TestField("Unit Cost", SalesServiceCommitment."Unit Cost");
                 SalesServiceCommArchive.TestField("Unit Cost (LCY)", SalesServiceCommitment."Unit Cost (LCY)");
+                SalesServiceCommArchive.TestField("Usage Based Billing", SalesServiceCommitment."Usage Based Billing");
+                SalesServiceCommArchive.TestField("Usage Based Pricing", SalesServiceCommitment."Usage Based Pricing");
+                SalesServiceCommArchive.TestField("Pricing Unit Cost Surcharge %", SalesServiceCommitment."Pricing Unit Cost Surcharge %");
             until SalesServiceCommitment.Next() = 0;
         until SalesLine.Next() = 0;
     end;

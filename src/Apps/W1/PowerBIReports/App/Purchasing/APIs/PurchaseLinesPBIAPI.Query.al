@@ -10,6 +10,7 @@ query 37073 "Purchase Lines - PBI API"
 {
     Access = Internal;
     QueryType = API;
+    AboutText = 'Provides access to open purchase document lines with header data including quantities, amounts, receipt dates, prepayments, and received-not-invoiced values. Enables Power BI reports to analyze purchasing pipeline, vendor commitments, and document status.';
     Caption = 'Power BI Purchase Lines';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';

@@ -8,7 +8,6 @@ namespace System.Agents.Designer;
 using System.Agents;
 using System.Agents.TaskPane;
 using System.Agents.Troubleshooting;
-using System.Environment.Consumption;
 using System.Security.AccessControl;
 
 page 4362 "Agent Task Log Entry Instr"
@@ -116,7 +115,6 @@ page 4362 "Agent Task Log Entry Instr"
             }
             field(Credits; ConsumedCredits)
             {
-                Visible = ConsumedCreditsVisible;
                 Caption = 'Copilot credits used';
                 ToolTip = 'Specifies the number of Copilot credits consumed by the agent task.';
                 AutoFormatType = 0;
@@ -124,11 +122,9 @@ page 4362 "Agent Task Log Entry Instr"
 
                 trigger OnDrillDown()
                 var
-                    UserAIConsumptionData: Record "User AI Consumption Data";
+                    AgentConsumptionOverview: Codeunit "Agent Consumption Overview";
                 begin
-                    UserAIConsumptionData.SetRange("User Id", GlobalUserSecurityId);
-                    UserAIConsumptionData.SetRange("Agent Task Id", GlobalAgentTask.ID);
-                    Page.Run(Page::"Agent Consumption Overview", UserAIConsumptionData);
+                    AgentConsumptionOverview.OpenAgentTaskConsumptionOverview(GlobalAgentTask.ID);
                 end;
             }
         }
@@ -220,10 +216,8 @@ page 4362 "Agent Task Log Entry Instr"
     trigger OnOpenPage()
     var
         AgentDesignerPermissions: Codeunit "Agent Designer Permissions";
-        AgentSystemPermissions: Codeunit "Agent System Permissions";
     begin
         AgentDesignerPermissions.VerifyCurrentUserCanConfigureCustomAgent(GlobalUserSecurityId);
-        ConsumedCreditsVisible := AgentSystemPermissions.CurrentUserCanSeeConsumptionData();
     end;
 
     trigger OnAfterGetRecord()
@@ -234,7 +228,6 @@ page 4362 "Agent Task Log Entry Instr"
     trigger OnAfterGetCurrRecord()
     begin
         UpdateControls();
-        TaskSelected := HasTaskSelected();
         CalculateTaskConsumedCredits();
     end;
 
@@ -336,9 +329,9 @@ page 4362 "Agent Task Log Entry Instr"
     local procedure UpdateControls()
     var
         User: Record User;
-        AgentTaskImpl: Codeunit "Agent Task Impl.";
+        AgentTask: Codeunit "Agent Task";
     begin
-        DetailsTxt := AgentTaskImpl.GetDetailsForAgentTaskLogEntry(Rec);
+        DetailsTxt := AgentTask.GetLogEntryDetails(Rec);
         case Rec.Level of
             Rec.Level::Error:
                 TypeStyle := Format(PageStyle::Unfavorable);
@@ -355,17 +348,9 @@ page 4362 "Agent Task Log Entry Instr"
 
     local procedure CalculateTaskConsumedCredits()
     var
-        UserAIConsumptionData: Record "User AI Consumption Data";
+        AgentConsumptionOverview: Codeunit "Agent Consumption Overview";
     begin
-        if not ConsumedCreditsVisible then begin
-            Clear(ConsumedCredits);
-            exit;
-        end;
-
-        UserAIConsumptionData.SetRange("Agent Task Id", Rec."Task ID");
-        UserAIConsumptionData.SetRange("User Id", GlobalUserSecurityId);
-        UserAIConsumptionData.CalcSums("Copilot Credits");
-        ConsumedCredits := UserAIConsumptionData."Copilot Credits";
+        ConsumedCredits := AgentConsumptionOverview.GetCopilotCreditsConsumed(Rec."Task ID");
     end;
 
     local procedure GetAgentTaskTitle(AgentTask: Record "Agent Task"): Text
@@ -382,7 +367,6 @@ page 4362 "Agent Task Log Entry Instr"
         DetailsTxt: Text;
         TypeStyle: Text;
         UserName: Text;
-        ConsumedCreditsVisible, TaskSelected : Boolean;
         ConsumedCredits: Decimal;
         GlobalUserSecurityId: Guid;
         CurrentTaskTitleTxt: Text;

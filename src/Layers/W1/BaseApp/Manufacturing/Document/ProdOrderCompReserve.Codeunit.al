@@ -651,8 +651,11 @@ codeunit 99000838 "Prod. Order Comp.-Reserve"
         if IsHandled then
             exit(ReturnValue);
 
+        if not ProdOrderComponent.Get(ReservationEntry."Source Subtype", ReservationEntry."Source ID", ReservationEntry."Source Prod. Order Line", ReservationEntry."Source Ref. No.") then begin
+            InitSourceRecordRefFromReservEntry(ProdOrderComponent, ReservationEntry, SourceRecordRef);
+            exit(0);
+        end;
 
-        ProdOrderComponent.Get(ReservationEntry."Source Subtype", ReservationEntry."Source ID", ReservationEntry."Source Prod. Order Line", ReservationEntry."Source Ref. No.");
         SourceRecordRef.GetTable(ProdOrderComponent);
         case ReturnOption of
             ReturnOption::"Net Qty. (Base)":
@@ -667,6 +670,18 @@ codeunit 99000838 "Prod. Order Comp.-Reserve"
     begin
         if MatchThisTable(ReservEntry."Source Type") then
             ReturnQty := GetSourceValue(ReservEntry, SourceRecRef, ReturnOption);
+    end;
+
+    local procedure InitSourceRecordRefFromReservEntry(var ProdOrderComponent: Record "Prod. Order Component"; ReservationEntry: Record "Reservation Entry"; var SourceRecordRef: RecordRef)
+    begin
+        ProdOrderComponent.Init();
+        ProdOrderComponent.Status := Enum::"Production Order Status".FromInteger(ReservationEntry."Source Subtype");
+        ProdOrderComponent."Prod. Order No." := ReservationEntry."Source ID";
+        ProdOrderComponent."Prod. Order Line No." := ReservationEntry."Source Prod. Order Line";
+        ProdOrderComponent."Line No." := ReservationEntry."Source Ref. No.";
+        ProdOrderComponent."Item No." := ReservationEntry."Item No.";
+        ProdOrderComponent."Variant Code" := ReservationEntry."Variant Code";
+        SourceRecordRef.GetTable(ProdOrderComponent);
     end;
 
     local procedure UpdateStatistics(ReservationEntry: Record "Reservation Entry"; var TempEntrySummary: Record "Entry Summary" temporary; AvailabilityDate: Date; Status: Enum "Production Order Status"; Positive: Boolean; var TotalQuantity: Decimal)

@@ -211,6 +211,117 @@ codeunit 139760 "SMTP Connector Test"
         SMTPAccountWizard.Next.Invoke();
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure OAuth2WithStalePasswordKeyFailsGetPassword()
+    var
+        Account: Record "SMTP Account";
+    begin
+        // [Scenario] IcM: Customer switched a Basic SMTP account to OAuth 2.0.
+        // Send fails with "Unable to get SMTP Account password" because the stale
+        // Password Key still references a missing IsolatedStorage entry.
+        // The fix in Send uses EmptyPassword for non-Basic/NTLM auth types
+        // instead of calling GetPassword, preventing the error.
+        Initialize();
+
+        // [Given] An OAuth 2.0 account with a stale Password Key — simulates a Basic account that was switched to OAuth 2.0 without proper cleanup, and the IsolatedStorage entry was lost (e.g. environment refresh).
+        Account.Init();
+        Account.Id := CreateGuid();
+        Account.Name := 'Stale OAuth2 Account';
+        Account.Server := 'smtp.office365.com';
+        Account."Server Port" := 587;
+        Account."Authentication Type" := Account."Authentication Type"::"OAuth 2.0";
+        Account."User Name" := 'test@mail.com';
+        Account."Email Address" := 'test@mail.com';
+        Account."Secure Connection" := true;
+        Account."Sender Type" := Account."Sender Type"::"Specific User";
+        Account."Password Key" := CreateGuid(); // Stale key with no IsolatedStorage entry
+        Account.Insert();
+
+        // [Then] GetPassword fails with the exact IcM error because IsolatedStorage has no entry for the stale Password Key.
+        Assert.IsFalse(IsNullGuid(Account."Password Key"),
+            'Stale Password Key should be present.');
+        asserterror Account.GetPassword(Account."Password Key");
+        Assert.ExpectedError('Unable to get SMTP Account password');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure CreateAccountWithOAuth2DoesNotSetPassword()
+    var
+        SMTPAccountToCreate: Record "SMTP Account";
+        NewAccount: Record "SMTP Account";
+        EmailAccount: Record "Email Account";
+        SMTPConnector: Codeunit "SMTP Connector Impl.";
+    begin
+        // [Scenario] Creating an account via CreateAccount with OAuth 2.0 should not
+        // call SetPassword, so Password Key remains empty (null GUID).
+        Initialize();
+
+        // [Given] Account data with OAuth 2.0 authentication type.
+        SMTPAccountToCreate.Init();
+        SMTPAccountToCreate.Name := 'OAuth2 Account';
+        SMTPAccountToCreate.Server := 'smtp.office365.com';
+        SMTPAccountToCreate."Server Port" := 587;
+        SMTPAccountToCreate."Authentication Type" := SMTPAccountToCreate."Authentication Type"::"OAuth 2.0";
+        SMTPAccountToCreate."User Name" := 'test@mail.com';
+        SMTPAccountToCreate."Email Address" := 'test@mail.com';
+        SMTPAccountToCreate."Secure Connection" := true;
+        SMTPAccountToCreate."Sender Type" := SMTPAccountToCreate."Sender Type"::"Specific User";
+
+        // [When] CreateAccount is called with OAuth 2.0 auth type.
+        SMTPConnector.CreateAccount(SMTPAccountToCreate, '', EmailAccount);
+
+        // [Then] Password Key should not be set because SetPassword was not called.
+        NewAccount.Get(EmailAccount."Account Id");
+        Assert.IsTrue(IsNullGuid(NewAccount."Password Key"),
+            'OAuth 2.0 account should not have Password Key set via CreateAccount.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    [HandlerFunctions('SMTPAccountRegisterPageHandler,AuthMessageHandler')]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure SwitchBasicToOAuth2ViaPageClearsPassword()
+    var
+        EmailAccount: Record "Email Account";
+        SMTPAccount: Record "SMTP Account";
+        SMTPConnector: Codeunit "SMTP Connector Impl.";
+        SMTPAccountPage: TestPage "SMTP Account";
+        OriginalPasswordKey: Guid;
+    begin
+        // [Scenario] User switches a Basic SMTP account to OAuth 2.0 via the SMTP Account page.
+        // The page's Authentication OnValidate should clear the Password Key and
+        // remove the IsolatedStorage entry.
+        Initialize();
+
+        // [Given] A Basic SMTP account registered through the wizard.
+        SetBasicAccount(1);
+        SMTPConnector.RegisterAccount(EmailAccount);
+        SMTPAccount.Get(EmailAccount."Account Id");
+        OriginalPasswordKey := SMTPAccount."Password Key";
+        Assert.IsFalse(IsNullGuid(OriginalPasswordKey), 'Basic account should have Password Key set.');
+
+        // [When] User opens the SMTP Account page and switches Authentication to OAuth 2.0.
+        SMTPAccountPage.OpenEdit();
+        SMTPAccountPage.GoToRecord(SMTPAccount);
+        SMTPAccountPage.Authentication.SetValue("SMTP Authentication Types"::"OAuth 2.0");
+        SMTPAccountPage.Close();
+
+        // [Then] Password Key is cleared after switching to OAuth 2.0 via page.
+        SMTPAccount.Get(EmailAccount."Account Id");
+        Assert.IsTrue(IsNullGuid(SMTPAccount."Password Key"),
+            'Password Key should be cleared after switching to OAuth 2.0 via page.');
+    end;
+
+    [MessageHandler]
+    procedure AuthMessageHandler(Message: Text[1024])
+    begin
+        // Handle the message shown when switching to OAuth 2.0
+    end;
+
     [PageHandler]
     procedure SMTPAccountShowPageHandler(var SMTPAccount: TestPage "SMTP Account")
     begin
@@ -222,6 +333,134 @@ codeunit 139760 "SMTP Connector Test"
         Assert.AreEqual(Format(SMTPAccountMock.Authentication()), SMTPAccount.Authentication.Value(), 'A different authentication was expected.');
         Assert.AreEqual(SMTPAccountMock.SecureConnection(), SMTPAccount.SecureConnection.AsBoolean(), 'A different secure connection was expected.');
         Assert.AreEqual(Format(SMTPAccountMock.SenderType()), SMTPAccount.SenderTypeField.Value(), 'A different sender type was expected.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure AddSingleAttachmentSucceeds()
+    var
+        SMTPMessage: Codeunit "SMTP Message";
+        TempBlob: Codeunit "Temp Blob";
+        OutStr: OutStream;
+        InStr: InStream;
+    begin
+        // [Scenario] Adding a single attachment to an SMTP message should succeed
+        // [Given] A valid InStream with content
+        TempBlob.CreateOutStream(OutStr);
+        OutStr.WriteText('Test attachment content');
+        TempBlob.CreateInStream(InStr);
+
+        // [When] AddAttachment is called
+        // [Then] It returns true
+        Assert.IsTrue(SMTPMessage.AddAttachment(InStr, 'test.pdf'), 'AddAttachment should succeed for a valid InStream.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure AddMultipleAttachmentsSucceeds()
+    var
+        SMTPMessage: Codeunit "SMTP Message";
+        TempBlob: Codeunit "Temp Blob";
+        OutStr: OutStream;
+        InStr: InStream;
+        i: Integer;
+    begin
+        // [Scenario] Adding multiple attachments should all succeed
+        for i := 1 to 3 do begin
+            Clear(TempBlob);
+            TempBlob.CreateOutStream(OutStr);
+            OutStr.WriteText('Attachment content #' + Format(i));
+            TempBlob.CreateInStream(InStr);
+
+            Assert.IsTrue(
+                SMTPMessage.AddAttachment(InStr, 'file' + Format(i) + '.txt'),
+                StrSubstNo('AddAttachment should succeed for attachment %1.', i));
+        end;
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure AddAttachmentWithMinimalContent()
+    var
+        SMTPMessage: Codeunit "SMTP Message";
+        TempBlob: Codeunit "Temp Blob";
+        OutStr: OutStream;
+        InStr: InStream;
+    begin
+        // [Scenario] Adding an attachment with minimal (1 byte) content should succeed
+        TempBlob.CreateOutStream(OutStr);
+        OutStr.WriteText('x');
+        TempBlob.CreateInStream(InStr);
+
+        Assert.IsTrue(SMTPMessage.AddAttachment(InStr, 'minimal.txt'), 'AddAttachment should succeed for minimal content.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure AddAttachmentWithLargeContent()
+    var
+        SMTPMessage: Codeunit "SMTP Message";
+        TempBlob: Codeunit "Temp Blob";
+        OutStr: OutStream;
+        InStr: InStream;
+        i: Integer;
+    begin
+        // [Scenario] Adding a large attachment should succeed
+        TempBlob.CreateOutStream(OutStr);
+        for i := 1 to 1024 do
+            OutStr.WriteText('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/abcdefghijklmnopqrstuv');
+        TempBlob.CreateInStream(InStr);
+
+        Assert.IsTrue(SMTPMessage.AddAttachment(InStr, 'large-file.bin'), 'AddAttachment should succeed for large content.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure AddAttachmentAfterSettingBody()
+    var
+        SMTPMessage: Codeunit "SMTP Message";
+        TempBlob: Codeunit "Temp Blob";
+        OutStr: OutStream;
+        InStr: InStream;
+    begin
+        // [Scenario] Adding attachment after setting email body should succeed
+        SMTPMessage.SetBody('<html><body><p>Hello</p></body></html>', true);
+
+        TempBlob.CreateOutStream(OutStr);
+        OutStr.WriteText('Attachment after body');
+        TempBlob.CreateInStream(InStr);
+
+        Assert.IsTrue(SMTPMessage.AddAttachment(InStr, 'after-body.pdf'), 'AddAttachment should succeed after setting body.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure AddAttachmentVariousFileTypes()
+    var
+        SMTPMessage: Codeunit "SMTP Message";
+        TempBlob: Codeunit "Temp Blob";
+        OutStr: OutStream;
+        InStr: InStream;
+        FileNames: List of [Text];
+        FileName: Text;
+    begin
+        // [Scenario] Adding attachments with various file extensions should succeed
+        FileNames.Add('document.pdf');
+        FileNames.Add('spreadsheet.xlsx');
+        FileNames.Add('image.png');
+        FileNames.Add('archive.zip');
+        FileNames.Add('textfile.txt');
+
+        foreach FileName in FileNames do begin
+            Clear(TempBlob);
+            TempBlob.CreateOutStream(OutStr);
+            OutStr.WriteText('Content for ' + FileName);
+            TempBlob.CreateInStream(InStr);
+
+            Assert.IsTrue(
+                SMTPMessage.AddAttachment(InStr, FileName),
+                StrSubstNo('AddAttachment should succeed for file type %1.', FileName));
+        end;
     end;
 
     var

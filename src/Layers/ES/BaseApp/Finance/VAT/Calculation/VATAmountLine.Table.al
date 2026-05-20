@@ -475,7 +475,7 @@ table 290 "VAT Amount Line"
             RoundingPrec := GLSetup."Inv. Rounding Precision (LCY)";
         end;
 
-        if (("VAT Base" = 0) or ("Amount Including VAT" = 0)) and SkipZeroVatAmounts then
+        if ("VAT Base" = 0) and ("Amount Including VAT" = 0) and SkipZeroVatAmounts then
             exit(false);
 
         Validate(Positive, "Line Amount" >= 0);

@@ -19,13 +19,6 @@ pageextension 99001531 "Subc. Pstd. Direct Trans." extends "Posted Direct Transf
                 ToolTip = 'Specifies for which source type the transfer order is related to.';
                 Visible = false;
             }
-            field(SourceSubtype; Rec."Source Subtype")
-            {
-                ApplicationArea = All;
-                Editable = false;
-                ToolTip = 'Specifies which source subtype the transfer order is related to.';
-                Visible = false;
-            }
             field(SourceID; Rec."Source ID")
             {
                 ApplicationArea = All;

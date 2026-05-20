@@ -5,7 +5,6 @@
 namespace Microsoft.Finance.GeneralLedger.Journal;
 
 using Microsoft.Bank.BankAccount;
-using Microsoft.Bank.CODA;
 using Microsoft.Bank.Reconciliation;
 using Microsoft.Bank.Statement;
 using Microsoft.Finance.Currency;
@@ -818,10 +817,11 @@ page 11300 "Financial Journal"
     end;
 
     var
-        BankAccount: Record "Bank Account";
-        GenJnlLine: Record "Gen. Journal Line";
+        Text11300: Label 'There is a difference of %1. Please check the lines.';
         GenJnlTemplate: Record "Gen. Journal Template";
         GLAccount: Record "G/L Account";
+        BankAccount: Record "Bank Account";
+        GenJnlLine: Record "Gen. Journal Line";
         GenJnlManagement: Codeunit GenJnlManagement;
         ReportPrint: Codeunit "Test Report-Print";
         ChangeExchangeRate: Page "Change Exchange Rate";
@@ -835,7 +835,6 @@ page 11300 "Financial Journal"
         TotalBalanceVisible: Boolean;
         StyleTxt: Text;
         ImportBankStatementBalanceMsg: Label 'The Statement Ending Balance field may not show the actual balance according to the imported bank statement.';
-        Text11300: Label 'There is a difference of %1. Please check the lines.';
 
     protected var
         ShortcutDimCode: array[8] of Code[20];
@@ -873,8 +872,6 @@ page 11300 "Financial Journal"
     end;
 
     procedure UpdateStatementAmounts()
-    var
-        CODAStatementLine: Record "CODA Statement Line";
     begin
         Rec.FilterGroup(2);
         GenJnlTemplate.Get(Rec.GetFilter("Journal Template Name"));
@@ -893,10 +890,6 @@ page 11300 "Financial Journal"
                 end;
             "Gen. Journal Account Type"::"Bank Account":
                 begin
-                    if CODAStatementLineExist(CODAStatementLine) then begin
-                        CalculateCODABalance(CODAStatementLine);
-                        exit;
-                    end;
                     BankAccount.Get(GenJnlTemplate."Bal. Account No.");
                     BankAccount.CalcFields(Balance);
                     if BankAccount.Balance <> BalanceLastStatement then begin
@@ -913,43 +906,6 @@ page 11300 "Financial Journal"
         CurrPage.SaveRecord();
         GenJnlManagement.SetName(CurrentJnlBatchName, Rec);
         CurrPage.Update(false);
-    end;
-
-    local procedure CODAStatementLineExist(var CODAStatementLine: Record "CODA Statement Line"): Boolean
-    var
-        GenJournalBatch: Record "Gen. Journal Batch";
-    begin
-        if not GenJournalBatch.Get(GenJnlTemplate.Name, CurrentJnlBatchName) then
-            exit;
-        if not GenJournalLineExist(GenJournalBatch) then
-            exit;
-
-        CODAStatementLine.SetRange("Journal Template Name", GenJournalBatch."Journal Template Name");
-        CODAStatementLine.SetRange("Journal Batch Name", GenJournalBatch.Name);
-        CODAStatementLine.SetRange("Bank Account No.", GenJournalBatch."Bal. Account No.");
-        exit(CODAStatementLine.FindFirst());
-    end;
-
-    local procedure GenJournalLineExist(GenJournalBatch: Record "Gen. Journal Batch"): Boolean
-    var
-        GenJournalLine: Record "Gen. Journal Line";
-    begin
-        GenJournalLine.SetRange("Journal Template Name", GenJournalBatch."Journal Template Name");
-        GenJournalLine.SetRange("Journal Batch Name", GenJournalBatch.Name);
-        GenJournalLine.SetRange("Bal. Account Type", GenJournalBatch."Bal. Account Type"::"Bank Account");
-        GenJournalLine.SetRange("Bal. Account No.", GenJournalBatch."Bal. Account No.");
-        exit(not GenJournalLine.IsEmpty());
-    end;
-
-    local procedure CalculateCODABalance(CODAStatementLine: Record "CODA Statement Line")
-    var
-        CODAStatement: Record "CODA Statement";
-    begin
-        if not CODAStatement.Get(CODAStatementLine."Bank Account No.", CODAStatementLine."Statement No.") then
-            exit;
-
-        BalanceLastStatement := CODAStatement."Balance Last Statement";
-        StatementEndingBalance := CODAStatement."Statement Ending Balance";
     end;
 
     procedure SetUserInteractions()

@@ -604,6 +604,7 @@ codeunit 99000893 "Mfg. Create Put-away"
 
         GetLocation(ItemJournalLine."Location Code");
         WhsePutAwayRequired := CurrLocation.RequireWhsePutAwayForProdOutput(ItemJournalLine."Location Code");
+        OnShouldCreateWhsePutAwayForProdOutputOnAfterSetWhsePutAwayRequired(WhsePutAwayRequired, ItemJournalLine);
         ShouldCreateWhsePutAway := WhsePutAwayRequired and not CurrLocation."Use Put-away Worksheet";
         ProdOrderLine.Get(ProdOrderLine.Status::Released, ItemJournalLine."Order No.", ItemJournalLine."Order Line No.");
         ProductionOrder.Get(ProductionOrder.Status::Released, ItemJournalLine."Order No.");
@@ -1375,6 +1376,11 @@ codeunit 99000893 "Mfg. Create Put-away"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetPutAwayUOMForProdOrderLine(var ItemUnitOfMeasure: Record "Item Unit of Measure"; ProdOrderLine: Record "Prod. Order Line"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnShouldCreateWhsePutAwayForProdOutputOnAfterSetWhsePutAwayRequired(var WhsePutAwayRequired: Boolean; ItemJournalLine: Record "Item Journal Line")
     begin
     end;
 }

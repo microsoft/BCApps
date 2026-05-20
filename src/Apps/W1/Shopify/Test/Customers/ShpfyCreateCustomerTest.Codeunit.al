@@ -16,18 +16,19 @@ codeunit 139565 "Shpfy Create Customer Test"
 {
     Subtype = Test;
     TestType = IntegrationTest;
-    EventSubscriberInstance = Manual;
     TestPermissions = Disabled;
+    TestHttpRequestPolicy = BlockOutboundRequests;
 
     var
+        Shop: Record "Shpfy Shop";
+        Any: Codeunit Any;
         LibraryAssert: Codeunit "Library Assert";
-        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
-        CreateCustomerTest: Codeunit "Shpfy Create Customer Test";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
         CustomerInitTest: Codeunit "Shpfy Customer Init Test";
+        IsInitialized: Boolean;
         OnCreateCustomerEventMsg: Label 'OnCreateCustomer', Locked = true;
 
     [Test]
-    [HandlerFunctions('OnCreateCustomerHandler')]
     procedure UniTestCreateCustomerFromShopifyInfo()
     var
         Customer: Record Customer;
@@ -36,8 +37,8 @@ codeunit 139565 "Shpfy Create Customer Test"
         ShpfyCreateCustomer: Codeunit "Shpfy Create Customer";
     begin
         // Creating Test data. The database must have a Config Template for creating a customer.
-        Init();
-        ShpfyCreateCustomer.SetShop(CommunicationMgt.GetShopRecord());
+        Initialize();
+        ShpfyCreateCustomer.SetShop(Shop);
         if not CustomerTempl.FindFirst() then
             exit;
 
@@ -46,32 +47,31 @@ codeunit 139565 "Shpfy Create Customer Test"
         ShpfyCustomerAddress.SetRecFilter();
 
         // [GIVEN] The shop
-        ShpfyCreateCustomer.SetShop(CommunicationMgt.GetShopRecord());
+        ShpfyCreateCustomer.SetShop(Shop);
         // [GIVEN] The customer template code
         ShpfyCreateCustomer.SetTemplateCode(CustomerTempl.Code);
         // [GIVEN] The Shopify Customer Address record.
-        BindSubscription(CreateCustomerTest);
         ShpfyCreateCustomer.Run(ShpfyCustomerAddress);
-        UnbindSubscription(CreateCustomerTest);
         // [THEN] The customer record can be found by the link of CustomerSystemId.
         ShpfyCustomerAddress.Get(ShpfyCustomerAddress.Id);
         if not Customer.GetBySystemId(ShpfyCustomerAddress.CustomerSystemId) then
             LibraryAssert.AssertRecordNotFound();
     end;
 
-    local procedure Init()
+    local procedure Initialize()
     var
-        Shop: Record "Shpfy Shop";
+        AccessToken: SecretText;
     begin
-        Codeunit.Run(Codeunit::"Shpfy Initialize Test");
-        Shop := CommunicationMgt.GetShopRecord();
-        if Shop."Default Customer No." = '' then begin
-            Shop."Name Source" := "Shpfy Name Source"::CompanyName;
-            Shop."Name 2 Source" := "Shpfy Name Source"::FirstAndLastName;
-            if not Shop.Modify(false) then
-                Shop.Insert();
-            CommunicationMgt.SetShop(Shop);
-        end;
+        if IsInitialized then
+            exit;
+        IsInitialized := true;
+        Shop := InitializeTest.CreateShop();
+        Shop."Name Source" := "Shpfy Name Source"::CompanyName;
+        Shop."Name 2 Source" := "Shpfy Name Source"::FirstAndLastName;
+        Shop.Modify(false);
+        AccessToken := Any.AlphanumericText(20);
+        InitializeTest.RegisterAccessTokenForShop(Shop.GetStoreName(), AccessToken);
+        Commit();
     end;
 
     [MessageHandler]
@@ -80,15 +80,12 @@ codeunit 139565 "Shpfy Create Customer Test"
         LibraryAssert.ExpectedMessage(OnCreateCustomerEventMsg, Message);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Shpfy Customer Events", 'OnBeforeCreateCustomer', '', true, false)]
-    local procedure OnBeforeCreateCustomer()
+    [HttpClientHandler]
+    internal procedure HttpClientHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
     begin
-        Message(OnCreateCustomerEventMsg);
-    end;
+        if not InitializeTest.VerifyRequestUrl(Request.Path, Shop."Shopify URL") then
+            exit(true);
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Shpfy Customer Events", 'OnAfterCreateCustomer', '', true, false)]
-    local procedure OnAfterCreateCustomer()
-    begin
-        Message(OnCreateCustomerEventMsg);
+        exit(false);
     end;
 }

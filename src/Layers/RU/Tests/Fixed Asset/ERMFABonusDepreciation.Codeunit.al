@@ -20,11 +20,12 @@ codeunit 134454 "ERM FA Bonus Depreciation"
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         isInitialized: Boolean;
         BonusDepreciationTurnedOnErr: Label 'You must uncheck Use Bonus Depreciation, because this change is making the fixed asset not eligible for bonus depreciation.';
-        BonusDepreciationNotSetupCorrectlyErr: Label 'Bonus depreciation is not set up correctly in the Fixed Asset Setup.';
+        BonusDepreciationNotSetupCorrectlyErr: Label 'You must open Fixed Asset Setup and set up the effective date and percentage for bonus depreciation.';
         CannotUseBonusDepreciationDepreciationStartedErr: Label 'Bonus depreciation cannot be used because depreciation has already started for this fixed asset.';
         CannotTurnOffBonusDepreciationAlreadyAppliedErr: Label 'Bonus depreciation has already been applied to this fixed asset.';
         BonusDepreciationExceedsAllowedValueErr: Label 'The amount of bonus depreciation must not exceed the allowed value calculated based on acquisition cost and bonus depreciation percentage set up in Fixed Asset Setup.';
         DepreciationAlreadyAppliedErr: Label 'Depreciation ledger entries have already been posted for fixed asset %1 in depreciation book %2. You must first reverse them in order to post bonus depreciation.', Comment = '%1 - fixed asset code; %2 - depreciation book code';
+        BonusDeprPctExceedsMaxErr: Label 'The bonus depreciation percentage cannot exceed the applicable maximum of %1%.', Comment = '%1 = maximum percentage';
 
     [Test]
     [Scope('OnPrem')]
@@ -691,12 +692,400 @@ codeunit 134454 "ERM FA Bonus Depreciation"
         Assert.AreEqual(DepreciationBook.Code, FALedgerEntry."Depreciation Book Code", 'Depreciation FA Ledger Entry should have the correct depreciation book.');
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure EligibleForBonusDeprViaAdvSetup()
+    var
+        DepreciationBook: Record "Depreciation Book";
+        FADepreciationBook: Record "FA Depreciation Book";
+        FixedAsset: Record "Fixed Asset";
+        FASetup: Record "FA Setup";
+        BonusDeprEffectiveDate: Date;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] FA eligible for bonus depreciation via Adv. Bonus Depreciation Setup with blank FA Class
+        Initialize();
+
+        // [GIVEN] FA Setup with bonus depreciation effective date in the future
+        BonusDeprEffectiveDate := CalcDate('<+5Y>', WorkDate());
+        SetupBonusDepreciation(LibraryRandom.RandIntInRange(10, 50), BonusDeprEffectiveDate);
+
+        // [GIVEN] Adv. Bonus Depreciation Setup entry with effective date = WorkDate and blank FA Class
+        CreateAdvBonusDeprSetup(WorkDate(), '', LibraryRandom.RandIntInRange(10, 50));
+
+        // [GIVEN] Fixed asset "FA" with depreciation starting date = WorkDate
+        LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset);
+        CreateJournalSetupDepreciation(DepreciationBook);
+        CreateFADepreciationBookWithStartDate(FADepreciationBook, FixedAsset."No.", FixedAsset."FA Posting Group", DepreciationBook.Code, WorkDate());
+
+        // [WHEN] EligibleForBonusDepreciation is called
+        FADepreciationBook.Get(FixedAsset."No.", DepreciationBook.Code);
+        FASetup.Get();
+
+        // [THEN] The result is true
+        Assert.IsTrue(FADepreciationBook.EligibleForBonusDepreciation(FASetup), 'Fixed asset should be eligible via Adv. Bonus Depreciation Setup.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure EligibleForBonusDeprViaAdvSetupMatchingFAClass()
+    var
+        DepreciationBook: Record "Depreciation Book";
+        FADepreciationBook: Record "FA Depreciation Book";
+        FixedAsset: Record "Fixed Asset";
+        FASetup: Record "FA Setup";
+        FAClass: Record "FA Class";
+        BonusDeprEffectiveDate: Date;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] FA eligible for bonus depreciation via Adv. Setup with matching FA Class Code
+        Initialize();
+
+        // [GIVEN] FA Setup with bonus depreciation effective date in the future
+        BonusDeprEffectiveDate := CalcDate('<+5Y>', WorkDate());
+        SetupBonusDepreciation(LibraryRandom.RandIntInRange(10, 50), BonusDeprEffectiveDate);
+
+        // [GIVEN] FA Class "FC"
+        LibraryFixedAsset.CreateFAClass(FAClass);
+
+        // [GIVEN] Adv. Bonus Depreciation Setup entry with effective date = WorkDate and FA Class = "FC"
+        CreateAdvBonusDeprSetup(WorkDate(), FAClass.Code, LibraryRandom.RandIntInRange(10, 50));
+
+        // [GIVEN] Fixed asset "FA" with FA Class = "FC" and depreciation starting date = WorkDate
+        LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset);
+        FixedAsset.Validate("FA Class Code", FAClass.Code);
+        FixedAsset.Modify(true);
+        CreateJournalSetupDepreciation(DepreciationBook);
+        CreateFADepreciationBookWithStartDate(FADepreciationBook, FixedAsset."No.", FixedAsset."FA Posting Group", DepreciationBook.Code, WorkDate());
+
+        // [WHEN] EligibleForBonusDepreciation is called
+        FADepreciationBook.Get(FixedAsset."No.", DepreciationBook.Code);
+        FASetup.Get();
+
+        // [THEN] The result is true
+        Assert.IsTrue(FADepreciationBook.EligibleForBonusDepreciation(FASetup), 'Fixed asset should be eligible via Adv. Setup with matching FA Class.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure NotEligibleViaAdvSetupDifferentFAClass()
+    var
+        DepreciationBook: Record "Depreciation Book";
+        FADepreciationBook: Record "FA Depreciation Book";
+        FixedAsset: Record "Fixed Asset";
+        FASetup: Record "FA Setup";
+        FAClass: Record "FA Class";
+        FAClass2: Record "FA Class";
+        BonusDeprEffectiveDate: Date;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] FA not eligible for bonus depreciation when Adv. Setup has a different FA Class
+        Initialize();
+
+        // [GIVEN] FA Setup with bonus depreciation effective date in the future
+        BonusDeprEffectiveDate := CalcDate('<+5Y>', WorkDate());
+        SetupBonusDepreciation(LibraryRandom.RandIntInRange(10, 50), BonusDeprEffectiveDate);
+
+        // [GIVEN] FA Class "FC1" and "FC2"
+        LibraryFixedAsset.CreateFAClass(FAClass);
+        LibraryFixedAsset.CreateFAClass(FAClass2);
+
+        // [GIVEN] Adv. Bonus Depreciation Setup entry with FA Class = "FC2"
+        CreateAdvBonusDeprSetup(WorkDate(), FAClass2.Code, LibraryRandom.RandIntInRange(10, 50));
+
+        // [GIVEN] Fixed asset "FA" with FA Class = "FC1" and depreciation starting date = WorkDate
+        LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset);
+        FixedAsset.Validate("FA Class Code", FAClass.Code);
+        FixedAsset.Modify(true);
+        CreateJournalSetupDepreciation(DepreciationBook);
+        CreateFADepreciationBookWithStartDate(FADepreciationBook, FixedAsset."No.", FixedAsset."FA Posting Group", DepreciationBook.Code, WorkDate());
+
+        // [WHEN] EligibleForBonusDepreciation is called
+        FADepreciationBook.Get(FixedAsset."No.", DepreciationBook.Code);
+        FASetup.Get();
+
+        // [THEN] The result is false
+        Assert.IsFalse(FADepreciationBook.EligibleForBonusDepreciation(FASetup), 'Fixed asset should not be eligible when Adv. Setup has different FA Class.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure BonusDeprPctFromAdvSetupApplied()
+    var
+        DepreciationBook: Record "Depreciation Book";
+        FADepreciationBook: Record "FA Depreciation Book";
+        FixedAsset: Record "Fixed Asset";
+        AdvSetupPct: Decimal;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] Bonus Depreciation % is populated from Adv. Setup when its effective date is most recent
+        Initialize();
+
+        // [GIVEN] FA Setup with bonus depreciation effective date in the future
+        SetupBonusDepreciation(LibraryRandom.RandIntInRange(10, 30), CalcDate('<+5Y>', WorkDate()));
+
+        // [GIVEN] Adv. Bonus Depreciation Setup entry with effective date = WorkDate and percentage "P"
+        AdvSetupPct := LibraryRandom.RandIntInRange(40, 60);
+        CreateAdvBonusDeprSetup(WorkDate(), '', AdvSetupPct);
+
+        // [GIVEN] Fixed asset "FA" with depreciation starting date = WorkDate
+        LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset);
+        CreateJournalSetupDepreciation(DepreciationBook);
+        CreateFADepreciationBookWithStartDate(FADepreciationBook, FixedAsset."No.", FixedAsset."FA Posting Group", DepreciationBook.Code, WorkDate());
+
+        // [WHEN] Use Bonus Depreciation is set to true
+        FADepreciationBook.Get(FixedAsset."No.", DepreciationBook.Code);
+        FADepreciationBook.Validate("Use Bonus Depreciation", true);
+
+        // [THEN] Bonus Depreciation % is set to the Adv. Setup percentage "P"
+        Assert.AreEqual(AdvSetupPct, FADepreciationBook."Bonus Depreciation %", 'Bonus Depreciation % should come from Adv. Setup.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure BonusDeprPctFromFASetupWhenLatestDate()
+    var
+        DepreciationBook: Record "Depreciation Book";
+        FADepreciationBook: Record "FA Depreciation Book";
+        FixedAsset: Record "Fixed Asset";
+        FASetupPct: Decimal;
+        AdvSetupPct: Decimal;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] FA Setup percentage is used when its effective date is more recent than all Adv. Setup entries
+        Initialize();
+
+        // [GIVEN] FA Setup with bonus depreciation effective date = WorkDate and percentage "P1"
+        FASetupPct := LibraryRandom.RandIntInRange(40, 60);
+        SetupBonusDepreciation(FASetupPct, WorkDate());
+
+        // [GIVEN] Adv. Bonus Depreciation Setup entry with older effective date and percentage "P2"
+        AdvSetupPct := LibraryRandom.RandIntInRange(10, 30);
+        CreateAdvBonusDeprSetup(CalcDate('<-1Y>', WorkDate()), '', AdvSetupPct);
+
+        // [GIVEN] Fixed asset "FA" with depreciation starting date = WorkDate
+        LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset);
+        CreateJournalSetupDepreciation(DepreciationBook);
+        CreateFADepreciationBookWithStartDate(FADepreciationBook, FixedAsset."No.", FixedAsset."FA Posting Group", DepreciationBook.Code, WorkDate());
+
+        // [WHEN] Use Bonus Depreciation is set to true
+        FADepreciationBook.Get(FixedAsset."No.", DepreciationBook.Code);
+        FADepreciationBook.Validate("Use Bonus Depreciation", true);
+
+        // [THEN] Bonus Depreciation % is set to FA Setup percentage "P1"
+        Assert.AreEqual(FASetupPct, FADepreciationBook."Bonus Depreciation %", 'Bonus Depreciation % should come from FA Setup when its date is most recent.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure BonusDeprPctMostRecentAdvSetupWins()
+    var
+        DepreciationBook: Record "Depreciation Book";
+        FADepreciationBook: Record "FA Depreciation Book";
+        FixedAsset: Record "Fixed Asset";
+        OlderPct: Decimal;
+        NewerPct: Decimal;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] When multiple Adv. Setup entries qualify, the one with the most recent effective date wins
+        Initialize();
+
+        // [GIVEN] FA Setup with bonus depreciation effective date far in the past
+        SetupBonusDepreciation(LibraryRandom.RandIntInRange(5, 10), CalcDate('<-3Y>', WorkDate()));
+
+        // [GIVEN] Adv. Bonus Depreciation Setup entry with older date and percentage "P1"
+        OlderPct := LibraryRandom.RandIntInRange(20, 30);
+        CreateAdvBonusDeprSetup(CalcDate('<-2Y>', WorkDate()), '', OlderPct);
+
+        // [GIVEN] Adv. Bonus Depreciation Setup entry with newer date and percentage "P2"
+        NewerPct := LibraryRandom.RandIntInRange(50, 70);
+        CreateAdvBonusDeprSetup(CalcDate('<-1Y>', WorkDate()), '', NewerPct);
+
+        // [GIVEN] Fixed asset "FA" with depreciation starting date = WorkDate
+        LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset);
+        CreateJournalSetupDepreciation(DepreciationBook);
+        CreateFADepreciationBookWithStartDate(FADepreciationBook, FixedAsset."No.", FixedAsset."FA Posting Group", DepreciationBook.Code, WorkDate());
+
+        // [WHEN] Use Bonus Depreciation is set to true
+        FADepreciationBook.Get(FixedAsset."No.", DepreciationBook.Code);
+        FADepreciationBook.Validate("Use Bonus Depreciation", true);
+
+        // [THEN] Bonus Depreciation % is set to the newer percentage "P2"
+        Assert.AreEqual(NewerPct, FADepreciationBook."Bonus Depreciation %", 'Bonus Depreciation % should come from the most recent Adv. Setup entry.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure BonusDeprPctCannotExceedApplicableMax()
+    var
+        DepreciationBook: Record "Depreciation Book";
+        FADepreciationBook: Record "FA Depreciation Book";
+        FixedAsset: Record "Fixed Asset";
+        MaxPct: Decimal;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] Error when manually setting Bonus Depreciation % above the applicable maximum
+        Initialize();
+
+        // [GIVEN] FA Setup with bonus depreciation percentage "P"
+        MaxPct := LibraryRandom.RandIntInRange(20, 40);
+        SetupBonusDepreciation(MaxPct, WorkDate());
+
+        // [GIVEN] Fixed asset "FA" with Use Bonus Depreciation enabled
+        LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset);
+        CreateJournalSetupDepreciation(DepreciationBook);
+        CreateFADepreciationBook(FADepreciationBook, FixedAsset."No.", FixedAsset."FA Posting Group", DepreciationBook.Code);
+        FADepreciationBook.Validate("Use Bonus Depreciation", true);
+        FADepreciationBook.Modify(true);
+
+        // [WHEN] Bonus Depreciation % is set above the maximum "P"
+        FADepreciationBook.Get(FixedAsset."No.", DepreciationBook.Code);
+        asserterror FADepreciationBook.Validate("Bonus Depreciation %", MaxPct + LibraryRandom.RandIntInRange(1, 10));
+
+        // [THEN] Error is raised about exceeding the maximum
+        Assert.ExpectedError(StrSubstNo(BonusDeprPctExceedsMaxErr, MaxPct));
+        Assert.ExpectedErrorCode('Dialog');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure BonusDeprAmountUsesPerAssetPct()
+    var
+        DepreciationBook: Record "Depreciation Book";
+        FADepreciationBook: Record "FA Depreciation Book";
+        FixedAsset: Record "Fixed Asset";
+        FAJournalLine: Record "FA Journal Line";
+        FALedgerEntry: Record "FA Ledger Entry";
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        FASetupPct: Decimal;
+        AssetPct: Decimal;
+        AcquisitionAmount: Decimal;
+        ExpectedBonusDeprAmount: Decimal;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] Bonus depreciation amount uses per-asset Bonus Depreciation % from FA Depreciation Book
+        Initialize();
+
+        // [GIVEN] FA Setup with bonus depreciation percentage "P1"
+        FASetupPct := LibraryRandom.RandIntInRange(40, 60);
+        SetupBonusDepreciation(FASetupPct, WorkDate());
+
+        // [GIVEN] Fixed asset "FA" with Use Bonus Depreciation enabled
+        LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset);
+        CreateJournalSetupDepreciation(DepreciationBook);
+        CreateFADepreciationBook(FADepreciationBook, FixedAsset."No.", FixedAsset."FA Posting Group", DepreciationBook.Code);
+        FADepreciationBook.Validate("Use Bonus Depreciation", true);
+
+        // [GIVEN] Bonus Depreciation % on FA Depreciation Book manually lowered to "P2"
+        AssetPct := LibraryRandom.RandIntInRange(10, FASetupPct - 1);
+        FADepreciationBook.Validate("Bonus Depreciation %", AssetPct);
+        FADepreciationBook.Modify(true);
+
+        // [GIVEN] Posted acquisition cost for "FA"
+        AcquisitionAmount := CreateAndPostAcquisitionFAJournalLine(FADepreciationBook);
+        GeneralLedgerSetup.Get();
+        ExpectedBonusDeprAmount := Round(AcquisitionAmount * AssetPct * 0.01, GeneralLedgerSetup."Amount Rounding Precision");
+
+        // [WHEN] Bonus depreciation journal line with per-asset amount is posted
+        CreateFAJournalLineWithPostingType(
+            FAJournalLine, FixedAsset."No.", DepreciationBook.Code,
+            FAJournalLine."FA Posting Type"::"Bonus Depreciation", -ExpectedBonusDeprAmount);
+        LibraryFixedAsset.PostFAJournalLine(FAJournalLine);
+
+        // [THEN] FA Ledger Entry has the correct amount based on per-asset percentage "P2"
+        FALedgerEntry.SetRange("FA No.", FixedAsset."No.");
+        FALedgerEntry.SetRange("FA Posting Type", FALedgerEntry."FA Posting Type"::"Bonus Depreciation");
+        FALedgerEntry.FindFirst();
+        Assert.AreEqual(-ExpectedBonusDeprAmount, FALedgerEntry.Amount, 'Bonus depreciation amount should use per-asset percentage.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    [HandlerFunctions('ClearBonusDeprConfirmHandlerYes')]
+    procedure ClearFASetupBonusDeprDeletesAdvSetupEntries()
+    var
+        FASetup: Record "FA Setup";
+        AdvBonusDeprSetup: Record "Adv. Bonus Depreciation Setup";
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] Setting FA Setup Bonus Depreciation % to 0 clears both fields and deletes Adv. Setup entries
+        Initialize();
+
+        // [GIVEN] FA Setup with bonus depreciation configured
+        SetupBonusDepreciation(LibraryRandom.RandIntInRange(10, 50), WorkDate());
+
+        // [GIVEN] Adv. Bonus Depreciation Setup entries exist
+        CreateAdvBonusDeprSetup(WorkDate(), '', LibraryRandom.RandIntInRange(10, 50));
+        CreateAdvBonusDeprSetup(CalcDate('<-1Y>', WorkDate()), '', LibraryRandom.RandIntInRange(10, 50));
+
+        // [WHEN] FA Setup Bonus Depreciation % is set to 0
+        FASetup.Get();
+        FASetup.Validate("Bonus Depreciation %", 0);
+        FASetup.Modify(true);
+
+        // [THEN] FA Setup Bonus Depr. Effective Date is cleared
+        FASetup.Get();
+        Assert.AreEqual(0D, FASetup."Bonus Depr. Effective Date", 'Bonus Depr. Effective Date should be cleared.');
+
+        // [THEN] All Adv. Bonus Depreciation Setup entries are deleted
+        Assert.IsTrue(AdvBonusDeprSetup.IsEmpty(), 'All Adv. Bonus Depreciation Setup entries should be deleted.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    [HandlerFunctions('CalculateDepreciationMessageHandler')]
+    procedure CalcDeprUsesAdvSetupBonusDeprPct()
+    var
+        DepreciationBook: Record "Depreciation Book";
+        FADepreciationBook: Record "FA Depreciation Book";
+        FixedAsset: Record "Fixed Asset";
+        FAJournalLine: Record "FA Journal Line";
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        AdvSetupPct: Decimal;
+        AcquisitionAmount: Decimal;
+        ExpectedBonusDeprAmount: Decimal;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] Calculate Depreciation creates bonus depreciation line using per-asset Bonus Depreciation % from Adv. Setup
+        Initialize();
+
+        // [GIVEN] FA Setup with bonus depreciation effective date in the future
+        SetupBonusDepreciation(LibraryRandom.RandIntInRange(10, 30), CalcDate('<+5Y>', WorkDate()));
+
+        // [GIVEN] Adv. Bonus Depreciation Setup entry with effective date = WorkDate and percentage "P"
+        AdvSetupPct := LibraryRandom.RandIntInRange(40, 60);
+        CreateAdvBonusDeprSetup(WorkDate(), '', AdvSetupPct);
+
+        // [GIVEN] Fixed asset "FA" with Use Bonus Depreciation enabled from Adv. Setup
+        LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset);
+        CreateJournalSetupDepreciation(DepreciationBook);
+        CreateFADepreciationBookWithStartDate(FADepreciationBook, FixedAsset."No.", FixedAsset."FA Posting Group", DepreciationBook.Code, WorkDate());
+        FADepreciationBook.Get(FixedAsset."No.", DepreciationBook.Code);
+        FADepreciationBook.Validate("Use Bonus Depreciation", true);
+        FADepreciationBook.Modify(true);
+
+        // [GIVEN] Posted acquisition cost for "FA"
+        AcquisitionAmount := CreateAndPostAcquisitionFAJournalLine(FADepreciationBook);
+        GeneralLedgerSetup.Get();
+        ExpectedBonusDeprAmount := Round(AcquisitionAmount * AdvSetupPct * 0.01, GeneralLedgerSetup."Amount Rounding Precision");
+
+        // [WHEN] Calculate Depreciation report is run for "FA"
+        RunCalculateDepreciation(FixedAsset."No.", DepreciationBook.Code);
+
+        // [THEN] FA Journal contains a bonus depreciation line with amount based on Adv. Setup percentage "P"
+        FindFAJournalLine(FAJournalLine, DepreciationBook.Code, FAJournalLine."FA Posting Type"::"Bonus Depreciation");
+        Assert.AreEqual(FixedAsset."No.", FAJournalLine."FA No.", 'Bonus depreciation line should be for the correct FA.');
+        Assert.AreEqual(-ExpectedBonusDeprAmount, FAJournalLine.Amount, 'Bonus depreciation amount should use Adv. Setup percentage.');
+    end;
+
     local procedure Initialize()
     var
+        AdvBonusDeprSetup: Record "Adv. Bonus Depreciation Setup";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"ERM FA Bonus Depreciation");
         LibrarySetupStorage.Restore();
+        AdvBonusDeprSetup.DeleteAll();
 
         if isInitialized then
             exit;
@@ -879,6 +1268,17 @@ codeunit 134454 "ERM FA Bonus Depreciation"
     begin
     end;
 
+    local procedure CreateAdvBonusDeprSetup(EffectiveDate: Date; FAClassCode: Code[10]; BonusDeprPct: Decimal)
+    var
+        AdvBonusDeprSetup: Record "Adv. Bonus Depreciation Setup";
+    begin
+        AdvBonusDeprSetup.Init();
+        AdvBonusDeprSetup."Effective Date" := EffectiveDate;
+        AdvBonusDeprSetup."FA Class Code" := FAClassCode;
+        AdvBonusDeprSetup."Bonus Depreciation %" := BonusDeprPct;
+        AdvBonusDeprSetup.Insert(true);
+    end;
+
     local procedure RunCalculateDepreciation(FixedAssetNo: Code[20]; DepreciationBookCode: Code[10])
     var
         FixedAsset: Record "Fixed Asset";
@@ -920,5 +1320,11 @@ codeunit 134454 "ERM FA Bonus Depreciation"
         FAJournalBatch.Modify(true);
 
         LibraryFixedAsset.PostFAJournalLine(FAJournalLine);
+    end;
+
+    [ConfirmHandler]
+    procedure ClearBonusDeprConfirmHandlerYes(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Reply := true;
     end;
 }

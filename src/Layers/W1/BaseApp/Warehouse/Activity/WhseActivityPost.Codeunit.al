@@ -11,7 +11,6 @@ using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
 #endif
 using Microsoft.Inventory.Location;
-using Microsoft.Inventory.Setup;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Projects.Project.Job;
@@ -682,7 +681,6 @@ codeunit 7324 "Whse.-Activity-Post"
 
     local procedure PostSourceDocument(WhseActivHeader: Record "Warehouse Activity Header")
     var
-        InventorySetup: Record "Inventory Setup";
         PurchPost: Codeunit "Purch.-Post";
         SalesPost: Codeunit "Sales-Post";
         TransferPostReceipt: Codeunit "TransferOrder-Post Receipt";
@@ -757,8 +755,7 @@ codeunit 7324 "Whse.-Activity-Post"
                                     PostedSourceType := Database::"Transfer Receipt Header";
                                     PostedSourceNo := TransHeader."Last Receipt No.";
                                 end else begin
-                                    InventorySetup.Get();
-                                    InventorySetup.TestField("Direct Transfer Posting", InventorySetup."Direct Transfer Posting"::"Direct Transfer");
+                                    TransHeader.TestField("Direct Transfer Posting", TransHeader."Direct Transfer Posting"::"Direct Transfer");
                                     if HideDialog then
                                         TransferPostTransfer.SetHideValidationDialog(HideDialog);
                                     TransferPostTransfer.SetPreviewMode(IsPreview);
@@ -776,9 +773,8 @@ codeunit 7324 "Whse.-Activity-Post"
                                 TransferPostShip.Run(TransHeader);
                                 PostedSourceType := Database::"Transfer Shipment Header";
                                 PostedSourceNo := TransHeader."Last Shipment No.";
-                            end else begin
-                                InventorySetup.Get();
-                                if InventorySetup."Direct Transfer Posting" = InventorySetup."Direct Transfer Posting"::"Direct Transfer" then begin
+                            end else
+                                if TransHeader."Direct Transfer Posting" = TransHeader."Direct Transfer Posting"::"Direct Transfer" then begin
                                     if HideDialog then
                                         TransferPostTransfer.SetHideValidationDialog(HideDialog);
                                     TransferPostTransfer.SetPreviewMode(IsPreview);
@@ -793,7 +789,6 @@ codeunit 7324 "Whse.-Activity-Post"
                                     PostedSourceType := Database::"Transfer Shipment Header";
                                     PostedSourceNo := TransHeader."Last Shipment No.";
                                 end;
-                            end;
                         end;
                     end;
 

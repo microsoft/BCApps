@@ -48,11 +48,8 @@ page 37012 "Purchases Moving Averages"
         ReportPageLbl: Label 'ReportSectionc4bf0b0750800ca6b0c6', Locked = true;
 
     trigger OnOpenPage()
-    var
-        PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
-        SetupHelper.EnsureUserAcceptedPowerBITerms();
-        ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Purchases Report Id"));
+        ReportId := SetupHelper.OpenPowerBIEmbeddedReportPageValidation("PBI Report Setup"::"Purchases App");
     end;
 }
 

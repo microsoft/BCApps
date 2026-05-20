@@ -3537,6 +3537,64 @@ codeunit 134154 "ERM Intercompany III"
             StrSubstNo(LineAmountErr, ExpectedLineAmount, PurchaseLine."Line Amount"));
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure CreateOutboxJnlTransactionUsesNumberSequence()
+    var
+        GLSetup: Record "General Ledger Setup";
+        ICGLAccount: Record "IC G/L Account";
+        ICOutboxTransaction: Record "IC Outbox Transaction";
+        TempGenJnlLine: Record "Gen. Journal Line" temporary;
+        ICInboxOutboxMgt: Codeunit ICInboxOutboxMgt;
+        ICPartnerCode: Code[20];
+        LastICTransNoBeforeTest: Integer;
+        TransactionNo1: Integer;
+        TransactionNo2: Integer;
+    begin
+        // [FEATURE] [Intercompany]
+        // [SCENARIO] Two calls to CreateOutboxJnlTransaction produce distinct increasing numbers without incrementing GLSetup
+        Initialize();
+        ICOutboxTransaction.DeleteAll();
+
+        // [GIVEN] IC Partner "P" with Inbox Type = Database and IC Setup configured
+        ICPartnerCode := CreateICPartnerWithInbox();
+        UpdateICPartnerCodeOnCompanyInfo(ICPartnerCode);
+        LibraryERM.CreateICGLAccount(ICGLAccount);
+
+        // [GIVEN] GLSetup."Last IC Transaction No." value saved before test
+        GLSetup.Get();
+        LastICTransNoBeforeTest := GLSetup."Last IC Transaction No.";
+
+        // [GIVEN] Temporary Gen. Journal Line "L1" with IC Partner Code "P"
+        TempGenJnlLine.Init();
+        TempGenJnlLine."Journal Template Name" := '';
+        TempGenJnlLine."Journal Batch Name" := '';
+        TempGenJnlLine."Line No." := 10000;
+        TempGenJnlLine."IC Partner Code" := ICPartnerCode;
+        TempGenJnlLine."Document No." := LibraryUtility.GenerateGUID();
+        TempGenJnlLine."Posting Date" := WorkDate();
+        TempGenJnlLine."Document Date" := WorkDate();
+        TempGenJnlLine."IC Account Type" := "IC Journal Account Type"::"G/L Account";
+        TempGenJnlLine."IC Account No." := ICGLAccount."No.";
+        TempGenJnlLine.Insert();
+
+        // [WHEN] CreateOutboxJnlTransaction is called twice with different journal lines
+        TransactionNo1 := ICInboxOutboxMgt.CreateOutboxJnlTransaction(TempGenJnlLine, false);
+
+        TempGenJnlLine."Line No." := 20000;
+        TempGenJnlLine."Document No." := LibraryUtility.GenerateGUID();
+        TempGenJnlLine.Insert();
+        TransactionNo2 := ICInboxOutboxMgt.CreateOutboxJnlTransaction(TempGenJnlLine, false);
+
+        // [THEN] Both transaction numbers are positive and the second is greater than the first
+        Assert.IsTrue(TransactionNo1 > 0, 'First transaction number must be positive');
+        Assert.IsTrue(TransactionNo2 > TransactionNo1, 'Second transaction number must be greater than first');
+
+        // [THEN] GLSetup."Last IC Transaction No." has not changed
+        GLSetup.Get();
+        Assert.AreEqual(LastICTransNoBeforeTest, GLSetup."Last IC Transaction No.", 'GLSetup Last IC Transaction No. must not change');
+    end;
+
     local procedure Initialize()
     var
         ICSetup: Record "IC Setup";

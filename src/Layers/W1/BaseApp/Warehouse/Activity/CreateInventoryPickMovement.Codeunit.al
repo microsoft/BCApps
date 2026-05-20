@@ -912,7 +912,11 @@ codeunit 7322 "Create Inventory Pick/Movement"
                     InsertShelfWhseActivLine(NewWarehouseActivityLine, RemQtyToPickBase, WhseItemTrackingSetup);
         end;
 
-        QtyRemToPickBase := OriginalRemQtyToPickBase - QtyAvailToPickBase + RemQtyToPickBase;
+        // if there are expired items, we will create pick line for the whole remaining quantity to make sure the expired items will be picked     
+        if HasExpiredItems then
+            QtyRemToPickBase := RemQtyToPickBase
+        else
+            QtyRemToPickBase := OriginalRemQtyToPickBase - QtyAvailToPickBase + RemQtyToPickBase;
         if CurrLocation."Always Create Pick Line" and (QtyRemToPickBase > 0) then begin
             MakeWarehouseActivityHeader();
             MakeWarehouseActivityLine(NewWarehouseActivityLine, '', QtyRemToPickBase, QtyRemToPickBase);
@@ -1836,17 +1840,13 @@ codeunit 7322 "Create Inventory Pick/Movement"
     procedure SynchronizeWhseItemTracking(var TrackingSpecification: Record "Tracking Specification")
     var
         WhseItemTrackingLine: Record "Whse. Item Tracking Line";
-        EntryNo: Integer;
     begin
         // documents which have defined item tracking - table 337 will have to synchronize these records with 6550 table for invt. movement
-        if WhseItemTrackingLine.FindLast() then
-            EntryNo := WhseItemTrackingLine."Entry No.";
-        EntryNo += 1;
         Clear(WhseItemTrackingLine);
         WhseItemTrackingLine.TransferFields(TrackingSpecification);
         WhseItemTrackingLine.Validate("Quantity (Base)", Abs(WhseItemTrackingLine."Quantity (Base)"));
         WhseItemTrackingLine.Validate("Qty. to Invoice (Base)", Abs(WhseItemTrackingLine."Qty. to Invoice (Base)"));
-        WhseItemTrackingLine."Entry No." := EntryNo;
+        WhseItemTrackingLine."Entry No." := WhseItemTrackingLine.GetNextEntryNo();
         OnBeforeWhseItemTrackingLineInsert(WhseItemTrackingLine, TrackingSpecification);
         WhseItemTrackingLine.Insert();
     end;

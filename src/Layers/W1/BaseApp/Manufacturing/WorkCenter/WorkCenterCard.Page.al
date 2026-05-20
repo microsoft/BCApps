@@ -39,6 +39,12 @@ page 99000754 "Work Center Card"
                     ApplicationArea = Manufacturing;
                     Importance = Promoted;
                 }
+                field("Name 2"; Rec."Name 2")
+                {
+                    ApplicationArea = Manufacturing;
+                    Importance = Additional;
+                    Visible = false;
+                }
                 field("Work Center Group Code"; Rec."Work Center Group Code")
                 {
                     ApplicationArea = Manufacturing;

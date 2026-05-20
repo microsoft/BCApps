@@ -84,7 +84,7 @@ codeunit 7000 "Sales Price Calc. Mgt."
         SetVAT(SalesHeader."Prices Including VAT", SalesLine.GetVATPct(), SalesLine."VAT Calculation Type".AsInteger(), SalesLine."VAT Bus. Posting Group");
         SetUoM(Abs(SalesLine.Quantity), SalesLine."Qty. per Unit of Measure");
         SetLineDisc(SalesLine."Line Discount %", SalesLine."Allow Line Disc.", SalesLine."Allow Invoice Disc.");
-        OnFindSalesLinePriceOnAfterSetLineDisc(SalesLine);
+        OnFindSalesLinePriceOnAfterSetLineDisc(SalesLine, Qty, QtyPerUOM);
 
         SalesLine.TestField("Qty. per Unit of Measure");
         if PricesInCurrency then
@@ -123,7 +123,10 @@ codeunit 7000 "Sales Price Calc. Mgt."
                     end;
                 end;
         end;
-        OnAfterFindSalesLinePrice(SalesLine, SalesHeader, TempSalesPrice, ResPrice, CalledByFieldNo, FoundSalesPrice);
+        OnAfterFindSalesLinePrice(
+            SalesLine, SalesHeader, TempSalesPrice, ResPrice, CalledByFieldNo, FoundSalesPrice,
+            Qty, QtyPerUOM, LineDiscPerCent, AllowLineDisc, AllowInvDisc, PricesInCurrency,
+            VATBusPostingGr, VATCalcType, VATPerCent, CurrencyFactor);
     end;
 
     /// <summary>
@@ -294,7 +297,7 @@ codeunit 7000 "Sales Price Calc. Mgt."
         if FoundSalesPrice then
             repeat
                 IsHandled := false;
-                OnCalcBestUnitPriceOnBeforeCalcBestUnitPriceConvertPrice(SalesPrice, Qty, IsHandled, Item);
+                OnCalcBestUnitPriceOnBeforeCalcBestUnitPriceConvertPrice(SalesPrice, Qty, IsHandled, Item, QtyPerUOM, BestSalesPrice, BestSalesPriceFound);
                 if not IsHandled then
                     if IsInMinQty(SalesPrice."Unit of Measure Code", SalesPrice."Minimum Quantity") then begin
                         CalcBestUnitPriceConvertPrice(SalesPrice);
@@ -318,7 +321,7 @@ codeunit 7000 "Sales Price Calc. Mgt."
                     end;
             until SalesPrice.Next() = 0;
 
-        OnAfterCalcBestUnitPrice(SalesPrice, BestSalesPrice);
+        OnAfterCalcBestUnitPrice(SalesPrice, BestSalesPrice, FoundSalesPrice);
 
         // No price found in agreement
         if not BestSalesPriceFound then begin
@@ -525,6 +528,8 @@ codeunit 7000 "Sales Price Calc. Mgt."
                         FromSalesLineDisc.SetRange(Code, ItemDiscGrCode);
                         CopySalesDiscToSalesDisc(FromSalesLineDisc, ToSalesLineDisc);
                     end;
+
+                    OnFindSalesLineDiscOnAfterCopyItemDiscGroup(FromSalesLineDisc, ToSalesLineDisc);
 
                     if InclCampaigns then begin
                         InclCampaigns := TempCampaignTargetGr.Next() <> 0;
@@ -913,7 +918,7 @@ codeunit 7000 "Sales Price Calc. Mgt."
             IsHandled := false;
             OnBeforeSalesLinePriceExists(
               SalesLine, SalesHeader, TempSalesPrice, Currency, CurrencyFactor,
-              SalesHeaderStartDate(SalesHeader, DateCaption), Qty, QtyPerUOM, ShowAll, IsHandled);
+              SalesHeaderStartDate(SalesHeader, DateCaption), Qty, QtyPerUOM, ShowAll, IsHandled, this);
             if not IsHandled then begin
                 FindSalesPrice(
                   TempSalesPrice, GetCustNoForSalesHeader(SalesHeader), SalesHeader."Bill-to Contact No.",
@@ -943,7 +948,7 @@ codeunit 7000 "Sales Price Calc. Mgt."
             IsHandled := false;
             OnBeforeSalesLineLineDiscExists(
               SalesLine, SalesHeader, TempSalesLineDisc, SalesHeaderStartDate(SalesHeader, DateCaption),
-              Qty, QtyPerUOM, ShowAll, IsHandled);
+              Qty, QtyPerUOM, ShowAll, IsHandled, this);
             if not IsHandled then begin
                 FindSalesLineDisc(
                   TempSalesLineDisc, GetCustNoForSalesHeader(SalesHeader), SalesHeader."Bill-to Contact No.",
@@ -1713,12 +1718,12 @@ codeunit 7000 "Sales Price Calc. Mgt."
 #if not CLEAN28
     internal procedure RunOnAfterCalcBestUnitPrice(var SalesPrice: Record "Sales Price"; var BestSalesPrice: Record "Sales Price")
     begin
-        OnAfterCalcBestUnitPrice(SalesPrice, BestSalesPrice);
+        OnAfterCalcBestUnitPrice(SalesPrice, BestSalesPrice, false);
     end;
 #endif
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterCalcBestUnitPrice(var SalesPrice: Record "Sales Price"; var BestSalesPrice: Record "Sales Price")
+    local procedure OnAfterCalcBestUnitPrice(var SalesPrice: Record "Sales Price"; var BestSalesPrice: Record "Sales Price"; FoundSalesPrice: Boolean)
     begin
     end;
 
@@ -1782,7 +1787,7 @@ codeunit 7000 "Sales Price Calc. Mgt."
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterFindSalesLinePrice(var SalesLine: Record "Sales Line"; var SalesHeader: Record "Sales Header"; var SalesPrice: Record "Sales Price"; var ResourcePrice: Record "Resource Price"; CalledByFieldNo: Integer; FoundSalesPrice: Boolean)
+    local procedure OnAfterFindSalesLinePrice(var SalesLine: Record "Sales Line"; var SalesHeader: Record "Sales Header"; var SalesPrice: Record "Sales Price"; var ResourcePrice: Record "Resource Price"; CalledByFieldNo: Integer; var FoundSalesPrice: Boolean; Qty: Decimal; QtyPerUOM: Decimal; LineDiscPerCent: Decimal; AllowLineDisc: Boolean; AllowInvDisc: Boolean; PricesInCurrency: Boolean; VATBusPostingGr: Code[20]; VATCalcType: Option "Normal VAT","Reverse Charge VAT","Full VAT","Sales Tax"; VATPerCent: Decimal; CurrencyFactor: Decimal)
     begin
     end;
 
@@ -2191,12 +2196,12 @@ codeunit 7000 "Sales Price Calc. Mgt."
 #endif
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeSalesLineLineDiscExists(var SalesLine: Record "Sales Line"; var SalesHeader: Record "Sales Header"; var TempSalesLineDisc: Record "Sales Line Discount" temporary; StartingDate: Date; Qty: Decimal; QtyPerUOM: Decimal; ShowAll: Boolean; var IsHandled: Boolean)
+    local procedure OnBeforeSalesLineLineDiscExists(var SalesLine: Record "Sales Line"; var SalesHeader: Record "Sales Header"; var TempSalesLineDisc: Record "Sales Line Discount" temporary; StartingDate: Date; Qty: Decimal; QtyPerUOM: Decimal; ShowAll: Boolean; var IsHandled: Boolean; Sender: Codeunit "Sales Price Calc. Mgt.")
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeSalesLinePriceExists(var SalesLine: Record "Sales Line"; var SalesHeader: Record "Sales Header"; var TempSalesPrice: Record "Sales Price" temporary; Currency: Record Currency; CurrencyFactor: Decimal; StartingDate: Date; Qty: Decimal; QtyPerUOM: Decimal; ShowAll: Boolean; var InHandled: Boolean)
+    local procedure OnBeforeSalesLinePriceExists(var SalesLine: Record "Sales Line"; var SalesHeader: Record "Sales Header"; var TempSalesPrice: Record "Sales Price" temporary; Currency: Record Currency; CurrencyFactor: Decimal; StartingDate: Date; Qty: Decimal; QtyPerUOM: Decimal; ShowAll: Boolean; var InHandled: Boolean; Sender: Codeunit "Sales Price Calc. Mgt.")
     begin
     end;
 
@@ -2259,7 +2264,12 @@ codeunit 7000 "Sales Price Calc. Mgt."
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnFindSalesLineLineDiscOnBeforeCalcLineDisc(var SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; var TempSalesLineDiscount: Record "Sales Line Discount" temporary; Qty: Decimal; QtyPerUOM: Decimal; var IsHandled: Boolean)
+    local procedure OnFindSalesLineDiscOnAfterCopyItemDiscGroup(var FromSalesLineDiscount: Record "Sales Line Discount"; var ToSalesLineDiscount: Record "Sales Line Discount")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnFindSalesLineLineDiscOnBeforeCalcLineDisc(var SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; var TempSalesLineDiscount: Record "Sales Line Discount" temporary; var Qty: Decimal; var QtyPerUOM: Decimal; var IsHandled: Boolean)
     begin
     end;
 
@@ -2294,7 +2304,7 @@ codeunit 7000 "Sales Price Calc. Mgt."
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnFindSalesLinePriceOnAfterSetLineDisc(var SalesLine: Record "Sales Line")
+    local procedure OnFindSalesLinePriceOnAfterSetLineDisc(var SalesLine: Record "Sales Line"; var Qty: Decimal; var QtyPerUOM: Decimal)
     begin
     end;
 
@@ -2317,13 +2327,15 @@ codeunit 7000 "Sales Price Calc. Mgt."
 
 #if not CLEAN28
     internal procedure RunOnCalcBestUnitPriceOnBeforeCalcBestUnitPriceConvertPrice(var SalesPrice: Record "Sales Price"; Qty: Decimal; var IsHandled: Boolean; var Item: Record Item)
+    var
+        DummyBestSalesPriceFound: Boolean;
     begin
-        OnCalcBestUnitPriceOnBeforeCalcBestUnitPriceConvertPrice(SalesPrice, Qty, IsHandled, Item);
+        OnCalcBestUnitPriceOnBeforeCalcBestUnitPriceConvertPrice(SalesPrice, Qty, IsHandled, Item, 0, SalesPrice, DummyBestSalesPriceFound);
     end;
 #endif
 
     [IntegrationEvent(false, false)]
-    local procedure OnCalcBestUnitPriceOnBeforeCalcBestUnitPriceConvertPrice(var SalesPrice: Record "Sales Price"; Qty: Decimal; var IsHandled: Boolean; var Item: Record Item)
+    local procedure OnCalcBestUnitPriceOnBeforeCalcBestUnitPriceConvertPrice(var SalesPrice: Record "Sales Price"; Qty: Decimal; var IsHandled: Boolean; var Item: Record Item; QtyPerUOM: Decimal; var BestSalesPrice: Record "Sales Price"; var BestSalesPriceFound: Boolean)
     begin
     end;
 

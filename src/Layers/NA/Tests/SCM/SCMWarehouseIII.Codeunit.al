@@ -82,7 +82,11 @@ codeunit 137051 "SCM Warehouse - III"
         ExpirationDateMustNotBeEmptyErr: Label 'Expiration Date must not be empty.';
         QtyToHandleErr: Label '%1 must be %2 in %3', Comment = '%1 = Qty. to Handle, %2 = QtyToHandle, %3 = Warehouse Activity Line';
         DoNotFillQtyToHandleMustBeFalseErr: Label 'Do Not Fill Qty. to Handle must be false in Warehouse Activity Header';
-
+        QuantityShouldBeFullDemandedQuantityErr: Label 'Quantity should be the full demanded quantity';
+        QtyBaseShouldBeFullDemandedQuantityErr: Label 'Quantity (Base) should be the full demanded quantity';
+        PickLineValidLotMustBe30PCSErr: Label 'Pick line for valid lot must be 30 PCS.';
+        PlaceholderPickLineMustEqualUnfulfilledDemandErr: Label 'Placeholder pick line must equal unfulfilled demand (20 PCS).';
+    
     [Test]
     [HandlerFunctions('ItemTrackingPageHandler,QuantityToCreatePageHandler,ConfirmHandler,PickActivitiesMessageHandler')]
     [Scope('OnPrem')]
@@ -6307,6 +6311,197 @@ codeunit 137051 "SCM Warehouse - III"
         LibraryVariableStorage.AssertEmpty();
     end;
 
+    [Test]
+    [HandlerFunctions('ItemTrackingPageHandler,MessageHandler')]
+    [Scope('OnPrem')]
+    procedure InvtPickFullQtyWhenFEFOAndOnlyExpiredLotsAndAlwaysCreatePickLine()
+    var
+        Location: Record Location;
+        Bin: Record Bin;
+        ItemTrackingCode: Record "Item Tracking Code";
+        Item: Record Item;
+        ItemUnitOfMeasure: Record "Item Unit of Measure";
+        ItemJournalLine: Record "Item Journal Line";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+        WarehouseEmployee: Record "Warehouse Employee";
+        ExpirationCalculation: DateFormula;
+        ReservationEntry: Record "Reservation Entry";
+        LotNo: Code[50];
+        QtyPerUOM: Decimal;
+        QtyBaseInInventory: Decimal;
+        SalesQtyInSalesUOM: Decimal;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 623378] Inventory pick with FEFO enabled and only expired lots available must create pick line for the full demanded quantity.
+        Initialize();
+
+        QtyPerUOM := LibraryRandom.RandInt(2);
+        SalesQtyInSalesUOM := LibraryRandom.RandInt(25);
+        QtyBaseInInventory := SalesQtyInSalesUOM * QtyPerUOM + LibraryRandom.RandInt(50);
+
+        // [GIVEN] Location with Bin Mandatory, Require Pick, FEFO enabled, and "Always Create Pick Line" = TRUE.
+        CreateAndUpdateLocation(Location, true, true, true, false, false, true);
+        Location.Validate("Always Create Pick Line", true);
+        Location.Modify(true);
+        LibraryWarehouse.CreateWarehouseEmployee(WarehouseEmployee, Location.Code, false);
+        LibraryWarehouse.CreateNumberOfBins(Location.Code, '', '', 2, false);
+        LibraryWarehouse.FindBin(Bin, Location.Code, '', 1);
+
+        // [GIVEN] Lot-tracked item with Strict Expiration Posting.
+        // [GIVEN] Sales Unit of Measure with Qty. per Unit of Measure.
+        CreateItemTrackingCode(ItemTrackingCode, true, false, true, false, true);
+        CreateItemWithItemTrackingCode(Item, ItemTrackingCode.Code);
+        Evaluate(ExpirationCalculation, '<5D>');
+        Item.Validate("Expiration Calculation", ExpirationCalculation);
+        LibraryInventory.CreateItemUnitOfMeasureCode(ItemUnitOfMeasure, Item."No.", QtyPerUOM);
+        Item.Validate("Sales Unit of Measure", ItemUnitOfMeasure.Code);
+        Item.Modify(true);
+
+        // [GIVEN] Post inventory with a single expired lot in the bin.
+        LotNo := LibraryUtility.GenerateGUID();
+        LibraryInventory.ClearItemJournal(ItemJournalTemplate, ItemJournalBatch);
+        LibraryInventory.CreateItemJournalLine(
+          ItemJournalLine, ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name,
+          ItemJournalLine."Entry Type"::"Positive Adjmt.", Item."No.", QtyBaseInInventory);
+        ItemJournalLine.Validate("Location Code", Location.Code);
+        ItemJournalLine.Validate("Bin Code", Bin.Code);
+        ItemJournalLine.Modify(true);
+        LibraryVariableStorage.Enqueue(TrackingAction::AssignLotNo);
+        LibraryVariableStorage.Enqueue(LotNo);
+        LibraryVariableStorage.Enqueue(QtyBaseInInventory);
+        ItemJournalLine.OpenItemTrackingLines(false);
+
+        // Set expiration date on Reservation Entry to past date before posting.
+        ReservationEntry.SetRange("Item No.", Item."No.");
+        ReservationEntry.ModifyAll("Expiration Date", CalcDate('<-1D>', WorkDate()));
+
+        LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+
+        // [GIVEN] Sales order for 25 Sales UOM (= 50 PCS base) at the location.
+        LibrarySales.CreateSalesDocumentWithItem(
+          SalesHeader, SalesLine, SalesHeader."Document Type"::Order, LibrarySales.CreateCustomerNo(),
+          Item."No.", SalesQtyInSalesUOM, Location.Code, LibraryRandom.RandDateFromInRange(WorkDate(), 10, 20));
+        LibrarySales.ReleaseSalesDocument(SalesHeader);
+
+        // [WHEN] Create inventory pick from the sales order.
+        LibraryWarehouse.CreateInvtPutPickSalesOrder(SalesHeader);
+
+        // [THEN] The pick line is created for the full demanded quantity: 25 Sales UOM / 50 PCS base.
+        FindWarehouseActivityNo(WarehouseActivityLine, SalesHeader."No.", WarehouseActivityLine."Activity Type"::"Invt. Pick");
+        Assert.RecordCount(WarehouseActivityLine, 1);
+        Assert.AreEqual(SalesQtyInSalesUOM, WarehouseActivityLine.Quantity, QuantityShouldBeFullDemandedQuantityErr);
+        Assert.AreEqual(SalesQtyInSalesUOM * QtyPerUOM, WarehouseActivityLine."Qty. (Base)", QtyBaseShouldBeFullDemandedQuantityErr);
+
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('ItemTrackingPageHandler,MessageHandler')]
+    [Scope('OnPrem')]
+    procedure InvtPickPlaceholderQtyWithMixedExpiredAndValidLots()
+    var
+        Location: Record Location;
+        Bin: Record Bin;
+        ItemTrackingCode: Record "Item Tracking Code";
+        Item: Record Item;
+        ItemJournalLine: Record "Item Journal Line";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+        WarehouseEmployee: Record "Warehouse Employee";
+        ReservationEntry: Record "Reservation Entry";
+        ValidLot: Code[50];
+        ExpiredLot: Code[50];
+        ValidQty: Decimal;
+        ExpiredQty: Decimal;
+        DemandQty: Decimal;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 623378] When inventory has both a valid lot (30 PCS) and an expired lot (70 PCS)
+        // and demand is 50 PCS, the placeholder pick line must equal only the unfulfilled demand
+        // from valid lots (20 PCS), not the full expired quantity (70 PCS).
+        Initialize();
+
+        ValidQty := 30;
+        ExpiredQty := 70;
+        DemandQty := 50;
+
+        // [GIVEN] Location with Bin Mandatory, Require Pick, FEFO enabled, and "Always Create Pick Line" = TRUE.
+        CreateAndUpdateLocation(Location, true, true, true, false, false, true);
+        Location.Validate("Always Create Pick Line", true);
+        Location.Modify(true);
+        LibraryWarehouse.CreateWarehouseEmployee(WarehouseEmployee, Location.Code, false);
+        LibraryWarehouse.CreateNumberOfBins(Location.Code, '', '', 2, false);
+        LibraryWarehouse.FindBin(Bin, Location.Code, '', 1);
+
+        // [GIVEN] Lot-tracked item with Strict Expiration Posting.
+        CreateItemTrackingCode(ItemTrackingCode, true, false, true, false, true);
+        CreateItemWithItemTrackingCode(Item, ItemTrackingCode.Code);
+
+        ValidLot := LibraryUtility.GenerateGUID();
+        ExpiredLot := LibraryUtility.GenerateGUID();
+        LibraryInventory.ClearItemJournal(ItemJournalTemplate, ItemJournalBatch);
+
+        // [GIVEN] Post 30 PCS of a valid lot to the bin (expiry in the future).
+        LibraryInventory.CreateItemJournalLine(
+          ItemJournalLine, ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name,
+          ItemJournalLine."Entry Type"::"Positive Adjmt.", Item."No.", ValidQty);
+        ItemJournalLine.Validate("Location Code", Location.Code);
+        ItemJournalLine.Validate("Bin Code", Bin.Code);
+        ItemJournalLine.Modify(true);
+        LibraryVariableStorage.Enqueue(TrackingAction::AssignLotNo);
+        LibraryVariableStorage.Enqueue(ValidLot);
+        LibraryVariableStorage.Enqueue(ValidQty);
+        ItemJournalLine.OpenItemTrackingLines(false);
+
+        // [GIVEN] Post 70 PCS of an expired lot to the same bin (expiry in the past).
+        LibraryInventory.CreateItemJournalLine(
+          ItemJournalLine, ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name,
+          ItemJournalLine."Entry Type"::"Positive Adjmt.", Item."No.", ExpiredQty);
+        ItemJournalLine.Validate("Location Code", Location.Code);
+        ItemJournalLine.Validate("Bin Code", Bin.Code);
+        ItemJournalLine.Modify(true);
+        LibraryVariableStorage.Enqueue(TrackingAction::AssignLotNo);
+        LibraryVariableStorage.Enqueue(ExpiredLot);
+        LibraryVariableStorage.Enqueue(ExpiredQty);
+        ItemJournalLine.OpenItemTrackingLines(false);
+
+        ReservationEntry.SetRange("Item No.", Item."No.");
+        ReservationEntry.SetRange("Source Batch Name", ItemJournalBatch.Name);
+        ReservationEntry.SetRange("Lot No.", ValidLot);
+        ReservationEntry.ModifyAll("Expiration Date", CalcDate('<+30D>', WorkDate()));
+        ReservationEntry.SetRange("Lot No.", ExpiredLot);
+        ReservationEntry.ModifyAll("Expiration Date", CalcDate('<-1D>', WorkDate()));
+
+        LibraryInventory.PostItemJournalLine(ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name);
+
+        // [GIVEN] Sales order for 50 PCS at the location.
+        LibrarySales.CreateSalesDocumentWithItem(
+          SalesHeader, SalesLine, SalesHeader."Document Type"::Order, LibrarySales.CreateCustomerNo(),
+          Item."No.", DemandQty, Location.Code, LibraryRandom.RandDateFromInRange(WorkDate(), 10, 20));
+        LibrarySales.ReleaseSalesDocument(SalesHeader);
+
+        // [WHEN] Create inventory pick from the sales order.
+        LibraryWarehouse.CreateInvtPutPickSalesOrder(SalesHeader);
+
+        // [THEN] Pick line for the valid lot contains 30 PCS.
+        WarehouseActivityLine.SetRange("Source No.", SalesHeader."No.");
+        WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityLine."Activity Type"::"Invt. Pick");
+        WarehouseActivityLine.SetRange("Lot No.", ValidLot);
+        WarehouseActivityLine.FindFirst();
+        Assert.AreEqual(ValidQty, WarehouseActivityLine.Quantity, PickLineValidLotMustBe30PCSErr);
+
+        // [THEN] Placeholder pick line (no lot assigned) contains 20 PCS (= demand 50 - valid qty 30),
+        // confirming that only the unfulfilled demand is used as the placeholder quantity.
+        WarehouseActivityLine.SetRange("Lot No.", '');
+        WarehouseActivityLine.FindFirst();
+        Assert.AreEqual(DemandQty - ValidQty, WarehouseActivityLine.Quantity, PlaceholderPickLineMustEqualUnfulfilledDemandErr);
+
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -6470,7 +6665,7 @@ codeunit 137051 "SCM Warehouse - III"
     begin
         LibraryManufacturing.CreateItemManufacturing(
           Item, Item."Costing Method"::Standard, LibraryRandom.RandDec(100, 2), Item."Reordering Policy"::Order,
-          Item."Flushing Method", '', ProductionBOMNo);
+          Item."Flushing Method"::"Pick + Manual", '', ProductionBOMNo);
         Item.Validate("Reorder Quantity", LibraryRandom.RandDec(100, 2));  // Value Required.
         Item.Modify(true);
     end;
@@ -8491,7 +8686,7 @@ codeunit 137051 "SCM Warehouse - III"
         LibraryManufacturing.RefreshProdOrder(ProductionOrder, true, true, true, true, false);
         CreateProductionOrderComponentWithItemQtyAndFlushingMethod(
             ProdOrderComponent, ProdOrderComponent.Status::Released, ProductionOrder."No.", GetFirstProdOrderLineNo(ProductionOrder),
-            ChildItemNo, ChildItemQty, LocationCode, "Flushing Method"::Manual);
+            ChildItemNo, ChildItemQty, LocationCode, "Flushing Method"::"Pick + Manual");
         LibraryVariableStorage.Enqueue(TrackingAction::AssignPackageNo);
         LibraryVariableStorage.Enqueue(ChildItemPackageNo);
         LibraryVariableStorage.Enqueue(ProdOrderComponent.Quantity);

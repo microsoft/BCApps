@@ -109,6 +109,8 @@ codeunit 330 ReqJnlManagement
         ReqWkshTmpl: Record "Req. Wksh. Template";
         ReqLine: Record "Requisition Line";
         JnlSelected: Boolean;
+        ReqWorksheetTemplateTypeList: List of [Enum "Req. Worksheet Template Type"];
+        ReqWorksheetTemplateType: Enum "Req. Worksheet Template Type";
     begin
         if ReqWkshName.GetFilter("Worksheet Template Name") <> '' then
             exit;
@@ -119,8 +121,14 @@ codeunit 330 ReqJnlManagement
         end;
         ReqWkshName.FilterGroup(0);
 
+        for ReqWorksheetTemplateType := ReqWkshTmpl.Type::"Req." to ReqWkshTmpl.Type::Planning do
+            ReqWorksheetTemplateTypeList.Add(ReqWorksheetTemplateType);
+
+        OnOpenJnlBatchOnBeforeTemplateSelection(ReqWkshName, ReqWorksheetTemplateTypeList);
+
         if not ReqWkshName.Find('-') then
-            for ReqWkshTmpl.Type := ReqWkshTmpl.Type::"Req." to ReqWkshTmpl.Type::Planning do begin
+            foreach ReqWorksheetTemplateType in ReqWorksheetTemplateTypeList do begin
+                ReqWkshTmpl.Type := ReqWorksheetTemplateType;
                 ReqWkshTmpl.SetRange(Type, ReqWkshTmpl.Type);
                 if not ReqWkshTmpl.FindFirst() then
                     WkshTemplateSelection(0, false, ReqWkshTmpl.Type, ReqLine, JnlSelected);
@@ -280,5 +288,14 @@ codeunit 330 ReqJnlManagement
     local procedure OnGetDescriptionAndRcptNameOnAfterSetDescription(var RequisitionLine: Record "Requisition Line"; LastRequisitionLine: Record "Requisition Line"; var Description: Text[100])
     begin
     end;
-}
 
+    /// <summary>
+    /// Raised before template selection in OpenJnlBatch to allow modification of the worksheet template type list.
+    /// </summary>
+    /// <param name="RequisitionWkshName">The requisition worksheet name record.</param>
+    /// <param name="ReqWorksheetTemplateTypeList">The list of worksheet template types to be used for selection.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnOpenJnlBatchOnBeforeTemplateSelection(var RequisitionWkshName: Record "Requisition Wksh. Name"; var ReqWorksheetTemplateTypeList: List of [Enum Microsoft.Inventory.Requisition."Req. Worksheet Template Type"])
+    begin
+    end;
+}

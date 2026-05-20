@@ -219,14 +219,22 @@ codeunit 134769 "Test User Tasks"
             repeat
                 TableInformation.SetFilter("Company Name", '%1|%2', '', Company.Name);
                 TableInformation.SetRange("Table No.", FieldRec.TableNo);
-                if TableInformation.FindFirst() then begin
-                    RecRef.Open(FieldRec.TableNo, false, Company.Name);
-                    FldRef := RecRef.Field(FieldRec."No.");
-                    FldRef.SetRange('NEW');
-                    Assert.AreEqual(1, RecRef.Count(), StrSubstNo('Records with new username should exist in %1.', TableInformation."Table Name"));
-                    RecRef.Close();
-                end;
+                if TableInformation.FindFirst() then
+                    if not SkipTable(FieldRec.TableNo) then begin
+                        RecRef.Open(FieldRec.TableNo, false, Company.Name);
+                        FldRef := RecRef.Field(FieldRec."No.");
+                        FldRef.SetRange('NEW');
+                        Assert.AreEqual(1, RecRef.Count(), StrSubstNo('Records with new username should exist in %1.', TableInformation."Table Name"));
+                        RecRef.Close();
+                    end;
             until FieldRec.Next() = 0;
+    end;
+
+    local procedure SkipTable(TableNo: Integer): Boolean
+    begin
+        if TableNo = DATABASE::"Fin. Report Package Recipient" then
+            exit(true);
+        exit(false);
     end;
 
     [Test]

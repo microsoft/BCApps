@@ -3813,9 +3813,10 @@ codeunit 6620 "Copy Document Mgt."
                 CalcReversibleQtyBaseSalesDoc(ItemLedgEntry, FromSalesLine, SalesLineBuf, TempItemTrkgEntry, ReversibleQtyBase, SignFactor);
 
                 if ReversibleQtyBase <> 0 then begin
-                    if not ItemLedgEntry.Positive then
-                        if IsSplitItemLedgEntry(ItemLedgEntry) then
-                            i := 2;
+                    if not FromShptOrRcpt then
+                        if not ItemLedgEntry.Positive then
+                            if IsSplitItemLedgEntry(ItemLedgEntry) then
+                                i := 2;
 
                     UpdateSalesLineQtyBaseFromReversibleQtyBase(FromSalesLine, SalesLineBuf[i], ReversibleQtyBase);
                     // Fill buffer with exact cost reversing link
@@ -3830,7 +3831,7 @@ codeunit 6620 "Copy Document Mgt."
                 if SalesLineBuf[i]."Quantity (Base)" <> 0 then begin
                     TempSalesLineBuf := SalesLineBuf[i];
                     TempSalesLineBuf.Insert();
-                    AddSalesDocLine(TempDocSalesLine, TempSalesLineBuf."Line No.", ItemLedgEntry."Document No.", FromSalesLine."Line No.");
+                    AddSalesDocLine(TempDocSalesLine, TempSalesLineBuf."Line No.", ItemLedgEntry."Document No.", TempSalesLineBuf."Line No.");
                     NextLineNo := SalesLineBuf[i]."Line No." + 1;
                 end;
 

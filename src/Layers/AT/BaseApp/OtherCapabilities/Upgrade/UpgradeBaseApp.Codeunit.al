@@ -51,6 +51,7 @@ using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Inventory.Setup;
 using Microsoft.Inventory.Tracking;
+using Microsoft.Inventory.Transfer;
 using Microsoft.Pricing.Asset;
 using Microsoft.Pricing.Calculation;
 using Microsoft.Pricing.PriceList;
@@ -223,6 +224,11 @@ codeunit 104000 "Upgrade - BaseApp"
         UpgradePurchasesPayablesAndSalesReceivablesSetups();
         UpgradeLocationBinPolicySetups();
         UpgradeInventorySetupAllowInvtAdjmt();
+#if not CLEAN29       
+        UpgradeDirectTransferPostingToEnum();
+#endif
+        UpgradeDirectTransferOnTransferRoute();
+        UpgradeDirectTransferOnTransferHeader();
         UpgradeGranularWarehouseHandlingSetup();
         UpgradeVATSetup();
         UpgradeVATSetupAllowVATDate();
@@ -3438,6 +3444,67 @@ codeunit 104000 "Upgrade - BaseApp"
         end;
 
         UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetAllowInventoryAdjmtUpgradeTag());
+    end;
+#if not CLEAN29
+    local procedure UpgradeDirectTransferPostingToEnum()
+    var
+        InventorySetup: Record "Inventory Setup";
+        UpgradeTag: Codeunit "Upgrade Tag";
+        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
+    begin
+        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetDirectTransferPostingToEnumUpgradeTag()) then
+            exit;
+
+        if InventorySetup.Get() then
+            InventorySetup.SyncDirectTransferPostingOptionToEnum(InventorySetup."Direct Transfer Posting");
+
+        UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetDirectTransferPostingToEnumUpgradeTag());
+    end;
+#endif
+
+    local procedure UpgradeDirectTransferOnTransferRoute()
+    var
+        TransferRoute: Record "Transfer Route";
+        UpgradeTag: Codeunit "Upgrade Tag";
+        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
+        TransferRouteDataTransfer: DataTransfer;
+    begin
+        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetDirectTransferOnTransferRouteUpgradeTag()) then
+            exit;
+
+        TransferRouteDataTransfer.SetTables(Database::"Transfer Route", Database::"Transfer Route");
+        TransferRouteDataTransfer.AddConstantValue(false, TransferRoute.FieldNo("Direct Transfer"));
+        TransferRouteDataTransfer.AddConstantValue("Direct Transfer Posting Type"::" ", TransferRoute.FieldNo("Direct Transfer Posting"));
+        TransferRouteDataTransfer.UpdateAuditFields := false;
+        TransferRouteDataTransfer.CopyFields();
+
+        UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetDirectTransferOnTransferRouteUpgradeTag());
+    end;
+
+    local procedure UpgradeDirectTransferOnTransferHeader()
+    var
+        InventorySetup: Record "Inventory Setup";
+        TransferHeader: Record "Transfer Header";
+        UpgradeTag: Codeunit "Upgrade Tag";
+        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
+        TransferHeaderDataTransfer: DataTransfer;
+        DirectTransferPostingType: Enum "Direct Transfer Posting Type";
+    begin
+        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetDirectTransferOnTransferOrderUpgradeTag()) then
+            exit;
+
+        InventorySetup.GetRecordOnce();
+        DirectTransferPostingType := InventorySetup."Direct Transfer Posting Type";
+        if DirectTransferPostingType = DirectTransferPostingType::" " then
+            DirectTransferPostingType := DirectTransferPostingType::"Shipment and Receipt";
+
+        TransferHeaderDataTransfer.SetTables(Database::"Transfer Header", Database::"Transfer Header");
+        TransferHeaderDataTransfer.AddSourceFilter(TransferHeader.FieldNo("Direct Transfer"), '=%1', true);
+        TransferHeaderDataTransfer.AddConstantValue(DirectTransferPostingType, TransferHeader.FieldNo("Direct Transfer Posting"));
+        TransferHeaderDataTransfer.UpdateAuditFields := false;
+        TransferHeaderDataTransfer.CopyFields();
+
+        UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetDirectTransferOnTransferOrderUpgradeTag());
     end;
 
     local procedure UpgradeGranularWarehouseHandlingSetup()

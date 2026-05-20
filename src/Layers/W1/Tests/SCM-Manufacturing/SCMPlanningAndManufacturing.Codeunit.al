@@ -1423,11 +1423,11 @@ codeunit 137080 "SCM Planning And Manufacturing"
         SalesLine: Record "Sales Line";
     begin
         // [FEATURE] [Planning] [Routing Version]
-        // [SCENARIO 226948] From- and To- production bin codes are transferred from "Work Center" of active version of routing to "Prod. Order Routing Line" when planning for "Sales Order" at the same location as "Work Center"
+        // [SCENARIO 226948] "From-Production Bin Code" and "Open Shop Floor Bin Code" are transferred from "Work Center" of active version of routing to "Prod. Order Routing Line" when planning for "Sales Order" at the same location as "Work Center"
         Initialize();
 
         // [GIVEN] Lication "L" with bin mandatory
-        // [GIVEN] Two work center "W1" and "W2" at "L" with specified From- and To- production bin codes
+        // [GIVEN] Two work center "W1" and "W2" at "L" with specified "From-Production Bin Code" and "Open Shop Floor Bin Code"
         // [GIVEN] Routing "R" has line "L" and version line "V", "W1" belongs to "L", "W2" belongs to "V"
         CreateVersionRoutingLine(RoutingLine, WorkCenter);
 
@@ -1444,7 +1444,7 @@ codeunit 137080 "SCM Planning And Manufacturing"
         CarryOutActionMessageOnPlanningWorksheet(Item."No.");
 
         // [THEN] Production order for "I" has "Bin Code" = "W2"."From-Production Bin Code",
-        // [THEN] "Prod. Order Routing Line" "RL" : "RL"."From-Production Bin Code" = "W2"."From-Production Bin Code", "RL"."To-Production Bin Code" = "W2"."To-Production Bin Code"
+        // [THEN] "Prod. Order Routing Line" "RL" : "RL"."From-Production Bin Code" = "W2"."From-Production Bin Code", "RL"."Open Shop Floor Bin Code" = "W2"."Open Shop Floor Bin Code"
         VerifyProductionOrderWithRoutingLine(WorkCenter[2], Item."No.", RoutingLine."Operation No.");
     end;
 
@@ -1492,11 +1492,11 @@ codeunit 137080 "SCM Planning And Manufacturing"
         Item: Record Item;
     begin
         // [FEATURE] [Planning] [Routing Version]
-        // [SCENARIO 226948] From- and To- production bin codes are transferred from "Work Center" of active version of routing to "Prod. Order Routing Line" when planning for Item reorder point
+        // [SCENARIO 226948] "From-Production Bin Code" and "Open Shop Floor Bin Code" are transferred from "Work Center" of active version of routing to "Prod. Order Routing Line" when planning for Item reorder point
         Initialize();
 
         // [GIVEN] Lication "L" with bin mandatory
-        // [GIVEN] Two work center "W1" and "W2" at "L" with specified From- and To- production bin codes
+        // [GIVEN] Two work center "W1" and "W2" at "L" with specified "From-Production Bin Code" and "Open Shop Floor Bin Code"
         // [GIVEN] Routing "R" has line "L" and version line "V", "W1" belongs to "L", "W2" belongs to "V"
         CreateVersionRoutingLine(RoutingLine, WorkCenter);
 
@@ -1508,7 +1508,7 @@ codeunit 137080 "SCM Planning And Manufacturing"
         CarryOutActionMessageOnPlanningWorksheet(Item."No.");
 
         // [THEN] Production order for "I" has "Bin Code" = "W2"."From-Production Bin Code",
-        // [THEN] "Prod. Order Routing Line" "RL" : "RL"."From-Production Bin Code" = "W2"."From-Production Bin Code", "RL"."To-Production Bin Code" = "W2"."To-Production Bin Code"
+        // [THEN] "Prod. Order Routing Line" "RL" : "RL"."From-Production Bin Code" = "W2"."From-Production Bin Code", "RL"."Open Shop Floor Bin Code" = "W2"."Open Shop Floor Bin Code"
         VerifyProductionOrderWithRoutingLine(WorkCenter[2], Item."No.", RoutingLine."Operation No.");
     end;
 
@@ -3511,7 +3511,6 @@ codeunit 137080 "SCM Planning And Manufacturing"
     local procedure UpdateUseForecastOnVariantsInManufacturingSetup(UseForecastOnVariants: Boolean)
     begin
         LibraryPlanning.SetUseForecastOnVariants(UseForecastOnVariants);
-        
     end;
 
     local procedure UpdateQuantityOnSalesLine(var SalesLine: Record "Sales Line")
@@ -3659,7 +3658,7 @@ codeunit 137080 "SCM Planning And Manufacturing"
         ProductionOrder.TestField("Bin Code", WorkCenter."From-Production Bin Code");
 
         FindProdOrderRoutingLine(ProdOrderRoutingLine, ProductionOrder."No.", OperationNo);
-        ProdOrderRoutingLine.TestField("To-Production Bin Code", WorkCenter."To-Production Bin Code");
+        ProdOrderRoutingLine.TestField("Open Shop Floor Bin Code", WorkCenter."Open Shop Floor Bin Code");
         ProdOrderRoutingLine.TestField("From-Production Bin Code", WorkCenter."From-Production Bin Code");
     end;
 

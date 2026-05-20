@@ -86,7 +86,6 @@ page 252 "Cons. Process Details"
     }
     var
         ConsolidationProcess: Record "Consolidation Process";
-        Status, Error : Text;
         ConsolidationProcessHasError: Boolean;
 
     trigger OnOpenPage()

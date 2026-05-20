@@ -36,4 +36,17 @@ codeunit 24 "Inventory Setup"
     begin
         RecordHasBeenRead := false;
     end;
+#if not CLEAN29
+    [EventSubscriber(ObjectType::Table, Database::"Inventory Setup", OnAfterValidateEvent, "Direct Transfer Posting", false, false)]
+    local procedure OnAfterValidateInventorySetupDirectTransferPosting(var Rec: Record "Inventory Setup"; var xRec: Record "Inventory Setup"; CurrFieldNo: Integer)
+    begin
+        Rec.SyncDirectTransferPostingOptionToEnum(Rec."Direct Transfer Posting");
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Inventory Setup", OnAfterValidateEvent, "Direct Transfer Posting Type", false, false)]
+    local procedure OnAfterValidateInventorySetupDirectTransferPostingType(var Rec: Record "Inventory Setup"; var xRec: Record "Inventory Setup"; CurrFieldNo: Integer)
+    begin
+        Rec.SyncDirectTransferPostingEnumToOption(Rec."Direct Transfer Posting Type");
+    end;
+#endif
 }

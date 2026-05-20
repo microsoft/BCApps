@@ -58,6 +58,8 @@ table 92 "Customer Posting Group"
                 else
                     CheckGLAccount(
                       FieldNo("Receivables Account"), "Receivables Account", false, false, GLAccountCategory."Account Category"::Assets, GLAccountCategoryMgt.GetAR());
+
+                CheckGLAccSourceCurrencyRevaluation("Receivables Account");
             end;
         }
         /// <summary>
@@ -463,6 +465,19 @@ table 92 "Customer Posting Group"
         GLAccountCategoryMgt: Codeunit "G/L Account Category Mgt.";
         PostingSetupMgt: Codeunit PostingSetupManagement;
         YouCannotDeleteErr: Label 'You cannot delete %1.', Comment = '%1 = Code';
+        SourceCurrRevalNotAllowedErr: Label 'G/L Account %1 has Source Currency Revaluation enabled or has a Source Currency Code and cannot be used as a Receivables Account.', Comment = '%1 = G/L Account No.';
+
+    local procedure CheckGLAccSourceCurrencyRevaluation(AccNo: Code[20])
+    var
+        GLAccount: Record "G/L Account";
+    begin
+        if AccNo = '' then
+            exit;
+
+        if GLAccount.Get(AccNo) then
+            if (GLAccount."Source Currency Revaluation") or (GLAccount."Source Currency Code" <> '') then
+                Error(SourceCurrRevalNotAllowedErr, AccNo);
+    end;
 
     local procedure CheckCustEntries()
     var

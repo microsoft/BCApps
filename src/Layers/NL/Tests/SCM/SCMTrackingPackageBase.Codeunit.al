@@ -17,7 +17,6 @@ codeunit 137263 "SCM Tracking Package Base"
         LibraryUtility: Codeunit "Library - Utility";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryWarehouse: Codeunit "Library - Warehouse";
-        LibrarySmallBusiness: Codeunit "Library - Small Business";
         LibraryRandom: Codeunit "Library - Random";
         isInitialized: Boolean;
         PostedItemDocumentShowTrackingErr: Label 'Can''t show Posted Item Tracking Page.';
@@ -106,7 +105,6 @@ codeunit 137263 "SCM Tracking Package Base"
             for j := 1 to ArrayLen(Qty, 2) do
                 CreatePurchLineWithTracking(
                   PurchaseHeader[i], Item[i]."No.", PackageNo[i, j], LibraryRandom.RandDec(100, 2), Qty[i, j]);
-            LibrarySmallBusiness.UpdatePurchHeaderDocTotal(PurchaseHeader[i]);
             LibraryPurchase.PostPurchaseDocument(PurchaseHeader[i], true, true);
             for j := 1 to ArrayLen(Qty, 2) do
                 LibraryItemTracking.CheckLastItemLedgerEntry(ItemLedgerEntry, Item[i]."No.", Location.Code, '', '', PackageNo[i, j], -Qty[i, j]);
@@ -671,7 +669,6 @@ codeunit 137263 "SCM Tracking Package Base"
                 CreatePurchLineWithTracking(
                   PurchaseHeader[i], Item[i]."No.", PackageNo[i, j], LibraryRandom.RandDec(100, 2), Qty[i, j]);
             end;
-            LibrarySmallBusiness.UpdatePurchHeaderDocTotal(PurchaseHeader[i]);
             LibraryPurchase.PostPurchaseDocument(PurchaseHeader[i], true, true);
         end;
     end;

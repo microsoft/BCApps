@@ -592,6 +592,9 @@ report 1305 "Standard Sales - Order Conf."
 
                 trigger OnAfterGetRecord()
                 begin
+                    if (Description = '') and ("No." = '') and (Quantity = 0) and (Amount = 0) then
+                        CurrReport.Skip();
+
                     if Type = Type::"G/L Account" then
                         "No." := '';
 

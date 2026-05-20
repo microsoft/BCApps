@@ -537,6 +537,229 @@
 
     [Test]
     [Scope('OnPrem')]
+    procedure PartialPmtMultipleVATGroupsProportionalRealization()
+    var
+        VATPostingSetup: array[2] of Record "VAT Posting Setup";
+        GenJournalLine: Record "Gen. Journal Line";
+        VATEntry: Record "VAT Entry";
+        CustomerNo: Code[20];
+        ItemNo: array[2] of Code[20];
+        InvoiceNo: Code[20];
+        UnitPrice: array[2] of Decimal;
+        PaymentAmount: Decimal;
+        VATPart: Decimal;
+        TotalInvoiceAmountInclVAT: Decimal;
+    begin
+        // [FEATURE] [Sales]
+        // [SCENARIO 625412] Partial payment applied to sales invoice with 2 VAT groups realizes VAT proportionally per group
+        Initialize();
+
+        // [GIVEN] Posted Sales Invoice "SI" with two lines: Item1 (VAT 10%, price 1000), Item2 (VAT 21%, price 2000)
+        UnitPrice[1] := 1000;
+        UnitPrice[2] := 2000;
+        InvoiceNo := CreateMultiVATGroupSalesInvoice(VATPostingSetup, CustomerNo, ItemNo, UnitPrice);
+
+        // [GIVEN] Total invoice amount incl. VAT: 1100 + 2420 = 3520
+        TotalInvoiceAmountInclVAT := UnitPrice[1] + UnitPrice[1] * 10 / 100 + UnitPrice[2] + UnitPrice[2] * 21 / 100;
+
+        // [WHEN] Apply partial payment of 1000 LCY
+        PaymentAmount := 1000;
+        CreateAndPostPaymentGenJournalLine(
+          GenJournalLine, GenJournalLine."Account Type"::Customer, CustomerNo,
+          InvoiceNo, -PaymentAmount, WorkDate());
+
+        // [THEN] Realized VAT amount for Group1 is proportional to payment share of total invoice
+        VATPart := PaymentAmount / TotalInvoiceAmountInclVAT;
+        VATEntry.SetRange(Type, VATEntry.Type::Sale);
+        VATEntry.SetRange("Document Type", VATEntry."Document Type"::Payment);
+        VATEntry.SetRange("Document No.", GenJournalLine."Document No.");
+        VATEntry.SetRange("VAT Prod. Posting Group", VATPostingSetup[1]."VAT Prod. Posting Group");
+        VATEntry.FindFirst();
+        Assert.AreNearlyEqual(
+          -Round(UnitPrice[1] * 10 / 100 * VATPart),
+          VATEntry.Amount,
+          LibraryERM.GetAmountRoundingPrecision(),
+          'VAT Amount for Group1 should be proportional to payment share of total invoice');
+
+        // [THEN] Realized VAT amount for Group2 is proportional to payment share of total invoice
+        VATEntry.SetRange("VAT Prod. Posting Group", VATPostingSetup[2]."VAT Prod. Posting Group");
+        VATEntry.FindFirst();
+        Assert.AreNearlyEqual(
+          -Round(UnitPrice[2] * 21 / 100 * VATPart),
+          VATEntry.Amount,
+          LibraryERM.GetAmountRoundingPrecision(),
+          'VAT Amount for Group2 should be proportional to payment share of total invoice');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure FullPaymentMultipleVATGroupsAllRealized()
+    var
+        VATPostingSetup: array[2] of Record "VAT Posting Setup";
+        GenJournalLine: Record "Gen. Journal Line";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        VATEntry: Record "VAT Entry";
+        CustomerNo: Code[20];
+        ItemNo: array[2] of Code[20];
+        InvoiceNo: Code[20];
+        UnitPrice: array[2] of Decimal;
+    begin
+        // [FEATURE] [Sales]
+        // [SCENARIO 625414] Full payment applied to sales invoice with multiple VAT groups fully realizes all unrealized VAT
+        Initialize();
+
+        // [GIVEN] Posted Sales Invoice "SI" with two lines: Item1 (VAT 10%, price 1000), Item2 (VAT 21%, price 2000)
+        UnitPrice[1] := 1000;
+        UnitPrice[2] := 2000;
+        InvoiceNo := CreateMultiVATGroupSalesInvoice(VATPostingSetup, CustomerNo, ItemNo, UnitPrice);
+
+        // [WHEN] Apply full payment for the total invoice amount
+        LibraryERM.FindCustomerLedgerEntry(CustLedgerEntry, CustLedgerEntry."Document Type"::Invoice, InvoiceNo);
+        CustLedgerEntry.CalcFields("Amount (LCY)");
+        CreateAndPostPaymentGenJournalLine(
+          GenJournalLine, GenJournalLine."Account Type"::Customer, CustomerNo,
+          InvoiceNo, -CustLedgerEntry."Amount (LCY)", WorkDate());
+
+        // [THEN] Unrealized VAT entry for Group1 has zero remaining amounts
+        VerifyUnrealizedVATFullyRealized(InvoiceNo, VATPostingSetup[1]."VAT Prod. Posting Group");
+
+        // [THEN] Unrealized VAT entry for Group2 has zero remaining amounts
+        VerifyUnrealizedVATFullyRealized(InvoiceNo, VATPostingSetup[2]."VAT Prod. Posting Group");
+
+        // [THEN] Realized VAT entry for Group1 matches original unrealized amount
+        VATEntry.SetRange(Type, VATEntry.Type::Sale);
+        VATEntry.SetRange("Document Type", VATEntry."Document Type"::Payment);
+        VATEntry.SetRange("Document No.", GenJournalLine."Document No.");
+        VATEntry.SetRange("VAT Prod. Posting Group", VATPostingSetup[1]."VAT Prod. Posting Group");
+        VATEntry.FindFirst();
+        Assert.AreEqual(
+          -Round(UnitPrice[1] * 10 / 100),
+          VATEntry.Amount,
+          'Group1 realized VAT amount should equal original unrealized amount');
+
+        // [THEN] Realized VAT entry for Group2 matches original unrealized amount
+        VATEntry.SetRange("VAT Prod. Posting Group", VATPostingSetup[2]."VAT Prod. Posting Group");
+        VATEntry.FindFirst();
+        Assert.AreEqual(
+          -Round(UnitPrice[2] * 21 / 100),
+          VATEntry.Amount,
+          'Group2 realized VAT amount should equal original unrealized amount');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure PartialCrMemoAppliesToDocMultiVATCorrectRealization()
+    var
+        VATPostingSetup: array[2] of Record "VAT Posting Setup";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        VATEntry: Record "VAT Entry";
+        CustomerNo: Code[20];
+        ItemNo: array[2] of Code[20];
+        InvoiceNo: Code[20];
+        UnitPrice: array[2] of Decimal;
+        PartialCrMemoPrice: Decimal;
+        CrMemoAmountInclVAT: Decimal;
+        InvoiceGroup1AmountInclVAT: Decimal;
+    begin
+        // [FEATURE] [Sales]
+        // [SCENARIO 625416] Partial credit memo posted with Applies-to Doc. No. on invoice with multiple VAT groups realizes correct VAT per group
+        Initialize();
+
+        // [GIVEN] Posted Sales Invoice "SI" with two lines: Item1 (VAT 10%, price 1000), Item2 (VAT 21%, price 2000)
+        UnitPrice[1] := 1000;
+        UnitPrice[2] := 2000;
+        InvoiceNo := CreateMultiVATGroupSalesInvoice(VATPostingSetup, CustomerNo, ItemNo, UnitPrice);
+        InvoiceGroup1AmountInclVAT := UnitPrice[1] + UnitPrice[1] * 10 / 100; // 1100
+
+        // [GIVEN] Sales Credit Memo for Item1 only with partial amount 50, Applies-to Invoice
+        PartialCrMemoPrice := 50;
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::"Credit Memo", CustomerNo);
+        SalesHeader.Validate("Applies-to Doc. Type", SalesHeader."Applies-to Doc. Type"::Invoice);
+        SalesHeader.Validate("Applies-to Doc. No.", InvoiceNo);
+        SalesHeader.Modify(true);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, ItemNo[1], 1);
+        SalesLine.Validate("Unit Price", PartialCrMemoPrice);
+        SalesLine.Modify(true);
+        CrMemoAmountInclVAT := PartialCrMemoPrice + PartialCrMemoPrice * 10 / 100; // 55
+
+        // [WHEN] Post the Sales Credit Memo
+        LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [THEN] Invoice Group1 Remaining Unrealized Amount is correctly reduced using group-specific invoice amount
+        VATEntry.SetRange(Type, VATEntry.Type::Sale);
+        VATEntry.SetRange("Document Type", VATEntry."Document Type"::Invoice);
+        VATEntry.SetRange("Document No.", InvoiceNo);
+        VATEntry.SetRange("VAT Prod. Posting Group", VATPostingSetup[1]."VAT Prod. Posting Group");
+        VATEntry.FindFirst();
+        Assert.AreNearlyEqual(
+          -Round(UnitPrice[1] * 10 / 100 * (1 - CrMemoAmountInclVAT / InvoiceGroup1AmountInclVAT)),
+          VATEntry."Remaining Unrealized Amount",
+          LibraryERM.GetAmountRoundingPrecision(),
+          'Group1 remaining unrealized VAT should be reduced by credit memo portion of Group1 invoice amount');
+
+        // [THEN] Invoice Group2 Remaining Unrealized Amount is unchanged
+        VATEntry.SetRange("VAT Prod. Posting Group", VATPostingSetup[2]."VAT Prod. Posting Group");
+        VATEntry.FindFirst();
+        Assert.AreNearlyEqual(
+          -Round(UnitPrice[2] * 21 / 100),
+          VATEntry."Remaining Unrealized Amount",
+          LibraryERM.GetAmountRoundingPrecision(),
+          'Group2 remaining unrealized VAT should be unchanged');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure FullCrMemoOneGroupAppliesToDocMultiVATCorrectRealization()
+    var
+        VATPostingSetup: array[2] of Record "VAT Posting Setup";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        VATEntry: Record "VAT Entry";
+        CustomerNo: Code[20];
+        ItemNo: array[2] of Code[20];
+        InvoiceNo: Code[20];
+        UnitPrice: array[2] of Decimal;
+    begin
+        // [FEATURE] [Sales]
+        // [SCENARIO 625417] Full credit memo for one VAT group posted with Applies-to Doc. No. on multi-VAT invoice realizes correct VAT
+        Initialize();
+
+        // [GIVEN] Posted Sales Invoice "SI" with two lines: Item1 (VAT 10%, price 1000), Item2 (VAT 21%, price 2000)
+        UnitPrice[1] := 1000;
+        UnitPrice[2] := 2000;
+        InvoiceNo := CreateMultiVATGroupSalesInvoice(VATPostingSetup, CustomerNo, ItemNo, UnitPrice);
+
+        // [GIVEN] Sales Credit Memo for Item1 only with full amount, Applies-to Invoice
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::"Credit Memo", CustomerNo);
+        SalesHeader.Validate("Applies-to Doc. Type", SalesHeader."Applies-to Doc. Type"::Invoice);
+        SalesHeader.Validate("Applies-to Doc. No.", InvoiceNo);
+        SalesHeader.Modify(true);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, ItemNo[1], 1);
+        SalesLine.Validate("Unit Price", UnitPrice[1]);
+        SalesLine.Modify(true);
+
+        // [WHEN] Post the Sales Credit Memo
+        LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [THEN] Invoice Group1 Unrealized VAT is fully realized
+        VerifyUnrealizedVATFullyRealized(InvoiceNo, VATPostingSetup[1]."VAT Prod. Posting Group");
+
+        // [THEN] Invoice Group2 Remaining Unrealized Amount is unchanged
+        VATEntry.SetRange(Type, VATEntry.Type::Sale);
+        VATEntry.SetRange("Document Type", VATEntry."Document Type"::Invoice);
+        VATEntry.SetRange("Document No.", InvoiceNo);
+        VATEntry.SetRange("VAT Prod. Posting Group", VATPostingSetup[2]."VAT Prod. Posting Group");
+        VATEntry.FindFirst();
+        Assert.AreNearlyEqual(
+          -Round(UnitPrice[2] * 21 / 100),
+          VATEntry."Remaining Unrealized Amount",
+          LibraryERM.GetAmountRoundingPrecision(),
+          'Group2 remaining unrealized VAT should be unchanged');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure VerifyVATEntryAfterApplicationOfInvoiceWithCrMemo()
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
@@ -635,6 +858,50 @@
         VATPostingSetup.Validate("Purchase VAT Account", CreateGLAccount(GLAccount[3], VATPostingSetup."VAT Prod. Posting Group"));
         VATPostingSetup.Validate("Purch. VAT Unreal. Account", CreateGLAccount(GLAccount[4], VATPostingSetup."VAT Prod. Posting Group"));
         VATPostingSetup.Modify(true);
+    end;
+
+    local procedure CreateCashBasisVATPostingSetup(var VATPostingSetup: Record "VAT Posting Setup"; VATPercent: Decimal)
+    var
+        VATBusinessPostingGroup: Record "VAT Business Posting Group";
+        VATProductPostingGroup: Record "VAT Product Posting Group";
+        GLAccount: array[4] of Record "G/L Account";
+    begin
+        if VATPostingSetup."VAT Bus. Posting Group" <> '' then
+            VATBusinessPostingGroup.Get(VATPostingSetup."VAT Bus. Posting Group")
+        else
+            LibraryERM.CreateVATBusinessPostingGroup(VATBusinessPostingGroup);
+        LibraryERM.CreateVATProductPostingGroup(VATProductPostingGroup);
+        LibraryERM.CreateVATPostingSetup(VATPostingSetup, VATBusinessPostingGroup.Code, VATProductPostingGroup.Code);
+        VATPostingSetup.Validate("VAT Calculation Type", VATPostingSetup."VAT Calculation Type"::"Normal VAT");
+        VATPostingSetup.Validate("VAT Identifier", VATProductPostingGroup.Code);
+        VATPostingSetup.Validate("VAT %", VATPercent);
+        VATPostingSetup.Validate("Unrealized VAT Type", VATPostingSetup."Unrealized VAT Type"::"Cash Basis");
+        VATPostingSetup.Validate("Sales VAT Account", CreateGLAccount(GLAccount[1], VATProductPostingGroup.Code));
+        VATPostingSetup.Validate("Sales VAT Unreal. Account", CreateGLAccount(GLAccount[2], VATProductPostingGroup.Code));
+        VATPostingSetup.Validate("Purchase VAT Account", CreateGLAccount(GLAccount[3], VATProductPostingGroup.Code));
+        VATPostingSetup.Validate("Purch. VAT Unreal. Account", CreateGLAccount(GLAccount[4], VATProductPostingGroup.Code));
+        VATPostingSetup.Modify(true);
+    end;
+
+    local procedure CreateMultiVATGroupSalesInvoice(var VATPostingSetup: array[2] of Record "VAT Posting Setup"; var CustomerNo: Code[20]; var ItemNo: array[2] of Code[20]; UnitPrice: array[2] of Decimal): Code[20]
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+    begin
+        CreateCashBasisVATPostingSetup(VATPostingSetup[1], 10);
+        VATPostingSetup[2]."VAT Bus. Posting Group" := VATPostingSetup[1]."VAT Bus. Posting Group";
+        CreateCashBasisVATPostingSetup(VATPostingSetup[2], 21);
+        ItemNo[1] := CreateItem(VATPostingSetup[1]."VAT Prod. Posting Group");
+        ItemNo[2] := CreateItem(VATPostingSetup[2]."VAT Prod. Posting Group");
+        CustomerNo := CreateCustomer('', VATPostingSetup[1]."VAT Bus. Posting Group");
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, CustomerNo);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, ItemNo[1], 1);
+        SalesLine.Validate("Unit Price", UnitPrice[1]);
+        SalesLine.Modify(true);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, ItemNo[2], 1);
+        SalesLine.Validate("Unit Price", UnitPrice[2]);
+        SalesLine.Modify(true);
+        exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
     end;
 
     local procedure CreateAndPostPaymentGenJournalLine(var GenJournalLine: Record "Gen. Journal Line"; AccountType: Enum "Gen. Journal Account Type"; AccountNo: Code[20]; ApplyToDocID: Code[20]; Amount: Decimal; PostingDate: Date)
@@ -910,6 +1177,19 @@
         VATEntry.FindFirst();
         VATEntry.TestField("Remaining Unrealized Amount", VATAmount);
         VATEntry.TestField("Remaining Unrealized Base", VATBase);
+    end;
+
+    local procedure VerifyUnrealizedVATFullyRealized(InvoiceNo: Code[20]; VATProdPostingGroup: Code[20])
+    var
+        VATEntry: Record "VAT Entry";
+    begin
+        VATEntry.SetRange(Type, VATEntry.Type::Sale);
+        VATEntry.SetRange("Document Type", VATEntry."Document Type"::Invoice);
+        VATEntry.SetRange("Document No.", InvoiceNo);
+        VATEntry.SetRange("VAT Prod. Posting Group", VATProdPostingGroup);
+        VATEntry.FindFirst();
+        Assert.AreEqual(0, VATEntry."Remaining Unrealized Amount", 'Remaining Unrealized Amount should be zero');
+        Assert.AreEqual(0, VATEntry."Remaining Unrealized Base", 'Remaining Unrealized Base should be zero');
     end;
 
 }

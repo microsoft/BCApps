@@ -270,11 +270,8 @@ pageextension 4703 "VAT Report Setup Extension" extends "VAT Report Setup"
                 Visible = (Rec."VAT Group Role" = Rec."VAT Group Role"::Member);
 
                 trigger OnAction()
-                var
-                    VATGroupCommunication: Codeunit "VAT Group Communication";
                 begin
-                    GetClientSecrets();
-                    VATGroupCommunication.GetBearerToken(ClientIDText, ClientSecretText, Rec."Authority URL", Rec."Redirect URL", Rec."Resource URL");
+                    RenewOAuth2Token();
                 end;
             }
         }
@@ -319,19 +316,25 @@ pageextension 4703 "VAT Report Setup Extension" extends "VAT Report Setup"
     end;
 
     [NonDebuggable]
+    local procedure RenewOAuth2Token()
+    var
+        VATGroupCommunication: Codeunit "VAT Group Communication";
+        LocalClientID, LocalClientSecret : Text;
+    begin
+        LocalClientID := Rec.GetSecretAsSecretText(Rec."Client ID Key").Unwrap();
+        LocalClientSecret := Rec.GetSecretAsSecretText(Rec."Client Secret Key").Unwrap();
+        VATGroupCommunication.GetBearerToken(LocalClientID, LocalClientSecret, Rec."Authority URL", Rec."Redirect URL", Rec."Resource URL");
+    end;
+
+    [NonDebuggable]
     local procedure GetSecrets()
     begin
-        GetClientSecrets();
+        if not Rec.GetSecretAsSecretText(Rec."Client Secret Key").IsEmpty() then
+            ClientSecretText := '*';
+        ClientIDText := Rec.GetSecretAsSecretText(Rec."Client ID Key").Unwrap();
         UserNameText := Rec.GetSecretAsSecretText(Rec."User Name Key").Unwrap();
         if not Rec.GetSecretAsSecretText(Rec."Web Service Access Key Key").IsEmpty() then
             WebServiceAccessKeyText := '*';
     end;
 
-    [NonDebuggable]
-    local procedure GetClientSecrets()
-    begin
-        if not Rec.GetSecretAsSecretText(Rec."Client Secret Key").IsEmpty() then
-            ClientSecretText := '*';
-        ClientIDText := Rec.GetSecretAsSecretText(Rec."Client ID Key").Unwrap();
-    end;
 }

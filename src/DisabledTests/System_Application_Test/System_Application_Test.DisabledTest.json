@@ -2078,5 +2078,440 @@
     "codeunitId": 139043,
     "codeunitName": "Web Service Management Test",
     "method": "TestDeleteWebService"
+  },
+  {
+    "codeunitId": 133960,
+    "method": "CheckTaskStatusAfterCreation",
+    "codeunitName": "Agent Task Test"
+  },
+  {
+    "codeunitId": 133960,
+    "method": "CreateMultipleTasksWithDifferentExternalIds",
+    "codeunitName": "Agent Task Test"
+  },
+  {
+    "codeunitId": 133960,
+    "method": "CreateTaskWithMessageAndVerify",
+    "codeunitName": "Agent Task Test"
+  },
+  {
+    "codeunitId": 133960,
+    "method": "CreateTaskWithMessageBuilder",
+    "codeunitName": "Agent Task Test"
+  },
+  {
+    "codeunitId": 133960,
+    "method": "CreateTaskWithMultipleMessages",
+    "codeunitName": "Agent Task Test"
+  },
+  {
+    "codeunitId": 133960,
+    "method": "CreateTaskWithoutMessageAndVerify",
+    "codeunitName": "Agent Task Test"
+  },
+  {
+    "codeunitId": 133960,
+    "method": "CreateTaskWithoutPermissionsAndVerify",
+    "codeunitName": "Agent Task Test"
+  },
+  {
+    "codeunitId": 133960,
+    "method": "CreateTaskWithoutSettingStatusToReady",
+    "codeunitName": "Agent Task Test"
+  },
+  {
+    "codeunitId": 133960,
+    "method": "CreateTaskWithPermissionsInAllCompaniesAndVerify",
+    "codeunitName": "Agent Task Test"
+  },
+  {
+    "codeunitId": 133960,
+    "method": "GetTaskByExternalId",
+    "codeunitName": "Agent Task Test"
+  },
+  {
+    "codeunitId": 133960,
+    "method": "RestartTaskByPKDoesNotOverwriteUnrelatedFields",
+    "codeunitName": "Agent Task Test"
+  },
+  {
+    "codeunitId": 133960,
+    "method": "RestartTaskDoesNotOverwriteUnrelatedFields",
+    "codeunitName": "Agent Task Test"
+  },
+  {
+    "codeunitId": 133960,
+    "method": "SetStatusToReadyByPKDoesNotOverwriteUnrelatedFields",
+    "codeunitName": "Agent Task Test"
+  },
+  {
+    "codeunitId": 133960,
+    "method": "SetStatusToReadyDoesNotOverwriteUnrelatedFields",
+    "codeunitName": "Agent Task Test"
+  },
+  {
+    "codeunitId": 133960,
+    "method": "StopTaskByPKDoesNotOverwriteUnrelatedFields",
+    "codeunitName": "Agent Task Test"
+  },
+  {
+    "codeunitId": 133960,
+    "method": "StopTaskDoesNotOverwriteUnrelatedFields",
+    "codeunitName": "Agent Task Test"
+  },
+  {
+    "codeunitId": 133960,
+    "method": "VerifyTaskCanBeSetToReady",
+    "codeunitName": "Agent Task Test"
+  },
+  {
+    "codeunitId": 133961,
+    "method": "ActivateAgent",
+    "codeunitName": "Agent Test"
+  },
+  {
+    "codeunitId": 133961,
+    "method": "ActivateDeactivateCycle",
+    "codeunitName": "Agent Test"
+  },
+  {
+    "codeunitId": 133961,
+    "method": "AssignPermissionSet_AddPermissionSet",
+    "codeunitName": "Agent Test"
+  },
+  {
+    "codeunitId": 133961,
+    "method": "AssignPermissionSet_NoChange",
+    "codeunitName": "Agent Test"
+  },
+  {
+    "codeunitId": 133961,
+    "method": "AssignPermissionSet_ReplacePermissionSet",
+    "codeunitName": "Agent Test"
+  },
+  {
+    "codeunitId": 133961,
+    "method": "AssignPermissionSet_UpdatePermissionSet_ChangeCompany",
+    "codeunitName": "Agent Test"
+  },
+  {
+    "codeunitId": 133961,
+    "method": "CreateAgentWithAccessControl",
+    "codeunitName": "Agent Test"
+  },
+  {
+    "codeunitId": 133961,
+    "method": "CreateAgentWithValidParameters",
+    "codeunitName": "Agent Test"
+  },
+  {
+    "codeunitId": 133961,
+    "method": "CreateAndConfigureCompleteAgent",
+    "codeunitName": "Agent Test"
+  },
+  {
+    "codeunitId": 133961,
+    "method": "DeactivateAgent",
+    "codeunitName": "Agent Test"
+  },
+  {
+    "codeunitId": 133961,
+    "method": "GetDisplayName",
+    "codeunitName": "Agent Test"
+  },
+  {
+    "codeunitId": 133961,
+    "method": "GetModelId",
+    "codeunitName": "Agent Test"
+  },
+  {
+    "codeunitId": 133961,
+    "method": "GetModelName",
+    "codeunitName": "Agent Test"
+  },
+  {
+    "codeunitId": 133961,
+    "method": "GetUserAccess",
+    "codeunitName": "Agent Test"
+  },
+  {
+    "codeunitId": 133961,
+    "method": "GetUserName",
+    "codeunitName": "Agent Test"
+  },
+  {
+    "codeunitId": 133961,
+    "method": "GetUserSettings",
+    "codeunitName": "Agent Test"
+  },
+  {
+    "codeunitId": 133961,
+    "method": "PopulateDefaultProfile",
+    "codeunitName": "Agent Test"
+  },
+  {
+    "codeunitId": 133961,
+    "method": "SetDisplayName",
+    "codeunitName": "Agent Test"
+  },
+  {
+    "codeunitId": 133961,
+    "method": "SetInstructions",
+    "codeunitName": "Agent Test"
+  },
+  {
+    "codeunitId": 133961,
+    "method": "SetModelId",
+    "codeunitName": "Agent Test"
+  },
+  {
+    "codeunitId": 133961,
+    "method": "SetModelIdToAuto",
+    "codeunitName": "Agent Test"
+  },
+  {
+    "codeunitId": 133961,
+    "method": "SetProfileWithParameters",
+    "codeunitName": "Agent Test"
+  },
+  {
+    "codeunitId": 133961,
+    "method": "SetProfileWithRecord",
+    "codeunitName": "Agent Test"
+  },
+  {
+    "codeunitId": 133961,
+    "method": "UpdateAccess",
+    "codeunitName": "Agent Test"
+  },
+  {
+    "codeunitId": 133961,
+    "method": "UpdateAccessWithMultipleUsers",
+    "codeunitName": "Agent Test"
+  },
+  {
+    "codeunitId": 133961,
+    "method": "UpdateLocalizationSettings",
+    "codeunitName": "Agent Test"
+  },
+  {
+    "codeunitId": 133962,
+    "method": "ArchiveAlreadyArchivedTask",
+    "codeunitName": "Agent Task Management Test"
+  },
+  {
+    "codeunitId": 133962,
+    "method": "ArchiveStoppedTask",
+    "codeunitName": "Agent Task Management Test"
+  },
+  {
+    "codeunitId": 133962,
+    "method": "CanSetStatusToReadyForNewTask",
+    "codeunitName": "Agent Task Management Test"
+  },
+  {
+    "codeunitId": 133962,
+    "method": "CheckIsTaskCompleted",
+    "codeunitName": "Agent Task Management Test"
+  },
+  {
+    "codeunitId": 133962,
+    "method": "CheckIsTaskRunning",
+    "codeunitName": "Agent Task Management Test"
+  },
+  {
+    "codeunitId": 133962,
+    "method": "CheckIsTaskStopped",
+    "codeunitName": "Agent Task Management Test"
+  },
+  {
+    "codeunitId": 133962,
+    "method": "CreateAndStartTask",
+    "codeunitName": "Agent Task Management Test"
+  },
+  {
+    "codeunitId": 133962,
+    "method": "ManageMultipleTasksSimultaneously",
+    "codeunitName": "Agent Task Management Test"
+  },
+  {
+    "codeunitId": 133962,
+    "method": "RestartStoppedTask",
+    "codeunitName": "Agent Task Management Test"
+  },
+  {
+    "codeunitId": 133962,
+    "method": "RestartTaskSetsStatusToReady",
+    "codeunitName": "Agent Task Management Test"
+  },
+  {
+    "codeunitId": 133962,
+    "method": "SetTaskStatusToReady",
+    "codeunitName": "Agent Task Management Test"
+  },
+  {
+    "codeunitId": 133962,
+    "method": "StopAndRestartMultipleTimes",
+    "codeunitName": "Agent Task Management Test"
+  },
+  {
+    "codeunitId": 133962,
+    "method": "StopRunningTask",
+    "codeunitName": "Agent Task Management Test"
+  },
+  {
+    "codeunitId": 133962,
+    "method": "StopTaskAndVerifyStatus",
+    "codeunitName": "Agent Task Management Test"
+  },
+  {
+    "codeunitId": 133962,
+    "method": "VerifyTaskRetrievalAfterManagement",
+    "codeunitName": "Agent Task Management Test"
+  },
+  {
+    "codeunitId": 133963,
+    "method": "AddAttachmentWithIgnoredFlag",
+    "codeunitName": "Agent Message Test"
+  },
+  {
+    "codeunitId": 133963,
+    "method": "CannotSetStatusToSentForMessageNotInDraftState",
+    "codeunitName": "Agent Message Test"
+  },
+  {
+    "codeunitId": 133963,
+    "method": "CreateMessageAndSetTaskToReady",
+    "codeunitName": "Agent Message Test"
+  },
+  {
+    "codeunitId": 133963,
+    "method": "CreateMessageWithExternalId",
+    "codeunitName": "Agent Message Test"
+  },
+  {
+    "codeunitId": 133963,
+    "method": "CreateMessageWithFromAndText",
+    "codeunitName": "Agent Message Test"
+  },
+  {
+    "codeunitId": 133963,
+    "method": "CreateMessageWithIgnoreAttachment",
+    "codeunitName": "Agent Message Test"
+  },
+  {
+    "codeunitId": 133963,
+    "method": "CreateMessageWithInitializeFromOnly",
+    "codeunitName": "Agent Message Test"
+  },
+  {
+    "codeunitId": 133963,
+    "method": "CreateMessageWithLongText",
+    "codeunitName": "Agent Message Test"
+  },
+  {
+    "codeunitId": 133963,
+    "method": "CreateMessageWithoutSettingTaskToReady",
+    "codeunitName": "Agent Message Test"
+  },
+  {
+    "codeunitId": 133963,
+    "method": "CreateMultipleMessagesOnSameTask",
+    "codeunitName": "Agent Message Test"
+  },
+  {
+    "codeunitId": 133963,
+    "method": "GetAgentTaskMessageAfterCreate",
+    "codeunitName": "Agent Message Test"
+  },
+  {
+    "codeunitId": 133963,
+    "method": "GetAttachmentsFromBuilderNoAttachments",
+    "codeunitName": "Agent Message Test"
+  },
+  {
+    "codeunitId": 133963,
+    "method": "GetAttachmentsFromMessageWithAttachments",
+    "codeunitName": "Agent Message Test"
+  },
+  {
+    "codeunitId": 133963,
+    "method": "GetAttachmentsFromMessageWithMultipleAttachments",
+    "codeunitName": "Agent Message Test"
+  },
+  {
+    "codeunitId": 133963,
+    "method": "GetAttachmentsFromMessageWithNoAttachments",
+    "codeunitName": "Agent Message Test"
+  },
+  {
+    "codeunitId": 133963,
+    "method": "GetFileSizeDisplayText_Bytes",
+    "codeunitName": "Agent Message Test"
+  },
+  {
+    "codeunitId": 133963,
+    "method": "GetFileSizeDisplayText_Kilobytes",
+    "codeunitName": "Agent Message Test"
+  },
+  {
+    "codeunitId": 133963,
+    "method": "GetFileSizeDisplayText_Megabytes",
+    "codeunitName": "Agent Message Test"
+  },
+  {
+    "codeunitId": 133963,
+    "method": "GetLastAttachmentFromBuilder",
+    "codeunitName": "Agent Message Test"
+  },
+  {
+    "codeunitId": 133963,
+    "method": "GetTextFromEmptyMessage",
+    "codeunitName": "Agent Message Test"
+  },
+  {
+    "codeunitId": 133963,
+    "method": "GetTextFromMessage",
+    "codeunitName": "Agent Message Test"
+  },
+  {
+    "codeunitId": 133963,
+    "method": "SetAgentTaskById",
+    "codeunitName": "Agent Message Test"
+  },
+  {
+    "codeunitId": 133963,
+    "method": "SetAgentTaskByRecord",
+    "codeunitName": "Agent Message Test"
+  },
+  {
+    "codeunitId": 133963,
+    "method": "SetStatusToSentByPKDoesNotOverwriteUnrelatedFields",
+    "codeunitName": "Agent Message Test"
+  },
+  {
+    "codeunitId": 133963,
+    "method": "SetStatusToSentDoesNotOverwriteUnrelatedFields",
+    "codeunitName": "Agent Message Test"
+  },
+  {
+    "codeunitId": 133963,
+    "method": "UpdateTextByPKDoesNotOverwriteUnrelatedFields",
+    "codeunitName": "Agent Message Test"
+  },
+  {
+    "codeunitId": 133963,
+    "method": "UpdateTextDoesNotOverwriteUnrelatedFields",
+    "codeunitName": "Agent Message Test"
+  },
+  {
+    "codeunitId": 133963,
+    "method": "UpdateTextOnNonDraftMessageFails",
+    "codeunitName": "Agent Message Test"
+  },
+  {
+    "codeunitId": 133963,
+    "method": "VerifyMessageFromFieldIsSet",
+    "codeunitName": "Agent Message Test"
   }
 ]

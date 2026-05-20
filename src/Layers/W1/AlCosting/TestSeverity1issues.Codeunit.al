@@ -31,7 +31,9 @@ codeunit 103519 "Test - Severity 1 issues"
         "ID-297-538-4DUT_G"();
         "ID-297-538-4DUT_H"();
         "ID-297-538-4DUT_I"();
+#if not CLEAN29
         "DE-734-304-BGN5"();
+#endif
         ManufacturingValueEntryTypes();
 
         TestscriptMgt.ShowTestscriptResult();
@@ -1565,7 +1567,7 @@ codeunit 103519 "Test - Severity 1 issues"
         TestscriptMgt.TestNumberValue(
           MakeName('Inventory value', '', ''), InventoryValue, 25);
     end;
-
+#if not CLEAN29
     [Scope('OnPrem')]
     procedure "DE-734-304-BGN5"()
     var
@@ -1643,6 +1645,7 @@ codeunit 103519 "Test - Severity 1 issues"
         TestscriptMgt.TestBooleanValue(
           MakeName(Item.TableCaption(), Item."No.", 'The cost adjustment did not result in an endless-loop'), true, true);
     end;
+#endif
 
     [Scope('OnPrem')]
     procedure ManufacturingValueEntryTypes()
@@ -2003,6 +2006,7 @@ codeunit 103519 "Test - Severity 1 issues"
         MachineCenter.Modify(true);
     end;
 
+#if not CLEAN29
     local procedure CreateSubContrTemplAndName()
     var
         ReqWkshTemplate: Record "Req. Wksh. Template";
@@ -2013,7 +2017,7 @@ codeunit 103519 "Test - Severity 1 issues"
         ReqWkshName.Init();
         if ReqWkshName.Insert() then;
     end;
-
+#endif
     local procedure CreateAndConnectRoutings(Item: Record Item; SubContracting: Boolean)
     var
         RtngHeader: Record "Routing Header";
@@ -2159,7 +2163,7 @@ codeunit 103519 "Test - Severity 1 issues"
             ItemJnlLine.Validate("Applies-to Entry", INVTUtil.GetLastItemLedgEntryNo());
         ItemJnlLine.Insert(true);
     end;
-
+#if not CLEAN29
     local procedure CalcSubContractingWorksheet(var ReqLine: Record "Requisition Line")
     begin
         ReqLine.DeleteAll();
@@ -2184,7 +2188,7 @@ codeunit 103519 "Test - Severity 1 issues"
         ReqWkshMakeOrders.Set(PurchHeader, WorkDate(), false);
         ReqWkshMakeOrders.CarryOutBatchAction(ReqLine);
     end;
-
+#endif
     [Scope('OnPrem')]
     procedure CalcInvtValAndQty(var ItemJnlLine: Record "Item Journal Line"; ItemNo: Code[20]; CalculatePer: Enum "Inventory Value Calc. Per")
     var
@@ -2221,4 +2225,3 @@ codeunit 103519 "Test - Severity 1 issues"
         exit(StrSubstNo('%1 - %2 %3 %4', CurrTest, TextPar1, TextPar2, TextPar3));
     end;
 }
-

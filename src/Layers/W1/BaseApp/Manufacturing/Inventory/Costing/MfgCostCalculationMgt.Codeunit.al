@@ -564,7 +564,7 @@ codeunit 99000758 "Mfg. Cost Calculation Mgt."
         OutstandingBaseQty := 0;
         OnBeforeCalcOutputQtyBaseOnPurchOrder(ProdOrderLine, ProdOrderRtngLine, OutstandingBaseQty, IsHandled);
         if IsHandled then
-            exit;
+            exit(OutstandingBaseQty);
 
         PurchLine.SetCurrentKey("Document Type", Type, "Prod. Order No.", "Prod. Order Line No.", "Routing No.", "Operation No.");
         PurchLine.SetRange("Document Type", PurchLine."Document Type"::Order);

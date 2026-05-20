@@ -430,6 +430,7 @@ codeunit 7018 "Price UX Management"
         PriceSourceList.Init();
         PriceSourceList.AddChildren(PriceSource);
         PriceSourceList.Add(PriceSource);
+        AddAllSourceType(PriceSourceList, PriceSource."Source Type");
         PriceListLineReview.Set(PriceSourceList, AmountType);
         PriceListLineReview.Run();
     end;
@@ -548,6 +549,19 @@ codeunit 7018 "Price UX Management"
         PriceSourceList.SetPriceType(PriceType);
 
         OnAfterGetPriceSource(Job, PriceSourceList);
+    end;
+
+    local procedure AddAllSourceType(var PriceSourceList: Codeunit "Price Source List"; SourceType: Enum "Price Source Type")
+    begin
+        case SourceType of
+            "Price Source Type"::Customer:
+                PriceSourceList.Add("Price Source Type"::"All Customers");
+            "Price Source Type"::Vendor:
+                PriceSourceList.Add("Price Source Type"::"All Vendors");
+            "Price Source Type"::Job,
+            "Price Source Type"::"Job Task":
+                PriceSourceList.Add("Price Source Type"::"All Jobs");
+        end;
     end;
 
     procedure SetPriceListsFilters(var PriceListHeader: Record "Price List Header"; PriceType: Enum "Price Type"; AmountType: Enum "Price Amount Type")

@@ -20,7 +20,6 @@ codeunit 139551 "Shpfy Staff Test"
     var
         Shop: Record "Shpfy Shop";
         Any: Codeunit Any;
-        OrdersAPISubscriber: Codeunit "Shpfy Orders API Subscriber";
         InitializeTest: Codeunit "Shpfy Initialize Test";
         IsInitialized: Boolean;
         ResponseResourceUrl: Text;
@@ -31,7 +30,7 @@ codeunit 139551 "Shpfy Staff Test"
     end;
 
     [Test]
-    procedure TestStaffMembersActionVisibleOnlyForB2BStore()
+    procedure TestStaffMembersActionVisibleOnlyForSupportedPlans()
     var
         LibraryAssert: Codeunit "Library Assert";
         ShpfyShopCard: TestPage "Shpfy Shop Card";
@@ -39,24 +38,24 @@ codeunit 139551 "Shpfy Staff Test"
         // [Given] Shop exists
         Initialize();
 
-        // [When] Set store as not B2B and check action is not visible
-        Shop."B2B Enabled" := false;
+        // [When] Set store as not having staff members enabled and check action is not visible
+        Shop."Advanced Shopify Plan" := false;
         Shop.Modify(false);
         ShpfyShopCard.OpenView();
         ShpfyShopCard.GoToRecord(Shop);
 
         // [Then] The action should not be visible
-        LibraryAssert.IsFalse(ShpfyShopCard.StaffMembers.Visible(), 'Staff Members action should not be visible for non-B2B store');
+        LibraryAssert.IsFalse(ShpfyShopCard.StaffMembers.Visible(), 'Staff Members action should not be visible for unsupported plan');
         ShpfyShopCard.Close();
 
-        // [When] Set store as B2B and check action is visible
-        Shop."B2B Enabled" := true;
+        // [When] Set store as having staff members enabled and check action is visible
+        Shop."Advanced Shopify Plan" := true;
         Shop.Modify(false);
         ShpfyShopCard.OpenView();
         ShpfyShopCard.GoToRecord(Shop);
 
         // [Then] The action should be visible
-        LibraryAssert.IsTrue(ShpfyShopCard.StaffMembers.Visible(), 'Staff Members action should be visible for B2B store');
+        LibraryAssert.IsTrue(ShpfyShopCard.StaffMembers.Visible(), 'Staff Members action should be visible for supported plan');
         ShpfyShopCard.Close();
     end;
 
@@ -154,6 +153,7 @@ codeunit 139551 "Shpfy Staff Test"
     end;
 
     [Test]
+    [HandlerFunctions('HttpSubmitHandler')]
     procedure TestImportOrderToBCAssignSalesperson()
     var
         StaffMember: Record "Shpfy Staff Member";
@@ -179,15 +179,14 @@ codeunit 139551 "Shpfy Staff Test"
         JShopifyOrder := OrderHandlingHelper.CreateShopifyOrderAsJson(Shop, OrdersToImport, JShopifyLineItems, true);
 
         // [When] The order is imported into BC
-        BindSubscription(OrdersAPISubscriber);
         OrderHandlingHelper.ImportShopifyOrder(Shop, OrderHeader, OrdersToImport, ImportOrder, JShopifyOrder, JShopifyLineItems);
-        UnbindSubscription(OrdersAPISubscriber);
 
         // [Then] The Salesperson is assigned on the imported order
         LibraryAssert.IsTrue(OrderHeader."Salesperson Code" = StaffMember."Salesperson Code", 'Salesperson should be assigned on the imported order.');
     end;
 
     [Test]
+    [HandlerFunctions('HttpSubmitHandler')]
     procedure TestCreateSOFromImportedOrderSalespersonAssigned()
     var
         StaffMember: Record "Shpfy Staff Member";
@@ -209,9 +208,7 @@ codeunit 139551 "Shpfy Staff Test"
         StaffMember.Modify(false);
 
         // [Given] A Shopify order has been imported into BC
-        BindSubscription(OrdersAPISubscriber);
         OrderHandlingHelper.ImportShopifyOrder(Shop, OrderHeader, ImportOrder, true);
-        UnbindSubscription(OrdersAPISubscriber);
         Commit();
 
         // [When] A Sales Order is created in BC from the imported Shopify order
@@ -226,7 +223,6 @@ codeunit 139551 "Shpfy Staff Test"
     local procedure Initialize()
     var
         ShpfyStaffMember: Record "Shpfy Staff Member";
-        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryRandom: Codeunit "Library - Random";
         AccessToken: SecretText;
@@ -251,10 +247,8 @@ codeunit 139551 "Shpfy Staff Test"
 
         // Creating Shopify Shop
         Shop := InitializeTest.CreateShop();
-        Shop."B2B Enabled" := true;
+        Shop."Advanced Shopify Plan" := true;
         Shop.Modify();
-
-        CommunicationMgt.SetTestInProgress(false);
 
         //Register Shopify Access Token
         AccessToken := LibraryRandom.RandText(20);

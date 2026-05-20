@@ -3880,7 +3880,7 @@ codeunit 134393 "ERM Sales Subform"
 
         // [THEN] First sales document line "Type" = "Resource"
         BlanketSalesOrder.SalesLines.First();
-        BlanketSalesOrder.SalesLines.Type.AssertEquals(SalesLineType);
+        BlanketSalesOrder.SalesLines.FilteredTypeField.AssertEquals(SalesLineType);
     end;
 
     [Test]
@@ -4036,7 +4036,7 @@ codeunit 134393 "ERM Sales Subform"
 
         // [THEN] First sales document line "Type" = " "
         BlanketSalesOrder.SalesLines.First();
-        BlanketSalesOrder.SalesLines.Type.AssertEquals(SalesLineType);
+        BlanketSalesOrder.SalesLines.FilteredTypeField.AssertEquals('Comment');
     end;
 
     [Test]
@@ -4197,14 +4197,14 @@ codeunit 134393 "ERM Sales Subform"
         BlanketSalesOrder.OpenNew();
         BlanketSalesOrder."Sell-to Customer Name".SetValue(Customer.Name);
         BlanketSalesOrder.SalesLines.First();
-        BlanketSalesOrder.SalesLines.Type.SetValue(SalesLineType[2]);
+        BlanketSalesOrder.SalesLines.FilteredTypeField.SetValue(SalesLineType[2]);
         Commit();
 
         // [WHEN] Create sales document second line
         BlanketSalesOrder.SalesLines.New();
 
         // [THEN] Sales document second line "Type" = "G/L Account"
-        BlanketSalesOrder.SalesLines.Type.AssertEquals(SalesLineType[2]);
+        BlanketSalesOrder.SalesLines.FilteredTypeField.AssertEquals(SalesLineType[2]);
     end;
 
     [Test]

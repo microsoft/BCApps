@@ -27,7 +27,8 @@ codeunit 235 "G/L Reg.-Gen. Ledger"
             exit;
 
         GLEntry.SetRange("Entry No.", Rec."From Entry No.", Rec."To Entry No.");
-        PAGE.Run(PAGE::"General Ledger Entries", GLEntry);
+        GLEntry.SetFilter("G/L Register No.", '0|%1', Rec."No.");
+        Page.Run(Page::"General Ledger Entries", GLEntry);
     end;
 
     var

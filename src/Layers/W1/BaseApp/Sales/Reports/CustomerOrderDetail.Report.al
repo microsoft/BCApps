@@ -255,9 +255,9 @@ report 108 "Customer - Order Detail"
                     "Sales Line".Reset();
                     "Sales Line".SetRange("Document Type", "Sales Line"."Document Type"::Order);
                     "Sales Line".SetRange("Document No.", "Sales Header"."No.");
-                    "Sales Line".SetFilter("Shortcut Dimension 1 Code", Customer."Global Dimension 1 Code");
-                    "Sales Line".SetFilter("Shortcut Dimension 2 Code", Customer."Global Dimension 2 Code");
                     "Sales Line".SetFilter("Outstanding Quantity", '<>%1', 0);
+                    if PeriodText <> '' then
+                        "Sales Line".SetFilter("Shipment Date", PeriodText);
                     if "Sales Line".IsEmpty() then
                         CurrReport.Skip();
                 end;

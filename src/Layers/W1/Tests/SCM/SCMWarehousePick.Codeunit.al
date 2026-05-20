@@ -2158,6 +2158,80 @@ codeunit 137055 "SCM Warehouse Pick"
         Assert.AreEqual(SalesLine.Quantity, SalesLine."Quantity Shipped", ShipQtyErr);
     end;
 
+    [Test]
+    [HandlerFunctions('ItemTrackingLinesAssignLotPageHandler')]
+    [Scope('OnPrem')]
+    procedure PostShipmentWithSurplusTrackingAfterReserveAndQtyIncrease()
+    var
+        WarehouseSetup: Record "Warehouse Setup";
+        Location: Record Location;
+        WarehouseEmployee: Record "Warehouse Employee";
+        Item: Record Item;
+        ItemTrackingCode: Record "Item Tracking Code";
+        ItemJournalLine: Record "Item Journal Line";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        WarehouseShipmentHeader: Record "Warehouse Shipment Header";
+        LotNo: Code[50];
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 630457] Warehouse shipment posts successfully when sales line qty is increased after reserve and lot tracking is assigned for full ship qty
+
+        Initialize();
+
+        // [GIVEN] Warehouse Setup with Shipment Posting Policy = "Stop and show the first posting error"
+        WarehouseSetup.Get();
+        WarehouseSetup.Validate("Shipment Posting Policy", WarehouseSetup."Shipment Posting Policy"::"Stop and show the first posting error");
+        WarehouseSetup.Modify(true);
+
+        // [GIVEN] Location "L" with Require Shipment only
+        LibraryWarehouse.CreateLocationWMS(Location, false, false, false, false, true);
+        LibraryWarehouse.CreateWarehouseEmployee(WarehouseEmployee, Location.Code, false);
+
+        // [GIVEN] Item "I" with Lot-specific tracking
+        LibraryInventory.CreateItemTrackingCode(ItemTrackingCode);
+        ItemTrackingCode.Validate("Lot Specific Tracking", true);
+        ItemTrackingCode.Validate("Lot Warehouse Tracking", true);
+        ItemTrackingCode.Modify(true);
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Item Tracking Code", ItemTrackingCode.Code);
+        Item.Validate("Lot Nos.", LibraryUtility.GetGlobalNoSeriesCode());
+        Item.Modify(true);
+
+        // [GIVEN] Post positive adjustment for 5 units with Lot "L1"
+        LotNo := LibraryUtility.GenerateGUID();
+        CreateAndPostItemJournalLineWithLotNo(ItemJournalLine, Item."No.", Location.Code, LibraryRandom.RandIntInRange(3, 6), LotNo);
+
+        // [GIVEN] Sales Order "SO" for 2 units with auto-reservation
+        LibrarySales.CreateSalesDocumentWithItem(
+            SalesHeader, SalesLine, SalesHeader."Document Type"::Order,
+            LibrarySales.CreateCustomerNo(), Item."No.", LibraryRandom.RandIntInRange(1, 3), Location.Code, WorkDate());
+        LibrarySales.AutoReserveSalesLine(SalesLine);
+
+        // [GIVEN] Sales Line quantity increased from 2 to 3
+        SalesLine.Validate(Quantity, SalesLine.Quantity + 1);
+        SalesLine.Modify(true);
+
+        // [GIVEN] Lot tracking assigned for all 3 units via Item Tracking Lines
+        LibraryVariableStorage.Enqueue(LotNo);
+        LibraryVariableStorage.Enqueue(SalesLine.Quantity);
+        SalesLine.OpenItemTrackingLines();
+
+        // [GIVEN] Warehouse Shipment created for "SO"
+        LibrarySales.ReleaseSalesDocument(SalesHeader);
+        LibraryWarehouse.CreateWhseShipmentFromSO(SalesHeader);
+        FindWarehouseShipmentHeader(WarehouseShipmentHeader, SalesHeader."No.");
+
+        // [WHEN] Post the Warehouse Shipment
+        LibraryWarehouse.PostWhseShipment(WarehouseShipmentHeader, false);
+
+        // [THEN] Sales Line is shipped successfully for 3 units
+        SalesLine.Get(SalesLine."Document Type", SalesLine."Document No.", SalesLine."Line No.");
+        Assert.AreEqual(SalesLine.Quantity, SalesLine."Quantity Shipped", 'Sales line should be fully shipped');
+
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
     local procedure Initialize()
     var
         WarehouseActivityLine: Record "Warehouse Activity Line";

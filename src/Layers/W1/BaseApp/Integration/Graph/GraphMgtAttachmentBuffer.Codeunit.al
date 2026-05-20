@@ -4,17 +4,27 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Integration.Graph;
 
+using Microsoft.Assembly.Document;
+using Microsoft.Assembly.History;
 using Microsoft.EServices.EDocument;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Foundation.Attachment;
 using Microsoft.HumanResources.Employee;
 using Microsoft.Integration.Entity;
+using Microsoft.Inventory.Counting.Document;
+using Microsoft.Inventory.Counting.History;
+using Microsoft.Inventory.Counting.Recording;
+using Microsoft.Inventory.Document;
+using Microsoft.Inventory.History;
 using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Transfer;
 using Microsoft.Projects.Project.Job;
+using Microsoft.Purchases.Archive;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Vendor;
+using Microsoft.Sales.Archive;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
@@ -394,6 +404,138 @@ codeunit 5503 "Graph Mgt - Attachment Buffer"
             TempAttachmentEntityBuffer."Document Type"::"Vendor":
                 begin
                     DocumentAttachment."Table ID" := Database::Vendor;
+                    exit;
+                end;
+            TempAttachmentEntityBuffer."Document Type"::"Purchase Quote":
+                begin
+                    DocumentAttachment."Table ID" := Database::"Purchase Header";
+                    DocumentAttachment."Document Type" := DocumentAttachment."Document Type"::Quote;
+                    exit;
+                end;
+            TempAttachmentEntityBuffer."Document Type"::"Blanket Sales Order":
+                begin
+                    DocumentAttachment."Table ID" := Database::"Sales Header";
+                    DocumentAttachment."Document Type" := DocumentAttachment."Document Type"::"Blanket Order";
+                    exit;
+                end;
+            TempAttachmentEntityBuffer."Document Type"::"Sales Return Order":
+                begin
+                    DocumentAttachment."Table ID" := Database::"Sales Header";
+                    DocumentAttachment."Document Type" := DocumentAttachment."Document Type"::"Return Order";
+                    exit;
+                end;
+            TempAttachmentEntityBuffer."Document Type"::"Blanket Purchase Order":
+                begin
+                    DocumentAttachment."Table ID" := Database::"Purchase Header";
+                    DocumentAttachment."Document Type" := DocumentAttachment."Document Type"::"Blanket Order";
+                    exit;
+                end;
+            TempAttachmentEntityBuffer."Document Type"::"Purchase Return Order":
+                begin
+                    DocumentAttachment."Table ID" := Database::"Purchase Header";
+                    DocumentAttachment."Document Type" := DocumentAttachment."Document Type"::"Return Order";
+                    exit;
+                end;
+            TempAttachmentEntityBuffer."Document Type"::"Sales Shipment":
+                begin
+                    DocumentAttachment."Table ID" := Database::"Sales Shipment Header";
+                    exit;
+                end;
+            TempAttachmentEntityBuffer."Document Type"::"Return Receipt":
+                begin
+                    DocumentAttachment."Table ID" := Database::"Return Receipt Header";
+                    exit;
+                end;
+            TempAttachmentEntityBuffer."Document Type"::"Purchase Receipt":
+                begin
+                    DocumentAttachment."Table ID" := Database::"Purch. Rcpt. Header";
+                    exit;
+                end;
+            TempAttachmentEntityBuffer."Document Type"::"Purch. Return Shipment":
+                begin
+                    DocumentAttachment."Table ID" := Database::"Return Shipment Header";
+                    exit;
+                end;
+            TempAttachmentEntityBuffer."Document Type"::"Transfer Order":
+                begin
+                    DocumentAttachment."Table ID" := Database::"Transfer Header";
+                    exit;
+                end;
+            TempAttachmentEntityBuffer."Document Type"::"Transfer Shipment":
+                begin
+                    DocumentAttachment."Table ID" := Database::"Transfer Shipment Header";
+                    exit;
+                end;
+            TempAttachmentEntityBuffer."Document Type"::"Transfer Receipt":
+                begin
+                    DocumentAttachment."Table ID" := Database::"Transfer Receipt Header";
+                    exit;
+                end;
+            TempAttachmentEntityBuffer."Document Type"::"Posted Direct Transfer":
+                begin
+                    DocumentAttachment."Table ID" := Database::"Direct Trans. Header";
+                    exit;
+                end;
+            TempAttachmentEntityBuffer."Document Type"::"Sales Archive Quote",
+            TempAttachmentEntityBuffer."Document Type"::"Sales Archive Order",
+            TempAttachmentEntityBuffer."Document Type"::"Sales Archive Return",
+            TempAttachmentEntityBuffer."Document Type"::"Sales Archive Blanket Order":
+                begin
+                    DocumentAttachment."Table ID" := Database::"Sales Header Archive";
+                    exit;
+                end;
+            TempAttachmentEntityBuffer."Document Type"::"Purchase Archive Quote",
+            TempAttachmentEntityBuffer."Document Type"::"Purchase Archive Order",
+            TempAttachmentEntityBuffer."Document Type"::"Purchase Archive Return",
+            TempAttachmentEntityBuffer."Document Type"::"Purchase Archive Blanket Order":
+                begin
+                    DocumentAttachment."Table ID" := Database::"Purchase Header Archive";
+                    exit;
+                end;
+            TempAttachmentEntityBuffer."Document Type"::"Assembly Order":
+                begin
+                    DocumentAttachment."Table ID" := Database::"Assembly Header";
+                    exit;
+                end;
+            TempAttachmentEntityBuffer."Document Type"::"Posted Assembly Order":
+                begin
+                    DocumentAttachment."Table ID" := Database::"Posted Assembly Header";
+                    exit;
+                end;
+            TempAttachmentEntityBuffer."Document Type"::"Phys. Inventory Order":
+                begin
+                    DocumentAttachment."Table ID" := Database::"Phys. Invt. Order Header";
+                    exit;
+                end;
+            TempAttachmentEntityBuffer."Document Type"::"Posted Phys. Inventory Order":
+                begin
+                    DocumentAttachment."Table ID" := Database::"Pstd. Phys. Invt. Order Hdr";
+                    exit;
+                end;
+            TempAttachmentEntityBuffer."Document Type"::"Phys. Inventory Recording":
+                begin
+                    DocumentAttachment."Table ID" := Database::"Phys. Invt. Record Header";
+                    exit;
+                end;
+            TempAttachmentEntityBuffer."Document Type"::"Posted Phys. Inventory Recording":
+                begin
+                    DocumentAttachment."Table ID" := Database::"Pstd. Phys. Invt. Record Hdr";
+                    exit;
+                end;
+            TempAttachmentEntityBuffer."Document Type"::"Inventory Shipment",
+            TempAttachmentEntityBuffer."Document Type"::"Inventory Receipt":
+                begin
+                    DocumentAttachment."Table ID" := Database::"Invt. Document Header";
+                    exit;
+                end;
+            TempAttachmentEntityBuffer."Document Type"::"Posted Inventory Shipment":
+                begin
+                    DocumentAttachment."Table ID" := Database::"Invt. Shipment Header";
+                    exit;
+                end;
+            TempAttachmentEntityBuffer."Document Type"::"Posted Inventory Receipt":
+                begin
+                    DocumentAttachment."Table ID" := Database::"Invt. Receipt Header";
                     exit;
                 end;
             else
@@ -1883,6 +2025,25 @@ codeunit 5503 "Graph Mgt - Attachment Buffer"
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
         GLEntry: Record "G/L Entry";
         PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr.";
+        SalesShipmentHeader: Record "Sales Shipment Header";
+        ReturnReceiptHeader: Record "Return Receipt Header";
+        PurchRcptHeader: Record "Purch. Rcpt. Header";
+        ReturnShipmentHeader: Record "Return Shipment Header";
+        TransferHeader: Record "Transfer Header";
+        TransferShipmentHeader: Record "Transfer Shipment Header";
+        TransferReceiptHeader: Record "Transfer Receipt Header";
+        DirectTransHeader: Record "Direct Trans. Header";
+        SalesHeaderArchive: Record "Sales Header Archive";
+        PurchaseHeaderArchive: Record "Purchase Header Archive";
+        AssemblyHeader: Record "Assembly Header";
+        PostedAssemblyHeader: Record "Posted Assembly Header";
+        PhysInvtOrderHeader: Record "Phys. Invt. Order Header";
+        PstdPhysInvtOrderHdr: Record "Pstd. Phys. Invt. Order Hdr";
+        PhysInvtRecordHeader: Record "Phys. Invt. Record Header";
+        PstdPhysInvtRecordHdr: Record "Pstd. Phys. Invt. Record Hdr";
+        InvtShipmentHeader: Record "Invt. Shipment Header";
+        InvtReceiptHeader: Record "Invt. Receipt Header";
+        InvtDocumentHeader: Record "Invt. Document Header";
         SalesInvoiceAggregator: Codeunit "Sales Invoice Aggregator";
         PurchInvAggregator: Codeunit "Purch. Inv. Aggregator";
         GraphMgtSalCrMemoBuf: Codeunit "Graph Mgt - Sal. Cr. Memo Buf.";
@@ -1965,6 +2126,121 @@ codeunit 5503 "Graph Mgt - Attachment Buffer"
                         DocumentRecordRef.GetTable(PurchCrMemoHdr);
                         exit;
                     end;
+                end;
+            AttachmentEntityBufferDocType::"Purchase Quote",
+            AttachmentEntityBufferDocType::"Blanket Purchase Order",
+            AttachmentEntityBufferDocType::"Purchase Return Order":
+                if PurchaseHeader.GetBySystemId(DocumentIdFilter) then begin
+                    DocumentRecordRef.GetTable(PurchaseHeader);
+                    exit;
+                end;
+            AttachmentEntityBufferDocType::"Blanket Sales Order",
+            AttachmentEntityBufferDocType::"Sales Return Order":
+                if SalesHeader.GetBySystemId(DocumentIdFilter) then begin
+                    DocumentRecordRef.GetTable(SalesHeader);
+                    exit;
+                end;
+            AttachmentEntityBufferDocType::"Sales Shipment":
+                if SalesShipmentHeader.GetBySystemId(DocumentIdFilter) then begin
+                    DocumentRecordRef.GetTable(SalesShipmentHeader);
+                    exit;
+                end;
+            AttachmentEntityBufferDocType::"Return Receipt":
+                if ReturnReceiptHeader.GetBySystemId(DocumentIdFilter) then begin
+                    DocumentRecordRef.GetTable(ReturnReceiptHeader);
+                    exit;
+                end;
+            AttachmentEntityBufferDocType::"Purchase Receipt":
+                if PurchRcptHeader.GetBySystemId(DocumentIdFilter) then begin
+                    DocumentRecordRef.GetTable(PurchRcptHeader);
+                    exit;
+                end;
+            AttachmentEntityBufferDocType::"Purch. Return Shipment":
+                if ReturnShipmentHeader.GetBySystemId(DocumentIdFilter) then begin
+                    DocumentRecordRef.GetTable(ReturnShipmentHeader);
+                    exit;
+                end;
+            AttachmentEntityBufferDocType::"Transfer Order":
+                if TransferHeader.GetBySystemId(DocumentIdFilter) then begin
+                    DocumentRecordRef.GetTable(TransferHeader);
+                    exit;
+                end;
+            AttachmentEntityBufferDocType::"Transfer Shipment":
+                if TransferShipmentHeader.GetBySystemId(DocumentIdFilter) then begin
+                    DocumentRecordRef.GetTable(TransferShipmentHeader);
+                    exit;
+                end;
+            AttachmentEntityBufferDocType::"Transfer Receipt":
+                if TransferReceiptHeader.GetBySystemId(DocumentIdFilter) then begin
+                    DocumentRecordRef.GetTable(TransferReceiptHeader);
+                    exit;
+                end;
+            AttachmentEntityBufferDocType::"Posted Direct Transfer":
+                if DirectTransHeader.GetBySystemId(DocumentIdFilter) then begin
+                    DocumentRecordRef.GetTable(DirectTransHeader);
+                    exit;
+                end;
+            AttachmentEntityBufferDocType::"Sales Archive Quote",
+            AttachmentEntityBufferDocType::"Sales Archive Order",
+            AttachmentEntityBufferDocType::"Sales Archive Return",
+            AttachmentEntityBufferDocType::"Sales Archive Blanket Order":
+                if SalesHeaderArchive.GetBySystemId(DocumentIdFilter) then begin
+                    DocumentRecordRef.GetTable(SalesHeaderArchive);
+                    exit;
+                end;
+            AttachmentEntityBufferDocType::"Purchase Archive Quote",
+            AttachmentEntityBufferDocType::"Purchase Archive Order",
+            AttachmentEntityBufferDocType::"Purchase Archive Return",
+            AttachmentEntityBufferDocType::"Purchase Archive Blanket Order":
+                if PurchaseHeaderArchive.GetBySystemId(DocumentIdFilter) then begin
+                    DocumentRecordRef.GetTable(PurchaseHeaderArchive);
+                    exit;
+                end;
+            AttachmentEntityBufferDocType::"Assembly Order":
+                if AssemblyHeader.GetBySystemId(DocumentIdFilter) then begin
+                    DocumentRecordRef.GetTable(AssemblyHeader);
+                    exit;
+                end;
+            AttachmentEntityBufferDocType::"Posted Assembly Order":
+                if PostedAssemblyHeader.GetBySystemId(DocumentIdFilter) then begin
+                    DocumentRecordRef.GetTable(PostedAssemblyHeader);
+                    exit;
+                end;
+            AttachmentEntityBufferDocType::"Phys. Inventory Order":
+                if PhysInvtOrderHeader.GetBySystemId(DocumentIdFilter) then begin
+                    DocumentRecordRef.GetTable(PhysInvtOrderHeader);
+                    exit;
+                end;
+            AttachmentEntityBufferDocType::"Posted Phys. Inventory Order":
+                if PstdPhysInvtOrderHdr.GetBySystemId(DocumentIdFilter) then begin
+                    DocumentRecordRef.GetTable(PstdPhysInvtOrderHdr);
+                    exit;
+                end;
+            AttachmentEntityBufferDocType::"Phys. Inventory Recording":
+                if PhysInvtRecordHeader.GetBySystemId(DocumentIdFilter) then begin
+                    DocumentRecordRef.GetTable(PhysInvtRecordHeader);
+                    exit;
+                end;
+            AttachmentEntityBufferDocType::"Posted Phys. Inventory Recording":
+                if PstdPhysInvtRecordHdr.GetBySystemId(DocumentIdFilter) then begin
+                    DocumentRecordRef.GetTable(PstdPhysInvtRecordHdr);
+                    exit;
+                end;
+            AttachmentEntityBufferDocType::"Inventory Shipment",
+            AttachmentEntityBufferDocType::"Inventory Receipt":
+                if InvtDocumentHeader.GetBySystemId(DocumentIdFilter) then begin
+                    DocumentRecordRef.GetTable(InvtDocumentHeader);
+                    exit;
+                end;
+            AttachmentEntityBufferDocType::"Posted Inventory Shipment":
+                if InvtShipmentHeader.GetBySystemId(DocumentIdFilter) then begin
+                    DocumentRecordRef.GetTable(InvtShipmentHeader);
+                    exit;
+                end;
+            AttachmentEntityBufferDocType::"Posted Inventory Receipt":
+                if InvtReceiptHeader.GetBySystemId(DocumentIdFilter) then begin
+                    DocumentRecordRef.GetTable(InvtReceiptHeader);
+                    exit;
                 end;
             AttachmentEntityBufferDocType::" ":
                 ErrorMsg := DocumentIDorTypeNotSpecifiedForAttachmentsErr;

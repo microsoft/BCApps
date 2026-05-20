@@ -125,12 +125,19 @@ table 30152 "Shpfy Catalog"
             Caption = 'Allow Line Disc.';
             DataClassification = CustomerContent;
             ToolTip = 'Specifies if line discount is allowed while calculating prices for the catalog.';
+            InitValue = true;
         }
         field(16; "Sync Prices"; Boolean)
         {
             Caption = 'Sync Prices';
             DataClassification = CustomerContent;
             ToolTip = 'Specifies if the prices are synced to Shopify.';
+
+            trigger OnValidate()
+            begin
+                if "Sync Prices" then
+                    CheckDuplicateSyncPrices();
+            end;
         }
         field(17; "Customer No."; Code[20])
         {
@@ -171,5 +178,43 @@ table 30152 "Shpfy Catalog"
     begin
         MarketCatalogRelation.SetRange("Catalog Id", Id);
         MarketCatalogRelation.DeleteAll(true);
+    end;
+
+    local procedure CheckDuplicateSyncPrices()
+    var
+        OtherCatalog: Record "Shpfy Catalog";
+        DisableSyncPricesOnOtherLinesQst: Label 'Catalog "%1" already has Sync Prices enabled for company(s) %2. Only one pricing configuration per catalog is used during sync.\Do you want to disable Sync Prices on the other line(s) and enable it on the current one?\Consider using Market Catalogs if you want to link the same catalog to multiple B2B companies.', Comment = '%1 = Catalog Name, %2 = Company Name(s)';
+    begin
+        if not GuiAllowed then
+            exit;
+
+        OtherCatalog.SetRange(Id, Id);
+        OtherCatalog.SetRange("Sync Prices", true);
+        OtherCatalog.SetFilter("Company SystemId", '<>%1', "Company SystemId");
+        if OtherCatalog.IsEmpty() then
+            exit;
+
+        if not Confirm(DisableSyncPricesOnOtherLinesQst, false, Name, GetCompanyNamesForCatalogs(OtherCatalog)) then begin
+            "Sync Prices" := false;
+            exit;
+        end;
+
+        OtherCatalog.ModifyAll("Sync Prices", false);
+    end;
+
+    local procedure GetCompanyNamesForCatalogs(var CatalogFilter: Record "Shpfy Catalog"): Text
+    var
+        Names: TextBuilder;
+        Separator: Text;
+    begin
+        Separator := '';
+        if CatalogFilter.FindSet() then
+            repeat
+                CatalogFilter.CalcFields("Company Name");
+                Names.Append(Separator);
+                Names.Append(CatalogFilter."Company Name");
+                Separator := ', ';
+            until CatalogFilter.Next() = 0;
+        exit(Names.ToText());
     end;
 }

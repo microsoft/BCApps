@@ -6,6 +6,7 @@ query 6220 "Sustainability Goals - PBI API"
 {
     Access = Internal;
     QueryType = API;
+    AboutText = 'Provides access to sustainability goal definitions including target values for CO2, CH4, N2O, water intensity, and waste intensity metrics. Enables Power BI reports to track progress against environmental targets, baseline comparisons, and goal achievement for sustainability performance dashboards.';
     Caption = 'Power BI Sustainability Goals';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';

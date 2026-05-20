@@ -239,10 +239,10 @@ page 1238 "Transformation Rule Card"
     end;
 
     var
-        TestText, ResultText : Text;
         UpdateResultLbl: Label 'Update';
 
     protected var
+        TestText, ResultText : Text;
         VisibleTransformationRuleGroups: List of [Enum "Transformation Rule Group"];
         IsDataFormatVisible, IsFindValueVisible, IsReplaceValueVisible, IsStartPositionVisible, IsEndPositionVisible, IsFieldLookupVisible, IsExtractFromDateVisible, IsRoundVisible : Boolean;
 

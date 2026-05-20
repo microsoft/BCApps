@@ -11,6 +11,7 @@ query 36973 "Purchase Lines - Outstanding"
     Access = Internal;
     Caption = 'Power BI Purchase Lines';
     QueryType = API;
+    AboutText = 'Provides access to outstanding purchase order and return order lines for items including quantities, expected receipt dates, and vendors. Enables Power BI reports to analyze pending purchase receipts and forecast inventory replenishment from purchase orders.';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';
     ApiVersion = 'v0.5', 'v1.0';

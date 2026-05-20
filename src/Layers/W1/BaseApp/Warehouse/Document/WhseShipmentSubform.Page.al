@@ -177,7 +177,7 @@ page 7336 "Whse. Shipment Subform"
                 {
                     ApplicationArea = Warehouse;
                 }
-                field(QtyCrossDockedUOM; QtyCrossDockedUOM)
+                field(QtyCrossDockedUOM; GetQtyCrossDockedUOM())
                 {
                     ApplicationArea = Warehouse;
                     AutoFormatType = 0;
@@ -192,7 +192,7 @@ page 7336 "Whse. Shipment Subform"
                         CrossDockMgt.ShowBinContentsCrossDocked(Rec."Item No.", Rec."Variant Code", Rec."Unit of Measure Code", Rec."Location Code", true);
                     end;
                 }
-                field(QtyCrossDockedUOMBase; QtyCrossDockedUOMBase)
+                field(QtyCrossDockedUOMBase; GetQtyCrossDockedUOMBase())
                 {
                     ApplicationArea = Warehouse;
                     AutoFormatType = 0;
@@ -207,7 +207,7 @@ page 7336 "Whse. Shipment Subform"
                         CrossDockMgt.ShowBinContentsCrossDocked(Rec."Item No.", Rec."Variant Code", Rec."Unit of Measure Code", Rec."Location Code", true);
                     end;
                 }
-                field(QtyCrossDockedAllUOMBase; QtyCrossDockedAllUOMBase)
+                field(QtyCrossDockedAllUOMBase; GetQtyCrossDockedAllUOMBase())
                 {
                     ApplicationArea = Warehouse;
                     AutoFormatType = 0;
@@ -320,12 +320,7 @@ page 7336 "Whse. Shipment Subform"
 
     trigger OnAfterGetRecord()
     begin
-        CrossDockMgt.CalcCrossDockedItems(Rec."Item No.", Rec."Variant Code", Rec."Unit of Measure Code", Rec."Location Code",
-          QtyCrossDockedUOMBase,
-          QtyCrossDockedAllUOMBase);
-        QtyCrossDockedUOM := 0;
-        if Rec."Qty. per Unit of Measure" <> 0 then
-            QtyCrossDockedUOM := Round(QtyCrossDockedUOMBase / Rec."Qty. per Unit of Measure", UOMMgt.QtyRndPrecision());
+        CrossDockedItemsCalculated := false;
     end;
 
     trigger OnDeleteRecord(): Boolean
@@ -341,6 +336,53 @@ page 7336 "Whse. Shipment Subform"
         QtyCrossDockedAllUOMBase: Decimal;
         QtyCrossDockedUOMBase: Decimal;
         HideBinFields: Boolean;
+        CrossDockedItemsCalculated: Boolean;
+
+    /// <summary>
+    /// Calculates the cross-docked item quantities if not already calculated.
+    /// </summary>
+    local procedure CalcCrossDockedValues()
+    begin
+        if not CrossDockedItemsCalculated then begin
+            CrossDockMgt.CalcCrossDockedItems(Rec."Item No.", Rec."Variant Code", Rec."Unit of Measure Code", Rec."Location Code",
+              QtyCrossDockedUOMBase,
+              QtyCrossDockedAllUOMBase);
+            QtyCrossDockedUOM := 0;
+            if Rec."Qty. per Unit of Measure" <> 0 then
+                QtyCrossDockedUOM := Round(QtyCrossDockedUOMBase / Rec."Qty. per Unit of Measure", UOMMgt.QtyRndPrecision());
+            CrossDockedItemsCalculated := true;
+        end;
+    end;
+
+    /// <summary>
+    /// Gets the cross-docked quantity in the unit of measure.
+    /// </summary>
+    /// <returns>The cross-docked quantity in the unit of measure.</returns>
+    local procedure GetQtyCrossDockedUOM(): Decimal
+    begin
+        CalcCrossDockedValues();
+        exit(QtyCrossDockedUOM);
+    end;
+
+    /// <summary>
+    /// Gets the cross-docked quantity in the base unit of measure.
+    /// </summary>
+    /// <returns>The cross-docked quantity in the base unit of measure.</returns>
+    local procedure GetQtyCrossDockedUOMBase(): Decimal
+    begin
+        CalcCrossDockedValues();
+        exit(QtyCrossDockedUOMBase);
+    end;
+
+    /// <summary>
+    /// Gets the total cross-docked quantity for all units of measure in base.
+    /// </summary>
+    /// <returns>The total cross-docked quantity in base unit of measure.</returns>
+    local procedure GetQtyCrossDockedAllUOMBase(): Decimal
+    begin
+        CalcCrossDockedValues();
+        exit(QtyCrossDockedAllUOMBase);
+    end;
 
     local procedure ShowSourceLine()
     begin

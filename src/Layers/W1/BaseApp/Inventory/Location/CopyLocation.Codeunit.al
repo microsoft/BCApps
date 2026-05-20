@@ -98,7 +98,7 @@ codeunit 5714 "Copy Location"
 
         TargetLocation := SourceLocation;
         TargetLocation.Code := TempCopyLocationBuffer."Target Location Code";
-        TargetLocation.Name := CopyStr(SourceLocation.Name, 1, MaxStrLen(TargetLocation.Name));
+        TargetLocation.Name := CopyStr(TempCopyLocationBuffer."Target Location Name", 1, MaxStrLen(TargetLocation.Name));
 
         NewLocationCode := TargetLocation.Code;
     end;

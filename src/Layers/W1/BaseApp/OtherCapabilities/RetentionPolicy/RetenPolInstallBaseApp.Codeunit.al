@@ -122,6 +122,25 @@ codeunit 3999 "Reten. Pol. Install - BaseApp"
             if IsInitialSetup then
                 UpgradeTag.SetUpgradeTag(GetRetenPolDataExchUpgradeTag());
         end;
+
+        IsInitialSetup := not UpgradeTag.HasUpgradeTag(GetRetenPolTruncateAllowedUpgradeTag());
+        if IsInitialSetup or ForceUpdate then begin
+            SetTruncateAllowedIfTableExists(Database::"Change Log Entry");
+            SetTruncateAllowedIfTableExists(Database::"Error Message");
+            SetTruncateAllowedIfTableExists(Database::"Error Message Register");
+            SetTruncateAllowedIfTableExists(Database::"Integration Synch. Job Errors");
+            if IsInitialSetup then
+                UpgradeTag.SetUpgradeTag(GetRetenPolTruncateAllowedUpgradeTag());
+        end;
+    end;
+
+    local procedure SetTruncateAllowedIfTableExists(TableId: Integer)
+    var
+        RetenPolAllowedTables: Codeunit "Reten. Pol. Allowed Tables";
+    begin
+        if not RetenPolAllowedTables.IsAllowedTable(TableId) then
+            exit;
+        RetenPolAllowedTables.SetTruncateAllowed(TableId, true);
     end;
 
     local procedure AddChangeLogEntryToAllowedTables(IsInitialSetup: Boolean)
@@ -422,6 +441,17 @@ codeunit 3999 "Reten. Pol. Install - BaseApp"
     local procedure GetRetenPolDataExchUpgradeTag(): Code[250]
     begin
         exit('MS-GIT-704-RetenPolDataExch-20250713');
+    end;
+
+    local procedure GetRetenPolTruncateAllowedUpgradeTag(): Code[250]
+    begin
+        exit('MS-596204-RetenPolTruncateAllowed-20260407');
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", 'OnGetPerCompanyUpgradeTags', '', false, false)]
+    local procedure RegisterPerCompanyUpgradeTags(var PerCompanyUpgradeTags: List of [Code[250]])
+    begin
+        PerCompanyUpgradeTags.Add(GetRetenPolTruncateAllowedUpgradeTag());
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reten. Pol. Allowed Tables", 'OnRefreshAllowedTables', '', false, false)]

@@ -6,6 +6,7 @@ query 6213 "EmployeeLedgerEntry - PBI API"
 {
     Access = Internal;
     QueryType = API;
+    AboutText = 'Provides access to employee ledger entries including posting dates, document types, amounts, and dimensions. Enables Power BI reports to analyze employee-related financial transactions for workforce cost analysis and social sustainability reporting.';
     Caption = 'Power BI Employee Ledger Entry';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';

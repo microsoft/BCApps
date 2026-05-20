@@ -204,4 +204,36 @@ codeunit 139524 "VAT Group Setup Page Test"
         // [THEN] Company name appears unchanged in the result
         Assert.IsTrue(StrPos(ResultURI, 'name=''' + PlainCompanyName + '''') > 0, 'URI should contain plain company name unchanged');
     end;
+
+    [Test]
+    procedure TestClientSecretCanBeRetrievedAfterStorage()
+    var
+        VATReportSetup: Record "VAT Report Setup";
+    begin
+        // [SCENARIO 575975] Client secret stored via the setup page can be retrieved for OAuth2 authentication
+        // [GIVEN] A VAT Report Setup exists with Member role
+        LibraryVATGroup.EnableDefaultVATMemberSetup();
+
+        // [GIVEN] A client secret is stored
+        VATReportSetup.Get();
+        StoreAndVerifyClientSecret(VATReportSetup);
+    end;
+
+    [NonDebuggable]
+    local procedure StoreAndVerifyClientSecret(var VATReportSetup: Record "VAT Report Setup")
+    var
+        StoredSecret: SecretText;
+        ClientSecretValue: SecretText;
+    begin
+        ClientSecretValue := SecretStrSubstNo(ClientSecretTxt);
+        VATReportSetup."Client Secret Key" := VATReportSetup.SetSecret(VATReportSetup."Client Secret Key", ClientSecretValue);
+        VATReportSetup.Modify();
+
+        // [WHEN] The secret is retrieved
+        StoredSecret := VATReportSetup.GetSecretAsSecretText(VATReportSetup."Client Secret Key");
+
+        // [THEN] The retrieved value matches the original secret, not a masked placeholder
+        Assert.AreEqual(ClientSecretTxt, StoredSecret.Unwrap(), 'Client secret should be retrievable with its original value, not masked.');
+        Assert.AreNotEqual('*', StoredSecret.Unwrap(), 'Client secret must not be the masked placeholder ''*''.');
+    end;
 }

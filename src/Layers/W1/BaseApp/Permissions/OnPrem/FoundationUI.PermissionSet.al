@@ -140,6 +140,7 @@ permissionset 6946 "Foundation UI"
                   tabledata "Experience Tier Buffer" = RIMD,
                   tabledata "Experience Tier Setup" = RIMD,
                   tabledata "Extended Text Header" = R,
+                  tabledata "Adv. Bonus Depreciation Setup" = RIM,
                   tabledata "FA Date Type" = RIMD,
                   tabledata "FA Journal Setup" = Rim,
                   tabledata "FA Matrix Posting Type" = RIMD,

@@ -12,7 +12,8 @@ codeunit 5919 "Serv Reg.-Show WarrLdgEntries"
     begin
         WarrLedgEntry.Reset();
         WarrLedgEntry.SetRange("Entry No.", Rec."From Warranty Entry No.", Rec."To Warranty Entry No.");
-        PAGE.Run(PAGE::"Warranty Ledger Entries", WarrLedgEntry);
+        WarrLedgEntry.SetFilter("Service Register No.", '0|%1', Rec."No.");
+        Page.Run(Page::"Warranty Ledger Entries", WarrLedgEntry);
     end;
 
     var

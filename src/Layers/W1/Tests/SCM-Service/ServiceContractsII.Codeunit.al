@@ -4,7 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Service.Test;
 
+using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.SalesTax;
 using Microsoft.Projects.Resources.Resource;
 using Microsoft.Sales.Customer;
 using Microsoft.Service.Contract;
@@ -33,6 +35,7 @@ codeunit 136145 "Service Contracts II"
         LibrarySales: Codeunit "Library - Sales";
         LibraryRandom: Codeunit "Library - Random";
         LibraryUtility: Codeunit "Library - Utility";
+        LibraryUTUtility: Codeunit "Library UT Utility";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryERM: Codeunit "Library - ERM";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
@@ -51,6 +54,8 @@ codeunit 136145 "Service Contracts II"
         CurrentSaveValuesId: Integer;
         ConfirmLaterPostingDateQst: Label 'The posting date is later than the work date.\\Confirm that this is the correct date.';
         ConfirmLaterInvoiceToDateQst: Label 'The Invoice-to Date is later than the work date.\\Confirm that this is the correct date.';
+        TaxAreaCodeMismatchErr: Label 'Tax Area Code should match Customer.', Locked = true;
+        TaxLiableMismatchErr: Label 'Tax Liable should match Customer.', Locked = true;
         NextPlannedServiceDateConfirmQst: Label 'The Next Planned Service Date field is empty on one or more service contract lines, and service orders cannot be created automatically. Do you want to continue?';
         ValueMustBeEqualErr: Label '%1 must be equal to %2 in %3', Comment = '%1 = Field Caption , %2 = Expected Value , %3 = Table Caption';
         CreateServiceInvoiceQst: Label 'Do you want to create an invoice for the contract?';
@@ -2277,6 +2282,61 @@ codeunit 136145 "Service Contracts II"
                 ServiceLine.TableCaption()));
     end;
 
+    [Test]
+    [HandlerFunctions('ServiceContractTemplateListHandler,YesConfirmHandler,MessageHandler')]
+    [Scope('OnPrem')]
+    procedure CreditMemoLinesInheritTaxFieldsFromHeader()
+    var
+        TaxArea: Record "Tax Area";
+        Customer: Record Customer;
+        ServiceContractHeader: Record "Service Contract Header";
+        ServiceContractLine: Record "Service Contract Line";
+        ServiceHeader: Record "Service Header";
+        ServiceContractAccountGroup: Record "Service Contract Account Group";
+        ServContractManagement: Codeunit ServContractManagement;
+        TaxGroupCode: Code[20];
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] Credit Memo created from Service Contract has Tax Area Code and Tax Liable from Customer on header and lines
+
+        Initialize();
+
+        // [GIVEN] Tax Area "TA" with Tax Jurisdiction and Tax Group "TG"
+        TaxGroupCode := CreateTaxAreaWithTaxAreaLine(TaxArea);
+
+        // [GIVEN] Customer "C" with "Tax Area Code" = "TA" and "Tax Liable" = TRUE
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Validate("Tax Area Code", TaxArea.Code);
+        Customer.Validate("Tax Liable", true);
+        Customer.Modify(true);
+
+        // [GIVEN] Service Contract Account Group whose G/L accounts have "Tax Group Code" = "TG"
+        LibraryService.CreateServiceContractAcctGrp(ServiceContractAccountGroup);
+        SetTaxGroupCodeOnContractAccGrAccounts(ServiceContractAccountGroup, TaxGroupCode);
+
+        // [GIVEN] Signed Service Contract for Customer "C" with a posted Service Invoice
+        LibraryService.CreateServiceContractHeader(
+            ServiceContractHeader, ServiceContractHeader."Contract Type"::Contract, Customer."No.");
+        Evaluate(ServiceContractHeader."Service Period", StrSubstNo('<%1Y>', LibraryRandom.RandInt(5)));
+        CreateContractLineAndUpdateContract(
+            ServiceContractHeader, ServiceContractAccountGroup.Code, WorkDate(), ServiceContractHeader."Service Period");
+        SignContract(ServiceContractHeader);
+        FindAndPostServiceInvoice(ServiceContractHeader."Contract No.");
+
+        // [WHEN] Create Service Credit Memo from Service Contract
+        FindServiceContractLine(ServiceContractLine, ServiceContractHeader);
+        ServiceHeader.Get(
+            ServiceHeader."Document Type"::"Credit Memo",
+            ServContractManagement.CreateContractLineCreditMemo(ServiceContractLine, false));
+
+        // [THEN] Service Credit Memo Header has "Tax Area Code" = "TA" and "Tax Liable" = TRUE
+        Assert.AreEqual(TaxArea.Code, ServiceHeader."Tax Area Code", TaxAreaCodeMismatchErr);
+        Assert.AreEqual(true, ServiceHeader."Tax Liable", TaxLiableMismatchErr);
+
+        // [THEN] Service Credit Memo Lines have "Tax Area Code" = "TA" and "Tax Liable" = TRUE
+        VerifyCreditMemoLinesTaxFields(ServiceHeader, TaxArea.Code);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -2594,6 +2654,56 @@ codeunit 136145 "Service Contracts II"
         LibrarySales.CreateCustomer(Customer);
         Customer.Validate("Gen. Bus. Posting Group", GenBusinessPostingGroup.Code);
         Customer.Modify(true);
+    end;
+
+    local procedure CreateTaxAreaWithTaxAreaLine(var TaxArea: Record "Tax Area"): Code[10]
+    var
+        TaxAreaLine: Record "Tax Area Line";
+        TaxDetail: Record "Tax Detail";
+    begin
+        CreateTaxDetailWithJurisdiction(TaxDetail);
+        TaxArea.Code := LibraryUTUtility.GetNewCode();
+        TaxArea.Description := LibraryUtility.GenerateRandomXMLText(MaxStrLen(TaxArea.Description));
+        TaxArea.Insert();
+        TaxAreaLine."Tax Area" := TaxArea.Code;
+        TaxAreaLine."Tax Jurisdiction Code" := TaxDetail."Tax Jurisdiction Code";
+        TaxAreaLine.Insert();
+        exit(TaxDetail."Tax Group Code");
+    end;
+
+    local procedure CreateTaxDetailWithJurisdiction(var TaxDetail: Record "Tax Detail")
+    var
+        TaxGroup: Record "Tax Group";
+        TaxJurisdiction: Record "Tax Jurisdiction";
+    begin
+        TaxJurisdiction.Code := LibraryUTUtility.GetNewCode10();
+        TaxJurisdiction.Insert();
+        TaxDetail."Tax Jurisdiction Code" := TaxJurisdiction.Code;
+        TaxDetail."Tax Group Code" := LibraryUTUtility.GetNewCode10();
+        TaxDetail."Tax Below Maximum" := LibraryRandom.RandDecInRange(5, 10, 2);
+        TaxDetail.Insert();
+
+        TaxGroup.Init();
+        TaxGroup.Validate(Code, TaxDetail."Tax Group Code");
+        TaxGroup.Validate(Description, TaxGroup.Code);
+        TaxGroup.Insert(true);
+    end;
+
+    local procedure SetTaxGroupCodeOnContractAccGrAccounts(ServiceContractAccountGroup: Record "Service Contract Account Group"; TaxGroupCode: Code[20])
+    begin
+        SetTaxGroupCodeOnGLAccount(ServiceContractAccountGroup."Non-Prepaid Contract Acc.", TaxGroupCode);
+        SetTaxGroupCodeOnGLAccount(ServiceContractAccountGroup."Prepaid Contract Acc.", TaxGroupCode);
+    end;
+
+    local procedure SetTaxGroupCodeOnGLAccount(GLAccountNo: Code[20]; TaxGroupCode: Code[20])
+    var
+        GLAccount: Record "G/L Account";
+    begin
+        if GLAccountNo = '' then
+            exit;
+        GLAccount.Get(GLAccountNo);
+        GLAccount.Validate("Tax Group Code", TaxGroupCode);
+        GLAccount.Modify(true);
     end;
 
     local procedure FilterServiceLedgEntry(var ServiceLedgerEntry: Record "Service Ledger Entry"; ServiceContractNo: Code[20])
@@ -3126,6 +3236,20 @@ codeunit 136145 "Service Contracts II"
         Assert.RecordIsNotEmpty(ServiceLine);
     end;
 
+    local procedure VerifyCreditMemoLinesTaxFields(ServiceHeader: Record "Service Header"; TaxAreaCode: Code[20])
+    var
+        ServiceLine: Record "Service Line";
+    begin
+        ServiceLine.SetRange("Document Type", ServiceHeader."Document Type");
+        ServiceLine.SetRange("Document No.", ServiceHeader."No.");
+        ServiceLine.SetFilter("No.", '<>%1', '');
+        ServiceLine.FindSet();
+        repeat
+            Assert.AreEqual(TaxAreaCode, ServiceLine."Tax Area Code", TaxAreaCodeMismatchErr);
+            Assert.AreEqual(true, ServiceLine."Tax Liable", TaxLiableMismatchErr);
+        until ServiceLine.Next() = 0;
+    end;
+
     [RequestPageHandler]
     [Scope('OnPrem')]
     procedure CreateContractInvoicesRequestPageHandler(var CreateContractInvoices: TestRequestPage "Create Contract Invoices")
@@ -3406,4 +3530,3 @@ codeunit 136145 "Service Contracts II"
         exit(ServiceLine.Count);
     end;
 }
-

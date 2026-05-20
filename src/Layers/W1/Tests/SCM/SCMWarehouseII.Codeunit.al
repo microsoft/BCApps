@@ -2713,7 +2713,7 @@ codeunit 137048 "SCM Warehouse II"
     begin
         LibraryManufacturing.CreateItemManufacturing(
           Item, Item."Costing Method"::Standard, LibraryRandom.RandDec(100, 2), Item."Reordering Policy"::Order,
-          Item."Flushing Method", '', '');
+          Item."Flushing Method"::"Pick + Manual", '', '');
         Item.Validate("Reorder Quantity", LibraryRandom.RandDec(100, 2));  // Value Required.
         Item.Validate("Vendor No.", LibraryPurchase.CreateVendorNo());
         Item.Modify(true);

@@ -169,7 +169,7 @@ page 4363 "Agent Instruction Editor"
                         AgentTask: Codeunit "Agent Task";
                     begin
                         if GetAgentTaskSafe(AgentTaskRecord, CurrPage.AgentTaskLogEntryPart.Page.GetTaskID()) then
-                            AgentTask.StopTask(AgentTaskRecord, true);
+                            AgentTask.StopTask(AgentTaskRecord.ID, true);
                     end;
                 }
                 action(Resume)
@@ -185,7 +185,7 @@ page 4363 "Agent Instruction Editor"
                         AgentTask: Codeunit "Agent Task";
                     begin
                         GetAgentTaskSafe(AgentTaskRecord, CurrPage.AgentTaskLogEntryPart.Page.GetTaskID());
-                        AgentTask.RestartTask(AgentTaskRecord, true);
+                        AgentTask.RestartTask(AgentTaskRecord.ID, true);
                     end;
                 }
             }

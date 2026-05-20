@@ -53,6 +53,7 @@ codeunit 147310 "ERM Apply Unapply"
         UnapplyBlankedDocTypeErr: Label 'You cannot unapply the entries because one entry has a blank document type.';
         UnAppliedErr: Label 'Entries are  still applied.';
         GLEntryMustBeFound: Label 'GL Entry must be found.';
+        ExpectedApplicationGLEntriesForPayablesAccountsErr: Label 'Expected two Application GL entries for Payables Accounts, found %1.';
 
     [Test]
     [Scope('OnPrem')]
@@ -2125,6 +2126,96 @@ codeunit 147310 "ERM Apply Unapply"
         Assert.RecordIsNotEmpty(DetailedVendorLedgerEntry);
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure StandaloneApplyPmtToInvToCarteraMultiPostingGrpsNoDuplicateGLEntries()
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        GLEntry: Record "G/L Entry";
+        Item: Record Item;
+        PaymentMethod: Record "Payment Method";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+        Vendor: Record Vendor;
+        VendLedgEntry: Record "Vendor Ledger Entry";
+        VendorPostingGroup: array[2] of Record "Vendor Posting Group";
+        Amount: Decimal;
+        GLEntryCount: Integer;
+        TransactionNo: Integer;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 625601] Standalone apply Payment to Invoice to Cartera with Multiple Posting Groups creates exactly 2 GL entries without duplicates.
+        Initialize();
+
+        // [GIVEN] Allow Multiple Posting Groups is true in Purchases & Payables Setup.
+        PurchasesPayablesSetup.Get();
+        PurchasesPayablesSetup."Allow Multiple Posting Groups" := true;
+        PurchasesPayablesSetup.Modify();
+
+        // [GIVEN] Two Vendor Posting Groups "VPG1" and "VPG2" with different Payables Accounts.
+        LibraryPurchase.CreateVendorPostingGroup(VendorPostingGroup[1]);
+        LibraryPurchase.CreateVendorPostingGroup(VendorPostingGroup[2]);
+
+        // [GIVEN] "VPG2" is alternate posting group for "VPG1".
+        LibraryPurchase.CreateAltVendorPostingGroup(VendorPostingGroup[1].Code, VendorPostingGroup[2].Code);
+
+        // [GIVEN] Vendor "V" with Allow Multiple Posting Groups and Vendor Posting Group = "VPG1".
+        LibraryPurchase.CreateVendor(Vendor);
+        Vendor.Validate("Allow Multiple Posting Groups", true);
+        Vendor.Validate("Vendor Posting Group", VendorPostingGroup[1].Code);
+        Vendor.Modify(true);
+
+        // [GIVEN] Payment Method with "Invoices to Cartera" = true.
+        PaymentMethod.Get(Vendor."Payment Method Code");
+        PaymentMethod.Validate("Invoices to Cartera", true);
+        PaymentMethod.Modify(true);
+
+        // [GIVEN] Purchase Invoice "PI" posted for Vendor "V", creating Invoice to Cartera VLE with Amount = "X".
+        LibraryInventory.CreateItem(Item);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, Vendor."No.");
+        PurchaseHeader.Validate("Prices Including VAT", true);
+        PurchaseHeader.Modify(true);
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 1);
+        PurchaseLine.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(100, 500, 2));
+        PurchaseLine.Modify(true);
+        Amount := PurchaseLine."Amount Including VAT";
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, false, true);
+
+        // [GIVEN] Payment "P" posted with Posting Group = "VPG2" and Amount = "X" (no application during posting).
+        CreateGenJnlLine(GenJournalLine, GenJournalLine."Document Type"::Payment, GenJournalLine."Account Type"::Vendor, Vendor."No.", Amount);
+        GenJournalLine.Validate("Posting Group", VendorPostingGroup[2].Code);
+        GenJournalLine.Validate("Debit Amount", Amount);
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+        TransactionNo := FindLastTransactionNo();
+
+        // [WHEN] Standalone apply Payment "P" to Invoice "PI" using Apply Entries.
+        ApplyPurchDocuments(
+            VendLedgEntry."Document Type"::Payment,
+            GenJournalLine."Document No.",
+            VendLedgEntry."Document Type"::Invoice,
+            Amount);
+
+        // [THEN] GL Entry exists for "VPG2"."Payables Account" with Amount = -"X" (Payment side).
+        GLEntry.SetFilter("Transaction No.", '>%1', TransactionNo);
+        GLEntry.SetRange("G/L Account No.", VendorPostingGroup[2]."Payables Account");
+        GLEntry.SetRange(Amount, -Amount);
+        Assert.IsFalse(GLEntry.IsEmpty(), GLEntryMustBeFound);
+
+        // [THEN] GL Entry exists for "VPG1"."Payables Account" with Amount = +"X" (Invoice side).
+        GLEntry.SetRange("G/L Account No.", VendorPostingGroup[1]."Payables Account");
+        GLEntry.SetRange(Amount, Amount);
+        Assert.IsFalse(GLEntry.IsEmpty(), GLEntryMustBeFound);
+
+        // [THEN] Exactly 2 GL entries exist for application (no duplicates).
+        GLEntry.Reset();
+        GLEntry.SetFilter("Transaction No.", '>%1', TransactionNo);
+        GLEntry.SetFilter("G/L Account No.", '%1|%2', VendorPostingGroup[1]."Payables Account", VendorPostingGroup[2]."Payables Account");
+        GLEntryCount := GLEntry.Count();
+        Assert.AreEqual(2, GLEntryCount, StrSubstNo(ExpectedApplicationGLEntriesForPayablesAccountsErr, GLEntryCount));
+    end;
+
     local procedure SumGLEntryAmountsForPayablesAccounts(var PayablesAccountCodes: List of [Code[20]]): Decimal
     var
         GLEntry: Record "G/L Entry";
@@ -2170,6 +2261,7 @@ codeunit 147310 "ERM Apply Unapply"
         if IsInitialized then
             exit;
         LibrarySetupStorage.Save(DATABASE::"General Ledger Setup");
+        LibrarySetupStorage.Save(DATABASE::"Purchases & Payables Setup");
 
         IsInitialized := true;
         Commit();

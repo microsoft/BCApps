@@ -3022,7 +3022,7 @@ codeunit 137065 "SCM Reservation II"
         LibraryInventory.CreateItem(ProdItem);
         ProdItem.Validate("Replenishment System", ProdItem."Replenishment System"::"Prod. Order");
         ProdItem.Validate("Manufacturing Policy", ProdItem."Manufacturing Policy"::"Make-to-Stock");
-        ProdItem.Validate("Flushing Method", ProdItem."Flushing Method"::Manual);
+        ProdItem.Validate("Flushing Method", ProdItem."Flushing Method"::"Pick + Manual");
         ProdItem.Validate("Production BOM No.", LibraryManufacturing.CreateCertifiedProductionBOM(ProductionBOMHeader, CompItem."No.", 1));
         ProdItem.Modify();
 

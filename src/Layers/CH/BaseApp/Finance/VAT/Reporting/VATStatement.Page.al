@@ -277,12 +277,14 @@ page 317 "VAT Statement"
     end;
 
     var
-        VATStmtName: Record "VAT Statement Name";
         ReportPrint: Codeunit "Test Report-Print";
         VATStmtManagement: Codeunit VATStmtManagement;
         DocPrint: Codeunit "Document-Print";
-        CurrentStmtName: Code[10];
         OpenedFromBatch: Boolean;
+
+    protected var
+        VATStmtName: Record "VAT Statement Name";
+        CurrentStmtName: Code[10];
 
     local procedure CurrentStmtNameOnAfterValidate()
     begin

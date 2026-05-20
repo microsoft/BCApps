@@ -14,6 +14,7 @@ query 37008 "Prod. Orders - PBI API"
     Access = Internal;
     Caption = 'Power BI Production Orders';
     QueryType = API;
+    AboutText = 'Provides access to production order header data including status, source information, routing numbers, quantities, and scheduling dates. Enables Power BI reports to analyze production order status, track order lifecycle, and monitor manufacturing workload by status category.';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';
     ApiVersion = 'v0.5', 'v1.0';

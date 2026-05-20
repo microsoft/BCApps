@@ -826,38 +826,20 @@ table 99000754 "Work Center"
     end;
 
     procedure GetBinCodeForFlushingMethod(UseFlushingMethod: Boolean; FlushingMethod: Enum "Flushing Method") Result: Code[20]
-#if not CLEAN26
-    var
-        ManufacturingSetup: Record "Manufacturing Setup";
-#endif
     begin
         if not UseFlushingMethod then
             exit("From-Production Bin Code");
 
-#if not CLEAN26
-        if not ManufacturingSetup.IsFeatureKeyFlushingMethodManualWithoutPickEnabled() then
-            case FlushingMethod of
-                FlushingMethod::Manual,
-                FlushingMethod::"Pick + Manual",
-                FlushingMethod::"Pick + Forward",
-                FlushingMethod::"Pick + Backward":
-                    exit("To-Production Bin Code");
-                FlushingMethod::Forward,
-                FlushingMethod::Backward:
-                    exit("Open Shop Floor Bin Code");
-            end
-        else
-#endif
-            case FlushingMethod of
-                FlushingMethod::"Pick + Manual",
-                FlushingMethod::"Pick + Forward",
-                FlushingMethod::"Pick + Backward":
-                    exit("To-Production Bin Code");
-                FlushingMethod::Manual,
-                FlushingMethod::Forward,
-                FlushingMethod::Backward:
-                    exit("Open Shop Floor Bin Code");
-            end;
+        case FlushingMethod of
+            FlushingMethod::"Pick + Manual",
+            FlushingMethod::"Pick + Forward",
+            FlushingMethod::"Pick + Backward":
+                exit("To-Production Bin Code");
+            FlushingMethod::Manual,
+            FlushingMethod::Forward,
+            FlushingMethod::Backward:
+                exit("Open Shop Floor Bin Code");
+        end;
 
         OnAfterGetBinCodeForFlushingMethod(Rec, FlushingMethod, Result);
     end;

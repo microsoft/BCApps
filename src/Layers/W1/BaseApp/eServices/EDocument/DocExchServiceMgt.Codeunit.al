@@ -798,7 +798,7 @@ codeunit 1410 "Doc. Exch. Service Mgt."
         DotNetDateTime: DotNet DateTime;
         DotNetTimeSpan: DotNet TimeSpan;
         DotNetDateTimeKind: DotNet DateTimeKind;
-        Iat: Integer;
+        Iat: BigInteger;
     begin
         if not TryGetSecurityToken(IdToken, JwtSecurityToken) then begin
             Session.LogMessage('0000EYO', StrSubstNo(CannotParseIdTokenTxt, GetLastErrorText()), Verbosity::Warning, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok);

@@ -31,6 +31,7 @@ table 8362 "Financial Report Recipient"
         field(3; "User ID"; Text[65])
         {
             Caption = 'User ID';
+            DataClassification = EndUserIdentifiableInformation;
             NotBlank = true;
             TableRelation = User."User Name";
             ToolTip = 'Specifies the user that will receive the financial report.';

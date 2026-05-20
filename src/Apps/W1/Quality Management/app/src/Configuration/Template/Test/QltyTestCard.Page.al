@@ -16,7 +16,6 @@ page 20479 "Qlty. Test Card"
     Caption = 'Quality Test';
     AboutTitle = 'About Quality Test details';
     AboutText = 'Use this page to define questions, measurements, allowed values, and default passing conditions. Add tests to templates to use them in quality inspections.';
-    DeleteAllowed = false;
     PageType = Card;
     SourceTable = "Qlty. Test";
     SourceTableView = sorting(Code);
@@ -545,6 +544,7 @@ page 20479 "Qlty. Test Card"
         }
     }
 
+#if not CLEAN29
     actions
     {
         area(Processing)
@@ -554,6 +554,10 @@ page 20479 "Qlty. Test Card"
                 Caption = 'Delete';
                 Image = Delete;
                 ToolTip = 'Deletes this test. A test can only be deleted if it is not being used on an existing inspection.';
+                Visible = false;
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Deletion is handled by standard page behavior through the OnDelete trigger on Qlty. Test table.';
+                ObsoleteTag = '29.0';
 
                 trigger OnAction()
                 begin
@@ -566,11 +570,17 @@ page 20479 "Qlty. Test Card"
 
         area(Promoted)
         {
+#pragma warning disable AL0432
             actionref(DeleteRecordSafe_Promoted; DeleteRecordSafe)
+#pragma warning restore AL0432
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Deletion is handled by standard page behavior through the OnDelete trigger on Qlty. Test table.';
+                ObsoleteTag = '29.0';
             }
         }
     }
+#endif
 
     var
         QltyResultConditionMgmt: Codeunit "Qlty. Result Condition Mgmt.";

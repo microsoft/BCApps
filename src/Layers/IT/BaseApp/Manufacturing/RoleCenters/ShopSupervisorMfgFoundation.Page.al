@@ -318,15 +318,22 @@ page 9011 "Shop Supervisor Mfg Foundation"
                 RunObject = Page "Standard Cost Worksheet Names";
                 ToolTip = 'Review or update standard costs. Purchasers, production or assembly managers can use the worksheet to simulate the effect on the cost of the manufactured or assembled item if the standard cost for consumption, production capacity usage, or assembly resource usage is changed. You can set a cost change to take effect on a specified date.';
             }
+#if not CLEAN29
             action(SubcontractingWorksheets)
             {
                 ApplicationArea = Manufacturing;
-                Caption = 'Subcontracting Worksheets';
+                Caption = 'Subcontracting Worksheets (Obsolete)';
                 RunObject = Page "Req. Wksh. Names";
+#pragma warning disable AL0432
                 RunPageView = where("Template Type" = const("For. Labor"),
                                     Recurring = const(false));
+#pragma warning restore AL0432
+                ObsoleteReason = 'Will be replaced by the Subcontracting App.';
+                ObsoleteState = Pending;
+                ObsoleteTag = '29.0';
                 ToolTip = 'Calculate the needed production supply, find the production orders that have material ready to send to a subcontractor, and automatically create purchase orders for subcontracted operations from production order routings.';
             }
+#endif
             action(RequisitionWorksheets)
             {
                 ApplicationArea = Planning;

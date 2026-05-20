@@ -46,6 +46,7 @@ codeunit 134976 "ERM Sales Report"
         EmptyReportDatasetTxt: Label 'There is nothing to print for the selected filters.';
         WrongDecimalErr: Label 'Wrong count of decimals', Locked = true;
         DescriptionVATClauseLineLbl: Label 'Description_VATClauseLine';
+        CustWithDiffShipmentDateNotExpectedErr: Label 'Customer with shipment date different from %1 should not be shown in report.', Comment = '%1 = Shipment Date';
 
     [Test]
     [HandlerFunctions('CustomerTrialBalanceRequestPageHandler')]
@@ -3437,6 +3438,78 @@ codeunit 134976 "ERM Sales Report"
         VerifyCustomerBalanceToDateTwoEntriesExist(Customer."No.", InvoiceAmount[1], InvoiceAmount[1], InvoiceAmount[1] + InvoiceAmount[2]);
     end;
 
+    [Test]
+    [HandlerFunctions('CustomerOrderDetailRequestPageHandler')]
+    procedure OrderDetailShowsSalesLineWithDiffShortcutDim1Code()
+    var
+        Customer: Record Customer;
+        DimensionValue: Record "Dimension Value";
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 625992] Report shows sales line when Shortcut Dimension 1 Code differs from customer Global Dimension 1 Code.
+        Initialize();
+
+        // [GIVEN] Create customer with Global Dimension 1 Code.
+        GeneralLedgerSetup.Get();
+        LibrarySales.CreateCustomer(Customer);
+        LibraryDimension.CreateDimensionValue(DimensionValue, GeneralLedgerSetup."Global Dimension 1 Code");
+        Customer.Validate("Global Dimension 1 Code", DimensionValue.Code);
+        Customer.Modify(true);
+
+        // [GIVEN] Create Sales Order with Sales Line with different Shortcut Dimension 1 Code.
+        CreateSalesDocumentWithLine(SalesHeader, SalesLine, SalesHeader."Document Type"::Order, Customer."No.");
+        LibraryDimension.CreateDimensionValue(DimensionValue, GeneralLedgerSetup."Global Dimension 1 Code");
+        SalesLine.Validate("Shortcut Dimension 1 Code", DimensionValue.Code);
+        SalesLine.Modify(true);
+
+        // [WHEN] Run Customer - Order Detail report for the customer.
+        RunCustomerOrderDetailReport(Customer."No.", false);
+
+        // [THEN] Verify Sales Line amount is shown in the report.
+        VerifyLineAmtCustomerOrderDetailReport(SalesLine."No.", SalesLine."Line Amount");
+    end;
+
+    [Test]
+    [HandlerFunctions('CustomerOrderDetailWithShipmentDateRequestPageHandler')]
+    procedure OrderDetailFiltersCustomersByShipmentDate()
+    var
+        SalesHeader: array[2] of Record "Sales Header";
+        SalesLine: array[2] of Record "Sales Line";
+        CustomerNo: array[2] of Code[20];
+        ShipmentDate: Date;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 631546] Report filtered by Shipment Date only shows customers with matching shipment transactions.
+        Initialize();
+
+        // [GIVEN] Sales Order for  first Customer with Shipment Date = WorkDate.
+        ShipmentDate := WorkDate();
+        CustomerNo[1] := CreateCustomer();
+        CreateSalesOrder(SalesHeader[1], SalesLine[1], '', CustomerNo[1]);
+        SalesLine[1].Validate("Shipment Date", ShipmentDate);
+        SalesLine[1].Modify(true);
+
+        // [GIVEN] Sales Order for second Customer with Shipment Date = WorkDate + 30D.
+        CustomerNo[2] := CreateCustomer();
+        CreateSalesOrder(SalesHeader[2], SalesLine[2], '', CustomerNo[2]);
+        SalesLine[2].Validate("Shipment Date", ShipmentDate + 30);
+        SalesLine[2].Modify(true);
+
+        // [WHEN] Run Customer - Order Detail report filtered to Shipment Date = WorkDate.
+        RunCustomerOrderDetailReportWithShipmentDate('', Format(ShipmentDate));
+
+        // [THEN] First Customer with matching shipment date is shown in the report.
+        VerifyLineAmtCustomerOrderDetailReport(SalesLine[1]."No.", SalesLine[1]."Line Amount");
+
+        // [THEN] Second Customer with non-matching shipment date is not shown in the report.
+        LibraryReportDataset.SetRange('No_Customer', CustomerNo[2]);
+        Assert.AreEqual(0, LibraryReportDataset.RowCount(), StrSubstNo(CustWithDiffShipmentDateNotExpectedErr, ShipmentDate));
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
     local procedure Initialize()
     begin
         LibraryApplicationArea.DisableApplicationAreaSetup();
@@ -4849,6 +4922,16 @@ codeunit 134976 "ERM Sales Report"
         LibraryReportDataset.AssertElementWithValueExists('Totals_Profit', (SubtotalsProfit + SubtotalsProfit2));
     end;
 
+    local procedure RunCustomerOrderDetailReportWithShipmentDate(CustomerNoFilter: Code[100]; ShipmentDateFilter: Text)
+    var
+        Customer: Record Customer;
+    begin
+        LibraryVariableStorage.Enqueue(ShipmentDateFilter);
+        Customer.SetFilter("No.", CustomerNoFilter);
+        Commit();
+        Report.Run(Report::"Customer - Order Detail", true, false, Customer);
+    end;
+
     [RequestPageHandler]
     [Scope('OnPrem')]
     procedure StandardSalesInvoiceRequestPageHandler(var StandardSalesInvoice: TestRequestPage "Standard Sales - Invoice")
@@ -5012,5 +5095,16 @@ codeunit 134976 "ERM Sales Report"
     begin
         CustomerBalanceToDate.ShowEntriesWithZeroBalance.SetValue(true);
         CustomerBalanceToDate.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
+    end;
+
+    [RequestPageHandler]
+    procedure CustomerOrderDetailWithShipmentDateRequestPageHandler(var CustomerOrderDetail: TestRequestPage "Customer - Order Detail")
+    var
+        ShipmentDateFilter: Text;
+    begin
+        ShipmentDateFilter := LibraryVariableStorage.DequeueText();
+        if ShipmentDateFilter <> '' then
+            CustomerOrderDetail."Sales Line".SetFilter("Shipment Date", ShipmentDateFilter);
+        CustomerOrderDetail.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 }

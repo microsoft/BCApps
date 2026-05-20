@@ -1212,9 +1212,6 @@ table 5405 "Production Order"
     procedure CreatePick(AssignedUserID: Code[50]; SortingMethod: Option; SetBreakBulkFilter: Boolean; DoNotFillQtyToHandle: Boolean; PrintDocument: Boolean)
     var
         ProdOrderComponent: Record "Prod. Order Component";
-#if not CLEAN26
-        ManufacturingSetup: Record "Manufacturing Setup";
-#endif
         ItemTrackingManagement: Codeunit "Item Tracking Management";
     begin
         ProdOrderComponent.Reset();
@@ -1239,22 +1236,10 @@ table 5405 "Production Order"
         ProdOrderComponent.Reset();
         ProdOrderComponent.SetRange(Status, Status);
         ProdOrderComponent.SetRange("Prod. Order No.", "No.");
-
-#if not CLEAN26
-        if not ManufacturingSetup.IsFeatureKeyFlushingMethodManualWithoutPickEnabled() then
-            ProdOrderComponent.SetFilter(
-              "Flushing Method", '%1|%2|%3|%4',
-              ProdOrderComponent."Flushing Method"::Manual,
-              ProdOrderComponent."Flushing Method"::"Pick + Manual",
-              ProdOrderComponent."Flushing Method"::"Pick + Forward",
-              ProdOrderComponent."Flushing Method"::"Pick + Backward")
-        else
-#endif
-            ProdOrderComponent.SetFilter(
-              "Flushing Method", '%1|%2|%3',
-              ProdOrderComponent."Flushing Method"::"Pick + Manual",
-              ProdOrderComponent."Flushing Method"::"Pick + Forward",
-              ProdOrderComponent."Flushing Method"::"Pick + Backward");
+        ProdOrderComponent.SetFilter("Flushing Method", '%1|%2|%3',
+            ProdOrderComponent."Flushing Method"::"Pick + Manual",
+            ProdOrderComponent."Flushing Method"::"Pick + Forward",
+            ProdOrderComponent."Flushing Method"::"Pick + Backward");
         ProdOrderComponent.SetRange("Planning Level Code", 0);
         ProdOrderComponent.SetFilter("Expected Quantity", '>0');
         OnCreatePickOnBeforeRunCreatePickFromWhseSource(ProdOrderComponent);

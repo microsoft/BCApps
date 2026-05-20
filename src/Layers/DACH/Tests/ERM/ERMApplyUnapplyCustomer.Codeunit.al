@@ -880,6 +880,82 @@
     end;
 
     [Test]
+    [Scope('OnPrem')]
+    procedure ApplyToOldestPartialPaymentAppliesToOldestFirst()
+    var
+        Customer: Record Customer;
+        GenJournalLine: Record "Gen. Journal Line";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        BalGLAccountNo: Code[20];
+        InvoiceAmount: Decimal;
+        Counter: Integer;
+        NoOfInvoices: Integer;
+        NoOfInvoicesToApply: Integer;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] When a partial payment is posted for a customer with "Apply to Oldest",
+        // only the oldest invoices are closed and newer ones remain open.
+        Initialize();
+
+        // [GIVEN] A customer with Application Method = "Apply to Oldest"
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Validate("Application Method", Customer."Application Method"::"Apply to Oldest");
+        Customer.Modify(true);
+        BalGLAccountNo := LibraryERM.CreateGLAccountNo();
+
+        // [GIVEN] 5 posted sales invoices of equal amount on sequential dates
+        InvoiceAmount := LibraryRandom.RandDecInRange(100, 200, 2);
+        NoOfInvoices := 5;
+        NoOfInvoicesToApply := 3;
+        SelectGenJournalBatch(GenJournalBatch, false);
+        for Counter := 1 to NoOfInvoices do begin
+            LibraryERM.CreateGeneralJnlLine(
+                GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+                GenJournalLine."Document Type"::Invoice,
+                GenJournalLine."Account Type"::Customer, Customer."No.", InvoiceAmount);
+            GenJournalLine.Validate("Bal. Account Type", GenJournalLine."Bal. Account Type"::"G/L Account");
+            GenJournalLine.Validate("Bal. Account No.", BalGLAccountNo);
+            GenJournalLine.Validate("Posting Date", WorkDate() + Counter);
+            GenJournalLine.Modify(true);
+            LibraryERM.PostGeneralJnlLine(GenJournalLine);
+        end;
+
+        // [WHEN] A payment is posted that covers exactly 3 invoices
+        SelectGenJournalBatch(GenJournalBatch, false);
+        LibraryERM.CreateGeneralJnlLine(
+            GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+            GenJournalLine."Document Type"::Payment,
+            GenJournalLine."Account Type"::Customer, Customer."No.", -InvoiceAmount * NoOfInvoicesToApply);
+        GenJournalLine.Validate("Bal. Account Type", GenJournalLine."Bal. Account Type"::"G/L Account");
+        GenJournalLine.Validate("Bal. Account No.", BalGLAccountNo);
+        GenJournalLine.Validate("Posting Date", WorkDate() + NoOfInvoices + 1);
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [THEN] The 3 oldest invoices are fully applied (Remaining Amount = 0)
+        CustLedgerEntry.SetRange("Customer No.", Customer."No.");
+        CustLedgerEntry.SetRange("Document Type", CustLedgerEntry."Document Type"::Invoice);
+        CustLedgerEntry.SetCurrentKey("Posting Date");
+        CustLedgerEntry.SetAscending("Posting Date", true);
+        CustLedgerEntry.FindSet();
+        for Counter := 1 to NoOfInvoicesToApply do begin
+            CustLedgerEntry.CalcFields("Remaining Amount");
+            Assert.AreEqual(0, CustLedgerEntry."Remaining Amount",
+                StrSubstNo('Invoice %1 should be fully applied.', Counter));
+            CustLedgerEntry.Next();
+        end;
+
+        // [THEN] The 2 newest invoices remain open (Remaining Amount <> 0)
+        for Counter := NoOfInvoicesToApply + 1 to NoOfInvoices do begin
+            CustLedgerEntry.CalcFields("Remaining Amount");
+            Assert.AreEqual(InvoiceAmount, CustLedgerEntry."Remaining Amount",
+                StrSubstNo('Invoice %1 should remain open.', Counter));
+            CustLedgerEntry.Next();
+        end;
+    end;
+
+    [Test]
     [HandlerFunctions('CustomerLedgerEntriesPageHandler,ApplyCustomerEntriesPageHandler')]
     [Scope('OnPrem')]
     procedure AmountToApplyAfterApplyToEntryForInvoice()

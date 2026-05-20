@@ -5,6 +5,7 @@
 namespace Microsoft.Service.Ledger;
 
 using Microsoft.Foundation.AuditCodes;
+using Microsoft.Foundation.NoSeries;
 using Microsoft.Utilities;
 using System.Security.AccessControl;
 
@@ -79,6 +80,23 @@ table 5934 "Service Register"
     fieldgroups
     {
     }
+
+    procedure GetNextEntryNo(UseLegacyPosting: Boolean): Integer
+    begin
+        if not UseLegacyPosting then
+            exit(GetNextEntryNo());
+
+        Rec.LockTable();
+        exit(GetLastEntryNo() + 1);
+    end;
+
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Service Register", 'r')]
+    procedure GetNextEntryNo(): Integer
+    var
+        SequenceNoMgt: Codeunit "Sequence No. Mgt.";
+    begin
+        exit(SequenceNoMgt.GetNextSeqNo(DATABASE::"Service Register"));
+    end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"Service Register", 'r')]
     procedure GetLastEntryNo(): Integer;

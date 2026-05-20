@@ -6,7 +6,6 @@ namespace Microsoft.Inventory.Transfer;
 
 using Microsoft.Finance.GeneralLedger.Preview;
 using Microsoft.Foundation.NoSeries;
-using Microsoft.Inventory.Setup;
 
 codeunit 5706 "TransferOrder-Post (Yes/No)"
 {
@@ -61,17 +60,15 @@ codeunit 5706 "TransferOrder-Post (Yes/No)"
 
     local procedure CheckTransferHeader(var TransferHeader: Record "Transfer Header")
     var
-        InventorySetup: Record "Inventory Setup";
         TransferLine: Record "Transfer Line";
     begin
-        InventorySetup.Get();
-
-        if TransferHeader."Direct Transfer" and (InventorySetup."Direct Transfer Posting" = InventorySetup."Direct Transfer Posting"::"Receipt and Shipment") then begin
+        // For "Receipt and Shipment" mode, quantities must match
+        if TransferHeader."Direct Transfer" and (TransferHeader."Direct Transfer Posting" = TransferHeader."Direct Transfer Posting"::"Shipment and Receipt") then begin
             TransferLine.SetRange("Document No.", TransferHeader."No.");
             TransferLine.SetLoadFields("Qty. to Ship", "Qty. to Receive", "Qty. to Ship (Base)", "Qty. to Receive (Base)");
             if TransferLine.FindSet() then
                 repeat
-                    // For 'Direct Transfer', "Qty. to Ship" and "Qty. to Receive" should be the same.
+                    // For simultaneous posting, "Qty. to Ship" and "Qty. to Receive" should be the same.
                     if TransferLine."Qty. to Receive" <> TransferLine."Qty. to Ship" then
                         Error(ShipReceiveNotEqualErr);
                     if TransferLine."Qty. to Receive (Base)" <> TransferLine."Qty. to Ship (Base)" then
@@ -100,7 +97,6 @@ codeunit 5706 "TransferOrder-Post (Yes/No)"
 
     local procedure GetPostingOptions(var DefaultNumber: Integer; var Selection: Option " ",Shipment,Receipt; var PostShipment: Boolean; var PostReceipt: Boolean; var PostTransfer: Boolean)
     var
-        InventorySetup: Record "Inventory Setup";
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -108,15 +104,15 @@ codeunit 5706 "TransferOrder-Post (Yes/No)"
         if IsHandled then
             exit;
 
-        InventorySetup.Get();
-
         case true of
-            (TransHeader."Direct Transfer") and (InventorySetup."Direct Transfer Posting" = InventorySetup."Direct Transfer Posting"::"Receipt and Shipment"):
+            (TransHeader."Direct Transfer") and (TransHeader."Direct Transfer Posting" = TransHeader."Direct Transfer Posting"::"Shipment and Receipt"):
                 begin
+                    // Ship and Receive Simultaneously mode
                     PostShipment := true;
                     PostReceipt := true;
                 end;
-            (TransHeader."Direct Transfer") and (InventorySetup."Direct Transfer Posting" = InventorySetup."Direct Transfer Posting"::"Direct Transfer"):
+            (TransHeader."Direct Transfer") and (TransHeader."Direct Transfer Posting" = TransHeader."Direct Transfer Posting"::"Direct Transfer"):
+                // Direct Transfer mode (single document)
                 PostTransfer := true;
             PostBatch:
                 begin
@@ -124,6 +120,7 @@ codeunit 5706 "TransferOrder-Post (Yes/No)"
                     PostReceipt := TransferOrderPost = TransferOrderPost::Receive;
                 end;
             else begin
+                // Standard via-in-transit (2-step posting)
                 if DefaultNumber = 0 then
                     DefaultNumber := 1;
                 Selection := StrMenu(Text000, DefaultNumber);

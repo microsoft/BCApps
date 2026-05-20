@@ -176,6 +176,7 @@ codeunit 699 "Exch. Rate Adjmt. Process"
         PostingDateNotInPeriodErr: Label 'This posting date cannot be entered because it does not occur within the adjustment period. Reenter the posting date.';
         RatesAdjustedMsg: Label 'One or more currency exchange rates have been adjusted.';
         NothingToAdjustMsg: Label 'There is nothing to adjust.';
+        SourceCurrRevalConflictErr: Label 'G/L Account %1 is configured for Source Currency Revaluation and is also used as a Receivables/Payables Account. Please correct the setup before running the adjustment.', Comment = '%1 = G/L Account No.';
 
     local procedure RunAdjustment()
     begin
@@ -794,6 +795,8 @@ codeunit 699 "Exch. Rate Adjmt. Process"
         if PostingAmount = 0 then
             exit;
 
+        CheckGLAccNotUsedForRevaluation(GLAccNo);
+
         GenJnlLine.Init();
         GenJnlLine.Validate("Posting Date", PostingDate2);
         GenJnlLine."Document No." := ExchRateAdjmtParameters."Document No.";
@@ -818,6 +821,15 @@ codeunit 699 "Exch. Rate Adjmt. Process"
 
         OnPostAdjmtOnBeforePostGenJnlLine(GenJnlLine, TempDimSetEntry);
         TransactionNo := PostGenJnlLine(GenJnlLine, DimSetEntry);
+    end;
+
+    local procedure CheckGLAccNotUsedForRevaluation(GLAccNo: Code[20])
+    var
+        GLAccount: Record "G/L Account";
+    begin
+        if GLAccount.Get(GLAccNo) then
+            if (GLAccount."Source Currency Revaluation") or (GLAccount."Source Currency Code" <> '') then
+                Error(SourceCurrRevalConflictErr, GLAccNo);
     end;
 
     local procedure PostBankAccAdjmt(BankAccount: Record "Bank Account")

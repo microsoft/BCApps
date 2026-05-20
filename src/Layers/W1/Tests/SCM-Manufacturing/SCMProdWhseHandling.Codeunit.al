@@ -1385,15 +1385,8 @@ codeunit 137298 "SCM Prod. Whse. Handling"
         // [FEATURE] [Production Order] [Prod. Consump. Whse. Handling with Item Flusing Method Manual] 
         // [SCENARIO] Allow consumption posting without warehouse or inventory pick when 'Warehouse Pick (mandatory)' is selected.        
         Initialize();
-#if not CLEAN26
-        // [GIVEN] Force enable feature key Manufacturing_FlushingMethod_ActivateManualWoPick
-        EnableFeatureManufacturingFlushingMethodActivateManualWithoutPick(true);
-#endif
 
         AllowConsumptionPostingForManualFlushingWithoutWarehouseOrInventoryPick("Prod. Consump. Whse. Handling"::"Warehouse Pick (mandatory)");
-#if not CLEAN26
-        EnableFeatureManufacturingFlushingMethodActivateManualWithoutPick(false);
-#endif
     end;
 
     [Test]
@@ -1403,15 +1396,8 @@ codeunit 137298 "SCM Prod. Whse. Handling"
         // [FEATURE] [Production Order] [Prod. Consump. Whse. Handling with Item Flusing Method Manual] 
         // [SCENARIO] Allow consumption posting without warehouse or inventory pick when 'Warehouse Pick (optional)' is selected
         Initialize();
-#if not CLEAN26
-        // [GIVEN] Force enable feature key Manufacturing_FlushingMethod_ActivateManualWoPick
-        EnableFeatureManufacturingFlushingMethodActivateManualWithoutPick(true);
-#endif
 
         AllowConsumptionPostingForManualFlushingWithoutWarehouseOrInventoryPick("Prod. Consump. Whse. Handling"::"Warehouse Pick (optional)");
-#if not CLEAN26
-        EnableFeatureManufacturingFlushingMethodActivateManualWithoutPick(false);
-#endif
     end;
 
     [Test]
@@ -1421,15 +1407,8 @@ codeunit 137298 "SCM Prod. Whse. Handling"
         // [FEATURE] [Production Order] [Prod. Consump. Whse. Handling with Item Flusing Method Manual] 
         // [SCENARIO] Allow consumption posting without warehouse or inventory pick when 'Inventory Pick/Movement' is selected.
         Initialize();
-#if not CLEAN26
-        // [GIVEN] Force enable feature key Manufacturing_FlushingMethod_ActivateManualWoPick
-        EnableFeatureManufacturingFlushingMethodActivateManualWithoutPick(true);
-#endif
 
         AllowConsumptionPostingForManualFlushingWithoutWarehouseOrInventoryPick("Prod. Consump. Whse. Handling"::"Inventory Pick/Movement");
-#if not CLEAN26
-        EnableFeatureManufacturingFlushingMethodActivateManualWithoutPick(false);
-#endif
     end;
 
     [Test]
@@ -1439,25 +1418,9 @@ codeunit 137298 "SCM Prod. Whse. Handling"
         // [FEATURE] [Production Order] [Prod. Consump. Whse. Handling with Item Flusing Method Manual] 
         // [SCENARIO] Allow consumption posting without warehouse or inventory pick when 'No Warehouse Handling' is selected.
         Initialize();
-#if not CLEAN26
-        // [GIVEN] Force enable feature key Manufacturing_FlushingMethod_ActivateManualWoPick
-        EnableFeatureManufacturingFlushingMethodActivateManualWithoutPick(true);
-#endif
 
         AllowConsumptionPostingForManualFlushingWithoutWarehouseOrInventoryPick("Prod. Consump. Whse. Handling"::"No Warehouse Handling");
-#if not CLEAN26
-        EnableFeatureManufacturingFlushingMethodActivateManualWithoutPick(false);
-#endif
     end;
-
-#if not CLEAN26
-    local procedure EnableFeatureManufacturingFlushingMethodActivateManualWithoutPick(SetStatus: Boolean)
-    var
-        FeatureKeyManagement: Codeunit System.Environment.Configuration."Feature Key Management";
-    begin
-        FeatureKeyManagement.SetMockEnabledManufacturingFlushingMethodActivateManualWithoutPick(SetStatus);
-    end;
-#endif
 
     local procedure AllowConsumptionPostingForManualFlushingWithoutWarehouseOrInventoryPick(ProdConsumpWhseHandling: Enum "Prod. Consump. Whse. Handling")
     var

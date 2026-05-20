@@ -6,6 +6,7 @@ query 6216 "Resp Centre - PBI API"
 {
     Access = Internal;
     QueryType = API;
+    AboutText = 'Provides access to responsibility center data including codes, names, and water capacity thresholds. Enables Power BI reports to analyze organizational units, allocate sustainability metrics by department, and track resource consumption targets for environmental reporting.';
     Caption = 'Power BI Responsibility Centre';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';

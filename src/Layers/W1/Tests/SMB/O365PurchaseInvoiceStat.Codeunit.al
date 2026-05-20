@@ -23,6 +23,7 @@ codeunit 138021 "O365 Purchase Invoice Stat."
     var
         PurchasesPayablesSetup: Record "Purchases & Payables Setup";
         LibraryApplicationArea: Codeunit "Library - Application Area";
+        LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"O365 Purchase Invoice Stat.");
         LibraryVariableStorage.Clear();
@@ -39,6 +40,7 @@ codeunit 138021 "O365 Purchase Invoice Stat."
         PurchasesPayablesSetup.Get();
         PurchasesPayablesSetup.Validate("Ext. Doc. No. Mandatory", false);
         PurchasesPayablesSetup.Modify(true);
+        LibraryERMCountryData.UpdatePurchasesPayablesSetup();
 
         isInitialized := true;
         Commit();

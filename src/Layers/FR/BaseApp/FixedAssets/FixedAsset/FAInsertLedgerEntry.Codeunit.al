@@ -304,7 +304,7 @@ codeunit 5600 "FA Insert Ledger Entry"
         if not FADeprBook.EligibleForBonusDepreciation(FASetup) then
             Error(NotEligibleForBonusDepreciationErr, FADeprBook."FA No.", FADeprBook."Depreciation Book Code");
 
-        if Abs(FALedgEntry.Amount) > Abs(FADeprBook.BonusDepreciationAmount(FASetup)) then
+        if Abs(FALedgEntry.Amount) > Abs(FADeprBook.BonusDepreciationAmount()) then
             Error(BonusDepreciationExceedsAllowedValueErr);
 
         ExistingFALedgerEntry.SetCurrentKey("FA No.", "Depreciation Book Code", "FA Posting Category", "FA Posting Type");

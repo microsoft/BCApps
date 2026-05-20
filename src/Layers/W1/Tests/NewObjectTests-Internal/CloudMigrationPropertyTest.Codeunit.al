@@ -67,6 +67,7 @@ codeunit 135160 "Cloud Migration Property Test"
     var
         CloudMigCountryTables: Codeunit "Cloud Mig Country Tables";
     begin
+        ListOfTablesToMigrate.Add(Database::"Adv. Bonus Depreciation Setup");
         ListOfTablesToMigrate.Add(Database::"Alloc. Acc. Manual Override");
         ListOfTablesToMigrate.Add(Database::"Alloc. Account Distribution");
         ListOfTablesToMigrate.Add(Database::"Allocation Account");
@@ -1140,6 +1141,10 @@ codeunit 135160 "Cloud Migration Property Test"
         ListOfTablesToMigrate.Add(Database::"Filed Contract Service Hour");
         ListOfTablesToMigrate.Add(Database::"Filed Contract/Serv. Discount");
         ListOfTablesToMigrate.Add(Database::"Fin. Charge Comment Line");
+        ListOfTablesToMigrate.Add(Database::"Fin. Report Package Recipient");
+        ListOfTablesToMigrate.Add(Database::"Fin. Report Package Report");
+        ListOfTablesToMigrate.Add(Database::"Fin. Report Package Schedule");
+        ListOfTablesToMigrate.Add(Database::"Fin. Rep. Package Export Log");
         ListOfTablesToMigrate.Add(Database::"Finance Charge Interest Rate");
         ListOfTablesToMigrate.Add(Database::"Finance Charge Memo Header");
         ListOfTablesToMigrate.Add(Database::"Finance Charge Memo Line");
@@ -1154,6 +1159,11 @@ codeunit 135160 "Cloud Migration Property Test"
         ListOfTablesToMigrate.Add(Database::"Financial Report User Filters");
         ListOfTablesToMigrate.Add(Database::"Financial Report Audit Log");
         ListOfTablesToMigrate.Add(Database::"Fin. Report Excel Template");
+        ListOfTablesToMigrate.Add(Database::"Financial Report Package");
+        ListOfTablesToMigrate.Add(Database::"Fin. Report Package Report");
+        ListOfTablesToMigrate.Add(Database::"Fin. Report Package Schedule");
+        ListOfTablesToMigrate.Add(Database::"Fin. Report Package Recipient");
+        ListOfTablesToMigrate.Add(Database::"Fin. Rep. Package Export Log");
         ListOfTablesToMigrate.Add(Database::"Financial Report Status");
         ListOfTablesToMigrate.Add(Database::"Fixed Asset");
         ListOfTablesToMigrate.Add(Database::"G/L - Item Ledger Relation");
@@ -1169,6 +1179,7 @@ codeunit 135160 "Cloud Migration Property Test"
         ListOfTablesToMigrate.Add(Database::"G/L Entry - VAT Entry Link");
         ListOfTablesToMigrate.Add(Database::"G/L Entry");
         ListOfTablesToMigrate.Add(Database::"G/L Register");
+        ListOfTablesToMigrate.Add(Database::"G/L Transaction");
         ListOfTablesToMigrate.Add(Database::"Gen. Business Posting Group");
         ListOfTablesToMigrate.Add(Database::"Gen. Jnl. Allocation");
         ListOfTablesToMigrate.Add(Database::"Gen. Jnl. Dim. Filter");

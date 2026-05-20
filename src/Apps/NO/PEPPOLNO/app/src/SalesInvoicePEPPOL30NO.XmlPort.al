@@ -2283,7 +2283,7 @@ xmlport 37355 "Sales Invoice - PEPPOL30 NO"
         PostedHeaderIterator, PostedLineIterator : Interface "PEPPOL Posted Document Iterator";
         PEPPOL30Format: Enum "PEPPOL 3.0 Format";
         DummyVar: Text;
-        IsFormatSet, IsFormatInitialized : Boolean;
+        IsFormatSet: Boolean;
         GeneratePDF: Boolean;
 
 

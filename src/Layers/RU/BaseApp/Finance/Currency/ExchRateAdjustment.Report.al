@@ -46,16 +46,34 @@ report 596 "Exch. Rate Adjustment"
         {
             DataItemTableView = sorting("No.");
             RequestFilterFields = "No.";
+
+            trigger OnPreDataItem()
+            begin
+                if not AdjCust then
+                    CurrReport.Break();
+            end;
         }
         dataitem(VendorFilter; Vendor)
         {
             DataItemTableView = sorting("No.");
             RequestFilterFields = "No.";
+
+            trigger OnPreDataItem()
+            begin
+                if not AdjVend then
+                    CurrReport.Break();
+            end;
         }
         dataitem(EmployeeFilter; Employee)
         {
             DataItemTableView = sorting("No.");
             RequestFilterFields = "No.";
+
+            trigger OnPreDataItem()
+            begin
+                if not AdjEmpl then
+                    CurrReport.Break();
+            end;
         }
     }
 
@@ -301,6 +319,9 @@ report 596 "Exch. Rate Adjustment"
             if not Confirm(ConfirmationTxt + ContinueTxt, false) then
                 Error(AdjustmentCancelledErr);
 
+        if AdjGLAcc then
+            CheckAmountRoundingPrecision();
+
         if (not AdjCust) and (not AdjVend) and (not AdjBank) and (not AdjEmpl) and (not AdjGLAcc) then
             exit;
 
@@ -328,6 +349,7 @@ report 596 "Exch. Rate Adjustment"
         AdjustmentDescriptionTxt: Label 'Adjmt. of %1 %2, Ex.Rate Adjust.', Comment = '%1 = Currency Code, %2= Adjust Amount';
         FilterIsTooComplexErr: Label '%1 filter is too complex', Comment = '%1 - table caption';
         PostingDateNotInPeriodErr: Label 'This posting date cannot be entered because it does not occur within the adjustment period. Reenter the posting date.';
+        RoundingPrecisionDiffersQst: Label 'The Amount Rounding Precision in General Ledger Setup (%1) differs from the Amount Rounding Precision on the additional reporting currency (%2). This may cause rounding differences during exchange rate adjustment.\\Do you want to continue?', Comment = '%1 = Amount Rounding Precision in General Ledger Setup, %2 = Amount Rounding Precision on the additional reporting currency';
 
     protected var
         ExchRateAdjmtParameters: Record "Exch. Rate Adjmt. Parameters";
@@ -439,6 +461,27 @@ report 596 "Exch. Rate Adjustment"
             Error(PostingDateNotInPeriodErr);
         if PostingDate > EndDateReq then
             Error(PostingDateNotInPeriodErr);
+    end;
+
+    local procedure CheckAmountRoundingPrecision()
+    var
+        AddRepCurrency: Record Currency;
+    begin
+        if GeneralLedgerSetup."Additional Reporting Currency" = '' then
+            exit;
+
+        if not AddRepCurrency.Get(GeneralLedgerSetup."Additional Reporting Currency") then
+            exit;
+
+        if GeneralLedgerSetup."Amount Rounding Precision" = AddRepCurrency."Amount Rounding Precision" then
+            exit;
+
+        if not HideUI then
+            if not Confirm(RoundingPrecisionDiffersQst, false,
+                GeneralLedgerSetup."Amount Rounding Precision",
+                AddRepCurrency."Amount Rounding Precision")
+            then
+                Error(AdjustmentCancelledErr);
     end;
 
     [IntegrationEvent(true, false)]

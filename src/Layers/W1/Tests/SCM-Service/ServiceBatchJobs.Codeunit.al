@@ -70,8 +70,10 @@ codeunit 136122 "Service Batch Jobs"
         LibrarySales.SetCreditWarningsToNoWarnings();
         LibrarySales.SetStockoutWarning(false);
         LibraryERMCountryData.UpdateSalesReceivablesSetup();
+        LibraryERMCountryData.UpdateJournalTemplMandatory(false);
 
-        LibrarySetupStorage.Save(DATABASE::"General Ledger Setup");
+        LibrarySetupStorage.SaveGeneralLedgerSetup();
+        LibrarySetupStorage.SaveSalesSetup();
 
         IsInitialized := true;
         Commit();
@@ -702,7 +704,7 @@ codeunit 136122 "Service Batch Jobs"
         SignServContractDoc: Codeunit SignServContractDoc;
         LockOpenServContract: Codeunit "Lock-OpenServContract";
     begin
-        CreateServiceContractWithAccGroup(ServiceContractHeader, ServiceContractHeader."Contract Type"::Contract);
+        CreateServiceContractWithAccGroup(ServiceContractHeader, "Service Contract Type"::Contract);
         ModifyServiceContractHeader(ServiceContractHeader);
         SignServContractDoc.SignContract(ServiceContractHeader);
         LockOpenServContract.OpenServContract(ServiceContractHeader);

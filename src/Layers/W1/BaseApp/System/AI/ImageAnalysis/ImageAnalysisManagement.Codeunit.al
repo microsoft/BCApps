@@ -4,6 +4,7 @@ using System;
 using System.Azure.KeyVault;
 using System.Environment;
 using System.IO;
+using System.Security.Authentication;
 using System.Text;
 using System.Utilities;
 
@@ -21,14 +22,25 @@ codeunit 2020 "Image Analysis Management"
         NoImageErr: Label 'You haven''t uploaded an image to analyze.';
         LastError: Text;
         IsLastErrorUsageLimitError: Boolean;
-        GenericErrorErr: Label 'There was an error in contacting the Computer Vision API. Please try again or contact an administrator.';
+        UseOAuth2: Boolean;
         IsInitialized: Boolean;
+        GenericErrorErr: Label 'There was an error in contacting the Computer Vision API. Please try again or contact an administrator.';
         ChangingLimitAfterInitErr: Label 'You cannot change the limit setting after initialization.';
         ImageAnalysisSecretTxt: Label 'cognitive-vision-params', Locked = true;
+        ImageAnalysisOAuth2SecretTxt: Label 'cognitive-vision-oauth2-params', Locked = true;
         MissingImageAnalysisSecretErr: Label 'There is a missing configuration value on our end. Try again later.';
         ImageAnalysisProvider: Interface "Image Analysis Provider";
         ImageAnalysisTelemetryCategoryTxt: Label 'AL Image Analysis', Locked = true;
         StartingImageAnalysisTelemetryMsg: Label 'Starting image analysis. Key empty: %1, Url empty: %2, Path empty: %3, Limit reached: %4.', Locked = true;
+        FirstPartyAppIdKVNameLbl: Label 'cognitive-vision-appid', Locked = true;
+        FirstPartyAppCertKVNameLbl: Label 'cognitive-vision-certname', Locked = true;
+        FirstPartyAppAuthUrlKVNameLbl: Label 'cognitive-vision-authority', Locked = true;
+        CognitiveServicesScopeTok: Label 'https://cognitiveservices.azure.com/.default', Locked = true;
+        OAuthAcquireTokenFailedTelemetryMsg: Label 'Failed to acquire OAuth2 token for Computer Vision.', Locked = true;
+        OAuthEmptyAccessTokenTelemetryMsg: Label 'OAuth2 access token for Computer Vision is empty.', Locked = true;
+        UsingOAuth2TelemetryMsg: Label 'Using OAuth2 token authentication for Computer Vision.', Locked = true;
+        UsingApiKeyTelemetryMsg: Label 'Using API key authentication for Computer Vision (OAuth2 not configured or failed).', Locked = true;
+        UsingCustomConfigTelemetryMsg: Label 'Using customer-configured API key and URI for Computer Vision.', Locked = true;
 
     [NonDebuggable]
     procedure Initialize()
@@ -55,8 +67,10 @@ codeunit 2020 "Image Analysis Management"
             Key := ImageAnalysisSetup.GetApiKeyAsSecret();
             Uri := ImageAnalysisSetup."Api Uri";
             AzureAIUsage.SetImageAnalysisIsSetup(false);
-        end else
+        end else begin
             AzureAIUsage.SetImageAnalysisIsSetup(true);
+            Session.LogMessage('0000THU', UsingCustomConfigTelemetryMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', ImageAnalysisTelemetryCategoryTxt);
+        end;
 
         if LimitValue = 0 then begin
             AzureAIService := AzureAIService::"Computer Vision";
@@ -68,7 +82,10 @@ codeunit 2020 "Image Analysis Management"
             SetLimitInYears(999);
 
         if (Key.IsEmpty() or (Uri = '')) and EnvironmentInformation.IsSaaS() then
-            GetImageAnalysisCredentials(Key, Uri, LimitType, LimitValue);
+            if not TryAcquireOAuth2Token(Key, Uri, LimitType, LimitValue) then begin
+                GetImageAnalysisCredentials(Key, Uri, LimitType, LimitValue);
+                Session.LogMessage('0000THV', UsingApiKeyTelemetryMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', ImageAnalysisTelemetryCategoryTxt);
+            end;
 
         ImageAnalysisProvider := InputImageAnalysisProvider;
 
@@ -198,7 +215,7 @@ codeunit 2020 "Image Analysis Management"
                 if ImageAnalysisSetup.IsUsageLimitReached(UsageLimitError, LimitValue, LimitType) then
                     SetLastError(UsageLimitError, true)
                 else
-                    if ImageAnalysisProvider.InvokeAnalysis(ResultJSONManagement, Uri, Key, ImagePath, AnalysisTypes, GlobalLanguage()) then
+                    if InvokeAnalysisWithAuth(ResultJSONManagement, Uri, Key, ImagePath, AnalysisTypes, GlobalLanguage()) then
                         ImageAnalysisSetup.Increment()
                     else
                         if ImageAnalysisProvider.GetLastError() <> '' then
@@ -220,6 +237,12 @@ codeunit 2020 "Image Analysis Management"
         // This should only be used for testing.
         ImageAnalysisWrapperV10.SetHttpMessageHandler(NewHttpMessageHandler);
         ImageAnalysisProvider := ImageAnalysisWrapperV10;
+    end;
+
+    local procedure InvokeAnalysisWithAuth(var JSONManagement: Codeunit "JSON Management"; BaseUrl: Text; ImageAnalysisKey: SecretText; Path: Text; AnalysisTypes: List of [Enum "Image Analysis Type"]; LanguageId: Integer): Boolean
+    begin
+        ImageAnalysisProvider.SetUseOAuth2(UseOAuth2);
+        exit(ImageAnalysisProvider.InvokeAnalysis(JSONManagement, BaseUrl, ImageAnalysisKey, Path, AnalysisTypes, LanguageId));
     end;
 
     procedure GetLastError(var Message: Text; var IsUsageLimitError: Boolean): Boolean
@@ -284,6 +307,71 @@ codeunit 2020 "Image Analysis Management"
     [NonDebuggable]
     [TryFunction]
     [Scope('OnPrem')]
+    local procedure TryAcquireOAuth2Token(var ApiToken: SecretText; var ApiUri: Text; var LocalLimitType: Option; var LocalLimitValue: Integer)
+    var
+        AzureKeyVault: Codeunit "Azure Key Vault";
+        MachineLearningKeyVaultMgmt: Codeunit "Machine Learning KeyVaultMgmt.";
+        OAuth2: Codeunit OAuth2;
+        ImageAnalysisParametersList: JsonArray;
+        ImageAnalysisParameters: JsonObject;
+        JToken: JsonToken;
+        Cert: SecretText;
+        IdToken: Text;
+        AppId: Text;
+        AuthUrl: Text;
+        CertName: Text;
+        ImageAnalysisParametersText: Text;
+        LimitTypeTxt: Text;
+        LimitValueTxt: Text;
+        RedirectUrl: Text;
+        Scopes: List of [Text];
+    begin
+        if not AzureKeyVault.GetAzureKeyVaultSecret(FirstPartyAppIdKVNameLbl, AppId) then
+            Error('');
+        if AppId = '' then
+            Error('');
+        if not AzureKeyVault.GetAzureKeyVaultSecret(FirstPartyAppCertKVNameLbl, CertName) then
+            Error('');
+        if not AzureKeyVault.GetAzureKeyVaultCertificate(CertName, Cert) then
+            Error('');
+        if not AzureKeyVault.GetAzureKeyVaultSecret(FirstPartyAppAuthUrlKVNameLbl, AuthUrl) then
+            Error('');
+        if not AzureKeyVault.GetAzureKeyVaultSecret(ImageAnalysisOAuth2SecretTxt, ImageAnalysisParametersText) then
+            Error('');
+        if not ImageAnalysisParametersList.ReadFrom(ImageAnalysisParametersText) then
+            Error('');
+        if not (ImageAnalysisParametersList.Count() > 0) then
+            Error('');
+        if not ImageAnalysisParametersList.Get(Random(ImageAnalysisParametersList.Count()) - 1, JToken) then
+            Error('');
+
+        ImageAnalysisParameters := JToken.AsObject();
+        ApiUri := ExtractParameterValue(ImageAnalysisParameters, 'endpoint', true);
+        LimitTypeTxt := ExtractParameterValue(ImageAnalysisParameters, 'limittype', true);
+        LimitValueTxt := ExtractParameterValue(ImageAnalysisParameters, 'limitvalue', true);
+
+        LocalLimitType := MachineLearningKeyVaultMgmt.GetLimitTypeOptionFromText(LimitTypeTxt);
+        Evaluate(LocalLimitValue, LimitValueTxt);
+
+        Scopes.Add(CognitiveServicesScopeTok);
+        if not OAuth2.AcquireTokensWithCertificate(AppId, Cert, RedirectUrl, AuthUrl, Scopes, ApiToken, IdToken) then begin
+            Session.LogMessage('0000THB', OAuthAcquireTokenFailedTelemetryMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', ImageAnalysisTelemetryCategoryTxt);
+            Error('');
+        end;
+
+        if ApiToken.IsEmpty() then begin
+            Session.LogMessage('0000THC', OAuthEmptyAccessTokenTelemetryMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', ImageAnalysisTelemetryCategoryTxt);
+            Error('');
+        end;
+
+        UseOAuth2 := true;
+
+        Session.LogMessage('0000THD', UsingOAuth2TelemetryMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', ImageAnalysisTelemetryCategoryTxt);
+    end;
+
+    [NonDebuggable]
+    [TryFunction]
+    [Scope('OnPrem')]
     procedure GetImageAnalysisCredentials(var ApiKey: SecretText; var ApiUri: Text; var LocalLimitType: Option; var LocalLimitValue: Integer)
     var
         AzureKeyVault: Codeunit "Azure Key Vault";
@@ -303,7 +391,7 @@ codeunit 2020 "Image Analysis Management"
             exit;
 
         // Check if the JSON array has values
-        if not (ImageAnalysisParametersList.Count > 0) then
+        if not (ImageAnalysisParametersList.Count() > 0) then
             exit;
 
         if not ImageAnalysisParametersList.Get(Random(ImageAnalysisParametersList.Count()) - 1, JToken) then

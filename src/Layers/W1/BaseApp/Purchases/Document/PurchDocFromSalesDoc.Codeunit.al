@@ -24,7 +24,7 @@ codeunit 1314 "Purch. Doc. From Sales Doc."
 #pragma warning disable AA0470
         TypeNotSupportedErr: Label 'Type %1 is not supported.', Comment = 'Line or Document type';
 #pragma warning restore AA0470
-        NoPurchaseOrdersCreatedErr: Label 'No purchase orders are created.';
+        NoPurchaseOrdersCreatedMsg: Label 'No purchase orders are created.';
 
     procedure CreatePurchaseInvoice(SalesHeader: Record "Sales Header"; var SelectedSalesLine: Record "Sales Line")
     var
@@ -105,8 +105,13 @@ codeunit 1314 "Purch. Doc. From Sales Doc."
                     BuildFilter(NoFilter, PurchaseHeader."No.");
             until TempDocumentEntry.Next() = 0;
 
-        if NoFilter = '' then
-            Error(NoPurchaseOrdersCreatedErr);
+        Clear(RequisitionLine);
+        OrderPlanningMgt.PrepareRequisitionRecord(RequisitionLine);
+
+        if NoFilter = '' then begin
+            Message(NoPurchaseOrdersCreatedMsg);
+            exit;
+        end;
 
         PurchaseHeader.SetFilter("No.", NoFilter);
         PurchaseHeader.SetRange("Document Type", PurchaseHeader."Document Type"::Order);
@@ -114,7 +119,7 @@ codeunit 1314 "Purch. Doc. From Sales Doc."
 
         case PurchaseHeader.Count of
             0:
-                Error(NoPurchaseOrdersCreatedErr);
+                Message(NoPurchaseOrdersCreatedMsg);
             1:
                 PAGE.Run(PAGE::"Purchase Order", PurchaseHeader);
             else

@@ -253,7 +253,10 @@ codeunit 7026 "Service Line - Price" implements "Line With Price"
                             PriceCalculated := true;
                         end;
                     CurrPriceType::Purchase:
-                        ServiceLine."Unit Cost (LCY)" := PriceListLine."Unit Cost";
+                        if ServiceLine.Type = ServiceLine.Type::Item then
+                            ServiceLine."Unit Cost (LCY)" := PriceListLine."Direct Unit Cost"
+                        else
+                            ServiceLine."Unit Cost (LCY)" := PriceListLine."Unit Cost";
                 end;
             AmountType::Discount:
                 case ServiceLine.Type of

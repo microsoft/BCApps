@@ -359,6 +359,27 @@ codeunit 99000783 "Prod. Document Attachment Mgt."
         DocumentAttachmentMgmt.CopyAttachments(FromProdOrder, ToProdOrder);
     end;
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Prod. Order Status Management", OnAfterTransferReopenProdOrder, '', true, false)]
+    local procedure DocumentAttachmentFlow_FromFinishedToReopenedProdOrder(ProductionOrder: Record "Production Order"; FromProductionOrder: Record "Production Order")
+    begin
+        if (ProductionOrder."No." = '') or IsNullGuid(ProductionOrder.SystemId) then
+            exit;
+
+        if ProductionOrder.IsTemporary() then
+            exit;
+
+        DocumentAttachmentMgmt.CopyAttachments(FromProductionOrder, ProductionOrder);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Prod. Order Status Management", OnAfterTransferReopenProdOrderLine, '', true, false)]
+    local procedure DocumentAttachmentFlow_FromFinishedToReopenedProdOrderLine(ProdOrderLine: Record "Prod. Order Line"; FromProdOrderLine: Record "Prod. Order Line")
+    begin
+        if ProdOrderLine.IsTemporary() then
+            exit;
+
+        DocumentAttachmentMgmt.CopyAttachments(FromProdOrderLine, ProdOrderLine);
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", 'OnAfterTransformAttachmentDocumentTypeValue', '', true, false)]
     local procedure OnAfterTransformAttachmentDocumentTypeValue(TableNo: Integer; var AttachmentDocumentType: Enum "Attachment Document Type")
     begin

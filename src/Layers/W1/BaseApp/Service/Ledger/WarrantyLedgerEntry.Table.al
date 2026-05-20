@@ -6,6 +6,7 @@ namespace Microsoft.Service.Ledger;
 
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Projects.Resources.Resource;
@@ -232,6 +233,13 @@ table 5908 "Warranty Ledger Entry"
         {
             Caption = 'Service Order Line No.';
         }
+        field(95; "Service Register No."; Integer)
+        {
+            Caption = 'Service Register No.';
+            Editable = false;
+            TableRelation = "Service Register";
+            ToolTip = 'Specifies the service register number that this entry belongs to.';
+        }
         field(480; "Dimension Set ID"; Integer)
         {
             Caption = 'Dimension Set ID';
@@ -324,6 +332,9 @@ table 5908 "Warranty Ledger Entry"
         key(Key5; "Document No.", "Posting Date")
         {
         }
+        key(Key6; "Service Register No.")
+        {
+        }
     }
 
     fieldgroups
@@ -337,6 +348,19 @@ table 5908 "Warranty Ledger Entry"
         ServOrderMgt: Codeunit ServOrderManagement;
         DimMgt: Codeunit DimensionManagement;
 
+    /// <summary>
+    /// Gets the next entry number for the Warranty Ledger Entry table.
+    /// </summary>
+    /// <returns>The next available entry number.</returns>
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Warranty Ledger Entry", 'r')]
+    procedure GetNextEntryNo(): Integer
+    var
+        SequenceNoMgt: Codeunit "Sequence No. Mgt.";
+    begin
+        exit(SequenceNoMgt.GetNextSeqNo(DATABASE::"Warranty Ledger Entry"));
+    end;
+
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Warranty Ledger Entry", 'r')]
     procedure GetLastEntryNo(): Integer;
     var
         FindRecordManagement: Codeunit "Find Record Management";

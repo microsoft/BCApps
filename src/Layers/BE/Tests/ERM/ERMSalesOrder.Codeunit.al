@@ -5982,6 +5982,51 @@
         Assert.AreEqual(ExpectedQty, SalesLine."Reserved Quantity", StrSubstNo(ReservedQtyExpectedErr, ExpectedQty));
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure ContactEmailCopiedToSalesOrderWhenCustomerHasPrimaryContact()
+    var
+        Contact: Record Contact;
+        ContactBusinessRelation: Record "Contact Business Relation";
+        CompanyContact: Record Contact;
+        Customer: Record Customer;
+        CustomerCard: TestPage "Customer Card";
+        SalesOrder: TestPage "Sales Order";
+        ContactEmail: Text[80];
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 625599] Contact email is copied to Sales Order created from Customer Card when Customer "C" has a primary Contact "CO" with email
+        Initialize();
+
+        // [GIVEN] Customer "C" with a primary Contact "CO" that has an email address
+        ContactEmail := CopyStr(LibraryUtility.GenerateRandomEmail(), 1, MaxStrLen(ContactEmail));
+        LibrarySales.CreateCustomer(Customer);
+        ContactBusinessRelation.SetRange("Link to Table", ContactBusinessRelation."Link to Table"::Customer);
+        ContactBusinessRelation.SetRange("No.", Customer."No.");
+        ContactBusinessRelation.FindFirst();
+        CompanyContact.Get(ContactBusinessRelation."Contact No.");
+        Contact.Init();
+        Contact.Type := Contact.Type::Person;
+        Contact.Validate("Company No.", CompanyContact."No.");
+        Contact.Insert(true);
+        Contact.Validate("E-Mail", ContactEmail);
+        Contact.Modify(true);
+        Customer.Validate("Primary Contact No.", Contact."No.");
+        Customer.Modify(true);
+        Commit();
+
+        // [WHEN] Sales Order is created from Customer Card
+        CustomerCard.OpenEdit();
+        CustomerCard.GoToRecord(Customer);
+        SalesOrder.Trap();
+        CustomerCard.NewSalesOrder.Invoke();
+        SalesOrder."Ship-to Address 2".SetValue('');
+
+        // [THEN] Sell-to E-Mail on Sales Order is Contact "CO" email
+        SalesOrder."Sell-to E-Mail".AssertEquals(ContactEmail);
+        SalesOrder.Close();
+    end;
+
     local procedure Initialize()
     var
         SalesHeader: Record "Sales Header";

@@ -283,7 +283,7 @@ codeunit 5616 "Depreciation Calculation"
         if FADepreciationBook.BonusDepreciationApplied() then
             exit(0);
 
-        exit(FADepreciationBook.BonusDepreciationAmount(FASetup));
+        exit(FADepreciationBook.BonusDepreciationAmount());
     end;
 
     local procedure CalcMaxDepr(BookValue: Decimal; SalvageValue: Decimal; EndingBookValue: Decimal): Decimal

@@ -1357,6 +1357,7 @@ codeunit 134391 "ERM Sales Batch Posting"
         ICSetup: Record "IC Setup";
         SalesHeader: array[2] of Record "Sales Header";
         SalesLine: array[2] of Record "Sales Line";
+        HandledICOutboxTrans: Record "Handled IC Outbox Trans.";
         TestClientTypeSubscriber: Codeunit "Test Client Type Subscriber";
         LibraryFileMgtHandler: Codeunit "Library - File Mgt Handler";
         TempBlob: Codeunit "Temp Blob";
@@ -1407,10 +1408,16 @@ codeunit 134391 "ERM Sales Batch Posting"
 
         Assert.AreEqual(4, ZipEntryList.Count(), 'Incorrect number of files in zip');
 
-        for Index := 1 to ZipEntryList.Count() do begin
+        HandledICOutboxTrans.SetRange("IC Partner Code", ICPartnerCode);
+        HandledICOutboxTrans.SetCurrentKey("Transaction No.");
+        HandledICOutboxTrans.SetAscending("Transaction No.", true);
+        Index := 0;
+        HandledICOutboxTrans.FindSet();
+        repeat
+            Index += 1;
             ZipEntryList.Get(Index, ZipEntryName);
-            Assert.AreEqual(StrSubstNo('%1_%2.xml', ICPartnerCode, Index), ZipEntryName, 'Incorrect name of file in zip at position: ' + Format(Index));
-        end;
+            Assert.AreEqual(StrSubstNo('%1_%2.xml', ICPartnerCode, HandledICOutboxTrans."Transaction No."), ZipEntryName, 'Incorrect name of file in zip at position: ' + Format(Index));
+        until HandledICOutboxTrans.Next() = 0;
     end;
 
     [Test]
@@ -1423,6 +1430,7 @@ codeunit 134391 "ERM Sales Batch Posting"
         GenJournalLineToPost: Record "Gen. Journal Line";
         GenJournalBatch: Record "Gen. Journal Batch";
         GenJournalTemplate: Record "Gen. Journal Template";
+        HandledICOutboxTrans: Record "Handled IC Outbox Trans.";
         TestClientTypeSubscriber: Codeunit "Test Client Type Subscriber";
         LibraryFileMgtHandler: Codeunit "Library - File Mgt Handler";
         TempBlob: Codeunit "Temp Blob";
@@ -1487,10 +1495,16 @@ codeunit 134391 "ERM Sales Batch Posting"
 
         Assert.AreEqual(2, ZipEntryList.Count(), 'Incorrect number of files in zip');
 
-        for Index := 1 to ZipEntryList.Count() do begin
+        HandledICOutboxTrans.SetRange("IC Partner Code", ICPartnerCode);
+        HandledICOutboxTrans.SetCurrentKey("Transaction No.");
+        HandledICOutboxTrans.SetAscending("Transaction No.", true);
+        Index := 0;
+        HandledICOutboxTrans.FindSet();
+        repeat
+            Index += 1;
             ZipEntryList.Get(Index, ZipEntryName);
-            Assert.AreEqual(StrSubstNo('%1_%2.xml', ICPartnerCode, Index), ZipEntryName, 'Incorrect name of file in zip at position: ' + Format(Index));
-        end;
+            Assert.AreEqual(StrSubstNo('%1_%2.xml', ICPartnerCode, HandledICOutboxTrans."Transaction No."), ZipEntryName, 'Incorrect name of file in zip at position: ' + Format(Index));
+        until HandledICOutboxTrans.Next() = 0;
     end;
 
     [Test]

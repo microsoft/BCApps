@@ -1130,7 +1130,7 @@ codeunit 142051 "ERM Sales/Purchase Tax II"
         DocumentNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
 
         // Verify: Check additional charge values for Item in Value Entry.
-        VerifyValueEntriesCostAmount(DocumentNo, ChargeAmount * (1 + (TaxDetail."Tax Below Maximum" / 100)));
+        VerifyValueEntriesCostAmount(DocumentNo, ChargeAmount + Round(ChargeAmount * TaxDetail."Tax Below Maximum" / 100));
     end;
 
     [Test]

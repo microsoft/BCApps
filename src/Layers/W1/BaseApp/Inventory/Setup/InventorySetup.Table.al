@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -20,6 +20,7 @@ using Microsoft.Upgrade;
 using Microsoft.Warehouse.InternalDocument;
 using Microsoft.Warehouse.InventoryDocument;
 using System.Globalization;
+using System.Telemetry;
 using System.Utilities;
 
 table 313 "Inventory Setup"
@@ -84,6 +85,23 @@ table 313 "Inventory Setup"
             Caption = 'Cost Adjustment Logging';
             ToolTip = 'Specifies if you want to log cost adjustments runs. Disabled: No logging. Errors Only: The program will only log cost adjustment runs that have errors. All: The program will log all cost adjustment runs.';
             DataClassification = CustomerContent;
+        }
+        field(32; "Earliest Allowed Val. Date"; Date)
+        {
+            Caption = 'Earliest Allowed Valuation Date';
+            ToolTip = 'Specifies the earliest date allowed for a Valuation Date on new value entries. If set, user-initiated postings with a Valuation Date before this date are blocked. System-generated entries such as cost adjustments, rounding, and expected-to-actual corrections are exempt. Leave blank to allow all dates.';
+            DataClassification = CustomerContent;
+
+            trigger OnValidate()
+            begin
+                if ("Earliest Allowed Val. Date" = 0D) or ("Earliest Allowed Val. Date" = xRec."Earliest Allowed Val. Date") then
+                    exit;
+
+                CheckCostAdjustedBeforeEarliestAllowedValDate("Earliest Allowed Val. Date");
+                CheckOpenOrdersBeforeEarliestAllowedValDate("Earliest Allowed Val. Date");
+
+                FeatureTelemetry.LogUsage('0000TEX', EarliestAllowedValDateFeatureTok, EarliestAllowedValDateSetTok);
+            end;
         }
         field(35; "Current Demand Forecast"; Code[10])
         {
@@ -430,18 +448,34 @@ table 313 "Inventory Setup"
             Caption = 'Copy Comments to Invt. Doc.';
             ToolTip = 'Specifies that you want to copy the comments entered on the inventory document to the posted document.';
         }
+#if not CLEANSCHEMA31
         field(5855; "Direct Transfer Posting"; Option)
         {
             Caption = 'Direct Transfer Posting';
             ToolTip = 'Specifies if Direct Transfer will be posted as Shipment and Receipt or as single Direct Transfer document. There are different restrictions associated with different modes, for example Directed Transfer document does not support partial posting.';
             OptionCaption = 'Receipt and Shipment,Direct Transfer';
             OptionMembers = "Receipt and Shipment","Direct Transfer";
+            ObsoleteReason = 'Replaced by field 5857 "Direct Transfer Posting Type" of type Enum "Direct Transfer Posting Type".';
+#if CLEAN29
+            ObsoleteState = Removed;
+            ObsoleteTag = '31.0';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#endif
         }
+#endif
         field(5856; "Posted Direct Trans. Nos."; Code[20])
         {
             Caption = 'Posted Direct Trans. Nos.';
             ToolTip = 'Specifies the number series from which numbers are assigned to new records.';
             TableRelation = "No. Series";
+        }
+        field(5857; "Direct Transfer Posting Type"; Enum "Direct Transfer Posting Type")
+        {
+            Caption = 'Default Direct Transfer Posting';
+            InitValue = "Shipment and Receipt";
+            ToolTip = 'Specifies if Direct Transfer will be posted as Shipment and Receipt or as single Direct Transfer document. There are different restrictions associated with different modes, for example Directed Transfer document does not support partial posting.';
         }
         field(5860; "Package Nos."; Code[20])
         {
@@ -551,6 +585,7 @@ table 313 "Inventory Setup"
         Item: Record Item;
         InvtAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)";
         ObjTransl: Record "Object Translation";
+        FeatureTelemetry: Codeunit "Feature Telemetry";
 
 #pragma warning disable AA0074
         Text000: Label 'Some unadjusted value entries will not be covered with the new setting. You must run the Adjust Cost - Item Entries batch job once to adjust these.';
@@ -559,7 +594,12 @@ table 313 "Inventory Setup"
         Text005: Label '%1 has been changed to %2. You should now run %3.';
 #pragma warning restore AA0470
 #pragma warning restore AA0074
+        OpenOrdersBeforeEarliestAllowedValDateErr: Label 'One or more open production and assembly orders have value entries with a Valuation Date before %1. Finish or adjust these orders before setting the Earliest Allowed Valuation Date.', Comment = '%1 = Earliest Allowed Valuation Date';
+        UnadjustedEntriesBeforeEarliestAllowedValDateErr: Label 'There are unadjusted item entries with a Valuation Date before %1. Run the Adjust Cost - Item Entries batch job before setting the Earliest Allowed Valuation Date.', Comment = '%1 = Earliest Allowed Valuation Date';
+        FinishedOrdersUnadjustedBeforeEarliestAllowedValDateErr: Label 'One or more finished %1 orders have unadjusted value entries with a Valuation Date before %2. Adjust these orders before setting the Earliest Allowed Valuation Date.', Comment = '%1 = Order Type (Production/Assembly), %2 = Earliest Allowed Valuation Date';
         ItemEntriesAdjustQst: Label 'If you change the %1, the program must adjust all item entries.The adjustment of all entries can take several hours.\Do you really want to change the %1?', Comment = '%1 - field caption';
+        EarliestAllowedValDateFeatureTok: Label 'Earliest Allowed Valuation Date', Locked = true;
+        EarliestAllowedValDateSetTok: Label 'Earliest Allowed Valuation Date was set.', Locked = true;
 
     procedure GetRecordOnce()
     var
@@ -578,6 +618,48 @@ table 313 "Inventory Setup"
         InvtAdjmtEntryOrder.SetRange("Is Finished", false);
         InvtAdjmtEntryOrder.SetRange("Order Type", InvtAdjmtEntryOrder."Order Type"::Production);
         InvtAdjmtEntryOrder.ModifyAll("Allow Online Adjustment", true);
+    end;
+
+    local procedure CheckCostAdjustedBeforeEarliestAllowedValDate(EarliestAllowedValDate: Date)
+    var
+        InvtAdjmtEntryOrderLocal: Record "Inventory Adjmt. Entry (Order)";
+        ValueEntry: Record "Value Entry";
+        AvgCostEntryPointHandler: Codeunit "Avg. Cost Entry Point Handler";
+    begin
+        if not AvgCostEntryPointHandler.IsEntriesAdjusted('', EarliestAllowedValDate - 1) then
+            Error(UnadjustedEntriesBeforeEarliestAllowedValDateErr, EarliestAllowedValDate);
+
+        InvtAdjmtEntryOrderLocal.SetCurrentKey("Cost is Adjusted");
+        InvtAdjmtEntryOrderLocal.SetRange("Cost is Adjusted", false);
+        InvtAdjmtEntryOrderLocal.SetRange("Is Finished", true);
+        if InvtAdjmtEntryOrderLocal.FindSet() then
+            repeat
+                ValueEntry.SetCurrentKey("Order Type", "Order No.", "Order Line No.");
+                ValueEntry.SetRange("Order Type", InvtAdjmtEntryOrderLocal."Order Type");
+                ValueEntry.SetRange("Order No.", InvtAdjmtEntryOrderLocal."Order No.");
+                ValueEntry.SetRange("Order Line No.", InvtAdjmtEntryOrderLocal."Order Line No.");
+                ValueEntry.SetFilter("Valuation Date", '<%1', EarliestAllowedValDate);
+                if not ValueEntry.IsEmpty() then
+                    Error(FinishedOrdersUnadjustedBeforeEarliestAllowedValDateErr, InvtAdjmtEntryOrderLocal."Order Type", EarliestAllowedValDate);
+            until InvtAdjmtEntryOrderLocal.Next() = 0;
+    end;
+
+    local procedure CheckOpenOrdersBeforeEarliestAllowedValDate(EarliestAllowedValDate: Date)
+    var
+        InvtAdjmtEntryOrderLocal: Record "Inventory Adjmt. Entry (Order)";
+        ValueEntry: Record "Value Entry";
+    begin
+        InvtAdjmtEntryOrderLocal.SetRange("Is Finished", false);
+        if InvtAdjmtEntryOrderLocal.FindSet() then
+            repeat
+                ValueEntry.SetCurrentKey("Order Type", "Order No.", "Order Line No.");
+                ValueEntry.SetRange("Order Type", InvtAdjmtEntryOrderLocal."Order Type");
+                ValueEntry.SetRange("Order No.", InvtAdjmtEntryOrderLocal."Order No.");
+                ValueEntry.SetRange("Order Line No.", InvtAdjmtEntryOrderLocal."Order Line No.");
+                ValueEntry.SetFilter("Valuation Date", '<%1', EarliestAllowedValDate);
+                if not ValueEntry.IsEmpty() then
+                    Error(OpenOrdersBeforeEarliestAllowedValDateErr, EarliestAllowedValDate);
+            until InvtAdjmtEntryOrderLocal.Next() = 0;
     end;
 
     local procedure UpdateItem()
@@ -631,6 +713,30 @@ table 313 "Inventory Setup"
     begin
         OnGetComponentsAtLocation(LocationCode);
     end;
+
+#if not CLEAN29
+    internal procedure SyncDirectTransferPostingOptionToEnum(DirectTransferPostingOption: Option)
+    begin
+        case DirectTransferPostingOption of
+            Rec."Direct Transfer Posting"::"Receipt and Shipment":
+                Rec."Direct Transfer Posting Type" := Rec."Direct Transfer Posting Type"::"Shipment and Receipt";
+            Rec."Direct Transfer Posting"::"Direct Transfer":
+                Rec."Direct Transfer Posting Type" := Rec."Direct Transfer Posting Type"::"Direct Transfer";
+        end;
+        Rec.Modify();
+    end;
+
+    internal procedure SyncDirectTransferPostingEnumToOption(DirectTransferPostingEnum: Enum "Direct Transfer Posting Type")
+    begin
+        case DirectTransferPostingEnum of
+            Rec."Direct Transfer Posting Type"::"Shipment and Receipt":
+                Rec."Direct Transfer Posting" := Rec."Direct Transfer Posting"::"Receipt and Shipment";
+            Rec."Direct Transfer Posting Type"::"Direct Transfer":
+                Rec."Direct Transfer Posting" := Rec."Direct Transfer Posting"::"Direct Transfer";
+        end;
+        Rec.Modify();
+    end;
+#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnGetComponentsAtLocation(var LocationCode: Code[10])

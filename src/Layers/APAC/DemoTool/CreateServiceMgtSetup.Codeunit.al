@@ -4,8 +4,8 @@ codeunit 117012 "Create Service Mgt. Setup"
     trigger OnRun()
     begin
         InsertData(
-          '', ServiceMgtSetup."Fault Reporting Level"::"Fault+Symptom+Area (IRIS)",
-          true, false, 100, 100, false, XSTART, true, '', '', '', '');
+            '', ServiceMgtSetup."Fault Reporting Level"::"Fault+Symptom+Area (IRIS)",
+            true, false, 100, 100, false, XSTART, true, '', '', '', '');
         ModifyData1(
           Xperson1, Xperson2, Xperson3, 16, 8, 2,
           ServiceMgtSetup."Next Service Calc. Method"::Planned, false, ServiceMgtSetup."Service Zones Option"::"Code Shown",

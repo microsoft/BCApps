@@ -548,19 +548,69 @@ codeunit 18 "Financial Report Mgt."
         AccScheduleLine.SetRange(Totaling, GLAccNo);
     end;
 
+    procedure FindGLAccountWhereUsedInColumnLayout(GLAccNo: Code[20]; var TempGLAccWhereUsed: Record "G/L Account Where-Used" temporary): Boolean
+    var
+        ColumnLayout: Record "Column Layout";
+    begin
+        FilterColumnLayoutByGLAccount(ColumnLayout, GLAccNo);
+        if not ColumnLayout.FindSet() then
+            exit(false);
+        TempGLAccWhereUsed."Table ID" := Database::"Column Layout";
+        TempGLAccWhereUsed."Table Name" := CopyStr(ColumnLayout.TableCaption(), 1, MaxStrLen(TempGLAccWhereUsed."Table Name"));
+        TempGLAccWhereUsed."Field Name" := CopyStr(ColumnLayout.FieldCaption("G/L Account Totaling"), 1, MaxStrLen(TempGLAccWhereUsed."Field Name"));
+        repeat
+            TempGLAccWhereUsed."Key 1" := ColumnLayout."Column Layout Name";
+            TempGLAccWhereUsed."Key 2" := Format(ColumnLayout."Line No.");
+            TempGLAccWhereUsed.Line := CopyStr(
+                StrSubstNo('%1=%2, %3=%4',
+                    ColumnLayout.FieldCaption("Column Layout Name"), ColumnLayout."Column Layout Name",
+                    ColumnLayout.FieldCaption("Column No."), ColumnLayout."Column No."),
+                1, MaxStrLen(TempGLAccWhereUsed.Line));
+            TempGLAccWhereUsed."Entry No." += 1;
+            TempGLAccWhereUsed.Insert();
+        until ColumnLayout.Next() = 0;
+        exit(true);
+    end;
+
+    local procedure FilterColumnLayoutByGLAccount(var ColumnLayout: Record "Column Layout"; GLAccNo: Code[20])
+    begin
+        ColumnLayout.SetRange("G/L Account Totaling", GLAccNo);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Calc. G/L Acc. Where-Used", OnAfterCheckPostingGroups, '', false, false)]
+    local procedure OnAfterCheckPostingGroups(GLAccNo: Code[20]; var TempGLAccountWhereUsed: Record "G/L Account Where-Used" temporary)
+    begin
+        FindGLAccountWhereUsedInAccScheduleLine(GLAccNo, TempGLAccountWhereUsed);
+        FindGLAccountWhereUsedInColumnLayout(GLAccNo, TempGLAccountWhereUsed);
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Calc. G/L Acc. Where-Used", OnShowExtensionPage, '', false, false)]
     local procedure OnShowExtensionPage(GLAccountWhereUsed: Record "G/L Account Where-Used")
     var
         AccScheduleLine: Record "Acc. Schedule Line";
+        ColumnLayout: Record "Column Layout";
         AccountSchedule: Page "Account Schedule";
+        ColumnLayoutPage: Page "Column Layout";
     begin
-        if GLAccountWhereUsed."Table ID" = Database::"Acc. Schedule Line" then begin
-            AccScheduleLine."Schedule Name" := CopyStr(GLAccountWhereUsed."Key 1", 1, MaxStrLen(AccScheduleLine."Schedule Name"));
-            if Evaluate(AccScheduleLine."Line No.", GLAccountWhereUsed."Key 2") then;
-            AccScheduleLine.Find();
-            AccountSchedule.SetAccSchedName(AccScheduleLine."Schedule Name");
-            AccountSchedule.SetRecord(AccScheduleLine);
-            AccountSchedule.Run();
+        case GLAccountWhereUsed."Table ID" of
+            Database::"Acc. Schedule Line":
+                begin
+                    AccScheduleLine."Schedule Name" := CopyStr(GLAccountWhereUsed."Key 1", 1, MaxStrLen(AccScheduleLine."Schedule Name"));
+                    if Evaluate(AccScheduleLine."Line No.", GLAccountWhereUsed."Key 2") then;
+                    AccScheduleLine.Find();
+                    AccountSchedule.SetAccSchedName(AccScheduleLine."Schedule Name");
+                    AccountSchedule.SetRecord(AccScheduleLine);
+                    AccountSchedule.Run();
+                end;
+            Database::"Column Layout":
+                begin
+                    ColumnLayout."Column Layout Name" := CopyStr(GLAccountWhereUsed."Key 1", 1, MaxStrLen(ColumnLayout."Column Layout Name"));
+                    if Evaluate(ColumnLayout."Line No.", GLAccountWhereUsed."Key 2") then;
+                    ColumnLayout.Find();
+                    ColumnLayoutPage.SetColumnLayoutName(ColumnLayout."Column Layout Name");
+                    ColumnLayoutPage.SetRecord(ColumnLayout);
+                    ColumnLayoutPage.Run();
+                end;
         end;
     end;
 

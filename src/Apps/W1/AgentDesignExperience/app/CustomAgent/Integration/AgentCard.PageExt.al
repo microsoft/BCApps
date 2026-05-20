@@ -20,6 +20,14 @@ pageextension 4353 "Agent Card" extends "Agent Card"
                 ShowCaption = false;
                 Visible = IsCustomAgent;
 
+                field(AgentModelName; AgentModelName)
+                {
+                    Caption = 'Agent model';
+                    ApplicationArea = All;
+                    Editable = false;
+                    ToolTip = 'Specifies the model currently assigned to the agent.';
+                }
+
                 field(InstructionVersion; CustomAgentSetup."Instructions Version")
                 {
                     Caption = 'Instruction version';
@@ -131,8 +139,14 @@ pageextension 4353 "Agent Card" extends "Agent Card"
 
     [NonDebuggable]
     local procedure GetCustomAgentFields()
+    var
+        Agent: Codeunit "Agent";
     begin
         IsCustomAgent := CustomAgentSetup.Get(Rec."User Security ID");
+        if IsCustomAgent then
+            AgentModelName := Agent.GetModelName(Rec."User Security ID")
+        else
+            Clear(AgentModelName);
     end;
 
     protected var
@@ -142,6 +156,7 @@ pageextension 4353 "Agent Card" extends "Agent Card"
         CustomAgentSetup: Record "Custom Agent Setup";
         CustomAgentProfileMgt: Codeunit "Custom Agent Profile Mgt";
         CustomAgentSetupCodeunit: Codeunit "Custom Agent Setup";
+        AgentModelName: Text;
         IsWebClient, IsProfileEditable : Boolean;
         ConfirmExportAgentQst: Label 'Are you sure you want to export the selected agent?';
         OpenEditInstructionsPageQst: Label 'Do you want to open the test agent page to test the agent with the updated instructions?';

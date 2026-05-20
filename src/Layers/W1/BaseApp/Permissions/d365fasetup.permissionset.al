@@ -17,6 +17,7 @@ permissionset 3668 "D365 FA, SETUP"
     Permissions = tabledata "Depreciation Book" = RIMD,
                   tabledata "Depreciation Table Header" = RIMD,
                   tabledata "Depreciation Table Line" = RIMD,
+                  tabledata "Adv. Bonus Depreciation Setup" = RIMD,
                   tabledata "FA Allocation" = RIMD,
                   tabledata "FA Class" = RIMD,
                   tabledata "FA Date Type" = RIMD,

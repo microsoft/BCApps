@@ -210,12 +210,10 @@ codeunit 74 "Purch.-Get Receipt"
         ItemChargeAssgntPurch.SetRange("Document Type", PurchOrderLine."Document Type");
         ItemChargeAssgntPurch.SetRange("Document No.", PurchOrderLine."Document No.");
         ItemChargeAssgntPurch.SetRange("Document Line No.", PurchOrderLine."Line No.");
-        if ItemChargeAssgntPurch.FindFirst() then begin
-            ItemChargeAssgntPurch.CalcSums("Qty. to Assign");
-            if ItemChargeAssgntPurch."Qty. to Assign" <> 0 then
-                CopyItemChargeAssgnt(
-                  PurchOrderLine, PurchRcptLine, ItemChargeAssgntPurch."Qty. to Assign", QtyToInvoice / ItemChargeAssgntPurch."Qty. to Assign");
-        end;
+        ItemChargeAssgntPurch.CalcSums("Qty. to Assign");
+        if ItemChargeAssgntPurch."Qty. to Assign" <> 0 then
+            CopyItemChargeAssgnt(
+              PurchOrderLine, PurchRcptLine, ItemChargeAssgntPurch."Qty. to Assign", QtyToInvoice / ItemChargeAssgntPurch."Qty. to Assign");
     end;
 
     local procedure CopyItemChargeAssgnt(PurchOrderLine: Record "Purchase Line"; PurchRcptLine: Record "Purch. Rcpt. Line"; QtyToAssign: Decimal; QtyFactor: Decimal)
@@ -231,7 +229,7 @@ codeunit 74 "Purch.-Get Receipt"
         ItemChargeAssgntPurch.SetRange("Document Type", PurchOrderLine."Document Type");
         ItemChargeAssgntPurch.SetRange("Document No.", PurchOrderLine."Document No.");
         ItemChargeAssgntPurch.SetRange("Document Line No.", PurchOrderLine."Line No.");
-        if ItemChargeAssgntPurch.Find('-') then
+        if ItemChargeAssgntPurch.FindSet() then
             repeat
                 if ItemChargeAssgntPurch."Qty. to Assign" <> 0 then begin
                     ItemChargeAssgntPurch2 := ItemChargeAssgntPurch;
@@ -240,9 +238,9 @@ codeunit 74 "Purch.-Get Receipt"
                     ItemChargeAssgntPurch2.Validate("Qty. to Handle", ItemChargeAssgntPurch2."Qty. to Assign");
                     PurchLine2.SetRange("Receipt No.", PurchRcptLine."Document No.");
                     PurchLine2.SetRange("Receipt Line No.", PurchRcptLine."Line No.");
+                    PurchLine2.SetAutoCalcFields("Qty. to Assign");
                     if PurchLine2.Find('-') then
                         repeat
-                            PurchLine2.CalcFields("Qty. to Assign");
                             InsertChargeAssgnt := PurchLine2."Qty. to Assign" <> PurchLine2.Quantity;
                         until (PurchLine2.Next() = 0) or InsertChargeAssgnt;
 
@@ -290,7 +288,7 @@ codeunit 74 "Purch.-Get Receipt"
                                     PurchLine2.SetRange("Receipt No.", PurchRcptLine2."Document No.");
                                     PurchLine2.SetRange("Receipt Line No.", PurchRcptLine2."Line No.");
                                     OnCopyItemChargeAssgntOnBeforeFindPurchLine2(PurchLine2, ItemChargeAssgntPurch2, PurchRcptLine);
-                                    if PurchLine2.Find('-') and (PurchLine2.Quantity <> 0) then begin
+                                    if PurchLine2.FindFirst() and (PurchLine2.Quantity <> 0) then begin
                                         OnCopyItemChargeAssgntOnAfterFindPurchLine2(PurchLine2, ItemChargeAssgntPurch2);
                                         ItemChargeAssgntPurch2."Applies-to Doc. Line No." := PurchLine2."Line No.";
                                     end else

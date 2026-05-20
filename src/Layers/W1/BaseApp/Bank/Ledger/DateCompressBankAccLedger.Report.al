@@ -284,6 +284,7 @@ report 1498 "Date Compress Bank Acc. Ledger"
         NewBankAccLedgEntry: Record "Bank Account Ledger Entry";
         BankAccLedgEntry2: Record "Bank Account Ledger Entry";
         GLEntry: Record "G/L Entry";
+        GLTransaction: Record "G/L Transaction";
         SelectedDim: Record "Selected Dimension";
         TempSelectedDim: Record "Selected Dimension" temporary;
         DimSelectionBuf: Record "Dimension Selection Buffer";
@@ -364,8 +365,11 @@ report 1498 "Date Compress Bank Acc. Ledger"
         GLEntry."System-Created Entry" := true;
         GLEntry."User ID" := CopyStr(UserId(), 1, MaxStrLen(GLEntry."User ID"));
         GLEntry."Transaction No." := NextTransactionNo;
+        GLEntry."G/L Register No." := GLReg."No.";
         GLEntry.Insert();
         GLEntry.Consistent(GLEntry.Amount = 0);
+        GLTransaction.InsertFromGLEntry(GLEntry, GLReg);
+
         GLReg."To Entry No." := GLEntry."Entry No.";
 
         if GLRegExists then begin

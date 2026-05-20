@@ -6,7 +6,6 @@ namespace Microsoft.Manufacturing.Journal;
 
 using Microsoft.Finance.GeneralLedger.Reversal;
 using Microsoft.Foundation.AuditCodes;
-using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Posting;
@@ -277,7 +276,6 @@ codeunit 99000843 "Undo Prod. Posting Mgmt."
 
     local procedure ReverseConsumptionItemLedgerEntry(ItemLedgerEntry: Record "Item Ledger Entry")
     var
-        Item: Record Item;
         ItemJnlLine: Record "Item Journal Line";
         ProductionOrder: Record "Production Order";
         ItemJnlPostLine: Codeunit "Item Jnl.-Post Line";
@@ -302,19 +300,14 @@ codeunit 99000843 "Undo Prod. Posting Mgmt."
         ItemJnlLine.Validate("Document No.", ItemLedgerEntry."Document No.");
         ItemJnlLine.Validate(Description, ItemLedgerEntry.Description);
         ItemJnlLine.Validate("Location Code", ItemLedgerEntry."Location Code");
-        if Item.Get(ItemLedgerEntry."Item No.") and (Item."Base Unit of Measure" <> ItemLedgerEntry."Unit of Measure Code") then
-            ItemJnlLine.Validate("Unit of Measure Code", Item."Base Unit of Measure")
-        else
-            ItemJnlLine.Validate("Unit of Measure Code", ItemLedgerEntry."Unit of Measure Code");
+        ItemJnlLine.Validate("Unit of Measure Code", ItemLedgerEntry."Unit of Measure Code");
         ItemJnlLine."Dimension Set ID" := ItemLedgerEntry."Dimension Set ID";
         ItemJnlLine."Shortcut Dimension 1 Code" := ItemLedgerEntry."Global Dimension 1 Code";
         ItemJnlLine."Shortcut Dimension 2 Code" := ItemLedgerEntry."Global Dimension 2 Code";
         IsHandled := false;
         OnReverseConsumptionItemLedgerEntryOnBeforeValidateQuantity(ItemJnlLine, ItemLedgerEntry, IsHandled);
-        if not IsHandled then
-            ItemJnlLine.Validate(Quantity, -Abs(ItemLedgerEntry.Quantity));
-
-        if ItemJnlLine."Unit of Measure Code" = ItemLedgerEntry."Unit of Measure Code" then begin
+        if not IsHandled then begin
+            ItemJnlLine.Validate(Quantity, -Abs(ItemLedgerEntry.Quantity) / ItemLedgerEntry."Qty. per Unit of Measure");
             ItemJnlLine."Quantity (Base)" := ItemLedgerEntry.Quantity;
             ItemJnlLine."Invoiced Qty. (Base)" := ItemLedgerEntry.Quantity;
         end;

@@ -5,6 +5,7 @@ using Microsoft.Purchases.Payables;
 query 30303 "API Fin - Vend Ledg Entry"
 {
     QueryType = API;
+    AboutText = 'Provides access to vendor ledger entries including document types, amounts in local and foreign currencies, posting dates, and balancing account information. Enables external systems to retrieve payables data for aging analysis, payment tracking, and vendor account reconciliation.';
     EntityCaption = 'Vendor Ledger Entry';
     EntityName = 'vendorLedgerEntry';
     EntitySetName = 'vendorLedgerEntries';

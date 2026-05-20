@@ -80,12 +80,23 @@ page 5740 "Transfer Order"
                         CurrPage.Update();
                     end;
                 }
+                field("Direct Transfer Posting"; Rec."Direct Transfer Posting")
+                {
+                    ApplicationArea = Location;
+                    Editable = (Rec.Status = Rec.Status::Open) and EnableTransferFields and Rec."Direct Transfer";
+
+                    trigger OnValidate()
+                    begin
+                        IsTransferLinesEditable := Rec.TransferLinesEditable();
+                        CurrPage.Update();
+                    end;
+                }
                 field("In-Transit Code"; Rec."In-Transit Code")
                 {
                     ApplicationArea = Location;
                     Editable = EnableTransferFields;
                     ShowMandatory = not Rec."Direct Transfer";
-                    Enabled = (not Rec."Direct Transfer") and (Rec.Status = Rec.Status::Open);
+                    Enabled = (not (Rec."Direct Transfer" and (Rec."Direct Transfer Posting" = Rec."Direct Transfer Posting"::"Direct Transfer"))) and (Rec.Status = Rec.Status::Open);
 
                     trigger OnValidate()
                     begin
@@ -858,7 +869,7 @@ page 5740 "Transfer Order"
 
     trigger OnAfterGetRecord()
     begin
-        EnableTransferFields := not IsPartiallyShipped();
+        EnableTransferFields := not Rec.IsPartiallyShipped();
         ActivateFields();
     end;
 
@@ -870,7 +881,7 @@ page 5740 "Transfer Order"
     trigger OnOpenPage()
     begin
         SetDocNoVisible();
-        EnableTransferFields := not IsPartiallyShipped();
+        EnableTransferFields := not Rec.IsPartiallyShipped();
         ActivateFields();
     end;
 
@@ -942,15 +953,6 @@ page 5740 "Transfer Order"
         DocumentNoVisibility: Codeunit DocumentNoVisibility;
     begin
         DocNoVisible := DocumentNoVisibility.TransferOrderNoIsVisible();
-    end;
-
-    local procedure IsPartiallyShipped(): Boolean
-    var
-        TransferLine: Record "Transfer Line";
-    begin
-        TransferLine.SetRange("Document No.", Rec."No.");
-        TransferLine.SetFilter("Quantity Shipped", '> 0');
-        exit(not TransferLine.IsEmpty);
     end;
 
     local procedure ShowPreview()

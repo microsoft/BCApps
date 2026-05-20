@@ -26,6 +26,7 @@
         LibraryApplicationArea: Codeunit "Library - Application Area";
         Assert: Codeunit Assert;
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        LibrarySetupStorage: Codeunit "Library - Setup Storage";
         isInitialized: Boolean;
         LinesAreAppliedTxt: Label 'are applied';
         RandomizeCount: Integer;
@@ -5972,7 +5973,11 @@
         LibraryERMCountryData.UpdateLocalData();
         LibraryERMCountryData.CreateVATData();
         LibraryERMCountryData.UpdateGeneralPostingSetup();
+        LibraryERMCountryData.UpdatePurchasesPayablesSetup();
         LibraryERM.FindZeroVATPostingSetup(ZeroVATPostingSetup, ZeroVATPostingSetup."VAT Calculation Type"::"Normal VAT");
+
+        LibrarySetupStorage.SavePurchasesSetup();
+        LibrarySetupStorage.SaveGeneralLedgerSetup();
 
         isInitialized := true;
         LibraryTestInitialize.OnAfterTestSuiteInitialize(CODEUNIT::"Bank Pmt. Appl. Algorithm");

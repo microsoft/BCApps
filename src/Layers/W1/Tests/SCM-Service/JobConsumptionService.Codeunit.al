@@ -8,6 +8,7 @@ using Microsoft.Sales.Customer;
 using Microsoft.Service.Document;
 using Microsoft.Service.History;
 using Microsoft.Service.Posting;
+using System.TestLibraries.Utilities;
 
 codeunit 136301 "Job Consumption Service"
 {
@@ -28,6 +29,7 @@ codeunit 136301 "Job Consumption Service"
         LibrarySales: Codeunit "Library - Sales";
         LibraryService: Codeunit "Library - Service";
         LibraryUtility: Codeunit "Library - Utility";
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
         Initialized: Boolean;
         UndoConsumptionJobError: Label 'You cannot undo consumption on the line because it has been already posted to Projects.';
         JobBlockedError: Label '%1 %2 must not be blocked with type %3.';
@@ -312,6 +314,322 @@ codeunit 136301 "Job Consumption Service"
         // [SCENARIO] Use a planning line (Type = Resource, "Line Type" = Budget & Billable) with an explicit link, post execution via Service Document, verify that link created and Quantities and Amounts are correct.
 
         UseLinked(LibraryJob.ResourceType(), LibraryJob.PlanningLineTypeBoth(), false, ServiceConsumption())
+    end;
+
+    [Test]
+    procedure ServiceLineSelectJobWithMultipleBillToCustomers()
+    var
+        Customer: array[2] of Record Customer;
+        Job: Record Job;
+        JobTask: array[2] of Record "Job Task";
+        ServiceHeader: Record "Service Header";
+        ServiceItemLine: Record "Service Item Line";
+        ServiceLine: Record "Service Line";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 612275] Service Line can select a Job that has tasks for multiple bill-to customers
+        Initialize();
+
+        // [GIVEN] Create two customers.
+        LibrarySales.CreateCustomer(Customer[1]);
+        LibrarySales.CreateCustomer(Customer[2]);
+
+        // Create a Job for Customer A with Multiple Customers billing method
+        LibraryJob.CreateJob(Job, Customer[1]."No.");
+        Job.Validate("Task Billing Method", Job."Task Billing Method"::"Multiple customers");
+        Job.Modify(true);
+
+        // [GIVEN] Create Job Task for first Customer.
+        LibraryJob.CreateJobTask(Job, JobTask[1]);
+        JobTask[1].Validate("Bill-to Customer No.", Customer[1]."No.");
+        JobTask[1].Modify(true);
+
+        // [GIVEN] Create Job Task for second Customer.
+        LibraryJob.CreateJobTask(Job, JobTask[2]);
+        JobTask[2].Validate("Bill-to Customer No.", Customer[2]."No.");
+        JobTask[2].Modify(true);
+
+        // [GIVEN] Create Service Order for second Customer.
+        LibraryService.CreateServiceHeader(ServiceHeader, ServiceHeader."Document Type"::Order, Customer[2]."No.");
+        LibraryService.CreateServiceItemLine(ServiceItemLine, ServiceHeader, '');
+        LibraryService.CreateServiceLine(ServiceLine, ServiceHeader, ServiceLine.Type::Item, LibraryJob.FindConsumable(LibraryJob.ItemType()));
+
+        // [WHEN] Validate Job No. and Job Task on Service Line.
+        ServiceLine.Validate("Job No.", Job."No.");
+        ServiceLine.Validate("Job Task No.", JobTask[2]."Job Task No.");
+        ServiceLine.Modify(true);
+
+        // [THEN] The Job No. and Job Task No. are set correctly.
+        VerifyJobFields(ServiceLine, Job."No.", JobTask[2]."Job Task No.");
+    end;
+
+    [Test]
+    procedure ServiceLineJobNoOneCustomerMatchingBillTo()
+    var
+        Customer: Record Customer;
+        Job: Record Job;
+        JobTask: Record "Job Task";
+        ServiceHeader: Record "Service Header";
+        ServiceItemLine: Record "Service Item Line";
+        ServiceLine: Record "Service Line";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 612275] Service Line can select a Job with "One customer" billing when bill-to customer matches
+        Initialize();
+
+        // [GIVEN] Create a new Customer with Job using default "One customer" billing method.
+        LibrarySales.CreateCustomer(Customer);
+        LibraryJob.CreateJob(Job, Customer."No.");
+        LibraryJob.CreateJobTask(Job, JobTask);
+
+        // [GIVEN] Create a Service Order.
+        LibraryService.CreateServiceHeader(ServiceHeader, ServiceHeader."Document Type"::Order, Customer."No.");
+        LibraryService.CreateServiceItemLine(ServiceItemLine, ServiceHeader, '');
+        LibraryService.CreateServiceLine(ServiceLine, ServiceHeader, ServiceLine.Type::Item, LibraryJob.FindConsumable(LibraryJob.ItemType()));
+
+        // [WHEN] Validate Job No. and Job Task No. on Service Line
+        ServiceLine.Validate("Job No.", Job."No.");
+        ServiceLine.Validate("Job Task No.", JobTask."Job Task No.");
+        ServiceLine.Modify(true);
+
+        // [THEN] The Job No. and Job Task No. are set correctly
+        VerifyJobFields(ServiceLine, Job."No.", JobTask."Job Task No.");
+    end;
+
+    [Test]
+    procedure ServiceLineJobNoValidationClearsJobTask()
+    var
+        Customer: Record Customer;
+        Job: array[2] of Record Job;
+        JobTask: Record "Job Task";
+        ServiceHeader: Record "Service Header";
+        ServiceItemLine: Record "Service Item Line";
+        ServiceLine: Record "Service Line";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 612275] Changing Job No. on Service Line clears Job Task No.
+        Initialize();
+
+        // [GIVEN] Create a new Customer with two Jobs.
+        LibrarySales.CreateCustomer(Customer);
+        LibraryJob.CreateJob(Job[1], Customer."No.");
+        LibraryJob.CreateJobTask(Job[1], JobTask);
+        LibraryJob.CreateJob(Job[2], Customer."No.");
+
+        // [GIVEN] Create a Service Order for Customer with Job and Job Task.
+        LibraryService.CreateServiceHeader(ServiceHeader, ServiceHeader."Document Type"::Order, Customer."No.");
+        LibraryService.CreateServiceItemLine(ServiceItemLine, ServiceHeader, '');
+        LibraryService.CreateServiceLine(ServiceLine, ServiceHeader, ServiceLine.Type::Item, LibraryJob.FindConsumable(LibraryJob.ItemType()));
+        ServiceLine.Validate("Job No.", Job[1]."No.");
+        ServiceLine.Validate("Job Task No.", JobTask."Job Task No.");
+        ServiceLine.Modify(true);
+
+        // [WHEN] Change Job No. to a different Job
+        ServiceLine.Validate("Job No.", Job[2]."No.");
+        ServiceLine.Modify(true);
+
+        // [THEN] Job Task No. is cleared
+        VerifyJobFields(ServiceLine, Job[2]."No.", '');
+    end;
+
+    [Test]
+    [HandlerFunctions('JobListModalPageHandler')]
+    procedure ServiceLineJobNoLookupWhenTaskBillingMethodOneCustomer()
+    var
+        Customer: Record Customer;
+        Job: Record Job;
+        JobTask: Record "Job Task";
+        ServiceHeader: Record "Service Header";
+        ServiceLine: Record "Service Line";
+        ServiceLines: TestPage "Service Lines";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 612275] Job No. lookup on Service Line shows job when bill-to customer matches (Task billing method is One customer).
+        Initialize();
+
+        // [GIVEN] Create a customer with a Job using Task Billing Method One customer.
+        LibrarySales.CreateCustomer(Customer);
+        LibraryJob.CreateJob(Job, Customer."No.");
+        LibraryJob.CreateJobTask(Job, JobTask);
+
+        // [GIVEN] Create a Service Order for the same customer.
+        CreateServiceOrderWithoutJob(ServiceHeader, ServiceLine, Customer."No.");
+
+        // [WHEN] Open the Service Lines page and user triggers lookup on Job No. and select the Job.
+        LibraryVariableStorage.Enqueue(Job."No.");
+        OpenServiceLinesPage(ServiceLines, ServiceHeader."No.");
+        ServiceLines."Job No.".Lookup();
+
+        // [THEN] The Job No. is set on the service line.
+        ServiceLines."Job No.".AssertEquals(Job."No.");
+        ServiceLines.Close();
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('JobListModalPageHandler')]
+    procedure ServiceLineJobNoLookupWhenTaskBillingMethodMultipleCustomers()
+    var
+        Customer: array[2] of Record Customer;
+        Job: Record Job;
+        JobTask: array[2] of Record "Job Task";
+        ServiceHeader: Record "Service Header";
+        ServiceLine: Record "Service Line";
+        ServiceLines: TestPage "Service Lines";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 612275] Job No. lookup shows job with Task billing method Multiple customers when a task matches bill-to customer.
+        Initialize();
+
+        // [GIVEN] Create two new customers, a job for Customer 1 with Task billing method Multiple customers, tasks for both
+        LibrarySales.CreateCustomer(Customer[1]);
+        LibrarySales.CreateCustomer(Customer[2]);
+        LibraryJob.CreateJob(Job, Customer[1]."No.");
+        Job.Validate("Task Billing Method", Job."Task Billing Method"::"Multiple customers");
+        Job.Modify(true);
+
+        LibraryJob.CreateJobTask(Job, JobTask[1]);
+        JobTask[1].Validate("Bill-to Customer No.", Customer[1]."No.");
+        JobTask[1].Modify(true);
+
+        LibraryJob.CreateJobTask(Job, JobTask[2]);
+        JobTask[2].Validate("Bill-to Customer No.", Customer[2]."No.");
+        JobTask[2].Modify(true);
+
+        // [GIVEN] A Service Order for Customer 2 with Job No. set.
+        CreateServiceOrderWithoutJob(ServiceHeader, ServiceLine, Customer[2]."No.");
+
+        // [WHEN] Open the Service Lines page and user triggers lookup on Job No. and selects the job.
+        LibraryVariableStorage.Enqueue(Job."No.");
+        OpenServiceLinesPage(ServiceLines, ServiceHeader."No.");
+        ServiceLines."Job No.".Lookup();
+
+        // [THEN] The Job No. is set on the service line.
+        ServiceLines."Job No.".AssertEquals(Job."No.");
+        ServiceLines.Close();
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('JobTaskLinesModalPageHandler')]
+    procedure ServiceLineJobTaskLookupWhenTaskBillingMethodOneCustomer()
+    var
+        Customer: Record Customer;
+        Job: Record Job;
+        JobTask: Record "Job Task";
+        ServiceHeader: Record "Service Header";
+        ServiceLine: Record "Service Line";
+        ServiceLines: TestPage "Service Lines";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 612275] Job Task No. lookup on Service Line shows all tasks when Task billing method is One customer.
+        Initialize();
+
+        // [GIVEN] Create a new customer with Job and Job Task.
+        LibrarySales.CreateCustomer(Customer);
+        LibraryJob.CreateJob(Job, Customer."No.");
+        LibraryJob.CreateJobTask(Job, JobTask);
+
+        // [GIVEN] A Service Order with Job No. already set.
+        CreateServiceOrderWithoutJob(ServiceHeader, ServiceLine, Customer."No.");
+        ServiceLine.Validate("Job No.", Job."No.");
+        ServiceLine.Modify(true);
+
+        // [WHEN] Open the Service Lines page and user triggers lookup on Job Task No. and selects the task.
+        LibraryVariableStorage.Enqueue(JobTask."Job Task No.");
+        OpenServiceLinesPage(ServiceLines, ServiceHeader."No.");
+        ServiceLines."Job Task No.".Lookup();
+
+        // [THEN] The Job Task No. is set on the service line.
+        ServiceLines."Job Task No.".AssertEquals(JobTask."Job Task No.");
+        ServiceLines.Close();
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('JobTaskLinesModalPageHandler')]
+    procedure ServiceLineJobTaskLookupWhenTaskBillingMethodMultipleCustomers()
+    var
+        Customer: array[2] of Record Customer;
+        Job: Record Job;
+        JobTask: array[2] of Record "Job Task";
+        ServiceHeader: Record "Service Header";
+        ServiceLine: Record "Service Line";
+        ServiceLines: TestPage "Service Lines";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 612275] Job Task No. lookup filters tasks by bill-to customer when Task billing method is Multiple customers.
+        Initialize();
+
+        // [GIVEN] Create two new customers and a job, Task billing Method Multiple Customers and tasks for both customers.
+        LibrarySales.CreateCustomer(Customer[1]);
+        LibrarySales.CreateCustomer(Customer[2]);
+        LibraryJob.CreateJob(Job, Customer[1]."No.");
+        Job.Validate("Task Billing Method", Job."Task Billing Method"::"Multiple customers");
+        Job.Modify(true);
+
+        LibraryJob.CreateJobTask(Job, JobTask[1]);
+        JobTask[1].Validate("Bill-to Customer No.", Customer[1]."No.");
+        JobTask[1].Modify(true);
+
+        LibraryJob.CreateJobTask(Job, JobTask[2]);
+        JobTask[2].Validate("Bill-to Customer No.", Customer[2]."No.");
+        JobTask[2].Modify(true);
+
+        // [GIVEN] A Service Order for Customer 2 with Job No. set.
+        CreateServiceOrderWithoutJob(ServiceHeader, ServiceLine, Customer[2]."No.");
+        ServiceLine.Validate("Job No.", Job."No.");
+        ServiceLine.Modify(true);
+
+        // [WHEN] Open the Service Lines page and user triggers lookup on Job Task No. and selects Customer 2's task.
+        LibraryVariableStorage.Enqueue(JobTask[2]."Job Task No.");
+        OpenServiceLinesPage(ServiceLines, ServiceHeader."No.");
+        ServiceLines."Job Task No.".Lookup();
+
+        // [THEN] The Job Task No. for Customer 2 is set on the service line.
+        ServiceLines."Job Task No.".AssertEquals(JobTask[2]."Job Task No.");
+        ServiceLines.Close();
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    procedure ServiceLineVerifyCustomerJobTaskErr()
+    var
+        Customer: array[2] of Record Customer;
+        Job: Record Job;
+        JobTask: array[2] of Record "Job Task";
+        ServiceHeader: Record "Service Header";
+        ServiceLine: Record "Service Line";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 612275] VerifyCustomerForJobTask raises error when task Bill-to Customer doesn't match service line's Bill-to customer.
+        Initialize();
+
+        // [GIVEN] Create two new customers and a job, Task billing Method Multiple Customers and tasks for both customers.
+        LibrarySales.CreateCustomer(Customer[1]);
+        LibrarySales.CreateCustomer(Customer[2]);
+        LibraryJob.CreateJob(Job, Customer[1]."No.");
+        Job.Validate("Task Billing Method", Job."Task Billing Method"::"Multiple customers");
+        Job.Modify(true);
+
+        LibraryJob.CreateJobTask(Job, JobTask[1]);
+        JobTask[1].Validate("Bill-to Customer No.", Customer[1]."No.");
+        JobTask[1].Modify(true);
+
+        LibraryJob.CreateJobTask(Job, JobTask[2]);
+        JobTask[2].Validate("Bill-to Customer No.", Customer[2]."No.");
+        JobTask[2].Modify(true);
+
+        // [GIVEN] A Service Order for Customer 2 with Job No. set.
+        CreateServiceOrderWithoutJob(ServiceHeader, ServiceLine, Customer[2]."No.");
+        ServiceLine.Validate("Job No.", Job."No.");
+        ServiceLine.Modify(true);
+
+        // [WHEN] Validate Job Task No. with Customer 1's task (wrong customer).
+        asserterror ServiceLine.Validate("Job Task No.", JobTask[1]."Job Task No.");
+
+        // [THEN] Error is raised because bill-to customer doesn't match.
+        Assert.ExpectedTestFieldError(JobTask[1].FieldCaption("Bill-to Customer No."), Customer[2]."No.");
     end;
 
     local procedure UseLinked(ConsumableType: Enum "Job Planning Line Type"; LineTypeToMatch: Enum "Job Planning Line Line Type"; ApplyUsageLink: Boolean; Source: Option)
@@ -678,11 +996,49 @@ codeunit 136301 "Job Consumption Service"
         until ServiceLine.Next() = 0
     end;
 
+    local procedure VerifyJobFields(ServiceLine: Record "Service Line"; JobNo: Code[20]; JobTaskNo: Code[20])
+    begin
+        ServiceLine.TestField("Job No.", JobNo);
+        ServiceLine.TestField("Job Task No.", JobTaskNo);
+    end;
+
+    local procedure CreateServiceOrderWithoutJob(var ServiceHeader: Record "Service Header"; var ServiceLine: Record "Service Line"; CustomerNo: Code[20])
+    var
+        ServiceItemLine: Record "Service Item Line";
+    begin
+        LibraryService.CreateServiceHeader(ServiceHeader, ServiceHeader."Document Type"::Order, CustomerNo);
+        LibraryService.CreateServiceItemLine(ServiceItemLine, ServiceHeader, '');
+        LibraryService.CreateServiceLine(ServiceLine, ServiceHeader, ServiceLine.Type::Item, LibraryJob.FindConsumable(LibraryJob.ItemType()));
+    end;
+
+    local procedure OpenServiceLinesPage(var ServiceLines: TestPage "Service Lines"; DocumentNo: Code[20])
+    begin
+        ServiceLines.OpenEdit();
+        ServiceLines.Filter.SetFilter("Document No.", DocumentNo);
+        ServiceLines.First();
+    end;
+
     [ConfirmHandler]
     [Scope('OnPrem')]
     procedure ConfirmHandlerTrue(Question: Text[1024]; var Reply: Boolean)
     begin
         Reply := true
+    end;
+
+    [ModalPageHandler]
+    procedure JobListModalPageHandler(var JobList: TestPage "Job List")
+    begin
+        JobList.Filter.SetFilter("No.", LibraryVariableStorage.DequeueText());
+        JobList.First();
+        JobList.OK().Invoke();
+    end;
+
+    [ModalPageHandler]
+    procedure JobTaskLinesModalPageHandler(var JobTaskLines: TestPage "Job Task Lines")
+    begin
+        JobTaskLines.Filter.SetFilter("Job Task No.", LibraryVariableStorage.DequeueText());
+        JobTaskLines.First();
+        JobTaskLines.OK().Invoke();
     end;
 }
 

@@ -957,7 +957,7 @@ codeunit 137066 "SCM Order Tracking"
         // Random value for Unit Cost.
         LibraryVariableStorage.Enqueue(TrackingMessage);  // Enqueue value for message handler.
         LibraryManufacturing.CreateItemManufacturing(
-          Item, Item."Costing Method"::FIFO, LibraryRandom.RandDec(50, 2), Item."Reordering Policy", Item."Flushing Method", '',
+          Item, Item."Costing Method"::FIFO, LibraryRandom.RandDec(50, 2), Item."Reordering Policy", Item."Flushing Method"::"Pick + Manual", '',
           ProductionBOMNo);
         Item.Validate("Order Tracking Policy", OrderTrackingPolicy);
         Item.Validate("Replenishment System", ReplenishmentSystem);

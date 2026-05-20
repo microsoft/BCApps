@@ -998,7 +998,7 @@ codeunit 137281 "O365 Location Transfers"
 
         InventorySetup.Get();
         InventorySetup.Validate("Posted Direct Trans. Nos.", NoSeries.Code);
-        InventorySetup.Validate("Direct Transfer Posting", InventorySetup."Direct Transfer Posting"::"Receipt and Shipment");
+        InventorySetup.Validate("Direct Transfer Posting Type", InventorySetup."Direct Transfer Posting Type"::"Shipment and Receipt");
         InventorySetup.Modify(true);
     end;
 

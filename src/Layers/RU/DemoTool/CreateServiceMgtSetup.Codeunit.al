@@ -114,6 +114,7 @@ codeunit 117012 "Create Service Mgt. Setup"
         ServiceMgtSetup.Validate("Shipment on Invoice", "Shipment on Invoice");
         ServiceMgtSetup.Validate("Copy Comments Order to Invoice", "Copy Comments Order to Invoice");
         ServiceMgtSetup.Validate("Copy Comments Order to Shpt.", "Copy Comments Order to Shpt.");
+        ServiceMgtSetup.Validate("Enable Concurrent Posting", true); // Temporary enable for testing
         ServiceMgtSetup.Modify();
     end;
 }

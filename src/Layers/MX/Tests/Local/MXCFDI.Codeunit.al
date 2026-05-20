@@ -2443,11 +2443,11 @@
         InitXMLReaderForPagos20(FileName);
         InitOriginalStringFromCustLedgerEntry(CustLedgerEntry, OriginalStr);
 
-        // [THEN] EquivalenciaDR = 1.0000000000 (TFS 503112)
+        // [THEN] EquivalenciaDR = 1
         VerifyComplementoPagoAmountWithCurrency(
           OriginalStr,
           199750.37, 'MXN', '1',
-          199750.37, 'MXN', '1.0000000000', 14112.63, 29);
+          199750.37, 'MXN', '1', 14112.63, 29);
         VerifyComplementoPagoTrasladoP(OriginalStr, 91, 172198.59, 27551.78, 0.16, 0);
     end;
 
@@ -2573,6 +2573,161 @@
     [Test]
     [HandlerFunctions('StrMenuHandler')]
     [Scope('OnPrem')]
+    procedure SendPaymentLCYToTwoLCYInvoicesEquivalenciaDRIsOne()
+    var
+        Customer: Record Customer;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        VATProdPostingGroup: Code[20];
+        OriginalStr: Text;
+        FileName: Text;
+        PaymentNo: Code[20];
+    begin
+        // [FEATURE] [AI test 0.4] [Payment]
+        // [SCENARIO 624363] EquivalenciaDR is 1 when LCY payment is applied to two LCY invoices
+        Initialize();
+
+        // [GIVEN] Customer "C" with SAT payment fields
+        Customer.Get(CreateCustomer());
+        UpdateCustomerSATPaymentFields(Customer."No.");
+        VATProdPostingGroup := CreateVATPostingSetup(Customer."VAT Bus. Posting Group", 16, false, false);
+
+        // [GIVEN] Payment of -29000 in LCY
+        PaymentNo := CreatePostPayment(Customer."No.", '', -29000, '');
+
+        // [GIVEN] Sales Invoice "SI1" with Amount Including VAT = 11600
+        CreateSalesHeaderForCustomer(SalesHeader, SalesHeader."Document Type"::Invoice, Customer."No.", CreatePaymentMethodForSAT());
+        CreateSalesLineItemWithVATSetup(SalesLine, SalesHeader, CreateItem(), VATProdPostingGroup, 1, 10000, 0);
+        GetPostedSalesInvoice(SalesInvoiceHeader, LibrarySales.PostSalesDocument(SalesHeader, true, true));
+        LibraryERM.ApplyCustomerLedgerEntries(
+          CustLedgerEntry."Document Type"::Payment, CustLedgerEntry."Document Type"::Invoice, PaymentNo, SalesInvoiceHeader."No.");
+
+        // [GIVEN] Sales Invoice "SI2" with Amount Including VAT = 17400
+        CreateSalesHeaderForCustomer(SalesHeader, SalesHeader."Document Type"::Invoice, Customer."No.", CreatePaymentMethodForSAT());
+        CreateSalesLineItemWithVATSetup(SalesLine, SalesHeader, CreateItem(), VATProdPostingGroup, 1, 15000, 0);
+        GetPostedSalesInvoice(SalesInvoiceHeader, LibrarySales.PostSalesDocument(SalesHeader, true, true));
+        LibraryERM.ApplyCustomerLedgerEntries(
+          CustLedgerEntry."Document Type"::Payment, CustLedgerEntry."Document Type"::Invoice, PaymentNo, SalesInvoiceHeader."No.");
+
+        // [WHEN] Request stamp for the payment
+        RequestStamp(DATABASE::"Cust. Ledger Entry", PaymentNo, ResponseOption::Success, ActionOption::"Request Stamp");
+        ExportPaymentToServerFile(CustLedgerEntry, FileName, CustLedgerEntry."Document Type"::Payment, PaymentNo);
+
+        // [THEN] EquivalenciaDR = 1 for LCY invoices with multiple applied documents
+        InitXMLReaderForPagos20(FileName);
+        InitOriginalStringFromCustLedgerEntry(CustLedgerEntry, OriginalStr);
+
+        VerifyComplementoPagoAmountWithCurrency(
+          OriginalStr,
+          29000, 'MXN', '1',
+          29000, 'MXN', '1', 11600, 29);
+    end;
+
+    [Test]
+    [HandlerFunctions('StrMenuHandler')]
+    [Scope('OnPrem')]
+    procedure SendPaymentLCYToSingleLCYInvoiceEquivalenciaDRIsOne()
+    var
+        Customer: Record Customer;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        VATProdPostingGroup: Code[20];
+        OriginalStr: Text;
+        FileName: Text;
+        PaymentNo: Code[20];
+    begin
+        // [FEATURE] [AI test 0.4] [Payment]
+        // [SCENARIO 624364] EquivalenciaDR is 1 when LCY payment is applied to a single LCY invoice
+        Initialize();
+
+        // [GIVEN] Customer "C" with SAT payment fields
+        Customer.Get(CreateCustomer());
+        UpdateCustomerSATPaymentFields(Customer."No.");
+        VATProdPostingGroup := CreateVATPostingSetup(Customer."VAT Bus. Posting Group", 16, false, false);
+
+        // [GIVEN] Sales Invoice "SI" with Amount Including VAT = 11600
+        CreateSalesHeaderForCustomer(SalesHeader, SalesHeader."Document Type"::Invoice, Customer."No.", CreatePaymentMethodForSAT());
+        CreateSalesLineItemWithVATSetup(SalesLine, SalesHeader, CreateItem(), VATProdPostingGroup, 1, 10000, 0);
+        GetPostedSalesInvoice(SalesInvoiceHeader, LibrarySales.PostSalesDocument(SalesHeader, true, true));
+
+        // [GIVEN] Payment of -11600 in LCY applied to the invoice
+        PaymentNo := CreatePostPayment(Customer."No.", SalesInvoiceHeader."No.", -11600, '');
+
+        // [WHEN] Request stamp for the payment
+        RequestStamp(DATABASE::"Cust. Ledger Entry", PaymentNo, ResponseOption::Success, ActionOption::"Request Stamp");
+        ExportPaymentToServerFile(CustLedgerEntry, FileName, CustLedgerEntry."Document Type"::Payment, PaymentNo);
+
+        // [THEN] EquivalenciaDR = 1 for single LCY invoice
+        InitXMLReaderForPagos20(FileName);
+        InitOriginalStringFromCustLedgerEntry(CustLedgerEntry, OriginalStr);
+
+        VerifyComplementoPagoAmountWithCurrency(
+          OriginalStr,
+          11600, 'MXN', '1',
+          11600, 'MXN', '1', 11600, 29);
+    end;
+
+    [Test]
+    [HandlerFunctions('StrMenuHandler')]
+    [Scope('OnPrem')]
+    procedure SendPaymentFCYToLCYInvoiceEquivalenciaDRCalculated()
+    var
+        Customer: Record Customer;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        VATProdPostingGroup: Code[20];
+        OriginalStr: Text;
+        FileName: Text;
+        PaymentNo: Code[20];
+        CurrencyCode: Code[10];
+    begin
+        // [FEATURE] [AI test 0.4] [Payment] [Currency]
+        // [SCENARIO 624365] EquivalenciaDR is calculated normally when FCY payment is applied to LCY invoice
+        Initialize();
+
+        // [GIVEN] Customer "C" with SAT payment fields
+        Customer.Get(CreateCustomer());
+        UpdateCustomerSATPaymentFields(Customer."No.");
+        VATProdPostingGroup := CreateVATPostingSetup(Customer."VAT Bus. Posting Group", 16, false, false);
+
+        // [GIVEN] Sales Invoice "SI" in LCY with Amount = 5000, Amount Including VAT = 5800
+        CreateSalesHeaderForCustomer(SalesHeader, SalesHeader."Document Type"::Invoice, Customer."No.", CreatePaymentMethodForSAT());
+        CreateSalesLineItemWithVATSetup(SalesLine, SalesHeader, CreateItem(), VATProdPostingGroup, 1, 5000, 0);
+        GetPostedSalesInvoice(SalesInvoiceHeader, LibrarySales.PostSalesDocument(SalesHeader, true, true));
+
+        // [GIVEN] Payment with 290 USD / 5800 MXN (ExchRate = 20) is applied to the invoice
+        CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), 1 / 20, 1 / 20);
+        PaymentNo :=
+          CreatePostPaymentFCY(SalesInvoiceHeader."Sell-to Customer No.", -290, -5800, CurrencyCode);
+        LibraryERM.FindCustomerLedgerEntry(CustLedgerEntry, CustLedgerEntry."Document Type"::Payment, PaymentNo);
+        LibraryERM.ApplyCustomerLedgerEntries(
+          CustLedgerEntry."Document Type"::Payment, CustLedgerEntry."Document Type"::Invoice,
+          PaymentNo, SalesInvoiceHeader."No.");
+
+        // [WHEN] Request stamp for the payment
+        RequestStamp(DATABASE::"Cust. Ledger Entry", PaymentNo, ResponseOption::Success, ActionOption::"Request Stamp");
+        ExportPaymentToServerFile(CustLedgerEntry, FileName, CustLedgerEntry."Document Type"::Payment, PaymentNo);
+
+        // [THEN] MonedaP = USD, TipoCambioP = 20.000000
+        // [THEN] MonedaDR = MXN, EquivalenciaDR = 20.0000000000 (calculated, not forced to 1)
+        InitXMLReaderForPagos20(FileName);
+        InitOriginalStringFromCustLedgerEntry(CustLedgerEntry, OriginalStr);
+
+        VerifyComplementoPagoAmountWithCurrency(
+          OriginalStr,
+          5800, CurrencyCode, '20.000000',
+          290, 'MXN', '20.0000000000', 5800, 29);
+    end;
+
+    [Test]
+    [HandlerFunctions('StrMenuHandler')]
+    [Scope('OnPrem')]
     procedure SendPaymentFCYToSixFCYInvoicesWithCorrectionOfRemainingAmount()
     var
         Customer: Record Customer;
@@ -2631,7 +2786,7 @@
 
         // [THEN] 'Pagos/Totales' node has attribute 'MontoTotalPagos' = 688345.24
         // [THEN] 'Pagos/Pago' node created with attribute 'MonedaP' = 'USD', 'TipoCambioP' = 1
-        // [THEN] 'Pagos/Pago/DoctoRelacionado' node has attributes 'Monto' = 35319.68, 'MonedaDR' = 'USD', 'EquivalenciaDR' = 1.0000000000 (TFS 503112)
+        // [THEN] 'Pagos/Pago/DoctoRelacionado' node has attributes 'Monto' = 35319.68, 'MonedaDR' = 'USD', 'EquivalenciaDR' = 1
         // [THEN] TrasladoP nose has attributes BaseP = 30448.000000, ImpuestoP = 4871.680000
         InitXMLReaderForPagos20(FileName);
         InitOriginalStringFromCustLedgerEntry(CustLedgerEntry, OriginalStr);
@@ -2639,7 +2794,7 @@
         VerifyComplementoPagoAmountWithCurrency(
           OriginalStr,
           688345.24, Customer."Currency Code", '19.489000',
-          35319.68, Customer."Currency Code", '1.0000000000', 1002.24, 29);
+          35319.68, Customer."Currency Code", '1', 1002.24, 29);
         VerifyComplementoPagoTrasladoP(OriginalStr, 119, 30448.000000, 4871.680000, 0.16, 0);
     end;
 

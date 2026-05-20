@@ -20,9 +20,9 @@ codeunit 237 "G/L Reg.-Vend.Ledger"
 
     trigger OnRun()
     begin
-        VendLedgEntry.SetCurrentKey("Transaction No.");
-        VendLedgEntry.SetRange("Transaction No.", Rec."No.");
-        PAGE.Run(PAGE::"Vendor Ledger Entries", VendLedgEntry);
+        VendLedgEntry.SetRange("Entry No.", Rec."From Entry No.", Rec."To Entry No.");
+        VendLedgEntry.SetFilter("G/L Register No.", '0|%1', Rec."No.");
+        Page.Run(Page::"Vendor Ledger Entries", VendLedgEntry);
     end;
 
     var

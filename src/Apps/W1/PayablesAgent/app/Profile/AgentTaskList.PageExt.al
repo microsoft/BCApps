@@ -26,7 +26,7 @@ pageextension 3305 AgentTaskList extends "Agent Task List"
                     AllowedFileExtensions = '.pdf';
                     AllowMultipleFiles = true;
                     Image = NewDocument;
-                    Visible = true;
+                    Visible = IsAgentActionVisible;
 
                     trigger OnAction(Files: List of [FileUpload])
                     begin
@@ -37,11 +37,19 @@ pageextension 3305 AgentTaskList extends "Agent Task List"
         }
     }
 
+    var
+        PayablesAgentSetup: Codeunit "Payables Agent Setup";
+        IsAgentActionVisible: Boolean;
+
+    trigger OnOpenPage()
+    begin
+        IsAgentActionVisible := PayablesAgentSetup.CanShowAgentActions();
+    end;
+
     local procedure CreatePATask(Files: List of [FileUpload])
     var
         EDocument: Record "E-Document";
         AgentCU: Codeunit Agent;
-        PayablesAgentSetup: Codeunit "Payables Agent Setup";
         PASetupConfig: Codeunit "PA Setup Configuration";
         EDocImport: Codeunit "E-Doc. Import";
         FileUpload: FileUpload;

@@ -1144,7 +1144,7 @@
         Initialize();
 
         InventorySetup.Get();
-        InventorySetup."Direct Transfer Posting" := InventorySetup."Direct Transfer Posting"::"Direct Transfer";
+        InventorySetup."Direct Transfer Posting Type" := InventorySetup."Direct Transfer Posting Type"::"Direct Transfer";
         InventorySetup.Modify();
 
         WarehouseSetup.Get();
@@ -1200,7 +1200,7 @@
         Initialize();
 
         InventorySetup.Get();
-        InventorySetup."Direct Transfer Posting" := InventorySetup."Direct Transfer Posting"::"Direct Transfer";
+        InventorySetup."Direct Transfer Posting Type" := InventorySetup."Direct Transfer Posting Type"::"Direct Transfer";
         InventorySetup.Modify();
 
         WarehouseSetup.Get();
@@ -1244,7 +1244,7 @@
         Initialize();
 
         InventorySetup.Get();
-        InventorySetup."Direct Transfer Posting" := InventorySetup."Direct Transfer Posting"::"Direct Transfer";
+        InventorySetup."Direct Transfer Posting Type" := InventorySetup."Direct Transfer Posting Type"::"Direct Transfer";
         InventorySetup.Modify();
 
         WarehouseSetup.Get();
@@ -1295,7 +1295,7 @@
 
         // [GIVEN] when in Inventory Setup field "Direct Transfer Posting" is set as "Direct Transfer"
         InventorySetup.Get();
-        InventorySetup."Direct Transfer Posting" := InventorySetup."Direct Transfer Posting"::"Direct Transfer";
+        InventorySetup."Direct Transfer Posting Type" := InventorySetup."Direct Transfer Posting Type"::"Direct Transfer";
         InventorySetup.Modify();
 
         // [GIVEN] Created new item and put on the inventory

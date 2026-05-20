@@ -28,6 +28,7 @@
         CustomerNotFoundErr: Label '%1 must be specified.';
         ErrorMsg: Label 'Specify a filter for the Date Filter field in the G/L Account table.';
         ValidateErr: Label 'Error must be Same.';
+        LibraryHumanResource: Codeunit "Library - Human Resource";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryReportDataset: Codeunit "Library - Report Dataset";
@@ -1660,6 +1661,39 @@
         LibraryReportDataset.LoadDataSetFile();
         LibraryReportDataset.AssertElementWithValueExists('BaseAmountSalesVAT', Amount[1]);
         LibraryReportDataset.AssertElementWithValueExists('BaseAmountSalesVAT', Amount[2]);
+    end;
+
+    [Test]
+    [HandlerFunctions('RHGenJournalTest')]
+    [Scope('OnPrem')]
+    procedure GenJnlTestReportShowsEmployeeFullName()
+    var
+        Employee: Record Employee;
+        GenJournalLine: Record "Gen. Journal Line";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 629846] "General Journal - Test" report shows Employee full name in AccName column
+
+        Initialize();
+
+        // [GIVEN] Employee "E" with First Name and Last Name
+        LibraryHumanResource.CreateEmployee(Employee);
+
+        // [GIVEN] General Journal Line with Account Type = Employee and Account No. = "E"
+        LibraryJournals.CreateGenJournalLineWithBatch(
+            GenJournalLine, GenJournalLine."Document Type"::" ",
+            GenJournalLine."Account Type"::Employee, Employee."No.", LibraryRandom.RandDec(1000, 2));
+        Commit();
+
+        // [WHEN] Run "General Journal - Test" report
+        GenJournalLine.SetRecFilter();
+        REPORT.Run(REPORT::"General Journal - Test", true, false, GenJournalLine);
+
+        // [THEN] Report dataset contains Employee full name in AccName column
+        LibraryReportDataset.LoadDataSetFile();
+        LibraryReportDataset.SetRange('AccountNo_GenJnlLine', Employee."No.");
+        Assert.IsTrue(LibraryReportDataset.GetNextRow(), StrSubstNo(RowNotFoundErr, 'AccountNo_GenJnlLine', Employee."No."));
+        LibraryReportDataset.AssertCurrentRowValueEquals('AccName', Employee.FullName());
     end;
 
     local procedure Initialize()

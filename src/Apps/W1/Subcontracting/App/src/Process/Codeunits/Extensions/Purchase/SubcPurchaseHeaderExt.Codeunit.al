@@ -6,6 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
+using Microsoft.Utilities;
 
 codeunit 99001533 "Subc. Purchase Header Ext"
 {
@@ -22,5 +23,11 @@ codeunit 99001533 "Subc. Purchase Header Ext"
     local procedure OnAfterValidateEvent_BuyFromVendorNo(var Rec: Record "Purchase Header"; var xRec: Record "Purchase Header")
     begin
         SubcSynchronizeManagement.DeleteEnhancedDocumentsByChangeOfVendorNo(Rec, xRec);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Copy Document Mgt.", OnAfterCopyPurchHeaderDone, '', false, false)]
+    local procedure ClearSubcLocationCodeOnAfterCopyPurchHeaderDone(var ToPurchaseHeader: Record "Purchase Header")
+    begin
+        ToPurchaseHeader."Subc. Location Code" := '';
     end;
 }

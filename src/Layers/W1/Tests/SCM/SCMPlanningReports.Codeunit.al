@@ -1338,7 +1338,7 @@ codeunit 137308 "SCM Planning Reports"
     local procedure CreateItem(var Item: Record Item; RoutingNo: Code[20]; ProductionBOMNo: Code[20]; ReorderPolicy: Enum "Reordering Policy"; ReplenishmentSystem: Enum "Replenishment System")
     begin
         LibraryManufacturing.CreateItemManufacturing(
-          Item, Item."Costing Method"::FIFO, 0, ReorderPolicy, Item."Flushing Method", RoutingNo, ProductionBOMNo);
+          Item, Item."Costing Method"::FIFO, 0, ReorderPolicy, Item."Flushing Method"::"Pick + Manual", RoutingNo, ProductionBOMNo);
         Item.Validate("Replenishment System", ReplenishmentSystem);
         Item.Modify(true);
     end;

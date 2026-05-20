@@ -1112,18 +1112,19 @@ codeunit 135000 "Error Message Tests"
     procedure ErrorMessageGetLastIDWithContext()
     var
         ErrorMessage: Record "Error Message";
+        LastID: Integer;
     begin
         // [SCENARIO] GetLastID returns the last ID regardless of "Message Type" and keeps Context unchanged.
         Initialize();
         ErrorMessage.SetContext(GLBCustomerContext);
         ErrorMessage.LogSimpleMessage(ErrorMessage."Message Type"::Information, GenericErrorDescriptionTxt);
+        LastID := ErrorMessage.GetLastID();
 
         ErrorMessage.TestField("Context Table Number", DATABASE::Customer);
-        Assert.AreEqual(1, ErrorMessage.GetLastID(), 'GetLastID#1');
 
         ErrorMessage.LogSimpleMessage(ErrorMessage."Message Type"::Error, GenericErrorDescriptionTxt);
         ErrorMessage.TestField("Context Table Number", DATABASE::Customer);
-        Assert.AreEqual(2, ErrorMessage.GetLastID(), 'GetLastID#2');
+        Assert.AreEqual(LastID + 1, ErrorMessage.GetLastID(), 'GetLastID#2');
     end;
 
     [Test]

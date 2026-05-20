@@ -50,6 +50,7 @@ permissionset 2909 "D365 PURCH DOC, POST"
                   tabledata "Dtld. Price Calculation Setup" = RIMD,
                   tabledata "Duplicate Price Line" = RIMD,
                   tabledata "Employee Ledger Entry" = imd,
+                  tabledata "Adv. Bonus Depreciation Setup" = R,
                   tabledata "FA Setup" = R,
                   tabledata "G/L Account" = RIM,
                   tabledata "G/L Account Source Currency" = RIM,

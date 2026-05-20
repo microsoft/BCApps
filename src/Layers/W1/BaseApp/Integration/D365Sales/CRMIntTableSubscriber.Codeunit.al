@@ -10,6 +10,7 @@ using Microsoft.CRM.Opportunity;
 using Microsoft.CRM.Team;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Foundation.Shipping;
 using Microsoft.Foundation.UOM;
 using Microsoft.Integration.Dataverse;
@@ -46,6 +47,7 @@ codeunit 5341 "CRM Int. Table. Subscriber"
         CRMProductName: Codeunit "CRM Product Name";
         CDSIntegrationImpl: Codeunit "CDS Integration Impl.";
         CRMIntegrationManagement: Codeunit "CRM Integration Management";
+        PrepaymentMgt: Codeunit "Prepayment Mgt.";
 
         CannotFindSyncedProductErr: Label 'Cannot find a synchronized product for %1.', Comment = '%1=product identifier';
         CannotSynchOnlyLinesErr: Label 'Cannot synchronize invoice lines separately.';
@@ -734,7 +736,7 @@ codeunit 5341 "CRM Int. Table. Subscriber"
         NewStatus: Enum "Sales Document Status";
     begin
         SourceRecordRef.SetTable(SalesHeader);
-        if SalesHeader."Prepayment %" > 0 then
+        if PrepaymentMgt.TestSalesPrepayment(SalesHeader) then
             NewStatus := SalesHeader.Status::Open
         else
             NewStatus := SalesHeader.Status::Released;

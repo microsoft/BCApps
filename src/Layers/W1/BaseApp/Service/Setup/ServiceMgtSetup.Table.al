@@ -369,6 +369,12 @@ table 5911 "Service Mgt. Setup"
             ToolTip = 'Specifies the number series code that will be used to assign numbers to service credit memos.';
             TableRelation = "No. Series";
         }
+        field(95; "Enable Concurrent Posting"; Boolean)
+        {
+            Caption = 'Enable Concurrent Posting';
+            ToolTip = 'Specifies whether concurrent posting is enabled for service documents.';
+            DataClassification = SystemMetadata;
+        }
         field(175; "Allow Multiple Posting Groups"; Boolean)
         {
             Caption = 'Allow Multiple Posting Groups';
@@ -473,4 +479,12 @@ table 5911 "Service Mgt. Setup"
         Get();
         RecordHasBeenRead := true;
     end;
+
+    procedure UseLegacyPosting(): Boolean
+    begin
+        exit(not "Enable Concurrent Posting");
+    end;
 }
+
+
+

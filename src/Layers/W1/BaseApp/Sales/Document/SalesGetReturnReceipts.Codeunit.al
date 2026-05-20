@@ -176,21 +176,19 @@ codeunit 6638 "Sales-Get Return Receipts"
         SalesOrderLine: Record "Sales Line";
         ItemChargeAssgntSales: Record "Item Charge Assignment (Sales)";
     begin
-        if SalesOrderLine.Get(SalesOrderLine."Document Type"::"Return Order", ReturnRcptLine."Return Order No.", ReturnRcptLine."Return Order Line No.")
-            then begin
-            ItemChargeAssgntSales.LockTable();
-            ItemChargeAssgntSales.Reset();
-            ItemChargeAssgntSales.SetRange("Document Type", SalesOrderLine."Document Type");
-            ItemChargeAssgntSales.SetRange("Document No.", SalesOrderLine."Document No.");
-            ItemChargeAssgntSales.SetRange("Document Line No.", SalesOrderLine."Line No.");
-            if ItemChargeAssgntSales.FindFirst() then begin
-                ItemChargeAssgntSales.CalcSums("Qty. to Assign");
-                if ItemChargeAssgntSales."Qty. to Assign" <> 0 then
-                    CopyItemChargeAssgnt(
-                      SalesOrderLine, ReturnRcptLine, ItemChargeAssgntSales."Qty. to Assign",
-                      QtyToInv / ItemChargeAssgntSales."Qty. to Assign");
-            end;
-        end;
+        if not SalesOrderLine.Get(SalesOrderLine."Document Type"::"Return Order", ReturnRcptLine."Return Order No.", ReturnRcptLine."Return Order Line No.") then
+            exit;
+
+        ItemChargeAssgntSales.LockTable();
+        ItemChargeAssgntSales.Reset();
+        ItemChargeAssgntSales.SetRange("Document Type", SalesOrderLine."Document Type");
+        ItemChargeAssgntSales.SetRange("Document No.", SalesOrderLine."Document No.");
+        ItemChargeAssgntSales.SetRange("Document Line No.", SalesOrderLine."Line No.");
+        ItemChargeAssgntSales.CalcSums("Qty. to Assign");
+        if ItemChargeAssgntSales."Qty. to Assign" <> 0 then
+            CopyItemChargeAssgnt(
+              SalesOrderLine, ReturnRcptLine, ItemChargeAssgntSales."Qty. to Assign",
+              QtyToInv / ItemChargeAssgntSales."Qty. to Assign");
     end;
 
     local procedure CopyItemChargeAssgnt(SalesOrderLine: Record "Sales Line"; ReturnRcptLine: Record "Return Receipt Line"; QtyToAssign: Decimal; QtyFactor: Decimal)
@@ -204,7 +202,7 @@ codeunit 6638 "Sales-Get Return Receipts"
         ItemChargeAssgntSales.SetRange("Document Type", SalesOrderLine."Document Type");
         ItemChargeAssgntSales.SetRange("Document No.", SalesOrderLine."Document No.");
         ItemChargeAssgntSales.SetRange("Document Line No.", SalesOrderLine."Line No.");
-        if ItemChargeAssgntSales.Find('-') then
+        if ItemChargeAssgntSales.FindSet() then
             repeat
                 if ItemChargeAssgntSales."Qty. to Assign" <> 0 then begin
                     ItemChargeAssgntSales2 := ItemChargeAssgntSales;
@@ -212,9 +210,9 @@ codeunit 6638 "Sales-Get Return Receipts"
                       Round(QtyFactor * ItemChargeAssgntSales2."Qty. to Assign", UOMMgt.QtyRndPrecision());
                     SalesLine2.SetRange("Return Receipt No.", ReturnRcptLine."Document No.");
                     SalesLine2.SetRange("Return Receipt Line No.", ReturnRcptLine."Line No.");
+                    SalesLine2.SetAutoCalcFields("Qty. to Assign");
                     if SalesLine2.Find('-') then
                         repeat
-                            SalesLine2.CalcFields("Qty. to Assign");
                             InsertChargeAssgnt := SalesLine2."Qty. to Assign" <> SalesLine2.Quantity;
                         until (SalesLine2.Next() = 0) or InsertChargeAssgnt;
 
@@ -244,7 +242,7 @@ codeunit 6638 "Sales-Get Return Receipts"
                                 SalesLine2.SetRange("Document Type", SalesOrderLine."Document Type"::"Credit Memo");
                                 SalesLine2.SetRange("Return Receipt No.", ReturnRcptLine2."Document No.");
                                 SalesLine2.SetRange("Return Receipt Line No.", ReturnRcptLine2."Line No.");
-                                if SalesLine2.Find('-') and (SalesLine2.Quantity <> 0) then
+                                if SalesLine2.FindFirst() and (SalesLine2.Quantity <> 0) then
                                     ItemChargeAssgntSales2."Applies-to Doc. Line No." := SalesLine2."Line No."
                                 else
                                     InsertChargeAssgnt := false;

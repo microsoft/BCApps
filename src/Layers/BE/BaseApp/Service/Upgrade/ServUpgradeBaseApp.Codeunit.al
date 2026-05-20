@@ -9,6 +9,7 @@ using Microsoft.Inventory.Item;
 using Microsoft.Service.Document;
 using Microsoft.Service.History;
 using Microsoft.Service.Item;
+using Microsoft.Service.Reports;
 using Microsoft.Service.Setup;
 using System.Environment;
 using System.Upgrade;
@@ -19,6 +20,8 @@ codeunit 104059 "Serv. Upgrade BaseApp"
 
     var
         HybridDeployment: Codeunit "Hybrid Deployment";
+        UpgradeTag: Codeunit "Upgrade Tag";
+        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
         ServiceBlockedAlreadySetLbl: Label 'CopyItemSalesBlockedToServiceBlocked skipped. %1 already set for at least one record in table %2.', Comment = '%1 = Field Caption, %2 = Table Caption', Locked = true;
         ServiceMgtSetupDoesNotExistLbl: Label 'EnableDeleteFiledContractsWithRelatedMainContract upgrade skipped. Service Mgt. Setup not found.', Locked = true;
         DeleteFiledContractsWithRelatedMainContractAlreadySetErr: Label 'EnableDeleteFiledContractsWithRelatedMainContract upgrade skipped. %1 already enabled in Service Mgt. Setup.', Comment = '%1 = "Del. Filed Cont. w. main Cont." Field Name', Locked = true;
@@ -42,14 +45,13 @@ codeunit 104059 "Serv. Upgrade BaseApp"
         CopyItemSalesBlockedToServiceBlocked();
         UpgradeServiceItemWorksheetReportSelection();
         EnableDeleteFiledContractsWithRelatedMainContract();
+        UpgradeServiceReportSelections();
     end;
 
     local procedure UpdateServiceLineOrderNo()
     var
         ServiceLine: Record "Service Line";
         ServiceShipmentLine: Record "Service Shipment Line";
-        UpgradeTag: Codeunit "Upgrade Tag";
-        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
     begin
         if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetServiceLineOrderNoUpgradeTag()) then
             exit;
@@ -76,8 +78,6 @@ codeunit 104059 "Serv. Upgrade BaseApp"
         ItemVariant: Record "Item Variant";
         ItemTempl: Record "Item Templ.";
         ServiceItem: Record "Service Item";
-        UpgradeTag: Codeunit "Upgrade Tag";
-        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
         DataTransfer: DataTransfer;
         SkipUpgrade: Boolean;
     begin
@@ -133,7 +133,6 @@ codeunit 104059 "Serv. Upgrade BaseApp"
 
     local procedure UpgradeServiceItemWorksheetReportSelection()
     var
-        UpgradeTag: Codeunit "Upgrade Tag";
         ReportSelectionMgt: Codeunit "Report Selection Mgt.";
     begin
         if UpgradeTag.HasUpgradeTag(GetServiceItemWorksheetSelectionUpgradeTag()) then
@@ -145,7 +144,6 @@ codeunit 104059 "Serv. Upgrade BaseApp"
     local procedure EnableDeleteFiledContractsWithRelatedMainContract()
     var
         ServiceMgtSetup: Record "Service Mgt. Setup";
-        UpgradeTag: Codeunit "Upgrade Tag";
         SkipUpgrade: Boolean;
     begin
         if UpgradeTag.HasUpgradeTag(GetEnableDeleteFiledContractsWithRelatedMainContractUpgradeTag()) then
@@ -168,6 +166,25 @@ codeunit 104059 "Serv. Upgrade BaseApp"
         UpgradeTag.SetUpgradeTag(GetEnableDeleteFiledContractsWithRelatedMainContractUpgradeTag());
     end;
 
+    local procedure UpgradeServiceReportSelections()
+    var
+        ReportSelectionMgt: Codeunit "Report Selection Mgt.";
+    begin
+        if UpgradeTag.HasUpgradeTag(GetLocalServiceReportsUpgradeTag()) then
+            exit;
+
+        if ReportSelectionMgt.ReportSelectionsExist("Report Selection Usage"::"SM.Invoice", Report::"Service - Invoice") then
+            ReportSelectionMgt.UpdateReportSelection("Report Selection Usage"::"SM.Invoice", '1', Report::"Service - Invoice (BE)");
+        if ReportSelectionMgt.ReportSelectionsExist("Report Selection Usage"::"SM.Credit Memo", Report::"Service - Credit Memo") then
+            ReportSelectionMgt.UpdateReportSelection("Report Selection Usage"::"SM.Credit Memo", '1', Report::"Service - Credit Memo (BE)");
+        if ReportSelectionMgt.ReportSelectionsExist("Report Selection Usage"::"SM.Shipment", Report::"Service - Shipment") then
+            ReportSelectionMgt.UpdateReportSelection("Report Selection Usage"::"SM.Shipment", '1', Report::"Service - Shipment (BE)");
+        if ReportSelectionMgt.ReportSelectionsExist("Report Selection Usage"::"SM.Test", Report::"Service Document - Test") then
+            ReportSelectionMgt.UpdateReportSelection("Report Selection Usage"::"SM.Test", '1', Report::"Service Document - Test (BE)");
+
+        UpgradeTag.SetUpgradeTag(GetLocalServiceReportsUpgradeTag());
+    end;
+
     // Upgrade definitions
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", 'OnGetPerCompanyUpgradeTags', '', true, false)]
@@ -175,12 +192,11 @@ codeunit 104059 "Serv. Upgrade BaseApp"
     begin
         PerCompanyUpgradeTags.Add(GetServiceItemWorksheetSelectionUpgradeTag());
         PerCompanyUpgradeTags.Add(GetEnableDeleteFiledContractsWithRelatedMainContractUpgradeTag());
+        PerCompanyUpgradeTags.Add(GetLocalServiceReportsUpgradeTag());
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::Microsoft.Foundation.Company."Company-Initialize", 'OnCompanyInitialize', '', true, false)]
     local procedure SetDefaultsOnCompanyInitialize()
-    var
-        UpgradeTag: Codeunit "Upgrade Tag";
     begin
         if not UpgradeTag.HasUpgradeTag(GetEnableDeleteFiledContractsWithRelatedMainContractUpgradeTag()) then
             UpgradeTag.SetUpgradeTag(GetEnableDeleteFiledContractsWithRelatedMainContractUpgradeTag());
@@ -194,5 +210,10 @@ codeunit 104059 "Serv. Upgrade BaseApp"
     internal procedure GetEnableDeleteFiledContractsWithRelatedMainContractUpgradeTag(): Code[250]
     begin
         exit('MS-366089-EnableDeleteFiledContractsWithRelatedMainContractUpgradeTag-20241001');
+    end;
+
+    internal procedure GetLocalServiceReportsUpgradeTag(): Code[250]
+    begin
+        exit('MS-622000-LocalServiceReportsUpgradeTag-20260310');
     end;
 }

@@ -7007,7 +7007,7 @@ codeunit 137069 "SCM Production Orders"
     local procedure CreateCompItem(var ItemRec: Record Item)
     begin
         LibraryInventory.CreateItem(ItemRec);
-        ItemRec.Validate("Flushing Method", ItemRec."Flushing Method"::Manual);
+        ItemRec.Validate("Flushing Method", ItemRec."Flushing Method"::"Pick + Manual");
         ItemRec.Validate("Replenishment System", ItemRec."Replenishment System"::Purchase);
         ItemRec.Modify(true);
     end;

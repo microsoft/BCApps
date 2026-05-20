@@ -38,6 +38,11 @@ page 99000755 "Work Center List"
                 {
                     ApplicationArea = Manufacturing;
                 }
+                field("Name 2"; Rec."Name 2")
+                {
+                    ApplicationArea = Manufacturing;
+                    Visible = false;
+                }
                 field("Alternate Work Center"; Rec."Alternate Work Center")
                 {
                     ApplicationArea = Manufacturing;

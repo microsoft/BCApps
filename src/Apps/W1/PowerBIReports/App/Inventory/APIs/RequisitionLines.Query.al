@@ -11,6 +11,7 @@ query 36974 "Requisition Lines"
     Access = Internal;
     Caption = 'Power BI Requisition Lines';
     QueryType = API;
+    AboutText = 'Provides access to requisition worksheet lines including item numbers, replenishment systems, quantities, and planning dates. Enables Power BI reports to analyze planned supply from requisition worksheets and forecast inventory replenishment from planning activities.';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';
     ApiVersion = 'v0.5', 'v1.0';

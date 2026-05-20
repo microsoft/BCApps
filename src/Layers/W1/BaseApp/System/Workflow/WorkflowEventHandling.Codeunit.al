@@ -71,6 +71,8 @@ codeunit 1520 "Workflow Event Handling"
         ItemChangedTxt: Label 'An item record is changed.';
         CreateGenJnlLineFromIncDocSuccessfulEventDescTxt: Label 'The creation of a general journal line from the incoming document was successful.';
         CreateGenJnlLineFromIncDocFailsEventDescTxt: Label 'The creation of a general journal line from the incoming document failed.';
+        VendorBankAccountSendForApprovalEventDescTxt: Label 'Approval of a vendor bank account is requested.';
+        VendorBankAccountApprovalRequestCancelEventDescTxt: Label 'An approval request for a vendor bank account is canceled.';
         JobQueueEntryApprovalEventDescTxt: Label 'Approval of a job queue entry is requested.';
         JobQueueEntryApprReqCancelledEventDescTxt: Label 'Approval of a job queue entry is cancelled.';
         RequisitionWkshBatchSendForApprovalEventDescTxt: Label 'An Approval request of a requisition worksheet batch is created.';
@@ -191,6 +193,13 @@ codeunit 1520 "Workflow Event Handling"
           RunWorkflowOnAfterCreateGenJnlLineFromIncomingDocFailCode(), DATABASE::"Incoming Document",
           CreateGenJnlLineFromIncDocFailsEventDescTxt, 0, false);
 
+        AddEventToLibrary(
+          RunWorkflowOnSendVendorBankAccountForApprovalCode(), DATABASE::"Vendor Bank Account",
+          VendorBankAccountSendForApprovalEventDescTxt, 0, false);
+        AddEventToLibrary(
+          RunWorkflowOnCancelVendorBankAccountApprovalRequestCode(), DATABASE::"Vendor Bank Account",
+          VendorBankAccountApprovalRequestCancelEventDescTxt, 0, false);
+
         AddEventToLibrary(RunWorkflowOnSendJobQueueEntryForApprovalCode(), Database::"Job Queue Entry", JobQueueEntryApprovalEventDescTxt, 0, false);
         AddEventToLibrary(RunWorkflowOnCancelJobQueueEntryApprovalRequestCode(), Database::"Job Queue Entry", JobQueueEntryApprReqCancelledEventDescTxt, 0, false);
 
@@ -213,6 +222,8 @@ codeunit 1520 "Workflow Event Handling"
                 AddEventPredecessor(RunWorkflowOnCancelCustomerApprovalRequestCode(), RunWorkflowOnSendCustomerForApprovalCode());
             RunWorkflowOnCancelVendorApprovalRequestCode():
                 AddEventPredecessor(RunWorkflowOnCancelVendorApprovalRequestCode(), RunWorkflowOnSendVendorForApprovalCode());
+            RunWorkflowOnCancelVendorBankAccountApprovalRequestCode():
+                AddEventPredecessor(RunWorkflowOnCancelVendorBankAccountApprovalRequestCode(), RunWorkflowOnSendVendorBankAccountForApprovalCode());
             RunWorkflowOnCancelItemApprovalRequestCode():
                 AddEventPredecessor(RunWorkflowOnCancelItemApprovalRequestCode(), RunWorkflowOnSendItemForApprovalCode());
             RunWorkflowOnCancelGeneralJournalBatchApprovalRequestCode():
@@ -581,6 +592,16 @@ codeunit 1520 "Workflow Event Handling"
         exit('RUNWORKFLOWONAFTERCREATEGENJNLLINEFROMINCOMINGDOFAILCODE');
     end;
 
+    procedure RunWorkflowOnSendVendorBankAccountForApprovalCode(): Code[128]
+    begin
+        exit('RUNWORKFLOWONSENDVENDORBANKACCOUNTFORAPPROVAL');
+    end;
+
+    procedure RunWorkflowOnCancelVendorBankAccountApprovalRequestCode(): Code[128]
+    begin
+        exit('RUNWORKFLOWONCANCELVENDORBANKACCOUNTAPPROVALREQUEST');
+    end;
+
     procedure RunWorkflowOnSendJobQueueEntryForApprovalCode(): Code[128]
     begin
         exit(UpperCase('RunWorkflowOnSendJobQueueEntryForApproval'));
@@ -946,6 +967,18 @@ codeunit 1520 "Workflow Event Handling"
     procedure RunWorkflowOnAfterCreateGenJnlLineFromIncomingDocFail(var IncomingDocument: Record "Incoming Document")
     begin
         WorkflowManagement.HandleEvent(RunWorkflowOnAfterCreateGenJnlLineFromIncomingDocFailCode(), IncomingDocument);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Approvals Mgmt.", 'OnSendVendorBankAccountForApproval', '', false, false)]
+    procedure RunWorkflowOnSendVendorBankAccountForApproval(VendorBankAccount: Record "Vendor Bank Account")
+    begin
+        WorkflowManagement.HandleEvent(RunWorkflowOnSendVendorBankAccountForApprovalCode(), VendorBankAccount);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Approvals Mgmt.", 'OnCancelVendorBankAccountApprovalRequest', '', false, false)]
+    procedure RunWorkflowOnCancelVendorBankAccountApprovalRequest(VendorBankAccount: Record "Vendor Bank Account")
+    begin
+        WorkflowManagement.HandleEvent(RunWorkflowOnCancelVendorBankAccountApprovalRequestCode(), VendorBankAccount);
     end;
 
     [IntegrationEvent(false, false)]

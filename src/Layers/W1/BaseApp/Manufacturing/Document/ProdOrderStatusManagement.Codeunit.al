@@ -107,6 +107,7 @@ codeunit 5407 "Prod. Order Status Management"
         ReopenedProductionOrderLbl: Label 'The production order is reopened and moved to the %1 Production Order with status Released.', Comment = '%1 = Production Order No.';
         ProductionOrderHasAlreadyBeenReopenedErr: Label 'This production order has already been reopened before. This can only be done once.';
         ProductionOrderCannotBeReopenedErr: Label 'This production order cannot be reopened because one or more production order lines have no posted output.';
+        ReopenProdOrderBeforeEarliestAllowedValDateErr: Label 'Production order %1 cannot be reopened because it has value entries with a Valuation Date before the Earliest Allowed Valuation Date %2 in Inventory Setup.', Comment = '%1 = Production Order No., %2 = Earliest Allowed Valuation Date';
         FinishOrderWithOutputWarningQst: Label '%1 %2 has not been finished:\\  * Some output is still missing.\\ Do you still want to finish the order?', Comment = '%1 - Production Order Table Name ; %2 - Production Order No.';
         FinishOrderWithConsumptionWarningQst: Label '%1 %2 has not been finished:\\  * Some consumption is still missing.\\ Do you still want to finish the order?', Comment = '%1 - Production Order Table Name ; %2 - Production Order No.';
         FinishOrderWithOutputAndConsumptionWarningQst: Label '%1 %2 has not been finished:\\  * Some output is still missing.\  * Some consumption is still missing.\\ Do you still want to finish the order?', Comment = '%1 - Production Order Table Name ; %2 - Production Order No.';
@@ -122,6 +123,9 @@ codeunit 5407 "Prod. Order Status Management"
         OnBeforeChangeStatusOnProdOrder(ProdOrder, NewStatus.AsInteger(), IsHandled, NewPostingDate, NewUpdateUnitCost);
         if IsHandled then
             exit;
+
+        if (ProdOrder.Status = ProdOrder.Status::Finished) and (NewStatus <> ProdOrder.Status::Finished) then
+            CheckReopenBeforeEarliestAllowedValDate(ProdOrder);
 
         xProductionOrder := ProdOrder;
         if (NewStatus = Enum::"Production Order Status"::Released) and (ProdOrder."Source Type" = ProdOrder."Source Type"::Item) then
@@ -256,6 +260,8 @@ codeunit 5407 "Prod. Order Status Management"
         ProductionOrder.Status := ProductionOrder.Status::Released;
         ProductionOrder."Reopened" := true;
         ProductionOrder.Insert();
+
+        ToProdOrder := ProductionOrder;
 
         OnAfterTransferReopenProdOrder(ProductionOrder, FromProdOrder);
     end;
@@ -464,6 +470,8 @@ codeunit 5407 "Prod. Order Status Management"
         InventoryPostingToGL: Codeunit "Inventory Posting To G/L";
     begin
         InventoryPostingToGL.SetRunOnlyCheck(true, false, false);
+        if NewPostingDate <> 0D then
+            ValueEntry."Posting Date" := NewPostingDate;
         if not InventoryPostingToGL.AdjustPostedWIPForProduction(ValueEntry) then
             exit;
 
@@ -1396,6 +1404,22 @@ codeunit 5407 "Prod. Order Status Management"
         NewStatus := Status;
         NewPostingDate := PostingDate;
         NewUpdateUnitCost := UpdateUnitCost;
+    end;
+
+    local procedure CheckReopenBeforeEarliestAllowedValDate(ProdOrder: Record "Production Order")
+    var
+        ValueEntry: Record "Value Entry";
+    begin
+        InventorySetup.GetRecordOnce();
+        if InventorySetup."Earliest Allowed Val. Date" = 0D then
+            exit;
+
+        ValueEntry.SetCurrentKey("Order Type", "Order No.", "Order Line No.");
+        ValueEntry.SetRange("Order Type", ValueEntry."Order Type"::Production);
+        ValueEntry.SetRange("Order No.", ProdOrder."No.");
+        ValueEntry.SetFilter("Valuation Date", '<%1', InventorySetup."Earliest Allowed Val. Date");
+        if not ValueEntry.IsEmpty() then
+            Error(ReopenProdOrderBeforeEarliestAllowedValDateErr, ProdOrder."No.", InventorySetup."Earliest Allowed Val. Date");
     end;
 
     local procedure ErrorIfUnableToClearWIP(ProdOrder: Record "Production Order")

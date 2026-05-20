@@ -241,7 +241,7 @@ codeunit 144051 "ERM EVAT"
         ElecTaxDeclLine.SetRange("Declaration Type", ElecTaxDeclHeader."Declaration Type"::"ICP Declaration");
         ElecTaxDeclLine.SetRange("Declaration No.", No);
         ElecTaxDeclLine.SetRange("Line Type", ElecTaxDeclLine."Line Type"::Element);
-        ElecTaxDeclLine.SetFilter(Name, '%1|%2', 'bd-i:SuppliesAmount', 'bd-i:ServicesAmount');
+        ElecTaxDeclLine.SetFilter(Name, '%1|%2|%3', 'bd-i:SuppliesAmount', 'bd-i:ServicesAmount', 'bd-i:ABCSuppliesAmount');
 
         if ElecTaxDeclLine.Find('-') then
             repeat
@@ -641,7 +641,7 @@ codeunit 144051 "ERM EVAT"
         VATEntry[2]."Country/Region Code" := VATEntry[1]."Country/Region Code";
         VATEntry[2].Modify();
 
-        // [GIVEN] No grouping between EU Trade and service entries but same VAT reg no. and country code
+        // [GIVEN] EU 3-Party Trade entry with same VAT reg no. and country code — shares context
         CreateReverseChargeSalesInvoiceVATEntry(VATEntry[3], true, false);
         VATEntry[3]."VAT Registration No." := VATEntry[1]."VAT Registration No.";
         VATEntry[3]."Country/Region Code" := VATEntry[1]."Country/Region Code";
@@ -696,6 +696,140 @@ codeunit 144051 "ERM EVAT"
           ElecTaxDeclLine, ElecTaxDeclLine."Declaration Type"::"ICP Declaration", ElecTaxDeclHeaderNo,
           ElecTaxDeclLine."Line Type"::Element, 'bd-i:SuppliesAmount');
         Assert.IsTrue(ElecTaxDeclLine.IsEmpty(), 'SuppliesAmount line should not exist for amount less than 1');
+    end;
+
+    [Test]
+    [HandlerFunctions('CreateElecICPDeclarationRequestPageHandler')]
+    [Scope('OnPrem')]
+    procedure ICPMixedSuppliesServicesOneContext()
+    var
+        VATEntry: array[2] of Record "VAT Entry";
+        ElecTaxDeclHeader: Record "Elec. Tax Declaration Header";
+        ElecTaxDeclLine: Record "Elec. Tax Declaration Line";
+        No: Code[20];
+    begin
+        // [SCENARIO 624911] Same customer with Supplies and Services gets one xbrli:context
+        Initialize();
+        InitializeElecTaxDeclSetup(false, false);
+        VATEntry[1].SetRange(Type, VATEntry[1].Type::Sale);
+        VATEntry[1].SetRange("VAT Calculation Type", VATEntry[1]."VAT Calculation Type"::"Reverse Charge VAT");
+        VATEntry[1].DeleteAll();
+
+        // [GIVEN] Two VAT entries for the same EU customer: one Supplies, one Services
+        CreateReverseChargeSalesInvoiceVATEntry(VATEntry[1], false, false);
+        CreateReverseChargeSalesInvoiceVATEntry(VATEntry[2], false, true);
+        VATEntry[2]."VAT Registration No." := VATEntry[1]."VAT Registration No.";
+        VATEntry[2]."Country/Region Code" := VATEntry[1]."Country/Region Code";
+        VATEntry[2].Modify();
+
+        // [WHEN] Create Electronic Tax ICP Declaration
+        No := CreateElectronicTaxDeclaration(ElecTaxDeclHeader."Declaration Type"::"ICP Declaration");
+
+        // [THEN] Only one customer context (plus Msg context)
+        FilterOnElecTaxDeclLine(
+          ElecTaxDeclLine, ElecTaxDeclLine."Declaration Type"::"ICP Declaration", No,
+          ElecTaxDeclLine."Line Type"::Element, 'xbrli:context');
+        Assert.AreEqual(2, ElecTaxDeclLine.Count, 'Expected Msg context + one customer context');
+
+        // [THEN] Both SuppliesAmount and ServicesAmount facts exist
+        FilterOnElecTaxDeclLine(
+          ElecTaxDeclLine, ElecTaxDeclLine."Declaration Type"::"ICP Declaration", No,
+          ElecTaxDeclLine."Line Type"::Element, 'bd-i:SuppliesAmount');
+        Assert.IsFalse(ElecTaxDeclLine.IsEmpty(), 'SuppliesAmount fact should exist');
+
+        FilterOnElecTaxDeclLine(
+          ElecTaxDeclLine, ElecTaxDeclLine."Declaration Type"::"ICP Declaration", No,
+          ElecTaxDeclLine."Line Type"::Element, 'bd-i:ServicesAmount');
+        Assert.IsFalse(ElecTaxDeclLine.IsEmpty(), 'ServicesAmount fact should exist');
+    end;
+
+    [Test]
+    [HandlerFunctions('CreateElecICPDeclarationRequestPageHandler')]
+    [Scope('OnPrem')]
+    procedure ICPEU3PartyTradeUsesABCSuppliesAmount()
+    var
+        VATEntry: Record "VAT Entry";
+        ElecTaxDeclHeader: Record "Elec. Tax Declaration Header";
+        ElecTaxDeclLine: Record "Elec. Tax Declaration Line";
+        No: Code[20];
+    begin
+        // [SCENARIO 624911] EU 3-Party Trade uses bd-i:ABCSuppliesAmount element name
+        Initialize();
+        InitializeElecTaxDeclSetup(false, false);
+        VATEntry.SetRange(Type, VATEntry.Type::Sale);
+        VATEntry.SetRange("VAT Calculation Type", VATEntry."VAT Calculation Type"::"Reverse Charge VAT");
+        VATEntry.DeleteAll();
+
+        // [GIVEN] VAT entry with EU 3-Party Trade = true
+        CreateReverseChargeSalesInvoiceVATEntry(VATEntry, true, false);
+
+        // [WHEN] Create Electronic Tax ICP Declaration
+        No := CreateElectronicTaxDeclaration(ElecTaxDeclHeader."Declaration Type"::"ICP Declaration");
+
+        // [THEN] Element name is ABCSuppliesAmount, not SuppliesAmount
+        FilterOnElecTaxDeclLine(
+          ElecTaxDeclLine, ElecTaxDeclLine."Declaration Type"::"ICP Declaration", No,
+          ElecTaxDeclLine."Line Type"::Element, 'bd-i:ABCSuppliesAmount');
+        Assert.IsFalse(ElecTaxDeclLine.IsEmpty(), 'ABCSuppliesAmount fact should exist for EU 3-Party Trade');
+
+        FilterOnElecTaxDeclLine(
+          ElecTaxDeclLine, ElecTaxDeclLine."Declaration Type"::"ICP Declaration", No,
+          ElecTaxDeclLine."Line Type"::Element, 'bd-i:SuppliesAmount');
+        Assert.IsTrue(ElecTaxDeclLine.IsEmpty(), 'SuppliesAmount fact should not exist for EU 3-Party Trade');
+    end;
+
+    [Test]
+    [HandlerFunctions('CreateElecICPDeclarationRequestPageHandler')]
+    [Scope('OnPrem')]
+    procedure ICPAllThreeTypesForSameCustomerOneContext()
+    var
+        VATEntry: array[3] of Record "VAT Entry";
+        ElecTaxDeclHeader: Record "Elec. Tax Declaration Header";
+        ElecTaxDeclLine: Record "Elec. Tax Declaration Line";
+        No: Code[20];
+    begin
+        // [SCENARIO 624911] Same customer with Supplies, Services, and ABC Supplies gets one xbrli:context
+        Initialize();
+        InitializeElecTaxDeclSetup(false, false);
+        VATEntry[1].SetRange(Type, VATEntry[1].Type::Sale);
+        VATEntry[1].SetRange("VAT Calculation Type", VATEntry[1]."VAT Calculation Type"::"Reverse Charge VAT");
+        VATEntry[1].DeleteAll();
+
+        // [GIVEN] Three VAT entries for the same EU customer: Supplies, Services, EU 3-Party Trade
+        CreateReverseChargeSalesInvoiceVATEntry(VATEntry[1], false, false);
+        CreateReverseChargeSalesInvoiceVATEntry(VATEntry[2], false, true);
+        VATEntry[2]."VAT Registration No." := VATEntry[1]."VAT Registration No.";
+        VATEntry[2]."Country/Region Code" := VATEntry[1]."Country/Region Code";
+        VATEntry[2].Modify();
+        CreateReverseChargeSalesInvoiceVATEntry(VATEntry[3], true, false);
+        VATEntry[3]."VAT Registration No." := VATEntry[1]."VAT Registration No.";
+        VATEntry[3]."Country/Region Code" := VATEntry[1]."Country/Region Code";
+        VATEntry[3].Modify();
+
+        // [WHEN] Create Electronic Tax ICP Declaration
+        No := CreateElectronicTaxDeclaration(ElecTaxDeclHeader."Declaration Type"::"ICP Declaration");
+
+        // [THEN] Only one customer context (plus Msg context)
+        FilterOnElecTaxDeclLine(
+          ElecTaxDeclLine, ElecTaxDeclLine."Declaration Type"::"ICP Declaration", No,
+          ElecTaxDeclLine."Line Type"::Element, 'xbrli:context');
+        Assert.AreEqual(2, ElecTaxDeclLine.Count, 'Expected Msg context + one customer context');
+
+        // [THEN] All three amount facts exist
+        FilterOnElecTaxDeclLine(
+          ElecTaxDeclLine, ElecTaxDeclLine."Declaration Type"::"ICP Declaration", No,
+          ElecTaxDeclLine."Line Type"::Element, 'bd-i:SuppliesAmount');
+        Assert.IsFalse(ElecTaxDeclLine.IsEmpty(), 'SuppliesAmount fact should exist');
+
+        FilterOnElecTaxDeclLine(
+          ElecTaxDeclLine, ElecTaxDeclLine."Declaration Type"::"ICP Declaration", No,
+          ElecTaxDeclLine."Line Type"::Element, 'bd-i:ServicesAmount');
+        Assert.IsFalse(ElecTaxDeclLine.IsEmpty(), 'ServicesAmount fact should exist');
+
+        FilterOnElecTaxDeclLine(
+          ElecTaxDeclLine, ElecTaxDeclLine."Declaration Type"::"ICP Declaration", No,
+          ElecTaxDeclLine."Line Type"::Element, 'bd-i:ABCSuppliesAmount');
+        Assert.IsFalse(ElecTaxDeclLine.IsEmpty(), 'ABCSuppliesAmount fact should exist');
     end;
 
     local procedure BuildDeclarationDocumentPreview(ElecTaxDeclheader: Record "Elec. Tax Declaration Header") TempFile: Text
@@ -850,7 +984,10 @@ codeunit 144051 "ERM EVAT"
         if VATEntry."EU Service" then
             ElementName := 'bd-i:ServicesAmount'
         else
-            ElementName := 'bd-i:SuppliesAmount';
+            if VATEntry."EU 3-Party Trade" then
+                ElementName := 'bd-i:ABCSuppliesAmount'
+            else
+                ElementName := 'bd-i:SuppliesAmount';
 
         ExpectedAmount := Format(-VATEntry.Base, 0, '<Sign><Integer>');
         if CountryRegion.Get(VATEntry."Country/Region Code") then;

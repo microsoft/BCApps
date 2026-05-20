@@ -68,7 +68,7 @@ codeunit 144005 "Reference No Test"
         Commit();
 
         LibraryVariableStorage.Enqueue(PostedDocumentNo);
-        REPORT.Run(REPORT::"Service - Invoice", true, false, ServiceInvoiceHeader);
+        REPORT.Run(REPORT::"Service - Invoice (FI)", true, false, ServiceInvoiceHeader);
 
         // Verify
         Assert.AreNotEqual('', ServiceInvoiceHeader."Reference No.", 'Reference No. was not set on Service Invoice');
@@ -96,7 +96,7 @@ codeunit 144005 "Reference No Test"
         Commit();
 
         LibraryVariableStorage.Enqueue(PostedDocumentNo);
-        REPORT.Run(REPORT::"Service - Invoice", true, false, ServiceInvoiceHeader);
+        REPORT.Run(REPORT::"Service - Invoice (FI)", true, false, ServiceInvoiceHeader);
 
         // Verify
         Assert.AreNotEqual('', ServiceInvoiceHeader."Reference No.", 'Reference No. was not set on Service Invoice');
@@ -124,7 +124,7 @@ codeunit 144005 "Reference No Test"
         Commit();
 
         LibraryVariableStorage.Enqueue(PostedDocumentNo);
-        REPORT.Run(REPORT::"Service - Invoice", true, false, ServiceInvoiceHeader);
+        REPORT.Run(REPORT::"Service - Invoice (FI)", true, false, ServiceInvoiceHeader);
 
         // Verify
         Assert.AreNotEqual('', ServiceInvoiceHeader."Reference No.", 'Reference No. was not set on Service Invoice');
@@ -152,7 +152,7 @@ codeunit 144005 "Reference No Test"
         Commit();
 
         LibraryVariableStorage.Enqueue(PostedDocumentNo);
-        REPORT.Run(REPORT::"Service - Invoice", true, false, ServiceInvoiceHeader);
+        REPORT.Run(REPORT::"Service - Invoice (FI)", true, false, ServiceInvoiceHeader);
 
         // Verify
         Assert.AreNotEqual('', ServiceInvoiceHeader."Reference No.", 'Reference No. was not set on Service Invoice');
@@ -384,7 +384,7 @@ codeunit 144005 "Reference No Test"
 
     [RequestPageHandler]
     [Scope('OnPrem')]
-    procedure PostedServiceInvoiceReportHandler(var RequestPage: TestRequestPage "Service - Invoice")
+    procedure PostedServiceInvoiceReportHandler(var RequestPage: TestRequestPage "Service - Invoice (FI)")
     var
         PostedDocumentNo: Variant;
     begin

@@ -93,7 +93,13 @@ table 18552 "Posting No. Series"
     var
         RecRef: RecordRef;
         Handled: Boolean;
+        IsHandled: Boolean;
     begin
+        IsHandled := false;
+        OnBeforeGetPostingNoSeriesCode(Record, IsHandled);
+        if IsHandled then
+            exit;
+
         if not Record.IsRecord() then
             exit;
 
@@ -116,6 +122,8 @@ table 18552 "Posting No. Series"
                     Error('Record is not handled for Posting No. Series');
             end;
         end;
+
+        OnAfterGetPostingNoSeriesCode(Record);
     end;
 
     local procedure GetSalesPostingNoSeries(var SalesHeader: Record "Sales Header")
@@ -125,7 +133,13 @@ table 18552 "Posting No. Series"
         NoSeries: Codeunit "No. Series";
         NoSeriesCode: Code[20];
         TableID: Integer;
+        IsHandled: Boolean;
     begin
+        IsHandled := false;
+        OnBeforeGetSalesPostingNoSeries(SalesHeader, IsHandled);
+        if IsHandled then
+            exit;
+
         SalesSetup.Get();
         TableID := Database::"Sales Header";
         case SalesHeader."Document Type" of
@@ -164,10 +178,12 @@ table 18552 "Posting No. Series"
                         SalesHeader."Return Receipt No. Series" := NoSeriesCode
                     else
                         if SalesSetup."Return Receipt on Credit Memo" then
-                                if NoSeries.IsAutomatic(SalesSetup."Posted Return Receipt Nos.") then
+                            if NoSeries.IsAutomatic(SalesSetup."Posted Return Receipt Nos.") then
                                 SalesHeader."Return Receipt No. Series" := SalesSetup."Posted Return Receipt Nos.";
                 end;
         end;
+
+        OnAfterGetSalesPostingNoSeries(SalesHeader);
     end;
 
     local procedure GetGenJournalPostingSeries(var GenJournalLine: Record "Gen. Journal Line")
@@ -278,7 +294,14 @@ table 18552 "Posting No. Series"
     procedure LoopPostingNoSeries(TableID: Integer; var PostingNoSeries: Record "Posting No. Series"; Record: Variant; PostingDocumentType: Enum "Posting Document Type"): Code[20]
     var
         Filters: Text;
+        NoSeriesCode: Code[20];
+        IsHandled: Boolean;
     begin
+        IsHandled := false;
+        OnBeforeLoopPostingNoSeries(TableID, PostingNoSeries, Record, PostingDocumentType, NoSeriesCode, IsHandled);
+        if IsHandled then
+            exit(NoSeriesCode);
+
         PostingNoSeries.SetRange("Table Id", TableID);
         PostingNoSeries.SetRange("Document Type", PostingDocumentType);
         if PostingNoSeries.FindSet() then
@@ -286,9 +309,13 @@ table 18552 "Posting No. Series"
                 Filters := GetRecordView(PostingNoSeries);
                 if RecordViewFound(Record, Filters) then begin
                     PostingNoSeries.TestField("Posting No. Series");
-                    exit(PostingNoSeries."Posting No. Series");
+                    NoSeriesCode := PostingNoSeries."Posting No. Series";
+                    OnAfterLoopPostingNoSeries(TableID, PostingNoSeries, Record, PostingDocumentType, NoSeriesCode);
+                    exit(NoSeriesCode);
                 end;
             until PostingNoSeries.Next() = 0;
+
+        OnAfterLoopPostingNoSeries(TableID, PostingNoSeries, Record, PostingDocumentType, NoSeriesCode);
     end;
 
     local procedure GetRecordView(var PostingNoSeries: Record "Posting No. Series") Filters: Text;
@@ -348,6 +375,36 @@ table 18552 "Posting No. Series"
 
     [IntegrationEvent(true, false)]
     local procedure OnGetPostingNoSeries(var Record: Variant; var Handled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeGetPostingNoSeriesCode(var Record: Variant; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterGetPostingNoSeriesCode(var Record: Variant)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeGetSalesPostingNoSeries(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterGetSalesPostingNoSeries(var SalesHeader: Record "Sales Header")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeLoopPostingNoSeries(TableID: Integer; var PostingNoSeries: Record "Posting No. Series"; Record: Variant; PostingDocumentType: Enum "Posting Document Type"; var NoSeriesCode: Code[20]; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterLoopPostingNoSeries(TableID: Integer; var PostingNoSeries: Record "Posting No. Series"; Record: Variant; PostingDocumentType: Enum "Posting Document Type"; var NoSeriesCode: Code[20])
     begin
     end;
 }

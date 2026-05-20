@@ -595,8 +595,8 @@ page 1290 "Payment Reconciliation Journal"
                         AppliedPaymentEntry.SetRange("Statement No.", Rec."Statement No.");
                         AppliedPaymentEntry.SetFilter("Match Confidence", '%1|%2', AppliedPaymentEntry."Match Confidence"::Accepted, AppliedPaymentEntry."Match Confidence"::Manual);
 
-                        if AppliedPaymentEntry.Count > 0 then
-                            Overwrite := ConfirmManagement.GetResponseOrDefault(OverwriteExistingMatchesTxt, false)
+                        if not AppliedPaymentEntry.IsEmpty() then
+                            Overwrite := ConfirmManagement.GetResponseOrDefault(OverwriteExistingMatchesQst, false)
                         else
                             Overwrite := true;
 
@@ -1270,7 +1270,7 @@ page 1290 "Payment Reconciliation Journal"
         StatementToRemAmtDifference: Decimal;
         FinanceChargeMemoEnabled: Boolean;
         RemainingAmountAfterPosting: Decimal;
-        OverwriteExistingMatchesTxt: Label 'Overwriting previous applications will not affect Accepted and Manual ones.\\Chose Yes to overwrite, or No to apply only new entries.';
+        OverwriteExistingMatchesQst: Label 'This will overwrite existing applications. Do you want to overwrite Accepted and Manual ones?\\Chose Yes to overwrite, or No to keep Manual and Accepted ones.';
         BalanceAfterPostingStyleExpr: Text;
         ReviewStatusStyleTxt: Text;
         LinesForReviewCount: Integer;

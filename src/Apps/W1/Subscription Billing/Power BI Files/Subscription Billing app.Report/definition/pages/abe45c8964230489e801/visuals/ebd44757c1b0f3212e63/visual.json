@@ -1,0 +1,750 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "ebd44757c1b0f3212e63",
+  "position": {
+    "x": 440.16071192986243,
+    "y": 60.915098526007753,
+    "z": 4000,
+    "height": 632.73102339917727,
+    "width": 812.528814209813,
+    "tabOrder": 4000
+  },
+  "visual": {
+    "visualType": "decompositionTreeVisual",
+    "query": {
+      "queryState": {
+        "Analyze": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Subscription Billing KPIs"
+                    }
+                  },
+                  "Property": "Mon. Recurring Revenue"
+                }
+              },
+              "queryRef": "Subscription Billing KPIs.MRR",
+              "nativeQueryRef": "MRR"
+            }
+          ]
+        },
+        "ExplainBy": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Customer Contract Line"
+                    }
+                  },
+                  "Property": "Billing Rhythm"
+                }
+              },
+              "queryRef": "Customer Contract Line.Billing Rhythm",
+              "nativeQueryRef": "Billing Rhythm",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Customers"
+                    }
+                  },
+                  "Property": "Customer No. & Name"
+                }
+              },
+              "queryRef": "Customers.Customer No. & Name",
+              "nativeQueryRef": "Customer No. & Name",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Customer Contract"
+                    }
+                  },
+                  "Property": "Customer Contract No. Desc."
+                }
+              },
+              "queryRef": "Customer Contract.Customer Contract No. Desc.",
+              "nativeQueryRef": "Customer Contract No. Desc.",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Customers"
+                    }
+                  },
+                  "Property": "State"
+                }
+              },
+              "queryRef": "Customers.State",
+              "nativeQueryRef": "State",
+              "active": false
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Customers"
+                    }
+                  },
+                  "Property": "Post Code"
+                }
+              },
+              "queryRef": "Customers.Post Code",
+              "nativeQueryRef": "Post Code",
+              "active": false
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Dimension Sets"
+                    }
+                  },
+                  "Property": "Global Dimension 1"
+                }
+              },
+              "queryRef": "Dimension Sets.Global Dimension 1",
+              "nativeQueryRef": "Global Dimension 1",
+              "active": false
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Dimension Sets"
+                    }
+                  },
+                  "Property": "Global Dimension 2"
+                }
+              },
+              "queryRef": "Dimension Sets.Global Dimension 2",
+              "nativeQueryRef": "Global Dimension 2",
+              "active": false
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Dimension Sets"
+                    }
+                  },
+                  "Property": "Shortcut Dimension 3"
+                }
+              },
+              "queryRef": "Dimension Sets.Shortcut Dimension 3",
+              "nativeQueryRef": "Shortcut Dimension 3",
+              "active": false
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Dimension Sets"
+                    }
+                  },
+                  "Property": "Shortcut Dimension 4"
+                }
+              },
+              "queryRef": "Dimension Sets.Shortcut Dimension 4",
+              "nativeQueryRef": "Shortcut Dimension 4",
+              "active": false
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Dimension Sets"
+                    }
+                  },
+                  "Property": "Shortcut Dimension 5"
+                }
+              },
+              "queryRef": "Dimension Sets.Shortcut Dimension 5",
+              "nativeQueryRef": "Shortcut Dimension 5",
+              "active": false
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Dimension Sets"
+                    }
+                  },
+                  "Property": "Shortcut Dimension 6"
+                }
+              },
+              "queryRef": "Dimension Sets.Shortcut Dimension 6",
+              "nativeQueryRef": "Shortcut Dimension 6",
+              "active": false
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Dimension Sets"
+                    }
+                  },
+                  "Property": "Shortcut Dimension 7"
+                }
+              },
+              "queryRef": "Dimension Sets.Shortcut Dimension 7",
+              "nativeQueryRef": "Shortcut Dimension 7",
+              "active": false
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Dimension Sets"
+                    }
+                  },
+                  "Property": "Shortcut Dimension 8"
+                }
+              },
+              "queryRef": "Dimension Sets.Shortcut Dimension 8",
+              "nativeQueryRef": "Shortcut Dimension 8",
+              "active": false
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Customer Contract"
+                    }
+                  },
+                  "Property": "Customer Contract Type"
+                }
+              },
+              "queryRef": "Customer Contract.Customer Contract Type",
+              "nativeQueryRef": "Customer Contract Type",
+              "active": false
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Customer Contract Line"
+                    }
+                  },
+                  "Property": "Initial Term"
+                }
+              },
+              "queryRef": "Customer Contract Line.Initial Term",
+              "nativeQueryRef": "Initial Term",
+              "active": false
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Item"
+                    }
+                  },
+                  "Property": "Item No."
+                }
+              },
+              "queryRef": "Item.Item No.",
+              "nativeQueryRef": "Item No.",
+              "active": false
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Item"
+                    }
+                  },
+                  "Property": "Item Name"
+                }
+              },
+              "queryRef": "Item.Item Name",
+              "nativeQueryRef": "Item Name",
+              "active": false
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Item"
+                    }
+                  },
+                  "Property": "Item Category Code"
+                }
+              },
+              "queryRef": "Item.Item Category Code",
+              "nativeQueryRef": "Item Category Code",
+              "active": false
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Customer Contract Line"
+                    }
+                  },
+                  "Property": "Remaining Term"
+                }
+              },
+              "queryRef": "Customer Contract Line.Remaining Term",
+              "nativeQueryRef": "Remaining Term",
+              "active": false
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Customers"
+                    }
+                  },
+                  "Property": "Country/Region Code"
+                }
+              },
+              "queryRef": "Customers.Country/Region Code",
+              "nativeQueryRef": "Country/Region Code",
+              "active": false
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Measure": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Subscription Billing KPIs"
+                  }
+                },
+                "Property": "Mon. Recurring Revenue"
+              }
+            },
+            "direction": "Descending"
+          }
+        ],
+        "isDefaultSort": true
+      }
+    },
+    "expansionStates": [
+      {
+        "roles": [
+          "ExplainBy"
+        ],
+        "levels": [
+          {
+            "queryRefs": [
+              "Customer Contract Line.Billing Rhythm"
+            ],
+            "isCollapsed": true,
+            "identityKeys": [
+              {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Customer Contract Line"
+                    }
+                  },
+                  "Property": "Billing Rhythm"
+                }
+              }
+            ],
+            "isPinned": true
+          },
+          {
+            "queryRefs": [
+              "Customers.Customer No. & Name"
+            ],
+            "isCollapsed": true,
+            "identityKeys": [
+              {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Customers"
+                    }
+                  },
+                  "Property": "Customer No. & Name"
+                }
+              }
+            ],
+            "isPinned": true
+          },
+          {
+            "queryRefs": [
+              "Customer Contract.Customer Contract No. Desc."
+            ],
+            "isCollapsed": true,
+            "identityKeys": [
+              {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Customer Contract"
+                    }
+                  },
+                  "Property": "Customer Contract No. Desc."
+                }
+              }
+            ],
+            "isPinned": true
+          },
+          {
+            "queryRefs": [
+              "Customers.State"
+            ],
+            "isCollapsed": true
+          },
+          {
+            "queryRefs": [
+              "Customers.Post Code"
+            ],
+            "isCollapsed": true
+          },
+          {
+            "queryRefs": [
+              "Dimension Sets.Global Dimension 1"
+            ],
+            "isCollapsed": true
+          },
+          {
+            "queryRefs": [
+              "Dimension Sets.Global Dimension 2"
+            ],
+            "isCollapsed": true
+          },
+          {
+            "queryRefs": [
+              "Dimension Sets.Shortcut Dimension 3"
+            ],
+            "isCollapsed": true
+          },
+          {
+            "queryRefs": [
+              "Dimension Sets.Shortcut Dimension 4"
+            ],
+            "isCollapsed": true
+          },
+          {
+            "queryRefs": [
+              "Dimension Sets.Shortcut Dimension 5"
+            ],
+            "isCollapsed": true
+          },
+          {
+            "queryRefs": [
+              "Dimension Sets.Shortcut Dimension 6"
+            ],
+            "isCollapsed": true
+          },
+          {
+            "queryRefs": [
+              "Dimension Sets.Shortcut Dimension 7"
+            ],
+            "isCollapsed": true
+          },
+          {
+            "queryRefs": [
+              "Dimension Sets.Shortcut Dimension 8"
+            ],
+            "isCollapsed": true
+          },
+          {
+            "queryRefs": [
+              "Customer Contract.Customer Contract Type"
+            ],
+            "isCollapsed": true
+          },
+          {
+            "queryRefs": [
+              "Customer Contract Line.Initial Term"
+            ],
+            "isCollapsed": true
+          },
+          {
+            "queryRefs": [
+              "Item.Item No."
+            ],
+            "isCollapsed": true
+          },
+          {
+            "queryRefs": [
+              "Item.Item Name"
+            ],
+            "isCollapsed": true
+          },
+          {
+            "queryRefs": [
+              "Item.Item Category Code"
+            ],
+            "isCollapsed": true
+          },
+          {
+            "queryRefs": [
+              "Customer Contract Line.Remaining Term"
+            ],
+            "isCollapsed": true
+          },
+          {
+            "queryRefs": [
+              "Customers.Country/Region Code"
+            ],
+            "isCollapsed": true,
+            "identityKeys": [
+              {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Customers"
+                    }
+                  },
+                  "Property": "Country/Region Code"
+                }
+              }
+            ]
+          }
+        ],
+        "root": {
+          "children": [
+            {
+              "identityValues": [
+                {
+                  "Literal": {
+                    "Value": "'1M'"
+                  }
+                }
+              ],
+              "isToggled": true,
+              "children": [
+                {
+                  "identityValues": [
+                    {
+                      "Literal": {
+                        "Value": "'40000 Alpine Ski House'"
+                      }
+                    }
+                  ],
+                  "isToggled": true
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ],
+    "objects": {
+      "tree": [
+        {
+          "properties": {
+            "effectiveBarsPerLevel": {
+              "expr": {
+                "Literal": {
+                  "Value": "7L"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "analysis": [
+        {
+          "properties": {
+            "aiMode": {
+              "expr": {
+                "Literal": {
+                  "Value": "'relative'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "background": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "transparency": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Translated Localized Labels"
+                    }
+                  },
+                  "Property": "Mon. Recurring Revenue Analysis Label"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "padding": [
+        {
+          "properties": {
+            "top": {
+              "expr": {
+                "Literal": {
+                  "Value": "16D"
+                }
+              }
+            },
+            "bottom": {
+              "expr": {
+                "Literal": {
+                  "Value": "16D"
+                }
+              }
+            },
+            "left": {
+              "expr": {
+                "Literal": {
+                  "Value": "20D"
+                }
+              }
+            },
+            "right": {
+              "expr": {
+                "Literal": {
+                  "Value": "20D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "border": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "color": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "ThemeDataColor": {
+                      "ColorId": 0,
+                      "Percent": -0.1
+                    }
+                  }
+                }
+              }
+            },
+            "radius": {
+              "expr": {
+                "Literal": {
+                  "Value": "4D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "dropShadow": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "color": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "ThemeDataColor": {
+                      "ColorId": 4,
+                      "Percent": 0.4
+                    }
+                  }
+                }
+              }
+            },
+            "preset": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Bottom'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "Filter44a096da0ea0b6266ce2",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Sales"
+              }
+            },
+            "Property": "Source Type"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      }
+    ]
+  }
+}

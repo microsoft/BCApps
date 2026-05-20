@@ -1,4 +1,5 @@
-﻿// ------------------------------------------------------------------------------------------------
+#if not CLEAN29
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -20,8 +21,11 @@ using Microsoft.Purchases.Vendor;
 
 report 99001015 "Calculate Subcontracts"
 {
-    Caption = 'Calculate Subcontracts';
+    Caption = 'Calculate Subcontracts (Obsolete)';
     ProcessingOnly = true;
+    ObsoleteReason = 'Will be replaced by Report "Subc. Calculate Subcontracts" in the Subcontracting App.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
 
     dataset
     {
@@ -165,7 +169,9 @@ report 99001015 "Calculate Subcontracts"
         IsHandled := false;
         if ProdOrderRoutingLine.Type = ProdOrderRoutingLine.Type::"Work Center" then
             WorkCenter.Get(ProdOrderRoutingLine."No.");
+#pragma warning disable AL0432
         OnBeforeInsertReqWkshLine(ProdOrderRoutingLine, WorkCenter, ReqLine, IsHandled, ProdOrderLine);
+#pragma warning restore AL0432
         if IsHandled then
             exit;
 
@@ -186,7 +192,9 @@ report 99001015 "Calculate Subcontracts"
         ReqLine.Validate(Quantity, QtyToPurch);
         GetGLSetup();
         IsHandled := false;
+#pragma warning disable AL0432
         OnBeforeValidateUnitCost(ReqLine, WorkCenter, IsHandled, ProdOrderLine, ProdOrderRoutingLine);
+#pragma warning restore AL0432
         if not IsHandled then
             if ReqLine.Quantity <> 0 then begin
                 if WorkCenter."Unit Cost Calculation" = WorkCenter."Unit Cost Calculation"::Units then
@@ -227,7 +235,9 @@ report 99001015 "Calculate Subcontracts"
         ReqLine.Description := ProdOrderRoutingLine.Description;
         ReqLine."Description 2" := ProdOrderRoutingLine."Description 2";
         SetVendorItemNo();
+#pragma warning disable AL0432
         OnAfterTransferProdOrderRoutingLine(ReqLine, ProdOrderRoutingLine);
+#pragma warning restore AL0432
         // If purchase order already exist we will change this if possible
         PurchLine.Reset();
         PurchLine.SetCurrentKey("Document Type", Type, "Prod. Order No.", "Prod. Order Line No.", "Routing No.", "Operation No.");
@@ -264,7 +274,9 @@ report 99001015 "Calculate Subcontracts"
         if ReqLine."Ref. Order No." <> '' then
             ReqLine.GetDimFromRefOrderLine(true);
 
+#pragma warning disable AL0432
         OnBeforeReqWkshLineInsert(ReqLine, ProdOrderLine);
+#pragma warning restore AL0432
         ReqLine.Insert();
     end;
 
@@ -284,7 +296,9 @@ report 99001015 "Calculate Subcontracts"
         RequisitionLine.SetRange("Prod. Order No.", ProdOrderLine."Prod. Order No.");
         RequisitionLine.SetRange("Prod. Order Line No.", ProdOrderLine."Line No.");
         RequisitionLine.SetRange("Operation No.", ProdOrderRoutingLine."Operation No.");
+#pragma warning disable AL0432
         OnDeleteRepeatedReqLinesOnAfterRequisitionLineSetFilters(RequisitionLine, ProdOrderLine, ProdOrderRoutingLine);
+#pragma warning restore AL0432
         RequisitionLine.DeleteAll(true);
     end;
 
@@ -305,7 +319,9 @@ report 99001015 "Calculate Subcontracts"
         ItemVendor."Variant Code" := ReqLine."Variant Code";
         Item.FindItemVend(ItemVendor, ReqLine."Location Code");
         ReqLine.Validate("Vendor Item No.", ItemVendor."Vendor Item No.");
+#pragma warning disable AL0432
         OnAfterSetVendorItemNo(ReqLine, ItemVendor, Item);
+#pragma warning restore AL0432
     end;
 
     local procedure CanCreateRequisitionLineFromProdOrderLine(ItemNo: Code[20]; VariantCode: Code[20]): Boolean
@@ -346,7 +362,9 @@ report 99001015 "Calculate Subcontracts"
 
     local procedure CalculateSubContractRequirements()
     begin
+#pragma warning disable AL0432
         OnProdOrderRoutingLineOnBeforeCalculateSubContractRequirements(TempProdOrderRoutingLine);
+#pragma warning restore AL0432
 
         if TempProdOrderRoutingLine.IsEmpty() then
             exit;
@@ -360,7 +378,9 @@ report 99001015 "Calculate Subcontracts"
                 ProdOrderLine.SetRange("Prod. Order No.", TempProdOrderRoutingLine."Prod. Order No.");
                 ProdOrderLine.SetRange("Routing No.", TempProdOrderRoutingLine."Routing No.");
                 ProdOrderLine.SetRange("Routing Reference No.", TempProdOrderRoutingLine."Routing Reference No.");
+#pragma warning disable AL0432
                 OnProdOrderRoutingLineOnAfterGetRecordOnAfterProdOrderLineSetFilters(ProdOrderLine, TempProdOrderRoutingLine);
+#pragma warning restore AL0432
                 if ProdOrderLine.FindSet() then begin
                     DeleteRepeatedReqLines(TempProdOrderRoutingLine);
                     repeat
@@ -378,7 +398,9 @@ report 99001015 "Calculate Subcontracts"
                                 (MfgCostCalcMgt.CalcOutputQtyBaseOnPurchOrder(ProdOrderLine, TempProdOrderRoutingLine) +
                                  MfgCostCalcMgt.CalcActOutputQtyBase(ProdOrderLine, TempProdOrderRoutingLine));
                             QtyToPurch := Round(BaseQtyToPurch / ProdOrderLine."Qty. per Unit of Measure", UOMMgt.QtyRndPrecision());
+#pragma warning disable AL0432
                             OnAfterCalcQtyToPurch(ProdOrderLine, QtyToPurch);
+#pragma warning restore AL0432
                             if QtyToPurch > 0 then
                                 InsertReqWkshLine(TempProdOrderRoutingLine);
 #if not CLEAN27
@@ -401,49 +423,58 @@ report 99001015 "Calculate Subcontracts"
             Error('');
     end;
 
+    [Obsolete('Will be replaced by Report "Subc. Calculate Subcontracts" in the Subcontracting App.', '29.0')]
     [IntegrationEvent(false, false)]
     local procedure OnAfterCalcQtyToPurch(ProdOrderLine: Record "Prod. Order Line"; var QtyToPurch: Decimal)
     begin
     end;
 
+    [Obsolete('Will be replaced by Report "Subc. Calculate Subcontracts" in the Subcontracting App.', '29.0')]
     [IntegrationEvent(false, false)]
     local procedure OnAfterTransferProdOrderRoutingLine(var RequisitionLine: Record "Requisition Line"; ProdOrderRoutingLine: Record "Prod. Order Routing Line")
     begin
     end;
 
+    [Obsolete('Will be replaced by Report "Subc. Calculate Subcontracts" in the Subcontracting App.', '29.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertReqWkshLine(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var WorkCenter: Record "Work Center"; var ReqLine: Record "Requisition Line"; var IsHandled: Boolean; ProdOrderLine: Record "Prod. Order Line");
     begin
     end;
 
+    [Obsolete('Will be replaced by Report "Subc. Calculate Subcontracts" in the Subcontracting App.', '29.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateUnitCost(var RequisitionLine: Record "Requisition Line"; var WorkCenter: Record "Work Center"; var IsHandled: Boolean; ProdOrderLine: Record "Prod. Order Line"; ProdOrderRoutingLine: Record "Prod. Order Routing Line")
     begin
     end;
 
+    [Obsolete('Will be replaced by Report "Subc. Calculate Subcontracts" in the Subcontracting App.', '29.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeReqWkshLineInsert(var RequisitionLine: Record "Requisition Line"; ProdOrderLine: Record "Prod. Order Line")
     begin
     end;
 
+    [Obsolete('Will be replaced by Report "Subc. Calculate Subcontracts" in the Subcontracting App.', '29.0')]
     [IntegrationEvent(false, false)]
     local procedure OnDeleteRepeatedReqLinesOnAfterRequisitionLineSetFilters(var RequisitionLine: Record "Requisition Line"; ProdOrderLine: Record "Prod. Order Line"; ProdOrderRoutingLine: Record "Prod. Order Routing Line")
     begin
     end;
 
+    [Obsolete('Will be replaced by Report "Subc. Calculate Subcontracts" in the Subcontracting App.', '29.0')]
     [IntegrationEvent(false, false)]
     local procedure OnProdOrderRoutingLineOnAfterGetRecordOnAfterProdOrderLineSetFilters(var ProdOrderLine: Record "Prod. Order Line"; ProdOrderRoutingLine: Record "Prod. Order Routing Line")
     begin
     end;
 
+    [Obsolete('Will be replaced by Report "Subc. Calculate Subcontracts" in the Subcontracting App.', '29.0')]
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetVendorItemNo(var RequisitionLine: Record "Requisition Line"; ItemVendor: Record "Item Vendor"; Item: Record Item)
     begin
     end;
 
+    [Obsolete('Will be replaced by Report "Subc. Calculate Subcontracts" in the Subcontracting App.', '29.0')]
     [IntegrationEvent(false, false)]
     local procedure OnProdOrderRoutingLineOnBeforeCalculateSubContractRequirements(var TempProdOrderRoutingLine: Record "Prod. Order Routing Line" temporary)
     begin
     end;
 }
-
+#endif

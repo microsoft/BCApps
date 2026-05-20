@@ -89,7 +89,7 @@ codeunit 99000776 "Mfg. InventoryAdjmtEntryOrder"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Inventory Adjmt. Entry (Order)", 'OnAddDirectCostNonInv', '', true, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Inventory Adjmt. Entry (Order)", 'OnAddSingleLvlNonInvMaterialCost', '', true, false)]
     local procedure OnAddSingleLvlNonInvMaterialCost(var InventoryAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)"; CostAmtLCY: Decimal; CostAmtACY: Decimal)
     begin
         if MfgCostCalcMgt.CanIncNonInvCostIntoProductionItem() then begin

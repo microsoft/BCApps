@@ -2738,6 +2738,204 @@ codeunit 144001 "VAT Report"
         Cleanup(VATReportHeader."No.", TestPeriodStart, TestPeriodEnd);
     end;
 
+    [Test]
+    procedure ExportVATReportTrimsSpacesFromVATRegNo()
+    var
+        VATReportHeader: Record "VAT Report Header";
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 630344] VIES ELMA XML trims leading and trailing spaces from VAT Registration No. in auslUStIdNrOhneLKZ node
+        Initialize();
+
+        // [GIVEN] A mock VAT report with a line where VAT Registration No. has leading and trailing spaces
+        CreateMockVATReportWithLines(VATReportHeader, VATReportHeader."VAT Report Type"::Standard, VATReportHeader."Report Period Type"::Month, 1);
+        UpdateVATRegNoOnVATReportLine(VATReportHeader."No.", ' U1234567 ');
+
+        // [WHEN] Export VIES report
+        ExportVATReportIntoTempBlob(VATReportHeader, TempBlob);
+
+        // [THEN] auslUStIdNrOhneLKZ node value has no leading or trailing spaces
+        InitXMLReaderForVIESReport(TempBlob);
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//zm:zms/zm:unternehmer/zm:zm/zm:zmZeile/zm:auslUStIdNrOhneLKZ', 'U1234567');
+    end;
+
+    [Test]
+    procedure ExportVATReportTrimsSpacesFromAddressFields()
+    var
+        VATReportHeader: Record "VAT Report Header";
+        TempBlob: Codeunit "Temp Blob";
+        TestPeriodStart: Date;
+        TestPeriodEnd: Date;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 630344] VIES ELMA XML trims leading/trailing spaces from address fields
+        Initialize();
+
+        // [GIVEN] Company information with leading/trailing spaces in name, address, and city
+        UpdateCompanyInformation(' Test Company ', ' Main Street ', ' Berlin ');
+
+        // [WHEN] Export VIES report
+        CreateVATReport(VATReportHeader, TestPeriodStart, TestPeriodEnd, TempBlob);
+
+        // [THEN] Address fields in XML are trimmed
+        InitXMLReaderForVIESReport(TempBlob);
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//zm:zms/zm:unternehmer/zm:anschrift/zm:name', 'Test Company');
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//zm:zms/zm:unternehmer/zm:anschrift/zm:strasse', 'Main Street');
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//zm:zms/zm:unternehmer/zm:anschrift/zm:ort', 'Berlin');
+
+        Cleanup(VATReportHeader."No.", TestPeriodStart, TestPeriodEnd);
+    end;
+
+    [Test]
+    procedure ExportVATReportSanitizesDotsFromVATRegNo()
+    var
+        VATReportHeader: Record "VAT Report Header";
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 631025] VAT Registration No. with dots is sanitized in ELMA XML export
+        Initialize();
+
+        // [GIVEN] A VAT Report Line with VAT Registration No. containing dots
+        CreateMockVATReportWithLines(VATReportHeader, VATReportHeader."VAT Report Type"::Standard, VATReportHeader."Report Period Type"::Month, 1);
+        UpdateVATRegNoOnVATReportLine(VATReportHeader."No.", '0476.746.783');
+
+        // [WHEN] Export VIES report
+        ExportVATReportIntoTempBlob(VATReportHeader, TempBlob);
+
+        // [THEN] Dots are removed from VAT Registration No. in XML
+        InitXMLReaderForVIESReport(TempBlob);
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//zm:zms/zm:unternehmer/zm:zm/zm:zmZeile/zm:auslUStIdNrOhneLKZ', '0476746783');
+    end;
+
+    [Test]
+    procedure ExportVATReportSanitizesSpacesFromVATRegNo()
+    var
+        VATReportHeader: Record "VAT Report Header";
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 631025] VAT Registration No. with spaces is sanitized in ELMA XML export
+        Initialize();
+
+        // [GIVEN] A VAT Report Line with VAT Registration No. containing spaces
+        CreateMockVATReportWithLines(VATReportHeader, VATReportHeader."VAT Report Type"::Standard, VATReportHeader."Report Period Type"::Month, 1);
+        UpdateVATRegNoOnVATReportLine(VATReportHeader."No.", '0781 612 241');
+
+        // [WHEN] Export VIES report
+        ExportVATReportIntoTempBlob(VATReportHeader, TempBlob);
+
+        // [THEN] Spaces are removed from VAT Registration No. in XML
+        InitXMLReaderForVIESReport(TempBlob);
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//zm:zms/zm:unternehmer/zm:zm/zm:zmZeile/zm:auslUStIdNrOhneLKZ', '0781612241');
+    end;
+
+    [Test]
+    procedure ExportVATReportSanitizesLeadingSpaceFromVATRegNo()
+    var
+        VATReportHeader: Record "VAT Report Header";
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 631025] VAT Registration No. with leading space is sanitized in ELMA XML export
+        Initialize();
+
+        // [GIVEN] A VAT Report Line with VAT Registration No. containing a leading space
+        CreateMockVATReportWithLines(VATReportHeader, VATReportHeader."VAT Report Type"::Standard, VATReportHeader."Report Period Type"::Month, 1);
+        UpdateVATRegNoOnVATReportLine(VATReportHeader."No.", ' 190 368 86');
+
+        // [WHEN] Export VIES report
+        ExportVATReportIntoTempBlob(VATReportHeader, TempBlob);
+
+        // [THEN] Leading space and inner spaces are removed from VAT Registration No. in XML
+        InitXMLReaderForVIESReport(TempBlob);
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//zm:zms/zm:unternehmer/zm:zm/zm:zmZeile/zm:auslUStIdNrOhneLKZ', '19036886');
+    end;
+
+    [Test]
+    procedure ExportVATReportKeepsCleanVATRegNoUnchanged()
+    var
+        VATReportHeader: Record "VAT Report Header";
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 631025] Clean VAT Registration No. is not modified by sanitization
+        Initialize();
+
+        // [GIVEN] A VAT Report Line with clean VAT Registration No. (no invalid characters)
+        CreateMockVATReportWithLines(VATReportHeader, VATReportHeader."VAT Report Type"::Standard, VATReportHeader."Report Period Type"::Month, 1);
+        UpdateVATRegNoOnVATReportLine(VATReportHeader."No.", 'U12386700');
+
+        // [WHEN] Export VIES report
+        ExportVATReportIntoTempBlob(VATReportHeader, TempBlob);
+
+        // [THEN] VAT Registration No. remains unchanged after sanitization
+        InitXMLReaderForVIESReport(TempBlob);
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//zm:zms/zm:unternehmer/zm:zm/zm:zmZeile/zm:auslUStIdNrOhneLKZ', 'U12386700');
+    end;
+
+    [Test]
+    procedure ExportVATReportSkipsDomesticDELine()
+    var
+        VATReportHeader: Record "VAT Report Header";
+        VATReportLine: Record "VAT Report Line";
+        CountryRegion: Record "Country/Region";
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 631025] Lines with domestic country code DE are not exported to VIES XML
+        Initialize();
+
+        // [GIVEN] A VAT Report with only a DE country line
+        CreateMockVATReportWithLines(VATReportHeader, VATReportHeader."VAT Report Type"::Standard, VATReportHeader."Report Period Type"::Month, 1);
+        VATReportLine.SetRange("VAT Report No.", VATReportHeader."No.");
+        VATReportLine.FindFirst();
+        CountryRegion.Get(VATReportLine."Country/Region Code");
+        CountryRegion.Validate("EU Country/Region Code", 'DE');
+        CountryRegion.Modify(true);
+        VATReportLine."VAT Registration No." := 'DE123456789';
+        VATReportLine.Modify();
+
+        // [WHEN] Export VIES report
+        ExportVATReportIntoTempBlob(VATReportHeader, TempBlob);
+
+        // [THEN] No zmZeile nodes exist in the exported XML (DE line is skipped)
+        InitXMLReaderForVIESReport(TempBlob);
+        LibraryXPathXMLReader.VerifyXmlNodeCountByXPath('//zm:zms/zm:unternehmer/zm:zm/zm:zmZeile', 0);
+    end;
+
+    [Test]
+    procedure ExportVATReportSkipsDomesticDECorrectionLine()
+    var
+        VATReportHeader: Record "VAT Report Header";
+        VATReportLine: Record "VAT Report Line";
+        CountryRegion: Record "Country/Region";
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 631025] Correction lines with domestic country code DE are also not exported to VIES XML
+        Initialize();
+
+        // [GIVEN] A corrective VAT Report with only a DE country correction line
+        CreateMockVATReportWithLines(VATReportHeader, VATReportHeader."VAT Report Type"::Corrective, VATReportHeader."Report Period Type"::Month, 1);
+        VATReportLine.SetRange("VAT Report No.", VATReportHeader."No.");
+        VATReportLine.FindFirst();
+        CountryRegion.Get(VATReportLine."Country/Region Code");
+        CountryRegion.Validate("EU Country/Region Code", 'DE');
+        CountryRegion.Modify(true);
+        VATReportLine."VAT Registration No." := 'DE987654321';
+        VATReportLine."Line Type" := VATReportLine."Line Type"::Correction;
+        VATReportLine.Modify();
+
+        // [WHEN] Export VIES report
+        ExportVATReportIntoTempBlob(VATReportHeader, TempBlob);
+
+        // [THEN] No zmZeile nodes exist in the exported XML (DE correction line is skipped)
+        InitXMLReaderForVIESReport(TempBlob);
+        LibraryXPathXMLReader.VerifyXmlNodeCountByXPath('//zm:zms/zm:unternehmer/zm:zm/zm:zmZeile', 0);
+    end;
+
     local procedure Initialize()
     begin
         LibrarySetupStorage.Restore();
@@ -2749,6 +2947,7 @@ codeunit 144001 "VAT Report"
         InitializeCompanyInformation();
         LibrarySetupStorage.Save(DATABASE::"Company Information");
         LibrarySetupStorage.Save(DATABASE::"VAT Report Setup");
+        Commit();
         IsInitialized := true;
     end;
 
@@ -2784,6 +2983,18 @@ codeunit 144001 "VAT Report"
         LibraryXPathXMLReader.InitializeXml(TempBlob, 'n1', 'http://www.itzbund.de/elan');
         LibraryXPathXMLReader.AddAdditionalXmlNamespace('elan', 'http://www.itzbund.de/elan/elemente');
         LibraryXPathXMLReader.AddAdditionalXmlNamespace('zm', 'http://www.itzbund.de/ZM/01');
+    end;
+
+    local procedure UpdateVATRegNoOnVATReportLine(VATReportNo: Code[20]; VATRegNoSuffix: Text)
+    var
+        VATReportLine: Record "VAT Report Line";
+        CountryRegion: Record "Country/Region";
+    begin
+        VATReportLine.SetRange("VAT Report No.", VATReportNo);
+        VATReportLine.FindFirst();
+        CountryRegion.Get(VATReportLine."Country/Region Code");
+        VATReportLine."VAT Registration No." := CountryRegion."EU Country/Region Code" + CopyStr(VATRegNoSuffix, 1, MaxStrLen(VATReportLine."VAT Registration No.") - StrLen(CountryRegion."EU Country/Region Code"));
+        VATReportLine.Modify();
     end;
 
     local procedure UpdateCompanyInformation(CompanyName: Text[100]; CompanyAddress: Text[30]; CompanyCity: Text[30])

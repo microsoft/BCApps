@@ -48,5 +48,6 @@
   "target": "Cloud",
   "features": [
     "TranslationFile"
-  ]
+  ],
+  "resourceFolders": [".resources"]
 }

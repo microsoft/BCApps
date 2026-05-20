@@ -18,12 +18,14 @@ codeunit 8361 "Financial Report Export Job"
     trigger OnRun()
     begin
         ExportSchedules();
+        ExportPackages();
     end;
 
     var
         FileMgt: Codeunit "File Management";
         FinReportMgt: Codeunit "Financial Report Mgt.";
         EmailSubjectLbl: Label 'Financial Report: %1', Comment = '%1 = report description.';
+        PackageEmailSubjectLbl: Label 'Financial Report Package: %1', Comment = '%1 = report description.';
         ExcelContentTypeTxt: Label 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', Locked = true;
         ExcelExtTok: Label 'xlsx', Locked = true;
         PDFContentTypeTxt: Label 'application/pdf', Locked = true;
@@ -50,7 +52,7 @@ codeunit 8361 "Financial Report Export Job"
         UserSetup: Record "User Setup";
         Email: Codeunit Email;
         EmailMessage: Codeunit "Email Message";
-        UserNames: List of [Text[65]];
+        UserNames: List of [Text[50]];
         UserEmails: List of [Text];
         ReportDescription: Text[250];
         SendEmailField: Boolean;
@@ -147,7 +149,7 @@ codeunit 8361 "Financial Report Export Job"
 
     internal procedure ExportExcel(
         FinancialReportSchedule: Record "Financial Report Schedule"; FinancialReport: Record "Financial Report";
-        ReportDescription: Text[250]; LogSystemId: Guid; var UserNames: List of [Text[65]]; var EmailMessage: Codeunit "Email Message")
+        ReportDescription: Text[250]; LogSystemId: Guid; var UserNames: List of [Text[50]]; var EmailMessage: Codeunit "Email Message")
     var
         AccScheduleLine: Record "Acc. Schedule Line";
         FinReportExcelTemplate: Record "Fin. Report Excel Template";
@@ -199,7 +201,7 @@ codeunit 8361 "Financial Report Export Job"
 
     internal procedure ExportPdf(
         FinancialReportSchedule: Record "Financial Report Schedule"; FinancialReport: Record "Financial Report";
-        ReportDescription: Text[250]; LogSystemId: Guid; var UserNames: List of [Text[65]]; var EmailMessage: Codeunit "Email Message")
+        ReportDescription: Text[250]; LogSystemId: Guid; var UserNames: List of [Text[50]]; var EmailMessage: Codeunit "Email Message")
     var
         AccScheduleLine: Record "Acc. Schedule Line";
         AccountSchedule: Report "Account Schedule";
@@ -233,13 +235,157 @@ codeunit 8361 "Financial Report Export Job"
         end;
     end;
 
+    local procedure ExportPackages()
+    var
+        FinRepPackage: Record "Financial Report Package";
+        FinRepPackageSchedule: Record "Fin. Report Package Schedule";
+    begin
+        FinRepPackageSchedule.SetFilter("Next Run Date/Time", '<>%1&<=%2', 0DT, CurrentDateTime());
+        if FinRepPackageSchedule.FindSet() then
+            repeat
+                if FinRepPackage.Code <> FinRepPackageSchedule."Package Code" then
+                    FinRepPackage.Get(FinRepPackageSchedule."Package Code");
+                ExportPackageSchedule(FinRepPackage, FinRepPackageSchedule);
+            until FinRepPackageSchedule.Next() = 0;
+    end;
+
+    local procedure ExportPackageSchedule(FinRepPackage: Record "Financial Report Package"; var FinRepPackageSchedule: Record "Fin. Report Package Schedule")
+    var
+        User: Record User;
+        UserSetup: Record "User Setup";
+        FinRepPackageRecipient: Record "Fin. Report Package Recipient";
+        FinReportPackageReport: Record "Fin. Report Package Report";
+        FinRepPackageExportLog: Record "Fin. Rep. Package Export Log";
+        AccountSchedule: Report "Account Schedule";
+        Email: Codeunit Email;
+        EmailMessage: Codeunit "Email Message";
+        TempBlob: Codeunit "Temp Blob";
+        IsHandled: Boolean;
+        InStr: InStream;
+        UserNames: List of [Text[50]];
+        UserEmails: List of [Text];
+        OutStr: OutStream;
+        AccScheduleParam: Text;
+        ReportDescription: Text;
+    begin
+        FinRepPackageExportLog."Package Code" := FinRepPackageSchedule."Package Code";
+        FinRepPackageExportLog."Schedule Code" := FinRepPackageSchedule."Schedule Code";
+        FinRepPackageExportLog."Start Date/Time" := CurrentDateTime();
+        FinRepPackageExportLog.Insert();
+
+        FinRepPackageRecipient.SetRange("Package Code", FinRepPackageSchedule."Package Code");
+        FinRepPackageRecipient.SetRange("Schedule Code", FinRepPackageSchedule."Schedule Code");
+        if not FinRepPackageRecipient.FindSet() then
+            exit;
+        repeat
+            User.SetRange("User Name", FinRepPackageRecipient."User ID");
+            if not User.FindFirst() then
+                continue;
+
+            if User.State = User.State::Disabled then
+                continue;
+
+            UserNames.Add(FinRepPackageRecipient."User ID");
+            if FinRepPackageSchedule."Send Email" then begin
+                UserSetup.Get(FinRepPackageRecipient."User ID");
+                UserSetup.TestField("E-Mail");
+                UserEmails.Add(UserSetup."E-Mail");
+            end;
+        until FinRepPackageRecipient.Next() = 0;
+
+        if UserNames.Count() = 0 then
+            exit;
+
+        FinReportPackageReport.SetAutoCalcFields("Report Parameters");
+        FinReportPackageReport.SetRange("Package Code", FinRepPackageSchedule."Package Code");
+        if not FinReportPackageReport.FindSet() then
+            exit;
+
+        AccScheduleParam := InitAccSchFromPackageReport(AccountSchedule, FinReportPackageReport);
+        if FinReportPackageReport.Next() <> 0 then
+            repeat
+                AccountSchedule.AddPackageReportToAppend(FinReportPackageReport);
+            until FinReportPackageReport.Next() = 0;
+        AccountSchedule.SetRunForExport();
+        TempBlob.CreateOutStream(OutStr);
+        OnBeforeSaveAccountSchedule(FinRepPackageSchedule, FinReportPackageReport, AccScheduleParam, AccountSchedule, OutStr, IsHandled);
+        if not IsHandled then
+            AccountSchedule.SaveAs(AccScheduleParam, ReportFormat::PDF, OutStr);
+        TempBlob.CreateInStream(InStr);
+
+        ReportDescription := StrSubstNo('%1 (%2)',
+            FinRepPackage.Description <> '' ? FinRepPackage.Description : FinRepPackage.Code,
+            FinRepPackageSchedule.Name <> '' ? FinRepPackageSchedule.Name : FinRepPackageSchedule."Schedule Code");
+
+        CreateInboxEntries(InStr, UserNames, Report::"Account Schedule", CopyStr(ReportDescription, 1, 250), Enum::"Report Inbox Output Type"::PDF, FinRepPackageExportLog.SystemId);
+
+        if FinRepPackageSchedule."Send Email" then begin
+            CreatePackageEmailMessage(FinRepPackageSchedule, ReportDescription, UserEmails, EmailMessage);
+            InStr.ResetPosition();
+            EmailMessage.AddAttachment(CopyStr(FileMgt.CreateFileNameWithExtension(ReportDescription, PDFExtTok), 1, 250), PDFContentTypeTxt, InStr);
+            Email.AddRelation(
+                EmailMessage, Database::"Fin. Rep. Package Export Log", FinRepPackageExportLog.SystemId,
+                Enum::"Email Relation Type"::"Primary Source", Enum::"Email Relation Origin"::"Compose Context");
+            if not Email.Send(EmailMessage, Enum::"Email Scenario"::"Financial Report") then
+                Error(SendingFailedErr, GetLastErrorText());
+        end;
+
+        FinRepPackageSchedule.CalcNextRunDate();
+        FinRepPackageSchedule.Modify();
+
+        Commit();
+    end;
+
+    procedure InitAccSchFromPackageReport(var AccountSchedule: Report "Account Schedule"; var FinReportPackageReport: Record "Fin. Report Package Report") AccScheduleParam: Text
+    var
+        AccScheduleLine: Record "Acc. Schedule Line";
+        FinancialReport: Record "Financial Report";
+    begin
+        FinancialReport.Get(FinReportPackageReport."Financial Report Name");
+        if (Format(FinReportPackageReport."Start Date Filter Formula") <> '') or
+            (Format(FinReportPackageReport."End Date Filter Formula") <> '') or
+            (FinReportPackageReport."Date Filter Period Formula" <> '')
+        then begin
+            FinancialReport.StartDateFilterFormula := FinReportPackageReport."Start Date Filter Formula";
+            FinancialReport.EndDateFilterFormula := FinReportPackageReport."End Date Filter Formula";
+            FinancialReport.DateFilterPeriodFormula := FinReportPackageReport."Date Filter Period Formula";
+            FinancialReport.DateFilterPeriodFormulaLID := FinReportPackageReport."Date Filter Period Formula LID";
+        end;
+
+        AccScheduleParam := FinReportPackageReport.GetReportParameters();
+        if AccScheduleParam = '' then
+            FinReportMgt.SetAccScheduleFilter(FinancialReport, AccountSchedule)
+        else begin
+            AccountSchedule.SetFinancialReportName(FinancialReport.Name);
+            FinReportMgt.CalcAccScheduleLineDateFilter(FinancialReport, AccScheduleLine);
+            AccountSchedule.SetDateFilterHidden(AccScheduleLine.GetFilter("Date Filter"));
+        end;
+        AccountSchedule.SetPackageCode(FinReportPackageReport."Package Code");
+    end;
+
+    local procedure CreatePackageEmailMessage(FinRepPackageSchedule: Record "Fin. Report Package Schedule"; ReportDescription: Text; var UserEmails: List of [Text]; var EmailMessage: Codeunit "Email Message")
+    var
+        FinRepPackageExportEmail: Report "Fin. Rep. Package Export Email";
+        TempBlob: Codeunit "Temp Blob";
+        InStr: InStream;
+        OutStr: OutStream;
+        EmailBody: Text;
+    begin
+        TempBlob.CreateOutStream(OutStr);
+        FinRepPackageExportEmail.SetContext(FinRepPackageSchedule, ReportDescription);
+        FinRepPackageExportEmail.SaveAs('', ReportFormat::Html, OutStr);
+        TempBlob.CreateInStream(InStr);
+        InStr.ReadText(EmailBody);
+        EmailMessage.Create(UserEmails, StrSubstNo(PackageEmailSubjectLbl, ReportDescription), EmailBody, true);
+    end;
+
     local procedure CreateInboxEntries(
-        var InStr: InStream; var UserNames: List of [Text[65]];
+        var InStr: InStream; var UserNames: List of [Text[50]];
         ReportId: Integer; ReportDescription: Text[250]; OutputType: Enum "Report Inbox Output Type"; LogSystemId: Guid)
     var
         ReportInbox: Record "Report Inbox";
         OutStr: OutStream;
-        UserName: Text[65];
+        UserName: Text[50];
     begin
         ReportInbox.Init();
         ReportInbox."Report ID" := ReportId;
@@ -263,6 +409,13 @@ codeunit 8361 "Financial Report Export Job"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSaveExcel(FinancialReportSchedule: Record "Financial Report Schedule"; FinancialReport: Record "Financial Report"; var ExportAccSchedToExcel: Report "Export Acc. Sched. to Excel"; var OutStr: OutStream; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeSaveAccountSchedule(
+        FinRepPackageSchedule: Record "Fin. Report Package Schedule"; FinRepPackageReport: Record "Fin. Report Package Report";
+        AccScheduleParam: Text; var AccountSchedule: Report "Account Schedule"; var OutStr: OutStream; var IsHandled: Boolean)
     begin
     end;
 }

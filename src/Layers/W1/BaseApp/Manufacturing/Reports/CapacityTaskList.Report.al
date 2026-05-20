@@ -136,6 +136,11 @@ report 99000780 "Capacity Task List"
                         IncludeCaption = true;
                     }
                 }
+                trigger OnPreDataItem()
+                begin
+                    "Prod. Order Routing Line Group".CopyFilter("Starting Date", "Starting Date");
+                end;
+
                 trigger OnAfterGetRecord()
                 var
                     MachineCenter: Record "Machine Center";

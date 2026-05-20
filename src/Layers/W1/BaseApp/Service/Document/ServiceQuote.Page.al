@@ -485,7 +485,6 @@ page 5964 "Service Quote"
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the location of the service item, such as a warehouse or distribution center.';
                 }
                 field("Shipment Method Code"; Rec."Shipment Method Code")
                 {

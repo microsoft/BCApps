@@ -4236,7 +4236,7 @@
         LibraryPlanning.CreateRequisitionWkshName(RequisitionWkshName, ReqWkshTemplate.Name);
         LibraryManufacturing.CreateItemManufacturing(
           Item, Item."Costing Method", LibraryRandom.RandDec(100, 2),
-          Item."Reordering Policy"::"Fixed Reorder Qty.", Item."Flushing Method", '', '');
+          Item."Reordering Policy"::"Fixed Reorder Qty.", Item."Flushing Method"::"Pick + Manual", '', '');
         Item.Validate("Reorder Quantity", LibraryRandom.RandDec(100, 2));
         Item.Modify(true);
 

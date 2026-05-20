@@ -21,7 +21,9 @@ codeunit 12216 "Service Declaration Mgt. IT"
     SingleInstance = true;
 
     var
+#if not CLEAN27
         TotalRoundedAmount, LineCount : Integer;
+#endif
         ServDeclDataExchPurchaseCodeLbl: Label 'SERVDECLITP-2023', Locked = true;
         ServDeclDataExchSaleCodeLbl: Label 'SERVDECLITS-2023', Locked = true;
         ServDeclDataExchPurchaseCorrectionCodeLbl: Label 'SERVDECLITPC-2023', Locked = true;

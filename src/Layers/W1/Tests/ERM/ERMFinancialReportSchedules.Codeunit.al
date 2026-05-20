@@ -261,7 +261,7 @@ codeunit 135005 "ERM Financial Report Schedules"
         EmailMessage: Codeunit "Email Message";
         FinancialReportExportJob: Codeunit "Financial Report Export Job";
         FinReportExportPDFHandler: Codeunit "Fin. Report Export Handler";
-        UserNames: List of [Text[65]];
+        UserNames: List of [Text[50]];
     begin
         // [SCENARIO] Exporting a financial report schedule will use the default filters if no filters are set on the schedule
         Initialize();
@@ -272,7 +272,7 @@ codeunit 135005 "ERM Financial Report Schedules"
         FinancialReport.Get(AccScheduleName.Name);
         UserNames.Add(UserId());
 
-        // [GIVEN] A financial report with a dimension 1 filter
+        // [GIVEN] A financial report with a dimension 1 filter 
         FinancialReport.Dim1Filter := DimensionValue.Code;
         FinancialReport.Modify();
 
@@ -303,7 +303,7 @@ codeunit 135005 "ERM Financial Report Schedules"
         EmailMessage: Codeunit "Email Message";
         FinancialReportExportJob: Codeunit "Financial Report Export Job";
         FinReportExportHandler: Codeunit "Fin. Report Export Handler";
-        UserNames: List of [Text[65]];
+        UserNames: List of [Text[50]];
     begin
         // [SCENARIO] Exporting a financial report schedule will filter the report based on the schedule, overriding the default filters
         Initialize();
@@ -347,7 +347,7 @@ codeunit 135005 "ERM Financial Report Schedules"
         FinancialReportExportJob: Codeunit "Financial Report Export Job";
         FinReportExportHandler: Codeunit "Fin. Report Export Handler";
         TempBlob: Codeunit "Temp Blob";
-        UserNames: List of [Text[65]];
+        UserNames: List of [Text[50]];
     begin
 
         Initialize();
@@ -376,6 +376,143 @@ codeunit 135005 "ERM Financial Report Schedules"
         FileMgt.DeleteServerFile(LibraryReportValidation.GetFileName());
         FileMgt.BLOBExportToServerFile(TempBlob, LibraryReportValidation.GetFileName());
         LibraryReportValidation.VerifyCellValue(3, 2, DimensionValueB.Code);
+    end;
+
+    [Test]
+    [HandlerFunctions('AccountScheduleRequestPageHandler')]
+    procedure StorePackageScheduleFilter()
+    var
+        AccScheduleLine: Record "Acc. Schedule Line";
+        AccScheduleName: Record "Acc. Schedule Name";
+        DimensionValue: Record "Dimension Value";
+        FinReportPackageSchedule: Record "Fin. Report Package Schedule";
+        FinReportPackageReport: Record "Fin. Report Package Report";
+    begin
+        // [SCENARIO] Filters on financial report package reports are saved correctly
+        Initialize();
+
+        // [GIVEN] A financial report package with a report
+        LibraryERM.CreateAccScheduleName(AccScheduleName);
+        GLSetup.Get();
+        LibraryDimension.CreateDimensionValue(DimensionValue, GLSetup."Global Dimension 1 Code");
+        FinReportPackageSchedule := CreatePackageSchedule(false);
+        FinReportPackageReport := CreatePackageReport(FinReportPackageSchedule."Package Code", AccScheduleName.Name);
+
+        // [WHEN] The dimension 1 filter is set as a custom filter
+        LibraryVariableStorage.Enqueue(DimensionValue.Code);
+        EditPackageReportFilters(FinReportPackageReport);
+
+        // [THEN] The filter is stored on the record
+        AccScheduleLine.SetView(FinReportPackageReport.GetReportFilters());
+        Assert.AreEqual(DimensionValue.Code, AccScheduleLine.GetFilter("Dimension 1 Filter"), 'The dimension 1 filter was not stored');
+    end;
+
+    [Test]
+    procedure ExportPackageScheduleToEmailAndInbox()
+    var
+        AccScheduleName: Record "Acc. Schedule Name";
+        EmailAccount: Record "Email Account";
+        FinReportPackageSchedule: Record "Fin. Report Package Schedule";
+        FinRepPackageExportLog: Record "Fin. Rep. Package Export Log";
+        ReportInbox: Record "Report Inbox";
+        User: Record User;
+        EmailMessage: Codeunit "Email Message";
+        EmailScenario: Codeunit "Email Scenario";
+        FinancialReportExportJob: Codeunit "Financial Report Export Job";
+        NewUserId: Code[50];
+        UserEmail: Text[100];
+        Recipients: List of [Text];
+    begin
+        // [SCENARIO] Exporting a financial report package schedule will send an email and create inbox entries
+        Initialize();
+        ClearPackageSchedules();
+        ClearScheduleJobQueueEntry();
+
+        ConnectorMock.Initialize();
+        ConnectorMock.AddAccount(EmailAccount, Enum::"Email Connector"::"Test Email Connector");
+        EmailScenario.SetEmailAccount(Enum::"Email Scenario"::"Financial Report", EmailAccount);
+
+        NewUserId := LibraryUtility.GenerateRandomCode(User.FieldNo("User Name"), Database::User);
+        UserEmail := 'user@cronus.com';
+        CreateUserSetupWithEmail(NewUserId, UserEmail);
+
+        LibraryERM.CreateAccScheduleName(AccScheduleName);
+        CreateAccScheduleLineWithAmount(AccScheduleName.Name);
+
+        // [GIVEN] A financial report package, with report, schedule, and recipient
+        FinReportPackageSchedule := CreatePackageSchedule(true);
+        CreatePackageReport(FinReportPackageSchedule."Package Code", AccScheduleName.Name);
+        CreatePackageScheduleRecipient(NewUserId, FinReportPackageSchedule."Package Code", FinReportPackageSchedule."Schedule Code");
+        Commit();
+
+        // [WHEN] The financial report package schedule is exported
+        FinancialReportExportJob.Run();
+
+        // [THEN] An export log entry is created
+        FinRepPackageExportLog.SetRange("Package Code", FinReportPackageSchedule."Package Code");
+        FinRepPackageExportLog.SetRange("Schedule Code", FinReportPackageSchedule."Schedule Code");
+        Assert.IsTrue(FinRepPackageExportLog.FindFirst(), 'The financial report package export log entry was not created');
+
+        // [THEN] An email to the recipient is created 
+        EmailMessage.Get(ConnectorMock.GetEmailMessageID());
+        EmailMessage.GetRecipients(Enum::"Email Recipient Type"::"To", Recipients);
+        Assert.AreEqual(1, Recipients.Count(), 'There should be 1 recipient');
+        Assert.AreEqual(UserEmail, Recipients.Get(1), 'Recipient email does not match');
+
+        // [THEN] The email contains the report as PDF
+        Assert.IsTrue(EmailMessage.Attachments_First(), 'There should be one attachment');
+        Assert.AreEqual(PDFContentTypeTxt, EmailMessage.Attachments_GetContentType(), 'The first attachment content type is not correct');
+
+        // [THEN] An inbox entry contains that same report
+        ReportInbox.SetRange("User ID", NewUserId);
+        ReportInbox.SetRange("Report ID", Report::"Account Schedule");
+        Assert.IsTrue(ReportInbox.FindFirst(), 'The report inbox entry was not created');
+    end;
+
+    [Test]
+    procedure MultiReportPackage()
+    var
+        AccScheduleLine: array[3] of Record "Acc. Schedule Line";
+        AccScheduleName: array[3] of Record "Acc. Schedule Name";
+        FinancialReportPackage: Record "Financial Report Package";
+        FinReportPackageReport: array[3] of Record "Fin. Report Package Report";
+        FinRepPackageSchedule: Record "Fin. Report Package Schedule";
+        GLAccount: Record "G/L Account";
+        ERMFinRepPackageHandler: Codeunit "ERM Fin. Rep. Package Handler";
+        FinancialReportPackages: TestPage "Financial Report Packages";
+        PackageTempBlobs: Dictionary of [Integer, Codeunit "Temp Blob"];
+        InStr: InStream;
+        i: Integer;
+    begin
+        // [SCENARIO] When exporting a financial report package with multiple reports, the 2nd report and beyond are appended
+        Initialize();
+        FinRepPackageSchedule := CreatePackageSchedule(false);
+        FinancialReportPackage.Get(FinRepPackageSchedule."Package Code");
+
+        // [GIVEN] 3 financial reports, all included in one package
+        for i := 1 to 3 do begin
+            LibraryERM.CreateAccScheduleName(AccScheduleName[i]);
+            AccScheduleLine[i] := CreateAccScheduleLineWithAmount(AccScheduleName[i].Name);
+            FinReportPackageReport[i] := CreatePackageReport(FinRepPackageSchedule."Package Code", AccScheduleName[i].Name);
+        end;
+
+        // [WHEN] The package is printed
+        BindSubscription(ERMFinRepPackageHandler);
+        FinancialReportPackages.OpenEdit();
+        FinancialReportPackages.GoToRecord(FinancialReportPackage);
+        FinancialReportPackages.Print.Invoke();
+        UnbindSubscription(ERMFinRepPackageHandler);
+
+        // [THEN] Each report in the package contains the correct data based on each financial report
+        GLAccount.SetAutoCalcFields(Balance);
+        ERMFinRepPackageHandler.GetPackageTempBlobs(PackageTempBlobs);
+        for i := 1 to 3 do begin
+            GLAccount.Get(AccScheduleLine[i].Totaling);
+            PackageTempBlobs.Get(FinReportPackageReport[i]."Line No.").CreateInStream(InStr);
+            Clear(LibraryReportDataset);
+            LibraryReportDataset.LoadFromInStream(InStr);
+            LibraryReportDataset.AssertElementWithValueExists('ColumnValuesAsText', Format(GLAccount.Balance));
+        end;
     end;
 
     [RequestPageHandler]
@@ -499,4 +636,57 @@ codeunit 135005 "ERM Financial Report Schedules"
         FinancialReportSchedule.Find();
     end;
 
+    local procedure ClearPackageSchedules()
+    var
+        FinReportPackageSchedule: Record "Fin. Report Package Schedule";
+    begin
+        FinReportPackageSchedule.DeleteAll(true);
+    end;
+
+    local procedure CreatePackageSchedule(SendEmail: Boolean) FinReportPackageSchedule: Record "Fin. Report Package Schedule"
+    var
+        FinancialReportPackage: Record "Financial Report Package";
+    begin
+        FinancialReportPackage.Init();
+        FinancialReportPackage.Code := LibraryUtility.GenerateGUID();
+        FinancialReportPackage.Insert(true);
+
+        FinReportPackageSchedule.Init();
+        FinReportPackageSchedule."Package Code" := FinancialReportPackage.Code;
+        FinReportPackageSchedule."Schedule Code" := LibraryUtility.GenerateGUID();
+        FinReportPackageSchedule."Send Email" := SendEmail;
+        FinReportPackageSchedule."Next Run Date/Time" := CurrentDateTime();
+        FinReportPackageSchedule.Insert(true);
+    end;
+
+    local procedure CreatePackageReport(PackageCode: Code[20]; ReportName: Text[10]) FinReportPackageReport: Record "Fin. Report Package Report"
+    begin
+        FinReportPackageReport.SetRange("Package Code", PackageCode);
+        if not FinReportPackageReport.FindLast() then
+            FinReportPackageReport."Package Code" := PackageCode;
+        FinReportPackageReport.Init();
+        FinReportPackageReport."Line No." += 10000;
+        FinReportPackageReport."Financial Report Name" := ReportName;
+        FinReportPackageReport.Insert(true);
+    end;
+
+    local procedure EditPackageReportFilters(var FinReportPackageReport: Record "Fin. Report Package Report")
+    var
+        FinReportPackageReports: TestPage "Fin. Report Package Reports";
+    begin
+        Commit();
+        FinReportPackageReports.OpenEdit();
+        FinReportPackageReports.GoToRecord(FinReportPackageReport);
+        FinReportPackageReports."Custom Filters".SetValue(true);
+        FinReportPackageReport.Find();
+    end;
+
+    local procedure CreatePackageScheduleRecipient(NewUserId: Code[50]; PackageCode: Code[20]; ScheduleCode: Code[20]) FinReportPackageRecipient: Record "Fin. Report Package Recipient";
+    begin
+        FinReportPackageRecipient.Init();
+        FinReportPackageRecipient."Package Code" := PackageCode;
+        FinReportPackageRecipient."Schedule Code" := ScheduleCode;
+        FinReportPackageRecipient.Validate("User ID", NewUserId);
+        FinReportPackageRecipient.Insert(true);
+    end;
 }

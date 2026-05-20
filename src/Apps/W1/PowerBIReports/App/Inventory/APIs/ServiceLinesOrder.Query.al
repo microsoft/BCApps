@@ -11,6 +11,7 @@ query 36976 "Service Lines - Order"
     Access = Internal;
     Caption = 'Power BI Qty. on Service Lines';
     QueryType = API;
+    AboutText = 'Provides access to service order lines for items including outstanding quantities, needed-by dates, and locations. Enables Power BI reports to analyze service demand and forecast inventory requirements for service order fulfillment.';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';
     ApiVersion = 'v0.5', 'v1.0';

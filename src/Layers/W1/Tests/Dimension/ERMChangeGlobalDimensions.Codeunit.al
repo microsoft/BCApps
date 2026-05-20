@@ -3275,6 +3275,46 @@ codeunit 134483 "ERM Change Global Dimensions"
 
     [Test]
     [Scope('OnPrem')]
+    procedure T413_FindDimValueCodeForLongPrimaryKey()
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        ChangeGlobalDimLogEntry: Record "Change Global Dim. Log Entry";
+        TableWithDefaultDim: Record "Table With Default Dim";
+        DimensionValue: array[2] of Record "Dimension Value";
+        RecRef: RecordRef;
+        ActualDimensionValueCode: Code[20];
+    begin
+        // [SCENARIO] Change global dimensions completes successfully when "Table With Default Dim" record has "No." > 20 characters
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        Initialize();
+
+        // [GIVEN] Dimension values for global dimensions 1 and 2
+        LibraryDimension.GetGlobalDimCodeValue(1, DimensionValue[1]);
+        LibraryDimension.CreateDimensionValue(DimensionValue[1], DimensionValue[1]."Dimension Code");
+        LibraryDimension.GetGlobalDimCodeValue(2, DimensionValue[2]);
+        LibraryDimension.CreateDimensionValue(DimensionValue[2], DimensionValue[2]."Dimension Code");
+        // [GIVEN] Record "T" in "Table With Default Dim" with "No." = 25 characters
+        TableWithDefaultDim.Init();
+        TableWithDefaultDim.Validate("No.", LibraryUtility.GenerateGUID());
+        TableWithDefaultDim.Validate("Global Dimension 1 Code", DimensionValue[1].Code);
+        TableWithDefaultDim.Validate("Shortcut Dimension 2 Code", DimensionValue[2].Code);
+        TableWithDefaultDim.Insert(true);
+        RecRef.GetTable(TableWithDefaultDim);
+        // [GIVEN] Default dimensions for "T" do not exist
+        // [GIVEN] ChangeGlobalDimLogEntry for "Table With Default Dim" with "Change Type 1" = "New"
+        GeneralLedgerSetup.Get();
+        MockScheduledLogEntry(
+          ChangeGlobalDimLogEntry, DATABASE::"Table With Default Dim", ChangeGlobalDimLogEntry."Change Type 1"::New, 0);
+
+        // [WHEN] Run FindDimensionValueCode for dimension 1
+        ActualDimensionValueCode := ChangeGlobalDimLogEntry.FindDimensionValueCode(RecRef, 1);
+
+        // [THEN] Empty dimension value code is returned without error
+        Assert.AreEqual('', ActualDimensionValueCode, 'Dimension value code should be empty for long primary key');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure T500_LastCompletedTaskRemovesOthersIfAllCompleted()
     var
         ChangeGlobalDimLogEntry: Record "Change Global Dim. Log Entry";

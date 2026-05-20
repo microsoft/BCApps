@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.History;
 
+using Microsoft.EServices.EDocument;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Account;
@@ -62,6 +63,7 @@ codeunit 1303 "Correct Posted Sales Invoice"
             CODEUNIT.Run(CODEUNIT::"Sales-Post", SalesHeader);
             SetTrackInfoForCancellation(Rec);
             UpdateSalesOrderLinesFromCancelledInvoice(Rec."No.");
+            ResetIncomingDocumentForCancelledInvoice(Rec."No.");
         end;
         OnOnRunOnAfterUpdateSalesOrderLinesFromCancelledInvoice(Rec, SalesHeader);
 
@@ -1041,16 +1043,70 @@ codeunit 1303 "Correct Posted Sales Invoice"
         TempItemLedgerEntry: Record "Item Ledger Entry" temporary;
         SalesLine: Record "Sales Line";
         UndoPostingManagement: Codeunit "Undo Posting Management";
+        IsHandled: Boolean;
     begin
-        if SalesLine.Get(SalesLine."Document Type"::Order, SalesInvoiceLine."Order No.", SalesInvoiceLine."Order Line No.") then begin
+        IsHandled := false;
+        OnBeforeUpdateSalesOrderLinesFromCreditMemo(SalesInvoiceLine, SalesCrMemoLine, IsHandled);
+        if IsHandled then
+            exit;
+
+        if not SalesLine.Get(SalesLine."Document Type"::Order, SalesInvoiceLine."Order No.", SalesInvoiceLine."Order Line No.") then
+            exit;
+
+        if SalesLine.Type = SalesLine.Type::Item then
             SalesInvoiceLine.GetItemLedgEntries(TempItemLedgerEntry, false);
-            UpdateSalesOrderLineInvoicedQuantity(SalesLine, SalesCrMemoLine.Quantity, SalesCrMemoLine."Quantity (Base)");
-            UpdateSalesOrderLinePrepmtAmount(SalesInvoiceLine);
+
+        UpdateSalesOrderLineInvoicedQuantity(SalesLine, SalesCrMemoLine.Quantity, SalesCrMemoLine."Quantity (Base)");
+        UpdateSalesOrderLinePrepmtAmount(SalesInvoiceLine);
+
+        if SalesLine.Type = SalesLine.Type::Item then begin
             if SalesLine."Qty. to Ship" = 0 then
                 UpdateWhseRequest(Database::"Sales Line", SalesLine."Document Type".AsInteger(), SalesLine."Document No.", SalesLine."Location Code");
+
             TempItemLedgerEntry.SetFilter("Item Tracking", '<>%1', TempItemLedgerEntry."Item Tracking"::None.AsInteger());
             UndoPostingManagement.RevertPostedItemTracking(TempItemLedgerEntry, SalesInvoiceLine."Shipment Date", true);
         end;
+    end;
+
+    local procedure ResetIncomingDocumentForCancelledInvoice(SalesInvoiceHeaderNo: Code[20])
+    var
+        SalesInvoiceLine: Record "Sales Invoice Line";
+        SalesHeader: Record "Sales Header";
+        IncomingDocument: Record "Incoming Document";
+        IncomingDocumentAttachment: Record "Incoming Document Attachment";
+        DummyRecordID: RecordID;
+    begin
+        SalesInvoiceLine.SetLoadFields("Order No.");
+        SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeaderNo);
+        SalesInvoiceLine.SetFilter("Order No.", '<>%1', '');
+        if not SalesInvoiceLine.FindFirst() then
+            exit;
+
+        if not SalesHeader.Get(SalesHeader."Document Type"::Order, SalesInvoiceLine."Order No.") then
+            exit;
+
+        if SalesHeader."Incoming Document Entry No." = 0 then
+            exit;
+
+        if not IncomingDocument.Get(SalesHeader."Incoming Document Entry No.") then
+            exit;
+
+        if not IncomingDocument.Posted then
+            exit;
+
+        IncomingDocument.Posted := false;
+        IncomingDocument.Processed := false;
+        IncomingDocument.Status := IncomingDocument.Status::Released;
+        IncomingDocument."Posted Date-Time" := 0DT;
+        IncomingDocument."Related Record ID" := DummyRecordID;
+        IncomingDocument."Document No." := '';
+        IncomingDocument."Document Type" := IncomingDocument."Document Type"::" ";
+        IncomingDocument."Posting Date" := 0D;
+        IncomingDocument.Modify(true);
+
+        IncomingDocumentAttachment.SetRange("Incoming Document Entry No.", IncomingDocument."Entry No.");
+        IncomingDocumentAttachment.ModifyAll("Document No.", '');
+        IncomingDocumentAttachment.ModifyAll("Posting Date", 0D);
     end;
 
     local procedure UpdateSalesOrderLinesFromCancelledInvoice(SalesInvoiceHeaderNo: Code[20])
@@ -1573,6 +1629,17 @@ codeunit 1303 "Correct Posted Sales Invoice"
     /// <param name="IsHandled">Set to true to skip default order line update.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateSalesOrderLinesFromCancelledInvoice(SalesInvoiceHeaderNo: Code[20]; var IsHandled: Boolean)
+    begin
+    end;
+
+    /// <summary>
+    /// Raised before updating sales order lines from a credit memo.
+    /// </summary>
+    /// <param name="SalesInvoiceLine">The sales invoice line being processed.</param>
+    /// <param name="SalesCrMemoLine">The sales credit memo line that triggered the update.</param>
+    /// <param name="IsHandled">Set to true to skip default order line update.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeUpdateSalesOrderLinesFromCreditMemo(var SalesInvoiceLine: Record "Sales Invoice Line"; var SalesCrMemoLine: Record "Sales Cr.Memo Line"; var IsHandled: Boolean)
     begin
     end;
 

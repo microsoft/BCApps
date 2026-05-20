@@ -623,7 +623,10 @@ codeunit 700 "Page Management"
             RequisitionLine."Journal Batch Name" := RequisitionWkshName.Name;
             RecRef.GetTable(RequisitionLine);
 
-            exit(Page::"Req. Worksheet");
+            if RequisitionWkshName."Worksheet Template Name" <> '' then
+                exit(GetRequisitionWkshLinePageIDFromTemplate(RecRef, RequisitionWkshName."Worksheet Template Name"))
+            else
+                exit(Page::"Req. Worksheet");
         end;
 
         RecRef.GetTable(RequisitionLine);
@@ -633,11 +636,18 @@ codeunit 700 "Page Management"
     local procedure GetRequisitionWkshLinePageID(RecRef: RecordRef): Integer
     var
         RequisitionLine: Record "Requisition Line";
+    begin
+        RecRef.SetTable(RequisitionLine);
+
+        exit(GetRequisitionWkshLinePageIDFromTemplate(RecRef, RequisitionLine."Worksheet Template Name"));
+    end;
+
+    local procedure GetRequisitionWkshLinePageIDFromTemplate(RecRef: RecordRef; WorksheetTemplateName: Code[10]): Integer
+    var
         ReqWkshTemplate: Record "Req. Wksh. Template";
         CardPageID: Integer;
     begin
-        RecRef.SetTable(RequisitionLine);
-        ReqWkshTemplate.Get(RequisitionLine."Worksheet Template Name");
+        ReqWkshTemplate.Get(WorksheetTemplateName);
 
         if ReqWkshTemplate."Page ID" <> 0 then
             exit(ReqWkshTemplate."Page ID");

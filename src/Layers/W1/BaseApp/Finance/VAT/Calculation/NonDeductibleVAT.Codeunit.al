@@ -911,4 +911,9 @@ codeunit 6200 "Non-Deductible VAT"
     internal procedure OnBeforeCheckNonDeductibleVATPctIsAllowed(PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin
     end;
+
+    [IntegrationEvent(false, false)]
+    internal procedure OnAfterCalcRevChargeVATAmountInPurchLine(PurchaseLine: Record "Purchase Line"; var VATAmount: Decimal)
+    begin
+    end;
 }

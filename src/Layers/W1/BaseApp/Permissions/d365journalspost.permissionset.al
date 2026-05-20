@@ -43,6 +43,7 @@ permissionset 681 "D365 JOURNALS, POST"
                   tabledata "G/L - Item Ledger Relation" = RIMD,
                   tabledata "G/L Entry - VAT Entry Link" = Ri,
                   tabledata "G/L Entry" = Rimd,
+                  tabledata "G/L Transaction" = Rimd,
                   tabledata "Item Register" = Rimd,
                   tabledata "Job Ledger Entry" = Rimd,
                   tabledata "Notification Entry" = RIMD,

@@ -120,8 +120,10 @@ table 1610 "Office Add-in"
         TempString := Version;
         Components := TempString.Split(Separator.ToCharArray());
 
-        if (Components.Length() < 3) or (UserComponents.Length() < 3) then
+        if (Components.Length() < 3) or (UserComponents.Length() < 3) then begin
             Session.LogMessage('0000BOQ', StrSubstNo(VersionFormatMismatchTelemetryErr, UserVersion, Version), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', OfficeManagement.GetOfficeAddinTelemetryCategory());
+            exit(true);
+        end;
 
         for i := 0 to 2 do
             IsBreaking := IsBreaking or (Format(UserComponents.GetValue(i)) <> Format(Components.GetValue(i)));

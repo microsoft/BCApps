@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -56,6 +56,8 @@ codeunit 427 ICInboxOutboxMgt
         DimMgt: Codeunit DimensionManagement;
         GLSetupFound: Boolean;
         CompanyInfoFound: Boolean;
+        ICTransactionNoSequenceExists: Boolean;
+        ICTransactionNoSequenceTok: Label 'ICTransactionNo', Locked = true;
 #pragma warning disable AA0074
         Text000: Label 'Do you want to re-create the transaction?';
 #pragma warning disable AA0470
@@ -92,13 +94,7 @@ codeunit 427 ICInboxOutboxMgt
         FeatureTelemetry.LogUptake('0000IJ4', ICMapping.GetFeatureTelemetryName(), Enum::"Feature Uptake Status"::Used);
         FeatureTelemetry.LogUsage('0000IJV', ICMapping.GetFeatureTelemetryName(), 'Creating Outbox Journal Transaction');
 
-        GLSetup.LockTable();
-        GetGLSetup();
-        if GLSetup."Last IC Transaction No." < 0 then
-            GLSetup."Last IC Transaction No." := 0;
-        ICTransactionNo := GLSetup."Last IC Transaction No." + 1;
-        GLSetup."Last IC Transaction No." := ICTransactionNo;
-        GLSetup.Modify();
+        ICTransactionNo := GetNextICTransactionNo();
 
         OutboxJnlTransaction.Init();
         OutboxJnlTransaction."Transaction No." := ICTransactionNo;
@@ -233,11 +229,7 @@ codeunit 427 ICInboxOutboxMgt
         if IsHandled then
             exit;
 
-        GLSetup.LockTable();
-        GetGLSetup();
-        TransactionNo := GLSetup."Last IC Transaction No." + 1;
-        GLSetup."Last IC Transaction No." := TransactionNo;
-        GLSetup.Modify();
+        TransactionNo := GetNextICTransactionNo();
         Customer.Get(SalesHeader."Sell-to Customer No.");
         OutboxTransaction.Init();
         OutboxTransaction."Transaction No." := TransactionNo;
@@ -359,11 +351,7 @@ codeunit 427 ICInboxOutboxMgt
         if ICPartner."Inbox Type" = ICPartner."Inbox Type"::"No IC Transfer" then
             exit;
 
-        GLSetup.LockTable();
-        GetGLSetup();
-        TransactionNo := GLSetup."Last IC Transaction No." + 1;
-        GLSetup."Last IC Transaction No." := TransactionNo;
-        GLSetup.Modify();
+        TransactionNo := GetNextICTransactionNo();
         OutboxTransaction.Init();
         OutboxTransaction."Transaction No." := TransactionNo;
         OutboxTransaction."IC Partner Code" := Customer."IC Partner Code";
@@ -488,11 +476,7 @@ codeunit 427 ICInboxOutboxMgt
         if ICPartner."Inbox Type" = ICPartner."Inbox Type"::"No IC Transfer" then
             exit;
 
-        GLSetup.LockTable();
-        GetGLSetup();
-        TransactionNo := GLSetup."Last IC Transaction No." + 1;
-        GLSetup."Last IC Transaction No." := TransactionNo;
-        GLSetup.Modify();
+        TransactionNo := GetNextICTransactionNo();
         OutboxTransaction.Init();
         OutboxTransaction."Transaction No." := TransactionNo;
         OutboxTransaction."IC Partner Code" := Customer."IC Partner Code";
@@ -577,11 +561,7 @@ codeunit 427 ICInboxOutboxMgt
 
         OnBeforeCreateOutboxPurchDocTrans(PurchHeader, Rejection, Post);
 
-        GLSetup.LockTable();
-        GetGLSetup();
-        TransactionNo := GLSetup."Last IC Transaction No." + 1;
-        GLSetup."Last IC Transaction No." := TransactionNo;
-        GLSetup.Modify();
+        TransactionNo := GetNextICTransactionNo();
         Vendor.Get(PurchHeader."Buy-from Vendor No.");
         Vendor.CheckBlockedVendOnDocs(Vendor, false);
         OutboxTransaction.Init();
@@ -2231,6 +2211,72 @@ codeunit 427 ICInboxOutboxMgt
         if not GLSetupFound then
             GLSetup.Get();
         GLSetupFound := true;
+    end;
+
+    local procedure GetNextICTransactionNo(): Integer
+    begin
+        EnsureICTransactionNoSequenceExists();
+        exit(NumberSequence.Next(ICTransactionNoSequenceTok));
+    end;
+
+    local procedure EnsureICTransactionNoSequenceExists()
+    var
+        SeedValue: Integer;
+    begin
+        if ICTransactionNoSequenceExists then
+            exit;
+
+        if NumberSequence.Exists(ICTransactionNoSequenceTok) then begin
+            ICTransactionNoSequenceExists := true;
+            exit;
+        end;
+
+        // Seed from the highest transaction number across all IC tables and GLSetup,
+        // so the sequence continues correctly even after cloud migration (where SQL
+        // sequences are not replicated but table data is).
+        GLSetup.LockTable();
+        // Re-check after acquiring lock to handle concurrent first-time initialization
+        if NumberSequence.Exists(ICTransactionNoSequenceTok) then begin
+            ICTransactionNoSequenceExists := true;
+            exit;
+        end;
+        GetGLSetup();
+        SeedValue := GLSetup."Last IC Transaction No.";
+        SeedValue := GetMaxICTransactionNo(SeedValue);
+        if SeedValue < 0 then
+            SeedValue := 0;
+        NumberSequence.Insert(ICTransactionNoSequenceTok, SeedValue, 1);
+        // NumberSequence.Next returns the seed on the first call, so burn it
+        // to ensure the first real value is SeedValue + 1, matching the old
+        // lock-and-increment behavior.
+        if NumberSequence.Next(ICTransactionNoSequenceTok) = 0 then;
+        ICTransactionNoSequenceExists := true;
+    end;
+
+    local procedure GetMaxICTransactionNo(CurrentMax: Integer): Integer
+    var
+        ICOutboxTransaction: Record "IC Outbox Transaction";
+        HandledICOutboxTrans: Record "Handled IC Outbox Trans.";
+        ICInboxTransaction: Record "IC Inbox Transaction";
+        HandledICInboxTrans: Record "Handled IC Inbox Trans.";
+    begin
+        ICOutboxTransaction.ReadIsolation := IsolationLevel::ReadUncommitted;
+        if ICOutboxTransaction.FindLast() then
+            if ICOutboxTransaction."Transaction No." > CurrentMax then
+                CurrentMax := ICOutboxTransaction."Transaction No.";
+        HandledICOutboxTrans.ReadIsolation := IsolationLevel::ReadUncommitted;
+        if HandledICOutboxTrans.FindLast() then
+            if HandledICOutboxTrans."Transaction No." > CurrentMax then
+                CurrentMax := HandledICOutboxTrans."Transaction No.";
+        ICInboxTransaction.ReadIsolation := IsolationLevel::ReadUncommitted;
+        if ICInboxTransaction.FindLast() then
+            if ICInboxTransaction."Transaction No." > CurrentMax then
+                CurrentMax := ICInboxTransaction."Transaction No.";
+        HandledICInboxTrans.ReadIsolation := IsolationLevel::ReadUncommitted;
+        if HandledICInboxTrans.FindLast() then
+            if HandledICInboxTrans."Transaction No." > CurrentMax then
+                CurrentMax := HandledICInboxTrans."Transaction No.";
+        exit(CurrentMax);
     end;
 
     /// <summary>

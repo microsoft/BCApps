@@ -38,6 +38,8 @@ page 7500 "Item Attributes"
 
                     trigger OnDrillDown()
                     begin
+                        Rec.TestField(Name);
+                        CurrPage.SaveRecord();
                         Rec.OpenItemAttributeValues();
                     end;
                 }

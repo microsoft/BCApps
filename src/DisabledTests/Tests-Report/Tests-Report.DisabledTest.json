@@ -1508,5 +1508,15 @@
     "codeunitId": 136905,
     "codeunitName": "Service Reports - II",
     "method": "VerifyTaxAmountOnStandardSalesProFormaInv"
+  },
+  {
+    "method": "OrderDetailShowsSalesLineWithDiffShortcutDim1Code",
+    "codeunitId": 134976,
+    "codeunitName": "ERM Sales Report"
+  },
+  {
+    "method": "OrderDetailFiltersCustomersByShipmentDate",
+    "codeunitId": 134976,
+    "codeunitName": "ERM Sales Report"
   }
 ]

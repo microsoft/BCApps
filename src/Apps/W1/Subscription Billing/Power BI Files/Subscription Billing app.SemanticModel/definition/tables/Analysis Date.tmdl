@@ -1,0 +1,54 @@
+table 'Analysis Date'
+	lineageTag: f142381c-cc7e-4ac9-bd00-1cdcb9e5fed4
+
+	column 'Analysis Date'
+		isKey
+		formatString: Short Date
+		lineageTag: f354934c-8f48-490c-9fd0-eb800249dd81
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Vendor Contract Line[Analysis Date]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Is Initial Version'
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 65db46d3-d4ad-4dc4-ba3d-189bffc60012
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [is initial Version]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Is Current Version'
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 512f4ba6-6bce-4f7f-8980-e83f6e09f810
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [is current Version]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Analysis Date' = calculated
+		mode: import
+		source =
+				
+				VAR baseData =
+				    FILTER (
+				        DISTINCT (
+				            UNION (
+				                DISTINCT ( 'Vendor Contract Line'[Analysis Date] ),
+				                DISTINCT ( 'Customer Contract Line'[Analysis Date] )
+				            )
+				        ),
+				        [Analysis Date] <> BLANK ()
+				    )
+				RETURN
+				    ADDCOLUMNS (
+				        baseData,
+				        "Is Current Version", [Analysis Date] = MAXX ( baseData, [Analysis Date] ),
+				        "Is Initial Version", [Analysis Date] = MINX ( baseData, [Analysis Date] )
+				    )
+
+	annotation PBI_Id = 25ffb15ee8fc45bf828951fe0d758d8b
+

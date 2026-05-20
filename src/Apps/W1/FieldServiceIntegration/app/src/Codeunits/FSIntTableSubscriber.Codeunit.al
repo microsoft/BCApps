@@ -1056,9 +1056,11 @@ codeunit 6610 "FS Int. Table Subscriber"
                 FSWorkOrderIncidentIdFilter += CRMSalesorderdetailId + '|';
             FSWorkOrderIncidentIdFilter := FSWorkOrderIncidentIdFilter.TrimEnd('|');
 
-            FSWorkOrderIncident2.SetFilter(WorkOrderIncidentId, FSWorkOrderIncidentIdFilter);
-            CRMSalesorderdetailRecordRef.GetTable(FSWorkOrderIncident2);
-            CRMIntegrationTableSynch.SynchRecordsFromIntegrationTable(CRMSalesorderdetailRecordRef, Database::"Service Item Line", false, false);
+            if FSWorkOrderIncidentIdFilter <> '' then begin
+                FSWorkOrderIncident2.SetFilter(WorkOrderIncidentId, FSWorkOrderIncidentIdFilter);
+                CRMSalesorderdetailRecordRef.GetTable(FSWorkOrderIncident2);
+                CRMIntegrationTableSynch.SynchRecordsFromIntegrationTable(CRMSalesorderdetailRecordRef, Database::"Service Item Line", false, false);
+            end;
         end;
     end;
 
@@ -1122,9 +1124,11 @@ codeunit 6610 "FS Int. Table Subscriber"
                 FSWorkOrderProductIdFilter += FSWorkOrderProductId + '|';
             FSWorkOrderProductIdFilter := FSWorkOrderProductIdFilter.TrimEnd('|');
 
-            FSWorkOrderProduct2.SetFilter(WorkOrderProductId, FSWorkOrderProductIdFilter);
-            FSWorkOrderProductRecordRef.GetTable(FSWorkOrderProduct2);
-            CRMIntegrationTableSynch.SynchRecordsFromIntegrationTable(FSWorkOrderProductRecordRef, Database::"Service Line", false, false);
+            if FSWorkOrderProductIdFilter <> '' then begin
+                FSWorkOrderProduct2.SetFilter(WorkOrderProductId, FSWorkOrderProductIdFilter);
+                FSWorkOrderProductRecordRef.GetTable(FSWorkOrderProduct2);
+                CRMIntegrationTableSynch.SynchRecordsFromIntegrationTable(FSWorkOrderProductRecordRef, Database::"Service Line", false, false);
+            end;
         end;
     end;
 
@@ -1177,9 +1181,11 @@ codeunit 6610 "FS Int. Table Subscriber"
                 FSWorkOrderServiceIdFilter += FSWorkOrderServiceId + '|';
             FSWorkOrderServiceIdFilter := FSWorkOrderServiceIdFilter.TrimEnd('|');
 
-            FSWorkOrderService2.SetFilter(WorkOrderServiceId, FSWorkOrderServiceIdFilter);
-            FSWorkOrderServiceRecordRef.GetTable(FSWorkOrderService2);
-            CRMIntegrationTableSynch.SynchRecordsFromIntegrationTable(FSWorkOrderServiceRecordRef, Database::"Service Line", false, false);
+            if FSWorkOrderServiceIdFilter <> '' then begin
+                FSWorkOrderService2.SetFilter(WorkOrderServiceId, FSWorkOrderServiceIdFilter);
+                FSWorkOrderServiceRecordRef.GetTable(FSWorkOrderService2);
+                CRMIntegrationTableSynch.SynchRecordsFromIntegrationTable(FSWorkOrderServiceRecordRef, Database::"Service Line", false, false);
+            end;
         end;
     end;
 
@@ -2503,7 +2509,11 @@ codeunit 6610 "FS Int. Table Subscriber"
         case SourceRecordRef.Number() of
             Database::"FS Work Order Product",
             Database::"FS Work Order Service":
-                IgnorePostedJobJournalLinesOnQueryPostFilterIgnoreRecord(SourceRecordRef, IgnoreRecord);
+                begin
+                    IgnorePostedJobJournalLinesOnQueryPostFilterIgnoreRecord(SourceRecordRef, IgnoreRecord);
+                    if not IgnoreRecord then
+                        IgnoreArchivedWorkOrderLinesOnQueryPostFilterIgnoreRecord(SourceRecordRef, IgnoreRecord);
+                end;
             Database::"Service Header":
                 IgnoreArchievedServiceOrdersOnQueryPostFilterIgnoreRecord(SourceRecordRef, IgnoreRecord);
             Database::"FS Work Order":
@@ -2635,6 +2645,40 @@ codeunit 6610 "FS Int. Table Subscriber"
 
         // skip archived work orders
         if CRMIntegrationRecord.FindByCRMID(FSWorkOrder.WorkOrderId) then
+            if CRMIntegrationRecord."Archived Service Order" then
+                IgnoreRecord := true;
+    end;
+
+    internal procedure IgnoreArchivedWorkOrderLinesOnQueryPostFilterIgnoreRecord(SourceRecordRef: RecordRef; var IgnoreRecord: Boolean)
+    var
+        FSConnectionSetup: Record "FS Connection Setup";
+        FSWorkOrderProduct: Record "FS Work Order Product";
+        FSWorkOrderService: Record "FS Work Order Service";
+        CRMIntegrationRecord: Record "CRM Integration Record";
+        WorkOrderId: Guid;
+    begin
+        if not FSConnectionSetup.IsEnabled() then
+            exit;
+
+        if IgnoreRecord then
+            exit;
+
+        case SourceRecordRef.Number() of
+            Database::"FS Work Order Product":
+                begin
+                    SourceRecordRef.SetTable(FSWorkOrderProduct);
+                    WorkOrderId := FSWorkOrderProduct.WorkOrder;
+                end;
+            Database::"FS Work Order Service":
+                begin
+                    SourceRecordRef.SetTable(FSWorkOrderService);
+                    WorkOrderId := FSWorkOrderService.WorkOrder;
+                end;
+            else
+                exit;
+        end;
+
+        if CRMIntegrationRecord.FindByCRMID(WorkOrderId) then
             if CRMIntegrationRecord."Archived Service Order" then
                 IgnoreRecord := true;
     end;

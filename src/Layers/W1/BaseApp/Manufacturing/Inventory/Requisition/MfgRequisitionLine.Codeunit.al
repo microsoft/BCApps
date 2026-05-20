@@ -8,7 +8,6 @@ using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Manufacturing.Document;
-using Microsoft.Manufacturing.Journal;
 using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.Setup;
 using Microsoft.Purchases.Document;
@@ -271,15 +270,19 @@ codeunit 99000866 "Mfg. Requisition Line"
         end;
     end;
 
+#if not CLEAN29
     [EventSubscriber(ObjectType::Table, Database::"Req. Wksh. Template", 'OnAfterValidateEvent', 'Recurring', true, false)]
     local procedure ReqWkshTemplateOnAfterValidateRecurring(var Rec: Record "Req. Wksh. Template")
     begin
         if not Rec.Recurring then
             case Rec.Type of
+#pragma warning disable AL0432
                 Rec.Type::"For. Labor":
-                    Rec."Page ID" := Page::"Subcontracting Worksheet";
+                    Rec."Page ID" := Page::Microsoft.Manufacturing.Journal."Subcontracting Worksheet";
+#pragma warning restore AL0432
             end;
     end;
+#endif
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::PlanningWkshManagement, 'OnGetRoutingDescription', '', true, false)]
     local procedure OnGetRoutingDescription(var ReqLine: Record "Requisition Line"; var RoutingDescription: Text[100])

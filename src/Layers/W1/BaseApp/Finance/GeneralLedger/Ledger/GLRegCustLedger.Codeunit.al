@@ -21,7 +21,8 @@ codeunit 236 "G/L Reg.-Cust.Ledger"
     trigger OnRun()
     begin
         CustLedgEntry.SetRange("Entry No.", Rec."From Entry No.", Rec."To Entry No.");
-        PAGE.Run(PAGE::"Customer Ledger Entries", CustLedgEntry);
+        CustLedgEntry.SetFilter("G/L Register No.", '0|%1', Rec."No.");
+        Page.Run(Page::"Customer Ledger Entries", CustLedgEntry);
     end;
 
     var

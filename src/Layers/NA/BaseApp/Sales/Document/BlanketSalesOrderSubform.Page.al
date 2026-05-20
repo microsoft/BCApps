@@ -20,6 +20,7 @@ using Microsoft.Sales.History;
 using Microsoft.Sales.Pricing;
 using Microsoft.Sales.Setup;
 using Microsoft.Utilities;
+using System.Environment.Configuration;
 using System.Utilities;
 
 /// <summary>
@@ -45,12 +46,36 @@ page 508 "Blanket Sales Order Subform"
                 ShowCaption = false;
                 field(Type; Rec.Type)
                 {
-                    ApplicationArea = Suite;
-                    ToolTip = 'Specifies the line type.';
+                    ApplicationArea = Advanced;
+                    ToolTip = 'Specifies the type of entity that will be posted for this sales line, such as Item, Resource, or G/L Account.';
+                    Visible = not TypeAsTextFieldVisible;
 
                     trigger OnValidate()
                     begin
                         NoOnAfterValidate();
+                        UpdateEditableOnRow();
+                        UpdateTypeText();
+                        DeltaUpdateTotals();
+                    end;
+                }
+                field(FilteredTypeField; TypeAsText)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Type';
+                    Editable = CurrPageIsEditable;
+                    LookupPageID = "Option Lookup List";
+                    TableRelation = "Option Lookup Buffer"."Option Caption" where("Lookup Type" = const(Sales));
+                    ToolTip = 'Specifies the type of transaction that will be posted with the document line. If you select Comment, then you can enter any text in the Description field, such as a message to a customer. ';
+                    Visible = TypeAsTextFieldVisible;
+
+                    trigger OnValidate()
+                    begin
+                        TempOptionLookupBuffer.SetCurrentType(Rec.Type.AsInteger());
+                        if TempOptionLookupBuffer.AutoCompleteLookup(TypeAsText, TempOptionLookupBuffer."Lookup Type"::Sales) then
+                            Rec.Validate(Type, TempOptionLookupBuffer.ID);
+                        TempOptionLookupBuffer.ValidateOption(TypeAsText);
+                        UpdateEditableOnRow();
+                        UpdateTypeText();
                         DeltaUpdateTotals();
                     end;
                 }
@@ -980,6 +1005,7 @@ page 508 "Blanket Sales Order Subform"
         GetTotalSalesHeader();
         CalculateTotals();
         UpdateEditableOnRow();
+        UpdateTypeText();
     end;
 
     trigger OnAfterGetRecord()
@@ -988,6 +1014,8 @@ page 508 "Blanket Sales Order Subform"
     begin
         Rec.ShowShortcutDimCode(ShortcutDimCode);
         Clear(DocumentTotals);
+        UpdateEditableOnRow();
+        UpdateTypeText();
         if Rec."Variant Code" = '' then
             VariantCodeMandatory := Item.IsVariantMandatory(Rec.Type = Rec.Type::Item, Rec."No.");
     end;
@@ -1004,9 +1032,13 @@ page 508 "Blanket Sales Order Subform"
     end;
 
     trigger OnInit()
+    var
+        ApplicationAreaMgmtFacade: Codeunit "Application Area Mgmt. Facade";
     begin
         SalesReceivablesSetup.Get();
         Currency.InitRoundingPrecision();
+        TempOptionLookupBuffer.FillLookupBuffer(Enum::"Option Lookup Type"::Sales);
+        TypeAsTextFieldVisible := ApplicationAreaMgmtFacade.IsFoundationEnabled() and not ApplicationAreaMgmtFacade.IsAdvancedEnabled();
     end;
 
     trigger OnModifyRecord(): Boolean
@@ -1019,6 +1051,7 @@ page 508 "Blanket Sales Order Subform"
         Rec.InitType();
         SetDefaultType();
         Clear(ShortcutDimCode);
+        UpdateTypeText();
     end;
 
     trigger OnOpenPage()
@@ -1033,13 +1066,17 @@ page 508 "Blanket Sales Order Subform"
     var
         Currency: Record Currency;
         SalesReceivablesSetup: Record "Sales & Receivables Setup";
+        TempOptionLookupBuffer: Record "Option Lookup Buffer" temporary;
         TransferExtendedText: Codeunit "Transfer Extended Text";
         SalesAvailabilityMgt: Codeunit Microsoft.Sales.Document."Sales Availability Mgt.";
         SalesCalcDiscountByType: Codeunit "Sales - Calc Discount By Type";
         DocumentTotals: Codeunit "Document Totals";
         AmountWithDiscountAllowed: Decimal;
         UpdateInvDiscountQst: Label 'One or more lines have been invoiced. The discount distributed to invoiced lines will not be taken into account.\\Do you want to update the invoice discount?';
+        CurrPageIsEditable: Boolean;
         ExtendedPriceEnabled: Boolean;
+        TypeAsText: Text[30];
+        TypeAsTextFieldVisible: Boolean;
         VariantCodeMandatory: Boolean;
 
     protected var
@@ -1175,11 +1212,20 @@ page 508 "Blanket Sales Order Subform"
         IsCommentLine := not Rec.HasTypeToFillMandatoryFields();
         IsBlankNumber := IsCommentLine;
 
+        CurrPageIsEditable := CurrPage.Editable;
         InvDiscAmountEditable :=
-            CurrPage.Editable and not SalesReceivablesSetup."Calc. Inv. Discount" and
+            CurrPageIsEditable and not SalesReceivablesSetup."Calc. Inv. Discount" and
             (TotalSalesHeader.Status = TotalSalesHeader.Status::Open);
 
         OnAfterUpdateEditableOnRow(Rec, IsCommentLine, IsBlankNumber);
+    end;
+
+    local procedure UpdateTypeText()
+    begin
+        if not TypeAsTextFieldVisible then
+            exit;
+
+        TypeAsText := Rec.FormatType();
     end;
 
     /// <summary>

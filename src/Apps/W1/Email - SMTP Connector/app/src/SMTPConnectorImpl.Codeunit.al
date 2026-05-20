@@ -45,6 +45,7 @@ codeunit 4513 "SMTP Connector Impl." implements "Email Connector"
         CouldNotConnectErr: Label 'Could not connect to the SMTP server.\\%1', Comment = '%1 = the error message returned by the SMTP server.';
         CouldNotAuthenticateErr: Label 'Could not authenticate on the SMTP server.\\%1', Comment = '%1 = the error message returned by the SMTP server.';
         CouldNotSendErr: Label 'Could not send the email.\\%1', Comment = '%1 = the error message returned by the SMTP server.';
+        SmtpAttachmentFailedTelemetryMsg: Label 'Failed to add attachment. Error: %1', Comment = '%1=error message', Locked = true;
         UrlTxt: Label 'https://go.microsoft.com/fwlink/?linkid=2340938', Locked = true;
         LearnMoreAboutSMTPBasicAuthObsoletionTxt: Label 'Learn more';
         SMTPBasicOAuthObsoletionNotificationTxt: Label 'Update email accounts to OAuth 2.0 as Exchange SMTP Basic authentication is being deprecated.';
@@ -124,6 +125,7 @@ codeunit 4513 "SMTP Connector Impl." implements "Email Connector"
     var
         Account: Record "SMTP Account";
         SMTPAuthentication: Codeunit "SMTP Authentication";
+        EmptyPassword: SecretText;
         Result: Boolean;
         SMTPErrorCode: Text;
     begin
@@ -155,7 +157,10 @@ codeunit 4513 "SMTP Connector Impl." implements "Email Connector"
 
         if SMTPAccount."Authentication Type" <> SMTPAccount."Authentication Type"::Anonymous then begin
             ClearLastError();
-            SMTPAuthentication.SetBasicAuthInfo(Account."User Name", Account.GetPassword(Account."Password Key"), AccountId);
+            if Account."Authentication Type" in [Account."Authentication Type"::Basic, Account."Authentication Type"::NTLM] then
+                SMTPAuthentication.SetBasicAuthInfo(Account."User Name", Account.GetPassword(Account."Password Key"), AccountId)
+            else
+                SMTPAuthentication.SetBasicAuthInfo(Account."User Name", EmptyPassword, AccountId);
             SMTPAuthentication.SetServer(Account.Server);
             Result := SMTPClient.Authenticate(Account."Authentication Type", SMTPAuthentication);
 
@@ -206,6 +211,7 @@ codeunit 4513 "SMTP Connector Impl." implements "Email Connector"
         FromName, FromAddress : Text;
         Recipients: List of [Text];
         AttachmentInStream: InStream;
+        AttachmentName: Text;
     begin
         // From name/email address
         GetFrom(FromName, FromAddress);
@@ -229,7 +235,9 @@ codeunit 4513 "SMTP Connector Impl." implements "Email Connector"
         if EmailMessage.Attachments_First() then
             repeat
                 EmailMessage.Attachments_GetContent(AttachmentInStream);
-                SMTPMessage.AddAttachment(AttachmentInStream, EmailMessage.Attachments_GetName());
+                AttachmentName := EmailMessage.Attachments_GetName();
+                if not SMTPMessage.AddAttachment(AttachmentInStream, AttachmentName) then
+                    Session.LogMessage('0000LPA', StrSubstNo(SmtpAttachmentFailedTelemetryMsg, GetLastErrorText(true)), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', SmtpCategoryLbl);
             until EmailMessage.Attachments_Next() = 0;
     end;
 
@@ -439,7 +447,10 @@ codeunit 4513 "SMTP Connector Impl." implements "Email Connector"
         NewSMTPAccount.TransferFields(SMTPAccountToCopy);
 
         NewSMTPAccount.Id := CreateGuid();
-        NewSMTPAccount.SetPassword(Password);
+        Clear(NewSMTPAccount."Password Key");
+
+        if NewSMTPAccount."Authentication Type" in [NewSMTPAccount."Authentication Type"::Basic, NewSMTPAccount."Authentication Type"::NTLM] then
+            NewSMTPAccount.SetPassword(Password);
 
         NewSMTPAccount.Insert();
 

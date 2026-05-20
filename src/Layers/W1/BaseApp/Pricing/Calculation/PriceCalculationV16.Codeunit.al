@@ -250,20 +250,15 @@ codeunit 7002 "Price Calculation - V16" implements "Price Calculation"
         if IsHandled then
             exit;
 
-        if AmountType = AmountType::Discount then begin
+        if IsImprovedLine(PriceListLine, BestPriceListLine) or not IsDegradedLine(PriceListLine, BestPriceListLine) then begin
+            if IsImprovedLine(PriceListLine, BestPriceListLine) and not IsDegradedLine(PriceListLine, BestPriceListLine) then
+                if (AmountType <> AmountType::Discount) or (PriceListLine."Line Discount %" > 0) then
+                    Clear(BestPriceListLine);
             if IsBetterLine(PriceListLine, AmountType, BestPriceListLine) then begin
                 BestPriceListLine := PriceListLine;
                 FoundBestLine := true;
             end;
-        end else
-            if IsImprovedLine(PriceListLine, BestPriceListLine) or not IsDegradedLine(PriceListLine, BestPriceListLine) then begin
-                if IsImprovedLine(PriceListLine, BestPriceListLine) and not IsDegradedLine(PriceListLine, BestPriceListLine) then
-                    Clear(BestPriceListLine);
-                if IsBetterLine(PriceListLine, AmountType, BestPriceListLine) then begin
-                    BestPriceListLine := PriceListLine;
-                    FoundBestLine := true;
-                end;
-            end;
+        end;
         OnAfterPickBestLine(AmountType, PriceListLine, BestPriceListLine, FoundBestLine);
     end;
 

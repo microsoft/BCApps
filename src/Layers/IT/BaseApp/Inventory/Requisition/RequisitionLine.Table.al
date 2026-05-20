@@ -3531,7 +3531,7 @@ table 246 "Requisition Line"
         RequisitionWkshName: Record "Requisition Wksh. Name";
     begin
         if RequisitionWkshName.Get("Worksheet Template Name", "Journal Batch Name") then
-            ApprovalsMgmt.PreventModifyRecIfOpenApprovalEntryExistForCurrentUser(RequisitionWkshName);
+            ApprovalsMgmt.PreventModifyRecIfOpenApprovalEntryExist(RequisitionWkshName);
     end;
 
     procedure CheckRequisitionWkshLineRestriction()

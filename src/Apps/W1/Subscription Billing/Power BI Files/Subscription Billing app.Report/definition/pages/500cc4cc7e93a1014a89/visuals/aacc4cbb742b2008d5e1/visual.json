@@ -1,0 +1,183 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "aacc4cbb742b2008d5e1",
+  "position": {
+    "x": 26,
+    "y": 64,
+    "z": 0,
+    "height": 630,
+    "width": 1228,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Date"
+                    }
+                  },
+                  "Property": "Date"
+                }
+              },
+              "queryRef": "Date.Date",
+              "nativeQueryRef": "Date"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Customer Contract Deferrals"
+                    }
+                  },
+                  "Property": "Document Type"
+                }
+              },
+              "queryRef": "Customer Contract Deferrals.Document Type",
+              "nativeQueryRef": "Document Type"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Customer Contract Deferrals"
+                    }
+                  },
+                  "Property": "Document No."
+                }
+              },
+              "queryRef": "Customer Contract Deferrals.Document No.",
+              "nativeQueryRef": "Document No."
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Customer Contract Deferrals"
+                    }
+                  },
+                  "Property": "Document Line No."
+                }
+              },
+              "queryRef": "Customer Contract Deferrals.Document Line No.",
+              "nativeQueryRef": "Document Line No."
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Customer Contract Deferrals"
+                    }
+                  },
+                  "Property": "Contract No."
+                }
+              },
+              "queryRef": "Customer Contract Deferrals.Contract No.",
+              "nativeQueryRef": "Contract No."
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Customer Contract Deferrals"
+                    }
+                  },
+                  "Property": "Contract Line No."
+                }
+              },
+              "queryRef": "Customer Contract Deferrals.Contract Line No.",
+              "nativeQueryRef": "Contract Line No."
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Subscription Billing KPIs"
+                    }
+                  },
+                  "Property": "Customer Deferrals"
+                }
+              },
+              "queryRef": "Subscription Billing KPIs.Customer Deferrals",
+              "nativeQueryRef": "Customer Deferrals"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Is Released"
+                    }
+                  },
+                  "Property": "Is Released"
+                }
+              },
+              "queryRef": "Is Released.Is Released",
+              "nativeQueryRef": "Is Released"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Customer Contract Deferrals"
+                    }
+                  },
+                  "Property": "Release Posting Date"
+                }
+              },
+              "queryRef": "Customer Contract Deferrals.Release Posting Date",
+              "nativeQueryRef": "Release Posting Date"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Customer Contract Deferrals"
+                    }
+                  },
+                  "Property": "G LEntry No."
+                }
+              },
+              "queryRef": "Customer Contract Deferrals.G LEntry No.",
+              "nativeQueryRef": "G LEntry No."
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Translated Localized Labels"
+                    }
+                  },
+                  "Property": "Customer Contract Deferrals Label"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

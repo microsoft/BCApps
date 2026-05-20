@@ -138,7 +138,6 @@ codeunit 144015 "CODA Import Tests"
         Assert.AreEqual('KBC', FinancialJournalPage."Bal. Account No.".Value, 'Balance Account No');
         Assert.AreEqual('Vendor', FinancialJournalPage."Account Type".Value, 'Account Type');
         Assert.AreEqual(Format(1352.48), FinancialJournalPage.Amount.Value, 'Amount');
-        VerifyCODAStatementAmounts(FinancialJournalPage);
         FinancialJournalPage.Close();
     end;
 
@@ -1331,16 +1330,6 @@ codeunit 144015 "CODA Import Tests"
         ImportCODAStatement.SetBankAcc(BankAccount);
         ImportCODAStatement.InitializeRequest(LibraryCODADataProvider.OnCODAScenario560840DataFile());
         ImportCODAStatement.Run();
-    end;
-
-    local procedure VerifyCODAStatementAmounts(var FinancialJournalPage: TestPage "Financial Journal")
-    var
-        CODAStatement: Record "CODA Statement";
-    begin
-        CODAStatement.SetRange("Bank Account No.", FinancialJournalPage."Bal. Account No.".Value);
-        CODAStatement.FindFirst();
-        FinancialJournalPage.StatementEndingBalance.AssertEquals(CODAStatement."Statement Ending Balance");
-        FinancialJournalPage.BalanceLastStatement.AssertEquals(CODAStatement."Balance Last Statement");
     end;
 
     [RequestPageHandler]

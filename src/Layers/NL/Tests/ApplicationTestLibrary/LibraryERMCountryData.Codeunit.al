@@ -119,7 +119,7 @@ codeunit 131305 "Library - ERM Country Data"
         PurchasesPayablesSetup.Get();
         PurchasesPayablesSetup.Validate("Check Doc. Total Amounts", false);
         PurchasesPayablesSetup.Modify();
-	    UpdatePostingDateCheckonPostingPurchase();
+        UpdatePostingDateCheckonPostingPurchase();
     end;
 
     procedure SetDiscountPostingInPurchasePayablesSetup()

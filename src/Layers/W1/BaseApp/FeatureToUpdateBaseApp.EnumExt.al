@@ -12,15 +12,6 @@ enumextension 2611 "Feature To Update - BaseApp" extends "Feature To Update"
     {
         Implementation = "Feature Data Update" = "Feature - Price Calculation";
     }
-#if not CLEAN26
-    value(5892; Manufacturing_FlushingMethod_ActivateManualWoPick)
-    {
-        Implementation = "Feature Data Update" = "Feature-ManualFlushingMethod";
-        ObsoleteState = Pending;
-        ObsoleteReason = 'Feature ''Manual Flushing Method without requiring pick'' will be enabled by default in version 29.0.';
-        ObsoleteTag = '26.0';
-    }
-#endif
 #if not CLEAN28
     value(8200; FinancialReportDefaults)
     {

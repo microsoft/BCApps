@@ -1051,6 +1051,9 @@ codeunit 18080 "GST Purchase Subscribers"
                 PurchaseLine.TestField("Custom Duty Amount", 0);
                 PurchaseLine.TestField("GST Assessable Value", 0);
             end;
+
+            if PurchaseHeader."GST Vendor Type" = PurchaseHeader."GST Vendor Type"::Unregistered then
+                PurchaseLine."GST Reverse Charge" := true;
         end;
     end;
 

@@ -282,12 +282,8 @@ table 334 "Column Layout"
             ToolTip = 'Specifies which G/L accounts will be totalled in this column. Note that this filter will be applied in addition to any G/L account filters from the row definition lines.';
 
             trigger OnLookup()
-            var
-                GLAccountList: Page "G/L Account List";
             begin
-                GLAccountList.LookupMode(true);
-                if GLAccountList.RunModal() = Action::LookupOK then
-                    Validate("G/L Account Totaling", GLAccountList.GetSelectionFilter());
+                LookupGLAccountTotaling();
             end;
 
             trigger OnValidate()
@@ -523,6 +519,15 @@ table 334 "Column Layout"
             AnalysisView."Dimension 1 Code" := GLSetup."Global Dimension 1 Code";
             AnalysisView."Dimension 2 Code" := GLSetup."Global Dimension 2 Code";
         end;
+    end;
+
+    procedure LookupGLAccountTotaling()
+    var
+        GLAccountList: Page "G/L Account List";
+    begin
+        GLAccountList.LookupMode(true);
+        if GLAccountList.RunModal() = Action::LookupOK then
+            Validate("G/L Account Totaling", GLAccountList.GetSelectionFilter());
     end;
 
 #if not CLEAN27

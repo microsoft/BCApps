@@ -106,7 +106,7 @@ pageextension 4351 "Agent Task List" extends "Agent Task List"
                 var
                     AgentTask: Codeunit "Agent Task";
                 begin
-                    AgentTask.RestartTask(Rec, true);
+                    AgentTask.RestartTask(Rec.ID, true);
                     CurrPage.Update(false);
                 end;
             }

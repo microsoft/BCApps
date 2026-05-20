@@ -14,6 +14,7 @@ query 36991 "Work Centers"
     Access = Internal;
     Caption = 'Power BI Work Centers';
     QueryType = API;
+    AboutText = 'Provides access to work center master data including work center group assignments, subcontractor relationships, and unit of measure configurations. Enables Power BI reports to analyze capacity by work center and support work center hierarchical reporting.';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';
     ApiVersion = 'v0.5', 'v1.0';

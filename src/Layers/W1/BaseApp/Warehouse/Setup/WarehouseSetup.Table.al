@@ -157,7 +157,7 @@ table 5769 "Warehouse Setup"
         field(51; "Copy Item Descr. to Entries"; Boolean)
         {
             Caption = 'Copy Item Descr. to Entries';
-            ToolTip = 'Specifies if you want the description on item cards to be copied to warehouse entries during registering.';
+            ToolTip = 'Specifies if you want the description on item cards to be copied to warehouse entries during posting.';
             DataClassification = SystemMetadata;
 
             trigger OnValidate()

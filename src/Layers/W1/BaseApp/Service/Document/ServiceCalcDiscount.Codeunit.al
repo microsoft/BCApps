@@ -182,20 +182,21 @@ codeunit 5950 "Service-Calc. Discount"
 
                 ServiceLine2.SetServHeader(ServHeader);
                 ServiceLine2.UpdateVATOnLines(0, ServHeader, ServiceLine2, TempVATAmountLine);
-            end else begin
-                ServHeader."Invoice Discount Calculation" := ServHeader."Invoice Discount Calculation"::"%";
-                ServHeader."Invoice Discount Value" := CustInvDisc."Discount %";
-                if not TemporaryHeader then
-                    ServHeader.Modify();
+            end else
+                if CustInvDisc."Discount %" <> 0 then begin
+                    ServHeader."Invoice Discount Calculation" := ServHeader."Invoice Discount Calculation"::"%";
+                    ServHeader."Invoice Discount Value" := CustInvDisc."Discount %";
+                    if not TemporaryHeader then
+                        ServHeader.Modify();
 
-                TempVATAmountLine.SetInvoiceDiscountPercent(
-                  CustInvDisc."Discount %", ServHeader."Currency Code",
-                  ServHeader."Prices Including VAT", SalesSetup."Calc. Inv. Disc. per VAT ID",
-                  ServHeader."VAT Base Discount %");
+                    TempVATAmountLine.SetInvoiceDiscountPercent(
+                      CustInvDisc."Discount %", ServHeader."Currency Code",
+                      ServHeader."Prices Including VAT", SalesSetup."Calc. Inv. Disc. per VAT ID",
+                      ServHeader."VAT Base Discount %");
 
-                ServiceLine2.SetServHeader(ServHeader);
-                ServiceLine2.UpdateVATOnLines(0, ServHeader, ServiceLine2, TempVATAmountLine);
-            end;
+                    ServiceLine2.SetServHeader(ServHeader);
+                    ServiceLine2.UpdateVATOnLines(0, ServHeader, ServiceLine2, TempVATAmountLine);
+                end;
         end;
         OnAfterCalcServDiscount(ServHeader, TempVATAmountLine, ServiceLine2);
     end;

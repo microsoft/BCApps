@@ -323,15 +323,22 @@ page 9007 "Purchasing Agent Role Center"
                                     Recurring = const(false));
                 ToolTip = 'Calculate a supply plan to fulfill item demand with purchases or transfers.';
             }
+#if not CLEAN29
             action(SubcontractingWorksheets)
             {
                 ApplicationArea = Manufacturing;
-                Caption = 'Subcontracting Worksheets';
+                Caption = 'Subcontracting Worksheets (Obsolete)';
                 RunObject = Page "Req. Wksh. Names";
+#pragma warning disable AL0432
                 RunPageView = where("Template Type" = const("For. Labor"),
                                     Recurring = const(false));
+#pragma warning restore AL0432
+                ObsoleteReason = 'Will be replaced by the Subcontracting App.';
+                ObsoleteState = Pending;
+                ObsoleteTag = '29.0';
                 ToolTip = 'Calculate the needed production supply, find the production orders that have material ready to send to a subcontractor, and automatically create purchase orders for subcontracted operations from production order routings.';
             }
+#endif
             action("Standard Cost Worksheets")
             {
                 ApplicationArea = Basic, Suite;

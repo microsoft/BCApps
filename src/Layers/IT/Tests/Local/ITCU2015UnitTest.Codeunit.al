@@ -1109,6 +1109,50 @@ codeunit 144021 "IT - CU 2015 Unit Test"
         ValidateFooterOfDAndHRecords(9, 4, 2);
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure ProgressivoCertificazioneMatchesBetweenDAndHForMultipleVendors()
+    var
+        WithholdingTax: Record "Withholding Tax";
+        VendorNo1: Code[20];
+        VendorNo2: Code[20];
+        VendorNo3: Code[20];
+        Filename: Text;
+    begin
+        // [FEATURE] [Withholding Tax Export]
+        // [SCENARIO 630171] D-3, D-5, H-3, and H-5 fields all carry the same EntryNumber for each D/H group across multiple vendors
+        Initialize();
+
+        // [GIVEN] Three vendors with withholding tax entries
+        VendorNo1 := CreateVendor();
+        VendorNo2 := CreateVendor();
+        VendorNo3 := CreateVendor();
+
+        // [GIVEN] Vendor 1 has two entries (reason A, different non-taxable income types) producing 1 D + 2 H
+        CreateWithholdingTaxWithAU001006AndContributionEntry(VendorNo1, "Withholding Tax Reason"::A, 0, WorkDate(), WorkDate(), WithholdingTax."Non-Taxable Income Type"::"1");
+        CreateWithholdingTaxWithAU001006AndContributionEntry(VendorNo1, "Withholding Tax Reason"::A, 0, WorkDate(), WorkDate(), WithholdingTax."Non-Taxable Income Type"::"2");
+
+        // [GIVEN] Vendor 2 has one entry (reason A) producing 1 D + 1 H
+        CreateWithholdingTaxWithAU001006AndContributionEntry(VendorNo2, "Withholding Tax Reason"::A, 0, WorkDate(), WorkDate(), WithholdingTax."Non-Taxable Income Type"::"1");
+
+        // [GIVEN] Vendor 3 has three entries (reason A, different non-taxable income types) producing 1 D + 3 H
+        CreateWithholdingTaxWithAU001006AndContributionEntry(VendorNo3, "Withholding Tax Reason"::A, 0, WorkDate(), WorkDate(), WithholdingTax."Non-Taxable Income Type"::"1");
+        CreateWithholdingTaxWithAU001006AndContributionEntry(VendorNo3, "Withholding Tax Reason"::A, 0, WorkDate(), WorkDate(), WithholdingTax."Non-Taxable Income Type"::"2");
+        CreateWithholdingTaxWithAU001006AndContributionEntry(VendorNo3, "Withholding Tax Reason"::A, 0, WorkDate(), WorkDate(), WithholdingTax."Non-Taxable Income Type"::"5");
+
+        // [WHEN] Export withholding taxes
+        Filename := Export(CreateCompanyOfficial());
+
+        // [THEN] All four identifying fields (D-3, D-5, H-3, H-5) match per group
+        LoadFile(Filename);
+        // Vendor 1: line 3 = D, lines 4-5 = H, EntryNumber = 1
+        VerifyDAndHRecordEntryNumbers(3, 1, 2);
+        // Vendor 2: line 6 = D, line 7 = H, EntryNumber = 2
+        VerifyDAndHRecordEntryNumbers(6, 2, 1);
+        // Vendor 3: line 8 = D, lines 9-11 = H, EntryNumber = 3
+        VerifyDAndHRecordEntryNumbers(8, 3, 3);
+    end;
+
     local procedure Initialize()
     var
         WithholdingTax: Record "Withholding Tax";
@@ -1451,7 +1495,7 @@ codeunit 144021 "IT - CU 2015 Unit Test"
         // Validate D-Record
         ValidateTextFileValue(LineNumber, 1, 1, 'D');
         ValidateTextFileValue(LineNumber, 2, 16, CompanyInformation."Fiscal Code");
-        ValidateTextFileValue(LineNumber, 18, 8, '00000001'); // We only export a single file
+        ValidateTextFileValue(LineNumber, 18, 8, FormatToLength(RecordHEntryNumber, 8)); // D-3: Progressivo Modulo
         ValidateTextFileValue(LineNumber, 26, 16, Vendor."Fiscal Code");
 
         ValidateBlockValue(LineNumber, 'DA001001', 0, CompanyInformation."Fiscal Code");
@@ -1560,10 +1604,12 @@ codeunit 144021 "IT - CU 2015 Unit Test"
         i: Integer;
     begin
         ValidateTextFileValue(DRecordLineNo, 1, 1, 'D');
-        ValidateTextFileValue(DRecordLineNo, 42, 5, FormatToLength(ExpectedEntryNumber, 5));
+        ValidateTextFileValue(DRecordLineNo, 18, 8, FormatToLength(ExpectedEntryNumber, 8)); // D-3: Progressivo Modulo
+        ValidateTextFileValue(DRecordLineNo, 42, 5, FormatToLength(ExpectedEntryNumber, 5)); // D-5: Progressivo Certificazione
         for i := 1 to HRecordCount do begin
             ValidateTextFileValue(DRecordLineNo + i, 1, 1, 'H');
-            ValidateTextFileValue(DRecordLineNo + i, 18, 8, FormatToLength(ExpectedEntryNumber, 8));
+            ValidateTextFileValue(DRecordLineNo + i, 18, 8, FormatToLength(ExpectedEntryNumber, 8)); // H-3: Progressivo Modulo
+            ValidateTextFileValue(DRecordLineNo + i, 42, 5, FormatToLength(ExpectedEntryNumber, 5)); // H-5: Progressivo Certificazione
         end;
     end;
 

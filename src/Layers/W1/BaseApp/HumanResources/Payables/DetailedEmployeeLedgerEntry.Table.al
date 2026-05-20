@@ -7,6 +7,7 @@ namespace Microsoft.HumanResources.Payables;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.HumanResources.Employee;
@@ -104,6 +105,7 @@ table 5223 "Detailed Employee Ledger Entry"
         field(13; "Transaction No."; Integer)
         {
             Caption = 'Transaction No.';
+            TableRelation = "G/L Transaction";
         }
         field(14; "Journal Batch Name"; Code[10])
         {
@@ -199,6 +201,12 @@ table 5223 "Detailed Employee Ledger Entry"
             Caption = 'Exch. Rate Adjmt. Reg. No.';
             Editable = false;
             TableRelation = "Exch. Rate Adjmt. Reg.";
+        }
+        field(95; "G/L Register No."; Integer)
+        {
+            Caption = 'G/L Register No.';
+            Editable = false;
+            TableRelation = "G/L Register";
         }
     }
 

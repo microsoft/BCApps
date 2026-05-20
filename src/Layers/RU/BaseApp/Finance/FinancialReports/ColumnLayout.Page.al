@@ -260,6 +260,16 @@ page 489 "Column Layout"
                 }
                 field(GLAccountTotaling; Rec."G/L Account Totaling")
                 {
+                    trigger OnValidate()
+                    begin
+                        UpdateAccountFactbox();
+                    end;
+
+                    trigger OnLookup(var Text: Text): Boolean
+                    begin
+                        Rec.LookupGLAccountTotaling();
+                        UpdateAccountFactbox();
+                    end;
                 }
                 field(HideCurrencySymbol; Rec."Hide Currency Symbol")
                 {
@@ -300,6 +310,11 @@ page 489 "Column Layout"
         }
         area(factboxes)
         {
+            part(TotalingAccountsFactbox; "Totaling Accounts Factbox")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'G/L Accounts';
+            }
             systempart(Control1900383207; Links)
             {
                 ApplicationArea = RecordLinks;
@@ -409,6 +424,11 @@ page 489 "Column Layout"
             DimCaptionsInitialized := true;
     end;
 
+    trigger OnAfterGetCurrRecord()
+    begin
+        UpdateAccountFactbox();
+    end;
+
     trigger OnOpenPage()
     var
         ColumnLayoutName: Record "Column Layout Name";
@@ -460,5 +480,13 @@ page 489 "Column Layout"
     procedure SetColumnLayoutName(NewColumnName: Code[10])
     begin
         CurrentColumnName := NewColumnName;
+    end;
+
+    local procedure UpdateAccountFactbox()
+    begin
+        if Rec."G/L Account Totaling" <> '' then
+            CurrPage.TotalingAccountsFactbox.Page.SetTotalingFilter(Rec."G/L Account Totaling")
+        else
+            CurrPage.TotalingAccountsFactbox.Page.SetTotalingFilter('=''''');
     end;
 }

@@ -206,25 +206,7 @@ tableextension 99000829 "Mfg. Planning Component" extends "Planning Component"
     end;
 
     local procedure GetFlushingMethodBin(): Code[20]
-#if not CLEAN26
-    var
-        ManufacturingSetup: Record Microsoft.Manufacturing.Setup."Manufacturing Setup";
-#endif
     begin
-#if not CLEAN26
-        if not ManufacturingSetup.IsFeatureKeyFlushingMethodManualWithoutPickEnabled() then
-            case "Flushing Method" of
-                "Flushing Method"::Manual,
-                "Flushing Method"::"Pick + Manual",
-                "Flushing Method"::"Pick + Forward",
-                "Flushing Method"::"Pick + Backward":
-                    exit(Location."To-Production Bin Code");
-                "Flushing Method"::Forward,
-                "Flushing Method"::Backward:
-                    exit(Location."Open Shop Floor Bin Code");
-            end
-        else
-#endif
         case "Flushing Method" of
             "Flushing Method"::"Pick + Manual",
             "Flushing Method"::"Pick + Forward",

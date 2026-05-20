@@ -58,6 +58,8 @@ codeunit 18251 "GST Purchase Non Availment"
     begin
         GenJnlLine."FA Non-Availment" := InvoicePostingBuffer."FA Non-Availment";
         GenJnlLine."FA Non-Availment Amount" := InvoicePostingBuffer."FA Non-Availment Amount";
+        if InvoicePostingBuffer."No. of Fixed Asset Cards" > 1 then
+            GenJnlLine."FA Non-Availment Amount" := Round(GenJnlLine."FA Non-Availment Amount" / InvoicePostingBuffer."No. of Fixed Asset Cards");
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"FA Jnl.-Post Line", 'OnBeforePostFixedAssetFromGenJnlLine', '', false, false)]

@@ -400,9 +400,13 @@ table 88 "Financial Report"
     trigger OnDelete()
     var
         FinancialReportSchedule: Record "Financial Report Schedule";
+        FinReportPackageReport: Record "Fin. Report Package Report";
     begin
         FinancialReportSchedule.SetRange("Financial Report Name", Name);
         FinancialReportSchedule.DeleteAll(true);
+
+        FinReportPackageReport.SetRange("Financial Report Name", Name);
+        FinReportPackageReport.DeleteAll();
     end;
 
     /// <summary>

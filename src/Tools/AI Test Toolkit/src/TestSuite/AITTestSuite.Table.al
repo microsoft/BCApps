@@ -298,6 +298,22 @@ table 149030 "AIT Test Suite"
         exit(AITTestSuiteLanguage.GetLanguageDataset(Rec."Input Dataset", Rec."Run Language ID"));
     end;
 
+    internal procedure ResetSuiteSetup()
+    var
+        TestInputGroup: Record "Test Input Group";
+        SuiteSetupGroup: Record "Test Input Group";
+    begin
+        if not TestInputGroup.Get(Rec."Input Dataset") then
+            exit;
+
+        if TestInputGroup."Suite Setup Group Name" = '' then
+            exit;
+
+        SuiteSetupGroup.SetRange("Group Name", TestInputGroup."Suite Setup Group Name");
+        if SuiteSetupGroup.FindFirst() then
+            SuiteSetupGroup.ResetSuiteSetup();
+    end;
+
     var
         BaseVersionMustBeLessThanVersionErr: Label 'Base Version must be less than or equal to Version';
 }

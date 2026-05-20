@@ -294,18 +294,16 @@ report 11000012 "SEPA ISO20022 Pain 01.01.03"
         AddElement(XMLNodeCurr, 'Nm', CompanyInfo.Name, '', XMLNewChild);
         AddElement(XMLNodeCurr, 'PstlAdr', '', '', XMLNewChild);
         XMLNodeCurr := XMLNewChild;
-        if not Worldpayment then begin
-            StreetName := CopyStr(DelChr(CompanyInfo.Address, '<>') + ' ' + DelChr(CompanyInfo."Address 2", '<>'), 1, MaxStrLen(StreetName));
-            PostalCode := CopyStr(DelChr(CompanyInfo."Post Code", '<>'), 1, MaxStrLen(PostalCode));
-            TownName := CopyStr(DelChr(CompanyInfo.City, '<>'), 1, MaxStrLen(TownName));
+        StreetName := CopyStr(DelChr(CompanyInfo.Address, '<>') + ' ' + DelChr(CompanyInfo."Address 2", '<>'), 1, MaxStrLen(StreetName));
+        PostalCode := CopyStr(DelChr(CompanyInfo."Post Code", '<>'), 1, MaxStrLen(PostalCode));
+        TownName := CopyStr(DelChr(CompanyInfo.City, '<>'), 1, MaxStrLen(TownName));
 
-            if StreetName <> '' then
-                AddElement(XMLNodeCurr, 'StrtNm', StreetName, '', XMLNewChild);
-            if PostalCode <> '' then
-                AddElement(XMLNodeCurr, 'PstCd', PostalCode, '', XMLNewChild);
-            if TownName <> '' then
-                AddElement(XMLNodeCurr, 'TwnNm', TownName, '', XMLNewChild);
-        end;
+        if StreetName <> '' then
+            AddElement(XMLNodeCurr, 'StrtNm', StreetName, '', XMLNewChild);
+        if PostalCode <> '' then
+            AddElement(XMLNodeCurr, 'PstCd', PostalCode, '', XMLNewChild);
+        if TownName <> '' then
+            AddElement(XMLNodeCurr, 'TwnNm', TownName, '', XMLNewChild);
         AddElement(XMLNodeCurr, 'Ctry', CopyStr(CompanyInfo."Country/Region Code", 1, 2), '', XMLNewChild);
 
         XMLNodeCurr := XMLNodeCurr.ParentNode;
@@ -397,28 +395,19 @@ report 11000012 "SEPA ISO20022 Pain 01.01.03"
             AddElement(XMLNodeCurr, 'PstlAdr', '', '', XMLNewChild);
             XMLNodeCurr := XMLNewChild;
 
-            if Worldpayment then begin
-                StreetName := CopyStr(PaymentHistoryLine."Account Holder Address", 1, MaxStrLen(StreetName));
-                PostalCode := CopyStr(PaymentHistoryLine."Account Holder Post Code", 1, MaxStrLen(PostalCode));
-                TownName := CopyStr(PaymentHistoryLine."Account Holder City", 1, MaxStrLen(TownName));
+            StreetName := CopyStr(PaymentHistoryLine."Account Holder Address", 1, MaxStrLen(StreetName));
+            PostalCode := CopyStr(PaymentHistoryLine."Account Holder Post Code", 1, MaxStrLen(PostalCode));
+            TownName := CopyStr(PaymentHistoryLine."Account Holder City", 1, MaxStrLen(TownName));
 
-                if StreetName <> '' then
-                    AddElement(XMLNodeCurr, 'StrtNm', StreetName, '', XMLNewChild);
-                if PostalCode <> '' then
-                    AddElement(XMLNodeCurr, 'PstCd', PostalCode, '', XMLNewChild);
-                if TownName <> '' then
-                    AddElement(XMLNodeCurr, 'TwnNm', TownName, '', XMLNewChild);
-            end;
+            if StreetName <> '' then
+                AddElement(XMLNodeCurr, 'StrtNm', StreetName, '', XMLNewChild);
+            if PostalCode <> '' then
+                AddElement(XMLNodeCurr, 'PstCd', PostalCode, '', XMLNewChild);
+            if TownName <> '' then
+                AddElement(XMLNodeCurr, 'TwnNm', TownName, '', XMLNewChild);
 
             if AddrLine[1] <> '' then
                 AddElement(XMLNodeCurr, 'Ctry', AddrLine[1], '', XMLNewChild);
-
-            if not Worldpayment then begin
-                if AddrLine[2] <> '' then
-                    AddElement(XMLNodeCurr, 'AdrLine', AddrLine[2], '', XMLNewChild);
-                if AddrLine[3] <> '' then
-                    AddElement(XMLNodeCurr, 'AdrLine', AddrLine[3], '', XMLNewChild);
-            end;
             XMLNodeCurr := XMLNodeCurr.ParentNode;
             XMLNodeCurr := XMLNodeCurr.ParentNode;
         end;

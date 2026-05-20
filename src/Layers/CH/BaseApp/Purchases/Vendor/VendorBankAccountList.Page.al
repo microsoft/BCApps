@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.Vendor;
 
+using System.Automation;
 using System.Diagnostics;
 
 page 426 "Vendor Bank Account List"
@@ -156,11 +157,91 @@ page 426 "Vendor Bank Account List"
 
     actions
     {
+        area(Navigation)
+        {
+            group("Vendor &Bank")
+            {
+                action(ApprovalEntries)
+                {
+                    AccessByPermission = TableData "Approval Entry" = R;
+                    ApplicationArea = Suite;
+                    Caption = 'Approvals';
+                    Image = Approvals;
+                    ToolTip = 'View a list of the records that are waiting to be approved. For example, you can see who requested the record to be approved, when it was sent, and when it is due to be approved.';
+
+                    trigger OnAction()
+                    begin
+                        ApprovalsMgmt.OpenApprovalEntriesPage(Rec.RecordId);
+                    end;
+                }
+            }
+        }
+        area(Processing)
+        {
+            group("Request Approval")
+            {
+                Caption = 'Request Approval';
+                Image = SendApprovalRequest;
+                action(SendApprovalRequest)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Send A&pproval Request';
+                    Enabled = not OpenApprovalEntriesExist and CanRequestApprovalForFlow;
+                    Image = SendApprovalRequest;
+                    ToolTip = 'Request approval to change the record.';
+
+                    trigger OnAction()
+                    var
+                        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
+                    begin
+                        if ApprovalsMgmt.CheckVendorBankAccountApprovalsWorkflowEnabled(Rec) then
+                            ApprovalsMgmt.OnSendVendorBankAccountForApproval(Rec);
+                    end;
+                }
+                action(CancelApprovalRequest)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Cancel Approval Re&quest';
+                    Enabled = CanCancelApprovalForRecord or CanCancelApprovalForFlow;
+                    Image = CancelApprovalRequest;
+                    ToolTip = 'Cancel the approval request.';
+
+                    trigger OnAction()
+                    var
+                        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
+                    begin
+                        ApprovalsMgmt.OnCancelVendorBankAccountApprovalRequest(Rec);
+                        WorkflowWebhookManagement.FindAndCancel(Rec.RecordId);
+                    end;
+                }
+            }
+        }
+
+        area(Promoted)
+        {
+            group(Promoted_Approvals)
+            {
+                Caption = 'Approvals';
+
+                actionref(ApprovalEntries_Promoted; ApprovalEntries)
+                {
+                }
+            }
+        }
     }
 
     trigger OnAfterGetRecord()
     begin
         Vendor.Get(Rec."Vendor No.");
+    end;
+
+    trigger OnAfterGetCurrRecord()
+    begin
+        OpenApprovalEntriesExist := ApprovalsMgmt.HasOpenApprovalEntries(Rec.RecordId);
+
+        CanCancelApprovalForRecord := ApprovalsMgmt.CanCancelApprovalForRecord(Rec.RecordId);
+
+        WorkflowWebhookManagement.GetCanRequestAndCanCancel(Rec.RecordId, CanRequestApprovalForFlow, CanCancelApprovalForFlow);
     end;
 
     trigger OnOpenPage()
@@ -172,5 +253,11 @@ page 426 "Vendor Bank Account List"
 
     var
         Vendor: Record Vendor;
+        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
+        WorkflowWebhookManagement: Codeunit "Workflow Webhook Management";
+        OpenApprovalEntriesExist: Boolean;
+        CanCancelApprovalForRecord: Boolean;
+        CanRequestApprovalForFlow: Boolean;
+        CanCancelApprovalForFlow: Boolean;
 }
 

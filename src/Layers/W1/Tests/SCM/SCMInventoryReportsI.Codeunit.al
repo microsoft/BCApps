@@ -575,7 +575,7 @@ codeunit 137301 "SCM Inventory Reports - I"
         SubtotalsOutstandingAmount[1] := PurchaseLine."Outstanding Amount";
         LibraryReportDataset.AssertElementWithValueExists('Subtotals_OutstandingQuantity', PurchaseLine."Outstanding Quantity");
         LibraryReportDataset.AssertElementWithValueExists('Subtotals_AmountOnOrder', SubtotalsOutstandingAmount[1]);
-        
+
         PurchaseLine.SetRange("Document No.", PurchaseHeaderNos[2]);
         PurchaseLine.CalcSums("Outstanding Amount", "Outstanding Quantity");
         SubtotalsOutstandingAmount[2] := PurchaseLine."Outstanding Amount";
@@ -1516,6 +1516,41 @@ codeunit 137301 "SCM Inventory Reports - I"
         LibraryVariableStorage.AssertEmpty();
     end;
 
+    [Test]
+    [HandlerFunctions('ItemABCAnalysisRequestPageHandler')]
+    [Scope('OnPrem')]
+    procedure ItemABCAnalysisReport()
+    var
+        ABCAnalysisSetup: Record "ABC Analysis Setup";
+        ItemJournalLine: Record "Item Journal Line";
+        Item: Record Item;
+    begin
+        // [GIVEN] Create and post Item Journal Line.
+        Initialize();
+
+        if not ABCAnalysisSetup.Get() then begin
+            ABCAnalysisSetup.Init();
+            ABCAnalysisSetup.InitializeValues();
+            ABCAnalysisSetup.Insert();
+        end;
+
+        LibraryInventory.CreateItem(Item);
+        CreateAndPostItemJournalLine(ItemJournalLine, ItemJournalLine."Entry Type"::Sale, Item."No.");
+
+        // [WHEN] Run "Item ABC Analysis" report
+        LibraryVariableStorage.Enqueue(ItemJournalLine."Item No.");
+        Report.Run(Report::"Item - ABC Analysis");
+
+        // [THEN] The Item exists on the report and the values are correct
+        LibraryReportDataset.LoadDataSetFile();
+        LibraryReportDataset.SetRange('ItemNo', ItemJournalLine."Item No.");
+        LibraryReportDataset.GetNextRow();
+        LibraryReportDataset.AssertCurrentRowValueEquals('InventoryPostingGroup', ItemJournalLine."Inventory Posting Group");
+        LibraryReportDataset.AssertCurrentRowValueEquals('ABC', 'A');
+        LibraryReportDataset.AssertCurrentRowValueEquals('Pct', 100);
+        LibraryReportDataset.AssertCurrentRowValueEquals('SalesLCY', ItemJournalLine.Amount);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -1552,7 +1587,7 @@ codeunit 137301 "SCM Inventory Reports - I"
     begin
         LibraryManufacturing.CreateItemManufacturing(
           Item, Item."Costing Method"::Standard, LibraryRandom.RandDec(100, 2), Item."Reordering Policy",
-          Item."Flushing Method", '', '');
+          Item."Flushing Method"::"Pick + Manual", '', '');
     end;
 
     local procedure CreateStockKeepingUnit(ItemNo: Code[20]; SKUCreationMethod: Enum "SKU Creation Method")
@@ -1695,6 +1730,21 @@ codeunit 137301 "SCM Inventory Reports - I"
         LibraryInventory.CreateItemJournalLine(
           ItemJournalLine, ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name, EntryType, ItemNo, Qty);
         ItemJournalLine.Validate("Location Code", LocationCode);
+        ItemJournalLine.Modify(true);
+        LibraryInventory.PostItemJournalLine(ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name);
+    end;
+
+    local procedure CreateAndPostItemJournalLine(var ItemJournalLine: Record "Item Journal Line"; EntryType: Enum "Item Ledger Document Type"; ItemNo: Code[20])
+    var
+        ItemJournalTemplate: Record "Item Journal Template";
+        ItemJournalBatch: Record "Item Journal Batch";
+    begin
+        LibraryInventory.SelectItemJournalTemplateName(ItemJournalTemplate, ItemJournalTemplate.Type::Item);
+        LibraryInventory.SelectItemJournalBatchName(ItemJournalBatch, ItemJournalBatch."Template Type"::Item, ItemJournalTemplate.Name);
+        LibraryInventory.CreateItemJournalLine(
+          ItemJournalLine, ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name,
+          EntryType, ItemNo, LibraryRandom.RandDec(100, 2));
+        ItemJournalLine.Validate("Unit Amount", LibraryRandom.RandDec(100, 2));
         ItemJournalLine.Modify(true);
         LibraryInventory.PostItemJournalLine(ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name);
     end;
@@ -2135,5 +2185,19 @@ codeunit 137301 "SCM Inventory Reports - I"
         PostInventoryCostToGL.JnlTemplateName.SetValue(LibraryVariableStorage.DequeueText()); // Set New Template Name.
         PostInventoryCostToGL.JnlBatchName.SetValue(LibraryVariableStorage.DequeueText()); // Set New Batch Name.
         PostInventoryCostToGL.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
+    end;
+
+    [RequestPageHandler]
+    [Scope('OnPrem')]
+    procedure ItemABCAnalysisRequestPageHandler(var ItemABCAnalysis: TestRequestPage "Item - ABC Analysis")
+    var
+        ItemNo: Variant;
+    begin
+        ItemABCAnalysis.RatioCatA.SetValue(LibraryRandom.RandInt(100));
+        ItemABCAnalysis.ShowCategoryA.SetValue(true);
+        ItemABCAnalysis.PrintZero.SetValue(true);
+        LibraryVariableStorage.Dequeue(ItemNo);
+        ItemABCAnalysis.Item.SetFilter("No.", ItemNo);
+        ItemABCAnalysis.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 }

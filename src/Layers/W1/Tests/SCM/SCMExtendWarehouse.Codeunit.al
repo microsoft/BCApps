@@ -7466,9 +7466,9 @@ codeunit 137030 "SCM Extend Warehouse"
         Location.Validate("Pick According to FEFO", true);
         Location.Modify(true);
 
-        //[GIVEN] Create Item with Assembly Replenishment System and Manual Flushing Method.
+        //[GIVEN] Create Item with Assembly Replenishment System and Pick + Manual Flushing Method.
         TestSetup();
-        ItemSetup(Item, Item."Replenishment System"::Assembly, Item."Flushing Method"::Manual);
+        ItemSetup(Item, Item."Replenishment System"::Assembly, Item."Flushing Method"::"Pick + Manual");
 
         // [GIVEN] Create Bins.
         FindBin(FirstBin, Location, false, 1);
@@ -7522,11 +7522,11 @@ codeunit 137030 "SCM Extend Warehouse"
         Location.Validate("Pick According to FEFO", true);
         Location.Modify(true);
 
-        //[GIVEN] Create Item with Assembly Replenishment System and Manual Flushing Method.
+        //[GIVEN] Create Item with Assembly Replenishment System and Pick + Manual Flushing Method.
         TestSetup();
         LibraryItemTracking.CreateLotItem(Item);
         Item.Validate("Replenishment System", Item."Replenishment System"::Assembly);
-        Item.Validate("Flushing Method", Item."Flushing Method"::Manual);
+        Item.Validate("Flushing Method", Item."Flushing Method"::"Pick + Manual");
         Item.Modify(true);
 
         // [GIVEN] Set Item Tracking Code to use Expiration Dates.

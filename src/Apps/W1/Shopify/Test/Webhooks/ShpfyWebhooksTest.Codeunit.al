@@ -15,6 +15,8 @@ codeunit 139612 "Shpfy Webhooks Test"
     Subtype = Test;
     TestType = IntegrationTest;
     TestPermissions = Disabled;
+    TestHttpRequestPolicy = BlockOutboundRequests;
+    EventSubscriberInstance = Manual;
 
     trigger OnRun()
     begin
@@ -23,50 +25,81 @@ codeunit 139612 "Shpfy Webhooks Test"
     end;
 
     var
+        Shop: Record "Shpfy Shop";
         LibraryAssert: Codeunit "Library Assert";
         LibraryRandom: Codeunit "Library - Random";
         Any: Codeunit Any;
-        WebhooksSubcriber: Codeunit "Shpfy Webhooks Subscriber";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+        OutboundHttpRequests: Codeunit "Library - Variable Storage";
         BulkOpSubscriber: Codeunit "Shpfy Bulk Op. Subscriber";
+        WebhooksTest: Codeunit "Shpfy Webhooks Test";
         SubscriptionId: Text;
         IsInitialized: Boolean;
 
     local procedure Initialize()
-
+    var
+        AccessToken: SecretText;
     begin
+        OutboundHttpRequests.Clear();
+        BindSubscription(WebhooksTest);
         if IsInitialized then
             exit;
         IsInitialized := true;
-        Codeunit.Run(Codeunit::"Shpfy Initialize Test");
+        Shop := InitializeTest.CreateShop();
+        AccessToken := LibraryRandom.RandText(20);
+        InitializeTest.RegisterAccessTokenForShop(Shop.GetStoreName(), AccessToken);
         SubscriptionId := Format(Any.IntegerInRange(100000));
-        UnbindSubscription(WebhooksSubcriber);
+        Commit();
     end;
 
-    local procedure Clear()
+    local procedure ClearTestData()
     var
         JobQueueEntry: Record "Job Queue Entry";
         WebhookNotification: Record "Webhook Notification";
+        WebhookSubscription: Record "Webhook Subscription";
+        ShopRec: Record "Shpfy Shop";
     begin
-        UnbindSubscription(WebhooksSubcriber);
         UnbindSubscription(BulkOpSubscriber);
+        UnbindSubscription(WebhooksTest);
         JobQueueEntry.DeleteAll();
         WebhookNotification.DeleteAll();
+        WebhookSubscription.DeleteAll();
+        if ShopRec.Get(Shop.Code) then begin
+            ShopRec.Enabled := true;
+            ShopRec."Order Created Webhooks" := false;
+            ShopRec."Order Created Webhook Id" := '';
+            ShopRec."Bulk Operation Webhook Id" := '';
+            ShopRec.Modify();
+            Shop := ShopRec;
+        end;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Shpfy Webhooks Mgt.", 'OnScheduleWebhookNotificationTask', '', true, false)]
+    local procedure OnScheduleWebhookNotificationTask(var IsTestInProgress: Boolean)
+    begin
+        IsTestInProgress := true;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Shpfy Background Syncs", 'OnCanCreateTask', '', true, false)]
+    local procedure OnCanCreateTask(var CanCreateTask: Boolean)
+    begin
+        CanCreateTask := true;
     end;
 
     [Test]
+    [HandlerFunctions('WebhookHttpHandler')]
     procedure TestEnableOrderCreatedWebhooks()
     var
-        Shop: Record "Shpfy Shop";
         WebhookSubscription: Record "Webhook Subscription";
-        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
     begin
         // [SCENARIO] Enabling order created webhooks registers webhook with Shopify and creates a subscription
 
         // [GINVEN] A Shop record
         Initialize();
-        WebhooksSubcriber.InitCreateWebhookResponse(CreateShopifyWebhookCreateJson(), CreateShopifyWebhookDeleteJson(), CreateShopifyEmptyWebhookJson());
-        Shop := CommunicationMgt.GetShopRecord();
-        BindSubscription(WebhooksSubcriber);
+
+        // [GIVEN] Register Expected Outbound API Requests (get webhooks, create webhook).
+        OutboundHttpRequests.Enqueue('GetWebhooks');
+        OutboundHttpRequests.Enqueue('CreateWebhook');
 
         // [WHEN] Order created webhooks are enabled
         Shop.Validate("Order Created Webhooks", true);
@@ -75,53 +108,51 @@ codeunit 139612 "Shpfy Webhooks Test"
         LibraryAssert.AreEqual(Shop."Order Created Webhook Id", SubscriptionId, 'Subscription id should be filled.');
         WebhookSubscription.SetRange(Endpoint, Format("Shpfy Webhook Topic"::ORDERS_CREATE));
         LibraryAssert.RecordCount(WebhookSubscription, 1);
-        Clear();
+        ClearTestData();
     end;
 
     [Test]
+    [HandlerFunctions('WebhookHttpHandler')]
     procedure TestDisableOrderCreatedWebhooks()
     var
-        Shop: Record "Shpfy Shop";
         WebhookSubscription: Record "Webhook Subscription";
-        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
     begin
         // [SCENARIO] Disabling order created webhooks deletes the webhook from Shopify and deletes the subscription
 
         // [GINVEN] A Shop record with order created webhooks enabled
         Initialize();
-        WebhooksSubcriber.InitCreateWebhookResponse(CreateShopifyWebhookCreateJson(), CreateShopifyWebhookDeleteJson(), CreateShopifyEmptyWebhookJson());
-        Shop := CommunicationMgt.GetShopRecord();
-        BindSubscription(WebhooksSubcriber);
         if not Shop."Order Created Webhooks" then begin
+            OutboundHttpRequests.Enqueue('GetWebhooks');
+            OutboundHttpRequests.Enqueue('CreateWebhook');
             Shop.Validate("Order Created Webhooks", true);
             Shop.Modify();
         end;
 
         // [WHEN] Order created webhooks are disabled
+        OutboundHttpRequests.Enqueue('GetWebhooks');
+        OutboundHttpRequests.Enqueue('DeleteWebhook');
         Shop.Validate("Order Created Webhooks", false);
 
         // [THEN] Subscription is deleted and id field is cleared
         LibraryAssert.AreEqual(Shop."Order Created Webhook Id", '', 'Subscription id should be cleared.');
         WebhookSubscription.SetRange(Endpoint, Format("Shpfy Webhook Topic"::ORDERS_CREATE));
         LibraryAssert.RecordIsEmpty(WebhookSubscription);
-        Clear();
+        ClearTestData();
     end;
 
     [Test]
+    [HandlerFunctions('WebhookHttpHandler')]
     procedure TestNotificationSchedulesOrderSyncJob()
     var
-        Shop: Record "Shpfy Shop";
         JobQueueEntry: Record "Job Queue Entry";
-        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
     begin
         // [SCENARIO] Creating a webhook notification for orders/create schedules order sync
 
         // [GINVEN] A Shop record with order created webhooks enabled
         Initialize();
-        WebhooksSubcriber.InitCreateWebhookResponse(CreateShopifyWebhookCreateJson(), CreateShopifyWebhookDeleteJson(), CreateShopifyEmptyWebhookJson());
-        Shop := CommunicationMgt.GetShopRecord();
-        BindSubscription(WebhooksSubcriber);
         if not Shop."Order Created Webhooks" then begin
+            OutboundHttpRequests.Enqueue('GetWebhooks');
+            OutboundHttpRequests.Enqueue('CreateWebhook');
             Shop.Validate("Order Created Webhooks", true);
             Shop.Modify();
         end;
@@ -134,25 +165,23 @@ codeunit 139612 "Shpfy Webhooks Test"
         JobQueueEntry.SetRange("Object ID to Run", Report::"Shpfy Sync Orders from Shopify");
         JobQueueEntry.FindFirst();
         LibraryAssert.AreEqual(JobQueueEntry."Job Queue Category Code", 'SHPFY', 'Job queue category should be SHPFY.');
-        Clear();
+        ClearTestData();
     end;
 
     [Test]
+    [HandlerFunctions('WebhookHttpHandler')]
     procedure TestNotificationDoesNotScheduleOrderSyncJobIfAlreadyExists()
     var
-        Shop: Record "Shpfy Shop";
         JobQueueEntry: Record "Job Queue Entry";
-        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
         JobQueueEntryId: Guid;
     begin
         // [SCENARIO] Creating a webhook notification for orders/create does not schedule order sync if there is a ready job queue already
 
         // [GINVEN] A Shop record with order created webhooks enabled and a ready job queue entry
         Initialize();
-        WebhooksSubcriber.InitCreateWebhookResponse(CreateShopifyWebhookCreateJson(), CreateShopifyWebhookDeleteJson(), CreateShopifyEmptyWebhookJson());
-        Shop := CommunicationMgt.GetShopRecord();
-        BindSubscription(WebhooksSubcriber);
         if not Shop."Order Created Webhooks" then begin
+            OutboundHttpRequests.Enqueue('GetWebhooks');
+            OutboundHttpRequests.Enqueue('CreateWebhook');
             Shop.Validate("Order Created Webhooks", true);
             Shop.Modify();
         end;
@@ -165,26 +194,26 @@ codeunit 139612 "Shpfy Webhooks Test"
         JobQueueEntry.SetRange("Object Type to Run", JobQueueEntry."Object Type to Run"::Report);
         JobQueueEntry.SetRange("Object ID to Run", Report::"Shpfy Sync Orders from Shopify");
         LibraryAssert.RecordCount(JobQueueEntry, 1);
-        Clear();
+        ClearTestData();
     end;
 
     [Test]
+    [HandlerFunctions('WebhookHttpHandler')]
     procedure TestEnableBulkOperationWebhook()
     var
-        Shop: Record "Shpfy Shop";
         WebhookSubscription: Record "Webhook Subscription";
-        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
         BulkOperationMgt: Codeunit "Shpfy Bulk Operation Mgt.";
     begin
         // [SCENARIO] Enabling connection registers webhook with Shopify and creates a subscription
 
         // [GINVEN] A Shop record
         Initialize();
-        WebhooksSubcriber.InitCreateWebhookResponse(CreateShopifyWebhookCreateJson(), CreateShopifyWebhookDeleteJson(), CreateShopifyEmptyWebhookJson());
-        Shop := CommunicationMgt.GetShopRecord();
-        BindSubscription(WebhooksSubcriber);
         BindSubscription(BulkOpSubscriber);
         WebhookSubscription.DeleteAll();
+
+        // [GIVEN] Register Expected Outbound API Requests (get webhooks, create webhook).
+        OutboundHttpRequests.Enqueue('GetWebhooks');
+        OutboundHttpRequests.Enqueue('CreateWebhook');
 
         // [WHEN] Shop is enabled
         BulkOperationMgt.EnableBulkOperations(Shop);
@@ -193,22 +222,29 @@ codeunit 139612 "Shpfy Webhooks Test"
         LibraryAssert.AreEqual(Shop."Bulk Operation Webhook Id", SubscriptionId, 'Subscription id should be filled.');
         WebhookSubscription.SetRange(Endpoint, Format("Shpfy Webhook Topic"::BULK_OPERATIONS_FINISH));
         LibraryAssert.RecordCount(WebhookSubscription, 1);
-        Clear();
+        ClearTestData();
     end;
 
     [Test]
+    [HandlerFunctions('WebhookHttpHandler')]
     procedure TestDisableBulkOperationWebhooks()
     var
-        Shop: Record "Shpfy Shop";
         WebhookSubscription: Record "Webhook Subscription";
-        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        BulkOperationMgt: Codeunit "Shpfy Bulk Operation Mgt.";
     begin
         // [SCENARIO] Disabling shop deletes the webhook from Shopify and deletes the subscription
 
-        // [GINVEN] A Shop record
+        // [GINVEN] A Shop record with bulk operation webhooks enabled
         Initialize();
-        Shop := CommunicationMgt.GetShopRecord();
-        BindSubscription(WebhooksSubcriber);
+        BindSubscription(BulkOpSubscriber);
+        if Shop."Bulk Operation Webhook Id" = '' then begin
+            OutboundHttpRequests.Enqueue('GetWebhooks');
+            OutboundHttpRequests.Enqueue('CreateWebhook');
+            BulkOperationMgt.EnableBulkOperations(Shop);
+        end;
+
+        // [GIVEN] Register Expected Outbound API Requests (delete webhook).
+        OutboundHttpRequests.Enqueue('DeleteWebhook');
 
         // [WHEN] Shop is disabled
         Shop.Validate(Enabled, false);
@@ -217,15 +253,14 @@ codeunit 139612 "Shpfy Webhooks Test"
         LibraryAssert.AreEqual(Shop."Bulk Operation Webhook Id", '', 'Subscription id should be cleared.');
         WebhookSubscription.SetRange(Endpoint, Format("Shpfy Webhook Topic"::BULK_OPERATIONS_FINISH));
         LibraryAssert.RecordIsEmpty(WebhookSubscription);
-        Clear();
+        ClearTestData();
     end;
 
     [Test]
+    [HandlerFunctions('WebhookHttpHandler')]
     procedure TestBulkOperationNotification()
     var
-        Shop: Record "Shpfy Shop";
         BulkOperation: Record "Shpfy Bulk Operation";
-        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
         BulkOperationMgt: Codeunit "Shpfy Bulk Operation Mgt.";
         BulkOperationId: BigInteger;
         BulkOperationSystemId: Guid;
@@ -234,12 +269,14 @@ codeunit 139612 "Shpfy Webhooks Test"
 
         // [GINVEN] A Shop record and a bulk operation
         Initialize();
-        WebhooksSubcriber.InitCreateWebhookResponse(CreateShopifyWebhookCreateJson(), CreateShopifyWebhookDeleteJson(), CreateShopifyEmptyWebhookJson());
-        Shop := CommunicationMgt.GetShopRecord();
-        BindSubscription(WebhooksSubcriber);
         BindSubscription(BulkOpSubscriber);
         BulkOperationId := LibraryRandom.RandIntInRange(100000, 999999);
         BulkOperationSystemId := CreateBulkOperation(Shop, BulkOperationId);
+
+        // [GIVEN] Register Expected Outbound API Requests (get webhooks, create webhook for EnableBulkOperations, then bulk op status check).
+        OutboundHttpRequests.Enqueue('GetWebhooks');
+        OutboundHttpRequests.Enqueue('CreateWebhook');
+        OutboundHttpRequests.Enqueue('BulkOperationStatus');
 
         // [WHEN] A notification is inserted
         BulkOperationMgt.EnableBulkOperations(Shop);
@@ -249,6 +286,42 @@ codeunit 139612 "Shpfy Webhooks Test"
         BulkOperation.GetBySystemId(BulkOperationSystemId);
         LibraryAssert.AreEqual(BulkOperation.Status, BulkOperation.Status::Completed, 'Bulk operation status should be completed.');
         LibraryAssert.AreNotEqual(BulkOperation."Completed At", 0DT, 'Bulk operation completed at should be filled.');
+        ClearTestData();
+    end;
+
+    [HttpClientHandler]
+    internal procedure WebhookHttpHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    var
+        ResponseBody: Text;
+        ResponseKey: Text;
+    begin
+        if not InitializeTest.VerifyRequestUrl(Request.Path, Shop."Shopify URL") then
+            exit(true);
+
+        ResponseKey := OutboundHttpRequests.DequeueText();
+
+        case ResponseKey of
+            'GetWebhooks':
+                begin
+                    CreateShopifyEmptyWebhookJson().WriteTo(ResponseBody);
+                    Response.Content.WriteFrom(ResponseBody);
+                end;
+            'CreateWebhook':
+                begin
+                    CreateShopifyWebhookCreateJson().WriteTo(ResponseBody);
+                    Response.Content.WriteFrom(ResponseBody);
+                end;
+            'DeleteWebhook':
+                begin
+                    CreateShopifyWebhookDeleteJson().WriteTo(ResponseBody);
+                    Response.Content.WriteFrom(ResponseBody);
+                end;
+            'BulkOperationStatus':
+                Response.Content.WriteFrom('{"data":{"node":{"id":"gid://shopify/BulkOperation/1","status":"COMPLETED","url":"https://storage.googleapis.com/result.jsonl","completedAt":"2026-03-17T00:00:00Z"}}}');
+            else
+                Response.Content.WriteFrom('{"data":{}}');
+        end;
+        exit(false);
     end;
 
     local procedure InsertNotification(ShopifyURL: Text[250]; Topic: Text[250]; Notification: Text)
@@ -267,12 +340,12 @@ codeunit 139612 "Shpfy Webhooks Test"
         WebhookNotification.Insert();
     end;
 
-    local procedure CreateJobQueueEntry(Shop: Record "Shpfy Shop"; ReportId: Integer): Guid
+    local procedure CreateJobQueueEntry(Shop2: Record "Shpfy Shop"; ReportId: Integer): Guid
     var
         JobQueueEntry: Record "Job Queue Entry";
         OrderParametersTxt: Label '<?xml version="1.0" standalone="yes"?><ReportParameters name="Sync Orders from Shopify" id="30104"><DataItems><DataItem name="Shop">%1</DataItem><DataItem name="OrdersToImport">VERSION(1) SORTING(Field1)</DataItem></DataItems></ReportParameters>', Comment = '%1 = Shop Record View', Locked = true;
     begin
-        Shop.SetFilter(Code, Shop.Code);
+        Shop2.SetFilter(Code, Shop2.Code);
         JobQueueEntry."Object Type to Run" := JobQueueEntry."Object Type to Run"::Report;
         JobQueueEntry."Object ID to Run" := ReportId;
         JobQueueEntry."Report Output Type" := JobQueueEntry."Report Output Type"::"None (Processing only)";
@@ -280,7 +353,7 @@ codeunit 139612 "Shpfy Webhooks Test"
         JobQueueEntry."Job Queue Category Code" := 'SHPFY';
         JobQueueEntry.Status := JobQueueEntry.Status::Ready;
         JobQueueEntry.Insert();
-        JobQueueEntry.SetXmlContent(StrSubstNo(OrderParametersTxt, Shop.GetView()));
+        JobQueueEntry.SetXmlContent(StrSubstNo(OrderParametersTxt, Shop2.GetView()));
         exit(JobQueueEntry.ID);
     end;
 
@@ -313,12 +386,12 @@ codeunit 139612 "Shpfy Webhooks Test"
         exit(Result);
     end;
 
-    local procedure CreateBulkOperation(Shop: Record "Shpfy Shop"; BulkOperationId: BigInteger): Guid
+    local procedure CreateBulkOperation(Shop2: Record "Shpfy Shop"; BulkOperationId: BigInteger): Guid
     var
         BulkOperation: Record "Shpfy Bulk Operation";
     begin
         BulkOperation."Bulk Operation Id" := BulkOperationId;
-        BulkOperation."Shop Code" := Shop.Code;
+        BulkOperation."Shop Code" := Shop2.Code;
         BulkOperation.Type := BulkOperation.Type::mutation;
         BulkOperation.Status := BulkOperation.Status::Created;
         BulkOperation.Insert();

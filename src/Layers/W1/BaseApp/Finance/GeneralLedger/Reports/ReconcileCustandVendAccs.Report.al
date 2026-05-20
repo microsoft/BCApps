@@ -488,16 +488,88 @@ report 33 "Reconcile Cust. and Vend. Accs"
         AmountTotal: Decimal;
         AccountType: Text[1024];
 
+    var
+        CustBlankPGCachedGroups: Dictionary of [Code[20], Decimal];
+        CustBlankPGCreditCache: Dictionary of [Text, Decimal];
+        CustBlankPGDebitCache: Dictionary of [Text, Decimal];
+        VendBlankPGCachedGroups: Dictionary of [Code[20], Decimal];
+        VendBlankPGCreditCache: Dictionary of [Text, Decimal];
+        VendBlankPGDebitCache: Dictionary of [Text, Decimal];
+
+    local procedure EnsureCustBlankPGCache(PostingGr: Code[20])
+    var
+        ReconCustPostingGrSum: Query "Recon. Cust. Posting Gr. Sum";
+        EntryTypeInt: Integer;
+        CacheKey: Text;
+        TotalAmount: Decimal;
+    begin
+        if CustBlankPGCachedGroups.ContainsKey(PostingGr) then
+            exit;
+
+        TotalAmount := 0;
+
+        ReconCustPostingGrSum.SetRange(CustomerPostingGroup, PostingGr);
+        ReconCustPostingGrSum.SetRange(PostingGroup, '');
+        ReconCustPostingGrSum.SetFilter(PostingDate, "G/L Account".GetFilter("Date Filter"));
+        ReconCustPostingGrSum.Open();
+        while ReconCustPostingGrSum.Read() do begin
+            EntryTypeInt := ReconCustPostingGrSum.EntryType.AsInteger();
+            CacheKey := PostingGr + '|' + Format(EntryTypeInt);
+            CustBlankPGCreditCache.Set(CacheKey, ReconCustPostingGrSum.SumCreditAmountLCY);
+            CustBlankPGDebitCache.Set(CacheKey, ReconCustPostingGrSum.SumDebitAmountLCY);
+            TotalAmount += ReconCustPostingGrSum.SumAmountLCY;
+        end;
+        ReconCustPostingGrSum.Close();
+
+        CustBlankPGCachedGroups.Set(PostingGr, TotalAmount);
+    end;
+
+    local procedure EnsureVendBlankPGCache(PostingGr: Code[20])
+    var
+        ReconVendPostingGrSum: Query "Recon. Vend. Posting Gr. Sum";
+        EntryTypeInt: Integer;
+        CacheKey: Text;
+        TotalAmount: Decimal;
+    begin
+        if VendBlankPGCachedGroups.ContainsKey(PostingGr) then
+            exit;
+
+        TotalAmount := 0;
+
+        ReconVendPostingGrSum.SetRange(VendorPostingGroup, PostingGr);
+        ReconVendPostingGrSum.SetRange(PostingGroup, '');
+        ReconVendPostingGrSum.SetFilter(PostingDate, "G/L Account".GetFilter("Date Filter"));
+        ReconVendPostingGrSum.Open();
+        while ReconVendPostingGrSum.Read() do begin
+            EntryTypeInt := ReconVendPostingGrSum.EntryType.AsInteger();
+            CacheKey := PostingGr + '|' + Format(EntryTypeInt);
+            VendBlankPGCreditCache.Set(CacheKey, ReconVendPostingGrSum.SumCreditAmountLCY);
+            VendBlankPGDebitCache.Set(CacheKey, ReconVendPostingGrSum.SumDebitAmountLCY);
+            TotalAmount += ReconVendPostingGrSum.SumAmountLCY;
+        end;
+        ReconVendPostingGrSum.Close();
+
+        VendBlankPGCachedGroups.Set(PostingGr, TotalAmount);
+    end;
+
     local procedure CalcCustAccAmount(PostingGr: Code[20]): Decimal
     var
         DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
         CustAccAmount: Decimal;
+        CachedAmount: Decimal;
     begin
-        DtldCustLedgEntry.SetCurrentKey("Posting Group", "Posting Date");
+        // Pass 1: detail entries explicitly stamped with this posting group (multi-posting-group customers).
+        DtldCustLedgEntry.SetLoadFields("Amount (LCY)");
         DtldCustLedgEntry.SetRange("Posting Group", PostingGr);
         "G/L Account".CopyFilter("Date Filter", DtldCustLedgEntry."Posting Date");
         DtldCustLedgEntry.CalcSums("Amount (LCY)");
-        CustAccAmount := CustAccAmount + DtldCustLedgEntry."Amount (LCY)";
+        CustAccAmount := DtldCustLedgEntry."Amount (LCY)";
+
+        // Pass 2: detail entries with blank Posting Group attributed to the customer's current master
+        // posting group. Uses multi-entry cached query result to avoid repeated SQL round-trips.
+        EnsureCustBlankPGCache(PostingGr);
+        if CustBlankPGCachedGroups.Get(PostingGr, CachedAmount) then
+            CustAccAmount += CachedAmount;
 
         exit(CustAccAmount);
     end;
@@ -506,13 +578,21 @@ report 33 "Reconcile Cust. and Vend. Accs"
     var
         DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
         CustCreditAmount: Decimal;
+        CachedAmount: Decimal;
     begin
-        DtldCustLedgEntry.SetCurrentKey("Posting Group", "Posting Date", "Entry Type");
+        // Pass 1: detail entries explicitly stamped with this posting group (multi-posting-group customers).
+        DtldCustLedgEntry.SetLoadFields("Credit Amount (LCY)");
         DtldCustLedgEntry.SetRange("Posting Group", PostingGr);
         DtldCustLedgEntry.SetRange("Entry Type", EntryType);
         "G/L Account".CopyFilter("Date Filter", DtldCustLedgEntry."Posting Date");
         DtldCustLedgEntry.CalcSums("Credit Amount (LCY)");
-        CustCreditAmount := CustCreditAmount + DtldCustLedgEntry."Credit Amount (LCY)";
+        CustCreditAmount := DtldCustLedgEntry."Credit Amount (LCY)";
+
+        // Pass 2: detail entries with blank Posting Group attributed to the customer's current master
+        // posting group. Uses multi-entry cached query result to avoid repeated SQL round-trips.
+        EnsureCustBlankPGCache(PostingGr);
+        if CustBlankPGCreditCache.Get(PostingGr + '|' + Format(EntryType.AsInteger()), CachedAmount) then
+            CustCreditAmount += CachedAmount;
 
         exit(CustCreditAmount);
     end;
@@ -521,13 +601,21 @@ report 33 "Reconcile Cust. and Vend. Accs"
     var
         DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
         CustDebitAmount: Decimal;
+        CachedAmount: Decimal;
     begin
-        DtldCustLedgEntry.SetCurrentKey("Posting Group", "Posting Date", "Entry Type");
+        // Pass 1: detail entries explicitly stamped with this posting group (multi-posting-group customers).
+        DtldCustLedgEntry.SetLoadFields("Debit Amount (LCY)");
         DtldCustLedgEntry.SetRange("Posting Group", PostingGr);
         DtldCustLedgEntry.SetRange("Entry Type", EntryType);
         "G/L Account".CopyFilter("Date Filter", DtldCustLedgEntry."Posting Date");
         DtldCustLedgEntry.CalcSums("Debit Amount (LCY)");
-        CustDebitAmount := CustDebitAmount + DtldCustLedgEntry."Debit Amount (LCY)";
+        CustDebitAmount := DtldCustLedgEntry."Debit Amount (LCY)";
+
+        // Pass 2: detail entries with blank Posting Group attributed to the customer's current master
+        // posting group. Uses multi-entry cached query result to avoid repeated SQL round-trips.
+        EnsureCustBlankPGCache(PostingGr);
+        if CustBlankPGDebitCache.Get(PostingGr + '|' + Format(EntryType.AsInteger()), CachedAmount) then
+            CustDebitAmount += CachedAmount;
 
         exit(-CustDebitAmount);
     end;
@@ -536,12 +624,20 @@ report 33 "Reconcile Cust. and Vend. Accs"
     var
         DtldVendLedgEntry: Record "Detailed Vendor Ledg. Entry";
         VendAccAmount: Decimal;
+        CachedAmount: Decimal;
     begin
-        DtldVendLedgEntry.SetCurrentKey("Posting Group", "Posting Date");
+        // Pass 1: detail entries explicitly stamped with this posting group (multi-posting-group vendors).
+        DtldVendLedgEntry.SetLoadFields("Amount (LCY)");
         DtldVendLedgEntry.SetRange("Posting Group", PostingGr);
         "G/L Account".CopyFilter("Date Filter", DtldVendLedgEntry."Posting Date");
         DtldVendLedgEntry.CalcSums("Amount (LCY)");
-        VendAccAmount := VendAccAmount + DtldVendLedgEntry."Amount (LCY)";
+        VendAccAmount := DtldVendLedgEntry."Amount (LCY)";
+
+        // Pass 2: detail entries with blank Posting Group attributed to the vendor's current master
+        // posting group. Uses multi-entry cached query result to avoid repeated SQL round-trips.
+        EnsureVendBlankPGCache(PostingGr);
+        if VendBlankPGCachedGroups.Get(PostingGr, CachedAmount) then
+            VendAccAmount += CachedAmount;
 
         exit(VendAccAmount);
     end;
@@ -550,13 +646,21 @@ report 33 "Reconcile Cust. and Vend. Accs"
     var
         DtldVendLedgEntry: Record "Detailed Vendor Ledg. Entry";
         VendCreditAmount: Decimal;
+        CachedAmount: Decimal;
     begin
-        DtldVendLedgEntry.SetCurrentKey("Posting Group", "Posting Date", "Entry Type");
+        // Pass 1: detail entries explicitly stamped with this posting group (multi-posting-group vendors).
+        DtldVendLedgEntry.SetLoadFields("Credit Amount (LCY)");
         DtldVendLedgEntry.SetRange("Posting Group", PostingGr);
         DtldVendLedgEntry.SetRange("Entry Type", EntryType);
         "G/L Account".CopyFilter("Date Filter", DtldVendLedgEntry."Posting Date");
         DtldVendLedgEntry.CalcSums("Credit Amount (LCY)");
-        VendCreditAmount := VendCreditAmount + DtldVendLedgEntry."Credit Amount (LCY)";
+        VendCreditAmount := DtldVendLedgEntry."Credit Amount (LCY)";
+
+        // Pass 2: detail entries with blank Posting Group attributed to the vendor's current master
+        // posting group. Uses multi-entry cached query result to avoid repeated SQL round-trips.
+        EnsureVendBlankPGCache(PostingGr);
+        if VendBlankPGCreditCache.Get(PostingGr + '|' + Format(EntryType.AsInteger()), CachedAmount) then
+            VendCreditAmount += CachedAmount;
 
         exit(VendCreditAmount);
     end;
@@ -565,13 +669,21 @@ report 33 "Reconcile Cust. and Vend. Accs"
     var
         DtldVendLedgEntry: Record "Detailed Vendor Ledg. Entry";
         VendDebitAmount: Decimal;
+        CachedAmount: Decimal;
     begin
-        DtldVendLedgEntry.SetCurrentKey("Posting Group", "Posting Date", "Entry Type");
+        // Pass 1: detail entries explicitly stamped with this posting group (multi-posting-group vendors).
+        DtldVendLedgEntry.SetLoadFields("Debit Amount (LCY)");
         DtldVendLedgEntry.SetRange("Posting Group", PostingGr);
         DtldVendLedgEntry.SetRange("Entry Type", EntryType);
         "G/L Account".CopyFilter("Date Filter", DtldVendLedgEntry."Posting Date");
         DtldVendLedgEntry.CalcSums("Debit Amount (LCY)");
-        VendDebitAmount := VendDebitAmount + DtldVendLedgEntry."Debit Amount (LCY)";
+        VendDebitAmount := DtldVendLedgEntry."Debit Amount (LCY)";
+
+        // Pass 2: detail entries with blank Posting Group attributed to the vendor's current master
+        // posting group. Uses multi-entry cached query result to avoid repeated SQL round-trips.
+        EnsureVendBlankPGCache(PostingGr);
+        if VendBlankPGDebitCache.Get(PostingGr + '|' + Format(EntryType.AsInteger()), CachedAmount) then
+            VendDebitAmount += CachedAmount;
 
         exit(-VendDebitAmount);
     end;

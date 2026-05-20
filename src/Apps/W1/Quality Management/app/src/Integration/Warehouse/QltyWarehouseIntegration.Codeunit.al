@@ -40,6 +40,7 @@ codeunit 20438 "Qlty. Warehouse Integration"
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         TempTrackingSpecification: Record "Tracking Specification" temporary;
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
+        QltyBatchNotifHelper: Codeunit "Qlty. Batch Notif. Helper";
         DoNotSendSourceVariant: Variant;
         IsHandled: Boolean;
         HasInspection: Boolean;
@@ -60,19 +61,25 @@ codeunit 20438 "Qlty. Warehouse Integration"
         if GetOptionalSourceVariantForWarehouseJournalLine(WarehouseJournalLine, DoNotSendSourceVariant) then
             CollectSourceItemTracking(DoNotSendSourceVariant, TempTrackingSpecification);
 
+        QltyBatchNotifHelper.BeginBatch();
+        QltyBatchNotifHelper.ConfigureForBatch(QltyInspectionCreate);
         TempTrackingSpecification.Reset();
         if TempTrackingSpecification.FindSet() then
             repeat
+                Clear(QltyInspectionHeader);
                 if QltyInspectionCreate.CreateInspectionWithMultiVariants(WarehouseEntry, WarehouseJournalLine, TempTrackingSpecification, DummyVariant, false, QltyInspectionGenRule) then begin
                     HasInspection := true;
                     QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+                    QltyBatchNotifHelper.TrackCreatedInspection(QltyInspectionHeader."No.");
                 end;
             until TempTrackingSpecification.Next() = 0
         else
             if QltyInspectionCreate.CreateInspectionWithMultiVariants(WarehouseEntry, WarehouseJournalLine, DummyVariant, DummyVariant, false, QltyInspectionGenRule) then begin
                 HasInspection := true;
                 QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+                QltyBatchNotifHelper.TrackCreatedInspection(QltyInspectionHeader."No.");
             end;
+        QltyBatchNotifHelper.EndBatch();
 
         OnAfterWarehouseAttemptCreateInspectionWithWhseJournalLine(HasInspection, QltyInspectionHeader, WarehouseEntry, WarehouseJournalLine, DoNotSendSourceVariant);
     end;

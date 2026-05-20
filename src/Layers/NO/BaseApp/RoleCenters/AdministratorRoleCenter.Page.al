@@ -172,6 +172,14 @@ page 9018 "Administrator Role Center"
                 RunObject = Page "Approval User Setup";
                 ToolTip = 'View or edit information about workflow users who are involved in approval processes, such as approval amount limits for specific types of requests and substitute approvers to whom approval requests are delegated when the original approver is absent.';
             }
+            action("Approval User Overview")
+            {
+                ApplicationArea = All;
+                Caption = 'Approval User Overview';
+                Image = QualificationOverview;
+                RunObject = Page "Approval User Overview";
+                ToolTip = 'Displays an overview of which users are able to approve specific workflows.';
+            }
             action("Workflow User Groups")
             {
                 ApplicationArea = Basic, Suite;

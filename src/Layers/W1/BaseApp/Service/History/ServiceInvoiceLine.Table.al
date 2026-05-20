@@ -55,6 +55,7 @@ table 5993 "Service Invoice Line"
         field(3; "Document No."; Code[20])
         {
             Caption = 'Document No.';
+            TableRelation = "Service Invoice Header";
             ToolTip = 'Specifies the number of the invoice.';
         }
         field(4; "Line No."; Integer)

@@ -2633,5 +2633,15 @@
     "codeunitId": 137404,
     "codeunitName": "SCM Manufacturing",
     "method": "ProductionJournalMultiLevelItemTrackingWorkflow"
+  },
+  {
+    "codeunitId": 137034,
+    "method": "OrphanReservEntryDeletedWhenReopeningProductionJournal",
+    "codeunitName": "SCM Production Journal"
+  },
+  {
+    "codeunitId": 137034,
+    "method": "MultipleOrphanReservEntriesDeletedWhenReopeningProductionJournal",
+    "codeunitName": "SCM Production Journal"
   }
 ]

@@ -22,7 +22,9 @@ codeunit 137297 "SCM Inventory Misc. V"
         LibraryItemReference: Codeunit "Library - Item Reference";
         LibraryManufacturing: Codeunit "Library - Manufacturing";
         LibraryPurchase: Codeunit "Library - Purchase";
+#if not CLEAN29
         LibraryPlanning: Codeunit "Library - Planning";
+#endif
         LibrarySales: Codeunit "Library - Sales";
         LibraryDimension: Codeunit "Library - Dimension";
         LibraryUtility: Codeunit "Library - Utility";
@@ -125,7 +127,7 @@ codeunit 137297 "SCM Inventory Misc. V"
           InventorySetup."Automatic Cost Adjustment", InventorySetup."Average Cost Calc. Type", InventorySetup."Average Cost Period");
         UpdateSalesReceivableSetup(SalesReceivablesSetup."Exact Cost Reversing Mandatory");
     end;
-
+#if not CLEAN29
     [Test]
     [Scope('OnPrem')]
     procedure UnitCostLCYOnPurchOrderWithCurrency()
@@ -244,7 +246,7 @@ codeunit 137297 "SCM Inventory Misc. V"
         // Verify: Verify Starting Date on Production Order Routing when Send-Ahead Quantity is updated.
         VerifyItemLedgerEntryByDocNo(ProductionOrder."No.");
     end;
-
+#endif
     [Test]
     [Scope('OnPrem')]
     procedure UpdateItemJnlDescAfterDeleteVariant()
@@ -418,7 +420,7 @@ codeunit 137297 "SCM Inventory Misc. V"
         FindDirectCostValueEntry(ValueEntry, Item[2]."No.", ItemCharge."No.");
         ValueEntry.TestField("Global Dimension 2 Code", DimensionValue[3].Code);
     end;
-
+#if not CLEAN29
     [Test]
     [Scope('OnPrem')]
     procedure CalcValueEntryCostAmountActualWithDifferentUOM()
@@ -459,7 +461,7 @@ codeunit 137297 "SCM Inventory Misc. V"
         FindPurchRcptLine(PurchRcptLine, Item."No.");
         PurchRcptLine.TestField("Qty. per Unit of Measure", ItemUnitOfMeasure."Qty. per Unit of Measure");
     end;
-
+#endif
     [Test]
     [Scope('OnPrem')]
     procedure CreateItemReferenceDescriptionEmpty()
@@ -1320,10 +1322,10 @@ codeunit 137297 "SCM Inventory Misc. V"
         Initialize();
 
         // [GIVEN] Create Main Item.
-        ProdItem.Get(CreateAndModifyItem('', ProdItem."Flushing Method"::Manual, ProdItem."Replenishment System"::"Prod. Order"));
+        ProdItem.Get(CreateAndModifyItem('', ProdItem."Flushing Method"::"Pick + Manual", ProdItem."Replenishment System"::"Prod. Order"));
 
         // [GIVEN] Create Component Item.
-        CompItem.Get(CreateAndModifyItem('', CompItem."Flushing Method"::Manual, CompItem."Replenishment System"::Purchase));
+        CompItem.Get(CreateAndModifyItem('', CompItem."Flushing Method"::"Pick + Manual", CompItem."Replenishment System"::Purchase));
 
         // [GIVEN] Create Certify Production BOM.
         CreateAndCertifyProductionBOM(ProductionBOMHeader, ProdItem."Base Unit of Measure", CompItem."No.", '');
@@ -1450,6 +1452,7 @@ codeunit 137297 "SCM Inventory Misc. V"
         exit(WorkCenter."No.");
     end;
 
+#if not CLEAN29
     local procedure CreateWorkCenterWithSubcontractor(var WorkCenter: Record "Work Center")
     begin
         LibraryManufacturing.CreateWorkCenterWithCalendar(WorkCenter);
@@ -1463,6 +1466,7 @@ codeunit 137297 "SCM Inventory Misc. V"
         Item.Validate("Routing No.", CreateRoutingSetup(WorkCenterNo, ''));
         Item.Modify(true);
     end;
+#endif
 
     local procedure CreateAndCertifyProductionBOM(var ProductionBOMHeader: Record "Production BOM Header"; BaseUnitOfMeasure: Code[10]; No: Code[20]; RoutingLinkCode: Code[10])
     var
@@ -1607,6 +1611,7 @@ codeunit 137297 "SCM Inventory Misc. V"
         ItemJournalLine.Modify(true);
     end;
 
+#if not CLEAN29
     local procedure CreateItemUnitOfMeasureWithDescription(var ItemUnitOfMeasure: Record "Item Unit of Measure"; ItemNo: Code[20]; UOMQtyPer: Decimal)
     var
         UnitOfMeasure: Record "Unit of Measure";
@@ -1616,6 +1621,7 @@ codeunit 137297 "SCM Inventory Misc. V"
         UnitOfMeasure.Modify(true);
         LibraryInventory.CreateItemUnitOfMeasure(ItemUnitOfMeasure, ItemNo, UnitOfMeasure.Code, UOMQtyPer);
     end;
+#endif
 
     local procedure CreateCurrency(): Code[10]
     var
@@ -1671,7 +1677,7 @@ codeunit 137297 "SCM Inventory Misc. V"
         LibraryInventory.CreateItemCharge(ItemCharge);
         CreateSameCodeDefaultDimensionValue(DimensionValue, DimensionCode, DATABASE::"Item Charge", ItemCharge."No.");
     end;
-
+#if not CLEAN29
     local procedure CarryOutAMSubcontractWksh(No: Code[20]; ItemNo: Code[20])
     var
         GeneralPostingSetup: Record "General Posting Setup";
@@ -1682,7 +1688,9 @@ codeunit 137297 "SCM Inventory Misc. V"
     begin
         LibraryERM.FindGeneralPostingSetupInvtFull(GeneralPostingSetup);
         WorkCenter.SetRange("No.", No);
+#pragma warning disable AL0432
         LibraryManufacturing.CalculateSubcontractOrder(WorkCenter);
+#pragma warning restore AL0432
         RequisitionLine.SetRange("No.", ItemNo);
         RequisitionLine.FindFirst();
         RequisitionLine.Validate("Direct Unit Cost", LibraryRandom.RandDec(10, 2));  // take random Direct Cost.
@@ -1695,7 +1703,7 @@ codeunit 137297 "SCM Inventory Misc. V"
             LibraryERM.CreateVATPostingSetup(VATPostingSetup, Vendor."VAT Bus. Posting Group", '');
         LibraryPlanning.CarryOutAMSubcontractWksh(RequisitionLine);
     end;
-
+#endif
     local procedure CreateAndModifyItem(VendorNo: Code[20]; FlushingMethod: Enum "Flushing Method"; ReplenishmentSystem: Enum "Replenishment System"): Code[20]
     var
         Item: Record Item;
@@ -1836,6 +1844,7 @@ codeunit 137297 "SCM Inventory Misc. V"
         LibraryInventory.UpdateInventoryPostingSetup(Location, InventoryPostingGroupCode);
     end;
 
+#if not CLEAN29
     local procedure UpdateUOMInProdOrderLine(ProductionOrder: Record "Production Order"; ItemUnitOfMeasureCode: Code[10])
     var
         ProdOrderLine: Record "Prod. Order Line";
@@ -1844,6 +1853,7 @@ codeunit 137297 "SCM Inventory Misc. V"
         ProdOrderLine.Validate("Unit of Measure Code", ItemUnitOfMeasureCode);
         ProdOrderLine.Modify(true);
     end;
+#endif
 
     local procedure FindAndUpdateProdOrderRoutingLine(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; ProdOrderNo: Code[20])
     begin
@@ -1851,6 +1861,7 @@ codeunit 137297 "SCM Inventory Misc. V"
         ProdOrderRoutingLine.Validate("Send-Ahead Quantity", LibraryRandom.RandInt(10));  // Take random to update Quantity.
     end;
 
+#if not CLEAN29
     local procedure FindPurchLineAndPostPurchOrder(var PurchaseLine: Record "Purchase Line"; ItemNo: Code[20])
     var
         PurchaseHeader: Record "Purchase Header";
@@ -1898,6 +1909,7 @@ codeunit 137297 "SCM Inventory Misc. V"
         PurchaseLine.SetRange("No.", No);
         PurchaseLine.FindFirst();
     end;
+#endif
 
     local procedure FindProductionOrderLine(ProdOrderNo: Code[20]; Status: Enum "Production Order Status"): Integer
     var
@@ -1909,12 +1921,14 @@ codeunit 137297 "SCM Inventory Misc. V"
         exit(ProdOrderLine."Line No.");
     end;
 
+#if not CLEAN29
     local procedure FindProdOrderLine(var ProdOrderLine: Record "Prod. Order Line"; ProductionOrder: Record "Production Order")
     begin
         ProdOrderLine.SetRange(Status, ProductionOrder.Status);
         ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
         ProdOrderLine.FindFirst();
     end;
+#endif
 
     local procedure FindProdOrderRountingLine(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; ProdOrderNo: Code[20]; Type: Enum "Capacity Type")
     begin
@@ -1948,11 +1962,13 @@ codeunit 137297 "SCM Inventory Misc. V"
         ValueEntry.FindFirst();
     end;
 
+#if not CLEAN29
     local procedure FindPurchRcptLine(var PurchRcptLine: Record "Purch. Rcpt. Line"; ItemNo: Code[20])
     begin
         PurchRcptLine.SetRange("No.", ItemNo);
         PurchRcptLine.FindFirst();
     end;
+#endif
 
     local procedure FindWarehouseReceiptNo(SourceDocument: Enum "Warehouse Activity Source Document"; SourceNo: Code[20]): Code[20]
     var
@@ -2111,4 +2127,3 @@ codeunit 137297 "SCM Inventory Misc. V"
         ProductionBOM.OK().Invoke();
     end;
 }
-

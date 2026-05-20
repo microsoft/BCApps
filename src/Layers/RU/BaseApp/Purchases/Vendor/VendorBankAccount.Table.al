@@ -9,6 +9,7 @@ using Microsoft.Finance.Currency;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using Microsoft.Purchases.Payables;
+using System.Automation;
 using System.Email;
 using System.Globalization;
 
@@ -344,6 +345,8 @@ table 288 "Vendor Bank Account"
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         Vendor: Record Vendor;
     begin
+        ApprovalsMgmt.OnCancelVendorBankAccountApprovalRequest(Rec);
+
         VendorLedgerEntry.SetRange("Vendor No.", "Vendor No.");
         VendorLedgerEntry.SetRange("Recipient Bank Account", Code);
         VendorLedgerEntry.SetRange(Open, true);
@@ -357,12 +360,22 @@ table 288 "Vendor Bank Account"
     end;
 
     trigger OnRename()
+    var
+        IsHandled: Boolean;
     begin
+        IsHandled := false;
+        OnBeforeOnRename(Rec, xRec, IsHandled);
+        if IsHandled then
+            exit;
+
+        ApprovalsMgmt.OnRenameRecordInApprovalRequest(xRec.RecordId, RecordId);
+
     end;
 
     var
         PostCode: Record "Post Code";
         BankDir: Record "Bank Directory";
+        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
 #pragma warning disable AA0074
 #pragma warning disable AA0470
         Text12400: Label 'Corr. Account %1 corresponds to the bank %2 %3\Do you agree?';
@@ -405,6 +418,11 @@ table 288 "Vendor Bank Account"
 
         if "Bank Account No." <> '' then
             exit("Bank Account No.");
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeOnRename(var VendorBankAccount: Record "Vendor Bank Account"; xVendorBankAccount: Record "Vendor Bank Account"; var IsHandled: Boolean)
+    begin
     end;
 
     [IntegrationEvent(true, false)]

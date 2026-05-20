@@ -393,7 +393,13 @@ page 2901 "Demand Forecast Card"
 
     protected procedure SetMatrix()
     begin
+        OnBeforeSetMatrix(Rec, MatrixColumnCaptions, MatrixRecords, CurrentSetLength);
         CurrPage.Matrix.PAGE.Load(MatrixColumnCaptions, MatrixRecords, Rec.Name, Rec."Date Filter", Rec."Forecast Type", Rec."Quantity Type", CurrentSetLength, Rec.GetItemFilterBlobAsViewFilters(), Rec.GetLocationFilterBlobAsText(), Rec."Forecast By Locations", Rec."Forecast By Variants", Rec.GetVariantFilterBlobAsText());
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeSetMatrix(var ProductionForecastName: Record "Production Forecast Name"; MatrixColumnCaptions: array[32] of Text[1024]; var MatrixRecords: array[32] of Record Date; CurrentSetLength: Integer)
+    begin
     end;
 }
 

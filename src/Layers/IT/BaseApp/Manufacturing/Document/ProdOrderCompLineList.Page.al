@@ -143,6 +143,11 @@ page 5407 "Prod. Order Comp. Line List"
                     AutoFormatType = 0;
                     ApplicationArea = Manufacturing;
                 }
+                field("Act. Consumption (Qty)"; Rec."Act. Consumption (Qty)")
+                {
+                    ApplicationArea = Manufacturing;
+                    Caption = 'Consumed Quantity (Base)';
+                }
 #if not CLEAN27
                 field("Qty. on Transfer Order (Base)"; Rec."Qty. on Transfer Order (Base)")
                 {

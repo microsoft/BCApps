@@ -5779,7 +5779,7 @@
                                     <TablixMembers>
                                       <TablixMember>
                                         <Visibility>
-                                          <Hidden>=(First(Fields!SelltoCustomerNo.Value, "Table_ShipToAdress") = First(Fields!BilltoCustumerNo.Value, "Table_ShipToAdress"))</Hidden>
+                                          <Hidden>=IIF((First(Fields!SelltoCustomerNo.Value, "Table_ShipToAdress") &amp; "") = (First(Fields!BilltoCustumerNo.Value, "Table_ShipToAdress") &amp; ""), True, False)</Hidden>
                                         </Visibility>
                                       </TablixMember>
                                       <TablixMember />
@@ -5813,7 +5813,7 @@
                               <Width>18.02485cm</Width>
                               <ZIndex>4</ZIndex>
                               <Visibility>
-                                <Hidden>=NOT Fields!ShowShippingAddress.Value</Hidden>
+                                <Hidden>=IIF(Fields!ShowShippingAddress.Value, False, True)</Hidden>
                               </Visibility>
                               <DataElementOutput>NoOutput</DataElementOutput>
                               <Style>

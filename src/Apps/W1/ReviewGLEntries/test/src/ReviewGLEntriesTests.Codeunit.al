@@ -15,7 +15,8 @@ codeunit 139759 "Review G/L Entries Tests"
         LibraryUtility: Codeunit "Library - Utility";
         LibraryRandom: Codeunit "Library - Random";
         ReviewGLEntry: Codeunit "Review G/L Entry";
-
+        IsInitialized: Boolean;
+        EntryNotReviewedErr: Label 'G/L Entry %1 should be reviewed', Comment = '%1 = Entry No.';
 
     [Test]
     procedure ZeroEntries()
@@ -161,6 +162,72 @@ codeunit 139759 "Review G/L Entries Tests"
         Assert.ExpectedError('Amount to Review must not be larger than Remaining Amount');
     end;
 
+    [Test]
+    procedure ReviewMarkedEntriesProcessesAllEntries()
+    var
+        GLAccount: Record "G/L Account";
+        GLEntry: Record "G/L Entry";
+        GLEntryReviewLog: Record "G/L Entry Review Log";
+        EntryCount: Integer;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] Reviewing entries via marked recordset processes all entries
+        Initialize();
+
+        // [GIVEN] G/L Account "A" with Allow Review policy and G/L Entries
+        CreateGeneralLedgerEntriesForGLAccount(GLAccount, "Review Policy Type"::"Allow Review", false, false);
+
+        // [GIVEN] Entries selected via marks simulating Ctrl+A page selection
+        GLEntry.SetRange("G/L Account No.", GLAccount."No.");
+        GLEntry.FindSet();
+        repeat
+            GLEntry.Mark(true);
+        until GLEntry.Next() = 0;
+        EntryCount := GLEntry.Count();
+        GLEntry.MarkedOnly(true);
+
+        // [WHEN] Review entries using marked recordset
+        ReviewGLEntry.ReviewEntries(GLEntry);
+
+        // [THEN] Review log contains one entry per G/L Entry
+        GLEntryReviewLog.SetRange("G/L Account No.", GLAccount."No.");
+        Assert.AreEqual(EntryCount, GLEntryReviewLog.Count(), 'Review log count must equal entry count');
+
+        // [THEN] Every entry has Reviewed = true
+        VerifyAllEntriesReviewed(GLAccount."No.", EntryCount);
+    end;
+
+    [Test]
+    procedure UnreviewMarkedEntriesProcessesAllEntries()
+    var
+        GLAccount: Record "G/L Account";
+        GLEntry: Record "G/L Entry";
+        GLEntryReviewLog: Record "G/L Entry Review Log";
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] Unreviewing entries via marked recordset processes all entries
+        Initialize();
+
+        // [GIVEN] G/L Account "A" with reviewed G/L Entries
+        CreateGeneralLedgerEntriesForGLAccount(GLAccount, "Review Policy Type"::"Allow Review", false, false);
+        GLEntry.SetRange("G/L Account No.", GLAccount."No.");
+        ReviewGLEntry.ReviewEntries(GLEntry);
+
+        // [GIVEN] Entries selected via marks simulating Ctrl+A page selection
+        GLEntry.FindSet();
+        repeat
+            GLEntry.Mark(true);
+        until GLEntry.Next() = 0;
+        GLEntry.MarkedOnly(true);
+
+        // [WHEN] Unreview entries using marked recordset
+        ReviewGLEntry.UnreviewEntries(GLEntry);
+
+        // [THEN] All review log entries are removed
+        GLEntryReviewLog.SetRange("G/L Account No.", GLAccount."No.");
+        Assert.AreEqual(0, GLEntryReviewLog.Count(), 'All review log entries should be removed');
+    end;
+
     local procedure CreateGeneralLedgerEntriesForGLAccount(var GLAccount: record "G/L Account"; ReviewPolicy: enum "Review Policy Type"; RandomAmount: boolean; NonEmptyAmountToReview: boolean)
     var
         Count: Integer;
@@ -225,5 +292,27 @@ codeunit 139759 "Review G/L Entries Tests"
 
                 GLEntry.Modify();
             until GLEntry.Next() = 0;
+    end;
+
+    local procedure Initialize()
+    begin
+        if IsInitialized then
+            exit;
+        IsInitialized := true;
+    end;
+
+    local procedure VerifyAllEntriesReviewed(GLAccountNo: Code[20]; ExpectedCount: Integer)
+    var
+        GLEntry: Record "G/L Entry";
+        ActualCount: Integer;
+    begin
+        GLEntry.SetRange("G/L Account No.", GLAccountNo);
+        GLEntry.FindSet();
+        repeat
+            GLEntry.CalcFields(Reviewed);
+            Assert.IsTrue(GLEntry.Reviewed, StrSubstNo(EntryNotReviewedErr, GLEntry."Entry No."));
+            ActualCount += 1;
+        until GLEntry.Next() = 0;
+        Assert.AreEqual(ExpectedCount, ActualCount, 'Total reviewed entry count mismatch');
     end;
 }

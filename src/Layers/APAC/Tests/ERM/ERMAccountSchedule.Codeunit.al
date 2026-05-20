@@ -6130,6 +6130,82 @@ codeunit 134902 "ERM Account Schedule"
     end;
 
     [Test]
+    procedure ColumnLayoutTotalingAccountsFactbox()
+    var
+        GLAccount: array[3] of Record "G/L Account";
+        ColumnLayout: Record "Column Layout";
+        ColumnLayoutNames: TestPage "Column Layout Names";
+        ColumnLayoutPage: TestPage "Column Layout";
+        GLAccountTotalingFilter: Text;
+    begin
+        // [SCENARIO] The totaling accounts factbox on Column Layout shows the accounts included in the G/L Account Totaling filter.
+        Initialize();
+
+        // [GIVEN] Three accounts and a column layout
+        LibraryERM.CreateGLAccount(GLAccount[1]);
+        LibraryERM.CreateGLAccount(GLAccount[2]);
+        LibraryERM.CreateGLAccount(GLAccount[3]);
+        CreateColumnLayout(ColumnLayout);
+
+        // [WHEN] The G/L Account Totaling field is set account 1 and 3
+        GLAccountTotalingFilter := GLAccount[1]."No." + '|' + GLAccount[3]."No.";
+        ColumnLayoutNames.OpenView();
+        ColumnLayoutNames.GoToKey(ColumnLayout."Column Layout Name");
+        ColumnLayoutPage.Trap();
+        ColumnLayoutNames.EditColumnLayoutSetup.Invoke();
+        ColumnLayoutPage.GLAccountTotaling.SetValue(GLAccountTotalingFilter);
+
+        // [THEN] The totaling accounts factbox shows only the matching accounts
+        Assert.IsTrue(ColumnLayoutPage.TotalingAccountsFactbox.GoToRecord(GLAccount[1]), 'Expected account 1 in totaling accounts factbox.');
+        ColumnLayoutPage.TotalingAccountsFactbox."No.".AssertEquals(GLAccount[1]."No.");
+        ColumnLayoutPage.TotalingAccountsFactbox.Name.AssertEquals(GLAccount[1].Name);
+
+        Assert.IsTrue(ColumnLayoutPage.TotalingAccountsFactbox.GoToRecord(GLAccount[3]), 'Expected account 3 in totaling accounts factbox.');
+        ColumnLayoutPage.TotalingAccountsFactbox."No.".AssertEquals(GLAccount[3]."No.");
+        ColumnLayoutPage.TotalingAccountsFactbox.Name.AssertEquals(GLAccount[3].Name);
+
+        Assert.IsFalse(ColumnLayoutPage.TotalingAccountsFactbox.GoToRecord(GLAccount[2]), 'Unexpected account 2 in totaling accounts factbox.');
+    end;
+
+    [Test]
+    procedure AccountScheduleTotalingAccountsFactbox()
+    var
+        GLAccount: array[3] of Record "G/L Account";
+        AccScheduleName: Record "Acc. Schedule Name";
+        AccScheduleLine: Record "Acc. Schedule Line";
+        AccountSchedulePage: TestPage "Account Schedule";
+        GLAccountTotalingFilter: Text;
+    begin
+        // [SCENARIO] The totaling accounts factbox on Account Schedule shows the accounts included in the Totaling filter.
+        Initialize();
+
+        // [GIVEN] Three accounts and an account schedule line
+        LibraryERM.CreateGLAccount(GLAccount[1]);
+        LibraryERM.CreateGLAccount(GLAccount[2]);
+        LibraryERM.CreateGLAccount(GLAccount[3]);
+        LibraryERM.CreateAccScheduleName(AccScheduleName);
+        LibraryERM.CreateAccScheduleLine(AccScheduleLine, AccScheduleName.Name);
+
+        // [WHEN] The Totaling Type and Totaling fields are set on the Account Schedule page
+        GLAccountTotalingFilter := GLAccount[1]."No." + '|' + GLAccount[3]."No.";
+        OpenAccScheduleEditPage(AccountSchedulePage, AccScheduleName.Name);
+        AccountSchedulePage.GoToRecord(AccScheduleLine);
+        AccountSchedulePage."Totaling Type".SetValue(AccScheduleLine."Totaling Type"::"Posting Accounts");
+        AccountSchedulePage.Totaling.SetValue(GLAccountTotalingFilter);
+
+        // [THEN] The totaling accounts factbox shows only the matching accounts
+        Assert.IsTrue(AccountSchedulePage.TotalingAccountsFactbox.GoToRecord(GLAccount[1]), 'Expected account 1 in totaling accounts factbox.');
+        AccountSchedulePage.TotalingAccountsFactbox."No.".AssertEquals(GLAccount[1]."No.");
+        AccountSchedulePage.TotalingAccountsFactbox.Name.AssertEquals(GLAccount[1].Name);
+
+        Assert.IsTrue(AccountSchedulePage.TotalingAccountsFactbox.GoToRecord(GLAccount[3]), 'Expected account 3 in totaling accounts factbox.');
+        AccountSchedulePage.TotalingAccountsFactbox."No.".AssertEquals(GLAccount[3]."No.");
+        AccountSchedulePage.TotalingAccountsFactbox.Name.AssertEquals(GLAccount[3].Name);
+
+        Assert.IsFalse(AccountSchedulePage.TotalingAccountsFactbox.GoToRecord(GLAccount[2]), 'Unexpected account 2 in totaling accounts factbox.');
+    end;
+
+    [Test]
     procedure AccScheduleWithTotalingTypeAccountCategory()
     var
         ParentGLAccCat: Record "G/L Account Category";

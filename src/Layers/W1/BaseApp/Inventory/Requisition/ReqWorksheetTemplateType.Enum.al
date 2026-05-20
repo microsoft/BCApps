@@ -10,6 +10,14 @@ enum 247 "Req. Worksheet Template Type"
     AssignmentCompatibility = true;
 
     value(0; "Req.") { Caption = 'Requisition'; }
-    value(1; "For. Labor") { Caption = 'Subcontracting'; }
+#if not CLEAN29
+    value(1; "For. Labor")
+    {
+        Caption = 'Subcontracting (Obsolete)';
+        ObsoleteReason = 'Will be replaced by the Subcontracting app';
+        ObsoleteState = Pending;
+        ObsoleteTag = '29.0';
+    }
+#endif
     value(2; "Planning") { Caption = 'Planning'; }
 }

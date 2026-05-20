@@ -24,11 +24,6 @@ codeunit 10500 "Postcode Business Logic"
         SavePostcode: Boolean;
         NoDataRetrievedErr: Label 'Postal code service did not return any results.';
         SavePostcodeSet: Boolean;
-        DiscoverabilityMessageMsg: Label 'You can retrieve and validate addresses based on postcodes.';
-        ConfigureTok: Label 'Configure';
-        DontShowAgainTok: Label 'Don''t show again';
-        NotificationIdTok: Label '3c379efc-509e-4f20-8c0e-e65f9d535a04', Locked = true;
-        DisabledTok: Label 'Disabled', Locked = true;
         ServiceNameTxt: Label 'GetAddress.io', Locked = true;
 
     procedure ShowLookupWindow(var TempEnteredAutocompleteAddress: Record "Autocomplete Address" temporary; ShowInputPage: Boolean; var TempAutocompleteAddress: Record "Autocomplete Address" temporary): Boolean
@@ -94,29 +89,9 @@ codeunit 10500 "Postcode Business Logic"
     end;
 
     procedure ShowDiscoverabilityNotificationIfNeccessary()
-    var
-        PostcodeNotificationMemory: Record "Postcode Notification Memory";
-        TempServiceListNameValueBuffer: Record "Name/Value Buffer" temporary;
-        PostcodeServiceConfig: Record "Postcode Service Config";
-        DiscoverabilityNotification: Notification;
-        RecExists: Boolean;
     begin
-        PostcodeServiceManager.DiscoverPostcodeServices(TempServiceListNameValueBuffer);
-        if TempServiceListNameValueBuffer.IsEmpty() then
-            exit;
-
-        if PostcodeNotificationMemory.Get(UserId) then
-            exit;
-
-        RecExists := PostcodeServiceConfig.FindFirst();
-        if RecExists and (PostcodeServiceConfig.GetServiceKey() <> DisabledTok) then
-            exit;
-
-        DiscoverabilityNotification.Id(NotificationIdTok);
-        DiscoverabilityNotification.Message(DiscoverabilityMessageMsg);
-        DiscoverabilityNotification.AddAction(ConfigureTok, CODEUNIT::"Postcode Business Logic", 'NotificationOnConfigure');
-        DiscoverabilityNotification.AddAction(DontShowAgainTok, CODEUNIT::"Postcode Business Logic", 'NotificationOnDontShowAgain');
-        DiscoverabilityNotification.Send();
+        // This is a deprecated codeunit and it must not add one more discoverability notification on card pages
+        exit;
     end;
 
     procedure NotificationOnConfigure(Notification: Notification)

@@ -266,6 +266,11 @@ page 118 "General Ledger Setup"
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
                 }
+                field(UseConcurrentPosting; Rec."Use Concurrent Posting")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Importance = Additional;
+                }
             }
             group(Control1900309501)
             {

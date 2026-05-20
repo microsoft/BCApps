@@ -206,20 +206,30 @@ report 4408 "EXR Trial Bal by Period Excel"
     local procedure AddGLToDataset(var GLAccount: Record "G/L Account"; PeriodStartDate: Date; PeriodEndDate: Date; Dimension1Code: Code[20]; Dimension2Code: Code[20])
     var
         LocalGLAccount: Record "G/L Account";
+        LocalGLAccountBalance: Record "G/L Account";
     begin
         LocalGLAccount.Copy(GLAccount);
         LocalGLAccount.SetFilter("Global Dimension 1 Filter", Dimension1Code);
         LocalGLAccount.SetFilter("Global Dimension 2 Filter", Dimension2Code);
 
-        LocalGLAccount.CalcFields("Net Change", "Balance at Date");
+        LocalGLAccount.CalcFields("Net Change", "Balance at Date", "Debit Amount", "Credit Amount");
+        // Cumulative debit/credit for balance requires date filter ..EndDate
+        LocalGLAccountBalance.Copy(LocalGLAccount);
+        LocalGLAccountBalance.SetFilter("Date Filter", '..%1', PeriodEndDate);
+        LocalGLAccountBalance.CalcFields("Debit Amount", "Credit Amount");
+
         Clear(EXRTrialBalanceBuffer);
         EXRTrialBalanceBuffer."G/L Account No." := LocalGLAccount."No.";
         EXRTrialBalanceBuffer."Period Start" := PeriodStartDate;
         EXRTrialBalanceBuffer."Period End" := PeriodEndDate;
         EXRTrialBalanceBuffer."Dimension 1 Code" := Dimension1Code;
         EXRTrialBalanceBuffer."Dimension 2 Code" := Dimension2Code;
-        EXRTrialBalanceBuffer.Validate("Net Change", LocalGLAccount."Net Change");
-        EXRTrialBalanceBuffer.Validate("Balance", LocalGLAccount."Balance at Date");
+        EXRTrialBalanceBuffer."Net Change" := LocalGLAccount."Net Change";
+        EXRTrialBalanceBuffer."Net Change (Debit)" := LocalGLAccount."Debit Amount";
+        EXRTrialBalanceBuffer."Net Change (Credit)" := LocalGLAccount."Credit Amount";
+        EXRTrialBalanceBuffer.Balance := LocalGLAccount."Balance at Date";
+        EXRTrialBalanceBuffer."Balance (Debit)" := LocalGLAccountBalance."Debit Amount";
+        EXRTrialBalanceBuffer."Balance (Credit)" := LocalGLAccountBalance."Credit Amount";
         EXRTrialBalanceBuffer.Insert(true);
     end;
 }

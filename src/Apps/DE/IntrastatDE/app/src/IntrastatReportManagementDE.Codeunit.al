@@ -194,13 +194,13 @@ codeunit 11029 IntrastatReportManagementDE
                 '/INSTAT/Envelope/DateTime/date':
                     xmlNodeValue := Format(CreationDate, 0, 9);
                 '/INSTAT/Envelope/DateTime/time':
-                    xmlNodeValue := Format(CreationTime, 0, '<Hours24>:<Minutes,2>:<Seconds,2>');
+                    xmlNodeValue := Format(CreationTime, 0, 9);
                 '/Declaration/declarationId':
                     xmlNodeValue := MessageID;
                 '/Declaration/DateTime/date':
                     xmlNodeValue := Format(CreationDate, 0, 9);
                 '/Declaration/DateTime/time':
-                    xmlNodeValue := Format(CreationTime, 0, '<Hours24>:<Minutes,2>:<Seconds,2>');
+                    xmlNodeValue := Format(CreationTime, 0, 9);
                 '/Declaration/referencePeriod':
                     xmlNodeValue := Format(StartDate, 0, '<Year4>-<Month,2>');
                 '/Declaration/PSIId':
@@ -284,6 +284,7 @@ codeunit 11029 IntrastatReportManagementDE
     procedure SetDataExchExportParameters(var IntrastatReportHeader2: Record "Intrastat Report Header")
     var
         CompanyInformation: Record "Company Information";
+        RoundedDateTime: DateTime;
     begin
         IntrastatReportHeader := IntrastatReportHeader2;
         TestIndicator := IntrastatReportHeader."Test Submission";
@@ -302,8 +303,10 @@ codeunit 11029 IntrastatReportManagementDE
         CompanyInformation.TestField(City);
         CompanyInformation.TestField("Country/Region Code");
 
-        CreationDate := DT2Date(CurrentDateTime);
-        CreationTime := DT2Time(CurrentDateTime);
+        RoundedDateTime := RoundDateTime(CurrentDateTime);
+        CreationDate := DT2Date(RoundedDateTime);
+        CreationTime := DT2Time(RoundedDateTime);
+
         MessageID :=
           GetMaterialNumber() + '-' +
           Format(StartDate, 0, '<Year4><Month,2>') + '-' +
@@ -431,7 +434,10 @@ codeunit 11029 IntrastatReportManagementDE
         TempBlob.CreateInStream(XMLInStream);
         Xmlport.Import(Xmlport::"Imp / Exp Data Exch Def & Map", XMLInStream);
 
-        IntrastatReportSetup.Get();
+        if not IntrastatReportSetup.Get() then begin
+            IntrastatReportSetup.Init();
+            IntrastatReportSetup.Insert();
+        end;
         IntrastatReportSetup."Zip Files" := true;
         IntrastatReportSetup."Data Exch. Def. Code" := 'INTRA-2022-DE';
         IntrastatReportSetup.Modify();

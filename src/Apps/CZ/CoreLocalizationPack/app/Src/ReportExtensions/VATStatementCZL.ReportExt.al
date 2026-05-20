@@ -15,6 +15,7 @@ reportextension 11703 "VAT Statement CZL" extends "VAT Statement"
         {
             trigger OnAfterAfterGetRecord()
             begin
+                TotalAmount := TotalAmount * GetPrintSign();
                 PrepareAmountToShow(TotalAmount);
             end;
         }

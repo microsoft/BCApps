@@ -607,7 +607,7 @@ page 44 "Sales Credit Memo"
                 {
                     ApplicationArea = Location;
                     Importance = Additional;
-                    ToolTip = 'Specifies the location where the items are to be placed when they are received. This field acts as the default location for new lines. You can update the location code for individual lines as needed.';
+                    ToolTip = 'Specifies the code for the location where the items are to be received. When you select the customer and the customer has a location assigned, the value is taken from the Customer card. If the customer has no location, but a Responsibility Center is populated, the location code is taken from the Responsibility Center. If neither is specified, the value is taken from Company Information. This field acts as the default location for new lines. You can update the location code for individual lines as needed.';
                 }
                 field("EU 3-Party Trade"; Rec."EU 3-Party Trade")
                 {

@@ -26,9 +26,9 @@ codeunit 235 "G/L Reg.-Gen. Ledger"
         if IsHandled then
             exit;
 
-        GLEntry.SetCurrentKey("Transaction No.");
-        GLEntry.SetRange("Transaction No.", Rec."No.");
-        PAGE.Run(PAGE::"General Ledger Entries", GLEntry);
+        GLEntry.SetRange("Entry No.", Rec."From Entry No.", Rec."To Entry No.");
+        GLEntry.SetFilter("G/L Register No.", '0|%1', Rec."No.");
+        Page.Run(Page::"General Ledger Entries", GLEntry);
     end;
 
     var

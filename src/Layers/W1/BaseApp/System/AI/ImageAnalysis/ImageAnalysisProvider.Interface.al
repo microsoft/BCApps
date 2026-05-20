@@ -9,7 +9,7 @@ interface "Image Analysis Provider"
     procedure IsLanguageSupported(AnalysisTypes: List of [Enum "Image Analysis Type"]; Language: Integer): Boolean
 
     procedure InvokeAnalysis(var JSONManagement: Codeunit "JSON Management"; BaseUrl: Text; ImageAnalysisKey: SecretText; ImagePath: Text; ImageAnalysisTypes: List of [Enum "Image Analysis Type"]; LanguageId: Integer): Boolean
-
+    procedure SetUseOAuth2(UseOAuth2: Boolean);
     procedure IsMediaSupported(MediaID: Guid): Boolean;
 
     procedure GetLastError(): Text;

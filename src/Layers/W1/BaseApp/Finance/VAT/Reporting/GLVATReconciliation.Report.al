@@ -562,6 +562,8 @@ report 11 "G/L - VAT Reconciliation"
         VATEntryLocal: Record "VAT Entry";
     begin
         VATEntryLocal.Copy(VATEntry2);
+        VATEntryLocal.ReadIsolation := IsolationLevel::ReadCommitted;
+        VATEntryLocal.SetCurrentKey("G/L Acc. No.");
         VATEntryLocal.SetRange("G/L Acc. No.", '');
 
         if not VATEntryLocal.IsEmpty() then

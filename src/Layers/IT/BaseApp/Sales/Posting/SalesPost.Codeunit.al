@@ -269,7 +269,7 @@ codeunit 80 "Sales-Post"
         SendShipmentAlsoQst: Label 'You can take the same actions for the related Sales - Shipment document.\\Do you want to do that now?';
         SuppressCommit: Boolean;
         PostingPreviewNoTok: Label '***', Locked = true;
-        PostingPreviewNoFormatTxt: Label '<Filler Character,0><Integer,6>', Comment = 'Previewed document numbers are displayed in the format ***000000', Locked = true;
+        PostingPreviewNoFormatTxt: Label '<Integer,6><Filler Character,0>', Comment = 'Previewed document numbers are displayed in the format ***000000', Locked = true;
         InvPickExistsErr: Label 'One or more related inventory picks must be registered before you can post the shipment.';
         InvPutAwayExistsErr: Label 'One or more related inventory put-aways must be registered before you can post the receipt.';
         CheckSalesHeaderMsg: Label 'Check sales document fields.';
@@ -5343,6 +5343,8 @@ codeunit 80 "Sales-Post"
                         TempPrepmtSalesLine."Include in VAT Transac. Rep." := not TempPrepmtSalesLine."Prepayment Line";
                         TempPrepmtSalesLine."Shortcut Dimension 1 Code" := TempSalesLine."Shortcut Dimension 1 Code";
                         TempPrepmtSalesLine."Shortcut Dimension 2 Code" := TempSalesLine."Shortcut Dimension 2 Code";
+                        TempPrepmtSalesLine."Gen. Bus. Posting Group" := TempSalesLine."Gen. Bus. Posting Group";
+                        TempPrepmtSalesLine."Gen. Prod. Posting Group" := TempSalesLine."Gen. Prod. Posting Group";
                         TempPrepmtSalesLine."Dimension Set ID" := TempSalesLine."Dimension Set ID";
                         TempPrepmtSalesLine."Line No." := NextLineNo;
                         NextLineNo := NextLineNo + 10000;
@@ -11751,6 +11753,7 @@ codeunit 80 "Sales-Post"
         ReplacePostingDate: Boolean;
         ReplaceDocumentDate: Boolean;
         ReplaceVATDate: Boolean;
+        SkipTestPostingDate: Boolean;
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -11787,6 +11790,13 @@ codeunit 80 "Sales-Post"
         if VATDateExists and (ReplaceVATDate) then begin
             SalesHeader."VAT Reporting Date" := VATDate;
             ModifyHeader := true;
+        end;
+
+        if not ReplacePostingDate then begin
+            SkipTestPostingDate := false;
+            OnValidatePostingAndDocumentDateOnBeforeTestPostingDate(SalesHeader, PostingDateExists, SkipTestPostingDate);
+            if not SkipTestPostingDate then
+                SalesHeader.TestPostingDate(PostingDateExists);
         end;
 
         OnValidatePostingAndDocumentDateOnBeforeSalesHeaderModify(SalesHeader, ModifyHeader);
@@ -12158,7 +12168,7 @@ codeunit 80 "Sales-Post"
 
         ReservEntry.CalcSums("Qty. to Handle (Base)");
         SurplusQtyToHandle := Abs(ReservEntry."Qty. to Handle (Base)");
-        if (QtyReservedForCurrLine + SurplusQtyToHandle) < SalesLine."Qty. to Ship (Base)" then
+        if (QtyReservedForCurrLine + SurplusQtyToHandle) <= SalesLine."Qty. to Ship (Base)" then
             exit;
 
         IsHandled := false;
@@ -14025,6 +14035,11 @@ codeunit 80 "Sales-Post"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCopyAndCheckItemCharge(var SalesHeader: Record "Sales Header"; var TempSalesLine: Record "Sales Line" temporary; var SalesLine: Record "Sales Line"; var InvoiceEverything: Boolean; var AssignError: Boolean; var QtyNeeded: Decimal; var TempItemChargeAssgntSales: Record "Item Charge Assignment (Sales)" temporary; var ItemChargeAssgntSales: Record "Item Charge Assignment (Sales)"; var TempSalesLineGlobal: Record "Sales Line" temporary; var IsHandled: Boolean);
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnValidatePostingAndDocumentDateOnBeforeTestPostingDate(var SalesHeader: Record "Sales Header"; ReplacePostingDate: Boolean; var SkipTestPostingDate: Boolean)
     begin
     end;
 

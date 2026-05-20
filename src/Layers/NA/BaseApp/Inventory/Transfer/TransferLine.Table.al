@@ -15,7 +15,6 @@ using Microsoft.Inventory.Availability;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Location;
-using Microsoft.Inventory.Setup;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Purchases.Document;
 using Microsoft.Warehouse.Document;
@@ -1567,18 +1566,13 @@ table 5741 "Transfer Line"
     /// Checks if the entire quantity on the line is shipped in case of direct Transfer.
     /// </summary>
     procedure CheckDirectTransferQtyToShip()
-    var
-        InventorySetup: Record "Inventory Setup";
     begin
         if "Qty. to Ship" = 0 then
             exit;
 
-        InventorySetup.Get();
-        if InventorySetup."Direct Transfer Posting" <> InventorySetup."Direct Transfer Posting"::"Direct Transfer" then
-            exit;
-
         GetTransferHeaderNoVerification();
-        if TransHeader."Direct Transfer" then begin
+
+        if TransHeader."Direct Transfer" and (TransHeader."Direct Transfer Posting" = TransHeader."Direct Transfer Posting"::"Direct Transfer") then begin
             TestField("Qty. to Ship", Quantity);
             TestField("Qty. to Ship (Base)", "Quantity (Base)");
         end;

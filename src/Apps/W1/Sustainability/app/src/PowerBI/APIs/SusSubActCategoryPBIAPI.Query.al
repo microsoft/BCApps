@@ -6,6 +6,7 @@ query 6217 "SusSub Act Category - PBI API"
 {
     Access = Internal;
     QueryType = API;
+    AboutText = 'Provides access to sustainability account subcategory data including category codes, descriptions, and renewable energy indicators. Enables Power BI reports to organize emission sources, classify energy types, and structure sustainability accounts for detailed environmental analysis.';
     Caption = 'Power BI Sustainability Entries';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';

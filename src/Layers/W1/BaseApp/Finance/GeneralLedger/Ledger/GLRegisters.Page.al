@@ -113,6 +113,10 @@ page 116 "G/L Registers"
                 {
                     ApplicationArea = Basic, Suite;
                 }
+                field("No. of Transactions"; Rec."No. of Transactions")
+                {
+                    ApplicationArea = Basic, Suite;
+                }
             }
         }
         area(factboxes)
@@ -218,6 +222,34 @@ page 116 "G/L Registers"
                     RunPageLink = "G/L Register No." = field("No.");
                     RunPageView = sorting("G/L Register No.");
                     ToolTip = 'View the link between the general ledger entries and the value entries.';
+                }
+                action("Transactions")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Transactions';
+                    Image = GLRegisters;
+                    RunObject = Page "G/L Transactions";
+                    RunPageLink = "G/L Register No." = field("No.");
+                    ToolTip = 'View the general ledger transactions that resulted in the current register entry.';
+                }
+                action("Update Registers")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Update Registers';
+                    Image = Refresh;
+                    ToolTip = 'Update the register information for the selected register entry. Use this action if you have enabled concurrent posting to create G/L transaction records and update G/L Register No. in ledger entries.';
+
+                    trigger OnAction()
+                    var
+                        GLRegister: Record "G/L Register";
+                    begin
+                        CurrPage.SetSelectionFilter(GLRegister);
+                        if GLRegister.FindFirst() then
+                            repeat
+                                GLRegister.UpdateGLEntriesWithRegisterNo();
+                            until GLRegister.Next() = 0;
+                        CurrPage.Update();
+                    end;
                 }
                 action(ChangeDimensions)
                 {

@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Warehouse.Tracking;
 
+using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Ledger;
@@ -345,6 +346,18 @@ table 6550 "Whse. Item Tracking Line"
 #pragma warning restore AA0470
         Text004: Label 'must not be negative';
 #pragma warning restore AA0074
+
+    /// <summary>
+    /// Gets the next entry number for the Whse. Item Tracking Line table using sequence number management.
+    /// </summary>
+    /// <returns>The next available entry number.</returns>
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Whse. Item Tracking Line", 'r')]
+    procedure GetNextEntryNo(): Integer
+    var
+        SequenceNoMgt: Codeunit "Sequence No. Mgt.";
+    begin
+        exit(SequenceNoMgt.GetNextSeqNo(Database::"Whse. Item Tracking Line"));
+    end;
 
     procedure GetLastEntryNo(): Integer;
     var

@@ -79,7 +79,7 @@ table 103321 "WMS Prod. Order Component Ref"
         }
         field(28; "Flushing Method"; Option)
         {
-            OptionMembers = Manual,Forward,Backward,"Pick + Forward","Pick + Backward";
+            OptionMembers = Manual,Forward,Backward,"Pick + Forward","Pick + Backward","Pick + Manual";
         }
         field(30; "Location Code"; Code[10])
         {

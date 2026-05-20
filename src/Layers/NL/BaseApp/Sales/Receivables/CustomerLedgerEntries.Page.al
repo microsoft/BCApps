@@ -304,10 +304,20 @@ page 25 "Customer Ledger Entries"
                     ApplicationArea = Basic, Suite;
                     Editable = false;
                 }
+                field("G/L Register No."; Rec."G/L Register No.")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Editable = false;
+                }
                 field("Transaction Mode Code"; Rec."Transaction Mode Code")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the way a ledger entry can be paid or collected through telebanking.';
+                }
+                field("Transaction No."; Rec."Transaction No.")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Editable = false;
                 }
                 field("Exported to Payment File"; Rec."Exported to Payment File")
                 {

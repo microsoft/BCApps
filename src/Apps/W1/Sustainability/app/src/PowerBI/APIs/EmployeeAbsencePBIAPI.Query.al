@@ -6,6 +6,7 @@ query 6212 "Employee Absence - PBI API"
 {
     Access = Internal;
     QueryType = API;
+    AboutText = 'Provides access to employee absence records including dates, causes, quantities, and descriptions. Enables Power BI reports to analyze workforce attendance patterns, absence trends, and their correlation with sustainability and social responsibility metrics.';
     Caption = 'Power BI Employee Absence';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';

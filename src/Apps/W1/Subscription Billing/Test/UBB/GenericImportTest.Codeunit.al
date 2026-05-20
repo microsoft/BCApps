@@ -15,6 +15,7 @@ codeunit 139888 "Generic Import Test"
         UsageDataBlob: Record "Usage Data Blob";
         UsageDataGenericImport: Record "Usage Data Generic Import";
         UsageDataImport: Record "Usage Data Import";
+        UsageDataSupplier: Record "Usage Data Supplier";
         LibraryPaymentFormat: Codeunit "Library - Payment Format";
         LibraryRandom: Codeunit "Library - Random";
         UsageBasedBTestLibrary: Codeunit "Usage Based B. Test Library";
@@ -52,7 +53,7 @@ codeunit 139888 "Generic Import Test"
     procedure TestIfRelatedDataIsDeletedOnActionDeleteUsageDataBillingLines()
     begin
         Initialize();
-        CreateSimpleUsageDataImport();
+        UsageBasedBTestLibrary.CreateUsageDataImport(UsageDataImport, UsageDataSupplier."No.");
         CreateSimpleUsageDataGenericImport();
         CreateSimpleUsageDataBilling();
 
@@ -73,7 +74,7 @@ codeunit 139888 "Generic Import Test"
         Initialize();
         j := LibraryRandom.RandIntInRange(2, 10);
         for i := 1 to j do begin
-            CreateSimpleUsageDataImport();
+            UsageBasedBTestLibrary.CreateUsageDataImport(UsageDataImport, UsageDataSupplier."No.");
             CreateSimpleUsageDataBlob();
             CreateSimpleUsageDataGenericImport();
         end;
@@ -103,6 +104,7 @@ codeunit 139888 "Generic Import Test"
     begin
         ClearAll();
         UsageBasedBTestLibrary.DeleteAllUsageBasedRecords();
+        UsageBasedBTestLibrary.CreateUsageDataSupplier(UsageDataSupplier, Enum::"Usage Data Supplier Type"::Generic, false, Enum::"Vendor Invoice Per"::Import);
     end;
 
     local procedure CreateGenericImportSettings(SupplierNo: Code[20])
@@ -117,13 +119,6 @@ codeunit 139888 "Generic Import Test"
         LibraryPaymentFormat.CreateDataExchDef(DataExchDef, 0, 0, 0, 0, 0, 0);
         DataExchDef.Validate(Type, DataExchDefType);
         DataExchDef.Modify(false);
-    end;
-
-    local procedure CreateSimpleUsageDataImport()
-    begin
-        UsageDataImport.Init();
-        UsageDataImport."Entry No." := 0;
-        UsageDataImport.Insert(true);
     end;
 
     local procedure CreateSimpleUsageDataBlob()

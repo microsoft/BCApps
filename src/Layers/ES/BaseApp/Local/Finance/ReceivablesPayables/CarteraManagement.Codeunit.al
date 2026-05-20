@@ -165,15 +165,19 @@ codeunit 7000000 CarteraManagement
     procedure InsertReceivableDocs(var CarteraDoc2: Record "Cartera Doc.")
     var
         CarteraDoc: Record "Cartera Doc.";
+        CarteraDocToProcess: Record "Cartera Doc.";
         BankAcc: Record "Bank Account";
         BillGr: Record "Bill Group";
         CarteraSetup: Record "Cartera Setup";
+        Cust: Record Customer;
         CustLedgEntry: Record "Cust. Ledger Entry";
         CarteraDocuments: Page "Cartera Documents";
         CheckDiscCreditLimit: Page "Check Discount Credit Limit";
+        SelectedEntryNos: List of [Integer];
+        EntryNo: Integer;
         SelectedAmount: Decimal;
         GroupNo: Code[20];
-        Cust: Record Customer;
+        CustLedgEntryFound: Boolean;
     begin
         CarteraDoc2.FilterGroup(2);
         CarteraDoc2.SetRange("Bill Gr./Pmt. Order No.");
@@ -231,32 +235,34 @@ codeunit 7000000 CarteraManagement
                 end;
             end;
         end;
-        // check the selected bills and insert them
-        CarteraDoc.SetCurrentKey(Type, "Entry No.");
-        CarteraDoc.Find('-');
-        repeat
-            if CustLedgEntry.Get(CarteraDoc."Entry No.") then
-                if CustLedgEntry."Applies-to ID" <> '' then
-                    Error(EntryIsAppliedErr, CarteraDoc."Document No.", CarteraDoc."No.");
+        if not SnapshotSelectedEntryNos(CarteraDoc, CarteraDoc.Type::Receivable, SelectedEntryNos) then
+            exit;
 
-            CarteraDoc.TestField(Type, CarteraDoc.Type::Receivable);
-            CarteraDoc.TestField("Bill Gr./Pmt. Order No.", '');
-            CarteraDoc.TestField("Currency Code", BillGr."Currency Code");
-            if Cust."No." <> CarteraDoc."Account No." then
-                Cust.Get(CarteraDoc."Account No.");
-            Cust.CheckBlockedCustOnJnls(Cust, GetDocType(CarteraDoc."Document Type"), false);
-            if CarteraDoc.Accepted = CarteraDoc.Accepted::No then
-                CarteraDoc.FieldError(Accepted);
-            CarteraDoc.TestField("Collection Agent", CarteraDoc."Collection Agent"::Bank);
-            CarteraDoc."Bill Gr./Pmt. Order No." := GroupNo;
-            CarteraDoc.Modify();
-            if CustLedgEntry.Get(CarteraDoc."Entry No.") then begin
+        CustLedgEntry.SetLoadFields("Applies-to ID", "Document Situation", "Direct Debit Mandate ID");
+        foreach EntryNo in SelectedEntryNos do begin
+            CarteraDocToProcess.Get(CarteraDocToProcess.Type::Receivable, EntryNo);
+            CustLedgEntryFound := CustLedgEntry.Get(EntryNo);
+            if CustLedgEntryFound then
+                if CustLedgEntry."Applies-to ID" <> '' then
+                    Error(EntryIsAppliedErr, CarteraDocToProcess."Document No.", CarteraDocToProcess."No.");
+
+            CarteraDocToProcess.TestField("Bill Gr./Pmt. Order No.", '');
+            CarteraDocToProcess.TestField("Currency Code", BillGr."Currency Code");
+            if Cust."No." <> CarteraDocToProcess."Account No." then
+                Cust.Get(CarteraDocToProcess."Account No.");
+            Cust.CheckBlockedCustOnJnls(Cust, GetDocType(CarteraDocToProcess."Document Type"), false);
+            if CarteraDocToProcess.Accepted = CarteraDocToProcess.Accepted::No then
+                CarteraDocToProcess.FieldError(Accepted);
+            CarteraDocToProcess.TestField("Collection Agent", CarteraDocToProcess."Collection Agent"::Bank);
+            CarteraDocToProcess."Bill Gr./Pmt. Order No." := GroupNo;
+            CarteraDocToProcess.Modify();
+            if CustLedgEntryFound then begin
                 CustLedgEntry."Document Situation" := CustLedgEntry."Document Situation"::"BG/PO";
                 CustLedgEntry.Modify();
-                CarteraDoc."Direct Debit Mandate ID" := CustLedgEntry."Direct Debit Mandate ID";
+                CarteraDocToProcess."Direct Debit Mandate ID" := CustLedgEntry."Direct Debit Mandate ID";
             end;
-            OnAfterInsertReceivableDocs(CarteraDoc, BillGr);
-        until CarteraDoc.Next() = 0;
+            OnAfterInsertReceivableDocs(CarteraDocToProcess, BillGr);
+        end;
 
         BillGr."No. Printed" := 0;
         BillGr.Modify();
@@ -267,12 +273,9 @@ codeunit 7000000 CarteraManagement
         CarteraDoc: Record "Cartera Doc.";
         PmtOrd: Record "Payment Order";
         CarteraSetup: Record "Cartera Setup";
-        VendLedgEntry: Record "Vendor Ledger Entry";
-        GenJournalLine: Record "Gen. Journal Line";
         Vendor: Record Vendor;
         CarteraDocuments: Page "Cartera Documents";
         GroupNo: Code[20];
-        Vend: Record Vendor;
     begin
         CarteraDoc2.FilterGroup(2);
         CarteraDoc2.SetRange("Bill Gr./Pmt. Order No.");
@@ -318,44 +321,93 @@ codeunit 7000000 CarteraManagement
         Clear(CarteraDocuments);
         if not CarteraDoc.Find('-') then
             exit;
-        // check the selected bills and insert them
-        CarteraDoc.SetCurrentKey(Type, "Entry No.");
-        CarteraDoc.Find('-');
-        repeat
-            if VendLedgEntry.Get(CarteraDoc."Entry No.") then
-                if VendLedgEntry."Applies-to ID" <> '' then
-                    Error(EntryIsAppliedErr, CarteraDoc."Document No.", CarteraDoc."No.");
-            GenJournalLine.Reset();
-            GenJournalLine.SetRange("Applies-to Doc. No.", VendLedgEntry."Document No.");
-            GenJournalLine.SetRange("Account Type", GenJournalLine."Account Type"::Vendor);
-            GenJournalLine.SetRange("Account No.", VendLedgEntry."Vendor No.");
-            if not GenJournalLine.IsEmpty() then
-                Error(EntryIsAppliedErr, CarteraDoc."Document No.", CarteraDoc."No.");
 
-            CarteraDoc.TestField(Type, CarteraDoc.Type::Payable);
-            CarteraDoc.TestField("Bill Gr./Pmt. Order No.", '');
-            CarteraDoc.TestField("Currency Code", PmtOrd."Currency Code");
-            if Vend."No." <> CarteraDoc."Account No." then
-                Vend.Get(CarteraDoc."Account No.");
+        ApplySelectedPayableDocsToPaymentOrder(CarteraDoc, PmtOrd, GroupNo);
+    end;
+
+    /// <summary>
+    /// Applies the user-selected payable cartera documents to the given payment order.
+    /// Iterates the selection via a snapshot of "Entry No." values to avoid the marked-cursor
+    /// drop that occurs when Modify is called inside a loop over a page-supplied recordset.
+    /// </summary>
+    /// <param name="CarteraDoc">The cartera documents selected on the source page (filtered/marked recordset).</param>
+    /// <param name="PmtOrd">The target payment order to which the selected documents are assigned.</param>
+    /// <param name="GroupNo">The payment order number assigned to each selected document.</param>
+    internal procedure ApplySelectedPayableDocsToPaymentOrder(var CarteraDoc: Record "Cartera Doc."; var PmtOrd: Record "Payment Order"; GroupNo: Code[20])
+    var
+        CarteraDocToProcess: Record "Cartera Doc.";
+        VendLedgEntry: Record "Vendor Ledger Entry";
+        GenJournalLine: Record "Gen. Journal Line";
+        Vendor: Record Vendor;
+        SelectedEntryNos: List of [Integer];
+        EntryNo: Integer;
+        VendLedgEntryFound: Boolean;
+    begin
+        if not SnapshotSelectedEntryNos(CarteraDoc, CarteraDoc.Type::Payable, SelectedEntryNos) then
+            exit;
+
+        VendLedgEntry.SetLoadFields("Applies-to ID", "Document No.", "Vendor No.", "Document Situation");
+        foreach EntryNo in SelectedEntryNos do begin
+            CarteraDocToProcess.Get(CarteraDocToProcess.Type::Payable, EntryNo);
+            VendLedgEntryFound := VendLedgEntry.Get(EntryNo);
+            if VendLedgEntryFound then begin
+                if VendLedgEntry."Applies-to ID" <> '' then
+                    Error(EntryIsAppliedErr, CarteraDocToProcess."Document No.", CarteraDocToProcess."No.");
+                GenJournalLine.Reset();
+                GenJournalLine.SetRange("Applies-to Doc. No.", VendLedgEntry."Document No.");
+                GenJournalLine.SetRange("Account Type", GenJournalLine."Account Type"::Vendor);
+                GenJournalLine.SetRange("Account No.", VendLedgEntry."Vendor No.");
+                if not GenJournalLine.IsEmpty() then
+                    Error(EntryIsAppliedErr, CarteraDocToProcess."Document No.", CarteraDocToProcess."No.");
+            end;
+
+            CarteraDocToProcess.TestField("Bill Gr./Pmt. Order No.", '');
+            CarteraDocToProcess.TestField("Currency Code", PmtOrd."Currency Code");
+            if Vendor."No." <> CarteraDocToProcess."Account No." then
+                Vendor.Get(CarteraDocToProcess."Account No.");
 
             if PmtOrd."Export Electronic Payment" then
-                ElectPmtMgmt.GetTransferType(CarteraDoc."Account No.", CarteraDoc."Remaining Amount", CarteraDoc."Transfer Type", false);
+                ElectPmtMgmt.GetTransferType(CarteraDocToProcess."Account No.", CarteraDocToProcess."Remaining Amount", CarteraDocToProcess."Transfer Type", false);
 
-            Vend.CheckBlockedVendOnJnls(Vend, GetDocType(CarteraDoc."Document Type"), false);
-            if CarteraDoc.Accepted = CarteraDoc.Accepted::No then
-                CarteraDoc.FieldError(Accepted);
-            CarteraDoc.TestField("Collection Agent", CarteraDoc."Collection Agent"::Bank);
-            CarteraDoc."Bill Gr./Pmt. Order No." := GroupNo;
-            CarteraDoc.Modify(true);
-            if VendLedgEntry.Get(CarteraDoc."Entry No.") then begin
+            Vendor.CheckBlockedVendOnJnls(Vendor, GetDocType(CarteraDocToProcess."Document Type"), false);
+            if CarteraDocToProcess.Accepted = CarteraDocToProcess.Accepted::No then
+                CarteraDocToProcess.FieldError(Accepted);
+            CarteraDocToProcess.TestField("Collection Agent", CarteraDocToProcess."Collection Agent"::Bank);
+            CarteraDocToProcess."Bill Gr./Pmt. Order No." := GroupNo;
+            CarteraDocToProcess.Modify(true);
+            if VendLedgEntryFound then begin
                 VendLedgEntry."Document Situation" := VendLedgEntry."Document Situation"::"BG/PO";
                 VendLedgEntry.Modify();
             end;
-            OnAfterInsertPayableDocs(CarteraDoc, PmtOrd);
-        until CarteraDoc.Next() = 0;
+            OnAfterInsertPayableDocs(CarteraDocToProcess, PmtOrd);
+        end;
 
         PmtOrd."No. Printed" := 0;
         PmtOrd.Modify();
+    end;
+
+    /// <summary>
+    /// Snapshots the selected entry numbers from a page-supplied Cartera Doc. recordset
+    /// into a list, so callers can iterate independently of the page-supplied cursor and
+    /// avoid the marked-cursor drop that occurs when Modify is called on that recordset.
+    /// </summary>
+    /// <param name="SourceCarteraDoc">The page-supplied selection to snapshot.</param>
+    /// <param name="ExpectedType">The Cartera Doc. Type the caller will process; rows of other types are skipped.</param>
+    /// <param name="SelectedEntryNos">Output: list of selected entry numbers of the expected Type.</param>
+    /// <returns>True when the resulting list is non-empty; false otherwise.</returns>
+    local procedure SnapshotSelectedEntryNos(var SourceCarteraDoc: Record "Cartera Doc."; ExpectedType: Enum "Cartera Document Type"; var SelectedEntryNos: List of [Integer]): Boolean
+    var
+        CarteraDocSnapshot: Record "Cartera Doc.";
+    begin
+        CarteraDocSnapshot.Copy(SourceCarteraDoc);
+        CarteraDocSnapshot.SetLoadFields("Entry No.");
+        if not CarteraDocSnapshot.FindSet() then
+            exit(false);
+        repeat
+            if CarteraDocSnapshot.Type = ExpectedType then
+                SelectedEntryNos.Add(CarteraDocSnapshot."Entry No.");
+        until CarteraDocSnapshot.Next() = 0;
+        exit(SelectedEntryNos.Count() > 0);
     end;
 
     procedure RemoveReceivableDocs(var CarteraDoc2: Record "Cartera Doc.")

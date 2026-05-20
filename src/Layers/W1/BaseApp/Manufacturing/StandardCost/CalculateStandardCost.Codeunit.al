@@ -251,7 +251,7 @@ codeunit 5812 "Calculate Standard Cost"
             CalcAssemblyItem(ItemNo, Item, 0, CalcMfgItems)
         end else
             CalcMfgItem(ItemNo, Item, 0);
-
+        OnCalcItemOnAfterCalculateCosts(Item);
         if TempItem.Find('-') then
             repeat
                 ItemCostMgt.UpdateStdCostShares(TempItem);
@@ -902,6 +902,7 @@ codeunit 5812 "Calculate Standard Cost"
                         CalcProdBOMCost(
                           MfgItem, ProdBOMLine."No.", RtngNo, CompItemQtyBase, false, Level, SLMat, RUMat, RUCap, RUSub, RUCapOvhd, RUMfgOvhd, SLNonInvMat, RUNonInvMat, SKU);
                 end;
+                OnCalcProdBOMCostOnBeforeNextLineIteration(ProdBOMLine, PBOMVersionCode, Level, CompItemQtyBase, CompItem, SLMat);
             until ProdBOMLine.Next() = 0;
     end;
 
@@ -1553,6 +1554,16 @@ codeunit 5812 "Calculate Standard Cost"
 
     [IntegrationEvent(false, false)]
     local procedure OnCalcRtngLineCostOnAfterCalcRoutingCostPerUnit(RoutingLine: Record "Routing Line"; WorkCenter: Record "Work Center"; var MfgItemQtyBase: Decimal; var UnitCostCalculation: Enum "Unit Cost Calculation Type")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCalcItemOnAfterCalculateCosts(var Item: Record Item)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCalcProdBOMCostOnBeforeNextLineIteration(var ProductionBOMLine: Record "Production BOM Line"; PBOMVersionCode: Code[20]; Level: Integer; CompItemQtyBase: Decimal; CompItem: Record Item; SLMat: Decimal)
     begin
     end;
 

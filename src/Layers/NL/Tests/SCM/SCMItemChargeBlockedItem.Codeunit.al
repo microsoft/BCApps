@@ -538,8 +538,6 @@ codeunit 137930 "SCM Item Charge Blocked Item"
           ItemChargeAssignmentPurch, PurchaseLine, ItemChargeAssignPurchApplToDocType, ItemLedgerEntry."Document No.",
           ItemLedgerEntry."Document Line No.", ItemLedgerEntry."Item No.");
         PurchaseHeader.CalcFields("Amount Including VAT");
-        PurchaseHeader.Validate("Doc. Amount Incl. VAT", PurchaseHeader."Amount Including VAT");
-        PurchaseHeader.Modify(true);
     end;
 
     local procedure CreateSalesInvoiceWithItemChargeAssignment(var SalesHeader: Record "Sales Header"; ItemLedgerEntry: Record "Item Ledger Entry"; ItemChargeAssignSalesApplToDocType: Enum "Sales Applies-to Document Type")

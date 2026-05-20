@@ -4362,7 +4362,7 @@ codeunit 137404 "SCM Manufacturing"
         CreateItemWithUOM(CompItem, UnitOfMeasure, ItemUnitOfMeasure);
         CompItem.Validate("Replenishment System", CompItem."Replenishment System"::Purchase);
         CompItem.Validate(Reserve, CompItem.Reserve::Always);
-        CompItem.Validate("Flushing Method", CompItem."Flushing Method"::Manual);
+        CompItem.Validate("Flushing Method", CompItem."Flushing Method"::"Pick + Manual");
         CompItem.Validate("Item Tracking Code", ItemTrackingCode.Code);
         CompItem.Modify(true);
 

@@ -37,6 +37,12 @@ page 99000760 "Machine Center Card"
                     ApplicationArea = Manufacturing;
                     Importance = Promoted;
                 }
+                field("Name 2"; Rec."Name 2")
+                {
+                    ApplicationArea = Manufacturing;
+                    Importance = Additional;
+                    Visible = false;
+                }
                 field("Work Center No."; Rec."Work Center No.")
                 {
                     ApplicationArea = Manufacturing;

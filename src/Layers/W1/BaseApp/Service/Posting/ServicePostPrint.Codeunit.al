@@ -86,6 +86,7 @@ codeunit 5982 "Service-Post+Print"
                     if Invoice then begin
                         ServInvHeader."No." := ServiceHeader."Last Posting No.";
                         ServInvHeader.SetRecFilter();
+                        OnGetReportOnBeforeExportServiceInvoice(ServInvHeader, ServiceHeader);
                         IsHandled := false;
                         OnBeforeServiceInvoiceHeaderPrintRecords(ServInvHeader, IsHandled);
                         if not IsHandled then
@@ -99,6 +100,7 @@ codeunit 5982 "Service-Post+Print"
                     else
                         ServInvHeader."No." := ServiceHeader."Last Posting No.";
                     ServInvHeader.SetRecFilter();
+                    OnGetReportOnBeforeExportServiceInvoice(ServInvHeader, ServiceHeader);
                     IsHandled := false;
                     OnBeforeServiceInvoiceHeaderPrintRecords(ServInvHeader, IsHandled);
                     if not IsHandled then
@@ -111,6 +113,7 @@ codeunit 5982 "Service-Post+Print"
                     else
                         ServCrMemoHeader."No." := ServiceHeader."Last Posting No.";
                     ServCrMemoHeader.SetRecFilter();
+                    OnGetReportOnBeforeExportServiceCrMemo(ServCrMemoHeader, ServiceHeader);
                     IsHandled := false;
                     OnBeforeServiceCrMemoHeaderPrintRecords(ServCrMemoHeader, IsHandled);
                     if not IsHandled then
@@ -178,6 +181,16 @@ codeunit 5982 "Service-Post+Print"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeConfirmPostAndPrint(var ServiceHeader: Record "Service Header"; var Ship: Boolean; var Consume: Boolean; var Invoice: Boolean; var DefaultOption: Integer; var Result: Boolean; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnGetReportOnBeforeExportServiceInvoice(var ServiceInvoiceHeader: Record "Service Invoice Header"; var ServiceHeader: Record "Service Header")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnGetReportOnBeforeExportServiceCrMemo(var ServiceCrMemoHeader: Record "Service Cr.Memo Header"; var ServiceHeader: Record "Service Header")
     begin
     end;
 }

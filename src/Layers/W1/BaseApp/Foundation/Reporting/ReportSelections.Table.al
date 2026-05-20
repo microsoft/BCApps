@@ -78,6 +78,7 @@ table 77 "Report Selections"
                 if not "Use for Email Body" then begin
                     "Email Body Layout Code" := '';
                     "Email Body Layout Name" := '';
+                    Clear("Email Body Layout AppID");
                 end;
             end;
         }
@@ -91,6 +92,7 @@ table 77 "Report Selections"
                 if not "Use for Email Body" then begin
                     "Email Body Layout Code" := '';
                     "Email Body Layout Name" := '';
+                    Clear("Email Body Layout AppID");
                 end;
             end;
         }
@@ -160,6 +162,7 @@ table 77 "Report Selections"
             var
                 ReportLayoutList: Record "Report Layout List";
             begin
+                Clear("Email Body Layout AppID");
                 if "Email Body Layout Name" <> '' then begin
                     "Use for Email Body" := true;
                     "Email Body Layout Code" := '';
@@ -234,7 +237,6 @@ table 77 "Report Selections"
             var
                 ReportLayoutList: Record "Report Layout List";
             begin
-                Clear("Report Layout AppID");
                 if "Report Layout Name" <> '' then begin
                     "Use for Email Attachment" := true;
                     ReportLayoutList.SetRange(Name, "Report Layout Name");
@@ -247,7 +249,8 @@ table 77 "Report Selections"
                     end;
                     if IsNullGuid("Report Layout AppID") then
                         Rec."Report Layout AppID" := ReportLayoutList."Application ID";
-                end;
+                end else
+                    Clear("Report Layout AppID");
             end;
         }
         field(31; "Report Layout AppID"; Guid)

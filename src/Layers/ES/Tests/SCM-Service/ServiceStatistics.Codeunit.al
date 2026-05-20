@@ -13,6 +13,8 @@ using Microsoft.Sales.Setup;
 using Microsoft.Service.Document;
 using Microsoft.Service.History;
 using Microsoft.Service.Pricing;
+using Microsoft.Service.Setup;
+using System.Environment.Configuration;
 using System.TestLibraries.Utilities;
 
 codeunit 136130 "Service Statistics"
@@ -60,6 +62,7 @@ codeunit 136130 "Service Statistics"
         OrigProfitPctErr: Label 'Original Profit Percent  is incorrect for service order %1.', Comment = '%1 is a document number.';
         AdjProfitLCYErr: Label 'Adjusted Profit (LCY) is incorrect for service order %1.', Comment = '%1 is a document number.';
         AdjProfitPctErr: Label 'Adjusted Profit Percent  is incorrect for service order %1.', Comment = '%1 is a document number.';
+        InvDiscountAmountErr: Label 'Posted Service Invoice Line should have the Invoice Discount Amount';
 
 #if not CLEAN27
     [Test]
@@ -3428,6 +3431,75 @@ codeunit 136130 "Service Statistics"
         LibraryVariableStorage.AssertEmpty();
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure InvDiscAmtAppliedOnPostedServInvWhenCalcInvDiscEnabled()
+    var
+        Customer: Record Customer;
+        CustInvoiceDisc: Record "Cust. Invoice Disc.";
+        Item: Record Item;
+        ServiceHeader: Record "Service Header";
+        ServiceInvoiceLine: Record "Service Invoice Line";
+        ServiceLine: Record "Service Line";
+        ServiceMgtSetup: Record "Service Mgt. Setup";
+        GenPostingSetup: Record "General Posting Setup";
+        ServiceCalcDiscount: Codeunit "Service-Calc. Discount";
+        NotificationLifecycleMgt: Codeunit "Notification Lifecycle Mgt.";
+        ExpectedInvDiscountAmount: Decimal;
+        PostedInvoiceNo: Code[20];
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 626466] Invoice Discount Amount is calculated from Customer Invoice Discount setup and applied to Posted Service Invoice when Calc. Inv. Discount is enabled
+        Initialize();
+
+        // [GIVEN] Sales & Receivables Setup "Calc. Inv. Discount" = TRUE
+        LibrarySales.SetCalcInvDiscount(true);
+
+        // [GIVEN] Customer "C" with Cust. Invoice Disc. record "Discount %" = X
+        LibrarySales.CreateCustomer(Customer);
+        LibraryERM.CreateInvDiscForCustomer(CustInvoiceDisc, Customer."No.", '', 0);
+        CustInvoiceDisc.Validate("Discount %", LibraryRandom.RandDecInRange(5, 15, 2));
+        CustInvoiceDisc.Modify(true);
+
+        // [GIVEN] Item "I"
+        LibraryInventory.CreateItem(Item);
+
+        // [GIVEN] Service Order "SO" with Service Line for Item "I"
+        ServiceMgtSetup.Get();
+        ServiceMgtSetup.Validate("Link Service to Service Item", false);
+        ServiceMgtSetup.Modify(true);
+        LibraryService.CreateServiceHeader(ServiceHeader, ServiceHeader."Document Type"::Order, Customer."No.");
+        LibraryService.CreateServiceLineWithQuantity(
+            ServiceLine, ServiceHeader, ServiceLine.Type::Item, Item."No.", LibraryRandom.RandIntInRange(5, 10));
+        ServiceLine.Validate("Unit Price", LibraryRandom.RandDecInRange(100, 200, 2));
+        ServiceLine.Modify(true);
+
+        // [WHEN] Run Service-Calc. Discount (simulates closing Statistics page)
+        ServiceCalcDiscount.Run(ServiceLine);
+        ServiceLine.Get(ServiceLine."Document Type", ServiceLine."Document No.", ServiceLine."Line No.");
+        ExpectedInvDiscountAmount := Round(ServiceLine."Line Amount" * CustInvoiceDisc."Discount %" / 100);
+
+        // [GIVEN] Store the Service Order Amount Including VAT before posting
+        ServiceHeader.CalcFields("Amount Including VAT");
+        if GenPostingSetup.Get(ServiceLine."Gen. Bus. Posting Group", ServiceLine."Gen. Prod. Posting Group") then begin
+            GenPostingSetup.Validate("Sales Inv. Disc. Account", LibraryERM.CreateGLAccountNo());
+            GenPostingSetup.Modify(true);
+        end;
+
+        // [WHEN] Post Service Order (Ship and Invoice)
+        LibraryService.PostServiceOrder(ServiceHeader, true, false, true);
+
+        // [THEN] Posted Service Invoice Line has the Invoice Discount Amount
+        PostedInvoiceNo := FindServiceInvoiceHeaderByOrderNo(ServiceHeader."No.");
+        ServiceInvoiceLine.SetRange("Document No.", PostedInvoiceNo);
+        ServiceInvoiceLine.FindFirst();
+        Assert.AreEqual(
+            ExpectedInvDiscountAmount,
+            ServiceInvoiceLine."Inv. Discount Amount",
+            InvDiscountAmountErr);
+        NotificationLifecycleMgt.RecallAllNotifications();
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"Service Statistics");
@@ -4310,6 +4382,15 @@ codeunit 136130 "Service Statistics"
         FindServiceLine(ServiceLine, ServiceLine."Document Type"::Order, DocumentNo);
         Assert.RecordCount(ServiceLine, 1);
         Assert.AreEqual(ExpectedInvoiceDiscountAmount, ServiceLine."Inv. Discount Amount", IncorrectInvoiceDiscountAmountErr);
+    end;
+
+    local procedure FindServiceInvoiceHeaderByOrderNo(OrderNo: Code[20]): Code[20]
+    var
+        ServiceInvoiceHeader: Record "Service Invoice Header";
+    begin
+        ServiceInvoiceHeader.SetRange("Order No.", OrderNo);
+        ServiceInvoiceHeader.FindFirst();
+        exit(ServiceInvoiceHeader."No.");
     end;
 
     [ConfirmHandler]

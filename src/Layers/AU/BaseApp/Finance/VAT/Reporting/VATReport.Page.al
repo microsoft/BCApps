@@ -533,7 +533,6 @@ page 740 "VAT Report"
     begin
         if Rec."No." <> '' then
             InitPageControllers();
-        IsEditable := Rec.Status = Rec.Status::Open;
         IsEnable := BASManagement.VATReportChangesAllowed(Rec);
     end;
 
@@ -585,6 +584,7 @@ page 740 "VAT Report"
 
         CalcAndPostVATStatus := VATReportMediator.AllowedToCalcAndPostVATSettlement(Rec);
         ReopenControllerStatus := Rec.Status = Rec.Status::Released;
+        IsEditable := Rec.Status = Rec.Status::Open;
         InitReturnPeriodGroup();
         OnAfterInitPageControllers(Rec, SubmitControllerStatus, MarkAsSubmitControllerStatus, CalcAndPostVATStatus);
     end;

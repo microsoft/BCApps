@@ -813,6 +813,8 @@ table 37 "Sales Line"
                         end;
 
                     UpdateUnitPriceByField(FieldNo(Quantity));
+                    if Type = Type::Resource then
+                        ApplyResUnitCost(FieldNo(Quantity));
                     UpdatePrePaymentAmounts();
 
                     CheckWMS();
@@ -5945,6 +5947,7 @@ table 37 "Sales Line"
         SalesLine2.SetRange("VAT Identifier", "VAT Identifier");
         SalesLine2.SetRange("Tax Group Code", "Tax Group Code");
         SalesLine2.SetRange("Tax Area Code", "Tax Area Code");
+        SalesLine2.SetRange("VAT Calculation Type", "VAT Calculation Type");
 
         IsHandled := false;
         OnUpdateVATAmountsOnAfterSetSalesLineFilters(Rec, SalesLine2, IsHandled);

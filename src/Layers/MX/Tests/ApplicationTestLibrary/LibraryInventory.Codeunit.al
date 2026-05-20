@@ -1377,11 +1377,10 @@ codeunit 132201 "Library - Inventory"
     var
         TransferOrderPostTransfer: Codeunit "TransferOrder-Post Transfer";
     begin
-        InventorySetup.Get();
-        case InventorySetup."Direct Transfer Posting" of
-            InventorySetup."Direct Transfer Posting"::"Receipt and Shipment":
+        case TransferHeader."Direct Transfer Posting" of
+            TransferHeader."Direct Transfer Posting"::"Shipment and Receipt":
                 PostTransferHeader(TransferHeader, true, true);
-            InventorySetup."Direct Transfer Posting"::"Direct Transfer":
+            TransferHeader."Direct Transfer Posting"::"Direct Transfer":
                 begin
                     TransferOrderPostTransfer.SetHideValidationDialog(true);
                     TransferOrderPostTransfer.Run(TransferHeader);

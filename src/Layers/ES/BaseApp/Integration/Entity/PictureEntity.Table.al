@@ -76,6 +76,7 @@ table 5468 "Picture Entity"
         MultipleParentsFoundErr: Label 'Multiple parents have been found for the specified criteria.';
         MediaExtensionWithNumNameTxt: Label '%1 %2.%3', Locked = true;
         MediaExtensionWithNumFullNameTxt: Label '%1 %2 %3 %4.%5', Locked = true;
+        MediaExtensionWithNumOnlyTxt: Label '%1.%2', Locked = true;
 
     [Scope('OnPrem')]
     procedure LoadData(IdFilter: Text)
@@ -552,7 +553,10 @@ table 5468 "Picture Entity"
             DATABASE::Item:
                 begin
                     ParentRecordRef.SetTable(Item);
-                    MediaDescription := StrSubstNo(MediaExtensionWithNumNameTxt, Item."No.", Item.Description, GetDefaultExtension());
+                    if Item.Description <> '' then
+                        MediaDescription := StrSubstNo(MediaExtensionWithNumNameTxt, Item."No.", Item.Description, GetDefaultExtension())
+                    else
+                        MediaDescription := StrSubstNo(MediaExtensionWithNumOnlyTxt, Item."No.", GetDefaultExtension());
                 end;
             DATABASE::Customer:
                 begin
@@ -579,7 +583,10 @@ table 5468 "Picture Entity"
             Database::"Item Variant":
                 begin
                     ParentRecordRef.SetTable(ItemVariant);
-                    MediaDescription := StrSubstNo(MediaExtensionWithNumFullNameTxt, ItemVariant."Item No.", ItemVariant.Code, ItemVariant.Description, GetDefaultExtension());
+                    if ItemVariant.Description <> '' then
+                        MediaDescription := StrSubstNo(MediaExtensionWithNumFullNameTxt, ItemVariant."Item No.", ItemVariant.Code, ItemVariant.Description, GetDefaultExtension())
+                    else
+                        MediaDescription := StrSubstNo(MediaExtensionWithNumNameTxt, ItemVariant."Item No.", ItemVariant.Code, GetDefaultExtension());
                 end;
             else begin
                 IsHandled := false;

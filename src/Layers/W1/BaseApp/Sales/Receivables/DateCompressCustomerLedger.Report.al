@@ -314,6 +314,7 @@ report 198 "Date Compress Customer Ledger"
         NewDtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
         TempDetailedCustLedgEntryBuffer: Record "Detailed Cust. Ledg. Entry" temporary;
         GLEntry: Record "G/L Entry";
+        GLTransaction: Record "G/L Transaction";
         ReminderEntry: Record "Reminder/Fin. Charge Entry";
         SelectedDim: Record "Selected Dimension";
         TempSelectedDim: Record "Selected Dimension" temporary;
@@ -409,8 +410,11 @@ report 198 "Date Compress Customer Ledger"
         GLEntry."System-Created Entry" := true;
         GLEntry."User ID" := CopyStr(UserId(), 1, MaxStrLen(GLEntry."User ID"));
         GLEntry."Transaction No." := NextTransactionNo;
+        GLEntry."G/L Register No." := GLReg."No.";
         GLEntry.Insert();
         GLEntry.Consistent(GLEntry.Amount = 0);
+        GLTransaction.InsertFromGLEntry(GLEntry, GLReg);
+
         GLReg."To Entry No." := LastEntryNo;
 
         if GLRegExists then begin

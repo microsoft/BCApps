@@ -1560,6 +1560,7 @@ codeunit 137100 "CAL Costing suite"
         // [THEN] ILE ("Cost Amount (Actual)") = "X" * Qty
     end;
 
+#if not CLEAN29
     [Test]
     [Scope('OnPrem')]
     procedure TstSev1IssuesDE_734_304_BGN5()
@@ -1570,7 +1571,7 @@ codeunit 137100 "CAL Costing suite"
         // [WHEN] Adjust Cost Item Entries
         // [THEN] No endless loop nor division by zero
     end;
-
+#endif
     [Test]
     [Scope('OnPrem')]
     procedure TstSev1IssuesManufVETypes()

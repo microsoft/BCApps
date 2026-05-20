@@ -25,11 +25,21 @@ codeunit 2023 "Image Analysis Wrapper V3.2" implements "Image Analysis Provider"
         AnalyzePathTxt: Label '/vision/v3.2/analyze', Locked = true;
         LanguageCodeQueryParameterTxt: Label 'language', Locked = true;
         VisualFeaturesQueryParameterTxt: Label 'visualFeatures', Locked = true;
+        UseOAuth2: Boolean;
         LastError: Text;
 
     procedure InvokeAnalysis(var JSONManagement: Codeunit "JSON Management"; BaseUrl: Text; ImageAnalysisKey: SecretText; ImagePath: Text; ImageAnalysisTypes: List of [Enum "Image Analysis Type"]; LanguageId: Integer): Boolean
     begin
         exit(TryInvokeAnalysisInternal(JSONManagement, BaseUrl, ImageAnalysisKey, ImagePath, ImageAnalysisTypes, LanguageId));
+    end;
+
+    /// <summary>
+    /// Sets whether OAuth2 authentication should be used for API calls.
+    /// </summary>
+    /// <param name="NewUseOAuth2">True to use OAuth2 bearer token authentication; false to use subscription key.</param>
+    procedure SetUseOAuth2(NewUseOAuth2: Boolean)
+    begin
+        UseOAuth2 := NewUseOAuth2;
     end;
 
     [TryFunction]
@@ -128,7 +138,10 @@ codeunit 2023 "Image Analysis Wrapper V3.2" implements "Image Analysis Provider"
 
         HttpRequestMsg.GetHeaders(HttpHeaders);
         HttpHeaders.Add('Accept', 'application/json');
-        HttpHeaders.Add('Ocp-Apim-Subscription-Key', ImageAnalysisKey);
+        if UseOAuth2 then
+            HttpHeaders.Add('Authorization', SecretStrSubstNo('Bearer %1', ImageAnalysisKey))
+        else
+            HttpHeaders.Add('Ocp-Apim-Subscription-Key', ImageAnalysisKey);
     end;
 
     [NonDebuggable]

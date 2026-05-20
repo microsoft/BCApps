@@ -1598,6 +1598,7 @@ table 5077 "Segment Line"
             "Campaign Description" := Campaign.Description;
         "Wizard Contact Name" := GetContactName();
 
+        OnStartWizard2OnBeforeInsert(Rec, Campaign);
         Insert();
         Validate("Interaction Template Code", InteractionTmplSetup."Outg. Calls");
         if PAGE.RunModal(PAGE::"Make Phone Call", Rec, "Contact Via") = ACTION::OK then;
@@ -2041,6 +2042,11 @@ table 5077 "Segment Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeHandleTrigger(var SegmentLine: Record "Segment Line"; var TempAttachment: Record Attachment temporary; var Merged: Boolean; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnStartWizard2OnBeforeInsert(var SegmentLine: Record "Segment Line"; Campaign: Record Campaign)
     begin
     end;
 }

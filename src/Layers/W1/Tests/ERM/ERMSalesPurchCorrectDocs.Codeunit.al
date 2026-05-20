@@ -10,6 +10,7 @@ codeunit 134398 "ERM Sales/Purch. Correct. Docs"
 
     var
         Assert: Codeunit Assert;
+        LibraryIncomingDocuments: Codeunit "Library - Incoming Documents";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryRandom: Codeunit "Library - Random";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
@@ -35,6 +36,10 @@ codeunit 134398 "ERM Sales/Purch. Correct. Docs"
         TotalToDeferErr: Label 'The sum of the deferred amounts must be equal to the amount in the Amount to Defer field.';
         CancelPostedPurchaseInvoiceQst: Label 'This invoice was posted from a purchase order. To cancel it, a purchase credit memo will be created and posted. The quantities from the original purchase order will be restored, provided the purchase order still exists.\ \Do you want to continue?';
         CancelPostedSalesInvoiceQst: Label 'This invoice was posted from a sales order. To cancel it, a sales credit memo will be created and posted. The quantities from the original sales order will be restored, provided the sales order still exists.\ \Do you want to continue?';
+        IncomingDocumentErr: Label 'Incoming Document must be Posted after posting Sales Order';
+        IncomingDocumentPostedErr: Label ' Incoming Document Posted must be reset after cancellation';
+        CancelPostedPurchaseInvoiceFromInvoiceQst: Label 'The posted purchase invoice will be canceled, and a purchase credit memo will be created and posted.\ \Do you want to continue?';
+        CancelPostedSalesInvoiceFromInvoiceQst: Label 'The posted sales invoice will be canceled, and a sales credit memo will be created and posted.\ \Do you want to continue?';
 
     [Test]
     [Scope('OnPrem')]
@@ -2071,6 +2076,156 @@ codeunit 134398 "ERM Sales/Purch. Correct. Docs"
         LibraryVariableStorage.AssertEmpty();
     end;
 
+    [Test]
+    procedure CancelSalesInvFromOrderResetsIncomingDocPostedFlag()
+    var
+        IncomingDocument: Record "Incoming Document";
+        IncomingDocumentAttachment: Record "Incoming Document Attachment";
+        SalesHeader: Record "Sales Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        SalesLine: Record "Sales Line";
+        CorrectPostedSalesInvoice: Codeunit "Correct Posted Sales Invoice";
+        PstdDocNo: Code[20];
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 629783] Cancelling a posted sales invoice from a sales order resets the linked Incoming Document Posted flag
+        Initialize();
+
+        // [GIVEN] Sales Order "SO" with Quantity, Qty. to Ship, Qty. to Invoice
+        LibrarySales.CreateSalesOrder(SalesHeader);
+        GetSalesLine(SalesLine, SalesHeader);
+        SalesLine.Validate(Quantity, LibraryRandom.RandIntInRange(15, 20));
+        SalesLine.Validate("Qty. to Ship", LibraryRandom.RandIntInRange(5, 10));
+        SalesLine.Validate("Qty. to Invoice", LibraryRandom.RandIntInRange(5, 10));
+        SalesLine.Modify(true);
+
+        // [GIVEN] Incoming Document "ID" linked to Sales Order "SO"
+        LibraryIncomingDocuments.CreateNewIncomingDocument(IncomingDocument);
+        IncomingDocument.Release();
+        SalesHeader.Validate("Incoming Document Entry No.", IncomingDocument."Entry No.");
+        SalesHeader.Modify(true);
+        CreateIncomingDocumentAttachment(IncomingDocument, IncomingDocumentAttachment);
+
+        // [GIVEN] Sales Order "SO" is posted with Ship and Invoice
+        PstdDocNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+        SalesInvoiceHeader.Get(PstdDocNo);
+
+        // [GIVEN] Incoming Document "ID" has Posted = Yes after posting
+        IncomingDocument.Find();
+        Assert.AreEqual(true, IncomingDocument.Posted, IncomingDocumentErr);
+
+        // [WHEN] Cancel the posted sales invoice
+        CorrectPostedSalesInvoice.CancelPostedInvoice(SalesInvoiceHeader);
+
+        // [THEN] Incoming Document "ID" has Posted = No
+        IncomingDocument.Find();
+        Assert.AreEqual(false, IncomingDocument.Posted, IncomingDocumentPostedErr);
+    end;
+
+    [Test]
+    procedure CancelPurchInvFromOrderResetsIncomingDocPostedFlag()
+    var
+        IncomingDocument: Record "Incoming Document";
+        IncomingDocumentAttachment: Record "Incoming Document Attachment";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseInvoiceHeader: Record "Purch. Inv. Header";
+        PurchaseLine: Record "Purchase Line";
+        CorrectPostedPurchaseInvoice: Codeunit "Correct Posted Purch. Invoice";
+        PstdDocNo: Code[20];
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 631107] Cancelling a posted purchase invoice from a purchase order resets the linked Incoming Document Posted flag
+        Initialize();
+
+        // [GIVEN] Purchase Order "PO" with Quantity, Qty. to Receive, Qty. to Invoice
+        LibraryPurchase.CreatePurchaseOrder(PurchaseHeader);
+        GetPurchaseLine(PurchaseLine, PurchaseHeader);
+        PurchaseLine.Validate(Quantity, LibraryRandom.RandIntInRange(15, 20));
+        PurchaseLine.Validate("Qty. to Receive", LibraryRandom.RandIntInRange(5, 10));
+        PurchaseLine.Validate("Qty. to Invoice", LibraryRandom.RandIntInRange(5, 10));
+        PurchaseLine.Modify(true);
+
+        // [GIVEN] Incoming Document "ID" linked to Purchase Order "PO"
+        LibraryIncomingDocuments.CreateNewIncomingDocument(IncomingDocument);
+        IncomingDocument.Release();
+        PurchaseHeader.Validate("Incoming Document Entry No.", IncomingDocument."Entry No.");
+        PurchaseHeader.Modify(true);
+        CreateIncomingDocumentAttachment(IncomingDocument, IncomingDocumentAttachment);
+
+        // [GIVEN] Purchase Order "PO" is posted with Receive and Invoice
+        PstdDocNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+        PurchaseInvoiceHeader.Get(PstdDocNo);
+
+        // [GIVEN] Incoming Document "ID" has Posted = Yes after posting
+        IncomingDocument.Find();
+        Assert.AreEqual(true, IncomingDocument.Posted, IncomingDocumentErr);
+
+        // [WHEN] Cancel the posted purchase invoice
+        CorrectPostedPurchaseInvoice.CancelPostedInvoice(PurchaseInvoiceHeader);
+
+        // [THEN] Incoming Document "ID" has Posted = No
+        IncomingDocument.Find();
+        Assert.AreEqual(false, IncomingDocument.Posted, IncomingDocumentPostedErr);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandlerSalesVerifyQuestion')]
+    procedure VerifyConfirmMessageWhenCancellingPostedSalesInvoiceFromInvoice()
+    var
+        SalesHeader: Record "Sales Header";
+        PostedSalesInvoice: TestPage "Posted Sales Invoice";
+        InvoiceNo: Code[20];
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 626075] Verify the correct confirmation message appears when cancelling a posted sales invoice that was posted from a sales invoice (not from a sales order).
+        Initialize();
+
+        // [GIVEN] Create and post a Sales Invoice.
+        LibrarySales.CreateSalesInvoice(SalesHeader);
+        InvoiceNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+        Commit();
+
+        // [GIVEN] Open the posted sales invoice page.
+        PostedSalesInvoice.OpenEdit();
+        PostedSalesInvoice.Filter.SetFilter("No.", InvoiceNo);
+
+        // [WHEN] Cancel the posted sales invoice.
+        PostedSalesInvoice.CancelInvoice.Invoke();
+
+        // [THEN] Verify the confirmation message does not mention a sales order.
+        Assert.AreEqual(CancelPostedSalesInvoiceFromInvoiceQst, LibraryVariableStorage.DequeueText(), 'Invalid confirmation question');
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandlerPurchaseVerifyQuestion')]
+    procedure VerifyConfirmMessageWhenCancellingPostedPurchaseInvoiceFromInvoice()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PostedPurchaseInvoice: TestPage "Posted Purchase Invoice";
+        InvoiceNo: Code[20];
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 626075] Verify the correct confirmation message appears when cancelling a posted purchase invoice that was posted from a purchase invoice (not from a purchase order).
+        Initialize();
+
+        // [GIVEN] Create and post a Purchase Invoice.
+        LibraryPurchase.CreatePurchaseInvoice(PurchaseHeader);
+        InvoiceNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+        Commit();
+
+        // [GIVEN] Open the posted purchase invoice page.
+        PostedPurchaseInvoice.OpenEdit();
+        PostedPurchaseInvoice.Filter.SetFilter("No.", InvoiceNo);
+
+        // [WHEN] Cancel the posted purchase invoice.
+        PostedPurchaseInvoice.CancelInvoice.Invoke();
+
+        // [THEN] Verify the confirmation message does not mention a purchase order.
+        Assert.AreEqual(CancelPostedPurchaseInvoiceFromInvoiceQst, LibraryVariableStorage.DequeueText(), 'Invalid confirmation question');
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"ERM Sales/Purch. Correct. Docs");
@@ -2673,6 +2828,14 @@ codeunit 134398 "ERM Sales/Purch. Correct. Docs"
         DeferralLine.SetRange("Document Type", PurchaseLine."Document Type");
         DeferralLine.SetRange("Document No.", PurchaseLine."Document No.");
         DeferralLine.FindFirst();
+    end;
+
+    local procedure CreateIncomingDocumentAttachment(IncomingDocument: Record "Incoming Document"; var IncomingDocumentAttachment: Record "Incoming Document Attachment")
+    begin
+        IncomingDocumentAttachment.Init();
+        IncomingDocumentAttachment."Incoming Document Entry No." := IncomingDocument."Entry No.";
+        IncomingDocumentAttachment."Line No." := 10000;
+        IncomingDocumentAttachment.Insert(true);
     end;
 
     [ModalPageHandler]

@@ -281,6 +281,8 @@ table 254 "VAT Entry"
         {
             Caption = 'Transaction No.';
             Editable = false;
+            TableRelation = "G/L Transaction";
+            ToolTip = 'Specifies the transaction number that groups related G/L entries from the same posting.';
         }
         /// <summary>
         /// Unrealized VAT amount when using unrealized VAT functionality for payment-based VAT recognition.
@@ -760,6 +762,13 @@ table 254 "VAT Entry"
                 VATDateReportingMgt.UpdateLinkedEntries(Rec);
             end;
         }
+        field(95; "G/L Register No."; Integer)
+        {
+            Caption = 'G/L Register No.';
+            Editable = false;
+            TableRelation = "G/L Register";
+            ToolTip = 'Specifies the G/L register number that groups related G/L entries from the same posting.';
+        }
         /// <summary>
         /// Percentage of VAT that is non-deductible based on business use or regulatory restrictions.
         /// </summary>
@@ -1120,6 +1129,7 @@ table 254 "VAT Entry"
     /// <param name="Response">User response from any confirmation dialogs</param>
     procedure SetGLAccountNoWithResponse(WithUI: Boolean; ShowConfirm: Boolean; var Response: Boolean)
     var
+        VATEntryLocal: Record "VAT Entry";
         ConfirmManagement: Codeunit "Confirm Management";
         Window: Dialog;
         NoOfRecords: Integer;
@@ -1131,7 +1141,8 @@ table 254 "VAT Entry"
         if IsHandled then
             exit;
 
-        SetRange("G/L Acc. No.", '');
+        VATEntryLocal.Copy(Rec);
+        VATEntryLocal.SetRange("G/L Acc. No.", '');
         if WithUI then begin
             if ShowConfirm then
                 Response := ConfirmManagement.GetResponseOrDefault(ConfirmAdjustQst, false);
@@ -1139,18 +1150,24 @@ table 254 "VAT Entry"
                 exit;
 
             if GuiAllowed() then begin
-                NoOfRecords := count();
+                NoOfRecords := VATEntryLocal.Count();
                 Window.Open(AdjustTitleMsg + ProgressMsg);
             end;
         end;
-        SetLoadFields("G/L Acc. No.");
-        if FindSet(true) then
+        // Iterate in the caller's current key (callers pass primary key,
+        // see Report 11 "G/L - VAT Reconciliation"). Iterating on the PK
+        // means Modify("G/L Acc. No.") never invalidates the cursor
+        // (Halloween problem) because "G/L Acc. No." is not part of the
+        // PK keyset used for pagination.
+        VATEntryLocal.SetLoadFields("G/L Acc. No.", "Entry No.", "Transaction No.", "Gen. Bus. Posting Group", "Gen. Prod. Posting Group", "VAT Bus. Posting Group", "VAT Prod. Posting Group", "Tax Area Code", "Tax Liable", "Tax Group Code", "Use Tax");
+        Index := 0;
+        if VATEntryLocal.FindSet(true) then
             repeat
-                AdjustGLAccountNoOnRec(Rec);
-                if WithUI and GuiAllowed() then
+                AdjustGLAccountNoOnRec(VATEntryLocal);
+                Index += 1;
+                if WithUI and GuiAllowed() and (NoOfRecords > 0) then
                     Window.Update(2, Round(Index / NoOfRecords * 10000, 1));
-            until Next() = 0;
-        SetLoadFields();
+            until VATEntryLocal.Next() = 0;
         if WithUI and GuiAllowed() then
             Window.Close();
 
@@ -1171,7 +1188,10 @@ table 254 "VAT Entry"
         GLEntryVATLink: Record "G/L Entry - VAT Entry Link";
     begin
         VATEntryLocal.Copy(Rec);
+        VATEntryLocal.ReadIsolation := IsolationLevel::ReadCommitted;
+        VATEntryLocal.SetCurrentKey("G/L Acc. No.");
         VATEntryLocal.SetRange("G/L Acc. No.", '');
+        VATEntryLocal.SetLoadFields("Entry No.");
         if not VATEntryLocal.FindSet() then
             exit;
 
@@ -1191,7 +1211,7 @@ table 254 "VAT Entry"
         VATEntryEdit: Codeunit "VAT Entry - Edit";
     begin
         GLEntryVATEntryLink.SetCurrentKey("VAT Entry No.");
-        GLEntryVATEntryLink.SetRange("VAT Entry No.", "Entry No.");
+        GLEntryVATEntryLink.SetRange("VAT Entry No.", VATEntry."Entry No.");
         if not GLEntryVATEntryLink.FindFirst() then begin
             if not AddMissingGLEntryVATEntryLink(VATEntry, GLEntry, GLEntryVATEntryLink) then
                 exit;
@@ -1201,7 +1221,7 @@ table 254 "VAT Entry"
                 exit;
         end;
 
-        VATEntryEdit.SetGLAccountNo(Rec, GLEntry."G/L Account No.");
+        VATEntryEdit.SetGLAccountNo(VATEntry, GLEntry."G/L Account No.");
     end;
 
     local procedure AddMissingGLEntryVATEntryLink(var VATEntry: Record "VAT Entry"; var GLEntry: Record "G/L Entry"; var GLEntryVATEntryLink: Record "G/L Entry - VAT Entry Link"): Boolean

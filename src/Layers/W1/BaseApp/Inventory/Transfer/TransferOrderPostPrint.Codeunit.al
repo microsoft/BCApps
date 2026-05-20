@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Inventory.Transfer;
 
-using Microsoft.Inventory.Setup;
 
 codeunit 5707 "TransferOrder-Post + Print"
 {
@@ -26,7 +25,6 @@ codeunit 5707 "TransferOrder-Post + Print"
 
     local procedure "Code"()
     var
-        InventorySetup: Record "Inventory Setup";
         TransLine: Record "Transfer Line";
         TransferPostShipment: Codeunit "TransferOrder-Post Shipment";
         TransferPostReceipt: Codeunit "TransferOrder-Post Receipt";
@@ -57,8 +55,7 @@ codeunit 5707 "TransferOrder-Post + Print"
         OnRunOnBeforePrepareAndPrintReport(TransHeader, DefaultNumber, Selection, IsHandled);
         if not IsHandled then
             if TransHeader."Direct Transfer" then begin
-                InventorySetup.Get();
-                if InventorySetup."Direct Transfer Posting" = InventorySetup."Direct Transfer Posting"::"Receipt and Shipment" then begin
+                if TransHeader."Direct Transfer Posting" = TransHeader."Direct Transfer Posting"::"Shipment and Receipt" then begin
                     TransferPostShipment.Run(TransHeader);
                     TransferPostReceipt.Run(TransHeader);
                     PrintShipment(TransHeader."Last Shipment No.");

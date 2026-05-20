@@ -354,6 +354,23 @@ page 5600 "Fixed Asset Card"
                         LoadFADepreciationBooks();
                         FADepreciationBook.Validate("Use Bonus Depreciation");
                         SaveSimpleDepreciationBook(xRec."No.");
+                        UseBonusDepreciationValue := FADepreciationBook."Use Bonus Depreciation";
+                        CurrPage.Update(false);
+                    end;
+                }
+                field(BonusDepreciationPct; FADepreciationBook."Bonus Depreciation %")
+                {
+                    ApplicationArea = FixedAssets;
+                    Caption = 'Bonus Depreciation %';
+                    Importance = Additional;
+                    ToolTip = 'Specifies the bonus depreciation percentage for this fixed asset.';
+                    Editable = UseBonusDepreciationValue;
+
+                    trigger OnValidate()
+                    begin
+                        LoadFADepreciationBooks();
+                        FADepreciationBook.Validate("Bonus Depreciation %");
+                        SaveSimpleDepreciationBook(xRec."No.");
                     end;
                 }
                 field(UseHalfYearConvention; FADepreciationBook."Use Half-Year Convention")
@@ -805,6 +822,7 @@ page 5600 "Fixed Asset Card"
         BookValue := GetBookValue();
         AcquisitionCost := GetAcquisitionCost();
         BonusDeprAppliedAmount := GetBonusDepreciationAppliedAmount();
+        UseBonusDepreciationValue := FADepreciationBook."Use Bonus Depreciation";
     end;
 
     trigger OnOpenPage()
@@ -823,7 +841,7 @@ page 5600 "Fixed Asset Card"
 
     var
         FAAcquireWizardNotificationId: Guid;
-        NoFieldVisible, AcquisitionCostFieldVisible, BonusDepreciationAppliedAmountFieldVisible: Boolean;
+        NoFieldVisible, AcquisitionCostFieldVisible, BonusDepreciationAppliedAmountFieldVisible, UseBonusDepreciationValue: Boolean;
         AddMoreDeprBooksLbl: Label 'Add More Depreciation Books';
         Acquirable: Boolean;
         ShowAddMoreDeprBooksLbl: Boolean;

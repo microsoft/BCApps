@@ -33,6 +33,11 @@ page 99000761 "Machine Center List"
                 {
                     ApplicationArea = Manufacturing;
                 }
+                field("Name 2"; Rec."Name 2")
+                {
+                    ApplicationArea = Manufacturing;
+                    Visible = false;
+                }
                 field("Work Center No."; Rec."Work Center No.")
                 {
                     ApplicationArea = Manufacturing;

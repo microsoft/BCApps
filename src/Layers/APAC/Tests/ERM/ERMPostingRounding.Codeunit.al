@@ -9,13 +9,15 @@
     end;
 
     var
-        LibraryERM: Codeunit "Library - ERM";
-        LibrarySales: Codeunit "Library - Sales";
-        LibraryPurchase: Codeunit "Library - Purchase";
-        LibraryTestInitialize: Codeunit "Library - Test Initialize";
-        LibrarySetupStorage: Codeunit "Library - Setup Storage";
         Assert: Codeunit Assert;
+        LibraryERM: Codeunit "Library - ERM";
+        LibraryPurchase: Codeunit "Library - Purchase";
+        LibraryRandom: Codeunit "Library - Random";
+        LibrarySales: Codeunit "Library - Sales";
+        LibrarySetupStorage: Codeunit "Library - Setup Storage";
+        LibraryTestInitialize: Codeunit "Library - Test Initialize";
         IsInitialized: Boolean;
+        AmountACYShouldBeUpdatedErr: Label '%1 should be updated when Direct Unit Cost is changed with %2', Comment = '%1 = Field Caption, %2 = Prices Including/Excluding VAT';
 
     [Test]
     [Scope('OnPrem')]
@@ -213,6 +215,38 @@
         VerifyVATEntryAmounts(VATEntry.Type::Purchase, VATEntry."Document Type"::Invoice, DocumentNo, 40221, 8044.2);
     end;
 
+    [Test]
+    procedure PurchLineAmountACYUpdatedWhenPricesInclVATAndDirectUnitCostChanged()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        VATPostingSetup: Record "VAT Posting Setup";
+        DirectUnitCost, NewDirectUnitCost, Quantity : Decimal;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] Amount (ACY) is recalculated when Direct Unit Cost is changed on Purchase Line with Prices Including VAT enabled
+        Initialize();
+
+        // [GIVEN] Additional Reporting Currency "ACY" is set up
+        SetupAdditionalReportingCurrency();
+
+        // [GIVEN] Purchase Order with Prices Including VAT enabled and Purchase Line.
+        Quantity := LibraryRandom.RandIntInRange(10, 50);
+        DirectUnitCost := LibraryRandom.RandDecInRange(10, 100, 2);
+        NewDirectUnitCost := DirectUnitCost + LibraryRandom.RandDecInRange(10, 50, 2);
+        CreatePurchaseOrderWithACYLine(PurchaseHeader, PurchaseLine, VATPostingSetup, true, Quantity, DirectUnitCost);
+
+        // [WHEN] Change "Direct Unit Cost" on Purchase Line.
+        PurchaseLine.Validate("Direct Unit Cost", NewDirectUnitCost);
+        PurchaseLine.Modify(true);
+
+        // [THEN] "Amount (ACY)" is updated and non-zero
+        Assert.AreNotEqual(0, PurchaseLine."Amount (ACY)", StrSubstNo(AmountACYShouldBeUpdatedErr, PurchaseLine.FieldCaption("Amount (ACY)"), PurchaseHeader.FieldCaption("Prices Including VAT")));
+
+        // [THEN] "Amount Including VAT (ACY)" is updated and non-zero
+        Assert.AreNotEqual(0, PurchaseLine."Amount Including VAT (ACY)", StrSubstNo(AmountACYShouldBeUpdatedErr, PurchaseLine.FieldCaption("Amount Including VAT (ACY)"), PurchaseHeader.FieldCaption("Prices Including VAT")));
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -403,6 +437,32 @@
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::"G/L Account", GLAccountNo, 1);
         SalesLine.Validate("Unit Price", UnitPrice);
         SalesLine.Modify(true);
+    end;
+
+    local procedure SetupAdditionalReportingCurrency()
+    var
+        CurrencyCode: Code[10];
+    begin
+        CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), LibraryRandom.RandDecInRange(100, 200, 2), LibraryRandom.RandDecInRange(100, 200, 2));
+        LibraryERM.SetAddReportingCurrency(CurrencyCode);
+    end;
+
+    local procedure CreatePurchaseOrderWithACYLine(var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; var VATPostingSetup: Record "VAT Posting Setup"; PricesInclVAT: Boolean; Quantity: Decimal; DirectUnitCost: Decimal)
+    var
+        Vendor: Record Vendor;
+        GLAccountNo: Code[20];
+    begin
+        LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", LibraryRandom.RandIntInRange(10, 25));
+        GLAccountNo := LibraryERM.CreateGLAccountWithVATPostingSetup(VATPostingSetup, "General Posting Type"::Purchase);
+        Vendor.Get(LibraryPurchase.CreateVendorWithVATBusPostingGroup(VATPostingSetup."VAT Bus. Posting Group"));
+
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        PurchaseHeader.Validate("Prices Including VAT", PricesInclVAT);
+        PurchaseHeader.Modify(true);
+
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::"G/L Account", GLAccountNo, Quantity);
+        PurchaseLine.Validate("Direct Unit Cost", DirectUnitCost);
+        PurchaseLine.Modify(true);
     end;
 
     local procedure MockTempInvoicePostingBuffer(var TempInvoicePostingBuffer: Record "Invoice Posting Buffer" temporary; NewAmount: Decimal; NewAmountACY: Decimal; NewVATAmount: Decimal; NewVATAmountACY: Decimal; NewVATBaseAmount: Decimal; NewVATBaseAmountACY: Decimal)

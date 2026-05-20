@@ -10,6 +10,7 @@ using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
 using Microsoft.Foundation.ExtendedText;
 using Microsoft.Foundation.PaymentTerms;
+using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Sales.Customer;
 
 /// <summary>
@@ -270,6 +271,7 @@ table 172 "Standard Customer Sales Code"
         StdSalesLine: Record "Standard Sales Line";
         StdSalesCode: Record "Standard Sales Code";
         SalesLine: Record "Sales Line";
+        ItemReferenceMgt: Codeunit "Item Reference Management";
         Factor: Integer;
         IsHandled: Boolean;
     begin
@@ -322,6 +324,8 @@ table 172 "Standard Customer Sales Code"
                                 SalesLine.Validate("Unit of Measure Code", StdSalesLine."Unit of Measure Code");
                             if StdSalesLine.Description <> '' then
                                 SalesLine.Validate(Description, StdSalesLine.Description);
+                            if SalesLine."Item Reference No." <> '' then
+                                ItemReferenceMgt.EnterSalesItemReference(SalesLine);
 
                             IsHandled := false;
                             OnApplyStdCodesToSalesLinesOnBeforeRoundUnitPrice(SalesLine, StdSalesLine, IsHandled);

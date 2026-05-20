@@ -233,6 +233,15 @@ codeunit 1541 "Workflow Webhook Events"
         WorkflowWebhookManagement.FindAndCancel(Vendor.RecordId);
     end;
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Approvals Mgmt.", 'OnCancelVendorBankAccountApprovalRequest', '', false, false)]
+    local procedure HandleOnCancelVendorBankAccountApprovalRequest(var VendorBankAccount: Record "Vendor Bank Account")
+    var
+        WorkflowWebhookManagement: Codeunit "Workflow Webhook Management";
+    begin
+        // Handles the scenario when a Vendor Bank Account is deleted after it's been sent approval
+        WorkflowWebhookManagement.FindAndCancel(VendorBankAccount.RecordId);
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Approvals Mgmt.", 'OnDeleteRecordInApprovalRequest', '', false, false)]
     local procedure HandleOnDeleteRecordInApprovalRequest(RecordIDToApprove: RecordID)
     var

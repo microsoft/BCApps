@@ -161,7 +161,7 @@ codeunit 8028 "Usage Based Contr. Subscribers"
         else
             if UsageBasedBillingDocType = UsageBasedBillingDocType::"Credit Memo" then begin
                 UsageDataBilling.FilterOnDocumentTypeAndDocumentNo(Enum::"Service Partner"::Customer, UsageBasedBillingDocType, Rec."No.");
-                UsageDataBilling.DeleteAll();
+                UsageDataBilling.DeleteAll(false);
             end;
     end;
 
@@ -189,7 +189,7 @@ codeunit 8028 "Usage Based Contr. Subscribers"
         else
             if UsageBasedBillingDocType = UsageBasedBillingDocType::"Credit Memo" then begin
                 UsageDataBilling.FilterOnDocumentTypeAndDocumentNo(Enum::"Service Partner"::Vendor, UsageBasedBillingDocType, Rec."No.");
-                UsageDataBilling.DeleteAll();
+                UsageDataBilling.DeleteAll(false);
             end;
     end;
 
@@ -208,7 +208,8 @@ codeunit 8028 "Usage Based Contr. Subscribers"
                 if SalesCrMemoHdrNo <> '' then begin
                     UsageDataBilling.SaveDocumentValues(Enum::"Usage Based Billing Doc. Type"::"Posted Credit Memo", SalesCrMemoHdrNo, UsageDataBilling."Document Line No.", UsageDataBilling."Billing Line Entry No.");
                     UsageDataBilling.SetMetadataAsInvoiced();
-                    CreateAdditionalUsageDataBilling(UsageDataBilling);
+                    if SalesHeader."Applies-to Doc. No." <> '' then
+                        CreateAdditionalUsageDataBilling(UsageDataBilling);
                 end else begin
                     UsageDataBilling.SaveDocumentValues(Enum::"Usage Based Billing Doc. Type"::"Posted Invoice", SalesInvHdrNo, UsageDataBilling."Document Line No.", UsageDataBilling."Billing Line Entry No.");
                     UsageDataBilling.SetMetadataAsInvoiced();
@@ -230,7 +231,8 @@ codeunit 8028 "Usage Based Contr. Subscribers"
                 if PurchCrMemoHdrNo <> '' then begin
                     UsageDataBilling.SaveDocumentValues(Enum::"Usage Based Billing Doc. Type"::"Posted Credit Memo", PurchCrMemoHdrNo, UsageDataBilling."Document Line No.", UsageDataBilling."Billing Line Entry No.");
                     UsageDataBilling.SetMetadataAsInvoiced();
-                    CreateAdditionalUsageDataBilling(UsageDataBilling);
+                    if PurchaseHeader."Applies-to Doc. No." <> '' then
+                        CreateAdditionalUsageDataBilling(UsageDataBilling);
                 end else begin
                     UsageDataBilling.SaveDocumentValues(Enum::"Usage Based Billing Doc. Type"::"Posted Invoice", PurchInvHdrNo, UsageDataBilling."Document Line No.", UsageDataBilling."Billing Line Entry No.");
                     UsageDataBilling.SetMetadataAsInvoiced();

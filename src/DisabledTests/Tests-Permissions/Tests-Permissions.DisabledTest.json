@@ -223,5 +223,35 @@
     "codeunitId": 139453,
     "codeunitName": "O365 Customer Permission Test",
     "method": "RunPostedSalesShipmentUpdateFromList"
+  },
+  {
+    "method": "StanCanCreateNewTenantPermissionSets",
+    "codeunitId": 134612,
+    "codeunitName": "Test Editing Permissions"
+  },
+  {
+    "method": "StanCanCopyExtensionPermissionSetsToNewTenantPermissionSets",
+    "codeunitId": 134612,
+    "codeunitName": "Test Editing Permissions"
+  },
+  {
+    "method": "StanCanDeleteNewlyCreatedTenantPermissionSets",
+    "codeunitId": 134612,
+    "codeunitName": "Test Editing Permissions"
+  },
+  {
+    "method": "StanCanDeleteCopiedExtensionPermissionSets",
+    "codeunitId": 134612,
+    "codeunitName": "Test Editing Permissions"
+  },
+  {
+    "method": "RenameUserDefinedPermissionSet",
+    "codeunitId": 134612,
+    "codeunitName": "Test Editing Permissions"
+  },
+  {
+    "method": "RenameUserDefinedPermissionSetUsedUsersSettings",
+    "codeunitId": 134612,
+    "codeunitName": "Test Editing Permissions"
   }
 ]

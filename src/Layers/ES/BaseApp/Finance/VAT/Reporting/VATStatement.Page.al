@@ -307,11 +307,13 @@ page 317 "VAT Statement"
     var
         ReportPrint: Codeunit "Test Report-Print";
         VATStmtManagement: Codeunit VATStmtManagement;
-        CurrentStmtName: Code[10];
         OpenedFromBatch: Boolean;
         TeleVATDecl: Report "Telematic VAT Declaration";
         Text10700: Label 'The Statement name does not exist';
         TeleVATDeclXML: Report "XML VAT Declaration";
+
+    protected var
+        CurrentStmtName: Code[10];
 
     local procedure CurrentStmtNameOnAfterValidate()
     begin

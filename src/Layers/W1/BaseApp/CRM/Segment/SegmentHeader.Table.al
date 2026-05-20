@@ -667,6 +667,7 @@ table 5076 "Segment Header"
 
         InteractLogEntry.SetCurrentKey("Logged Segment Entry No.");
         InteractLogEntry.SetRange("Logged Segment Entry No.", LoggedSeg."Entry No.");
+        OnReuseLoggedOnBeforeFindInteractLogEntries(Rec, LoggedSeg, InteractLogEntry);
         if InteractLogEntry.Find('-') then
             repeat
                 NextLineNo := NextLineNo + 10000;
@@ -1069,6 +1070,11 @@ table 5076 "Segment Header"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterReuseLogged(var SegmentHeader: Record "Segment Header"; LoggedSegment: Record "Logged Segment")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnReuseLoggedOnBeforeFindInteractLogEntries(var SegmentHeader: Record "Segment Header"; LoggedSegment: Record "Logged Segment"; var InteractionLogEntry: Record "Interaction Log Entry")
     begin
     end;
 

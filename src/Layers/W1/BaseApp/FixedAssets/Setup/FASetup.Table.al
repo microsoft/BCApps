@@ -7,6 +7,7 @@ namespace Microsoft.FixedAssets.Setup;
 using Microsoft.FixedAssets.Depreciation;
 using Microsoft.FixedAssets.Insurance;
 using Microsoft.Foundation.NoSeries;
+using System.Utilities;
 
 table 5603 "FA Setup"
 {
@@ -95,11 +96,23 @@ table 5603 "FA Setup"
             MaxValue = 100;
             AutoFormatType = 0;
             ToolTip = 'Specifies the percentage of bonus depreciation allowed for fixed assets.';
+
+            trigger OnValidate()
+            begin
+                if "Bonus Depreciation %" = 0 then
+                    ClearBonusDepreciationWithConfirm();
+            end;
         }
         field(12; "Bonus Depr. Effective Date"; Date)
         {
             Caption = 'Bonus Depreciation Effective Date';
             ToolTip = 'Specifies the date when bonus depreciation becomes effective for fixed assets.';
+
+            trigger OnValidate()
+            begin
+                if "Bonus Depr. Effective Date" = 0D then
+                    ClearBonusDepreciationWithConfirm();
+            end;
         }
     }
 
@@ -119,5 +132,24 @@ table 5603 "FA Setup"
     begin
         exit((Rec."Bonus Depreciation %" > 0) and (Rec."Bonus Depr. Effective Date" <> 0D));
     end;
+
+    local procedure ClearBonusDepreciationWithConfirm()
+    var
+        AdvBonusDeprSetup: Record "Adv. Bonus Depreciation Setup";
+        ConfirmManagement: Codeunit "Confirm Management";
+    begin
+        if not ConfirmManagement.GetResponseOrDefault(ClearBonusDepreciationQst, true) then
+            Error('');
+
+        if "Bonus Depreciation %" = 0 then
+            "Bonus Depr. Effective Date" := 0D;
+        if "Bonus Depr. Effective Date" = 0D then
+            "Bonus Depreciation %" := 0;
+
+        AdvBonusDeprSetup.DeleteAll();
+    end;
+
+    var
+        ClearBonusDepreciationQst: Label 'Clearing this field will also clear the other bonus depreciation field and all entries in the Advanced Bonus Depreciation Setup. Do you want to continue?';
 }
 

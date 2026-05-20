@@ -12,6 +12,7 @@ using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Finance.WithholdingTax;
 using Microsoft.FixedAssets.FixedAsset;
@@ -345,6 +346,8 @@ table 25 "Vendor Ledger Entry"
         field(53; "Transaction No."; Integer)
         {
             Caption = 'Transaction No.';
+            TableRelation = "G/L Transaction";
+            ToolTip = 'Specifies the transaction number that groups related G/L entries from the same posting.';
         }
         field(54; "Closed by Amount (LCY)"; Decimal)
         {
@@ -576,6 +579,13 @@ table 25 "Vendor Ledger Entry"
         field(90; Prepayment; Boolean)
         {
             Caption = 'Prepayment';
+        }
+        field(95; "G/L Register No."; Integer)
+        {
+            Caption = 'G/L Register No.';
+            Editable = false;
+            TableRelation = "G/L Register";
+            ToolTip = 'Specifies the G/L register number that groups related G/L entries from the same posting.';
         }
         field(170; "Creditor No."; Code[20])
         {

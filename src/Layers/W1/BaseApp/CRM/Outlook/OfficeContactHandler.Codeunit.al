@@ -17,7 +17,7 @@ codeunit 1636 "Office Contact Handler"
 
     trigger OnRun()
     begin
-        if (Rec.Email <> '') or (Rec."Contact No." <> '') then
+        if HasValidRecipient(Rec) then
             FindAndRedirectContact(Rec)
         else
             ShowContactSelection(Rec);
@@ -29,6 +29,15 @@ codeunit 1636 "Office Contact Handler"
         PageOpenTxt: Label 'Open page for the selected contact.', Locked = true;
         TelemetryCategoryTxt: Label 'AL Office Contact Handler', Locked = true;
         NoAccessCompanyTelemetryTxt: Label 'Cannot access company %1 from Outlook add-in.', Locked = true;
+        UndefinedTok: Label 'undefined', Locked = true;
+
+    local procedure HasValidRecipient(TempOfficeAddinContext: Record "Office Add-in Context" temporary): Boolean
+    begin
+        if (TempOfficeAddinContext.Email = '') or (TempOfficeAddinContext.Email = UndefinedTok) then
+            exit(false);
+
+        exit(true);
+    end;
 
     local procedure FindAndRedirectContact(TempOfficeAddinContext: Record "Office Add-in Context" temporary)
     var
@@ -282,7 +291,7 @@ codeunit 1636 "Office Contact Handler"
     begin
         if OfficeMgt.IsAvailable() then begin
             OfficeMgt.GetContext(TempOfficeAddinContext);
-            if TempOfficeAddinContext.Email = '' then begin
+            if not HasValidRecipient(TempOfficeAddinContext) then begin
                 TempOfficeAddinContext.Name := Rec.Name;
                 TempOfficeAddinContext.Email := Rec."E-Mail";
                 TempOfficeAddinContext."Contact No." := Rec."No.";

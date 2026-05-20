@@ -1735,6 +1735,54 @@ codeunit 147500 "Cartera Payment Basic Scenario"
         VerifySettleGLEntries(PaymentOrder."No.", Vendor."Vendor Posting Group", PaymentOrder."Bank Account No.", AmtPay, -AmtBank);
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure MultiSelectInsertPayableDocsAddsAllSelectedBillsToPaymentOrder()
+    var
+        BankAccount: Record "Bank Account";
+        PaymentOrder: Record "Payment Order";
+        Vendor: Record Vendor;
+        CarteraDoc: Record "Cartera Doc.";
+        CarteraManagement: Codeunit CarteraManagement;
+        NumberOfBills: Integer;
+        Index: Integer;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] When applying a multi-record selection (returned by CurrPage.SetSelectionFilter as a marked recordset on large selections)
+        // to a Payment Order, every selected payable Cartera bill must be assigned to the Payment Order.
+        Initialize();
+        NumberOfBills := 10;
+
+        // [GIVEN] Vendor "V" with 10 payable Cartera bills, all unassigned to any Payment Order
+        PrepareVendorRelatedRecords(Vendor, LocalCurrencyCode);
+        for Index := 1 to NumberOfBills do
+            LibraryCarteraPayables.CreateCarteraPayableDocument(Vendor);
+
+        // [GIVEN] Payment Order "PO" in LCY
+        LibraryCarteraPayables.CreateCarteraPaymentOrder(BankAccount, PaymentOrder, LocalCurrencyCode);
+
+        // [GIVEN] A multi-record selection from the Cartera Documents lookup, simulated as
+        // a marked recordset (the form CurrPage.SetSelectionFilter falls back to for large
+        // selections, where per-row Modify(true) used to drop the marked iteration cursor).
+        CarteraDoc.SetRange(Type, CarteraDoc.Type::Payable);
+        CarteraDoc.SetRange("Bill Gr./Pmt. Order No.", '');
+        CarteraDoc.SetRange("Account No.", Vendor."No.");
+        CarteraDoc.FindSet();
+        repeat
+            CarteraDoc.Mark(true);
+        until CarteraDoc.Next() = 0;
+        CarteraDoc.MarkedOnly(true);
+
+        // [WHEN] The selection is applied to the Payment Order
+        CarteraManagement.ApplySelectedPayableDocsToPaymentOrder(CarteraDoc, PaymentOrder, PaymentOrder."No.");
+
+        // [THEN] All 10 bills are assigned to the Payment Order
+        CarteraDoc.Reset();
+        CarteraDoc.SetRange("Bill Gr./Pmt. Order No.", PaymentOrder."No.");
+        CarteraDoc.SetRange("Account No.", Vendor."No.");
+        Assert.AreEqual(NumberOfBills, CarteraDoc.Count(), 'All selected bills should be added to the Payment Order');
+    end;
+
     local procedure Initialize()
     begin
         LibraryReportDataset.Reset();

@@ -8,5 +8,15 @@
     "codeunitId": 13918,
     "codeunitName": "XRechnung XML Document Tests",
     "method": "ExportPostedSalesInvoiceInXRechnungFormatVerifyUnsupportedAttachmentIsSkipped"
+  },
+  {
+    "codeunitId": 13923,
+    "codeunitName": "PEPPOL BIS XML Document Tests",
+    "method": "ExportSalesInvEndpointIDSchemeIDPreserved"
+  },
+  {
+    "codeunitId": 13923,
+    "codeunitName": "PEPPOL BIS XML Document Tests",
+    "method": "ExportSalesCrMemoEndpointIDSchemeIDPreserved"
   }
 ]

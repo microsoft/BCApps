@@ -160,7 +160,10 @@ codeunit 99000835 "Item Jnl. Line-Reserve"
 
         if NewItemJournalLine."Entry Type" <> OldItemJournalLine."Entry Type" then
             if ShowError then
-                NewItemJournalLine.FieldError("Entry Type", Text004Err)
+                if ItemJournalLine.Get(NewItemJournalLine."Journal Template Name", NewItemJournalLine."Journal Batch Name", NewItemJournalLine."Line No.") then
+                    NewItemJournalLine.FieldError("Entry Type", Text004Err)
+                else
+                    HasError := true
             else
                 HasError := true;
 

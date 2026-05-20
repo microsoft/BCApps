@@ -927,18 +927,22 @@ codeunit 550 "VAT Rate Change Conversion"
                                             PurchaseLine.Find();
                                             IsModified := false;
                                             if PurchaseHeader."Prices Including VAT" and VATRateChangeSetup."Perform Conversion" and
-                                               (PurchaseLine."VAT %" <> PurchaseLineOld."VAT %") and
-                                               UpdateUnitPriceInclVAT(PurchaseLine.Type)
-                                            then begin
-                                                RecRef.SetTable(PurchaseLine);
-                                                RoundingPrecision := GetRoundingPrecision(PurchaseHeader."Currency Code");
-                                                PurchaseLine.Validate(
-                                                  "Direct Unit Cost",
-                                                  Round(
-                                                    PurchaseLineOld."Direct Unit Cost" * (100 + PurchaseLine."VAT %") / (100 + PurchaseLineOld."VAT %"),
-                                                    RoundingPrecision));
-                                                IsModified := true;
-                                            end;
+                                               (PurchaseLine."VAT %" <> PurchaseLineOld."VAT %") then
+                                                if UpdateUnitPriceInclVAT(PurchaseLine.Type) then begin
+                                                    RecRef.SetTable(PurchaseLine);
+                                                    RoundingPrecision := GetRoundingPrecision(PurchaseHeader."Currency Code");
+                                                    PurchaseLine.Validate(
+                                                      "Direct Unit Cost",
+                                                      Round(
+                                                        PurchaseLineOld."Direct Unit Cost" * (100 + PurchaseLine."VAT %") / (100 + PurchaseLineOld."VAT %"),
+                                                        RoundingPrecision));
+                                                    IsModified := true;
+                                                end else
+                                                    if PurchaseLine.Type in [PurchaseLine.Type::"G/L Account", PurchaseLine.Type::"Charge (Item)", PurchaseLine.Type::"Fixed Asset"] then
+                                                        if PurchaseLine."Direct Unit Cost" <> PurchaseLineOld."Direct Unit Cost" then begin
+                                                            PurchaseLine.Validate("Direct Unit Cost", PurchaseLineOld."Direct Unit Cost");
+                                                            IsModified := true;
+                                                        end;
                                             if PurchaseLine."Prepayment %" <> 0 then begin
                                                 PurchaseLine.UpdatePrepmtSetupFields();
                                                 IsModified := true;

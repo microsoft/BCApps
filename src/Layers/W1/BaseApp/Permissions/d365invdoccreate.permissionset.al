@@ -22,6 +22,7 @@ permissionset 9556 "D365 INV DOC, CREATE"
                   tabledata "Stockkeeping Unit" = RIMD,
                   tabledata "Transfer Header" = RIMD,
                   tabledata "Transfer Line" = RIMD,
+                  tabledata "Transfer Route" = R,
                   tabledata "Warehouse Activity Line" = R,
                   tabledata "Warehouse Reason Code" = R;
 }

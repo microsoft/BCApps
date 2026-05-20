@@ -10,6 +10,7 @@ query 37002 "Item Budget Names"
 {
     Access = Internal;
     QueryType = API;
+    AboutText = 'Provides access to item budget names and descriptions for sales and purchase analysis areas. Enables Power BI reports to list available budgets and filter budget entries by budget name.';
     Caption = 'Power BI Item Budgets';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';

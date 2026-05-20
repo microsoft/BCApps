@@ -1,4 +1,10 @@
-﻿namespace System.Automation;
+﻿// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+namespace System.Automation;
+
+using Microsoft.CRM.Team;
 
 using Microsoft.Finance.Currency;
 using Microsoft.Utilities;
@@ -133,6 +139,24 @@ table 456 "Posted Approval Entry"
             AutoIncrement = true;
             Caption = 'Entry No.';
         }
+        field(32; "Approver Full Name"; Text[80])
+        {
+            Caption = 'Approver Full Name';
+            CalcFormula = lookup(User."Full Name" where("User Name" = field("Approver ID")));
+            FieldClass = FlowField;
+        }
+        field(33; "Sender Full Name"; Text[80])
+        {
+            Caption = 'Sender Full Name';
+            CalcFormula = lookup(User."Full Name" where("User Name" = field("Sender ID")));
+            FieldClass = FlowField;
+        }
+        field(34; "Salespers./Purch. Name"; Text[80])
+        {
+            Caption = 'Salespers./Purch. Full Name';
+            CalcFormula = lookup("Salesperson/Purchaser".Name where("Code" = field("Salespers./Purch. Code")));
+            FieldClass = FlowField;
+        }
     }
 
     keys
@@ -140,6 +164,9 @@ table 456 "Posted Approval Entry"
         key(Key1; "Entry No.")
         {
             Clustered = true;
+        }
+        key(Key2; "Posted Record ID")
+        {
         }
     }
 

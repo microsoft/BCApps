@@ -185,7 +185,6 @@ codeunit 134247 "Shpfy Market Catalog API Test"
 
     local procedure Initialize()
     var
-        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
         AccessToken: SecretText;
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Shpfy Market Catalog API Test");
@@ -204,8 +203,6 @@ codeunit 134247 "Shpfy Market Catalog API Test"
 
         // Creating Shopify Shop
         Shop := InitializeTest.CreateShop();
-        // Disable Event Mocking 
-        CommunicationMgt.SetTestInProgress(false);
         //Register Shopify Access Token
         AccessToken := LibraryRandom.RandText(20);
         InitializeTest.RegisterAccessTokenForShop(Shop.GetStoreName(), AccessToken);

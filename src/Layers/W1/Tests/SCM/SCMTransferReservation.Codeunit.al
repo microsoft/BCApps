@@ -1965,6 +1965,7 @@ codeunit 137269 "SCM Transfer Reservation"
         WarehouseActivityHeader: Record "Warehouse Activity Header";
         TransferShipmentHeader: Record "Transfer Shipment Header";
         TransferShipmentLine: Record "Transfer Shipment Line";
+        ReservationEntry: Record "Reservation Entry";
         LocationInTransit: Record Location;
         WarehouseEmployee: Record "Warehouse Employee";
         Vendor: Record Vendor;
@@ -2057,6 +2058,24 @@ codeunit 137269 "SCM Transfer Reservation"
         TransferShipmentLine.SetRange("Item No.", Item."No.");
         TransferShipmentLine.FindFirst();
         Assert.AreEqual(1, TransferShipmentLine.Quantity, '');
+
+        // [THEN] Reservation from the planning-created PO still exists after partial shipment
+        // During posting, the reservation is transferred from the Transfer Line to the Item Journal Line
+        // (via TransferTransferToItemJnlLine). Our fix prevents it from being deleted in ItemJnlPostLine.
+        // Verify from the Purchase Line side, which is the stable side of the reservation pair.
+        PurchaseLine.Reset();
+        PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
+        PurchaseLine.SetRange("No.", Item."No.");
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.FindFirst();
+
+        ReservationEntry.Reset();
+        ReservationEntry.SetRange("Source Type", DATABASE::"Purchase Line");
+        ReservationEntry.SetRange("Source ID", PurchaseLine."Document No.");
+        ReservationEntry.SetRange("Source Ref. No.", PurchaseLine."Line No.");
+        ReservationEntry.SetRange("Item No.", Item."No.");
+        ReservationEntry.SetRange("Reservation Status", ReservationEntry."Reservation Status"::Reservation);
+        Assert.RecordIsNotEmpty(ReservationEntry);
     end;
 
     local procedure Initialize()

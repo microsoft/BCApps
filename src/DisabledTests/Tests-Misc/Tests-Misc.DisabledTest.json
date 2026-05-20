@@ -3448,5 +3448,30 @@
     "codeunitId": 136315,
     "codeunitName": "Send Job To Calendar",
     "method": "VerifyAttachmentNameIsJobTaskCaption"
+  },
+  {
+    "method": "TestCompanySetupWizardCanBeEnabledOnANewCompany",
+    "codeunitId": 139301,
+    "codeunitName": "Assisted Company Setup Tests"
+  },
+  {
+    "method": "TestWizardVerifyStatusCompletedWhenFinished",
+    "codeunitId": 139301,
+    "codeunitName": "Assisted Company Setup Tests"
+  },
+  {
+    "method": "TestWizardVerifyCompanyDisplayNameChangedOnCompanyNameChange",
+    "codeunitId": 139301,
+    "codeunitName": "Assisted Company Setup Tests"
+  },
+  {
+    "method": "AssistedCompanySetupCreateAccountingPeriodWithBlankStartDate",
+    "codeunitId": 139301,
+    "codeunitName": "Assisted Company Setup Tests"
+  },
+  {
+    "method": "AssistedCompanySetupCreateAccountingPeriodWithNonBlankStartDate",
+    "codeunitId": 139301,
+    "codeunitName": "Assisted Company Setup Tests"
   }
 ]

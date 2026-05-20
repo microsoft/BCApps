@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Inventory.Transfer;
 
+using Microsoft.Inventory.Setup;
+
 page 5748 "Transfer Route Specification"
 {
     Caption = 'Trans. Route Spec.';
@@ -28,6 +30,15 @@ page 5748 "Transfer Route Specification"
                 field("Shipping Agent Service Code"; Rec."Shipping Agent Service Code")
                 {
                     ApplicationArea = Location;
+                }
+                field("Direct Transfer"; Rec."Direct Transfer")
+                {
+                    ApplicationArea = Location;
+                }
+                field("Direct Transfer Posting"; Rec."Direct Transfer Posting")
+                {
+                    ApplicationArea = Location;
+                    Enabled = Rec."Direct Transfer";
                 }
             }
         }
@@ -60,7 +71,7 @@ page 5748 "Transfer Route Specification"
             if Rec.Get(Rec."Transfer-from Code", Rec."Transfer-to Code") then
                 if (Rec."Shipping Agent Code" = '') and
                    (Rec."Shipping Agent Service Code" = '') and
-                   (Rec."In-Transit Code" = '')
+                   (Rec."In-Transit Code" = '') and (not Rec."Direct Transfer")
                 then
                     Rec.Delete();
     end;
@@ -69,6 +80,21 @@ page 5748 "Transfer Route Specification"
     begin
         CurrPage.LookupMode := true;
     end;
+
+    trigger OnAfterGetCurrRecord()
+    begin
+        if not Rec."Direct Transfer" then
+            Rec."Direct Transfer Posting" := Rec."Direct Transfer Posting"::" "
+        else
+            if not (Rec."Direct Transfer Posting" in [Rec."Direct Transfer Posting"::"Direct Transfer", Rec."Direct Transfer Posting"::"Shipment and Receipt"]) then begin
+                InventorySetup.GetRecordOnce();
+                Rec."Direct Transfer Posting" := InventorySetup."Direct Transfer Posting Type";
+                Rec.Modify();
+            end;
+    end;
+
+    var
+        InventorySetup: Record "Inventory Setup";
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeClosePage(TransferRoute: Record "Transfer Route"; var CanBeDeleted: Boolean)

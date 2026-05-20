@@ -22,7 +22,7 @@ page 1823 "Consent Microsoft AI"
 
             group(Control2)
             {
-                InstructionalText = 'By enabling this feature, you consent to your data being shared with a Microsoft service that might be outside of your organization''s selected geographic boundaries and might have different compliance and security standards than Microsoft Dynamics Business Central. Your privacy is important to us, and you can choose whether to share data with the service. To learn more, follow the link below.';
+                InstructionalText = 'By enabling this feature, you consent to your data being shared with a Microsoft service that might be outside of your organization''s selected geographic boundaries and might have different compliance and security standards than Microsoft Dynamics 365 Business Central. Your privacy is important to us, and you can choose whether to share data with the service. To learn more, follow the link below.';
                 ShowCaption = false;
             }
 

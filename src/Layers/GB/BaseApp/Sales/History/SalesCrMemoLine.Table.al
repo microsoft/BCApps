@@ -1203,18 +1203,22 @@ table 115 "Sales Cr.Memo Line"
         SalesCreditMemoHeader: Record "Sales Cr.Memo Header";
         ValueEntry: Record "Value Entry";
     begin
-        CheckApplFromItemLedgEntry(ItemLedgerEntry);
-        
-        if ItemLedgerEntry."Entry No." = 0 then
-            FindItemLedgerEntryFromItemApplicationEntry(ItemLedgerEntry);
+        if Rec.Type = Rec.Type::Item then begin
+            CheckApplFromItemLedgEntry(ItemLedgerEntry);
 
-        ValueEntry.SetLoadFields("Item Ledger Entry No.", "Item Ledger Entry Type", "Document Type", "Document No.", "Document Line No.");
-        ValueEntry.SetRange("Item Ledger Entry No.", ItemLedgerEntry."Entry No.");
-        ValueEntry.SetRange("Item Ledger Entry Type", ItemLedgerEntry."Entry Type");
-        ValueEntry.SetRange("Document Type", ValueEntry."Document Type"::"Sales Invoice");
-        if ValueEntry.FindFirst() then begin
-            SalesInvoiceLine.Get(ValueEntry."Document No.", ValueEntry."Document Line No.");
-            exit;
+            if ItemLedgerEntry."Entry No." = 0 then
+                FindItemLedgerEntryFromItemApplicationEntry(ItemLedgerEntry);
+
+            if ItemLedgerEntry."Entry No." <> 0 then begin
+                ValueEntry.SetLoadFields("Item Ledger Entry No.", "Item Ledger Entry Type", "Document Type", "Document No.", "Document Line No.");
+                ValueEntry.SetRange("Item Ledger Entry No.", ItemLedgerEntry."Entry No.");
+                ValueEntry.SetRange("Item Ledger Entry Type", ItemLedgerEntry."Entry Type");
+                ValueEntry.SetRange("Document Type", ValueEntry."Document Type"::"Sales Invoice");
+                if ValueEntry.FindFirst() then begin
+                    SalesInvoiceLine.Get(ValueEntry."Document No.", ValueEntry."Document Line No.");
+                    exit;
+                end;
+            end;
         end;
 
         if ItemLedgerEntry."Entry No." = 0 then begin
@@ -1386,7 +1390,7 @@ table 115 "Sales Cr.Memo Line"
         ItemTrackingDocMgmt: Codeunit "Item Tracking Doc. Management";
     begin
         ItemTrackingDocMgmt.RetrieveEntriesFromPostedInvoice(TempItemLedEntry, RowID1());
-        if TempItemLedEntry.IsEmpty then
+        if TempItemLedEntry.IsEmpty() then
             exit;
 
         TempItemLedEntry.FindFirst();

@@ -1597,14 +1597,14 @@ codeunit 144025 "Test Enterprise No and Branch"
 
     [RequestPageHandler]
     [Scope('OnPrem')]
-    procedure ServiceInvoicePrintRequestHandler(var RequestPage: TestRequestPage "Service - Invoice")
+    procedure ServiceInvoicePrintRequestHandler(var RequestPage: TestRequestPage "Service - Invoice (BE)")
     begin
         RequestPage.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 
     [RequestPageHandler]
     [Scope('OnPrem')]
-    procedure ServiceCreditMemoPrintRequestHandler(var RequestPage: TestRequestPage "Service - Credit Memo")
+    procedure ServiceCreditMemoPrintRequestHandler(var RequestPage: TestRequestPage "Service - Credit Memo (BE)")
     begin
         RequestPage.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;

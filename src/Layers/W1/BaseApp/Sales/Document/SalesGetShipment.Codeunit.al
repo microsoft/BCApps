@@ -234,12 +234,10 @@ codeunit 64 "Sales-Get Shipment"
         ItemChargeAssgntSales.SetRange("Document Type", SalesOrderLine."Document Type");
         ItemChargeAssgntSales.SetRange("Document No.", SalesOrderLine."Document No.");
         ItemChargeAssgntSales.SetRange("Document Line No.", SalesOrderLine."Line No.");
-        if ItemChargeAssgntSales.FindFirst() then begin
-            ItemChargeAssgntSales.CalcSums("Qty. to Assign");
-            if ItemChargeAssgntSales."Qty. to Assign" <> 0 then
-                CopyItemChargeAssgnt(
-                  SalesOrderLine, SalesShptLine, ItemChargeAssgntSales."Qty. to Assign", QtyToInvoice / ItemChargeAssgntSales."Qty. to Assign");
-        end;
+        ItemChargeAssgntSales.CalcSums("Qty. to Assign");
+        if ItemChargeAssgntSales."Qty. to Assign" <> 0 then
+            CopyItemChargeAssgnt(
+              SalesOrderLine, SalesShptLine, ItemChargeAssgntSales."Qty. to Assign", QtyToInvoice / ItemChargeAssgntSales."Qty. to Assign");
     end;
 
     local procedure CopyItemChargeAssgnt(SalesOrderLine: Record "Sales Line"; SalesShptLine: Record "Sales Shipment Line"; QtyToAssign: Decimal; QtyFactor: Decimal)
@@ -269,9 +267,9 @@ codeunit 64 "Sales-Get Shipment"
                     ItemChargeAssgntSales2.Validate("Qty. to Handle", ItemChargeAssgntSales2."Qty. to Assign");
                     SalesLine2.SetRange("Shipment No.", SalesShptLine."Document No.");
                     SalesLine2.SetRange("Shipment Line No.", SalesShptLine."Line No.");
-                    if SalesLine2.FindSet() then
+                    SalesLine2.SetAutoCalcFields("Qty. to Assign");
+                    if SalesLine2.Find('-') then
                         repeat
-                            SalesLine2.CalcFields("Qty. to Assign");
                             InsertChargeAssgnt := SalesLine2."Qty. to Assign" <> SalesLine2.Quantity;
                         until (SalesLine2.Next() = 0) or InsertChargeAssgnt;
 

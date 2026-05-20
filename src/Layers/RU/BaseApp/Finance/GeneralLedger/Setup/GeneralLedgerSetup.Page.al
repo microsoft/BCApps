@@ -304,6 +304,11 @@ page 118 "General Ledger Setup"
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
                 }
+                field(UseConcurrentPosting; Rec."Use Concurrent Posting")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Importance = Additional;
+                }
             }
             group(Control1900309501)
             {
@@ -1027,11 +1032,7 @@ page 118 "General Ledger Setup"
 
 #pragma warning disable AA0074
         Text001: Label 'Do you want to change all open entries for every customer and vendor that are not blocked?';
-#pragma warning restore AA0074
-#pragma warning disable AA0074
         Text002: Label 'If you delete the additional reporting currency, future general ledger entries are posted in LCY only. Deleting the additional reporting currency does not affect already posted general ledger entries.\\Are you sure that you want to delete the additional reporting currency?';
-#pragma warning restore AA0074
-#pragma warning disable AA0074
         Text003: Label 'If you change the additional reporting currency, future general ledger entries are posted in the new reporting currency and in LCY. To enable the additional reporting currency, a batch job opens, and running the batch job recalculates already posted general ledger entries in the new additional reporting currency.\Entries will be deleted in the Analysis View if it is unblocked, and an update will be necessary.\\Are you sure that you want to change the additional reporting currency?';
 #pragma warning restore AA0074
 

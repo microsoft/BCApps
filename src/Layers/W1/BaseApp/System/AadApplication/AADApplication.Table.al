@@ -42,7 +42,8 @@ table 9012 "AAD Application"
 
                     if ("Client Id" in [AADApplicationSetup.GetD365BCForVEAppId(),
                                         AADApplicationSetup.GetPowerPagesAnonymousAppId(),
-                                        AADApplicationSetup.GetPowerPagesAuthenticatedAppId()]) then
+                                        AADApplicationSetup.GetPowerPagesAuthenticatedAppId(),
+                                        AADApplicationSetup.GetExpenseAgentAuthenticatedAppId()]) then
                         CreateUserFromAADApplication()
                     else
                         if ConfirmManagement.GetResponseOrDefault(ConfirmQuestion, true) then

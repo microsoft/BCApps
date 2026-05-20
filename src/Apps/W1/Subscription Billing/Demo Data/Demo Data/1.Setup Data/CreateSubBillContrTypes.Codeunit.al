@@ -12,7 +12,7 @@ codeunit 8104 "Create Sub. Bill. Contr. Types"
         ContosoSubscriptionBilling.InsertContractType(MaintenanceCode(), MaintenanceLbl);
         ContosoSubscriptionBilling.InsertContractType(MiscellaneousCode(), MiscellaneousLbl);
         ContosoSubscriptionBilling.InsertContractType(SupportCode(), SupportLbl);
-        ContosoSubscriptionBilling.InsertContractType(UsageDataCode(), UsageDataLbl);
+        ContosoSubscriptionBilling.InsertContractType(UsageDataCode(), UsageDataLbl, true, true);
     end;
 
     procedure MaintenanceCode(): Code[10]

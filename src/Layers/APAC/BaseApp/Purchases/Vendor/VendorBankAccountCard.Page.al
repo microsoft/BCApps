@@ -5,6 +5,7 @@
 namespace Microsoft.Purchases.Vendor;
 
 using Microsoft.Foundation.Address;
+using System.Automation;
 
 page 425 "Vendor Bank Account Card"
 {
@@ -150,11 +151,154 @@ page 425 "Vendor Bank Account Card"
                 ApplicationArea = Notes;
                 Visible = false;
             }
+            part(WorkflowStatus; "Workflow Status Factbox")
+            {
+                ApplicationArea = All;
+                Editable = false;
+                Enabled = false;
+                ShowFilter = false;
+                Visible = ShowWorkflowStatus;
+            }
         }
     }
 
     actions
     {
+        area(processing)
+        {
+            group(Approval)
+            {
+                Caption = 'Approval';
+                action(Approve)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Approve';
+                    Image = Approve;
+                    ToolTip = 'Approve the requested changes.';
+                    Visible = OpenApprovalEntriesExistCurrUser;
+
+                    trigger OnAction()
+                    var
+                        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
+                    begin
+                        ApprovalsMgmt.ApproveRecordApprovalRequest(Rec.RecordId);
+                    end;
+                }
+                action(Reject)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Reject';
+                    Image = Reject;
+                    ToolTip = 'Reject the approval request.';
+                    Visible = OpenApprovalEntriesExistCurrUser;
+
+                    trigger OnAction()
+                    var
+                        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
+                    begin
+                        ApprovalsMgmt.RejectRecordApprovalRequest(Rec.RecordId);
+                    end;
+                }
+                action(Delegate)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Delegate';
+                    Image = Delegate;
+                    ToolTip = 'Delegate the approval to a substitute approver.';
+                    Visible = OpenApprovalEntriesExistCurrUser;
+
+                    trigger OnAction()
+                    var
+                        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
+                    begin
+                        ApprovalsMgmt.DelegateRecordApprovalRequest(Rec.RecordId);
+                    end;
+                }
+                action(Comment)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Comments';
+                    Image = ViewComments;
+                    ToolTip = 'View or add comments for the record.';
+                    Visible = OpenApprovalEntriesExistCurrUser;
+
+                    trigger OnAction()
+                    var
+                        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
+                    begin
+                        ApprovalsMgmt.GetApprovalComment(Rec);
+                    end;
+                }
+            }
+            group("Request Approval")
+            {
+                Caption = 'Request Approval';
+                Image = SendApprovalRequest;
+                action(SendApprovalRequest)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Send A&pproval Request';
+                    Enabled = not OpenApprovalEntriesExist and CanRequestApprovalForFlow;
+                    Image = SendApprovalRequest;
+                    ToolTip = 'Request approval to change the record.';
+
+                    trigger OnAction()
+                    var
+                        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
+                    begin
+                        if ApprovalsMgmt.CheckVendorBankAccountApprovalsWorkflowEnabled(Rec) then
+                            ApprovalsMgmt.OnSendVendorBankAccountForApproval(Rec);
+                    end;
+                }
+                action(CancelApprovalRequest)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Cancel Approval Re&quest';
+                    Enabled = CanCancelApprovalForRecord or CanCancelApprovalForFlow;
+                    Image = CancelApprovalRequest;
+                    ToolTip = 'Cancel the approval request.';
+
+                    trigger OnAction()
+                    var
+                        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
+                    begin
+                        ApprovalsMgmt.OnCancelVendorBankAccountApprovalRequest(Rec);
+                        WorkflowWebhookManagement.FindAndCancel(Rec.RecordId);
+                    end;
+                }
+            }
+        }
+        area(Promoted)
+        {
+            group(Promoted_Approve)
+            {
+                Caption = 'Approve';
+
+                actionref(Approve_Promoted; Approve)
+                {
+                }
+                actionref(Reject_Promoted; Reject)
+                {
+                }
+                actionref(Comment_Promoted; Comment)
+                {
+                }
+                actionref(Delegate_Promoted; Delegate)
+                {
+                }
+            }
+            group(Promoted_RequestApproval)
+            {
+                Caption = 'Request Approval', Comment = 'Generated from the PromotedActionCategories property index 4.';
+
+                actionref(SendApprovalRequest_Promoted; SendApprovalRequest)
+                {
+                }
+                actionref(CancelApprovalRequest_Promoted; CancelApprovalRequest)
+                {
+                }
+            }
+        }
     }
 
     trigger OnAfterGetRecord()
@@ -162,8 +306,26 @@ page 425 "Vendor Bank Account Card"
         IsCountyVisible := FormatAddress.UseCounty(Rec."Country/Region Code");
     end;
 
+    trigger OnAfterGetCurrRecord()
+    begin
+        OpenApprovalEntriesExistCurrUser := ApprovalsMgmt.HasOpenApprovalEntriesForCurrentUser(Rec.RecordId);
+        OpenApprovalEntriesExist := ApprovalsMgmt.HasOpenApprovalEntries(Rec.RecordId);
+        ShowWorkflowStatus := CurrPage.WorkflowStatus.PAGE.SetFilterOnWorkflowRecord(Rec.RecordId);
+        CanCancelApprovalForRecord := ApprovalsMgmt.CanCancelApprovalForRecord(Rec.RecordId);
+        WorkflowWebhookManagement.GetCanRequestAndCanCancel(Rec.RecordId, CanRequestApprovalForFlow, CanCancelApprovalForFlow);
+
+    end;
+
     var
         FormatAddress: Codeunit "Format Address";
+        WorkflowWebhookManagement: Codeunit "Workflow Webhook Management";
+        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
         IsCountyVisible: Boolean;
+        OpenApprovalEntriesExistCurrUser: Boolean;
+        CanCancelApprovalForRecord: Boolean;
+        OpenApprovalEntriesExist: Boolean;
+        CanRequestApprovalForFlow: Boolean;
+        CanCancelApprovalForFlow: Boolean;
+        ShowWorkflowStatus: Boolean;
 }
 

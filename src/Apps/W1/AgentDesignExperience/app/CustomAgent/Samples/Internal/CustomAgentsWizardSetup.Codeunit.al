@@ -185,6 +185,7 @@ codeunit 4351 "Custom Agents Wizard Setup"
         if not Confirm(RunAgentTaskFromTemplateQst, true) then
             exit;
 
+        Commit();
         TasksCreated := AgentTaskTemplate.CreateTaskFromTemplate(AgentUserSecurityId, TaskTemplateCode);
         case TasksCreated of
             0:

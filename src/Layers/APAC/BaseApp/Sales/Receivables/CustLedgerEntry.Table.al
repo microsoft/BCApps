@@ -12,6 +12,7 @@ using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Finance.WithholdingTax;
 using Microsoft.FixedAssets.FixedAsset;
@@ -510,6 +511,8 @@ table 21 "Cust. Ledger Entry"
         field(53; "Transaction No."; Integer)
         {
             Caption = 'Transaction No.';
+            TableRelation = "G/L Transaction";
+            ToolTip = 'Specifies the transaction number that groups related G/L entries from the same posting.';
         }
         /// <summary>
         /// Stores the amount in local currency that was applied to close this entry.
@@ -848,6 +851,13 @@ table 21 "Cust. Ledger Entry"
         {
             Caption = 'Prepayment';
             ToolTip = 'Specifies if the related payment is a prepayment.';
+        }
+        field(95; "G/L Register No."; Integer)
+        {
+            Caption = 'G/L Register No.';
+            Editable = false;
+            TableRelation = "G/L Register";
+            ToolTip = 'Specifies the G/L register number that groups related G/L entries from the same posting.';
         }
         /// <summary>
         /// Specifies the payment reference number used by banks to identify and track the payment.
@@ -1192,6 +1202,11 @@ table 21 "Cust. Ledger Entry"
         {
         }
     }
+
+    trigger OnInsert()
+    begin
+        TestField("G/L Register No.");
+    end;
 
     var
 #pragma warning disable AA0074

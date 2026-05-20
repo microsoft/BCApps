@@ -50,6 +50,7 @@ codeunit 134900 "ERM Batch Job"
         NotPaidPurchPrepaymentErr: Label 'There are unpaid prepayment invoices that are related to the document of type Order with the number %1.';
         DefaultSalesCategoryCodeLbl: Label 'SALESBCKGR';
         DefaultPurchCategoryCodeLbl: Label 'PURCHBCKGR';
+        PostingDateDiffersFromWorkDateQst: Label 'Posting Date %1 is different from Work Date %2.\\Do you want to continue?', Comment = '%1 = Posting Date, %2 = Work Date';
 
     [Test]
     [Scope('OnPrem')]
@@ -2597,6 +2598,74 @@ codeunit 134900 "ERM Batch Job"
         end;
     end;
 
+    [Test]
+    [HandlerFunctions('PostingDateDiffersFromWorkDateConfirmHandler')]
+    [Scope('OnPrem')]
+    procedure PostPurchaseInvoiceWithDifferentPostingDateShowsConfirm()
+    var
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PostingDate: Date;
+    begin
+        // [FEATURE] [Purchase] [Posting Date Check on Posting]
+        // [SCENARIO] When "Posting Date Check on Posting" is enabled and Purchase Invoice has Posting Date different from Work Date,
+        // a confirm message should be displayed when posting.
+        Initialize();
+
+        // [GIVEN] "Posting Date Check on Posting" is enabled in Purchases & Payables Setup
+        PurchasesPayablesSetup.Get();
+        PurchasesPayablesSetup."Posting Date Check on Posting" := true;
+        PurchasesPayablesSetup.Modify(true);
+
+        // [GIVEN] A Purchase Invoice with Posting Date different from Work Date
+        PostingDate := WorkDate() - 1;
+        CreatePurchaseDocument(PurchaseHeader, PurchaseLine, PurchaseHeader."Document Type"::Invoice, LibraryPurchase.CreateVendorNo());
+        PurchaseHeader.SetHideValidationDialog(true);
+        PurchaseHeader.Validate("Posting Date", PostingDate);
+        PurchaseHeader.Modify(true);
+
+        // [GIVEN] Store expected confirm message text
+        LibraryVariableStorage.Enqueue(StrSubstNo(PostingDateDiffersFromWorkDateQst, PostingDate, WorkDate()));
+
+        // [WHEN] Post the Purchase Invoice
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+    end;
+
+    [Test]
+    [HandlerFunctions('PostingDateDiffersFromWorkDateConfirmHandler')]
+    [Scope('OnPrem')]
+    procedure PostSalesInvoiceWithDifferentPostingDateShowsConfirm()
+    var
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        PostingDate: Date;
+    begin
+        // [FEATURE] [Sales] [Posting Date Check on Posting]
+        // [SCENARIO] When "Posting Date Check on Posting" is enabled and Sales Invoice has Posting Date different from Work Date,
+        // a confirm message should be displayed when posting.
+        Initialize();
+
+        // [GIVEN] "Posting Date Check on Posting" is enabled in Sales & Receivables Setup
+        SalesReceivablesSetup.Get();
+        SalesReceivablesSetup."Posting Date Check on Posting" := true;
+        SalesReceivablesSetup.Modify(true);
+
+        // [GIVEN] A Sales Invoice with Posting Date different from Work Date
+        PostingDate := WorkDate() - 1;
+        CreateSalesDocument(SalesHeader, SalesLine, SalesHeader."Document Type"::Invoice);
+        SalesHeader.SetHideValidationDialog(true);
+        SalesHeader.Validate("Posting Date", PostingDate);
+        SalesHeader.Modify(true);
+
+        // [GIVEN] Store expected confirm message text
+        LibraryVariableStorage.Enqueue(StrSubstNo(PostingDateDiffersFromWorkDateQst, PostingDate, WorkDate()));
+
+        // [WHEN] Post the Sales Invoice
+        LibrarySales.PostSalesDocument(SalesHeader, true, true);
+    end;
+
     local procedure Initialize()
     var
         WarehouseEmployee: Record "Warehouse Employee";
@@ -4378,6 +4447,14 @@ codeunit 134900 "ERM Batch Job"
     [Scope('OnPrem')]
     procedure ConfirmHandlerTrue(Question: Text[1024]; var Reply: Boolean)
     begin
+        Reply := true;
+    end;
+
+    [ConfirmHandler]
+    [Scope('OnPrem')]
+    procedure PostingDateDiffersFromWorkDateConfirmHandler(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Assert.ExpectedConfirm(PostingDateDiffersFromWorkDateQst, Question);
         Reply := true;
     end;
 

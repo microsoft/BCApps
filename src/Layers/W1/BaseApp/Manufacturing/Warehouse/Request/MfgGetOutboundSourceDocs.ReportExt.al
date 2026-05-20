@@ -42,26 +42,11 @@ reportextension 99000836 "Mfg. Get Outbound Source Docs" extends "Get Outbound S
                     end;
 
                     trigger OnPreDataItem()
-#if not CLEAN26
-                    var
-                        ManufacturingSetup: Record Microsoft.Manufacturing.Setup."Manufacturing Setup";
-#endif
                     begin
-#if not CLEAN26
-                        if not ManufacturingSetup.IsFeatureKeyFlushingMethodManualWithoutPickEnabled() then
-                            SetFilter(
-                              "Flushing Method", '%1|%2|%3|%4',
-                              "Flushing Method"::Manual,
-                              "Flushing Method"::"Pick + Manual",
-                              "Flushing Method"::"Pick + Forward",
-                              "Flushing Method"::"Pick + Backward")
-                        else
-#endif
-                            SetFilter(
-                              "Flushing Method", '%1|%2|%3',
-                              "Flushing Method"::"Pick + Manual",
-                              "Flushing Method"::"Pick + Forward",
-                              "Flushing Method"::"Pick + Backward");
+                        SetFilter("Flushing Method", '%1|%2|%3',
+                            "Flushing Method"::"Pick + Manual",
+                            "Flushing Method"::"Pick + Forward",
+                            "Flushing Method"::"Pick + Backward");
                         SetRange("Location Code", "Whse. Pick Request"."Location Code");
                     end;
                 }

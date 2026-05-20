@@ -155,7 +155,7 @@ codeunit 398 "Sales Tax Calculate"
     begin
         SalesTaxAmountLine.Reset();
         if (LineType <> 0) and (TaxAreaCode <> '') then begin
-            TaxAreaLine.SetCurrentKey("Tax Area", "Calculation Order");
+            TaxAreaLine2.SetCurrentKey("Tax Area", "Calculation Order");
             TaxAreaLine2.SetRange("Tax Area", TaxAreaCode);
             TaxAreaLine2.FindSet();
             repeat

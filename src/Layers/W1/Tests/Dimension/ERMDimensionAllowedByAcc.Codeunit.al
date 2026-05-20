@@ -1203,9 +1203,6 @@ codeunit 134234 "ERM Dimension Allowed by Acc."
         // [WHEN] Create new Dimension Value
         LibraryDimension.CreateDimensionValue(DimensionValue, DimensionValue."Dimension Code");
 
-        // [GIVEN] Mock set for dim value per account allowed for G/L Account "A"
-        CreateDimValuePerAccount(DimensionValue, Database::"G/L Account", GLAccount."No.", true);
-
         // [THEN] Verify new Dimension Value is allowed
         VerifyNewDimensionValueIsAllowed(GLAccount, DimensionValue);
     end;
@@ -1337,6 +1334,49 @@ codeunit 134234 "ERM Dimension Allowed by Acc."
 
         // [THEN] Verify all "Dim. Value per Account" records for Customer are deleted.
         Assert.RecordIsEmpty(DimValuePerAccount);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandlerYes')]
+    [Scope('OnPrem')]
+    procedure InsertDimValueWithManyDefaultDimensionsDoesNotError()
+    var
+        Dimension: Record Dimension;
+        DimensionValue: array[3] of Record "Dimension Value";
+        NewDimensionValue: Record "Dimension Value";
+        GLAccount: array[3] of Record "G/L Account";
+        DefaultDimension: Record "Default Dimension";
+        DimValuePerAccount: Record "Dim. Value per Account";
+        Index: Integer;
+    begin
+        // [SCENARIO] Inserting a new dimension value when multiple default dimensions have allowed values filter does not error even with sparse Dim. Value per Account records
+        Initialize();
+
+        // [GIVEN] Dimension "D" with values "V1", "V2", "V3"
+        LibraryDimension.CreateDimension(Dimension);
+        for Index := 1 to ArrayLen(DimensionValue) do
+            LibraryDimension.CreateDimensionValue(DimensionValue[Index], Dimension.Code);
+
+        // [GIVEN] Three G/L Accounts each with mandatory default dimension "D" and different allowed values filters
+        for Index := 1 to ArrayLen(GLAccount) do begin
+            GLAccount[Index].Get(LibraryERM.CreateGLAccountNoWithDirectPosting());
+            CreateDefaultDimensionCodeMandatory(DefaultDimension, Database::"G/L Account", GLAccount[Index]."No.", Dimension.Code);
+            DefaultDimension.Validate("Allowed Values Filter", DimensionValue[Index].Code);
+            DefaultDimension.Modify(true);
+        end;
+
+        // [WHEN] A new dimension value "NV" is created (triggers AddDefaultDimensionAllowedDimensionValue)
+        LibraryDimension.CreateDimensionValue(NewDimensionValue, Dimension.Code);
+
+        // [THEN] No error occurs and the new value is added to the filter for all three accounts
+        for Index := 1 to ArrayLen(GLAccount) do begin
+            DefaultDimension.Get(Database::"G/L Account", GLAccount[Index]."No.", Dimension.Code);
+            Assert.IsTrue(
+                StrPos(DefaultDimension."Allowed Values Filter", NewDimensionValue.Code) > 0,
+                'New dimension value should be appended to the allowed values filter');
+            DimValuePerAccount.Get(Database::"G/L Account", GLAccount[Index]."No.", Dimension.Code, NewDimensionValue.Code);
+            Assert.IsTrue(DimValuePerAccount.Allowed, 'Dim. Value per Account should be marked as Allowed');
+        end;
     end;
 
     local procedure Initialize()

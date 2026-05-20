@@ -4,7 +4,7 @@ codeunit 144037 "ERM Telebank"
     //  1. Test to Verify IBAN on Proposal Line table.
     //  2. Test to Verify Error on Telebank Proposal page with blank Country/Region Code on Bank Account.
     //  3. Test to Verify Error on Telebank Proposal page with blank IBAN on Bank Account.
-    //  4. Test to Verify Error on Telebank Proposal page with blank SWIFT Code on Bank Account.
+    //  4. Test to Verify no error on Telebank Proposal page with blank SWIFT Code on Bank Account.
     //  5. Test to Verify Error on Telebank Proposal page after update Currency Code on Bank Account.
     //  6. Test to Verify Error on Telebank Proposal page with blank Bank Account No on Bank Account.
     //  7. Test to Verify Error on Telebank Proposal page with blank Account Holder Name on Bank Account.
@@ -12,7 +12,7 @@ codeunit 144037 "ERM Telebank"
     //  9. Test to Verify Error on Telebank Proposal page with blank Account Holder Post Code on Bank Account.
     // 10. Test to Verify Error on Telebank Proposal page with blank Account Holder City on Bank Account.
     // 11. Test to Verify Error on Telebank Proposal page with blank IBAN on Vendor Bank Account.
-    // 12. Test to Verify Error on Telebank Proposal page with blank SWIFT Code on Vendor Bank Account.
+    // 12. Test to Verify no error on Telebank Proposal page with blank SWIFT Code on Vendor Bank Account.
     // 13. Test to Verify Error on Telebank Proposal page with SWIFT Code more than 11 characters on Vendor Bank Account.
     // 14. Test to Verify Error on Telebank Proposal page with blank Country/Region Code on Vendor Bank Account.
     // 15. Test to Verify Error on Telebank Proposal page with SEPA Allowed as false on Country/Region.
@@ -36,11 +36,11 @@ codeunit 144037 "ERM Telebank"
     // Test Function Name                                                                                                       TFS ID
     // -------------------------------------------------------------------------------------------------------------------------------------------
     // ProposalLineIBANConfirmYes, ProposalLineIBANConfirmNo, BankAccWithBlankCountryTelebankProposalError
-    // BankAccWithBlankIBANTelebankProposalError, BankAccWithBlankSWIFTCodeTelebankProposalError
+    // BankAccWithBlankIBANTelebankProposalError, BankAccWithBlankSWIFTCodeTelebankProposalNoError
     // BankAccWithCurrencyTelebankProposalError, BankAccWithBlankBankAccNoTelebankProposalError
     // BankAccWithBlankNameTelebankProposalError, BankAccWithBlankAddressTelebankProposalError
     // BankAccWithBlankPostCodeTelebankProposalError, BankAccWithBlankCityTelebankProposalError
-    // VendBankAccWithBlankIBANTelebankProposalError, VendBankAccWithBlankSWIFTCodeTelebankProposalError
+    // VendBankAccWithBlankIBANTelebankProposalError, VendBankAccWithBlankSWIFTCodeTelebankProposalNoError
     // VendBankAccWithSWIFTCodeTelebankProposalError, VendBankAccWithBlankCountryTelebankProposalError
     // VendBankAccWithSEPAAllowedAsFalseOnCountryRegion, VendBankAccWithBlankAccHoldTelebankProposalError
     // VendBankAccWithBlankCityTelebankProposalError, ExportProtocolWithNoCheckIDTelebankProposalError
@@ -161,15 +161,33 @@ codeunit 144037 "ERM Telebank"
     end;
 
     [Test]
-    [HandlerFunctions('GetProposalEntriesRequestPageHandler,MessageHandler')]
+    [HandlerFunctions('GetProposalEntriesRequestPageHandler')]
     [Scope('OnPrem')]
-    procedure BankAccWithBlankSWIFTCodeTelebankProposalError()
+    procedure BankAccWithBlankSWIFTCodeTelebankProposalNoError()
     var
         BankAccount: Record "Bank Account";
+        VendorBankAccount: Record "Vendor Bank Account";
+        FreelyTransferableMaximum: Record "Freely Transferable Maximum";
+        TelebankProposal: TestPage "Telebank Proposal";
     begin
-        // [SCENARIO 226711] Error is generated on Telebank Proposal page with blank SWIFT Code on SEPA Bank Account.
-        UpdateBankAccAndGetEntriesOnTelebankProposal(
-          BankAccount.FieldNo("SWIFT Code"), '', StrSubstNo(ErrorTxt, BankAccount.FieldCaption("SWIFT Code")));  // SWIFT Code as blank.
+        // [SCENARIO 226711] No error is generated on Telebank Proposal page with blank SWIFT Code on SEPA Bank Account.
+        Initialize();
+
+        // [GIVEN] Posted Vendor invoice with Vendor Bank Account
+        // [GIVEN] SEPA Bank Account with blank SWIFT Code field has Check SEPA ISO20022 codeunit in Export Protocol
+        PostVendorInvoiceUpdateSEPABankAccount(BankAccount.FieldNo("SWIFT Code"), '', VendorBankAccount);
+        CreateFreelyTransMaximumWithAmount(VendorBankAccount."Country/Region Code", LibraryRandom.RandDecInRange(1000, 2000, 2));
+        LibraryVariableStorage.Enqueue(VendorBankAccount."Vendor No."); // Enqueue for GetProposalEntriesRequestPageHandler.
+
+        // [WHEN] Run Get Entries on Telebank Proposal Page.
+        GetEntriesOnTelebankProposal(TelebankProposal, VendorBankAccount."Bank Account No.");
+
+        // [THEN] No error message is shown on Telebank Proposal page
+        TelebankProposal.Message.AssertEquals('');
+
+        // teardown
+        FreelyTransferableMaximum.Get(VendorBankAccount."Country/Region Code", '');
+        FreelyTransferableMaximum.Delete();
     end;
 
     [Test]
@@ -302,23 +320,36 @@ codeunit 144037 "ERM Telebank"
     end;
 
     [Test]
-    [HandlerFunctions('GetProposalEntriesRequestPageHandlerEmployee,MessageHandler')]
+    [HandlerFunctions('GetProposalEntriesRequestPageHandlerEmployee')]
     [Scope('OnPrem')]
-    procedure EmployeeWithBlankSWIFTCodeTelebankProposalError()
+    procedure EmployeeWithBlankSWIFTCodeTelebankProposalNoError()
     var
         CompanyInformation: Record "Company Information";
+        Employee: Record Employee;
+        FreelyTransferableMaximum: Record "Freely Transferable Maximum";
         TransactionMode: Record "Transaction Mode";
+        TelebankProposal: TestPage "Telebank Proposal";
     begin
-        // Test to Verify Error on Telebank Proposal page with blank SWIFT Code on Vendor Bank Account.
-        // Setup.
+        // [SCENARIO] No error is generated on Telebank Proposal page with blank SWIFT Code on Employee.
         Initialize();
         CompanyInformation.Get();
 
-        // Exercise and Verify.
-        PostEmployeeExpenseAndGetEntriesOnTelebankProposal(
-          true, CompanyInformation.IBAN, '', CompanyInformation."Country/Region Code",
-          CompanyInformation.City, GetCheckID(), TransactionMode.Order::Debit, StrSubstNo(
-            ErrorTxt, CompanyInformation.FieldCaption("SWIFT Code")));  // SWIFT Code as blank. SEPAAllowed as True.
+        // [GIVEN] Employee with blank SWIFT Code and posted expense
+        PostEmployeeExpenseWithEmployee(
+          Employee, true, CompanyInformation.IBAN, '', CompanyInformation."Country/Region Code",
+          CompanyInformation.City, GetCheckID(), TransactionMode.Order::Debit);
+        CreateFreelyTransMaximumWithAmount(CompanyInformation."Country/Region Code", LibraryRandom.RandDecInRange(1000, 2000, 2));
+        LibraryVariableStorage.Enqueue(Employee."No.");
+
+        // [WHEN] Run Get Entries on Telebank Proposal Page
+        GetEntriesOnTelebankProposal(TelebankProposal, Employee."Bank Account No.");
+
+        // [THEN] No error message is shown on Telebank Proposal page
+        TelebankProposal.Message.AssertEquals('');
+
+        // teardown
+        FreelyTransferableMaximum.Get(CompanyInformation."Country/Region Code", '');
+        FreelyTransferableMaximum.Delete();
     end;
 
     [Test]
@@ -362,23 +393,36 @@ codeunit 144037 "ERM Telebank"
     end;
 
     [Test]
-    [HandlerFunctions('GetProposalEntriesRequestPageHandler,MessageHandler')]
+    [HandlerFunctions('GetProposalEntriesRequestPageHandler')]
     [Scope('OnPrem')]
-    procedure VendBankAccWithBlankSWIFTCodeTelebankProposalError()
+    procedure VendBankAccWithBlankSWIFTCodeTelebankProposalNoError()
     var
         CompanyInformation: Record "Company Information";
+        FreelyTransferableMaximum: Record "Freely Transferable Maximum";
+        VendorBankAccount: Record "Vendor Bank Account";
         TransactionMode: Record "Transaction Mode";
+        TelebankProposal: TestPage "Telebank Proposal";
     begin
-        // Test to Verify Error on Telebank Proposal page with blank SWIFT Code on Vendor Bank Account.
-        // Setup.
+        // [SCENARIO] No error is generated on Telebank Proposal page with blank SWIFT Code on Vendor Bank Account.
         Initialize();
         CompanyInformation.Get();
 
-        // Exercise and Verify.
-        PostPurchaseInvAndGetEntriesOnTelebankProposal(
-          true, CompanyInformation.IBAN, '', CompanyInformation."Country/Region Code", CompanyInformation."Country/Region Code",
-          CompanyInformation.City, GetCheckID(), TransactionMode.Order::Debit, StrSubstNo(
-            ErrorTxt, CompanyInformation.FieldCaption("SWIFT Code")));  // SWIFT Code as blank. SEPAAllowed as True.
+        // [GIVEN] Vendor Bank Account with blank SWIFT Code and posted purchase invoice
+        PostPurchaseInvoiceWithVendorBankAccount(
+          VendorBankAccount, true, CompanyInformation.IBAN, '', CompanyInformation."Country/Region Code",
+          CompanyInformation."Country/Region Code", CompanyInformation.City, GetCheckID(), TransactionMode.Order::Debit);
+        CreateFreelyTransMaximumWithAmount(VendorBankAccount."Country/Region Code", LibraryRandom.RandDecInRange(1000, 2000, 2));
+        LibraryVariableStorage.Enqueue(VendorBankAccount."Vendor No.");
+
+        // [WHEN] Run Get Entries on Telebank Proposal Page
+        GetEntriesOnTelebankProposal(TelebankProposal, VendorBankAccount."Bank Account No.");
+
+        // [THEN] No error message is shown on Telebank Proposal page
+        TelebankProposal.Message.AssertEquals('');
+
+        // teardown
+        FreelyTransferableMaximum.Get(VendorBankAccount."Country/Region Code", '');
+        FreelyTransferableMaximum.Delete();
     end;
 
     [Test]

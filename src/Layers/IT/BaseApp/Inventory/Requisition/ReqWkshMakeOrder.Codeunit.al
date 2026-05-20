@@ -202,6 +202,10 @@ codeunit 333 "Req. Wksh.-Make Order"
 
         if PrevChangedDocOrderNo <> '' then
             PrintChangedDocument(PrevChangedDocOrderType, PrevChangedDocOrderNo);
+
+        if OrderCounter <> 0 then
+            MoveRequisitionWkshBatch(ReqLine);
+
         // Copy number of created orders and current journal batch name to requisition worksheet
         ReqLine.Init();
         ReqLine."Line No." := OrderCounter;
@@ -1456,6 +1460,12 @@ codeunit 333 "Req. Wksh.-Make Order"
             PurchaseLine.Validate("Job Task No.", JobPlanningLine."Job Task No.");
             PurchaseLine.Validate("Job Planning Line No.", JobPlanningLine."Line No.");
         end;
+    end;
+
+    local procedure MoveRequisitionWkshBatch(var RequisitionLine: Record "Requisition Line")
+    begin
+        if ReqWkshName.Get(RequisitionLine."Worksheet Template Name", RequisitionLine."Journal Batch Name") then
+            ReqWkshName.OnMoveRequisitionWkshBatch(ReqWkshName.RecordId());
     end;
 
     [IntegrationEvent(false, false)]

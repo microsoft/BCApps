@@ -18,7 +18,9 @@ codeunit 132202 "Library - Manufacturing"
         LibraryItemTracking: Codeunit "Library - Item Tracking";
         Assert: Codeunit Assert;
         BOMItemLineNo: Integer;
+#if not CLEAN29
         BatchName: Label 'DEFAULT', Comment = 'Default Batch';
+#endif
         OutputConsumpMismatchTxt: Label 'Output Cost in Prod. Order %1, line %2 does not match Consumption.';
         OutputVarianceMismatchTxt: Label 'Output Cost including Variance in Prod. Order %1, line %2 does not match total Standard Cost of Produced Item.';
         Text003Msg: Label 'Inbound Whse. Requests are created.';
@@ -152,7 +154,8 @@ codeunit 132202 "Library - Manufacturing"
         CalculatePlanPlanWksh.UseRequestPage(false);
         CalculatePlanPlanWksh.RunModal();
     end;
-
+#if not CLEAN29
+    [Obsolete('Will be replaced by the Subcontracting Test App', '29.0')]
     procedure CalculateSubcontractOrder(var WorkCenter: Record "Work Center")
     var
         RequisitionLine: Record "Requisition Line";
@@ -164,7 +167,7 @@ codeunit 132202 "Library - Manufacturing"
         CalculateSubcontracts.UseRequestPage(false);
         CalculateSubcontracts.RunModal();
     end;
-
+#endif
     procedure CalculateWorkCenterCalendar(var WorkCenter: Record "Work Center"; StartingDate: Date; EndingDate: Date)
     var
         TmpWorkCenter: Record "Work Center";
@@ -182,7 +185,8 @@ codeunit 132202 "Library - Manufacturing"
         CalculateWorkCenterCalendarReport.UseRequestPage(false);
         CalculateWorkCenterCalendarReport.RunModal();
     end;
-
+#if not CLEAN29
+    [Obsolete('Will be replaced by the Subcontracting Test App', '29.0')]
     procedure CalculateSubcontractOrderWithProdOrderRoutingLine(var ProdOrderRoutingLine: Record "Prod. Order Routing Line")
     var
         RequisitionLine: Record "Requisition Line";
@@ -202,7 +206,7 @@ codeunit 132202 "Library - Manufacturing"
         CalculateSubcontracts.UseRequestPage(false);
         CalculateSubcontracts.RunModal();
     end;
-
+#endif
     procedure ChangeProdOrderStatus(var ProductionOrder: Record "Production Order"; NewStatus: Enum "Production Order Status"; PostingDate: Date; UpdateUnitCost: Boolean)
     var
         ProdOrderStatusMgt: Codeunit "Prod. Order Status Management";
@@ -1058,7 +1062,7 @@ codeunit 132202 "Library - Manufacturing"
         RollUpStandardCost.UseRequestPage(false);
         RollUpStandardCost.RunModal();
     end;
-
+#if not CLEAN29
     local procedure RequisitionLineForSubcontractOrder(var RequisitionLine: Record "Requisition Line")
     var
         ReqJnlManagement: Codeunit ReqJnlManagement;
@@ -1075,7 +1079,7 @@ codeunit 132202 "Library - Manufacturing"
             exit;
         ReqJnlManagement.OpenJnl(RequisitionLine."Journal Batch Name", RequisitionLine);
     end;
-
+#endif
     procedure SuggestCapacityStandardCost(var WorkCenter: Record "Work Center"; var MachineCenter: Record "Machine Center"; StandardCostWorksheetName: Code[10]; StandardCostAdjustmentFactor: Integer; StandardCostRoundingMethod: Code[10])
     var
         TmpWorkCenter: Record "Work Center";
@@ -1254,11 +1258,13 @@ codeunit 132202 "Library - Manufacturing"
         ProdOrderComponent.Modify(true);
     end;
 
+#if not CLEAN29
     [IntegrationEvent(false, false)]
+    [Obsolete('This event is obsoleted since it is moving to Subontracting App', '29.0')]
     local procedure OnBeforeOpenJournal(var RequisitionLine: Record "Requisition Line"; var Handled: Boolean)
     begin
     end;
-
+#endif
     // Move from Library Patterns
 
     procedure CreateConsumptionJournalLine(var ItemJournalBatch: Record "Item Journal Batch"; ProdOrderLine: Record "Prod. Order Line"; ComponentItem: Record Item; PostingDate: Date; LocationCode: Code[10]; VariantCode: Code[10]; Qty: Decimal; UnitCost: Decimal)

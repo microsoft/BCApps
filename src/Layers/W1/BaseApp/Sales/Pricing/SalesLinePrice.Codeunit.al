@@ -213,7 +213,8 @@ codeunit 7020 "Sales Line - Price" implements "Line With Price"
     begin
         PriceCalculationBuffer."Price Calculation Method" := SalesLine."Price Calculation Method";
         // Tax
-        PriceCalculationBuffer."Prices Including Tax" := SalesHeader."Prices Including VAT";
+        // Unit Cost is always a net value; only apply the Prices Including Tax flag for sale prices.
+        PriceCalculationBuffer."Prices Including Tax" := SalesHeader."Prices Including VAT" and (CurrPriceType = CurrPriceType::Sale);
         PriceCalculationBuffer."Tax %" := SalesLine.GetVATPct();
         PriceCalculationBuffer."VAT Calculation Type" := SalesLine."VAT Calculation Type".AsInteger();
         PriceCalculationBuffer."VAT Bus. Posting Group" := SalesLine."VAT Bus. Posting Group";

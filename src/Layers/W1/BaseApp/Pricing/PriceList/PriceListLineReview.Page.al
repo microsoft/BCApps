@@ -407,7 +407,14 @@ page 7005 "Price List Line Review"
     trigger OnQueryClosePage(CloseAction: Action): Boolean;
     var
         PriceListManagement: Codeunit "Price List Management";
+        IsHandled: Boolean;
+        Result: Boolean;
     begin
+        IsHandled := false;
+        OnBeforeOnQueryClosePage(Rec, Result, IsHandled);
+        if IsHandled then
+            exit(Result);
+
         if HasDraftLines() then begin
             PriceListManagement.SendVerifyLinesNotification();
             exit(false);
@@ -611,5 +618,10 @@ page 7005 "Price List Line Review"
             if not PriceListHeader.Get(Rec."Price List Code") then
                 exit('');
         exit(PriceListHeader.Description);
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeOnQueryClosePage(var PriceListLine: Record "Price List Line"; var Result: Boolean; var IsHandled: Boolean)
+    begin
     end;
 }

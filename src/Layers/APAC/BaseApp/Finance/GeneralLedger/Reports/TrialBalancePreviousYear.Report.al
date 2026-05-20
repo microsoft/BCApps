@@ -277,6 +277,7 @@ report 7 "Trial Balance/Previous Year"
 
     trigger OnPreReport()
     begin
+        "G/L Account".SecurityFiltering(SecurityFilter::Filtered);
         GLFilter := "G/L Account".GetFilters();
         FiscalYearStartDate := "G/L Account".GetRangeMin("Date Filter");
         FiscalYearEndDate := "G/L Account".GetRangeMax("Date Filter");

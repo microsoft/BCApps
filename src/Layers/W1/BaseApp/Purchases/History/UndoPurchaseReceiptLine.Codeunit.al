@@ -289,6 +289,7 @@ codeunit 5813 "Undo Purchase Receipt Line"
         ItemJnlLine."Shortcut Dimension 1 Code" := PurchRcptLine."Shortcut Dimension 1 Code";
         ItemJnlLine."Shortcut Dimension 2 Code" := PurchRcptLine."Shortcut Dimension 2 Code";
         ItemJnlLine."Dimension Set ID" := PurchRcptLine."Dimension Set ID";
+        ItemJnlLine.Description := PurchRcptLine.Description;
 
         if PurchRcptLine."Job No." = '' then begin
             ItemJnlLine.Correction := true;

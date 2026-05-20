@@ -4,13 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Upgrade;
 
-#if not CLEAN26
+#if not CLEANSCHEMA29
 using Microsoft.Inventory.Item;
-#endif
-#if not CLEAN27
 using Microsoft.Inventory.Location;
-#endif
-#if not CLEAN26
 using Microsoft.Inventory.Planning;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.Setup;
@@ -22,14 +18,12 @@ codeunit 104062 "Mfg. Upgrade BaseApp"
 
     var
         HybridDeployment: Codeunit System.Environment."Hybrid Deployment";
-#if not CLEAN27
+#if not CLEANSCHEMA29
         UpgradeTag: Codeunit System.Upgrade."Upgrade Tag";
         UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
 #endif
 
     trigger OnUpgradePerCompany()
-    var
-        CurrentModuleInfo: ModuleInfo;
     begin
         if not HybridDeployment.VerifyCanStartUpgrade(CompanyName()) then
             exit;
@@ -38,20 +32,16 @@ codeunit 104062 "Mfg. Upgrade BaseApp"
         UpgradeInventoryPlanningFields();
 #endif
 
-        // Upgrade starting from version 29
-        NavApp.GetCurrentModuleInfo(CurrentModuleInfo);
-        if CurrentModuleInfo.AppVersion().Major() < 29 then
-            exit;
-
-#if not CLEAN26
+#if not CLEANSCHEMA29
         UpgradeFlushingMethod();
 #endif
+
 #if not CLEAN27
         UpgradeGranularWarehouseHandlingSetup();
 #endif
     end;
 
-#if not CLEAN26
+#if not CLEANSCHEMA29
     local procedure UpgradeFlushingMethod()
     begin
         if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetManufacturingFlushingMethodActivateManualWithoutPickUpgradeTag()) then
@@ -80,7 +70,7 @@ codeunit 104062 "Mfg. Upgrade BaseApp"
     end;
 #endif
 
-#if not CLEAN26
+#if not CLEANSCHEMA29
     local procedure CheckProductionOrderIsEmpty(): Boolean;
     var
         ProductionOrder: Record "Production Order";
@@ -123,7 +113,7 @@ codeunit 104062 "Mfg. Upgrade BaseApp"
     end;
 #endif
 
-#if not CLEAN27
+#if not CLEANSCHEMA29
     local procedure SetUpgradeTag(DataUpgradeExecuted: Boolean; UpgradeTagCode: Code[250])
     begin
         UpgradeTag.SetUpgradeTag(UpgradeTagCode);
@@ -132,7 +122,7 @@ codeunit 104062 "Mfg. Upgrade BaseApp"
     end;
 #endif
 
-#if not CLEAN26
+#if not CLEANSCHEMA29
     local procedure UpdateFromManualToPickPlusManualFlushingMethod_Item()
     var
         Item: Record Item;
@@ -219,7 +209,6 @@ codeunit 104062 "Mfg. Upgrade BaseApp"
                 ManufacturingSetup.Modify();
             until ManufacturingSetup.Next() = 0;
     end;
-
 #endif
 
 #if not CLEAN27

@@ -738,7 +738,7 @@ table 38 "Purchase Header"
         field(28; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
-            ToolTip = 'Specifies the location where the items are to be placed when they are received. This field acts as the default location for new lines. You can update the location code for individual lines as needed.';
+            ToolTip = 'Specifies the code for the location where the items are to be received. When you select the vendor and the vendor has a location assigned, the value is taken from the Vendor card. If the vendor has no location, but a Responsibility Center is populated, the location code is taken from the Responsibility Center. If neither is specified, the value is taken from Company Information. This field acts as the default location for new lines. You can update the location code for individual lines as needed.';
             TableRelation = Location where("Use As In-Transit" = const(false));
 
             trigger OnValidate()
@@ -2440,10 +2440,10 @@ table 38 "Purchase Header"
                         exit;
                     end;
 
-                if ("Pay-to Vendor No." <> '') and ("Pay-to Contact No." <> '') then
+                if ("Pay-to Vendor No." <> '') and ("Pay-to Contact No." <> '') then begin
                     Cont.Get("Pay-to Contact No.");
-
-                CheckContactRelatedToVendorCompany("Pay-to Contact No.", "Pay-to Vendor No.", FieldNo("Pay-to Contact No."));
+                    CheckContactRelatedToVendorCompany("Pay-to Contact No.", "Pay-to Vendor No.", FieldNo("Pay-to Contact No."));
+                end;
 
                 UpdatePayToVend("Pay-to Contact No.");
             end;
@@ -6580,9 +6580,9 @@ table 38 "Purchase Header"
     /// </param>
     procedure SendProfile(var DocumentSendingProfile: Record "Document Sending Profile")
     var
-        DummyReportSelections: Record "Report Selections";
-        ReportDistributionMgt: Codeunit "Report Distribution Management";
+        ReportSelections: Record "Report Selections";
         IsHandled: Boolean;
+        DocTxt: Text[150];
     begin
         IsHandled := false;
         OnBeforeSendProfile(Rec, DocumentSendingProfile, IsHandled);
@@ -6590,12 +6590,13 @@ table 38 "Purchase Header"
             exit;
 
         CheckMixedDropShipment();
+        GetReportSelectionsUsageFromDocumentType(ReportSelections.Usage, DocTxt);
         IsHandled := false;
         OnSendProfileOnBeforeSendVendor(Rec, IsHandled);
         if not IsHandled then
             DocumentSendingProfile.SendVendor(
-                DummyReportSelections.Usage::"P.Order".AsInteger(), Rec, "No.", "Buy-from Vendor No.",
-                ReportDistributionMgt.GetFullDocumentTypeText(Rec), FieldNo("Buy-from Vendor No."), FieldNo("No."));
+                ReportSelections.Usage.AsInteger(), Rec, "No.", "Buy-from Vendor No.",
+                DocTxt, FieldNo("Buy-from Vendor No."), FieldNo("No."));
     end;
 
     local procedure CheckMixedDropShipment()
@@ -7371,6 +7372,14 @@ table 38 "Purchase Header"
                 ReportSelectionsUsage := ReportSelections.Usage::"P.Order";
             "Document Type"::Quote:
                 ReportSelectionsUsage := ReportSelections.Usage::"P.Quote";
+            "Document Type"::Invoice:
+                ReportSelectionsUsage := ReportSelections.Usage::"P.Invoice";
+            "Document Type"::"Credit Memo":
+                ReportSelectionsUsage := ReportSelections.Usage::"P.Cr.Memo";
+            "Document Type"::"Blanket Order":
+                ReportSelectionsUsage := ReportSelections.Usage::"P.Blanket";
+            "Document Type"::"Return Order":
+                ReportSelectionsUsage := ReportSelections.Usage::"P.Return";
         end;
 
         ReportUsage := ReportSelectionsUsage.AsInteger();

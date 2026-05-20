@@ -19,13 +19,11 @@ codeunit 30103 "Shpfy Communication Mgt."
 
     var
         Shop: Record "Shpfy Shop";
-        CommunicationEvents: Codeunit "Shpfy Communication Events";
         GraphQLQueries: Codeunit "Shpfy GraphQL Queries";
         NextExecutionTime: DateTime;
         VersionTok: Label '2026-01', Locked = true;
         OutgoingRequestsNotEnabledConfirmLbl: Label 'Importing data to your Shopify shop is not enabled, do you want to go to shop card to enable?';
         OutgoingRequestsNotEnabledErr: Label 'Importing data to your Shopify shop is not enabled, navigate to shop card to enable.';
-        IsTestInProgress: Boolean;
         CategoryTok: Label 'Shopify Integration', Locked = true;
         QueryParamTooLongTxt: Label 'Query param length exceeded 50000.', Locked = true;
         QueryParamTooLongErr: Label 'Request length exceeded Shopify API limit.';
@@ -232,22 +230,19 @@ codeunit 30103 "Shpfy Communication Mgt."
                 Sleep(Wait);
         end;
 
-        if IsTestInProgress then
-            CommunicationEvents.OnClientSend(HttpRequestMessage, HttpResponseMessage)
-        else
-            if HttpClient.Send(HttpRequestMessage, HttpResponseMessage) then begin
-                Clear(RetryCounter);
-                while (not HttpResponseMessage.IsBlockedByEnvironment) and (EvaluateResponse(HttpResponseMessage)) and (RetryCounter < MaxRetries) do begin
-                    RetryCounter += 1;
-                    Sleep(1000);
-                    LogShopifyRequest(Url, Method, Request, HttpResponseMessage, Response, RetryCounter);
-                    Clear(HttpClient);
-                    Clear(HttpRequestMessage);
-                    Clear(HttpResponseMessage);
-                    CreateHttpRequestMessage(Url, Method, Request, HttpRequestMessage);
-                    HttpClient.Send(HttpRequestMessage, HttpResponseMessage);
-                end;
+        if HttpClient.Send(HttpRequestMessage, HttpResponseMessage) then begin
+            Clear(RetryCounter);
+            while (not HttpResponseMessage.IsBlockedByEnvironment) and (EvaluateResponse(HttpResponseMessage)) and (RetryCounter < MaxRetries) do begin
+                RetryCounter += 1;
+                Sleep(1000);
+                LogShopifyRequest(Url, Method, Request, HttpResponseMessage, Response, RetryCounter);
+                Clear(HttpClient);
+                Clear(HttpRequestMessage);
+                Clear(HttpResponseMessage);
+                CreateHttpRequestMessage(Url, Method, Request, HttpRequestMessage);
+                HttpClient.Send(HttpRequestMessage, HttpResponseMessage);
             end;
+        end;
         if GetContent(HttpResponseMessage, Response) then;
         ResponseHeaders := HttpResponseMessage.Headers();
         LogShopifyRequest(Url, Method, Request, HttpResponseMessage, Response, RetryCounter);
@@ -257,28 +252,19 @@ codeunit 30103 "Shpfy Communication Mgt."
     [NonDebuggable]
     internal procedure Post(var Client: HttpClient; Url: Text; Content: HttpContent; var Response: HttpResponseMessage)
     begin
-        if IsTestInProgress then
-            CommunicationEvents.OnClientPost(Url, Content, Response)
-        else
-            Client.Post(Url, Content, Response);
+        Client.Post(Url, Content, Response);
     end;
 
     [NonDebuggable]
     internal procedure Get(var Client: HttpClient; Url: Text; var Response: HttpResponseMessage)
     begin
-        if IsTestInProgress then
-            CommunicationEvents.OnClientGet(Url, Response)
-        else
-            Client.Get(Url, Response);
+        Client.Get(Url, Response);
     end;
 
     [TryFunction]
     local procedure GetContent(HttpResponseMsg: HttpResponseMessage; var Response: Text)
     begin
-        if IsTestInProgress then
-            CommunicationEvents.OnGetContent(HttpResponseMsg, Response)
-        else
-            HttpResponseMsg.Content.ReadAs(Response);
+        HttpResponseMsg.Content.ReadAs(Response);
     end;
 
     /// <summary> 
@@ -311,8 +297,7 @@ codeunit 30103 "Shpfy Communication Mgt."
     /// <returns>Return value of type Text.</returns>
     local procedure ApiVersion(): Text
     begin
-        if not IsTestInProgress then
-            CheckApiVersion();
+        CheckApiVersion();
         exit(VersionTok);
     end;
 
@@ -351,18 +336,12 @@ codeunit 30103 "Shpfy Communication Mgt."
         HttpContent: HttpContent;
         ContentHttpHeaders: HttpHeaders;
         HttpHeaders: HttpHeaders;
-        ClearAccessToken: Text;
         AccessToken: SecretText;
     begin
         HttpRequestMsg.SetRequestUri(url);
         HttpRequestMsg.GetHeaders(HttpHeaders);
 
-
-        if IsTestInProgress then begin
-            CommunicationEvents.OnGetAccessToken(ClearAccessToken);
-            AccessToken := ClearAccessToken;
-        end else
-            AccessToken := GetAccessToken(Shop);
+        AccessToken := GetAccessToken(Shop);
 
         HttpHeaders.Add('X-Shopify-Access-Token', AccessToken);
         HttpRequestMsg.Method := Method;
@@ -562,20 +541,6 @@ codeunit 30103 "Shpfy Communication Mgt."
         Shop.Get(ShopCode);
         Dimensions.Add('ShopId', Format(Shop."Shop Id"));
         FeatureTelemetry.LogUsage('0000JW7', 'Shopify', 'A shop is set', Dimensions);
-    end;
-
-    /// <summary>
-    /// SetTestInProgress.
-    /// </summary>
-    /// <param name="TestInProgress">Boolean.</param>
-    internal procedure SetTestInProgress(TestInProgress: Boolean)
-    begin
-        IsTestInProgress := TestInProgress;
-    end;
-
-    internal procedure GetTestInProgress(): Boolean
-    begin
-        exit(IsTestInProgress);
     end;
 
     internal procedure GetShopRecord() ShopifyShop: Record "Shpfy Shop";

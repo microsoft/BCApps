@@ -13,6 +13,7 @@ using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.Foundation.Attachment;
@@ -493,7 +494,7 @@ table 21 "Cust. Ledger Entry"
         /// <summary>
         /// Specifies the type of balancing account used in the original transaction, such as G/L Account, Bank Account, or Vendor.
         /// </summary>
-        field(51; "Bal. Account Type"; enum "Gen. Journal Account Type")
+        field(51; "Bal. Account Type"; Enum "Gen. Journal Account Type")
         {
             Caption = 'Bal. Account Type';
             ToolTip = 'Specifies the type of account that a balancing entry is posted to, such as BANK for a cash account.';
@@ -521,6 +522,8 @@ table 21 "Cust. Ledger Entry"
         field(53; "Transaction No."; Integer)
         {
             Caption = 'Transaction No.';
+            TableRelation = "G/L Transaction";
+            ToolTip = 'Specifies the transaction number that groups related G/L entries from the same posting.';
         }
         /// <summary>
         /// Stores the amount in local currency that was applied to close this entry.
@@ -867,6 +870,13 @@ table 21 "Cust. Ledger Entry"
             Caption = 'Payment Terms Code';
             Editable = false;
             TableRelation = "Payment Terms";
+        }
+        field(95; "G/L Register No."; Integer)
+        {
+            Caption = 'G/L Register No.';
+            Editable = false;
+            TableRelation = "G/L Register";
+            ToolTip = 'Specifies the G/L register number that groups related G/L entries from the same posting.';
         }
         /// <summary>
         /// Specifies the payment reference number used by banks to identify and track the payment.

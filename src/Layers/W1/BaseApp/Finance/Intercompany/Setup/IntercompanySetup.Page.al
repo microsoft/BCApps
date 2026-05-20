@@ -4,10 +4,12 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Intercompany.Setup;
 
+using Microsoft.Intercompany;
 using Microsoft.Intercompany.DataExchange;
 using Microsoft.Intercompany.Dimension;
 using Microsoft.Intercompany.GLAccount;
 using Microsoft.Intercompany.Partner;
+using System.Threading;
 
 /// <summary>
 /// Main configuration page for intercompany setup and partner management.
@@ -95,6 +97,13 @@ page 653 "Intercompany Setup"
                     Caption = 'Default IC Gen. Jnl. Batch';
                     ToolTip = 'Specifies the journal batch that will be used to create journal lines as soon as transactions arrive in the intercompany inbox.';
                 }
+                field("Log API Requests"; Rec."Log API Requests")
+                {
+                    ApplicationArea = Intercompany;
+                    Caption = 'Log API Requests';
+                    ToolTip = 'Specifies whether to log outgoing and incoming intercompany API requests for troubleshooting.';
+                    Importance = Additional;
+                }
             }
             part("IC Partners List Part"; "IC Partners List Part")
             {
@@ -143,6 +152,53 @@ page 653 "Intercompany Setup"
                 RunObject = Page "IC Connection Details";
                 RunPageMode = View;
                 ToolTip = 'Access the connection details that your intercompany partners will use to connect to your company if they''re in different environments.';
+            }
+            group(Troubleshooting)
+            {
+                Caption = 'Troubleshooting';
+                Image = Troubleshoot;
+                action(APILogEntries)
+                {
+                    Caption = 'API Log Entries';
+                    Image = Log;
+                    RunObject = Page "IC API Log Entries";
+                    ToolTip = 'View logged intercompany API requests and responses for troubleshooting.';
+                }
+                action(JobQueueErrors)
+                {
+                    Caption = 'Job Queue Errors';
+                    Image = ErrorLog;
+                    ToolTip = 'View job queue log entries with errors for intercompany background tasks.';
+
+                    trigger OnAction()
+                    var
+                        JobQueueLogEntry: Record "Job Queue Log Entry";
+                    begin
+                        JobQueueLogEntry.SetRange("Object Type to Run", JobQueueLogEntry."Object Type to Run"::Codeunit);
+                        JobQueueLogEntry.SetFilter("Object ID to Run", '%1|%2|%3|%4|%5',
+                            Codeunit::"IC New Notification JR",
+                            Codeunit::"IC Read Notification JR",
+                            Codeunit::"IC Sync. Completed JR",
+                            Codeunit::"IC Auto Accept JR",
+                            Codeunit::"IC Inbox Outbox Subs. Runner");
+                        JobQueueLogEntry.SetRange(Status, JobQueueLogEntry.Status::Error);
+                        Page.Run(Page::"Job Queue Log Entries", JobQueueLogEntry);
+                    end;
+                }
+                action(OutgoingNotifications)
+                {
+                    Caption = 'Outgoing Notifications';
+                    Image = SendTo;
+                    RunObject = Page "IC Outgoing Notifications";
+                    ToolTip = 'View outgoing intercompany notifications and their delivery status.';
+                }
+                action(IncomingNotifications)
+                {
+                    Caption = 'Incoming Notifications';
+                    Image = ReceiveLoaner;
+                    RunObject = Page "IC Incoming Notifications";
+                    ToolTip = 'View incoming intercompany notifications and their processing status.';
+                }
             }
         }
         area(Promoted)

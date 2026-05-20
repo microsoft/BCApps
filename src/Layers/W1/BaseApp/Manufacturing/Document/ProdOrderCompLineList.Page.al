@@ -138,6 +138,11 @@ page 5407 "Prod. Order Comp. Line List"
                     AutoFormatType = 0;
                     ApplicationArea = Manufacturing;
                 }
+                field("Act. Consumption (Qty)"; Rec."Act. Consumption (Qty)")
+                {
+                    ApplicationArea = Manufacturing;
+                    Caption = 'Consumed Quantity (Base)';
+                }
                 field("Due Date"; Rec."Due Date")
                 {
                     ApplicationArea = Manufacturing;

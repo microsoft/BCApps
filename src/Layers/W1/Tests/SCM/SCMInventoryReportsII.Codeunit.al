@@ -1726,7 +1726,7 @@ codeunit 137302 "SCM Inventory Reports - II"
         // Random value unimportant for test.
         LibraryManufacturing.CreateItemManufacturing(
           Item, Item."Costing Method"::FIFO, LibraryRandom.RandDec(50, 2), Item."Reordering Policy",
-          Item."Flushing Method", RoutingNo, ProductionBOMNo);
+          Item."Flushing Method"::"Pick + Manual", RoutingNo, ProductionBOMNo);
         Item.Validate("Manufacturing Policy", ItemManufacturingPolicy);
         Item.Validate("Replenishment System", Item."Replenishment System"::"Prod. Order");
         Item.Modify(true);

@@ -137,6 +137,10 @@ page 5919 "Service Mgt. Setup"
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
                 }
+                field("Enable Concurrent Posting"; Rec."Enable Concurrent Posting")
+                {
+                    ApplicationArea = Service;
+                }
             }
             group("Mandatory Fields")
             {

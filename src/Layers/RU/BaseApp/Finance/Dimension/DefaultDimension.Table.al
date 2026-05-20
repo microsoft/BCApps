@@ -945,16 +945,46 @@ table 352 "Default Dimension"
     var
         DimValuePerAccount: Record "Dim. Value per Account";
     begin
+        if DimValuePerAccount.Get("Table ID", "No.", DimValue."Dimension Code", DimValue.Code) then begin
+            if DimValuePerAccount.Allowed <> ShouldUpdateAllowed then begin
+                DimValuePerAccount.Allowed := ShouldUpdateAllowed;
+                DimValuePerAccount.Modify();
+            end;
+            exit;
+        end;
         DimValuePerAccount.Init();
         DimValuePerAccount."Dimension Code" := DimValue."Dimension Code";
         DimValuePerAccount."Dimension Value Code" := DimValue.Code;
         DimValuePerAccount."Table ID" := "Table ID";
         DimValuePerAccount."No." := "No.";
-        if not ShouldUpdateAllowed then
-            DimValuePerAccount.Allowed := false
-        else
-            DimValuePerAccount.Allowed := IncludedInAllowedValuesFilter(DimValuePerAccount);
+        DimValuePerAccount.Allowed := ShouldUpdateAllowed;
         DimValuePerAccount.Insert();
+    end;
+
+    /// <summary>
+    /// Adds a dimension value to the allowed values filter without rebuilding from Dim. Value per Account records.
+    /// Appends the value code to the filter text if not already covered by the existing filter.
+    /// </summary>
+    /// <param name="DimValueCode">The dimension value code to add to the allowed values filter.</param>
+    procedure AddDimensionValueToAllowedFilter(DimValueCode: Code[20])
+    var
+        TempDimValuePerAccount: Record "Dim. Value per Account" temporary;
+    begin
+        if "Allowed Values Filter" = '' then
+            exit;
+        TempDimValuePerAccount.Init();
+        TempDimValuePerAccount."Table ID" := "Table ID";
+        TempDimValuePerAccount."No." := "No.";
+        TempDimValuePerAccount."Dimension Code" := "Dimension Code";
+        TempDimValuePerAccount."Dimension Value Code" := DimValueCode;
+        TempDimValuePerAccount.Insert();
+        TempDimValuePerAccount.SetFilter("Dimension Value Code", "Allowed Values Filter");
+        if not TempDimValuePerAccount.IsEmpty() then
+            exit;
+        if StrLen("Allowed Values Filter") + 1 + StrLen(DimValueCode) <= MaxStrLen("Allowed Values Filter") then begin
+            "Allowed Values Filter" := CopyStr("Allowed Values Filter" + '|' + DimValueCode, 1, MaxStrLen("Allowed Values Filter"));
+            Modify();
+        end;
     end;
 
     /// <summary>

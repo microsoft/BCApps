@@ -10,12 +10,14 @@ codeunit 137018 "SCM Adjmt. of Expected Cost"
     end;
 
     var
-        LibrarySales: Codeunit "Library - Sales";
-        LibraryPurchase: Codeunit "Library - Purchase";
+        LibraryERM: Codeunit "Library - ERM";
         LibraryInventory: Codeunit "Library - Inventory";
+        LibraryPurchase: Codeunit "Library - Purchase";
+        LibrarySales: Codeunit "Library - Sales";
         Assert: Codeunit Assert;
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         IsInitialized: Boolean;
+        GLEntryTotalMismatchErr: Label 'GL Entry total for account %1 is %2, expected %3.', Comment = '%1 = G/L Account No., %2 = Actual Amount, %3 = Expected Amount';
 
     [Test]
     [Scope('OnPrem')]
@@ -63,6 +65,99 @@ codeunit 137018 "SCM Adjmt. of Expected Cost"
           OldInventorySetup, false,
           OldInventorySetup."Automatic Cost Posting",
           OldInventorySetup."Expected Cost Posting to G/L", OldInventorySetup."Automatic Cost Adjustment");
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ThreePartialReceiptsGLEntryTotalIsExact()
+    var
+        GLAccount: Record "G/L Account";
+        GLEntry: Record "G/L Entry";
+        InventoryPostingSetup: Record "Inventory Posting Setup";
+        Item: Record Item;
+        OldInventorySetup: Record "Inventory Setup";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ActualTotalAmount: Decimal;
+        ExpectedTotalAmount: Decimal;
+        Receipt1Qty: Decimal;
+        Receipt2Qty: Decimal;
+        Receipt3Qty: Decimal;
+        TotalQty: Decimal;
+        UnitCost: Decimal;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 626698] GL Entry total for interim accounts equals exact line amount after 3 partial receipts.
+        Initialize();
+
+        // [GIVEN] Inventory Setup with Automatic Cost Posting and Expected Cost Posting to G/L enabled.
+        OldInventorySetup.Get();
+        SetInventorySetup(
+            OldInventorySetup, true, true, true,
+            OldInventorySetup."Automatic Cost Adjustment"::Never);
+
+        // [GIVEN] Item "I" with FIFO costing method
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Costing Method", Item."Costing Method"::FIFO);
+        Item.Validate("Cost is Adjusted", false);
+        Item.Validate("Allow Online Adjustment", false);
+        Item.Validate("Flushing Method", Item."Flushing Method"::Manual);
+        Item.Modify(true);
+
+        // [GIVEN] Create new interim accounts.
+        InventoryPostingSetup.Get('', Item."Inventory Posting Group");
+        if InventoryPostingSetup."Inventory Account (Interim)" = '' then begin
+            LibraryERM.CreateGLAccount(GLAccount);
+            InventoryPostingSetup.Validate("Inventory Account (Interim)", GLAccount."No.");
+            InventoryPostingSetup.Modify(true);
+        end;
+
+        // [GIVEN] Purchase Order "PO" with Quantity = 100 and Direct Unit Cost = 500 (Total = 50000).
+        TotalQty := 100;
+        UnitCost := 500;
+        ExpectedTotalAmount := TotalQty * UnitCost;
+        Receipt1Qty := 33.33333;
+        Receipt2Qty := 33.33333;
+        Receipt3Qty := 33.33334;
+
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, '');
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", TotalQty);
+        PurchaseLine.Validate("Direct Unit Cost", UnitCost);
+        PurchaseLine.Modify(true);
+
+        // [WHEN] Post 3 partial receipts: 33.33333 + 33.33333 + 33.33334 = 100.
+        PurchaseLine.Validate("Qty. to Receive", Receipt1Qty);
+        PurchaseLine.Modify(true);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+
+        PurchaseHeader.Find();
+        PurchaseLine.Find();
+        PurchaseLine.Validate("Qty. to Receive", Receipt2Qty);
+        PurchaseLine.Modify(true);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+
+        PurchaseHeader.Find();
+        PurchaseLine.Find();
+        PurchaseLine.Validate("Qty. to Receive", Receipt3Qty);
+        PurchaseLine.Modify(true);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+
+        // [THEN] Total GL Entry Amount for Inventory (Interim) account = 50000 (not 50000.01).
+        GLEntry.Reset();
+        GLEntry.SetRange("G/L Account No.", InventoryPostingSetup."Inventory Account (Interim)");
+        GLEntry.SetFilter("Document No.", GetPurchRcptDocNoFilter(PurchaseHeader."No."));
+        GLEntry.CalcSums(Amount);
+        ActualTotalAmount := GLEntry.Amount;
+        Assert.AreEqual(
+            ExpectedTotalAmount, ActualTotalAmount,
+            StrSubstNo(GLEntryTotalMismatchErr, InventoryPostingSetup."Inventory Account (Interim)", ActualTotalAmount, ExpectedTotalAmount));
+
+        // Teardown
+        SetInventorySetup(
+            OldInventorySetup, false,
+            OldInventorySetup."Automatic Cost Posting",
+            OldInventorySetup."Expected Cost Posting to G/L",
+            OldInventorySetup."Automatic Cost Adjustment");
     end;
 
     local procedure Initialize()
@@ -154,6 +249,21 @@ codeunit 137018 "SCM Adjmt. of Expected Cost"
 
         Assert.AreEqual(EntryCost, ValueEntry."Cost Amount (Expected)", '');
         Assert.AreEqual(-EntryCost, ValueEntry."Cost Amount (Actual)", '');
+    end;
+
+    local procedure GetPurchRcptDocNoFilter(OrderNo: Code[20]): Text
+    var
+        PurchRcptHeader: Record "Purch. Rcpt. Header";
+        DocNoFilter: Text;
+    begin
+        PurchRcptHeader.SetRange("Order No.", OrderNo);
+        if PurchRcptHeader.FindSet() then
+            repeat
+                if DocNoFilter <> '' then
+                    DocNoFilter += '|';
+                DocNoFilter += PurchRcptHeader."No.";
+            until PurchRcptHeader.Next() = 0;
+        exit(DocNoFilter);
     end;
 }
 

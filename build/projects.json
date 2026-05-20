@@ -2247,6 +2247,7 @@
         "AU",
         "CA",
         "GB",
+        "NZ",
         "US"
       ],
       "runStaticCodeAnalysis": true,
@@ -2262,6 +2263,7 @@
         "AU",
         "CA",
         "GB",
+        "NZ",
         "US"
       ],
       "runStaticCodeAnalysis": true,
@@ -2289,6 +2291,7 @@
         "AU",
         "CA",
         "GB",
+        "NZ",
         "US"
       ],
       "runStaticCodeAnalysis": true,
@@ -5192,10 +5195,12 @@
     "Expense Agent (Preview)": {
       "projectPath": "$env:INETROOT\\App\\Internal\\Apps\\ExpenseAgent\\app",
       "isInternal": true,
-      "isPrivatePreview": true,
       "supportedCountries": [
         "GB",
         "US",
+        "CA",
+        "NZ",
+        "AU",
         "W1"
       ],
       "runStaticCodeAnalysis": true,
@@ -5210,6 +5215,9 @@
       "supportedCountries": [
         "GB",
         "US",
+        "CA",
+        "NZ",
+        "AU",
         "W1"
       ],
       "isTest": true,
@@ -5218,6 +5226,78 @@
       "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "skipInstallOnPrem": true,
+      "owningteam": "\\AI Business Solutions\\Finance"
+    },
+    "Expense Agent Demo Data": {
+      "projectPath": "$env:INETROOT\\App\\Internal\\Apps\\ExpenseAgent\\demo data",
+      "isInternal": true,
+      "skipInstallOnPrem": true,
+      "hasTranslations": true,
+      "supportedCountries": [
+        "GB",
+        "US",
+        "CA",
+        "NZ",
+        "AU"
+      ],
+      "runStaticCodeAnalysis": true,
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
+      "owningteam": "\\AI Business Solutions\\Finance"
+    },
+    "Expense Agent Demo Data (US)": {
+      "projectPath": "$env:INETROOT\\App\\Internal\\Apps\\ExpenseAgent\\DemoDataUS",
+      "isInternal": true,
+      "skipInstallOnPrem": true,
+      "hasTranslations": true,
+      "supportedCountries": "US",
+      "runStaticCodeAnalysis": true,
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
+      "owningteam": "\\AI Business Solutions\\Finance"
+    },
+    "Expense Agent Demo Data (GB)": {
+      "projectPath": "$env:INETROOT\\App\\Internal\\Apps\\ExpenseAgent\\DemoDataGB",
+      "isInternal": true,
+      "skipInstallOnPrem": true,
+      "hasTranslations": true,
+      "supportedCountries": "GB",
+      "runStaticCodeAnalysis": true,
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
+      "owningteam": "\\AI Business Solutions\\Finance"
+    },
+    "Expense Agent Demo Data (AU)": {
+      "projectPath": "$env:INETROOT\\App\\Internal\\Apps\\ExpenseAgent\\DemoDataAU",
+      "isInternal": true,
+      "skipInstallOnPrem": true,
+      "hasTranslations": true,
+      "supportedCountries": "AU",
+      "runStaticCodeAnalysis": true,
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
+      "owningteam": "\\AI Business Solutions\\Finance"
+    },
+    "Expense Agent Demo Data (NZ)": {
+      "projectPath": "$env:INETROOT\\App\\Internal\\Apps\\ExpenseAgent\\DemoDataNZ",
+      "isInternal": true,
+      "skipInstallOnPrem": true,
+      "hasTranslations": true,
+      "supportedCountries": "NZ",
+      "runStaticCodeAnalysis": true,
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
+      "owningteam": "\\AI Business Solutions\\Finance"
+    },
+    "Expense Agent Demo Data (CA)": {
+      "projectPath": "$env:INETROOT\\App\\Internal\\Apps\\ExpenseAgent\\DemoDataCA",
+      "isInternal": true,
+      "skipInstallOnPrem": true,
+      "hasTranslations": true,
+      "supportedCountries": "CA",
+      "runStaticCodeAnalysis": true,
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "owningteam": "\\AI Business Solutions\\Finance"
     },
     "OIOUBL": {
@@ -5256,6 +5336,7 @@
         "AU",
         "CA",
         "GB",
+        "NZ",
         "US"
       ],
       "ruleSetPath": "$ENV:INETROOT\\App\\Rulesets\\app.ruleset.json",
@@ -6246,6 +6327,29 @@
       "ruleSetPathMinorRelease": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "owningteam": "\\AI Business Solutions\\Finance"
     },
+    "E-Reporting FR": {
+      "projectPath": "$env:INETROOT\\App\\Apps\\FR\\EDocument_FR\\EReportingFR\\app",
+      "dvdFolder": "Applications\\EDocumentFormats\\EDocument_FR\\EReportingFR\\Source",
+      "hasTranslations": true,
+      "supportedCountries": "FR",
+      "installOnEnvironmentUpdate": true,
+      "runStaticCodeAnalysis": true,
+      "logLevel": "warning",
+      "ruleSetPath": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPathMinorRelease": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
+      "owningteam": "\\AI Business Solutions\\Finance"
+    },
+    "E-Reporting FR Tests": {
+      "projectPath": "$env:INETROOT\\App\\Apps\\FR\\EDocument_FR\\EReportingFR\\test",
+      "dvdFolder": "Applications\\EDocumentFormats\\EDocument_FR\\EReportingFR\\Test",
+      "supportedCountries": "FR",
+      "isTest": true,
+      "runStaticCodeAnalysis": true,
+      "logLevel": "warning",
+      "ruleSetPath": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPathMinorRelease": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
+      "owningteam": "\\AI Business Solutions\\Finance"
+    },
     "E-Document for Germany": {
       "projectPath": "$env:INETROOT\\App\\Apps\\DE\\EDocumentDE\\app",
       "dvdFolder": "Applications\\EDocumentDE\\Source",
@@ -6392,23 +6496,14 @@
       "projectPath": "$env:INETROOT\\App\\Apps\\W1\\AgentSamples\\test",
       "isInternal": true,
       "supportedCountries": "All",
-      "isTest": true,
+      "isTest": false,
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
       "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
-      "skipInstallOnPrem": true
-    },
-    "Agent SDK Tests": {
-      "projectPath": "$env:INETROOT\\App\\Internal\\Apps\\AgentSDKTests",
-      "isInternal": true,
-      "supportedCountries": "All",
-      "isTest": true,
-      "runStaticCodeAnalysis": true,
-      "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
-      "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
-      "skipInstallOnPrem": true
+      "skipInstallOnPrem": true,
+      "installOnEnvironmentUpdate": true,
+      "allowedEnvironmentTypes": [ "Sandbox" ]
     },
     "Agent Developer Internal Toolkit": {
       "projectPath": "$env:INETROOT\\App\\Internal\\Apps\\AgentDeveloperInternalToolkit",
@@ -6500,7 +6595,7 @@
       "hasTranslations": true
     },
     "AI Development Toolkit - Design": {
-      "projectPath": "$env:INETROOT\\App\\Internal\\Apps\\AIDevelopmentToolkitDesign",
+      "projectPath": "$env:INETROOT\\App\\Apps\\W1\\AIDevelopmentToolkitDesign\\app",
       "isInternal": true,
       "supportedCountries": "All",
       "isTest": false,
@@ -6514,7 +6609,7 @@
       "allowedEnvironmentTypes": [ "Sandbox" ]
     },
     "AI Development Toolkit - Evaluation": {
-      "projectPath": "$env:INETROOT\\App\\Internal\\Apps\\AIDevelopmentToolkitEvaluation",
+      "projectPath": "$env:INETROOT\\App\\Apps\\W1\\AIDevelopmentToolkitEvaluation\\app",
       "isInternal": true,
       "supportedCountries": "All",
       "isTest": false,
@@ -6528,7 +6623,7 @@
       "allowedEnvironmentTypes": [ "Sandbox" ]
     },
     "AI Development Toolkit": {
-      "projectPath": "$env:INETROOT\\App\\Internal\\Apps\\AIDevelopmentToolkit",
+      "projectPath": "$env:INETROOT\\App\\Apps\\W1\\AIDevelopmentToolkit\\app",
       "isInternal": true,
       "supportedCountries": "All",
       "isTest": false,
@@ -6585,7 +6680,7 @@
       "skipInstallOnPrem": true
     },
     "Sales Validation Agent Sample": {
-      "projectPath": "$env:INETROOT\\App\\Internal\\Apps\\SalesValidationAgent3P",
+      "projectPath": "$env:INETROOT\\App\\Internal\\Apps\\SalesValidationAgent3P\\app",
       "isInternal": true,
       "supportedCountries": "All",
       "isTest": false,
@@ -6594,8 +6689,51 @@
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "skipInstallOnPrem": true
     },
+    "Sales Validation Agent Sample Test": {
+      "projectPath": "$env:INETROOT\\App\\Internal\\Apps\\SalesValidationAgent3P\\test",
+      "isInternal": true,
+      "supportedCountries": [
+        "AT",
+        "AU",
+        "CA",
+        "CZ",
+        "DE",
+        "DK",
+        "ES",
+        "FI",
+        "FR",
+        "GB",
+        "IN",
+        "IS",
+        "IT",
+        "MX",
+        "NL",
+        "NO",
+        "NZ",
+        "SE",
+        "US",
+        "W1"
+      ],
+      "isTest": true,
+      "runStaticCodeAnalysis": true,
+      "logLevel": "warning",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
+      "skipInstallOnPrem": true
+    },
     "Adversarial Simulation Test Library": {
       "projectPath": "$env:INETROOT\\App\\Internal\\Apps\\SystemApp\\TestLibrary\\AdversarialSimulation",
+      "isInternal": true,
+      "supportedCountries": "All",
+      "isTest": true,
+      "runStaticCodeAnalysis": true,
+      "logLevel": "warning",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
+      "skipInstallOnPrem": true
+    },
+    "Red Team Scan Test Library": {
+      "projectPath": "$env:INETROOT\\App\\BCApps\\src\\Tools\\Red Team Scan",
       "isInternal": true,
       "supportedCountries": "All",
       "isTest": true,
@@ -6649,7 +6787,7 @@
       "skipInstallOnPrem": true
     },
     "Payables Agent Tests": {
-      "projectPath": "$env:INETROOT\\App\\Apps\\W1\\PayablesAgent\\test",
+      "projectPath": "$env:INETROOT\\App\\Internal\\Apps\\PayablesAgent\\test",
       "isInternal": true,
       "supportedCountries": "All",
       "isTest": true,
@@ -6672,17 +6810,6 @@
     },
     "AI Test - Partner Managed": {
       "projectPath": "$env:INETROOT\\App\\Internal\\Apps\\AITestPartnerManaged",
-      "isInternal": true,
-      "supportedCountries": "All",
-      "isTest": true,
-      "runStaticCodeAnalysis": true,
-      "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
-      "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
-      "skipInstallOnPrem": true
-    },
-    "Invoice Creation Test Library": {
-      "projectPath": "$env:INETROOT\\App\\Internal\\Apps\\SystemApp\\TestLibrary\\InvoiceCreation",
       "isInternal": true,
       "supportedCountries": "All",
       "isTest": true,

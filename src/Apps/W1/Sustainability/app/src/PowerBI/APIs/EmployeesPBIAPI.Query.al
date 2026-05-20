@@ -6,6 +6,7 @@ query 6215 "Employees - PBI API"
 {
     Access = Internal;
     QueryType = API;
+    AboutText = 'Provides access to employee master data including names, gender, status, union membership, and employment lifecycle dates. Enables Power BI reports to analyze workforce demographics, diversity metrics, and employment statistics for social sustainability and ESG reporting.';
     Caption = 'Power BI Employees';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';

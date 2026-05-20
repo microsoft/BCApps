@@ -1648,6 +1648,153 @@ codeunit 134897 "ERM Source Currency"
         Assert.AreEqual(0, GLEntry."Source Currency Amount", TotalSCYAmountNotZeroErr);
     end;
 
+    [Test]
+    procedure PurchaseInvoiceNormalVATFCYRoundingVATAmount()
+    var
+        VendorPostingGroup: Record "Vendor Posting Group";
+        GeneralPostingSetup: Record "General Posting Setup";
+        VATPostingSetup: Record "VAT Posting Setup";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        GLAccount: Record "G/L Account";
+        GLEntry: Record "G/L Entry";
+        Currency: Record Currency;
+        VendorNo: Code[20];
+        PostedPurchaseInvoiceNo: Code[20];
+        SCYBalance: Decimal;
+        VATAmount: Decimal;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] On a purchase invoice in FCY, source currency VAT amount on the G/L entry equals
+        // Doc. Amount VAT exactly even when LCY-to-FCY back-calculation would give a 0.01 higher result.
+        Initialize();
+
+        // [GIVEN] Vendor "V" with 25% normal VAT posting setup and unique posting groups.
+        VendorNo := CreateVendorWithNewPostingGroups(VendorPostingGroup, GeneralPostingSetup, VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT");
+        VATPostingSetup.Validate("VAT %", 25);
+        VATPostingSetup.Modify(true);
+
+        // [GIVEN] Currency "C" with exchange rate 1:0.74, chosen so that 0.75 FCY VAT converts to 0.56 LCY,
+        //         and back-converting 0.56 LCY at 1/0.74 would round up to 0.76 FCY instead of 0.75.
+        Currency.Get(LibraryERM.CreateCurrencyWithGLAccountSetup());
+        Currency.Validate("Amount Rounding Precision", 0.01);
+        Currency.Modify(true);
+
+        LibraryERM.CreateExchangeRate(Currency.Code, WorkDate(), 1, 0.74);
+
+        // [GIVEN] Purchase invoice "PI" for "V" in "C" with a single G/L line of 3.00 FCY excl. VAT (VAT = 0.75).
+        CreateGLAccount(GLAccount, Enum::"General Posting Type"::Purchase, GeneralPostingSetup, VATPostingSetup);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, VendorNo);
+        PurchaseHeader.Validate("Posting Date", WorkDate() + 1);
+        PurchaseHeader.Validate("Vendor Invoice No.", PurchaseHeader."No.");
+        PurchaseHeader.Validate("Currency Code", Currency.Code);
+        PurchaseHeader.Modify(true);
+
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::"G/L Account", GLAccount."No.", 1);
+        PurchaseLine.Validate("Direct Unit Cost", 3.00);
+        PurchaseLine.Modify(true);
+
+        PurchaseHeader.CalcFields(Amount, "Amount Including VAT");
+        PurchaseHeader."Doc. Amount Incl. VAT" := PurchaseHeader."Amount Including VAT";
+        PurchaseHeader."Doc. Amount VAT" := PurchaseHeader."Amount Including VAT" - PurchaseHeader.Amount;
+        PurchaseHeader.Modify();
+
+        VATAmount := PurchaseHeader."Doc. Amount VAT";
+
+        // [WHEN] Post purchase invoice "PI".
+        PostedPurchaseInvoiceNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        // [THEN] Source currency amount on the Purchase VAT G/L entry equals Doc. Amount VAT (0.75), not 0.76.
+        GetGLEntries(GLEntry, PostedPurchaseInvoiceNo, GLEntry."Document Type"::Invoice);
+
+        repeat
+            Assert.AreEqual(PurchaseHeader."Currency Code", GLEntry."Source Currency Code", SourceCurrencyCodeErr);
+
+            case GLEntry."G/L Account No." of
+                VATPostingSetup."Purchase VAT Account":
+                    Assert.AreEqual(VATAmount, GLEntry."Source Currency Amount", StrSubstNo(VATAmountIncorrectErr, PurchaseHeader.Amount, VATPostingSetup."VAT %"));
+                VendorPostingGroup.GetPayablesAccount():
+                    Assert.AreEqual(-PurchaseHeader."Amount Including VAT", GLEntry."Source Currency Amount", 'The Source Currency Amount should be equal to the amount including VAT on the purchase invoice');
+                GLAccount."No.":
+                    Assert.AreEqual(PurchaseHeader.Amount, GLEntry."Source Currency Amount", AmountExclVATIncorrectErr);
+            end;
+            SCYBalance += GLEntry."Source Currency Amount";
+        until GLEntry.Next() = 0;
+
+        // [THEN] Source currency amounts on all G/L entries balance to 0.
+        Assert.AreEqual(0, SCYBalance, TotalSCYAmountNotZeroErr);
+    end;
+
+    [Test]
+    procedure SalesInvoiceNormalVATFCYRoundingVATAmount()
+    var
+        CustomerPostingGroup: Record "Customer Posting Group";
+        GeneralPostingSetup: Record "General Posting Setup";
+        VATPostingSetup: Record "VAT Posting Setup";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        GLAccount: Record "G/L Account";
+        GLEntry: Record "G/L Entry";
+        Currency: Record Currency;
+        CustomerNo: Code[20];
+        PostedSalesInvoiceNo: Code[20];
+        SCYBalance: Decimal;
+        VATAmount: Decimal;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] On a sales invoice in FCY, source currency VAT amount on the G/L entry equals
+        // the sales VAT amount exactly even when LCY-to-FCY back-calculation would give a 0.01 higher result.
+        Initialize();
+
+        // [GIVEN] Customer "C" with 25% normal VAT posting setup and unique posting groups.
+        CustomerNo := CreateCustomerWithNewPostingGroups(CustomerPostingGroup, GeneralPostingSetup, VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT");
+        VATPostingSetup.Validate("VAT %", 25);
+        VATPostingSetup.Modify(true);
+
+        // [GIVEN] Currency "CC" with exchange rate 1:0.74.
+        Currency.Get(LibraryERM.CreateCurrencyWithGLAccountSetup());
+        Currency.Validate("Amount Rounding Precision", 0.01);
+        Currency.Modify(true);
+
+        LibraryERM.CreateExchangeRate(Currency.Code, WorkDate(), 1, 0.74);
+
+        // [GIVEN] Sales invoice "SI" for "C" in "CC" with a single G/L line of 3.00 FCY excl. VAT (VAT = 0.75).
+        CreateGLAccount(GLAccount, Enum::"General Posting Type"::Sale, GeneralPostingSetup, VATPostingSetup);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, CustomerNo);
+        SalesHeader.Validate("Currency Code", Currency.Code);
+        SalesHeader.Modify(true);
+
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::"G/L Account", GLAccount."No.", 1);
+        SalesLine.Validate("Unit Price", 3.00);
+        SalesLine.Modify(true);
+
+        SalesHeader.CalcFields(Amount, "Amount Including VAT");
+        VATAmount := SalesHeader."Amount Including VAT" - SalesHeader.Amount;
+
+        // [WHEN] Post sales invoice "SI".
+        PostedSalesInvoiceNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [THEN] Source currency amount on the Sales VAT G/L entry equals the document VAT amount (0.75), not 0.76.
+        GetGLEntries(GLEntry, PostedSalesInvoiceNo, GLEntry."Document Type"::Invoice);
+
+        repeat
+            Assert.AreEqual(SalesHeader."Currency Code", GLEntry."Source Currency Code", SourceCurrencyCodeErr);
+
+            case GLEntry."G/L Account No." of
+                VATPostingSetup."Sales VAT Account":
+                    Assert.AreEqual(VATAmount, -GLEntry."Source Currency Amount", StrSubstNo(VATAmountIncorrectErr, SalesHeader.Amount, VATPostingSetup."VAT %"));
+                CustomerPostingGroup.GetReceivablesAccount():
+                    Assert.AreEqual(SalesHeader."Amount Including VAT", GLEntry."Source Currency Amount", 'The Source Currency Amount should be equal to the amount including VAT on the sales invoice');
+                GLAccount."No.":
+                    Assert.AreEqual(-SalesHeader.Amount, GLEntry."Source Currency Amount", AmountExclVATIncorrectErr);
+            end;
+            SCYBalance += GLEntry."Source Currency Amount";
+        until GLEntry.Next() = 0;
+
+        // [THEN] Source currency amounts on all G/L entries balance to 0.
+        Assert.AreEqual(0, SCYBalance, TotalSCYAmountNotZeroErr);
+    end;
+
     local procedure CreatePurchaseInvoice(var PurchaseHeader: Record "Purchase Header"; VendorNo: Code[20]; GLAccountNo: Code[20]; WithForeignCurrency: Boolean)
     var
         PurchaseLine: Record "Purchase Line";

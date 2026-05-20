@@ -176,11 +176,11 @@ codeunit 8611 "Config. Package Management"
 
         InsertPrimaryKeyFields(RecRef, ConfigPackageRecord, true, DelayedInsert);
 
-        if ApplyMode = ApplyMode::PrimaryKey then
-            UpdateKeyInfoForConfigPackageRecord(RecRef, ConfigPackageRecord);
-
         if (ApplyMode = ApplyMode::NonKeyFields) or DelayedInsert then
             ModifyRecordDataFields(RecRef, ConfigPackageRecord, true, DelayedInsert);
+
+        if ApplyMode = ApplyMode::PrimaryKey then
+            UpdateKeyInfoForConfigPackageRecord(RecRef, ConfigPackageRecord);
     end;
 
     procedure InsertPackageData(var ConfigPackageData: Record "Config. Package Data"; PackageCode: Code[20]; TableID: Integer; No: Integer; FieldID: Integer; Value: Text[2048]; Invalid: Boolean)

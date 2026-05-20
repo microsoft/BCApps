@@ -29,7 +29,7 @@ codeunit 144010 "Company Field Report Test"
         LibrarySales.SetCreditWarningsToNoWarnings();
         LibrarySales.SetStockoutWarning(false);
         LibraryVariableStorage.Clear();
-        
+
         if FeatureKey.Get('ReminderTermsCommunicationTexts') then begin
             FeatureKey.Enabled := FeatureKey.Enabled::None;
             FeatureKey.Modify();
@@ -628,7 +628,7 @@ codeunit 144010 "Company Field Report Test"
 
     [RequestPageHandler]
     [Scope('OnPrem')]
-    procedure ServiceOrderReportHandler(var ServiceOrderReport: TestRequestPage "Service Order")
+    procedure ServiceOrderReportHandler(var ServiceOrderReport: TestRequestPage "Service Order (FI)")
     var
         DocumentNumber: Variant;
     begin
@@ -644,7 +644,7 @@ codeunit 144010 "Company Field Report Test"
     procedure ServiceOrderReport()
     var
         ServiceHeader: Record "Service Header";
-        ServiceOrderReport: Report "Service Order";
+        ServiceOrderReport: Report "Service Order (FI)";
     begin
         Initialize();
 
@@ -656,7 +656,7 @@ codeunit 144010 "Company Field Report Test"
 
     [RequestPageHandler]
     [Scope('OnPrem')]
-    procedure ServiceQuoteReportHandler(var ServiceQuoteReport: TestRequestPage "Service Quote")
+    procedure ServiceQuoteReportHandler(var ServiceQuoteReport: TestRequestPage "Service Quote (FI)")
     var
         DocumentNumber: Variant;
     begin
@@ -672,7 +672,7 @@ codeunit 144010 "Company Field Report Test"
     procedure ServiceQuoteReport()
     var
         ServiceHeader: Record "Service Header";
-        ServiceQuoteReport: Report "Service Quote";
+        ServiceQuoteReport: Report "Service Quote (FI)";
     begin
         Initialize();
 
@@ -684,7 +684,7 @@ codeunit 144010 "Company Field Report Test"
 
     [RequestPageHandler]
     [Scope('OnPrem')]
-    procedure ServiceInvoiceReportHandler(var ServiceInvoiceReport: TestRequestPage "Service - Invoice")
+    procedure ServiceInvoiceReportHandler(var ServiceInvoiceReport: TestRequestPage "Service - Invoice (FI)")
     var
         DocumentNumber: Variant;
     begin
@@ -699,7 +699,7 @@ codeunit 144010 "Company Field Report Test"
     procedure ServiceInvoiceReport()
     var
         ServiceHeader: Record "Service Header";
-        ServiceInvoiceReport: Report "Service - Invoice";
+        ServiceInvoiceReport: Report "Service - Invoice (FI)";
     begin
         Initialize();
 
@@ -711,7 +711,7 @@ codeunit 144010 "Company Field Report Test"
 
     [RequestPageHandler]
     [Scope('OnPrem')]
-    procedure ServiceContractReportHandler(var ServiceContractReport: TestRequestPage "Service Contract")
+    procedure ServiceContractReportHandler(var ServiceContractReport: TestRequestPage "Service Contract (FI)")
     var
         DocumentNumber: Variant;
     begin
@@ -727,7 +727,7 @@ codeunit 144010 "Company Field Report Test"
     procedure ServiceContractReport()
     var
         FiledServiceContractHeader: Record "Filed Service Contract Header";
-        ServiceContractReport: Report "Service Contract";
+        ServiceContractReport: Report "Service Contract (FI)";
     begin
         Initialize();
 
@@ -739,35 +739,7 @@ codeunit 144010 "Company Field Report Test"
 
     [RequestPageHandler]
     [Scope('OnPrem')]
-    procedure ServiceContractDetailReportHandler(var ServiceContractDetailReport: TestRequestPage "Service Contract-Detail")
-    var
-        DocumentNumber: Variant;
-    begin
-        LibraryVariableStorage.Dequeue(DocumentNumber);
-        ServiceContractDetailReport."Service Contract Header".SetFilter("Contract No.", Format(DocumentNumber));
-
-        ServiceContractDetailReport.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
-    end;
-
-    [Test]
-    [HandlerFunctions('ServiceContractDetailReportHandler,ConfirmUIHandler')]
-    [Scope('OnPrem')]
-    procedure ServiceContractDetailReport()
-    var
-        FiledServiceContractHeader: Record "Filed Service Contract Header";
-        ServiceContractDetailReport: Report "Service Contract-Detail";
-    begin
-        Initialize();
-
-        CreateServiceContract(FiledServiceContractHeader."Contract Type"::Contract);
-        ServiceContractDetailReport.UseRequestPage(true);
-        ServiceContractDetailReport.Run();
-        TestBusinessIdentityandHomeCity(0);
-    end;
-
-    [RequestPageHandler]
-    [Scope('OnPrem')]
-    procedure ServiceContractQuoteReportHandler(var ServiceContractQuoteReport: TestRequestPage "Service Contract Quote")
+    procedure ServiceContractQuoteReportHandler(var ServiceContractQuoteReport: TestRequestPage "Service Contract Quote (FI)")
     var
         DocumentNumber: Variant;
     begin
@@ -783,7 +755,7 @@ codeunit 144010 "Company Field Report Test"
     procedure ServiceContractQuoteReport()
     var
         FiledServiceContractHeader: Record "Filed Service Contract Header";
-        ServiceContractQuoteReport: Report "Service Contract Quote";
+        ServiceContractQuoteReport: Report "Service Contract Quote (FI)";
     begin
         Initialize();
 

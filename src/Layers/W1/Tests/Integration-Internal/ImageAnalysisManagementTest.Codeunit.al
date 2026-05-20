@@ -710,4 +710,103 @@ codeunit 135206 "Image Analysis Management Test"
 
         AzureKeyVaultTestLibrary.SetAzureKeyVaultSecretProvider(MockAzureKeyvaultSecretProvider);
     end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestOAuth2SecretsNotConfiguredFallsBackToApiKey()
+    var
+        Item: Record Item;
+        ImageAnalysisSetup: Record "Image Analysis Setup";
+        ImageAnalysisManagement: Codeunit "Image Analysis Management";
+        ImageAnalysisResult: Codeunit "Image Analysis Result";
+        HttpRequestMessage: DotNet HttpRequestMessage;
+        HttpRequestHeaders: DotNet HttpRequestHeaders;
+        Result: Boolean;
+        MessageTxt: Text;
+        IsUsageLimitError: Boolean;
+    begin
+        // [SCENARIO] When OAuth2 secrets (cognitive-vision-appid) are not in the keyvault,
+        // TryAcquireOAuth2Token fails and initialization falls back to API key authentication.
+
+        // [GIVEN] An Item with an image, and keyvault has only cognitive-vision-params (no OAuth2 secrets)
+        ImageAnalysisSetup.DeleteAll();
+        AzureAIUsage.DeleteAll();
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(true);
+        InitializeMockKeyvault('fakekey', 'https://fakeuri', '1000', 'Hour');
+        LibraryInventory.CreateItem(Item);
+        Item.Picture.ImportFile(GetImagePath(), 'Description');
+
+        LibraryLowerPermissions.SetO365Basic();
+
+        ImageAnalysisManagement.Initialize();
+        ImageAnalysisManagement.SetMedia(Item.Picture.Item(1));
+        HttpMessageHandler := HttpMessageHandler.MockHttpMessageHandler(GetImageAnalysisTagsResponsePath());
+        ImageAnalysisManagement.SetHttpMessageHandler(HttpMessageHandler);
+
+        // [WHEN] Analyze is invoked
+        Result := ImageAnalysisManagement.AnalyzeTags(ImageAnalysisResult);
+
+        // [THEN] The request uses API key header (Ocp-Apim-Subscription-Key), not Bearer token
+        HttpRequestMessage := HttpMessageHandler.RequestMessage;
+        HttpRequestHeaders := HttpRequestMessage.Headers;
+        HttpRequestHeaders.GetValues('Ocp-Apim-Subscription-Key'); // Will throw if not present
+
+        // [THEN] The analysis is successful despite OAuth2 secrets being absent
+        ImageAnalysisManagement.GetLastError(MessageTxt, IsUsageLimitError);
+        Assert.IsTrue(Result, 'Analysis should succeed via API key fallback. Error: ' + MessageTxt);
+        Assert.IsFalse(IsUsageLimitError, 'Did not expect a usage limit error.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestOAuth2PartialConfigFallsBackToApiKey()
+    var
+        Item: Record Item;
+        ImageAnalysisSetup: Record "Image Analysis Setup";
+        ImageAnalysisManagement: Codeunit "Image Analysis Management";
+        ImageAnalysisResult: Codeunit "Image Analysis Result";
+        AzureKeyVaultTestLibrary: Codeunit "Azure Key Vault Test Library";
+        HttpRequestMessage: DotNet HttpRequestMessage;
+        HttpRequestHeaders: DotNet HttpRequestHeaders;
+        Result: Boolean;
+        MessageTxt: Text;
+        IsUsageLimitError: Boolean;
+    begin
+        // [SCENARIO] When OAuth2 AppId is in keyvault but certificate name is missing,
+        // TryAcquireOAuth2Token fails and initialization falls back to API key authentication.
+
+        // [GIVEN] An Item with an image, and keyvault has cognitive-vision-params and cognitive-vision-appid but no cert
+        ImageAnalysisSetup.DeleteAll();
+        AzureAIUsage.DeleteAll();
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(true);
+
+        MockAzureKeyvaultSecretProvider := MockAzureKeyvaultSecretProvider.MockAzureKeyVaultSecretProvider();
+        MockAzureKeyvaultSecretProvider.AddSecretMapping(
+          'cognitive-vision-params', StrSubstNo(KeyvaultValueTxt, 'fakekey', 'https://fakeuri', 'Hour', '1000'));
+        MockAzureKeyvaultSecretProvider.AddSecretMapping('cognitive-vision-appid', 'fake-app-id');
+        AzureKeyVaultTestLibrary.SetAzureKeyVaultSecretProvider(MockAzureKeyvaultSecretProvider);
+
+        LibraryInventory.CreateItem(Item);
+        Item.Picture.ImportFile(GetImagePath(), 'Description');
+
+        LibraryLowerPermissions.SetO365Basic();
+
+        ImageAnalysisManagement.Initialize();
+        ImageAnalysisManagement.SetMedia(Item.Picture.Item(1));
+        HttpMessageHandler := HttpMessageHandler.MockHttpMessageHandler(GetImageAnalysisTagsResponsePath());
+        ImageAnalysisManagement.SetHttpMessageHandler(HttpMessageHandler);
+
+        // [WHEN] Analyze is invoked
+        Result := ImageAnalysisManagement.AnalyzeTags(ImageAnalysisResult);
+
+        // [THEN] The request uses API key header (Ocp-Apim-Subscription-Key), not Bearer token
+        HttpRequestMessage := HttpMessageHandler.RequestMessage;
+        HttpRequestHeaders := HttpRequestMessage.Headers;
+        HttpRequestHeaders.GetValues('Ocp-Apim-Subscription-Key'); // Will throw if not present
+
+        // [THEN] The analysis is successful despite incomplete OAuth2 configuration
+        ImageAnalysisManagement.GetLastError(MessageTxt, IsUsageLimitError);
+        Assert.IsTrue(Result, 'Analysis should succeed via API key fallback. Error: ' + MessageTxt);
+        Assert.IsFalse(IsUsageLimitError, 'Did not expect a usage limit error.');
+    end;
 }

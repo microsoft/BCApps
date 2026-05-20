@@ -1,12 +1,21 @@
 namespace Microsoft.API.V2;
 
+using Microsoft.Assembly.Document;
+using Microsoft.Assembly.History;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Integration.Entity;
+using Microsoft.Inventory.Counting.Document;
+using Microsoft.Inventory.Counting.History;
+using Microsoft.Inventory.Document;
+using Microsoft.Inventory.History;
+using Microsoft.Inventory.Transfer;
 using Microsoft.Projects.TimeSheet;
+using Microsoft.Purchases.Archive;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
+using Microsoft.Sales.Archive;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 
@@ -309,6 +318,32 @@ page 30022 "APIV2 - Dimension Set Lines"
         PurchCrMemoEntityBuffer: Record "Purch. Cr. Memo Entity Buffer";
         PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr.";
         PurchCrMemoLine: Record "Purch. Cr. Memo Line";
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        TransferShipmentHeader: Record "Transfer Shipment Header";
+        TransferShipmentLine: Record "Transfer Shipment Line";
+        TransferReceiptHeader: Record "Transfer Receipt Header";
+        TransferReceiptLine: Record "Transfer Receipt Line";
+        DirectTransHeader: Record "Direct Trans. Header";
+        DirectTransLine: Record "Direct Trans. Line";
+        AssemblyHeader: Record "Assembly Header";
+        AssemblyLine: Record "Assembly Line";
+        PostedAssemblyHeader: Record "Posted Assembly Header";
+        PostedAssemblyLine: Record "Posted Assembly Line";
+        SalesHeaderArchive: Record "Sales Header Archive";
+        SalesLineArchive: Record "Sales Line Archive";
+        PurchaseHeaderArchive: Record "Purchase Header Archive";
+        PurchaseLineArchive: Record "Purchase Line Archive";
+        PhysInvtOrderHeader: Record "Phys. Invt. Order Header";
+        PhysInvtOrderLine: Record "Phys. Invt. Order Line";
+        PstdPhysInvtOrderHdr: Record "Pstd. Phys. Invt. Order Hdr";
+        PstdPhysInvtOrderLine: Record "Pstd. Phys. Invt. Order Line";
+        InvtShipmentHeader: Record "Invt. Shipment Header";
+        InvtShipmentLine: Record "Invt. Shipment Line";
+        InvtReceiptHeader: Record "Invt. Receipt Header";
+        InvtReceiptLine: Record "Invt. Receipt Line";
+        InvtDocumentHeader: Record "Invt. Document Header";
+        InvtDocumentLine: Record "Invt. Document Line";
         DimensionSetEntryBufferParentType: Enum "Dimension Set Entry Buffer Parent Type";
         ErrorMsg: Text;
     begin
@@ -317,7 +352,8 @@ page 30022 "APIV2 - Dimension Set Lines"
             DimensionSetEntryBufferParentType::"Journal Line":
                 if GenJournalLine.GetBySystemId(ParentIdFilter) then
                     exit(GenJournalLine."Dimension Set ID");
-            DimensionSetEntryBufferParentType::"Sales Order", DimensionSetEntryBufferParentType::"Sales Quote":
+            DimensionSetEntryBufferParentType::"Sales Order", DimensionSetEntryBufferParentType::"Sales Quote",
+            DimensionSetEntryBufferParentType::"Sales Return Order":
                 if SalesHeader.GetBySystemId(ParentIdFilter) then
                     exit(SalesHeader."Dimension Set ID");
             DimensionSetEntryBufferParentType::"Sales Credit Memo":
@@ -371,7 +407,8 @@ page 30022 "APIV2 - Dimension Set Lines"
             DimensionSetEntryBufferParentType::"Time Registration Entry":
                 if TimeSheetDetail.GetBySystemId(ParentIdFilter) then
                     exit(TimeSheetDetail."Dimension Set ID");
-            DimensionSetEntryBufferParentType::"Sales Order Line", DimensionSetEntryBufferParentType::"Sales Quote Line":
+            DimensionSetEntryBufferParentType::"Sales Order Line", DimensionSetEntryBufferParentType::"Sales Quote Line",
+            DimensionSetEntryBufferParentType::"Sales Return Order Line":
                 if SalesLine.GetBySystemId(ParentIdFilter) then
                     exit(SalesLine."Dimension Set ID");
             DimensionSetEntryBufferParentType::"Sales Credit Memo Line":
@@ -435,6 +472,204 @@ page 30022 "APIV2 - Dimension Set Lines"
                     if PurchCrMemoLine.GetBySystemId(ParentIdFilter) then
                         exit(PurchCrMemoLine."Dimension Set ID");
                 end;
+            DimensionSetEntryBufferParentType::"Blanket Purchase Order",
+            DimensionSetEntryBufferParentType::"Purchase Return Order",
+            DimensionSetEntryBufferParentType::"Purchase Quote":
+                begin
+                    PurchaseHeader.SetLoadFields("Dimension Set ID");
+                    if PurchaseHeader.GetBySystemId(ParentIdFilter) then
+                        exit(PurchaseHeader."Dimension Set ID");
+                end;
+            DimensionSetEntryBufferParentType::"Blanket Purchase Order Line",
+            DimensionSetEntryBufferParentType::"Purchase Return Order Line",
+            DimensionSetEntryBufferParentType::"Purchase Quote Line":
+                begin
+                    PurchaseLine.SetLoadFields("Dimension Set ID");
+                    if PurchaseLine.GetBySystemId(ParentIdFilter) then
+                        exit(PurchaseLine."Dimension Set ID");
+                end;
+            DimensionSetEntryBufferParentType::"Blanket Sales Order":
+                begin
+                    SalesHeader.SetLoadFields("Dimension Set ID");
+                    if SalesHeader.GetBySystemId(ParentIdFilter) then
+                        exit(SalesHeader."Dimension Set ID");
+                end;
+            DimensionSetEntryBufferParentType::"Blanket Sales Order Line":
+                begin
+                    SalesLine.SetLoadFields("Dimension Set ID");
+                    if SalesLine.GetBySystemId(ParentIdFilter) then
+                        exit(SalesLine."Dimension Set ID");
+                end;
+            DimensionSetEntryBufferParentType::"Transfer Order":
+                begin
+                    TransferHeader.SetLoadFields("Dimension Set ID");
+                    if TransferHeader.GetBySystemId(ParentIdFilter) then
+                        exit(TransferHeader."Dimension Set ID");
+                end;
+            DimensionSetEntryBufferParentType::"Transfer Order Line":
+                begin
+                    TransferLine.SetLoadFields("Dimension Set ID");
+                    if TransferLine.GetBySystemId(ParentIdFilter) then
+                        exit(TransferLine."Dimension Set ID");
+                end;
+            DimensionSetEntryBufferParentType::"Transfer Shipment":
+                begin
+                    TransferShipmentHeader.SetLoadFields("Dimension Set ID");
+                    if TransferShipmentHeader.GetBySystemId(ParentIdFilter) then
+                        exit(TransferShipmentHeader."Dimension Set ID");
+                end;
+            DimensionSetEntryBufferParentType::"Transfer Shipment Line":
+                begin
+                    TransferShipmentLine.SetLoadFields("Dimension Set ID");
+                    if TransferShipmentLine.GetBySystemId(ParentIdFilter) then
+                        exit(TransferShipmentLine."Dimension Set ID");
+                end;
+            DimensionSetEntryBufferParentType::"Transfer Receipt":
+                begin
+                    TransferReceiptHeader.SetLoadFields("Dimension Set ID");
+                    if TransferReceiptHeader.GetBySystemId(ParentIdFilter) then
+                        exit(TransferReceiptHeader."Dimension Set ID");
+                end;
+            DimensionSetEntryBufferParentType::"Transfer Receipt Line":
+                begin
+                    TransferReceiptLine.SetLoadFields("Dimension Set ID");
+                    if TransferReceiptLine.GetBySystemId(ParentIdFilter) then
+                        exit(TransferReceiptLine."Dimension Set ID");
+                end;
+            DimensionSetEntryBufferParentType::"Posted Direct Transfer":
+                begin
+                    DirectTransHeader.SetLoadFields("Dimension Set ID");
+                    if DirectTransHeader.GetBySystemId(ParentIdFilter) then
+                        exit(DirectTransHeader."Dimension Set ID");
+                end;
+            DimensionSetEntryBufferParentType::"Posted Direct Transfer Line":
+                begin
+                    DirectTransLine.SetLoadFields("Dimension Set ID");
+                    if DirectTransLine.GetBySystemId(ParentIdFilter) then
+                        exit(DirectTransLine."Dimension Set ID");
+                end;
+            DimensionSetEntryBufferParentType::"Assembly Order":
+                begin
+                    AssemblyHeader.SetLoadFields("Dimension Set ID");
+                    if AssemblyHeader.GetBySystemId(ParentIdFilter) then
+                        exit(AssemblyHeader."Dimension Set ID");
+                end;
+            DimensionSetEntryBufferParentType::"Assembly Order Line":
+                begin
+                    AssemblyLine.SetLoadFields("Dimension Set ID");
+                    if AssemblyLine.GetBySystemId(ParentIdFilter) then
+                        exit(AssemblyLine."Dimension Set ID");
+                end;
+            DimensionSetEntryBufferParentType::"Posted Assembly Order":
+                begin
+                    PostedAssemblyHeader.SetLoadFields("Dimension Set ID");
+                    if PostedAssemblyHeader.GetBySystemId(ParentIdFilter) then
+                        exit(PostedAssemblyHeader."Dimension Set ID");
+                end;
+            DimensionSetEntryBufferParentType::"Posted Assembly Order Line":
+                begin
+                    PostedAssemblyLine.SetLoadFields("Dimension Set ID");
+                    if PostedAssemblyLine.GetBySystemId(ParentIdFilter) then
+                        exit(PostedAssemblyLine."Dimension Set ID");
+                end;
+            DimensionSetEntryBufferParentType::"Sales Quote Archive",
+            DimensionSetEntryBufferParentType::"Sales Order Archive",
+            DimensionSetEntryBufferParentType::"Sales Return Order Archive",
+            DimensionSetEntryBufferParentType::"Sales Blanket Order Archive":
+                begin
+                    SalesHeaderArchive.SetLoadFields("Dimension Set ID");
+                    if SalesHeaderArchive.GetBySystemId(ParentIdFilter) then
+                        exit(SalesHeaderArchive."Dimension Set ID");
+                end;
+            DimensionSetEntryBufferParentType::"Sales Quote Archive Line",
+            DimensionSetEntryBufferParentType::"Sales Order Archive Line",
+            DimensionSetEntryBufferParentType::"Sales Return Order Archive Line",
+            DimensionSetEntryBufferParentType::"Sales Blanket Order Archive Line":
+                begin
+                    SalesLineArchive.SetLoadFields("Dimension Set ID");
+                    if SalesLineArchive.GetBySystemId(ParentIdFilter) then
+                        exit(SalesLineArchive."Dimension Set ID");
+                end;
+            DimensionSetEntryBufferParentType::"Purchase Quote Archive",
+            DimensionSetEntryBufferParentType::"Purchase Order Archive",
+            DimensionSetEntryBufferParentType::"Purchase Return Order Archive",
+            DimensionSetEntryBufferParentType::"Purchase Blanket Order Archive":
+                begin
+                    PurchaseHeaderArchive.SetLoadFields("Dimension Set ID");
+                    if PurchaseHeaderArchive.GetBySystemId(ParentIdFilter) then
+                        exit(PurchaseHeaderArchive."Dimension Set ID");
+                end;
+            DimensionSetEntryBufferParentType::"Purchase Quote Archive Line",
+            DimensionSetEntryBufferParentType::"Purchase Order Archive Line",
+            DimensionSetEntryBufferParentType::"Purchase Return Order Archive Line",
+            DimensionSetEntryBufferParentType::"Purchase Blanket Order Archive Line":
+                begin
+                    PurchaseLineArchive.SetLoadFields("Dimension Set ID");
+                    if PurchaseLineArchive.GetBySystemId(ParentIdFilter) then
+                        exit(PurchaseLineArchive."Dimension Set ID");
+                end;
+            DimensionSetEntryBufferParentType::"Physical Inventory Order":
+                begin
+                    PhysInvtOrderHeader.SetLoadFields("Dimension Set ID");
+                    if PhysInvtOrderHeader.GetBySystemId(ParentIdFilter) then
+                        exit(PhysInvtOrderHeader."Dimension Set ID");
+                end;
+            DimensionSetEntryBufferParentType::"Physical Inventory Order Line":
+                begin
+                    PhysInvtOrderLine.SetLoadFields("Dimension Set ID");
+                    if PhysInvtOrderLine.GetBySystemId(ParentIdFilter) then
+                        exit(PhysInvtOrderLine."Dimension Set ID");
+                end;
+            DimensionSetEntryBufferParentType::"Posted Physical Inventory Order":
+                begin
+                    PstdPhysInvtOrderHdr.SetLoadFields("Dimension Set ID");
+                    if PstdPhysInvtOrderHdr.GetBySystemId(ParentIdFilter) then
+                        exit(PstdPhysInvtOrderHdr."Dimension Set ID");
+                end;
+            DimensionSetEntryBufferParentType::"Posted Physical Inventory Order Line":
+                begin
+                    PstdPhysInvtOrderLine.SetLoadFields("Dimension Set ID");
+                    if PstdPhysInvtOrderLine.GetBySystemId(ParentIdFilter) then
+                        exit(PstdPhysInvtOrderLine."Dimension Set ID");
+                end;
+            DimensionSetEntryBufferParentType::"Inventory Shipment",
+            DimensionSetEntryBufferParentType::"Inventory Receipt":
+                begin
+                    InvtDocumentHeader.SetLoadFields("Dimension Set ID");
+                    if InvtDocumentHeader.GetBySystemId(ParentIdFilter) then
+                        exit(InvtDocumentHeader."Dimension Set ID");
+                end;
+            DimensionSetEntryBufferParentType::"Inventory Shipment Line",
+            DimensionSetEntryBufferParentType::"Inventory Receipt Line":
+                begin
+                    InvtDocumentLine.SetLoadFields("Dimension Set ID");
+                    if InvtDocumentLine.GetBySystemId(ParentIdFilter) then
+                        exit(InvtDocumentLine."Dimension Set ID");
+                end;
+            DimensionSetEntryBufferParentType::"Posted Inventory Shipment":
+                begin
+                    InvtShipmentHeader.SetLoadFields("Dimension Set ID");
+                    if InvtShipmentHeader.GetBySystemId(ParentIdFilter) then
+                        exit(InvtShipmentHeader."Dimension Set ID");
+                end;
+            DimensionSetEntryBufferParentType::"Posted Inventory Shipment Line":
+                begin
+                    InvtShipmentLine.SetLoadFields("Dimension Set ID");
+                    if InvtShipmentLine.GetBySystemId(ParentIdFilter) then
+                        exit(InvtShipmentLine."Dimension Set ID");
+                end;
+            DimensionSetEntryBufferParentType::"Posted Inventory Receipt":
+                begin
+                    InvtReceiptHeader.SetLoadFields("Dimension Set ID");
+                    if InvtReceiptHeader.GetBySystemId(ParentIdFilter) then
+                        exit(InvtReceiptHeader."Dimension Set ID");
+                end;
+            DimensionSetEntryBufferParentType::"Posted Inventory Receipt Line":
+                begin
+                    InvtReceiptLine.SetLoadFields("Dimension Set ID");
+                    if InvtReceiptLine.GetBySystemId(ParentIdFilter) then
+                        exit(InvtReceiptLine."Dimension Set ID");
+                end;
         end;
         ErrorMsg := StrSubstNo(ParentDoesntExistErr, ParentIdFilter);
         Error(ErrorMsg);
@@ -483,7 +718,8 @@ page 30022 "APIV2 - Dimension Set Lines"
                     GenJournalLine.Modify(true);
                     exit;
                 end;
-            DimensionSetEntryBufferParentType::"Sales Order", DimensionSetEntryBufferParentType::"Sales Quote":
+            DimensionSetEntryBufferParentType::"Sales Order", DimensionSetEntryBufferParentType::"Sales Quote",
+            DimensionSetEntryBufferParentType::"Sales Return Order":
                 if SalesHeader.GetBySystemId(ParentIdFilter) then begin
                     SalesHeader."Dimension Set ID" := DimensionManagement.GetDimensionSetID(TempDimensionSetEntry);
                     DimensionManagement.UpdateGlobalDimFromDimSetID(
@@ -587,7 +823,8 @@ page 30022 "APIV2 - Dimension Set Lines"
                     TimeSheetDetail.Modify(true);
                     exit;
                 end;
-            DimensionSetEntryBufferParentType::"Sales Order Line", DimensionSetEntryBufferParentType::"Sales Quote Line":
+            DimensionSetEntryBufferParentType::"Sales Order Line", DimensionSetEntryBufferParentType::"Sales Quote Line",
+            DimensionSetEntryBufferParentType::"Sales Return Order Line":
                 if SalesLine.GetBySystemId(ParentIdFilter) then begin
                     SalesLine."Dimension Set ID" := DimensionManagement.GetDimensionSetID(TempDimensionSetEntry);
                     DimensionManagement.UpdateGlobalDimFromDimSetID(

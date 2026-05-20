@@ -250,6 +250,34 @@ codeunit 138029 "O365 Trial Balance"
 
     [Test]
     [Scope('OnPrem')]
+    procedure TrialBalanceDataVisibleAfterPBTCompletesWhenCacheIsStale()
+    var
+        TrialBalanceCacheInfo: Record "Trial Balance Cache Info";
+        TrialBalanceCache: Record "Trial Balance Cache";
+        TrialBalance: TestPage "Trial Balance";
+    begin
+        // [SCENARIO 620686] Trial Balance shows data after background task completes when cache is stale
+        Initialize();
+
+        // [GIVEN] Accounting periods exist so NoOfColumns = 2 and the PBT path is taken
+        if not LibraryFiscalYear.AccountingPeriodsExists() then
+            LibraryFiscalYear.CreateFiscalYear();
+
+        // [GIVEN] Cache is empty, so the page background task (PBT) path is taken on open
+        TrialBalanceCacheInfo.DeleteAll();
+        TrialBalanceCache.DeleteAll();
+
+        // [WHEN] Opening the Trial Balance page (PBT runs synchronously in test)
+        TrialBalance.OpenEdit();
+
+        // [THEN] Data groups are visible — IsError must be false after PBT completes successfully
+        Assert.IsTrue(TrialBalance.CurrentPeriodValues1.Visible(), 'Current period values should be visible after background task completes');
+
+        TrialBalance.Close();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure AccountScheduleColumnHeaderPartOfColumnHeadersInTrialBalance()
     var
         ColumnLayoutName: Record "Column Layout Name";

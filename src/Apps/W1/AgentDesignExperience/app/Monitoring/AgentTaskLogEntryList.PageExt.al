@@ -37,7 +37,7 @@ pageextension 4355 "Agent Task Log Entry List" extends "Agent Task Log Entry Lis
                     AgentTask: Codeunit "Agent Task";
                 begin
                     AgentTaskRecord.Get(Rec."Task ID");
-                    AgentTask.StopTask(AgentTaskRecord, true);
+                    AgentTask.StopTask(AgentTaskRecord.ID, true);
                 end;
             }
             action(Resume)
@@ -53,7 +53,7 @@ pageextension 4355 "Agent Task Log Entry List" extends "Agent Task Log Entry Lis
                     AgentTask: Codeunit "Agent Task";
                 begin
                     AgentTaskRecord.Get(Rec."Task ID");
-                    AgentTask.RestartTask(AgentTaskRecord, true);
+                    AgentTask.RestartTask(AgentTaskRecord.ID, true);
                 end;
             }
             action(AgentSetup)

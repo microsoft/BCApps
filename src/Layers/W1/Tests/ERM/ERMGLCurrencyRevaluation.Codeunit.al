@@ -23,6 +23,11 @@ codeunit 134887 "ERM G/L Currency Revaluation"
         CorrectionInsertedMsg: Label 'currency revaluation lines have been created in the general journal';
         CurrUpdateBalAccErr: Label 'In order to change the currency code, the balance of the account must be zero.';
         JournalErr: label '%1 does not set correctly.';
+        AccUsedAsReceivablesErr: Label 'G/L Account %1 is used as a Receivables Account in Customer Posting Group %2 and cannot be used for source currency revaluation.', Comment = '%1 = G/L Account No., %2 = Customer Posting Group Code';
+        AccUsedAsPayablesVendorErr: Label 'G/L Account %1 is used as a Payables Account in Vendor Posting Group %2 and cannot be used for source currency revaluation.', Comment = '%1 = G/L Account No., %2 = Vendor Posting Group Code';
+        SourceCurrRevalNotAllowedCustErr: Label 'G/L Account %1 has Source Currency Revaluation enabled or has a Source Currency Code and cannot be used as a Receivables Account.', Comment = '%1 = G/L Account No.';
+        SourceCurrRevalNotAllowedVendErr: Label 'G/L Account %1 has Source Currency Revaluation enabled or has a Source Currency Code and cannot be used as a Payables Account.', Comment = '%1 = G/L Account No.';
+        SourceCurrRevalConflictErr: Label 'G/L Account %1 is configured for Source Currency Revaluation and is also used as a Receivables/Payables Account. Please correct the setup before running the adjustment.', Comment = '%1 = G/L Account No.';
 
     local procedure Initialize()
     var
@@ -400,7 +405,7 @@ codeunit 134887 "ERM G/L Currency Revaluation"
         LibrarySales.CreateCustomer(Customer);
         Customer.Validate("Currency Code", GLAccount."Source Currency Code");
         LibrarySales.CreateCustomerPostingGroup(CustomerPostingGroup);
-        CustomerPostingGroup.Validate("Receivables Account", GLAccount."No.");
+        CustomerPostingGroup.Validate("Receivables Account", BalGLAccount."No.");
         CustomerPostingGroup.Modify();
         Customer.Validate("Customer Posting Group", CustomerPostingGroup.Code);
         Customer.Modify();
@@ -467,7 +472,7 @@ codeunit 134887 "ERM G/L Currency Revaluation"
         LibraryPurchase.CreateVendor(Vendor);
         Vendor.Validate("Currency Code", GLAccount."Source Currency Code");
         LibraryPurchase.CreateVendorPostingGroup(VendorPostingGroup);
-        VendorPostingGroup.Validate("Payables Account", GLAccount."No.");
+        VendorPostingGroup.Validate("Payables Account", BalGLAccount."No.");
         VendorPostingGroup.Modify();
         Vendor.Validate("Vendor Posting Group", VendorPostingGroup.Code);
         Vendor.Modify();
@@ -557,6 +562,171 @@ codeunit 134887 "ERM G/L Currency Revaluation"
         RunRevaluation(GLAccount, true);
 
         // [THEN] Verify selection of Journal Template Name and Journal Batch Name.
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SourceCurrRevalErrorWhenAccUsedAsReceivables()
+    var
+        GLAccount: Record "G/L Account";
+        CustomerPostingGroup: Record "Customer Posting Group";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 624635] Enabling Source Currency Revaluation on G/L Account used as Receivables Account errors
+        Initialize();
+
+        // [GIVEN] G/L Account "A" used as Receivables Account in Customer Posting Group "CPG"
+        LibraryERM.CreateGLAccount(GLAccount);
+        GLAccount.Validate("Income/Balance", GLAccount."Income/Balance"::"Balance Sheet");
+        GLAccount.Modify(true);
+        LibrarySales.CreateCustomerPostingGroup(CustomerPostingGroup);
+        CustomerPostingGroup.Validate("Receivables Account", GLAccount."No.");
+        CustomerPostingGroup.Modify(true);
+
+        // [WHEN] Enable Source Currency Revaluation on G/L Account "A"
+        asserterror GLAccount.Validate("Source Currency Revaluation", true);
+
+        // [THEN] Error that G/L Account "A" is used as Receivables Account in "CPG"
+        Assert.ExpectedError(StrSubstNo(AccUsedAsReceivablesErr, GLAccount."No.", CustomerPostingGroup.Code));
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SourceCurrRevalErrorWhenAccUsedAsPayables()
+    var
+        GLAccount: Record "G/L Account";
+        VendorPostingGroup: Record "Vendor Posting Group";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 624635] Enabling Source Currency Revaluation on G/L Account used as Payables Account errors
+        Initialize();
+
+        // [GIVEN] G/L Account "A" used as Payables Account in Vendor Posting Group "VPG"
+        LibraryERM.CreateGLAccount(GLAccount);
+        GLAccount.Validate("Income/Balance", GLAccount."Income/Balance"::"Balance Sheet");
+        GLAccount.Modify(true);
+        LibraryPurchase.CreateVendorPostingGroup(VendorPostingGroup);
+        VendorPostingGroup.Validate("Payables Account", GLAccount."No.");
+        VendorPostingGroup.Modify(true);
+
+        // [WHEN] Enable Source Currency Revaluation on G/L Account "A"
+        asserterror GLAccount.Validate("Source Currency Revaluation", true);
+
+        // [THEN] Error that G/L Account "A" is used as Payables Account in "VPG"
+        Assert.ExpectedError(StrSubstNo(AccUsedAsPayablesVendorErr, GLAccount."No.", VendorPostingGroup.Code));
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure CustPostingGroupErrorWhenRecvAccHasSourceCurrReval()
+    var
+        GLAccount: Record "G/L Account";
+        CustomerPostingGroup: Record "Customer Posting Group";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 624635] Setting Receivables Account to G/L Account with Source Currency Revaluation errors
+        Initialize();
+
+        // [GIVEN] G/L Account "A" with Source Currency Revaluation enabled
+        LibraryERM.CreateGLAccount(GLAccount);
+        GLAccount.Validate("Income/Balance", GLAccount."Income/Balance"::"Balance Sheet");
+        GLAccount.Validate("Source Currency Revaluation", true);
+        GLAccount.Modify(true);
+
+        // [GIVEN] Customer Posting Group "CPG"
+        LibrarySales.CreateCustomerPostingGroup(CustomerPostingGroup);
+
+        // [WHEN] Set Receivables Account of "CPG" to G/L Account "A"
+        asserterror CustomerPostingGroup.Validate("Receivables Account", GLAccount."No.");
+
+        // [THEN] Error that G/L Account "A" has Source Currency Revaluation
+        Assert.ExpectedError(StrSubstNo(SourceCurrRevalNotAllowedCustErr, GLAccount."No."));
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure VendPostingGroupErrorWhenPayablesAccHasSourceCurrReval()
+    var
+        GLAccount: Record "G/L Account";
+        VendorPostingGroup: Record "Vendor Posting Group";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 624635] Setting Payables Account to G/L Account with Source Currency Revaluation errors
+        Initialize();
+
+        // [GIVEN] G/L Account "A" with Source Currency Revaluation enabled
+        LibraryERM.CreateGLAccount(GLAccount);
+        GLAccount.Validate("Income/Balance", GLAccount."Income/Balance"::"Balance Sheet");
+        GLAccount.Validate("Source Currency Revaluation", true);
+        GLAccount.Modify(true);
+
+        // [GIVEN] Vendor Posting Group "VPG"
+        LibraryPurchase.CreateVendorPostingGroup(VendorPostingGroup);
+
+        // [WHEN] Set Payables Account of "VPG" to G/L Account "A"
+        asserterror VendorPostingGroup.Validate("Payables Account", GLAccount."No.");
+
+        // [THEN] Error that G/L Account "A" has Source Currency Revaluation
+        Assert.ExpectedError(StrSubstNo(SourceCurrRevalNotAllowedVendErr, GLAccount."No."));
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ExchRateAdjmtErrorWhenRecvAccHasSourceCurrReval()
+    var
+        GLAccount: Record "G/L Account";
+        BalGLAccount: Record "G/L Account";
+        Customer: Record Customer;
+        CustomerPostingGroup: Record "Customer Posting Group";
+        Currency: Record Currency;
+        GenJournalLine: Record "Gen. Journal Line";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 624635] Exchange Rate Adjustment errors when Receivables Account has Source Currency Revaluation
+        Initialize();
+
+        // [GIVEN] Currency "C" with exchange rate on WorkDate
+        LibraryERM.CreateCurrency(Currency);
+        Currency.Validate("Realized Gains Acc.", LibraryERM.CreateGLAccountNo());
+        Currency.Validate("Realized Losses Acc.", LibraryERM.CreateGLAccountNo());
+        Currency.Validate("Unrealized Gains Acc.", LibraryERM.CreateGLAccountNo());
+        Currency.Validate("Unrealized Losses Acc.", LibraryERM.CreateGLAccountNo());
+        Currency.Modify(true);
+        LibraryERM.CreateExchangeRate(Currency.Code, WorkDate(), 100, 100);
+
+        // [GIVEN] G/L Account "A" set as Receivables Account in Customer Posting Group "CPG"
+        LibraryERM.CreateGLAccount(GLAccount);
+        LibrarySales.CreateCustomerPostingGroup(CustomerPostingGroup);
+        CustomerPostingGroup.Validate("Receivables Account", GLAccount."No.");
+        CustomerPostingGroup.Modify(true);
+
+        // [GIVEN] Source Currency Revaluation is enabled on "A" bypassing validation (legacy data)
+        GLAccount."Source Currency Revaluation" := true;
+        GLAccount.Modify();
+
+        // [GIVEN] Customer "C" with posting group "CPG" and currency "C"
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Validate("Customer Posting Group", CustomerPostingGroup.Code);
+        Customer.Validate("Currency Code", Currency.Code);
+        Customer.Modify(true);
+
+        // [GIVEN] Posted invoice for Customer "C" on WorkDate
+        LibraryERM.CreateGLAccount(BalGLAccount);
+        BalGLAccount."Direct Posting" := true;
+        BalGLAccount.Modify();
+        CreateCustomerJournal(
+            GenJournalLine, Customer, "Gen. Journal Document Type"::Invoice, WorkDate(),
+            GenJournalLine."Bal. Account Type"::"G/L Account", BalGLAccount."No.", LibraryRandom.RandDec(100, 2));
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [GIVEN] Different exchange rate on WorkDate + 10
+        LibraryERM.CreateExchangeRate(Currency.Code, WorkDate() + 10, 110, 110);
+
+        // [WHEN] Run Exchange Rate Adjustment for currency "C"
+        asserterror LibraryERM.RunExchRateAdjustmentSimple(Currency.Code, WorkDate() + 10, WorkDate() + 10);
+
+        // [THEN] Error that G/L Account "A" is configured for Source Currency Revaluation
+        Assert.ExpectedError(StrSubstNo(SourceCurrRevalConflictErr, GLAccount."No."));
     end;
 
     local procedure AddDifferentExchangeRate(var CurrencyExchangeRate: Record "Currency Exchange Rate"; GLAccount: Record "G/L Account"; GainsLossesFactor: Integer)

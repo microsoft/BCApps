@@ -1,3 +1,4 @@
+#if not CLEAN29
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -15,13 +16,16 @@ page 99000886 "Subcontracting Worksheet"
 {
     ApplicationArea = Manufacturing;
     AutoSplitKey = true;
-    Caption = 'Subcontracting Worksheets';
+    Caption = 'Subcontracting Worksheets (Obsolete)';
     DataCaptionFields = "Journal Batch Name";
     DelayedInsert = true;
     PageType = Worksheet;
     SaveValues = true;
     SourceTable = "Requisition Line";
     UsageCategory = Tasks;
+    ObsoleteReason = 'Will be replaced by Page "Subc. Subcontracting Worksheet" in the Subcontracting App.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
 
     layout
     {
@@ -459,7 +463,9 @@ page 99000886 "Subcontracting Worksheet"
         IsHandled: Boolean;
     begin
         IsHandled := false;
+#pragma warning disable AL0432
         OnBeforeCarryOutActionMsg(Rec, IsHandled);
+#pragma warning restore AL0432
         if IsHandled then
             exit;
 
@@ -468,8 +474,9 @@ page 99000886 "Subcontracting Worksheet"
     end;
 
     [IntegrationEvent(false, false)]
+    [Obsolete('Will be replaced by Page "Subc. Subcontracting Worksheet" in the Subcontracting App.', '29.0')]
     local procedure OnBeforeCarryOutActionMsg(var RequisitionLine: Record "Requisition Line"; var IsHandled: Boolean);
     begin
     end;
 }
-
+#endif

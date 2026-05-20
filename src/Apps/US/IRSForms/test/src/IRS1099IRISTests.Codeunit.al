@@ -146,6 +146,32 @@ codeunit 148022 "IRS 1099 IRIS Tests"
     end;
 
     [Test]
+    [HandlerFunctions('ErrorMessagesPageHandler')]
+    procedure EmptyStateCodeCausesValidationError()
+    var
+        Transmission: Record "Transmission IRIS";
+        IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header";
+        IRSFormsFacade: Codeunit "IRS Forms Facade";
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 632904] Empty state code causes validation error when checking data to report
+        Initialize();
+
+        // [GIVEN] A vendor "V" with 1099 form document ready for transmission
+        CreateTransmissionWithSingleFormDoc(Transmission, IRS1099FormDocHeader);
+
+        // [GIVEN] Vendor's County (State) is empty
+        UpdateVendorProvinceOrState(IRS1099FormDocHeader."Vendor No.", '');
+
+        // [WHEN] Check data to report
+        asserterror IRSFormsFacade.CheckDataToReport(Transmission);
+
+        // [THEN] Error is thrown for empty state code
+        Assert.ExpectedMessage('State must be a valid 2-letter US state code', LibraryVariableStorage.DequeueText());
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
     [HandlerFunctions('MultipleErrorMessagesPageHandler')]
     procedure TwoDuplicateTINGroupsInSameSubmission()
     var

@@ -16,10 +16,6 @@ codeunit 265 "Feature Key Management"
         FeatureTelemetry: Codeunit System.Telemetry."Feature Telemetry";
         AutomaticAccountCodesTxt: Label 'AutomaticAccountCodes', Locked = true;
         SIEAuditFileExportTxt: Label 'SIEAuditFileExport', Locked = true;
-#if not CLEAN26
-        ManufacturingFlushingMethodActivateManualWithoutPickLbl: Label 'Manufacturing_FlushingMethod_ActivateManualWoPick', Locked = true;
-        ManufacturingFlushingMethodActivateManualWithoutPick, ManufacturingFlushingMethodActivateManualWithoutPickRead, MockEnabledManufacturingFlushingMethodActivateManualWithoutPick : Boolean;
-#endif
         ConcurrentInventoryPostingLbl: Label 'ConcurrentInventoryPosting', Locked = true;
         ConcurrentInventoryPosting: Boolean;
         ConcurrentInventoryPostingRead: Boolean;
@@ -74,30 +70,6 @@ codeunit 265 "Feature Key Management"
         exit(ConcurrentResourcePosting);
     end;
 
-#if not CLEAN26
-    procedure IsManufacturingFlushingMethodActivateManualWithoutPickEnabled(): Boolean
-    begin
-        if MockEnabledManufacturingFlushingMethodActivateManualWithoutPick then
-            exit(true);
-        if not ManufacturingFlushingMethodActivateManualWithoutPickRead then begin
-            ManufacturingFlushingMethodActivateManualWithoutPick := FeatureManagementFacade.IsEnabled(GetManufacturingFlushingMethodActivateManualWithoutPickFeatureKey());
-            ManufacturingFlushingMethodActivateManualWithoutPickRead := true;
-        end;
-        exit(ManufacturingFlushingMethodActivateManualWithoutPick);
-    end;
-
-    local procedure GetManufacturingFlushingMethodActivateManualWithoutPickFeatureKey(): Text[50]
-    begin
-        exit(ManufacturingFlushingMethodActivateManualWithoutPickLbl);
-    end;
-
-    procedure SetMockEnabledManufacturingFlushingMethodActivateManualWithoutPick(SetMockEnabled: Boolean)
-    begin
-        MockEnabledManufacturingFlushingMethodActivateManualWithoutPick := SetMockEnabled;
-    end;
-#endif
-
-
     local procedure GetAutomaticAccountCodesFeatureKey(): Text[50]
     begin
         exit(AutomaticAccountCodesTxt);
@@ -113,10 +85,6 @@ codeunit 265 "Feature Key Management"
     begin
         // Log feature uptake
         case FeatureKey.ID of
-#if not CLEAN26
-            GetManufacturingFlushingMethodActivateManualWithoutPickFeatureKey():
-                FeatureTelemetry.LogUptake('0000OQS', ManufacturingFlushingMethodActivateManualWithoutPickLbl, Enum::System.Telemetry."Feature Uptake Status"::Discovered);
-#endif
             ConcurrentInventoryPostingLbl:
                 FeatureTelemetry.LogUptake('0000OSN', ConcurrentInventoryPostingLbl, Enum::System.Telemetry."Feature Uptake Status"::Discovered);
             ConcurrentJobPostingLbl:

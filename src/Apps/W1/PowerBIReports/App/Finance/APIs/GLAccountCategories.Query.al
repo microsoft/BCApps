@@ -10,6 +10,7 @@ query 36958 "G/L Account Categories"
 {
     Access = Internal;
     QueryType = API;
+    AboutText = 'Provides access to general ledger account category hierarchies including entry numbers, parent relationships, descriptions, and income/balance classifications. Enables Power BI reports to build financial statement structures, categorize accounts, and create hierarchical financial reports with proper subtotals and groupings.';
     Caption = 'Power BI G/L Account Categories';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';

@@ -16,7 +16,8 @@ using System.Telemetry;
 /// </summary>
 codeunit 534 "IC Read Notification JR"
 {
-    Permissions = tabledata "IC Incoming Notification" = md;
+    Permissions = tabledata "IC Incoming Notification" = md,
+                  tabledata "IC API Log" = rimd;
 
     var
         SyncronizationCompletedTok: Label 'SyncronizationCompleted', Locked = true;
@@ -24,10 +25,15 @@ codeunit 534 "IC Read Notification JR"
     trigger OnRun()
     var
         ICIncomingNotification: Record "IC Incoming Notification";
+        ICAPILogContext: Codeunit "IC API Log Context";
     begin
+        ICAPILogContext.Initialize();
+
         ICIncomingNotification.SetFilter(Status, '=%1|=%2', ICIncomingNotification.Status::Created, ICIncomingNotification.Status::Failed);
-        if not ICIncomingNotification.FindSet() then
+        if not ICIncomingNotification.FindSet() then begin
+            ICAPILogContext.Finalize();
             exit;
+        end;
 
         repeat
             ReadNotification(ICIncomingNotification);
@@ -35,14 +41,17 @@ codeunit 534 "IC Read Notification JR"
                 CleanupNotifications(ICIncomingNotification);
         until ICIncomingNotification.Next() = 0;
 
-
         ICIncomingNotification.SetFilter(Status, '=%1|=%2', ICIncomingNotification.Status::Processed, ICIncomingNotification.Status::"Scheduled for deletion failed");
-        if not ICIncomingNotification.FindSet() then
+        if not ICIncomingNotification.FindSet() then begin
+            ICAPILogContext.Finalize();
             exit;
+        end;
 
         repeat
             CleanupNotifications(ICIncomingNotification);
         until ICIncomingNotification.Next() = 0;
+
+        ICAPILogContext.Finalize();
     end;
 
     local procedure ReadNotification(var ICIncomingNotification: Record "IC Incoming Notification")
@@ -62,6 +71,8 @@ codeunit 534 "IC Read Notification JR"
             exit;
         end;
         FeatureTelemetry.LogUsage('0000MV9', ICMapping.GetFeatureTelemetryName(), RequestICOutgoingNotificationEventNameTok);
+
+        LogIncomingNotification(ICPartner, JsonResponse);
 
         CurrentGlobalLanguage := GlobalLanguage();
         GlobalLanguage(Language.GetDefaultApplicationLanguageId());
@@ -133,6 +144,16 @@ codeunit 534 "IC Read Notification JR"
                 exit;
             end;
         end;
+    end;
+
+    local procedure LogIncomingNotification(ICPartner: Record "IC Partner"; JsonResponse: JsonObject)
+    var
+        ICAPILog: Record "IC API Log";
+        ICAPILogContext: Codeunit "IC API Log Context";
+        JsonText: Text;
+    begin
+        JsonResponse.WriteTo(JsonText);
+        ICAPILogContext.RecordLogEntry(ICPartner.Code, ICAPILog.Direction::Incoming, 'NOTIFY', '', '', JsonText, 0);
     end;
 
     var

@@ -20,6 +20,7 @@ codeunit 138024 "O365 Totals and Inv.Disc.Purch"
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryApplicationArea: Codeunit "Library - Application Area";
         LibraryNotificationMgt: Codeunit "Library - Notification Mgt.";
+        LibrarySetupStorage: Codeunit "Library - Setup Storage";
         Assert: Codeunit Assert;
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         PurchCalcDiscByType: Codeunit "Purch - Calc Disc. By Type";
@@ -34,6 +35,7 @@ codeunit 138024 "O365 Totals and Inv.Disc.Purch"
 
     local procedure Initialize()
     var
+        LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         PurchasesSetup: Record "Purchases & Payables Setup";
         InventorySetup: Record "Inventory Setup";
         PurchaseHeader: Record "Purchase Header";
@@ -63,6 +65,11 @@ codeunit 138024 "O365 Totals and Inv.Disc.Purch"
             InventorySetup.Validate("Item Nos.", ItemNoSeries);
         InventorySetup."Automatic Cost Posting" := false;
         InventorySetup.Modify();
+
+        LibraryERMCountryData.UpdatePurchasesPayablesSetup();
+
+        LibrarySetupStorage.SavePurchasesSetup();
+        LibrarySetupStorage.SaveInventorySetup();
 
         isInitialized := true;
         Commit();

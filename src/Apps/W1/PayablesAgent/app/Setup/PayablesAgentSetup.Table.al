@@ -89,5 +89,6 @@ table 3303 "Payables Agent Setup"
 
         Clear(Rec);
         Rec.Insert();
+
     end;
 }

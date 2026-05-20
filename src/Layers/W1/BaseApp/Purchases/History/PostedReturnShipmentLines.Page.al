@@ -8,10 +8,14 @@ using Microsoft.Finance.Dimension;
 
 page 6653 "Posted Return Shipment Lines"
 {
+    ApplicationArea = PurchReturnOrder;
     Caption = 'Posted Return Shipment Lines';
     Editable = false;
     PageType = List;
+    AboutTitle = 'About Posted Return Shipment Lines';
+    AboutText = 'Review detailed records of items, quantities, and related information for each line in posted return shipments to vendors, helping you track what has been returned and the status of invoicing for those returns.';
     SourceTable = "Return Shipment Line";
+    UsageCategory = History;
 
     layout
     {

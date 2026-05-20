@@ -473,9 +473,166 @@ codeunit 139646 "Shpfy Catalog Prices Test"
         LibraryAssert.AreNearlyEqual(InitPrice * (1 - InitDiscountPerc / 100), Price, 0.01, 'Accurate calculation of discounted price should be verified.');
     end;
 
+    [Test]
+    [HandlerFunctions('ActivateConfirmHandler')]
+    procedure SyncPricesConfirmDisablesOtherLine()
+    var
+        Shop: Record "Shpfy Shop";
+        Catalog1: Record "Shpfy Catalog";
+        Catalog2: Record "Shpfy Catalog";
+        ShopifyCompany1: Record "Shpfy Company";
+        ShopifyCompany2: Record "Shpfy Company";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+        CatalogId: BigInteger;
+    begin
+        // [SCENARIO] When enabling Sync Prices on a catalog line where another line for the same
+        // catalog ID already has Sync Prices enabled, the user confirms to disable the other line.
+
+        // [GIVEN] Two companies sharing the same catalog ID, first has Sync Prices = true
+        Shop := InitializeTest.CreateShop();
+        ShopifyCompany1.DeleteAll();
+        CatalogId := Any.IntegerInRange(100000, 999999);
+
+        ShopifyCompany1.Init();
+        ShopifyCompany1.Id := Any.IntegerInRange(1000, 99999);
+        ShopifyCompany1.Name := 'Company A';
+        ShopifyCompany1.Insert();
+
+        ShopifyCompany2.Init();
+        ShopifyCompany2.Id := Any.IntegerInRange(1000, 99999);
+        ShopifyCompany2.Name := 'Company B';
+        ShopifyCompany2.Insert();
+
+        Catalog1.Init();
+        Catalog1.Id := CatalogId;
+        Catalog1."Company SystemId" := ShopifyCompany1.SystemId;
+        Catalog1.Name := 'Test Catalog';
+        Catalog1."Shop Code" := Shop.Code;
+        Catalog1."Catalog Type" := "Shpfy Catalog Type"::Company;
+        Catalog1."Sync Prices" := true;
+        Catalog1.Insert();
+
+        Catalog2.Init();
+        Catalog2.Id := CatalogId;
+        Catalog2."Company SystemId" := ShopifyCompany2.SystemId;
+        Catalog2.Name := 'Test Catalog';
+        Catalog2."Shop Code" := Shop.Code;
+        Catalog2."Catalog Type" := "Shpfy Catalog Type"::Company;
+        Catalog2.Insert();
+
+        // [WHEN] User enables Sync Prices on Catalog2 (confirm handler replies true)
+        Catalog2.Validate("Sync Prices", true);
+        Catalog2.Modify(true);
+
+        // [THEN] Catalog2 has Sync Prices = true
+        LibraryAssert.IsTrue(Catalog2."Sync Prices", 'Catalog2 should have Sync Prices enabled');
+
+        // [THEN] Catalog1 has Sync Prices = false (disabled by the confirmation logic)
+        Catalog1.Get(CatalogId, ShopifyCompany1.SystemId);
+        LibraryAssert.IsFalse(Catalog1."Sync Prices", 'Catalog1 should have Sync Prices disabled');
+    end;
+
+    [Test]
+    [HandlerFunctions('CancelConfirmHandler')]
+    procedure SyncPricesCancelKeepsBothUnchanged()
+    var
+        Shop: Record "Shpfy Shop";
+        Catalog1: Record "Shpfy Catalog";
+        Catalog2: Record "Shpfy Catalog";
+        ShopifyCompany1: Record "Shpfy Company";
+        ShopifyCompany2: Record "Shpfy Company";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+        CatalogId: BigInteger;
+    begin
+        // [SCENARIO] When enabling Sync Prices on a catalog line where another line for the same
+        // catalog ID already has Sync Prices enabled, the user cancels.
+
+        // [GIVEN] Two companies sharing the same catalog ID, first has Sync Prices = true
+        Shop := InitializeTest.CreateShop();
+        ShopifyCompany1.DeleteAll();
+        CatalogId := Any.IntegerInRange(100000, 999999);
+
+        ShopifyCompany1.Init();
+        ShopifyCompany1.Id := Any.IntegerInRange(1000, 99999);
+        ShopifyCompany1.Name := 'Company A';
+        ShopifyCompany1.Insert();
+
+        ShopifyCompany2.Init();
+        ShopifyCompany2.Id := Any.IntegerInRange(1000, 99999);
+        ShopifyCompany2.Name := 'Company B';
+        ShopifyCompany2.Insert();
+
+        Catalog1.Init();
+        Catalog1.Id := CatalogId;
+        Catalog1."Company SystemId" := ShopifyCompany1.SystemId;
+        Catalog1.Name := 'Test Catalog';
+        Catalog1."Shop Code" := Shop.Code;
+        Catalog1."Catalog Type" := "Shpfy Catalog Type"::Company;
+        Catalog1."Sync Prices" := true;
+        Catalog1.Insert();
+
+        Catalog2.Init();
+        Catalog2.Id := CatalogId;
+        Catalog2."Company SystemId" := ShopifyCompany2.SystemId;
+        Catalog2.Name := 'Test Catalog';
+        Catalog2."Shop Code" := Shop.Code;
+        Catalog2."Catalog Type" := "Shpfy Catalog Type"::Company;
+        Catalog2.Insert();
+
+        // [WHEN] User enables Sync Prices on Catalog2 (confirm handler replies false)
+        Catalog2.Validate("Sync Prices", true);
+
+        // [THEN] Catalog2 has Sync Prices = false (reverted by cancel)
+        LibraryAssert.IsFalse(Catalog2."Sync Prices", 'Catalog2 should remain with Sync Prices disabled');
+
+        // [THEN] Catalog1 still has Sync Prices = true (unchanged)
+        Catalog1.Get(CatalogId, ShopifyCompany1.SystemId);
+        LibraryAssert.IsTrue(Catalog1."Sync Prices", 'Catalog1 should remain with Sync Prices enabled');
+    end;
+
+    [Test]
+    procedure SyncPricesNoConfirmWhenNoDuplicate()
+    var
+        Shop: Record "Shpfy Shop";
+        Catalog: Record "Shpfy Catalog";
+        ShopifyCompany: Record "Shpfy Company";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+    begin
+        // [SCENARIO] No confirmation when there's no other line with the same catalog ID
+        // having Sync Prices enabled.
+
+        // [GIVEN] A single catalog record with Sync Prices = false
+        Shop := InitializeTest.CreateShop();
+
+        ShopifyCompany.Init();
+        ShopifyCompany.Id := Any.IntegerInRange(1000, 99999);
+        ShopifyCompany.Name := 'Company A';
+        ShopifyCompany.Insert();
+
+        Catalog.Init();
+        Catalog.Id := Any.IntegerInRange(100000, 999999);
+        Catalog."Company SystemId" := ShopifyCompany.SystemId;
+        Catalog.Name := 'Test Catalog';
+        Catalog."Shop Code" := Shop.Code;
+        Catalog."Catalog Type" := "Shpfy Catalog Type"::Company;
+        Catalog.Insert();
+
+        // [WHEN] User enables Sync Prices (no other line exists with same catalog ID)
+        Catalog.Validate("Sync Prices", true);
+
+        // [THEN] Sync Prices = true, no confirmation dialog appeared
+        LibraryAssert.IsTrue(Catalog."Sync Prices", 'Sync Prices should be enabled');
+    end;
+
     [ConfirmHandler]
     procedure ActivateConfirmHandler(Question: Text[1024]; var Reply: Boolean)
     begin
         Reply := true;
+    end;
+
+    [ConfirmHandler]
+    procedure CancelConfirmHandler(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Reply := false;
     end;
 }

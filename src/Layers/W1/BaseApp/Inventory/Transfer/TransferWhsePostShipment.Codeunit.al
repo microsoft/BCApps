@@ -196,8 +196,12 @@ codeunit 5748 "Transfer Whse. Post Shipment"
                         IsHandled := false;
                         OnPostSourceDocumentOnBeforePrintTransferShipment(TransHeader, IsHandled);
                         if not IsHandled then
-                            InsertDocumentEntryToPrint(
-                                DocumentEntryToPrint, Database::"Transfer Shipment Header", TransHeader."Last Shipment No.");
+                            if TransHeader."Direct Transfer" and (TransHeader."Direct Transfer Posting" = TransHeader."Direct Transfer Posting"::"Direct Transfer") then
+                                InsertDocumentEntryToPrint(
+                                    DocumentEntryToPrint, Database::"Direct Trans. Header", TransHeader."Last Shipment No.")
+                            else
+                                InsertDocumentEntryToPrint(
+                                    DocumentEntryToPrint, Database::"Transfer Shipment Header", TransHeader."Last Shipment No.");
                     end;
 
                     OnAfterTransferPostShipment(WhseShptLine, TransHeader, WhsePostParameters);
@@ -264,8 +268,8 @@ codeunit 5748 "Transfer Whse. Post Shipment"
     local procedure TryPostDirectTransferDocument(var TransHeader: Record "Transfer Header"; var WhseShptHeader: Record "Warehouse Shipment Header"; WhsePostParameters: Record "Whse. Post Parameters"; var CounterSourceDocOK: Integer) Posted: Boolean
     begin
         Posted := false;
-        case InventorySetup."Direct Transfer Posting" of
-            InventorySetup."Direct Transfer Posting"::"Direct Transfer":
+        case TransHeader."Direct Transfer Posting" of
+            TransHeader."Direct Transfer Posting"::"Direct Transfer":
                 begin
                     Clear(TransferOrderPostTransfer);
                     TransferOrderPostTransfer.SetWhseShptHeader(WhseShptHeader);
@@ -275,7 +279,7 @@ codeunit 5748 "Transfer Whse. Post Shipment"
                         Posted := true;
                     end;
                 end;
-            InventorySetup."Direct Transfer Posting"::"Receipt and Shipment":
+            TransHeader."Direct Transfer Posting"::"Shipment and Receipt":
                 begin
                     Clear(TransferOrderPostShipment);
                     TransferOrderPostShipment.SetWhseShptHeader(WhseShptHeader);
@@ -318,8 +322,8 @@ codeunit 5748 "Transfer Whse. Post Shipment"
 
     local procedure PostSourceDirectTransferDocument(var TransHeader: Record "Transfer Header"; var WhseShptHeader: Record "Warehouse Shipment Header"; WhsePostParameters: Record "Whse. Post Parameters"; var CounterSourceDocOK: Integer)
     begin
-        case InventorySetup."Direct Transfer Posting" of
-            InventorySetup."Direct Transfer Posting"::"Direct Transfer":
+        case TransHeader."Direct Transfer Posting" of
+            TransHeader."Direct Transfer Posting"::"Direct Transfer":
                 begin
                     Clear(TransferOrderPostTransfer);
                     TransferOrderPostTransfer.SetWhseShptHeader(WhseShptHeader);
@@ -327,7 +331,7 @@ codeunit 5748 "Transfer Whse. Post Shipment"
                     TransferOrderPostTransfer.RunWithCheck(TransHeader);
                     CounterSourceDocOK := CounterSourceDocOK + 1;
                 end;
-            InventorySetup."Direct Transfer Posting"::"Receipt and Shipment":
+            TransHeader."Direct Transfer Posting"::"Shipment and Receipt":
                 begin
                     Clear(TransferOrderPostShipment);
                     TransferOrderPostShipment.SetWhseShptHeader(WhseShptHeader);
@@ -352,6 +356,7 @@ codeunit 5748 "Transfer Whse. Post Shipment"
     local procedure PrintDocuments(var DocumentEntryToPrint: Record "Document Entry")
     var
         TransferShipmentHeader: Record "Transfer Shipment Header";
+        DirectTransHeader: Record "Direct Trans. Header";
     begin
         DocumentEntryToPrint.SetRange("Table ID", Database::"Transfer Shipment Header");
         if not DocumentEntryToPrint.IsEmpty() then begin
@@ -363,6 +368,18 @@ codeunit 5748 "Transfer Whse. Post Shipment"
 
             TransferShipmentHeader.MarkedOnly(true);
             TransferShipmentHeader.PrintRecords(false);
+        end;
+
+        DocumentEntryToPrint.SetRange("Table ID", Database::"Direct Trans. Header");
+        if not DocumentEntryToPrint.IsEmpty() then begin
+            if DocumentEntryToPrint.FindSet() then
+                repeat
+                    DirectTransHeader.Get(DocumentEntryToPrint."Document No.");
+                    DirectTransHeader.Mark(true);
+                until DocumentEntryToPrint.Next() = 0;
+
+            DirectTransHeader.MarkedOnly(true);
+            DirectTransHeader.PrintRecords(false);
         end;
     end;
 

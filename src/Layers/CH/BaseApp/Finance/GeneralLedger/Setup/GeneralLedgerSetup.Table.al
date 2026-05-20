@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -1068,6 +1068,11 @@ table 98 "General Ledger Setup"
             Caption = 'Payroll Trans. Import Format';
             ToolTip = 'Specifies the format of the payroll transaction file that can be imported into the General Journal window.';
             TableRelation = "Data Exch. Def" where(Type = const("Payroll Import"));
+
+            trigger OnValidate()
+            begin
+                FeatureTelemetry.LogUptake('0004H8X', 'Payroll service', Enum::"Feature Uptake Status"::Discovered);
+            end;
         }
         /// <summary>
         /// Symbol used to represent the local currency in reports and user interface displays.
@@ -1245,7 +1250,7 @@ table 98 "General Ledger Setup"
         field(188; "Control VAT Period"; Enum "VAT Period Control")
         {
             Caption = 'Control VAT Period';
-            ToolTip = 'Specifies a way of using VAT Date against VAT Return Periods. If you choose â€˜Block posting within closed and warn for released periodâ€™, system will not allow postings in closed VAT Return Period, but if the period is not closed, but VAT returns are released or submitted, user will be warned what try to post an entry with VAT Date in this period. If you choose â€˜Block posting within closed periodâ€™, system will still not allow postings in closed VAT Return Period, but there will be no warnings for release or submitted VAT returns. If you choose â€˜Warn when posting in closed periodâ€™, system will not block posting entry with VAT Date in the closed VAT return period, but it will show warning message before posting. And if you choose â€˜Disabledâ€™ options, system will allow you to post without any control regardless of VAT return or period status.';
+            ToolTip = 'Specifies a way of using VAT Date against VAT Return Periods. If you choose Block posting within closed and warn for released period, system will not allow postings in closed VAT Return Period, but if the period is not closed, but VAT returns are released or submitted, user will be warned what try to post an entry with VAT Date in this period. If you choose Block posting within closed period, system will still not allow postings in closed VAT Return Period, but there will be no warnings for release or submitted VAT returns. If you choose ˜Warn when posting in closed period, system will not block posting entry with VAT Date in the closed VAT return period, but it will show warning message before posting. And if you choose ˜Disabled options, system will allow you to post without any control regardless of VAT return or period status.';
 
             trigger OnValidate()
             begin
@@ -1399,6 +1404,11 @@ table 98 "General Ledger Setup"
                     CheckDateRange();
                 end;
             end;
+        }
+        field(210; "Use Concurrent Posting"; Boolean)
+        {
+            Caption = 'Use Concurrent Posting';
+            ToolTip = 'Specifies whether to use concurrent posting when posting journals. Concurrent posting can reduce the time it takes to post journals by allowing multiple batches to be posted at the same time. Enabling this option requires additional configuration and setup, such as setting up a batch job to run the concurrent posting process and ensuring that your system has the necessary resources to support concurrent processing.';
         }
         field(11003; "Currency Code For EURO"; Code[10])
         {
@@ -1749,6 +1759,12 @@ table 98 "General Ledger Setup"
             AllowedFrom, AllowedTo,
             Rec."Allow Posting From DateFormula", Rec."Allow Posting To DateFormula",
             Rec.RecordId());
+    end;
+
+    procedure UseConcurrentPosting(): Boolean
+    begin
+        GetRecordOnce();
+        exit("Use Concurrent Posting");
     end;
 
     /// <summary>

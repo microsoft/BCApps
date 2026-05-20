@@ -177,7 +177,6 @@ codeunit 139506 "WFW Requisition Worksheet"
         VerifyWorkflowWebhookEntryResponse(RequisitionWkshName.SystemId, DummyWorkflowWebhookEntry.Response::Cancel);
     end;
 
-
     [Test]
     [HandlerFunctions('MessageHandler')]
     procedure TestDirectApproverApprovesRequestForRequisitionWkshName()
@@ -1217,6 +1216,335 @@ codeunit 139506 "WFW Requisition Worksheet"
         Assert.ExpectedError(PreventInsertRecordWithOpenApprovalEntryForCurrUserMsg);
     end;
 
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure ApprovalEntryMustBeMovedToPostedApprovalEntryForRequisitionWorksheet()
+    var
+        ApprovalEntry: Record "Approval Entry";
+        RequestorUserSetup: Record "User Setup";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        RequisitionLine: Record "Requisition Line";
+        PostedApprovalEntry: Record "Posted Approval Entry";
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 624766] Verify that the approval entry is moved from approval entry to posted approval entry when the Requisition Worksheet is approved and Carry Out Action is performed.
+        Initialize();
+
+        // [GIVEN] Send an approval request for the Requisition Worksheet with setup.
+        SendApprovalRequestForRequisitionWorksheetWithSetup(RequisitionWkshName, RequestorUserSetup);
+
+        // [GIVEN] Assign the approval entry to the requestor user setup.
+        LibraryDocumentApprovals.GetApprovalEntries(ApprovalEntry, RequisitionWkshName.RecordId());
+        AssignApprovalEntry(ApprovalEntry, RequestorUserSetup);
+
+        // [GIVEN] Approve an Approval Entry.
+        ApproveRequisitionWkshName(RequisitionWkshName.Name);
+
+        // [WHEN] Carry Out Action on Requisition Line.
+        FindRequisitionLine(RequisitionLine, RequisitionWkshName);
+        LibraryPlanning.CarryOutActionMsgPlanWksh(RequisitionLine);
+
+        // [THEN] Verify that the approval entry is moved to posted approval entry.
+        LibraryDocumentApprovals.GetPostedApprovalEntries(PostedApprovalEntry, RequisitionWkshName.RecordId());
+        Assert.RecordCount(PostedApprovalEntry, 1);
+
+        // [THEN] Verify that the comment on approval entry is moved to posted approval entry.
+        PostedApprovalEntry.CalcFields(Comment);
+        PostedApprovalEntry.TestField(Comment, false);
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure ApprovalEntryMustBeMovedToPostedApprovalEntryWithCommentForRequisitionWorksheet()
+    var
+        ApprovalEntry: Record "Approval Entry";
+        RequestorUserSetup: Record "User Setup";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        RequisitionLine: Record "Requisition Line";
+        PostedApprovalEntry: Record "Posted Approval Entry";
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 624766] Verify that the approval entry is moved from approval entry to posted approval entry with comments when the Requisition Worksheet is approved and Carry Out Action is performed.
+        Initialize();
+
+        // [GIVEN] Send an approval request for the Requisition Worksheet with setup.
+        SendApprovalRequestForRequisitionWorksheetWithSetup(RequisitionWkshName, RequestorUserSetup);
+
+        // [GIVEN] Assign the approval entry to the requestor user setup.
+        LibraryDocumentApprovals.GetApprovalEntries(ApprovalEntry, RequisitionWkshName.RecordId());
+        AssignApprovalEntry(ApprovalEntry, RequestorUserSetup);
+
+        // [GIVEN] An approval comment is added to the approval entry.
+        AddApprovalComment(ApprovalEntry);
+
+        // [GIVEN] Approve an Approval Entry.
+        ApproveRequisitionWkshName(RequisitionWkshName.Name);
+
+        // [WHEN] Carry Out Action on Requisition Line.
+        FindRequisitionLine(RequisitionLine, RequisitionWkshName);
+        LibraryPlanning.CarryOutActionMsgPlanWksh(RequisitionLine);
+
+        // [THEN] Verify that the approval entry is moved to posted approval entry.
+        LibraryDocumentApprovals.GetPostedApprovalEntries(PostedApprovalEntry, RequisitionWkshName.RecordId());
+        Assert.RecordCount(PostedApprovalEntry, 1);
+
+        // [THEN] Verify that the comment on approval entry is moved to posted approval entry.
+        PostedApprovalEntry.CalcFields(Comment);
+        PostedApprovalEntry.TestField(Comment, true);
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure ApprovalStatusMustBeBlankWhenRequisitionWorksheetIsApprovedAndCarryOutActionIsPerformed()
+    var
+        ApprovalEntry: Record "Approval Entry";
+        RequestorUserSetup: Record "User Setup";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        RequisitionLine: Record "Requisition Line";
+        RequisitionWorksheetPage: TestPage "Req. Worksheet";
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 624766] Verify that the approval status on the Requisition Worksheet is blank when the Requisition Worksheet is approved and Carry Out Action is performed.
+        Initialize();
+
+        // [GIVEN] Send an approval request for the Requisition Worksheet with setup.
+        SendApprovalRequestForRequisitionWorksheetWithSetup(RequisitionWkshName, RequestorUserSetup);
+
+        // [GIVEN] Assign the approval entry to the requestor user setup.
+        LibraryDocumentApprovals.GetApprovalEntries(ApprovalEntry, RequisitionWkshName.RecordId());
+        AssignApprovalEntry(ApprovalEntry, RequestorUserSetup);
+
+        // [GIVEN] Approve an Approval Entry.
+        ApproveRequisitionWkshName(RequisitionWkshName.Name);
+
+        // [WHEN] Carry Out Action on Requisition Line.
+        FindRequisitionLine(RequisitionLine, RequisitionWkshName);
+        LibraryPlanning.CarryOutActionMsgPlanWksh(RequisitionLine);
+
+        // [THEN] Verify that the approval status on the Requisition Worksheet is blank.
+        RequisitionWorksheetPage.OpenView();
+        RequisitionWorksheetPage.CurrentJnlBatchName.SetValue(RequisitionWkshName.Name);
+        RequisitionWorksheetPage.RequisitionWkshBatchApprovalStatus.AssertEquals('');
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure ApprovalRequestCanBeSendForNewLineWithoutAnyConfirmationForRequisitionWorksheet()
+    var
+        ApprovalEntry: Record "Approval Entry";
+        RequestorUserSetup: Record "User Setup";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        RequisitionLine: Record "Requisition Line";
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 624766] Verify that the approval request can be sent for a new line for Requisition Worksheet without any confirmation.
+        Initialize();
+
+        // [GIVEN] Send an approval request for the Requisition Worksheet with setup.
+        SendApprovalRequestForRequisitionWorksheetWithSetup(RequisitionWkshName, RequestorUserSetup);
+
+        // [GIVEN] Assign the approval entry to the requestor user setup.
+        LibraryDocumentApprovals.GetApprovalEntries(ApprovalEntry, RequisitionWkshName.RecordId());
+        AssignApprovalEntry(ApprovalEntry, RequestorUserSetup);
+
+        // [GIVEN] Approve an Approval Entry.
+        ApproveRequisitionWkshName(RequisitionWkshName.Name);
+
+        // [GIVEN] Carry Out Action on Requisition Line.
+        FindRequisitionLine(RequisitionLine, RequisitionWkshName);
+        LibraryPlanning.CarryOutActionMsgPlanWksh(RequisitionLine);
+
+        // [GIVEN] Add a new line to the approved Requisition Worksheet.
+        CreateRequisitionWkshNameWithOneRequisitionLine(RequisitionWkshName, RequisitionLine);
+
+        // [GIVEN] Save a transaction.
+        Commit();
+
+        // [WHEN] Send approval request for the Requisition Worksheet without any confirmation.
+        SendApprovalRequestForRequisitionWorksheet(RequisitionWkshName.Name);
+
+        // [THEN] Verify approval entry is created.
+        LibraryDocumentApprovals.GetApprovalEntries(ApprovalEntry, RequisitionWkshName.RecordId());
+        VerifyApprovalEntryIsOpen(ApprovalEntry);
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure ApprovalEntryMustBeMovedToPostedApprovalEntryForPlanningWorksheet()
+    var
+        ApprovalEntry: Record "Approval Entry";
+        RequestorUserSetup: Record "User Setup";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        RequisitionLine: Record "Requisition Line";
+        PostedApprovalEntry: Record "Posted Approval Entry";
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 624766] Verify that the approval entry is moved from approval entry to posted approval entry when the Planning Worksheet is approved and Carry Out Action is performed.
+        Initialize();
+
+        // [GIVEN] Send an approval request for the Planning Worksheet with setup.
+        SendApprovalRequestForPlanningWorksheetWithSetup(RequisitionWkshName, RequestorUserSetup);
+
+        // [GIVEN] Assign the approval entry to the requestor user setup.
+        LibraryDocumentApprovals.GetApprovalEntries(ApprovalEntry, RequisitionWkshName.RecordId());
+        AssignApprovalEntry(ApprovalEntry, RequestorUserSetup);
+
+        // [GIVEN] Approve an Approval Entry.
+        ApproveRequisitionWkshName(RequisitionWkshName.Name);
+
+        // [WHEN] Carry Out Action on Requisition Line.
+        FindRequisitionLine(RequisitionLine, RequisitionWkshName);
+        LibraryPlanning.CarryOutActionMsgPlanWksh(RequisitionLine);
+
+        // [THEN] Verify that the approval entry is moved to posted approval entry.
+        LibraryDocumentApprovals.GetPostedApprovalEntries(PostedApprovalEntry, RequisitionWkshName.RecordId());
+        Assert.RecordCount(PostedApprovalEntry, 1);
+
+        // [THEN] Verify that the comment on approval entry is moved to posted approval entry.
+        PostedApprovalEntry.CalcFields(Comment);
+        PostedApprovalEntry.TestField(Comment, false);
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure ApprovalEntryMustBeMovedToPostedApprovalEntryWithCommentForPlanningWorksheet()
+    var
+        ApprovalEntry: Record "Approval Entry";
+        RequestorUserSetup: Record "User Setup";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        RequisitionLine: Record "Requisition Line";
+        PostedApprovalEntry: Record "Posted Approval Entry";
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 624766] Verify that the approval entry is moved from approval entry to posted approval entry with comments when the Planning Worksheet is approved and Carry Out Action is performed.
+        Initialize();
+
+        // [GIVEN] Send an approval request for the Planning Worksheet with setup.
+        SendApprovalRequestForPlanningWorksheetWithSetup(RequisitionWkshName, RequestorUserSetup);
+
+        // [GIVEN] Assign the approval entry to the requestor user setup.
+        LibraryDocumentApprovals.GetApprovalEntries(ApprovalEntry, RequisitionWkshName.RecordId());
+        AssignApprovalEntry(ApprovalEntry, RequestorUserSetup);
+
+        // [GIVEN] An approval comment is added to the approval entry.
+        AddApprovalComment(ApprovalEntry);
+
+        // [GIVEN] Approve an Approval Entry.
+        ApproveRequisitionWkshName(RequisitionWkshName.Name);
+
+        // [WHEN] Carry Out Action on Requisition Line.
+        FindRequisitionLine(RequisitionLine, RequisitionWkshName);
+        LibraryPlanning.CarryOutActionMsgPlanWksh(RequisitionLine);
+
+        // [THEN] Verify that the approval entry is moved to posted approval entry.
+        LibraryDocumentApprovals.GetPostedApprovalEntries(PostedApprovalEntry, RequisitionWkshName.RecordId());
+        Assert.RecordCount(PostedApprovalEntry, 1);
+
+        // [THEN] Verify that the comment on approval entry is moved to posted approval entry.
+        PostedApprovalEntry.CalcFields(Comment);
+        PostedApprovalEntry.TestField(Comment, true);
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure ApprovalStatusMustBeBlankWhenPlanningWorksheetIsApprovedAndCarryOutActionIsPerformed()
+    var
+        ApprovalEntry: Record "Approval Entry";
+        RequestorUserSetup: Record "User Setup";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        RequisitionLine: Record "Requisition Line";
+        RequisitionWorksheetPage: TestPage "Planning Worksheet";
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 624766] Verify that the approval status on the Planning Worksheet is blank when the Planning Worksheet is approved and Carry Out Action is performed.
+        Initialize();
+
+        // [GIVEN] Send an approval request for the Planning Worksheet with setup.
+        SendApprovalRequestForPlanningWorksheetWithSetup(RequisitionWkshName, RequestorUserSetup);
+
+        // [GIVEN] Assign the approval entry to the requestor user setup.
+        LibraryDocumentApprovals.GetApprovalEntries(ApprovalEntry, RequisitionWkshName.RecordId());
+        AssignApprovalEntry(ApprovalEntry, RequestorUserSetup);
+
+        // [GIVEN] Approve an Approval Entry.
+        ApproveRequisitionWkshName(RequisitionWkshName.Name);
+
+        // [WHEN] Carry Out Action on Requisition Line.
+        FindRequisitionLine(RequisitionLine, RequisitionWkshName);
+        LibraryPlanning.CarryOutActionMsgPlanWksh(RequisitionLine);
+
+        // [THEN] Verify that the approval status on the Planning Worksheet is blank.
+        RequisitionWorksheetPage.OpenView();
+        RequisitionWorksheetPage.CurrentWkshBatchName.SetValue(RequisitionWkshName.Name);
+        RequisitionWorksheetPage.RequisitionWkshBatchApprovalStatus.AssertEquals('');
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure ApprovalRequestCanBeSendForNewLineWithoutAnyConfirmationForPlanningWorksheet()
+    var
+        ApprovalEntry: Record "Approval Entry";
+        RequestorUserSetup: Record "User Setup";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        RequisitionLine: Record "Requisition Line";
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 624766] Verify that the approval request can be sent for a new line for Planning Worksheet without any confirmation.
+        Initialize();
+
+        // [GIVEN] Send an approval request for the Planning Worksheet with setup.
+        SendApprovalRequestForPlanningWorksheetWithSetup(RequisitionWkshName, RequestorUserSetup);
+
+        // [GIVEN] Assign the approval entry to the requestor user setup.
+        LibraryDocumentApprovals.GetApprovalEntries(ApprovalEntry, RequisitionWkshName.RecordId());
+        AssignApprovalEntry(ApprovalEntry, RequestorUserSetup);
+
+        // [GIVEN] Approve an Approval Entry.
+        ApproveRequisitionWkshName(RequisitionWkshName.Name);
+
+        // [GIVEN] Carry Out Action on Requisition Line.
+        FindRequisitionLine(RequisitionLine, RequisitionWkshName);
+        LibraryPlanning.CarryOutActionMsgPlanWksh(RequisitionLine);
+
+        // [GIVEN] Add a new line to the approved Planning Worksheet.
+        CreatePlanningWkshNameWithOneRequisitionLine(RequisitionWkshName, RequisitionLine);
+
+        // [GIVEN] Save a transaction.
+        Commit();
+
+        // [WHEN] Send approval request for the Planning Worksheet without any confirmation.
+        SendApprovalRequestForRequisitionWorksheet(RequisitionWkshName.Name);
+
+        // [THEN] Verify approval entry is created.
+        LibraryDocumentApprovals.GetApprovalEntries(ApprovalEntry, RequisitionWkshName.RecordId());
+        VerifyApprovalEntryIsOpen(ApprovalEntry);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    [HandlerFunctions('MessageHandler,RejectConfirmHandler')]
+    procedure TestModifyRequisitionLineIsNotAllowedForOpenApprovalEntryWhenUserIsNotApprover()
+    var
+        RequestorUserSetup: Record "User Setup";
+        RequisitionLine: Record "Requisition Line";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 631789] Verify that modifying a Requisition Line is not allowed when an open approval entry exists where the current user is the approver.
+        Initialize();
+
+        // [GIVEN] A Requisition Worksheet with an open approval request.
+        SendApprovalRequestForRequisitionWorksheetWithSetup(RequisitionWkshName, RequestorUserSetup);
+        FindRequisitionLine(RequisitionLine, RequisitionWkshName);
+
+        // [WHEN] Modify the Requisition Line while declining the cancel approval confirmation.
+        RequisitionLine.Validate(Quantity, RequisitionLine.Quantity + 1);
+        asserterror RequisitionLine.Modify(true);
+
+        // [THEN] Verify that the modification was blocked.
+        Assert.ExpectedError('');
+    end;
+
     local procedure Initialize()
     var
         Workflow: Record Workflow;
@@ -1513,6 +1841,19 @@ codeunit 139506 "WFW Requisition Worksheet"
         CreateRequisitionLine(RequisitionLine, RequisitionWkshName, Item."No.");
     end;
 
+    local procedure CreatePlanningWkshNameWithOneRequisitionLine(var RequisitionWkshName: Record "Requisition Wksh. Name"; var RequisitionLine: Record "Requisition Line")
+    var
+        Item: Record Item;
+    begin
+        LibraryPlanning.CreateRequisitionWkshName(RequisitionWkshName, SelectPlanningTemplateName());
+
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Vendor No.", LibraryPurchase.CreateVendorNo());
+        Item.Modify(true);
+
+        CreateRequisitionLine(RequisitionLine, RequisitionWkshName, Item."No.");
+    end;
+
     local procedure CreateRequisitionLine(var RequisitionLine: Record "Requisition Line"; RequisitionWkshName: Record "Requisition Wksh. Name"; ItemNo: Code[20])
     begin
         LibraryPlanning.CreateRequisitionLine(RequisitionLine, RequisitionWkshName."Worksheet Template Name", RequisitionWkshName.Name);
@@ -1534,6 +1875,22 @@ codeunit 139506 "WFW Requisition Worksheet"
             ReqWkshTemplate.Init();
             ReqWkshTemplate.Validate(Name, LibraryUtility.GenerateRandomCode(ReqWkshTemplate.FieldNo(Name), Database::"Req. Wksh. Template"));
             ReqWkshTemplate.Validate(Type, ReqWkshTemplate.Type::"Req.");
+            ReqWkshTemplate.Insert(true);
+        end;
+
+        exit(ReqWkshTemplate.Name);
+    end;
+
+    local procedure SelectPlanningTemplateName(): Code[10]
+    var
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+    begin
+        ReqWkshTemplate.SetRange(Type, ReqWkshTemplate.Type::"Planning");
+        ReqWkshTemplate.SetRange(Recurring, false);
+        if not ReqWkshTemplate.FindFirst() then begin
+            ReqWkshTemplate.Init();
+            ReqWkshTemplate.Validate(Name, LibraryUtility.GenerateRandomCode(ReqWkshTemplate.FieldNo(Name), Database::"Req. Wksh. Template"));
+            ReqWkshTemplate.Validate(Type, ReqWkshTemplate.Type::"Planning");
             ReqWkshTemplate.Insert(true);
         end;
 
@@ -1612,6 +1969,44 @@ codeunit 139506 "WFW Requisition Worksheet"
         LibraryWorkflow.CopyWorkflowTemplate(Workflow, WorkflowSetup.RequisitionWkshBatchApprovalWorkflowCode());
     end;
 
+    local procedure SendApprovalRequestForRequisitionWorksheetWithSetup(var RequisitionWkshName: Record "Requisition Wksh. Name"; var RequestorUserSetup: Record "User Setup")
+    var
+        Workflow: Record Workflow;
+        ApproverUserSetup: Record "User Setup";
+        RequisitionLine: Record "Requisition Line";
+    begin
+        CreateDirectApprovalEnabledWorkflow(Workflow);
+        CreateRequisitionWkshNameWithOneRequisitionLine(RequisitionWkshName, RequisitionLine);
+        CreateApprovalSetup(ApproverUserSetup, RequestorUserSetup);
+
+        Commit();
+
+        SendApprovalRequestForRequisitionWorksheet(RequisitionWkshName.Name);
+    end;
+
+    local procedure SendApprovalRequestForPlanningWorksheetWithSetup(var RequisitionWkshName: Record "Requisition Wksh. Name"; var RequestorUserSetup: Record "User Setup")
+    var
+        Workflow: Record Workflow;
+        ApproverUserSetup: Record "User Setup";
+        RequisitionLine: Record "Requisition Line";
+    begin
+        CreateDirectApprovalEnabledWorkflow(Workflow);
+        CreatePlanningWkshNameWithOneRequisitionLine(RequisitionWkshName, RequisitionLine);
+        CreateApprovalSetup(ApproverUserSetup, RequestorUserSetup);
+
+        Commit();
+
+        SendApprovalRequestForRequisitionWorksheet(RequisitionWkshName.Name);
+    end;
+
+    local procedure FindRequisitionLine(var RequisitionLine: Record "Requisition Line"; RequisitionWkshName: Record "Requisition Wksh. Name")
+    begin
+        RequisitionLine.Reset();
+        RequisitionLine.SetRange("Worksheet Template Name", RequisitionWkshName."Worksheet Template Name");
+        RequisitionLine.SetRange("Journal Batch Name", RequisitionWkshName.Name);
+        RequisitionLine.FindFirst();
+    end;
+
     [MessageHandler]
     procedure MessageHandler(Message: Text[1024])
     begin
@@ -1621,6 +2016,12 @@ codeunit 139506 "WFW Requisition Worksheet"
     procedure ConfirmHandler(Question: Text[1024]; var Reply: Boolean)
     begin
         Reply := true;
+    end;
+
+    [ConfirmHandler]
+    procedure RejectConfirmHandler(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Reply := false;
     end;
 
     [PageHandler]

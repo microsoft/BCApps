@@ -114,6 +114,8 @@ report 31025 "Purch. Advance Letters VAT CZZ"
                 trigger OnAfterGetRecord()
                 begin
                     NonDeductVATAmountLCY := CalcNonDeductVATAmountLCY("Purch. Adv. Letter Entry CZZ");
+                    if NonDeductVATAmountLCY <> 0 then
+                        "VAT Amount (LCY)" := 0;
                 end;
             }
 
@@ -223,8 +225,13 @@ report 31025 "Purch. Advance Letters VAT CZZ"
     var
         VATEntry: Record "VAT Entry";
     begin
+        if PurchAdvLetterEntryCZZ."Non-Deductible VAT %" = 0 then
+            exit(0);
+
         VATEntry.SetRange("Advance Letter No. CZZ", PurchAdvLetterEntryCZZ."Purch. Adv. Letter No.");
         VATEntry.SetRange("Document No.", PurchAdvLetterEntryCZZ."Document No.");
+        VATEntry.SetRange("VAT Bus. Posting Group", PurchAdvLetterEntryCZZ."VAT Bus. Posting Group");
+        VATEntry.SetRange("VAT Prod. Posting Group", PurchAdvLetterEntryCZZ."VAT Prod. Posting Group");
         VATEntry.SetFilter("Posting Date", '..%1', ToDate);
         VATEntry.SetFilter("Non-Deductible VAT %", '<>0');
         if not IncludeCoeffCorrection then
