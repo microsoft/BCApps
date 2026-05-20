@@ -335,7 +335,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
         TempEDocumentPOMatchWarnings: Record "E-Doc PO Match Warning";
         EDocPurchaseHistMapping: Codeunit "E-Doc. Purchase Hist. Mapping";
         EDocPOMatching: Codeunit "E-Doc. PO Matching";
-        AdditionalColumns, OrderMatchedCaption, MatchWarningsCaption, MatchWarningsStyleExpr, VATWarningCaption, VATWarningStyleExpr : Text;
+        AdditionalColumns, OrderMatchedCaption, MatchWarningsCaption, MatchWarningsStyleExpr : Text;
         LineAmount: Decimal;
         DimVisible1, DimVisible2, HasAdditionalColumns, HasVATWarnings, IsEDocumentMatchedToAnyPOLine, IsLineMatchedToOrderLine, IsLineMatchedToReceiptLine, HasEDocumentOrderMatchWarnings : Boolean;
         HistoryCantBeRetrievedErr: Label 'The purchase invoice that matched historically with this line can''t be opened.';
@@ -368,7 +368,6 @@ page 6183 "E-Doc. Purchase Draft Subform"
         IsLineMatchedToReceiptLine := EDocPOMatching.IsEDocumentLineMatchedToAnyReceiptLine(EDocumentPurchaseLine);
         OrderMatchedCaption := IsLineMatchedToOrderLine ? GetSummaryOfMatchedOrders() : '';
         UpdateMatchWarnings();
-        UpdateVATWarningForLine();
     end;
 
     internal procedure SetEDocumentPurchaseHeader(EDocPurchHeader: Record "E-Document Purchase Header")
@@ -571,18 +570,4 @@ page 6183 "E-Doc. Purchase Draft Subform"
         EDocPurchLine.SetRange("[BC] VAT Rate Mismatch", true);
         HasVATWarnings := not EDocPurchLine.IsEmpty();
     end;
-
-    local procedure UpdateVATWarningForLine()
-    var
-        VATGroupNotResolvedLbl: Label 'VAT group not resolved';
-    begin
-        if Rec."[BC] VAT Rate Mismatch" then begin
-            VATWarningCaption := VATGroupNotResolvedLbl;
-            VATWarningStyleExpr := 'Ambiguous';
-        end else begin
-            VATWarningCaption := '';
-            VATWarningStyleExpr := 'None';
-        end;
-    end;
-
 }
