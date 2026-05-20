@@ -420,21 +420,22 @@ page 20445 "Qlty. Test Lookup"
 
     local procedure UpdateRowData()
     var
-        MatrixVisibleState: array[10] of Boolean;
+        DummyMatrixArrayCaptionSet: array[10] of Text;
+        DummyMatrixVisibleState: array[10] of Boolean;
     begin
         IsAllowableValuesEditable := not (Rec."Test Value Type" in [Rec."Test Value Type"::"Value Type Table Lookup"]);
 
-        QltyResultConditionMgmt.GetPromotedResultsForTest(Rec, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, MatrixArrayCaptionSet, MatrixVisibleState);
-        Editable1 := Visible1 and MatrixVisibleState[1];
-        Editable2 := Visible2 and MatrixVisibleState[2];
-        Editable3 := Visible3 and MatrixVisibleState[3];
-        Editable4 := Visible4 and MatrixVisibleState[4];
-        Editable5 := Visible5 and MatrixVisibleState[5];
-        Editable6 := Visible6 and MatrixVisibleState[6];
-        Editable7 := Visible7 and MatrixVisibleState[7];
-        Editable8 := Visible8 and MatrixVisibleState[8];
-        Editable9 := Visible9 and MatrixVisibleState[9];
-        Editable10 := Visible10 and MatrixVisibleState[10];
+        QltyResultConditionMgmt.GetPromotedResultsForTest(Rec, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, DummyMatrixArrayCaptionSet, DummyMatrixVisibleState);
+        Editable1 := Visible1 and DummyMatrixVisibleState[1];
+        Editable2 := Visible2 and DummyMatrixVisibleState[2];
+        Editable3 := Visible3 and DummyMatrixVisibleState[3];
+        Editable4 := Visible4 and DummyMatrixVisibleState[4];
+        Editable5 := Visible5 and DummyMatrixVisibleState[5];
+        Editable6 := Visible6 and DummyMatrixVisibleState[6];
+        Editable7 := Visible7 and DummyMatrixVisibleState[7];
+        Editable8 := Visible8 and DummyMatrixVisibleState[8];
+        Editable9 := Visible9 and DummyMatrixVisibleState[9];
+        Editable10 := Visible10 and DummyMatrixVisibleState[10];
     end;
 
     local procedure UpdateMatrixDataCondition(MatrixField: Integer)

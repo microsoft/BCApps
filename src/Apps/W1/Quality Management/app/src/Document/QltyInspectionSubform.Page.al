@@ -343,7 +343,8 @@ page 20407 "Qlty. Inspection Subform"
 
     local procedure UpdateRowData()
     var
-        MatrixVisibleState: array[10] of Boolean;
+        DummyMatrixArrayCaptionSet: array[10] of Text;
+        DummyMatrixVisibleState: array[10] of Boolean;
         Index: Integer;
     begin
         MeasurementNote := Rec.GetMeasurementNote();
@@ -361,7 +362,7 @@ page 20407 "Qlty. Inspection Subform"
             exit;
         end;
 
-        QltyResultConditionMgmt.GetPromotedResultsForInspectionLine(Rec, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, MatrixArrayCaptionSet, MatrixVisibleState);
+        QltyResultConditionMgmt.GetPromotedResultsForInspectionLine(Rec, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, DummyMatrixArrayCaptionSet, DummyMatrixVisibleState);
     end;
 
     local procedure GetCanEditTestValue() Result: Boolean

@@ -291,9 +291,10 @@ page 20401 "Qlty. Tests"
 
     local procedure UpdateRowData()
     var
-        MatrixVisibleState: array[10] of Boolean;
+        DummyMatrixArrayCaptionSet: array[10] of Text;
+        DummyMatrixVisibleState: array[10] of Boolean;
     begin
-        QltyResultConditionMgmt.GetPromotedResultsForTest(Rec, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, MatrixArrayCaptionSet, MatrixVisibleState);
+        QltyResultConditionMgmt.GetPromotedResultsForTest(Rec, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, DummyMatrixArrayCaptionSet, DummyMatrixVisibleState);
     end;
 
     local procedure UpdateMatrixDataCondition(Matrix: Integer)
