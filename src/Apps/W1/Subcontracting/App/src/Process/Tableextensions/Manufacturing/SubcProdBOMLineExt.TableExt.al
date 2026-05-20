@@ -15,7 +15,7 @@ tableextension 99001531 "Subc. Prod BOM Line Ext." extends "Production BOM Line"
         {
             Caption = 'Component Supply Method';
             DataClassification = CustomerContent;
-            ToolTip = 'Specifies how components are supplied to the subcontractor for the production BOM line.';
+            ToolTip = 'Specifies how components are supplied to the subcontractor for the production BOM line. Vendor-supplied - components are provided by the subcontractor. Consignment at Vendor - components are owned by your company but stored at the subcontractor location. Transfer to Vendor - components are sent to the subcontractor through a transfer order.';
         }
     }
 }

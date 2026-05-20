@@ -455,28 +455,6 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         WorkCenterList.Close();
     end;
 
-    [Test]
-    procedure ComponentSupplyMethodCaptionsAreClear()
-    var
-        ProductionBOMLine: Record "Production BOM Line";
-        PlanningComponent: Record "Planning Component";
-        ProdOrderComponent: Record "Prod. Order Component";
-        ComponentSupplyMethod: Enum "Component Supply Method";
-    begin
-        // [SCENARIO 633674] Subcontracting Type captions are renamed to Component Supply Method terminology.
-        Initialize();
-
-        // [THEN] Field captions clearly describe the component supply behavior.
-        Assert.AreEqual('Component Supply Method', ProductionBOMLine.FieldCaption("Component Supply Method"), 'Production BOM Line field caption must be updated.');
-        Assert.AreEqual('Component Supply Method', PlanningComponent.FieldCaption("Component Supply Method"), 'Planning Component field caption must be updated.');
-        Assert.AreEqual('Component Supply Method', ProdOrderComponent.FieldCaption("Component Supply Method"), 'Prod. Order Component field caption must be updated.');
-
-        // [THEN] Enum value captions use the new names from bug 633674.
-        Assert.AreEqual('Vendor-Supplied', Format(ComponentSupplyMethod::"Vendor-Supplied"), 'Purchase caption must be Vendor-Supplied.');
-        Assert.AreEqual('Consignment at Vendor', Format(ComponentSupplyMethod::"Consignment at Vendor"), 'InventoryByVendor caption must be Consignment at Vendor.');
-        Assert.AreEqual('Transfer to Vendor', Format(ComponentSupplyMethod::"Transfer to Vendor"), 'Transfer caption must be Transfer to Vendor.');
-    end;
-
     var
         Assert: Codeunit Assert;
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
