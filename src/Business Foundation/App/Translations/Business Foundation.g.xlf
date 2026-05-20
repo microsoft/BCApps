@@ -1,0 +1,1374 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en-US" target-language="en-US" original="Business Foundation">
+    <body>
+      <group id="body">
+        <trans-unit id="Table 1908046867 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Reason Code</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table Reason Code - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 1908046867 - Field 3004954119 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Code</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table Reason Code - Field Code - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 1908046867 - Field 3461834954 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Description</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table Reason Code - Field Description - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 1047125746 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Return Reason</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table Return Reason - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 1047125746 - Field 3004954119 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Code</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table Return Reason - Field Code - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 1047125746 - Field 3461834954 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Description</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table Return Reason - Field Description - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 2720485332 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Source Code</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table Source Code - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 2720485332 - Field 3004954119 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Code</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table Source Code - Field Code - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 2720485332 - Field 3461834954 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Description</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table Source Code - Field Description - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 1642199961 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Source Code Setup</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table Source Code Setup - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 1642199961 - Field 1663593181 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Primary Key</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table Source Code Setup - Field Primary Key - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 3348372542 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Reason Codes</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page Reason Codes - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 3348372542 - Control 3004954119 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies a reason code to attach to the entry.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page Reason Codes - Control Code - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 3348372542 - Control 3461834954 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies a description of what the code stands for.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page Reason Codes - Control Description - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 3396682367 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Return Reasons</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page Return Reasons - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 3396682367 - Control 3004954119 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies the code of the record.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page Return Reasons - Control Code - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 3396682367 - Control 3461834954 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies the description of the return reason.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page Return Reasons - Control Description - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 1642199961 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Source Code Setup</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page Source Code Setup - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 2170603285 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Source Codes</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page Source Codes - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 2170603285 - Control 3004954119 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies the source code.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page Source Codes - Control Code - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 2170603285 - Control 3461834954 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies a description of what the code stands for.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page Source Codes - Control Description - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Table 1351594800 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>No. Series</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table No. Series - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 1351594800 - Field 3004954119 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Code</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table No. Series - Field Code - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 1351594800 - Field 850753046 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Date Order</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table No. Series - Field Date Order - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 1351594800 - Field 3577534521 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Default Nos.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table No. Series - Field Default Nos. - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 1351594800 - Field 3461834954 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Description</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table No. Series - Field Description - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 1351594800 - Field 126224818 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Manual Nos.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table No. Series - Field Manual Nos. - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 1570804830 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>No. Series Generation</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table No. Series Generation - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 1570804830 - Field 1303940957 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Input Text</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table No. Series Generation - Field Input Text - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 1570804830 - Field 4200184881 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>No.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table No. Series Generation - Field No. - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 3378361045 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>No. Series Generation Detail</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table No. Series Generation Detail - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 3378361045 - Field 3461834954 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Description</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table No. Series Generation Detail - Field Description - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 3378361045 - Field 3353816324 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Ending No.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table No. Series Generation Detail - Field Ending No. - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 3378361045 - Field 2938565236 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Exists</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table No. Series Generation Detail - Field Exists - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 3378361045 - Field 968786891 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>No.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table No. Series Generation Detail - Field Generation No. - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 3378361045 - Field 2364818100 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Increment-by No.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table No. Series Generation Detail - Field Increment-by No. - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 3378361045 - Field 814962230 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Is Next Year</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table No. Series Generation Detail - Field Is Next Year - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 3378361045 - Field 3080618677 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Message</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table No. Series Generation Detail - Field Message - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 3378361045 - Field 3557386538 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Series Code</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table No. Series Generation Detail - Field Series Code - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 3378361045 - Field 1645868462 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Setup Field</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table No. Series Generation Detail - Field Setup Field Name - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 3378361045 - Field 1001008870 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Setup Field No.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table No. Series Generation Detail - Field Setup Field No. - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 3378361045 - Field 3153625826 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Setup Table</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table No. Series Generation Detail - Field Setup Table Name - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 3378361045 - Field 1458786762 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Setup Table No.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table No. Series Generation Detail - Field Setup Table No. - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 3378361045 - Field 460889064 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Starting Date</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table No. Series Generation Detail - Field Starting Date - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 3378361045 - Field 2800826121 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Starting No.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table No. Series Generation Detail - Field Starting No. - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 3378361045 - Field 3268100271 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Warning No.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table No. Series Generation Detail - Field Warning No. - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 913177062 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>No. Series Line</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table No. Series Line - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 913177062 - Field 3353816324 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Ending No.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table No. Series Line - Field Ending No. - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 913177062 - Field 299361462 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Implementation</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table No. Series Line - Field Implementation - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 913177062 - Field 2364818100 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Increment-by No.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table No. Series Line - Field Increment-by No. - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 913177062 - Field 1021068619 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Last Date Used</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table No. Series Line - Field Last Date Used - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 913177062 - Field 1279394486 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Last No. Used</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table No. Series Line - Field Last No. Used - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 913177062 - Field 3320823955 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Line No.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table No. Series Line - Field Line No. - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 913177062 - Field 4259830144 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Open</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table No. Series Line - Field Open - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 913177062 - Field 1493520340 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Sequence Name</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table No. Series Line - Field Sequence Name - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 913177062 - Field 3557386538 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Series Code</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table No. Series Line - Field Series Code - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 913177062 - Field 460889064 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Starting Date</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table No. Series Line - Field Starting Date - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 913177062 - Field 2800826121 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Starting No.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table No. Series Line - Field Starting No. - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 913177062 - Field 2930816372 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Starting Sequence No.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table No. Series Line - Field Starting Sequence No. - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 913177062 - Field 2280003519 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Temporary Sequence Number</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table No. Series Line - Field Temp Current Sequence No. - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 913177062 - Field 3268100271 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Warning No.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table No. Series Line - Field Warning No. - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 1744020596 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>No. Series Relationship</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table No. Series Relationship - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 1744020596 - Field 3004954119 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Code</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table No. Series Relationship - Field Code - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 1744020596 - Field 3461834954 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Description</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table No. Series Relationship - Field Description - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 1744020596 - Field 3557386538 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Series Code</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table No. Series Relationship - Field Series Code - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 1744020596 - Field 464081295 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Series Description</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table No. Series Relationship - Field Series Description - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 3725229900 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>No. Series Tenant</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table No. Series Tenant - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 3725229900 - Field 3004954119 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Code</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table No. Series Tenant - Field Code - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 3725229900 - Field 3461834954 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Description</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table No. Series Tenant - Field Description - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 3725229900 - Field 3480910106 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Last Used number</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table No. Series Tenant - Field Last Used number - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Codeunit 3746247397 - NamedType 4211107237" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Cannot save No. Series Line that does not exist: %1, %2</source>
+          <note from="Developer" annotates="general" priority="2">%1 = No. Series Code, %2 = Line No.</note>
+          <note from="Xliff Generator" annotates="general" priority="3">Codeunit No. Series - Batch Impl. - NamedType CannotSaveNonExistingNoSeriesErr</note>
+        </trans-unit>
+        <trans-unit id="Codeunit 3746247397 - NamedType 3695228939" size-unit="char" translate="yes" xml:space="preserve">
+          <source>No. Series state cannot be saved while simulating numbers.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Codeunit No. Series - Batch Impl. - NamedType CannotSaveWhileSimulatingNumbersErr</note>
+        </trans-unit>
+        <trans-unit id="Codeunit 2943768528 - NamedType 1516196221" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Open No. Series Lines</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Codeunit No. Series - Errors Impl. - NamedType OpenNoSeriesLinesTxt</note>
+        </trans-unit>
+        <trans-unit id="Codeunit 2943768528 - NamedType 3324156107" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Open No. Series Relationships</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Codeunit No. Series - Errors Impl. - NamedType OpenNoSeriesRelationshipsTxt</note>
+        </trans-unit>
+        <trans-unit id="Codeunit 2943768528 - NamedType 1303879530" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Open No. Series</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Codeunit No. Series - Errors Impl. - NamedType OpenNoSeriesTxt</note>
+        </trans-unit>
+        <trans-unit id="Codeunit 2854004809 - NamedType 3585876820" size-unit="char" translate="yes" xml:space="preserve">
+          <source>It is not possible to assign numbers automatically. If you want the program to assign numbers automatically, please activate %1 in %2 %3.</source>
+          <note from="Developer" annotates="general" priority="2">%1=Default Nos. setting,%2=No. Series table caption,%3=No. Series Code</note>
+          <note from="Xliff Generator" annotates="general" priority="3">Codeunit No. Series - Impl. - NamedType CannotAssignAutomaticallyErr</note>
+        </trans-unit>
+        <trans-unit id="Codeunit 2854004809 - NamedType 1683251246" size-unit="char" translate="yes" xml:space="preserve">
+          <source>You may not enter numbers manually. If you want to enter numbers manually, please activate %1 in %2 %3.</source>
+          <note from="Developer" annotates="general" priority="2">%1=Manual Nos. setting,%2=No. Series table caption,%3=No. Series Code</note>
+          <note from="Xliff Generator" annotates="general" priority="3">Codeunit No. Series - Impl. - NamedType CannotAssignManuallyErr</note>
+        </trans-unit>
+        <trans-unit id="Codeunit 2854004809 - NamedType 3723380736" size-unit="char" translate="yes" xml:space="preserve">
+          <source>You cannot assign new numbers from the number series %1 on a date before %2.</source>
+          <note from="Developer" annotates="general" priority="2">%1=No. Series Code,%2=Date</note>
+          <note from="Xliff Generator" annotates="general" priority="3">Codeunit No. Series - Impl. - NamedType CannotAssignNewBeforeDateErr</note>
+        </trans-unit>
+        <trans-unit id="Codeunit 2854004809 - NamedType 141780555" size-unit="char" translate="yes" xml:space="preserve">
+          <source>You cannot assign new numbers from the number series %1.</source>
+          <note from="Developer" annotates="general" priority="2">%1=No. Series Code</note>
+          <note from="Xliff Generator" annotates="general" priority="3">Codeunit No. Series - Impl. - NamedType CannotAssignNewErr</note>
+        </trans-unit>
+        <trans-unit id="Codeunit 2854004809 - NamedType 2768781936" size-unit="char" translate="yes" xml:space="preserve">
+          <source>You cannot assign new numbers from the number series %1 on %2.</source>
+          <note from="Developer" annotates="general" priority="2">%1=No. Series Code,%2=Date</note>
+          <note from="Xliff Generator" annotates="general" priority="3">Codeunit No. Series - Impl. - NamedType CannotAssignNewOnDateErr</note>
+        </trans-unit>
+        <trans-unit id="Codeunit 2854004809 - NamedType 947897879" size-unit="char" translate="yes" xml:space="preserve">
+          <source>You cannot get a No. Series Line with empty No. Series Code.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Codeunit No. Series - Impl. - NamedType CannotGetNoSeriesLineNoWithEmptyCodeErr</note>
+        </trans-unit>
+        <trans-unit id="Codeunit 2854004809 - NamedType 1752763935" size-unit="char" translate="yes" xml:space="preserve">
+          <source>You have one or more documents that must be posted before you post document no. %1 according to your company's No. Series setup.</source>
+          <note from="Developer" annotates="general" priority="2">%1=Document No.</note>
+          <note from="Xliff Generator" annotates="general" priority="3">Codeunit No. Series - Impl. - NamedType PostErr</note>
+        </trans-unit>
+        <trans-unit id="Codeunit 2854004809 - NamedType 1541001048" size-unit="char" translate="yes" xml:space="preserve">
+          <source>The number series %1 is not related to %2.</source>
+          <note from="Developer" annotates="general" priority="2">%1=No. Series Code,%2=No. Series Code</note>
+          <note from="Xliff Generator" annotates="general" priority="3">Codeunit No. Series - Impl. - NamedType SeriesNotRelatedErr</note>
+        </trans-unit>
+        <trans-unit id="Codeunit 2490312044 - NamedType 2759112708" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Number series can only use up to 18 digit numbers. %1 has %2 digits.</source>
+          <note from="Developer" annotates="general" priority="2">%1 is a string that also contains digits. %2 is a number.</note>
+          <note from="Xliff Generator" annotates="general" priority="3">Codeunit No. Series - Sequence Impl. - NamedType NoOverFlowErr</note>
+        </trans-unit>
+        <trans-unit id="Codeunit 945075924 - NamedType 1383936404" size-unit="char" translate="yes" xml:space="preserve">
+          <source>The filter on %1 was altered by an event subscriber. This is a programming error. Please contact your partner to resolve the issue.\Original %1: %2\Modified Filter: %3</source>
+          <note from="Developer" annotates="general" priority="2">%1=NoSeriesLine.FieldCaption("Series Code") %2=Original filter Value of NoSeriesLine."Series Code" %3=New filter Value of NoSeriesLine."Series Code"</note>
+          <note from="Xliff Generator" annotates="general" priority="3">Codeunit No. Series - Setup Impl. - NamedType CodeFieldChangedErr</note>
+        </trans-unit>
+        <trans-unit id="Codeunit 945075924 - NamedType 2723671431" size-unit="char" translate="yes" xml:space="preserve">
+          <source>The number format in %1 must be the same as the number format in %2.</source>
+          <note from="Developer" annotates="general" priority="2">%1=No. Series Code,%2=No. Series Code</note>
+          <note from="Xliff Generator" annotates="general" priority="3">Codeunit No. Series - Setup Impl. - NamedType NumberFormatErr</note>
+        </trans-unit>
+        <trans-unit id="Codeunit 945075924 - NamedType 4061308638" size-unit="char" translate="yes" xml:space="preserve">
+          <source>The number %1 cannot be extended to more than 20 characters.</source>
+          <note from="Developer" annotates="general" priority="2">%1=No.</note>
+          <note from="Xliff Generator" annotates="general" priority="3">Codeunit No. Series - Setup Impl. - NamedType NumberLengthErr</note>
+        </trans-unit>
+        <trans-unit id="Codeunit 945075924 - NamedType 1327363892" size-unit="char" translate="yes" xml:space="preserve">
+          <source>The value in the %1 field must have a number so that we can assign the next number in the series.</source>
+          <note from="Developer" annotates="general" priority="2">%1 = New Field Name</note>
+          <note from="Xliff Generator" annotates="general" priority="3">Codeunit No. Series - Setup Impl. - NamedType UnIncrementableStringErr</note>
+        </trans-unit>
+        <trans-unit id="Codeunit 635112987 - NamedType 1661298432" size-unit="char" translate="yes" xml:space="preserve">
+          <source>You cannot assign numbers greater than %1 from the number series %2. No. assigned: %3</source>
+          <note from="Developer" annotates="general" priority="2">%1=Last No.,%2=No. Series Code, %3=the new no.</note>
+          <note from="Xliff Generator" annotates="general" priority="3">Codeunit No. Series - Stateless Impl. - NamedType CannotAssignNumbersGreaterThanErr</note>
+        </trans-unit>
+        <trans-unit id="Codeunit 635112987 - NamedType 3967792828" size-unit="char" translate="yes" xml:space="preserve">
+          <source>The No. Series %1 is soon running out. The current number is %2 and the last allowed number of the sequence is %3.</source>
+          <note from="Developer" annotates="general" priority="2">%1=No. Series code,%2=Current No.,%3=Last No. of the sequence</note>
+          <note from="Xliff Generator" annotates="general" priority="3">Codeunit No. Series - Stateless Impl. - NamedType WarnNoSeriesRunningOutMsg</note>
+        </trans-unit>
+        <trans-unit id="Codeunit 491414909 - NamedType 543341268" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Number series already configured. If you wish to modify the existing series, please use the `Modify number series` prompt.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Codeunit No. Series Cop. Add Intent - NamedType ExistingNoSeriesMessageLbl</note>
+        </trans-unit>
+        <trans-unit id="Codeunit 491414909 - NamedType 3829418469" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Unable to load the No. Series Copilot Tool 1. Please try again later.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Codeunit No. Series Cop. Add Intent - NamedType ToolLoadingErr</note>
+        </trans-unit>
+        <trans-unit id="Codeunit 491414909 - NamedType 61724966" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Searching for tables with number series related to your query</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Codeunit No. Series Cop. Add Intent - NamedType ToolProgressDialogTextLbl</note>
+        </trans-unit>
+        <trans-unit id="Codeunit 52184456 - NamedType 2272874181" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Please specify the tables for which you want to modify the number series.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Codeunit No. Series Cop. Change Intent - NamedType SpecifyTablesErr</note>
+        </trans-unit>
+        <trans-unit id="Codeunit 52184456 - NamedType 3829418469" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Unable to load the No. Series Copilot Tool 2. Please try again later.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Codeunit No. Series Cop. Change Intent - NamedType ToolLoadingErr</note>
+        </trans-unit>
+        <trans-unit id="Codeunit 52184456 - NamedType 61724966" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Searching for tables with number series related to your query</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Codeunit No. Series Cop. Change Intent - NamedType ToolProgressDialogTextLbl</note>
+        </trans-unit>
+        <trans-unit id="Codeunit 1938795487 - NamedType 3829418469" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Unable to load the No. Series Copilot Tool 4. Please try again later.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Codeunit No. Series Cop. Generate - NamedType ToolLoadingErr</note>
+        </trans-unit>
+        <trans-unit id="Codeunit 3894689399 - NamedType 3829418469" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Unable to load the No. Series Copilot Tool 3. Please try again later.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Codeunit No. Series Cop. Nxt Yr. Intent - NamedType ToolLoadingErr</note>
+        </trans-unit>
+        <trans-unit id="Codeunit 236448597 - NamedType 3484787294" size-unit="char" translate="yes" xml:space="preserve">
+          <source>for </source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Codeunit No. Series Cop. Tools Impl. - NamedType PrefixLbl</note>
+        </trans-unit>
+        <trans-unit id="Codeunit 3314925284 - NamedType 2017654920" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Sorry, something went wrong. Please rephrase and try again.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Codeunit No. Series Copilot Impl. - NamedType ChatCompletionResponseErr</note>
+        </trans-unit>
+        <trans-unit id="Codeunit 3314925284 - NamedType 3815443864" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Incorrect completion. The completion is empty.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Codeunit No. Series Copilot Impl. - NamedType EmptyCompletionErr</note>
+        </trans-unit>
+        <trans-unit id="Codeunit 3314925284 - NamedType 324045479" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Generating number series %1</source>
+          <note from="Developer" annotates="general" priority="2">%1 = No. Series</note>
+          <note from="Xliff Generator" annotates="general" priority="3">Codeunit No. Series Copilot Impl. - NamedType GeneratingNoSeriesForLbl</note>
+        </trans-unit>
+        <trans-unit id="Codeunit 3314925284 - NamedType 3583908764" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Incorrect completion. The property %1 is empty</source>
+          <note from="Developer" annotates="general" priority="2">%1 = property name</note>
+          <note from="Xliff Generator" annotates="general" priority="3">Codeunit No. Series Copilot Impl. - NamedType IncorrectCompletionErr</note>
+        </trans-unit>
+        <trans-unit id="Codeunit 3314925284 - NamedType 3925145033" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Incorrect completion. The number of generated number series is incorrect. Expected %1, but got %2</source>
+          <note from="Developer" annotates="general" priority="2">%1 = Expected Number, %2 = Actual Number</note>
+          <note from="Xliff Generator" annotates="general" priority="3">Codeunit No. Series Copilot Impl. - NamedType IncorrectCompletionNumberOfGeneratedNoSeriesErr</note>
+        </trans-unit>
+        <trans-unit id="Codeunit 3314925284 - NamedType 2660645295" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Sorry, I couldn't generate a good result from your input. Please rephrase and try again.\Error details: %1</source>
+          <note from="Developer" annotates="general" priority="2">%1 = Error details</note>
+          <note from="Xliff Generator" annotates="general" priority="3">Codeunit No. Series Copilot Impl. - NamedType InvalidPromptTxt</note>
+        </trans-unit>
+        <trans-unit id="Codeunit 3314925284 - NamedType 3716456771" size-unit="char" translate="yes" xml:space="preserve">
+          <source>The property %1 exceeds the maximum length of %2</source>
+          <note from="Developer" annotates="general" priority="2">%1 = property name, %2 = maximum length</note>
+          <note from="Xliff Generator" annotates="general" priority="3">Codeunit No. Series Copilot Impl. - NamedType TextLengthIsOverMaxLimitErr</note>
+        </trans-unit>
+        <trans-unit id="Codeunit 3314925284 - NamedType 3391421996" size-unit="char" translate="yes" xml:space="preserve">
+          <source>The response should be a function call.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Codeunit No. Series Copilot Impl. - NamedType TheResponseShouldBeAFunctionCallErr</note>
+        </trans-unit>
+        <trans-unit id="Codeunit 3314925284 - NamedType 3829418469" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Unable to load the No. Series Copilot Tool. Please try again later.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Codeunit No. Series Copilot Impl. - NamedType ToolLoadingErr</note>
+        </trans-unit>
+        <trans-unit id="Page 1351594800 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>No. Series</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 1351594800 - Property 3863440606" size-unit="char" translate="yes" xml:space="preserve">
+          <source>numbering,number series</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series - Property AdditionalSearchTerms</note>
+        </trans-unit>
+        <trans-unit id="Page 1351594800 - NamedType 3338871808" size-unit="char" translate="yes" xml:space="preserve">
+          <source>The test failed. No number was returned for date %1.</source>
+          <note from="Developer" annotates="general" priority="2">%1 = a date</note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series - NamedType CheckNoFailedTxt</note>
+        </trans-unit>
+        <trans-unit id="Page 1351594800 - NamedType 3406479104" size-unit="char" translate="yes" xml:space="preserve">
+          <source>The test was successful. Number %1 for date %2 was returned.</source>
+          <note from="Developer" annotates="general" priority="2">%1 = A No. Series number, %2 = a date</note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series - NamedType CheckNoSucceededTxt</note>
+        </trans-unit>
+        <trans-unit id="Page 1351594800 - Control 2963217175 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies that a number assigned from the number series can later be deleted. This is practical for records, such as item cards and warehouse documents that, unlike financial transactions, can be deleted and cause gaps in the number sequence. This setting also means that new numbers will be generated and assigned in a faster, non-blocking way. NOTE: If an error occurs on a new record that will be assigned a number from such a number series when it is completed, the number in question will be lost, causing a gap in the sequence.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series - Control AllowGapsCtrl - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 1351594800 - Control 2963217175 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Allow Gaps in Nos.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series - Control AllowGapsCtrl - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 1351594800 - Control 3004954119 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies a number series code.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series - Control Code - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 1351594800 - Control 3004954119 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Code</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series - Control Code - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 1351594800 - Control 850753046 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies to check that numbers are assigned chronologically.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series - Control Date Order - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 1351594800 - Control 850753046 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Date Order</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series - Control Date Order - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 1351594800 - Control 3577534521 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies whether this number series will be used to assign numbers automatically.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series - Control Default Nos. - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 1351594800 - Control 3577534521 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Default Nos.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series - Control Default Nos. - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 1351594800 - Control 3461834954 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies a description of the number series.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series - Control Description - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 1351594800 - Control 3461834954 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Description</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series - Control Description - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 1351594800 - Control 2778399362 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies the last number in the series.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series - Control EndNo - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 1351594800 - Control 2778399362 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Ending No.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series - Control EndNo - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 1351594800 - Control 299361462 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies the implementation to use for getting numbers.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series - Control Implementation - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 1351594800 - Control 299361462 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Implementation</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series - Control Implementation - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 1351594800 - Control 1137329653 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies the value for incrementing the numeric part of the series.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series - Control IncrementByNo - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 1351594800 - Control 1137329653 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Increment-by No.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series - Control IncrementByNo - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 1351594800 - Control 710721723 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies the date when a number was most recently assigned from the number series.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series - Control LastDateUsed - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 1351594800 - Control 710721723 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Last Date Used</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series - Control LastDateUsed - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 1351594800 - Control 2927620432 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies the last number that was used from the number series.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series - Control LastNoUsed - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 1351594800 - Control 2927620432 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Last No. Used</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series - Control LastNoUsed - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 1351594800 - Control 126224818 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies that you can enter numbers manually instead of using this number series.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series - Control Manual Nos. - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 1351594800 - Control 126224818 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Manual Nos.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series - Control Manual Nos. - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 1351594800 - Control 3605153064 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies the date from which you want this number series to apply. You use this field if you want to start a new series at the beginning of a new period. You set up a number series line for each period. The program will automatically switch to the new series on the starting date.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series - Control StartDate - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 1351594800 - Control 3605153064 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Starting Date</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series - Control StartDate - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 1351594800 - Control 54551187 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies the first number in the series.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series - Control StartNo - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 1351594800 - Control 54551187 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Starting No.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series - Control StartNo - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 1351594800 - Control 2904476933 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies when you want to receive a warning that the number series is running out. You enter a number from the series. The program will provide a warning when this number is reached. You can enter a maximum of 20 characters, both numbers and letters.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series - Control WarningNo - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 1351594800 - Control 2904476933 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Warning No.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series - Control WarningNo - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 1351594800 - Control 61578460 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Open Lines</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series - Control NoSeriesLinesPart - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 1351594800 - Control 1093204092 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Relationships</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series - Control NoSeriesRelationsPart - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 1351594800 - Action 1863283591 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Series</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series - Action &amp;Series - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 1351594800 - Action 3471137671 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>View or edit additional information about the number series lines.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series - Action Lines - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 1351594800 - Action 3471137671 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Lines</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series - Action Lines - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 1351594800 - Action 2000323865 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>View or edit relationships between number series.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series - Action Relationships - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 1351594800 - Action 2000323865 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Relationships</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series - Action Relationships - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 1351594800 - Action 13477106 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Test whether the number series can generate new numbers.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series - Action TestNoSeriesSingle - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 1351594800 - Action 13477106 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Test No. Series</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series - Action TestNoSeriesSingle - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 1351594800 - Action 176562519 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>View</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series - Action View - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 1351594800 - Action 580853590 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Show all number series.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series - Action ShowAll - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 1351594800 - Action 580853590 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Show All</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series - Action ShowAll - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 1351594800 - Action 107650159 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Show number series that require your attention, such as, number series that have no lines or an have open lines which have reached the warning threshold.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series - Action ShowExpiring - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 1351594800 - Action 107650159 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Show Expiring</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series - Action ShowExpiring - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 1351594800 - Action 2754442220 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>View_Promoted</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series - Action View_Promoted - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 1570804830 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Generate No. Series with Copilot</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Generation - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 1570804830 - NamedType 2492159425" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Change the [specify here] number to </source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Generation - NamedType ChangeNumberLbl</note>
+        </trans-unit>
+        <trans-unit id="Page 1570804830 - NamedType 2693070612" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Create numbers series for the new company</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Generation - NamedType CreateNoSeriesForCompanyLbl</note>
+        </trans-unit>
+        <trans-unit id="Page 1570804830 - NamedType 4210293593" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Create number series for </source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Generation - NamedType CreateNoSeriesForLbl</note>
+        </trans-unit>
+        <trans-unit id="Page 1570804830 - NamedType 2696140609" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Create number series for [specify here] module in the format </source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Generation - NamedType CreateNoSeriesForModuleWithPatternLbl</note>
+        </trans-unit>
+        <trans-unit id="Page 1570804830 - NamedType 3688474908" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Prepare number series for the next year</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Generation - NamedType PrepareForNextYearLbl</note>
+        </trans-unit>
+        <trans-unit id="Page 1570804830 - NamedType 2089164974" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Prepare number series for the [specify here] module for the next year</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Generation - NamedType PrepareModuleForNextYearLbl</note>
+        </trans-unit>
+        <trans-unit id="Page 1570804830 - Control 4257856312 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Generated No. Series</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Generation - Control GenerationDetails - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 1570804830 - Control 1987256405 - Property 1968111052" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Describe the number series you want to create or change.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Generation - Control InputText - Property InstructionalText</note>
+        </trans-unit>
+        <trans-unit id="Page 1570804830 - Control 1987256405 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Request</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Generation - Control InputText - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 1570804830 - Action 2567635439 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Create new</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Generation - Action CreateNewNoSeriesGroup - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 1570804830 - Action 1454289169 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Sample prompt for creating number series. Replace [purchase orders] with the entity you want to create number series for.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Generation - Action NewNumberSeriesFor - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 1570804830 - Action 1454289169 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Create number series for [purchase orders]</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Generation - Action NewNumberSeriesFor - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 1570804830 - Action 652958484 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Sample prompt for creating number series for a new company.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Generation - Action NewNumberSeriesForCompany - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 1570804830 - Action 652958484 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Create numbers series for the new company</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Generation - Action NewNumberSeriesForCompany - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 1570804830 - Action 2325751593 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Sample prompt for creating number series for a specific module with a specific pattern. Replace [sales] with the module you want to create number series for and [@@-#####] with the pattern you want to use.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Generation - Action NewNumberSeriesForModuleWithPattern - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 1570804830 - Action 2325751593 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Create numbers for the [sales] module, using pattern [@@-#####]</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Generation - Action NewNumberSeriesForModuleWithPattern - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 1570804830 - Action 2813944994 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Modify existing</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Generation - Action ModifyExistingNoSeriesGroup - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 1570804830 - Action 4026729266 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Sample prompt for changing the number series. Replace [sales order] with the entity you want to change the number series for and [SO-10001] with the new number.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Generation - Action ChangeNumberTo - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 1570804830 - Action 4026729266 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Change the [sales order] number to [SO-10001]</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Generation - Action ChangeNumberTo - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 1570804830 - Action 3701017727 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Prepare for next year</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Generation - Action PrepareForNextYearGroup - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 1570804830 - Action 89246262 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Sample prompt for setting up number series for the next year.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Generation - Action PrepareForNextYear - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 1570804830 - Action 89246262 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Prepare number series for the next year</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Generation - Action PrepareForNextYear - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 1570804830 - Action 1642784628 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Sample prompt for setting up number series for a specific module for the next year. Replace [sales] with the module you want to set up number series for.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Generation - Action PrepareModuleForNextYear - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 1570804830 - Action 1642784628 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Prepare number series for the [sales] module for the next year</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Generation - Action PrepareModuleForNextYear - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 1570804830 - Action 788258546 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Discards all suggestions and dismisses the dialog</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Generation - Action Cancel - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 1570804830 - Action 788258546 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Cancel</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Generation - Action Cancel - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 1570804830 - Action 2626368477 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Generate no. series</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Generation - Action Generate - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 1570804830 - Action 2626368477 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Generate</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Generation - Action Generate - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 1570804830 - Action 1010501080 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Accepts the current suggestion and dismisses the dialog</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Generation - Action Ok - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 1570804830 - Action 1010501080 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Keep it</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Generation - Action Ok - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 1570804830 - Action 2388911040 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Regenerate no. series</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Generation - Action Regenerate - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 1570804830 - Action 2388911040 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Regenerate</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Generation - Action Regenerate - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 2009626386 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>No. Series Generations</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Generation Sub - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 2009626386 - Control 3461834954 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies the value of the Description field.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Generation Sub - Control Description - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 2009626386 - Control 3353816324 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies the value of the Ending No. field.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Generation Sub - Control Ending No. - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 2009626386 - Control 2364818100 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies the value of the Increment-by No. field.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Generation Sub - Control Increment-by No. - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 2009626386 - Control 3080618677 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies the value of the Message field.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Generation Sub - Control Message - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 2009626386 - Control 3557386538 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies the value of the Series Code field.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Generation Sub - Control Series Code - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 2009626386 - Control 1645868462 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies the value of the Setup Field Name field.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Generation Sub - Control Setup Field Name - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 2009626386 - Control 3153625826 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies the value of the Setup Table Name field.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Generation Sub - Control Setup Table Name - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 2009626386 - Control 460889064 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies the value of the Starting Date field.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Generation Sub - Control Starting Date - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 2009626386 - Control 2800826121 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies the value of the Starting No. field.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Generation Sub - Control Starting No. - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 2009626386 - Control 3268100271 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies the value of the Warning No. field.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Generation Sub - Control Warning No. - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 2805196211 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>No. Series Lines</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Lines - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 2805196211 - Control 3358440473 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies that a number assigned from the number series can later be deleted. This is practical for records, such as item cards and warehouse documents that, unlike financial transactions, can be deleted and cause gaps in the number sequence. NOTE: If an error occurs on a new record that will be assigned a number from such a number series when it is completed, the number in question may be lost, causing a gap in the sequence.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Lines - Control Allow Gaps in Nos. - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 2805196211 - Control 3358440473 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Allow Gaps in Nos.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Lines - Control Allow Gaps in Nos. - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 2805196211 - Control 3353816324 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies the last number in the series.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Lines - Control Ending No. - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 2805196211 - Control 3353816324 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Ending No.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Lines - Control Ending No. - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 2805196211 - Control 299361462 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies the implementation to use for getting numbers. Some may produce gaps in the number series. This is practical for records, such as item cards and warehouse documents that, unlike financial transactions, can be deleted and cause gaps in the number sequence.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Lines - Control Implementation - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 2805196211 - Control 299361462 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Implementation</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Lines - Control Implementation - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 2805196211 - Control 2364818100 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies the size of the interval by which you would like to space the numbers in the number series.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Lines - Control Increment-by No. - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 2805196211 - Control 2364818100 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Increment-by No.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Lines - Control Increment-by No. - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 2805196211 - Control 1021068619 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies the date when a number was most recently assigned from the number series.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Lines - Control Last Date Used - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 2805196211 - Control 1021068619 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Last Date Used</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Lines - Control Last Date Used - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 2805196211 - Control 1279394486 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies the last number that was used from the number series.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Lines - Control Last No. Used - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 2805196211 - Control 1279394486 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Last No. Used</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Lines - Control Last No. Used - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 2805196211 - Control 4259830144 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies whether the number series line is open. It is open until the last number in the series has been used.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Lines - Control Open - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 2805196211 - Control 4259830144 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Open</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Lines - Control Open - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 2805196211 - Control 3557386538 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies the code for the number series to which this line applies.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Lines - Control Series Code - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 2805196211 - Control 3557386538 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Series Code</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Lines - Control Series Code - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 2805196211 - Control 460889064 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies the date from which you would like this line to apply.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Lines - Control Starting Date - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 2805196211 - Control 460889064 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Starting Date</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Lines - Control Starting Date - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 2805196211 - Control 2800826121 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies the first number in the series.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Lines - Control Starting No. - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 2805196211 - Control 2800826121 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Starting No.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Lines - Control Starting No. - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 2805196211 - Control 3268100271 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies when you want to receive a warning that the number series is running out.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Lines - Control Warning No. - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 2805196211 - Control 3268100271 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Warning No.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Lines - Control Warning No. - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 1772946810 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>No. Series Lines</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Lines Part - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 1772946810 - Control 3358440473 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies that a number assigned from the number series can later be deleted. This is practical for records, such as item cards and warehouse documents that, unlike financial transactions, can be deleted and cause gaps in the number sequence. NOTE: If an error occurs on a new record that will be assigned a number from such a number series when it is completed, the number in question may be lost, causing a gap in the sequence.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Lines Part - Control Allow Gaps in Nos. - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 1772946810 - Control 3358440473 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Allow Gaps in Nos.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Lines Part - Control Allow Gaps in Nos. - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 1772946810 - Control 3353816324 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies the last number in the series.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Lines Part - Control Ending No. - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 1772946810 - Control 3353816324 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Ending No.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Lines Part - Control Ending No. - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 1772946810 - Control 299361462 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies the implementation to use for getting numbers. Some may produce gaps in the number series. This is practical for records, such as item cards and warehouse documents that, unlike financial transactions, can be deleted and cause gaps in the number sequence.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Lines Part - Control Implementation - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 1772946810 - Control 299361462 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Implementation</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Lines Part - Control Implementation - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 1772946810 - Control 2364818100 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies the size of the interval by which you would like to space the numbers in the number series.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Lines Part - Control Increment-by No. - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 1772946810 - Control 2364818100 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Increment-by No.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Lines Part - Control Increment-by No. - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 1772946810 - Control 1021068619 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies the date when a number was most recently assigned from the number series.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Lines Part - Control Last Date Used - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 1772946810 - Control 1021068619 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Last Date Used</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Lines Part - Control Last Date Used - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 1772946810 - Control 1279394486 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies the last number that was used from the number series.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Lines Part - Control Last No. Used - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 1772946810 - Control 1279394486 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Last No. Used</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Lines Part - Control Last No. Used - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 1772946810 - Control 4259830144 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies whether the number series line is open. It is open until the last number in the series has been used.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Lines Part - Control Open - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 1772946810 - Control 4259830144 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Open</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Lines Part - Control Open - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 1772946810 - Control 3557386538 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies the code for the number series to which this line applies.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Lines Part - Control Series Code - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 1772946810 - Control 3557386538 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Series Code</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Lines Part - Control Series Code - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 1772946810 - Control 460889064 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies the date from which you would like this line to apply.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Lines Part - Control Starting Date - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 1772946810 - Control 460889064 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Starting Date</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Lines Part - Control Starting Date - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 1772946810 - Control 2800826121 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies the first number in the series.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Lines Part - Control Starting No. - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 1772946810 - Control 2800826121 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Starting No.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Lines Part - Control Starting No. - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 1772946810 - Control 3268100271 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies when you want to receive a warning that the number series is running out.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Lines Part - Control Warning No. - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 1772946810 - Control 3268100271 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Warning No.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Lines Part - Control Warning No. - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 3945079413 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>No. Series Relationships</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Relationships - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 3945079413 - Control 3004954119 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies the number series code that represents the related number series.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Relationships - Control Code - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 3945079413 - Control 3004954119 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Code</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Relationships - Control Code - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 3945079413 - Control 3461834954 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies the description of the number series represented by the code in the Code field.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Relationships - Control Description - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 3945079413 - Control 3461834954 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Description</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Relationships - Control Description - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 3945079413 - Control 3557386538 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies the code for a number series that you want to include in the group of related number series.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Relationships - Control Series Code - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 3945079413 - Control 3557386538 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Series Code</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Relationships - Control Series Code - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 3945079413 - Control 464081295 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies the description of the number series represented by the code in the Series Code field.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Relationships - Control Series Description - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 3945079413 - Control 464081295 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Series Description</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Relationships - Control Series Description - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 3610123592 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>No. Series Relationships</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Relationships Part - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 3610123592 - Control 3004954119 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies the number series code that represents the related number series.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Relationships Part - Control Code - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 3610123592 - Control 3004954119 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Code</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Relationships Part - Control Code - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 3610123592 - Control 3461834954 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies the description of the number series represented by the code in the Code field.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Relationships Part - Control Description - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 3610123592 - Control 3461834954 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Description</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Relationships Part - Control Description - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 3610123592 - Control 3557386538 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies the code for a number series that you want to include in the group of related number series.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Relationships Part - Control Series Code - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 3610123592 - Control 3557386538 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Series Code</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Relationships Part - Control Series Code - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 3610123592 - Control 464081295 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Specifies the description of the number series represented by the code in the Series Code field.</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Relationships Part - Control Series Description - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 3610123592 - Control 464081295 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Series Description</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page No. Series Relationships Part - Control Series Description - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 1351594800 - Action 2107204065 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve" al-object-target="Page 1351594800">
+          <source>Generate No. Series using Copilot</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">PageExtension No. Series Ext. - Action Generate With Copilot Prompting - Property ToolTip</note>
+        </trans-unit>
+        <trans-unit id="Page 1351594800 - Action 2107204065 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve" al-object-target="Page 1351594800">
+          <source>Generate</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">PageExtension No. Series Ext. - Action Generate With Copilot Prompting - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Enum 487746186 - EnumValue 221910773 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Normal</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Enum No. Series Implementation - EnumValue Normal - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Enum 487746186 - EnumValue 4154341761 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Sequence</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Enum No. Series Implementation - EnumValue Sequence - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="EnumExtension 45853158 - EnumValue 4020539626 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve" al-object-target="Enum 3058546390">
+          <source>No. Series Suggestions</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">EnumExtension No. Series Copilot Cap. - EnumValue No. Series Copilot - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="PermissionSet 3690785540 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Business Foundation - Admin</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">PermissionSet Bus. Found. - Admin - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="PermissionSet 343389045 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Business Foundation - Edit</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">PermissionSet Bus. Found. - Edit - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="PermissionSet 3459075106 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Business Foundation - Objects</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">PermissionSet Bus. Found. - Obj. - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="PermissionSet 2361223695 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Business Foundation - Read</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">PermissionSet Bus. Found. - Read - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="PermissionSet 3477041462 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Business Foundation - View</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">PermissionSet Bus. Found. - View - Property Caption</note>
+        </trans-unit>
+      </group>
+    </body>
+  </file>
+</xliff>
