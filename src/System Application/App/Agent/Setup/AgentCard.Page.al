@@ -200,7 +200,7 @@ page 4315 "Agent Card"
     begin
         AgentUtilities.BlockPageFromBeingOpenedByAgent();
 
-        if not AgentSystemPermissions.CurrentUserHasCanManageAllAgentsPermission() then
+        if not AgentSystemPermissions.CurrentUserCanManageAgent(Rec."User Security ID") then
             Error(YouDoNotHavePermissionToModifyThisAgentErr);
     end;
 
