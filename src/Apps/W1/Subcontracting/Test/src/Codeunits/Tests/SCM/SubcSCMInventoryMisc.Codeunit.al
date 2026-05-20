@@ -27,6 +27,7 @@ codeunit 149912 "Subc SCM Inventory Misc."
 {
     Subtype = Test;
     TestPermissions = Disabled;
+    TestType = IntegrationTest;
 
     trigger OnRun()
     begin

@@ -27,6 +27,7 @@ codeunit 149915 "Subc SCM Costing Rollup Sev"
 {
     Subtype = Test;
     TestPermissions = Disabled;
+    TestType = IntegrationTest;
 
     trigger OnRun()
     begin

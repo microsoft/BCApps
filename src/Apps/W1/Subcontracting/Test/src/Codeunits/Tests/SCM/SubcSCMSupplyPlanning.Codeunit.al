@@ -33,6 +33,7 @@ codeunit 149913 "Subc SCM Supply Planning"
 {
     Subtype = Test;
     TestPermissions = Disabled;
+    TestType = IntegrationTest;
 
     trigger OnRun()
     begin

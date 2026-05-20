@@ -32,6 +32,7 @@ codeunit 149918 "Subc SCM WIP Costing Prod."
 {
     Subtype = Test;
     TestPermissions = Disabled;
+    TestType = IntegrationTest;
 
     trigger OnRun()
     begin

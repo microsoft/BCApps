@@ -27,6 +27,7 @@ codeunit 149917 "Subc SCM Mfg. 70"
 {
     Subtype = Test;
     TestPermissions = Disabled;
+    TestType = IntegrationTest;
 
     trigger OnRun()
     begin
@@ -341,7 +342,7 @@ codeunit 149917 "Subc SCM Mfg. 70"
         asserterror ProdOrderLine.Delete(true);
 
         // Verify: Existing Error Message
-        Assert.AreEqual(StrSubstNo(DeleteRtngErr, ProdOrderLine."Line No.", PurchaseLine.TableName), GetLastErrorText, '');
+        Assert.AreEqual(StrSubstNo(DeleteRtngErr, ProdOrderLine."Line No.", PurchaseLine.TableCaption()), GetLastErrorText, '');
     end;
 
     [Test]

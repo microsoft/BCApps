@@ -33,6 +33,7 @@ codeunit 149916 "Subc SCM Prod. Order"
 {
     Subtype = Test;
     TestPermissions = Disabled;
+    TestType = IntegrationTest;
 
     trigger OnRun()
     begin
