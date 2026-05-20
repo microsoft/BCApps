@@ -6,7 +6,6 @@ namespace Microsoft.Manufacturing.Subcontracting.Test;
 
 using Microsoft.Inventory.Planning;
 using Microsoft.Inventory.Requisition;
-using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Manufacturing.WorkCenter;
