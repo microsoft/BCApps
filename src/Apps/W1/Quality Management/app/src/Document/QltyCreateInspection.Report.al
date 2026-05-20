@@ -336,7 +336,7 @@ report 20400 "Qlty. Create Inspection"
             TargetRecordRef.Open(QltyInspectSourceConfig."From Table No.");
             TargetRecordRef.SetView(QltyInspectSourceConfig."From Table Filter");
 
-            LookupPageId := PageManagement.GetPageID(TargetRecordRef);
+            LookupPageId := PageManagement.GetDefaultLookupPageID(TargetRecordRef.Number);
             if LookupPageId = 0 then begin
                 QltyInspectSourceConfig.CalcFields("From Table Caption");
                 TargetRecordRef.Close();
