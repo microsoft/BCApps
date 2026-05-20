@@ -3022,7 +3022,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 #pragma warning restore AA0210
         RequisitionLineWithStdTask.FindFirst();
         Assert.AreEqual(
-            StandardTask.Code, RequisitionLineWithStdTask."Standard Task Code",
+            StandardTask.Code, RequisitionLineWithStdTask."Subc. Standard Task Code",
             'Standard Task Code must be propagated from Prod. Order Routing Line to the Subcontracting Worksheet line.');
         Assert.AreEqual(
             PriceWithStdTask, RequisitionLineWithStdTask."Direct Unit Cost",
@@ -3037,14 +3037,14 @@ codeunit 139989 "Subc. Subcontracting Test"
 #pragma warning restore AA0210
         RequisitionLineNoStdTask.FindFirst();
         Assert.AreEqual(
-            '', RequisitionLineNoStdTask."Standard Task Code",
+            '', RequisitionLineNoStdTask."Subc. Standard Task Code",
             'Standard Task Code must be empty on the worksheet line that has no standard task on the routing.');
         Assert.AreEqual(
             PriceWithoutStdTask, RequisitionLineNoStdTask."Direct Unit Cost",
             'Subcontractor Price for the un-tagged combination must be applied to the worksheet line.');
 
         // [WHEN] User clears Standard Task Code on the worksheet line
-        RequisitionLineWithStdTask.Validate("Standard Task Code", '');
+        RequisitionLineWithStdTask.Validate("Subc. Standard Task Code", '');
         RequisitionLineWithStdTask.Modify(true);
 
         // [THEN] Direct Unit Cost falls back to the un-tagged subcontractor price
@@ -3053,7 +3053,7 @@ codeunit 139989 "Subc. Subcontracting Test"
             'Clearing Standard Task Code on the worksheet line must re-apply the un-tagged subcontractor price.');
 
         // [WHEN] User re-sets Standard Task Code on the worksheet line
-        RequisitionLineWithStdTask.Validate("Standard Task Code", StandardTask.Code);
+        RequisitionLineWithStdTask.Validate("Subc. Standard Task Code", StandardTask.Code);
         RequisitionLineWithStdTask.Modify(true);
 
         // [THEN] Direct Unit Cost is restored to the standard-task-bound subcontractor price
