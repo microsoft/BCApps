@@ -1,1 +1,0 @@
-C:/depot/BC-agentic-workspace/ai-instructions/user-private/ventselartur/claude/agents/bc-fix-pr.md
