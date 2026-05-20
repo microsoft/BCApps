@@ -7,6 +7,7 @@ namespace Microsoft.eServices.EDocument;
 #if not CLEAN29
 using Microsoft.eServices.EDocument.Processing.Import;
 #endif
+using Microsoft.Purchases.Setup;
 using System.Upgrade;
 
 codeunit 6168 "E-Document Upgrade"
@@ -22,6 +23,7 @@ codeunit 6168 "E-Document Upgrade"
 #if not CLEAN29
         UpgradeProcessDraftEnum();
 #endif
+        UpgradeEnableVATOptionsForPurchEDoc();
     end;
 
     local procedure UpgradeLogURLMaxLength()
@@ -46,6 +48,7 @@ codeunit 6168 "E-Document Upgrade"
     begin
         PerCompanyUpgradeTags.Add(GetUpgradeLogURLMaxLengthUpgradeTag());
         PerCompanyUpgradeTags.Add(GetUpgradeProcessDraftEnumTag());
+        PerCompanyUpgradeTags.Add(GetEnableVATOptionsForPurchEDocTag());
     end;
 
     internal procedure GetUpgradeLogURLMaxLengthUpgradeTag(): Code[250]
@@ -73,6 +76,28 @@ codeunit 6168 "E-Document Upgrade"
     internal procedure GetUpgradeProcessDraftEnumTag(): Code[250]
     begin
         exit('MS-EDoc-ProcessDraftEnum-20260407');
+    end;
+
+    local procedure UpgradeEnableVATOptionsForPurchEDoc()
+    var
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+        UpgradeTag: Codeunit "Upgrade Tag";
+    begin
+        if UpgradeTag.HasUpgradeTag(GetEnableVATOptionsForPurchEDocTag()) then
+            exit;
+
+        if PurchasesPayablesSetup.Get() then begin
+            PurchasesPayablesSetup."Apply VAT Diff. For Purch EDoc" := true;
+            PurchasesPayablesSetup."Resolve VAT Group Purch EDoc" := true;
+            PurchasesPayablesSetup.Modify();
+        end;
+
+        UpgradeTag.SetUpgradeTag(GetEnableVATOptionsForPurchEDocTag());
+    end;
+
+    internal procedure GetEnableVATOptionsForPurchEDocTag(): Code[250]
+    begin
+        exit('MS-EDoc-EnableVATOptionsForPurchEDoc-20260520');
     end;
 
 }
