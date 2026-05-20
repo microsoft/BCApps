@@ -486,10 +486,6 @@ codeunit 139990 "Subc. Subcontracting UI Test"
 
         // [THEN] The Posted Purchase Receipt page is opened (verified by PageHandler)
         CapacityLedgerEntries.Close();
-
-        // Cleanup
-        CapacityLedgerEntry.Delete();
-        PurchRcptHeader.Delete();
     end;
 
     [Test]

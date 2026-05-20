@@ -77,7 +77,14 @@ pageextension 99001502 "Subc. CapLEntries" extends "Capacity Ledger Entries"
         end;
 
         if CapacityLedgerEntry."Subc. Purch. Order No." <> '' then
-            if PurchaseHeader.Get(PurchaseHeader."Document Type"::Order, CapacityLedgerEntry."Subc. Purch. Order No.") then
+            if PurchaseHeader.Get(PurchaseHeader."Document Type"::Order, CapacityLedgerEntry."Subc. Purch. Order No.") then begin
                 PageManagement.PageRun(PurchaseHeader);
+		exit;
+            end;
+        // No document found
+        Message(NoDocumentFoundMsg);        
     end;
+    
+    var
+    NoDocumentFoundMsg: Label 'No related document could be found for this entry.';
 }
