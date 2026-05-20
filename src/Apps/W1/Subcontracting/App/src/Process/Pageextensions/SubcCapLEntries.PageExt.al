@@ -82,9 +82,10 @@ pageextension 99001502 "Subc. CapLEntries" extends "Capacity Ledger Entries"
 		exit;
             end;
         // No document found
-        Message(NoDocumentFoundMsg);        
+        Message(NoDocumentFoundMsg);
     end;
     
     var
-    NoDocumentFoundMsg: Label 'No related document could be found for this entry.';
+    var
+        NoDocumentFoundMsg: Label 'No related document could be found for this entry.';
 }
