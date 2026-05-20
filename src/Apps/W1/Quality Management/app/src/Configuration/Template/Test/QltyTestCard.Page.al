@@ -619,6 +619,11 @@ page 20479 "Qlty. Test Card"
         UpdateRowData();
     end;
 
+    trigger OnAfterGetCurrRecord()
+    begin
+        UpdateRowData();
+    end;
+
     trigger OnQueryClosePage(CloseAction: Action): Boolean
     begin
         if CloseAction in [Action::OK, Action::LookupOK] then
@@ -635,7 +640,12 @@ page 20479 "Qlty. Test Card"
         IsLookupField := (Rec."Test Value Type" in [Rec."Test Value Type"::"Value Type Table Lookup"]);
 
         if Rec.Code <> '' then
-            QltyResultConditionMgmt.GetPromotedResultsForTest(Rec, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, MatrixArrayCaptionSet, MatrixVisibleState);
+            QltyResultConditionMgmt.GetPromotedResultsForTest(Rec, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, MatrixArrayCaptionSet, MatrixVisibleState)
+        else begin
+            Clear(MatrixSourceRecordId);
+            Clear(MatrixArrayConditionCellData);
+            Clear(MatrixArrayConditionDescriptionCellData);
+        end;
 
         EditableResult := (Rec.Code <> '') and (CurrPage.Editable) and (Visible1) and (MatrixArrayCaptionSet[1] <> '');
 

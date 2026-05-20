@@ -43,6 +43,11 @@ page 20445 "Qlty. Test Lookup"
                 {
                     AboutTitle = 'Test Value Type';
                     AboutText = 'Specifies the data type of the values you can enter or select for this test. Use Decimal for numerical measurements. Use Choice to give a list of options to choose from. If you want to choose options from an existing table, use Table Lookup.';
+
+                    trigger OnValidate()
+                    begin
+                        UpdateRowData();
+                    end;
                 }
                 field("Allowable Values"; Rec."Allowable Values")
                 {
