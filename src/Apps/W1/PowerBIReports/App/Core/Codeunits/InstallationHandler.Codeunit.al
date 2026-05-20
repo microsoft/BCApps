@@ -30,8 +30,8 @@ codeunit 36950 "Installation Handler"
     local procedure OnAfterDeleteAllDeploymentRecords(InCompany: Text[30])
     var
         PowerBIReportsSetup: Record "PowerBI Reports Setup";
-        ReportSetup: Interface "PBI Report Setup";
         RecRef: RecordRef;
+        ReportSetup: Interface "PBI Report Setup";
         EmptyGuid: Guid;
         Ordinal: Integer;
     begin
