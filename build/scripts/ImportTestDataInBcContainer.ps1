@@ -334,8 +334,8 @@ function New-BcClientContext() {
         $serviceUrl += "&company=$([Uri]::EscapeDataString($CompanyName))"
     }
 
-    # Set up PsTestTool folder with ClientContext scripts and DLLs
-    $PsTestToolFolder = Join-Path $bcContainerHelperConfig.hostHelperFolder "Extensions\$ContainerName\PsTestTool"
+    $tempRoot = if ($env:RUNNER_TEMP) { $env:RUNNER_TEMP } else { $env:TEMP }
+    $PsTestToolFolder = Join-Path $tempRoot "PsTestTool-$ContainerName"
     if (-not (Test-Path $PsTestToolFolder)) {
         New-Item -Path $PsTestToolFolder -ItemType Directory -Force | Out-Null
     }
@@ -348,21 +348,27 @@ function New-BcClientContext() {
     $newtonSoftDllPath = Join-Path $PsTestToolFolder "Newtonsoft.Json.dll"
 
     if (-not ((Test-Path $clientDllPath) -and (Test-Path $newtonSoftDllPath))) {
-        Invoke-ScriptInBcContainer -containerName $ContainerName { Param([string] $myNewtonSoftDllPath, [string] $myClientDllPath)
+        $containerDllPaths = Invoke-ScriptInBcContainer -containerName $ContainerName -scriptblock {
             $nstFolder = "C:\Program Files\Microsoft Dynamics NAV\*\Service"
             $newtonSoftDllPath = (Get-Item "$nstFolder\Management\Newtonsoft.Json.dll" -ErrorAction SilentlyContinue | Select-Object -First 1).FullName
             if (-not $newtonSoftDllPath) { $newtonSoftDllPath = (Get-Item "$nstFolder\Newtonsoft.Json.dll" | Select-Object -First 1).FullName }
-            Copy-Item -Path $newtonSoftDllPath -Destination $myNewtonSoftDllPath -Force
 
             $testAssemblies = "C:\Test Assemblies"
-            Copy-Item -Path (Join-Path $testAssemblies "Microsoft.Dynamics.Framework.UI.Client.dll") -Destination $myClientDllPath -Force
-            $destFolder = [System.IO.Path]::GetDirectoryName($myClientDllPath)
+            $paths = [ordered]@{
+                'Newtonsoft.Json.dll'                       = $newtonSoftDllPath
+                'Microsoft.Dynamics.Framework.UI.Client.dll' = Join-Path $testAssemblies 'Microsoft.Dynamics.Framework.UI.Client.dll'
+            }
             foreach ($dll in @('Microsoft.Internal.AntiSSRF.dll', 'System.Threading.Tasks.Extensions.dll')) {
                 $srcDll = Join-Path $testAssemblies $dll
-                if (Test-Path $srcDll) { Copy-Item -Path $srcDll -Destination $destFolder -Force }
+                if (Test-Path $srcDll) { $paths[$dll] = $srcDll }
             }
-            Write-Host "Client DLLs copied"
-        } -argumentList (Get-BcContainerPath -containerName $ContainerName -path $newtonSoftDllPath), (Get-BcContainerPath -containerName $ContainerName -path $clientDllPath)
+            $paths
+        }
+
+        foreach ($entry in $containerDllPaths.GetEnumerator()) {
+            Copy-FileFromBcContainer -containerName $ContainerName -containerPath $entry.Value -localPath (Join-Path $PsTestToolFolder $entry.Key)
+        }
+        Write-Host "Client DLLs copied"
     } else {
         Write-Host "Client DLLs already present in $PsTestToolFolder"
     }
