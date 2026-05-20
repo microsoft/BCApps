@@ -357,8 +357,8 @@ report 8051 "Contract Deferrals Release"
         GeneralLedgerSetup: Record "General Ledger Setup";
     begin
         GeneralLedgerSetup.Get();
+        ServiceContractSetup.Get();
         if GeneralLedgerSetup."Journal Templ. Name Mandatory" then begin
-            ServiceContractSetup.Get();
             ServiceContractSetup.TestField("Def. Rel. Jnl. Template Name");
             ServiceContractSetup.TestField("Def. Rel. Jnl. Batch Name");
         end;
@@ -374,7 +374,8 @@ report 8051 "Contract Deferrals Release"
         GenJnlLine."Document No." := InputTempGenJournalLine."Document No.";
         GenJnlLine."Account Type" := GenJnlLine."Account Type"::"G/L Account";
         GenJnlLine."VAT Posting" := GenJnlLine."VAT Posting"::"Manual VAT Entry";
-        GenJnlLine.Validate("Account No.", InputTempGenJournalLine."Account No.");
+        GenJnlLine."Account No." := InputTempGenJournalLine."Account No.";
+        GenJnlLine."Deferral Code" := '';
         GenJnlLine."Posting Date" := InputPostingDate;
         GenJnlLine.Description := StrSubstNo(ReleasingOfContractNoTxt, Format(GenJnlLine."Posting Date", 0, '<Month Text> <Year4>'));
         GenJnlLine."Subscription Contract No." := InputTempGenJournalLine."Subscription Contract No.";
@@ -389,7 +390,8 @@ report 8051 "Contract Deferrals Release"
         GenJnlLine."VAT Prod. Posting Group" := '';
         GenJnlPostLine.RunWithCheck(GenJnlLine);
 
-        GenJnlLine.Validate("Account No.", InputTempGenJournalLine."Bal. Account No.");
+        GenJnlLine."Account No." := InputTempGenJournalLine."Bal. Account No.";
+        GenJnlLine."Deferral Code" := '';
         GenJnlLine.Validate("Dimension Set ID", InputTempGenJournalLine."Dimension Set ID");
         GenJnlLine.Validate(Amount, -InputTempGenJournalLine.Amount);
         GenJnlLine."Gen. Posting Type" := GenJnlLine."Gen. Posting Type"::" ";
