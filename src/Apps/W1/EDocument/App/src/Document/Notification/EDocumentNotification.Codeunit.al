@@ -126,5 +126,4 @@ codeunit 6123 "E-Document Notification"
     begin
         exit('bc0d8537-8e8d-4d94-a07a-a5a54c729d2a');
     end;
-
 }
