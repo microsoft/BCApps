@@ -25,6 +25,9 @@ codeunit 99001544 "Subc. Transfer Line Ext."
         if not RunTrigger then
             exit;
 
+        if Rec."Subc. Return Order" then
+            exit;
+
         SubcontractingManagement.UpdateLocationCodeInProdOrderCompAfterDeleteTransferLine(Rec);
     end;
 
