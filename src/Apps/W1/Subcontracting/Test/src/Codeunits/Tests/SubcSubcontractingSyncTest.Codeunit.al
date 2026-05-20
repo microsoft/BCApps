@@ -252,7 +252,7 @@ codeunit 139992 "Subc. Subcontracting Sync Test"
     begin
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
         Vendor.Get(WorkCenter."Subcontractor No.");
-        Vendor."Subcontr. Location Code" := Location.Code;
+        Vendor."Subc. Location Code" := Location.Code;
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
         Vendor."Location Code" := Location.Code;
         Vendor.Modify();

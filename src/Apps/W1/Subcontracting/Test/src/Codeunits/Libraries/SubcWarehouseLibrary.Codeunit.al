@@ -63,10 +63,10 @@ codeunit 149908 "Subc. Warehouse Library"
 
         if Subcontracting then begin
             LibraryPurchase.CreateSubcontractor(Vendor1);
-            Vendor1."Subcontr. Location Code" := LibraryWarehouse.CreateLocation(Location);
+            Vendor1."Subc. Location Code" := LibraryWarehouse.CreateLocation(Location);
             Vendor1.Modify(true);
             LibraryPurchase.CreateSubcontractor(Vendor2);
-            Vendor2."Subcontr. Location Code" := LibraryWarehouse.CreateLocation(Location);
+            Vendor2."Subc. Location Code" := LibraryWarehouse.CreateLocation(Location);
             Vendor2.Modify(true);
         end;
 
@@ -196,7 +196,7 @@ codeunit 149908 "Subc. Warehouse Library"
         SubcLibraryMfgManagement.CreateWorkCenterWithCalendar(WorkCenter[1], LibraryRandom.RandDec(10, 2));
         LibraryPurchase.CreateSubcontractor(Vendor1);
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
-        Vendor1."Subcontr. Location Code" := Location.Code;
+        Vendor1."Subc. Location Code" := Location.Code;
         Vendor1.Modify(true);
         WorkCenter[1]."Subcontractor No." := Vendor1."No.";
         WorkCenter[1].Modify(true);
@@ -205,7 +205,7 @@ codeunit 149908 "Subc. Warehouse Library"
         SubcLibraryMfgManagement.CreateWorkCenterWithCalendar(WorkCenter[2], LibraryRandom.RandDec(10, 2));
         LibraryPurchase.CreateSubcontractor(Vendor2);
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
-        Vendor2."Subcontr. Location Code" := Location.Code;
+        Vendor2."Subc. Location Code" := Location.Code;
         Vendor2.Modify(true);
         WorkCenter[2]."Subcontractor No." := Vendor2."No.";
         WorkCenter[2].Modify(true);
@@ -843,7 +843,7 @@ codeunit 149908 "Subc. Warehouse Library"
 
         // Configure vendor with location
         Vendor.Get(WorkCenter[2]."Subcontractor No.");
-        Vendor."Subcontr. Location Code" := Location.Code;
+        Vendor."Subc. Location Code" := Location.Code;
         Vendor."Location Code" := Location.Code;
         Vendor.Modify();
 
