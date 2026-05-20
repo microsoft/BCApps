@@ -4,10 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
-using Microsoft.Foundation.Navigate;
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
+using Microsoft.Utilities;
 
 pageextension 99001502 "Subc. CapLEntries" extends "Capacity Ledger Entries"
 {
