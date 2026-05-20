@@ -63,6 +63,7 @@ codeunit 139913 "Vendor Deferrals Test"
         VendorDeferralsCount: Integer;
         IsInitialized: Boolean;
         ReleasedContractDeferralErr: Label 'Released Contract Deferrals were not reversed properly';
+        AmountNotMovedFromDeferralsAccountErr: Label 'Amount was not moved from Deferrals Account to Contract Account';
 
     #region Tests
 
@@ -948,6 +949,120 @@ codeunit 139913 "Vendor Deferrals Test"
         Assert.ExpectedError(DeferralCodeCannotBeUsedWithContractDeferralsErr);
     end;
 
+    [Test]
+    [HandlerFunctions('CreateVendorBillingDocsContractPageHandler,ContractDeferralsReleaseRequestPageHandler,MessageHandler')]
+    procedure DeferralsReleaseSucceedsWhenGLAccountHasDefaultDeferralTemplateAndJournalTemplMandatory()
+    var
+        DeferralTemplate: Record "Deferral Template";
+        GLAccount: Record "G/L Account";
+        GLEntry: Record "G/L Entry";
+        ContractDeferralsRelease: Report "Contract Deferrals Release";
+        GLAmountBeforeRelease: Decimal;
+        GLAmountAfterRelease: Decimal;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 632489] When "Journal Templ. Name Mandatory" is TRUE and G/L Account has a Default Deferral Template Code,
+        // the Contract Deferrals Release report should successfully post without error
+        // "Gen. Journal Template does not exist (Name = '')".
+        Initialize();
+
+        // [GIVEN] General Ledger Setup has "Journal Templ. Name Mandatory" = TRUE.
+        SetPostingAllowTo(0D);
+        SetJournalTemplateNameMandatory(true);
+
+        // [GIVEN] Subscription Contract Setup has "Def. Rel. Jnl. Template Name" and "Def. Rel. Jnl. Batch Name" set.
+        SetupDeferralReleaseJournalTemplateAndBatch();
+
+        // [GIVEN] A vendor contract with deferrals enabled.
+        CreateVendorContractWithDeferrals('<2M-CM>', true);
+        CreateBillingProposalAndCreateBillingDocuments('<2M-CM>', '<8M+CM>');
+
+        // [GIVEN] The G/L Account used for Vendor Sub. Contract Deferral has a Default Deferral Template Code set.
+        GeneralPostingSetup.Get(Vendor."Gen. Bus. Posting Group", Item."Gen. Prod. Posting Group");
+        LibraryERM.CreateDeferralTemplate(DeferralTemplate, Enum::"Deferral Calculation Method"::"Straight-Line",
+            Enum::"Deferral Calculation Start Date"::"Posting Date", 12);
+        GLAccount.Get(GeneralPostingSetup."Vend. Sub. Contr. Def. Account");
+        GLAccount."Default Deferral Template Code" := DeferralTemplate."Deferral Code";
+        GLAccount.Modify(false);
+
+        // [GIVEN] Post the contract invoice
+        PostPurchDocumentAndFetchDeferrals();
+
+        // [WHEN] Run Contract Deferrals Release
+        GetGLEntryAmountFromAccountNo(GLAmountBeforeRelease, GeneralPostingSetup."Vend. Sub. Contr. Def. Account");
+        PostingDate := VendorContractDeferral."Posting Date";
+        Commit();
+        ContractDeferralsRelease.Run();
+
+        // [THEN] The deferral is successfully released without error
+        VendorContractDeferral.Get(VendorContractDeferral."Entry No.");
+        VendorContractDeferral.TestField(Released, true);
+        VendorContractDeferral.TestField("G/L Entry No.");
+
+        // [THEN] GL entries are posted correctly
+        GLEntry.Get(VendorContractDeferral."G/L Entry No.");
+        GLEntry.TestField("Subscription Contract No.", VendorContractDeferral."Subscription Contract No.");
+        GetGLEntryAmountFromAccountNo(GLAmountAfterRelease, GeneralPostingSetup."Vend. Sub. Contr. Def. Account");
+        Assert.AreEqual(GLAmountBeforeRelease - VendorContractDeferral.Amount, GLAmountAfterRelease, AmountNotMovedFromDeferralsAccountErr);
+    end;
+
+    [Test]
+    [HandlerFunctions('CreateVendorBillingDocsContractPageHandler,ContractDeferralsReleaseRequestPageHandler,MessageHandler')]
+    procedure DeferralsReleaseSucceedsWhenGLAccountHasDefaultDeferralTemplateAndJournalTemplNotMandatory()
+    var
+        DeferralTemplate: Record "Deferral Template";
+        GLAccount: Record "G/L Account";
+        GLEntry: Record "G/L Entry";
+        ContractDeferralsRelease: Report "Contract Deferrals Release";
+        GLAmountBeforeRelease: Decimal;
+        GLAmountAfterRelease: Decimal;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 632489] When "Journal Templ. Name Mandatory" is FALSE and Subscription Contract Setup has no journal template/batch,
+        // and G/L Account has a Default Deferral Template Code, the Contract Deferrals Release report should
+        // successfully post without error "Gen. Journal Template does not exist (Name = '')".
+        Initialize();
+
+        // [GIVEN] General Ledger Setup has "Journal Templ. Name Mandatory" = FALSE.
+        SetPostingAllowTo(0D);
+        SetJournalTemplateNameMandatory(false);
+
+        // [GIVEN] Subscription Contract Setup has empty "Def. Rel. Jnl. Template Name" and "Def. Rel. Jnl. Batch Name".
+        ClearDeferralReleaseJournalTemplateAndBatch();
+
+        // [GIVEN] A vendor contract with deferrals enabled.
+        CreateVendorContractWithDeferrals('<2M-CM>', true);
+        CreateBillingProposalAndCreateBillingDocuments('<2M-CM>', '<8M+CM>');
+
+        // [GIVEN] The G/L Account used for Vendor Sub. Contract Deferral has a Default Deferral Template Code set.
+        GeneralPostingSetup.Get(Vendor."Gen. Bus. Posting Group", Item."Gen. Prod. Posting Group");
+        LibraryERM.CreateDeferralTemplate(DeferralTemplate, Enum::"Deferral Calculation Method"::"Straight-Line",
+            Enum::"Deferral Calculation Start Date"::"Posting Date", 12);
+        GLAccount.Get(GeneralPostingSetup."Vend. Sub. Contr. Def. Account");
+        GLAccount."Default Deferral Template Code" := DeferralTemplate."Deferral Code";
+        GLAccount.Modify(false);
+
+        // [GIVEN] Post the contract invoice.
+        PostPurchDocumentAndFetchDeferrals();
+
+        // [WHEN] Run Contract Deferrals Release.
+        GetGLEntryAmountFromAccountNo(GLAmountBeforeRelease, GeneralPostingSetup."Vend. Sub. Contr. Def. Account");
+        PostingDate := VendorContractDeferral."Posting Date";
+        Commit();
+        ContractDeferralsRelease.Run();
+
+        // [THEN] The deferral is successfully released without error.
+        VendorContractDeferral.Get(VendorContractDeferral."Entry No.");
+        VendorContractDeferral.TestField(Released, true);
+        VendorContractDeferral.TestField("G/L Entry No.");
+
+        // [THEN] GL entries are posted correctly
+        GLEntry.Get(VendorContractDeferral."G/L Entry No.");
+        GLEntry.TestField("Subscription Contract No.", VendorContractDeferral."Subscription Contract No.");
+        GetGLEntryAmountFromAccountNo(GLAmountAfterRelease, GeneralPostingSetup."Vend. Sub. Contr. Def. Account");
+        Assert.AreEqual(GLAmountBeforeRelease - VendorContractDeferral.Amount, GLAmountAfterRelease, AmountNotMovedFromDeferralsAccountErr);
+    end;
+
     #endregion Tests
 
     #region Procedures
@@ -1260,6 +1375,37 @@ codeunit 139913 "Vendor Deferrals Test"
         VendorContractDeferral.TestField("Vendor No.", PurchaseHeader."Buy-from Vendor No.");
         VendorContractDeferral.TestField("Pay-to Vendor No.", PurchaseHeader."Pay-to Vendor No.");
         VendorContractDeferral.TestField("Document Posting Date", PurchaseHeader."Posting Date");
+    end;
+
+    local procedure SetJournalTemplateNameMandatory(NewValue: Boolean)
+    begin
+        GLSetup.Get();
+        GLSetup."Journal Templ. Name Mandatory" := NewValue;
+        GLSetup.Modify(false);
+    end;
+
+    local procedure SetupDeferralReleaseJournalTemplateAndBatch()
+    var
+        GenJournalTemplate: Record "Gen. Journal Template";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        ServiceContractSetup: Record "Subscription Contract Setup";
+    begin
+        LibraryERM.CreateGenJournalTemplate(GenJournalTemplate);
+        LibraryERM.CreateGenJournalBatch(GenJournalBatch, GenJournalTemplate.Name);
+        ServiceContractSetup.Get();
+        ServiceContractSetup."Def. Rel. Jnl. Template Name" := GenJournalBatch."Journal Template Name";
+        ServiceContractSetup."Def. Rel. Jnl. Batch Name" := GenJournalBatch.Name;
+        ServiceContractSetup.Modify(false);
+    end;
+
+    local procedure ClearDeferralReleaseJournalTemplateAndBatch()
+    var
+        ServiceContractSetup: Record "Subscription Contract Setup";
+    begin
+        ServiceContractSetup.Get();
+        ServiceContractSetup."Def. Rel. Jnl. Template Name" := '';
+        ServiceContractSetup."Def. Rel. Jnl. Batch Name" := '';
+        ServiceContractSetup.Modify(false);
     end;
 
     #endregion Procedures
