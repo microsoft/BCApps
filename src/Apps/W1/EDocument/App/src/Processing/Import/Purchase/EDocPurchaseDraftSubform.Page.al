@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Processing.Import.Purchase;
 
+using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.Finance.Dimension;
 using Microsoft.Inventory.Item.Catalog;
@@ -337,14 +338,13 @@ page 6183 "E-Doc. Purchase Draft Subform"
         EDocPOMatching: Codeunit "E-Doc. PO Matching";
         AdditionalColumns, OrderMatchedCaption, MatchWarningsCaption, MatchWarningsStyleExpr : Text;
         LineAmount: Decimal;
-        DimVisible1, DimVisible2, HasAdditionalColumns, HasVATWarnings, IsEDocumentMatchedToAnyPOLine, IsLineMatchedToOrderLine, IsLineMatchedToReceiptLine, HasEDocumentOrderMatchWarnings : Boolean;
+        DimVisible1, DimVisible2, HasAdditionalColumns, IsEDocumentMatchedToAnyPOLine, IsLineMatchedToOrderLine, IsLineMatchedToReceiptLine, HasEDocumentOrderMatchWarnings : Boolean;
         HistoryCantBeRetrievedErr: Label 'The purchase invoice that matched historically with this line can''t be opened.';
 
     trigger OnOpenPage()
     begin
         SetDimensionsVisibility();
         UpdatePOMatching();
-        UpdateVATWarnings();
     end;
 
     trigger OnNewRecord(BelowxRec: Boolean)
@@ -355,7 +355,6 @@ page 6183 "E-Doc. Purchase Draft Subform"
     trigger OnAfterGetCurrRecord()
     begin
         UpdatePOMatching();
-        UpdateVATWarnings();
     end;
 
     trigger OnAfterGetRecord()
@@ -389,6 +388,8 @@ page 6183 "E-Doc. Purchase Draft Subform"
 
     local procedure UpdateCalculatedAmounts(UpdateParentRecord: Boolean)
     var
+        TotalEDocPurchaseLine: Record "E-Document Purchase Line";
+        EDocumentImportHelper: Codeunit "E-Document Import Helper";
         LineSubtotal: Decimal;
         DiscountExceedsSubtotalErr: Label 'Discount should not exceed the subtotal of the line';
     begin
@@ -405,6 +406,13 @@ page 6183 "E-Doc. Purchase Draft Subform"
             exit;
         if not EDocumentPurchaseHeader.Get(Rec."E-Document Entry No.") then
             exit;
+        EDocumentPurchaseHeader."Sub Total" := 0;
+        TotalEDocPurchaseLine.SetRange("E-Document Entry No.", Rec."E-Document Entry No.");
+        if TotalEDocPurchaseLine.FindSet() then
+            repeat
+                EDocumentPurchaseHeader."Sub Total" += Round(TotalEDocPurchaseLine.Quantity * TotalEDocPurchaseLine."Unit Price", EDocumentImportHelper.GetCurrencyRoundingPrecision(EDocumentPurchaseHeader."Currency Code")) - TotalEDocPurchaseLine."Total Discount";
+            until TotalEDocPurchaseLine.Next() = 0;
+        EDocumentPurchaseHeader.Total := EDocumentPurchaseHeader."Sub Total" + EDocumentPurchaseHeader."Total VAT" - EDocumentPurchaseHeader."Total Discount";
         EDocumentPurchaseHeader.Modify();
         CurrPage.Update();
     end;
@@ -560,14 +568,5 @@ page 6183 "E-Doc. Purchase Draft Subform"
 
         if WarningDetails.Length() > 0 then
             Message(WarningDetails.ToText());
-    end;
-
-    local procedure UpdateVATWarnings()
-    var
-        EDocPurchLine: Record "E-Document Purchase Line";
-    begin
-        EDocPurchLine.SetRange("E-Document Entry No.", EDocumentPurchaseHeader."E-Document Entry No.");
-        EDocPurchLine.SetRange("[BC] VAT Rate Mismatch", true);
-        HasVATWarnings := not EDocPurchLine.IsEmpty();
     end;
 }

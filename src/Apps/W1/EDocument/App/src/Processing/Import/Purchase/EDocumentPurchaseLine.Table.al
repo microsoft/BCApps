@@ -224,7 +224,6 @@ table 6101 "E-Document Purchase Line"
             begin
                 if "[BC] VAT Prod. Posting Group" = '' then begin
                     "[BC] VAT Rate Mismatch" := true;
-                    LogVATRateMismatch();
                     exit;
                 end;
                 if not EDocumentPurchaseHeader.Get("E-Document Entry No.") then
@@ -240,8 +239,6 @@ table 6101 "E-Document Purchase Line"
                     "[BC] VAT Rate Mismatch" := VATPostingSetup."VAT %" <> "VAT Rate";
                 end else
                     "[BC] VAT Rate Mismatch" := true;
-                if "[BC] VAT Rate Mismatch" then
-                    LogVATRateMismatch();
             end;
 
             trigger OnLookup()
@@ -431,23 +428,6 @@ table 6101 "E-Document Purchase Line"
     procedure GetBCVendor(): Record Vendor
     begin
         exit(GetEDocumentPurchaseHeader().GetBCVendor());
-    end;
-
-    internal procedure LogVATRateMismatch()
-    var
-        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
-        Vendor: Record Vendor;
-    begin
-        if not Rec."[BC] VAT Rate Mismatch" then
-            exit;
-        if not EDocumentPurchaseHeader.Get(Rec."E-Document Entry No.") then
-            exit;
-        if EDocumentPurchaseHeader."[BC] Vendor No." = '' then
-            exit;
-        if not Vendor.Get(EDocumentPurchaseHeader."[BC] Vendor No.") then
-            exit;
-
-        LogVATRateMismatch(Vendor."VAT Bus. Posting Group", Rec."VAT Rate");
     end;
 
     internal procedure LogVATRateMismatch(VendVATBusPostingGroupCode: Code[20]; VATRate: Decimal)
