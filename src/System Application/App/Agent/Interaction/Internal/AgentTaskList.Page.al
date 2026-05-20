@@ -97,6 +97,11 @@ page 4300 "Agent Task List"
                         TaskPane.ShowAgent(Rec."Agent User Security ID");
                     end;
                 }
+                field(TaskArchived; Archived)
+                {
+                    Caption = 'Archived';
+                    ToolTip = 'Specifies whether the task is archived.';
+                }
                 field(CreatedByID; Rec."Created By")
                 {
                     Visible = false;
@@ -233,6 +238,24 @@ page 4300 "Agent Task List"
                 {
                 }
             }
+        }
+    }
+
+    views
+    {
+        view(Default)
+        {
+            Caption = 'Default';
+            Filters = where(Archived = const(false));
+        }
+        view(All)
+        {
+            Caption = 'All';
+        }
+        view(Archived)
+        {
+            Caption = 'Archived';
+            Filters = where(Archived = const(true));
         }
     }
 
