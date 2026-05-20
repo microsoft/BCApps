@@ -22,6 +22,6 @@ codeunit 99001529 "Subc. Calc Subcontracts Ext."
                 RequisitionLine."Description 2" := WorkCenter."Name 2";
         end;
 
-        RequisitionLine.Validate("Subc. Standard Task Code", ProdOrderRoutingLine."Standard Task Code");
+        RequisitionLine.Validate("Standard Task Code", ProdOrderRoutingLine."Standard Task Code");
     end;
 }
