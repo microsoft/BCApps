@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace Microsoft.Manufacturing.Test;
+namespace Microsoft.Manufacturing.Subcontracting.Test;
 
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Setup;
@@ -20,7 +20,6 @@ using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.Journal;
 using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Routing;
-using Microsoft.Manufacturing.Subcontracting.Test;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Pricing.Asset;
 using Microsoft.Pricing.PriceList;
@@ -72,12 +71,12 @@ codeunit 149916 "Subc SCM Prod. Order"
         SubcManagementLibrary: Codeunit "Subc. Management Library";
         SubSetupLibrary: Codeunit "Subc. Setup Library";
         IsInitialized: Boolean;
-        ItemTrackingErr: Label 'You cannot define item tracking on this line because it is linked to production order';
+        ItemTrackingErr: Label 'You cannot define item tracking on this line because it is linked to production order', Locked = true;
         RecreatePurchaseLineConfirmHandlerQst: Label 'If you change %1, the existing purchase lines will be deleted and new purchase lines based on the new information in the header will be created.\\Do you want to continue?', Comment = '%1 - field caption';
         ValueEntrySourceTypeErr: Label 'Value Entry Source Type must be equal to %1', Comment = '%1 - source type';
         ValueEntrySourceNoErr: Label 'Value Entry Source No must be equal to %1', Comment = '%1 - source no';
         ILEQtyEqualErr: Label '%1 must be equal to %2 in the %3.', Comment = '%1 - field caption, %2 - quantity, %3 - table caption';
-        ProdJournalOutQtyErr: Label 'Output Quantity should be 0 in Production Journal Line linked to Subcontracted Workcenter';
+        ProdJournalOutQtyErr: Label 'Output Quantity should be 0 in Production Journal Line linked to Subcontracted Workcenter', Locked = true;
         SubcItemJnlErr: Label '%1 must be zero', Comment = '%1 - "Subcontractor No."';
 
     [Test]
@@ -202,7 +201,7 @@ codeunit 149916 "Subc SCM Prod. Order"
     [HandlerFunctions('ConfirmHandler')]
     procedure UndoPurchReceiptWithProductionSubcontracting_ErrorOutputUsed()
     var
-        OutputUsedErr: Label 'Remaining Quantity must be equal to';
+        OutputUsedErr: Label 'Remaining Quantity must be equal to', Locked = true;
     begin
         asserterror UndoPurchReceiptWithProductionSubcontracting(false, false, true);
         Assert.ExpectedError(OutputUsedErr);
@@ -212,7 +211,7 @@ codeunit 149916 "Subc SCM Prod. Order"
     [HandlerFunctions('ConfirmHandler')]
     procedure UndoPurchReceiptWithProductionSubcontracting_ErrorInvoiced()
     var
-        AlreadyInvoicedErr: Label 'This receipt has already been invoiced. Undo Receipt can be applied only to posted, but not invoiced receipts.';
+        AlreadyInvoicedErr: Label 'This receipt has already been invoiced. Undo Receipt can be applied only to posted, but not invoiced receipts.', Locked = true;
     begin
         asserterror UndoPurchReceiptWithProductionSubcontracting(false, true, false);
         Assert.ExpectedError(AlreadyInvoicedErr);

@@ -286,13 +286,13 @@ codeunit 139983 "Subc. Management Library"
         RequisitionLine: Record "Requisition Line";
         TmpProdOrderRoutingLine: Record "Prod. Order Routing Line";
         SubcCalculateSubcontracts: Report "Subc. Calculate Subcontracts";
+        UseWithFilterOnlyErr: Label 'Prod. Order Routing Line must have filter to be used in this method.';
     begin
         if ProdOrderRoutingLine.HasFilter then
             TmpProdOrderRoutingLine.CopyFilters(ProdOrderRoutingLine)
-        else begin
-            ProdOrderRoutingLine.Get(ProdOrderRoutingLine."No.");
-            TmpProdOrderRoutingLine.SetRange("No.", ProdOrderRoutingLine."No.");
-        end;
+        else
+            Error(UseWithFilterOnlyErr);
+
 
         RequisitionLineForSubcontractOrder(RequisitionLine);
         SubcCalculateSubcontracts.SetWkShLine(RequisitionLine);

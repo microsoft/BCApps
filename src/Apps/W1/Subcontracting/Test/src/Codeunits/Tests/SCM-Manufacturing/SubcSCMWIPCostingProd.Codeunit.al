@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace Microsoft.Manufacturing.Test;
+namespace Microsoft.Manufacturing.Subcontracting.Test;
 
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Account;
@@ -24,7 +24,6 @@ using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.StandardCost;
-using Microsoft.Manufacturing.Subcontracting.Test;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
@@ -56,7 +55,7 @@ codeunit 149918 "Subc SCM WIP Costing Prod."
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryRandom: Codeunit "Library - Random";
         isInitialized: Boolean;
-        AmountDoNotMatchErr: Label 'The WIP amount totals must be equal.';
+        AmountDoNotMatchErr: Label 'The WIP amount totals must be equal.', Locked = true;
 
     [Test]
     [HandlerFunctions('CalcStdCostMenuHandler,ConfirmHandler,MessageHandler')]

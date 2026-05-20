@@ -61,12 +61,12 @@ codeunit 149913 "Subc SCM Supply Planning"
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryDimension: Codeunit "Library - Dimension";
         isInitialized: Boolean;
-        RequisitionLineProdOrderErr: Label '"Prod Order No." should be same as Released Production Order';
+        RequisitionLineProdOrderErr: Label '"Prod Order No." should be same as Released Production Order', Locked = true;
         PeriodType: Option Day,Week,Month,Quarter,Year,Period;
         AmountType: Option "Net Change","Balance at Date";
-        AppliesToEntryMissingErr: Label 'Applies-to Entry must have a value';
-        ItemNoErr: Label 'Item No. must be equal';
-        DimSetIDErr: Label 'Dimension set id on Requisition Line does not match the updated dimension set id on production order line.';
+        AppliesToEntryMissingErr: Label 'Applies-to Entry must have a value', Locked = true;
+        ItemNoErr: Label 'Item No. must be equal', Locked = true;
+        DimSetIDErr: Label 'Dimension set id on Requisition Line does not match the updated dimension set id on production order line.', Locked = true;
 
     [Test]
     [Scope('OnPrem')]

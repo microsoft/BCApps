@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace Microsoft.Manufacturing.Test;
+namespace Microsoft.Manufacturing.Subcontracting.Test;
 
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Inventory.Item;
@@ -18,7 +18,6 @@ using Microsoft.Manufacturing.MachineCenter;
 using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.Setup;
-using Microsoft.Manufacturing.Subcontracting.Test;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
@@ -53,13 +52,13 @@ codeunit 149917 "Subc SCM Mfg. 70"
         SubcManagementLibrary: Codeunit "Subc. Management Library";
         SubSetupLibrary: Codeunit "Subc. Setup Library";
         IsInitialized: Boolean;
-        NumberOfLineErr: Label 'Number of line must be same.';
-        StatusTxt: Label 'Status must be';
-        CertifiedTxt: Label 'Certified';
+        NumberOfLineErr: Label 'Number of line must be same.', Locked = true;
+        StatusTxt: Label 'Status must be', Locked = true;
+        CertifiedTxt: Label 'Certified', Locked = true;
         ModifyRtngErr: Label 'You cannot modify Routing No. %1 because there is at least one %2 associated with it.', Locked = true;
         DeleteRtngErr: Label 'You cannot delete Prod. Order Line %1 because there is at least one %2 associated with it.', Locked = true;
-        SubcontractingDescriptionErr: Label 'The description in Subcontracting Worksheet must be from Work Center if available.';
-        OperationNoErr: Label 'Operation No. must be equal to %1', Comment = '%1 = Operation No.';
+        SubcontractingDescriptionErr: Label 'The description in Subcontracting Worksheet must be from Work Center if available.', Locked = true;
+        OperationNoErr: Label 'Operation No. must be equal to %1', Comment = '%1 = Operation No.', Locked = true;
 
     [Test]
     [Scope('OnPrem')]

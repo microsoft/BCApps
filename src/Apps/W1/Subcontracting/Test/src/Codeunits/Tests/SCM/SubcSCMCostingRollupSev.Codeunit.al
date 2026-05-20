@@ -48,7 +48,7 @@ codeunit 149915 "Subc SCM Costing Rollup Sev"
         LibraryRandom: Codeunit "Library - Random";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         UnexpectedValueMsg: Label 'Unexpected %1 value in %2.', Comment = '%1 = Field Caption, %2 = Table Caption';
-        ReverseCapacityLedgerEntryForSubContractingErr: Label 'Entry cannot be reversed as it is linked to the subcontracting work center.';
+        ReverseCapacityLedgerEntryForSubContractingErr: Label 'Entry cannot be reversed as it is linked to the subcontracting work center.', Locked = true;
         ValueMustBeEqualErr: Label '%1 must be equal to %2 in the %3.', Comment = '%1 = Field Caption , %2 = Expected Value, %3 = Table Caption';
         isInitialized: Boolean;
 
