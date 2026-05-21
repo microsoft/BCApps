@@ -28,14 +28,26 @@ codeunit 6408 "E-Doc. PEPPOL DX Post-Mapping"
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
         EDocumentRecordId: RecordId;
     begin
+        // Only handle header-level compound fields here.
+        // Charge lines are mapped via OnAfterBridgeToStagingTables to ensure they
+        // come after invoice/credit note lines from MapIntermediateToLines.
         EDocumentRecordId := Rec."Related Record";
-        EDocument := EDocumentRecordId;
+        EDocument := EDocumentRecordId.GetRecord();
 
         EDocumentPurchaseHeader.GetFromEDocument(EDocument);
         BuildEndpointIdentifiers(Rec, EDocumentPurchaseHeader);
         EDocumentPurchaseHeader.Modify();
+    end;
 
-        MapChargeLinesToStaging(EDocument, Rec);
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. PEPPOL DX Handler", OnAfterBridgeToStagingTables, '', false, false)]
+    local procedure OnAfterBridgeToStagingTables(DataExchNo: Integer; var EDocumentPurchaseHeader: Record "E-Document Purchase Header")
+    var
+        EDocument: Record "E-Document";
+        DataExch: Record "Data Exch.";
+    begin
+        EDocument.Get(EDocumentPurchaseHeader."E-Document Entry No.");
+        DataExch.Get(DataExchNo);
+        MapChargeLinesToStaging(EDocument, DataExch);
     end;
 
     local procedure BuildEndpointIdentifiers(DataExch: Record "Data Exch."; var EDocumentPurchaseHeader: Record "E-Document Purchase Header")
