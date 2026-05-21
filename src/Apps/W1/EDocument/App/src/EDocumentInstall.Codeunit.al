@@ -191,6 +191,8 @@ codeunit 6161 "E-Document Install"
     begin
         if DataExchDef.Get('EDOCPEPINVIMPV2') then
             DataExchDef.Delete(true);
+        if DataExchDef.Get('EDOCPEPINVPURCHDRAFT') then
+            DataExchDef.Delete(true);
 
         NavApp.GetResource('DataExchange/eDocPEPPOLInvoiceImportV2.xml', ResInStream);
         TempBlob.CreateOutStream(XMLOutStream);
@@ -209,6 +211,8 @@ codeunit 6161 "E-Document Install"
         ResInStream: InStream;
     begin
         if DataExchDef.Get('EDOCPEPCRMEMOIMPV2') then
+            DataExchDef.Delete(true);
+        if DataExchDef.Get('EDOCPEPCMPURCHDRAFT') then
             DataExchDef.Delete(true);
 
         NavApp.GetResource('DataExchange/eDocPEPPOLCrMemoImportV2.xml', ResInStream);

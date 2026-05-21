@@ -45,7 +45,7 @@ codeunit 139897 "E-Doc Data Exch Tests"
         Initialize();
 
         // [WHEN] Checking if column 8 (vendor name) mapping exists
-        DataExchFieldMapping.SetRange("Data Exch. Def Code", 'EDOCPEPINVIMPV2');
+        DataExchFieldMapping.SetRange("Data Exch. Def Code", 'EDOCPEPINVPURCHDRAFT');
         DataExchFieldMapping.SetRange("Column No.", 8);
         DataExchFieldMapping.SetRange("Target Table ID", Database::"E-Document Purchase Header");
         DataExchFieldMapping.SetRange("Target Field ID", 9);  // Vendor Company Name
@@ -480,7 +480,7 @@ codeunit 139897 "E-Doc Data Exch Tests"
         EDocServiceDataExchDef.Init();
         EDocServiceDataExchDef."E-Document Format Code" := EDocumentService.Code;
         EDocServiceDataExchDef."Document Type" := EDocServiceDataExchDef."Document Type"::"Purchase Invoice";
-        EDocServiceDataExchDef."Impt. Data Exchange Def. Code" := 'EDOCPEPINVIMPV2';
+        EDocServiceDataExchDef."Impt. Data Exchange Def. Code" := 'EDOCPEPINVPURCHDRAFT';
         EDocServiceDataExchDef.Insert();
     end;
 
@@ -491,7 +491,7 @@ codeunit 139897 "E-Doc Data Exch Tests"
         EDocServiceDataExchDef.Init();
         EDocServiceDataExchDef."E-Document Format Code" := EDocumentService.Code;
         EDocServiceDataExchDef."Document Type" := EDocServiceDataExchDef."Document Type"::"Purchase Credit Memo";
-        EDocServiceDataExchDef."Impt. Data Exchange Def. Code" := 'EDOCPEPCRMEMOIMPV2';
+        EDocServiceDataExchDef."Impt. Data Exchange Def. Code" := 'EDOCPEPCMPURCHDRAFT';
         if not EDocServiceDataExchDef.Insert() then
             EDocServiceDataExchDef.Modify();
     end;
