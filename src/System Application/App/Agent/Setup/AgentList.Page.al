@@ -95,23 +95,6 @@ page 4316 "Agent List"
                     Page.Run(Page::"Agent Task List", AgentTask);
                 end;
             }
-            action(ShowConsumptionData)
-            {
-                ApplicationArea = All;
-                Caption = 'View consumption data';
-                ToolTip = 'View AI consumption data for this agent.';
-                Image = BankAccountLedger;
-
-                trigger OnAction()
-                var
-                    AgentConsumptionOverview: Codeunit "Agent Consumption Overview";
-                begin
-                    if Rec.IsEmpty() then
-                        Error(NoAgentSetupErr);
-
-                    AgentConsumptionOverview.OpenAgentConsumptionOverview(Rec."User Security ID");
-                end;
-            }
             action(ShowCurrentCompany)
             {
                 ApplicationArea = All;
@@ -146,10 +129,35 @@ page 4316 "Agent List"
             action(AgentConfigurationRights)
             {
                 ApplicationArea = All;
-                Caption = 'View agent configuration rights';
+                Caption = 'Agent configuration rights';
                 ToolTip = 'View who can create new agents';
                 Image = Permission;
                 RunObject = Page "Agent Creation Control";
+            }
+            action(ShowConsumptionData)
+            {
+                ApplicationArea = All;
+                Caption = 'Consumption data';
+                ToolTip = 'View AI consumption data for this agent.';
+                Image = BankAccountLedger;
+
+                trigger OnAction()
+                var
+                    AgentConsumptionOverview: Codeunit "Agent Consumption Overview";
+                begin
+                    if Rec.IsEmpty() then
+                        Error(NoAgentSetupErr);
+
+                    AgentConsumptionOverview.OpenAgentConsumptionOverview(Rec."User Security ID");
+                end;
+            }
+            action(AgentModels)
+            {
+                ApplicationArea = All;
+                Caption = 'Agent models';
+                ToolTip = 'View all agent models';
+                Image = ViewPage;
+                RunObject = Page "Agent Model List";
             }
         }
         area(Promoted)
