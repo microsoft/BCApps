@@ -5,7 +5,7 @@ param (
 
 $repository = $runParameters.Repository
 $targetBranch = $runParameters.TargetBranch
-$workflowName = " CI/CD"
+$workflowName = "CICD.yaml"
 $workflowRunTime = Get-Date -AsUTC
 
 Write-Host "Running the workflow '$workflowName' on branch $targetBranch"
