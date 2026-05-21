@@ -155,7 +155,7 @@ page 4316 "Agent List"
             {
                 ApplicationArea = All;
                 Caption = 'Agent models';
-                ToolTip = 'View all agent models';
+                ToolTip = 'View all agent models.';
                 Image = ViewPage;
                 RunObject = Page "Agent Model List";
             }
