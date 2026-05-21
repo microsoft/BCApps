@@ -9,6 +9,7 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Inventory.Item;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
+using Microsoft.Purchases.Setup;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Utilities;
 using System.Security.User;
@@ -970,6 +971,9 @@ codeunit 139913 "Vendor Deferrals Test"
         SetPostingAllowTo(0D);
         SetJournalTemplateNameMandatory(true);
 
+        // [GIVEN] Purchases & Payables Setup has "P. Invoice Template Name" set.
+        SetupPurchInvoiceTemplateInPurchSetup();
+
         // [GIVEN] Subscription Contract Setup has "Def. Rel. Jnl. Template Name" and "Def. Rel. Jnl. Batch Name" set.
         SetupDeferralReleaseJournalTemplateAndBatch();
 
@@ -1026,6 +1030,9 @@ codeunit 139913 "Vendor Deferrals Test"
         // [GIVEN] General Ledger Setup has "Journal Templ. Name Mandatory" = FALSE.
         SetPostingAllowTo(0D);
         SetJournalTemplateNameMandatory(false);
+
+        // [GIVEN] Purchases & Payables Setup has "P. Invoice Template Name" set.
+        SetupPurchInvoiceTemplateInPurchSetup();
 
         // [GIVEN] Subscription Contract Setup has empty "Def. Rel. Jnl. Template Name" and "Def. Rel. Jnl. Batch Name".
         ClearDeferralReleaseJournalTemplateAndBatch();
@@ -1406,6 +1413,22 @@ codeunit 139913 "Vendor Deferrals Test"
         ServiceContractSetup."Def. Rel. Jnl. Template Name" := '';
         ServiceContractSetup."Def. Rel. Jnl. Batch Name" := '';
         ServiceContractSetup.Modify(false);
+    end;
+
+    local procedure SetupPurchInvoiceTemplateInPurchSetup()
+    var
+        GenJournalTemplate: Record "Gen. Journal Template";
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+    begin
+        PurchasesPayablesSetup.Get();
+        if PurchasesPayablesSetup."P. Invoice Template Name" <> '' then
+            exit;
+        LibraryERM.CreateGenJournalTemplate(GenJournalTemplate);
+        GenJournalTemplate.Type := GenJournalTemplate.Type::Purchases;
+        GenJournalTemplate."Posting No. Series" := LibraryERM.CreateNoSeriesCode();
+        GenJournalTemplate.Modify(false);
+        PurchasesPayablesSetup."P. Invoice Template Name" := GenJournalTemplate.Name;
+        PurchasesPayablesSetup.Modify(false);
     end;
 
     #endregion Procedures
