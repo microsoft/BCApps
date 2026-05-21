@@ -8,22 +8,23 @@ using Microsoft.Foundation.NoSeries;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Inventory.Transfer;
-using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.MachineCenter;
 using Microsoft.Manufacturing.ProductionBOM;
-using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
 using System.TestLibraries.Utilities;
 
-codeunit 149915 "Subc. Transf. Ord. Reserv. Test"
+codeunit 149915 "Subc. TransOrd. Reserv. Test"
 {
     // [FEATURE] Subcontracting Transfer Order Reservation Integration Tests
     Subtype = Test;
     TestPermissions = Disabled;
     TestType = IntegrationTest;
+
+    var
+        SerialNoTok: Label 'SN%1', Comment = '%1 = number';
 
     trigger OnRun()
     begin
@@ -160,9 +161,7 @@ codeunit 149915 "Subc. Transf. Ord. Reserv. Test"
 
     local procedure Initialize()
     begin
-        OpenedTransferOrderNo := '';
-
-        LibraryTestInitialize.OnTestInitialize(Codeunit::"Subc. Transf. Ord. Reserv. Test");
+        LibraryTestInitialize.OnTestInitialize(Codeunit::"Subc. TransOrd. Reserv. Test");
         LibrarySetupStorage.Restore();
 
         SubcontractingMgmtLibrary.Initialize();
@@ -173,7 +172,7 @@ codeunit 149915 "Subc. Transf. Ord. Reserv. Test"
         if IsInitialized then
             exit;
 
-        LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Subc. Transf. Ord. Reserv. Test");
+        LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Subc. TransOrd. Reserv. Test");
 
         SubSetupLibrary.InitSetupFields();
         LibraryERMCountryData.CreateVATData();
@@ -182,7 +181,7 @@ codeunit 149915 "Subc. Transf. Ord. Reserv. Test"
         IsInitialized := true;
         Commit();
 
-        LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Subc. Transf. Ord. Reserv. Test");
+        LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Subc. TransOrd. Reserv. Test");
     end;
 
     local procedure SetupTransferReservationScenario(var Item: Record Item; var WorkCenter: array[2] of Record "Work Center"; var MachineCenter: array[2] of Record "Machine Center"; var ProductionOrder: Record "Production Order"; var ProdOrderComponent: Record "Prod. Order Component"; ProductionQty: Decimal; ComponentQtyPer: Decimal; SerialTrackedComponent: Boolean)
@@ -329,7 +328,7 @@ codeunit 149915 "Subc. Transf. Ord. Reserv. Test"
         i: Integer;
     begin
         for i := 1 to Qty do
-            CreateSerialReservationOnProdOrderComp(ProdOrderComponent, LocationCode, CopyStr(StrSubstNo('SN%1', i), 1, 50));
+            CreateSerialReservationOnProdOrderComp(ProdOrderComponent, LocationCode, CopyStr(StrSubstNo(SerialNoTok, i), 1, 50));
     end;
 
     local procedure CreateSerialReservationOnProdOrderComp(ProdOrderComponent: Record "Prod. Order Component"; LocationCode: Code[10]; SerialNo: Code[50])
