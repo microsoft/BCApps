@@ -63,6 +63,8 @@ codeunit 6404 "E-Doc. Create Purch. Cr. Memo" implements IEDocumentFinishDraft, 
     var
         PurchInvHeader: Record "Purch. Inv. Header";
     begin
+        if PurchaseHeader."Pay-to Vendor No." <> '' then
+            PurchInvHeader.SetRange("Buy-from Vendor No.", PurchaseHeader."Pay-to Vendor No.");
         PurchInvHeader.SetRange("Vendor Invoice No.", ExtInvoiceNo);
         if PurchInvHeader.FindFirst() then begin
             PurchaseHeader."Applies-to Doc. Type" := PurchaseHeader."Applies-to Doc. Type"::Invoice;

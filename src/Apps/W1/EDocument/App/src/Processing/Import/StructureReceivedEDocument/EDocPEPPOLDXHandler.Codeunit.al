@@ -31,7 +31,7 @@ codeunit 6407 "E-Doc. PEPPOL DX Handler" implements IStructuredFormatReader
 
     procedure View(EDocument: Record "E-Document"; TempBlob: Codeunit "Temp Blob")
     begin
-        Error('A view is not implemented for this handler.');
+        Error(ViewNotImplementedErr);
     end;
 
     #region Auto-Detection
@@ -59,11 +59,11 @@ codeunit 6407 "E-Doc. PEPPOL DX Handler" implements IStructuredFormatReader
                     BestDocType := "E-Document Type"::"Purchase Credit Memo";
                 end;
             else
-                Error(ProcessFailedErr);
+                Error(UnrecognisedNamespaceErr, DocumentNamespace);
         end;
 
         if not DataExchDef.Get(BestDefCode) then
-            Error(ProcessFailedErr);
+            Error(DataExchDefNotFoundErr, BestDefCode);
     end;
 
     local procedure GetDocumentRootNamespace(var TempBlob: Codeunit "Temp Blob"): Text
@@ -103,11 +103,20 @@ codeunit 6407 "E-Doc. PEPPOL DX Handler" implements IStructuredFormatReader
         DataExch."Related Record" := EDocument.RecordId;
         DataExch.Modify(true);
 
+        if not TryRunPipeline(EDocument, DataExch, DataExchDef) then begin
+            DeleteIntermediateData(DataExch);
+            Error(GetLastErrorText());
+        end;
+
+        DeleteIntermediateData(DataExch);
+    end;
+
+    [TryFunction]
+    local procedure TryRunPipeline(EDocument: Record "E-Document"; var DataExch: Record "Data Exch."; DataExchDef: Record "Data Exch. Def")
+    begin
         DataExch.ImportToDataExch(DataExchDef);
         DataExchDef.ProcessDataExchange(DataExch);
-
         BridgeToStagingTables(EDocument, DataExch);
-        DeleteIntermediateData(DataExch);
     end;
 
     local procedure BridgeToStagingTables(EDocument: Record "E-Document"; DataExch: Record "Data Exch.")
@@ -386,6 +395,7 @@ codeunit 6407 "E-Doc. PEPPOL DX Handler" implements IStructuredFormatReader
                         EDocAttachmentProcessor.Insert(EDocument, InStream, FileName);
                         FileName := '';
                     end;
+                Clear(AttachmentTempBlob);
                 CurrRecordNo := IntermediateDataImport."Record No.";
             end;
 
@@ -471,7 +481,7 @@ codeunit 6407 "E-Doc. PEPPOL DX Handler" implements IStructuredFormatReader
 
     #region Cleanup
 
-    local procedure DeleteIntermediateData(DataExch: Record "Data Exch.")
+    local procedure DeleteIntermediateData(var DataExch: Record "Data Exch.")
     var
         DataExchField: Record "Data Exch. Field";
         IntermediateDataImport: Record "Intermediate Data Import";
@@ -480,6 +490,7 @@ codeunit 6407 "E-Doc. PEPPOL DX Handler" implements IStructuredFormatReader
         DataExchField.DeleteAll();
         IntermediateDataImport.SetRange("Data Exch. No.", DataExch."Entry No.");
         IntermediateDataImport.DeleteAll();
+        DataExch.Delete();
     end;
 
     #endregion Cleanup
@@ -503,6 +514,8 @@ codeunit 6407 "E-Doc. PEPPOL DX Handler" implements IStructuredFormatReader
         CreditMemoDefCodeTok: Label 'EDOCPEPCRMEMOIMPV2', Locked = true;
         InvoiceNamespaceTxt: Label 'urn:oasis:names:specification:ubl:schema:xsd:Invoice-2', Locked = true;
         CreditNoteNamespaceTxt: Label 'urn:oasis:names:specification:ubl:schema:xsd:CreditNote-2', Locked = true;
-        ProcessFailedErr: Label 'Failed to process the file with data exchange.';
+        ViewNotImplementedErr: Label 'A view is not implemented for this handler.', Comment = 'Error shown when View is called on a handler that does not support viewing.';
+        UnrecognisedNamespaceErr: Label 'The XML document has an unrecognised root namespace: %1. Only PEPPOL BIS 3.0 Invoice and Credit Note are supported.', Comment = '%1 = XML root namespace URI';
+        DataExchDefNotFoundErr: Label 'The Data Exchange Definition ''%1'' was not found. Reinstall the E-Document app to restore it.', Comment = '%1 = Data Exchange Definition code';
         ChargeLineDefCodeTok: Label 'PEPPOLCHARGELINES', Locked = true;
 }
