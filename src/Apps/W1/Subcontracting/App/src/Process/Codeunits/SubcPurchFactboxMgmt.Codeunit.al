@@ -222,7 +222,7 @@ codeunit 99001560 "Subc. Purch. Factbox Mgmt."
     /// <param name="LookUpPage">When true, opens the transfer order page; when false, only populates the temp table.</param>
     /// <param name="IsReturn">When true, filters to return transfer orders; when false, filters to outbound transfer orders.</param>
     /// <returns>The number of transfer lines linked to the given record.</returns>
-    procedure ShowTransferOrdersAndReturnOrder(RecRelatedVariant: Variant; LookUpPage: Boolean; IsReturn: Boolean): Decimal
+    procedure ShowTransferOrdersAndReturnOrder(RecRelatedVariant: Variant; LookUpPage: Boolean; IsReturn: Boolean): Integer
     var
         ProdOrderComponent: Record "Prod. Order Component";
         ProdOrderLine: Record "Prod. Order Line";
@@ -239,7 +239,7 @@ codeunit 99001560 "Subc. Purch. Factbox Mgmt."
         NoOfTransferHeaders: Integer;
     begin
         if not RecRelatedVariant.IsRecord() then
-            exit;
+            exit(0);
 
         DataTypeManagement.GetRecordRef(RecRelatedVariant, RecRef);
         ProductionOrder.SetLoadFields("No.", "Source Type");
@@ -249,9 +249,9 @@ codeunit 99001560 "Subc. Purch. Factbox Mgmt."
                 begin
                     RecRef.SetTable(ProdOrderComponent);
                     if not ProductionOrder.Get(ProdOrderComponent.Status, ProdOrderComponent."Prod. Order No.") then
-                        exit;
+                        exit(0);
                     if not ProdOrderLine.Get(ProdOrderComponent.Status, ProdOrderComponent."Prod. Order No.", ProdOrderComponent."Prod. Order Line No.") then
-                        exit;
+                        exit(0);
 
                     GetProdOrderRtngLineFromProdOrderComp(ProdOrderRoutingLine, ProdOrderComponent);
                 end;
@@ -259,23 +259,23 @@ codeunit 99001560 "Subc. Purch. Factbox Mgmt."
                 begin
                     RecRef.SetTable(PurchaseLine);
                     if not ProductionOrder.Get("Production Order Status"::Released, PurchaseLine."Prod. Order No.") then
-                        exit;
+                        exit(0);
                     GetProdOrderRtngLineFromPurchaseLine(ProdOrderRoutingLine, PurchaseLine);
                     if ProductionOrder."Source Type" <> "Prod. Order Source Type"::Family then
                         if not ProdOrderLine.Get(ProdOrderRoutingLine.Status, PurchaseLine."Prod. Order No.", PurchaseLine."Prod. Order Line No.") then
-                            exit;
+                            exit(0);
                 end;
             Database::"Prod. Order Routing Line":
                 begin
                     RecRef.SetTable(ProdOrderRoutingLine);
                     if not ProductionOrder.Get(ProdOrderRoutingLine.Status, ProdOrderRoutingLine."Prod. Order No.") then
-                        exit;
+                        exit(0);
                     if ProductionOrder."Source Type" <> "Prod. Order Source Type"::Family then
                         if not ProdOrderLine.Get(ProdOrderRoutingLine.Status, ProdOrderRoutingLine."Prod. Order No.", ProdOrderRoutingLine."Routing Reference No.") then
-                            exit;
+                            exit(0);
                 end;
             else
-                exit;
+                exit(0);
         end;
 
         TransferLine.SetCurrentKey("Subc. Prod. Order No.", "Subc. Prod. Order Line No.", "Subc. Routing Reference No.", "Subc. Routing No.", "Subc. Operation No.");
