@@ -173,13 +173,9 @@ report 20401 "Qlty. Certificate of Analysis"
 
                 trigger OnAfterGetRecord()
                 var
-                    QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
-                    QltyInspectionResult: Record "Qlty. Inspection Result";
                     QltyResultConditionMgmt: Codeunit "Qlty. Result Condition Mgmt.";
                     DummyRecordId: RecordId;
                     CombinedText: TextBuilder;
-                    Caption: array[2] of Text;
-                    Iterator: Integer;
                 begin
                     Clear(MatrixSourceRecordId);
                     Clear(MatrixArrayConditionCellData);
@@ -212,37 +208,7 @@ report 20401 "Qlty. Certificate of Analysis"
                         LabelFieldDescription := '';
 
                     // Resolve pre-calculated condition label columns for Word Layout
-                    Clear(Caption);
-                    QltyIResultConditConf.SetRange("Condition Type", QltyIResultConditConf."Condition Type"::Inspection);
-                    QltyIResultConditConf.SetRange("Target Code", CurrentInspectionLine."Inspection No.");
-                    QltyIResultConditConf.SetRange("Target Re-inspection No.", CurrentInspectionLine."Re-inspection No.");
-                    QltyIResultConditConf.SetRange("Target Line No.", CurrentInspectionLine."Line No.");
-                    QltyIResultConditConf.SetRange("Test Code", CurrentInspectionLine."Test Code");
-                    QltyIResultConditConf.SetRange("Result Visibility", QltyIResultConditConf."Result Visibility"::Promoted);
-                    QltyIResultConditConf.SetCurrentKey("Condition Type", "Result Visibility", Priority, "Target Code", "Target Re-inspection No.", "Target Line No.");
-                    QltyIResultConditConf.Ascending(false);
-                    Iterator := 0;
-                    if QltyIResultConditConf.FindSet() then
-                        repeat
-                            if QltyInspectionResult.Get(QltyIResultConditConf."Result Code") then begin
-                                Iterator += 1;
-                                if Iterator <= 2 then
-                                    if QltyInspectionResult.Description <> '' then
-                                        Caption[Iterator] := QltyInspectionResult.Description
-                                    else
-                                        Caption[Iterator] := QltyInspectionResult.Code;
-                            end;
-                        until (QltyIResultConditConf.Next() = 0) or (Iterator >= 2);
-
-                    if Caption[1] <> '' then
-                        ConditionLabelText1 := Caption[1] + ' ' + ConditionSuffixLbl
-                    else
-                        ConditionLabelText1 := '';
-
-                    if Caption[2] <> '' then
-                        ConditionLabelText2 := Caption[2] + ' ' + ConditionSuffixLbl
-                    else
-                        ConditionLabelText2 := '';
+                    QltyReportMgmt.ResolveConditionLabels(CurrentInspectionLine, ConditionLabelText1, ConditionLabelText2);
 
                     // Word columns: empty for labels, populated for normal and person fields
                     WordUnfavorableResultDescription := '';
@@ -339,15 +305,15 @@ report 20401 "Qlty. Certificate of Analysis"
         layout(QltyInspection_CertificateOfAnalysis_Default)
         {
             Type = Word;
-            Caption = 'Word Layout';
-            Summary = 'Word layout for certificate of analysis report.';
+            Caption = 'Certificate of Analysis (Word)';
+            Summary = 'Built in layout for Certificate of Analysis report.';
             LayoutFile = './src/Reports/QltyCertificateOfAnalysis.docx';
         }
         layout(QltyCertificateOfAnalysisDefault)
         {
             Type = RDLC;
-            Caption = 'Default Layout';
-            Summary = 'The default certificate of analysis report.';
+            Caption = 'Certificate of Analysis (RDLC)';
+            Summary = 'Built in layout for Certificate of Analysis report.';
             LayoutFile = './src/Reports/QltyCertificateOfAnalysisAlternate.rdl';
         }
     }
@@ -428,7 +394,6 @@ report 20401 "Qlty. Certificate of Analysis"
         HomePageLbl: Label 'Home Page';
         EmailLbl: Label 'E-Mail';
         PhoneNoLbl: Label 'Phone No.';
-        ConditionSuffixLbl: Label 'Condition';
         DefaultApproverTitleLbl: Label 'Approver';
         DefaultQualityInspectorTitleLbl: Label 'Quality Inspector';
 }

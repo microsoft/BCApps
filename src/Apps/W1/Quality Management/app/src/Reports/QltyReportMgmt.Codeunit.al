@@ -8,6 +8,7 @@ using Microsoft.CRM.Contact;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using Microsoft.Foundation.Reporting;
+using Microsoft.QualityManagement.Configuration.Result;
 using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Setup;
 
@@ -51,6 +52,7 @@ codeunit 20440 "Qlty. Report Mgmt."
         ReinspectionSequenceLbl: Label 'Re-inspection: %1', Comment = '%1 = the sequence number of the re-inspection';
         StatusLbl: Label 'Status: %1', Comment = '%1 = the status of the inspection';
         ResultLbl: Label 'Result: %1', Comment = '%1 = the result of the inspection';
+        ConditionSuffixLbl: Label 'Condition';
 
     internal procedure ResolveCompanyInformation(var CompanyInformation: Record "Company Information"; var CompanyInformationArray: array[8] of Text[100]; var AllCompanyInformation: Text; var HomePageValueText: Text; HomePageLbl: Text; var HomePageLabelText: Text; var EmailValueText: Text; EmailLbl: Text; var EmailLabelText: Text; var PhoneNoValueText: Text; PhoneNoLbl: Text; var PhoneNoLabelText: Text)
     var
@@ -170,6 +172,44 @@ codeunit 20440 "Qlty. Report Mgmt."
         end;
 
         exit(Result.ToText());
+    end;
+
+    internal procedure ResolveConditionLabels(QltyInspectionLine: Record "Qlty. Inspection Line"; var ConditionLabelText1: Text; var ConditionLabelText2: Text)
+    var
+        QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
+        QltyInspectionResult: Record "Qlty. Inspection Result";
+        Caption: array[2] of Text;
+        Iterator: Integer;
+    begin
+        ConditionLabelText1 := '';
+        ConditionLabelText2 := '';
+
+        QltyIResultConditConf.SetRange("Condition Type", QltyIResultConditConf."Condition Type"::Inspection);
+        QltyIResultConditConf.SetRange("Target Code", QltyInspectionLine."Inspection No.");
+        QltyIResultConditConf.SetRange("Target Re-inspection No.", QltyInspectionLine."Re-inspection No.");
+        QltyIResultConditConf.SetRange("Target Line No.", QltyInspectionLine."Line No.");
+        QltyIResultConditConf.SetRange("Test Code", QltyInspectionLine."Test Code");
+        QltyIResultConditConf.SetRange("Result Visibility", QltyIResultConditConf."Result Visibility"::Promoted);
+        QltyIResultConditConf.SetCurrentKey("Condition Type", "Result Visibility", Priority, "Target Code", "Target Re-inspection No.", "Target Line No.");
+        QltyIResultConditConf.Ascending(false);
+        Iterator := 0;
+        if QltyIResultConditConf.FindSet() then
+            repeat
+                if QltyInspectionResult.Get(QltyIResultConditConf."Result Code") then begin
+                    Iterator += 1;
+                    if Iterator <= 2 then
+                        if QltyInspectionResult.Description <> '' then
+                            Caption[Iterator] := QltyInspectionResult.Description
+                        else
+                            Caption[Iterator] := QltyInspectionResult.Code;
+                end;
+            until (QltyIResultConditConf.Next() = 0) or (Iterator >= 2);
+
+        if Caption[1] <> '' then
+            ConditionLabelText1 := Caption[1] + ' ' + ConditionSuffixLbl;
+
+        if Caption[2] <> '' then
+            ConditionLabelText2 := Caption[2] + ' ' + ConditionSuffixLbl;
     end;
 
     local procedure HideLabelIfBlankValue(Value: Text; LabelText: Text; var OutputLabelText: Text)
