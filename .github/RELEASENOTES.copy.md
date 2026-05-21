@@ -2,6 +2,20 @@
 
 Note that when using the preview version of AL-Go for GitHub, we recommend you Update your AL-Go system files, as soon as possible when informed that an update is available.
 
+### Use artifact manifest to pick .NET runtime for assembly probing
+
+When compiling apps with the workspace compiler, AL-Go now reads the `dotNetVersion` from the BC artifact's `manifest.json` (copied into the compiler folder by BcContainerHelper) and selects an installed .NET runtime whose major version matches. This avoids version drift between the build agent's highest installed runtime and the platform the artifact was built against. If the manifest does not declare a `dotNetVersion`, or no installed runtime matches the required major, versioned .NET assembly probing paths are omitted (a warning is logged in the latter case).
+
+### New AL-Go hooks (experimental)
+
+AL-Go for GitHub now supports a new generic hook mechanism that is independent of BcContainerHelper. A new `RunHook` action invokes scripts placed in the project's `.AL-Go` folder at well-known extension points in the workflows. The first such extension point is `BuildInitialize`, which runs in the build workflow immediately after `Read settings` (so AL-Go settings are available as environment variables).
+
+To use it, add a `.AL-Go/BuildInitialize.ps1` script that accepts a `[Hashtable] $parameters` argument. If the script does not exist, the step is a silent no-op.
+
+The hook mechanism is intended to gradually replace the BcContainerHelper-based `Run-AlPipeline` script overrides as AL-Go moves away from `Run-AlPipeline`. See [Customizing AL-Go for GitHub](https://github.com/microsoft/AL-Go/blob/main/Scenarios/CustomizingALGoForGitHub.md#al-go-hooks) for details and the list of supported hook names.
+
+> **Experimental:** the set of supported hook names, the parameters passed to hook scripts, the location and timing of hook invocations, and the names of the underlying action and helpers may all change in future versions. Anything you build on top of this first iteration may break in a later update.
+
 ### Conditional settings now support workflow trigger events
 
 `ConditionalSettings` now supports a `triggers` condition, allowing you to apply settings based on `GITHUB_EVENT_NAME` values such as `push`, `pull_request`, `schedule`, and `workflow_dispatch`.
@@ -18,6 +32,11 @@ Example:
   }
 ]
 ```
+
+### Support for workspace compilation (Continued)
+
+- Added support for upgrade tests and using previously released artifacts as baselines for appsourcecop.json
+- Added support for BCPT app compilation with workspace compilation
 
 ### Optimized dependency artifact downloads for multi-project repositories
 
