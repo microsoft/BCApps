@@ -117,16 +117,18 @@ codeunit 149916 "Subc. Non-Inv Item Valid. Test"
     local procedure CreateProdOrderComponent(var ProdOrderComponent: Record "Prod. Order Component"; Item: Record Item)
     var
         ProductionOrder: Record "Production Order";
+        ProductionOrderLine: Record "Prod. Order Line";
         ParentItem: Record Item;
     begin
         LibraryInventory.CreateItem(ParentItem);
         LibraryManufacturing.CreateProductionOrder(
             ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, ParentItem."No.", 1);
+        LibraryManufacturing.CreateProdOrderLine(ProductionOrderLine, ProductionOrder.Status, ProductionOrder."No.", ParentItem."No.", '', '', 1);
 
         ProdOrderComponent.Init();
         ProdOrderComponent.Status := ProductionOrder.Status;
         ProdOrderComponent."Prod. Order No." := ProductionOrder."No.";
-        ProdOrderComponent."Prod. Order Line No." := 10000;
+        ProdOrderComponent."Prod. Order Line No." := ProductionOrderLine."Line No.";
         ProdOrderComponent."Line No." := 10000;
         ProdOrderComponent.Validate("Item No.", Item."No.");
         ProdOrderComponent.Insert(true);
