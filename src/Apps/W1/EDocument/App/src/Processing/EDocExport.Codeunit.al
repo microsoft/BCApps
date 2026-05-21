@@ -57,7 +57,14 @@ codeunit 6102 "E-Doc. Export"
         OnAfterEDocumentCheck(EDocSourceRecRef, EDocumentProcessingPhase);
     end;
 
-    internal procedure CreateEDocument(DocumentHeader: RecordRef; DocumentSendingProfile: Record "Document Sending Profile"; EDocumentType: Enum "E-Document Type")
+    /// <summary>
+    /// Creates a new E-Document of specified type for the provided document header and attempts to export it.
+    /// </summary>
+    /// <returns>
+    /// true if the E-Document has been created;
+    /// otherwise false.
+    /// </returns>
+    internal procedure CreateEDocument(DocumentHeader: RecordRef; DocumentSendingProfile: Record "Document Sending Profile"; EDocumentType: Enum "E-Document Type"): Boolean
     var
         WorkFlow: Record Workflow;
         EDocument: Record "E-Document";
@@ -71,16 +78,16 @@ codeunit 6102 "E-Doc. Export"
 
         WorkFlow.TestField(Enabled);
         if DocumentSendingProfile."Electronic Document" <> DocumentSendingProfile."Electronic Document"::"Extended E-Document Service Flow" then
-            exit;
+            exit(false);
 
         if not EDocWorkFlowProcessing.GetServicesFromEntryPointResponseInWorkflow(WorkFlow, EDocumentService) then
-            exit;
+            exit(false);
 
         EDocument."Workflow Code" := WorkFlow.Code;
         EDocument."Document Sending Profile" := DocumentSendingProfile.Code;
 
         if not CreateEDocument(EDocument, DocumentHeader, EDocumentService, EDocumentType) then
-            exit;
+            exit(false);
 
         // For each service supporting the document type, export it before creating E-Document Created Flow
         EDocumentServiceStatus.SetRange("E-Document Entry No", EDocument."Entry No");
@@ -95,6 +102,8 @@ codeunit 6102 "E-Doc. Export"
             until EDocumentServiceStatus.Next() = 0;
 
         EDocumentBackgroundJobs.StartEDocumentCreatedFlow(EDocument);
+
+        exit(true);
     end;
 
     /// <summary>
