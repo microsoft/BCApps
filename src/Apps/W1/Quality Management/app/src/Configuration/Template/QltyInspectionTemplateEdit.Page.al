@@ -48,7 +48,7 @@ page 20440 "Qlty. Inspection Template Edit"
                 {
                     ApplicationArea = All;
                     Caption = 'Choose inspection';
-                    ToolTip = 'Specifies an existing inspection to test the expression with.';
+                    ToolTip = 'Specifies an existing quality inspection to test the expression with.';
                     Editable = false;
 
                     trigger OnAssistEdit()
@@ -88,7 +88,7 @@ page 20440 "Qlty. Inspection Template Edit"
                 {
                     ApplicationArea = All;
                     Caption = 'Choose inspection line';
-                    ToolTip = 'Specifies an existing inspection line to test the expression with.';
+                    ToolTip = 'Specifies an existing quality inspection line to test the expression with.';
                     Editable = false;
 
                     trigger OnAssistEdit()
@@ -162,7 +162,7 @@ page 20440 "Qlty. Inspection Template Edit"
                 ApplicationArea = All;
                 Caption = 'Add Test';
                 Image = TaskQualityMeasure;
-                ToolTip = 'Click here to use a Quality Inspection test in this expression.';
+                ToolTip = 'Use a quality inspection test in this expression.';
                 Promoted = true;
                 PromotedIsBig = true;
                 PromotedOnly = true;
@@ -178,7 +178,7 @@ page 20440 "Qlty. Inspection Template Edit"
                 ApplicationArea = All;
                 Caption = 'Add Table Field';
                 Image = Add;
-                ToolTip = 'Click here to insert additional Fields into the template.';
+                ToolTip = 'Insert additional fields into the template.';
                 Promoted = true;
                 PromotedIsBig = true;
                 PromotedOnly = true;
@@ -195,9 +195,9 @@ page 20440 "Qlty. Inspection Template Edit"
                 ApplicationArea = All;
                 Caption = 'Add Inspection Information';
                 Image = Add;
-                ToolTip = 'Click here to insert additional tests into the template.';
+                ToolTip = 'Insert additional tests into the template.';
                 AboutTitle = 'Add a test from a quality inspection.';
-                AboutText = 'Click here to insert additional tests into the template.';
+                AboutText = 'Insert additional tests into the template.';
                 Promoted = true;
                 PromotedIsBig = true;
                 PromotedOnly = true;
