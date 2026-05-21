@@ -9,7 +9,7 @@ using Microsoft.QualityManagement.AccessControl;
 using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Configuration.SourceConfiguration;
 using Microsoft.QualityManagement.Configuration.Template;
-using Microsoft.Utilities;
+using System.Reflection;
 using System.Utilities;
 
 report 20400 "Qlty. Create Inspection"
@@ -326,8 +326,8 @@ report 20400 "Qlty. Create Inspection"
     local procedure AssistEditChooseRecord()
     var
         TempItemTrackingSetup: Record "Item Tracking Setup" temporary;
+        TableMetadata: Record "Table Metadata";
         QltyTraversal: Codeunit "Qlty. Traversal";
-        PageManagement: Codeunit "Page Management";
         LookupPageId: Integer;
     begin
         if QltyInspectSourceConfig."From Table No." <> 0 then begin
@@ -336,7 +336,8 @@ report 20400 "Qlty. Create Inspection"
             TargetRecordRef.Open(QltyInspectSourceConfig."From Table No.");
             TargetRecordRef.SetView(QltyInspectSourceConfig."From Table Filter");
 
-            LookupPageId := PageManagement.GetDefaultLookupPageID(TargetRecordRef.Number);
+            if TableMetadata.Get(TargetRecordRef.Number) then
+                LookupPageId := TableMetadata.LookupPageID;
             if LookupPageId = 0 then begin
                 QltyInspectSourceConfig.CalcFields("From Table Caption");
                 TargetRecordRef.Close();
