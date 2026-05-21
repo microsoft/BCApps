@@ -82,9 +82,9 @@ report 20405 "Qlty. General Purpose Inspect."
 
             // Pre-calculated columns for Word Layout
             column(ReinspectionSequenceInformation; QltyReportMgmt.BuildReinspectionSequenceInformationText(CurrentInspection."Re-inspection No.")) { }
-            column(InspectionInformation; QltyReportMgmt.BuildInspectionInformationText(Format(CurrentInspection.Status), CurrentInspection."Result Description")) { }
-            column(ItemDescription; ItemDescriptionText) { }
-            column(ItemTrackingDescription; ItemTrackingText) { }
+            column(ItemIdentifier; QltyReportMgmt.BuildItemIdentifierText(CurrentInspection."Source Item No.", CurrentInspection."Source Variant Code")) { }
+            column(ItemDescription; Item.Description) { }
+            column(ItemTrackingIdentifier; ItemTrackingText) { }
 
             // Pre-calculated label columns for Word Layout
             column(CompanyLogo; CompanyInformation.Picture) { }
@@ -252,8 +252,7 @@ report 20405 "Qlty. General Purpose Inspect."
                 QltyReportMgmt.ResolveInspectionTemplateCache(CurrentInspection."Template Code", QltyInspectionTemplateHdr);
                 QltyReportMgmt.ResolveFinishedByPerson(CurrentInspection."Finished By User ID", FinishedByUserName, FinishedByTitle, FinishedByEmail, FinishedByPhone);
 
-                ItemDescriptionText := QltyReportMgmt.BuildItemDescriptionText(CurrentInspection."Source Item No.", CurrentInspection."Source Variant Code", Item.Description);
-                ItemTrackingText := QltyReportMgmt.BuildItemTrackingText(CurrentInspection."Source Lot No.", CurrentInspection."Source Serial No.", CurrentInspection."Source Package No.");
+                ItemTrackingText := QltyReportMgmt.BuildItemTrackingIdentifierText(CurrentInspection."Source Lot No.", CurrentInspection."Source Serial No.", CurrentInspection."Source Package No.");
 
                 QltyReportMgmt.BuildSignatureAndNameLabels(FinishedByTitle, FinishedBySignatureLbl, FinishedByNameLbl);
                 QltyReportMgmt.BuildSignatureAndNameLabels(ApproverTitle, ApproverSignatureLbl, ApproverNameLbl);
@@ -284,6 +283,7 @@ report 20405 "Qlty. General Purpose Inspect."
         PageLabel = 'Page';
         ReportTitleLabel = 'Quality Inspection Report';
         ItemLabel = 'Item';
+        ItemDescriptionLabel = 'Item Description';
         ItemTrackingLabel = 'Item Tracking';
         FinishedByLabel = 'Finished by';
         FinishedOnLabel = 'Finished on';
@@ -291,6 +291,8 @@ report 20405 "Qlty. General Purpose Inspect."
         TestValueLabel = 'Test Value';
         ResultLabel = 'Result';
         InspectionLabel = 'Inspection';
+        InspectionDescriptionLabel = 'Inspection Description';
+        StatusLabel = 'Status';
         DateLabel = 'Date';
         LastModifiedByLabel = 'Last modified by';
     }
@@ -333,7 +335,6 @@ report 20405 "Qlty. General Purpose Inspect."
         ApproverName: Text;
         LabelFieldDescription: Text;
         CarriageReturnPersonFieldDetails: Text;
-        ItemDescriptionText: Text;
         ItemTrackingText: Text;
         FinishedBySignatureLbl: Text;
         FinishedByNameLbl: Text;

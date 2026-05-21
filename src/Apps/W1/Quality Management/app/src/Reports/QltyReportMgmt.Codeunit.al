@@ -55,8 +55,6 @@ codeunit 20440 "Qlty. Report Mgmt."
     #region Helper methods
     var
         ReinspectionSequenceLbl: Label 'Re-inspection: %1', Comment = '%1 = the sequence number of the re-inspection';
-        StatusLbl: Label 'Status: %1', Comment = '%1 = the status of the inspection';
-        ResultLbl: Label 'Result: %1', Comment = '%1 = the result of the inspection';
         ConditionSuffixLbl: Label 'Condition';
         NameSuffixLbl: Label 'Name';
         SignatureSuffixLbl: Label 'Signature';
@@ -159,7 +157,7 @@ codeunit 20440 "Qlty. Report Mgmt."
         exit(SalespersonPurchaser."Job Title");
     end;
 
-    internal procedure BuildItemDescriptionText(ItemNo: Text; VariantCode: Text; Description: Text): Text
+    internal procedure BuildItemIdentifierText(ItemNo: Text; VariantCode: Text): Text
     var
         Result: TextBuilder;
         NewLine: Text[1];
@@ -171,20 +169,14 @@ codeunit 20440 "Qlty. Report Mgmt."
 
         if VariantCode <> '' then begin
             if Result.Length() > 0 then
-                Result.Append(' ');
-            Result.Append(VariantCode);
-        end;
-
-        if Description <> '' then begin
-            if Result.Length() > 0 then
                 Result.Append(NewLine);
-            Result.Append(Description);
+            Result.Append(VariantCode);
         end;
 
         exit(Result.ToText());
     end;
 
-    internal procedure BuildItemTrackingText(LotNo: Text; SerialNo: Text; PackageNo: Text): Text
+    internal procedure BuildItemTrackingIdentifierText(LotNo: Text; SerialNo: Text; PackageNo: Text): Text
     var
         Result: TextBuilder;
         NewLine: Text[1];
@@ -219,23 +211,6 @@ codeunit 20440 "Qlty. Report Mgmt."
             exit(NewLine + StrSubstNo(ReinspectionSequenceLbl, Format(ReinspectionNo)));
 
         exit('');
-    end;
-
-    internal procedure BuildInspectionInformationText(Status: Text; ResultDescription: Text): Text
-    var
-        Result: TextBuilder;
-        NewLine: Text[1];
-    begin
-        NewLine[1] := 10;
-
-        Result.Append(StrSubstNo(StatusLbl, Status));
-
-        if ResultDescription <> '' then begin
-            Result.Append(NewLine);
-            Result.Append(StrSubstNo(ResultLbl, ResultDescription));
-        end;
-
-        exit(Result.ToText());
     end;
 
     internal procedure BuildSignatureAndNameLabels(Title: Text; var SignatureLbl: Text; var NameLabelText: Text)
