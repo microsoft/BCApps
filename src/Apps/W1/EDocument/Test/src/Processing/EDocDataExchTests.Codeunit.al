@@ -452,7 +452,7 @@ codeunit 139897 "E-Doc Data Exch Tests"
         LibraryEDoc.SetupStandardSalesScenario(Customer, EDocumentService, Enum::"E-Document Format"::Mock, Enum::"Service Integration"::"Mock");
         LibraryEDoc.SetupStandardPurchaseScenario(Vendor, EDocumentService, Enum::"E-Document Format"::Mock, Enum::"Service Integration"::"Mock");
         EDocumentService."Import Process" := "E-Document Import Process"::"Version 2.0";
-        EDocumentService."Read into Draft Impl." := "E-Doc. Read into Draft"::"PEPPOL Data Exchange";
+        EDocumentService."Read into Draft Impl." := "E-Doc. Read into Draft"::"Data Exchange Purchase";
         EDocumentService.Modify();
 
         // Set a currency that can be used across all localizations
@@ -470,7 +470,7 @@ codeunit 139897 "E-Doc Data Exch Tests"
     var
         EDocServiceDataExchDef: Record "E-Doc. Service Data Exch. Def.";
     begin
-        EDocumentService."Read into Draft Impl." := "E-Doc. Read into Draft"::"PEPPOL Data Exchange";
+        EDocumentService."Read into Draft Impl." := "E-Doc. Read into Draft"::"Data Exchange Purchase";
         EDocumentService.Modify();
 
         // Link the service to the shipped PEPPOL Invoice import Data Exchange Definition

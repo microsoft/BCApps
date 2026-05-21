@@ -5,6 +5,7 @@
 namespace Microsoft.eServices.EDocument.Processing.Import;
 
 using Microsoft.eServices.EDocument;
+using Microsoft.eServices.EDocument.IO.Peppol;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
 using Microsoft.Finance.GeneralLedger.Setup;
@@ -13,7 +14,7 @@ using System.IO;
 using System.Text;
 using System.Utilities;
 
-codeunit 6407 "E-Doc. PEPPOL DX Handler" implements IStructuredFormatReader
+codeunit 6407 "E-Doc. DataExch. Purch Handler" implements IStructuredFormatReader
 {
     Access = Internal;
     InherentEntitlements = X;
@@ -24,7 +25,7 @@ codeunit 6407 "E-Doc. PEPPOL DX Handler" implements IStructuredFormatReader
         BestDefCode: Code[20];
         BestDocType: Enum "E-Document Type";
     begin
-        FindBestDataExchDef(TempBlob, BestDefCode, BestDocType);
+        FindBestDataExchDef(EDocument, TempBlob, BestDefCode, BestDocType);
         RunPipelineAndBridge(EDocument, TempBlob, BestDefCode);
         exit(MapDocumentTypeToProcessDraft(BestDocType));
     end;
@@ -37,33 +38,38 @@ codeunit 6407 "E-Doc. PEPPOL DX Handler" implements IStructuredFormatReader
     #region Auto-Detection
 
     /// <summary>
-    /// Determines the v2 Data Exchange Definition code by matching the document's
-    /// XML root namespace against known PEPPOL BIS 3.0 namespaces.
+    /// Determines the Data Exchange Definition code by matching the document's XML root
+    /// namespace against the Namespace field on each definition configured for the
+    /// E-Document Service in EDocServiceDataExchDef.
     /// </summary>
-    local procedure FindBestDataExchDef(var TempBlob: Codeunit "Temp Blob"; var BestDefCode: Code[20]; var BestDocType: Enum "E-Document Type")
+    local procedure FindBestDataExchDef(EDocument: Record "E-Document"; var TempBlob: Codeunit "Temp Blob"; var BestDefCode: Code[20]; var BestDocType: Enum "E-Document Type")
     var
-        DataExchDef: Record "Data Exch. Def";
+        EDocServiceDataExchDef: Record "E-Doc. Service Data Exch. Def.";
+        DataExchLineDef: Record "Data Exch. Line Def";
+        EDocumentService: Record "E-Document Service";
         DocumentNamespace: Text;
     begin
         DocumentNamespace := GetDocumentRootNamespace(TempBlob);
+        EDocumentService := EDocument.GetEDocumentService();
 
-        case DocumentNamespace of
-            InvoiceNamespaceTxt:
-                begin
-                    BestDefCode := InvoiceDefCodeTok;
-                    BestDocType := "E-Document Type"::"Purchase Invoice";
-                end;
-            CreditNoteNamespaceTxt:
-                begin
-                    BestDefCode := CreditMemoDefCodeTok;
-                    BestDocType := "E-Document Type"::"Purchase Credit Memo";
-                end;
-            else
-                Error(UnrecognisedNamespaceErr, DocumentNamespace);
-        end;
+        EDocServiceDataExchDef.SetRange("E-Document Format Code", EDocumentService.Code);
+        if not EDocServiceDataExchDef.FindSet() then
+            Error(NoDataExchDefsConfiguredErr, EDocumentService.Code);
 
-        if not DataExchDef.Get(BestDefCode) then
-            Error(DataExchDefNotFoundErr, BestDefCode);
+        repeat
+            if EDocServiceDataExchDef."Impt. Data Exchange Def. Code" <> '' then begin
+                DataExchLineDef.SetRange("Data Exch. Def Code", EDocServiceDataExchDef."Impt. Data Exchange Def. Code");
+                DataExchLineDef.SetRange("Parent Code", '');
+                if DataExchLineDef.FindFirst() then
+                    if DataExchLineDef.Namespace = DocumentNamespace then begin
+                        BestDefCode := EDocServiceDataExchDef."Impt. Data Exchange Def. Code";
+                        BestDocType := EDocServiceDataExchDef."Document Type";
+                        exit;
+                    end;
+            end;
+        until EDocServiceDataExchDef.Next() = 0;
+
+        Error(UnrecognisedNamespaceErr, DocumentNamespace);
     end;
 
     local procedure GetDocumentRootNamespace(var TempBlob: Codeunit "Temp Blob"): Text
@@ -391,11 +397,7 @@ codeunit 6407 "E-Doc. PEPPOL DX Handler" implements IStructuredFormatReader
     #endregion Integration Events
 
     var
-        InvoiceDefCodeTok: Label 'EDOCPEPINVIMPV2', Locked = true;
-        CreditMemoDefCodeTok: Label 'EDOCPEPCRMEMOIMPV2', Locked = true;
-        InvoiceNamespaceTxt: Label 'urn:oasis:names:specification:ubl:schema:xsd:Invoice-2', Locked = true;
-        CreditNoteNamespaceTxt: Label 'urn:oasis:names:specification:ubl:schema:xsd:CreditNote-2', Locked = true;
         ViewNotImplementedErr: Label 'A view is not implemented for this handler.', Comment = 'Error shown when View is called on a handler that does not support viewing.';
-        UnrecognisedNamespaceErr: Label 'The XML document has an unrecognised root namespace: %1. Only PEPPOL BIS 3.0 Invoice and Credit Note are supported.', Comment = '%1 = XML root namespace URI';
-        DataExchDefNotFoundErr: Label 'The Data Exchange Definition ''%1'' was not found. Reinstall the E-Document app to restore it.', Comment = '%1 = Data Exchange Definition code';
+        UnrecognisedNamespaceErr: Label 'No configured Data Exchange Definition matches the XML root namespace ''%1''. Configure a definition with a matching namespace in the E-Document Service setup.', Comment = '%1 = XML root namespace URI';
+        NoDataExchDefsConfiguredErr: Label 'No import Data Exchange Definitions are configured for E-Document Service ''%1''.', Comment = '%1 = E-Document Service code';
 }
