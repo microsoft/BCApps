@@ -169,14 +169,14 @@ codeunit 6402 "E-Doc. Purch. Doc. Helper"
         if EDocumentPurchaseHeader."Applied VAT Amount Diff." = 0 then
             exit;
 
-        TotalLineAmount := ComputeTotalLineAmount(EDocumentPurchaseHeader."E-Document Entry No.");
-        if TotalLineAmount = 0 then
-            exit;
-
         if PurchaseHeader."Currency Code" = '' then
             Currency.InitRoundingPrecision()
         else
             Currency.Get(PurchaseHeader."Currency Code");
+
+        TotalLineAmount := ComputeTotalLineAmount(EDocumentPurchaseHeader."E-Document Entry No.", Currency."Amount Rounding Precision");
+        if TotalLineAmount = 0 then
+            exit;
 
         PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
         PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
@@ -189,9 +189,9 @@ codeunit 6402 "E-Doc. Purch. Doc. Helper"
             LineAmount := PurchaseLine."Line Amount" - PurchaseLine."Inv. Discount Amount";
             if LineAmount <> 0 then begin
                 VATDiffForLine := VATDiffRemainder + EDocumentPurchaseHeader."Applied VAT Amount Diff." * LineAmount / TotalLineAmount;
-                PurchaseLine."VAT Difference" := Round(VATDiffForLine, Currency."Amount Rounding Precision");
+                PurchaseLine.Validate("VAT Difference", Round(VATDiffForLine, Currency."Amount Rounding Precision"));
                 VATDiffRemainder := VATDiffForLine - PurchaseLine."VAT Difference";
-                PurchaseLine.Modify();
+                PurchaseLine.Modify(true);
             end;
         until PurchaseLine.Next() = 0;
     end;
@@ -232,7 +232,7 @@ codeunit 6402 "E-Doc. Purch. Doc. Helper"
             VATPostingSetup."VAT Calculation Type"::"Reverse Charge VAT");
     end;
 
-    local procedure ComputeTotalLineAmount(EDocEntryNo: Integer): Decimal
+    local procedure ComputeTotalLineAmount(EDocEntryNo: Integer; AmountRoundingPrecision: Decimal): Decimal
     var
         EDocPurchLine: Record "E-Document Purchase Line";
         TotalLineAmount: Decimal;
@@ -240,7 +240,9 @@ codeunit 6402 "E-Doc. Purch. Doc. Helper"
         EDocPurchLine.SetRange("E-Document Entry No.", EDocEntryNo);
         if EDocPurchLine.FindSet() then
             repeat
-                TotalLineAmount += Round(EDocPurchLine.Quantity * EDocPurchLine."Unit Price" - EDocPurchLine."Total Discount");
+                TotalLineAmount += Round(
+                    EDocPurchLine.Quantity * EDocPurchLine."Unit Price" - EDocPurchLine."Total Discount",
+                    AmountRoundingPrecision);
             until EDocPurchLine.Next() = 0;
         exit(TotalLineAmount);
     end;

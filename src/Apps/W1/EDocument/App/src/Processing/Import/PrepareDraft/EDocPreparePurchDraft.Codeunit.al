@@ -34,6 +34,7 @@ codeunit 6406 "EDoc Prepare Purch. Draft"
         Vendor: Record Vendor;
         PurchaseOrder: Record "Purchase Header";
         EDocVendorAssignmentHistory: Record "E-Doc. Vendor Assign. History";
+
         EDocPurchaseHistMapping: Codeunit "E-Doc. Purchase Hist. Mapping";
         EDocActivityLogSession: Codeunit "E-Doc. Activity Log Session";
         IUnitOfMeasureProvider: Interface IUnitOfMeasureProvider;
@@ -160,6 +161,7 @@ codeunit 6406 "EDoc Prepare Purch. Draft"
         EDocumentPurchaseLine: Record "E-Document Purchase Line";
         Vendor: Record Vendor;
         VATRate: Decimal;
+        LineBase: Decimal;
         LineCount: Integer;
     begin
         if not PurchasesPayablesSetup.Get() then
@@ -182,10 +184,13 @@ codeunit 6406 "EDoc Prepare Purch. Draft"
                 VATRate := EDocumentPurchaseLine."VAT Rate";
 
                 // Single-line fallback: compute from header Total VAT
-                if (VATRate = 0) and (LineCount = 1) and
-                   (EDocumentPurchaseHeader."Total VAT" > 0) and (EDocumentPurchaseHeader."Sub Total" > 0)
-                then
-                    VATRate := Round((EDocumentPurchaseHeader."Total VAT" / EDocumentPurchaseHeader."Sub Total") * 100, 0.01);
+                if (VATRate = 0) and (LineCount = 1) and (EDocumentPurchaseHeader."Total VAT" > 0) then begin
+                    LineBase := EDocumentPurchaseLine.Quantity * EDocumentPurchaseLine."Unit Price" - EDocumentPurchaseLine."Total Discount";
+                    if LineBase = 0 then
+                        LineBase := EDocumentPurchaseHeader."Sub Total";
+                    if LineBase > 0 then
+                        VATRate := Round((EDocumentPurchaseHeader."Total VAT" / LineBase) * 100, 0.01);
+                end;
 
                 if VATRate > 0 then begin
                     EDocumentPurchaseLine."[BC] VAT Prod. Posting Group" :=

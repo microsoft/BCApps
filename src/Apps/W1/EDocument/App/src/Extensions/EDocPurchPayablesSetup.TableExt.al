@@ -36,6 +36,7 @@ tableextension 6162 "E-Doc. Purch. Payables Setup" extends "Purchases & Payables
         {
             Caption = 'Resolve VAT Product Group for Purch. E-Doc.';
             DataClassification = CustomerContent;
+            InitValue = true;
         }
     }
 }
