@@ -47,7 +47,7 @@ page 99001501 "Subc. Transfer Line Factbox"
             }
             field(ShowProdOrderComponents; GetNoOfProductionComponents(Rec))
             {
-                Caption = 'Production Component';
+                Caption = 'Production Components';
                 ToolTip = 'Specifies the dependent Production Components of this Subcontracting Transfer Order.';
 
                 trigger OnDrillDown()
