@@ -36,28 +36,4 @@ interface IStructuredDataType
     /// </summary>
     /// <returns></returns>
     procedure GetReadIntoDraftImpl(): Enum "E-Doc. Read into Draft"
-
-
-    // procedure GetSupportedMessages(): List of [Enum "E-Document Message"];
-
-
-
-    // // RETURNS INTERFACE ON HOW TO READ AND WRITE MESSAGE FOR THIS DATA TYPE 
-    // procedure GetMessageProcessing(): Enum "E-Doc. Message Processor";
-
 }
-
-// interface IEDocumentMesssage
-// {
-
-// }
-
-// enum 6108 "E-Doc. Message" implements IEDocumentMesssage
-// {
-//     value(0; "Approval")
-//     {
-//         Caption = 'Approval';
-//     }
-// }
-
-
