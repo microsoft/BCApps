@@ -52,7 +52,7 @@
       <DataExchColumnDef ColumnNo="49" Name="CustLegalEntityCompanyID" Show="false" DataType="0" Description="Customer Legal Entity Company ID" Path="/CreditNote/cac:AccountingCustomerParty/cac:Party/cac:PartyLegalEntity/cbc:CompanyID" TextPaddingRequired="false" Justification="0" UseNodeNameAsValue="false" BlankZero="false" ExportIfNotBlank="false" />
       <DataExchColumnDef ColumnNo="50" Name="CustomerEndpointID" Show="false" DataType="0" Description="Customer Endpoint ID" Path="/CreditNote/cac:AccountingCustomerParty/cac:Party/cbc:EndpointID" TextPaddingRequired="false" Justification="0" UseNodeNameAsValue="false" BlankZero="false" ExportIfNotBlank="false" />
       <DataExchColumnDef ColumnNo="51" Name="CustomerEndpointSchemeID" Show="false" DataType="0" Description="Customer Endpoint Scheme ID" Path="/CreditNote/cac:AccountingCustomerParty/cac:Party/cbc:EndpointID/@schemeID" TextPaddingRequired="false" Justification="0" UseNodeNameAsValue="false" BlankZero="false" ExportIfNotBlank="false" />
-      <DataExchMapping TableId="1214" UseAsIntermediateTable="true" Name="PEPPOL Credit Note to E-Document Purchase Header">
+      <DataExchMapping TableId="1214" UseAsIntermediateTable="true" PostMappingCodeunit="6408" Name="PEPPOL Credit Note to E-Document Purchase Header">
         <DataExchFieldMapping ColumnNo="1" TargetTableID="6100" TargetFieldID="5" />
         <DataExchFieldMapping ColumnNo="2" TargetTableID="6100" TargetFieldID="8" />
         <DataExchFieldMapping ColumnNo="3" TargetTableID="6100" TargetFieldID="24" />

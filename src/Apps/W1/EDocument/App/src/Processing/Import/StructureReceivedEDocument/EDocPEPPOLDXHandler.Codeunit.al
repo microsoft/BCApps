@@ -93,9 +93,13 @@ codeunit 6407 "E-Doc. PEPPOL DX Handler" implements IStructuredFormatReader
     var
         DataExch: Record "Data Exch.";
         DataExchDef: Record "Data Exch. Def";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
         Stream: InStream;
     begin
         DataExchDef.Get(DataExchDefCode);
+
+        // Insert header record before pipeline so the Post-Mapping codeunit can write to it.
+        EDocumentPurchaseHeader.InsertForEDocument(EDocument);
 
         TempBlob.CreateInStream(Stream);
         DataExch.Init();
@@ -115,6 +119,8 @@ codeunit 6407 "E-Doc. PEPPOL DX Handler" implements IStructuredFormatReader
     local procedure TryRunPipeline(EDocument: Record "E-Document"; var DataExch: Record "Data Exch."; DataExchDef: Record "Data Exch. Def")
     begin
         DataExch.ImportToDataExch(DataExchDef);
+        // ProcessDataExchange runs DataHandlingCodeunit (1214) to populate Intermediate Data Import,
+        // then the Post-Mapping codeunit registered on the header mapping for format-specific work.
         DataExchDef.ProcessDataExchange(DataExch);
         BridgeToStagingTables(EDocument, DataExch);
     end;
@@ -123,15 +129,13 @@ codeunit 6407 "E-Doc. PEPPOL DX Handler" implements IStructuredFormatReader
     var
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
     begin
-        EDocumentPurchaseHeader.InsertForEDocument(EDocument);
+        EDocumentPurchaseHeader.GetFromEDocument(EDocument);
 
         MapIntermediateToHeader(DataExch, EDocumentPurchaseHeader);
         PostProcessHeader(EDocumentPurchaseHeader);
-        BuildEndpointIdentifiers(DataExch, EDocumentPurchaseHeader);
         EDocumentPurchaseHeader.Modify();
 
         MapIntermediateToLines(EDocument, DataExch);
-        MapChargeLinesToStaging(EDocument, DataExch);
         ProcessAttachments(EDocument, DataExch);
 
         OnAfterBridgeToStagingTables(DataExch."Entry No.", EDocumentPurchaseHeader);
@@ -181,41 +185,6 @@ codeunit 6407 "E-Doc. PEPPOL DX Handler" implements IStructuredFormatReader
         EDocumentPurchaseHeader."Total VAT" := EDocumentPurchaseHeader.Total - EDocumentPurchaseHeader."Sub Total" - EDocumentPurchaseHeader."Total Discount";
         EDocumentPurchaseHeader."Amount Due" := EDocumentPurchaseHeader.Total;
         ApplyLCYBlankConvention(EDocumentPurchaseHeader."Currency Code");
-    end;
-
-    local procedure BuildEndpointIdentifiers(DataExch: Record "Data Exch."; var EDocumentPurchaseHeader: Record "E-Document Purchase Header")
-    var
-        DataExchField: Record "Data Exch. Field";
-        DataExchColumnDef: Record "Data Exch. Column Def";
-        EndpointValue: Text;
-        EndpointScheme: Text;
-        ValueColNo: Integer;
-        SchemeColNo: Integer;
-    begin
-        DataExchColumnDef.SetRange("Data Exch. Def Code", DataExch."Data Exch. Def Code");
-        DataExchColumnDef.SetRange(Name, 'CustomerEndpointID');
-        if DataExchColumnDef.FindFirst() then
-            ValueColNo := DataExchColumnDef."Column No.";
-
-        DataExchColumnDef.SetRange(Name, 'CustomerEndpointSchemeID');
-        if DataExchColumnDef.FindFirst() then
-            SchemeColNo := DataExchColumnDef."Column No.";
-
-        if (ValueColNo = 0) or (SchemeColNo = 0) then
-            exit;
-
-        DataExchField.SetRange("Data Exch. No.", DataExch."Entry No.");
-        DataExchField.SetRange("Column No.", ValueColNo);
-        if DataExchField.FindFirst() then
-            EndpointValue := DataExchField.Value;
-
-        DataExchField.SetRange("Column No.", SchemeColNo);
-        if DataExchField.FindFirst() then
-            EndpointScheme := DataExchField.Value;
-
-        if (EndpointValue <> '') and (EndpointScheme <> '') then
-            EDocumentPurchaseHeader."Customer Company Id" :=
-                CopyStr(EndpointScheme + ':' + EndpointValue, 1, MaxStrLen(EDocumentPurchaseHeader."Customer Company Id"));
     end;
 
     #endregion Header Mapping
@@ -281,85 +250,6 @@ codeunit 6407 "E-Doc. PEPPOL DX Handler" implements IStructuredFormatReader
     local procedure PostProcessLine(var EDocumentPurchaseLine: Record "E-Document Purchase Line")
     begin
         ApplyLCYBlankConvention(EDocumentPurchaseLine."Currency Code");
-    end;
-
-    /// <summary>
-    /// Maps document-level AllowanceCharge elements (PEPPOLCHARGELINES line def) to staging lines.
-    /// These are read directly from Data Exch. Field — not through Intermediate Data Import —
-    /// to avoid Record No. collisions with invoice/credit note line records.
-    /// </summary>
-    local procedure MapChargeLinesToStaging(EDocument: Record "E-Document"; DataExch: Record "Data Exch.")
-    var
-        DataExchField: Record "Data Exch. Field";
-        DataExchColumnDef: Record "Data Exch. Column Def";
-        EDocumentPurchaseLine: Record "E-Document Purchase Line";
-        CurrLineNo: Integer;
-        DescColNo: Integer;
-        AmountColNo: Integer;
-        VATRateColNo: Integer;
-        CurrencyColNo: Integer;
-        IndicatorColNo: Integer;
-        IsCharge: Boolean;
-    begin
-        DataExchColumnDef.SetRange("Data Exch. Def Code", DataExch."Data Exch. Def Code");
-        DataExchColumnDef.SetRange("Data Exch. Line Def Code", ChargeLineDefCodeTok);
-        DataExchColumnDef.SetRange(Name, 'ChargeDescription');
-        if DataExchColumnDef.FindFirst() then DescColNo := DataExchColumnDef."Column No.";
-        DataExchColumnDef.SetRange(Name, 'ChargeAmount');
-        if DataExchColumnDef.FindFirst() then AmountColNo := DataExchColumnDef."Column No.";
-        DataExchColumnDef.SetRange(Name, 'ChargeVATRate');
-        if DataExchColumnDef.FindFirst() then VATRateColNo := DataExchColumnDef."Column No.";
-        DataExchColumnDef.SetRange(Name, 'ChargeCurrencyCode');
-        if DataExchColumnDef.FindFirst() then CurrencyColNo := DataExchColumnDef."Column No.";
-        DataExchColumnDef.SetRange(Name, 'ChargeIndicator');
-        if DataExchColumnDef.FindFirst() then IndicatorColNo := DataExchColumnDef."Column No.";
-
-        if DescColNo = 0 then
-            exit;
-
-        DataExchField.SetRange("Data Exch. No.", DataExch."Entry No.");
-        DataExchField.SetRange("Data Exch. Line Def Code", ChargeLineDefCodeTok);
-        DataExchField.SetCurrentKey("Line No.", "Column No.");
-        if not DataExchField.FindSet() then
-            exit;
-
-        CurrLineNo := -1;
-        IsCharge := false;
-        repeat
-            if CurrLineNo <> DataExchField."Line No." then begin
-                if (CurrLineNo <> -1) and IsCharge then begin
-                    PostProcessLine(EDocumentPurchaseLine);
-                    EDocumentPurchaseLine.Insert();
-                end;
-                Clear(EDocumentPurchaseLine);
-                EDocumentPurchaseLine."E-Document Entry No." := EDocument."Entry No";
-                EDocumentPurchaseLine."Line No." := EDocumentPurchaseLine.GetNextLineNo(EDocument."Entry No");
-                EDocumentPurchaseLine.Quantity := 1;
-                CurrLineNo := DataExchField."Line No.";
-                IsCharge := false;
-            end;
-
-            case DataExchField."Column No." of
-                DescColNo:
-                    EDocumentPurchaseLine.Description := CopyStr(DataExchField.Value, 1, MaxStrLen(EDocumentPurchaseLine.Description));
-                AmountColNo:
-                    begin
-                        if Evaluate(EDocumentPurchaseLine."Unit Price", DataExchField.Value, 9) then;
-                        if Evaluate(EDocumentPurchaseLine."Sub Total", DataExchField.Value, 9) then;
-                    end;
-                VATRateColNo:
-                    if Evaluate(EDocumentPurchaseLine."VAT Rate", DataExchField.Value, 9) then;
-                CurrencyColNo:
-                    EDocumentPurchaseLine."Currency Code" := CopyStr(DataExchField.Value, 1, MaxStrLen(EDocumentPurchaseLine."Currency Code"));
-                IndicatorColNo:
-                    IsCharge := LowerCase(DataExchField.Value) = 'true';
-            end;
-        until DataExchField.Next() = 0;
-
-        if (CurrLineNo <> -1) and IsCharge then begin
-            PostProcessLine(EDocumentPurchaseLine);
-            EDocumentPurchaseLine.Insert();
-        end;
     end;
 
     #endregion Line Mapping
@@ -517,5 +407,4 @@ codeunit 6407 "E-Doc. PEPPOL DX Handler" implements IStructuredFormatReader
         ViewNotImplementedErr: Label 'A view is not implemented for this handler.', Comment = 'Error shown when View is called on a handler that does not support viewing.';
         UnrecognisedNamespaceErr: Label 'The XML document has an unrecognised root namespace: %1. Only PEPPOL BIS 3.0 Invoice and Credit Note are supported.', Comment = '%1 = XML root namespace URI';
         DataExchDefNotFoundErr: Label 'The Data Exchange Definition ''%1'' was not found. Reinstall the E-Document app to restore it.', Comment = '%1 = Data Exchange Definition code';
-        ChargeLineDefCodeTok: Label 'PEPPOLCHARGELINES', Locked = true;
 }
