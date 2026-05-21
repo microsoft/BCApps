@@ -216,7 +216,7 @@ codeunit 99001561 "Subc. Routing Factbox Mgmt."
     /// </summary>
     /// <param name="ProdOrderRoutingLine">The production order routing line to count linked components for.</param>
     /// <returns>The count of matching production order components, or 0 if the routing link code is empty.</returns>
-    procedure GetNoOfLinkedComponentsFromRouting(ProdOrderRoutingLine: Record "Prod. Order Routing Line"): Decimal
+    procedure GetNoOfLinkedComponentsFromRouting(ProdOrderRoutingLine: Record "Prod. Order Routing Line"): Integer
     var
         ProdOrderComponent: Record "Prod. Order Component";
     begin
