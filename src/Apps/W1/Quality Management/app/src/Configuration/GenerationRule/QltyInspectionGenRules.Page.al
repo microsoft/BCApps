@@ -266,7 +266,7 @@ page 20405 "Qlty. Inspection Gen. Rules"
             {
                 ApplicationArea = Manufacturing;
                 Caption = 'Edit Production Rule';
-                ToolTip = 'Edit a generationrule for production.';
+                ToolTip = 'Edit a generation rule for production.';
                 Image = EditLines;
                 Scope = Repeater;
                 Visible = ShowEditProductionRuleSetupGuide;
@@ -307,7 +307,7 @@ page 20405 "Qlty. Inspection Gen. Rules"
             {
                 ApplicationArea = All;
                 Caption = 'Edit Receiving Rule';
-                ToolTip = 'Edit a generationrule for receiving.';
+                ToolTip = 'Edit a generation rule for receiving.';
                 Image = EditLines;
                 Scope = Repeater;
                 Visible = ShowEditReceivingRuleSetupGuide;
@@ -348,7 +348,7 @@ page 20405 "Qlty. Inspection Gen. Rules"
             {
                 ApplicationArea = Warehouse;
                 Caption = 'Edit Bin Movement Rule';
-                ToolTip = 'Edit a generationrule for a bin movement.';
+                ToolTip = 'Edit a generation rule for a bin movement.';
                 Image = EditAdjustments;
                 Scope = Repeater;
                 Visible = ShowEditMovementRuleSetupGuide;
