@@ -107,22 +107,13 @@ codeunit 6407 "E-Doc. PEPPOL DX Handler" implements IStructuredFormatReader
         DataExch."Related Record" := EDocument.RecordId;
         DataExch.Modify(true);
 
-        if not TryRunPipeline(EDocument, DataExch, DataExchDef) then begin
-            DeleteIntermediateData(DataExch);
-            Error(GetLastErrorText());
-        end;
-
-        DeleteIntermediateData(DataExch);
-    end;
-
-    [TryFunction]
-    local procedure TryRunPipeline(EDocument: Record "E-Document"; var DataExch: Record "Data Exch."; DataExchDef: Record "Data Exch. Def")
-    begin
         DataExch.ImportToDataExch(DataExchDef);
         // ProcessDataExchange runs DataHandlingCodeunit (1214) to populate Intermediate Data Import,
         // then the Post-Mapping codeunit registered on the header mapping for format-specific work.
         DataExchDef.ProcessDataExchange(DataExch);
         BridgeToStagingTables(EDocument, DataExch);
+
+        DeleteIntermediateData(DataExch);
     end;
 
     local procedure BridgeToStagingTables(EDocument: Record "E-Document"; DataExch: Record "Data Exch.")
