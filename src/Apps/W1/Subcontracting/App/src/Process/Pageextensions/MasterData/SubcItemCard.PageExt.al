@@ -23,24 +23,5 @@ pageextension 99001518 "Subc. Item Card" extends "Item Card"
                 ToolTip = 'Set up different prices for the item in subcontracting.';
             }
         }
-        addlast(Functions)
-        {
-            action(CreatePurchProvProdBOMRtng)
-            {
-                ApplicationArea = Manufacturing;
-                Caption = 'Create Prod. BOM/Routing';
-                Image = CreateForm;
-                ToolTip = 'Create a Production BOM and/or Routing for the item.';
-                trigger OnAction()
-                var
-                    SubcCreateProdRtngExt: Codeunit "Subc. Create Prod. Rtng. Ext.";
-                begin
-                    Rec.SetRecFilter();
-                    BindSubscription(SubcCreateProdRtngExt);
-                    Report.Run(Report::"Subc. Create Prod. Routing", true, true, Rec);
-                    UnbindSubscription(SubcCreateProdRtngExt);
-                end;
-            }
-        }
     }
 }
