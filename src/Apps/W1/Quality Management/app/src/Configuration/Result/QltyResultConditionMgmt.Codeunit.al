@@ -347,7 +347,7 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
                     ToTestQltyIResultConditConf."Condition Description" := CopyStr(Condition, 1, MaxStrLen(ToTestQltyIResultConditConf."Condition Description"));
                     ToTestQltyIResultConditConf.Insert();
                 end else
-                    if AlwaysUpdateExistingCondition or (OnlyOverwriteIfADefaultCondition and (ToTestQltyIResultConditConf.Condition in [QltyInspectionResult."Default Boolean Condition", QltyInspectionResult."Default Number Condition", QltyInspectionResult."Default Text Condition"])) then begin
+                    if AlwaysUpdateExistingCondition or (OnlyOverwriteIfADefaultCondition and (ToTestQltyIResultConditConf.Condition in ['', QltyInspectionResult."Default Boolean Condition", QltyInspectionResult."Default Number Condition", QltyInspectionResult."Default Text Condition"])) then begin
                         ToTestQltyIResultConditConf.Validate(Condition, CopyStr(Condition, 1, MaxStrLen(ToTestQltyIResultConditConf.Condition)));
                         ToTestQltyIResultConditConf."Condition Description" := CopyStr(Condition, 1, MaxStrLen(ToTestQltyIResultConditConf."Condition Description"));
                         ToTestQltyIResultConditConf.Priority := QltyInspectionResult."Evaluation Sequence";
