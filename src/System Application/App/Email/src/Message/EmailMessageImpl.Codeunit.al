@@ -223,6 +223,47 @@ codeunit 8905 "Email Message Impl."
         Modify();
     end;
 
+    procedure SetHeaders(HeadersJson: JsonObject)
+    var
+        HeadersOutStream: OutStream;
+        HeadersText: Text;
+    begin
+        Clear(GlobalEmailMessage."Message Headers");
+        if HeadersJson.Keys().Count() = 0 then begin
+            Modify();
+            exit;
+        end;
+        HeadersJson.WriteTo(HeadersText);
+        GlobalEmailMessage."Message Headers".CreateOutStream(HeadersOutStream, TextEncoding::UTF8);
+        HeadersOutStream.WriteText(HeadersText);
+        Modify();
+    end;
+
+    procedure TryGetHeader(HeaderName: Text; var Value: Text): Boolean
+    var
+        HeadersInStream: InStream;
+        HeadersJson: JsonObject;
+        HeaderToken: JsonToken;
+        HeadersText: Text;
+    begin
+        Value := '';
+        GlobalEmailMessage.CalcFields("Message Headers");
+        if not GlobalEmailMessage."Message Headers".HasValue() then
+            exit(false);
+        GlobalEmailMessage."Message Headers".CreateInStream(HeadersInStream, TextEncoding::UTF8);
+        HeadersInStream.ReadText(HeadersText);
+        if HeadersText = '' then
+            exit(false);
+        if not HeadersJson.ReadFrom(HeadersText) then
+            exit(false);
+        if not HeadersJson.Get(LowerCase(DelChr(HeaderName, '<>', ' ')), HeaderToken) then
+            exit(false);
+        if not HeaderToken.IsValue() then
+            exit(false);
+        Value := HeaderToken.AsValue().AsText();
+        exit(true);
+    end;
+
     procedure IsRead(): Boolean
     begin
         exit(not GlobalEmailMessage.Editable);

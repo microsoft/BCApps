@@ -197,6 +197,31 @@ codeunit 8904 "Email Message"
         EmailMessageImpl.AppendToBody(Value);
     end;
 
+    /// <summary>
+    /// Writes the supplied headers as JSON into the currently loaded message.
+    /// </summary>
+    /// <param name="HeadersJson">Headers as a JSON object. Callers should lowercase header names and
+    /// concatenate multi-value headers with a line feed (#10) for consistency across connectors.
+    /// An empty object clears the stored headers.</param>
+    /// <remarks>Intended for connectors that retrieve RFC822-style headers from their provider
+    /// (e.g. the Outlook REST API connector reading <c>internetMessageHeaders</c> from Graph).</remarks>
+    procedure SetHeaders(HeadersJson: JsonObject)
+    begin
+        EmailMessageImpl.SetHeaders(HeadersJson);
+    end;
+
+    /// <summary>
+    /// Reads a single header value from the currently loaded message. Lookups are case-insensitive
+    /// on the header name.
+    /// </summary>
+    /// <param name="HeaderName">Header name to look up (case-insensitive, whitespace-trimmed).</param>
+    /// <param name="Value">Returned value when the header is present; empty otherwise.</param>
+    /// <returns><c>true</c> when a value was found.</returns>
+    procedure TryGetHeader(HeaderName: Text; var Value: Text): Boolean
+    begin
+        exit(EmailMessageImpl.TryGetHeader(HeaderName, Value));
+    end;
+
     procedure GetExternalId(): Text[2048]
     begin
         exit(EmailMessageImpl.GetExternalId());
