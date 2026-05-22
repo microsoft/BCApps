@@ -371,6 +371,8 @@ codeunit 20410 "Qlty. Result Evaluation"
                 IsValid := TryApplyDecimalFilter(AllowableValues);
             QltyTestValueType::"Value Type Integer":
                 IsValid := TryApplyIntegerFilter(AllowableValues);
+            QltyTestValueType::"Value Type Boolean":
+                IsValid := TryApplyBooleanFilter(AllowableValues);
             QltyTestValueType::"Value Type Date":
                 IsValid := TryApplyDateFilter(AllowableValues);
             QltyTestValueType::"Value Type DateTime":
@@ -397,6 +399,16 @@ codeunit 20410 "Qlty. Result Evaluation"
     begin
         TempInteger.SetFilter(Number, FilterExpression);
         if TempInteger.IsEmpty() then;
+    end;
+
+    [TryFunction]
+    local procedure TryApplyBooleanFilter(FilterExpression: Text)
+    var
+        QltyBooleanParsing: Codeunit "Qlty. Boolean Parsing";
+    begin
+        // Valid boolean allowable values are: Yes, No, True, False, 1, 0, On, Off (and variations)
+        if not QltyBooleanParsing.CanTextBeInterpretedAsBooleanIsh(FilterExpression) then
+            Error('');
     end;
 
     [TryFunction]
@@ -486,9 +498,8 @@ codeunit 20410 "Qlty. Result Evaluation"
                 if not (IsBlankOrEmptyCondition(AllowableValues) and (TextToValidate = '')) then
                     if not QltyResultEvaluation.CheckIfValueIsString(TextToValidate, ConvertStr(AllowableValues, ',', '|'), QltyCaseSensitivity) then
                         Error(NotInAllowableValuesErr, TextToValidate, NumberOrNameOfTestNameForError, AllowableValues);
-
             QltyTestValueType::"Value Type Option",
-                QltyTestValueType::"Value Type Table Lookup":
+            QltyTestValueType::"Value Type Table Lookup":
                 begin
                     TextToValidate := CopyStr(TextToValidate.Trim(), 1, MaxStrLen(TextToValidate));
 
@@ -512,6 +523,7 @@ codeunit 20410 "Qlty. Result Evaluation"
                         Error(NotInAllowableValuesErr, TextToValidate, NumberOrNameOfTestNameForError, AllowableValues);
                 end;
         end;
+
         OnAfterValidateAllowableValuesOnText(NumberOrNameOfTestNameForError, TextToValidate, AllowableValues, QltyTestValueType, TempBufferQltyTestLookupValue, QltyCaseSensitivity);
     end;
 
