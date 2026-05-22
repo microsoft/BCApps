@@ -217,8 +217,7 @@ codeunit 6406 "EDoc Prepare Purch. Draft"
             VATPostingSetup.FindFirst();
             exit(VATPostingSetup."VAT Prod. Posting Group");
         end;
-        Session.LogMessage(
-            '', StrSubstNo(VATPostingGroupNotFoundLbl, VATRate), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
+        Session.LogMessage('0000TXZ', StrSubstNo(VATPostingGroupNotFoundLbl, VATRate), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
         exit('');
     end;
 
