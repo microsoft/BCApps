@@ -20,29 +20,27 @@ codeunit 134707 "Email Message Headers Test"
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    procedure RoundTripsHeadersJson()
+    procedure AddHeaderRoundTripsCaseInsensitively()
     var
         Message: Codeunit "Email Message";
-        HeadersJson: JsonObject;
         Value: Text;
     begin
         PermissionsMock.Set('Email Edit');
 
         Message.Create('to@test.com', 'subject', 'body');
-        HeadersJson.Add('authentication-results', 'spf=pass');
-        HeadersJson.Add('x-ms-exchange-organization-authas', 'Internal');
-        Message.SetHeaders(HeadersJson);
+        Message.AddHeader('Authentication-Results', 'spf=pass');
+        Message.AddHeader('X-MS-Exchange-Organization-AuthAs', 'Internal');
 
         Assert.IsTrue(Message.Get(Message.GetId()), 'Message not found after reload');
-        Assert.IsTrue(Message.TryGetHeader('Authentication-Results', Value), 'Header lookup should succeed case-insensitively');
+        Assert.IsTrue(Message.TryGetHeader('authentication-results', Value), 'Header lookup should succeed case-insensitively');
         Assert.AreEqual('spf=pass', Value, 'Authentication-Results header value mismatch');
-        Assert.IsTrue(Message.TryGetHeader('X-MS-Exchange-Organization-AuthAs', Value), 'AuthAs header lookup should succeed');
+        Assert.IsTrue(Message.TryGetHeader('X-MS-EXCHANGE-ORGANIZATION-AUTHAS', Value), 'AuthAs header lookup should succeed case-insensitively');
         Assert.AreEqual('Internal', Value, 'AuthAs header value mismatch');
     end;
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    procedure TryGetHeaderReturnsFalseOnEmptyBlob()
+    procedure TryGetHeaderReturnsFalseWhenNoHeadersStored()
     var
         Message: Codeunit "Email Message";
         Value: Text;
@@ -51,47 +49,44 @@ codeunit 134707 "Email Message Headers Test"
 
         Message.Create('to@test.com', 'subject', 'body');
 
-        Assert.IsFalse(Message.TryGetHeader('any-header', Value), 'Empty blob should return false');
+        Assert.IsFalse(Message.TryGetHeader('any-header', Value), 'Lookup on a message with no headers should return false');
         Assert.AreEqual('', Value, 'Value should be empty when no headers stored');
     end;
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    procedure SetHeadersWithEmptyJsonClearsBlob()
+    procedure AddHeaderJoinsRepeatedValuesWithLineFeed()
     var
         Message: Codeunit "Email Message";
-        HeadersJson: JsonObject;
-        EmptyHeadersJson: JsonObject;
         Value: Text;
     begin
         PermissionsMock.Set('Email Edit');
 
         Message.Create('to@test.com', 'subject', 'body');
-        HeadersJson.Add('authentication-results', 'spf=pass');
-        Message.SetHeaders(HeadersJson);
-
-        Message.SetHeaders(EmptyHeadersJson);
+        Message.AddHeader('Received', 'from hop1');
+        Message.AddHeader('Received', 'from hop2');
 
         Assert.IsTrue(Message.Get(Message.GetId()), 'Message not found after reload');
-        Assert.IsFalse(Message.TryGetHeader('Authentication-Results', Value), 'Headers should be cleared after empty SetHeaders');
+        Assert.IsTrue(Message.TryGetHeader('Received', Value), 'Repeated header lookup should succeed');
+        Assert.AreEqual('from hop1' + #10 + 'from hop2', Value, 'Repeated AddHeader calls should join values with line feed in insertion order');
     end;
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    procedure MultiValueHeaderRetainsAllValuesJoinedWithLineFeed()
+    procedure SetHeaderReplacesExistingValue()
     var
         Message: Codeunit "Email Message";
-        HeadersJson: JsonObject;
         Value: Text;
     begin
         PermissionsMock.Set('Email Edit');
 
         Message.Create('to@test.com', 'subject', 'body');
-        HeadersJson.Add('received', 'from hop1' + #10 + 'from hop2');
-        Message.SetHeaders(HeadersJson);
+        Message.AddHeader('Received', 'from hop1');
+        Message.AddHeader('Received', 'from hop2');
+        Message.SetHeader('Received', 'canonical');
 
         Assert.IsTrue(Message.Get(Message.GetId()), 'Message not found after reload');
-        Assert.IsTrue(Message.TryGetHeader('Received', Value), 'Multi-value header lookup should succeed');
-        Assert.AreEqual('from hop1' + #10 + 'from hop2', Value, 'Multi-value header should preserve line-feed joiner');
+        Assert.IsTrue(Message.TryGetHeader('Received', Value), 'Header lookup after SetHeader should succeed');
+        Assert.AreEqual('canonical', Value, 'SetHeader should replace any previously joined values');
     end;
 }

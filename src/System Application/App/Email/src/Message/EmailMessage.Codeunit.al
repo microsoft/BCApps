@@ -198,21 +198,36 @@ codeunit 8904 "Email Message"
     end;
 
     /// <summary>
-    /// Writes the supplied headers as JSON into the currently loaded message.
+    /// Adds a header to the currently loaded message. If a header with the same name is already
+    /// present, the new value is appended after a line feed (#10) so the full sequence is
+    /// preserved -- useful for headers that legitimately repeat (e.g. <c>Received</c>).
     /// </summary>
-    /// <param name="HeadersJson">Headers as a JSON object. Callers should lowercase header names and
-    /// concatenate multi-value headers with a line feed (#10) for consistency across connectors.
-    /// An empty object clears the stored headers.</param>
+    /// <param name="HeaderName">Header name. Lookups are case-insensitive; the stored name is
+    /// normalized to lowercase by the module.</param>
+    /// <param name="HeaderValue">Header value to append.</param>
     /// <remarks>Intended for connectors that retrieve RFC822-style headers from their provider
     /// (e.g. the Outlook REST API connector reading <c>internetMessageHeaders</c> from Graph).</remarks>
-    procedure SetHeaders(HeadersJson: JsonObject)
+    procedure AddHeader(HeaderName: Text; HeaderValue: Text)
     begin
-        EmailMessageImpl.SetHeaders(HeadersJson);
+        EmailMessageImpl.AddHeader(HeaderName, HeaderValue);
+    end;
+
+    /// <summary>
+    /// Sets a header on the currently loaded message, replacing any existing value for the same
+    /// name. Use <see cref="AddHeader"/> when repeated headers should accumulate.
+    /// </summary>
+    /// <param name="HeaderName">Header name. Lookups are case-insensitive; the stored name is
+    /// normalized to lowercase by the module.</param>
+    /// <param name="HeaderValue">Header value to store.</param>
+    procedure SetHeader(HeaderName: Text; HeaderValue: Text)
+    begin
+        EmailMessageImpl.SetHeader(HeaderName, HeaderValue);
     end;
 
     /// <summary>
     /// Reads a single header value from the currently loaded message. Lookups are case-insensitive
-    /// on the header name.
+    /// on the header name. Repeated headers are returned as one string with values joined by #10
+    /// in the order they were added.
     /// </summary>
     /// <param name="HeaderName">Header name to look up (case-insensitive, whitespace-trimmed).</param>
     /// <param name="Value">Returned value when the header is present; empty otherwise.</param>

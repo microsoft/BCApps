@@ -223,7 +223,83 @@ codeunit 8905 "Email Message Impl."
         Modify();
     end;
 
-    procedure SetHeaders(HeadersJson: JsonObject)
+    procedure AddHeader(HeaderName: Text; HeaderValue: Text)
+    var
+        HeadersJson: JsonObject;
+        ExistingToken: JsonToken;
+        NormalizedName: Text;
+        ExistingValue: Text;
+    begin
+        NormalizedName := NormalizeHeaderName(HeaderName);
+        if NormalizedName = '' then
+            exit;
+        LoadHeadersJson(HeadersJson);
+        if HeadersJson.Get(NormalizedName, ExistingToken) then begin
+            ExistingValue := ExistingToken.AsValue().AsText();
+            HeadersJson.Replace(NormalizedName, ExistingValue + #10 + HeaderValue);
+        end else
+            HeadersJson.Add(NormalizedName, HeaderValue);
+        WriteHeadersJson(HeadersJson);
+    end;
+
+    procedure SetHeader(HeaderName: Text; HeaderValue: Text)
+    var
+        HeadersJson: JsonObject;
+        NormalizedName: Text;
+    begin
+        NormalizedName := NormalizeHeaderName(HeaderName);
+        if NormalizedName = '' then
+            exit;
+        LoadHeadersJson(HeadersJson);
+        if HeadersJson.Contains(NormalizedName) then
+            HeadersJson.Replace(NormalizedName, HeaderValue)
+        else
+            HeadersJson.Add(NormalizedName, HeaderValue);
+        WriteHeadersJson(HeadersJson);
+    end;
+
+    procedure TryGetHeader(HeaderName: Text; var Value: Text): Boolean
+    var
+        HeadersJson: JsonObject;
+        HeaderToken: JsonToken;
+        NormalizedName: Text;
+    begin
+        Value := '';
+        NormalizedName := NormalizeHeaderName(HeaderName);
+        if NormalizedName = '' then
+            exit(false);
+        LoadHeadersJson(HeadersJson);
+        if not HeadersJson.Get(NormalizedName, HeaderToken) then
+            exit(false);
+        if not HeaderToken.IsValue() then
+            exit(false);
+        Value := HeaderToken.AsValue().AsText();
+        exit(true);
+    end;
+
+    local procedure NormalizeHeaderName(HeaderName: Text): Text
+    begin
+        exit(LowerCase(DelChr(HeaderName, '<>', ' ')));
+    end;
+
+    local procedure LoadHeadersJson(var HeadersJson: JsonObject)
+    var
+        HeadersInStream: InStream;
+        HeadersText: Text;
+    begin
+        Clear(HeadersJson);
+        GlobalEmailMessage.CalcFields("Message Headers");
+        if not GlobalEmailMessage."Message Headers".HasValue() then
+            exit;
+        GlobalEmailMessage."Message Headers".CreateInStream(HeadersInStream, TextEncoding::UTF8);
+        HeadersInStream.ReadText(HeadersText);
+        if HeadersText = '' then
+            exit;
+        if not HeadersJson.ReadFrom(HeadersText) then
+            Clear(HeadersJson);
+    end;
+
+    local procedure WriteHeadersJson(HeadersJson: JsonObject)
     var
         HeadersOutStream: OutStream;
         HeadersText: Text;
@@ -237,31 +313,6 @@ codeunit 8905 "Email Message Impl."
         GlobalEmailMessage."Message Headers".CreateOutStream(HeadersOutStream, TextEncoding::UTF8);
         HeadersOutStream.WriteText(HeadersText);
         Modify();
-    end;
-
-    procedure TryGetHeader(HeaderName: Text; var Value: Text): Boolean
-    var
-        HeadersInStream: InStream;
-        HeadersJson: JsonObject;
-        HeaderToken: JsonToken;
-        HeadersText: Text;
-    begin
-        Value := '';
-        GlobalEmailMessage.CalcFields("Message Headers");
-        if not GlobalEmailMessage."Message Headers".HasValue() then
-            exit(false);
-        GlobalEmailMessage."Message Headers".CreateInStream(HeadersInStream, TextEncoding::UTF8);
-        HeadersInStream.ReadText(HeadersText);
-        if HeadersText = '' then
-            exit(false);
-        if not HeadersJson.ReadFrom(HeadersText) then
-            exit(false);
-        if not HeadersJson.Get(LowerCase(DelChr(HeaderName, '<>', ' ')), HeaderToken) then
-            exit(false);
-        if not HeaderToken.IsValue() then
-            exit(false);
-        Value := HeaderToken.AsValue().AsText();
-        exit(true);
     end;
 
     procedure IsRead(): Boolean
