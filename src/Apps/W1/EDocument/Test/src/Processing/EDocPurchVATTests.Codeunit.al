@@ -20,7 +20,7 @@ using Microsoft.Sales.Customer;
 using System.IO;
 using System.TestLibraries.Utilities;
 
-codeunit 139897 "E-Doc Purch. VAT Tests"
+codeunit 135576 "E-Doc Purch. VAT Tests"
 {
     Subtype = Test;
     TestType = IntegrationTest;
