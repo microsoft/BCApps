@@ -69,6 +69,8 @@ codeunit 139897 "E-Doc. Purch. Order Exp. Test"
         PurchaseLine: Record "Purchase Line";
         EDocument: Record "E-Document";
         ReleasePurchaseDocument: Codeunit "Release Purchase Document";
+        ExpectedErr: Text;
+        UnexpectedMessageErr: Label 'The actual message is: [%1], while the expected message is: [%2].', Comment = '%1 - Last error message, %2 - expected message';
     begin
         // [FEATURE] [E-Document] [Processing]
         // [SCENARIO] Attempting to delete a Purchase Order that has a linked E-Document in non-Canceled status raises an error
@@ -88,7 +90,10 @@ codeunit 139897 "E-Doc. Purch. Order Exp. Test"
         PurchaseHeader.Get(PurchaseHeader."Document Type", PurchaseHeader."No.");
         ReleasePurchaseDocument.PerformManualReopen(PurchaseHeader);
         asserterror PurchaseHeader.Delete(true);
-        Assert.ExpectedTestFieldError(EDocument.FieldCaption(Status), Format(Enum::"E-Document Status"::Canceled));
+        
+        ExpectedErr := 'You cannot delete a purchase order that is linked to an active e-document.';
+        Assert.IsTrue(StrPos(GetLastErrorText, ExpectedErr) > 0,
+            StrSubstNo(UnexpectedMessageErr, GetLastErrorText, ExpectedErr));
     end;
 
     [Test]

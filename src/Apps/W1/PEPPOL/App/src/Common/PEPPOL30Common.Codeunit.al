@@ -207,7 +207,7 @@ codeunit 37218 "PEPPOL30 Common"
     /// <param name="TempVATAmtLine">Temporary VAT amount line record to store calculated totals.</param>
     /// <param name="TempVATProductPostingGroup">Temporary VAT product posting group record.</param>
     /// <param name="PEPPOLPurchaseFormat">The PEPPOL 3.0 purchase format to use for tax info provider.</param>
-    procedure GetTotals(var PurchaseHeaderRecRef: RecordRef; var PurchaseLineRecRef: RecordRef; var TempVATAmtLine: Record "VAT Amount Line" temporary; var TempVATProductPostingGroup: Record "VAT Product Posting Group" temporary; PEPPOLPurchaseFormat: Enum "PEPPOL 3.0 Purchase Format")
+    procedure GetTotals(var PurchaseHeaderRecRef: RecordRef; var PurchaseLineRecRef: RecordRef; var TempVATAmtLine: Record "VAT Amount Line" temporary; var TempVATProductPostingGroup: Record "VAT Product Posting Group" temporary; PEPPOLPurchaseFormat: Enum "PEPPOL 3.0 Purchase")
     var
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
@@ -355,7 +355,7 @@ codeunit 37218 "PEPPOL30 Common"
     /// <param name="PurchaseHeaderRecRef">The RecordRef for the purchase order header.</param>
     /// <param name="TempPurchaseLineRounding">Temporary purchase line record for storing the rounding line.</param>
     /// <param name="PEPPOLPurchaseFormat">The PEPPOL 3.0 purchase format to use for monetary info provider.</param>
-    procedure GetInvoiceRoundingLine(PurchaseHeaderRecRef: RecordRef; var TempPurchaseLineRounding: Record "Purchase Line" temporary; PEPPOLPurchaseFormat: Enum "PEPPOL 3.0 Purchase Format")
+    procedure GetInvoiceRoundingLine(PurchaseHeaderRecRef: RecordRef; var TempPurchaseLineRounding: Record "Purchase Line" temporary; PEPPOLPurchaseFormat: Enum "PEPPOL 3.0 Purchase")
     var
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";

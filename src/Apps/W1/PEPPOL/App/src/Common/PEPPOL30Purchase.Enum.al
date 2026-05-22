@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Peppol;
 
-enum 37201 "PEPPOL 3.0 Purchase Format" implements "PEPPOL Purchase Attachment Provider",
+enum 37201 "PEPPOL 3.0 Purchase" implements "PEPPOL Purchase Attachment Provider",
                                                     "PEPPOL Purchase Delivery Info Provider",
                                                     "PEPPOL Purchase Document Info Provider",
                                                     "PEPPOL Purchase Line Info Provider",
@@ -23,8 +23,8 @@ enum 37201 "PEPPOL 3.0 Purchase Format" implements "PEPPOL Purchase Attachment P
                             "PEPPOL Purchase Tax Info Provider" = "PEPPOL30";
     Extensible = true;
 
-    value(0; "PEPPOL 3.0 - Purchase Order")
+    value(0; "PEPPOL 3.0 - Purchase")
     {
-        Caption = 'PEPPOL 3.0 - Purchase Order';
+        Caption = 'PEPPOL 3.0 - Purchase';
     }
 }

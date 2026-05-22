@@ -181,7 +181,7 @@ codeunit 6165 "EDoc PEPPOL BIS 3.0" implements "E-Document"
     var
         PurchaseHeader: Record "Purchase Header";
         PeppolSetup: Record "PEPPOL 3.0 Setup";
-        PurchaseOrderExport: Codeunit "E-Doc. Purchase Order To XML";
+        PurchaseOrderExport: Codeunit "Export Purchase Order PEPPOL30";
         TempBlob: Codeunit "Temp Blob";
     begin
         PeppolSetup.GetSetup();

@@ -1,19 +1,18 @@
-namespace Microsoft.EServices.EDocument.Format;
+namespace Microsoft.Peppol;
 
 using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Finance.VAT.Setup;
-using Microsoft.Peppol;
 using Microsoft.Purchases.Document;
 using System.Utilities;
 using System.Xml;
 
-codeunit 6405 "E-Doc. Purchase Order To XML"
+codeunit 37202 "Export Purchase Order PEPPOL30"
 {
     TableNo = "Purchase Header";
 
     var
         XMLDOMManagement: Codeunit "XML DOM Management";
-        PEPPOL30PurchaseFormat: Enum "PEPPOL 3.0 Purchase Format";
+        PEPPOL30PurchaseFormat: Enum "PEPPOL 3.0 Purchase";
         PurchaseOrderXML: XmlDocument;
         RootNode: XmlNode;
         GeneratePDF, IsFormatSet : Boolean;
@@ -445,7 +444,7 @@ codeunit 6405 "E-Doc. Purchase Order To XML"
             this.XMLDOMManagement.AddElement(Node, NodeName, NodeValue, Namespace, ChildNode);
     end;
 
-    local procedure GetFormat(): Enum "PEPPOL 3.0 Purchase Format"
+    local procedure GetFormat(): Enum "PEPPOL 3.0 Purchase"
     var
         PeppolSetup: Record "PEPPOL 3.0 Setup";
     begin
@@ -461,7 +460,7 @@ codeunit 6405 "E-Doc. Purchase Order To XML"
     /// Gets the XML document as a temporary blob.
     /// </summary>
     /// <param name="TempBlob">Return value: Temp Blob codeunit containing the document.</param>
-    internal procedure GetPurchaseOrderXML(var TempBlob: Codeunit "Temp Blob")
+    procedure GetPurchaseOrderXML(var TempBlob: Codeunit "Temp Blob")
     begin
         this.PurchaseOrderXML.WriteTo(TempBlob.CreateOutStream());
     end;
@@ -470,7 +469,7 @@ codeunit 6405 "E-Doc. Purchase Order To XML"
     /// Controls whether a PDF document should be generated and included as an additional document reference.
     /// </summary>
     /// <param name="GeneratePDFValue">If true, generates a PDF based on Report Selection settings.</param>
-    internal procedure SetGeneratePDF(GeneratePDFValue: Boolean)
+    procedure SetGeneratePDF(GeneratePDFValue: Boolean)
     begin
         this.GeneratePDF := GeneratePDFValue;
     end;
@@ -479,7 +478,7 @@ codeunit 6405 "E-Doc. Purchase Order To XML"
     /// Sets the PEPPOL 3.0 Purchase Format to use when exporting the document.
     /// </summary>
     /// <param name="Format">The PEPPOL 3.0 Purchase Format to use.</param>
-    procedure SetFormat(Format: Enum "PEPPOL 3.0 Purchase Format")
+    procedure SetFormat(Format: Enum "PEPPOL 3.0 Purchase")
     begin
         PEPPOL30PurchaseFormat := Format;
         IsFormatSet := true;
