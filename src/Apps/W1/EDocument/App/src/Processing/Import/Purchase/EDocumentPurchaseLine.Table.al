@@ -216,29 +216,6 @@ table 6101 "E-Document Purchase Line"
             ToolTip = 'Specifies the VAT product posting group resolved from the extracted VAT rate.';
             TableRelation = "VAT Product Posting Group";
 
-            trigger OnValidate()
-            var
-                Vendor: Record Vendor;
-                VATPostingSetup: Record "VAT Posting Setup";
-            begin
-                if "[BC] VAT Prod. Posting Group" = '' then begin
-                    "[BC] VAT Rate Mismatch" := true;
-                    exit;
-                end;
-                Vendor := Rec.GetBCVendor();
-                if Vendor."No." = '' then
-                    exit;
-                if VATPostingSetup.Get(Vendor."VAT Bus. Posting Group", "[BC] VAT Prod. Posting Group") then begin
-                    if not (VATPostingSetup."VAT Calculation Type" in
-                        [VATPostingSetup."VAT Calculation Type"::"Normal VAT",
-                         VATPostingSetup."VAT Calculation Type"::"Reverse Charge VAT"])
-                    then
-                        exit;
-                    "[BC] VAT Rate Mismatch" := VATPostingSetup."VAT %" <> "VAT Rate";
-                end else
-                    "[BC] VAT Rate Mismatch" := true;
-            end;
-
             trigger OnLookup()
             var
                 Vendor: Record Vendor;
@@ -252,11 +229,6 @@ table 6101 "E-Document Purchase Line"
                 if Page.RunModal(Page::"VAT Posting Setup", VATPostingSetup) = Action::LookupOK then
                     Validate("[BC] VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
             end;
-        }
-        field(111; "[BC] VAT Rate Mismatch"; Boolean)
-        {
-            Caption = 'VAT Rate Mismatch';
-            ToolTip = 'Specifies whether the VAT Product Posting Group could not be resolved from the extracted VAT rate.';
         }
         #endregion Validated fields
 
@@ -434,8 +406,6 @@ table 6101 "E-Document Purchase Line"
         VATRateMismatchReasonLbl: Label 'VAT rate %1% extracted from the document could not be matched to a VAT Posting Setup for vendor''s VAT Business Posting Group %2.', Comment = '%1 = extracted VAT rate %, %2 = VAT Bus. Posting Group code';
         VATRateMismatchTitleLbl: Label 'VAT Posting Setup for %1', Comment = '%1 = VAT Bus. Posting Group code';
     begin
-        if not Rec."[BC] VAT Rate Mismatch" then
-            exit;
         EDocPurchDocHelper.SetNormalReverseChargeFilter(VATPostingSetup, VendVATBusPostingGroupCode);
         VATPostingSetupRef.GetTable(VATPostingSetup);
 
@@ -460,8 +430,6 @@ table 6101 "E-Document Purchase Line"
         VATRateResolvedReasonLbl: Label 'VAT rate %1% extracted from the document was matched to VAT Product Posting Group %2 for vendor''s VAT Business Posting Group %3.', Comment = '%1 = extracted VAT rate %, %2 = resolved VAT Prod. Posting Group code, %3 = VAT Bus. Posting Group code';
         VATRateResolvedTitleLbl: Label 'VAT Posting Setup for %1', Comment = '%1 = VAT Bus. Posting Group code';
     begin
-        if Rec."[BC] VAT Rate Mismatch" then
-            exit;
         EDocPurchDocHelper.SetNormalReverseChargeFilter(VATPostingSetup, VendVATBusPostingGroupCode);
         VATPostingSetupRef.GetTable(VATPostingSetup);
 

@@ -195,10 +195,8 @@ codeunit 6406 "EDoc Prepare Purch. Draft"
                 if VATRate > 0 then begin
                     EDocumentPurchaseLine."[BC] VAT Prod. Posting Group" :=
                         FindVATProductPostingGroup(Vendor."VAT Bus. Posting Group", VATRate);
-                    EDocumentPurchaseLine."[BC] VAT Rate Mismatch" :=
-                        EDocumentPurchaseLine."[BC] VAT Prod. Posting Group" = '';
                     EDocumentPurchaseLine.Modify();
-                    if EDocumentPurchaseLine."[BC] VAT Rate Mismatch" then
+                    if EDocumentPurchaseLine."[BC] VAT Prod. Posting Group" = '' then
                         EDocumentPurchaseLine.LogVATRateMismatch(Vendor."VAT Bus. Posting Group", VATRate)
                     else
                         EDocumentPurchaseLine.LogVATRateResolved(Vendor."VAT Bus. Posting Group", VATRate);
