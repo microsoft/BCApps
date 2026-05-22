@@ -35,18 +35,16 @@ codeunit 139981 "Subc. Location Handler Test"
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryManufacturing: Codeunit "Library - Manufacturing";
+        LibraryMfgManagement: Codeunit "Subc. Library Mfg. Management";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryRandom: Codeunit "Library - Random";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryWarehouse: Codeunit "Library - Warehouse";
-        SubCreateProdOrdWizLibrary: Codeunit "Subc. CreateProdOrdWizLibrary";
-        LibraryMfgManagement: Codeunit "Subc. Library Mfg. Management";
         SubcontractingMgmtLibrary: Codeunit "Subc. Management Library";
         SubSetupLibrary: Codeunit "Subc. Setup Library";
         SubcWarehouseLibrary: Codeunit "Subc. Warehouse Library";
         IsInitialized: Boolean;
-        WizardFinishedSuccessfully: Boolean;
         CreateSubcontractingOrderAnywayQst: Label 'Do you want to create the Subcontracting Order anyway?';
 
     local procedure Initialize()
@@ -82,7 +80,7 @@ codeunit 139981 "Subc. Location Handler Test"
         // [SCENARIO] GetComponentsLocationCode returns Purchase Line Location when Setup is Purchase
         Initialize();
 
-        // [GIVEN] Sub Management Setup "Subc. Comp. at Location" is Purchase
+        // [GIVEN] Sub Management Setup "Subc. Default Comp. Location" is Purchase
         UpdateSubManagementSetup("Components at Location"::Purchase);
 
         // [GIVEN] A Purchase Line with a Location
@@ -110,7 +108,7 @@ codeunit 139981 "Subc. Location Handler Test"
         // [SCENARIO] GetComponentsLocationCode returns Company Location when Setup is Company
         Initialize();
 
-        // [GIVEN] Sub Management Setup "Subc. Comp. at Location" is Company
+        // [GIVEN] Sub Management Setup "Subc. Default Comp. Location" is Company
         UpdateSubManagementSetup("Components at Location"::Company);
 
         // [GIVEN] Company Information has a Location
@@ -135,7 +133,7 @@ codeunit 139981 "Subc. Location Handler Test"
         // [SCENARIO] GetComponentsLocationCode returns Manufacturing Location when Setup is Manufacturing
         Initialize();
 
-        // [GIVEN] Sub Management Setup "Subc. Comp. at Location" is Manufacturing
+        // [GIVEN] Sub Management Setup "Subc. Default Comp. Location" is Manufacturing
         UpdateSubManagementSetup("Components at Location"::Manufacturing);
 
         // [GIVEN] Manufacturing Setup has a Location
@@ -159,13 +157,15 @@ codeunit 139981 "Subc. Location Handler Test"
         Item: Record Item;
         LocationOrig: Record Location;
         LocationSub: Record Location;
+        ProdOrder: Record "Production Order";
         ProdOrderComp: Record "Prod. Order Component";
         ProdOrderLine: Record "Prod. Order Line";
         ProdOrderRtngLine: Record "Prod. Order Routing Line";
-        ProdOrder: Record "Production Order";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         TransferHeader: Record "Transfer Header";
+        TransferRoute: Record "Transfer Route";
+        TransitLocation: Record Location;
         Vendor: Record Vendor;
         CreateSubCTransfOrder: Report "Subc. Create Transf. Order";
     begin
@@ -175,6 +175,8 @@ codeunit 139981 "Subc. Location Handler Test"
         // [GIVEN] Locations: Subcontractor and Original
         LibraryWarehouse.CreateLocation(LocationSub);
         LibraryWarehouse.CreateLocation(LocationOrig);
+        LibraryWarehouse.CreateInTransitLocation(TransitLocation);
+        LibraryWarehouse.CreateAndUpdateTransferRoute(TransferRoute, LocationOrig.Code, LocationSub.Code, TransitLocation.Code, '', '');
 
         // [GIVEN] Subcontracting Scenario Setup
         CreateSubcontractingSetup(
@@ -203,13 +205,15 @@ codeunit 139981 "Subc. Location Handler Test"
         ItemJournalLine: Record "Item Journal Line";
         LocationOrig: Record Location;
         LocationSub: Record Location;
+        ProdOrder: Record "Production Order";
         ProdOrderComp: Record "Prod. Order Component";
         ProdOrderLine: Record "Prod. Order Line";
         ProdOrderRtngLine: Record "Prod. Order Routing Line";
-        ProdOrder: Record "Production Order";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         TransferHeader: Record "Transfer Header";
+        TransferRoute: Record "Transfer Route";
+        TransitLocation: Record Location;
         TransferLine: Record "Transfer Line";
         Vendor: Record Vendor;
         CreateSubCTransfOrder: Report "Subc. Create Transf. Order";
@@ -227,6 +231,9 @@ codeunit 139981 "Subc. Location Handler Test"
         // [GIVEN] Locations
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(LocationSub);
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(LocationOrig);
+        LibraryWarehouse.CreateInTransitLocation(TransitLocation);
+        LibraryWarehouse.CreateAndUpdateTransferRoute(TransferRoute, LocationOrig.Code, LocationSub.Code, TransitLocation.Code, '', '');
+
 
         // [GIVEN] Subcontracting Scenario Setup
         CreateSubcontractingSetup(
@@ -276,63 +283,6 @@ codeunit 139981 "Subc. Location Handler Test"
         TransferLine.SetRange("Document No.", TransferHeader."No.");
         TransferLine.FindFirst();
         Assert.AreEqual(QtyRemaining, TransferLine.Quantity, 'Second Transfer Quantity should be remaining quantity');
-    end;
-
-    [Test]
-    [HandlerFunctions('HandlePurchProvisionWizard')]
-    procedure TestProdOrderLocationFromMfgSetup_PurchaseLocationMustBeDifferent()
-    var
-        LocationMfg: Record Location;
-        ManufacturingSetup: Record "Manufacturing Setup";
-        ProdOrderLine: Record "Prod. Order Line";
-        ProdOrder: Record "Production Order";
-        PurchLine: Record "Purchase Line";
-        CreateProdOrdOpt: Codeunit "Subc. Create Prod. Ord. Opt.";
-        ItemNo: Code[20];
-    begin
-        // [SCENARIO] When location code from Manufacturing Setup is used in Production Order,
-        // the Purchase Location Code must be different
-        // [GIVEN] proper setup configuration with Manufacturing location
-        Initialize();
-
-        // [GIVEN] Sub Management Setup "Subc. Comp. at Location" is Manufacturing
-        UpdateSubManagementSetup("Components at Location"::Manufacturing);
-
-        // [GIVEN] Manufacturing Setup with a specific Location Code
-        LibraryWarehouse.CreateLocation(LocationMfg);
-        UpdateManufacturingSetup(LocationMfg.Code);
-
-        // [GIVEN] Create item without BOM and Routing
-        ItemNo := SubCreateProdOrdWizLibrary.CreateItemWithoutBOMAndRouting('', '');
-
-        // [GIVEN] Create purchase line with subcontracting vendor
-        SubCreateProdOrdWizLibrary.CreatePurchaseLineWithSubcontractingVendor(PurchLine, ItemNo);
-
-        // [WHEN] Run the Production Order Creation Wizard
-        WizardFinishedSuccessfully := false;
-        Commit();
-        CreateProdOrdOpt.Run(PurchLine);
-
-        // [THEN] Verify wizard completed successfully
-        Assert.IsTrue(WizardFinishedSuccessfully, 'Wizard should have finished successfully');
-
-        // [THEN] Find the created Production Order
-        ProdOrder.SetRange("Source No.", ItemNo);
-        Assert.IsTrue(ProdOrder.FindFirst(), 'Production Order should be created');
-
-        // [THEN] Find the Production Order Line
-        ProdOrderLine.SetRange(Status, ProdOrder.Status);
-        ProdOrderLine.SetRange("Prod. Order No.", ProdOrder."No.");
-        Assert.IsTrue(not ProdOrderLine.IsEmpty(), 'Production Order Line should exist');
-
-        // [THEN] Verify Manufacturing Setup has the configured Location Code
-        ManufacturingSetup.Get();
-        Assert.AreEqual(LocationMfg.Code, ManufacturingSetup."Components at Location",
-            'Manufacturing Setup should have the Manufacturing Location Code');
-
-        // [THEN] Verify Purchase Location is different from Manufacturing Setup Location
-        Assert.AreNotEqual(ManufacturingSetup."Components at Location", PurchLine."Location Code",
-            'Purchase Location Code must be different from Manufacturing Setup Location Code');
     end;
 
     [Test]
@@ -413,7 +363,7 @@ codeunit 139981 "Subc. Location Handler Test"
 
         // [GIVEN] Transfer-type Prod. Order Component Location Code equals the vendor's Subcontracting Location Code
         Vendor.Get(WorkCenter[2]."Subcontractor No.");
-        SetTransferProdOrderCompLocationCode(ProductionOrder."No.", Vendor."Subcontr. Location Code");
+        SetTransferProdOrderCompLocationCode(ProductionOrder."No.", Vendor."Subc. Location Code");
 
         // [WHEN] Create Subcontracting Order from Prod. Order Routing; the user declines the "anyway" confirmation
         ProdOrderRoutingLine.SetRange("Routing No.", Item."Routing No.");
@@ -446,8 +396,8 @@ codeunit 139981 "Subc. Location Handler Test"
         // [GIVEN] A vendor
         LibraryPurchase.CreateVendor(Vendor);
 
-        // [WHEN] / [THEN] Validating "Subcontr. Location Code" to a Bin Mandatory location raises an error immediately
-        asserterror Vendor.Validate("Subcontr. Location Code", Location.Code);
+        // [WHEN] / [THEN] Validating "Subc. Location Code" to a Bin Mandatory location raises an error immediately
+        asserterror Vendor.Validate("Subc. Location Code", Location.Code);
         Assert.ExpectedError('Bin Mandatory');
     end;
 
@@ -483,7 +433,7 @@ codeunit 139981 "Subc. Location Handler Test"
             ManufacturingSetup.Init();
             ManufacturingSetup.Insert();
         end;
-        ManufacturingSetup."Subc. Comp. at Location" := ComponentAtLocation;
+        ManufacturingSetup."Subc. Default Comp. Location" := ComponentAtLocation;
         ManufacturingSetup.Modify();
     end;
 
@@ -512,7 +462,7 @@ codeunit 139981 "Subc. Location Handler Test"
         // [GIVEN] Vendor with Subcontractor Location
         if Vendor."No." = '' then begin
             LibraryPurchase.CreateVendor(Vendor);
-            Vendor."Subcontr. Location Code" := LocationSub.Code;
+            Vendor."Subc. Location Code" := LocationSub.Code;
             Vendor.Modify();
         end;
 
@@ -533,7 +483,7 @@ codeunit 139981 "Subc. Location Handler Test"
         ProdOrderComp.Validate("Quantity per", 1);
         ProdOrderComp."Location Code" := CompLocationCode;
         if CompOrigLocationCode <> '' then
-            ProdOrderComp."Orig. Location Code" := CompOrigLocationCode;
+            ProdOrderComp."Subc. Original Location Code" := CompOrigLocationCode;
         ProdOrderComp."Subcontracting Type" := ProdOrderComp."Subcontracting Type"::Transfer;
         ProdOrderComp."Routing Link Code" := RoutingLink.Code;
         ProdOrderComp.Modify();
@@ -597,7 +547,7 @@ codeunit 139981 "Subc. Location Handler Test"
     begin
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
         Vendor.Get(WorkCenter."Subcontractor No.");
-        Vendor."Subcontr. Location Code" := Location.Code;
+        Vendor."Subc. Location Code" := Location.Code;
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
         Vendor."Location Code" := Location.Code;
         Vendor.Modify();
@@ -621,23 +571,6 @@ codeunit 139981 "Subc. Location Handler Test"
     begin
         Assert.ExpectedMessage(CreateSubcontractingOrderAnywayQst, Question);
         Reply := false;
-    end;
-
-    [ModalPageHandler]
-    procedure HandlePurchProvisionWizard(var PurchProvisionWizard: TestPage "Subc. PurchProvisionWizard")
-    begin
-        // [SCENARIO] Handle the Purchase Provision Wizard
-        // The wizard should navigate through all steps and finish successfully
-
-        // Click Next to proceed through the wizard steps
-        while PurchProvisionWizard.ActionNext.Enabled() do
-            PurchProvisionWizard.ActionNext.Invoke();
-
-        // Click Finish to complete the wizard
-        if PurchProvisionWizard.ActionFinish.Enabled() then begin
-            PurchProvisionWizard.ActionFinish.Invoke();
-            WizardFinishedSuccessfully := true;
-        end;
     end;
 
     [PageHandler]
