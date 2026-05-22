@@ -208,6 +208,8 @@ codeunit 6406 "EDoc Prepare Purch. Draft"
     var
         VATPostingSetup: Record "VAT Posting Setup";
         EDocPurchDocHelper: Codeunit "E-Doc. Purch. Doc. Helper";
+        CustomDimensions: Dictionary of [Text, Text];
+        VATPostingGroupNotFoundLbl: Label 'VAT Product Posting Group not found for VAT Rate %1.', Comment = '%1 = VAT rate', Locked = true;
     begin
         EDocPurchDocHelper.SetNormalReverseChargeFilter(VATPostingSetup, VATBusPostingGroup);
         VATPostingSetup.SetRange("VAT %", VATRate);
@@ -215,6 +217,8 @@ codeunit 6406 "EDoc Prepare Purch. Draft"
             VATPostingSetup.FindFirst();
             exit(VATPostingSetup."VAT Prod. Posting Group");
         end;
+        Session.LogMessage(
+            '', StrSubstNo(VATPostingGroupNotFoundLbl, VATRate), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
         exit('');
     end;
 
