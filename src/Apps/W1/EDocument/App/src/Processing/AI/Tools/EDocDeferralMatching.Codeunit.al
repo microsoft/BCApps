@@ -203,11 +203,6 @@ codeunit 6129 "E-Doc. Deferral Matching" implements "AOAI Function", IEDocAISyst
     begin
         exit('EDocument Deferral Matching')
     end;
-
-    procedure GetToolChoice(): Text
-    begin
-        exit('auto');
-    end;
     #endregion "E-Document AI System" interface implementation
 
 

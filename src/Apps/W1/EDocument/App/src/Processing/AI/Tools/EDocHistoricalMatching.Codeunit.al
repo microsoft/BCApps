@@ -668,11 +668,6 @@ codeunit 6177 "E-Doc. Historical Matching" implements "AOAI Function", IEDocAISy
     begin
         exit('EDocument Historical Matching')
     end;
-
-    procedure GetToolChoice(): Text
-    begin
-        exit('auto');
-    end;
     #endregion "E-Document AI System" interface implementation
 
     [IntegrationEvent(false, false)]

@@ -128,7 +128,7 @@ codeunit 6195 "E-Doc. AI Tool Processor"
         foreach Tool in AISystem.GetTools() do
             AOAIChatMessages.AddTool(Tool);
 
-        AOAIChatMessages.SetToolChoice(AISystem.GetToolChoice());
+        AOAIChatMessages.SetToolChoice('auto');
     end;
 
     [NonDebuggable]
