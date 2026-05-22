@@ -408,7 +408,7 @@ codeunit 20410 "Qlty. Result Evaluation"
     begin
         // Valid boolean allowable values are: Yes, No, True, False, 1, 0, On, Off (and variations)
         if not QltyBooleanParsing.CanTextBeInterpretedAsBooleanIsh(FilterExpression) then
-            Error('');
+            Error(InvalidAllowableValuesFormatErr, FilterExpression, '', 'Boolean');
     end;
 
     [TryFunction]
