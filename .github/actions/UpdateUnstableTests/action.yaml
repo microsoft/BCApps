@@ -7,6 +7,18 @@ inputs:
   branch:
     description: Target branch (e.g. 'main', 'releases/26.0')
     required: true
+  run-limit:
+    description: Number of recent CI/CD runs to examine.
+    required: false
+    default: '3'
+  filter-push:
+    description: Include CI/CD runs triggered by push events.
+    required: false
+    default: 'false'
+  filter-workflow-dispatch:
+    description: Include CI/CD runs triggered by workflow_dispatch events.
+    required: false
+    default: 'true'
   source-repository:
     description: >
       Repository to read CI/CD test result artifacts from (owner/repo).
@@ -22,11 +34,17 @@ runs:
       env:
         GH_TOKEN: ${{ github.token }}
         _branch: ${{ inputs.branch }}
+        _runLimit: ${{ inputs.run-limit }}
+        _filterPush: ${{ inputs.filter-push }}
+        _filterWorkflowDispatch: ${{ inputs.filter-workflow-dispatch }}
         _repository: ${{ github.repository }}
         _sourceRepository: ${{ inputs.source-repository }}
       run: |
         ${{ github.action_path }}/action.ps1 `
           -branch $env:_branch `
+          -runLimit $env:_runLimit `
+          -filterPush:($env:_filterPush -eq 'true') `
+          -filterWorkflowDispatch:($env:_filterWorkflowDispatch -eq 'true') `
           -repository $env:_repository `
           -sourceRepository $env:_sourceRepository
 
@@ -35,7 +53,7 @@ runs:
       with:
         name: ${{ steps.update.outputs.artifactName }}
         path: .unstable-tests/unstable-tests.json
-        if-no-files-found: error
+        if-no-files-found: warn
         retention-days: 90
 branding:
   icon: terminal

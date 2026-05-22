@@ -611,12 +611,12 @@ function Receive-UnstableTestsArtifact {
 .Synopsis
     Builds an unstable tests list from the provided failed tests.
 .Description
-    Given a set of failed tests from the analyzed CI/CD run window, produces a new unstable
+    Given a set of failed tests from the analyzed test result artifacts, produces a new unstable
     tests hashtable by marking every failed test key as unstable.
 
     Each returned entry is keyed by 'extensionId::codeunit::testMethod' and contains the test
     identity fields plus an auto-detected reason of the form:
-      "Auto-detected: failed in at least 1 of the last <RunWindow> CI/CD runs"
+      "Auto-detected: failed in at least 1 of the last <RunCount> CI/CD run(s)"
 
     This function does not inspect passed tests or merge with an existing unstable list; it
     only transforms the supplied failed-test set into the artifact format.
@@ -630,7 +630,7 @@ function Update-UnstableTestsList {
         [Parameter(Mandatory = $true)]
         [hashtable] $FailedTests,
 
-        [int] $RunWindow = 3
+        [int] $RunCount = 0
     )
 
     $result = @{}
@@ -645,7 +645,7 @@ function Update-UnstableTestsList {
             FailureMessage = if ($ft.PSObject.Properties['FailureMessage']) { $ft.FailureMessage } else { '' }
             FailureDetail  = if ($ft.PSObject.Properties['FailureDetail']) { $ft.FailureDetail } else { '' }
             SourceRunId    = if ($ft.PSObject.Properties['SourceRunId']) { $ft.SourceRunId } else { '' }
-            Reason         = "Auto-detected: failed in at least 1 of the last $RunWindow CI/CD runs"
+            Reason         = "Auto-detected: failed in at least 1 of the last $RunCount CI/CD run(s)"
             LinkedIssue    = ''
         }
     }

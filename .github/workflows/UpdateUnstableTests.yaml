@@ -1,39 +1,85 @@
 name: Update Unstable Tests List
+run-name: "Detect unstable tests from the last ${{ inputs.runLimit || 3 }} CI/CD runs across official branches"
 
-# Updates the per-branch unstable tests artifact after each CI/CD run completes.
-# This artifact is consumed by subsequent CI/CD runs on the same branch to tolerate
-# failures of tests that are known to be unstable.
+# Automatically detects unstable tests by analyzing recent CI/CD run results.
 #
-# Current behavior (implemented in build/scripts/TestTolerance/UpdateUnstableTests.ps1):
-#   The unstable tests list is recomputed from a recent window of CI/CD runs for the
-#   target branch, rather than being updated incrementally from only the triggering run.
-#   Any test that failed at least once within that window is included in the list.
-#   Tests that did not fail in any of the examined runs are dropped (self-healing).
+# Runs twice daily on a schedule and can be triggered manually with configurable filters.
+# For each official branch (main, releases/*), the workflow:
+#   1. Fetches the last 3 completed CI/CD runs (filtered by selected event types).
+#   2. Downloads all test result artifacts from those runs.
+#   3. Identifies tests that failed in at least one run → marks them as unstable.
+#   4. Publishes an updated unstable-tests artifact per branch.
+#
+# PR builds consume this artifact to tolerate known-unstable test failures, preventing
+# unstable tests from blocking unrelated pull requests.
+#
+# The list is self-healing: tests that pass consistently across all examined runs are
+# automatically removed from the unstable list.
 
 on:
-  workflow_run:
-    workflows: [' CI/CD']
-    types: [completed]
-    branches: ['main', 'releases/*']
   workflow_dispatch:
     inputs:
-      targetBranch:
-        description: 'Branch to update the unstable tests list for'
-        required: true
-        default: 'main'
-permissions:
-  actions: write
-  contents: read
+      runLimit:
+        description: 'Number of recent CI/CD runs to examine'
+        required: false
+        type: number
+        default: 3
+      filterPush:
+        description: 'Include runs triggered by push'
+        required: false
+        type: boolean
+        default: false
+      filterWorkflowDispatch:
+        description: 'Include runs triggered by workflow_dispatch'
+        required: false
+        type: boolean
+        default: true
+  schedule:
+    - cron: '0 10,22 * * *'  # Twice daily at 10:00 and 22:00 UTC
+
+permissions: read-all
 
 jobs:
-  UpdateUnstableTests:
-    if: github.repository_owner == 'microsoft' && (github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion != 'cancelled')
-    runs-on: windows-latest
+  GetBranches:
+    name: Get Official Branches
+    if: github.repository_owner == 'microsoft'
+    runs-on: ubuntu-latest
+    outputs:
+      updateBranches: ${{ steps.ensureArray.outputs.branchesJson }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-
-      - name: Update unstable tests
-        uses: ./.github/actions/UpdateUnstableTests
+      - name: Get Official Branches
+        id: getOfficialBranches
+        uses: microsoft/BCApps/.github/actions/GetGitBranches@main
         with:
-          branch: ${{ github.event_name == 'workflow_dispatch' && inputs.targetBranch || github.event.workflow_run.head_branch }}
+          include: "['main', 'releases/*']"
+
+      - name: Ensure JSON array
+        id: ensureArray
+        shell: pwsh
+        run: |
+          # PowerShell's ConvertTo-Json emits a bare string for single-element arrays.
+          # Wrap it in an array if needed so the matrix strategy always receives a JSON array.
+          $raw = '${{ steps.getOfficialBranches.outputs.branchesJson }}'
+          $parsed = $raw | ConvertFrom-Json
+          if ($parsed -is [string]) { $parsed = @($parsed) }
+          $json = ConvertTo-Json @($parsed) -Compress
+          Write-Host "Branches: $json"
+          Add-Content -Encoding UTF8 -Path $env:GITHUB_OUTPUT -Value "branchesJson=$json"
+
+  UpdateUnstableTests:
+    name: "[${{ matrix.branch }}] Update Unstable Tests"
+    if: github.repository_owner == 'microsoft'
+    runs-on: windows-latest
+    needs: GetBranches
+    strategy:
+      matrix:
+        branch: ${{ fromJson(needs.GetBranches.outputs.updateBranches) }}
+      fail-fast: false
+    steps:
+      - name: Update unstable tests
+        uses: microsoft/BCAppsPrivate/.github/actions/UpdateUnstableTests@main #TODO - point to public repo when action is published
+        with:
+          branch: ${{ matrix.branch }}
+          run-limit: ${{ inputs.runLimit || 3 }}
+          filter-push: ${{ inputs.filterPush || false }}
+          filter-workflow-dispatch: ${{ inputs.filterWorkflowDispatch || true }}

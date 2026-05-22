@@ -2,9 +2,9 @@
 .Synopsis
     Entry point for the Update Unstable Tests action.
 .Description
-    Computes the artifact name, invokes the updater script (which examines the last
-    N completed CI/CD runs and rewrites the unstable-tests list from scratch), and
-    uploads the result.
+    Computes the artifact name, invokes the updater script (which fetches recent
+    test result artifacts matching the branch and repo version and rewrites the
+    unstable-tests list from scratch), and uploads the result.
 
     Parameters are passed explicitly by the action.yaml run block.
 #>
@@ -12,6 +12,11 @@
 param(
     [Parameter(Mandatory = $true)]
     [string] $branch,
+
+    [int] $runLimit = 3,
+
+    [switch] $filterPush,
+    [switch] $filterWorkflowDispatch,
 
     [Parameter(Mandatory = $true)]
     [string] $repository,
@@ -41,12 +46,17 @@ $env:GITHUB_REPOSITORY = $sourceRepo
 $updaterScript = Join-Path $scriptsRoot 'UpdateUnstableTests.ps1'
 & $updaterScript `
     -Branch $branch `
-    -OutputPath $unstablePath
+    -OutputPath $unstablePath `
+    -RunLimit $runLimit `
+    -FilterPush:$filterPush `
+    -FilterWorkflowDispatch:$filterWorkflowDispatch
 
 # --- Set output for artifact upload ---
+Add-Content -Encoding UTF8 -Path $env:GITHUB_OUTPUT -Value "artifactName=$artifactName"
+
 if (-not (Test-Path $unstablePath)) {
-    throw "Unstable tests file was not produced at '$unstablePath'."
+    Write-Host "::warning::Unstable tests file was not produced (no CI/CD runs with test results found). Skipping artifact upload."
+    return
 }
 
-Add-Content -Encoding UTF8 -Path $env:GITHUB_OUTPUT -Value "artifactName=$artifactName"
 Write-Host "Unstable tests list ready at '$unstablePath'."

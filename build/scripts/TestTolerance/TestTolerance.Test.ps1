@@ -352,7 +352,7 @@ Describe "TestTolerance" {
             $result.ContainsKey('::300::t1') | Should -BeTrue
         }
 
-        It "marks all failed tests across the window as unstable" {
+        It "marks all failed tests across the artifacts as unstable" {
             $failed = @{
                 '::300::t1' = [pscustomobject]@{ ExtensionId = ''; CodeunitId = 300; CodeunitName = 'A'; TestMethod = 'T1'; FailureMessage = 'm1' }
                 '::400::t2' = [pscustomobject]@{ ExtensionId = ''; CodeunitId = 400; CodeunitName = 'B'; TestMethod = 'T2'; FailureMessage = 'm2' }
@@ -364,12 +364,12 @@ Describe "TestTolerance" {
             $result['::400::t2'].Reason | Should -Match 'Auto-detected'
         }
 
-        It "reason mentions the run window" {
+        It "reason mentions the run count" {
             $failed = @{
                 '::300::t1' = [pscustomobject]@{ ExtensionId = ''; CodeunitId = 300; CodeunitName = 'A'; TestMethod = 'T1'; FailureMessage = 'x' }
             }
 
-            $result = Update-UnstableTestsList -FailedTests $failed -RunWindow 5
+            $result = Update-UnstableTestsList -FailedTests $failed -RunCount 5
             $result['::300::t1'].Reason | Should -Match '5'
         }
 

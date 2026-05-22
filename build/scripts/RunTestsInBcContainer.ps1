@@ -152,7 +152,8 @@ if ($TestType -eq "UnitTest") {
     $result = $result -and $isolationResult
 }
 
-# If tests failed, check if we can tolerate failures based on the test results and unstable tests list
+# If tests failed, check if we can tolerate failures based on the test results and unstable tests list.
+# Test tolerance only applies to PR builds.
 $testResultFileName = if ($parameters.ContainsKey("JUnitResultFileName") -and -not [string]::IsNullOrWhiteSpace($parameters["JUnitResultFileName"])) {
     $parameters["JUnitResultFileName"]
 } elseif ($parameters.ContainsKey("XUnitResultFileName") -and -not [string]::IsNullOrWhiteSpace($parameters["XUnitResultFileName"])) {
@@ -161,7 +162,9 @@ $testResultFileName = if ($parameters.ContainsKey("JUnitResultFileName") -and -n
     $null
 }
 
-if (-not $result -and $testResultFileName) {
+$isPullRequest = $env:GITHUB_EVENT_NAME -eq 'pull_request'
+
+if (-not $result -and $testResultFileName -and $isPullRequest) {
     Write-Host "Tests failed. Checking test tolerance using results file: $testResultFileName"
 
     # Download unstable tests artifact only when tests failed and tolerance may apply
