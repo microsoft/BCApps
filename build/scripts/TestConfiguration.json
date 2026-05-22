@@ -1,5 +1,6 @@
 {
   "LegacyTests-Bucket1": [
+    "AlCosting",
     "Tests-ERM",
     "Tests-SCM-Service",
     "Tests-Workflow",

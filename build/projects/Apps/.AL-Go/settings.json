@@ -181,6 +181,7 @@
     "../../../src/Apps/W1/VATGroupManagement/test",
     "../../../src/Apps/W1/WithholdingTax/test",
     "../../../src/Business Foundation/Test",
+    "../../../src/Layers/W1/AlCosting",
     "../../../src/Layers/W1/Tests/Bank",
     "../../../src/Layers/W1/Tests/BCPT-SampleTests",
     "../../../src/Layers/W1/Tests/Cash Flow",
