@@ -283,11 +283,6 @@ codeunit 6126 "E-Doc. GL Account Matching" implements "AOAI Function", IEDocAISy
     begin
         exit('EDocument GL Account Matching')
     end;
-
-    procedure GetToolChoice(): Text
-    begin
-        exit('required');
-    end;
     #endregion "E-Document AI System" interface implementation
 
     [IntegrationEvent(false, false)]
