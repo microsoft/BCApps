@@ -9,7 +9,7 @@ $workflowName = "CICD.yaml"
 $workflowRunTime = Get-Date -AsUTC
 
 Write-Host "Running the workflow '$workflowName' on branch $targetBranch"
-gh workflow run --repo $repository --ref $targetBranch $workflowName
+gh workflow run --repo $repository --ref $targetBranch $workflowName | Out-Null
 
 # Get the workflow run URL to display in the message
 
