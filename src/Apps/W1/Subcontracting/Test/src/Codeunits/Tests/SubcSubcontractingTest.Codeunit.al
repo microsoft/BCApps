@@ -3401,6 +3401,77 @@ codeunit 139989 "Subc. Subcontracting Test"
         Assert.AreEqual('', ToPurchaseHeader."Subc. Location Code", 'Subc. Location Code should not be copied from archive by Copy Document');
     end;
 
+    [Test]
+    procedure WorksheetDirectUnitCostUsesQtyPerUoMNotBaseQtyForUoMConversion()
+    var
+        Item: Record Item;
+        ItemUOM: Record "Item Unit of Measure";
+        Vendor: Record Vendor;
+        WorkCenter: Record "Work Center";
+        SubcontractorPrice: Record "Subcontractor Price";
+        RequisitionLine: Record "Requisition Line";
+        SubcPriceManagement: Codeunit "Subc. Price Management";
+        QtyPerSet: Integer;
+        PriceListUnitCost: Decimal;
+    begin
+        // [SCENARIO 636078] Calculate Subcontracts must compute Direct Unit Cost on the Subcontracting
+        // Worksheet using the per-UoM conversion factor (GetQuantityForUOM()), not the total base
+        // quantity (GetQuantityBase()) of the order.
+
+        // [GIVEN] Item with PCS base UoM and a SET alternative UoM (10 PCS per SET).
+        Initialize();
+        LibraryInventory.CreateItem(Item);
+        QtyPerSet := 10;
+        LibraryInventory.CreateItemUnitOfMeasureCode(ItemUOM, Item."No.", QtyPerSet);
+
+        // [GIVEN] Vendor and Work Center with the vendor as its subcontractor.
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryManufacturing.CreateWorkCenter(WorkCenter);
+        WorkCenter.Validate("Subcontractor No.", Vendor."No.");
+        WorkCenter.Modify(true);
+
+        // [GIVEN] A subcontractor price in PCS with Minimum Quantity 1 and Direct Unit Cost 1000.
+        PriceListUnitCost := 1000;
+        SubcontractingMgmtLibrary.CreateSubContractingPrice(
+            SubcontractorPrice, WorkCenter."No.", Vendor."No.", Item."No.", '', '', WorkDate(), Item."Base Unit of Measure", 1, '');
+        SubcontractorPrice.Validate("Direct Unit Cost", PriceListUnitCost);
+        SubcontractorPrice.Modify(true);
+
+        // [GIVEN] A staged Requisition Line for 3 SET (= 30 PCS in base UoM).
+        RequisitionLine.Init();
+        RequisitionLine."No." := Item."No.";
+        RequisitionLine."Unit of Measure Code" := ItemUOM.Code;
+        RequisitionLine."Vendor No." := Vendor."No.";
+        RequisitionLine."Work Center No." := WorkCenter."No.";
+        RequisitionLine."Order Date" := WorkDate();
+        RequisitionLine.Quantity := 3;
+
+        // [WHEN] The subcontractor price is applied to the requisition line.
+        SubcPriceManagement.GetSubcPriceForReqLine(RequisitionLine, '');
+
+        // [THEN] Direct Unit Cost = price-list cost * Qty-per-UoM (1000 * 10 = 10000),
+        // not price-list cost * total base quantity (1000 * 30 = 30000 — the pre-fix behavior).
+        Assert.AreEqual(
+            PriceListUnitCost * QtyPerSet, RequisitionLine."Direct Unit Cost",
+            'Direct Unit Cost on the Subcontracting Worksheet must be derived from Qty. per Unit of Measure, not from total base quantity.');
+
+        // [WHEN] The same price is applied to a Requisition Line using the base UoM (no conversion needed).
+        Clear(RequisitionLine);
+        RequisitionLine.Init();
+        RequisitionLine."No." := Item."No.";
+        RequisitionLine."Unit of Measure Code" := Item."Base Unit of Measure";
+        RequisitionLine."Vendor No." := Vendor."No.";
+        RequisitionLine."Work Center No." := WorkCenter."No.";
+        RequisitionLine."Order Date" := WorkDate();
+        RequisitionLine.Quantity := 30;
+        SubcPriceManagement.GetSubcPriceForReqLine(RequisitionLine, '');
+
+        // [THEN] Direct Unit Cost equals the price-list cost (the same-UoM path is unchanged by the fix).
+        Assert.AreEqual(
+            PriceListUnitCost, RequisitionLine."Direct Unit Cost",
+            'Direct Unit Cost must equal the price-list cost when the worksheet UoM matches the price-list UoM.');
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Subc. Subcontracting Test");
