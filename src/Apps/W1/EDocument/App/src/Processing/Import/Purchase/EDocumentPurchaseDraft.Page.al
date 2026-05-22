@@ -160,13 +160,6 @@ page 6181 "E-Document Purchase Draft"
                             CurrPage.Update();
                         end;
                     }
-                    field("Vendor Invoice No."; EDocumentPurchaseHeader."Vendor Invoice No.")
-                    {
-                        Caption = 'Vendor Invoice No.';
-                        ToolTip = 'Specifies the vendor''s invoice number referenced in the credit memo billing reference.';
-                        Visible = IsCreditMemo;
-                        Editable = false;
-                    }
                     field("Applies-to Doc. No."; EDocumentPurchaseHeader."Applies-to Doc. No.")
                     {
                         Caption = 'Applies-to Doc. No.';

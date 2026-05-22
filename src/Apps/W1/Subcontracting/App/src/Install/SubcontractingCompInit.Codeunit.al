@@ -18,10 +18,10 @@ codeunit 99001503 "Subcontracting Comp. Init."
 
     procedure CreateBasicSubcontractingMgtSetup()
     begin
-        CreateSubcontractingManagementSetup();
+        InitializeManufacturingSetupDefaults();
     end;
 
-    local procedure CreateSubcontractingManagementSetup()
+    local procedure InitializeManufacturingSetupDefaults()
     var
         ManufacturingSetup: Record "Manufacturing Setup";
     begin
