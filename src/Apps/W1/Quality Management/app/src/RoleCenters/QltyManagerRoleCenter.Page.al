@@ -101,21 +101,21 @@ page 20426 "Qlty. Manager Role Center"
                 {
                     Caption = 'Certificate of Analysis';
                     Image = Certificate;
-                    ToolTip = 'Printable Certificate of Analysis (COA) report.';
+                    ToolTip = 'Print a certificate of analysis (CoA) report.';
                     RunObject = Report "Qlty. Certificate of Analysis";
                 }
                 action(Processing_GeneralInspectionReport)
                 {
                     Caption = 'Inspection Report';
                     Image = Report;
-                    ToolTip = 'Specifies a printable general purpose inspection report.';
+                    ToolTip = 'Print a general-purpose inspection report.';
                     RunObject = Report "Qlty. General Purpose Inspect.";
                 }
                 action(Processing_NonConformanceReport)
                 {
                     Image = Report;
                     Caption = 'Non Conformance Report';
-                    ToolTip = 'Specifies the Non Conformance Report has a layout suitable for quality inspection templates that typically contain Non Conformance Report questions.';
+                    ToolTip = 'Print a non-conformance report.';
                     RunObject = Report "Qlty. Non-Conformance";
                 }
             }
@@ -129,7 +129,7 @@ page 20426 "Qlty. Manager Role Center"
                     Image = BreakpointsList;
                     RunObject = Page "Qlty. Inspection Template List";
                     RunPageMode = Edit;
-                    ToolTip = 'Specifies a Quality Inspection Template is an inspection plan containing a set of questions and data points that you want to collect.';
+                    ToolTip = 'Quality inspection templates are inspection plans that contain a set of tests to perform.';
                 }
                 action(Processing_QualityInspectionGenerationRules)
                 {
@@ -137,7 +137,7 @@ page 20426 "Qlty. Manager Role Center"
                     Image = CopyFromTask;
                     RunObject = Page "Qlty. Inspection Gen. Rules";
                     RunPageMode = Edit;
-                    ToolTip = 'Specifies a Quality Inspection generation rule defines when you want to ask a set of questions or other data that you want to collect that is defined in a template. You connect a template to a source table, and set the criteria to use that template with the table filter. When these filter criteria is met, then it will choose that template. When there are multiple matches, it will use the first template that it finds, based on the sort order.';
+                    ToolTip = 'Quality inspection generation rules specify when quality inspections are automatically generated and which template is used, such as during receiving, production, or warehouse activities. You link a template to a source table and define filter criteria that determine when an inspection is created. When the criteria are met, the system generates a quality inspection based on the linked template. If multiple rules match, the system uses the first rule according to the sort order.';
                 }
                 action(Processing_QualityTests)
                 {
@@ -145,7 +145,7 @@ page 20426 "Qlty. Manager Role Center"
                     Image = TaskQualityMeasure;
                     RunObject = Page "Qlty. Tests";
                     RunPageMode = Edit;
-                    ToolTip = 'Specifies a quality inspection test is a data points to capture, or questions, or measurements.';
+                    ToolTip = 'Quality tests are defined data points, checks, questions or measurements used to evaluate quality.';
                 }
             }
             group(Processing_Configure)
@@ -187,14 +187,14 @@ page 20426 "Qlty. Manager Role Center"
             {
                 Caption = 'Quality Inspections';
                 Image = CheckList;
-                ToolTip = 'See existing Quality Inspections and create a new inspection.';
+                ToolTip = 'See existing quality inspections and create a new inspection.';
                 RunObject = Page "Qlty. Inspection List";
             }
             action(Embedding__QualityInspectionLines)
             {
                 Caption = 'Quality Inspection Lines';
                 Image = CheckList;
-                ToolTip = 'Historical Quality Inspection lines. Use this with analysis mode.';
+                ToolTip = 'Historical quality inspection lines. Use this with analysis mode.';
                 RunObject = Page "Qlty. Inspection Lines";
             }
             action(Embedding_Items)
@@ -391,56 +391,56 @@ page 20426 "Qlty. Manager Role Center"
                     ApplicationArea = Warehouse;
                     Caption = 'Posted Warehouse Shipments';
                     RunObject = Page "Posted Whse. Shipment List";
-                    ToolTip = 'Open the list of posted warehouse shipments.';
+                    ToolTip = 'Opens the list of posted warehouse shipments.';
                 }
                 action(Sections_PostedSalesShipments)
                 {
                     ApplicationArea = Warehouse;
                     Caption = 'Posted Sales Shipments';
                     RunObject = Page "Posted Sales Shipments";
-                    ToolTip = 'Open the list of posted sales shipments.';
+                    ToolTip = 'Opens the list of posted sales shipments.';
                 }
                 action(Sections_PostedTransferShipments)
                 {
                     ApplicationArea = Warehouse;
                     Caption = 'Posted Transfer Shipments';
                     RunObject = Page "Posted Transfer Shipments";
-                    ToolTip = 'Open the list of posted transfer shipments.';
+                    ToolTip = 'Opens the list of posted transfer shipments.';
                 }
                 action(Sections_PostedReturnShipments)
                 {
                     ApplicationArea = Warehouse;
                     Caption = 'Posted Return Shipments';
                     RunObject = Page "Posted Return Shipments";
-                    ToolTip = 'Open the list of posted return shipments.';
+                    ToolTip = 'Opens the list of posted return shipments.';
                 }
                 action(Sections_PostedWarehouseReceipts)
                 {
                     ApplicationArea = Warehouse;
                     Caption = 'Posted Warehouse Receipts';
                     RunObject = Page "Posted Whse. Receipt List";
-                    ToolTip = 'Open the list of posted warehouse receipts.';
+                    ToolTip = 'Opens the list of posted warehouse receipts.';
                 }
                 action(Sections_PostedPurchaseReceipts)
                 {
                     ApplicationArea = Warehouse;
                     Caption = 'Posted Purchase Receipts';
                     RunObject = Page "Posted Purchase Receipts";
-                    ToolTip = 'Open the list of posted purchase receipts.';
+                    ToolTip = 'Opens the list of posted purchase receipts.';
                 }
                 action(Sections_PostedTransferReceipts)
                 {
                     ApplicationArea = Warehouse;
                     Caption = 'Posted Transfer Receipts';
                     RunObject = Page "Posted Transfer Receipts";
-                    ToolTip = 'Open the list of posted transfer receipts.';
+                    ToolTip = 'Opens the list of posted transfer receipts.';
                 }
                 action(Sections_PostedReturnReceipts)
                 {
                     ApplicationArea = Warehouse;
                     Caption = 'Posted Return Receipts';
                     RunObject = Page "Posted Return Receipts";
-                    ToolTip = 'Open the list of posted return receipts.';
+                    ToolTip = 'Opens the list of posted return receipts.';
                 }
                 action(Sections_PostedPhysicalInventoryOrders)
                 {
