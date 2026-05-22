@@ -36,8 +36,6 @@ codeunit 139605 "Shpfy Product Price Calc. Test"
         InitializeTest: Codeunit "Shpfy Initialize Test";
         ProductInitTest: Codeunit "Shpfy Product Init Test";
         ProductPriceCalculation: Codeunit "Shpfy Product Price Calc.";
-        PriceCalcMgt: Codeunit "Price Calculation Mgt.";
-        Probe3Lbl: Label 'PROBE_3_DiscountApplied? Price=%1 InitPrice=%2 ComparePrice=%3 InitDiscountPerc=%4', Locked = true;
         InitUnitCost: Decimal;
         InitPrice: Decimal;
         InitDiscountPerc: Decimal;
@@ -46,9 +44,9 @@ codeunit 139605 "Shpfy Product Price Calc. Test"
         ComparePrice: Decimal;
     begin
         // [INIT] Initialization startup data.
-        LibraryPriceCalculation.DisableExtendedPriceCalculation();
-        // PROBE 1: confirm what IsExtendedPriceCalculationEnabled returns in this env
-        LibraryAssert.AreEqual(false, PriceCalcMgt.IsExtendedPriceCalculationEnabled(), 'PROBE_1_IsExtendedShouldBeFalseAfterDisable');
+        // Extended pricing is on by default in the tenant; explicitly select the V15 handler so the legacy Sales Price / Sales Line Discount data path is exercised.
+        LibraryPriceCalculation.EnableExtendedPriceCalculation();
+        LibraryPriceCalculation.SetupDefaultHandler("Price Calculation Handler"::"Business Central (Version 15.0)");
         Shop := InitializeTest.CreateShop();
         Shop."Allow Line Disc." := false;
         Shop.Modify();
@@ -84,10 +82,6 @@ codeunit 139605 "Shpfy Product Price Calc. Test"
         ProductPriceCalculation.CalcPrice(Item, '', '', UnitCost, Price, ComparePrice);
         // [THEN] InitUnitCost = UnitCost
         LibraryAssert.AreEqual(InitUnitCost, UnitCost, 'Unit Cost');
-        // PROBE 2: confirm what IsExtended returns AFTER setting up discount group
-        LibraryAssert.AreEqual(false, PriceCalcMgt.IsExtendedPriceCalculationEnabled(), 'PROBE_2_IsExtendedShouldStillBeFalse');
-        // PROBE 3: dump Price/ComparePrice values into the failure message so we can see them
-        LibraryAssert.AreNotEqual(InitPrice, Price, StrSubstNo(Probe3Lbl, Price, InitPrice, ComparePrice, InitDiscountPerc));
         // [THEN] InitPrice = ComparePrice. ComparePrice is the price without the discount.
         LibraryAssert.AreEqual(InitPrice, ComparePrice, 'Compare Price');
         // [THEN] InitPrice - InitDiscountPerc = Price
