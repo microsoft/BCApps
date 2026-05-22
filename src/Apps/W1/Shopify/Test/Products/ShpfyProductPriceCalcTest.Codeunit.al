@@ -37,6 +37,7 @@ codeunit 139605 "Shpfy Product Price Calc. Test"
         ProductInitTest: Codeunit "Shpfy Product Init Test";
         ProductPriceCalculation: Codeunit "Shpfy Product Price Calc.";
         PriceCalcMgt: Codeunit "Price Calculation Mgt.";
+        Probe3Lbl: Label 'PROBE_3_DiscountApplied? Price=%1 InitPrice=%2 ComparePrice=%3 InitDiscountPerc=%4', Locked = true;
         InitUnitCost: Decimal;
         InitPrice: Decimal;
         InitDiscountPerc: Decimal;
@@ -86,7 +87,7 @@ codeunit 139605 "Shpfy Product Price Calc. Test"
         // PROBE 2: confirm what IsExtended returns AFTER setting up discount group
         LibraryAssert.AreEqual(false, PriceCalcMgt.IsExtendedPriceCalculationEnabled(), 'PROBE_2_IsExtendedShouldStillBeFalse');
         // PROBE 3: dump Price/ComparePrice values into the failure message so we can see them
-        LibraryAssert.AreNotEqual(InitPrice, Price, StrSubstNo('PROBE_3_DiscountApplied? Price=%1 InitPrice=%2 ComparePrice=%3 InitDiscountPerc=%4', Price, InitPrice, ComparePrice, InitDiscountPerc));
+        LibraryAssert.AreNotEqual(InitPrice, Price, StrSubstNo(Probe3Lbl, Price, InitPrice, ComparePrice, InitDiscountPerc));
         // [THEN] InitPrice = ComparePrice. ComparePrice is the price without the discount.
         LibraryAssert.AreEqual(InitPrice, ComparePrice, 'Compare Price');
         // [THEN] InitPrice - InitDiscountPerc = Price
