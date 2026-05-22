@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument;
 
+using Microsoft.eServices.EDocument.IO;
 #if not CLEAN29
 using Microsoft.eServices.EDocument.Processing.Import;
 #endif
@@ -23,6 +24,7 @@ codeunit 6168 "E-Document Upgrade"
 #if not CLEAN29
         UpgradeProcessDraftEnum();
 #endif
+        UpgradeDataExchV2Defs();
         UpgradeEnableVATOptionsForPurchEDoc();
     end;
 
@@ -43,11 +45,26 @@ codeunit 6168 "E-Document Upgrade"
         UpgradeTag.SetUpgradeTag(GetUpgradeLogURLMaxLengthUpgradeTag());
     end;
 
+    local procedure UpgradeDataExchV2Defs()
+    var
+        EDocumentInstall: Codeunit "E-Document Install";
+        UpgradeTag: Codeunit "Upgrade Tag";
+    begin
+        if UpgradeTag.HasUpgradeTag(GetUpgradeDataExchV2DefsTag()) then
+            exit;
+
+        EDocumentInstall.ImportInvoiceV2XML();
+        EDocumentInstall.ImportCreditMemoV2XML();
+
+        UpgradeTag.SetUpgradeTag(GetUpgradeDataExchV2DefsTag());
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", 'OnGetPerCompanyUpgradeTags', '', false, false)]
     local procedure RegisterPerCompanyTags(var PerCompanyUpgradeTags: List of [Code[250]])
     begin
         PerCompanyUpgradeTags.Add(GetUpgradeLogURLMaxLengthUpgradeTag());
         PerCompanyUpgradeTags.Add(GetUpgradeProcessDraftEnumTag());
+        PerCompanyUpgradeTags.Add(GetUpgradeDataExchV2DefsTag());
         PerCompanyUpgradeTags.Add(GetEnableVATOptionsForPurchEDocTag());
     end;
 
@@ -94,7 +111,11 @@ codeunit 6168 "E-Document Upgrade"
 
         UpgradeTag.SetUpgradeTag(GetEnableVATOptionsForPurchEDocTag());
     end;
-
+    internal procedure GetUpgradeDataExchV2DefsTag(): Code[250]
+    begin
+        exit('MS-EDoc-DataExchV2Defs-20260521');
+    end;
+    
     internal procedure GetEnableVATOptionsForPurchEDocTag(): Code[250]
     begin
         exit('MS-EDoc-EnableVATOptionsForPurchEDoc-20260520');

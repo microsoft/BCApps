@@ -12,13 +12,14 @@ using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Posting;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Manufacturing.Capacity;
+using Microsoft.Manufacturing.Setup;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Posting;
 codeunit 99001535 "Subc. Purch. Post Ext"
 {
     var
-        SubcManagementSetup: Record "Subc. Management Setup";
+        ManufacturingSetup: Record "Manufacturing Setup";
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnBeforeItemJnlPostLine, '', false, false)]
     local procedure "Purch.-Post_OnBeforeItemJnlPostLine"(var ItemJournalLine: Record "Item Journal Line"; TempItemChargeAssignmentPurch: Record "Item Charge Assignment (Purch)" temporary)
@@ -44,7 +45,7 @@ codeunit 99001535 "Subc. Purch. Post Ext"
     var
         PurchRcptLine: Record "Purch. Rcpt. Line";
     begin
-        if not SubcManagementSetup.ItemChargeToRcptSubReferenceEnabled() then
+        if not ManufacturingSetup.ItemChargeToRcptSubReferenceEnabled() then
             exit;
         if ItemJournalLine."Item Charge No." = '' then
             exit;
@@ -60,7 +61,7 @@ codeunit 99001535 "Subc. Purch. Post Ext"
     var
         UnitofMeasureManagement: Codeunit "Unit of Measure Management";
     begin
-        if not SubcManagementSetup.ItemChargeToRcptSubReferenceEnabled() then
+        if not ManufacturingSetup.ItemChargeToRcptSubReferenceEnabled() then
             exit;
 
         if PurchRcptLine."Quantity (Base)" = 0 then

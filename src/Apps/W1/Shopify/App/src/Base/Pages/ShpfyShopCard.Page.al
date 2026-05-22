@@ -395,7 +395,6 @@ page 30101 "Shpfy Shop Card"
                 field("Auto Create Catalog"; Rec."Auto Create Catalog")
                 {
                     ApplicationArea = All;
-                    Visible = Rec."Advanced Shopify Plan";
                 }
                 field("Company Metafields To Shopify"; Rec."Company Metafields To Shopify")
                 {
