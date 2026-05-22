@@ -22,9 +22,9 @@ interface IEDocAISystem
     /// </summary>
     /// <param name="UserLanguage">The language code representing the user's preferred language for localization. Prompts should output in the specified language.</param>
     /// <returns>The system prompt as SecretText, typically retrieved from Azure Key Vault or resource files.</returns>
-#pragma warning disable AS0066,AS0024
+#pragma warning disable AS0066, AS0024
     procedure GetSystemPrompt(UserLanguage: Text): SecretText
-#pragma warning restore AS0066,AS0024
+#pragma warning restore AS0066, AS0024
 
     /// <summary>
     /// Gets the list of AOAI Function tools that define what functions the AI model can call during processing.
@@ -39,5 +39,13 @@ interface IEDocAISystem
     /// </summary>
     /// <returns>A descriptive name for the AI feature being implemented.</returns>
     procedure GetFeatureName(): Text
+
+    /// <summary>
+    /// Gets the AOAI tool_choice value for this AI system, controlling whether the model
+    /// is free to respond with content or must invoke a tool. 
+    /// <returns>An AOAI tool_choice value.</returns>
+#pragma warning disable AS0066, AS0024
+    procedure GetToolChoice(): Text
+#pragma warning restore AS0066, AS0024
 
 }

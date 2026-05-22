@@ -257,6 +257,11 @@ codeunit 6105 "E-Doc. Similar Descriptions" implements "AOAI Function", IEDocAIS
     begin
         exit('EDocument Similar Descriptions')
     end;
+
+    procedure GetToolChoice(): Text
+    begin
+        exit('auto');
+    end;
     #endregion "E-Document AI System" interface implementation
 
     [IntegrationEvent(false, false)]
