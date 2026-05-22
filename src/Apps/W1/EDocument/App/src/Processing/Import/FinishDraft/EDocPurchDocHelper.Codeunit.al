@@ -165,8 +165,10 @@ codeunit 6402 "E-Doc. Purch. Doc. Helper"
         Currency: Record Currency;
         LineAmount: Decimal;
         TotalLineAmount, VATDiffRemainder, VATDiffForLine : Decimal;
+        AppliedVATAmountDiff: Decimal;
     begin
-        if EDocumentPurchaseHeader."Applied VAT Amount Diff." = 0 then
+        AppliedVATAmountDiff := EDocumentPurchaseHeader.GetAppliedVATAmountDiff();
+        if AppliedVATAmountDiff = 0 then
             exit;
 
         if PurchaseHeader."Currency Code" = '' then
@@ -188,7 +190,7 @@ codeunit 6402 "E-Doc. Purch. Doc. Helper"
         repeat
             LineAmount := PurchaseLine."Line Amount" - PurchaseLine."Inv. Discount Amount";
             if LineAmount <> 0 then begin
-                VATDiffForLine := VATDiffRemainder + EDocumentPurchaseHeader."Applied VAT Amount Diff." * LineAmount / TotalLineAmount;
+                VATDiffForLine := VATDiffRemainder + AppliedVATAmountDiff * LineAmount / TotalLineAmount;
                 PurchaseLine.Validate("VAT Difference", Round(VATDiffForLine, Currency."Amount Rounding Precision"));
                 VATDiffRemainder := VATDiffForLine - PurchaseLine."VAT Difference";
                 PurchaseLine.Modify(true);

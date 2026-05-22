@@ -253,7 +253,7 @@ codeunit 6406 "EDoc Prepare Purch. Draft"
         end;
     end;
 
-    local procedure ComputeAndApplyVATAmountDifference(var EDocumentPurchaseHeader: Record "E-Document Purchase Header"; TotalLineVATAmount: Decimal)
+    local procedure ComputeAndApplyVATAmountDifference(EDocumentPurchaseHeader: Record "E-Document Purchase Header"; TotalLineVATAmount: Decimal)
     var
         PurchasesPayablesSetup: Record "Purchases & Payables Setup";
         GeneralLedgerSetup: Record "General Ledger Setup";
@@ -265,8 +265,6 @@ codeunit 6406 "EDoc Prepare Purch. Draft"
         VATDiffSkippedAllowLbl: Label 'VAT amount difference of %1 was not applied because Allow VAT Difference is disabled in Purchases & Payables Setup.', Comment = '%1 = VAT difference';
         VATDiffSkippedMaxLbl: Label 'VAT amount difference of %1 was not applied because it exceeds the Max. VAT Difference Allowed of %2 in General Ledger Setup.', Comment = '%1 = VAT difference, %2 = Max. VAT Difference Allowed';
     begin
-        EDocumentPurchaseHeader."Applied VAT Amount Diff." := 0;
-
         if (EDocumentPurchaseHeader."Total VAT" = 0) or (TotalLineVATAmount = EDocumentPurchaseHeader."Total VAT") then
             exit;
 
@@ -278,7 +276,7 @@ codeunit 6406 "EDoc Prepare Purch. Draft"
         if not PurchasesPayablesSetup."Apply VAT Diff. For Purch EDoc" then begin
             Reasoning := CopyStr(StrSubstNo(VATDiffSkippedSetupLbl, VATAmountDiff), 1, MaxStrLen(Reasoning));
             ActivityLog
-                .Init(Database::"E-Document Purchase Header", EDocumentPurchaseHeader.FieldNo("Applied VAT Amount Diff."), EDocumentPurchaseHeader.SystemId)
+                .Init(Database::"E-Document Purchase Header", EDocumentPurchaseHeader.FieldNo("Total VAT"), EDocumentPurchaseHeader.SystemId)
                 .SetExplanation(Reasoning)
                 .SetType(Enum::"Activity Log Type"::"AL")
                 .Log();
@@ -288,7 +286,7 @@ codeunit 6406 "EDoc Prepare Purch. Draft"
         if not PurchasesPayablesSetup."Allow VAT Difference" then begin
             Reasoning := CopyStr(StrSubstNo(VATDiffSkippedAllowLbl, VATAmountDiff), 1, MaxStrLen(Reasoning));
             ActivityLog
-                .Init(Database::"E-Document Purchase Header", EDocumentPurchaseHeader.FieldNo("Applied VAT Amount Diff."), EDocumentPurchaseHeader.SystemId)
+                .Init(Database::"E-Document Purchase Header", EDocumentPurchaseHeader.FieldNo("Total VAT"), EDocumentPurchaseHeader.SystemId)
                 .SetExplanation(Reasoning)
                 .SetType(Enum::"Activity Log Type"::"AL")
                 .Log();
@@ -300,18 +298,16 @@ codeunit 6406 "EDoc Prepare Purch. Draft"
         if Abs(VATAmountDiff) > GeneralLedgerSetup."Max. VAT Difference Allowed" then begin
             Reasoning := CopyStr(StrSubstNo(VATDiffSkippedMaxLbl, VATAmountDiff, GeneralLedgerSetup."Max. VAT Difference Allowed"), 1, MaxStrLen(Reasoning));
             ActivityLog
-                .Init(Database::"E-Document Purchase Header", EDocumentPurchaseHeader.FieldNo("Applied VAT Amount Diff."), EDocumentPurchaseHeader.SystemId)
+                .Init(Database::"E-Document Purchase Header", EDocumentPurchaseHeader.FieldNo("Total VAT"), EDocumentPurchaseHeader.SystemId)
                 .SetExplanation(Reasoning)
                 .SetType(Enum::"Activity Log Type"::"AL")
                 .Log();
             exit;
         end;
 
-        EDocumentPurchaseHeader."Applied VAT Amount Diff." := VATAmountDiff;
-
         Reasoning := CopyStr(StrSubstNo(VATDiffAppliedLbl, VATAmountDiff, EDocumentPurchaseHeader."Total VAT", TotalLineVATAmount), 1, MaxStrLen(Reasoning));
         ActivityLog
-            .Init(Database::"E-Document Purchase Header", EDocumentPurchaseHeader.FieldNo("Applied VAT Amount Diff."), EDocumentPurchaseHeader.SystemId)
+            .Init(Database::"E-Document Purchase Header", EDocumentPurchaseHeader.FieldNo("Total VAT"), EDocumentPurchaseHeader.SystemId)
             .SetExplanation(Reasoning)
             .SetType(Enum::"Activity Log Type"::"AL")
             .Log();

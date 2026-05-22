@@ -6,7 +6,9 @@ namespace Microsoft.EServices.EDocument.Processing.Import.Purchase;
 
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing.Import;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Setup;
 using Microsoft.Purchases.Vendor;
 using System.Telemetry;
 
@@ -234,14 +236,6 @@ table 6100 "E-Document Purchase Header"
             Caption = 'Vendor Invoice No.';
             DataClassification = CustomerContent;
         }
-        field(44; "Applied VAT Amount Diff."; Decimal)
-        {
-            Caption = 'Applied VAT Amount Diff.';
-            DataClassification = CustomerContent;
-            AutoFormatType = 1;
-            AutoFormatExpression = Rec."Currency Code";
-            Editable = false;
-        }
         #endregion Purchase fields
 
         #region Business Central Data - Validated fields [101-200]
@@ -296,6 +290,45 @@ table 6100 "E-Document Purchase Header"
     procedure GetBCVendor() Vendor: Record Vendor
     begin
         if Vendor.Get(Rec."[BC] Vendor No.") then;
+    end;
+
+    procedure GetAppliedVATAmountDiff(): Decimal
+    var
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        LineAmount: Decimal;
+        TotalLineVATAmount: Decimal;
+        VATAmountDiff: Decimal;
+    begin
+        if Rec."Total VAT" = 0 then
+            exit(0);
+
+        if not PurchasesPayablesSetup.Get() then
+            exit(0);
+        if not PurchasesPayablesSetup."Apply VAT Diff. For Purch EDoc" then
+            exit(0);
+        if not PurchasesPayablesSetup."Allow VAT Difference" then
+            exit(0);
+        if not GeneralLedgerSetup.Get() then
+            exit(0);
+
+        EDocumentPurchaseLine.SetRange("E-Document Entry No.", Rec."E-Document Entry No.");
+        if EDocumentPurchaseLine.FindSet() then
+            repeat
+                LineAmount := Round(EDocumentPurchaseLine.Quantity * EDocumentPurchaseLine."Unit Price" - EDocumentPurchaseLine."Total Discount");
+                TotalLineVATAmount += Round(LineAmount * EDocumentPurchaseLine."VAT Rate" / 100);
+            until EDocumentPurchaseLine.Next() = 0;
+
+        if TotalLineVATAmount = Rec."Total VAT" then
+            exit(0);
+
+        VATAmountDiff := Rec."Total VAT" - TotalLineVATAmount;
+
+        if Abs(VATAmountDiff) > GeneralLedgerSetup."Max. VAT Difference Allowed" then
+            exit(0);
+
+        exit(VATAmountDiff);
     end;
 
     internal procedure FeatureName(): Text
