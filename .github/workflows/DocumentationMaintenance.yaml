@@ -1,0 +1,157 @@
+name: 'Documentation Maintenance'
+
+on:
+  pull_request:
+    branches: ['main', 'releases/*', 'features/*']
+    paths: ['src/**/*.al']
+
+concurrency:
+  group: docs-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  actions: read
+  contents: read
+  pull-requests: write
+
+jobs:
+  AuditDocs:
+    if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_GH_TOKEN }}
+    steps:
+      - name: Check for existing docs review
+        id: dedup
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ "${{ vars.RUN_DOCS_CHECK_ON_EVERY_ITERATION }}" = "true" ]; then
+            echo "Dedup check disabled via RUN_DOCS_CHECK_ON_EVERY_ITERATION variable."
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          EXISTING=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/reviews \
+            --jq '[.[] | select(.body | startswith("AL Documentation Audit"))] | length' 2>/dev/null || echo "0")
+          if [ "$EXISTING" != "0" ]; then
+            echo "Docs review already posted, skipping."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout
+        if: steps.dedup.outputs.skip != 'true'
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Setup Node.js
+        if: steps.dedup.outputs.skip != 'true'
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+
+      - name: Install Copilot CLI
+        if: steps.dedup.outputs.skip != 'true'
+        run: npm install -g @github/copilot
+
+      - name: Install al-docs plugin
+        if: steps.dedup.outputs.skip != 'true'
+        run: |
+          copilot plugin install ./tools/al-docs-plugin
+          PLUGIN_DIR="$HOME/.copilot/installed-plugins"
+          mkdir -p ~/.copilot
+          echo "{\"trusted_folders\":[\"$PLUGIN_DIR\"]}" > ~/.copilot/config.json
+
+      - name: Find changed apps
+        if: steps.dedup.outputs.skip != 'true'
+        id: scope
+        run: |
+          MERGE_BASE=$(git merge-base ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }})
+          CHANGED=$(git diff --name-only "$MERGE_BASE"..${{ github.event.pull_request.head.sha }} -- '*.al')
+
+          if [ -z "$CHANGED" ]; then
+            echo "count=0" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          APPS=$(echo "$CHANGED" | while read -r f; do
+            d=$(dirname "$f")
+            while [ "$d" != "." ]; do
+              [ -f "$d/app.json" ] && echo "$d" && break
+              d=$(dirname "$d")
+            done
+          done | sort -u)
+
+          COUNT=$(echo "$APPS" | wc -l | tr -d ' ')
+          echo "count=$COUNT" >> "$GITHUB_OUTPUT"
+          echo "apps<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$APPS" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+      - name: Run al-docs audit
+        if: steps.dedup.outputs.skip != 'true' && steps.scope.outputs.count != '0'
+        id: audit
+        run: |
+          while IFS= read -r APP_PATH; do
+            [ -z "$APP_PATH" ] && continue
+            APP_NAME=$(jq -r '.name // "unknown"' "$APP_PATH/app.json" 2>/dev/null || echo "unknown")
+            REPORT_FILE="/tmp/audit-${APP_NAME// /-}.md"
+
+            echo "Auditing $APP_NAME at $APP_PATH..."
+
+            timeout 600 copilot -p \
+              "Run the al-docs skill in audit mode on the app at $APP_PATH. After the audit, summarize in 2-3 sentences: coverage percentage, what is missing." \
+              --model claude-opus-4.6 \
+              --no-ask-user \
+              --autopilot \
+              --allow-tool=read \
+              --allow-tool=glob \
+              --allow-tool=grep \
+              --allow-tool='shell(git log:read)' \
+              --allow-tool='shell(git diff:read)' \
+              --allow-tool='shell(find:read)' \
+              --allow-tool='shell(wc:read)' \
+              --allow-tool='shell(sort:read)' \
+              --allow-tool='shell(uniq:read)' \
+              --allow-tool='shell(jq:read)' \
+              --share="$REPORT_FILE" || true
+
+          done <<< '${{ steps.scope.outputs.apps }}'
+
+          # Combine all audit reports
+          cat /tmp/audit-*.md > /tmp/full-report.md 2>/dev/null || true
+
+      - name: Request docs changes
+        if: steps.dedup.outputs.skip != 'true' && steps.scope.outputs.count != '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if copilot -p "Read /tmp/full-report.md. Does the audit show documentation gaps that need to be fixed? Reply only YES or NO." \
+            -s --no-ask-user --allow-tool=read | grep -qi "yes"; then
+
+            # Build comment with deterministic template -- copilot only extracts coverage %
+            BODY="AL Documentation Audit"$'\n\n'
+            BODY+="Documentation gaps were detected in the following apps:"$'\n\n'
+
+            for REPORT in /tmp/audit-*.md; do
+              [ -f "$REPORT" ] || continue
+              # App name from the report filename (set during audit step from app.json)
+              APP=$(basename "$REPORT" .md | sed 's/^audit-//')
+              COV=$(copilot -p "Read $REPORT. What is the documentation coverage number between 0 and 100? Reply with ONLY the number, nothing else." \
+                -s --no-ask-user --allow-tool=read 2>&1 | grep -oE '[0-9]+' | head -1)
+              [ "$COV" = "100" ] && continue
+              BODY+="- **${APP}**: ${COV:-unknown}% documentation coverage"$'\n'
+            done
+
+            BODY+=$'\n'"To generate documentation, run \`/al-docs init\` or \`/al-docs update\` using [GitHub Copilot CLI](https://github.com/github/copilot-cli) or [Claude Code](https://claude.com/claude-code)."$'\n'
+            BODY+="_This review is for awareness to help keep documentation in sync with code changes. It is okay to dismiss this request._"
+
+            gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/reviews \
+              -f body="$BODY" \
+              -f event="COMMENT"
+          else
+            echo "No documentation gaps found."
+          fi

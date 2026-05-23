@@ -71,10 +71,12 @@ Test-ObjectIDsAreValid -SourceCodePaths $allPaths  -AllowedOutOfRangeTestObjects
 # Test that all application IDs are unique (all paths)
 Test-ApplicationIds -SourceCodePaths $allPaths -Exceptions $duplicateApplicationIds
 
-# Test that all manifests are valid (all paths)
+# Test that all manifests are valid
 $currentMajorMinor = Get-ConfigValue -Key "repoVersion" -ConfigType AL-Go
-$expectedPlatformVersion = "$($currentMajorMinor).0.0" # This can be hardcoded to a specific platform version if needed during version updates
-Test-ApplicationManifests -Path $allPaths -ExpectedAppVersion "$($currentMajorMinor).0.0" -ExpectedPlatformVersion $expectedPlatformVersion
+$currentMajor = [int]($currentMajorMinor -split '\.')[0]
+$expectedPlatformVersionCurrent = "$currentMajor.0.0.0"
+$expectedPlatformVersionPrevious = "$($currentMajor - 1).0.0.0"
+Test-ApplicationManifests -Path $allPaths -ExpectedAppVersion "$($currentMajorMinor).0.0" -ExpectedPlatformVersions @($expectedPlatformVersionCurrent, $expectedPlatformVersionPrevious)
 
 # Test that we are not adding new uncategorized tests (W1 only) - Disabled for now
 # Test-ApplicationTestTypes -SourceCodePaths $w1OnlyPaths -Exceptions $allowedUncategorizedTests
