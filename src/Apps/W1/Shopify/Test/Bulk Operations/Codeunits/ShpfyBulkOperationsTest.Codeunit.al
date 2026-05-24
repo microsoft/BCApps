@@ -311,6 +311,154 @@ codeunit 139633 "Shpfy Bulk Operations Test"
         ClearSetup();
     end;
 
+    [Test]
+    procedure TestBulkUpdateProductPriceClearsCompareAtPriceAsNull()
+    var
+        ShopifyVariant: Record "Shpfy Variant";
+        xShopifyVariant: Record "Shpfy Variant";
+        VariantApi: Codeunit "Shpfy Variant API";
+        BulkOperationInput: TextBuilder;
+        GraphQueryList: Dictionary of [BigInteger, TextBuilder];
+        JRequestData: JsonArray;
+        Jsonl: Text;
+    begin
+        // [SCENARIO] Bug fix for ICM 21000001004461: when Compare at Price is cleared (set to 0)
+        // on the bulk path, the JSONL must contain "compareAtPrice": null, not "compareAtPrice": "0".
+        Initialize();
+        ClearSetup();
+
+        // [GIVEN] A Shopify variant whose Compare at Price has just been cleared (200 -> 0)
+        ShopifyVariant.Init();
+        ShopifyVariant."Product Id" := Any.IntegerInRange(100000, 555555);
+        ShopifyVariant.Id := Any.IntegerInRange(100000, 555555);
+        ShopifyVariant.Price := 100;
+        ShopifyVariant."Compare at Price" := 0;
+        ShopifyVariant."Unit Cost" := 50;
+        ShopifyVariant.Insert();
+        xShopifyVariant := ShopifyVariant;
+        xShopifyVariant."Compare at Price" := 200;
+
+        // [WHEN] UpdateProductPrice runs on the bulk path (RecordCount >= 100)
+        VariantApi.UpdateProductPrice(ShopifyVariant, xShopifyVariant, BulkOperationInput, GraphQueryList, 100, JRequestData);
+
+        // [THEN] The JSONL line clears Compare at Price with the literal token null, not the string "0"
+        Jsonl := BulkOperationInput.ToText();
+        LibraryAssert.IsTrue(Jsonl.Contains('"compareAtPrice": null'), 'JSONL must clear Compare at Price with null. Was: ' + Jsonl);
+        LibraryAssert.IsFalse(Jsonl.Contains('"compareAtPrice": "0"'), 'JSONL must not send Compare at Price as the string "0". Was: ' + Jsonl);
+        LibraryAssert.IsFalse(Jsonl.Contains('"compareAtPrice": "null"'), 'JSONL must not quote the null token. Was: ' + Jsonl);
+        ClearSetup();
+    end;
+
+    [Test]
+    procedure TestBulkUpdateProductPriceOmitsUnchangedCompareAtPrice()
+    var
+        ShopifyVariant: Record "Shpfy Variant";
+        xShopifyVariant: Record "Shpfy Variant";
+        VariantApi: Codeunit "Shpfy Variant API";
+        BulkOperationInput: TextBuilder;
+        GraphQueryList: Dictionary of [BigInteger, TextBuilder];
+        JRequestData: JsonArray;
+        Jsonl: Text;
+    begin
+        // [SCENARIO] Bug fix for ICM 21000001004461: when only Price changes and Compare at Price
+        // is unchanged in BC, the bulk path must omit compareAtPrice from the JSONL so that
+        // Shopify preserves whatever value is currently set on the variant.
+        Initialize();
+        ClearSetup();
+
+        // [GIVEN] A Shopify variant with Compare at Price = 0 (unchanged), Price changing 80 -> 100
+        ShopifyVariant.Init();
+        ShopifyVariant."Product Id" := Any.IntegerInRange(100000, 555555);
+        ShopifyVariant.Id := Any.IntegerInRange(100000, 555555);
+        ShopifyVariant.Price := 100;
+        ShopifyVariant."Compare at Price" := 0;
+        ShopifyVariant."Unit Cost" := 50;
+        ShopifyVariant.Insert();
+        xShopifyVariant := ShopifyVariant;
+        xShopifyVariant.Price := 80;
+
+        // [WHEN] UpdateProductPrice runs on the bulk path
+        VariantApi.UpdateProductPrice(ShopifyVariant, xShopifyVariant, BulkOperationInput, GraphQueryList, 100, JRequestData);
+
+        // [THEN] compareAtPrice is not in the JSONL at all - Shopify preserves its existing value
+        Jsonl := BulkOperationInput.ToText();
+        LibraryAssert.IsFalse(Jsonl.Contains('compareAtPrice'), 'JSONL must omit compareAtPrice when unchanged in BC. Was: ' + Jsonl);
+        ClearSetup();
+    end;
+
+    [Test]
+    procedure TestBulkUpdateProductPriceSendsValidCompareAtPriceAsQuoted()
+    var
+        ShopifyVariant: Record "Shpfy Variant";
+        xShopifyVariant: Record "Shpfy Variant";
+        VariantApi: Codeunit "Shpfy Variant API";
+        BulkOperationInput: TextBuilder;
+        GraphQueryList: Dictionary of [BigInteger, TextBuilder];
+        JRequestData: JsonArray;
+        Jsonl: Text;
+    begin
+        // [SCENARIO] When Compare at Price is set above Price (a valid sale price), the bulk path
+        // must send the value as a quoted decimal string, matching the non-bulk GraphQL path.
+        Initialize();
+        ClearSetup();
+
+        // [GIVEN] Variant going on sale: Price 100, Compare at Price changing 0 -> 200
+        ShopifyVariant.Init();
+        ShopifyVariant."Product Id" := Any.IntegerInRange(100000, 555555);
+        ShopifyVariant.Id := Any.IntegerInRange(100000, 555555);
+        ShopifyVariant.Price := 100;
+        ShopifyVariant."Compare at Price" := 200;
+        ShopifyVariant."Unit Cost" := 50;
+        ShopifyVariant.Insert();
+        xShopifyVariant := ShopifyVariant;
+        xShopifyVariant."Compare at Price" := 0;
+
+        // [WHEN] UpdateProductPrice runs on the bulk path
+        VariantApi.UpdateProductPrice(ShopifyVariant, xShopifyVariant, BulkOperationInput, GraphQueryList, 100, JRequestData);
+
+        // [THEN] Compare at Price is sent as a quoted decimal string
+        Jsonl := BulkOperationInput.ToText();
+        LibraryAssert.IsTrue(Jsonl.Contains('"compareAtPrice": "200'), 'JSONL must send positive Compare at Price as a quoted decimal. Was: ' + Jsonl);
+        LibraryAssert.IsFalse(Jsonl.Contains('"compareAtPrice": null'), 'JSONL must not null out a valid Compare at Price. Was: ' + Jsonl);
+        ClearSetup();
+    end;
+
+    [Test]
+    procedure TestBulkUpdateProductPriceOmitsUnchangedPositiveCompareAtPrice()
+    var
+        ShopifyVariant: Record "Shpfy Variant";
+        xShopifyVariant: Record "Shpfy Variant";
+        VariantApi: Codeunit "Shpfy Variant API";
+        BulkOperationInput: TextBuilder;
+        GraphQueryList: Dictionary of [BigInteger, TextBuilder];
+        JRequestData: JsonArray;
+        Jsonl: Text;
+    begin
+        // [SCENARIO] When only Unit Cost changes and Compare at Price is unchanged (even if
+        // currently > Price), the bulk path must omit compareAtPrice so Shopify preserves it.
+        Initialize();
+        ClearSetup();
+
+        // [GIVEN] Variant with valid sale (Compare 200 > Price 100); only Unit Cost changes
+        ShopifyVariant.Init();
+        ShopifyVariant."Product Id" := Any.IntegerInRange(100000, 555555);
+        ShopifyVariant.Id := Any.IntegerInRange(100000, 555555);
+        ShopifyVariant.Price := 100;
+        ShopifyVariant."Compare at Price" := 200;
+        ShopifyVariant."Unit Cost" := 75;
+        ShopifyVariant.Insert();
+        xShopifyVariant := ShopifyVariant;
+        xShopifyVariant."Unit Cost" := 50;
+
+        // [WHEN] UpdateProductPrice runs on the bulk path
+        VariantApi.UpdateProductPrice(ShopifyVariant, xShopifyVariant, BulkOperationInput, GraphQueryList, 100, JRequestData);
+
+        // [THEN] compareAtPrice is omitted entirely - Shopify keeps its current value
+        Jsonl := BulkOperationInput.ToText();
+        LibraryAssert.IsFalse(Jsonl.Contains('compareAtPrice'), 'JSONL must omit unchanged compareAtPrice. Was: ' + Jsonl);
+        ClearSetup();
+    end;
+
     local procedure CreateBulkOperation(BulkOperationId: BigInteger; BulkOperationType: Enum "Shpfy Bulk Operation Type"; ShopCode: Code[20]; BulkOperationUrl: Text; RequestData: JsonArray): Record "Shpfy Bulk Operation"
     var
         BulkOperation: Record "Shpfy Bulk Operation";
