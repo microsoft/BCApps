@@ -8,8 +8,11 @@ using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing.AI;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
+using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.UOM;
 using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Setup;
 using Microsoft.Purchases.Vendor;
 using System.Log;
 
@@ -33,6 +36,9 @@ codeunit 6125 "Prepare Purchase E-Doc. Draft" implements IProcessStructuredData
         IUnitOfMeasureProvider: Interface IUnitOfMeasureProvider;
         IPurchaseLineProvider: Interface IPurchaseLineProvider;
         IPurchaseOrderProvider: Interface IPurchaseOrderProvider;
+        LineAmount: Decimal;
+        LineVATAmount: Decimal;
+        TotalLineVATAmount: Decimal;
     begin
         IUnitOfMeasureProvider := EDocImportParameters."Processing Customizations";
         IPurchaseLineProvider := EDocImportParameters."Processing Customizations";
@@ -73,6 +79,9 @@ codeunit 6125 "Prepare Purchase E-Doc. Draft" implements IProcessStructuredData
                     EDocumentPurchaseLine.Modify();
                 until EDocumentPurchaseLine.Next() = 0;
 
+            // Resolve VAT Product Posting Groups from extracted VAT rates
+            ResolveVATProductPostingGroups(EDocument."Entry No", EDocumentPurchaseHeader);
+
             // Apply all Copilot-powered matching techniques to the lines
             CopilotLineMatching(EDocument."Entry No");
         end;
@@ -80,10 +89,17 @@ codeunit 6125 "Prepare Purchase E-Doc. Draft" implements IProcessStructuredData
         // Log telemetry and activity sessions
         Clear(EDocumentPurchaseLine);
         EDocumentPurchaseLine.SetRange("E-Document Entry No.", EDocument."Entry No");
+        TotalLineVATAmount := 0;
         if EDocumentPurchaseLine.FindSet() then
             repeat
+                LineAmount := Round(EDocumentPurchaseLine.Quantity * EDocumentPurchaseLine."Unit Price" - EDocumentPurchaseLine."Total Discount");
+                LineVATAmount := Round(LineAmount * EDocumentPurchaseLine."VAT Rate" / 100);
+                TotalLineVATAmount += LineVATAmount;
                 EDocImpSessionTelemetry.SetLine(EDocumentPurchaseLine.SystemId);
             until EDocumentPurchaseLine.Next() = 0;
+
+        ComputeAndApplyVATAmountDifference(EDocumentPurchaseHeader, TotalLineVATAmount);
+        EDocumentPurchaseHeader.Modify();
 
         // Log all accumulated activity session changes at the end
         LogAllActivitySessionChanges(EDocActivityLogSession);
@@ -110,6 +126,72 @@ codeunit 6125 "Prepare Purchase E-Doc. Draft" implements IProcessStructuredData
         EDocActivityLogSession.GetAll(ActivityLogName, ActivityLogList, Found);
         foreach ActivityLog in ActivityLogList do
             ActivityLog.Log();
+    end;
+
+    local procedure ResolveVATProductPostingGroups(EDocumentEntryNo: Integer; EDocumentPurchaseHeader: Record "E-Document Purchase Header")
+    var
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        Vendor: Record Vendor;
+        VATRate: Decimal;
+        LineBase: Decimal;
+        LineCount: Integer;
+    begin
+        if not PurchasesPayablesSetup.Get() then
+            exit;
+        if not PurchasesPayablesSetup."Resolve VAT Group Purch EDoc" then
+            exit;
+        Vendor := EDocumentPurchaseHeader.GetBCVendor();
+        if Vendor."No." = '' then
+            exit;
+        if Vendor."VAT Bus. Posting Group" = '' then
+            exit;
+
+        EDocumentPurchaseLine.SetRange("E-Document Entry No.", EDocumentEntryNo);
+        LineCount := EDocumentPurchaseLine.Count();
+        if LineCount = 0 then
+            exit;
+
+        if EDocumentPurchaseLine.FindSet() then
+            repeat
+                VATRate := EDocumentPurchaseLine."VAT Rate";
+
+                // Single-line fallback: compute from header Total VAT
+                if (VATRate = 0) and (LineCount = 1) and (EDocumentPurchaseHeader."Total VAT" > 0) then begin
+                    LineBase := EDocumentPurchaseLine.Quantity * EDocumentPurchaseLine."Unit Price" - EDocumentPurchaseLine."Total Discount";
+                    if LineBase = 0 then
+                        LineBase := EDocumentPurchaseHeader."Sub Total";
+                    if LineBase > 0 then
+                        VATRate := Round((EDocumentPurchaseHeader."Total VAT" / LineBase) * 100, 0.01);
+                end;
+
+                if VATRate > 0 then begin
+                    EDocumentPurchaseLine."[BC] VAT Prod. Posting Group" :=
+                        FindVATProductPostingGroup(Vendor."VAT Bus. Posting Group", VATRate);
+                    EDocumentPurchaseLine.Modify();
+                    if EDocumentPurchaseLine."[BC] VAT Prod. Posting Group" = '' then
+                        EDocumentPurchaseLine.LogVATRateMismatch(Vendor."VAT Bus. Posting Group", VATRate)
+                    else
+                        EDocumentPurchaseLine.LogVATRateResolved(Vendor."VAT Bus. Posting Group", VATRate);
+                end;
+            until EDocumentPurchaseLine.Next() = 0;
+    end;
+
+    local procedure FindVATProductPostingGroup(VATBusPostingGroup: Code[20]; VATRate: Decimal): Code[20]
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+        EDocPurchDocHelper: Codeunit "E-Doc. Purch. Doc. Helper";
+        CustomDimensions: Dictionary of [Text, Text];
+        VATPostingGroupNotFoundLbl: Label 'VAT Product Posting Group not found for VAT Rate %1.', Comment = '%1 = VAT rate', Locked = true;
+    begin
+        EDocPurchDocHelper.SetNormalReverseChargeFilter(VATPostingSetup, VATBusPostingGroup);
+        VATPostingSetup.SetRange("VAT %", VATRate);
+        if VATPostingSetup.Count() = 1 then begin
+            VATPostingSetup.FindFirst();
+            exit(VATPostingSetup."VAT Prod. Posting Group");
+        end;
+        Session.LogMessage('0000TXZ', StrSubstNo(VATPostingGroupNotFoundLbl, VATRate), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
+        exit('');
     end;
 
     local procedure CopilotLineMatching(EDocumentEntryNo: Integer)
@@ -179,5 +261,65 @@ codeunit 6125 "Prepare Purchase E-Doc. Draft" implements IProcessStructuredData
     begin
         IVendorProvider := Customizations;
         Vendor := IVendorProvider.GetVendor(EDocument);
+    end;
+
+    local procedure ComputeAndApplyVATAmountDifference(EDocumentPurchaseHeader: Record "E-Document Purchase Header"; TotalLineVATAmount: Decimal)
+    var
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        ActivityLog: Codeunit "Activity Log Builder";
+        VATAmountDiff: Decimal;
+        Reasoning: Text[250];
+        VATDiffAppliedLbl: Label 'Applied VAT amount difference of %1 to reconcile document Total VAT %2 with computed Total Line VAT Amount %3.', Comment = '%1 = VAT difference, %2 = Total VAT, %3 = Total Line VAT Amount';
+        VATDiffSkippedSetupLbl: Label 'VAT amount difference of %1 was not applied because Apply VAT Diff. For Purch. E-Doc. is disabled in Purchases & Payables Setup.', Comment = '%1 = VAT difference';
+        VATDiffSkippedAllowLbl: Label 'VAT amount difference of %1 was not applied because Allow VAT Difference is disabled in Purchases & Payables Setup.', Comment = '%1 = VAT difference';
+        VATDiffSkippedMaxLbl: Label 'VAT amount difference of %1 was not applied because it exceeds the Max. VAT Difference Allowed of %2 in General Ledger Setup.', Comment = '%1 = VAT difference, %2 = Max. VAT Difference Allowed';
+    begin
+        if (EDocumentPurchaseHeader."Total VAT" = 0) or (TotalLineVATAmount = EDocumentPurchaseHeader."Total VAT") then
+            exit;
+
+        VATAmountDiff := EDocumentPurchaseHeader."Total VAT" - TotalLineVATAmount;
+
+        if not PurchasesPayablesSetup.Get() then
+            exit;
+
+        if not PurchasesPayablesSetup."Apply VAT Diff. For Purch EDoc" then begin
+            Reasoning := CopyStr(StrSubstNo(VATDiffSkippedSetupLbl, VATAmountDiff), 1, MaxStrLen(Reasoning));
+            ActivityLog
+                .Init(Database::"E-Document Purchase Header", EDocumentPurchaseHeader.FieldNo("Total VAT"), EDocumentPurchaseHeader.SystemId)
+                .SetExplanation(Reasoning)
+                .SetType(Enum::"Activity Log Type"::"AL")
+                .Log();
+            exit;
+        end;
+
+        if not PurchasesPayablesSetup."Allow VAT Difference" then begin
+            Reasoning := CopyStr(StrSubstNo(VATDiffSkippedAllowLbl, VATAmountDiff), 1, MaxStrLen(Reasoning));
+            ActivityLog
+                .Init(Database::"E-Document Purchase Header", EDocumentPurchaseHeader.FieldNo("Total VAT"), EDocumentPurchaseHeader.SystemId)
+                .SetExplanation(Reasoning)
+                .SetType(Enum::"Activity Log Type"::"AL")
+                .Log();
+            exit;
+        end;
+
+        if not GeneralLedgerSetup.Get() then
+            exit;
+        if Abs(VATAmountDiff) > GeneralLedgerSetup."Max. VAT Difference Allowed" then begin
+            Reasoning := CopyStr(StrSubstNo(VATDiffSkippedMaxLbl, VATAmountDiff, GeneralLedgerSetup."Max. VAT Difference Allowed"), 1, MaxStrLen(Reasoning));
+            ActivityLog
+                .Init(Database::"E-Document Purchase Header", EDocumentPurchaseHeader.FieldNo("Total VAT"), EDocumentPurchaseHeader.SystemId)
+                .SetExplanation(Reasoning)
+                .SetType(Enum::"Activity Log Type"::"AL")
+                .Log();
+            exit;
+        end;
+
+        Reasoning := CopyStr(StrSubstNo(VATDiffAppliedLbl, VATAmountDiff, EDocumentPurchaseHeader."Total VAT", TotalLineVATAmount), 1, MaxStrLen(Reasoning));
+        ActivityLog
+            .Init(Database::"E-Document Purchase Header", EDocumentPurchaseHeader.FieldNo("Total VAT"), EDocumentPurchaseHeader.SystemId)
+            .SetExplanation(Reasoning)
+            .SetType(Enum::"Activity Log Type"::"AL")
+            .Log();
     end;
 }
