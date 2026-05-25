@@ -1003,7 +1003,7 @@ codeunit 139913 "Vendor Deferrals Test"
         VendorContractDeferral.TestField(Released, true);
         VendorContractDeferral.TestField("G/L Entry No.");
 
-        // [THEN] GL entries are posted correctly
+        // [THEN] GL entry is posted with Subscription Contract No. and the amount is released from the deferral account.
         GLEntry.Get(VendorContractDeferral."G/L Entry No.");
         GLEntry.TestField("Subscription Contract No.", VendorContractDeferral."Subscription Contract No.");
         GetGLEntryAmountFromAccountNo(GLAmountAfterRelease, GeneralPostingSetup."Vend. Sub. Contr. Def. Account");
@@ -1063,7 +1063,7 @@ codeunit 139913 "Vendor Deferrals Test"
         VendorContractDeferral.TestField(Released, true);
         VendorContractDeferral.TestField("G/L Entry No.");
 
-        // [THEN] GL entries are posted correctly
+        // [THEN] GL entry is posted with Subscription Contract No. and the amount is released from the deferral account.
         GLEntry.Get(VendorContractDeferral."G/L Entry No.");
         GLEntry.TestField("Subscription Contract No.", VendorContractDeferral."Subscription Contract No.");
         GetGLEntryAmountFromAccountNo(GLAmountAfterRelease, GeneralPostingSetup."Vend. Sub. Contr. Def. Account");
