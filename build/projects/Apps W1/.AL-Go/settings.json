@@ -1,6 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go/d6059b86a7774031d5c41ca64a9efd4160c1c057/Actions/.Modules/settings.schema.json",
-  "projectName": "Apps",
+  "projectName": "Apps W1",
   "appFolders": [
     "../../../src/Apps/W1/APIReportsFinance/App",
     "../../../src/Apps/W1/APIV1/app",

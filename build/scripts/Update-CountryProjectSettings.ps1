@@ -11,7 +11,12 @@
     reusing the same data structures that the build system relies on.
 .PARAMETER CountryCode
     Optional. If specified, only updates the settings for this country.
-    If not specified, updates all country projects.
+    If not specified, updates all country projects (including the W1 base
+    project at build/projects/Apps W1).
+
+    For the W1 base project, both "W1" and "WW" are accepted (case-insensitive)
+    and normalized to "W1" internally, which is the identifier used in
+    groups.json and projects.json.
 .PARAMETER Validate
     Validates that all country settings are up to date without making changes.
     Returns $true if all settings are correct, $false if updates are needed.
@@ -26,6 +31,10 @@
 .EXAMPLE
     .\Update-CountryProjectSettings.ps1 -CountryCode "GB"
     Updates only the GB (Great Britain) project settings.
+.EXAMPLE
+    .\Update-CountryProjectSettings.ps1 -CountryCode "W1"
+    Updates only the W1 base project (build/projects/Apps W1). "WW" is accepted
+    as an alias.
 .EXAMPLE
     .\Update-CountryProjectSettings.ps1 -WhatIf
     Shows what changes would be made without modifying files.
@@ -69,7 +78,29 @@ $AdditionalAppFolders = @(
     "../../../src/Layers/W1/DemoTool"
 )
 
+# Country code used for the W1 base project. Matches the identifier used in
+# groups.json / projects.json (supportedCountries / unsupportedCountries).
+$W1CountryCode = "W1"
+
 $countryProjectsPath = Join-Path $RepoRoot "build\projects"
+
+function ConvertTo-NormalizedCountryCode {
+    <#
+    .SYNOPSIS
+        Normalizes a user-supplied country code.
+    .DESCRIPTION
+        Accepts "W1", "w1", "WW", "ww" as aliases for the W1 base project and
+        returns "W1" (the identifier used in groups.json / projects.json).
+        All other inputs are upper-cased and returned as-is.
+    #>
+    param([string]$CountryCode)
+
+    if ([string]::IsNullOrWhiteSpace($CountryCode)) { return $CountryCode }
+
+    $upper = $CountryCode.ToUpperInvariant()
+    if ($upper -eq "W1" -or $upper -eq "WW") { return $W1CountryCode }
+    return $upper
+}
 
 function ConvertTo-SettingsRelativePath {
     <#
@@ -90,11 +121,12 @@ function ConvertTo-SettingsRelativePath {
 
 function Get-CountryCodes {
     $countryFolders = Get-ChildItem -Path $countryProjectsPath -Directory |
-        Where-Object { $_.Name -match "^Apps ([A-Z]{2})$" } |
+        Where-Object { $_.Name -match "^Apps (W1|[A-Z]{2})$" } |
         ForEach-Object {
-            if ($_.Name -match "^Apps ([A-Z]{2})$") { $Matches[1] }
+            if ($_.Name -match "^Apps (W1|[A-Z]{2})$") { $Matches[1] }
         }
-    return $countryFolders | Sort-Object
+
+    return $countryFolders | Sort-Object -Unique
 }
 
 function Get-AppFoldersForCountry {
@@ -250,6 +282,7 @@ Write-Host ""
 
 # Get countries to process
 if ($CountryCode) {
+    $CountryCode = ConvertTo-NormalizedCountryCode $CountryCode
     $countries = @($CountryCode)
     Write-Host "Processing single country: $CountryCode" -ForegroundColor Gray
 } else {

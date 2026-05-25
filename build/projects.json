@@ -605,7 +605,7 @@
       "isTest": true,
       "runStaticCodeAnalysis": true,
       "ruleSetPath": "$ENV:INETROOT\\App\\Rulesets\\basetest.ruleset.json",
-      "isInternal": true,
+      "isInternal": false,
       "owningteam": "\\AI Business Solutions\\SCM"
     },
     "Application Test Library": {

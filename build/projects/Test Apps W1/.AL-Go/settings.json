@@ -4,7 +4,7 @@
   "gitHubRunner": "GitHub-BCAppsPL",
   "country": "w1",
   "projectsToTest": [
-    "build/projects/Apps"
+    "build/projects/Apps W1"
   ],
   "testFolders": [],
   "runTestsInAllInstalledTestApps": true,
