@@ -116,6 +116,8 @@ codeunit 20440 "Qlty. Report Mgmt."
             Item.Get(QltyInspectionHeader."Source Item No.");
     end;
 
+#if not CLEAN29
+    [Obsolete('Unused in Word layouts.', '29.0')]
     internal procedure ResolveInspectionTemplateCache(TemplateCode: Code[20]; var QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.")
     begin
         if QltyInspectionTemplateHdr.Code = TemplateCode then
@@ -124,6 +126,7 @@ codeunit 20440 "Qlty. Report Mgmt."
         Clear(QltyInspectionTemplateHdr);
         if QltyInspectionTemplateHdr.Get(TemplateCode) then;
     end;
+#endif
 
     internal procedure ResolveFinishedByPerson(FinishedByUserId: Code[50]; var FinishedByUserName: Text; var FinishedByTitle: Text; var FinishedByEmail: Text; var FinishedByPhone: Text)
     var
