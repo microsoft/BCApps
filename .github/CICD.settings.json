@@ -1,7 +1,4 @@
 {
-  "workflowSchedule": {
-    "cron": "0 0,12 * * *"
-  },
   "conditionalSettings": [
     {
       "triggers": [
