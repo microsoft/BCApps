@@ -209,6 +209,7 @@ table 20401 "Qlty. Test"
         TestValueTypeChangeErrTitleMsg: Label 'Cannot change the test value type for a test that is already in use on inspections.';
         TestValueTypeChangeErrInfoMsg: Label 'Consider replacing this test in the template with a new one, or deleting existing inspections (if allowed). The test was last used on Inspection %1, Re-inspection %2.', Comment = '%1 = Quality Inspection No., %2 = Re-inspection No.';
         ShowInspectionActionLbl: Label 'Show Inspection %1 %2', Comment = '%1=Inspection No., %2=Re-inspection No.';
+        InspectionLineExistsButHeaderMissingErr: Label 'The test %1 exists on inspection line with Inspection No. %2, Re-inspection %3, but the inspection header record is missing. This indicates a data integrity issue.', Comment = '%1=Test Code, %2=Inspection No., %3=Re-inspection No.';
 
     /// <summary>
     /// Set a specific result for the test. If AllowError is set to true it will error
@@ -380,6 +381,7 @@ table 20401 "Qlty. Test"
         QltyInspectionLine.SetRange("Test Code", Rec.Code);
         LineCount := QltyInspectionLine.Count();
         if LineCount > 0 then begin
+            QltyInspectionLine.SetLoadFields("Test Code", "Template Code");
             QltyInspectionLine.FindFirst();
             Error(ExistingInspectionErr,
                 QltyInspectionLine."Test Code",
@@ -534,7 +536,7 @@ table 20401 "Qlty. Test"
         end;
     end;
 
-    internal procedure HandleOnValidateTestValueType()
+    local procedure HandleOnValidateTestValueType()
     var
         QltyResultConditionMgmt: Codeunit "Qlty. Result Condition Mgmt.";
     begin
@@ -558,9 +560,11 @@ table 20401 "Qlty. Test"
         QltyInspectionLine: Record "Qlty. Inspection Line";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
     begin
+        QltyInspectionLine.SetLoadFields("Inspection No.", "Re-inspection No.");
         QltyInspectionLine.SetRange("Test Code", Rec.Code);
         if QltyInspectionLine.FindLast() then begin
-            QltyInspectionHeader.Get(QltyInspectionLine."Inspection No.", QltyInspectionLine."Re-inspection No.");
+            if not QltyInspectionHeader.Get(QltyInspectionLine."Inspection No.", QltyInspectionLine."Re-inspection No.") then
+                Error(InspectionLineExistsButHeaderMissingErr, Rec.Code, QltyInspectionLine."Inspection No.", QltyInspectionLine."Re-inspection No.");
 
             ThrowTestUsedInInspectionsError(QltyInspectionHeader);
         end;
