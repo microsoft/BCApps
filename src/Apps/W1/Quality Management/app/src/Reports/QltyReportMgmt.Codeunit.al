@@ -117,7 +117,7 @@ codeunit 20440 "Qlty. Report Mgmt."
     end;
 
 #if not CLEAN29
-    [Obsolete('Unused in Word layouts.', '29.0')]
+    [Obsolete('Unused by Word layouts. Used only by RDLC layouts, and will be removed with the RDLC layouts.', '29.0')]
     internal procedure ResolveInspectionTemplateCache(TemplateCode: Code[20]; var QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.")
     begin
         if QltyInspectionTemplateHdr.Code = TemplateCode then

@@ -28,7 +28,7 @@ report 20401 "Qlty. Certificate of Analysis"
             column(QltyInspectionTemplate_Description; QltyInspectionTemplateHdr.Description)
             {
                 ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
+                ObsoleteReason = 'RDLC-only layout column. To be removed along with the RDLC layout.';
                 ObsoleteTag = '29.0';
             }
 #endif
