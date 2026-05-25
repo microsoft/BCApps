@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment Practices — Redesign Review</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0d1117;
+      color: #e6edf3;
+      overflow: hidden
+    }
+
+    /* Nav & chrome */
+    .nav {
+      position: fixed;
+      bottom: 24px;
+      right: 32px;
+      z-index: 100;
+      display: flex;
+      gap: 8px
+    }
+
+    .nav button {
+      background: rgba(255, 255, 255, .1);
+      border: 1px solid rgba(255, 255, 255, .2);
+      color: #e6edf3;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      backdrop-filter: blur(8px);
+      transition: background .2s
+    }
+
+    .nav button:hover {
+      background: rgba(255, 255, 255, .2)
+    }
+
+    .nav button:disabled {
+      opacity: .3;
+      cursor: default
+    }
+
+    .progress {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #58a6ff, #a371f7);
+      transition: width .4s;
+      z-index: 100
+    }
+
+    .slide-num {
+      position: fixed;
+      bottom: 28px;
+      left: 32px;
+      font-size: 13px;
+      color: rgba(255, 255, 255, .4);
+      z-index: 100
+    }
+
+    .kbd-hint {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 12px;
+      color: rgba(255, 255, 255, .2);
+      z-index: 100
+    }
+
+    /* Slides */
+    .slide {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 60px 100px;
+      opacity: 0;
+      transform: translateX(60px);
+      transition: opacity .5s, transform .5s;
+      pointer-events: none
+    }
+
+    .slide.active {
+      opacity: 1;
+      transform: translateX(0);
+      pointer-events: auto
+    }
+
+    .slide.exit-left {
+      opacity: 0;
+      transform: translateX(-60px)
+    }
+
+    h1 {
+      font-size: 52px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      background: linear-gradient(135deg, #58a6ff, #a371f7);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text
+    }
+
+    h2 {
+      font-size: 32px;
+      font-weight: 600;
+      margin-bottom: 28px;
+      color: #58a6ff
+    }
+
+    .subtitle {
+      font-size: 20px;
+      color: rgba(255, 255, 255, .45);
+      margin-bottom: 40px
+    }
+
+    ul {
+      list-style: none;
+      padding: 0
+    }
+
+    ul li {
+      padding: 10px 0 10px 28px;
+      position: relative;
+      font-size: 20px;
+      line-height: 1.5;
+      color: #c9d1d9
+    }
+
+    ul li::before {
+      content: '▸';
+      position: absolute;
+      left: 0;
+      color: #58a6ff;
+      font-weight: bold
+    }
+
+    ul li strong {
+      color: #e6edf3
+    }
+
+    .title-slide {
+      text-align: center
+    }
+
+    .title-slide h1 {
+      font-size: 60px
+    }
+
+    .title-meta {
+      margin-top: 40px;
+      display: flex;
+      justify-content: center;
+      gap: 32px
+    }
+
+    .title-meta span {
+      color: rgba(255, 255, 255, .3);
+      font-size: 14px
+    }
+
+    /* CSS Flow diagrams */
+    .flow {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      margin: 24px auto;
+      justify-content: center;
+      flex-wrap: wrap
+    }
+
+    .flow-v {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+      margin: 24px auto
+    }
+
+    .box {
+      padding: 14px 24px;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 500;
+      text-align: center;
+      min-width: 120px;
+      color: #e6edf3
+    }
+
+    .box-blue {
+      background: rgba(88, 166, 255, .12);
+      border: 1.5px solid rgba(88, 166, 255, .35)
+    }
+
+    .box-purple {
+      background: rgba(163, 113, 247, .12);
+      border: 1.5px solid rgba(163, 113, 247, .35)
+    }
+
+    .box-green {
+      background: rgba(63, 185, 80, .12);
+      border: 1.5px solid rgba(63, 185, 80, .35)
+    }
+
+    .box-amber {
+      background: rgba(210, 153, 34, .12);
+      border: 1.5px solid rgba(210, 153, 34, .35)
+    }
+
+    .box-red {
+      background: rgba(248, 81, 73, .1);
+      border: 1.5px solid rgba(248, 81, 73, .3)
+    }
+
+    .box-dim {
+      background: rgba(255, 255, 255, .03);
+      border: 1.5px solid rgba(255, 255, 255, .1);
+      color: #8b949e
+    }
+
+    .arrow {
+      color: #58a6ff;
+      font-size: 22px;
+      padding: 0 8px;
+      flex-shrink: 0
+    }
+
+    .arrow-down {
+      color: #58a6ff;
+      font-size: 22px;
+      padding: 6px 0
+    }
+
+    .enum-row {
+      display: flex;
+      gap: 12px;
+      align-items: stretch
+    }
+
+    .enum-col {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      align-items: center
+    }
+
+    .enum-label {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: rgba(255, 255, 255, .35);
+      margin-bottom: 4px
+    }
+
+    /* Comparison */
+    .compare {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      margin-top: 24px
+    }
+
+    .compare-box {
+      background: rgba(255, 255, 255, .03);
+      border: 1px solid rgba(255, 255, 255, .08);
+      border-radius: 12px;
+      padding: 28px
+    }
+
+    .compare-box h3 {
+      font-size: 17px;
+      margin-bottom: 16px;
+      font-weight: 600
+    }
+
+    .compare-box.old h3 {
+      color: #f85149
+    }
+
+    .compare-box.new h3 {
+      color: #3fb950
+    }
+
+    .compare-box ul li {
+      font-size: 16px;
+      padding: 6px 0 6px 22px
+    }
+
+    /* Table */
+    table {
+      border-collapse: collapse;
+      margin-top: 16px;
+      width: 100%;
+      font-size: 16px
+    }
+
+    th {
+      text-align: left;
+      padding: 10px 16px;
+      border-bottom: 2px solid #30363d;
+      color: #58a6ff;
+      font-weight: 600
+    }
+
+    td {
+      padding: 10px 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, .06);
+      color: #c9d1d9
+    }
+
+    td:first-child {
+      color: #e6edf3;
+      font-weight: 500
+    }
+
+    .tag-old {
+      display: inline-block;
+      background: rgba(248, 81, 73, .15);
+      color: #f85149;
+      padding: 1px 8px;
+      border-radius: 10px;
+      font-size: 12px
+    }
+
+    .tag-new {
+      display: inline-block;
+      background: rgba(63, 185, 80, .15);
+      color: #3fb950;
+      padding: 1px 8px;
+      border-radius: 10px;
+      font-size: 12px
+    }
+
+    /* Numbered steps */
+    ol {
+      padding-left: 0;
+      list-style: none;
+      counter-reset: step
+    }
+
+    ol li {
+      padding: 14px 0;
+      font-size: 20px;
+      line-height: 1.5;
+      color: #c9d1d9;
+      counter-increment: step;
+      padding-left: 48px;
+      position: relative
+    }
+
+    ol li::before {
+      content: counter(step);
+      position: absolute;
+      left: 0;
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, #58a6ff, #a371f7);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 700;
+      color: #0d1117;
+      text-align: center;
+      line-height: 32px
+    }
+
+    ol li strong {
+      color: #e6edf3
+    }
+
+    /* Branch cards for upgrade */
+    .branch-row {
+      display: flex;
+      gap: 24px;
+      margin: 20px 0
+    }
+
+    .branch-card {
+      flex: 1;
+      border-radius: 10px;
+      padding: 20px 24px
+    }
+
+    .branch-card h4 {
+      font-size: 16px;
+      margin-bottom: 8px
+    }
+
+    .branch-card p {
+      font-size: 15px;
+      line-height: 1.5;
+      color: #c9d1d9
+    }
+
+    /* Feature pills */
+    .pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 20px
+    }
+
+    .pill {
+      padding: 10px 20px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 500
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="progress" id="progress"></div>
+  <div class="slide-num" id="slideNum"></div>
+  <div class="kbd-hint">← → arrow keys to navigate</div>
+
+  <!-- Slide 1: Title -->
+  <div class="slide title-slide active" data-slide="1">
+    <h1>Payment Practices<br>Redesign Review</h1>
+    <div class="subtitle">Extending the W1 app for UK &amp; AU/NZ regulations</div>
+    <div class="title-meta">
+      <span>~10 min</span>
+      <span>Focus: GB</span>
+      <span>Goal: OLD → NEW, invite criticism</span>
+    </div>
+    <ul style="text-align:left;max-width:680px;margin:32px auto 0">
+      <li><strong>UK</strong> — dispute tracking, construction retention, CSV export</li>
+      <li><strong>AU</strong> — small business filtering (separate workstream)</li>
+      <li><strong>Constraint</strong> — no regression for existing W1/FR users</li>
+    </ul>
+  </div>
+
+  <!-- Slide 2: Current Architecture -->
+  <div class="slide" data-slide="2">
+    <h2>Current Architecture</h2>
+    <ul>
+      <li>Three-layer pipeline with <strong>two pluggable enum dimensions</strong></li>
+      <li>Payment periods — one global flat table, shared by all headers</li>
+    </ul>
+    <div class="flow" style="margin-top:40px">
+      <div class="enum-col">
+        <div class="enum-label">Header Type</div>
+        <div class="box box-blue">Vendor</div>
+        <div class="box box-blue">Customer</div>
+        <div class="box box-blue">Both</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="enum-col">
+        <div class="box box-dim" style="padding:20px 32px">Raw Data</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="enum-col">
+        <div class="box box-dim" style="padding:20px 32px">Aggregated Lines</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="enum-col">
+        <div class="box box-dim" style="padding:20px 32px">Header Totals</div>
+      </div>
+      <div class="arrow" style="padding:0 20px">←</div>
+      <div class="enum-col">
+        <div class="enum-label">Aggregation Type</div>
+        <div class="box box-purple">Period</div>
+        <div class="box box-purple">Company Size</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 3: What Changes -->
+  <div class="slide" data-slide="3">
+    <h2>What Changes — Third Dimension</h2>
+    <ul>
+      <li>New extensible enum: <strong>Reporting Scheme</strong></li>
+      <li>Standard scheme does nothing → <strong>zero regression</strong></li>
+      <li>Each scheme hooks into validation, data generation, and totals</li>
+    </ul>
+    <div class="flow" style="margin-top:40px;gap:0">
+      <div class="enum-col">
+        <div class="enum-label">Header Type</div>
+        <div class="box box-blue" style="font-size:13px">Vendor / Customer / Both</div>
+      </div>
+      <div style="padding:0 20px;color:rgba(255,255,255,.2);font-size:28px">×</div>
+      <div class="enum-col">
+        <div class="enum-label">Aggregation Type</div>
+        <div class="box box-purple" style="font-size:13px">Period / Company Size</div>
+      </div>
+      <div style="padding:0 20px;color:rgba(255,255,255,.2);font-size:28px">×</div>
+      <div class="enum-col">
+        <div class="enum-label" style="color:#3fb950">Reporting Scheme ✦ new</div>
+        <div class="box box-green" style="font-size:13px">Standard (W1/FR)</div>
+        <div class="box box-green" style="font-size:13px">Dispute &amp; Retention (GB)</div>
+        <div class="box box-green" style="font-size:13px">Small Business (AU/NZ)</div>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:28px;color:#8b949e;font-size:15px">Extensible — partners add
+      country-specific schemes without source changes</div>
+  </div>
+
+  <!-- Slide 4: Data Model Changes -->
+  <div class="slide" data-slide="4">
+    <h2>Data Model — OLD vs NEW</h2>
+    <table>
+      <thead>
+        <tr>
+          <th style="width:25%">Area</th>
+          <th><span class="tag-old">OLD</span></th>
+          <th><span class="tag-new">NEW</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Reporting Scheme</td>
+          <td>None</td>
+          <td>Auto-detected from environment</td>
+        </tr>
+        <tr>
+          <td>Payment Periods</td>
+          <td>One global flat table</td>
+          <td>Named templates per scheme</td>
+        </tr>
+        <tr>
+          <td>GB qualitative data</td>
+          <td>None</td>
+          <td>~40 fields in separate table + page</td>
+        </tr>
+        <tr>
+          <td>GB data fields</td>
+          <td>None</td>
+          <td>Dispute Status, SCF Payment Date</td>
+        </tr>
+        <tr>
+          <td>CSV export</td>
+          <td>None</td>
+          <td>52-column UK gov portal format</td>
+        </tr>
+      </tbody>
+    </table>
+    <div style="margin-top:28px">
+      <ul>
+        <li>GB fields live in a <strong>separate table</strong> — keeps main card clean, enables "copy from previous
+          period"</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Slide 5: Payment Period Templates -->
+  <div class="slide" data-slide="5">
+    <h2>Payment Periods — OLD vs NEW</h2>
+    <div class="compare">
+      <div class="compare-box old">
+        <h3>OLD</h3>
+        <div class="flow-v" style="margin:16px 0 12px">
+          <div class="box box-red" style="width:100%">One global flat table</div>
+        </div>
+        <ul>
+          <li>Same periods for every header</li>
+          <li>Defaults hardcoded at install</li>
+        </ul>
+      </div>
+      <div class="compare-box new">
+        <h3>NEW</h3>
+        <div class="flow-v" style="margin:16px 0 0">
+          <div class="box box-green" style="width:100%">Template Header</div>
+          <div class="arrow-down">↓ 1 : N</div>
+          <div class="box box-green" style="width:100%">Template Lines</div>
+        </div>
+        <ul style="margin-top:14px">
+          <li>One default template per scheme</li>
+          <li>Each header picks its own template</li>
+          <li>Users can create custom templates</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 6: GB Features -->
+  <div class="slide" data-slide="6">
+    <h2>GB — Dispute &amp; Retention</h2>
+    <ul>
+      <li><strong>Separate detail table + page</strong> — linked from Payment Practice Card</li>
+      <li><strong>"Copy from Previous Period"</strong> — reuses standing policies, clears period-specific data</li>
+      <li><strong>CSV export</strong> — matches UK gov portal download format</li>
+      <li><strong>SCF Payment Date</strong> — auto-filled from ledger, user can override</li>
+    </ul>
+    <div class="pills" style="margin-top:32px">
+      <div class="pill box-green">Payment policies</div>
+      <div class="pill box-green">Qualifying contracts</div>
+      <div class="pill box-green">Payment terms &amp; narratives</div>
+      <div class="pill box-green">Construction retention</div>
+      <div class="pill box-green">Dispute resolution</div>
+    </div>
+    <div style="margin-top:20px;color:#8b949e;font-size:14px">~40 qualitative fields organized in FastTab groups with
+      conditional visibility</div>
+  </div>
+
+  <!-- Slide 7: Upgrade -->
+  <div class="slide" data-slide="7">
+    <h2>Upgrade &amp; Migration</h2>
+    <ol>
+      <li><strong>Read</strong> old flat payment periods</li>
+      <li><strong>Compare</strong> with scheme defaults for the environment</li>
+      <li><strong>Create templates</strong> — default + MIGRATED if user had custom periods</li>
+      <li><strong>Backfill</strong> existing headers with scheme &amp; template</li>
+      <li><strong>Deprecate</strong> old flat table</li>
+    </ol>
+    <div class="branch-row">
+      <div class="branch-card box-green">
+        <h4 style="color:#3fb950">Periods match defaults</h4>
+        <p>One template created, set as default</p>
+      </div>
+      <div class="branch-card box-amber">
+        <h4 style="color:#d29922">Periods were customized</h4>
+        <p>MIGRATED template preserves old data; new default for future headers</p>
+      </div>
+    </div>
+    <div style="color:#8b949e;font-size:15px;margin-top:8px">No data loss, no breaking changes for existing users</div>
+  </div>
+
+  <!-- Slide 8: Discussion -->
+  <div class="slide" data-slide="8">
+    <h2>Discussion</h2>
+    <ol style="margin-top:24px">
+      <li><strong>Is the interface pattern overengineered?</strong><br>Could the scheme handler be simpler?</li>
+      <li><strong>Separate table for GB details — right call?</strong><br>Or keep everything on the header?</li>
+      <li><strong>Upgrade edge cases?</strong><br>Anything we missed in the migration logic?</li>
+    </ol>
+    <div style="margin-top:56px;text-align:center;color:rgba(255,255,255,.25);font-size:17px">
+      Thank you — feedback welcome
+    </div>
+  </div>
+
+  <div class="nav">
+    <button id="prevBtn" onclick="navigate(-1)">← Prev</button>
+    <button id="nextBtn" onclick="navigate(1)">Next →</button>
+  </div>
+
+  <script>
+    let current = 0;
+    const slides = document.querySelectorAll('.slide'), total = slides.length;
+    function showSlide(i) {
+      slides.forEach((s, j) => { s.classList.remove('active', 'exit-left'); if (j < i) s.classList.add('exit-left') });
+      slides[i].classList.add('active');
+      document.getElementById('slideNum').textContent = (i + 1) + ' / ' + total;
+      document.getElementById('progress').style.width = ((i + 1) / total * 100) + '%';
+      document.getElementById('prevBtn').disabled = i === 0;
+      document.getElementById('nextBtn').disabled = i === total - 1;
+    }
+    function navigate(d) { const n = current + d; if (n >= 0 && n < total) { current = n; showSlide(current) } }
+    document.addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); navigate(1) }
+      if (e.key === 'ArrowLeft') { e.preventDefault(); navigate(-1) }
+      if (e.key === 'Home') { current = 0; showSlide(current) }
+      if (e.key === 'End') { current = total - 1; showSlide(current) }
+    });
+    showSlide(0);
+  </script>
+</body>
+
+</html>

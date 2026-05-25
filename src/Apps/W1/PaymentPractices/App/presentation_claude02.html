@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment Practices — Redesign Review</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+    :root {
+      --bg: #ffffff;
+      --surface: #f3f4f6;
+      --border: #d1d5db;
+      --text: #111827;
+      --text-dim: #6b7280;
+      --accent: #4f46e5;
+      --accent-light: #4338ca;
+      --green: #059669;
+      --orange: #d97706;
+      --red: #dc2626;
+      --blue: #2563eb;
+      --purple: #7c3aed;
+      --cyan: #0891b2;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow: hidden;
+      height: 100vh;
+    }
+
+    .slide {
+      display: none;
+      width: 100vw;
+      height: 100vh;
+      padding: 60px 80px;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .slide.active {
+      display: flex;
+    }
+
+    /* Title slide */
+    .slide-title {
+      align-items: center;
+      text-align: center;
+      background: radial-gradient(ellipse at 50% 40%, #eef2ff 0%, var(--bg) 70%);
+    }
+
+    .slide-title h1 {
+      font-size: 3.5rem;
+      font-weight: 700;
+      letter-spacing: -1px;
+      margin-bottom: 16px;
+      background: linear-gradient(135deg, var(--accent-light), var(--cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .slide-title .subtitle {
+      font-size: 1.4rem;
+      color: var(--text-dim);
+      font-weight: 300;
+    }
+
+    /* Content slides */
+    h2 {
+      font-size: 2.2rem;
+      font-weight: 600;
+      margin-bottom: 40px;
+      letter-spacing: -0.5px;
+      color: var(--text);
+    }
+
+    h2 .accent {
+      color: var(--accent-light);
+    }
+
+    .content {
+      flex: 1;
+      display: flex;
+      gap: 60px;
+      align-items: center;
+    }
+
+    .content.stacked {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 32px;
+    }
+
+    .col {
+      flex: 1;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    ul li {
+      padding: 12px 0;
+      font-size: 1.2rem;
+      color: var(--text-dim);
+      position: relative;
+      padding-left: 28px;
+      line-height: 1.5;
+    }
+
+    ul li::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 20px;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+
+    ul li strong {
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+
+    .pill-green {
+      background: rgba(52, 211, 153, 0.15);
+      color: var(--green);
+    }
+
+    .pill-orange {
+      background: rgba(251, 146, 60, 0.15);
+      color: var(--orange);
+    }
+
+    .pill-blue {
+      background: rgba(96, 165, 250, 0.15);
+      color: var(--blue);
+    }
+
+    .pill-purple {
+      background: rgba(167, 139, 250, 0.15);
+      color: var(--purple);
+    }
+
+    .pill-red {
+      background: rgba(248, 113, 113, 0.15);
+      color: var(--red);
+    }
+
+    /* Diagram area */
+    .diagram {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex: 1;
+    }
+
+    .diagram svg {
+      max-width: 100%;
+      max-height: 100%;
+    }
+
+    /* Table */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 1rem;
+    }
+
+    table th,
+    table td {
+      padding: 14px 20px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    table th {
+      font-weight: 600;
+      color: var(--accent-light);
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    table td {
+      color: var(--text-dim);
+    }
+
+    table tr:hover td {
+      color: var(--text);
+    }
+
+    .td-old {
+      color: var(--text-dim) !important;
+    }
+
+    .td-new {
+      color: var(--green) !important;
+    }
+
+    /* Navigation */
+    .nav {
+      position: fixed;
+      bottom: 30px;
+      right: 40px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      z-index: 100;
+    }
+
+    .nav button {
+      width: 40px;
+      height: 40px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-dim);
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: all 0.2s;
+    }
+
+    .nav button:hover {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    .counter {
+      color: var(--text-dim);
+      font-size: 0.85rem;
+      padding: 0 12px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Progress bar */
+    .progress {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--accent), var(--cyan));
+      transition: width 0.3s ease;
+      z-index: 100;
+    }
+
+    /* Discussion cards */
+    .questions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      flex: 1;
+    }
+
+    .question-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      transition: border-color 0.2s;
+    }
+
+    .question-card:hover {
+      border-color: var(--accent);
+    }
+
+    .question-card .num {
+      font-size: 0.8rem;
+      color: var(--accent-light);
+      font-weight: 600;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .question-card p {
+      color: var(--text-dim);
+      font-size: 1.05rem;
+      line-height: 1.5;
+    }
+
+    /* Two-column compare */
+    .compare {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      flex: 1;
+    }
+
+    .compare-side {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .compare-side h3 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .compare-side.old h3 {
+      color: var(--text-dim);
+    }
+
+    .compare-side.new h3 {
+      color: var(--green);
+    }
+
+    .compare-side ul li {
+      font-size: 1.05rem;
+    }
+
+    .compare-side.old ul li::before {
+      background: var(--text-dim);
+    }
+
+    .compare-side.new ul li::before {
+      background: var(--green);
+    }
+
+    /* Upgrade steps */
+    .steps {
+      display: flex;
+      gap: 0;
+      align-items: flex-start;
+      flex: 1;
+      padding: 20px 0;
+    }
+
+    .step {
+      flex: 1;
+      text-align: center;
+      position: relative;
+      padding: 0 16px;
+    }
+
+    .step-circle {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: var(--surface);
+      border: 2px solid var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+      font-weight: 600;
+      color: var(--accent-light);
+      font-size: 1.1rem;
+    }
+
+    .step h4 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+
+    .step p {
+      font-size: 0.9rem;
+      color: var(--text-dim);
+      line-height: 1.5;
+    }
+
+    .step:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      top: 24px;
+      right: -16px;
+      width: 32px;
+      height: 2px;
+      background: var(--border);
+    }
+
+    /* Key point highlight */
+    .key-point {
+      background: linear-gradient(135deg, rgba(79, 70, 229, 0.06), rgba(8, 145, 178, 0.04));
+      border: 1px solid rgba(79, 70, 229, 0.2);
+      border-radius: 12px;
+      padding: 20px 28px;
+      margin-top: 16px;
+      color: var(--text-dim);
+      font-size: 1.05rem;
+      line-height: 1.6;
+    }
+
+    .key-point strong {
+      color: var(--accent-light);
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="progress" id="progress"></div>
+
+  <!-- Slide 1: Title -->
+  <div class="slide slide-title active" data-index="0">
+    <h1>Payment Practices</h1>
+    <div class="subtitle">Redesign Review &mdash; Extending W1 for UK and AU/NZ</div>
+  </div>
+
+  <!-- Slide 2: Context -->
+  <div class="slide" data-index="1">
+    <h2><span class="accent">Context</span> &mdash; Why Redesign?</h2>
+    <div class="content">
+      <div class="col">
+        <ul>
+          <li><strong>Payment Practices W1 app</strong> &mdash; must support UK and AU/NZ regulations</li>
+          <li><strong>UK</strong> &mdash; dispute tracking, construction retention, CSV export to gov portal</li>
+          <li><strong>AU/NZ</strong> &mdash; small business supplier filtering (separate workstream)</li>
+          <li><strong>Challenge</strong> &mdash; extend cleanly, no regression for W1/FR users</li>
+        </ul>
+      </div>
+      <div class="diagram" style="flex:0.8">
+        <svg width="360" height="300" viewBox="0 0 360 300">
+          <!-- Central circle -->
+          <circle cx="180" cy="150" r="60" fill="none" stroke="#4f46e5" stroke-width="2" />
+          <text x="180" y="145" text-anchor="middle" fill="#111827" font-size="14" font-weight="600">W1 App</text>
+          <text x="180" y="165" text-anchor="middle" fill="#6b7280" font-size="11">(current)</text>
+
+          <!-- UK -->
+          <circle cx="80" cy="50" r="42" fill="rgba(217,119,6,0.08)" stroke="#d97706" stroke-width="1.5" />
+          <text x="80" y="46" text-anchor="middle" fill="#d97706" font-size="13" font-weight="500">UK</text>
+          <text x="80" y="62" text-anchor="middle" fill="#6b7280" font-size="10">Disputes</text>
+          <line x1="113" y1="80" x2="140" y2="110" stroke="#d97706" stroke-width="1" stroke-dasharray="4,4"
+            opacity="0.5" />
+
+          <!-- AU/NZ -->
+          <circle cx="290" cy="50" r="42" fill="rgba(5,150,105,0.08)" stroke="#059669" stroke-width="1.5" />
+          <text x="290" y="46" text-anchor="middle" fill="#059669" font-size="13" font-weight="500">AU/NZ</text>
+          <text x="290" y="62" text-anchor="middle" fill="#6b7280" font-size="10">SmallBiz</text>
+          <line x1="257" y1="80" x2="225" y2="110" stroke="#059669" stroke-width="1" stroke-dasharray="4,4"
+            opacity="0.5" />
+
+          <!-- FR -->
+          <circle cx="80" cy="255" r="35" fill="rgba(37,99,235,0.06)" stroke="#2563eb" stroke-width="1"
+            stroke-dasharray="3,3" />
+          <text x="80" y="252" text-anchor="middle" fill="#2563eb" font-size="12">FR</text>
+          <text x="80" y="268" text-anchor="middle" fill="#9ca3af" font-size="9">no change</text>
+          <line x1="105" y1="230" x2="145" y2="195" stroke="#2563eb" stroke-width="1" stroke-dasharray="4,4"
+            opacity="0.3" />
+
+          <!-- W1 base -->
+          <circle cx="290" cy="255" r="35" fill="rgba(37,99,235,0.06)" stroke="#2563eb" stroke-width="1"
+            stroke-dasharray="3,3" />
+          <text x="290" y="252" text-anchor="middle" fill="#2563eb" font-size="12">W1</text>
+          <text x="290" y="268" text-anchor="middle" fill="#9ca3af" font-size="9">no change</text>
+          <line x1="265" y1="230" x2="215" y2="195" stroke="#2563eb" stroke-width="1" stroke-dasharray="4,4"
+            opacity="0.3" />
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 3: Current Architecture -->
+  <div class="slide" data-index="2">
+    <h2><span class="accent">Current</span> Architecture</h2>
+    <div class="content stacked">
+      <div class="diagram" style="flex:1">
+        <svg width="900" height="340" viewBox="0 0 900 340">
+          <!-- Two enum boxes -->
+          <rect x="30" y="20" width="180" height="130" rx="10" fill="var(--surface)" stroke="var(--border)"
+            stroke-width="1.5" />
+          <text x="120" y="48" text-anchor="middle" fill="#4338ca" font-size="12" font-weight="600">HEADER TYPE</text>
+          <text x="120" y="75" text-anchor="middle" fill="#6b7280" font-size="13">Vendor</text>
+          <text x="120" y="100" text-anchor="middle" fill="#6b7280" font-size="13">Customer</text>
+          <text x="120" y="125" text-anchor="middle" fill="#6b7280" font-size="13">Both</text>
+
+          <rect x="260" y="20" width="180" height="130" rx="10" fill="var(--surface)" stroke="var(--border)"
+            stroke-width="1.5" />
+          <text x="350" y="48" text-anchor="middle" fill="#4338ca" font-size="12" font-weight="600">AGGREGATION
+            TYPE</text>
+          <text x="350" y="80" text-anchor="middle" fill="#6b7280" font-size="13">Period</text>
+          <text x="350" y="105" text-anchor="middle" fill="#6b7280" font-size="13">Company Size</text>
+
+          <!-- Arrows -->
+          <path d="M210 85 L260 85" stroke="#4f46e5" stroke-width="1.5" marker-end="url(#arrowPurple)" />
+
+          <!-- Pipeline -->
+          <rect x="510" y="20" width="150" height="80" rx="10" fill="rgba(37,99,235,0.08)" stroke="#2563eb"
+            stroke-width="1.5" />
+          <text x="585" y="52" text-anchor="middle" fill="#2563eb" font-size="13" font-weight="500">Raw Data</text>
+          <text x="585" y="72" text-anchor="middle" fill="#6b7280" font-size="11">Ledger Entries</text>
+
+          <rect x="510" y="130" width="150" height="80" rx="10" fill="rgba(37,99,235,0.08)" stroke="#2563eb"
+            stroke-width="1.5" />
+          <text x="585" y="162" text-anchor="middle" fill="#2563eb" font-size="13" font-weight="500">Agg. Lines</text>
+          <text x="585" y="182" text-anchor="middle" fill="#6b7280" font-size="11">Grouped by period</text>
+
+          <rect x="510" y="240" width="150" height="80" rx="10" fill="rgba(37,99,235,0.08)" stroke="#2563eb"
+            stroke-width="1.5" />
+          <text x="585" y="272" text-anchor="middle" fill="#2563eb" font-size="13" font-weight="500">Header
+            Totals</text>
+          <text x="585" y="292" text-anchor="middle" fill="#6b7280" font-size="11">Final output</text>
+
+          <path d="M585 100 L585 130" stroke="#2563eb" stroke-width="1.5" marker-end="url(#arrowBlue)" />
+          <path d="M585 210 L585 240" stroke="#2563eb" stroke-width="1.5" marker-end="url(#arrowBlue)" />
+
+          <path d="M440 85 L510 60" stroke="#4f46e5" stroke-width="1" stroke-dasharray="4,4" opacity="0.5" />
+
+          <!-- Payment periods -->
+          <rect x="730" y="130" width="150" height="80" rx="10" fill="var(--surface)" stroke="var(--border)"
+            stroke-width="1" stroke-dasharray="4,4" />
+          <text x="805" y="162" text-anchor="middle" fill="#6b7280" font-size="12" font-weight="500">Payment
+            Periods</text>
+          <text x="805" y="182" text-anchor="middle" fill="#9ca3af" font-size="11">One global set</text>
+          <path d="M660 170 L730 170" stroke="var(--border)" stroke-width="1" stroke-dasharray="4,4" />
+
+          <!-- Arrow markers -->
+          <defs>
+            <marker id="arrowPurple" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6"
+              orient="auto-start-auto">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#4f46e5" />
+            </marker>
+            <marker id="arrowBlue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6"
+              orient="auto-start-auto">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#2563eb" />
+            </marker>
+            <marker id="arrowGreen" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6"
+              orient="auto-start-auto">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#059669" />
+            </marker>
+          </defs>
+
+          <!-- Label -->
+          <text x="120" y="180" text-anchor="middle" fill="#9ca3af" font-size="11" font-style="italic">Two enum
+            dimensions</text>
+        </svg>
+      </div>
+      <div class="key-point">
+        <strong>Pipeline:</strong> Ledger Entries &rarr; Aggregated Lines &rarr; Header Totals. Two pluggable enums
+        control data source and grouping. Payment periods are a single flat table shared by all headers.
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 4: The Third Dimension -->
+  <div class="slide" data-index="3">
+    <h2>The <span class="accent">Third Dimension</span> &mdash; Reporting Scheme</h2>
+    <div class="content">
+      <div class="col" style="flex:0.9">
+        <ul>
+          <li><strong>New enum: Reporting Scheme</strong> with handler interfaces</li>
+          <li><span class="pill pill-blue">Standard</span> &mdash; W1/FR, does nothing extra (zero regression)</li>
+          <li><span class="pill pill-orange">Dispute & Retention</span> &mdash; GB-specific logic</li>
+          <li><span class="pill pill-green">Small Business</span> &mdash; AU/NZ filtering</li>
+          <li><strong>Extensible enum</strong> &mdash; partners add their own schemes</li>
+        </ul>
+      </div>
+      <div class="diagram" style="flex:1.1">
+        <svg width="500" height="360" viewBox="0 0 500 360">
+          <!-- Three columns -->
+          <!-- Header Type -->
+          <rect x="20" y="40" width="130" height="120" rx="10" fill="var(--surface)" stroke="var(--border)"
+            stroke-width="1.5" />
+          <text x="85" y="30" text-anchor="middle" fill="#4338ca" font-size="11" font-weight="600">HEADER TYPE</text>
+          <text x="85" y="75" text-anchor="middle" fill="#6b7280" font-size="12">Vendor</text>
+          <text x="85" y="100" text-anchor="middle" fill="#6b7280" font-size="12">Customer</text>
+          <text x="85" y="125" text-anchor="middle" fill="#6b7280" font-size="12">Both</text>
+
+          <!-- Aggregation -->
+          <rect x="185" y="40" width="130" height="120" rx="10" fill="var(--surface)" stroke="var(--border)"
+            stroke-width="1.5" />
+          <text x="250" y="30" text-anchor="middle" fill="#4338ca" font-size="11" font-weight="600">AGGREGATION</text>
+          <text x="250" y="82" text-anchor="middle" fill="#6b7280" font-size="12">Period</text>
+          <text x="250" y="107" text-anchor="middle" fill="#6b7280" font-size="12">Company Size</text>
+
+          <!-- Reporting Scheme - highlighted -->
+          <rect x="350" y="40" width="130" height="120" rx="10" fill="rgba(5,150,105,0.06)" stroke="#059669"
+            stroke-width="2" />
+          <text x="415" y="30" text-anchor="middle" fill="#059669" font-size="11" font-weight="600">SCHEME (NEW)</text>
+          <text x="415" y="75" text-anchor="middle" fill="#2563eb" font-size="11">Standard</text>
+          <text x="415" y="100" text-anchor="middle" fill="#d97706" font-size="11">Dispute&Ret.</text>
+          <text x="415" y="125" text-anchor="middle" fill="#059669" font-size="11">Small Biz</text>
+
+          <!-- Arrows down to pipeline -->
+          <path d="M85 160 L85 200 L230 230" stroke="#4f46e5" stroke-width="1.5" fill="none" opacity="0.4" />
+          <path d="M250 160 L250 220 L250 230" stroke="#4f46e5" stroke-width="1.5" fill="none" opacity="0.4" />
+          <path d="M415 160 L415 200 L280 230" stroke="#059669" stroke-width="1.5" fill="none" opacity="0.6" />
+
+          <!-- Pipeline box -->
+          <rect x="150" y="230" width="200" height="56" rx="10" fill="rgba(37,99,235,0.08)" stroke="#2563eb"
+            stroke-width="1.5" />
+          <text x="250" y="255" text-anchor="middle" fill="#2563eb" font-size="13" font-weight="500">Generation
+            Pipeline</text>
+          <text x="250" y="273" text-anchor="middle" fill="#6b7280" font-size="10">validate &rarr; generate &rarr;
+            aggregate</text>
+
+          <!-- Handler hooks label -->
+          <rect x="150" y="306" width="200" height="40" rx="8" fill="rgba(5,150,105,0.05)" stroke="#059669"
+            stroke-width="1" stroke-dasharray="3,3" />
+          <text x="250" y="330" text-anchor="middle" fill="#059669" font-size="11">Scheme hooks at every stage</text>
+
+          <path d="M250 286 L250 306" stroke="#059669" stroke-width="1" stroke-dasharray="3,3" />
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 5: Data Model OLD vs NEW -->
+  <div class="slide" data-index="4">
+    <h2><span class="accent">Data Model</span> &mdash; Old vs New</h2>
+    <div class="content stacked">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:22%">Aspect</th>
+            <th style="width:35%">Old</th>
+            <th style="width:43%">New</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Payment Periods</strong></td>
+            <td class="td-old">Flat table, one global set</td>
+            <td class="td-new">Template pattern: named templates per scheme</td>
+          </tr>
+          <tr>
+            <td><strong>Reporting Scheme</strong></td>
+            <td class="td-old">None</td>
+            <td class="td-new">Auto-detected from environment, user can override</td>
+          </tr>
+          <tr>
+            <td><strong>GB Fields</strong></td>
+            <td class="td-old">None</td>
+            <td class="td-new">~40 qualitative fields in new separate table</td>
+          </tr>
+          <tr>
+            <td><strong>AU Filtering</strong></td>
+            <td class="td-old">None</td>
+            <td class="td-new">Small Business Supplier flag &rarr; non-small skipped</td>
+          </tr>
+          <tr>
+            <td><strong>CSV Export</strong></td>
+            <td class="td-old">None</td>
+            <td class="td-new">GB gov format (52 columns)</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="key-point">
+        <strong>Key decision:</strong> GB qualitative fields live in a separate table &mdash; ~40 fields with complex
+        visibility, "copy from previous period" feature, and conditional sections. Keeps the main card clean.
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 6: Payment Period Templates -->
+  <div class="slide" data-index="5">
+    <h2><span class="accent">Payment Periods</span> &mdash; Old vs New</h2>
+    <div class="content">
+      <div class="compare">
+        <div class="compare-side old">
+          <h3>OLD &mdash; Flat Table</h3>
+          <ul>
+            <li>One global set of periods</li>
+            <li>All headers share the same periods</li>
+            <li>Country defaults hardcoded in install</li>
+            <li>No way to customize per-header</li>
+          </ul>
+          <div style="margin-top:auto; padding-top:20px">
+            <svg width="260" height="120" viewBox="0 0 260 120">
+              <rect x="20" y="10" width="220" height="100" rx="8" fill="var(--surface)" stroke="var(--border)"
+                stroke-width="1" />
+              <text x="130" y="35" text-anchor="middle" fill="#6b7280" font-size="11" font-weight="500">Payment
+                Periods</text>
+              <line x1="40" y1="45" x2="220" y2="45" stroke="var(--border)" stroke-width="0.5" />
+              <text x="130" y="63" text-anchor="middle" fill="#9ca3af" font-size="10">0-30 | 31-60 | 61-90</text>
+              <text x="130" y="80" text-anchor="middle" fill="#9ca3af" font-size="10">91-120 | 121+</text>
+              <text x="130" y="100" text-anchor="middle" fill="#9ca3af" font-size="9" font-style="italic">same for
+                everyone</text>
+            </svg>
+          </div>
+        </div>
+        <div class="compare-side new">
+          <h3>NEW &mdash; Template Pattern</h3>
+          <ul>
+            <li>Named templates per scheme</li>
+            <li>Each header picks its own template</li>
+            <li>Users can create custom templates</li>
+            <li>One default template per scheme</li>
+          </ul>
+          <div style="margin-top:auto; padding-top:20px">
+            <svg width="280" height="120" viewBox="0 0 280 120">
+              <rect x="10" y="8" width="120" height="30" rx="6" fill="rgba(37,99,235,0.06)" stroke="#2563eb"
+                stroke-width="1" />
+              <text x="70" y="27" text-anchor="middle" fill="#2563eb" font-size="10">W1-DEFAULT</text>
+
+              <rect x="10" y="46" width="120" height="30" rx="6" fill="rgba(217,119,6,0.08)" stroke="#d97706"
+                stroke-width="1" />
+              <text x="70" y="65" text-anchor="middle" fill="#d97706" font-size="10">GB-DEFAULT</text>
+
+              <rect x="10" y="84" width="120" height="30" rx="6" fill="rgba(5,150,105,0.06)" stroke="#059669"
+                stroke-width="1" />
+              <text x="70" y="103" text-anchor="middle" fill="#059669" font-size="10">AU-DEFAULT</text>
+
+              <!-- Arrow to lines -->
+              <path d="M135 60 L160 60" stroke="#4338ca" stroke-width="1" marker-end="url(#arrowPurple)" />
+
+              <rect x="165" y="20" width="105" height="80" rx="6" fill="var(--surface)" stroke="var(--border)"
+                stroke-width="1" />
+              <text x="217" y="42" text-anchor="middle" fill="#6b7280" font-size="10" font-weight="500">Period
+                Lines</text>
+              <line x1="175" y1="48" x2="260" y2="48" stroke="var(--border)" stroke-width="0.5" />
+              <text x="217" y="65" text-anchor="middle" fill="#9ca3af" font-size="9">custom ranges</text>
+              <text x="217" y="80" text-anchor="middle" fill="#9ca3af" font-size="9">per template</text>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 7: GB Details -->
+  <div class="slide" data-index="6">
+    <h2><span class="accent">GB</span> &mdash; Dispute & Retention</h2>
+    <div class="content">
+      <div class="col">
+        <ul>
+          <li><strong>Separate detail table</strong> for ~40 GB qualitative fields</li>
+          <li>Organized in groups: policies, contracts, payment terms, retention, disputes</li>
+          <li><strong>"Copy from Previous Period"</strong> &mdash; carries over standing policies, clears
+            period-specific data</li>
+          <li><strong>CSV export</strong> &mdash; 52 columns matching UK gov portal format</li>
+          <li><strong>SCF Payment Date</strong> &mdash; auto-populated from ledger, user can override</li>
+        </ul>
+      </div>
+      <div class="diagram" style="flex:0.9">
+        <svg width="380" height="340" viewBox="0 0 380 340">
+          <!-- Main card -->
+          <rect x="20" y="20" width="160" height="70" rx="10" fill="rgba(37,99,235,0.06)" stroke="#2563eb"
+            stroke-width="1.5" />
+          <text x="100" y="50" text-anchor="middle" fill="#2563eb" font-size="13" font-weight="500">Payment
+            Practice</text>
+          <text x="100" y="70" text-anchor="middle" fill="#6b7280" font-size="11">Header Card</text>
+
+          <!-- Arrow to detail -->
+          <path d="M180 55 L220 55" stroke="#d97706" stroke-width="1.5" marker-end="url(#arrowOrange)" />
+          <text x="200" y="48" text-anchor="middle" fill="#9ca3af" font-size="9">drilldown</text>
+
+          <!-- Detail card -->
+          <rect x="220" y="10" width="145" height="90" rx="10" fill="rgba(217,119,6,0.06)" stroke="#d97706"
+            stroke-width="1.5" />
+          <text x="292" y="35" text-anchor="middle" fill="#d97706" font-size="12" font-weight="500">GB Detail
+            Card</text>
+          <text x="292" y="55" text-anchor="middle" fill="#6b7280" font-size="10">~40 fields</text>
+          <text x="292" y="72" text-anchor="middle" fill="#6b7280" font-size="10">conditional visibility</text>
+
+          <!-- Field groups -->
+          <rect x="30" y="130" width="130" height="36" rx="6" fill="var(--surface)" stroke="var(--border)"
+            stroke-width="1" />
+          <text x="95" y="152" text-anchor="middle" fill="#6b7280" font-size="11">Payment Policies</text>
+
+          <rect x="30" y="178" width="130" height="36" rx="6" fill="var(--surface)" stroke="var(--border)"
+            stroke-width="1" />
+          <text x="95" y="200" text-anchor="middle" fill="#6b7280" font-size="11">Contracts</text>
+
+          <rect x="30" y="226" width="130" height="36" rx="6" fill="var(--surface)" stroke="var(--border)"
+            stroke-width="1" />
+          <text x="95" y="248" text-anchor="middle" fill="#6b7280" font-size="11">Payment Terms</text>
+
+          <rect x="30" y="274" width="130" height="36" rx="6" fill="var(--surface)" stroke="var(--border)"
+            stroke-width="1" />
+          <text x="95" y="296" text-anchor="middle" fill="#6b7280" font-size="11">Retention Fields</text>
+
+          <!-- Copy feature -->
+          <rect x="210" y="170" width="150" height="55" rx="10" fill="rgba(5,150,105,0.05)" stroke="#059669"
+            stroke-width="1" stroke-dasharray="3,3" />
+          <text x="285" y="193" text-anchor="middle" fill="#059669" font-size="11" font-weight="500">Copy
+            Previous</text>
+          <text x="285" y="210" text-anchor="middle" fill="#6b7280" font-size="10">policies carry over</text>
+
+          <!-- CSV export -->
+          <rect x="210" y="250" width="150" height="55" rx="10" fill="rgba(124,58,237,0.05)" stroke="#7c3aed"
+            stroke-width="1" stroke-dasharray="3,3" />
+          <text x="285" y="273" text-anchor="middle" fill="#7c3aed" font-size="11" font-weight="500">CSV Export</text>
+          <text x="285" y="290" text-anchor="middle" fill="#6b7280" font-size="10">52 cols, gov format</text>
+
+          <defs>
+            <marker id="arrowOrange" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6"
+              orient="auto-start-auto">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#d97706" />
+            </marker>
+          </defs>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 8: Upgrade & Migration -->
+  <div class="slide" data-index="7">
+    <h2><span class="accent">Upgrade</span> & Migration</h2>
+    <div class="content stacked">
+      <div class="steps">
+        <div class="step">
+          <div class="step-circle">1</div>
+          <h4>Read Old Periods</h4>
+          <p>Load existing payment period rows from old flat table</p>
+        </div>
+        <div class="step">
+          <div class="step-circle">2</div>
+          <h4>Compare</h4>
+          <p>Check if rows match scheme defaults or were customized</p>
+        </div>
+        <div class="step">
+          <div class="step-circle">3</div>
+          <h4>Create Templates</h4>
+          <p>Matching &rarr; 1 default template<br />Different &rarr; MIGRATED + default</p>
+        </div>
+        <div class="step">
+          <div class="step-circle">4</div>
+          <h4>Backfill Headers</h4>
+          <p>Set scheme &amp; period code on all existing headers</p>
+        </div>
+        <div class="step">
+          <div class="step-circle">5</div>
+          <h4>Deprecate</h4>
+          <p>Old flat table no longer used</p>
+        </div>
+      </div>
+      <div class="key-point">
+        <strong>No data loss:</strong> Existing headers get MIGRATED template if periods were customized. New headers
+        get the scheme default. No breaking changes for existing users.
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 9: Discussion -->
+  <div class="slide" data-index="8">
+    <h2><span class="accent">Discussion</span></h2>
+    <div class="content stacked">
+      <div class="questions">
+        <div class="question-card">
+          <div class="num">01</div>
+          <p>Is the 3-enum + 2-interface pattern overengineered?</p>
+        </div>
+        <div class="question-card">
+          <div class="num">02</div>
+          <p>GB detail table &mdash; right to separate from header?</p>
+        </div>
+        <div class="question-card">
+          <div class="num">03</div>
+          <p>Upgrade logic with MIGRATED vs default &mdash; edge cases?</p>
+        </div>
+        <div class="question-card">
+          <div class="num">04</div>
+          <p>SCF Payment Date dual-source &mdash; acceptable complexity?</p>
+        </div>
+        <div class="question-card">
+          <div class="num">05</div>
+          <p>CSV export &mdash; Report objects vs Codeunits?</p>
+        </div>
+        <div class="question-card">
+          <div class="num">06</div>
+          <p>Any fundamental problems we're missing?</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navigation -->
+  <div class="nav">
+    <button onclick="prev()" title="Previous">&#8592;</button>
+    <span class="counter" id="counter">1 / 9</span>
+    <button onclick="next()" title="Next">&#8594;</button>
+  </div>
+
+  <script>
+    const slides = document.querySelectorAll('.slide');
+    const progress = document.getElementById('progress');
+    const counter = document.getElementById('counter');
+    let current = 0;
+
+    function show(n) {
+      slides[current].classList.remove('active');
+      current = Math.max(0, Math.min(n, slides.length - 1));
+      slides[current].classList.add('active');
+      progress.style.width = ((current / (slides.length - 1)) * 100) + '%';
+      counter.textContent = (current + 1) + ' / ' + slides.length;
+    }
+
+    function next() { show(current + 1); }
+    function prev() { show(current - 1); }
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); next(); }
+      if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); prev(); }
+      if (e.key === 'Home') { e.preventDefault(); show(0); }
+      if (e.key === 'End') { e.preventDefault(); show(slides.length - 1); }
+    });
+
+    // Touch support
+    let touchStartX = 0;
+    document.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; });
+    document.addEventListener('touchend', e => {
+      const diff = e.changedTouches[0].screenX - touchStartX;
+      if (Math.abs(diff) > 50) { diff < 0 ? next() : prev(); }
+    });
+
+    show(0);
+  </script>
+</body>
+
+</html>
