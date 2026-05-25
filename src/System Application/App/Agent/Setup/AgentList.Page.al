@@ -90,10 +90,21 @@ page 4316 "Agent List"
                     Page.Run(Page::"Agent Task List", AgentTask);
                 end;
             }
+        }
+        area(Navigation)
+        {
+            action(AgentConfigurationRights)
+            {
+                ApplicationArea = All;
+                Caption = 'Agent configuration rights';
+                ToolTip = 'View who can create new agents';
+                Image = Permission;
+                RunObject = Page "Agent Creation Control";
+            }
             action(ShowConsumptionData)
             {
                 ApplicationArea = All;
-                Caption = 'View consumption data';
+                Caption = 'Consumption data';
                 ToolTip = 'View AI consumption data for this agent.';
                 Image = BankAccountLedger;
 
@@ -107,16 +118,13 @@ page 4316 "Agent List"
                     AgentConsumptionOverview.OpenAgentConsumptionOverview(Rec."User Security ID");
                 end;
             }
-        }
-        area(Navigation)
-        {
-            action(AgentConfigurationRights)
+            action(AgentModels)
             {
                 ApplicationArea = All;
-                Caption = 'View agent configuration rights';
-                ToolTip = 'View who can create new agents';
-                Image = Permission;
-                RunObject = Page "Agent Creation Control";
+                Caption = 'Agent models';
+                ToolTip = 'View all agent models.';
+                Image = ViewPage;
+                RunObject = Page "Agent Model List";
             }
         }
         area(Promoted)
