@@ -6,7 +6,9 @@ namespace Microsoft.QualityManagement.Reports;
 
 using Microsoft.Foundation.Company;
 using Microsoft.Inventory.Item;
+#if not CLEAN29
 using Microsoft.QualityManagement.Configuration.Template;
+#endif
 using Microsoft.QualityManagement.Document;
 
 report 20405 "Qlty. General Purpose Inspect."

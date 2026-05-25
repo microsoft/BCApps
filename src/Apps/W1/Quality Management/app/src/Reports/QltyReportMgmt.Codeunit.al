@@ -11,7 +11,9 @@ using Microsoft.Foundation.Company;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Inventory.Item;
 using Microsoft.QualityManagement.Configuration.Result;
+#if not CLEAN29
 using Microsoft.QualityManagement.Configuration.Template;
+#endif
 using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Setup;
 using Microsoft.QualityManagement.Utilities;
