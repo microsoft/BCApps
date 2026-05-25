@@ -196,6 +196,7 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
         EDocLineByReceipt.Close();
         PurchaseHeader.Modify();
         PurchCalcDiscByType.ApplyInvDiscBasedOnAmt(EDocumentPurchaseHeader."Total Discount", PurchaseHeader);
+        EDocPurchaseDocumentHelper.ApplyVATDifferenceToLines(PurchaseHeader, EDocumentPurchaseHeader);
         exit(PurchaseHeader);
     end;
 
