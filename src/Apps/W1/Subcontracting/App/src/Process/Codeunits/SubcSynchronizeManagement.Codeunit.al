@@ -135,10 +135,23 @@ codeunit 99001511 "Subc. Synchronize Management"
                                     PurchaseLineModify.ModifyAll("Prod. Order No.", '');
                                 end;
 
-                                DeleteSubcontractingDependentPurchaseLines(ProductionOrder, PurchaseLine);
+                                // Delete Subcontracting dependent Purchase Lines
+                                PurchaseLine2.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
+                                if not PurchaseLine2.IsEmpty() then
+                                    PurchaseLine2.DeleteAll(true);
 
-                                DeleteSubcontractingDependentTransferOrders(PurchaseLine);
-
+                                TransferHeader.SetCurrentKey("Source ID", "Subc. Source Type", "Source Subtype");
+                                TransferHeader.SetRange("Source ID", PurchaseHeader."Buy-from Vendor No.");
+                                TransferHeader.SetRange("Subc. Source Type", "Transfer Source Type"::Subcontracting);
+                                TransferHeader.SetRange("Source Subtype", TransferHeader."Source Subtype"::"2");
+                                TransferHeader.SetRange("Subcontr. Purch. Order No.", PurchaseHeader."No.");
+                                if not TransferHeader.IsEmpty() then begin
+                                    TransferHeader.FindFirst();
+                                    ItemLedgerEntry2.SetRange("Order Type", "Inventory Order Type"::Production);
+                                    ItemLedgerEntry2.SetRange("Order No.", ProductionOrder."No.");
+                                    if ItemLedgerEntry.IsEmpty() then
+                                        TransferHeader.Delete(true);
+                                end;
                                 ProductionOrder.Delete();
                             end;
                         end;

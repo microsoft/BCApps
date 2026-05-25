@@ -24,13 +24,12 @@ using System.Utilities;
 codeunit 99001557 "Subc. Purchase Order Creator"
 {
     var
-        SubcManagementSetup: Record "Subc. Management Setup";
         ManufacturingSetup: Record "Manufacturing Setup";
         PageManagement: Codeunit "Page Management";
         UnitofMeasureManagement: Codeunit "Unit of Measure Management";
-        HasSubManagementSetup: Boolean;
         HasManufacturingSetup: Boolean;
         OperationNo: Code[10];
+        RoutingReferenceNo: Integer;
         PurchOrderCreatedTxt: Label '%1 Purchase Order(s) created.\\Do you want to view them?', Comment = '%1 = No of Purchase Order(s) created.';
         PurchOrderAlreadyCreatedQst: Label 'Purchase order(s) have already been created.\\Do you want to view them?';
         CreationOfSubcontractingOrderIsNotAllowedErr: Label 'You cannot create Subcontracting Order, because the Production Order %1 is not released.', Comment = '%1=Production Order No.';
@@ -113,7 +112,7 @@ codeunit 99001557 "Subc. Purchase Order Creator"
         SubContractorWorkCenterNo: Code[20];
         DimensionSetIDArr: array[10] of Integer;
     begin
-        GetSubmanagementSetup();
+        GetManufacturingSetup();
         ProdOrderRoutingLine.SetLoadFields("Work Center No.", Status, "Prod. Order No.", "Routing Link Code");
         if ProdOrderRoutingLine.Get("Production Order Status"::Released, RequisitionLine."Prod. Order No.", RequisitionLine."Routing Reference No.", RequisitionLine."Routing No.", RequisitionLine."Operation No.") then begin
             WorkCenter.SetLoadFields("Subcontractor No.");
@@ -193,6 +192,8 @@ codeunit 99001557 "Subc. Purchase Order Creator"
                     PurchaseLine.SetLoadFields(SystemId);
                     if (NoOfCreatedPurchOrder = 1) and (OperationNo <> '') then
                         PurchaseLine.SetRange("Operation No.", OperationNo);
+                    if (NoOfCreatedPurchOrder = 1) and (RoutingReferenceNo <> 0) then
+                        PurchaseLine.SetRange("Routing Reference No.", RoutingReferenceNo);
                     PurchaseLine.FindFirst();
                     PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
                     PageManagement.PageRun(PurchaseHeader);
@@ -208,6 +209,16 @@ codeunit 99001557 "Subc. Purchase Order Creator"
     internal procedure ClearOperationNoForCreatedPurchaseOrder()
     begin
         Clear(OperationNo);
+    end;
+
+    internal procedure SetRoutingReferenceNoForCreatedPurchaseOrder(RoutingReferenceNoToSet: Integer)
+    begin
+        RoutingReferenceNo := RoutingReferenceNoToSet;
+    end;
+
+    internal procedure ClearRoutingReferenceNoForCreatedPurchaseOrder()
+    begin
+        Clear(RoutingReferenceNo);
     end;
 
     local procedure CheckProdOrderRtngLine(ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var ProdOrderLine: Record "Prod. Order Line")
@@ -249,6 +260,7 @@ codeunit 99001557 "Subc. Purchase Order Creator"
             PurchaseLine.SetRange(Type, "Purchase Line Type"::Item);
             PurchaseLine.SetRange("Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
             PurchaseLine.SetRange("Routing No.", ProdOrderRoutingLine."Routing No.");
+            PurchaseLine.SetRange("Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.");
             PurchaseLine.SetRange("Operation No.", ProdOrderRoutingLine."Operation No.");
             if not PurchaseLine.IsEmpty() then
                 ExistingPOFound := true;
@@ -278,7 +290,7 @@ codeunit 99001557 "Subc. Purchase Order Creator"
         WorkCenter.SetLoadFields("Subcontractor No.");
         WorkCenter.Get(ProdOrderRoutingLine."Work Center No.");
 
-        Vendor.SetLoadFields("Subcontr. Location Code");
+        Vendor.SetLoadFields("Subc. Location Code");
         if not Vendor.Get(WorkCenter."Subcontractor No.") then
             exit(true);
 
@@ -292,10 +304,10 @@ codeunit 99001557 "Subc. Purchase Order Creator"
             if not ConfirmManagement.GetResponseOrDefault(BlankLocationConfirmQst, true) then
                 exit(false);
 
-        if Vendor."Subcontr. Location Code" <> '' then begin
-            ProdOrderComponent.SetRange("Location Code", Vendor."Subcontr. Location Code");
+        if Vendor."Subc. Location Code" <> '' then begin
+            ProdOrderComponent.SetRange("Location Code", Vendor."Subc. Location Code");
             if not ProdOrderComponent.IsEmpty() then
-                if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(SameAsSubcLocConfirmQst, Vendor."Subcontr. Location Code", Vendor."No."), true) then
+                if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(SameAsSubcLocConfirmQst, Vendor."Subc. Location Code", Vendor."No."), true) then
                     exit(false);
         end;
 
@@ -357,14 +369,6 @@ codeunit 99001557 "Subc. Purchase Order Creator"
         BaseQuantityToPurch := QtyAdjdForRoutingScrap - (OutputQtyBaseOnPurchOrder + ActOutputQtyBase);
 
         exit(BaseQuantityToPurch);
-    end;
-
-    local procedure GetSubmanagementSetup()
-    begin
-        if HasSubManagementSetup then
-            exit;
-        if SubcManagementSetup.Get() then
-            HasSubManagementSetup := true;
     end;
 
     local procedure GetManufacturingSetup()
@@ -538,6 +542,7 @@ codeunit 99001557 "Subc. Purchase Order Creator"
 
         RequisitionLine.Description := ProdOrderRoutingLine.Description;
         RequisitionLine."Description 2" := ProdOrderRoutingLine."Description 2";
+        RequisitionLine.Validate("Subc. Standard Task Code", ProdOrderRoutingLine."Standard Task Code");
         SetVendorItemNo(RequisitionLine);
 
         if PurchLineExists(PurchaseLine, ProdOrderLine, ProdOrderRoutingLine) then begin
