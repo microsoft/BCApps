@@ -47,7 +47,6 @@ codeunit 149917 "Subc. Return Transf. Test"
         Initialize();
         SubcontractingMgmtLibrary.UpdateManufacturingSetupWithSubcontractingLocation();
         SubcontractingMgmtLibrary.SetupInventorySetup();
-        Subcontracting := true;
         UnitCostCalculation := UnitCostCalculation::Units;
 
         SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, true);
@@ -199,6 +198,5 @@ codeunit 149917 "Subc. Return Transf. Test"
         SubSetupLibrary: Codeunit "Subc. Setup Library";
         SubcWarehouseLibrary: Codeunit "Subc. Warehouse Library";
         IsInitialized: Boolean;
-        Subcontracting: Boolean;
         UnitCostCalculation: Enum "Unit Cost Calculation Type";
 }
