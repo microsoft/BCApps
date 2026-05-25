@@ -730,6 +730,62 @@ codeunit 9119 "SharePoint Graph Client"
 
     #endregion
 
+    #region Update Item
+
+    /// <summary>
+    /// Updates a drive item's properties (name, description, etc.) by ID.
+    /// </summary>
+    /// <param name="ItemId">ID of the item to update.</param>
+    /// <param name="UpdatePropertiesJsonObject">JSON object containing the properties to update (e.g., name, description).</param>
+    /// <param name="GraphDriveItem">Record to store the updated item details.</param>
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.ReadWrite.All.</remarks>
+    procedure UpdateDriveItem(ItemId: Text; UpdatePropertiesJsonObject: JsonObject; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary): Codeunit "SharePoint Graph Response"
+    begin
+        exit(SharePointGraphClientImpl.UpdateDriveItem(ItemId, UpdatePropertiesJsonObject, GraphDriveItem));
+    end;
+
+    /// <summary>
+    /// Updates a drive item's properties (name, description, etc.) by path.
+    /// </summary>
+    /// <param name="ItemPath">Path to the item (e.g., 'Documents/file.docx').</param>
+    /// <param name="UpdatePropertiesJsonObject">JSON object containing the properties to update (e.g., name, description).</param>
+    /// <param name="GraphDriveItem">Record to store the updated item details.</param>
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.ReadWrite.All.</remarks>
+    procedure UpdateDriveItemByPath(ItemPath: Text; UpdatePropertiesJsonObject: JsonObject; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary): Codeunit "SharePoint Graph Response"
+    begin
+        exit(SharePointGraphClientImpl.UpdateDriveItemByPath(ItemPath, UpdatePropertiesJsonObject, GraphDriveItem));
+    end;
+
+    /// <summary>
+    /// Renames a drive item by ID.
+    /// </summary>
+    /// <param name="ItemId">ID of the item to rename.</param>
+    /// <param name="NewName">New name for the item.</param>
+    /// <param name="GraphDriveItem">Record to store the updated item details.</param>
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.ReadWrite.All.</remarks>
+    procedure RenameDriveItem(ItemId: Text; NewName: Text; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary): Codeunit "SharePoint Graph Response"
+    begin
+        exit(SharePointGraphClientImpl.RenameDriveItem(ItemId, NewName, GraphDriveItem));
+    end;
+
+    /// <summary>
+    /// Renames a drive item by path.
+    /// </summary>
+    /// <param name="ItemPath">Path to the item (e.g., 'Documents/file.docx').</param>
+    /// <param name="NewName">New name for the item.</param>
+    /// <param name="GraphDriveItem">Record to store the updated item details.</param>
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.ReadWrite.All.</remarks>
+    procedure RenameDriveItemByPath(ItemPath: Text; NewName: Text; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary): Codeunit "SharePoint Graph Response"
+    begin
+        exit(SharePointGraphClientImpl.RenameDriveItemByPath(ItemPath, NewName, GraphDriveItem));
+    end;
+
+    #endregion
+
     /// <summary>
     /// Creates an OData query to filter items in SharePoint
     /// </summary>
