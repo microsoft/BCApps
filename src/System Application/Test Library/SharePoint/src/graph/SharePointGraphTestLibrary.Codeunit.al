@@ -30,6 +30,31 @@ codeunit 132975 "SharePoint Graph Test Library"
         MockHttpClientHandler.ExpectSendToFailWithError(ErrorText);
     end;
 
+    procedure AddMockResponse(StatusCode: Integer; ResponseBody: Text)
+    begin
+        MockHttpClientHandler.AddResponse(StatusCode, ResponseBody);
+    end;
+
+    procedure AddMockResponse(var NewHttpResponseMessage: Codeunit "Http Response Message")
+    begin
+        MockHttpClientHandler.AddResponse(NewHttpResponseMessage);
+    end;
+
+    procedure GetMockHttpRequestUri(Index: Integer): Text
+    begin
+        exit(MockHttpClientHandler.GetHttpRequestUri(Index));
+    end;
+
+    procedure GetMockHttpRequestMethod(Index: Integer): Text
+    begin
+        exit(MockHttpClientHandler.GetHttpRequestMethod(Index));
+    end;
+
+    procedure GetMockRequestCount(): Integer
+    begin
+        exit(MockHttpClientHandler.GetRequestCount());
+    end;
+
     procedure ResetMockHandler()
     begin
         Clear(this.MockHttpClientHandler);
