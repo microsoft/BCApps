@@ -74,7 +74,6 @@ page 8351 "MCP Config Card"
                                 MCPConfigImplementation.SetAsDefaultConfiguration(Rec.SystemId)
                             else
                                 MCPConfigImplementation.ClearDefaultConfiguration();
-                            CurrPage.Update(false);
                         end;
                     }
                     field(EnableDynamicToolMode; Rec.EnableDynamicToolMode)
