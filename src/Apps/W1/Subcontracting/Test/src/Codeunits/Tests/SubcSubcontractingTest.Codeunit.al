@@ -1273,7 +1273,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         ManufacturingSetup.Get();
 
-        ExpectedDate := CalcDate(ManufacturingSetup."Subc. Inb. Whse. Handling Time", TransferLine."Receipt Date");
+        ExpectedDate := CalcDate(ManufacturingSetup."Subc. Comp. Transfer Lead Time", TransferLine."Receipt Date");
 
         Assert.AreEqual(ExpectedDate, ProdOrderComp."Due Date", '');
 
@@ -3382,7 +3382,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         ManufacturingSetup: Record "Manufacturing Setup";
     begin
         ManufacturingSetup.Get();
-        Evaluate(ManufacturingSetup."Subc. Inb. Whse. Handling Time", '<1D>');
+        Evaluate(ManufacturingSetup."Subc. Comp. Transfer Lead Time", '<1D>');
         ManufacturingSetup.Modify();
     end;
 

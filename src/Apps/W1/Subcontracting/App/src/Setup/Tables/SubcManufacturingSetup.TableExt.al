@@ -45,9 +45,9 @@ tableextension 99001501 "Subc. Manufacturing Setup" extends "Manufacturing Setup
             OptionCaption = 'Standard,Prod. Order Component';
             OptionMembers = Standard,"Prod. Order Component";
         }
-        field(99001505; "Subc. Inb. Whse. Handling Time"; DateFormula)
+        field(99001505; "Subc. Comp. Transfer Lead Time"; DateFormula)
         {
-            Caption = 'Subcontracting Inbound Whse. Handling Time';
+            Caption = 'Subcontracting Component Transfer Lead Time';
             DataClassification = CustomerContent;
         }
         field(99001509; "Subc. Default Comp. Location"; Enum "Components at Location")
