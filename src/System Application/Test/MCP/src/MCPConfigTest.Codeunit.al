@@ -1012,7 +1012,7 @@ codeunit 130130 "MCP Config Test"
         // [THEN] Default configuration is active, dynamic tool mode and access to all read-only objects are enabled
         Assert.IsTrue(MCPConfiguration.Active, 'Default configuration is not active');
         Assert.IsTrue(MCPConfiguration.EnableDynamicToolMode, 'Dynamic tool mode is not enabled');
-        // Assert.IsTrue(MCPConfiguration.EnableDiscoverReadOnlyObjects, 'Access to all read-only objects is not enabled');
+        Assert.IsTrue(MCPConfiguration.DiscoverReadOnlyObjects, 'Access to all read-only objects is not enabled');
     end;
 
     [Test]
