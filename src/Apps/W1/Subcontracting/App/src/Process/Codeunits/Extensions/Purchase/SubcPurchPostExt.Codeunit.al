@@ -12,13 +12,14 @@ using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Posting;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Manufacturing.Capacity;
+using Microsoft.Manufacturing.Setup;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Posting;
 codeunit 99001535 "Subc. Purch. Post Ext"
 {
     var
-        SubcManagementSetup: Record "Subc. Management Setup";
+        ManufacturingSetup: Record "Manufacturing Setup";
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnBeforeItemJnlPostLine, '', false, false)]
     local procedure "Purch.-Post_OnBeforeItemJnlPostLine"(var ItemJournalLine: Record "Item Journal Line"; TempItemChargeAssignmentPurch: Record "Item Charge Assignment (Purch)" temporary)
@@ -29,8 +30,8 @@ codeunit 99001535 "Subc. Purch. Post Ext"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Mfg. Purch.-Post", OnAfterPostItemJnlLineCopyProdOrder, '', false, false)]
     local procedure MfgPurchPostOnAfterPostItemJnlLineCopyProdOrder(var ItemJnlLine: Record "Item Journal Line"; PurchLine: Record "Purchase Line")
     begin
-        ItemJnlLine."Subcontr. Purch. Order No." := PurchLine."Document No.";
-        ItemJnlLine."Subcontr. PO Line No." := PurchLine."Line No.";
+        ItemJnlLine."Subc. Purch. Order No." := PurchLine."Document No.";
+        ItemJnlLine."Subc. Purch. Order Line No." := PurchLine."Line No.";
         ItemJnlLine."Subc. Operation No." := PurchLine."Operation No.";
     end;
 
@@ -44,7 +45,7 @@ codeunit 99001535 "Subc. Purch. Post Ext"
     var
         PurchRcptLine: Record "Purch. Rcpt. Line";
     begin
-        if not SubcManagementSetup.ItemChargeToRcptSubReferenceEnabled() then
+        if not ManufacturingSetup.ItemChargeToRcptSubReferenceEnabled() then
             exit;
         if ItemJournalLine."Item Charge No." = '' then
             exit;
@@ -60,7 +61,7 @@ codeunit 99001535 "Subc. Purch. Post Ext"
     var
         UnitofMeasureManagement: Codeunit "Unit of Measure Management";
     begin
-        if not SubcManagementSetup.ItemChargeToRcptSubReferenceEnabled() then
+        if not ManufacturingSetup.ItemChargeToRcptSubReferenceEnabled() then
             exit;
 
         if PurchRcptLine."Quantity (Base)" = 0 then
@@ -96,7 +97,7 @@ codeunit 99001535 "Subc. Purch. Post Ext"
         Item.SetLoadFields("Inventory Posting Group");
         Item.Get(ItemJournalLine."Item No.");
         ItemJournalLine."Inventory Posting Group" := Item."Inventory Posting Group";
-        ItemJournalLine."Item Charge Sub. Assign." := true;
+        ItemJournalLine."Subc. Item Charge Assign." := true;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnPostItemJnlLineOnAfterPostItemJnlLineJobConsumption, '', false, false)]

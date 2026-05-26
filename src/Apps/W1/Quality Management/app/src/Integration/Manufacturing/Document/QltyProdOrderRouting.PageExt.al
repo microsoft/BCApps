@@ -22,7 +22,7 @@ pageextension 20400 "Qlty. Prod. Order Routing" extends "Prod. Order Routing"
                     ApplicationArea = QualityManagement;
                     Image = BulletList;
                     Caption = 'Create Quality Inspection';
-                    ToolTip = 'Specifies to create a new quality inspection.';
+                    ToolTip = 'Create a new quality inspection.';
 
                     trigger OnAction()
                     var
@@ -38,7 +38,7 @@ pageextension 20400 "Qlty. Prod. Order Routing" extends "Prod. Order Routing"
                     AccessByPermission = tabledata "Qlty. Inspection Header" = R;
                     Image = CheckList;
                     Caption = 'Show Quality Inspections';
-                    ToolTip = 'Shows existing Quality Inspections.';
+                    ToolTip = 'Shows existing quality inspections.';
 
                     trigger OnAction()
                     var
