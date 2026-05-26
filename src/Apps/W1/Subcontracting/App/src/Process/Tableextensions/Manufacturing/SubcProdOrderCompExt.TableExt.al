@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
+using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Transfer;
@@ -23,8 +24,14 @@ tableextension 99001502 "Subc. Prod Order Comp Ext." extends "Prod. Order Compon
             ToolTip = 'Specifies how components are supplied to the subcontractor for the production order component. Vendor-supplied - components are provided by the subcontractor. Consignment at Vendor - components are owned by your company but stored at the subcontractor location. Transfer to Vendor - components are sent to the subcontractor through a transfer order.';
             trigger OnValidate()
             var
+                Item: Record Item;
                 SubcontractingManagement: Codeunit "Subcontracting Management";
             begin
+                if "Component Supply Method" = "Component Supply Method"::Transfer then
+                    if "Item No." <> '' then begin
+                        Item.Get("Item No.");
+                        Item.TestField(Type, Item.Type::Inventory);
+                    end;
                 SubcontractingManagement.UpdateComponentSupplyMethodForProdOrderComponent(Rec);
             end;
         }

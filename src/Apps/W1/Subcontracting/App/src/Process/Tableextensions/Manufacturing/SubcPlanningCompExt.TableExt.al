@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
+using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Planning;
 using Microsoft.Warehouse.Structure;
@@ -20,8 +21,14 @@ tableextension 99001503 "Subc. Planning Comp Ext." extends "Planning Component"
             ToolTip = 'Specifies how components are supplied to the subcontractor for the planning component. Vendor-supplied - components are provided by the subcontractor. Consignment at Vendor - components are owned by your company but stored at the subcontractor location. Transfer to Vendor - components are sent to the subcontractor through a transfer order.';
             trigger OnValidate()
             var
+                Item: Record Item;
                 SubcontractingManagement: Codeunit "Subcontracting Management";
             begin
+                if "Component Supply Method" = "Component Supply Method"::Transfer then
+                    if "Item No." <> '' then begin
+                        Item.Get("Item No.");
+                        Item.TestField(Type, Item.Type::Inventory);
+                    end;
                 SubcontractingManagement.UpdateComponentSupplyMethodForPlanningComponent(Rec);
             end;
         }

@@ -211,7 +211,7 @@ report 99001501 "Subc. Create Transf. Order"
                         TransferLine.Validate(Quantity, Round(QtyToPost / ProdOrderComponent."Qty. per Unit of Measure", Item."Rounding Precision", '>'));
 
                         if ProdOrderComponent."Due Date" <> 0D then
-                            TransferLine.Validate("Receipt Date", SubcontractingManagement.CalcReceiptDateFromProdCompDueDateWithInbWhseHandlingTime(ProdOrderComponent));
+                            TransferLine.Validate("Receipt Date", SubcontractingManagement.CalcReceiptDateFromProdCompDueDateWithCompTransferLeadTime(ProdOrderComponent));
 
                         TransferLine."Subc. Purch. Order No." := PurchaseLine."Document No.";
                         TransferLine."Subc. Purch. Order Line No." := PurchaseLine."Line No.";

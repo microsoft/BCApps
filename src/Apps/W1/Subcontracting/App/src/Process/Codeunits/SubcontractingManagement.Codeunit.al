@@ -34,13 +34,13 @@ codeunit 99001505 "Subcontracting Management"
         PurchOrderExistErr: Label 'The currently selected component %1 is already used in Purchase Order %2. Therefore, it is not permitted to change the %3 field.', Comment = '%1=Item No, %2=Purchase Order No, %3=Field Caption';
         HasManufacturingSetup: Boolean;
 
-    procedure CalcReceiptDateFromProdCompDueDateWithInbWhseHandlingTime(ProdOrderComponent: Record "Prod. Order Component") ReceiptDate: Date
+    procedure CalcReceiptDateFromProdCompDueDateWithCompTransferLeadTime(ProdOrderComponent: Record "Prod. Order Component") ReceiptDate: Date
     begin
         GetManufacturingSetup();
-        if not HasManufacturingSetup or (Format(ManufacturingSetup."Subc. Inb. Whse. Handling Time") = '') then
+        if not HasManufacturingSetup or (Format(ManufacturingSetup."Subc. Comp. Transfer Lead Time") = '') then
             exit(ProdOrderComponent."Due Date");
 
-        ReceiptDate := CalcDate('-' + Format(ManufacturingSetup."Subc. Inb. Whse. Handling Time"), ProdOrderComponent."Due Date");
+        ReceiptDate := CalcDate('-' + Format(ManufacturingSetup."Subc. Comp. Transfer Lead Time"), ProdOrderComponent."Due Date");
 
         exit(ReceiptDate);
     end;
