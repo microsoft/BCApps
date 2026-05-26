@@ -196,6 +196,7 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
         EDocLineByReceipt.Close();
         PurchaseHeader.Modify();
         PurchCalcDiscByType.ApplyInvDiscBasedOnAmt(EDocumentPurchaseHeader."Total Discount", PurchaseHeader);
+        EDocPurchaseDocumentHelper.ApplyVATDifferenceToLines(PurchaseHeader, EDocumentPurchaseHeader);
         exit(PurchaseHeader);
     end;
 
@@ -205,6 +206,7 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
         EDocRecordLink: Record "E-Doc. Record Link";
         EDocumentPurchaseHistMapping: Codeunit "E-Doc. Purchase Hist. Mapping";
         DimensionManagement: Codeunit DimensionManagement;
+        EDocPurchaseDocumentHelper: Codeunit "E-Doc. Purch. Doc. Helper";
         PurchaseLineCombinedDimensions: array[10] of Integer;
         GlobalDim1, GlobalDim2 : Code[20];
     begin
@@ -216,6 +218,9 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
         PurchaseLine."Variant Code" := EDocumentPurchaseLine."[BC] Variant Code";
         PurchaseLine.Type := EDocumentPurchaseLine."[BC] Purchase Line Type";
         PurchaseLine.Validate("No.", EDocumentPurchaseLine."[BC] Purchase Type No.");
+        if EDocumentPurchaseLine."[BC] VAT Prod. Posting Group" <> '' then
+            EDocPurchaseDocumentHelper.ValidateFieldWithContext(
+                PurchaseLine, PurchaseLine.FieldNo("VAT Prod. Posting Group"), EDocumentPurchaseLine."[BC] VAT Prod. Posting Group");
         if (PurchaseLine.Type = PurchaseLine.Type::"G/L Account") and HasTotalDiscount then
             PurchaseLine.Validate("Allow Invoice Disc.", true);
         PurchaseLine.Description := EDocumentPurchaseLine.Description;
