@@ -62,7 +62,7 @@ page 8351 "MCP Config Card"
                     field(Default; Rec.Default)
                     {
                         Caption = 'Default';
-                        ToolTip = 'Specifies whether this configuration is the default. The default configuration is used when no configuration is specified by a connection. Clear this field to remove the default designation, in which case the system reverts to built-in default settings.';
+                        ToolTip = 'Specifies whether this configuration is the default. The default configuration is used when no configuration is specified by a connection. Clear this field to remove the default designation, in which case the system reverts to built-in default configuration.';
                         Editable = not IsDefault;
 
                         trigger OnValidate()
