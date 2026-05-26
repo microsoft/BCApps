@@ -24,6 +24,7 @@ codeunit 8351 "MCP Config Implementation"
         DiscoverReadOnlyObjectsCannotBeDisabledErr: Label 'Access to all read-only objects cannot be disabled for the default configuration.';
         CreateUpdateDeleteNotAllowedErr: Label 'Create, update and delete tools are not allowed for this MCP configuration.';
         ToolsCannotBeAddedToDefaultConfigErr: Label 'Tools cannot be added to the default configuration.';
+        ConfigurationNotFoundErr: Label 'The MCP configuration was not found.';
         PageNotFoundErr: Label 'Page not found.';
         QueryNotFoundErr: Label 'Query not found.';
         InvalidPageTypeErr: Label 'Only API pages are supported.';
