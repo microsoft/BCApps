@@ -833,7 +833,7 @@ codeunit 8351 "MCP Config Implementation"
     internal procedure LookupAPIQueryVersions(QueryId: Integer; var APIVersion: Text[30])
     var
         QueryMetadata: Record "Query Metadata";
-        TempMCPAPIVersion: Record "MCP API Version";
+        MCPAPIVersion: Record "MCP API Version";
         Versions: List of [Text];
         Version: Text[30];
     begin
@@ -842,12 +842,12 @@ codeunit 8351 "MCP Config Implementation"
 
         Versions := QueryMetadata.APIVersion.Split(',');
         foreach Version in Versions do begin
-            TempMCPAPIVersion."API Version" := Version;
-            TempMCPAPIVersion.Insert();
+            MCPAPIVersion."API Version" := Version;
+            MCPAPIVersion.Insert();
         end;
 
-        if Page.RunModal(Page::"MCP API Version Lookup", TempMCPAPIVersion) = Action::LookupOK then
-            APIVersion := TempMCPAPIVersion."API Version";
+        if Page.RunModal(Page::"MCP API Version Lookup", MCPAPIVersion) = Action::LookupOK then
+            APIVersion := MCPAPIVersion."API Version";
     end;
 
     internal procedure GetHighestAPIPageVersion(PageMetadata: Record "Page Metadata"): Text[30]
