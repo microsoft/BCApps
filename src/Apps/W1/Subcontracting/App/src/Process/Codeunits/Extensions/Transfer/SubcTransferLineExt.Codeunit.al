@@ -11,7 +11,7 @@ codeunit 99001544 "Subc. Transfer Line Ext."
     [EventSubscriber(ObjectType::Table, Database::"Transfer Line", OnAfterGetTransHeader, '', false, false)]
     local procedure OnAfterGetTransHeader(var TransferLine: Record "Transfer Line"; TransferHeader: Record "Transfer Header")
     begin
-        TransferLine."Return Order" := TransferHeader."Return Order";
+        TransferLine."Subc. Return Order" := TransferHeader."Subc. Return Order";
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Transfer Line", OnAfterDeleteEvent, '', false, false)]
@@ -36,15 +36,15 @@ codeunit 99001544 "Subc. Transfer Line Ext."
 
     local procedure CopySubFieldsFromTempTransferLineToTransferLine(var TransferLine: Record "Transfer Line"; TempTransferLine: Record "Transfer Line")
     begin
-        TransferLine."Subcontr. Purch. Order No." := TempTransferLine."Subcontr. Purch. Order No.";
-        TransferLine."Subcontr. PO Line No." := TempTransferLine."Subcontr. PO Line No.";
-        TransferLine."Prod. Order No." := TempTransferLine."Prod. Order No.";
-        TransferLine."Prod. Order Line No." := TempTransferLine."Prod. Order Line No.";
-        TransferLine."Prod. Order Comp. Line No." := TempTransferLine."Prod. Order Comp. Line No.";
-        TransferLine."Routing No." := TempTransferLine."Routing No.";
-        TransferLine."Routing Reference No." := TempTransferLine."Routing Reference No.";
-        TransferLine."Work Center No." := TempTransferLine."Work Center No.";
-        TransferLine."Operation No." := TempTransferLine."Operation No.";
-        TransferLine."Return Order" := TempTransferLine."Return Order";
+        TransferLine."Subc. Purch. Order No." := TempTransferLine."Subc. Purch. Order No.";
+        TransferLine."Subc. Purch. Order Line No." := TempTransferLine."Subc. Purch. Order Line No.";
+        TransferLine."Subc. Prod. Order No." := TempTransferLine."Subc. Prod. Order No.";
+        TransferLine."Subc. Prod. Order Line No." := TempTransferLine."Subc. Prod. Order Line No.";
+        TransferLine."Subc. Prod. Ord. Comp Line No." := TempTransferLine."Subc. Prod. Ord. Comp Line No.";
+        TransferLine."Subc. Routing No." := TempTransferLine."Subc. Routing No.";
+        TransferLine."Subc. Routing Reference No." := TempTransferLine."Subc. Routing Reference No.";
+        TransferLine."Subc. Work Center No." := TempTransferLine."Subc. Work Center No.";
+        TransferLine."Subc. Operation No." := TempTransferLine."Subc. Operation No.";
+        TransferLine."Subc. Return Order" := TempTransferLine."Subc. Return Order";
     end;
 }

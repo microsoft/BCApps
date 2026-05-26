@@ -2585,6 +2585,15 @@
       </DefaultValue>
       <Prompt>ItemLabel</Prompt>
     </ReportParameter>
+    <ReportParameter Name="ItemDescriptionLabel">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>ItemDescriptionLabel</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>ItemDescriptionLabel</Prompt>
+    </ReportParameter>
     <ReportParameter Name="ItemTrackingLabel">
       <DataType>String</DataType>
       <DefaultValue>
@@ -2657,6 +2666,24 @@
       </DefaultValue>
       <Prompt>InspectionLabel</Prompt>
     </ReportParameter>
+    <ReportParameter Name="InspectionDescriptionLabel">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>InspectionDescriptionLabel</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>InspectionDescriptionLabel</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="StatusLabel">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>StatusLabel</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>StatusLabel</Prompt>
+    </ReportParameter>
     <ReportParameter Name="DateLabel">
       <DataType>String</DataType>
       <DefaultValue>
@@ -2666,14 +2693,14 @@
       </DefaultValue>
       <Prompt>DateLabel</Prompt>
     </ReportParameter>
-    <ReportParameter Name="EnteredByLabel">
+    <ReportParameter Name="LastModifiedByLabel">
       <DataType>String</DataType>
       <DefaultValue>
         <Values>
-          <Value>EnteredByLabel</Value>
+          <Value>LastModifiedByLabel</Value>
         </Values>
       </DefaultValue>
-      <Prompt>EnteredByLabel</Prompt>
+      <Prompt>LastModifiedByLabel</Prompt>
     </ReportParameter>
   </ReportParameters>
   <Code>Public Function BlankZero(ByVal Value As Decimal)
@@ -2883,14 +2910,14 @@ End Function
         <Field Name="ReinspectionSequenceInformation">
           <DataField>ReinspectionSequenceInformation</DataField>
         </Field>
-        <Field Name="InspectionInformation">
-          <DataField>InspectionInformation</DataField>
+        <Field Name="ItemIdentifier">
+          <DataField>ItemIdentifier</DataField>
         </Field>
         <Field Name="ItemDescription">
           <DataField>ItemDescription</DataField>
         </Field>
-        <Field Name="ItemTrackingDescription">
-          <DataField>ItemTrackingDescription</DataField>
+        <Field Name="ItemTrackingIdentifier">
+          <DataField>ItemTrackingIdentifier</DataField>
         </Field>
         <Field Name="CompanyLogo">
           <DataField>CompanyLogo</DataField>

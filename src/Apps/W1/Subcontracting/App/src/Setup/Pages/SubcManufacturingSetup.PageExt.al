@@ -53,11 +53,6 @@ pageextension 99001542 "Subc. Manufacturing Setup" extends "Manufacturing Setup"
                 group(SubcPurchaseProvision)
                 {
                     Caption = 'Purchase Provision';
-                    field("Rtng. Link Code Purch. Prov."; Rec."Rtng. Link Code Purch. Prov.")
-                    {
-                        ApplicationArea = Manufacturing;
-                        ToolTip = 'Specifies the value of the Routing Link Code for purchase provision.';
-                    }
                     field("Subc. Default Comp. Location"; Rec."Subc. Default Comp. Location")
                     {
                         ApplicationArea = Manufacturing;

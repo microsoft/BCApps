@@ -51,11 +51,7 @@ codeunit 99001559 "Subc. ProdO. Factbox Mgmt."
     begin
         if not SetProdOrderInformationByVariant(RecRelatedVariant, ProdOrderNo, ProdOrderLineNo, RoutingNo, OperationNo) then
             exit;
-        ProdOrderRoutingLine.SetRange(Status, ProdOrderRoutingLine.Status::Released);
-        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProdOrderNo);
-        ProdOrderRoutingLine.SetRange("Routing Reference No.", ProdOrderLineNo);
-        ProdOrderRoutingLine.SetRange("Routing No.", RoutingNo);
-        ProdOrderRoutingLine.SetRange("Operation No.", OperationNo);
+        SetFilterProductionOrderRouting(ProdOrderRoutingLine, ProdOrderNo, ProdOrderLineNo, RoutingNo, OperationNo);
         ProdOrderRoutingLine.FindFirst();
         ProdOrderRouting.SetTableView(ProdOrderRoutingLine);
         ProdOrderRouting.Editable := false;
@@ -77,12 +73,17 @@ codeunit 99001559 "Subc. ProdO. Factbox Mgmt."
     begin
         if not SetProdOrderInformationByVariant(RecRelatedVariant, ProdOrderNo, ProdOrderLineNo, RoutingNo, OperationNo) then
             exit;
+        SetFilterProductionOrderRouting(ProdOrderRoutingLine, ProdOrderNo, ProdOrderLineNo, RoutingNo, OperationNo);
+        exit(ProdOrderRoutingLine.Count());
+    end;
+
+local procedure SetFilterProductionOrderRouting(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; ProdOrderNo: Code[20]; ProdOrderLineNo: Integer; RoutingNo: Code[20]; OperationNo: Code[10])
+    begin
         ProdOrderRoutingLine.SetRange(Status, ProdOrderRoutingLine.Status::Released);
         ProdOrderRoutingLine.SetRange("Prod. Order No.", ProdOrderNo);
         ProdOrderRoutingLine.SetRange("Routing Reference No.", ProdOrderLineNo);
         ProdOrderRoutingLine.SetRange("Routing No.", RoutingNo);
         ProdOrderRoutingLine.SetRange("Operation No.", OperationNo);
-        exit(ProdOrderRoutingLine.Count());
     end;
 
     /// <summary>
@@ -92,7 +93,6 @@ codeunit 99001559 "Subc. ProdO. Factbox Mgmt."
     procedure ShowProductionOrderComponents(RecRelatedVariant: Variant)
     var
         ProdOrderComponent: Record "Prod. Order Component";
-        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         PageManagement: Codeunit "Page Management";
         OperationNo: Code[10];
         ProdOrderNo: Code[20];
@@ -101,17 +101,7 @@ codeunit 99001559 "Subc. ProdO. Factbox Mgmt."
     begin
         if not SetProdOrderInformationByVariant(RecRelatedVariant, ProdOrderNo, ProdOrderLineNo, RoutingNo, OperationNo) then
             exit;
-        ProdOrderRoutingLine.SetRange(Status, ProdOrderRoutingLine.Status::Released);
-        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProdOrderNo);
-        ProdOrderRoutingLine.SetRange("Routing Reference No.", ProdOrderLineNo);
-        ProdOrderRoutingLine.SetRange("Routing No.", RoutingNo);
-        ProdOrderRoutingLine.SetRange("Operation No.", OperationNo);
-        if ProdOrderRoutingLine.FindFirst() then
-            ProdOrderComponent.SetRange("Routing Link Code", ProdOrderRoutingLine."Routing Link Code");
-
-        ProdOrderComponent.SetRange(Status, ProdOrderComponent.Status::Released);
-        ProdOrderComponent.SetRange("Prod. Order No.", ProdOrderNo);
-        ProdOrderComponent.SetRange("Prod. Order Line No.", ProdOrderLineNo);
+        SetFilterProductionOrderComponents(ProdOrderComponent, ProdOrderNo, ProdOrderLineNo, RoutingNo, OperationNo);
         PageManagement.PageRun(ProdOrderComponent);
     end;
 
@@ -131,10 +121,26 @@ codeunit 99001559 "Subc. ProdO. Factbox Mgmt."
         if not SetProdOrderInformationByVariant(RecRelatedVariant, ProdOrderNo, ProdOrderLineNo, RoutingNo, OperationNo) then
             exit(0);
 
+        SetFilterProductionOrderComponents(ProdOrderComponent, ProdOrderNo, ProdOrderLineNo, RoutingNo, OperationNo);
+        exit(ProdOrderComponent.Count());
+    end;
+
+    local procedure SetFilterProductionOrderComponents(var ProdOrderComponent: Record "Prod. Order Component"; ProdOrderNo: Code[20]; ProdOrderLineNo: Integer; RoutingNo: Code[20]; OperationNo: Code[10])
+    var
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+    begin
+        ProdOrderRoutingLine.SetLoadFields("Routing Link Code");
+        ProdOrderRoutingLine.SetRange(Status, ProdOrderRoutingLine.Status::Released);
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProdOrderNo);
+        ProdOrderRoutingLine.SetRange("Routing Reference No.", ProdOrderLineNo);
+        ProdOrderRoutingLine.SetRange("Routing No.", RoutingNo);
+        ProdOrderRoutingLine.SetRange("Operation No.", OperationNo);
+        if ProdOrderRoutingLine.FindFirst() then
+            ProdOrderComponent.SetRange("Routing Link Code", ProdOrderRoutingLine."Routing Link Code");
+
         ProdOrderComponent.SetRange(Status, ProdOrderComponent.Status::Released);
         ProdOrderComponent.SetRange("Prod. Order No.", ProdOrderNo);
         ProdOrderComponent.SetRange("Prod. Order Line No.", ProdOrderLineNo);
-        exit(ProdOrderComponent.Count());
     end;
 
     local procedure SetProdOrderInformationByVariant(RecRelatedVariant: Variant; var ProdOrderNo: Code[20]; var ProdOrderLineNo: Integer; var RoutingNo: Code[20]; var OperationNo: Code[10]): Boolean
@@ -188,33 +194,33 @@ codeunit 99001559 "Subc. ProdO. Factbox Mgmt."
             Database::"Transfer Line":
                 begin
                     ResultRecordRef.SetTable(TransferLine);
-                    ProdOrderNo := TransferLine."Prod. Order No.";
-                    ProdOrderLineNo := TransferLine."Prod. Order Line No.";
-                    RoutingNo := TransferLine."Routing No.";
-                    OperationNo := TransferLine."Operation No.";
+                    ProdOrderNo := TransferLine."Subc. Prod. Order No.";
+                    ProdOrderLineNo := TransferLine."Subc. Prod. Order Line No.";
+                    RoutingNo := TransferLine."Subc. Routing No.";
+                    OperationNo := TransferLine."Subc. Operation No.";
                 end;
             Database::"Transfer Shipment Line":
                 begin
                     ResultRecordRef.SetTable(TransferShipmentLine);
-                    ProdOrderNo := TransferShipmentLine."Prod. Order No.";
-                    ProdOrderLineNo := TransferShipmentLine."Prod. Order Line No.";
-                    RoutingNo := TransferShipmentLine."Routing No.";
-                    OperationNo := TransferShipmentLine."Operation No.";
+                    ProdOrderNo := TransferShipmentLine."Subc. Prod. Order No.";
+                    ProdOrderLineNo := TransferShipmentLine."Subc. Prod. Order Line No.";
+                    RoutingNo := TransferShipmentLine."Subc. Routing No.";
+                    OperationNo := TransferShipmentLine."Subc. Operation No.";
                 end;
             Database::"Transfer Receipt Line":
                 begin
                     ResultRecordRef.SetTable(TransferReceiptLine);
-                    ProdOrderNo := TransferReceiptLine."Prod. Order No.";
-                    ProdOrderLineNo := TransferReceiptLine."Prod. Order Line No.";
-                    RoutingNo := TransferReceiptLine."Routing No.";
-                    OperationNo := TransferReceiptLine."Operation No.";
+                    ProdOrderNo := TransferReceiptLine."Subc. Prod. Order No.";
+                    ProdOrderLineNo := TransferReceiptLine."Subc. Prod. Order Line No.";
+                    RoutingNo := TransferReceiptLine."Subc. Routing No.";
+                    OperationNo := TransferReceiptLine."Subc. Operation No.";
                 end;
             Database::"Item Ledger Entry":
                 begin
                     ResultRecordRef.SetTable(ItemLedgerEntry);
                     ProdOrderNo := ItemLedgerEntry."Order No.";
                     ProdOrderLineNo := ItemLedgerEntry."Order Line No.";
-                    OperationNo := ItemLedgerEntry."Operation No.";
+                    OperationNo := ItemLedgerEntry."Subc. Operation No.";
                     RoutingNo := GetRoutingNoFromProdOrderRoutingLine(ProdOrderNo, ProdOrderLineNo, OperationNo);
                 end;
         end;
