@@ -187,6 +187,167 @@ codeunit 132984 "SharePoint Graph Client Test"
     end;
 
     [Test]
+    procedure TestGetListItem()
+    var
+        TempListItem: Record "SharePoint Graph List Item" temporary;
+        HttpContent: Codeunit "Http Content";
+        MockHttpContent: Codeunit "Http Content";
+        MockHttpResponseMessage: Codeunit "Http Response Message";
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+    begin
+        // [GIVEN] Mock response for GetListItem
+        Initialize();
+        MockHttpResponseMessage.SetHttpStatusCode(200);
+        MockHttpContent := HttpContent.Create(GetListItemResponse());
+        MockHttpResponseMessage.SetContent(MockHttpContent);
+        SharePointGraphTestLibrary.SetMockResponse(MockHttpResponseMessage);
+
+        // [WHEN] Calling GetListItem
+        SharePointGraphResponse := SharePointGraphClient.GetListItem('01bjtwww-5j35-426b-a4d5-608f6e2a9f84', '1', TempListItem);
+
+        // [THEN] Operation should succeed and return correct data
+        LibraryAssert.IsTrue(SharePointGraphResponse.IsSuccessful(), 'GetListItem should succeed');
+        LibraryAssert.AreEqual('1', TempListItem.Id, 'Id should match');
+        LibraryAssert.AreEqual('Test Item 1', TempListItem.Title, 'Title should match');
+        LibraryAssert.AreEqual('Item', TempListItem.ContentType, 'ContentType should match');
+    end;
+
+    [Test]
+    procedure TestGetListItem_EmptyListId()
+    var
+        TempListItem: Record "SharePoint Graph List Item" temporary;
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+    begin
+        // [GIVEN] An initialized client
+        Initialize();
+
+        // [WHEN] Calling GetListItem with empty ListId
+        SharePointGraphResponse := SharePointGraphClient.GetListItem('', '1', TempListItem);
+
+        // [THEN] Operation should fail with validation error
+        LibraryAssert.IsFalse(SharePointGraphResponse.IsSuccessful(), 'GetListItem should fail with empty ListId');
+    end;
+
+    [Test]
+    procedure TestGetListItem_EmptyItemId()
+    var
+        TempListItem: Record "SharePoint Graph List Item" temporary;
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+    begin
+        // [GIVEN] An initialized client
+        Initialize();
+
+        // [WHEN] Calling GetListItem with empty ItemId
+        SharePointGraphResponse := SharePointGraphClient.GetListItem('01bjtwww-5j35-426b-a4d5-608f6e2a9f84', '', TempListItem);
+
+        // [THEN] Operation should fail with validation error
+        LibraryAssert.IsFalse(SharePointGraphResponse.IsSuccessful(), 'GetListItem should fail with empty ItemId');
+    end;
+
+    [Test]
+    procedure TestUpdateListItem()
+    var
+        TempListItem: Record "SharePoint Graph List Item" temporary;
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+        FieldsJson: JsonObject;
+    begin
+        // [GIVEN] Mock responses for UpdateListItem (PATCH fields + follow-up GET)
+        Initialize();
+        SharePointGraphTestLibrary.ResetMockHandler();
+        SharePointGraphTestLibrary.AddMockResponse(200, GetUpdateListItemFieldsResponse());
+        SharePointGraphTestLibrary.AddMockResponse(200, GetListItemResponse());
+
+        // [WHEN] Calling UpdateListItem
+        FieldsJson.Add('Title', 'Updated Title');
+        FieldsJson.Add('Status', 'Approved');
+        SharePointGraphResponse := SharePointGraphClient.UpdateListItem('01bjtwww-5j35-426b-a4d5-608f6e2a9f84', '1', FieldsJson, TempListItem);
+
+        // [THEN] Operation should succeed and return the full item from the follow-up GET
+        LibraryAssert.IsTrue(SharePointGraphResponse.IsSuccessful(), 'UpdateListItem should succeed');
+        LibraryAssert.AreEqual('1', TempListItem.Id, 'Id should match');
+        LibraryAssert.AreEqual('Test Item 1', TempListItem.Title, 'Title should match from GET response');
+        LibraryAssert.AreEqual(2, SharePointGraphTestLibrary.GetMockRequestCount(), 'Should have made 2 requests (PATCH + GET)');
+        LibraryAssert.IsTrue(SharePointGraphTestLibrary.GetMockHttpRequestMethod(1).Contains('PATCH'), 'First request should be PATCH');
+        LibraryAssert.IsTrue(SharePointGraphTestLibrary.GetMockHttpRequestMethod(2).Contains('GET'), 'Second request should be GET');
+        LibraryAssert.IsTrue(SharePointGraphTestLibrary.GetMockHttpRequestUri(1).Contains('/fields'), 'First request URI should target /fields');
+    end;
+
+    [Test]
+    procedure TestUpdateListItem_EmptyListId()
+    var
+        TempListItem: Record "SharePoint Graph List Item" temporary;
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+        FieldsJson: JsonObject;
+    begin
+        // [GIVEN] An initialized client
+        Initialize();
+        FieldsJson.Add('Title', 'Updated');
+
+        // [WHEN] Calling UpdateListItem with empty ListId
+        SharePointGraphResponse := SharePointGraphClient.UpdateListItem('', '1', FieldsJson, TempListItem);
+
+        // [THEN] Operation should fail with validation error
+        LibraryAssert.IsFalse(SharePointGraphResponse.IsSuccessful(), 'UpdateListItem should fail with empty ListId');
+    end;
+
+    [Test]
+    procedure TestUpdateListItem_EmptyItemId()
+    var
+        TempListItem: Record "SharePoint Graph List Item" temporary;
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+        FieldsJson: JsonObject;
+    begin
+        // [GIVEN] An initialized client
+        Initialize();
+        FieldsJson.Add('Title', 'Updated');
+
+        // [WHEN] Calling UpdateListItem with empty ItemId
+        SharePointGraphResponse := SharePointGraphClient.UpdateListItem('01bjtwww-5j35-426b-a4d5-608f6e2a9f84', '', FieldsJson, TempListItem);
+
+        // [THEN] Operation should fail with validation error
+        LibraryAssert.IsFalse(SharePointGraphResponse.IsSuccessful(), 'UpdateListItem should fail with empty ItemId');
+    end;
+
+    [Test]
+    procedure TestUpdateListItem_EmptyFields()
+    var
+        TempListItem: Record "SharePoint Graph List Item" temporary;
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+        FieldsJson: JsonObject;
+    begin
+        // [GIVEN] An initialized client with empty fields JSON
+        Initialize();
+
+        // [WHEN] Calling UpdateListItem with empty FieldsJsonObject
+        SharePointGraphResponse := SharePointGraphClient.UpdateListItem('01bjtwww-5j35-426b-a4d5-608f6e2a9f84', '1', FieldsJson, TempListItem);
+
+        // [THEN] Operation should fail with validation error
+        LibraryAssert.IsFalse(SharePointGraphResponse.IsSuccessful(), 'UpdateListItem should fail with empty fields');
+    end;
+
+    [Test]
+    procedure TestUpdateListItem_FollowUpGetFails()
+    var
+        TempListItem: Record "SharePoint Graph List Item" temporary;
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+        FieldsJson: JsonObject;
+    begin
+        // [GIVEN] Mock responses: successful PATCH, then a 404 on the follow-up GET
+        Initialize();
+        SharePointGraphTestLibrary.ResetMockHandler();
+        SharePointGraphTestLibrary.AddMockResponse(200, GetUpdateListItemFieldsResponse());
+        SharePointGraphTestLibrary.AddMockResponse(404, GetErrorResponse());
+
+        // [WHEN] Calling UpdateListItem
+        FieldsJson.Add('Title', 'Updated Title');
+        SharePointGraphResponse := SharePointGraphClient.UpdateListItem('01bjtwww-5j35-426b-a4d5-608f6e2a9f84', '1', FieldsJson, TempListItem);
+
+        // [THEN] Operation should fail (the GET failed), but both requests were made
+        LibraryAssert.IsFalse(SharePointGraphResponse.IsSuccessful(), 'UpdateListItem should fail when follow-up GET fails');
+        LibraryAssert.AreEqual(2, SharePointGraphTestLibrary.GetMockRequestCount(), 'Both PATCH and GET requests should have fired');
+    end;
+
+    [Test]
     procedure TestGetDrives()
     var
         TempDrive: Record "SharePoint Graph Drive" temporary;
@@ -732,6 +893,41 @@ codeunit 132984 "SharePoint Graph Client Test"
         ResponseText.Append('    }');
         ResponseText.Append('  },');
         ResponseText.Append('  "size": 45321');
+        ResponseText.Append('}');
+        exit(ResponseText.ToText());
+    end;
+
+    local procedure GetListItemResponse(): Text
+    var
+        ResponseText: TextBuilder;
+    begin
+        ResponseText.Append('{');
+        ResponseText.Append('  "id": "1",');
+        ResponseText.Append('  "contentType": {');
+        ResponseText.Append('    "id": "0x0100",');
+        ResponseText.Append('    "name": "Item"');
+        ResponseText.Append('  },');
+        ResponseText.Append('  "createdDateTime": "2023-05-15T08:12:39Z",');
+        ResponseText.Append('  "lastModifiedDateTime": "2023-06-20T14:45:12Z",');
+        ResponseText.Append('  "webUrl": "https://contoso.sharepoint.com/sites/test/Lists/Test%20List/1_.000",');
+        ResponseText.Append('  "fields": {');
+        ResponseText.Append('    "Title": "Test Item 1",');
+        ResponseText.Append('    "Description": "This is a test item",');
+        ResponseText.Append('    "Priority": "High"');
+        ResponseText.Append('  }');
+        ResponseText.Append('}');
+        exit(ResponseText.ToText());
+    end;
+
+    local procedure GetUpdateListItemFieldsResponse(): Text
+    var
+        ResponseText: TextBuilder;
+    begin
+        ResponseText.Append('{');
+        ResponseText.Append('  "Title": "Updated Title",');
+        ResponseText.Append('  "Status": "Approved",');
+        ResponseText.Append('  "Description": "This is a test item",');
+        ResponseText.Append('  "Priority": "High"');
         ResponseText.Append('}');
         exit(ResponseText.ToText());
     end;

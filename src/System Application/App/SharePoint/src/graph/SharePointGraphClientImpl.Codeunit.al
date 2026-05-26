@@ -90,6 +90,10 @@ codeunit 9120 "SharePoint Graph Client Impl."
         FailedToUpdateDriveItemErr: Label 'Failed to update drive item: %1', Comment = '%1 = Error message';
         FailedToParseUpdatedDriveItemErr: Label 'Failed to parse updated drive item details from response';
         InvalidNewNameErr: Label 'New name cannot be empty';
+        InvalidFieldsErr: Label 'Fields JSON object cannot be empty';
+        FailedToRetrieveListItemErr: Label 'Failed to retrieve list item: %1', Comment = '%1 = Error message';
+        FailedToParseListItemErr: Label 'Failed to parse list item details from response';
+        FailedToUpdateListItemErr: Label 'Failed to update list item: %1', Comment = '%1 = Error message';
         GraphSharePointCategoryLbl: Label 'AL Graph SharePoint', Locked = true;
         OperationSuccessTelemetryMsg: Label '%1 completed successfully.', Locked = true, Comment = '%1 = Operation name';
 
@@ -550,6 +554,125 @@ codeunit 9120 "SharePoint Graph Client Impl."
     begin
         FieldsJsonObject.Add('Title', Title);
         exit(CreateListItem(ListId, FieldsJsonObject, GraphListItem));
+    end;
+
+    /// <summary>
+    /// Gets a single item from a SharePoint list.
+    /// </summary>
+    /// <param name="ListId">ID of the list.</param>
+    /// <param name="ItemId">ID of the item.</param>
+    /// <param name="GraphListItem">Record to store the result.</param>
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    procedure GetListItem(ListId: Text; ItemId: Text; var GraphListItem: Record "SharePoint Graph List Item" temporary): Codeunit "SharePoint Graph Response"
+    var
+        GraphOptionalParameters: Codeunit "Graph Optional Parameters";
+    begin
+        exit(GetListItem(ListId, ItemId, GraphListItem, GraphOptionalParameters));
+    end;
+
+    /// <summary>
+    /// Gets a single item from a SharePoint list.
+    /// </summary>
+    /// <param name="ListId">ID of the list.</param>
+    /// <param name="ItemId">ID of the item.</param>
+    /// <param name="GraphListItem">Record to store the result.</param>
+    /// <param name="GraphOptionalParameters">A wrapper for optional header and query parameters.</param>
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    procedure GetListItem(ListId: Text; ItemId: Text; var GraphListItem: Record "SharePoint Graph List Item" temporary; GraphOptionalParameters: Codeunit "Graph Optional Parameters"): Codeunit "SharePoint Graph Response"
+    var
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+        JsonResponse: JsonObject;
+        ErrorMessage: Text;
+    begin
+        EnsureInitialized();
+        EnsureSiteId();
+
+        SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
+
+        if ListId = '' then begin
+            SharePointGraphResponse.SetError(InvalidListIdErr);
+            Session.LogMessage('', InvalidListIdErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            exit(SharePointGraphResponse);
+        end;
+
+        if ItemId = '' then begin
+            SharePointGraphResponse.SetError(InvalidItemIdErr);
+            Session.LogMessage('', InvalidItemIdErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            exit(SharePointGraphResponse);
+        end;
+
+        if not SharePointGraphRequestHelper.Get(SharePointGraphUriBuilder.GetListItemByIdEndpoint(ListId, ItemId), JsonResponse, GraphOptionalParameters) then begin
+            ErrorMessage := StrSubstNo(FailedToRetrieveListItemErr, SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase());
+            SharePointGraphResponse.SetError(ErrorMessage);
+            Session.LogMessage('', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            exit(SharePointGraphResponse);
+        end;
+
+        GraphListItem.Init();
+        GraphListItem.ListId := CopyStr(ListId, 1, MaxStrLen(GraphListItem.ListId));
+        if not SharePointGraphParser.ParseListItemDetail(JsonResponse, GraphListItem) then begin
+            SharePointGraphResponse.SetError(FailedToParseListItemErr);
+            Session.LogMessage('', FailedToParseListItemErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            exit(SharePointGraphResponse);
+        end;
+        GraphListItem.Insert();
+
+        SharePointGraphResponse.SetSuccess();
+        Session.LogMessage('', StrSubstNo(OperationSuccessTelemetryMsg, 'GetListItem'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+        exit(SharePointGraphResponse);
+    end;
+
+    /// <summary>
+    /// Updates an existing list item's fields.
+    /// </summary>
+    /// <param name="ListId">ID of the list.</param>
+    /// <param name="ItemId">ID of the item to update.</param>
+    /// <param name="FieldsJsonObject">JSON object containing the fields to update.</param>
+    /// <param name="GraphListItem">Record to store the updated item details.</param>
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    procedure UpdateListItem(ListId: Text; ItemId: Text; FieldsJsonObject: JsonObject; var GraphListItem: Record "SharePoint Graph List Item" temporary): Codeunit "SharePoint Graph Response"
+    var
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+        JsonResponse: JsonObject;
+        ErrorMessage: Text;
+    begin
+        EnsureInitialized();
+        EnsureSiteId();
+
+        SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
+
+        if ListId = '' then begin
+            SharePointGraphResponse.SetError(InvalidListIdErr);
+            Session.LogMessage('', InvalidListIdErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            exit(SharePointGraphResponse);
+        end;
+
+        if ItemId = '' then begin
+            SharePointGraphResponse.SetError(InvalidItemIdErr);
+            Session.LogMessage('', InvalidItemIdErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            exit(SharePointGraphResponse);
+        end;
+
+        if FieldsJsonObject.Keys().Count() = 0 then begin
+            SharePointGraphResponse.SetError(InvalidFieldsErr);
+            Session.LogMessage('', InvalidFieldsErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            exit(SharePointGraphResponse);
+        end;
+
+        if not SharePointGraphRequestHelper.Patch(SharePointGraphUriBuilder.GetUpdateListItemFieldsEndpoint(ListId, ItemId), FieldsJsonObject, JsonResponse) then begin
+            ErrorMessage := StrSubstNo(FailedToUpdateListItemErr, SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase());
+            SharePointGraphResponse.SetError(ErrorMessage);
+            Session.LogMessage('', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            exit(SharePointGraphResponse);
+        end;
+
+        SharePointGraphResponse := GetListItem(ListId, ItemId, GraphListItem);
+        if not SharePointGraphResponse.IsSuccessful() then
+            exit(SharePointGraphResponse);
+
+        SharePointGraphResponse.SetSuccess();
+        Session.LogMessage('', StrSubstNo(OperationSuccessTelemetryMsg, 'UpdateListItem'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+        exit(SharePointGraphResponse);
     end;
 
     #endregion

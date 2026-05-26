@@ -209,6 +209,47 @@ codeunit 9119 "SharePoint Graph Client"
         exit(SharePointGraphClientImpl.CreateListItem(ListId, Title, GraphListItem));
     end;
 
+    /// <summary>
+    /// Gets a single item from a SharePoint list.
+    /// </summary>
+    /// <param name="ListId">ID of the list.</param>
+    /// <param name="ItemId">ID of the item.</param>
+    /// <param name="GraphListItem">Record to store the result.</param>
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.Read.All</remarks>
+    procedure GetListItem(ListId: Text; ItemId: Text; var GraphListItem: Record "SharePoint Graph List Item" temporary): Codeunit "SharePoint Graph Response"
+    begin
+        exit(SharePointGraphClientImpl.GetListItem(ListId, ItemId, GraphListItem));
+    end;
+
+    /// <summary>
+    /// Gets a single item from a SharePoint list.
+    /// </summary>
+    /// <param name="ListId">ID of the list.</param>
+    /// <param name="ItemId">ID of the item.</param>
+    /// <param name="GraphListItem">Record to store the result.</param>
+    /// <param name="GraphOptionalParameters">A wrapper for optional header and query parameters.</param>
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.Read.All</remarks>
+    procedure GetListItem(ListId: Text; ItemId: Text; var GraphListItem: Record "SharePoint Graph List Item" temporary; GraphOptionalParameters: Codeunit "Graph Optional Parameters"): Codeunit "SharePoint Graph Response"
+    begin
+        exit(SharePointGraphClientImpl.GetListItem(ListId, ItemId, GraphListItem, GraphOptionalParameters));
+    end;
+
+    /// <summary>
+    /// Updates an existing list item's fields.
+    /// </summary>
+    /// <param name="ListId">ID of the list.</param>
+    /// <param name="ItemId">ID of the item to update.</param>
+    /// <param name="FieldsJsonObject">JSON object containing the fields to update.</param>
+    /// <param name="GraphListItem">Record to store the updated item details.</param>
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.ReadWrite.All</remarks>
+    procedure UpdateListItem(ListId: Text; ItemId: Text; FieldsJsonObject: JsonObject; var GraphListItem: Record "SharePoint Graph List Item" temporary): Codeunit "SharePoint Graph Response"
+    begin
+        exit(SharePointGraphClientImpl.UpdateListItem(ListId, ItemId, FieldsJsonObject, GraphListItem));
+    end;
+
     #endregion
 
     #region Drive and Items
