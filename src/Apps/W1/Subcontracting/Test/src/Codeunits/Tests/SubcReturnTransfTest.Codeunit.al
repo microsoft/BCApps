@@ -25,7 +25,7 @@ codeunit 149917 "Subc. Return Transf. Test"
     TestType = IntegrationTest;
 
     [Test]
-    [HandlerFunctions('DoNotConfirmShowCreatedPurchOrderForSubcontracting,HandleTransferOrder')]
+    [HandlerFunctions('DoNotConfirmShowCreatedPurchOrderForSubcontracting,HandleTransferOrder,TransferOrderPostedMessageHandler')]
     procedure SecondReturnFromSubcontractorSucceedsAfterFirstReturnPosted()
     var
         Bin: Record Bin;
@@ -184,6 +184,11 @@ codeunit 149917 "Subc. Return Transf. Test"
     procedure DoNotConfirmShowCreatedPurchOrderForSubcontracting(Question: Text[1024]; var Reply: Boolean)
     begin
         Reply := false;
+    end;
+
+    [MessageHandler]
+    procedure TransferOrderPostedMessageHandler(Message: Text[1024])
+    begin
     end;
 
     var
