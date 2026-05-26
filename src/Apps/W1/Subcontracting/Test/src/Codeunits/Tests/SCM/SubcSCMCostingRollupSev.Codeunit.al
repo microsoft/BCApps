@@ -42,7 +42,7 @@ codeunit 149915 "Subc SCM Costing Rollup Sev"
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryInventory: Codeunit "Library - Inventory";
         SubcManagementLibrary: Codeunit "Subc. Management Library";
-        SubSetupLibrary: Codeunit "Subc. Setup Library";
+        SubcSetupLibrary: Codeunit "Subc. Setup Library";
         LibraryERM: Codeunit "Library - ERM";
         Assert: Codeunit Assert;
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
@@ -64,9 +64,9 @@ codeunit 149915 "Subc SCM Costing Rollup Sev"
             exit;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(CODEUNIT::"Subc SCM Costing Rollup Sev");
 
-        SubSetupLibrary.InitSetupFields();
+        SubcSetupLibrary.InitSetupFields();
         LibraryERMCountryData.CreateVATData();
-        SubSetupLibrary.InitialSetupForGenProdPostingGroup();
+        SubcSetupLibrary.InitialSetupForGenProdPostingGroup();
         LibraryERMCountryData.CreateGeneralPostingSetupData();
         LibraryERMCountryData.UpdateGeneralLedgerSetup();
         LibraryERMCountryData.UpdateGeneralPostingSetup();

@@ -72,7 +72,6 @@ codeunit 149916 "Subc SCM Prod. Order"
         SubcManagementLibrary: Codeunit "Subc. Management Library";
         SubSetupLibrary: Codeunit "Subc. Setup Library";
         IsInitialized: Boolean;
-        ItemTrackingErr: Label 'You cannot define item tracking on this line because it is linked to production order', Locked = true;
         RecreatePurchaseLineConfirmHandlerQst: Label 'If you change %1, the existing purchase lines will be deleted and new purchase lines based on the new information in the header will be created.\\Do you want to continue?', Comment = '%1 - field caption';
         ValueEntrySourceTypeErr: Label 'Value Entry Source Type must be equal to %1', Comment = '%1 - source type';
         ValueEntrySourceNoErr: Label 'Value Entry Source No must be equal to %1', Comment = '%1 - source no';
@@ -121,7 +120,7 @@ codeunit 149916 "Subc SCM Prod. Order"
     [Scope('OnPrem')]
     procedure ErrorAssignTrackingOnPurchLineAfterCalcSubcontractOrderAndCarryOutForProdOrderWithTracking()
     begin
-        // Verify the Tracking error on Purchase Line after Calculate Subcontracts and Carry Out.
+        // Verify no Tracking error on Purchase Line after Calculate Subcontracts and Carry Out.
         // Setup.
         Initialize();
         CalcSubcontractOrderForReleasedProductionOrderWithTracking(true);  // Assign Tracking on Purchase Line TRUE.
@@ -146,12 +145,9 @@ codeunit 149916 "Subc SCM Prod. Order"
         AcceptActionMessage(RequisitionLine, Item."No.");
         LibraryPlanning.CarryOutAMSubcontractWksh(RequisitionLine);
         FindPurchaseOrderLine(PurchaseLine, Item."No.");
-        if AssignTracking then begin
-            asserterror PurchaseLine.OpenItemTrackingLines();
-
-            // Verify: Verify the Tracking error on Purchase Line. Verify the Quantity on Purchase Line created.
-            Assert.ExpectedError(ItemTrackingErr);
-        end else
+        if AssignTracking then
+            PurchaseLine.OpenItemTrackingLines()
+        else
             VerifyPurchaseLine(Item."No.", ProductionOrder.Quantity);
     end;
 

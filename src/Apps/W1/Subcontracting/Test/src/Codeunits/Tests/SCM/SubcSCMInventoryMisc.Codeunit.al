@@ -235,11 +235,13 @@ codeunit 149912 "Subc SCM Inventory Misc."
 
     local procedure CreateWorkCenterWithSubcontractor(var WorkCenter: Record "Work Center")
     var
-        Vendor: Record Vendor;
+        Currency: Record Currency;
     begin
+        LibraryERM.CreateCurrency(Currency);
+        LibraryERM.CreateExchangeRate(Currency.Code, WorkDate(), 100, 120);
         LibraryManufacturing.CreateWorkCenterWithCalendar(WorkCenter);
-        SubcManagementLibrary.CreateSubcontractor(Vendor);
-        WorkCenter.Validate("Subcontractor No.", Vendor."No.");
+        SubcManagementLibrary.CreateSubcontractorWithCurrency(Currency.Code);
+        WorkCenter.Validate("Subcontractor No.", SubcManagementLibrary.CreateSubcontractorWithCurrency(Currency.Code));
         WorkCenter.Modify(true);
     end;
 

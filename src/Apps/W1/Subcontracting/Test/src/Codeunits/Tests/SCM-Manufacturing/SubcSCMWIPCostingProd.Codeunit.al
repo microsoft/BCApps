@@ -244,7 +244,9 @@ codeunit 149918 "Subc SCM WIP Costing Prod."
         SubSetupLibrary.InitialSetupForGenProdPostingGroup();
         LibraryERMCountryData.CreateGeneralPostingSetupData();
         LibraryERMCountryData.UpdateGeneralPostingSetup();
+        UpdateGeneralPostingSetupBlankBusGroup();
         LibraryERMCountryData.UpdateInventoryPostingSetup();
+        UpdateInventoryPostingSetupWIPAccount();
         LibraryERMCountryData.UpdateGeneralLedgerSetup();
         LibraryERMCountryData.UpdateJournalTemplMandatory(false);
         LibrarySetupStorage.Save(Database::"General Ledger Setup");
@@ -260,6 +262,42 @@ codeunit 149918 "Subc SCM WIP Costing Prod."
         GLSetup.Get();
         GLSetup."Unit-Amount Rounding Precision" := 0.00001;
         GLSetup.Modify();
+    end;
+
+    local procedure UpdateInventoryPostingSetupWIPAccount()
+    var
+        InventoryPostingSetup: Record "Inventory Posting Setup";
+        GLAccount: Record "G/L Account";
+    begin
+        LibraryERM.CreateGLAccount(GLAccount);
+        if InventoryPostingSetup.FindSet(true) then
+            repeat
+                InventoryPostingSetup."WIP Account" := GLAccount."No.";
+                InventoryPostingSetup.Modify();
+            until InventoryPostingSetup.Next() = 0;
+    end;
+
+    local procedure UpdateGeneralPostingSetupBlankBusGroup()
+    var
+        GenProductPostingGroup: Record "Gen. Product Posting Group";
+        GeneralPostingSetup: Record "General Posting Setup";
+#pragma warning disable AA0237
+        TemplateSetup: Record "General Posting Setup";
+#pragma warning restore AA0237
+    begin
+        TemplateSetup.SetFilter("Gen. Bus. Posting Group", '<>%1', '');
+        if not TemplateSetup.FindFirst() then
+            exit;
+        if not GenProductPostingGroup.FindSet() then
+            exit;
+        repeat
+            if not GeneralPostingSetup.Get('', GenProductPostingGroup.Code) then begin
+                GeneralPostingSetup := TemplateSetup;
+                GeneralPostingSetup."Gen. Bus. Posting Group" := '';
+                GeneralPostingSetup."Gen. Prod. Posting Group" := GenProductPostingGroup.Code;
+                GeneralPostingSetup.Insert();
+            end;
+        until GenProductPostingGroup.Next() = 0;
     end;
 
     [Normal]
