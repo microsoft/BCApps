@@ -4,7 +4,7 @@
 
 **Goal:** Replace the single-pass MLLM extraction with an agentic plan-act-verify loop where the model identifies document structure, extracts from identified regions, and self-corrects by calling AL-implemented verification tools.
 
-**Architecture:** One agentic AOAI call (GPT-4.1 Mini) with 6 verification tools registered as AOAI Functions. The model plans (chain-of-thought), extracts, calls verify tools, sees failures with error details, corrects, and repeats. AL drives the tool dispatch loop; the model decides when to call what. New handler registered as `"MLLM V2"` enum value alongside V1.
+**Architecture:** One agentic AOAI call loop (GPT-4.1 Mini) with 6 verification tools registered as AOAI Functions. The model plans (chain-of-thought), extracts, calls verify tools, sees failures with error details, corrects, and repeats. AL drives the tool dispatch loop; the model decides when to call what. New handler registered as `"MLLM V2"` enum value alongside V1.
 
 **Tech Stack:** AL (Business Central), System.AI (AOAI SDK), `AOAI Function` interface for tool adapters, `AOAIChatMessages.AddTool()` + `AppendFunctionResponsesToChatMessages()` for the loop.
 
@@ -423,11 +423,7 @@ codeunit 135648 "EDoc MLLM Verify Tools Tests"
 }
 ```
 
-- [ ] **Step 3: Compile and run tests — expect FAIL (stubs return false)**
-
-All tests that assert `IsTrue(...)` will fail because stubs return `false`.
-
-- [ ] **Step 4: Implement the 6 methods in EDocMLLMVerifyTools**
+- [ ] **Step 3: Implement the 6 methods in EDocMLLMVerifyTools**
 
 Replace the stub body of each method with the real implementation:
 
@@ -567,17 +563,6 @@ begin
 end;
 ```
 
-- [ ] **Step 5: Run tests — expect all PASS**
-
-- [ ] **Step 6: Commit**
-
-```bash
-git add src/Apps/W1/EDocument/App/src/Processing/Import/StructureReceivedEDocument/EDocMLLMVerifyTools.Codeunit.al
-git add src/Apps/W1/EDocument/Test/src/Processing/EDocMLLMVerifyToolsTests.Codeunit.al
-git commit -m "Add EDocMLLMVerifyTools with 6 verification methods and unit tests"
-```
-
----
 
 ## Task 3: Create the 6 AOAI Function tool adapters
 
@@ -1061,21 +1046,6 @@ codeunit 6243 "E-Doc. MLLM VL Ranges Tool" implements "AOAI Function"
 }
 ```
 
-- [ ] **Step 7: Compile and verify no errors**
-
-- [ ] **Step 8: Commit**
-
-```bash
-git add src/Apps/W1/EDocument/App/src/Processing/Import/StructureReceivedEDocument/EDocMLLMVerifyLineMathTool.Codeunit.al
-git add src/Apps/W1/EDocument/App/src/Processing/Import/StructureReceivedEDocument/EDocMLLMVerifyTotalsTool.Codeunit.al
-git add src/Apps/W1/EDocument/App/src/Processing/Import/StructureReceivedEDocument/EDocMLLMVerifyVATTool.Codeunit.al
-git add src/Apps/W1/EDocument/App/src/Processing/Import/StructureReceivedEDocument/EDocMLLMVerifyDatesTool.Codeunit.al
-git add src/Apps/W1/EDocument/App/src/Processing/Import/StructureReceivedEDocument/EDocMLLMVerifyRequiredTool.Codeunit.al
-git add src/Apps/W1/EDocument/App/src/Processing/Import/StructureReceivedEDocument/EDocMLLMVerifyRangesTool.Codeunit.al
-git commit -m "Add 6 AOAI Function tool adapters for MLLM V2 verification"
-```
-
----
 
 ## Task 4: Create the V2 system prompt
 
@@ -1087,46 +1057,42 @@ git commit -m "Add 6 AOAI Function tool adapters for MLLM V2 verification"
 ```markdown
 You are an invoice data extraction agent with access to verification tools.
 
-PHASE 1 — IDENTIFY STRUCTURE (reason before extracting):
-Before extracting any values, describe in your reasoning:
-- Document type (invoice, credit memo, etc.)
-- Language and locale (e.g. Swedish: comma decimal, space thousands)
-- Decimal separator and thousands separator used on this document
-- Line item table: list each column header and its role (gross unit price, net/post-discount unit price, discount percentage, quantity, line total)
-- Which column to use as price_amount (use the GROSS/pre-discount price if both gross and net prices are shown — put the discount in allowance_charge instead)
-- Header region location (supplier details, invoice number, dates)
-- Totals region location
+PHASE 1 — UNDERSTAND THE DOCUMENT:
+Before extracting any values, reason through the document's structure out loud. Cover:
+- What type of document is this and in what language?
+- What number format does this document use? (decimal separator, thousands separator — these vary by country)
+- What columns appear in the line item table? For each column, what does it represent? Some invoices show only a unit price; others show a gross price, one or more discount columns, and a net price. Some discounts are percentages, others are monetary amounts. Some apply sequentially. Describe exactly what you see.
+- Where are the header fields (supplier, buyer, invoice number, dates)?
+- Where is the totals section?
+- Is there anything unusual about this invoice's layout?
 
-PHASE 2 — EXTRACT FROM IDENTIFIED REGIONS (not left-to-right):
-Extract data guided by your structure analysis above. Rules:
-- Numbers: XML decimal format — period (.) as decimal separator, no thousands separators
+Your analysis determines how you extract. Two invoices from different vendors may look completely different — your job is to understand each one on its own terms.
+
+PHASE 2 — EXTRACT FROM THE REGIONS YOU IDENTIFIED:
+Use your analysis from Phase 1 to extract values. Do not sweep left-to-right across the full text. Extract from the specific regions and columns you identified.
+
+Format rules (non-negotiable):
+- Numbers: XML decimal format — period (.) as decimal separator, no thousands separators (e.g. 1083 not "1 083", 2.34 not "2,34")
 - Dates: YYYY-MM-DD
-- price_amount must be the GROSS unit price (before line discounts). If a discount percentage is also present, set allowance_charge.percent (0-100). Do NOT combine a post-discount unit price with a discount percentage.
-- allowance_charge.percent (0-100) when invoice shows a discount %; allowance_charge.amount.value when invoice shows a monetary discount amount; leave allowance_charge empty if no discount
-- Output valid UBL JSON matching the schema provided
 
-PHASE 3 — VERIFY YOUR OUTPUT:
-After producing the UBL JSON, call the verification tools:
-- Call verify_line_math once per invoice line
-- Call verify_invoice_totals with all line amounts
-- Call verify_vat for the tax total
-- Call verify_dates with issue_date and due_date
-- Call verify_required_fields with vendor name, invoice number, and line count
-- Call verify_ranges with all quantities, prices, VAT rates, and discount percentages
+For everything else — how to represent the price, how to represent discounts, which column maps to which UBL field — let your Phase 1 analysis guide you. The verify tools in Phase 3 will tell you if your extraction is mathematically inconsistent.
 
-If any tool returns { "pass": false }, read the error message carefully, correct the affected fields, and call the tools again. Only output the final UBL JSON when all tools return { "pass": true }.
+Output valid UBL JSON matching the schema provided.
+
+PHASE 3 — VERIFY YOUR OWN OUTPUT:
+Call the verification tools on what you extracted:
+- verify_line_math for each invoice line
+- verify_invoice_totals with all line amounts
+- verify_vat for the tax total
+- verify_dates with issue_date and due_date
+- verify_required_fields with vendor name, invoice number, line count
+- verify_ranges with all quantities, prices, VAT rates, and discount percentages
+
+If a tool returns { "pass": false }, read its error message. It will tell you specifically what does not add up. Reconsider your Phase 1 analysis if needed — the error may reveal that you misidentified a column role or misread a discount structure. Correct and call the tools again. Only finalise when all tools return { "pass": true }.
 
 Output ONLY valid JSON. No markdown, no explanation.
 ```
 
-- [ ] **Step 2: Commit**
-
-```bash
-git add src/Apps/W1/EDocument/App/.resources/Prompts/EDocMLLMExtractionV2-SystemPrompt.md
-git commit -m "Add MLLM V2 system prompt with plan-act-verify instructions"
-```
-
----
 
 ## Task 5: Create EDocumentMLLMHandlerV2
 
@@ -1430,18 +1396,6 @@ codeunit 6244 "E-Document MLLM Handler V2" implements IStructureReceivedEDocumen
     end;
 #pragma warning restore AA0139
 }
-```
-
-- [ ] **Step 2: Compile — verify Task 1's enum value now resolves**
-
-The `StructureReceivedEDoc.Enum.al` references `"E-Document MLLM Handler V2"` which is now defined. The file should compile without errors.
-
-- [ ] **Step 3: Commit**
-
-```bash
-git add src/Apps/W1/EDocument/App/src/Processing/Import/StructureReceivedEDocument/EDocumentMLLMHandlerV2.Codeunit.al
-git add src/Apps/W1/EDocument/App/src/Processing/Import/StructureReceivedEDoc.Enum.al
-git commit -m "Add EDocumentMLLMHandlerV2 with agentic plan-act-verify loop"
 ```
 
 ---
