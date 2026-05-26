@@ -115,7 +115,7 @@ codeunit 149907 "Subc. Whse Location Config"
 
         // [GIVEN] Configure Vendor with Location
         Vendor.Get(WorkCenter[2]."Subcontractor No.");
-        Vendor."Subcontr. Location Code" := Location.Code;
+        Vendor."Subc. Location Code" := Location.Code;
         Vendor."Location Code" := Location.Code;
         Vendor.Modify();
 
@@ -239,7 +239,7 @@ codeunit 149907 "Subc. Whse Location Config"
 
         // [GIVEN] Configure Vendor with Location (using first work center for non-last operation)
         Vendor.Get(WorkCenter[1]."Subcontractor No.");
-        Vendor."Subcontr. Location Code" := Location.Code;
+        Vendor."Subc. Location Code" := Location.Code;
         Vendor."Location Code" := Location.Code;
         Vendor.Modify();
 
@@ -330,7 +330,7 @@ codeunit 149907 "Subc. Whse Location Config"
 
         // [GIVEN] Configure Vendor
         Vendor.Get(WorkCenter[2]."Subcontractor No.");
-        Vendor."Subcontr. Location Code" := Location.Code;
+        Vendor."Subc. Location Code" := Location.Code;
         Vendor."Location Code" := Location.Code;
         Vendor.Modify();
 
@@ -412,7 +412,7 @@ codeunit 149907 "Subc. Whse Location Config"
 
         // [GIVEN] Configure Vendor (using first work center for non-last operation)
         Vendor.Get(WorkCenter[1]."Subcontractor No.");
-        Vendor."Subcontr. Location Code" := Location.Code;
+        Vendor."Subc. Location Code" := Location.Code;
         Vendor."Location Code" := Location.Code;
         Vendor.Modify();
 

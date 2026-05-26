@@ -22,13 +22,13 @@ pageextension 20417 "Qlty. Machine Operator RC" extends "Machine Operator Role C
             {
                 Image = CheckList;
                 Caption = 'Quality Management';
-                ToolTip = 'Work with Quality Inspections.';
+                ToolTip = 'Work with quality inspections.';
 
                 action(Qlty_ShowQualityInspections)
                 {
                     Caption = 'Quality Inspections';
                     Image = CheckList;
-                    ToolTip = 'See existing Quality Inspections and create a new inspection.';
+                    ToolTip = 'See existing quality inspections and create a new inspection.';
                     ApplicationArea = QualityManagement;
                     RunObject = Page "Qlty. Inspection List";
                 }
@@ -36,20 +36,20 @@ pageextension 20417 "Qlty. Machine Operator RC" extends "Machine Operator Role C
                 {
                     Caption = 'Certificate of Analysis';
                     Image = Certificate;
-                    ToolTip = 'Certificate of Analysis (CoA) report.';
+                    ToolTip = 'Print a certificate of analysis (CoA) report.';
                     ApplicationArea = QualityManagement;
                     RunObject = Report "Qlty. Certificate of Analysis";
                 }
                 group(Qlty_Analysis_Group)
                 {
                     Caption = 'Analysis';
-                    Tooltip = 'Analyze Quality Inspection data';
+                    Tooltip = 'Analyze quality inspection data';
 
                     action(Qlty_QualityInspectionLines)
                     {
                         Caption = 'Quality Inspection Lines';
                         Image = CheckList;
-                        ToolTip = 'Historical Quality Inspection lines. Use this with analysis mode.';
+                        ToolTip = 'Historical quality inspection lines. Use this with analysis mode.';
                         ApplicationArea = QualityManagement;
                         RunObject = Page "Qlty. Inspection Lines";
                     }
@@ -76,7 +76,7 @@ pageextension 20417 "Qlty. Machine Operator RC" extends "Machine Operator Role C
                         Image = BreakpointsList;
                         RunObject = Page "Qlty. Inspection Template List";
                         RunPageMode = Edit;
-                        ToolTip = 'Specifies a Quality Inspection Template is an inspection plan containing a set of questions and data points that you want to collect.';
+                        ToolTip = 'Quality inspection templates are inspection plans that contain a set of tests to perform.';
                     }
                     action(Qlty_ConfigureInspectionGenerationRules)
                     {
@@ -85,7 +85,7 @@ pageextension 20417 "Qlty. Machine Operator RC" extends "Machine Operator Role C
                         Image = CopyFromTask;
                         RunObject = Page "Qlty. Inspection Gen. Rules";
                         RunPageMode = Edit;
-                        ToolTip = 'Specifies a Quality Inspection generation rule defines when you want to ask a set of questions or other data that you want to collect that is defined in a template. You connect a template to a source table, and set the criteria to use that template with the table filter. When these filter criteria is met, then it will choose that template. When there are multiple matches, it will use the first template that it finds, based on the sort order.';
+                        ToolTip = 'Quality inspection generation rules specify when quality inspections are automatically generated and which template is used, such as during receiving, production, or warehouse activities. You link a template to a source table and define filter criteria that determine when an inspection is created. When the criteria are met, the system generates a quality inspection based on the linked template. If multiple rules match, the system uses the first rule according to the sort order.';
                     }
                     action(Qlty_ConfigureTests)
                     {
@@ -94,7 +94,7 @@ pageextension 20417 "Qlty. Machine Operator RC" extends "Machine Operator Role C
                         Image = TaskQualityMeasure;
                         RunObject = Page "Qlty. Tests";
                         RunPageMode = Edit;
-                        ToolTip = 'Specifies a quality inspection test is a data points to capture, or questions, or measurements.';
+                        ToolTip = 'Quality tests are defined data points, checks, questions or measurements used to evaluate quality.';
                     }
                 }
             }
@@ -109,7 +109,7 @@ pageextension 20417 "Qlty. Machine Operator RC" extends "Machine Operator Role C
                 {
                     Caption = 'Quality Inspections';
                     Image = CheckList;
-                    ToolTip = 'See existing Quality Inspections and create a new inspection.';
+                    ToolTip = 'See existing quality inspections and create a new inspection.';
                     ApplicationArea = QualityManagement;
                     RunObject = Page "Qlty. Inspection List";
                 }
@@ -117,7 +117,7 @@ pageextension 20417 "Qlty. Machine Operator RC" extends "Machine Operator Role C
                 {
                     Caption = 'Quality Inspection Lines';
                     Image = CheckList;
-                    ToolTip = 'Historical Quality Inspection lines. Use this with analysis mode.';
+                    ToolTip = 'Historical quality inspection lines. Use this with analysis mode.';
                     ApplicationArea = QualityManagement;
                     RunObject = Page "Qlty. Inspection Lines";
                 }

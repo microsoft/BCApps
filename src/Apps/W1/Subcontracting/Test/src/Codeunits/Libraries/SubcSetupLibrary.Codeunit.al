@@ -5,101 +5,34 @@
 namespace Microsoft.Manufacturing.Subcontracting.Test;
 
 using Microsoft.Inventory.Item;
-using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.Setup;
-using Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Manufacturing.WorkCenter;
 
 codeunit 139988 "Subc. Setup Library"
 {
     var
         LibraryInventory: Codeunit "Library - Inventory";
-        LibraryManufacturing: Codeunit "Library - Manufacturing";
         SubCreateProdOrdWizLibrary: Codeunit "Subc. CreateProdOrdWizLibrary";
 
     procedure InitSetupFields()
     var
         Item: Record Item;
-        RoutingLink: Record "Routing Link";
-        SubManagementSetup: Record "Subc. Management Setup";
         ManufacturingSetup: Record "Manufacturing Setup";
         WorkCenter: Record "Work Center";
     begin
         // Create Work Center for subcontracting
         SubCreateProdOrdWizLibrary.CreateAndCalculateNeededWorkCenter(WorkCenter, true);
 
-        // Create routing link for purchase provisioning
-        LibraryManufacturing.CreateRoutingLink(RoutingLink);
-
-        if not SubManagementSetup.Get() then begin
-            SubManagementSetup.Init();
-            SubManagementSetup.Insert();
-        end;
-
         LibraryInventory.CreateItem(Item);
 
         // Set required fields for production order creation
-        SubManagementSetup."Common Work Center No." := WorkCenter."No.";
-        SubManagementSetup."Def. provision flushing method" := "Flushing Method Routing"::Backward;
-        SubManagementSetup."Preset Component Item No." := Item."No.";
-
-        // Set all Select fields to Edit as default
-        SubManagementSetup.ShowRtngBOMSelect_Nothing := SubManagementSetup.ShowRtngBOMSelect_Nothing::Edit;
-        SubManagementSetup.ShowRtngBOMSelect_Partial := SubManagementSetup.ShowRtngBOMSelect_Partial::Edit;
-        SubManagementSetup.ShowRtngBOMSelect_Both := SubManagementSetup.ShowRtngBOMSelect_Both::Edit;
-        SubManagementSetup.ShowProdRtngCompSelect_Nothing := SubManagementSetup.ShowProdRtngCompSelect_Nothing::Edit;
-        SubManagementSetup.ShowProdRtngCompSelect_Partial := SubManagementSetup.ShowProdRtngCompSelect_Partial::Edit;
-        SubManagementSetup.ShowProdRtngCompSelect_Both := SubManagementSetup.ShowProdRtngCompSelect_Both::Edit;
-
-        SubManagementSetup.Modify();
-
         if not ManufacturingSetup.Get() then begin
             ManufacturingSetup.Init();
             ManufacturingSetup.Insert();
         end;
 
-        ManufacturingSetup."Rtng. Link Code Purch. Prov." := RoutingLink."Code";
-        ManufacturingSetup."Subc. Comp. at Location" := ManufacturingSetup."Subc. Comp. at Location"::Purchase;
+        ManufacturingSetup."Subc. Default Comp. Location" := ManufacturingSetup."Subc. Default Comp. Location"::Purchase;
         ManufacturingSetup.Modify();
-    end;
-
-    procedure ConfigureSubManagementForNothingPresentScenario(ShowRtngBOMSelect: Enum "Subc. Show/Edit Type"; ShowProdRtngCompSelect: Enum "Subc. Show/Edit Type")
-    var
-        SubManagementSetup: Record "Subc. Management Setup";
-    begin
-        SubManagementSetup.Get();
-
-        // Configure for NothingPresent scenario
-        SubManagementSetup.ShowRtngBOMSelect_Nothing := ShowRtngBOMSelect;
-        SubManagementSetup.ShowProdRtngCompSelect_Nothing := ShowProdRtngCompSelect;
-
-        SubManagementSetup.Modify();
-    end;
-
-    procedure ConfigureSubManagementForPartiallyPresentScenario(ShowRtngBOMSelect: Enum "Subc. Show/Edit Type"; ShowProdRtngCompSelect: Enum "Subc. Show/Edit Type")
-    var
-        SubManagementSetup: Record "Subc. Management Setup";
-    begin
-        SubManagementSetup.Get();
-
-        // Configure for PartiallyPresent scenario
-        SubManagementSetup.ShowRtngBOMSelect_Partial := ShowRtngBOMSelect;
-        SubManagementSetup.ShowProdRtngCompSelect_Partial := ShowProdRtngCompSelect;
-
-        SubManagementSetup.Modify();
-    end;
-
-    procedure ConfigureSubManagementForBothPresentScenario(ShowRtngBOMSelect: Enum "Subc. Show/Edit Type"; ShowProdRtngCompSelect: Enum "Subc. Show/Edit Type")
-    var
-        SubManagementSetup: Record "Subc. Management Setup";
-    begin
-        SubManagementSetup.Get();
-
-        // Configure for BothPresent scenario
-        SubManagementSetup.ShowRtngBOMSelect_Both := ShowRtngBOMSelect;
-        SubManagementSetup.ShowProdRtngCompSelect_Both := ShowProdRtngCompSelect;
-
-        SubManagementSetup.Modify();
     end;
 
     internal procedure InitialSetupForGenProdPostingGroup()
