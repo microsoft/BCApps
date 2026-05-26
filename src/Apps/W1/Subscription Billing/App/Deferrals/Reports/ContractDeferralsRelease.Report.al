@@ -357,9 +357,8 @@ report 8051 "Contract Deferrals Release"
         GeneralLedgerSetup: Record "General Ledger Setup";
     begin
         GeneralLedgerSetup.Get();
-        if IsNullGuid(ServiceContractSetup.SystemId) then
-            ServiceContractSetup.Get();
         if GeneralLedgerSetup."Journal Templ. Name Mandatory" then begin
+            ServiceContractSetup.Get();
             ServiceContractSetup.TestField("Def. Rel. Jnl. Template Name");
             ServiceContractSetup.TestField("Def. Rel. Jnl. Batch Name");
         end;
@@ -369,6 +368,8 @@ report 8051 "Contract Deferrals Release"
     var
         GenJnlLine: Record "Gen. Journal Line";
     begin
+        if IsNullGuid(ServiceContractSetup.SystemId) then
+            ServiceContractSetup.Get();
         GenJnlLine.Init();
         GenJnlLine."Journal Template Name" := ServiceContractSetup."Def. Rel. Jnl. Template Name";
         GenJnlLine."Journal Batch Name" := ServiceContractSetup."Def. Rel. Jnl. Batch Name";
