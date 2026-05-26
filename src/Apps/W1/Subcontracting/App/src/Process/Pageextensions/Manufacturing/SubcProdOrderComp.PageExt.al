@@ -31,6 +31,7 @@ pageextension 99001512 "Subc. Prod Order Comp" extends "Prod. Order Components"
             field("Component Supply Method"; Rec."Component Supply Method")
             {
                 ApplicationArea = Manufacturing;
+                ToolTip = 'Specifies how components are supplied to the subcontractor for the production component.';
             }
         }
     }
