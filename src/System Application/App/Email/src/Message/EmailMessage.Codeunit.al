@@ -199,7 +199,7 @@ codeunit 8904 "Email Message"
 
     /// <summary>
     /// Adds a header to the currently loaded message. If a header with the same name is already
-    /// present, the new value is appended after a line feed (#10) so the full sequence is
+    /// present, the new value is appended after a line feed character so the full sequence is
     /// preserved -- useful for headers that legitimately repeat (e.g. <c>Received</c>).
     /// </summary>
     /// <param name="HeaderName">Header name. Lookups are case-insensitive; the stored name is
@@ -226,8 +226,8 @@ codeunit 8904 "Email Message"
 
     /// <summary>
     /// Reads a single header value from the currently loaded message. Lookups are case-insensitive
-    /// on the header name. Repeated headers are returned as one string with values joined by #10
-    /// in the order they were added.
+    /// on the header name. Repeated headers are returned as one string with values joined by a
+    /// line feed character in the order they were added.
     /// </summary>
     /// <param name="HeaderName">Header name to look up (case-insensitive, whitespace-trimmed).</param>
     /// <param name="Value">Returned value when the header is present; empty otherwise.</param>

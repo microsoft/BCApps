@@ -229,6 +229,7 @@ codeunit 8905 "Email Message Impl."
         ExistingToken: JsonToken;
         NormalizedName: Text;
         ExistingValue: Text;
+        LineFeed: Text[1];
     begin
         NormalizedName := NormalizeHeaderName(HeaderName);
         if NormalizedName = '' then
@@ -236,7 +237,8 @@ codeunit 8905 "Email Message Impl."
         LoadHeadersJson(HeadersJson);
         if HeadersJson.Get(NormalizedName, ExistingToken) then begin
             ExistingValue := ExistingToken.AsValue().AsText();
-            HeadersJson.Replace(NormalizedName, ExistingValue + #10 + HeaderValue);
+            LineFeed[1] := 10;
+            HeadersJson.Replace(NormalizedName, ExistingValue + LineFeed + HeaderValue);
         end else
             HeadersJson.Add(NormalizedName, HeaderValue);
         WriteHeadersJson(HeadersJson);

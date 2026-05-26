@@ -59,8 +59,10 @@ codeunit 134707 "Email Message Headers Test"
     var
         Message: Codeunit "Email Message";
         Value: Text;
+        LineFeed: Text[1];
     begin
         PermissionsMock.Set('Email Edit');
+        LineFeed[1] := 10;
 
         Message.Create('to@test.com', 'subject', 'body');
         Message.AddHeader('Received', 'from hop1');
@@ -68,7 +70,7 @@ codeunit 134707 "Email Message Headers Test"
 
         Assert.IsTrue(Message.Get(Message.GetId()), 'Message not found after reload');
         Assert.IsTrue(Message.TryGetHeader('Received', Value), 'Repeated header lookup should succeed');
-        Assert.AreEqual('from hop1' + #10 + 'from hop2', Value, 'Repeated AddHeader calls should join values with line feed in insertion order');
+        Assert.AreEqual('from hop1' + LineFeed + 'from hop2', Value, 'Repeated AddHeader calls should join values with line feed in insertion order');
     end;
 
     [Test]
