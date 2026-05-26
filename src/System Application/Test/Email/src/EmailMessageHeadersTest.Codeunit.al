@@ -20,7 +20,7 @@ codeunit 134707 "Email Message Headers Test"
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    procedure AddHeaderRoundTripsCaseInsensitively()
+    procedure AddHeaderRoundTripsCaseInsensitivelyAfterFlush()
     var
         Message: Codeunit "Email Message";
         Value: Text;
@@ -30,6 +30,7 @@ codeunit 134707 "Email Message Headers Test"
         Message.Create('to@test.com', 'subject', 'body');
         Message.AddHeader('Authentication-Results', 'spf=pass');
         Message.AddHeader('X-MS-Exchange-Organization-AuthAs', 'Internal');
+        Message.FlushHeaders();
 
         Assert.IsTrue(Message.Get(Message.GetId()), 'Message not found after reload');
         Assert.IsTrue(Message.TryGetHeader('authentication-results', Value), 'Header lookup should succeed case-insensitively');
@@ -67,6 +68,7 @@ codeunit 134707 "Email Message Headers Test"
         Message.Create('to@test.com', 'subject', 'body');
         Message.AddHeader('Received', 'from hop1');
         Message.AddHeader('Received', 'from hop2');
+        Message.FlushHeaders();
 
         Assert.IsTrue(Message.Get(Message.GetId()), 'Message not found after reload');
         Assert.IsTrue(Message.TryGetHeader('Received', Value), 'Repeated header lookup should succeed');
@@ -86,9 +88,29 @@ codeunit 134707 "Email Message Headers Test"
         Message.AddHeader('Received', 'from hop1');
         Message.AddHeader('Received', 'from hop2');
         Message.SetHeader('Received', 'canonical');
+        Message.FlushHeaders();
 
         Assert.IsTrue(Message.Get(Message.GetId()), 'Message not found after reload');
         Assert.IsTrue(Message.TryGetHeader('Received', Value), 'Header lookup after SetHeader should succeed');
         Assert.AreEqual('canonical', Value, 'SetHeader should replace any previously joined values');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure UnflushedMutationsAreDiscardedOnGet()
+    var
+        Message: Codeunit "Email Message";
+        Value: Text;
+        MessageId: Guid;
+    begin
+        PermissionsMock.Set('Email Edit');
+
+        Message.Create('to@test.com', 'subject', 'body');
+        MessageId := Message.GetId();
+        Message.AddHeader('Authentication-Results', 'spf=pass');
+        // Intentionally no FlushHeaders -- pending mutations should be lost when we re-Get the message.
+
+        Assert.IsTrue(Message.Get(MessageId), 'Message not found after reload');
+        Assert.IsFalse(Message.TryGetHeader('Authentication-Results', Value), 'Unflushed mutations should not survive a Get');
     end;
 }

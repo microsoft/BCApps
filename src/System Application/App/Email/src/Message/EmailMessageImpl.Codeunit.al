@@ -103,6 +103,7 @@ codeunit 8905 "Email Message Impl."
     begin
         Clear(GlobalEmailMessageAttachment);
         Clear(GlobalEmailMessage);
+        InvalidateHeadersCache();
 
         GlobalEmailMessage.Id := CreateGuid();
         GlobalEmailMessage.Insert();
@@ -224,45 +225,17 @@ codeunit 8905 "Email Message Impl."
     end;
 
     procedure AddHeader(HeaderName: Text; HeaderValue: Text)
-    var
-        HeadersJson: JsonObject;
-        ExistingToken: JsonToken;
-        NormalizedName: Text;
-        ExistingValue: Text;
-        LineFeed: Text[1];
     begin
-        NormalizedName := NormalizeHeaderName(HeaderName);
-        if NormalizedName = '' then
-            exit;
-        LoadHeadersJson(HeadersJson);
-        if HeadersJson.Get(NormalizedName, ExistingToken) then begin
-            ExistingValue := ExistingToken.AsValue().AsText();
-            LineFeed[1] := 10;
-            HeadersJson.Replace(NormalizedName, ExistingValue + LineFeed + HeaderValue);
-        end else
-            HeadersJson.Add(NormalizedName, HeaderValue);
-        WriteHeadersJson(HeadersJson);
+        StoreHeader(HeaderName, HeaderValue, true);
     end;
 
     procedure SetHeader(HeaderName: Text; HeaderValue: Text)
-    var
-        HeadersJson: JsonObject;
-        NormalizedName: Text;
     begin
-        NormalizedName := NormalizeHeaderName(HeaderName);
-        if NormalizedName = '' then
-            exit;
-        LoadHeadersJson(HeadersJson);
-        if HeadersJson.Contains(NormalizedName) then
-            HeadersJson.Replace(NormalizedName, HeaderValue)
-        else
-            HeadersJson.Add(NormalizedName, HeaderValue);
-        WriteHeadersJson(HeadersJson);
+        StoreHeader(HeaderName, HeaderValue, false);
     end;
 
     procedure TryGetHeader(HeaderName: Text; var Value: Text): Boolean
     var
-        HeadersJson: JsonObject;
         HeaderToken: JsonToken;
         NormalizedName: Text;
     begin
@@ -270,8 +243,8 @@ codeunit 8905 "Email Message Impl."
         NormalizedName := NormalizeHeaderName(HeaderName);
         if NormalizedName = '' then
             exit(false);
-        LoadHeadersJson(HeadersJson);
-        if not HeadersJson.Get(NormalizedName, HeaderToken) then
+        EnsureHeadersLoaded();
+        if not GlobalHeadersJson.Get(NormalizedName, HeaderToken) then
             exit(false);
         if not HeaderToken.IsValue() then
             exit(false);
@@ -279,42 +252,73 @@ codeunit 8905 "Email Message Impl."
         exit(true);
     end;
 
+    procedure FlushHeaders()
+    var
+        HeadersOutStream: OutStream;
+        HeadersText: Text;
+    begin
+        if not GlobalHeadersDirty then
+            exit;
+        Clear(GlobalEmailMessage."Message Headers");
+        if GlobalHeadersJson.Keys().Count() > 0 then begin
+            GlobalHeadersJson.WriteTo(HeadersText);
+            GlobalEmailMessage."Message Headers".CreateOutStream(HeadersOutStream, TextEncoding::UTF8);
+            HeadersOutStream.WriteText(HeadersText);
+        end;
+        Modify();
+        GlobalHeadersDirty := false;
+    end;
+
+    local procedure StoreHeader(HeaderName: Text; HeaderValue: Text; AppendIfPresent: Boolean)
+    var
+        ExistingToken: JsonToken;
+        NormalizedName: Text;
+        LineFeed: Text[1];
+    begin
+        NormalizedName := NormalizeHeaderName(HeaderName);
+        if NormalizedName = '' then
+            exit;
+        EnsureHeadersLoaded();
+        if GlobalHeadersJson.Get(NormalizedName, ExistingToken) then
+            if AppendIfPresent then begin
+                LineFeed[1] := 10;
+                GlobalHeadersJson.Replace(NormalizedName, ExistingToken.AsValue().AsText() + LineFeed + HeaderValue);
+            end else
+                GlobalHeadersJson.Replace(NormalizedName, HeaderValue)
+        else
+            GlobalHeadersJson.Add(NormalizedName, HeaderValue);
+        GlobalHeadersDirty := true;
+    end;
+
     local procedure NormalizeHeaderName(HeaderName: Text): Text
     begin
         exit(LowerCase(DelChr(HeaderName, '<>', ' ')));
     end;
 
-    local procedure LoadHeadersJson(var HeadersJson: JsonObject)
+    local procedure EnsureHeadersLoaded()
     var
         HeadersInStream: InStream;
         HeadersText: Text;
     begin
-        Clear(HeadersJson);
+        if GlobalHeadersLoaded then
+            exit;
+        Clear(GlobalHeadersJson);
         GlobalEmailMessage.CalcFields("Message Headers");
-        if not GlobalEmailMessage."Message Headers".HasValue() then
-            exit;
-        GlobalEmailMessage."Message Headers".CreateInStream(HeadersInStream, TextEncoding::UTF8);
-        HeadersInStream.ReadText(HeadersText);
-        if HeadersText = '' then
-            exit;
-        if not HeadersJson.ReadFrom(HeadersText) then
-            Clear(HeadersJson);
+        if GlobalEmailMessage."Message Headers".HasValue() then begin
+            GlobalEmailMessage."Message Headers".CreateInStream(HeadersInStream, TextEncoding::UTF8);
+            HeadersInStream.ReadText(HeadersText);
+            if HeadersText <> '' then
+                if not GlobalHeadersJson.ReadFrom(HeadersText) then
+                    Clear(GlobalHeadersJson);
+        end;
+        GlobalHeadersLoaded := true;
     end;
 
-    local procedure WriteHeadersJson(HeadersJson: JsonObject)
-    var
-        HeadersOutStream: OutStream;
-        HeadersText: Text;
+    local procedure InvalidateHeadersCache()
     begin
-        Clear(GlobalEmailMessage."Message Headers");
-        if HeadersJson.Keys().Count() = 0 then begin
-            Modify();
-            exit;
-        end;
-        HeadersJson.WriteTo(HeadersText);
-        GlobalEmailMessage."Message Headers".CreateOutStream(HeadersOutStream, TextEncoding::UTF8);
-        HeadersOutStream.WriteText(HeadersText);
-        Modify();
+        Clear(GlobalHeadersJson);
+        GlobalHeadersLoaded := false;
+        GlobalHeadersDirty := false;
     end;
 
     procedure IsRead(): Boolean
@@ -742,6 +746,7 @@ codeunit 8905 "Email Message Impl."
     procedure Get(MessageId: Guid): Boolean
     begin
         Clear(GlobalEmailMessageAttachment);
+        InvalidateHeadersCache();
 
         exit(GlobalEmailMessage.Get(MessageId));
     end;
@@ -1100,6 +1105,9 @@ codeunit 8905 "Email Message Impl."
         GlobalEmailMessageAttachment: Record "Email Message Attachment";
         TenantMedia: Record "Tenant Media";
         Telemetry: Codeunit Telemetry;
+        GlobalHeadersJson: JsonObject;
+        GlobalHeadersLoaded: Boolean;
+        GlobalHeadersDirty: Boolean;
         EmailCategoryLbl: Label 'Email', Locked = true;
         EmailMessageQueuedCannotModifyErr: Label 'Cannot edit the email because it has been queued to be sent.';
         EmailMessageSentCannotModifyErr: Label 'Cannot edit the message because it has already been sent.';

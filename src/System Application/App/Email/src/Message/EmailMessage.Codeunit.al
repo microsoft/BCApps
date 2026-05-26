@@ -202,11 +202,11 @@ codeunit 8904 "Email Message"
     /// present, the new value is appended after a line feed character so the full sequence is
     /// preserved -- useful for headers that legitimately repeat (e.g. <c>Received</c>).
     /// </summary>
-    /// <param name="HeaderName">Header name. Lookups are case-insensitive; the stored name is
-    /// normalized to lowercase by the module.</param>
+    /// <param name="HeaderName">Header name (case-insensitive).</param>
     /// <param name="HeaderValue">Header value to append.</param>
-    /// <remarks>Intended for connectors that retrieve RFC822-style headers from their provider
-    /// (e.g. the Outlook REST API connector reading <c>internetMessageHeaders</c> from Graph).</remarks>
+    /// <remarks>Mutations are buffered in memory. Call <see cref="FlushHeaders"/> to persist them
+    /// before the codeunit instance goes out of scope or before navigating to another message via
+    /// <c>Get</c>; unflushed changes are discarded otherwise.</remarks>
     procedure AddHeader(HeaderName: Text; HeaderValue: Text)
     begin
         EmailMessageImpl.AddHeader(HeaderName, HeaderValue);
@@ -216,9 +216,11 @@ codeunit 8904 "Email Message"
     /// Sets a header on the currently loaded message, replacing any existing value for the same
     /// name. Use <see cref="AddHeader"/> when repeated headers should accumulate.
     /// </summary>
-    /// <param name="HeaderName">Header name. Lookups are case-insensitive; the stored name is
-    /// normalized to lowercase by the module.</param>
+    /// <param name="HeaderName">Header name (case-insensitive).</param>
     /// <param name="HeaderValue">Header value to store.</param>
+    /// <remarks>Mutations are buffered in memory. Call <see cref="FlushHeaders"/> to persist them
+    /// before the codeunit instance goes out of scope or before navigating to another message via
+    /// <c>Get</c>; unflushed changes are discarded otherwise.</remarks>
     procedure SetHeader(HeaderName: Text; HeaderValue: Text)
     begin
         EmailMessageImpl.SetHeader(HeaderName, HeaderValue);
@@ -232,9 +234,22 @@ codeunit 8904 "Email Message"
     /// <param name="HeaderName">Header name to look up (case-insensitive, whitespace-trimmed).</param>
     /// <param name="Value">Returned value when the header is present; empty otherwise.</param>
     /// <returns><c>true</c> when a value was found.</returns>
+    /// <remarks>Reads include any unflushed mutations issued via <see cref="AddHeader"/> or
+    /// <see cref="SetHeader"/> on this codeunit instance.</remarks>
     procedure TryGetHeader(HeaderName: Text; var Value: Text): Boolean
     begin
         exit(EmailMessageImpl.TryGetHeader(HeaderName, Value));
+    end;
+
+    /// <summary>
+    /// Persists any pending header mutations to the database in a single write. Safe to call when
+    /// nothing is pending. Call this after any sequence of <see cref="AddHeader"/> /
+    /// <see cref="SetHeader"/> calls so the changes survive the codeunit instance going out of
+    /// scope or a subsequent navigation to another message.
+    /// </summary>
+    procedure FlushHeaders()
+    begin
+        EmailMessageImpl.FlushHeaders();
     end;
 
     procedure GetExternalId(): Text[2048]
