@@ -165,6 +165,8 @@ query:
     - file: <another path>
 ```
 
+It is possible to provide a `timeout` key (in milliseconds) inside `query` to override the default wait timeout for a specific turn.
+
 How keys flow into library calls:
 
 | YAML key | Flows into |
@@ -183,6 +185,8 @@ query:
     # OR
     instruction: <free-text reply to the agent>
 ```
+
+A `timeout` key (in milliseconds) can also be provided inside `query` to override the default wait timeout.
 
 How keys flow:
 
@@ -334,7 +338,7 @@ The recommended high-level driver is `RunTurnAndWait` + `FinalizeTurn`, which ar
 | `ContinueTaskAndWait(var AgentTask, UserInput)` | Continue a paused task with custom free-text input. |
 | `WaitForTaskToComplete(var AgentTask)` | Block until a task finishes — for end-to-end scenarios that start the task from product code. |
 | `StopTasks(AgentUserSecurityId)` / `StopAllTasks()` | Teardown helpers. |
-| `SetAgentTaskTimeout(NewTimeout)` | Override the 30-min default for all wait calls. |
+| `SetAgentTaskTimeout(NewTimeout)` | Override the default timeout for all wait calls (global). |
 
 #### Alternatives — manual intervention handling
 
