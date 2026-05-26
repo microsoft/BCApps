@@ -22,6 +22,7 @@ codeunit 149917 "Subc. Return Transf. Test"
     // [FEATURE] Subcontracting Return Transfer Order - second return after first is posted
     Subtype = Test;
     TestPermissions = Disabled;
+    TestType = IntegrationTest;
 
     [Test]
     [HandlerFunctions('DoNotConfirmShowCreatedPurchOrderForSubcontracting,HandleTransferOrder')]
