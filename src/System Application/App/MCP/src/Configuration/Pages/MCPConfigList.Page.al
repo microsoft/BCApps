@@ -42,7 +42,7 @@ page 8350 "MCP Config List"
                 }
                 field(Default; Rec.Default)
                 {
-                    ToolTip = 'Specifies whether this configuration is the default. The default configuration is used when no configuration is specified by a connection.';
+                    ToolTip = 'Specifies whether this configuration is the default. The default configuration is used when no configuration is specified by a connection. Clear this field to remove the default designation, in which case the system reverts to built-in default settings.';
                     Editable = false;
                 }
                 field(EnableDynamicToolMode; Rec.EnableDynamicToolMode)
