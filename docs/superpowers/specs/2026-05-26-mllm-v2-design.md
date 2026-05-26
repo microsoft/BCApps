@@ -66,7 +66,7 @@ Verified UBL JSON          Error (budget
 ```
 
 **Model:** GPT-4.1 Mini (chosen for vision capability — the agent reads the PDF visually, not as extracted text)  
-**Tool call budget:** 20 (sufficient for 6 verify calls × 3 correction rounds on a multi-line invoice)  
+**Tool call budget:** 200  
 **Temperature:** 0
 
 ### On Budget Exhaustion
