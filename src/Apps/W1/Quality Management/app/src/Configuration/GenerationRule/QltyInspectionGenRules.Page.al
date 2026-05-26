@@ -14,6 +14,7 @@ page 20405 "Qlty. Inspection Gen. Rules"
 {
     Caption = 'Quality Inspection Generation Rules';
     DataCaptionExpression = GetDataCaptionExpression();
+    DelayedInsert = true;
     PageType = List;
     SourceTable = "Qlty. Inspection Gen. Rule";
     PopulateAllFields = true;
@@ -38,11 +39,6 @@ page 20405 "Qlty. Inspection Gen. Rules"
                 {
                     Visible = ShowSortAndTemplate;
                     ShowMandatory = true;
-
-                    trigger OnValidate()
-                    begin
-                        CurrPage.Update(true);
-                    end;
                 }
                 field(Description; Rec.Description)
                 {
