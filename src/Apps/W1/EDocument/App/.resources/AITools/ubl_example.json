@@ -153,6 +153,7 @@
                 "charge_indicator": false,
                 "allowance_charge_reason_code": 0,
                 "allowance_charge_reason": "",
+                "percent": 0,
                 "amount": {
                     "currency_id": "",
                     "value": 0
