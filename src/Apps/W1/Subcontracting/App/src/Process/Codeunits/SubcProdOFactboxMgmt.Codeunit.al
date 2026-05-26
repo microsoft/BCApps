@@ -154,7 +154,7 @@ codeunit 99001559 "Subc. ProdO. Factbox Mgmt."
         if ProdOrderRoutingLine.FindFirst() then
             ProdOrderComponent.SetRange("Routing Link Code", ProdOrderRoutingLine."Routing Link Code");
 
-        ProdOrderComponent.SetRange(Status, ProdOrderRoutingLine.Status);
+        ProdOrderComponent.SetFilter(Status, '>=%1', ProdOrderComponent.Status::Released);
         ProdOrderComponent.SetRange("Prod. Order No.", ProdOrderNo);
         ProdOrderComponent.SetRange("Prod. Order Line No.", ProdOrderLineNo);
     end;
