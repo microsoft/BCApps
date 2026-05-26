@@ -18,7 +18,8 @@ CRITICAL FORMAT RULES:
 - Tax scheme ID: Always use "VAT"
 - Tax category ID: Use standard codes: S=Standard rate, Z=Zero rate, E=Exempt, AE=Reverse charge
 - Unit codes: Use UN/ECE codes
-- Allowance Charge: Leave allowance_charge section empty if no discount/charge exists on the document 
+- Allowance Charge: Leave allowance_charge section empty if no discount/charge exists on the document
+- Numbers: Use XML decimal format — period (.) as decimal separator, no thousands separators (e.g., 1083 not "1 083", 2.34 not "2,34")
 
 
 Output ONLY valid JSON. No markdown, no explanation.

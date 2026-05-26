@@ -208,12 +208,14 @@ codeunit 6232 "E-Doc. MLLM Schema Helper"
     local procedure GetDecimal(JsonObj: JsonObject; PropertyName: Text; var FieldValue: Decimal)
     var
         JsonToken: JsonToken;
+        DecimalValue: Decimal;
     begin
         if not JsonObj.Get(PropertyName, JsonToken) then
             exit;
         if JsonToken.AsValue().IsNull() then
             exit;
-        FieldValue := JsonToken.AsValue().AsDecimal();
+        if Evaluate(DecimalValue, JsonToken.AsValue().AsText(), 9) then
+            FieldValue := DecimalValue;
     end;
 
     local procedure GetNestedObject(JsonObj: JsonObject; PropertyName: Text; var NestedObj: JsonObject): Boolean
