@@ -21,7 +21,7 @@ tableextension 99001531 "Subc. Prod BOM Line Ext." extends "Production BOM Line"
             var
                 Item: Record Item;
             begin
-                if "Component Supply Method" = "Component Supply Method"::Transfer then
+                if "Component Supply Method" = "Component Supply Method"::"Transfer to Vendor" then
                     if (Type = Type::Item) and ("No." <> '') then begin
                         Item.Get("No.");
                         Item.TestField(Type, Item.Type::Inventory);

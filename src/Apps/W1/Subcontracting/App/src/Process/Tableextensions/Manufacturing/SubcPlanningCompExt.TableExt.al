@@ -24,7 +24,7 @@ tableextension 99001503 "Subc. Planning Comp Ext." extends "Planning Component"
                 Item: Record Item;
                 SubcontractingManagement: Codeunit "Subcontracting Management";
             begin
-                if "Component Supply Method" = "Component Supply Method"::Transfer then
+                if "Component Supply Method" = "Component Supply Method"::"Transfer to Vendor" then
                     if "Item No." <> '' then begin
                         Item.Get("Item No.");
                         Item.TestField(Type, Item.Type::Inventory);

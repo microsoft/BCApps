@@ -27,7 +27,7 @@ tableextension 99001502 "Subc. Prod Order Comp Ext." extends "Prod. Order Compon
                 Item: Record Item;
                 SubcontractingManagement: Codeunit "Subcontracting Management";
             begin
-                if "Component Supply Method" = "Component Supply Method"::Transfer then
+                if "Component Supply Method" = "Component Supply Method"::"Transfer to Vendor" then
                     if "Item No." <> '' then begin
                         Item.Get("Item No.");
                         Item.TestField(Type, Item.Type::Inventory);
