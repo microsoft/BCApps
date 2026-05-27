@@ -69,6 +69,8 @@ codeunit 6318 "E-Document MLLM Handler V2" implements IStructureReceivedEDocumen
         VerifyDatesTool: Codeunit "E-Doc. MLLM VL Dates Tool";
         VerifyRequiredTool: Codeunit "E-Doc. MLLM VL Required Tool";
         VerifyRangesTool: Codeunit "E-Doc. MLLM VL Ranges Tool";
+        PayableTool: Codeunit "E-Doc. MLLM VL Payable Tool";
+        PlanSubmitTool: Codeunit "E-Doc. MLLM Plan Submit Tool";
         ExtractionPlan: Codeunit "E-Doc. MLLM Extraction Plan";
         PlanAnalyzeTool: Codeunit "E-Doc. MLLM Plan Analyze Tool";
         PlanStatusTool: Codeunit "E-Doc. MLLM Plan Status Tool";
@@ -89,6 +91,7 @@ codeunit 6318 "E-Document MLLM Handler V2" implements IStructureReceivedEDocumen
         AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT41MiniPreview());
         AzureOpenAI.SetCopilotCapability(Enum::"Copilot Capability"::"E-Document MLLM Analysis");
         AOAIChatCompletionParams.SetTemperature(0);
+        AOAIChatMessages.SetHistoryLength(500);
         // Do NOT set JSON mode — tool-calling and JSON mode cannot be combined.
         // The system prompt instructs the model to output UBL JSON as its final response.
 
@@ -105,6 +108,8 @@ codeunit 6318 "E-Document MLLM Handler V2" implements IStructureReceivedEDocumen
         AOAIChatMessages.AddTool(PlanAnalyzeTool);
         AOAIChatMessages.AddTool(PlanStatusTool);
         AOAIChatMessages.AddTool(PlanMarkTool);
+        AOAIChatMessages.AddTool(PayableTool);
+        AOAIChatMessages.AddTool(PlanSubmitTool);
         AOAIChatMessages.SetToolChoice('auto');
 
         // User message: PDF + UBL schema + security clause
@@ -129,6 +134,8 @@ codeunit 6318 "E-Document MLLM Handler V2" implements IStructureReceivedEDocumen
             end;
         until not AOAIOperationResponse.IsFunctionCall();
 
+        if ExtractionPlan.HasCurrentJson() then
+            exit(ExtractionPlan.GetCurrentJson());
         exit(AOAIOperationResponse.GetResult());
     end;
 
