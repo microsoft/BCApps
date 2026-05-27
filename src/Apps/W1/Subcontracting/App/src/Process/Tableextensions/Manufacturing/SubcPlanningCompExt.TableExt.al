@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
+using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Planning;
 using Microsoft.Warehouse.Structure;
@@ -20,8 +21,14 @@ tableextension 99001503 "Subc. Planning Comp Ext." extends "Planning Component"
             ToolTip = 'Specifies the Type of Subcontracting that is assigned to the Planning Component.';
             trigger OnValidate()
             var
+                Item: Record Item;
                 SubcontractingManagement: Codeunit "Subcontracting Management";
             begin
+                if "Subcontracting Type" = "Subcontracting Type"::Transfer then
+                    if "Item No." <> '' then begin
+                        Item.Get("Item No.");
+                        Item.TestField(Type, Item.Type::Inventory);
+                    end;
                 SubcontractingManagement.UpdateSubcontractingTypeForPlanningComponent(Rec);
             end;
         }

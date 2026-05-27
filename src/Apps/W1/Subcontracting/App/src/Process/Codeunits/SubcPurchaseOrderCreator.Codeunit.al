@@ -24,11 +24,9 @@ using System.Utilities;
 codeunit 99001557 "Subc. Purchase Order Creator"
 {
     var
-        SubcManagementSetup: Record "Subc. Management Setup";
         ManufacturingSetup: Record "Manufacturing Setup";
         PageManagement: Codeunit "Page Management";
         UnitofMeasureManagement: Codeunit "Unit of Measure Management";
-        HasSubManagementSetup: Boolean;
         HasManufacturingSetup: Boolean;
         OperationNo: Code[10];
         RoutingReferenceNo: Integer;
@@ -114,7 +112,7 @@ codeunit 99001557 "Subc. Purchase Order Creator"
         SubContractorWorkCenterNo: Code[20];
         DimensionSetIDArr: array[10] of Integer;
     begin
-        GetSubmanagementSetup();
+        GetManufacturingSetup();
         ProdOrderRoutingLine.SetLoadFields("Work Center No.", Status, "Prod. Order No.", "Routing Link Code");
         if ProdOrderRoutingLine.Get("Production Order Status"::Released, RequisitionLine."Prod. Order No.", RequisitionLine."Routing Reference No.", RequisitionLine."Routing No.", RequisitionLine."Operation No.") then begin
             WorkCenter.SetLoadFields("Subcontractor No.");
@@ -292,7 +290,7 @@ codeunit 99001557 "Subc. Purchase Order Creator"
         WorkCenter.SetLoadFields("Subcontractor No.");
         WorkCenter.Get(ProdOrderRoutingLine."Work Center No.");
 
-        Vendor.SetLoadFields("Subcontr. Location Code");
+        Vendor.SetLoadFields("Subc. Location Code");
         if not Vendor.Get(WorkCenter."Subcontractor No.") then
             exit(true);
 
@@ -306,10 +304,10 @@ codeunit 99001557 "Subc. Purchase Order Creator"
             if not ConfirmManagement.GetResponseOrDefault(BlankLocationConfirmQst, true) then
                 exit(false);
 
-        if Vendor."Subcontr. Location Code" <> '' then begin
-            ProdOrderComponent.SetRange("Location Code", Vendor."Subcontr. Location Code");
+        if Vendor."Subc. Location Code" <> '' then begin
+            ProdOrderComponent.SetRange("Location Code", Vendor."Subc. Location Code");
             if not ProdOrderComponent.IsEmpty() then
-                if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(SameAsSubcLocConfirmQst, Vendor."Subcontr. Location Code", Vendor."No."), true) then
+                if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(SameAsSubcLocConfirmQst, Vendor."Subc. Location Code", Vendor."No."), true) then
                     exit(false);
         end;
 
@@ -371,14 +369,6 @@ codeunit 99001557 "Subc. Purchase Order Creator"
         BaseQuantityToPurch := QtyAdjdForRoutingScrap - (OutputQtyBaseOnPurchOrder + ActOutputQtyBase);
 
         exit(BaseQuantityToPurch);
-    end;
-
-    local procedure GetSubmanagementSetup()
-    begin
-        if HasSubManagementSetup then
-            exit;
-        if SubcManagementSetup.Get() then
-            HasSubManagementSetup := true;
     end;
 
     local procedure GetManufacturingSetup()
@@ -552,6 +542,7 @@ codeunit 99001557 "Subc. Purchase Order Creator"
 
         RequisitionLine.Description := ProdOrderRoutingLine.Description;
         RequisitionLine."Description 2" := ProdOrderRoutingLine."Description 2";
+        RequisitionLine.Validate("Subc. Standard Task Code", ProdOrderRoutingLine."Standard Task Code");
         SetVendorItemNo(RequisitionLine);
 
         if PurchLineExists(PurchaseLine, ProdOrderLine, ProdOrderRoutingLine) then begin

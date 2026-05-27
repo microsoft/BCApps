@@ -8,6 +8,7 @@ using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Configuration.Result;
 using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Configuration.Template.Test;
+using Microsoft.QualityManagement.Reports;
 using Microsoft.QualityManagement.Setup;
 using System.Environment.Configuration;
 
@@ -41,8 +42,13 @@ codeunit 20400 "Qlty. Manual Setup"
         QualityInspectionTemplatesDescriptionTxt: Label 'Set up templates you can group and reuse quality tests so you can apply consistent inspection standards across items, processes, or scenarios. From the list you can create a new template card to understand its structure and purpose.';
         QualityInspectionTemplatesKeywordsTxt: Label 'Quality Inspection, Templates, Procedures';
 
-        QualityManagementSetupTitleTxt: Label 'Set up quality management';
-        QualityManagementSetupShortTitleTxt: Label 'Quality management setup';
+        ReportSelectionQualityManagementTitleTxt: Label 'Set up report selections for Quality Management';
+        ReportSelectionQualityManagementShortTitleTxt: Label 'Report selections';
+        ReportSelectionQualityManagementDescriptionTxt: Label 'Set up report selections to define which reports are used when printing quality management documents.';
+        ReportSelectionQualityManagementKeywordsTxt: Label 'Report Selection Quality Management, Reports';
+
+        QualityManagementSetupTitleTxt: Label 'Set up Quality Management';
+        QualityManagementSetupShortTitleTxt: Label 'Quality Management setup';
         QualityManagementSetupDescriptionTxt: Label 'Set up how and when inspections are created. Manage when to show inspections, set up test generation rules, such as for production scenarios or inventory and warehouse inspections.';
         QualityManagementSetupKeywordsTxt: Label 'Quality Management Setup';
 
@@ -95,6 +101,16 @@ codeunit 20400 "Qlty. Manual Setup"
             Page::"Qlty. Inspection Template List",
             ManualSetupCategory::"Quality Management",
             QualityInspectionTemplatesKeywordsTxt);
+
+        Sender.InsertManualSetup(ReportSelectionQualityManagementTitleTxt,
+            ReportSelectionQualityManagementShortTitleTxt,
+            ReportSelectionQualityManagementDescriptionTxt,
+            10,
+            ObjectType::Page,
+            Page::"Qlty. Report Selection - QM",
+            ManualSetupCategory::"Quality Management",
+            ReportSelectionQualityManagementKeywordsTxt,
+            true);
 
         Sender.InsertManualSetup(QualityManagementSetupTitleTxt,
             QualityManagementSetupShortTitleTxt,
