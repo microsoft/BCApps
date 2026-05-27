@@ -588,17 +588,7 @@ page 20479 "Qlty. Test Card"
         MatrixArrayConditionCellData: array[10] of Text;
         MatrixArrayConditionDescriptionCellData: array[10] of Text;
         MatrixArrayCaptionSet: array[10] of Text;
-        MatrixVisibleState: array[10] of Boolean;
-        Visible1: Boolean;
-        Visible2: Boolean;
-        Visible3: Boolean;
-        Visible4: Boolean;
-        Visible5: Boolean;
-        Visible6: Boolean;
-        Visible7: Boolean;
-        Visible8: Boolean;
-        Visible9: Boolean;
-        Visible10: Boolean;
+        Visible1, Visible2, Visible3, Visible4, Visible5, Visible6, Visible7, Visible8, Visible9, Visible10 : Boolean;
         EditableResult: Boolean;
         IsAllowableValuesEditable: Boolean;
         IsLookupField: Boolean;
@@ -608,8 +598,20 @@ page 20479 "Qlty. Test Card"
         NotEditableLbl: Label 'The %1 field is not editable for the selected %2.', Comment = '%1 = Expression Formula, %2 = Test Value Type';
 
     trigger OnOpenPage()
+    var
+        MatrixVisibleState: array[10] of Boolean;
     begin
-        UpdateRowData();
+        QltyResultConditionMgmt.GetDefaultPromotedResults(true, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, MatrixArrayCaptionSet, MatrixVisibleState);
+        Visible1 := MatrixVisibleState[1];
+        Visible2 := MatrixVisibleState[2];
+        Visible3 := MatrixVisibleState[3];
+        Visible4 := MatrixVisibleState[4];
+        Visible5 := MatrixVisibleState[5];
+        Visible6 := MatrixVisibleState[6];
+        Visible7 := MatrixVisibleState[7];
+        Visible8 := MatrixVisibleState[8];
+        Visible9 := MatrixVisibleState[9];
+        Visible10 := MatrixVisibleState[10];
     end;
 
     trigger OnAfterGetRecord()
@@ -636,28 +638,17 @@ page 20479 "Qlty. Test Card"
     end;
 
     local procedure UpdateRowData()
+    var
+        DummyMatrixArrayCaptionSet: array[10] of Text;
+        DummyMatrixVisibleState: array[10] of Boolean;
     begin
         IsAllowableValuesEditable := not (Rec."Test Value Type" in [Rec."Test Value Type"::"Value Type Table Lookup"]);
         IsLookupField := (Rec."Test Value Type" in [Rec."Test Value Type"::"Value Type Table Lookup"]);
 
         if Rec.Code = '' then
-            QltyResultConditionMgmt.GetDefaultPromotedResults(false, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, MatrixArrayCaptionSet, MatrixVisibleState)
-        else begin
-            QltyResultConditionMgmt.GetPromotedResultsForTest(Rec, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, MatrixArrayCaptionSet, MatrixVisibleState);
-            if not MatrixVisibleState[1] then
-                QltyResultConditionMgmt.GetDefaultPromotedResults(false, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, MatrixArrayCaptionSet, MatrixVisibleState);
-        end;
-
-        Visible1 := MatrixVisibleState[1];
-        Visible2 := MatrixVisibleState[2];
-        Visible3 := MatrixVisibleState[3];
-        Visible4 := MatrixVisibleState[4];
-        Visible5 := MatrixVisibleState[5];
-        Visible6 := MatrixVisibleState[6];
-        Visible7 := MatrixVisibleState[7];
-        Visible8 := MatrixVisibleState[8];
-        Visible9 := MatrixVisibleState[9];
-        Visible10 := MatrixVisibleState[10];
+            QltyResultConditionMgmt.GetDefaultPromotedResults(false, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, DummyMatrixArrayCaptionSet, DummyMatrixVisibleState)
+        else
+            QltyResultConditionMgmt.GetPromotedResultsForTest(Rec, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, DummyMatrixArrayCaptionSet, DummyMatrixVisibleState);
 
         EditableResult := (Rec.Code <> '') and (CurrPage.Editable) and (Visible1) and (MatrixArrayCaptionSet[1] <> '');
 

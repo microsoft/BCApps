@@ -74,7 +74,7 @@ page 20403 "Qlty. Inspection Template Subf"
                     CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[1]);
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1.';
                     Visible = Visible1;
-                    Editable = Visible1;
+                    Editable = Editable1;
 
                     trigger OnValidate()
                     begin
@@ -83,6 +83,8 @@ page 20403 "Qlty. Inspection Template Subf"
 
                     trigger OnAssistEdit()
                     begin
+                        if not Editable1 then
+                            exit;
                         AssistEditCondition(1);
                     end;
                 }
@@ -91,7 +93,7 @@ page 20403 "Qlty. Inspection Template Subf"
                     CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[1]);
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1.';
                     Visible = Visible1;
-                    Editable = Visible1;
+                    Editable = Editable1;
 
                     trigger OnValidate()
                     begin
@@ -100,6 +102,9 @@ page 20403 "Qlty. Inspection Template Subf"
 
                     trigger OnAssistEdit()
                     begin
+                        if not Editable1 then
+                            exit;
+
                         AssistEditConditionDescription(1);
                     end;
                 }
@@ -108,7 +113,7 @@ page 20403 "Qlty. Inspection Template Subf"
                     CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[2]);
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 2.';
                     Visible = Visible2;
-                    Editable = Visible2;
+                    Editable = Editable2;
 
                     trigger OnValidate()
                     begin
@@ -117,6 +122,9 @@ page 20403 "Qlty. Inspection Template Subf"
 
                     trigger OnAssistEdit()
                     begin
+                        if not Editable2 then
+                            exit;
+
                         AssistEditCondition(2);
                     end;
                 }
@@ -125,7 +133,7 @@ page 20403 "Qlty. Inspection Template Subf"
                     CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[2]);
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 2.';
                     Visible = Visible2;
-                    Editable = Visible2;
+                    Editable = Editable2;
 
                     trigger OnValidate()
                     begin
@@ -134,6 +142,9 @@ page 20403 "Qlty. Inspection Template Subf"
 
                     trigger OnAssistEdit()
                     begin
+                        if not Editable2 then
+                            exit;
+
                         AssistEditConditionDescription(2);
                     end;
                 }
@@ -142,7 +153,7 @@ page 20403 "Qlty. Inspection Template Subf"
                     CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[3]);
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 3.';
                     Visible = Visible3;
-                    Editable = Visible3;
+                    Editable = Editable3;
 
                     trigger OnValidate()
                     begin
@@ -151,6 +162,9 @@ page 20403 "Qlty. Inspection Template Subf"
 
                     trigger OnAssistEdit()
                     begin
+                        if not Editable3 then
+                            exit;
+
                         AssistEditCondition(3);
                     end;
                 }
@@ -159,7 +173,7 @@ page 20403 "Qlty. Inspection Template Subf"
                     CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[3]);
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 3.';
                     Visible = Visible3;
-                    Editable = Visible3;
+                    Editable = Editable3;
 
                     trigger OnValidate()
                     begin
@@ -168,6 +182,9 @@ page 20403 "Qlty. Inspection Template Subf"
 
                     trigger OnAssistEdit()
                     begin
+                        if not Editable3 then
+                            exit;
+
                         AssistEditConditionDescription(3);
                     end;
                 }
@@ -176,7 +193,7 @@ page 20403 "Qlty. Inspection Template Subf"
                     CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[4]);
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 4.';
                     Visible = Visible4;
-                    Editable = Visible4;
+                    Editable = Editable4;
 
                     trigger OnValidate()
                     begin
@@ -185,6 +202,9 @@ page 20403 "Qlty. Inspection Template Subf"
 
                     trigger OnAssistEdit()
                     begin
+                        if not Editable4 then
+                            exit;
+
                         AssistEditCondition(4);
                     end;
                 }
@@ -193,7 +213,7 @@ page 20403 "Qlty. Inspection Template Subf"
                     CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[4]);
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 4.';
                     Visible = Visible4;
-                    Editable = Visible4;
+                    Editable = Editable4;
 
                     trigger OnValidate()
                     begin
@@ -202,6 +222,9 @@ page 20403 "Qlty. Inspection Template Subf"
 
                     trigger OnAssistEdit()
                     begin
+                        if not Editable4 then
+                            exit;
+
                         AssistEditConditionDescription(4);
                     end;
                 }
@@ -210,7 +233,7 @@ page 20403 "Qlty. Inspection Template Subf"
                     CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[5]);
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 5.';
                     Visible = Visible5;
-                    Editable = Visible5;
+                    Editable = Editable5;
 
                     trigger OnValidate()
                     begin
@@ -219,6 +242,9 @@ page 20403 "Qlty. Inspection Template Subf"
 
                     trigger OnAssistEdit()
                     begin
+                        if not Editable5 then
+                            exit;
+
                         AssistEditCondition(5);
                     end;
                 }
@@ -227,7 +253,7 @@ page 20403 "Qlty. Inspection Template Subf"
                     CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[5]);
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 5.';
                     Visible = Visible5;
-                    Editable = Visible5;
+                    Editable = Editable5;
 
                     trigger OnValidate()
                     begin
@@ -236,6 +262,9 @@ page 20403 "Qlty. Inspection Template Subf"
 
                     trigger OnAssistEdit()
                     begin
+                        if not Editable5 then
+                            exit;
+
                         AssistEditConditionDescription(5);
                     end;
                 }
@@ -244,7 +273,7 @@ page 20403 "Qlty. Inspection Template Subf"
                     CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[6]);
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 6.';
                     Visible = Visible6;
-                    Editable = Visible6;
+                    Editable = Editable6;
 
                     trigger OnValidate()
                     begin
@@ -253,6 +282,9 @@ page 20403 "Qlty. Inspection Template Subf"
 
                     trigger OnAssistEdit()
                     begin
+                        if not Editable6 then
+                            exit;
+
                         AssistEditCondition(6);
                     end;
                 }
@@ -261,7 +293,7 @@ page 20403 "Qlty. Inspection Template Subf"
                     CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[6]);
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 6.';
                     Visible = Visible6;
-                    Editable = Visible6;
+                    Editable = Editable6;
 
                     trigger OnValidate()
                     begin
@@ -270,6 +302,9 @@ page 20403 "Qlty. Inspection Template Subf"
 
                     trigger OnAssistEdit()
                     begin
+                        if not Editable6 then
+                            exit;
+
                         AssistEditConditionDescription(6);
                     end;
                 }
@@ -278,7 +313,7 @@ page 20403 "Qlty. Inspection Template Subf"
                     CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[7]);
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 7.';
                     Visible = Visible7;
-                    Editable = Visible7;
+                    Editable = Editable7;
 
                     trigger OnValidate()
                     begin
@@ -287,6 +322,9 @@ page 20403 "Qlty. Inspection Template Subf"
 
                     trigger OnAssistEdit()
                     begin
+                        if not Editable7 then
+                            exit;
+
                         AssistEditCondition(7);
                     end;
                 }
@@ -295,7 +333,7 @@ page 20403 "Qlty. Inspection Template Subf"
                     CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[7]);
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 7.';
                     Visible = Visible7;
-                    Editable = Visible7;
+                    Editable = Editable7;
 
                     trigger OnValidate()
                     begin
@@ -304,6 +342,9 @@ page 20403 "Qlty. Inspection Template Subf"
 
                     trigger OnAssistEdit()
                     begin
+                        if not Editable7 then
+                            exit;
+
                         AssistEditConditionDescription(7);
                     end;
                 }
@@ -312,7 +353,7 @@ page 20403 "Qlty. Inspection Template Subf"
                     CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[8]);
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 8.';
                     Visible = Visible8;
-                    Editable = Visible8;
+                    Editable = Editable8;
 
                     trigger OnValidate()
                     begin
@@ -321,6 +362,9 @@ page 20403 "Qlty. Inspection Template Subf"
 
                     trigger OnAssistEdit()
                     begin
+                        if not Editable8 then
+                            exit;
+
                         AssistEditCondition(8);
                     end;
                 }
@@ -329,7 +373,7 @@ page 20403 "Qlty. Inspection Template Subf"
                     CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[8]);
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 8.';
                     Visible = Visible8;
-                    Editable = Visible8;
+                    Editable = Editable8;
 
                     trigger OnValidate()
                     begin
@@ -338,6 +382,9 @@ page 20403 "Qlty. Inspection Template Subf"
 
                     trigger OnAssistEdit()
                     begin
+                        if not Editable8 then
+                            exit;
+
                         AssistEditConditionDescription(8);
                     end;
                 }
@@ -346,7 +393,7 @@ page 20403 "Qlty. Inspection Template Subf"
                     CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[9]);
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 9.';
                     Visible = Visible9;
-                    Editable = Visible9;
+                    Editable = Editable9;
 
                     trigger OnValidate()
                     begin
@@ -355,6 +402,9 @@ page 20403 "Qlty. Inspection Template Subf"
 
                     trigger OnAssistEdit()
                     begin
+                        if not Editable9 then
+                            exit;
+
                         AssistEditCondition(9);
                     end;
                 }
@@ -363,7 +413,7 @@ page 20403 "Qlty. Inspection Template Subf"
                     CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[9]);
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 9.';
                     Visible = Visible9;
-                    Editable = Visible9;
+                    Editable = Editable9;
 
                     trigger OnValidate()
                     begin
@@ -372,6 +422,9 @@ page 20403 "Qlty. Inspection Template Subf"
 
                     trigger OnAssistEdit()
                     begin
+                        if not Editable9 then
+                            exit;
+
                         AssistEditConditionDescription(9);
                     end;
                 }
@@ -380,7 +433,7 @@ page 20403 "Qlty. Inspection Template Subf"
                     CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[10]);
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 10.';
                     Visible = Visible10;
-                    Editable = Visible10;
+                    Editable = Editable10;
 
                     trigger OnValidate()
                     begin
@@ -389,6 +442,9 @@ page 20403 "Qlty. Inspection Template Subf"
 
                     trigger OnAssistEdit()
                     begin
+                        if not Editable10 then
+                            exit;
+
                         AssistEditCondition(10);
                     end;
                 }
@@ -397,7 +453,7 @@ page 20403 "Qlty. Inspection Template Subf"
                     CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[10]);
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 10.';
                     Visible = Visible10;
-                    Editable = Visible10;
+                    Editable = Editable10;
 
                     trigger OnValidate()
                     begin
@@ -406,6 +462,9 @@ page 20403 "Qlty. Inspection Template Subf"
 
                     trigger OnAssistEdit()
                     begin
+                        if not Editable10 then
+                            exit;
+
                         AssistEditConditionDescription(10);
                     end;
                 }
@@ -414,7 +473,6 @@ page 20403 "Qlty. Inspection Template Subf"
     }
 
     var
-        CachedQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         QltyResultConditionMgmt: Codeunit "Qlty. Result Condition Mgmt.";
         MatrixSourceRecordId: array[10] of RecordId;
         RowStyle: Option None,Standard,StandardAccent,Strong,StrongAccent,Attention,AttentionAccent,Favorable,Unfavorable,Ambiguous,Subordinate;
@@ -422,64 +480,17 @@ page 20403 "Qlty. Inspection Template Subf"
         MatrixArrayConditionCellData: array[10] of Text;
         MatrixArrayConditionDescriptionCellData: array[10] of Text;
         MatrixArrayCaptionSet: array[10] of Text;
-        MatrixVisibleState: array[10] of Boolean;
-        Visible1: Boolean;
-        Visible2: Boolean;
-        Visible3: Boolean;
-        Visible4: Boolean;
-        Visible5: Boolean;
-        Visible6: Boolean;
-        Visible7: Boolean;
-        Visible8: Boolean;
-        Visible9: Boolean;
-        Visible10: Boolean;
+        Visible1, Visible2, Visible3, Visible4, Visible5, Visible6, Visible7, Visible8, Visible9, Visible10 : Boolean;
+        Editable1, Editable2, Editable3, Editable4, Editable5, Editable6, Editable7, Editable8, Editable9, Editable10 : Boolean;
         DescriptionLbl: Label '%1 Description', Comment = '%1 = Matrix field caption';
         ConditionLbl: Label '%1 Condition', Comment = '%1 = Matrix field caption';
 
-    trigger OnNewRecord(BelowxRec: Boolean)
-    begin
-        if Rec."Template Code" <> CachedQltyInspectionTemplateHdr.Code then begin
-            Clear(CachedQltyInspectionTemplateHdr);
-            if Rec."Template Code" <> '' then
-                if CachedQltyInspectionTemplateHdr.Get(Rec."Template Code") then;
-        end;
-        Rec.EnsureResultsExist(false);
-    end;
-
-    trigger OnFindRecord(Which: Text): Boolean
-    begin
-        Clear(CachedQltyInspectionTemplateHdr);
-        exit(Rec.Find(Which));
-    end;
-
-    trigger OnAfterGetRecord()
+    trigger OnOpenPage()
     var
-        DuplicateTestCheckQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
+        MatrixVisibleState: array[10] of Boolean;
     begin
-        UpdateRowData();
-        RowStyle := RowStyle::None;
-        DuplicateTestCheckQltyInspectionTemplateLine.SetRange("Template Code", Rec."Template Code");
-        DuplicateTestCheckQltyInspectionTemplateLine.SetRange("Test Code", Rec."Test Code");
-        DuplicateTestCheckQltyInspectionTemplateLine.SetFilter("Line No.", '<>%1', Rec."Line No.");
-        if not DuplicateTestCheckQltyInspectionTemplateLine.IsEmpty() then
-            RowStyle := RowStyle::Unfavorable;
-
-        RowStyleText := Format(RowStyle);
-    end;
-
-    trigger OnAfterGetCurrRecord()
-    begin
-        UpdateRowData();
-    end;
-
-    local procedure UpdateRowData()
-    begin
-        Rec.CalcFields("Test Value Type");
-
-        if (CachedQltyInspectionTemplateHdr.Code <> Rec."Template Code") and (Rec."Template Code" <> '') then
-            if CachedQltyInspectionTemplateHdr.Get(Rec."Template Code") then;
-
-        QltyResultConditionMgmt.GetPromotedResultsForTemplateLine(Rec, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, MatrixArrayCaptionSet, MatrixVisibleState);
+        // Column visibility and captions are page-wide and driven by the global set of promoted results, so they only need to be computed once when the page opens.
+        QltyResultConditionMgmt.GetDefaultPromotedResults(true, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, MatrixArrayCaptionSet, MatrixVisibleState);
         Visible1 := MatrixVisibleState[1];
         Visible2 := MatrixVisibleState[2];
         Visible3 := MatrixVisibleState[3];
@@ -490,6 +501,57 @@ page 20403 "Qlty. Inspection Template Subf"
         Visible8 := MatrixVisibleState[8];
         Visible9 := MatrixVisibleState[9];
         Visible10 := MatrixVisibleState[10];
+    end;
+
+    trigger OnFindRecord(Which: Text): Boolean
+    begin
+        exit(Rec.Find(Which));
+    end;
+
+    trigger OnAfterGetRecord()
+    var
+        DuplicateTestCheckQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
+    begin
+        UpdateRowData();
+
+        RowStyle := RowStyle::None;
+        DuplicateTestCheckQltyInspectionTemplateLine.SetRange("Template Code", Rec."Template Code");
+        DuplicateTestCheckQltyInspectionTemplateLine.SetRange("Test Code", Rec."Test Code");
+        DuplicateTestCheckQltyInspectionTemplateLine.SetFilter("Line No.", '<>%1', Rec."Line No.");
+        if not DuplicateTestCheckQltyInspectionTemplateLine.IsEmpty() then
+            RowStyle := RowStyle::Unfavorable;
+
+        RowStyleText := Format(RowStyle);
+    end;
+
+    local procedure UpdateRowData()
+    var
+        DummyMatrixArrayCaptionSet: array[10] of Text;
+        DummyMatrixVisibleState: array[10] of Boolean;
+        RowIsLabel: Boolean;
+    begin
+        Rec.CalcFields("Test Value Type");
+        RowIsLabel := Rec."Test Value Type" = Rec."Test Value Type"::"Value Type Label";
+
+        // Label rows never have promoted result condition records, so just blank the per-row cell data instead.
+        if RowIsLabel then begin
+            Clear(MatrixSourceRecordId);
+            Clear(MatrixArrayConditionCellData);
+            Clear(MatrixArrayConditionDescriptionCellData);
+        end else
+            // Refresh the per-row condition values and source RecordIds so OnValidate/OnAssistEdit on each cell operates on the correct underlying configuration record.
+            QltyResultConditionMgmt.GetPromotedResultsForTemplateLine(Rec, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, DummyMatrixArrayCaptionSet, DummyMatrixVisibleState);
+
+        Editable1 := Visible1 and not RowIsLabel;
+        Editable2 := Visible2 and not RowIsLabel;
+        Editable3 := Visible3 and not RowIsLabel;
+        Editable4 := Visible4 and not RowIsLabel;
+        Editable5 := Visible5 and not RowIsLabel;
+        Editable6 := Visible6 and not RowIsLabel;
+        Editable7 := Visible7 and not RowIsLabel;
+        Editable8 := Visible8 and not RowIsLabel;
+        Editable9 := Visible9 and not RowIsLabel;
+        Editable10 := Visible10 and not RowIsLabel;
     end;
 
     local procedure UpdateMatrixDataCondition(Matrix: Integer)
