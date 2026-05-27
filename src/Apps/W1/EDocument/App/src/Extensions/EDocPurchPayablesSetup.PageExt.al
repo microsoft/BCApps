@@ -26,6 +26,16 @@ pageextension 6162 "E-Doc. Purch. Payables Setup" extends "Purchases & Payables 
                 ApplicationArea = All;
                 ToolTip = 'Specifies how the posting date is set on purchase invoices created from e-documents. Work Date uses the current work date. Document Date uses the document date from the e-document.';
             }
+            field("Apply VAT Diff. For Purch EDoc"; Rec."Apply VAT Diff. For Purch EDoc")
+            {
+                ApplicationArea = All;
+                ToolTip = 'Specifies whether VAT difference should be applied when matching incoming E-Document line with Purchase Order line';
+            }
+            field("Resolve VAT Group Purch EDoc"; Rec."Resolve VAT Group Purch EDoc")
+            {
+                ApplicationArea = All;
+                ToolTip = 'Specifies whether to resolve VAT Product Group for purchase lines created from e-documents based on the VAT rate and the vendor''s VAT posting setup. If disabled, the VAT Product Group will not be identified based on the purchase e-document.';
+            }
         }
     }
 }

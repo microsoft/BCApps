@@ -40,6 +40,11 @@ page 8350 "MCP Config List"
                 {
                     ToolTip = 'Specifies whether the MCP configuration is active.';
                 }
+                field(Default; Rec.Default)
+                {
+                    ToolTip = 'Specifies whether this configuration is the default. The default configuration is used when no configuration is specified by a connection. Clear this field to remove the default designation, in which case the system reverts to built-in default configuration.';
+                    Editable = false;
+                }
                 field(EnableDynamicToolMode; Rec.EnableDynamicToolMode)
                 {
                     ToolTip = 'Specifies whether to enable dynamic tool mode for this MCP configuration. When enabled, clients can search for tools within the configuration dynamically.';
@@ -76,7 +81,7 @@ page 8350 "MCP Config List"
             {
                 Caption = 'Give Feedback';
                 ToolTip = 'Share your feedback about the MCP server experience.';
-                Image = Questionaire;
+                Image = Comment;
 
                 trigger OnAction()
                 begin
