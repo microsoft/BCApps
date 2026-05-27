@@ -6,7 +6,9 @@ namespace Microsoft.QualityManagement.Reports;
 
 using Microsoft.Foundation.Company;
 using Microsoft.Inventory.Item;
+#if not CLEAN29
 using Microsoft.QualityManagement.Configuration.Template;
+#endif
 using Microsoft.QualityManagement.Document;
 
 report 20401 "Qlty. Certificate of Analysis"
@@ -24,7 +26,14 @@ report 20401 "Qlty. Certificate of Analysis"
         dataitem(CurrentInspection; "Qlty. Inspection Header")
         {
             RequestFilterFields = "Source Item No.", "Source Variant Code", "Source Lot No.", "Source Serial No.", "Source Package No.", "Source Document No.", "No.", "Re-inspection No.", "Template Code";
-            column(QltyInspectionTemplate_Description; QltyInspectionTemplateHdr.Description) { } // CLEAN
+#if not CLEAN29
+            column(QltyInspectionTemplate_Description; QltyInspectionTemplateHdr.Description)
+            {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'RDLC-only layout column. To be removed along with the RDLC layout.';
+                ObsoleteTag = '29.0';
+            }
+#endif
             column(QltyInspection_Description; Description) { }
             column(QltyInspection_Status; Status) { }
             column(QltyInspection_Result_Code; "Result Code") { }
@@ -212,7 +221,11 @@ report 20401 "Qlty. Certificate of Analysis"
             trigger OnAfterGetRecord()
             begin
                 QltyReportMgmt.ResolveSourceItem(CurrentInspection, Item);
+#if not CLEAN29
+#pragma warning disable AL0432
                 QltyReportMgmt.ResolveInspectionTemplateCache(CurrentInspection."Template Code", QltyInspectionTemplateHdr);
+#pragma warning restore AL0432
+#endif
                 QltyReportMgmt.ResolveFinishedByPerson(CurrentInspection."Finished By User ID", FinishedByUserName, FinishedByTitle, FinishedByEmail, FinishedByPhone);
 
                 ItemTrackingText := QltyReportMgmt.BuildItemTrackingIdentifierText(CurrentInspection."Source Lot No.", CurrentInspection."Source Serial No.", CurrentInspection."Source Package No.");
@@ -232,13 +245,18 @@ report 20401 "Qlty. Certificate of Analysis"
             Summary = 'Built in layout for Certificate of Analysis report.';
             LayoutFile = './src/Reports/QltyCertificateOfAnalysis.docx';
         }
+#if not CLEAN29
         layout(QltyCertificateOfAnalysisDefault)
         {
             Type = RDLC;
             Caption = 'Certificate of Analysis (RDLC)';
             Summary = 'Built in layout for Certificate of Analysis report.';
             LayoutFile = './src/Reports/QltyCertificateOfAnalysisAlternate.rdl';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'The RDLC layout has been replaced by the Word layout and will be removed in a future release.';
+            ObsoleteTag = '29.0';
         }
+#endif
     }
 
     labels
@@ -263,7 +281,9 @@ report 20401 "Qlty. Certificate of Analysis"
     var
         Item: Record Item;
         CompanyInformation: Record "Company Information";
+#if not CLEAN29
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+#endif
         QltyReportMgmt: Codeunit "Qlty. Report Mgmt.";
         MatrixSourceRecordId: array[10] of RecordId;
         CompanyInformationArray: array[8] of Text[100];
