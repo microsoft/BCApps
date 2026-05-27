@@ -353,6 +353,7 @@ codeunit 7764 "AOAI Chat Messages Impl"
         HistoryNames.Add('');
         HistoryToolCallIds.Add('');
         HistoryUserMessages.Add(AOAIUserMessage);
+        HistoryLength += 1; // Keep assistant tool-call messages in window alongside their tool results
     end;
 
     local procedure AddMessage(NewMessage: Text; NewName: Text[2048]; NewRole: Enum "AOAI Chat Roles")
