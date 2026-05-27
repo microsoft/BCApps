@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Processing.Import;
 
-codeunit 6319 "E-Doc. MLLM Extraction Plan"
+codeunit 6340 "E-Doc. MLLM Extraction Plan"
 {
     Access = Internal;
     InherentEntitlements = X;
@@ -15,13 +15,15 @@ codeunit 6319 "E-Doc. MLLM Extraction Plan"
         ItemStatus: Dictionary of [Text, Text];
         ItemErrors: Dictionary of [Text, Text];
         AnalysisPayload: Text;
-        FixedItemsTok: Label 'verify_invoice_totals,verify_vat,verify_dates,verify_required_fields,verify_ranges', Locked = true;
+        CurrentJson: Text;
+        FixedItemsTok: Label 'verify_invoice_totals,verify_vat,verify_dates,verify_required_fields,verify_ranges,verify_payable', Locked = true;
 
     procedure Reset()
     begin
         Clear(ItemStatus);
         Clear(ItemErrors);
         AnalysisPayload := '';
+        CurrentJson := '';
     end;
 
     procedure InitializePlan(LineIds: List of [Text]; Analysis: Text)
@@ -57,6 +59,31 @@ codeunit 6319 "E-Doc. MLLM Extraction Plan"
         end else
             if ItemErrors.ContainsKey(ItemId) then
                 ItemErrors.Remove(ItemId);
+    end;
+
+    procedure SetCurrentJson(Json: Text)
+    var
+        ItemId, Status : Text;
+    begin
+        CurrentJson := Json;
+        // Reset failed items to pending so the model re-verifies after correction
+        foreach ItemId in ItemStatus.Keys() do begin
+            ItemStatus.Get(ItemId, Status);
+            if Status = 'failed' then
+                ItemStatus.Set(ItemId, 'pending');
+        end;
+        if ItemErrors.Count() > 0 then
+            Clear(ItemErrors);
+    end;
+
+    procedure GetCurrentJson(): Text
+    begin
+        exit(CurrentJson);
+    end;
+
+    procedure HasCurrentJson(): Boolean
+    begin
+        exit(CurrentJson <> '');
     end;
 
     procedure GetChecklistJson(): Text
