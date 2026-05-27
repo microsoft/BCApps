@@ -10,7 +10,6 @@ using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
 using System.AI;
 using System.Azure.KeyVault;
-using System.Telemetry;
 using System.Text;
 using System.Utilities;
 
@@ -21,10 +20,8 @@ codeunit 6318 "E-Document MLLM Handler V2" implements IStructureReceivedEDocumen
     InherentPermissions = X;
 
     var
-        Telemetry: Codeunit Telemetry;
         StructuredData: Text;
         FileFormat: Enum "E-Doc. File Format";
-        FeatureNameLbl: Label 'E-Document MLLM Extraction V2', Locked = true;
         FileDataLbl: Label 'data:application/pdf;base64,%1', Locked = true;
         SystemPromptV2ResourceTok: Label 'Prompts/EDocMLLMExtractionV2-SystemPrompt.md', Locked = true;
         UserPromptLbl: Label 'Extract invoice data into this UBL JSON structure: %1. \n\nExtract ONLY visible values. Return JSON only. %2', Locked = true;
@@ -205,15 +202,6 @@ codeunit 6318 "E-Document MLLM Handler V2" implements IStructureReceivedEDocumen
         exit(ADIHandler.StructureReceivedEDocument(EDocumentDataStorage));
     end;
 
-    local procedure GetInvoiceLineCount(ResponseJson: JsonObject): Integer
-    var
-        LinesToken: JsonToken;
-    begin
-        if ResponseJson.Get('invoice_line', LinesToken) then
-            if LinesToken.IsArray() then
-                exit(LinesToken.AsArray().Count());
-        exit(0);
-    end;
 
     procedure RegisterCopilotCapabilityIfNeeded()
     var
