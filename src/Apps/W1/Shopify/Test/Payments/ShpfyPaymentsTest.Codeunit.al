@@ -44,7 +44,7 @@ codeunit 139566 "Shpfy Payments Test"
 
         // [GIVEN] An existing payout record imported without a shop context (blank Shop Code)
         Id := Any.IntegerInRange(10000, 99999);
-        JPayout := GetRandomPayout(Id);
+        JPayout := GetRandomPayout(Id, Any.AlphanumericText(50));
         PaymentsAPI.ImportPayout(JPayout);
         LibraryAssert.IsTrue(Payout.Get(Id), 'Payout should be created');
         LibraryAssert.AreEqual('', Payout."Shop Code", 'Shop Code should initially be blank');
@@ -56,38 +56,6 @@ codeunit 139566 "Shpfy Payments Test"
         // [THEN] The Shop Code is backfilled on the existing record
         Payout.Get(Id);
         LibraryAssert.AreEqual(Shop.Code, Payout."Shop Code", 'Shop Code should be backfilled on existing payout');
-    end;
-
-    local procedure GetRandomPayout(Id: BigInteger): JsonObject
-    var
-        JPayout: JsonObject;
-        JNet: JsonObject;
-        JSummary: JsonObject;
-        JAmount: JsonObject;
-        PayoutGidTxt: Label 'gid://shopify/ShopifyPaymentsPayout/%1', Comment = '%1 = id', Locked = true;
-    begin
-        JPayout.Add('id', StrSubstNo(PayoutGidTxt, Id));
-        JPayout.Add('status', 'SCHEDULED');
-        JPayout.Add('issuedAt', Format(Today, 0, 9));
-        JNet.Add('amount', Any.DecimalInRange(1000, 2));
-        JNet.Add('currencyCode', 'USD');
-        JPayout.Add('net', JNet);
-
-        // Add summary with fee/gross amounts
-        JAmount.Add('amount', 0);
-        JSummary.Add('adjustmentsFee', JAmount);
-        JSummary.Add('adjustmentsGross', JAmount);
-        JSummary.Add('chargesFee', JAmount);
-        JSummary.Add('chargesGross', JAmount);
-        JSummary.Add('refundsFee', JAmount);
-        JSummary.Add('refundsFeeGross', JAmount);
-        JSummary.Add('reservedFundsFee', JAmount);
-        JSummary.Add('reservedFundsGross', JAmount);
-        JSummary.Add('retriedPayoutsFee', JAmount);
-        JSummary.Add('retriedPayoutsGross', JAmount);
-        JPayout.Add('summary', JSummary);
-
-        exit(JPayout);
     end;
 
     [Test]
