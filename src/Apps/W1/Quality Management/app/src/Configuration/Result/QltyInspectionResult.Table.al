@@ -335,4 +335,45 @@ table 20411 "Qlty. Inspection Result"
                 exit(Format(RowStyle::None));
         end;
     end;
+
+    /// <summary>
+    /// Sets the default evaluation sequence for a new record.
+    /// </summary>
+    internal procedure SetDefaultEvaluationSequence()
+    var
+        ExistingQltyInspectionResult: Record "Qlty. Inspection Result";
+    begin
+        ExistingQltyInspectionResult.SetCurrentKey("Evaluation Sequence");
+        ExistingQltyInspectionResult.Ascending(false);
+        if not ExistingQltyInspectionResult.FindFirst() then
+            Rec."Evaluation Sequence" := 0
+        else
+            Rec."Evaluation Sequence" := ExistingQltyInspectionResult."Evaluation Sequence" + 1;
+    end;
+
+    /// <summary>
+    /// Validates that the evaluation sequence is not used by another result.
+    /// </summary>
+    internal procedure ValidateEvaluationSequenceNotUsedElsewhere()
+    var
+        ExistingQltyInspectionResult: Record "Qlty. Inspection Result";
+        MustChangePriorityErr: Label 'Evaluation Sequence must be unique, you cannot have two results with the same evaluation sequence. Result [%1/%2] already has the same evaluation sequence.', Comment = '%1=The result code, %2=the result condition';
+    begin
+        ExistingQltyInspectionResult.SetFilter(Code, '<>%1', Rec.Code);
+        ExistingQltyInspectionResult.SetRange("Evaluation Sequence", Rec."Evaluation Sequence");
+        ExistingQltyInspectionResult.SetLoadFields(Description);
+        if ExistingQltyInspectionResult.FindFirst() then
+            Error(MustChangePriorityErr, ExistingQltyInspectionResult.Code, ExistingQltyInspectionResult.Description);
+    end;
+
+    /// <summary>
+    /// Updates tests, templates, and inspections with result changes.
+    /// Adds newly created results to existing quality tests and templates, adjusts evaluation sequences, and updates promoted results.
+    /// </summary>
+    procedure UpdateTestsTemplatesAndInspections()
+    var
+        QltyResultConditionMgmt2: Codeunit "Qlty. Result Condition Mgmt.";
+    begin
+        QltyResultConditionMgmt2.CopyGradeConditionsFromDefaultToAllTemplates();
+    end;
 }
