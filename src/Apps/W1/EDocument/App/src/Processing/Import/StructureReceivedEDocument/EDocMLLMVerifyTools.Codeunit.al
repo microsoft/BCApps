@@ -14,11 +14,7 @@ codeunit 6311 "E-Doc. MLLM Verify Tools"
     var
         Expected: Decimal;
         ImpliedGrossPrice: Decimal;
-        LineMathErrLbl: Label '%1 × %2 × (1 − %3/100) = %4, but line_extension_amount = %5. ' +
-            'To fix: if discount_pct %3 is correct, the gross unit_price should be ≈ %6 (= %5 / (%2 × (1 − %3/100))). ' +
-            'Look for a higher unit price column on the document and use that as price_amount. ' +
-            'If the document shows chained discounts (e.g. two columns both showing 20%%), combine them: effective_discount = 1 − (1−d1/100) × (1−d2/100).',
-            Comment = '%1=UnitPrice, %2=Quantity, %3=DiscountPct, %4=Expected, %5=LineExtensionAmount, %6=ImpliedGrossPrice';
+        LineMathErrLbl: Label '%1 × %2 × (1 − %3/100) = %4, but line_extension_amount = %5. If discount_pct = %3 is correct, unit_price should be ≈ %6. Verify that unit_price is the pre-discount price and that discount_pct is the combined effective discount.', Comment = '%1=UnitPrice, %2=Quantity, %3=DiscountPct, %4=Expected, %5=LineExtensionAmount, %6=ImpliedGrossPrice';
     begin
         if LineExtensionAmount = 0 then
             exit(true);
