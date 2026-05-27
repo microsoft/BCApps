@@ -43,6 +43,11 @@ page 20445 "Qlty. Test Lookup"
                 {
                     AboutTitle = 'Test Value Type';
                     AboutText = 'Specifies the data type of the values you can enter or select for this test. Use Decimal for numerical measurements. Use Choice to give a list of options to choose from. If you want to choose options from an existing table, use Table Lookup.';
+
+                    trigger OnValidate()
+                    begin
+                        UpdateRowData();
+                    end;
                 }
                 field("Allowable Values"; Rec."Allowable Values")
                 {
@@ -75,7 +80,7 @@ page 20445 "Qlty. Test Lookup"
                     AboutTitle = 'Result Condition Expression';
                     AboutText = 'The passing condition for this result. If you had a result of Pass being 80 to 100, you would then configure 80..100 here.';
                     Visible = Visible1;
-                    Editable = Visible1;
+                    Editable = Editable1;
 
                     trigger OnValidate()
                     begin
@@ -89,7 +94,7 @@ page 20445 "Qlty. Test Lookup"
                     AboutTitle = 'Result Condition Description';
                     AboutText = 'A description for people of this result condition. If you had a result of Pass being 80 to 100, you would put in text describing this. This text will be visible when recording inspections and will show up on the Certificate of Analysis.';
                     Visible = Visible1;
-                    Editable = Visible1;
+                    Editable = Editable1;
 
                     trigger OnValidate()
                     begin
@@ -103,7 +108,7 @@ page 20445 "Qlty. Test Lookup"
                     AboutTitle = 'Result Condition Expression';
                     AboutText = 'The passing condition for this result. If you had a result of Pass being 80 to 100, you would then configure 80..100 here.';
                     Visible = Visible2;
-                    Editable = Visible2;
+                    Editable = Editable2;
 
                     trigger OnValidate()
                     begin
@@ -117,7 +122,7 @@ page 20445 "Qlty. Test Lookup"
                     AboutTitle = 'Result Condition Description';
                     AboutText = 'A description for people of this result condition. If you had a result of Pass being 80 to 100, you would put in text describing this. This text will be visible when recording inspections and will show up on the Certificate of Analysis.';
                     Visible = Visible2;
-                    Editable = Visible2;
+                    Editable = Editable2;
 
                     trigger OnValidate()
                     begin
@@ -131,7 +136,7 @@ page 20445 "Qlty. Test Lookup"
                     AboutTitle = 'Result Condition Expression';
                     AboutText = 'The passing condition for this result. If you had a result of Pass being 80 to 100, you would then configure 80..100 here.';
                     Visible = Visible3;
-                    Editable = Visible3;
+                    Editable = Editable3;
 
                     trigger OnValidate()
                     begin
@@ -141,11 +146,11 @@ page 20445 "Qlty. Test Lookup"
                 field(Field3_Desc; MatrixArrayConditionDescriptionCellData[3])
                 {
                     CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[3]);
-                    Editable = true;
                     ToolTip = 'Specifies a description for people of this result condition. If you had a result of Pass being 80 to 100, you would put in text describing this. This text will be visible when recording inspections and will show up on the Certificate of Analysis.';
                     AboutTitle = 'Result Condition Description';
                     AboutText = 'A description for people of this result condition. If you had a result of Pass being 80 to 100, you would put in text describing this. This text will be visible when recording inspections and will show up on the Certificate of Analysis.';
                     Visible = Visible3;
+                    Editable = Editable3;
 
                     trigger OnValidate()
                     begin
@@ -157,7 +162,7 @@ page 20445 "Qlty. Test Lookup"
                     CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[4]);
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 4.';
                     Visible = Visible4;
-                    Editable = Visible4;
+                    Editable = Editable4;
 
                     trigger OnValidate()
                     begin
@@ -169,7 +174,7 @@ page 20445 "Qlty. Test Lookup"
                     CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[4]);
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 4.';
                     Visible = Visible4;
-                    Editable = Visible4;
+                    Editable = Editable4;
 
                     trigger OnValidate()
                     begin
@@ -181,7 +186,7 @@ page 20445 "Qlty. Test Lookup"
                     CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[5]);
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 5.';
                     Visible = Visible5;
-                    Editable = Visible5;
+                    Editable = Editable5;
 
                     trigger OnValidate()
                     begin
@@ -193,7 +198,7 @@ page 20445 "Qlty. Test Lookup"
                     CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[5]);
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 5.';
                     Visible = Visible5;
-                    Editable = Visible5;
+                    Editable = Editable5;
 
                     trigger OnValidate()
                     begin
@@ -205,7 +210,7 @@ page 20445 "Qlty. Test Lookup"
                     CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[6]);
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 6.';
                     Visible = Visible6;
-                    Editable = Visible6;
+                    Editable = Editable6;
 
                     trigger OnValidate()
                     begin
@@ -217,7 +222,7 @@ page 20445 "Qlty. Test Lookup"
                     CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[6]);
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 6.';
                     Visible = Visible6;
-                    Editable = Visible6;
+                    Editable = Editable6;
 
                     trigger OnValidate()
                     begin
@@ -229,7 +234,7 @@ page 20445 "Qlty. Test Lookup"
                     CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[7]);
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 7.';
                     Visible = Visible7;
-                    Editable = Visible7;
+                    Editable = Editable7;
 
                     trigger OnValidate()
                     begin
@@ -241,7 +246,7 @@ page 20445 "Qlty. Test Lookup"
                     CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[7]);
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 7.';
                     Visible = Visible7;
-                    Editable = Visible7;
+                    Editable = Editable7;
 
                     trigger OnValidate()
                     begin
@@ -253,7 +258,7 @@ page 20445 "Qlty. Test Lookup"
                     CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[8]);
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 8.';
                     Visible = Visible8;
-                    Editable = Visible8;
+                    Editable = Editable8;
 
                     trigger OnValidate()
                     begin
@@ -265,7 +270,7 @@ page 20445 "Qlty. Test Lookup"
                     CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[8]);
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 8.';
                     Visible = Visible8;
-                    Editable = Visible8;
+                    Editable = Editable8;
 
                     trigger OnValidate()
                     begin
@@ -277,7 +282,7 @@ page 20445 "Qlty. Test Lookup"
                     CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[9]);
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 9.';
                     Visible = Visible9;
-                    Editable = Visible9;
+                    Editable = Editable9;
 
                     trigger OnValidate()
                     begin
@@ -289,7 +294,7 @@ page 20445 "Qlty. Test Lookup"
                     CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[9]);
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 9.';
                     Visible = Visible9;
-                    Editable = Visible9;
+                    Editable = Editable9;
 
                     trigger OnValidate()
                     begin
@@ -301,7 +306,7 @@ page 20445 "Qlty. Test Lookup"
                     CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[10]);
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 10.';
                     Visible = Visible10;
-                    Editable = Visible10;
+                    Editable = Editable10;
 
                     trigger OnValidate()
                     begin
@@ -313,7 +318,7 @@ page 20445 "Qlty. Test Lookup"
                     CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[10]);
                     ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 10.';
                     Visible = Visible10;
-                    Editable = Visible10;
+                    Editable = Editable10;
 
                     trigger OnValidate()
                     begin
@@ -385,36 +390,17 @@ page 20445 "Qlty. Test Lookup"
         MatrixArrayConditionCellData: array[10] of Text;
         MatrixArrayConditionDescriptionCellData: array[10] of Text;
         MatrixArrayCaptionSet: array[10] of Text;
-        MatrixVisibleState: array[10] of Boolean;
-        Visible1: Boolean;
-        Visible2: Boolean;
-        Visible3: Boolean;
-        Visible4: Boolean;
-        Visible5: Boolean;
-        Visible6: Boolean;
-        Visible7: Boolean;
-        Visible8: Boolean;
-        Visible9: Boolean;
-        Visible10: Boolean;
+        Visible1, Visible2, Visible3, Visible4, Visible5, Visible6, Visible7, Visible8, Visible9, Visible10 : Boolean;
+        Editable1, Editable2, Editable3, Editable4, Editable5, Editable6, Editable7, Editable8, Editable9, Editable10 : Boolean;
         IsAllowableValuesEditable: Boolean;
         DescriptionLbl: Label '%1 Description', Comment = '%1 = Matrix field caption';
         ConditionLbl: Label '%1 Condition', Comment = '%1 = Matrix field caption';
 
-    trigger OnAfterGetRecord()
+    trigger OnOpenPage()
+    var
+        MatrixVisibleState: array[10] of Boolean;
     begin
-        UpdateRowData();
-    end;
-
-    trigger OnAfterGetCurrRecord()
-    begin
-        UpdateRowData();
-    end;
-
-    local procedure UpdateRowData()
-    begin
-        IsAllowableValuesEditable := not (Rec."Test Value Type" in [Rec."Test Value Type"::"Value Type Table Lookup"]);
-
-        QltyResultConditionMgmt.GetPromotedResultsForTest(Rec, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, MatrixArrayCaptionSet, MatrixVisibleState);
+        QltyResultConditionMgmt.GetDefaultPromotedResults(true, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, MatrixArrayCaptionSet, MatrixVisibleState);
         Visible1 := MatrixVisibleState[1];
         Visible2 := MatrixVisibleState[2];
         Visible3 := MatrixVisibleState[3];
@@ -425,6 +411,31 @@ page 20445 "Qlty. Test Lookup"
         Visible8 := MatrixVisibleState[8];
         Visible9 := MatrixVisibleState[9];
         Visible10 := MatrixVisibleState[10];
+    end;
+
+    trigger OnAfterGetRecord()
+    begin
+        UpdateRowData();
+    end;
+
+    local procedure UpdateRowData()
+    var
+        DummyMatrixArrayCaptionSet: array[10] of Text;
+        DummyMatrixVisibleState: array[10] of Boolean;
+    begin
+        IsAllowableValuesEditable := not (Rec."Test Value Type" in [Rec."Test Value Type"::"Value Type Table Lookup"]);
+
+        QltyResultConditionMgmt.GetPromotedResultsForTest(Rec, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, DummyMatrixArrayCaptionSet, DummyMatrixVisibleState);
+        Editable1 := Visible1 and DummyMatrixVisibleState[1];
+        Editable2 := Visible2 and DummyMatrixVisibleState[2];
+        Editable3 := Visible3 and DummyMatrixVisibleState[3];
+        Editable4 := Visible4 and DummyMatrixVisibleState[4];
+        Editable5 := Visible5 and DummyMatrixVisibleState[5];
+        Editable6 := Visible6 and DummyMatrixVisibleState[6];
+        Editable7 := Visible7 and DummyMatrixVisibleState[7];
+        Editable8 := Visible8 and DummyMatrixVisibleState[8];
+        Editable9 := Visible9 and DummyMatrixVisibleState[9];
+        Editable10 := Visible10 and DummyMatrixVisibleState[10];
     end;
 
     local procedure UpdateMatrixDataCondition(MatrixField: Integer)

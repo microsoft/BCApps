@@ -263,37 +263,15 @@ page 20401 "Qlty. Tests"
         MatrixArrayConditionCellData: array[10] of Text;
         MatrixArrayConditionDescriptionCellData: array[10] of Text;
         MatrixArrayCaptionSet: array[10] of Text;
-        MatrixVisibleState: array[10] of Boolean;
-        Visible1: Boolean;
-        Visible2: Boolean;
-        Visible3: Boolean;
-        Visible4: Boolean;
-        Visible5: Boolean;
-        Visible6: Boolean;
-        Visible7: Boolean;
-        Visible8: Boolean;
-        Visible9: Boolean;
-        Visible10: Boolean;
+        Visible1, Visible2, Visible3, Visible4, Visible5, Visible6, Visible7, Visible8, Visible9, Visible10 : Boolean;
         DescriptionLbl: Label '%1 Description', Comment = '%1 = Matrix field caption';
         ConditionLbl: Label '%1 Condition', Comment = '%1 = Matrix field caption';
 
     trigger OnOpenPage()
+    var
+        MatrixVisibleState: array[10] of Boolean;
     begin
-    end;
-
-    trigger OnAfterGetRecord()
-    begin
-        UpdateRowData();
-    end;
-
-    trigger OnAfterGetCurrRecord()
-    begin
-        UpdateRowData();
-    end;
-
-    local procedure UpdateRowData()
-    begin
-        QltyResultConditionMgmt.GetPromotedResultsForTest(Rec, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, MatrixArrayCaptionSet, MatrixVisibleState);
+        QltyResultConditionMgmt.GetDefaultPromotedResults(true, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, MatrixArrayCaptionSet, MatrixVisibleState);
         Visible1 := MatrixVisibleState[1];
         Visible2 := MatrixVisibleState[2];
         Visible3 := MatrixVisibleState[3];
@@ -304,6 +282,19 @@ page 20401 "Qlty. Tests"
         Visible8 := MatrixVisibleState[8];
         Visible9 := MatrixVisibleState[9];
         Visible10 := MatrixVisibleState[10];
+    end;
+
+    trigger OnAfterGetRecord()
+    begin
+        UpdateRowData();
+    end;
+
+    local procedure UpdateRowData()
+    var
+        DummyMatrixArrayCaptionSet: array[10] of Text;
+        DummyMatrixVisibleState: array[10] of Boolean;
+    begin
+        QltyResultConditionMgmt.GetPromotedResultsForTest(Rec, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, DummyMatrixArrayCaptionSet, DummyMatrixVisibleState);
     end;
 
     local procedure UpdateMatrixDataCondition(Matrix: Integer)

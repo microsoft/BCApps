@@ -272,25 +272,14 @@ page 20407 "Qlty. Inspection Subform"
     }
 
     var
-        CachedReadOnlyQltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyResultConditionMgmt: Codeunit "Qlty. Result Condition Mgmt.";
         QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
         MatrixSourceRecordId: array[10] of RecordId;
         MatrixArrayConditionCellData: array[10] of Text;
         MatrixArrayConditionDescriptionCellData: array[10] of Text;
         MatrixArrayCaptionSet: array[10] of Text;
-        MatrixVisibleState: array[10] of Boolean;
         CanEditTestValue: Boolean;
-        Visible1: Boolean;
-        Visible2: Boolean;
-        Visible3: Boolean;
-        Visible4: Boolean;
-        Visible5: Boolean;
-        Visible6: Boolean;
-        Visible7: Boolean;
-        Visible8: Boolean;
-        Visible9: Boolean;
-        Visible10: Boolean;
+        Visible1, Visible2, Visible3, Visible4, Visible5, Visible6, Visible7, Visible8, Visible9, Visible10 : Boolean;
         CanEditLineNotes: Boolean;
         ShowUnitOfMeasure: Boolean;
         ResultStyleExpr: Text;
@@ -302,8 +291,22 @@ page 20407 "Qlty. Inspection Subform"
         ConditionLbl: Label '%1 Condition', Comment = '%1 = Matrix field caption';
 
     trigger OnOpenPage()
+    var
+        MatrixVisibleState: array[10] of Boolean;
     begin
         CanEditLineNotes := QltyPermissionMgmt.CanEditLineComments() and CurrPage.Editable();
+
+        QltyResultConditionMgmt.GetDefaultPromotedResults(true, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, MatrixArrayCaptionSet, MatrixVisibleState);
+        Visible1 := MatrixVisibleState[1];
+        Visible2 := MatrixVisibleState[2];
+        Visible3 := MatrixVisibleState[3];
+        Visible4 := MatrixVisibleState[4];
+        Visible5 := MatrixVisibleState[5];
+        Visible6 := MatrixVisibleState[6];
+        Visible7 := MatrixVisibleState[7];
+        Visible8 := MatrixVisibleState[8];
+        Visible9 := MatrixVisibleState[9];
+        Visible10 := MatrixVisibleState[10];
     end;
 
     trigger OnFindRecord(Which: Text): Boolean
@@ -336,33 +339,30 @@ page 20407 "Qlty. Inspection Subform"
         QltySessionHelper: Codeunit "Qlty. Session Helper";
     begin
         QltySessionHelper.SetSessionValue(CurrentSelectedInspectionLineTok, Format(Rec.RecordId()));
-        UpdateRowData();
     end;
 
     local procedure UpdateRowData()
+    var
+        DummyMatrixArrayCaptionSet: array[10] of Text;
+        DummyMatrixVisibleState: array[10] of Boolean;
+        Index: Integer;
     begin
         MeasurementNote := Rec.GetMeasurementNote();
-
-        if (CachedReadOnlyQltyInspectionHeader."No." <> Rec."Inspection No.") or (CachedReadOnlyQltyInspectionHeader."Re-inspection No." <> CachedReadOnlyQltyInspectionHeader."Re-inspection No.") then begin
-            CachedReadOnlyQltyInspectionHeader.ReadIsolation(IsolationLevel::ReadUncommitted);
-            if CachedReadOnlyQltyInspectionHeader.Get(Rec."Inspection No.", Rec."Re-inspection No.") then;
-        end;
 
         Rec.CalcFields("Test Value Type");
         CanEditTestValue := GetCanEditTestValue();
 
-        QltyResultConditionMgmt.GetPromotedResultsForInspectionLine(Rec, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, MatrixArrayCaptionSet, MatrixVisibleState);
+        if Rec."Test Value Type" = Rec."Test Value Type"::"Value Type Label" then begin
+            // Preserve page-wide captions; only clear per-row data for label rows.
+            for Index := 1 to ArrayLen(MatrixArrayConditionCellData) do begin
+                Clear(MatrixSourceRecordId[Index]);
+                Clear(MatrixArrayConditionCellData[Index]);
+                Clear(MatrixArrayConditionDescriptionCellData[Index]);
+            end;
+            exit;
+        end;
 
-        Visible1 := MatrixVisibleState[1];
-        Visible2 := MatrixVisibleState[2];
-        Visible3 := MatrixVisibleState[3];
-        Visible4 := MatrixVisibleState[4];
-        Visible5 := MatrixVisibleState[5];
-        Visible6 := MatrixVisibleState[6];
-        Visible7 := MatrixVisibleState[7];
-        Visible8 := MatrixVisibleState[8];
-        Visible9 := MatrixVisibleState[9];
-        Visible10 := MatrixVisibleState[10];
+        QltyResultConditionMgmt.GetPromotedResultsForInspectionLine(Rec, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, DummyMatrixArrayCaptionSet, DummyMatrixVisibleState);
     end;
 
     local procedure GetCanEditTestValue() Result: Boolean
