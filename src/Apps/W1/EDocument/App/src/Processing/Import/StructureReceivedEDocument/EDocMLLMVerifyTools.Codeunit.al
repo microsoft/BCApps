@@ -33,11 +33,11 @@ codeunit 6311 "E-Doc. MLLM Verify Tools"
         exit(false);
     end;
 
-    procedure VerifyInvoiceTotals(LineAmounts: List of [Decimal]; TaxExclusiveAmount: Decimal; var ErrorText: Text): Boolean
+    procedure VerifyInvoiceTotals(LineAmounts: List of [Decimal]; TaxExclusiveAmount: Decimal; AllowanceTotalAmount: Decimal; var ErrorText: Text): Boolean
     var
         LineAmount: Decimal;
         SumOfLines: Decimal;
-        InvoiceTotalsErrLbl: Label 'Sum of line_extension_amounts = %1, but tax_exclusive_amount = %2. Check for missing or duplicated lines.', Comment = '%1=SumOfLines, %2=TaxExclusiveAmount';
+        InvoiceTotalsErrLbl: Label 'Sum of lines (%1) minus header discount (%2) = %3, but tax_exclusive_amount = %4. Check for missing lines or incorrect header discount.', Comment = '%1=SumOfLines, %2=AllowanceTotalAmount, %3=Net, %4=TaxExclusiveAmount';
     begin
         if TaxExclusiveAmount = 0 then
             exit(true);
@@ -46,10 +46,10 @@ codeunit 6311 "E-Doc. MLLM Verify Tools"
         foreach LineAmount in LineAmounts do
             SumOfLines += LineAmount;
 
-        if IsWithinTolerance(SumOfLines, TaxExclusiveAmount) then
+        if IsWithinTolerance(SumOfLines - AllowanceTotalAmount, TaxExclusiveAmount) then
             exit(true);
 
-        ErrorText := StrSubstNo(InvoiceTotalsErrLbl, SumOfLines, TaxExclusiveAmount);
+        ErrorText := StrSubstNo(InvoiceTotalsErrLbl, Round(SumOfLines, 0.01), AllowanceTotalAmount, Round(SumOfLines - AllowanceTotalAmount, 0.01), TaxExclusiveAmount);
         exit(false);
     end;
 
@@ -140,27 +140,9 @@ codeunit 6311 "E-Doc. MLLM Verify Tools"
     var
         i: Integer;
         Value: Decimal;
-        NegativeQtyErrLbl: Label 'Line %1: quantity %2 must be greater than 0.', Comment = '%1=LineIndex, %2=Value';
-        NonPositivePriceErrLbl: Label 'Line %1: unit price %2 must be greater than 0.', Comment = '%1=LineIndex, %2=Value';
         VATRateRangeErrLbl: Label 'Line %1: VAT rate %2 is outside the range 0–100.', Comment = '%1=LineIndex, %2=Value';
         DiscountRangeErrLbl: Label 'Line %1: discount %2 is outside the range 0–100.', Comment = '%1=LineIndex, %2=Value';
     begin
-        for i := 1 to Quantities.Count() do begin
-            Quantities.Get(i, Value);
-            if Value <= 0 then begin
-                ErrorText := StrSubstNo(NegativeQtyErrLbl, i, Value);
-                exit(false);
-            end;
-        end;
-
-        for i := 1 to Prices.Count() do begin
-            Prices.Get(i, Value);
-            if Value <= 0 then begin
-                ErrorText := StrSubstNo(NonPositivePriceErrLbl, i, Value);
-                exit(false);
-            end;
-        end;
-
         for i := 1 to VATRates.Count() do begin
             VATRates.Get(i, Value);
             if (Value < 0) or (Value > 100) then begin
@@ -178,6 +160,20 @@ codeunit 6311 "E-Doc. MLLM Verify Tools"
         end;
 
         exit(true);
+    end;
+
+    procedure VerifyPayable(TaxExclusiveAmount: Decimal; TaxAmount: Decimal; PayableAmount: Decimal; var ErrorText: Text): Boolean
+    var
+        Expected: Decimal;
+        PayableErrLbl: Label '%1 (tax_exclusive) + %2 (tax_amount) = %3, but payable_amount = %4.', Comment = '%1=TaxExclusiveAmount, %2=TaxAmount, %3=Expected, %4=PayableAmount';
+    begin
+        if PayableAmount = 0 then
+            exit(true);
+        Expected := TaxExclusiveAmount + TaxAmount;
+        if IsWithinTolerance(Expected, PayableAmount) then
+            exit(true);
+        ErrorText := StrSubstNo(PayableErrLbl, TaxExclusiveAmount, TaxAmount, Round(Expected, 0.01), PayableAmount);
+        exit(false);
     end;
 
     procedure IsWithinTolerance(Expected: Decimal; Actual: Decimal): Boolean

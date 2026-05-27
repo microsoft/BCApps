@@ -31,8 +31,10 @@ codeunit 6313 "E-Doc. MLLM VL Totals Tool" implements "AOAI Function"
         PropObj.Add('type', 'array'); PropObj.Add('items', ItemsObj); PropObj.Add('description', 'All line_extension_amount values');
         PropsObj.Add('line_amounts', PropObj); Clear(PropObj);
         PropObj.Add('type', 'number'); PropObj.Add('description', 'tax_exclusive_amount from legal_monetary_total');
-        PropsObj.Add('tax_exclusive_amount', PropObj);
-        RequiredArr.Add('line_amounts'); RequiredArr.Add('tax_exclusive_amount');
+        PropsObj.Add('tax_exclusive_amount', PropObj); Clear(PropObj);
+        PropObj.Add('type', 'number'); PropObj.Add('description', 'allowance_total_amount from legal_monetary_total (header-level discount, 0 if none)');
+        PropsObj.Add('allowance_total_amount', PropObj);
+        RequiredArr.Add('line_amounts'); RequiredArr.Add('tax_exclusive_amount'); RequiredArr.Add('allowance_total_amount');
         ParamsObj.Add('type', 'object'); ParamsObj.Add('properties', PropsObj); ParamsObj.Add('required', RequiredArr);
         FunctionObj.Add('name', GetName());
         FunctionObj.Add('description', 'Verify that the sum of all line_extension_amounts matches tax_exclusive_amount within 1%.');
@@ -52,6 +54,7 @@ codeunit 6313 "E-Doc. MLLM VL Totals Tool" implements "AOAI Function"
         LineToken: JsonToken;
         LineAmounts: List of [Decimal];
         TaxExclusiveAmount: Decimal;
+        AllowanceTotalAmount: Decimal;
         DecimalValue: Decimal;
         Token: JsonToken;
         Passed: Boolean;
@@ -65,7 +68,9 @@ codeunit 6313 "E-Doc. MLLM VL Totals Tool" implements "AOAI Function"
         if Arguments.Get('tax_exclusive_amount', Token) then
             if Evaluate(DecimalValue, Token.AsValue().AsText(), 9) then
                 TaxExclusiveAmount := DecimalValue;
-        Passed := VerifyTools.VerifyInvoiceTotals(LineAmounts, TaxExclusiveAmount, ErrorText);
+        if Arguments.Get('allowance_total_amount', Token) then
+            if Evaluate(DecimalValue, Token.AsValue().AsText(), 9) then AllowanceTotalAmount := DecimalValue;
+        Passed := VerifyTools.VerifyInvoiceTotals(LineAmounts, TaxExclusiveAmount, AllowanceTotalAmount, ErrorText);
         if Passed then
             ResultObj.Add('pass', true)
         else begin

@@ -95,7 +95,7 @@ codeunit 135648 "EDoc MLLM Verify Tools Tests"
         LineAmounts.Add(200);
         LineAmounts.Add(30);
         LineAmounts.Add(20);
-        Result := EDocMLLMVerifyTools.VerifyInvoiceTotals(LineAmounts, 250, ErrorText);
+        Result := EDocMLLMVerifyTools.VerifyInvoiceTotals(LineAmounts, 250, 0, ErrorText);
         Assert.IsTrue(Result, 'Expected VerifyInvoiceTotals to pass when sum matches');
         Assert.AreEqual('', ErrorText, 'ErrorText should be empty on pass');
     end;
@@ -110,9 +110,21 @@ codeunit 135648 "EDoc MLLM Verify Tools Tests"
     begin
         // [SCENARIO] [200] sums to 200, tax_exclusive_amount = 250 → fail (missing lines)
         LineAmounts.Add(200);
-        Result := EDocMLLMVerifyTools.VerifyInvoiceTotals(LineAmounts, 250, ErrorText);
+        Result := EDocMLLMVerifyTools.VerifyInvoiceTotals(LineAmounts, 250, 0, ErrorText);
         Assert.IsFalse(Result, 'Expected VerifyInvoiceTotals to fail when sum does not match');
         Assert.AreNotEqual('', ErrorText, 'ErrorText should be non-empty on fail');
+    end;
+
+    [Test]
+    procedure VerifyInvoiceTotals_Pass_WithHeaderDiscount()
+    var
+        VerifyTools: Codeunit "E-Doc. MLLM Verify Tools";
+        Lines: List of [Decimal];
+        ErrorText: Text;
+    begin
+        // [200, 30, 20] = 250, minus 10 header discount = 240 = tax_exclusive_amount
+        Lines.Add(200); Lines.Add(30); Lines.Add(20);
+        Assert.IsTrue(VerifyTools.VerifyInvoiceTotals(Lines, 240, 10, ErrorText), ErrorText);
     end;
 
     // VerifyVAT tests
@@ -290,25 +302,15 @@ codeunit 135648 "EDoc MLLM Verify Tools Tests"
     end;
 
     [Test]
-    procedure VerifyRanges_Fail_NegativeQty()
+    procedure VerifyRanges_Pass_NegativeQty()
     var
-        EDocMLLMVerifyTools: Codeunit "E-Doc. MLLM Verify Tools";
+        VerifyTools: Codeunit "E-Doc. MLLM Verify Tools";
+        Qtys, Prices, VATRates, DiscPcts : List of [Decimal];
         ErrorText: Text;
-        Quantities: List of [Decimal];
-        Prices: List of [Decimal];
-        VATRates: List of [Decimal];
-        DiscountPcts: List of [Decimal];
-        Result: Boolean;
     begin
-        // [SCENARIO] qty=-1 → fail, ErrorText contains 'quantity'
-        Quantities.Add(-1);
-        Prices.Add(40);
-        VATRates.Add(15);
-        DiscountPcts.Add(0);
-        Result := EDocMLLMVerifyTools.VerifyRanges(Quantities, Prices, VATRates, DiscountPcts, ErrorText);
-        Assert.IsFalse(Result, 'Expected VerifyRanges to fail for negative quantity');
-        Assert.AreNotEqual('', ErrorText, 'ErrorText should be non-empty on fail');
-        Assert.IsTrue(ErrorText.ToLower().Contains('quantity'), 'ErrorText should mention quantity');
+        // Negative qty is valid for credit/return lines
+        Qtys.Add(-1); Prices.Add(40); VATRates.Add(15); DiscPcts.Add(0);
+        Assert.IsTrue(VerifyTools.VerifyRanges(Qtys, Prices, VATRates, DiscPcts, ErrorText), ErrorText);
     end;
 
     [Test]
@@ -331,6 +333,37 @@ codeunit 135648 "EDoc MLLM Verify Tools Tests"
         Assert.IsFalse(Result, 'Expected VerifyRanges to fail for discount > 100');
         Assert.AreNotEqual('', ErrorText, 'ErrorText should be non-empty on fail');
         Assert.IsTrue(ErrorText.ToLower().Contains('discount'), 'ErrorText should mention discount');
+    end;
+
+    // VerifyPayable tests
+
+    [Test]
+    procedure VerifyPayable_Pass()
+    var
+        VerifyTools: Codeunit "E-Doc. MLLM Verify Tools";
+        ErrorText: Text;
+    begin
+        // 250 + 37.5 = 287.5
+        Assert.IsTrue(VerifyTools.VerifyPayable(250, 37.5, 287.5, ErrorText), ErrorText);
+    end;
+
+    [Test]
+    procedure VerifyPayable_Fail()
+    var
+        VerifyTools: Codeunit "E-Doc. MLLM Verify Tools";
+        ErrorText: Text;
+    begin
+        Assert.IsFalse(VerifyTools.VerifyPayable(250, 37.5, 300, ErrorText), 'Should fail');
+        Assert.AreNotEqual('', ErrorText, 'ErrorText should be set');
+    end;
+
+    [Test]
+    procedure VerifyPayable_Skip_ZeroPayable()
+    var
+        VerifyTools: Codeunit "E-Doc. MLLM Verify Tools";
+        ErrorText: Text;
+    begin
+        Assert.IsTrue(VerifyTools.VerifyPayable(250, 37.5, 0, ErrorText), ErrorText);
     end;
 
     // IsWithinTolerance tests (testing internal method via public exposure)
