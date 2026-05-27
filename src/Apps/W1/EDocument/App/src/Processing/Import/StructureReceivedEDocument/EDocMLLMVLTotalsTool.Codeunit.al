@@ -44,6 +44,7 @@ codeunit 6313 "E-Doc. MLLM VL Totals Tool" implements "AOAI Function"
     procedure Execute(Arguments: JsonObject): Variant
     var
         VerifyTools: Codeunit "E-Doc. MLLM Verify Tools";
+        ExtractionPlan: Codeunit "E-Doc. MLLM Extraction Plan";
         ResultObj: JsonObject;
         ErrorText: Text;
         ResultText: Text;
@@ -54,6 +55,7 @@ codeunit 6313 "E-Doc. MLLM VL Totals Tool" implements "AOAI Function"
         TaxExclusiveAmount: Decimal;
         DecimalValue: Decimal;
         Token: JsonToken;
+        Passed: Boolean;
     begin
         if Arguments.Get('line_amounts', LineAmountsToken) then begin
             LineAmountsArray := LineAmountsToken.AsArray();
@@ -64,7 +66,10 @@ codeunit 6313 "E-Doc. MLLM VL Totals Tool" implements "AOAI Function"
         if Arguments.Get('tax_exclusive_amount', Token) then
             if Evaluate(DecimalValue, Token.AsValue().AsText(), 9) then
                 TaxExclusiveAmount := DecimalValue;
-        if VerifyTools.VerifyInvoiceTotals(LineAmounts, TaxExclusiveAmount, ErrorText) then
+        Passed := VerifyTools.VerifyInvoiceTotals(LineAmounts, TaxExclusiveAmount, ErrorText);
+        if ExtractionPlan.IsInitialized() then
+            ExtractionPlan.MarkItem('verify_invoice_totals', Passed, ErrorText);
+        if Passed then
             ResultObj.Add('pass', true)
         else begin
             ResultObj.Add('pass', false);

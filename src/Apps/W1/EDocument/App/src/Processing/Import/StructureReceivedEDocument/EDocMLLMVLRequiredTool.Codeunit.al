@@ -44,6 +44,7 @@ codeunit 6316 "E-Doc. MLLM VL Required Tool" implements "AOAI Function"
     procedure Execute(Arguments: JsonObject): Variant
     var
         VerifyTools: Codeunit "E-Doc. MLLM Verify Tools";
+        ExtractionPlan: Codeunit "E-Doc. MLLM Extraction Plan";
         ResultObj: JsonObject;
         ErrorText: Text;
         ResultText: Text;
@@ -52,13 +53,17 @@ codeunit 6316 "E-Doc. MLLM VL Required Tool" implements "AOAI Function"
         LineCount: Integer;
         Token: JsonToken;
         DecimalValue: Decimal;
+        Passed: Boolean;
     begin
         if Arguments.Get('vendor_name', Token) then VendorName := Token.AsValue().AsText();
         if Arguments.Get('invoice_no', Token) then InvoiceNo := Token.AsValue().AsText();
         if Arguments.Get('line_count', Token) then
             if Evaluate(DecimalValue, Token.AsValue().AsText(), 9) then
                 LineCount := Round(DecimalValue, 1);
-        if VerifyTools.VerifyRequiredFields(VendorName, InvoiceNo, LineCount, ErrorText) then
+        Passed := VerifyTools.VerifyRequiredFields(VendorName, InvoiceNo, LineCount, ErrorText);
+        if ExtractionPlan.IsInitialized() then
+            ExtractionPlan.MarkItem('verify_required_fields', Passed, ErrorText);
+        if Passed then
             ResultObj.Add('pass', true)
         else begin
             ResultObj.Add('pass', false);

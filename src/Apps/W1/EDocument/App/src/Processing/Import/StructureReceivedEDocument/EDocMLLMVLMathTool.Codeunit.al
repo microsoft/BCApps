@@ -26,6 +26,10 @@ codeunit 6339 "E-Doc. MLLM VL Math Tool" implements "AOAI Function"
         PropObj: JsonObject;
         RequiredArr: JsonArray;
     begin
+        PropObj.Add('type', 'string');
+        PropObj.Add('description', 'The id field of the invoice line being verified');
+        PropsObj.Add('line_id', PropObj);
+        Clear(PropObj);
         PropObj.Add('type', 'number');
         PropObj.Add('description', 'Gross unit price before discounts');
         PropsObj.Add('unit_price', PropObj);
@@ -41,6 +45,7 @@ codeunit 6339 "E-Doc. MLLM VL Math Tool" implements "AOAI Function"
         PropObj.Add('type', 'number');
         PropObj.Add('description', 'line_extension_amount from the invoice');
         PropsObj.Add('line_extension_amount', PropObj);
+        RequiredArr.Add('line_id');
         RequiredArr.Add('unit_price');
         RequiredArr.Add('quantity');
         RequiredArr.Add('discount_pct');
@@ -59,19 +64,26 @@ codeunit 6339 "E-Doc. MLLM VL Math Tool" implements "AOAI Function"
     procedure Execute(Arguments: JsonObject): Variant
     var
         VerifyTools: Codeunit "E-Doc. MLLM Verify Tools";
+        ExtractionPlan: Codeunit "E-Doc. MLLM Extraction Plan";
         ResultObj: JsonObject;
-        ErrorText: Text;
-        ResultText: Text;
-        UnitPrice: Decimal;
-        Quantity: Decimal;
-        DiscountPct: Decimal;
-        LineExtAmt: Decimal;
+        ErrorText, ResultText, LineId : Text;
+        UnitPrice, Quantity, DiscountPct, LineExtAmt : Decimal;
+        Token: JsonToken;
+        Passed: Boolean;
     begin
         GetDecimalArg(Arguments, 'unit_price', UnitPrice);
         GetDecimalArg(Arguments, 'quantity', Quantity);
         GetDecimalArg(Arguments, 'discount_pct', DiscountPct);
         GetDecimalArg(Arguments, 'line_extension_amount', LineExtAmt);
-        if VerifyTools.VerifyLineMath(UnitPrice, Quantity, DiscountPct, LineExtAmt, ErrorText) then
+        if Arguments.Get('line_id', Token) then
+            LineId := Token.AsValue().AsText();
+
+        Passed := VerifyTools.VerifyLineMath(UnitPrice, Quantity, DiscountPct, LineExtAmt, ErrorText);
+
+        if ExtractionPlan.IsInitialized() then
+            ExtractionPlan.MarkItem('verify_line_' + LineId, Passed, ErrorText);
+
+        if Passed then
             ResultObj.Add('pass', true)
         else begin
             ResultObj.Add('pass', false);

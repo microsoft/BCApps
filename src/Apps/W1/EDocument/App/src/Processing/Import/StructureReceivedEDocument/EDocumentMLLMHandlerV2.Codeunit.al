@@ -69,11 +69,16 @@ codeunit 6318 "E-Document MLLM Handler V2" implements IStructureReceivedEDocumen
         VerifyDatesTool: Codeunit "E-Doc. MLLM VL Dates Tool";
         VerifyRequiredTool: Codeunit "E-Doc. MLLM VL Required Tool";
         VerifyRangesTool: Codeunit "E-Doc. MLLM VL Ranges Tool";
+        ExtractionPlan: Codeunit "E-Doc. MLLM Extraction Plan";
+        PlanAnalyzeTool: Codeunit "E-Doc. MLLM Plan Analyze Tool";
+        PlanStatusTool: Codeunit "E-Doc. MLLM Plan Status Tool";
         FromTempBlob: Codeunit "Temp Blob";
         InStream: InStream;
         Base64Data: Text;
         ToolCallCount: Integer;
     begin
+        ExtractionPlan.Reset();
+
         // Load PDF as base64
         FromTempBlob := EDocumentDataStorage.GetTempBlob();
         FromTempBlob.CreateInStream(InStream, TextEncoding::UTF8);
@@ -96,6 +101,8 @@ codeunit 6318 "E-Document MLLM Handler V2" implements IStructureReceivedEDocumen
         AOAIChatMessages.AddTool(VerifyDatesTool);
         AOAIChatMessages.AddTool(VerifyRequiredTool);
         AOAIChatMessages.AddTool(VerifyRangesTool);
+        AOAIChatMessages.AddTool(PlanAnalyzeTool);
+        AOAIChatMessages.AddTool(PlanStatusTool);
         AOAIChatMessages.SetToolChoice('auto');
 
         // User message: PDF + UBL schema + security clause
