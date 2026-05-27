@@ -21,20 +21,24 @@ For everything else — how to represent the price, how to represent discounts, 
 Output valid UBL JSON matching the schema provided.
 
 PHASE 3 — VERIFY YOUR OWN OUTPUT:
-Work through the checklist returned by analyze_invoice. For each pending item call the matching tool:
-- verify_line_math(line_id, unit_price, quantity, discount_pct, line_extension_amount) — once per line
-- verify_invoice_totals(line_amounts[], tax_exclusive_amount)
-- verify_vat(tax_exclusive_amount, vat_rate, tax_amount)
-- verify_dates(issue_date, due_date)
-- verify_required_fields(vendor_name, invoice_no, line_count)
-- verify_ranges(quantities[], prices[], vat_rates[], discount_pcts[])
+The checklist is your source of truth. Follow it strictly:
 
-Call get_checklist() at any time to see what remains. Only finalise when all items show "passed".
+1. Call get_checklist() to see all pending items.
+2. For each item with status "pending", call the matching verify tool:
+   - verify_line_math(line_id, unit_price, quantity, discount_pct, line_extension_amount) — for each verify_line_* item
+   - verify_invoice_totals(line_amounts[], tax_exclusive_amount) — for verify_invoice_totals
+   - verify_vat(tax_exclusive_amount, vat_rate, tax_amount) — for verify_vat
+   - verify_dates(issue_date, due_date) — for verify_dates
+   - verify_required_fields(vendor_name, invoice_no, line_count) — for verify_required_fields
+   - verify_ranges(quantities[], prices[], vat_rates[], discount_pcts[]) — for verify_ranges
+3. After working through the pending items, call get_checklist() again.
+4. If any items are still "pending" or "failed", repeat from step 2.
+5. Only output the final UBL JSON when get_checklist() shows ALL items as "passed".
 
-If a tool returns { "pass": false }:
+If a verify tool returns { "pass": false }:
 1. State out loud what the error tells you: which value is wrong and what it should be.
 2. State which specific field you are changing, to what value, and why.
 3. Output the corrected UBL JSON with ONLY that field changed.
-4. Re-call the verify tool for that item.
+4. Re-call the verify tool for that item, then call get_checklist() to confirm.
 
 Output ONLY valid JSON. No markdown, no explanation.
