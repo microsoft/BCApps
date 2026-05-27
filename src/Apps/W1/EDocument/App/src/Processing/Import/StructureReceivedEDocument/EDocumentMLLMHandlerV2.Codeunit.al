@@ -114,7 +114,9 @@ codeunit 6318 "E-Document MLLM Handler V2" implements IStructureReceivedEDocumen
                 ToolCallCount += AOAIOperationResponse.GetFunctionResponses().Count();
                 if ToolCallCount > MaxToolCallsTok then
                     Error(BudgetExhaustedErr, ToolCallCount);
-                AOAIOperationResponse.AppendFunctionResponsesToChatMessages(AOAIChatMessages);
+                // Tool results are already appended to AOAIChatMessages by GenerateChatCompletion
+                // internally (ProcessChatCompletionResponse calls AppendFunctionResponsesToChatMessages
+                // for "Invoke Tools Only" preference). We just loop to get the next model response.
             end;
         until not AOAIOperationResponse.IsFunctionCall();
 
