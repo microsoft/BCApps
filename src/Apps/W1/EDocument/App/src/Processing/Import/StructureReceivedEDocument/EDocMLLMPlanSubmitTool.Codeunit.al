@@ -41,7 +41,11 @@ codeunit 6346 "E-Doc. MLLM Plan Submit Tool" implements "AOAI Function"
         Token: JsonToken;
         Json, ResultText : Text;
     begin
-        if Arguments.Get('json', Token) then Json := Token.AsValue().AsText();
+        if Arguments.Get('json', Token) then
+            if Token.IsObject() then
+                Token.WriteTo(Json)  // model passed the JSON as an object — serialize it
+            else
+                Json := Token.AsValue().AsText();  // model passed it as a string — use as-is
         ExtractionPlan.SetCurrentJson(Json);
         ResultObj.Add('status', 'saved');
         ResultObj.Add('checklist', ExtractionPlan.GetChecklistJson());
