@@ -919,6 +919,59 @@ codeunit 148160 "Service Comm. Dimensions"
         ResetDefaultDimensionPriority(SourceCodeSetup.Sales, Database::Customer);
     end;
 
+    [Test]
+    [HandlerFunctions('MessageHandler,ExchangeRateSelectionModalPageHandler')]
+    procedure RespectDefaultDimensionPrioritiesOnVendorContractCreation()
+    var
+        Vendor: Record Vendor;
+        VendorContract: Record "Vendor Subscription Contract";
+        DefaultDimension: Record "Default Dimension";
+        Dimension: Record Dimension;
+        VendorDimensionValue: Record "Dimension Value";
+        ItemDimensionValue: Record "Dimension Value";
+        Item: Record Item;
+        ServiceCommitment: Record "Subscription Line";
+        ServiceObject: Record "Subscription Header";
+        SourceCodeSetup: Record "Source Code Setup";
+    begin
+        // [SCENARIO #8084] Default Dimension Priorities are respected when a Vendor Subscription Contract spawns Subscription Lines
+        Initialize();
+
+        // [GIVEN] Default Dimension Priorities for source code "Purchases": Item = 1 (highest), Vendor = 2
+        SourceCodeSetup.Get();
+        SetDefaultDimensionPriority(SourceCodeSetup.Purchases, Database::Item, 1);
+        SetDefaultDimensionPriority(SourceCodeSetup.Purchases, Database::Vendor, 2);
+
+        // [GIVEN] A shared dimension with two distinct values for Vendor and Item
+        LibraryDimension.CreateDimension(Dimension);
+        LibraryDimension.CreateDimensionValue(VendorDimensionValue, Dimension.Code);
+        LibraryDimension.CreateDimensionValue(ItemDimensionValue, Dimension.Code);
+
+        // [GIVEN] Vendor carries that dimension with one value, Item with another
+        ContractTestLibrary.CreateVendor(Vendor);
+        LibraryDimension.CreateDefaultDimension(DefaultDimension, Database::Vendor, Vendor."No.", Dimension.Code, VendorDimensionValue.Code);
+        ContractTestLibrary.CreateItemForServiceObject(Item, false);
+        LibraryDimension.CreateDefaultDimension(DefaultDimension, Database::Item, Item."No.", Dimension.Code, ItemDimensionValue.Code);
+
+        // [GIVEN] A Service Object created from the Item with one vendor Subscription Line
+        ContractTestLibrary.CreateServiceObjectForItemWithServiceCommitments(ServiceObject, Enum::"Invoicing Via"::Contract, false, Item, 0, 1);
+        ServiceObject.SetHideValidationDialog(true);
+        ServiceObject.Modify(false);
+
+        // [WHEN] The Service Object is assigned to a Vendor Subscription Contract
+        ContractTestLibrary.CreateVendorContractAndCreateContractLinesForItems(VendorContract, ServiceObject, Vendor."No.");
+
+        // [THEN] The Subscription Line carries Item's dim value (Item priority outranks Vendor)
+        ServiceCommitment.SetRange("Subscription Header No.", ServiceObject."No.");
+        ServiceCommitment.SetRange(Partner, Enum::"Service Partner"::Vendor);
+        ServiceCommitment.FindFirst();
+        VerifyDimensionSetValue(ServiceCommitment."Dimension Set ID", Dimension.Code, ItemDimensionValue.Code);
+
+        // [CLEANUP] Reset the Default Dimension Priorities we added so subsequent tests run with vanilla settings
+        ResetDefaultDimensionPriority(SourceCodeSetup.Purchases, Database::Item);
+        ResetDefaultDimensionPriority(SourceCodeSetup.Purchases, Database::Vendor);
+    end;
+
     #endregion Tests
 
     #region Procedures
