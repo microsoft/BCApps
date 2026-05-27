@@ -386,17 +386,12 @@ page 6183 "E-Doc. Purchase Draft Subform"
         TotalEDocPurchaseLine: Record "E-Document Purchase Line";
         EDocumentImportHelper: Codeunit "E-Document Import Helper";
         LineSubtotal: Decimal;
-        DiscountExceedsSubtotalErr: Label 'Discount should not exceed the subtotal of the line';
     begin
         LineSubtotal := Rec.Quantity * Rec."Unit Price";
-        LineAmount := LineSubtotal - Rec."Total Discount";
-        if LineSubtotal = 0 then begin
-            if Rec."Total Discount" > 0 then
-                Error(DiscountExceedsSubtotalErr)
-        end
+        if Rec."Total Discount" > LineSubtotal then
+            LineAmount := 0
         else
-            if Rec."Total Discount" / LineSubtotal > 1 then
-                Error(DiscountExceedsSubtotalErr);
+            LineAmount := LineSubtotal - Rec."Total Discount";
         if not UpdateParentRecord then
             exit;
         if not EDocumentPurchaseHeader.Get(Rec."E-Document Entry No.") then
