@@ -100,7 +100,6 @@ codeunit 7771 "Azure OpenAI"
     /// Endpoint would look like: https://resource-name.openai.azure.com/
     /// Deployment would look like: gpt-35-turbo-16k
     /// </remarks>
-    [NonDebuggable]
     [Obsolete('Using Managed AI resources now requires different input parameters. Use the other overload for SetManagedResourceAuthorization instead.', '26.0')]
     procedure SetManagedResourceAuthorization(ModelType: Enum "AOAI Model Type"; Endpoint: Text; Deployment: Text; ApiKey: SecretText; ManagedResourceDeployment: Text)
     begin
@@ -117,7 +116,6 @@ codeunit 7771 "Azure OpenAI"
     /// <param name="AOAIAccountName">Name of the Azure Open AI resource like "MyAzureOpenAIResource"</param>
     /// <param name="ApiKey">The API key to access the Azure Open AI resource. This is used only for verification of access, not for actual Azure Open AI calls.</param>
     /// <param name="ManagedResourceDeployment">The managed deployment to use for the model type.</param>
-    [NonDebuggable]
     [Obsolete('Using Managed AI resources now requires only Model Type & Deployment Text as input parameters. Use the other overload for SetManagedResourceAuthorization instead. AOAIAccountName & ApiKey are ignored in the current version of SetManagedResourceAuthorization.', '28.0')]
     procedure SetManagedResourceAuthorization(ModelType: Enum "AOAI Model Type"; AOAIAccountName: Text; ApiKey: SecretText; ManagedResourceDeployment: Text)
     begin
@@ -131,7 +129,6 @@ codeunit 7771 "Azure OpenAI"
     /// </summary>
     /// <param name="ModelType">The model type to set authorization for.</param>
     /// <param name="ManagedResourceDeployment">The managed deployment to use for the model type.</param>
-    [NonDebuggable]
     procedure SetManagedResourceAuthorization(ModelType: Enum "AOAI Model Type"; ManagedResourceDeployment: Text)
     begin
         AzureOpenAIImpl.SetManagedResourceAuthorization(ModelType, ManagedResourceDeployment);
@@ -147,7 +144,6 @@ codeunit 7771 "Azure OpenAI"
     /// <remarks>Endpoint would look like: https://resource-name.openai.azure.com/
     /// Deployment would look like: gpt-35-turbo-16k
     /// </remarks>
-    [NonDebuggable]
     procedure SetAuthorization(ModelType: Enum "AOAI Model Type"; Endpoint: Text; Deployment: Text; ApiKey: SecretText)
     begin
         AzureOpenAIImpl.SetAuthorization(ModelType, Endpoint, Deployment, ApiKey);
@@ -159,7 +155,6 @@ codeunit 7771 "Azure OpenAI"
     /// <param name="ModelType">The model type to set authorization for.</param>
     /// <param name="Deployment">The deployment name to use for the model type.</param>
     /// <remarks>Deployment would look like: gpt-35-turbo-16k</remarks>
-    [NonDebuggable]
     procedure SetAuthorization(ModelType: Enum "AOAI Model Type"; Deployment: Text)
     begin
         AzureOpenAIImpl.SetAuthorization(ModelType, Deployment);
@@ -173,7 +168,6 @@ codeunit 7771 "Azure OpenAI"
     /// <returns>The generated completion.</returns>
     /// <error>The completion authentication was not configured.</error>
     /// <error>The completion generation failed with status code %1.</error>
-    [NonDebuggable]
     procedure GenerateTextCompletion(Prompt: SecretText; var AOAIOperationResponse: Codeunit "AOAI Operation Response"): Text
     var
         CallerModuleInfo: ModuleInfo;
@@ -191,7 +185,6 @@ codeunit 7771 "Azure OpenAI"
     /// <returns>The generated completion.</returns>
     /// <error>The completion authentication was not configured.</error>
     /// <error>The completion generation failed with status code %1.</error>
-    [NonDebuggable]
     procedure GenerateTextCompletion(Prompt: SecretText; AOAICompletionParams: Codeunit "AOAI Text Completion Params"; var AOAIOperationResponse: Codeunit "AOAI Operation Response"): Text
     var
         CallerModuleInfo: ModuleInfo;
@@ -209,7 +202,6 @@ codeunit 7771 "Azure OpenAI"
     /// <returns>The generated completion.</returns>
     /// <error>The completion authentication was not configured.</error>
     /// <error>The completion generation failed with status code %1.</error>
-    [NonDebuggable]
     procedure GenerateTextCompletion(Metaprompt: SecretText; Prompt: SecretText; var AOAIOperationResponse: Codeunit "AOAI Operation Response"): Text
     var
         CallerModuleInfo: ModuleInfo;
@@ -228,7 +220,6 @@ codeunit 7771 "Azure OpenAI"
     /// <returns>The generated completion.</returns>
     /// <error>The completion authentication was not configured.</error>
     /// <error>The completion generation failed with status code %1.</error>
-    [NonDebuggable]
     procedure GenerateTextCompletion(Metaprompt: SecretText; Prompt: SecretText; AOAICompletionParams: Codeunit "AOAI Text Completion Params"; var AOAIOperationResponse: Codeunit "AOAI Operation Response"): Text
     var
         CallerModuleInfo: ModuleInfo;
@@ -246,7 +237,6 @@ codeunit 7771 "Azure OpenAI"
     /// <returns>The generated list of embeddings.</returns>
     /// <error>The embedding authentication was not configured.</error>
     /// <error>The embedding generation failed with status code %1.</error>
-    [NonDebuggable]
     procedure GenerateEmbeddings(Input: SecretText; var AOAIOperationResponse: Codeunit "AOAI Operation Response"): List of [Decimal]
     var
         CallerModuleInfo: ModuleInfo;
@@ -263,7 +253,6 @@ codeunit 7771 "Azure OpenAI"
     /// <returns>The generated chat completion.</returns>
     /// <error>The chat completion authentication was not configured.</error>
     /// <error>The chat completion generation failed with status code %1.</error>
-    [NonDebuggable]
     procedure GenerateChatCompletion(var AOAIChatMessages: Codeunit "AOAI Chat Messages"; var AOAIOperationResponse: Codeunit "AOAI Operation Response")
     var
         CallerModuleInfo: ModuleInfo;
@@ -281,7 +270,6 @@ codeunit 7771 "Azure OpenAI"
     /// <returns>The generated chat completion.</returns>
     /// <error>The chat completion authentication was not configured.</error>
     /// <error>The chat completion generation failed with status code %1.</error>
-    [NonDebuggable]
     procedure GenerateChatCompletion(var AOAIChatMessages: Codeunit "AOAI Chat Messages"; AOAIChatCompletionParams: Codeunit "AOAI Chat Completion Params"; var AOAIOperationResponse: Codeunit "AOAI Operation Response")
     var
         CallerModuleInfo: ModuleInfo;
@@ -294,7 +282,6 @@ codeunit 7771 "Azure OpenAI"
     /// Sets the copilot capability that the API is running for.
     /// </summary>
     /// <param name="CopilotCapability">The copilot capability to set.</param>
-    [NonDebuggable]
     procedure SetCopilotCapability(CopilotCapability: Enum "Copilot Capability")
     var
         CallerModuleInfo: ModuleInfo;

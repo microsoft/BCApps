@@ -146,7 +146,6 @@ codeunit 7762 "AOAI Chat Compl Params Impl"
         FrequencyPenalty := NewFrequencyPenalty;
     end;
 
-    [NonDebuggable]
     procedure AddChatCompletionsParametersToPayload(var Payload: JsonObject)
     begin
         if GetMaxTokens() > 0 then

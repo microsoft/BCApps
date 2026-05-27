@@ -89,7 +89,6 @@ codeunit 7779 "Azure DI Impl." implements "AI Service Name"
     end;
 
     [TryFunction]
-    [NonDebuggable]
     local procedure SendRequest(Base64Data: Text; ModelType: Enum "ADI Model Type"; CallerModuleInfo: ModuleInfo; var Result: Text)
     var
         ALCopilotFunctions: DotNet ALCopilotFunctions;

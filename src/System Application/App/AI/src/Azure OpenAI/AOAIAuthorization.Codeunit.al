@@ -16,19 +16,13 @@ codeunit 7767 "AOAI Authorization"
     InherentPermissions = X;
 
     var
-        [NonDebuggable]
         Endpoint: Text;
-        [NonDebuggable]
         Deployment: Text;
-        [NonDebuggable]
         ApiKey: SecretText;
-        [NonDebuggable]
         ManagedResourceDeployment: Text;
-        [NonDebuggable]
         AOAIAccountName: Text;
         ResourceUtilization: Enum "AOAI Resource Utilization";
 
-    [NonDebuggable]
     procedure IsConfigured(CallerModule: ModuleInfo): Boolean
     var
         CurrentModule: ModuleInfo;
@@ -49,7 +43,6 @@ codeunit 7767 "AOAI Authorization"
     end;
 
 #if not CLEAN26
-    [NonDebuggable]
     procedure SetMicrosoftManagedAuthorization(NewEndpoint: Text; NewDeployment: Text; NewApiKey: SecretText; NewManagedResourceDeployment: Text)
     begin
         ClearVariables();
@@ -62,7 +55,6 @@ codeunit 7767 "AOAI Authorization"
     end;
 #endif
 
-    [NonDebuggable]
     procedure SetMicrosoftManagedAuthorization(NewManagedResourceDeployment: Text)
     begin
         ClearVariables();
@@ -71,7 +63,6 @@ codeunit 7767 "AOAI Authorization"
         ManagedResourceDeployment := NewManagedResourceDeployment;
     end;
 
-    [NonDebuggable]
     procedure SetSelfManagedAuthorization(NewEndpoint: Text; NewDeployment: Text; NewApiKey: SecretText)
     begin
         ClearVariables();
@@ -82,7 +73,6 @@ codeunit 7767 "AOAI Authorization"
         ApiKey := NewApiKey;
     end;
 
-    [NonDebuggable]
     procedure SetFirstPartyAuthorization(NewDeployment: Text)
     begin
         ClearVariables();
@@ -91,25 +81,21 @@ codeunit 7767 "AOAI Authorization"
         ManagedResourceDeployment := NewDeployment;
     end;
 
-    [NonDebuggable]
     procedure GetEndpoint(): SecretText
     begin
         exit(Endpoint);
     end;
 
-    [NonDebuggable]
     procedure GetDeployment(): SecretText
     begin
         exit(Deployment);
     end;
 
-    [NonDebuggable]
     procedure GetApiKey(): SecretText
     begin
         exit(ApiKey);
     end;
 
-    [NonDebuggable]
     procedure GetManagedResourceDeployment(): SecretText
     begin
         exit(ManagedResourceDeployment);

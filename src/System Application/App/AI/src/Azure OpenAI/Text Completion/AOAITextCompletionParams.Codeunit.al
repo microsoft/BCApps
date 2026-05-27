@@ -135,7 +135,6 @@ codeunit 7765 "AOAI Text Completion Params"
     /// Add the completion parameters to the payload.
     /// </summary>
     /// <param name="Payload">The JsonObject payload to add the completion parameters to.</param>
-    [NonDebuggable]
     internal procedure AddCompletionsParametersToPayload(var Payload: JsonObject)
     begin
         AOAITextCompletionParamsImpl.AddCompletionsParametersToPayload(Payload);

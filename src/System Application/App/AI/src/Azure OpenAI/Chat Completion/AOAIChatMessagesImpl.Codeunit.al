@@ -21,17 +21,11 @@ codeunit 7764 "AOAI Chat Messages Impl"
         Initialized: Boolean;
         HistoryLength: Integer;
         SystemMessage: SecretText;
-        [NonDebuggable]
         History: List of [Text];
-        [NonDebuggable]
         HistoryRoles: List of [Enum "AOAI Chat Roles"];
-        [NonDebuggable]
         HistoryNames: List of [Text[2048]];
-        [NonDebuggable]
         HistoryToolCallIds: List of [Text];
-        [NonDebuggable]
         HistoryToolCalls: List of [JsonArray];
-        [NonDebuggable]
         HistoryUserMessages: List of [Codeunit "AOAI User Message"];
         IsSystemMessageSet: Boolean;
         MessageIdDoesNotExistErr: Label 'Message id does not exist.';
@@ -46,63 +40,54 @@ codeunit 7764 "AOAI Chat Messages Impl"
         IncompatibleModelErr: Label 'The current message history contains file content which is only compatible with the GPT-4.1 mini preview deployment.';
 
 
-    [NonDebuggable]
     procedure SetPrimarySystemMessage(NewPrimaryMessage: SecretText)
     begin
         SystemMessage := NewPrimaryMessage;
         IsSystemMessageSet := true;
     end;
 
-    [NonDebuggable]
     procedure AddSystemMessage(NewMessage: Text)
     begin
         Initialize();
         AddMessage(NewMessage, '', Enum::"AOAI Chat Roles"::System);
     end;
 
-    [NonDebuggable]
     procedure AddUserMessage(NewMessage: Text)
     begin
         Initialize();
         AddMessage(NewMessage, '', Enum::"AOAI Chat Roles"::User);
     end;
 
-    [NonDebuggable]
     procedure AddUserMessage(NewMessage: Text; NewName: Text[2048])
     begin
         Initialize();
         AddMessage(NewMessage, NewName, Enum::"AOAI Chat Roles"::User);
     end;
 
-    [NonDebuggable]
     procedure AddUserMessage(AOAIUserMessage: Codeunit "AOAI User Message")
     begin
         Initialize();
         AddMessage(AOAIUserMessage, '', Enum::"AOAI Chat Roles"::User);
     end;
 
-    [NonDebuggable]
     procedure AddUserMessage(AOAIUserMessage: Codeunit "AOAI User Message"; NewName: Text[2048])
     begin
         Initialize();
         AddMessage(AOAIUserMessage, NewName, Enum::"AOAI Chat Roles"::User);
     end;
 
-    [NonDebuggable]
     procedure AddAssistantMessage(NewMessage: Text)
     begin
         Initialize();
         AddMessage(NewMessage, '', Enum::"AOAI Chat Roles"::Assistant);
     end;
 
-    [NonDebuggable]
     procedure AddToolCalls(ToolCalls: JsonArray)
     begin
         Initialize();
         AddMessage(ToolCalls);
     end;
 
-    [NonDebuggable]
     procedure AddToolMessage(ToolCallId: Text; FunctionName: Text; FunctionResult: Text)
     var
         FunctionNameTruncated: Text[2048];
@@ -115,7 +100,6 @@ codeunit 7764 "AOAI Chat Messages Impl"
     end;
 
 
-    [NonDebuggable]
     procedure ModifyMessage(Id: Integer; NewMessage: Text; NewRole: Enum "AOAI Chat Roles"; NewName: Text[2048])
     begin
         if (Id < 1) or (Id > History.Count) then
@@ -126,7 +110,6 @@ codeunit 7764 "AOAI Chat Messages Impl"
         HistoryNames.Set(Id, NewName);
     end;
 
-    [NonDebuggable]
     procedure DeleteMessage(Id: Integer)
     begin
         if (Id < 1) or (Id > History.Count) then
@@ -139,49 +122,41 @@ codeunit 7764 "AOAI Chat Messages Impl"
         HistoryUserMessages.RemoveAt(Id);
     end;
 
-    [NonDebuggable]
     procedure GetHistory(): List of [Text]
     begin
         exit(History);
     end;
 
-    [NonDebuggable]
     procedure GetHistoryNames(): List of [Text[2048]]
     begin
         exit(HistoryNames);
     end;
 
-    [NonDebuggable]
     procedure GetHistoryRoles(): List of [Enum "AOAI Chat Roles"]
     begin
         exit(HistoryRoles);
     end;
 
-    [NonDebuggable]
     procedure GetHistoryToolCallIds(): List of [Text]
     begin
         exit(HistoryToolCallIds);
     end;
 
-    [NonDebuggable]
     procedure GetLastMessage() LastMessage: Text
     begin
         History.Get(History.Count, LastMessage);
     end;
 
-    [NonDebuggable]
     procedure GetLastRole() LastRole: Enum "AOAI Chat Roles"
     begin
         HistoryRoles.Get(HistoryRoles.Count, LastRole);
     end;
 
-    [NonDebuggable]
     procedure GetLastName() LastName: Text[2048]
     begin
         HistoryNames.Get(HistoryNames.Count, LastName);
     end;
 
-    [NonDebuggable]
     procedure GetLastToolCalls() LastToolCalls: JsonArray
     var
         LastToolCallsRef: JsonArray;
@@ -190,13 +165,11 @@ codeunit 7764 "AOAI Chat Messages Impl"
         LastToolCalls := LastToolCallsRef.Clone().AsArray(); // avoid modifications to the chat message
     end;
 
-    [NonDebuggable]
     procedure GetLastToolCallId() LastToolCall: Text
     begin
         HistoryToolCallIds.Get(HistoryToolCallIds.Count, LastToolCall);
     end;
 
-    [NonDebuggable]
     procedure SetHistoryLength(NewHistoryLength: Integer)
     begin
         if NewHistoryLength < 1 then
@@ -205,7 +178,6 @@ codeunit 7764 "AOAI Chat Messages Impl"
         HistoryLength := NewHistoryLength;
     end;
 
-    [NonDebuggable]
     procedure GetHistoryTokenCount(): Integer
     var
         SystemMessageTokenCount: Integer;
@@ -215,7 +187,6 @@ codeunit 7764 "AOAI Chat Messages Impl"
         exit(SystemMessageTokenCount + MessagesTokenCount);
     end;
 
-    [NonDebuggable]
     procedure PrepareHistory(var SystemMessageTokenCount: Integer; var MessagesTokenCount: Integer) HistoryResult: JsonArray
     var
         AOAIUserMessage: Codeunit "AOAI User Message";
@@ -321,7 +292,6 @@ codeunit 7764 "AOAI Chat Messages Impl"
         Initialized := true;
     end;
 
-    [NonDebuggable]
     local procedure PrepareMessage(WrapMessage: Boolean; MessageVariant: Variant): Variant
     var
         AzureOpenAIImpl: Codeunit "Azure OpenAI Impl";
@@ -373,7 +343,6 @@ codeunit 7764 "AOAI Chat Messages Impl"
         Error(WrongTypeErr);
     end;
 
-    [NonDebuggable]
     local procedure AddMessage(ToolCalls: JsonArray)
     var
         AOAIUserMessage: Codeunit "AOAI User Message";
@@ -386,7 +355,6 @@ codeunit 7764 "AOAI Chat Messages Impl"
         HistoryUserMessages.Add(AOAIUserMessage);
     end;
 
-    [NonDebuggable]
     local procedure AddMessage(NewMessage: Text; NewName: Text[2048]; NewRole: Enum "AOAI Chat Roles")
     var
         AOAIUserMessage: Codeunit "AOAI User Message";
@@ -400,7 +368,6 @@ codeunit 7764 "AOAI Chat Messages Impl"
         HistoryUserMessages.Add(AOAIUserMessage);
     end;
 
-    [NonDebuggable]
     local procedure AddMessage(NewMessage: Text; NewName: Text[2048]; NewToolCallId: Text; NewRole: Enum "AOAI Chat Roles")
     var
         AOAIUserMessage: Codeunit "AOAI User Message";
@@ -414,7 +381,6 @@ codeunit 7764 "AOAI Chat Messages Impl"
         HistoryUserMessages.Add(AOAIUserMessage);
     end;
 
-    [NonDebuggable]
     local procedure AddMessage(AOAIUserMessage: Codeunit "AOAI User Message"; NewName: Text[2048]; NewRole: Enum "AOAI Chat Roles")
     var
         ToolCalls: JsonArray;
@@ -427,7 +393,6 @@ codeunit 7764 "AOAI Chat Messages Impl"
         HistoryUserMessages.Add(AOAIUserMessage);
     end;
 
-    [NonDebuggable]
     local procedure GetChatMetaprompt(var UsingMicrosoftMetaprompt: Boolean) Metaprompt: SecretText;
     var
         AzureKeyVault: Codeunit "Azure Key Vault";
@@ -449,7 +414,6 @@ codeunit 7764 "AOAI Chat Messages Impl"
         Metaprompt := KVSecret;
     end;
 
-    [NonDebuggable]
     local procedure CheckandAddMetaprompt(var UsingMicrosoftMetaprompt: Boolean)
     begin
         if SystemMessage.Unwrap().Trim() = '' then begin
@@ -461,7 +425,6 @@ codeunit 7764 "AOAI Chat Messages Impl"
         end;
     end;
 
-    [NonDebuggable]
     procedure CheckCompatibilityWithModel(Deployment: SecretText)
     var
         AOAIDeployments: Codeunit "AOAI Deployments";

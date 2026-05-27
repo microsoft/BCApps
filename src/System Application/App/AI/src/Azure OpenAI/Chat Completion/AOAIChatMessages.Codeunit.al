@@ -22,7 +22,6 @@ codeunit 7763 "AOAI Chat Messages"
     /// Sets the system message which is always at the top of the chat messages history provided to the model.
     /// </summary>
     /// <param name="Message">The primary system message.</param>
-    [NonDebuggable]
     procedure SetPrimarySystemMessage(Message: SecretText)
     begin
         AOAIChatMessagesImpl.SetPrimarySystemMessage(Message);
@@ -32,7 +31,6 @@ codeunit 7763 "AOAI Chat Messages"
     /// Adds a system message to the chat messages history.
     /// </summary>
     /// <param name="NewMessage">The message to add.</param>
-    [NonDebuggable]
     procedure AddSystemMessage(NewMessage: Text)
     begin
         AOAIChatMessagesImpl.AddSystemMessage(NewMessage);
@@ -42,7 +40,6 @@ codeunit 7763 "AOAI Chat Messages"
     /// Adds a user message to the chat messages history.
     /// </summary>
     /// <param name="NewMessage">The message to add.</param>
-    [NonDebuggable]
     procedure AddUserMessage(NewMessage: Text)
     begin
         AOAIChatMessagesImpl.AddUserMessage(NewMessage);
@@ -53,7 +50,6 @@ codeunit 7763 "AOAI Chat Messages"
     /// </summary>
     /// <param name="NewMessage">The message to add.</param>
     /// <param name="NewName">The name of the user.</param>
-    [NonDebuggable]
     procedure AddUserMessage(NewMessage: Text; NewName: Text[2048])
     begin
         AOAIChatMessagesImpl.AddUserMessage(NewMessage, NewName);
@@ -63,7 +59,6 @@ codeunit 7763 "AOAI Chat Messages"
     /// Adds a user message with structured content parts to the chat messages history.
     /// </summary>
     /// <param name="AOAIUserMessage">The user message builder containing content parts (e.g. text, file).</param>
-    [NonDebuggable]
     procedure AddUserMessage(AOAIUserMessage: Codeunit "AOAI User Message")
     begin
         AOAIChatMessagesImpl.AddUserMessage(AOAIUserMessage);
@@ -74,7 +69,6 @@ codeunit 7763 "AOAI Chat Messages"
     /// </summary>
     /// <param name="AOAIUserMessage">The user message builder containing content parts (e.g. text, file).</param>
     /// <param name="NewName">The name of the user.</param>
-    [NonDebuggable]
     procedure AddUserMessage(AOAIUserMessage: Codeunit "AOAI User Message"; NewName: Text[2048])
     begin
         AOAIChatMessagesImpl.AddUserMessage(AOAIUserMessage, NewName);
@@ -84,7 +78,6 @@ codeunit 7763 "AOAI Chat Messages"
     /// Adds a assistant message to the chat messages history.
     /// </summary>
     /// <param name="NewMessage">The message to add.</param>
-    [NonDebuggable]
     procedure AddAssistantMessage(NewMessage: Text)
     begin
         AOAIChatMessagesImpl.AddAssistantMessage(NewMessage);
@@ -94,7 +87,6 @@ codeunit 7763 "AOAI Chat Messages"
     /// Adds a assistant message containing the tool calls returned from the model to the chat messages history.
     /// </summary>
     /// <param name="ToolCalls">The tool calls to add.</param>
-    [NonDebuggable]
     internal procedure AddToolCalls(ToolCalls: JsonArray)
     begin
         AOAIChatMessagesImpl.AddToolCalls(ToolCalls);
@@ -106,7 +98,6 @@ codeunit 7763 "AOAI Chat Messages"
     /// <param name="ToolCallId">The id of the tool call.</param>
     /// <param name="FunctionName">The name of the called function.</param>
     /// <param name="FunctionResult">The result of the tool call.</param>
-    [NonDebuggable]
     procedure AddToolMessage(ToolCallId: Text; FunctionName: Text; FunctionResult: Text)
     begin
         AOAIChatMessagesImpl.AddToolMessage(ToolCallId, FunctionName, FunctionResult);
@@ -120,7 +111,6 @@ codeunit 7763 "AOAI Chat Messages"
     /// <param name="NewRole">The new role.</param>
     /// <param name="NewName">The new name.</param>
     /// <error>Message id does not exist.</error>
-    [NonDebuggable]
     procedure ModifyMessage(Id: Integer; NewMessage: Text; NewRole: Enum "AOAI Chat Roles"; NewName: Text[2048])
     begin
         AOAIChatMessagesImpl.ModifyMessage(Id, NewMessage, NewRole, NewName);
@@ -131,7 +121,6 @@ codeunit 7763 "AOAI Chat Messages"
     /// </summary>
     /// <param name="Id">Id of the message.</param>
     /// <error>Message id does not exist.</error>
-    [NonDebuggable]
     procedure DeleteMessage(Id: Integer)
     begin
         AOAIChatMessagesImpl.DeleteMessage(Id);
@@ -141,7 +130,6 @@ codeunit 7763 "AOAI Chat Messages"
     /// Gets the history of chat messages.
     /// </summary>
     /// <returns>List of chat messages.</returns>
-    [NonDebuggable]
     procedure GetHistory(): List of [Text]
     begin
         exit(AOAIChatMessagesImpl.GetHistory());
@@ -151,7 +139,6 @@ codeunit 7763 "AOAI Chat Messages"
     /// Gets the history names of chat messages.
     /// </summary>
     /// <returns>List of names of chat messages.</returns>
-    [NonDebuggable]
     procedure GetHistoryNames(): List of [Text[2048]]
     begin
         exit(AOAIChatMessagesImpl.GetHistoryNames());
@@ -161,7 +148,6 @@ codeunit 7763 "AOAI Chat Messages"
     /// Gets the history roles of chat messages.
     /// </summary>
     /// <returns>List of roles of chat messages.</returns>
-    [NonDebuggable]
     procedure GetHistoryRoles(): List of [Enum "AOAI Chat Roles"]
     begin
         exit(AOAIChatMessagesImpl.GetHistoryRoles());
@@ -171,7 +157,6 @@ codeunit 7763 "AOAI Chat Messages"
     /// Gets the last chat message.
     /// </summary>
     /// <returns>The last chat message.</returns>
-    [NonDebuggable]
     procedure GetLastMessage(): Text
     begin
         exit(AOAIChatMessagesImpl.GetLastMessage());
@@ -181,7 +166,6 @@ codeunit 7763 "AOAI Chat Messages"
     /// Gets the last chat message role.
     /// </summary>
     /// <returns>The last chat message role.</returns>
-    [NonDebuggable]
     procedure GetLastRole(): Enum "AOAI Chat Roles"
     begin
         exit(AOAIChatMessagesImpl.GetLastRole());
@@ -191,7 +175,6 @@ codeunit 7763 "AOAI Chat Messages"
     /// Gets the last chat message name.
     /// </summary>
     /// <returns>The last chat message name.</returns>
-    [NonDebuggable]
     procedure GetLastName(): Text[2048]
     begin
         exit(AOAIChatMessagesImpl.GetLastName());
@@ -201,7 +184,6 @@ codeunit 7763 "AOAI Chat Messages"
     /// Gets a copy of the last chat message tool calls array.
     /// </summary>
     /// <returns>The last tool calls array.</returns>
-    [NonDebuggable]
     procedure GetLastToolCalls(): JsonArray
     begin
         exit(AOAIChatMessagesImpl.GetLastToolCalls());
@@ -212,7 +194,6 @@ codeunit 7763 "AOAI Chat Messages"
     /// </summary>
     /// <param name="NewLength">The new length.</param>
     /// <error>History length must be greater than 0.</error>
-    [NonDebuggable]
     procedure SetHistoryLength(NewLength: Integer)
     begin
         AOAIChatMessagesImpl.SetHistoryLength(NewLength);
@@ -225,7 +206,6 @@ codeunit 7763 "AOAI Chat Messages"
     /// <param name="MessagesTokenCount">The number tokens used by all other messages.</param>
     /// <returns>History of messages in a JsonArray.</returns>
     /// <remarks>Use this after adding messages, to construct a json array of all messages.</remarks>
-    [NonDebuggable]
     internal procedure AssembleHistory(var SystemMessageTokenCount: Integer; var MessagesTokenCount: Integer): JsonArray
     begin
         exit(AOAIChatMessagesImpl.PrepareHistory(SystemMessageTokenCount, MessagesTokenCount));
@@ -234,7 +214,6 @@ codeunit 7763 "AOAI Chat Messages"
     /// <summary>
     /// Gets the number of tokens used by the primary system messages and all other messages.
     /// </summary>
-    [NonDebuggable]
     procedure GetHistoryTokenCount(): Integer
     begin
         exit(AOAIChatMessagesImpl.GetHistoryTokenCount());
@@ -312,7 +291,6 @@ codeunit 7763 "AOAI Chat Messages"
     /// </summary>
     /// <param name="Toolchoice">The Tool choice parameter. </param>
     /// <remarks>See more details here: https://go.microsoft.com/fwlink/?linkid=2254538</remarks>
-    [NonDebuggable]
     procedure SetToolChoice(ToolChoice: Text)
     begin
         AOAIToolsImpl.SetToolChoice(ToolChoice);
@@ -323,7 +301,6 @@ codeunit 7763 "AOAI Chat Messages"
     /// </summary>
     /// <param name="FunctionName">The function name parameter. </param>
     /// <remarks>See more details here: https://go.microsoft.com/fwlink/?linkid=2254538</remarks>
-    [NonDebuggable]
     procedure SetFunctionAsToolChoice(FunctionName: Text)
     begin
         AOAIToolsImpl.SetFunctionAsToolChoice(FunctionName);
@@ -334,7 +311,6 @@ codeunit 7763 "AOAI Chat Messages"
     /// </summary>
     /// <param name="Function">The function codeunit.</param>
     /// <remarks>See more details here: https://go.microsoft.com/fwlink/?linkid=2254538</remarks>
-    [NonDebuggable]
     procedure SetFunctionAsToolChoice(Function: Interface "AOAI Function")
     begin
         AOAIToolsImpl.SetFunctionAsToolChoice(Function);
@@ -344,7 +320,6 @@ codeunit 7763 "AOAI Chat Messages"
     /// Gets the Tool choice parameter.
     /// </summary>
     /// <returns>The Tool choice parameter.</returns>
-    [NonDebuggable]
     procedure GetToolChoice(): Text
     begin
         exit(AOAIToolsImpl.GetToolChoice());
@@ -372,7 +347,6 @@ codeunit 7763 "AOAI Chat Messages"
     /// </summary>
     /// <returns>Input text with XPIA Detection tags added.</returns>
     /// <remarks>Please make sure to configure the AOAI policy to support XPIA detection before using this method. Also, remember to add the 'Input text with XPIA detection tags added' to a message.</remarks>
-    [NonDebuggable]
     procedure AddXPIADetectionTags(var Input: Text)
     begin
         AOAIChatMessagesImpl.AddXPIADetectionTags(Input);
@@ -383,7 +357,6 @@ codeunit 7763 "AOAI Chat Messages"
     /// </summary>
     /// <returns>Tools in a JsonArray.</returns>
     /// <remarks>Use this after adding Tools, to construct a json array of all Tools.</remarks>
-    [NonDebuggable]
     internal procedure AssembleTools(): JsonArray
     begin
         exit(AOAIToolsImpl.PrepareTools());
@@ -393,7 +366,6 @@ codeunit 7763 "AOAI Chat Messages"
     /// Checks if the current chat messages history is compatible with the deployment model
     /// </summary>
     /// <returns>True if compatible, false otherwise.</returns>
-    [NonDebuggable]
     internal procedure CheckCompatibilityWithModel(Deployment: SecretText)
     begin
         AOAIChatMessagesImpl.CheckCompatibilityWithModel(Deployment);

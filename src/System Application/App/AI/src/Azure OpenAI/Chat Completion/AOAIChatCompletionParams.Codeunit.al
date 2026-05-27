@@ -149,7 +149,6 @@ codeunit 7761 "AOAI Chat Completion Params"
     /// Adds the Chat Completion parameters to the payload.
     /// </summary>
     /// <param name="Payload">JsonObject to add parameters to.</param>
-    [NonDebuggable]
     internal procedure AddChatCompletionsParametersToPayload(var Payload: JsonObject)
     begin
         AOAIChatComplParamsImpl.AddChatCompletionsParametersToPayload(Payload);

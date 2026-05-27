@@ -17,7 +17,6 @@ codeunit 7778 "AOAI Tools Impl"
         FunctionNames: Dictionary of [Text, Integer];
         Initialized: Boolean;
         AddToolToPayload: Boolean;
-        [NonDebuggable]
         ToolChoice: Text;
         ToolObjectInvalidErr: Label '%1 object does not contain %2 property.', Comment = '%1 is the object name and %2 is the property that is missing.';
         ToolTypeErr: Label 'Tool type must be of function type.';
@@ -82,7 +81,6 @@ codeunit 7778 "AOAI Tools Impl"
         Clear(FunctionNames);
     end;
 
-    [NonDebuggable]
     procedure PrepareTools() ToolsResult: JsonArray
     var
         Counter: Integer;
@@ -116,7 +114,6 @@ codeunit 7778 "AOAI Tools Impl"
         AddToolToPayload := AddToolsToPayload;
     end;
 
-    [NonDebuggable]
     procedure SetToolChoice(NewToolChoice: Text)
     begin
         Initialize();
@@ -142,7 +139,6 @@ codeunit 7778 "AOAI Tools Impl"
         ToolChoiceObject.WriteTo(ToolChoice);
     end;
 
-    [NonDebuggable]
     procedure GetToolChoice(): Text
     begin
         exit(ToolChoice);
@@ -172,7 +168,6 @@ codeunit 7778 "AOAI Tools Impl"
         Initialized := true;
     end;
 
-    [NonDebuggable]
     local procedure ValidateTool(ToolObject: JsonObject): Boolean
     var
         AzureOpenAIImpl: Codeunit "Azure OpenAI Impl";

@@ -83,7 +83,6 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         exit(IsEnabled(Capability, CallerModuleInfo) and IsAuthorizationConfigured(ModelType, CallerModuleInfo));
     end;
 
-    [NonDebuggable]
     procedure SetAuthorization(ModelType: Enum "AOAI Model Type"; Deployment: Text)
     begin
         case ModelType of
@@ -98,7 +97,6 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         end;
     end;
 
-    [NonDebuggable]
     procedure SetAuthorization(ModelType: Enum "AOAI Model Type"; Endpoint: Text; Deployment: Text; ApiKey: SecretText)
     begin
         case ModelType of
@@ -114,7 +112,6 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
     end;
 
 #if not CLEAN26
-    [NonDebuggable]
     procedure SetManagedResourceAuthorization(ModelType: Enum "AOAI Model Type"; Endpoint: Text; Deployment: Text; ApiKey: SecretText; ManagedResourceDeployment: Text)
     begin
         case ModelType of
@@ -132,7 +129,6 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
 
 #if not CLEAN28
 #pragma warning disable AA0137
-    [NonDebuggable]
     procedure SetManagedResourceAuthorization(ModelType: Enum "AOAI Model Type"; AOAIAccountName: Text; ApiKey: SecretText; ManagedResourceDeployment: Text)
     begin
         SetManagedResourceAuthorization(ModelType, ManagedResourceDeployment);
@@ -140,7 +136,6 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
 #pragma warning restore AA0137
 #endif
 
-    [NonDebuggable]
     procedure SetManagedResourceAuthorization(ModelType: Enum "AOAI Model Type"; ManagedResourceDeployment: Text)
     begin
         case ModelType of
@@ -155,7 +150,6 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         end;
     end;
 
-    [NonDebuggable]
     procedure GenerateTextCompletion(Prompt: SecretText; var AOAIOperationResponse: Codeunit "AOAI Operation Response"; CallerModuleInfo: ModuleInfo): Text
     var
         AOAICompletionParameters: Codeunit "AOAI Text Completion Params";
@@ -163,13 +157,11 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         exit(GenerateTextCompletion(GetTextMetaprompt(), Prompt, AOAICompletionParameters, AOAIOperationResponse, CallerModuleInfo));
     end;
 
-    [NonDebuggable]
     procedure GenerateTextCompletion(Prompt: SecretText; AOAICompletionParameters: Codeunit "AOAI Text Completion Params"; var AOAIOperationResponse: Codeunit "AOAI Operation Response"; CallerModuleInfo: ModuleInfo) Result: Text
     begin
         exit(GenerateTextCompletion(GetTextMetaprompt(), Prompt, AOAICompletionParameters, AOAIOperationResponse, CallerModuleInfo));
     end;
 
-    [NonDebuggable]
     procedure GenerateTextCompletion(Metaprompt: SecretText; Prompt: SecretText; var AOAIOperationResponse: Codeunit "AOAI Operation Response"; CallerModuleInfo: ModuleInfo): Text
     var
         AOAICompletionParameters: Codeunit "AOAI Text Completion Params";
@@ -177,7 +169,6 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         exit(GenerateTextCompletion(Metaprompt, Prompt, AOAICompletionParameters, AOAIOperationResponse, CallerModuleInfo));
     end;
 
-    [NonDebuggable]
     procedure GenerateTextCompletion(Metaprompt: SecretText; Prompt: SecretText; AOAICompletionParameters: Codeunit "AOAI Text Completion Params"; var AOAIOperationResponse: Codeunit "AOAI Operation Response"; CallerModuleInfo: ModuleInfo) Result: Text
     var
         CustomDimensions: Dictionary of [Text, Text];
@@ -212,7 +203,6 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         Result := AOAIOperationResponse.GetResult();
     end;
 
-    [NonDebuggable]
     procedure GenerateEmbeddings(Input: SecretText; var AOAIOperationResponse: Codeunit "AOAI Operation Response"; CallerModuleInfo: ModuleInfo): List of [Decimal]
     var
         CustomDimensions: Dictionary of [Text, Text];
@@ -239,7 +229,6 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         exit(ProcessEmbeddingResponse(AOAIOperationResponse));
     end;
 
-    [NonDebuggable]
     local procedure ProcessEmbeddingResponse(AOAIOperationResponse: Codeunit "AOAI Operation Response") Result: List of [Decimal]
     var
         Response: JsonObject;
@@ -255,7 +244,6 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         end;
     end;
 
-    [NonDebuggable]
     procedure GenerateChatCompletion(var ChatMessages: Codeunit "AOAI Chat Messages"; var AOAIOperationResponse: Codeunit "AOAI Operation Response"; CallerModuleInfo: ModuleInfo)
     var
         AOAIChatCompletionParams: Codeunit "AOAI Chat Completion Params";
@@ -263,7 +251,6 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         GenerateChatCompletion(ChatMessages, AOAIChatCompletionParams, AOAIOperationResponse, CallerModuleInfo);
     end;
 
-    [NonDebuggable]
     procedure GenerateChatCompletion(var ChatMessages: Codeunit "AOAI Chat Messages"; AOAIChatCompletionParams: Codeunit "AOAI Chat Completion Params"; var AOAIOperationResponse: Codeunit "AOAI Operation Response"; CallerModuleInfo: ModuleInfo)
     var
         AOAIPolicyParams: Codeunit "AOAI Policy Params";
@@ -328,7 +315,6 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
             GenerateChatCompletion(ChatMessages, AOAIChatCompletionParams, AOAIOperationResponse, CallerModuleInfo);
     end;
 
-    [NonDebuggable]
     local procedure CheckJsonModeCompatibility(Payload: JsonObject)
     var
         ResponseFormatToken: JsonToken;
@@ -354,7 +340,6 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
             Error(MessagesMustContainJsonWordWhenResponseFormatIsJsonErr);
     end;
 
-    [NonDebuggable]
     [TryFunction]
     local procedure ProcessChatCompletionResponse(var ChatMessages: Codeunit "AOAI Chat Messages"; var AOAIOperationResponse: Codeunit "AOAI Operation Response"; CallerModuleInfo: ModuleInfo)
     var
@@ -470,7 +455,6 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
     end;
 
     [TryFunction]
-    [NonDebuggable]
     local procedure SendRequest(ModelType: Enum "AOAI Model Type"; AOAIAuthorization: Codeunit "AOAI Authorization"; Payload: Text; var AOAIOperationResponse: Codeunit "AOAI Operation Response"; CallerModuleInfo: ModuleInfo; AzureOpenAIPolicy: Text)
     var
         CopilotNotifications: Codeunit "Copilot Notifications";
@@ -549,7 +533,6 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
             Error(AuthenticationNotConfiguredErr);
     end;
 
-    [NonDebuggable]
     procedure RemoveProhibitedCharacters(Prompt: Text) Result: Text
     begin
         Result := Prompt.Replace('<|end>', '');
@@ -563,7 +546,6 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         exit(Result);
     end;
 
-    [NonDebuggable]
     internal procedure GetTextMetaprompt() Metaprompt: SecretText;
     var
         AzureKeyVault: Codeunit "Azure Key Vault";
@@ -583,7 +565,6 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         Metaprompt := KVSecret;
     end;
 
-    [NonDebuggable]
     local procedure CheckTextCompletionMetaprompt(Metaprompt: SecretText; CustomDimensions: Dictionary of [Text, Text])
     var
         ModuleInfo: ModuleInfo;

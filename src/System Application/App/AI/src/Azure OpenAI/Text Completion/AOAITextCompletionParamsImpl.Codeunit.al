@@ -127,7 +127,6 @@ codeunit 7766 "AOAI TextCompletionParams Impl"
         FrequencyPenalty := NewFrequencyPenalty;
     end;
 
-    [NonDebuggable]
     procedure AddCompletionsParametersToPayload(var Payload: JsonObject)
     begin
         if GetMaxTokens() > 0 then

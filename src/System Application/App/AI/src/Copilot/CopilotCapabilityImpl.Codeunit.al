@@ -305,7 +305,6 @@ codeunit 7774 "Copilot Capability Impl"
         exit(CheckPrivacyNoticeState(Silent, Capability));
     end;
 
-    [NonDebuggable]
     local procedure IsTenantAllowedToUseAOAI(): Boolean
     var
         EnvironmentInformation: Codeunit "Environment Information";

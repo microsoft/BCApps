@@ -12,12 +12,10 @@ codeunit 7784 "AOAI User Message Impl"
 
     var
         CopilotCapabilityImpl: Codeunit "Copilot Capability Impl";
-        [NonDebuggable]
         ContentParts: JsonArray;
         HasFileContent, HasTextContent : Boolean;
         NotMicrosoftPublisherErr: Label 'This functionality is only available to Microsoft published apps.';
 
-    [NonDebuggable]
     procedure AddTextPart(TextContent: Text; CallerModuleInfo: ModuleInfo)
     var
         TextPartObject: JsonObject;
@@ -30,7 +28,6 @@ codeunit 7784 "AOAI User Message Impl"
         HasTextContent := true;
     end;
 
-    [NonDebuggable]
     procedure AddFilePart(FileData: Text; CallerModuleInfo: ModuleInfo)
     var
         FilePartObject: JsonObject;
@@ -45,7 +42,6 @@ codeunit 7784 "AOAI User Message Impl"
         HasFileContent := true;
     end;
 
-    [NonDebuggable]
     procedure GetContentParts(): JsonArray
     begin
         exit(ContentParts);
