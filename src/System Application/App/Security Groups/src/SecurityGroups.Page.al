@@ -301,15 +301,15 @@ page 9871 "Security Groups"
 
     local procedure GetSelectedGroupCodes(): List of [Code[20]];
     var
-        SecurityGroupBuffer: Record "Security Group Buffer";
+        TempSecurityGroupBuffer: Record "Security Group Buffer";
         GroupCodes: List of [Code[20]];
     begin
-        SecurityGroupBuffer.Copy(Rec, true);
-        CurrPage.SetSelectionFilter(SecurityGroupBuffer);
-        if SecurityGroupBuffer.FindSet() then
+        TempSecurityGroupBuffer.Copy(Rec, true);
+        CurrPage.SetSelectionFilter(TempSecurityGroupBuffer);
+        if TempSecurityGroupBuffer.FindSet() then
             repeat
-                GroupCodes.Add(SecurityGroupBuffer.Code);
-            until SecurityGroupBuffer.Next() = 0;
+                GroupCodes.Add(TempSecurityGroupBuffer.Code);
+            until TempSecurityGroupBuffer.Next() = 0;
         exit(GroupCodes);
     end;
 

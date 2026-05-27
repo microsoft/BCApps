@@ -13,10 +13,10 @@ codeunit 9063 "Stor. Serv. Auth. Impl."
 
     procedure CreateSAS(SigningKey: SecretText; SignedVersion: Enum "Storage Service API Version"; SignedServices: List of [Enum "SAS Service Type"]; SignedResources: List of [Enum "SAS Resource Type"]; SignedPermissions: List of [Enum "SAS Permission"]; SignedExpiry: DateTime): Interface "Storage Service Authorization"
     var
-        OptionalParams: Record "SAS Parameters";
+        TempOptionalParams: Record "SAS Parameters";
     begin
-        OptionalParams.Init();
-        exit(CreateSAS(SigningKey, SignedVersion, SignedServices, SignedResources, SignedPermissions, SignedExpiry, OptionalParams));
+        TempOptionalParams.Init();
+        exit(CreateSAS(SigningKey, SignedVersion, SignedServices, SignedResources, SignedPermissions, SignedExpiry, TempOptionalParams));
     end;
 
     procedure CreateSAS(SigningKey: SecretText; SignedVersion: Enum "Storage Service API Version"; SignedServices: List of [Enum "SAS Service Type"]; SignedResources: List of [Enum "SAS Resource Type"]; SignedPermissions: List of [Enum "SAS Permission"]; SignedExpiry: DateTime; OptionalParams: Record "SAS Parameters"): Interface "Storage Service Authorization"

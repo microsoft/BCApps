@@ -1,6 +1,7 @@
 namespace Microsoft.SubscriptionBilling;
 
 using Microsoft.Finance.Currency;
+using Microsoft.Finance.Deferral;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Inventory.Item;
@@ -47,6 +48,7 @@ codeunit 139912 "Customer Deferrals Test"
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryRandom: Codeunit "Library - Random";
         LibrarySales: Codeunit "Library - Sales";
+        LibraryERM: Codeunit "Library - ERM";
         CorrectedDocumentNo: Code[20];
         PostedDocumentNo: Code[20];
         PostingDate: Date;
@@ -58,8 +60,23 @@ codeunit 139912 "Customer Deferrals Test"
         PrevGLEntry: Integer;
         TotalNumberOfMonths: Integer;
         IsInitialized: Boolean;
-        ConfirmQuestionLbl: Label 'If you change Quantity, only the Amount for existing service commitments will be recalculated.\\Do you want to continue?', Comment = '%1= Changed Field Name.';
-
+        ConfirmQuestionLbl: Label 'If you change the Quantity, the amount for open subscription lines will be recalculated.\\Do you want to continue?';
+        AmountMismatchErr: Label 'Amount should equal Deferral Base Amount.';
+        FirstPartialMonthDaysMismatchErr: Label 'First partial month Number of Days mismatch.';
+        FirstPartialMonthRemainingDaysMismatchErr: Label 'First partial month Number of Days should equal remaining days in January.';
+        FullMonthDaysMismatchErr: Label 'Full month Number of Days should equal calendar days in that month.';
+        LastPartialMonthDaysMismatchErr: Label 'Last partial month Number of Days mismatch.';
+        LastPartialMonthDaysOfEndDateMismatchErr: Label 'Last partial month Number of Days should equal day-of-month of end date.';
+        MultipleDeferralPeriodsExpectedErr: Label 'Expected multiple deferral periods.';
+        MultiplePartialDeferralPeriodsExpectedErr: Label 'Expected at least 3 deferral periods for partial-full-partial scenario.';
+        SingleDeferralFullMonthExpectedErr: Label 'Expected a single deferral period for full month billing.';
+        SingleDeferralMidToEndExpectedErr: Label 'Expected a single deferral period for mid-to-end-of-month billing.';
+        SingleDeferralMidToMidExpectedErr: Label 'Expected a single deferral period for mid-to-mid-month billing.';
+        SingleDeferralStartToMidExpectedErr: Label 'Expected a single deferral period for start-to-mid-month billing.';
+        NumberOfDaysFullMonthMismatchErr: Label 'Number of Days should equal full month days.';
+        NumberOfDaysRemainingMismatchErr: Label 'Number of Days should equal remaining days in month.';
+        NumberOfDaysScheduleMismatchErr: Label 'Number of Days should equal actual schedule days, not full month.';
+        NumberOfDaysDateRangeMismatchErr: Label 'Number of Days should equal actual date range days.';
     #region Tests
 
     [Test]
@@ -232,6 +249,55 @@ codeunit 139912 "Customer Deferrals Test"
             CustomerContractDeferral.TestField("Deferral Base Amount", -120);
             CustomerContractDeferral.TestField("Number of Days", CalcDate('<CM>', CustomerContractDeferral."Posting Date").Day());
         until CustomerContractDeferral.Next() = 0;
+    end;
+
+    [Test]
+    [HandlerFunctions('CreateCustomerBillingDocsContractPageHandler,MessageHandler')]
+    procedure CheckContractDeferralsWhenStartDateIsOnFirstDayInMonthAndEndDateIsMidMonthLCY()
+    var
+        DeferralCount: Integer;
+        FullMonthAmount: Decimal;
+        TotalDeferralBaseAmount: Decimal;
+        i: Integer;
+        LastDayOfBillingPeriod: Date;
+    begin
+        // [SCENARIO] When billing starts on 1st of month and ends mid-month (partial last month),
+        // full months get equal deferral amounts and the partial last month gets a day-proportioned amount.
+        Initialize();
+
+        // [GIVEN] A customer contract with deferrals starting on Jan 1
+        CreateCustomerContractWithDeferrals('<-CY>', true);
+
+        // [WHEN] Billing from Jan 1 to Jul 23 (partial last month) and document is posted
+        CreateBillingProposalAndCreateBillingDocuments('<-CY>', '<-CY+6M+22D>');
+        PostSalesDocumentAndFetchDeferrals();
+
+        DeferralCount := CustomerContractDeferral.Count;
+        TotalDeferralBaseAmount := CustomerContractDeferral."Deferral Base Amount";
+        LastDayOfBillingPeriod := CalcDate('<-CY+6M+22D>', WorkDate());
+
+        // [THEN] 7 deferral periods are created (Jan through Jul)
+        Assert.AreEqual(7, DeferralCount, 'Expected 7 deferral periods for Jan to Jul billing.');
+
+        // Use the first full-month deferral amount as reference; verify all other full months match it
+        FullMonthAmount := CustomerContractDeferral.Amount;
+
+        // [THEN] The first 6 full-month periods have equal amounts and full month Number of Days
+        for i := 1 to DeferralCount - 1 do begin
+            Assert.AreEqual(FullMonthAmount, CustomerContractDeferral.Amount, 'Full month deferrals should have equal amounts.');
+            CustomerContractDeferral.TestField("Number of Days", Date2DMY(CalcDate('<CM>', CustomerContractDeferral."Posting Date"), 1));
+            CustomerContractDeferral.Next();
+        end;
+
+        // [THEN] Last partial month has a different (day-proportioned) amount and correct Number of Days
+        Assert.AreNotEqual(FullMonthAmount, CustomerContractDeferral.Amount, 'Partial last month should have a different amount than full months.');
+        CustomerContractDeferral.TestField("Number of Days", Date2DMY(LastDayOfBillingPeriod, 1));
+
+        // [THEN] Sum of all deferral amounts equals the total deferral base amount
+        CustomerContractDeferral.Reset();
+        CustomerContractDeferral.SetRange("Document No.", PostedDocumentNo);
+        CustomerContractDeferral.CalcSums(Amount);
+        Assert.AreEqual(TotalDeferralBaseAmount, CustomerContractDeferral.Amount, 'Sum of deferral amounts must equal the deferral base amount.');
     end;
 
     [Test]
@@ -545,16 +611,20 @@ codeunit 139912 "Customer Deferrals Test"
     procedure TestIfDeferralsExistOnAfterPostSalesCreditMemoWithoutAppliesToDocNo()
     begin
         Initialize();
+        // [GIVEN] Contract has been created and the billing proposal with a posted contract invoice
         CreateCustomerContractWithDeferrals('<2M-CM>', true);
         CreateBillingProposalAndCreateBillingDocuments('<2M-CM>', '<8M+CM>');
         PostSalesDocumentAndGetSalesInvoice();
 
+        // [WHEN] A credit memo is created from the posted invoice but without any link to the original invoice
         CorrectPostedSalesInvoice.CreateCreditMemoCopyDocument(SalesInvoiceHeader, SalesCrMemoHeader);
-        // Force Applies to Doc No. and Doc Type to be empty
-        SalesCrMemoHeader."Applies-to Doc. Type" := SalesCrMemoHeader."Applies-to Doc. Type"::Invoice;
+        SalesCrMemoHeader."Applies-to Doc. Type" := SalesCrMemoHeader."Applies-to Doc. Type"::" ";
         SalesCrMemoHeader."Applies-to Doc. No." := '';
         SalesCrMemoHeader.Modify(false);
+        ClearCorrectionDocumentNoFromBillingLines(SalesCrMemoHeader."No.");
         CorrectedDocumentNo := LibrarySales.PostSalesDocument(SalesCrMemoHeader, true, true);
+
+        // [THEN] Deferral entries are created for the standalone credit memo
         FetchCustomerContractDeferrals(CorrectedDocumentNo);
     end;
 
@@ -747,6 +817,334 @@ codeunit 139912 "Customer Deferrals Test"
         SubscriptionHeader.Modify(true);
     end;
 
+    [Test]
+    [HandlerFunctions('CreateCustomerBillingDocsContractPageHandler,MessageHandler')]
+    procedure TestPostingGroupsAreFilledOnCustomerContractDeferrals()
+    var
+        TotalDeferralCount: Integer;
+    begin
+        // [SCENARIO] When posting a sales invoice with contract deferrals, the Gen. Bus. Posting Group and Gen. Prod. Posting Group fields are populated on the deferral entries.
+        Initialize();
+
+        // [GIVEN] A customer contract with deferrals
+        CreateCustomerContractWithDeferrals('<2M-CM>', true);
+        CreateBillingProposalAndCreateBillingDocuments('<2M-CM>', '<8M+CM>');
+
+        // [WHEN] The sales document is posted
+        PostSalesDocumentAndFetchDeferrals();
+
+        // [THEN] Gen. Bus. Posting Group and Gen. Prod. Posting Group are filled on each deferral entry
+        SalesInvoiceLine.SetRange("Document No.", PostedDocumentNo);
+        SalesInvoiceLine.SetFilter("No.", '<>%1', '');
+        SalesInvoiceLine.FindFirst();
+        CustomerContractDeferral.SetRange("Document No.", PostedDocumentNo);
+        TotalDeferralCount := CustomerContractDeferral.Count;
+        CustomerContractDeferral.SetRange("Gen. Bus. Posting Group", SalesInvoiceLine."Gen. Bus. Posting Group");
+        CustomerContractDeferral.SetRange("Gen. Prod. Posting Group", SalesInvoiceLine."Gen. Prod. Posting Group");
+        Assert.RecordIsNotEmpty(CustomerContractDeferral);
+        Assert.RecordCount(CustomerContractDeferral, TotalDeferralCount);
+    end;
+
+    [Test]
+    [HandlerFunctions('CreateCustomerBillingDocsContractPageHandler,ContractDeferralsReleaseRequestPageHandler,MessageHandler')]
+    procedure TestZeroAmountDeferralsReleasedWithoutGLEntries()
+    var
+        ContractDeferralsRelease: Report "Contract Deferrals Release";
+    begin
+        // [SCENARIO] Zero-amount customer contract deferrals should be marked as released without creating GL entries.
+        Initialize();
+        SetPostingAllowTo(0D);
+
+        // [GIVEN] A customer contract with deferrals that have been posted
+        CreateCustomerContractWithDeferrals('<2M-CM>', true);
+        CreateBillingProposalAndCreateBillingDocuments('<2M-CM>', '<8M+CM>');
+        PostSalesDocumentAndFetchDeferrals();
+
+        // [GIVEN] All deferral amounts are set to 0 (simulating zero-amount service commitments)
+        CustomerContractDeferral.Reset();
+        CustomerContractDeferral.SetRange("Document No.", PostedDocumentNo);
+        CustomerContractDeferral.ModifyAll(Amount, 0, false);
+        CustomerContractDeferral.ModifyAll("Discount Amount", 0, false);
+        CustomerContractDeferral.FindFirst();
+
+        // [WHEN] Release deferrals is run
+        PostingDate := CustomerContractDeferral."Posting Date";
+        Commit();
+        ContractDeferralsRelease.Run(); // ContractDeferralsReleaseRequestPageHandler
+
+        // [THEN] The first deferral is released without creating a GL entry
+        CustomerContractDeferral.Get(CustomerContractDeferral."Entry No.");
+        CustomerContractDeferral.TestField(Released, true);
+        CustomerContractDeferral.TestField("G/L Entry No.", 0);
+    end;
+
+    [Test]
+    [HandlerFunctions('CreateCustomerBillingDocsContractPageHandler,MessageHandler')]
+    procedure DeferralCodeNotAllowedWithContractDeferralsOnSalesLine()
+    var
+        DeferralTemplate: Record "Deferral Template";
+        DeferralCodeCannotBeUsedWithContractDeferralsErr: Label 'A Deferral Code cannot be used on a line where Subscription Contract Deferrals are active. Either remove the Deferral Code or disable Contract Deferrals on the subscription line or contract.', Locked = true;
+    begin
+        // [SCENARIO] A standard Deferral Code must not be assigned to a sales invoice line
+        //            that already has subscription contract deferrals enabled.
+        Initialize();
+
+        // [GIVEN] A customer contract with deferrals enabled and a billing document
+        CreateCustomerContractWithDeferrals('<2M-CM>', true);
+        CreateBillingProposalAndCreateBillingDocuments('<2M-CM>', '<8M+CM>');
+
+        // [GIVEN] A standard BC deferral template
+        LibraryERM.CreateDeferralTemplate(DeferralTemplate, Enum::"Deferral Calculation Method"::"Straight-Line",
+            Enum::"Deferral Calculation Start Date"::"Posting Date", 3);
+
+        // [WHEN] Assigning the Deferral Code to the sales line that has contract deferrals
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        SalesLine.SetFilter("No.", '<>%1', '');
+        SalesLine.FindFirst();
+
+        // [THEN] An error is raised preventing double deferrals
+        asserterror SalesLine.Validate("Deferral Code", DeferralTemplate."Deferral Code");
+        Assert.ExpectedError(DeferralCodeCannotBeUsedWithContractDeferralsErr);
+    end;
+
+    [Test]
+    [HandlerFunctions('CreateCustomerBillingDocsContractPageHandler,MessageHandler')]
+    procedure SinglePeriodDeferralFullMonthHasCorrectDays()
+    var
+        FirstDayOfBillingPeriod: Date;
+        LastDayOfBillingPeriod: Date;
+        ExpectedNumberOfDays: Integer;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 624087] When billing covers a full calendar month (1st to last day), the single deferral period has Number of Days equal to the calendar days in that month
+        Initialize();
+
+        // [GIVEN] A customer contract with deferrals starting on the 1st of the month
+        CreateCustomerContractWithDeferrals('<-CY>', true);
+
+        // [WHEN] Billing covers start of the month to end of the month and the document is posted
+        CreateBillingProposalAndCreateBillingDocuments('<-CY>', '<-CY+CM>');
+        PostSalesDocumentAndFetchDeferrals();
+
+        // [THEN] Exactly 1 deferral period is created with Number of Days equal to the days in the month and Amount equal to Deferral Base Amount
+        FirstDayOfBillingPeriod := CalcDate('<-CY>', WorkDate());
+        LastDayOfBillingPeriod := CalcDate('<-CY+CM>', WorkDate());
+        ExpectedNumberOfDays := LastDayOfBillingPeriod - FirstDayOfBillingPeriod + 1;
+        Assert.AreEqual(1, CustomerContractDeferral.Count, SingleDeferralFullMonthExpectedErr);
+        Assert.AreEqual(ExpectedNumberOfDays, CustomerContractDeferral."Number of Days", NumberOfDaysFullMonthMismatchErr);
+        Assert.AreEqual(CustomerContractDeferral."Deferral Base Amount", CustomerContractDeferral.Amount, AmountMismatchErr);
+    end;
+
+    [Test]
+    [HandlerFunctions('CreateCustomerBillingDocsContractPageHandler,MessageHandler')]
+    procedure SinglePeriodDeferralMidToEndOfMonthHasCorrectDays()
+    var
+        FirstDayOfBillingPeriod: Date;
+        LastDayOfBillingPeriod: Date;
+        ExpectedNumberOfDays: Integer;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 624087] When billing starts mid-month and ends at the last day of the month, the single deferral period has Number of Days equal to the remaining days.
+        Initialize();
+
+        // [GIVEN] Create customer contract with deferrals starting mid-month.
+        CreateCustomerContractWithDeferrals('<-CY+14D>', true);
+
+        // [WHEN] Billing covers mid-month to last day of the month and the document is posted.
+        CreateBillingProposalAndCreateBillingDocuments('<-CY+14D>', '<-CY+CM>');
+        PostSalesDocumentAndFetchDeferrals();
+
+        // [THEN] Verify exactly 1 deferral period is created with Number of Days equal to the remaining days in the month and Amount equal to Deferral Base Amount.
+        FirstDayOfBillingPeriod := CalcDate('<-CY+14D>', WorkDate());
+        LastDayOfBillingPeriod := CalcDate('<-CY+CM>', WorkDate());
+        ExpectedNumberOfDays := LastDayOfBillingPeriod - FirstDayOfBillingPeriod + 1;
+        Assert.AreEqual(1, CustomerContractDeferral.Count, SingleDeferralMidToEndExpectedErr);
+        Assert.AreEqual(ExpectedNumberOfDays, CustomerContractDeferral."Number of Days", NumberOfDaysRemainingMismatchErr);
+        Assert.AreEqual(CustomerContractDeferral."Deferral Base Amount", CustomerContractDeferral.Amount, AmountMismatchErr);
+    end;
+
+    [Test]
+    [HandlerFunctions('CreateCustomerBillingDocsContractPageHandler,MessageHandler')]
+    procedure SinglePeriodDeferralStartToMidMonthHasCorrectDays()
+    var
+        FirstDayOfBillingPeriod: Date;
+        LastDayOfBillingPeriod: Date;
+        ExpectedNumberOfDays: Integer;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 624087] When billing starts on the 1st and ends mid-month, the single deferral period has Number of Days equal to the actual schedule days, not full calendar month days.
+        Initialize();
+
+        // [GIVEN] Create customer contract with deferrals starting on the 1st of the month.
+        CreateCustomerContractWithDeferrals('<-CY>', true);
+
+        // [WHEN] Billing covers starts on the 1st to ends mid-month and the document is posted.
+        CreateBillingProposalAndCreateBillingDocuments('<-CY>', '<-CY+14D>');
+        PostSalesDocumentAndFetchDeferrals();
+
+        // [THEN] Verify exactly 1 deferral period is created with Number of Days = 15 and Amount equal to Deferral Base Amount.
+        FirstDayOfBillingPeriod := CalcDate('<-CY>', WorkDate());
+        LastDayOfBillingPeriod := CalcDate('<-CY+14D>', WorkDate());
+        ExpectedNumberOfDays := LastDayOfBillingPeriod - FirstDayOfBillingPeriod + 1;
+        Assert.AreEqual(1, CustomerContractDeferral.Count, SingleDeferralStartToMidExpectedErr);
+        Assert.AreEqual(ExpectedNumberOfDays, CustomerContractDeferral."Number of Days", NumberOfDaysScheduleMismatchErr);
+        Assert.AreEqual(CustomerContractDeferral."Deferral Base Amount", CustomerContractDeferral.Amount, AmountMismatchErr);
+    end;
+
+    [Test]
+    [HandlerFunctions('CreateCustomerBillingDocsContractPageHandler,MessageHandler')]
+    procedure SinglePeriodDeferralMidToMidMonthHasCorrectDays()
+    var
+        FirstDayOfBillingPeriod: Date;
+        LastDayOfBillingPeriod: Date;
+        ExpectedNumberOfDays: Integer;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 624087] When billing starts mid-month and ends mid-month, the single deferral period has Number of Days equal to the date range, not partial month days.
+        Initialize();
+
+        // [GIVEN] Create customer contract with deferrals starting mid-month.
+        CreateCustomerContractWithDeferrals('<-CY+14D>', true);
+
+        // [WHEN] Billing covers starts mid-month to ends mid-month and the document is posted.
+        CreateBillingProposalAndCreateBillingDocuments('<-CY+14D>', '<-CY+24D>');
+        PostSalesDocumentAndFetchDeferrals();
+
+        // [THEN] Verify exactly 1 deferral period is created with Number of Days = 11 and Amount equal to Deferral Base Amount
+        FirstDayOfBillingPeriod := CalcDate('<-CY+14D>', WorkDate());
+        LastDayOfBillingPeriod := CalcDate('<-CY+24D>', WorkDate());
+        ExpectedNumberOfDays := LastDayOfBillingPeriod - FirstDayOfBillingPeriod + 1;
+        Assert.AreEqual(1, CustomerContractDeferral.Count, SingleDeferralMidToMidExpectedErr);
+        Assert.AreEqual(ExpectedNumberOfDays, CustomerContractDeferral."Number of Days", NumberOfDaysDateRangeMismatchErr);
+        Assert.AreEqual(CustomerContractDeferral."Deferral Base Amount", CustomerContractDeferral.Amount, AmountMismatchErr);
+    end;
+
+    [Test]
+    [HandlerFunctions('CreateCustomerBillingDocsContractPageHandler,MessageHandler')]
+    procedure MultiPeriodFirstPartialMonthDeferralHasCorrectDays()
+    var
+        FirstDayOfBillingPeriod: Date;
+        ExpectedFirstMonthDays: Integer;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 624087] When billing starts mid-month and spans multiple months, the first deferral period has Number of Days equal to the remaining days in the start month
+        Initialize();
+
+        // [GIVEN] Create customer contract with deferrals starting mid-month.
+        CreateCustomerContractWithDeferrals('<-CY+14D>', true);
+
+        // [WHEN] Billing covers starts mid-month to spans multiple months and the document is posted.
+        CreateBillingProposalAndCreateBillingDocuments('<-CY+14D>', '<CY>');
+        PostSalesDocumentAndFetchDeferrals();
+
+        // [THEN] Verify multiple deferral periods are created and the first one has Number of Days equal to the remaining days in January
+        FirstDayOfBillingPeriod := CalcDate('<-CY+14D>', WorkDate());
+        ExpectedFirstMonthDays := CalcDate('<CM>', FirstDayOfBillingPeriod) - FirstDayOfBillingPeriod + 1;
+        Assert.IsTrue(CustomerContractDeferral.Count > 1, MultipleDeferralPeriodsExpectedErr);
+        Assert.AreEqual(ExpectedFirstMonthDays, CustomerContractDeferral."Number of Days", FirstPartialMonthRemainingDaysMismatchErr);
+    end;
+
+    [Test]
+    [HandlerFunctions('CreateCustomerBillingDocsContractPageHandler,MessageHandler')]
+    procedure MultiPeriodLastPartialMonthDeferralHasCorrectDays()
+    var
+        LastDayOfBillingPeriod: Date;
+        ExpectedLastMonthDays: Integer;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 624087] When billing starts on 1st and ends mid-month in a later month, the last deferral period has Number of Days equal to the day-of-month of the end date.
+        Initialize();
+
+        // [GIVEN] A customer contract with deferrals starting on 1st.
+        CreateCustomerContractWithDeferrals('<-CY>', true);
+
+        // [WHEN] Billing covers 1st to mid-month and the document is posted.
+        CreateBillingProposalAndCreateBillingDocuments('<-CY>', '<-CY+6M+19D>');
+        PostSalesDocumentAndFetchDeferrals();
+
+        // [THEN] Verify the last deferral period has Number of Days equal to the day-of-month of the billing end date.
+        LastDayOfBillingPeriod := CalcDate('<-CY+6M+19D>', WorkDate());
+        ExpectedLastMonthDays := Date2DMY(LastDayOfBillingPeriod, 1);
+        CustomerContractDeferral.FindLast();
+        Assert.AreEqual(ExpectedLastMonthDays, CustomerContractDeferral."Number of Days", LastPartialMonthDaysOfEndDateMismatchErr);
+    end;
+
+    [Test]
+    [HandlerFunctions('CreateCustomerBillingDocsContractPageHandler,MessageHandler')]
+    procedure MultiPeriodFullMonthsDeferralHasCorrectDays()
+    var
+        DeferralCount: Integer;
+        i: Integer;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 624087] When billing spans multiple full months (1st to last day), every deferral period has Number of Days equal to the calendar days in its respective month.
+        Initialize();
+
+        // [GIVEN] A customer contract with deferrals starting on 1st.
+        CreateCustomerContractWithDeferrals('<-CY>', true);
+
+        // [WHEN] Billing covers 1st to last day of the month (full months only) and the document is posted.
+        CreateBillingProposalAndCreateBillingDocuments('<-CY>', '<-CY+5M+CM>');
+        PostSalesDocumentAndFetchDeferrals();
+
+        // [THEN] Verify each deferral period has Number of Days equal to the calendar days in that month.
+        DeferralCount := CustomerContractDeferral.Count;
+        Assert.IsTrue(DeferralCount > 1, MultipleDeferralPeriodsExpectedErr);
+        for i := 1 to DeferralCount do begin
+            Assert.AreEqual(
+                Date2DMY(CalcDate('<CM>', CustomerContractDeferral."Posting Date"), 1),
+                CustomerContractDeferral."Number of Days",
+                FullMonthDaysMismatchErr);
+            if i < DeferralCount then
+                CustomerContractDeferral.Next();
+        end;
+    end;
+
+    [Test]
+    [HandlerFunctions('CreateCustomerBillingDocsContractPageHandler,MessageHandler')]
+    procedure MultiPeriodBothPartialMonthsDeferralHasCorrectDays()
+    var
+        FirstDayOfBillingPeriod: Date;
+        LastDayOfBillingPeriod: Date;
+        ExpectedFirstMonthDays: Integer;
+        ExpectedLastMonthDays: Integer;
+        DeferralCount: Integer;
+        i: Integer;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 624087] When billing starts mid-month and ends mid-month in a later month, the first period uses remaining days, middle periods use full calendar days, and the last period uses day-of-month of end date.
+        Initialize();
+
+        // [GIVEN] A customer contract with deferrals starting on mid-month.
+        CreateCustomerContractWithDeferrals('<-CY+14D>', true);
+
+        // [WHEN] Billing covers partial first and last months and the document is posted.
+        CreateBillingProposalAndCreateBillingDocuments('<-CY+14D>', '<-CY+6M+19D>');
+        PostSalesDocumentAndFetchDeferrals();
+
+        // [THEN] Verify first partial month has Number of Days equal to remaining days in the month.
+        FirstDayOfBillingPeriod := CalcDate('<-CY+14D>', WorkDate());
+        LastDayOfBillingPeriod := CalcDate('<-CY+6M+19D>', WorkDate());
+        ExpectedFirstMonthDays := CalcDate('<CM>', FirstDayOfBillingPeriod) - FirstDayOfBillingPeriod + 1;
+        ExpectedLastMonthDays := Date2DMY(LastDayOfBillingPeriod, 1);
+        DeferralCount := CustomerContractDeferral.Count;
+        Assert.IsTrue(DeferralCount > 2, MultiplePartialDeferralPeriodsExpectedErr);
+        Assert.AreEqual(ExpectedFirstMonthDays, CustomerContractDeferral."Number of Days", FirstPartialMonthDaysMismatchErr);
+        CustomerContractDeferral.Next();
+
+        // [THEN] Verify middle full months have Number of Days equal to calendar days in each month.
+        for i := 2 to DeferralCount - 1 do begin
+            Assert.AreEqual(
+                Date2DMY(CalcDate('<CM>', CustomerContractDeferral."Posting Date"), 1),
+                CustomerContractDeferral."Number of Days",
+                FullMonthDaysMismatchErr);
+            CustomerContractDeferral.Next();
+        end;
+
+        // [THEN] Verify last partial month has Number of Days equal to day-of-month of the end date.
+        Assert.AreEqual(ExpectedLastMonthDays, CustomerContractDeferral."Number of Days", LastPartialMonthDaysMismatchErr);
+    end;
+
     #endregion Tests
 
     #region Procedures
@@ -863,6 +1261,16 @@ codeunit 139912 "Customer Deferrals Test"
         CustomerContractDeferral.Reset();
         CustomerContractDeferral.SetRange("Document No.", DocumentNo);
         CustomerContractDeferral.FindFirst();
+    end;
+
+    local procedure ClearCorrectionDocumentNoFromBillingLines(CreditMemoDocumentNo: Code[20])
+    var
+        CrMemoBillingLine: Record "Billing Line";
+    begin
+        CrMemoBillingLine.SetRange(Partner, CrMemoBillingLine.Partner::Customer);
+        CrMemoBillingLine.SetRange("Document Type", CrMemoBillingLine."Document Type"::"Credit Memo");
+        CrMemoBillingLine.SetRange("Document No.", CreditMemoDocumentNo);
+        CrMemoBillingLine.ModifyAll("Correction Document No.", '', false);
     end;
 
     local procedure GetCalculatedMonthAmountsForDeferrals(SourceDeferralBaseAmount: Decimal; NumberOfPeriods: Integer; FirstDayOfBillingPeriod: Date; LastDayOfBillingPeriod: Date; CalculateInLCY: Boolean)

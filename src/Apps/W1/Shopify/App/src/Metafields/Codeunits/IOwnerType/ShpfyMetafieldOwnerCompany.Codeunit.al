@@ -28,7 +28,7 @@ codeunit 30366 "Shpfy Metafield Owner Company" implements "Shpfy IMetafield Owne
         UpdatedAt: DateTime;
     begin
         Parameters.Add('CompanyId', Format(OwnerId));
-        GraphQLType := GraphQLType::CompanyMetafieldIds;
+        GraphQLType := GraphQLType::Metafields_CompanyMetafieldIds;
         JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
         if JsonHelper.GetJsonObject(JResponse, JCompany, 'data.company') then
             if JsonHelper.GetJsonArray(JResponse, JMetafields, 'data.company.metafields.edges') then

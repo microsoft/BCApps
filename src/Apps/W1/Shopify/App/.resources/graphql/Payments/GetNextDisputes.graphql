@@ -1,0 +1,2 @@
+# cost: 30
+{"query":"{ shopifyPaymentsAccount { disputes(first: 100, query: \"id:>={{SinceId}}\", after: \"{{After}}\") { edges { cursor node { amount { amount currencyCode } reasonDetails { networkReasonCode reason } order { id } evidenceDueBy evidenceSentOn finalizedOn id status type } } pageInfo { hasNextPage } } } }"}

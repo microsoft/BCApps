@@ -5,6 +5,7 @@ using Microsoft.Finance.GeneralLedger.Ledger;
 query 30300 "API Finance - GL Entry"
 {
     QueryType = API;
+    AboutText = 'Provides access to general ledger entries including posting dates, account numbers, amounts, dimensions, and source information. Enables external reporting tools and analytics platforms to retrieve transaction-level financial data for reconciliation, audit trails, and financial statement preparation.';
     EntityCaption = 'General Ledger Entry';
     EntityName = 'generalLedgerEntry';
     EntitySetName = 'generalLedgerEntries';

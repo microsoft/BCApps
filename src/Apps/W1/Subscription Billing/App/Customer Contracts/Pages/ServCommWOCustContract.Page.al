@@ -116,6 +116,18 @@ page 8069 "Serv. Comm. WO Cust. Contract"
                         ContactManagement.OpenContactCard(ServiceObject."End-User Contact No.");
                     end;
                 }
+                field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
+                {
+                    ApplicationArea = Dimensions;
+                    Visible = false;
+                    Editable = false;
+                }
+                field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
+                {
+                    ApplicationArea = Dimensions;
+                    Visible = false;
+                    Editable = false;
+                }
             }
         }
     }

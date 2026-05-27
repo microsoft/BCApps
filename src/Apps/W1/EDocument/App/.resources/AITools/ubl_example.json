@@ -1,0 +1,186 @@
+{
+    "customization_id": "urn:cen.eu:en16931:2017",
+    "profile_id": "urn:fdc:peppol.eu:2017:poacc:billing:01:1.0",
+    "id": "",
+    "issue_date": "",
+    "due_date": "",
+    "document_currency_code": "",
+    "order_reference": {
+        "id": ""
+    },
+    "accounting_supplier_party": {
+        "party": {
+            "party_name": {
+                "name": ""
+            },
+            "postal_address": {
+                "street_name": "",
+                "additional_street_name": "",
+                "city_name": "",
+                "postal_zone": "",
+                "country": {
+                    "identification_code": ""
+                }
+            },
+            "party_tax_scheme": {
+                "company_id": "",
+                "tax_scheme": {
+                    "id": ""
+                }
+            },
+            "contact": {
+                "name": "",
+                "telephone": "",
+                "electronic_mail": ""
+            }
+        }
+    },
+    "accounting_customer_party": {
+        "party": {
+            "party_name": {
+                "name": ""
+            },
+            "postal_address": {
+                "street_name": "",
+                "additional_street_name": "",
+                "city_name": "",
+                "postal_zone": "",
+                "country": {
+                    "identification_code": ""
+                }
+            },
+            "party_tax_scheme": {
+                "company_id": "",
+                "tax_scheme": {
+                    "id": ""
+                }
+            },
+            "contact": {
+                "name": "",
+                "telephone": "",
+                "electronic_mail": ""
+            }
+        }
+    },
+    "delivery": {
+        "actual_delivery_date": "",
+        "delivery_location": {
+            "id": {
+                "scheme_id": "",
+                "value": ""
+            },
+            "address": {
+                "street_name": "",
+                "additional_street_name": "",
+                "city_name": "",
+                "postal_zone": "",
+                "country": {
+                    "identification_code": ""
+                }
+            }
+        },
+        "delivery_party": {
+            "party_name": {
+                "name": ""
+            }
+        }
+    },
+    "payment_means": {
+        "payment_means_code": "",
+        "payment_id": "",
+        "payee_financial_account": {
+            "id": "",
+            "name": "",
+            "financial_institution_branch": {
+                "id": ""
+            }
+        }
+    },
+    "payment_terms": {
+        "note": ""
+    },
+    "allowance_charge": [
+        {
+            "charge_indicator": false,
+            "allowance_charge_reason_code": 0,
+            "allowance_charge_reason": "",
+            "amount": {
+                "currency_id": "",
+                "value": "0"
+            },
+            "tax_category": {
+                "id": "",
+                "percent": "0",
+                "tax_scheme": {
+                    "id": ""
+                }
+            }
+        }
+    ],
+    "tax_total": {
+        "tax_amount": "0",
+        "tax_subtotal": [
+            {
+                "taxable_amount": "0",
+                "tax_amount": "0",
+                "tax_category": {
+                    "id": "",
+                    "percent": "0",
+                    "tax_scheme": {
+                        "id": ""
+                    }
+                }
+            }
+        ]
+    },
+    "legal_monetary_total": {
+        "line_extension_amount": "0",
+        "tax_exclusive_amount": "0",
+        "tax_inclusive_amount": "0",
+        "allowance_total_amount": "0",
+        "charge_total_amount": "0",
+        "payable_amount": "0"
+    },
+    "invoice_line": [
+        {
+            "id": "",
+            "invoiced_quantity": {
+                "unit_code": "",
+                "value": "0"
+            },
+            "line_extension_amount": "0",
+            "allowance_charge": {
+                "charge_indicator": false,
+                "allowance_charge_reason_code": 0,
+                "allowance_charge_reason": "",
+                "amount": {
+                    "currency_id": "",
+                    "value": "0"
+                },
+                "tax_category": {
+                    "id": "",
+                    "percent": "0",
+                    "tax_scheme": {
+                        "id": ""
+                    }
+                }
+            },
+            "item": {
+                "name": "",
+                "sellers_item_identification": {
+                    "id": ""
+                },
+                "classified_tax_category": {
+                    "id": "",
+                    "percent": "0",
+                    "tax_scheme": {
+                        "id": ""
+                    }
+                }
+            },
+            "price": {
+                "price_amount": "0"
+            }
+        }
+    ]
+}

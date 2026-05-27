@@ -300,6 +300,7 @@ table 8059 "Subscription Line"
         {
             CaptionClass = '1,2,1';
             Caption = 'Shortcut Dimension 1 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1),
                                                           Blocked = const(false));
 
@@ -312,6 +313,7 @@ table 8059 "Subscription Line"
         {
             CaptionClass = '1,2,2';
             Caption = 'Shortcut Dimension 2 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2),
                                                           Blocked = const(false));
 
@@ -857,7 +859,6 @@ table 8059 "Subscription Line"
             if MaxServiceAmount <> 0 then
                 "Discount %" := Round(100 - (Amount / MaxServiceAmount * 100), 0.00001);
         end else begin
-            ServiceObject.TestField(Quantity);
             Amount := Price * ServiceObject.Quantity;
             if not "Usage Based Billing" then
                 Amount := Round(Amount, Currency."Amount Rounding Precision");
@@ -867,7 +868,10 @@ table 8059 "Subscription Line"
                     "Discount Amount" := Round("Discount Amount", Currency."Amount Rounding Precision");
             end;
             if CalledByFieldNo = FieldNo("Discount Amount") then
-                "Discount %" := Round("Discount Amount" / Amount * 100, 0.00001);
+                if Amount <> 0 then
+                    "Discount %" := Round("Discount Amount" / Amount * 100, 0.00001)
+                else
+                    "Discount %" := 0;
             if ("Discount Amount" > MaxServiceAmount) and ("Discount Amount" <> 0) then
                 Error(CannotBeGreaterThanErr, FieldCaption("Discount Amount"), Format(MaxServiceAmount));
             Amount := Amount - "Discount Amount";
@@ -878,7 +882,7 @@ table 8059 "Subscription Line"
         OnAfterCalculateServiceAmount(Rec, CalledByFieldNo);
     end;
 
-    local procedure SetUpdateRequiredOnBillingLines()
+    internal procedure SetUpdateRequiredOnBillingLines()
     var
         BillingLine: Record "Billing Line";
     begin
@@ -1049,6 +1053,10 @@ table 8059 "Subscription Line"
                         Validate("Unit Cost (LCY)", "Unit Cost (LCY)");
                     FieldNo("Create Contract Deferrals"):
                         Validate("Create Contract Deferrals", "Create Contract Deferrals");
+                    FieldNo("Shortcut Dimension 1 Code"):
+                        Validate("Shortcut Dimension 1 Code", "Shortcut Dimension 1 Code");
+                    FieldNo("Shortcut Dimension 2 Code"):
+                        Validate("Shortcut Dimension 2 Code", "Shortcut Dimension 2 Code");
                 end;
                 Modify(true);
             end;
@@ -1064,7 +1072,7 @@ table 8059 "Subscription Line"
 
         OldDimSetID := "Dimension Set ID";
         "Dimension Set ID" := DimMgt.EditDimensionSet(
-            "Dimension Set ID", "Subscription Header No." + '' + Format("Entry No."),
+            "Dimension Set ID", "Subscription Header No." + ' ' + FieldCaption("Entry No.") + ' ' + Format("Entry No."),
             "Shortcut Dimension 1 Code", "Shortcut Dimension 2 Code");
 
         if OldDimSetID <> "Dimension Set ID" then begin
@@ -1081,8 +1089,10 @@ table 8059 "Subscription Line"
         OnBeforeValidateShortcutDimCode(Rec, xRec, FieldNumber, ShortcutDimCode);
         OldDimSetID := "Dimension Set ID";
         DimMgt.ValidateShortcutDimValues(FieldNumber, ShortcutDimCode, "Dimension Set ID");
-        if OldDimSetID <> "Dimension Set ID" then
+        if OldDimSetID <> "Dimension Set ID" then begin
             Modify();
+            UpdateRelatedVendorServiceCommDimensions(OldDimSetID, "Dimension Set ID");
+        end;
 
         OnAfterValidateShortcutDimCode(Rec, xRec, FieldNumber, ShortcutDimCode);
     end;
@@ -1337,7 +1347,9 @@ table 8059 "Subscription Line"
             repeat
 #pragma warning disable AA0214
                 ServiceCommitment.ResetAmountsAndCurrencyFromLCY();
-                ServiceCommitment.Modify(true);
+                ServiceCommitment.SetUpdateRequiredOnBillingLines();
+                ServiceCommitment.ArchiveServiceCommitment();
+                ServiceCommitment.Modify(false);
 #pragma warning restore AA0214
             until ServiceCommitment.Next() = 0;
     end;
@@ -1361,7 +1373,9 @@ table 8059 "Subscription Line"
                     CurrencyCode := ServiceCommitment."Currency Code";
                 ServiceCommitment.SetCurrencyData(CurrencyFactor, CurrencyFactorDate, CurrencyCode);
                 ServiceCommitment.RecalculateAmountsFromCurrencyData();
-                ServiceCommitment.Modify(true);
+                ServiceCommitment.SetUpdateRequiredOnBillingLines();
+                ServiceCommitment.ArchiveServiceCommitment();
+                ServiceCommitment.Modify(false);
             until ServiceCommitment.Next() = 0;
     end;
 
@@ -1828,7 +1842,7 @@ table 8059 "Subscription Line"
         Page.RunModal(Page::"Usage Data Billing Metadata", UsageDataBillingMetadata);
     end;
 
-    internal procedure UnitPriceForPeriod(ChargePeriodStart: Date; ChargePeriodEnd: Date) UnitPrice: Decimal
+    procedure UnitPriceForPeriod(ChargePeriodStart: Date; ChargePeriodEnd: Date) UnitPrice: Decimal
     var
         UnitCost: Decimal;
         UnitCostLCY: Decimal;
@@ -1932,6 +1946,8 @@ table 8059 "Subscription Line"
                         LastDateInLastMonth := CalcDate(PeriodFormula, FromDate);
                         LastDateInLastMonth := CalcDate('<CM>', LastDateInLastMonth);
                         NextToDate := LastDateInLastMonth - DistanceToEndOfMonth - 1;
+                        if NextToDate < FromDate then
+                            NextToDate := CalcDate(PeriodFormula, FromDate) - 1;
                     end;
                 end;
         end;

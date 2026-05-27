@@ -16,12 +16,12 @@ codeunit 775 "User Details Impl."
     procedure Get(var UserDetails: Record "User Details")
     var
         User: Record User;
-        LocalUserDetails: Record "User Details";
+        TempLocalUserDetails: Record "User Details";
         UserDetailsFacade: Codeunit "User Details";
     begin
-        LocalUserDetails.Copy(UserDetails, true);
-        LocalUserDetails.Reset();
-        LocalUserDetails.DeleteAll();
+        TempLocalUserDetails.Copy(UserDetails, true);
+        TempLocalUserDetails.Reset();
+        TempLocalUserDetails.DeleteAll();
 
         User.SetRange("License Type", User."License Type"::"Full User");
         if User.FindSet() then

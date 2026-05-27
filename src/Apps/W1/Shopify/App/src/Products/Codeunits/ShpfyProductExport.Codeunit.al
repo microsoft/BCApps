@@ -5,6 +5,7 @@
 
 namespace Microsoft.Integration.Shopify;
 
+using Microsoft.Foundation.Address;
 using Microsoft.Foundation.ExtendedText;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Attribute;
@@ -368,6 +369,10 @@ codeunit 30178 "Shpfy Product Export"
             end;
             ShopifyVariant.Taxable := true;
             ShopifyVariant.Weight := ItemUnitofMeasure."Qty. per Unit of Measure" > 0 ? Item."Gross Weight" * ItemUnitofMeasure."Qty. per Unit of Measure" : Item."Gross Weight";
+            if Shop."Sync HS Code and Country" then begin
+                ShopifyVariant."Tariff No." := Item."Tariff No.";
+                ShopifyVariant."Country/Region of Origin Code" := GetCountryISOCode(Item."Country/Region of Origin Code");
+            end;
             ShopifyVariant."Option 1 Name" := Shop."Option Name for UoM";
             ShopifyVariant."Option 1 Value" := ItemUnitofMeasure.Code;
             ShopifyVariant."Shop Code" := Shop.Code;
@@ -424,6 +429,10 @@ codeunit 30178 "Shpfy Product Export"
             end;
             ShopifyVariant.Taxable := true;
             ShopifyVariant.Weight := Item."Gross Weight";
+            if Shop."Sync HS Code and Country" then begin
+                ShopifyVariant."Tariff No." := Item."Tariff No.";
+                ShopifyVariant."Country/Region of Origin Code" := GetCountryISOCode(Item."Country/Region of Origin Code");
+            end;
             if ShopifyVariant."Option 1 Name" = '' then
                 ShopifyVariant."Option 1 Name" := 'Variant';
             if ShopifyVariant."Option 1 Name" = 'Variant' then
@@ -479,6 +488,10 @@ codeunit 30178 "Shpfy Product Export"
             end;
             ShopifyVariant.Taxable := true;
             ShopifyVariant.Weight := ItemUnitofMeasure."Qty. per Unit of Measure" > 0 ? Item."Gross Weight" * ItemUnitofMeasure."Qty. per Unit of Measure" : Item."Gross Weight";
+            if Shop."Sync HS Code and Country" then begin
+                ShopifyVariant."Tariff No." := Item."Tariff No.";
+                ShopifyVariant."Country/Region of Origin Code" := GetCountryISOCode(Item."Country/Region of Origin Code");
+            end;
             ShopifyVariant."Option 1 Name" := 'Variant';
             ShopifyVariant."Option 1 Value" := ItemVariant.Code;
             ShopifyVariant."Option 2 Name" := Shop."Option Name for UoM";
@@ -657,6 +670,10 @@ codeunit 30178 "Shpfy Product Export"
                                 UpdateProductVariant(ShopifyVariant, Item, ItemVariant, TempCurrVariant);
                         end;
                 until ShopifyVariant.Next() = 0;
+            // Re-fetch the parent product's item, as the loop above may have overwritten
+            // the Item variable with a child item from "Add Item as Shopify Variant".
+            if not Item.GetBySystemId(ShopifyProduct."Item SystemId") then
+                exit;
             ItemVariant.SetRange("Item No.", Item."No.");
             ItemUnitofMeasure.SetRange("Item No.", Item."No.");
             if ItemVariant.FindSet(false) then
@@ -921,8 +938,61 @@ codeunit 30178 "Shpfy Product Export"
     end;
     #endregion
 
-    #region Shopify Product Options as Item/Variant Attributes 
-    /// <summary> 
+    /// <summary>
+    /// Checks if the item can be exported to Shopify. Validates that the item is not blocked, has a description, and does not exceed the variant limit.
+    /// </summary>
+    /// <param name="Item">The item to check.</param>
+    /// <returns>True if the item can be exported, false otherwise.</returns>
+    internal procedure CheckItemCanBeExported(Item: Record Item): Boolean
+    var
+        ItemIsBlockedOrSalesBlockedLbl: Label 'Item is blocked or sales blocked.';
+        ItemDescriptionIsEmptyLbl: Label 'Item description is empty.';
+    begin
+        if Item.Blocked or Item."Sales Blocked" then begin
+            SkippedRecord.LogSkippedRecord(Item.RecordId, ItemIsBlockedOrSalesBlockedLbl, Shop);
+            exit(false);
+        end;
+
+        if Item.Description = '' then begin
+            SkippedRecord.LogSkippedRecord(Item.RecordId, ItemDescriptionIsEmptyLbl, Shop);
+            exit(false);
+        end;
+
+        exit(CheckItemVariantCount(Item));
+    end;
+
+    /// <summary>
+    /// Checks if the item's expected variant count does not exceed the Shopify maximum of 2048 variants per product.
+    /// </summary>
+    /// <param name="Item">The item to check.</param>
+    /// <returns>True if the variant count is within limits, false otherwise.</returns>
+    internal procedure CheckItemVariantCount(Item: Record Item): Boolean
+    var
+        ItemVariant: Record "Item Variant";
+        ItemUnitofMeasure: Record "Item Unit of Measure";
+        ExpectedVariantCount: Integer;
+        MaxVariantCount: Integer;
+        TooManyVariantsLbl: Label 'Item has more than %1 variants. Shopify allows a maximum of %1 variants per product.', Comment = '%1 = Maximum number of variants';
+    begin
+        MaxVariantCount := 2048;
+        ItemVariant.SetRange("Item No.", Item."No.");
+        ItemVariant.SetRange(Blocked, false);
+        ItemVariant.SetRange("Sales Blocked", false);
+        ExpectedVariantCount := ItemVariant.Count();
+        if Shop."UoM as Variant" then begin
+            ItemUnitofMeasure.SetRange("Item No.", Item."No.");
+            ExpectedVariantCount := ExpectedVariantCount * ItemUnitofMeasure.Count();
+        end;
+        if ExpectedVariantCount > MaxVariantCount then begin
+            SkippedRecord.LogSkippedRecord(Item.RecordId, StrSubstNo(TooManyVariantsLbl, MaxVariantCount), Shop);
+            exit(false);
+        end;
+
+        exit(true);
+    end;
+
+    #region Shopify Product Options as Item/Variant Attributes
+    /// <summary>
     /// Checks if item/item variant attributes marked as "As Option" are compatible to be used as product options in Shopify.
     /// </summary>  
     /// <param name="Item">The item to check.</param>
@@ -1306,4 +1376,15 @@ codeunit 30178 "Shpfy Product Export"
         exit(true);
     end;
     #endregion
+
+    internal procedure GetCountryISOCode(CountryRegionCode: Code[10]): Code[10]
+    var
+        CountryRegion: Record "Country/Region";
+    begin
+        if CountryRegionCode = '' then
+            exit('');
+        if CountryRegion.Get(CountryRegionCode) then
+            exit(CountryRegion."ISO Code");
+        exit(CountryRegionCode);
+    end;
 }

@@ -20,7 +20,6 @@ page 20401 "Qlty. Tests"
     CardPageId = "Qlty. Test Card";
     Editable = false;
     InsertAllowed = false;
-    DeleteAllowed = false;
     RefreshOnActivate = true;
     PageType = List;
     SourceTable = "Qlty. Test";
@@ -101,85 +100,85 @@ page 20401 "Qlty. Tests"
                 field(Field4; MatrixArrayConditionCellData[4])
                 {
                     CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[4]);
-                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 4';
+                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 4.';
                     Visible = Visible4;
                 }
                 field(Field4_Desc; MatrixArrayConditionDescriptionCellData[4])
                 {
                     CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[4]);
-                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 4';
+                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 4.';
                     Visible = Visible4;
                 }
                 field(Field5; MatrixArrayConditionCellData[5])
                 {
                     CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[5]);
-                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 5';
+                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 5.';
                     Visible = Visible5;
                 }
                 field(Field5_Desc; MatrixArrayConditionDescriptionCellData[5])
                 {
                     CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[5]);
-                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 5';
+                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 5.';
                     Visible = Visible5;
                 }
                 field(Field6; MatrixArrayConditionCellData[6])
                 {
                     CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[6]);
-                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 6';
+                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 6.';
                     Visible = Visible6;
                 }
                 field(Field6_Desc; MatrixArrayConditionDescriptionCellData[6])
                 {
                     CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[6]);
-                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 6';
+                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 6.';
                     Visible = Visible6;
                 }
                 field(Field7; MatrixArrayConditionCellData[7])
                 {
                     CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[7]);
-                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 7';
+                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 7.';
                     Visible = Visible7;
                 }
                 field(Field7_Desc; MatrixArrayConditionDescriptionCellData[7])
                 {
                     CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[7]);
-                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 7';
+                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 7.';
                     Visible = Visible7;
                 }
                 field(Field8; MatrixArrayConditionCellData[8])
                 {
                     CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[8]);
-                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 8';
+                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 8.';
                     Visible = Visible8;
                 }
                 field(Field8_Desc; MatrixArrayConditionDescriptionCellData[8])
                 {
                     CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[8]);
-                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 8';
+                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 8.';
                     Visible = Visible8;
                 }
                 field(Field9; MatrixArrayConditionCellData[9])
                 {
                     CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[9]);
-                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 9';
+                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 9.';
                     Visible = Visible9;
                 }
                 field(Field9_Desc; MatrixArrayConditionDescriptionCellData[9])
                 {
                     CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[9]);
-                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 9';
+                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 9.';
                     Visible = Visible9;
                 }
                 field(Field10; MatrixArrayConditionCellData[10])
                 {
                     CaptionClass = '3,' + StrSubstNo(ConditionLbl, MatrixArrayCaptionSet[10]);
-                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 10';
+                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 10.';
                     Visible = Visible10;
                 }
                 field(Field10_Desc; MatrixArrayConditionDescriptionCellData[10])
                 {
                     CaptionClass = '3,' + StrSubstNo(DescriptionLbl, MatrixArrayCaptionSet[10]);
-                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 10';
+                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 10.';
                     Visible = Visible10;
                 }
                 field("Lookup Table No."; Rec."Lookup Table No.")
@@ -219,6 +218,7 @@ page 20401 "Qlty. Tests"
         }
     }
 
+#if not CLEAN29
     actions
     {
         area(Processing)
@@ -229,6 +229,10 @@ page 20401 "Qlty. Tests"
                 Image = Delete;
                 Scope = Repeater;
                 ToolTip = 'Deletes this test. A test can only be deleted if it is not being used on an existing inspection.';
+                Visible = false;
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Deletion is handled by standard page behavior through the OnDelete trigger on Qlty. Test table.';
+                ObsoleteTag = '29.0';
 
                 trigger OnAction()
                 begin
@@ -238,13 +242,20 @@ page 20401 "Qlty. Tests"
                 end;
             }
         }
+
         area(Promoted)
         {
+#pragma warning disable AL0432
             actionref(DeleteRecordSafe_Promoted; DeleteRecordSafe)
+#pragma warning restore AL0432
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Deletion is handled by standard page behavior through the OnDelete trigger on Qlty. Test table.';
+                ObsoleteTag = '29.0';
             }
         }
     }
+#endif
 
     var
         QltyResultConditionMgmt: Codeunit "Qlty. Result Condition Mgmt.";
@@ -252,42 +263,15 @@ page 20401 "Qlty. Tests"
         MatrixArrayConditionCellData: array[10] of Text;
         MatrixArrayConditionDescriptionCellData: array[10] of Text;
         MatrixArrayCaptionSet: array[10] of Text;
-        MatrixVisibleState: array[10] of Boolean;
-        Visible1: Boolean;
-        Visible2: Boolean;
-        Visible3: Boolean;
-        Visible4: Boolean;
-        Visible5: Boolean;
-        Visible6: Boolean;
-        Visible7: Boolean;
-        Visible8: Boolean;
-        Visible9: Boolean;
-        Visible10: Boolean;
+        Visible1, Visible2, Visible3, Visible4, Visible5, Visible6, Visible7, Visible8, Visible9, Visible10 : Boolean;
         DescriptionLbl: Label '%1 Description', Comment = '%1 = Matrix field caption';
         ConditionLbl: Label '%1 Condition', Comment = '%1 = Matrix field caption';
 
     trigger OnOpenPage()
+    var
+        MatrixVisibleState: array[10] of Boolean;
     begin
-    end;
-
-    trigger OnDeleteRecord(): Boolean
-    begin
-        Rec.CheckDeleteConstraints(true);
-    end;
-
-    trigger OnAfterGetRecord()
-    begin
-        UpdateRowData();
-    end;
-
-    trigger OnAfterGetCurrRecord()
-    begin
-        UpdateRowData();
-    end;
-
-    local procedure UpdateRowData()
-    begin
-        QltyResultConditionMgmt.GetPromotedResultsForTest(Rec, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, MatrixArrayCaptionSet, MatrixVisibleState);
+        QltyResultConditionMgmt.GetDefaultPromotedResults(true, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, MatrixArrayCaptionSet, MatrixVisibleState);
         Visible1 := MatrixVisibleState[1];
         Visible2 := MatrixVisibleState[2];
         Visible3 := MatrixVisibleState[3];
@@ -298,6 +282,19 @@ page 20401 "Qlty. Tests"
         Visible8 := MatrixVisibleState[8];
         Visible9 := MatrixVisibleState[9];
         Visible10 := MatrixVisibleState[10];
+    end;
+
+    trigger OnAfterGetRecord()
+    begin
+        UpdateRowData();
+    end;
+
+    local procedure UpdateRowData()
+    var
+        DummyMatrixArrayCaptionSet: array[10] of Text;
+        DummyMatrixVisibleState: array[10] of Boolean;
+    begin
+        QltyResultConditionMgmt.GetPromotedResultsForTest(Rec, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, DummyMatrixArrayCaptionSet, DummyMatrixVisibleState);
     end;
 
     local procedure UpdateMatrixDataCondition(Matrix: Integer)

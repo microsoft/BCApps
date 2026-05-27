@@ -127,5 +127,14 @@ page 30119 "Shpfy Log Entries"
             }
         }
     }
+
+    views
+    {
+        view(WithErrors)
+        {
+            Caption = 'With errors';
+            Filters = where("Has Error" = const(true));
+        }
+    }
 }
 

@@ -10,6 +10,7 @@ query 36961 "G/L Budgets"
 {
     Access = Internal;
     QueryType = API;
+    AboutText = 'Provides access to general ledger budget names and descriptions. Enables Power BI reports to retrieve available budgets for filtering and selection in budget analysis, multi-budget comparisons, and financial planning dashboards.';
     Caption = 'Power BI G/L Budgets';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';

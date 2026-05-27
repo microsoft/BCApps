@@ -2,7 +2,7 @@ namespace Microsoft.SubscriptionBilling;
 
 enum 8007 "Usage Based Pricing"
 {
-    Extensible = false;
+    Extensible = true;
 
     value(0; None)
     {

@@ -8,6 +8,7 @@ using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Configuration.Template.Test;
 using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Utilities;
+using System.Utilities;
 
 /// <summary>
 /// Used to copy result conditions from tests to templates, templates to inspections
@@ -15,8 +16,10 @@ using Microsoft.QualityManagement.Utilities;
 codeunit 20409 "Qlty. Result Condition Mgmt."
 {
     var
+        ConfirmManagement: Codeunit "Confirm Management";
         ChangedTestConditionsUpdateTemplatesQst: Label 'You have changed default conditions on the test %2, there are %1 template lines with earlier conditions for this result. Do you want to update the templates?', Comment = '%1=the amount of template lines that have other conditions, %2=the test name';
         ChangedResultConditionsUpdateDefaultsOnTestsQst: Label 'You have changed default conditions on the result %1, there are %2 tests with earlier conditions for this result. Do you want to update these tests?', Comment = '%1=the amount of tests that have other conditions, %2=the result name';
+        UpdateResultsOnTestsTemplatesInspectionsQst: Label 'This will insert new results and adjust evaluation sequence on existing results on all templates, tests, and inspections. Do you want to continue?';
 
     /// <summary>
     /// Prompts if templates should be updated.
@@ -26,7 +29,6 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
     var
         CountsQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
         CopyToQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
-        Continue: Boolean;
     begin
         CountsQltyInspectionTemplateLine.SetRange("Test Code", CopyFromQltyIResultConditConf."Test Code");
 
@@ -39,12 +41,10 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
             CopyToQltyIResultConditConf.SetRange(Condition);
             CopyToQltyIResultConditConf.SetFilter("Condition Description", '<>%1', CopyFromQltyIResultConditConf."Condition Description");
         end;
-        if not CopyToQltyIResultConditConf.IsEmpty() then begin
-            if not GuiAllowed() then
-                Continue := true
-            else
-                Continue := Confirm(StrSubstNo(ChangedTestConditionsUpdateTemplatesQst, CountsQltyInspectionTemplateLine.Count(), CopyFromQltyIResultConditConf."Test Code"));
-            if Continue then begin
+        if not CopyToQltyIResultConditConf.IsEmpty() then
+            if ConfirmManagement.GetResponseOrDefault(
+                StrSubstNo(ChangedTestConditionsUpdateTemplatesQst, CountsQltyInspectionTemplateLine.Count(), CopyFromQltyIResultConditConf."Test Code"))
+            then begin
                 CopyToQltyIResultConditConf.FindSet(true);
                 repeat
                     CopyResultConditionsFromTestToTemplateLine(
@@ -56,24 +56,19 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
                         CopyFromQltyIResultConditConf."Condition Description");
                 until CopyToQltyIResultConditConf.Next() = 0;
             end;
-        end;
     end;
 
     internal procedure PromptUpdateTestsFromResultIfApplicable(ResultCode: Code[20])
     var
         ExistingQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
-        Continue: Boolean;
     begin
         ExistingQltyIResultConditConf.SetRange("Result Code", ResultCode);
         ExistingQltyIResultConditConf.SetRange("Condition Type", ExistingQltyIResultConditConf."Condition Type"::Test);
-        if not ExistingQltyIResultConditConf.IsEmpty() then begin
-            if not GuiAllowed() then
-                Continue := true
-            else
-                Continue := Confirm(StrSubstNo(ChangedResultConditionsUpdateDefaultsOnTestsQst, ResultCode, ExistingQltyIResultConditConf.Count()));
-            if Continue then
+        if not ExistingQltyIResultConditConf.IsEmpty() then
+            if ConfirmManagement.GetResponseOrDefault(
+                StrSubstNo(ChangedResultConditionsUpdateDefaultsOnTestsQst, ResultCode, ExistingQltyIResultConditConf.Count()))
+            then
                 OverwriteExistingTestConditionsWithResultCondition(ResultCode);
-        end;
     end;
 
     /// <summary>
@@ -248,6 +243,9 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
         QltyInspectionResult: Record "Qlty. Inspection Result";
         QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
     begin
+        if not ConfirmManagement.GetResponseOrDefault(UpdateResultsOnTestsTemplatesInspectionsQst) then
+            exit;
+
         QltyInspectionResult.SetRange("Copy Behavior", QltyInspectionResult."Copy Behavior"::"Automatically copy the result");
         if QltyInspectionResult.FindSet() then
             repeat
@@ -349,7 +347,14 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
                     ToTestQltyIResultConditConf."Condition Description" := CopyStr(Condition, 1, MaxStrLen(ToTestQltyIResultConditConf."Condition Description"));
                     ToTestQltyIResultConditConf.Insert();
                 end else
-                    if AlwaysUpdateExistingCondition or (OnlyOverwriteIfADefaultCondition and (ToTestQltyIResultConditConf.Condition in [QltyInspectionResult."Default Boolean Condition", QltyInspectionResult."Default Number Condition", QltyInspectionResult."Default Text Condition"])) then begin
+                    if AlwaysUpdateExistingCondition or
+                       (OnlyOverwriteIfADefaultCondition and
+                            (ToTestQltyIResultConditConf.Condition in
+                                ['', // '' treated as uninitialized; safe to overwrite just like named defaults
+                                QltyInspectionResult."Default Boolean Condition",
+                                QltyInspectionResult."Default Number Condition",
+                                QltyInspectionResult."Default Text Condition"]))
+                    then begin
                         ToTestQltyIResultConditConf.Validate(Condition, CopyStr(Condition, 1, MaxStrLen(ToTestQltyIResultConditConf.Condition)));
                         ToTestQltyIResultConditConf."Condition Description" := CopyStr(Condition, 1, MaxStrLen(ToTestQltyIResultConditConf."Condition Description"));
                         ToTestQltyIResultConditConf.Priority := QltyInspectionResult."Evaluation Sequence";
@@ -462,6 +467,7 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
             QltyInspectionResult.SetRange("Copy Behavior", QltyInspectionResult."Copy Behavior"::"Automatically copy the result");
         QltyInspectionResult.SetCurrentKey("Result Visibility", "Evaluation Sequence");
         QltyInspectionResult.Ascending(false);
+        QltyInspectionResult.SetLoadFields(Code, Description, "Default Number Condition");
         if QltyInspectionResult.FindSet() then begin
             Iterator := 0;
             repeat
@@ -556,30 +562,36 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
         QltyIResultConditConf.SetRange("Result Visibility", QltyIResultConditConf."Result Visibility"::Promoted);
         QltyIResultConditConf.SetCurrentKey("Condition Type", "Result Visibility", Priority, "Target Code", "Target Re-inspection No.", "Target Line No.");
         QltyIResultConditConf.Ascending(false);
-        if QltyIResultConditConf.FindSet() then
+
+        // Drive iteration by Qlty. Inspection Result using the same ordering and filters as
+        // GetDefaultPromotedResults so that a given "Result Code" always maps to the same Iterator slot.
+        QltyInspectionResult.SetRange("Result Visibility", QltyInspectionResult."Result Visibility"::Promoted);
+        QltyInspectionResult.SetCurrentKey("Result Visibility", "Evaluation Sequence");
+        QltyInspectionResult.Ascending(false);
+        if QltyInspectionResult.FindSet() then begin
+            Iterator := 0;
             repeat
-                if QltyInspectionResult.Get(QltyIResultConditConf."Result Code") then begin
-                    Iterator += 1;
-                    if Iterator <= GetMaxResultConditions() then begin
-                        MatrixVisibleStateToSet[Iterator] := true;
-                        if QltyInspectionResult.Description <> '' then
-                            MatrixArrayToSetCaptionSet[Iterator] := QltyInspectionResult.Description
-                        else
-                            MatrixArrayToSetCaptionSet[Iterator] := QltyInspectionResult.Code;
-                        MatrixArrayToSetConditionCellData[Iterator] := QltyIResultConditConf.Condition;
-                        MatrixArrayToSetConditionDescriptionCellData[Iterator] := QltyIResultConditConf."Condition Description";
-                        if MatrixArrayToSetConditionDescriptionCellData[Iterator] = '' then
-                            MatrixArrayToSetConditionDescriptionCellData[Iterator] := MatrixArrayToSetConditionCellData[Iterator];
+                Iterator += 1;
+                QltyIResultConditConf.SetRange("Result Code", QltyInspectionResult.Code);
+                if QltyIResultConditConf.FindFirst() then begin
+                    MatrixVisibleStateToSet[Iterator] := true;
+                    if QltyInspectionResult.Description <> '' then
+                        MatrixArrayToSetCaptionSet[Iterator] := QltyInspectionResult.Description
+                    else
+                        MatrixArrayToSetCaptionSet[Iterator] := QltyInspectionResult.Code;
+                    MatrixArrayToSetConditionCellData[Iterator] := QltyIResultConditConf.Condition;
+                    MatrixArrayToSetConditionDescriptionCellData[Iterator] := QltyIResultConditConf."Condition Description";
+                    if MatrixArrayToSetConditionDescriptionCellData[Iterator] = '' then
+                        MatrixArrayToSetConditionDescriptionCellData[Iterator] := MatrixArrayToSetConditionCellData[Iterator];
 
-                        if (not OptionalQltyInspectionHeader.IsTemporary()) and (OptionalQltyInspectionHeader."No." <> '') then
-                            if MatrixArrayToSetConditionDescriptionCellData[Iterator].Contains('[') then
-                                MatrixArrayToSetConditionDescriptionCellData[Iterator] := QltyExpressionMgmt.EvaluateTextExpression(MatrixArrayToSetConditionDescriptionCellData[Iterator], OptionalQltyInspectionHeader, OptionalQltyInspectionLine);
+                    if (not OptionalQltyInspectionHeader.IsTemporary()) and (OptionalQltyInspectionHeader."No." <> '') then
+                        if MatrixArrayToSetConditionDescriptionCellData[Iterator].Contains('[') then
+                            MatrixArrayToSetConditionDescriptionCellData[Iterator] := QltyExpressionMgmt.EvaluateTextExpression(MatrixArrayToSetConditionDescriptionCellData[Iterator], OptionalQltyInspectionHeader, OptionalQltyInspectionLine);
 
-                        MatrixSourceRecordId[Iterator] := QltyIResultConditConf.RecordId();
-                    end else
-                        break;
+                    MatrixSourceRecordId[Iterator] := QltyIResultConditConf.RecordId();
                 end;
-            until (QltyIResultConditConf.Next() = 0) or (Iterator >= MaxResultConditions);
+            until (QltyInspectionResult.Next() = 0) or (Iterator >= MaxResultConditions);
+        end;
     end;
 
     local procedure GetMaxResultConditions(): Integer

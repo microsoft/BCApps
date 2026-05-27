@@ -35,10 +35,10 @@ codeunit 135013 "Sampling Perf. Profiler Test"
     [Test]
     procedure TestGetProfilingCallTreeFailsWhenNoDataIsSet()
     var
-        ProfilingNode: Record "Profiling Node";
+        TempProfilingNode: Record "Profiling Node";
     begin
         // [WHEN] GetProfilingCallTree is called on Sampling Performance Profiler with no data.
-        asserterror SamplingPerformanceProfiler.GetProfilingCallTree(ProfilingNode);
+        asserterror SamplingPerformanceProfiler.GetProfilingCallTree(TempProfilingNode);
 
         // [THEN] The no data error is thrown.
         Assert.ExpectedError(NoRecordingErr);
@@ -47,10 +47,10 @@ codeunit 135013 "Sampling Perf. Profiler Test"
     [Test]
     procedure TesGetProfilingNodesFailsWhenNoDataIsSet()
     var
-        ProfilingNode: Record "Profiling Node";
+        TempProfilingNode: Record "Profiling Node";
     begin
         // [WHEN] GetProfilingCallTree is called on Sampling Performance Profiler with no data.
-        asserterror SamplingPerformanceProfiler.GetProfilingNodes(ProfilingNode);
+        asserterror SamplingPerformanceProfiler.GetProfilingNodes(TempProfilingNode);
 
         // [THEN] The no data error is thrown.
         Assert.ExpectedError(NoRecordingErr);
@@ -146,41 +146,41 @@ codeunit 135013 "Sampling Perf. Profiler Test"
     [Test]
     procedure TestGetProfilingNodes()
     var
-        ProfilingNode: Record "Profiling Node";
-        VerificationProfilingNode: Record "Profiling Node";
+        TempProfilingNode: Record "Profiling Node";
+        TempVerificationProfilingNode: Record "Profiling Node";
     begin
         // [GIVEN] Test profile nodes
-        PerfProfilerTestLibrary.InsertProfilingNode(VerificationProfilingNode,
+        PerfProfilerTestLibrary.InsertProfilingNode(TempVerificationProfilingNode,
             SessionId(), 1, 1, 'Codeunit', 1, 'CodeUnit_TestNode1', 'TestNode1App',
             'TestPublisher1', 0, 'TestNode1FunctionName', 0, 0, 0);
 
-        PerfProfilerTestLibrary.InsertProfilingNode(VerificationProfilingNode,
+        PerfProfilerTestLibrary.InsertProfilingNode(TempVerificationProfilingNode,
             SessionId(), 2, 1, 'Codeunit', 2, 'CodeUnit_TestNode2', 'TestNode2App',
             'TestPublisher2', 0, 'TestNode2FunctionName', 100, 0, 0);
 
-        PerfProfilerTestLibrary.InsertProfilingNode(VerificationProfilingNode,
+        PerfProfilerTestLibrary.InsertProfilingNode(TempVerificationProfilingNode,
             SessionId(), 3, 1, 'Codeunit', 3, 'CodeUnit_TestNode3', 'TestNode3App',
             'TestPublisher1', 0, 'TestNode3FunctionName', 500, 0, 0);
 
-        PerfProfilerTestLibrary.InsertProfilingNode(VerificationProfilingNode,
+        PerfProfilerTestLibrary.InsertProfilingNode(TempVerificationProfilingNode,
             SessionId(), 4, 1, 'Codeunit', 4, 'CodeUnit_TestNode4', 'TestNode4App',
             'TestPublisher2', 0, 'TestNode4FunctionName', 0, 0, 0);
 
-        PerfProfilerTestLibrary.InsertProfilingNode(VerificationProfilingNode,
+        PerfProfilerTestLibrary.InsertProfilingNode(TempVerificationProfilingNode,
             SessionId(), 5, 1, 'Codeunit', 2, 'CodeUnit_TestNode2', 'TestNode2App',
             'TestPublisher2', 0, 'TestNode2FunctionName', 100, 0, 0);
 
-        PerfProfilerTestLibrary.InsertProfilingNode(VerificationProfilingNode,
+        PerfProfilerTestLibrary.InsertProfilingNode(TempVerificationProfilingNode,
             SessionId(), 6, 1, 'Codeunit', 3, 'CodeUnit_TestNode3', 'TestNode3App',
             'TestPublisher1', 0, 'TestNode3FunctionName', 500, 0, 0);
         // [GIVEN] Performance profiler is initialized with the test profile 
         PerfProfilerTestLibrary.Initialize();
 
         // [WHEN] Profiling nodes are retrieved from the profiler
-        SamplingPerformanceProfiler.GetProfilingNodes(ProfilingNode);
+        SamplingPerformanceProfiler.GetProfilingNodes(TempProfilingNode);
 
         // [THEN] Every node is as expected
-        Assert.IsTrue(PerfProfilerTestLibrary.AreEqual(VerificationProfilingNode, ProfilingNode), 'The profiling nodes are not equal to expected ones.');
+        Assert.IsTrue(PerfProfilerTestLibrary.AreEqual(TempVerificationProfilingNode, TempProfilingNode), 'The profiling nodes are not equal to expected ones.');
 
         PerfProfilerTestLibrary.ClearData();
     end;
@@ -188,31 +188,31 @@ codeunit 135013 "Sampling Perf. Profiler Test"
     [Test]
     procedure TestGetProfilingCallTree()
     var
-        CallTreeProfilingNode: Record "Profiling Node";
-        VerificationProfilingNode: Record "Profiling Node";
+        TempCallTreeProfilingNode: Record "Profiling Node";
+        TempVerificationProfilingNode: Record "Profiling Node";
     begin
         // [GIVEN] Test profile nodes (in the call tree form)
-        PerfProfilerTestLibrary.InsertProfilingNode(VerificationProfilingNode,
+        PerfProfilerTestLibrary.InsertProfilingNode(TempVerificationProfilingNode,
             SessionId(), 1, 1, 'Codeunit', 1, 'CodeUnit_TestNode1', 'TestNode1App',
             'TestPublisher1', 0, 'TestNode1FunctionName', 0, 600, 0);
 
-        PerfProfilerTestLibrary.InsertProfilingNode(VerificationProfilingNode,
+        PerfProfilerTestLibrary.InsertProfilingNode(TempVerificationProfilingNode,
             SessionId(), 2, 1, 'Codeunit', 2, 'CodeUnit_TestNode2', 'TestNode2App',
             'TestPublisher2', 0, 'TestNode2FunctionName', 100, 600, 1);
 
-        PerfProfilerTestLibrary.InsertProfilingNode(VerificationProfilingNode,
+        PerfProfilerTestLibrary.InsertProfilingNode(TempVerificationProfilingNode,
             SessionId(), 3, 1, 'Codeunit', 3, 'CodeUnit_TestNode3', 'TestNode3App',
             'TestPublisher1', 0, 'TestNode3FunctionName', 500, 500, 2);
 
-        PerfProfilerTestLibrary.InsertProfilingNode(VerificationProfilingNode,
+        PerfProfilerTestLibrary.InsertProfilingNode(TempVerificationProfilingNode,
             SessionId(), 4, 1, 'Codeunit', 4, 'CodeUnit_TestNode4', 'TestNode4App',
             'TestPublisher2', 0, 'TestNode4FunctionName', 0, 600, 0);
 
-        PerfProfilerTestLibrary.InsertProfilingNode(VerificationProfilingNode,
+        PerfProfilerTestLibrary.InsertProfilingNode(TempVerificationProfilingNode,
             SessionId(), 5, 1, 'Codeunit', 2, 'CodeUnit_TestNode2', 'TestNode2App',
             'TestPublisher2', 0, 'TestNode2FunctionName', 100, 600, 1);
 
-        PerfProfilerTestLibrary.InsertProfilingNode(VerificationProfilingNode,
+        PerfProfilerTestLibrary.InsertProfilingNode(TempVerificationProfilingNode,
             SessionId(), 6, 1, 'Codeunit', 3, 'CodeUnit_TestNode3', 'TestNode3App',
             'TestPublisher1', 0, 'TestNode3FunctionName', 500, 500, 2);
 
@@ -220,10 +220,10 @@ codeunit 135013 "Sampling Perf. Profiler Test"
         PerfProfilerTestLibrary.Initialize();
 
         // [WHEN] Profiling call tree nodes are retrieved from the profiler
-        SamplingPerformanceProfiler.GetProfilingCallTree(CallTreeProfilingNode);
+        SamplingPerformanceProfiler.GetProfilingCallTree(TempCallTreeProfilingNode);
 
         // [THEN] Every node is as expected
-        Assert.IsTrue(PerfProfilerTestLibrary.AreEqual(VerificationProfilingNode, CallTreeProfilingNode), 'The profiling nodes are not equal to expected ones.');
+        Assert.IsTrue(PerfProfilerTestLibrary.AreEqual(TempVerificationProfilingNode, TempCallTreeProfilingNode), 'The profiling nodes are not equal to expected ones.');
 
         PerfProfilerTestLibrary.ClearData();
     end;
@@ -231,7 +231,7 @@ codeunit 135013 "Sampling Perf. Profiler Test"
     [Test]
     procedure GetProfilingCallTreeWithMultipleChildNodes()
     var
-        ProfilingNode: Record "Profiling Node";
+        TempProfilingNode: Record "Profiling Node";
     begin
         // [SCENARIO] GetProfilingCallTree with multiple child nodes belonging to the same parent node
 
@@ -239,45 +239,45 @@ codeunit 135013 "Sampling Perf. Profiler Test"
         PerfProfilerTestLibrary.Initialize(PerfProfilerTestLibrary.GetPerformanceProfileWithMultipleChildNodes());
 
         // [WHEN] Call GetProfilingCallTree
-        SamplingPerformanceProfiler.GetProfilingCallTree(ProfilingNode);
+        SamplingPerformanceProfiler.GetProfilingCallTree(TempProfilingNode);
 
         // [THEN] Call tree is propoerly aligned: 3 nodes are at the indentation level 1, 3 nodes at level 3
-        ProfilingNode.SetRange(Indentation, 1);
-        Assert.AreEqual(3, ProfilingNode.Count(), ProfilingNodeCountErr);
+        TempProfilingNode.SetRange(Indentation, 1);
+        Assert.AreEqual(3, TempProfilingNode.Count(), ProfilingNodeCountErr);
 
-        ProfilingNode.FindSet();
-        VerifyProfilingNode(ProfilingNode, 'TestNode2FunctionName', 0, 219, 1);
+        TempProfilingNode.FindSet();
+        VerifyProfilingNode(TempProfilingNode, 'TestNode2FunctionName', 0, 219, 1);
 
-        ProfilingNode.Next();
-        VerifyProfilingNode(ProfilingNode, 'TestNode5FunctionName', 210, 210, 2);
+        TempProfilingNode.Next();
+        VerifyProfilingNode(TempProfilingNode, 'TestNode5FunctionName', 210, 210, 2);
 
-        ProfilingNode.Next();
-        VerifyProfilingNode(ProfilingNode, 'TestNode7FunctionName', 0, 429, 1);
+        TempProfilingNode.Next();
+        VerifyProfilingNode(TempProfilingNode, 'TestNode7FunctionName', 0, 429, 1);
 
-        ProfilingNode.SetRange(Indentation, 3);
-        Assert.AreEqual(3, ProfilingNode.Count(), ProfilingNodeCountErr);
+        TempProfilingNode.SetRange(Indentation, 3);
+        Assert.AreEqual(3, TempProfilingNode.Count(), ProfilingNodeCountErr);
 
-        ProfilingNode.FindSet();
-        VerifyProfilingNode(ProfilingNode, 'TestNode4FunctionName', 0, 0, 1);
+        TempProfilingNode.FindSet();
+        VerifyProfilingNode(TempProfilingNode, 'TestNode4FunctionName', 0, 0, 1);
 
-        ProfilingNode.Next();
-        VerifyProfilingNode(ProfilingNode, 'TestNode5FunctionName', 219, 219, 2);
+        TempProfilingNode.Next();
+        VerifyProfilingNode(TempProfilingNode, 'TestNode5FunctionName', 219, 219, 2);
 
-        ProfilingNode.Next();
-        VerifyProfilingNode(ProfilingNode, 'TestNode9FunctionName', 0, 0, 1);
+        TempProfilingNode.Next();
+        VerifyProfilingNode(TempProfilingNode, 'TestNode9FunctionName', 0, 0, 1);
 
-        ProfilingNode.SetRange(Indentation, 3);
-        Assert.AreEqual(3, ProfilingNode.Count(), ProfilingNodeCountErr);
+        TempProfilingNode.SetRange(Indentation, 3);
+        Assert.AreEqual(3, TempProfilingNode.Count(), ProfilingNodeCountErr);
 
         PerfProfilerTestLibrary.ClearData();
     end;
 
-    local procedure VerifyProfilingNode(ProfilingNode: Record "Profiling Node"; MethodName: Text; SelfTime: Duration; FullTime: Duration; HitCount: Integer)
+    local procedure VerifyProfilingNode(TempProfilingNode: Record "Profiling Node"; MethodName: Text; SelfTime: Duration; FullTime: Duration; HitCount: Integer)
     begin
-        Assert.AreEqual(MethodName, ProfilingNode."Method Name", ProfilingNodeNotMatchErr);
-        Assert.AreEqual(SelfTime, ProfilingNode."Self Time", ProfilingNodeNotMatchErr);
-        Assert.AreEqual(FullTime, ProfilingNode."Full Time", ProfilingNodeNotMatchErr);
-        Assert.AreEqual(HitCount, ProfilingNode."Hit Count", ProfilingNodeNotMatchErr);
+        Assert.AreEqual(MethodName, TempProfilingNode."Method Name", ProfilingNodeNotMatchErr);
+        Assert.AreEqual(SelfTime, TempProfilingNode."Self Time", ProfilingNodeNotMatchErr);
+        Assert.AreEqual(FullTime, TempProfilingNode."Full Time", ProfilingNodeNotMatchErr);
+        Assert.AreEqual(HitCount, TempProfilingNode."Hit Count", ProfilingNodeNotMatchErr);
     end;
 
     var

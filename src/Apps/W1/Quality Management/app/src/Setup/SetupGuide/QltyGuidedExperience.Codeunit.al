@@ -25,7 +25,7 @@ codeunit 20419 "Qlty. Guided Experience"
         QualityManagerRoleCenterTourDescriptionTxt: Label 'The Quality Manager home page offers metrics and activities that help run a business. We`ll also show you how to explore all Business Central features.';
         DemoDataShortTitleTxt: Label 'Demo data';
         DemoDataTitleTxt: Label 'Explore with demo data';
-        DemoDataDescriptionTxt: Label 'Use Contoso demo data to explore Quality Management with sample quality tests, templates, generation rules, and inspections. This lets you learn how quality checks work without setting up your own data.';
+        DemoDataDescriptionTxt: Label 'Install or explore Contoso demo data for Quality Management with sample quality tests, templates, generation rules, and inspections. This lets you learn how quality checks work without setting up your own data.';
         QualityResultsShortTitleTxt: Label 'Inspection results';
         QualityResultsTitleTxt: Label 'Set up quality inspection results';
         QualityResultsDescriptionTxt: Label 'Define possible outcomes for quality inspections, like Pass, Fail, or In Progress. Create custom results and set priorities to match your organization''s standards. These results control how inspections are evaluated and how items are blocked or released.';
@@ -71,6 +71,9 @@ codeunit 20419 "Qlty. Guided Experience"
         if not (Session.CurrentClientType() in [ClientType::Web, ClientType::Windows, ClientType::Desktop]) then
             exit;
 
+        if not (QltyManagementSetup.ReadPermission and QltyManagementSetup.WritePermission) then
+            exit;
+
         if not Company.Get(CompanyName()) then
             exit;
 
@@ -87,7 +90,7 @@ codeunit 20419 "Qlty. Guided Experience"
 
         // Register checklist items only once
         if not QltyManagementSetup."Checklist Items Registered" then begin
-            InitializeChecklist(SetupExists);
+            InitializeChecklist();
             QltyManagementSetup."Checklist Items Registered" := true;
             QltyManagementSetup.Modify();
         end;
@@ -138,9 +141,8 @@ codeunit 20419 "Qlty. Guided Experience"
         GuidedExperience.InsertTour(QualityManagerRoleCenterTourTitleTxt, QualityManagerRoleCenterTourShortTitleTxt,
             QualityManagerRoleCenterTourDescriptionTxt, 2, Page::"Qlty. Manager Role Center");
 
-        // Always register demo data item - it will check if Contoso is installed when opened
-        GuidedExperience.InsertApplicationFeature(DemoDataTitleTxt, DemoDataShortTitleTxt, DemoDataDescriptionTxt, 3, ObjectType::Page,
-            Page::"Qlty. Demo Data Launcher");
+        GuidedExperience.InsertApplicationFeature(DemoDataTitleTxt, DemoDataShortTitleTxt, DemoDataDescriptionTxt, 3, ObjectType::Codeunit,
+            Codeunit::"Qlty. Demo Data Runner");
         GuidedExperience.InsertApplicationFeature(QualityResultsTitleTxt, QualityResultsShortTitleTxt, QualityResultsDescriptionTxt, 4, ObjectType::Page,
             Page::"Qlty. Inspection Result List");
         GuidedExperience.InsertApplicationFeature(QualityTestsTitleTxt, QualityTestsShortTitleTxt, QualityTestsDescriptionTxt, 3, ObjectType::Page,
@@ -157,15 +159,14 @@ codeunit 20419 "Qlty. Guided Experience"
         GuidedExperience.InsertLearnLink(MicrosoftLearnTitleTxt, MicrosoftLearnShortTitleTxt, MicrosoftLearnDescriptionTxt, 5, MicrosoftLearnLinkTxt);
     end;
 
-    local procedure InitializeChecklist(SetupExists: Boolean)
+    local procedure InitializeChecklist()
     var
         TempAllProfileQualityManager: Record "All Profile" temporary;
         Checklist: Codeunit Checklist;
     begin
         GetQualityManagerRole(TempAllProfileQualityManager);
 
-        if SetupExists then
-            Checklist.Insert("Guided Experience Type"::"Application Feature", ObjectType::Page, Page::"Qlty. Demo Data Launcher", 1000, TempAllProfileQualityManager, true);
+        Checklist.Insert("Guided Experience Type"::"Application Feature", ObjectType::Codeunit, Codeunit::"Qlty. Demo Data Runner", 1000, TempAllProfileQualityManager, true);
         Checklist.Insert("Guided Experience Type"::"Application Feature", ObjectType::Page, Page::"Qlty. Inspection Result List", 2000, TempAllProfileQualityManager, true);
         Checklist.Insert("Guided Experience Type"::"Application Feature", ObjectType::Page, Page::"Qlty. Tests", 3000, TempAllProfileQualityManager, true);
         Checklist.Insert("Guided Experience Type"::"Application Feature", ObjectType::Page, Page::"Qlty. Inspection Template List", 4000, TempAllProfileQualityManager, true);
@@ -197,4 +198,6 @@ codeunit 20419 "Qlty. Guided Experience"
             TempAllProfile.Insert();
         end;
     end;
+
+
 }

@@ -181,6 +181,38 @@ codeunit 6169 "E-Doc. Attachment Processor"
         DocumentAttachment.FilterGroup(0);
     end;
 
+    [EventSubscriber(ObjectType::Page, Page::"Doc. Attachment List Factbox", OnAfterGetRecRefFail, '', false, false)]
+    local procedure OnAfterGetRecRefFailForEDocs(var DocumentAttachment: Record "Document Attachment"; var RecRef: RecordRef)
+    var
+        EDocument: Record "E-Document";
+        EDocumentEntryNo: Integer;
+        EDocumentEntryNoText: Text;
+    begin
+        DocumentAttachment.FilterGroup(4);
+        EDocumentEntryNoText := DocumentAttachment.GetFilter("E-Document Entry No.");
+        DocumentAttachment.FilterGroup(0);
+        if EDocumentEntryNoText = '' then
+            exit;
+
+        Evaluate(EDocumentEntryNo, EDocumentEntryNoText);
+        if not EDocument.Get(EDocumentEntryNo) then
+            exit;
+
+        RecRef.GetTable(EDocument);
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Document Attachment", OnBeforeInsertAttachment, '', false, false)]
+    local procedure OnBeforeInsertAttachmentForEDocs(var DocumentAttachment: Record "Document Attachment"; var RecRef: RecordRef)
+    var
+        EDocument: Record "E-Document";
+    begin
+        if RecRef.Number() <> Database::"E-Document" then
+            exit;
+
+        DocumentAttachment.Validate("E-Document Attachment", true);
+        DocumentAttachment.Validate("E-Document Entry No.", RecRef.Field(EDocument.FieldNo("Entry No")).Value());
+    end;
+
     var
         MissingEDocumentTypeErr: Label 'E-Document type %1 is not supported for attachments', Comment = '%1 - E-Document document type';
 

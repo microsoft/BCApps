@@ -430,7 +430,7 @@ codeunit 5376 "Create E-Document Transactions"
     local procedure CreateEDocument(Filetxt: Text)
     var
         EDocument: Record "E-Document";
-        EDocImportParameters: Record "E-Doc. Import Parameters";
+        TempEDocImportParameters: Record "E-Doc. Import Parameters";
         TempBlob: Codeunit "Temp Blob";
         EDocImport: Codeunit "E-Doc. Import";
         EDocImportHelper: Codeunit "E-Document Import Helper";
@@ -440,8 +440,8 @@ codeunit 5376 "Create E-Document Transactions"
         TempBlob.CreateOutStream(XMLOutStream);
         XMLOutStream.WriteText(StrSubstNo(Filetxt));
         EDocument := CreateEDoc(TempBlob);
-        EDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
-        EDocImport.ProcessIncomingEDocument(EDocument, EDocImportParameters);
+        TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
+        EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParameters);
     end;
 
     local procedure CreateEDoc(var TempBlob: Codeunit "Temp Blob"): Record "E-Document";

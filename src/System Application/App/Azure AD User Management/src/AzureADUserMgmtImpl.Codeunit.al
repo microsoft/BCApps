@@ -272,7 +272,7 @@ codeunit 9017 "Azure AD User Mgmt. Impl."
     var
         AccessControl: Record "Access Control";
         TempAccessControlWithDefaultPermissions: Record "Access Control" temporary;
-        PermissionSetInPlanBuffer: Record "Permission Set In Plan Buffer";
+        TempPermissionSetInPlanBuffer: Record "Permission Set In Plan Buffer";
         PlanConfiguration: Codeunit "Plan Configuration";
         UsersInPlans: Query "Users in Plans";
     begin
@@ -284,19 +284,19 @@ codeunit 9017 "Azure AD User Mgmt. Impl."
 
         while UsersInPlans.Read() do begin
             if PlanConfiguration.IsCustomized(UsersInPlans.Plan_ID) then
-                PlanConfiguration.GetCustomPermissions(PermissionSetInPlanBuffer)
+                PlanConfiguration.GetCustomPermissions(TempPermissionSetInPlanBuffer)
             else
-                PlanConfiguration.GetDefaultPermissions(PermissionSetInPlanBuffer);
+                PlanConfiguration.GetDefaultPermissions(TempPermissionSetInPlanBuffer);
 
-            PermissionSetInPlanBuffer.SetRange("Plan ID", UsersInPlans.Plan_ID);
-            if PermissionSetInPlanBuffer.FindSet() then
+            TempPermissionSetInPlanBuffer.SetRange("Plan ID", UsersInPlans.Plan_ID);
+            if TempPermissionSetInPlanBuffer.FindSet() then
                 repeat
                     AccessControl.SetRange("User Security ID", UserSecId);
-                    AccessControl.SetRange("Role ID", PermissionSetInPlanBuffer."Role ID");
-                    AccessControl.SetRange(Scope, PermissionSetInPlanBuffer.Scope);
-                    AccessControl.SetRange("App ID", PermissionSetInPlanBuffer."App ID");
+                    AccessControl.SetRange("Role ID", TempPermissionSetInPlanBuffer."Role ID");
+                    AccessControl.SetRange(Scope, TempPermissionSetInPlanBuffer.Scope);
+                    AccessControl.SetRange("App ID", TempPermissionSetInPlanBuffer."App ID");
                     if PlanConfiguration.IsCustomized(UsersInPlans.Plan_ID) then
-                        AccessControl.SetRange("Company Name", PermissionSetInPlanBuffer."Company Name");
+                        AccessControl.SetRange("Company Name", TempPermissionSetInPlanBuffer."Company Name");
 
                     if not AccessControl.FindSet() then
                         exit(true); // one of the permission sets for a plan configuration was deleted
@@ -305,7 +305,7 @@ codeunit 9017 "Azure AD User Mgmt. Impl."
                         TempAccessControlWithDefaultPermissions.Copy(AccessControl);
                         if not TempAccessControlWithDefaultPermissions.Insert() then; // Ignore multiple plans referencing the same permission
                     until AccessControl.Next() = 0;
-                until PermissionSetInPlanBuffer.Next() = 0;
+                until TempPermissionSetInPlanBuffer.Next() = 0;
         end;
 
         AccessControl.Reset();

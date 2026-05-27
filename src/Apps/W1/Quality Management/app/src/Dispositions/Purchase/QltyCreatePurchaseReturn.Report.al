@@ -12,12 +12,13 @@ using Microsoft.Warehouse.Structure;
 
 report 20411 "Qlty. Create Purchase Return"
 {
-    ApplicationArea = PurchReturnOrder;
     Caption = 'Quality Management - Create Purchase Return Order';
-    UsageCategory = Tasks;
-    ProcessingOnly = true;
-    AllowScheduling = false;
     ToolTip = 'Use this to create a Purchase Return Order from a Quality Inspection.';
+    ProcessingOnly = true;
+    AccessByPermission = tabledata "Qlty. Inspection Header" = R;
+    UsageCategory = Tasks;
+    ApplicationArea = PurchReturnOrder;
+    AllowScheduling = false;
 
     dataset
     {

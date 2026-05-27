@@ -1,0 +1,2 @@
+# cost: 10
+{"query":"mutation {companyLocationCreateTaxRegistration(locationId: \"gid://shopify/CompanyLocation/{{LocationId}}\", taxId: \"{{TaxId}}\") {companyLocation {id, name, taxRegistrationId}, userErrors {field, message}}}"}

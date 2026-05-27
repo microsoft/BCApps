@@ -148,9 +148,12 @@ codeunit 148201 "Continia Mock Http Handler"
 
     local procedure GetResponse(var Request: TestHttpRequestMessage; DictionaryKey: Text) HttpResponseMessage: TestHttpResponseMessage
     var
+        NoMockResponseFoundErr: Label 'No mock response found for request: %1 %2', Comment = '%1 = Method, %2 = Request Path';
         Headers: Dictionary of [Text, Text];
         HeaderName: Text;
     begin
+        if not ResponseStatusCodes.ContainsKey(DictionaryKey) then
+            Error(NoMockResponseFoundErr, Format(Request.RequestType), Request.Path);
         HttpResponseMessage.HttpStatusCode := ResponseStatusCodes.Get(DictionaryKey);
         HttpResponseMessage.Content().WriteFrom(ReplaceContentPlaceholders(ResponseContents.Get(DictionaryKey), Request.Path));
 

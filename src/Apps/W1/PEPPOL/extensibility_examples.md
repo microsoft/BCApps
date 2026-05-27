@@ -1,138 +1,226 @@
-# Extensibility examples
+# Extending PEPPOL 3.0
 
-Existing PEPPOL functionality can be extended by partners using provided interfaces.
+The PEPPOL app exposes 10 interfaces through the `"PEPPOL 3.0 Format"` enum, allowing partners to override any part of the PEPPOL document generation pipeline.
 
 ## Dependency
 
-In order to extend existing PEPPOL export functionality partners first should add dependency on the 1st party app "PEPPOL" in their app.json file:
+Add a dependency on the PEPPOL app in your `app.json`:
 
 ```json
-  "dependencies": [
-    {
-      "id": "e1966889-b5fb-4fda-a84c-ea71b590e1a9",
-      "name": "PEPPOL",
-      "publisher": "Microsoft",
-      "version": "27.0.0.0"
-    }
-  ]
+"dependencies": [
+  {
+    "id": "e1966889-b5fb-4fda-a84c-ea71b590e1a9",
+    "name": "PEPPOL",
+    "publisher": "Microsoft",
+    "version": "29.0.0.0"
+  }
+]
 ```
 
-## Electronic Document Formats adjustments
+## Architecture
 
-When the app is installed the new electronic document formats are created. In order to use new PEPPOL functionality customer would need to adjust existing "Electronic Document Formats" to only include export for the new PEPPOL format.
+The `"PEPPOL 3.0 Format"` enum (ID 37200) implements these interfaces:
 
-## Enum extension
+| Interface | Responsibility |
+|-----------|---------------|
+| `"PEPPOL30 Validation"` | Document and line validation |
+| `"PEPPOL Document Info Provider"` | IDs, dates, currency, references |
+| `"PEPPOL Line Info Provider"` | Line quantities, amounts, items, pricing |
+| `"PEPPOL Party Info Provider"` | Supplier and customer party details |
+| `"PEPPOL Monetary Info Provider"` | Totals and currency amounts |
+| `"PEPPOL Tax Info Provider"` | VAT, tax categories, exemptions |
+| `"PEPPOL Payment Info Provider"` | Payment means and terms |
+| `"PEPPOL Delivery Info Provider"` | Delivery dates, addresses, GLN |
+| `"PEPPOL Attachment Provider"` | Document attachments and PDF generation |
+| `"PEPPOL Posted Document Iterator"` | Iterating posted invoice/credit memo records |
 
-With the new implementation of PEPPOL processing an enum "E-Document Format" has been created which can be extended as needed in order to implement custom business logic for processing:
+Most interfaces have a default implementation in the `"PEPPOL30"` codeunit. Two interfaces — `"PEPPOL30 Validation"` and `"PEPPOL Posted Document Iterator"` — require per-value implementations because they vary between sales and service documents.
+
+## Extending the enum
+
+Add a new value to `"PEPPOL 3.0 Format"` and specify which interfaces you override. Interfaces you don't list fall back to the default implementation.
 
 ```al
-enumextension 50100 "E-Document Format" extends "E-Document Format"
+enumextension 50100 "My PEPPOL Format" extends "PEPPOL 3.0 Format"
 {
-    value(1; "PEPPOL XYZ")
+    value(50100; "My Custom PEPPOL")
     {
-        Caption = 'PEPPOL XYZ';
+        Caption = 'My Custom PEPPOL';
+        Implementation = "PEPPOL30 Validation" = "My PEPPOL Validation",
+                         "PEPPOL Posted Document Iterator" = "PEPPOL30 Sales Iterator";
     }
 }
 ```
 
-The value of the enum can be set on the `Company Information` page
+> **Note:** `"PEPPOL30 Validation"` and `"PEPPOL Posted Document Iterator"` have no default implementation on the enum, so you must always specify them. You can reuse the standard codeunits (`"PEPPOL30 Sales Validation"`, `"PEPPOL30 Sales Iterator"`, etc.) or provide your own.
 
-## Interfaces
+After installing your extension, select your new format value on the **PEPPOL 3.0 Setup** page.
 
-Existing PEPPOL functionality has been split into multiple interfaces in order to allow partners to execute their business logic in a more granular way.
+## Example: Custom validation
 
-Partners should only implement interfaces that they are going to extend.
+The `"PEPPOL30 Validation"` interface defines these methods:
 
 ```al
-enumextension 50100 "E-Document Format" extends "E-Document Format"
+interface "PEPPOL30 Validation"
 {
-    value(1; "PEPPOL XYZ")
-    {
-        Caption = 'PEPPOL XYZ';
-        Implementation = "PEPPOL30 Validation" = "XYZ PEPPOL30 Validation";
-    }
+    procedure ValidateDocument(RecordVariant: Variant)
+    procedure ValidateDocumentLines(RecordVariant: Variant)
+    procedure ValidateDocumentLine(RecordVariant: Variant)
+    procedure ValidateLineTypeAndDescription(RecordVariant: Variant): Boolean
+    procedure ValidatePostedDocument(RecordVariant: Variant)
 }
 ```
 
-If for example partners want to implement their custom business logic in just one procedure it's possible to achieve by writing additional code in procedure while calling standard Microsoft procedures in for the remaining ones in the interface.
+All parameters are `Variant` so the same interface works for both sales and service documents.
 
-In this example we only want to execute custom business logic for procedure `CheckSalesDocument` why keeping the other processing standard
+### Overriding a single method
+
+To customize only one method while keeping standard behavior for the rest, delegate to the standard implementation codeunit:
 
 ```al
-codeunit 50149 "XYZ PEPPOL30 Validation" implements "PEPPOL30 Validation"
+codeunit 50100 "My PEPPOL Validation" implements "PEPPOL30 Validation"
 {
     var
-        PEPPOLValidation: Codeunit "PEPPOL30 Validation";
+        StandardValidation: Codeunit "PEPPOL30 Sales Validation";
 
-    procedure CheckSalesDocument(SalesHeader: Record "Sales Header")
+    procedure ValidateDocument(RecordVariant: Variant)
     begin
+        // Custom logic: require External Document No.
+        StandardValidation.ValidateDocument(RecordVariant);
+    end;
+
+    procedure ValidateDocumentLines(RecordVariant: Variant)
+    begin
+        StandardValidation.ValidateDocumentLines(RecordVariant);
+    end;
+
+    procedure ValidateDocumentLine(RecordVariant: Variant)
+    begin
+        StandardValidation.ValidateDocumentLine(RecordVariant);
+    end;
+
+    procedure ValidateLineTypeAndDescription(RecordVariant: Variant): Boolean
+    begin
+        exit(StandardValidation.ValidateLineTypeAndDescription(RecordVariant));
+    end;
+
+    procedure ValidatePostedDocument(RecordVariant: Variant)
+    begin
+        StandardValidation.ValidatePostedDocument(RecordVariant);
+    end;
+}
+```
+
+### Adding validation after standard checks
+
+To run additional checks after the standard validation, call the standard method first, then add your logic:
+
+```al
+codeunit 50100 "My PEPPOL Validation" implements "PEPPOL30 Validation"
+{
+    var
+        StandardValidation: Codeunit "PEPPOL30 Sales Validation";
+
+    procedure ValidateDocument(RecordVariant: Variant)
+    var
+        SalesHeader: Record "Sales Header";
+    begin
+        StandardValidation.ValidateDocument(RecordVariant);
+        SalesHeader := RecordVariant;
         SalesHeader.TestField("External Document No.");
     end;
 
-    procedure CheckSalesDocumentLines(SalesHeader: Record "Sales Header")
+    procedure ValidateDocumentLines(RecordVariant: Variant)
     begin
-        PEPPOLValidation.CheckSalesDocumentLines(SalesHeader);
+        StandardValidation.ValidateDocumentLines(RecordVariant);
     end;
 
-    procedure CheckSalesDocumentLine(SalesLine: Record "Sales Line")
-    begin
-        PEPPOLValidation.CheckSalesDocumentLine(SalesLine);
-    end;
-
-    procedure CheckSalesInvoice(SalesInvoiceHeader: Record "Sales Invoice Header")
-    begin
-        PEPPOLValidation.CheckSalesInvoice(SalesInvoiceHeader);
-    end;
-
-    procedure CheckSalesCreditMemo(SalesCrMemoHeader: Record "Sales Cr.Memo Header")
-    begin
-        PEPPOLValidation.CheckSalesCreditMemo(SalesCrMemoHeader);
-    end;
-
-    procedure CheckSalesLineTypeAndDescription(SalesLine: Record "Sales Line"): Boolean
-    begin
-        exit(PEPPOLValidation.CheckSalesLineTypeAndDescription(SalesLine));
-    end;
-}
-```
-
-Another example is that we want to do some additional validations after standard code is finished. For this example we'll update procedure `CheckSalesDocumentLine`
-
-```al
-codeunit 50149 "XYZ PEPPOL30 Validation" implements "PEPPOL30 Validation"
-{
+    procedure ValidateDocumentLine(RecordVariant: Variant)
     var
-        PEPPOLValidation: Codeunit "PEPPOL30 Validation";
-
-    procedure CheckSalesDocument(SalesHeader: Record "Sales Header")
+        SalesLine: Record "Sales Line";
     begin
-        SalesHeader.TestField("External Document No.");
-    end;
-
-    procedure CheckSalesDocumentLines(SalesHeader: Record "Sales Header")
-    begin
-        PEPPOLValidation.CheckSalesDocumentLines(SalesHeader);
-    end;
-
-    procedure CheckSalesDocumentLine(SalesLine: Record "Sales Line")
-    begin
-        PEPPOLValidation.CheckSalesDocumentLine(SalesLine);
+        StandardValidation.ValidateDocumentLine(RecordVariant);
+        SalesLine := RecordVariant;
         SalesLine.TestField("Tax Area Code");
     end;
 
-    procedure CheckSalesInvoice(SalesInvoiceHeader: Record "Sales Invoice Header")
+    procedure ValidateLineTypeAndDescription(RecordVariant: Variant): Boolean
     begin
-        PEPPOLValidation.CheckSalesInvoice(SalesInvoiceHeader);
+        exit(StandardValidation.ValidateLineTypeAndDescription(RecordVariant));
     end;
 
-    procedure CheckSalesCreditMemo(SalesCrMemoHeader: Record "Sales Cr.Memo Header")
+    procedure ValidatePostedDocument(RecordVariant: Variant)
     begin
-        PEPPOLValidation.CheckSalesCreditMemo(SalesCrMemoHeader);
+        StandardValidation.ValidatePostedDocument(RecordVariant);
+    end;
+}
+```
+
+## Example: Custom document info
+
+To override how document-level fields are populated in the PEPPOL XML, implement `"PEPPOL Document Info Provider"`:
+
+```al
+enumextension 50100 "My PEPPOL Format" extends "PEPPOL 3.0 Format"
+{
+    value(50100; "My Custom PEPPOL")
+    {
+        Caption = 'My Custom PEPPOL';
+        Implementation = "PEPPOL30 Validation" = "PEPPOL30 Sales Validation",
+                         "PEPPOL Posted Document Iterator" = "PEPPOL30 Sales Iterator",
+                         "PEPPOL Document Info Provider" = "My PEPPOL Doc Info";
+    }
+}
+```
+
+Then implement only the methods you need to change, delegating the rest to `"PEPPOL30"`:
+
+```al
+codeunit 50101 "My PEPPOL Doc Info" implements "PEPPOL Document Info Provider"
+{
+    var
+        StandardProvider: Codeunit "PEPPOL30";
+
+    procedure GetGeneralInfoBIS(SalesHeader: Record "Sales Header"; var ID: Text; var IssueDate: Text; var InvoiceTypeCode: Text; var Note: Text; var TaxPointDate: Text; var DocumentCurrencyCode: Text; var AccountingCost: Text)
+    begin
+        StandardProvider.GetGeneralInfoBIS(SalesHeader, ID, IssueDate, InvoiceTypeCode, Note, TaxPointDate, DocumentCurrencyCode, AccountingCost);
+        Note := 'Custom note: ' + Note;
     end;
 
-    procedure CheckSalesLineTypeAndDescription(SalesLine: Record "Sales Line"): Boolean
+    // Remaining methods delegate to StandardProvider...
+    procedure GetGeneralInfo(SalesHeader: Record "Sales Header"; var ID: Text; var IssueDate: Text; var InvoiceTypeCode: Text; var InvoiceTypeCodeListID: Text; var Note: Text; var TaxPointDate: Text; var DocumentCurrencyCode: Text; var DocumentCurrencyCodeListID: Text; var TaxCurrencyCode: Text; var TaxCurrencyCodeListID: Text; var AccountingCost: Text)
     begin
-        exit(PEPPOLValidation.CheckSalesLineTypeAndDescription(SalesLine));
+        StandardProvider.GetGeneralInfo(SalesHeader, ID, IssueDate, InvoiceTypeCode, InvoiceTypeCodeListID, Note, TaxPointDate, DocumentCurrencyCode, DocumentCurrencyCodeListID, TaxCurrencyCode, TaxCurrencyCodeListID, AccountingCost);
+    end;
+
+    procedure GetInvoicePeriodInfo(var StartDate: Text; var EndDate: Text)
+    begin
+        StandardProvider.GetInvoicePeriodInfo(StartDate, EndDate);
+    end;
+
+    procedure GetOrderReferenceInfo(SalesHeader: Record "Sales Header"; var OrderReferenceID: Text)
+    begin
+        StandardProvider.GetOrderReferenceInfo(SalesHeader, OrderReferenceID);
+    end;
+
+    procedure GetOrderReferenceInfoBIS(SalesHeader: Record "Sales Header"; var OrderReferenceID: Text)
+    begin
+        StandardProvider.GetOrderReferenceInfoBIS(SalesHeader, OrderReferenceID);
+    end;
+
+    procedure GetContractDocRefInfo(SalesHeader: Record "Sales Header"; var ContractDocumentReferenceID: Text; var DocumentTypeCode: Text; var ContractRefDocTypeCodeListID: Text; var DocumentType: Text)
+    begin
+        StandardProvider.GetContractDocRefInfo(SalesHeader, ContractDocumentReferenceID, DocumentTypeCode, ContractRefDocTypeCodeListID, DocumentType);
+    end;
+
+    procedure GetBuyerReference(SalesHeader: Record "Sales Header") BuyerReference: Text
+    begin
+        BuyerReference := StandardProvider.GetBuyerReference(SalesHeader);
+    end;
+
+    procedure GetCrMemoBillingReferenceInfo(SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var InvoiceDocRefID: Text; var InvoiceDocRefIssueDate: Text)
+    begin
+        StandardProvider.GetCrMemoBillingReferenceInfo(SalesCrMemoHeader, InvoiceDocRefID, InvoiceDocRefIssueDate);
     end;
 }
 ```

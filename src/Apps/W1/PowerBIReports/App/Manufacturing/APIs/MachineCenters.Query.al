@@ -14,6 +14,7 @@ query 36985 "Machine Centers"
     Access = Internal;
     Caption = 'Power BI Machine Centers';
     QueryType = API;
+    AboutText = 'Provides access to machine center master data including numbers, names, and associated work center assignments. Enables Power BI reports to analyze machine utilization, build capacity hierarchies, and track production resources for manufacturing capacity planning.';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';
     ApiVersion = 'v0.5', 'v1.0';

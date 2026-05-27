@@ -135,7 +135,7 @@ codeunit 30114 "Shpfy Customer API"
     begin
         if EMail <> '' then begin
             Parameters.Add('EMail', EMail.ToLower());
-            JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType::FindCustomerIdByEMail, Parameters);
+            JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType::Customers_FindCustomerIdByEMail, Parameters);
             if JsonHelper.GetJsonArray(JResponse, JCustomers, 'data.customers.edges') then
                 foreach JItem in JCustomers do
                     if JsonHelper.GetJsonObject(JItem.AsObject(), JCustomer, 'node') then
@@ -159,7 +159,7 @@ codeunit 30114 "Shpfy Customer API"
     begin
         if Phone <> '' then begin
             Parameters.Add('Phone', Phone);
-            JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType::FindCustomerIdByPhone, Parameters);
+            JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType::Customers_FindCustomerIdByPhone, Parameters);
             if JsonHelper.GetJsonArray(JResponse, JCustomers, 'data.customers.edges') then
                 foreach JItem in JCustomers do
                     if JsonHelper.GetJsonObject(JItem.AsObject(), JCustomer, 'node') then
@@ -183,7 +183,7 @@ codeunit 30114 "Shpfy Customer API"
             exit(false);
 
         Parameters.Add('CustomerId', Format(ShopifyCustomer.Id));
-        JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType::GetCustomer, Parameters);
+        JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType::Customers_GetCustomer, Parameters);
         if JsonHelper.GetJsonObject(JResponse, JCustomer, 'data.customer') then
             exit(UpdateShopifyCustomerFields(ShopifyCustomer, JCustomer));
     end;
@@ -205,7 +205,7 @@ codeunit 30114 "Shpfy Customer API"
         Parameters: Dictionary of [Text, Text];
         LastSync: DateTime;
     begin
-        GraphQLType := GraphQLType::GetCustomerIds;
+        GraphQLType := GraphQLType::Customers_GetCustomerIds;
         LastSync := Shop.GetLastSyncTime("Shpfy Synchronization Type"::Customers);
         Parameters.Add('LastSync', Format(LastSync, 0, 9));
         repeat
@@ -223,7 +223,7 @@ codeunit 30114 "Shpfy Customer API"
                     Parameters.Set('After', Cursor)
                 else
                     Parameters.Add('After', Cursor);
-                GraphQLType := GraphQLType::GetNextCustomerIds;
+                GraphQLType := GraphQLType::Customers_GetNextCustomerIds;
             end;
         until not JsonHelper.GetValueAsBoolean(JResponse, 'data.customers.pageInfo.hasNextPage');
     end;
@@ -494,10 +494,10 @@ codeunit 30114 "Shpfy Customer API"
         if ShopCounter.Count = 1 then
             ShopifyCustomer.ModifyAll("Shop Id", Shop."Shop Id", false)
         else begin
-            GraphQLType := "Shpfy GraphQL Type"::GetAllCustomerIds;
+            GraphQLType := "Shpfy GraphQL Type"::Customers_GetAllCustomerIds;
             repeat
                 JResult := CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
-                GraphQLType := "Shpfy GraphQL Type"::GetNextAllCustomerIds;
+                GraphQLType := "Shpfy GraphQL Type"::Customers_GetNextAllCustomerIds;
                 if JsonHelper.GetJsonArray(JResult, JArray, 'data.customers.nodes') then begin
                     FilterString := Format(JArray).TrimStart('[').TrimEnd(']').Replace('{"legacyResourceId":"', '').Replace('"}', '').Replace(',', '|');
                     ShopifyCustomer.SetFilter(Id, FilterString);

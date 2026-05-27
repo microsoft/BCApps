@@ -7,7 +7,7 @@ table 'Back Links'
 			VAR BusinessCentral = "https://businesscentral.dynamics.com/"
 			VAR TenantID = VALUES('Date Table Setup'[tenantID])
 			VAR Environment = VALUES(ENVIRONMENT[ENVIRONMENT])
-			VAR Company = "?company=" & VALUES(COMPANY[COMPANY])
+			VAR Company = "?company=" & VALUES('Company Encoding'[Encoded Company Name])
 			RETURN BusinessCentral & TenantID & "/" & Environment & "/" & Company
 		isHidden
 		lineageTag: d4610d12-08d0-4e03-93f0-369ded9c2630

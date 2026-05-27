@@ -84,7 +84,6 @@ codeunit 139916 "Service Comm. Archive Test"
     end;
 
     [Test]
-    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler')]
     procedure ExpectSingleServiceCommitmentArchiveOnModifyMultipleFieldsOnCustomerContractLine()
     var
         TempServiceCommitment: Record "Subscription Line" temporary;
@@ -93,7 +92,7 @@ codeunit 139916 "Service Comm. Archive Test"
         // Expect only one Subscription Line archive if multiple fields are modified in less then a minute
         SetupServiceObjectWithServiceCommitment(false, false);
 
-        ContractTestLibrary.CreateCustomer(Customer);
+        ContractTestLibrary.CreateCustomerInLCY(Customer);
         ServiceObject."End-User Customer No." := Customer."No.";
         ServiceObject.Modify(false);
         ContractTestLibrary.CreateCustomerContract(CustomerContract, Customer."No.");
@@ -197,6 +196,34 @@ codeunit 139916 "Service Comm. Archive Test"
         VendorContractLineSubPage."Discount Amount".SetValue(LibraryRandom.RandDecInDecimalRange(0, ServiceCommitment.Price, 2));
         CheckServiceCommitmentArchive(ServiceCommitment.FieldName("Discount Amount"));
         FindAndTestServiceCommitmentArchive();
+    end;
+
+    [Test]
+    procedure ArchivePreservesUsageBasedBillingFields()
+    var
+        ServiceCommitmentSubPage: TestPage "Service Commitments";
+    begin
+        // [SCENARIO] When a Subscription Line with UBB fields is modified, the archive preserves Usage Based Billing fields
+        SetupServiceObjectWithServiceCommitment(false, false);
+
+        // [GIVEN] Set Usage Based Billing fields on the service commitment
+        ServiceCommitment."Usage Based Billing" := true;
+        ServiceCommitment."Usage Based Pricing" := Enum::"Usage Based Pricing"::"Usage Quantity";
+        ServiceCommitment."Pricing Unit Cost Surcharge %" := LibraryRandom.RandDec(50, 2);
+        ServiceCommitment.Modify(false);
+        xServiceCommitment := ServiceCommitment;
+
+        // [WHEN] Modify a tracked field to trigger archiving
+        ServiceCommitmentSubPage.OpenEdit();
+        ServiceCommitmentSubPage.GoToRecord(ServiceCommitment);
+        ServiceCommitmentSubPage."Calculation Base %".SetValue(LibraryRandom.RandDec(10, 2));
+
+        // [THEN] Archive preserves Usage Based Billing fields
+        ServiceCommitmentArchive.FilterOnServiceCommitment(ServiceCommitment."Entry No.");
+        ServiceCommitmentArchive.FindLast();
+        Assert.AreEqual(true, ServiceCommitmentArchive."Usage Based Billing", ServiceCommitmentArchive.FieldCaption("Usage Based Billing"));
+        Assert.AreEqual(Enum::"Usage Based Pricing"::"Usage Quantity", ServiceCommitmentArchive."Usage Based Pricing", ServiceCommitmentArchive.FieldCaption("Usage Based Pricing"));
+        Assert.AreEqual(xServiceCommitment."Pricing Unit Cost Surcharge %", ServiceCommitmentArchive."Pricing Unit Cost Surcharge %", ServiceCommitmentArchive.FieldCaption("Pricing Unit Cost Surcharge %"));
     end;
 
     #endregion Tests

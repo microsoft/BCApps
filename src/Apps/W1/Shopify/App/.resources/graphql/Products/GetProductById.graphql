@@ -1,0 +1,2 @@
+# cost: 11
+{"query":"{product(id: \"gid://shopify/Product/{{ProductId}}\") {createdAt updatedAt hasOnlyDefaultVariant description(truncateAt: {{MaxLengthDescription}}) descriptionHtml onlineStorePreviewUrl onlineStoreUrl productType status tags title vendor seo{description, title} metafields(first: 50) {edges {node {id namespace type legacyResourceId key value}}}}}"}

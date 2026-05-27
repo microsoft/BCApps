@@ -1,8 +1,0 @@
-[
-    {
-        "bug": "597430",
-        "codeunitId": 139916,
-        "CodeunitName": "Service Comm. Archive Test",
-        "Method": "ExpectSingleServiceCommitmentArchiveOnModifyMultipleFieldsOnCustomerContractLine"
-    }
-]

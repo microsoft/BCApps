@@ -395,7 +395,7 @@ page 8887 "Email Accounts"
 
         DefaultTxt := '';
 
-        IsDefault := DefaultEmailAccount."Account Id" = Rec."Account Id";
+        IsDefault := TempDefaultEmailAccount."Account Id" = Rec."Account Id";
         if IsDefault then
             DefaultTxt := '✓';
     end;
@@ -423,7 +423,7 @@ page 8887 "Email Accounts"
         if V4Filter then
             FilterToConnectorv4Accounts(Rec);
 
-        EmailScenario.GetDefaultEmailAccount(DefaultEmailAccount); // Refresh the default email account
+        EmailScenario.GetDefaultEmailAccount(TempDefaultEmailAccount); // Refresh the default email account
 
         if IsSelected then begin
             Rec."Account Id" := SelectedAccountId;
@@ -579,7 +579,7 @@ page 8887 "Email Accounts"
     end;
 
     var
-        DefaultEmailAccount: Record "Email Account";
+        TempDefaultEmailAccount: Record "Email Account";
         EmailAccountImpl: Codeunit "Email Account Impl.";
         EmailRateLimitImpl: Codeunit "Email Rate Limit Impl.";
         IsDefault: Boolean;

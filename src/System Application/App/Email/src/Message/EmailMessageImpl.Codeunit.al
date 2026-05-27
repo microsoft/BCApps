@@ -619,7 +619,7 @@ codeunit 8905 "Email Message Impl."
 
     procedure GetRelatedAttachments(EmailMessageId: Guid; var EmailRelatedAttachmentOut: Record "Email Related Attachment"): Boolean
     var
-        EmailRelatedAttachment: Record "Email Related Attachment";
+        TempEmailRelatedAttachment: Record "Email Related Attachment";
         EmailRelatedRecord: Record "Email Related Record";
         Email: Codeunit Email;
         EmailImpl: Codeunit "Email Impl";
@@ -631,10 +631,10 @@ codeunit 8905 "Email Message Impl."
             exit(false);
 
         repeat
-            Email.OnFindRelatedAttachments(EmailRelatedRecord."Table Id", EmailRelatedRecord."System Id", EmailRelatedAttachment);
-            if EmailRelatedAttachment.FindSet() then
-                InsertRelatedAttachments(EmailRelatedRecord."Table Id", EmailRelatedRecord."System Id", EmailRelatedAttachment, EmailRelatedAttachmentOut);
-            EmailRelatedAttachment.DeleteAll();
+            Email.OnFindRelatedAttachments(EmailRelatedRecord."Table Id", EmailRelatedRecord."System Id", TempEmailRelatedAttachment);
+            if TempEmailRelatedAttachment.FindSet() then
+                InsertRelatedAttachments(EmailRelatedRecord."Table Id", EmailRelatedRecord."System Id", TempEmailRelatedAttachment, EmailRelatedAttachmentOut);
+            TempEmailRelatedAttachment.DeleteAll();
         until EmailRelatedRecord.Next() = 0;
 
         exit(true);

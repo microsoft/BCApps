@@ -121,6 +121,13 @@ page 149032 "AIT Run History"
                             AITLogEntryCodeunit.DrillDownFailedAITLogEntries(Rec."Test Suite Code", Rec."Line No. Filter", Rec.Version);
                         end;
                     }
+                    field("No. of Tests Skipped - By Version"; Rec."No. of Tests Skipped")
+                    {
+                        Visible = ViewBy = ViewBy::Version;
+                        Caption = 'No. of Evals Skipped';
+                        ToolTip = 'Specifies the number of evals skipped due to credit limit being reached.';
+                        Style = Attention;
+                    }
                     field("Accuracy - By Version"; Rec."Accuracy Per Version")
                     {
                         Visible = ViewBy = ViewBy::Version;
@@ -137,7 +144,7 @@ page 149032 "AIT Run History"
                     {
                         Visible = ViewBy = ViewBy::Version;
                         Caption = 'Total Tokens Consumed';
-                        ToolTip = 'Specifies the aggregated number of tokens consumed by the eval in the current version. This is applicable only when using Microsoft AI Module.';
+                        ToolTip = 'Specifies the aggregated number of tokens consumed by the eval in the current version. This is applicable only when using Microsoft AI Module. Tokens consumed by agent sessions are not included in this number.';
                     }
                     field("No. of Tests - By Tag"; Rec."No. of Tests Executed - By Tag")
                     {
@@ -167,6 +174,13 @@ page 149032 "AIT Run History"
                             AITLogEntryCodeunit.DrillDownFailedAITLogEntries(Rec."Test Suite Code", Rec."Line No. Filter", Rec.Tag);
                         end;
                     }
+                    field("No. of Tests Skipped - By Tag"; Rec."No. of Tests Skipped - By Tag")
+                    {
+                        Visible = ViewBy = ViewBy::Tag;
+                        Caption = 'No. of Evals Skipped';
+                        ToolTip = 'Specifies the number of evals skipped due to credit limit being reached.';
+                        Style = Attention;
+                    }
                     field("Accuracy - By Tag"; Rec."Accuracy - By Tag")
                     {
                         Visible = ViewBy = ViewBy::Tag;
@@ -183,7 +197,7 @@ page 149032 "AIT Run History"
                     {
                         Visible = ViewBy = ViewBy::Tag;
                         Caption = 'Total Tokens Consumed';
-                        ToolTip = 'Specifies the aggregated number of tokens consumed by the eval in the current version. This is applicable only when using Microsoft AI Module.';
+                        ToolTip = 'Specifies the aggregated number of tokens consumed by the eval in the current version. This is applicable only when using Microsoft AI Module. Tokens consumed by agent sessions are not included in this number.';
                     }
                 }
             }
@@ -192,10 +206,12 @@ page 149032 "AIT Run History"
 
     var
         TestSuiteCode: Code[100];
-        ViewBy: Enum "AIT Run History - View By";
         LineNo: Integer;
         ApplyLineFilter: Boolean;
         LineNoFilter: Text;
+
+    protected var
+        ViewBy: Enum "AIT Run History - View By";
 
     trigger OnOpenPage()
     begin

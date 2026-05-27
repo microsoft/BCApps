@@ -14,6 +14,7 @@ query 36983 "Calendar Entries"
     Access = Internal;
     Caption = 'Power BI Calendar Entries';
     QueryType = API;
+    AboutText = 'Provides access to shop calendar entries including capacity types, effective and total capacity, work center groups, and work shifts by date. Enables Power BI reports to analyze available production capacity, capacity utilization, and scheduling constraints for manufacturing planning.';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';
     ApiVersion = 'v0.5', 'v1.0';

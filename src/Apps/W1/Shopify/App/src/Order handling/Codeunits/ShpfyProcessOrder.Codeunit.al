@@ -68,6 +68,8 @@ codeunit 30166 "Shpfy Process Order"
         DocLinkToBCDoc: Record "Shpfy Doc. Link To Doc.";
         OrdersAPI: Codeunit "Shpfy Orders API";
         BCDocumentTypeConvert: Codeunit "Shpfy BC Document Type Convert";
+        InvalidCharTok: Label '@', Locked = true;
+        InvalidShopifyOrderErr: Label '%1 cannot start with %2.', Comment = '%1 = Shopify Order No. field caption, %2 = Invalid Character';
         IsHandled: Boolean;
     begin
         OrderEvents.OnBeforeCreateSalesHeader(ShopifyOrderHeader, SalesHeader, LastCreatedDocumentId, IsHandled);
@@ -79,6 +81,11 @@ codeunit 30166 "Shpfy Process Order"
                 SalesHeader.Validate("Document Type", SalesHeader."Document Type"::Invoice)
             else
                 SalesHeader.Validate("Document Type", SalesHeader."Document Type"::Order);
+            if ShopifyOrderHeader."Use Shopify Order No." and (ShopifyOrderHeader."Shopify Order No." <> '') then begin
+                if ShopifyOrderHeader."Shopify Order No.".StartsWith(InvalidCharTok) then
+                    Error(InvalidShopifyOrderErr, ShopifyOrderHeader.FieldCaption("Shopify Order No."), InvalidCharTok);
+                SalesHeader.Validate("No.", CopyStr(ShopifyOrderHeader."Shopify Order No.", 1, MaxStrLen(SalesHeader."No.")));
+            end;
             SalesHeader.Insert(true);
             LastCreatedDocumentId := SalesHeader.SystemId;
             SalesHeader.Validate("Sell-to Customer No.", ShopifyOrderHeader."Sell-to Customer No.");
@@ -153,6 +160,7 @@ codeunit 30166 "Shpfy Process Order"
             if ShopifyOrderHeader."Work Description".HasValue then
                 SalesHeader.SetWorkDescription(ShopifyOrderHeader.GetWorkDescription());
         end;
+        SalesHeader.TestField("No.");
         if ShopifyShop."Order Attributes To Shopify" then
             OrdersAPI.AddOrderAttribute(ShopifyOrderHeader, 'BC Doc. No.', SalesHeader."No.", ShopifyShop);
         DocLinkToBCDoc.Init();
@@ -322,8 +330,6 @@ codeunit 30166 "Shpfy Process Order"
                                 SalesLine.Validate("Line Discount Amount", OrderShippingCharges."Presentment Discount Amount");
                             end;
                     end;
-                    SalesLine.Validate("Unit Price", OrderShippingCharges.Amount);
-                    SalesLine.Validate("Line Discount Amount", OrderShippingCharges."Discount Amount");
                     SalesLine."Shpfy Order No." := ShopifyOrderHeader."Shopify Order No.";
                     SalesLine.Modify(true);
 
@@ -455,6 +461,7 @@ codeunit 30166 "Shpfy Process Order"
     var
         SalesLine: Record "Sales Line";
     begin
+        SalesLine.SetLoadFields("Document Type", "Document No.", "Line No.");
         SalesLine.SetRange("Document Type", SalesHeader."Document Type");
         SalesLine.SetRange("Document No.", SalesHeader."No.");
         if SalesLine.IsEmpty() then

@@ -485,7 +485,7 @@ codeunit 137121 "Translation Tests"
     procedure GetTranslationsForOneFieldFromRecord()
     var
         TranslationTestTable: Record "Translation Test Table";
-        TranslationBuffer: Record "Translation Buffer";
+        TempTranslationBuffer: Record "Translation Buffer";
     begin
         // [SCENARIO] Translation must be retrieved correctly for one field
 
@@ -500,27 +500,27 @@ codeunit 137121 "Translation Tests"
 
         // [WHEN] Translations are retrieved for a specific field
         Assert.IsTrue(
-            Translation.GetTranslations(TranslationTestTable, TranslationTestTable.FieldNo(TextField), TranslationBuffer),
+            Translation.GetTranslations(TranslationTestTable, TranslationTestTable.FieldNo(TextField), TempTranslationBuffer),
             'GetTranslations should return true when translations exist');
 
         // [THEN] Verify that only translations for the requested field are returned
-        Assert.AreEqual(2, TranslationBuffer.Count(), 'Should have 2 translations for the TextField');
+        Assert.AreEqual(2, TempTranslationBuffer.Count(), 'Should have 2 translations for the TextField');
 
         // [THEN] Verify the translation values
-        TranslationBuffer.SetRange("Language ID", GetEnglishLanguageId());
-        Assert.IsTrue(TranslationBuffer.FindFirst(), 'English translation should exist');
-        Assert.AreEqual(Text1Txt, TranslationBuffer.Value, 'Incorrect English translation value');
-        Assert.AreEqual(TranslationTestTable.FieldNo(TextField), TranslationBuffer."Field ID", 'Incorrect Field ID');
-        Assert.AreEqual(TranslationTestTable.SystemId, TranslationBuffer."System ID", 'Incorrect System ID');
+        TempTranslationBuffer.SetRange("Language ID", GetEnglishLanguageId());
+        Assert.IsTrue(TempTranslationBuffer.FindFirst(), 'English translation should exist');
+        Assert.AreEqual(Text1Txt, TempTranslationBuffer.Value, 'Incorrect English translation value');
+        Assert.AreEqual(TranslationTestTable.FieldNo(TextField), TempTranslationBuffer."Field ID", 'Incorrect Field ID');
+        Assert.AreEqual(TranslationTestTable.SystemId, TempTranslationBuffer."System ID", 'Incorrect System ID');
 
-        TranslationBuffer.SetRange("Language ID", GetDanishLanguageId());
-        Assert.IsTrue(TranslationBuffer.FindFirst(), 'Danish translation should exist');
-        Assert.AreEqual(Text2Txt, TranslationBuffer.Value, 'Incorrect Danish translation value');
+        TempTranslationBuffer.SetRange("Language ID", GetDanishLanguageId());
+        Assert.IsTrue(TempTranslationBuffer.FindFirst(), 'Danish translation should exist');
+        Assert.AreEqual(Text2Txt, TempTranslationBuffer.Value, 'Incorrect Danish translation value');
 
         // [THEN] Verify no translations for SecondTextField are included
-        TranslationBuffer.SetRange("Language ID");
-        TranslationBuffer.SetRange("Field ID", TranslationTestTable.FieldNo(SecondTextField));
-        Assert.IsTrue(TranslationBuffer.IsEmpty(), 'No translations for SecondTextField should be returned');
+        TempTranslationBuffer.SetRange("Language ID");
+        TempTranslationBuffer.SetRange("Field ID", TranslationTestTable.FieldNo(SecondTextField));
+        Assert.IsTrue(TempTranslationBuffer.IsEmpty(), 'No translations for SecondTextField should be returned');
     end;
 
     [Test]
@@ -528,7 +528,7 @@ codeunit 137121 "Translation Tests"
     procedure GetTranslationsForAllFieldsFromRecord()
     var
         TranslationTestTable: Record "Translation Test Table";
-        TranslationBuffer: Record "Translation Buffer";
+        TempTranslationBuffer: Record "Translation Buffer";
     begin
         // [SCENARIO] Translation must be retrieved correctly for all fields when FieldId is 0
 
@@ -544,36 +544,36 @@ codeunit 137121 "Translation Tests"
 
         // [WHEN] Translations are retrieved for all fields (FieldId = 0)
         Assert.IsTrue(
-            Translation.GetTranslations(TranslationTestTable, 0, TranslationBuffer),
+            Translation.GetTranslations(TranslationTestTable, 0, TempTranslationBuffer),
             'GetTranslations should return true when translations exist');
 
         // [THEN] Verify that translations for all fields are returned
-        Assert.AreEqual(4, TranslationBuffer.Count(), 'Should have 4 translations total (2 fields x 2 languages each)');
+        Assert.AreEqual(4, TempTranslationBuffer.Count(), 'Should have 4 translations total (2 fields x 2 languages each)');
 
         // [THEN] Verify TextField translations
-        TranslationBuffer.SetRange("Field ID", TranslationTestTable.FieldNo(TextField));
-        Assert.AreEqual(2, TranslationBuffer.Count(), 'Should have 2 translations for TextField');
+        TempTranslationBuffer.SetRange("Field ID", TranslationTestTable.FieldNo(TextField));
+        Assert.AreEqual(2, TempTranslationBuffer.Count(), 'Should have 2 translations for TextField');
 
-        TranslationBuffer.SetRange("Language ID", GetEnglishLanguageId());
-        Assert.IsTrue(TranslationBuffer.FindFirst(), 'English translation for TextField should exist');
-        Assert.AreEqual(Text1Txt, TranslationBuffer.Value, 'Incorrect English translation for TextField');
+        TempTranslationBuffer.SetRange("Language ID", GetEnglishLanguageId());
+        Assert.IsTrue(TempTranslationBuffer.FindFirst(), 'English translation for TextField should exist');
+        Assert.AreEqual(Text1Txt, TempTranslationBuffer.Value, 'Incorrect English translation for TextField');
 
-        TranslationBuffer.SetRange("Language ID", GetDanishLanguageId());
-        Assert.IsTrue(TranslationBuffer.FindFirst(), 'Danish translation for TextField should exist');
-        Assert.AreEqual(Text2Txt, TranslationBuffer.Value, 'Incorrect Danish translation for TextField');
+        TempTranslationBuffer.SetRange("Language ID", GetDanishLanguageId());
+        Assert.IsTrue(TempTranslationBuffer.FindFirst(), 'Danish translation for TextField should exist');
+        Assert.AreEqual(Text2Txt, TempTranslationBuffer.Value, 'Incorrect Danish translation for TextField');
 
         // [THEN] Verify SecondTextField translations
-        TranslationBuffer.SetRange("Language ID");
-        TranslationBuffer.SetRange("Field ID", TranslationTestTable.FieldNo(SecondTextField));
-        Assert.AreEqual(2, TranslationBuffer.Count(), 'Should have 2 translations for SecondTextField');
+        TempTranslationBuffer.SetRange("Language ID");
+        TempTranslationBuffer.SetRange("Field ID", TranslationTestTable.FieldNo(SecondTextField));
+        Assert.AreEqual(2, TempTranslationBuffer.Count(), 'Should have 2 translations for SecondTextField');
 
-        TranslationBuffer.SetRange("Language ID", GetEnglishLanguageId());
-        Assert.IsTrue(TranslationBuffer.FindFirst(), 'English translation for SecondTextField should exist');
-        Assert.AreEqual(Text3Txt, TranslationBuffer.Value, 'Incorrect English translation for SecondTextField');
+        TempTranslationBuffer.SetRange("Language ID", GetEnglishLanguageId());
+        Assert.IsTrue(TempTranslationBuffer.FindFirst(), 'English translation for SecondTextField should exist');
+        Assert.AreEqual(Text3Txt, TempTranslationBuffer.Value, 'Incorrect English translation for SecondTextField');
 
-        TranslationBuffer.SetRange("Language ID", GetFrenchLanguageId());
-        Assert.IsTrue(TranslationBuffer.FindFirst(), 'French translation for SecondTextField should exist');
-        Assert.AreEqual(Text4Txt, TranslationBuffer.Value, 'Incorrect French translation for SecondTextField');
+        TempTranslationBuffer.SetRange("Language ID", GetFrenchLanguageId());
+        Assert.IsTrue(TempTranslationBuffer.FindFirst(), 'French translation for SecondTextField should exist');
+        Assert.AreEqual(Text4Txt, TempTranslationBuffer.Value, 'Incorrect French translation for SecondTextField');
     end;
 
     [Test]
@@ -581,7 +581,7 @@ codeunit 137121 "Translation Tests"
     procedure GetTranslationsNoTranslationsExist()
     var
         TranslationTestTable: Record "Translation Test Table";
-        TranslationBuffer: Record "Translation Buffer";
+        TempTranslationBuffer: Record "Translation Buffer";
     begin
         // [SCENARIO] GetTranslations returns false when no translations exist
 
@@ -594,11 +594,11 @@ codeunit 137121 "Translation Tests"
         // [WHEN] Translations are retrieved
         // [THEN] GetTranslations should return false
         Assert.IsFalse(
-            Translation.GetTranslations(TranslationTestTable, TranslationTestTable.FieldNo(TextField), TranslationBuffer),
+            Translation.GetTranslations(TranslationTestTable, TranslationTestTable.FieldNo(TextField), TempTranslationBuffer),
             'GetTranslations should return false when no translations exist');
 
         // [THEN] Buffer should be empty
-        Assert.IsTrue(TranslationBuffer.IsEmpty(), 'Translation buffer should be empty');
+        Assert.IsTrue(TempTranslationBuffer.IsEmpty(), 'Translation buffer should be empty');
     end;
 
     [Test]
@@ -606,7 +606,7 @@ codeunit 137121 "Translation Tests"
     procedure GetTranslationsWithRecordRef()
     var
         TranslationTestTable: Record "Translation Test Table";
-        TranslationBuffer: Record "Translation Buffer";
+        TempTranslationBuffer: Record "Translation Buffer";
         RecRef: RecordRef;
     begin
         // [SCENARIO] GetTranslations works correctly with RecordRef variant
@@ -624,15 +624,15 @@ codeunit 137121 "Translation Tests"
 
         // [WHEN] Translations are retrieved using RecordRef
         Assert.IsTrue(
-            Translation.GetTranslations(RecRef, TranslationTestTable.FieldNo(TextField), TranslationBuffer),
+            Translation.GetTranslations(RecRef, TranslationTestTable.FieldNo(TextField), TempTranslationBuffer),
             'GetTranslations should work with RecordRef');
 
         // [THEN] Verify translations are returned correctly
-        Assert.AreEqual(2, TranslationBuffer.Count(), 'Should have 2 translations');
+        Assert.AreEqual(2, TempTranslationBuffer.Count(), 'Should have 2 translations');
 
-        TranslationBuffer.SetRange("Language ID", GetEnglishLanguageId());
-        Assert.IsTrue(TranslationBuffer.FindFirst(), 'English translation should exist');
-        Assert.AreEqual(Text1Txt, TranslationBuffer.Value, 'Incorrect English translation value');
+        TempTranslationBuffer.SetRange("Language ID", GetEnglishLanguageId());
+        Assert.IsTrue(TempTranslationBuffer.FindFirst(), 'English translation should exist');
+        Assert.AreEqual(Text1Txt, TempTranslationBuffer.Value, 'Incorrect English translation value');
     end;
 
     [Test]
@@ -640,7 +640,7 @@ codeunit 137121 "Translation Tests"
     procedure GetTranslationsBufferContainsCorrectMetadata()
     var
         TranslationTestTable: Record "Translation Test Table";
-        TranslationBuffer: Record "Translation Buffer";
+        TempTranslationBuffer: Record "Translation Buffer";
     begin
         // [SCENARIO] Translation Buffer contains correct metadata fields
 
@@ -652,15 +652,15 @@ codeunit 137121 "Translation Tests"
         Translation.Set(TranslationTestTable, TranslationTestTable.FieldNo(TextField), GetDanishLanguageId(), Text2Txt);
 
         // [WHEN] Translations are retrieved
-        Translation.GetTranslations(TranslationTestTable, TranslationTestTable.FieldNo(TextField), TranslationBuffer);
+        Translation.GetTranslations(TranslationTestTable, TranslationTestTable.FieldNo(TextField), TempTranslationBuffer);
 
         // [THEN] Verify all metadata fields are populated correctly
-        Assert.IsTrue(TranslationBuffer.FindFirst(), 'Translation should exist');
-        Assert.AreEqual(GetDanishLanguageId(), TranslationBuffer."Language ID", 'Incorrect Language ID');
-        Assert.AreEqual(TranslationTestTable.SystemId, TranslationBuffer."System ID", 'Incorrect System ID');
-        Assert.AreEqual(Database::"Translation Test Table", TranslationBuffer."Table ID", 'Incorrect Table ID');
-        Assert.AreEqual(TranslationTestTable.FieldNo(TextField), TranslationBuffer."Field ID", 'Incorrect Field ID');
-        Assert.AreEqual(Text2Txt, TranslationBuffer.Value, 'Incorrect translation value');
+        Assert.IsTrue(TempTranslationBuffer.FindFirst(), 'Translation should exist');
+        Assert.AreEqual(GetDanishLanguageId(), TempTranslationBuffer."Language ID", 'Incorrect Language ID');
+        Assert.AreEqual(TranslationTestTable.SystemId, TempTranslationBuffer."System ID", 'Incorrect System ID');
+        Assert.AreEqual(Database::"Translation Test Table", TempTranslationBuffer."Table ID", 'Incorrect Table ID');
+        Assert.AreEqual(TranslationTestTable.FieldNo(TextField), TempTranslationBuffer."Field ID", 'Incorrect Field ID');
+        Assert.AreEqual(Text2Txt, TempTranslationBuffer.Value, 'Incorrect translation value');
     end;
 
     local procedure Initialize()

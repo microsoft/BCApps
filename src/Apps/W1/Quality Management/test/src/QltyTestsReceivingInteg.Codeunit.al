@@ -35,6 +35,7 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         LibraryAssert: Codeunit "Library Assert";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
+        LibrarySetupStorage: Codeunit "Library - Setup Storage";
         IsInitialized: Boolean;
 
     [Test]
@@ -1332,6 +1333,7 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
+        QltyManagementSetup: Record "Qlty. Management Setup";
         Item: Record Item;
         Vendor: Record Vendor;
         PurOrderPurchaseHeader: Record "Purchase Header";
@@ -1349,6 +1351,11 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         Initialize();
         LibraryWarehouse.CreateLocationWMS(Location, false, false, false, false, false);
         QltyInspectionUtility.EnsureSetupExists();
+        LibrarySetupStorage.Save(Database::"Qlty. Management Setup");
+        QltyManagementSetup.Get();
+        QltyManagementSetup."Inspection Creation Option" := QltyManagementSetup."Inspection Creation Option"::"Always create new inspection";
+        QltyManagementSetup.Modify();
+
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         QltyInspectionGenRule.DeleteAll();
         QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
@@ -1387,6 +1394,8 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
             LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Template code should match provided template');
             LibraryAssert.AreEqual(50, QltyInspectionHeader."Source Quantity (Base)", 'Inspection quantity(base) should match reservation entry quantity, not qty. to receive.');
         until QltyInspectionHeader.Next() = 0;
+
+        LibrarySetupStorage.Restore();
     end;
 
     [Test]

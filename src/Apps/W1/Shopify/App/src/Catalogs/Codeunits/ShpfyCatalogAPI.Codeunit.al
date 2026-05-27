@@ -37,7 +37,7 @@ codeunit 30290 "Shpfy Catalog API"
     begin
         Parameters.Add('Title', CatalogName);
         Parameters.Add('CompanyLocationId', Format(LocationId));
-        JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType::CreateCatalog, Parameters);
+        JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType::Catalogs_CreateCatalog, Parameters);
         CatalogId := CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JResponse, 'data.catalogCreate.catalog.id'));
         if CatalogId > 0 then begin
             Catalog.Id := CatalogId;
@@ -63,7 +63,7 @@ codeunit 30290 "Shpfy Catalog API"
         Parameters: Dictionary of [Text, Text];
     begin
         Parameters.Add('CatalogId', Format(Catalog.Id));
-        CommunicationMgt.ExecuteGraphQL(GraphQLType::CreatePublication, Parameters);
+        CommunicationMgt.ExecuteGraphQL(GraphQLType::Catalogs_CreatePublication, Parameters);
     end;
 
     internal procedure CreatePriceList(var Catalog: Record "Shpfy Catalog")
@@ -80,7 +80,7 @@ codeunit 30290 "Shpfy Catalog API"
             GeneralLedgerSetup.Get();
             Parameters.Add('Currency', GeneralLedgerSetup."LCY Code");
         end;
-        CommunicationMgt.ExecuteGraphQL(GraphQLType::CreatePriceList, Parameters);
+        CommunicationMgt.ExecuteGraphQL(GraphQLType::Catalogs_CreatePriceList, Parameters);
     end;
 
     internal procedure GetCatalogs(ShopifyCompany: Record "Shpfy Company")
@@ -90,7 +90,7 @@ codeunit 30290 "Shpfy Catalog API"
         JResponse: JsonToken;
         Parameters: Dictionary of [Text, Text];
     begin
-        GraphQLType := "Shpfy GraphQL Type"::GetCatalogs;
+        GraphQLType := "Shpfy GraphQL Type"::Catalogs_GetCatalogs;
         Parameters.Add('CompanyId', Format(ShopifyCompany.Id));
         repeat
             JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
@@ -100,7 +100,7 @@ codeunit 30290 "Shpfy Catalog API"
                         Parameters.Set('After', Cursor)
                     else
                         Parameters.Add('After', Cursor);
-                    GraphQLType := "Shpfy GraphQL Type"::GetNextCatalogs;
+                    GraphQLType := "Shpfy GraphQL Type"::Catalogs_GetNextCatalogs;
                 end else
                     break;
         until not JsonHelper.GetValueAsBoolean(JResponse, 'data.catalogs.pageInfo.hasNextPage');
@@ -113,7 +113,7 @@ codeunit 30290 "Shpfy Catalog API"
         JResponse: JsonToken;
         Parameters: Dictionary of [Text, Text];
     begin
-        GraphQLType := "Shpfy GraphQL Type"::GetMarketCatalogs;
+        GraphQLType := "Shpfy GraphQL Type"::Catalogs_GetMarketCatalogs;
         repeat
             JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
             if JResponse.IsObject() then
@@ -122,7 +122,7 @@ codeunit 30290 "Shpfy Catalog API"
                         Parameters.Set('After', Cursor)
                     else
                         Parameters.Add('After', Cursor);
-                    GraphQLType := "Shpfy GraphQL Type"::GetNextMarketCatalogs;
+                    GraphQLType := "Shpfy GraphQL Type"::Catalogs_GetNextMarketCatalogs;
                 end else
                     break;
         until not JsonHelper.GetValueAsBoolean(JResponse, 'data.catalogs.pageInfo.hasNextPage');
@@ -140,7 +140,7 @@ codeunit 30290 "Shpfy Catalog API"
         if ProductList.Count() = 0 then
             exit;
 
-        GraphQLType := "Shpfy GraphQL Type"::GetCatalogPrices;
+        GraphQLType := "Shpfy GraphQL Type"::Catalogs_GetCatalogPrices;
         Parameters.Add('CatalogId', Format(Catalog.Id));
         repeat
             JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
@@ -150,7 +150,7 @@ codeunit 30290 "Shpfy Catalog API"
                         Parameters.Set('After', Cursor)
                     else
                         Parameters.Add('After', Cursor);
-                    GraphQLType := "Shpfy GraphQL Type"::GetNextCatalogPrices;
+                    GraphQLType := "Shpfy GraphQL Type"::Catalogs_GetNextCatalogPrices;
                 end else
                     break;
         until not JsonHelper.GetValueAsBoolean(JResponse, 'data.catalog.priceList.prices.pageInfo.hasNextPage');
@@ -193,18 +193,21 @@ codeunit 30290 "Shpfy Catalog API"
 
     internal procedure UpdatePrice(JGraphQL: JsonObject; PriceListId: BigInteger)
     var
-        IGraphQL: Interface "Shpfy IGraphQL";
+        GraphQLQueries: Codeunit "Shpfy GraphQL Queries";
+        ExpectedCost: Integer;
     begin
-        IGraphQL := Enum::"Shpfy GraphQL Type"::UpdateCatalogPrices;
-        CommunicationMgt.ExecuteGraphQL(Format(JGraphQL).Replace('{{PriceListID}}', Format(PriceListId)), IGraphQL.GetExpectedCost());
+        GraphQLQueries.GetQueryWithCost(Enum::"Shpfy GraphQL Type"::Catalogs_UpdateCatalogPrices, ExpectedCost);
+        CommunicationMgt.ExecuteGraphQL(Format(JGraphQL).Replace('{{PriceListID}}', Format(PriceListId)), ExpectedCost);
     end;
 
     internal procedure UpdatePriceGraphQL(var JGraphQL: JsonObject; var JSetPrices: JsonArray)
     var
-        IGraphQL: Interface "Shpfy IGraphQL";
+        GraphQLQueries: Codeunit "Shpfy GraphQL Queries";
+        ExpectedCost: Integer;
+        GraphQLText: Text;
     begin
-        IGraphQL := Enum::"Shpfy GraphQL Type"::UpdateCatalogPrices;
-        JGraphQL.ReadFrom(IGraphQL.GetGraphQL());
+        GraphQLText := GraphQLQueries.GetQueryWithCost(Enum::"Shpfy GraphQL Type"::Catalogs_UpdateCatalogPrices, ExpectedCost);
+        JGraphQL.ReadFrom(GraphQLText);
         JSetPrices := JsonHelper.GetJsonArray(JGraphQL, 'variables.prices');
     end;
 
@@ -315,7 +318,7 @@ codeunit 30290 "Shpfy Catalog API"
         Parameters: Dictionary of [Text, Text];
     begin
         ClearCatalogMarketRelations(Catalog);
-        GraphQLType := "Shpfy GraphQL Type"::GetCatalogMarkets;
+        GraphQLType := "Shpfy GraphQL Type"::Catalogs_GetCatalogMarkets;
         Parameters.Add('CatalogId', Format(Catalog.Id));
         repeat
             JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
@@ -325,7 +328,7 @@ codeunit 30290 "Shpfy Catalog API"
                         Parameters.Set('After', Cursor)
                     else
                         Parameters.Add('After', Cursor);
-                    GraphQLType := "Shpfy GraphQL Type"::GetNextCatalogMarkets;
+                    GraphQLType := "Shpfy GraphQL Type"::Catalogs_GetNextCatalogMarkets;
                 end else
                     break;
         until not JsonHelper.GetValueAsBoolean(JResponse, 'data.catalog.markets.pageInfo.hasNextPage');
@@ -379,7 +382,7 @@ codeunit 30290 "Shpfy Catalog API"
         JResponse: JsonToken;
         Parameters: Dictionary of [Text, Text];
     begin
-        GraphQLType := "Shpfy GraphQL Type"::GetCatalogProducts;
+        GraphQLType := "Shpfy GraphQL Type"::Catalogs_GetCatalogProducts;
         Parameters.Add('CatalogId', Format(Catalog.Id));
         repeat
             JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
@@ -389,7 +392,7 @@ codeunit 30290 "Shpfy Catalog API"
                         Parameters.Set('After', Cursor)
                     else
                         Parameters.Add('After', Cursor);
-                    GraphQLType := "Shpfy GraphQL Type"::GetNextCatalogProducts;
+                    GraphQLType := "Shpfy GraphQL Type"::Catalogs_GetNextCatalogProducts;
                 end else
                     break;
         until not JsonHelper.GetValueAsBoolean(JResponse, 'data.catalog.publication.products.pageInfo.hasNextPage');
