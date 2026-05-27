@@ -404,9 +404,9 @@ pageextension 20403 "Qlty. Workflow Resp. Options" extends "Workflow Response Op
                         ToolTip = 'Specifies the destination bin to use.';
                         ShowMandatory = true;
                         Enabled = QltyShowBinCode;
-                        Lookup = true;
+                        AssistEdit = true;
 
-                        trigger OnLookup(var Text: Text): Boolean
+                        trigger OnAssistEdit()
                         var
                             Bin: Record Bin;
                             QltyWorkflowResponse: Codeunit "Qlty. Workflow Response";
@@ -423,10 +423,7 @@ pageextension 20403 "Qlty. Workflow Resp. Options" extends "Workflow Response Op
                                     Rec,
                                     QltyWorkflowResponse.GetWellKnownKeyBin(),
                                     QltyBinCode);
-                                Text := QltyBinCode;
-                                exit(true);
                             end;
-                            exit(false);
                         end;
 
                         trigger OnValidate()
@@ -434,9 +431,8 @@ pageextension 20403 "Qlty. Workflow Resp. Options" extends "Workflow Response Op
                             Bin: Record Bin;
                             QltyWorkflowResponse: Codeunit "Qlty. Workflow Response";
                         begin
-                            // There is no table relation on this field because the bins need to be filtered
-                            // by the selected location code via the OnLookup trigger. We validate the bin
-                            // by fetching the record and letting it fail if it doesn't exist.
+                            // There is no table relation on this field because the bins need to be filtered by the selected location code via the OnAssistEdit trigger. 
+                            // Bin is validated by fetching the record and letting it fail if it doesn't exist.
                             Bin.Get(QltyLocationCode, QltyBinCode);
                             QltyWorkflowResponse.SetStepConfigurationValue(Rec, QltyWorkflowResponse.GetWellKnownKeyBin(), QltyBinCode);
                         end;
