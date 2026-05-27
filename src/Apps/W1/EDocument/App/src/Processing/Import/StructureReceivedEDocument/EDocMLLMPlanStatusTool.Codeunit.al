@@ -6,7 +6,7 @@ namespace Microsoft.eServices.EDocument.Processing.Import;
 
 using System.AI;
 
-codeunit 6321 "E-Doc. MLLM Plan Status Tool" implements "AOAI Function"
+codeunit 6341 "E-Doc. MLLM Plan Status Tool" implements "AOAI Function"
 {
     Access = Internal;
     InherentEntitlements = X;
@@ -19,13 +19,15 @@ codeunit 6321 "E-Doc. MLLM Plan Status Tool" implements "AOAI Function"
 
     procedure GetPrompt(): JsonObject
     var
-        ToolObj, FunctionObj, ParamsObj : JsonObject;
+        ToolObj, FunctionObj, ParamsObj, PropsObj : JsonObject;
     begin
         ParamsObj.Add('type', 'object');
+        ParamsObj.Add('properties', PropsObj);
         FunctionObj.Add('name', GetName());
         FunctionObj.Add('description', 'Returns the current verification checklist showing status (pending/passed/failed) for each item. Call this to see what verifications remain before finalising.');
         FunctionObj.Add('parameters', ParamsObj);
-        ToolObj.Add('type', 'function'); ToolObj.Add('function', FunctionObj);
+        ToolObj.Add('type', 'function');
+        ToolObj.Add('function', FunctionObj);
         exit(ToolObj);
     end;
 
