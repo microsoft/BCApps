@@ -23,6 +23,7 @@ codeunit 139545 "Fixed Asset Excel Reports"
     TestPermissions = Disabled;
 
     var
+        LibraryERM: Codeunit "Library - ERM";
         LibraryFixedAsset: Codeunit "Library - Fixed Asset";
         LibraryRandom: Codeunit "Library - Random";
         LibraryReportDataset: Codeunit "Library - Report Dataset";
@@ -284,12 +285,11 @@ codeunit 139545 "Fixed Asset Excel Reports"
             exit;
         if not GLAccount.Get(FAPostingGrp."Acquisition Cost Account") then
             exit;
-        if GeneralPostingSetup.Get(GLAccount."Gen. Bus. Posting Group", GLAccount."Gen. Prod. Posting Group") then
-            exit;
-        GeneralPostingSetup.Init();
-        GeneralPostingSetup.Validate("Gen. Bus. Posting Group", GLAccount."Gen. Bus. Posting Group");
-        GeneralPostingSetup.Validate("Gen. Prod. Posting Group", GLAccount."Gen. Prod. Posting Group");
-        GeneralPostingSetup.Insert(true);
+        if not GeneralPostingSetup.Get(GLAccount."Gen. Bus. Posting Group", GLAccount."Gen. Prod. Posting Group") then begin
+            LibraryERM.CreateGeneralPostingSetup(GeneralPostingSetup, GLAccount."Gen. Bus. Posting Group", GLAccount."Gen. Prod. Posting Group");
+            GeneralPostingSetup.SuggestSetupAccounts();
+            GeneralPostingSetup.Modify(true);
+        end;
     end;
 
     [RequestPageHandler]
