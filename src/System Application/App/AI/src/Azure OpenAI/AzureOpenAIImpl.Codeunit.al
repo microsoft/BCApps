@@ -185,7 +185,7 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         CopilotCapabilityImpl.AddTelemetryCustomDimensions(CustomDimensions, CallerModuleInfo);
         CheckTextCompletionMetaprompt(Metaprompt, CustomDimensions);
 
-        UnwrappedPrompt := Metaprompt.Unwrap() + Prompt.Unwrap();
+        UnwrappedPrompt := UnwrapSecret(Metaprompt) + UnwrapSecret(Prompt);
         UnwrappedPrompt := RemoveProhibitedCharacters(UnwrappedPrompt);
 
         AOAICompletionParameters.AddCompletionsParametersToPayload(Payload);
@@ -215,7 +215,7 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         CopilotCapabilityImpl.CheckEnabled(CallerModuleInfo);
         CheckAuthorizationEnabled(EmbeddingsAOAIAuthorization, CallerModuleInfo);
 
-        Payload.Add('input', Input.Unwrap());
+        Payload.Add('input', UnwrapSecret(Input));
         Payload.WriteTo(PayloadText);
 
         CopilotCapabilityImpl.AddTelemetryCustomDimensions(CustomDimensions, CallerModuleInfo);
@@ -569,7 +569,7 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
     var
         ModuleInfo: ModuleInfo;
     begin
-        if Metaprompt.Unwrap().Trim() = '' then begin
+        if UnwrapSecret(Metaprompt).Trim() = '' then begin
             FeatureTelemetry.LogError('0000LO8', GetAzureOpenAICategory(), TelemetryGenerateTextCompletionLbl, EmptyMetapromptErr, '', Enum::"AL Telemetry Scope"::All, CustomDimensions);
 
             NavApp.GetCurrentModuleInfo(ModuleInfo);
@@ -643,5 +643,11 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
                 else
                     exit(true);
             end;
+    end;
+
+    [NonDebuggable]
+    local procedure UnwrapSecret(Secret: SecretText): Text
+    begin
+        exit(Secret.Unwrap());
     end;
 }

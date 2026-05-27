@@ -209,9 +209,9 @@ codeunit 7764 "AOAI Chat Messages Impl"
         Initialize();
         CheckandAddMetaprompt(UsingMicrosoftMetaprompt);
 
-        if SystemMessage.Unwrap() <> '' then begin
+        if UnwrapSecret(SystemMessage) <> '' then begin
             MessageJsonObject.Add('role', Format(Enum::"AOAI Chat Roles"::System));
-            MessageJsonObject.Add('content', SystemMessage.Unwrap());
+            MessageJsonObject.Add('content', UnwrapSecret(SystemMessage));
             HistoryResult.Add(MessageJsonObject);
 
             SystemMessageTokenCount := AOAIToken.GetGPT4TokenCount(SystemMessage);
@@ -416,7 +416,7 @@ codeunit 7764 "AOAI Chat Messages Impl"
 
     local procedure CheckandAddMetaprompt(var UsingMicrosoftMetaprompt: Boolean)
     begin
-        if SystemMessage.Unwrap().Trim() = '' then begin
+        if UnwrapSecret(SystemMessage).Trim() = '' then begin
             if IsSystemMessageSet then
                 Telemetry.LogMessage('0000LO9', TelemetryMetapromptSetbutEmptyTxt, Verbosity::Normal, DataClassification::SystemMetadata)
             else
@@ -435,9 +435,14 @@ codeunit 7764 "AOAI Chat Messages Impl"
         for Counter := 1 to HistoryUserMessages.Count() do begin
             HistoryUserMessages.Get(Counter, AOAIUserMessage);
             if AOAIUserMessage.HasFilePart() then
-                if Deployment.Unwrap() <> AOAIDeployments.GetGPT41MiniPreview() then
+                if UnwrapSecret(Deployment) <> AOAIDeployments.GetGPT41MiniPreview() then
                     Error(IncompatibleModelErr);
         end;
     end;
 
+    [NonDebuggable]
+    local procedure UnwrapSecret(Secret: SecretText): Text
+    begin
+        exit(Secret.Unwrap());
+    end;
 }
