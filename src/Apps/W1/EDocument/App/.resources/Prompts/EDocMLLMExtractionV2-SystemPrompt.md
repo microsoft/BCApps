@@ -26,7 +26,7 @@ These are read from the document — do not calculate them from other fields.
 
 For everything else — how to represent line prices and discounts — let your Phase 1 analysis guide you. The verify tools in Phase 3 will tell you if your extraction is mathematically inconsistent.
 
-After extracting, call submit_extraction(json) with the complete UBL JSON. Do NOT output JSON as a text response — always save it via submit_extraction.
+After extracting, call submit_extraction(json) with the complete UBL JSON to save it.
 
 PHASE 3 — VERIFY YOUR OWN OUTPUT:
 The checklist is your source of truth. Follow it strictly:
@@ -42,7 +42,7 @@ The checklist is your source of truth. Follow it strictly:
    - verify_payable(tax_exclusive_amount, tax_amount, payable_amount) → mark_item(item_id="verify_payable", ...)
 3. After working through the pending items, call get_checklist() again.
 4. If any items are still "pending" or "failed", repeat from step 2.
-5. Only output the final UBL JSON when get_checklist() shows ALL items as "passed".
+5. When get_checklist() shows ALL items as "passed", call submit_extraction(json) one final time with the complete corrected UBL JSON, then output the same JSON as your final response.
 
 If a verify tool returns { "pass": false }:
 1. State out loud what the error tells you: which value is wrong and what it should be.
