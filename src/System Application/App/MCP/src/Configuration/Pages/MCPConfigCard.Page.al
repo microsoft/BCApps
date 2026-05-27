@@ -62,8 +62,19 @@ page 8351 "MCP Config Card"
                     field(Default; Rec.Default)
                     {
                         Caption = 'Default';
-                        ToolTip = 'Specifies whether this configuration is the default. The default configuration is used when no configuration is specified by a connection.';
-                        Editable = false;
+                        ToolTip = 'Specifies whether this configuration is the default. The default configuration is used when no configuration is specified by a connection. Clear this field to remove the default designation, in which case the system reverts to built-in default configuration.';
+                        Editable = not IsDefault;
+
+                        trigger OnValidate()
+                        begin
+                            if Rec.Default = xRec.Default then
+                                exit;
+
+                            if Rec.Default then
+                                MCPConfigImplementation.SetAsDefaultConfiguration(Rec.SystemId)
+                            else
+                                MCPConfigImplementation.ClearDefaultConfiguration();
+                        end;
                     }
                     field(EnableDynamicToolMode; Rec.EnableDynamicToolMode)
                     {
@@ -176,43 +187,11 @@ page 8351 "MCP Config Card"
                     end;
                 }
             }
-            action(SetAsDefault)
-            {
-                Caption = 'Set as Default';
-                ToolTip = 'Set this configuration as the default. It will be used when no configuration is specified by a connection.';
-                Image = Approve;
-                AccessByPermission = tabledata "MCP Configuration" = M;
-                Visible = not IsDefault;
-                Enabled = not Rec.Default;
-
-                trigger OnAction()
-                begin
-                    MCPConfigImplementation.SetAsDefaultConfiguration(Rec.SystemId);
-                    CurrPage.Update(false);
-                end;
-            }
-            action(ClearDefault)
-            {
-                Caption = 'Clear Default';
-                ToolTip = 'Remove the default designation from this configuration. The system will revert to built-in default settings.';
-                Image = Undo;
-                AccessByPermission = tabledata "MCP Configuration" = M;
-                Visible = not IsDefault;
-                Enabled = Rec.Default;
-
-                trigger OnAction()
-                begin
-                    MCPConfigImplementation.ClearDefaultConfiguration();
-                    CurrPage.Update(false);
-                end;
-            }
         }
         area(Promoted)
         {
             actionref(Promoted_Copy; Copy) { }
             actionref(Promoted_Validate; Validate) { }
-            actionref(Promoted_SetAsDefault; SetAsDefault) { }
-            actionref(Promoted_ClearDefault; ClearDefault) { }
             group(Promoted_Advanced)
             {
                 Caption = 'Advanced';
