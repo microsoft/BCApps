@@ -53,8 +53,6 @@ codeunit 139628 "E-Doc. Receive Test"
         EDocReceiveFiles: Codeunit "E-Doc. Receive Files";
         Assert: Codeunit Assert;
         NullGuid: Guid;
-        OnBeforeLogErrorIfItemNotFoundCount: Integer;
-        LastItemFoundOnEntry: Boolean;
         GetBasicInfoErr: Label 'Test Get Basic Info From Received Document Error.', Locked = true;
         GetCompleteInfoErr: Label 'Test Get Complete Info From Received Document Error.', Locked = true;
         IncorrectValueErr: Label 'Incorrect number of E-Document returned.';
@@ -398,7 +396,7 @@ codeunit 139628 "E-Doc. Receive Test"
         ItemReference: Record "Item Reference";
         EDocServiceDataExchDef: Record "E-Doc. Service Data Exch. Def.";
         TempXMLBuffer: Record "XML Buffer" temporary;
-        EDocReceiveTest: Codeunit "E-Doc. Receive Test";
+        EDocImportPublisherMock: Codeunit "E-Doc. Import Publisher Mock";
         TempBlob: Codeunit "Temp Blob";
         EDocServicePage: TestPage "E-Document Service";
         Document: Text;
@@ -477,18 +475,18 @@ codeunit 139628 "E-Doc. Receive Test"
         EDocImplState.SetVariableStorage(LibraryVariableStorage);
 
         // [GIVEN] Subscriber to OnBeforeLogErrorIfItemNotFound is bound
-        BindSubscription(EDocReceiveTest);
+        BindSubscription(EDocImportPublisherMock);
 
         // [WHEN] Running Receive (Item Reference lookup will fail)
         EDocServicePage.OpenView();
         EDocServicePage.Filter.SetFilter(Code, EDocService.Code);
         EDocServicePage.Receive.Invoke();
 
-        UnbindSubscription(EDocReceiveTest);
+        UnbindSubscription(EDocImportPublisherMock);
 
         // [THEN] OnBeforeLogErrorIfItemNotFound fired and saw ItemFound = false on entry
-        Assert.IsTrue(EDocReceiveTest.GetOnBeforeLogErrorIfItemNotFoundCount() > 0, 'OnBeforeLogErrorIfItemNotFound should fire when standard item lookups cannot resolve the line.');
-        Assert.IsFalse(EDocReceiveTest.GetLastItemFoundOnEntry(), 'ItemFound should be false on entry to OnBeforeLogErrorIfItemNotFound when no standard lookup matched.');
+        Assert.IsTrue(EDocImportPublisherMock.GetOnBeforeLogErrorIfItemNotFoundCount() > 0, 'OnBeforeLogErrorIfItemNotFound should fire when standard item lookups cannot resolve the line.');
+        Assert.IsFalse(EDocImportPublisherMock.GetLastItemFoundOnEntry(), 'ItemFound should be false on entry to OnBeforeLogErrorIfItemNotFound when no standard lookup matched.');
 
         EDocService."Document Format" := "E-Document Format"::Mock;
         EDocService.Modify();
@@ -1695,23 +1693,6 @@ codeunit 139628 "E-Doc. Receive Test"
     local procedure OnBeforeProcessHeaderFieldsAssignment(var DocumentHeader: RecordRef; var PurchaseField: Record Field);
     begin
         PurchaseField.SetRange("No.", 10705);
-    end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. Import", 'OnBeforeLogErrorIfItemNotFound', '', false, false)]
-    local procedure CaptureOnBeforeLogErrorIfItemNotFound(EDocument: Record "E-Document"; SourceDocumentLine: RecordRef; EDocService: Record "E-Document Service"; var ItemFound: Boolean)
-    begin
-        OnBeforeLogErrorIfItemNotFoundCount += 1;
-        LastItemFoundOnEntry := ItemFound;
-    end;
-
-    procedure GetOnBeforeLogErrorIfItemNotFoundCount(): Integer
-    begin
-        exit(OnBeforeLogErrorIfItemNotFoundCount);
-    end;
-
-    procedure GetLastItemFoundOnEntry(): Boolean
-    begin
-        exit(LastItemFoundOnEntry);
     end;
 
     local procedure CreateEDocServiceToReceivePurchaseOrder(var EDocService: Record "E-Document Service")

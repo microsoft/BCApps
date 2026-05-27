@@ -969,6 +969,13 @@ codeunit 6140 "E-Doc. Import"
     begin
     end;
 
+    /// <summary>
+    /// Raised before logging a not-found error for a document line whose item could not be resolved by the standard Item Reference, GTIN, and Account Mapping lookups.
+    /// </summary>
+    /// <param name="EDocument">The E-Document being imported.</param>
+    /// <param name="SourceDocumentLine">RecordRef of the parsed source document line. Subscribers may mutate fields via FieldRef.</param>
+    /// <param name="EDocService">The E-Document Service configuration that triggered the import.</param>
+    /// <param name="ItemFound">Set to true after a successful alternative lookup to skip the standard not-found error log. Leave false to preserve the standard LogErrorIfItemNotFound behavior.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeLogErrorIfItemNotFound(EDocument: Record "E-Document"; SourceDocumentLine: RecordRef; EDocService: Record "E-Document Service"; var ItemFound: Boolean)
     begin
