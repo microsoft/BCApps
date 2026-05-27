@@ -110,7 +110,7 @@ codeunit 149901 "Subc. Whse Put-Away LastOp."
 
         // [GIVEN] Configure Vendor
         Vendor.Get(WorkCenter[2]."Subcontractor No.");
-        Vendor."Subcontr. Location Code" := Location.Code;
+        Vendor."Subc. Location Code" := Location.Code;
         Vendor."Location Code" := LibraryWarehouse.CreateLocationWithInventoryPostingSetup(VendorLocation);
         Vendor.Modify();
 
@@ -213,7 +213,7 @@ codeunit 149901 "Subc. Whse Put-Away LastOp."
 
         // [GIVEN] Configure Vendor
         Vendor.Get(WorkCenter[2]."Subcontractor No.");
-        Vendor."Subcontr. Location Code" := Location.Code;
+        Vendor."Subc. Location Code" := Location.Code;
         Vendor."Location Code" := LibraryWarehouse.CreateLocationWithInventoryPostingSetup(VendorLocation);
         Vendor.Modify();
 
