@@ -166,13 +166,13 @@ codeunit 6232 "E-Doc. MLLM Schema Helper"
                 GetDecimal(LineObj, 'line_extension_amount', TempLine."Sub Total");
 
                 if GetNestedObject(LineObj, 'allowance_charge', NestedObj) then begin
-                    if GetNestedObject(NestedObj, 'amount', NestedObj2) then
-                        GetDecimal(NestedObj2, 'value', TempLine."Total Discount");
-                    if TempLine."Total Discount" = 0 then begin
-                        DiscountPct := 0;
-                        GetDecimal(NestedObj, 'percent', DiscountPct);
-                        if DiscountPct <> 0 then
-                            TempLine."Total Discount" := TempLine."Unit Price" * TempLine.Quantity * DiscountPct / 100;
+                    DiscountPct := 0;
+                    GetDecimal(NestedObj, 'percent', DiscountPct);
+                    if DiscountPct <> 0 then
+                        TempLine."Total Discount" := TempLine."Unit Price" * TempLine.Quantity * DiscountPct / 100
+                    else begin
+                        if GetNestedObject(NestedObj, 'amount', NestedObj2) then
+                            GetDecimal(NestedObj2, 'value', TempLine."Total Discount");
                     end;
                 end;
 
