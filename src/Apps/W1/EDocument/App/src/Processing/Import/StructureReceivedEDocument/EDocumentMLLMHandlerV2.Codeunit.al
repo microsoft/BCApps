@@ -72,6 +72,7 @@ codeunit 6318 "E-Document MLLM Handler V2" implements IStructureReceivedEDocumen
         ExtractionPlan: Codeunit "E-Doc. MLLM Extraction Plan";
         PlanAnalyzeTool: Codeunit "E-Doc. MLLM Plan Analyze Tool";
         PlanStatusTool: Codeunit "E-Doc. MLLM Plan Status Tool";
+        PlanMarkTool: Codeunit "E-Doc. MLLM Plan Mark Tool";
         FromTempBlob: Codeunit "Temp Blob";
         InStream: InStream;
         Base64Data: Text;
@@ -103,6 +104,7 @@ codeunit 6318 "E-Document MLLM Handler V2" implements IStructureReceivedEDocumen
         AOAIChatMessages.AddTool(VerifyRangesTool);
         AOAIChatMessages.AddTool(PlanAnalyzeTool);
         AOAIChatMessages.AddTool(PlanStatusTool);
+        AOAIChatMessages.AddTool(PlanMarkTool);
         AOAIChatMessages.SetToolChoice('auto');
 
         // User message: PDF + UBL schema + security clause
