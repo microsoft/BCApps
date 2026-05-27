@@ -6,7 +6,7 @@ namespace Microsoft.eServices.EDocument.Processing.Import;
 
 using System.AI;
 
-codeunit 6312 "E-Doc. MLLM VL Math Tool" implements "AOAI Function"
+codeunit 6339 "E-Doc. MLLM VL Math Tool" implements "AOAI Function"
 {
     Access = Internal;
     InherentEntitlements = X;
@@ -26,20 +26,33 @@ codeunit 6312 "E-Doc. MLLM VL Math Tool" implements "AOAI Function"
         PropObj: JsonObject;
         RequiredArr: JsonArray;
     begin
-        PropObj.Add('type', 'number'); PropObj.Add('description', 'Gross unit price before discounts');
-        PropsObj.Add('unit_price', PropObj); Clear(PropObj);
-        PropObj.Add('type', 'number'); PropObj.Add('description', 'Quantity of units');
-        PropsObj.Add('quantity', PropObj); Clear(PropObj);
-        PropObj.Add('type', 'number'); PropObj.Add('description', 'Combined discount percentage 0-100 (use 0 if no discount)');
-        PropsObj.Add('discount_pct', PropObj); Clear(PropObj);
-        PropObj.Add('type', 'number'); PropObj.Add('description', 'line_extension_amount from the invoice');
+        PropObj.Add('type', 'number');
+        PropObj.Add('description', 'Gross unit price before discounts');
+        PropsObj.Add('unit_price', PropObj);
+        Clear(PropObj);
+        PropObj.Add('type', 'number');
+        PropObj.Add('description', 'Quantity of units');
+        PropsObj.Add('quantity', PropObj);
+        Clear(PropObj);
+        PropObj.Add('type', 'number');
+        PropObj.Add('description', 'Combined discount percentage 0-100 (use 0 if no discount)');
+        PropsObj.Add('discount_pct', PropObj);
+        Clear(PropObj);
+        PropObj.Add('type', 'number');
+        PropObj.Add('description', 'line_extension_amount from the invoice');
         PropsObj.Add('line_extension_amount', PropObj);
-        RequiredArr.Add('unit_price'); RequiredArr.Add('quantity'); RequiredArr.Add('discount_pct'); RequiredArr.Add('line_extension_amount');
-        ParamsObj.Add('type', 'object'); ParamsObj.Add('properties', PropsObj); ParamsObj.Add('required', RequiredArr);
+        RequiredArr.Add('unit_price');
+        RequiredArr.Add('quantity');
+        RequiredArr.Add('discount_pct');
+        RequiredArr.Add('line_extension_amount');
+        ParamsObj.Add('type', 'object');
+        ParamsObj.Add('properties', PropsObj);
+        ParamsObj.Add('required', RequiredArr);
         FunctionObj.Add('name', GetName());
         FunctionObj.Add('description', 'Verify that gross_unit_price × quantity × (1 − discount_pct/100) matches line_extension_amount within 1%. Call once per invoice line.');
         FunctionObj.Add('parameters', ParamsObj);
-        ToolObj.Add('type', 'function'); ToolObj.Add('function', FunctionObj);
+        ToolObj.Add('type', 'function');
+        ToolObj.Add('function', FunctionObj);
         exit(ToolObj);
     end;
 
@@ -48,6 +61,7 @@ codeunit 6312 "E-Doc. MLLM VL Math Tool" implements "AOAI Function"
         VerifyTools: Codeunit "E-Doc. MLLM Verify Tools";
         ResultObj: JsonObject;
         ErrorText: Text;
+        ResultText: Text;
         UnitPrice: Decimal;
         Quantity: Decimal;
         DiscountPct: Decimal;
@@ -63,7 +77,8 @@ codeunit 6312 "E-Doc. MLLM VL Math Tool" implements "AOAI Function"
             ResultObj.Add('pass', false);
             ResultObj.Add('error', ErrorText);
         end;
-        exit(ResultObj);
+        ResultObj.WriteTo(ResultText);
+        exit(ResultText);
     end;
 
     local procedure GetDecimalArg(Arguments: JsonObject; PropertyName: Text; var Value: Decimal)

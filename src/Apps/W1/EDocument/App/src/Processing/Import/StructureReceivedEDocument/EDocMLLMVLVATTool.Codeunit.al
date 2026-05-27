@@ -46,6 +46,7 @@ codeunit 6314 "E-Doc. MLLM VL VAT Tool" implements "AOAI Function"
         VerifyTools: Codeunit "E-Doc. MLLM Verify Tools";
         ResultObj: JsonObject;
         ErrorText: Text;
+        ResultText: Text;
         TaxExcl: Decimal;
         VATRate: Decimal;
         TaxAmt: Decimal;
@@ -64,6 +65,7 @@ codeunit 6314 "E-Doc. MLLM VL VAT Tool" implements "AOAI Function"
             ResultObj.Add('pass', false);
             ResultObj.Add('error', ErrorText);
         end;
-        exit(ResultObj);
+        ResultObj.WriteTo(ResultText);
+        exit(ResultText);
     end;
 }

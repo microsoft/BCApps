@@ -46,6 +46,7 @@ codeunit 6313 "E-Doc. MLLM VL Totals Tool" implements "AOAI Function"
         VerifyTools: Codeunit "E-Doc. MLLM Verify Tools";
         ResultObj: JsonObject;
         ErrorText: Text;
+        ResultText: Text;
         LineAmountsToken: JsonToken;
         LineAmountsArray: JsonArray;
         LineToken: JsonToken;
@@ -69,6 +70,7 @@ codeunit 6313 "E-Doc. MLLM VL Totals Tool" implements "AOAI Function"
             ResultObj.Add('pass', false);
             ResultObj.Add('error', ErrorText);
         end;
-        exit(ResultObj);
+        ResultObj.WriteTo(ResultText);
+        exit(ResultText);
     end;
 }

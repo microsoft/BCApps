@@ -53,6 +53,7 @@ codeunit 6317 "E-Doc. MLLM VL Ranges Tool" implements "AOAI Function"
         VerifyTools: Codeunit "E-Doc. MLLM Verify Tools";
         ResultObj: JsonObject;
         ErrorText: Text;
+        ResultText: Text;
         Quantities: List of [Decimal];
         Prices: List of [Decimal];
         VATRates: List of [Decimal];
@@ -68,7 +69,8 @@ codeunit 6317 "E-Doc. MLLM VL Ranges Tool" implements "AOAI Function"
             ResultObj.Add('pass', false);
             ResultObj.Add('error', ErrorText);
         end;
-        exit(ResultObj);
+        ResultObj.WriteTo(ResultText);
+        exit(ResultText);
     end;
 
     local procedure ParseDecimalArray(Arguments: JsonObject; PropertyName: Text; var Values: List of [Decimal])
