@@ -6,7 +6,7 @@ namespace Microsoft.eServices.EDocument.Processing.Import;
 
 using System.AI;
 
-codeunit 6239 "E-Doc. MLLM VL Required Tool" implements "AOAI Function"
+codeunit 6153 "E-Doc. MLLM VL Required Tool" implements "AOAI Function"
 {
     Access = Internal;
     InherentEntitlements = X;

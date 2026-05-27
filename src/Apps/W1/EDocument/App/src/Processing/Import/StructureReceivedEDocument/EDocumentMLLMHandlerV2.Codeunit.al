@@ -11,9 +11,10 @@ using Microsoft.eServices.EDocument.Processing.Interfaces;
 using System.AI;
 using System.Azure.KeyVault;
 using System.Telemetry;
+using System.Text;
 using System.Utilities;
 
-codeunit 6244 "E-Document MLLM Handler V2" implements IStructureReceivedEDocument, IStructuredFormatReader, IStructuredDataType
+codeunit 6405 "E-Document MLLM Handler V2" implements IStructureReceivedEDocument, IStructuredFormatReader, IStructuredDataType
 {
     Access = Internal;
     InherentEntitlements = X;

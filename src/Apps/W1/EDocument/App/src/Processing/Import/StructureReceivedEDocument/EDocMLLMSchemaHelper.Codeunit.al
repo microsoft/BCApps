@@ -133,6 +133,7 @@ codeunit 6232 "E-Doc. MLLM Schema Helper"
         NestedObj: JsonObject;
         NestedObj2: JsonObject;
         LineNumber: Integer;
+        DiscountPct: Decimal;
     begin
         TempLine.DeleteAll();
 
@@ -164,9 +165,16 @@ codeunit 6232 "E-Doc. MLLM Schema Helper"
 
                 GetDecimal(LineObj, 'line_extension_amount', TempLine."Sub Total");
 
-                if GetNestedObject(LineObj, 'allowance_charge', NestedObj) then
+                if GetNestedObject(LineObj, 'allowance_charge', NestedObj) then begin
                     if GetNestedObject(NestedObj, 'amount', NestedObj2) then
                         GetDecimal(NestedObj2, 'value', TempLine."Total Discount");
+                    if TempLine."Total Discount" = 0 then begin
+                        DiscountPct := 0;
+                        GetDecimal(NestedObj, 'percent', DiscountPct);
+                        if DiscountPct <> 0 then
+                            TempLine."Total Discount" := TempLine."Unit Price" * TempLine.Quantity * DiscountPct / 100;
+                    end;
+                end;
 
                 TempLine.Insert();
             end;
@@ -208,12 +216,14 @@ codeunit 6232 "E-Doc. MLLM Schema Helper"
     local procedure GetDecimal(JsonObj: JsonObject; PropertyName: Text; var FieldValue: Decimal)
     var
         JsonToken: JsonToken;
+        DecimalValue: Decimal;
     begin
         if not JsonObj.Get(PropertyName, JsonToken) then
             exit;
         if JsonToken.AsValue().IsNull() then
             exit;
-        FieldValue := JsonToken.AsValue().AsDecimal();
+        if Evaluate(DecimalValue, JsonToken.AsValue().AsText(), 9) then
+            FieldValue := DecimalValue;
     end;
 
     local procedure GetNestedObject(JsonObj: JsonObject; PropertyName: Text; var NestedObj: JsonObject): Boolean
