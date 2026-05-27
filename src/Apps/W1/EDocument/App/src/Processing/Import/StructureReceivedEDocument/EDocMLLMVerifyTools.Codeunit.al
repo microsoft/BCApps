@@ -13,7 +13,12 @@ codeunit 6311 "E-Doc. MLLM Verify Tools"
     procedure VerifyLineMath(UnitPrice: Decimal; Quantity: Decimal; DiscountPct: Decimal; LineExtensionAmount: Decimal; var ErrorText: Text): Boolean
     var
         Expected: Decimal;
-        LineMathErrLbl: Label '%1 × %2 × (1 − %3/100) = %4, but line_extension_amount = %5. Re-check which price column is the gross (pre-discount) unit price.', Comment = '%1=UnitPrice, %2=Quantity, %3=DiscountPct, %4=Expected, %5=LineExtensionAmount';
+        ImpliedGrossPrice: Decimal;
+        LineMathErrLbl: Label '%1 × %2 × (1 − %3/100) = %4, but line_extension_amount = %5. ' +
+            'To fix: if discount_pct %3 is correct, the gross unit_price should be ≈ %6 (= %5 / (%2 × (1 − %3/100))). ' +
+            'Look for a higher unit price column on the document and use that as price_amount. ' +
+            'If the document shows chained discounts (e.g. two columns both showing 20%%), combine them: effective_discount = 1 − (1−d1/100) × (1−d2/100).',
+            Comment = '%1=UnitPrice, %2=Quantity, %3=DiscountPct, %4=Expected, %5=LineExtensionAmount, %6=ImpliedGrossPrice';
     begin
         if LineExtensionAmount = 0 then
             exit(true);
@@ -23,7 +28,12 @@ codeunit 6311 "E-Doc. MLLM Verify Tools"
         if IsWithinTolerance(Expected, LineExtensionAmount) then
             exit(true);
 
-        ErrorText := StrSubstNo(LineMathErrLbl, UnitPrice, Quantity, DiscountPct, Expected, LineExtensionAmount);
+        if (Quantity <> 0) and (DiscountPct < 100) then
+            ImpliedGrossPrice := Round(LineExtensionAmount / (Quantity * (1 - DiscountPct / 100)), 0.001)
+        else
+            ImpliedGrossPrice := 0;
+
+        ErrorText := StrSubstNo(LineMathErrLbl, UnitPrice, Quantity, DiscountPct, Round(Expected, 0.01), LineExtensionAmount, ImpliedGrossPrice);
         exit(false);
     end;
 

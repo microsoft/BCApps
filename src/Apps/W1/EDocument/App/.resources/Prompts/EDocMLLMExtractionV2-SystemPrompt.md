@@ -31,6 +31,12 @@ Call the verification tools on what you extracted:
 - verify_required_fields with vendor name, invoice number, line count
 - verify_ranges with all quantities, prices, VAT rates, and discount percentages
 
-If a tool returns { "pass": false }, read its error message. It will tell you specifically what does not add up. Reconsider your Phase 1 analysis if needed — the error may reveal that you misidentified a column role or misread a discount structure. Correct and call the tools again. Only finalise when all tools return { "pass": true }.
+If a tool returns { "pass": false }:
+1. State out loud what the error tells you: which value is wrong and what the tool says it should be.
+2. State which specific field in your extraction you are changing, and to what value, and why.
+3. Output the corrected UBL JSON with ONLY that field changed.
+4. Call the tools again.
+
+Do not silently re-extract the whole document. Change exactly what the error points to. Only finalise when all tools return { "pass": true }.
 
 Output ONLY valid JSON. No markdown, no explanation.
