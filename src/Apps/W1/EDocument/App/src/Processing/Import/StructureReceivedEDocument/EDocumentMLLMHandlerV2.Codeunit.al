@@ -53,7 +53,6 @@ codeunit 6318 "E-Document MLLM Handler V2" implements IStructureReceivedEDocumen
         exit(this);
     end;
 
-    [NonDebuggable]
     local procedure CallMLLMV2(EDocumentDataStorage: Record "E-Doc. Data Storage"): Text
     var
         Base64Convert: Codeunit "Base64 Convert";
@@ -101,7 +100,7 @@ codeunit 6318 "E-Document MLLM Handler V2" implements IStructureReceivedEDocumen
 
         // User message: PDF + UBL schema + security clause
         AOAIUserMessage.AddFilePart(StrSubstNo(FileDataLbl, Base64Data));
-        AOAIUserMessage.AddTextPart(SecretText.SecretStrSubstNo(UserPromptLbl, EDocMLLMSchemaHelper.GetDefaultSchema(), GetSecurityClause()).Unwrap());
+        AOAIUserMessage.AddTextPart(GetUserPromptText(EDocMLLMSchemaHelper.GetDefaultSchema()));
         AOAIChatMessages.AddUserMessage(AOAIUserMessage);
 
         // Agentic dispatch loop
@@ -123,12 +122,14 @@ codeunit 6318 "E-Document MLLM Handler V2" implements IStructureReceivedEDocumen
     end;
 
     [NonDebuggable]
-    local procedure GetSecurityClause() Result: SecretText
+    local procedure GetUserPromptText(Schema: Text): Text
     var
         AzureKeyVault: Codeunit "Azure Key Vault";
+        SecurityClause: SecretText;
     begin
-        if not AzureKeyVault.GetAzureKeyVaultSecret(SecurityPromptAKVKeyTok, Result) then
+        if not AzureKeyVault.GetAzureKeyVaultSecret(SecurityPromptAKVKeyTok, SecurityClause) then
             Error(DocumentNotProcessedErr);
+        exit(SecretText.SecretStrSubstNo(UserPromptLbl, Schema, SecurityClause).Unwrap());
     end;
 
     local procedure IsInappropriateContentResponse(ResponseText: Text): Boolean
