@@ -3481,6 +3481,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         SubSetupLibrary.InitSetupFields();
         LibraryERMCountryData.CreateVATData();
+        LibraryERMCountryData.UpdateGeneralPostingSetup();
         SubSetupLibrary.InitialSetupForGenProdPostingGroup();
 
         IsInitialized := true;
