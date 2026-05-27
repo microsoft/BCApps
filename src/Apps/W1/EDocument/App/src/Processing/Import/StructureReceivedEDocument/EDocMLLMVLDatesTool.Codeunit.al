@@ -42,7 +42,6 @@ codeunit 6315 "E-Doc. MLLM VL Dates Tool" implements "AOAI Function"
     procedure Execute(Arguments: JsonObject): Variant
     var
         VerifyTools: Codeunit "E-Doc. MLLM Verify Tools";
-        ExtractionPlan: Codeunit "E-Doc. MLLM Extraction Plan";
         ResultObj: JsonObject;
         ErrorText: Text;
         ResultText: Text;
@@ -54,8 +53,6 @@ codeunit 6315 "E-Doc. MLLM VL Dates Tool" implements "AOAI Function"
         if Arguments.Get('issue_date', Token) then IssueDate := Token.AsValue().AsText();
         if Arguments.Get('due_date', Token) then DueDate := Token.AsValue().AsText();
         Passed := VerifyTools.VerifyDates(IssueDate, DueDate, ErrorText);
-        if ExtractionPlan.IsInitialized() then
-            ExtractionPlan.MarkItem('verify_dates', Passed, ErrorText);
         if Passed then
             ResultObj.Add('pass', true)
         else begin

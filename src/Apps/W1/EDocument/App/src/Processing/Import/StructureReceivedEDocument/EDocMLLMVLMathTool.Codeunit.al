@@ -64,7 +64,6 @@ codeunit 6339 "E-Doc. MLLM VL Math Tool" implements "AOAI Function"
     procedure Execute(Arguments: JsonObject): Variant
     var
         VerifyTools: Codeunit "E-Doc. MLLM Verify Tools";
-        ExtractionPlan: Codeunit "E-Doc. MLLM Extraction Plan";
         ResultObj: JsonObject;
         ErrorText, ResultText, LineId : Text;
         UnitPrice, Quantity, DiscountPct, LineExtAmt : Decimal;
@@ -79,9 +78,6 @@ codeunit 6339 "E-Doc. MLLM VL Math Tool" implements "AOAI Function"
             LineId := Token.AsValue().AsText();
 
         Passed := VerifyTools.VerifyLineMath(UnitPrice, Quantity, DiscountPct, LineExtAmt, ErrorText);
-
-        if ExtractionPlan.IsInitialized() then
-            ExtractionPlan.MarkItem('verify_line_' + LineId, Passed, ErrorText);
 
         if Passed then
             ResultObj.Add('pass', true)
