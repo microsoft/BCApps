@@ -6,7 +6,7 @@ namespace Microsoft.eServices.EDocument.Processing.Import;
 
 using System.AI;
 
-codeunit 6113 "E-Doc. MLLM VL VAT Tool" implements "AOAI Function"
+codeunit 6314 "E-Doc. MLLM VL VAT Tool" implements "AOAI Function"
 {
     Access = Internal;
     InherentEntitlements = X;

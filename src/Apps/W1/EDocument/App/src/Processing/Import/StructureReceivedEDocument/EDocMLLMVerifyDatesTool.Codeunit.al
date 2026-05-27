@@ -6,7 +6,7 @@ namespace Microsoft.eServices.EDocument.Processing.Import;
 
 using System.AI;
 
-codeunit 6114 "E-Doc. MLLM VL Dates Tool" implements "AOAI Function"
+codeunit 6315 "E-Doc. MLLM VL Dates Tool" implements "AOAI Function"
 {
     Access = Internal;
     InherentEntitlements = X;

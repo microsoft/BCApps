@@ -14,7 +14,7 @@ using System.Telemetry;
 using System.Text;
 using System.Utilities;
 
-codeunit 6405 "E-Document MLLM Handler V2" implements IStructureReceivedEDocument, IStructuredFormatReader, IStructuredDataType
+codeunit 6318 "E-Document MLLM Handler V2" implements IStructureReceivedEDocument, IStructuredFormatReader, IStructuredDataType
 {
     Access = Internal;
     InherentEntitlements = X;

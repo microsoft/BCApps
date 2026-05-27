@@ -6,7 +6,7 @@ namespace Microsoft.eServices.EDocument.Processing.Import;
 
 using System.AI;
 
-codeunit 6154 "E-Doc. MLLM VL Ranges Tool" implements "AOAI Function"
+codeunit 6317 "E-Doc. MLLM VL Ranges Tool" implements "AOAI Function"
 {
     Access = Internal;
     InherentEntitlements = X;
