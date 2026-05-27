@@ -32,6 +32,33 @@ codeunit 139566 "Shpfy Payments Test"
     end;
 
     [Test]
+    procedure UnitTestImportPayoutWithExternalTraceId()
+    var
+        Payout: Record "Shpfy Payout";
+        PaymentsAPI: Codeunit "Shpfy Payments API";
+        Id: BigInteger;
+        ExpectedExternalTraceId: Text;
+        JPayout: JsonObject;
+    begin
+        // [SCENARIO] Import payout correctly imports the externalTraceId field (2026-01 API)
+        Initialize();
+
+        // [GIVEN] A random Generated Payout with externalTraceId
+        Id := Any.IntegerInRange(10000, 99999);
+        ExpectedExternalTraceId := Any.AlphanumericText(50);
+        JPayout := GetRandomPayout(Id, ExpectedExternalTraceId);
+
+        // [WHEN] Invoke the function ImportPayout(JPayout)
+        PaymentsAPI.SetShop(Shop);
+        PaymentsAPI.ImportPayout(JPayout);
+
+        // [THEN] We must find the "Shpfy Payout" record with the correct externalTraceId and Shop Code
+        LibraryAssert.IsTrue(Payout.Get(Id), 'Get "Shpfy Payout" record');
+        LibraryAssert.AreEqual(ExpectedExternalTraceId, Payout."External Trace Id", 'External Trace Id should match');
+        LibraryAssert.AreEqual(Shop.Code, Payout."Shop Code", 'Shop Code should match');
+    end;
+
+    [Test]
     procedure UnitTestImportPayoutBackfillsShopCode()
     var
         Payout: Record "Shpfy Payout";
@@ -56,29 +83,6 @@ codeunit 139566 "Shpfy Payments Test"
         // [THEN] The Shop Code is backfilled on the existing record
         Payout.Get(Id);
         LibraryAssert.AreEqual(Shop.Code, Payout."Shop Code", 'Shop Code should be backfilled on existing payout');
-    end;
-
-    [Test]
-    procedure UnitTestImportPayoutWithExternalTraceId()
-    var
-        Payout: Record "Shpfy Payout";
-        PaymentsAPI: Codeunit "Shpfy Payments API";
-        Id: BigInteger;
-        ExpectedExternalTraceId: Text;
-        JPayout: JsonObject;
-    begin
-        // [SCENARIO] Import payout correctly imports the externalTraceId field (2026-01 API)
-        // [GIVEN] A random Generated Payout with externalTraceId
-        Id := Any.IntegerInRange(10000, 99999);
-        ExpectedExternalTraceId := Any.AlphanumericText(50);
-        JPayout := GetRandomPayout(Id, ExpectedExternalTraceId);
-
-        // [WHEN] Invoke the function ImportPayout(JPayout)
-        PaymentsAPI.ImportPayout(JPayout);
-
-        // [THEN] We must find the "Shpfy Payout" record with the correct externalTraceId
-        LibraryAssert.IsTrue(Payout.Get(Id), 'Get "Shpfy Payout" record');
-        LibraryAssert.AreEqual(ExpectedExternalTraceId, Payout."External Trace Id", 'External Trace Id should match');
     end;
 
     local procedure GetRandomPayout(Id: BigInteger; ExternalTraceId: Text): JsonObject
