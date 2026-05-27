@@ -6,7 +6,9 @@ namespace Microsoft.QualityManagement.Reports;
 
 using Microsoft.Foundation.Company;
 using Microsoft.Inventory.Item;
+#if not CLEAN29
 using Microsoft.QualityManagement.Configuration.Template;
+#endif
 using Microsoft.QualityManagement.Document;
 
 report 20403 "Qlty. Non-Conformance"
@@ -25,7 +27,14 @@ report 20403 "Qlty. Non-Conformance"
         dataitem(CurrentInspection; "Qlty. Inspection Header")
         {
             RequestFilterFields = "Source Item No.", "Source Variant Code", "Source Lot No.", "Source Serial No.", "Source Package No.", "Source Document No.", "No.", "Re-inspection No.", "Template Code";
-            column(QltyInspectionTemplate_Description; QltyInspectionTemplateHdr.Description) { } // CLEAN
+#if not CLEAN29
+            column(QltyInspectionTemplate_Description; QltyInspectionTemplateHdr.Description)
+            {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'RDLC-only layout column. To be removed along with the RDLC layout.';
+                ObsoleteTag = '29.0';
+            }
+#endif
             column(QltyInspection_Description; Description) { }
             column(QltyInspection_Status; Status) { }
             column(QltyInspection_Result_Code; "Result Code") { }
@@ -225,7 +234,11 @@ report 20403 "Qlty. Non-Conformance"
             trigger OnAfterGetRecord()
             begin
                 QltyReportMgmt.ResolveSourceItem(CurrentInspection, Item);
+#if not CLEAN29
+#pragma warning disable AL0432
                 QltyReportMgmt.ResolveInspectionTemplateCache(CurrentInspection."Template Code", QltyInspectionTemplateHdr);
+#pragma warning restore AL0432
+#endif
                 QltyReportMgmt.ResolveFinishedByPerson(CurrentInspection."Finished By User ID", FinishedByUserName, FinishedByTitle, FinishedByEmail, FinishedByPhone);
 
                 ItemTrackingText := QltyReportMgmt.BuildItemTrackingIdentifierText(CurrentInspection."Source Lot No.", CurrentInspection."Source Serial No.", CurrentInspection."Source Package No.");
@@ -245,13 +258,18 @@ report 20403 "Qlty. Non-Conformance"
             Summary = 'Built in layout for the Non-Conformance Report.';
             LayoutFile = './src/Reports/QltyNonConformance.docx';
         }
+#if not CLEAN29
         layout(QltyNonConformanceDefault)
         {
             Type = RDLC;
             Caption = 'Non-Conformance Report (RDLC)';
             Summary = 'Built in layout for the Non-Conformance Report.';
             LayoutFile = './src/Reports/QltyNonConformanceAlternate.rdl';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'The RDLC layout has been replaced by the Word layout and will be removed in a future release.';
+            ObsoleteTag = '29.0';
         }
+#endif
     }
 
     labels
@@ -277,7 +295,9 @@ report 20403 "Qlty. Non-Conformance"
     var
         Item: Record Item;
         CompanyInformation: Record "Company Information";
+#if not CLEAN29
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+#endif
         QltyReportMgmt: Codeunit "Qlty. Report Mgmt.";
         MatrixSourceRecordId: array[10] of RecordId;
         CompanyInformationArray: array[8] of Text[100];

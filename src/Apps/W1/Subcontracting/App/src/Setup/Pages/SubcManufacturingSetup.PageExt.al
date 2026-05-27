@@ -24,10 +24,10 @@ pageextension 99001542 "Subc. Manufacturing Setup" extends "Manufacturing Setup"
                         ApplicationArea = Manufacturing;
                         ToolTip = 'Specifies whether an additional Information Line of the Production Order Line will be created in a Subcontracting Purchase Order.';
                     }
-                    field("Subc. Inb. Whse. Handling Time"; Rec."Subc. Inb. Whse. Handling Time")
+                    field("Subc. Comp. Transfer Lead Time"; Rec."Subc. Comp. Transfer Lead Time")
                     {
                         ApplicationArea = Manufacturing;
-                        ToolTip = 'Specifies the time to calculate the Receipt Date in Transfer Line. The calculation will be Due Date from Prod. Order Component minus the entered date formula.';
+                        ToolTip = 'Specifies the lead time for transferring components to the subcontractor. This time is subtracted from the production component due date to calculate the transfer order receipt date.';
                     }
                     field("Subcontracting Template Name"; Rec."Subcontracting Template Name")
                     {

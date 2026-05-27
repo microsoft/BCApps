@@ -432,7 +432,7 @@ codeunit 99001508 "Subc. Price Management"
 
             GetPriceByUOM(SubcontractorPrice, PriceListQty, PriceListCost);
             if PriceListCost <> 0 then begin
-                ConvertPriceToUOM(RequisitionLine."Unit of Measure Code", RequisitionLine.GetQuantityBase(), PriceListUOM, PriceListQtyPerUOM, PriceListCost, DirectCost);
+                ConvertPriceToUOM(RequisitionLine."Unit of Measure Code", RequisitionLine.GetQuantityForUOM(), PriceListUOM, PriceListQtyPerUOM, PriceListCost, DirectCost);
                 ConvertPriceToCurrency(RequisitionLine."Currency Code", SubcontractorPrice."Currency Code", PriceListCost, DirectCost);
             end;
             RequisitionLine."Direct Unit Cost" := DirectCost;
