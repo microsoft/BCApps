@@ -12,7 +12,7 @@ using System.PerformanceProfile;
 /// </summary>
 page 1933 "Perf. Profiler Schedules List"
 {
-    Caption = 'Profiler Schedules';
+    Caption = 'Background Profile';
     PageType = List;
     ApplicationArea = All;
     UsageCategory = Administration;
