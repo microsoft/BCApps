@@ -66,6 +66,7 @@ report 99001501 "Subc. Create Transf. Order"
         Vendor: Record Vendor;
         PurchOrderNo: Code[20];
         LineNo: Integer;
+        ExcessReservationsErr: Label 'The transfer quantity (%1) is less than the reserved quantity (%2) on the production order component for item %3. Cancel existing reservations on the component before creating a partial transfer.', Comment = '%1=Transfer Quantity, %2=Reserved Quantity, %3=Item No.';
         NothingToCreateErr: Label 'Nothing to create. No components or WIP to transfer for the specified subcontracting order.';
         OrderNoDoesNotExistInProdOrderErr: Label 'Operation %1 in the subcontracting order %2 does not exist in the routing %3 of the production order %4.', Comment = '%1=Operation No., %2=Purchase Order No., %3=Routing No., %4=Production Order No.';
         OrderNoIsNotSubcontractorErr: Label 'Order %1 is not a Subcontractor work.', Comment = '%1=Purchase Order No.';
@@ -211,7 +212,7 @@ report 99001501 "Subc. Create Transf. Order"
                         TransferLine.Validate(Quantity, Round(QtyToPost / ProdOrderComponent."Qty. per Unit of Measure", Item."Rounding Precision", '>'));
 
                         if ProdOrderComponent."Due Date" <> 0D then
-                            TransferLine.Validate("Receipt Date", SubcontractingManagement.CalcReceiptDateFromProdCompDueDateWithInbWhseHandlingTime(ProdOrderComponent));
+                            TransferLine.Validate("Receipt Date", SubcontractingManagement.CalcReceiptDateFromProdCompDueDateWithCompTransferLeadTime(ProdOrderComponent));
 
                         TransferLine."Subc. Purch. Order No." := PurchaseLine."Document No.";
                         TransferLine."Subc. Purch. Order Line No." := PurchaseLine."Line No.";
@@ -228,6 +229,9 @@ report 99001501 "Subc. Create Transf. Order"
                             ProdOrderComponent."Subc. Original Location Code" := ProdOrderComponent."Location Code";
                         if ProdOrderComponent."Subc. Orig. Bin Code" = '' then
                             ProdOrderComponent."Subc. Orig. Bin Code" := ProdOrderComponent."Bin Code";
+
+                        if SubcontractingManagement.ComponentHasExcessReservations(ProdOrderComponent, TransferLine."Quantity (Base)") then
+                            Error(ExcessReservationsErr, TransferLine."Quantity (Base)", SubcontractingManagement.GetComponentReservedQtyBase(ProdOrderComponent), ProdOrderComponent."Item No.");
 
                         SubcontractingManagement.TransferReservationEntryFromProdOrderCompToTransferOrder(TransferLine, ProdOrderComponent);
                         if TransferHeader."Transfer-to Code" <> ProdOrderComponent."Location Code" then begin
