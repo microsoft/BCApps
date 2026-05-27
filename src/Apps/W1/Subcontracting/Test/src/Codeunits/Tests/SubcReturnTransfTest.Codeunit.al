@@ -112,6 +112,8 @@ codeunit 149917 "Subc. Return Transf. Test"
 
         TransferHeader.Validate("Direct Transfer", true);
         TransferHeader.Modify(true);
+        Clear(TransferOrder);
+        TransferOrder.OpenView();
         TransferOrder.GoToRecord(TransferHeader);
         TransferOrder.Post.Invoke();
 
