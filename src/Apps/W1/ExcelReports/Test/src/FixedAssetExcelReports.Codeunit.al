@@ -6,6 +6,8 @@
 namespace Microsoft.Finance.ExcelReports.Test;
 
 using Microsoft.Finance.ExcelReports;
+using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.FixedAssets.Depreciation;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.FixedAssets.Journal;
@@ -158,6 +160,7 @@ codeunit 139545 "Fixed Asset Excel Reports"
         DecliningBalancePct := 10 + Round(LibraryRandom.RandDec(20, 0), 1);
 
         LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset);
+        EnsureGeneralPostingSetupForFA(FixedAsset."FA Posting Group");
         LibraryFixedAsset.CreateFADepreciationBook(FADepreciationBook, FixedAsset."No.", DepreciationBook.Code);
         FADepreciationBook.Validate("FA Posting Group", FixedAsset."FA Posting Group");
         FADepreciationBook.Validate("Depreciation Starting Date", DeprStartDate);
@@ -269,6 +272,24 @@ codeunit 139545 "Fixed Asset Excel Reports"
             FAJournalSetup.TransferFields(DefaultFAJournalSetup, false);
             FAJournalSetup.Modify(true);
         end;
+    end;
+
+    local procedure EnsureGeneralPostingSetupForFA(FAPostingGroupCode: Code[20])
+    var
+        FAPostingGrp: Record "FA Posting Group";
+        GLAccount: Record "G/L Account";
+        GeneralPostingSetup: Record "General Posting Setup";
+    begin
+        if not FAPostingGrp.Get(FAPostingGroupCode) then
+            exit;
+        if not GLAccount.Get(FAPostingGrp."Acquisition Cost Account") then
+            exit;
+        if GeneralPostingSetup.Get(GLAccount."Gen. Bus. Posting Group", GLAccount."Gen. Prod. Posting Group") then
+            exit;
+        GeneralPostingSetup.Init();
+        GeneralPostingSetup.Validate("Gen. Bus. Posting Group", GLAccount."Gen. Bus. Posting Group");
+        GeneralPostingSetup.Validate("Gen. Prod. Posting Group", GLAccount."Gen. Prod. Posting Group");
+        GeneralPostingSetup.Insert(true);
     end;
 
     [RequestPageHandler]
