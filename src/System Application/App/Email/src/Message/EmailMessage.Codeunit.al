@@ -236,9 +236,9 @@ codeunit 8904 "Email Message"
     /// <returns><c>true</c> when a value was found.</returns>
     /// <remarks>Reads include any unflushed mutations issued via <see cref="AddHeader"/> or
     /// <see cref="SetHeader"/> on this codeunit instance.</remarks>
-    procedure TryGetHeader(HeaderName: Text; var Value: Text): Boolean
+    procedure GetHeader(HeaderName: Text; var Value: Text): Boolean
     begin
-        exit(EmailMessageImpl.TryGetHeader(HeaderName, Value));
+        exit(EmailMessageImpl.GetHeader(HeaderName, Value));
     end;
 
     /// <summary>

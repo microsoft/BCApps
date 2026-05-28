@@ -234,7 +234,7 @@ codeunit 8905 "Email Message Impl."
         StoreHeader(HeaderName, HeaderValue, false);
     end;
 
-    procedure TryGetHeader(HeaderName: Text; var Value: Text): Boolean
+    procedure GetHeader(HeaderName: Text; var Value: Text): Boolean
     var
         HeaderToken: JsonToken;
         NormalizedName: Text;

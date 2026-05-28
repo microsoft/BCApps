@@ -33,15 +33,15 @@ codeunit 134707 "Email Message Headers Test"
         Message.FlushHeaders();
 
         Assert.IsTrue(Message.Get(Message.GetId()), 'Message not found after reload');
-        Assert.IsTrue(Message.TryGetHeader('authentication-results', Value), 'Header lookup should succeed case-insensitively');
+        Assert.IsTrue(Message.GetHeader('authentication-results', Value), 'Header lookup should succeed case-insensitively');
         Assert.AreEqual('spf=pass', Value, 'Authentication-Results header value mismatch');
-        Assert.IsTrue(Message.TryGetHeader('X-MS-EXCHANGE-ORGANIZATION-AUTHAS', Value), 'AuthAs header lookup should succeed case-insensitively');
+        Assert.IsTrue(Message.GetHeader('X-MS-EXCHANGE-ORGANIZATION-AUTHAS', Value), 'AuthAs header lookup should succeed case-insensitively');
         Assert.AreEqual('Internal', Value, 'AuthAs header value mismatch');
     end;
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    procedure TryGetHeaderReturnsFalseWhenNoHeadersStored()
+    procedure GetHeaderReturnsFalseWhenNoHeadersStored()
     var
         Message: Codeunit "Email Message";
         Value: Text;
@@ -50,7 +50,7 @@ codeunit 134707 "Email Message Headers Test"
 
         Message.Create('to@test.com', 'subject', 'body');
 
-        Assert.IsFalse(Message.TryGetHeader('any-header', Value), 'Lookup on a message with no headers should return false');
+        Assert.IsFalse(Message.GetHeader('any-header', Value), 'Lookup on a message with no headers should return false');
         Assert.AreEqual('', Value, 'Value should be empty when no headers stored');
     end;
 
@@ -71,7 +71,7 @@ codeunit 134707 "Email Message Headers Test"
         Message.FlushHeaders();
 
         Assert.IsTrue(Message.Get(Message.GetId()), 'Message not found after reload');
-        Assert.IsTrue(Message.TryGetHeader('Received', Value), 'Repeated header lookup should succeed');
+        Assert.IsTrue(Message.GetHeader('Received', Value), 'Repeated header lookup should succeed');
         Assert.AreEqual('from hop1' + LineFeed + 'from hop2', Value, 'Repeated AddHeader calls should join values with line feed in insertion order');
     end;
 
@@ -91,7 +91,7 @@ codeunit 134707 "Email Message Headers Test"
         Message.FlushHeaders();
 
         Assert.IsTrue(Message.Get(Message.GetId()), 'Message not found after reload');
-        Assert.IsTrue(Message.TryGetHeader('Received', Value), 'Header lookup after SetHeader should succeed');
+        Assert.IsTrue(Message.GetHeader('Received', Value), 'Header lookup after SetHeader should succeed');
         Assert.AreEqual('canonical', Value, 'SetHeader should replace any previously joined values');
     end;
 
@@ -111,6 +111,6 @@ codeunit 134707 "Email Message Headers Test"
         // Intentionally no FlushHeaders -- pending mutations should be lost when we re-Get the message.
 
         Assert.IsTrue(Message.Get(MessageId), 'Message not found after reload');
-        Assert.IsFalse(Message.TryGetHeader('Authentication-Results', Value), 'Unflushed mutations should not survive a Get');
+        Assert.IsFalse(Message.GetHeader('Authentication-Results', Value), 'Unflushed mutations should not survive a Get');
     end;
 }
