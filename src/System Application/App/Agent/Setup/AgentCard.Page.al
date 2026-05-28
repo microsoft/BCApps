@@ -133,8 +133,8 @@ page 4315 "Agent Card"
             action(AgentSetup)
             {
                 ApplicationArea = Basic, Suite;
-                Caption = 'Setup';
-                ToolTip = 'Set up agent';
+                Caption = 'Configure';
+                ToolTip = 'Configure agent';
                 Image = SetupLines;
                 Enabled = Rec."Can Curr. User Configure Agent";
 
@@ -257,7 +257,7 @@ page 4315 "Agent Card"
         Language: Codeunit Language;
         ProfileDisplayName, CopilotAvailabilityTxt : Text;
         ProfileChangedQst: Label 'Changing the agent''s profile may affect its accuracy and performance. It could also grant access to unexpected fields and actions.\\Do you want to continue?';
-        OpenConfigurationPageQst: Label 'To activate the agent, use the setup page. Would you like to open this page now?';
-        YouCannotEnableAgentWithoutUsingConfigurationPageErr: Label 'You can''t activate the agent from this page. Use the action to set up and activate the agent.';
+        OpenConfigurationPageQst: Label 'To activate the agent, use the configuration page. Would you like to open this page now?';
+        YouCannotEnableAgentWithoutUsingConfigurationPageErr: Label 'You can''t activate the agent from this page. Use the action to configure and activate the agent.';
         YouDoNotHavePermissionToModifyThisAgentErr: Label 'You do not have permission to modify this agent. Contact your system administrator to update your permissions or to mark you as one of the administrators for the agent.';
 }

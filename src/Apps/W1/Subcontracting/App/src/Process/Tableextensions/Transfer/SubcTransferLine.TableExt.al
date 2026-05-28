@@ -74,16 +74,6 @@ tableextension 99001517 "Subc. Transfer Line" extends "Transfer Line"
             DataClassification = CustomerContent;
             TableRelation = "Work Center";
             ToolTip = 'Specifies the number of the related production work center.';
-            trigger OnValidate()
-            var
-                WorkCenter: Record "Work Center";
-            begin
-                if "Subc. Work Center No." = '' then
-                    exit;
-
-                WorkCenter.Get("Subc. Work Center No.");
-                "Gen. Prod. Posting Group" := WorkCenter."Gen. Prod. Posting Group";
-            end;
         }
         field(99001538; "Subc. Operation No."; Code[10])
         {

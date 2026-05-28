@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
+using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Transfer;
@@ -23,8 +24,14 @@ tableextension 99001502 "Subc. Prod Order Comp Ext." extends "Prod. Order Compon
             ToolTip = 'Specifies the Type of Subcontracting that is assigned to the Production Order Component.';
             trigger OnValidate()
             var
+                Item: Record Item;
                 SubcontractingManagement: Codeunit "Subcontracting Management";
             begin
+                if "Subcontracting Type" = "Subcontracting Type"::Transfer then
+                    if "Item No." <> '' then begin
+                        Item.Get("Item No.");
+                        Item.TestField(Type, Item.Type::Inventory);
+                    end;
                 SubcontractingManagement.UpdateSubcontractingTypeForProdOrderComponent(Rec);
             end;
         }
