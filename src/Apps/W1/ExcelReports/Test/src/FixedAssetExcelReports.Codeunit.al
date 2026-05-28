@@ -6,8 +6,6 @@
 namespace Microsoft.Finance.ExcelReports.Test;
 
 using Microsoft.Finance.ExcelReports;
-using Microsoft.Finance.GeneralLedger.Account;
-using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.FixedAssets.Depreciation;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.FixedAssets.Journal;
@@ -23,7 +21,6 @@ codeunit 139545 "Fixed Asset Excel Reports"
     TestPermissions = Disabled;
 
     var
-        LibraryERM: Codeunit "Library - ERM";
         LibraryFixedAsset: Codeunit "Library - Fixed Asset";
         LibraryRandom: Codeunit "Library - Random";
         LibraryReportDataset: Codeunit "Library - Report Dataset";
@@ -151,6 +148,9 @@ codeunit 139545 "Fixed Asset Excel Reports"
 
         // [GIVEN] Create a depreciation book.
         LibraryFixedAsset.CreateDepreciationBook(DepreciationBook);
+        DepreciationBook.Validate("G/L Integration - Acq. Cost", false);
+        DepreciationBook.Validate("G/L Integration - Depreciation", false);
+        DepreciationBook.Modify(true);
         LibraryFixedAsset.CreateFAJournalSetup(FAJournalSetup, DepreciationBook.Code, '');
         SetupFAJournalSetup(FAJournalSetup);
 
@@ -161,7 +161,6 @@ codeunit 139545 "Fixed Asset Excel Reports"
         DecliningBalancePct := 10 + Round(LibraryRandom.RandDec(20, 0), 1);
 
         LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset);
-        EnsureGeneralPostingSetupForFA(FixedAsset."FA Posting Group");
         LibraryFixedAsset.CreateFADepreciationBook(FADepreciationBook, FixedAsset."No.", DepreciationBook.Code);
         FADepreciationBook.Validate("FA Posting Group", FixedAsset."FA Posting Group");
         FADepreciationBook.Validate("Depreciation Starting Date", DeprStartDate);
@@ -272,23 +271,6 @@ codeunit 139545 "Fixed Asset Excel Reports"
         if DefaultFAJournalSetup.FindFirst() then begin
             FAJournalSetup.TransferFields(DefaultFAJournalSetup, false);
             FAJournalSetup.Modify(true);
-        end;
-    end;
-
-    local procedure EnsureGeneralPostingSetupForFA(FAPostingGroupCode: Code[20])
-    var
-        FAPostingGrp: Record "FA Posting Group";
-        GLAccount: Record "G/L Account";
-        GeneralPostingSetup: Record "General Posting Setup";
-    begin
-        if not FAPostingGrp.Get(FAPostingGroupCode) then
-            exit;
-        if not GLAccount.Get(FAPostingGrp."Acquisition Cost Account") then
-            exit;
-        if not GeneralPostingSetup.Get(GLAccount."Gen. Bus. Posting Group", GLAccount."Gen. Prod. Posting Group") then begin
-            LibraryERM.CreateGeneralPostingSetup(GeneralPostingSetup, GLAccount."Gen. Bus. Posting Group", GLAccount."Gen. Prod. Posting Group");
-            GeneralPostingSetup.SuggestSetupAccounts();
-            GeneralPostingSetup.Modify(true);
         end;
     end;
 
