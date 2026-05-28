@@ -42,6 +42,7 @@ page 4319 "Agent Model List"
                     ApplicationArea = All;
                     Caption = 'Is Default';
                     ToolTip = 'Specifies whether this is the default agent model.';
+                    Visible = not IsLookupMode;
                 }
                 field(Availability; Rec.Availability)
                 {
@@ -54,8 +55,17 @@ page 4319 "Agent Model List"
                     ApplicationArea = All;
                     Caption = 'Retirement Date';
                     ToolTip = 'Specifies the date when the agent model will be retired.';
+                    Visible = not IsLookupMode;
                 }
             }
         }
     }
+
+    trigger OnOpenPage()
+    begin
+        IsLookupMode := CurrPage.LookupMode();
+    end;
+
+    var
+        IsLookupMode: Boolean;
 }

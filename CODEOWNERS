@@ -8,11 +8,15 @@
 # App Rulesets
 /src/rulesets/ @microsoft/d365-bc-app-rulesets
 
-# Developer Tools
-/src/System\ Application/App/Extension\ Management @microsoft/dynamics-smb-developertools
+# Developer Experience
+/src/System\ Application/App/AI @microsoft/d365-bc-copilot-toolkit @microsoft/dynamics-smb-developertools
+/src/System\ Application/Test/AI @microsoft/dynamics-smb-developertools
 
-# App Foundation
-/src/System\ Application/App/AI @microsoft/d365-bc-copilot-toolkit
+/src/System\ Application/App/Agent @microsoft/dynamics-smb-developertools
+/src/System\ Application/Test/Agent @microsoft/dynamics-smb-developertools
+
+/src/System\ Application/App/Extension\ Management @microsoft/dynamics-smb-developertools
+/src/System\ Application/Test/Extension\ Management @microsoft/dynamics-smb-developertools
 
 # App Finance
 /src/Apps/W1/PowerBIReports @microsoft/d365-bc-finance-1
@@ -33,3 +37,6 @@ app.json @microsoft/d365-bc-engineering-systems @microsoft/d365-bc-app-required
 /.github @microsoft/d365-bc-engineering-systems
 /build @microsoft/d365-bc-engineering-systems
 /CODEOWNERS @microsoft/d365-bc-engineering-systems
+
+# Code Review Tools
+/tools/Code\ Review @microsoft/d365-bc-code-review-agent
