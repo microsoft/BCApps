@@ -71,6 +71,13 @@ codeunit 6174 "E-Document ADI Handler" implements IStructureReceivedEDocument, I
         exit(this.ReadIntoDraftImpl);
     end;
 
+    procedure GetSupportedMessages(): List of [Enum "E-Document Message Type"]
+    var
+        EmptyList: List of [Enum "E-Document Message Type"];
+    begin
+        exit(EmptyList);                                            // ADI is extraction-only — no native messages.
+    end;
+
     procedure ReadIntoDraft(EDocument: Record "E-Document"; TempBlob: Codeunit "Temp Blob"): Enum "E-Doc. Process Draft"
     var
         TempEDocPurchaseHeader: Record "E-Document Purchase Header" temporary;

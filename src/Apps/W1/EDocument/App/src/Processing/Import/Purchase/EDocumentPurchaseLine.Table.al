@@ -27,7 +27,6 @@ using System.Utilities;
 
 table 6101 "E-Document Purchase Line"
 {
-    Access = Internal;
     DataClassification = CustomerContent;
     ReplicateData = false;
     InherentEntitlements = RIMDX;

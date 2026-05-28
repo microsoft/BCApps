@@ -18,6 +18,7 @@ page 6106 "Outbound E-Documents"
     Editable = false;
     DeleteAllowed = false;
     InsertAllowed = false;
+    UsageCategory = Lists;
     SourceTableView = sorting("Entry No") order(descending) where(Direction = const(Direction::Outgoing));
 
     layout

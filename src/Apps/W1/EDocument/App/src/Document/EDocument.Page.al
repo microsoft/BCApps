@@ -226,6 +226,38 @@ page 6121 "E-Document"
     {
         area(Processing)
         {
+            action("Send Message")
+            {
+                ApplicationArea = All;
+                Caption = 'Send Message';
+                Image = SendTo;
+                ToolTip = 'Send a related E-Document Message about this document. Available message types are filtered by what each implementer declared applicable.';
+
+                trigger OnAction()
+                var
+                    UI: Codeunit "E-Doc. Msg. UI";
+                begin
+                    UI.PromptAndSend(Rec, Enum::"E-Doc. Msg. Trigger Source"::"User Action - E-Doc Page");
+                end;
+            }
+            action("Receive Messages")
+            {
+                ApplicationArea = All;
+                Caption = 'Receive Messages';
+                Image = Document;
+                ToolTip = 'Run the inbound message receive flow against the service this E-Document was sent through. Picks up status responses the receiver has sent back.';
+
+                trigger OnAction()
+                var
+                    Service: Record "E-Document Service";
+                    Receive: Codeunit "E-Doc. Receive Messages";
+                    Processed: Integer;
+                begin
+                    Service := Rec.GetEDocumentService();
+                    Processed := Receive.Run(Service);
+                    Message(ReceivedMsg, Processed);
+                end;
+            }
             group(Outgoing)
             {
                 Caption = 'Outgoing';
@@ -640,4 +672,5 @@ page 6121 "E-Document"
         ShowRelink, ShowMapToOrder, HasErrorsOrWarnings, HasErrors, IsIncomingDoc, IsProcessed, SubmitClearanceVisible : Boolean;
         EDocHasErrorOrWarningMsg: Label 'Errors or warnings found for E-Document. Please review below in "Error Messages" section.';
         DocNotCreatedMsg: Label 'Failed to create new %1 from E-Document. Please review errors below.', Comment = '%1 - E-Document Document Type';
+        ReceivedMsg: Label 'Processed %1 inbound message(s).', Comment = '%1 = count';
 }

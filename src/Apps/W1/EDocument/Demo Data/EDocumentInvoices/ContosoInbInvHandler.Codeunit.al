@@ -58,6 +58,13 @@ codeunit 5392 "Contoso Inb.Inv. Handler" implements IStructureReceivedEDocument,
         exit(Enum::"E-Doc. Read into Draft"::"Demo Invoice");
     end;
 
+    procedure GetSupportedMessages(): List of [Enum "E-Document Message Type"]
+    var
+        EmptyList: List of [Enum "E-Document Message Type"];
+    begin
+        exit(EmptyList);
+    end;
+
     /// <summary>
     /// Read the data into the E-Document data structures.
     /// </summary>

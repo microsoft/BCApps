@@ -38,6 +38,13 @@ codeunit 6193 "E-Doc. Empty Draft" implements IStructureReceivedEDocument, IStru
         exit("E-Doc. Read into Draft"::Unspecified);
     end;
 
+    procedure GetSupportedMessages(): List of [Enum "E-Document Message Type"]
+    var
+        EmptyList: List of [Enum "E-Document Message Type"];
+    begin
+        exit(EmptyList);
+    end;
+
     procedure ReadIntoDraft(EDocument: Record "E-Document"; TempBlob: Codeunit "Temp Blob"): Enum "E-Doc. Process Draft"
     var
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";

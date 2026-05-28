@@ -129,6 +129,11 @@ codeunit 6148 "E-Document Helper"
     var
         IProcessStructuredData: Interface IProcessStructuredData;
     begin
+        if EDocument.Direction = EDocument.Direction::Outgoing then begin
+            Page.Run(Page::"E-Document", EDocument);
+            exit;
+        end;
+
         if EDocument.GetEDocumentService().GetImportProcessVersion() = "E-Document Import Process"::"Version 1.0" then begin
             Page.Run(Page::"E-Document", EDocument);
             exit;

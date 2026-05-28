@@ -54,6 +54,13 @@ codeunit 5428 "E-Doc ADI Handler Mock" implements IStructureReceivedEDocument, I
         exit(Enum::"E-Doc. Read into Draft"::ADI);
     end;
 
+    procedure GetSupportedMessages(): List of [Enum "E-Document Message Type"]
+    var
+        EmptyList: List of [Enum "E-Document Message Type"];
+    begin
+        exit(EmptyList);
+    end;
+
     procedure ReadIntoDraft(EDocument: Record "E-Document"; TempBlob: Codeunit "Temp Blob"): Enum "E-Doc. Process Draft";
     var
         IStructuredFormatReader: Interface IStructuredFormatReader;

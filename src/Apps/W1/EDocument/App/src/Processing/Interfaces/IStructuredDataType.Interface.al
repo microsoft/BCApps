@@ -36,4 +36,11 @@ interface IStructuredDataType
     /// </summary>
     /// <returns></returns>
     procedure GetReadIntoDraftImpl(): Enum "E-Doc. Read into Draft"
+
+    /// <summary>
+    /// Returns the message types this format natively supports. Cross-format (jurisdictional)
+    /// messages declare themselves via IEDocumentMessageType.IsApplicableFor instead.
+    /// Formats that have no native message vocabulary (e.g., ADI, MLLM extraction) return an empty list.
+    /// </summary>
+    procedure GetSupportedMessages(): List of [Enum "E-Document Message Type"]
 }

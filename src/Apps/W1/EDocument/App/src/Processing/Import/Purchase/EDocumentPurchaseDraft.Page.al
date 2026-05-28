@@ -5,6 +5,7 @@
 namespace Microsoft.eServices.EDocument.Processing.Import.Purchase;
 
 using Microsoft.eServices.EDocument;
+using Microsoft.eServices.EDocument.Integration.Receive;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Purchases.Document;
@@ -306,6 +307,38 @@ page 6181 "E-Document Purchase Draft"
     {
         area(Processing)
         {
+            action("Send Message")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Send Message';
+                Image = SendTo;
+                ToolTip = 'Send a related E-Document Message about this draft''s parent E-Document.';
+
+                trigger OnAction()
+                var
+                    UI: Codeunit "E-Doc. Msg. UI";
+                begin
+                    UI.PromptAndSend(Rec, Enum::"E-Doc. Msg. Trigger Source"::"User Action - E-Doc Page");
+                end;
+            }
+            action("Receive Messages")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Receive Messages';
+                Image = Document;
+                ToolTip = 'Run the framework''s inbound message receive flow against the service that delivered this E-Document. Picks up unprocessed messages at the connector.';
+
+                trigger OnAction()
+                var
+                    Service: Record "E-Document Service";
+                    Receive: Codeunit "E-Doc. Receive Messages";
+                    Processed: Integer;
+                begin
+                    Service := Rec.GetEDocumentService();
+                    Processed := Receive.Run(Service);
+                    Message(ReceivedMsg, Processed);
+                end;
+            }
             group(ProcessDocument)
             {
                 Caption = 'Process';
@@ -788,6 +821,7 @@ page 6181 "E-Document Purchase Draft"
         ShowAnalyzeDocumentAction: Boolean;
         FinalizeDraftInvokedTxt: Label 'User invoked Finalize Draft action.', Locked = true;
         FinalizeDraftPerformedTxt: Label 'User completed Finalize Draft action.', Locked = true;
+        ReceivedMsg: Label 'Processed %1 inbound message(s).', Comment = '%1 = count';
         ProcessingDocumentMsg: Label 'Processing document...';
         ResetDraftQst: Label 'All the changes that you may have made on the document draft will be lost. Do you want to continue?';
         PageEditable, HasPDFSource, IsCreditMemo : Boolean;

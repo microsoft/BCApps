@@ -264,6 +264,13 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
         exit("E-Doc. Read into Draft"::MLLM);
     end;
 
+    procedure GetSupportedMessages(): List of [Enum "E-Document Message Type"]
+    var
+        EmptyList: List of [Enum "E-Document Message Type"];
+    begin
+        exit(EmptyList);                                            // MLLM is extraction-only — no native messages.
+    end;
+
     procedure ReadIntoDraft(EDocument: Record "E-Document"; TempBlob: Codeunit "Temp Blob"): Enum "E-Doc. Process Draft"
     var
         TempEDocPurchaseHeader: Record "E-Document Purchase Header" temporary;

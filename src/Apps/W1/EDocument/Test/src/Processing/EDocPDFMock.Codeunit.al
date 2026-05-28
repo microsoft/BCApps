@@ -50,4 +50,11 @@ codeunit 139782 "E-Doc PDF Mock" implements IStructureReceivedEDocument, IStruct
         exit("E-Doc. Read into Draft"::Unspecified);
     end;
 
+    procedure GetSupportedMessages(): List of [Enum "E-Document Message Type"]
+    var
+        EmptyList: List of [Enum "E-Document Message Type"];
+    begin
+        exit(EmptyList);
+    end;
+
 }

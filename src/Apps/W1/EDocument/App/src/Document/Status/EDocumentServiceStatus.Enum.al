@@ -90,4 +90,48 @@ enum 6106 "E-Document Service Status" implements IEDocumentStatus
         Implementation = IEDocumentStatus = "E-Doc Processed Status";
     }
     #endregion
+
+    #region V3 role-paired statuses driven by E-Document Messages
+    // Status names describe who acted on the parent document, not who we are. This keeps the
+    // values direction-neutral: a status reads correctly whether we are the sender or the
+    // receiver of the parent. Receiver-driven statuses come from buyer-side messages
+    // (PEPPOL Invoice Response, FR Refused, etc.); Sender-driven from seller-side
+    // (FR Collected, MX Payment Complement acknowledged, etc.).
+    value(40; "Receiver Acknowledged") { Caption = 'Receiver Acknowledged'; }
+    value(41; "Receiver Processing") { Caption = 'Receiver Processing'; }
+    value(42; "Receiver Under Query") { Caption = 'Receiver Under Query'; }
+    value(43; "Receiver Conditionally Accepted") { Caption = 'Receiver Conditionally Accepted'; }
+    value(44; "Receiver Accepted")
+    {
+        Caption = 'Receiver Accepted';
+        Implementation = IEDocumentStatus = "E-Doc Processed Status";
+    }
+    value(45; "Receiver Accepted with Changes")
+    {
+        Caption = 'Receiver Accepted with Changes';
+        Implementation = IEDocumentStatus = "E-Doc Processed Status";
+    }
+    value(46; "Receiver Rejected")
+    {
+        Caption = 'Receiver Rejected';
+        Implementation = IEDocumentStatus = "E-Doc Error Status";
+    }
+    value(47; "Receiver Rejected (Validation)")
+    {
+        Caption = 'Receiver Rejected (Validation)';
+        Implementation = IEDocumentStatus = "E-Doc Error Status";
+    }
+    value(48; "Receiver Paid")
+    {
+        Caption = 'Receiver Paid';
+        Implementation = IEDocumentStatus = "E-Doc Processed Status";
+    }
+    value(49; "Sender Acknowledged") { Caption = 'Sender Acknowledged'; }
+    value(50; "Sender Paid")
+    {
+        Caption = 'Sender Paid';
+        Implementation = IEDocumentStatus = "E-Doc Processed Status";
+    }
+    value(51; "Sender Payment Reversed") { Caption = 'Sender Payment Reversed'; }
+    #endregion
 }

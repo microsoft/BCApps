@@ -72,7 +72,16 @@ page 6133 "E-Document Service"
                 field("Import Process"; Rec."Import Process")
                 {
                     ToolTip = 'Specifies the version of the import process to use for incoming e-documents.';
-                    Visible = false;
+                }
+                group(Draft)
+                {
+                    Caption = 'Draft';
+                    Visible = Rec."Import Process" = Enum::"E-Document Import Process"::"Version 2.0";
+                    field("Read into Draft Impl."; Rec."Read into Draft Impl.")
+                    {
+                        Caption = 'Format';
+                        ToolTip = 'Specifies how the inbound structured E-Document is read into a draft. The selected implementation must produce E-Document Purchase Header / Line staging records the rest of the V2 pipeline can consume.';
+                    }
                 }
                 group(PurchaseDraft)
                 {
