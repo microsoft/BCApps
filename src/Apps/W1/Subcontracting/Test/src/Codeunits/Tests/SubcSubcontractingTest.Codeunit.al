@@ -2528,7 +2528,7 @@ codeunit 139989 "Subc. Subcontracting Test"
     begin
         // [SCENARIO 634238] When a Released Production Order has multiple Prod. Order lines sharing the same
         // Routing/Operation, creating a Subcontracting Order for the second line must not raise the false
-        // "Purchase order(s) have already been created" warning, and must create/show its own Purchase Order.
+        // "Purchase orders have already been created" warning, and must create/show its own Purchase Order.
 
         // [GIVEN] Subcontracting setup with direct transfer (no in-transit route)
         Initialize();
@@ -2576,7 +2576,7 @@ codeunit 139989 "Subc. Subcontracting Test"
             ProdOrderRtng.CreateSubcontracting.Invoke();
             ProdOrderRtng.Close();
 
-            Assert.AreEqual('1 Purchase Order(s) created.\\Do you want to view them?', LibraryVariableStorage.DequeueText(), 'Expected "created" confirmation for each prod order line, not the false "already created" warning');
+            Assert.AreEqual('A purchase order was created.\\Do you want to view it?', LibraryVariableStorage.DequeueText(), 'Expected "created" confirmation for each prod order line, not the false "already created" warning');
             LibraryVariableStorage.AssertEmpty();
         end;
     end;
