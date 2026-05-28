@@ -58,4 +58,9 @@ codeunit 130131 "MCP Config Test Library"
     begin
         exit(MCPConfigImplementation.GenerateConnectionString(ConfigurationName));
     end;
+
+    procedure EncodeForMCPHeaderIfNonAscii(Value: Text): Text
+    begin
+        exit(MCPConfigImplementation.EncodeForMCPHeaderIfNonAscii(Value));
+    end;
 }

@@ -22,6 +22,7 @@ codeunit 20410 "Qlty. Result Evaluation"
         IsDefaultTextTok: Label '<>''''', Locked = true;
         InvalidDataTypeErr: Label 'The value "%1" is not allowed for %2, it is not a %3.', Comment = '%1=the value, %2=field name,%3=field type.';
         NotInAllowableValuesErr: Label 'The value "%1" is not allowed for %2, it must be in the range of "%3".', Comment = '%1=the value, %2=field name,%3=field type.';
+        InvalidAllowableValuesFormatErr: Label 'The allowable values "%1" are not a valid filter expression for %2 of type %3.', Comment = '%1=the allowable values, %2=field name, %3=field type.';
 
     trigger OnRun()
     var
@@ -324,6 +325,110 @@ codeunit 20410 "Qlty. Result Evaluation"
         ValidateAllowableValuesOnText(TestNameForError, QltyTest."Default Value", QltyTest."Allowable Values", QltyTest."Test Value Type", TempBufferQltyTestLookupValue, QltyCaseSensitivity);
     end;
 
+    /// <summary>
+    /// Validates that the allowable values expression is a valid filter for the given test value type.
+    /// </summary>
+    /// <param name="QltyTest">The test whose allowable values expression should be validated.</param>
+    internal procedure ValidateAllowableValuesFormat(var QltyTest: Record "Qlty. Test")
+    var
+        TestNameForError: Text;
+    begin
+        if QltyTest.Description <> '' then
+            TestNameForError := QltyTest.Description
+        else
+            TestNameForError := QltyTest.Code;
+
+        ValidateAllowableValuesFormat(TestNameForError, QltyTest."Allowable Values", QltyTest."Test Value Type");
+    end;
+
+    /// <summary>
+    /// Validates that the allowable values expression is a valid filter for the given test value type.
+    /// </summary>
+    /// <param name="NumberOrNameOfTestNameForError">Friendly identifier used in error messages.</param>
+    /// <param name="AllowableValues">The allowable values filter expression to validate.</param>
+    /// <param name="QltyTestValueType">The test value type that the filter expression must match.</param>
+    local procedure ValidateAllowableValuesFormat(NumberOrNameOfTestNameForError: Text; AllowableValues: Text; QltyTestValueType: Enum "Qlty. Test Value Type")
+    var
+        IsValid: Boolean;
+    begin
+        if AllowableValues = '' then
+            exit;
+
+        if IsBlankOrEmptyCondition(AllowableValues) then
+            exit;
+
+        if IsAnythingExceptEmptyCondition(AllowableValues) then
+            exit;
+
+        // Allowable values may contain inline expressions like [Field] that are resolved at evaluation time.
+        // Defer validation until resolution.
+        if AllowableValues.Contains('[') then
+            exit;
+
+        IsValid := true;
+        case QltyTestValueType of
+            QltyTestValueType::"Value Type Decimal":
+                IsValid := TryApplyDecimalFilter(AllowableValues);
+            QltyTestValueType::"Value Type Integer":
+                IsValid := TryApplyIntegerFilter(AllowableValues);
+            QltyTestValueType::"Value Type Boolean":
+                IsValid := TryApplyBooleanFilter(AllowableValues);
+            QltyTestValueType::"Value Type Date":
+                IsValid := TryApplyDateFilter(AllowableValues);
+            QltyTestValueType::"Value Type DateTime":
+                IsValid := TryApplyDateTimeFilter(AllowableValues);
+        end;
+
+        if not IsValid then
+            Error(InvalidAllowableValuesFormatErr, AllowableValues, NumberOrNameOfTestNameForError, QltyTestValueType);
+    end;
+
+    [TryFunction]
+    local procedure TryApplyDecimalFilter(FilterExpression: Text)
+    var
+        TempQltyInspectionLine: Record "Qlty. Inspection Line" temporary;
+    begin
+        TempQltyInspectionLine.SetFilter("Derived Numeric Value", FilterExpression);
+        if TempQltyInspectionLine.IsEmpty() then;
+    end;
+
+    [TryFunction]
+    local procedure TryApplyIntegerFilter(FilterExpression: Text)
+    var
+        TempInteger: Record "Integer" temporary;
+    begin
+        TempInteger.SetFilter(Number, FilterExpression);
+        if TempInteger.IsEmpty() then;
+    end;
+
+    [TryFunction]
+    local procedure TryApplyBooleanFilter(FilterExpression: Text)
+    var
+        QltyBooleanParsing: Codeunit "Qlty. Boolean Parsing";
+    begin
+        // Valid boolean allowable values are: Yes, No, True, False, 1, 0, On, Off (and variations)
+        if not QltyBooleanParsing.CanTextBeInterpretedAsBooleanIsh(FilterExpression) then
+            Error(InvalidAllowableValuesFormatErr, FilterExpression, '', 'Boolean');
+    end;
+
+    [TryFunction]
+    local procedure TryApplyDateFilter(FilterExpression: Text)
+    var
+        TempDateLookupBuffer: Record "Date Lookup Buffer" temporary;
+    begin
+        TempDateLookupBuffer.SetFilter("Period Start", FilterExpression);
+        if TempDateLookupBuffer.IsEmpty() then;
+    end;
+
+    [TryFunction]
+    local procedure TryApplyDateTimeFilter(FilterExpression: Text)
+    var
+        TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
+    begin
+        TempQltyInspectionHeader.SetFilter("Finished Date", FilterExpression);
+        if TempQltyInspectionHeader.IsEmpty() then;
+    end;
+
     local procedure ValidateAllowableValuesOnText(NumberOrNameOfTestNameForError: Text; var TextToValidate: Text[250]; AllowableValues: Text; QltyTestValueType: Enum "Qlty. Test Value Type"; var TempBufferQltyTestLookupValue: Record "Qlty. Test Lookup Value" temporary; QltyCaseSensitivity: Enum "Qlty. Case Sensitivity")
     var
         QltyBooleanParsing: Codeunit "Qlty. Boolean Parsing";
@@ -393,9 +498,8 @@ codeunit 20410 "Qlty. Result Evaluation"
                 if not (IsBlankOrEmptyCondition(AllowableValues) and (TextToValidate = '')) then
                     if not QltyResultEvaluation.CheckIfValueIsString(TextToValidate, ConvertStr(AllowableValues, ',', '|'), QltyCaseSensitivity) then
                         Error(NotInAllowableValuesErr, TextToValidate, NumberOrNameOfTestNameForError, AllowableValues);
-
             QltyTestValueType::"Value Type Option",
-                QltyTestValueType::"Value Type Table Lookup":
+            QltyTestValueType::"Value Type Table Lookup":
                 begin
                     TextToValidate := CopyStr(TextToValidate.Trim(), 1, MaxStrLen(TextToValidate));
 
@@ -419,6 +523,7 @@ codeunit 20410 "Qlty. Result Evaluation"
                         Error(NotInAllowableValuesErr, TextToValidate, NumberOrNameOfTestNameForError, AllowableValues);
                 end;
         end;
+
         OnAfterValidateAllowableValuesOnText(NumberOrNameOfTestNameForError, TextToValidate, AllowableValues, QltyTestValueType, TempBufferQltyTestLookupValue, QltyCaseSensitivity);
     end;
 

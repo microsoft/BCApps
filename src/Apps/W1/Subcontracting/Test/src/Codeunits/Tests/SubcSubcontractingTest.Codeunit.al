@@ -6,7 +6,9 @@ namespace Microsoft.Manufacturing.Subcontracting.Test;
 
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Setup;
+using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.NoSeries;
+using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Ledger;
@@ -1689,6 +1691,81 @@ codeunit 139989 "Subc. Subcontracting Test"
         Assert.Equal(Vendor."Subc. Location Code", PlanningComponent."Location Code");
     end;
 
+
+    [Test]
+    procedure PurchaseSubcTypeProdOrderCompExcludedFromPlanning()
+    var
+        ComponentItem: Record Item;
+        Item: Record Item;
+        Location: Record Location;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProdOrderComp: Record "Prod. Order Component";
+        ProductionBOMLine: Record "Production BOM Line";
+        ProductionOrder: Record "Production Order";
+        RequisitionLine: Record "Requisition Line";
+        WorkCenter: array[2] of Record "Work Center";
+    begin
+        // [SCENARIO 630597] Prod. Order Components with Subcontracting Type "Purchase" should be
+        // excluded from planning engines because they will be purchased later via the subcontracting
+        // purchase order.
+
+        // [GIVEN] Complete Setup of Manufacturing, include Work- and Machine Centers, Item
+        Initialize();
+        SubcontractingMgmtLibrary.SetupInventorySetup();
+
+        // [GIVEN] Some Parameters for Creation
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+
+        // [GIVEN] Create subcontracting Work/Machine Centers
+        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+
+        // [GIVEN] Create Item for Production include Routing and Prod. BOM (2 component items)
+        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+
+        // [GIVEN] Assign Routing Link Code between subcontracting routing line and last BOM line
+        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+
+        // [GIVEN] Set Subcontracting Type = Purchase on the linked BOM line
+        SubcontractingMgmtLibrary.UpdateProdBomWithSubcontractingType(Item, "Subcontracting Type"::Purchase);
+
+        // [GIVEN] Set up vendor with subcontracting location
+        SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+
+        // [GIVEN] Set component item reordering policy to Lot-for-Lot (already done during creation)
+        // [GIVEN] Create inventory for the component item so planning considers it
+        ProductionBOMLine.SetRange("Production BOM No.", Item."Production BOM No.");
+        ProductionBOMLine.FindLast();
+        ComponentItem.Get(ProductionBOMLine."No.");
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+
+        // [GIVEN] Create and refresh Released Production Order
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
+
+        // [GIVEN] Verify prod. order component with Purchase subcontracting type exists
+        ProdOrderComp.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderComp.SetRange("Item No.", ComponentItem."No.");
+        ProdOrderComp.SetRange("Subcontracting Type", "Subcontracting Type"::Purchase);
+        Assert.RecordIsNotEmpty(ProdOrderComp);
+
+        // [WHEN] Run Regenerative Plan for the component item
+        ComponentItem.SetRecFilter();
+        LibraryPlanning.CalcRegenPlanForPlanWksh(ComponentItem, CalcDate('<-1M>', WorkDate()), CalcDate('<+1M>', WorkDate()));
+
+        // [THEN] No requisition line is suggested for the component with Purchase subcontracting type
+        RequisitionLine.SetRange("No.", ComponentItem."No.");
+        Assert.RecordIsEmpty(RequisitionLine);
+
+        // [WHEN] Changing the Subcontracting Type to None and run planning again
+        UpdateProdOrderComponentWithSubcontractingType(ProductionOrder, "Subcontracting Type"::Empty);
+        LibraryPlanning.CalcRegenPlanForPlanWksh(ComponentItem, CalcDate('<-1M>', WorkDate()), CalcDate('<+1M>', WorkDate()));
+
+        // [THEN] Requisition line is suggested for the component with None subcontracting type
+        RequisitionLine.SetRange("No.", ComponentItem."No.");
+        Assert.RecordIsNotEmpty(RequisitionLine);
+    end;
+
     [Test]
     [HandlerFunctions('ConfirmHandler')]
     procedure SubcontractingFieldsPopulatedOnIleAfterSubcontractingPurchaseReceipt()
@@ -2451,7 +2528,7 @@ codeunit 139989 "Subc. Subcontracting Test"
     begin
         // [SCENARIO 634238] When a Released Production Order has multiple Prod. Order lines sharing the same
         // Routing/Operation, creating a Subcontracting Order for the second line must not raise the false
-        // "Purchase order(s) have already been created" warning, and must create/show its own Purchase Order.
+        // "Purchase orders have already been created" warning, and must create/show its own Purchase Order.
 
         // [GIVEN] Subcontracting setup with direct transfer (no in-transit route)
         Initialize();
@@ -2499,7 +2576,7 @@ codeunit 139989 "Subc. Subcontracting Test"
             ProdOrderRtng.CreateSubcontracting.Invoke();
             ProdOrderRtng.Close();
 
-            Assert.AreEqual('1 Purchase Order(s) created.\\Do you want to view them?', LibraryVariableStorage.DequeueText(), 'Expected "created" confirmation for each prod order line, not the false "already created" warning');
+            Assert.AreEqual('A purchase order was created.\\Do you want to view it?', LibraryVariableStorage.DequeueText(), 'Expected "created" confirmation for each prod order line, not the false "already created" warning');
             LibraryVariableStorage.AssertEmpty();
         end;
     end;
@@ -3295,10 +3372,12 @@ codeunit 139989 "Subc. Subcontracting Test"
         WorkCenter.Validate("Subcontractor No.", Vendor."No.");
         WorkCenter.Modify(true);
 
-        // [GIVEN] A subcontractor price in PCS with Minimum Quantity 1 and Direct Unit Cost 1000.
+        // [GIVEN] A subcontractor price in the blank fallback UoM with Minimum Quantity 1 and Direct
+        // Unit Cost 1000 — the blank-UoM row matches the SET line's '%1|%2' UoM filter and exercises
+        // the cross-UoM conversion (PriceListUOM resolves to the item's base UoM).
         PriceListUnitCost := 1000;
         SubcontractingMgmtLibrary.CreateSubContractingPrice(
-            SubcontractorPrice, WorkCenter."No.", Vendor."No.", Item."No.", '', '', WorkDate(), Item."Base Unit of Measure", 1, '');
+            SubcontractorPrice, WorkCenter."No.", Vendor."No.", Item."No.", '', '', WorkDate(), '', 1, '');
         SubcontractorPrice.Validate("Direct Unit Cost", PriceListUnitCost);
         SubcontractorPrice.Modify(true);
 
@@ -3335,6 +3414,156 @@ codeunit 139989 "Subc. Subcontracting Test"
         Assert.AreEqual(
             PriceListUnitCost, RequisitionLine."Direct Unit Cost",
             'Direct Unit Cost must equal the price-list cost when the worksheet UoM matches the price-list UoM.');
+    end;
+
+    [Test]
+    procedure RoutingPriceUsesOrderUoMWhenMultipleUoMPricesExist()
+    var
+        Item: Record Item;
+        ItemUOM: Record "Item Unit of Measure";
+        Vendor: Record Vendor;
+        WorkCenter: Record "Work Center";
+        SubcontractorPrice: Record "Subcontractor Price";
+        InSubcontractorPrice: Record "Subcontractor Price";
+        SubcPriceManagement: Codeunit "Subc. Price Management";
+        UnitCostCalcType: Enum "Unit Cost Calculation Type";
+        AltUOMCode: Code[10];
+        DirUnitCost, IndirCostPct, OvhdRate, UnitCost : Decimal;
+        PcsPrice, SetPrice : Decimal;
+        QtyPerSet: Integer;
+    begin
+        // [SCENARIO 636059] SetRoutingPriceListCost must select the Subcontractor Price row matching
+        // the order's Unit of Measure (with blank fallback). With prices in both Base UoM and an
+        // alternative UoM that sorts after it, the routing line must pick the Base UoM price when
+        // the order is in Base UoM — not the alphabetically-last alternative-UoM row.
+        Initialize();
+
+        // [GIVEN] Item with Base UoM and an alternative UoM (10 base per alt) whose code sorts after the base.
+        LibraryInventory.CreateItem(Item);
+        QtyPerSet := 10;
+        AltUOMCode := CreateUOMCodeSortingAfter(Item."Base Unit of Measure");
+        LibraryInventory.CreateItemUnitOfMeasure(ItemUOM, Item."No.", AltUOMCode, QtyPerSet);
+
+        // [GIVEN] Vendor and Work Center with the vendor as its subcontractor; zero indirect/overhead.
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryManufacturing.CreateWorkCenter(WorkCenter);
+        WorkCenter.Validate("Subcontractor No.", Vendor."No.");
+        WorkCenter.Validate("Indirect Cost %", 0);
+        WorkCenter.Validate("Overhead Rate", 0);
+        WorkCenter.Modify(true);
+
+        // [GIVEN] Two subcontractor prices — Base UoM = 1001, alternative UoM = 1004.
+        PcsPrice := 1001;
+        SetPrice := 1004;
+        SubcontractingMgmtLibrary.CreateSubContractingPrice(
+            SubcontractorPrice, WorkCenter."No.", Vendor."No.", Item."No.", '', '', WorkDate(), Item."Base Unit of Measure", 0, '');
+        SubcontractorPrice.Validate("Direct Unit Cost", PcsPrice);
+        SubcontractorPrice.Modify(true);
+        SubcontractingMgmtLibrary.CreateSubContractingPrice(
+            SubcontractorPrice, WorkCenter."No.", Vendor."No.", Item."No.", '', '', WorkDate(), AltUOMCode, 0, '');
+        SubcontractorPrice.Validate("Direct Unit Cost", SetPrice);
+        SubcontractorPrice.Modify(true);
+
+        // [GIVEN] InSubcontractorPrice staged as SetSubcontractorPriceForPriceCalculation would — order in Base UoM.
+        InSubcontractorPrice."Vendor No." := Vendor."No.";
+        InSubcontractorPrice."Item No." := Item."No.";
+        InSubcontractorPrice."Standard Task Code" := '';
+        InSubcontractorPrice."Work Center No." := WorkCenter."No.";
+        InSubcontractorPrice."Variant Code" := '';
+        InSubcontractorPrice."Unit of Measure Code" := Item."Base Unit of Measure";
+        InSubcontractorPrice."Starting Date" := WorkDate();
+        InSubcontractorPrice."Currency Code" := '';
+
+        // [WHEN] SetRoutingPriceListCost runs for a Prod. Order Routing Line of qty 1 in the Base UoM.
+        SubcPriceManagement.SetRoutingPriceListCost(
+            InSubcontractorPrice, WorkCenter, DirUnitCost, IndirCostPct, OvhdRate, UnitCost, UnitCostCalcType, 1, 1, 1);
+
+        // [THEN] Direct Unit Cost equals the Base UoM price (1001), not the alt-UoM derived 100.40.
+        Assert.AreEqual(
+            PcsPrice, DirUnitCost,
+            'SetRoutingPriceListCost must pick the Subcontractor Price row matching the order''s Unit of Measure.');
+    end;
+
+    [Test]
+    procedure ReqLinePriceUsesOrderUoMWhenFixedUOMIsEmpty()
+    var
+        Item: Record Item;
+        ItemUOM: Record "Item Unit of Measure";
+        Vendor: Record Vendor;
+        WorkCenter: Record "Work Center";
+        SubcontractorPrice: Record "Subcontractor Price";
+        RequisitionLine: Record "Requisition Line";
+        SubcPriceManagement: Codeunit "Subc. Price Management";
+        AltUOMCode: Code[10];
+        PcsPrice, SetPrice : Decimal;
+        QtyPerSet: Integer;
+    begin
+        // [SCENARIO 636059] GetSubcPriceForReqLine must filter Subcontractor Prices by the
+        // requisition line's Unit of Measure (with blank fallback) even when the caller passes
+        // FixedUOM = '' — otherwise the alphabetically-last UoM row wins regardless of the line's UoM.
+        Initialize();
+
+        // [GIVEN] Item with Base UoM and an alternative UoM (10 base per alt) whose code sorts after the base.
+        LibraryInventory.CreateItem(Item);
+        QtyPerSet := 10;
+        AltUOMCode := CreateUOMCodeSortingAfter(Item."Base Unit of Measure");
+        LibraryInventory.CreateItemUnitOfMeasure(ItemUOM, Item."No.", AltUOMCode, QtyPerSet);
+
+        // [GIVEN] Vendor and Work Center with the vendor as its subcontractor.
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryManufacturing.CreateWorkCenter(WorkCenter);
+        WorkCenter.Validate("Subcontractor No.", Vendor."No.");
+        WorkCenter.Modify(true);
+
+        // [GIVEN] Two subcontractor prices — Base UoM = 1001, alternative UoM = 1004.
+        PcsPrice := 1001;
+        SetPrice := 1004;
+        SubcontractingMgmtLibrary.CreateSubContractingPrice(
+            SubcontractorPrice, WorkCenter."No.", Vendor."No.", Item."No.", '', '', WorkDate(), Item."Base Unit of Measure", 0, '');
+        SubcontractorPrice.Validate("Direct Unit Cost", PcsPrice);
+        SubcontractorPrice.Modify(true);
+        SubcontractingMgmtLibrary.CreateSubContractingPrice(
+            SubcontractorPrice, WorkCenter."No.", Vendor."No.", Item."No.", '', '', WorkDate(), AltUOMCode, 0, '');
+        SubcontractorPrice.Validate("Direct Unit Cost", SetPrice);
+        SubcontractorPrice.Modify(true);
+
+        // [GIVEN] A staged Requisition Line in the Base UoM with FixedUOM = ''.
+        RequisitionLine.Init();
+        RequisitionLine."No." := Item."No.";
+        RequisitionLine."Unit of Measure Code" := Item."Base Unit of Measure";
+        RequisitionLine."Vendor No." := Vendor."No.";
+        RequisitionLine."Work Center No." := WorkCenter."No.";
+        RequisitionLine."Order Date" := WorkDate();
+        RequisitionLine.Quantity := 1;
+
+        // [WHEN] GetSubcPriceForReqLine is called with no FixedUOM.
+        SubcPriceManagement.GetSubcPriceForReqLine(RequisitionLine, '');
+
+        // [THEN] Direct Unit Cost equals the Base UoM price (1001), not the alt-UoM derived 100.40.
+        Assert.AreEqual(
+            PcsPrice, RequisitionLine."Direct Unit Cost",
+            'GetSubcPriceForReqLine must pick the price row matching the line''s Unit of Measure when FixedUOM is empty.');
+    end;
+
+    local procedure CreateUOMCodeSortingAfter(BaseUOMCode: Code[10]): Code[10]
+    var
+        UnitOfMeasure: Record "Unit of Measure";
+        LibraryUtility: Codeunit "Library - Utility";
+        NewCode: Code[10];
+    begin
+        // LibraryInventory.CreateUnitOfMeasureCode generates a hex-only code (truncated GUID), so
+        // any code with a 'Z' prefix is guaranteed to sort after it. This makes the multi-UoM test
+        // deterministic — without the fix, FindLast() picks the alt UoM row.
+        repeat
+            NewCode := CopyStr('Z' + LibraryUtility.GenerateGUID(), 1, MaxStrLen(NewCode));
+        until not UnitOfMeasure.Get(NewCode);
+        UnitOfMeasure.Init();
+        UnitOfMeasure.Code := NewCode;
+        UnitOfMeasure.Description := NewCode;
+        UnitOfMeasure.Insert(true);
+        if UnitOfMeasure.Code <= BaseUOMCode then
+            Error('Test setup: generated UoM code %1 must sort after base UoM code %2.', UnitOfMeasure.Code, BaseUOMCode);
+        exit(UnitOfMeasure.Code);
     end;
 
     local procedure Initialize()

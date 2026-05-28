@@ -1408,6 +1408,24 @@ table 8059 "Subscription Line"
         Rec."Currency Code" := CurrencyCode;
     end;
 
+    internal procedure EnsureCalculationBaseAmountExcludesVAT(SalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header")
+    var
+        LocalCurrency: Record Currency;
+        NetBaseAmount: Decimal;
+    begin
+        if not SalesHeader."Prices Including VAT" then
+            exit;
+        if SalesLine."VAT Calculation Type" = SalesLine."VAT Calculation Type"::"Full VAT" then
+            exit;
+        if SalesLine.GetVATPct() = 0 then
+            exit;
+        LocalCurrency.Initialize(SalesHeader."Currency Code");
+        NetBaseAmount := Round(
+            Rec."Calculation Base Amount" / (1 + SalesLine.GetVATPct() / 100),
+            LocalCurrency."Unit-Amount Rounding Precision");
+        Rec.Validate("Calculation Base Amount", NetBaseAmount);
+    end;
+
     internal procedure ErrorIfBillingLineForServiceCommitmentExist()
     begin
         if BillingLineExists() then
