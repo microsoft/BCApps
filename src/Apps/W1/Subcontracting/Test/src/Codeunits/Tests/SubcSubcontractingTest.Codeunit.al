@@ -1878,6 +1878,57 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmArchiveOrderHandler,HandlePurchaseOrderPage')]
+    procedure ProdOFactboxMgmtShowsDataAfterProdOrderFinished()
+    var
+        Item: Record Item;
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        SubcWorkCenter: Record "Work Center";
+        SubcProdOFactboxMgmt: Codeunit "Subc. ProdO. Factbox Mgmt.";
+    begin
+        // [SCENARIO 634953] Subcontracting factbox drilldowns should work after production order is finished.
+        Initialize();
+
+        // [GIVEN] A released production order with a subcontracting routing operation and a subcontracting purchase order
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+
+        CreateItemWithSingleSubcontractingOperation(Item, SubcWorkCenter);
+        SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(SubcWorkCenter);
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
+        UpdateSubMgmtSetupWithReqWkshTemplate();
+
+        SubcontractingMgmtLibrary.CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", SubcWorkCenter."No.");
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+#pragma warning disable AA0210
+        PurchaseLine.SetRange("Work Center No.", SubcWorkCenter."No.");
+#pragma warning restore AA0210
+        PurchaseLine.FindFirst();
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+        EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+
+        // [GIVEN] The production order is changed to Finished status
+        LibraryManufacturing.ChangeProdOrderStatus(ProductionOrder, "Production Order Status"::Finished, WorkDate(), true);
+
+        // Re-read purchase line (the order still exists because only receipt was posted)
+        PurchaseLine.FindFirst();
+
+        // [WHEN] CalcNoOfProductionOrderRoutings / CalcNoOfProductionOrderComponents are called with the Purchase Line
+        // [THEN] Both return a positive count even though the production order is now Finished
+        Assert.IsTrue(
+            SubcProdOFactboxMgmt.CalcNoOfProductionOrderRoutings(PurchaseLine) > 0,
+            'CalcNoOfProductionOrderRoutings should return a positive count after the production order is finished.');
+        Assert.IsTrue(
+            SubcProdOFactboxMgmt.CalcNoOfProductionOrderComponents(PurchaseLine) > 0,
+            'CalcNoOfProductionOrderComponents should return a positive count after the production order is finished.');
+    end;
+
+    [Test]
     [HandlerFunctions('ConfirmHandler')]
     procedure RoutingFactboxMgmtFiltersPurchOrderQtyByRoutingReferenceNo()
     var
@@ -3584,6 +3635,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         SubSetupLibrary.InitSetupFields();
         LibraryERMCountryData.CreateVATData();
+        LibraryERMCountryData.UpdateGeneralPostingSetup();
         SubSetupLibrary.InitialSetupForGenProdPostingGroup();
 
         IsInitialized := true;
