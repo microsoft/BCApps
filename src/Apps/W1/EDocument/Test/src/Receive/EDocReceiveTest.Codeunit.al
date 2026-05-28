@@ -61,6 +61,7 @@ codeunit 139628 "E-Doc. Receive Test"
         VATRegistrationLbl: Label 'GB123456789';
         ImportDataExchDefLbl: Label 'EDOCPEPPOLINVIMP';
         EndpointPathLbl: label '/Invoice/cac:AccountingSupplierParty/cac:Party/cbc:EndpointID';
+        SubTotalMismatchErr: Label 'Sub Total should be %1 from XML LineExtensionAmount, not %2 (Qty*Price)', Comment = '%1 = expected Sub Total, %2 = actual Qty*Price', Locked = true;
 
     [Test]
     procedure ReceiveSinglePurchaseInvoice()
@@ -313,7 +314,7 @@ codeunit 139628 "E-Doc. Receive Test"
         Assert.IsTrue(EDocumentPurchaseLine.FindFirst(), 'Expected at least one E-Document purchase line');
         ExpectedSubTotal := 11.20;
         Assert.AreEqual(ExpectedSubTotal, EDocumentPurchaseLine."Sub Total",
-            StrSubstNo('Sub Total should be %1 from XML LineExtensionAmount, not %2 (Qty*Price)',
+            StrSubstNo(SubTotalMismatchErr,
                 ExpectedSubTotal, EDocumentPurchaseLine.Quantity * EDocumentPurchaseLine."Unit Price"));
     end;
 
