@@ -136,6 +136,11 @@ codeunit 139545 "Fixed Asset Excel Reports"
         // [GIVEN] Create a depreciation book.
         LibraryFixedAsset.CreateDepreciationBook(DepreciationBook);
         ModifyDepreciationBook(DepreciationBook);
+
+        FASetup.Get();
+        FASetup.Validate("Default Depr. Book", DepreciationBook.Code);
+        FASetup.Modify(true);
+
         LibraryFixedAsset.CreateFAJournalSetup(FAJournalSetup, DepreciationBook.Code, '');
         SetupFAJournalSetup(FAJournalSetup);
 
@@ -152,10 +157,6 @@ codeunit 139545 "Fixed Asset Excel Reports"
         FADepreciationBook.Validate("Depreciation Method", FADepreciationBook."Depreciation Method"::"Declining-Balance 1");
         FADepreciationBook.Validate("Declining-Balance %", DecliningBalancePct);
         FADepreciationBook.Modify(true);
-
-        FASetup.Get();
-        FASetup.Validate("Default Depr. Book", DepreciationBook.Code);
-        FASetup.Modify(true);
 
         // [GIVEN] Post acquisition on the randomized acquisition date.
         LibraryFixedAsset.CreateJournalTemplate(FAJournalTemplate);
