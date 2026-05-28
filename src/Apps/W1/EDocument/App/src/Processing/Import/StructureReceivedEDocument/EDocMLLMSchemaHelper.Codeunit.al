@@ -172,7 +172,7 @@ codeunit 6232 "E-Doc. MLLM Schema Helper"
                         DiscountPct := 0;
                         GetDecimal(NestedObj, 'percent', DiscountPct);
                         if DiscountPct <> 0 then
-                            TempLine."Total Discount" := TempLine."Unit Price" * TempLine.Quantity * DiscountPct / 100;
+                            TempLine."Total Discount" := Round(TempLine."Unit Price" * TempLine.Quantity * DiscountPct / 100);
                     end;
                 end;
 
