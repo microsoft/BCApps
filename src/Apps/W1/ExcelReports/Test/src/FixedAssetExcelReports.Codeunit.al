@@ -6,6 +6,7 @@
 namespace Microsoft.Finance.ExcelReports.Test;
 
 using Microsoft.Finance.ExcelReports;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.FixedAssets.Depreciation;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.FixedAssets.Journal;
@@ -21,6 +22,7 @@ codeunit 139545 "Fixed Asset Excel Reports"
     TestPermissions = Disabled;
 
     var
+        LibraryERM: Codeunit "Library - ERM";
         LibraryFixedAsset: Codeunit "Library - Fixed Asset";
         LibraryRandom: Codeunit "Library - Random";
         LibraryReportDataset: Codeunit "Library - Report Dataset";
@@ -160,6 +162,7 @@ codeunit 139545 "Fixed Asset Excel Reports"
         AcquisitionAmount := 10000 + Round(LibraryRandom.RandDec(90000, 0), 1);
         DecliningBalancePct := 10 + Round(LibraryRandom.RandDec(20, 0), 1);
 
+        EnsureGeneralPostingSetup();
         LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset);
         LibraryFixedAsset.CreateFADepreciationBook(FADepreciationBook, FixedAsset."No.", DepreciationBook.Code);
         FADepreciationBook.Validate("FA Posting Group", FixedAsset."FA Posting Group");
@@ -272,6 +275,17 @@ codeunit 139545 "Fixed Asset Excel Reports"
             FAJournalSetup.TransferFields(DefaultFAJournalSetup, false);
             FAJournalSetup.Modify(true);
         end;
+    end;
+
+    local procedure EnsureGeneralPostingSetup()
+    var
+        GeneralPostingSetup: Record "General Posting Setup";
+    begin
+        GeneralPostingSetup.SetFilter("Gen. Bus. Posting Group", '<>%1', '');
+        GeneralPostingSetup.SetFilter("Gen. Prod. Posting Group", '<>%1', '');
+        if not GeneralPostingSetup.IsEmpty() then
+            exit;
+        LibraryERM.CreateGeneralPostingSetupInvt(GeneralPostingSetup);
     end;
 
     [RequestPageHandler]
