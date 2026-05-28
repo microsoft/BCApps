@@ -19,4 +19,17 @@ interface "IAgentTestResourceProvider"
     /// <param name="FileName">Returns the file name extracted from the path.</param>
     /// <param name="MIMEType">Returns the MIME type of the file.</param>
     procedure GetResource(ResourcePath: Text; var ResourceInStream: InStream; var FileName: Text[250]; var MIMEType: Text[100])
+
+    /// <summary>
+    /// Generates a resource dynamically using a named generator.
+    /// Override this to support 'filegenerator' entries in YAML attachments.
+    /// Generator parameters are available via AITTestContext.
+    /// </summary>
+    /// <param name="GeneratorName">The generator name as specified in the YAML 'filegenerator' field.</param>
+    /// <param name="ResourceInStream">Returns the generated file content as an InStream.</param>
+    /// <param name="FileName">Returns the generated file name.</param>
+    /// <param name="MIMEType">Returns the MIME type of the generated file.</param>
+    procedure GenerateResource(GeneratorName: Text; var ResourceInStream: InStream; var FileName: Text[250]; var MIMEType: Text[100])
+    begin
+    end;
 }

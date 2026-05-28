@@ -22,6 +22,13 @@ codeunit 130565 "NoOp Agent Test Res. Provider" implements "IAgentTestResourcePr
         Error(NoResourceProviderErr);
     end;
 
+#pragma warning disable AA0150
+    procedure GenerateResource(GeneratorName: Text; var ResourceInStream: InStream; var FileName: Text[250]; var MIMEType: Text[100])
+#pragma warning restore AA0150
+    begin
+        Error(NoResourceProviderErr);
+    end;
+
     var
         NoResourceProviderErr: Label 'No resource provider configured. Use the ProvideInputAndWait overload that accepts an IAgentTestResourceProvider to load attachments.';
 }

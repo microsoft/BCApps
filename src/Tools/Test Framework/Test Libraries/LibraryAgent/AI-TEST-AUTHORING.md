@@ -212,6 +212,7 @@ expected_data:
     suggestions:                            # optional — list of suggestion codes that MUST be present
       - <CODE_A>
       - <CODE_B>
+    intent: "<agent intent for the request>"                   # optional — LLM judge validates the intervention message
   <agent_specific_count_key>: 1             # implemented per agent test app
   <agent_specific_status_key>: Released     # implemented per agent test app
 ```
@@ -222,10 +223,12 @@ expected_data:
 |---|---|
 | `expected_data.intervention_request.type` | `LibraryAgent.ParseUserInterventionRequestType(text)` → `Enum "Agent User Int Request Type"`. Values: `Assistance`, `Review`, `Message` (English ordinal names; no translation). |
 | `expected_data.intervention_request.suggestions[]` | Validated by `LibraryAgent.ValidateInterventionRequest` — every expected code must be present on the actual request. |
+| `expected_data.intervention_request.intent` | Validated by an LLM judge that evaluates whether the agent's intervention message semantically matches the declared intent. The judge returns a pass/fail verdict with reasoning. |
 
 Automatic validation in `LibraryAgent.FinalizeTurn`:
 
 - If `intervention_request` is declared in YAML: the agent must have paused for an intervention with the matching `type` and including every `suggestion` code listed.
+- If `intent` is declared: the framework calls an LLM judge to semantically validate that the intervention message matches the expected intent. This replaces brittle substring matching with semantic evaluation.
 - If `intervention_request` is **not** declared: the agent must **not** have paused for an intervention. Unexpected interventions fail the turn.
 
 So: declare `intervention_request` on every turn where you expect the

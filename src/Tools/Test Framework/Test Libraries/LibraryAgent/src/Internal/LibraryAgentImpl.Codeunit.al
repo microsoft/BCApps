@@ -6,6 +6,7 @@
 namespace System.TestLibraries.Agents;
 
 using System.Agents;
+using System.AI;
 using System.Environment;
 using System.Environment.Configuration;
 using System.Globalization;
@@ -469,6 +470,7 @@ codeunit 130561 "Library - Agent Impl."
         AgentTaskBuilder: Codeunit "Agent Task Builder";
         AgentTaskMessageBuilder: Codeunit "Agent Task Message Builder";
         AttachmentsInput: Codeunit "Test Input Json";
+        AttachmentElement: Codeunit "Test Input Json";
         TitleInput, FromInput, MessageInput : Codeunit "Test Input Json";
         Assert: Codeunit "Library Assert";
         ResourceInStream: InStream;
@@ -476,7 +478,7 @@ codeunit 130561 "Library - Agent Impl."
         MessageValue: Text;
         FileName: Text[250];
         MIMEType: Text[100];
-        HasTitle, HasFrom, HasMessage, HasAttachments : Boolean;
+        HasTitle, HasFrom, HasMessage, HasAttachments, HasFile, HasFileGenerator : Boolean;
         I: Integer;
     begin
         TitleInput := QueryInput.ElementExists(TitleTok, HasTitle);
@@ -506,9 +508,19 @@ codeunit 130561 "Library - Agent Impl."
             AttachmentsInput := QueryInput.ElementExists(AttachmentsTok, HasAttachments);
             if HasAttachments then
                 for I := 0 to AttachmentsInput.GetElementCount() - 1 do begin
-                    AgentTestResourceProvider.GetResource(
-                        AttachmentsInput.ElementAt(I).Element(FileTok).ValueAsText(),
-                        ResourceInStream, FileName, MIMEType);
+                    AttachmentElement := AttachmentsInput.ElementAt(I);
+                    AttachmentElement.ElementExists(FileGeneratorTok, HasFileGenerator);
+                    AttachmentElement.ElementExists(FileTok, HasFile);
+
+                    if HasFileGenerator then
+                        AgentTestResourceProvider.GenerateResource(
+                            AttachmentElement.Element(FileGeneratorTok).ValueAsText(),
+                            ResourceInStream, FileName, MIMEType)
+                    else
+                        AgentTestResourceProvider.GetResource(
+                            AttachmentElement.Element(FileTok).ValueAsText(),
+                            ResourceInStream, FileName, MIMEType);
+
                     AgentTaskMessageBuilder.AddAttachment(FileName, MIMEType, ResourceInStream);
                 end;
         end;
@@ -556,18 +568,21 @@ codeunit 130561 "Library - Agent Impl."
             Assert.Fail(UnexpectedInterventionErr);
 
         if HasActualIntervention and HasExpectedIntervention then
-            ValidateInterventionDetails(TempUserInterventionRequest, TempSuggestion, ExpectedInterventionRequest);
+            ValidateInterventionDetails(TempUserInterventionRequest, TempAnnotation, TempSuggestion, ExpectedInterventionRequest);
     end;
 
     local procedure ValidateInterventionDetails(
         TempUserInterventionRequest: Record "Agent User Int Request Details" temporary;
+        var TempAnnotation: Record "Agent Annotation" temporary;
         var TempSuggestion: Record "Agent Task User Int Suggestion" temporary;
         ExpectedInterventionRequest: Codeunit "Test Input Json")
     var
-        TypeInput, SuggestionsInput : Codeunit "Test Input Json";
+        TypeInput, SuggestionsInput, IntentInput : Codeunit "Test Input Json";
         Assert: Codeunit "Library Assert";
         ExpectedType: Enum "Agent User Int Request Type";
-        TypeExists, SuggestionsExist : Boolean;
+        ActualMessage: Text;
+        Reasoning: Text;
+        TypeExists, SuggestionsExist, IntentExists : Boolean;
         I: Integer;
     begin
         TypeInput := ExpectedInterventionRequest.ElementExists(TypeTok, TypeExists);
@@ -591,6 +606,66 @@ codeunit 130561 "Library - Agent Impl."
             Assert.AreEqual(SuggestionsInput.GetElementCount(), TempSuggestion.Count(),
                 StrSubstNo(SuggestionCountMismatchErr, SuggestionsInput.GetElementCount(), TempSuggestion.Count()));
         end;
+
+        IntentInput := ExpectedInterventionRequest.ElementExists(IntentTok, IntentExists);
+        if IntentExists then begin
+            // For Assistance type the message is in the annotation; fall back to request message
+            if TempAnnotation.FindFirst() then
+                ActualMessage := TempAnnotation.Message
+            else
+                ActualMessage := TempUserInterventionRequest.Message;
+
+            Assert.IsTrue(
+                EvaluateIntentWithLLM(ActualMessage, IntentInput.ValueAsText(), Reasoning),
+                StrSubstNo(IntentMismatchErr, IntentInput.ValueAsText(), ActualMessage) + ' | Judge reasoning: ' + Reasoning);
+        end;
+    end;
+
+    local procedure EvaluateIntentWithLLM(ActualMessage: Text; ExpectedIntent: Text; var Reasoning: Text): Boolean
+    var
+        AzureOpenAI: Codeunit "Azure OpenAI";
+        AOAIChatMessages: Codeunit "AOAI Chat Messages";
+        AOAIChatCompletionParams: Codeunit "AOAI Chat Completion Params";
+        AOAIOperationResponse: Codeunit "AOAI Operation Response";
+        AOAIDeployments: Codeunit "AOAI Deployments";
+        ResultText: Text;
+        ResultJson: JsonToken;
+        PassToken: JsonToken;
+        ReasonToken: JsonToken;
+    begin
+        AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT41Latest());
+        AzureOpenAI.SetCopilotCapability(Enum::"Copilot Capability"::"Agent Test LLM Judge");
+
+        AOAIChatCompletionParams.SetTemperature(0);
+        AOAIChatCompletionParams.SetMaxTokens(500);
+        AOAIChatCompletionParams.SetJsonMode(true);
+
+        AOAIChatMessages.AddSystemMessage(IntentJudgeSystemPromptTxt);
+        AOAIChatMessages.AddUserMessage(StrSubstNo(IntentJudgeUserPromptTxt, ExpectedIntent, ActualMessage));
+
+        AzureOpenAI.GenerateChatCompletion(AOAIChatMessages, AOAIChatCompletionParams, AOAIOperationResponse);
+
+        if not AOAIOperationResponse.IsSuccess() then begin
+            Reasoning := StrSubstNo(LLMCallFailedLbl, AOAIOperationResponse.GetError());
+            exit(false);
+        end;
+
+        ResultText := AOAIChatMessages.GetLastMessage();
+
+        if not ResultJson.ReadFrom(ResultText) then begin
+            Reasoning := StrSubstNo(LLMInvalidJsonLbl, ResultText);
+            exit(false);
+        end;
+
+        if not ResultJson.AsObject().Get(PassTok, PassToken) then begin
+            Reasoning := StrSubstNo(LLMInvalidJsonLbl, ResultText);
+            exit(false);
+        end;
+
+        if ResultJson.AsObject().Get(ReasoningTok, ReasonToken) then
+            Reasoning := ReasonToken.AsValue().AsText();
+
+        exit(PassToken.AsValue().AsBoolean());
     end;
 
     procedure GetExpectedInterventionRequest(var ExpectedInterventionRequest: Codeunit "Test Input Json"): Boolean
@@ -675,6 +750,7 @@ codeunit 130561 "Library - Agent Impl."
         FromTok: Label 'from', Locked = true;
         AttachmentsTok: Label 'attachments', Locked = true;
         FileTok: Label 'file', Locked = true;
+        FileGeneratorTok: Label 'filegenerator', Locked = true;
         InterventionRequestTok: Label 'intervention_request', Locked = true;
 
         SuggestionsTok: Label 'suggestions', Locked = true;
@@ -689,4 +765,12 @@ codeunit 130561 "Library - Agent Impl."
         SuggestionCountMismatchErr: Label 'Expected %1 suggestions but found %2 actual suggestions.', Comment = '%1 = expected count, %2 = actual count';
         UnexpectedInterventionErr: Label 'Task paused for user intervention but no intervention_request found in expected_data for this turn.';
         ExpectedInterventionNotFoundErr: Label 'Expected intervention_request in expected_data but the task did not pause for user intervention.';
+        IntentTok: Label 'intent', Locked = true;
+        IntentMismatchErr: Label 'Intervention intent mismatch: expected intent "%1" but got: %2', Comment = '%1 = expected intent, %2 = actual message';
+        LLMCallFailedLbl: Label 'LLM intent judge call failed: %1', Comment = '%1 = error message';
+        LLMInvalidJsonLbl: Label 'LLM intent judge returned invalid JSON: %1', Comment = '%1 = raw response';
+        PassTok: Label 'pass', Locked = true;
+        ReasoningTok: Label 'reasoning', Locked = true;
+        IntentJudgeSystemPromptTxt: Label 'You are an evaluator for a Business Central agent test framework. You will receive the agent''s actual intervention message and the expected intent. Determine whether the agent''s message aligns with the expected intent. Respond with JSON: { "pass": true or false, "reasoning": "brief explanation" }', Locked = true;
+        IntentJudgeUserPromptTxt: Label 'Expected intent: %1\nActual agent message: %2', Locked = true, Comment = '%1 = expected intent, %2 = actual message';
 }
