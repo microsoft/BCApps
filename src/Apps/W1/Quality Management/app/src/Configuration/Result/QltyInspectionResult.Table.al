@@ -349,6 +349,8 @@ table 20411 "Qlty. Inspection Result"
             Rec."Evaluation Sequence" := 0
         else
             Rec."Evaluation Sequence" := ExistingQltyInspectionResult."Evaluation Sequence" + 1;
+
+        ValidateEvaluationSequenceNotUsedElsewhere();
     end;
 
     /// <summary>
@@ -357,7 +359,7 @@ table 20411 "Qlty. Inspection Result"
     internal procedure ValidateEvaluationSequenceNotUsedElsewhere()
     var
         ExistingQltyInspectionResult: Record "Qlty. Inspection Result";
-        MustChangePriorityErr: Label 'Evaluation Sequence must be unique, you cannot have two results with the same evaluation sequence. Result [%1/%2] already has the same evaluation sequence.', Comment = '%1=The result code, %2=the result condition';
+        MustChangePriorityErr: Label 'Evaluation Sequence must be unique, you cannot have two results with the same evaluation sequence. Result [%1/%2] already has the same evaluation sequence.', Comment = '%1=The result code, %2=the result description';
     begin
         ExistingQltyInspectionResult.SetFilter(Code, '<>%1', Rec.Code);
         ExistingQltyInspectionResult.SetRange("Evaluation Sequence", Rec."Evaluation Sequence");
@@ -370,7 +372,7 @@ table 20411 "Qlty. Inspection Result"
     /// Updates tests, templates, and inspections with result changes.
     /// Adds newly created results to existing quality tests and templates, adjusts evaluation sequences, and updates promoted results.
     /// </summary>
-    procedure UpdateTestsTemplatesAndInspections()
+    internal procedure UpdateTestsTemplatesAndInspections()
     var
         QltyResultConditionMgmt2: Codeunit "Qlty. Result Condition Mgmt.";
     begin
