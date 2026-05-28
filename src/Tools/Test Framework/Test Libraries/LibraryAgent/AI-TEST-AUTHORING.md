@@ -162,7 +162,9 @@ query:
   message: <task message body>
   attachments:
     - file: <relative path inside .resources>
-    - file: <another path>
+    - filegenerator:                          # OR: dynamically generated
+        name: <generator name>
+        <key>: <value>                        # arbitrary data for the generator
 ```
 
 How keys flow into library calls:
@@ -173,6 +175,7 @@ How keys flow into library calls:
 | `query.from` | `AgentTaskMessageBuilder.Initialize(from, ...)`. If `from` is missing, no message is added (only the task title). |
 | `query.message` | `AgentTaskMessageBuilder.Initialize(..., message)`. Optional. |
 | `query.attachments[].file` | `IAgentTestResourceProvider.GetResource(file, ...)` → `AgentTaskMessageBuilder.AddAttachment(...)`. Use the `RunTurnAndWait` overload that accepts a provider when YAML uses attachments. |
+| `query.attachments[].filegenerator` | `IAgentTestResourceProvider.GenerateResource(generatorData, ...)` → `AgentTaskMessageBuilder.AddAttachment(...)`. The full `filegenerator` object (including `name` and all data keys) is passed as a `Test Input Json` codeunit. |
 
 ### 7.3 Intervention continuation
 

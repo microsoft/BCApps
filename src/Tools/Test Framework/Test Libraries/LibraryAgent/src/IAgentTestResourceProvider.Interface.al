@@ -5,6 +5,8 @@
 
 namespace System.TestLibraries.Agents;
 
+using System.TestTools.TestRunner;
+
 /// <summary>
 /// Interface for resolving test resource files from the consuming test app.
 /// Implement this in your test app to provide resource file access to the agent test library.
@@ -21,15 +23,17 @@ interface "IAgentTestResourceProvider"
     procedure GetResource(ResourcePath: Text; var ResourceInStream: InStream; var FileName: Text[250]; var MIMEType: Text[100])
 
     /// <summary>
-    /// Generates a resource dynamically using a named generator.
+    /// Generates a resource dynamically from YAML-declared data.
     /// Override this to support 'filegenerator' entries in YAML attachments.
-    /// Generator parameters are available via AITTestContext.
+    /// The GeneratorData parameter contains the full filegenerator object from the YAML,
+    /// including a 'name' key for dispatch and any additional data keys the generator needs.
     /// </summary>
-    /// <param name="GeneratorName">The generator name as specified in the YAML 'filegenerator' field.</param>
+    /// <param name="GeneratorName">The name of the generator, from the 'name' key in the YAML filegenerator object.</param>
+    /// <param name="GeneratorData">The filegenerator object from the YAML, accessible via Test Input Json.</param>
     /// <param name="ResourceInStream">Returns the generated file content as an InStream.</param>
     /// <param name="FileName">Returns the generated file name.</param>
     /// <param name="MIMEType">Returns the MIME type of the generated file.</param>
-    procedure GenerateResource(GeneratorName: Text; var ResourceInStream: InStream; var FileName: Text[250]; var MIMEType: Text[100])
+    procedure GenerateResource(GeneratorName: Text; GeneratorData: Codeunit "Test Input Json"; var ResourceInStream: InStream; var FileName: Text[250]; var MIMEType: Text[100])
     begin
     end;
 }

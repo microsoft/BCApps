@@ -5,6 +5,8 @@
 
 namespace System.TestLibraries.Agents;
 
+using System.TestTools.TestRunner;
+
 /// <summary>
 /// No-op implementation of IAgentTestResourceProvider.
 /// Used by the ProvideInputAndWait overload that does not support attachments.
@@ -23,7 +25,7 @@ codeunit 130565 "NoOp Agent Test Res. Provider" implements "IAgentTestResourcePr
     end;
 
 #pragma warning disable AA0150
-    procedure GenerateResource(GeneratorName: Text; var ResourceInStream: InStream; var FileName: Text[250]; var MIMEType: Text[100])
+    procedure GenerateResource(GeneratorName: Text; GeneratorData: Codeunit "Test Input Json"; var ResourceInStream: InStream; var FileName: Text[250]; var MIMEType: Text[100])
 #pragma warning restore AA0150
     begin
         Error(NoResourceProviderErr);
