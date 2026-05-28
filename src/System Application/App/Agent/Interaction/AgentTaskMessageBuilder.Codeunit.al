@@ -212,11 +212,7 @@ codeunit 4316 "Agent Task Message Builder"
     /// <returns>This instance of the Agent Task Message Builder.</returns>
     procedure AddAttachment(FileName: Text[250]; FileMIMEType: Text[100]; InStream: InStream; Ignored: Boolean; IgnoredReason: Text[250]): codeunit "Agent Task Message Builder"
     begin
-<<<<<<< HEAD
         FeatureAccessManagement.AgentManagementAllowed(true);
-=======
-        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
->>>>>>> be9828ab ([SOA] Enhance attachment handling in agent task messages with ignored reason support (#7786))
         AgentTaskMsgBuilderImpl.AddAttachment(FileName, FileMIMEType, InStream, Ignored, IgnoredReason);
         exit(this);
     end;
