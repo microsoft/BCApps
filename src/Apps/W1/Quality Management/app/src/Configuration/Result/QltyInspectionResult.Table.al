@@ -349,8 +349,6 @@ table 20411 "Qlty. Inspection Result"
             Rec."Evaluation Sequence" := 0
         else
             Rec."Evaluation Sequence" := ExistingQltyInspectionResult."Evaluation Sequence" + 1;
-
-        ValidateEvaluationSequenceNotUsedElsewhere();
     end;
 
     /// <summary>
