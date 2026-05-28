@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Processing.Import;
 
+using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Company;
@@ -126,8 +127,9 @@ codeunit 6232 "E-Doc. MLLM Schema Helper"
         end;
     end;
 
-    procedure MapLinesFromJson(LinesArray: JsonArray; EDocEntryNo: Integer; var TempLine: Record "E-Document Purchase Line" temporary)
+    procedure MapLinesFromJson(LinesArray: JsonArray; EDocEntryNo: Integer; var TempLine: Record "E-Document Purchase Line" temporary; CurrencyCode: Code[10])
     var
+        EDocumentImportHelper: Codeunit "E-Document Import Helper";
         LineToken: JsonToken;
         LineObj: JsonObject;
         NestedObj: JsonObject;
@@ -172,7 +174,7 @@ codeunit 6232 "E-Doc. MLLM Schema Helper"
                         DiscountPct := 0;
                         GetDecimal(NestedObj, 'percent', DiscountPct);
                         if DiscountPct <> 0 then
-                            TempLine."Total Discount" := Round(TempLine."Unit Price" * TempLine.Quantity * DiscountPct / 100);
+                            TempLine."Total Discount" := Round(TempLine."Unit Price" * TempLine.Quantity * DiscountPct / 100, EDocumentImportHelper.GetCurrencyRoundingPrecision(CurrencyCode));
                     end;
                 end;
 
