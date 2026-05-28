@@ -21,13 +21,21 @@ codeunit 139545 "Fixed Asset Excel Reports"
     RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 
+    trigger OnRun()
+    begin
+        isInitialized := false;
+    end;
+
     var
         LibraryERM: Codeunit "Library - ERM";
         LibraryFixedAsset: Codeunit "Library - Fixed Asset";
         LibraryRandom: Codeunit "Library - Random";
         LibraryReportDataset: Codeunit "Library - Report Dataset";
+        LibrarySetupStorage: Codeunit "Library - Setup Storage";
+        LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         Assert: Codeunit Assert;
+        isInitialized: Boolean;
         ProjectedDeprMismatchLbl: Label 'Projected depreciation should be calculated from the latest closing book value.';
 
     [Test]
@@ -87,60 +95,37 @@ codeunit 139545 "Fixed Asset Excel Reports"
         Assert.AreEqual(FADepreciationBook."Acquisition Date", ReportAcquisitionDate, 'Acquisition date of first fixed asset should match the one in the depreciation book');
     end;
 
-    local procedure CleanupFixedAssetData()
-    var
-        FAPostingType: Record "FA Posting Type";
-        FixedAsset: Record "Fixed Asset";
-    begin
-        FAPostingType.DeleteAll();
-        FixedAsset.DeleteAll();
-    end;
-
-    [RequestPageHandler]
-    procedure EXRFixedAssetAnalysisExcelHandler(var EXRFixedAssetAnalysisExcel: TestRequestPage "EXR Fixed Asset Analysis Excel")
-    var
-        DepreciationBookCode: Code[10];
-    begin
-        if LibraryVariableStorage.Length() = 1 then begin
-            DepreciationBookCode := CopyStr(LibraryVariableStorage.DequeueText(), 1, 10);
-            EXRFixedAssetAnalysisExcel.DepreciationBookCodeField.SetValue(DepreciationBookCode);
-        end;
-        EXRFixedAssetAnalysisExcel.OK().Invoke();
-    end;
-
     [Test]
     [HandlerFunctions('EXRFixedAssetProjectedHandler')]
     procedure ProjectedValueDeclBalShouldUseCorrectBookValueAcrossFiscalYear()
     var
         AccountingPeriod: Record "Accounting Period";
         DepreciationBook: Record "Depreciation Book";
-        FixedAsset: Record "Fixed Asset";
         FADepreciationBook: Record "FA Depreciation Book";
-        FAJournalTemplate: Record "FA Journal Template";
-        FAJournalBatch: Record "FA Journal Batch";
-        FAJournalLine: Record "FA Journal Line";
         FAJournalSetup: Record "FA Journal Setup";
+        FAJournalTemplate: Record "FA Journal Template";
         FASetup: Record "FA Setup";
-        Variant: Variant;
-        RequestPageXml: Text;
+        FixedAsset: Record "Fixed Asset";
         AcquisitionAmount: Decimal;
-        DecliningBalancePct: Decimal;
-        AcquisitionDate: Date;
-        DeprStartDate: Date;
-        FiscalYearStartDate: Date;
-        FirstReportDeprDate: Date;
-        LastReportDeprDate: Date;
-        MonthlyDeprAmount: Decimal;
         BookValueAfterDepr: Decimal;
+        DecliningBalancePct: Decimal;
         ExpectedProjectedDepr: Decimal;
-        BasePostingDate: Date;
-        PostingDate: Date;
-        I: Integer;
+        MonthlyDeprAmount: Decimal;
         ReportAmount: Decimal;
+        I: Integer;
+        AcquisitionDate: Date;
+        BasePostingDate: Date;
+        DeprStartDate: Date;
+        FirstReportDeprDate: Date;
+        FiscalYearStartDate: Date;
+        LastReportDeprDate: Date;
+        PostingDate: Date;
+        Variant: Variant;
     begin
         // [SCENARIO 631253] Report 4413 "Fixed Asset Projected Value (Excel)" should calculate depreciation
         // using the last posted month's book value when crossing a fiscal year boundary with Declining-Balance 1.
         // Previously it incorrectly used the penultimate month's book value.
+        Initialize();
 
         // [GIVEN] Create Accounting periods with fiscal year.
         CleanupFixedAssetData();
@@ -150,9 +135,7 @@ codeunit 139545 "Fixed Asset Excel Reports"
 
         // [GIVEN] Create a depreciation book.
         LibraryFixedAsset.CreateDepreciationBook(DepreciationBook);
-        DepreciationBook.Validate("G/L Integration - Acq. Cost", false);
-        DepreciationBook.Validate("G/L Integration - Depreciation", false);
-        DepreciationBook.Modify(true);
+        ModifyDepreciationBook(DepreciationBook);
         LibraryFixedAsset.CreateFAJournalSetup(FAJournalSetup, DepreciationBook.Code, '');
         SetupFAJournalSetup(FAJournalSetup);
 
@@ -162,7 +145,6 @@ codeunit 139545 "Fixed Asset Excel Reports"
         AcquisitionAmount := 10000 + Round(LibraryRandom.RandDec(90000, 0), 1);
         DecliningBalancePct := 10 + Round(LibraryRandom.RandDec(20, 0), 1);
 
-        EnsureGeneralPostingSetup();
         LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset);
         LibraryFixedAsset.CreateFADepreciationBook(FADepreciationBook, FixedAsset."No.", DepreciationBook.Code);
         FADepreciationBook.Validate("FA Posting Group", FixedAsset."FA Posting Group");
@@ -171,24 +153,16 @@ codeunit 139545 "Fixed Asset Excel Reports"
         FADepreciationBook.Validate("Declining-Balance %", DecliningBalancePct);
         FADepreciationBook.Modify(true);
 
-        if FASetup.Get() then begin
-            FASetup.Validate("Default Depr. Book", DepreciationBook.Code);
-            FASetup.Modify();
-        end;
+        FASetup.Get();
+        FASetup.Validate("Default Depr. Book", DepreciationBook.Code);
+        FASetup.Modify(true);
 
         // [GIVEN] Post acquisition on the randomized acquisition date.
         LibraryFixedAsset.CreateJournalTemplate(FAJournalTemplate);
-        LibraryFixedAsset.CreateFAJournalBatch(FAJournalBatch, FAJournalTemplate.Name);
-        LibraryFixedAsset.CreateFAJournalLine(FAJournalLine, FAJournalTemplate.Name, FAJournalBatch.Name);
-        FAJournalLine.Validate("FA No.", FixedAsset."No.");
-        FAJournalLine.Validate("FA Posting Date", AcquisitionDate);
-        FAJournalLine.Validate("Posting Date", AcquisitionDate);
-        FAJournalLine.Validate("FA Posting Type", FAJournalLine."FA Posting Type"::"Acquisition Cost");
-        FAJournalLine.Validate("Depreciation Book Code", DepreciationBook.Code);
-        FAJournalLine.Validate(Amount, AcquisitionAmount);
-        FAJournalLine.Validate("Document No.", FixedAsset."No.");
-        FAJournalLine.Modify(true);
-        LibraryFixedAsset.PostFAJournalLine(FAJournalLine);
+        CreateAndPostFAJournalLine(
+            FAJournalTemplate.Name, FixedAsset."No.", AcquisitionDate,
+            "FA Journal Line FA Posting Type"::"Acquisition Cost",
+            DepreciationBook.Code, AcquisitionAmount, FixedAsset."No.");
 
         // [GIVEN] Post depreciation starting from the acquisition month.
         BasePostingDate := CalcDate('<CM>', AcquisitionDate);
@@ -197,17 +171,10 @@ codeunit 139545 "Fixed Asset Excel Reports"
             MonthlyDeprAmount := Round(BookValueAfterDepr * DecliningBalancePct / 100 / 12, 1);
             PostingDate := CalcDate('<' + Format(I - 1) + 'M>', BasePostingDate);
 
-            LibraryFixedAsset.CreateFAJournalBatch(FAJournalBatch, FAJournalTemplate.Name);
-            LibraryFixedAsset.CreateFAJournalLine(FAJournalLine, FAJournalTemplate.Name, FAJournalBatch.Name);
-            FAJournalLine.Validate("FA No.", FixedAsset."No.");
-            FAJournalLine.Validate("FA Posting Date", PostingDate);
-            FAJournalLine.Validate("Posting Date", PostingDate);
-            FAJournalLine.Validate("FA Posting Type", FAJournalLine."FA Posting Type"::Depreciation);
-            FAJournalLine.Validate("Depreciation Book Code", DepreciationBook.Code);
-            FAJournalLine.Validate(Amount, -MonthlyDeprAmount);
-            FAJournalLine.Validate("Document No.", FixedAsset."No." + '-' + Format(I));
-            FAJournalLine.Modify(true);
-            LibraryFixedAsset.PostFAJournalLine(FAJournalLine);
+            CreateAndPostFAJournalLine(
+                FAJournalTemplate.Name, FixedAsset."No.", PostingDate,
+                "FA Journal Line FA Posting Type"::Depreciation,
+                DepreciationBook.Code, -MonthlyDeprAmount, CopyStr(FixedAsset."No." + '-' + Format(I), 1, MaxStrLen(FixedAsset."No.")));
 
             BookValueAfterDepr -= MonthlyDeprAmount;
         end;
@@ -219,12 +186,7 @@ codeunit 139545 "Fixed Asset Excel Reports"
         // [WHEN] Running the Fixed Asset Projected Value (Excel) report.
         FirstReportDeprDate := CalcDate('<CM>', CalcDate('<8M>', BasePostingDate));
         LastReportDeprDate := CalcDate('<11M>', FirstReportDeprDate);
-        LibraryVariableStorage.Enqueue(DepreciationBook.Code);
-        LibraryVariableStorage.Enqueue(FirstReportDeprDate);
-        LibraryVariableStorage.Enqueue(LastReportDeprDate);
-        LibraryVariableStorage.Enqueue(false); // Use Accounting Period
-        RequestPageXml := Report.RunRequestPage(Report::"EXR Fixed Asset Projected", RequestPageXml);
-        LibraryReportDataset.RunReportAndLoad(Report::"EXR Fixed Asset Projected", Variant, RequestPageXml);
+        RunFixedAssetProjectedReport(DepreciationBook.Code, FirstReportDeprDate, LastReportDeprDate, false);
 
         // [THEN] Verify the projected depreciation in the first projected month uses the latest closing book value.
         LibraryReportDataset.SetXmlNodeList('DataItem[@name="FixedAssetLedgerEntries"]');
@@ -233,6 +195,30 @@ codeunit 139545 "Fixed Asset Excel Reports"
         ReportAmount := Variant;
         ReportAmount := Round(ReportAmount, 1);
         Assert.AreEqual(ExpectedProjectedDepr, ReportAmount, ProjectedDeprMismatchLbl);
+    end;
+
+    local procedure Initialize()
+    begin
+        LibraryTestInitialize.OnTestInitialize(Codeunit::"Fixed Asset Excel Reports");
+        LibrarySetupStorage.Restore();
+        if isInitialized then
+            exit;
+        LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Fixed Asset Excel Reports");
+
+        EnsureGeneralPostingSetup();
+        LibrarySetupStorage.Save(Database::"FA Setup");
+        isInitialized := true;
+        Commit();
+        LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Fixed Asset Excel Reports");
+    end;
+
+    local procedure CleanupFixedAssetData()
+    var
+        FAPostingType: Record "FA Posting Type";
+        FixedAsset: Record "Fixed Asset";
+    begin
+        FAPostingType.DeleteAll();
+        FixedAsset.DeleteAll();
     end;
 
     local procedure CreateMonthlyAccountingPeriods(FiscalYearStart: Date; NumberOfMonths: Integer)
@@ -271,10 +257,41 @@ codeunit 139545 "Fixed Asset Excel Reports"
         DefaultFAJournalSetup: Record "FA Journal Setup";
     begin
         DefaultFAJournalSetup.SetRange("Depreciation Book Code", LibraryFixedAsset.GetDefaultDeprBook());
-        if DefaultFAJournalSetup.FindFirst() then begin
-            FAJournalSetup.TransferFields(DefaultFAJournalSetup, false);
-            FAJournalSetup.Modify(true);
-        end;
+        DefaultFAJournalSetup.FindFirst();
+        FAJournalSetup.TransferFields(DefaultFAJournalSetup, false);
+        FAJournalSetup.Modify(true);
+    end;
+
+    local procedure CreateAndPostFAJournalLine(FAJournalTemplateName: Code[10]; FANo: Code[20]; PostingDate: Date; FAPostingType: Enum "FA Journal Line FA Posting Type"; DepreciationBookCode: Code[10]; Amount: Decimal; DocumentNo: Code[20])
+    var
+        FAJournalBatch: Record "FA Journal Batch";
+        FAJournalLine: Record "FA Journal Line";
+    begin
+        LibraryFixedAsset.CreateFAJournalBatch(FAJournalBatch, FAJournalTemplateName);
+        LibraryFixedAsset.CreateFAJournalLine(FAJournalLine, FAJournalTemplateName, FAJournalBatch.Name);
+        FAJournalLine.Validate("FA No.", FANo);
+        FAJournalLine.Validate("FA Posting Date", PostingDate);
+        FAJournalLine.Validate("Posting Date", PostingDate);
+        FAJournalLine.Validate("FA Posting Type", FAPostingType);
+        FAJournalLine.Validate("Depreciation Book Code", DepreciationBookCode);
+        FAJournalLine.Validate(Amount, Amount);
+        FAJournalLine.Validate("Document No.", DocumentNo);
+        FAJournalLine.Modify(true);
+
+        LibraryFixedAsset.PostFAJournalLine(FAJournalLine);
+    end;
+
+    local procedure RunFixedAssetProjectedReport(DepreciationBookCode: Code[10]; FirstDeprDate: Date; LastDeprDate: Date; UseAccountingPeriod: Boolean)
+    var
+        Variant: Variant;
+        RequestPageXml: Text;
+    begin
+        LibraryVariableStorage.Enqueue(DepreciationBookCode);
+        LibraryVariableStorage.Enqueue(FirstDeprDate);
+        LibraryVariableStorage.Enqueue(LastDeprDate);
+        LibraryVariableStorage.Enqueue(UseAccountingPeriod);
+        RequestPageXml := Report.RunRequestPage(Report::"EXR Fixed Asset Projected", RequestPageXml);
+        LibraryReportDataset.RunReportAndLoad(Report::"EXR Fixed Asset Projected", Variant, RequestPageXml);
     end;
 
     local procedure EnsureGeneralPostingSetup()
@@ -285,7 +302,27 @@ codeunit 139545 "Fixed Asset Excel Reports"
         GeneralPostingSetup.SetFilter("Gen. Prod. Posting Group", '<>%1', '');
         if not GeneralPostingSetup.IsEmpty() then
             exit;
+
         LibraryERM.CreateGeneralPostingSetupInvt(GeneralPostingSetup);
+    end;
+
+    [RequestPageHandler]
+    procedure EXRFixedAssetAnalysisExcelHandler(var EXRFixedAssetAnalysisExcel: TestRequestPage "EXR Fixed Asset Analysis Excel")
+    var
+        DepreciationBookCode: Code[10];
+    begin
+        if LibraryVariableStorage.Length() = 1 then begin
+            DepreciationBookCode := CopyStr(LibraryVariableStorage.DequeueText(), 1, 10);
+            EXRFixedAssetAnalysisExcel.DepreciationBookCodeField.SetValue(DepreciationBookCode);
+        end;
+        EXRFixedAssetAnalysisExcel.OK().Invoke();
+    end;
+
+    local procedure ModifyDepreciationBook(var DepreciationBook: Record "Depreciation Book")
+    begin
+        DepreciationBook.Validate("G/L Integration - Acq. Cost", false);
+        DepreciationBook.Validate("G/L Integration - Depreciation", false);
+        DepreciationBook.Modify(true);
     end;
 
     [RequestPageHandler]
@@ -307,5 +344,4 @@ codeunit 139545 "Fixed Asset Excel Reports"
         EXRFixedAssetProjected.UseAccountingPeriodField.SetValue(UseAccountingPeriod);
         EXRFixedAssetProjected.OK().Invoke();
     end;
-
 }
