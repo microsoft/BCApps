@@ -8,6 +8,9 @@
 		},
 		{
 			"path": "Demo Data"
+		},
+		{
+			"path": "Spike-EDI"
 		}
 	],
 	"settings": {}

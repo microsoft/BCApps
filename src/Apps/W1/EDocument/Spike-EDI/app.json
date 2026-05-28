@@ -1,0 +1,33 @@
+{
+  "id": "a5e9c5d8-5e9c-4a5e-9c5d-8a5e9c5d8a5e",
+  "name": "E-Document Messages Spike",
+  "publisher": "Microsoft",
+  "brief": "Spike validating the V3 architecture for E-Document Messages: separate-table model, Type/Reader/Writer split, framework-as-executor, bi-directional flow.",
+  "description": "Non-production exploratory code accompanying docs/e-document-messages_V3.md. Defines the new framework primitives (E-Document Message table, Type/Reader/Writer interfaces, Apply Context codeunit, IMessageReceiver, message lookup modal) and exercises them through a fictional ContosoInvoice XML format with a ContosoInvoiceAck message. Demonstrates all four V3 quadrants (outbound/inbound × Document/Message). Not for production. Files marked 'Spike:' in source comments are candidates to move to E-Document Core.",
+  "version": "1.0.0.0",
+  "dependencies": [
+    {
+      "id": "e1d97edc-c239-46b4-8d84-6368bdf67c8b",
+      "name": "E-Document Core",
+      "publisher": "Microsoft",
+      "version": "29.0.0.0"
+    }
+  ],
+  "idRanges": [
+    {
+      "from": 6900,
+      "to": 6999
+    }
+  ],
+  "platform": "29.0.0.0",
+  "application": "29.0.0.0",
+  "target": "OnPrem",
+  "resourceExposurePolicy": {
+    "allowDebugging": true,
+    "allowDownloadingSource": true,
+    "includeSourceInSymbolFile": true
+  },
+  "features": [
+    "TranslationFile"
+  ]
+}
