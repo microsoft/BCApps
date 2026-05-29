@@ -52,7 +52,6 @@ codeunit 99001515 "Subc. ItemJnlPostLine Ext"
         if not ItemJournalLine.Subcontracting then
             exit;
 
-        ProductionOrder.SetLoadFields("Created from Purch. Order");
         if not ProductionOrder.Get(ProdOrderLine.Status, ProdOrderLine."Prod. Order No.") then
             exit;
 
