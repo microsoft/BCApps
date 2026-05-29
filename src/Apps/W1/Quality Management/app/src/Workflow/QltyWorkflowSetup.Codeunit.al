@@ -319,8 +319,8 @@ codeunit 20423 "Qlty. Workflow Setup"
         WorkflowSetup: Codeunit "Workflow Setup";
     begin
         WorkflowSetup.InsertTableRelation(Database::"User", User.FieldNo("User Name"), Database::"Qlty. Inspection Header", QltyInspectionHeader.FieldNo("Assigned User ID"));
-        WorkflowSetup.InsertTableRelation(Database::"Qlty. Inspection Header", QltyInspectionHeader.FieldNo("No."), database::"Approval Entry", ApprovalEntry.FieldNo("Document No."));
-        WorkflowSetup.InsertTableRelation(Database::"Qlty. Inspection Line", QltyInspectionLine.FieldNo("Inspection No."), database::"Approval Entry", ApprovalEntry.FieldNo("Document No."));
+        WorkflowSetup.InsertTableRelation(Database::"Qlty. Inspection Header", QltyInspectionHeader.FieldNo("No."), Database::"Approval Entry", ApprovalEntry.FieldNo("Document No."));
+        WorkflowSetup.InsertTableRelation(Database::"Qlty. Inspection Line", QltyInspectionLine.FieldNo("Inspection No."), Database::"Approval Entry", ApprovalEntry.FieldNo("Document No."));
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Workflow Event Handling", 'OnAddWorkflowEventsToLibrary', '', true, true)]
@@ -398,6 +398,7 @@ codeunit 20423 "Qlty. Workflow Setup"
     begin
         WorkflowResponse.SetFilter("Function Name", QltyPrefixTok + '*');
         WorkflowResponse.DeleteAll(false);
+
         WorkflowResponse.Reset();
         WorkflowResponse.SetRange(Description, QMWorkflowResponseDescriptionCreateAQltyInspectionLbl);
         if not WorkflowResponse.IsEmpty() then
