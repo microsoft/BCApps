@@ -520,7 +520,7 @@ codeunit 130561 "Library - Agent Impl."
                     if HasFileGenerator then
                         AgentTestResourceProvider.GenerateResource(
                             AttachmentFileGeneratorElement.Element(NameTok).ValueAsText(),
-                            AttachmentFileGeneratorElement,
+                            AttachmentFileGeneratorElement.Element(GeneratorDataTok),
                             ResourceInStream, FileName, MIMEType)
                     else
                         AgentTestResourceProvider.GetResource(
@@ -756,7 +756,8 @@ codeunit 130561 "Library - Agent Impl."
         FromTok: Label 'from', Locked = true;
         AttachmentsTok: Label 'attachments', Locked = true;
         FileTok: Label 'file', Locked = true;
-        FileGeneratorTok: Label 'filegenerator', Locked = true;
+        FileGeneratorTok: Label 'file_generator', Locked = true;
+        GeneratorDataTok: Label 'generator_data', Locked = true;
         NameTok: Label 'name', Locked = true;
         InterventionRequestTok: Label 'intervention_request', Locked = true;
         SuggestionsTok: Label 'suggestions', Locked = true;
