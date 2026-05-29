@@ -6,6 +6,7 @@
 namespace System.Agents;
 
 using System;
+using System.Runtime;
 
 codeunit 4311 "Agent Task Msg. Builder Impl."
 {
@@ -238,62 +239,22 @@ codeunit 4311 "Agent Task Msg. Builder Impl."
 
     procedure GetContentTypeFromFilename(FileName: Text): Text[250]
     var
-        LowerCaseFileName: text;
+        MimeTypeUtility: Codeunit MimeTypeUtility;
+        LowerCaseFileName: Text;
     begin
         LowerCaseFileName := LowerCase(FileName);
-        if LowerCaseFileName.EndsWith('.graphql') or LowerCaseFileName.EndsWith('.gql') then
-            exit('application/graphql');
-        if LowerCaseFileName.EndsWith('.js') then
-            exit('application/javascript');
-        if LowerCaseFileName.EndsWith('.json') then
-            exit('application/json');
-        if LowerCaseFileName.EndsWith('.doc') then
-            exit('application/msword(.doc)');
-        if LowerCaseFileName.EndsWith('.pdf') then
-            exit('application/pdf');
-        if LowerCaseFileName.EndsWith('.sql') then
-            exit('application/sql');
-        if LowerCaseFileName.EndsWith('.xls') then
-            exit('application/vnd.ms-excel(.xls)');
-        if LowerCaseFileName.EndsWith('.ppt') then
-            exit('application/vnd.ms-powerpoint(.ppt)');
-        if LowerCaseFileName.EndsWith('.odt') then
-            exit('application/vnd.oasis.opendocument.text(.odt)');
-        if LowerCaseFileName.EndsWith('.pptx') then
-            exit('application/vnd.openxmlformats-officedocument.presentationml.presentation(.pptx)');
-        if LowerCaseFileName.EndsWith('.xlsx') then
-            exit('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet(.xlsx)');
-        if LowerCaseFileName.EndsWith('.docx') then
-            exit('application/vnd.openxmlformats-officedocument.wordprocessingml.document(.docx)');
-        if LowerCaseFileName.EndsWith('.xml') then
-            exit('application/xml');
-        if LowerCaseFileName.EndsWith('.zip') then
-            exit('application/zip');
-        if LowerCaseFileName.EndsWith('.zst') then
-            exit('application/zstd(.zst)');
-        if LowerCaseFileName.EndsWith('.mpeg') then
-            exit('audio/mpeg');
-        if LowerCaseFileName.EndsWith('.ogg') then
-            exit('audio/ogg');
-        if LowerCaseFileName.EndsWith('.gif') then
-            exit('application/gif');
-        if LowerCaseFileName.EndsWith('.jpeg') then
-            exit('application/jpeg');
-        if LowerCaseFileName.EndsWith('.jpg') then
-            exit('application/jpg');
-        if LowerCaseFileName.EndsWith('.png') then
-            exit('application/png');
-        if LowerCaseFileName.EndsWith('.css') then
-            exit('text/css');
-        if LowerCaseFileName.EndsWith('.csv') then
-            exit('text/csv');
-        if LowerCaseFileName.EndsWith('.html') then
-            exit('text/html');
-        if LowerCaseFileName.EndsWith('.php') then
-            exit('text/php');
-        if LowerCaseFileName.EndsWith('.txt') then
-            exit('text/plain');
-        exit('');
+        if LowerCaseFileName.EndsWith('.js') then exit('application/javascript');
+        if LowerCaseFileName.EndsWith('.mpeg') then exit('audio/mpeg');
+        if LowerCaseFileName.EndsWith('.gif') then exit('application/gif');
+        if LowerCaseFileName.EndsWith('.jpeg') then exit('application/jpeg');
+        if LowerCaseFileName.EndsWith('.jpg') then exit('application/jpg');
+        if LowerCaseFileName.EndsWith('.png') then exit('application/png');
+        if LowerCaseFileName.EndsWith('.php') then exit('text/php');
+        if LowerCaseFileName.EndsWith('.xml') then exit('application/xml');
+        if LowerCaseFileName.EndsWith('.zip') then exit('application/zip');
+        if LowerCaseFileName.EndsWith('.ogg') then exit('audio/ogg');
+
+        exit(CopyStr(MimeTypeUtility.GetMimeType(FileName), 1, 250));
     end;
 
     internal procedure SanitizeMessage(MessageBody: Text): Text

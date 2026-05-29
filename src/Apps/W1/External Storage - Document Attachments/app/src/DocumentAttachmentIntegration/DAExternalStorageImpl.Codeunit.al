@@ -8,6 +8,7 @@ namespace Microsoft.ExternalStorage.DocumentAttachments;
 using Microsoft.Foundation.Attachment;
 using System.Environment;
 using System.ExternalFileStorage;
+using System.Runtime;
 using System.Security.Encryption;
 using System.Utilities;
 
@@ -449,46 +450,22 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     /// <param name="Rec">The document attachment record.</param>
     /// <param name="ContentType">The content type to set based on the file extension.</param>
     procedure FileExtensionToContentMimeType(var Rec: Record "Document Attachment"; var ContentType: Text[100])
+    var
+        MimeTypeUtility: Codeunit MimeTypeUtility;
     begin
-        // Determine content type based on file extension
         case LowerCase(Rec."File Extension") of
-            'pdf':
-                ContentType := 'application/pdf';
-            'jpg', 'jpeg':
-                ContentType := 'image/jpeg';
-            'png':
-                ContentType := 'image/png';
-            'gif':
-                ContentType := 'image/gif';
-            'bmp':
-                ContentType := 'image/bmp';
-            'tiff', 'tif':
-                ContentType := 'image/tiff';
-            'doc':
-                ContentType := 'application/msword';
-            'docx':
-                ContentType := 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
-            'xls':
-                ContentType := 'application/vnd.ms-excel';
-            'xlsx':
-                ContentType := 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
-            'ppt':
-                ContentType := 'application/vnd.ms-powerpoint';
-            'pptx':
-                ContentType := 'application/vnd.openxmlformats-officedocument.presentationml.presentation';
-            'txt':
-                ContentType := 'text/plain';
-            'xml':
-                ContentType := 'text/xml';
-            'html', 'htm':
-                ContentType := 'text/html';
             'zip':
-                ContentType := 'application/zip';
+                begin
+                    ContentType := 'application/zip';
+                    exit;
+                end;
             'rar':
-                ContentType := 'application/x-rar-compressed';
-            else
-                ContentType := 'application/octet-stream';
+                begin
+                    ContentType := 'application/x-rar-compressed';
+                    exit;
+                end;
         end;
+        ContentType := CopyStr(MimeTypeUtility.GetMimeType('x.' + Rec."File Extension"), 1, 100);
     end;
 
     /// <summary>
