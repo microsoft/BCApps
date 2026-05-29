@@ -91,12 +91,14 @@ page 8369 "MCP Server Feature Settings"
                     ParentConfig.DiscoverReadOnlyObjects := DiscoverReadOnlyObjectsLocal;
                     ParentConfig.Modify(true);
                 end;
+            Feature::"API Tools":
+                ;
             Feature::"AL Query Tools":
                 ;
-            // MOCK: nothing to persist for AL Query Tools while its sub-settings are page-local.
-            // When the platform-side fields land, write the locals back here via the facade, e.g.:
-            //   MCPConfig.SetALQueryMaxRowsPerQuery(ConfigSystemId, MaxRowsPerQueryLocal);
-            //   MCPConfig.SetALQueryTimeoutSeconds(ConfigSystemId, QueryTimeoutSecondsLocal);
+        // MOCK: nothing to persist for AL Query Tools while its sub-settings are page-local.
+        // When the platform-side fields land, write the locals back here via the facade, e.g.:
+        //   MCPConfig.SetALQueryMaxRowsPerQuery(ConfigSystemId, MaxRowsPerQueryLocal);
+        //   MCPConfig.SetALQueryTimeoutSeconds(ConfigSystemId, QueryTimeoutSecondsLocal);
         end;
     end;
 

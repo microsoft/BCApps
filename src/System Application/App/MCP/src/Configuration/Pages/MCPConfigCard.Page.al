@@ -104,7 +104,7 @@ page 8351 "MCP Config Card"
                 ApplicationArea = All;
                 SubPageLink = ID = field(SystemId);
                 UpdatePropagation = Both;
-                Visible = not IsDefault;
+                Visible = not IsDefault and APIToolsActive;
                 Editable = not Rec.Active;
             }
         }
@@ -209,11 +209,15 @@ page 8351 "MCP Config Card"
     var
         MCPConfigImplementation: Codeunit "MCP Config Implementation";
         IsDefault: Boolean;
+        // MOCK: page-local stand-in driving the Available APIs sub-part visibility. Replace with
+        // Rec.<NewAPIToolsField> when the platform adds it.
+        APIToolsActive: Boolean;
         DesignatedDefaultCannotBeDeactivatedErr: Label 'The designated default configuration cannot be deactivated. Clear the default designation first.';
 
     local procedure RefreshSubPages()
     begin
         CurrPage.ServerFeatureList.Page.Reload(Rec.SystemId, Rec.EnableDynamicToolMode, not IsDefault and not Rec.Active);
+        APIToolsActive := CurrPage.ServerFeatureList.Page.IsAPIToolsActive();
         // MOCK: IsALQueryActive() returns a page-local stand-in for the platform-side "AL Query enabled"
         // field that doesn't exist yet on MCP Configuration. Replace with Rec.<NewALQueryField> when
         // the platform adds it.

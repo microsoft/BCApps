@@ -112,8 +112,14 @@ page 8368 "MCP Server Feature List"
         // boolean stands in for the real "AL Query Tools enabled" flag that should live on
         // MCP Configuration. Reset every time the card is closed. Read back via IsALQueryActive().
         ALQueryActiveLocal: Boolean;
-        DynamicToolModeDescLbl: Label 'Exposes system tools that let clients search, describe, and invoke the API tools added to Available Tools without each tool being surfaced as its own tool. When inactive, every API tool in Available Tools is exposed directly to clients as its own MCP tool (Static Mode).';
-        ALQueryDescLbl: Label 'Adds system tools that compile and run AL query code submitted by the client on demand, letting agents author ad-hoc joins and aggregates that no pre-defined API query covers. API queries and API pages added to Available Tools are exposed independently and are not affected by this feature.';
+        // MOCK: API Tools activation has no platform-side persistence yet, so this page-local
+        // boolean stands in for the real "API Tools enabled" flag that should live on
+        // MCP Configuration. Reset every time the card is closed. Read back via IsAPIToolsActive().
+        APIToolsActiveLocal: Boolean;
+        DynamicToolModeDescLbl: Label 'Exposes system tools that let clients search, describe, and invoke the API tools added to Available APIs without each tool being surfaced as its own tool. When inactive, every API tool in Available APIs is exposed directly to clients as its own MCP tool (Static Mode).';
+        ALQueryDescLbl: Label 'Adds system tools that compile and run AL query code submitted by the client on demand, letting agents author ad-hoc joins and aggregates that no pre-defined API query covers. API queries and API pages added to Available APIs are exposed independently and are not affected by this feature.';
+        APIToolsDescLbl: Label 'Exposes the API Tools list on this configuration so the admin can curate which API pages and queries the MCP client can reach. Dynamic Tool Mode requires this feature to be enabled.';
+        APIToolsRequiredForDynamicErr: Label 'API Tools must be enabled before Dynamic Tool Mode can be enabled.';
 
     internal procedure Reload(ConfigSystemId: Guid; DynamicToolModeOn: Boolean; CanModify: Boolean)
     begin
@@ -121,6 +127,7 @@ page 8368 "MCP Server Feature List"
         ActionsEnabled := CanModify;
         Rec.Reset();
         Rec.DeleteAll();
+        InsertRow(Rec.Feature::"API Tools", APIToolsDescLbl, APIToolsActiveLocal);
         InsertRow(Rec.Feature::"Dynamic Tool Mode", DynamicToolModeDescLbl, DynamicToolModeOn);
         InsertRow(Rec.Feature::"AL Query Tools", ALQueryDescLbl, ALQueryActiveLocal);
         if Rec.FindFirst() then;
@@ -131,6 +138,13 @@ page 8368 "MCP Server Feature List"
     internal procedure IsALQueryActive(): Boolean
     begin
         exit(ALQueryActiveLocal);
+    end;
+
+    // MOCK: replace with a read of the platform-side "API Tools enabled" field on MCP Configuration
+    // once it exists. Used by MCPConfigCard.RefreshSubPages to drive the API Tools sub-part visibility.
+    internal procedure IsAPIToolsActive(): Boolean
+    begin
+        exit(APIToolsActiveLocal);
     end;
 
     local procedure InsertRow(NewFeature: Enum "MCP Server Feature"; NewDescription: Text[500]; Active: Boolean)
@@ -152,6 +166,8 @@ page 8368 "MCP Server Feature List"
         case Rec.Feature of
             Rec.Feature::"Dynamic Tool Mode":
                 begin
+                    if NewActive and not APIToolsActiveLocal then
+                        Error(APIToolsRequiredForDynamicErr);
                     if not ParentConfig.GetBySystemId(ParentSystemId) then
                         exit;
                     ParentConfig.EnableDynamicToolMode := NewActive;
@@ -161,6 +177,8 @@ page 8368 "MCP Server Feature List"
                 end;
             Rec.Feature::"AL Query Tools":
                 ALQueryActiveLocal := NewActive;
+            Rec.Feature::"API Tools":
+                APIToolsActiveLocal := NewActive;
             else
                 exit;
         end;

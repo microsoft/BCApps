@@ -9,7 +9,7 @@ using System.Reflection;
 
 page 8352 "MCP Config Tool List"
 {
-    Caption = 'API Tools';
+    Caption = 'Available APIs';
     ApplicationArea = All;
     PageType = ListPart;
     SourceTable = "MCP Configuration Tool";

@@ -10,11 +10,15 @@ enum 8351 "MCP Server Feature"
     Access = Internal;
     Extensible = false;
 
-    value(0; "Dynamic Tool Mode")
+    value(0; "API Tools")
+    {
+        Caption = 'API Tools';
+    }
+    value(1; "Dynamic Tool Mode")
     {
         Caption = 'Dynamic Tool Mode';
     }
-    value(1; "AL Query Tools")
+    value(2; "AL Query Tools")
     {
         Caption = 'AL Query Tools (Preview)';
     }
