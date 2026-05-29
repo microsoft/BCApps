@@ -11,6 +11,7 @@ query 36964 "Assembly Headers - Order"
     Access = Internal;
     Caption = 'Power BI Assembly Headers';
     QueryType = API;
+    AboutText = 'Provides access to assembly order header data including item numbers, quantities, remaining quantities, due dates, and status. Enables Power BI reports to track assembly order progress, analyze assembly-to-order demand, and monitor production scheduling for inventory planning.';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';
     ApiVersion = 'v0.5', 'v1.0';

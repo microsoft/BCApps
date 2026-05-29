@@ -20,6 +20,10 @@ codeunit 99001534 "Subc. Purchase Line Ext"
         Comment = '%1 = PurchaseLine Outstanding Qty, %2 = Tablecaption PurchaseLine, %3 = ProdOrderLine Remaining Qty, %4 = Tablecaption ProdOrderLine, %5 = Current ProdOrderLine Qty, %6 = New PurchaseLine Qty';
         NotLastOperationLineErr: Label 'Item tracking lines can only be viewed for subcontracting purchase lines which are linked to a routing line which is the last operation.';
         CannotOpenProductionOrderErr: Label 'Cannot open Production Order %1.', Comment = '%1=Production Order No.';
+        ChangeVariantNoNotAllowedErr: Label 'You cannot change %1 because the order line is associated with production order %2.', Comment = '%1=Field Caption, %2=Production Order No.';
+        ShowProductionOrderActionLbl: Label 'Show Prod. Order';
+        AdjustQtyActionLbl: Label 'Adjust Quantity';
+        OpenItemTrackingAnywayActionLbl: Label 'Open anyway';
 
     [EventSubscriber(ObjectType::Table, Database::"Purchase Line", OnAfterDeleteEvent, '', false, false)]
     local procedure OnAfterDeleteEvent(var Rec: Record "Purchase Line"; RunTrigger: Boolean)
@@ -77,8 +81,6 @@ codeunit 99001534 "Subc. Purchase Line Ext"
 
     [EventSubscriber(ObjectType::Table, Database::"Purchase Line", OnValidateVariantCodeOnBeforeDropShipmentError, '', false, false)]
     local procedure OnValidateVariantCodeOnBeforeDropShipmentError(PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
-    var
-        ChangeVariantNoNotAllowedErr: Label 'You cannot change %1 because the order line is associated with production order %2.', Comment = '%1=Field Caption, %2=Production Order No.';
     begin
         if PurchaseLine."Prod. Order No." <> '' then
             Error(ChangeVariantNoNotAllowedErr, PurchaseLine.FieldCaption(PurchaseLine."Variant Code"), PurchaseLine."Prod. Order No.");
@@ -95,8 +97,8 @@ codeunit 99001534 "Subc. Purchase Line Ext"
     [EventSubscriber(ObjectType::Table, Database::"Purchase Line", OnBeforeOpenItemTrackingLines, '', false, false)]
     local procedure OpenProdOrderLineItemTrackingOnBeforeOpenItemTrackingLines(PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin
-        OpenItemTrackingOfProdOrderLine(PurchaseLine, false);
-        IsHandled := true;
+        if OpenItemTrackingOfProdOrderLine(PurchaseLine, false) then
+            IsHandled := true;
     end;
 
     local procedure CheckItem(PurchaseLine: Record "Purchase Line")
@@ -114,9 +116,6 @@ codeunit 99001534 "Subc. Purchase Line Ext"
 
     local procedure CheckOverDeliveryQty(PurchaseLine: Record "Purchase Line"; ProdOrderLine: Record "Prod. Order Line")
     var
-        ShowProductionOrderActionLbl: Label 'Show Prod. Order';
-        AdjustQtyActionLbl: Label 'Adjust Quantity';
-        OpenItemTrackingAnywayActionLbl: Label 'Open anyway';
         CannotInvoiceErrorInfo: ErrorInfo;
     begin
         if PurchaseLine.Quantity > ProdOrderLine.Quantity then begin
@@ -143,7 +142,7 @@ codeunit 99001534 "Subc. Purchase Line Ext"
         end;
     end;
 
-    local procedure OpenItemTrackingOfProdOrderLine(var PurchaseLine: Record "Purchase Line"; SkipOverDeliveryCheck: Boolean)
+    local procedure OpenItemTrackingOfProdOrderLine(var PurchaseLine: Record "Purchase Line"; SkipOverDeliveryCheck: Boolean): Boolean
     var
         ProdOrderLine: Record "Prod. Order Line";
         TrackingSpecification: Record "Tracking Specification";
@@ -152,14 +151,14 @@ codeunit 99001534 "Subc. Purchase Line Ext"
         SecondSourceQtyArray: array[3] of Decimal;
     begin
         if PurchaseLine."Subc. Purchase Line Type" = "Subc. Purchase Line Type"::None then
-            exit;
+            exit(false);
         CheckItem(PurchaseLine);
         if PurchaseLine."Subc. Purchase Line Type" = "Subc. Purchase Line Type"::NotLastOperation then
             Error(NotLastOperationLineErr);
         if PurchaseLine."Subc. Purchase Line Type" <> "Subc. Purchase Line Type"::LastOperation then
-            exit;
+            exit(false);
         if not PurchaseLine.IsSubcontractingLineWithLastOperation(ProdOrderLine) then
-            exit;
+            exit(false);
 
         SecondSourceQtyArray[1] := Database::"Warehouse Receipt Line";
         SecondSourceQtyArray[2] := PurchaseLine.CalcBaseQtyFromQuantity(PurchaseLine."Qty. to Receive", PurchaseLine.FieldCaption("Qty. Rounding Precision"), PurchaseLine.FieldCaption("Qty. to Receive"), PurchaseLine.FieldCaption("Qty. to Receive (Base)"));
@@ -172,6 +171,7 @@ codeunit 99001534 "Subc. Purchase Line Ext"
         ItemTrackingLines.SetSourceSpec(TrackingSpecification, ProdOrderLine."Due Date");
         ItemTrackingLines.SetSecondSourceQuantity(SecondSourceQtyArray);
         ItemTrackingLines.RunModal();
+        exit(true);
     end;
 
     internal procedure ShowProductionOrder(OverDeliveryErrorInfo: ErrorInfo)

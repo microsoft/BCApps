@@ -1,0 +1,1 @@
+{"data":{"productVariantsBulkUpdate":{"productVariants":[],"userErrors":[]}}}

@@ -66,6 +66,7 @@ codeunit 139687 "Recurring Billing Docs Test"
         LibraryUtility: Codeunit "Library - Utility";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         IsInitialized: Boolean;
+        NextToDateBeforeFromDateErr: Label 'CalculateNextToDate returned %1 which is before FromDate %2. This would cause billing to get stuck.', Locked = true;
         NoContractLinesFoundErr: Label 'No contract lines were found that can be billed with the specified parameters.', Locked = true;
         ItemDeletedErr: Label 'Item created from catalog item should not be deleted when the billing invoice is deleted.', Locked = true;
         StrMenuHandlerStep: Integer;
@@ -772,6 +773,49 @@ codeunit 139687 "Recurring Billing Docs Test"
         // [THEN] The Purchase Invoice is posted successfully
         PurchaseInvoiceHeader.Get(PostedDocumentNo);
         PurchaseInvoiceHeader.TestField("Recurring Billing", true);
+    end;
+
+    [Test]
+    [HandlerFunctions('CreateVendorBillingDocsContractPageHandler,ExchangeRateSelectionModalPageHandler,MessageHandler')]
+    procedure CreateBillingDocumentsForVendorContractSetsRecurringBillingBeforeVendorValidation()
+    var
+        PayToVendor: Record Vendor;
+        PurchHdrSub: Codeunit "Rec. Billing Purch. Hdr. Sub.";
+    begin
+        // [SCENARIO #4302] When creating billing documents from a vendor contract where "Pay-to Vendor No."
+        // differs from "Buy-from Vendor No.", the purchase header must have "Recurring Billing" = true
+        // before "Pay-to Vendor No." is validated. Localization extensions that check "Recurring Billing"
+        // inside that validation (e.g., Hungarian localization) would otherwise raise an error.
+        Initialize();
+
+        // [GIVEN] A vendor contract with contract lines and a separate Pay-to Vendor
+        ContractTestLibrary.CreateVendorInLCY(PayToVendor);
+        ContractTestLibrary.CreateVendorContractAndCreateContractLinesForItems(VendorContract, ServiceObject, '');
+        ContractTestLibrary.DisableDeferralsForVendorContract(VendorContract, false);
+        VendorContract.SetHideValidationDialog(true);
+        VendorContract.Validate("Pay-to Vendor No.", PayToVendor."No.");
+        VendorContract.Modify(false);
+
+        // [GIVEN] A billing proposal for the vendor contract
+        ContractTestLibrary.CreateBillingProposal(BillingTemplate, Enum::"Service Partner"::Vendor);
+
+        // [GIVEN] A subscriber that errors if "Recurring Billing" is false when "Pay-to Vendor No." is validated
+        BindSubscription(PurchHdrSub);
+
+        // [WHEN] Billing documents are created from the proposal (subscriber errors if "Recurring Billing" is false during vendor validation)
+        CreateBillingDocuments(false);
+
+        // Unbind before assertions to ensure cleanup regardless of assertion results
+        UnbindSubscription(PurchHdrSub);
+
+        // [THEN] The created purchase header has "Recurring Billing" = true
+        BillingLine.SetFilter("Document No.", '<>%1', '');
+        BillingLine.FindFirst();
+        PurchaseHeader.Get(Enum::"Purchase Document Type"::Invoice, BillingLine."Document No.");
+        PurchaseHeader.TestField("Recurring Billing", true);
+
+        // [THEN] The Pay-to Vendor matches the contract
+        PurchaseHeader.TestField("Pay-to Vendor No.", PayToVendor."No.");
     end;
 
     [Test]
@@ -2422,6 +2466,62 @@ codeunit 139687 "Recurring Billing Docs Test"
         Assert.IsTrue(Item.Get(ItemNo), ItemDeletedErr);
     end;
 
+    [Test]
+    procedure CalculateNextToDateAlignEndOfMonthDoesNotReturnDateBeforeFromDate()
+    var
+        SubscriptionLine: Record "Subscription Line";
+        PeriodFormula: DateFormula;
+        FromDate: Date;
+        NextToDate: Date;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 623011] CalculateNextToDate with "Align to End of Month" does not return date before FromDate
+        Initialize();
+
+        // [GIVEN] Subscription Line "SL" with Period Calculation = "Align to End of Month" and start date Jan 29
+        MockSubscriptionLine(SubscriptionLine);
+        SubscriptionLine.Validate("Period Calculation", SubscriptionLine."Period Calculation"::"Align to End of Month");
+        SubscriptionLine.Validate("Subscription Line Start Date", DMY2Date(29, 1, 2025));
+        SubscriptionLine.Modify();
+
+        // [WHEN] CalculateNextToDate is called with period formula <1D> from Feb 27
+        Evaluate(PeriodFormula, '<1D>');
+        FromDate := DMY2Date(27, 2, 2025);
+        NextToDate := SubscriptionLine.CalculateNextToDate(PeriodFormula, FromDate);
+
+        // [THEN] NextToDate is not before FromDate
+        Assert.IsTrue(NextToDate >= FromDate,
+            StrSubstNo(NextToDateBeforeFromDateErr, NextToDate, FromDate));
+    end;
+
+    [Test]
+    procedure CalculateNextToDateMonthFormulaLeapYearDoesNotReturnDateBeforeFromDate()
+    var
+        SubscriptionLine: Record "Subscription Line";
+        PeriodFormula: DateFormula;
+        FromDate: Date;
+        NextToDate: Date;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 623011] CalculateNextToDate with monthly formula and leap year Feb 29 to Mar transition does not return date before FromDate
+        Initialize();
+
+        // [GIVEN] Subscription Line "SL" with Period Calculation = "Align to End of Month" and start date Jan 30 (leap year 2024)
+        MockSubscriptionLine(SubscriptionLine);
+        SubscriptionLine.Validate("Period Calculation", SubscriptionLine."Period Calculation"::"Align to End of Month");
+        SubscriptionLine.Validate("Subscription Line Start Date", DMY2Date(30, 1, 2024));
+        SubscriptionLine.Modify();
+
+        // [WHEN] CalculateNextToDate is called with period formula <1M> from Feb 29 (leap year)
+        Evaluate(PeriodFormula, '<1M>');
+        FromDate := DMY2Date(29, 2, 2024);
+        NextToDate := SubscriptionLine.CalculateNextToDate(PeriodFormula, FromDate);
+
+        // [THEN] NextToDate is not before FromDate
+        Assert.IsTrue(NextToDate >= FromDate,
+            StrSubstNo(NextToDateBeforeFromDateErr, NextToDate, FromDate));
+    end;
+
     #endregion Tests
 
     #region Procedures
@@ -2509,7 +2609,10 @@ codeunit 139687 "Recurring Billing Docs Test"
             until BillingLine.Next() = 0;
     end;
 
-    local procedure CountBillingArchiveLinesOnDocument(DocumentType: Enum "Rec. Billing Document Type"; DocumentNo: Code[20]; ServicePartner: Enum "Service Partner"; ContractNo: Code[20]; ContractLineNo: Integer): Integer
+    local procedure CountBillingArchiveLinesOnDocument(DocumentType: Enum "Rec. Billing Document Type"; DocumentNo: Code[20];
+                                                                         ServicePartner: Enum "Service Partner";
+                                                                         ContractNo: Code[20];
+                                                                         ContractLineNo: Integer): Integer
     var
         BillingArchiveLine: Record "Billing Line Archive";
     begin
@@ -2592,14 +2695,16 @@ codeunit 139687 "Recurring Billing Docs Test"
         SalesHeader.DeleteAll();
     end;
 
-    local procedure FilterPurchaseLineOnDocumentLine(PurchaseDocumentType: Enum "Purchase Document Type"; DocumentNo: Code[20]; LineNo: Integer)
+    local procedure FilterPurchaseLineOnDocumentLine(PurchaseDocumentType: Enum "Purchase Document Type"; DocumentNo: Code[20];
+                                                                               LineNo: Integer)
     begin
         PurchaseLine.SetRange("Document Type", PurchaseDocumentType);
         PurchaseLine.SetRange("Document No.", DocumentNo);
         PurchaseLine.SetRange("Line No.", LineNo);
     end;
 
-    local procedure FilterSalesLineOnDocumentLine(SalesDocumentType: Enum "Sales Document Type"; DocumentNo: Code[20]; LineNo: Integer)
+    local procedure FilterSalesLineOnDocumentLine(SalesDocumentType: Enum "Sales Document Type"; DocumentNo: Code[20];
+                                                                         LineNo: Integer)
     begin
         SalesLine.SetRange("Document Type", SalesDocumentType);
         SalesLine.SetRange("Document No.", DocumentNo);
@@ -2893,6 +2998,17 @@ codeunit 139687 "Recurring Billing Docs Test"
             FieldType::Boolean:
                 FRef.Value(not FRef.Value);
         end;
+    end;
+
+    local procedure MockSubscriptionLine(var SubscriptionLine: Record "Subscription Line")
+    var
+        ServiceCommitmentPackage: Record "Subscription Package";
+    begin
+        ContractTestLibrary.CreateServiceCommitmentPackage(ServiceCommitmentPackage);
+        SubscriptionLine.Init();
+        SubscriptionLine."Invoicing via" := SubscriptionLine."Invoicing via"::Contract;
+        SubscriptionLine."Subscription Package Code" := ServiceCommitmentPackage.Code;
+        SubscriptionLine.Insert(true);
     end;
 
     #endregion Procedures

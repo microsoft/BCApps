@@ -11,19 +11,27 @@ codeunit 4317 "Agent System Permissions"
     InherentPermissions = X;
 
     /// <summary>
-    /// Gets whether the current user has permissions to see consumption data.
+    /// Gets whether the current user has permissions to see all consumption data.
     /// </summary>
-    /// <returns>True if the user has permissions to see consumption data, false otherwise.</returns>
+    /// <returns>True if the user has permissions to see all consumption data, false otherwise.</returns>
     procedure CurrentUserCanSeeConsumptionData(): Boolean
     begin
         exit(AgentSystemPermissionsImpl.CurrentUserCanSeeConsumptionData());
     end;
 
     /// <summary>
+    /// Gets whether the current user has permissions to manage all agents in all companies.
+    /// </summary>
+    /// <returns>True if the user has permissions to manage all agents in all companies, false otherwise.</returns>
+    procedure CurrentUserHasCanManageAllAgentsInAllCompaniesPermission(): Boolean
+    begin
+        exit(AgentSystemPermissionsImpl.CurrentUserHasCanManageAllAgentsInAllCompaniesPermission());
+    end;
+
+    /// <summary>
     /// Gets whether the current user has permissions to manage all agents.
     /// </summary>
     /// <returns>True if the user has permissions to manage all agents, false otherwise.</returns>
-    [Scope('OnPrem')]
     procedure CurrentUserHasCanManageAllAgentsPermission(): Boolean
     begin
         exit(AgentSystemPermissionsImpl.CurrentUserHasCanManageAllAgentsPermission());
@@ -47,6 +55,17 @@ codeunit 4317 "Agent System Permissions"
     procedure CurrentUserHasCanCreateCustomAgent(): Boolean
     begin
         exit(AgentSystemPermissionsImpl.CurrentUserHasCanCreateCustomAgent());
+    end;
+
+    /// <summary>
+    /// Gets whether the current user has permissions to use a specific agent.
+    /// </summary>
+    /// <param name="AgentUserSecurityId">The user security id associated with the agent.</param>
+    /// <returns>True if the user has use permissions for the specified agent, false otherwise.</returns>
+    [Scope('OnPrem')]
+    procedure CurrentUserCanUseAgent(AgentUserSecurityId: Guid): Boolean
+    begin
+        exit(AgentSystemPermissionsImpl.CurrentUserCanUseAgent(AgentUserSecurityId));
     end;
 
     /// <summary>

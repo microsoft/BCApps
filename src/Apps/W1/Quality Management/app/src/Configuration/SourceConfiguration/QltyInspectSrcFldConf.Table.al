@@ -132,8 +132,8 @@ table 20409 "Qlty. Inspect. Src. Fld. Conf."
         }
         field(10; "Display As"; Text[80])
         {
-            Caption = 'Display in Control Information as';
-            ToolTip = 'Specifies what to show in the caption for the Control Information section on an inspection.';
+            Caption = 'Display in Source Reference as';
+            ToolTip = 'Specifies what to show in the caption for the Source Reference section of an inspection.';
 
             trigger OnValidate()
             begin

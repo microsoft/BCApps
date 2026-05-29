@@ -431,10 +431,8 @@ pageextension 20403 "Qlty. Workflow Resp. Options" extends "Workflow Response Op
                             Bin: Record Bin;
                             QltyWorkflowResponse: Codeunit "Qlty. Workflow Response";
                         begin
-                            // After the table relation is removed to change from a drop-down to an assist-edit
-                            // to allow the bins to be filtered by the location code, there needs to be an ability
-                            // to validate the bin is still valid.  We do this by fetching the record and 
-                            // letting it fail if it doesn't exist.
+                            // There is no table relation on this field because the bins need to be filtered by the selected location code via the OnAssistEdit trigger. 
+                            // Bin is validated by fetching the record and letting it fail if it doesn't exist.
                             Bin.Get(QltyLocationCode, QltyBinCode);
                             QltyWorkflowResponse.SetStepConfigurationValue(Rec, QltyWorkflowResponse.GetWellKnownKeyBin(), QltyBinCode);
                         end;
@@ -616,7 +614,7 @@ pageextension 20403 "Qlty. Workflow Resp. Options" extends "Workflow Response Op
                         ShowCaption = false;
                         Editable = false;
                         Caption = ' ';
-                        Tooltip = ' ';
+                        ToolTip = 'Select to populate the fields with an example that blocks purchases on the item card.';
 
                         trigger OnDrillDown()
                         var
@@ -635,7 +633,7 @@ pageextension 20403 "Qlty. Workflow Resp. Options" extends "Workflow Response Op
                         ShowCaption = false;
                         Editable = false;
                         Caption = ' ';
-                        Tooltip = ' ';
+                        ToolTip = 'Select to populate the fields with an example that blocks a vendor.';
 
                         trigger OnDrillDown()
                         var
@@ -654,7 +652,7 @@ pageextension 20403 "Qlty. Workflow Resp. Options" extends "Workflow Response Op
                         ShowCaption = false;
                         Editable = false;
                         Caption = ' ';
-                        Tooltip = ' ';
+                        ToolTip = 'Select to populate the fields with an example that flags a BOM as under development.';
 
                         trigger OnDrillDown()
                         var

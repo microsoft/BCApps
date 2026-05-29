@@ -173,7 +173,7 @@ codeunit 4325 "Agent Setup Impl."
         AgentSetupBuffer.GetUserSettings(TempUserSettings);
         AgentUserSettings.InitializeTemp(TempUserSettings);
         if AgentUserSettings.RunModal() in [Action::LookupOK, Action::OK] then begin
-            AgentUserSettings.GetRecord(TempUserSettings);
+            AgentUserSettings.GetValues(TempUserSettings);
             AgentSetupBuffer."User Settings Updated" := true;
 #pragma warning disable AA0139
             AgentSetupBuffer."Language Used" := Language.GetWindowsLanguageName(TempUserSettings."Language ID");

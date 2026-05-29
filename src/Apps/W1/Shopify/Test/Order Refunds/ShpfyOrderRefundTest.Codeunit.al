@@ -519,6 +519,58 @@ codeunit 139611 "Shpfy Order Refund Test"
         ResetProcessOnRefund(RefundId);
     end;
 
+    [Test]
+    procedure UnitTestConsiderRefundsSubtractsTaxFromTotalAmount()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        Shop: Record "Shpfy Shop";
+        OrderRefundsHelper: Codeunit "Shpfy Order Refunds Helper";
+        ImportOrder: Codeunit "Shpfy Import Order";
+        OrderId: BigInteger;
+        OrderLineId: BigInteger;
+        RefundId: BigInteger;
+        SubtotalAmount: Decimal;
+        VATAmount: Decimal;
+        RefundSubtotalAmount: Decimal;
+        RefundTaxAmount: Decimal;
+    begin
+        // [SCENARIO] Total Amount is correctly reduced by both subtotal and tax when processing refunds.
+        Initialize();
+
+        // [GIVEN] Amounts for an order with tax
+        SubtotalAmount := 1200;
+        VATAmount := 300;
+        RefundSubtotalAmount := 1000;
+        RefundTaxAmount := 250;
+
+        // [GIVEN] A processed Shopify order with Total Amount = Subtotal + VAT
+        CreateProcessedShopifyOrderWithVAT(OrderId, OrderLineId, SubtotalAmount, VATAmount);
+
+        // [GIVEN] Shop with "Return and Refund Process" set to "Import Only"
+        Shop := InitializeTest.CreateShop();
+        Shop."Return and Refund Process" := "Shpfy ReturnRefund ProcessType"::"Import Only";
+        Shop.Modify(false);
+
+        // [GIVEN] A refund with both subtotal and tax amounts
+        OrderRefundsHelper.SetDefaultSeed();
+        RefundId := OrderRefundsHelper.CreateRefundHeader(OrderId, 0, RefundSubtotalAmount + RefundTaxAmount, Shop.Code);
+        OrderRefundsHelper.CreateRefundLineWithTaxAmount(RefundId, OrderLineId, RefundSubtotalAmount, RefundTaxAmount);
+
+        // [WHEN] ConsiderRefundsInQuantityAndAmounts is executed
+        OrderHeader.Get(OrderId);
+        ImportOrder.SetShop(Shop.Code);
+        ImportOrder.ConsiderRefundsInQuantityAndAmounts(OrderHeader);
+
+        // [THEN] Total Amount = original total - (refund subtotal + refund tax)
+        LibraryAssert.AreEqual(SubtotalAmount + VATAmount - RefundSubtotalAmount - RefundTaxAmount, OrderHeader."Total Amount", 'Total Amount must be reduced by refund subtotal and tax.');
+        // [THEN] Presentment Total Amount is also correctly reduced
+        LibraryAssert.AreEqual(SubtotalAmount + VATAmount - RefundSubtotalAmount - RefundTaxAmount, OrderHeader."Presentment Total Amount", 'Presentment Total Amount must be reduced by refund subtotal and tax.');
+        // [THEN] VAT Amount is reduced by refund tax
+        LibraryAssert.AreEqual(VATAmount - RefundTaxAmount, OrderHeader."VAT Amount", 'VAT Amount must be reduced by refund tax.');
+        // [THEN] Subtotal Amount is reduced by refund subtotal
+        LibraryAssert.AreEqual(SubtotalAmount - RefundSubtotalAmount, OrderHeader."Subtotal Amount", 'Subtotal Amount must be reduced by refund subtotal.');
+    end;
+
     local procedure Initialize()
     var
         OrderRefundsHelper: Codeunit "Shpfy Order Refunds Helper";
@@ -604,6 +656,28 @@ codeunit 139611 "Shpfy Order Refund Test"
         ReturnId := OrderRefundsHelper.CreateReturn(OrderId);
         OrderRefundsHelper.CreateReturnLine(ReturnId, OrderId, '');
         OrderRefundsHelper.CreateUnverifiedReturnLine(ReturnId, '');
+    end;
+
+    local procedure CreateProcessedShopifyOrderWithVAT(var OrderId: BigInteger; var OrderLineId: BigInteger; SubtotalAmount: Decimal; VATAmount: Decimal)
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        OrderRefundsHelper: Codeunit "Shpfy Order Refunds Helper";
+    begin
+        OrderRefundsHelper.SetDefaultSeed();
+        OrderId := OrderRefundsHelper.CreateShopifyOrder();
+        OrderHeader.Get(OrderId);
+        OrderHeader."Subtotal Amount" := SubtotalAmount;
+        OrderHeader."Total Amount" := SubtotalAmount + VATAmount;
+        OrderHeader."VAT Amount" := VATAmount;
+        OrderHeader."Presentment Subtotal Amount" := SubtotalAmount;
+        OrderHeader."Presentment Total Amount" := SubtotalAmount + VATAmount;
+        OrderHeader."Presentment VAT Amount" := VATAmount;
+        OrderHeader."Shipping Charges Amount" := 0;
+        OrderHeader.Processed := true;
+        OrderHeader.Modify(false);
+
+        OrderLineId := OrderRefundsHelper.CreateOrderLine(OrderId, 10000, Any.IntegerInRange(100000, 999999), Any.IntegerInRange(100000, 999999));
+        OrderRefundsHelper.ProcessShopifyOrder(OrderId);
     end;
 
     local procedure CreateLocation(var Location: Record Location)

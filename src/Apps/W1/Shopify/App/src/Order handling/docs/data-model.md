@@ -42,6 +42,20 @@ Every amount field on both header and line exists in two versions: shop currency
 
 `Shpfy Sales Header` (tableextension 30101) adds `Shpfy Order Id`, `Shpfy Order No.`, and `Shpfy Refund Id` to the Sales Header. `Shpfy Sales Line` (tableextension 30104) adds `Shpfy Order Line Id`, `Shpfy Order No.`, `Shpfy Refund Id`, `Shpfy Refund Line Id`, and `Shpfy Refund Shipping Line Id` to the Sales Line. These fields link the BC sales documents back to their Shopify source records.
 
+## Contact fields
+
+The Order Header carries contact name and contact number fields for all three address contexts:
+
+- `Sell-to Contact Name` (1014), `Sell-to Contact No.` (1017)
+- `Bill-to Contact Name` (1015), `Bill-to Contact No.` (1018)
+- `Ship-to Contact Name` (1016), `Ship-to Contact No.` (1019)
+
+Contact names are populated during import from the Shopify order's address data. Contact numbers are resolved during mapping by `ShpfyOrderMapping.FindContactNo`, which matches the contact name against person-type contacts under the customer's company contact. The contact number fields have `OnValidate` triggers that call `CheckContactRelatedToCustomer` to enforce that the contact belongs to the associated customer. `LookupContactForCustomer` provides filtered lookup behavior for the Order page.
+
+When `Sell-to Customer No.` is validated, it automatically re-resolves both `Sell-to Contact No.` and `Ship-to Contact No.`. When `Bill-to Customer No.` is validated, it re-resolves `Bill-to Contact No.`.
+
+*Updated: 2026-04-08 -- contact name/number fields documented (PR #7525)*
+
 ## B2B fields
 
 The Order Header has a cluster of B2B fields: `Company Id`, `Company Main Contact Id`, `Company Main Contact Email`, `Company Main Contact Phone No.`, `Company Main Contact Cust. Id`, `Company Location Id`, `B2B` (boolean), and `PO Number`. When `B2B` is true, mapping takes a different path through `MapB2BHeaderFields` in `ShpfyOrderMapping`.

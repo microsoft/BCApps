@@ -24,81 +24,103 @@ page 8351 "MCP Config Card"
             group(Control1)
             {
                 Caption = 'General';
-                field(Name; Rec.Name)
-                {
-                    ToolTip = 'Specifies the name of the MCP configuration.';
-                    Editable = not IsDefault and not Rec.Active;
-                }
-                field(Active; Rec.Active)
-                {
-                    ToolTip = 'Specifies whether the MCP configuration is active.';
-                    Editable = not IsDefault;
 
-                    trigger OnValidate()
-                    begin
-                        if Rec.Active then
-                            MCPConfigImplementation.ValidateConfiguration(Rec, true)
-                        else
-                            if Rec.Default then
-                                Error(DesignatedDefaultCannotBeDeactivatedErr);
-                    end;
-                }
-                field(Default; Rec.Default)
+                group(Column1)
                 {
-                    Caption = 'Default';
-                    ToolTip = 'Specifies whether this configuration is the default. The default configuration is used when no configuration is specified by a connection.';
-                    Editable = false;
-                }
-                field(EnableDynamicToolMode; Rec.EnableDynamicToolMode)
-                {
-                    ToolTip = 'Specifies whether to enable dynamic tool mode for this MCP configuration. When enabled, clients can search for tools within the configuration dynamically.';
-                    Editable = not IsDefault and not Rec.Active;
-
-                    trigger OnValidate()
-                    begin
-                        if not Rec.EnableDynamicToolMode then
-                            Rec.DiscoverReadOnlyObjects := false;
-
-                        GetToolModeDescription();
-                        CurrPage.Update();
-                    end;
-                }
-                field(DiscoverReadOnlyObjects; Rec.DiscoverReadOnlyObjects)
-                {
-                    ToolTip = 'Specifies whether to allow discovery of read-only objects not defined in the configuration. Only supported with dynamic tool mode.';
-                    Editable = not IsDefault and Rec.EnableDynamicToolMode and not Rec.Active;
-                }
-                field(Description; Rec.Description)
-                {
-                    ToolTip = 'Specifies the description of the MCP configuration.';
-                    Editable = not IsDefault and not Rec.Active;
-                    MultiLine = true;
-                }
-                field(AllowProdChanges; Rec.AllowProdChanges)
-                {
-                    ToolTip = 'Allows create, update and delete tools for the specified MCP configuration. Disallowing this will make the tools read-only.';
-                    Editable = not IsDefault and not Rec.Active;
-
-                    trigger OnValidate()
-                    begin
-                        if not Rec.AllowProdChanges then
-                            MCPConfigImplementation.DisableCreateUpdateDeleteToolsInConfig(Rec.SystemId);
-                        CurrPage.Update();
-                    end;
-                }
-            }
-            group(Control2)
-            {
-                Caption = 'Tool Modes';
-                ShowCaption = false;
-
-                field(ToolMode; ToolModeLbl)
-                {
-                    ApplicationArea = All;
-                    Editable = false;
-                    Caption = 'Tool Mode';
                     ShowCaption = false;
-                    MultiLine = true;
+
+                    field(Name; Rec.Name)
+                    {
+                        ToolTip = 'Specifies the name of the MCP configuration.';
+                        Editable = not IsDefault and not Rec.Active;
+                    }
+                    field(Description; Rec.Description)
+                    {
+                        ToolTip = 'Specifies the description of the MCP configuration.';
+                        Editable = not IsDefault and not Rec.Active;
+                        MultiLine = true;
+                    }
+                }
+                group(Column2)
+                {
+                    ShowCaption = false;
+
+                    field(Active; Rec.Active)
+                    {
+                        ToolTip = 'Specifies whether the MCP configuration is active.';
+                        Editable = not IsDefault;
+
+                        trigger OnValidate()
+                        begin
+                            if Rec.Active then
+                                MCPConfigImplementation.ValidateConfiguration(Rec, true)
+                            else
+                                if Rec.Default then
+                                    Error(DesignatedDefaultCannotBeDeactivatedErr);
+                        end;
+                    }
+                    field(Default; Rec.Default)
+                    {
+                        Caption = 'Default';
+                        ToolTip = 'Specifies whether this configuration is the default. The default configuration is used when no configuration is specified by a connection. Clear this field to remove the default designation, in which case the system reverts to built-in default configuration.';
+                        Editable = not IsDefault;
+
+                        trigger OnValidate()
+                        begin
+                            if Rec.Default = xRec.Default then
+                                exit;
+
+                            if Rec.Default then
+                                MCPConfigImplementation.SetAsDefaultConfiguration(Rec.SystemId)
+                            else
+                                MCPConfigImplementation.ClearDefaultConfiguration();
+                        end;
+                    }
+                    field(EnableDynamicToolMode; Rec.EnableDynamicToolMode)
+                    {
+                        ToolTip = 'Specifies whether to enable dynamic tool mode for this MCP configuration. When enabled, clients can search for tools within the configuration dynamically.';
+                        Editable = not IsDefault and not Rec.Active;
+
+                        trigger OnValidate()
+                        begin
+                            if not Rec.EnableDynamicToolMode then
+                                Rec.DiscoverReadOnlyObjects := false;
+
+                            GetToolModeDescription();
+                            CurrPage.Update();
+                        end;
+                    }
+                    field(DiscoverReadOnlyObjects; Rec.DiscoverReadOnlyObjects)
+                    {
+                        ToolTip = 'Specifies whether to allow discovery of read-only objects not defined in the configuration. Only supported with dynamic tool mode.';
+                        Editable = not IsDefault and Rec.EnableDynamicToolMode and not Rec.Active;
+                    }
+                    field(AllowProdChanges; Rec.AllowProdChanges)
+                    {
+                        ToolTip = 'Allows create, update and delete tools for the specified MCP configuration. Disallowing this will make the tools read-only.';
+                        Editable = not IsDefault and not Rec.Active;
+
+                        trigger OnValidate()
+                        begin
+                            if not Rec.AllowProdChanges then
+                                MCPConfigImplementation.DisableCreateUpdateDeleteToolsInConfig(Rec.SystemId);
+                            CurrPage.Update();
+                        end;
+                    }
+                }
+                group(ToolModes)
+                {
+                    Caption = 'Tool Modes';
+                    ShowCaption = false;
+
+                    field(ToolMode; ToolModeLbl)
+                    {
+                        ApplicationArea = All;
+                        Editable = false;
+                        Caption = 'Tool Mode';
+                        ShowCaption = false;
+                        MultiLine = true;
+                    }
                 }
             }
             part(SystemToolList; "MCP System Tool List")
@@ -165,43 +187,11 @@ page 8351 "MCP Config Card"
                     end;
                 }
             }
-            action(SetAsDefault)
-            {
-                Caption = 'Set as Default';
-                ToolTip = 'Set this configuration as the default. It will be used when no configuration is specified by a connection.';
-                Image = Approve;
-                AccessByPermission = tabledata "MCP Configuration" = M;
-                Visible = not IsDefault;
-                Enabled = not Rec.Default;
-
-                trigger OnAction()
-                begin
-                    MCPConfigImplementation.SetAsDefaultConfiguration(Rec.SystemId);
-                    CurrPage.Update(false);
-                end;
-            }
-            action(ClearDefault)
-            {
-                Caption = 'Clear Default';
-                ToolTip = 'Remove the default designation from this configuration. The system will revert to built-in default settings.';
-                Image = Undo;
-                AccessByPermission = tabledata "MCP Configuration" = M;
-                Visible = not IsDefault;
-                Enabled = Rec.Default;
-
-                trigger OnAction()
-                begin
-                    MCPConfigImplementation.ClearDefaultConfiguration();
-                    CurrPage.Update(false);
-                end;
-            }
         }
         area(Promoted)
         {
             actionref(Promoted_Copy; Copy) { }
             actionref(Promoted_Validate; Validate) { }
-            actionref(Promoted_SetAsDefault; SetAsDefault) { }
-            actionref(Promoted_ClearDefault; ClearDefault) { }
             group(Promoted_Advanced)
             {
                 Caption = 'Advanced';
