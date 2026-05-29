@@ -118,16 +118,16 @@ codeunit 8350 "MCP Config"
     end;
 
     /// <summary>
-    /// Enables or disables the AL Query Server feature for the specified configuration.
+    /// Enables or disables the AL Query Tools feature for the specified configuration.
     /// </summary>
     /// <remarks>
     /// MOCK: no-op until the platform-side `EnableALQuery` field exists on `MCP Configuration`.
     /// </remarks>
     /// <param name="ConfigId">The SystemId (GUID) of the configuration.</param>
     /// <param name="Enable">True to enable, false to disable.</param>
-    procedure EnableALQueryServer(ConfigId: Guid; Enable: Boolean)
+    procedure EnableALQueryTools(ConfigId: Guid; Enable: Boolean)
     begin
-        MCPConfigImplementation.EnableALQueryServer(ConfigId, Enable);
+        MCPConfigImplementation.EnableALQueryTools(ConfigId, Enable);
     end;
 
     /// <summary>

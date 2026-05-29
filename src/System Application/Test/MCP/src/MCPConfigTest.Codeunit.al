@@ -251,21 +251,21 @@ codeunit 130130 "MCP Config Test"
 
     #endregion
 
-    #region AL Query Server
+    #region AL Query Tools
 
-    // MOCK: the AL Query Server facade procedures are intentional no-ops until the platform adds
+    // MOCK: the AL Query Tools facade procedures are intentional no-ops until the platform adds
     // real fields to MCP Configuration. These tests only verify that each procedure is callable
     // without errors. Replace with real state assertions (e.g., reading the new Rec fields) once
     // the platform-side fields exist.
 
     [Test]
-    procedure TestEnableALQueryServer()
+    procedure TestEnableALQueryTools()
     var
         ConfigId: Guid;
     begin
         // MOCK: smoke test for the facade procedure.
         ConfigId := CreateMCPConfig(false, false, true, false);
-        MCPConfig.EnableALQueryServer(ConfigId, true);
+        MCPConfig.EnableALQueryTools(ConfigId, true);
     end;
 
     [Test]
@@ -275,7 +275,7 @@ codeunit 130130 "MCP Config Test"
     begin
         // MOCK: smoke test for the facade procedure.
         ConfigId := CreateMCPConfig(false, false, true, false);
-        MCPConfig.EnableALQueryServer(ConfigId, false);
+        MCPConfig.EnableALQueryTools(ConfigId, false);
     end;
 
     [Test]

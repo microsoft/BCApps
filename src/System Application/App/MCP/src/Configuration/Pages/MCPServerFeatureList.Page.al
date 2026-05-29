@@ -108,19 +108,21 @@ page 8368 "MCP Server Feature List"
         ParentSystemId: Guid;
         ActionsEnabled: Boolean;
         StatusStyleExpr: Text;
-        // MOCK: AL Query Server activation has no platform-side persistence yet, so this page-local
-        // boolean stands in for the real "AL Query Server enabled" flag that should live on
+        // MOCK: AL Query Tools activation has no platform-side persistence yet, so this page-local
+        // boolean stands in for the real "AL Query Tools enabled" flag that should live on
         // MCP Configuration. Reset every time the card is closed. Read back via IsALQueryActive().
         ALQueryActiveLocal: Boolean;
+        DynamicToolModeDescLbl: Label 'Exposes system tools that let clients search, describe, and invoke the API tools added to Available Tools without each tool being surfaced as its own tool. When inactive, every API tool in Available Tools is exposed directly to clients as its own MCP tool (Static Mode).';
         ALQueryDescLbl: Label 'Adds system tools that compile and run AL query code submitted by the client on demand, letting agents author ad-hoc joins and aggregates that no pre-defined API query covers. API queries and API pages added to Available Tools are exposed independently and are not affected by this feature.';
 
-    internal procedure Reload(ConfigSystemId: Guid; CanModify: Boolean)
+    internal procedure Reload(ConfigSystemId: Guid; DynamicToolModeOn: Boolean; CanModify: Boolean)
     begin
         ParentSystemId := ConfigSystemId;
         ActionsEnabled := CanModify;
         Rec.Reset();
         Rec.DeleteAll();
-        InsertRow(Rec.Feature::"AL Query Server", ALQueryDescLbl, ALQueryActiveLocal);
+        InsertRow(Rec.Feature::"Dynamic Tool Mode", DynamicToolModeDescLbl, DynamicToolModeOn);
+        InsertRow(Rec.Feature::"AL Query Tools", ALQueryDescLbl, ALQueryActiveLocal);
         if Rec.FindFirst() then;
     end;
 
@@ -144,9 +146,20 @@ page 8368 "MCP Server Feature List"
     end;
 
     local procedure SetActive(NewActive: Boolean)
+    var
+        ParentConfig: Record "MCP Configuration";
     begin
         case Rec.Feature of
-            Rec.Feature::"AL Query Server":
+            Rec.Feature::"Dynamic Tool Mode":
+                begin
+                    if not ParentConfig.GetBySystemId(ParentSystemId) then
+                        exit;
+                    ParentConfig.EnableDynamicToolMode := NewActive;
+                    if not NewActive then
+                        ParentConfig.DiscoverReadOnlyObjects := false;
+                    ParentConfig.Modify(true);
+                end;
+            Rec.Feature::"AL Query Tools":
                 ALQueryActiveLocal := NewActive;
             else
                 exit;

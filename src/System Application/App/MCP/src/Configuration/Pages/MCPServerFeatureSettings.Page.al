@@ -22,19 +22,25 @@ page 8369 "MCP Server Feature Settings"
             {
                 ShowCaption = false;
 
-                // MOCK: page-local stand-ins for the AL Query Server sub-settings until the platform
+                field(DiscoverReadOnlyObjects; DiscoverReadOnlyObjectsLocal)
+                {
+                    Caption = 'Discover Additional Read-Only Objects';
+                    ToolTip = 'Specifies whether to allow discovery of read-only objects not defined in the configuration.';
+                    Visible = Feature = Feature::"Dynamic Tool Mode";
+                }
+                // MOCK: page-local stand-ins for the AL Query Tools sub-settings until the platform
                 // adds real fields on MCP Configuration. Reset every time the dialog opens.
                 field(MaxRowsPerQuery; MaxRowsPerQueryLocal)
                 {
                     Caption = 'Maximum Rows per Query';
                     ToolTip = 'Specifies the maximum number of rows a single AL query may return.';
-                    Visible = Feature = Feature::"AL Query Server";
+                    Visible = Feature = Feature::"AL Query Tools";
                 }
                 field(QueryTimeoutSeconds; QueryTimeoutSecondsLocal)
                 {
                     Caption = 'Query Timeout (seconds)';
                     ToolTip = 'Specifies the maximum execution time for a single AL query, in seconds.';
-                    Visible = Feature = Feature::"AL Query Server";
+                    Visible = Feature = Feature::"AL Query Tools";
                 }
             }
         }
@@ -48,7 +54,11 @@ page 8369 "MCP Server Feature Settings"
     }
 
     trigger OnOpenPage()
+    var
+        ParentConfig: Record "MCP Configuration";
     begin
+        if ParentConfig.GetBySystemId(ConfigSystemId) then
+            DiscoverReadOnlyObjectsLocal := ParentConfig.DiscoverReadOnlyObjects;
         if MaxRowsPerQueryLocal = 0 then
             MaxRowsPerQueryLocal := 10000;
         if QueryTimeoutSecondsLocal = 0 then
@@ -59,6 +69,7 @@ page 8369 "MCP Server Feature Settings"
     var
         ConfigSystemId: Guid;
         Feature: Enum "MCP Server Feature";
+        DiscoverReadOnlyObjectsLocal: Boolean;
         MaxRowsPerQueryLocal: Integer;
         QueryTimeoutSecondsLocal: Integer;
 
@@ -69,16 +80,24 @@ page 8369 "MCP Server Feature Settings"
     end;
 
     internal procedure SaveChanges()
+    var
+        ParentConfig: Record "MCP Configuration";
     begin
-        // MOCK: nothing to persist while the AL Query Server sub-settings are page-local. When the
-        // platform-side fields land, write the locals back to MCP Configuration here, e.g.:
-        //   case Feature of
-        //       Feature::"AL Query Server":
-        //           begin
-        //               MCPConfig.SetALQueryMaxRowsPerQuery(ConfigSystemId, MaxRowsPerQueryLocal);
-        //               MCPConfig.SetALQueryTimeoutSeconds(ConfigSystemId, QueryTimeoutSecondsLocal);
-        //           end;
-        //   end;
+        case Feature of
+            Feature::"Dynamic Tool Mode":
+                begin
+                    if not ParentConfig.GetBySystemId(ConfigSystemId) then
+                        exit;
+                    ParentConfig.DiscoverReadOnlyObjects := DiscoverReadOnlyObjectsLocal;
+                    ParentConfig.Modify(true);
+                end;
+            Feature::"AL Query Tools":
+                ;
+            // MOCK: nothing to persist for AL Query Tools while its sub-settings are page-local.
+            // When the platform-side fields land, write the locals back here via the facade, e.g.:
+            //   MCPConfig.SetALQueryMaxRowsPerQuery(ConfigSystemId, MaxRowsPerQueryLocal);
+            //   MCPConfig.SetALQueryTimeoutSeconds(ConfigSystemId, QueryTimeoutSecondsLocal);
+        end;
     end;
 
     local procedure UpdateCaption()

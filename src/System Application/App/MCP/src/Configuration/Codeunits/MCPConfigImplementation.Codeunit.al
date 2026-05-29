@@ -252,12 +252,12 @@ codeunit 8351 "MCP Config Implementation"
         LogConfigurationModified(MCPConfiguration, xMCPConfiguration);
     end;
 
-    // MOCK: AL Query Server activation and its sub-settings have no platform-side persistence yet.
+    // MOCK: AL Query Tools activation and its sub-settings have no platform-side persistence yet.
     // These procedures are intentional no-ops. When the platform adds `EnableALQuery`,
     // `MaxRowsPerQuery`, and `QueryTimeoutSeconds` fields to `MCP Configuration`, implement each
     // body by: GetBySystemId(ConfigId) (Error with ConfigurationNotFoundErr if missing) →
     // assign the new value to the appropriate Rec field → Modify() → LogConfigurationModified.
-    internal procedure EnableALQueryServer(ConfigId: Guid; Enable: Boolean)
+    internal procedure EnableALQueryTools(ConfigId: Guid; Enable: Boolean)
     begin
     end;
 
@@ -879,16 +879,15 @@ codeunit 8351 "MCP Config Implementation"
         if IncludeAPITools then begin
             SystemTools := MCPUtilities.GetSystemToolsInDynamicMode();
             foreach ToolName in SystemTools.Keys() do
-                // Tools exposed by Dynamic Tool Mode aren't owned by a feature, so leave Server Feature blank (the enum's empty value).
-                InsertSystemTool(MCPSystemTool, MCPSystemTool."Server Feature"::" ", CopyStr(ToolName, 1, MaxStrLen(MCPSystemTool."Tool Name")), CopyStr(SystemTools.Get(ToolName), 1, MaxStrLen(MCPSystemTool."Tool Description")));
+                InsertSystemTool(MCPSystemTool, MCPSystemTool."Server Feature"::"Dynamic Tool Mode", CopyStr(ToolName, 1, MaxStrLen(MCPSystemTool."Tool Name")), CopyStr(SystemTools.Get(ToolName), 1, MaxStrLen(MCPSystemTool."Tool Description")));
         end;
 
         if IncludeALQuery then begin
             // MOCK: hardcoded preview of the AL Query system tools. When the platform exposes the real
             // tool catalog, replace these inserts with a call to MCP Utilities (mirroring
             // GetSystemToolsInDynamicMode for the AL Query server).
-            InsertSystemTool(MCPSystemTool, MCPSystemTool."Server Feature"::"AL Query Server", 'compile_al_query', 'Compile an AL query string and return diagnostics.');
-            InsertSystemTool(MCPSystemTool, MCPSystemTool."Server Feature"::"AL Query Server", 'run_al_query', 'Execute a previously compiled AL query and return the result set.');
+            InsertSystemTool(MCPSystemTool, MCPSystemTool."Server Feature"::"AL Query Tools", 'compile_al_query', 'Compile an AL query string and return diagnostics.');
+            InsertSystemTool(MCPSystemTool, MCPSystemTool."Server Feature"::"AL Query Tools", 'run_al_query', 'Execute a previously compiled AL query and return the result set.');
         end;
     end;
 

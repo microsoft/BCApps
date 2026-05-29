@@ -9,7 +9,7 @@ using System.Reflection;
 
 page 8352 "MCP Config Tool List"
 {
-    Caption = 'Available Tools';
+    Caption = 'API Tools';
     ApplicationArea = All;
     PageType = ListPart;
     SourceTable = "MCP Configuration Tool";
@@ -171,6 +171,7 @@ page 8352 "MCP Config Tool List"
                 Ellipsis = true;
                 Image = Resource;
                 ToolTip = 'Opens a lookup to select API tools to add to this configuration.';
+                Enabled = not IsConfigActive;
 
                 trigger OnAction()
                 var
@@ -258,6 +259,11 @@ page 8352 "MCP Config Tool List"
     begin
         GetAllowCreateUpdateDeleteTools();
         IsConfigActive := MCPConfigImplementation.IsConfigurationActive(Rec.ID);
+    end;
+
+    internal procedure SetConfigActive(IsActive: Boolean)
+    begin
+        IsConfigActive := IsActive;
     end;
 
     trigger OnNewRecord(BelowxRec: Boolean)
