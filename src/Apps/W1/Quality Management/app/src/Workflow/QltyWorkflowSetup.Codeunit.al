@@ -397,7 +397,7 @@ codeunit 20423 "Qlty. Workflow Setup"
         OptionalSuffix: Text;
     begin
         WorkflowResponse.SetFilter("Function Name", QltyPrefixTok + '*');
-        WorkflowResponse.DeleteAll(false);
+        WorkflowResponse.DeleteAll(true);
 
         WorkflowResponse.Reset();
         WorkflowResponse.SetRange(Description, QMWorkflowResponseDescriptionCreateAQltyInspectionLbl);
