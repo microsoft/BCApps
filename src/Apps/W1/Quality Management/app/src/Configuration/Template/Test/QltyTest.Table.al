@@ -47,7 +47,7 @@ table 20401 "Qlty. Test"
 
             trigger OnValidate()
             begin
-                HandleOnValidateTestValueType(true);
+                HandleOnValidateTestValueType();
             end;
         }
         field(5; "Allowable Values"; Text[500])
@@ -206,11 +206,13 @@ table 20401 "Qlty. Test"
         ReviewResultsErr: Label 'Advanced configuration required. Please review the result configurations for test "%1", for result "%2".', Comment = '%1=the test, %2=the result';
         OnlyFieldExpressionErr: Label 'The Expression Formula can only be used with fields that are a type of Expression';
         BooleanChoiceListLbl: Label 'No,Yes';
-        ExistingInspectionErr: Label 'The test %1 exists on %2 inspections (such as %3 with template %4). The test can not be deleted if it is being used on a Quality Inspection.', Comment = '%1=the test, %2=count of inspections, %3=one example inspection, %4=example template.';
+        ExistingInspectionErr: Label 'The test %1 exists on %2 inspections (such as %3 with template %4). The test cannot be deleted if it is being used on a quality inspection.', Comment = '%1=the test, %2=count of inspections, %3=one example inspection, %4=example template.';
         DeleteQst: Label 'The test %3 exists on %1 Quality Inspection Template(s) (such as template %2) that will be deleted. Do you wish to proceed?', Comment = '%1 = the lines, %2= the Template Code, %3=the test';
-        DeleteErr: Label 'The test %3 exists on %1 Quality Inspection Template(s) (such as template %2) and can not be deleted until it is no longer used on templates.', Comment = '%1 = the lines, %2= the Template Code, %3=the test';
-        TestValueTypeErrTitleMsg: Label 'Test Value Type cannot be changed for a test that has been used in inspections.';
-        TestValueTypeErrInfoMsg: Label '%1Consider replacing this test in the template with a new one, or deleting existing inspections (if allowed). The test was last used on inspection %2.', Comment = '%1 = Error Title, %2 = Quality Inspection No.';
+        DeleteErr: Label 'The test %3 exists on %1 Quality Inspection Template(s) (such as template %2) and cannot be deleted until it is no longer used on templates.', Comment = '%1 = the lines, %2= the Template Code, %3=the test';
+        TestValueTypeChangeErrTitleMsg: Label 'Cannot change the test value type for a test that is already in use on inspections.';
+        TestValueTypeChangeErrInfoMsg: Label 'Consider replacing this test in the template with a new one, or deleting existing inspections (if allowed). The test was last used on Inspection %1, Re-inspection %2.', Comment = '%1 = Quality Inspection No., %2 = Re-inspection No.';
+        ShowInspectionActionLbl: Label 'Show Inspection %1 %2', Comment = '%1=Inspection No., %2=Re-inspection No.';
+        InspectionLineExistsButHeaderMissingErr: Label 'The test %1 exists on inspection line with Inspection No. %2, Re-inspection %3, but the inspection header record is missing. This indicates a data integrity issue.', Comment = '%1=Test Code, %2=Inspection No., %3=Re-inspection No.';
 
     /// <summary>
     /// Set a specific result for the test. If AllowError is set to true it will error
@@ -382,6 +384,7 @@ table 20401 "Qlty. Test"
         QltyInspectionLine.SetRange("Test Code", Rec.Code);
         LineCount := QltyInspectionLine.Count();
         if LineCount > 0 then begin
+            QltyInspectionLine.SetLoadFields("Test Code", "Template Code");
             QltyInspectionLine.FindFirst();
             Error(ExistingInspectionErr,
                 QltyInspectionLine."Test Code",
@@ -546,20 +549,11 @@ table 20401 "Qlty. Test"
         end;
     end;
 
-    internal procedure HandleOnValidateTestValueType(AllowActionableError: Boolean)
+    local procedure HandleOnValidateTestValueType()
     var
-        QltyInspectionLine: Record "Qlty. Inspection Line";
-        QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyResultConditionMgmt: Codeunit "Qlty. Result Condition Mgmt.";
     begin
-        QltyInspectionLine.SetRange("Test Code", Rec.Code);
-        if QltyInspectionLine.FindLast() then begin
-            if QltyInspectionHeader.Get(QltyInspectionLine."Inspection No.", QltyInspectionLine."Re-inspection No.") then;
-            if AllowActionableError then
-                Error(TestValueTypeErrInfoMsg, TestValueTypeErrTitleMsg, QltyInspectionHeader."No.")
-            else
-                Error(TestValueTypeErrInfoMsg, TestValueTypeErrTitleMsg, QltyInspectionHeader."No.");
-        end;
+        CheckTestNotUsedInInspections();
 
         if Rec."Test Value Type" <> xRec."Test Value Type" then begin
             Rec."Allowable Values" := '';
@@ -572,6 +566,33 @@ table 20401 "Qlty. Test"
         end;
 
         QltyResultConditionMgmt.CopyResultConditionsFromDefaultToTest(Rec.Code, Rec."Test Value Type");
+    end;
+
+    local procedure CheckTestNotUsedInInspections()
+    var
+        QltyInspectionLine: Record "Qlty. Inspection Line";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+    begin
+        QltyInspectionLine.SetLoadFields("Inspection No.", "Re-inspection No.");
+        QltyInspectionLine.SetRange("Test Code", Rec.Code);
+        if QltyInspectionLine.FindLast() then begin
+            if not QltyInspectionHeader.Get(QltyInspectionLine."Inspection No.", QltyInspectionLine."Re-inspection No.") then
+                Error(InspectionLineExistsButHeaderMissingErr, Rec.Code, QltyInspectionLine."Inspection No.", QltyInspectionLine."Re-inspection No.");
+
+            ThrowTestUsedInInspectionsError(QltyInspectionHeader);
+        end;
+    end;
+
+    local procedure ThrowTestUsedInInspectionsError(QltyInspectionHeader: Record "Qlty. Inspection Header")
+    var
+        ErrorInfo: ErrorInfo;
+    begin
+        ErrorInfo.Title := TestValueTypeChangeErrTitleMsg;
+        ErrorInfo.Message := StrSubstNo(TestValueTypeChangeErrInfoMsg, QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
+        ErrorInfo.PageNo := Page::"Qlty. Inspection";
+        ErrorInfo.RecordId := QltyInspectionHeader.RecordId();
+        ErrorInfo.AddNavigationAction(StrSubstNo(ShowInspectionActionLbl, QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No."));
+        Error(ErrorInfo);
     end;
 
     procedure AssistEditExpressionFormula()
@@ -628,9 +649,9 @@ table 20401 "Qlty. Test"
         if IsHandled then
             exit;
 
-        IsNumeric := Rec."Test Value Type" in [Rec."Test Value Type"::"Value Type Decimal",
-                        Rec."Test Value Type"::"Value Type Integer"
-                        ];
+        IsNumeric := Rec."Test Value Type" in
+                        [Rec."Test Value Type"::"Value Type Decimal",
+                        Rec."Test Value Type"::"Value Type Integer"];
     end;
 
     /// <summary>
