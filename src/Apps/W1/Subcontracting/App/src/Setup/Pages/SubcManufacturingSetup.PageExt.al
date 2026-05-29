@@ -44,11 +44,6 @@ pageextension 99001542 "Subc. Manufacturing Setup" extends "Manufacturing Setup"
                         ApplicationArea = Manufacturing;
                         ToolTip = 'Specifies which Direct Unit Cost of a Prod. Order Component is to be used in the subcontracting purchase order. Standard: Standard pricing is used when procuring the component. Prod. Order Component: The calculated Direct Unit Cost of the Prod. Order Component Line is transferred to the subcontracting purchase order.';
                     }
-                    field(RefItemChargeToRcptSubLines; Rec.RefItemChargeToRcptSubLines)
-                    {
-                        ApplicationArea = Manufacturing;
-                        ToolTip = 'Specifies whether to enable the item charge assignment to purchase receipt lines with subcontracting. When enabled, the item charge is posted as a new value entry of type "Direct Cost", when it is assigned to a purchase receipt line with referenced production order line. This created value entry is automatically assigned to a capacity entry of the prod order.';
-                    }
                 }
                 group(SubcPurchaseProvision)
                 {
