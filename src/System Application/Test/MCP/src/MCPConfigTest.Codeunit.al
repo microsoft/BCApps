@@ -251,6 +251,34 @@ codeunit 130130 "MCP Config Test"
 
     #endregion
 
+    #region API Tools
+
+    // MOCK: API Tools activation has no platform-side persistence yet, so the facade procedure is an
+    // intentional no-op. These tests only verify it is callable without erroring; replace with real
+    // state assertions once the platform adds the API Tools field on MCP Configuration.
+
+    [Test]
+    procedure TestEnableAPITools()
+    var
+        ConfigId: Guid;
+    begin
+        // MOCK: smoke test for the facade procedure.
+        ConfigId := CreateMCPConfig(false, false, true, false);
+        MCPConfig.EnableAPITools(ConfigId, true);
+    end;
+
+    [Test]
+    procedure TestDisableAPITools()
+    var
+        ConfigId: Guid;
+    begin
+        // MOCK: smoke test for the facade procedure.
+        ConfigId := CreateMCPConfig(false, false, true, false);
+        MCPConfig.EnableAPITools(ConfigId, false);
+    end;
+
+    #endregion
+
     #region AL Query Tools
 
     // MOCK: the AL Query Tools facade procedures are intentional no-ops until the platform adds
@@ -1106,8 +1134,6 @@ codeunit 130130 "MCP Config Test"
         Assert.IsFalse(MCPConfigCard.Name.Editable(), 'Name field is editable');
         Assert.IsFalse(MCPConfigCard.Description.Editable(), 'Description field is editable');
         Assert.IsFalse(MCPConfigCard.Active.Editable(), 'Active field is editable');
-        Assert.IsFalse(MCPConfigCard.EnableDynamicToolMode.Editable(), 'EnableDynamicToolMode field is editable');
-        Assert.IsFalse(MCPConfigCard.DiscoverReadOnlyObjects.Editable(), 'DiscoverReadOnlyObjects field is editable');
         Assert.IsFalse(MCPConfigCard.ToolList.Visible(), 'ToolList is visible');
     end;
 
@@ -1252,6 +1278,104 @@ codeunit 130130 "MCP Config Test"
         // [THEN] System default is re-marked as default
         SystemDefault.Get('');
         Assert.IsTrue(SystemDefault.Default, 'System default should be re-marked as default');
+    end;
+
+    #endregion
+
+    #region Server Features
+
+    [Test]
+    procedure TestServerFeaturesListShowsAllFeatures()
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        MCPConfigCard: TestPage "MCP Config Card";
+        ConfigId: Guid;
+    begin
+        // [GIVEN] A non-default configuration
+        ConfigId := CreateMCPConfig(false, false, true, false);
+        MCPConfiguration.GetBySystemId(ConfigId);
+
+        // [WHEN] The configuration card is opened
+        MCPConfigCard.OpenEdit();
+        MCPConfigCard.GoToRecord(MCPConfiguration);
+
+        // [THEN] The Server Features list shows all three features in enum order
+        Assert.IsTrue(MCPConfigCard.ServerFeatureList.First(), 'Server Features list is empty');
+        Assert.AreEqual('API Tools', MCPConfigCard.ServerFeatureList.Feature.Value, 'Unexpected first feature');
+        Assert.IsTrue(MCPConfigCard.ServerFeatureList.Next(), 'Dynamic Tool Mode row is missing');
+        Assert.AreEqual('Dynamic Tool Mode', MCPConfigCard.ServerFeatureList.Feature.Value, 'Unexpected second feature');
+        Assert.IsTrue(MCPConfigCard.ServerFeatureList.Next(), 'AL Query Tools row is missing');
+        Assert.AreEqual('AL Query Tools (Preview)', MCPConfigCard.ServerFeatureList.Feature.Value, 'Unexpected third feature');
+        Assert.IsFalse(MCPConfigCard.ServerFeatureList.Next(), 'Unexpected extra feature rows');
+    end;
+
+    [Test]
+    procedure TestConfigureEnabledOnlyForDynamicToolMode()
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        MCPConfigCard: TestPage "MCP Config Card";
+        ConfigId: Guid;
+    begin
+        // [GIVEN] A non-default configuration with Dynamic Tool Mode active (so its row is configurable + active)
+        ConfigId := CreateMCPConfig(false, true, true, false);
+        MCPConfiguration.GetBySystemId(ConfigId);
+
+        // [WHEN] The configuration card is opened
+        MCPConfigCard.OpenEdit();
+        MCPConfigCard.GoToRecord(MCPConfiguration);
+
+        // [THEN] Configure is enabled only on Dynamic Tool Mode (the one feature with settings).
+        // NOTE: API Tools / AL Query are also inactive here (mock), which on its own disables Configure;
+        // Dynamic Tool Mode isolates the Configurable (HasSettings) gate since it is active.
+        MCPConfigCard.ServerFeatureList.First(); // API Tools
+        Assert.IsFalse(MCPConfigCard.ServerFeatureList.Configure.Enabled(), 'Configure should be disabled for API Tools');
+        MCPConfigCard.ServerFeatureList.Next(); // Dynamic Tool Mode
+        Assert.IsTrue(MCPConfigCard.ServerFeatureList.Configure.Enabled(), 'Configure should be enabled for Dynamic Tool Mode');
+        MCPConfigCard.ServerFeatureList.Next(); // AL Query Tools
+        Assert.IsFalse(MCPConfigCard.ServerFeatureList.Configure.Enabled(), 'Configure should be disabled for AL Query Tools');
+    end;
+
+    [Test]
+    procedure TestActivateDynamicToolModeFromServerFeatures()
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        MCPConfigCard: TestPage "MCP Config Card";
+        ConfigId: Guid;
+    begin
+        // [GIVEN] A non-default configuration with Dynamic Tool Mode off
+        ConfigId := CreateMCPConfig(false, false, true, false);
+        MCPConfiguration.GetBySystemId(ConfigId);
+        MCPConfigCard.OpenEdit();
+        MCPConfigCard.GoToRecord(MCPConfiguration);
+
+        // [WHEN] Activate is invoked on the Dynamic Tool Mode row
+        // NOTE: the "API Tools required" gate is currently commented out, so this succeeds without API Tools.
+        MCPConfigCard.ServerFeatureList.First(); // API Tools
+        MCPConfigCard.ServerFeatureList.Next(); // Dynamic Tool Mode
+        Assert.AreEqual('Dynamic Tool Mode', MCPConfigCard.ServerFeatureList.Feature.Value, 'Not positioned on the Dynamic Tool Mode row');
+        MCPConfigCard.ServerFeatureList.Activate.Invoke();
+
+        // [THEN] The row turns Active and the configuration field is set
+        Assert.AreEqual('Active', MCPConfigCard.ServerFeatureList.Status.Value, 'Dynamic Tool Mode row is not Active');
+        MCPConfiguration.GetBySystemId(ConfigId);
+        Assert.IsTrue(MCPConfiguration.EnableDynamicToolMode, 'EnableDynamicToolMode was not set');
+    end;
+
+    [Test]
+    procedure TestServerFeaturesListHiddenOnDefaultConfiguration()
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        MCPConfigCard: TestPage "MCP Config Card";
+    begin
+        // [GIVEN] The default configuration
+        MCPConfiguration.Get('');
+
+        // [WHEN] The configuration card is opened
+        MCPConfigCard.OpenEdit();
+        MCPConfigCard.GoToRecord(MCPConfiguration);
+
+        // [THEN] The Server Features list is not shown
+        Assert.IsFalse(MCPConfigCard.ServerFeatureList.Visible(), 'Server Features list should be hidden on the default configuration');
     end;
 
     #endregion
