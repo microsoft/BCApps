@@ -9,19 +9,26 @@ using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Ledger;
+using Microsoft.Inventory.Posting;
+using Microsoft.Inventory.Tracking;
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Posting;
 codeunit 99001535 "Subc. Purch. Post Ext"
 {
-    var
-        SubcManagementSetup: Record "Subc. Management Setup";
-
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnBeforeItemJnlPostLine, '', false, false)]
     local procedure "Purch.-Post_OnBeforeItemJnlPostLine"(var ItemJournalLine: Record "Item Journal Line"; TempItemChargeAssignmentPurch: Record "Item Charge Assignment (Purch)" temporary)
     begin
         FillItemJnlLineForSubcontractingItemCharge(ItemJournalLine, TempItemChargeAssignmentPurch);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Mfg. Purch.-Post", OnAfterPostItemJnlLineCopyProdOrder, '', false, false)]
+    local procedure MfgPurchPostOnAfterPostItemJnlLineCopyProdOrder(var ItemJnlLine: Record "Item Journal Line"; PurchLine: Record "Purchase Line")
+    begin
+        ItemJnlLine."Subc. Purch. Order No." := PurchLine."Document No.";
+        ItemJnlLine."Subc. Purch. Order Line No." := PurchLine."Line No.";
+        ItemJnlLine."Subc. Operation No." := PurchLine."Operation No.";
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnPostItemChargePerRcptOnAfterCalcDistributeCharge, '', false, false)]
@@ -34,22 +41,20 @@ codeunit 99001535 "Subc. Purch. Post Ext"
     var
         PurchRcptLine: Record "Purch. Rcpt. Line";
     begin
-        if not SubcManagementSetup.ItemChargeToRcptSubReferenceEnabled() then
+        if ItemJournalLine."Item Charge No." = '' then
+            exit;
+        if not PurchRcptLine.Get(TempItemChargeAssignmentPurch."Applies-to Doc. No.", TempItemChargeAssignmentPurch."Applies-to Doc. Line No.") then
+            exit;
+        if not PurchRcptLineHasProdOrder(PurchRcptLine) then
             exit;
 
-        if ItemJournalLine."Item Charge No." <> '' then
-            if PurchRcptLine.Get(TempItemChargeAssignmentPurch."Applies-to Doc. No.", TempItemChargeAssignmentPurch."Applies-to Doc. Line No.") then
-                if PurchRcptLineHasProdOrder(PurchRcptLine) then
-                    CopySubcontractingProdOrderFieldsToItemJnlLine(ItemJournalLine, PurchRcptLine);
+        CopySubcontractingProdOrderFieldsToItemJnlLine(ItemJournalLine, PurchRcptLine);
     end;
 
     local procedure SetQuantityBaseOnSubcontractingServiceLine(PurchaseLine: Record "Purchase Line"; var PurchRcptLine: Record "Purch. Rcpt. Line")
     var
         UnitofMeasureManagement: Codeunit "Unit of Measure Management";
     begin
-        if not SubcManagementSetup.ItemChargeToRcptSubReferenceEnabled() then
-            exit;
-
         if PurchRcptLine."Quantity (Base)" = 0 then
             if PurchRcptLineHasProdOrder(PurchRcptLine) then
                 PurchRcptLine."Quantity (Base)" := UnitofMeasureManagement.CalcBaseQty(
@@ -83,6 +88,31 @@ codeunit 99001535 "Subc. Purch. Post Ext"
         Item.SetLoadFields("Inventory Posting Group");
         Item.Get(ItemJournalLine."Item No.");
         ItemJournalLine."Inventory Posting Group" := Item."Inventory Posting Group";
-        ItemJournalLine."Item Charge Sub. Assign." := true;
+        ItemJournalLine."Subc. Item Charge Assign." := true;
     end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnPostItemJnlLineOnAfterPostItemJnlLineJobConsumption, '', false, false)]
+    local procedure ProcessLastOperationWarehouseTracking_OnPostItemJnlLineOnAfterPostItemJnlLineJobConsumption(var ItemJournalLine: Record "Item Journal Line"; PurchaseHeader: Record "Purchase Header"; PurchaseLine: Record "Purchase Line"; OriginalItemJnlLine: Record "Item Journal Line"; var TempReservationEntry: Record "Reservation Entry" temporary; var TrackingSpecification: Record "Tracking Specification" temporary; QtyToBeInvoiced: Decimal; QtyToBeReceived: Decimal; var PostJobConsumptionBeforePurch: Boolean; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line"; var TempWhseTrackingSpecification: Record "Tracking Specification" temporary)
+    begin
+        if PurchaseLine."Subc. Purchase Line Type" = "Subc. Purchase Line Type"::LastOperation then
+            CreateTempWhseSplitSpecificationForLastOperationSubcontracting(PurchaseLine, ItemJnlPostLine, TrackingSpecification, TempWhseTrackingSpecification);
+    end;
+
+    local procedure CreateTempWhseSplitSpecificationForLastOperationSubcontracting(PurchLine: Record "Purchase Line"; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line"; var TempHandlingSpecification: Record "Tracking Specification" temporary; var TempWhseSplitSpecification: Record "Tracking Specification" temporary)
+    begin
+        if ItemJnlPostLine.CollectTrackingSpecification(TempHandlingSpecification) then begin
+            TempWhseSplitSpecification.Reset();
+            TempWhseSplitSpecification.DeleteAll();
+            if TempHandlingSpecification.FindSet() then
+                repeat
+                    TempWhseSplitSpecification := TempHandlingSpecification;
+                    TempWhseSplitSpecification."Source Type" := DATABASE::"Purchase Line";
+                    TempWhseSplitSpecification."Source Subtype" := PurchLine."Document Type".AsInteger();
+                    TempWhseSplitSpecification."Source ID" := PurchLine."Document No.";
+                    TempWhseSplitSpecification."Source Ref. No." := PurchLine."Line No.";
+                    TempWhseSplitSpecification.Insert();
+                until TempHandlingSpecification.Next() = 0;
+        end;
+    end;
+
 }

@@ -38,6 +38,13 @@ report 4405 "EXR Trial Balance Excel"
 
             trigger OnAfterGetRecord()
             begin
+                if HideAccountsWithNoActivity then begin
+                    TrialBalanceData.SetRange("G/L Account No.", GLAccounts."No.");
+                    if TrialBalanceData.IsEmpty() then
+                        CurrReport.Skip();
+                    TrialBalanceData.SetRange("G/L Account No.");
+                end;
+
                 IndentedAccountName := PadStr('', GLAccounts.Indentation * 2, ' ') + GLAccounts.Name;
             end;
         }
@@ -96,6 +103,12 @@ report 4405 "EXR Trial Balance Excel"
                 {
                     Caption = 'Options';
 
+                    field(HideAccountsWithNoActivityField; HideAccountsWithNoActivity)
+                    {
+                        ApplicationArea = All;
+                        Caption = 'Hide Accounts with No Activity';
+                        ToolTip = 'Specifies whether to exclude G/L accounts that have no activity for the selected period. When enabled, only accounts with at least one non-zero value across opening balance, turnover, or closing balance are shown.';
+                    }
                     // Used to set the date filter on the report header across multiple languages
                     field(RequestDateFilter; DateFilter)
                     {
@@ -156,6 +169,7 @@ report 4405 "EXR Trial Balance Excel"
     var
         ExcelReportsTelemetry: Codeunit "Excel Reports Telemetry";
         DateFilter: Text;
+        HideAccountsWithNoActivity: Boolean;
 
     protected var
         CompanyInformation: Record "Company Information";

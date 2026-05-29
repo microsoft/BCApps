@@ -25,6 +25,7 @@ codeunit 5592 "Quality Management Module" implements "Contoso Demo Data Module"
 
     procedure CreateSetupData()
     begin
+        Codeunit.Run(Codeunit::"Create QM No Series");
     end;
 
     procedure CreateMasterData()

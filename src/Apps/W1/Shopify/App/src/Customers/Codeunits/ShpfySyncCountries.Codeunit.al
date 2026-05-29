@@ -40,7 +40,7 @@ codeunit 30107 "Shpfy Sync Countries"
         ShopCustomerTemplate.SetFilter("Country/Region Code", '%1|%2', '', '*');
         ShopCustomerTemplate.DeleteAll(true);
 
-        GraphQLType := GraphQLType::GetShipToCountries;
+        GraphQLType := GraphQLType::Shipping_GetShipToCountries;
         JResponse := ShopifyCommunicationMgt.ExecuteGraphQL(GraphQLType);
         if JsonHelper.GetJsonArray(JResponse, JShipToCountries, 'data.shop.shipsToCountries') then
             foreach JShipToCountry in JShipToCountries do

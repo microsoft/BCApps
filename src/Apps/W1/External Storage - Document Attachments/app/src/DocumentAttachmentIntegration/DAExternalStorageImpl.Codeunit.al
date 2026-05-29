@@ -31,7 +31,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     procedure BeforeAddOrModifyFileScenarioCheck(Scenario: Enum "File Scenario"; Connector: Enum "Ext. File Storage Connector"): Boolean;
     var
         ExternalStorageSetup: Record "DA External Storage Setup";
-        FileAccount: Record "File Account";
+        TempFileAccount: Record "File Account";
         FileScenarioCU: Codeunit "File Scenario";
         ConfirmManagement: Codeunit "Confirm Management";
         ExternalStorageSetupPage: Page "DA External Storage Setup";
@@ -42,7 +42,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
             exit;
 
         // Check if scenario is already assigned to a different account
-        if FileScenarioCU.GetSpecificFileAccount(Scenario, FileAccount) then
+        if FileScenarioCU.GetSpecificFileAccount(Scenario, TempFileAccount) then
             // If feature is enabled and has uploaded files, don't allow reassignment
             if ExternalStorageSetup.Get() then
                 if ExternalStorageSetup.Enabled then begin
@@ -133,7 +133,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     /// <returns>True if upload was successful, false otherwise.</returns>
     procedure UploadToExternalStorage(var DocumentAttachment: Record "Document Attachment"): Boolean
     var
-        FileAccount: Record "File Account";
+        TempFileAccount: Record "File Account";
         ExternalFileStorage: Codeunit "External File Storage";
         FileScenarioCU: Codeunit "File Scenario";
         DAFeatureTelemetry: Codeunit "DA Feature Telemetry";
@@ -168,7 +168,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
 
         // Search for External Storage assigned File Scenario
         FileScenario := FileScenario::"Doc. Attach. - External Storage";
-        if not FileScenarioCU.GetSpecificFileAccount(FileScenario, FileAccount) then
+        if not FileScenarioCU.GetSpecificFileAccount(FileScenario, TempFileAccount) then
             exit(false);
 
         // Create the file with connector using the File Account framework
@@ -193,7 +193,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     /// <returns>True if download was successful, false otherwise.</returns>
     procedure DownloadFromExternalStorage(var DocumentAttachment: Record "Document Attachment"): Boolean
     var
-        FileAccount: Record "File Account";
+        TempFileAccount: Record "File Account";
         ExternalFileStorage: Codeunit "External File Storage";
         FileScenarioCU: Codeunit "File Scenario";
         DAFeatureTelemetry: Codeunit "DA Feature Telemetry";
@@ -218,7 +218,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
 
         // Search for External Storage assigned File Scenario
         FileScenario := FileScenario::"Doc. Attach. - External Storage";
-        if not FileScenarioCU.GetSpecificFileAccount(FileScenario, FileAccount) then
+        if not FileScenarioCU.GetSpecificFileAccount(FileScenario, TempFileAccount) then
             exit(false);
 
         // Get the file with connector using the File Account framework
@@ -240,7 +240,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     /// <returns>True if download and import was successful, false otherwise.</returns>
     procedure DownloadFromExternalStorageToInternal(var DocumentAttachment: Record "Document Attachment"): Boolean
     var
-        FileAccount: Record "File Account";
+        TempFileAccount: Record "File Account";
         ExternalFileStorage: Codeunit "External File Storage";
         FileScenarioCU: Codeunit "File Scenario";
         FileScenario: Enum "File Scenario";
@@ -260,7 +260,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
 
         // Search for External Storage assigned File Scenario
         FileScenario := FileScenario::"Doc. Attach. - External Storage";
-        if not FileScenarioCU.GetSpecificFileAccount(FileScenario, FileAccount) then
+        if not FileScenarioCU.GetSpecificFileAccount(FileScenario, TempFileAccount) then
             exit(false);
 
         // Get the file with connector using the File Account framework
@@ -284,7 +284,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     /// <returns>True if the download was successful, false otherwise.</returns>
     procedure DownloadFromExternalStorageToStream(ExternalFilePath: Text; var AttachmentOutStream: OutStream): Boolean
     var
-        FileAccount: Record "File Account";
+        TempFileAccount: Record "File Account";
         ExternalFileStorage: Codeunit "External File Storage";
         FileScenarioCU: Codeunit "File Scenario";
         FileScenario: Enum "File Scenario";
@@ -292,7 +292,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     begin
         // Search for External Storage assigned File Scenario
         FileScenario := FileScenario::"Doc. Attach. - External Storage";
-        if not FileScenarioCU.GetSpecificFileAccount(FileScenario, FileAccount) then
+        if not FileScenarioCU.GetSpecificFileAccount(FileScenario, TempFileAccount) then
             exit(false);
 
         // Get the file from external storage
@@ -313,7 +313,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     /// <returns>True if the download was successful, false otherwise.</returns>
     procedure DownloadFromExternalStorageToTempBlob(ExternalFilePath: Text; var TempBlob: Codeunit "Temp Blob"): Boolean
     var
-        FileAccount: Record "File Account";
+        TempFileAccount: Record "File Account";
         ExternalFileStorage: Codeunit "External File Storage";
         FileScenarioCU: Codeunit "File Scenario";
         FileScenario: Enum "File Scenario";
@@ -322,7 +322,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     begin
         // Search for External Storage assigned File Scenario
         FileScenario := FileScenario::"Doc. Attach. - External Storage";
-        if not FileScenarioCU.GetSpecificFileAccount(FileScenario, FileAccount) then
+        if not FileScenarioCU.GetSpecificFileAccount(FileScenario, TempFileAccount) then
             exit(false);
 
         // Get the file from external storage
@@ -343,14 +343,14 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     /// <returns>True if the file exists, false otherwise.</returns>
     procedure CheckIfFileExistInExternalStorage(ExternalFilePath: Text): Boolean
     var
-        FileAccount: Record "File Account";
+        TempFileAccount: Record "File Account";
         ExternalFileStorage: Codeunit "External File Storage";
         FileScenarioCU: Codeunit "File Scenario";
         FileScenario: Enum "File Scenario";
     begin
         // Search for External Storage assigned File Scenario
         FileScenario := FileScenario::"Doc. Attach. - External Storage";
-        if not FileScenarioCU.GetSpecificFileAccount(FileScenario, FileAccount) then
+        if not FileScenarioCU.GetSpecificFileAccount(FileScenario, TempFileAccount) then
             exit(false);
 
         // Get the file from external storage
@@ -365,7 +365,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     /// <returns>True if deletion was successful, false otherwise.</returns>
     procedure DeleteFromExternalStorage(var DocumentAttachment: Record "Document Attachment"): Boolean
     var
-        FileAccount: Record "File Account";
+        TempFileAccount: Record "File Account";
         ExternalFileStorage: Codeunit "External File Storage";
         FileScenarioCU: Codeunit "File Scenario";
         DAFeatureTelemetry: Codeunit "DA Feature Telemetry";
@@ -400,7 +400,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
 
         // Search for External Storage assigned File Scenario
         FileScenario := FileScenario::"Doc. Attach. - External Storage";
-        if not FileScenarioCU.GetSpecificFileAccount(FileScenario, FileAccount) then
+        if not FileScenarioCU.GetSpecificFileAccount(FileScenario, TempFileAccount) then
             exit(false);
 
         // Delete the file with connector using the File Account framework
@@ -519,7 +519,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     /// <returns>The selected folder path, or empty string if cancelled.</returns>
     procedure SelectRootFolder(): Text
     var
-        FileAccount: Record "File Account";
+        TempFileAccount: Record "File Account";
         ExternalFileStorage: Codeunit "External File Storage";
         FileScenarioCU: Codeunit "File Scenario";
         SelectFolderPathLbl: Label 'Select Root Folder for Attachments';
@@ -527,7 +527,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     begin
         // Initialize external file storage with the scenario
         FileScenario := FileScenario::"Doc. Attach. - External Storage";
-        if not FileScenarioCU.GetSpecificFileAccount(FileScenario, FileAccount) then
+        if not FileScenarioCU.GetSpecificFileAccount(FileScenario, TempFileAccount) then
             exit('');
 
         ExternalFileStorage.Initialize(FileScenario);
@@ -612,14 +612,14 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
 
     local procedure EnsureFolderExists(CompanyFolderPath: Text)
     var
-        FileAccount: Record "File Account";
+        TempFileAccount: Record "File Account";
         ExternalFileStorage: Codeunit "External File Storage";
         FileScenarioCU: Codeunit "File Scenario";
         FileScenario: Enum "File Scenario";
     begin
         // Initialize external file storage with the scenario
         FileScenario := FileScenario::"Doc. Attach. - External Storage";
-        if not FileScenarioCU.GetSpecificFileAccount(FileScenario, FileAccount) then
+        if not FileScenarioCU.GetSpecificFileAccount(FileScenario, TempFileAccount) then
             exit;
 
         ExternalFileStorage.Initialize(FileScenario);
@@ -674,7 +674,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     /// <returns>True if migration was successful, false otherwise.</returns>
     procedure MigrateFileToCurrentEnvironment(var DocumentAttachment: Record "Document Attachment"): Boolean
     var
-        FileAccount: Record "File Account";
+        TempFileAccount: Record "File Account";
         ExternalFileStorage: Codeunit "External File Storage";
         FileScenarioCU: Codeunit "File Scenario";
         TempBlob: Codeunit "Temp Blob";
@@ -692,7 +692,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
 
         // Initialize external file storage
         FileScenario := FileScenario::"Doc. Attach. - External Storage";
-        if not FileScenarioCU.GetSpecificFileAccount(FileScenario, FileAccount) then
+        if not FileScenarioCU.GetSpecificFileAccount(FileScenario, TempFileAccount) then
             exit(false);
 
         ExternalFileStorage.Initialize(FileScenario);

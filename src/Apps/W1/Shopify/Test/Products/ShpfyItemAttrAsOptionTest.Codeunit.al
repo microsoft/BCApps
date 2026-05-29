@@ -369,7 +369,6 @@ codeunit 139596 "Shpfy Item Attr As Option Test"
     #region Helper Procedures
     local procedure Initialize()
     var
-        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
         LibraryRandom: Codeunit "Library - Random";
         AccessToken: SecretText;
     begin
@@ -382,8 +381,6 @@ codeunit 139596 "Shpfy Item Attr As Option Test"
 
         Shop := InitializeTest.CreateShop();
 
-        // Disable Event Mocking 
-        CommunicationMgt.SetTestInProgress(false);
         //Register Shopify Access Token
         AccessToken := LibraryRandom.RandText(20);
         InitializeTest.RegisterAccessTokenForShop(Shop.GetStoreName(), AccessToken);

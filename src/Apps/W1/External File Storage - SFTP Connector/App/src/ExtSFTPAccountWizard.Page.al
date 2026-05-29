@@ -179,7 +179,7 @@ page 4622 "Ext. SFTP Account Wizard"
 
                 trigger OnAction()
                 begin
-                    ConnectorImpl.CreateAccount(Rec, Password, Certificate, CertificatePassword, Account);
+                    ConnectorImpl.CreateAccount(Rec, Password, Certificate, CertificatePassword, TempAccount);
                     CurrPage.Close();
                 end;
             }
@@ -187,7 +187,7 @@ page 4622 "Ext. SFTP Account Wizard"
     }
 
     var
-        Account: Record "File Account";
+        TempAccount: Record "File Account";
         MediaResources: Record "Media Resources";
         ConnectorImpl: Codeunit "Ext. SFTP Connector Impl";
         [NonDebuggable]
@@ -213,10 +213,10 @@ page 4622 "Ext. SFTP Account Wizard"
 
     internal procedure GetAccount(var FileAccount: Record "File Account"): Boolean
     begin
-        if IsNullGuid(Account."Account Id") then
+        if IsNullGuid(TempAccount."Account Id") then
             exit(false);
 
-        FileAccount := Account;
+        FileAccount := TempAccount;
 
         exit(true);
     end;

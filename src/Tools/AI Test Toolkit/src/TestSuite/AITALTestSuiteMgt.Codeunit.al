@@ -12,7 +12,9 @@ using System.Utilities;
 codeunit 149037 "AIT AL Test Suite Mgt"
 {
     Permissions = tabledata "Test Method Line" = rmid,
-                  tabledata "AL Test Suite" = rmid;
+                  tabledata "AL Test Suite" = rmid,
+                  tabledata "Test Input" = rmid,
+                  tabledata "Test Input Group" = rmid;
 
     var
         RunProcedureOperationTok: Label 'Run Procedure', Locked = true;

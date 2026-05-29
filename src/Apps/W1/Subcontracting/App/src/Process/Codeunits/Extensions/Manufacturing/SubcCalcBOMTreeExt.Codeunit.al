@@ -19,8 +19,8 @@ codeunit 99001521 "Subc. Calc BOM Tree Ext."
 #endif
     local procedure OnBeforeCalcRoutingLineCosts(var RoutingLine: Record "Routing Line"; var LotSize: Decimal; var ScrapPct: Decimal; ParentItem: Record Item)
     var
-        SingleInstanceDictionary: Codeunit "Single Instance Dictionary";
+        SubcSessionState: Codeunit "Subc. Session State";
     begin
-        SingleInstanceDictionary.SetRecordID('OnBeforeCalcRoutingLineCosts', ParentItem.RecordId());
+        SubcSessionState.SetRecordID('OnBeforeCalcRoutingLineCosts', ParentItem.RecordId());
     end;
 }

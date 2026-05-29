@@ -91,8 +91,10 @@ page 8078 "Vendor Contract Line Subpage"
 
                     trigger OnValidate()
                     begin
-                        if not Rec.IsCommentLine() then
+                        if not Rec.IsCommentLine() then begin
+                            Rec.GetServiceObject(ServiceObject);
                             CurrPage.Update(false);
+                        end;
                     end;
 
                     trigger OnAssistEdit()
@@ -119,8 +121,10 @@ page 8078 "Vendor Contract Line Subpage"
                     ToolTip = 'Specifies the description of the Subscription Line.';
                     trigger OnValidate()
                     begin
-                        if not Rec.IsCommentLine() then
+                        if not Rec.IsCommentLine() then begin
+                            Rec.GetServiceCommitment(ServiceCommitment);
                             CurrPage.Update(false);
+                        end;
                     end;
                 }
                 field("Service Object Quantity"; ServiceCommitment.Quantity)
@@ -276,6 +280,8 @@ page 8078 "Vendor Contract Line Subpage"
                 {
                     Caption = 'Billing Base Period';
                     ToolTip = 'Specifies for which period the Amount is valid. If you enter 1M here, a period of one month, or 12M, a period of 1 year, to which Amount refers to.';
+                    Editable = not IsCommentLineEditable;
+                    Enabled = not IsCommentLineEditable;
 
                     trigger OnValidate()
                     begin
@@ -605,9 +611,9 @@ page 8078 "Vendor Contract Line Subpage"
 
     trigger OnAfterGetRecord()
     begin
-        InitializePageVariables();
-        SetNextBillingDateStyle();
+        Rec.GetServiceObject(ServiceObject);
         Rec.LoadServiceCommitmentForContractLine(ServiceCommitment);
+        SetNextBillingDateStyle();
     end;
 
     trigger OnAfterGetCurrRecord()
@@ -636,15 +642,10 @@ page 8078 "Vendor Contract Line Subpage"
         ServiceObject: Record "Subscription Header";
         ServiceCommitment: Record "Subscription Line";
 
-    local procedure InitializePageVariables()
-    var
-    begin
-        Rec.GetServiceCommitment(ServiceCommitment);
-        Rec.GetServiceObject(ServiceObject);
-    end;
-
     local procedure UpdateServiceCommitmentOnPage(CalledByFieldNo: Integer)
     begin
+        if Rec.IsCommentLine() then
+            exit;
         ServiceCommitment.UpdateServiceCommitment(CalledByFieldNo);
         CurrPage.Update();
     end;

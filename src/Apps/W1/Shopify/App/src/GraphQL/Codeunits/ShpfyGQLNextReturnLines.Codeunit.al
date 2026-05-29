@@ -1,3 +1,4 @@
+#if not CLEAN29
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -5,16 +6,27 @@
 
 namespace Microsoft.Integration.Shopify;
 
-codeunit 30227 "Shpfy GQL NextReturnLines" implements "Shpfy IGraphQL"
+codeunit 30227 "Shpfy GQL NextReturnLines"
 {
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Replaced by .graphql resource files. Use "Shpfy GraphQL Queries".GetQueryWithCost() instead.';
+    ObsoleteTag = '29.0';
 
-    internal procedure GetGraphQL(): Text
+    procedure GetGraphQL(): Text
+    var
+        GraphQLQueries: Codeunit "Shpfy GraphQL Queries";
+        ExpectedCost: Integer;
     begin
-        exit('{"query":"{ return(id: \"gid://shopify/Return/{{ReturnId}}\") { returnLineItems(first: 10, after:\"{{After}}\") { pageInfo { endCursor hasNextPage } nodes { id quantity returnReasonDefinition { name handle } returnReasonNote refundableQuantity refundedQuantity customerNote ... on UnverifiedReturnLineItem { __typename unitPrice { amount currencyCode } } ... on ReturnLineItem { __typename totalWeight { unit value } withCodeDiscountedTotalPriceSet { presentmentMoney { amount } shopMoney { amount } } fulfillmentLineItem { id lineItem { id } quantity originalTotalSet { presentmentMoney { amount } shopMoney { amount } } discountedTotalSet { presentmentMoney { amount } shopMoney { amount }}}}}}}}"}');
+        exit(GraphQLQueries.GetQueryWithCost(Enum::"Shpfy GraphQL Type"::Returns_GetNextReturnLines, ExpectedCost));
     end;
 
-    internal procedure GetExpectedCost(): Integer
+    procedure GetExpectedCost(): Integer
+    var
+        GraphQLQueries: Codeunit "Shpfy GraphQL Queries";
+        ExpectedCost: Integer;
     begin
-        exit(15);
+        GraphQLQueries.GetQueryWithCost(Enum::"Shpfy GraphQL Type"::Returns_GetNextReturnLines, ExpectedCost);
+        exit(ExpectedCost);
     end;
 }
+#endif

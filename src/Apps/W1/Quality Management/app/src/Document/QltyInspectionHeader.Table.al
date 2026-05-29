@@ -34,7 +34,8 @@ table 20405 "Qlty. Inspection Header"
     DrillDownPageId = "Qlty. Inspection List";
     LookupPageId = "Qlty. Inspection List";
     DataClassification = CustomerContent;
-    Permissions = tabledata "Qlty. Inspection Line" = d;
+    Permissions = tabledata "Qlty. Inspection Line" = d,
+                  tabledata "Qlty. I. Result Condit. Conf." = d;
 
     fields
     {
@@ -990,6 +991,16 @@ table 20405 "Qlty. Inspection Header"
     procedure CreateReinspection()
     var
         NewlyCreatedReQltyInspectionHeader: Record "Qlty. Inspection Header";
+    begin
+        CreateReinspection(NewlyCreatedReQltyInspectionHeader);
+    end;
+
+    /// <summary>
+    /// Creates a Re-inspection and returns the created record.
+    /// </summary>
+    /// <param name="ReinspectionQltyInspectionHeader">The newly created re-inspection header.</param>
+    procedure CreateReinspection(var ReinspectionQltyInspectionHeader: Record "Qlty. Inspection Header")
+    var
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         Proceed: Boolean;
     begin
@@ -1006,7 +1017,7 @@ table 20405 "Qlty. Inspection Header"
         else
             Proceed := true;
         if Proceed then
-            QltyInspectionCreate.CreateReinspection(Rec, NewlyCreatedReQltyInspectionHeader);
+            QltyInspectionCreate.CreateReinspection(Rec, ReinspectionQltyInspectionHeader);
     end;
 
     /// <summary>

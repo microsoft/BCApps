@@ -77,13 +77,13 @@ codeunit 2651 "Document Print Ready"
 
     local procedure SendEmailByEmailFeature(ToList: List of [Text]; EmailSubject: Text[250]; EmailBody: Text[2048]; DocumentStream: InStream; AttachmentName: Text[250]): Boolean
     var
-        EmailAccount: Record "Email Account";
+        TempEmailAccount: Record "Email Account";
         Email: Codeunit Email;
         Message: Codeunit "Email Message";
         EmailScenario: Codeunit "Email Scenario";
     begin
         // exit if email account is not set for Email Printer scenario
-        if not EmailScenario.GetEmailAccount(Enum::"Email Scenario"::"Email Printer", EmailAccount) then begin
+        if not EmailScenario.GetEmailAccount(Enum::"Email Scenario"::"Email Printer", TempEmailAccount) then begin
             if GuiAllowed() then
                 Message(NoEmailAccountDefinedErr, Enum::"Email Scenario"::"Email Printer");
             Session.LogMessage('0000D6E', NoEmailAccountTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EmailPrinterTelemetryCategoryTok);
@@ -96,7 +96,7 @@ codeunit 2651 "Document Print Ready"
         ClearLastError();
 
         // exit if sending message fails
-        if not Email.Send(Message, EmailAccount."Account Id", EmailAccount.Connector) then begin
+        if not Email.Send(Message, TempEmailAccount."Account Id", TempEmailAccount.Connector) then begin
             if GuiAllowed() then
                 Message(SendErr, GetLastErrorText());
             Session.LogMessage('0000BGK', NotSentTelemetryTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EmailPrinterTelemetryCategoryTok);

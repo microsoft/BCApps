@@ -10,6 +10,7 @@ using Microsoft.Finance.Dimension;
 using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
+using Microsoft.Purchases.Setup;
 
 page 6183 "E-Doc. Purchase Draft Subform"
 {
@@ -70,6 +71,12 @@ page 6183 "E-Doc. Purchase Draft Subform"
                     ApplicationArea = All;
                     Lookup = true;
                     ShowMandatory = true;
+                }
+                field("VAT Prod. Posting Group"; Rec."[BC] VAT Prod. Posting Group")
+                {
+                    ApplicationArea = All;
+                    Lookup = true;
+                    Visible = VATProdPostGroupIsVisible;
                 }
                 field("Item Reference No."; Rec."[BC] Item Reference No.")
                 {
@@ -328,12 +335,12 @@ page 6183 "E-Doc. Purchase Draft Subform"
     var
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
         EDocumentPurchaseLine: Record "E-Document Purchase Line";
-        EDocumentPOMatchWarnings: Record "E-Doc PO Match Warning";
+        TempEDocumentPOMatchWarnings: Record "E-Doc PO Match Warning";
         EDocPurchaseHistMapping: Codeunit "E-Doc. Purchase Hist. Mapping";
         EDocPOMatching: Codeunit "E-Doc. PO Matching";
         AdditionalColumns, OrderMatchedCaption, MatchWarningsCaption, MatchWarningsStyleExpr : Text;
         LineAmount: Decimal;
-        DimVisible1, DimVisible2, HasAdditionalColumns, IsEDocumentMatchedToAnyPOLine, IsLineMatchedToOrderLine, IsLineMatchedToReceiptLine, HasEDocumentOrderMatchWarnings : Boolean;
+        DimVisible1, DimVisible2, HasAdditionalColumns, IsEDocumentMatchedToAnyPOLine, IsLineMatchedToOrderLine, IsLineMatchedToReceiptLine, HasEDocumentOrderMatchWarnings, VATProdPostGroupIsVisible : Boolean;
         HistoryCantBeRetrievedErr: Label 'The purchase invoice that matched historically with this line can''t be opened.';
 
     trigger OnOpenPage()
@@ -350,6 +357,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
     trigger OnAfterGetCurrRecord()
     begin
         UpdatePOMatching();
+        SetVATProductPostingGroupVisibility();
     end;
 
     trigger OnAfterGetRecord()
@@ -362,6 +370,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
         IsLineMatchedToReceiptLine := EDocPOMatching.IsEDocumentLineMatchedToAnyReceiptLine(EDocumentPurchaseLine);
         OrderMatchedCaption := IsLineMatchedToOrderLine ? GetSummaryOfMatchedOrders() : '';
         UpdateMatchWarnings();
+        SetVATProductPostingGroupVisibility();
     end;
 
     internal procedure SetEDocumentPurchaseHeader(EDocPurchHeader: Record "E-Document Purchase Header")
@@ -379,6 +388,14 @@ page 6183 "E-Doc. Purchase Draft Subform"
 
         DimMgt.UseShortcutDims(
           DimVisible1, DimVisible2, DimOther, DimOther, DimOther, DimOther, DimOther, DimOther);
+    end;
+
+    local procedure SetVATProductPostingGroupVisibility()
+    var
+        PurchSetup: Record "Purchases & Payables Setup";
+    begin
+        PurchSetup.Get();
+        VATProdPostGroupIsVisible := PurchSetup."Resolve VAT Group Purch EDoc";
     end;
 
     local procedure UpdateCalculatedAmounts(UpdateParentRecord: Boolean)
@@ -456,8 +473,8 @@ page 6183 "E-Doc. Purchase Draft Subform"
     local procedure UpdatePOMatching()
     begin
         IsEDocumentMatchedToAnyPOLine := EDocPOMatching.IsEDocumentMatchedToAnyPOLine(EDocumentPurchaseHeader);
-        EDocPOMatching.CalculatePOMatchWarnings(EDocumentPurchaseHeader, EDocumentPOMatchWarnings);
-        HasEDocumentOrderMatchWarnings := not EDocumentPOMatchWarnings.IsEmpty();
+        EDocPOMatching.CalculatePOMatchWarnings(EDocumentPurchaseHeader, TempEDocumentPOMatchWarnings);
+        HasEDocumentOrderMatchWarnings := not TempEDocumentPOMatchWarnings.IsEmpty();
     end;
 
     local procedure GetSummaryOfMatchedOrders(): Text
@@ -499,13 +516,13 @@ page 6183 "E-Doc. Purchase Draft Subform"
         MatchWarningsCaption := NoWarningsLbl;
         MatchWarningsStyleExpr := 'None';
 
-        EDocumentPOMatchWarnings.SetRange("E-Doc. Purchase Line SystemId", Rec.SystemId);
+        TempEDocumentPOMatchWarnings.SetRange("E-Doc. Purchase Line SystemId", Rec.SystemId);
 
         // Severity: Unfavorable (critical) > Ambiguous (warning) > Subordinate (info)
         SeverityLevel := 0;
-        if EDocumentPOMatchWarnings.FindSet() then
+        if TempEDocumentPOMatchWarnings.FindSet() then
             repeat
-                case EDocumentPOMatchWarnings."Warning Type" of
+                case TempEDocumentPOMatchWarnings."Warning Type" of
                     Enum::"E-Doc PO Match Warning"::ExceedsInvoiceableQty:
                         begin
                             CurrentSeverity := 3;
@@ -535,9 +552,9 @@ page 6183 "E-Doc. Purchase Draft Subform"
                     SeverityLevel := CurrentSeverity;
                     MatchWarningsStyleExpr := MostSevereStyle;
                 end;
-            until EDocumentPOMatchWarnings.Next() = 0;
+            until TempEDocumentPOMatchWarnings.Next() = 0;
 
-        if EDocumentPOMatchWarnings.Count() > 1 then
+        if TempEDocumentPOMatchWarnings.Count() > 1 then
             MatchWarningsCaption := MultipleWarningsLbl;
     end;
 
@@ -546,23 +563,22 @@ page 6183 "E-Doc. Purchase Draft Subform"
         WarningDetails: TextBuilder;
         MissingInfoDetailLbl: Label 'Quantity information for this line is missing to complete the match. Verify that the draft line has a unit of measure assigned for this item.';
     begin
-        EDocumentPOMatchWarnings.SetRange("E-Doc. Purchase Line SystemId", Rec.SystemId);
-        if not EDocumentPOMatchWarnings.FindSet() then
+        TempEDocumentPOMatchWarnings.SetRange("E-Doc. Purchase Line SystemId", Rec.SystemId);
+        if not TempEDocumentPOMatchWarnings.FindSet() then
             exit;
 
         repeat
-            case EDocumentPOMatchWarnings."Warning Type" of
+            case TempEDocumentPOMatchWarnings."Warning Type" of
                 Enum::"E-Doc PO Match Warning"::MissingInformationForMatch:
                     WarningDetails.AppendLine('• ' + MissingInfoDetailLbl);
                 Enum::"E-Doc PO Match Warning"::ExceedsInvoiceableQty,
                 Enum::"E-Doc PO Match Warning"::ExceedsRemainingToInvoice,
                 Enum::"E-Doc PO Match Warning"::OverReceipt:
-                    WarningDetails.AppendLine('• ' + EDocumentPOMatchWarnings."Warning Message");
+                    WarningDetails.AppendLine('• ' + TempEDocumentPOMatchWarnings."Warning Message");
             end;
-        until EDocumentPOMatchWarnings.Next() = 0;
+        until TempEDocumentPOMatchWarnings.Next() = 0;
 
         if WarningDetails.Length() > 0 then
             Message(WarningDetails.ToText());
     end;
-
 }

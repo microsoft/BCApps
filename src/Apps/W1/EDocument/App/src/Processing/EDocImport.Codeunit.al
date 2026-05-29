@@ -26,7 +26,7 @@ codeunit 6140 "E-Doc. Import"
     procedure ReceiveAndProcessAutomatically(EDocumentService: Record "E-Document Service"): Boolean
     var
         EDocumentServiceStatus: Record "E-Document Service Status";
-        EDocImportParameters: Record "E-Doc. Import Parameters";
+        TempEDocImportParameters: Record "E-Doc. Import Parameters";
         EDocument: Record "E-Document";
         EDocIntegrationMgt: Codeunit "E-Doc. Integration Management";
         ReceiveContext: Codeunit ReceiveContext;
@@ -40,7 +40,7 @@ codeunit 6140 "E-Doc. Import"
 #endif
         EDocIntegrationMgt.ReceiveDocuments(EDocumentService, ReceiveContext);
 
-        EDocImportParameters := EDocumentService.GetDefaultImportParameters();
+        TempEDocImportParameters := EDocumentService.GetDefaultImportParameters();
 
         AllEDocumentsProcessed := true;
         EDocumentServiceStatus.SetRange("E-Document Service Code", EDocumentService.Code);
@@ -49,7 +49,7 @@ codeunit 6140 "E-Doc. Import"
         if EDocumentServiceStatus.FindSet() then
             repeat
                 EDocument.Get(EDocumentServiceStatus."E-Document Entry No");
-                AllEDocumentsProcessed := AllEDocumentsProcessed and ProcessIncomingEDocument(EDocument, EDocumentService, EDocImportParameters);
+                AllEDocumentsProcessed := AllEDocumentsProcessed and ProcessIncomingEDocument(EDocument, EDocumentService, TempEDocImportParameters);
             until EDocumentServiceStatus.Next() = 0;
         exit(AllEDocumentsProcessed);
     end;
@@ -136,13 +136,16 @@ codeunit 6140 "E-Doc. Import"
     var
         EDocDraftSessionTelemetry: Codeunit "E-Doc. Imp. Session Telemetry";
         EDocumentErrorHelper: Codeunit "E-Document Error Helper";
+        EDocImportErrorContext: Codeunit "E-Doc. Import Error Context";
         LastErrorText: Text;
     begin
         EDocumentErrorHelper.ClearErrorMessages(EDocument);
         Commit();
+        BindSubscription(EDocImportErrorContext);
         if not ImportEDocumentProcess.Run() then begin
             LastErrorText := GetLastErrorText();
             if LastErrorText <> '' then begin // We don't insert an error when empty, following the convention of empty error meaning "operation cancelled by user"
+                LastErrorText := EDocImportErrorContext.WrapErrorMessage(LastErrorText);
                 EDocument.SetRecFilter();
                 EDocument.FindFirst();
 
@@ -154,8 +157,10 @@ codeunit 6140 "E-Doc. Import"
             end;
             EDocDraftSessionTelemetry.SetText('Step', Format(ImportEDocumentProcess.GetStep()));
             EDocDraftSessionTelemetry.SetBool('Success', false);
+            UnbindSubscription(EDocImportErrorContext);
             exit(false);
         end;
+        UnbindSubscription(EDocImportErrorContext);
         exit(true);
     end;
 

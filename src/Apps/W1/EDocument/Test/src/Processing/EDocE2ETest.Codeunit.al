@@ -1725,7 +1725,7 @@ codeunit 139624 "E-Doc E2E Test"
     var
         EDocument: Record "E-Document";
         PurchaseHeader: Record "Purchase Header";
-        EDocImportParams: Record "E-Doc. Import Parameters";
+        TempEDocImportParams: Record "E-Doc. Import Parameters";
     begin
         // [FEATURE] [E-Document] [Processing]
         // [SCENARIO]
@@ -1735,8 +1735,8 @@ codeunit 139624 "E-Doc E2E Test"
         EDocumentService.Modify();
 
         // [GIVEN] An inbound e-document is received and fully processed
-        EDocImportParams."Step to Run" := "Import E-Document Steps"::"Finish draft";
-        Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-invoice-0.xml', EDocImportParams), 'The e-document should be processed');
+        TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Finish draft";
+        Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-invoice-0.xml', TempEDocImportParams), 'The e-document should be processed');
         EDocument.SetRecFilter();
         EDocument.FindLast();
         Assert.AreEqual(Enum::"E-Document Status"::Processed, EDocument.Status, 'E-Document should be in Processed status.');
@@ -1756,18 +1756,18 @@ codeunit 139624 "E-Doc E2E Test"
         EDocument: Record "E-Document";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
-        EDocImportParams: Record "E-Doc. Import Parameters";
+        TempEDocImportParams: Record "E-Doc. Import Parameters";
     begin
         // [SCENARIO] Import a PEPPOL invoice with AdditionalDocumentReference elements
         // that have no <cac:Attachment> child (text-only references).
         // Previously this caused "Please choose a file to attach" error.
         Initialize(Enum::"Service Integration"::"Mock");
 
-        EDocImportParams."Step to Run" := "Import E-Document Steps"::"Finish draft";
+        TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Finish draft";
         WorkDate(DMY2Date(1, 1, 2027));
         Assert.IsTrue(
             LibraryEDoc.CreateInboundPEPPOLDocumentToState(
-                EDocument, EDocumentService, 'peppol/peppol-invoice-textonly-docref.xml', EDocImportParams),
+                EDocument, EDocumentService, 'peppol/peppol-invoice-textonly-docref.xml', TempEDocImportParams),
             'The e-document should be processed');
 
         EDocument.Get(EDocument."Entry No");
@@ -1783,17 +1783,17 @@ codeunit 139624 "E-Doc E2E Test"
         EDocument: Record "E-Document";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
-        EDocImportParams: Record "E-Doc. Import Parameters";
+        TempEDocImportParams: Record "E-Doc. Import Parameters";
     begin
         // [SCENARIO] Import a PEPPOL invoice with non-integer line IDs (e.g., "1.1", "1.2").
         // Previously this caused "The value '1.1' can't be evaluated into type Integer" error.
         Initialize(Enum::"Service Integration"::"Mock");
 
-        EDocImportParams."Step to Run" := "Import E-Document Steps"::"Finish draft";
+        TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Finish draft";
         WorkDate(DMY2Date(1, 1, 2027));
         Assert.IsTrue(
             LibraryEDoc.CreateInboundPEPPOLDocumentToState(
-                EDocument, EDocumentService, 'peppol/peppol-invoice-hierarchical-lineids.xml', EDocImportParams),
+                EDocument, EDocumentService, 'peppol/peppol-invoice-hierarchical-lineids.xml', TempEDocImportParams),
             'The e-document should be processed');
 
         EDocument.Get(EDocument."Entry No");
@@ -1917,7 +1917,7 @@ codeunit 139624 "E-Doc E2E Test"
     internal procedure PurchaseDocumentsCreatedFromEDocumentsUseDocumentTotalsValidation()
     var
         EDocument: Record "E-Document";
-        EDocImportParameters: Record "E-Doc. Import Parameters";
+        TempEDocImportParameters: Record "E-Doc. Import Parameters";
         PurchaseHeader: Record "Purchase Header";
         PurchasesPayablesSetup: Record "Purchases & Payables Setup";
         EDocImport: Codeunit "E-Doc. Import";
@@ -1933,8 +1933,8 @@ codeunit 139624 "E-Doc E2E Test"
         LibraryEDoc.CreateInboundEDocument(EDocument, EDocumentService);
         LibraryEDoc.MockPurchaseDraftPrepared(EDocument);
         // [WHEN] Processing into a purchase invoice
-        EDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
-        EDocImport.ProcessIncomingEDocument(EDocument, EDocImportParameters);
+        TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
+        EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParameters);
         // [THEN] The purchase invoice should have the totals from the E-Document
         PurchaseHeader.SetRange("E-Document Link", EDocument.SystemId);
         PurchaseHeader.FindFirst();
@@ -1948,7 +1948,7 @@ codeunit 139624 "E-Doc E2E Test"
     internal procedure PurchaseDocumentsCreatedFromStructuredEDocumentCantEditTotals()
     var
         EDocument: Record "E-Document";
-        EDocImportParameters: Record "E-Doc. Import Parameters";
+        TempEDocImportParameters: Record "E-Doc. Import Parameters";
         PurchaseHeader: Record "Purchase Header";
         EDocImport: Codeunit "E-Doc. Import";
         PurchaseInvoice: TestPage "Purchase Invoice";
@@ -1960,8 +1960,8 @@ codeunit 139624 "E-Doc E2E Test"
         LibraryEDoc.CreateInboundEDocument(EDocument, EDocumentService);
         LibraryEDoc.MockPurchaseDraftPrepared(EDocument);
         // [WHEN] Processing into a purchase invoice
-        EDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
-        EDocImport.ProcessIncomingEDocument(EDocument, EDocImportParameters);
+        TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
+        EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParameters);
         PurchaseHeader.SetRange("E-Document Link", EDocument.SystemId);
         PurchaseHeader.FindFirst();
         // [THEN] The purchase invoice page should not allow editing of the totals
@@ -2943,7 +2943,7 @@ codeunit 139624 "E-Doc E2E Test"
     var
         EDocument: Record "E-Document";
         PurchaseHeader: Record "Purchase Header";
-        EDocImportParams: Record "E-Doc. Import Parameters";
+        TempEDocImportParams: Record "E-Doc. Import Parameters";
     begin
         // [FEATURE] [E-Document] [Processing]
         // [SCENARIO]
@@ -2953,8 +2953,8 @@ codeunit 139624 "E-Doc E2E Test"
         EDocumentService.Modify();
 
         // [GIVEN] An inbound e-document is received and fully processed
-        EDocImportParams."Step to Run" := "Import E-Document Steps"::"Finish draft";
-        Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-invoice-0.xml', EDocImportParams), 'The e-document should be processed');
+        TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Finish draft";
+        Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-invoice-0.xml', TempEDocImportParams), 'The e-document should be processed');
         EDocument.SetRecFilter();
         EDocument.FindLast();
         Assert.AreEqual(Enum::"E-Document Status"::Processed, EDocument.Status, 'E-Document should be in Processed status.');

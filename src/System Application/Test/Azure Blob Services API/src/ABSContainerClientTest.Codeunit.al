@@ -62,7 +62,7 @@ codeunit 132919 "ABS Container Client Test"
     [Test]
     procedure ListContainersTest()
     var
-        Containers: Record "ABS Container";
+        TempContainers: Record "ABS Container";
         Response: Codeunit "ABS Operation Response";
         ContainerNames: List of [Text];
         ContainerName: Text;
@@ -79,13 +79,13 @@ codeunit 132919 "ABS Container Client Test"
             Assert.IsTrue(Response.IsSuccessful(), 'Operation CreateContainer failed');
         end;
 
-        Response := ABSContainerClient.ListContainers(Containers);
+        Response := ABSContainerClient.ListContainers(TempContainers);
         Assert.IsTrue(Response.IsSuccessful(), 'Operation ListContainers failed');
 
-        Assert.AreEqual(ContainerNames.Count(), Containers.Count(), 'Number of created containers mismatch');
+        Assert.AreEqual(ContainerNames.Count(), TempContainers.Count(), 'Number of created TempContainers mismatch');
 
         foreach ContainerName in ContainerNames do
-            Assert.IsTrue(Containers.Get(ContainerName), 'Could not find container ' + ContainerName);
+            Assert.IsTrue(TempContainers.Get(ContainerName), 'Could not find container ' + ContainerName);
 
         // Clean up
         foreach ContainerName in ContainerNames do begin

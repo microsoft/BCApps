@@ -118,7 +118,7 @@ codeunit 132920 "ABS Blob Client Test"
     [Test]
     procedure ListBlobsTest()
     var
-        ABSContainerContent: Record "ABS Container Content";
+        TempABSContainerContent: Record "ABS Container Content";
         Response: Codeunit "ABS Operation Response";
         ContainerName, FirstBlobName, SecondBlobName, BlobContent : Text;
     begin
@@ -143,19 +143,19 @@ codeunit 132920 "ABS Blob Client Test"
         Response := ABSBlobClient.PutBlobBlockBlobText(FirstBlobName, BlobContent);
         Assert.IsTrue(Response.IsSuccessful(), 'Adding the first BLOB failed');
 
-        ABSBlobClient.ListBlobs(ABSContainerContent);
-        Assert.AreEqual(1, ABSContainerContent.Count(), 'There should be exactly one BLOB in the container');
+        ABSBlobClient.ListBlobs(TempABSContainerContent);
+        Assert.AreEqual(1, TempABSContainerContent.Count(), 'There should be exactly one BLOB in the container');
 
-        Assert.AreEqual('BlockBlob', ABSContainerContent."Blob Type", 'Wrong BLOB type');
-        Assert.AreNotEqual(0, ABSContainerContent."Content Length", 'Content Length should not be 0');
-        Assert.AreEqual('text/plain; charset=utf-8', ABSContainerContent."Content Type", 'Wrong Content type');
+        Assert.AreEqual('BlockBlob', TempABSContainerContent."Blob Type", 'Wrong BLOB type');
+        Assert.AreNotEqual(0, TempABSContainerContent."Content Length", 'Content Length should not be 0');
+        Assert.AreEqual('text/plain; charset=utf-8', TempABSContainerContent."Content Type", 'Wrong Content type');
 
         // Add another BLOB block
         Response := ABSBlobClient.PutBlobBlockBlobText(SecondBlobName, BlobContent);
         Assert.IsTrue(Response.IsSuccessful(), 'Adding the second BLOB failed');
 
-        ABSBlobClient.ListBlobs(ABSContainerContent);
-        Assert.AreEqual(2, ABSContainerContent.Count(), 'There should be two BLOBs in the container');
+        ABSBlobClient.ListBlobs(TempABSContainerContent);
+        Assert.AreEqual(2, TempABSContainerContent.Count(), 'There should be two BLOBs in the container');
 
         // Clean-up
         ABSContainerClient.DeleteContainer(ContainerName);
@@ -266,7 +266,7 @@ codeunit 132920 "ABS Blob Client Test"
     [Test]
     procedure ListBlobHierarchyTest()
     var
-        ABSContainerContent: Record "ABS Container Content";
+        TempABSContainerContent: Record "ABS Container Content";
         ContainerName: Text;
     begin
         // [Scenario] When listing blobs, the levels, parent directories etc. are set correctly
@@ -318,137 +318,137 @@ codeunit 132920 "ABS Blob Client Test"
 
         // [When] Listing the BLOBs in the container
         // [Then] The result is as expected
-        Assert.IsTrue(ABSBlobClient.ListBlobs(ABSContainerContent).IsSuccessful(), 'Operation ListBlobs failed');
-        Assert.AreEqual(15, ABSContainerContent.Count(), 'Wrong number of BLOBs + directories');
+        Assert.IsTrue(ABSBlobClient.ListBlobs(TempABSContainerContent).IsSuccessful(), 'Operation ListBlobs failed');
+        Assert.AreEqual(15, TempABSContainerContent.Count(), 'Wrong number of BLOBs + directories');
 
         // [Then] Directory entries are created
-        ABSContainerContent.SetRange("Content Type", 'Directory');
-        Assert.AreEqual(5, ABSContainerContent.Count(), 'There should be 5 directories in the result');
+        TempABSContainerContent.SetRange("Content Type", 'Directory');
+        Assert.AreEqual(5, TempABSContainerContent.Count(), 'There should be 5 directories in the result');
 
-        ABSContainerContent.Reset();
+        TempABSContainerContent.Reset();
 
-        // [Then] Enties in the result (ABSContainerContent) are ordered by EntryNo and the BLOBs are sorted alphabetical order (by full name)
-        Assert.IsTrue(ABSContainerContent.FindSet(), 'Directory does not exist');
-        Assert.AreEqual('folder1', ABSContainerContent.Name, 'Wrong name');
-        Assert.AreEqual('folder1', ABSContainerContent."Full Name", 'Wrong full name');
-        Assert.AreEqual('', ABSContainerContent."Parent Directory", 'Wrong parent directory');
-        Assert.AreEqual('', ABSContainerContent."Blob Type", 'Wrong BLOB type');
-        Assert.AreEqual('Directory', ABSContainerContent."Content Type", 'Wrong content type');
-        Assert.AreEqual(0, ABSContainerContent.Level, 'Wrong level');
+        // [Then] Enties in the result (TempABSContainerContent) are ordered by EntryNo and the BLOBs are sorted alphabetical order (by full name)
+        Assert.IsTrue(TempABSContainerContent.FindSet(), 'Directory does not exist');
+        Assert.AreEqual('folder1', TempABSContainerContent.Name, 'Wrong name');
+        Assert.AreEqual('folder1', TempABSContainerContent."Full Name", 'Wrong full name');
+        Assert.AreEqual('', TempABSContainerContent."Parent Directory", 'Wrong parent directory');
+        Assert.AreEqual('', TempABSContainerContent."Blob Type", 'Wrong BLOB type');
+        Assert.AreEqual('Directory', TempABSContainerContent."Content Type", 'Wrong content type');
+        Assert.AreEqual(0, TempABSContainerContent.Level, 'Wrong level');
 
-        Assert.IsTrue(ABSContainerContent.Next() <> 0, 'BLOB does not exist');
-        Assert.AreEqual('folderblob1', ABSContainerContent.Name, 'Wrong name');
-        Assert.AreEqual('folder1/folderblob1', ABSContainerContent."Full Name", 'Wrong full name');
-        Assert.AreEqual('folder1/', ABSContainerContent."Parent Directory", 'Wrong parent directory');
-        Assert.AreNotEqual('', ABSContainerContent."Blob Type", 'Wrong BLOB type');
-        Assert.AreNotEqual('Directory', ABSContainerContent."Content Type", 'Wrong content type');
-        Assert.AreEqual(1, ABSContainerContent.Level, 'Wrong BLOB level');
+        Assert.IsTrue(TempABSContainerContent.Next() <> 0, 'BLOB does not exist');
+        Assert.AreEqual('folderblob1', TempABSContainerContent.Name, 'Wrong name');
+        Assert.AreEqual('folder1/folderblob1', TempABSContainerContent."Full Name", 'Wrong full name');
+        Assert.AreEqual('folder1/', TempABSContainerContent."Parent Directory", 'Wrong parent directory');
+        Assert.AreNotEqual('', TempABSContainerContent."Blob Type", 'Wrong BLOB type');
+        Assert.AreNotEqual('Directory', TempABSContainerContent."Content Type", 'Wrong content type');
+        Assert.AreEqual(1, TempABSContainerContent.Level, 'Wrong BLOB level');
 
-        Assert.IsTrue(ABSContainerContent.Next() <> 0, 'BLOB does not exist');
-        Assert.AreEqual('folderblob2', ABSContainerContent.Name, 'Wrong name');
-        Assert.AreEqual('folder1/folderblob2', ABSContainerContent."Full Name", 'Wrong full name');
-        Assert.AreEqual('folder1/', ABSContainerContent."Parent Directory", 'Wrong parent directory');
-        Assert.AreNotEqual('', ABSContainerContent."Blob Type", 'Wrong BLOB type');
-        Assert.AreNotEqual('Directory', ABSContainerContent."Content Type", 'Wrong content type');
-        Assert.AreEqual(1, ABSContainerContent.Level, 'Wrong BLOB level');
+        Assert.IsTrue(TempABSContainerContent.Next() <> 0, 'BLOB does not exist');
+        Assert.AreEqual('folderblob2', TempABSContainerContent.Name, 'Wrong name');
+        Assert.AreEqual('folder1/folderblob2', TempABSContainerContent."Full Name", 'Wrong full name');
+        Assert.AreEqual('folder1/', TempABSContainerContent."Parent Directory", 'Wrong parent directory');
+        Assert.AreNotEqual('', TempABSContainerContent."Blob Type", 'Wrong BLOB type');
+        Assert.AreNotEqual('Directory', TempABSContainerContent."Content Type", 'Wrong content type');
+        Assert.AreEqual(1, TempABSContainerContent.Level, 'Wrong BLOB level');
 
-        Assert.IsTrue(ABSContainerContent.Next() <> 0, 'Directory does not exist');
-        Assert.AreEqual('subfolder1', ABSContainerContent.Name, 'Wrong name');
-        Assert.AreEqual('folder1/subfolder1', ABSContainerContent."Full Name", 'Wrong full name');
-        Assert.AreEqual('folder1/', ABSContainerContent."Parent Directory", 'Wrong parent directory');
-        Assert.AreEqual('', ABSContainerContent."Blob Type", 'Wrong BLOB type');
-        Assert.AreEqual('Directory', ABSContainerContent."Content Type", 'Wrong content type');
-        Assert.AreEqual(1, ABSContainerContent.Level, 'Wrong level');
+        Assert.IsTrue(TempABSContainerContent.Next() <> 0, 'Directory does not exist');
+        Assert.AreEqual('subfolder1', TempABSContainerContent.Name, 'Wrong name');
+        Assert.AreEqual('folder1/subfolder1', TempABSContainerContent."Full Name", 'Wrong full name');
+        Assert.AreEqual('folder1/', TempABSContainerContent."Parent Directory", 'Wrong parent directory');
+        Assert.AreEqual('', TempABSContainerContent."Blob Type", 'Wrong BLOB type');
+        Assert.AreEqual('Directory', TempABSContainerContent."Content Type", 'Wrong content type');
+        Assert.AreEqual(1, TempABSContainerContent.Level, 'Wrong level');
 
-        Assert.IsTrue(ABSContainerContent.Next() <> 0, 'BLOB does not exist');
-        Assert.AreEqual('subfolderblob1', ABSContainerContent.Name, 'Wrong name');
-        Assert.AreEqual('folder1/subfolder1/subfolderblob1', ABSContainerContent."Full Name", 'Wrong full name');
-        Assert.AreEqual('folder1/subfolder1/', ABSContainerContent."Parent Directory", 'Wrong parent directory');
-        Assert.AreNotEqual('', ABSContainerContent."Blob Type", 'Wrong BLOB type');
-        Assert.AreNotEqual('Directory', ABSContainerContent."Content Type", 'Wrong content type');
-        Assert.AreEqual(2, ABSContainerContent.Level, 'Wrong BLOB level');
+        Assert.IsTrue(TempABSContainerContent.Next() <> 0, 'BLOB does not exist');
+        Assert.AreEqual('subfolderblob1', TempABSContainerContent.Name, 'Wrong name');
+        Assert.AreEqual('folder1/subfolder1/subfolderblob1', TempABSContainerContent."Full Name", 'Wrong full name');
+        Assert.AreEqual('folder1/subfolder1/', TempABSContainerContent."Parent Directory", 'Wrong parent directory');
+        Assert.AreNotEqual('', TempABSContainerContent."Blob Type", 'Wrong BLOB type');
+        Assert.AreNotEqual('Directory', TempABSContainerContent."Content Type", 'Wrong content type');
+        Assert.AreEqual(2, TempABSContainerContent.Level, 'Wrong BLOB level');
 
-        Assert.IsTrue(ABSContainerContent.Next() <> 0, 'BLOB does not exist');
-        Assert.AreEqual('subfolderblob2', ABSContainerContent.Name, 'Wrong name');
-        Assert.AreEqual('folder1/subfolder1/subfolderblob2', ABSContainerContent."Full Name", 'Wrong full name');
-        Assert.AreEqual('folder1/subfolder1/', ABSContainerContent."Parent Directory", 'Wrong parent directory');
-        Assert.AreNotEqual('', ABSContainerContent."Blob Type", 'Wrong BLOB type');
-        Assert.AreNotEqual('Directory', ABSContainerContent."Content Type", 'Wrong content type');
-        Assert.AreEqual(2, ABSContainerContent.Level, 'Wrong BLOB level');
+        Assert.IsTrue(TempABSContainerContent.Next() <> 0, 'BLOB does not exist');
+        Assert.AreEqual('subfolderblob2', TempABSContainerContent.Name, 'Wrong name');
+        Assert.AreEqual('folder1/subfolder1/subfolderblob2', TempABSContainerContent."Full Name", 'Wrong full name');
+        Assert.AreEqual('folder1/subfolder1/', TempABSContainerContent."Parent Directory", 'Wrong parent directory');
+        Assert.AreNotEqual('', TempABSContainerContent."Blob Type", 'Wrong BLOB type');
+        Assert.AreNotEqual('Directory', TempABSContainerContent."Content Type", 'Wrong content type');
+        Assert.AreEqual(2, TempABSContainerContent.Level, 'Wrong BLOB level');
 
-        Assert.IsTrue(ABSContainerContent.Next() <> 0, 'Directory does not exist');
-        Assert.AreEqual('subsubfolder', ABSContainerContent.Name, 'Wrong name');
-        Assert.AreEqual('folder1/subfolder1/subsubfolder', ABSContainerContent."Full Name", 'Wrong full name');
-        Assert.AreEqual('folder1/subfolder1/', ABSContainerContent."Parent Directory", 'Wrong parent directory');
-        Assert.AreEqual('Directory', ABSContainerContent."Content Type", 'Wrong content type');
-        Assert.AreEqual('', ABSContainerContent."Blob Type", 'Wrong BLOB type');
-        Assert.AreEqual(2, ABSContainerContent.Level, 'Wrong level');
+        Assert.IsTrue(TempABSContainerContent.Next() <> 0, 'Directory does not exist');
+        Assert.AreEqual('subsubfolder', TempABSContainerContent.Name, 'Wrong name');
+        Assert.AreEqual('folder1/subfolder1/subsubfolder', TempABSContainerContent."Full Name", 'Wrong full name');
+        Assert.AreEqual('folder1/subfolder1/', TempABSContainerContent."Parent Directory", 'Wrong parent directory');
+        Assert.AreEqual('Directory', TempABSContainerContent."Content Type", 'Wrong content type');
+        Assert.AreEqual('', TempABSContainerContent."Blob Type", 'Wrong BLOB type');
+        Assert.AreEqual(2, TempABSContainerContent.Level, 'Wrong level');
 
-        Assert.IsTrue(ABSContainerContent.Next() <> 0, 'BLOB does not exist');
-        Assert.AreEqual('subsubfolderblob1', ABSContainerContent.Name, 'Wrong name');
-        Assert.AreEqual('folder1/subfolder1/subsubfolder/subsubfolderblob1', ABSContainerContent."Full Name", 'Wrong full name');
-        Assert.AreEqual('folder1/subfolder1/subsubfolder/', ABSContainerContent."Parent Directory", 'Wrong parent directory');
-        Assert.AreNotEqual('', ABSContainerContent."Blob Type", 'Wrong BLOB type');
-        Assert.AreNotEqual('Directory', ABSContainerContent."Content Type", 'Wrong content type');
-        Assert.AreEqual(3, ABSContainerContent.Level, 'Wrong BLOB level');
+        Assert.IsTrue(TempABSContainerContent.Next() <> 0, 'BLOB does not exist');
+        Assert.AreEqual('subsubfolderblob1', TempABSContainerContent.Name, 'Wrong name');
+        Assert.AreEqual('folder1/subfolder1/subsubfolder/subsubfolderblob1', TempABSContainerContent."Full Name", 'Wrong full name');
+        Assert.AreEqual('folder1/subfolder1/subsubfolder/', TempABSContainerContent."Parent Directory", 'Wrong parent directory');
+        Assert.AreNotEqual('', TempABSContainerContent."Blob Type", 'Wrong BLOB type');
+        Assert.AreNotEqual('Directory', TempABSContainerContent."Content Type", 'Wrong content type');
+        Assert.AreEqual(3, TempABSContainerContent.Level, 'Wrong BLOB level');
 
-        Assert.IsTrue(ABSContainerContent.Next() <> 0, 'BLOB does not exist');
-        Assert.AreEqual('subsubfolderblob2', ABSContainerContent.Name, 'Wrong name');
-        Assert.AreEqual('folder1/subfolder1/subsubfolder/subsubfolderblob2', ABSContainerContent."Full Name", 'Wrong full name');
-        Assert.AreEqual('folder1/subfolder1/subsubfolder/', ABSContainerContent."Parent Directory", 'Wrong parent directory');
-        Assert.AreNotEqual('Directory', ABSContainerContent."Content Type", 'Wrong content type');
-        Assert.AreNotEqual('', ABSContainerContent."Blob Type", 'Wrong BLOB type');
-        Assert.AreEqual(3, ABSContainerContent.Level, 'Wrong BLOB level');
+        Assert.IsTrue(TempABSContainerContent.Next() <> 0, 'BLOB does not exist');
+        Assert.AreEqual('subsubfolderblob2', TempABSContainerContent.Name, 'Wrong name');
+        Assert.AreEqual('folder1/subfolder1/subsubfolder/subsubfolderblob2', TempABSContainerContent."Full Name", 'Wrong full name');
+        Assert.AreEqual('folder1/subfolder1/subsubfolder/', TempABSContainerContent."Parent Directory", 'Wrong parent directory');
+        Assert.AreNotEqual('Directory', TempABSContainerContent."Content Type", 'Wrong content type');
+        Assert.AreNotEqual('', TempABSContainerContent."Blob Type", 'Wrong BLOB type');
+        Assert.AreEqual(3, TempABSContainerContent.Level, 'Wrong BLOB level');
 
-        Assert.IsTrue(ABSContainerContent.Next() <> 0, 'Directory does not exist');
-        Assert.AreEqual('subfolder2', ABSContainerContent.Name, 'Wrong name');
-        Assert.AreEqual('folder1/subfolder2', ABSContainerContent."Full Name", 'Wrong full name');
-        Assert.AreEqual('folder1/', ABSContainerContent."Parent Directory", 'Wrong parent directory');
-        Assert.AreEqual('', ABSContainerContent."Blob Type", 'Wrong BLOB type');
-        Assert.AreEqual('Directory', ABSContainerContent."Content Type", 'Wrong content type');
-        Assert.AreEqual(1, ABSContainerContent.Level, 'Wrong level');
+        Assert.IsTrue(TempABSContainerContent.Next() <> 0, 'Directory does not exist');
+        Assert.AreEqual('subfolder2', TempABSContainerContent.Name, 'Wrong name');
+        Assert.AreEqual('folder1/subfolder2', TempABSContainerContent."Full Name", 'Wrong full name');
+        Assert.AreEqual('folder1/', TempABSContainerContent."Parent Directory", 'Wrong parent directory');
+        Assert.AreEqual('', TempABSContainerContent."Blob Type", 'Wrong BLOB type');
+        Assert.AreEqual('Directory', TempABSContainerContent."Content Type", 'Wrong content type');
+        Assert.AreEqual(1, TempABSContainerContent.Level, 'Wrong level');
 
-        Assert.IsTrue(ABSContainerContent.Next() <> 0, 'Directory does not exist');
-        Assert.AreEqual('subsubfolder', ABSContainerContent.Name, 'Wrong name');
-        Assert.AreEqual('folder1/subfolder2/subsubfolder', ABSContainerContent."Full Name", 'Wrong full name');
-        Assert.AreEqual('folder1/subfolder2/', ABSContainerContent."Parent Directory", 'Wrong parent directory');
-        Assert.AreEqual('Directory', ABSContainerContent."Content Type", 'Wrong content type');
-        Assert.AreEqual('', ABSContainerContent."Blob Type", 'Wrong BLOB type');
-        Assert.AreEqual(2, ABSContainerContent.Level, 'Wrong level');
+        Assert.IsTrue(TempABSContainerContent.Next() <> 0, 'Directory does not exist');
+        Assert.AreEqual('subsubfolder', TempABSContainerContent.Name, 'Wrong name');
+        Assert.AreEqual('folder1/subfolder2/subsubfolder', TempABSContainerContent."Full Name", 'Wrong full name');
+        Assert.AreEqual('folder1/subfolder2/', TempABSContainerContent."Parent Directory", 'Wrong parent directory');
+        Assert.AreEqual('Directory', TempABSContainerContent."Content Type", 'Wrong content type');
+        Assert.AreEqual('', TempABSContainerContent."Blob Type", 'Wrong BLOB type');
+        Assert.AreEqual(2, TempABSContainerContent.Level, 'Wrong level');
 
-        Assert.IsTrue(ABSContainerContent.Next() <> 0, 'BLOB does not exist');
-        Assert.AreEqual('subsubfolderblob1', ABSContainerContent.Name, 'Wrong name');
-        Assert.AreEqual('folder1/subfolder2/subsubfolder/subsubfolderblob1', ABSContainerContent."Full Name", 'Wrong full name');
-        Assert.AreEqual('folder1/subfolder2/subsubfolder/', ABSContainerContent."Parent Directory", 'Wrong parent directory');
-        Assert.AreNotEqual('', ABSContainerContent."Blob Type", 'Wrong BLOB type');
-        Assert.AreNotEqual('Directory', ABSContainerContent."Content Type", 'Wrong content type');
-        Assert.AreEqual(3, ABSContainerContent.Level, 'Wrong BLOB level');
+        Assert.IsTrue(TempABSContainerContent.Next() <> 0, 'BLOB does not exist');
+        Assert.AreEqual('subsubfolderblob1', TempABSContainerContent.Name, 'Wrong name');
+        Assert.AreEqual('folder1/subfolder2/subsubfolder/subsubfolderblob1', TempABSContainerContent."Full Name", 'Wrong full name');
+        Assert.AreEqual('folder1/subfolder2/subsubfolder/', TempABSContainerContent."Parent Directory", 'Wrong parent directory');
+        Assert.AreNotEqual('', TempABSContainerContent."Blob Type", 'Wrong BLOB type');
+        Assert.AreNotEqual('Directory', TempABSContainerContent."Content Type", 'Wrong content type');
+        Assert.AreEqual(3, TempABSContainerContent.Level, 'Wrong BLOB level');
 
-        Assert.IsTrue(ABSContainerContent.Next() <> 0, 'BLOB does not exist');
-        Assert.AreEqual('subsubfolderblob2', ABSContainerContent.Name, 'Wrong name');
-        Assert.AreEqual('folder1/subfolder2/subsubfolder/subsubfolderblob2', ABSContainerContent."Full Name", 'Wrong full name');
-        Assert.AreEqual('folder1/subfolder2/subsubfolder/', ABSContainerContent."Parent Directory", 'Wrong parent directory');
-        Assert.AreNotEqual('Directory', ABSContainerContent."Content Type", 'Wrong content type');
-        Assert.AreNotEqual('', ABSContainerContent."Blob Type", 'Wrong BLOB type');
-        Assert.AreEqual(3, ABSContainerContent.Level, 'Wrong BLOB level');
+        Assert.IsTrue(TempABSContainerContent.Next() <> 0, 'BLOB does not exist');
+        Assert.AreEqual('subsubfolderblob2', TempABSContainerContent.Name, 'Wrong name');
+        Assert.AreEqual('folder1/subfolder2/subsubfolder/subsubfolderblob2', TempABSContainerContent."Full Name", 'Wrong full name');
+        Assert.AreEqual('folder1/subfolder2/subsubfolder/', TempABSContainerContent."Parent Directory", 'Wrong parent directory');
+        Assert.AreNotEqual('Directory', TempABSContainerContent."Content Type", 'Wrong content type');
+        Assert.AreNotEqual('', TempABSContainerContent."Blob Type", 'Wrong BLOB type');
+        Assert.AreEqual(3, TempABSContainerContent.Level, 'Wrong BLOB level');
 
-        Assert.IsTrue(ABSContainerContent.Next() <> 0, 'BLOB does not exist');
-        Assert.AreEqual('rootblob1', ABSContainerContent.Name, 'Wrong name');
-        Assert.AreEqual('rootblob1', ABSContainerContent."Full Name", 'Wrong full name');
-        Assert.AreEqual('', ABSContainerContent."Parent Directory", 'Wrong parent directory');
-        Assert.AreNotEqual('Directory', ABSContainerContent."Content Type", 'Wrong content type');
-        Assert.AreNotEqual('', ABSContainerContent."Blob Type", 'Wrong BLOB type');
-        Assert.AreEqual(0, ABSContainerContent.Level, 'Wrong BLOB level');
+        Assert.IsTrue(TempABSContainerContent.Next() <> 0, 'BLOB does not exist');
+        Assert.AreEqual('rootblob1', TempABSContainerContent.Name, 'Wrong name');
+        Assert.AreEqual('rootblob1', TempABSContainerContent."Full Name", 'Wrong full name');
+        Assert.AreEqual('', TempABSContainerContent."Parent Directory", 'Wrong parent directory');
+        Assert.AreNotEqual('Directory', TempABSContainerContent."Content Type", 'Wrong content type');
+        Assert.AreNotEqual('', TempABSContainerContent."Blob Type", 'Wrong BLOB type');
+        Assert.AreEqual(0, TempABSContainerContent.Level, 'Wrong BLOB level');
 
-        Assert.IsTrue(ABSContainerContent.Next() <> 0, 'BLOB does not exist');
-        Assert.AreEqual('rootblob2', ABSContainerContent.Name, 'Wrong name');
-        Assert.AreEqual('rootblob2', ABSContainerContent."Full Name", 'Wrong full name');
-        Assert.AreEqual('', ABSContainerContent."Parent Directory", 'Wrong parent directory');
-        Assert.AreNotEqual('Directory', ABSContainerContent."Content Type", 'Wrong content type');
-        Assert.AreNotEqual('', ABSContainerContent."Blob Type", 'Wrong BLOB type');
-        Assert.AreEqual(0, ABSContainerContent.Level, 'Wrong BLOB level');
+        Assert.IsTrue(TempABSContainerContent.Next() <> 0, 'BLOB does not exist');
+        Assert.AreEqual('rootblob2', TempABSContainerContent.Name, 'Wrong name');
+        Assert.AreEqual('rootblob2', TempABSContainerContent."Full Name", 'Wrong full name');
+        Assert.AreEqual('', TempABSContainerContent."Parent Directory", 'Wrong parent directory');
+        Assert.AreNotEqual('Directory', TempABSContainerContent."Content Type", 'Wrong content type');
+        Assert.AreNotEqual('', TempABSContainerContent."Blob Type", 'Wrong BLOB type');
+        Assert.AreEqual(0, TempABSContainerContent.Level, 'Wrong BLOB level');
 
-        Assert.IsTrue(ABSContainerContent.Next() = 0, 'There should be no more entries');
+        Assert.IsTrue(TempABSContainerContent.Next() = 0, 'There should be no more entries');
 
         // Clean-up
         ABSContainerClient.DeleteContainer(ContainerName);
@@ -737,7 +737,7 @@ codeunit 132920 "ABS Blob Client Test"
     [Test]
     procedure ParseResponseWithHierarchicalBlobName()
     var
-        ABSContainerContent: Record "ABS Container Content";
+        TempABSContainerContent: Record "ABS Container Content";
         ABSHelperLibrary: Codeunit "ABS Helper Library";
         BlobPrefixNodeList, BlobNodeList : XmlNodeList;
         NextMarker: Text;
@@ -749,22 +749,22 @@ codeunit 132920 "ABS Blob Client Test"
         ABSHelperLibrary.CreateBlobNodeListFromResponse(ABSTestLibrary.GetServiceResponseBlobWithHierarchicalName(), NextMarker, BlobPrefixNodeList, BlobNodeList);
 
         // [WHEN] Invoke BlobNodeListToTempRecord
-        ABSHelperLibrary.BlobNodeListToTempRecord(BlobPrefixNodeList, BlobNodeList, ABSContainerContent);
+        ABSHelperLibrary.BlobNodeListToTempRecord(BlobPrefixNodeList, BlobNodeList, TempABSContainerContent);
 
         // [THEN] "ABS Container Content" contains one record "folder" and one record "blob"
-        Assert.RecordCount(ABSContainerContent, 2);
+        Assert.RecordCount(TempABSContainerContent, 2);
 
-        ABSContainerContent.SetRange(Name, ABSTestLibrary.GetSampleResponseRootDirName());
-        Assert.RecordCount(ABSContainerContent, 1);
+        TempABSContainerContent.SetRange(Name, ABSTestLibrary.GetSampleResponseRootDirName());
+        Assert.RecordCount(TempABSContainerContent, 1);
 
-        ABSContainerContent.SetRange(Name, ABSTestLibrary.GetSampleResponseFileName());
-        Assert.RecordCount(ABSContainerContent, 1);
+        TempABSContainerContent.SetRange(Name, ABSTestLibrary.GetSampleResponseFileName());
+        Assert.RecordCount(TempABSContainerContent, 1);
     end;
 
     [Test]
     procedure ParseResponseFromStorageHierarachicalNamespace()
     var
-        ABSContainerContent: Record "ABS Container Content";
+        TempABSContainerContent: Record "ABS Container Content";
         ABSHelperLibrary: Codeunit "ABS Helper Library";
         BlobPrefixNodeList, BlobNodeList : XmlNodeList;
         NextMarker: Text;
@@ -777,20 +777,20 @@ codeunit 132920 "ABS Blob Client Test"
         ABSHelperLibrary.CreateBlobNodeListFromResponse(ABSTestLibrary.GetServiceResponseHierarchicalNamespace(), NextMarker, BlobPrefixNodeList, BlobNodeList);
 
         // [WHEN] Invoke BlobNodeListToTempRecord
-        ABSHelperLibrary.BlobNodeListToTempRecord(BlobPrefixNodeList, BlobNodeList, ABSContainerContent);
+        ABSHelperLibrary.BlobNodeListToTempRecord(BlobPrefixNodeList, BlobNodeList, TempABSContainerContent);
 
         // [THEN] "ABS Container Content" contains two records with resource type "folder" and one record with resource type = "blob"
-        Assert.RecordCount(ABSContainerContent, 3);
+        Assert.RecordCount(TempABSContainerContent, 3);
 
-        VerifyContainerContentType(ABSContainerContent, CopyStr(ABSTestLibrary.GetSampleResponseRootDirName(), 1, MaxStrLen(ABSContainerContent.Name)), Enum::"ABS Blob Resource Type"::Directory);
-        VerifyContainerContentType(ABSContainerContent, CopyStr(ABSTestLibrary.GetSampleResponseSubdirName(), 1, MaxStrLen(ABSContainerContent.Name)), Enum::"ABS Blob Resource Type"::Directory);
-        VerifyContainerContentType(ABSContainerContent, CopyStr(ABSTestLibrary.GetSampleResponseFileName(), 1, MaxStrLen(ABSContainerContent.Name)), Enum::"ABS Blob Resource Type"::File);
+        VerifyContainerContentType(TempABSContainerContent, CopyStr(ABSTestLibrary.GetSampleResponseRootDirName(), 1, MaxStrLen(TempABSContainerContent.Name)), Enum::"ABS Blob Resource Type"::Directory);
+        VerifyContainerContentType(TempABSContainerContent, CopyStr(ABSTestLibrary.GetSampleResponseSubdirName(), 1, MaxStrLen(TempABSContainerContent.Name)), Enum::"ABS Blob Resource Type"::Directory);
+        VerifyContainerContentType(TempABSContainerContent, CopyStr(ABSTestLibrary.GetSampleResponseFileName(), 1, MaxStrLen(TempABSContainerContent.Name)), Enum::"ABS Blob Resource Type"::File);
     end;
 
     [Test]
     procedure ParseDelimetedResponse()
     var
-        ABSContainerContent: Record "ABS Container Content";
+        TempABSContainerContent: Record "ABS Container Content";
         ABSHelperLibrary: Codeunit "ABS Helper Library";
         BlobPrefixNodeList, BlobNodeList : XmlNodeList;
         NextMarker: Text;
@@ -803,15 +803,15 @@ codeunit 132920 "ABS Blob Client Test"
         ABSHelperLibrary.CreateBlobNodeListFromResponse(ABSTestLibrary.GetDelimitedServiceResponse(), NextMarker, BlobPrefixNodeList, BlobNodeList);
 
         // [WHEN] Invoke BlobNodeListToTempRecord
-        ABSHelperLibrary.BlobNodeListToTempRecord(BlobPrefixNodeList, BlobNodeList, ABSContainerContent);
+        ABSHelperLibrary.BlobNodeListToTempRecord(BlobPrefixNodeList, BlobNodeList, TempABSContainerContent);
 
         // [THEN] "ABS Container Content" contains three records with resource type "folder" and one record with resource type = "blob"
-        Assert.RecordCount(ABSContainerContent, 4);
+        Assert.RecordCount(TempABSContainerContent, 4);
 
         for i := 1 to 3 do
-            VerifyContainerContentType(ABSContainerContent, CopyStr(ABSTestLibrary.GetSampleResponseSubdirName() + Format(i), 1, MaxStrLen(ABSContainerContent.Name)), Enum::"ABS Blob Resource Type"::Directory);
+            VerifyContainerContentType(TempABSContainerContent, CopyStr(ABSTestLibrary.GetSampleResponseSubdirName() + Format(i), 1, MaxStrLen(TempABSContainerContent.Name)), Enum::"ABS Blob Resource Type"::Directory);
 
-        VerifyContainerContentType(ABSContainerContent, CopyStr(ABSTestLibrary.GetSampleResponseFileName(), 1, MaxStrLen(ABSContainerContent.Name)), Enum::"ABS Blob Resource Type"::File);
+        VerifyContainerContentType(TempABSContainerContent, CopyStr(ABSTestLibrary.GetSampleResponseFileName(), 1, MaxStrLen(TempABSContainerContent.Name)), Enum::"ABS Blob Resource Type"::File);
     end;
 
     [Test] // Failing if ran against azurite, as BLOB MetaData are not supported there
@@ -860,13 +860,13 @@ codeunit 132920 "ABS Blob Client Test"
         ABSContainerClient.DeleteContainer(ContainerName);
     end;
 
-    local procedure VerifyContainerContentType(var ABSContainerContent: Record "ABS Container Content"; BlobName: Text[2048]; ExpectedResourceType: Enum "ABS Blob Resource Type")
+    local procedure VerifyContainerContentType(var TempABSContainerContent: Record "ABS Container Content"; BlobName: Text[2048]; ExpectedResourceType: Enum "ABS Blob Resource Type")
     var
         IncorrectBlobPropertyErr: Label 'BLOB property is assigned incorrectly';
     begin
-        ABSContainerContent.SetRange(Name, BlobName);
-        ABSContainerContent.FindFirst();
-        Assert.AreEqual(ExpectedResourceType, ABSContainerContent."Resource Type", IncorrectBlobPropertyErr);
+        TempABSContainerContent.SetRange(Name, BlobName);
+        TempABSContainerContent.FindFirst();
+        Assert.AreEqual(ExpectedResourceType, TempABSContainerContent."Resource Type", IncorrectBlobPropertyErr);
     end;
 
     local procedure GetBlobTagsFromABSContainerBlobList(BlobName: Text; BlobList: Dictionary of [Text, XmlNode]): Dictionary of [Text, Text]

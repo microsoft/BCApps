@@ -352,7 +352,7 @@ page 8089 "Closed Vend. Cont. Line Subp."
 
     trigger OnAfterGetRecord()
     begin
-        InitializePageVariables();
+        Rec.GetServiceObject(ServiceObject);
         Rec.LoadServiceCommitmentForContractLine(ServiceCommitment);
     end;
 
@@ -366,10 +366,4 @@ page 8089 "Closed Vend. Cont. Line Subp."
         ServiceCommitment: Record "Subscription Line";
         ServiceObject: Record "Subscription Header";
         ContractsGeneralMgt: Codeunit "Sub. Contracts General Mgt.";
-
-    local procedure InitializePageVariables()
-    begin
-        Rec.GetServiceCommitment(ServiceCommitment);
-        Rec.GetServiceObject(ServiceObject);
-    end;
 }

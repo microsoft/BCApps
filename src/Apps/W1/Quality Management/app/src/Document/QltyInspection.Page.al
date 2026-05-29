@@ -228,7 +228,8 @@ page 20406 "Qlty. Inspection"
             }
             group(ControlInfo)
             {
-                Caption = 'Control Information';
+                Caption = 'Source Reference';
+
                 field("Source Table No."; Rec."Source Table No.")
                 {
                     Editable = false;
@@ -478,9 +479,15 @@ page 20406 "Qlty. Inspection"
                 ToolTip = 'Create a new re-inspection based on this inspection. If the inspection is still open, it will be finished first. Finishing may be blocked if the current result does not allow it.';
 
                 trigger OnAction()
+                var
+                    ReinspectionQltyInspectionHeader: Record "Qlty. Inspection Header";
                 begin
-                    Rec.CreateReinspection();
+                    Rec.CreateReinspection(ReinspectionQltyInspectionHeader);
                     CurrPage.Update(false);
+                    if not IsNullGuid(ReinspectionQltyInspectionHeader.SystemId) then begin
+                        Commit();
+                        Page.Run(Page::"Qlty. Inspection", ReinspectionQltyInspectionHeader);
+                    end;
                 end;
             }
             action(ChangeStatusFinish)
@@ -550,7 +557,7 @@ page 20406 "Qlty. Inspection"
             {
                 Caption = 'Create Internal Put-away';
                 Image = CreatePutAway;
-                ToolTip = 'Creates an Internal Put-away document.';
+                ToolTip = 'Create an Internal Put-away document.';
 
                 trigger OnAction()
                 var
@@ -628,7 +635,7 @@ page 20406 "Qlty. Inspection"
             {
                 PromotedCategory = Report;
                 Caption = 'Certificate of Analysis';
-                ToolTip = 'Certificate of Analysis (CoA) for this inspection.';
+                ToolTip = 'Print a certificate of analysis (CoA) report.';
                 Image = Certificate;
                 Promoted = true;
                 PromotedIsBig = true;
@@ -648,8 +655,8 @@ page 20406 "Qlty. Inspection"
             {
                 PromotedCategory = Report;
                 Caption = 'Non Conformance Report';
-                ToolTip = 'Specifies the Non Conformance Report has a layout suitable for quality inspection templates that typically contain Non Conformance Report questions.';
-                Image = PrintReport;
+                ToolTip = 'Print a non-conformance inspection report.';
+                Image = Report;
                 Promoted = true;
                 PromotedIsBig = true;
                 PromotedOnly = true;
@@ -668,8 +675,8 @@ page 20406 "Qlty. Inspection"
             {
                 PromotedCategory = Report;
                 Caption = 'Inspection Report';
-                ToolTip = 'General purpose inspection report.';
-                Image = PrintReport;
+                ToolTip = 'Print a general-purpose inspection report.';
+                Image = Report;
                 Promoted = true;
                 PromotedIsBig = true;
                 PromotedOnly = true;
@@ -705,9 +712,9 @@ page 20406 "Qlty. Inspection"
             }
             action(OpenSourceDocument)
             {
-                Caption = 'Open Source Document';
+                Caption = 'Show source document';
                 Image = ViewSourceDocumentLine;
-                ToolTip = 'Opens the related source document.';
+                ToolTip = 'Open the related source document.';
 
                 trigger OnAction()
                 var
@@ -735,7 +742,7 @@ page 20406 "Qlty. Inspection"
             {
                 Caption = 'Item Availability by';
                 Image = ItemAvailability;
-                action(tItemAvailabilityByEvent)
+                action(ItemAvailabilityByEvent)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Event';
@@ -751,7 +758,7 @@ page 20406 "Qlty. Inspection"
                         AvailItemAvailabilityFormsMgt.ShowItemAvailabilityFromItem(Item, "Item Availability Type"::"Event");
                     end;
                 }
-                action(Period)
+                action(ItemAvailabilityByPeriod)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Period';
@@ -762,7 +769,7 @@ page 20406 "Qlty. Inspection"
                                       "Variant Filter" = field("Source Variant Code");
                     ToolTip = 'Show the projected quantity of the item over time according to time periods, such as day, week, or month.';
                 }
-                action(Variant)
+                action(ItemAvailabilityByVariant)
                 {
                     ApplicationArea = Planning;
                     Caption = 'Variant';
@@ -773,7 +780,7 @@ page 20406 "Qlty. Inspection"
                                       "Variant Filter" = field("Source Variant Code");
                     ToolTip = 'View the current and projected quantity of the item for each variant.';
                 }
-                action(Location)
+                action(ItemAvailabilityByLocation)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Location';
@@ -784,7 +791,7 @@ page 20406 "Qlty. Inspection"
                                       "Variant Filter" = field("Source Variant Code");
                     ToolTip = 'View the actual and projected quantity of the item per location.';
                 }
-                action(Lot)
+                action(ItemAvailabilityByLot)
                 {
                     ApplicationArea = ItemTracking;
                     Caption = 'Lot';
@@ -793,7 +800,7 @@ page 20406 "Qlty. Inspection"
                     RunPageLink = "No." = field("Source Item No.");
                     ToolTip = 'View the current and projected quantity of the item for each lot.';
                 }
-                action(BinContents)
+                action(ItemAvailabilityByBinContents)
                 {
                     ApplicationArea = Warehouse;
                     Caption = 'Bin Contents';
@@ -804,7 +811,7 @@ page 20406 "Qlty. Inspection"
                     ToolTip = 'View the quantities of the item in each bin where it exists. You can see all the important parameters relating to bin content, and you can modify certain bin content parameters in this window.';
                 }
             }
-            action(tShowTransfers)
+            action(ShowRelatedTransferDocuments)
             {
                 Caption = 'Show Related Transfer Documents';
                 Image = TransferOrder;
@@ -859,7 +866,7 @@ page 20406 "Qlty. Inspection"
         IsOpen := Rec.Status = Rec.Status::Open;
         StatusStyleExpr := Rec.GetStatusStyleExpression();
 
-        CanReopen := not Rec.HasMoreRecentReinspection();
+        CanReopen := (Rec.Status <> Rec.Status::Open) and not Rec.HasMoreRecentReinspection();
         CanFinish := Rec.Status <> Rec.Status::Finished;
         if IsOpen then
             if QltyPermissionMgmt.CanChangeItemTracking() then begin

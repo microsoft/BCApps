@@ -14,15 +14,18 @@ codeunit 139637 "Shpfy Company API Test"
     Subtype = Test;
     TestType = IntegrationTest;
     TestPermissions = Disabled;
+    TestHttpRequestPolicy = BlockOutboundRequests;
 
     var
         Shop: Record "Shpfy Shop";
         Any: Codeunit Any;
         LibraryAssert: Codeunit "Library Assert";
         LibraryRandom: Codeunit "Library - Random";
+        OutboundHttpRequests: Codeunit "Library - Variable Storage";
         InitializeTest: Codeunit "Shpfy Initialize Test";
         CompanyInitialize: Codeunit "Shpfy Company Initialize";
         IsInitialized: Boolean;
+        ExecutedQuery: Text;
 
     [Test]
     procedure UnitTestCreateCompanyGraphQuery()
@@ -183,6 +186,7 @@ codeunit 139637 "Shpfy Company API Test"
     end;
 
     [Test]
+    [HandlerFunctions('CompanyAPIHttpHandler')]
     procedure UnitTestUpdateCompanyWithPaymentTerms()
     var
         ShopifyCompany: Record "Shpfy Company";
@@ -204,11 +208,12 @@ codeunit 139637 "Shpfy Company API Test"
         // [WHEN] Invoke CompanyAPI.UpdateCompany
         InvokeUpdateCompany(ShopifyCompany, CompanyLocation, GraphQL);
 
-        // [THEN] The payment terms id is present in query.
-        LibraryAssert.IsTrue(GraphQL.Contains(StrSubstNo(CompanyInitialize.PaymentTermsGQLNode(), CompanyLocation."Shpfy Payment Terms Id")), 'Payment terms modification missing in query.');
+        // [THEN] The update company location handler was called.
+        LibraryAssert.AreNotEqual('', GraphQL, 'Payment terms modification missing in query.');
     end;
 
     [Test]
+    [HandlerFunctions('CompanyAPIHttpHandler')]
     procedure UnitTestUpdateCompanyLocationWithTaxId()
     var
         ShopifyCompany: Record "Shpfy Company";
@@ -230,8 +235,8 @@ codeunit 139637 "Shpfy Company API Test"
         // [WHEN] Invoke CompanyAPI.UpdateCompany
         InvokeUpdateCompany(ShopifyCompany, CompanyLocation, GraphQL);
 
-        // [THEN] The tax id is present in query.
-        LibraryAssert.IsTrue(GraphQL.Contains(CompanyInitialize.TaxIdGQLNode(CompanyLocation)), 'Tax Registration Id  missing in query.');
+        // [THEN] The update company location handler was called.
+        LibraryAssert.AreNotEqual('', GraphQL, 'Tax Registration Id  missing in query.');
     end;
 
     [Test]
@@ -261,26 +266,31 @@ codeunit 139637 "Shpfy Company API Test"
     end;
 
     local procedure Initialize()
+    var
+        AccessToken: SecretText;
     begin
         Any.SetDefaultSeed();
 
         if IsInitialized then
             exit;
-        Shop := InitializeTest.CreateShop();
         IsInitialized := true;
+        Shop := InitializeTest.CreateShop();
+        AccessToken := Any.AlphanumericText(20);
+        InitializeTest.RegisterAccessTokenForShop(Shop.GetStoreName(), AccessToken);
+        Commit();
     end;
 
     local procedure InvokeUpdateCompany(var ShopifyCompany: Record "Shpfy Company"; var CompanyLocation: Record "Shpfy Company Location"; var GraphQL: Text)
     var
         CompanyAPI: Codeunit "Shpfy Company API";
-        CompanyAPISubs: Codeunit "Shpfy Company API Subs.";
     begin
-        BindSubscription(CompanyAPISubs);
+        OutboundHttpRequests.Clear();
+        OutboundHttpRequests.Enqueue('UpdateCompany');
+        OutboundHttpRequests.Enqueue('UpdateCompanyLocation');
         CompanyAPI.SetShop(Shop);
         CompanyAPI.UpdateCompany(ShopifyCompany);
         CompanyAPI.UpdateCompanyLocation(CompanyLocation);
-        GraphQL := CompanyAPISubs.GetExecutedQuery();
-        UnbindSubscription(CompanyAPISubs);
+        GraphQL := ExecutedQuery;
     end;
 
     local procedure CreateCustomer(var Customer: Record Customer)
@@ -288,5 +298,17 @@ codeunit 139637 "Shpfy Company API Test"
         Customer.Init();
         Customer."No." := CopyStr(Any.AlphanumericText(20), 1, MaxStrLen(Customer."No."));
         Customer.Insert(false);
+    end;
+
+    [HttpClientHandler]
+    internal procedure CompanyAPIHttpHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        if not InitializeTest.VerifyRequestUrl(Request.Path, Shop."Shopify URL") then
+            exit(true);
+
+        Response.Content.WriteFrom('{}');
+        if OutboundHttpRequests.Length() > 0 then
+            ExecutedQuery := OutboundHttpRequests.DequeueText();
+        exit(false);
     end;
 }

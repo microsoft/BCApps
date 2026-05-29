@@ -438,7 +438,7 @@ codeunit 6103 "E-Document Subscribers"
     local procedure OnBeforeOnDeletePurchaseHeader(var PurchaseHeader: Record "Purchase Header"; var IsHandled: Boolean)
     var
         EDocument: Record "E-Document";
-        EDocImportParameters: Record "E-Doc. Import Parameters";
+        TempEDocImportParameters: Record "E-Doc. Import Parameters";
         EDocImport: Codeunit "E-Doc. Import";
         ConfirmDialogMgt: Codeunit "Confirm Management";
     begin
@@ -450,9 +450,9 @@ codeunit 6103 "E-Document Subscribers"
         if not ConfirmDialogMgt.GetResponseOrDefault(StrSubstNo(DeleteDocumentQst, EDocument."Entry No")) then
             Error('');
 
-        EDocImportParameters."Step to Run / Desired Status" := EDocImportParameters."Step to Run / Desired Status"::"Desired E-Document Status";
-        EDocImportParameters."Desired E-Document Status" := "Import E-Doc. Proc. Status"::"Draft Ready";
-        EDocImport.ProcessIncomingEDocument(EDocument, EDocImportParameters);
+        TempEDocImportParameters."Step to Run / Desired Status" := TempEDocImportParameters."Step to Run / Desired Status"::"Desired E-Document Status";
+        TempEDocImportParameters."Desired E-Document Status" := "Import E-Doc. Proc. Status"::"Draft Ready";
+        EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParameters);
 
         PurchaseHeader.Get(PurchaseHeader."Document Type", PurchaseHeader."No.");
     end;
@@ -632,7 +632,9 @@ codeunit 6103 "E-Document Subscribers"
         EDocument."Document Type" := DocumentType;
         EDocument.Status := Enum::"E-Document Status"::Processed;
         EDocument.Modify(true);
-
+        
+        OnAfterUpdateToPostedPurchaseEDocument(EDocument, PostedRecord, PostedDocumentNo, DocumentType);
+        
         EDocService := EDocumentLog.GetLastServiceFromLog(EDocument);
         EDocLogHelper.InsertLog(EDocument, EDocService, Enum::"E-Document Service Status"::"Imported Document Created");
     end;
@@ -713,4 +715,8 @@ codeunit 6103 "E-Document Subscribers"
         Telemetry.LogMessage('0000PYF', DraftChangeTok, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryDimensions);
     end;
 
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterUpdateToPostedPurchaseEDocument(var EDocument: Record "E-Document"; PostedRecord: Variant; PostedDocumentNo: Code[20]; DocumentType: Enum "E-Document Type")
+    begin
+    end;
 }

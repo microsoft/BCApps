@@ -10,6 +10,10 @@ Refund lines are linked back to order lines via `Order Line Id` and carry a `Res
 
 If the refund is associated with a return, the module collects return locations from the Returns API to populate the `Location Id` on refund lines, since Shopify does not always include location data directly on the refund.
 
+The refund header stores `Shop Code` directly (populated from the communication manager's current shop during import), enabling shop-level filtering without joining through the order header. Currency codes (`Currency Code` and `Presentment Currency Code`) are also stored on the header and translated via `ImportOrder.TranslateCurrencyCode`. Error tracking fields (`Has Processing Error`, `Last Error Description`, `Last Error Call Stack`) support retry/debugging workflows. The `CheckCanCreateDocument` method prevents duplicate processing by checking whether a `Shpfy Doc. Link To Doc.` already exists for the refund.
+
+*Updated: 2026-04-08 -- Shop Code, currency codes, error tracking, and CheckCanCreateDocument on refund header*
+
 ## Things to know
 
 - A refund can exist without a return -- for example, an appeasement refund or a partial amount adjustment.

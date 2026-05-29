@@ -38,6 +38,10 @@ table 3903 "Retention Policy Allowed Table"
         {
             DataClassification = SystemMetadata;
         }
+        field(40; "Truncate Allowed"; Boolean)
+        {
+            DataClassification = SystemMetadata;
+        }
         field(100; "Table Filters"; Blob)
         {
             DataClassification = SystemMetadata;

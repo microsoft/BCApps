@@ -1,0 +1,2 @@
+# cost: 4
+{"query":"{ product(id: \"gid://shopify/Product/{{ProductId}}\") { media(query: \"id:{{ImageId}}\", first:1) { edges {node { id }}}}}"}

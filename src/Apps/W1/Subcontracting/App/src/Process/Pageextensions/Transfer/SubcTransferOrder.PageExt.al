@@ -13,24 +13,10 @@ pageextension 99001526 "Subc. Transfer Order" extends "Transfer Order"
         modify("Direct Transfer")
         {
             Enabled = EsEnableTransferFields;
-            Visible = false;
-        }
-        addafter("Direct Transfer")
-        {
-            field("Direct Transfer Posting"; Rec."Direct Transfer Posting")
-            {
-                ApplicationArea = Location;
-                Editable = (Rec.Status = Rec.Status::Open) and EsEnableTransferFields;
-                ToolTip = 'Specifies whether the incoming posting of the transfer order is posted directly with the outgoing posting, or whether the posting is done in 2 steps. Note: If "Direct transfer" is selected, no transit code will be used and no posted documents will be created.';
-                trigger OnValidate()
-                begin
-                    CurrPage.Update();
-                end;
-            }
         }
         addlast(General)
         {
-            field(SourceType; Rec."Source Type")
+            field("Subc. Source Type"; Rec."Subc. Source Type")
             {
                 ApplicationArea = Location;
                 Editable = false;
@@ -58,7 +44,7 @@ pageextension 99001526 "Subc. Transfer Order" extends "Transfer Order"
                 ToolTip = 'Specifies a reference number for the line, which the transfer order is related to.';
                 Visible = false;
             }
-            field("Return Order"; Rec."Return Order")
+            field("Subc. Return Order"; Rec."Subc. Return Order")
             {
                 ApplicationArea = Manufacturing;
                 Editable = false;
@@ -97,13 +83,13 @@ pageextension 99001526 "Subc. Transfer Order" extends "Transfer Order"
 
     trigger OnOpenPage()
     begin
-        ShowSubcontractingFactBox := Rec."Source Type" = Rec."Source Type"::Subcontracting;
+        ShowSubcontractingFactBox := Rec."Subc. Source Type" = Rec."Subc. Source Type"::Subcontracting;
         EsEnableTransferFields := not IsPartiallyShipped();
     end;
 
     trigger OnAfterGetCurrRecord()
     begin
-        ShowSubcontractingFactBox := Rec."Source Type" = Rec."Source Type"::Subcontracting;
+        ShowSubcontractingFactBox := Rec."Subc. Source Type" = Rec."Subc. Source Type"::Subcontracting;
     end;
 
     trigger OnAfterGetRecord()

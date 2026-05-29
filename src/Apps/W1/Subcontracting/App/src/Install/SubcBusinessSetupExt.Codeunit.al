@@ -5,19 +5,22 @@
 namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Foundation.Company;
+using Microsoft.Manufacturing.Setup;
 using System.Environment.Configuration;
 
 codeunit 99001502 "Subc. Business Setup Ext."
 {
+    var
+        SubcontractingDescriptionLbl: Label 'Make manual Subcontracting Setup';
+        SubcontractingKeyWordsLbl: Label 'Subcontracting, Management';
+        SubcontractingLbl: Label 'Subcontracting App';
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Guided Experience", OnRegisterManualSetup, '', false, false)]
     local procedure OnRegisterManualSetup(sender: Codeunit "Guided Experience")
     var
         ManualSetupCategory: Enum "Manual Setup Category";
-        SubcontractingDescriptionLbl: Label 'Make manual Subcontracting Setup';
-        SubcontractingKeyWordsLbl: Label 'Subcontracting, Management';
-        SubcontractingLbl: Label 'Subcontracting App';
     begin
-        sender.InsertManualSetup(SubcontractingLbl, SubcontractingLbl, SubcontractingDescriptionLbl, 0, ObjectType::Page, Page::"Subc. Management Setup", ManualSetupCategory::Uncategorized, SubcontractingKeyWordsLbl);
+        sender.InsertManualSetup(SubcontractingLbl, SubcontractingLbl, SubcontractingDescriptionLbl, 0, ObjectType::Page, Page::"Manufacturing Setup", ManualSetupCategory::Uncategorized, SubcontractingKeyWordsLbl);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Company-Initialize", OnCompanyInitialize, '', false, false)]

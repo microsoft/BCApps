@@ -66,6 +66,22 @@ codeunit 130460 "Test Input"
         exit(DataPerTest.GetInput(DataPerTest));
     end;
 
+    procedure GetTestInputByCode(GroupCode: Code[100]; InputCode: Code[100]): Codeunit "Test Input Json"
+    var
+        TestInputRec: Record "Test Input";
+        TestInputJson: Codeunit "Test Input Json";
+        InputContent: Text;
+    begin
+        if not TestInputRec.Get(GroupCode, InputCode) then
+            exit(TestInputJson);
+
+        InputContent := TestInputRec.GetInput(TestInputRec);
+        if InputContent <> '' then
+            TestInputJson.Initialize(InputContent);
+
+        exit(TestInputJson);
+    end;
+
     var
         DataPerTest: Record "Test Input";
         DataPerTestTestInput: Codeunit "Test Input Json";

@@ -123,15 +123,17 @@ codeunit 30195 "Shpfy Inventory API"
 
     internal procedure ExportStock(var ShopInventory: Record "Shpfy Shop Inventory"; ForceExport: Boolean)
     var
-        IGraphQL: Interface "Shpfy IGraphQL";
+        GraphQLQueries: Codeunit "Shpfy GraphQL Queries";
         JGraphQL: JsonObject;
         JQuantities: JsonArray;
         JQuantity: JsonObject;
+        ExpectedCost: Integer;
         InputSize: Integer;
+        GraphQLText: Text;
     begin
         if ShopInventory.FindSet() then begin
-            IGraphQL := Enum::"Shpfy GraphQL Type"::ModifyInventory;
-            JGraphQL.ReadFrom(IGraphQL.GetGraphQL());
+            GraphQLText := GraphQLQueries.GetQueryWithCost(Enum::"Shpfy GraphQL Type"::Inventory_ModifyInventory, ExpectedCost);
+            JGraphQL.ReadFrom(GraphQLText);
             JQuantities := JsonHelper.GetJsonArray(JGraphQL, 'variables.input.quantities');
 
             repeat
@@ -140,9 +142,9 @@ codeunit 30195 "Shpfy Inventory API"
                     JQuantities.Add(JQuantity);
                     InputSize += 1;
                     if InputSize = 250 then begin
-                        ExecuteInventoryGraphQL(JGraphQL, IGraphQL.GetExpectedCost());
+                        ExecuteInventoryGraphQL(JGraphQL, ExpectedCost);
                         Clear(JGraphQL);
-                        JGraphQL.ReadFrom(IGraphQL.GetGraphQL());
+                        JGraphQL.ReadFrom(GraphQLText);
                         JQuantities := JsonHelper.GetJsonArray(JGraphQL, 'variables.input.quantities');
                         InputSize := 0;
                     end;
@@ -150,7 +152,7 @@ codeunit 30195 "Shpfy Inventory API"
             until ShopInventory.Next() = 0;
 
             if InputSize > 0 then
-                ExecuteInventoryGraphQL(JGraphQL, IGraphQL.GetExpectedCost());
+                ExecuteInventoryGraphQL(JGraphQL, ExpectedCost);
         end;
     end;
 
@@ -318,7 +320,7 @@ codeunit 30195 "Shpfy Inventory API"
                     end;
                 end;
             end;
-            GraphQLType := GraphQLType::GetNextInventoryEntries;
+            GraphQLType := GraphQLType::Inventory_GetNextInventoryEntries;
             if Parameters.ContainsKey('After') then
                 Parameters.Set('After', Cursor)
             else
@@ -334,7 +336,7 @@ codeunit 30195 "Shpfy Inventory API"
         JResponse: JsonToken;
     begin
         Parameters.Add('LocationId', Format(ShopLocation.Id));
-        GraphQLType := GraphQLType::GetInventoryEntries;
+        GraphQLType := GraphQLType::Inventory_GetInventoryEntries;
         repeat
             JResponse := ShopifyCommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
             if GetInventoryLevels(JResponse.AsObject(), JInventoryLevels) then
