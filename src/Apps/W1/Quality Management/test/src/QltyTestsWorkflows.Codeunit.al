@@ -1834,10 +1834,28 @@ codeunit 139969 "Qlty. Tests - Workflows"
 
         // [WHEN] We look at all event/response combinations where the response is a QM response
         QltyPrefix := 'QLTY-*';
-        WFEventResponseCombination.SetFilter("Function Name", QltyPrefix);
+WFEventResponseCombination.SetFilter("Function Name", QltyPrefix);
+LibraryAssert.IsTrue(WFEventResponseCombination.FindSet(), 'Expected QM event/response combinations to exist.');
+
+// [THEN] Every linked predecessor event must also be a QM event
+repeat
+    LibraryAssert.IsTrue(
+        WFEventResponseCombination."Predecessor Type" = WFEventResponseCombination."Predecessor Type"::"Event",
+        'Expected predecessor type to be Event.');
+    LibraryAssert.IsTrue(
+        CopyStr(WFEventResponseCombination."Predecessor Function Name", 1, 5) = 'QLTY-',
+        StrSubstNo(QMResponseNotPredecessorOfNonQMEventErr,
+            WFEventResponseCombination."Function Name",
+            WFEventResponseCombination."Predecessor Function Name"));
+until WFEventResponseCombination.Next() = 0;
         WFEventResponseCombination.FindSet();
 
-        // [THEN] Every linked predecessor event must also be a QM event
+WFEventResponseCombination.SetFilter("Function Name", QltyPrefix);
+LibraryAssert.IsFalse(WFEventResponseCombination.IsEmpty(), 'Expected at least one QM response/event combination to exist.');
+if WFEventResponseCombination.FindSet() then
+    repeat
+        // assertions
+    until WFEventResponseCombination.Next() = 0;
         repeat
             LibraryAssert.IsTrue(
                 WFEventResponseCombination."Predecessor Type" = WFEventResponseCombination."Predecessor Type"::"Event",
