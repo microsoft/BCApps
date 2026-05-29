@@ -1837,6 +1837,7 @@ codeunit 139236 "PEPPOL BIS BillingTests"
             Customer."VAT Registration No." := LibraryERM.GenerateVATRegistrationNo(Customer."Country/Region Code");
         Customer."Use GLN in Electronic Document" := true;
         Customer."Ship-to Code" := ShipToAddress.Code;
+        Customer."E-Mail" := 'test@test.com';
         Customer.Modify();
         exit(Customer."No.");
     end;

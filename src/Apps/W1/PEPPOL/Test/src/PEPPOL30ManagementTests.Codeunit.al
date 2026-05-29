@@ -3787,6 +3787,9 @@ codeunit 139235 "PEPPOL30 Management Tests"
 
         LibrarySales.CreateCustomerWithAddress(Customer);
         AddCustPEPPOLIdentifier(Customer."No.");
+        Customer.Get(Customer."No.");
+        Customer."E-Mail" := 'test@test.com';
+        Customer.Modify();
         LibraryService.CreateServiceHeader(ServiceHeader, DocumentType, Customer."No.");
         ServiceHeader.Validate("Due Date", LibraryRandom.RandDate(10));
         ServiceHeader.SetShipToAddress(ServiceHeader.Name, '', ServiceHeader.Address, ServiceHeader."Address 2",

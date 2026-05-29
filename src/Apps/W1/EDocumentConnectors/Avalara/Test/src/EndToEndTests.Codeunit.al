@@ -1034,6 +1034,8 @@ codeunit 133625 "End-to-End Tests"
             SalesReceivablesSetup."Posted Invoice Nos." := LibraryERM.CreateNoSeriesCode();
         if SalesReceivablesSetup."Posted Credit Memo Nos." = '' then
             SalesReceivablesSetup."Posted Credit Memo Nos." := LibraryERM.CreateNoSeriesCode();
+        // Always override Posted Shipment Nos. to avoid country-specific series with future starting dates (e.g. IT S-SHPT)
+        SalesReceivablesSetup."Posted Shipment Nos." := LibraryERM.CreateNoSeriesCode();
         SalesReceivablesSetup.Modify(true);
 
         if not PurchasesPayablesSetup.Get() then begin
