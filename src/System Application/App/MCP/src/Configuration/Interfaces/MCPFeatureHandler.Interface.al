@@ -1,0 +1,36 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
+namespace System.MCP;
+
+interface "MCP Feature Handler"
+{
+    Access = Internal;
+
+    /// <summary>
+    /// Activates or deactivates the feature for the specified MCP configuration.
+    /// </summary>
+    procedure SetActive(ConfigId: Guid; Active: Boolean);
+
+    /// <summary>
+    /// Returns whether the feature is currently active for the specified MCP configuration.
+    /// </summary>
+    procedure IsActive(ConfigId: Guid): Boolean;
+
+    /// <summary>
+    /// Returns whether the feature exposes additional settings (drives the Configure action).
+    /// </summary>
+    procedure HasSettings(): Boolean;
+
+    /// <summary>
+    /// Opens the feature's settings dialog. No-op when HasSettings() returns false.
+    /// </summary>
+    procedure OpenSettings(ConfigId: Guid);
+
+    /// <summary>
+    /// Returns the description shown for the feature in the Server Features list.
+    /// </summary>
+    procedure Description(): Text[500];
+}

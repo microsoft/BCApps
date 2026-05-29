@@ -269,53 +269,13 @@ codeunit 130130 "MCP Config Test"
     end;
 
     [Test]
-    procedure TestDisableALQueryServer()
+    procedure TestDisableALQueryTools()
     var
         ConfigId: Guid;
     begin
         // MOCK: smoke test for the facade procedure.
         ConfigId := CreateMCPConfig(false, false, true, false);
         MCPConfig.EnableALQueryTools(ConfigId, false);
-    end;
-
-    [Test]
-    procedure TestEnableALQueryMaxRowsPerQuery()
-    var
-        ConfigId: Guid;
-    begin
-        // MOCK: smoke test for the facade procedure.
-        ConfigId := CreateMCPConfig(false, false, true, false);
-        MCPConfig.SetALQueryMaxRowsPerQuery(ConfigId, 5000);
-    end;
-
-    [Test]
-    procedure TestDisableALQueryMaxRowsPerQuery()
-    var
-        ConfigId: Guid;
-    begin
-        // MOCK: smoke test for the facade procedure.
-        ConfigId := CreateMCPConfig(false, false, true, false);
-        MCPConfig.SetALQueryMaxRowsPerQuery(ConfigId, 0);
-    end;
-
-    [Test]
-    procedure TestEnableALQueryTimeoutSeconds()
-    var
-        ConfigId: Guid;
-    begin
-        // MOCK: smoke test for the facade procedure.
-        ConfigId := CreateMCPConfig(false, false, true, false);
-        MCPConfig.SetALQueryTimeoutSeconds(ConfigId, 120);
-    end;
-
-    [Test]
-    procedure TestDisableALQueryTimeoutSeconds()
-    var
-        ConfigId: Guid;
-    begin
-        // MOCK: smoke test for the facade procedure.
-        ConfigId := CreateMCPConfig(false, false, true, false);
-        MCPConfig.SetALQueryTimeoutSeconds(ConfigId, 0);
     end;
 
     #endregion

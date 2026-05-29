@@ -209,19 +209,21 @@ page 8351 "MCP Config Card"
     var
         MCPConfigImplementation: Codeunit "MCP Config Implementation";
         IsDefault: Boolean;
-        // MOCK: page-local stand-in driving the Available APIs sub-part visibility. Replace with
-        // Rec.<NewAPIToolsField> when the platform adds it.
+        // MOCK: page-local driving the Available APIs sub-part visibility, set from the API Tools
+        // feature handler's IsActive(). Returns false until the platform adds the config field.
         APIToolsActive: Boolean;
         DesignatedDefaultCannotBeDeactivatedErr: Label 'The designated default configuration cannot be deactivated. Clear the default designation first.';
 
     local procedure RefreshSubPages()
+    var
+        APIToolsHandler: Interface "MCP Feature Handler";
+        ALQueryHandler: Interface "MCP Feature Handler";
     begin
-        CurrPage.ServerFeatureList.Page.Reload(Rec.SystemId, Rec.EnableDynamicToolMode, not IsDefault and not Rec.Active);
-        APIToolsActive := CurrPage.ServerFeatureList.Page.IsAPIToolsActive();
-        // MOCK: IsALQueryActive() returns a page-local stand-in for the platform-side "AL Query enabled"
-        // field that doesn't exist yet on MCP Configuration. Replace with Rec.<NewALQueryField> when
-        // the platform adds it.
-        CurrPage.SystemToolList.Page.Reload(Rec.EnableDynamicToolMode, CurrPage.ServerFeatureList.Page.IsALQueryActive());
+        CurrPage.ServerFeatureList.Page.Reload(Rec.SystemId, not IsDefault and not Rec.Active);
+        APIToolsHandler := "MCP Server Feature"::"API Tools";
+        APIToolsActive := APIToolsHandler.IsActive(Rec.SystemId);
+        ALQueryHandler := "MCP Server Feature"::"AL Query Tools";
+        CurrPage.SystemToolList.Page.Reload(Rec.EnableDynamicToolMode, ALQueryHandler.IsActive(Rec.SystemId));
         CurrPage.ToolList.Page.SetConfigActive(Rec.Active);
     end;
 }

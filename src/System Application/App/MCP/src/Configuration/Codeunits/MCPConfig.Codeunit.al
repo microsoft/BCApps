@@ -131,32 +131,6 @@ codeunit 8350 "MCP Config"
     end;
 
     /// <summary>
-    /// Sets the maximum number of rows a single AL query may return on the specified configuration.
-    /// </summary>
-    /// <remarks>
-    /// MOCK: no-op until the platform-side `MaxRowsPerQuery` field exists on `MCP Configuration`.
-    /// </remarks>
-    /// <param name="ConfigId">The SystemId (GUID) of the configuration.</param>
-    /// <param name="Value">The maximum row count.</param>
-    procedure SetALQueryMaxRowsPerQuery(ConfigId: Guid; Value: Integer)
-    begin
-        MCPConfigImplementation.SetALQueryMaxRowsPerQuery(ConfigId, Value);
-    end;
-
-    /// <summary>
-    /// Sets the maximum execution time, in seconds, that a single AL query may run on the specified configuration.
-    /// </summary>
-    /// <remarks>
-    /// MOCK: no-op until the platform-side `QueryTimeoutSeconds` field exists on `MCP Configuration`.
-    /// </remarks>
-    /// <param name="ConfigId">The SystemId (GUID) of the configuration.</param>
-    /// <param name="Value">The timeout, in seconds.</param>
-    procedure SetALQueryTimeoutSeconds(ConfigId: Guid; Value: Integer)
-    begin
-        MCPConfigImplementation.SetALQueryTimeoutSeconds(ConfigId, Value);
-    end;
-
-    /// <summary>
     /// Finds warnings for the specified MCP configuration, such as missing objects or missing parent objects.
     /// </summary>
     /// <param name="ConfigId">The SystemId (GUID) of the configuration to find warnings for.</param>

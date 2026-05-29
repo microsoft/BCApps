@@ -29,6 +29,11 @@ table 8355 "MCP Server Feature"
             OptionCaption = 'Inactive,Active';
             ToolTip = 'Specifies whether this server feature is currently active for the configuration.';
         }
+        field(4; Configurable; Boolean)
+        {
+            Caption = 'Configurable';
+            ToolTip = 'Specifies whether this server feature exposes additional settings.';
+        }
     }
 
     keys
