@@ -161,12 +161,14 @@ query:
   title: <task title>
   message: <task message body>
   attachments:
-    - file: <relative path inside .resources>
-    - file_generator:                         # OR: dynamically generated
-        name: <generator name>
-        generator_data:
-          <key>: <value>                      # arbitrary data for the generator
+    - file: <relative path inside .resources>   # static file
+    - file:                                      # OR: dynamically generated
+        action_type: <generator name>
+        action_data:
+          <key>: <value>                         # arbitrary data for the generator
 ```
+
+The `file` key supports two forms: a **scalar** value (static file path) or an **object** with `action_type` / `action_data` (dynamically generated file).
 
 How keys flow into library calls:
 
@@ -175,8 +177,8 @@ How keys flow into library calls:
 | `query.title` | `AgentTaskBuilder.Initialize(AgentUserSecurityId, title)` — required, asserted via `Library Assert`. |
 | `query.from` | `AgentTaskMessageBuilder.Initialize(from, ...)`. If `from` is missing, no message is added (only the task title). |
 | `query.message` | `AgentTaskMessageBuilder.Initialize(..., message)`. Optional. |
-| `query.attachments[].file` | `IAgentTestResourceProvider.GetResource(file, ...)` → `AgentTaskMessageBuilder.AddAttachment(...)`. Use the `RunTurnAndWait` overload that accepts a provider when YAML uses attachments. |
-| `query.attachments[].file_generator` | `IAgentTestResourceProvider.GenerateResource(name, generatorData, ...)` → `AgentTaskMessageBuilder.AddAttachment(...)`. The `generator_data` sub-object is extracted and passed as a `Test Input Json` codeunit; `name` is passed separately. |
+| `query.attachments[].file` (scalar) | `IAgentTestResourceProvider.GetResource(file, ...)` → `AgentTaskMessageBuilder.AddAttachment(...)`. Use the `RunTurnAndWait` overload that accepts a provider when YAML uses attachments. |
+| `query.attachments[].file` (object) | `IAgentTestResourceProvider.GenerateResource(action_type, action_data, ...)` → `AgentTaskMessageBuilder.AddAttachment(...)`. The `action_data` sub-object is extracted and passed as a `Test Input Json` codeunit; `action_type` is passed separately. |
 
 ### 7.3 Intervention continuation
 

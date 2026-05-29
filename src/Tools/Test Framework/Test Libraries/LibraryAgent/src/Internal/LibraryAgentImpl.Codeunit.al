@@ -472,7 +472,7 @@ codeunit 130561 "Library - Agent Impl."
         AttachmentsInput: Codeunit "Test Input Json";
         AttachmentElement: Codeunit "Test Input Json";
         AttachmentFileElement: Codeunit "Test Input Json";
-        AttachmentFileGeneratorElement: Codeunit "Test Input Json";
+        ActionTypeElement: Codeunit "Test Input Json";
         TitleInput, FromInput, MessageInput : Codeunit "Test Input Json";
         Assert: Codeunit "Library Assert";
         ResourceInStream: InStream;
@@ -480,7 +480,7 @@ codeunit 130561 "Library - Agent Impl."
         MessageValue: Text;
         FileName: Text[250];
         MIMEType: Text[100];
-        HasTitle, HasFrom, HasMessage, HasAttachments, HasFile, HasFileGenerator : Boolean;
+        HasTitle, HasFrom, HasMessage, HasAttachments, HasFile, HasActionType : Boolean;
         I: Integer;
     begin
         TitleInput := QueryInput.ElementExists(TitleTok, HasTitle);
@@ -514,13 +514,16 @@ codeunit 130561 "Library - Agent Impl."
                     Clear(MIMEType);
 
                     AttachmentElement := AttachmentsInput.ElementAt(I);
-                    AttachmentFileGeneratorElement := AttachmentElement.ElementExists(FileGeneratorTok, HasFileGenerator);
                     AttachmentFileElement := AttachmentElement.ElementExists(FileTok, HasFile);
 
-                    if HasFileGenerator then
+                    if not HasFile then
+                        continue;
+
+                    ActionTypeElement := AttachmentFileElement.ElementExists(ActionTypeTok, HasActionType);
+                    if HasActionType then
                         AgentTestResourceProvider.GenerateResource(
-                            AttachmentFileGeneratorElement.Element(NameTok).ValueAsText(),
-                            AttachmentFileGeneratorElement.Element(GeneratorDataTok),
+                            ActionTypeElement.ValueAsText(),
+                            AttachmentFileElement.Element(ActionDataTok),
                             ResourceInStream, FileName, MIMEType)
                     else
                         AgentTestResourceProvider.GetResource(
@@ -574,10 +577,11 @@ codeunit 130561 "Library - Agent Impl."
             Assert.Fail(UnexpectedInterventionErr);
 
         if HasActualIntervention and HasExpectedIntervention then
-            ValidateInterventionDetails(TempUserInterventionRequest, TempAnnotation, TempSuggestion, ExpectedInterventionRequest);
+            ValidateInterventionDetails(AgentTask, TempUserInterventionRequest, TempAnnotation, TempSuggestion, ExpectedInterventionRequest);
     end;
 
     local procedure ValidateInterventionDetails(
+        AgentTask: Record "Agent Task";
         TempUserInterventionRequest: Record "Agent User Int Request Details" temporary;
         var TempAnnotation: Record "Agent Annotation" temporary;
         var TempSuggestion: Record "Agent Task User Int Suggestion" temporary;
@@ -615,16 +619,37 @@ codeunit 130561 "Library - Agent Impl."
 
         IntentInput := ExpectedInterventionRequest.ElementExists(IntentTok, IntentExists);
         if IntentExists then begin
-            // For Assistance type the message is in the annotation; fall back to request message
-            if TempAnnotation.FindFirst() then
-                ActualMessage := TempAnnotation.Message
-            else
-                ActualMessage := TempUserInterventionRequest.Message;
+            ActualMessage := GetInterventionActualMessage(AgentTask, TempUserInterventionRequest, TempAnnotation);
 
             Assert.IsTrue(
                 EvaluateIntentWithLLM(ActualMessage, IntentInput.ValueAsText(), Reasoning),
                 StrSubstNo(IntentMismatchErr, IntentInput.ValueAsText(), ActualMessage) + ' | Judge reasoning: ' + Reasoning);
         end;
+    end;
+
+    local procedure GetInterventionActualMessage(
+        AgentTask: Record "Agent Task";
+        TempUserInterventionRequest: Record "Agent User Int Request Details" temporary;
+        var TempAnnotation: Record "Agent Annotation" temporary): Text
+    var
+        AgentTaskMessage: Record "Agent Task Message";
+        ContentInStream: InStream;
+        ContentText: Text;
+    begin
+        // For ReviewMessage type, the actual content is in the related output message
+        if TempUserInterventionRequest.Type = TempUserInterventionRequest.Type::ReviewMessage then
+            if AgentTaskMessage.Get(AgentTask.ID, TempUserInterventionRequest."Message ID") then begin
+                AgentTaskMessage.CalcFields(Content);
+                AgentTaskMessage.Content.CreateInStream(ContentInStream, GetDefaultEncoding());
+                ContentInStream.Read(ContentText);
+                exit(ContentText);
+            end;
+
+        // For other types the message is in the annotation; fall back to request message
+        if TempAnnotation.FindFirst() then
+            exit(TempAnnotation.Message);
+
+        exit(TempUserInterventionRequest.Message);
     end;
 
     local procedure EvaluateIntentWithLLM(ActualMessage: Text; ExpectedIntent: Text; var Reasoning: Text): Boolean
@@ -756,8 +781,8 @@ codeunit 130561 "Library - Agent Impl."
         FromTok: Label 'from', Locked = true;
         AttachmentsTok: Label 'attachments', Locked = true;
         FileTok: Label 'file', Locked = true;
-        FileGeneratorTok: Label 'file_generator', Locked = true;
-        GeneratorDataTok: Label 'generator_data', Locked = true;
+        ActionTypeTok: Label 'action_type', Locked = true;
+        ActionDataTok: Label 'action_data', Locked = true;
         NameTok: Label 'name', Locked = true;
         InterventionRequestTok: Label 'intervention_request', Locked = true;
         SuggestionsTok: Label 'suggestions', Locked = true;
