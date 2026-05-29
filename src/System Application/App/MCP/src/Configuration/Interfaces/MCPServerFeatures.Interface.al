@@ -5,7 +5,7 @@
 
 namespace System.MCP;
 
-interface "MCP Feature Handler"
+interface "MCP Server Features"
 {
     Access = Internal;
 
@@ -33,4 +33,9 @@ interface "MCP Feature Handler"
     /// Returns the description shown for the feature in the Server Features list.
     /// </summary>
     procedure Description(): Text[500];
+
+    /// <summary>
+    /// Appends the feature's system tools to the buffer. Called only when the feature is active.
+    /// </summary>
+    procedure LoadSystemTools(var MCPSystemTool: Record "MCP System Tool");
 }

@@ -216,14 +216,12 @@ page 8351 "MCP Config Card"
 
     local procedure RefreshSubPages()
     var
-        APIToolsHandler: Interface "MCP Feature Handler";
-        ALQueryHandler: Interface "MCP Feature Handler";
+        ServerFeature: Interface "MCP Server Features";
     begin
         CurrPage.ServerFeatureList.Page.Reload(Rec.SystemId, not IsDefault and not Rec.Active);
-        APIToolsHandler := "MCP Server Feature"::"API Tools";
-        APIToolsActive := APIToolsHandler.IsActive(Rec.SystemId);
-        ALQueryHandler := "MCP Server Feature"::"AL Query Tools";
-        CurrPage.SystemToolList.Page.Reload(Rec.EnableDynamicToolMode, ALQueryHandler.IsActive(Rec.SystemId));
+        ServerFeature := "MCP Server Feature"::"API Tools";
+        APIToolsActive := ServerFeature.IsActive(Rec.SystemId);
+        CurrPage.SystemToolList.Page.Reload(Rec.SystemId);
         CurrPage.ToolList.Page.SetConfigActive(Rec.Active);
     end;
 }

@@ -35,11 +35,21 @@ page 8365 "MCP System Tool List"
         }
     }
 
-    internal procedure Reload(IncludeAPITools: Boolean; IncludeALQuery: Boolean)
+    internal procedure Reload(ConfigSystemId: Guid)
     var
-        MCPConfigImplementation: Codeunit "MCP Config Implementation";
+        ServerFeature: Interface "MCP Server Features";
+        ServerFeatureEnum: Enum "MCP Server Feature";
+        FeatureImplementations: List of [Integer];
+        FeatureImplementation: Integer;
     begin
-        MCPConfigImplementation.LoadSystemTools(Rec, IncludeAPITools, IncludeALQuery);
+        Rec.Reset();
+        Rec.DeleteAll();
+        FeatureImplementations := ServerFeatureEnum.Ordinals();
+        foreach FeatureImplementation in FeatureImplementations do begin
+            ServerFeature := "MCP Server Feature".FromInteger(FeatureImplementation);
+            if ServerFeature.IsActive(ConfigSystemId) then
+                ServerFeature.LoadSystemTools(Rec);
+        end;
         if Rec.FindFirst() then;
     end;
 }

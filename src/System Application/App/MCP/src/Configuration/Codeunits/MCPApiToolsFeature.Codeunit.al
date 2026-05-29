@@ -5,17 +5,15 @@
 
 namespace System.MCP;
 
-codeunit 8369 "MCP API Tools Feature" implements "MCP Feature Handler"
+codeunit 8369 "MCP API Tools Feature" implements "MCP Server Features"
 {
     Access = Internal;
 
     procedure SetActive(ConfigId: Guid; Active: Boolean)
+    var
+        MCPConfigImplementation: Codeunit "MCP Config Implementation";
     begin
-        // PLATFORM-PENDING: persist activation once MCP Configuration exposes the API Tools boolean:
-        //   MCPConfiguration: Record "MCP Configuration";
-        //   if not MCPConfiguration.GetBySystemId(ConfigId) then exit;
-        //   MCPConfiguration."<Enable API Tools field>" := Active;
-        //   MCPConfiguration.Modify(true);
+        MCPConfigImplementation.EnableAPITools(ConfigId, Active);
     end;
 
     procedure IsActive(ConfigId: Guid): Boolean
@@ -38,6 +36,11 @@ codeunit 8369 "MCP API Tools Feature" implements "MCP Feature Handler"
     procedure Description(): Text[500]
     begin
         exit(DescriptionLbl);
+    end;
+
+    procedure LoadSystemTools(var MCPSystemTool: Record "MCP System Tool")
+    begin
+        // API Tools exposes no system tools.
     end;
 
     var

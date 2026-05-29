@@ -5,17 +5,15 @@
 
 namespace System.MCP;
 
-codeunit 8368 "MCP AL Query Tools Feature" implements "MCP Feature Handler"
+codeunit 8368 "MCP AL Query Tools Feature" implements "MCP Server Features"
 {
     Access = Internal;
 
     procedure SetActive(ConfigId: Guid; Active: Boolean)
+    var
+        MCPConfigImplementation: Codeunit "MCP Config Implementation";
     begin
-        // PLATFORM-PENDING: persist activation once MCP Configuration exposes the AL Query Tools boolean:
-        //   MCPConfiguration: Record "MCP Configuration";
-        //   if not MCPConfiguration.GetBySystemId(ConfigId) then exit;
-        //   MCPConfiguration."<Enable AL Query Tools field>" := Active;
-        //   MCPConfiguration.Modify(true);
+        MCPConfigImplementation.EnableALQueryTools(ConfigId, Active);
     end;
 
     procedure IsActive(ConfigId: Guid): Boolean
@@ -38,6 +36,22 @@ codeunit 8368 "MCP AL Query Tools Feature" implements "MCP Feature Handler"
     procedure Description(): Text[500]
     begin
         exit(DescriptionLbl);
+    end;
+
+    procedure LoadSystemTools(var MCPSystemTool: Record "MCP System Tool")
+    begin
+        // MOCK: hardcoded preview of the AL Query system tools. Replace with a real MCP Utilities
+        // call (mirroring GetSystemToolsInDynamicMode) once the platform exposes the catalog.
+        InsertTool(MCPSystemTool, 'compile_al_query', 'Compile an AL query string and return diagnostics.');
+        InsertTool(MCPSystemTool, 'run_al_query', 'Execute a previously compiled AL query and return the result set.');
+    end;
+
+    local procedure InsertTool(var MCPSystemTool: Record "MCP System Tool"; ToolName: Text[100]; ToolDescription: Text[250])
+    begin
+        MCPSystemTool."Server Feature" := MCPSystemTool."Server Feature"::"AL Query Tools";
+        MCPSystemTool."Tool Name" := ToolName;
+        MCPSystemTool."Tool Description" := ToolDescription;
+        MCPSystemTool.Insert();
     end;
 
     var

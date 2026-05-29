@@ -5,26 +5,15 @@
 
 namespace System.MCP;
 
-codeunit 8370 "MCP Dyn. Tool Mode Feature" implements "MCP Feature Handler"
+codeunit 8370 "MCP Dyn. Tool Mode Feature" implements "MCP Server Features"
 {
     Access = Internal;
 
     procedure SetActive(ConfigId: Guid; Active: Boolean)
     var
-        MCPConfiguration: Record "MCP Configuration";
-        APIToolsHandler: Interface "MCP Feature Handler";
+        MCPConfigImplementation: Codeunit "MCP Config Implementation";
     begin
-        if Active then begin
-            APIToolsHandler := "MCP Server Feature"::"API Tools";
-            if not APIToolsHandler.IsActive(ConfigId) then
-                Error(APIToolsRequiredForDynamicErr);
-        end;
-        if not MCPConfiguration.GetBySystemId(ConfigId) then
-            exit;
-        MCPConfiguration.EnableDynamicToolMode := Active;
-        if not Active then
-            MCPConfiguration.DiscoverReadOnlyObjects := false;
-        MCPConfiguration.Modify(true);
+        MCPConfigImplementation.EnableDynamicToolMode(ConfigId, Active);
     end;
 
     procedure IsActive(ConfigId: Guid): Boolean
@@ -55,7 +44,25 @@ codeunit 8370 "MCP Dyn. Tool Mode Feature" implements "MCP Feature Handler"
         exit(DescriptionLbl);
     end;
 
+    procedure LoadSystemTools(var MCPSystemTool: Record "MCP System Tool")
     var
-        APIToolsRequiredForDynamicErr: Label 'API Tools must be enabled before Dynamic Tool Mode can be enabled.';
+        MCPUtilities: Codeunit "MCP Utilities";
+        SystemTools: Dictionary of [Text, Text];
+        ToolName: Text;
+    begin
+        SystemTools := MCPUtilities.GetSystemToolsInDynamicMode();
+        foreach ToolName in SystemTools.Keys() do
+            InsertTool(MCPSystemTool, CopyStr(ToolName, 1, MaxStrLen(MCPSystemTool."Tool Name")), CopyStr(SystemTools.Get(ToolName), 1, MaxStrLen(MCPSystemTool."Tool Description")));
+    end;
+
+    local procedure InsertTool(var MCPSystemTool: Record "MCP System Tool"; ToolName: Text[100]; ToolDescription: Text[250])
+    begin
+        MCPSystemTool."Server Feature" := MCPSystemTool."Server Feature"::"Dynamic Tool Mode";
+        MCPSystemTool."Tool Name" := ToolName;
+        MCPSystemTool."Tool Description" := ToolDescription;
+        MCPSystemTool.Insert();
+    end;
+
+    var
         DescriptionLbl: Label 'Exposes system tools that let clients search, describe, and invoke the API tools added to Available APIs without each tool being surfaced as its own tool. When inactive, every API tool in Available APIs is exposed directly to clients as its own MCP tool (Static Mode).';
 }

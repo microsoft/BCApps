@@ -53,7 +53,6 @@ page 8368 "MCP Server Feature List"
                 Caption = 'Activate';
                 ToolTip = 'Activate the selected server feature for this MCP configuration.';
                 Image = Start;
-                Enabled = ActionsEnabled and (Rec.Status = Rec.Status::Inactive);
                 Visible = ActionsEnabled and (Rec.Status = Rec.Status::Inactive);
                 Scope = Repeater;
 
@@ -67,7 +66,6 @@ page 8368 "MCP Server Feature List"
                 Caption = 'Deactivate';
                 ToolTip = 'Deactivate the selected server feature for this MCP configuration.';
                 Image = Stop;
-                Enabled = ActionsEnabled and (Rec.Status = Rec.Status::Active);
                 Visible = ActionsEnabled and (Rec.Status = Rec.Status::Active);
                 Scope = Repeater;
 
@@ -83,7 +81,6 @@ page 8368 "MCP Server Feature List"
                 ToolTip = 'Open feature-specific settings for the selected server feature.';
                 Image = Setup;
                 Enabled = ActionsEnabled and (Rec.Status = Rec.Status::Active) and Rec.Configurable;
-                Visible = ActionsEnabled and (Rec.Status = Rec.Status::Active) and Rec.Configurable;
                 Scope = Repeater;
 
                 trigger OnAction()
@@ -129,28 +126,28 @@ page 8368 "MCP Server Feature List"
 
     local procedure InsertRow(NewFeature: Enum "MCP Server Feature")
     var
-        Handler: Interface "MCP Feature Handler";
+        ServerFeature: Interface "MCP Server Features";
     begin
-        Handler := NewFeature;
+        ServerFeature := NewFeature;
         Rec.Init();
         Rec.Feature := NewFeature;
-        Rec.Description := Handler.Description();
-        if Handler.IsActive(ParentSystemId) then
+        Rec.Description := ServerFeature.Description();
+        if ServerFeature.IsActive(ParentSystemId) then
             Rec.Status := Rec.Status::Active
         else
             Rec.Status := Rec.Status::Inactive;
-        Rec.Configurable := Handler.HasSettings();
+        Rec.Configurable := ServerFeature.HasSettings();
         Rec.Insert();
     end;
 
     local procedure SetActive(NewActive: Boolean)
     var
-        Handler: Interface "MCP Feature Handler";
+        ServerFeature: Interface "MCP Server Features";
     begin
-        Handler := Rec.Feature;
-        Handler.SetActive(ParentSystemId, NewActive);
+        ServerFeature := Rec.Feature;
+        ServerFeature.SetActive(ParentSystemId, NewActive);
 
-        if Handler.IsActive(ParentSystemId) then
+        if ServerFeature.IsActive(ParentSystemId) then
             Rec.Status := Rec.Status::Active
         else
             Rec.Status := Rec.Status::Inactive;
@@ -170,9 +167,9 @@ page 8368 "MCP Server Feature List"
 
     local procedure OpenSettings()
     var
-        Handler: Interface "MCP Feature Handler";
+        ServerFeature: Interface "MCP Server Features";
     begin
-        Handler := Rec.Feature;
-        Handler.OpenSettings(ParentSystemId);
+        ServerFeature := Rec.Feature;
+        ServerFeature.OpenSettings(ParentSystemId);
     end;
 }

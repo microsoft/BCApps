@@ -224,6 +224,12 @@ codeunit 8351 "MCP Config Implementation"
         if not Enable and IsDefaultConfiguration(MCPConfiguration) then
             Error(DynamicToolModeCannotBeDisabledErr);
 
+        // PLATFORM-PENDING: require API Tools enabled before Dynamic Tool Mode can be enabled.
+        // Uncomment and add the APIToolsRequiredForDynamicErr label once the API Tools boolean
+        // exists on MCP Configuration:
+        //   if Enable and not MCPConfiguration."<Enable API Tools field>" then
+        //       Error(APIToolsRequiredForDynamicErr);
+
         MCPConfiguration.EnableDynamicToolMode := Enable;
         if not Enable then
             MCPConfiguration.DiscoverReadOnlyObjects := false;
@@ -257,6 +263,14 @@ codeunit 8351 "MCP Config Implementation"
     // implement the body by: GetBySystemId(ConfigId) (Error with ConfigurationNotFoundErr if
     // missing) → assign Enable to the Rec field → Modify() → LogConfigurationModified.
     internal procedure EnableALQueryTools(ConfigId: Guid; Enable: Boolean)
+    begin
+    end;
+
+    // MOCK: API Tools activation has no platform-side persistence yet, so this is an intentional
+    // no-op. When the platform adds an API Tools field to `MCP Configuration`, implement the body
+    // by: GetBySystemId(ConfigId) (Error with ConfigurationNotFoundErr if missing) → assign Enable
+    // → Modify() → LogConfigurationModified.
+    internal procedure EnableAPITools(ConfigId: Guid; Enable: Boolean)
     begin
     end;
 
@@ -856,38 +870,6 @@ codeunit 8351 "MCP Config Implementation"
         if AllObjWithCaption.Get(ObjectType, MCPConfigurationTool."Object ID") then
             exit(CopyStr(AllObjWithCaption."Object Name", 1, 100));
         exit('');
-    end;
-
-    internal procedure LoadSystemTools(var MCPSystemTool: Record "MCP System Tool"; IncludeAPITools: Boolean; IncludeALQuery: Boolean)
-    var
-        MCPUtilities: Codeunit "MCP Utilities";
-        SystemTools: Dictionary of [Text, Text];
-        ToolName: Text;
-    begin
-        MCPSystemTool.Reset();
-        MCPSystemTool.DeleteAll();
-
-        if IncludeAPITools then begin
-            SystemTools := MCPUtilities.GetSystemToolsInDynamicMode();
-            foreach ToolName in SystemTools.Keys() do
-                InsertSystemTool(MCPSystemTool, MCPSystemTool."Server Feature"::"Dynamic Tool Mode", CopyStr(ToolName, 1, MaxStrLen(MCPSystemTool."Tool Name")), CopyStr(SystemTools.Get(ToolName), 1, MaxStrLen(MCPSystemTool."Tool Description")));
-        end;
-
-        if IncludeALQuery then begin
-            // MOCK: hardcoded preview of the AL Query system tools. When the platform exposes the real
-            // tool catalog, replace these inserts with a call to MCP Utilities (mirroring
-            // GetSystemToolsInDynamicMode for the AL Query server).
-            InsertSystemTool(MCPSystemTool, MCPSystemTool."Server Feature"::"AL Query Tools", 'compile_al_query', 'Compile an AL query string and return diagnostics.');
-            InsertSystemTool(MCPSystemTool, MCPSystemTool."Server Feature"::"AL Query Tools", 'run_al_query', 'Execute a previously compiled AL query and return the result set.');
-        end;
-    end;
-
-    local procedure InsertSystemTool(var MCPSystemTool: Record "MCP System Tool"; ServerFeature: Enum "MCP Server Feature"; ToolName: Text[100]; ToolDescription: Text[250])
-    begin
-        MCPSystemTool."Server Feature" := ServerFeature;
-        MCPSystemTool."Tool Name" := ToolName;
-        MCPSystemTool."Tool Description" := ToolDescription;
-        MCPSystemTool.Insert();
     end;
 
     internal procedure ValidateAPIPageVersion(ObjectId: Integer; APIVersion: Text)

@@ -131,6 +131,19 @@ codeunit 8350 "MCP Config"
     end;
 
     /// <summary>
+    /// Enables or disables the API Tools feature for the specified configuration.
+    /// </summary>
+    /// <remarks>
+    /// MOCK: no-op until the platform-side API Tools field exists on `MCP Configuration`.
+    /// </remarks>
+    /// <param name="ConfigId">The SystemId (GUID) of the configuration.</param>
+    /// <param name="Enable">True to enable, false to disable.</param>
+    procedure EnableAPITools(ConfigId: Guid; Enable: Boolean)
+    begin
+        MCPConfigImplementation.EnableAPITools(ConfigId, Enable);
+    end;
+
+    /// <summary>
     /// Finds warnings for the specified MCP configuration, such as missing objects or missing parent objects.
     /// </summary>
     /// <param name="ConfigId">The SystemId (GUID) of the configuration to find warnings for.</param>
