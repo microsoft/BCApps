@@ -197,8 +197,8 @@ codeunit 6103 "E-Document Subscribers"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Release Purchase Document", 'OnAfterReleasePurchaseDoc', '', false, false)]
     local procedure OnAfterReleasePurchaseDoc(var PurchaseHeader: Record "Purchase Header"; PreviewMode: Boolean; var LinesWereModified: Boolean; SkipWhseRequestOperations: Boolean)
     var
-        EDocumentHelper: Codeunit "E-Document Helper";
         DocumentSendingProfile: Record "Document Sending Profile";
+        EDocumentHelper: Codeunit "E-Document Helper";
         SourceDocumentHeader: RecordRef;
     begin
         if PreviewMode then
