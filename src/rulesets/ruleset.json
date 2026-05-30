@@ -78,6 +78,11 @@
         "id": "AL0920",
         "action": "None",
         "justification": "TODO(#632280) - This will be enabled after a few violations are fixed."
+    },
+    {
+        "id": "AA0139",
+        "action": "Warning",
+        "justification": "TODO(#637029) - This will be enabled after violations are fixed."
     }
   ]
 }
