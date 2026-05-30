@@ -577,22 +577,18 @@ codeunit 130561 "Library - Agent Impl."
             Assert.Fail(UnexpectedInterventionErr);
 
         if HasActualIntervention and HasExpectedIntervention then
-            ValidateInterventionDetails(AgentTask, TempUserInterventionRequest, TempAnnotation, TempSuggestion, ExpectedInterventionRequest);
+            ValidateInterventionDetails(TempUserInterventionRequest, TempSuggestion, ExpectedInterventionRequest);
     end;
 
     local procedure ValidateInterventionDetails(
-        AgentTask: Record "Agent Task";
         TempUserInterventionRequest: Record "Agent User Int Request Details" temporary;
-        var TempAnnotation: Record "Agent Annotation" temporary;
         var TempSuggestion: Record "Agent Task User Int Suggestion" temporary;
         ExpectedInterventionRequest: Codeunit "Test Input Json")
     var
-        TypeInput, SuggestionsInput, IntentInput : Codeunit "Test Input Json";
+        TypeInput, SuggestionsInput : Codeunit "Test Input Json";
         Assert: Codeunit "Library Assert";
         ExpectedType: Enum "Agent User Int Request Type";
-        ActualMessage: Text;
-        Reasoning: Text;
-        TypeExists, SuggestionsExist, IntentExists : Boolean;
+        TypeExists, SuggestionsExist : Boolean;
         I: Integer;
     begin
         TypeInput := ExpectedInterventionRequest.ElementExists(TypeTok, TypeExists);
@@ -616,87 +612,6 @@ codeunit 130561 "Library - Agent Impl."
             Assert.AreEqual(SuggestionsInput.GetElementCount(), TempSuggestion.Count(),
                 StrSubstNo(SuggestionCountMismatchErr, SuggestionsInput.GetElementCount(), TempSuggestion.Count()));
         end;
-
-        IntentInput := ExpectedInterventionRequest.ElementExists(IntentTok, IntentExists);
-        if IntentExists then begin
-            ActualMessage := GetInterventionActualMessage(AgentTask, TempUserInterventionRequest, TempAnnotation);
-
-            Assert.IsTrue(
-                EvaluateIntentWithLLM(ActualMessage, IntentInput.ValueAsText(), Reasoning),
-                StrSubstNo(IntentMismatchErr, IntentInput.ValueAsText(), ActualMessage) + ' | Judge reasoning: ' + Reasoning);
-        end;
-    end;
-
-    local procedure GetInterventionActualMessage(
-        AgentTask: Record "Agent Task";
-        TempUserInterventionRequest: Record "Agent User Int Request Details" temporary;
-        var TempAnnotation: Record "Agent Annotation" temporary): Text
-    var
-        AgentTaskMessage: Record "Agent Task Message";
-        ContentInStream: InStream;
-        ContentText: Text;
-    begin
-        // For ReviewMessage type, the actual content is in the related output message
-        if TempUserInterventionRequest.Type = TempUserInterventionRequest.Type::ReviewMessage then
-            if AgentTaskMessage.Get(AgentTask.ID, TempUserInterventionRequest."Message ID") then begin
-                AgentTaskMessage.CalcFields(Content);
-                AgentTaskMessage.Content.CreateInStream(ContentInStream, GetDefaultEncoding());
-                ContentInStream.Read(ContentText);
-                exit(ContentText);
-            end;
-
-        // For other types the message is in the annotation; fall back to request message
-        if TempAnnotation.FindFirst() then
-            exit(TempAnnotation.Message);
-
-        exit(TempUserInterventionRequest.Message);
-    end;
-
-    local procedure EvaluateIntentWithLLM(ActualMessage: Text; ExpectedIntent: Text; var Reasoning: Text): Boolean
-    var
-        AzureOpenAI: Codeunit "Azure OpenAI";
-        AOAIChatMessages: Codeunit "AOAI Chat Messages";
-        AOAIChatCompletionParams: Codeunit "AOAI Chat Completion Params";
-        AOAIOperationResponse: Codeunit "AOAI Operation Response";
-        AOAIDeployments: Codeunit "AOAI Deployments";
-        ResultText: Text;
-        ResultJson: JsonToken;
-        PassToken: JsonToken;
-        ReasonToken: JsonToken;
-    begin
-        AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT41Latest());
-        AzureOpenAI.SetCopilotCapability(Enum::"Copilot Capability"::"Agent Test LLM Judge");
-
-        AOAIChatCompletionParams.SetTemperature(0);
-        AOAIChatCompletionParams.SetMaxTokens(500);
-        AOAIChatCompletionParams.SetJsonMode(true);
-
-        AOAIChatMessages.AddSystemMessage(IntentJudgeSystemPromptTxt);
-        AOAIChatMessages.AddUserMessage(StrSubstNo(IntentJudgeUserPromptTxt, ExpectedIntent, ActualMessage));
-
-        AzureOpenAI.GenerateChatCompletion(AOAIChatMessages, AOAIChatCompletionParams, AOAIOperationResponse);
-
-        if not AOAIOperationResponse.IsSuccess() then begin
-            Reasoning := StrSubstNo(LLMCallFailedLbl, AOAIOperationResponse.GetError());
-            exit(false);
-        end;
-
-        ResultText := AOAIChatMessages.GetLastMessage();
-
-        if not ResultJson.ReadFrom(ResultText) then begin
-            Reasoning := StrSubstNo(LLMInvalidJsonLbl, ResultText);
-            exit(false);
-        end;
-
-        if not ResultJson.AsObject().Get(PassTok, PassToken) then begin
-            Reasoning := StrSubstNo(LLMInvalidJsonLbl, ResultText);
-            exit(false);
-        end;
-
-        if ResultJson.AsObject().Get(ReasoningTok, ReasonToken) then
-            Reasoning := ReasonToken.AsValue().AsText();
-
-        exit(PassToken.AsValue().AsBoolean());
     end;
 
     procedure GetExpectedInterventionRequest(var ExpectedInterventionRequest: Codeunit "Test Input Json"): Boolean
@@ -783,7 +698,6 @@ codeunit 130561 "Library - Agent Impl."
         FileTok: Label 'file', Locked = true;
         ActionTypeTok: Label 'action_type', Locked = true;
         ActionDataTok: Label 'action_data', Locked = true;
-        NameTok: Label 'name', Locked = true;
         InterventionRequestTok: Label 'intervention_request', Locked = true;
         SuggestionsTok: Label 'suggestions', Locked = true;
         InvalidQueryBothErr: Label 'Query cannot contain both ''title'' and ''intervention'' elements.';
@@ -797,12 +711,4 @@ codeunit 130561 "Library - Agent Impl."
         SuggestionCountMismatchErr: Label 'Expected %1 suggestions but found %2 actual suggestions.', Comment = '%1 = expected count, %2 = actual count';
         UnexpectedInterventionErr: Label 'Task paused for user intervention but no intervention_request found in expected_data for this turn.';
         ExpectedInterventionNotFoundErr: Label 'Expected intervention_request in expected_data but the task did not pause for user intervention.';
-        IntentTok: Label 'intent', Locked = true;
-        IntentMismatchErr: Label 'Intervention intent mismatch: expected intent "%1" but got: %2', Comment = '%1 = expected intent, %2 = actual message';
-        LLMCallFailedLbl: Label 'LLM intent judge call failed: %1', Comment = '%1 = error message';
-        LLMInvalidJsonLbl: Label 'LLM intent judge returned invalid JSON: %1', Comment = '%1 = raw response';
-        PassTok: Label 'pass', Locked = true;
-        ReasoningTok: Label 'reasoning', Locked = true;
-        IntentJudgeSystemPromptTxt: Label 'You are an evaluator for a Business Central agent test framework. You will receive the agent''s actual intervention message and the expected intent. Determine whether the agent''s message aligns with the expected intent. Respond with JSON: { "pass": true or false, "reasoning": "brief explanation" }', Locked = true;
-        IntentJudgeUserPromptTxt: Label 'Expected intent: %1\nActual agent message: %2', Locked = true, Comment = '%1 = expected intent, %2 = actual message';
 }

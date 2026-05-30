@@ -5,9 +5,6 @@
 
 namespace System.TestLibraries.Agents;
 
-using System.AI;
-using System.TestLibraries.AI;
-
 codeunit 130562 "Library - Agent Install"
 {
     Access = Internal;
@@ -17,12 +14,10 @@ codeunit 130562 "Library - Agent Install"
 
     trigger OnInstallAppPerDatabase()
     var
-        LibraryCopilotCapability: Codeunit "Library - Copilot Capability";
         LibraryAgentUtilities: Codeunit "Library - Agent Utilities";
         AppInfo: ModuleInfo;
     begin
         LibraryAgentUtilities.VerifyCanRunOnCurrentEnvironment();
         NavApp.GetCurrentModuleInfo(AppInfo);
-        LibraryCopilotCapability.ActivateCopilotCapability(Enum::"Copilot Capability"::"Agent Test LLM Judge", AppInfo.Id);
     end;
 }

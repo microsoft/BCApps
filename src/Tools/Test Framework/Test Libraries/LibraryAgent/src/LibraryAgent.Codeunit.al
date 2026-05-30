@@ -309,7 +309,6 @@ codeunit 130560 "Library - Agent"
     /// Validates the current intervention request against expected data from the test input.
     /// Uses Assert to fail the test with a descriptive message if any check fails.
     /// Checks that the task requires intervention, the type matches, and expected suggestions are present.
-    /// If an 'intent' field is declared, validates the intervention message semantically using an LLM judge.
     /// </summary>
     /// <param name="AgentTask">The agent task to validate.</param>
     /// <param name="ExpectedInterventionRequest">The expected intervention request data from the YAML.</param>
@@ -322,7 +321,6 @@ codeunit 130560 "Library - Agent"
     /// Writes the turn output and determines if the test should continue to the next turn.
     /// Calls Commit() after writing output.
     /// Validates that the task did not pause for an unexpected intervention (no intervention_request in expected_data).
-    /// When an intervention_request is declared, validates type, suggestions, and intent (via LLM judge if 'intent' is specified).
     /// </summary>
     /// <param name="AgentTask">The agent task for the current turn.</param>
     /// <param name="TurnSuccessful">Whether the current turn completed successfully.</param>
