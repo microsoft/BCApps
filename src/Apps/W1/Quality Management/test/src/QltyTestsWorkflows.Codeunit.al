@@ -57,6 +57,39 @@ codeunit 139969 "Qlty. Tests - Workflows"
         IsInitialized: Boolean;
 
     [Test]
+    procedure QltyResponsesAreNotPredecessorsOfNonQltyEvents()
+    var
+        WFEventResponseCombination: Record "WF Event/Response Combination";
+        WorkflowEventHandling: Codeunit "Workflow Event Handling";
+        WorkflowResponseHandling: Codeunit "Workflow Response Handling";
+        QltyPrefix: Text;
+    begin
+        // [SCENARIO] QM workflow responses should only be predecessors of QM events, not of any unrelated event
+        Initialize();
+
+        // [GIVEN] The workflow events and responses libraries are initialized
+        WorkflowEventHandling.CreateEventsLibrary();
+        WorkflowResponseHandling.CreateResponsesLibrary();
+
+        // [WHEN] We look at all event/response combinations where the response is a QM response
+        QltyPrefix := 'QLTY-*';
+        WFEventResponseCombination.SetFilter("Function Name", QltyPrefix);
+        WFEventResponseCombination.FindSet();
+
+        // [THEN] Every linked predecessor event must also be a QM event
+        repeat
+            LibraryAssert.IsTrue(
+                WFEventResponseCombination."Predecessor Type" = WFEventResponseCombination."Predecessor Type"::"Event",
+                'Expected predecessor type to be Event.');
+            LibraryAssert.IsTrue(
+                CopyStr(WFEventResponseCombination."Predecessor Function Name", 1, 5) = 'QLTY-',
+                StrSubstNo(QMResponseNotPredecessorOfNonQMEventErr,
+                    WFEventResponseCombination."Function Name",
+                    WFEventResponseCombination."Predecessor Function Name"));
+        until WFEventResponseCombination.Next() = 0;
+    end;
+
+    [Test]
     procedure PurchaseReturnWorkflow_OnInspectionFinished()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
@@ -1781,11 +1814,7 @@ codeunit 139969 "Qlty. Tests - Workflows"
     var
         Workflow: Record Workflow;
     begin
-        Workflow.FindSet();
-        repeat
-            Workflow.Enabled := false;
-            Workflow.Modify();
-        until Workflow.Next() = 0;
+        Workflow.ModifyAll(Enabled, false);
         Workflow.DeleteAll();
     end;
 
@@ -1815,41 +1844,6 @@ codeunit 139969 "Qlty. Tests - Workflows"
         SpecificQltyInspectSrcFldConf."To Table No." := Database::"Qlty. Inspection Header";
         SpecificQltyInspectSrcFldConf."To Field No." := QltyInspectionHeader.FieldNo("Source Document No.");
         SpecificQltyInspectSrcFldConf.Insert();
-    end;
-
-    [Test]
-    procedure QltyResponsesAreNotPredecessorsOfNonQltyEvents()
-    var
-        WFEventResponseCombination: Record "WF Event/Response Combination";
-        WorkflowEventHandling: Codeunit "Workflow Event Handling";
-        WorkflowResponseHandling: Codeunit "Workflow Response Handling";
-        QltyPrefix: Text;
-    begin
-        // [SCENARIO] QM workflow responses should only be predecessors of QM events, not of any unrelated event
-        Initialize();
-
-        // [GIVEN] The workflow events and responses libraries are initialized
-        WorkflowEventHandling.CreateEventsLibrary();
-        WorkflowResponseHandling.CreateResponsesLibrary();
-
-        // [WHEN] We look at all event/response combinations where the response is a QM response
-        QltyPrefix := 'QLTY-*';
-        WFEventResponseCombination.SetFilter("Function Name", QltyPrefix);
-        WFEventResponseCombination.FindSet();
-
-        // [THEN] Every linked predecessor event must also be a QM event
-        repeat
-            LibraryAssert.IsTrue(
-                WFEventResponseCombination."Predecessor Type" = WFEventResponseCombination."Predecessor Type"::"Event",
-                'Expected predecessor type to be Event.');
-            LibraryAssert.IsTrue(
-                CopyStr(WFEventResponseCombination."Predecessor Function Name", 1, 5) = 'QLTY-',
-                StrSubstNo(QMResponseNotPredecessorOfNonQMEventErr,
-                    WFEventResponseCombination."Function Name",
-                    WFEventResponseCombination."Predecessor Function Name"));
-        until WFEventResponseCombination.Next() = 0;
-
-        DeleteWorkflows();
     end;
 
     [ConfirmHandler]
