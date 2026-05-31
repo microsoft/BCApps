@@ -28,7 +28,8 @@ interface "IAgentTestResourceProvider"
     /// The GeneratorData parameter contains the full filegenerator object from the YAML,
     /// including a 'name' key for dispatch and any additional data keys the generator needs.
     /// </summary>
-    /// <param name="GeneratorName">The name of the generator, from the 'name' key in the YAML filegenerator object.</param>
+/// <param name="GeneratorName">The generator to invoke, from the 'action_type' key in the YAML attachment object.</param>
+/// <param name="GeneratorData">The 'action_data' sub-object from the YAML attachment, accessible via Test Input Json.</param>
     /// <param name="GeneratorData">The filegenerator object from the YAML, accessible via Test Input Json.</param>
     /// <param name="ResourceInStream">Returns the generated file content as an InStream.</param>
     /// <param name="FileName">Returns the generated file name.</param>
