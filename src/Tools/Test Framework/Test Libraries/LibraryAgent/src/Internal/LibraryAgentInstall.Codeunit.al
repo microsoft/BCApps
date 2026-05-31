@@ -15,9 +15,7 @@ codeunit 130562 "Library - Agent Install"
     trigger OnInstallAppPerDatabase()
     var
         LibraryAgentUtilities: Codeunit "Library - Agent Utilities";
-        AppInfo: ModuleInfo;
     begin
         LibraryAgentUtilities.VerifyCanRunOnCurrentEnvironment();
-        NavApp.GetCurrentModuleInfo(AppInfo);
     end;
 }
