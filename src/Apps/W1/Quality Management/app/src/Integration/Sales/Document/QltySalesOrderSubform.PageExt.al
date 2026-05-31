@@ -59,7 +59,7 @@ pageextension 20405 "Qlty. Sales Order Subform" extends "Sales Order Subform"
                     AccessByPermission = tabledata "Qlty. Inspection Header" = R;
                     Image = CheckList;
                     Caption = 'Show Quality Inspections for Item';
-                    ToolTip = 'Shows Quality Inspections for Item';
+                    ToolTip = 'Shows quality inspections for this item.';
                     AboutTitle = 'Show Quality Inspections';
                     AboutText = 'Shows quality inspections for this item.';
 

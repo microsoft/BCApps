@@ -557,7 +557,7 @@ page 20406 "Qlty. Inspection"
             {
                 Caption = 'Create Internal Put-away';
                 Image = CreatePutAway;
-                ToolTip = 'Creates an Internal Put-away document.';
+                ToolTip = 'Create an Internal Put-away document.';
 
                 trigger OnAction()
                 var
@@ -635,7 +635,7 @@ page 20406 "Qlty. Inspection"
             {
                 PromotedCategory = Report;
                 Caption = 'Certificate of Analysis';
-                ToolTip = 'Certificate of Analysis (CoA) for this inspection.';
+                ToolTip = 'Print a certificate of analysis (CoA) report.';
                 Image = Certificate;
                 Promoted = true;
                 PromotedIsBig = true;
@@ -655,7 +655,7 @@ page 20406 "Qlty. Inspection"
             {
                 PromotedCategory = Report;
                 Caption = 'Non Conformance Report';
-                ToolTip = 'Specifies the Non Conformance Report has a layout suitable for quality inspection templates that typically contain Non Conformance Report questions.';
+                ToolTip = 'Print a non-conformance inspection report.';
                 Image = Report;
                 Promoted = true;
                 PromotedIsBig = true;
@@ -675,7 +675,7 @@ page 20406 "Qlty. Inspection"
             {
                 PromotedCategory = Report;
                 Caption = 'Inspection Report';
-                ToolTip = 'General purpose inspection report.';
+                ToolTip = 'Print a general-purpose inspection report.';
                 Image = Report;
                 Promoted = true;
                 PromotedIsBig = true;
