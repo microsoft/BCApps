@@ -6,7 +6,6 @@
 namespace System.TestLibraries.Agents;
 
 using System.Agents;
-using System.AI;
 using System.Environment;
 using System.Environment.Configuration;
 using System.Globalization;
