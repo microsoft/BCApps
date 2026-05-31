@@ -44,7 +44,10 @@ pageextension 149030 "Agent Log Entries" extends "AIT Log Entries"
             part(AgentDetails; "AIT Agent Log Entry Part")
             {
                 ApplicationArea = All;
-                SubPageLink = "Entry No." = field("Entry No.");
+                SubPageLink =
+                    "Test Log Entry ID" = field("Entry No."),
+                    "Test Suite Code" = field("Test Suite Code");
+                Visible = AgentTaskIDs <> '';
             }
         }
     }

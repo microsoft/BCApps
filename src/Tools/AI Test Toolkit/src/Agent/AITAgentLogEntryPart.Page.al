@@ -5,51 +5,69 @@
 
 namespace System.TestTools.AITestToolkit;
 
+using System.Agents;
+
 page 149050 "AIT Agent Log Entry Part"
 {
     Caption = 'Agent Details';
-    PageType = CardPart;
+    PageType = ListPart;
     Editable = false;
-    SourceTable = "AIT Log Entry";
+    SourceTable = "Agent Task Log";
 
     layout
     {
         area(Content)
         {
-            field("Agent Task IDs"; AgentTaskIDs)
+            repeater(Tasks)
             {
-                ApplicationArea = All;
-                Caption = 'Agent Tasks Executed';
-                ToolTip = 'Specifies the comma-separated list of Agent Task IDs related to this log entry.';
+                field("Agent Task ID"; Rec."Agent Task ID")
+                {
+                    Caption = 'Task ID';
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the Agent Task ID.';
 
-                trigger OnDrillDown()
-                begin
-                    AgentTestContextImpl.OpenAgentTaskList(AgentTaskIDs);
-                end;
-            }
-            field("Copilot Credits"; CopilotCredits)
-            {
-                ApplicationArea = All;
-                AutoFormatType = 0;
-                Caption = 'Copilot Credits Consumed';
-                ToolTip = 'Specifies the total Copilot Credits consumed by the Agent Tasks for this log entry.';
+                    trigger OnDrillDown()
+                    begin
+                        AgentTestContextImpl.OpenAgentTaskList(Format(Rec."Agent Task ID"));
+                    end;
+                }
+                field(NumberOfStepsDone; NumberOfStepsDone)
+                {
+                    Caption = 'Steps Done';
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the number of steps that have been done for the specific task.';
 
-                trigger OnDrillDown()
-                begin
-                    AgentTestContextImpl.OpenAgentConsumptionOverview(AgentTaskIDs);
-                end;
+                    trigger OnDrillDown()
+                    begin
+                        AgentTask.OpenAgentTaskLogEntries(Rec."Agent Task ID");
+                    end;
+                }
+                field("Copilot Credits"; CopilotCredits)
+                {
+                    ApplicationArea = All;
+                    AutoFormatType = 0;
+                    Caption = 'Copilot Credits';
+                    ToolTip = 'Specifies the Copilot Credits consumed by this Agent Task.';
+
+                    trigger OnDrillDown()
+                    begin
+                        AgentConsumptionOverview.OpenAgentTaskConsumptionOverview(Rec."Agent Task ID");
+                    end;
+                }
             }
         }
     }
 
     var
+        AgentConsumptionOverview: Codeunit "Agent Consumption Overview";
+        AgentTask: Codeunit "Agent Task";
         AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
         CopilotCredits: Decimal;
-        AgentTaskIDs: Text;
+        NumberOfStepsDone: Integer;
 
     trigger OnAfterGetRecord()
     begin
-        CopilotCredits := AgentTestContextImpl.GetCopilotCreditsForLogEntry(Rec."Entry No.");
-        AgentTaskIDs := AgentTestContextImpl.GetAgentTaskIDsForLogEntry(Rec."Entry No.");
+        CopilotCredits := AgentConsumptionOverview.GetCopilotCreditsConsumed(Rec."Agent Task ID");
+        NumberOfStepsDone := AgentTask.GetStepsDoneCount(Rec."Agent Task ID");
     end;
 }

@@ -37,6 +37,8 @@ page 149049 "AIT Log Entry Outcome Part"
             group(ErrorMessageGroup)
             {
                 Caption = 'Error Message';
+                Visible = ErrorMessage <> '';
+
                 field(ErrorMessage; ErrorMessage)
                 {
                     ShowCaption = false;
