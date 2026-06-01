@@ -343,7 +343,7 @@ This feature ships with two deliberate placeholders, each waiting on a different
 2. `IsAPIToolsEnabled` / `IsALQueryToolsEnabled` — rewrite each to read the new field off `MCP Configuration`.
 3. Delete `table 8360 "MCP Feature Activation"` (and, optionally, reclaim `8360` from `MCP/app.json` `idRanges`).
 
-Nothing else changes. The handlers (`MCP API Tools Feature`, `MCP AL Query Tools Feature`), the Server Features list (including the indented sub-feature and the now-live `APIToolsRequiredForDynamicErr` gate), the Available APIs sub-part visibility on the card, and the `MCP Config` facade all flow through those four procedures. The `<remarks>` MOCK notes on the facade `EnableAPITools` / `EnableALQueryTools` and the `// MOCK` comment on `MCPConfigCard.APIToolsActive` can be deleted at the same time — they describe the mock, they don't depend on it.
+Nothing else changes. The handlers (`MCP API Tools Feature`, `MCP AL Query Tools Feature`), the Server Features list (including the indented sub-feature and the now-live `APIToolsRequiredForDynamicErr` gate), the Available APIs sub-part visibility on the card, and the `MCP Config` facade all flow through those four procedures. The `<remarks>` MOCK notes on the facade `EnableAPITools` / `EnableALQueryTools` and the `// MOCK:` note on `MCPConfigCard.APIToolsActive` are comment-only: delete the notes — the code they sit on (the facade delegation and the page-local) stays. (Both are tagged `// MOCK:` so the grep below surfaces them.)
 
 ### 2. AL Query system tool catalog
 
@@ -356,4 +356,3 @@ Nothing else changes. The handlers (`MCP API Tools Feature`, `MCP AL Query Tools
 ### Not mocks (leave alone)
 
 - The `(Preview)` suffix on the AL Query Tools enum caption is an intentional product label, not a placeholder.
-- `MCPConfigCard.APIToolsActive` is a legitimate page-local (a `Visible` property can't call a method); it reads through the impl getter, so it needs no change beyond deleting its explanatory comment.

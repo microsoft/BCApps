@@ -254,9 +254,10 @@ codeunit 130130 "MCP Config Test"
 
     #region API Tools
 
-    // MOCK: API Tools activation has no platform-side persistence yet, so the facade procedure is an
-    // intentional no-op. These tests only verify it is callable without erroring; replace with real
-    // state assertions once the platform adds the API Tools field on MCP Configuration.
+    // MOCK: API Tools activation persists to the "MCP Feature Activation" stand-in table (MCP Config
+    // Implementation); the public facade exposes no read-back, so these stay smoke tests that only
+    // verify the procedure is callable. Replace with real state assertions once the platform adds the
+    // API Tools field on MCP Configuration.
 
     [Test]
     procedure TestEnableAPITools()
@@ -282,10 +283,10 @@ codeunit 130130 "MCP Config Test"
 
     #region AL Query Tools
 
-    // MOCK: the AL Query Tools facade procedures are intentional no-ops until the platform adds
-    // real fields to MCP Configuration. These tests only verify that each procedure is callable
-    // without errors. Replace with real state assertions (e.g., reading the new Rec fields) once
-    // the platform-side fields exist.
+    // MOCK: AL Query Tools activation persists to the "MCP Feature Activation" stand-in table (MCP
+    // Config Implementation); the public facade exposes no read-back, so these stay smoke tests that
+    // only verify each procedure is callable. Replace with real state assertions once the platform
+    // adds the AL Query Tools field on MCP Configuration.
 
     [Test]
     procedure TestEnableALQueryTools()

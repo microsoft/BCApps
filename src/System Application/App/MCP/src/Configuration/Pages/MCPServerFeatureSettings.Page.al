@@ -24,7 +24,7 @@ page 8369 "MCP Server Feature Settings"
 
                 field(DiscoverReadOnlyObjects; DiscoverReadOnlyObjectsLocal)
                 {
-                    Caption = 'Discover Additional Read-Only Objects';
+                    Caption = 'Discover Read-Only Objects';
                     ToolTip = 'Specifies whether to allow discovery of read-only objects not defined in the configuration.';
                     Visible = Feature = Feature::"Dynamic Tool Mode";
                 }
