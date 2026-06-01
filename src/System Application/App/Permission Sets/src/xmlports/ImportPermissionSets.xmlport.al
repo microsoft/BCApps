@@ -223,18 +223,18 @@ xmlport 9864 "Import Permission Sets"
 
                 trigger OnBeforeInsertRecord()
                 var
-                    MetadataPermission: Record "Metadata Permission";
-                    MetadataPermissionSetRel: Record "Metadata Permission Set Rel.";
+                    TenantPermission: Record "Tenant Permission";
+                    TenantPermissionSetRel: Record "Tenant Permission Set Rel.";
                 begin
                     if TempMetadataPermissionSet.Get(TempMetadataPermissionSet."App ID", TempMetadataPermissionSet."Role ID") then
                         currXMLport.Skip();
                     if not UpdatePermissions then begin
-                        MetadataPermissionSetRel.SetFilter("App ID", TempMetadataPermissionSet."App ID");
-                        MetadataPermissionSetRel.SetFilter("Role ID", TempMetadataPermissionSet."Role ID");
-                        MetadataPermissionSetRel.DeleteAll();
-                        MetadataPermission.SetFilter("App ID", TempMetadataPermissionSet."App ID");
-                        MetadataPermission.SetFilter("Role ID", TempTenantPermissionSet."Role ID");
-                        MetadataPermission.DeleteAll();
+                        TenantPermissionSetRel.SetRange("App ID", TempMetadataPermissionSet."App ID");
+                        TenantPermissionSetRel.SetRange("Role ID", TempMetadataPermissionSet."Role ID");
+                        TenantPermissionSetRel.DeleteAll();
+                        TenantPermission.SetRange("App ID", TempMetadataPermissionSet."App ID");
+                        TenantPermission.SetRange("Role ID", TempMetadataPermissionSet."Role ID");
+                        TenantPermission.DeleteAll();
                     end;
                 end;
             }
