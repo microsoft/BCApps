@@ -164,7 +164,7 @@ codeunit 99001511 "Subc. Synchronize Management"
                                     TransferHeader.FindFirst();
                                     ItemLedgerEntry2.SetRange("Order Type", "Inventory Order Type"::Production);
                                     ItemLedgerEntry2.SetRange("Order No.", ProductionOrder."No.");
-                                    if ItemLedgerEntry2.IsEmpty() then
+                                    if ItemLedgerEntry.IsEmpty() then
                                         TransferHeader.Delete(true);
                                 end;
                                 ProductionOrder.Delete();
