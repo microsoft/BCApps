@@ -21,14 +21,14 @@ using Microsoft.Purchases.Document;
 codeunit 99001508 "Subc. Price Management"
 {
     var
-        SubcManagementSetup: Record "Subc. Management Setup";
+        ManufacturingSetup: Record "Manufacturing Setup";
 
     procedure ApplySubcontractorPricingToProdOrderRouting(var ProdOrderLine: Record "Prod. Order Line"; var RoutingLine: Record "Routing Line"; var ProdOrderRoutingLine: Record "Prod. Order Routing Line")
     var
         SubcontractorPrice: Record "Subcontractor Price";
         WorkCenter: Record "Work Center";
     begin
-        if not SubcManagementSetup.Get() then
+        if not ManufacturingSetup.Get() then
             exit;
 
         if ProdOrderRoutingLine.Type <> "Capacity Type Routing"::"Work Center" then
@@ -67,7 +67,7 @@ codeunit 99001508 "Subc. Price Management"
         SubcontractorPrice: Record "Subcontractor Price";
         WorkCenter: Record "Work Center";
     begin
-        if not SubcManagementSetup.Get() then
+        if not ManufacturingSetup.Get() then
             exit;
 
         if RoutingLine.Type <> "Capacity Type Routing"::"Work Center" then
@@ -108,7 +108,6 @@ codeunit 99001508 "Subc. Price Management"
     procedure CalcStandardCostOnAfterCalcRtngLineCost(RoutingLine: Record "Routing Line"; MfgItemQtyBase: Decimal; var SLSub: Decimal)
     var
         Item: Record Item;
-        ManufacturingSetup: Record "Manufacturing Setup";
         WorkCenter: Record "Work Center";
         MfgCostCalculationMgt: Codeunit "Mfg. Cost Calculation Mgt.";
         SubcSessionState: Codeunit "Subc. Session State";
@@ -122,9 +121,6 @@ codeunit 99001508 "Subc. Price Management"
         UnitCost: Decimal;
         UnitCostCalculationType: Enum "Unit Cost Calculation Type";
     begin
-        if not SubcManagementSetup.Get() then
-            exit;
-
         if RoutingLine.Type <> "Capacity Type Routing"::"Work Center" then
             exit;
 
@@ -291,6 +287,7 @@ codeunit 99001508 "Subc. Price Management"
         SubcontractorPrice.SetRange("Standard Task Code", InSubcontractorPrice."Standard Task Code");
         SubcontractorPrice.SetFilter("Item No.", '%1|%2', InSubcontractorPrice."Item No.", '');
         SubcontractorPrice.SetFilter("Variant Code", '%1|%2', InSubcontractorPrice."Variant Code", '');
+        SubcontractorPrice.SetFilter("Unit of Measure Code", '%1|%2', InSubcontractorPrice."Unit of Measure Code", '');
         SubcontractorPrice.SetRange("Starting Date", 0D, InSubcontractorPrice."Starting Date");
         SubcontractorPrice.SetFilter("Ending Date", '>=%1|%2', InSubcontractorPrice."Starting Date", 0D);
         if SubcontractorPrice.FindLast() then begin
@@ -424,7 +421,10 @@ codeunit 99001508 "Subc. Price Management"
         SubcontractorPrice.SetFilter("Currency Code", '%1|%2', RequisitionLine."Currency Code", '');
 
         if FixedUOM <> '' then
-            SubcontractorPrice.SetRange("Unit of Measure Code", FixedUOM);
+            SubcontractorPrice.SetRange("Unit of Measure Code", FixedUOM)
+        else
+            if RequisitionLine."Unit of Measure Code" <> '' then
+                SubcontractorPrice.SetFilter("Unit of Measure Code", '%1|%2', RequisitionLine."Unit of Measure Code", '');
 
         if SubcontractorPrice.FindLast() then begin
             if SubcontractorPrice."Unit of Measure Code" = RequisitionLine."Unit of Measure Code" then begin
@@ -436,7 +436,7 @@ codeunit 99001508 "Subc. Price Management"
 
             GetPriceByUOM(SubcontractorPrice, PriceListQty, PriceListCost);
             if PriceListCost <> 0 then begin
-                ConvertPriceToUOM(RequisitionLine."Unit of Measure Code", RequisitionLine.GetQuantityBase(), PriceListUOM, PriceListQtyPerUOM, PriceListCost, DirectCost);
+                ConvertPriceToUOM(RequisitionLine."Unit of Measure Code", RequisitionLine.GetQuantityForUOM(), PriceListUOM, PriceListQtyPerUOM, PriceListCost, DirectCost);
                 ConvertPriceToCurrency(RequisitionLine."Currency Code", SubcontractorPrice."Currency Code", PriceListCost, DirectCost);
             end;
             RequisitionLine."Direct Unit Cost" := DirectCost;

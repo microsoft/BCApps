@@ -119,10 +119,10 @@ codeunit 30250 "Shpfy Returns API"
 
             GraphQLType := "Shpfy GraphQL Type"::Returns_GetNextReverseFulfillmentOrders;
             JOrders := JsonHelper.GetJsonArray(JResponse, 'data.return.reverseFulfillmentOrders.nodes');
-            if Parameters.ContainsKey('After') then
-                Parameters.Set('After', JsonHelper.GetValueAsText(JResponse, 'data.return.reverseFulfillmentOrders.pageInfo.endCursor'))
+            if LineParameters.ContainsKey('After') then
+                LineParameters.Set('After', JsonHelper.GetValueAsText(JResponse, 'data.return.reverseFulfillmentOrders.pageInfo.endCursor'))
             else
-                Parameters.Add('After', JsonHelper.GetValueAsText(JResponse, 'data.return.reverseFulfillmentOrders.pageInfo.endCursor'));
+                LineParameters.Add('After', JsonHelper.GetValueAsText(JResponse, 'data.return.reverseFulfillmentOrders.pageInfo.endCursor'));
 
             foreach JOrder in JOrders do
                 GetReturnLocationsFromReturnFulfillOrder(JsonHelper.GetValueAsText(JOrder, 'id'), ReturnLocations);
@@ -144,10 +144,10 @@ codeunit 30250 "Shpfy Returns API"
 
             GraphQLType := "Shpfy GraphQL Type"::Returns_GetNextReverseFulfillmentOrderLines;
             JLines := JsonHelper.GetJsonArray(JResponse, 'data.reverseFulfillmentOrder.lineItems.nodes');
-            if Parameters.ContainsKey('After') then
-                Parameters.Set('After', JsonHelper.GetValueAsText(JResponse, 'data.reverseFulfillmentOrder.lineItems.pageInfo.endCursor'))
+            if LineParameters.ContainsKey('After') then
+                LineParameters.Set('After', JsonHelper.GetValueAsText(JResponse, 'data.reverseFulfillmentOrder.lineItems.pageInfo.endCursor'))
             else
-                Parameters.Add('After', JsonHelper.GetValueAsText(JResponse, 'data.reverseFulfillmentOrder.lineItems.pageInfo.endCursor'));
+                LineParameters.Add('After', JsonHelper.GetValueAsText(JResponse, 'data.reverseFulfillmentOrder.lineItems.pageInfo.endCursor'));
 
             foreach JLine in JLines do
                 CollectLocationsFromLineDispositions(JLine, ReturnLocations);
