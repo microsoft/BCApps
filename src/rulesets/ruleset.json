@@ -30,6 +30,11 @@
   ],
   "rules": [
     {
+        "id": "AS0023",
+        "action": "Warning",
+        "justification": "Needed to allow for BigInteger entry nos."
+    },
+    {
       "id": "AS0077",
       "action": "None",
       "justification": "Adding a var modifier in events should be allowed in main, as it only will break the runtime behavior of extensions subscribing to it when used in hotfix scenarios."
@@ -45,9 +50,29 @@
         "justification": "TODO(#595767) - This will be enabled after branching to BC 27."
     },
     {
+        "id": "AS0146",
+        "action": "Warning",
+        "justification": "Needed to allow for BigInteger entry nos."
+    },
+    {
+        "id": "AS0147",
+        "action": "Warning",
+        "justification": "Needed to allow for BigInteger entry nos."
+    },
+    {
         "id":  "PTE0026",
         "action":  "None",
         "justification": "TODO(#572306) - (see AS0138) This will require a multi-release effort."
+    },
+    {
+        "id": "AL0284",
+        "action": "Warning",
+        "justification": "Needed to allow for BigInteger entry nos."
+    },
+    {
+        "id": "AL0662",
+        "action": "Warning",
+        "justification": "Needed to allow for BigInteger entry nos."
     },
     {
         "id": "AL0920",

@@ -6,10 +6,12 @@ namespace Microsoft.Manufacturing.Subcontracting.Test;
 
 using Microsoft.Inventory.Planning;
 using Microsoft.Inventory.Requisition;
+using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
+using Microsoft.Purchases.History;
 using Microsoft.Purchases.Vendor;
 using System.Reflection;
 
@@ -38,7 +40,6 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Subc. Subcontracting UI Test");
 
         SubSetupLibrary.InitSetupFields();
-        SubSetupLibrary.ConfigureSubManagementForNothingPresentScenario("Subc. Show/Edit Type"::Hide, "Subc. Show/Edit Type"::Hide);
         LibraryERMCountryData.CreateVATData();
         SubSetupLibrary.InitialSetupForGenProdPostingGroup();
 
@@ -86,11 +87,11 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         // [WHEN] Find Control on Page
         PageControl.SetRange(TableNo, Database::"Purchase Header");
         PageControl.SetRange(PageNo, Page::"Purchase Order");
-        PageControl.SetRange(FieldNo, PurchHeader.FieldNo("Subcontracting Order"));
+        PageControl.SetRange(FieldNo, PurchHeader.FieldNo("Subc. Order"));
         ControlExist := not PageControl.IsEmpty();
 
         // [THEN]
-        Assert.AreEqual(true, ControlExist, StrSubstNo(ControlNotExistMsg, PurchHeader.FieldCaption("Subcontracting Order")));
+        Assert.AreEqual(true, ControlExist, StrSubstNo(ControlNotExistMsg, PurchHeader.FieldCaption("Subc. Order")));
     end;
 
     [Test]
@@ -109,11 +110,11 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         // [WHEN] Find Control on Page
         PageControl.SetRange(TableNo, Database::Vendor);
         PageControl.SetRange(PageNo, Page::"Vendor Card");
-        PageControl.SetRange(FieldNo, Vendor.FieldNo("Subcontr. Location Code"));
+        PageControl.SetRange(FieldNo, Vendor.FieldNo("Subc. Location Code"));
         ControlExist := not PageControl.IsEmpty();
 
         // [THEN]
-        Assert.AreEqual(true, ControlExist, StrSubstNo(ControlNotExistMsg, Vendor.FieldCaption("Subcontr. Location Code")));
+        Assert.AreEqual(true, ControlExist, StrSubstNo(ControlNotExistMsg, Vendor.FieldCaption("Subc. Location Code")));
     end;
 
     [Test]
@@ -132,11 +133,11 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         // [WHEN] Find Control on Page
         PageControl.SetRange(TableNo, Database::Vendor);
         PageControl.SetRange(PageNo, Page::"Vendor Card");
-        PageControl.SetRange(FieldNo, Vendor.FieldNo("Linked to Work Center"));
+        PageControl.SetRange(FieldNo, Vendor.FieldNo("Subc. Linked to Work Center"));
         ControlExist := not PageControl.IsEmpty();
 
         // [THEN]
-        Assert.AreEqual(true, ControlExist, StrSubstNo(ControlNotExistMsg, Vendor.FieldCaption("Linked to Work Center")));
+        Assert.AreEqual(true, ControlExist, StrSubstNo(ControlNotExistMsg, Vendor.FieldCaption("Subc. Linked to Work Center")));
     end;
 
     [Test]
@@ -201,11 +202,11 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         // [WHEN] Find Control on Page
         PageControl.SetRange(TableNo, Database::"Requisition Line");
         PageControl.SetRange(PageNo, Page::"Subc. Subcontracting Worksheet");
-        PageControl.SetRange(FieldNo, ReqLine.FieldNo("Pricelist Cost"));
+        PageControl.SetRange(FieldNo, ReqLine.FieldNo("Subc. Pricelist Cost"));
         ControlExist := not PageControl.IsEmpty();
 
         // [THEN]
-        Assert.AreEqual(true, ControlExist, StrSubstNo(ControlNotExistMsg, ReqLine.FieldCaption("Pricelist Cost")));
+        Assert.AreEqual(true, ControlExist, StrSubstNo(ControlNotExistMsg, ReqLine.FieldCaption("Subc. Pricelist Cost")));
     end;
 
     [Test]
@@ -224,11 +225,11 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         // [WHEN] Find Control on Page
         PageControl.SetRange(TableNo, Database::"Requisition Line");
         PageControl.SetRange(PageNo, Page::"Subc. Subcontracting Worksheet");
-        PageControl.SetRange(FieldNo, ReqLine.FieldNo("Standard Task Code"));
+        PageControl.SetRange(FieldNo, ReqLine.FieldNo("Subc. Standard Task Code"));
         ControlExist := not PageControl.IsEmpty();
 
         // [THEN]
-        Assert.AreEqual(true, ControlExist, StrSubstNo(ControlNotExistMsg, ReqLine.FieldCaption("Standard Task Code")));
+        Assert.AreEqual(true, ControlExist, StrSubstNo(ControlNotExistMsg, ReqLine.FieldCaption("Subc. Standard Task Code")));
     end;
 
     [Test]
@@ -247,15 +248,15 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         // [WHEN] Find Control on Page
         PageControl.SetRange(TableNo, Database::"Requisition Line");
         PageControl.SetRange(PageNo, Page::"Subc. Subcontracting Worksheet");
-        PageControl.SetRange(FieldNo, ReqLine.FieldNo("UoM for Pricelist"));
+        PageControl.SetRange(FieldNo, ReqLine.FieldNo("Subc. UoM for Pricelist"));
         ControlExist := not PageControl.IsEmpty();
 
         // [THEN]
-        Assert.AreEqual(true, ControlExist, StrSubstNo(ControlNotExistMsg, ReqLine.FieldCaption("UoM for Pricelist")));
+        Assert.AreEqual(true, ControlExist, StrSubstNo(ControlNotExistMsg, ReqLine.FieldCaption("Subc. UoM for Pricelist")));
     end;
 
     [Test]
-    procedure CheckCustCtrl_PageProductionBOMLinesSubcontractingType()
+    procedure CheckCustCtrl_PageProductionBOMLinesComponentSupplyMethod()
     var
         PageControl: Record "Page Control Field";
         ProdBOMLine: Record "Production BOM Line";
@@ -270,15 +271,15 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         // [WHEN] Find Control on Page
         PageControl.SetRange(TableNo, Database::"Production BOM Line");
         PageControl.SetRange(PageNo, Page::"Production BOM Lines");
-        PageControl.SetRange(FieldNo, ProdBOMLine.FieldNo("Subcontracting Type"));
+        PageControl.SetRange(FieldNo, ProdBOMLine.FieldNo("Component Supply Method"));
         ControlExist := not PageControl.IsEmpty();
 
         // [THEN]
-        Assert.AreEqual(true, ControlExist, StrSubstNo(ControlNotExistMsg, ProdBOMLine.FieldCaption("Subcontracting Type")));
+        Assert.AreEqual(true, ControlExist, StrSubstNo(ControlNotExistMsg, ProdBOMLine.FieldCaption("Component Supply Method")));
     end;
 
     [Test]
-    procedure CheckCustCtrl_PageProductionBOMVersionLinesSubcontractingType()
+    procedure CheckCustCtrl_PageProductionBOMVersionLinesComponentSupplyMethod()
     var
         PageControl: Record "Page Control Field";
         ProdBOMLine: Record "Production BOM Line";
@@ -293,14 +294,14 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         // [WHEN] Find Control on Page
         PageControl.SetRange(TableNo, Database::"Production BOM Line");
         PageControl.SetRange(PageNo, Page::"Production BOM Version Lines");
-        PageControl.SetRange(FieldNo, ProdBOMLine.FieldNo("Subcontracting Type"));
+        PageControl.SetRange(FieldNo, ProdBOMLine.FieldNo("Component Supply Method"));
         ControlExist := not PageControl.IsEmpty();
         // [THEN]
-        Assert.AreEqual(true, ControlExist, StrSubstNo(ControlNotExistMsg, ProdBOMLine.FieldCaption("Subcontracting Type")));
+        Assert.AreEqual(true, ControlExist, StrSubstNo(ControlNotExistMsg, ProdBOMLine.FieldCaption("Component Supply Method")));
     end;
 
     [Test]
-    procedure CheckCustCtrl_PagePlanningComponentSubcontractingType()
+    procedure CheckCustCtrl_PagePlanningComponentComponentSupplyMethod()
     var
         PageControl: Record "Page Control Field";
         PlanComp: Record "Planning Component";
@@ -315,11 +316,11 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         // [WHEN] Find Control on Page
         PageControl.SetRange(TableNo, Database::"Planning Component");
         PageControl.SetRange(PageNo, Page::"Planning Components");
-        PageControl.SetRange(FieldNo, PlanComp.FieldNo("Subcontracting Type"));
+        PageControl.SetRange(FieldNo, PlanComp.FieldNo("Component Supply Method"));
         ControlExist := not PageControl.IsEmpty();
 
         // [THEN]
-        Assert.AreEqual(true, ControlExist, StrSubstNo(ControlNotExistMsg, PlanComp.FieldCaption("Subcontracting Type")));
+        Assert.AreEqual(true, ControlExist, StrSubstNo(ControlNotExistMsg, PlanComp.FieldCaption("Component Supply Method")));
     end;
 
     [Test]
@@ -452,6 +453,139 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         // [THEN] Subcontractor Prices action is enabled
         Assert.IsTrue(WorkCenterList."Subcontractor Prices".Enabled(), SubcontractingActionsNotEnabledErr);
         WorkCenterList.Close();
+    end;
+
+    [Test]
+    [HandlerFunctions('HandlePostedPurchaseReceiptPage')]
+    procedure CapLedgerEntriesShowDocumentOpensPostedReceipt()
+    var
+        CapacityLedgerEntry: Record "Capacity Ledger Entry";
+        PurchRcptHeader: Record "Purch. Rcpt. Header";
+        CapacityLedgerEntries: TestPage "Capacity Ledger Entries";
+    begin
+        // [SCENARIO 620656] Show Document action opens Posted Purchase Receipt when Document No. matches a receipt
+        Initialize();
+
+        // [GIVEN] A Posted Purchase Receipt
+        PurchRcptHeader.Init();
+        PurchRcptHeader."No." := 'TEST-RCPT-001';
+        if not PurchRcptHeader.Insert() then
+            PurchRcptHeader.Modify();
+
+        // [GIVEN] A Capacity Ledger Entry with Document No. pointing to the receipt
+        CapacityLedgerEntry.Init();
+        CapacityLedgerEntry."Entry No." := GetNextCapLedgerEntryNo();
+        CapacityLedgerEntry."Document No." := PurchRcptHeader."No.";
+        CapacityLedgerEntry.Insert();
+
+        // [WHEN] The Show Document action is invoked
+        CapacityLedgerEntries.OpenView();
+        CapacityLedgerEntries.GoToRecord(CapacityLedgerEntry);
+        CapacityLedgerEntries.ShowDocument.Invoke();
+
+        // [THEN] The Posted Purchase Receipt page is opened (verified by PageHandler)
+        CapacityLedgerEntries.Close();
+    end;
+
+    [Test]
+    [HandlerFunctions('HandlePostedPurchaseInvoicePage')]
+    procedure CapLedgerEntriesShowDocumentOpensPostedInvoice()
+    var
+        CapacityLedgerEntry: Record "Capacity Ledger Entry";
+        PurchInvHeader: Record "Purch. Inv. Header";
+        CapacityLedgerEntries: TestPage "Capacity Ledger Entries";
+    begin
+        // [SCENARIO 620656] Show Document action opens Posted Purchase Invoice when Document No. matches an invoice
+        Initialize();
+
+        // [GIVEN] A Posted Purchase Invoice (no matching receipt)
+        PurchInvHeader.Init();
+        PurchInvHeader."No." := 'TEST-INV-001';
+        if not PurchInvHeader.Insert() then
+            PurchInvHeader.Modify();
+
+        // [GIVEN] A Capacity Ledger Entry with Document No. pointing to the invoice
+        CapacityLedgerEntry.Init();
+        CapacityLedgerEntry."Entry No." := GetNextCapLedgerEntryNo();
+        CapacityLedgerEntry."Document No." := PurchInvHeader."No.";
+        CapacityLedgerEntry.Insert();
+
+        // [WHEN] The Show Document action is invoked
+        CapacityLedgerEntries.OpenView();
+        CapacityLedgerEntries.GoToRecord(CapacityLedgerEntry);
+        CapacityLedgerEntries.ShowDocument.Invoke();
+
+        // [THEN] The Posted Purchase Invoice page is opened (verified by PageHandler)
+        CapacityLedgerEntries.Close();
+
+        // Cleanup
+        CapacityLedgerEntry.Delete();
+        PurchInvHeader.Delete();
+    end;
+
+    [Test]
+    [HandlerFunctions('HandlePurchaseOrderPage')]
+    procedure CapLedgerEntriesShowDocumentOpensPurchaseOrder()
+    var
+        CapacityLedgerEntry: Record "Capacity Ledger Entry";
+        PurchaseHeader: Record "Purchase Header";
+        CapacityLedgerEntries: TestPage "Capacity Ledger Entries";
+    begin
+        // [SCENARIO 620656] Show Document action opens Purchase Order when no posted document exists
+        Initialize();
+
+        // [GIVEN] A Purchase Order
+        PurchaseHeader.Init();
+        PurchaseHeader."Document Type" := PurchaseHeader."Document Type"::Order;
+        PurchaseHeader."No." := 'TEST-PO-001';
+        if not PurchaseHeader.Insert() then
+            PurchaseHeader.Modify();
+
+        // [GIVEN] A Capacity Ledger Entry with Subc. Purch. Order No. but no matching posted document
+        CapacityLedgerEntry.Init();
+        CapacityLedgerEntry."Entry No." := GetNextCapLedgerEntryNo();
+        CapacityLedgerEntry."Document No." := '';
+        CapacityLedgerEntry."Subc. Purch. Order No." := PurchaseHeader."No.";
+        CapacityLedgerEntry.Insert();
+
+        // [WHEN] The Show Document action is invoked
+        CapacityLedgerEntries.OpenView();
+        CapacityLedgerEntries.GoToRecord(CapacityLedgerEntry);
+        CapacityLedgerEntries.ShowDocument.Invoke();
+
+        // [THEN] The Purchase Order page is opened (verified by PageHandler)
+        CapacityLedgerEntries.Close();
+
+        // Cleanup
+        CapacityLedgerEntry.Delete();
+        PurchaseHeader.Delete();
+    end;
+
+    local procedure GetNextCapLedgerEntryNo(): Integer
+    var
+        CapacityLedgerEntry: Record "Capacity Ledger Entry";
+    begin
+        if CapacityLedgerEntry.FindLast() then
+            exit(CapacityLedgerEntry."Entry No." + 1);
+        exit(1);
+    end;
+
+    [PageHandler]
+    procedure HandlePostedPurchaseReceiptPage(var PostedPurchaseReceipt: TestPage "Posted Purchase Receipt")
+    begin
+        PostedPurchaseReceipt.Close();
+    end;
+
+    [PageHandler]
+    procedure HandlePostedPurchaseInvoicePage(var PostedPurchaseInvoice: TestPage "Posted Purchase Invoice")
+    begin
+        PostedPurchaseInvoice.Close();
+    end;
+
+    [PageHandler]
+    procedure HandlePurchaseOrderPage(var PurchaseOrder: TestPage "Purchase Order")
+    begin
+        PurchaseOrder.Close();
     end;
 
     var
