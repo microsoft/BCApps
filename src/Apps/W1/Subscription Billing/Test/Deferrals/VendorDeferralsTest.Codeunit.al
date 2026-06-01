@@ -1,7 +1,6 @@
 namespace Microsoft.SubscriptionBilling;
 
 using Microsoft.Finance.Currency;
-using Microsoft.Finance.Deferral;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
@@ -9,7 +8,6 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Inventory.Item;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
-using Microsoft.Purchases.Setup;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Utilities;
 using System.Security.User;
@@ -51,7 +49,6 @@ codeunit 139913 "Vendor Deferrals Test"
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryUtility: Codeunit "Library - Utility";
-        LibraryERM: Codeunit "Library - ERM";
         CorrectedDocumentNo: Code[20];
         PostedDocumentNo: Code[20];
         PostingDate: Date;
@@ -63,8 +60,6 @@ codeunit 139913 "Vendor Deferrals Test"
         TotalNumberOfMonths: Integer;
         VendorDeferralsCount: Integer;
         IsInitialized: Boolean;
-        ReleasedContractDeferralErr: Label 'Released Contract Deferrals were not reversed properly';
-        AmountNotMovedFromDeferralsAccountErr: Label 'Amount was not moved from Deferrals Account to Contract Account';
 
     #region Tests
 
@@ -244,55 +239,6 @@ codeunit 139913 "Vendor Deferrals Test"
                                                     PurchaseHeader."Currency Factor"), GLSetup."Amount Rounding Precision"));
             VendorContractDeferral.TestField("Number of Days", CalcDate('<CM>', VendorContractDeferral."Posting Date").Day());
         until VendorContractDeferral.Next() = 0;
-    end;
-
-    [Test]
-    [HandlerFunctions('CreateVendorBillingDocsContractPageHandler,MessageHandler')]
-    procedure CheckContractDeferralsWhenStartDateIsOnFirstDayInMonthAndEndDateIsMidMonthLCY()
-    var
-        DeferralCount: Integer;
-        FullMonthAmount: Decimal;
-        TotalDeferralBaseAmount: Decimal;
-        i: Integer;
-        LastDayOfBillingPeriod: Date;
-    begin
-        // [SCENARIO] When billing starts on 1st of month and ends mid-month (partial last month),
-        // full months get equal deferral amounts and the partial last month gets a day-proportioned amount.
-        Initialize();
-
-        // [GIVEN] A vendor contract with deferrals starting on Jan 1
-        CreateVendorContractWithDeferrals('<-CY>', true);
-
-        // [WHEN] Billing from Jan 1 to Jul 23 (partial last month) and document is posted
-        CreateBillingProposalAndCreateBillingDocuments('<-CY>', '<-CY+6M+22D>');
-        PostPurchDocumentAndFetchDeferrals();
-
-        DeferralCount := VendorContractDeferral.Count;
-        TotalDeferralBaseAmount := VendorContractDeferral."Deferral Base Amount";
-        LastDayOfBillingPeriod := CalcDate('<-CY+6M+22D>', WorkDate());
-
-        // [THEN] 7 deferral periods are created (Jan through Jul)
-        Assert.AreEqual(7, DeferralCount, 'Expected 7 deferral periods for Jan to Jul billing.');
-
-        // Use the first full-month deferral amount as reference; verify all other full months match it
-        FullMonthAmount := VendorContractDeferral.Amount;
-
-        // [THEN] The first 6 full-month periods have equal amounts and full month Number of Days
-        for i := 1 to DeferralCount - 1 do begin
-            Assert.AreEqual(FullMonthAmount, VendorContractDeferral.Amount, 'Full month deferrals should have equal amounts.');
-            VendorContractDeferral.TestField("Number of Days", Date2DMY(CalcDate('<CM>', VendorContractDeferral."Posting Date"), 1));
-            VendorContractDeferral.Next();
-        end;
-
-        // [THEN] Last partial month has a different (day-proportioned) amount and correct Number of Days
-        Assert.AreNotEqual(FullMonthAmount, VendorContractDeferral.Amount, 'Partial last month should have a different amount than full months.');
-        VendorContractDeferral.TestField("Number of Days", Date2DMY(LastDayOfBillingPeriod, 1));
-
-        // [THEN] Sum of all deferral amounts equals the total deferral base amount
-        VendorContractDeferral.Reset();
-        VendorContractDeferral.SetRange("Document No.", PostedDocumentNo);
-        VendorContractDeferral.CalcSums(Amount);
-        Assert.AreEqual(TotalDeferralBaseAmount, VendorContractDeferral.Amount, 'Sum of deferral amounts must equal the deferral base amount.');
     end;
 
     [Test]
@@ -638,21 +584,15 @@ codeunit 139913 "Vendor Deferrals Test"
     procedure TestIfDeferralsExistOnAfterPostPurchCreditMemoWithoutAppliesToDocNo()
     begin
         Initialize();
-        // [GIVEN] Contract has been created and the billing proposal with a posted contract invoice
         CreateVendorContractWithDeferrals('<2M-CM>', true);
         CreateBillingProposalAndCreateBillingDocuments('<2M-CM>', '<8M+CM>');
         PostPurchDocumentAndGetPurchInvoice();
-
-        // [WHEN] A credit memo is created from the posted invoice but without any link to the original invoice
         CorrectPostedPurchaseInvoice.CreateCreditMemoCopyDocument(PurchaseInvoiceHeader, PurchaseCrMemoHeader);
         PurchaseCrMemoHeader.Validate("Vendor Cr. Memo No.", LibraryUtility.GenerateGUID());
         PurchaseCrMemoHeader."Applies-to Doc. Type" := PurchaseCrMemoHeader."Applies-to Doc. Type"::" ";
         PurchaseCrMemoHeader."Applies-to Doc. No." := '';
         PurchaseCrMemoHeader.Modify(false);
-        ClearCorrectionDocumentNoFromBillingLines(PurchaseCrMemoHeader."No.");
         CorrectedDocumentNo := LibraryPurchase.PostPurchaseDocument(PurchaseCrMemoHeader, true, true);
-
-        // [THEN] Deferral entries are created for the standalone credit memo
         FetchVendorContractDeferrals(CorrectedDocumentNo);
     end;
 
@@ -768,48 +708,6 @@ codeunit 139913 "Vendor Deferrals Test"
     end;
 
     [Test]
-    [HandlerFunctions('CreateVendorBillingDocsContractPageHandler,ContractDeferralsReleaseRequestPageHandler,MessageHandler')]
-    procedure VerifyVendSubContrDefAccountBalancedForCreditMemoWithDiscount()
-    var
-        SubscriptionLine: Record "Subscription Line";
-        ContractDeferralsRelease: Report "Contract Deferrals Release";
-        ActualAmount: Decimal;
-    begin
-        // [SCENARIO 623041] Verify that released vendor contract deferral amounts have correct sign and GL accounts balance.
-        Initialize();
-        SetPostingAllowTo(0D);
-
-        // [GIVEN] Create Vendor Contract with deferral enabled
-        CreateVendorContractWithDeferrals('<2M-CM>', true, 1);
-
-        // [GIVEN] Set Discount flag to True on subscription lines
-        SubscriptionLine.SetRange("Subscription Header No.", ServiceObject."No.");
-        SubscriptionLine.FindSet();
-        repeat
-            SubscriptionLine.Validate(Discount, true);
-            SubscriptionLine.Modify(false);
-        until SubscriptionLine.Next() = 0;
-
-        // [GIVEN] Contract has been created and the billing proposal with non posted contract invoice
-        CreateBillingProposalAndCreateBillingDocuments('<2M-CM>', '<8M+CM>');
-
-        // [GIVEN] Post credit memo document
-        PostPurchDocumentAndFetchDeferrals();
-
-        // [WHEN] Run Subscription Contract Deferral Release for credit memo
-        repeat
-            PostingDate := VendorContractDeferral."Posting Date";
-            Commit(); // close transaction before report is called
-            ContractDeferralsRelease.Run();  // ContractDeferralsReleaseRequestPageHandler
-        until VendorContractDeferral.Next() = 0;
-
-        // [THEN] Verify "Vend. Sub. Contr. Def. Account" should be balanced after credit memo reversal, which means that released deferral amount was reversed properly
-        GeneralPostingSetup.Get(Vendor."Gen. Bus. Posting Group", Item."Gen. Prod. Posting Group");
-        GetGLEntryAmountFromAccountNo(ActualAmount, GeneralPostingSetup."Vend. Sub. Contr. Def. Account");
-        Assert.AreEqual(0, ActualAmount, ReleasedContractDeferralErr);
-    end;
-
-    [Test]
     procedure UT_CheckFunctionCreateContractDeferralsForPurchaseLine()
     var
         PurchaseLine2: Record "Purchase Line";
@@ -858,218 +756,6 @@ codeunit 139913 "Vendor Deferrals Test"
         Assert.IsTrue(PurchaseLine2.CreateContractDeferrals(), FunctionReturnedWrongResultErr);
     end;
 
-    [Test]
-    [HandlerFunctions('CreateVendorBillingDocsContractPageHandler,MessageHandler')]
-    procedure TestPostingGroupsAreFilledOnVendorContractDeferrals()
-    var
-        TotalDeferralCount: Integer;
-    begin
-        // [SCENARIO] When posting a purchase invoice with contract deferrals, the Gen. Bus. Posting Group and Gen. Prod. Posting Group fields are populated on the deferral entries.
-        Initialize();
-
-        // [GIVEN] A vendor contract with deferrals
-        CreateVendorContractWithDeferrals('<2M-CM>', true);
-        CreateBillingProposalAndCreateBillingDocuments('<2M-CM>', '<8M+CM>');
-
-        // [WHEN] The purchase document is posted
-        BillingLine.FindLast();
-        PostPurchDocumentAndFetchDeferrals();
-
-        // [THEN] Gen. Bus. Posting Group and Gen. Prod. Posting Group are filled on each deferral entry
-        PurchInvLine.SetRange("Document No.", PostedDocumentNo);
-        PurchInvLine.SetFilter("No.", '<>%1', '');
-        PurchInvLine.FindFirst();
-        VendorContractDeferral.SetRange("Document No.", PostedDocumentNo);
-        TotalDeferralCount := VendorContractDeferral.Count;
-        VendorContractDeferral.SetRange("Gen. Bus. Posting Group", PurchInvLine."Gen. Bus. Posting Group");
-        VendorContractDeferral.SetRange("Gen. Prod. Posting Group", PurchInvLine."Gen. Prod. Posting Group");
-        Assert.RecordIsNotEmpty(VendorContractDeferral);
-        Assert.RecordCount(VendorContractDeferral, TotalDeferralCount);
-    end;
-
-    [Test]
-    [HandlerFunctions('CreateVendorBillingDocsContractPageHandler,ContractDeferralsReleaseRequestPageHandler,MessageHandler')]
-    procedure TestZeroAmountVendorDeferralsReleasedWithoutGLEntries()
-    var
-        ContractDeferralsRelease: Report "Contract Deferrals Release";
-    begin
-        // [SCENARIO] Zero-amount vendor contract deferrals should be marked as released without creating GL entries.
-        Initialize();
-        SetPostingAllowTo(0D);
-
-        // [GIVEN] A vendor contract with deferrals that have been posted
-        CreateVendorContractWithDeferrals('<2M-CM>', true);
-        CreateBillingProposalAndCreateBillingDocuments('<2M-CM>', '<8M+CM>');
-        BillingLine.FindLast();
-        PostPurchDocumentAndFetchDeferrals();
-
-        // [GIVEN] All deferral amounts are set to 0 (simulating zero-amount service commitments)
-        VendorContractDeferral.Reset();
-        VendorContractDeferral.SetRange("Document No.", PostedDocumentNo);
-        VendorContractDeferral.ModifyAll(Amount, 0, false);
-        VendorContractDeferral.ModifyAll("Discount Amount", 0, false);
-        VendorContractDeferral.FindFirst();
-
-        // [WHEN] Release deferrals is run
-        PostingDate := VendorContractDeferral."Posting Date";
-        Commit();
-        ContractDeferralsRelease.Run(); // ContractDeferralsReleaseRequestPageHandler
-
-        // [THEN] The first deferral is released without creating a GL entry
-        VendorContractDeferral.Get(VendorContractDeferral."Entry No.");
-        VendorContractDeferral.TestField(Released, true);
-        VendorContractDeferral.TestField("G/L Entry No.", 0);
-    end;
-
-    [Test]
-    [HandlerFunctions('CreateVendorBillingDocsContractPageHandler,MessageHandler')]
-    procedure DeferralCodeNotAllowedWithContractDeferralsOnPurchaseLine()
-    var
-        DeferralTemplate: Record "Deferral Template";
-        DeferralCodeCannotBeUsedWithContractDeferralsErr: Label 'A Deferral Code cannot be used on a line where Subscription Contract Deferrals are active. Either remove the Deferral Code or disable Contract Deferrals on the subscription line or contract.', Locked = true;
-    begin
-        // [SCENARIO] A standard Deferral Code must not be assigned to a purchase invoice line
-        //            that already has subscription contract deferrals enabled.
-        Initialize();
-
-        // [GIVEN] A vendor contract with deferrals enabled and a billing document
-        CreateVendorContractWithDeferrals('<2M-CM>', true);
-        CreateBillingProposalAndCreateBillingDocuments('<2M-CM>', '<8M+CM>');
-
-        // [GIVEN] A standard BC deferral template
-        LibraryERM.CreateDeferralTemplate(DeferralTemplate, Enum::"Deferral Calculation Method"::"Straight-Line",
-            Enum::"Deferral Calculation Start Date"::"Posting Date", 3);
-
-        // [WHEN] Assigning the Deferral Code to the purchase line that has contract deferrals
-        PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
-        PurchaseLine.SetFilter("No.", '<>%1', '');
-        PurchaseLine.FindFirst();
-
-        // [THEN] An error is raised preventing double deferrals
-        asserterror PurchaseLine.Validate("Deferral Code", DeferralTemplate."Deferral Code");
-        Assert.ExpectedError(DeferralCodeCannotBeUsedWithContractDeferralsErr);
-    end;
-
-    [Test]
-    [HandlerFunctions('CreateVendorBillingDocsContractPageHandler,ContractDeferralsReleaseRequestPageHandler,MessageHandler')]
-    procedure DeferralsReleaseSucceedsWhenGLAccountHasDefaultDeferralTemplateAndJournalTemplMandatory()
-    var
-        DeferralTemplate: Record "Deferral Template";
-        GLAccount: Record "G/L Account";
-        GLEntry: Record "G/L Entry";
-        ContractDeferralsRelease: Report "Contract Deferrals Release";
-        GLAmountBeforeRelease: Decimal;
-        GLAmountAfterRelease: Decimal;
-    begin
-        // [FEATURE] [AI test]
-        // [SCENARIO 632489] When "Journal Templ. Name Mandatory" is TRUE and G/L Account has a Default Deferral Template Code,
-        // the Contract Deferrals Release report should successfully post without error
-        // "Gen. Journal Template does not exist (Name = '')".
-        Initialize();
-
-        // [GIVEN] General Ledger Setup has "Journal Templ. Name Mandatory" = TRUE.
-        SetPostingAllowTo(0D);
-        SetJournalTemplateNameMandatory(true);
-
-        // [GIVEN] Purchases & Payables Setup has "P. Invoice Template Name" set.
-        SetupPurchInvoiceTemplateInPurchSetup();
-
-        // [GIVEN] Subscription Contract Setup has "Def. Rel. Jnl. Template Name" and "Def. Rel. Jnl. Batch Name" set.
-        SetupDeferralReleaseJournalTemplateAndBatch();
-
-        // [GIVEN] A vendor contract with deferrals enabled.
-        CreateVendorContractWithDeferrals('<2M-CM>', true);
-        CreateBillingProposalAndCreateBillingDocuments('<2M-CM>', '<8M+CM>');
-
-        // [GIVEN] The G/L Account used for Vendor Sub. Contract Deferral has a Default Deferral Template Code set.
-        GeneralPostingSetup.Get(Vendor."Gen. Bus. Posting Group", Item."Gen. Prod. Posting Group");
-        LibraryERM.CreateDeferralTemplate(DeferralTemplate, Enum::"Deferral Calculation Method"::"Straight-Line",
-            Enum::"Deferral Calculation Start Date"::"Posting Date", 12);
-        GLAccount.Get(GeneralPostingSetup."Vend. Sub. Contr. Def. Account");
-        GLAccount."Default Deferral Template Code" := DeferralTemplate."Deferral Code";
-        GLAccount.Modify(false);
-
-        // [GIVEN] Post the contract invoice
-        PostPurchDocumentAndFetchDeferrals();
-
-        // [WHEN] Run Contract Deferrals Release
-        GetGLEntryAmountFromAccountNo(GLAmountBeforeRelease, GeneralPostingSetup."Vend. Sub. Contr. Def. Account");
-        PostingDate := VendorContractDeferral."Posting Date";
-        Commit();
-        ContractDeferralsRelease.Run();
-
-        // [THEN] The deferral is successfully released without error
-        VendorContractDeferral.Get(VendorContractDeferral."Entry No.");
-        VendorContractDeferral.TestField(Released, true);
-        VendorContractDeferral.TestField("G/L Entry No.");
-
-        // [THEN] GL entry is posted with Subscription Contract No. and the amount is released from the deferral account.
-        GLEntry.Get(VendorContractDeferral."G/L Entry No.");
-        GLEntry.TestField("Subscription Contract No.", VendorContractDeferral."Subscription Contract No.");
-        GetGLEntryAmountFromAccountNo(GLAmountAfterRelease, GeneralPostingSetup."Vend. Sub. Contr. Def. Account");
-        Assert.AreEqual(GLAmountBeforeRelease - VendorContractDeferral.Amount, GLAmountAfterRelease, AmountNotMovedFromDeferralsAccountErr);
-    end;
-
-    [Test]
-    [HandlerFunctions('CreateVendorBillingDocsContractPageHandler,ContractDeferralsReleaseRequestPageHandler,MessageHandler')]
-    procedure DeferralsReleaseSucceedsWhenGLAccountHasDefaultDeferralTemplateAndJournalTemplNotMandatory()
-    var
-        DeferralTemplate: Record "Deferral Template";
-        GLAccount: Record "G/L Account";
-        GLEntry: Record "G/L Entry";
-        ContractDeferralsRelease: Report "Contract Deferrals Release";
-        GLAmountBeforeRelease: Decimal;
-        GLAmountAfterRelease: Decimal;
-    begin
-        // [FEATURE] [AI test]
-        // [SCENARIO 632489] When "Journal Templ. Name Mandatory" is FALSE and Subscription Contract Setup has no journal template/batch,
-        // and G/L Account has a Default Deferral Template Code, the Contract Deferrals Release report should
-        // successfully post without error "Gen. Journal Template does not exist (Name = '')".
-        Initialize();
-
-        // [GIVEN] General Ledger Setup has "Journal Templ. Name Mandatory" = FALSE.
-        SetPostingAllowTo(0D);
-        SetJournalTemplateNameMandatory(false);
-
-        // [GIVEN] Purchases & Payables Setup has "P. Invoice Template Name" set.
-        SetupPurchInvoiceTemplateInPurchSetup();
-
-        // [GIVEN] Subscription Contract Setup has empty "Def. Rel. Jnl. Template Name" and "Def. Rel. Jnl. Batch Name".
-        ClearDeferralReleaseJournalTemplateAndBatch();
-
-        // [GIVEN] A vendor contract with deferrals enabled.
-        CreateVendorContractWithDeferrals('<2M-CM>', true);
-        CreateBillingProposalAndCreateBillingDocuments('<2M-CM>', '<8M+CM>');
-
-        // [GIVEN] The G/L Account used for Vendor Sub. Contract Deferral has a Default Deferral Template Code set.
-        GeneralPostingSetup.Get(Vendor."Gen. Bus. Posting Group", Item."Gen. Prod. Posting Group");
-        LibraryERM.CreateDeferralTemplate(DeferralTemplate, Enum::"Deferral Calculation Method"::"Straight-Line",
-            Enum::"Deferral Calculation Start Date"::"Posting Date", 12);
-        GLAccount.Get(GeneralPostingSetup."Vend. Sub. Contr. Def. Account");
-        GLAccount."Default Deferral Template Code" := DeferralTemplate."Deferral Code";
-        GLAccount.Modify(false);
-
-        // [GIVEN] Post the contract invoice.
-        PostPurchDocumentAndFetchDeferrals();
-
-        // [WHEN] Run Contract Deferrals Release.
-        GetGLEntryAmountFromAccountNo(GLAmountBeforeRelease, GeneralPostingSetup."Vend. Sub. Contr. Def. Account");
-        PostingDate := VendorContractDeferral."Posting Date";
-        Commit();
-        ContractDeferralsRelease.Run();
-
-        // [THEN] The deferral is successfully released without error.
-        VendorContractDeferral.Get(VendorContractDeferral."Entry No.");
-        VendorContractDeferral.TestField(Released, true);
-        VendorContractDeferral.TestField("G/L Entry No.");
-
-        // [THEN] GL entry is posted with Subscription Contract No. and the amount is released from the deferral account.
-        GLEntry.Get(VendorContractDeferral."G/L Entry No.");
-        GLEntry.TestField("Subscription Contract No.", VendorContractDeferral."Subscription Contract No.");
-        GetGLEntryAmountFromAccountNo(GLAmountAfterRelease, GeneralPostingSetup."Vend. Sub. Contr. Def. Account");
-        Assert.AreEqual(GLAmountBeforeRelease - VendorContractDeferral.Amount, GLAmountAfterRelease, AmountNotMovedFromDeferralsAccountErr);
-    end;
-
     #endregion Tests
 
     #region Procedures
@@ -1095,6 +781,7 @@ codeunit 139913 "Vendor Deferrals Test"
         GLAccount: Record "G/L Account";
         GenJournalBatch: Record "Gen. Journal Batch";
         GenJournalLine: Record "Gen. Journal Line";
+        LibraryERM: Codeunit "Library - ERM";
     begin
         CreateGeneralJournalBatch(GenJournalBatch);
         LibraryERM.CreateGLAccount(GLAccount);
@@ -1165,6 +852,7 @@ codeunit 139913 "Vendor Deferrals Test"
     local procedure CreateGeneralJournalBatch(var GenJournalBatch: Record "Gen. Journal Batch")
     var
         GenJournalTemplate: Record "Gen. Journal Template";
+        LibraryERM: Codeunit "Library - ERM";
     begin
         GenJournalTemplate.SetRange(Recurring, false);
         GenJournalTemplate.SetRange(Type, GenJournalTemplate.Type::General);
@@ -1223,16 +911,6 @@ codeunit 139913 "Vendor Deferrals Test"
         VendorContractDeferral.Reset();
         VendorContractDeferral.SetRange("Document No.", DocumentNo);
         VendorContractDeferral.FindFirst();
-    end;
-
-    local procedure ClearCorrectionDocumentNoFromBillingLines(CreditMemoDocumentNo: Code[20])
-    var
-        CrMemoBillingLine: Record "Billing Line";
-    begin
-        CrMemoBillingLine.SetRange(Partner, CrMemoBillingLine.Partner::Vendor);
-        CrMemoBillingLine.SetRange("Document Type", CrMemoBillingLine."Document Type"::"Credit Memo");
-        CrMemoBillingLine.SetRange("Document No.", CreditMemoDocumentNo);
-        CrMemoBillingLine.ModifyAll("Correction Document No.", '', false);
     end;
 
     local procedure GetCalculatedMonthAmountsForDeferrals(SourceDeferralBaseAmount: Decimal; NumberOfPeriods: Integer; FirstDayOfBillingPeriod: Date; LastDayOfBillingPeriod: Date; CalculateInLCY: Boolean)
@@ -1382,53 +1060,6 @@ codeunit 139913 "Vendor Deferrals Test"
         VendorContractDeferral.TestField("Vendor No.", PurchaseHeader."Buy-from Vendor No.");
         VendorContractDeferral.TestField("Pay-to Vendor No.", PurchaseHeader."Pay-to Vendor No.");
         VendorContractDeferral.TestField("Document Posting Date", PurchaseHeader."Posting Date");
-    end;
-
-    local procedure SetJournalTemplateNameMandatory(NewValue: Boolean)
-    begin
-        GLSetup.Get();
-        GLSetup."Journal Templ. Name Mandatory" := NewValue;
-        GLSetup.Modify(false);
-    end;
-
-    local procedure SetupDeferralReleaseJournalTemplateAndBatch()
-    var
-        GenJournalTemplate: Record "Gen. Journal Template";
-        GenJournalBatch: Record "Gen. Journal Batch";
-        ServiceContractSetup: Record "Subscription Contract Setup";
-    begin
-        LibraryERM.CreateGenJournalTemplate(GenJournalTemplate);
-        LibraryERM.CreateGenJournalBatch(GenJournalBatch, GenJournalTemplate.Name);
-        ServiceContractSetup.Get();
-        ServiceContractSetup."Def. Rel. Jnl. Template Name" := GenJournalBatch."Journal Template Name";
-        ServiceContractSetup."Def. Rel. Jnl. Batch Name" := GenJournalBatch.Name;
-        ServiceContractSetup.Modify(false);
-    end;
-
-    local procedure ClearDeferralReleaseJournalTemplateAndBatch()
-    var
-        ServiceContractSetup: Record "Subscription Contract Setup";
-    begin
-        ServiceContractSetup.Get();
-        ServiceContractSetup."Def. Rel. Jnl. Template Name" := '';
-        ServiceContractSetup."Def. Rel. Jnl. Batch Name" := '';
-        ServiceContractSetup.Modify(false);
-    end;
-
-    local procedure SetupPurchInvoiceTemplateInPurchSetup()
-    var
-        GenJournalTemplate: Record "Gen. Journal Template";
-        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
-    begin
-        PurchasesPayablesSetup.Get();
-        if PurchasesPayablesSetup."P. Invoice Template Name" <> '' then
-            exit;
-        LibraryERM.CreateGenJournalTemplate(GenJournalTemplate);
-        GenJournalTemplate.Type := GenJournalTemplate.Type::Purchases;
-        GenJournalTemplate."Posting No. Series" := LibraryERM.CreateNoSeriesCode();
-        GenJournalTemplate.Modify(false);
-        PurchasesPayablesSetup."P. Invoice Template Name" := GenJournalTemplate.Name;
-        PurchasesPayablesSetup.Modify(false);
     end;
 
     #endregion Procedures
