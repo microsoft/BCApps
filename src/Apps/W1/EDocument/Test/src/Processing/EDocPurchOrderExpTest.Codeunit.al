@@ -11,7 +11,7 @@ using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 
-codeunit 139897 "E-Doc. Purch. Order Exp. Test"
+codeunit 139898 "E-Doc. Purch. Order Exp. Test"
 {
     Subtype = Test;
 
