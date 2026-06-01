@@ -26,6 +26,10 @@ page 8352 "MCP Config Tool List"
             repeater(Control1)
             {
                 ShowCaption = false;
+                field("Object Type"; Rec."Object Type")
+                {
+                    ToolTip = 'Specifies the type of the object.';
+                }
                 field("Object Id"; Rec."Object Id")
                 {
                     ToolTip = 'Specifies the ID of the object.';
@@ -121,10 +125,6 @@ page 8352 "MCP Config Tool List"
                     ToolTip = 'Specifies whether bound actions are allowed for this tool.';
                     Editable = AllowCreateUpdateDeleteTools and (Rec."Object Type" = Rec."Object Type"::Page);
                 }
-                field("Object Type"; Rec."Object Type")
-                {
-                    ToolTip = 'Specifies the type of the object.';
-                }
                 field("API Version"; Rec."API Version")
                 {
                     Caption = 'API Version';
@@ -165,12 +165,12 @@ page 8352 "MCP Config Tool List"
     {
         area(Processing)
         {
-            action(SelectTools)
+            action(SelectAPIs)
             {
-                Caption = 'Select Tools';
+                Caption = 'Select APIs';
                 Ellipsis = true;
                 Image = Resource;
-                ToolTip = 'Opens a lookup to select API tools to add to this configuration.';
+                ToolTip = 'Opens a lookup to select API objects to add to this configuration.';
                 Enabled = not IsConfigActive;
 
                 trigger OnAction()
@@ -214,11 +214,11 @@ page 8352 "MCP Config Tool List"
                     CurrPage.Update();
                 end;
             }
-            action(AddToolsByAPIGroup)
+            action(AddAPIsByAPIGroup)
             {
-                Caption = 'Add Tools by API Group';
+                Caption = 'Add APIs by API Group';
                 Image = NewResourceGroup;
-                ToolTip = 'Adds tools to the configuration by API publisher and group.';
+                ToolTip = 'Adds APIs to the configuration by API publisher and group.';
                 Enabled = not IsConfigActive;
 
                 trigger OnAction()
@@ -229,9 +229,9 @@ page 8352 "MCP Config Tool List"
             }
             action(AddStandardAPITools)
             {
-                Caption = 'Add All Standard APIs as Tools';
+                Caption = 'Add All Standard APIs';
                 Image = ResourceGroup;
-                ToolTip = 'Adds tools for all standard API pages and queries to the configuration.';
+                ToolTip = 'Adds all standard API pages and queries to the configuration.';
                 Enabled = not IsConfigActive;
 
                 trigger OnAction()

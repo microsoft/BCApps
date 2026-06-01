@@ -27,11 +27,13 @@ page 8368 "MCP Server Feature List"
             repeater(Features)
             {
                 ShowCaption = false;
+                IndentationColumn = Rec.Indentation;
+                IndentationControls = Feature;
                 field(Feature; Rec.Feature)
                 {
                     Caption = 'Name';
                     ToolTip = 'Specifies the name of the server feature.';
-                    Width = 30;
+                    Width = 10;
                 }
                 field("Description"; Rec."Description")
                 {
@@ -127,11 +129,16 @@ page 8368 "MCP Server Feature List"
     local procedure InsertRow(NewFeature: Enum "MCP Server Feature")
     var
         ServerFeature: Interface "MCP Server Features";
+        ParentFeature: Enum "MCP Server Feature";
+        Indentation: Integer;
     begin
         ServerFeature := NewFeature;
+        if ServerFeature.TryGetParentFeature(ParentFeature) then
+            Indentation := 1; // sub-feature: always shown, indented beneath its parent
         Rec.Init();
         Rec.Feature := NewFeature;
         Rec.Description := ServerFeature.Description();
+        Rec.Indentation := Indentation;
         if ServerFeature.IsActive(ParentSystemId) then
             Rec.Status := Rec.Status::Active
         else

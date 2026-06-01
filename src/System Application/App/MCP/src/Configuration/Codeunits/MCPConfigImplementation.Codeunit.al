@@ -35,6 +35,7 @@ codeunit 8351 "MCP Config Implementation"
         DesignatedDefaultCannotBeDeactivatedErr: Label 'The designated default configuration cannot be deactivated. Clear the default designation first.';
         ConfigurationMustBeActiveErr: Label 'Only active configurations can be set as the default.';
         DynamicToolModeRequiredErr: Label 'Dynamic tool mode needs to be enabled to discover read-only objects.';
+        APIToolsRequiredForDynamicErr: Label 'API Tools must be enabled before Dynamic Tool Mode can be enabled.';
         VersionNotValidErr: Label 'The API version is not valid for the selected tool.';
         MCPConfigurationCreatedLbl: Label 'MCP Configuration created', Locked = true;
         MCPConfigurationModifiedLbl: Label 'MCP Configuration modified', Locked = true;
@@ -224,11 +225,8 @@ codeunit 8351 "MCP Config Implementation"
         if not Enable and IsDefaultConfiguration(MCPConfiguration) then
             Error(DynamicToolModeCannotBeDisabledErr);
 
-        // PLATFORM-PENDING: require API Tools enabled before Dynamic Tool Mode can be enabled.
-        // Uncomment and add the APIToolsRequiredForDynamicErr label once the API Tools boolean
-        // exists on MCP Configuration:
-        //   if Enable and not MCPConfiguration."<Enable API Tools field>" then
-        //       Error(APIToolsRequiredForDynamicErr);
+        if Enable and not IsAPIToolsEnabled(ConfigId) then
+            Error(APIToolsRequiredForDynamicErr);
 
         MCPConfiguration.EnableDynamicToolMode := Enable;
         if not Enable then
@@ -258,20 +256,55 @@ codeunit 8351 "MCP Config Implementation"
         LogConfigurationModified(MCPConfiguration, xMCPConfiguration);
     end;
 
-    // MOCK: AL Query Tools activation has no platform-side persistence yet, so this is an
-    // intentional no-op. When the platform adds an `EnableALQuery` field to `MCP Configuration`,
-    // implement the body by: GetBySystemId(ConfigId) (Error with ConfigurationNotFoundErr if
-    // missing) → assign Enable to the Rec field → Modify() → LogConfigurationModified.
-    internal procedure EnableALQueryTools(ConfigId: Guid; Enable: Boolean)
+    // MOCK: API Tools / AL Query Tools activation isn't on the platform-owned MCP Configuration table
+    // yet (which the app can't extend), so it's persisted in the MCP-owned "MCP Feature Activation"
+    // table keyed by config SystemId. When the platform adds the real boolean fields, delete that
+    // table and repoint these four procedures at them.
+    internal procedure EnableAPITools(ConfigId: Guid; Enable: Boolean)
+    var
+        MCPFeatureActivation: Record "MCP Feature Activation";
     begin
+        if not MCPFeatureActivation.Get(ConfigId) then begin
+            MCPFeatureActivation."Config Id" := ConfigId;
+            MCPFeatureActivation."Enable API Tools" := Enable;
+            MCPFeatureActivation.Insert();
+        end else begin
+            MCPFeatureActivation."Enable API Tools" := Enable;
+            MCPFeatureActivation.Modify();
+        end;
     end;
 
-    // MOCK: API Tools activation has no platform-side persistence yet, so this is an intentional
-    // no-op. When the platform adds an API Tools field to `MCP Configuration`, implement the body
-    // by: GetBySystemId(ConfigId) (Error with ConfigurationNotFoundErr if missing) → assign Enable
-    // → Modify() → LogConfigurationModified.
-    internal procedure EnableAPITools(ConfigId: Guid; Enable: Boolean)
+    internal procedure EnableALQueryTools(ConfigId: Guid; Enable: Boolean)
+    var
+        MCPFeatureActivation: Record "MCP Feature Activation";
     begin
+        if not MCPFeatureActivation.Get(ConfigId) then begin
+            MCPFeatureActivation."Config Id" := ConfigId;
+            MCPFeatureActivation."Enable AL Query Tools" := Enable;
+            MCPFeatureActivation.Insert();
+        end else begin
+            MCPFeatureActivation."Enable AL Query Tools" := Enable;
+            MCPFeatureActivation.Modify();
+        end;
+    end;
+
+    // MOCK: reads of the "MCP Feature Activation" stand-in (set by the two procedures above).
+    // Repoint these at the real MCP Configuration fields and delete the table when the platform
+    // ships them.
+    internal procedure IsAPIToolsEnabled(ConfigId: Guid): Boolean
+    var
+        MCPFeatureActivation: Record "MCP Feature Activation";
+    begin
+        if MCPFeatureActivation.Get(ConfigId) then
+            exit(MCPFeatureActivation."Enable API Tools");
+    end;
+
+    internal procedure IsALQueryToolsEnabled(ConfigId: Guid): Boolean
+    var
+        MCPFeatureActivation: Record "MCP Feature Activation";
+    begin
+        if MCPFeatureActivation.Get(ConfigId) then
+            exit(MCPFeatureActivation."Enable AL Query Tools");
     end;
 
     local procedure CheckAllowCreateUpdateDeleteTools(ConfigId: Guid)

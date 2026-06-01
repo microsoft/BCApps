@@ -38,4 +38,10 @@ interface "MCP Server Features"
     /// Appends the feature's system tools to the buffer. Called only when the feature is active.
     /// </summary>
     procedure LoadSystemTools(var MCPSystemTool: Record "MCP System Tool");
+
+    /// <summary>
+    /// Returns true and the parent feature when this is a sub-feature. The Server Features list shows
+    /// a sub-feature indented beneath its parent.
+    /// </summary>
+    procedure TryGetParentFeature(var ParentFeature: Enum "MCP Server Feature"): Boolean;
 }

@@ -55,6 +55,13 @@ codeunit 8370 "MCP Dyn. Tool Mode Feature" implements "MCP Server Features"
             InsertTool(MCPSystemTool, CopyStr(ToolName, 1, MaxStrLen(MCPSystemTool."Tool Name")), CopyStr(SystemTools.Get(ToolName), 1, MaxStrLen(MCPSystemTool."Tool Description")));
     end;
 
+    procedure TryGetParentFeature(var ParentFeature: Enum "MCP Server Feature"): Boolean
+    begin
+        // Dynamic Tool Mode is a sub-feature of API Tools.
+        ParentFeature := "MCP Server Feature"::"API Tools";
+        exit(true);
+    end;
+
     local procedure InsertTool(var MCPSystemTool: Record "MCP System Tool"; ToolName: Text[100]; ToolDescription: Text[250])
     begin
         MCPSystemTool."Server Feature" := MCPSystemTool."Server Feature"::"Dynamic Tool Mode";

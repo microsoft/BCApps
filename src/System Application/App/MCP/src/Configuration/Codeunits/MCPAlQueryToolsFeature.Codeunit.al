@@ -17,10 +17,10 @@ codeunit 8368 "MCP AL Query Tools Feature" implements "MCP Server Features"
     end;
 
     procedure IsActive(ConfigId: Guid): Boolean
+    var
+        MCPConfigImplementation: Codeunit "MCP Config Implementation";
     begin
-        // PLATFORM-PENDING: read the AL Query Tools boolean from MCP Configuration once it exists:
-        //   if MCPConfiguration.GetBySystemId(ConfigId) then exit(MCPConfiguration."<Enable AL Query Tools field>");
-        exit(false);
+        exit(MCPConfigImplementation.IsALQueryToolsEnabled(ConfigId));
     end;
 
     procedure HasSettings(): Boolean
@@ -44,6 +44,11 @@ codeunit 8368 "MCP AL Query Tools Feature" implements "MCP Server Features"
         // call (mirroring GetSystemToolsInDynamicMode) once the platform exposes the catalog.
         InsertTool(MCPSystemTool, 'compile_al_query', 'Compile an AL query string and return diagnostics.');
         InsertTool(MCPSystemTool, 'run_al_query', 'Execute a previously compiled AL query and return the result set.');
+    end;
+
+    procedure TryGetParentFeature(var ParentFeature: Enum "MCP Server Feature"): Boolean
+    begin
+        exit(false);
     end;
 
     local procedure InsertTool(var MCPSystemTool: Record "MCP System Tool"; ToolName: Text[100]; ToolDescription: Text[250])

@@ -28,7 +28,6 @@ page 8365 "MCP System Tool List"
             repeater(Control1)
             {
                 ShowCaption = false;
-                field("Server Feature"; Rec."Server Feature") { }
                 field("Tool Name"; Rec."Tool Name") { }
                 field("Tool Description"; Rec."Tool Description") { }
             }

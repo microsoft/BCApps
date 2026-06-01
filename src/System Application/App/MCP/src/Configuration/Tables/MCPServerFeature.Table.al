@@ -34,6 +34,10 @@ table 8355 "MCP Server Feature"
             Caption = 'Configurable';
             ToolTip = 'Specifies whether this server feature exposes additional settings.';
         }
+        field(5; Indentation; Integer)
+        {
+            Caption = 'Indentation';
+        }
     }
 
     keys

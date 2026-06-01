@@ -155,6 +155,18 @@ page 8351 "MCP Config Card"
                 Caption = 'Advanced';
                 Image = Setup;
 
+                action(ExportConfiguration)
+                {
+                    Caption = 'Export';
+                    ToolTip = 'Export the selected MCP configuration and its tools to a JSON file.';
+                    Image = Export;
+
+                    trigger OnAction()
+                    begin
+                        MCPConfigImplementation.ExportConfigurationToFile(Rec.SystemId, Rec.Name);
+                    end;
+                }
+
                 action(GenerateConnectionString)
                 {
                     Caption = 'Connection String';
@@ -177,6 +189,7 @@ page 8351 "MCP Config Card"
                 Caption = 'Advanced';
 
                 actionref(Promoted_GenerateConnectionString; GenerateConnectionString) { }
+                actionref(Promoted_ExportConfiguration; ExportConfiguration) { }
             }
         }
     }
@@ -209,8 +222,10 @@ page 8351 "MCP Config Card"
     var
         MCPConfigImplementation: Codeunit "MCP Config Implementation";
         IsDefault: Boolean;
-        // MOCK: page-local driving the Available APIs sub-part visibility, set from the API Tools
-        // feature handler's IsActive(). Returns false until the platform adds the config field.
+        // Page-local driving the Available APIs sub-part visibility (a Visible property can't call a
+        // method, so we cache the result here in RefreshSubPages). Fed from the API Tools feature's
+        // IsActive(), which today reads the MOCK "MCP Feature Activation" table; once the platform adds
+        // the real config field this flips automatically through the impl getter — no card change.
         APIToolsActive: Boolean;
         DesignatedDefaultCannotBeDeactivatedErr: Label 'The designated default configuration cannot be deactivated. Clear the default designation first.';
 

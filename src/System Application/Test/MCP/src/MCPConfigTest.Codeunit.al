@@ -86,8 +86,9 @@ codeunit 130130 "MCP Config Test"
         MCPConfiguration: Record "MCP Configuration";
         ConfigId: Guid;
     begin
-        // [GIVEN] Configuration is created
+        // [GIVEN] Configuration is created with API Tools enabled (Dynamic Tool Mode requires it)
         ConfigId := CreateMCPConfig(false, false, true, false);
+        MCPConfig.EnableAPITools(ConfigId, true);
 
         // [WHEN] Enable tool search mode is called
         MCPConfig.EnableDynamicToolMode(ConfigId, true);
@@ -1342,14 +1343,15 @@ codeunit 130130 "MCP Config Test"
         MCPConfigCard: TestPage "MCP Config Card";
         ConfigId: Guid;
     begin
-        // [GIVEN] A non-default configuration with Dynamic Tool Mode off
+        // [GIVEN] A non-default configuration with API Tools enabled (Dynamic Tool Mode requires it) and
+        // Dynamic Tool Mode off
         ConfigId := CreateMCPConfig(false, false, true, false);
+        MCPConfig.EnableAPITools(ConfigId, true);
         MCPConfiguration.GetBySystemId(ConfigId);
         MCPConfigCard.OpenEdit();
         MCPConfigCard.GoToRecord(MCPConfiguration);
 
         // [WHEN] Activate is invoked on the Dynamic Tool Mode row
-        // NOTE: the "API Tools required" gate is currently commented out, so this succeeds without API Tools.
         MCPConfigCard.ServerFeatureList.First(); // API Tools
         MCPConfigCard.ServerFeatureList.Next(); // Dynamic Tool Mode
         Assert.AreEqual('Dynamic Tool Mode', MCPConfigCard.ServerFeatureList.Feature.Value, 'Not positioned on the Dynamic Tool Mode row');

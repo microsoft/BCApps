@@ -121,7 +121,7 @@ codeunit 8350 "MCP Config"
     /// Enables or disables the AL Query Tools feature for the specified configuration.
     /// </summary>
     /// <remarks>
-    /// MOCK: no-op until the platform-side `EnableALQuery` field exists on `MCP Configuration`.
+    /// MOCK: persisted in the "MCP Feature Activation" stand-in table until the platform adds an AL Query Tools field to `MCP Configuration`.
     /// </remarks>
     /// <param name="ConfigId">The SystemId (GUID) of the configuration.</param>
     /// <param name="Enable">True to enable, false to disable.</param>
@@ -134,7 +134,7 @@ codeunit 8350 "MCP Config"
     /// Enables or disables the API Tools feature for the specified configuration.
     /// </summary>
     /// <remarks>
-    /// MOCK: no-op until the platform-side API Tools field exists on `MCP Configuration`.
+    /// MOCK: persisted in the "MCP Feature Activation" stand-in table until the platform adds an API Tools field to `MCP Configuration`.
     /// </remarks>
     /// <param name="ConfigId">The SystemId (GUID) of the configuration.</param>
     /// <param name="Enable">True to enable, false to disable.</param>

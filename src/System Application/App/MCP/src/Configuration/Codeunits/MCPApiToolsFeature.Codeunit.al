@@ -17,10 +17,10 @@ codeunit 8369 "MCP API Tools Feature" implements "MCP Server Features"
     end;
 
     procedure IsActive(ConfigId: Guid): Boolean
+    var
+        MCPConfigImplementation: Codeunit "MCP Config Implementation";
     begin
-        // PLATFORM-PENDING: read the API Tools boolean from MCP Configuration once it exists:
-        //   if MCPConfiguration.GetBySystemId(ConfigId) then exit(MCPConfiguration."<Enable API Tools field>");
-        exit(false);
+        exit(MCPConfigImplementation.IsAPIToolsEnabled(ConfigId));
     end;
 
     procedure HasSettings(): Boolean
@@ -41,6 +41,11 @@ codeunit 8369 "MCP API Tools Feature" implements "MCP Server Features"
     procedure LoadSystemTools(var MCPSystemTool: Record "MCP System Tool")
     begin
         // API Tools exposes no system tools.
+    end;
+
+    procedure TryGetParentFeature(var ParentFeature: Enum "MCP Server Feature"): Boolean
+    begin
+        exit(false);
     end;
 
     var

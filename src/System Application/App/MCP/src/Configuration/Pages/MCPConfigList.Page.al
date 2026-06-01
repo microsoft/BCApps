@@ -143,14 +143,14 @@ page 8350 "MCP Config List"
         {
             actionref(Promoted_Copy; Copy) { }
             actionref(Promoted_GiveFeedback; GiveFeedback) { }
+            actionref(Promoted_ExportConfiguration; ExportConfiguration) { }
+            actionref(Promoted_ImportConfiguration; ImportConfiguration) { }
             group(Promoted_Advanced)
             {
                 Caption = 'Advanced';
 
                 actionref(Promoted_GenerateConnectionString; GenerateConnectionString) { }
                 actionref(Promoted_MCPEntraApplications; MCPEntraApplications) { }
-                actionref(Promoted_ExportConfiguration; ExportConfiguration) { }
-                actionref(Promoted_ImportConfiguration; ImportConfiguration) { }
             }
         }
     }
