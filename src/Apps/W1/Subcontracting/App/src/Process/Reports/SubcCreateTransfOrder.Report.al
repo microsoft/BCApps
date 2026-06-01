@@ -175,7 +175,7 @@ report 99001501 "Subc. Create Transf. Order"
         ProdOrderComponent.SetRange("Prod. Order Line No.", PurchaseLine."Prod. Order Line No.");
         ProdOrderComponent.SetRange("Routing Link Code", ProdOrderRoutingLine."Routing Link Code");
         ProdOrderComponent.SetRange("Subc. Purchase Order Filter", PurchaseLine."Document No.");
-        ProdOrderComponent.SetRange("Subcontracting Type", ProdOrderComponent."Subcontracting Type"::Transfer);
+        ProdOrderComponent.SetRange("Component Supply Method", ProdOrderComponent."Component Supply Method"::"Transfer to Vendor");
         if ProdOrderComponent.FindSet() then
             repeat
                 Item.SetLoadFields("Rounding Precision", "Order Tracking Policy");

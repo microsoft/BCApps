@@ -11,7 +11,7 @@ using Microsoft.Manufacturing.Subcontracting;
 
 codeunit 149916 "Subc. Non-Inv Item Valid. Test"
 {
-    // [FEATURE] Subcontracting Type Transfer validation for Non-Inventory items
+    // [FEATURE] Component Supply Method Transfer validation for Non-Inventory items
     Subtype = Test;
     TestPermissions = Disabled;
 
@@ -22,14 +22,14 @@ codeunit 149916 "Subc. Non-Inv Item Valid. Test"
         ProductionBOMLine: Record "Production BOM Line";
         Item: Record Item;
     begin
-        // [SCENARIO 624295] Setting Subcontracting Type = Transfer on a Production BOM Line with a Non-Inventory item must raise an error.
+        // [SCENARIO 624295] Setting Component Supply Method = Transfer on a Production BOM Line with a Non-Inventory item must raise an error.
 
         // [GIVEN] A Non-Inventory item and a Production BOM with a line for that item
         CreateNonInventoryItem(Item);
         CreateProductionBOMWithItem(ProductionBOMHeader, ProductionBOMLine, Item);
 
-        // [WHEN] Setting Subcontracting Type to Transfer on the BOM line
-        asserterror ProductionBOMLine.Validate("Subcontracting Type", "Subcontracting Type"::Transfer);
+        // [WHEN] Setting Component Supply Method to Transfer on the BOM line
+        asserterror ProductionBOMLine.Validate("Component Supply Method", "Component Supply Method"::"Transfer to Vendor");
 
         // [THEN] An error is raised indicating the item type must be Inventory
         Assert.ExpectedErrorCode('TestField');
@@ -43,17 +43,17 @@ codeunit 149916 "Subc. Non-Inv Item Valid. Test"
         ProductionBOMLine: Record "Production BOM Line";
         Item: Record Item;
     begin
-        // [SCENARIO 624295] Setting Subcontracting Type = Transfer on a Production BOM Line with an Inventory item must succeed.
+        // [SCENARIO 624295] Setting Component Supply Method = Transfer on a Production BOM Line with an Inventory item must succeed.
 
         // [GIVEN] An Inventory item and a Production BOM with a line for that item
         CreateInventoryItem(Item);
         CreateProductionBOMWithItem(ProductionBOMHeader, ProductionBOMLine, Item);
 
-        // [WHEN] Setting Subcontracting Type to Transfer on the BOM line
-        ProductionBOMLine.Validate("Subcontracting Type", "Subcontracting Type"::Transfer);
+        // [WHEN] Setting Component Supply Method to Transfer on the BOM line
+        ProductionBOMLine.Validate("Component Supply Method", "Component Supply Method"::"Transfer to Vendor");
 
         // [THEN] No error is raised
-        Assert.AreEqual("Subcontracting Type"::Transfer, ProductionBOMLine."Subcontracting Type", 'Subcontracting Type should be Transfer');
+        Assert.AreEqual("Component Supply Method"::"Transfer to Vendor", ProductionBOMLine."Component Supply Method", 'Component Supply Method should be Transfer to Vendor');
     end;
 
     [Test]
@@ -62,14 +62,14 @@ codeunit 149916 "Subc. Non-Inv Item Valid. Test"
         ProdOrderComponent: Record "Prod. Order Component";
         Item: Record Item;
     begin
-        // [SCENARIO 624295] Setting Subcontracting Type = Transfer on a Prod. Order Component with a Non-Inventory item must raise an error.
+        // [SCENARIO 624295] Setting Component Supply Method = Transfer on a Prod. Order Component with a Non-Inventory item must raise an error.
 
         // [GIVEN] A Non-Inventory item and a Prod. Order Component for that item
         CreateNonInventoryItem(Item);
         CreateProdOrderComponent(ProdOrderComponent, Item);
 
-        // [WHEN] Setting Subcontracting Type to Transfer on the component
-        asserterror ProdOrderComponent.Validate("Subcontracting Type", "Subcontracting Type"::Transfer);
+        // [WHEN] Setting Component Supply Method to Transfer on the component
+        asserterror ProdOrderComponent.Validate("Component Supply Method", "Component Supply Method"::"Transfer to Vendor");
 
         // [THEN] An error is raised indicating the item type must be Inventory
         Assert.ExpectedErrorCode('TestField');
@@ -83,17 +83,17 @@ codeunit 149916 "Subc. Non-Inv Item Valid. Test"
         ProductionBOMLine: Record "Production BOM Line";
         Item: Record Item;
     begin
-        // [SCENARIO 624295] Setting Subcontracting Type = Purchase on a Production BOM Line with a Non-Inventory item must succeed (only Transfer is blocked).
+        // [SCENARIO 624295] Setting Component Supply Method = Purchase on a Production BOM Line with a Non-Inventory item must succeed (only Transfer is blocked).
 
         // [GIVEN] A Non-Inventory item and a Production BOM with a line for that item
         CreateNonInventoryItem(Item);
         CreateProductionBOMWithItem(ProductionBOMHeader, ProductionBOMLine, Item);
 
-        // [WHEN] Setting Subcontracting Type to Purchase on the BOM line
-        ProductionBOMLine.Validate("Subcontracting Type", "Subcontracting Type"::Purchase);
+        // [WHEN] Setting Component Supply Method to Purchase on the BOM line
+        ProductionBOMLine.Validate("Component Supply Method", "Component Supply Method"::"Vendor-Supplied");
 
         // [THEN] No error is raised
-        Assert.AreEqual("Subcontracting Type"::Purchase, ProductionBOMLine."Subcontracting Type", 'Subcontracting Type should be Purchase');
+        Assert.AreEqual("Component Supply Method"::"Vendor-Supplied", ProductionBOMLine."Component Supply Method", 'Component Supply Method should be Vendor-Supplied');
     end;
 
     local procedure CreateNonInventoryItem(var Item: Record Item)
