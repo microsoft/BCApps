@@ -68,7 +68,7 @@ codeunit 139992 "Subc. Subcontracting Sync Test"
 
         UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
 
-        UpdateProdBomWithSubcontractingType(Item, "Subcontracting Type"::Purchase);
+        UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Vendor-Supplied");
 
         UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
@@ -85,7 +85,7 @@ codeunit 139992 "Subc. Subcontracting Sync Test"
         PurchLine.DeleteAll();
         ProductionBOMLine.SetRange("Production BOM No.", Item."Production BOM No.");
 #pragma warning disable AA0210
-        ProductionBOMLine.SetRange("Subcontracting Type", ProductionBOMLine."Subcontracting Type"::Purchase);
+        ProductionBOMLine.SetRange("Component Supply Method", ProductionBOMLine."Component Supply Method"::"Vendor-Supplied");
 #pragma warning restore AA0210
         ProductionBOMLine.FindFirst();
 #pragma warning restore
@@ -227,7 +227,7 @@ codeunit 139992 "Subc. Subcontracting Sync Test"
         ProductionBOMHeader.Modify(true);
     end;
 
-    local procedure UpdateProdBomWithSubcontractingType(Item: Record Item; SubcontractingType: Enum "Subcontracting Type")
+    local procedure UpdateProdBomWithComponentSupplyMethod(Item: Record Item; ComponentSupplyMethod: Enum "Component Supply Method")
     var
         ProductionBOMHeader: Record "Production BOM Header";
         ProductionBOMLine: Record "Production BOM Line";
@@ -238,7 +238,7 @@ codeunit 139992 "Subc. Subcontracting Sync Test"
 
         ProductionBOMLine.SetRange("Production BOM No.", ProductionBOMHeader."No.");
         ProductionBOMLine.FindLast();
-        ProductionBOMLine."Subcontracting Type" := SubcontractingType;
+        ProductionBOMLine."Component Supply Method" := ComponentSupplyMethod;
         ProductionBOMLine.Modify(true);
 
         ProductionBOMHeader.Validate(Status, ProductionBOMHeader.Status::Certified);
