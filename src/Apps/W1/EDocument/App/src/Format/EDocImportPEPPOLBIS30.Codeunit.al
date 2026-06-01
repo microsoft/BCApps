@@ -6,6 +6,7 @@ using Microsoft.Foundation.Attachment;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
 using System.IO;
+using System.Runtime;
 using System.Text;
 using System.Utilities;
 
@@ -533,20 +534,20 @@ codeunit 6166 "EDoc Import PEPPOL BIS 3.0"
     end;
 
     procedure DetermineFileType(MimeType: Text) FileExension: Text
+    var
+        MimeTypeUtility: Codeunit MimeTypeUtility;
     begin
-        case MimeType of
-            'image/jpeg':
-                exit('jpeg');
-            'image/png':
-                exit('png');
-            'application/pdf':
-                exit('pdf');
-            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            'application/vnd.oasis.opendocument.spreadsheet':
-                exit('xlsx');
-            else
-                exit('');
-        end;
+        // T2.5: replace MIME→extension case with platform reverse-lookup.
+        // Behavioral preservation: the prior code returned 'xlsx' for *both* the OOXML
+        // spreadsheet MIME and the ODF spreadsheet MIME ('application/vnd.oasis.opendocument.spreadsheet').
+        // That is an intentional storage-side normalization in the PEPPOL importer —
+        // it stores all spreadsheet attachments under the .xlsx extension. We keep that
+        // behavior by overriding the ODS → xlsx mapping explicitly. All other types
+        // (jpeg, png, pdf, xlsx) round-trip identically through MimeTypeUtility.GetExtension,
+        // and unknown MIMEs still return '' (drop) as before.
+        if MimeType = 'application/vnd.oasis.opendocument.spreadsheet' then
+            exit('xlsx');
+        exit(MimeTypeUtility.GetExtension(MimeType));
     end;
 
     local procedure GetNodeByPath(var TempXMLBuffer: Record "XML Buffer" temporary; XPath: Text): Text
