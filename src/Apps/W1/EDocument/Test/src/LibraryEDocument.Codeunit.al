@@ -30,8 +30,8 @@ codeunit 139629 "Library - E-Document"
 
     procedure SetupStandardVAT()
     begin
-        if (VATPostingSetup."VAT Bus. Posting Group" = '') and (VATPostingSetup."VAT Prod. Posting Group" = '') then
-            LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, Enum::"Tax Calculation Type"::"Normal VAT", 1);
+        Clear(VATPostingSetup);
+        LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, Enum::"Tax Calculation Type"::"Normal VAT", 1);
     end;
 
 #if not CLEAN26
@@ -142,16 +142,16 @@ codeunit 139629 "Library - E-Document"
         ServiceCode: Code[20];
     begin
         // Create standard service and simple workflow
-        if EDocService.Code = '' then begin
-            ServiceCode := CreateService(EDocDocumentFormat, EDocIntegration, EDocImportProcess);
-            EDocService.Get(ServiceCode);
-        end;
+        Clear(EDocService);
+        ServiceCode := CreateService(EDocDocumentFormat, EDocIntegration, EDocImportProcess);
+        EDocService.Get(ServiceCode);
         SetupStandardPurchaseScenario(Vendor, EDocService);
     end;
 
 
     procedure SetupStandardPurchaseScenario(var Vendor: Record Vendor; var EDocService: Record "E-Document Service")
     var
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
         CountryRegion: Record "Country/Region";
         ItemReference: Record "Item Reference";
         UnitOfMeasure: Record "Unit of Measure";
@@ -162,7 +162,11 @@ codeunit 139629 "Library - E-Document"
         WorkflowSetup.InitWorkflow();
         SetupCompanyInfo();
 
-        // Create Customer for sales scenario
+        // Ensure Vendor Nos. is configured (required by Vendor.OnInsert in some localizations)
+        LibraryUtility.UpdateSetupNoSeriesCode(
+            Database::"Purchases & Payables Setup", PurchasesPayablesSetup.FieldNo("Vendor Nos."));
+
+        // Create Vendor for purchase scenario
         LibraryPurchase.CreateVendor(Vendor);
         LibraryPurchase.SetOrderNoSeriesInSetup();
         LibraryERM.FindCountryRegion(CountryRegion);
@@ -177,10 +181,9 @@ codeunit 139629 "Library - E-Document"
         Vendor.Modify(true);
 
         // Create Item
-        if StandardItem."No." = '' then begin
-            VATPostingSetup.TestField("VAT Prod. Posting Group");
-            CreateGenericItem(StandardItem, VATPostingSetup."VAT Prod. Posting Group");
-        end;
+        Clear(StandardItem);
+        VATPostingSetup.TestField("VAT Prod. Posting Group");
+        CreateGenericItem(StandardItem, VATPostingSetup."VAT Prod. Posting Group");
 
         UnitOfMeasure.Init();
         UnitOfMeasure."International Standard Code" := 'PCS';
@@ -478,8 +481,8 @@ codeunit 139629 "Library - E-Document"
     procedure CreatePurchaseOrderWithLine(var Vendor: Record Vendor; var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; Quantity: Decimal)
     begin
         LibraryPurchase.CreatePurchHeader(PurchaseHeader, Enum::"Purchase Document Type"::Order, Vendor."No.");
-        if StandardItem."No." = '' then
-            CreateGenericItem(StandardItem);
+        Clear(StandardItem);
+        CreateGenericItem(StandardItem);
         LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, StandardItem."No.", Quantity);
     end;
 

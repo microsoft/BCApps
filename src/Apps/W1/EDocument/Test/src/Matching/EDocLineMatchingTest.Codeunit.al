@@ -27,6 +27,8 @@ codeunit 139659 "E-Doc. Line Matching Test"
         EDocumentService: Record "E-Document Service";
         Assert: Codeunit Assert;
         LibraryPurchase: Codeunit "Library - Purchase";
+        LibraryERM: Codeunit "Library - ERM";
+        LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         LibraryEDoc: Codeunit "Library - E-Document";
         LibraryPermission: Codeunit "Library - Lower Permissions";
         Any: Codeunit Any;
@@ -40,6 +42,7 @@ codeunit 139659 "E-Doc. Line Matching Test"
         if IsInitialized then
             exit;
 
+        LibraryERMCountryData.CreateVATData();
         LibraryEDoc.SetupStandardVAT();
         LibraryEDoc.SetupStandardPurchaseScenario(Vendor, EDocumentService, Enum::"E-Document Format"::Mock, Integration);
 
@@ -198,7 +201,6 @@ codeunit 139659 "E-Doc. Line Matching Test"
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         VATPostingSetup: Record "VAT Posting Setup";
-        LibraryERM: Codeunit "Library - ERM";
         EDocLineMatching: Codeunit "E-Doc. Line Matching";
         EDocLog: Codeunit "E-Document Log";
         EDocProcessing: Codeunit "E-Document Processing";

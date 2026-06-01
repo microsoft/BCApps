@@ -22,6 +22,7 @@ codeunit 133961 "Agent Test"
 
     local procedure Initialize()
     begin
+        LibraryTestAgent.EnsureCurrentUserHasSuper();
         LibraryTestAgent.DeleteAllAgents();
     end;
 

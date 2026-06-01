@@ -618,8 +618,8 @@ codeunit 132985 "SharePoint Graph Advanced Test"
     begin
         // [GIVEN] Mock response for CopyItemByPath
         Initialize();
-        MockHttpResponseMessage.SetHttpStatusCode(202);
-        MockHttpContent := HttpContent.Create('');
+        MockHttpResponseMessage.SetHttpStatusCode(200);
+        MockHttpContent := HttpContent.Create(GetDriveItemResponse());
         MockHttpResponseMessage.SetContent(MockHttpContent);
         SharePointGraphTestLibrary.SetMockResponse(MockHttpResponseMessage);
 
