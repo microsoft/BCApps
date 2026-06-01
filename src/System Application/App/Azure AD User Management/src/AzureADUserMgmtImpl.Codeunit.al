@@ -6,10 +6,10 @@
 namespace System.Azure.Identity;
 
 using System;
-using System.Security.User;
 using System.Environment;
-using System.Security.AccessControl;
 using System.Environment.Configuration;
+using System.Security.AccessControl;
+using System.Security.User;
 
 codeunit 9017 "Azure AD User Mgmt. Impl."
 {
@@ -55,12 +55,21 @@ codeunit 9017 "Azure AD User Mgmt. Impl."
     procedure Run(ForUserSecurityId: Guid)
     var
         UserProperty: Record "User Property";
+        UserLoggedInEnvironment: Boolean;
     begin
         // This function exists for testability
         if not EnvironmentInformation.IsSaaS() then
             exit;
 
-        if UserLoginTimeTracker.UserLoggedInEnvironment(ForUserSecurityId) then // In case the user has logged in (which is almost always the case), this won't take any locks
+        UserLoggedInEnvironment := UserLoginTimeTracker.UserLoggedInEnvironment(ForUserSecurityId); // In case the user has logged in (which is almost always the case), this won't take any locks
+
+        // For delegated users, we can only assign plans on login
+        if AzureADGraphUser.IsUserDelegatedAdmin() or AzureADGraphUser.IsUserDelegatedHelpdesk() then begin
+            AzureADPlan.AssignPlanToUserWithDelegatedRole(ForUserSecurityId, UserLoggedInEnvironment);
+            exit;
+        end;
+
+        if UserLoggedInEnvironment then
             exit;
 
         if not UserProperty.Get(ForUserSecurityId) then
@@ -71,11 +80,6 @@ codeunit 9017 "Azure AD User Mgmt. Impl."
         // RefreshUserPlans is used only when a user signs in while new user information in Office 365 has not been synchronized in Business Central.
         if AzureADPlan.DoesUserHavePlans(ForUserSecurityId) then
             exit;
-
-        if AzureADGraphUser.IsUserDelegatedAdmin() or AzureADGraphUser.IsUserDelegatedHelpdesk() then begin
-            AzureADPlan.AssignPlanToUserWithDelegatedRole(ForUserSecurityId);
-            exit;
-        end;
 
         AzureADPlan.RefreshUserPlanAssignments(ForUserSecurityId);
     end;
@@ -268,7 +272,7 @@ codeunit 9017 "Azure AD User Mgmt. Impl."
     var
         AccessControl: Record "Access Control";
         TempAccessControlWithDefaultPermissions: Record "Access Control" temporary;
-        PermissionSetInPlanBuffer: Record "Permission Set In Plan Buffer";
+        TempPermissionSetInPlanBuffer: Record "Permission Set In Plan Buffer";
         PlanConfiguration: Codeunit "Plan Configuration";
         UsersInPlans: Query "Users in Plans";
     begin
@@ -280,28 +284,28 @@ codeunit 9017 "Azure AD User Mgmt. Impl."
 
         while UsersInPlans.Read() do begin
             if PlanConfiguration.IsCustomized(UsersInPlans.Plan_ID) then
-                PlanConfiguration.GetCustomPermissions(PermissionSetInPlanBuffer)
+                PlanConfiguration.GetCustomPermissions(TempPermissionSetInPlanBuffer)
             else
-                PlanConfiguration.GetDefaultPermissions(PermissionSetInPlanBuffer);
+                PlanConfiguration.GetDefaultPermissions(TempPermissionSetInPlanBuffer);
 
-            PermissionSetInPlanBuffer.SetRange("Plan ID", UsersInPlans.Plan_ID);
-            if PermissionSetInPlanBuffer.FindSet() then
+            TempPermissionSetInPlanBuffer.SetRange("Plan ID", UsersInPlans.Plan_ID);
+            if TempPermissionSetInPlanBuffer.FindSet() then
                 repeat
                     AccessControl.SetRange("User Security ID", UserSecId);
-                    AccessControl.SetRange("Role ID", PermissionSetInPlanBuffer."Role ID");
-                    AccessControl.SetRange(Scope, PermissionSetInPlanBuffer.Scope);
-                    AccessControl.SetRange("App ID", PermissionSetInPlanBuffer."App ID");
+                    AccessControl.SetRange("Role ID", TempPermissionSetInPlanBuffer."Role ID");
+                    AccessControl.SetRange(Scope, TempPermissionSetInPlanBuffer.Scope);
+                    AccessControl.SetRange("App ID", TempPermissionSetInPlanBuffer."App ID");
                     if PlanConfiguration.IsCustomized(UsersInPlans.Plan_ID) then
-                        AccessControl.SetRange("Company Name", PermissionSetInPlanBuffer."Company Name");
+                        AccessControl.SetRange("Company Name", TempPermissionSetInPlanBuffer."Company Name");
 
                     if not AccessControl.FindSet() then
                         exit(true); // one of the permission sets for a plan configuration was deleted
 
                     repeat
                         TempAccessControlWithDefaultPermissions.Copy(AccessControl);
-                        TempAccessControlWithDefaultPermissions.Insert();
+                        if not TempAccessControlWithDefaultPermissions.Insert() then; // Ignore multiple plans referencing the same permission
                     until AccessControl.Next() = 0;
-                until PermissionSetInPlanBuffer.Next() = 0;
+                until TempPermissionSetInPlanBuffer.Next() = 0;
         end;
 
         AccessControl.Reset();

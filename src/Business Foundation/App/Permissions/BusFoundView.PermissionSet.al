@@ -1,7 +1,7 @@
 namespace Microsoft.Foundation;
 
-using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.AuditCodes;
+using Microsoft.Foundation.NoSeries;
 
 permissionset 3 "Bus. Found. - View"
 {

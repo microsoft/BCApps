@@ -1,0 +1,160 @@
+table 'Pareto Scale'
+	lineageTag: 73d6e048-d3f8-469b-8c14-e6e85c1c7899
+
+	measure 'Pareto Value' = SELECTEDVALUE('Pareto Scale'[Value], 0.8)
+		formatString: 0.00%;-0.00%;0.00%
+		isHidden
+		lineageTag: f592a786-8435-46c1-94be-78a29ceec45b
+
+	/// The Cumulative Purchase (LCY) based on the Pareto Vendor Rank by Purchase (LCY)
+	measure 'Pareto Cumulative Purchase (LCY)' =
+			
+			IF(
+			    ISINSCOPE(Vendor[Vendor Name]),
+			    CALCULATE(
+			        [Purchase (LCY)],
+			        TOPN([Pareto Vendor Rank by Purchase (LCY)],
+			        ALLSELECTED(Vendor[Vendor Name]),
+			        [Purchase (LCY)])
+			    ),
+			    [Pareto Total Purchase (LCY)])
+		formatString: #,0.00
+		displayFolder: _Pareto Measures
+		lineageTag: 720d09d1-a972-4ba6-a3f5-adf559c9d881
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// The Cumulative Purchase (LCY) divided by the Total Purchase (LCY).
+	measure 'Pareto Cumulative Purchase (LCY) %' = DIVIDE([Pareto Cumulative Purchase (LCY)],[Pareto Total Purchase (LCY)])
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: _Pareto Measures
+		lineageTag: 380aad73-6da5-4d7d-bb91-52110fd65bc4
+
+	/// The Customer with the maximum difference  of the Pareto Cumulative Purchase (LCY) minus the Pareto Value.
+	measure 'Pareto Cutoff Vendor' = ```
+			
+			VAR TargetPercentage = [Pareto Value] 
+			VAR ClosestVendor =
+			    TOPN(
+			        1,
+			        ADDCOLUMNS(
+			            SUMMARIZE(
+			                ALLSELECTED(Vendor),
+			                Vendor[Vendor Name]
+			                ),
+			                "CumulativePurchaseLCYPercent", [Pareto Cumulative Purchase (LCY) %],
+			                "Difference", ABS([Pareto Cumulative Purchase (LCY) %] - TargetPercentage)
+			            ),
+			            [Difference], ASC
+			        )
+			RETURN 
+			    MAXX(
+			        ClosestVendor,
+			        Vendor[Vendor Name]
+			    )
+			    
+			```
+		isHidden
+		displayFolder: _Pareto Measures
+		lineageTag: acf41c10-377d-4ff9-880d-4adc4083e90c
+
+	/// The Pareto Cumulative Purchase (LCY) for the Pareto Cutoff Vendor.
+	measure 'Pareto Cutoff Purchase (LCY) %' =
+			
+			VAR ClosestVendor = [Pareto Cutoff Vendor]
+			RETURN
+			IF(
+			    SELECTEDVALUE(Vendor[Vendor Name]) = ClosestVendor,
+			    [Pareto Cumulative Purchase (LCY) %],
+			    BLANK()
+			)
+		formatString: 0%;-0%;0%
+		isHidden
+		displayFolder: _Pareto Measures
+		lineageTag: ff7ae04f-aeb1-4d68-b08b-e620a914eed3
+
+	/// The Pareto Vendor Rank by Purchase (LCY) for the Pareto Cutoff Vendor.
+	measure 'Pareto Cutoff Vendor Rank' = ```
+			
+			VAR ClosestVendor = [Pareto Cutoff Vendor]
+			RETURN
+			IF(
+			    SELECTEDVALUE(Vendor[Vendor Name]) = ClosestVendor,
+			    [Pareto Vendor Rank by Purchase (LCY)],
+			    BLANK()
+			)
+			
+			```
+		isHidden
+		displayFolder: _Pareto Measures
+		lineageTag: 77ee48d0-221b-4d5a-a67a-3b946a40d912
+
+	/// The maximum Pareto Vendoir Rank based on the Pareto Cutoff Vendor Rank.
+	measure 'Pareto Vendor Cutoff Rank' =
+			
+			CALCULATE(
+			    MAXX (VALUES(Vendor[Vendor Name]), [Pareto Cutoff Vendor Rank]),
+			    ALLSELECTED(Vendor)
+			)
+		isHidden
+		displayFolder: _Pareto Measures
+		lineageTag: 7df8a16f-c416-48b3-a96d-811ca5167fbe
+
+	/// The Pareto Vendir Rank ordered by the Purchase (LCY) on the Purchases table.
+	measure 'Pareto Vendor Rank by Purchase (LCY)' = IF(ISINSCOPE(Vendor[Vendor Name]),RANKX(ALLSELECTED(Vendor[Vendor Name]),Documents[Purchase (LCY)]))
+		formatString: 0
+		isHidden
+		displayFolder: _Pareto Measures
+		lineageTag: 084a0f53-7ab9-43ed-ba49-f012640f1001
+
+	/// The Total Purchase (LCY) from the Purchases Table for all Purchases.
+	measure 'Pareto Total Purchase (LCY)' = CALCULATE(Documents[Purchase (LCY)],ALLSELECTED('Purchase Value Entries'),ALLSELECTED('Purchase Credit Lines'),ALLSELECTED('Purchase Invoice Lines'))
+		formatString: #,0.00
+		displayFolder: _Pareto Measures
+		lineageTag: bc1ce412-171e-4c1e-8770-c656b1a700ce
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// The Cumulative Purchase (LCY) for the Pareto Cutoff Vendor.
+	measure 'Pareto Cutoff Cumulative Purchase (LCY)' =
+			
+			VAR ClosestVendor = [Pareto Cutoff Vendor]
+			RETURN
+			IF(
+			    SELECTEDVALUE(Vendor[Vendor Name])=ClosestVendor,
+			    [Pareto Cumulative Purchase (LCY)],
+			    BLANK()
+			)
+		isHidden
+		displayFolder: _Pareto Measures
+		lineageTag: 84d9677a-6d0d-4d70-bc09-7023125d3f4c
+
+	/// The Color Cutoff where Pareto Vendor Rank by Purchase (LCY) exceeds the Pareto Vendor Rank by Purchase (LCY).
+	measure 'Pareto Color Cutoff' =
+			
+			IF( [Pareto Vendor Rank by Purchase (LCY)] > [Pareto Vendor Cutoff Rank], "#ededed", " #429EAA")
+		formatString: #,0.00
+		displayFolder: _Pareto Measures
+		lineageTag: eee83e06-2721-452e-be60-45d63b152080
+
+		changedProperty = IsHidden
+
+	column Value
+		formatString: 0%;-0%;0%
+		lineageTag: 845c36bd-262d-48a6-820a-c939ff0d96aa
+		summarizeBy: none
+		sourceColumn: [Value]
+
+		extendedProperty ParameterMetadata =
+				{
+				  "version": 0
+				}
+
+		annotation SummarizationSetBy = User
+
+	partition 'Pareto Scale' = calculated
+		mode: import
+		source = GENERATESERIES(0.1, 1, 0.1)
+
+	annotation PBI_Id = 3916c229c3a64b31abc9a7e47195c1f7
+

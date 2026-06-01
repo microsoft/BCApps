@@ -5,8 +5,8 @@
 
 namespace System.Email;
 
-using System.Telemetry;
 using System.Integration;
+using System.Telemetry;
 
 page 8889 "Email Attachments"
 {
@@ -73,28 +73,6 @@ page 8889 "Email Attachments"
                     UpdateDeleteActionEnablement();
                 end;
             }
-#if not CLEAN25
-            action(Upload)
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'The action Upload is replaced by the new action UploadMultiple.';
-                ObsoleteTag = '25.0';
-                ApplicationArea = All;
-                Image = Attach;
-                Caption = 'Add file';
-                ToolTip = 'Attach files, such as documents or images, to the email.';
-                Scope = Page;
-                Visible = false;
-
-                trigger OnAction()
-                var
-                    EmailEditor: Codeunit "Email Editor";
-                begin
-                    EmailEditor.UploadAttachment(EmailMessageImpl);
-                    UpdateDeleteActionEnablement();
-                end;
-            }
-#endif
             action(UploadFromScenario)
             {
                 ApplicationArea = All;
@@ -106,7 +84,7 @@ page 8889 "Email Attachments"
 
                 trigger OnAction()
                 var
-                    EmailAttachments: Record "Email Attachments";
+                    TempEmailAttachments: Record "Email Attachments";
                     FeatureTelemetry: Codeunit "Feature Telemetry";
                     EmailChooseScenarioAttachments: Page "Email Choose Scenario Attach";
                 begin
@@ -116,9 +94,9 @@ page 8889 "Email Attachments"
                     if EmailChooseScenarioAttachments.RunModal() = Action::LookupOK then begin
                         FeatureTelemetry.LogUptake('0000I8R', 'Email Default Attachments', Enum::"Feature Uptake Status"::Used);
 
-                        EmailChooseScenarioAttachments.GetSelectedAttachments(EmailAttachments);
+                        EmailChooseScenarioAttachments.GetSelectedAttachments(TempEmailAttachments);
                         EmailMessageImpl.Get(EmailMessageId);
-                        EmailMessageImpl.AddAttachmentsFromScenario(EmailAttachments);
+                        EmailMessageImpl.AddAttachmentsFromScenario(TempEmailAttachments);
 
                         FeatureTelemetry.LogUsage('0000I8T', 'Email Default Attachments', 'Upload attachments from scenarios');
                     end;

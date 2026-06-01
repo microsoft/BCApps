@@ -6,9 +6,9 @@
 namespace System.Apps;
 
 using System;
-using System.Utilities;
 using System.Environment;
 using System.Environment.Configuration;
+using System.Utilities;
 
 codeunit 2503 "Extension Operation Impl"
 {
@@ -434,6 +434,19 @@ codeunit 2503 "Extension Operation Impl"
             if PublishedApplication.FindFirst() then
                 AppName := PublishedApplication.Name;
         end;
+    end;
+
+    procedure HandleOrphanedDataNotification(Notif: Notification)
+    begin
+        Page.Run(Page::"Delete Orphaned Extension Data");
+    end;
+
+    procedure MarkOrphanedDataAsReviewed(Notif: Notification)
+    var
+        ExtensionDatabaseManagement: Codeunit "Extension Database Management";
+    begin
+        ExtensionDatabaseManagement.MarkAllOrphanedExtensionDataAsReviewed();
+        Notif.Recall();
     end;
 
     internal procedure GetAppName(AppId: Guid; OperationId: Guid) AppName: Text

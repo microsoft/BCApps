@@ -16,7 +16,9 @@ table 231 "Reason Code"
     Caption = 'Reason Code';
     LookupPageID = "Reason Codes";
     DataClassification = CustomerContent;
+#if not CLEANSCHEMA27
     MovedFrom = '437dbf0e-84ff-417a-965d-ed2bb9650972';
+#endif
 
     fields
     {
@@ -52,4 +54,3 @@ table 231 "Reason Code"
         }
     }
 }
-

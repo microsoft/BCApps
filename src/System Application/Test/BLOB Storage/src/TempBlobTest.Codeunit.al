@@ -5,10 +5,10 @@
 
 namespace System.Test.Utilities;
 
-using System.Utilities;
 using System.Environment;
-using System.TestLibraries.Utilities;
 using System.TestLibraries.Security.AccessControl;
+using System.TestLibraries.Utilities;
+using System.Utilities;
 
 codeunit 135030 "Temp Blob Test"
 {
@@ -136,7 +136,7 @@ codeunit 135030 "Temp Blob Test"
 
         // [THEN] cannot set the BLOB from non-BLOB field.
         asserterror TempBlob.FromRecord(Media, IntegerFieldNo);
-        Assert.ExpectedError('Invalid Conversion');
+        Assert.ExpectedError('can''t be evaluated into type');
 
         // [GIVEN] A value is written on the record.
         Media.Content.CreateOutStream(BlobOutStream);
@@ -175,7 +175,7 @@ codeunit 135030 "Temp Blob Test"
 
         // [THEN] Cannot set the BLOB from a non-BLOB field.
         asserterror TempBlob.FromRecordRef(MediaRecordRef, IntegerFieldNo);
-        Assert.ExpectedError('Invalid Conversion');
+        Assert.ExpectedError('can''t be evaluated into type');
 
         // [GIVEN] Some value is written on the record.
         Media.Content.CreateOutStream(BlobOutStream);
@@ -215,7 +215,7 @@ codeunit 135030 "Temp Blob Test"
 
         // [THEN] Cannot get a value for a non-BLOB field.
         asserterror TempBlob.ToRecordRef(MediaRecordRef, IntegerFieldNo);
-        Assert.ExpectedError('Unable to convert from');
+        Assert.ExpectedError('can''t be evaluated into type');
 
         TempBlob.ToRecordRef(MediaRecordRef, BlobFieldNo);
 
@@ -256,7 +256,7 @@ codeunit 135030 "Temp Blob Test"
 
         // [THEN] Cannot set the BLOB from a non-BLOB field.
         asserterror TempBlob.FromFieldRef(MediaFieldRef);
-        Assert.ExpectedError('Invalid Conversion');
+        Assert.ExpectedError('can''t be evaluated into type');
 
         // [GIVEN] Some value is written on the record.
 
@@ -304,7 +304,7 @@ codeunit 135030 "Temp Blob Test"
 
         // [THEN] Cannot get a value for a non-BLOB field.
         asserterror TempBlob.ToFieldRef(MediaFieldRef);
-        Assert.ExpectedError('Unable to convert');
+        Assert.ExpectedError('can''t be evaluated into type');
 
         MediaFieldRef := MediaRecordRef.Field(BlobFieldNo);
         TempBlob.ToFieldRef(MediaFieldRef);

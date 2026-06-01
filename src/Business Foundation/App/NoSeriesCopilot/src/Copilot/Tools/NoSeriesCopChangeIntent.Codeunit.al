@@ -6,8 +6,8 @@
 namespace Microsoft.Foundation.NoSeries;
 
 using System.AI;
-using System.Reflection;
 using System.Azure.KeyVault;
+using System.Reflection;
 using System.Telemetry;
 
 codeunit 334 "No. Series Cop. Change Intent" implements "AOAI Function"

@@ -5,11 +5,11 @@
 
 namespace System.Test.Integration;
 
+using System.Environment.Configuration;
 using System.Integration;
 using System.TestLibraries.Integration;
-using System.TestLibraries.Utilities;
 using System.TestLibraries.Security.AccessControl;
-using System.Environment.Configuration;
+using System.TestLibraries.Utilities;
 
 codeunit 139043 "Web Service Management Test"
 {

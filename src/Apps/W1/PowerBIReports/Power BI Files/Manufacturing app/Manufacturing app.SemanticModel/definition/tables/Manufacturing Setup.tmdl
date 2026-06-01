@@ -1,0 +1,45 @@
+table 'Manufacturing Setup'
+	isHidden
+	lineageTag: d7b801fd-711d-4bb6-abe5-e93e50f93564
+
+	measure 'Show Capacity In UOM' =
+			
+			var WorkCenterUOM = VALUES('Manufacturing Setup'[Show Capacity In])
+			RETURN "Show capacity in " & WorkCenterUOM
+		isHidden
+		lineageTag: cb361d3b-41bb-4ba6-a02b-c4cebe2e88dc
+
+		changedProperty = IsHidden
+
+	column 'Show Capacity In'
+		dataType: string
+		isHidden
+		lineageTag: 15f225af-c7fb-4798-9a47-f8fd47044e01
+		summarizeBy: none
+		sourceColumn: Show Capacity In
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Manufacturing Setup' = m
+		mode: import
+		queryGroup: 'Fact Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(
+				        ENVIRONMENT, COMPANY,API_ENDPOINT, []
+				    ),
+				    TableData = Source{[Name = "manufacturingSetup", Signature = "table"]}[Data],
+				    #"Changed Type" = Table.TransformColumnTypes(TableData,{{"showCapacityIn", type text}}),
+				    #"Renamed Columns" = Table.RenameColumns(#"Changed Type",{{"showCapacityIn", "Show Capacity In"}}),
+				    #"Removed Column" = Table.RemoveColumns(#"Renamed Columns",{"ETag","auxiliaryIndex1"})
+				in
+				    #"Removed Column"
+
+	changedProperty = IsHidden
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

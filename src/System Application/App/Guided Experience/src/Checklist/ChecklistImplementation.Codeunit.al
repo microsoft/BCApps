@@ -5,11 +5,11 @@
 
 namespace System.Environment.Configuration;
 
-using System.Telemetry;
-using System.Security.AccessControl;
-using System.Security.User;
 using System.Environment;
 using System.Reflection;
+using System.Security.AccessControl;
+using System.Security.User;
+using System.Telemetry;
 
 codeunit 1993 "Checklist Implementation"
 {
@@ -516,7 +516,7 @@ codeunit 1993 "Checklist Implementation"
         UserChecklistStatus."Checklist Status" := ChecklistStatus;
         UserChecklistStatus."Is Visible" := IsVisible;
         UserChecklistStatus."Role ID" := RoleID;
-        UserChecklistStatus.Insert();
+        if UserChecklistStatus.Insert() then;
     end;
 
     procedure IsChecklistVisible(): Boolean

@@ -1,0 +1,43 @@
+table 'Item Ledger Document Type'
+	isHidden
+	lineageTag: 9a1a909d-4960-40f5-9e2f-6a643be15b01
+
+	column Value
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: ba79d537-aae7-40d5-a82d-aacece8d6a15
+		summarizeBy: sum
+		sourceColumn: Value
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Caption
+		dataType: string
+		isHidden
+		lineageTag: 154a89e8-2fae-42e0-bca8-74417506538f
+		summarizeBy: none
+		sourceColumn: Caption
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Item Ledger Document Type' = m
+		mode: import
+		queryGroup: 'Purchase Types'
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("XZE9D4MgEIb/imHuINrPsWmXDk1M7WYcLF4jiYI50MR/X8TUHE6Qe3i5h6MoWMx2jJW7gnG3yasWTJQ3su9AWV9O1vJDjVoK8NV0rb7ADqjcIkD2S2S/whtCLW30hE57cnAkG1A0lYEgcqSANjqFCd8r8DvTA9t+FwffWCnzBQxjPKaIqnA/CMDRKWwyCSFUkqcEbB34PI5MGwt1dDUGuk87LWC2c9e46zVOgUMSByj8kNnvLhGEjf4PYGX5Aw==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Value = _t, Caption = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Value", Int64.Type}, {"Caption", type text}})
+				in
+				    #"Changed Type"
+
+	changedProperty = IsHidden
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

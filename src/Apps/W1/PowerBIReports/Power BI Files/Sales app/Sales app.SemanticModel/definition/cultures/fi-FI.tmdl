@@ -1,0 +1,2255 @@
+cultureInfo fi-FI
+	translations
+		model Model
+			table Item
+				caption: Nimike
+				column 'Item No. & Description'
+					caption: Nimikkeen nro ja kuvaus
+				column 'Item No.'
+					caption: Nimikkeen numero
+				column 'Item Description'
+					caption: Nimikkeen kuvaus
+				column 'Item Base Unit of Measure'
+					caption: Nimikkeen perusmittayksikkö
+				column 'Item Unit Cost (LCY)'
+					caption: Nimikkeen yksikkökustannus (PVA)
+				column 'Item Inventory Posting Group'
+					caption: Nimikkeen varaston kirjausryhmä
+				column 'Item Category Code'
+					caption: Nimikeluokan koodi
+				column 'Item Category Description'
+					caption: Nimikeluokan kuvaus
+				column 'Item Routing No.'
+					caption: routingNo
+				column 'Item Production BOM No.'
+					caption: productionBomNo
+				column 'Item Replenishment System'
+					caption: replenishmentSystem
+				column 'Item Single-Level Cap. Ovhd Cost'
+					caption: singleLevelCapOvhdCost
+				column 'Item Single-Level Capacity Cost'
+					caption: singleLevelCapacityCost
+				column 'Item Single-Level Material Cost'
+					caption: singleLevelMaterialCost
+				column 'Item Single-Level Mfg. Ovhd Cost'
+					caption: singleLevelMfgOvhdCost
+				column 'Item Single-Level Subcontrd. Cost'
+					caption: singleLevelSubcontrdCost
+				column 'Item Single-Lvl Mat. Non-Invt. Cost'
+					caption: singleLvlMatNonInvtCost
+				column 'Item Rolled-up Cap. Overhead Cost'
+					caption: rolledUpCapOverheadCost
+				column 'Item Rolled-up Capacity Cost'
+					caption: rolledUpCapacityCost
+				column 'Item Rolled-up Mat. Non-Invt. Cost'
+					caption: rolledUpMatNonInvtCost
+				column 'Item Rolled-up Material Cost'
+					caption: rolledUpMaterialCost
+				column 'Item Rolled-up Mfg. Ovhd Cost'
+					caption: rolledUpMfgOvhdCost
+				column 'Item Rolled-up Subcontracted Cost'
+					caption: rolledUpSubcontractedCost
+				column 'Item Scrap %'
+					caption: scrapPrc
+			table Location
+				caption: Sijainti
+				column 'Location Code'
+					caption: Sijaintikoodi
+				column 'Location Name'
+					caption: Sijainnin nimi
+			table Customer
+				caption: Asiakas
+				column 'Customer No. & Name'
+					caption: Asiakkaan nro ja nimi
+				column 'Customer No.'
+					caption: Asiakasnumero
+				column 'Customer Name'
+					caption: Asiakkaan nimi
+				column 'Customer Address'
+					caption: Asiakkaan osoite
+				column 'Customer Address 2'
+					caption: Asiakkaan osoite 2
+				column 'Customer City'
+					caption: Asiakkaan paikkakunta
+				column 'Customer County'
+					caption: Asiakkaan lääni
+				column 'Customer Country/Region Code'
+					caption: Asiakkaan maa-/aluekoodi
+				column 'Customer Posting Group'
+					caption: Asiakkaan kirjausryhmä
+				column 'Customer Price Group'
+					caption: Asiakkaan hintaryhmä
+				column 'Customer Discount Group'
+					caption: Asiakkaan alennusryhmä
+				column 'Customer Post Code'
+					caption: Asiakkaan postinumero
+				measure 'No. of New Customers'
+					caption: Uusien asiakkaiden määrä
+				measure 'No. of Lost Customers'
+					caption: Menetettyjen asiakkaiden määrä
+				measure 'Sales New Customers'
+					caption: Myynnin uudet asiakkaat
+				measure 'No. of Returning Customers'
+					caption: Palaavien asiakkaiden määrä
+				measure 'Sales Returning Customers'
+					caption: Myynnin palaavat asiakkaat
+				measure 'No. of Recovered Customers'
+					caption: Palautettujen asiakkaiden määrä
+				measure 'Sales Recovered Customers'
+					caption: Myynnin palautetut asiakkaat
+				measure 'Sales Lost Customers (12M)'
+					caption: Myynnin menetetyt asiakkaat (12KK)
+				measure 'No. of Customers'
+					caption: Asiakkaiden määrä
+			table Salesperson
+				caption: Myyjä
+				column 'Salesperson Code'
+					caption: Myyjän koodi
+				column 'Salesperson Name'
+					caption: Myyjän nimi
+			table 'Standard Calendar Time Intelligence'
+				caption: Vakiokalenterin aikatiedot
+				measure 'Sales Amount YTD'
+					caption: Myyntisumma, VA
+				measure 'Sales Amount PY'
+					caption: Myyntisumma, EDV
+				measure 'Sales Amount PYTD'
+					caption: Myyntisumma, EDVA
+				measure 'Sales Amount PQTD'
+					caption: Myyntisumma, EDVNA
+				measure 'Sales Amount QTD'
+					caption: Myyntisumma, VNA
+				measure 'Sales Amount MTD'
+					caption: Myyntisumma, KKA
+				measure 'Sales Amount YOY %'
+					caption: Myyntisumma, VV, prosentteina
+				measure 'Sales Amount YOY'
+					caption: Myyntisumma, VV
+				measure 'Sales Amount PQ'
+					caption: Myyntisumma, EDVN
+				measure 'Sales Amount QOQ'
+					caption: Myyntisumma, VNVN
+				measure 'Sales Amount PM'
+					caption: Myyntisumma, EDKK
+				measure 'Sales Amount QOQ %'
+					caption: Myyntisumma, VNVN, prosentteina
+				measure 'Sales Amount MOM'
+					caption: Myyntisumma, KKKK
+				measure 'Sales Amount MOM %'
+					caption: Myyntisumma, KKKK, prosentteina
+				measure 'Sales Amount MAT'
+					caption: Myyntisumma, LVK
+				measure 'Sales Amount PYMAT'
+					caption: Myyntisumma, EDVLVK
+				measure 'Sales Amount YOYTD'
+					caption: Myyntisumma, VVTM
+				measure 'Sales Amount YOYTD %'
+					caption: Myyntisumma, VVTM, prosentteina
+				measure 'Sales Amount PYC'
+					caption: Myyntisumma, EDVVAL
+				measure 'Sales Amount YTDOPY'
+					caption: Myyntisumma, VAEDV
+				measure 'Sales Amount YTDOPY %'
+					caption: Myyntisumma, VAEDV, prosentteina
+				measure 'Sales Amount QOQTD'
+					caption: Myyntisumma, VNVNTM
+				measure 'Sales Amount QOQTD %'
+					caption: Myyntisumma, VNVNTM, prosentteina
+				measure 'Sales Amount PQC'
+					caption: Myyntisumma, EDVNVAL
+				measure 'Sales Amount QTDOPQ'
+					caption: Myyntisumma, VNAEDVN
+				measure 'Sales Amount QTDOPQ %'
+					caption: Myyntisumma, VNAEDVN, prosentteina
+				measure 'Sales Amount PMTD'
+					caption: Myyntisumma, EDKKA
+				measure 'Sales Amount MOMTD'
+					caption: Myyntisumma, KKKKTM
+				measure 'Sales Amount MOMTD %'
+					caption: Myyntisumma, KKKKTM, prosentteina
+				measure 'Sales Amount PMC'
+					caption: Myyntisumma, EDKKVAL
+				measure 'Sales Amount MTDOPM'
+					caption: Myyntisumma, KKAEDKK
+				measure 'Sales Amount MTDOPM %'
+					caption: Myyntisumma, KKAEDKK, prosentteina
+				measure 'Sales Amount AVG 30D'
+					caption: Myyntisumma, KA 30PV
+				measure 'Sales Amount AVG 3M'
+					caption: Myyntisumma, KA 3KK
+				measure 'Sales Amount AVG 1Y'
+					caption: Myyntisumma, KA 1V
+				measure 'Sales Amount MATG'
+					caption: Myyntisumma, KLVK
+				measure 'Sales Amount MATG %'
+					caption: Myyntisumma, KLVK, prosentteina
+				measure 'Sales Amount PP'
+					caption: Myyntisumma, EDK
+				measure 'Sales Amount POP'
+					caption: Myyntisumma, K-K
+				measure 'Sales Amount POP %'
+					caption: Myyntisumma, K-K, prosentteina
+				measure 'Sales Quantity YTD'
+					caption: Myyntimäärä, VA
+				measure 'Sales Quantity PY'
+					caption: Myyntimäärä, EDV
+				measure 'Sales Quantity PYTD'
+					caption: Myyntimäärä, EDVA
+				measure 'Sales Quantity PQTD'
+					caption: Myyntimäärä, EDVNA
+				measure 'Sales Quantity QTD'
+					caption: Myyntimäärä, VNA
+				measure 'Sales Quantity MTD'
+					caption: Myyntimäärä, KKA
+				measure 'Sales Quantity YOY %'
+					caption: Myyntimäärä, VV, prosentteina
+				measure 'Sales Quantity YOY'
+					caption: Myyntimäärä, VV
+				measure 'Sales Quantity PQ'
+					caption: Myyntimäärä, EDVN
+				measure 'Sales Quantity QOQ'
+					caption: Myyntimäärä, VNVN
+				measure 'Sales Quantity PM'
+					caption: Myyntimäärä, EDKK
+				measure 'Sales Quantity QOQ %'
+					caption: Myyntimäärä, VNVN, prosentteina
+				measure 'Sales Quantity MOM'
+					caption: Myyntimäärä, KKKK
+				measure 'Sales Quantity MOM %'
+					caption: Myyntimäärä, KKKK, prosentteina
+				measure 'Sales Quantity MAT'
+					caption: Myyntimäärä, LVK
+				measure 'Sales Quantity PYMAT'
+					caption: Myyntimäärä, EDVLVK
+				measure 'Sales Quantity YOYTD'
+					caption: Myyntimäärä, VVTM
+				measure 'Sales Quantity YOYTD %'
+					caption: Myyntimäärä, VVTM, prosentteina
+				measure 'Sales Quantity PYC'
+					caption: Myyntimäärä, EDVVAL
+				measure 'Sales Quantity YTDOPY'
+					caption: Myyntimäärä, VAEDV
+				measure 'Sales Quantity YTDOPY %'
+					caption: Myyntimäärä, VAEDV, prosentteina
+				measure 'Sales Quantity QOQTD'
+					caption: Myyntimäärä, VNVNTM
+				measure 'Sales Quantity QOQTD %'
+					caption: Myyntimäärä, VNVNTM, prosentteina
+				measure 'Sales Quantity PQC'
+					caption: Myyntimäärä, EDVNVAL
+				measure 'Sales Quantity QTDOPQ'
+					caption: Myyntimäärä, VNAEDVN
+				measure 'Sales Quantity QTDOPQ %'
+					caption: Myyntimäärä, VNAEDVN, prosentteina
+				measure 'Sales Quantity PMTD'
+					caption: Myyntimäärä, EDKKA
+				measure 'Sales Quantity MOMTD'
+					caption: Myyntimäärä, KKKKTM
+				measure 'Sales Quantity MOMTD %'
+					caption: Myyntimäärä, KKKKTM, prosentteina
+				measure 'Sales Quantity PMC'
+					caption: Myyntimäärä, EDKKVAL
+				measure 'Sales Quantity MTDOPM'
+					caption: Myyntimäärä, KKAEDKK
+				measure 'Sales Quantity MTDOPM %'
+					caption: Myyntimäärä, KKAEDKK, prosentteina
+				measure 'Sales Quantity AVG 30D'
+					caption: Myyntimäärä, KA 30PV
+				measure 'Sales Quantity AVG 3M'
+					caption: Myyntimäärä, KA 3KK
+				measure 'Sales Quantity AVG 1Y'
+					caption: Myyntimäärä, KA 1V
+				measure 'Sales Quantity MATG'
+					caption: Myyntimäärä, KLVK
+				measure 'Sales Quantity MATG %'
+					caption: Myyntimäärä, KLVK, prosentteina
+				measure 'Sales Quantity PP'
+					caption: Myyntimäärä, EDK
+				measure 'Sales Quantity POP'
+					caption: Myyntimäärä, K-K
+				measure 'Sales Quantity POP %'
+					caption: Myyntimäärä, K-K, prosentteina
+				measure 'Gross Profit YTD'
+					caption: Bruttovoitto, VA
+				measure 'Gross Profit PY'
+					caption: Bruttovoitto, EDV
+				measure 'Gross Profit PYTD'
+					caption: Bruttovoitto, EDVA
+				measure 'Gross Profit PQTD'
+					caption: Bruttovoitto, EDVNA
+				measure 'Gross Profit QTD'
+					caption: Bruttovoitto, VNA
+				measure 'Gross Profit MTD'
+					caption: Bruttovoitto, KKA
+				measure 'Gross Profit YOY %'
+					caption: Bruttovoitto, VV, prosentteina
+				measure 'Gross Profit YOY'
+					caption: Bruttovoitto, VV
+				measure 'Gross Profit PQ'
+					caption: Bruttovoitto, EDVN
+				measure 'Gross Profit QOQ'
+					caption: Bruttovoitto, VNVN
+				measure 'Gross Profit PM'
+					caption: Bruttovoitto, EDKK
+				measure 'Gross Profit QOQ %'
+					caption: Bruttovoitto, VNVN, prosentteina
+				measure 'Gross Profit MOM'
+					caption: Bruttovoitto, KKKK
+				measure 'Gross Profit MOM %'
+					caption: Bruttovoitto, KKKK, prosentteina
+				measure 'Gross Profit MAT'
+					caption: Bruttovoitto, LVK
+				measure 'Gross Profit PYMAT'
+					caption: Bruttovoitto, EDVLVK
+				measure 'Gross Profit YOYTD'
+					caption: Bruttovoitto, VVTM
+				measure 'Gross Profit YOYTD %'
+					caption: Bruttovoitto, VVTM, prosentteina
+				measure 'Gross Profit PYC'
+					caption: Bruttovoitto, EDVVAL
+				measure 'Gross Profit YTDOPY'
+					caption: Bruttovoitto, VAEDV
+				measure 'Gross Profit YTDOPY %'
+					caption: Bruttovoitto, VAEDV, prosentteina
+				measure 'Gross Profit QOQTD'
+					caption: Bruttovoitto, VNVNTM
+				measure 'Gross Profit QOQTD %'
+					caption: Bruttovoitto, VNVNTM, prosentteina
+				measure 'Gross Profit PQC'
+					caption: Bruttovoitto, EDVNVAL
+				measure 'Gross Profit QTDOPQ'
+					caption: Bruttovoitto, VNAEDVN
+				measure 'Gross Profit QTDOPQ %'
+					caption: Bruttovoitto, VNAEDVN, prosentteina
+				measure 'Gross Profit PMTD'
+					caption: Bruttovoitto, EDKKA
+				measure 'Gross Profit MOMTD'
+					caption: Bruttovoitto, KKKKTM
+				measure 'Gross Profit MOMTD %'
+					caption: Bruttovoitto, KKKKTM, prosentteina
+				measure 'Gross Profit PMC'
+					caption: Bruttovoitto, EDKKVAL
+				measure 'Gross Profit MTDOPM'
+					caption: Bruttovoitto, KKAEDKK
+				measure 'Gross Profit MTDOPM %'
+					caption: Bruttovoitto, KKAEDKK, prosentteina
+				measure 'Gross Profit AVG 30D'
+					caption: Bruttovoitto, KA 30PV
+				measure 'Gross Profit AVG 3M'
+					caption: Bruttovoitto, KA 3KK
+				measure 'Gross Profit AVG 1Y'
+					caption: Bruttovoitto, KA 1V
+				measure 'Gross Profit MATG'
+					caption: Bruttovoitto, KLVK
+				measure 'Gross Profit MATG %'
+					caption: Bruttovoitto, KLVK, prosentteina
+				measure 'Gross Profit PP'
+					caption: Bruttovoitto, EDK
+				measure 'Gross Profit POP'
+					caption: Bruttovoitto, K-K
+				measure 'Gross Profit POP %'
+					caption: Bruttovoitto, K-K, prosentteina
+				measure 'Gross Profit Margin YTD'
+					caption: Bruttokate, VA
+				measure 'Gross Profit Margin PY'
+					caption: Bruttokate, EDV
+				measure 'Gross Profit Margin PYTD'
+					caption: Bruttokate, EDVA
+				measure 'Gross Profit Margin PQTD'
+					caption: Bruttokate, EDVNA
+				measure 'Gross Profit Margin QTD'
+					caption: Bruttokate, VNA
+				measure 'Gross Profit Margin MTD'
+					caption: Bruttokate, KKA
+				measure 'Gross Profit Margin YOY %'
+					caption: Bruttokate, VV, prosentteina
+				measure 'Gross Profit Margin YOY'
+					caption: Bruttokate, VV
+				measure 'Gross Profit Margin PQ'
+					caption: Bruttokate, EDVN
+				measure 'Gross Profit Margin QOQ'
+					caption: Bruttokate, VNVN
+				measure 'Gross Profit Margin PM'
+					caption: Bruttokate, EDKK
+				measure 'Gross Profit Margin QOQ %'
+					caption: Bruttokate, VNVN, prosentteina
+				measure 'Gross Profit Margin MOM'
+					caption: Bruttokate, KKKK
+				measure 'Gross Profit Margin MOM %'
+					caption: Bruttokate, KKKK, prosentteina
+				measure 'Gross Profit Margin MAT'
+					caption: Bruttokate, LVK
+				measure 'Gross Profit Margin PYMAT'
+					caption: Bruttokate, EDVLVK
+				measure 'Gross Profit Margin YOYTD'
+					caption: Bruttokate, VVTM
+				measure 'Gross Profit Margin YOYTD %'
+					caption: Bruttokate, VVTM, prosentteina
+				measure 'Gross Profit Margin PYC'
+					caption: Bruttokate, EDVVAL
+				measure 'Gross Profit Margin YTDOPY'
+					caption: Bruttokate, VAEDV
+				measure 'Gross Profit Margin YTDOPY %'
+					caption: Bruttokate, VAEDV, prosentteina
+				measure 'Gross Profit Margin QOQTD'
+					caption: Bruttokate, VNVNTM
+				measure 'Gross Profit Margin QOQTD %'
+					caption: Bruttokate, VNVNTM, prosentteina
+				measure 'Gross Profit Margin PQC'
+					caption: Bruttokate, EDVNVAL
+				measure 'Gross Profit Margin QTDOPQ'
+					caption: Bruttokate, VNAEDVN
+				measure 'Gross Profit Margin QTDOPQ %'
+					caption: Bruttokate, VNAEDVN, prosentteina
+				measure 'Gross Profit Margin PMTD'
+					caption: Bruttokate, EDKKA
+				measure 'Gross Profit Margin MOMTD'
+					caption: Bruttokate, KKKKTM
+				measure 'Gross Profit Margin MOMTD %'
+					caption: Bruttokate, KKKKTM, prosentteina
+				measure 'Gross Profit Margin PMC'
+					caption: Bruttokate, EDKKVAL
+				measure 'Gross Profit Margin MTDOPM'
+					caption: Bruttokate, KKAEDKK
+				measure 'Gross Profit Margin MTDOPM %'
+					caption: Bruttokate, KKAEDKK, prosentteina
+				measure 'Gross Profit Margin AVG 30D'
+					caption: Bruttokate, KA 30PV
+				measure 'Gross Profit Margin AVG 3M'
+					caption: Bruttokate, KA 3KK
+				measure 'Gross Profit Margin AVG 1Y'
+					caption: Bruttokate, KA 1V
+				measure 'Gross Profit Margin MATG'
+					caption: Bruttokate, KLVK
+				measure 'Gross Profit Margin MATG %'
+					caption: Bruttokate, KLVK, prosentteina
+				measure 'Gross Profit Margin PP'
+					caption: Bruttokate, EDK
+				measure 'Gross Profit Margin POP'
+					caption: Bruttokate, K-K
+				measure 'Gross Profit Margin POP %'
+					caption: Bruttokate, K-K, prosentteina
+				measure 'Cost Amount YTD'
+					caption: Kustannussumma, VA
+				measure 'Cost Amount PY'
+					caption: Kustannussumma, EDV
+				measure 'Cost Amount PYTD'
+					caption: Kustannussumma, EDVA
+				measure 'Cost Amount PQTD'
+					caption: Kustannussumma, EDVNA
+				measure 'Cost Amount QTD'
+					caption: Kustannussumma, VNA
+				measure 'Cost Amount MTD'
+					caption: Kustannussumma, KKA
+				measure 'Cost Amount YOY %'
+					caption: Kustannussumma, VV, prosentteina
+				measure 'Cost Amount YOY'
+					caption: Kustannussumma, VV
+				measure 'Cost Amount PQ'
+					caption: Kustannussumma, EDVN
+				measure 'Cost Amount QOQ'
+					caption: Kustannussumma, VNVN
+				measure 'Cost Amount PM'
+					caption: Kustannussumma, EDKK
+				measure 'Cost Amount QOQ %'
+					caption: Kustannussumma, VNVN, prosentteina
+				measure 'Cost Amount MOM'
+					caption: Kustannussumma, KKKK
+				measure 'Cost Amount MOM %'
+					caption: Kustannussumma, KKKK, prosentteina
+				measure 'Cost Amount MAT'
+					caption: Kustannussumma, LVK
+				measure 'Cost Amount PYMAT'
+					caption: Kustannussumma, EDVLVK
+				measure 'Cost Amount YOYTD'
+					caption: Kustannussumma, VVTM
+				measure 'Cost Amount YOYTD %'
+					caption: Kustannussumma, VVTM, prosentteina
+				measure 'Cost Amount PYC'
+					caption: Kustannussumma, EDVVAL
+				measure 'Cost Amount YTDOPY'
+					caption: Kustannussumma, VAEDV
+				measure 'Cost Amount YTDOPY %'
+					caption: Kustannussumma, VAEDV, prosentteina
+				measure 'Cost Amount QOQTD'
+					caption: Kustannussumma, VNVNTM
+				measure 'Cost Amount QOQTD %'
+					caption: Kustannussumma, VNVNTM, prosentteina
+				measure 'Cost Amount PQC'
+					caption: Kustannussumma, EDVNVAL
+				measure 'Cost Amount QTDOPQ'
+					caption: Kustannussumma, VNAEDVN
+				measure 'Cost Amount QTDOPQ %'
+					caption: Kustannussumma, VNAEDVN, prosentteina
+				measure 'Cost Amount PMTD'
+					caption: Kustannussumma, EDKKA
+				measure 'Cost Amount MOMTD'
+					caption: Kustannussumma, KKKKTM
+				measure 'Cost Amount MOMTD %'
+					caption: Kustannussumma, KKKKTM, prosentteina
+				measure 'Cost Amount PMC'
+					caption: Kustannussumma, EDKKVAL
+				measure 'Cost Amount MTDOPM'
+					caption: Kustannussumma, KKAEDKK
+				measure 'Cost Amount MTDOPM %'
+					caption: Kustannussumma, KKAEDKK, prosentteina
+				measure 'Cost Amount AVG 30D'
+					caption: Kustannussumma, KA 30PV
+				measure 'Cost Amount AVG 3M'
+					caption: Kustannussumma, KA 3KK
+				measure 'Cost Amount AVG 1Y'
+					caption: Kustannussumma, KA 1V
+				measure 'Cost Amount MATG'
+					caption: Kustannussumma, KLVK
+				measure 'Cost Amount MATG %'
+					caption: Kustannussumma, KLVK, prosentteina
+				measure 'Cost Amount PP'
+					caption: Kustannussumma, EDK
+				measure 'Cost Amount POP'
+					caption: Kustannussumma, K-K
+				measure 'Cost Amount POP %'
+					caption: Kustannussumma, K-K, prosentteina
+				measure 'Cost Amount Non-Inv YTD'
+					caption: Kustannussumma, ei-var., VA
+				measure 'Cost Amount Non-Inv PY'
+					caption: Kustannussumma, ei-var., EDV
+				measure 'Cost Amount Non-Inv PYTD'
+					caption: Kustannussumma, ei-var., EDVA
+				measure 'Cost Amount Non-Inv PQTD'
+					caption: Kustannussumma, ei-var., EDVNA
+				measure 'Cost Amount Non-Inv QTD'
+					caption: Kustannussumma, ei-var., VNA
+				measure 'Cost Amount Non-Inv MTD'
+					caption: Kustannussumma, ei-var., KKA
+				measure 'Cost Amount Non-Inv YOY %'
+					caption: Kustannussumma, ei-var., VV, prosentteina
+				measure 'Cost Amount Non-Inv YOY'
+					caption: Kustannussumma, ei-var., VV
+				measure 'Cost Amount Non-Inv PQ'
+					caption: Kustannussumma, ei-var., EDVN
+				measure 'Cost Amount Non-Inv QOQ'
+					caption: Kustannussumma, ei-var., VNVN
+				measure 'Cost Amount Non-Inv PM'
+					caption: Kustannussumma, ei-var., EDKK
+				measure 'Cost Amount Non-Inv QOQ %'
+					caption: Kustannussumma, ei-var., VNVN, prosentteina
+				measure 'Cost Amount Non-Inv MOM'
+					caption: Kustannussumma, ei-var., KKKK
+				measure 'Cost Amount Non-Inv MOM %'
+					caption: Kustannussumma, ei-var., KKKK, prosentteina
+				measure 'Cost Amount Non-Inv MAT'
+					caption: Kustannussumma, ei-var., LVK
+				measure 'Cost Amount Non-Inv PYMAT'
+					caption: Kustannussumma, ei-var., EDVLVK
+				measure 'Cost Amount Non-Inv YOYTD'
+					caption: Kustannussumma, ei-var., VVTM
+				measure 'Cost Amount Non-Inv YOYTD %'
+					caption: Kustannussumma, ei-var., VVTM, prosentteina
+				measure 'Cost Amount Non-Inv PYC'
+					caption: Kustannussumma, ei-var., EDVVAL
+				measure 'Cost Amount Non-Inv YTDOPY'
+					caption: Kustannussumma, ei-var., VAEDV
+				measure 'Cost Amount Non-Inv YTDOPY %'
+					caption: Kustannussumma, ei-var., VAEDV, prosentteina
+				measure 'Cost Amount Non-Inv QOQTD'
+					caption: Kustannussumma, ei-var., VNVNTM
+				measure 'Cost Amount Non-Inv QOQTD %'
+					caption: Kustannussumma, ei-var., VNVNTM, prosentteina
+				measure 'Cost Amount Non-Inv PQC'
+					caption: Kustannussumma, ei-var., EDVNVAL
+				measure 'Cost Amount Non-Inv QTDOPQ'
+					caption: Kustannussumma, ei-var., VNAEDVN
+				measure 'Cost Amount Non-Inv QTDOPQ %'
+					caption: Kustannussumma, ei-var., VNAEDVN, prosentteina
+				measure 'Cost Amount Non-Inv PMTD'
+					caption: Kustannussumma, ei-var., EDKKA
+				measure 'Cost Amount Non-Inv MOMTD'
+					caption: Kustannussumma, ei-var., KKKKTM
+				measure 'Cost Amount Non-Inv MOMTD %'
+					caption: Kustannussumma, ei-var., KKKKTM, prosentteina
+				measure 'Cost Amount Non-Inv PMC'
+					caption: Kustannussumma, ei-var., EDKKVAL
+				measure 'Cost Amount Non-Inv MTDOPM'
+					caption: Kustannussumma, ei-var., KKAEDKK
+				measure 'Cost Amount Non-Inv MTDOPM %'
+					caption: Kustannussumma, ei-var., KKAEDKK, prosentteina
+				measure 'Cost Amount Non-Inv AVG 30D'
+					caption: Kustannussumma, ei-var., KA 30PV
+				measure 'Cost Amount Non-Inv AVG 3M'
+					caption: Kustannussumma, ei-var., KA 3KK
+				measure 'Cost Amount Non-Inv AVG 1Y'
+					caption: Kustannussumma, ei-var., KA 1V
+				measure 'Cost Amount Non-Inv MATG'
+					caption: Kustannussumma, ei-var., KLVK
+				measure 'Cost Amount Non-Inv MATG %'
+					caption: Kustannussumma, ei-var., KLVK, prosentteina
+				measure 'Cost Amount Non-Inv PP'
+					caption: Kustannussumma, ei-var., EDK
+				measure 'Cost Amount Non-Inv POP'
+					caption: Kustannussumma, ei-var., K-K
+				measure 'Cost Amount Non-Inv POP %'
+					caption: Kustannussumma, ei-var., K-K, prosentteina
+			table 'Dimension Sets'
+				caption: Dimensioyhdistelmät
+				column 'Global Dimension 1'
+					caption: Yleinen dimensio 1
+				column 'Global Dimension 2'
+					caption: Yleinen dimensio 2
+				column 'Shortcut Dimension 3'
+					caption: Pikadimensio 3
+				column 'Shortcut Dimension 4'
+					caption: Pikadimensio 4
+				column 'Shortcut Dimension 5'
+					caption: Pikadimensio 5
+				column 'Shortcut Dimension 6'
+					caption: Pikadimensio 6
+				column 'Shortcut Dimension 7'
+					caption: Pikadimensio 7
+				column 'Shortcut Dimension 8'
+					caption: Pikadimensio 8
+				column id
+					caption: tunnus
+			table 'Sales Budget'
+				caption: Myyntibudjetti
+				column 'Entry No.'
+					caption: Tapahtumanro
+				column 'Budget Name'
+					caption: Budjetin nimi
+				column 'Item No.'
+					caption: Nimikkeen numero
+				column 'Location Code'
+					caption: Sijaintikoodi
+				measure 'Budget Amount'
+					caption: Budjettisumma
+				measure 'Budget Amount Variance'
+					caption: Budjettisumman vaihtelu
+				measure 'Budget Quantity'
+					caption: Budjettimäärä
+				measure 'Budget Quantity Variance'
+					caption: Budjettimäärän vaihtelu
+				measure 'Budget Amount Variance %'
+					caption: Budjettisumman vaihteluprosentti
+				measure 'Budget Quantity Variance %'
+					caption: Budjettimäärän vaihteluprosentti
+				measure 'Budget Back Link'
+					caption: Budjetti – Takaisin-linkki
+			table Date
+				caption: Pvm
+				column 'Week Day'
+					caption: Viikonpäivä
+				column 'Calendar Year'
+					caption: Kalenterivuosi
+				column 'Calendar Quarter'
+					caption: Kalenterin vuosineljännes
+				column 'Calendar Quarter Year'
+					caption: Kalenteri – Vuosineljännes, vuosi
+				column 'Calendar Month'
+					caption: Kalenterikuukausi
+				column 'Calendar Month Year'
+					caption: Kalenterikuukausi, vuosi
+				column 'Calendar Week'
+					caption: Kalenteriviikko
+				column 'Calendar Week Year'
+					caption: Kalenteriviikko, vuosi
+				column 'Calendar RelativeWeekPos'
+					caption: Kalenteri – SuhteellisenViikonOstotilaukset
+				column 'Calendar RelativeMonthPos'
+					caption: Kalenteri – SuhteellisenKuukaudenOstotilaukset
+				column 'Calendar RelativeQuarterPos'
+					caption: Kalenteri – SuhteellisenVuosineljänneksenOstotilaukset
+				column 'Calendar RelativeYearPos'
+					caption: Kalenterin suhteellisen vuoden ostotilaukset
+				column 'Calendar StartOfMonth'
+					caption: Kalenteri – KuukausiAlkaa
+				column 'Calendar EndOfMonth'
+					caption: Kalenteri – KuukausiPäättyy
+				column 'Calendar StartOfQuarter'
+					caption: Kalenteri – VuosineljännesAlkaa
+				column 'Calendar EndOfQuarter'
+					caption: Kalenteri – VuosineljännesPäättyy
+				column 'Calendar StartOfYear'
+					caption: Kalenteri – VuosiAlkaa
+				column 'Calendar EndOfYear'
+					caption: Kalenteri – VuosiPäättyy
+				column 'Calendar MonthDays'
+					caption: Kalenteri – KuukaudenPäivät
+				column 'Calendar QuarterDays'
+					caption: Kalenteri – VuosineljänneksenPäivät
+				column 'Calendar YearDays'
+					caption: Kalenteri – VuodenPäivät
+				column 'Calendar DayOfMonthNumber'
+					caption: Kalenteri – PäiväKuukaudenNumero
+				column 'Calendar DayOfQuarterNumber'
+					caption: Kalenteri – PäiväVuosineljänneksenNumero
+				column 'Calendar DayOfYearNumber'
+					caption: Kalenteri – PäiväVuodenNumero
+				column 'Calendar DatePreviousWeek'
+					caption: Kalenteri – PäivämääräEdellinenViikko
+				column 'Calendar DatePreviousMonth'
+					caption: Kalenteri – PäivämääräEdellinenKuukausi
+				column 'Calendar DatePreviousQuarter'
+					caption: Kalenteri – PäivämääräEdellinenVuosineljännes
+				column 'Calendar DatePreviousYear'
+					caption: Kalenteri – PäivämääräEdellinenVuosi
+				column 'Fiscal Year'
+					caption: Tilikausi
+				column 'Fiscal Quarter'
+					caption: Kirjanpidon vuosineljännes
+				column 'Fiscal Quarter Year'
+					caption: Kirjanpito – Vuosineljännes, vuosi
+				column 'Fiscal Month'
+					caption: Kirjanpitokuukausi
+				column 'Fiscal Month Year'
+					caption: Kirjanpidon kuukausi, vuosi
+				column 'Fiscal Week'
+					caption: Kirjanpitoviikko
+				column 'Fiscal Week Year'
+					caption: Kirjanpitoviikko, vuosi
+				column 'Fiscal RelativeWeekPos'
+					caption: Kirjanpito – SuhteellisenViikonOstotilaukset
+				column 'Fiscal RelativeMonthPos'
+					caption: Kirjanpito – SuhteellisenKuukaudenOstotilaukset
+				column 'Fiscal RelativeQuarterPos'
+					caption: Kirjanpito – SuhteellisenVuosineljänneksenOstotilaukset
+				column 'Fiscal RelativeYearPos'
+					caption: Kirjanpito – SuhteellisenVuodenOstotilaukset
+				column 'Fiscal StartOfMonth'
+					caption: Kirjanpito – KuukausiAlkaa
+				column 'Fiscal EndOfMonth'
+					caption: Kirjanpito – KuukausiPäättyy
+				column 'Fiscal StartOfQuarter'
+					caption: Kirjanpito – VuosineljännesAlkaa
+				column 'Fiscal EndOfQuarter'
+					caption: Kirjanpito – VuosineljännesPäättyy
+				column 'Fiscal StartOfYear'
+					caption: Kirjanpito – VuosiAlkaa
+				column 'Fiscal EndOfYear'
+					caption: Kirjanpito – VuosiPäättyy
+				column 'Fiscal MonthDays'
+					caption: Kirjanpito – KuukaudenPäivät
+				column 'Fiscal QuarterDays'
+					caption: Kirjanpito – VuosineljänneksenPäivät
+				column 'Fiscal YearDays'
+					caption: Kirjanpito – VuodenPäivät
+				column 'Fiscal DayOfMonthNumber'
+					caption: Kirjanpito – PäiväKuukaudenNumero
+				column 'Fiscal DayOfQuarterNumber'
+					caption: Kirjanpito – PäiväVuosineljänneksenNumero
+				column 'Fiscal DayOfYearNumber'
+					caption: Kirjanpito – PäiväVuodenNumero
+				column 'Fiscal DatePreviousWeek'
+					caption: Kirjanpito – PäivämääräEdellinenViikko
+				column 'Fiscal DatePreviousMonth'
+					caption: Kirjanpito – PäivämääräEdellinenKuukausi
+				column 'Fiscal DatePreviousQuarter'
+					caption: Kirjanpito – PäivämääräEdellinenVuosineljännes
+				column 'Fiscal DatePreviousYear'
+					caption: Kirjanpito – PäivämääräEdellinenVuosi
+				column 'FW Year'
+					caption: KV – Vuosi
+				column 'FW Quarter'
+					caption: KV – Vuosineljännes
+				column 'FW Quarter Year'
+					caption: KV – Vuosineljännes, vuosi
+				column 'FW Month'
+					caption: KV – Kuukausi
+				column 'FW Month Year'
+					caption: KV – Kuukausi, vuosi
+				column 'FW Week'
+					caption: KV – Viikko
+				column 'FW Period'
+					caption: KV – Kausi
+				column 'FW Week Year'
+					caption: KV – Viikko, vuosi
+				column 'FW StartOfWeek'
+					caption: KV – ViikkoAlkaa
+				column 'FW EndOfWeek'
+					caption: KV – ViikkoPäättyy
+				column 'FW RelativeWeekPos'
+					caption: KV – SuhteellisenViikonOstotilaukset
+				column 'FW RelativeMonthPos'
+					caption: KV – SuhteellisenKuukaudenOstotilaukset
+				column 'FW RelativeQuarterPos'
+					caption: KV – SuhteellisenVuosineljänneksenOstotilaukset
+				column 'FW RelativeYearPos'
+					caption: KV – SuhteellisenVuodenOstotilaukset
+				column 'FW StartOfMonth'
+					caption: KV – KuukausiAlkaa
+				column 'FW EndOfMonth'
+					caption: KV – KuukausiPäättyy
+				column 'FW StartOfQuarter'
+					caption: KV – VuosineljännesAlkaa
+				column 'FW EndOfQuarter'
+					caption: KV – VuosineljännesPäättyy
+				column 'FW StartOfYear'
+					caption: KV – VuosiAlkaa
+				column 'FW EndOfYear'
+					caption: KV – VuosiPäättyy
+				column 'FW MonthDays'
+					caption: KV – KuukaudenPäivät
+				column 'FW QuarterDays'
+					caption: KV – VuosineljänneksenPäivät
+				column 'FW YearDays'
+					caption: KV – VuodenPäivät
+				column 'FW DatePreviousWeek'
+					caption: KV – PäivämääräEdellinenViikko
+				column 'FW DatePreviousMonth'
+					caption: KV – PäivämääräEdellinenKuukausi
+				column 'FW DatePreviousQuarter'
+					caption: KV – PäivämääräEdellinenVuosineljännes
+				column 'FW DatePreviousYear'
+					caption: KV – PäivämääräEdellinenVuosi
+				column 'Holiday Name'
+					caption: Loman nimi
+				column IsWorkingDay
+					caption: IsWorkingDay
+				column 'Day Type'
+					caption: Päivän tyyppi
+				column 'Relative Day'
+					caption: Suhteellinen päivämäärä
+				hierarchy 'Fiscal Year-Quarter-Month-Week'
+					caption: Kirjanpito Vuosi-Vuosineljännes-Kuukausi-Viikko
+					level 'Fiscal Year'
+						caption: Tilikausi
+					level 'Fiscal Quarter Year'
+						caption: Kirjanpito – Vuosineljännes, vuosi
+					level 'Fiscal Month Year'
+						caption: Kirjanpidon kuukausi, vuosi
+					level 'Fiscal Week Year'
+						caption: Kirjanpitoviikko, vuosi
+				hierarchy 'Calendar Year-Quarter-Month-Week'
+					caption: Kalenteri – Vuosi-Vuosineljännes-Kuukausi-Viikko
+					level 'Calendar Year'
+						caption: Kalenterivuosi
+					level 'Calendar Quarter Year'
+						caption: Kalenteri – Vuosineljännes, vuosi
+					level 'Calendar Month Year'
+						caption: Kalenterikuukausi, vuosi
+					level 'Calendar Week Year'
+						caption: Kalenteriviikko, vuosi
+				hierarchy 'FW Year-Quarter-Month-Week'
+					caption: KV – Vuosi-Vuosineljännes-Kuukausi-Viikko
+					level 'FW Year'
+						caption: KV – Vuosi
+					level 'FW Quarter Year'
+						caption: KV – Vuosineljännes, vuosi
+					level 'FW Month Year'
+						caption: KV – Kuukausi, vuosi
+					level 'FW Week Year'
+						caption: KV – Viikko, vuosi
+				hierarchy 'FW Year-Week'
+					caption: KV – Vuosi-Viikko
+					level 'FW Year'
+						caption: KV – Vuosi
+					level 'FW Week Year'
+						caption: KV – Viikko, vuosi
+				hierarchy 'FW Year-Month-Week'
+					caption: KV – Vuosi-Kuukausi-Viikko
+					level 'FW Year'
+						caption: KV – Vuosi
+					level 'FW Month Year'
+						caption: KV – Kuukausi, vuosi
+					level 'FW Week Year'
+						caption: KV – Viikko, vuosi
+				hierarchy 'FW Year-Quarter-Week'
+					caption: KV – Vuosi-Vuosineljännes-Viikko
+					level 'FW Year'
+						caption: KV – Vuosi
+					level 'FW Quarter Year'
+						caption: KV – Vuosineljännes, vuosi
+					level 'FW Week Year'
+						caption: KV – Viikko, vuosi
+				hierarchy 'Calendar Year-Month-Week'
+					caption: Kalenteri – Vuosi-Kuukausi-Viikko
+					level 'Calendar Year'
+						caption: Kalenterivuosi
+					level 'Calendar Month Year'
+						caption: Kalenterikuukausi, vuosi
+					level 'Calendar Week Year'
+						caption: Kalenteriviikko, vuosi
+				hierarchy 'Calendar Year-Month'
+					caption: Kalenteri – Vuosi-Kuukausi
+					level 'Calendar Year'
+						caption: Kalenterivuosi
+					level 'Calendar Month Year'
+						caption: Kalenterikuukausi, vuosi
+				hierarchy 'Fiscal Year-Month'
+					caption: Kirjanpito – Vuosi-Kuukausi
+					level 'Fiscal Year'
+						caption: Tilikausi
+					level 'Fiscal Month Year'
+						caption: Kirjanpidon kuukausi, vuosi
+				hierarchy 'Fiscal Year-Month-Week'
+					caption: Kirjanpito – Vuosi-Kuukausi-Viikko
+					level 'Fiscal Year'
+						caption: Tilikausi
+					level 'Fiscal Month Year'
+						caption: Kirjanpidon kuukausi, vuosi
+					level 'Fiscal Week Year'
+						caption: Kirjanpitoviikko, vuosi
+			table 'Fiscal Calendar Time Intelligence'
+				caption: Kirjanpitokalenterin aikatiedot
+				measure 'Sales Amount YTD (Fiscal)'
+					caption: Myyntisumma, VA (kirjanpito)
+				measure 'Sales Amount PY (Fiscal)'
+					caption: Myyntisumma, EDV (kirjanpito)
+				measure 'Sales Amount PYTD (Fiscal)'
+					caption: Myyntisumma, EDVA (kirjanpito)
+				measure 'Sales Amount PQTD (Fiscal)'
+					caption: Myyntisumma, EDVNA (kirjanpito)
+				measure 'Sales Amount QTD (Fiscal)'
+					caption: Myyntisumma, VNA (kirjanpito)
+				measure 'Sales Amount MTD (Fiscal)'
+					caption: Myyntisumma, KKA (kirjanpito)
+				measure 'Sales Amount YOY % (Fiscal)'
+					caption: Myyntisumma, VV, prosentteina (kirjanpito)
+				measure 'Sales Amount YOY (Fiscal)'
+					caption: Myyntisumma, VV (kirjanpito)
+				measure 'Sales Amount PQ (Fiscal)'
+					caption: Myyntisumma, EDVN (kirjanpito)
+				measure 'Sales Amount QOQ (Fiscal)'
+					caption: Myyntisumma, VNVN (kirjanpito)
+				measure 'Sales Amount QOQ % (Fiscal)'
+					caption: Myyntisumma, VNVN, prosentteina (kirjanpito)
+				measure 'Sales Amount PM (Fiscal)'
+					caption: Myyntisumma, EDKK (kirjanpito)
+				measure 'Sales Amount MOM (Fiscal)'
+					caption: Myyntisumma, KKKK (kirjanpito)
+				measure 'Sales Amount MOM % (Fiscal)'
+					caption: Myyntisumma, KKKK, prosentteina (kirjanpito)
+				measure 'Sales Amount MAT (Fiscal)'
+					caption: Myyntisumma, LVK (kirjanpito)
+				measure 'Sales Amount PYMAT (Fiscal)'
+					caption: Myyntisumma, EDVLVK (kirjanpito)
+				measure 'Sales Amount YOYTD (Fiscal)'
+					caption: Myyntisumma, VVTM (kirjanpito)
+				measure 'Sales Amount YOYTD % (Fiscal)'
+					caption: Myyntisumma, VVTM, prosentteina (kirjanpito)
+				measure 'Sales Amount PYC (Fiscal)'
+					caption: Myyntisumma, EDVVAL (kirjanpito)
+				measure 'Sales Amount YTDOPY (Fiscal)'
+					caption: Myyntisumma, VAEDV (kirjanpito)
+				measure 'Sales Amount YTDOPY % (Fiscal)'
+					caption: Myyntisumma, VAEDV, prosentteina (kirjanpito)
+				measure 'Sales Amount QOQTD (Fiscal)'
+					caption: Myyntisumma, VNVNTM (kirjanpito)
+				measure 'Sales Amount QOQTD % (Fiscal)'
+					caption: Myyntisumma, VNVNTM, prosentteina (kirjanpito)
+				measure 'Sales Amount PQC (Fiscal)'
+					caption: Myyntisumma, EDVNVAL (kirjanpito)
+				measure 'Sales Amount QTDOPQ (Fiscal)'
+					caption: Myyntisumma, VNAEDVN (kirjanpito)
+				measure 'Sales Amount QTDOPQ % (Fiscal)'
+					caption: Myyntisumma, VNAEDVN, prosentteina (kirjanpito)
+				measure 'Sales Amount PMTD (Fiscal)'
+					caption: Myyntisumma, EDKKA (kirjanpito)
+				measure 'Sales Amount MOMTD % (Fiscal)'
+					caption: Myyntisumma, KKKKTM, prosentteina (kirjanpito)
+				measure 'Sales Amount MOMTD (Fiscal)'
+					caption: Myyntisumma, KKKKTM (kirjanpito)
+				measure 'Sales Amount PMC (Fiscal)'
+					caption: Myyntisumma, EDKKVAL (kirjanpito)
+				measure 'Sales Amount MTDOPM (Fiscal)'
+					caption: Myyntisumma, KKAEDKK (kirjanpito)
+				measure 'Sales Amount MTDOPM % (Fiscal)'
+					caption: Myyntisumma, KKAEDKK, prosentteina (kirjanpito)
+				measure 'Sales Amount AVG 30D (Fiscal)'
+					caption: Myyntisumma, KA 30PV (kirjanpito)
+				measure 'Sales Amount AVG 3M (Fiscal)'
+					caption: Myyntisumma, KA 3KK (kirjanpito)
+				measure 'Sales Amount AVG 1Y (Fiscal)'
+					caption: Myyntisumma, KA 1V (kirjanpito)
+				measure 'Sales Amount MATG (Fiscal)'
+					caption: Myyntisumma, KLVK (kirjanpito)
+				measure 'Sales Amount MATG % (Fiscal)'
+					caption: Myyntisumma, KLVK, prosentteina (kirjanpito)
+				measure 'Sales Amount PP (Fiscal)'
+					caption: Myyntisumma, EDK (kirjanpito)
+				measure 'Sales Amount POP (Fiscal)'
+					caption: Myyntisumma, K-K (kirjanpito)
+				measure 'Sales Amount POP % (Fiscal)'
+					caption: Myyntisumma, K-K, prosentteina (kirjanpito)
+				measure 'Sales Amount MAT (364) (Fiscal)'
+					caption: Myyntisumma, LVK (364) (kirjanpito)
+				measure 'Sales PYMAT (364) (Fiscal)'
+					caption: Myynti, EDVLVK (364) (kirjanpito)
+				measure 'Sales Quantity YTD (Fiscal)'
+					caption: Myyntimäärä, VA (kirjanpito)
+				measure 'Sales Quantity PY (Fiscal)'
+					caption: Myyntimäärä, EDV (kirjanpito)
+				measure 'Sales Quantity PYTD (Fiscal)'
+					caption: Myyntimäärä, EDVA (kirjanpito)
+				measure 'Sales Quantity PQTD (Fiscal)'
+					caption: Myyntimäärä, EDVNA (kirjanpito)
+				measure 'Sales Quantity QTD (Fiscal)'
+					caption: Myyntimäärä, VNA (kirjanpito)
+				measure 'Sales Quantity MTD (Fiscal)'
+					caption: Myyntimäärä, KKA (kirjanpito)
+				measure 'Sales Quantity YOY % (Fiscal)'
+					caption: Myyntimäärä, VV, prosentteina (kirjanpito)
+				measure 'Sales Quantity YOY (Fiscal)'
+					caption: Myyntimäärä, VV (kirjanpito)
+				measure 'Sales Quantity PQ (Fiscal)'
+					caption: Myyntimäärä, EDVN (kirjanpito)
+				measure 'Sales Quantity QOQ (Fiscal)'
+					caption: Myyntimäärä, VNVN (kirjanpito)
+				measure 'Sales Quantity QOQ % (Fiscal)'
+					caption: Myyntimäärä, VNVN, prosentteina (kirjanpito)
+				measure 'Sales Quantity PM (Fiscal)'
+					caption: Myyntimäärä, EDKK (kirjanpito)
+				measure 'Sales Quantity MOM (Fiscal)'
+					caption: Myyntimäärä, KKKK (kirjanpito)
+				measure 'Sales Quantity MOM % (Fiscal)'
+					caption: Myyntimäärä, KKKK, prosentteina (kirjanpito)
+				measure 'Sales Quantity MAT (Fiscal)'
+					caption: Myyntimäärä, LVK (kirjanpito)
+				measure 'Sales Quantity PYMAT (Fiscal)'
+					caption: Myyntimäärä, EDVLVK (kirjanpito)
+				measure 'Sales Quantity YOYTD (Fiscal)'
+					caption: Myyntimäärä, VVTM (kirjanpito)
+				measure 'Sales Quantity YOYTD % (Fiscal)'
+					caption: Myyntimäärä, VVTM, prosentteina (kirjanpito)
+				measure 'Sales Quantity PYC (Fiscal)'
+					caption: Myyntimäärä, EDVVAL (kirjanpito)
+				measure 'Sales Quantity YTDOPY (Fiscal)'
+					caption: Myyntimäärä, VAEDV (kirjanpito)
+				measure 'Sales Quantity YTDOPY % (Fiscal)'
+					caption: Myyntimäärä, VAEDV, prosentteina (kirjanpito)
+				measure 'Sales Quantity QOQTD (Fiscal)'
+					caption: Myyntimäärä, VNVNTM (kirjanpito)
+				measure 'Sales Quantity QOQTD % (Fiscal)'
+					caption: Myyntimäärä, VNVNTM, prosentteina (kirjanpito)
+				measure 'Sales Quantity PQC (Fiscal)'
+					caption: Myyntimäärä, EDVNVAL (kirjanpito)
+				measure 'Sales Quantity QTDOPQ (Fiscal)'
+					caption: Myyntimäärä, VNAEDVN (kirjanpito)
+				measure 'Sales Quantity QTDOPQ % (Fiscal)'
+					caption: Myyntimäärä, VNAEDVN, prosentteina (kirjanpito)
+				measure 'Sales Quantity PMTD (Fiscal)'
+					caption: Myyntimäärä, EDKKA (kirjanpito)
+				measure 'Sales Quantity MOMTD % (Fiscal)'
+					caption: Myyntimäärä, KKKKTM, prosentteina (kirjanpito)
+				measure 'Sales Quantity MOMTD (Fiscal)'
+					caption: Myyntimäärä, KKKKTM (kirjanpito)
+				measure 'Sales Quantity PMC (Fiscal)'
+					caption: Myyntimäärä, EDKKVAL (kirjanpito)
+				measure 'Sales Quantity MTDOPM (Fiscal)'
+					caption: Myyntimäärä, KKAEDKK (kirjanpito)
+				measure 'Sales Quantity MTDOPM % (Fiscal)'
+					caption: Myyntimäärä, KKAEDKK, prosentteina (kirjanpito)
+				measure 'Sales Quantity AVG 30D (Fiscal)'
+					caption: Myyntimäärä, KA 30PV (kirjanpito)
+				measure 'Sales Quantity AVG 3M (Fiscal)'
+					caption: Myyntimäärä, KA 3KK (kirjanpito)
+				measure 'Sales Quantity AVG 1Y (Fiscal)'
+					caption: Myyntimäärä, KA 1V (kirjanpito)
+				measure 'Sales Quantity MATG (Fiscal)'
+					caption: Myyntimäärä, KLVK (kirjanpito)
+				measure 'Sales Quantity MATG % (Fiscal)'
+					caption: Myyntimäärä, KLVK, prosentteina (kirjanpito)
+				measure 'Sales Quantity PP (Fiscal)'
+					caption: Myyntimäärä, EDK (kirjanpito)
+				measure 'Sales Quantity POP (Fiscal)'
+					caption: Myyntimäärä, K-K (kirjanpito)
+				measure 'Sales Quantity POP % (Fiscal)'
+					caption: Myyntimäärä, K-K, prosentteina (kirjanpito)
+				measure 'Cost Amount YTD (Fiscal)'
+					caption: Kustannussumma, VA (kirjanpito)
+				measure 'Cost Amount PY (Fiscal)'
+					caption: Kustannussumma, EDV (kirjanpito)
+				measure 'Cost Amount QTD (Fiscal)'
+					caption: Kustannussumma, VNA (kirjanpito)
+				measure 'Cost Amount MTD (Fiscal)'
+					caption: Kustannussumma, KKA (kirjanpito)
+				measure 'Cost Amount YOY % (Fiscal)'
+					caption: Kustannussumma, VV, prosentteina (kirjanpito)
+				measure 'Cost Amount YOY (Fiscal)'
+					caption: Kustannussumma, VV (kirjanpito)
+				measure 'Cost Amount PQ (Fiscal)'
+					caption: Kustannussumma, EDVN (kirjanpito)
+				measure 'Cost Amount QOQ (Fiscal)'
+					caption: Kustannussumma, VNVN (kirjanpito)
+				measure 'Cost Amount QOQ % (Fiscal)'
+					caption: Kustannussumma, VNVN, prosentteina (kirjanpito)
+				measure 'Cost Amount PM (Fiscal)'
+					caption: Kustannussumma, EDKK (kirjanpito)
+				measure 'Cost Amount MOM (Fiscal)'
+					caption: Kustannussumma, KKKK (kirjanpito)
+				measure 'Cost Amount MOM % (Fiscal)'
+					caption: Kustannussumma, KKKK, prosentteina (kirjanpito)
+				measure 'Cost Amount PP (Fiscal)'
+					caption: Kustannussumma, EDK (kirjanpito)
+				measure 'Cost Amount POP (Fiscal)'
+					caption: Kustannussumma, K-K (kirjanpito)
+				measure 'Cost Amount POP % (Fiscal)'
+					caption: Kustannussumma, K-K, prosentteina (kirjanpito)
+				measure 'Cost Amount PYTD (Fiscal)'
+					caption: Kustannussumma, EDVA (kirjanpito)
+				measure 'Cost Amount PQTD (Fiscal)'
+					caption: Kustannussumma, EDVNA (kirjanpito)
+				measure 'Cost Amount YOYTD (Fiscal)'
+					caption: Kustannussumma, VVTM (kirjanpito)
+				measure 'Cost Amount YOYTD % (Fiscal)'
+					caption: Kustannussumma, VVTM, prosentteina (kirjanpito)
+				measure 'Cost Amount QOQTD (Fiscal)'
+					caption: Kustannussumma, VNVNTM (kirjanpito)
+				measure 'Cost Amount QOQTD % (Fiscal)'
+					caption: Kustannussumma, VNVNTM, prosentteina (kirjanpito)
+				measure 'Cost Amount PMTD (Fiscal)'
+					caption: Kustannussumma, EDKKA (kirjanpito)
+				measure 'Cost Amount MOMTD % (Fiscal)'
+					caption: Kustannussumma, KKKKTM, prosentteina (kirjanpito)
+				measure 'Cost Amount MOMTD (Fiscal)'
+					caption: Kustannussumma, KKKKTM (kirjanpito)
+				measure 'Cost Amount MAT (Fiscal)'
+					caption: Kustannussumma, LVK (kirjanpito)
+				measure 'Cost Amount PYMAT (Fiscal)'
+					caption: Kustannussumma, EDVLVK (kirjanpito)
+				measure 'Cost Amount MATG (Fiscal)'
+					caption: Kustannussumma, KLVK (kirjanpito)
+				measure 'Cost Amount MATG % (Fiscal)'
+					caption: Kustannussumma, KLVK, prosentteina (kirjanpito)
+				measure 'Cost Amount MAT (364) (Fiscal)'
+					caption: Kustannussumma, LVK (364) (kirjanpito)
+				measure 'Cost PYMAT (364) (Fiscal)'
+					caption: Kustannukset, EDVLVK (364) (kirjanpito)
+				measure 'Cost Amount PYC (Fiscal)'
+					caption: Kustannussumma, EDVVAL (kirjanpito)
+				measure 'Cost Amount YTDOPY (Fiscal)'
+					caption: Kustannussumma, VAEDV (kirjanpito)
+				measure 'Cost Amount YTDOPY % (Fiscal)'
+					caption: Kustannussumma, VAEDV, prosentteina (kirjanpito)
+				measure 'Cost Amount PQC (Fiscal)'
+					caption: Kustannussumma, EDVNVAL (kirjanpito)
+				measure 'Cost Amount QTDOPQ (Fiscal)'
+					caption: Kustannussumma, VNAEDVN (kirjanpito)
+				measure 'Cost Amount QTDOPQ % (Fiscal)'
+					caption: Kustannussumma, VNAEDVN, prosentteina (kirjanpito)
+				measure 'Cost Amount PMC (Fiscal)'
+					caption: Kustannussumma, EDKKVAL (kirjanpito)
+				measure 'Cost Amount MTDOPM (Fiscal)'
+					caption: Kustannussumma, KKAEDKK (kirjanpito)
+				measure 'Cost Amount MTDOPM % (Fiscal)'
+					caption: Kustannussumma, KKAEDKK, prosentteina (kirjanpito)
+				measure 'Cost Amount AVG 30D (Fiscal)'
+					caption: Kustannussumma, KA 30PV (kirjanpito)
+				measure 'Cost Amount AVG 3M (Fiscal)'
+					caption: Kustannussumma, KA 3KK (kirjanpito)
+				measure 'Cost Amount AVG 1Y (Fiscal)'
+					caption: Kustannussumma, KA 1V (kirjanpito)
+				measure 'Cost Amount Non-Inv YTD (Fiscal)'
+					caption: Kustannussumma, ei-var., VA (kirjanpito)
+				measure 'Cost Amount Non-Inv QTD (Fiscal)'
+					caption: Kustannussumma, ei-var., VNA (kirjanpito)
+				measure 'Cost Amount Non-Inv MTD (Fiscal)'
+					caption: Kustannussumma, ei-var., KKA (kirjanpito)
+				measure 'Cost Amount Non-Inv PY (Fiscal)'
+					caption: Kustannussumma, ei-var., EDV (kirjanpito)
+				measure 'Cost Amount Non-Inv YOY % (Fiscal)'
+					caption: Kustannussumma, ei-var., VV, prosentteina (kirjanpito)
+				measure 'Cost Amount Non-Inv YOY (Fiscal)'
+					caption: Kustannussumma, ei-var., VV (kirjanpito)
+				measure 'Cost Amount Non-Inv PQ (Fiscal)'
+					caption: Kustannussumma, ei-var., EDVN (kirjanpito)
+				measure 'Cost Amount Non-Inv QOQ (Fiscal)'
+					caption: Kustannussumma, ei-var., VNVN (kirjanpito)
+				measure 'Cost Amount Non-Inv QOQ % (Fiscal)'
+					caption: Kustannussumma, ei-var., VNVN, prosentteina (kirjanpito)
+				measure 'Cost Amount Non-Inv PM (Fiscal)'
+					caption: Kustannussumma, ei-var., EDKK (kirjanpito)
+				measure 'Cost Amount Non-Inv MOM (Fiscal)'
+					caption: Kustannussumma, ei-var., KKKK (kirjanpito)
+				measure 'Cost Amount Non-Inv MOM % (Fiscal)'
+					caption: Kustannussumma, ei-var., KKKK, prosentteina (kirjanpito)
+				measure 'Cost Amount Non-Inv PP (Fiscal)'
+					caption: Kustannussumma, ei-var., EDK (kirjanpito)
+				measure 'Cost Amount Non-Inv POP (Fiscal)'
+					caption: Kustannussumma, ei-var., K-K (kirjanpito)
+				measure 'Cost Amount Non-Inv POP % (Fiscal)'
+					caption: Kustannussumma, ei-var., K-K, prosentteina (kirjanpito)
+				measure 'Cost Amount Non-Inv PYTD (Fiscal)'
+					caption: Kustannussumma, ei-var., EDVA (kirjanpito)
+				measure 'Cost Amount Non-Inv PQTD (Fiscal)'
+					caption: Kustannussumma, ei-var., EDVNA (kirjanpito)
+				measure 'Cost Amount Non-Inv YOYTD (Fiscal)'
+					caption: Kustannussumma, ei-var., VVTM (kirjanpito)
+				measure 'Cost Amount Non-Inv YOYTD % (Fiscal)'
+					caption: Kustannussumma, ei-var., VVTM, prosentteina (kirjanpito)
+				measure 'Cost Amount Non-Inv QOQTD (Fiscal)'
+					caption: Kustannussumma, ei-var., VNVNTM (kirjanpito)
+				measure 'Cost Amount Non-Inv QOQTD % (Fiscal)'
+					caption: Kustannussumma, ei-var., VNVNTM, prosentteina (kirjanpito)
+				measure 'Cost Amount Non-Inv PMTD (Fiscal)'
+					caption: Kustannussumma, ei-var., EDKKA (kirjanpito)
+				measure 'Cost Amount Non-Inv MOMTD % (Fiscal)'
+					caption: Kustannussumma, ei-var., KKKKTM, prosentteina (kirjanpito)
+				measure 'Cost Amount Non-Inv MOMTD (Fiscal)'
+					caption: Kustannussumma, ei-var., KKKKTM (kirjanpito)
+				measure 'Cost Amount Non-Inv MAT (Fiscal)'
+					caption: Kustannussumma, ei-var., LVK (kirjanpito)
+				measure 'Cost Amount Non-Inv PYMAT (Fiscal)'
+					caption: Kustannussumma, ei-var., EDVLVK (kirjanpito)
+				measure 'Cost Amount Non-Inv MATG (Fiscal)'
+					caption: Kustannussumma, ei-var., KLVK (kirjanpito)
+				measure 'Cost Amount Non-Inv MATG % (Fiscal)'
+					caption: Kustannussumma, ei-var., KLVK, prosentteina (kirjanpito)
+				measure 'Cost Amount Non-Inv PYC (Fiscal)'
+					caption: Kustannussumma, ei-var., EDVVAL (kirjanpito)
+				measure 'Cost Amount Non-Inv YTDOPY (Fiscal)'
+					caption: Kustannussumma, ei-var., VAEDV (kirjanpito)
+				measure 'Cost Amount Non-Inv YTDOPY % (Fiscal)'
+					caption: Kustannussumma, ei-var., VAEDV, prosentteina (kirjanpito)
+				measure 'Cost Amount Non-Inv PQC (Fiscal)'
+					caption: Kustannussumma, ei-var., EDVNVAL (kirjanpito)
+				measure 'Cost Amount Non-Inv QTDOPQ (Fiscal)'
+					caption: Kustannussumma, ei-var., VNAEDVN (kirjanpito)
+				measure 'Cost Amount Non-Inv QTDOPQ % (Fiscal)'
+					caption: Kustannussumma, ei-var., VNAEDVN, prosentteina (kirjanpito)
+				measure 'Cost Amount Non-Inv PMC (Fiscal)'
+					caption: Kustannussumma, ei-var., EDKKVAL (kirjanpito)
+				measure 'Cost Amount Non-Inv MTDOPM (Fiscal)'
+					caption: Kustannussumma, ei-var., KKAEDKK (kirjanpito)
+				measure 'Cost Amount Non-Inv MTDOPM % (Fiscal)'
+					caption: Kustannussumma, ei-var., KKAEDKK, prosentteina (kirjanpito)
+				measure 'Cost Amount Non-Inv AVG 30D (Fiscal)'
+					caption: Kustannussumma, ei-var., KA 30PV (kirjanpito)
+				measure 'Cost Amount Non-Inv AVG 3M (Fiscal)'
+					caption: Kustannussumma, ei-var., KA 3KK (kirjanpito)
+				measure 'Cost Amount Non-Inv AVG 1Y (Fiscal)'
+					caption: Kustannussumma, ei-var., KA 1V (kirjanpito)
+				measure 'Gross Profit YTD (Fiscal)'
+					caption: Bruttovoitto, VA (kirjanpito)
+				measure 'Gross Profit QTD (Fiscal)'
+					caption: Bruttovoitto, VNA (kirjanpito)
+				measure 'Gross Profit MTD (Fiscal)'
+					caption: Bruttovoitto, KKA (kirjanpito)
+				measure 'Gross Profit PY (Fiscal)'
+					caption: Bruttovoitto, EDV (kirjanpito)
+				measure 'Gross Profit YOY % (Fiscal)'
+					caption: Bruttovoitto, VV, prosentteina (kirjanpito)
+				measure 'Gross Profit YOY (Fiscal)'
+					caption: Bruttovoitto, VV (kirjanpito)
+				measure 'Gross Profit PQ (Fiscal)'
+					caption: Bruttovoitto EDVN (kirjanpito)
+				measure 'Gross Profit QOQ (Fiscal)'
+					caption: Bruttovoitto, VNVN (kirjanpito)
+				measure 'Gross Profit QOQ % (Fiscal)'
+					caption: Bruttovoitto, VNVN, prosentteina (kirjanpito)
+				measure 'Gross Profit PM (Fiscal)'
+					caption: Bruttovoitto EDKK (kirjanpito)
+				measure 'Gross Profit MOM (Fiscal)'
+					caption: Bruttovoitto, KKKK (kirjanpito)
+				measure 'Gross Profit MOM % (Fiscal)'
+					caption: Bruttovoitto, KKKK, prosentteina (kirjanpito)
+				measure 'Gross Profit PP (Fiscal)'
+					caption: Bruttovoitto, EDK (kirjanpito)
+				measure 'Gross Profit POP (Fiscal)'
+					caption: Bruttovoitto, K-K (kirjanpito)
+				measure 'Gross Profit POP % (Fiscal)'
+					caption: Bruttovoitto, K-K, prosentteina (kirjanpito)
+				measure 'Gross Profit PYTD (Fiscal)'
+					caption: Bruttovoitto, EDVA (kirjanpito)
+				measure 'Gross Profit PQTD (Fiscal)'
+					caption: Bruttovoitto, EDVNA (kirjanpito)
+				measure 'Gross Profit YOYTD (Fiscal)'
+					caption: Bruttovoitto, VVTM (kirjanpito)
+				measure 'Gross Profit YOYTD % (Fiscal)'
+					caption: Bruttovoitto, VVTM, prosentteina (kirjanpito)
+				measure 'Gross Profit QOQTD (Fiscal)'
+					caption: Bruttovoitto, VNVNTM (kirjanpito)
+				measure 'Gross Profit  QOQTD % (Fiscal)'
+					caption: Bruttovoitto, VNVNTM, prosentteina (kirjanpito)
+				measure 'Gross Profit PMTD (Fiscal)'
+					caption: Bruttovoitto, EDKKA (kirjanpito)
+				measure 'Gross Profit MOMTD % (Fiscal)'
+					caption: Bruttovoitto, KKKKTM, prosentteina (kirjanpito)
+				measure 'Gross Profit MOMTD (Fiscal)'
+					caption: Bruttovoitto, KKKKTM (kirjanpito)
+				measure 'Gross Profit MAT (Fiscal)'
+					caption: Bruttovoitto, LVK (kirjanpito)
+				measure 'Gross Profit PYMAT (Fiscal)'
+					caption: Bruttovoitto, EDVLVK (kirjanpito)
+				measure 'Gross Profit MATG (Fiscal)'
+					caption: Bruttovoitto, KLVK (kirjanpito)
+				measure 'Gross Profit MATG % (Fiscal)'
+					caption: Bruttovoitto, KLVK, prosentteina (kirjanpito)
+				measure 'Gross Profit MAT (364) (Fiscal)'
+					caption: Bruttovoitto, LVK (364) (kirjanpito)
+				measure 'Gross Profit PYMAT (364) (Fiscal)'
+					caption: Bruttovoitto, EDVLVK (364) (kirjanpito)
+				measure 'Gross Profit PYC (Fiscal)'
+					caption: Bruttovoitto, EDVVAL (kirjanpito)
+				measure 'Gross Profit YTDOPY (Fiscal)'
+					caption: Bruttovoitto, VAEDV (kirjanpito)
+				measure 'Gross Profit YTDOPY % (Fiscal)'
+					caption: Bruttovoitto, VAEDV, prosentteina (kirjanpito)
+				measure 'Gross Profit PQC (Fiscal)'
+					caption: Bruttovoitto, EDVNVAL (kirjanpito)
+				measure 'Gross Profit QTDOPQ (Fiscal)'
+					caption: Bruttovoitto, VNAEDVN (kirjanpito)
+				measure 'Gross Profit QTDOPQ % (Fiscal)'
+					caption: Bruttovoitto, VNAEDVN, prosentteina (kirjanpito)
+				measure 'Gross Profit PMC (Fiscal)'
+					caption: Bruttovoitto, EDKKVAL (kirjanpito)
+				measure 'Gross Profit MTDOPM (Fiscal)'
+					caption: Bruttovoitto, KKAEDKK (kirjanpito)
+				measure 'Gross Profit MTDOPM % (Fiscal)'
+					caption: Bruttovoitto, KKAEDKK, prosentteina (kirjanpito)
+				measure 'Gross Profit AVG 30D (Fiscal)'
+					caption: Bruttovoitto KA 30PV (kirjanpito)
+				measure 'Gross Profit AVG 3M (Fiscal)'
+					caption: Bruttovoitto KA 3KK (kirjanpito)
+				measure 'Gross Profit AVG 1Y (Fiscal)'
+					caption: Bruttovoitto, KA 1V (kirjanpito)
+				measure 'Gross Profit Margin AVG 30D (Fiscal)'
+					caption: Bruttokate, KA 30PV (kirjanpito)
+				measure 'Gross Profit Margin AVG 3M (Fiscal)'
+					caption: Bruttokate, KA 3KK (kirjanpito)
+				measure 'Gross Profit Margin AVG 1Y (Fiscal)'
+					caption: Bruttokate, KA 1V (kirjanpito)
+				measure 'Gross Profit Margin PYC (Fiscal)'
+					caption: Bruttokate, EDVVAL (kirjanpito)
+				measure 'Gross Profit Margin YTDOPY (Fiscal)'
+					caption: Bruttokate, VAEDV (kirjanpito)
+				measure 'Gross Profit Margin YTDOPY % (Fiscal)'
+					caption: Bruttokate, VAEDV, prosentteina (kirjanpito)
+				measure 'Gross Profit Margin PQC (Fiscal)'
+					caption: Bruttokate, EDVNVAL (kirjanpito)
+				measure 'Gross Profit Margin QTDOPQ (Fiscal)'
+					caption: Bruttokate, VNAEDVN (kirjanpito)
+				measure 'Gross Profit Margin QTDOPQ % (Fiscal)'
+					caption: Bruttokate, VNAEDVN, prosentteina (kirjanpito)
+				measure 'Gross Profit Margin PMC (Fiscal)'
+					caption: Bruttokate, EDKKVAL (kirjanpito)
+				measure 'Gross Profit Margin MTDOPM (Fiscal)'
+					caption: Bruttokate, KKAEDKK (kirjanpito)
+				measure 'Gross Profit Margin MTDOPM % (Fiscal)'
+					caption: Bruttokate, KKAEDKK, prosentteina (kirjanpito)
+				measure 'Gross Profit Margin MAT (Fiscal)'
+					caption: Bruttokate, LVK (kirjanpito)
+				measure 'Gross Profit Margin PYMAT (Fiscal)'
+					caption: Bruttokate, EDVLVK (kirjanpito)
+				measure 'Gross Profit Margin MATG (Fiscal)'
+					caption: Bruttokate, KLVK (kirjanpito)
+				measure 'Gross Profit Margin MATG % (Fiscal)'
+					caption: Bruttokate, KLVK, prosentteina (kirjanpito)
+				measure 'Gross Profit Margin MAT (364) (Fiscal)'
+					caption: Bruttokate, LVK (364) (kirjanpito)
+				measure 'Gross Profit Margin PYMAT (364) (Fiscal)'
+					caption: Bruttokate, EDVLVK (364) (kirjanpito)
+				measure 'Gross Profit Margin PYTD (Fiscal)'
+					caption: Bruttokate, EDVA (kirjanpito)
+				measure 'Gross Profit Margin PQTD (Fiscal)'
+					caption: Bruttokate, EDVNA (kirjanpito)
+				measure 'Gross Profit Margin YOYTD (Fiscal)'
+					caption: Bruttokate, VVTM (kirjanpito)
+				measure 'Gross Profit Margin YOYTD % (Fiscal)'
+					caption: Bruttokate, VVTM, prosentteina (kirjanpito)
+				measure 'Gross Profit Margin QOQTD (Fiscal)'
+					caption: Bruttokate, VNVNTM (kirjanpito)
+				measure 'Gross Profit Margin QOQTD % (Fiscal)'
+					caption: Bruttokate, VNVNTM, prosentteina (kirjanpito)
+				measure 'Gross Profit Margin PMTD (Fiscal)'
+					caption: Bruttokate, EDKKA (kirjanpito)
+				measure 'Gross Profit Margin MOMTD % (Fiscal)'
+					caption: Bruttokate, KKKKTM, prosentteina (kirjanpito)
+				measure 'Gross Profit Margin MOMTD (Fiscal)'
+					caption: Bruttokate, KKKKTM (kirjanpito)
+				measure 'Gross Profit Margin PY (Fiscal)'
+					caption: Bruttokate, EDV (kirjanpito)
+				measure 'Gross Profit Margin YOY % (Fiscal)'
+					caption: Bruttokate, VV, prosentteina (kirjanpito)
+				measure 'Gross Profit Margin YOY (Fiscal)'
+					caption: Bruttokate, VV (kirjanpito)
+				measure 'Gross Profit Margin PQ (Fiscal)'
+					caption: Bruttokate, EDVN (kirjanpito)
+				measure 'Gross Profit Margin QOQ (Fiscal)'
+					caption: Bruttokate, VNVN (kirjanpito)
+				measure 'Gross Profit Margin QOQ % (Fiscal)'
+					caption: Bruttokate, VNVN, prosentteina (kirjanpito)
+				measure 'Gross Profit Margin PM (Fiscal)'
+					caption: Bruttokate, EDKK (kirjanpito)
+				measure 'Gross Profit Margin MOM (Fiscal)'
+					caption: Bruttokate, KKKK (kirjanpito)
+				measure 'Gross Profit Margin MOM % (Fiscal)'
+					caption: Bruttokate, KKKK, prosentteina (kirjanpito)
+				measure 'Gross Profit Margin PP (Fiscal)'
+					caption: Bruttokate, EDK (kirjanpito)
+				measure 'Gross Profit Margin POP (Fiscal)'
+					caption: Bruttokate, K-K (kirjanpito)
+				measure 'Gross Profit Margin POP % (Fiscal)'
+					caption: Bruttokate, K-K, prosentteina (kirjanpito)
+				measure 'Gross Profit Margin YTD (Fiscal)'
+					caption: Bruttokate, VA (kirjanpito)
+				measure 'Gross Profit Margin QTD (Fiscal)'
+					caption: Bruttokate, VNA (kirjanpito)
+				measure 'Gross Profit Margin MTD (Fiscal)'
+					caption: Bruttokate, KKA (kirjanpito)
+			table 'Weekly Calendar Time Intelligence'
+				caption: Viikkokalenterin aikatiedot
+				measure 'Sales Amount YTD (Weekly)'
+					caption: Myyntisumma, VA (viikoittainen)
+				measure 'Sales Amount PY (Weekly)'
+					caption: Myyntisumma, EDV (viikoittainen)
+				measure 'Sales Amount PYTD (Weekly)'
+					caption: Myyntisumma, EDVA (viikoittainen)
+				measure 'Sales Amount PQTD (Weekly)'
+					caption: Myyntisumma, EDVNA (viikoittainen)
+				measure 'Sales Amount QTD (Weekly)'
+					caption: Myyntisumma, VNA (viikoittainen)
+				measure 'Sales Amount MTD (Weekly)'
+					caption: Myyntisumma, KKA (viikoittainen)
+				measure 'Sales Amount YOY % (Weekly)'
+					caption: Myyntisumma, VV, prosentteina (viikoittainen)
+				measure 'Sales Amount YOY (Weekly)'
+					caption: Myyntisumma, VV (viikoittainen)
+				measure 'Sales Amount PQ (Weekly)'
+					caption: Myyntisumma, EDVN (viikoittainen)
+				measure 'Sales Amount QOQ (Weekly)'
+					caption: Myyntisumma, VNVN (viikoittainen)
+				measure 'Sales Amount QOQ % (Weekly)'
+					caption: Myyntisumma, VNVN, prosentteina (viikoittainen)
+				measure 'Sales Amount PW (Weekly)'
+					caption: Myyntisumma, EDVK (viikoittainen)
+				measure 'Sales Amount WOW (Weekly)'
+					caption: Myyntisumma, VKVK (viikoittainen)
+				measure 'Sales Amount WOW % (Weekly)'
+					caption: Myyntisumma, VKVK, prosentteina (viikoittainen)
+				measure 'Sales Amount MAT (364) (Weekly)'
+					caption: Myyntisumma, LVK (364) (viikoittainen)
+				measure 'Sales Amount PYMAT (364) (Weekly)'
+					caption: Myyntisumma, EDVLVK (364) (viikoittainen)
+				measure 'Sales Amount YOYTD (Weekly)'
+					caption: Myyntisumma, VVTM (viikoittainen)
+				measure 'Sales Amount YOYTD % (Weekly)'
+					caption: Myyntisumma, VVTM, prosentteina (viikoittainen)
+				measure 'Sales Amount PYC (Weekly)'
+					caption: Myyntisumma, EDVVAL (viikoittainen)
+				measure 'Sales Amount YTDOPY (Weekly)'
+					caption: Myyntisumma, VAEDV (viikoittainen)
+				measure 'Sales Amount YTDOPY % (Weekly)'
+					caption: Myyntisumma, VAEDV, prosentteina (viikoittainen)
+				measure 'Sales Amount QOQTD (Weekly)'
+					caption: Myyntisumma, VNVNTM (viikoittainen)
+				measure 'Sales Amount QOQTD % (Weekly)'
+					caption: Myyntisumma, VNVNTM, prosentteina (viikoittainen)
+				measure 'Sales Amount PQC (Weekly)'
+					caption: Myyntisumma, EDVNVAL (viikoittainen)
+				measure 'Sales Amount QTDOPQ (Weekly)'
+					caption: Myyntisumma, VNAEDVN (viikoittainen)
+				measure 'Sales Amount QTDOPQ % (Weekly)'
+					caption: Myyntisumma, VNAEDVN, prosentteina (viikoittainen)
+				measure 'Sales Amount PWTD (Weekly)'
+					caption: Myyntisumma, EDVKA (viikoittainen)
+				measure 'Sales Amount WOWTD (Weekly)'
+					caption: Myyntisumma, VKVKTM (viikoittainen)
+				measure 'Sales Amount WOWTD % (Weekly)'
+					caption: Myyntisumma, VKVKTM, prosentteina (viikoittainen)
+				measure 'Sales Amount PWC (Weekly)'
+					caption: Myyntisumma, EDVKVAL (viikoittainen)
+				measure 'Sales Amount WTDOPW (Weekly)'
+					caption: Myyntisumma, VKAEDVK (viikoittainen)
+				measure 'Sales Amount WTDOPW % (Weekly)'
+					caption: Myyntisumma, VKAEDVK, prosentteina (viikoittainen)
+				measure 'Sales Amount AVG 4W (Weekly)'
+					caption: Myyntisumma, KA 4VK (viikoittainen)
+				measure 'Sales Amount AVG 1Q (Weekly)'
+					caption: Myyntisumma, KA 1Q (viikoittainen)
+				measure 'Sales Amount AVG 1Y (Weekly)'
+					caption: Myyntisumma, KA 1V (viikoittainen)
+				measure 'Sales Amount MATG (Weekly)'
+					caption: Myyntisumma, KLVK (viikoittainen)
+				measure 'Sales Amount MATG % (Weekly)'
+					caption: Myyntisumma, KLVK, prosentteina (viikoittainen)
+				measure 'Sales Amount PP (Weekly)'
+					caption: Myyntisumma, EDK (viikoittainen)
+				measure 'Sales Amount POP (Weekly)'
+					caption: Myyntisumma, K-K (viikoittainen)
+				measure 'Sales Amount POP % (Weekly)'
+					caption: Myyntisumma, K-K, prosentteina (viikoittainen)
+				measure 'Sales Amount WTD (Weekly)'
+					caption: Myyntisumma, VKA (viikoittainen)
+				measure 'Sales Quantity YTD (Weekly)'
+					caption: Myyntimäärä, VA (viikoittainen)
+				measure 'Sales Quantity PY (Weekly)'
+					caption: Myyntimäärä, EDV (viikoittainen)
+				measure 'Sales Quantity PYTD (Weekly)'
+					caption: Myyntimäärä, EDVA (viikoittainen)
+				measure 'Sales Quantity QTD (Weekly)'
+					caption: Myyntimäärä, VNA (viikoittainen)
+				measure 'Sales Quantity PQTD (Weekly)'
+					caption: Myyntimäärä, EDVNA (viikoittainen)
+				measure 'Sales Quantity MTD (Weekly)'
+					caption: Myyntimäärä, KKA (viikoittainen)
+				measure 'Sales Quantity YOY % (Weekly)'
+					caption: Myyntimäärä, VV, prosentteina (viikoittainen)
+				measure 'Sales Quantity YOY (Weekly)'
+					caption: Myyntimäärä, VV (viikoittainen)
+				measure 'Sales Quantity PQ (Weekly)'
+					caption: Myyntimäärä, EDVN (viikoittainen)
+				measure 'Sales Quantity QOQ (Weekly)'
+					caption: Myyntimäärä, VNVN (viikoittainen)
+				measure 'Sales Quantity QOQ % (Weekly)'
+					caption: Myyntimäärä, VNVN, prosentteina (viikoittainen)
+				measure 'Sales Quantity PW (Weekly)'
+					caption: Myyntimäärä, EDVK (viikoittainen)
+				measure 'Sales Quantity WOW (Weekly)'
+					caption: Myyntimäärä, VKVK (viikoittainen)
+				measure 'Sales Quantity WOW % (Weekly)'
+					caption: Myyntimäärä, VKVK, prosentteina (viikoittainen)
+				measure 'Sales Quantity MAT (364) (Weekly)'
+					caption: Myyntimäärä, LVK (364) (viikoittainen)
+				measure 'Sales Quantity PYMAT (364) (Weekly)'
+					caption: Myyntimäärä, EDVLVK (364) (viikoittainen)
+				measure 'Sales Quantity YOYTD (Weekly)'
+					caption: Myyntimäärä, VVTM (viikoittainen)
+				measure 'Sales Quantity YOYTD % (Weekly)'
+					caption: Myyntimäärä, VVTM, prosentteina (viikoittainen)
+				measure 'Sales Quantity PYC (Weekly)'
+					caption: Myyntimäärä, EDVVAL (viikoittainen)
+				measure 'Sales Quantity YTDOPY (Weekly)'
+					caption: Myyntimäärä, VAEDV (viikoittainen)
+				measure 'Sales Quantity YTDOPY  % (Weekly)'
+					caption: Myyntimäärä, VAEDV, prosentteina (viikoittainen)
+				measure 'Sales Quantity QOQTD (Weekly)'
+					caption: Myyntimäärä, VNVNTM (viikoittainen)
+				measure 'Sales Quantity QOQTD % (Weekly)'
+					caption: Myyntimäärä, VNVNTM, prosentteina (viikoittainen)
+				measure 'Sales Quantity PQC (Weekly)'
+					caption: Myyntimäärä, EDVNVAL (viikoittainen)
+				measure 'Sales Quantity QTDOPQ (Weekly)'
+					caption: Myyntimäärä, VNAEDVN (viikoittainen)
+				measure 'Sales Quantity QTDOPQ % (Weekly)'
+					caption: Myyntimäärä, VNAEDVN, prosentteina (viikoittainen)
+				measure 'Sales Quantity PWTD (Weekly)'
+					caption: Myyntimäärä, EDVKA (viikoittainen)
+				measure 'Sales Quantity WOWTD (Weekly)'
+					caption: Myyntimäärä, VKVKTM (viikoittainen)
+				measure 'Sales Quantity WOWTD % (Weekly)'
+					caption: Myyntimäärä, VKVKTM, prosentteina (viikoittainen)
+				measure 'Sales Quantity PWC (Weekly)'
+					caption: Myyntimäärä, EDVKVAL (viikoittainen)
+				measure 'Sales Quantity WTDOPW (Weekly)'
+					caption: Myyntimäärä, VKAEDVK (viikoittainen)
+				measure 'Sales Quantity WTDOPW % (Weekly)'
+					caption: Myyntimäärä, VKAEDVK, prosentteina (viikoittainen)
+				measure 'Sales Quantity AVG 4W (Weekly)'
+					caption: Myyntimäärä, KA 4VK (viikoittainen)
+				measure 'Sales Quantity AVG 1Q (Weekly)'
+					caption: Myyntimäärä, KA 1Q (viikoittainen)
+				measure 'Sales Quantity AVG 1Y (Weekly)'
+					caption: Myyntimäärä, KA 1V (viikoittainen)
+				measure 'Sales Quantity MATG (Weekly)'
+					caption: Myyntimäärä, KLVK (viikoittainen)
+				measure 'Sales Quantity MATG % (Weekly)'
+					caption: Myyntimäärä, KLVK, prosentteina (viikoittainen)
+				measure 'Sales Quantity PP (Weekly)'
+					caption: Myyntimäärä, EDK (viikoittainen)
+				measure 'Sales Quantity POP (Weekly)'
+					caption: Myyntimäärä, K-K (viikoittainen)
+				measure 'Sales Quantity POP % (Weekly)'
+					caption: Myyntimäärä, K-K, prosentteina (viikoittainen)
+				measure 'Sales Quantity WTD (Weekly)'
+					caption: Myyntimäärä, VKA (viikoittainen)
+				measure 'Gross Profit YTD (Weekly)'
+					caption: Bruttovoitto, VA (viikoittainen)
+				measure 'Gross Profit PY (Weekly)'
+					caption: Bruttovoitto, EDV (viikoittainen)
+				measure 'Gross Profit PYTD (Weekly)'
+					caption: Bruttovoitto, EDVA (viikoittainen)
+				measure 'Gross Profit QTD (Weekly)'
+					caption: Bruttovoitto, VNA (viikoittainen)
+				measure 'Gross Profit PQTD (Weekly)'
+					caption: Bruttovoitto, EDVNA (viikoittainen)
+				measure 'Gross Profit MTD (Weekly)'
+					caption: Bruttovoitto, KKA (viikoittainen)
+				measure 'Gross Profit YOY % (Weekly)'
+					caption: Bruttovoitto, VV, prosentteina (viikoittainen)
+				measure 'Gross Profit YOY (Weekly)'
+					caption: Bruttovoitto, VV (viikoittainen)
+				measure 'Gross Profit PQ (Weekly)'
+					caption: Bruttovoitto, EDVN (viikoittainen)
+				measure 'Gross Profit QOQ (Weekly)'
+					caption: Bruttovoitto, VNVN (viikoittainen)
+				measure 'Gross Profit QOQ % (Weekly)'
+					caption: Bruttovoitto, VNVN, prosentteina (viikoittainen)
+				measure 'Gross Profit PW (Weekly)'
+					caption: Bruttovoitto, EDVK (viikoittainen)
+				measure 'Gross Profit WOW (Weekly)'
+					caption: Bruttovoitto, VKVK (viikoittainen)
+				measure 'Gross Profit WOW % (Weekly)'
+					caption: Bruttovoitto, VKVK, prosentteina (viikoittainen)
+				measure 'Gross Profit MAT (364) (Weekly)'
+					caption: Bruttovoitto, LVK (364) (viikoittainen)
+				measure 'Gross Profit PYMAT (364) (Weekly)'
+					caption: Bruttovoitto, EDVLVK (364) (viikoittainen)
+				measure 'Gross Profit YOYTD (Weekly)'
+					caption: Bruttovoitto VVTM (viikoittainen)
+				measure 'Gross Profit YOYTD % (Weekly)'
+					caption: Bruttovoitto VVTM, prosentteina (viikoittainen)
+				measure 'Gross Profit PYC (Weekly)'
+					caption: Bruttovoitto, EDVVAL (viikoittainen)
+				measure 'Gross Profit YTDOPY (Weekly)'
+					caption: Bruttovoitto, VAEDV (viikoittainen)
+				measure 'Gross Profit YTDOPY % (Weekly)'
+					caption: Bruttovoitto, VAEDV, prosentteina (viikoittainen)
+				measure 'Gross Profit QOQTD (Weekly)'
+					caption: Bruttovoitto VNVNTM (viikoittainen)
+				measure 'Gross Profit QOQTD % (Weekly)'
+					caption: Bruttovoitto VNVNTM, prosentteina (viikoittainen)
+				measure 'Gross Profit PQC (Weekly)'
+					caption: Bruttovoitto, EDVNVAL (viikoittainen)
+				measure 'Gross Profit QTDOPQ (Weekly)'
+					caption: Bruttovoitto, VNAEDVN (viikoittainen)
+				measure 'Gross Profit QTDOPQ % (Weekly)'
+					caption: Bruttovoitto, VNAEDVN, prosentteina (viikoittainen)
+				measure 'Gross Profit PWTD (Weekly)'
+					caption: Bruttovoitto, EDVKA (viikoittainen)
+				measure 'Gross Profit WOWTD (Weekly)'
+					caption: Bruttovoitto VKVKTM (viikoittainen)
+				measure 'Gross Profit WOWTD % (Weekly)'
+					caption: Bruttovoitto VKVKTM, prosentteina (viikoittainen)
+				measure 'Gross Profit PWC (Weekly)'
+					caption: Bruttovoitto, EDVKVAL (viikoittainen)
+				measure 'Gross Profit WTDOPW (Weekly)'
+					caption: Bruttovoitto, VKAEDVK (viikoittainen)
+				measure 'Gross Profit WTDOPW % (Weekly)'
+					caption: Bruttovoitto, VKAEDVK, prosentteina (viikoittainen)
+				measure 'Gross Profit AVG 4W (Weekly)'
+					caption: Bruttovoitto KA 4VK (viikoittainen)
+				measure 'Gross Profit AVG 1Q (Weekly)'
+					caption: Bruttovoitto KA 1Q (viikoittainen)
+				measure 'Gross Profit AVG 1Y (Weekly)'
+					caption: Bruttovoitto KA 1V (viikoittainen)
+				measure 'Gross Profit MATG (Weekly)'
+					caption: Bruttovoitto, KLVK (viikoittainen)
+				measure 'Gross Profit MATG % (Weekly)'
+					caption: Bruttovoitto, KLVK, prosentteina (viikoittainen)
+				measure 'Gross Profit PP (Weekly)'
+					caption: Bruttovoitto, EDK (viikoittainen)
+				measure 'Gross Profit POP (Weekly)'
+					caption: Bruttovoitto, K-K (viikoittainen)
+				measure 'Gross Profit POP % (Weekly)'
+					caption: Bruttovoitto, K-K, prosentteina (viikoittainen)
+				measure 'Gross Profit WTD (Weekly)'
+					caption: Bruttovoitto, VKA (viikoittainen)
+				measure 'Gross Profit Margin YTD (Weekly)'
+					caption: Bruttokate, VA (viikoittainen)
+				measure 'Gross Profit Margin QTD (Weekly)'
+					caption: Bruttokate, VNA (viikoittainen)
+				measure 'Gross Profit Margin MTD (Weekly)'
+					caption: Bruttokate, KKA (viikoittainen)
+				measure 'Gross Profit Margin WTD (Weekly)'
+					caption: Bruttokate, VKA (viikoittainen)
+				measure 'Gross Profit Margin PY (Weekly)'
+					caption: Bruttokate, EDV (viikoittainen)
+				measure 'Gross Profit Margin YOY % (Weekly)'
+					caption: Bruttokate, VV, prosentteina (viikoittainen)
+				measure 'Gross Profit Margin YOY (Weekly)'
+					caption: Bruttokate, VV (viikoittainen)
+				measure 'Gross Profit Margin PQ (Weekly)'
+					caption: Bruttokate, EDVN (viikoittainen)
+				measure 'Gross Profit Margin QOQ (Weekly)'
+					caption: Bruttokate, VNVN (viikoittainen)
+				measure 'Gross Profit Margin QOQ % (Weekly)'
+					caption: Bruttokate, VNVN, prosentteina (viikoittainen)
+				measure 'Gross Profit Margin PW (Weekly)'
+					caption: Bruttokate, EDVK (viikoittainen)
+				measure 'Gross Profit Margin WOW (Weekly)'
+					caption: Bruttokate, VKVK (viikoittainen)
+				measure 'Gross Profit Margin WOW % (Weekly)'
+					caption: Bruttokate, VKVK, prosentteina (viikoittainen)
+				measure 'Gross Profit Margin PP (Weekly)'
+					caption: Bruttokate, EDK (viikoittainen)
+				measure 'Gross Profit Margin POP (Weekly)'
+					caption: Bruttokate, K-K (viikoittainen)
+				measure 'Gross Profit Margin POP % (Weekly)'
+					caption: Bruttokate, K-K, prosentteina (viikoittainen)
+				measure 'Gross Profit Margin PYTD (Weekly)'
+					caption: Bruttokate, EDVA (viikoittainen)
+				measure 'Gross Profit Margin PQTD (Weekly)'
+					caption: Bruttokate, EDVNA (viikoittainen)
+				measure 'Gross Profit Margin YOYTD (Weekly)'
+					caption: Bruttokate, VVTM (viikoittainen)
+				measure 'Gross Profit Margin YOYTD % (Weekly)'
+					caption: Bruttokate, VVTM, prosentteina (viikoittainen)
+				measure 'Gross Profit Margin QOQTD (Weekly)'
+					caption: Bruttokate, VNVNTM (viikoittainen)
+				measure 'Gross Profit Margin QOQTD % (Weekly)'
+					caption: Bruttokate, VNVNTM, prosentteina (viikoittainen)
+				measure 'Gross Profit Margin PWTD (Weekly)'
+					caption: Bruttokate, EDVKA (viikoittainen)
+				measure 'Gross Profit Margin WOWTD (Weekly)'
+					caption: Bruttokate, VKVKTM (viikoittainen)
+				measure 'Gross Profit Margin WOWTD % (Weekly)'
+					caption: Bruttokate, VKVKTM, prosentteina (viikoittainen)
+				measure 'Gross Profit Margin MAT (364) (Weekly)'
+					caption: Bruttokate, LVK (364) (viikoittainen)
+				measure 'Gross Profit Margin PYMAT (364) (Weekly)'
+					caption: Bruttokate, EDVLVK (364) (viikoittainen)
+				measure 'Gross Profit Margin MATG (Weekly)'
+					caption: Bruttokate, KLVK (viikoittainen)
+				measure 'Gross Profit Margin MATG % (Weekly)'
+					caption: Bruttokate, KLVK, prosentteina (viikoittainen)
+				measure 'Gross Profit Margin PYC (Weekly)'
+					caption: Bruttokate, EDVVAL (viikoittainen)
+				measure 'Gross Profit Margin YTDOPY (Weekly)'
+					caption: Bruttokate, VAEDV (viikoittainen)
+				measure 'Gross Profit Margin YTDOPY % (Weekly)'
+					caption: Bruttokate, VAEDV, prosentteina (viikoittainen)
+				measure 'Gross Profit Margin PQC (Weekly)'
+					caption: Bruttokate, EDVNVAL (viikoittainen)
+				measure 'Gross Profit Margin QTDOPQ (Weekly)'
+					caption: Bruttokate, VNAEDVN (viikoittainen)
+				measure 'Gross Profit Margin QTDOPQ % (Weekly)'
+					caption: Bruttokate, VNAEDVN, prosentteina (viikoittainen)
+				measure 'Gross Profit Margin PWC (Weekly)'
+					caption: Bruttokate, EDVKVAL (viikoittainen)
+				measure 'Gross Profit Margin WTDOPW (Weekly)'
+					caption: Bruttokate, VKAEDVK (viikoittainen)
+				measure 'Gross Profit Margin WTDOPW % (Weekly)'
+					caption: Bruttokate, VKAEDVK, prosentteina (viikoittainen)
+				measure 'Gross Profit Margin AVG 4W (Weekly'
+					caption: Bruttokate, KA 4VK (viikoittainen)
+				measure 'Gross Profit Margin AVG 1Q (Weekly)'
+					caption: Bruttokate, KA 1Q (viikoittainen)
+				measure 'Gross Profit Margin AVG 1Y (Weekly)'
+					caption: Bruttokate, KA 1V (viikoittainen)
+				measure 'Cost Amount YTD (Weekly)'
+					caption: Kustannussumma, VA (viikoittainen)
+				measure 'Cost Amount QTD (Weekly)'
+					caption: Kustannussumma, VNA (viikoittainen)
+				measure 'Cost Amount MTD (Weekly)'
+					caption: Kustannussumma, KKA (viikoittainen)
+				measure 'Cost Amount WTD (Weekly)'
+					caption: Kustannussumma, VKA (viikoittainen)
+				measure 'Cost Amount PY (Weekly)'
+					caption: Kustannussumma, EDV (viikoittainen)
+				measure 'Cost Amount YOY % (Weekly)'
+					caption: Kustannussumma, VV, prosentteina (viikoittainen)
+				measure 'Cost Amount YOY (Weekly)'
+					caption: Kustannussumma, VV (viikoittainen)
+				measure 'Cost Amount PQ (Weekly)'
+					caption: Kustannussumma, EDVN (viikoittainen)
+				measure 'Cost Amount QOQ (Weekly)'
+					caption: Kustannussumma, VNVN (viikoittainen)
+				measure 'Cost Amount QOQ % (Weekly)'
+					caption: Kustannussumma, VNVN, prosentteina (viikoittainen)
+				measure 'Cost Amount PW (Weekly)'
+					caption: Kustannussumma, EDVK (viikoittainen)
+				measure 'Cost Amount WOW (Weekly)'
+					caption: Kustannussumma, VKVK (viikoittainen)
+				measure 'Cost Amount WOW % (Weekly)'
+					caption: Kustannussumma, VKVK, prosentteina (viikoittainen)
+				measure 'Cost Amount PP (Weekly)'
+					caption: Kustannussumma, EDK (viikoittainen)
+				measure 'Cost Amount POP (Weekly)'
+					caption: Kustannussumma, K-K (viikoittainen)
+				measure 'Cost Amount POP % (Weekly)'
+					caption: Kustannussumma, K-K, prosentteina (viikoittainen)
+				measure 'Cost Amount PYTD (Weekly)'
+					caption: Kustannussumma, EDVA (viikoittainen)
+				measure 'Cost Amount PQTD (Weekly)'
+					caption: Kustannussumma, EDVNA (viikoittainen)
+				measure 'Cost Amount YOYTD (Weekly)'
+					caption: Kustannussumma, VVTM (viikoittainen)
+				measure 'Cost Amount YOYTD % (Weekly)'
+					caption: Kustannussumma, VVTM, prosentteina (viikoittainen)
+				measure 'Cost Amount QOQTD (Weekly)'
+					caption: Kustannussumma, VNVNTM (viikoittainen)
+				measure 'Cost Amount QOQTD % (Weekly)'
+					caption: Kustannussumma, VNVNTM, prosentteina (viikoittainen)
+				measure 'Cost Amount PWTD (Weekly)'
+					caption: Kustannussumma, EDVKA (viikoittainen)
+				measure 'Cost Amount WOWTD (Weekly)'
+					caption: Kustannussumma, VKVKTM (viikoittainen)
+				measure 'Cost Amount WOWTD % (Weekly)'
+					caption: Kustannussumma, VKVKTM, prosentteina (viikoittainen)
+				measure 'Cost Amount MAT (364) (Weekly)'
+					caption: Kustannussumma, LVK (364) (viikoittainen)
+				measure 'Cost Amount PYMAT (364) (Weekly)'
+					caption: Kustannussumma, EDVLVK (364) (viikoittainen)
+				measure 'Cost Amount MATG (Weekly)'
+					caption: Kustannussumma, KLVK (viikoittainen)
+				measure 'Cost Amount MATG % (Weekly)'
+					caption: Kustannussumma, KLVK, prosentteina (viikoittainen)
+				measure 'Cost Amount PYC (Weekly)'
+					caption: Kustannussumma, EDVVAL (viikoittainen)
+				measure 'Cost Amount YTDOPY (Weekly)'
+					caption: Kustannussumma, VAEDV (viikoittainen)
+				measure 'Cost Amount YTDOPY % (Weekly)'
+					caption: Kustannussumma, VAEDV, prosentteina (viikoittainen)
+				measure 'Cost Amount PQC (Weekly)'
+					caption: Kustannussumma, EDVNVAL (viikoittainen)
+				measure 'Cost Amount QTDOPQ (Weekly)'
+					caption: Kustannussumma, VNAEDVN (viikoittainen)
+				measure 'Cost Amount QTDOPQ % (Weekly)'
+					caption: Kustannussumma, VNAEDVN, prosentteina (viikoittainen)
+				measure 'Cost Amount PWC (Weekly)'
+					caption: Kustannussumma, EDVKVAL (viikoittainen)
+				measure 'Cost Amount WTDOPW (Weekly)'
+					caption: Kustannussumma, VKAEDVK (viikoittainen)
+				measure 'Cost Amount WTDOPW % (Weekly)'
+					caption: Kustannussumma, VKAEDVK, prosentteina (viikoittainen)
+				measure 'Cost Amount AVG 4W (Weekly)'
+					caption: Kustannussumma, KA 4VK (viikoittainen)
+				measure 'Cost Amount AVG 1Q (Weekly)'
+					caption: Kustannussumma, KA 1Q (viikoittainen)
+				measure 'Cost Amount AVG 1Y (Weekly)'
+					caption: Kustannussumma, KA 1V (viikoittainen)
+				measure 'Cost Amount Non-Inv PY (Weekly)'
+					caption: Kustannussumma, ei-var., EDV (viikoittainen)
+				measure 'Cost Amount Non-Inv YOY % (Weekly)'
+					caption: Kustannussumma, ei-var., VV, prosentteina (viikoittainen)
+				measure 'Cost Amount Non-Inv YOY (Weekly)'
+					caption: Kustannussumma, ei-var., VV (viikoittainen)
+				measure 'Cost Amount Non-Inv PQ (Weekly)'
+					caption: Kustannussumma, ei-var., EDVN (viikoittainen)
+				measure 'Cost Amount Non-Inv QOQ (Weekly)'
+					caption: Kustannussumma, ei-var., VNVN (viikoittainen)
+				measure 'Cost Amount Non-Inv QOQ % (Weekly)'
+					caption: Kustannussumma, ei-var., VNVN, prosentteina (viikoittainen)
+				measure 'Cost Amount Non-Inv PW (Weekly)'
+					caption: Kustannussumma, ei-var., EDVK (viikoittainen)
+				measure 'Cost Amount Non-Inv WOW (Weekly)'
+					caption: Kustannussumma, ei-var., VKVK (viikoittainen)
+				measure 'Cost Amount Non-Inv WOW % (Weekly)'
+					caption: Kustannussumma, ei-var., VKVK, prosentteina (viikoittainen)
+				measure 'Cost Amount Non-Inv PP (Weekly)'
+					caption: Kustannussumma, ei-var., EDK (viikoittainen)
+				measure 'Cost Amount Non-Inv POP (Weekly)'
+					caption: Kustannussumma, ei-var., K-K (viikoittainen)
+				measure 'Cost Amount Non-Inv POP % (Weekly)'
+					caption: Kustannussumma, ei-var., K-K, prosentteina (viikoittainen)
+				measure 'Cost Amount Non-Inv PYTD (Weekly)'
+					caption: Kustannussumma, ei-var., EDVA (viikoittainen)
+				measure 'Cost Amount Non-Inv PQTD (Weekly)'
+					caption: Kustannussumma, ei-var., EDVNA (viikoittainen)
+				measure 'Cost Amount Non-Inv YOYTD (Weekly)'
+					caption: Kustannussumma, ei-var., VVTM (viikoittainen)
+				measure 'Cost Amount Non-Inv YOYTD % (Weekly)'
+					caption: Kustannussumma, ei-var., VVTM, prosentteina (viikoittainen)
+				measure 'Cost Amount Non-Inv QOQTD (Weekly)'
+					caption: Kustannussumma, ei-var., VNVNTM (viikoittainen)
+				measure 'Cost Amount Non-Inv QOQTD % (Weekly)'
+					caption: Kustannussumma, ei-var., VNVNTM, prosentteina (viikoittainen)
+				measure 'Cost Amount Non-Inv PWTD (Weekly)'
+					caption: Kustannussumma, ei-var., EDVKA (viikoittainen)
+				measure 'Cost Amount Non-Inv WOWTD (Weekly)'
+					caption: Kustannussumma, ei-var., VKVKTM (viikoittainen)
+				measure 'Cost Amount Non-Inv WOWTD % (Weekly)'
+					caption: Kustannussumma, ei-var., VKVKTM, prosentteina (viikoittainen)
+				measure 'Cost Amount Non-Inv MAT (364) (Weekly)'
+					caption: Kustannussumma, ei-var., LVK (364) (viikoittainen)
+				measure 'Cost Amount Non-Inv PYMAT (364) (Weekly)'
+					caption: Kustannussumma, ei-var., EDVLVK (364) (viikoittainen)
+				measure 'Cost Amount Non-Inv MATG (Weekly)'
+					caption: Kustannussumma, ei-var., KLVK (viikoittainen)
+				measure 'Cost Amount Non-Inv MATG % (Weekly)'
+					caption: Kustannussumma, ei-var., KLVK, prosentteina (viikoittainen)
+				measure 'Cost Amount Non-Inv PYC (Weekly)'
+					caption: Kustannussumma, ei-var., EDVVAL (viikoittainen)
+				measure 'Cost Amount Non-Inv YTDOPY (Weekly)'
+					caption: Kustannussumma, ei-var., VAEDV (viikoittainen)
+				measure 'Cost Amount Non-Inv YTDOPY % (Weekly)'
+					caption: Kustannussumma, ei-var., VAEDV, prosentteina (viikoittainen)
+				measure 'Cost Amount Non-Inv PQC (Weekly)'
+					caption: Kustannussumma, ei-var., EDVNVAL (viikoittainen)
+				measure 'Cost Amount Non-Inv QTDOPQ (Weekly)'
+					caption: Kustannussumma, ei-var., VNAEDVN (viikoittainen)
+				measure 'Cost Amount Non-Inv QTDOPQ % (Weekly)'
+					caption: Kustannussumma, ei-var., VNAEDVN, prosentteina (viikoittainen)
+				measure 'Cost Amount Non-Inv PWC (Weekly)'
+					caption: Kustannussumma, ei-var., EDVKVAL (viikoittainen)
+				measure 'Cost Amount Non-Inv WTDOPW (Weekly)'
+					caption: Kustannussumma, ei-var., VKAEDVK (viikoittainen)
+				measure 'Cost Amount Non-Inv WTDOPW % (Weekly)'
+					caption: Kustannussumma, ei-var., VKAEDVK, prosentteina (viikoittainen)
+				measure 'Cost Amount Non-Inv AVG 4W (Weekly)'
+					caption: Kustannussumma, ei-var., KA 4VK (viikoittainen)
+				measure 'Cost Amount Non-Inv AVG 1Q (Weekly)'
+					caption: Kustannussumma, ei-var., KA 1Q (viikoittainen)
+				measure 'Cost Amount Non-Inv AVG 1Y (Weekly)'
+					caption: Kustannussumma, ei-var., KA 1V (viikoittainen)
+				measure 'Cost Amount Non-Inv YTD (Weekly)'
+					caption: Kustannussumma, ei-var., VA (viikoittainen)
+				measure 'Cost Amount Non-Inv QTD (Weekly)'
+					caption: Kustannussumma, ei-var., VNA (viikoittainen)
+				measure 'Cost Amount Non-Inv MTD (Weekly)'
+					caption: Kustannussumma, ei-var., KKA (viikoittainen)
+				measure 'Cost Amount Non-Inv WTD (Weekly)'
+					caption: Kustannussumma, ei-var., VKA (viikoittainen)
+			table 'Localized Labels'
+				measure 'My Report Title'
+					caption: Oman raportin otsikko
+				measure 'My Button Caption'
+					caption: Oma painikkeen otsikko
+				measure 'My Visual Title'
+					caption: Oma visuaalinen otsikko
+				measure 'Top 5 Items Gross Profit'
+					caption: 5 parasta nimikettä bruttovoiton mukaan
+				measure 'Top 5 Salesperson'
+					caption: 5 parasta myyjää
+				measure 'Top 5 Customers'
+					caption: 5 suurinta asiakasta
+				measure 'Document Value'
+					caption: Asiakirjan arvo
+				measure 'Document Count'
+					caption: Asiakirjamäärä
+				measure 'Sales Amount and Sales Amount AVG 30D (Fiscal) by Fiscal Month Year'
+					caption: Myyntisumma ja Myyntisumman keskiarvo 30 päivän ajalta (kirjanpito) kirjanpitokuukauden vuoden mukaan
+				measure 'Sales Overview'
+					caption: Myynnin yleiskatsaus
+				measure 'Daily Sales'
+					caption: Päivittäinen myynti
+				measure 'Moving Averages'
+					caption: Liukuvat keskiarvot
+				measure 'Moving Annual Total'
+					caption: Liukuva vuosittainen kokonaissumma
+				measure 'Previous Year MAT and MAT by Fiscal Month Year'
+					caption: Edellisen vuoden LVK ja LVK kirjanpidon kuukauden vuoden mukaan
+				measure 'Period-Over-Period Growth'
+					caption: Kasku kaudesta toiseen
+				measure Month-To-Date
+					caption: Kuukausi päivämäärään
+				measure '% Share of Sales'
+					caption: Prosenttiosuus myynnistä
+				measure 'Sales Amount, Sales Quantity and Gross Profit by Item Category Code'
+					caption: Myyntisumma, myyntimäärä ja bruttovoitto nimikeluokan koodin mukaan
+				measure 'Sales by Item'
+					caption: Nimikekohtainen myynti
+				measure 'Sales by Customer'
+					caption: Asiakaskohtainen myynti
+				measure 'Sales Amount, Sales Quantity and Gross Profit by Customer Name'
+					caption: Myyntisumma, myyntimäärä ja bruttovoitto asiakkaan nimen mukaan
+				measure 'Sales by Salesperson'
+					caption: Myynti myyjän mukaan
+				measure 'Sales Amount, Sales Quantity and Gross Profit by Salesperson Code'
+					caption: Myyntisumma, myyntimäärä ja bruttovoitto myyjäkoodin mukaan
+				measure 'Actual vs Budget Quantity'
+					caption: Toteutunut vs. budjetoitu määrä
+				measure 'Actual vs Budget Amount'
+					caption: Toteutunut vs. budjetoitu summa
+				measure Sales
+					caption: Myynti
+				measure 'for Business Central'
+					caption: Business Centralille
+				measure 'USE, EDIT AND BUILD YOUR OWN REPORTS'
+					caption: KÄYTÄ, MUOKKAA JA LUO OMIA RAPORTTEJA
+				measure 'Sales includes a variety of pre-built reports to help you see your data immediately. You are able to edit these reports or build your own report from scratch.'
+					caption: Myynti sisältää erilaisia esimääritettyjä raportteja, joiden avulla voit tarkastella tietojasi välittömästi. Voit muokata näitä raportteja tai luoda oman raportin alusta alkaen.
+				measure 'CONNECT YOUR DATA'
+					caption: YHDISTÄ TIETOSI
+				measure '1. Download the Sales Connector for Power BI'
+					caption: 1. Lataa Sales Connector for Power BI
+				measure '2. Configure Dynamics 365 Business Central'
+					caption: 2. Määritä Dynamics 365 Business Central
+				measure 'HELP AND SUPPORT'
+					caption: OHJE JA TUKI
+				measure 'For help and support with your new report please visit the Analytics overview documentation.'
+					caption: Lisätietoja ja tukea uudelle raportillesi löydät analytiikan yleiskuvauksesta.
+				measure 'OTHER POWER BI REPORTS'
+					caption: MUUT POWER BI -RAPORTIT
+				measure PURCHASE
+					caption: OSTO
+				measure FINANCE
+					caption: TALOUSHALLINTO
+				measure REBATES
+					caption: HYVITYKSET
+				measure INVENTORY
+					caption: VARASTO
+				measure JOBS
+					caption: PROJEKTIT
+				measure 'SALES '
+					caption: "MYYNTI "
+				measure 'Sales Amount '
+					caption: "Myyntisumma "
+				measure 'Sales Amount and Sales Amount Average 30 Days (Fiscal) by Fiscal Month Year'
+					caption: Myyntisumma ja Myyntisumman keskiarvo 30 päivän ajalta (kirjanpito) kirjanpitokuukauden vuoden mukaan
+				measure 'Previous Year and Current Moving Annual Total by Fiscal Month Year'
+					caption: Edellinen vuosi ja nykyinen liukuva vuosittainen kokonaissumma kirjanpitokuukauden vuoden mukaan
+				measure 'Sales Amount Period-over-Period (Fiscal) and Sales Amount by Fiscal Month Year'
+					caption: Myyntisumma kaudesta toiseen (kirjanpito) ja Myyntisumma kirjanpitokuukauden vuoden mukaan
+				measure 'Sales Amount Month-to-Date (Fiscal) by Date'
+					caption: Myyntisumma – kuukausi pvm:ään asti (kirjanpito) pvm:n mukaan
+				measure 'Last Refreshed'
+					caption: Päivitetty viimeksi
+				measure 'Company Name'
+					caption: Yrityksen nimi
+				measure 'Sales Amount by Salesperson'
+					caption: Myyntisumma myyjän mukaan
+				measure 'Gross Profit by Item'
+					caption: Bruttovoitto nimikkeen mukaan
+				measure 'Sales Amount by Customer'
+					caption: Myyntisumma asiakkaan mukaan
+				measure 'Sales Amount and Sales Amount Average 30 Days (Fiscal) by Fiscal Year'
+					caption: Myyntisumma ja Myyntisumman keskiarvo 30 päivän ajalta (kirjanpito) kirjanpitovuoden mukaan
+				measure 'Monthly Comparison of Previous Year and Current Year Moving Annual Totals'
+					caption: Edellisen vuoden ja kuluvan vuoden liukuvien vuosittaisten kokonaissummien kuukausivertailu
+				measure 'Sales Amount Period-over-Period (Fiscal) and Sales Amount by Fiscal Year'
+					caption: Myyntisumma kaudesta toiseen (kirjanpito) ja Myyntisumma kirjanpitovuoden mukaan
+				measure 'Sales Amount by Item Category'
+					caption: Myyntisumma nimikeluokan mukaan
+				measure 'Sales Metrics by Salesperson'
+					caption: Myyntimittarit myyjän mukaan
+				measure 'Sales by Location'
+					caption: Myynti sijainnin mukaan
+				measure 'Sales Amount by Location'
+					caption: Myyntisumma sijainnin mukaan
+				measure 'Actual vs Budget'
+					caption: Toteutunut vrt. budjetoitu
+				measure 'Actual vs Budget Purchase Analysis by Item Category'
+					caption: Toteutunut vrt. budjetin oston analyysi nimikeluokan mukaan
+				measure 'Sales Drillthrough'
+					caption: Myyntiin porautuminen
+				measure 'Detailed Sales Ledger'
+					caption: Yksityiskohtainen myyntikirjanpito
+				measure 'Sales Amount by Month'
+					caption: Myyntisumma kuukauden mukaan
+				measure PROJECTS
+					caption: PROJEKTIT
+				measure MANUFACTURING
+					caption: TUOTANTO
+				measure 'Month-To-Date Sales Performance'
+					caption: Kuukausi pvm:ään asti – myynnin suorituskyky
+				measure 'Top Customer Sales Contributions'
+					caption: Parhaan asiakkaan myyntikontribuutiot
+				measure 'Daily Sales by Date'
+					caption: Päivittäinen myynti päivämäärittäin
+				measure 'Daily Sales by Entry No'
+					caption: Päivittäinen myynti tapahtumanumeroittain
+				measure 'Daily Sales Details'
+					caption: Päivittäinen myynti – Tiedot
+				measure 'Moving Annual Total Details'
+					caption: Liukuva vuosittainen kokonaissumma – Tiedot
+				measure 'Period-Over-Period Growth Details'
+					caption: Kasvu kaudesta toiseen – Tiedot
+				measure 'Month-To-Date Details'
+					caption: Kuukausi pvm:ään asti – Tiedot
+				measure 'Sales by Item Category Over Time'
+					caption: Myynti nimikeluokittain ajan kuluessa
+				measure 'Sales by Item Details'
+					caption: Myynti nimikkeittäin – Tiedot
+				measure 'Profitability by Item Category'
+					caption: Kannattavuus nimikeluokittain
+				measure 'Gross Profit Pareto Analysis by Customer'
+					caption: Bruttovoiton Pareto-analyysi asiakkaittain
+				measure 'Sales by Customer Details'
+					caption: Myynti asiakkaittain – Tiedot
+				measure 'Estimated Opportunity Value'
+					caption: Arvioitu mahdollisuuden arvo
+				measure 'Sales by Salesperson Details'
+					caption: Myynti myyjittäin – Tiedot
+				measure 'Profitability by Salesperson'
+					caption: Kannattavuus myyjittäin
+				measure 'Sales Amount by Customer Location'
+					caption: Myyntisumma asiakkaan sijainnin mukaan
+				measure 'Sales by Location Details'
+					caption: Myynti sijainneittain – Tiedot
+				measure 'Sales Demographics'
+					caption: Myynnin demografia
+				measure 'Sales Metrics by Item Category'
+					caption: Myyntimittarit nimekeluokittain
+				measure 'Sales by Customer Posting Group'
+					caption: Myynti asiakkaan kirjausryhmän mukaan
+				measure 'Sales by Document Type'
+					caption: Myynti asiakirjatyypeittäin
+				measure 'No. of Customers by Location'
+					caption: Asiakkaiden määrä sijainneittain
+				measure 'Sales Decomposition'
+					caption: Myynnin purkaminen
+				measure 'Sales Amount by Item Category Description'
+					caption: Myyntisumma nimikeluokittain – Kuvaus
+				measure 'Sales Quantity by Salesperson Name'
+					caption: Myyntimäärä myyjän nimen mukaan
+				measure 'Key Sales Influencers'
+					caption: Tärkeimmät myynnin vaikuttajat
+				measure 'Sales Amount by Item Category Code'
+					caption: Myyntisumma nimikeluokan koodin mukaan
+				measure 'Opportunity Overview'
+					caption: Mahdollisuudet – Yleiskatsaus
+				measure 'Opportunity Value by Status'
+					caption: Mahdollisuuden arvo tiloittain
+				measure 'Open Opportunities by Sales Cycle'
+					caption: Avoimet mahdollisuudet myyntisykleittäin
+				measure 'Open Opportunities by Sales Cycle Stage'
+					caption: Avoimet mahdollisuudet myyntisyklin vaiheen mukaan
+				measure 'Estimated Value by Salesperson'
+					caption: Arvioitu arvo myyjittäin
+				measure 'Estimated Value by Contact Location'
+					caption: Arvioitu arvo kontaktin sijainnin mukaan
+				measure 'Sales Quote Overview'
+					caption: Myyntitarjous – Yleiskatsaus
+				measure 'Sales Quotes by Customer Details'
+					caption: Myyntitarjous asiakkaittain – Tiedot
+				measure 'Sales Quote Amount by Salesperson'
+					caption: Myyntitarjoussumma myyjittäin
+				measure 'Sales Quote Amount Over Time'
+					caption: Myyntitarjoussumma ajan kuluessa
+				measure 'Sales Quote Amount by Item Category Code'
+					caption: Myyntitarjoussumma nimikeluokan koodin mukaan
+				measure 'Sales Returns Overview'
+					caption: Myyntipalautukset – Yleiskatsaus
+				measure 'Sales Returns by Customer'
+					caption: Myyntipalautukset asiakkaittain
+				measure 'Sales Return Amount by Reason Code'
+					caption: Myyntipalautussumma syykoodeittain
+				measure 'Sales Return Amount Over Time'
+					caption: Myyntipalautussumma ajan kuluessa
+				measure 'Sales Return Amount by Item Category Code'
+					caption: Myyntipalautussumma nimikeluokan koodin mukaan
+				measure 'Sales Opportunity Analysis'
+					caption: Myyntimahdollisuusanalyysi
+				measure 'Estimated Value by Opportunity'
+					caption: Arvioitu arvo mahdollisuuksittain
+				measure 'Opportunities by Closed Opportunity Code'
+					caption: Mahdollisuudet suljetun mahdollisuuden koodin mukaan
+				measure 'Opportunities by Salesperson Details'
+					caption: Mahdollisuudet myyjittäin – Tiedot
+				measure 'Opportunities by Closed Status'
+					caption: Mahdollisuudet suljetun tilan mukaan
+				measure 'Sales Drillthrough Details'
+					caption: Myyntiin porautuminen – Tiedot
+			table COMPANY
+				caption: YRITYS
+				measure 'Company Label'
+					caption: Yrityksen selite
+			table 'Sales Budget Name'
+				caption: Myyntibudjetin nimi
+				column 'Sales Budget Description'
+					caption: Myyntibudjetin kuvaus
+			table Opportunities
+				caption: Mahdollisuudet
+				column 'Opportunity No.'
+					caption: Mahdollisuusnro
+				column 'Opportunity Description'
+					caption: Kuvaus
+				column 'Opportunity Creation Date'
+					caption: Mahdollisuuden luontipäivä
+				column 'Opportunity Status'
+					caption: Tila
+				column 'Opportunity Closed'
+					caption: Suljettu
+				column 'Opportunity Sales Document No.'
+					caption: Myyntiasiakirjan nro
+				column 'Opportunity Sales Document Type'
+					caption: Myyntiasiakirjan tyyppi
+				measure 'Opportunity Sales Quote Amount'
+					caption: Mahdollisuuden myyntitarjoussumma
+			table 'Opportunity Entries'
+				caption: Mahdollisuustapahtumat
+				column 'Opportunity No.'
+					caption: Mahdollisuusnro
+				column 'Opportunity Entry No.'
+					caption: Mahdollisuustapahtumanro
+				column Active
+					caption: Aktiivinen
+				column 'Action Taken'
+					caption: Suoritettu toiminto
+				column 'Date of Change'
+					caption: Muutoksen pvm
+				column 'Estimated Close Date'
+					caption: Arvioitu sulkemispvm
+				column 'Completed (%)'
+					caption: Valmis (%)
+				column 'Chances of Success (%)'
+					caption: Onnistumis-%
+				column 'Probability (%)'
+					caption: Todennäköisyys (%)
+				column 'Contact No.'
+					caption: Yhteyshenkilön nro
+				measure 'Calculated Current Value'
+					caption: Laskettu nykyarvo
+				measure 'Estimated Value'
+					caption: Arvioitu arvo
+				measure 'No. of Opportunities'
+					caption: Mahdollisuuksien määrä
+				measure 'Active Calculated Current Value'
+					caption: Aktiivinen laskettu nykyarvo
+				measure 'Active Estimated Value'
+					caption: Aktiivinen arvioitu arvo
+				measure 'Average Chance of Success %'
+					caption: Onnistumis-% keskimäärin
+				measure 'Average Completed %'
+					caption: Valmistumis-% keskimäärin
+				measure 'Average Probability %'
+					caption: Todennäköisyys-% keskimäärin
+				measure 'Opportunity Entries Back Link'
+					caption: Mahdollisuustapahtumat – Takaisin-linkki
+				measure 'No. of Won Opportunities'
+					caption: Voitettujen mahdollisuuksien määrä
+				measure 'No. of Lost Opportunities'
+					caption: Menetettyjen mahdollisuuksien määrä
+				measure 'Win/Loss %'
+					caption: Voitto-/tappio-%
+				measure 'Active Chance of Success %'
+					caption: Aktiivinen onnistumis-%
+			table Contacts
+				caption: Kontaktit
+				column 'Contact No.'
+					caption: Yhteyshenkilön nro
+				column 'Contact Name'
+					caption: Kontaktin nimi
+				column 'Contact Company No.'
+					caption: Yrityksen nro
+				column 'Contact Company Name'
+					caption: Yrityksen nimi
+				column 'Contact Address'
+					caption: Kontaktin osoite
+				column 'Contact Address 2'
+					caption: Kontaktin osoite 2
+				column 'Contact City'
+					caption: Kontaktin paikkakunta
+				column 'Contact Post Code'
+					caption: Kontaktin postinumero
+				column 'Contact County'
+					caption: Kontaktin lääni
+				column 'Contact Country/Region Code'
+					caption: Kontaktin maa-/aluekoodi
+				column 'Contact No. & Name'
+					caption: Kontaktin numero ja nimi
+				column 'Contact Type'
+					caption: Kontaktin tyyppi
+			table 'Reason Codes'
+				caption: Syykoodit
+				column 'Return Reason Code'
+					caption: Palautuksen syykoodi
+				column 'Return Reason Description'
+					caption: Palautussyyn kuvaus
+			table 'Item Category'
+				caption: Nimikeluokka
+				column 'Item Category Code'
+					caption: Nimikeluokan koodi
+				column 'Item Category Description'
+					caption: Nimikeluokan kuvaus
+				hierarchy 'Item Category Code Hierarchy'
+					caption: Nimikeluokan koodihierarkia
+					level 'Item Category Code Level 1'
+						caption: Nimikeluokan kooditaso 1
+					level 'Item Category Code Level 2'
+						caption: Nimikeluokan kooditaso 2
+					level 'Item Category Code Level 3'
+						caption: Nimikeluokan kooditaso 3
+					level 'Item Category Code'
+						caption: Nimikeluokan koodi
+			table 'Pareto Scale'
+				caption: Pareto-asteikko
+				column Value
+					caption: Arvo
+			table 'Sales Cycle Stages'
+				caption: Myyntisyklin vaiheet
+				column 'Sales Cycle Code'
+					caption: Myyntisyklin koodi
+				column 'Sales Cycle Stage'
+					caption: Myyntisyklin vaihe
+				column 'Sales Cycle Stage Description'
+					caption: Myyntisyklin vaiheen kuvaus
+			table 'Close Opportunity Codes'
+				caption: Sulje mahdollisuus -koodit
+				column 'Close Opportunity Code'
+					caption: Sulje mahdollisuus -koodi
+				column 'Close Opportunity Type'
+					caption: Sulje mahdollisuus -tyyppi
+				column 'Close Opportunity Description'
+					caption: Sulje mahdollisuus -kuvaus
+

@@ -1,0 +1,57 @@
+table 'Routing Link'
+	isHidden
+	lineageTag: cd950cc8-17b7-48d2-a94f-f136fe86537f
+
+	column 'Routing Link Code'
+		dataType: string
+		isHidden
+		lineageTag: a1dd1d32-f6bc-48f9-8ea5-e1d42ba182f6
+		summarizeBy: none
+		sourceColumn: Routing Link Code
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Routing Link Description'
+		dataType: string
+		isHidden
+		lineageTag: ac3a3806-8782-4a48-b3be-d759a206f085
+		summarizeBy: none
+		sourceColumn: Routing Link Description
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Routing Link' = m
+		mode: import
+		queryGroup: 'Dimension Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY,API_ENDPOINT, []),
+				    TableData = Source{[Name="routingLinks",Signature="table"]}[Data],
+				    #"Changed Type" = Table.TransformColumnTypes(
+				        TableData,
+				        {
+				            {"code", type text},
+				            {"description", type text}
+				        }
+				    ),
+				    #"Renamed Columns" = Table.RenameColumns(
+				        #"Changed Type",
+				        {
+				            {"code", "Routing Link Code"},
+				            {"description", "Routing Link Description"}
+				        }
+				    ),
+				    #"Removed Columns" = Table.RemoveColumns(#"Renamed Columns",{"ETag"})
+				in
+				    #"Removed Columns"
+
+	changedProperty = IsHidden
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

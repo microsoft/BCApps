@@ -1,0 +1,866 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=6.0.2.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=6.0.2.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="5da64649-f155-4cb5-a110-43dacd41b0e6.caption" xml:space="preserve">
+    <value>Artikel</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="5da64649-f155-4cb5-a110-43dacd41b0e6.column.5656dac9-f4ca-4023-aff0-2e4830192c07.caption" xml:space="preserve">
+    <value>Artikelnr. en -beschrijving</value>
+    <comment>table [Item] column [Item No. &amp; Description]</comment>
+  </data>
+  <data name="5da64649-f155-4cb5-a110-43dacd41b0e6.column.20ef9aeb-b3c0-408e-b877-46d3850c8f2e.caption" xml:space="preserve">
+    <value>Artikelnr.</value>
+    <comment>table [Item] column [Item No.]</comment>
+  </data>
+  <data name="5da64649-f155-4cb5-a110-43dacd41b0e6.column.afd52416-5b40-4cc5-8842-d81d4ac487ce.caption" xml:space="preserve">
+    <value>Artikelbeschrijving</value>
+    <comment>table [Item] column [Item Description]</comment>
+  </data>
+  <data name="5da64649-f155-4cb5-a110-43dacd41b0e6.column.02c4b8bf-66d8-45ac-bcae-b0855f1f4185.caption" xml:space="preserve">
+    <value>Basiseenheid artikel</value>
+    <comment>table [Item] column [Item Base Unit of Measure]</comment>
+  </data>
+  <data name="5da64649-f155-4cb5-a110-43dacd41b0e6.column.eecaa41f-295f-4501-890e-a32765d93e8f.caption" xml:space="preserve">
+    <value>Voorraadboekingsgroep artikel</value>
+    <comment>table [Item] column [Item Inventory Posting Group]</comment>
+  </data>
+  <data name="5da64649-f155-4cb5-a110-43dacd41b0e6.column.c24302d5-7972-4f74-8e55-874d4f707d78.caption" xml:space="preserve">
+    <value>Bewerkingsplannr. artikel</value>
+    <comment>table [Item] column [Item Routing No.]</comment>
+  </data>
+  <data name="5da64649-f155-4cb5-a110-43dacd41b0e6.column.8743b79c-8583-4ec2-9901-6e6ea960fe59.caption" xml:space="preserve">
+    <value>Prod.-stuklijstnr. artikel</value>
+    <comment>table [Item] column [Item Production BOM No.]</comment>
+  </data>
+  <data name="5da64649-f155-4cb5-a110-43dacd41b0e6.column.0befc772-735c-4c28-aa31-8db003660911.caption" xml:space="preserve">
+    <value>Aanvullingsmethode artikel</value>
+    <comment>table [Item] column [Item Replenishment System]</comment>
+  </data>
+  <data name="5da64649-f155-4cb5-a110-43dacd41b0e6.column.28f5d160-ac70-43b2-a10b-b2e91c62e2c2.caption" xml:space="preserve">
+    <value>Capaciteitsoverheadkosten artikel (één niv.)</value>
+    <comment>table [Item] column [Item Single-Level Cap. Ovhd Cost]</comment>
+  </data>
+  <data name="5da64649-f155-4cb5-a110-43dacd41b0e6.column.98390536-11e4-482a-ac0a-906243b14400.caption" xml:space="preserve">
+    <value>Capaciteitskosten artikel (één niv.)</value>
+    <comment>table [Item] column [Item Single-Level Capacity Cost]</comment>
+  </data>
+  <data name="5da64649-f155-4cb5-a110-43dacd41b0e6.column.b3407160-b83b-417a-a932-4cc57e1b575e.caption" xml:space="preserve">
+    <value>Materiaalkosten artikel (één niv.)</value>
+    <comment>table [Item] column [Item Single-Level Material Cost]</comment>
+  </data>
+  <data name="5da64649-f155-4cb5-a110-43dacd41b0e6.column.ef2c8689-ff33-4ba2-aa2b-00459474ec83.caption" xml:space="preserve">
+    <value>Prod.-overheadkosten artikel (één niv.)</value>
+    <comment>table [Item] column [Item Single-Level Mfg. Ovhd Cost]</comment>
+  </data>
+  <data name="5da64649-f155-4cb5-a110-43dacd41b0e6.column.bc386578-fb89-486b-a19f-4fe02e91af4e.caption" xml:space="preserve">
+    <value>Uitbestedingskosten artikel (één niv.)</value>
+    <comment>table [Item] column [Item Single-Level Subcontrd. Cost]</comment>
+  </data>
+  <data name="5da64649-f155-4cb5-a110-43dacd41b0e6.column.ae4f3278-7d30-4ffc-ba49-3cd9d17d77b7.caption" xml:space="preserve">
+    <value>Niet-voorraadkosten materiaal artikel (één niv.)</value>
+    <comment>table [Item] column [Item Single-Lvl Mat. Non-Invt. Cost]</comment>
+  </data>
+  <data name="5da64649-f155-4cb5-a110-43dacd41b0e6.column.852f716b-7d35-4e3a-aa76-a9efd2693792.caption" xml:space="preserve">
+    <value>Cap.-overheadkosten artikel (alle niv.)</value>
+    <comment>table [Item] column [Item Rolled-up Cap. Overhead Cost]</comment>
+  </data>
+  <data name="5da64649-f155-4cb5-a110-43dacd41b0e6.column.d0ff0d91-d8c2-4e36-83cb-cdfec66585f9.caption" xml:space="preserve">
+    <value>Capaciteitskosten artikel (alle niv.)</value>
+    <comment>table [Item] column [Item Rolled-up Capacity Cost]</comment>
+  </data>
+  <data name="5da64649-f155-4cb5-a110-43dacd41b0e6.column.9c90be21-1ae1-40c7-a57a-b629afe600d5.caption" xml:space="preserve">
+    <value>Niet-voorraadkosten materiaal artikel (alle niv.)</value>
+    <comment>table [Item] column [Item Rolled-up Mat. Non-Invt. Cost]</comment>
+  </data>
+  <data name="5da64649-f155-4cb5-a110-43dacd41b0e6.column.4c03ff40-0f33-49e9-84c7-07a4d33be490.caption" xml:space="preserve">
+    <value>Materiaalkosten artikel (alle niv.)</value>
+    <comment>table [Item] column [Item Rolled-up Material Cost]</comment>
+  </data>
+  <data name="5da64649-f155-4cb5-a110-43dacd41b0e6.column.3f76a68a-534a-4864-bf9f-552f960eedfa.caption" xml:space="preserve">
+    <value>Prod.-overheadkosten artikel (alle niv.)</value>
+    <comment>table [Item] column [Item Rolled-up Mfg. Ovhd Cost]</comment>
+  </data>
+  <data name="5da64649-f155-4cb5-a110-43dacd41b0e6.column.5d9cf4cf-6fec-4a1e-a3a3-bcb0ea115eac.caption" xml:space="preserve">
+    <value>Uitbestedingskosten artikel (alle niv.)</value>
+    <comment>table [Item] column [Item Rolled-up Subcontracted Cost]</comment>
+  </data>
+  <data name="5da64649-f155-4cb5-a110-43dacd41b0e6.column.339d3a30-f857-46b7-ad92-6ab83edeaa16.caption" xml:space="preserve">
+    <value>% artikeluitval</value>
+    <comment>table [Item] column [Item Scrap %]</comment>
+  </data>
+  <data name="58da9046-bec9-4e35-96e2-a7edfecc35f4.caption" xml:space="preserve">
+    <value>Locatie</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="58da9046-bec9-4e35-96e2-a7edfecc35f4.column.1c7fecd9-ada1-4528-a9c3-eb37889e9a8e.caption" xml:space="preserve">
+    <value>Locatiecode</value>
+    <comment>table [Location] column [Location Code]</comment>
+  </data>
+  <data name="58da9046-bec9-4e35-96e2-a7edfecc35f4.column.147ca799-b9fc-47ed-a5f6-986f9bcdb248.caption" xml:space="preserve">
+    <value>Locatienaam</value>
+    <comment>table [Location] column [Location Name]</comment>
+  </data>
+  <data name="58da9046-bec9-4e35-96e2-a7edfecc35f4.column.16e5e619-ae0f-4cf0-8bc4-49f2a2f7322c.caption" xml:space="preserve">
+    <value>Opslaglocatiecode locatieherwaardering</value>
+    <comment>table [Location] column [Location Adjustment Bin Code]</comment>
+  </data>
+  <data name="cb2fa5ad-1ff6-4280-af99-b2c5b09058f6.caption" xml:space="preserve">
+    <value>Waardeposten</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="cb2fa5ad-1ff6-4280-af99-b2c5b09058f6.column.5043c6f8-a275-4b24-8c08-90162c69b86b.caption" xml:space="preserve">
+    <value>Postnr.</value>
+    <comment>table [Value Entries] column [Entry No.]</comment>
+  </data>
+  <data name="cb2fa5ad-1ff6-4280-af99-b2c5b09058f6.column.1e808af0-77dd-445d-a6ba-e17217be8eac.caption" xml:space="preserve">
+    <value>Artikelboekingssoort</value>
+    <comment>table [Value Entries] column [Item Ledger Entry Type]</comment>
+  </data>
+  <data name="cb2fa5ad-1ff6-4280-af99-b2c5b09058f6.column.c2a60907-a9cc-4c05-b04c-4eec12adbcc1.caption" xml:space="preserve">
+    <value>Documenttype</value>
+    <comment>table [Value Entries] column [Document Type]</comment>
+  </data>
+  <data name="cb2fa5ad-1ff6-4280-af99-b2c5b09058f6.measure.678897b1-b135-48d8-b0de-ba1e3df1ea3b.caption" xml:space="preserve">
+    <value>Beginsaldo kosten geboekt naar grootboek</value>
+    <comment>table [Value Entries] measure [Beginning Balance Cost Posted to G/L]</comment>
+  </data>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=6.0.2.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="cb2fa5ad-1ff6-4280-af99-b2c5b09058f6.measure.b0997b9b-0dbe-4317-956f-f16354e345ab.caption" xml:space="preserve">
+    <value>Beginsaldo verwachte kosten geboekt naar grootboek</value>
+    <comment>table [Value Entries] measure [Beginning Balance Expected Cost Posted to G/L]</comment>
+  </data>
+  <data name="cb2fa5ad-1ff6-4280-af99-b2c5b09058f6.measure.06a7af57-7f92-4c5f-8eb0-7a071be4823c.caption" xml:space="preserve">
+    <value>Beginsaldo kostenbedrag (werkelijk)</value>
+    <comment>table [Value Entries] measure [Beginning Balance Cost Amount (Actual)]</comment>
+  </data>
+  <data name="cb2fa5ad-1ff6-4280-af99-b2c5b09058f6.measure.ca4133c3-1e2c-4dfe-8687-3554f834a40a.caption" xml:space="preserve">
+    <value>Beginsaldo kostenbedrag (verwacht)</value>
+    <comment>table [Value Entries] measure [Beginning Balance Cost Amount (Expected)]</comment>
+  </data>
+  <data name="cb2fa5ad-1ff6-4280-af99-b2c5b09058f6.measure.5ee70734-3c7e-4538-ab22-86be20c6af87.caption" xml:space="preserve">
+    <value>Beginsaldo kostenbedrag (incl. verwachte kosten)</value>
+    <comment>table [Value Entries] measure [Beginning Balance Cost Amount (Incl. Exp Cost)]</comment>
+  </data>
+  <data name="cb2fa5ad-1ff6-4280-af99-b2c5b09058f6.measure.07267191-c77b-4362-b4ba-b0d2a88ef3d7.caption" xml:space="preserve">
+    <value>Kostenbedrag (werkelijk)</value>
+    <comment>table [Value Entries] measure [Cost Amount (Actual)]</comment>
+  </data>
+  <data name="cb2fa5ad-1ff6-4280-af99-b2c5b09058f6.measure.283c0363-f568-49ac-8be4-b4137efa0661.caption" xml:space="preserve">
+    <value>Kostenbedrag (verwacht)</value>
+    <comment>table [Value Entries] measure [Cost Amount (Expected)]</comment>
+  </data>
+  <data name="cb2fa5ad-1ff6-4280-af99-b2c5b09058f6.measure.7c144933-c690-4019-bb13-bb7f4ca119f5.caption" xml:space="preserve">
+    <value>Kosten geboekt naar grootboek</value>
+    <comment>table [Value Entries] measure [Cost Posted to G/L]</comment>
+  </data>
+  <data name="cb2fa5ad-1ff6-4280-af99-b2c5b09058f6.measure.8f6094eb-559a-46c8-8a9a-1a7eea4c6aa9.caption" xml:space="preserve">
+    <value>Verwachte kosten geboekt naar grootboek</value>
+    <comment>table [Value Entries] measure [Expected Cost Posted to G/L]</comment>
+  </data>
+  <data name="cb2fa5ad-1ff6-4280-af99-b2c5b09058f6.measure.4320f265-c69e-4c45-b2b9-f81800026dbc.caption" xml:space="preserve">
+    <value>Eindsaldo kostenbedrag (incl. verwachte kosten)</value>
+    <comment>table [Value Entries] measure [Ending Balance Cost Amount (Incl. Exp Cost)]</comment>
+  </data>
+  <data name="cb2fa5ad-1ff6-4280-af99-b2c5b09058f6.measure.d5584326-4d62-45d8-a349-18811247b117.caption" xml:space="preserve">
+    <value>Eindsaldo kosten geboekt naar grootboek</value>
+    <comment>table [Value Entries] measure [Ending Balance Cost Posted to G/L]</comment>
+  </data>
+  <data name="cb2fa5ad-1ff6-4280-af99-b2c5b09058f6.measure.a98d2d60-22a1-4024-8d23-e5433ace08fd.caption" xml:space="preserve">
+    <value>Eindsaldo kostenbedrag (werkelijk)</value>
+    <comment>table [Value Entries] measure [Ending Balance Cost Amount (Actual)]</comment>
+  </data>
+  <data name="cb2fa5ad-1ff6-4280-af99-b2c5b09058f6.measure.ecbf1f2d-3a05-4ffc-8990-beeb925751a7.caption" xml:space="preserve">
+    <value>Eindsaldo kostenbedrag (verwacht)</value>
+    <comment>table [Value Entries] measure [Ending Balance Cost Amount (Expected)]</comment>
+  </data>
+  <data name="cb2fa5ad-1ff6-4280-af99-b2c5b09058f6.measure.355cfc6e-d526-4b5f-a08a-88e59db8d9ff.caption" xml:space="preserve">
+    <value>Eindsaldo verwachte kosten geboekt naar grootboek</value>
+    <comment>table [Value Entries] measure [Ending Balance Expected Cost Posted to G/L]</comment>
+  </data>
+  <data name="cb2fa5ad-1ff6-4280-af99-b2c5b09058f6.measure.e1171b61-7e24-4e3f-934e-be33a9af3dae.caption" xml:space="preserve">
+    <value>Gefactureerd aantal</value>
+    <comment>table [Value Entries] measure [Invoiced Quantity]</comment>
+  </data>
+  <data name="cb2fa5ad-1ff6-4280-af99-b2c5b09058f6.measure.f280a158-bced-4feb-89c0-1ccc6155c146.caption" xml:space="preserve">
+    <value>Kostenbedrag (incl. verwachte kosten)</value>
+    <comment>table [Value Entries] measure [Cost Amount (Incl. Exp Cost)]</comment>
+  </data>
+  <data name="cb2fa5ad-1ff6-4280-af99-b2c5b09058f6.measure.2c70d15d-b72b-4d88-b80d-7b76a3838676.caption" xml:space="preserve">
+    <value>Verschilkosten geboekt naar grootboek</value>
+    <comment>table [Value Entries] measure [Variance Cost Posted to G/L]</comment>
+  </data>
+  <data name="e3e30143-4bf4-463c-8fd1-5eeb9f47fc01.caption" xml:space="preserve">
+    <value>Dimensiesets</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="e3e30143-4bf4-463c-8fd1-5eeb9f47fc01.column.d853332b-5fe5-41dd-84f3-9ddfc3ad4fc7.caption" xml:space="preserve">
+    <value>Globale dimensie 1</value>
+    <comment>table [Dimension Sets] column [Global Dimension 1]</comment>
+  </data>
+  <data name="e3e30143-4bf4-463c-8fd1-5eeb9f47fc01.column.c3535d52-c3d9-460d-8d6f-e53affeb9259.caption" xml:space="preserve">
+    <value>Globale dimensie 2</value>
+    <comment>table [Dimension Sets] column [Global Dimension 2]</comment>
+  </data>
+  <data name="e3e30143-4bf4-463c-8fd1-5eeb9f47fc01.column.244f6e8c-35d2-4116-8be7-0a9a29c95f18.caption" xml:space="preserve">
+    <value>Shortcutdimensie 3</value>
+    <comment>table [Dimension Sets] column [Shortcut Dimension 3]</comment>
+  </data>
+  <data name="e3e30143-4bf4-463c-8fd1-5eeb9f47fc01.column.d3443ed4-2249-4b3e-8065-27ed2716c743.caption" xml:space="preserve">
+    <value>Shortcutdimensie 4</value>
+    <comment>table [Dimension Sets] column [Shortcut Dimension 4]</comment>
+  </data>
+  <data name="e3e30143-4bf4-463c-8fd1-5eeb9f47fc01.column.f42370f7-f2db-4b94-ab79-81148076e4b5.caption" xml:space="preserve">
+    <value>Shortcutdimensie 5</value>
+    <comment>table [Dimension Sets] column [Shortcut Dimension 5]</comment>
+  </data>
+  <data name="e3e30143-4bf4-463c-8fd1-5eeb9f47fc01.column.bbe89889-fd63-4f3b-b6c3-c3d16d544a9d.caption" xml:space="preserve">
+    <value>Shortcutdimensie 6</value>
+    <comment>table [Dimension Sets] column [Shortcut Dimension 6]</comment>
+  </data>
+  <data name="e3e30143-4bf4-463c-8fd1-5eeb9f47fc01.column.404d9552-4bba-4a8d-a437-5a48204a1e3d.caption" xml:space="preserve">
+    <value>Shortcutdimensie 7</value>
+    <comment>table [Dimension Sets] column [Shortcut Dimension 7]</comment>
+  </data>
+  <data name="e3e30143-4bf4-463c-8fd1-5eeb9f47fc01.column.34627f19-5b26-44da-8c1c-c08828ecf4e2.caption" xml:space="preserve">
+    <value>Shortcutdimensie 8</value>
+    <comment>table [Dimension Sets] column [Shortcut Dimension 8]</comment>
+  </data>
+  <data name="e3e30143-4bf4-463c-8fd1-5eeb9f47fc01.column.41a8102d-bdce-4dcc-906c-4b77cc6ba8cb.caption" xml:space="preserve">
+    <value>AFDELING</value>
+    <comment>table [Dimension Sets] column [DEPARTMENT]</comment>
+  </data>
+  <data name="e3e30143-4bf4-463c-8fd1-5eeb9f47fc01.column.d86c6926-dafd-41a3-822b-c30f6426e1b3.caption" xml:space="preserve">
+    <value>Afdelingsnaam</value>
+    <comment>table [Dimension Sets] column [Department Name]</comment>
+  </data>
+  <data name="e3e30143-4bf4-463c-8fd1-5eeb9f47fc01.column.c5451222-360d-45ab-96a2-55e77ce6aeed.caption" xml:space="preserve">
+    <value>KLANTGROEP</value>
+    <comment>table [Dimension Sets] column [CUSTOMERGROUP]</comment>
+  </data>
+  <data name="e3e30143-4bf4-463c-8fd1-5eeb9f47fc01.column.9ec43d7c-daf8-4e5e-9782-80f3a6ffa807.caption" xml:space="preserve">
+    <value>Naam van klantengroep</value>
+    <comment>table [Dimension Sets] column [Customer Group Name]</comment>
+  </data>
+  <data name="e3e30143-4bf4-463c-8fd1-5eeb9f47fc01.column.9de68eb8-e56d-48b5-8260-dcc746ac929f.caption" xml:space="preserve">
+    <value>VERKOPER</value>
+    <comment>table [Dimension Sets] column [SALESPERSON]</comment>
+  </data>
+  <data name="e3e30143-4bf4-463c-8fd1-5eeb9f47fc01.column.7b6aa02b-78eb-46cf-bce9-86ef1c087784.caption" xml:space="preserve">
+    <value>Verkopersnaam</value>
+    <comment>table [Dimension Sets] column [Salesperson Name]</comment>
+  </data>
+  <data name="e3e30143-4bf4-463c-8fd1-5eeb9f47fc01.column.809b8f01-d808-4608-b600-747d64dd8c43.caption" xml:space="preserve">
+    <value>VERKOOPCAMPAGNE</value>
+    <comment>table [Dimension Sets] column [SALESCAMPAIGN]</comment>
+  </data>
+  <data name="e3e30143-4bf4-463c-8fd1-5eeb9f47fc01.column.cabe0a29-3f94-45c5-a1c4-41ca0a83b1ea.caption" xml:space="preserve">
+    <value>Naam verkoopcampagne</value>
+    <comment>table [Dimension Sets] column [Sales campaign Name]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.caption" xml:space="preserve">
+    <value>Datum</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.5382a32c-dcc5-471c-a861-0f53055c6795.caption" xml:space="preserve">
+    <value>Week Dag</value>
+    <comment>table [Date] column [Week Day]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.0c29b76e-f330-4ecc-bb4d-83949c7f9f6c.caption" xml:space="preserve">
+    <value>Relatieve Dag</value>
+    <comment>table [Date] column [Relative Day]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.294a1551-f552-40dd-9bd6-2adec7ae18c6.caption" xml:space="preserve">
+    <value>Kalender Jaar</value>
+    <comment>table [Date] column [Calendar Year]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.e47c2c6e-296e-4b22-98d9-877d9c859439.caption" xml:space="preserve">
+    <value>Kalender Kwartaal</value>
+    <comment>table [Date] column [Calendar Quarter]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.c93aae5b-3615-40c1-83c0-06d09dd8fd7d.caption" xml:space="preserve">
+    <value>Kalender Kwartaal Jaar</value>
+    <comment>table [Date] column [Calendar Quarter Year]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.ca1b9cce-86a2-4d87-8e6f-1adc094e0375.caption" xml:space="preserve">
+    <value>Kalender Maand</value>
+    <comment>table [Date] column [Calendar Month]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.bee2fa8d-b6ae-4591-a274-936b2144910b.caption" xml:space="preserve">
+    <value>Kalender Maand Jaar</value>
+    <comment>table [Date] column [Calendar Month Year]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.4952d96f-dec9-49d2-94f5-daa2f9180cb7.caption" xml:space="preserve">
+    <value>Kalender Week</value>
+    <comment>table [Date] column [Calendar Week]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.8a0f8f8c-dc30-4410-adc7-c3dec9b4b642.caption" xml:space="preserve">
+    <value>Kalender Week Jaar</value>
+    <comment>table [Date] column [Calendar Week Year]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.5d8b3d9d-1b85-49b5-b266-af143e02125a.caption" xml:space="preserve">
+    <value>Kalender RelatieveWeekPos</value>
+    <comment>table [Date] column [Calendar RelativeWeekPos]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.084a259a-f7ec-4d46-8dfb-0ec7fcdf02e5.caption" xml:space="preserve">
+    <value>Kalender RelatieveMaandPos</value>
+    <comment>table [Date] column [Calendar RelativeMonthPos]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.7f51d9a4-f5ea-4737-a9ca-d52da134b9ef.caption" xml:space="preserve">
+    <value>Kalender RelatieveKwartaalPos</value>
+    <comment>table [Date] column [Calendar RelativeQuarterPos]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.bb8c79b4-c09a-4050-9afc-a0b04e316906.caption" xml:space="preserve">
+    <value>Kalender RelatieveJaarPos</value>
+    <comment>table [Date] column [Calendar RelativeYearPos]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.274d08cc-4b3a-48c8-918b-453a23d9b884.caption" xml:space="preserve">
+    <value>Kalender BeginVanMaand</value>
+    <comment>table [Date] column [Calendar StartOfMonth]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.65e15474-0331-4ec3-be63-e6a3e9d82087.caption" xml:space="preserve">
+    <value>Kalender EindVanMaand</value>
+    <comment>table [Date] column [Calendar EndOfMonth]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.b96ea19f-1689-4ec5-a457-84fcc1e6a31c.caption" xml:space="preserve">
+    <value>Kalender BeginVanKwartaal</value>
+    <comment>table [Date] column [Calendar StartOfQuarter]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.62f9e9cd-8428-43f4-85a1-efb5923d292c.caption" xml:space="preserve">
+    <value>Kalender EindVanKwartaal</value>
+    <comment>table [Date] column [Calendar EndOfQuarter]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.860033fd-67f8-4dbd-905f-1e48af5f3466.caption" xml:space="preserve">
+    <value>Kalender BeginVanJaar</value>
+    <comment>table [Date] column [Calendar StartOfYear]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.561d2a13-8a2a-424b-b9f2-9af1c3c13759.caption" xml:space="preserve">
+    <value>Kalender EindVanJaar</value>
+    <comment>table [Date] column [Calendar EndOfYear]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.28fe82c3-1054-4dfb-8269-04a006b1b8c2.caption" xml:space="preserve">
+    <value>Kalender MaandDagen</value>
+    <comment>table [Date] column [Calendar MonthDays]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.a77e5650-be16-4186-b95a-cc1a5d1e1326.caption" xml:space="preserve">
+    <value>Kalender KwartaalDagen</value>
+    <comment>table [Date] column [Calendar QuarterDays]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.0dc997c0-68c3-4197-95c4-2365774acb75.caption" xml:space="preserve">
+    <value>Kalender JaarDagen</value>
+    <comment>table [Date] column [Calendar YearDays]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.9c582666-e9a4-46dc-95ba-efbb514ad461.caption" xml:space="preserve">
+    <value>Kalender DagVanMaandNummer</value>
+    <comment>table [Date] column [Calendar DayOfMonthNumber]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.9c58c00a-2d89-4327-9905-4a02c36ae517.caption" xml:space="preserve">
+    <value>Kalender DagVanKwartaalNummer</value>
+    <comment>table [Date] column [Calendar DayOfQuarterNumber]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.cfbf48f3-aa9b-4c10-898c-e7631329e995.caption" xml:space="preserve">
+    <value>Kalender DagVanJaarNummer</value>
+    <comment>table [Date] column [Calendar DayOfYearNumber]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.010cb7c4-05bb-490a-89e1-c776a78840dd.caption" xml:space="preserve">
+    <value>Kalender DatumVorigeWeek</value>
+    <comment>table [Date] column [Calendar DatePreviousWeek]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.70f89099-7abf-424d-bb84-5636fc2126c4.caption" xml:space="preserve">
+    <value>Kalender DatumVorigeMaand</value>
+    <comment>table [Date] column [Calendar DatePreviousMonth]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.b06950b2-ae91-4861-9297-f7f673bc4a76.caption" xml:space="preserve">
+    <value>Kalender DatumVorigKwartaal</value>
+    <comment>table [Date] column [Calendar DatePreviousQuarter]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.8d07ae53-9247-48d7-aea9-9f304f0ae374.caption" xml:space="preserve">
+    <value>Kalender DatumVorigJaar</value>
+    <comment>table [Date] column [Calendar DatePreviousYear]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.e6dacec3-d102-4d6b-b3a2-37d162971ea3.caption" xml:space="preserve">
+    <value>Fiscaal Jaar</value>
+    <comment>table [Date] column [Fiscal Year]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.ce38d69c-4db9-4ee7-ad37-db3cefe66799.caption" xml:space="preserve">
+    <value>Fiscaal KwartaalNummer</value>
+    <comment>table [Date] column [Fiscal QuarterNumber]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.8ce27f18-01d9-43dd-b2cd-77994cba7551.caption" xml:space="preserve">
+    <value>Fiscaal Kwartaal</value>
+    <comment>table [Date] column [Fiscal Quarter]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.d15f4667-6d62-4d49-9d1c-edb551df6af3.caption" xml:space="preserve">
+    <value>Fiscaal Kwartaal Jaar</value>
+    <comment>table [Date] column [Fiscal Quarter Year]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.e5b24a0d-6e2d-47e7-bced-477ad76b6ef2.caption" xml:space="preserve">
+    <value>Fiscaal Maand</value>
+    <comment>table [Date] column [Fiscal Month]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.7346ab1a-7693-4183-88f8-bc7fdc57b0f4.caption" xml:space="preserve">
+    <value>Fiscaal Maand Jaar</value>
+    <comment>table [Date] column [Fiscal Month Year]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.a9397817-2378-4871-9a01-909f5e94c0dd.caption" xml:space="preserve">
+    <value>Fiscaal WeekNummer</value>
+    <comment>table [Date] column [Fiscal WeekNumber]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.89186246-4001-4e19-bd70-acb89265ec72.caption" xml:space="preserve">
+    <value>Fiscaal Week</value>
+    <comment>table [Date] column [Fiscal Week]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.ad9332f6-bb42-4e5c-a4ec-a065067b8734.caption" xml:space="preserve">
+    <value>Fiscaal Week Jaar</value>
+    <comment>table [Date] column [Fiscal Week Year]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.025b0395-8faa-4d38-acf3-439b53a3b9a8.caption" xml:space="preserve">
+    <value>Fiscaal RelatieveWeekPos</value>
+    <comment>table [Date] column [Fiscal RelativeWeekPos]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.4f365d29-57e8-423b-84b5-d7557e364cf4.caption" xml:space="preserve">
+    <value>Fiscaal RelatieveMaandPos</value>
+    <comment>table [Date] column [Fiscal RelativeMonthPos]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.ae46a793-21df-438e-9bbd-21f47f61edc6.caption" xml:space="preserve">
+    <value>Fiscaal RelatieveKwartaalPos</value>
+    <comment>table [Date] column [Fiscal RelativeQuarterPos]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.4a83a04f-ad33-4f01-8898-43bdad9bbfd1.caption" xml:space="preserve">
+    <value>Fiscaal RelatieveJaarPos</value>
+    <comment>table [Date] column [Fiscal RelativeYearPos]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.da5ee440-3cea-41ee-bf26-877e4819752e.caption" xml:space="preserve">
+    <value>Fiscaal BeginVanMaand</value>
+    <comment>table [Date] column [Fiscal StartOfMonth]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.8337278a-77e2-447b-809f-e87711d5f5eb.caption" xml:space="preserve">
+    <value>Fiscaal EindVanMaand</value>
+    <comment>table [Date] column [Fiscal EndOfMonth]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.83b3da69-e909-4496-9514-54f45730a0bc.caption" xml:space="preserve">
+    <value>Fiscaal BeginVanKwartaal</value>
+    <comment>table [Date] column [Fiscal StartOfQuarter]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.202d17fd-d9e0-4e14-a0c5-a1a7239dfa95.caption" xml:space="preserve">
+    <value>Fiscaal EindVanKwartaal</value>
+    <comment>table [Date] column [Fiscal EndOfQuarter]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.96b829c3-0591-49e7-af97-43128157416d.caption" xml:space="preserve">
+    <value>Fiscaal BeginVanJaar</value>
+    <comment>table [Date] column [Fiscal StartOfYear]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.43b9e85d-aa67-40cb-992b-0eea853ab59b.caption" xml:space="preserve">
+    <value>Fiscaal EindVanJaar</value>
+    <comment>table [Date] column [Fiscal EndOfYear]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.cdf4cd33-2ec4-4ba2-be94-2318ccb6ad52.caption" xml:space="preserve">
+    <value>Fiscaal MaandDagen</value>
+    <comment>table [Date] column [Fiscal MonthDays]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.79723e8e-8f58-48d9-acda-acd9acb236fb.caption" xml:space="preserve">
+    <value>Fiscaal KwartaalDagen</value>
+    <comment>table [Date] column [Fiscal QuarterDays]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.a38a673f-d611-4fdd-bc07-1e86758a5365.caption" xml:space="preserve">
+    <value>Fiscaal JaarDagen</value>
+    <comment>table [Date] column [Fiscal YearDays]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.f2a70e0c-127e-45a2-b927-5c91941ddc34.caption" xml:space="preserve">
+    <value>Fiscaal DagVanMaandNummer</value>
+    <comment>table [Date] column [Fiscal DayOfMonthNumber]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.3a3abf4c-fc0f-4d32-8588-766d729a6205.caption" xml:space="preserve">
+    <value>Fiscaal DagVanKwartaalNummer</value>
+    <comment>table [Date] column [Fiscal DayOfQuarterNumber]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.47bcad44-75e5-4037-b324-8a963011b8ba.caption" xml:space="preserve">
+    <value>Fiscaal DagVanJaarNummer</value>
+    <comment>table [Date] column [Fiscal DayOfYearNumber]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.9a2c3b02-674b-4db6-a3b0-b5663329c88a.caption" xml:space="preserve">
+    <value>Fiscaal DatumVorigeWeek</value>
+    <comment>table [Date] column [Fiscal DatePreviousWeek]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.9db87b91-1f6f-4202-9c01-fce539f5bb7f.caption" xml:space="preserve">
+    <value>Fiscaal DatumVorigeMaand</value>
+    <comment>table [Date] column [Fiscal DatePreviousMonth]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.7cf6ba03-9a67-44ec-b23a-d1bf314d6c7e.caption" xml:space="preserve">
+    <value>Fiscaal DatumVorigKwartaal</value>
+    <comment>table [Date] column [Fiscal DatePreviousQuarter]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.a4fff6f1-bd1b-4940-896b-43a057c3983d.caption" xml:space="preserve">
+    <value>Fiscaal DatumVorigJaar</value>
+    <comment>table [Date] column [Fiscal DatePreviousYear]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.f52ad0df-641e-488d-8958-44b9940f5a3b.caption" xml:space="preserve">
+    <value>FW Jaar</value>
+    <comment>table [Date] column [FW Year]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.8bd597bb-e087-47e7-8f11-bd20cf58e492.caption" xml:space="preserve">
+    <value>FW Kwartaal</value>
+    <comment>table [Date] column [FW Quarter]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.e643ac25-d1e2-412f-baaa-979e3b46472e.caption" xml:space="preserve">
+    <value>FW Kwartaal Jaar</value>
+    <comment>table [Date] column [FW Quarter Year]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.6bf88e0d-1c6a-43bf-8496-39b8bd2ac0a9.caption" xml:space="preserve">
+    <value>FW Maand</value>
+    <comment>table [Date] column [FW Month]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.3eb9eaee-fe75-4ec6-a6f3-59434e9aae8f.caption" xml:space="preserve">
+    <value>FW Maand Jaar</value>
+    <comment>table [Date] column [FW Month Year]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.e72f0766-c557-4092-a187-7fbf728eb905.caption" xml:space="preserve">
+    <value>FW Week</value>
+    <comment>table [Date] column [FW Week]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.bbdfef42-8750-4a71-ad3e-be3e4d7f91cb.caption" xml:space="preserve">
+    <value>FW Periode</value>
+    <comment>table [Date] column [FW Period]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.4714581c-b8d9-46c6-9bc1-0f7aa387ca13.caption" xml:space="preserve">
+    <value>FW Week Jaar</value>
+    <comment>table [Date] column [FW Week Year]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.58ad8afb-3386-4765-8dc7-e89641c1f085.caption" xml:space="preserve">
+    <value>FW BeginVanWeek</value>
+    <comment>table [Date] column [FW StartOfWeek]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.88876398-032b-429f-84ba-bbb073b0e578.caption" xml:space="preserve">
+    <value>FW EindVanWeek</value>
+    <comment>table [Date] column [FW EndOfWeek]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.aacee915-61b9-4c17-95ed-b0b3f9f68231.caption" xml:space="preserve">
+    <value>FW RelatieveWeekPos</value>
+    <comment>table [Date] column [FW RelativeWeekPos]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.97c7e4ea-ef34-4047-8501-26a6d9b3e95c.caption" xml:space="preserve">
+    <value>FW RelatieveMaandPos</value>
+    <comment>table [Date] column [FW RelativeMonthPos]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.197a720b-b462-40c3-a38f-75edd7556cb3.caption" xml:space="preserve">
+    <value>FW RelatieveKwartaalPos</value>
+    <comment>table [Date] column [FW RelativeQuarterPos]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.3fb7b947-7304-4f39-8a43-105fa32ddbf4.caption" xml:space="preserve">
+    <value>FW RelatieveJaarPos</value>
+    <comment>table [Date] column [FW RelativeYearPos]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.494fec49-f34f-4630-9c6a-f53e05434d4d.caption" xml:space="preserve">
+    <value>FW BeginVanMaand</value>
+    <comment>table [Date] column [FW StartOfMonth]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.10e3ce59-5d6f-4c87-94e6-d07e831e344a.caption" xml:space="preserve">
+    <value>FW EindVanMaand</value>
+    <comment>table [Date] column [FW EndOfMonth]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.9e2e03e3-3323-4fd6-b324-0e58b34edf13.caption" xml:space="preserve">
+    <value>FW BeginVanKwartaal</value>
+    <comment>table [Date] column [FW StartOfQuarter]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.212e1f9b-fcd9-450b-bba9-f5104ac197a8.caption" xml:space="preserve">
+    <value>FW EindVanKwartaal</value>
+    <comment>table [Date] column [FW EndOfQuarter]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.e27fcff2-6de4-448f-b5b1-9353706a47e1.caption" xml:space="preserve">
+    <value>FW BeginVanJaar</value>
+    <comment>table [Date] column [FW StartOfYear]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.ba22915b-f6a0-4abf-9fe2-289590e85432.caption" xml:space="preserve">
+    <value>FW EindVanJaar</value>
+    <comment>table [Date] column [FW EndOfYear]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.1f2bb52c-4e65-4cac-82f3-86825ea1ed13.caption" xml:space="preserve">
+    <value>FW MaandDagen</value>
+    <comment>table [Date] column [FW MonthDays]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.024825fb-a4b1-4693-9273-72845371753d.caption" xml:space="preserve">
+    <value>FW KwartaalDagen</value>
+    <comment>table [Date] column [FW QuarterDays]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.ae3b0532-e5e7-489c-a23e-be2f36607207.caption" xml:space="preserve">
+    <value>FW JaarDagen</value>
+    <comment>table [Date] column [FW YearDays]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.df748789-13cc-4a55-a86e-964f26e6dae4.caption" xml:space="preserve">
+    <value>FW DagVanMaandNummer</value>
+    <comment>table [Date] column [FW DayOfMonthNumber]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.eede66e9-f148-46eb-825d-fc60f244b26b.caption" xml:space="preserve">
+    <value>FW DagVanKwartaalNummer</value>
+    <comment>table [Date] column [FW DayOfQuarterNumber]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.2167fa77-7993-41f1-9494-1e855cefd30a.caption" xml:space="preserve">
+    <value>FW DagVanJaarNummer</value>
+    <comment>table [Date] column [FW DayOfYearNumber]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.1c516992-ff3d-4b3d-aaff-c5b28e37a6db.caption" xml:space="preserve">
+    <value>FW DatumVorigeWeek</value>
+    <comment>table [Date] column [FW DatePreviousWeek]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.f7dd22ea-5c42-48bd-bb02-6785e5d8019d.caption" xml:space="preserve">
+    <value>FW DatumVorigeMaand</value>
+    <comment>table [Date] column [FW DatePreviousMonth]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.db9f22e4-f93e-4964-950d-7e15f3ec0b94.caption" xml:space="preserve">
+    <value>FW DatumVorigKwartaal</value>
+    <comment>table [Date] column [FW DatePreviousQuarter]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.fbafdd0c-fa9c-49ce-a3cc-02360e4b7c3c.caption" xml:space="preserve">
+    <value>FW DatumVorigJaar</value>
+    <comment>table [Date] column [FW DatePreviousYear]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.2bf5ec5a-c0b1-47bc-b66d-75c73d339e10.caption" xml:space="preserve">
+    <value>Vakantie Naam</value>
+    <comment>table [Date] column [Holiday Name]</comment>
+  </data>
+  <data name="e504dbd6-8b1e-415b-a507-bc67d2fe70c8.column.e76ba19b-a5fc-42a7-bf46-344dc63ffa0b.caption" xml:space="preserve">
+    <value>IsWerkdag</value>
+    <comment>table [Date] column [IsWorkingDay]</comment>
+  </data>
+  <data name="1e5a573b-94a6-4798-b243-c00ad9002e77.measure.6c6a984a-84fb-4730-b8f0-e1f3d1e21adf.caption" xml:space="preserve">
+    <value>Mijn rapporttitel</value>
+    <comment>table [Localized Labels] measure [My Report Title]</comment>
+  </data>
+  <data name="1e5a573b-94a6-4798-b243-c00ad9002e77.measure.a2650c5f-a35d-469d-83ea-551aebeccc84.caption" xml:space="preserve">
+    <value>Bijschrift van mijn knop</value>
+    <comment>table [Localized Labels] measure [My Button Caption]</comment>
+  </data>
+  <data name="1e5a573b-94a6-4798-b243-c00ad9002e77.measure.4b8c2736-8d71-4f00-8186-8b750b50d592.caption" xml:space="preserve">
+    <value>Mijn visuele titel</value>
+    <comment>table [Localized Labels] measure [My Visual Title]</comment>
+  </data>
+  <data name="1e5a573b-94a6-4798-b243-c00ad9002e77.measure.f4dcb00b-bfda-4b46-931d-0fdb8471b2ec.caption" xml:space="preserve">
+    <value>Voorraadwaardering</value>
+    <comment>table [Localized Labels] measure [Inventory Valuation]</comment>
+  </data>
+  <data name="1e5a573b-94a6-4798-b243-c00ad9002e77.measure.23948c19-add8-486f-8f88-5688d08cb58b.caption" xml:space="preserve">
+    <value>voor Business Central</value>
+    <comment>table [Localized Labels] measure [for Business Central]</comment>
+  </data>
+  <data name="1e5a573b-94a6-4798-b243-c00ad9002e77.measure.a95c0904-6b27-414a-b3c0-23a5050555c7.caption" xml:space="preserve">
+    <value>UW GEGEVENS VERBINDEN</value>
+    <comment>table [Localized Labels] measure [CONNECT YOUR DATA]</comment>
+  </data>
+  <data name="1e5a573b-94a6-4798-b243-c00ad9002e77.measure.d15ca069-f730-4e42-a3ca-cae573417163.caption" xml:space="preserve">
+    <value>1. Download de Voorraadconnector voor Power BI</value>
+    <comment>table [Localized Labels] measure [1. Download the Inventory Connector for Power BI]</comment>
+  </data>
+  <data name="1e5a573b-94a6-4798-b243-c00ad9002e77.measure.ff4ee188-7c51-436d-aca4-df82c197d18c.caption" xml:space="preserve">
+    <value>2. Dynamics 365 Business Central configureren</value>
+    <comment>table [Localized Labels] measure [2. Configure Dynamics 365 Business Central]</comment>
+  </data>
+  <data name="1e5a573b-94a6-4798-b243-c00ad9002e77.measure.c3df7865-4baa-45a6-bb69-8b847b26bd1a.caption" xml:space="preserve">
+    <value>UW EIGEN RAPPORTEN GEBRUIKEN, BEWERKEN EN MAKEN</value>
+    <comment>table [Localized Labels] measure [USE, EDIT AND BUILD YOUR OWN REPORTS]</comment>
+  </data>
+  <data name="1e5a573b-94a6-4798-b243-c00ad9002e77.measure.a4d2e6fe-1dd4-4d73-99bc-9c89eca2f872.caption" xml:space="preserve">
+    <value>Voorraadwaardering bevat een verscheidenheid aan vooraf gemaakte rapporten om u te helpen uw gegevens direct te bekijken.</value>
+    <comment>table [Localized Labels] measure [Inventory Valuation includes a variety of pre-built reports to help you see your data immediately.]</comment>
+  </data>
+  <data name="1e5a573b-94a6-4798-b243-c00ad9002e77.measure.549338b8-6083-48d8-8318-07163a23d10c.caption" xml:space="preserve">
+    <value>U kunt deze rapporten bewerken of uw eigen rapport helemaal opnieuw maken.</value>
+    <comment>table [Localized Labels] measure [You are able to edit these reports or build your own report from scratch.]</comment>
+  </data>
+  <data name="1e5a573b-94a6-4798-b243-c00ad9002e77.measure.690955d9-903e-48e3-98ef-18b0ce9d98d6.caption" xml:space="preserve">
+    <value>HELP EN ONDERSTEUNING</value>
+    <comment>table [Localized Labels] measure [HELP AND SUPPORT]</comment>
+  </data>
+  <data name="1e5a573b-94a6-4798-b243-c00ad9002e77.measure.e1d7d1b5-2a08-4b1c-a736-f63d5011f7f9.caption" xml:space="preserve">
+    <value>Ga voor hulp en ondersteuning met uw nieuwe rapport naar de Analytics-overzichtsdocumentatie.</value>
+    <comment>table [Localized Labels] measure [For help and support with your new report please visit the Analytics overview documentation.]</comment>
+  </data>
+  <data name="1e5a573b-94a6-4798-b243-c00ad9002e77.measure.d7ce55f3-e296-468d-a606-414aadc1f8a7.caption" xml:space="preserve">
+    <value>OVERIGE POWER BI-RAPPORTEN</value>
+    <comment>table [Localized Labels] measure [OTHER POWER BI REPORTS]</comment>
+  </data>
+  <data name="1e5a573b-94a6-4798-b243-c00ad9002e77.measure.d50cb991-0e5e-43a5-899c-ac72f853533b.caption" xml:space="preserve">
+    <value>INKOOP</value>
+    <comment>table [Localized Labels] measure [PURCHASE]</comment>
+  </data>
+  <data name="1e5a573b-94a6-4798-b243-c00ad9002e77.measure.35c1b501-e893-4a92-b1ac-39ad6457e423.caption" xml:space="preserve">
+    <value>FINANCIËN</value>
+    <comment>table [Localized Labels] measure [FINANCE]</comment>
+  </data>
+  <data name="1e5a573b-94a6-4798-b243-c00ad9002e77.measure.7ba7ba4d-96cd-416f-86d9-4534ca3e8798.caption" xml:space="preserve">
+    <value>PROJECTEN</value>
+    <comment>table [Localized Labels] measure [PROJECTS]</comment>
+  </data>
+  <data name="1e5a573b-94a6-4798-b243-c00ad9002e77.measure.e0c13e97-168b-4c94-b6da-8f2a790e5808.caption" xml:space="preserve">
+    <value>VOORRAAD</value>
+    <comment>table [Localized Labels] measure [INVENTORY]</comment>
+  </data>
+  <data name="1e5a573b-94a6-4798-b243-c00ad9002e77.measure.1c487d7d-215b-402a-bb09-a4dc6366f848.caption" xml:space="preserve">
+    <value>VERKOPEN</value>
+    <comment>table [Localized Labels] measure [SALES]</comment>
+  </data>
+  <data name="1e5a573b-94a6-4798-b243-c00ad9002e77.measure.6630333f-f9ef-498d-b69a-fae5c701d05d.caption" xml:space="preserve">
+    <value>Overzicht van voorraadwaardering</value>
+    <comment>table [Localized Labels] measure [Inventory Valuation Overview]</comment>
+  </data>
+  <data name="1e5a573b-94a6-4798-b243-c00ad9002e77.measure.12e578f3-76f6-499a-af9a-89fbffc95359.caption" xml:space="preserve">
+    <value>Voorraadwaarde en kosten geboekt naar grootboek per maand jaar</value>
+    <comment>table [Localized Labels] measure [Inventory Value &amp; Cost Posted to G/L by Month Year]</comment>
+  </data>
+  <data name="1e5a573b-94a6-4798-b243-c00ad9002e77.measure.5ed16968-6265-4545-b20e-f3f553fc122f.caption" xml:space="preserve">
+    <value>Voorraadwaarde per locatie</value>
+    <comment>table [Localized Labels] measure [Inventory Value by Location]</comment>
+  </data>
+  <data name="1e5a573b-94a6-4798-b243-c00ad9002e77.measure.6e0f2f3b-abaf-4c75-b9c9-dc392f83f8ea.caption" xml:space="preserve">
+    <value>Voorraadaantal</value>
+    <comment>table [Localized Labels] measure [Inventory Quantity]</comment>
+  </data>
+  <data name="1e5a573b-94a6-4798-b243-c00ad9002e77.measure.7a142a3f-14da-4866-b32c-d2c628bcbd16.caption" xml:space="preserve">
+    <value>Voorraadwaardering per artikel</value>
+    <comment>table [Localized Labels] measure [Inventory Valuation by Item]</comment>
+  </data>
+  <data name="1e5a573b-94a6-4798-b243-c00ad9002e77.measure.b30c9e4e-b4cc-44db-add4-5de01c4df6e2.caption" xml:space="preserve">
+    <value>Voorraadwaardering per locatie</value>
+    <comment>table [Localized Labels] measure [Inventory Valuation by Location]</comment>
+  </data>
+  <data name="1e5a573b-94a6-4798-b243-c00ad9002e77.measure.9a676b24-9754-49df-b4b0-3b3de9ad682f.caption" xml:space="preserve">
+    <value>Gedetailleerde voorraadwaardering</value>
+    <comment>table [Localized Labels] measure [Detailed Inventory Valuation]</comment>
+  </data>
+  <data name="1e5a573b-94a6-4798-b243-c00ad9002e77.measure.c543457f-ee9b-4dba-8a15-901bcfc6471b.caption" xml:space="preserve">
+    <value>De voorraadwaardering per artikel bevat artikelnummer, beginsaldowaarde, toenamewaarde, afnamewaarde en eindsaldowaarde.</value>
+    <comment>table [Localized Labels] measure [The inventory valuation by item shows item number, beginning balance value, increase value, decrease value, and ending balance value.]</comment>
+  </data>
+  <data name="1e5a573b-94a6-4798-b243-c00ad9002e77.measure.624121b4-9333-46bd-8644-36612e031ca1.caption" xml:space="preserve">
+    <value>De voorraadwaardering per locatie bevat locatiecode, beginsaldowaarde, toenamewaarde, afnamewaarde en eindsaldowaarde.</value>
+    <comment>table [Localized Labels] measure [The inventory valuation by location shows location code, beginning balance value, increase value, decrease value, and ending balance value.]</comment>
+  </data>
+  <data name="1e5a573b-94a6-4798-b243-c00ad9002e77.measure.33456147-3a45-4003-93c3-592e2be1765b.caption" xml:space="preserve">
+    <value>De gedetailleerde voorraadwaardering bevat datum, artikelnummer en -beschrijving, locatiecode, documenttype, postnummer, gefactureerd aantal, kostenbedrag (werkelijk), kostenbedrag (verwacht), naar grootboek geboekte kosten (werkelijk) en naar grootboek geboekte kosten (verwacht).</value>
+    <comment>table [Localized Labels] measure [The detailed inventory valuation shows date, item number and description, location code, document type, entry number, invoiced quantity, cost amount (actual), cost amount (expected), cost posted to G/L (actual), and cost posted to G/L (expected).]</comment>
+  </data>
+  <data name="1e5a573b-94a6-4798-b243-c00ad9002e77.measure.0a296bb9-b809-482f-b5fe-ac5da2f60c0e.caption" xml:space="preserve">
+    <value>De voorraadwaardering per locatie bevat de locatie en de eindsaldowaarde.</value>
+    <comment>table [Localized Labels] measure [The inventory valuation by location shows location and ending balance value.]</comment>
+  </data>
+  <data name="1e5a573b-94a6-4798-b243-c00ad9002e77.measure.f2f7d27a-f3b4-4864-b3f2-e220292213e7.caption" xml:space="preserve">
+    <value>De voorraadwaardering per artikel bevat artikelcategorie en eindsaldoaantal.</value>
+    <comment>table [Localized Labels] measure [The inventory valuation by item shows item category and ending balance quantity.]</comment>
+  </data>
+  <data name="1e5a573b-94a6-4798-b243-c00ad9002e77.measure.59a9ad95-f58c-4f8b-a198-2badaf8a1661.caption" xml:space="preserve">
+    <value>Laatst vernieuwd</value>
+    <comment>table [Localized Labels] measure [Last Refreshed]</comment>
+  </data>
+  <data name="1e5a573b-94a6-4798-b243-c00ad9002e77.measure.65131f42-d901-47cc-973d-3b4d9f176a64.caption" xml:space="preserve">
+    <value>Bedrijfsnaam</value>
+    <comment>table [Localized Labels] measure [Company Name]</comment>
+  </data>
+  <data name="1e5a573b-94a6-4798-b243-c00ad9002e77.measure.f0fa742a-c272-4982-98d4-99e5b77dc7e0.caption" xml:space="preserve">
+    <value>Voorraadwaarde vanaf </value>
+    <comment>table [Localized Labels] measure [Inventory value as of ]</comment>
+  </data>
+  <data name="1e5a573b-94a6-4798-b243-c00ad9002e77.measure.965b1606-888c-4150-ae38-bed56f71f3be.caption" xml:space="preserve">
+    <value>Eindsaldowaarde en gefactureerd aantal per locatiecode</value>
+    <comment>table [Localized Labels] measure [Ending Balance Value and Invoiced Quantity by Location Code]</comment>
+  </data>
+  <data name="1e5a573b-94a6-4798-b243-c00ad9002e77.measure.b04db101-d5c9-4a6f-9d1a-19c18557990b.caption" xml:space="preserve">
+    <value>Eindsaldowaarde, eindsaldo geboekt naar GB en verschil per maand</value>
+    <comment>table [Localized Labels] measure [Ending Balance Value, Ending Balance Posted to G/L and Variance by Month]</comment>
+  </data>
+  <data name="1e5a573b-94a6-4798-b243-c00ad9002e77.measure.7e15d49d-9e12-4dc8-8964-44856463ecf1.caption" xml:space="preserve">
+    <value>Eindsaldoaantal per artikelcategoriecode</value>
+    <comment>table [Localized Labels] measure [Ending Balance Quantity by Item Category Code]</comment>
+  </data>
+  <data name="1e5a573b-94a6-4798-b243-c00ad9002e77.measure.97640500-de88-4f33-a34e-21b228453f47.caption" xml:space="preserve">
+    <value>Eindsaldowaarde per locatienaam</value>
+    <comment>table [Localized Labels] measure [Ending Balance Value by Location Name]</comment>
+  </data>
+  <data name="fb102c03-a65f-45b8-9c64-f5c3463140b2.caption" xml:space="preserve">
+    <value>Artikelcategorie</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="fb102c03-a65f-45b8-9c64-f5c3463140b2.column.09f07726-cf7f-4d1b-ae36-b8059ca721be.caption" xml:space="preserve">
+    <value>Artikelcategoriecode</value>
+    <comment>table [Item Category] column [Item Category Code]</comment>
+  </data>
+  <data name="fb102c03-a65f-45b8-9c64-f5c3463140b2.column.32b3d1f0-5474-4ffe-82db-b74b18d114ea.caption" xml:space="preserve">
+    <value>Omschrijving van artikelcategorie</value>
+    <comment>table [Item Category] column [Item Category Description]</comment>
+  </data>
+  <data name="fb102c03-a65f-45b8-9c64-f5c3463140b2.hierarchy.27227ddf-a653-4934-a0f7-dbfa25c1b967.caption" xml:space="preserve">
+    <value>Hiërarchie van artikelcategoriecodes</value>
+    <comment>table [Item Category] hierarchy [Item Category Code Hierarchy]</comment>
+  </data>
+  <data name="fb102c03-a65f-45b8-9c64-f5c3463140b2.hierarchy.27227ddf-a653-4934-a0f7-dbfa25c1b967.level.854e6132-d1a3-45f6-80e9-40aa26db0e89" xml:space="preserve">
+    <value>Artikelcategoriecode niveau 1</value>
+    <comment>table [Item Category] hierarchy [Item Category Code Hierarchy] level [Item Category Code Level 1]</comment>
+  </data>
+  <data name="fb102c03-a65f-45b8-9c64-f5c3463140b2.hierarchy.27227ddf-a653-4934-a0f7-dbfa25c1b967.level.6c4c813f-b4c1-41fd-947b-2e0638ba77b9" xml:space="preserve">
+    <value>Artikelcategoriecode niveau 2</value>
+    <comment>table [Item Category] hierarchy [Item Category Code Hierarchy] level [Item Category Code Level 2]</comment>
+  </data>
+  <data name="fb102c03-a65f-45b8-9c64-f5c3463140b2.hierarchy.27227ddf-a653-4934-a0f7-dbfa25c1b967.level.1ff4ae78-cf2e-437a-9288-f39adfa4c338" xml:space="preserve">
+    <value>Artikelcategoriecode niveau 3</value>
+    <comment>table [Item Category] hierarchy [Item Category Code Hierarchy] level [Item Category Code Level 3]</comment>
+  </data>
+  <data name="fb102c03-a65f-45b8-9c64-f5c3463140b2.hierarchy.27227ddf-a653-4934-a0f7-dbfa25c1b967.level.df9ea220-7248-42e6-abc6-0c0473f2d500" xml:space="preserve">
+    <value>Artikelcategoriecode</value>
+    <comment>table [Item Category] hierarchy [Item Category Code Hierarchy] level [Item Category Code]</comment>
+  </data>
+</root>

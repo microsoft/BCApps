@@ -60,6 +60,27 @@ codeunit 7763 "AOAI Chat Messages"
     end;
 
     /// <summary>
+    /// Adds a user message with structured content parts to the chat messages history.
+    /// </summary>
+    /// <param name="AOAIUserMessage">The user message builder containing content parts (e.g. text, file).</param>
+    [NonDebuggable]
+    procedure AddUserMessage(AOAIUserMessage: Codeunit "AOAI User Message")
+    begin
+        AOAIChatMessagesImpl.AddUserMessage(AOAIUserMessage);
+    end;
+
+    /// <summary>
+    /// Adds a user message with structured content parts to the chat messages history.
+    /// </summary>
+    /// <param name="AOAIUserMessage">The user message builder containing content parts (e.g. text, file).</param>
+    /// <param name="NewName">The name of the user.</param>
+    [NonDebuggable]
+    procedure AddUserMessage(AOAIUserMessage: Codeunit "AOAI User Message"; NewName: Text[2048])
+    begin
+        AOAIChatMessagesImpl.AddUserMessage(AOAIUserMessage, NewName);
+    end;
+
+    /// <summary>
     /// Adds a assistant message to the chat messages history.
     /// </summary>
     /// <param name="NewMessage">The message to add.</param>
@@ -219,49 +240,6 @@ codeunit 7763 "AOAI Chat Messages"
         exit(AOAIChatMessagesImpl.GetHistoryTokenCount());
     end;
 
-#if not CLEAN25
-    /// <summary>
-    /// Appends a Tool to the payload.
-    /// </summary>
-    /// <param name="NewTool">The Tool to be added to the payload.</param>
-    /// <remarks>See more details here: https://go.microsoft.com/fwlink/?linkid=2254538</remarks>
-    [NonDebuggable]
-    [Obsolete('Use AddTool that takes in an AOAI Function interface.', '25.0')]
-    procedure AddTool(NewTool: JsonObject)
-    begin
-#pragma warning disable AL0432
-        AOAIToolsImpl.AddTool(NewTool);
-#pragma warning restore AL0432
-    end;
-
-    /// <summary>
-    /// Modifies a Tool in the list of Tool.
-    /// </summary>
-    /// <param name="Id">Id of the message.</param>
-    /// <param name="NewTool">The new Tool.</param>
-    /// <error>Message id does not exist.</error>
-    [NonDebuggable]
-    [Obsolete('Deprecated with no replacement. Use DeleteFunctionTool and AddTool.', '25.0')]
-    procedure ModifyTool(Id: Integer; NewTool: JsonObject)
-    begin
-#pragma warning disable AL0432
-        AOAIToolsImpl.ModifyTool(Id, NewTool);
-#pragma warning restore AL0432
-    end;
-
-    /// <summary>
-    /// Deletes a Tool from the list of Tool.
-    /// </summary>
-    /// <param name="Id">Id of the Tool.</param>
-    /// <error>Message id does not exist.</error>
-    [Obsolete('Use DeleteFunctionTool that takes in a function name instead.', '25.0')]
-    procedure DeleteTool(Id: Integer)
-    begin
-#pragma warning disable AL0432
-        AOAIToolsImpl.DeleteTool(Id);
-#pragma warning restore AL0432
-    end;
-#endif
 
     /// <summary>
     /// Adds a function to the payload.
@@ -310,20 +288,6 @@ codeunit 7763 "AOAI Chat Messages"
         exit(AOAIToolsImpl.GetFunctionTools());
     end;
 
-#if not CLEAN25
-    /// <summary>
-    /// Gets the list of Tools.
-    /// </summary>
-    /// <returns>List of Tools.</returns>
-    [NonDebuggable]
-    [Obsolete('Use GetFunctionTool() that takes in a function name and returns the interface.', '25.0')]
-    procedure GetTools(): List of [JsonObject]
-    begin
-#pragma warning disable AL0432
-        exit(AOAIToolsImpl.GetTools());
-#pragma warning restore AL0432
-    end;
-#endif
 
     /// <summary>
     /// Checks if at least one Tools exists in the list.
@@ -404,6 +368,17 @@ codeunit 7763 "AOAI Chat Messages"
     end;
 
     /// <summary>
+    /// Adds XPIA Detection tags to an Input text.
+    /// </summary>
+    /// <returns>Input text with XPIA Detection tags added.</returns>
+    /// <remarks>Please make sure to configure the AOAI policy to support XPIA detection before using this method. Also, remember to add the 'Input text with XPIA detection tags added' to a message.</remarks>
+    [NonDebuggable]
+    procedure AddXPIADetectionTags(var Input: Text)
+    begin
+        AOAIChatMessagesImpl.AddXPIADetectionTags(Input);
+    end;
+
+    /// <summary>
     /// Prepares the Tools to be sent to the deployment model.
     /// </summary>
     /// <returns>Tools in a JsonArray.</returns>
@@ -413,4 +388,15 @@ codeunit 7763 "AOAI Chat Messages"
     begin
         exit(AOAIToolsImpl.PrepareTools());
     end;
+
+    /// <summary>
+    /// Checks if the current chat messages history is compatible with the deployment model
+    /// </summary>
+    /// <returns>True if compatible, false otherwise.</returns>
+    [NonDebuggable]
+    internal procedure CheckCompatibilityWithModel(Deployment: SecretText)
+    begin
+        AOAIChatMessagesImpl.CheckCompatibilityWithModel(Deployment);
+    end;
+
 }

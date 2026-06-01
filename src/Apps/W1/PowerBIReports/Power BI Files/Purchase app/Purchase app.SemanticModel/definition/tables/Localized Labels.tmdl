@@ -1,0 +1,458 @@
+table 'Localized Labels'
+	isHidden
+	lineageTag: 7ab9b912-a1ea-480f-ab22-ede9aa53e9d7
+
+	measure 'My Report Title' = 0
+		isHidden
+		lineageTag: 821091bc-8ac6-479b-92b9-de1917821854
+
+	measure 'My Button Caption' = 0
+		isHidden
+		lineageTag: b26684cd-3326-44a6-8234-ea4d1edf40fb
+
+	measure 'My Visual Title' = 0
+		isHidden
+		lineageTag: b75afd04-f6cc-4dda-a5c6-410893f13bec
+
+	measure 'Purchases Overview' = 0
+		isHidden
+		lineageTag: 265f2f63-11f3-495b-90d4-fee5a05393a2
+
+	measure 'Purchases Decomposition' = 0
+		isHidden
+		lineageTag: 541ed7e8-292e-4fc8-9b6d-78eeb85ba199
+
+	measure 'Daily Purchases' = 0
+		isHidden
+		lineageTag: 134d6fd8-effd-407f-a119-3224b05570d5
+
+	measure 'Moving Averages' = 0
+		isHidden
+		lineageTag: 8f1d69d4-02d6-49d9-b3ae-1b9b049f8d85
+
+	measure 'Moving Annual Total (MAT)' = 0
+		isHidden
+		lineageTag: 8a48cadb-0846-45c1-ab04-29a671af13ef
+
+	measure 'Period-Over-Period (POP)' = 0
+		isHidden
+		lineageTag: 78cb299a-46c3-443f-923b-703db405a08b
+
+	measure 'Year-Over-Year (YOY)' = 0
+		isHidden
+		lineageTag: 2bae65b5-7478-4778-a535-12e12cdd5bab
+
+	measure 'Purchases by Item' = 0
+		isHidden
+		lineageTag: 1e263236-d7a7-410e-9ed1-53aaf5353ee4
+
+	measure 'Purchases by Purchaser' = 0
+		isHidden
+		lineageTag: 19bab645-543a-4aed-bed1-a8ed162d07e0
+
+	measure 'Purchases by Vendor' = 0
+		isHidden
+		lineageTag: cee659c8-22a9-4aad-ba7e-ac1f199f2faf
+
+	measure 'Purchases by Location' = 0
+		isHidden
+		lineageTag: be3f30be-a789-4d5c-87e8-84fe4ac48805
+
+	measure 'Actual vs. Budget Quantity' = 0
+		isHidden
+		lineageTag: f14b665d-b1f8-4b5b-b4e2-3bd45d14b80b
+
+	measure 'Actual vs. Budget Amount' = 0
+		isHidden
+		lineageTag: 9b1ee02c-e61e-409c-b9eb-848c47b72e25
+
+	measure 'Item Drillthrough' = 0
+		isHidden
+		lineageTag: 77423222-6cad-4570-98a7-17975e08338b
+
+	measure 'Vendor Drillthrough' = 0
+		isHidden
+		lineageTag: ca30ad9c-5a36-405e-80b0-d8aa3575d72a
+
+	measure 'Location Drillthrough' = 0
+		isHidden
+		lineageTag: 684d8906-3b64-49d9-80cb-6b1025c2559d
+
+	measure 'Purchaser Drillthrough' = 0
+		isHidden
+		lineageTag: 3e7be11f-3e94-4f82-9471-cdf54fc676d5
+
+	measure Purchase = 0
+		isHidden
+		lineageTag: ff10aacb-9e2a-4283-9a85-6228dcac052a
+
+	measure 'for Business Central' = 0
+		isHidden
+		lineageTag: a4d4716e-dfcb-4497-9660-549659f78232
+
+	measure 'CONNECT YOUR DATA' = 0
+		isHidden
+		lineageTag: d05ef839-5685-42d4-9983-4e91c60eeeca
+
+	measure '1. Download the Purchasing Connector for Power BI' = 0
+		isHidden
+		lineageTag: 9aba5858-a7fe-4d4f-969f-c13f57d86d36
+
+	measure '2. Configure Dynamics 365 Business Central' = 0
+		isHidden
+		lineageTag: feeec905-1457-41ae-8b81-5989889a75df
+
+	measure 'USE, EDIT AND BUILD YOUR OWN REPORTS' = 0
+		isHidden
+		lineageTag: 6ff4b3c2-7c00-405c-be78-49456aef4a92
+
+	measure 'Purchasing includes a variety of pre-built reports to help you see your data immediately.' = 0
+		isHidden
+		lineageTag: acc45e9c-dfec-446d-bc54-5618bba0c600
+
+	measure 'You are able to edit these reports or build your own report from scratch' = 0
+		isHidden
+		lineageTag: a76e52e0-8b5e-40cb-bbc8-036b856327c7
+
+	measure 'HELP AND SUPPORT' = 0
+		isHidden
+		lineageTag: 0ea97187-0eb4-4106-9cdb-5f5534377d97
+
+	measure 'For help and support with your new report please visit the Analytics overview documentation.' = 0
+		isHidden
+		lineageTag: 3f9aac85-bdb5-406a-ad4c-188dd9288187
+
+	measure 'OTHER POWER BI REPORTS' = 0
+		isHidden
+		lineageTag: 7cc3d732-aa31-4f22-90bd-3c41146192ea
+
+	measure SALES = 0
+		isHidden
+		lineageTag: 9d0fc897-722a-46bc-aefb-3b03c19e922a
+
+	measure FINANCE = 0
+		isHidden
+		lineageTag: d4063cdb-6322-48a4-ac72-68d3bb55ff4e
+
+	measure REBATES = 0
+		isHidden
+		lineageTag: 9fd4804a-bbde-46ee-b3f1-3e7a0f943379
+
+	measure INVENTORY = 0
+		isHidden
+		lineageTag: a8c7b0aa-92c9-452b-ad1f-e4a41e4ed85e
+
+	measure JOBS = 0
+		isHidden
+		lineageTag: c9f8f01d-a238-4412-ad8d-310b27d95c7a
+
+	measure 'Purchase Amounts' = 0
+		isHidden
+		lineageTag: 08a6b8eb-0b22-4148-99fc-fddb4ffda09c
+
+	measure 'Purchase Quantity by Item Category' = 0
+		isHidden
+		lineageTag: e88d638a-bd49-4b0c-851a-a2b4de12ea5c
+
+	measure 'Top 5 Vendors by Amount by Source Type' = 0
+		isHidden
+		lineageTag: 7aa8957a-d551-4d1c-9959-21c36bf0cd41
+
+	measure 'Locations by Quantity' = 0
+		isHidden
+		lineageTag: 7d76fdf1-e848-4ea4-9500-ba7db1d7d12b
+
+	measure 'Document Count' = 0
+		isHidden
+		lineageTag: dcf0a158-8e84-43e6-b882-b1c82ea064f4
+
+	measure 'Purchase Quantities' = 0
+		isHidden
+		lineageTag: fe5b1f63-9940-40d9-a554-bf6e71e6f47b
+
+	measure 'Decomposition by Amount' = 0
+		isHidden
+		lineageTag: a03ea13c-d0cc-4af5-8ec5-8d04a683003b
+
+	measure 'Purchase Amount and Purchase Amount 30 Days Average (Fiscal) by Fiscal Month Year' = 0
+		isHidden
+		lineageTag: 8eebb70c-9541-46c8-97e4-c2d2a771de23
+
+	measure 'Previous Year & Current Year Moving Annual Total by Fiscal Month Year' = 0
+		isHidden
+		lineageTag: 0decb427-66f7-4301-b0bc-921797fecdc2
+
+	measure 'Purchase Amount Period-over-Period (Fiscal) and Purchase Amount by Fiscal Month Year' = 0
+		isHidden
+		lineageTag: 686865a7-edb4-4c5f-b245-d29e95746fa4
+
+	measure 'Current Year and Previous Year (Fiscal) Purchase Amount by Fiscal Month Year' = 0
+		isHidden
+		lineageTag: d27758cb-69c8-4265-8090-bd495519c22b
+
+	measure 'Last Refreshed' = 0
+		isHidden
+		lineageTag: 89c487ec-a66f-4bcc-a628-dae7a3c74477
+
+	measure 'Company Name' = 0
+		isHidden
+		lineageTag: c1815262-4246-4e2a-a5c7-53cf66e3ec67
+
+	measure 'Purchase Quantity by Location' = 0
+		isHidden
+		lineageTag: 3c83d85a-3a71-493f-9bd5-cffabdad6768
+
+	measure 'Purchase Amounts of Top 5 Vendors' = 0
+		isHidden
+		lineageTag: a3f64834-04ad-4270-bc85-a35d50cf41fa
+
+	measure 'Purchase Distribution by Item Category' = 0
+		isHidden
+		lineageTag: f30883bf-bd13-4133-ba63-1377e6413fcc
+
+	measure 'Purchases by Item Category' = 0
+		isHidden
+		lineageTag: 5c9cea6f-268b-41f6-8ce4-ea99d5cf9920
+
+	measure 'Purchase Amount by Item Category' = 0
+		isHidden
+		lineageTag: 13558471-b808-476a-8ab1-c4046463f19a
+
+	measure 'Actual vs Budget' = 0
+		isHidden
+		lineageTag: b29be612-a48c-4903-8592-c2eb4e9f0eea
+
+	measure 'Actual vs Budget Purchase Analysis by Item Category' = 0
+		isHidden
+		lineageTag: baf98c00-6d76-49e3-86e5-d9f41234523e
+
+	measure 'Purchases Drillthrough' = 0
+		isHidden
+		lineageTag: 605f195b-cd29-48ff-ba00-3f3871a48797
+
+	measure 'Detailed Purchase Ledger' = 0
+		isHidden
+		lineageTag: 8feeea1a-3f6e-4494-ad0b-1a50f9c9f4b4
+
+	measure 'Total Purchase Amount by Fiscal Year' = 0
+		isHidden
+		lineageTag: cb2c7913-4caf-4bd9-a98c-8f344c450a94
+
+	measure PROJECTS = 0
+		isHidden
+		lineageTag: 2fe751da-e074-46df-b898-165668302394
+
+	measure MANUFACTURING = 0
+		isHidden
+		lineageTag: 0c3d9d6e-d8f6-4e42-b771-ea2fcff7b155
+
+	measure 'This card displays key metrics for business analysis. The card shows total purchase amount, document count, number of outstanding purchase orders, number of purchase invoices, outstanding amount, and invoiced amount.' = 0
+		isHidden
+		lineageTag: bd95cbd1-52a7-4a1a-8777-d76620dae371
+
+	measure 'The card displays key metrics for business analysis, including total purchase amount, document count, number of outstanding purchase orders, number of purchase invoices, outstanding amount excluding VAT, and invoiced amount.' = 0
+		isHidden
+		lineageTag: bf220d8f-c763-4c3b-a2ae-08f88d4e961d
+
+	measure 'Daily Purchases Details' = 0
+		isHidden
+		lineageTag: d4511b90-d983-42c4-9529-f6f7f488f96d
+
+	measure 'Moving Annual Total (MAT) Details' = 0
+		isHidden
+		lineageTag: 893a3086-8b9d-4575-b2dc-98647f24898b
+
+	measure 'Period-Over-Period (POP) Details' = 0
+		isHidden
+		lineageTag: 92de5769-0523-4f9f-b90d-671d749f4f7a
+
+	measure 'Year-Over-Year (YOY) Details' = 0
+		isHidden
+		lineageTag: fab749a2-00dd-461a-9b6a-2aac69d9073c
+
+	measure 'Purchases by Item Details' = 0
+		isHidden
+		lineageTag: 27a2852e-98f4-4062-a138-97951fb05894
+
+	measure 'Purchases by Vendor Details' = 0
+		isHidden
+		lineageTag: 62ac5f5d-4675-463c-8edd-aadc8058eef8
+
+	measure 'Purchases by Purchaser Details' = 0
+		isHidden
+		lineageTag: cefdcb6e-acfc-4dea-b876-0d7e5d43b571
+
+	measure 'Purchases by Location Details' = 0
+		isHidden
+		lineageTag: 12f45dfe-e592-4255-ab91-3d54987cfd32
+
+	measure 'Purchases Drillthrough Details' = 0
+		isHidden
+		lineageTag: 6b5711fe-2c2e-4a23-b9d3-5f0cd4f3f6ee
+
+	measure 'Purchase Amount by Item No.' = 0
+		isHidden
+		lineageTag: 7335bdb2-fee9-42ad-8e39-7bac48f8e32e
+
+	measure 'Purchase Value by Fiscal Year and Item Category' = 0
+		isHidden
+		lineageTag: f934d9bf-f2ed-4248-9222-f94c19e40be8
+
+	measure 'Purchase Value by Item Category' = 0
+		isHidden
+		lineageTag: c01f419f-e7b9-46a4-9472-3b66e87f6b92
+
+	measure 'Purchase Amount Analysis by Vendor' = 0
+		isHidden
+		lineageTag: 130699ae-7e93-46b1-8da5-37f02da4df54
+
+	measure 'Purchase (LCY) by Vendor City' = 0
+		isHidden
+		lineageTag: 1bffe104-c0f8-4cb2-80b1-ccaa61958a20
+
+	measure 'Purchase Metrics by Purchaser' = 0
+		isHidden
+		lineageTag: 23719cd0-fb35-4caf-b886-6b2c030e8b5e
+
+	measure 'Purchase Value by Purchaser' = 0
+		isHidden
+		lineageTag: 4ca3bf96-a7b8-482d-a55c-588c970e1576
+
+	measure 'Purchases by Warehouse Location' = 0
+		isHidden
+		lineageTag: fa3398e9-860e-4cc3-9282-65482239ef3b
+
+	measure 'Purchases by Vendor Location' = 0
+		isHidden
+		lineageTag: a383898a-a41d-4c11-aef1-4b3991003058
+
+	measure 'Purchase Details by Warehouse Location' = 0
+		isHidden
+		lineageTag: 9967754a-e1e6-4c7d-8b2c-0259e63fc2b9
+
+	measure 'Actual vs Budget Over Period' = 0
+		isHidden
+		lineageTag: d57b12f7-d1c9-48f4-8934-f5a85e7c7a18
+
+	measure 'Purchase Returns Overview' = 0
+		isHidden
+		lineageTag: 9c71dc1d-bf0c-4a16-87da-9681d65a4cb2
+
+	measure 'Total Credit (Amount) by Type and No.' = 0
+		isHidden
+		lineageTag: d38908e3-504a-487c-971a-16bfd7bfb9ca
+
+	measure 'Return Rate (Amount) by Vendor' = 0
+		isHidden
+		lineageTag: 072d82a6-2d2e-4317-8d33-8579b1260b9b
+
+	measure 'Total Credit Amount by Return Reason Code' = 0
+		isHidden
+		lineageTag: 54d564ad-c893-4f5c-9497-9b8d12467375
+
+	measure 'Total Credit (Amount) Over Time' = 0
+		isHidden
+		lineageTag: f05be4f7-20a2-40a8-8e5e-312fa6cffc0c
+
+	measure 'Purchase Quote Overview' = 0
+		isHidden
+		lineageTag: 7e878616-6270-430f-b67e-b537d1608a9b
+
+	measure 'Purchase Quotes by Vendor Details' = 0
+		isHidden
+		lineageTag: 8d0dfa4e-3e30-4318-aa40-b258df1f18cd
+
+	measure 'Purchase Quotes by Purchaser' = 0
+		isHidden
+		lineageTag: d2d22e17-58e8-4486-9333-5c4a78277430
+
+	measure 'Purchase Quotes by Item Category Code' = 0
+		isHidden
+		lineageTag: 885ac943-dad4-4ac5-a27c-621341c0de74
+
+	measure 'Purchase Quotes Over Time' = 0
+		isHidden
+		lineageTag: f5d3b868-3a11-44b4-aa2e-9a3ffd002cc1
+
+	measure 'Key Purchase Influencers' = 0
+		isHidden
+		lineageTag: 7d394e81-180d-499b-841a-ca96f29e6c5e
+
+	measure 'Purchase Quantity by Purchaser' = 0
+		isHidden
+		lineageTag: 53bd5942-2551-468e-afc1-869009eb4ae7
+
+	measure 'Purchase Forecasting' = 0
+		isHidden
+		lineageTag: 39d8b731-2ab1-416c-9e97-0d5a2c9b18e3
+
+	measure 'Purchase (LCY) Forecasting' = 0
+		isHidden
+		lineageTag: 5e82d102-c7ac-4f5b-985c-ef876a35537d
+
+	measure 'Purchase (LCY) by Purchaser' = 0
+		isHidden
+		lineageTag: 323a413d-8e23-4a08-bc63-ba498a2ba465
+
+	measure 'Purchase (LCY) by Document Type' = 0
+		isHidden
+		lineageTag: 5511c4c9-d824-480a-a204-02f4015b1b03
+
+	measure 'Purchase (LCY) by Item Category' = 0
+		isHidden
+		lineageTag: 285c5de4-650f-4e01-9a9e-0e6040a34a9e
+
+	measure 'Purchase (LCY) by Vendor' = 0
+		isHidden
+		lineageTag: ab364306-f853-4d5e-a30b-4f3123a2d695
+
+	measure 'Vendor Quality Analysis' = 0
+		isHidden
+		lineageTag: 448501c5-7ae0-464c-baa4-12cfef38ba6d
+
+	measure 'Vendor Analysis Details' = 0
+		isHidden
+		lineageTag: 4884cf02-97f6-4850-81e4-2f4f37f94916
+
+	measure 'Vendor Reliance Analysis' = 0
+		isHidden
+		lineageTag: d99a53b0-f06f-496f-9523-f9b7cb14efde
+
+	measure 'Purchase Discount Amount Over Time' = 0
+		isHidden
+		lineageTag: a2562cfa-54c5-4c5c-bd51-49957624ae81
+
+	measure 'Purchase Quantity Label' = 0
+		isHidden
+		lineageTag: 295acfdb-7fc1-4694-a370-22fd10829a30
+
+	measure 'Purchase (LCY) Label' = 0
+		isHidden
+		lineageTag: e3a5c8f9-4b3c-4386-a012-9d92243489c6
+
+	measure 'Purchase (LCY) by Dimension ' = 0
+		isHidden
+		lineageTag: c3a44860-632d-4801-9850-911f31bdb0be
+
+	measure 'Year-To-Date Purchase (LCY) Over Time' = 0
+		isHidden
+		lineageTag: ed2ccfc3-5cd0-4eff-9fa5-c00365ca66e9
+
+	measure 'Actual vs. Budget Amount by Item' = 0
+		isHidden
+		lineageTag: 4047c8c5-fe59-4515-9b65-c2484909adcd
+
+	column unused
+		isHidden
+		displayFolder: unused
+		lineageTag: 8eb40887-35ce-4966-ab52-876626917c8e
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [unused]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Partition = calculated
+		mode: import
+		source = DATATABLE("unused", STRING, {{"This is a table automatically generated by Translations Builder"}})
+

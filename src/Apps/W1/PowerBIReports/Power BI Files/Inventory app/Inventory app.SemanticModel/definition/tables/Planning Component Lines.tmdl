@@ -1,0 +1,122 @@
+table 'Planning Component Lines'
+	lineageTag: ba48597c-918b-4219-a1c3-b1ac010b1a08
+
+	/// This measure shows how many items are expected to be consumed for planned production orders by summing up the expected quantity of items that are required for production.
+	measure 'Planning Issues (Qty.)' = SUM('Planning Component Lines'[expectedQuantityBase])
+		displayFolder: _Planning Component Line Measures
+		lineageTag: 5c1c9ce1-05c5-4a16-8c7d-0e2e645fbbe0
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Planning Issues - Earliest Due Date' = MIN('Planning Component Lines'[Due Date])
+		formatString: General Date
+		displayFolder: _Planning Component Line Measures
+		lineageTag: e9dde9d8-93a8-42f0-8213-7ad8376925ee
+
+	column itemNo
+		dataType: string
+		isHidden
+		lineageTag: abaf33cf-6b93-4fac-941f-6497f82f21c1
+		summarizeBy: none
+		sourceColumn: itemNo
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Due Date'
+		dataType: dateTime
+		isHidden
+		formatString: Long Date
+		lineageTag: 77f7bf78-ec83-4a0b-8409-e4c64290517c
+		summarizeBy: none
+		sourceColumn: Due Date
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column locationCode
+		dataType: string
+		isHidden
+		lineageTag: de0dfceb-26e3-4027-b1a0-a2507d4c9dbb
+		summarizeBy: none
+		sourceColumn: locationCode
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column expectedQuantityBase
+		dataType: double
+		isHidden
+		lineageTag: e3dd8b58-f121-4985-b6d5-04fae4bda916
+		summarizeBy: sum
+		sourceColumn: expectedQuantityBase
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column dimensionSetID
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 7646f554-eb54-4cbe-a1fb-b85962152d92
+		summarizeBy: none
+		sourceColumn: dimensionSetID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Quantity Per Unit of Measure'
+		dataType: double
+		lineageTag: cae85a8f-3404-49b5-8602-8372b1eeeb12
+		summarizeBy: sum
+		sourceColumn: Quantity Per Unit of Measure
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Unit of Measure Code'
+		dataType: string
+		lineageTag: cb5fc5db-c62a-4745-893e-a9fddb0103ed
+		summarizeBy: none
+		sourceColumn: Unit of Measure Code
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Planning Component Lines' = m
+		mode: import
+		queryGroup: 'Fact Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY,API_ENDPOINT, []),
+				    TableData = Source{[Name="planningComponentLines",Signature="table"]}[Data],
+				    #"Changed Type" = Table.TransformColumnTypes(
+				        TableData,
+				        {
+				            {"itemNo", type text},
+				            {"dueDate", type date},
+				            {"locationCode", type text},
+				            {"expectedQuantityBase", type number},
+				            {"dimensionSetID", Int64.Type},
+				            {"qtyPerUnitOfMeasure", type number},
+				            {"unitOfMeasureCode", type text}
+				        }
+				    ),
+				    #"Removed Columns" = Table.RemoveColumns(#"Changed Type", {"ETag"}),
+				    #"Renamed Columns" = Table.RenameColumns(#"Removed Columns",{{"dueDate", "Due Date"}, {"qtyPerUnitOfMeasure", "Quantity Per Unit of Measure"},{"unitOfMeasureCode","Unit of Measure Code"}})
+				in
+				    #"Renamed Columns"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

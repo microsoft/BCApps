@@ -14,6 +14,7 @@ codeunit 1598 "Email Logs Delete"
     InherentEntitlements = X;
     Permissions = tabledata "Email Outbox" = rd,
                   tabledata "Sent Email" = rd,
+                  tabledata "Email Retry" = rd,
                   tabledata "Email Inbox" = rd;
 
     var

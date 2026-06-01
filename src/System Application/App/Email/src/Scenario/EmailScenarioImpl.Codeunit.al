@@ -17,22 +17,22 @@ codeunit 8892 "Email Scenario Impl."
     procedure GetEmailAccount(Scenario: Enum "Email Scenario"; var EmailAccount: Record "Email Account"): Boolean
     var
         EmailScenario: Record "Email Scenario";
-        AllEmailAccounts: Record "Email Account";
+        TempAllEmailAccounts: Record "Email Account";
         EmailAccounts: Codeunit "Email Account";
     begin
-        EmailAccounts.GetAllAccounts(AllEmailAccounts);
+        EmailAccounts.GetAllAccounts(TempAllEmailAccounts);
 
         // Find the account for the provided scenario
         if EmailScenario.Get(Scenario) then
-            if AllEmailAccounts.Get(EmailScenario."Account Id", EmailScenario.Connector) then begin
-                EmailAccount := AllEmailAccounts;
+            if TempAllEmailAccounts.Get(EmailScenario."Account Id", EmailScenario.Connector) then begin
+                EmailAccount := TempAllEmailAccounts;
                 exit(true);
             end;
 
         // Fallback to the default account if the scenario isn't mapped or the mapped account doesn't exist
         if EmailScenario.Get(Enum::"Email Scenario"::Default) then
-            if AllEmailAccounts.Get(EmailScenario."Account Id", EmailScenario.Connector) then begin
-                EmailAccount := AllEmailAccounts;
+            if TempAllEmailAccounts.Get(EmailScenario."Account Id", EmailScenario.Connector) then begin
+                EmailAccount := TempAllEmailAccounts;
                 exit(true);
             end;
 
@@ -81,9 +81,9 @@ codeunit 8892 "Email Scenario Impl."
     /// <param name="Result">A flatten tree structure representing the all the email accounts and the scenarios assigned to them.</param>
     procedure GetScenariosByEmailAccount(var Result: Record "Email Account Scenario")
     var
-        EmailAccounts: Record "Email Account";
-        EmailAccountScenarios: Record "Email Account Scenario";
-        DefaultAccount: Record "Email Account";
+        TempEmailAccounts: Record "Email Account";
+        TempEmailAccountScenarios: Record "Email Account Scenario";
+        TempDefaultAccount: Record "Email Account";
         EmailAccount: Codeunit "Email Account";
         DisplayName: Text[2048];
         Position: Integer;
@@ -92,31 +92,31 @@ codeunit 8892 "Email Scenario Impl."
         Result.Reset();
         Result.DeleteAll();
 
-        EmailAccount.GetAllAccounts(EmailAccounts);
+        EmailAccount.GetAllAccounts(TempEmailAccounts);
 
-        if not EmailAccounts.FindSet() then
+        if not TempEmailAccounts.FindSet() then
             exit; // No accounts, nothing to do
 
         // The position is set in order to be able to properly sort the entries (by order of insertion)
         Position := 1;
-        GetDefaultAccount(DefaultAccount);
+        GetDefaultAccount(TempDefaultAccount);
 
         repeat
-            Default := (EmailAccounts."Account Id" = DefaultAccount."Account Id") and (EmailAccounts.Connector = DefaultAccount.Connector);
-            DisplayName := StrSubstNo(AccountDisplayLbl, EmailAccounts.Name, EmailAccounts."Email Address");
+            Default := (TempEmailAccounts."Account Id" = TempDefaultAccount."Account Id") and (TempEmailAccounts.Connector = TempDefaultAccount.Connector);
+            DisplayName := StrSubstNo(AccountDisplayLbl, TempEmailAccounts.Name, TempEmailAccounts."Email Address");
 
             // Add entry for the email account. Scenario is -1, because it isn't needed when displaying the email account.
-            AddEntry(Result, Result.EntryType::Account, -1, EmailAccounts."Account Id", EmailAccounts.Connector, DisplayName, Default, Position);
+            AddEntry(Result, Result.EntryType::Account, -1, TempEmailAccounts."Account Id", TempEmailAccounts.Connector, DisplayName, Default, Position);
 
             // Get the email scenarios assigned to the current email account, sorted by "Display Name"
-            GetEmailScenariosForAccount(EmailAccounts, EmailAccountScenarios);
+            GetEmailScenariosForAccount(TempEmailAccounts, TempEmailAccountScenarios);
 
-            if EmailAccountScenarios.FindSet() then
+            if TempEmailAccountScenarios.FindSet() then
                 repeat
                     // Add entry for every scenario that is assigned to the current email account
-                    AddEntry(Result, EmailAccountScenarios.EntryType::Scenario, EmailAccountScenarios.Scenario, EmailAccountScenarios."Account Id", EmailAccountScenarios.Connector, EmailAccountScenarios."Display Name", false, Position);
-                until EmailAccountScenarios.Next() = 0;
-        until EmailAccounts.Next() = 0;
+                    AddEntry(Result, TempEmailAccountScenarios.EntryType::Scenario, TempEmailAccountScenarios.Scenario, TempEmailAccountScenarios."Account Id", TempEmailAccountScenarios.Connector, TempEmailAccountScenarios."Display Name", false, Position);
+                until TempEmailAccountScenarios.Next() = 0;
+        until TempEmailAccounts.Next() = 0;
 
         // Order by position to show accurate results
         Result.SetCurrentKey(Position);
@@ -181,7 +181,7 @@ codeunit 8892 "Email Scenario Impl."
     procedure AddScenarios(EmailAccount: Record "Email Account Scenario"): Boolean
     var
         EmailScenario: Record "Email Scenario";
-        SelectedScenarios: Record "Email Account Scenario";
+        TempSelectedScenarios: Record "Email Account Scenario";
         ScenariosForAccount: Page "Email Scenarios for Account";
     begin
         EmailAccountImpl.CheckPermissions();
@@ -196,16 +196,16 @@ codeunit 8892 "Email Scenario Impl."
         if ScenariosForAccount.RunModal() <> Action::LookupOK then
             exit(false);
 
-        ScenariosForAccount.GetSelectedScenarios(SelectedScenarios);
+        ScenariosForAccount.GetSelectedScenarios(TempSelectedScenarios);
 
-        if not SelectedScenarios.FindSet() then
+        if not TempSelectedScenarios.FindSet() then
             exit(false);
 
         repeat
-            if not EmailScenario.Get(SelectedScenarios.Scenario) then begin
+            if not EmailScenario.Get(TempSelectedScenarios.Scenario) then begin
                 EmailScenario."Account Id" := EmailAccount."Account Id";
                 EmailScenario.Connector := EmailAccount.Connector;
-                EmailScenario.Scenario := Enum::"Email Scenario".FromInteger(SelectedScenarios.Scenario);
+                EmailScenario.Scenario := Enum::"Email Scenario".FromInteger(TempSelectedScenarios.Scenario);
 
                 EmailScenario.Insert();
             end else begin
@@ -214,7 +214,7 @@ codeunit 8892 "Email Scenario Impl."
 
                 EmailScenario.Modify();
             end;
-        until SelectedScenarios.Next() = 0;
+        until TempSelectedScenarios.Next() = 0;
 
         exit(true);
     end;
@@ -263,7 +263,7 @@ codeunit 8892 "Email Scenario Impl."
 
     procedure ChangeAccount(var EmailScenario: Record "Email Account Scenario"): Boolean
     var
-        SelectedAccount: Record "Email Account";
+        TempSelectedAccount: Record "Email Account";
         Scenario: Record "Email Scenario";
         EmailAccount: Codeunit "Email Account";
         AccountsPage: Page "Email Accounts";
@@ -273,25 +273,25 @@ codeunit 8892 "Email Scenario Impl."
         if not EmailScenario.FindSet() then
             exit(false);
 
-        EmailAccount.GetAllAccounts(false, SelectedAccount);
-        if SelectedAccount.Get(EmailScenario."Account Id", EmailScenario.Connector) then;
+        EmailAccount.GetAllAccounts(false, TempSelectedAccount);
+        if TempSelectedAccount.Get(EmailScenario."Account Id", EmailScenario.Connector) then;
 
         AccountsPage.EnableLookupMode();
-        AccountsPage.SetRecord(SelectedAccount);
+        AccountsPage.SetRecord(TempSelectedAccount);
         AccountsPage.Caption := ChangeEmailAccountForScenarioTxt;
 
         if AccountsPage.RunModal() <> Action::LookupOK then
             exit(false);
 
-        AccountsPage.GetAccount(SelectedAccount);
+        AccountsPage.GetAccount(TempSelectedAccount);
 
-        if IsNullGuid(SelectedAccount."Account Id") then // defensive check, no account was selected
+        if IsNullGuid(TempSelectedAccount."Account Id") then // defensive check, no account was selected
             exit;
 
         repeat
             if Scenario.Get(EmailScenario.Scenario) then begin
-                Scenario."Account Id" := SelectedAccount."Account Id";
-                Scenario.Connector := SelectedAccount.Connector;
+                Scenario."Account Id" := TempSelectedAccount."Account Id";
+                Scenario.Connector := TempSelectedAccount.Connector;
 
                 Scenario.Modify();
             end;

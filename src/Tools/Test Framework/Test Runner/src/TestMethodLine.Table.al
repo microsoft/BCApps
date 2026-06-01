@@ -40,8 +40,7 @@ table 130450 "Test Method Line"
         field(4; "Test Codeunit"; Integer)
         {
             Editable = false;
-            TableRelation = if ("Line Type" = const(Codeunit)) AllObjWithCaption."Object ID" where("Object Type" = const(Codeunit),
-                                                                                                  "Object Subtype" = const('Test'));
+            TableRelation = if ("Line Type" = const(Codeunit)) "CodeUnit Metadata".ID where(Subtype = const(Test));
 
             trigger OnValidate()
             var

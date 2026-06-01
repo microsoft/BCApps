@@ -5,8 +5,8 @@
 
 namespace System.Security.AccessControl;
 
-using System.Telemetry;
 using System.Reflection;
+using System.Telemetry;
 
 codeunit 9863 "Permission Set Copy Impl."
 {

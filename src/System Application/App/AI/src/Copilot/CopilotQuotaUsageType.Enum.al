@@ -18,7 +18,7 @@ enum 7785 "Copilot Quota Usage Type"
     /// </summary>
     value(0; "Generative AI Answer")
     {
-        Caption = 'Generative AI Answer';
+        Caption = 'Generative answer';
     }
 
     /// <summary>
@@ -26,6 +26,6 @@ enum 7785 "Copilot Quota Usage Type"
     /// </summary>
     value(1; "Autonomous Action")
     {
-        Caption = 'Autonomous Action';
+        Caption = 'Agent action';
     }
 }

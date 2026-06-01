@@ -1,0 +1,2253 @@
+cultureInfo cs-CZ
+	translations
+		model Model
+			table Item
+				caption: Zboží
+				column 'Item No. & Description'
+					caption: Číslo a popis zboží
+				column 'Item No.'
+					caption: Číslo zboží
+				column 'Item Description'
+					caption: Popis zboží
+				column 'Item Base Unit of Measure'
+					caption: Základní měrná jednotka zboží
+				column 'Item Unit Cost (LCY)'
+					caption: Pořizovací cena zboží (LM)
+				column 'Item Inventory Posting Group'
+					caption: Účto skupiny zásob zboží
+				column 'Item Category Code'
+					caption: Kód kategorie zboží
+				column 'Item Category Description'
+					caption: Popis kategorie zboží
+				column 'Item Routing No.'
+					caption: routingNo
+				column 'Item Production BOM No.'
+					caption: productionBomNo
+				column 'Item Replenishment System'
+					caption: replenishmentSystem
+				column 'Item Single-Level Cap. Ovhd Cost'
+					caption: singleLevelCapOvhdCost
+				column 'Item Single-Level Capacity Cost'
+					caption: singleLevelCapacityCost
+				column 'Item Single-Level Material Cost'
+					caption: singleLevelMaterialCost
+				column 'Item Single-Level Mfg. Ovhd Cost'
+					caption: singleLevelMfgOvhdCost
+				column 'Item Single-Level Subcontrd. Cost'
+					caption: singleLevelSubcontrdCost
+				column 'Item Single-Lvl Mat. Non-Invt. Cost'
+					caption: singleLvlMatNonInvtCost
+				column 'Item Rolled-up Cap. Overhead Cost'
+					caption: rolledUpCapOverheadCost
+				column 'Item Rolled-up Capacity Cost'
+					caption: rolledUpCapacityCost
+				column 'Item Rolled-up Mat. Non-Invt. Cost'
+					caption: rolledUpMatNonInvtCost
+				column 'Item Rolled-up Material Cost'
+					caption: rolledUpMaterialCost
+				column 'Item Rolled-up Mfg. Ovhd Cost'
+					caption: rolledUpMfgOvhdCost
+				column 'Item Rolled-up Subcontracted Cost'
+					caption: rolledUpSubcontractedCost
+				column 'Item Scrap %'
+					caption: scrapPrc
+			table Location
+				caption: Lokace
+				column 'Location Code'
+					caption: Kód lokace
+				column 'Location Name'
+					caption: Název lokace
+			table Customer
+				caption: Zákazník
+				column 'Customer No. & Name'
+					caption: Číslo a jméno zákazníka
+				column 'Customer No.'
+					caption: Číslo zákazníka
+				column 'Customer Name'
+					caption: Jméno zákazníka
+				column 'Customer Address'
+					caption: Adresa zákazníka
+				column 'Customer Address 2'
+					caption: Adresa zákazníka 2
+				column 'Customer City'
+					caption: Město zákazníka
+				column 'Customer County'
+					caption: Kraj zákazníka
+				column 'Customer Country/Region Code'
+					caption: Kód země/oblasti zákazníka
+				column 'Customer Posting Group'
+					caption: Účto skupina zákazníka
+				column 'Customer Price Group'
+					caption: Cenová skupina zákazníka
+				column 'Customer Discount Group'
+					caption: Skupina slev zákazníka
+				column 'Customer Post Code'
+					caption: Poštovní směrovací číslo zákazníka
+				measure 'No. of New Customers'
+					caption: Počet nových zákazníků
+				measure 'No. of Lost Customers'
+					caption: Počet ztracených zákazníků
+				measure 'Sales New Customers'
+					caption: Prodej novým zákazníkům
+				measure 'No. of Returning Customers'
+					caption: Počet vracejících se zákazníků
+				measure 'Sales Returning Customers'
+					caption: Prodej vracejícím se zákazníkům
+				measure 'No. of Recovered Customers'
+					caption: Počet znovuzískaných zákazníků
+				measure 'Sales Recovered Customers'
+					caption: Prodej znovuzískaným zákazníkům
+				measure 'Sales Lost Customers (12M)'
+					caption: Prodej ztraceným zákazníkům (12M)
+				measure 'No. of Customers'
+					caption: Počet zákazníků
+			table Salesperson
+				caption: Prodejce
+				column 'Salesperson Code'
+					caption: Kód prodejce
+				column 'Salesperson Name'
+					caption: Jméno prodejce
+			table 'Standard Calendar Time Intelligence'
+				caption: Časová analýza standardního kalendáře
+				measure 'Sales Amount YTD'
+					caption: Částka prodeje RKDD
+				measure 'Sales Amount PY'
+					caption: Částka prodeje PR
+				measure 'Sales Amount PYTD'
+					caption: Částka prodeje PRKDD
+				measure 'Sales Amount PQTD'
+					caption: Částka prodeje PKDD
+				measure 'Sales Amount QTD'
+					caption: Částka prodeje KKDD
+				measure 'Sales Amount MTD'
+					caption: Částka prodeje MKDD
+				measure 'Sales Amount YOY %'
+					caption: Částka prodeje MR (%)
+				measure 'Sales Amount YOY'
+					caption: Částka prodeje MR
+				measure 'Sales Amount PQ'
+					caption: Částka prodeje PK
+				measure 'Sales Amount QOQ'
+					caption: Částka prodeje MK
+				measure 'Sales Amount PM'
+					caption: Částka prodeje PM
+				measure 'Sales Amount QOQ %'
+					caption: Částka prodeje MK (%)
+				measure 'Sales Amount MOM'
+					caption: Částka prodeje MM
+				measure 'Sales Amount MOM %'
+					caption: Částka prodeje MM (%)
+				measure 'Sales Amount MAT'
+					caption: Částka prodeje RPS
+				measure 'Sales Amount PYMAT'
+					caption: Částka prodeje PRSPR
+				measure 'Sales Amount YOYTD'
+					caption: Částka prodeje MRKDD
+				measure 'Sales Amount YOYTD %'
+					caption: Částka prodeje MRKDD (%)
+				measure 'Sales Amount PYC'
+					caption: Částka prodeje CPR
+				measure 'Sales Amount YTDOPY'
+					caption: Částka prodeje RKDDPPR
+				measure 'Sales Amount YTDOPY %'
+					caption: Částka prodeje RKDDPPR (%)
+				measure 'Sales Amount QOQTD'
+					caption: Částka prodeje MKKDD
+				measure 'Sales Amount QOQTD %'
+					caption: Částka prodeje MKKDD (%)
+				measure 'Sales Amount PQC'
+					caption: Částka prodeje CPK
+				measure 'Sales Amount QTDOPQ'
+					caption: Částka prodeje KDDVPK
+				measure 'Sales Amount QTDOPQ %'
+					caption: Částka prodeje KDDVPK (%)
+				measure 'Sales Amount PMTD'
+					caption: Částka prodeje PMDD
+				measure 'Sales Amount MOMTD'
+					caption: Částka prodeje MMKDD
+				measure 'Sales Amount MOMTD %'
+					caption: Částka prodeje MMKDD (%)
+				measure 'Sales Amount PMC'
+					caption: Částka prodeje CPM
+				measure 'Sales Amount MTDOPM'
+					caption: Částka prodeje MKDDPPM
+				measure 'Sales Amount MTDOPM %'
+					caption: Částka prodeje MKDDPPM (%)
+				measure 'Sales Amount AVG 30D'
+					caption: Částka prodeje PRŮM 30D
+				measure 'Sales Amount AVG 3M'
+					caption: Částka prodeje PRŮM 3M
+				measure 'Sales Amount AVG 1Y'
+					caption: Částka prodeje PRŮM 1R
+				measure 'Sales Amount MATG'
+					caption: Částka prodeje PCRR
+				measure 'Sales Amount MATG %'
+					caption: Částka prodeje PCRR (%)
+				measure 'Sales Amount PP'
+					caption: Částka prodeje PO
+				measure 'Sales Amount POP'
+					caption: Částka prodeje MO
+				measure 'Sales Amount POP %'
+					caption: Částka prodeje MO (%)
+				measure 'Sales Quantity YTD'
+					caption: Množství prodeje RKDD
+				measure 'Sales Quantity PY'
+					caption: Množství prodeje PR
+				measure 'Sales Quantity PYTD'
+					caption: Množství prodeje PRKDD
+				measure 'Sales Quantity PQTD'
+					caption: Množství prodeje PKDD
+				measure 'Sales Quantity QTD'
+					caption: Množství prodeje KKDD
+				measure 'Sales Quantity MTD'
+					caption: Množství prodeje MKDD
+				measure 'Sales Quantity YOY %'
+					caption: Množství prodeje MR (%)
+				measure 'Sales Quantity YOY'
+					caption: Množství prodeje MR
+				measure 'Sales Quantity PQ'
+					caption: Množství prodeje PK
+				measure 'Sales Quantity QOQ'
+					caption: Množství prodeje MK
+				measure 'Sales Quantity PM'
+					caption: Množství prodeje PM
+				measure 'Sales Quantity QOQ %'
+					caption: Množství prodeje MK (%)
+				measure 'Sales Quantity MOM'
+					caption: Množství prodeje MM
+				measure 'Sales Quantity MOM %'
+					caption: Množství prodeje MM (%)
+				measure 'Sales Quantity MAT'
+					caption: Množství prodeje RPS
+				measure 'Sales Quantity PYMAT'
+					caption: Množství prodeje PRSPR
+				measure 'Sales Quantity YOYTD'
+					caption: Prodejní množství MRKDD
+				measure 'Sales Quantity YOYTD %'
+					caption: Prodejní množství MRKDD (%)
+				measure 'Sales Quantity PYC'
+					caption: Množství prodeje CPR
+				measure 'Sales Quantity YTDOPY'
+					caption: Prodejní množství RKDDPPR
+				measure 'Sales Quantity YTDOPY %'
+					caption: Prodejní množství RKDDPPR (%)
+				measure 'Sales Quantity QOQTD'
+					caption: Prodejní množství MKKDD
+				measure 'Sales Quantity QOQTD %'
+					caption: Prodejní množství MKKDD (%)
+				measure 'Sales Quantity PQC'
+					caption: Množství prodeje CPK
+				measure 'Sales Quantity QTDOPQ'
+					caption: Prodejní množství KDDVPK
+				measure 'Sales Quantity QTDOPQ %'
+					caption: Prodejní množství KDDVPK (%)
+				measure 'Sales Quantity PMTD'
+					caption: Množství prodeje PMDD
+				measure 'Sales Quantity MOMTD'
+					caption: Prodejní množství MMKDD
+				measure 'Sales Quantity MOMTD %'
+					caption: Prodejní množství MMKDD (%)
+				measure 'Sales Quantity PMC'
+					caption: Množství prodeje CPM
+				measure 'Sales Quantity MTDOPM'
+					caption: Prodejní množství MKDDPPM
+				measure 'Sales Quantity MTDOPM %'
+					caption: Prodejní množství MKDDPPM (%)
+				measure 'Sales Quantity AVG 30D'
+					caption: Množství prodeje PRŮM 30D
+				measure 'Sales Quantity AVG 3M'
+					caption: Množství prodeje PRŮM 3M
+				measure 'Sales Quantity AVG 1Y'
+					caption: Množství prodeje PRŮM 1R
+				measure 'Sales Quantity MATG'
+					caption: Množství prodeje PCRR
+				measure 'Sales Quantity MATG %'
+					caption: Množství prodeje PCRR (%)
+				measure 'Sales Quantity PP'
+					caption: Množství prodeje PO
+				measure 'Sales Quantity POP'
+					caption: Množství prodeje MO
+				measure 'Sales Quantity POP %'
+					caption: Množství prodeje MO (%)
+				measure 'Gross Profit YTD'
+					caption: Hrubý zisk RKDD
+				measure 'Gross Profit PY'
+					caption: Hrubý zisk PR
+				measure 'Gross Profit PYTD'
+					caption: Hrubý zisk PRKDD
+				measure 'Gross Profit PQTD'
+					caption: Hrubý zisk PKDD
+				measure 'Gross Profit QTD'
+					caption: Hrubý zisk KKDD
+				measure 'Gross Profit MTD'
+					caption: Hrubý zisk MKDD
+				measure 'Gross Profit YOY %'
+					caption: Hrubý zisk MR (%)
+				measure 'Gross Profit YOY'
+					caption: Hrubý zisk MR
+				measure 'Gross Profit PQ'
+					caption: Hrubý zisk PK
+				measure 'Gross Profit QOQ'
+					caption: Hrubý zisk MK
+				measure 'Gross Profit PM'
+					caption: Hrubý zisk PM
+				measure 'Gross Profit QOQ %'
+					caption: Hrubý zisk MK (%)
+				measure 'Gross Profit MOM'
+					caption: Hrubý zisk MM
+				measure 'Gross Profit MOM %'
+					caption: Hrubý zisk MM (%)
+				measure 'Gross Profit MAT'
+					caption: Hrubý zisk RPS
+				measure 'Gross Profit PYMAT'
+					caption: Hrubý zisk PRSPR
+				measure 'Gross Profit YOYTD'
+					caption: Hrubý zisk MRKDD
+				measure 'Gross Profit YOYTD %'
+					caption: Hrubý zisk MRKDD (%)
+				measure 'Gross Profit PYC'
+					caption: Hrubý zisk CPR
+				measure 'Gross Profit YTDOPY'
+					caption: Hrubý zisk RKDDPPR
+				measure 'Gross Profit YTDOPY %'
+					caption: Hrubý zisk RKDDPPR (%)
+				measure 'Gross Profit QOQTD'
+					caption: Hrubý zisk MKKDD
+				measure 'Gross Profit QOQTD %'
+					caption: Hrubý zisk MKKDD (%)
+				measure 'Gross Profit PQC'
+					caption: Hrubý zisk CPK
+				measure 'Gross Profit QTDOPQ'
+					caption: Hrubý zisk KDDVPK
+				measure 'Gross Profit QTDOPQ %'
+					caption: Hrubý zisk KDDVPK (%)
+				measure 'Gross Profit PMTD'
+					caption: Hrubý zisk PMDD
+				measure 'Gross Profit MOMTD'
+					caption: Hrubý zisk MMKDD
+				measure 'Gross Profit MOMTD %'
+					caption: Hrubý zisk MMKDD (%)
+				measure 'Gross Profit PMC'
+					caption: Hrubý zisk CPM
+				measure 'Gross Profit MTDOPM'
+					caption: Hrubý zisk MKDDPPM
+				measure 'Gross Profit MTDOPM %'
+					caption: Hrubý zisk MKDDPPM (%)
+				measure 'Gross Profit AVG 30D'
+					caption: Hrubý zisk PRŮM 30D
+				measure 'Gross Profit AVG 3M'
+					caption: Hrubý zisk PRŮM 3M
+				measure 'Gross Profit AVG 1Y'
+					caption: Hrubý zisk PRŮM 1R
+				measure 'Gross Profit MATG'
+					caption: Hrubý zisk PCRR
+				measure 'Gross Profit MATG %'
+					caption: Hrubý zisk PCRR (%)
+				measure 'Gross Profit PP'
+					caption: Hrubý zisk PO
+				measure 'Gross Profit POP'
+					caption: Hrubý zisk MO
+				measure 'Gross Profit POP %'
+					caption: Hrubý zisk MO (%)
+				measure 'Gross Profit Margin YTD'
+					caption: Hrubá zisková marže RKDD
+				measure 'Gross Profit Margin PY'
+					caption: Hrubá zisková marže PR
+				measure 'Gross Profit Margin PYTD'
+					caption: Hrubá zisková marže PRKDD
+				measure 'Gross Profit Margin PQTD'
+					caption: Hrubá zisková marže PKDD
+				measure 'Gross Profit Margin QTD'
+					caption: Hrubá zisková marže KKDD
+				measure 'Gross Profit Margin MTD'
+					caption: Hrubá zisková marže MKDD
+				measure 'Gross Profit Margin YOY %'
+					caption: Hrubá zisková marže MR (%)
+				measure 'Gross Profit Margin YOY'
+					caption: Hrubá zisková marže MR
+				measure 'Gross Profit Margin PQ'
+					caption: Hrubá zisková marže PK
+				measure 'Gross Profit Margin QOQ'
+					caption: Hrubá zisková marže MK
+				measure 'Gross Profit Margin PM'
+					caption: Hrubá zisková marže PM
+				measure 'Gross Profit Margin QOQ %'
+					caption: Hrubá zisková marže MK (%)
+				measure 'Gross Profit Margin MOM'
+					caption: Hrubá zisková marže MM
+				measure 'Gross Profit Margin MOM %'
+					caption: Hrubá zisková marže MM (%)
+				measure 'Gross Profit Margin MAT'
+					caption: Hrubá zisková marže RPS
+				measure 'Gross Profit Margin PYMAT'
+					caption: Hrubá zisková marže PRSPR
+				measure 'Gross Profit Margin YOYTD'
+					caption: Hrubá zisková marže MRKDD
+				measure 'Gross Profit Margin YOYTD %'
+					caption: Hrubá zisková marže MRKDD (%)
+				measure 'Gross Profit Margin PYC'
+					caption: Hrubá zisková marže CPR
+				measure 'Gross Profit Margin YTDOPY'
+					caption: Hrubá zisková marže RKDDPPR
+				measure 'Gross Profit Margin YTDOPY %'
+					caption: Hrubá zisková marže RKDDPPR (%)
+				measure 'Gross Profit Margin QOQTD'
+					caption: Hrubá zisková marže MKKDD
+				measure 'Gross Profit Margin QOQTD %'
+					caption: Hrubá zisková marže MKKDD (%)
+				measure 'Gross Profit Margin PQC'
+					caption: Hrubá zisková marže CPK
+				measure 'Gross Profit Margin QTDOPQ'
+					caption: Hrubá zisková marže KDDVPK
+				measure 'Gross Profit Margin QTDOPQ %'
+					caption: Hrubá zisková marže KDDVPK (%)
+				measure 'Gross Profit Margin PMTD'
+					caption: Hrubá zisková marže PMDD
+				measure 'Gross Profit Margin MOMTD'
+					caption: Hrubá zisková marže MMKDD
+				measure 'Gross Profit Margin MOMTD %'
+					caption: Hrubá zisková marže MMKDD (%)
+				measure 'Gross Profit Margin PMC'
+					caption: Hrubá zisková marže CPM
+				measure 'Gross Profit Margin MTDOPM'
+					caption: Hrubá zisková marže MKDDPPM
+				measure 'Gross Profit Margin MTDOPM %'
+					caption: Hrubá zisková marže MKDDPPM (%)
+				measure 'Gross Profit Margin AVG 30D'
+					caption: Hrubá zisková marže PRŮM 30D
+				measure 'Gross Profit Margin AVG 3M'
+					caption: Hrubá zisková marže PRŮM 3M
+				measure 'Gross Profit Margin AVG 1Y'
+					caption: Hrubá zisková marže PRŮM 1R
+				measure 'Gross Profit Margin MATG'
+					caption: Hrubá zisková marže PCRR
+				measure 'Gross Profit Margin MATG %'
+					caption: Hrubá zisková marže PCRR (%)
+				measure 'Gross Profit Margin PP'
+					caption: Hrubá zisková marže PO
+				measure 'Gross Profit Margin POP'
+					caption: Hrubá zisková marže MO
+				measure 'Gross Profit Margin POP %'
+					caption: Hrubá zisková marže MO (%)
+				measure 'Cost Amount YTD'
+					caption: Částka nákladů RKDD
+				measure 'Cost Amount PY'
+					caption: Částka nákladů PR
+				measure 'Cost Amount PYTD'
+					caption: Částka nákladů PRKDD
+				measure 'Cost Amount PQTD'
+					caption: Částka nákladů PKDD
+				measure 'Cost Amount QTD'
+					caption: Částka nákladů KKDD
+				measure 'Cost Amount MTD'
+					caption: Částka nákladů MKDD
+				measure 'Cost Amount YOY %'
+					caption: Částka nákladů MR (%)
+				measure 'Cost Amount YOY'
+					caption: Částka nákladů MR
+				measure 'Cost Amount PQ'
+					caption: Částka nákladů PK
+				measure 'Cost Amount QOQ'
+					caption: Částka nákladů MK
+				measure 'Cost Amount PM'
+					caption: Částka nákladů PM
+				measure 'Cost Amount QOQ %'
+					caption: Částka nákladů MK (%)
+				measure 'Cost Amount MOM'
+					caption: Částka nákladů MM
+				measure 'Cost Amount MOM %'
+					caption: Částka nákladů MM (%)
+				measure 'Cost Amount MAT'
+					caption: Částka nákladů RPS
+				measure 'Cost Amount PYMAT'
+					caption: Částka nákladů PRSPR
+				measure 'Cost Amount YOYTD'
+					caption: Částka nákladů MRKDD
+				measure 'Cost Amount YOYTD %'
+					caption: Částka nákladů MRKDD (%)
+				measure 'Cost Amount PYC'
+					caption: Částka nákladů CPR
+				measure 'Cost Amount YTDOPY'
+					caption: Částka nákladů RKDDPPR
+				measure 'Cost Amount YTDOPY %'
+					caption: Částka nákladů RKDDPPR (%)
+				measure 'Cost Amount QOQTD'
+					caption: Částka nákladů MKKDD
+				measure 'Cost Amount QOQTD %'
+					caption: Částka nákladů MKKDD (%)
+				measure 'Cost Amount PQC'
+					caption: Částka nákladů CPK
+				measure 'Cost Amount QTDOPQ'
+					caption: Částka nákladů KDDVPK
+				measure 'Cost Amount QTDOPQ %'
+					caption: Částka nákladů KDDVPK (%)
+				measure 'Cost Amount PMTD'
+					caption: Částka nákladů PMDD
+				measure 'Cost Amount MOMTD'
+					caption: Částka nákladů MMKDD
+				measure 'Cost Amount MOMTD %'
+					caption: Částka nákladů MMKDD (%)
+				measure 'Cost Amount PMC'
+					caption: Částka nákladů CPM
+				measure 'Cost Amount MTDOPM'
+					caption: Částka nákladů MKDDPPM
+				measure 'Cost Amount MTDOPM %'
+					caption: Částka nákladů MKDDPPM (%)
+				measure 'Cost Amount AVG 30D'
+					caption: Částka nákladů PRŮM 30D
+				measure 'Cost Amount AVG 3M'
+					caption: Částka nákladů PRŮM 3M
+				measure 'Cost Amount AVG 1Y'
+					caption: Částka nákladů PRŮM 1R
+				measure 'Cost Amount MATG'
+					caption: Částka nákladů PCRR
+				measure 'Cost Amount MATG %'
+					caption: Částka nákladů PCRR (%)
+				measure 'Cost Amount PP'
+					caption: Částka nákladů PO
+				measure 'Cost Amount POP'
+					caption: Částka nákladů MO
+				measure 'Cost Amount POP %'
+					caption: Částka nákladů MO (%)
+				measure 'Cost Amount Non-Inv YTD'
+					caption: Částka nákladů neinvent. RKDD
+				measure 'Cost Amount Non-Inv PY'
+					caption: Částka nákladů neinvent. PR
+				measure 'Cost Amount Non-Inv PYTD'
+					caption: Částka nákladů neinvent. PRKDD
+				measure 'Cost Amount Non-Inv PQTD'
+					caption: Částka nákladů neinvent. PKDD
+				measure 'Cost Amount Non-Inv QTD'
+					caption: Částka nákladů neinvent. KKDD
+				measure 'Cost Amount Non-Inv MTD'
+					caption: Částka nákladů neinvent. MKDD
+				measure 'Cost Amount Non-Inv YOY %'
+					caption: Částka nákladů neinvent. MR (%)
+				measure 'Cost Amount Non-Inv YOY'
+					caption: Částka nákladů neinvent. MR
+				measure 'Cost Amount Non-Inv PQ'
+					caption: Částka nákladů neinvent. PK
+				measure 'Cost Amount Non-Inv QOQ'
+					caption: Částka nákladů neinvent. MK
+				measure 'Cost Amount Non-Inv PM'
+					caption: Částka nákladů neinvent. PM
+				measure 'Cost Amount Non-Inv QOQ %'
+					caption: Částka nákladů neinvent. MK (%)
+				measure 'Cost Amount Non-Inv MOM'
+					caption: Částka nákladů neinvent. MM
+				measure 'Cost Amount Non-Inv MOM %'
+					caption: Částka nákladů neinvent. MM (%)
+				measure 'Cost Amount Non-Inv MAT'
+					caption: Částka nákladů neinvent. RPS
+				measure 'Cost Amount Non-Inv PYMAT'
+					caption: Částka nákladů neinvent. PRSPR
+				measure 'Cost Amount Non-Inv YOYTD'
+					caption: Částka nákladů neinvent. MRKDD
+				measure 'Cost Amount Non-Inv YOYTD %'
+					caption: Částka nákladů neinvent. MRKDD (%)
+				measure 'Cost Amount Non-Inv PYC'
+					caption: Částka nákladů neinvent. CPR
+				measure 'Cost Amount Non-Inv YTDOPY'
+					caption: Částka nákladů neinvent. RKDDPPR
+				measure 'Cost Amount Non-Inv YTDOPY %'
+					caption: Částka nákladů neinvent. RKDDPPR (%)
+				measure 'Cost Amount Non-Inv QOQTD'
+					caption: Částka nákladů neinvent. MKKDD
+				measure 'Cost Amount Non-Inv QOQTD %'
+					caption: Částka nákladů neinvent. MKKDD (%)
+				measure 'Cost Amount Non-Inv PQC'
+					caption: Částka nákladů neinvent. CPK
+				measure 'Cost Amount Non-Inv QTDOPQ'
+					caption: Částka nákladů neinvent. KDDVPK
+				measure 'Cost Amount Non-Inv QTDOPQ %'
+					caption: Částka nákladů neinvent. KDDVPK (%)
+				measure 'Cost Amount Non-Inv PMTD'
+					caption: Částka nákladů neinvent. MO
+				measure 'Cost Amount Non-Inv MOMTD'
+					caption: Částka nákladů neinvent. MMKDD
+				measure 'Cost Amount Non-Inv MOMTD %'
+					caption: Částka nákladů neinvent. MMKDD (%)
+				measure 'Cost Amount Non-Inv PMC'
+					caption: Částka nákladů neinvent. CPM
+				measure 'Cost Amount Non-Inv MTDOPM'
+					caption: Částka nákladů neinvent. MKDDPPM
+				measure 'Cost Amount Non-Inv MTDOPM %'
+					caption: Částka nákladů neinvent. MKDDPPM (%)
+				measure 'Cost Amount Non-Inv AVG 30D'
+					caption: Částka nákladů neinvent. PRŮM 30D
+				measure 'Cost Amount Non-Inv AVG 3M'
+					caption: Částka nákladů neinvent. PRŮM 3M
+				measure 'Cost Amount Non-Inv AVG 1Y'
+					caption: Částka nákladů neinvent. PRŮM 1R
+				measure 'Cost Amount Non-Inv MATG'
+					caption: Částka nákladů neinvent. PCRR
+				measure 'Cost Amount Non-Inv MATG %'
+					caption: Částka nákladů neinvent. PCRR (%)
+				measure 'Cost Amount Non-Inv PP'
+					caption: Částka nákladů neinvent. PO
+				measure 'Cost Amount Non-Inv POP'
+					caption: Částka nákladů neinvent. MO
+				measure 'Cost Amount Non-Inv POP %'
+					caption: Částka nákladů neinvent. MO (%)
+			table 'Dimension Sets'
+				caption: Sady dimenzí
+				column 'Global Dimension 1'
+					caption: Globální dimenze 1
+				column 'Global Dimension 2'
+					caption: Globální dimenze 2
+				column 'Shortcut Dimension 3'
+					caption: Zkratka dimenze 3
+				column 'Shortcut Dimension 4'
+					caption: Zkratka dimenze 4
+				column 'Shortcut Dimension 5'
+					caption: Zkratka dimenze 5
+				column 'Shortcut Dimension 6'
+					caption: Zkratka dimenze 6
+				column 'Shortcut Dimension 7'
+					caption: Zkratka dimenze 7
+				column 'Shortcut Dimension 8'
+					caption: Zkratka dimenze 8
+				column id
+					caption: ID
+			table 'Sales Budget'
+				caption: Rozpočet prodeje
+				column 'Entry No.'
+					caption: Číslo položky
+				column 'Budget Name'
+					caption: Název rozpočtu
+				column 'Item No.'
+					caption: Číslo zboží
+				column 'Location Code'
+					caption: Kód lokace
+				measure 'Budget Amount'
+					caption: Částka rozpočtu
+				measure 'Budget Amount Variance'
+					caption: Odchylka částky rozpočtu
+				measure 'Budget Quantity'
+					caption: Rozpočtové množství
+				measure 'Budget Quantity Variance'
+					caption: Odchylka rozpočtového množství
+				measure 'Budget Amount Variance %'
+					caption: Odchylka částky rozpočtu (%)
+				measure 'Budget Quantity Variance %'
+					caption: Odchylka rozpočtového množství (%)
+				measure 'Budget Back Link'
+					caption: Rozpočet – zpětný odkaz
+			table Date
+				caption: Datum
+				column 'Week Day'
+					caption: Den v týdnu
+				column 'Calendar Year'
+					caption: Kalendářní rok
+				column 'Calendar Quarter'
+					caption: Kalendářní kvartál
+				column 'Calendar Quarter Year'
+					caption: Rok kalendářního kvartálu
+				column 'Calendar Month'
+					caption: Kalendářní měsíc
+				column 'Calendar Month Year'
+					caption: Kalendářní měsíc v roce
+				column 'Calendar Week'
+					caption: Kalendářní týden
+				column 'Calendar Week Year'
+					caption: Kalendářní týden a rok
+				column 'Calendar RelativeWeekPos'
+					caption: Relativní pozice kalendářního týdne
+				column 'Calendar RelativeMonthPos'
+					caption: Relativní pozice kalendářního měsíce
+				column 'Calendar RelativeQuarterPos'
+					caption: Relativní pozice kalendářního kvartálu
+				column 'Calendar RelativeYearPos'
+					caption: Relativní pozice kalendářního roku
+				column 'Calendar StartOfMonth'
+					caption: Začátek kalendářního měsíce
+				column 'Calendar EndOfMonth'
+					caption: Konec kalendářního měsíce
+				column 'Calendar StartOfQuarter'
+					caption: Začátek kalendářního kvartálu
+				column 'Calendar EndOfQuarter'
+					caption: Konec kalendářního kvartálu
+				column 'Calendar StartOfYear'
+					caption: Začátek kalendářního roku
+				column 'Calendar EndOfYear'
+					caption: Konec kalendářního roku
+				column 'Calendar MonthDays'
+					caption: Kalendářní dny v měsíci
+				column 'Calendar QuarterDays'
+					caption: Dny kalendářního kvartálu
+				column 'Calendar YearDays'
+					caption: Dny kalendářního roku
+				column 'Calendar DayOfMonthNumber'
+					caption: Počet dní ve fiskálním měsíci
+				column 'Calendar DayOfQuarterNumber'
+					caption: Počet dní v kalendářním kvartálu
+				column 'Calendar DayOfYearNumber'
+					caption: Počet dní ve fiskálním roce
+				column 'Calendar DatePreviousWeek'
+					caption: Datum v předchozím kalendářním týdnu
+				column 'Calendar DatePreviousMonth'
+					caption: Datum v předchozím kalendářním měsíci
+				column 'Calendar DatePreviousQuarter'
+					caption: Datum v předchozím kalendářním kvartálu
+				column 'Calendar DatePreviousYear'
+					caption: Datum v předchozím kalendářním roce
+				column 'Fiscal Year'
+					caption: Fiskální rok
+				column 'Fiscal Quarter'
+					caption: Fiskální kvartál
+				column 'Fiscal Quarter Year'
+					caption: FIskální rok kvartálu
+				column 'Fiscal Month'
+					caption: Fiskální měsíc
+				column 'Fiscal Month Year'
+					caption: FIskální rok měsíce
+				column 'Fiscal Week'
+					caption: Fiskální týden
+				column 'Fiscal Week Year'
+					caption: Fiskální týden a rok
+				column 'Fiscal RelativeWeekPos'
+					caption: Relativní pozice fiskálního týdne
+				column 'Fiscal RelativeMonthPos'
+					caption: Relativní pozice fiskálního měsíce
+				column 'Fiscal RelativeQuarterPos'
+					caption: Relativní pozice fiskálního kvartálu
+				column 'Fiscal RelativeYearPos'
+					caption: Relativní pozice fiskálního roku
+				column 'Fiscal StartOfMonth'
+					caption: Začátek fiskálního měsíce
+				column 'Fiscal EndOfMonth'
+					caption: Konec fiskálního měsíce
+				column 'Fiscal StartOfQuarter'
+					caption: Začátek fiskálního kvartálu
+				column 'Fiscal EndOfQuarter'
+					caption: Konec fiskálního kvartálu
+				column 'Fiscal StartOfYear'
+					caption: Začátek fiskálního roku
+				column 'Fiscal EndOfYear'
+					caption: Konec fiskálního roku
+				column 'Fiscal MonthDays'
+					caption: Dny fiskálního měsíce
+				column 'Fiscal QuarterDays'
+					caption: Dny fiskálního kvartálu
+				column 'Fiscal YearDays'
+					caption: Dny fiskálního roku
+				column 'Fiscal DayOfMonthNumber'
+					caption: Počet dní ve fiskálním měsíci
+				column 'Fiscal DayOfQuarterNumber'
+					caption: Počet dnů ve fiskálním kvartálu
+				column 'Fiscal DayOfYearNumber'
+					caption: Počet dní ve fiskálním roce
+				column 'Fiscal DatePreviousWeek'
+					caption: Datum v předchozím fiskálním týdnu
+				column 'Fiscal DatePreviousMonth'
+					caption: Datum v předchozím fiskálním měsíci
+				column 'Fiscal DatePreviousQuarter'
+					caption: Datum v předchozím fiskálním kvartálu
+				column 'Fiscal DatePreviousYear'
+					caption: Datum v předchozím fiskálním roce
+				column 'FW Year'
+					caption: Rok FT
+				column 'FW Quarter'
+					caption: Kvartál FT
+				column 'FW Quarter Year'
+					caption: Rok kvartálu FT
+				column 'FW Month'
+					caption: Měsíc FT
+				column 'FW Month Year'
+					caption: Rok měsíce FT
+				column 'FW Week'
+					caption: Týden FT
+				column 'FW Period'
+					caption: Období FT
+				column 'FW Week Year'
+					caption: Týden a rok FT
+				column 'FW StartOfWeek'
+					caption: Začátek týdne FT
+				column 'FW EndOfWeek'
+					caption: Konec týdne FT
+				column 'FW RelativeWeekPos'
+					caption: Relativní pozice týdne FT
+				column 'FW RelativeMonthPos'
+					caption: Relativní pozice měsíce FT
+				column 'FW RelativeQuarterPos'
+					caption: Relativní pozice kvartálu FT
+				column 'FW RelativeYearPos'
+					caption: Relativní pozice roku FT
+				column 'FW StartOfMonth'
+					caption: Začátek měsíce FT
+				column 'FW EndOfMonth'
+					caption: Konec měsíce FT
+				column 'FW StartOfQuarter'
+					caption: Začátek kvartálu FT
+				column 'FW EndOfQuarter'
+					caption: Konec kvartálu FT
+				column 'FW StartOfYear'
+					caption: Začátek roku FT
+				column 'FW EndOfYear'
+					caption: Konec roku FT
+				column 'FW MonthDays'
+					caption: Dny v měsíci FT
+				column 'FW QuarterDays'
+					caption: Dny kvartálu FT
+				column 'FW YearDays'
+					caption: Dny roku FT
+				column 'FW DatePreviousWeek'
+					caption: Datum v předchozím týdnu FT
+				column 'FW DatePreviousMonth'
+					caption: Datum v předchozím měsíci FT
+				column 'FW DatePreviousQuarter'
+					caption: Datum v předchozím kvartálu FT
+				column 'FW DatePreviousYear'
+					caption: Datum v předchozím roce FT
+				column 'Holiday Name'
+					caption: Název svátku
+				column IsWorkingDay
+					caption: IsWorkingDay
+				column 'Day Type'
+					caption: Typ dne
+				column 'Relative Day'
+					caption: Relativní den
+				hierarchy 'Fiscal Year-Quarter-Month-Week'
+					caption: Fiskální rok-kvartál-měsíc-týden
+					level 'Fiscal Year'
+						caption: Fiskální rok
+					level 'Fiscal Quarter Year'
+						caption: FIskální rok kvartálu
+					level 'Fiscal Month Year'
+						caption: FIskální rok měsíce
+					level 'Fiscal Week Year'
+						caption: Fiskální týden a rok
+				hierarchy 'Calendar Year-Quarter-Month-Week'
+					caption: Kalendářní rok-kvartál-měsíc-týden
+					level 'Calendar Year'
+						caption: Kalendářní rok
+					level 'Calendar Quarter Year'
+						caption: Rok kalendářního kvartálu
+					level 'Calendar Month Year'
+						caption: Kalendářní měsíc v roce
+					level 'Calendar Week Year'
+						caption: Kalendářní týden a rok
+				hierarchy 'FW Year-Quarter-Month-Week'
+					caption: Rok-kvartál-měsíc-týden FT
+					level 'FW Year'
+						caption: Rok FT
+					level 'FW Quarter Year'
+						caption: Rok kvartálu FT
+					level 'FW Month Year'
+						caption: Rok měsíce FT
+					level 'FW Week Year'
+						caption: Týden a rok FT
+				hierarchy 'FW Year-Week'
+					caption: Rok-týden FT
+					level 'FW Year'
+						caption: Rok FT
+					level 'FW Week Year'
+						caption: Týden a rok FT
+				hierarchy 'FW Year-Month-Week'
+					caption: Rok-měsíc-týden FT
+					level 'FW Year'
+						caption: Rok FT
+					level 'FW Month Year'
+						caption: Rok měsíce FT
+					level 'FW Week Year'
+						caption: Týden a rok FT
+				hierarchy 'FW Year-Quarter-Week'
+					caption: Rok-kvartál-týden FT
+					level 'FW Year'
+						caption: Rok FT
+					level 'FW Quarter Year'
+						caption: Rok kvartálu FT
+					level 'FW Week Year'
+						caption: Týden a rok FT
+				hierarchy 'Calendar Year-Month-Week'
+					caption: Kalendářní rok-měsíc-týden
+					level 'Calendar Year'
+						caption: Kalendářní rok
+					level 'Calendar Month Year'
+						caption: Kalendářní měsíc v roce
+					level 'Calendar Week Year'
+						caption: Kalendářní týden a rok
+				hierarchy 'Calendar Year-Month'
+					caption: Kalendářní rok-měsíc
+					level 'Calendar Year'
+						caption: Kalendářní rok
+					level 'Calendar Month Year'
+						caption: Kalendářní měsíc v roce
+				hierarchy 'Fiscal Year-Month'
+					caption: Fiskální rok-měsíc
+					level 'Fiscal Year'
+						caption: Fiskální rok
+					level 'Fiscal Month Year'
+						caption: FIskální rok měsíce
+				hierarchy 'Fiscal Year-Month-Week'
+					caption: Fiskální rok-měsíc-týden
+					level 'Fiscal Year'
+						caption: Fiskální rok
+					level 'Fiscal Month Year'
+						caption: FIskální rok měsíce
+					level 'Fiscal Week Year'
+						caption: Fiskální týden a rok
+			table 'Fiscal Calendar Time Intelligence'
+				caption: Časová analýza fiskálního kalendáře
+				measure 'Sales Amount YTD (Fiscal)'
+					caption: Částka prodeje RKDD (fiskální)
+				measure 'Sales Amount PY (Fiscal)'
+					caption: Částka prodeje PR (fiskální)
+				measure 'Sales Amount PYTD (Fiscal)'
+					caption: Částka prodeje PRKDD (fiskální)
+				measure 'Sales Amount PQTD (Fiscal)'
+					caption: Částka prodeje PKDD (fiskální)
+				measure 'Sales Amount QTD (Fiscal)'
+					caption: Částka prodeje KKDD (fiskální)
+				measure 'Sales Amount MTD (Fiscal)'
+					caption: Částka prodeje MKDD (fiskální)
+				measure 'Sales Amount YOY % (Fiscal)'
+					caption: Částka prodeje MR (%) (fiskální)
+				measure 'Sales Amount YOY (Fiscal)'
+					caption: Částka prodeje MR (fiskální)
+				measure 'Sales Amount PQ (Fiscal)'
+					caption: Částka prodeje PK (fiskální)
+				measure 'Sales Amount QOQ (Fiscal)'
+					caption: Částka prodeje MK (fiskální)
+				measure 'Sales Amount QOQ % (Fiscal)'
+					caption: Částka prodeje MK (%) (fiskální)
+				measure 'Sales Amount PM (Fiscal)'
+					caption: Částka prodeje PM (fiskální)
+				measure 'Sales Amount MOM (Fiscal)'
+					caption: Částka prodeje MM (fiskální)
+				measure 'Sales Amount MOM % (Fiscal)'
+					caption: Částka prodeje MM (%) (fiskální)
+				measure 'Sales Amount MAT (Fiscal)'
+					caption: Částka prodeje RPS (fiskální)
+				measure 'Sales Amount PYMAT (Fiscal)'
+					caption: Částka prodeje PRSPR (fiskální)
+				measure 'Sales Amount YOYTD (Fiscal)'
+					caption: Částka prodeje MRKDD (fiskální)
+				measure 'Sales Amount YOYTD % (Fiscal)'
+					caption: Částka prodeje MRKDD (%) (fiskální)
+				measure 'Sales Amount PYC (Fiscal)'
+					caption: Částka prodeje CPR (fiskální)
+				measure 'Sales Amount YTDOPY (Fiscal)'
+					caption: Částka prodeje RKDDPPR (fiskální)
+				measure 'Sales Amount YTDOPY % (Fiscal)'
+					caption: Částka prodeje RKDDPPR (%) (fiskální)
+				measure 'Sales Amount QOQTD (Fiscal)'
+					caption: Částka prodeje MKKDD (fiskální)
+				measure 'Sales Amount QOQTD % (Fiscal)'
+					caption: Částka prodeje MKKDD (%) (fiskální)
+				measure 'Sales Amount PQC (Fiscal)'
+					caption: Částka prodeje CPK (fiskální)
+				measure 'Sales Amount QTDOPQ (Fiscal)'
+					caption: Částka prodeje KDDVPK (fiskální)
+				measure 'Sales Amount QTDOPQ % (Fiscal)'
+					caption: Částka prodeje KDDVPK (%) (fiskální)
+				measure 'Sales Amount PMTD (Fiscal)'
+					caption: Částka prodeje PMDD (fiskální)
+				measure 'Sales Amount MOMTD % (Fiscal)'
+					caption: Částka prodeje MMKDD (%) (fiskální)
+				measure 'Sales Amount MOMTD (Fiscal)'
+					caption: Částka prodeje MMKDD (fiskální)
+				measure 'Sales Amount PMC (Fiscal)'
+					caption: Částka prodeje CPM (fiskální)
+				measure 'Sales Amount MTDOPM (Fiscal)'
+					caption: Částka prodeje MKDDPPM (fiskální)
+				measure 'Sales Amount MTDOPM % (Fiscal)'
+					caption: Částka prodeje MKDDPPM (%) (fiskální)
+				measure 'Sales Amount AVG 30D (Fiscal)'
+					caption: Částka prodeje PRŮM 30D (fiskální)
+				measure 'Sales Amount AVG 3M (Fiscal)'
+					caption: Částka prodeje PRŮM 3M (fiskální)
+				measure 'Sales Amount AVG 1Y (Fiscal)'
+					caption: Částka prodeje PRŮM 1R (fiskální)
+				measure 'Sales Amount MATG (Fiscal)'
+					caption: Částka prodeje PCRR (fiskální)
+				measure 'Sales Amount MATG % (Fiscal)'
+					caption: Částka prodeje PCRR (%) (fiskální)
+				measure 'Sales Amount PP (Fiscal)'
+					caption: Částka prodeje PO (fiskální)
+				measure 'Sales Amount POP (Fiscal)'
+					caption: Částka prodeje MO (fiskální)
+				measure 'Sales Amount POP % (Fiscal)'
+					caption: Částka prodeje MO (%) (fiskální)
+				measure 'Sales Amount MAT (364) (Fiscal)'
+					caption: Částka prodeje RPS (364) (fiskální)
+				measure 'Sales PYMAT (364) (Fiscal)'
+					caption: Prodej PRSPR (364) (fiskální)
+				measure 'Sales Quantity YTD (Fiscal)'
+					caption: Množství prodeje RKDD (fiskální)
+				measure 'Sales Quantity PY (Fiscal)'
+					caption: Množství prodeje PR (fiskální)
+				measure 'Sales Quantity PYTD (Fiscal)'
+					caption: Množství prodeje PRKDD (fiskální)
+				measure 'Sales Quantity PQTD (Fiscal)'
+					caption: Množství prodeje PKDD (fiskální)
+				measure 'Sales Quantity QTD (Fiscal)'
+					caption: Množství prodeje KKDD (fiskální)
+				measure 'Sales Quantity MTD (Fiscal)'
+					caption: Množství prodeje MKDD (fiskální)
+				measure 'Sales Quantity YOY % (Fiscal)'
+					caption: Množství prodeje MR (%) (fiskální)
+				measure 'Sales Quantity YOY (Fiscal)'
+					caption: Množství prodeje MR (fiskální)
+				measure 'Sales Quantity PQ (Fiscal)'
+					caption: Množství prodeje PK (fiskální)
+				measure 'Sales Quantity QOQ (Fiscal)'
+					caption: Množství prodeje MK (fiskální)
+				measure 'Sales Quantity QOQ % (Fiscal)'
+					caption: Množství prodeje MK (%) (fiskální)
+				measure 'Sales Quantity PM (Fiscal)'
+					caption: Množství prodeje PM (fiskální)
+				measure 'Sales Quantity MOM (Fiscal)'
+					caption: Množství prodeje MM (fiskální)
+				measure 'Sales Quantity MOM % (Fiscal)'
+					caption: Množství prodeje MM (%) (fiskální)
+				measure 'Sales Quantity MAT (Fiscal)'
+					caption: Množství prodeje RPS (fiskální)
+				measure 'Sales Quantity PYMAT (Fiscal)'
+					caption: Množství prodeje PRSPR (fiskální)
+				measure 'Sales Quantity YOYTD (Fiscal)'
+					caption: Prodejní množství MRKDD (fiskální)
+				measure 'Sales Quantity YOYTD % (Fiscal)'
+					caption: Prodejní množství MRKDD (%) (fiskální)
+				measure 'Sales Quantity PYC (Fiscal)'
+					caption: Množství prodeje CPR (fiskální)
+				measure 'Sales Quantity YTDOPY (Fiscal)'
+					caption: Prodejní množství RKDDPPR (fiskální)
+				measure 'Sales Quantity YTDOPY % (Fiscal)'
+					caption: Prodejní množství RKDDPPR (%) (fiskální)
+				measure 'Sales Quantity QOQTD (Fiscal)'
+					caption: Prodejní množství MKKDD (fiskální)
+				measure 'Sales Quantity QOQTD % (Fiscal)'
+					caption: Prodejní množství MKKDD (%) (fiskální)
+				measure 'Sales Quantity PQC (Fiscal)'
+					caption: Množství prodeje CPK (fiskální)
+				measure 'Sales Quantity QTDOPQ (Fiscal)'
+					caption: Prodejní množství KDDVPK (fiskální)
+				measure 'Sales Quantity QTDOPQ % (Fiscal)'
+					caption: Prodejní množství KDDVPK (%) (fiskální)
+				measure 'Sales Quantity PMTD (Fiscal)'
+					caption: Množství prodeje PMDD (fiskální)
+				measure 'Sales Quantity MOMTD % (Fiscal)'
+					caption: Prodejní množství MMKDD (%) (fiskální)
+				measure 'Sales Quantity MOMTD (Fiscal)'
+					caption: Prodejní množství MMKDD (fiskální)
+				measure 'Sales Quantity PMC (Fiscal)'
+					caption: Množství prodeje CPM (fiskální)
+				measure 'Sales Quantity MTDOPM (Fiscal)'
+					caption: Prodejní množství MKDDPPM (fiskální)
+				measure 'Sales Quantity MTDOPM % (Fiscal)'
+					caption: Prodejní množství MKDDPPM (%) (fiskální)
+				measure 'Sales Quantity AVG 30D (Fiscal)'
+					caption: Množství prodeje PRŮM 30D (fiskální)
+				measure 'Sales Quantity AVG 3M (Fiscal)'
+					caption: Množství prodeje PRŮM 3M (fiskální)
+				measure 'Sales Quantity AVG 1Y (Fiscal)'
+					caption: Množství prodeje PRŮM 1R (fiskální)
+				measure 'Sales Quantity MATG (Fiscal)'
+					caption: Množství prodeje PCRR (fiskální)
+				measure 'Sales Quantity MATG % (Fiscal)'
+					caption: Množství prodeje PCRR (%) (fiskální)
+				measure 'Sales Quantity PP (Fiscal)'
+					caption: Množství prodeje PO (fiskální)
+				measure 'Sales Quantity POP (Fiscal)'
+					caption: Množství prodeje MO (fiskální)
+				measure 'Sales Quantity POP % (Fiscal)'
+					caption: Množství prodeje MO (%) (fiskální)
+				measure 'Cost Amount YTD (Fiscal)'
+					caption: Částka nákladů RKDD (fiskální)
+				measure 'Cost Amount PY (Fiscal)'
+					caption: Částka nákladů PR (fiskální)
+				measure 'Cost Amount QTD (Fiscal)'
+					caption: Částka nákladů KKDD (fiskální)
+				measure 'Cost Amount MTD (Fiscal)'
+					caption: Částka nákladů MKDD (fiskální)
+				measure 'Cost Amount YOY % (Fiscal)'
+					caption: Částka nákladů MR (%) (fiskální)
+				measure 'Cost Amount YOY (Fiscal)'
+					caption: Částka nákladů MR (fiskální)
+				measure 'Cost Amount PQ (Fiscal)'
+					caption: Částka nákladů PK (fiskální)
+				measure 'Cost Amount QOQ (Fiscal)'
+					caption: Částka nákladů MK (fiskální)
+				measure 'Cost Amount QOQ % (Fiscal)'
+					caption: Částka nákladů MK (%) (fiskální)
+				measure 'Cost Amount PM (Fiscal)'
+					caption: Částka nákladů PM (fiskální)
+				measure 'Cost Amount MOM (Fiscal)'
+					caption: Částka nákladů MM (fiskální)
+				measure 'Cost Amount MOM % (Fiscal)'
+					caption: Částka nákladů MM (%) (fiskální)
+				measure 'Cost Amount PP (Fiscal)'
+					caption: Částka nákladů PO (fiskální)
+				measure 'Cost Amount POP (Fiscal)'
+					caption: Částka nákladů MO (fiskální)
+				measure 'Cost Amount POP % (Fiscal)'
+					caption: Částka nákladů MO (%) (fiskální)
+				measure 'Cost Amount PYTD (Fiscal)'
+					caption: Částka nákladů PRKDD (fiskální)
+				measure 'Cost Amount PQTD (Fiscal)'
+					caption: Částka nákladů PKDD (fiskální)
+				measure 'Cost Amount YOYTD (Fiscal)'
+					caption: Částka nákladů MRKDD (fiskální)
+				measure 'Cost Amount YOYTD % (Fiscal)'
+					caption: Částka nákladů MRKDD (%) (fiskální)
+				measure 'Cost Amount QOQTD (Fiscal)'
+					caption: Částka nákladů MKKDD (fiskální)
+				measure 'Cost Amount QOQTD % (Fiscal)'
+					caption: Částka nákladů MKKDD (%) (fiskální)
+				measure 'Cost Amount PMTD (Fiscal)'
+					caption: Částka nákladů PMDD (fiskální)
+				measure 'Cost Amount MOMTD % (Fiscal)'
+					caption: Částka nákladů MMKDD (%) (fiskální)
+				measure 'Cost Amount MOMTD (Fiscal)'
+					caption: Částka nákladů MMKDD (fiskální)
+				measure 'Cost Amount MAT (Fiscal)'
+					caption: Částka nákladů RPS (fiskální)
+				measure 'Cost Amount PYMAT (Fiscal)'
+					caption: Částka nákladů PRSPR (fiskální)
+				measure 'Cost Amount MATG (Fiscal)'
+					caption: Částka nákladů PCRR (fiskální)
+				measure 'Cost Amount MATG % (Fiscal)'
+					caption: Částka nákladů PCRR (%) (fiskální)
+				measure 'Cost Amount MAT (364) (Fiscal)'
+					caption: Částka nákladů RPS (364) (fiskální)
+				measure 'Cost PYMAT (364) (Fiscal)'
+					caption: Náklady PRSPR (364) (fiskální)
+				measure 'Cost Amount PYC (Fiscal)'
+					caption: Částka nákladů CPR (fiskální)
+				measure 'Cost Amount YTDOPY (Fiscal)'
+					caption: Částka nákladů RKDDPPR (fiskální)
+				measure 'Cost Amount YTDOPY % (Fiscal)'
+					caption: Částka nákladů RKDDPPR (%) (fiskální)
+				measure 'Cost Amount PQC (Fiscal)'
+					caption: Částka nákladů CPK (fiskální)
+				measure 'Cost Amount QTDOPQ (Fiscal)'
+					caption: Částka nákladů KDDVPK (fiskální)
+				measure 'Cost Amount QTDOPQ % (Fiscal)'
+					caption: Částka nákladů KDDVPK (%) (fiskální)
+				measure 'Cost Amount PMC (Fiscal)'
+					caption: Částka nákladů CPM (fiskální)
+				measure 'Cost Amount MTDOPM (Fiscal)'
+					caption: Částka nákladů MKDDPPM (fiskální)
+				measure 'Cost Amount MTDOPM % (Fiscal)'
+					caption: Částka nákladů MKDDPPM (%) (fiskální)
+				measure 'Cost Amount AVG 30D (Fiscal)'
+					caption: Částka nákladů PRŮM 30D (fiskální)
+				measure 'Cost Amount AVG 3M (Fiscal)'
+					caption: Částka nákladů PRŮM 3M (fiskální)
+				measure 'Cost Amount AVG 1Y (Fiscal)'
+					caption: Částka nákladů PRŮM 1R (fiskální)
+				measure 'Cost Amount Non-Inv YTD (Fiscal)'
+					caption: Částka nákladů neinvent. RKDD (fiskální)
+				measure 'Cost Amount Non-Inv QTD (Fiscal)'
+					caption: Částka nákladů neinvent. KKDD (fiskální)
+				measure 'Cost Amount Non-Inv MTD (Fiscal)'
+					caption: Částka nákladů neinvent. MKDD (fiskální)
+				measure 'Cost Amount Non-Inv PY (Fiscal)'
+					caption: Částka nákladů neinvent. PR (fiskální)
+				measure 'Cost Amount Non-Inv YOY % (Fiscal)'
+					caption: Částka nákladů neinvent. MR (%) (fiskální)
+				measure 'Cost Amount Non-Inv YOY (Fiscal)'
+					caption: Částka nákladů neinvent. MR (fiskální)
+				measure 'Cost Amount Non-Inv PQ (Fiscal)'
+					caption: Částka nákladů neinvent. PK (fiskální)
+				measure 'Cost Amount Non-Inv QOQ (Fiscal)'
+					caption: Částka nákladů neinvent. MK (fiskální)
+				measure 'Cost Amount Non-Inv QOQ % (Fiscal)'
+					caption: Částka nákladů neinvent. MK (%) (fiskální)
+				measure 'Cost Amount Non-Inv PM (Fiscal)'
+					caption: Částka nákladů neinvent. PM (fiskální)
+				measure 'Cost Amount Non-Inv MOM (Fiscal)'
+					caption: Částka nákladů neinvent. MM (fiskální)
+				measure 'Cost Amount Non-Inv MOM % (Fiscal)'
+					caption: Částka nákladů neinvent. MM (%) (fiskální)
+				measure 'Cost Amount Non-Inv PP (Fiscal)'
+					caption: Částka nákladů neinvent. PO (fiskální)
+				measure 'Cost Amount Non-Inv POP (Fiscal)'
+					caption: Částka nákladů neinvent. MO (fiskální)
+				measure 'Cost Amount Non-Inv POP % (Fiscal)'
+					caption: Částka nákladů neinvent. MO (%) (fiskální)
+				measure 'Cost Amount Non-Inv PYTD (Fiscal)'
+					caption: Částka nákladů neinvent. PRKDD (fiskální)
+				measure 'Cost Amount Non-Inv PQTD (Fiscal)'
+					caption: Částka nákladů neinvent. PKDD (fiskální)
+				measure 'Cost Amount Non-Inv YOYTD (Fiscal)'
+					caption: Částka nákladů neinvent. MRKDD (fiskální)
+				measure 'Cost Amount Non-Inv YOYTD % (Fiscal)'
+					caption: Částka nákladů neinvent. MRKDD (%) (fiskální)
+				measure 'Cost Amount Non-Inv QOQTD (Fiscal)'
+					caption: Částka nákladů neinvent. MKKDD (fiskální)
+				measure 'Cost Amount Non-Inv QOQTD % (Fiscal)'
+					caption: Částka nákladů neinvent. MKKDD (%) (fiskální)
+				measure 'Cost Amount Non-Inv PMTD (Fiscal)'
+					caption: Částka nákladů neinvent. PMDD (fiskální)
+				measure 'Cost Amount Non-Inv MOMTD % (Fiscal)'
+					caption: Částka nákladů neinvent. MMKDD (%) (fiskální)
+				measure 'Cost Amount Non-Inv MOMTD (Fiscal)'
+					caption: Částka nákladů neinvent. MMKDD (fiskální)
+				measure 'Cost Amount Non-Inv MAT (Fiscal)'
+					caption: Částka nákladů neinvent. RPS (fiskální)
+				measure 'Cost Amount Non-Inv PYMAT (Fiscal)'
+					caption: Částka nákladů neinvent. PRSPR (fiskální)
+				measure 'Cost Amount Non-Inv MATG (Fiscal)'
+					caption: Částka nákladů neinvent. PCRR (fiskální)
+				measure 'Cost Amount Non-Inv MATG % (Fiscal)'
+					caption: Částka nákladů neinvent. PCRR (%) (fiskální)
+				measure 'Cost Amount Non-Inv PYC (Fiscal)'
+					caption: Částka nákladů neinvent. CPR (fiskální)
+				measure 'Cost Amount Non-Inv YTDOPY (Fiscal)'
+					caption: Částka nákladů neinvent. RKDDPPR (fiskální)
+				measure 'Cost Amount Non-Inv YTDOPY % (Fiscal)'
+					caption: Částka nákladů neinvent. RKDDPPR (%) (fiskální)
+				measure 'Cost Amount Non-Inv PQC (Fiscal)'
+					caption: Částka nákladů neinvent. CPK (fiskální)
+				measure 'Cost Amount Non-Inv QTDOPQ (Fiscal)'
+					caption: Částka nákladů neinvent. KDDVPK (fiskální)
+				measure 'Cost Amount Non-Inv QTDOPQ % (Fiscal)'
+					caption: Částka nákladů neinvent. KDDVPK (%) (fiskální)
+				measure 'Cost Amount Non-Inv PMC (Fiscal)'
+					caption: Částka nákladů neinvent. CPM (fiskální)
+				measure 'Cost Amount Non-Inv MTDOPM (Fiscal)'
+					caption: Částka nákladů neinvent. MKDDPPM (fiskální)
+				measure 'Cost Amount Non-Inv MTDOPM % (Fiscal)'
+					caption: Částka nákladů neinvent. MKDDPPM (%) (fiskální)
+				measure 'Cost Amount Non-Inv AVG 30D (Fiscal)'
+					caption: Částka nákladů neinvent. PRŮM 30D (fiskální)
+				measure 'Cost Amount Non-Inv AVG 3M (Fiscal)'
+					caption: Částka nákladů neinvent. PRŮM 3M (fiskální)
+				measure 'Cost Amount Non-Inv AVG 1Y (Fiscal)'
+					caption: Částka nákladů neinvent. PRŮM 1R (fiskální)
+				measure 'Gross Profit YTD (Fiscal)'
+					caption: Hrubý zisk RKDD (fiskální)
+				measure 'Gross Profit QTD (Fiscal)'
+					caption: Hrubý zisk KKDD (fiskální)
+				measure 'Gross Profit MTD (Fiscal)'
+					caption: Hrubý zisk MKDD (fiskální)
+				measure 'Gross Profit PY (Fiscal)'
+					caption: Hrubý zisk PR (fiskální)
+				measure 'Gross Profit YOY % (Fiscal)'
+					caption: Hrubý zisk MR (%) (fiskální)
+				measure 'Gross Profit YOY (Fiscal)'
+					caption: Hrubý zisk MR (fiskální)
+				measure 'Gross Profit PQ (Fiscal)'
+					caption: Hrubý zisk PK (fiskální)
+				measure 'Gross Profit QOQ (Fiscal)'
+					caption: Hrubý zisk MK (fiskální)
+				measure 'Gross Profit QOQ % (Fiscal)'
+					caption: Hrubý zisk MK (%) (fiskální)
+				measure 'Gross Profit PM (Fiscal)'
+					caption: Hrubý zisk PM (fiskální)
+				measure 'Gross Profit MOM (Fiscal)'
+					caption: Hrubý zisk MM (fiskální)
+				measure 'Gross Profit MOM % (Fiscal)'
+					caption: Hrubý zisk MM (%) (fiskální)
+				measure 'Gross Profit PP (Fiscal)'
+					caption: Hrubý zisk PO (fiskální)
+				measure 'Gross Profit POP (Fiscal)'
+					caption: Hrubý zisk MO (fiskální)
+				measure 'Gross Profit POP % (Fiscal)'
+					caption: Hrubý zisk MO (%) (fiskální)
+				measure 'Gross Profit PYTD (Fiscal)'
+					caption: Hrubý zisk PRKDD (fiskální)
+				measure 'Gross Profit PQTD (Fiscal)'
+					caption: Hrubý zisk PKDD (fiskální)
+				measure 'Gross Profit YOYTD (Fiscal)'
+					caption: Hrubý zisk MRKDD (fiskální)
+				measure 'Gross Profit YOYTD % (Fiscal)'
+					caption: Hrubý zisk MRKDD (%) (fiskální)
+				measure 'Gross Profit QOQTD (Fiscal)'
+					caption: Hrubý zisk MKKDD (fiskální)
+				measure 'Gross Profit  QOQTD % (Fiscal)'
+					caption: Hrubý zisk MKKDD (%) (fiskální)
+				measure 'Gross Profit PMTD (Fiscal)'
+					caption: Hrubý zisk PMDD (fiskální)
+				measure 'Gross Profit MOMTD % (Fiscal)'
+					caption: Hrubý zisk MMKDD (%) (fiskální)
+				measure 'Gross Profit MOMTD (Fiscal)'
+					caption: Hrubý zisk MMKDD (fiskální)
+				measure 'Gross Profit MAT (Fiscal)'
+					caption: Hrubý zisk RPS (fiskální)
+				measure 'Gross Profit PYMAT (Fiscal)'
+					caption: Hrubý zisk PRSPR (fiskální)
+				measure 'Gross Profit MATG (Fiscal)'
+					caption: Hrubý zisk PCRR (fiskální)
+				measure 'Gross Profit MATG % (Fiscal)'
+					caption: Hrubý zisk PCRR (%) (fiskální)
+				measure 'Gross Profit MAT (364) (Fiscal)'
+					caption: Hrubý zisk RPS (364) (fiskální)
+				measure 'Gross Profit PYMAT (364) (Fiscal)'
+					caption: Hrubý zisk PRSPR (364) (fiskální)
+				measure 'Gross Profit PYC (Fiscal)'
+					caption: Hrubý zisk CPR (fiskální)
+				measure 'Gross Profit YTDOPY (Fiscal)'
+					caption: Hrubý zisk RKDDPPR (fiskální)
+				measure 'Gross Profit YTDOPY % (Fiscal)'
+					caption: Hrubý zisk RKDDPPR (%) (fiskální)
+				measure 'Gross Profit PQC (Fiscal)'
+					caption: Hrubý zisk CPK (fiskální)
+				measure 'Gross Profit QTDOPQ (Fiscal)'
+					caption: Hrubý zisk KDDVPK (fiskální)
+				measure 'Gross Profit QTDOPQ % (Fiscal)'
+					caption: Hrubý zisk KDDVPK (%) (fiskální)
+				measure 'Gross Profit PMC (Fiscal)'
+					caption: Hrubý zisk CPM (fiskální)
+				measure 'Gross Profit MTDOPM (Fiscal)'
+					caption: Hrubý zisk MKDDPPM (fiskální)
+				measure 'Gross Profit MTDOPM % (Fiscal)'
+					caption: Hrubý zisk MKDDPPM (%) (fiskální)
+				measure 'Gross Profit AVG 30D (Fiscal)'
+					caption: Hrubý zisk PRŮM 30D (fiskální)
+				measure 'Gross Profit AVG 3M (Fiscal)'
+					caption: Hrubý zisk PRŮM 3M (fiskální)
+				measure 'Gross Profit AVG 1Y (Fiscal)'
+					caption: Hrubý zisk PRŮM 1R (fiskální)
+				measure 'Gross Profit Margin AVG 30D (Fiscal)'
+					caption: Hrubá zisková marže PRŮM 30D (fiskální)
+				measure 'Gross Profit Margin AVG 3M (Fiscal)'
+					caption: Hrubá zisková marže PRŮM 3M (fiskální)
+				measure 'Gross Profit Margin AVG 1Y (Fiscal)'
+					caption: Hrubá zisková marže PRŮM 1R (fiskální)
+				measure 'Gross Profit Margin PYC (Fiscal)'
+					caption: Hrubá zisková marže CPR (fiskální)
+				measure 'Gross Profit Margin YTDOPY (Fiscal)'
+					caption: Hrubá zisková marže RKDDPPR (fiskální)
+				measure 'Gross Profit Margin YTDOPY % (Fiscal)'
+					caption: Hrubá zisková marže RKDDPPR (%) (fiskální)
+				measure 'Gross Profit Margin PQC (Fiscal)'
+					caption: Hrubá zisková marže CPK (fiskální)
+				measure 'Gross Profit Margin QTDOPQ (Fiscal)'
+					caption: Hrubá zisková marže KDDVPK (fiskální)
+				measure 'Gross Profit Margin QTDOPQ % (Fiscal)'
+					caption: Hrubá zisková marže KDDVPK (%) (fiskální)
+				measure 'Gross Profit Margin PMC (Fiscal)'
+					caption: Hrubá zisková marže CPM (fiskální)
+				measure 'Gross Profit Margin MTDOPM (Fiscal)'
+					caption: Hrubá zisková marže MKDDPPM (fiskální)
+				measure 'Gross Profit Margin MTDOPM % (Fiscal)'
+					caption: Hrubá zisková marže MKDDPPM (%) (fiskální)
+				measure 'Gross Profit Margin MAT (Fiscal)'
+					caption: Hrubá zisková marže RPS (fiskální)
+				measure 'Gross Profit Margin PYMAT (Fiscal)'
+					caption: Hrubá zisková marže PRSPR (fiskální)
+				measure 'Gross Profit Margin MATG (Fiscal)'
+					caption: Hrubá zisková marže PCRR (fiskální)
+				measure 'Gross Profit Margin MATG % (Fiscal)'
+					caption: Hrubá zisková marže PCRR (%) (fiskální)
+				measure 'Gross Profit Margin MAT (364) (Fiscal)'
+					caption: Hrubá zisková marže RPS (364) (fiskální)
+				measure 'Gross Profit Margin PYMAT (364) (Fiscal)'
+					caption: Hrubá zisková marže PRSPR (364) (fiskální)
+				measure 'Gross Profit Margin PYTD (Fiscal)'
+					caption: Hrubá zisková marže PRKDD (fiskální)
+				measure 'Gross Profit Margin PQTD (Fiscal)'
+					caption: Hrubá zisková marže PKDD (fiskální)
+				measure 'Gross Profit Margin YOYTD (Fiscal)'
+					caption: Hrubá zisková marže MRKDD (fiskální)
+				measure 'Gross Profit Margin YOYTD % (Fiscal)'
+					caption: Hrubá zisková marže MRKDD (%) (fiskální)
+				measure 'Gross Profit Margin QOQTD (Fiscal)'
+					caption: Hrubá zisková marže MKKDD (fiskální)
+				measure 'Gross Profit Margin QOQTD % (Fiscal)'
+					caption: Hrubá zisková marže MKKDD (%) (fiskální)
+				measure 'Gross Profit Margin PMTD (Fiscal)'
+					caption: Hrubá zisková marže PMDD (fiskální)
+				measure 'Gross Profit Margin MOMTD % (Fiscal)'
+					caption: Hrubá zisková marže MMKDD (%) (fiskální)
+				measure 'Gross Profit Margin MOMTD (Fiscal)'
+					caption: Hrubá zisková marže MMKDD (fiskální)
+				measure 'Gross Profit Margin PY (Fiscal)'
+					caption: Hrubá zisková marže PR (fiskální)
+				measure 'Gross Profit Margin YOY % (Fiscal)'
+					caption: Hrubá zisková marže MR (%) (fiskální)
+				measure 'Gross Profit Margin YOY (Fiscal)'
+					caption: Hrubá zisková marže MR (fiskální)
+				measure 'Gross Profit Margin PQ (Fiscal)'
+					caption: Hrubá zisková marže PK (fiskální)
+				measure 'Gross Profit Margin QOQ (Fiscal)'
+					caption: Hrubá zisková marže MK (fiskální)
+				measure 'Gross Profit Margin QOQ % (Fiscal)'
+					caption: Hrubá zisková marže MK (%) (fiskální)
+				measure 'Gross Profit Margin PM (Fiscal)'
+					caption: Hrubá zisková marže PM (fiskální)
+				measure 'Gross Profit Margin MOM (Fiscal)'
+					caption: Hrubá zisková marže MM (fiskální)
+				measure 'Gross Profit Margin MOM % (Fiscal)'
+					caption: Hrubá zisková marže MM (%) (fiskální)
+				measure 'Gross Profit Margin PP (Fiscal)'
+					caption: Hrubá zisková marže PO (fiskální)
+				measure 'Gross Profit Margin POP (Fiscal)'
+					caption: Hrubá zisková marže MO (fiskální)
+				measure 'Gross Profit Margin POP % (Fiscal)'
+					caption: Hrubá zisková marže MO (%) (fiskální)
+				measure 'Gross Profit Margin YTD (Fiscal)'
+					caption: Hrubá zisková marže RKDD (fiskální)
+				measure 'Gross Profit Margin QTD (Fiscal)'
+					caption: Hrubá zisková marže KKDD (fiskální)
+				measure 'Gross Profit Margin MTD (Fiscal)'
+					caption: Hrubá zisková marže MKDD (fiskální)
+			table 'Weekly Calendar Time Intelligence'
+				caption: Časová analýza týdenního kalendáře
+				measure 'Sales Amount YTD (Weekly)'
+					caption: Částka prodeje RKDD (týdenní)
+				measure 'Sales Amount PY (Weekly)'
+					caption: Částka prodeje PR (týdenní)
+				measure 'Sales Amount PYTD (Weekly)'
+					caption: Částka prodeje PRKDD (týdenní)
+				measure 'Sales Amount PQTD (Weekly)'
+					caption: Částka prodeje PKDD (týdenní)
+				measure 'Sales Amount QTD (Weekly)'
+					caption: Částka prodeje KKDD (týdenní)
+				measure 'Sales Amount MTD (Weekly)'
+					caption: Částka prodeje MKDD (týdenní)
+				measure 'Sales Amount YOY % (Weekly)'
+					caption: Částka prodeje MR (%) (týdenní)
+				measure 'Sales Amount YOY (Weekly)'
+					caption: Částka prodeje MR (týdenní)
+				measure 'Sales Amount PQ (Weekly)'
+					caption: Částka prodeje PK (týdenní)
+				measure 'Sales Amount QOQ (Weekly)'
+					caption: Částka prodeje MK (týdenní)
+				measure 'Sales Amount QOQ % (Weekly)'
+					caption: Částka prodeje MK (%) (týdenní)
+				measure 'Sales Amount PW (Weekly)'
+					caption: Částka prodeje PT (týdenní)
+				measure 'Sales Amount WOW (Weekly)'
+					caption: Částka prodeje MT (týdenní)
+				measure 'Sales Amount WOW % (Weekly)'
+					caption: Částka prodeje MT (%) (týdenní)
+				measure 'Sales Amount MAT (364) (Weekly)'
+					caption: Částka prodeje RPS (364) (týdenní)
+				measure 'Sales Amount PYMAT (364) (Weekly)'
+					caption: Částka prodeje PRSPR (364) (týdenní)
+				measure 'Sales Amount YOYTD (Weekly)'
+					caption: Částka prodeje MRKDD (týdenní)
+				measure 'Sales Amount YOYTD % (Weekly)'
+					caption: Částka prodeje MRKDD (%) (týdenní)
+				measure 'Sales Amount PYC (Weekly)'
+					caption: Částka prodeje CPR (týdenní)
+				measure 'Sales Amount YTDOPY (Weekly)'
+					caption: Částka prodeje RKDDPPR (týdenní)
+				measure 'Sales Amount YTDOPY % (Weekly)'
+					caption: Částka prodeje RKDDPPR (%) (týdenní)
+				measure 'Sales Amount QOQTD (Weekly)'
+					caption: Částka prodeje MKKDD (týdenní)
+				measure 'Sales Amount QOQTD % (Weekly)'
+					caption: Částka prodeje MKKDD (%) (týdenní)
+				measure 'Sales Amount PQC (Weekly)'
+					caption: Částka prodeje CPK (týdenní)
+				measure 'Sales Amount QTDOPQ (Weekly)'
+					caption: Částka prodeje KDDVPK (týdenní)
+				measure 'Sales Amount QTDOPQ % (Weekly)'
+					caption: Částka prodeje KDDVPK (%) (týdenní)
+				measure 'Sales Amount PWTD (Weekly)'
+					caption: Částka prodeje PTKDD (týdenní)
+				measure 'Sales Amount WOWTD (Weekly)'
+					caption: Částka prodeje MTKDD (týdenní)
+				measure 'Sales Amount WOWTD % (Weekly)'
+					caption: Částka prodeje MTKDD (%) (týdenní)
+				measure 'Sales Amount PWC (Weekly)'
+					caption: Částka prodeje CPT (týdenní)
+				measure 'Sales Amount WTDOPW (Weekly)'
+					caption: Částka prodeje MTOPT (týdenní)
+				measure 'Sales Amount WTDOPW % (Weekly)'
+					caption: Částka prodeje MTOPT (%) (týdenní)
+				measure 'Sales Amount AVG 4W (Weekly)'
+					caption: Částka prodeje PRŮM 4T (týdenní)
+				measure 'Sales Amount AVG 1Q (Weekly)'
+					caption: Částka prodeje PRŮM 1K (týdenní)
+				measure 'Sales Amount AVG 1Y (Weekly)'
+					caption: Částka prodeje PRŮM 1R (týdenní)
+				measure 'Sales Amount MATG (Weekly)'
+					caption: Částka prodeje PCRR (týdenní)
+				measure 'Sales Amount MATG % (Weekly)'
+					caption: Částka prodeje PCRR (%) (týdenní)
+				measure 'Sales Amount PP (Weekly)'
+					caption: Částka prodeje PO (týdenní)
+				measure 'Sales Amount POP (Weekly)'
+					caption: Částka prodeje MO (týdenní)
+				measure 'Sales Amount POP % (Weekly)'
+					caption: Částka prodeje MO (%) (týdenní)
+				measure 'Sales Amount WTD (Weekly)'
+					caption: Částka prodeje TKDD (týdenní)
+				measure 'Sales Quantity YTD (Weekly)'
+					caption: Množství prodeje RKDD (týdenní)
+				measure 'Sales Quantity PY (Weekly)'
+					caption: Množství prodeje PR (týdenní)
+				measure 'Sales Quantity PYTD (Weekly)'
+					caption: Množství prodeje PRKDD (týdenní)
+				measure 'Sales Quantity QTD (Weekly)'
+					caption: Množství prodeje KKDD (týdenní)
+				measure 'Sales Quantity PQTD (Weekly)'
+					caption: Množství prodeje PKDD (týdenní)
+				measure 'Sales Quantity MTD (Weekly)'
+					caption: Množství prodeje MKDD (týdenní)
+				measure 'Sales Quantity YOY % (Weekly)'
+					caption: Množství prodeje MR (%) (týdenní)
+				measure 'Sales Quantity YOY (Weekly)'
+					caption: Množství prodeje MR (týdenní)
+				measure 'Sales Quantity PQ (Weekly)'
+					caption: Množství prodeje PK (týdenní)
+				measure 'Sales Quantity QOQ (Weekly)'
+					caption: Množství prodeje MK (týdenní)
+				measure 'Sales Quantity QOQ % (Weekly)'
+					caption: Množství prodeje MK (%) (týdenní)
+				measure 'Sales Quantity PW (Weekly)'
+					caption: Množství prodeje PT (týdenní)
+				measure 'Sales Quantity WOW (Weekly)'
+					caption: Množství prodeje MT (týdenní)
+				measure 'Sales Quantity WOW % (Weekly)'
+					caption: Množství prodeje MT (%) (týdenní)
+				measure 'Sales Quantity MAT (364) (Weekly)'
+					caption: Množství prodeje RPS (364) (týdenní)
+				measure 'Sales Quantity PYMAT (364) (Weekly)'
+					caption: Množství prodeje PRSPR (364) (týdenní)
+				measure 'Sales Quantity YOYTD (Weekly)'
+					caption: Množství prodeje MRKDD (týdenní)
+				measure 'Sales Quantity YOYTD % (Weekly)'
+					caption: Množství prodeje MRKDD (%) (týdenní)
+				measure 'Sales Quantity PYC (Weekly)'
+					caption: Množství prodeje CPR (týdenní)
+				measure 'Sales Quantity YTDOPY (Weekly)'
+					caption: Prodejní množství RKDDPPR (týdenní)
+				measure 'Sales Quantity YTDOPY  % (Weekly)'
+					caption: Prodejní množství RKDDPPR (%) (týdenní)
+				measure 'Sales Quantity QOQTD (Weekly)'
+					caption: Množství prodeje MKKDD (týdenní)
+				measure 'Sales Quantity QOQTD % (Weekly)'
+					caption: Množství prodeje MKKDD (%) (týdenní)
+				measure 'Sales Quantity PQC (Weekly)'
+					caption: Množství prodeje CPK (týdenní)
+				measure 'Sales Quantity QTDOPQ (Weekly)'
+					caption: Prodejní množství KDDVPK (týdenní)
+				measure 'Sales Quantity QTDOPQ % (Weekly)'
+					caption: Prodejní množství KDDVPK (%) (týdenní)
+				measure 'Sales Quantity PWTD (Weekly)'
+					caption: Množství prodeje PTKDD (týdenní)
+				measure 'Sales Quantity WOWTD (Weekly)'
+					caption: Množství prodeje MTKDD (týdenní)
+				measure 'Sales Quantity WOWTD % (Weekly)'
+					caption: Množství prodeje MTKDD (%) (týdenní)
+				measure 'Sales Quantity PWC (Weekly)'
+					caption: Množství prodeje CPT (týdenní)
+				measure 'Sales Quantity WTDOPW (Weekly)'
+					caption: Prodejní množství MTOPT (týdenní)
+				measure 'Sales Quantity WTDOPW % (Weekly)'
+					caption: Prodejní množství MTOPT (%) (týdenní)
+				measure 'Sales Quantity AVG 4W (Weekly)'
+					caption: Množství prodeje PRŮM 4T (týdenní)
+				measure 'Sales Quantity AVG 1Q (Weekly)'
+					caption: Množství prodeje PRŮM 1K (týdenní)
+				measure 'Sales Quantity AVG 1Y (Weekly)'
+					caption: Množství prodeje PRŮM 1R (týdenní)
+				measure 'Sales Quantity MATG (Weekly)'
+					caption: Množství prodeje PCRR (týdenní)
+				measure 'Sales Quantity MATG % (Weekly)'
+					caption: Množství prodeje PCRR (%) (týdenní)
+				measure 'Sales Quantity PP (Weekly)'
+					caption: Množství prodeje PO (týdenní)
+				measure 'Sales Quantity POP (Weekly)'
+					caption: Množství prodeje MO (týdenní)
+				measure 'Sales Quantity POP % (Weekly)'
+					caption: Množství prodeje MO (%) (týdenní)
+				measure 'Sales Quantity WTD (Weekly)'
+					caption: Množství prodeje TKDD (týdenní)
+				measure 'Gross Profit YTD (Weekly)'
+					caption: Hrubý zisk RKDD (týdenní)
+				measure 'Gross Profit PY (Weekly)'
+					caption: Hrubý zisk PR (týdenní)
+				measure 'Gross Profit PYTD (Weekly)'
+					caption: Hrubý zisk PRKDD (týdenní)
+				measure 'Gross Profit QTD (Weekly)'
+					caption: Hrubý zisk KKDD (týdenní)
+				measure 'Gross Profit PQTD (Weekly)'
+					caption: Hrubý zisk PKDD (týdenní)
+				measure 'Gross Profit MTD (Weekly)'
+					caption: Hrubý zisk MKDD (týdenní)
+				measure 'Gross Profit YOY % (Weekly)'
+					caption: Hrubý zisk MR (%) (týdenní)
+				measure 'Gross Profit YOY (Weekly)'
+					caption: Hrubý zisk MR (týdenní)
+				measure 'Gross Profit PQ (Weekly)'
+					caption: Hrubý zisk PK (týdenní)
+				measure 'Gross Profit QOQ (Weekly)'
+					caption: Hrubý zisk MK (týdenní)
+				measure 'Gross Profit QOQ % (Weekly)'
+					caption: Hrubý zisk MK (%) (týdenní)
+				measure 'Gross Profit PW (Weekly)'
+					caption: Hrubý zisk PT (týdenní)
+				measure 'Gross Profit WOW (Weekly)'
+					caption: Hrubý zisk MT (týdenní)
+				measure 'Gross Profit WOW % (Weekly)'
+					caption: Hrubý zisk MT (%) (týdenní)
+				measure 'Gross Profit MAT (364) (Weekly)'
+					caption: Hrubý zisk RPS (364) (týdenní)
+				measure 'Gross Profit PYMAT (364) (Weekly)'
+					caption: Hrubý zisk PRSPR (364) (týdenní)
+				measure 'Gross Profit YOYTD (Weekly)'
+					caption: Hrubý zisk MRKDD (týdenní)
+				measure 'Gross Profit YOYTD % (Weekly)'
+					caption: Hrubý zisk MRKDD (%) (týdenní)
+				measure 'Gross Profit PYC (Weekly)'
+					caption: Hrubý zisk CPR (týdenní)
+				measure 'Gross Profit YTDOPY (Weekly)'
+					caption: Hrubý zisk RKDDPPR (týdenní)
+				measure 'Gross Profit YTDOPY % (Weekly)'
+					caption: Hrubý zisk RKDDPPR (%) (týdenní)
+				measure 'Gross Profit QOQTD (Weekly)'
+					caption: Hrubý zisk MKKDD (týdenní)
+				measure 'Gross Profit QOQTD % (Weekly)'
+					caption: Hrubý zisk MKKDD (%) (týdenní)
+				measure 'Gross Profit PQC (Weekly)'
+					caption: Hrubý zisk CPK (týdenní)
+				measure 'Gross Profit QTDOPQ (Weekly)'
+					caption: Hrubý zisk KDDVPK (týdenní)
+				measure 'Gross Profit QTDOPQ % (Weekly)'
+					caption: Hrubý zisk KDDVPK (%) (týdenní)
+				measure 'Gross Profit PWTD (Weekly)'
+					caption: Hrubý zisk PTKDD (týdenní)
+				measure 'Gross Profit WOWTD (Weekly)'
+					caption: Hrubý zisk MTKDD (týdenní)
+				measure 'Gross Profit WOWTD % (Weekly)'
+					caption: Hrubý zisk MTKDD (%) (týdenní)
+				measure 'Gross Profit PWC (Weekly)'
+					caption: Hrubý zisk CPT (týdenní)
+				measure 'Gross Profit WTDOPW (Weekly)'
+					caption: Hrubý zisk MTOPT (týdenní)
+				measure 'Gross Profit WTDOPW % (Weekly)'
+					caption: Hrubý zisk MTOPT (%) (týdenní)
+				measure 'Gross Profit AVG 4W (Weekly)'
+					caption: Hrubý zisk PRŮM 4T (týdenní)
+				measure 'Gross Profit AVG 1Q (Weekly)'
+					caption: Hrubý zisk PRŮM 1K (týdenní)
+				measure 'Gross Profit AVG 1Y (Weekly)'
+					caption: Hrubý zisk PRŮM 1R (týdenní)
+				measure 'Gross Profit MATG (Weekly)'
+					caption: Hrubý zisk PCRR (týdenní)
+				measure 'Gross Profit MATG % (Weekly)'
+					caption: Hrubý zisk PCRR (%) (týdenní)
+				measure 'Gross Profit PP (Weekly)'
+					caption: Hrubý zisk PO (týdenní)
+				measure 'Gross Profit POP (Weekly)'
+					caption: Hrubý zisk MO (týdenní)
+				measure 'Gross Profit POP % (Weekly)'
+					caption: Hrubý zisk MO (%) (týdenní)
+				measure 'Gross Profit WTD (Weekly)'
+					caption: Hrubý zisk TKDD (týdenní)
+				measure 'Gross Profit Margin YTD (Weekly)'
+					caption: Hrubá zisková marže RKDD (týdenní)
+				measure 'Gross Profit Margin QTD (Weekly)'
+					caption: Hrubá zisková marže KKDD (týdenní)
+				measure 'Gross Profit Margin MTD (Weekly)'
+					caption: Hrubá zisková marže MKDD (týdenní)
+				measure 'Gross Profit Margin WTD (Weekly)'
+					caption: Hrubá zisková marže TKDD (týdenní)
+				measure 'Gross Profit Margin PY (Weekly)'
+					caption: Hrubá zisková marže PR (týdenní)
+				measure 'Gross Profit Margin YOY % (Weekly)'
+					caption: Hrubá zisková marže MR (%) (týdenní)
+				measure 'Gross Profit Margin YOY (Weekly)'
+					caption: Hrubá zisková marže MR (týdenní)
+				measure 'Gross Profit Margin PQ (Weekly)'
+					caption: Hrubá zisková marže MK (týdenní)
+				measure 'Gross Profit Margin QOQ (Weekly)'
+					caption: Hrubá zisková marže MK (týdenní)
+				measure 'Gross Profit Margin QOQ % (Weekly)'
+					caption: Hrubá zisková marže MK (%) (týdenní)
+				measure 'Gross Profit Margin PW (Weekly)'
+					caption: Hrubá zisková marže PT (týdenní)
+				measure 'Gross Profit Margin WOW (Weekly)'
+					caption: Hrubá zisková marže MT (týdenní)
+				measure 'Gross Profit Margin WOW % (Weekly)'
+					caption: Hrubá zisková marže MT (%) (týdenní)
+				measure 'Gross Profit Margin PP (Weekly)'
+					caption: Hrubá zisková marže PO (týdenní)
+				measure 'Gross Profit Margin POP (Weekly)'
+					caption: Hrubá zisková marže MO (týdenní)
+				measure 'Gross Profit Margin POP % (Weekly)'
+					caption: Hrubá zisková marže MO (%) (týdenní)
+				measure 'Gross Profit Margin PYTD (Weekly)'
+					caption: Hrubá zisková marže PRKDD (týdenní)
+				measure 'Gross Profit Margin PQTD (Weekly)'
+					caption: Hrubá zisková marže PKDD (týdenní)
+				measure 'Gross Profit Margin YOYTD (Weekly)'
+					caption: Hrubá zisková marže MRKDD (týdenní)
+				measure 'Gross Profit Margin YOYTD % (Weekly)'
+					caption: Hrubá zisková marže MRKDD (%) (týdenní)
+				measure 'Gross Profit Margin QOQTD (Weekly)'
+					caption: Hrubá zisková marže MKKDD (týdenní)
+				measure 'Gross Profit Margin QOQTD % (Weekly)'
+					caption: Hrubá zisková marže MKKDD (%) (týdenní)
+				measure 'Gross Profit Margin PWTD (Weekly)'
+					caption: Hrubá zisková marže PTKDD (týdenní)
+				measure 'Gross Profit Margin WOWTD (Weekly)'
+					caption: Hrubá zisková marže MTKDD (týdenní)
+				measure 'Gross Profit Margin WOWTD % (Weekly)'
+					caption: Hrubá zisková marže MTKDD (%) (týdenní)
+				measure 'Gross Profit Margin MAT (364) (Weekly)'
+					caption: Hrubá zisková marže RPS (364) (týdenní)
+				measure 'Gross Profit Margin PYMAT (364) (Weekly)'
+					caption: Hrubá zisková marže PRSPR (364) (týdenní)
+				measure 'Gross Profit Margin MATG (Weekly)'
+					caption: Hrubá zisková marže PCRR (týdenní)
+				measure 'Gross Profit Margin MATG % (Weekly)'
+					caption: Hrubá zisková marže PCRR (%) (týdenní)
+				measure 'Gross Profit Margin PYC (Weekly)'
+					caption: Hrubá zisková marže CPR (týdenní)
+				measure 'Gross Profit Margin YTDOPY (Weekly)'
+					caption: Hrubá zisková marže RKDDPPR (týdenní)
+				measure 'Gross Profit Margin YTDOPY % (Weekly)'
+					caption: Hrubá zisková marže RKDDPPR (%) (týdenní)
+				measure 'Gross Profit Margin PQC (Weekly)'
+					caption: Hrubá zisková marže CPK (týdenní)
+				measure 'Gross Profit Margin QTDOPQ (Weekly)'
+					caption: Hrubá zisková marže KDDVPK (týdenní)
+				measure 'Gross Profit Margin QTDOPQ % (Weekly)'
+					caption: Hrubá zisková marže KDDVPK (%) (týdenní)
+				measure 'Gross Profit Margin PWC (Weekly)'
+					caption: Hrubá zisková marže CPT (týdenní)
+				measure 'Gross Profit Margin WTDOPW (Weekly)'
+					caption: Hrubá zisková marže MTOPT (týdenní)
+				measure 'Gross Profit Margin WTDOPW % (Weekly)'
+					caption: Hrubá zisková marže MTOPT (%) (týdenní)
+				measure 'Gross Profit Margin AVG 4W (Weekly'
+					caption: Hrubá zisková marže PRŮM 4T (týdenní)
+				measure 'Gross Profit Margin AVG 1Q (Weekly)'
+					caption: Hrubá zisková marže PRŮM 1K (týdenní)
+				measure 'Gross Profit Margin AVG 1Y (Weekly)'
+					caption: Hrubá zisková marže PRŮM 1R (týdenní)
+				measure 'Cost Amount YTD (Weekly)'
+					caption: Částka nákladů RKDD (týdenní)
+				measure 'Cost Amount QTD (Weekly)'
+					caption: Částka nákladů KKDD (týdenní)
+				measure 'Cost Amount MTD (Weekly)'
+					caption: Částka nákladů MKDD (týdenní)
+				measure 'Cost Amount WTD (Weekly)'
+					caption: Částka nákladů TKDD (týdenní)
+				measure 'Cost Amount PY (Weekly)'
+					caption: Částka nákladů PR (týdenní)
+				measure 'Cost Amount YOY % (Weekly)'
+					caption: Částka nákladů MR (%) (týdenní)
+				measure 'Cost Amount YOY (Weekly)'
+					caption: Částka nákladů MR (týdenní)
+				measure 'Cost Amount PQ (Weekly)'
+					caption: Částka nákladů PK (týdenní)
+				measure 'Cost Amount QOQ (Weekly)'
+					caption: Částka nákladů MK (týdenní)
+				measure 'Cost Amount QOQ % (Weekly)'
+					caption: Částka nákladů MK (%) (týdenní)
+				measure 'Cost Amount PW (Weekly)'
+					caption: Částka nákladů PT (týdenní)
+				measure 'Cost Amount WOW (Weekly)'
+					caption: Částka nákladů MT (týdenní)
+				measure 'Cost Amount WOW % (Weekly)'
+					caption: Částka nákladů MT (%) (týdenní)
+				measure 'Cost Amount PP (Weekly)'
+					caption: Částka nákladů PO (týdenní)
+				measure 'Cost Amount POP (Weekly)'
+					caption: Částka nákladů MO (týdenní)
+				measure 'Cost Amount POP % (Weekly)'
+					caption: Částka nákladů MO (%) (týdenní)
+				measure 'Cost Amount PYTD (Weekly)'
+					caption: Částka nákladů PRKDD (týdenní)
+				measure 'Cost Amount PQTD (Weekly)'
+					caption: Částka nákladů PKDD (týdenní)
+				measure 'Cost Amount YOYTD (Weekly)'
+					caption: Částka nákladů MRKDD (týdenní)
+				measure 'Cost Amount YOYTD % (Weekly)'
+					caption: Částka nákladů MRKDD (%) (týdenní)
+				measure 'Cost Amount QOQTD (Weekly)'
+					caption: Částka nákladů MKKDD (týdenní)
+				measure 'Cost Amount QOQTD % (Weekly)'
+					caption: Částka nákladů MKKDD (%) (týdenní)
+				measure 'Cost Amount PWTD (Weekly)'
+					caption: Částka nákladů PTKDD (týdenní)
+				measure 'Cost Amount WOWTD (Weekly)'
+					caption: Částka nákladů MTKDD (týdenní)
+				measure 'Cost Amount WOWTD % (Weekly)'
+					caption: Částka nákladů MTKDD (%) (týdenní)
+				measure 'Cost Amount MAT (364) (Weekly)'
+					caption: Částka nákladů RPS (364) (týdenní)
+				measure 'Cost Amount PYMAT (364) (Weekly)'
+					caption: Částka nákladů PRSPR (364) (týdenní)
+				measure 'Cost Amount MATG (Weekly)'
+					caption: Částka nákladů PCRR (týdenní)
+				measure 'Cost Amount MATG % (Weekly)'
+					caption: Částka nákladů PCRR (%) (týdenní)
+				measure 'Cost Amount PYC (Weekly)'
+					caption: Částka nákladů CPR (týdenní)
+				measure 'Cost Amount YTDOPY (Weekly)'
+					caption: Částka nákladů RKDDPPR (týdenní)
+				measure 'Cost Amount YTDOPY % (Weekly)'
+					caption: Částka nákladů RKDDPPR (%) (týdenní)
+				measure 'Cost Amount PQC (Weekly)'
+					caption: Částka nákladů CPK (týdenní)
+				measure 'Cost Amount QTDOPQ (Weekly)'
+					caption: Částka nákladů KDDVPK (týdenní)
+				measure 'Cost Amount QTDOPQ % (Weekly)'
+					caption: Částka nákladů KDDVPK (%) (týdenní)
+				measure 'Cost Amount PWC (Weekly)'
+					caption: Částka nákladů CPT (týdenní)
+				measure 'Cost Amount WTDOPW (Weekly)'
+					caption: Částka nákladů MTOPT (týdenní)
+				measure 'Cost Amount WTDOPW % (Weekly)'
+					caption: Částka nákladů MTOPT (%) (týdenní)
+				measure 'Cost Amount AVG 4W (Weekly)'
+					caption: Částka nákladů PRŮM 4T (týdenní)
+				measure 'Cost Amount AVG 1Q (Weekly)'
+					caption: Částka nákladů PRŮM 1K (týdenní)
+				measure 'Cost Amount AVG 1Y (Weekly)'
+					caption: Částka nákladů PRŮM 1R (týdenní)
+				measure 'Cost Amount Non-Inv PY (Weekly)'
+					caption: Částka nákladů neinvent. PR (týdenní)
+				measure 'Cost Amount Non-Inv YOY % (Weekly)'
+					caption: Částka nákladů neinvent. MR (%) (týdenní)
+				measure 'Cost Amount Non-Inv YOY (Weekly)'
+					caption: Částka nákladů neinvent. MR (týdenní)
+				measure 'Cost Amount Non-Inv PQ (Weekly)'
+					caption: Částka nákladů neinvent. PK (týdenní)
+				measure 'Cost Amount Non-Inv QOQ (Weekly)'
+					caption: Částka nákladů neinvent. MK (týdenní)
+				measure 'Cost Amount Non-Inv QOQ % (Weekly)'
+					caption: Částka nákladů neinvent. MK (%) (týdenní)
+				measure 'Cost Amount Non-Inv PW (Weekly)'
+					caption: Částka nákladů neinvent. PT (týdenní)
+				measure 'Cost Amount Non-Inv WOW (Weekly)'
+					caption: Částka nákladů neinvent. MT (týdenní)
+				measure 'Cost Amount Non-Inv WOW % (Weekly)'
+					caption: Částka nákladů neinvent. MT (%) (týdenní)
+				measure 'Cost Amount Non-Inv PP (Weekly)'
+					caption: Částka nákladů neinvent. PO (týdenní)
+				measure 'Cost Amount Non-Inv POP (Weekly)'
+					caption: Částka nákladů neinvent. MO (týdenní)
+				measure 'Cost Amount Non-Inv POP % (Weekly)'
+					caption: Částka nákladů neinvent. MO (%) (týdenní)
+				measure 'Cost Amount Non-Inv PYTD (Weekly)'
+					caption: Částka nákladů neinvent. PRKDD (týdenní)
+				measure 'Cost Amount Non-Inv PQTD (Weekly)'
+					caption: Částka nákladů neinvent. PKDD (týdenní)
+				measure 'Cost Amount Non-Inv YOYTD (Weekly)'
+					caption: Částka nákladů neinvent. MRKDD (týdenní)
+				measure 'Cost Amount Non-Inv YOYTD % (Weekly)'
+					caption: Částka nákladů neinvent. MRKDD (%) (týdenní)
+				measure 'Cost Amount Non-Inv QOQTD (Weekly)'
+					caption: Částka nákladů neinvent. MKKDD (týdenní)
+				measure 'Cost Amount Non-Inv QOQTD % (Weekly)'
+					caption: Částka nákladů neinvent. MKKDD (%) (týdenní)
+				measure 'Cost Amount Non-Inv PWTD (Weekly)'
+					caption: Částka nákladů neinvent. PTKDD (týdenní)
+				measure 'Cost Amount Non-Inv WOWTD (Weekly)'
+					caption: Částka nákladů neinvent. MTKDD (týdenní)
+				measure 'Cost Amount Non-Inv WOWTD % (Weekly)'
+					caption: Částka nákladů neinvent. MTKDD (%) (týdenní)
+				measure 'Cost Amount Non-Inv MAT (364) (Weekly)'
+					caption: Částka nákladů neinvent. RPS (364) (týdenní)
+				measure 'Cost Amount Non-Inv PYMAT (364) (Weekly)'
+					caption: Částka nákladů neinvent. PRSPR (364) (týdenní)
+				measure 'Cost Amount Non-Inv MATG (Weekly)'
+					caption: Částka nákladů neinvent. PCRR (týdenní)
+				measure 'Cost Amount Non-Inv MATG % (Weekly)'
+					caption: Částka nákladů neinvent. PCRR (%) (týdenní)
+				measure 'Cost Amount Non-Inv PYC (Weekly)'
+					caption: Částka nákladů neinvent. CPR (týdenní)
+				measure 'Cost Amount Non-Inv YTDOPY (Weekly)'
+					caption: Částka nákladů neinvent. RKDDPPR (týdenní)
+				measure 'Cost Amount Non-Inv YTDOPY % (Weekly)'
+					caption: Částka nákladů neinvent. RKDDPPR (%) (týdenní)
+				measure 'Cost Amount Non-Inv PQC (Weekly)'
+					caption: Částka nákladů neinvent. CPK (týdenní)
+				measure 'Cost Amount Non-Inv QTDOPQ (Weekly)'
+					caption: Částka nákladů neinvent. KDDVPK (týdenní)
+				measure 'Cost Amount Non-Inv QTDOPQ % (Weekly)'
+					caption: Částka nákladů neinvent. KDDVPK (%) (týdenní)
+				measure 'Cost Amount Non-Inv PWC (Weekly)'
+					caption: Částka nákladů neinvent. CPT (týdenní)
+				measure 'Cost Amount Non-Inv WTDOPW (Weekly)'
+					caption: Částka nákladů neinvent. MTOPT (týdenní)
+				measure 'Cost Amount Non-Inv WTDOPW % (Weekly)'
+					caption: Částka nákladů neinvent. MTOPT (%) (týdenní)
+				measure 'Cost Amount Non-Inv AVG 4W (Weekly)'
+					caption: Částka nákladů neinvent. PRŮM 4T (týdenní)
+				measure 'Cost Amount Non-Inv AVG 1Q (Weekly)'
+					caption: Částka nákladů neinvent. PRŮM 1K (týdenní)
+				measure 'Cost Amount Non-Inv AVG 1Y (Weekly)'
+					caption: Částka nákladů neinvent. PRŮM 1R (týdenní)
+				measure 'Cost Amount Non-Inv YTD (Weekly)'
+					caption: Částka nákladů neinvent. RKDD (týdenní)
+				measure 'Cost Amount Non-Inv QTD (Weekly)'
+					caption: Částka nákladů neinvent. KKDD (týdenní)
+				measure 'Cost Amount Non-Inv MTD (Weekly)'
+					caption: Částka nákladů neinvent. MKDD (týdenní)
+				measure 'Cost Amount Non-Inv WTD (Weekly)'
+					caption: Částka nákladů neinvent. TKDD (týdenní)
+			table 'Localized Labels'
+				measure 'My Report Title'
+					caption: Můj nadpis sestavy
+				measure 'My Button Caption'
+					caption: Popisek mého tlačítka
+				measure 'My Visual Title'
+					caption: Název mého vizuálu
+				measure 'Top 5 Items Gross Profit'
+					caption: Hrubý zisk předních 5 zboží
+				measure 'Top 5 Salesperson'
+					caption: Předních 5 prodejců
+				measure 'Top 5 Customers'
+					caption: Předních 5 zákazníků
+				measure 'Document Value'
+					caption: Hodnota dokladu
+				measure 'Document Count'
+					caption: Počet dokladů
+				measure 'Sales Amount and Sales Amount AVG 30D (Fiscal) by Fiscal Month Year'
+					caption: Částka prodeje a průměrná částka prodeje za 30 dní (fiskální) podle fiskálního měsíce a roku
+				measure 'Sales Overview'
+					caption: Přehled prodeje
+				measure 'Daily Sales'
+					caption: Denní prodej
+				measure 'Moving Averages'
+					caption: Klouzavé průměry
+				measure 'Moving Annual Total'
+					caption: Roční pohyblivý součet
+				measure 'Previous Year MAT and MAT by Fiscal Month Year'
+					caption: RPS předchozího roku a RPS podle fiskálního měsíce a roku
+				measure 'Period-Over-Period Growth'
+					caption: Růst mezi obdobími
+				measure Month-To-Date
+					caption: Od začátku měsíce k dnešnímu dni
+				measure '% Share of Sales'
+					caption: % podíl z prodeje
+				measure 'Sales Amount, Sales Quantity and Gross Profit by Item Category Code'
+					caption: Částka prodeje, množství prodeje a hrubý zisk podle kódu kategorie zboží
+				measure 'Sales by Item'
+					caption: Prodej podle zboží
+				measure 'Sales by Customer'
+					caption: Prodej podle zákazníka
+				measure 'Sales Amount, Sales Quantity and Gross Profit by Customer Name'
+					caption: Částka prodeje, množství prodeje a hrubý zisk podle jména zákazníka
+				measure 'Sales by Salesperson'
+					caption: Prodej podle prodejce
+				measure 'Sales Amount, Sales Quantity and Gross Profit by Salesperson Code'
+					caption: Částka prodeje, množství prodeje a hrubý zisk podle kódu prodejce
+				measure 'Actual vs Budget Quantity'
+					caption: Skutečné vs. rozpočtové množství
+				measure 'Actual vs Budget Amount'
+					caption: Skutečná vs. rozpočtovaná částka
+				measure Sales
+					caption: Prodej
+				measure 'for Business Central'
+					caption: pro Business Central
+				measure 'USE, EDIT AND BUILD YOUR OWN REPORTS'
+					caption: POUŽÍVÁNÍ, ÚPRAVA A TVORBA VLASTNÍCH SESTAV
+				measure 'Sales includes a variety of pre-built reports to help you see your data immediately. You are able to edit these reports or build your own report from scratch.'
+					caption: Prodej obsahuje řadu předpřipravených sestav, které vám pomohou okamžitě zobrazit vaše data. Tyto sestavy můžete upravovat nebo si vytvořit vlastní sestavu od základu.
+				measure 'CONNECT YOUR DATA'
+					caption: PŘIPOJENÍ DAT
+				measure '1. Download the Sales Connector for Power BI'
+					caption: 1. Stažení řešení Sales Connector for Power BI
+				measure '2. Configure Dynamics 365 Business Central'
+					caption: 2. Konfigurace Dynamics 365 Business Central
+				measure 'HELP AND SUPPORT'
+					caption: POMOC A PODPORA
+				measure 'For help and support with your new report please visit the Analytics overview documentation.'
+					caption: Nápovědu a podporu k nové sestavě naleznete v dokumentaci k přehledu Analytics.
+				measure 'OTHER POWER BI REPORTS'
+					caption: DALŠÍ SESTAVY POWER BI
+				measure PURCHASE
+					caption: NÁKUP
+				measure FINANCE
+					caption: FINANCE
+				measure REBATES
+					caption: RABATY
+				measure INVENTORY
+					caption: ZÁSOBY
+				measure JOBS
+					caption: ÚLOHY
+				measure 'SALES '
+					caption: "PRODEJ "
+				measure 'Sales Amount '
+					caption: "Částka prodeje "
+				measure 'Sales Amount and Sales Amount Average 30 Days (Fiscal) by Fiscal Month Year'
+					caption: Částka prodeje a průměrná částka prodeje za 30 dní (fiskální) podle fiskálního měsíce a roku
+				measure 'Previous Year and Current Moving Annual Total by Fiscal Month Year'
+					caption: Předchozí rok a aktuální pohyblivý součet podle fiskálního měsíce a roku
+				measure 'Sales Amount Period-over-Period (Fiscal) and Sales Amount by Fiscal Month Year'
+					caption: Částka prodeje mezi dvěma obdobími (fiskální) a částka prodeje podle fiskálního měsíce a roku
+				measure 'Sales Amount Month-to-Date (Fiscal) by Date'
+					caption: Částka prodeje od začátku měsíce k dnešnímu dni (fiskální) podle data
+				measure 'Last Refreshed'
+					caption: Naposledy aktualizováno
+				measure 'Company Name'
+					caption: Název společnosti
+				measure 'Sales Amount by Salesperson'
+					caption: Částka prodeje podle prodejce
+				measure 'Gross Profit by Item'
+					caption: Hrubý zisk podle zboží
+				measure 'Sales Amount by Customer'
+					caption: Částka prodeje podle zákazníka
+				measure 'Sales Amount and Sales Amount Average 30 Days (Fiscal) by Fiscal Year'
+					caption: Částka prodeje a průměrná částka prodeje za 30 dní (fiskální) podle fiskálního roku
+				measure 'Monthly Comparison of Previous Year and Current Year Moving Annual Totals'
+					caption: Měsíční srovnání předchozích let a běžného roku – roční pohyblivé součty
+				measure 'Sales Amount Period-over-Period (Fiscal) and Sales Amount by Fiscal Year'
+					caption: Částka prodeje mezi dvěma obdobími (fiskální) a částka prodeje podle fiskálního roku
+				measure 'Sales Amount by Item Category'
+					caption: Částka prodeje podle kategorie zboží
+				measure 'Sales Metrics by Salesperson'
+					caption: Metriky prodeje podle prodejce
+				measure 'Sales by Location'
+					caption: Prodej podle lokace
+				measure 'Sales Amount by Location'
+					caption: Částka prodeje podle lokace
+				measure 'Actual vs Budget'
+					caption: Skutečnost vs. rozpočet
+				measure 'Actual vs Budget Purchase Analysis by Item Category'
+					caption: Analýza skutečného a rozpočtového nákupu podle kategorie zboží
+				measure 'Sales Drillthrough'
+					caption: Podrobné procházení prodeje
+				measure 'Detailed Sales Ledger'
+					caption: Podrobná položka prodeje
+				measure 'Sales Amount by Month'
+					caption: Částka prodeje podle měsíce
+				measure PROJECTS
+					caption: PROJEKTY
+				measure MANUFACTURING
+					caption: VÝROBA
+				measure 'Month-To-Date Sales Performance'
+					caption: Prodejní výsledky od začátku měsíce k dnešnímu dni
+				measure 'Top Customer Sales Contributions'
+					caption: Přední příspěvky prodeje zákazníků
+				measure 'Daily Sales by Date'
+					caption: Denní prodeje podle data
+				measure 'Daily Sales by Entry No'
+					caption: Denní prodej podle č. položky
+				measure 'Daily Sales Details'
+					caption: Denní prodej – podrobnosti
+				measure 'Moving Annual Total Details'
+					caption: Roční pohyblivý součet – podrobnosti
+				measure 'Period-Over-Period Growth Details'
+					caption: Růst mezi obdobími – podrobnosti
+				measure 'Month-To-Date Details'
+					caption: Od začátku měsíce k dnešnímu dni – podrobnosti
+				measure 'Sales by Item Category Over Time'
+					caption: Prodeje podle kategorie zboží v průběhu času
+				measure 'Sales by Item Details'
+					caption: Prodej podle zboží – podrobnosti
+				measure 'Profitability by Item Category'
+					caption: Ziskovost podle kategorie zboží
+				measure 'Gross Profit Pareto Analysis by Customer'
+					caption: Paretova analýza hrubého zisku podle zákazníka
+				measure 'Sales by Customer Details'
+					caption: Prodeje podle zákazníka – podrobnosti
+				measure 'Estimated Opportunity Value'
+					caption: Odhadované hodnota příležitosti
+				measure 'Sales by Salesperson Details'
+					caption: Prodeje podle prodejce – podrobnosti
+				measure 'Profitability by Salesperson'
+					caption: Ziskovost podle prodejce
+				measure 'Sales Amount by Customer Location'
+					caption: Částka prodeje podle lokace zákazníka
+				measure 'Sales by Location Details'
+					caption: Prodeje podle lokace – podrobnosti
+				measure 'Sales Demographics'
+					caption: Demografické údaje prodeje
+				measure 'Sales Metrics by Item Category'
+					caption: Metriky prodeje podle kategorie zboží
+				measure 'Sales by Customer Posting Group'
+					caption: Prodej podle účto skupiny zákazníků
+				measure 'Sales by Document Type'
+					caption: Prodej podle typu dokladu
+				measure 'No. of Customers by Location'
+					caption: Počet zákazníků podle lokality
+				measure 'Sales Decomposition'
+					caption: Dekompozice prodeje
+				measure 'Sales Amount by Item Category Description'
+					caption: Částka prodeje podle kategorie zboží – popis
+				measure 'Sales Quantity by Salesperson Name'
+					caption: Množství prodeje podle jména prodejce
+				measure 'Key Sales Influencers'
+					caption: Klíčové ovlivňující faktory prodeje
+				measure 'Sales Amount by Item Category Code'
+					caption: Částka prodeje podle kódu kategorie zboží
+				measure 'Opportunity Overview'
+					caption: Přehled příležitostí
+				measure 'Opportunity Value by Status'
+					caption: Hodnota příležitosti podle stavu
+				measure 'Open Opportunities by Sales Cycle'
+					caption: Otevřené příležitosti podle prodejního cyklu
+				measure 'Open Opportunities by Sales Cycle Stage'
+					caption: Otevřené příležitosti podle fáze prodejního cyklu
+				measure 'Estimated Value by Salesperson'
+					caption: Odhadovaná hodnota podle prodejce
+				measure 'Estimated Value by Contact Location'
+					caption: Odhadovaná hodnota podle lokace kontaktu
+				measure 'Sales Quote Overview'
+					caption: Přehled prodejní nabídky
+				measure 'Sales Quotes by Customer Details'
+					caption: Prodejní nabídky podle zákazníka – podrobnosti
+				measure 'Sales Quote Amount by Salesperson'
+					caption: Částka prodejní nabídky podle prodejce
+				measure 'Sales Quote Amount Over Time'
+					caption: Částka prodejní nabídky v průběhu času
+				measure 'Sales Quote Amount by Item Category Code'
+					caption: Částka prodejní nabídky podle kódu kategorie zboží
+				measure 'Sales Returns Overview'
+					caption: Přehled prodejních vratek
+				measure 'Sales Returns by Customer'
+					caption: Prodejní vratky podle zákazníka
+				measure 'Sales Return Amount by Reason Code'
+					caption: Částka prodejní vratky podle kódu příčiny
+				measure 'Sales Return Amount Over Time'
+					caption: Částka prodejní vratky v průběhu času
+				measure 'Sales Return Amount by Item Category Code'
+					caption: Částka prodejní vratky podle kódu kategorie zboží
+				measure 'Sales Opportunity Analysis'
+					caption: Analýza prodejních příležitostí
+				measure 'Estimated Value by Opportunity'
+					caption: Odhadované hodnota podle příležitosti
+				measure 'Opportunities by Closed Opportunity Code'
+					caption: Příležitosti podle kódu uzavřené příležitosti
+				measure 'Opportunities by Salesperson Details'
+					caption: Příležitosti podle prodejce – podrobnosti
+				measure 'Sales Drillthrough Details'
+					caption: Podrobné procházení prodeje – podrobnosti
+			table COMPANY
+				caption: SPOLEČNOST
+				measure 'Company Label'
+					caption: Popisek společnosti
+			table 'Sales Budget Name'
+				caption: Název rozpočtu prodeje
+				column 'Sales Budget Description'
+					caption: Popis rozpočtu prodeje
+			table Opportunities
+				caption: Příležitosti
+				column 'Opportunity No.'
+					caption: Číslo příležitosti
+				column 'Opportunity Description'
+					caption: Popis
+				column 'Opportunity Creation Date'
+					caption: Datum vytvoření příležitosti
+				column 'Opportunity Status'
+					caption: Stav
+				column 'Opportunity Closed'
+					caption: Uzavřeno
+				column 'Opportunity Sales Document No.'
+					caption: Číslo prodejního dokladu
+				column 'Opportunity Sales Document Type'
+					caption: Typ prodejního dokladu
+				measure 'Opportunity Sales Quote Amount'
+					caption: Částka prodejní nabídky příležitosti
+			table 'Opportunity Entries'
+				caption: Položky příležitosti
+				column 'Opportunity No.'
+					caption: Číslo příležitosti
+				column 'Opportunity Entry No.'
+					caption: Číslo položky příležitosti
+				column Active
+					caption: Aktivní
+				column 'Action Taken'
+					caption: Provedená akce
+				column 'Date of Change'
+					caption: Datum změny
+				column 'Estimated Close Date'
+					caption: Očekávané datum uzavření
+				column 'Completed (%)'
+					caption: Dokončeno (%)
+				column 'Chances of Success (%)'
+					caption: Šance na úspěch (%)
+				column 'Probability (%)'
+					caption: Pravděpodobnost (%)
+				column 'Contact No.'
+					caption: Číslo kontaktu
+				measure 'Calculated Current Value'
+					caption: Vypočítaná aktuální hodnota
+				measure 'Estimated Value'
+					caption: Odhadovaná hodnota
+				measure 'No. of Opportunities'
+					caption: Počet příležitostí
+				measure 'Active Calculated Current Value'
+					caption: AKtivní vypočítaná aktuální hodnota
+				measure 'Active Estimated Value'
+					caption: Aktivní odhadovaná hodnota
+				measure 'Average Chance of Success %'
+					caption: Průměrná šance na úspěch (%)
+				measure 'Average Completed %'
+					caption: Průměrně dokončeno (%)
+				measure 'Average Probability %'
+					caption: Průměrná pravděpodobnost (%)
+				measure 'Opportunity Entries Back Link'
+					caption: Položky příležitosti – zpětný odkaz
+				measure 'No. of Won Opportunities'
+					caption: Počet získaných příležitostí
+				measure 'No. of Lost Opportunities'
+					caption: Počet ztracených příležitostí
+				measure 'Win/Loss %'
+					caption: Zisk/ztráta (%)
+				measure 'Active Chance of Success %'
+					caption: AKtivní šance na úspěch (%)
+			table Contacts
+				caption: Kontakty
+				column 'Contact No.'
+					caption: Číslo kontaktu
+				column 'Contact Name'
+					caption: Jméno kontaktu
+				column 'Contact Company No.'
+					caption: Číslo společnosti
+				column 'Contact Company Name'
+					caption: Název společnosti
+				column 'Contact Address'
+					caption: Adresa kontaktu
+				column 'Contact Address 2'
+					caption: Kontaktní adresa 2
+				column 'Contact City'
+					caption: Město kontaktu
+				column 'Contact Post Code'
+					caption: PSČ kontaktu
+				column 'Contact County'
+					caption: Kraj kontaktu
+				column 'Contact Country/Region Code'
+					caption: Kód země/oblasti kontaktu
+				column 'Contact No. & Name'
+					caption: Č. a jméno kontaktu
+				column 'Contact Type'
+					caption: Typ kontaktu
+			table 'Reason Codes'
+				caption: Kódy příčiny
+				column 'Return Reason Code'
+					caption: Kód příčiny vratky
+				column 'Return Reason Description'
+					caption: Popis příčiny vratky
+			table 'Item Category'
+				caption: Kategorie zboží
+				column 'Item Category Code'
+					caption: Kód kategorie zboží
+				column 'Item Category Description'
+					caption: Popis kategorie zboží
+				hierarchy 'Item Category Code Hierarchy'
+					caption: HIerarchie kódu kategorie zboží
+					level 'Item Category Code Level 1'
+						caption: Kód kategorie zboží – úroveň 1
+					level 'Item Category Code Level 2'
+						caption: Kód kategorie zboží – úroveň 2
+					level 'Item Category Code Level 3'
+						caption: Kód kategorie zboží – úroveň 3
+					level 'Item Category Code'
+						caption: Kód kategorie zboží
+			table 'Pareto Scale'
+				caption: Paretova stupnice
+				column Value
+					caption: Hodnota
+			table 'Sales Cycle Stages'
+				caption: Fáze prodejního cyklu
+				column 'Sales Cycle Code'
+					caption: Kód prodejního cyklu
+				column 'Sales Cycle Stage'
+					caption: Fáze prodejního cyklu
+				column 'Sales Cycle Stage Description'
+					caption: Popis fáze prodejního cyklu
+			table 'Close Opportunity Codes'
+				caption: Kódy uzavření příležitostí
+				column 'Close Opportunity Code'
+					caption: Kód uzavření příležitosti
+				column 'Close Opportunity Type'
+					caption: Typ uzavření příležitostí
+				column 'Close Opportunity Description'
+					caption: Popis uzavření příležitosti
+

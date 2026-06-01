@@ -1,0 +1,1886 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
+namespace Microsoft.Integration.Shopify.Test;
+
+using Microsoft.Finance.Currency;
+using Microsoft.Finance.SalesTax;
+using Microsoft.Foundation.Address;
+using Microsoft.Foundation.NoSeries;
+using Microsoft.Integration.Shopify;
+using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Journal;
+using Microsoft.Sales.Customer;
+using Microsoft.Sales.Document;
+using Microsoft.Sales.Setup;
+using System.TestLibraries.Utilities;
+
+codeunit 139608 "Shpfy Orders API Test"
+{
+    Subtype = Test;
+    TestType = Uncategorized;
+    TestPermissions = Disabled;
+    TestHttpRequestPolicy = BlockOutboundRequests;
+
+    var
+        Shop: Record "Shpfy Shop";
+        LibraryAssert: Codeunit "Library Assert";
+        LibraryRandom: Codeunit "Library - Random";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+        Any: Codeunit Any;
+        CompanyLocationId: BigInteger;
+        IsInitialized: Boolean;
+        PlanRefreshExpected: Boolean;
+        PlanRefreshCallCount: Integer;
+        OrdersToImportChannelLiableMismatchTxt: Label 'Orders to import Channel Liable Taxes mismatch when %1.', Locked = true;
+        OrderLevelTaxLineExpectedTxt: Label 'An order-level tax line should exist when %1.', Locked = true;
+        ChannelLiableFlagMismatchTxt: Label 'Channel Liable flag mismatch when %1.', Locked = true;
+        OrderHeaderChannelLiableMismatchTxt: Label 'Order header Channel Liable Taxes mismatch when %1.', Locked = true;
+        DowngradedPlanShopResponseTok: Label '{"data":{"shop":{"name":"Test","plan":{"publicDisplayName":"Basic Shopify","partnerDevelopment":false,"shopifyPlus":false},"weightUnit":"KILOGRAMS"}},"extensions":{"cost":{"requestedQueryCost":1,"actualQueryCost":1,"throttleStatus":{"maximumAvailable":2000.0,"currentlyAvailable":1999,"restoreRate":100.0}}}}', Locked = true;
+
+    [Test]
+    procedure UnitTestExtractShopifyOrdersToImport()
+    var
+        OrdersToImport: Record "Shpfy Orders to Import";
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        OrderHandlingHelper: Codeunit "Shpfy Order Handling Helper";
+        OrdersAPI: Codeunit "Shpfy Orders API";
+        Cursor: Text;
+        JOrdersToImport: JsonObject;
+    begin
+        // [SCENARIO] Create a randpom expected Json structure for the OrdersToImport and see of all orders are available in the "Shpfy Orders to Import" table.
+        // [SCENARIO] At start we reset the "Shpfy Orders to Import" table so we can see how many record are added.
+        Initialize();
+        Clear(OrdersToImport);
+        if not OrdersToImport.IsEmpty then
+            OrdersToImport.DeleteAll();
+
+        // [GIVEN] Shopify Shop
+        Shop := CommunicationMgt.GetShopRecord();
+        // [GIVEN] the orders to import as a json structure.
+        JOrdersToImport := OrderHandlingHelper.GetOrdersToImport(false);
+        // [GIVEN] the cursor text varable for retreiving the last cursor.
+
+        // [WHEN] Execute ShpfyOrdersAPI.ExtractShopifyOrdersToImport
+        OrdersAPI.ExtractShopifyOrdersToImport(Shop, JOrdersToImport, Cursor);
+        // [THEN] The result must be true.
+        LibraryAssert.IsTrue(OrdersAPI.ExtractShopifyOrdersToImport(Shop, JOrdersToImport, Cursor), 'Extracting orders must return true.');
+
+        // [THEN] The last cursor must have lenght of 92 characters.
+        LibraryAssert.AreEqual(92, StrLen(Cursor), 'The cursor has a lenght of 92 characters');
+
+        // [THEN] The number of orders that where imported must be the same as in the table "Shpfy Order to Import".
+        LibraryAssert.AreEqual(OrderHandlingHelper.CountOrdersToImport(JOrdersToImport), OrdersToImport.Count, 'All orders to import are in the "Shpfy Orders to Import" table');
+    end;
+
+    [Test]
+    procedure UnitTestExtractB2BShopifyOrdersToImport()
+    var
+        OrdersToImport: Record "Shpfy Orders to Import";
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        OrderHandlingHelper: Codeunit "Shpfy Order Handling Helper";
+        OrdersAPI: Codeunit "Shpfy Orders API";
+        Cursor: Text;
+        JOrdersToImport: JsonObject;
+    begin
+        // [SCENARIO] Create a randpom expected Json structure for the OrdersToImport and see of all orders are available in the "Shpfy Orders to Import" table.
+        // [SCENARIO] At start we reset the "Shpfy Orders to Import" table so we can see how many record are added.
+        Initialize();
+        Clear(OrdersToImport);
+        if not OrdersToImport.IsEmpty then
+            OrdersToImport.DeleteAll();
+
+        // [GIVEN] Shopify Shop
+        Shop := CommunicationMgt.GetShopRecord();
+        // [GIVEN] the orders to import as a json structure.
+        JOrdersToImport := OrderHandlingHelper.GetOrdersToImport(true);
+        // [GIVEN] the cursor text varable for retreiving the last cursor.
+
+        // [WHEN] Execute ShpfyOrdersAPI.ExtractShopifyOrdersToImport
+        OrdersAPI.ExtractShopifyOrdersToImport(Shop, JOrdersToImport, Cursor);
+        // [THEN] The result must be true.
+        LibraryAssert.IsTrue(OrdersAPI.ExtractShopifyOrdersToImport(Shop, JOrdersToImport, Cursor), 'Extracting orders must return true.');
+
+        // [THEN] The number of orders with Purchasing Entity = Company that where imported must be the same as in the table "Shpfy Order to Import".
+        OrdersToImport.SetRange("Purchasing Entity", OrdersToImport."Purchasing Entity"::Company);
+        LibraryAssert.AreEqual(OrderHandlingHelper.CountOrdersToImport(JOrdersToImport), OrdersToImport.Count, 'All orders to import are in the "Shpfy Orders to Import" table');
+    end;
+
+    [Test]
+    [HandlerFunctions('OrdersAPIHttpHandler')]
+    procedure UnitTestImportShopifyOrder()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        OrdersToImport: Record "Shpfy Orders to Import";
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        ImportOrder: Codeunit "Shpfy Import Order";
+        OrderHandlingHelper: Codeunit "Shpfy Order Handling Helper";
+        JShopifyOrder: JsonObject;
+        JShopifyLineItems: JsonArray;
+    begin
+        // [SCENARIO] Import a Shopify order from the "Shpfy Orders to Import" record.
+        Initialize();
+
+        // [GIVEN] Shopify Shop
+        Shop := CommunicationMgt.GetShopRecord();
+        Shop."Customer Mapping Type" := "Shpfy Customer Mapping"::"By EMail/Phone";
+        if not Shop.Modify() then
+            Shop.Insert();
+        ImportOrder.SetShop(Shop.Code);
+
+        // [GIVEN] the order to import as a json structure.
+        JShopifyOrder := OrderHandlingHelper.CreateShopifyOrderAsJson(Shop, OrdersToImport, JShopifyLineItems, false);
+
+        // [WHEN] ShpfyImportOrder.ImportOrder
+        OrderHandlingHelper.ImportShopifyOrder(Shop, OrderHeader, OrdersToImport, ImportOrder, JShopifyOrder, JShopifyLineItems);
+
+        // [THEN] ShpfyOrdersToImport.Id = ShpfyOrderHeader."Shopify Order Id"
+        LibraryAssert.AreEqual(OrdersToImport.Id, OrderHeader."Shopify Order Id", 'ShpfyOrdersToImport.Id = ShpfyOrderHeader."Shopify Order Id"');
+
+        // [THEN] ShpfyOrdersToImport."Order No." = ShpfyOrderHeader."Shopify Order No."
+        LibraryAssert.AreEqual(OrdersToImport."Order No.", OrderHeader."Shopify Order No.", 'ShpfyOrdersToImport."Order No." = ShpfyOrderHeader."Shopify Order No."');
+
+        // [THEN] ShpfyOrdersToImport."Order Amount" = ShpfyOrderHeader."Total Amount"
+        LibraryAssert.AreEqual(OrdersToImport."Order Amount", OrderHeader."Total Amount", 'ShpfyOrdersToImport."Order Amount" = ShpfyOrderHeader."Total Amount"');
+    end;
+
+    [Test]
+    [HandlerFunctions('OrdersAPIHttpHandler')]
+    procedure UnitTestImportShopifyOrderStoresRetailLocation()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        OrdersToImport: Record "Shpfy Orders to Import";
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        ImportOrder: Codeunit "Shpfy Import Order";
+        OrderHandlingHelper: Codeunit "Shpfy Order Handling Helper";
+        JShopifyOrder: JsonObject;
+        JShopifyLineItems: JsonArray;
+    begin
+        // [SCENARIO] Retail location metadata is stored on the Shopify order header during import.
+        Initialize();
+
+        // [GIVEN] Shopify Shop
+        Shop := CommunicationMgt.GetShopRecord();
+        Shop."Customer Mapping Type" := "Shpfy Customer Mapping"::"By EMail/Phone";
+        if not Shop.Modify() then
+            Shop.Insert();
+        ImportOrder.SetShop(Shop.Code);
+
+        // [GIVEN] the order to import as a json structure containing retail location info.
+        JShopifyOrder := OrderHandlingHelper.CreateShopifyOrderAsJson(Shop, OrdersToImport, JShopifyLineItems, false);
+
+        // [WHEN] ShpfyImportOrder.ImportOrder
+        OrderHandlingHelper.ImportShopifyOrder(Shop, OrderHeader, OrdersToImport, ImportOrder, JShopifyOrder, JShopifyLineItems);
+
+        // [THEN] Retail location details are stored on the order header
+        LibraryAssert.AreEqual(1234567890L, OrderHeader."Retail Location Id", 'Retail location id must be stored on the order header.');
+        LibraryAssert.AreEqual('Retail Test Location', OrderHeader."Retail Location Name", 'Retail location name must be stored on the order header.');
+    end;
+
+    [Test]
+    [HandlerFunctions('OrdersAPIHttpHandler')]
+    procedure UnitTestImportB2BShopifyOrder()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        OrdersToImport: Record "Shpfy Orders to Import";
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        ImportOrder: Codeunit "Shpfy Import Order";
+        OrderHandlingHelper: Codeunit "Shpfy Order Handling Helper";
+        JShopifyOrder: JsonObject;
+        JShopifyLineItems: JsonArray;
+    begin
+        // [SCENARIO] Import a Shopify order from the "Shpfy Orders to Import" record.
+        Initialize();
+
+        // [GIVEN] Shopify Shop
+        Shop := CommunicationMgt.GetShopRecord();
+        Shop."Company Mapping Type" := "Shpfy Company Mapping"::"By EMail/Phone";
+        if not Shop.Modify() then
+            Shop.Insert();
+        ImportOrder.SetShop(Shop.Code);
+
+        // [GIVEN] the order to import as a json structure.
+        JShopifyOrder := OrderHandlingHelper.CreateShopifyOrderAsJson(Shop, OrdersToImport, JShopifyLineItems, true);
+
+        // [WHEN] ShpfyImportOrder.ImportOrder
+        OrderHandlingHelper.ImportShopifyOrder(Shop, OrderHeader, OrdersToImport, ImportOrder, JShopifyOrder, JShopifyLineItems);
+
+        // [THEN] ShpfyOrdersToImport.Id = ShpfyOrderHeader."Shopify Order Id"
+        LibraryAssert.AreEqual(OrdersToImport.Id, OrderHeader."Shopify Order Id", 'ShpfyOrdersToImport.Id = ShpfyOrderHeader."Shopify Order Id"');
+
+        // [THEN] ShpfyOrdersToImport."Order No." = ShpfyOrderHeader."Shopify Order No."
+        LibraryAssert.AreEqual(OrdersToImport."Order No.", OrderHeader."Shopify Order No.", 'ShpfyOrdersToImport."Order No." = ShpfyOrderHeader."Shopify Order No."');
+
+        // [THEN] ShpfyOrderHeader.B2B = true
+        LibraryAssert.IsTrue(OrderHeader.B2B, 'ShpfyOrderHeader.B2B = true');
+
+        // [THEN] ShpfyOrderHeader."Company Id" is not empty
+        LibraryAssert.AreNotEqual(OrderHeader."Company Id", '', 'ShpfyOrderHeader."Company Id" is not empty');
+    end;
+
+    [Test]
+    [HandlerFunctions('OrdersAPIHttpHandler')]
+    procedure UnitTestDoMappingsOnAShopifyOrder()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        OrderMapping: Codeunit "Shpfy Order Mapping";
+        ImportOrder: Codeunit "Shpfy Import Order";
+        OrderHandlingHelper: Codeunit "Shpfy Order Handling Helper";
+        Result: Boolean;
+    begin
+        // [SCENARIO] Creating a random Shopify Order and try to map customer and product data.
+        // [SCENARIO] If everithing succeed the function will return true.
+        Initialize();
+
+        // [GIVEN] Shopify Shop
+        Shop := CommunicationMgt.GetShopRecord();
+        Shop."Customer Mapping Type" := "Shpfy Customer Mapping"::"By EMail/Phone";
+        if not Shop.Modify() then
+            Shop.Insert();
+        ImportOrder.SetShop(Shop.Code);
+
+        // [GIVEN] ShpfyImportOrder.ImportOrder
+        OrderHandlingHelper.ImportShopifyOrder(Shop, OrderHeader, ImportOrder, false);
+
+        // [WHEN] ShpfyOrderMapping.DoMapping(ShpfyOrderHeader)
+        Result := OrderMapping.DoMapping(OrderHeader);
+
+        // [THEN] The result must be true if everthing is mapped.
+        LibraryAssert.IsTrue(Result, 'Order Mapping must succeed.');
+    end;
+
+    [Test]
+    [HandlerFunctions('OrdersAPIHttpHandler')]
+    procedure UnitTestDoMappingsOnAB2BShopifyOrder()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        OrderMapping: Codeunit "Shpfy Order Mapping";
+        ImportOrder: Codeunit "Shpfy Import Order";
+        OrderHandlingHelper: Codeunit "Shpfy Order Handling Helper";
+        Result: Boolean;
+    begin
+        // [SCENARIO] Creating a random Shopify Order and try to map customer and product data.
+        // [SCENARIO] If everithing succeed the function will return true.
+        Initialize();
+
+        // [GIVEN] Shopify Shop
+        Shop := CommunicationMgt.GetShopRecord();
+        Shop."Company Mapping Type" := "Shpfy Company Mapping"::"By EMail/Phone";
+        if not Shop.Modify() then
+            Shop.Insert();
+        ImportOrder.SetShop(Shop.Code);
+
+        // [GIVEN] ShpfyImportOrder.ImportOrder
+        OrderHandlingHelper.ImportShopifyOrder(Shop, OrderHeader, ImportOrder, true);
+
+        // [WHEN] ShpfyOrderMapping.DoMapping(ShpfyOrderHeader)
+        Result := OrderMapping.DoMapping(OrderHeader);
+
+        // [THEN] The result must be true if everthing is mapped.
+        LibraryAssert.IsTrue(Result, 'Order Mapping must succeed.');
+    end;
+
+    [Test]
+    [HandlerFunctions('OrdersAPIHttpHandler')]
+    procedure UnitTestDoMappingsOnAB2BShopifyOrderImportLocation()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        CompanyLocation: Record "Shpfy Company Location";
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        OrderMapping: Codeunit "Shpfy Order Mapping";
+        ImportOrder: Codeunit "Shpfy Import Order";
+        OrderHandlingHelper: Codeunit "Shpfy Order Handling Helper";
+    begin
+        // [SCENARIO] Creating a random Shopify Order and try to map customer and product data.
+        // [SCENARIO] If everithing succeed the function will return true.
+        Initialize();
+
+        // [GIVEN] Shopify Shop
+        Shop := CommunicationMgt.GetShopRecord();
+        Shop."Company Mapping Type" := "Shpfy Company Mapping"::"By EMail/Phone";
+        if not Shop.Modify() then
+            Shop.Insert();
+        ImportOrder.SetShop(Shop.Code);
+
+        // [GIVEN] ShpfyImportOrder.ImportOrder
+        OrderHandlingHelper.ImportShopifyOrder(Shop, OrderHeader, ImportOrder, true);
+        OrderHeader."Company Location Id" := Any.IntegerInRange(100000, 999999);
+        OrderHeader.Modify();
+        CompanyLocationId := OrderHeader."Company Location Id";
+
+        // [GIVEN] Register Expected Outbound API Requests.
+
+
+        // [WHEN] ShpfyOrderMapping.DoMapping(ShpfyOrderHeader)
+        OrderMapping.DoMapping(OrderHeader);
+
+        // [THEN] Company Location must be mapped correctly
+        CompanyLocation.Get(OrderHeader."Company Location Id");
+    end;
+
+    [Test]
+    [HandlerFunctions('OrdersAPIHttpHandler')]
+    procedure UnitTestImportShopifyOrderAndCreateSalesDocument()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        SalesHeader: Record "Sales Header";
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        ImportOrder: Codeunit "Shpfy Import Order";
+        ProcessOrders: Codeunit "Shpfy Process Orders";
+        OrderHandlingHelper: Codeunit "Shpfy Order Handling Helper";
+    begin
+        // [SCENARIO] Creating a random Shopify Order and try to map customer and product data.
+        // [SCENARIO] When the sales document is created, everything will be mapped and the sales document must exist.
+        Initialize();
+
+        // [GIVEN] Shopify Shop
+        Shop := CommunicationMgt.GetShopRecord();
+        Shop."Customer Mapping Type" := "Shpfy Customer Mapping"::"By EMail/Phone";
+        if not Shop.Modify() then
+            Shop.Insert();
+        ImportOrder.SetShop(Shop.Code);
+
+        // [GIVEN] ShpfyImportOrder.ImportOrder
+        OrderHandlingHelper.ImportShopifyOrder(Shop, OrderHeader, ImportOrder, false);
+        Commit();
+
+        // [WHEN]
+        ProcessOrders.ProcessShopifyOrder(OrderHeader);
+        OrderHeader.GetBySystemId(OrderHeader.SystemId);
+
+        // [THEN] Sales document is created from Shopify order
+        SalesHeader.SetRange("Shpfy Order Id", OrderHeader."Shopify Order Id");
+        LibraryAssert.IsTrue(SalesHeader.FindLast(), 'Sales document is created from Shopify order');
+
+        case SalesHeader."Document Type" of
+            "Sales Document Type"::Order:
+                // [THEN] ShShpfyOrderHeader."Sales Order No." = SalesHeader."No."
+                LibraryAssert.AreEqual(OrderHeader."Sales Order No.", SalesHeader."No.", 'ShpfyOrderHeader."Sales Order No." = SalesHeader."No."');
+            "Sales document Type"::Invoice:
+                // [THEN] ShShpfyOrderHeader."Sales Invoice No." = SalesHeader."No."
+                LibraryAssert.AreEqual(OrderHeader."Sales Invoice No.", SalesHeader."No.", 'ShpfyOrderHeader."Sales Invoice No." = SalesHeader."No."');
+            else
+                Error('Invalid Document Type');
+        end;
+    end;
+
+    [Test]
+    [HandlerFunctions('OrdersAPIHttpHandler')]
+    procedure UnitTestImportB2BShopifyOrderAndCreateSalesDocument()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        SalesHeader: Record "Sales Header";
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        ImportOrder: Codeunit "Shpfy Import Order";
+        ProcessOrders: Codeunit "Shpfy Process Orders";
+        OrderHandlingHelper: Codeunit "Shpfy Order Handling Helper";
+    begin
+        // [SCENARIO] Creating a random Shopify Order and try to map customer and product data.
+        // [SCENARIO] When the sales document is created, everything will be mapped and the sales document must exist.
+        Initialize();
+
+        // [GIVEN] Shopify Shop
+        Shop := CommunicationMgt.GetShopRecord();
+        Shop."Customer Mapping Type" := "Shpfy Customer Mapping"::"By EMail/Phone";
+        if not Shop.Modify() then
+            Shop.Insert();
+        ImportOrder.SetShop(Shop.Code);
+
+        // [GIVEN] ShpfyImportOrder.ImportOrder
+        OrderHandlingHelper.ImportShopifyOrder(Shop, OrderHeader, ImportOrder, true);
+        Commit();
+
+        // [WHEN]
+        ProcessOrders.ProcessShopifyOrder(OrderHeader);
+        OrderHeader.GetBySystemId(OrderHeader.SystemId);
+
+        // [THEN] Sales document is created from Shopify order
+        SalesHeader.SetRange("Shpfy Order Id", OrderHeader."Shopify Order Id");
+        LibraryAssert.IsTrue(SalesHeader.FindLast(), 'Sales document is created from Shopify order');
+
+        case SalesHeader."Document Type" of
+            "Sales Document Type"::Order:
+                // [THEN] ShShpfyOrderHeader."Sales Order No." = SalesHeader."No."
+                LibraryAssert.AreEqual(OrderHeader."Sales Order No.", SalesHeader."No.", 'ShpfyOrderHeader."Sales Order No." = SalesHeader."No."');
+            "Sales document Type"::Invoice:
+                // [THEN] ShShpfyOrderHeader."Sales Invoice No." = SalesHeader."No."
+                LibraryAssert.AreEqual(OrderHeader."Sales Invoice No.", SalesHeader."No.", 'ShpfyOrderHeader."Sales Invoice No." = SalesHeader."No."');
+            else
+                Error('Invalid Document Type');
+        end;
+    end;
+
+    [Test]
+    [HandlerFunctions('OrdersAPIHttpHandler')]
+    procedure UnitTestCreateSalesDocumentTaxPriorityCode()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        SalesHeader: Record "Sales Header";
+        TaxArea: Record "Tax Area";
+        ShopifyTaxArea: Record "Shpfy Tax Area";
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        ImportOrder: Codeunit "Shpfy Import Order";
+        ProcessOrders: Codeunit "Shpfy Process Orders";
+        OrderHandlingHelper: Codeunit "Shpfy Order Handling Helper";
+    begin
+        // [SCENARIO] When the sales document is created, tax priority is taken from the shop.
+        Initialize();
+
+        // [GIVEN] Shopify Shop
+        Shop := CommunicationMgt.GetShopRecord();
+        Shop."Tax Area Priority" := Shop."Tax Area Priority"::"Ship-to -> Sell-to -> Bill-to";
+        Shop."County Source" := Shop."County Source"::"Code";
+        if not Shop.Modify() then
+            Shop.Insert();
+        ImportOrder.SetShop(Shop.Code);
+
+        // [GIVEN] Shopify Tax Area and BC Tax Area
+        CreateTaxArea(TaxArea, ShopifyTaxArea, Shop);
+
+        // [GIVEN] ShpfyImportOrder.ImportOrder
+        OrderHandlingHelper.ImportShopifyOrder(Shop, OrderHeader, ImportOrder, false);
+        OrderHeader."Ship-to City" := ShopifyTaxArea.County;
+        OrderHeader."Ship-to Country/Region Code" := ShopifyTaxArea."Country/Region Code";
+        OrderHeader."Ship-to County" := ShopifyTaxArea."County Code";
+        OrderHeader.Modify();
+        Commit();
+
+        // [WHEN] Order is processed
+        ProcessOrders.ProcessShopifyOrder(OrderHeader);
+        OrderHeader.GetBySystemId(OrderHeader.SystemId);
+
+        // [THEN] Sales document is created from Shopify order with correct tax area
+        SalesHeader.SetRange("Shpfy Order Id", OrderHeader."Shopify Order Id");
+        LibraryAssert.IsTrue(SalesHeader.FindLast(), 'Sales document is created from Shopify order');
+        LibraryAssert.AreEqual(SalesHeader."Tax Area Code", TaxArea.Code, 'Tax Area Code is taken from the ship-to address');
+    end;
+
+    [Test]
+    [HandlerFunctions('OrdersAPIHttpHandler')]
+    procedure UnitTestCreateSalesDocumentTaxPriorityName()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        SalesHeader: Record "Sales Header";
+        TaxArea: Record "Tax Area";
+        ShopifyTaxArea: Record "Shpfy Tax Area";
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        ImportOrder: Codeunit "Shpfy Import Order";
+        ProcessOrders: Codeunit "Shpfy Process Orders";
+        OrderHandlingHelper: Codeunit "Shpfy Order Handling Helper";
+    begin
+        // [SCENARIO] When the sales document is created, tax priority is taken from the shop
+        Initialize();
+
+        // [GIVEN] Shopify Shop
+        Shop := CommunicationMgt.GetShopRecord();
+        Shop."Tax Area Priority" := Shop."Tax Area Priority"::"Sell-to -> Ship-to -> Bill-to";
+        Shop."County Source" := Shop."County Source"::"Name";
+        if not Shop.Modify() then
+            Shop.Insert();
+        ImportOrder.SetShop(Shop.Code);
+
+        // [GIVEN] Shopify Tax Area and BC Tax Area
+        CreateTaxArea(TaxArea, ShopifyTaxArea, Shop);
+
+        // [GIVEN] ShpfyImportOrder.ImportOrder
+        OrderHandlingHelper.ImportShopifyOrder(Shop, OrderHeader, ImportOrder, false);
+        OrderHeader."Sell-to City" := ShopifyTaxArea.County;
+        OrderHeader."Sell-to Country/Region Code" := ShopifyTaxArea."Country/Region Code";
+        OrderHeader."Sell-to County" := CopyStr(ShopifyTaxArea.County, 1, MaxStrLen(OrderHeader."Sell-to County"));
+        OrderHeader.Modify();
+        Commit();
+
+        // [WHEN] Order is processed
+        ProcessOrders.ProcessShopifyOrder(OrderHeader);
+        OrderHeader.GetBySystemId(OrderHeader.SystemId);
+
+        // [THEN] Sales document is created from Shopify order with correct tax area
+        SalesHeader.SetRange("Shpfy Order Id", OrderHeader."Shopify Order Id");
+        LibraryAssert.IsTrue(SalesHeader.FindLast(), 'Sales document is created from Shopify order');
+        LibraryAssert.AreEqual(SalesHeader."Tax Area Code", TaxArea.Code, 'Tax Area Code is taken from the sell-to address');
+    end;
+
+    [Test]
+    [HandlerFunctions('OrdersAPIHttpHandler')]
+    procedure UnitTestCreateSalesDocumentTaxPriorityEmpty()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        SalesHeader: Record "Sales Header";
+        TaxArea: Record "Tax Area";
+        ShopifyTaxArea: Record "Shpfy Tax Area";
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        ImportOrder: Codeunit "Shpfy Import Order";
+        ProcessOrders: Codeunit "Shpfy Process Orders";
+        OrderHandlingHelper: Codeunit "Shpfy Order Handling Helper";
+    begin
+        // [SCENARIO] When the sales document is created, tax area is empty if there is no mapping
+        Initialize();
+
+        // [GIVEN] Shopify Shop
+        Shop := CommunicationMgt.GetShopRecord();
+        Shop."Tax Area Priority" := Shop."Tax Area Priority"::"Ship-to -> Sell-to -> Bill-to";
+        Shop."County Source" := Shop."County Source"::"Code";
+        if not Shop.Modify() then
+            Shop.Insert();
+        ImportOrder.SetShop(Shop.Code);
+
+        // [GIVEN] Shopify Tax Area and BC Tax Area
+        CreateTaxArea(TaxArea, ShopifyTaxArea, Shop);
+
+        // [GIVEN] ShpfyImportOrder.ImportOrder
+        OrderHandlingHelper.ImportShopifyOrder(Shop, OrderHeader, ImportOrder, false);
+        OrderHeader."Ship-to City" := ShopifyTaxArea.County;
+        OrderHeader."Ship-to Country/Region Code" := ShopifyTaxArea."Country/Region Code";
+        OrderHeader."Ship-to County" := ShopifyTaxArea."County Code";
+        OrderHeader.Modify();
+
+        // [GIVEN] Delete tax area mapping
+        ShopifyTaxArea.Delete();
+        Commit();
+
+        // [WHEN] Order is processed
+        ProcessOrders.ProcessShopifyOrder(OrderHeader);
+        OrderHeader.GetBySystemId(OrderHeader.SystemId);
+
+        // [THEN] Sales document is created from Shopify order with correct tax area
+        SalesHeader.SetRange("Shpfy Order Id", OrderHeader."Shopify Order Id");
+        LibraryAssert.IsTrue(SalesHeader.FindLast(), 'Sales document is created from Shopify order');
+        LibraryAssert.AreEqual(SalesHeader."Tax Area Code", '', 'Tax Area Code is empty');
+    end;
+
+    [Test]
+    [HandlerFunctions('OrdersAPIHttpHandler')]
+    procedure UnitTestCreateSalesDocumentReserve()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        OrderLine: Record "Shpfy Order Line";
+        SalesHeader: Record "Sales Header";
+        ShopifyCustomer: Record "Shpfy Customer";
+        Customer: Record Customer;
+        Item: Record Item;
+        ShopifyVariant: Record "Shpfy Variant";
+        SalesLine: Record "Sales Line";
+        ItemJournalLine: Record "Item Journal Line";
+        ProcessOrders: Codeunit "Shpfy Process Orders";
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        LibraryInventory: Codeunit "Library - Inventory";
+        LibrarySales: Codeunit "Library - Sales";
+        OrderHeaderId: BigInteger;
+    begin
+        // [SCENARIO] If a customer has the reserve option set to always, the order line will be reserved
+        Initialize();
+
+        // [GIVEN] A Shopify sales order
+        Shop := CommunicationMgt.GetShopRecord();
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Reserve := Customer.Reserve::Always;
+        Customer.Modify();
+
+        ShopifyCustomer.Id := LibraryRandom.RandIntInRange(100000, 999999);
+        ShopifyCustomer."Customer SystemId" := Customer.SystemId;
+        ShopifyCustomer."Shop Id" := Shop."Shop Id";
+        ShopifyCustomer.Insert();
+
+        OrderHeader."Customer Id" := ShopifyCustomer.Id;
+        OrderHeader."Shop Code" := Shop.Code;
+        OrderHeader."Shopify Order Id" := LibraryRandom.RandIntInRange(100000, 999999);
+        OrderHeaderId := OrderHeader."Shopify Order Id";
+        OrderHeader.Insert();
+
+        LibraryInventory.CreateItem(Item);
+        LibraryInventory.CreateItemJournalLineInItemTemplate(ItemJournalLine, Item."No.", '', '', 10);
+        LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+        ShopifyVariant."Item SystemId" := Item.SystemId;
+        ShopifyVariant.Id := LibraryRandom.RandIntInRange(100000, 999999);
+        ShopifyVariant."Shop Code" := Shop.Code;
+        ShopifyVariant.Insert();
+        OrderLine."Shopify Order Id" := OrderHeader."Shopify Order Id";
+        OrderLine."Shopify Variant Id" := ShopifyVariant.Id;
+        OrderLine.Quantity := 1;
+        OrderLine.Insert();
+        Commit();
+
+        // [WHEN] Order is processed
+        ProcessOrders.ProcessShopifyOrder(OrderHeader);
+
+        // [THEN] Sales document is created from Shopify order and order line is reserved
+        SalesHeader.SetRange("Shpfy Order Id", OrderHeaderId);
+        LibraryAssert.IsTrue(SalesHeader.FindLast(), 'Sales document is created from Shopify order');
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        SalesLine.SetRange("No.", Item."No.");
+        SalesLine.FindFirst();
+        SalesLine.CalcFields("Reserved Quantity");
+        LibraryAssert.AreNotEqual(SalesLine."Reserved Quantity", 0, 'Order line is reserved');
+    end;
+
+    [Test]
+    [HandlerFunctions('OrdersAPIHttpHandler')]
+    procedure UnitTestImportShopifyOrderHighRisk()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        OrdersToImport: Record "Shpfy Orders to Import";
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        ImportOrder: Codeunit "Shpfy Import Order";
+        OrderHandlingHelper: Codeunit "Shpfy Order Handling Helper";
+        RiskLevel: Enum "Shpfy Risk Level";
+        JShopifyOrder: JsonObject;
+        JShopifyLineItems: JsonArray;
+    begin
+        // [SCENARIO] Import a high risk Shopify order from the "Shpfy Orders to Import" record
+        Initialize();
+
+        // [GIVEN] Shopify Shop
+        Shop := CommunicationMgt.GetShopRecord();
+        Shop."Customer Mapping Type" := "Shpfy Customer Mapping"::"By EMail/Phone";
+        if not Shop.Modify() then
+            Shop.Insert();
+        ImportOrder.SetShop(Shop.Code);
+
+        // [GIVEN] the order to import as a json structure.
+        JShopifyOrder := OrderHandlingHelper.CreateShopifyOrderAsJson(Shop, OrdersToImport, JShopifyLineItems, false);
+
+        // [WHEN] ShpfyImportOrder.ImportOrder
+        OrderHandlingHelper.ImportShopifyOrder(Shop, OrderHeader, OrdersToImport, ImportOrder, JShopifyOrder, JShopifyLineItems);
+        CreateOrderRisk(OrderHeader."Shopify Order Id", RiskLevel::High);
+
+        // [THEN] Order is high risk
+        OrderHeader.CalcFields("High Risk");
+        LibraryAssert.IsTrue(OrderHeader."High Risk", 'Order is high risk');
+    end;
+
+    [Test]
+    [HandlerFunctions('OrdersAPIHttpHandler')]
+    procedure UnitTestImportShopifyOrderLowRisk()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        OrdersToImport: Record "Shpfy Orders to Import";
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        ImportOrder: Codeunit "Shpfy Import Order";
+        OrderHandlingHelper: Codeunit "Shpfy Order Handling Helper";
+        RiskLevel: Enum "Shpfy Risk Level";
+        JShopifyOrder: JsonObject;
+        JShopifyLineItems: JsonArray;
+    begin
+        // [SCENARIO] Import a low risk Shopify order from the "Shpfy Orders to Import" record
+        Initialize();
+
+        // [GIVEN] Shopify Shop
+        Shop := CommunicationMgt.GetShopRecord();
+        Shop."Customer Mapping Type" := "Shpfy Customer Mapping"::"By EMail/Phone";
+        if not Shop.Modify() then
+            Shop.Insert();
+        ImportOrder.SetShop(Shop.Code);
+
+        // [GIVEN] the order to import as a json structure.
+        JShopifyOrder := OrderHandlingHelper.CreateShopifyOrderAsJson(Shop, OrdersToImport, JShopifyLineItems, false);
+
+        // [WHEN] ShpfyImportOrder.ImportOrder
+        OrderHandlingHelper.ImportShopifyOrder(Shop, OrderHeader, OrdersToImport, ImportOrder, JShopifyOrder, JShopifyLineItems);
+        CreateOrderRisk(OrderHeader."Shopify Order Id", RiskLevel::Low);
+
+        // [THEN] Order is high risk
+        OrderHeader.CalcFields("High Risk");
+        LibraryAssert.IsFalse(OrderHeader."High Risk", 'Order is not high risk');
+    end;
+
+    [Test]
+    procedure UnitTestExtractShopifyOrdersToImportHighRisk()
+    var
+        OrdersToImport: Record "Shpfy Orders to Import";
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        OrderHandlingHelper: Codeunit "Shpfy Order Handling Helper";
+        OrdersAPI: Codeunit "Shpfy Orders API";
+        Cursor: Text;
+        JOrdersToImport: JsonObject;
+        JOrder: JsonToken;
+        JOrders: JsonArray;
+        JAssessments: JsonArray;
+        JAssessment: JsonToken;
+    begin
+        // [SCENARIO] Create a random expected Json structure for the OrdersToImport with high risk
+        Initialize();
+        Clear(OrdersToImport);
+        if not OrdersToImport.IsEmpty then
+            OrdersToImport.DeleteAll();
+
+        // [GIVEN] Shopify Shop
+        Shop := CommunicationMgt.GetShopRecord();
+        // [GIVEN] the orders to import as a json structure.
+        JOrdersToImport := OrderHandlingHelper.GetOrdersToImport(false);
+        JOrdersToImport.GetObject('data').GetObject('orders').GetArray('edges').Get(0, JOrder);
+        JAssessments := JOrder.AsObject().GetObject('node').GetObject('risk').GetArray('assessments');
+        foreach JAssessment in JAssessments do
+            JAssessment.AsObject().Replace('riskLevel', 'HIGH');
+        JOrders.Add(JOrder);
+        JOrdersToImport.GetObject('data').GetObject('orders').Replace('edges', JOrders);
+
+        // [WHEN] Execute ShpfyOrdersAPI.ExtractShopifyOrdersToImport
+        OrdersAPI.ExtractShopifyOrdersToImport(Shop, JOrdersToImport, Cursor);
+
+        // [THEN] Order is high risk
+        OrdersToImport.FindLast();
+        LibraryAssert.IsTrue(OrdersToImport."High Risk", 'Order is high risk');
+    end;
+
+    [Test]
+    procedure UnitTestExtractShopifyOrdersToImportLowRisk()
+    var
+        OrdersToImport: Record "Shpfy Orders to Import";
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        OrderHandlingHelper: Codeunit "Shpfy Order Handling Helper";
+        OrdersAPI: Codeunit "Shpfy Orders API";
+        Cursor: Text;
+        JOrdersToImport: JsonObject;
+        JOrder: JsonToken;
+        JOrders: JsonArray;
+        JAssessments: JsonArray;
+        JAssessment: JsonToken;
+    begin
+        // [SCENARIO] Create a random expected Json structure for the OrdersToImport with low risk
+        Initialize();
+        Clear(OrdersToImport);
+        if not OrdersToImport.IsEmpty then
+            OrdersToImport.DeleteAll();
+
+        // [GIVEN] Shopify Shop
+        Shop := CommunicationMgt.GetShopRecord();
+        // [GIVEN] the orders to import as a json structure.
+        JOrdersToImport := OrderHandlingHelper.GetOrdersToImport(false);
+        JOrdersToImport.GetObject('data').GetObject('orders').GetArray('edges').Get(0, JOrder);
+        JAssessments := JOrder.AsObject().GetObject('node').GetObject('risk').GetArray('assessments');
+        foreach JAssessment in JAssessments do
+            JAssessment.AsObject().Replace('riskLevel', 'LOW');
+        JOrders.Add(JOrder);
+        JOrdersToImport.GetObject('data').GetObject('orders').Replace('edges', JOrders);
+
+        // [WHEN] Execute ShpfyOrdersAPI.ExtractShopifyOrdersToImport
+        OrdersAPI.ExtractShopifyOrdersToImport(Shop, JOrdersToImport, Cursor);
+
+        // [THEN] Order is high risk
+        OrdersToImport.FindLast();
+        LibraryAssert.IsFalse(OrdersToImport."High Risk", 'Order is not high risk');
+    end;
+
+    [Test]
+    [HandlerFunctions('OrdersAPIHttpHandler')]
+    procedure UnitTestImportShopifyOrderDueDate()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        OrdersToImport: Record "Shpfy Orders to Import";
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        ImportOrder: Codeunit "Shpfy Import Order";
+        OrderHandlingHelper: Codeunit "Shpfy Order Handling Helper";
+        JShopifyOrder: JsonObject;
+        JShopifyLineItems: JsonArray;
+        DueDate: Date;
+        DueDateTime: DateTime;
+        TempTime: Text;
+    begin
+        // [SCENARIO] Import Shopify order from the "Shpfy Orders to Import" record with due date
+        Initialize();
+
+        // [GIVEN] Shopify Shop
+        Shop := CommunicationMgt.GetShopRecord();
+        Shop."Customer Mapping Type" := "Shpfy Customer Mapping"::"By EMail/Phone";
+        if not Shop.Modify() then
+            Shop.Insert();
+        ImportOrder.SetShop(Shop.Code);
+
+        // [GIVEN] Order to import as a json structure with payment terms
+        JShopifyOrder := OrderHandlingHelper.CreateShopifyOrderAsJson(Shop, OrdersToImport, JShopifyLineItems, false);
+        DueDate := LibraryRandom.RandDate(10);
+        JShopifyOrder.Replace('paymentTerms', OrderHandlingHelper.CreatePaymentTermsAsJson(CreateDateTime(DueDate, 120000T)));
+
+        // [WHEN] ShpfyImportOrder.ImportOrder
+        OrderHandlingHelper.ImportShopifyOrder(Shop, OrderHeader, OrdersToImport, ImportOrder, JShopifyOrder, JShopifyLineItems);
+
+        // [THEN] Due date is set
+        TempTime := Format(CreateDateTime(DueDate, 120000T), 0, 9);
+        Evaluate(DueDateTime, TempTime);
+        LibraryAssert.AreEqual(OrderHeader."Due Date", DT2Date(DueDateTime), 'Due date is set');
+    end;
+
+    [Test]
+    [HandlerFunctions('OrdersAPIHttpHandler')]
+    procedure UnitTestCreateSalesDocumentWithPresentmentCurrency()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        SalesHeader: Record "Sales Header";
+        ShopifyCustomer: Record "Shpfy Customer";
+        Item: Record Item;
+        SalesLine: Record "Sales Line";
+        Currency: Record Currency;
+        CurrencyExchangeRate: Record "Currency Exchange Rate";
+        ProcessOrders: Codeunit "Shpfy Process Orders";
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        LibraryERM: Codeunit "Library - ERM";
+        Amount: Decimal;
+        PresentmentAmount: Decimal;
+        PresentmentCurrencyCode: Code[10];
+    begin
+        // [SCENARIO] For shop with currency handling set to "Presentment Currency", the sales document is created with the presentment currency
+        Initialize();
+
+        // [GIVEN] Shop with currency handling set to "Presentment Currency"
+        Shop := CommunicationMgt.GetShopRecord();
+        Shop."Currency Handling" := Shop."Currency Handling"::"Presentment Currency";
+        Shop.Modify(false);
+        // [GIVEN] Presentment currency
+        PresentmentCurrencyCode := LibraryERM.CreateCurrencyWithRounding();
+        // [GIVEN] Amount and Presentment amount
+        Amount := LibraryRandom.RandDec(999, 2);
+        Currency.Get(PresentmentCurrencyCode);
+        PresentmentAmount := Round(CurrencyExchangeRate.ExchangeAmtLCYToFCY(
+                WorkDate(),
+                PresentmentCurrencyCode,
+                Amount,
+                CurrencyExchangeRate.ExchangeRate(WorkDate(), PresentmentCurrencyCode)),
+            Currency."Amount Rounding Precision");
+        // [GIVEN] Customer
+        CreateShopifyCustomer(Shop, ShopifyCustomer);
+        // [GIVEN] Item
+        CreateItem(Item, Amount);
+        // [GIVEN] Shopify order
+        CreatePresentmentShopifyOrder(
+            Shop,
+            OrderHeader,
+            ShopifyCustomer,
+            Item,
+            Amount,
+            PresentmentAmount,
+            PresentmentCurrencyCode);
+
+        Commit(); // Commit to make ProcessShopifyOrder Codeunit.Run() execution work
+
+        // [WHEN] Order is processed
+        ProcessOrders.ProcessShopifyOrder(OrderHeader);
+
+        // [THEN] Sales document is created from Shopify order and order line is reserved
+        SalesHeader.SetRange("Shpfy Order Id", OrderHeader."Shopify Order Id");
+        LibraryAssert.IsTrue(SalesHeader.FindLast(), 'Sales document is created from Shopify order');
+        LibraryAssert.AreEqual(SalesHeader."Currency Code", PresentmentCurrencyCode, 'Sales document is created with presentment currency');
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        SalesLine.SetRange("No.", Item."No.");
+        SalesLine.FindFirst();
+        LibraryAssert.AreEqual(PresentmentAmount, SalesLine.Amount, 'Sales line amount should match presentment amount');
+        // [THEN] Restore Shop currency handling
+        Shop."Currency Handling" := Shop."Currency Handling"::"Shop Currency";
+        Shop.Modify(false);
+    end;
+
+    [Test]
+    [HandlerFunctions('OrdersAPIHttpHandler')]
+    procedure UnitTestImportShopifyOrderAndCreateSalesDocumentDueDate()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        SalesHeader: Record "Sales Header";
+        OrdersToImport: Record "Shpfy Orders to Import";
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        ImportOrder: Codeunit "Shpfy Import Order";
+        ProcessOrders: Codeunit "Shpfy Process Orders";
+        OrderHandlingHelper: Codeunit "Shpfy Order Handling Helper";
+        DueDate: Date;
+        JShopifyOrder: JsonObject;
+        JShopifyLineItems: JsonArray;
+        TempTime: Text;
+        DueDateTime: DateTime;
+    begin
+        // [SCENARIO] Creating a random Shopify Order and try to map customer and product data.
+        // [SCENARIO] When the sales document is created, everything will be mapped and the sales document must exist.
+        Initialize();
+
+        // [GIVEN] Shopify Shop
+        Shop := CommunicationMgt.GetShopRecord();
+        Shop."Customer Mapping Type" := "Shpfy Customer Mapping"::"By EMail/Phone";
+        if not Shop.Modify() then
+            Shop.Insert();
+        ImportOrder.SetShop(Shop.Code);
+
+        // [GIVEN] ShpfyImportOrder.ImportOrder
+        JShopifyOrder := OrderHandlingHelper.CreateShopifyOrderAsJson(Shop, OrdersToImport, JShopifyLineItems, false);
+        DueDate := LibraryRandom.RandDate(10);
+        JShopifyOrder.Replace('paymentTerms', OrderHandlingHelper.CreatePaymentTermsAsJson(CreateDateTime(DueDate, 120000T)));
+        OrderHandlingHelper.ImportShopifyOrder(Shop, OrderHeader, OrdersToImport, ImportOrder, JShopifyOrder, JShopifyLineItems);
+        Commit();
+
+        // [WHEN] Order is processed
+        ProcessOrders.ProcessShopifyOrder(OrderHeader);
+        OrderHeader.GetBySystemId(OrderHeader.SystemId);
+
+        // [THEN] Sales document is created from Shopify order with due date
+        SalesHeader.SetRange("Shpfy Order Id", OrderHeader."Shopify Order Id");
+        LibraryAssert.IsTrue(SalesHeader.FindLast(), 'Sales document is created from Shopify order');
+        TempTime := Format(CreateDateTime(DueDate, 120000T), 0, 9);
+        Evaluate(DueDateTime, TempTime);
+        LibraryAssert.AreEqual(SalesHeader."Due Date", DT2Date(DueDateTime), 'Due date is set');
+    end;
+
+    [Test]
+    [HandlerFunctions('OrdersAPIHttpHandler')]
+    procedure UnitTestImportFulfilledShopifyOrderAndCreateSalesDocument()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        SalesHeader: Record "Sales Header";
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        ImportOrder: Codeunit "Shpfy Import Order";
+        ProcessOrders: Codeunit "Shpfy Process Orders";
+        OrderHandlingHelper: Codeunit "Shpfy Order Handling Helper";
+    begin
+        // [SCENARIO] Creating a random fulfilled Shopify Order and try to map customer and product data.
+        // [SCENARIO] When the sales document is created, everything will be mapped and the sales document must exist.
+        Initialize();
+
+        // [GIVEN] Shopify Shop
+        Shop := CommunicationMgt.GetShopRecord();
+        Shop."Customer Mapping Type" := "Shpfy Customer Mapping"::"By EMail/Phone";
+        Shop."Create Invoices From Orders" := false;
+        if not Shop.Modify() then
+            Shop.Insert();
+        ImportOrder.SetShop(Shop.Code);
+
+        // [GIVEN] ShpfyImportOrder.ImportOrder
+        OrderHandlingHelper.ImportShopifyOrder(Shop, OrderHeader, ImportOrder, false);
+        Commit();
+
+        // [WHEN] Order is processed
+        ProcessOrders.ProcessShopifyOrder(OrderHeader);
+        OrderHeader.GetBySystemId(OrderHeader.SystemId);
+
+        // [THEN] Sales document is created from Shopify order
+        SalesHeader.SetRange("Shpfy Order Id", OrderHeader."Shopify Order Id");
+        LibraryAssert.IsTrue(SalesHeader.FindLast(), 'Sales document is created from Shopify order');
+        LibraryAssert.AreEqual(SalesHeader."Document Type", SalesHeader."Document Type"::Order, 'Sales document is a sales order');
+        LibraryAssert.AreEqual(OrderHeader."Sales Order No.", SalesHeader."No.", 'ShpfyOrderHeader."Sales Order No." = SalesHeader."No."');
+    end;
+
+    [Test]
+    procedure ChannelLiableFlagMissingDefaultsToFalseOnOrdersToImport()
+    var
+        OrdersToImport: Record "Shpfy Orders to Import";
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        OrdersAPI: Codeunit "Shpfy Orders API";
+        OrderHandlingHelper: Codeunit "Shpfy Order Handling Helper";
+        Cursor: Text;
+        JOrdersToImport: JsonObject;
+        ExpectedChannelLiable: Boolean;
+        ScenarioName: Text;
+        ChannelLiableScenario: Option Missing,TrueValue,FalseValue,NullValue;
+    begin
+        // [GIVEN] Shopify shop context and an orders-to-import payload missing taxLines.
+        Initialize();
+        Clear(OrdersToImport);
+        if not OrdersToImport.IsEmpty then
+            OrdersToImport.DeleteAll();
+
+        Shop := CommunicationMgt.GetShopRecord();
+        JOrdersToImport := OrderHandlingHelper.GetOrdersToImport(false);
+        PrepareOrdersToImportChannelLiableScenario(ChannelLiableScenario::Missing, JOrdersToImport, ExpectedChannelLiable, ScenarioName);
+
+        // [WHEN] Orders are extracted from Shopify.
+        OrdersAPI.ExtractShopifyOrdersToImport(Shop, JOrdersToImport, Cursor);
+
+        // [THEN] Channel Liable flag on the staging record defaults to false.
+        OrdersToImport.Reset();
+        LibraryAssert.IsTrue(OrdersToImport.FindLast(), 'Orders to import record is created');
+        LibraryAssert.AreEqual(ExpectedChannelLiable, OrdersToImport."Channel Liable Taxes", StrSubstNo(OrdersToImportChannelLiableMismatchTxt, ScenarioName));
+    end;
+
+    [Test]
+    procedure ChannelLiableFlagTrueIsStoredOnOrdersToImport()
+    var
+        OrdersToImport: Record "Shpfy Orders to Import";
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        OrdersAPI: Codeunit "Shpfy Orders API";
+        OrderHandlingHelper: Codeunit "Shpfy Order Handling Helper";
+        Cursor: Text;
+        JOrdersToImport: JsonObject;
+        ExpectedChannelLiable: Boolean;
+        ScenarioName: Text;
+        ChannelLiableScenario: Option Missing,TrueValue,FalseValue,NullValue;
+    begin
+        // [GIVEN] Shopify shop context and an orders-to-import payload with channelLiable set to true.
+        Initialize();
+        Clear(OrdersToImport);
+        if not OrdersToImport.IsEmpty then
+            OrdersToImport.DeleteAll();
+
+        Shop := CommunicationMgt.GetShopRecord();
+        JOrdersToImport := OrderHandlingHelper.GetOrdersToImport(false);
+        PrepareOrdersToImportChannelLiableScenario(ChannelLiableScenario::TrueValue, JOrdersToImport, ExpectedChannelLiable, ScenarioName);
+
+        // [WHEN] Orders are extracted from Shopify.
+        OrdersAPI.ExtractShopifyOrdersToImport(Shop, JOrdersToImport, Cursor);
+
+        // [THEN] Channel Liable flag on the staging record is true.
+        OrdersToImport.Reset();
+        LibraryAssert.IsTrue(OrdersToImport.FindLast(), 'Orders to import record is created');
+        LibraryAssert.AreEqual(ExpectedChannelLiable, OrdersToImport."Channel Liable Taxes", StrSubstNo(OrdersToImportChannelLiableMismatchTxt, ScenarioName));
+    end;
+
+    [Test]
+    procedure ChannelLiableFlagFalseIsStoredOnOrdersToImport()
+    var
+        OrdersToImport: Record "Shpfy Orders to Import";
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        OrdersAPI: Codeunit "Shpfy Orders API";
+        OrderHandlingHelper: Codeunit "Shpfy Order Handling Helper";
+        Cursor: Text;
+        JOrdersToImport: JsonObject;
+        ExpectedChannelLiable: Boolean;
+        ScenarioName: Text;
+        ChannelLiableScenario: Option Missing,TrueValue,FalseValue,NullValue;
+    begin
+        // [GIVEN] Shopify shop context and an orders-to-import payload with channelLiable set to false.
+        Initialize();
+        Clear(OrdersToImport);
+        if not OrdersToImport.IsEmpty then
+            OrdersToImport.DeleteAll();
+
+        Shop := CommunicationMgt.GetShopRecord();
+        JOrdersToImport := OrderHandlingHelper.GetOrdersToImport(false);
+        PrepareOrdersToImportChannelLiableScenario(ChannelLiableScenario::FalseValue, JOrdersToImport, ExpectedChannelLiable, ScenarioName);
+
+        // [WHEN] Orders are extracted from Shopify.
+        OrdersAPI.ExtractShopifyOrdersToImport(Shop, JOrdersToImport, Cursor);
+
+        // [THEN] Channel Liable flag on the staging record is false.
+        OrdersToImport.Reset();
+        LibraryAssert.IsTrue(OrdersToImport.FindLast(), 'Orders to import record is created');
+        LibraryAssert.AreEqual(ExpectedChannelLiable, OrdersToImport."Channel Liable Taxes", StrSubstNo(OrdersToImportChannelLiableMismatchTxt, ScenarioName));
+    end;
+
+    [Test]
+    procedure ChannelLiableFlagNullDefaultsToFalseOnOrdersToImport()
+    var
+        OrdersToImport: Record "Shpfy Orders to Import";
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        OrdersAPI: Codeunit "Shpfy Orders API";
+        OrderHandlingHelper: Codeunit "Shpfy Order Handling Helper";
+        Cursor: Text;
+        JOrdersToImport: JsonObject;
+        ExpectedChannelLiable: Boolean;
+        ScenarioName: Text;
+        ChannelLiableScenario: Option Missing,TrueValue,FalseValue,NullValue;
+    begin
+        // [GIVEN] Shopify shop context and an orders-to-import payload with channelLiable provided as null.
+        Initialize();
+        Clear(OrdersToImport);
+        if not OrdersToImport.IsEmpty then
+            OrdersToImport.DeleteAll();
+
+        Shop := CommunicationMgt.GetShopRecord();
+        JOrdersToImport := OrderHandlingHelper.GetOrdersToImport(false);
+        PrepareOrdersToImportChannelLiableScenario(ChannelLiableScenario::NullValue, JOrdersToImport, ExpectedChannelLiable, ScenarioName);
+
+        // [WHEN] Orders are extracted from Shopify.
+        OrdersAPI.ExtractShopifyOrdersToImport(Shop, JOrdersToImport, Cursor);
+
+        // [THEN] Channel Liable flag on the staging record defaults to false.
+        OrdersToImport.Reset();
+        LibraryAssert.IsTrue(OrdersToImport.FindLast(), 'Orders to import record is created');
+        LibraryAssert.AreEqual(ExpectedChannelLiable, OrdersToImport."Channel Liable Taxes", StrSubstNo(OrdersToImportChannelLiableMismatchTxt, ScenarioName));
+    end;
+
+    [Test]
+    [HandlerFunctions('OrdersAPIHttpHandler')]
+    procedure ChannelLiableFlagMissingDefaultsToFalse()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        OrdersToImport: Record "Shpfy Orders to Import";
+        OrderTaxLine: Record "Shpfy Order Tax Line";
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        ImportOrder: Codeunit "Shpfy Import Order";
+        OrderHandlingHelper: Codeunit "Shpfy Order Handling Helper";
+        JOrder: JsonObject;
+        JLineItems: JsonArray;
+        ExpectedChannelLiable: Boolean;
+        ScenarioName: Text;
+        OrderTaxLineFound: Boolean;
+    begin
+        // [GIVEN] Shopify shop context and an order JSON with the taxLines array removed.
+        Initialize();
+
+        Shop := CommunicationMgt.GetShopRecord();
+        ImportOrder.SetShop(Shop.Code);
+
+        JOrder := OrderHandlingHelper.CreateShopifyOrderAsJson(Shop, OrdersToImport, JLineItems, false);
+
+        JOrder.Remove('taxLines');
+
+        ExpectedChannelLiable := false;
+        ScenarioName := 'missing taxLines';
+
+        // [WHEN] Order is imported
+
+        OrderHandlingHelper.ImportShopifyOrder(Shop, OrderHeader, OrdersToImport, ImportOrder, JOrder, JLineItems);
+
+        // [THEN] Channel Liable in tax line and order header is set properly
+        OrderTaxLine.Reset();
+        OrderTaxLine.SetRange("Parent Id", OrderHeader."Shopify Order Id");
+
+        OrderTaxLineFound := not OrderTaxLine.IsEmpty();
+        LibraryAssert.IsFalse(OrderTaxLineFound, 'Order-level tax lines should not be created when taxLines array is missing.');
+
+        OrderHeader.CalcFields("Channel Liable Taxes");
+        LibraryAssert.AreEqual(ExpectedChannelLiable, OrderHeader."Channel Liable Taxes", StrSubstNo(OrderHeaderChannelLiableMismatchTxt, ScenarioName));
+    end;
+
+    [Test]
+    [HandlerFunctions('OrdersAPIHttpHandler')]
+    procedure ChannelLiableFlagTrueIsImported()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        OrdersToImport: Record "Shpfy Orders to Import";
+        OrderTaxLine: Record "Shpfy Order Tax Line";
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        ImportOrder: Codeunit "Shpfy Import Order";
+        OrderHandlingHelper: Codeunit "Shpfy Order Handling Helper";
+        JOrder: JsonObject;
+        JLineItems: JsonArray;
+        ExpectedHasRecord: Boolean;
+        ExpectedChannelLiable: Boolean;
+        ScenarioName: Text;
+        OrderTaxLineFound: Boolean;
+        ChannelLiableScenario: Option Missing,TrueValue,FalseValue,NullValue;
+    begin
+        // [GIVEN] Shopify shop context and an order JSON with channelLiable explicitly set to true.
+        Initialize();
+
+        Shop := CommunicationMgt.GetShopRecord();
+        ImportOrder.SetShop(Shop.Code);
+
+        JOrder := OrderHandlingHelper.CreateShopifyOrderAsJson(Shop, OrdersToImport, JLineItems, false);
+
+        JOrder.Remove('taxLines');
+
+        PrepareChannelLiableWithTaxLines(ChannelLiableScenario::TrueValue, JOrder, ExpectedHasRecord, ExpectedChannelLiable, ScenarioName);
+
+        // [WHEN] Order is imported
+        OrderHandlingHelper.ImportShopifyOrder(Shop, OrderHeader, OrdersToImport, ImportOrder, JOrder, JLineItems);
+
+        // [THEN] Channel Liable in tax line and order header is set properly
+        OrderTaxLine.Reset();
+        OrderTaxLine.SetRange("Parent Id", OrderHeader."Shopify Order Id");
+
+        OrderTaxLineFound := OrderTaxLine.FindFirst();
+        if ExpectedHasRecord then begin
+            LibraryAssert.IsTrue(OrderTaxLineFound, StrSubstNo(OrderLevelTaxLineExpectedTxt, ScenarioName));
+            if OrderTaxLineFound then
+                LibraryAssert.AreEqual(ExpectedChannelLiable, OrderTaxLine."Channel Liable", StrSubstNo(ChannelLiableFlagMismatchTxt, ScenarioName));
+        end else
+            LibraryAssert.IsFalse(OrderTaxLineFound, 'Order-level tax lines should not be created when taxLines array is missing.');
+
+        OrderHeader.CalcFields("Channel Liable Taxes");
+        LibraryAssert.AreEqual(ExpectedChannelLiable, OrderHeader."Channel Liable Taxes", StrSubstNo(OrderHeaderChannelLiableMismatchTxt, ScenarioName));
+    end;
+
+    [Test]
+    [HandlerFunctions('OrdersAPIHttpHandler')]
+    procedure ChannelLiableFlagFalseIsImported()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        OrdersToImport: Record "Shpfy Orders to Import";
+        OrderTaxLine: Record "Shpfy Order Tax Line";
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        ImportOrder: Codeunit "Shpfy Import Order";
+        OrderHandlingHelper: Codeunit "Shpfy Order Handling Helper";
+        JOrder: JsonObject;
+        JLineItems: JsonArray;
+        ExpectedHasRecord: Boolean;
+        ExpectedChannelLiable: Boolean;
+        ScenarioName: Text;
+        OrderTaxLineFound: Boolean;
+        ChannelLiableScenario: Option Missing,TrueValue,FalseValue,NullValue;
+    begin
+        // [GIVEN] Shopify shop context and an order JSON with channelLiable explicitly set to false.
+        Initialize();
+
+        Shop := CommunicationMgt.GetShopRecord();
+        ImportOrder.SetShop(Shop.Code);
+
+        JOrder := OrderHandlingHelper.CreateShopifyOrderAsJson(Shop, OrdersToImport, JLineItems, false);
+
+        JOrder.Remove('taxLines');
+
+        PrepareChannelLiableWithTaxLines(ChannelLiableScenario::FalseValue, JOrder, ExpectedHasRecord, ExpectedChannelLiable, ScenarioName);
+
+        // [WHEN] Order is imported
+        OrderHandlingHelper.ImportShopifyOrder(Shop, OrderHeader, OrdersToImport, ImportOrder, JOrder, JLineItems);
+
+        // [THEN] Channel Liable in tax line and order header is set properly
+        OrderTaxLine.Reset();
+        OrderTaxLine.SetRange("Parent Id", OrderHeader."Shopify Order Id");
+
+        OrderTaxLineFound := OrderTaxLine.FindFirst();
+        if ExpectedHasRecord then begin
+            LibraryAssert.IsTrue(OrderTaxLineFound, StrSubstNo(OrderLevelTaxLineExpectedTxt, ScenarioName));
+            if OrderTaxLineFound then
+                LibraryAssert.AreEqual(ExpectedChannelLiable, OrderTaxLine."Channel Liable", StrSubstNo(ChannelLiableFlagMismatchTxt, ScenarioName));
+        end else
+            LibraryAssert.IsFalse(OrderTaxLineFound, 'Order-level tax lines should not be created when taxLines array is missing.');
+
+        OrderHeader.CalcFields("Channel Liable Taxes");
+        LibraryAssert.AreEqual(ExpectedChannelLiable, OrderHeader."Channel Liable Taxes", StrSubstNo(OrderHeaderChannelLiableMismatchTxt, ScenarioName));
+    end;
+
+    [Test]
+    [HandlerFunctions('OrdersAPIHttpHandler')]
+    procedure ChannelLiableFlagNullDefaultsToFalse()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        OrdersToImport: Record "Shpfy Orders to Import";
+        OrderTaxLine: Record "Shpfy Order Tax Line";
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        ImportOrder: Codeunit "Shpfy Import Order";
+        OrderHandlingHelper: Codeunit "Shpfy Order Handling Helper";
+        JOrder: JsonObject;
+        JLineItems: JsonArray;
+        ExpectedHasRecord: Boolean;
+        ExpectedChannelLiable: Boolean;
+        ScenarioName: Text;
+        OrderTaxLineFound: Boolean;
+        ChannelLiableScenario: Option Missing,TrueValue,FalseValue,NullValue;
+    begin
+        // [GIVEN] Shopify shop context and an order JSON with channelLiable provided as null.
+        Initialize();
+
+        Shop := CommunicationMgt.GetShopRecord();
+        ImportOrder.SetShop(Shop.Code);
+
+        JOrder := OrderHandlingHelper.CreateShopifyOrderAsJson(Shop, OrdersToImport, JLineItems, false);
+
+        JOrder.Remove('taxLines');
+
+        PrepareChannelLiableWithTaxLines(ChannelLiableScenario::NullValue, JOrder, ExpectedHasRecord, ExpectedChannelLiable, ScenarioName);
+
+        // [WHEN] Order is imported
+        OrderHandlingHelper.ImportShopifyOrder(Shop, OrderHeader, OrdersToImport, ImportOrder, JOrder, JLineItems);
+
+        // [THEN] Channel Liable in tax line and order header is set properly
+        OrderTaxLine.Reset();
+        OrderTaxLine.SetRange("Parent Id", OrderHeader."Shopify Order Id");
+
+        OrderTaxLineFound := OrderTaxLine.FindFirst();
+        if ExpectedHasRecord then begin
+            LibraryAssert.IsTrue(OrderTaxLineFound, StrSubstNo(OrderLevelTaxLineExpectedTxt, ScenarioName));
+            if OrderTaxLineFound then
+                LibraryAssert.AreEqual(ExpectedChannelLiable, OrderTaxLine."Channel Liable", StrSubstNo(ChannelLiableFlagMismatchTxt, ScenarioName));
+        end else
+            LibraryAssert.IsFalse(OrderTaxLineFound, 'Order-level tax lines should not be created when taxLines array is missing.');
+
+        OrderHeader.CalcFields("Channel Liable Taxes");
+        LibraryAssert.AreEqual(ExpectedChannelLiable, OrderHeader."Channel Liable Taxes", StrSubstNo(OrderHeaderChannelLiableMismatchTxt, ScenarioName));
+    end;
+
+    [Test]
+    [HandlerFunctions('OrdersAPIHttpHandler')]
+    procedure UnitTestImportOrderPropagatesUseShopifyOrderNo()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        ImportOrder: Codeunit "Shpfy Import Order";
+        OrderHandlingHelper: Codeunit "Shpfy Order Handling Helper";
+    begin
+        // [SCENARIO] When Shop."Use Shopify Order No." is true, importing an order propagates the setting to OrderHeader.
+        Initialize();
+
+        // [GIVEN] Shopify Shop with "Use Shopify Order No." enabled
+        Shop := CommunicationMgt.GetShopRecord();
+        Shop."Customer Mapping Type" := "Shpfy Customer Mapping"::"By EMail/Phone";
+        Shop."Use Shopify Order No." := true;
+        if not Shop.Modify() then
+            Shop.Insert();
+        ImportOrder.SetShop(Shop.Code);
+
+        // [WHEN] Shopify order is imported
+        OrderHandlingHelper.ImportShopifyOrder(Shop, OrderHeader, ImportOrder, false);
+
+        // [THEN] OrderHeader."Use Shopify Order No." = true
+        LibraryAssert.IsTrue(OrderHeader."Use Shopify Order No.", 'OrderHeader."Use Shopify Order No." should be true when Shop setting is enabled');
+    end;
+
+    [Test]
+    [HandlerFunctions('OrdersAPIHttpHandler')]
+    procedure UnitTestImportOrderPropagatesUseShopifyOrderNoDisabled()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        ImportOrder: Codeunit "Shpfy Import Order";
+        OrderHandlingHelper: Codeunit "Shpfy Order Handling Helper";
+    begin
+        // [SCENARIO] When Shop."Use Shopify Order No." is false, importing an order propagates the setting to OrderHeader.
+        Initialize();
+
+        // [GIVEN] Shopify Shop with "Use Shopify Order No." disabled
+        Shop := CommunicationMgt.GetShopRecord();
+        Shop."Customer Mapping Type" := "Shpfy Customer Mapping"::"By EMail/Phone";
+        Shop."Use Shopify Order No." := false;
+        if not Shop.Modify() then
+            Shop.Insert();
+        ImportOrder.SetShop(Shop.Code);
+
+        // [WHEN] Shopify order is imported
+        OrderHandlingHelper.ImportShopifyOrder(Shop, OrderHeader, ImportOrder, false);
+
+        // [THEN] OrderHeader."Use Shopify Order No." = false
+        LibraryAssert.IsFalse(OrderHeader."Use Shopify Order No.", 'OrderHeader."Use Shopify Order No." should be false when Shop setting is disabled');
+    end;
+
+    [Test]
+    [HandlerFunctions('OrdersAPIHttpHandler')]
+    procedure UnitTestCreateSalesOrderWithShopifyOrderNo()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        SalesHeader: Record "Sales Header";
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        ImportOrder: Codeunit "Shpfy Import Order";
+        ProcessOrders: Codeunit "Shpfy Process Orders";
+        OrderHandlingHelper: Codeunit "Shpfy Order Handling Helper";
+    begin
+        // [SCENARIO] When "Use Shopify Order No." is enabled, the created Sales Order uses the Shopify order number as its document number.
+        Initialize();
+
+        // [GIVEN] Shopify Shop
+        Shop := CommunicationMgt.GetShopRecord();
+        Shop."Customer Mapping Type" := "Shpfy Customer Mapping"::"By EMail/Phone";
+        if not Shop.Modify() then
+            Shop.Insert();
+        ImportOrder.SetShop(Shop.Code);
+
+        // [GIVEN] Sales Order number series allows manual entry
+        SetManualNosOnOrderNoSeries();
+
+        // [GIVEN] Imported Shopify order with "Use Shopify Order No." enabled
+        OrderHandlingHelper.ImportShopifyOrder(Shop, OrderHeader, ImportOrder, false);
+        OrderHeader."Use Shopify Order No." := true;
+        OrderHeader.Modify();
+        Commit();
+
+        // [WHEN] Order is processed
+        ProcessOrders.ProcessShopifyOrder(OrderHeader);
+        OrderHeader.GetBySystemId(OrderHeader.SystemId);
+
+        // [THEN] Sales document is created with Shopify Order No. as document number
+        SalesHeader.SetRange("Shpfy Order Id", OrderHeader."Shopify Order Id");
+        LibraryAssert.IsTrue(SalesHeader.FindLast(), 'Sales document is created from Shopify order');
+        LibraryAssert.AreEqual(OrderHeader."Shopify Order No.", SalesHeader."No.", 'Sales document number should equal Shopify Order No.');
+    end;
+
+    [Test]
+    [HandlerFunctions('OrdersAPIHttpHandler')]
+    procedure UnitTestCreateSalesOrderWithoutShopifyOrderNo()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        SalesHeader: Record "Sales Header";
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        ImportOrder: Codeunit "Shpfy Import Order";
+        ProcessOrders: Codeunit "Shpfy Process Orders";
+        OrderHandlingHelper: Codeunit "Shpfy Order Handling Helper";
+    begin
+        // [SCENARIO] When "Use Shopify Order No." is disabled, the created Sales Order uses the standard number series.
+        Initialize();
+
+        // [GIVEN] Shopify Shop
+        Shop := CommunicationMgt.GetShopRecord();
+        Shop."Customer Mapping Type" := "Shpfy Customer Mapping"::"By EMail/Phone";
+        if not Shop.Modify() then
+            Shop.Insert();
+        ImportOrder.SetShop(Shop.Code);
+
+        // [GIVEN] Imported Shopify order with "Use Shopify Order No." disabled
+        OrderHandlingHelper.ImportShopifyOrder(Shop, OrderHeader, ImportOrder, false);
+        OrderHeader."Use Shopify Order No." := false;
+        OrderHeader.Modify();
+        Commit();
+
+        // [WHEN] Order is processed
+        ProcessOrders.ProcessShopifyOrder(OrderHeader);
+        OrderHeader.GetBySystemId(OrderHeader.SystemId);
+
+        // [THEN] Sales document is created with a number from the number series, not the Shopify Order No.
+        SalesHeader.SetRange("Shpfy Order Id", OrderHeader."Shopify Order Id");
+        LibraryAssert.IsTrue(SalesHeader.FindLast(), 'Sales document is created from Shopify order');
+        LibraryAssert.AreNotEqual(OrderHeader."Shopify Order No.", SalesHeader."No.", 'Sales document number should not equal Shopify Order No. when feature is disabled');
+    end;
+
+    [Test]
+    [HandlerFunctions('OrdersAPIHttpHandler')]
+    procedure UnitTestCreateSalesOrderWithShopifyOrderNoInvalidChar()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        ImportOrder: Codeunit "Shpfy Import Order";
+        ProcessOrders: Codeunit "Shpfy Process Orders";
+        OrderHandlingHelper: Codeunit "Shpfy Order Handling Helper";
+    begin
+        // [SCENARIO] When "Use Shopify Order No." is enabled and the Shopify Order No. starts with "@", processing fails with an error.
+        Initialize();
+
+        // [GIVEN] Shopify Shop
+        Shop := CommunicationMgt.GetShopRecord();
+        Shop."Customer Mapping Type" := "Shpfy Customer Mapping"::"By EMail/Phone";
+        if not Shop.Modify() then
+            Shop.Insert();
+        ImportOrder.SetShop(Shop.Code);
+
+        // [GIVEN] Sales Order number series allows manual entry
+        SetManualNosOnOrderNoSeries();
+
+        // [GIVEN] Imported Shopify order with invalid Shopify Order No. starting with "@"
+        OrderHandlingHelper.ImportShopifyOrder(Shop, OrderHeader, ImportOrder, false);
+        OrderHeader."Use Shopify Order No." := true;
+        OrderHeader."Shopify Order No." := '@INVALID123';
+        OrderHeader.Modify();
+        Commit();
+
+        // [WHEN] Order is processed
+        ProcessOrders.ProcessShopifyOrder(OrderHeader);
+        OrderHeader.GetBySystemId(OrderHeader.SystemId);
+
+        // [THEN] Order has an error because Shopify Order No. starts with "@"
+        LibraryAssert.IsTrue(OrderHeader."Has Error", 'Order should have an error when Shopify Order No. starts with @');
+        LibraryAssert.IsTrue(OrderHeader."Error Message".Contains('@'), 'Error message should mention the invalid character @');
+    end;
+
+    [Test]
+    [HandlerFunctions('OrdersAPIHttpHandler')]
+    procedure UnitTestCreateSalesInvoiceWithShopifyOrderNo()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        SalesHeader: Record "Sales Header";
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        ImportOrder: Codeunit "Shpfy Import Order";
+        ProcessOrders: Codeunit "Shpfy Process Orders";
+        OrderHandlingHelper: Codeunit "Shpfy Order Handling Helper";
+    begin
+        // [SCENARIO] When "Use Shopify Order No." is enabled and a fulfilled order creates an invoice, the Sales Invoice uses the Shopify order number.
+        Initialize();
+
+        // [GIVEN] Shopify Shop with "Create Invoices From Orders" enabled
+        Shop := CommunicationMgt.GetShopRecord();
+        Shop."Customer Mapping Type" := "Shpfy Customer Mapping"::"By EMail/Phone";
+        Shop."Create Invoices From Orders" := true;
+        if not Shop.Modify() then
+            Shop.Insert();
+        ImportOrder.SetShop(Shop.Code);
+
+        // [GIVEN] Sales Invoice number series allows manual entry
+        SetManualNosOnInvoiceNoSeries();
+
+        // [GIVEN] Imported fulfilled Shopify order with "Use Shopify Order No." enabled
+        OrderHandlingHelper.ImportShopifyOrder(Shop, OrderHeader, ImportOrder, false);
+        OrderHeader."Use Shopify Order No." := true;
+        OrderHeader."Fulfillment Status" := "Shpfy Order Fulfill. Status"::Fulfilled;
+        OrderHeader.Modify();
+        Commit();
+
+        // [WHEN] Order is processed
+        ProcessOrders.ProcessShopifyOrder(OrderHeader);
+        OrderHeader.GetBySystemId(OrderHeader.SystemId);
+
+        // [THEN] Sales Invoice is created with the Shopify Order No. as document number
+        SalesHeader.SetRange("Shpfy Order Id", OrderHeader."Shopify Order Id");
+        LibraryAssert.IsTrue(SalesHeader.FindLast(), 'Sales document is created from Shopify order');
+        LibraryAssert.AreEqual(SalesHeader."Document Type", SalesHeader."Document Type"::Invoice, 'Sales document should be an Invoice for fulfilled orders');
+        LibraryAssert.AreEqual(OrderHeader."Shopify Order No.", SalesHeader."No.", 'Sales Invoice number should equal Shopify Order No.');
+    end;
+
+    [Test]
+    procedure UnitTestTipFlagNotPropagatedToSubsequentOrderLines()
+    var
+        OrderLine: Record "Shpfy Order Line";
+        ImportOrder: Codeunit "Shpfy Import Order";
+        JOrderLines: JsonArray;
+        JEmptyArray: JsonArray;
+        JTipLine: JsonObject;
+        JRegularLine: JsonObject;
+        JNull: JsonValue;
+        GidLbl: Label 'gid://shopify/LineItem/%1', Locked = true, Comment = '%1 = Line Id';
+        OrderId: BigInteger;
+        TipLineId: BigInteger;
+        RegularLineId: BigInteger;
+    begin
+        // [SCENARIO] When an order contains a Tip line followed by a regular line, the Tip flag must not carry over to the regular line.
+        Initialize();
+
+        OrderId := LibraryRandom.RandIntInRange(100000, 999999);
+        TipLineId := LibraryRandom.RandIntInRange(10000, 49999);
+        RegularLineId := LibraryRandom.RandIntInRange(50000, 99999);
+
+        // [GIVEN] A Tip order line in JSON form
+        JNull.SetValueToNull();
+        JTipLine.Add('id', StrSubstNo(GidLbl, TipLineId));
+        JTipLine.Add('name', 'Tip');
+        JTipLine.Add('product', JNull);
+        JTipLine.Add('discountAllocations', JEmptyArray);
+
+        // [GIVEN] A regular order line in JSON form that follows the Tip line
+        JRegularLine.Add('id', StrSubstNo(GidLbl, RegularLineId));
+        JRegularLine.Add('name', 'Product');
+        JRegularLine.Add('discountAllocations', JEmptyArray);
+
+        JOrderLines.Add(JTipLine);
+        JOrderLines.Add(JRegularLine);
+
+        // [WHEN] Order lines are imported from the JSON array
+        ImportOrder.ImportCreateAndUpdateOrderLinesFromMock(OrderId, JOrderLines);
+        Commit();
+
+        // [THEN] The Tip line has the Tip flag set to true
+        LibraryAssert.IsTrue(OrderLine.Get(OrderId, TipLineId), 'Tip order line must exist');
+        LibraryAssert.IsTrue(OrderLine.Tip, 'Tip flag must be set on the Tip order line');
+
+        // [THEN] The regular line does not have the Tip flag carried over from the previous Tip line
+        LibraryAssert.IsTrue(OrderLine.Get(OrderId, RegularLineId), 'Regular order line must exist');
+        LibraryAssert.IsFalse(OrderLine.Tip, 'Tip flag must not be propagated to the subsequent regular order line');
+    end;
+
+    [Test]
+    [HandlerFunctions('OrdersAPIHttpHandler')]
+    procedure TestGetShopSettingsClearsStaleAdvancedShopifyPlanFlag()
+    var
+        LocalShop: Record "Shpfy Shop";
+    begin
+        // [SCENARIO] Bug 635878: when the merchant downgrades from a Plus/Advanced plan to a
+        // standard plan, Shop.GetShopSettings() must clear the cached "Advanced Shopify Plan"
+        // flag based on the live response from Shopify so the order GraphQL query stops
+        // requesting the staffMember field (which would otherwise fail with ACCESS_DENIED).
+        Initialize();
+
+        // [GIVEN] Shop has a stale "Advanced Shopify Plan" flag set to true
+        LocalShop.Get(Shop.Code);
+        LocalShop."Advanced Shopify Plan" := true;
+        LocalShop.Modify(false);
+
+        // [GIVEN] The HTTP handler is primed to return a downgraded-plan response
+        PlanRefreshExpected := true;
+
+        // [WHEN] GetShopSettings is called
+        LocalShop.GetShopSettings();
+
+        // [THEN] The Advanced Shopify Plan flag is cleared based on the live response
+        LibraryAssert.IsFalse(LocalShop."Advanced Shopify Plan", 'Stale Advanced Shopify Plan flag should be refreshed to false after plan downgrade.');
+        LibraryAssert.AreEqual(1, PlanRefreshCallCount, 'GetShopSettings should issue exactly one plan-refresh query.');
+    end;
+
+    [Test]
+    [HandlerFunctions('OrdersAPIHttpHandler')]
+    procedure TestSyncOrdersFromShopifyReportRefreshesAdvancedShopifyPlanFlag()
+    var
+        ShopFilter: Record "Shpfy Shop";
+        OrdersToImport: Record "Shpfy Orders to Import";
+        SyncOrdersFromShopify: Report "Shpfy Sync Orders from Shopify";
+    begin
+        // [SCENARIO] Bug 635878: the bulk "Sync Orders from Shopify" report must refresh
+        // the cached "Advanced Shopify Plan" flag before importing orders, so a plan
+        // downgrade does not leave the connector requesting the staffMember field that
+        // the new plan can no longer grant access to.
+        Initialize();
+
+        // [GIVEN] Shop has a stale "Advanced Shopify Plan" flag set to true
+        Shop.Get(Shop.Code);
+        Shop."Advanced Shopify Plan" := true;
+        Shop."Auto Create Orders" := false;
+        Shop.Modify(false);
+        Commit();
+
+        // [GIVEN] No orders are queued so the report only exercises the Shop dataitem trigger
+        OrdersToImport.SetRange("Shop Code", Shop.Code);
+        OrdersToImport.DeleteAll(false);
+
+        // [GIVEN] The HTTP handler is primed to return a downgraded-plan response
+        PlanRefreshExpected := true;
+
+        // [WHEN] The "Sync Orders from Shopify" report runs against this shop
+        ShopFilter.SetRange(Code, Shop.Code);
+        SyncOrdersFromShopify.SetTableView(ShopFilter);
+        SyncOrdersFromShopify.UseRequestPage(false);
+        SyncOrdersFromShopify.Run();
+
+        // [THEN] The Advanced Shopify Plan flag is refreshed on the persisted Shop record
+        Shop.Get(Shop.Code);
+        LibraryAssert.IsFalse(Shop."Advanced Shopify Plan", 'Bulk sync report should refresh Advanced Shopify Plan flag before importing orders.');
+        LibraryAssert.AreEqual(1, PlanRefreshCallCount, 'Bulk sync report should issue exactly one plan-refresh query.');
+    end;
+
+    local procedure CreateTaxArea(var TaxArea: Record "Tax Area"; var ShopifyTaxArea: Record "Shpfy Tax Area"; ShopParam: Record "Shpfy Shop")
+    var
+        ShopifyCustomerTemplate: Record "Shpfy Customer Template";
+        CountryRegion: Record "Country/Region";
+        CountryRegionCode: Code[20];
+        CountyCode: Code[2];
+        County: Text[30];
+    begin
+        CountryRegion.FindFirst();
+        CountryRegionCode := CountryRegion.Code;
+        Evaluate(CountyCode, Any.AlphabeticText(MaxStrLen(CountyCode)));
+        County := CopyStr(Any.AlphabeticText(MaxStrLen(County)), 1, MaxStrLen(County));
+        ShopifyCustomerTemplate."Shop Code" := ShopParam.Code;
+        ShopifyCustomerTemplate."Country/Region Code" := CountryRegionCode;
+        if ShopifyCustomerTemplate.Insert() then;
+        ShopifyTaxArea."Country/Region Code" := CountryRegionCode;
+        ShopifyTaxArea."County Code" := CountyCode;
+        ShopifyTaxArea.County := County;
+        ShopifyTaxArea."Tax Area Code" := CountyCode;
+        if ShopifyTaxArea.Insert() then;
+        TaxArea.Code := CountyCode;
+        if TaxArea.Insert() then;
+    end;
+
+    local procedure CreateOrderRisk(ShopifyOrderId: BigInteger; RiskLevel: Enum "Shpfy Risk Level")
+    var
+        OrderRisk: Record "Shpfy Order Risk";
+        LineNo: Integer;
+    begin
+        if OrderRisk.FindLast() then
+            LineNo := OrderRisk."Line No." + 1
+        else
+            LineNo := 1;
+
+        Clear(OrderRisk);
+        OrderRisk."Order Id" := ShopifyOrderId;
+        OrderRisk."Line No." := LineNo;
+        OrderRisk.Level := RiskLevel;
+        OrderRisk.Insert();
+    end;
+
+    local procedure CreateItem(var Item: Record Item; Amount: Decimal)
+    var
+        LibraryInventory: Codeunit "Library - Inventory";
+    begin
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Unit Price", Amount);
+        Item.Validate("Last Direct Cost", Amount);
+        Item.Modify(true);
+    end;
+
+    local procedure CreatePresentmentShopifyOrder(
+        ShopParam: Record "Shpfy Shop";
+        var OrderHeader: Record "Shpfy Order Header";
+        ShopifyCustomer: Record "Shpfy Customer";
+        Item: Record Item;
+        Amount: Decimal;
+        PresentmentAmount: Decimal;
+        PresentmentCurrencyCode: Code[10])
+    var
+        OrderLine: Record "Shpfy Order Line";
+        ShopifyVariant: Record "Shpfy Variant";
+    begin
+        OrderHeader."Customer Id" := ShopifyCustomer.Id;
+        OrderHeader."Shop Code" := ShopParam.Code;
+        OrderHeader."Presentment Currency Code" := PresentmentCurrencyCode;
+        OrderHeader."Presentment Total Amount" := PresentmentAmount;
+        OrderHeader."Total Amount" := Amount;
+
+        OrderHeader."Shopify Order Id" := LibraryRandom.RandIntInRange(100000, 999999);
+        OrderHeader.Insert(false);
+
+        ShopifyVariant."Item SystemId" := Item.SystemId;
+        ShopifyVariant.Id := LibraryRandom.RandIntInRange(100000, 999999);
+        ShopifyVariant."Shop Code" := ShopParam.Code;
+        ShopifyVariant.Insert(false);
+        OrderLine."Shopify Order Id" := OrderHeader."Shopify Order Id";
+        OrderLine."Shopify Variant Id" := ShopifyVariant.Id;
+        OrderLine."Unit Price" := Amount;
+        OrderLine."Presentment Unit Price" := PresentmentAmount;
+        OrderLine.Quantity := 1;
+        OrderLine.Insert(false);
+    end;
+
+    local procedure CreateShopifyCustomer(ShopParam: Record "Shpfy Shop"; var ShopifyCustomer: Record "Shpfy Customer")
+    var
+        Customer: Record Customer;
+        LibrarySales: Codeunit "Library - Sales";
+    begin
+        LibrarySales.CreateCustomer(Customer);
+        ShopifyCustomer.Id := LibraryRandom.RandIntInRange(100000, 999999);
+        ShopifyCustomer."Customer SystemId" := Customer.SystemId;
+        ShopifyCustomer."Shop Id" := ShopParam."Shop Id";
+        ShopifyCustomer.Insert(false);
+    end;
+
+    local procedure Initialize()
+    var
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        AccessToken: SecretText;
+    begin
+        // Reset per-test mock state so a previous test's assertion failure cannot leak
+        // the plan-refresh flag into the next test and corrupt unrelated HTTP calls.
+        PlanRefreshExpected := false;
+        PlanRefreshCallCount := 0;
+
+        if IsInitialized then
+            exit;
+
+        Codeunit.Run(Codeunit::"Shpfy Initialize Test");
+        Shop := CommunicationMgt.GetShopRecord();
+
+        AccessToken := LibraryRandom.RandText(20);
+        InitializeTest.RegisterAccessTokenForShop(Shop.GetStoreName(), AccessToken);
+
+        IsInitialized := true;
+    end;
+
+    [HttpClientHandler]
+    internal procedure OrdersAPIHttpHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    var
+        Body: Text;
+    begin
+        if not InitializeTest.VerifyRequestUrl(Request.Path, Shop."Shopify URL") then
+            exit(true);
+
+        if PlanRefreshExpected and (PlanRefreshCallCount = 0) then begin
+            PlanRefreshCallCount += 1;
+            Response.Content.WriteFrom(DowngradedPlanShopResponseTok);
+            exit(false);
+        end;
+
+        if CompanyLocationId <> 0 then begin
+            Body := NavApp.GetResourceAsText('Order Handling/CompanyLocationResult.txt', TextEncoding::UTF8);
+            Response.Content.WriteFrom(Body.Replace('{{LocationId}}', Format(CompanyLocationId)));
+            CompanyLocationId := 0;
+        end else
+            Response.Content.WriteFrom('{"data":{}}');
+        exit(false);
+    end;
+
+    local procedure PrepareOrdersToImportChannelLiableScenario(ChannelLiableScenario: Option Missing,TrueValue,FalseValue,NullValue; var JOrdersToImport: JsonObject; var ExpectedChannelLiable: Boolean; var ScenarioName: Text)
+    var
+        JOrder: JsonToken;
+        JOrders: JsonArray;
+        JNode: JsonObject;
+        JTaxLines: JsonArray;
+        JTaxLine: JsonObject;
+        JNull: JsonValue;
+    begin
+        JOrdersToImport.GetObject('data').GetObject('orders').GetArray('edges').Get(0, JOrder);
+        JNode := JOrder.AsObject().GetObject('node');
+
+        if JNode.Contains('taxLines') then
+            JNode.Remove('taxLines');
+
+        Clear(JTaxLine);
+        Clear(JTaxLines);
+
+        case ChannelLiableScenario of
+            ChannelLiableScenario::Missing:
+                begin
+                    ExpectedChannelLiable := false;
+                    ScenarioName := 'missing taxLines';
+                end;
+            ChannelLiableScenario::TrueValue:
+                begin
+                    JTaxLine.Add('channelLiable', true);
+                    JTaxLines.Add(JTaxLine);
+                    JNode.Add('taxLines', JTaxLines);
+
+                    ScenarioName := Format(ChannelLiableScenario);
+                    ExpectedChannelLiable := true;
+                end;
+            ChannelLiableScenario::FalseValue:
+                begin
+                    JTaxLine.Add('channelLiable', false);
+                    JTaxLines.Add(JTaxLine);
+                    JNode.Add('taxLines', JTaxLines);
+
+                    ScenarioName := Format(ChannelLiableScenario);
+                    ExpectedChannelLiable := false;
+                end;
+            ChannelLiableScenario::NullValue:
+                begin
+                    JNull.SetValueToNull();
+                    JTaxLine.Add('channelLiable', JNull);
+                    JTaxLines.Add(JTaxLine);
+                    JNode.Add('taxLines', JTaxLines);
+
+                    ScenarioName := Format(ChannelLiableScenario);
+                    ExpectedChannelLiable := false;
+                end;
+        end;
+
+        Clear(JOrders);
+        JOrders.Add(JOrder);
+        JOrdersToImport.GetObject('data').GetObject('orders').Replace('edges', JOrders);
+    end;
+
+    local procedure PrepareChannelLiableWithTaxLines(ChannelLiableScenario: Option Missing,TrueValue,FalseValue,NullValue; var JOrder: JsonObject; var ExpectedHasRecord: Boolean; var ExpectedChannelLiable: Boolean; var ScenarioName: Text)
+    var
+        JTaxLines: JsonArray;
+        JTaxLine: JsonObject;
+        JPriceSet: JsonObject;
+        JShopMoney: JsonObject;
+        JPresentmentMoney: JsonObject;
+        JNull: JsonValue;
+    begin
+        ExpectedHasRecord := true;
+        ScenarioName := Format(ChannelLiableScenario);
+
+        Clear(JTaxLine);
+        Clear(JTaxLines);
+        Clear(JPriceSet);
+        Clear(JShopMoney);
+        Clear(JPresentmentMoney);
+
+        JTaxLine.Add('title', 'VAT');
+        JTaxLine.Add('rate', 0.10);
+        JTaxLine.Add('ratePercentage', 10);
+
+        JShopMoney.Add('amount', '10');
+        JPriceSet.Add('shopMoney', JShopMoney);
+
+        JPresentmentMoney.Add('amount', '10');
+        JPriceSet.Add('presentmentMoney', JPresentmentMoney);
+
+        JTaxLine.Add('priceSet', JPriceSet);
+
+        case ChannelLiableScenario of
+            ChannelLiableScenario::TrueValue:
+                begin
+                    JTaxLine.Add('channelLiable', true);
+                    ExpectedChannelLiable := true;
+                end;
+            ChannelLiableScenario::FalseValue:
+                begin
+                    JTaxLine.Add('channelLiable', false);
+                    ExpectedChannelLiable := false;
+                end;
+            ChannelLiableScenario::NullValue:
+                begin
+                    JNull.SetValueToNull();
+                    JTaxLine.Add('channelLiable', JNull);
+                    ExpectedChannelLiable := false;
+                end;
+        end;
+
+        JTaxLines.Add(JTaxLine);
+        JOrder.Add('taxLines', JTaxLines);
+    end;
+
+    local procedure SetManualNosOnOrderNoSeries()
+    var
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
+        NoSeries: Record "No. Series";
+    begin
+        SalesReceivablesSetup.Get();
+        if NoSeries.Get(SalesReceivablesSetup."Order Nos.") then begin
+            NoSeries."Manual Nos." := true;
+            NoSeries.Modify();
+        end;
+    end;
+
+    local procedure SetManualNosOnInvoiceNoSeries()
+    var
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
+        NoSeries: Record "No. Series";
+    begin
+        SalesReceivablesSetup.Get();
+        if NoSeries.Get(SalesReceivablesSetup."Invoice Nos.") then begin
+            NoSeries."Manual Nos." := true;
+            NoSeries.Modify();
+        end;
+    end;
+}

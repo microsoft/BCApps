@@ -1,0 +1,127 @@
+namespace Microsoft.SubscriptionBilling;
+
+using Microsoft.Finance.Dimension;
+using Microsoft.Inventory.Item;
+using Microsoft.Purchases.Document;
+
+tableextension 8065 "Purchase Line" extends "Purchase Line"
+{
+    fields
+    {
+        field(8053; "Recurring Billing from"; Date)
+        {
+            Caption = 'Recurring Billing from';
+            DataClassification = CustomerContent;
+        }
+        field(8054; "Recurring Billing to"; Date)
+        {
+            Caption = 'Recurring Billing to';
+            DataClassification = CustomerContent;
+        }
+        field(8055; "Discount"; Boolean)
+        {
+            Caption = 'Discount';
+            Editable = false;
+            DataClassification = CustomerContent;
+        }
+        field(8056; "Attached to Sub. Contract line"; Boolean)
+        {
+            Caption = 'Attached to Subscription Contract line';
+            Editable = false;
+            FieldClass = FlowField;
+            CalcFormula = exist("Billing Line" where("Document Type" = filter(Invoice), "Document No." = field("Document No."), "Document Line No." = field("Line No.")));
+        }
+        modify("Deferral Code")
+        {
+            trigger OnAfterValidate()
+            begin
+                if Rec."Deferral Code" <> '' then
+                    if Rec.IsLineAttachedToBillingLine() then
+                        if Rec.CreateContractDeferrals() then
+                            Error(DeferralCodeCannotBeUsedWithContractDeferralsErr);
+            end;
+        }
+    }
+
+    var
+        DimMgt: Codeunit DimensionManagement;
+        DeferralCodeCannotBeUsedWithContractDeferralsErr: Label 'A Deferral Code cannot be used on a line where Subscription Contract Deferrals are active. Either remove the Deferral Code or disable Contract Deferrals on the subscription line or contract.';
+
+    internal procedure GetCombinedDimensionSetID(DimSetID1: Integer; DimSetID2: Integer)
+    var
+        DimSetIDArr: array[10] of Integer;
+    begin
+        DimSetIDArr[1] := DimSetID1;
+        DimSetIDArr[2] := DimSetID2;
+        "Dimension Set ID" := DimMgt.GetCombinedDimensionSetID(DimSetIDArr, "Shortcut Dimension 1 Code", "Shortcut Dimension 2 Code");
+    end;
+
+    internal procedure GetPurchaseDocumentSign(): Integer
+    begin
+        if Rec."Document Type" = "Purchase Document Type"::"Credit Memo" then
+            exit(-1);
+        exit(1);
+    end;
+
+    internal procedure IsLineAttachedToBillingLine(): Boolean
+    var
+        BillingLine: Record "Billing Line";
+    begin
+        BillingLine.FilterBillingLineOnDocumentLine(BillingLine.GetBillingDocumentTypeFromPurchaseDocumentType(Rec."Document Type"), Rec."Document No.", Rec."Line No.");
+        exit(not BillingLine.IsEmpty());
+    end;
+
+    internal procedure CreateContractDeferrals(): Boolean
+    var
+        VendorSubscriptionContract: Record "Vendor Subscription Contract";
+        SubscriptionLine: Record "Subscription Line";
+        BillingLine: Record "Billing Line";
+    begin
+        BillingLine.FilterBillingLineOnDocumentLine(BillingLine.GetBillingDocumentTypeFromPurchaseDocumentType(Rec."Document Type"), Rec."Document No.", Rec."Line No.");
+        if not BillingLine.FindFirst() then
+            exit;
+
+        if not SubscriptionLine.Get(BillingLine."Subscription Line Entry No.") then
+            exit;
+
+        case SubscriptionLine."Create Contract Deferrals" of
+            Enum::"Create Contract Deferrals"::"Contract-dependent":
+                begin
+                    VendorSubscriptionContract.Get(BillingLine."Subscription Contract No.");
+                    exit(VendorSubscriptionContract."Create Contract Deferrals");
+                end;
+            Enum::"Create Contract Deferrals"::Yes:
+                exit(true);
+            Enum::"Create Contract Deferrals"::No:
+                exit(false);
+        end;
+    end;
+
+    internal procedure IsContractLineAssignable(): Boolean
+    var
+        Item: Record Item;
+    begin
+        case Rec.Type of
+            Enum::"Purchase Line Type"::Item:
+                begin
+                    if not Item.Get(Rec."No.") then
+                        exit(false);
+                    exit((Item."Subscription Option" in [Enum::"Item Service Commitment Type"::"Service Commitment Item", Enum::"Item Service Commitment Type"::"Invoicing Item"])
+                                               and (not Rec.IsLineAttachedToBillingLine()));
+                end;
+            Enum::"Purchase Line Type"::"G/L Account":
+                exit(not Rec.IsLineAttachedToBillingLine());
+            else
+                exit(false);
+        end;
+    end;
+
+    internal procedure AssignVendorContractLine()
+    var
+        GetVendorContractLines: Page "Get Vendor Contract Lines";
+    begin
+        GetVendorContractLines.LookupMode(true);
+        GetVendorContractLines.SetPurchaseLine(Rec);
+        GetVendorContractLines.RunModal();
+    end;
+}

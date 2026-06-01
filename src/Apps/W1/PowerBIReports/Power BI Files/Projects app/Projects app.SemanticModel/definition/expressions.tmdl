@@ -1,0 +1,232 @@
+expression DimensionSets_DataSource =
+		let
+		    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY,API_ENDPOINT, []),
+		    TableData = Source{[Name="dimensionSetEntries",Signature="table"]}[Data],
+		    #"Changed Type" = Table.TransformColumnTypes(
+		        TableData,
+		        {
+		            {"dimensionSetID", Int64.Type},
+		            {"valueCount", Int64.Type},
+		            {"dimension1ValueCode", type text},
+		            {"dimension1ValueName", type text},
+		            {"dimension2ValueCode", type text},
+		            {"dimension2ValueName", type text},
+		            {"dimension3ValueCode", type text},
+		            {"dimension3ValueName", type text},
+		            {"dimension4ValueCode", type text},
+		            {"dimension4ValueName", type text},
+		            {"dimension5ValueCode", type text},
+		            {"dimension5ValueName", type text},
+		            {"dimension6ValueCode", type text},
+		            {"dimension6ValueName", type text},
+		            {"dimension7ValueCode", type text},
+		            {"dimension7ValueName", type text},
+		            {"dimension8ValueCode", type text},
+		            {"dimension8ValueName", type text}
+		        }
+		    ),
+		    #"Removed Columns" = Table.RemoveColumns(#"Changed Type",{"ETag"}),
+		    #"Appended Query" = Table.Combine({#"Removed Columns", DimensionSet_Blank}),
+		    #"Filtered Rows" = Table.SelectRows(#"Appended Query", each ([dimensionSetID] <> 0))
+		in
+		    #"Filtered Rows"
+	lineageTag: f6c17828-c08e-481c-a057-0e3ceaaa9130
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression DimensionSet_Blank =
+		let
+		    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i45WMlDSUTIEYtJQbCwA", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [dimensionSetID = _t, valueCount = _t, dimension1ValueCode = _t, dimension1ValueName = _t, dimension2ValueCode = _t, dimension2ValueName = _t, dimension3ValueCode = _t, dimension3ValueName = _t, dimension4ValueCode = _t, dimension4ValueName = _t, dimension5ValueCode = _t, dimension5ValueName = _t, dimension6ValueCode = _t, dimension6ValueName = _t, dimension7ValueCode = _t, dimension7ValueName = _t, dimension8ValueCode = _t, dimension8ValueName = _t]),
+		    #"Changed Type" = Table.TransformColumnTypes(Source,{{"dimensionSetID", Int64.Type}, {"valueCount", Int64.Type}, {"dimension1ValueCode", type text}, {"dimension1ValueName", type text}, {"dimension2ValueCode", type text}, {"dimension2ValueName", type text}, {"dimension3ValueCode", type text}, {"dimension3ValueName", type text}, {"dimension4ValueCode", type text}, {"dimension4ValueName", type text}, {"dimension5ValueCode", type text}, {"dimension5ValueName", type text}, {"dimension6ValueCode", type text}, {"dimension6ValueName", type text}, {"dimension7ValueCode", type text}, {"dimension7ValueName", type text}, {"dimension8ValueCode", type text}, {"dimension8ValueName", type text}})
+		in
+		    #"Changed Type"
+	lineageTag: 018b236d-f0b5-48b9-8652-bda359710e70
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression 'Purchase Lines Outstanding' =
+		let
+		    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY, API_ENDPOINT, []),
+		    TableData = Source{[Name = "jobOutstandingPurchaseLines", Signature = "table"]}[Data],
+		    #"Changed Type" = Table.TransformColumnTypes(
+		        TableData,
+		        {
+		            {"documentNo", type text},
+		            {"no", type text},
+		            {"type", type text},
+		            {"outstandingQtyBase", type number},
+		            {"outstandingAmountLCY", Currency.Type},
+		            {"jobNo", type text},
+		            {"jobTaskNo", type text},
+		            {"expectedReceiptDate", type date},
+		            {"dimensionSetID", Int64.Type},
+		            {"description", type text},
+		            {"auxiliaryIndex1", type text}
+		        }
+		    ),
+		    #"Added Custom" = Table.AddColumn(#"Changed Type", "Source Type", each "Purchase Orders (Outstanding)"),
+		    #"Renamed Columns" = Table.RenameColumns(
+		        #"Added Custom",
+		        {
+		            {"documentNo", "Document No."},
+		            {"documentType", "Document Type"},
+		            {"outstandingQtyBase", "Quantity (Base)"},
+		            {"outstandingAmountLCY", "Amount (LCY)"},
+		            {"jobNo", "Project No"},
+		            {"jobTaskNo", "Task No"},
+		            {"expectedReceiptDate", "Expected Receipt Date"},
+		            {"dimensionSetID", "Dimension Set ID"},
+		            {"auxiliaryIndex1", "Line No."},
+		            {"no", "No."},
+		            {"description", "Description"},
+		            {"type", "Type"}
+		        }
+		    )
+		in
+		    #"Renamed Columns"
+	lineageTag: b3136a6c-e45c-4d1d-adb0-a285e0a29f28
+	queryGroup: 'Fact Tables'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression 'Purchase Lines Received Not Invoiced' =
+		let
+		    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY, API_ENDPOINT, []),
+		    TableData = Source{[Name = "jobReceivedNotInvoicedPurchaseLines", Signature = "table"]}[Data],
+		    #"Changed Type" = Table.TransformColumnTypes(
+		        TableData,
+		        {
+		            {"documentNo", type text},
+		            {"no", type text},
+		            {"type", type text},
+		            {"qtyRcdNotInvoicedBase", type number},
+		            {"amtRcdNotInvoicedLCY", Currency.Type},
+		            {"jobNo", type text},
+		            {"jobTaskNo", type text},
+		            {"expectedReceiptDate", type date},
+		            {"dimensionSetID", Int64.Type},
+		            {"lineNo", type text},
+		            {"description", type text}
+		        }
+		    ),
+		    #"Added Custom" = Table.AddColumn(#"Changed Type", "Source Type", each "Purchase Orders (Received Not Invoiced)"),
+		    #"Renamed Columns" = Table.RenameColumns(
+		        #"Added Custom",
+		        {
+		            {"documentType", "Document Type"},
+		            {"documentNo", "Document No."},
+		            {"qtyRcdNotInvoicedBase", "Quantity (Base)"},
+		            {"amtRcdNotInvoicedLCY", "Amount (LCY)"},
+		            {"jobNo", "Project No"},
+		            {"jobTaskNo", "Task No"},
+		            {"expectedReceiptDate", "Expected Receipt Date"},
+		            {"dimensionSetID", "Dimension Set ID"},
+		            {"lineNo", "Line No."},
+		            {"no", "No."},
+		            {"description", "Description"},
+		            {"type", "Type"}
+		        }
+		    )
+		in
+		    #"Renamed Columns"
+	lineageTag: 6477f9fa-740c-437b-be2b-6e518e886630
+	queryGroup: 'Fact Tables'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression API_ENDPOINT = "microsoft/analytics/v1.0" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: fbac104e-be09-4b9a-b3f2-d0a057241654
+	queryGroup: 'Parameters and Functions'
+
+	annotation PBI_ResultType = Text
+
+	annotation PBI_NavigationStepName = Navigation
+
+expression ConvertUTC =
+		let
+		    Source = (dateTableSetup as table) =>
+		        let
+		            #"Added UTC Now" = Table.AddColumn(dateTableSetup, "UTC Now", each DateTimeZone.UtcNow()),
+		            #"Extract UTC Value" = Table.AddColumn(
+		                #"Added UTC Now", "Extract UTC", each Text.BetweenDelimiters([timeZoneDisplayName], "(", ")")
+		            ),
+		            #"Remove UTC prefix" = Table.AddColumn(
+		                #"Extract UTC Value", "Remove UTC prefix", each Text.AfterDelimiter([Extract UTC], "UTC")
+		            ),
+		            #"Extract Hour and Minutes" = Table.SplitColumn(#"Remove UTC prefix", "Remove UTC prefix", Splitter.SplitTextByDelimiter(":", QuoteStyle.None), {"UTC Hours", "UTC Minutes"}),
+		            #"Changed Type" = Table.TransformColumnTypes(#"Extract Hour and Minutes",{{"UTC Hours", Int64.Type}, {"UTC Minutes", Int64.Type}},"en-us"),
+		            #"Switch Zone" = Table.AddColumn(
+		                #"Changed Type",
+		                "UTC Offset",
+		                each if [UTC Hours] = null then [UTC Now] else DateTimeZone.SwitchZone([UTC Now], [UTC Hours], [UTC Minutes])
+		            ),
+		            #"Set Date" = Table.AddColumn(
+		                #"Switch Zone", "Today", each Date.From(DateTimeZone.RemoveZone([UTC Offset])), type date
+		            ),
+		            #"Set Last Refresh Time" = Table.AddColumn(
+		                #"Set Date", "Last Refresh Time", each Time.From(DateTimeZone.RemoveZone([UTC Offset])), type time
+		            ),
+		            #"Remove unnecessary" = Table.RemoveColumns(
+		                #"Set Last Refresh Time", {"UTC Now", "Extract UTC", "UTC Offset"}
+		            )
+		        in
+		            #"Remove unnecessary"
+		in
+		    Source
+	lineageTag: 2c197376-a23c-421e-9a1d-b8f45beff8bf
+	queryGroup: 'Parameters and Functions\Functions'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Function
+
+expression Dimensions =
+		let
+		    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY,API_ENDPOINT, []),
+		    TableData = Source{[Name="dimensions",Signature="table"]}[Data],
+		    #"Changed Type" = Table.TransformColumnTypes(
+		        TableData,
+		        {
+		            {"dim1Code", type text},
+		            {"dim1Name", type text},
+		            {"dim1Caption", type text},
+		            {"dim2Code", type text},
+		            {"dim2Name", type text},
+		            {"dim2Caption", type text},
+		            {"dim3Code", type text},
+		            {"dim3Name", type text},
+		            {"dim3Caption", type text},
+		            {"dim4Code", type text},
+		            {"dim4Name", type text},
+		            {"dim4Caption", type text},
+		            {"dim5Code", type text},
+		            {"dim5Name", type text},
+		            {"dim5Caption", type text},
+		            {"dim6Code", type text},
+		            {"dim6Name", type text},
+		            {"dim6Caption", type text},
+		            {"dim7Code", type text},
+		            {"dim7Name", type text},
+		            {"dim7Caption", type text},
+		            {"dim8Code", type text},
+		            {"dim8Name", type text},
+		            {"dim8Caption", type text}
+		        }
+		    ),
+		    #"Removed Columns" = Table.RemoveColumns(#"Changed Type",{"ETag"})
+		in
+		    #"Removed Columns"
+	lineageTag: 6dac1701-7ed9-4fba-836a-b39d5205a0f0
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,31 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "a06ed07a8548627c70ce",
+  "position": {
+    "x": 1025.9773945240183,
+    "y": 62,
+    "z": 5000,
+    "height": 230,
+    "width": 228,
+    "tabOrder": 1000
+  },
+  "visualGroup": {
+    "displayName": "Bucket 4 Group",
+    "groupMode": "ScaleMode",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "altText": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Bucket 4 (Receivables).'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

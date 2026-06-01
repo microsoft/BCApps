@@ -5,9 +5,10 @@
 
 namespace System.Security.AccessControl;
 
+using System.Agents;
+using System.Security.User;
 using System.Telemetry;
 using System.Utilities;
-using System.Security.User;
 
 /// <summary>
 /// The main page for interacting with security groups.
@@ -272,9 +273,12 @@ page 9871 "Security Groups"
 
     trigger OnOpenPage()
     var
+        AgentUtilities: Codeunit "Agent Utilities";
         FeatureTelemetry: Codeunit "Feature Telemetry";
         UserPermissions: Codeunit "User Permissions";
     begin
+        AgentUtilities.BlockPageFromBeingOpenedByAgent();
+
         CanManageUsersOnTenant := UserPermissions.CanManageUsersOnTenant(UserSecurityId());
         FeatureTelemetry.LogUptake('0000JGR', 'Security Groups', Enum::"Feature Uptake Status"::Discovered);
         RefreshData();
@@ -297,15 +301,15 @@ page 9871 "Security Groups"
 
     local procedure GetSelectedGroupCodes(): List of [Code[20]];
     var
-        SecurityGroupBuffer: Record "Security Group Buffer";
+        TempSecurityGroupBuffer: Record "Security Group Buffer";
         GroupCodes: List of [Code[20]];
     begin
-        SecurityGroupBuffer.Copy(Rec, true);
-        CurrPage.SetSelectionFilter(SecurityGroupBuffer);
-        if SecurityGroupBuffer.FindSet() then
+        TempSecurityGroupBuffer.Copy(Rec, true);
+        CurrPage.SetSelectionFilter(TempSecurityGroupBuffer);
+        if TempSecurityGroupBuffer.FindSet() then
             repeat
-                GroupCodes.Add(SecurityGroupBuffer.Code);
-            until SecurityGroupBuffer.Next() = 0;
+                GroupCodes.Add(TempSecurityGroupBuffer.Code);
+            until TempSecurityGroupBuffer.Next() = 0;
         exit(GroupCodes);
     end;
 

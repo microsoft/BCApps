@@ -5,9 +5,9 @@
 
 namespace System.Security.AccessControl;
 
+using System.Apps;
 using System.Azure.Identity;
 using System.Environment.Configuration;
-using System.Apps;
 
 entitlement "Dynamics 365 - Accountant Hub"
 {

@@ -5,8 +5,8 @@
 
 namespace System.Environment.Configuration;
 
-using System.Reflection;
 using System.Environment;
+using System.Reflection;
 
 codeunit 9171 "Default Role Center Impl."
 {

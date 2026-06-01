@@ -5,9 +5,9 @@
 
 namespace System.Telemetry;
 
-using System.Globalization;
-using System.Environment.Configuration;
 using System.Environment;
+using System.Environment.Configuration;
+using System.Globalization;
 
 codeunit 8712 "Telemetry Impl."
 {

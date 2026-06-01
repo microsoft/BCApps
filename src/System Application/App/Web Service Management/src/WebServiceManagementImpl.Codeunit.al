@@ -6,10 +6,10 @@
 namespace System.Integration;
 
 using System;
+using System.Apps;
 #if not CLEAN26
 using System.Environment.Configuration;
 #endif
-using System.Apps;
 using System.Reflection;
 
 codeunit 9751 "Web Service Management Impl."

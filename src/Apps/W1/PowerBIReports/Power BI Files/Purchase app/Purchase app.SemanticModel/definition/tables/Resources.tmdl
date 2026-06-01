@@ -1,0 +1,82 @@
+table Resources
+	lineageTag: 5dbd685e-f6e8-4163-a858-c2d621dfa648
+
+	column 'Resource No.'
+		dataType: string
+		lineageTag: acb31aad-4de3-41ed-8529-073060e038ff
+		summarizeBy: none
+		sourceColumn: Resource No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Resource Name'
+		dataType: string
+		lineageTag: d46bc88b-0d25-432e-8199-498750942acb
+		summarizeBy: none
+		sourceColumn: Resource Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Resource Base Unit of Measure'
+		dataType: string
+		lineageTag: a5aab365-af8d-45e8-82b0-fd8bd1fdd261
+		summarizeBy: none
+		sourceColumn: Resource Base Unit of Measure
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Resource Unit Cost'
+		dataType: double
+		lineageTag: 2ed4de12-1365-4ebc-9506-9c15c24d78f2
+		summarizeBy: none
+		sourceColumn: Resource Unit Cost
+
+		annotation SummarizationSetBy = User
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Resource Unit Price'
+		dataType: double
+		lineageTag: e8d61128-20bc-42fd-9344-0b58b9fc0d7c
+		summarizeBy: none
+		sourceColumn: Resource Unit Price
+
+		annotation SummarizationSetBy = User
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Resource No. and Name'
+		dataType: string
+		lineageTag: 04cff439-a0d2-4922-81ca-aaec439745e8
+		summarizeBy: none
+		sourceColumn: Resource No. and Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Type Key'
+		dataType: string
+		isHidden
+		lineageTag: 02dbcd11-df8d-42aa-8333-ac6220a1e6fa
+		summarizeBy: none
+		sourceColumn: Type Key
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Resources = m
+		mode: import
+		queryGroup: 'Dimension Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY, API_ENDPOINT, []),
+				    TableData = Source{[Name = "resources", Signature = "table"]}[Data],
+				    #"Removed Columns" = Table.RemoveColumns(TableData,{"ETag"}),
+				    #"Renamed Columns" = Table.RenameColumns(#"Removed Columns",{{"resourceNo", "Resource No."}, {"resourceName", "Resource Name"}, {"baseUnitofMeasure", "Resource Base Unit of Measure"}, {"unitCost", "Resource Unit Cost"}, {"unitPrice", "Resource Unit Price"}}),
+				    #"Added Custom" = Table.AddColumn(#"Renamed Columns", "Resource No. and Name", each [#"Resource No."] & " " & [Resource Name]),
+				    #"Added Type Key" = Table.AddColumn(#"Added Custom", "Type Key", each "Resource" & " " & [#"Resource No."], type text)
+				in
+				    #"Added Type Key"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

@@ -6,8 +6,8 @@
 namespace Microsoft.Foundation.NoSeries;
 
 using System.AI;
-using System.Upgrade;
 using System.Environment;
+using System.Upgrade;
 
 codeunit 327 "No. Series Copilot Register"
 {

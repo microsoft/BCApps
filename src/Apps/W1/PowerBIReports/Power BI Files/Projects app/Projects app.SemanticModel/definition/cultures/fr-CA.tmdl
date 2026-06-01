@@ -1,0 +1,599 @@
+cultureInfo fr-CA
+	translations
+		model Model
+			table 'Project Ledger Entry'
+				caption: Écriture Compta. projet
+				column 'No. & Description'
+					caption: N° et description
+				column 'Project No.'
+					caption: N° projet
+				column 'Task No.'
+					caption: N° tâche
+				column 'Posting Date'
+					caption: Date de report
+				column 'Entry Type'
+					caption: Type écriture
+				column Type
+					caption: Type
+				column 'No.'
+					caption: N°
+				column Description
+					caption: Description
+				column Location
+					caption: Emplacement
+				column 'Unit of Measure Code'
+					caption: Code d’unité de mesure
+				column 'Unit Cost (LCY)'
+					caption: Coût unitaire ($)
+				column 'Unit Price (LCY)'
+					caption: Prix unitaire ($)
+				measure 'Project Ledger Entry Quantity'
+					caption: Quantité
+				measure 'Invoiced (Total Cost)'
+					caption: Facturé (coût total)
+				measure 'Total Price'
+					caption: Prix total
+				measure 'Actual (Total Price)'
+					caption: Réel (prix total)
+				measure 'Billable (Invoiced Price)'
+					caption: Facturable (prix facturé)
+				measure 'Actual (Total Cost)'
+					caption: Réel (coût total)
+				measure 'Gen. Journal Usage (Total Cost)'
+					caption: Utilisation journal général (coût total)
+				measure 'Labour Usage (Total Cost)'
+					caption: Utilisation main-d’œuvre (coût total)
+				measure 'Material Usage (Total Cost)'
+					caption: Utilisation du matériel (coût total)
+				measure 'Invoiced (Total Price)'
+					caption: Facturé (prix total)
+			table Project
+				caption: Projet
+				column 'Project No.'
+					caption: N° projet
+				column 'Project Description'
+					caption: Description du projet
+				column 'Project Bill to Customer No.'
+					caption: Facturation projet au n° client
+				column 'Project Creation Date'
+					caption: Date de création du projet
+				column 'Project Starting Date'
+					caption: Date de début du projet
+				column 'Project Ending Date'
+					caption: Date de fin du projet
+				column 'Project Status'
+					caption: État du projet
+				column 'Project Posting Group'
+					caption: Groupe de report projet
+				column 'Project Blocked'
+					caption: Projet bloqué
+				column 'Project Project Manager'
+					caption: Chef de projet
+				column 'Project Complete'
+					caption: Projet terminé
+				column 'Project No. & Description'
+					caption: N° et description du projet
+				measure 'Project Count'
+					caption: Nombre de projets
+				measure 'Actual Profit'
+					caption: Profit réel
+				measure 'Actual Profit Margin (%)'
+					caption: Marge bénéficiaire réelle (%)
+				measure 'Project Duration (Days)'
+					caption: Durée (en jours)
+				measure 'Budget Profit'
+					caption: Profit budget
+				measure 'Budget Profit Margin (%)'
+					caption: Marge bénéficiaire budgétée (%)
+				measure 'Completed (%)'
+					caption: Terminé (%)
+				measure 'Invoiced (%)'
+					caption: Facturé (%)
+				measure 'Tasks Count'
+					caption: Nombre de tâches
+				measure 'Realization (%)'
+					caption: Réalisation (%)
+				measure 'Realization Variance'
+					caption: Écart de réalisation
+				measure 'Base Link'
+					caption: Lien de base
+				measure 'Project Planning Lines Back Link'
+					caption: Lien secondaire Lignes de planification de projet
+			table 'Project Planning Line'
+				caption: Ligne planification projet
+				column 'Project No.'
+					caption: N° projet
+				column 'Task No.'
+					caption: N° tâche
+				column 'Line No.'
+					caption: Numéro de ligne
+				column Type
+					caption: Type
+				column 'Line Type'
+					caption: Type de ligne
+				column 'No.'
+					caption: N°
+				column Description
+					caption: Description
+				column 'Unit Cost (LCY)'
+					caption: Coût unitaire ($)
+				column 'Unit Price (LCY)'
+					caption: Prix unitaire ($)
+				column 'Planning Date'
+					caption: Date de planification
+				measure 'Planning Line Quantity'
+					caption: Quantité ligne de planification
+				measure 'Planning Line Total Cost (LCY)'
+					caption: Coût total ligne de planification ($)
+				measure 'Planning Line Total Price (LCY)'
+					caption: Prix total ligne de planification ($)
+				measure 'Budget (Total Cost)'
+					caption: Budget (coût total)
+				measure 'Billable (Total Price)'
+					caption: Facturable (prix total)
+				measure 'Total Cost Variance to Budget'
+					caption: Écart du coût total par rapport au budget
+				measure 'Total Cost Variance to Budget %'
+					caption: Écart du coût total par rapport au budget (%)
+				measure 'Billable (Total Cost)'
+					caption: Facturable (coût total)
+				measure 'Budget (Total Price)'
+					caption: Budget (prix total)
+			table Customer
+				caption: Client
+				column 'Customer No. & Name'
+					caption: N° et nom du client
+				column 'Customer No.'
+					caption: N° client
+				column 'Customer Name'
+					caption: Nom du client
+				column 'Customer Address'
+					caption: Adresse client
+				column 'Customer Address 2'
+					caption: Adresse client 2
+				column 'Customer City'
+					caption: Ville du client
+				column 'Customer Post Code'
+					caption: Code postal du client
+				column 'Customer State'
+					caption: État du client
+				column 'Customer Country/Region Code'
+					caption: Code pays/région client
+				column 'Customer Posting Group'
+					caption: Groupe de report client
+				column 'Customer Price Group'
+					caption: Groupe prix client
+				column 'Customer Discount Group'
+					caption: Groupe escomptes client
+			table Tasks
+				caption: Tâches
+				column 'Task Project No.'
+					caption: N° tâche projet
+				column 'Task No.'
+					caption: N° tâche
+				column 'Task Description'
+					caption: Description de la tâche
+				column 'Task Type'
+					caption: Type de tâche
+				column 'Task Project No. & Task No.'
+					caption: N° tâche projet et n° tâche
+				column 'Task Project Task & Description'
+					caption: Tâche du projet et description
+				column 'Project Task Starting Date'
+					caption: Date de début de la tâche du projet
+				column 'Project Task Ending Date'
+					caption: Date de fin tâche projet
+			table 'Dimension Sets'
+				caption: Ensembles de dimensions
+				column 'Global Dimension 1'
+					caption: Dimension principale 1
+				column 'Global Dimension 2'
+					caption: Dimension principale 2
+				column 'Shortcut Dimension 3'
+					caption: Raccourci dimension 3
+				column 'Shortcut Dimension 4'
+					caption: Raccourci dimension 4
+				column 'Shortcut Dimension 5'
+					caption: Raccourci dimension 5
+				column 'Shortcut Dimension 6'
+					caption: Raccourci dimension 6
+				column 'Shortcut Dimension 7'
+					caption: Raccourci dimension 7
+				column 'Shortcut Dimension 8'
+					caption: Raccourci dimension 8
+				column id
+					caption: Code
+			table Date
+				caption: Date
+				column Date
+					caption: Date de report
+				column 'Week Day'
+					caption: Jour semaine
+				column 'Relative Day'
+					caption: Jour relatif
+				column 'Calendar YearNumber'
+					caption: NuméroAnnée civile
+				column 'Calendar Year'
+					caption: Année civile
+				column 'Calendar QuarterNumber'
+					caption: NuméroTrimestre civil
+				column 'Calendar Quarter'
+					caption: Trimestre civil
+				column 'Calendar YearQuarterNumber'
+					caption: NuméroTrimestreAnnée civile
+				column 'Calendar Quarter Year'
+					caption: Trimestre civil
+				column 'Calendar MonthNumber'
+					caption: NuméroMois civil
+				column 'Calendar Month'
+					caption: Mois civil
+				column 'Calendar YearMonthNumber'
+					caption: NuméroMoisAnnée civile
+				column 'Calendar Month Year'
+					caption: Mois année civile
+				column 'Calendar WeekNumber'
+					caption: NuméroSemaine civile
+				column 'Calendar Week'
+					caption: Semaine civile
+				column 'Calendar YearWeekNumber'
+					caption: NuméroSemaineAnnée civile
+				column 'Calendar Week Year'
+					caption: Semaine année civile
+				column 'Calendar WeekYearOrder'
+					caption: OrdreSemaineAnnée civile
+				column 'Calendar RelativeWeekPos'
+					caption: PosSemaineRelative civile
+				column 'Calendar RelativeMonthPos'
+					caption: PosMoisRelatif civil
+				column 'Calendar RelativeQuarterPos'
+					caption: PosTrimestreRelatif civil
+				column 'Calendar RelativeYearPos'
+					caption: PosAnnéeRelative civile
+				column 'Calendar StartOfMonth'
+					caption: DébutDuMois civil
+				column 'Calendar EndOfMonth'
+					caption: FinDuMois civil
+				column 'Calendar StartOfQuarter'
+					caption: DébutDuTrimestre civil
+				column 'Calendar EndOfQuarter'
+					caption: FinDeTrimestre civil
+				column 'Calendar StartOfYear'
+					caption: DébutAnnée civile
+				column 'Calendar EndOfYear'
+					caption: FinAnnée civile
+				column 'Calendar MonthDays'
+					caption: JourMois civils
+				column 'Calendar QuarterDays'
+					caption: JoursTrimestre civils
+				column 'Calendar YearDays'
+					caption: JoursAnnée civile
+				column 'Calendar DayOfMonthNumber'
+					caption: NuméroJourDuMois civil
+				column 'Calendar DayOfQuarterNumber'
+					caption: NuméroJourDuTrimestre civil
+				column 'Calendar DayOfYearNumber'
+					caption: NuméroJourAnnée civile
+				column 'Calendar DatePreviousWeek'
+					caption: DateSemainePrécédente civile
+				column 'Calendar DatePreviousMonth'
+					caption: DateMoisPrécédent civil
+				column 'Calendar DatePreviousQuarter'
+					caption: DateTrimestrePrécédent civil
+				column 'Calendar DatePreviousYear'
+					caption: DateAnnéePrécédente civile
+				column 'Fiscal Year'
+					caption: Exercice
+				column 'Fiscal YearNumber'
+					caption: NuméroExercice
+				column 'Fiscal QuarterNumber'
+					caption: NuméroTrimestre d’exercice
+				column 'Fiscal Quarter'
+					caption: Trimestre d’exercice
+				column 'Fiscal YearQuarterNumber'
+					caption: NuméroTrimestreExercice
+				column 'Fiscal Quarter Year'
+					caption: Trimestre d’exercice
+				column 'Fiscal MonthNumber'
+					caption: NuméroMois d’exercice
+				column 'Fiscal MonthInQuarterNumber'
+					caption: NuméroMoisTrimestre d’exercice
+				column 'Fiscal Month'
+					caption: Mois d’exercice
+				column 'Fiscal YearMonthNumber'
+					caption: NuméroMoisExercice
+				column 'Fiscal Month Year'
+					caption: Mois et année d’exercice
+				column 'Fiscal WeekNumber'
+					caption: NuméroSemaine fiscale
+				column 'Fiscal Week'
+					caption: Semaine d’exercice
+				column 'Fiscal YearWeekNumber'
+					caption: NuméroSemaineExercice
+				column 'Fiscal Week Year'
+					caption: Semaine année d’exercice
+				column 'Fiscal WeekYearOrder'
+					caption: OrdreSemaineAnnée d’exercice
+				column 'Fiscal RelativeWeekPos'
+					caption: PosSemaineRelative d’exercice
+				column 'Fiscal RelativeMonthPos'
+					caption: PosMoisRelatif d’exercice
+				column 'Fiscal RelativeQuarterPos'
+					caption: PosTrimestreRelatif d’exercice
+				column 'Fiscal RelativeYearPos'
+					caption: PosAnnéeRelative d’exercice
+				column 'Fiscal StartOfMonth'
+					caption: DébutDuMois d’exercice
+				column 'Fiscal EndOfMonth'
+					caption: FinDuMois d’exercice
+				column 'Fiscal StartOfQuarter'
+					caption: DébutDuTrimestre d’exercice
+				column 'Fiscal EndOfQuarter'
+					caption: FinDuTrimestre d’exercice
+				column 'Fiscal StartOfYear'
+					caption: DébutExercice fiscal
+				column 'Fiscal EndOfYear'
+					caption: FinExercice fiscal
+				column 'Fiscal MonthDays'
+					caption: JoursMois d’exercice
+				column 'Fiscal QuarterDays'
+					caption: JoursTrimestre d’exercice
+				column 'Fiscal YearDays'
+					caption: JoursExercice
+				column 'Fiscal DayOfMonthNumber'
+					caption: NuméroJourDuMois d’exercice
+				column 'Fiscal DayOfQuarterNumber'
+					caption: NuméroJourDuTrimestre d’exercice
+				column 'Fiscal DayOfYearNumber'
+					caption: NuméroJourAnnée d’exercice
+				column 'Fiscal DatePreviousWeek'
+					caption: DateSemainePrécédente d’exercice
+				column 'Fiscal DatePreviousMonth'
+					caption: DateMoisPrécédent d’exercice
+				column 'Fiscal DatePreviousQuarter'
+					caption: DateTrimestrePrécédent d’exercice
+				column 'Fiscal DatePreviousYear'
+					caption: DateAnnéePrécédente d’exercice
+				column 'FW YearNumber'
+					caption: NuméroAnnée SE
+				column 'FW Year'
+					caption: Année SE
+				column 'FW QuarterNumber'
+					caption: NuméroTrimestre SE
+				column 'FW Quarter'
+					caption: Trimestre SE
+				column 'FW YearQuarterNumber'
+					caption: NuméroTrimestreAnnée SE
+				column 'FW Quarter Year'
+					caption: Trimestre année SE
+				column 'FW MonthNumber'
+					caption: NuméroMois SE
+				column 'FW Month'
+					caption: Mois SE
+				column 'FW YearMonthNumber'
+					caption: NuméroMoisAnnée SE
+				column 'FW Month Year'
+					caption: Mois année SE
+				column 'FW WeekNumber'
+					caption: NuméroSemaine SE
+				column 'FW Week'
+					caption: Semaine SE
+				column 'FW PeriodNumber'
+					caption: NuméroPériode SE
+				column 'FW Period'
+					caption: Période SE
+				column 'FW YearWeekNumber'
+					caption: NuméroSemaineAnnée SE
+				column 'FW Week Year'
+					caption: Semaine année SE
+				column 'FW StartOfWeek'
+					caption: DébutDeSemaine SE
+				column 'FW EndOfWeek'
+					caption: FinDeSemaine SE
+				column 'FW RelativeWeekPos'
+					caption: PosSemaineRelative SE
+				column 'FW RelativeMonthPos'
+					caption: PosMoisRelatif SE
+				column 'FW RelativeQuarterPos'
+					caption: PosTrimestreRelatif SE
+				column 'FW RelativeYearPos'
+					caption: PosAnnéeRelative SE
+				column 'FW StartOfMonth'
+					caption: DébutDuMois SE
+				column 'FW EndOfMonth'
+					caption: FinDuMois SE
+				column 'FW StartOfQuarter'
+					caption: DébutDuTrimestre SE
+				column 'FW EndOfQuarter'
+					caption: FinDuTrimestre SE
+				column 'FW StartOfYear'
+					caption: DébutExercice SE
+				column 'FW EndOfYear'
+					caption: FinAnnée SE
+				column 'FW MonthDays'
+					caption: JoursMois SE
+				column 'FW QuarterDays'
+					caption: JoursTrimestre SE
+				column 'FW YearDays'
+					caption: JoursAnnée SE
+				column 'FW DayOfMonthNumber'
+					caption: NuméroJourDuMois SE
+				column 'FW DayOfQuarterNumber'
+					caption: NuméroJourDuTrimestre SE
+				column 'FW DayOfYearNumber'
+					caption: NuméroJourAnnée SE
+				column 'FW DatePreviousWeek'
+					caption: DateSemainePrécédente SE
+				column 'FW DatePreviousMonth'
+					caption: DateMoisPrécédent SE
+				column 'FW DatePreviousQuarter'
+					caption: DateTrimestrePrécédent SE
+				column 'FW DatePreviousYear'
+					caption: DateAnnéePrécédente SE
+				column 'Day Type'
+					caption: Type de jour
+			table Purchases
+				caption: Achats
+				column 'Quantity (Base)'
+					caption: Quantité (de base)
+				column 'Amount (LCY)'
+					caption: Montant ($)
+				column 'Expected Receipt Date'
+					caption: Date réception prévue
+				column 'Source Type'
+					caption: Type origine
+				column 'Document Type'
+					caption: Type du document
+				column 'Line No.'
+					caption: Numéro de ligne
+				column 'Document No.'
+					caption: N° de document
+				column 'No.'
+					caption: N°
+				column Type
+					caption: Type
+				column Description
+					caption: Description
+				column 'Project No'
+					caption: N° projet
+				column 'Task No'
+					caption: N° tâche
+				column 'Project No Task No'
+					caption: N° tâche projet n° projet
+				measure 'Quantity on PO'
+					caption: Quantité sur CA
+				measure 'Amount on PO'
+					caption: Montant sur CA
+				measure 'Amount Rcvd. Not Invoiced'
+					caption: Montant reçu non facturé
+				measure 'Outstanding Amt. on PO'
+					caption: Montant dû sur CA
+				measure 'Purchase Order Count'
+					caption: Nombre de bons de commande
+			table 'Localized Labels'
+				measure 'My Report Title'
+					caption: Titre de mon rapport
+				measure 'My Button Caption'
+					caption: Légende de mon bouton
+				measure 'My Visual Title'
+					caption: Mon titre visuel
+				measure 'Projects Overview'
+					caption: Vue d’ensemble de Projets
+				measure 'Project Tasks'
+					caption: Tâches projet
+				measure 'Project Profitability'
+					caption: Rentabilité du projet
+				measure 'Project Realization'
+					caption: Réalisation du projet
+				measure 'Project Performance to Budget'
+					caption: Niveau de performance du projet par rapport au budget
+				measure 'Project Invoiced Sales by Type'
+					caption: Ventes du projet facturées par type
+				measure 'Project Invoiced Sales by Customer'
+					caption: Ventes du projet facturées par client
+				measure 'Project Ledger Entry Drill Through'
+					caption: Extraction écriture Compta. projet
+				measure 'Purchase Order Drill Through'
+					caption: Extraction bon de commande
+				measure 'Project Planning Line Drill Through'
+					caption: Extraction ligne planification projet
+				measure 'Project KPIs'
+					caption: Indicateurs de performance clés du projet
+				measure 'Actual Costs (Total Cost) vs. Budget (Total Cost)'
+					caption: Coûts réels (coût total) par rapport au budget (coût total)
+				measure 'Actual Profit by Project'
+					caption: Profit réel par projet
+				measure 'Projects by Project Manager'
+					caption: Projets par chef de projet
+				measure 'Realization by Projects'
+					caption: Réalisation par projets
+				measure 'Actual Profit vs. Initial Profit'
+					caption: Comparaison entre profit réel et profit initial
+				measure Actuals
+					caption: Chiffres réels
+				measure Budgeted
+					caption: Budgété
+				measure 'Realization KPIs'
+					caption: Indicateurs de performance clés de réalisation
+				measure 'Realization by Project Manager'
+					caption: Réalisation par chef de projet
+				measure 'Actual Total Cost to Budget'
+					caption: Réel : coût total par rapport au budget
+				measure 'Performance KPIs'
+					caption: Indicateurs de performance clés de niveau de performance
+				measure 'Invoiced Sales KPIs'
+					caption: Indicateurs de performance clés de ventes facturées
+				measure Projects
+					caption: Projets
+				measure 'for Business Central'
+					caption: pour Business Central
+				measure 'CONNECT YOUR DATA'
+					caption: CONNECTER VOS DONNÉES
+				measure '1. Download the Projects Connector for Power BI'
+					caption: 1. Téléchargez le connecteur de projets pour Power BI
+				measure '2. Configure Dynamics 365 Business Central'
+					caption: 2. Configurez Dynamics 365 Business Central
+				measure 'USE, EDIT AND BUILD YOUR OWN REPORTS'
+					caption: UTILISER, MODIFIER ET CRÉER VOS PROPRES RAPPORTS
+				measure 'Projects includes a variety of pre-built reports to help you see your data immediately.'
+					caption: Projets comprend une variété de rapports prédéfinis pour vous aider à voir vos données immédiatement.
+				measure 'You are able to edit these reports or build your own report from scratch'
+					caption: Vous pouvez modifier ces rapports ou créer votre propre rapport à partir de zéro
+				measure 'HELP AND SUPPORT'
+					caption: AIDE ET SUPPORT
+				measure 'For help and support with your new report please visit the Analytics overview documentation.'
+					caption: Pour obtenir de l’aide et de l’assistance concernant votre nouveau rapport, consultez la documentation de vue d’ensemble de l’analyse.
+				measure 'OTHER POWER BI REPORTS'
+					caption: AUTRES RAPPORTS POWER BI
+				measure PURCHASE
+					caption: ACHAT
+				measure FINANCE
+					caption: FINANCIER
+				measure INVENTORY
+					caption: INVENTAIRE
+				measure SALES
+					caption: VENTES
+				measure MANUFACTURING
+					caption: FABRICATION
+				measure 'The project tasks shows project number and description, budget (total cost), actual cost (total cost), billable (total price), billable (invoiced price), actual (total price), realization percentage, actual profit, and actual profit margin percentage.'
+					caption: Les tâches projet indiquent les éléments suivants : numéro et description du projet, budget (coût total), coût réel (coût total), facturable (prix total), facturable (prix facturé), réel (prix total), pourcentage de réalisation, profit réel et pourcentage marge profit réelle.
+				measure 'The project profitability shows project number, type, number and description, actual (total cost), billable (invoiced price), actual profit margin percentage, and actual profit.'
+					caption: La rentabilité du projet indique les éléments suivants : numéro, type, nombre et description du projet, réel (coût total), facturable (prix facturé), pourcentage marge profit réelle et bénéfice réel.
+				measure 'The project realization shows project number, type, number and description, billable (invoiced price), actual (total price), and realization percentage.'
+					caption: La réalisation du projet indique le numéro, le type, le nombre et la description du projet, réel (coût total), facturable (prix facturé), réel (prix total), et le pourcentage de réalisation.
+				measure 'The project performance to budget shows project number and description, status, budget (total cost), actual (total cost), total cost variance to budget, and total cost variance to budget percentage.'
+					caption: Le niveau de performance du projet par rapport au budget indique les éléments suivants : numéro et description du projet, état, budget (coût total), réel (coût total), écart du coût total par rapport au budget et écart du coût total par rapport au pourcentage de budget.
+				measure 'The project invoiced sales by type shows type, number and description, project number, unit of measure, quantity, unit price (local currency), and billable (invoiced price).'
+					caption: Les ventes facturées du projet par type indiquent les éléments suivants : type, numéro et description, numéro de projet, unité de mesure, quantité, prix unitaire (devise locale) et facturable (prix facturé).
+				measure 'The project invoiced sales by customer shows customer number and name, project number, type, number and description, quantity, unit price (local currency), and billable (invoiced price).'
+					caption: Les ventes facturées du projet par client indiquent les éléments suivants : numéro et nom du client, numéro de projet, type, numéro et description, quantité, prix unitaire (devise locale) et facturable (prix facturé).
+				measure 'The project ledger entry drill through shows posting date, project number, task number, task entry type, type, number, description, unit of measure, quantity, unit cost, unit price, total cost, and total price.'
+					caption: L’extraction écriture projet indique les éléments suivants : date de report, numéro de projet, numéro de tâche, type d’écriture tâche, type, nombre, description, unité de mesure, quantité, coût unitaire, prix unitaire, coût total et prix total.
+				measure 'The project order drill through shows project number, task number, source type,entry type, type, number, description, document number, quantity (base), amount (local currency), expected receipt date, outstanding amount on purchase order, amount received not invoiced, and document type.'
+					caption: L’extraction de l’ordre de projet indique les éléments suivants : numéro de projet, numéro de tâche, type source, type écriture, type, numéro, description, numéro de document, quantité (base), montant (devise locale), date réception prévue, montant dû sur le bon de commande, montant reçu non facturé et type de document.
+				measure 'The project planning drill through shows project number, task number, line number, type, number, description, line type, planning line quantity, unit cost, unit price, planning line total cost, and planning line total price.'
+					caption: L’extraction ligne de planification de projet indique le numéro de projet, le numéro de tâche, le numéro de ligne, le type, le numéro, la description, le type de ligne, la quantité de la ligne de planification de projet, le coût unitaire, le prix unitaire, le coût total ligne de planification, et le prix total ligne de planification.
+				measure 'Company Name'
+					caption: Nom de la compagnie
+				measure 'Last Refreshed'
+					caption: Dernière actualisation
+				measure 'Actual Profit Margin % vs Budget Profit Margin %'
+					caption: % marge profit réelle par rapport au % marge profit budget
+				measure 'Billable (Invoiced Price) and Actual (Total Price) by Project No. & Description'
+					caption: Facturable (prix facturé) et réel (prix total) par n° de projet et description
+				measure 'Billable (Invoiced Price) by Type'
+					caption: Facturable (prix facturé) par type
+				measure 'Profit Margin vs Budget Profit Margin'
+					caption: Marge bénéficiaire par rapport à la marge bénéficiaire budgétée
+				measure 'Project Tasks by Project'
+					caption: Tâches du projet par projet
+				measure 'Project Timeline'
+					caption: Chronologie du projet
+				measure 'Project Tasks Duration'
+					caption: Durée tâches projet
+				measure 'Project Task Details'
+					caption: Détails tâche projet
+			table COMPANY
+				caption: COMPAGNIE
+				measure 'Company Label'
+					caption: Étiquette compagnie
+

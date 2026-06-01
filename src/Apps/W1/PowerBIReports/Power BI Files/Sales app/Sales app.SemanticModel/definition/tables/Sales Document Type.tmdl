@@ -1,0 +1,35 @@
+table 'Sales Document Type'
+	isHidden
+	lineageTag: 6e42d4c6-577b-4cf4-b7e7-958306a5623b
+
+	column Value
+		dataType: int64
+		formatString: 0
+		lineageTag: fe4b4026-de20-42cb-9ba4-5fdb99e0f54d
+		summarizeBy: sum
+		sourceColumn: Value
+
+		annotation SummarizationSetBy = Automatic
+
+	column Caption
+		dataType: string
+		lineageTag: 2e8db215-ad09-4b8e-be56-93c1c6761e72
+		summarizeBy: none
+		sourceColumn: Caption
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Sales Document Type' = m
+		mode: import
+		queryGroup: 'Document and Line Type Enums'
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i45WMlDSUQoszS9JVYrViVYyBPL8i1JSi8A8IyDPM68sPzMZImsM5DsXpaZklij4pubmg8VMgGJOOYl52aklCgidpkDRoNSS0qI8mGAsAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Value = _t, Caption = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Value", Int64.Type}, {"Caption", type text}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

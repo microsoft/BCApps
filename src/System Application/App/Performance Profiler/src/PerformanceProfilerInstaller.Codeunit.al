@@ -5,7 +5,6 @@
 
 namespace System.Tooling;
 
-using System.Environment.Configuration;
 using System.DataAdministration;
 using System.PerformanceProfile;
 using System.Upgrade;
@@ -57,9 +56,12 @@ codeunit 1933 "Performance Profiler Installer"
         AddRetentionPolicyAllowedTables(true);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Initialization", OnAfterLogin, '', false, false)]
-    local procedure AddAllowedTablesOnAfterSystemInitialization()
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", OnGetPerCompanyUpgradeTags, '', false, false)]
+    local procedure RegisterPerCompanyTags(var PerCompanyUpgradeTags: List of [Code[250]])
+    var
+        UpgradeTag: Codeunit "Upgrade Tag";
     begin
-        AddRetentionPolicyAllowedTables(false);
+        if not UpgradeTag.HasUpgradeTag(GetPerformanceProfileAddedToAllowedListUpgradeTag()) then
+            PerCompanyUpgradeTags.Add(GetPerformanceProfileAddedToAllowedListUpgradeTag());
     end;
 }

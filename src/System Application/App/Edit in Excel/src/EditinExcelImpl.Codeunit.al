@@ -6,8 +6,8 @@
 namespace System.Integration.Excel;
 
 using System;
-using System.Integration;
 using System.Environment;
+using System.Integration;
 using System.Reflection;
 
 codeunit 1482 "Edit in Excel Impl."

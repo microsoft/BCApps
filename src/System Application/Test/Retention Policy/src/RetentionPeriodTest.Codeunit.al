@@ -7,8 +7,8 @@ namespace System.Test.DataAdministration;
 
 using System.DataAdministration;
 using System.TestLibraries.DataAdministration;
-using System.TestLibraries.Utilities;
 using System.TestLibraries.Security.AccessControl;
+using System.TestLibraries.Utilities;
 
 codeunit 138700 "Retention Period Test"
 {

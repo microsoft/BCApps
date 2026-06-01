@@ -5,9 +5,9 @@
 
 namespace System.Test.Utilities;
 
-using System.Utilities;
-using System.TestLibraries.Utilities;
 using System.TestLibraries.Security.AccessControl;
+using System.TestLibraries.Utilities;
+using System.Utilities;
 
 codeunit 135032 "Temp Blob List Test"
 {

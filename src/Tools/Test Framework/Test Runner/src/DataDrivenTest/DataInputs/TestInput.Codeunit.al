@@ -8,7 +8,7 @@ namespace System.TestTools.TestRunner;
 codeunit 130460 "Test Input"
 {
     SingleInstance = true;
-    Permissions = tabledata "Test Input" = RMID;
+    Permissions = tabledata "Test Input" = RMID, tabledata "Test Method Line" = RMID;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Test Runner - Mgt", 'OnBeforeTestMethodRun', '', false, false)]
     local procedure BeforeTestMethodRun(CodeunitID: Integer; CodeunitName: Text[30]; FunctionName: Text[128]; FunctionTestPermissions: TestPermissions; var CurrentTestMethodLine: Record "Test Method Line")
@@ -64,6 +64,22 @@ codeunit 130460 "Test Input"
     procedure GetTestInputValue(): Text
     begin
         exit(DataPerTest.GetInput(DataPerTest));
+    end;
+
+    procedure GetTestInputByCode(GroupCode: Code[100]; InputCode: Code[100]): Codeunit "Test Input Json"
+    var
+        TestInputRec: Record "Test Input";
+        TestInputJson: Codeunit "Test Input Json";
+        InputContent: Text;
+    begin
+        if not TestInputRec.Get(GroupCode, InputCode) then
+            exit(TestInputJson);
+
+        InputContent := TestInputRec.GetInput(TestInputRec);
+        if InputContent <> '' then
+            TestInputJson.Initialize(InputContent);
+
+        exit(TestInputJson);
     end;
 
     var

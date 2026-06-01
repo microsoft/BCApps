@@ -1,0 +1,207 @@
+table 'Prod Order Components'
+	lineageTag: ce34ad92-5537-41fa-9cd7-8b79f67d987d
+
+	measure 'Prod Order Component Cost Amount' = SUM('Prod Order Components'[costAmount])
+		formatString: #,0.00
+		displayFolder: _Prod Order Component Measures
+		lineageTag: 8c48b06d-8504-476e-8ea6-e24636dcda67
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Prod Order Component Expected Qty. (Base)' = SUM('Prod Order Components'[expectedQtyBase])
+		formatString: #,0.00
+		displayFolder: _Prod Order Component Measures
+		lineageTag: 5a33fb0a-8c75-449d-9e96-9843c822afc9
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Prod Order Component Remaining Qty. (Base)' = SUM('Prod Order Components'[remainingQtyBase])
+		formatString: #,0.00
+		displayFolder: _Prod Order Component Measures
+		lineageTag: a4e62cc9-f676-4564-8663-cf9aae784564
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Prod. Order Status'
+		dataType: string
+		isHidden
+		lineageTag: 325b4524-a10f-4b06-a3c3-b69253192001
+		summarizeBy: none
+		sourceColumn: Prod. Order Status
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Item No.'
+		dataType: string
+		isHidden
+		lineageTag: 15c2bd31-8fc2-4c4b-b208-ab395ee9ea7c
+		summarizeBy: none
+		sourceColumn: Item No.
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Location Code'
+		dataType: string
+		isHidden
+		lineageTag: 53f8040e-72eb-4b29-8c35-f5e10ed42a0c
+		summarizeBy: none
+		sourceColumn: Location Code
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column expectedQtyBase
+		dataType: double
+		isHidden
+		lineageTag: 27bae58a-94e8-45ed-8827-2fe7b3b96c60
+		summarizeBy: sum
+		sourceColumn: expectedQtyBase
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column remainingQtyBase
+		dataType: double
+		isHidden
+		lineageTag: 1186a9bd-85a1-49af-af35-fbd79ffba9ef
+		summarizeBy: sum
+		sourceColumn: remainingQtyBase
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Due Date'
+		dataType: dateTime
+		isHidden
+		formatString: Long Date
+		lineageTag: 4459b9ee-1c76-4657-a577-8758e5d74733
+		summarizeBy: none
+		sourceColumn: Due Date
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Routing Link Code'
+		dataType: string
+		isHidden
+		lineageTag: 862a0985-dab7-4082-bfbb-2573880d4c78
+		summarizeBy: none
+		sourceColumn: Routing Link Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dimension Set ID'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: f5653753-9e67-45aa-bffe-eb65d69e18e8
+		summarizeBy: count
+		sourceColumn: Dimension Set ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Location Name'
+		dataType: string
+		isHidden
+		lineageTag: 355a5cf2-8b09-4177-b6cf-c53764a9db45
+		summarizeBy: none
+		sourceColumn: Location Name
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Prod. Order No.'
+		dataType: string
+		isHidden
+		lineageTag: 7d766f98-c7ad-47a2-a394-6454819c473c
+		summarizeBy: none
+		sourceColumn: Prod. Order No.
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Prod. Order Line No.'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 9d4385fb-80c1-47f3-8831-f3cd5d2d656a
+		summarizeBy: sum
+		sourceColumn: Prod. Order Line No.
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Prod. Order Key'
+		dataType: string
+		isHidden
+		lineageTag: 3749ff13-6a69-4aaa-8a7a-135b33e02514
+		summarizeBy: none
+		sourceColumn: Prod. Order Key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column costAmount
+		dataType: double
+		isHidden
+		lineageTag: f9e18ab7-6b5b-4d02-8287-614703e8d7aa
+		summarizeBy: sum
+		sourceColumn: costAmount
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Prod Order Components Line No.'
+		dataType: int64
+		formatString: 0
+		lineageTag: 46014a9a-df61-44b4-bc60-0b58f457b1d7
+		summarizeBy: sum
+		sourceColumn: Prod Order Components Line No.
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Prod Order Components' = m
+		mode: import
+		queryGroup: 'Fact Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(
+				        ENVIRONMENT, COMPANY,API_ENDPOINT, []
+				    ),
+				    TableData = Source{[Name = "manufacturingProdOrderComponents", Signature = "table"]}[Data],
+				    #"Changed Type" = Table.TransformColumnTypes(TableData,{{"prodOrderStatus", type text}, {"prodOrderNo", type text}, {"prodOrderLineNo", Int64.Type}, {"itemNo", type text}, {"locationCode", type text}, {"expectedQtyBase", type number}, {"remainingQtyBase", type number}, {"dueDate", type date}, {"routingLinkCode", type text}, {"dimensionSetID", Int64.Type}, {"locationName", type text}}),
+				    #"Renamed Columns" = Table.RenameColumns(#"Changed Type",{{"prodOrderStatus", "Prod. Order Status"}, {"prodOrderNo", "Prod. Order No."}, {"prodOrderLineNo", "Prod. Order Line No."}, {"itemNo", "Item No."}, {"locationCode", "Location Code"}, {"dueDate", "Due Date"}, {"routingLinkCode", "Routing Link Code"}, {"dimensionSetID", "Dimension Set ID"}, {"locationName", "Location Name"}, {"auxiliaryIndex1", "Prod Order Components Line No."}}),
+				    #"Added Column" = Table.AddColumn(
+				        #"Renamed Columns", "Prod. Order Key", each [#"Prod. Order Status"] & " " & [#"Prod. Order No."], type text
+				    ),
+				    #"Removed Columns" = Table.RemoveColumns(#"Added Column",{"ETag"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

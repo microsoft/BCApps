@@ -6,8 +6,8 @@
 namespace System.Test.Security.AccessControl;
 
 using System.Security.AccessControl;
-using System.TestLibraries.Utilities;
 using System.TestLibraries.Security.AccessControl;
+using System.TestLibraries.Utilities;
 
 codeunit 135033 "Password Dialog Test"
 {
@@ -268,6 +268,27 @@ codeunit 135033 "Password Dialog Test"
         Assert.AreEqual(AnotherValidPasswordTxt, GetPasswordValue(Password), 'A diferrent password was expected.')
     end;
 
+    [Test]
+    [HandlerFunctions('ChangePasswordDialogWithCurrentPasswordEmptyModalPageHandler')]
+    procedure OpenPasswordChangeDialogWithCurrentPasswordEmptyTest();
+    var
+        Password: SecretText;
+        CurrentPassword: SecretText;
+    begin
+        // [SCENARIO] Open Password dialog in change password mode.
+        // The old password has been passed on. However, we do not enter OldPassword 
+        // and expect an error stating that the old password does not match the entered (empty) password.
+        PermissionsMock.Set('All Objects');
+
+        // [GIVEN] The old password is for comparison that the old password matches the entered user and 
+        // the new password does not match the old password.
+        CurrentPassword := SecretStrSubstNo(ValidPasswordTxt);
+
+        // [WHEN] The password dialog is opened in change password mode.
+        // [THEN] An error is expected, as we will not fill in OldPassword.
+        PasswordDialogManagement.OpenPasswordChangeDialog(CurrentPassword, Password);
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Password Dialog Management", 'OnSetMinPasswordLength', '', true, true)]
     local procedure OnSetMinimumPAsswordLength(var MinPasswordLength: Integer);
     begin
@@ -311,6 +332,19 @@ codeunit 135033 "Password Dialog Test"
         PasswordDialog.Password.SetValue(AnotherValidPasswordTxt);
         PasswordDialog.ConfirmPassword.SetValue(AnotherValidPasswordTxt);
         PasswordDialog.OK().Invoke();
+    end;
+
+    [ModalPageHandler]
+    procedure ChangePasswordDialogWithCurrentPasswordEmptyModalPageHandler(var PasswordDialog: TestPage "Password Dialog");
+    begin
+        Assert.IsTrue(PasswordDialog.OldPassword.Visible(), 'Old Password Field should be visible.');
+        Assert.IsTrue(PasswordDialog.ConfirmPassword.Visible(), 'Confirm Password Field should be visible.');
+        PasswordDialog.Password.SetValue(AnotherValidPasswordTxt);
+        PasswordDialog.ConfirmPassword.SetValue(AnotherValidPasswordTxt);
+
+        //As we forgot to enter previous password, we expect an error
+        asserterror PasswordDialog.OK().Invoke();
+        Assert.ExpectedError(CurrentPasswordMismatchErr);
     end;
 
     [ConfirmHandler]

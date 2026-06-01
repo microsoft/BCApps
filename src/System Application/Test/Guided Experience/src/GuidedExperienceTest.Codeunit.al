@@ -6,10 +6,10 @@
 namespace System.Test.Environment.Configuration;
 
 using System.Environment.Configuration;
-using System.TestLibraries.Environment.Configuration;
 using System.Media;
-using System.TestLibraries.Utilities;
+using System.TestLibraries.Environment.Configuration;
 using System.TestLibraries.Security.AccessControl;
+using System.TestLibraries.Utilities;
 
 codeunit 132594 "Guided Experience Test"
 {

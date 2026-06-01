@@ -10,14 +10,16 @@ namespace Microsoft.Foundation.AuditCodes;
 /// </summary>
 /// <remarks>
 /// https://learn.microsoft.com/en-us/dynamics365/business-central/finance-setup-trail-codes
-/// This page is used to set up source codes that are used to categorize the source of a transaction. 
+/// This page is used to set up source codes that are used to categorize the source of a transaction.
 /// Each feature that introduces a new transaction source should add a field to set up a default source code.
 /// </remarks>
 table 242 "Source Code Setup"
 {
     Caption = 'Source Code Setup';
     DataClassification = CustomerContent;
+#if not CLEANSCHEMA27
     MovedFrom = '437dbf0e-84ff-417a-965d-ed2bb9650972';
+#endif
 
     fields
     {
@@ -42,4 +44,3 @@ table 242 "Source Code Setup"
     {
     }
 }
-

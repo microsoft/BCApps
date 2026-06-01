@@ -1,0 +1,49 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
+namespace Microsoft.Integration.Shopify;
+
+using Microsoft.Sales.Document;
+
+/// <summary>
+/// PageExtension Shpfy Sales Order List (ID 30116) extends Record Sales Order List.
+/// </summary>
+pageextension 30116 "Shpfy Sales Order List" extends "Sales Order List"
+{
+    layout
+    {
+        addafter("No.")
+        {
+            field(ShpfyOrderNo; Rec."Shpfy Order No.")
+            {
+                ApplicationArea = All;
+                DrillDown = true;
+                ToolTip = 'Specifies the order number from Shopify';
+                Visible = false;
+
+                trigger OnDrillDown()
+                var
+                    ShopifyOrderMgt: Codeunit "Shpfy Order Mgt.";
+                    VariantRec: Variant;
+                begin
+                    VariantRec := Rec;
+                    ShopifyOrderMgt.ShowShopifyOrder(VariantRec);
+                end;
+            }
+        }
+    }
+
+    views
+    {
+        addlast
+        {
+            view(FromShopify)
+            {
+                Caption = 'From Shopify';
+                Filters = where("Shpfy Order Id" = filter(<> 0));
+            }
+        }
+    }
+}

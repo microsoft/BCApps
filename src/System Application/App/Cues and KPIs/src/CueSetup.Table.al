@@ -5,9 +5,9 @@
 
 namespace System.Visualization;
 
-using System.Security.User;
 using System.Reflection;
 using System.Security.AccessControl;
+using System.Security.User;
 
 table 9701 "Cue Setup"
 {
@@ -81,6 +81,7 @@ table 9701 "Cue Setup"
         field(6; "Threshold 1"; Decimal)
         {
             DataClassification = CustomerContent;
+            AutoFormatType = 0;
 
             trigger OnValidate()
             var
@@ -97,6 +98,7 @@ table 9701 "Cue Setup"
         field(8; "Threshold 2"; Decimal)
         {
             DataClassification = CustomerContent;
+            AutoFormatType = 0;
 
             trigger OnValidate()
             var

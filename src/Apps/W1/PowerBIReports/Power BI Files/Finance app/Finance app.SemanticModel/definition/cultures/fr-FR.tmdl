@@ -1,0 +1,1986 @@
+cultureInfo fr-FR
+	translations
+		model Model
+			table 'G/L Account Category'
+				caption: Catégorie de compte général
+				column 'G/L Acc. Category Description'
+					caption: Description catégorie cpte général
+				column siblingSequenceNo
+					caption: siblingSequenceNo
+				column indentation
+					caption: indentation
+				column accountCategory
+					caption: accountCategory
+				column incomeBalance
+					caption: incomeBalance
+				column additionalReportDefinition
+					caption: additionalReportDefinition
+				column systemGenerated
+					caption: systemGenerated
+				column hasChildren
+					caption: hasChildren
+				measure GLAccCategoryBrowseDepth
+					caption: GLAccCategoryBrowseDepth
+					displayFolder: Mesures Relatives Aux Catégories De Comptes _G/L
+				measure GLAccCategoryMaxNodeDepth
+					caption: GLAccCategoryMaxNodeDepth
+					displayFolder: Mesures Relatives Aux Catégories De Comptes _G/L
+				measure 'G/L Acc. Category Balance at Date'
+					caption: Solde à ce jour catégorie compte général
+					displayFolder: Mesures Relatives Aux Catégories De Comptes _G/L
+				measure 'G/L Acc. Category Net Change'
+					caption: Variation nette catégorie compte général
+					displayFolder: Mesures Relatives Aux Catégories De Comptes _G/L
+				measure 'G/L Acc. Category Budget Balance at Date'
+					caption: Solde budgétaire à ce jour catégorie compte général
+					displayFolder: Mesures Relatives Aux Catégories De Comptes _G/L
+				measure 'G/L Acc. Category Budget Amount'
+					caption: Montant budgétaire catégorie compte général
+					displayFolder: Mesures Relatives Aux Catégories De Comptes _G/L
+				hierarchy 'G/L Account Category Hierarchy'
+					caption: Hiérarchie de catégories de cpte général
+					level 'G/L Account Category (Level 1)'
+						caption: Filtre catégorie de compte général (niveau 1)
+					level 'G/L Account Category (Level 2)'
+						caption: Filtre catégorie de compte général (niveau 2)
+					level 'G/L Account Category (Level 3)'
+						caption: Filtre catégorie de compte général (niveau 3)
+			table 'Balance Sheet Measures'
+				caption: Mesure bilan
+				measure 'Current Assets'
+					caption: Actifs circulants
+					displayFolder: ACTIF
+				measure 'Current Liabilities'
+					caption: Passif à court terme
+					displayFolder: PASSIF
+				measure Inventory
+					caption: Stock
+					displayFolder: ACTIF
+				measure 'Working Capital'
+					caption: Fonds de roulement
+				measure 'Shareholders'' Equity'
+					caption: Autres fonds propres
+					displayFolder: ÉQUITÉ
+				measure Liabilities
+					caption: Passif
+					displayFolder: PASSIF
+				measure Assets
+					caption: Actifs
+					displayFolder: ACTIF
+				measure Equity
+					caption: Fonds propres
+					displayFolder: ÉQUITÉ
+				measure 'Liabilities & Equity'
+					caption: Passif et capitaux propres
+					displayFolder: PASSIF
+				measure 'Accounts Payable'
+					caption: Comptabilité fournisseur
+					displayFolder: PASSIF
+				measure 'Accounts Receivable'
+					caption: Comptabilité client
+					displayFolder: ACTIF
+				measure 'Accounts Receivable (Beginning Balance)'
+					caption: Comptabilité client (solde d’ouverture)
+					displayFolder: ACTIF
+				measure 'Accounts Receivable (Average)'
+					caption: Comptabilité client (moyenne)
+					displayFolder: ACTIF
+				measure 'Inventory (Beginning Balance)'
+					caption: Stock (solde d’ouverture)
+					displayFolder: ACTIF
+				measure 'Inventory (Average)'
+					caption: Stock (moyenne)
+					displayFolder: ACTIF
+				measure 'Purchase Prepayments'
+					caption: Acomptes achat
+				measure 'Liquid Assets'
+					caption: Actifs trésorerie
+					displayFolder: ACTIF
+				measure 'Fixed Assets'
+					caption: Immobilisations
+					displayFolder: ACTIF
+				measure 'Capital Employed'
+					caption: Capital employé
+				measure 'Liabilities (Neg)'
+					caption: Passif (négatif)
+					displayFolder: PASSIF
+				measure 'Accounts Payable (Neg)'
+					caption: Comptabilité fournisseur (négatif)
+					displayFolder: PASSIF
+				measure 'Payroll Liabilites'
+					caption: Passif de frais de personnel
+					displayFolder: PASSIF
+				measure 'Longterm Liabilities'
+					caption: Passif à long terme
+					displayFolder: PASSIF
+			table 'Income Statement Measures'
+				caption: Mesures compte de résultat
+				measure Revenue
+					caption: Produits
+					displayFolder: REVENU
+				measure 'Cost of Goods Sold'
+					caption: Coût des produits vendus
+					displayFolder: ROUAGES
+				measure Expense
+					caption: Dépenses
+					displayFolder: DÉPENSE
+				measure 'Interest Expense'
+					caption: Charges d’intérêts
+					displayFolder: DÉPENSE
+				measure 'Tax Expense'
+					caption: Charges d’impôt
+					displayFolder: DÉPENSE
+				measure 'Extraordinary Expense'
+					caption: Charges exceptionnelles
+					displayFolder: DÉPENSE
+				measure 'Operating Expense - OPEX'
+					caption: Charges d’exploitation : OPEX
+					displayFolder: DÉPENSE
+				measure Purchases
+					caption: Achats
+					displayFolder: DÉPENSE
+				measure 'FX Losses Expense'
+					caption: Charges pour pertes de change
+					displayFolder: DÉPENSE
+				measure 'Depreciation and Amortization'
+					caption: Amortissement
+					displayFolder: DÉPENSE
+				measure 'Revenue (Balance at Date)'
+					caption: Produits (solde à ce jour)
+					displayFolder: REVENU
+				measure 'Revenue (Beginning Balance)'
+					caption: Produits (solde d’ouverture)
+					displayFolder: REVENU
+				measure 'Interest Revenue'
+					caption: Produits d’intérêts
+					displayFolder: REVENU
+				measure 'FX Gains Revenue'
+					caption: Produits de gains de change
+					displayFolder: REVENU
+				measure 'Extraordinary Revenue'
+					caption: Produits exceptionnels
+					displayFolder: REVENU
+				measure 'Operating Revenue'
+					caption: Produits d’exploitation
+					displayFolder: REVENU
+				measure 'Expense (Balance at Date)'
+					caption: Charges (solde à ce jour)
+					displayFolder: DÉPENSE
+				measure 'Expense (Beginning Balance)'
+					caption: Charges (solde d’ouverture)
+					displayFolder: DÉPENSE
+				measure 'Interest Expense (Balance at Date)'
+					caption: Charges d’intérêts (solde à ce jour)
+					displayFolder: DÉPENSE
+				measure 'Interest Expense (Beginning Balance)'
+					caption: Charges d’intérêts (solde d’ouverture)
+					displayFolder: DÉPENSE
+				measure 'FX Losses Expense (Balance at Date)'
+					caption: Charges pour pertes de change (solde à ce jour)
+					displayFolder: DÉPENSE
+				measure 'FX Losses Expense (Beginning Balance)'
+					caption: Charges pour pertes de change (solde d’ouverture)
+					displayFolder: DÉPENSE
+				measure 'Tax Expense (Balance at Date)'
+					caption: Charges d’impôt (solde à ce jour)
+					displayFolder: DÉPENSE
+				measure 'Tax Expense (Beginning Balance)'
+					caption: Charges d’impôt (solde d’ouverture)
+					displayFolder: DÉPENSE
+				measure 'Extraordinary Expense (Balance at Date)'
+					caption: Charges exceptionnelles (solde à ce jour)
+					displayFolder: DÉPENSE
+				measure 'Extraordinary Expense (Beginning Balance)'
+					caption: Charges exceptionnelles (solde d’ouverture)
+					displayFolder: DÉPENSE
+				measure 'Interest Revenue (Balance at Date)'
+					caption: Produits d’intérêts (solde à ce jour)
+					displayFolder: REVENU
+				measure 'Interest Revenue (Beginning Balance)'
+					caption: Produits d’intérêts (solde d’ouverture)
+					displayFolder: REVENU
+				measure 'FX Gains Revenue (Balance at Date)'
+					caption: Produits de gains de change (solde à ce jour)
+					displayFolder: REVENU
+				measure 'FX Gains Revenue (Beginning Balance)'
+					caption: Produits de gains de change (solde d’ouverture)
+					displayFolder: REVENU
+				measure 'Extraordinary Revenue (Balance at Date)'
+					caption: Produits exceptionnels (solde à ce jour)
+					displayFolder: REVENU
+				measure 'Extraordinary Revenue (Beginning Balance)'
+					caption: Produits exceptionnels (solde d’ouverture)
+					displayFolder: REVENU
+				measure 'Operating Expense - OPEX (Balance at Date)'
+					caption: Charges d’exploitation : OPEX (solde à ce jour)
+					displayFolder: DÉPENSE
+				measure 'Operating Expense - OPEX (Beginning Balance)'
+					caption: Charges d’exploitation : OPEX (solde d’ouverture)
+					displayFolder: DÉPENSE
+				measure 'Operating Revenue (Balance at Date)'
+					caption: Produits d’exploitation (solde à ce jour)
+					displayFolder: REVENU
+				measure 'Operating Revenue (Beginning Balance)'
+					caption: Produits d’exploitation (solde d’ouverture)
+					displayFolder: REVENU
+			table 'G/L Account'
+				caption: Compte général
+				column 'G/L Account No./Name'
+					caption: Nom/N° compte général
+				column 'G/L Account No./Name Indented'
+					caption: Nom/N° compte général indenté
+				column 'Parent G/L Account No.'
+					caption: N° cpte général parent
+				column 'G/L Account No.'
+					caption: N° compte général
+				column 'G/L Account Name'
+					caption: Nom compte général
+				column 'Account Type'
+					caption: Type de compte
+				column Income/Balance
+					caption: Revenu/Solde
+				column 'Account Subcategory Entry No.'
+					caption: N° écriture de sous-catégorie du compte
+				measure GLAccBrowseDepth
+					caption: Glaccbrowsedepth
+				measure GLAccMaxNodeDepth
+					caption: Glaccmaxnodedepth
+				measure 'G/L Acc. Balance at Date'
+					caption: Solde à ce jour compte général
+					displayFolder: Mesures Du Compte _G/L
+				measure 'G/L Acc. Net Change'
+					caption: Variation nette compte général
+					displayFolder: Mesures Du Compte _G/L
+				measure 'G/L Acc. Budget Balance at Date'
+					caption: Solde budgétaire à ce jour compte général
+					displayFolder: Mesures Du Compte _G/L
+				measure 'G/L Acc. Budget Amount'
+					caption: Montant budgétaire compte général
+					displayFolder: Mesures Du Compte _G/L
+				hierarchy 'G/L Account Hierarchy'
+					caption: Hiérarchie de compte général
+					level 'G/L Account (Level 1)'
+						caption: Compte général (niveau 1)
+					level 'G/L Account (Level 2)'
+						caption: Compte général (niveau 2)
+					level 'G/L Account (Level 3)'
+						caption: Compte général (niveau 3)
+					level 'G/L Account (Level 4)'
+						caption: Compte général (niveau 4)
+					level 'G/L Account (Level 5)'
+						caption: Compte général (niveau 5)
+			table 'Activity KPIs'
+				caption: Indicateurs de performances clés activité
+				measure 'Average Collection Period (Days)'
+					caption: Délai de règlement moyen (jours)
+				measure '% Change in Revenue'
+					caption: % variation des produits
+				measure '% Change in Operating Profit - EBIT'
+					caption: % de variation du résultat d’exploitation : BAII
+				measure 'Days Sales Outstanding - DSO'
+					caption: Délai moyen de paiement client : DMPC
+				measure 'Days Payable Outstanding - DPO'
+					caption: Délai de paiement fournisseur : DPF
+				measure 'Days Sales Of Inventory - DSI'
+					caption: Jours de ventes en stock : JVS
+				measure 'Cash Conversion Cycle - CCC'
+					caption: Cycle de conversion en espèces : CCE
+				measure 'Degree Of Operating Leverage - DOL'
+					caption: Degré de levier opérationnel : DLO
+				measure 'Asset Turnover Ratio'
+					caption: Ratio de rotation de l’actif
+				measure 'Inventory Turnover'
+					caption: Rotation stock
+			table 'Liquidity KPIs'
+				caption: Indicateurs de performances clés liquidités
+				measure 'Current Ratio'
+					caption: Taux actuel
+				measure 'Quick Ratio'
+					caption: Ratio de liquidité
+				measure 'Cash Ratio'
+					caption: Ratio de trésorerie
+			table 'Profitability KPIs'
+				caption: Indicateurs de performances clés de rentabilité
+				measure 'Gross Profit Margin'
+					caption: Marge bénéf. brute
+				measure 'Net Profit Margin'
+					caption: Marge bénéficiaire nette
+				measure 'Gross Profit'
+					caption: Bénéfice brut
+				measure 'Net Profit'
+					caption: Bénéfice net
+				measure 'Operating Profit - EBIT (Beginning Balance)'
+					caption: Résultat d’exploitation : BAII (solde d’ouverture)
+				measure 'Operating Profit - EBIT'
+					caption: Résultat d’exploitation : BAII
+				measure 'Operating Profit - EBIT (Balance at Date)'
+					caption: Résultat d’exploitation : BAII (solde à ce jour)
+				measure 'Operating Profit Margin'
+					caption: Marge bénéficiaire d’exploitation
+				measure EBITDA
+					caption: BAIIDA
+				measure 'Return On Assets - ROA'
+					caption: Rentabilité des actifs : ROA
+				measure 'Return On Equity - ROE'
+					caption: Rentabilité des capitaux propres : RCP
+				measure 'Return On Net Assets - RONA'
+					caption: Rendement des actifs nets : RAN
+				measure 'Return On Capital Employed - ROCE'
+					caption: Retour sur employés : ROCE
+				measure 'Debt/Equity Ratio'
+					caption: Ratio emprunts/capitaux propres
+				measure 'Shareholder Equity Ratio'
+					caption: Ratio de capitaux propres
+				measure 'Debt Ratio'
+					caption: Taux d’endettement
+			table 'G/L Budget Entries'
+				caption: Écritures budget
+				column 'Budget Name'
+					caption: Nom du budget
+				column 'Budget Date'
+					caption: Date de budget
+				column 'Budget Amt.'
+					caption: Budget Amt.
+				column 'Entry No.'
+					caption: N° d’écriture
+				measure 'Budget Balance at Date'
+					caption: Solde budgétaire à ce jour
+					displayFolder: _G/L Mesures D’Entrée Budgétaire
+				measure 'Budget Amount'
+					caption: Montant budgétaire
+					displayFolder: _G/L Mesures D’Entrée Budgétaire
+				measure 'Budget Entry Back Link'
+					caption: Lien secondaire Écriture budget
+			table 'Dimension Sets'
+				caption: Ensembles de dimensions
+				column 'Global Dimension 1'
+					caption: Axe analytique principal 1
+				column 'Global Dimension 2'
+					caption: Axe analytique principal 2
+				column 'Shortcut Dimension 3'
+					caption: Raccourci axe 3
+				column 'Shortcut Dimension 4'
+					caption: Raccourci axe 4
+				column 'Shortcut Dimension 5'
+					caption: Raccourci axe 5
+				column 'Shortcut Dimension 6'
+					caption: Raccourci axe 6
+				column 'Shortcut Dimension 7'
+					caption: Raccourci axe 7
+				column 'Shortcut Dimension 8'
+					caption: Raccourci axe 8
+				column id
+					caption: ID
+			table 'G/L Entries'
+				caption: Écritures comptables
+				column 'Posting Date'
+					caption: Date validation
+				column 'Closing Entry'
+					caption: Écriture de clôture
+				column 'Source Code'
+					caption: Code journal
+				column 'Source Type'
+					caption: Type origine
+				column 'Source No.'
+					caption: N° origine
+				column 'Entry No.'
+					caption: N° d’écriture
+				column Description
+					caption: Description
+				measure 'Net Change'
+					caption: Variation nette
+					displayFolder: Mesures D’Entrée _G/L
+				measure 'Net Change (Neg)'
+					caption: Variation nette (négatif)
+					displayFolder: Mesures D’Entrée _G/L
+				measure 'Balance at Date'
+					caption: Solde à ce jour
+					displayFolder: Mesures D’Entrée _G/L
+				measure Amount
+					caption: Montant
+					displayFolder: Mesures D’Entrée _G/L
+				measure Balance
+					caption: Solde
+					displayFolder: Mesures D’Entrée _G/L
+				measure 'Variance to Budget'
+					caption: Écart par rapport au budget
+					displayFolder: Mesures D’Entrée _G/L
+				measure 'Variance to Budget %'
+					caption: % écart par rapport au budget
+					displayFolder: Mesures D’Entrée _G/L
+				measure 'Balance at Date (Neg)'
+					caption: Solde à ce jour (négatif)
+					displayFolder: Mesures D’Entrée _G/L
+				measure 'Net Change Back Link'
+					caption: Lien secondaire Variation nette
+				measure 'Balance At Date Back Link'
+					caption: Lien secondaire Solde au
+				measure 'Base Link'
+					caption: Lien de base
+			table 'Standard Calendar Time Intelligence'
+				caption: Intelligence temporelle du calendrier standard
+				measure 'Net Change AVG 1Y'
+					caption: Variation nette MOY 1 A
+					displayFolder: Variation Nette\Moyennes Mobiles
+				measure 'Net Change AVG 3M'
+					caption: Variation nette MOY 3 M
+					displayFolder: Variation Nette\Moyennes Mobiles
+				measure 'Net Change AVG 30D'
+					caption: Variation nette MOY 30 J
+					displayFolder: Variation Nette\Moyennes Mobiles
+				measure 'Net Change MTDOPM %'
+					caption: % variation nette MAJPRMP
+					displayFolder: Variation Nette\Cumul De La Période Par Rapport À La Période Précédente Complète
+				measure 'Net Change MTDOPM'
+					caption: Variation nette MAJPRMP
+					displayFolder: Variation Nette\Cumul De La Période Par Rapport À La Période Précédente Complète
+				measure 'Net Change PMC'
+					caption: Variation nette MPT
+					displayFolder: Variation Nette\Cumul De La Période Par Rapport À La Période Précédente Complète
+				measure 'Net Change QTDOPQ %'
+					caption: % variation nette TAJPRTP
+					displayFolder: Variation Nette\Cumul De La Période Par Rapport À La Période Précédente Complète
+				measure 'Net Change QTDOPQ'
+					caption: Variation nette TAJPRTP
+					displayFolder: Variation Nette\Cumul De La Période Par Rapport À La Période Précédente Complète
+				measure 'Net Change PQC'
+					caption: Variation nette TPT
+					displayFolder: Variation Nette\Cumul De La Période Par Rapport À La Période Précédente Complète
+				measure 'Net Change YTDOPY %'
+					caption: % variation nette SAPRAP
+					displayFolder: Variation Nette\Cumul De La Période Par Rapport À La Période Précédente Complète
+				measure 'Net Change YTDOPY'
+					caption: Variation nette SAPRAP
+					displayFolder: Variation Nette\Cumul De La Période Par Rapport À La Période Précédente Complète
+				measure 'Net Change PYC'
+					caption: Variation nette APT
+					displayFolder: Variation Nette\Cumul De La Période Par Rapport À La Période Précédente Complète
+				measure 'Net Change MATG %'
+					caption: % variation nette CTAM
+					displayFolder: Variation Nette\Croissance Totale Annuelle Mobile
+				measure 'Net Change MATG'
+					caption: Variation nette CTAM
+					displayFolder: Variation Nette\Croissance Totale Annuelle Mobile
+				measure 'Net Change PYMAT'
+					caption: Variation nette TAMAP
+					displayFolder: Variation Nette\Croissance Totale Annuelle Mobile
+				measure 'Net Change MAT'
+					caption: Variation nette TAM
+					displayFolder: Variation Nette\Croissance Totale Annuelle Mobile
+				measure 'Net Change MOMTD %'
+					caption: % variation nette MAMACJ
+					displayFolder: Variation Nette\Croissance Depuis Le Début De La Période
+				measure 'Net Change MOMTD'
+					caption: Variation nette MAMACJ
+					displayFolder: Variation Nette\Croissance Depuis Le Début De La Période
+				measure 'Net Change PMTD'
+					caption: Variation nette MPAJ
+					displayFolder: Variation Nette\Croissance Depuis Le Début De La Période
+				measure 'Net Change QOQTD %'
+					caption: % variation nette TATACJ
+					displayFolder: Variation Nette\Croissance Depuis Le Début De La Période
+				measure 'Net Change QOQTD'
+					caption: Variation nette TATACJ
+					displayFolder: Variation Nette\Croissance Depuis Le Début De La Période
+				measure 'Net Change YOYTD %'
+					caption: % variation nette AAAACJ
+					displayFolder: Variation Nette\Croissance Depuis Le Début De La Période
+				measure 'Net Change YOYTD'
+					caption: Variation nette AAAACJ
+					displayFolder: Variation Nette\Croissance Depuis Le Début De La Période
+				measure 'Net Change PQTD'
+					caption: Variation nette TPAJ
+					displayFolder: Variation Nette\Croissance Depuis Le Début De La Période
+				measure 'Net Change PYTD'
+					caption: Variation nette APAJ
+					displayFolder: Variation Nette\Croissance Depuis Le Début De La Période
+				measure 'Net Change POP %'
+					caption: % variation nette PSP
+					displayFolder: Variation Nette\Croissance D’Une Période À L’Autre
+				measure 'Net Change POP'
+					caption: Variation nette PSP
+					displayFolder: Variation Nette\Croissance D’Une Période À L’Autre
+				measure 'Net Change PP'
+					caption: Variation nette PP
+					displayFolder: Variation Nette\Croissance D’Une Période À L’Autre
+				measure 'Net Change MOM %'
+					caption: % variation nette MAM
+					displayFolder: Variation Nette\Croissance D’Une Période À L’Autre
+				measure 'Net Change MOM'
+					caption: Variation nette MAM
+					displayFolder: Variation Nette\Croissance D’Une Période À L’Autre
+				measure 'Net Change QOQ %'
+					caption: % variation nette TST
+					displayFolder: Variation Nette\Croissance D’Une Période À L’Autre
+				measure 'Net Change PM'
+					caption: Variation nette MP
+					displayFolder: Variation Nette\Croissance D’Une Période À L’Autre
+				measure 'Net Change QOQ'
+					caption: Variation nette TST
+					displayFolder: Variation Nette\Croissance D’Une Période À L’Autre
+				measure 'Net Change PQ'
+					caption: Variation nette TP
+					displayFolder: Variation Nette\Croissance D’Une Période À L’Autre
+				measure 'Net Change YOY'
+					caption: Variation nette AAA
+					displayFolder: Variation Nette\Croissance D’Une Période À L’Autre
+				measure 'Net Change YOY %'
+					caption: % variation nette AAA
+					displayFolder: Variation Nette\Croissance D’Une Période À L’Autre
+				measure 'Net Change PY'
+					caption: Variation nette AP
+					displayFolder: Variation Nette\Croissance D’Une Période À L’Autre
+				measure 'Net Change MTD'
+					caption: Variation nette MAJ
+					displayFolder: Variation Nette\Total Cumulatif De La Période
+				measure 'Net Change QTD'
+					caption: Variation nette TAJ
+					displayFolder: Variation Nette\Total Cumulatif De La Période
+				measure 'Net Change YTD'
+					caption: Variation nette solde actuel
+					displayFolder: Variation Nette\Total Cumulatif De La Période
+				measure 'Balance at Date AVG 1Y'
+					caption: Solde à ce jour MOY 1 A
+					displayFolder: Solde À La Date \ Moyennes Mobiles
+				measure 'Balance at Date AVG 3M'
+					caption: Solde à ce jour MOY 3 M
+					displayFolder: Solde À La Date \ Moyennes Mobiles
+				measure 'Balance at Date AVG 30D'
+					caption: Solde à ce jour MOY 30 J
+					displayFolder: Solde À La Date \ Moyennes Mobiles
+				measure 'Balance at Date MTDOPM %'
+					caption: % solde à ce jour MAJPRMP
+					displayFolder: Solde À La Date \ Cumul De La Période Précédente
+				measure 'Balance at Date MTDOPM'
+					caption: Solde à ce jour MAJPRMP
+					displayFolder: Solde À La Date \ Cumul De La Période Précédente
+				measure 'Balance at Date PMC'
+					caption: Solde à ce jour MPT
+					displayFolder: Solde À La Date \ Cumul De La Période Précédente
+				measure 'Balance at Date QTDOPQ %'
+					caption: % solde à ce jour TAJPRTP
+					displayFolder: Solde À La Date \ Cumul De La Période Précédente
+				measure 'Balance at Date QTDOPQ'
+					caption: Solde à ce jour TAJPRTP
+					displayFolder: Solde À La Date \ Cumul De La Période Précédente
+				measure 'Balance at Date PQC'
+					caption: Solde à ce jour TPT
+					displayFolder: Solde À La Date \ Cumul De La Période Précédente
+				measure 'Balance at Date YTDOPY %'
+					caption: % solde à ce jour SAPRAP
+					displayFolder: Solde À La Date \ Cumul De La Période Précédente
+				measure 'Balance at Date YTDOPY'
+					caption: Solde à ce jour SAPRAP
+					displayFolder: Solde À La Date \ Cumul De La Période Précédente
+				measure 'Balance at Date PYC'
+					caption: Solde à ce jour APT
+					displayFolder: Solde À La Date \ Cumul De La Période Précédente
+				measure 'Balance at Date MATG %'
+					caption: % solde à ce jour CTAM
+					displayFolder: Solde À La Date \ Croissance Totale Annuelle Mobile
+				measure 'Balance at Date MATG'
+					caption: Solde à ce jour CTAM
+					displayFolder: Solde À La Date \ Croissance Totale Annuelle Mobile
+				measure 'Balance at Date PYMAT'
+					caption: Solde à ce jour TAMAP
+					displayFolder: Solde À La Date \ Croissance Totale Annuelle Mobile
+				measure 'Balance at Date MAT'
+					caption: Solde à ce jour TAM
+					displayFolder: Solde À La Date \ Croissance Totale Annuelle Mobile
+				measure 'Balance at Date MOMTD %'
+					caption: % solde à ce jour MAMACJ
+					displayFolder: Solde À La Date De La Période À Ce Jour
+				measure 'Balance at Date MOMTD'
+					caption: Solde à ce jour MAMACJ
+					displayFolder: Solde À La Date De La Période À Ce Jour
+				measure 'Balance at Date PMTD'
+					caption: Solde à ce jour MPAJ
+					displayFolder: Solde À La Date De La Période À Ce Jour
+				measure 'Balance at Date QOQTD %'
+					caption: % solde à ce jour TATACJ
+					displayFolder: Solde À La Date De La Période À Ce Jour
+				measure 'Balance at Date QOQTD'
+					caption: Solde à ce jour TATACJ
+					displayFolder: Solde À La Date De La Période À Ce Jour
+				measure 'Balance at Date YOYTD %'
+					caption: % solde à ce jour AAAACJ
+					displayFolder: Solde À La Date De La Période À Ce Jour
+				measure 'Balance at Date YOYTD'
+					caption: Solde à ce jour AAAACJ
+					displayFolder: Solde À La Date De La Période À Ce Jour
+				measure 'Balance at Date PQTD'
+					caption: Solde à ce jour TPAJ
+					displayFolder: Solde À La Date De La Période À Ce Jour
+				measure 'Balance at Date PYTD'
+					caption: Solde à ce jour APAJ
+					displayFolder: Solde À La Date De La Période À Ce Jour
+				measure 'Balance at Date POP %'
+					caption: % solde à ce jour PSP
+					displayFolder: Solde À Ce Jour\Croissance D’Une Période À L’Autre
+				measure 'Balance at Date POP'
+					caption: Solde à ce jour PSP
+					displayFolder: Solde À Ce Jour\Croissance D’Une Période À L’Autre
+				measure 'Balance at Date PP'
+					caption: Solde à ce jour PP
+					displayFolder: Solde À Ce Jour\Croissance D’Une Période À L’Autre
+				measure 'Balance at Date MOM %'
+					caption: % solde à ce jour MAM
+					displayFolder: Solde À Ce Jour\Croissance D’Une Période À L’Autre
+				measure 'Balance at Date MOM'
+					caption: Solde à ce jour MAM
+					displayFolder: Solde À Ce Jour\Croissance D’Une Période À L’Autre
+				measure 'Balance at Date QOQ %'
+					caption: % solde à ce jour TST
+					displayFolder: Solde À Ce Jour\Croissance D’Une Période À L’Autre
+				measure 'Balance at Date PM'
+					caption: Solde à ce jour MP
+					displayFolder: Solde À Ce Jour\Croissance D’Une Période À L’Autre
+				measure 'Balance at Date QOQ'
+					caption: Solde à ce jour TST
+					displayFolder: Solde À Ce Jour\Croissance D’Une Période À L’Autre
+				measure 'Balance at Date PQ'
+					caption: Solde à ce jour TP
+					displayFolder: Solde À Ce Jour\Croissance D’Une Période À L’Autre
+				measure 'Balance at Date YOY'
+					caption: Solde à ce jour AAA
+					displayFolder: Solde À Ce Jour\Croissance D’Une Période À L’Autre
+				measure 'Balance at Date YOY %'
+					caption: % solde à ce jour AAA
+					displayFolder: Solde À Ce Jour\Croissance D’Une Période À L’Autre
+				measure 'Balance at Date PY'
+					caption: Solde à ce jour AP
+					displayFolder: Solde À Ce Jour\Croissance D’Une Période À L’Autre
+				measure 'Balance at Date MTD'
+					caption: Solde à ce jour MAJ
+					displayFolder: Solde À La Date De La Période À Ce Jour Total
+				measure 'Balance at Date QTD'
+					caption: Solde à ce jour TAJ
+					displayFolder: Solde À La Date De La Période À Ce Jour Total
+				measure 'Balance at Date YTD'
+					caption: Solde à ce jour solde actuel
+					displayFolder: Solde À La Date De La Période À Ce Jour Total
+			table 'Fiscal Calendar Time Intelligence'
+				caption: Intelligence temporelle du calendrier fiscal
+				measure 'Net Change YTD (Fiscal)'
+					caption: Variation nette solde actuel (fiscal)
+					displayFolder: Variation Nette\Total Cumulatif De La Période
+				measure 'Net Change QTD (Fiscal)'
+					caption: Variation nette TAJ (fiscal)
+					displayFolder: Variation Nette\Total Cumulatif De La Période
+				measure 'Net Change MTD (Fiscal)'
+					caption: Variation nette MAJ (fiscal)
+					displayFolder: Variation Nette\Total Cumulatif De La Période
+				measure 'Net Change PY (Fiscal)'
+					caption: Variation nette AP (fiscal)
+					displayFolder: Variation Nette\Croissance D’Une Période À L’Autre
+				measure 'Net Change YOY % (Fiscal)'
+					caption: % variation nette AAA (fiscal)
+					displayFolder: Variation Nette\Croissance D’Une Période À L’Autre
+				measure 'Net Change YOY (Fiscal)'
+					caption: Variation nette AAA (fiscal)
+					displayFolder: Variation Nette\Croissance D’Une Période À L’Autre
+				measure 'Net Change PQ (Fiscal)'
+					caption: Variation nette TP (fiscal)
+					displayFolder: Variation Nette\Croissance D’Une Période À L’Autre
+				measure 'Net Change QOQ (Fiscal)'
+					caption: Variation nette TST (fiscal)
+					displayFolder: Variation Nette\Croissance D’Une Période À L’Autre
+				measure 'Net Change QOQ % (Fiscal)'
+					caption: % variation nette TST (fiscal)
+					displayFolder: Variation Nette\Croissance D’Une Période À L’Autre
+				measure 'Net Change PM (Fiscal)'
+					caption: Variation nette MP (fiscal)
+					displayFolder: Variation Nette\Croissance D’Une Période À L’Autre
+				measure 'Net Change MOM (Fiscal)'
+					caption: Variation nette MAM (fiscal)
+					displayFolder: Variation Nette\Croissance D’Une Période À L’Autre
+				measure 'Net Change MOM % (Fiscal)'
+					caption: % variation nette MAM (fiscal)
+					displayFolder: Variation Nette\Croissance D’Une Période À L’Autre
+				measure 'Net Change PP (Fiscal)'
+					caption: Variation nette PP (fiscal)
+					displayFolder: Variation Nette\Croissance D’Une Période À L’Autre
+				measure 'Net Change POP (Fiscal)'
+					caption: Variation nette PSP (fiscal)
+					displayFolder: Variation Nette\Croissance D’Une Période À L’Autre
+				measure 'Net Change POP % (Fiscal)'
+					caption: % variation nette PSP (fiscal)
+					displayFolder: Variation Nette\Croissance D’Une Période À L’Autre
+				measure 'Net Change PYTD (Fiscal)'
+					caption: Variation nette APAJ (fiscal)
+					displayFolder: Variation Nette\Croissance Depuis Le Début De La Période
+				measure 'Net Change PQTD (Fiscal)'
+					caption: Variation nette TPAJ (fiscal)
+					displayFolder: Variation Nette\Croissance Depuis Le Début De La Période
+				measure 'Net Change YOYTD (Fiscal)'
+					caption: Variation nette AAAACJ (fiscal)
+					displayFolder: Variation Nette\Croissance Depuis Le Début De La Période
+				measure 'Net Change YOYTD % (Fiscal)'
+					caption: % variation nette AAAACJ (fiscal)
+					displayFolder: Variation Nette\Croissance Depuis Le Début De La Période
+				measure 'Net Change QOQTD (Fiscal)'
+					caption: Variation nette TATACJ (fiscal)
+					displayFolder: Variation Nette\Croissance Depuis Le Début De La Période
+				measure 'Net Change QOQTD % (Fiscal)'
+					caption: % variation nette TATACJ (fiscal)
+					displayFolder: Variation Nette\Croissance Depuis Le Début De La Période
+				measure 'Net Change PMTD (Fiscal)'
+					caption: Variation nette MPAJ (fiscal)
+					displayFolder: Variation Nette\Croissance Depuis Le Début De La Période
+				measure 'Net Change MOMTD % (Fiscal)'
+					caption: % variation nette MAMACJ (fiscal)
+					displayFolder: Variation Nette\Croissance Depuis Le Début De La Période
+				measure 'Net Change MOMTD (Fiscal)'
+					caption: Variation nette MAMACJ (fiscal)
+					displayFolder: Variation Nette\Croissance Depuis Le Début De La Période
+				measure 'Net Change MAT (Fiscal)'
+					caption: Variation nette TAM (fiscal)
+					displayFolder: Variation Nette\Croissance Totale Annuelle Mobile
+				measure 'Net Change PYMAT (Fiscal)'
+					caption: Variation nette TAMAP (fiscal)
+					displayFolder: Variation Nette\Croissance Totale Annuelle Mobile
+				measure 'Net Change MATG (Fiscal)'
+					caption: Variation nette CTAM (fiscal)
+					displayFolder: Variation Nette\Croissance Totale Annuelle Mobile
+				measure 'Net Change MATG % (Fiscal)'
+					caption: % variation nette CTAM (fiscal)
+					displayFolder: Variation Nette\Croissance Totale Annuelle Mobile
+				measure 'Net Change MAT (364) (Fiscal)'
+					caption: Variation nette TAM (364) (fiscal)
+					displayFolder: Variation Nette\Croissance Totale Annuelle Mobile
+				measure 'Net Change PYMAT (364) (Fiscal)'
+					caption: Variation nette TAMAP (364) (fiscal)
+					displayFolder: Variation Nette\Croissance Totale Annuelle Mobile
+				measure 'Net Change PYC (Fiscal)'
+					caption: Variation nette APT (fiscal)
+					displayFolder: Variation Nette\Cumul De La Période Par Rapport À La Période Précédente Complète
+				measure 'Net Change YTDOPY (Fiscal)'
+					caption: Variation nette SAPRAP (fiscal)
+					displayFolder: Variation Nette\Cumul De La Période Par Rapport À La Période Précédente Complète
+				measure 'Net Change YTDOPY % (Fiscal)'
+					caption: % variation nette SAPRAP (fiscal)
+					displayFolder: Variation Nette\Cumul De La Période Par Rapport À La Période Précédente Complète
+				measure 'Net Change PQC (Fiscal)'
+					caption: Variation nette TPT (fiscal)
+					displayFolder: Variation Nette\Cumul De La Période Par Rapport À La Période Précédente Complète
+				measure 'Net Change QTDOPQ (Fiscal)'
+					caption: Variation nette TAJPRTP (fiscal)
+					displayFolder: Variation Nette\Cumul De La Période Par Rapport À La Période Précédente Complète
+				measure 'Net Change QTDOPQ % (Fiscal)'
+					caption: % variation nette TAJPRTP (fiscal)
+					displayFolder: Variation Nette\Cumul De La Période Par Rapport À La Période Précédente Complète
+				measure 'Net Change PMC (Fiscal)'
+					caption: Variation nette MPT (fiscal)
+					displayFolder: Variation Nette\Cumul De La Période Par Rapport À La Période Précédente Complète
+				measure 'Net Change MTDOPM (Fiscal)'
+					caption: Variation nette MAJPRMP (fiscal)
+					displayFolder: Variation Nette\Cumul De La Période Par Rapport À La Période Précédente Complète
+				measure 'Net Change MTDOPM % (Fiscal)'
+					caption: % variation nette MAJPRMP (fiscal)
+					displayFolder: Variation Nette\Cumul De La Période Par Rapport À La Période Précédente Complète
+				measure 'Net Change AVG 30D (Fiscal)'
+					caption: Variation nette MOY 30 J (fiscal)
+					displayFolder: Variation Nette\Moyennes Mobiles
+				measure 'Net Change AVG 3M (Fiscal)'
+					caption: Variation nette MOY 3 M (fiscal)
+					displayFolder: Variation Nette\Moyennes Mobiles
+				measure 'Net Change AVG 1Y (Fiscal)'
+					caption: Variation nette MOY 1 A (fiscal)
+					displayFolder: Variation Nette\Moyennes Mobiles
+				measure 'Balance at Date YTD (Fiscal)'
+					caption: Solde à ce jour solde actuel (fiscal)
+					displayFolder: Solde À La Date De La Période À Ce Jour Total
+				measure 'Balance at Date QTD (Fiscal)'
+					caption: Solde à ce jour TAJ (fiscal)
+					displayFolder: Solde À La Date De La Période À Ce Jour Total
+				measure 'Balance at Date MTD (Fiscal)'
+					caption: Solde à ce jour MAJ (fiscal)
+					displayFolder: Solde À La Date De La Période À Ce Jour Total
+				measure 'Balance at Date PY (Fiscal)'
+					caption: Solde à ce jour AP (fiscal)
+					displayFolder: Solde À Ce Jour\Croissance D’Une Période À L’Autre
+				measure 'Balance at Date YOY % (Fiscal)'
+					caption: % solde à ce jour AAA (fiscal)
+					displayFolder: Solde À Ce Jour\Croissance D’Une Période À L’Autre
+				measure 'Balance at Date YOY (Fiscal)'
+					caption: Solde à ce jour AAA (fiscal)
+					displayFolder: Solde À Ce Jour\Croissance D’Une Période À L’Autre
+				measure 'Balance at Date PQ (Fiscal)'
+					caption: Solde à ce jour TP (fiscal)
+					displayFolder: Solde À Ce Jour\Croissance D’Une Période À L’Autre
+				measure 'Balance at Date QOQ (Fiscal)'
+					caption: Solde à ce jour TST (fiscal)
+					displayFolder: Solde À Ce Jour\Croissance D’Une Période À L’Autre
+				measure 'Balance at Date QOQ % (Fiscal)'
+					caption: % solde à ce jour TST (fiscal)
+					displayFolder: Solde À Ce Jour\Croissance D’Une Période À L’Autre
+				measure 'Balance at Date PM (Fiscal)'
+					caption: Solde à ce jour MP (fiscal)
+					displayFolder: Solde À Ce Jour\Croissance D’Une Période À L’Autre
+				measure 'Balance at Date MOM (Fiscal)'
+					caption: Solde à ce jour MAM (fiscal)
+					displayFolder: Solde À Ce Jour\Croissance D’Une Période À L’Autre
+				measure 'Balance at Date MOM % (Fiscal)'
+					caption: % solde à ce jour MAM (fiscal)
+					displayFolder: Solde À Ce Jour\Croissance D’Une Période À L’Autre
+				measure 'Balance at Date PP (Fiscal)'
+					caption: Solde à ce jour PP (fiscal)
+					displayFolder: Solde À Ce Jour\Croissance D’Une Période À L’Autre
+				measure 'Balance at Date POP (Fiscal)'
+					caption: Solde à ce jour PSP (fiscal)
+					displayFolder: Solde À Ce Jour\Croissance D’Une Période À L’Autre
+				measure 'Balance at Date POP % (Fiscal)'
+					caption: % solde à ce jour PSP (fiscal)
+					displayFolder: Solde À Ce Jour\Croissance D’Une Période À L’Autre
+				measure 'Balance at Date PYTD (Fiscal)'
+					caption: Solde à ce jour APAJ (fiscal)
+					displayFolder: Solde À La Date De La Période À Ce Jour
+				measure 'Balance at Date PQTD (Fiscal)'
+					caption: Solde à ce jour TPAJ (fiscal)
+					displayFolder: Solde À La Date De La Période À Ce Jour
+				measure 'Balance at Date YOYTD (Fiscal)'
+					caption: Solde à ce jour AAAACJ (fiscal)
+					displayFolder: Solde À La Date De La Période À Ce Jour
+				measure 'Balance at Date YOYTD % (Fiscal)'
+					caption: % solde à ce jour AAAACJ (fiscal)
+					displayFolder: Solde À La Date De La Période À Ce Jour
+				measure 'Balance at Date QOQTD (Fiscal)'
+					caption: Solde à ce jour TATACJ (fiscal)
+					displayFolder: Solde À La Date De La Période À Ce Jour
+				measure 'Balance at Date QOQTD % (Fiscal)'
+					caption: % solde à ce jour TATACJ (fiscal)
+					displayFolder: Solde À La Date De La Période À Ce Jour
+				measure 'Balance at Date PMTD (Fiscal)'
+					caption: Solde à ce jour MPAJ (fiscal)
+					displayFolder: Solde À La Date De La Période À Ce Jour
+				measure 'Balance at Date MOMTD % (Fiscal)'
+					caption: % solde à ce jour MAMACJ (fiscal)
+					displayFolder: Solde À La Date De La Période À Ce Jour
+				measure 'Balance at Date MOMTD (Fiscal)'
+					caption: Solde à ce jour MAMACJ (fiscal)
+					displayFolder: Solde À La Date De La Période À Ce Jour
+				measure 'Balance at Date MAT (Fiscal)'
+					caption: Solde à ce jour TAM (fiscal)
+					displayFolder: Solde À La Date \ Croissance Totale Annuelle Mobile
+				measure 'Balance at Date PYMAT (Fiscal)'
+					caption: Solde à ce jour TAMAP (fiscal)
+					displayFolder: Solde À La Date \ Croissance Totale Annuelle Mobile
+				measure 'Balance at Date MATG (Fiscal)'
+					caption: Solde à ce jour CTAM (fiscal)
+					displayFolder: Solde À La Date \ Croissance Totale Annuelle Mobile
+				measure 'Balance at Date MATG % (Fiscal)'
+					caption: % solde à ce jour CTAM (fiscal)
+					displayFolder: Solde À La Date \ Croissance Totale Annuelle Mobile
+				measure 'Balance at Date MAT (364) (Fiscal)'
+					caption: Solde à ce jour TAM (364) (fiscal)
+					displayFolder: Solde À La Date \ Croissance Totale Annuelle Mobile
+				measure 'Balance at Date PYMAT (364) (Fiscal)'
+					caption: Solde à ce jour TAMAP (364) (fiscal)
+					displayFolder: Solde À La Date \ Croissance Totale Annuelle Mobile
+				measure 'Balance at Date PYC (Fiscal)'
+					caption: Solde à ce jour APT (fiscal)
+					displayFolder: Solde À La Date \ Cumul De La Période Précédente
+				measure 'Balance at Date YTDOPY (Fiscal)'
+					caption: Solde à ce jour SAPRAP (fiscal)
+					displayFolder: Solde À La Date \ Cumul De La Période Précédente
+				measure 'Balance at Date YTDOPY % (Fiscal)'
+					caption: % solde à ce jour SAPRAP (fiscal)
+					displayFolder: Solde À La Date \ Cumul De La Période Précédente
+				measure 'Balance at Date PQC (Fiscal)'
+					caption: Solde à ce jour TPT (fiscal)
+					displayFolder: Solde À La Date \ Cumul De La Période Précédente
+				measure 'Balance at Date QTDOPQ (Fiscal)'
+					caption: Solde à ce jour TAJPRTP (fiscal)
+					displayFolder: Solde À La Date \ Cumul De La Période Précédente
+				measure 'Balance at Date QTDOPQ % (Fiscal)'
+					caption: % solde à ce jour TAJPRTP (fiscal)
+					displayFolder: Solde À La Date \ Cumul De La Période Précédente
+				measure 'Balance at Date PMC (Fiscal)'
+					caption: Solde à ce jour MPT (fiscal)
+					displayFolder: Solde À La Date \ Cumul De La Période Précédente
+				measure 'Balance at Date MTDOPM (Fiscal)'
+					caption: Solde à ce jour MAJPRMP (fiscal)
+					displayFolder: Solde À La Date \ Cumul De La Période Précédente
+				measure 'Balance at Date MTDOPM % (Fiscal)'
+					caption: % solde à ce jour MAJPRMP (fiscal)
+					displayFolder: Solde À La Date \ Cumul De La Période Précédente
+				measure 'Balance at Date AVG 30D (Fiscal)'
+					caption: Solde à ce jour MOY 30 J (fiscal)
+					displayFolder: Solde À La Date \ Moyennes Mobiles
+				measure 'Balance at Date AVG 3M (Fiscal)'
+					caption: Solde à ce jour MOY 3 M (fiscal)
+					displayFolder: Solde À La Date \ Moyennes Mobiles
+				measure 'Balance at Date AVG 1Y (Fiscal)'
+					caption: Solde à ce jour MOY 1 A (fiscal)
+					displayFolder: Solde À La Date \ Moyennes Mobiles
+			table 'Weekly Calendar Time Intelligence'
+				caption: Intelligence temporelle du calendrier hebdomadaire
+				measure 'Net Change YTD (Weekly)'
+					caption: Variation nette solde actuel (hebdomadaire)
+					displayFolder: Variation Nette\Total Cumulatif De La Période
+				measure 'Net Change QTD (Weekly)'
+					caption: Variation nette TAJ (hebdomadaire)
+					displayFolder: Variation Nette\Total Cumulatif De La Période
+				measure 'Net Change MTD (Weekly)'
+					caption: Variation nette MAJ (hebdomadaire)
+					displayFolder: Variation Nette\Total Cumulatif De La Période
+				measure 'Net Change WTD (Weekly)'
+					caption: Variation nette SAJ (hebdomadaire)
+					displayFolder: Variation Nette\Total Cumulatif De La Période
+				measure 'Net Change PY (Weekly)'
+					caption: Variation nette AP (hebdomadaire)
+					displayFolder: Variation Nette\Croissance D’Une Période À L’Autre
+				measure 'Net Change YOY % (Weekly)'
+					caption: % variation nette AAA (hebdomadaire)
+					displayFolder: Variation Nette\Croissance D’Une Période À L’Autre
+				measure 'Net Change YOY (Weekly)'
+					caption: Variation nette AAA (hebdomadaire)
+					displayFolder: Variation Nette\Croissance D’Une Période À L’Autre
+				measure 'Net Change PQ (Weekly)'
+					caption: Variation nette TP (hebdomadaire)
+					displayFolder: Variation Nette\Croissance D’Une Période À L’Autre
+				measure 'Net Change QOQ (Weekly)'
+					caption: Variation nette TST (hebdomadaire)
+					displayFolder: Variation Nette\Croissance D’Une Période À L’Autre
+				measure 'Net Change QOQ % (Weekly)'
+					caption: % variation nette TST (hebdomadaire)
+					displayFolder: Variation Nette\Croissance D’Une Période À L’Autre
+				measure 'Net Change PW (Weekly)'
+					caption: Variation nette SP (hebdomadaire)
+					displayFolder: Variation Nette\Croissance D’Une Période À L’Autre
+				measure 'Net Change WOW (Weekly)'
+					caption: Variation nette SAS (hebdomadaire)
+					displayFolder: Variation Nette\Croissance D’Une Période À L’Autre
+				measure 'Net Change WOW % (Weekly)'
+					caption: % variation nette SAS (hebdomadaire)
+					displayFolder: Variation Nette\Croissance D’Une Période À L’Autre
+				measure 'Net Change PP (Weekly)'
+					caption: Variation nette PP (hebdomadaire)
+					displayFolder: Variation Nette\Croissance D’Une Période À L’Autre
+				measure 'Net Change POP (Weekly)'
+					caption: Variation nette PSP (hebdomadaire)
+					displayFolder: Variation Nette\Croissance D’Une Période À L’Autre
+				measure 'Net Change POP % (Weekly)'
+					caption: % variation nette PSP (hebdomadaire)
+					displayFolder: Variation Nette\Croissance D’Une Période À L’Autre
+				measure 'Net Change PYTD (Weekly)'
+					caption: Variation nette APAJ (hebdomadaire)
+					displayFolder: Variation Nette\Croissance Depuis Le Début De La Période
+				measure 'Net Change PQTD (Weekly)'
+					caption: Variation nette TPAJ (hebdomadaire)
+					displayFolder: Variation Nette\Croissance Depuis Le Début De La Période
+				measure 'Net Change YOYTD (Weekly)'
+					caption: Variation nette AAAACJ (hebdomadaire)
+					displayFolder: Variation Nette\Croissance Depuis Le Début De La Période
+				measure 'Net Change YOYTD % (Weekly)'
+					caption: % variation nette AAAACJ (hebdomadaire)
+					displayFolder: Variation Nette\Croissance Depuis Le Début De La Période
+				measure 'Net Change QOQTD (Weekly)'
+					caption: Variation nette TATACJ (hebdomadaire)
+					displayFolder: Variation Nette\Croissance Depuis Le Début De La Période
+				measure 'Sales Amount QOQTD % (Weekly)'
+					caption: % montant vente TATACJ (hebdomadaire)
+					displayFolder: Variation Nette\Croissance Depuis Le Début De La Période
+				measure 'Net Change PWTD (Weekly)'
+					caption: Variation nette SPAJ (hebdomadaire)
+					displayFolder: Variation Nette\Croissance Depuis Le Début De La Période
+				measure 'Net Change WOWTD (Weekly)'
+					caption: Variation nette SASACJ (hebdomadaire)
+					displayFolder: Variation Nette\Croissance Depuis Le Début De La Période
+				measure 'Net Change WOWTD % (Weekly)'
+					caption: % variation nette SASACJ (hebdomadaire)
+					displayFolder: Variation Nette\Croissance Depuis Le Début De La Période
+				measure 'Net Change MAT (364) (Weekly)'
+					caption: Variation nette TAM (364) (hebdomadaire)
+					displayFolder: Variation Nette\Croissance Totale Annuelle Mobile
+				measure 'Net Change PYMAT (364) (Weekly)'
+					caption: Variation nette TAMAP (364) (hebdomadaire)
+					displayFolder: Variation Nette\Croissance Totale Annuelle Mobile
+				measure 'Net Change MATG (Weekly)'
+					caption: Variation nette CTAM (hebdomadaire)
+					displayFolder: Variation Nette\Croissance Totale Annuelle Mobile
+				measure 'Net Change MATG % (Weekly)'
+					caption: % variation nette CTAM (hebdomadaire)
+					displayFolder: Variation Nette\Croissance Totale Annuelle Mobile
+				measure 'Net Change PYC (Weekly)'
+					caption: Variation nette APT (hebdomadaire)
+					displayFolder: Variation Nette\Cumul De La Période Par Rapport À La Période Précédente Complète
+				measure 'Net Change YTDOPY (Weekly)'
+					caption: Variation nette SAPRAP (hebdomadaire)
+					displayFolder: Variation Nette\Cumul De La Période Par Rapport À La Période Précédente Complète
+				measure 'Net Change YTDOPY % (Weekly)'
+					caption: % variation nette SAPRAP (hebdomadaire)
+					displayFolder: Variation Nette\Cumul De La Période Par Rapport À La Période Précédente Complète
+				measure 'Net Change PQC (Weekly)'
+					caption: Variation nette TPT (hebdomadaire)
+					displayFolder: Variation Nette\Cumul De La Période Par Rapport À La Période Précédente Complète
+				measure 'Net Change QTDOPQ (Weekly)'
+					caption: Variation nette TAJPRTP (hebdomadaire)
+					displayFolder: Variation Nette\Cumul De La Période Par Rapport À La Période Précédente Complète
+				measure 'Net Change QTDOPQ % (Weekly)'
+					caption: % variation nette TAJPRTP (hebdomadaire)
+					displayFolder: Variation Nette\Cumul De La Période Par Rapport À La Période Précédente Complète
+				measure 'Net Change PWC (Weekly)'
+					caption: Variation nette SPT (hebdomadaire)
+					displayFolder: Variation Nette\Cumul De La Période Par Rapport À La Période Précédente Complète
+				measure 'Net Change WTDOPW (Weekly)'
+					caption: Variation nette SECPRSP (hebdomadaire)
+					displayFolder: Variation Nette\Cumul De La Période Par Rapport À La Période Précédente Complète
+				measure 'Net Change WTDOPW % (Weekly)'
+					caption: % variation nette SECPRSP (hebdomadaire)
+					displayFolder: Variation Nette\Cumul De La Période Par Rapport À La Période Précédente Complète
+				measure 'Net Change AVG 4W (Weekly)'
+					caption: Variation nette MOY 4 S (hebdomadaire)
+					displayFolder: Variation Nette\Moyennes Mobiles
+				measure 'Net Change AVG 1Q (Weekly)'
+					caption: Variation nette MOY 1 T (hebdomadaire)
+					displayFolder: Variation Nette\Moyennes Mobiles
+				measure 'Net Change AVG 1Y (Weekly)'
+					caption: Variation nette MOY 1 A (hebdomadaire)
+					displayFolder: Variation Nette\Moyennes Mobiles
+				measure 'Balance at Date YTD (Weekly)'
+					caption: Solde à ce jour solde actuel (hebdomadaire)
+					displayFolder: Solde À La Date De La Période À Ce Jour Total
+				measure 'Balance at Date QTD (Weekly)'
+					caption: Solde à ce jour TAJ (hebdomadaire)
+					displayFolder: Solde À La Date De La Période À Ce Jour Total
+				measure 'Balance at Date MTD (Weekly)'
+					caption: Solde à ce jour MAJ (hebdomadaire)
+					displayFolder: Solde À La Date De La Période À Ce Jour Total
+				measure 'Balance at Date WTD (Weekly)'
+					caption: Solde à ce jour SAJ (hebdomadaire)
+					displayFolder: Solde À La Date De La Période À Ce Jour Total
+				measure 'Balance at Date PY (Weekly)'
+					caption: Solde à ce jour AP (hebdomadaire)
+					displayFolder: Solde À Ce Jour\Croissance D’Une Période À L’Autre
+				measure 'Balance at Date YOY % (Weekly)'
+					caption: % solde à ce jour AAA (hebdomadaire)
+					displayFolder: Solde À Ce Jour\Croissance D’Une Période À L’Autre
+				measure 'Balance at Date YOY (Weekly)'
+					caption: Solde à ce jour AAA (hebdomadaire)
+					displayFolder: Solde À Ce Jour\Croissance D’Une Période À L’Autre
+				measure 'Balance at Date PQ (Weekly)'
+					caption: Solde à ce jour TP (hebdomadaire)
+					displayFolder: Solde À Ce Jour\Croissance D’Une Période À L’Autre
+				measure 'Balance at Date QOQ (Weekly)'
+					caption: Solde à ce jour TST (hebdomadaire)
+					displayFolder: Solde À Ce Jour\Croissance D’Une Période À L’Autre
+				measure 'Balance at Date QOQ % (Weekly)'
+					caption: % solde à ce jour TST (hebdomadaire)
+					displayFolder: Solde À Ce Jour\Croissance D’Une Période À L’Autre
+				measure 'Balance at Date PW (Weekly)'
+					caption: Solde à ce jour SP (hebdomadaire)
+					displayFolder: Solde À Ce Jour\Croissance D’Une Période À L’Autre
+				measure 'Balance at Date WOW (Weekly)'
+					caption: Solde à ce jour SAS (hebdomadaire)
+					displayFolder: Solde À Ce Jour\Croissance D’Une Période À L’Autre
+				measure 'Balance at Date WOW % (Weekly)'
+					caption: % solde à ce jour SAS (hebdomadaire)
+					displayFolder: Solde À Ce Jour\Croissance D’Une Période À L’Autre
+				measure 'Balance at Date PP (Weekly)'
+					caption: Solde à ce jour PP (hebdomadaire)
+					displayFolder: Solde À Ce Jour\Croissance D’Une Période À L’Autre
+				measure 'Balance at Date POP (Weekly)'
+					caption: Solde à ce jour PSP (hebdomadaire)
+					displayFolder: Solde À Ce Jour\Croissance D’Une Période À L’Autre
+				measure 'Balance at Date POP % (Weekly)'
+					caption: % solde à ce jour PSP (hebdomadaire)
+					displayFolder: Solde À Ce Jour\Croissance D’Une Période À L’Autre
+				measure 'Balance at Date PYTD (Weekly)'
+					caption: Solde à ce jour APAJ (hebdomadaire)
+					displayFolder: Solde À La Date De La Période À Ce Jour
+				measure 'Balance at Date PQTD (Weekly)'
+					caption: Solde à ce jour TPAJ (hebdomadaire)
+					displayFolder: Solde À La Date De La Période À Ce Jour
+				measure 'Balance at Date YOYTD (Weekly)'
+					caption: Solde à ce jour AAAACJ (hebdomadaire)
+					displayFolder: Solde À La Date De La Période À Ce Jour
+				measure 'Balance at Date YOYTD % (Weekly)'
+					caption: % solde à ce jour AAAACJ (hebdomadaire)
+					displayFolder: Solde À La Date De La Période À Ce Jour
+				measure 'Balance at Date QOQTD (Weekly)'
+					caption: Solde à ce jour TATACJ (hebdomadaire)
+					displayFolder: Solde À La Date De La Période À Ce Jour
+				measure 'Balance at Date QOQTD % (Weekly)'
+					caption: % solde à ce jour TATACJ (hebdomadaire)
+					displayFolder: Solde À La Date De La Période À Ce Jour
+				measure 'Balance at Date PWTD (Weekly)'
+					caption: Solde à ce jour SPAJ (hebdomadaire)
+					displayFolder: Solde À La Date De La Période À Ce Jour
+				measure 'Balance at Date WOWTD (Weekly)'
+					caption: Solde à ce jour SASACJ (hebdomadaire)
+					displayFolder: Solde À La Date De La Période À Ce Jour
+				measure 'Balance at Date WOWTD % (Weekly)'
+					caption: % solde à ce jour SASACJ (hebdomadaire)
+					displayFolder: Solde À La Date De La Période À Ce Jour
+				measure 'Balance at Date MAT (364) (Weekly)'
+					caption: Solde à ce jour TAM (364) (hebdomadaire)
+					displayFolder: Solde À La Date \ Croissance Totale Annuelle Mobile
+				measure 'Balance at Date PYMAT (364) (Weekly)'
+					caption: Solde à ce jour TAMAP (364) (hebdomadaire)
+					displayFolder: Solde À La Date \ Croissance Totale Annuelle Mobile
+				measure 'Balance at Date MATG (Weekly)'
+					caption: Solde à ce jour CTAM (hebdomadaire)
+					displayFolder: Solde À La Date \ Croissance Totale Annuelle Mobile
+				measure 'Balance at Date MATG % (Weekly)'
+					caption: % solde à ce jour CTAM (hebdomadaire)
+					displayFolder: Solde À La Date \ Croissance Totale Annuelle Mobile
+				measure 'Balance at Date PYC (Weekly)'
+					caption: Solde à ce jour APT (hebdomadaire)
+					displayFolder: Solde À La Date \ Cumul De La Période Précédente
+				measure 'Balance at Date YTDOPY (Weekly)'
+					caption: Solde à ce jour SAPRAP (hebdomadaire)
+					displayFolder: Solde À La Date \ Cumul De La Période Précédente
+				measure 'Balance at Date YTDOPY % (Weekly)'
+					caption: % solde à ce jour SAPRAP (hebdomadaire)
+					displayFolder: Solde À La Date \ Cumul De La Période Précédente
+				measure 'Balance at Date PQC (Weekly)'
+					caption: Solde à ce jour TPT (hebdomadaire)
+					displayFolder: Solde À La Date \ Cumul De La Période Précédente
+				measure 'Balance at Date QTDOPQ (Weekly)'
+					caption: Solde à ce jour TAJPRTP (hebdomadaire)
+					displayFolder: Solde À La Date \ Cumul De La Période Précédente
+				measure 'Balance at Date QTDOPQ % (Weekly)'
+					caption: % solde à ce jour TAJPRTP (hebdomadaire)
+					displayFolder: Solde À La Date \ Cumul De La Période Précédente
+				measure 'Balance at Date PWC (Weekly)'
+					caption: Solde à ce jour SPT (hebdomadaire)
+					displayFolder: Solde À La Date \ Cumul De La Période Précédente
+				measure 'Balance at Date WTDOPW (Weekly)'
+					caption: Solde à ce jour SECPRSP (hebdomadaire)
+					displayFolder: Solde À La Date \ Cumul De La Période Précédente
+				measure 'Balance at Date WTDOPW % (Weekly)'
+					caption: % solde à ce jour SECPRSP (hebdomadaire)
+					displayFolder: Solde À La Date \ Cumul De La Période Précédente
+				measure 'Balance at Date AVG 4W (Weekly)'
+					caption: Solde à ce jour MOY 4 S (hebdomadaire)
+					displayFolder: Solde À La Date \ Moyennes Mobiles
+				measure 'Balance at Date AVG 1Q (Weekly)'
+					caption: Solde à ce jour MOY 1 T (hebdomadaire)
+					displayFolder: Solde À La Date \ Moyennes Mobiles
+				measure 'Balance at Date AVG 1Y (Weekly)'
+					caption: Solde à ce jour MOY 1 A (hebdomadaire)
+					displayFolder: Solde À La Date \ Moyennes Mobiles
+			table 'Customer Ledger Entries'
+				caption: Écritures compta. client
+				column 'CLE Entry No.'
+					caption: N° séquence ECC
+				column 'CLE Due Date'
+					caption: Date d’échéance ECC
+				column 'CLE Open'
+					caption: ECC ouverte
+				column 'CLE Posting Date'
+					caption: Date validation ECC
+				column 'CLE Document Date'
+					caption: Date document ECC
+				column cleDimensionSetID
+					caption: Cledimensionsetid
+				column 'DCLE Entry No.'
+					caption: ECCD N° écriture
+				column 'DCLE Posting Date'
+					caption: ECCD Date validation
+				column 'Ledger Entry Amount'
+					caption: Montant écriture comptable
+				column 'Entry Type'
+					caption: Type écriture
+				column 'Document Type'
+					caption: Type du document
+				column 'Document No.'
+					caption: N° de document
+				column 'DCLE Initial Entry Due Date'
+					caption: Date d’échéance écr. initiale ECCD
+				column 'Amount (LCY)'
+					caption: Montant (DS)
+				column 'Customer No.'
+					caption: N° client
+				column 'Application No.'
+					caption: N° application
+				column 'Applied Customer Ledger Entry No.'
+					caption: N° écriture comptable client lettrée
+				column 'Sales Invoice Header Document No.'
+					caption: N° de document en-tête facture vente
+				column 'Payment Terms Code'
+					caption: Code conditions de paiement
+				column 'Payment Discount Date'
+					caption: Date d’escompte
+				measure 'Original Amount (LCY)'
+					caption: Montant initial (DL)
+					displayFolder: Mesures Comptables _Customer
+				measure 'Amount Receivable (LCY)'
+					caption: Montant à recevoir (DL)
+					displayFolder: Mesures Comptables _Customer
+				measure 'Balance (Accounts Receivable)'
+					caption: Solde (comptabilité client)
+					displayFolder: Mesures Comptables _Customer
+				measure 'Bucket 1 (Receivables)'
+					caption: Compartiment 1 (clients)
+					displayFolder: _Customer Mesures Comptables\Tranches De Vieillissement
+				measure 'Bucket 2 (Receivables)'
+					caption: Compartiment 2 (clients)
+					displayFolder: _Customer Mesures Comptables\Tranches De Vieillissement
+				measure 'Bucket 3 (Receivables)'
+					caption: Compartiment 3 (clients)
+					displayFolder: _Customer Mesures Comptables\Tranches De Vieillissement
+				measure 'Bucket 4 (Receivables)'
+					caption: Compartiment 4 (clients)
+					displayFolder: _Customer Mesures Comptables\Tranches De Vieillissement
+				measure 'Current (Receivables)'
+					caption: Courant (clients)
+					displayFolder: _Customer Mesures Comptables\Tranches De Vieillissement
+				measure 'CLE Bucket 1 Back Link'
+					caption: Lien secondaire Compartiment ECC 1
+				measure 'CLE Bucket 2 Back Link'
+					caption: Lien secondaire Compartiment ECC 2
+				measure 'CLE Bucket 3 Back Link'
+					caption: Lien secondaire Compartiment ECC 3
+				measure 'CLE Bucket 4 Back Link'
+					caption: Lien secondaire Compartiment ECC 4
+				measure 'CLE Current Back Link'
+					caption: Lien secondaire ECC actuel
+				measure 'CLE Balance Back Link'
+					caption: Lien secondaire Solde ECC
+			table 'Vendor Ledger Entries'
+				caption: Écritures comptables fournisseur
+				column 'VLE Entry No.'
+					caption: N° écriture ECF
+				column 'VLE Due Date'
+					caption: Date d’échéance ECF
+				column 'VLE Open'
+					caption: Ouvrir ECF
+				column 'VLE Posting Date'
+					caption: Date validation ECF
+				column 'VLE Document Date'
+					caption: Date document ECF
+				column 'DVLE Entry No.'
+					caption: N° écriture ECFD
+				column 'DVLE Posting Date'
+					caption: Date validation ECFD
+				column 'DVLE Ledger Entry Amount'
+					caption: Montant écriture comptable ECFD
+				column 'Entry Type'
+					caption: Type écriture
+				column 'Document Type'
+					caption: Type du document
+				column 'Document No.'
+					caption: N° de document
+				column 'DVLE Initial Entry Due Date'
+					caption: Date d’échéance écr. initiale ECFD
+				column 'Vendor No.'
+					caption: N° fournisseur
+				column 'Application No.'
+					caption: N° application
+				column 'Applied Vendor Ledger Entry No.'
+					caption: N° écriture comptable fournisseur lettrée
+				column 'PIH Document No.'
+					caption: N° de document EFA
+				column 'Payment Terms Code'
+					caption: Code conditions de paiement
+				column 'Payment Discount Date'
+					caption: Date d’escompte
+				measure 'Amount Payable (LCY)'
+					caption: Montant à payer (DL)
+					displayFolder: _Vendor Mesures Comptables
+				measure 'Bucket 2 (Payables)'
+					caption: Compartiment 2 (fournisseurs)
+					displayFolder: _Vendor Mesures Comptables\Tranches De Vieillissement
+				measure 'Bucket 1 (Payables)'
+					caption: Compartiment 1 (fournisseurs)
+					displayFolder: _Vendor Mesures Comptables\Tranches De Vieillissement
+				measure 'Bucket 3 (Payables)'
+					caption: Compartiment 3 (fournisseurs)
+					displayFolder: _Vendor Mesures Comptables\Tranches De Vieillissement
+				measure 'Bucket 4 (Payables)'
+					caption: Compartiment 4 (fournisseurs)
+					displayFolder: _Vendor Mesures Comptables\Tranches De Vieillissement
+				measure 'Current (Payables)'
+					caption: Courant (fournisseurs)
+					displayFolder: _Vendor Mesures Comptables\Tranches De Vieillissement
+				measure 'Balance (Accounts Payable)'
+					caption: Solde (comptabilité fournisseur)
+					displayFolder: _Vendor Mesures Comptables
+				measure 'Original Amount'
+					caption: Montant initial
+					displayFolder: _Vendor Mesures Comptables
+				measure 'VLE Bucket 1 Back Link'
+					caption: Lien secondaire Compartiment ECF 1
+				measure 'VLE Bucket 2 Back Link'
+					caption: Lien secondaire Compartiment ECF 2
+				measure 'VLE Bucket 3 Back Link'
+					caption: Lien secondaire Compartiment ECF 3
+				measure 'VLE Bucket 4 Back Link'
+					caption: Lien secondaire Compartiment ECF 4
+				measure 'VLE Current Back Link'
+					caption: Lien secondaire ECF actuel
+				measure 'VLE Balance Back Link'
+					caption: Lien secondaire Solde ECF
+			table Vendors
+				caption: Fournisseurs
+				column 'Vendor No.'
+					caption: N° fournisseur
+				column 'Vendor Name'
+					caption: Nom du fournisseur
+				column 'Vendor Address'
+					caption: Adresse
+				column 'Vendor Address 2'
+					caption: Adresse 2
+				column 'Vendor City'
+					caption: Ville
+				column 'Vendor Post Code'
+					caption: Code postal
+				column 'Vendor State'
+					caption: État
+				column 'Vendor Country/Region Code'
+					caption: Code de pays/région
+				column 'Vendor Posting Group'
+					caption: Groupe comptabilisation fournisseur
+				column 'Vendor No. & Name'
+					caption: N° et nom du fournisseur
+			table 'Calc. Group - Time Intelligence for Calendar (Standard)'
+				caption: Groupe calc. : intelligence temporelle du calendrier (standard)
+				column 'Selected Measure'
+					caption: Mesure sélectionnée
+				column Type
+					caption: Type
+				column 'Sub Type'
+					caption: Sous-type
+				hierarchy 'Calc. Group Hierarchy (Standard)'
+					caption: Hiérarchie des groupes calc. (standard)
+					level Type
+						caption: Type
+					level 'Sub Type'
+						caption: Sous-type
+					level 'Selected Measure'
+						caption: Mesure sélectionnée
+			table 'Aging Date Parameter'
+				caption: Paramètre date de vieillissement
+				column 'AGING PARAMETER'
+					caption: PARAMÈTRE DE VIEILLISSEMENT
+			table 'Aging Bucket Period'
+				caption: Période de compartiment âgé
+				column 'Aging Bucket Period'
+					caption: Période De Seau De Vieillissement
+				measure 'Aging Bucket Period Value'
+					caption: Valeur de période de compartiment âgé
+				measure 'Bucket 1 Range'
+					caption: Plage de compartiment 1
+				measure 'Bucket 2 Range'
+					caption: Plage de compartiment 2
+				measure 'Bucket 3 Range'
+					caption: Plage de compartiment 3
+				measure 'Bucket 4 Range'
+					caption: Plage de compartiment 4
+				measure 'Bucket 1 Date Range'
+					caption: Plage de dates compartiment 1
+				measure 'Bucket 2 Date Range'
+					caption: Plage de dates budget 2
+				measure 'Bucket 3 Date Range'
+					caption: Plage de dates compartiment 3
+				measure 'Bucket 4 Date Range'
+					caption: Plage de dates compartiment 4
+			table Customers
+				caption: Clients
+				column 'Customer No.'
+					caption: N° client
+				column 'Customer Name'
+					caption: Nom du client
+				column 'Customer Address'
+					caption: Adresse
+				column 'Customer Address 2'
+					caption: Adresse 2
+				column 'Customer City'
+					caption: Ville
+				column 'CustomerPost Code'
+					caption: Code postal
+				column 'Customer State'
+					caption: État
+				column 'Country/Region Code'
+					caption: Code de pays/région
+				column 'Customer Posting Group'
+					caption: Groupe comptabilisation client
+				column 'Customer Price Group'
+					caption: Groupe prix client
+				column 'Customer Discount Group'
+					caption: Groupe remises client
+				column 'Customer No. & Name'
+					caption: N° et nom du client
+			table 'Calc. Group - Time Intelligence for Calendar (Fiscal)'
+				caption: Groupe calc. : intelligence temporelle du calendrier (fiscal)
+				column 'Selected Measure'
+					caption: Mesure sélectionnée
+				column Type
+					caption: Type
+				column 'Sub Type'
+					caption: Sous-type
+				hierarchy 'Calc. Group Hierarchy (Fiscal)'
+					caption: Hiérarchie des groupes calc. (fiscal)
+					level Type
+						caption: Type
+					level 'Sub Type'
+						caption: Sous-type
+					level 'Selected Measure'
+						caption: Mesure sélectionnée
+			table 'Calc. Group - Time Intelligence for Calenday (Weekly)'
+				caption: Groupe calc. : intelligence temporelle du calendrier (hebdomadaire)
+				column 'Selected Measure'
+					caption: Mesure sélectionnée
+				column Type
+					caption: Type
+				column 'Sub Type'
+					caption: Sous-type
+				hierarchy 'Calc. Group Hierarchy (Weekly)'
+					caption: Hiérarchie des groupes calc. (hebdomadaire)
+					level Type
+						caption: Type
+					level 'Sub Type'
+						caption: Sous-type
+					level 'Selected Measure'
+						caption: Mesure sélectionnée
+			table Date
+				caption: Date
+				column Date
+					caption: Date
+				column 'Week Day'
+					caption: Jour Semaine
+				column 'Day Type'
+					caption: Type de jour
+				column 'Calendar Year'
+					caption: Année civile
+					displayFolder: _Standard Calendrier
+				column 'Calendar Quarter'
+					caption: Trimestre civil
+					displayFolder: _Standard Calendrier
+				column 'Calendar Quarter Year'
+					caption: Trimestre civil
+					displayFolder: _Standard Calendrier
+				column 'Calendar Month'
+					caption: Mois civil
+					displayFolder: _Standard Calendrier
+				column 'Calendar Month Year'
+					caption: Mois Année civile
+					displayFolder: _Standard Calendrier
+				column 'Calendar Week'
+					caption: Semaine civile
+					displayFolder: _Standard Calendrier
+				column 'Calendar Week Year'
+					caption: Semaine d’année civile
+					displayFolder: _Standard Calendrier
+				column 'Calendar WeekYearOrder'
+					displayFolder: _Standard Calendrier
+				column 'Calendar RelativeWeekPos'
+					caption: PosSemaineRelative civil
+					displayFolder: _Standard Calendrier
+				column 'Calendar RelativeMonthPos'
+					caption: PosMoisRelatif civil
+					displayFolder: _Standard Calendrier
+				column 'Calendar RelativeQuarterPos'
+					caption: PosTrimestreRelatif civil
+					displayFolder: _Standard Calendrier
+				column 'Calendar RelativeYearPos'
+					caption: PosAnnéeRelative civil
+					displayFolder: _Standard Calendrier
+				column 'Calendar StartOfMonth'
+					caption: DébutDuMois civil
+					displayFolder: _Standard Calendrier
+				column 'Calendar EndOfMonth'
+					caption: FinDuMois civil
+					displayFolder: _Standard Calendrier
+				column 'Calendar StartOfQuarter'
+					caption: DébutDuTrimestre civil
+					displayFolder: _Standard Calendrier
+				column 'Calendar EndOfQuarter'
+					caption: FinDeTrimestre civil
+					displayFolder: _Standard Calendrier
+				column 'Calendar StartOfYear'
+					caption: DébutAnnée civile
+					displayFolder: _Standard Calendrier
+				column 'Calendar EndOfYear'
+					caption: FinAnnée civile
+					displayFolder: _Standard Calendrier
+				column 'Calendar MonthDays'
+					caption: MoisJour civil
+					displayFolder: _Standard Calendrier
+				column 'Calendar QuarterDays'
+					caption: TrimestreJours civil
+					displayFolder: _Standard Calendrier
+				column 'Calendar YearDays'
+					caption: AnnéeJours civil
+					displayFolder: _Standard Calendrier
+				column 'Calendar DayOfMonthNumber'
+					caption: NuméroJourDuMois civil
+					displayFolder: _Standard Calendrier
+				column 'Calendar DayOfQuarterNumber'
+					caption: NuméroJourDuTrimestre civil
+					displayFolder: _Standard Calendrier
+				column 'Calendar DayOfYearNumber'
+					caption: NuméroJourAnnée civile
+					displayFolder: _Standard Calendrier
+				column 'Calendar DatePreviousWeek'
+					caption: DateSemainePrécédente civile
+					displayFolder: _Standard Calendrier
+				column 'Calendar DatePreviousMonth'
+					caption: DateMoisPrécédent civil
+					displayFolder: _Standard Calendrier
+				column 'Calendar DatePreviousQuarter'
+					caption: DateTrimestrePrécédent civil
+					displayFolder: _Standard Calendrier
+				column 'Calendar DatePreviousYear'
+					caption: DateAnnéePrécédente civile
+					displayFolder: _Standard Calendrier
+				column 'Fiscal Year'
+					caption: Exercice
+					displayFolder: _Fiscal Calendrier
+				column 'Fiscal Quarter'
+					caption: Trimestre d’exercice
+					displayFolder: _Fiscal Calendrier
+				column 'Fiscal Quarter Year'
+					caption: Trimestre d’exercice
+					displayFolder: _Fiscal Calendrier
+				column 'Fiscal MonthInQuarterNumber'
+					displayFolder: _Fiscal Calendrier
+				column 'Fiscal Month'
+					caption: Mois d’exercice
+					displayFolder: _Fiscal Calendrier
+				column 'Fiscal Month Year'
+					caption: Mois d’exercice
+					displayFolder: _Fiscal Calendrier
+				column 'Fiscal Week'
+					caption: Semaine d’exercice
+					displayFolder: _Fiscal Calendrier
+				column 'Fiscal Week Year'
+					caption: Semaine d’exercice
+					displayFolder: _Fiscal Calendrier
+				column 'Fiscal WeekYearOrder'
+					displayFolder: _Fiscal Calendrier
+				column 'Fiscal RelativeWeekPos'
+					caption: PosSemaineRelative d’exercice
+					displayFolder: _Fiscal Calendrier
+				column 'Fiscal RelativeMonthPos'
+					caption: PosMoisRelatif d’exercice
+					displayFolder: _Fiscal Calendrier
+				column 'Fiscal RelativeQuarterPos'
+					caption: PosTrimestreRelatif d’exercice
+					displayFolder: _Fiscal Calendrier
+				column 'Fiscal RelativeYearPos'
+					caption: PosAnnéeRelative d’exercice
+					displayFolder: _Fiscal Calendrier
+				column 'Fiscal StartOfMonth'
+					caption: DébutDuMois d’exercice
+					displayFolder: _Fiscal Calendrier
+				column 'Fiscal EndOfMonth'
+					caption: FinDuMois d’exercice
+					displayFolder: _Fiscal Calendrier
+				column 'Fiscal StartOfQuarter'
+					caption: DébutDuTrimestre d’exercice
+					displayFolder: _Fiscal Calendrier
+				column 'Fiscal EndOfQuarter'
+					caption: FinDuTrimestre d’exercice
+					displayFolder: _Fiscal Calendrier
+				column 'Fiscal StartOfYear'
+					caption: DébutExercice fiscal
+					displayFolder: _Fiscal Calendrier
+				column 'Fiscal EndOfYear'
+					caption: FinExercice fiscal
+					displayFolder: _Fiscal Calendrier
+				column 'Fiscal MonthDays'
+					caption: MoisJours d’exercice
+					displayFolder: _Fiscal Calendrier
+				column 'Fiscal QuarterDays'
+					caption: JoursTrimestre d’exercice
+					displayFolder: _Fiscal Calendrier
+				column 'Fiscal YearDays'
+					caption: AnnéeJours d’exercice
+					displayFolder: _Fiscal Calendrier
+				column 'Fiscal DayOfMonthNumber'
+					caption: NuméroJourDuMois d’exercice
+					displayFolder: _Fiscal Calendrier
+				column 'Fiscal DayOfQuarterNumber'
+					caption: NuméroJourDuTrimestre d’exercice
+					displayFolder: _Fiscal Calendrier
+				column 'Fiscal DayOfYearNumber'
+					caption: NuméroJourAnnée d’exercice
+					displayFolder: _Fiscal Calendrier
+				column 'Fiscal DatePreviousWeek'
+					caption: DateSemainePrécédente d’exercice
+					displayFolder: _Fiscal Calendrier
+				column 'Fiscal DatePreviousMonth'
+					caption: DateMoisPrécédent d’exercice
+					displayFolder: _Fiscal Calendrier
+				column 'Fiscal DatePreviousQuarter'
+					caption: DateTrimestrePrécédent d’exercice
+					displayFolder: _Fiscal Calendrier
+				column 'Fiscal DatePreviousYear'
+					caption: DateAnnéePrécédente d’exercice
+					displayFolder: _Fiscal Calendrier
+				column 'FW Year'
+					caption: Année SE
+					displayFolder: _Weekly Calendrier
+				column 'FW Quarter'
+					caption: Trimestre SE
+					displayFolder: _Weekly Calendrier
+				column 'FW Quarter Year'
+					caption: Trimestre Année SE
+					displayFolder: _Weekly Calendrier
+				column 'FW Month'
+					caption: Mois SE
+					displayFolder: _Weekly Calendrier
+				column 'FW Month Year'
+					caption: Mois Année SE
+					displayFolder: _Weekly Calendrier
+				column 'FW Week'
+					caption: Semaine SE
+					displayFolder: _Weekly Calendrier
+				column 'FW Period'
+					caption: Période SE
+					displayFolder: _Weekly Calendrier
+				column 'FW Week Year'
+					caption: Semaine Année SE
+					displayFolder: _Weekly Calendrier
+				column 'FW StartOfWeek'
+					caption: DébutDeSemaine SE
+					displayFolder: _Weekly Calendrier
+				column 'FW EndOfWeek'
+					caption: FinDeSemaine SE
+					displayFolder: _Weekly Calendrier
+				column 'FW RelativeWeekPos'
+					caption: PosSemaineRelative SE
+					displayFolder: _Weekly Calendrier
+				column 'FW RelativeMonthPos'
+					caption: PosMoisRelatif SE
+					displayFolder: _Weekly Calendrier
+				column 'FW RelativeQuarterPos'
+					caption: PosTrimestreRelatif SE
+					displayFolder: _Weekly Calendrier
+				column 'FW RelativeYearPos'
+					caption: PosAnnéeRelative SE
+					displayFolder: _Weekly Calendrier
+				column 'FW StartOfMonth'
+					caption: DébutDuMois SE
+					displayFolder: _Weekly Calendrier
+				column 'FW EndOfMonth'
+					caption: FinDuMois SE
+					displayFolder: _Weekly Calendrier
+				column 'FW StartOfQuarter'
+					caption: DébutDuTrimestre SE
+					displayFolder: _Weekly Calendrier
+				column 'FW EndOfQuarter'
+					caption: FinDuTrimestre SE
+					displayFolder: _Weekly Calendrier
+				column 'FW StartOfYear'
+					caption: DébutD’Exercice SE
+					displayFolder: _Weekly Calendrier
+				column 'FW EndOfYear'
+					caption: FinAnnée SE
+					displayFolder: _Weekly Calendrier
+				column 'FW MonthDays'
+					caption: MoisJours SE
+					displayFolder: _Weekly Calendrier
+				column 'FW QuarterDays'
+					caption: JoursTrimestre SE
+					displayFolder: _Weekly Calendrier
+				column 'FW YearDays'
+					caption: JoursAnnée SE
+					displayFolder: _Weekly Calendrier
+				column 'FW DayOfMonthNumber'
+					caption: NuméroJourDuMois SE
+					displayFolder: _Weekly Calendrier
+				column 'FW DayOfQuarterNumber'
+					caption: NuméroJourDuTrimestre SE
+					displayFolder: _Weekly Calendrier
+				column 'FW DayOfYearNumber'
+					caption: NuméroJourDeL’Année SE
+					displayFolder: _Weekly Calendrier
+				column 'FW DatePreviousWeek'
+					caption: DateSemainePrécédente SE
+					displayFolder: _Weekly Calendrier
+				column 'FW DatePreviousMonth'
+					caption: DateMoisPrécédent SE
+					displayFolder: _Weekly Calendrier
+				column 'FW DatePreviousQuarter'
+					caption: DateTrimestrePrécédent SE
+					displayFolder: _Weekly Calendrier
+				column 'FW DatePreviousYear'
+					caption: DateAnnéePrécédente SE
+					displayFolder: _Weekly Calendrier
+				column 'Relative Day'
+					caption: Jour relatif
+				column Sequential365DayNumber
+					caption: NuméroJour séquentiel 365
+				measure 'No. of Days'
+					caption: Nombre de jours
+				hierarchy 'Fiscal Year-Quarter-Month-Week'
+					caption: Année-Trimestre-Mois-Semaine d’exercice
+					displayFolder: _Fiscal Calendrier
+					level 'Fiscal Year'
+						caption: Exercice
+					level 'Fiscal Quarter Year'
+						caption: Trimestre d’exercice
+					level 'Fiscal Month Year'
+						caption: Mois d’exercice
+					level 'Fiscal Week Year'
+						caption: Semaine d’exercice
+				hierarchy 'Calendar Year-Quarter-Month-Week'
+					caption: Année-Trimestre-Mois-Semaine civil
+					displayFolder: _Standard Calendrier
+					level 'Calendar Year'
+						caption: Année civile
+					level 'Calendar Quarter Year'
+						caption: Trimestre civil
+					level 'Calendar Month Year'
+						caption: Mois Année civile
+					level 'Calendar Week Year'
+						caption: Semaine d’année civile
+				hierarchy 'FW Year-Quarter-Month-Week'
+					caption: Année-Trimestre-Mois-Semaine SE
+					displayFolder: _Weekly Calendrier
+					level 'FW Year'
+						caption: Année SE
+					level 'FW Quarter Year'
+						caption: Trimestre Année SE
+					level 'FW Month Year'
+						caption: Mois Année SE
+					level 'FW Week Year'
+						caption: Semaine Année SE
+				hierarchy 'Fiscal Year-Month'
+					caption: Année-Mois d’exercice
+					displayFolder: _Fiscal Calendrier
+					level 'Fiscal Year'
+						caption: Exercice
+					level 'Fiscal Month Year'
+						caption: Mois d’exercice
+				hierarchy 'Fiscal Year-Month-Week'
+					caption: Année-Mois-Semaine d’exercice
+					displayFolder: _Fiscal Calendrier
+					level 'Fiscal Year'
+						caption: Exercice
+					level 'Fiscal Month Year'
+						caption: Mois d’exercice
+					level 'Fiscal Week Year'
+						caption: Semaine d’exercice
+				hierarchy 'Calendar Year-Month'
+					caption: Année-Mois civil
+					displayFolder: _Standard Calendrier
+					level 'Calendar Year'
+						caption: Année civile
+					level 'Calendar Month Year'
+						caption: Mois Année civile
+				hierarchy 'Calendar Year-Month-Week'
+					caption: Année-Mois-Semaine civil
+					displayFolder: _Standard Calendrier
+					level 'Calendar Year'
+						caption: Année civile
+					level 'Calendar Month Year'
+						caption: Mois Année civile
+					level 'Calendar Week Year'
+						caption: Semaine d’année civile
+				hierarchy 'FW Year-Month-Week'
+					caption: Année-Mois-Semaine SE
+					displayFolder: _Weekly Calendrier
+					level 'FW Year'
+						caption: Année SE
+					level 'FW Month Year'
+						caption: Mois Année SE
+					level 'FW Week Year'
+						caption: Semaine Année SE
+				hierarchy 'FW Year-Quarter-Week'
+					caption: Année-Trimestre-Semaine SE
+					displayFolder: _Weekly Calendrier
+					level 'FW Year'
+						caption: Année SE
+					level 'FW Quarter Year'
+						caption: Trimestre Année SE
+					level 'FW Week Year'
+						caption: Semaine Année SE
+				hierarchy 'FW Year-Week'
+					caption: Année-Semaine SE
+					displayFolder: _Weekly Calendrier
+					level 'FW Year'
+						caption: Année SE
+					level 'FW Week Year'
+						caption: Semaine Année SE
+			table 'Localized Labels'
+				caption: Étiquettes Localisées
+				measure 'My Report Title'
+					caption: Titre de l’état
+				measure 'My Button Caption'
+					caption: Légende de mon bouton
+				measure 'My Visual Title'
+					caption: Mon titre visuel
+				measure 'Financial Overview'
+					caption: Vue d’ensemble financière
+				measure 'Income Statement by Month'
+					caption: Compte résultats par mois
+				measure 'Balance Sheet by Month'
+					caption: Bilan par mois
+				measure 'Budget Comparison'
+					caption: Comparaison budgétaire
+				measure 'Liquidity KPIs'
+					caption: Indicateurs de performances clés liquidités
+				measure Profitability
+					caption: Rentabilité
+				measure 'Liabilities '
+					caption: "Passif "
+				measure 'Average Collection Period '
+					caption: "Délai règlement moyen "
+				measure 'Aged Receivables (Back Dating)'
+					caption: Comptabilité client âgée (rétrodatation)
+				measure 'Aged Payables (Back Dating)'
+					caption: Comptabilité fournisseur âgée (rétrodatation)
+				measure 'G/L Entries'
+					caption: Écritures comptables
+				measure 'Detailed Vendor Ledger Entries'
+					caption: Écritures comptables fournisseur détaillées
+				measure 'Detailed Customer Ledger Entries'
+					caption: Écritures comptables client détaillées
+				measure 'Income Statement Drill Through'
+					caption: Exploration du compte de résultat
+				measure 'Balance Sheet Drill Through'
+					caption: Exploration du bilan
+				measure 'Vendor Ledger Entries Drill Through'
+					caption: Exploration des écritures comptables fournisseur
+				measure 'Customer Ledger Entries Drill Through'
+					caption: Exploration des écritures comptables client
+				measure 'Liabilities Drill Through'
+					caption: Exploration du passif
+				measure 'Finance App Change Log'
+					caption: Journal des modifications de l’application Finance
+				measure 'As At Date'
+					caption: À ce jour
+				measure 'Aging Bucket Length'
+					caption: Longueur de compartiment âgé
+				measure 'Use Aging Date'
+					caption: Utiliser date de vieillissement
+				measure 'Cost of Goods Sold '
+					caption: "Coût des produits vendus "
+				measure 'Net Profit '
+					caption: "Bénéfice net "
+				measure 'Current Assets / Current Liabilities'
+					caption: Actif circulant / Passif à court terme
+				measure '(Current Assets - Inventory - Purch. Prepayments) /  Current Liabilities'
+					caption: (Actif circulant : stock : acomptes achats) / Passif à court terme
+				measure 'Liquid Assets / Current Liabilities'
+					caption: Actifs trésorerie / Passif à court terme
+				measure 'Revenue - Cost of Goods Sold - Expenses'
+					caption: Produits : coût des produits vendus : charges
+				measure 'Net Profit / Revenue'
+					caption: Bénéfice net / Produits nets
+				measure 'Revenue - Cost of Goods Sold'
+					caption: Produits : coût des produits vendus
+				measure 'Gross Profit / Revenue'
+					caption: Bénéfice brut / Produits bruts
+				measure 'Liabilities by Month'
+					caption: Passif par mois
+				measure 'Revenue & Accounts Receivable (Average) by Month'
+					caption: Produits et comptabilité client (moyenne) par mois
+				measure 'Average Collection Period (Days) by Month'
+					caption: Délai de règlement moyen (jours) par mois
+				measure 'Operating Revenue '
+					caption: "Produits d’exploitation "
+				measure 'Operating Expenses '
+					caption: "Frais d’exploitation "
+				measure 'AGED AR / AP'
+					caption: CC/CF ÂGÉE
+				measure 'Finance Analytics'
+					caption: Analyses financières
+				measure for
+					caption: pour
+				measure 'CONNECT YOUR DATA'
+					caption: CONNECTER VOS DONNÉES
+				measure '1. Download the Finance Connector for Power BI'
+					caption: 1. Téléchargez Finance Connector for Power BI
+				measure '2. Configure Dynamics 365 Business Central'
+					caption: 2. Configurez Dynamics 365 Business Central
+				measure 'USE, EDIT AND BUILD YOUR OWN REPORTS'
+					caption: UTILISEZ, MODIFIEZ ET CRÉEZ VOS PROPRES ÉTATS
+				measure 'Finance includes a variety of pre-built reports to help you see your data immediately. You are able to edit these reports or build your own report from scratch.'
+					caption: Finance inclut une variété d’états prédéfinis pour vous aider à voir vos données immédiatement. Vous pouvez modifier ces états ou créer votre propre état à partir de zéro.
+				measure 'HELP AND SUPPORT'
+					caption: AIDE ET SUPPORT
+				measure 'For help and support with your new report please visit the Analytics overview documentation.'
+					caption: Pour obtenir de l’aide et de l’assistance concernant votre nouvel état, consultez la documentation de vue d’ensemble de l’analyse.
+				measure 'OTHER POWER BI REPORTS'
+					caption: AUTRES ÉTATS POWER BI
+				measure PURCHASE
+					caption: ACHATS
+				measure SALES
+					caption: VENTES
+				measure 'INVENTORY '
+					caption: "STOCK "
+				measure MANUFACTURING
+					caption: FABRICATION
+				measure JOBS
+					caption: PROJETS
+				measure 'for Business Central'
+					caption: pour Business Central
+				measure 'Aged Accounts Receivable (AR) & Accounts Payable (AP)'
+					caption: Comptabilité client âgée (CC) et Comptabilité fournisseur âgée (CF)
+				measure 'Aged Accounts Receivable & Accounts Payable'
+					caption: Comptabilité client âgée et Comptabilité fournisseur âgée
+				measure 'Aged Accounts'
+					caption: Comptes âgés
+				measure 'General Ledger (G/L) Entries'
+					caption: Écritures comptables
+				measure 'General Ledger Entries'
+					caption: Écritures comptables
+				measure 'Return On Assets - ROA by Month'
+					caption: Rentabilité des actifs : ROA par mois
+				measure 'Top 5 Customers by Balance'
+					caption: 5 premiers clients par solde
+				measure 'Top 5 Vendors by Balance'
+					caption: 5 premiers fournisseurs par solde
+				measure 'Net Profit Margin by Month'
+					caption: Marge bénéficiaire nette par mois
+				measure 'Asset Turnover Ratio by Month'
+					caption: Ratio de rotation de l’actif par mois
+				measure 'Last Refreshed'
+					caption: Dernière actualisation
+				measure 'Company Name'
+					caption: Nom de la société
+				measure 'Liquidity Line Chart'
+					caption: Graphique en courbes liquidité
+				measure 'Net Profit by Month'
+					caption: Bénéfice net par mois
+				measure 'Gross Profit by Month'
+					caption: Bénéfice brut par mois
+				measure 'Operating Profit - EBIT and EBITDA by Month'
+					caption: Bénéfice d’exploitation - BAII et BAIIA par mois
+				measure 'EBITDA '
+					caption: "BAIIA "
+				measure 'Revenue, Accounts Receivable (Average), No. of Days and Average Collection Period (Days) by Month'
+					caption: Produits, Comptabilité client (moyenne), Nbre de jours et Délai de règlement moyen (jours) par mois
+				measure 'Revenue, Net Profit, Net Profit Margin, Assets, Days Sales Outstanding, Days Sales of Inventory, Days Payable Outstanding.'
+					caption: Produits, Bénéfice net, Marge bénéficiaire nette, Actifs, Délai moyen de paiement client, Jours de ventes en stock, Délai de paiement fournisseur.
+				measure 'Current Ratio, Current Assets, Current Liabilities.'
+					caption: Taux actuel, Actifs circulants, Passif à court terme.
+				measure 'Quick Ratio, Current Assets, Inventory.'
+					caption: Ratio de liquidité, Actifs circulants, Stock.
+				measure 'Cash Ratio, Liquid Assets, Current Liabilities.'
+					caption: Ratio de trésorerie, Actifs trésorerie, Passif à court terme.
+				measure 'Net Profit, Revenue, Cost of Goods Sold.'
+					caption: Bénéfice net, Produits, Coût des produits vendus.
+				measure 'Net Profit Margin, Net Profit, Revenue.'
+					caption: Marge bénéficiaire nette, Bénéfice net, Produits.
+				measure 'Gross Profit, Revenue, Cost of Goods Sold.'
+					caption: Bénéfice brut, Produits, Coût des produits vendus.
+				measure 'Gross Profit Marging, Gross Profit, Revenue.'
+					caption: Marge bénéf. brute, Marge brute, Produits.
+				measure 'Liabilities, Current Liabilities, Payrol Liabilities, Debt Ratio, Debt/Equity Ratio, Assets, Longterm Liabilities.'
+					caption: Passif, Passif à court terme, Passif de frais de personnel, Taux d’endettement, Ratio emprunts/capitaux propres, Actifs, Passif à long terme.
+				measure 'Gross Profit Margin, Gross Profit, Revenue.'
+					caption: Marge bénéf. brute, Marge brute, Produits.
+				measure 'Net Profit Margin by Fiscal Year and Month'
+					caption: Marge bénéficiaire nette par exercice et mois
+				measure 'Asset Turnover Ratio by Fiscal Year and Month'
+					caption: Ratio de rotation de l’actif par exercice et mois
+				measure 'Balance at Date (Neg) by Fiscal Year, Month and G/L Account No./Name'
+					caption: Solde à ce jour (négatif) par exercice, Mois et Nom/N° compte général
+			table COMPANY
+				caption: SOCIÉTÉ
+				measure 'Company Label'
+					caption: Étiquette société
+			table 'Closing Entry Filter Table'
+				caption: Table de filtre écriture de clôture
+				column CloseIncomeSourceCodeFilter
+					caption: CloseIncomeSourceCodeFilter
+			table 'Back Links'
+				caption: Liens secondaires
+

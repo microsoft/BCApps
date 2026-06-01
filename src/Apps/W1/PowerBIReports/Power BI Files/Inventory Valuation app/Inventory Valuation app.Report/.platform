@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Report",
+    "displayName": "Inventory Valuation app"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "c659e353-75b2-464e-8d37-f0a63d5312f3"
+  }
+}

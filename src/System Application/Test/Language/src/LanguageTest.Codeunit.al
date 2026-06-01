@@ -5,10 +5,10 @@
 
 namespace System.Test.Globalization;
 
-using System.Globalization;
 using System.Environment.Configuration;
-using System.TestLibraries.Utilities;
+using System.Globalization;
 using System.TestLibraries.Security.AccessControl;
+using System.TestLibraries.Utilities;
 
 /// <summary>
 /// Tests for Language codeunit

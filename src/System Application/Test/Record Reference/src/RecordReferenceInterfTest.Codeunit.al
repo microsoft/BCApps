@@ -7,8 +7,8 @@ namespace System.Test.Reflection;
 
 using System.Environment.Configuration;
 using System.Reflection;
-using System.TestLibraries.Utilities;
 using System.TestLibraries.Security.AccessControl;
+using System.TestLibraries.Utilities;
 
 /// <summary>
 /// These test must match the tests in 138706 "Record Reference Normal Test"

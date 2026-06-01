@@ -5,8 +5,8 @@
 
 namespace System.Test.Xml;
 
-using System.Xml;
 using System.TestLibraries.Utilities;
+using System.Xml;
 
 codeunit 139911 "Xml Writer Test"
 {

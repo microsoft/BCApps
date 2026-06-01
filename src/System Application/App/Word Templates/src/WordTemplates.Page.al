@@ -22,7 +22,7 @@ page 9989 "Word Templates"
     InsertAllowed = false;
     Permissions = tabledata "Word Template" = rmd,
                   tabledata "Word Templates Related Table" = r;
-    Extensible = false;
+    Extensible = true;
 
     layout
     {

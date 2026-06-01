@@ -1,0 +1,482 @@
+table 'Localized Labels'
+	isHidden
+	lineageTag: f156500f-aa19-4c6e-ba7c-ed4fabc81e7e
+
+	measure 'My Report Title' = 0
+		isHidden
+		lineageTag: b86e776e-e201-4aaf-a06d-87782d4ca51b
+
+	measure 'My Button Caption' = 0
+		isHidden
+		lineageTag: 5a5873fe-ae4e-4026-8eaa-737af9d77299
+
+	measure 'My Visual Title' = 0
+		isHidden
+		lineageTag: 7049083c-8d15-4322-8a9b-2bb4ddc29d0f
+
+	measure 'Current Utilization' = 0
+		isHidden
+		lineageTag: 299691a4-e5b9-46fa-b76b-763112117cf1
+
+	measure 'Utilization %, Capacity Used (Hours) and Capacity Available (Hours) by Day' = 0
+		isHidden
+		lineageTag: eee7e236-cd15-4ac3-89a5-818c2f29e5d7
+
+	measure 'Utilization % and Expected Capacity Need % (Today)' = 0
+		isHidden
+		lineageTag: 0a044032-69ed-4397-8dc9-cb664b1b2a7f
+
+	measure 'Utilization % and Expected Capacity Need % (Current Week)' = 0
+		isHidden
+		lineageTag: 28422982-0fdc-423d-9695-0d6ec1e20f2a
+
+	measure 'Utilization % and Expected Capacity Need % (Current Year)' = 0
+		isHidden
+		lineageTag: 231f5ae5-ed53-4726-a5de-15e9870f0f57
+
+	measure 'Historical Utilization' = 0
+		isHidden
+		lineageTag: dabd05c8-3dbe-4942-a892-0eaafa82c4bf
+
+	measure 'Load %, Allocated Time (Hours) and Capacity Available (Hours) by Work Center Group Name' = 0
+		isHidden
+		lineageTag: 1053cd64-e9eb-4218-9920-6e0274615a3f
+
+	measure 'Load % (Today)' = 0
+		isHidden
+		lineageTag: 3fb097ac-ecd5-40ec-bb89-4e98a465e710
+
+	measure 'Load % (Current Week)' = 0
+		isHidden
+		lineageTag: 19eebc7e-40f3-4c9a-9831-a688520afc4d
+
+	measure 'Load % (Current Year)' = 0
+		isHidden
+		lineageTag: 72259432-de9f-48e3-8acc-b3cc76746306
+
+	measure 'Allocated Hours' = 0
+		isHidden
+		lineageTag: 8da1f4d8-80aa-49f8-87b8-a1d586be28ec
+
+	measure 'Allocated Time (Hours) and Load % by Work Center Group Name and Name' = 0
+		isHidden
+		lineageTag: a6778dbd-e32a-4b96-ae95-1e10020a25e5
+
+	measure 'Allocated Time in Hours (Today)' = 0
+		isHidden
+		lineageTag: 4edd3221-33fa-41f1-b3c5-3847ff2338ab
+
+	measure 'Allocated Time in Hours (Current Week)' = 0
+		isHidden
+		lineageTag: 1df298f4-44b8-44ef-8f8c-2048ab55b274
+
+	measure 'Allocated Time in Hours (Current Year)' = 0
+		isHidden
+		lineageTag: dd2864f2-302c-4b26-870b-c7b4e5d5bef7
+
+	measure 'Expected Capacity Need' = 0
+		isHidden
+		lineageTag: 816c8921-7a5b-4565-af37-7b49732a9fb8
+
+	measure 'Expected Capacity Need (Hours) by Work Centre Group Code and Production Order Status' = 0
+		isHidden
+		lineageTag: d9728996-0d68-4b90-8a34-a3133f84dfd9
+
+	measure 'Finished Production Order Breakdown' = 0
+		isHidden
+		lineageTag: 1074688a-2d4c-47b6-b536-d415ea488f64
+
+	measure 'Expected Quantity (Base) and Finished Quantity (Base) by Month' = 0
+		isHidden
+		lineageTag: 2136767c-4092-4f54-ba90-08fa808160cd
+
+	measure 'Consumption Variance' = 0
+		isHidden
+		lineageTag: 143f3495-38b2-46b2-8689-301c8a8a7eb0
+
+	measure 'Expected Consumption Cost Amount and Consumed Cost Amount (Actual) by Month' = 0
+		isHidden
+		lineageTag: fecb8bd0-d2c0-4cf9-964c-abadabfba034
+
+	measure 'Capacity Variance' = 0
+		isHidden
+		lineageTag: 1e823cda-493e-44dd-8a2c-40f8953e5778
+
+	measure 'Expected Capacity Cost Amount and Capacity Cost Amount (Actual) by Month' = 0
+		isHidden
+		lineageTag: b03a1c6b-fa5b-4ae3-b3b3-4f6482f0cd88
+
+	measure 'Average Production Times' = 0
+		isHidden
+		lineageTag: f28e2c26-b935-4b1c-bdae-061777b226da
+
+	measure 'Released Production Orders' = 0
+		isHidden
+		lineageTag: dea88649-cf85-4a49-88ba-47e28e082156
+
+	measure 'Production Scrap' = 0
+		isHidden
+		lineageTag: cc52550c-a448-40c8-995c-0f4af0b1e99f
+
+	measure 'Capacity Scrap Quantity by Month' = 0
+		isHidden
+		lineageTag: 2c5e05d9-2943-4940-afea-b1c7109e8c64
+
+	measure 'Capacity Scrap Quantity by Scrap Code' = 0
+		isHidden
+		lineageTag: 4eb9732c-d07f-4e5d-8dcc-bf9a27afdd0c
+
+	measure 'Capacity Scrap Quantity by Location Code' = 0
+		isHidden
+		lineageTag: 5e031abd-3263-4873-be43-1435f9524620
+
+	measure Manufacturing = 0
+		isHidden
+		lineageTag: 07801ee5-aa48-4006-90e5-e0e1f868b47e
+
+	measure 'for Business Central' = 0
+		isHidden
+		lineageTag: 4a6c7b73-b9ba-4658-9823-3ecc18b47cfa
+
+	measure 'CONNECT YOUR DATA' = 0
+		isHidden
+		lineageTag: 25e067d5-3b32-4370-bd26-9271ecc597b3
+
+	measure '2. Configure Dynamics 365 Business Central' = 0
+		isHidden
+		lineageTag: 37df5358-005b-4f47-abb7-642b8dbce289
+
+	measure 'USE, EDIT AND BUILD YOUR OWN REPORTS' = 0
+		isHidden
+		lineageTag: b6ede26a-fd2b-4326-be91-7cee5d054cfb
+
+	measure 'HELP AND SUPPORT' = 0
+		isHidden
+		lineageTag: 50bbcd85-1a36-46ae-8b54-ebaee22bf3f4
+
+	measure 'For help and support with your new report please visit the Analytics overview documentation.' = 0
+		isHidden
+		lineageTag: 721623c1-4ee1-4328-8436-4cfcf82af873
+
+	measure 'OTHER POWER BI REPORTS' = 0
+		isHidden
+		lineageTag: 8207b130-5cec-4d13-9cfe-f2a7848d8736
+
+	measure PURCHASE = 0
+		isHidden
+		lineageTag: 6b77c97d-b2d6-4ed3-9369-8395424f69c9
+
+	measure FINANCE = 0
+		isHidden
+		lineageTag: 1d60693c-b410-44aa-b789-900ac24c87da
+
+	measure INVENTORY = 0
+		isHidden
+		lineageTag: db3e0aa3-9065-46a2-9ab6-c76ce7af6dad
+
+	measure SALES = 0
+		isHidden
+		lineageTag: 7567d4d7-383f-407a-9182-9cf1b6c284e1
+
+	measure 'Last Refreshed' = 0
+		isHidden
+		lineageTag: b9cbc707-c267-4914-a749-5e4c690a2168
+
+	measure 'Company Name' = 0
+		isHidden
+		lineageTag: 561c08e5-6578-4f61-b3a0-5134e7175088
+
+	measure 'Capacity Scrap Quantity by Item Category Code' = 0
+		isHidden
+		lineageTag: 94c824d5-b972-4405-82d6-16c7976acfcf
+
+	measure '1. Download the Manufacturing Connector for Power BI' = 0
+		isHidden
+		lineageTag: e8e7d0ed-e211-4cf1-8039-f568eafb1e51
+
+	measure 'Manufacturing includes a variety of pre-built reports to help you see your data immediately.' = 0
+		isHidden
+		lineageTag: 8fac0521-ac10-4cec-bb4a-31d2fcf8a4c9
+
+	measure 'You are able to edit these reports or build your own report from scratch.' = 0
+		isHidden
+		lineageTag: c0ef101b-25a5-495b-8bb0-90d886744bcc
+
+	measure PROJECTS = 0
+		isHidden
+		lineageTag: a732e59d-ca96-4bcd-856f-249e52677a68
+
+	measure 'Capacity Used (Hours), Capacity Available (Hours) and Utilization % by Date' = 0
+		isHidden
+		lineageTag: 15cad9e9-c3f0-4d42-bd3b-0a651fee283f
+
+	measure 'Actual Cost by Source No.' = 0
+		isHidden
+		lineageTag: 38fea54a-715b-4e84-a94d-33fa8b99c42a
+
+	measure 'Production Order Overview' = 0
+		isHidden
+		lineageTag: 3cf72bb1-74c6-4323-91e7-dcf593cff477
+
+	measure 'No. of Production Orders by Status' = 0
+		isHidden
+		lineageTag: 96571359-e338-47c9-aafa-6c2205303f49
+
+	measure 'Completion Ratios by Source No.' = 0
+		isHidden
+		lineageTag: 0c733c6d-eeab-4e4c-8274-0e1f06ab5b7d
+
+	measure 'Total Actual Cost Breakdown' = 0
+		isHidden
+		lineageTag: 1ee12351-83d8-442c-9f47-1b2c9619227c
+
+	measure 'Current Production Orders' = 0
+		isHidden
+		lineageTag: 10a59565-3d64-41fd-b104-e2b60a86bde1
+
+	measure 'Current Work Center Utilization by Year, Month, Week and Day' = 0
+		isHidden
+		lineageTag: bd752042-c5fb-48d0-bd00-6b148226b6e4
+
+	measure 'Work Center Load Over Time' = 0
+		isHidden
+		lineageTag: b5eb771b-d927-4a39-af0a-cee3be10f1d0
+
+	measure 'Work Center Load Details' = 0
+		isHidden
+		lineageTag: 5f611fee-9203-49e0-bd7e-8214c307c5ee
+
+	measure 'Work Center Load ' = 0
+		isHidden
+		lineageTag: 9bd411cd-e64c-411a-9a15-435b1b05d011
+
+	measure 'Allocated Time ' = 0
+		isHidden
+		lineageTag: 21ca4fb9-5c69-423d-b48e-7f9d358756f6
+
+	measure 'Allocated Time by Work Center Name' = 0
+		isHidden
+		lineageTag: 12acb326-3035-44e0-90d0-111cf582e9a3
+
+	measure 'Allocated Time by Source No.' = 0
+		isHidden
+		lineageTag: 815999c0-fc9e-45dd-b0f9-220b0d50e232
+
+	measure 'Allocated Time by Type' = 0
+		isHidden
+		lineageTag: 03917164-7158-4135-baca-66d7681743c9
+
+	measure 'Allocated Time Details' = 0
+		isHidden
+		lineageTag: 6f114a76-92bd-4af2-832a-25a63a97940b
+
+	measure 'Allocated Time by Production Order Status' = 0
+		isHidden
+		lineageTag: ad42dbd3-8bf2-40ee-9c67-35c3e270e750
+
+	measure 'Expected Capacity Need by Work Center' = 0
+		isHidden
+		lineageTag: cba3e7c0-425e-4b7e-b95a-4a160e67f37b
+
+	measure 'Expected Capacity Need by Machine Center' = 0
+		isHidden
+		lineageTag: cfa506b5-80be-418d-b510-0a8181c6a9f7
+
+	measure 'Expected Capacity Need Details' = 0
+		isHidden
+		lineageTag: 4752f981-efd0-4fc6-94f5-28f27606d789
+
+	measure 'Expected Capacity Need by Source No.' = 0
+		isHidden
+		lineageTag: 0bf106a3-cdb1-4a34-8c9e-61f6ef652d4e
+
+	measure 'Expected Material Dev % by Source No.' = 0
+		isHidden
+		lineageTag: 2525bfc8-82ea-4072-a21b-bddceeb6d1a3
+
+	measure 'Expected Material Dev % by Production Order' = 0
+		isHidden
+		lineageTag: 99075fc4-37a6-4809-8733-6ea174258e7e
+
+	measure 'Consumption Variance Details' = 0
+		isHidden
+		lineageTag: c4b27159-fefe-4d95-9a6c-449c03e904c6
+
+	measure 'Expected Capacity Dev % by Source No.' = 0
+		isHidden
+		lineageTag: ace471fd-5a5e-48f5-b852-e9b4bfa2ffb0
+
+	measure 'Expected Capacity Dev % by Production Order|' = 0
+		isHidden
+		lineageTag: e8ce3082-44ec-4ba2-8517-ad2f06385565
+
+	measure 'Capacity Variance Details' = 0
+		isHidden
+		lineageTag: 8d005d63-db0d-47ed-9401-85333cc75bb7
+
+	measure 'Average Time Per Finished Quantity by Work Center' = 0
+		isHidden
+		lineageTag: e263bbc0-6c9b-4699-9e02-910bd3142067
+
+	measure 'Average Time Per Finished Quantity by Source No.' = 0
+		isHidden
+		lineageTag: 207ffad3-d5b0-4565-b3a9-09b6b93e059b
+
+	measure 'Average Production Time Details' = 0
+		isHidden
+		lineageTag: 81db17ec-5ea1-48da-8fd1-3d7c1992d1cb
+
+	measure 'No. of Production Orders by Source No.' = 0
+		isHidden
+		lineageTag: 73d281fe-06e9-4b4f-b9d5-2499a50bcb10
+
+	measure 'Released Production Order Details' = 0
+		isHidden
+		lineageTag: a8860c3e-4026-49e3-9d10-2831329c9b59
+
+	measure 'Scrap Quantity by Work Center' = 0
+		isHidden
+		lineageTag: 0196f0f0-37e0-4725-ac53-6f05d678f0c8
+
+	measure 'Work Center Statistics' = 0
+		isHidden
+		lineageTag: a501a992-3e43-440c-bc2e-ed7c179a5719
+
+	measure 'Statistic Details' = 0
+		isHidden
+		lineageTag: 7c3578b9-3701-498c-808d-f1ee5d58a555
+
+	measure 'Machine Center Statistics' = 0
+		isHidden
+		lineageTag: ea8f920a-3271-45b1-bf7a-532636ec5f04
+
+	measure 'Machine Center Load ' = 0
+		isHidden
+		lineageTag: 8a4ab10b-2376-4d16-b226-fd3c8e7bf1a7
+
+	measure 'Machine Center Load Details' = 0
+		isHidden
+		lineageTag: b7b2bb91-9abe-4c95-97ac-0426bb2e2859
+
+	measure 'Prod. Order List' = 0
+		isHidden
+		lineageTag: 05e03954-9964-45ce-b77c-8b6228f10df7
+
+	measure 'Prod. Order List Details' = 0
+		isHidden
+		lineageTag: c02b1d24-32e2-476e-907b-3a87832bd32d
+
+	measure 'Production Order Routing Lines Gantt' = 0
+		isHidden
+		lineageTag: 51378bc0-1bbd-4afe-9d64-f50063770aed
+
+	measure 'Routing Line Operation Duration' = 0
+		isHidden
+		lineageTag: 221cbce9-3f22-4df0-b63c-f6407a80f0cb
+
+	measure 'Routing Line Details' = 0
+		isHidden
+		lineageTag: 9e414141-dd1c-4713-a491-e603e0460192
+
+	measure 'Production Order WIP' = 0
+		isHidden
+		lineageTag: a8b0d362-ef34-45e9-9f8b-11874c834be9
+
+	measure 'Inventory Valuation - WIP' = 0
+		isHidden
+		lineageTag: d61f4981-9429-45a4-ad8a-e259b3b7d054
+
+	measure 'Task List Drill Through' = 0
+		isHidden
+		lineageTag: 2471c4a7-3b89-4c30-87a4-89a0ee0dce6a
+
+	measure 'Task List Details' = 0
+		isHidden
+		lineageTag: 5a30ab8b-2720-4ec8-85bf-311217c53ae8
+
+	measure 'Expected Capacity Need Variance' = 0
+		isHidden
+		lineageTag: 512c290e-4c09-4335-b125-4cba9b4e36f1
+
+	measure 'Expected Capacity Cost Dev % by Source No.' = 0
+		isHidden
+		lineageTag: 5668111c-15cc-4c83-92f1-caf8a6ff8d89
+
+	measure 'Average Production Time Per Unit by Work Center' = 0
+		isHidden
+		lineageTag: 1e17cf6f-c6b8-4d8d-811c-40edb34d6608
+
+	measure 'Average Production Time Per Unit by Source No.' = 0
+		isHidden
+		lineageTag: 68031353-5759-465a-86d3-4ab5cc4bbb68
+
+	measure 'Scrap Quantity Over Time' = 0
+		isHidden
+		lineageTag: b972c2e3-df28-4309-a656-d529d5d98f12
+
+	measure 'Scrap % by Production Order' = 0
+		isHidden
+		lineageTag: db338b23-c632-45c1-a3a9-8158a0caad7a
+
+	measure 'Scrap Quantity by Scrap Code' = 0
+		isHidden
+		lineageTag: 7269ac89-43e7-40dc-9b24-ad23992a6b8c
+
+	measure 'Scrap Quantity vs. Expected Scrap Quantity' = 0
+		isHidden
+		lineageTag: ad5f85ce-1a01-4e82-b698-b925f16fd4c2
+
+	measure 'Production Order Time Line' = 0
+		isHidden
+		lineageTag: 1d55c534-8fde-44ad-9443-608962f0acde
+
+	measure 'Production Time Line' = 0
+		isHidden
+		lineageTag: 0f8b8425-88fb-4ae0-a5ee-bbf1353bc80c
+
+	measure 'Work Center Efficiency' = 0
+		isHidden
+		lineageTag: 9569fcca-bcf8-450c-bbf7-fc304afed355
+
+	measure 'Machine Center Efficiency' = 0
+		isHidden
+		lineageTag: 23ccf29f-ecc6-4ea5-9205-47882e479ab9
+
+	measure 'No. of Production Orders by Source Item' = 0
+		isHidden
+		lineageTag: d3653af1-fc07-4b7a-8416-970c0a25d42e
+
+	measure 'Prod. Order Routing Gantt' = 0
+		isHidden
+		lineageTag: 67553e37-4404-4457-a72d-75450d4d1c55
+
+	measure 'Production Timeline' = 0
+		isHidden
+		lineageTag: 79119249-cb0f-4480-badd-212e128ee757
+
+	measure 'Ending Balance Value by Month and Year' = 0
+		isHidden
+		lineageTag: fde16454-aac8-4b5e-8f75-0500f19758b7
+
+	measure 'Scrap Quantity vs. Expected Scrap Quantity by Source No.' = 0
+		isHidden
+		lineageTag: 443a1adc-ac54-430f-8614-86d90357d6a6
+
+	measure 'Production Orders by Work Center' = 0
+		isHidden
+		lineageTag: 0ffb8422-832a-4112-b364-9eb6380861a8
+
+	column unused
+		isHidden
+		displayFolder: unused
+		lineageTag: 1f38c6c3-299b-4e5d-9732-005b61b17709
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [unused]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Partition = calculated
+		mode: import
+		source = DATATABLE("unused", STRING, {{"This is a table automatically generated by Translations Builder"}})
+

@@ -5,10 +5,10 @@
 
 namespace System.Test.ExternalFileStorage;
 
-using System.TestLibraries.ExternalFileStorage;
 using System.ExternalFileStorage;
-using System.TestLibraries.Utilities;
+using System.TestLibraries.ExternalFileStorage;
 using System.TestLibraries.Security.AccessControl;
+using System.TestLibraries.Utilities;
 
 codeunit 134751 "File Scenario Page Test"
 {

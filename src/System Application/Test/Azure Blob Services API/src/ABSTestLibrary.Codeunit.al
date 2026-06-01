@@ -299,6 +299,53 @@ codeunit 132921 "ABS Test Library"
         exit(Builder.ToText());
     end;
 
+    procedure GetDelimitedServiceResponse(): Text;
+    var
+        Builder: TextBuilder;
+    begin
+        Builder.Append('<?xml version="1.0" encoding="utf-8"?>');
+        Builder.Append('<EnumerationResults ServiceEndpoint="https://myaccount.blob.core.windows.net/" ContainerName="mycontainer">');
+        Builder.Append('<Blobs>');
+        Builder.Append('<BlobPrefix>');
+        Builder.Append('<Name>subdirectory1/</Name>');
+        Builder.Append('</BlobPrefix>');
+        Builder.Append('<BlobPrefix>');
+        Builder.Append('<Name>subdirectory2/</Name>');
+        Builder.Append('</BlobPrefix>');
+        Builder.Append('<BlobPrefix>');
+        Builder.Append('<Name>subdirectory3/</Name>');
+        Builder.Append('</BlobPrefix>');
+        Builder.Append('<Blob>');
+        Builder.Append('<Name>filename.txt</Name>');
+        Builder.Append('<Properties>');
+        Builder.Append('<Creation-Time>Wed, 27 Sep 2023 20:24:18 GMT</Creation-Time>');
+        Builder.Append('<Last-Modified>Wed, 27 Sep 2023 20:24:18 GMT</Last-Modified>');
+        Builder.Append('<Etag>0x8DBBF97BA4A9839</Etag>');
+        Builder.Append('<ResourceType>file</ResourceType>');
+        Builder.Append('<Content-Length>1</Content-Length>');
+        Builder.Append('<Content-Type>text/plain</Content-Type>');
+        Builder.Append('<Content-Encoding />');
+        Builder.Append('<Content-Language />');
+        Builder.Append('<Content-CRC64 />');
+        Builder.Append('<Content-MD5>dpT0pmMW5TyM3Z2ZVL1hHQ==</Content-MD5>');
+        Builder.Append('<Cache-Control />');
+        Builder.Append('<Content-Disposition />');
+        Builder.Append('<BlobType>BlockBlob</BlobType>');
+        Builder.Append('<AccessTier>Hot</AccessTier>');
+        Builder.Append('<AccessTierInferred>true</AccessTierInferred>');
+        Builder.Append('<LeaseStatus>unlocked</LeaseStatus>');
+        Builder.Append('<LeaseState>available</LeaseState>');
+        Builder.Append('<ServerEncrypted>true</ServerEncrypted>');
+        Builder.Append('</Properties>');
+        Builder.Append('<OrMetadata />');
+        Builder.Append('</Blob>');
+        Builder.Append('</Blobs>');
+        Builder.Append('<NextMarker />');
+        Builder.Append('</EnumerationResults>');
+
+        exit(Builder.ToText());
+    end;
+
     procedure GetSampleResponseRootDirName(): Text
     begin
         exit('rootdir');

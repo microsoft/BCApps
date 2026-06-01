@@ -55,7 +55,7 @@ codeunit 9013 "User Login Time Tracker Impl."
     begin
         // if the user exists in the User Login Times table, they have logged in in the past
         UserEnvironmentLogin.SetRange("User SID", UserSecurityID);
-        UserEnvironmentLogin.ReadIsolation := UserEnvironmentLogin.ReadIsolation::ReadCommitted;
+        UserEnvironmentLogin.ReadIsolation := UserEnvironmentLogin.ReadIsolation::ReadUncommitted;
         if not UserEnvironmentLogin.IsEmpty() then
             exit(true); // Avoid locking the table if the user has logged in before
 

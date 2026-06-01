@@ -5,10 +5,10 @@
 
 namespace System.Test.Email;
 
-using System.Email;
 using System.DataAdministration;
-using System.TestLibraries.Utilities;
+using System.Email;
 using System.TestLibraries.Security.AccessControl;
+using System.TestLibraries.Utilities;
 codeunit 134706 "Email Retention Policy Tests"
 {
     Subtype = Test;

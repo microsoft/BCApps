@@ -5,8 +5,8 @@
 
 namespace System.Test.Integration.Excel;
 
-using System.Integration.Excel;
 using System.Integration;
+using System.Integration.Excel;
 using System.TestLibraries.Utilities;
 codeunit 132527 "Edit in Excel Workbook Test"
 {

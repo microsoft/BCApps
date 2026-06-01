@@ -5,9 +5,9 @@
 
 namespace System.Test.Integration.Excel;
 
-using System.TestLibraries.Integration.Excel;
-using System.Integration.Excel;
 using System;
+using System.Integration.Excel;
+using System.TestLibraries.Integration.Excel;
 using System.TestLibraries.Utilities;
 codeunit 132526 "Edit in Excel Filters Test"
 {

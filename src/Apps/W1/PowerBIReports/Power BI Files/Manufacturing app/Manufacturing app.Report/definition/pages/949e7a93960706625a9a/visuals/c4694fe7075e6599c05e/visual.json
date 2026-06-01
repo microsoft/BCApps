@@ -1,0 +1,639 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "c4694fe7075e6599c05e",
+  "position": {
+    "x": 25.82456140350877,
+    "y": 324,
+    "z": 2000,
+    "height": 370,
+    "width": 1228.3508771929824,
+    "tabOrder": 2000
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Machine Center"
+                    }
+                  },
+                  "Property": "Work Center No."
+                }
+              },
+              "queryRef": "Machine Center.Work Center No.",
+              "nativeQueryRef": "Work Center No."
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Machine Center"
+                    }
+                  },
+                  "Property": "Work Center Name"
+                }
+              },
+              "queryRef": "Machine Center.Work Center Name",
+              "nativeQueryRef": "Work Center Name"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Machine Center"
+                    }
+                  },
+                  "Property": "Machine Center No."
+                }
+              },
+              "queryRef": "Machine Center.Machine Center No.",
+              "nativeQueryRef": "Machine Center No."
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Machine Center"
+                    }
+                  },
+                  "Property": "Machine Center Capacity (Total)"
+                }
+              },
+              "queryRef": "Machine Center.Machine Center Capacity (Total)",
+              "nativeQueryRef": "Machine Center Capacity (Total)"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Machine Center"
+                    }
+                  },
+                  "Property": "Machine Center Capacity (Effective)"
+                }
+              },
+              "queryRef": "Machine Center.Machine Center Capacity (Effective )",
+              "nativeQueryRef": "Machine Center Capacity (Effective)"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Machine Center"
+                    }
+                  },
+                  "Property": "Machine Center Expected Efficiency %"
+                }
+              },
+              "queryRef": "Machine Center.Machine Center Efficiency",
+              "nativeQueryRef": "Machine Center Expected Efficiency %"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Machine Center"
+                    }
+                  },
+                  "Property": "Machine Center Actual Need"
+                }
+              },
+              "queryRef": "Machine Center.Machine Center Actual Need",
+              "nativeQueryRef": "Machine Center Actual Need"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Machine Center"
+                    }
+                  },
+                  "Property": "Machine Center Actual Efficiency %"
+                }
+              },
+              "queryRef": "Machine Center.Machine Center Actual Efficiency",
+              "nativeQueryRef": "Machine Center Actual Efficiency %"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Machine Center"
+                    }
+                  },
+                  "Property": "Machine Center Actual Total Cost"
+                }
+              },
+              "queryRef": "Machine Center.Work Center Actual Cost 1",
+              "nativeQueryRef": "Machine Center Actual Total Cost"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Machine Center"
+                    }
+                  },
+                  "Property": "Machine Center Allocated Time"
+                }
+              },
+              "queryRef": "Machine Center.Work Center Need (Qty.) 1",
+              "nativeQueryRef": "Machine Center Prod. Order Need (Qty.)"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Machine Center"
+                    }
+                  },
+                  "Property": "Machine Center Output"
+                }
+              },
+              "queryRef": "Machine Center.Machine Center Output",
+              "nativeQueryRef": "Machine Center Output"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Machine Center"
+                    }
+                  },
+                  "Property": "Machine Center Scrap"
+                }
+              },
+              "queryRef": "Machine Center.Machine Center Scrap",
+              "nativeQueryRef": "Machine Center Scrap"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Machine Center"
+                    }
+                  },
+                  "Property": "Machine Center Scrap %"
+                }
+              },
+              "queryRef": "Machine Center.Machine Centre Scrap %",
+              "nativeQueryRef": "Machine Centre Scrap %"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Machine Center"
+                    }
+                  },
+                  "Property": "Machine Center Run Time"
+                }
+              },
+              "queryRef": "Machine Center.Machine Center Run Time",
+              "nativeQueryRef": "Machine Center Run Time"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Machine Center"
+                    }
+                  },
+                  "Property": "Machine Center Stop Time"
+                }
+              },
+              "queryRef": "Machine Center.Machine Center Stop Time",
+              "nativeQueryRef": "Machine Center Stop Time"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Machine Center"
+                    }
+                  },
+                  "Property": "Machine Center Stop %"
+                }
+              },
+              "queryRef": "Machine Center.Machine Center Stop %",
+              "nativeQueryRef": "Machine Center Stop %"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Measure": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Machine Center"
+                  }
+                },
+                "Property": "Machine Center Allocated Time"
+              }
+            },
+            "direction": "Descending"
+          }
+        ]
+      }
+    },
+    "objects": {
+      "columnWidth": [
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "113D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Sales Measures.Average Sales Amount per Month"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "95D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Sales Measures.Average Sales Amount per Day"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "125.9090909090909D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Purchases.Purchase Amount"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "99.93488860532833D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Machine Center.Capacity (Total) 1"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "102.07178350788702D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Machine Center.Machine Center Capacity (Total)"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "115.52419591890765D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Machine Center.Machine Center Capacity (Effective )"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "99.9883075997607D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Machine Center.Machine Center Efficiency"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "99.96159762705204D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Machine Center.Machine Center Actual Need"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "102.11018442025635D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Machine Center.Machine Center No."
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "85.11018501181489D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Machine Center.Work Center No."
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "119.64678491094111D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Machine Center.Work Center Need (Qty.) 1"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "113.64586371313122D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Machine Center.Machine Center Actual Efficiency"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "123.19893423338729D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Machine Center.Work Center Actual Cost 1"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "98.3193615781601D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Machine Center.Machine Center Output"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "96.17038189428455D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Machine Center.Machine Center Scrap"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "101.17752007136485D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Machine Center.Machine Centre Scrap %"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "96.6172962984938D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Machine Center.Machine Center Run Time"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "98.47547318025966D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Machine Center.Machine Center Stop Time"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "95.03566179526268D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Machine Center.Machine Center Stop %"
+          }
+        }
+      ],
+      "values": [
+        {
+          "properties": {
+            "webURL": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Back Links"
+                    }
+                  },
+                  "Property": "Work Center Need Qty Back Link"
+                }
+              }
+            }
+          },
+          "selector": {
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 0
+                }
+              }
+            ],
+            "metadata": "Work Center.Need (Qty.)"
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "background": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "transparency": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Translated Localized Labels"
+                    }
+                  },
+                  "Property": "Statistic Details Label"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "subTitle": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Manufacturing Setup"
+                    }
+                  },
+                  "Property": "Show Capacity In UOM"
+                }
+              }
+            },
+            "fontColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "ThemeDataColor": {
+                      "ColorId": 3,
+                      "Percent": 0
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

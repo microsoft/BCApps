@@ -1,0 +1,227 @@
+table 'Sales Budget'
+	lineageTag: 227da1e2-4498-4f07-a6d5-ccfa66f0dec9
+
+	/// The sum of the Sales Amount column from the Sales Budget table.
+	measure 'Budget Amount' = SUM('Sales Budget'[Sales Amount])
+		formatString: #,0.00
+		displayFolder: _Budget Measures
+		lineageTag: 27966400-9c83-4fbe-990f-688182ab2008
+
+	/// The Sales Amount minus the Budget Amount.
+	measure 'Budget Amount Variance' = [Sales (LCY)] - [Budget Amount]
+		formatString: #,0.00
+		displayFolder: _Budget Measures
+		lineageTag: f380f7ed-9809-4497-a687-df04c1b5e7ec
+
+	/// The sum of the Quantity column from the Sales Budget table.
+	measure 'Budget Quantity' = SUM('Sales Budget'[Quantity])
+		formatString: #,0.00
+		displayFolder: _Budget Measures
+		lineageTag: 7a8354ac-33b3-40a8-9af9-e2128a7ed634
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	/// The Sales Quantity minus the Budget Quantity.
+	measure 'Budget Quantity Variance' = [Sales Quantity] - [Budget Quantity]
+		formatString: #,0.00
+		displayFolder: _Budget Measures
+		lineageTag: d76d2eb5-49c6-4bd3-b071-1223b7307c16
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	/// The Budget Amount Variance divided by the Budget Amount.
+	measure 'Budget Amount Variance %' = DIVIDE('Sales Budget'[Budget Amount Variance],'Sales Budget'[Budget Amount])
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: _Budget Measures
+		lineageTag: 1b1c495e-429e-455f-86f9-ef532bdcc1f3
+
+		changedProperty = FormatString
+
+	/// The Budget Quantity Variance divided by the Budget Quantity.
+	measure 'Budget Quantity Variance %' = DIVIDE('Sales Budget'[Budget Quantity Variance],'Sales Budget'[Budget Quantity])
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: _Budget Measures
+		lineageTag: 6bfd51ec-096b-4446-8ca6-e4927dc5ca4c
+
+		changedProperty = FormatString
+
+	/// The Web URL based on the selected filters on the Sales Budget table.
+	measure 'Budget Back Link' = ```
+			
+			VAR DimensionSetIDs = CONCATENATEX(VALUES('Sales Budget'[Dimension Set ID]), 'Sales Budget'[Dimension Set ID], "|")
+			VAR EntryNos = CONCATENATEX(VALUES('Sales Budget'[Entry No.]), 'Sales Budget'[Entry No.], "|")
+			VAR BudgetNames = CONCATENATEX(VALUES('Sales Budget'[Budget Name]), 'Sales Budget'[Budget Name], "|")
+			VAR Items = CONCATENATEX(VALUES('Sales Budget'[Item No.]), 'Sales Budget'[Item No.], "|")
+			
+			RETURN 
+			    [Base Link] 
+			    & "&page=7133&filter='Item Budget Entry'.'Budget Name' IS '" & BudgetNames & "'"
+			    & " AND 'Item Budget Entry'.'Entry No.' IS '" & EntryNos & "'"
+			    & " AND 'Item Budget Entry'.'Dimension Set ID' IS '" & DimensionSetIDs & "'"
+			    & " AND 'Item Budget Entry'.'Item No.' IS '" & Items & "'"
+			```
+		displayFolder: _Budget Measures
+		lineageTag: fcc56428-0d62-4094-b438-55789e98a695
+
+	column 'Customer No.'
+		dataType: string
+		isHidden
+		lineageTag: 369bbd29-877d-47ef-9c40-73c50a3946c7
+		summarizeBy: none
+		sourceColumn: Customer No.
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Entry No.'
+		dataType: int64
+		isKey
+		formatString: 0
+		lineageTag: 243fcb8c-e4d4-41df-8608-e47e75b26aaf
+		summarizeBy: none
+		sourceColumn: Entry No.
+
+		annotation SummarizationSetBy = User
+
+	column 'Budget Name'
+		dataType: string
+		isHidden
+		lineageTag: d2e21747-83be-4f93-9c89-1210ee9f48b5
+		summarizeBy: none
+		sourceColumn: Budget Name
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column entryDate
+		dataType: dateTime
+		isHidden
+		formatString: Long Date
+		lineageTag: 187dab1b-0bba-4fd9-bd58-26943a08f400
+		summarizeBy: none
+		sourceColumn: entryDate
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Item No.'
+		dataType: string
+		isHidden
+		lineageTag: cd7de4a3-5095-4720-b57a-09e62e561758
+		summarizeBy: none
+		sourceColumn: Item No.
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Location Code'
+		dataType: string
+		isHidden
+		lineageTag: 8ee17f5d-c244-4e6d-9098-4bda0d21079b
+		summarizeBy: none
+		sourceColumn: Location Code
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column quantity
+		dataType: decimal
+		isHidden
+		formatString: #,0.00
+		lineageTag: 9bb02e50-714f-4fd3-bc5f-0b350e423616
+		summarizeBy: sum
+		sourceColumn: quantity
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	column 'Sales Amount'
+		dataType: decimal
+		isHidden
+		formatString: #,0.00
+		lineageTag: 8a780dcd-7d63-4941-8643-ead6fe57d9fe
+		summarizeBy: sum
+		sourceColumn: Sales Amount
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	column 'Dimension Set ID'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 693979c9-b7fb-4ab5-95c2-dabf4f10e3d8
+		summarizeBy: none
+		sourceColumn: Dimension Set ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Sales Budget-52350f9b-7765-4712-803e-50166e7950ce' = m
+		mode: import
+		queryGroup: 'Fact Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY,API_ENDPOINT, []),
+				    TableData = Source{[Name="salesItemBudgetEntries",Signature="table"]}[Data],
+				    #"Changed Type" = Table.TransformColumnTypes(
+				        TableData,
+				        {
+				            {"budgetName", type text},
+				            {"itemNo", type text},
+				            {"locationCode", type text},
+				            {"dimensionSetID", Int64.Type},
+				            {"entryDate", type date},
+				            {"quantity", Currency.Type},
+				            {"salesAmount", Currency.Type}
+				        }
+				    ),
+				    #"Added Customer No." = Table.AddColumn(
+				        #"Changed Type", "Customer No.", each if [sourceType] = "Customer" then [sourceNo] else "", type text
+				    ),
+				    #"Removed Columns" = Table.RemoveColumns(#"Added Customer No.", {"sourceType", "sourceNo","ETag"}),
+				    #"Reordered Columns" = Table.ReorderColumns(
+				        #"Removed Columns",
+				        {
+				            "budgetName",
+				            "entryDate",
+				            "itemNo",
+				            "locationCode",
+				            "Customer No.",
+				            "quantity",
+				            "salesAmount",
+				            "dimensionSetID"
+				        }
+				    ),
+				    #"Renamed Columns" = Table.RenameColumns(
+				        #"Reordered Columns",
+				        {
+				            {"budgetName", "Budget Name"},
+				            {"itemNo", "Item No."},
+				            {"locationCode", "Location Code"},
+				            {"salesAmount", "Sales Amount"},
+				            {"dimensionSetID", "Dimension Set ID"},
+				            {"entryNo", "Entry No."}
+				        }
+				    )
+				in
+				    #"Renamed Columns"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

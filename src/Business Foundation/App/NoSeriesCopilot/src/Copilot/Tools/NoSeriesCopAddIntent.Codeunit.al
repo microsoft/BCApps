@@ -5,8 +5,8 @@
 
 namespace Microsoft.Foundation.NoSeries;
 
-using System.Azure.KeyVault;
 using System.AI;
+using System.Azure.KeyVault;
 using System.Reflection;
 using System.Telemetry;
 

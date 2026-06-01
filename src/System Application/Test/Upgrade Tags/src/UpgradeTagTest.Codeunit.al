@@ -6,10 +6,10 @@
 namespace System.Test.Upgrade;
 
 using System.Integration;
-using System.Upgrade;
+using System.TestLibraries.Security.AccessControl;
 using System.TestLibraries.Upgrade;
 using System.TestLibraries.Utilities;
-using System.TestLibraries.Security.AccessControl;
+using System.Upgrade;
 
 codeunit 135092 "Upgrade Tag Test"
 {

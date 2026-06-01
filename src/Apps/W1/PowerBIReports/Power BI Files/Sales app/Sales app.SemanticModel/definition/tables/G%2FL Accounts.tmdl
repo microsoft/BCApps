@@ -1,0 +1,72 @@
+table 'G/L Accounts'
+	lineageTag: 4fc4c983-5bb3-45a7-a7a3-f6e0cb8b23da
+
+	column 'G/L Account No.'
+		dataType: string
+		lineageTag: be4d292a-e92c-41b8-a484-64da04320224
+		summarizeBy: none
+		sourceColumn: G/L Account No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'G/L Account Name'
+		dataType: string
+		lineageTag: ea1b1037-9875-491e-9572-b4ffa05aa437
+		summarizeBy: none
+		sourceColumn: G/L Account Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'G/L Account Type'
+		dataType: string
+		lineageTag: 04b9fe48-d00b-4101-8752-23476f0ee7b9
+		summarizeBy: none
+		sourceColumn: G/L Account Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'G/L Account Income/Balance'
+		dataType: string
+		lineageTag: 11377ab8-e1c5-4c8e-810a-6fa95abd5187
+		summarizeBy: none
+		sourceColumn: G/L Account Income/Balance
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'G/L Account No. and Name'
+		dataType: string
+		lineageTag: 99098883-d009-4611-8ae4-06df666cfe5c
+		summarizeBy: none
+		sourceColumn: G/L Account No. and Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Type Key'
+		dataType: string
+		isHidden
+		lineageTag: ec67b061-90f4-45f3-bb37-3451fe9893bc
+		summarizeBy: none
+		sourceColumn: Type Key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'G/L Accounts' = m
+		mode: import
+		queryGroup: 'Dimension Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY, API_ENDPOINT, []),
+				    TableData = Source{[Name = "generalLedgerAccounts", Signature = "table"]}[Data],
+				    #"Renamed Columns" = Table.RenameColumns(TableData,{{"accountNo", "G/L Account No."}, {"accountName", "G/L Account Name"}, {"accountType", "G/L Account Type"}, {"incomeBalance", "G/L Account Income/Balance"}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Renamed Columns",{"accountSubcategoryEntryNo", "indentation", "totaling", "ETag"}),
+				    #"Added GL Account No. and Name" = Table.AddColumn(#"Removed Columns", "G/L Account No. and Name", each [#"G/L Account No."] & " " & [#"G/L Account Name"], type text),
+				    #"Added Type Key" = Table.AddColumn(#"Added GL Account No. and Name", "Type Key", each "G/L Account" & " " & [#"G/L Account No."], type text)
+				in
+				    #"Added Type Key"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Exception
+

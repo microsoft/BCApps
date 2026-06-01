@@ -1,0 +1,177 @@
+table Opportunities
+	lineageTag: 7393b9b2-64c3-45e1-85a1-1484eeb15866
+
+	/// The Sales Amount where the Document Type is Quote and the Sales Opportunity No. is related to an Opportunity No.
+	measure 'Opportunity Sales Quote Amount' = ```
+			
+			Calculate(
+			    [Sales Quote Sales (LCY)],
+			    TREATAS(
+			        VALUES(Opportunities[Opportunity No.]), 
+			        'Sales Lines'[Opportunity No.]),
+			    'Documents'[Document Type] = "Quote"
+			)
+			```
+		formatString: #,0.00
+		displayFolder: _Opportunities Measures
+		lineageTag: 65c3517a-c210-451f-a3ed-ae33ae309789
+
+	column 'Opportunity No.'
+		dataType: string
+		lineageTag: 570882fd-84f4-415e-9fb6-09ac712842ad
+		summarizeBy: none
+		sourceColumn: Opportunity No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Opportunity Description'
+		dataType: string
+		lineageTag: e575e3ff-81ca-4774-809a-d85aaf37f01f
+		summarizeBy: none
+		sourceColumn: Opportunity Description
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Opportunity Sales Cycle'
+		dataType: string
+		isHidden
+		lineageTag: bbbe2cc2-90b5-40c3-a6f6-2e707c43f0fe
+		summarizeBy: none
+		sourceColumn: Opportunity Sales Cycle
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Opportunity Creation Date'
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: 635bf5c0-0df6-4036-96ac-bf486876b4e3
+		summarizeBy: none
+		sourceColumn: Opportunity Creation Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Opportunity Status'
+		dataType: string
+		lineageTag: 1a78d4d2-8a12-4162-bd0a-8478b63196fe
+		summarizeBy: none
+		sourceColumn: Opportunity Status
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Opportunity Closed'
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 41a49eca-4e16-43cb-ac42-7b2f74ad93f0
+		summarizeBy: none
+		sourceColumn: Opportunity Closed
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Opportunity Sales Document No.'
+		dataType: string
+		lineageTag: 6cabe4ff-bcf6-494a-bdb5-4389cabd5624
+		summarizeBy: none
+		sourceColumn: Opportunity Sales Document No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Opportunity Sales Document Type'
+		dataType: string
+		lineageTag: c5f03f51-da6d-4020-9304-50a33991fbde
+		summarizeBy: none
+		sourceColumn: Opportunity Sales Document Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Opportunity Priority'
+		dataType: string
+		isHidden
+		lineageTag: a4f0d623-fe5f-452c-8016-1e6c9bfa0699
+		summarizeBy: none
+		sourceColumn: Opportunity Priority
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Opportunity Campaign No.'
+		dataType: string
+		isHidden
+		lineageTag: 49d0e45d-d61b-4d16-9ca7-c3fdde1ab357
+		summarizeBy: none
+		sourceColumn: Opportunity Campaign No.
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Opportunity Segment No.'
+		dataType: string
+		isHidden
+		lineageTag: c0e20346-5839-42e9-bfbf-bf5e3f91d1ab
+		summarizeBy: none
+		sourceColumn: Opportunity Segment No.
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Opportunities = m
+		mode: import
+		queryGroup: 'Dimension Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(#"ENVIRONMENT", #"COMPANY",#"API_ENDPOINT", []),
+				    TableData = Source{[Name="opportunities",Signature="table"]}[Data],
+				    #"Changed Type" = Table.TransformColumnTypes(TableData,
+				        {
+				            {"opportunityNo", type text},
+				            {"opportunityDescription", type text},
+				            {"opportunitySalesCycle", type text},
+				            {"opportunityStatus", type text},
+				            {"opportunityClosed", type logical},
+				            {"opportunitySalesDocumentNo", type text},
+				            {"opportunitySalesDocumentType", type text}
+				        }
+				),
+				    #"Removed Columns" = Table.RemoveColumns(#"Changed Type",{"ETag"}),
+				    #"Reordered Columns" = Table.ReorderColumns(
+				        #"Removed Columns",
+				        {
+				            "opportunityNo",
+				            "opportunityCreationDate",
+				            "opportunityDescription",
+				            "opportunitySalesCycle",
+				            "opportunityStatus",
+				            "opportunityClosed",
+				            "opportunitySalesDocumentNo",
+				            "opportunitySalesDocumentType"
+				        }
+				    ),
+				    #"Renamed Columns" = Table.RenameColumns(
+				        #"Reordered Columns",
+				        {
+				            {"opportunityNo", "Opportunity No."},
+				            {"opportunityCreationDate", "Opportunity Creation Date"},
+				            {"opportunityDescription", "Opportunity Description"},
+				            {"opportunitySalesCycle", "Opportunity Sales Cycle"},
+				            {"opportunityStatus", "Opportunity Status"},
+				            {"opportunityClosed", "Opportunity Closed"},
+				            {"opportunitySalesDocumentNo", "Opportunity Sales Document No."},
+				            {"opportunitySalesDocumentType", "Opportunity Sales Document Type"},
+				            {"opportunityPriority", "Opportunity Priority"},
+				            {"opportunityCampaignNo", "Opportunity Campaign No."},
+				            {"opportunitySegmentNo", "Opportunity Segment No."}
+				        }
+				    )
+				in
+				    #"Renamed Columns"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

@@ -53,6 +53,7 @@ page 9702 "Cue Setup End User"
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the value in the Cue below which the indicator has the color that is specified by the Low Range Style field.';
+                    AutoFormatType = 0;
 
                     trigger OnValidate()
                     begin
@@ -142,4 +143,3 @@ page 9702 "Cue Setup End User"
         HighRangeStyleExpr := CuesAndKPIsImpl.ConvertStyleToStyleText(Rec."High Range Style");
     end;
 }
-

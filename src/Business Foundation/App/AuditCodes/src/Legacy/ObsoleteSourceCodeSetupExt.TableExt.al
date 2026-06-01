@@ -1,3 +1,4 @@
+#if not CLEANSCHEMA27
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -1083,3 +1084,4 @@ tableextension 242 ObsoleteSourceCodeSetupExt extends "Source Code Setup"
 #pragma warning restore AS0013
     }
 }
+#endif

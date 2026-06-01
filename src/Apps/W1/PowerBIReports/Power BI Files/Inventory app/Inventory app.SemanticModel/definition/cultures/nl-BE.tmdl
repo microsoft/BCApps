@@ -1,0 +1,912 @@
+cultureInfo nl-BE
+	translations
+		model Model
+			table Item
+				caption: Artikel
+				column 'Item No. & Description'
+					caption: Artikelnr. en -beschrijving
+				column 'Item No.'
+					caption: Artikelnr.
+				column 'Item Description'
+					caption: Artikelbeschrijving
+				column 'Item Base Unit of Measure'
+					caption: Basiseenheid artikel
+				column 'Item Unit Cost (LCY)'
+					caption: Kostprijs per eenheid artikel (LV)
+				column 'Item Inventory Posting Group'
+					caption: Voorraadboekingsgroep artikel
+				column 'Item Category Code'
+					caption: Artikelcategoriecode
+				column 'Item Category Description'
+					caption: Beschrijving van artikelcategorie
+				measure 'Scheduled Receipt'
+					caption: Geplande ontvangst
+				measure 'Planned Order Releases'
+					caption: Geplande ordervrijgaven
+				measure 'Gross Requirement'
+					caption: Brutobehoefte
+				measure 'Projected Available Balance'
+					caption: Voorspelde beschikbare voorraad
+				measure 'Planned Order Receipt'
+					caption: Geplande orderontvangst
+			table Location
+				caption: Locatie
+				column 'Location Code'
+					caption: Locatiecode
+				column 'Location Name'
+					caption: Locatienaam
+				column 'Location Adjustment Bin Code'
+					caption: Opslaglocatiecode locatieherwaardering
+			table Customer
+				caption: Klant
+				column 'Customer No. & Name'
+					caption: Klantnr. en -naam
+				column 'Customer No.'
+					caption: Klantnr.
+				column 'Customer Name'
+					caption: Klantnaam
+				column 'Customer Address'
+					caption: Klantadres
+				column 'Customer Address 2'
+					caption: Klantadres 2
+				column 'Customer City'
+					caption: Plaats van klant
+				column 'Customer Post Code'
+					caption: Postcode klant
+				column 'Customer State'
+					caption: Staat klant
+				column 'Customer Country/Region Code'
+					caption: Land-/regiocode klant
+				column 'Customer Posting Group'
+					caption: Klantboekingsgroep
+				column 'Customer Price Group'
+					caption: Klantenprijsgroep
+				column 'Customer Discount Group'
+					caption: Klantenkortingsgroep
+			table Date
+				caption: Datum
+				column DateKey
+					caption: DateKey
+				column 'Day of Month'
+					caption: Dag van maand
+				column WeekDayNumber
+					caption: WeekDayNumber
+				column 'Week Day'
+					caption: Week Dag
+				column Sequential365DayNumber
+					caption: Sequential365DayNumber
+				column 'Relative Day'
+					caption: Relatieve Dag
+				column 'Calendar YearNumber'
+					caption: Kalender JaarNummer
+				column 'Calendar Year'
+					caption: Kalender Jaar
+				column 'Calendar QuarterNumber'
+					caption: Kalender KwartaalNummer
+				column 'Calendar Quarter'
+					caption: Kalender Kwartaal
+				column 'Calendar YearQuarterNumber'
+					caption: Kalender JaarKwartaalNummer
+				column 'Calendar Quarter Year'
+					caption: Kalender Kwartaal Jaar
+				column 'Calendar MonthNumber'
+					caption: Kalender MaandNummer
+				column 'Calendar Month'
+					caption: Kalender Maand
+				column 'Calendar YearMonthNumber'
+					caption: Kalender JaarMaandNummer
+				column 'Calendar Month Year'
+					caption: Kalender Maand Jaar
+				column 'Calendar WeekNumber'
+					caption: Kalender WeekNummer
+				column 'Calendar Week'
+					caption: Kalender Week
+				column 'Calendar YearWeekNumber'
+					caption: Kalender JaarWeekNummer
+				column 'Calendar Week Year'
+					caption: Kalender Week Jaar
+				column 'Calendar WeekYearOrder'
+					caption: Kalender WeekJaarVolgorde
+				column 'Calendar RelativeWeekPos'
+					caption: Kalender RelatieveWeekPos
+				column 'Calendar RelativeMonthPos'
+					caption: Kalender RelatieveMaandPos
+				column 'Calendar RelativeQuarterPos'
+					caption: Kalender RelatieveKwartaalPos
+				column 'Calendar RelativeYearPos'
+					caption: Kalender RelatieveJaarPos
+				column 'Calendar StartOfMonth'
+					caption: Kalender BeginVanMaand
+				column 'Calendar EndOfMonth'
+					caption: Kalender EindVanMaand
+				column 'Calendar StartOfQuarter'
+					caption: Kalender BeginVanKwartaal
+				column 'Calendar EndOfQuarter'
+					caption: Kalender EindVanKwartaal
+				column 'Calendar StartOfYear'
+					caption: Kalender BeginVanJaar
+				column 'Calendar EndOfYear'
+					caption: Kalender EindVanJaar
+				column 'Calendar MonthDays'
+					caption: Kalender MaandDagen
+				column 'Calendar QuarterDays'
+					caption: Kalender KwartaalDagen
+				column 'Calendar YearDays'
+					caption: Kalender JaarDagen
+				column 'Calendar DayOfMonthNumber'
+					caption: Kalender DagVanMaandNummer
+				column 'Calendar DayOfQuarterNumber'
+					caption: Kalender DagVanKwartaalNummer
+				column 'Calendar DayOfYearNumber'
+					caption: Kalender DagVanJaarNummer
+				column 'Calendar DatePreviousWeek'
+					caption: Kalender DatumVorigeWeek
+				column 'Calendar DatePreviousMonth'
+					caption: Kalender DatumVorigeMaand
+				column 'Calendar DatePreviousQuarter'
+					caption: Kalender DatumVorigKwartaal
+				column 'Calendar DatePreviousYear'
+					caption: Kalender DatumVorigJaar
+				column 'Fiscal Year'
+					caption: Fiscaal Jaar
+				column 'Fiscal YearNumber'
+					caption: Fiscaal JaarNummer
+				column 'Fiscal QuarterNumber'
+					caption: Fiscaal KwartaalNummer
+				column 'Fiscal Quarter'
+					caption: Fiscaal Kwartaal
+				column 'Fiscal YearQuarterNumber'
+					caption: Fiscaal JaarKwartaalNummer
+				column 'Fiscal Quarter Year'
+					caption: Fiscaal Kwartaal Jaar
+				column 'Fiscal MonthNumber'
+					caption: Fiscaal MaandNummer
+				column 'Fiscal MonthInQuarterNumber'
+					caption: Fiscaal MaandInKwartaalNummer
+				column 'Fiscal Month'
+					caption: Fiscaal Maand
+				column 'Fiscal YearMonthNumber'
+					caption: Fiscaal JaarMaandNummer
+				column 'Fiscal Month Year'
+					caption: Fiscaal Maand Jaar
+				column 'Fiscal WeekNumber'
+					caption: Fiscaal WeekNummer
+				column 'Fiscal Week'
+					caption: Fiscaal Week
+				column 'Fiscal YearWeekNumber'
+					caption: Fiscaal JaarWeekNummer
+				column 'Fiscal Week Year'
+					caption: Fiscaal Week Jaar
+				column 'Fiscal WeekYearOrder'
+					caption: Fiscaal WeekJaarVolgorde
+				column 'Fiscal RelativeWeekPos'
+					caption: Fiscaal RelatieveWeekPos
+				column 'Fiscal RelativeMonthPos'
+					caption: Fiscaal RelatieveMaandPos
+				column 'Fiscal RelativeQuarterPos'
+					caption: Fiscaal RelatieveKwartaalPos
+				column 'Fiscal RelativeYearPos'
+					caption: Fiscaal RelatieveJaarPos
+				column 'Fiscal StartOfMonth'
+					caption: Fiscaal BeginVanMaand
+				column 'Fiscal EndOfMonth'
+					caption: Fiscaal EindVanMaand
+				column 'Fiscal StartOfQuarter'
+					caption: Fiscaal BeginVanKwartaal
+				column 'Fiscal EndOfQuarter'
+					caption: Fiscaal EindVanKwartaal
+				column 'Fiscal StartOfYear'
+					caption: Fiscaal BeginVanJaar
+				column 'Fiscal EndOfYear'
+					caption: Fiscaal EindVanJaar
+				column 'Fiscal MonthDays'
+					caption: Fiscaal MaandDagen
+				column 'Fiscal QuarterDays'
+					caption: Fiscaal KwartaalDagen
+				column 'Fiscal YearDays'
+					caption: Fiscaal JaarDagen
+				column 'Fiscal DayOfMonthNumber'
+					caption: Fiscaal DagVanMaandNummer
+				column 'Fiscal DayOfQuarterNumber'
+					caption: Fiscaal DagVanKwartaalNummer
+				column 'Fiscal DayOfYearNumber'
+					caption: Fiscaal DagVanJaarNummer
+				column 'Fiscal DatePreviousWeek'
+					caption: Fiscaal DatumVorigeWeek
+				column 'Fiscal DatePreviousMonth'
+					caption: Fiscaal DatumVorigeMaand
+				column 'Fiscal DatePreviousQuarter'
+					caption: Fiscaal DatumVorigKwartaal
+				column 'Fiscal DatePreviousYear'
+					caption: Fiscaal DatumVorigJaar
+				column 'FW YearNumber'
+					caption: FW JaarNummer
+				column 'FW Year'
+					caption: FW Jaar
+				column 'FW QuarterNumber'
+					caption: FW KwartaalNummer
+				column 'FW Quarter'
+					caption: FW Kwartaal
+				column 'FW YearQuarterNumber'
+					caption: FW JaarKwartaalNummer
+				column 'FW Quarter Year'
+					caption: FW Kwartaal Jaar
+				column 'FW MonthNumber'
+					caption: FW MaandNummer
+				column 'FW Month'
+					caption: FW Maand
+				column 'FW YearMonthNumber'
+					caption: FW JaarMaandNummer
+				column 'FW Month Year'
+					caption: FW Maand Jaar
+				column 'FW WeekNumber'
+					caption: FW WeekNummer
+				column 'FW Week'
+					caption: FW Week
+				column 'FW PeriodNumber'
+					caption: FW PeriodeNummer
+				column 'FW Period'
+					caption: FW Periode
+				column 'FW YearWeekNumber'
+					caption: FW JaarWeekNummer
+				column 'FW Week Year'
+					caption: FW Week Jaar
+				column 'FW StartOfWeek'
+					caption: FW BeginVanWeek
+				column 'FW EndOfWeek'
+					caption: FW EindVanWeek
+				column 'FW RelativeWeekPos'
+					caption: FW RelatieveWeekPos
+				column 'FW RelativeMonthPos'
+					caption: FW RelatieveMaandPos
+				column 'FW RelativeQuarterPos'
+					caption: FW RelatieveKwartaalPos
+				column 'FW RelativeYearPos'
+					caption: FW RelatieveJaarPos
+				column 'FW StartOfMonth'
+					caption: FW BeginVanMaand
+				column 'FW EndOfMonth'
+					caption: FW EindVanMaand
+				column 'FW StartOfQuarter'
+					caption: FW BeginVanKwartaal
+				column 'FW EndOfQuarter'
+					caption: FW EindVanKwartaal
+				column 'FW StartOfYear'
+					caption: FW BeginVanJaar
+				column 'FW EndOfYear'
+					caption: FW EindVanJaar
+				column 'FW MonthDays'
+					caption: FW MaandDagen
+				column 'FW QuarterDays'
+					caption: FW KwartaalDagen
+				column 'FW YearDays'
+					caption: FW JaarDagen
+				column 'FW DayOfMonthNumber'
+					caption: FW DagVanMaandNummer
+				column 'FW DayOfQuarterNumber'
+					caption: FW DagVanKwartaalNummer
+				column 'FW DayOfYearNumber'
+					caption: FW DagVanJaarNummer
+				column 'FW DatePreviousWeek'
+					caption: FW DatumVorigeWeek
+				column 'FW DatePreviousMonth'
+					caption: FW DatumVorigeMaand
+				column 'FW DatePreviousQuarter'
+					caption: FW DatumVorigKwartaal
+				column 'FW DatePreviousYear'
+					caption: FW DatumVorigJaar
+				column 'Holiday Name'
+					caption: Vakantienaam
+				column IsWorkingDay
+					caption: IsWorkingDay
+				column 'Day Type'
+					caption: Dagsoort
+				column DatesWithTransactions
+					caption: DatesWithTransactions
+				measure Ranged
+					caption: Bereik
+				hierarchy 'Fiscal Year-Month'
+					caption: Fiscaal Jaar-Maand
+					level 'Fiscal Year'
+						caption: Fiscaal Jaar
+					level 'Fiscal Month Year'
+						caption: Fiscaal Maand Jaar
+				hierarchy 'Fiscal Year-Month-Week'
+					caption: Fiscaal Jaar-Maand-Week
+					level 'Fiscal Year'
+						caption: Fiscaal Jaar
+					level 'Fiscal Month Year'
+						caption: Fiscaal Maand Jaar
+					level 'Fiscal Week Year'
+						caption: Fiscaal Week Jaar
+				hierarchy 'Fiscal Year-Quarter-Month-Week'
+					caption: Fiscaal Jaar-Kwartaal-Maand-Week
+					level 'Fiscal Year'
+						caption: Fiscaal Jaar
+					level 'Fiscal Quarter Year'
+						caption: Fiscaal Kwartaal Jaar
+					level 'Fiscal Month Year'
+						caption: Fiscaal Maand Jaar
+					level 'Fiscal Week Year'
+						caption: Fiscaal Week Jaar
+				hierarchy 'Calendar Year-Month'
+					caption: Kalender Jaar-Maand
+					level 'Calendar Year'
+						caption: Kalender Jaar
+					level 'Calendar Month Year'
+						caption: Kalender Maand Jaar
+				hierarchy 'Calendar Year-Month-Week'
+					caption: Kalender Jaar-Maand-Week
+					level 'Calendar Year'
+						caption: Kalender Jaar
+					level 'Calendar Month Year'
+						caption: Kalender Maand Jaar
+					level 'Calendar Week Year'
+						caption: Kalender Week Jaar
+				hierarchy 'Calendar Year-Quarter-Month-Week'
+					caption: Kalender Jaar-Kwartaal-Maand-Week
+					level 'Calendar Year'
+						caption: Kalender Jaar
+					level 'Calendar Quarter Year'
+						caption: Kalender Kwartaal Jaar
+					level 'Calendar Month Year'
+						caption: Kalender Maand Jaar
+					level 'Calendar Week Year'
+						caption: Kalender Week Jaar
+				hierarchy 'FW Year-Week'
+					caption: FW Jaar-Week
+					level 'FW Year'
+						caption: FW Jaar
+					level 'FW Week Year'
+						caption: FW Week Jaar
+				hierarchy 'FW Year-Month-Week'
+					caption: FW Jaar-Maand-Week
+					level 'FW Year'
+						caption: FW Jaar
+					level 'FW Month Year'
+						caption: FW Maand Jaar
+					level 'FW Week Year'
+						caption: FW Week Jaar
+				hierarchy 'FW Year-Quarter-Week'
+					caption: FW Jaar-Kwartaal-Week
+					level 'FW Year'
+						caption: FW Jaar
+					level 'FW Quarter Year'
+						caption: FW Kwartaal Jaar
+					level 'FW Week Year'
+						caption: FW Week Jaar
+				hierarchy 'FW Year-Quarter-Month-Week'
+					caption: FW Jaar-Kwartaal-Maand-Week
+					level 'FW Year'
+						caption: FW Jaar
+					level 'FW Quarter Year'
+						caption: FW Kwartaal Jaar
+					level 'FW Month Year'
+						caption: FW Maand Jaar
+					level 'FW Week Year'
+						caption: FW Week Jaar
+			table Vendor
+				caption: Leverancier
+				column 'Vendor No. & Name'
+					caption: Nr. en naam van leverancier
+				column 'Vendor No.'
+					caption: Leveranciersnr.
+				column 'Vendor Name'
+					caption: Leveranciersnaam
+				column 'Vendor Address'
+					caption: Leveranciersadres
+				column 'Vendor Address 2'
+					caption: Leveranciersadres 2
+				column 'Vendor City'
+					caption: Plaats leverancier
+				column 'Vendor Post Code'
+					caption: Postcode leverancier
+				column 'Vendor State'
+					caption: Staat leverancier
+				column 'Vendor Country/Region Code'
+					caption: Land-/regiocode van leverancier
+				column 'Vendor Posting Group'
+					caption: Leveranciersboekingsgroep
+			table 'Item Ledger Entries'
+				caption: Artikelposten
+				column 'Entry No.'
+					caption: Postnr.
+				column 'Entry Type'
+					caption: Boekingssoort
+				column 'Expiration Date'
+					caption: Verloopdatum
+				column Open
+					caption: Open
+				column 'Document No.'
+					caption: Documentnr.
+				column 'Quantity Per Unit of Measure'
+					caption: Hoeveelheid per maateenheid
+				column 'Unit of Measure Code'
+					caption: Code van eenheid
+				column 'Document Type'
+					caption: Documenttype
+				measure 'Inventory (Quantity)'
+					caption: Voorraad (aantal)
+				measure 'Remaining Quantity'
+					caption: Resterend aantal
+				measure Quantity
+					caption: Hoeveelheid
+				measure 'Expired Inventory'
+					caption: Vervallen voorraad
+				measure 'Net Qty. Sold'
+					caption: Netto verkocht aantal
+				measure 'Net Qty. Purchased'
+					caption: Netto ingekocht aantal
+				measure 'Invoiced Quantity'
+					caption: Gefactureerd aantal
+				measure 'Base Link'
+					caption: Basiskoppeling
+				measure 'Item Ledger Entries Link (Location Context)'
+					caption: Koppeling Artikelposten (locatiecontext)
+				measure 'Item Ledger Entries Link'
+					caption: Koppeling Artikelposten
+				measure 'Item Ledger Entries Lot No Link'
+					caption: Koppeling Lotnr. artikelposten
+				measure 'Item Ledger Entries Serial No Link'
+					caption: Koppeling Serienr. artikelposten
+			table 'Dimension Sets'
+				caption: Dimensiecombinaties
+				column 'Global Dimension 1'
+					caption: Globale dimensie 1
+				column 'Global Dimension 2'
+					caption: Globale dimensie 2
+				column 'Shortcut Dimension 3'
+					caption: Shortcutdimensie 3
+				column 'Shortcut Dimension 4'
+					caption: Shortcutdimensie 4
+				column 'Shortcut Dimension 5'
+					caption: Shortcutdimensie 5
+				column 'Shortcut Dimension 6'
+					caption: Shortcutdimensie 6
+				column 'Shortcut Dimension 7'
+					caption: Shortcutdimensie 7
+				column 'Shortcut Dimension 8'
+					caption: Shortcutdimensie 8
+				column id
+					caption: id
+			table 'Purchase Lines'
+				caption: Inkoopregels
+				column 'Document No.'
+					caption: Documentnr.
+				column 'Expected Receipt Date'
+					caption: Verwachte ontvangstdatum
+				column 'Document Type'
+					caption: Documenttype
+				column 'Quantity Per Unit of Measure'
+					caption: Hoeveelheid per maateenheid
+				column 'Unit of Measure Code'
+					caption: Code van eenheid
+				measure 'Qty. on Purch. Order'
+					caption: Aantal in inkooporder
+				measure 'Qty. on Purch. Return'
+					caption: Aantal op ink.retour
+				measure 'Purchase Return - Earliest Expected Receipt Date'
+					caption: Inkoopretour - Vroegste verwachte ontvangstdatum
+				measure 'Purchase Order - Earliest Expected Receipt Date'
+					caption: Inkooporder - Vroegste verwachte ontvangstdatum
+				measure 'Purchase Order Quantity Link'
+					caption: Koppeling Aantal inkooporder
+				measure 'Purchase Return Order Quantity Link'
+					caption: Koppeling Aantal inkoopretourorder
+			table Zone
+				caption: Zone
+				column 'Zone Description'
+					caption: Zonebeschrijving
+				column 'Zone Bin Type Code'
+					caption: Code van type opslaglocatiezone
+				column 'Zone Code'
+					caption: Zonecode
+			table Bin
+				caption: Opslaglocatie
+				column 'Bin Description'
+					caption: Opslaglocatieomschrijving
+				column 'Bin Type Code'
+					caption: Opslaglocatiesoortcode
+				column 'Bin Code'
+					caption: Opslaglocatiecode
+				column 'Adjustment Bin'
+					caption: Herwaarderingsopslaglocatie
+				column 'Bin Zone Code'
+					caption: Code van opslaglocatiezone
+				measure 'Available Qty. to Take'
+					caption: Beschikbaar te nemen aantal
+				measure 'Quantity in Adjustment Bin'
+					caption: Aantal in herwaarderingsopslaglocatie
+				measure 'Positive Adjmt. Qty. (Base)'
+					caption: Pos. correctieaantal (basis)
+				measure 'Negative Adjmt. Qty. (Base)'
+					caption: Neg. correctieaantal (basis)
+				measure 'Warehouse Quantity'
+					caption: Magazijnaantal
+				measure 'ATO Components Pick Qty.'
+					caption: Pickaantal AoO-componenten
+				measure 'Put-away Quantity (Base)'
+					caption: Opslagaantal (basis)
+				measure 'Pick Quantity (Base)'
+					caption: Pickaantal (basis)
+				measure 'Warehouse Entries Link'
+					caption: Koppeling Magazijnposten
+				measure 'Pick Quantity Link'
+					caption: Koppeling Pickaantal
+				measure 'Warehouse Journal Link'
+					caption: Koppeling Magazijndagboek
+			table 'Sales Lines'
+				caption: Verkoopregels
+				column 'Document No.'
+					caption: Documentnr.
+				column 'Shipment Date'
+					caption: Verzenddatum
+				column 'Document Type'
+					caption: Documenttype
+				column 'Quantity Per Unit of Measure'
+					caption: Hoeveelheid per maateenheid
+				column 'Unit of Measure Code'
+					caption: Code van eenheid
+				measure 'Qty. on Sales Order'
+					caption: Aantal in verkooporder
+				measure 'Qty. on Sales Return Order'
+					caption: Aantal in verkoopretourorder
+				measure 'Sales Order - Earliest Shipment Date'
+					caption: Verkooporder - Vroegste verzenddatum
+				measure 'Sales Retrun Order - Earliest Shipment Date'
+					caption: Verkoopretourorder - Vroegste verzenddatum
+				measure 'Sales Order Line Link'
+					caption: Koppeling verkooporderregel
+				measure 'Sales Return Order Line Link'
+					caption: Koppeling Verkoopretourorderregel
+			table 'Assembly Lines'
+				caption: Assemblageregels
+				column 'Due Date'
+					caption: Vervaldatum
+				column 'Document No.'
+					caption: Documentnr.
+				column 'Quantity Per Unit of Measure'
+					caption: Hoeveelheid per maateenheid
+				column 'Unit of Measure Code'
+					caption: Code van eenheid
+				measure 'Qty. on Asm. Component'
+					caption: Aant. op assemblagecomponent
+				measure 'Assembly Lines - Earliest Due Date'
+					caption: Assemblageregels - Vroegste vervaldatum
+				measure 'Assembly Line Quantity Link'
+					caption: Koppeling Hoeveelheid van assemblageregel
+			table 'Assembly Headers'
+				caption: Assemblagekoppen
+				column 'Document No.'
+					caption: Documentnr.
+				column 'Due Date'
+					caption: Vervaldatum
+				column Status
+					caption: Status
+				column 'Quantity Per Unit of Measure'
+					caption: Hoeveelheid per maateenheid
+				column 'Unit of Measure Code'
+					caption: Code van eenheid
+				measure 'Qty. on Assembly Order'
+					caption: Aantal in assemblageorder
+				measure 'Assembly Order - Earliest Due Date'
+					caption: Assemblageorder - Vroegste vervaldatum
+				measure 'Assembly Order Quantity Link'
+					caption: Koppeling Hoeveelheid van assemblageorder
+			table 'Project Planning Lines'
+				caption: Projectplanningsregels
+				column 'Document No.'
+					caption: Documentnr.
+				column 'Quantity Per Unit of Measure'
+					caption: Hoeveelheid per maateenheid
+				column 'Unit of Measure Code'
+					caption: Code van eenheid
+				measure 'Qty. on Projects'
+					caption: Aant. in projecten
+				measure 'Project Planning - Earliest Planning Date'
+					caption: Projectplanning - Vroegste planningsdatum
+				measure 'Planning Line Link'
+					caption: Koppeling Planningsregel
+			table 'Production Order Lines'
+				caption: Productieorderregels
+				column Status
+					caption: Status
+				column 'Document No.'
+					caption: Documentnr.
+				column 'Due Date'
+					caption: Vervaldatum
+				column 'Starting Date'
+					caption: Begindatum
+				column 'Quantity Per Unit of Measure'
+					caption: Hoeveelheid per maateenheid
+				column 'Unit of Measure Code'
+					caption: Code van eenheid
+				measure 'Qty. on Prod. Order'
+					caption: Aantal in productieorder
+				measure 'FP Order Receipt (Qty.)'
+					caption: Vast gepl. orderontv. (aantal)
+				measure 'Rel. Order Receipt (Qty.)'
+					caption: Vrijgeg. orderontv. (aantal)
+				measure 'Scheduled Receipt (Qty.)'
+					caption: Geplande ontvangst (aantal)
+				measure 'FP Order - Earliest Due Date'
+					caption: Vast gepl. - Vroegste vervaldatum
+				measure 'Rel. Order - Earliest Due Date'
+					caption: Vrijg. order - Vroegste vervaldatum
+				measure 'Production Order Link'
+					caption: Koppeling Productieorder
+			table 'Prod Order Component Lines'
+				caption: Productieordermateriaalregels
+				column Status
+					caption: Status
+				column 'Document No.'
+					caption: Documentnr.
+				column 'Due Date'
+					caption: Vervaldatum
+				column 'Quantity Per Unit of Measure'
+					caption: Hoeveelheid per maateenheid
+				column 'Unit of Measure Code'
+					caption: Code van eenheid
+				measure 'Qty. on Prod. Order Comp. Lines'
+					caption: Aantal op productieordermateriaalregels
+				measure 'Prod. Order Comp. Lines - Earliest Due Date'
+					caption: Prod.-ordermateriaalregels - Vroegste vervaldatum
+				measure 'Prod. Order Components Link'
+					caption: Koppeling Productieordermaterialen
+			table 'Service Lines'
+				caption: Serviceregels
+				column 'Document No.'
+					caption: Documentnr.
+				column 'Needed By Date'
+					caption: Vereist per datum
+				column 'Quantity Per Unit of Measure'
+					caption: Hoeveelheid per maateenheid
+				column 'Unit of Measure Code'
+					caption: Code van eenheid
+				measure 'Qty. on Service Order'
+					caption: Aantal in serviceorder
+				measure 'Service Lines - Earliest Needed by Date'
+					caption: Serviceregels - Vroegst vereist per datum
+				measure 'Service Order Link'
+					caption: Koppeling Serviceorder
+			table 'Transfer Lines'
+				caption: Transferregels
+				description: Hiermee wordt het aantal artikelen dat nog moet worden ontvangen, maar nog niet is verzonden, opgegeven als het verschil tussen de velden Aantal en Verzonden aantal.
+				column 'Document No.'
+					caption: Documentnr.
+				column 'Receipt Date'
+					caption: Ontvangstdatum
+				column 'Transfer To Location Code'
+					caption: Code van transferlocatie
+				column 'Transfer From Location Code'
+					caption: Code van afleverlocatie
+				column 'Shipment Date'
+					caption: Verzenddatum
+				column 'In Transit Location Code'
+					caption: Code van locatie in transit
+				column 'Quantity Per Unit of Measure'
+					caption: Hoeveelheid per maateenheid
+				column 'Unit of Measure Code'
+					caption: Code van eenheid
+				measure 'Qty. in Transit'
+					caption: Aantal in transit
+				measure 'Trans. Order Shipment (Qty.)'
+					caption: Transferorderverzending (aantal)
+				measure 'Trans. Order Receipt (Qty.)'
+					caption: Transferorderontvangst (aantal)
+				measure 'Trans. Order Outstanding Qty.'
+					caption: Openstaand aantal van transferorder
+				measure 'Trans. Order Shipment - Earliest Shipment Date'
+					caption: Transferorderverzending - Vroegste verzenddatum
+				measure 'Trans. Order Receipt - Earliest Receipt Date'
+					caption: Transferorderontvangst - Vroegste ontvangstdatum
+				measure 'Transfer Lines Quantity Link'
+					caption: Koppeling Aantal transferregels
+			table 'Planning Component Lines'
+				caption: Planningsmateriaalregels
+				column 'Due Date'
+					caption: Vervaldatum
+				column 'Quantity Per Unit of Measure'
+					caption: Hoeveelheid per maateenheid
+				column 'Unit of Measure Code'
+					caption: Code van eenheid
+				measure 'Planning Issues (Qty.)'
+					caption: Planningsuitgiften (aantal)
+				measure 'Planning Issues - Earliest Due Date'
+					caption: Planningsuitgiften - Vroegste vervaldatum
+			table 'Item Availability Filter'
+				caption: Artikelbeschikbaarheidsfilter.
+				column 'View As'
+					caption: Weergeven als
+				column Ordinal
+					caption: Rangnummer
+			table 'Lot No'
+				caption: Lotnr.
+				column 'Lot No.'
+					caption: Lotnr.
+			table 'Serial No'
+				caption: Serienr.
+				column 'Serial No.'
+					caption: Serienr.
+			table 'Localized Labels'
+				measure 'My Report Title'
+					caption: Mijn rapporttitel
+				measure 'My Button Caption'
+					caption: Bijschrift van mijn knop
+				measure 'My Visual Title'
+					caption: Mijn visuele titel
+				measure 'Inventory Overview'
+					caption: Overzicht van voorraad
+				measure 'Inventory and Projected Available Balance'
+					caption: Voorraad en voorspelde beschikbare voorraad
+				measure 'Availability Outlook'
+					caption: Beschikbaarheid Outlook
+				measure 'Inventory by Item'
+					caption: Voorraad per artikel
+				measure 'Inventory by Location'
+					caption: Voorraad per locatie
+				measure 'Inventory on Hand by Location'
+					caption: Beschikbare voorraad per locatie
+				measure 'Purchase and Sales Quantity'
+					caption: Inkoop- en verkoopaantal
+				measure 'Item Availability'
+					caption: Artikelbeschikbaarheid
+				measure 'Projected Available Balance vs. Quantity on Hand'
+					caption: Voorspelde beschikbare voorraad versus beschikbare voorraad
+				measure 'Gross Requirements vs. Projected Available Balance'
+					caption: Brutobehoeften versus voorspelde beschikbare voorraad
+				measure 'Gross Requirements Earliest Dates'
+					caption: Vroegste datums brutobehoeften
+				measure 'Scheduled Receipt Earliest Dates'
+					caption: Geplande vroegste ontvangstdatums
+				measure 'Purchase Order Drill Through'
+					caption: Detailanalyse inkooporder
+				measure 'Purchase Return Order Drill Through'
+					caption: Detailanalyse inkoopretourorder
+				measure 'Item Ledger Entry Drill through'
+					caption: Detailanalyse artikelpost
+				measure 'Production Order Drill Through'
+					caption: Detailanalyse productieorder
+				measure 'Prod. Order Components Drill Through'
+					caption: Detailanalyse prod.-ordermateriaal
+				measure 'Sales Order Drill Through'
+					caption: Detailanalyse verkooporder
+				measure 'Sales Return Order Drill Through'
+					caption: Detailanalyse verkoopretourorder
+				measure 'Transfer Order Drill Through'
+					caption: Detailanalyse transferorder
+				measure 'Assembly Order Drill Through'
+					caption: Detailanalyse assemblageorder
+				measure 'Assembly Lines Drill Through'
+					caption: Detailanalyse assemblageregels
+				measure 'Service Lines Drill Through'
+					caption: Detailanalyse serviceregels
+				measure 'Gross Requirement '
+					caption: "Brutobehoefte "
+				measure 'Scheduled Receipt '
+					caption: "Geplande ontvangst "
+				measure 'Inventory by Lot '
+					caption: "Voorraad per lot "
+				measure 'Inventory by Serial No.'
+					caption: Voorraad per serienr.
+				measure 'Bin Contents'
+					caption: Opslaglocatie-inhoud
+				measure 'Bin Contents by Item Tracking'
+					caption: Opslaglocatie-inhoud per artikeltracering
+				measure 'Expired Inventory '
+					caption: "Vervallen voorraad "
+				measure 'Gross Requirements'
+					caption: Brutobehoeften
+				measure 'Scheduled Receipts'
+					caption: Geplande ontvangsten
+				measure 'for Business Central'
+					caption: voor Business Central
+				measure 'CONNECT YOUR DATA'
+					caption: UW GEGEVENS VERBINDEN
+				measure '1. Download the Inventory Connector for Power BI'
+					caption: 1. Download de Voorraadconnector voor Power BI
+				measure '2. Configure Dynamics 365 Business Central'
+					caption: 2. Dynamics 365 Business Central configureren
+				measure 'USE, EDIT AND BUILD YOUR OWN REPORTS'
+					caption: UW EIGEN RAPPORTEN GEBRUIKEN, BEWERKEN EN MAKEN
+				measure 'Inventory includes a variety of pre-built reports to help you see your data immediately.'
+					caption: Voorraad bevat een verscheidenheid aan vooraf gemaakte rapporten om u te helpen uw gegevens direct te bekijken.
+				measure 'You are able to edit these reports or build your own report from scratch.'
+					caption: U kunt deze rapporten bewerken of uw eigen rapport helemaal opnieuw maken.
+				measure 'HELP AND SUPPORT'
+					caption: HELP EN ONDERSTEUNING
+				measure 'For help and support with your new report please visit the Analytics overview documentation.'
+					caption: Ga voor hulp en ondersteuning met uw nieuwe rapport naar de Analytics-overzichtsdocumentatie.
+				measure 'OTHER POWER BI REPORTS'
+					caption: OVERIGE POWER BI-RAPPORTEN
+				measure PURCHASE
+					caption: INKOOP
+				measure FINANCE
+					caption: FINANCIËN
+				measure REBATES
+					caption: KORTINGEN
+				measure SALES
+					caption: VERKOPEN
+				measure 'INVENTORY '
+					caption: "VOORRAAD "
+				measure 'Inventory  '
+					caption: "Voorraad  "
+				measure 'The inventory by item shows item category code, inventory, and the quantity on various documents.'
+					caption: De voorraad per artikel bevat artikelcategoriecode, voorraad en het aantal in verschillende documenten.
+				measure 'The inventory by location shows item number and description, and quantity on hand per location.'
+					caption: De voorraad per locatie bevat artikelnummer, beschrijving en beschikbare voorraad per locatie.
+				measure 'The purchases and sales quantity shows item category code, purchase and sales quantities, and the quantity net change by deducting purchases to sales.'
+					caption: Het in- en verkoopaantal bevat artikelcategoriecode, inkoop- en verkoopaantallen en de aantalmutatie doordat inkoop van verkoop wordt afgetrokken.
+				measure 'The item availiblity shows item number, inventory, projected available balance, gross requirement, scheduled receipt, planned order receipt, and planned order releases.'
+					caption: De artikelbeschikbaarheid bevat artikelnummer, voorraad, voorspelde beschikbare voorraad, brutobehoefte, geplande ontvangst, geplande orderontvangst en geplande ordervrijgaven.
+				measure 'The gross requirement and projected available balance shows item number and description, and the quantity on various documents.'
+					caption: De brutobehoefte en de voorspelde beschikbare voorraad bevatten artikelnummer, beschrijving en het aantal in verschillende documenten.
+				measure 'The bin contents shows available quantity to take for each location and bin.'
+					caption: De opslaglocatie-inhoud bevat het beschikbare te nemen aantal voor elke locatie en opslaglocatie.
+				measure 'The bin contents by item tracking shows item tracking details for each location and bin.'
+					caption: De opslaglocatie-inhoud per artikeltracering bevat artikeltraceringsgegevens voor elke locatie en opslaglocatie.
+				measure 'The scheduled receipt and projected available balance shows item number and description, and the quantity on various documents.'
+					caption: De geplande ontvangst en de voorspelde beschikbare voorraad bevatten artikelnummer, beschrijving en het aantal in verschillende documenten.
+				measure 'Last Refreshed'
+					caption: Laatst vernieuwd
+				measure 'Company Name'
+					caption: Bedrijfsnaam
+				measure 'Inventory (Quantity) by Location Code'
+					caption: Voorraad (aantal) per locatiecode
+				measure 'Scheduled Receipt and Projected Available Balance by Fiscal Year and Month'
+					caption: Geplande ontvangst en voorspelde beschikbare voorraad per boekjaar en -maand
+				measure 'Inventory (Quantity) by Lot No.'
+					caption: Voorraad (aantal) per lotnr.
+				measure 'Inventory (Quantity) by Serial No.'
+					caption: Voorraad (aantal) per serienr.
+				measure MANUFACTURING
+					caption: PRODUCTIE
+				measure 'INVENTORY VALUATION'
+					caption: VOORRAADWAARDERING
+				measure 'Available Quantity to Take by Bin Code'
+					caption: Beschikbaar te nemen aantal per code van opslaglocatie
+				measure 'Projected Available Balance vs. Current Inventory'
+					caption: Voorspeld beschikbaar saldo versus huidige voorraad
+				measure 'Purchase vs. Sales Quantity Across Time'
+					caption: Inkoop- versus verkoopaantal in loop van tijd
+				measure 'Inventory by Item Details'
+					caption: Details van voorraad per artikel
+				measure 'Inventory by Location Details'
+					caption: Details van voorraad per locatie
+				measure 'Purchase and Sales Quantity Details'
+					caption: Details van inkoop- en verkoopaantal
+				measure 'Item Availability Details'
+					caption: Details van artikelbeschikbaarheid
+				measure 'Gross Requirement Details'
+					caption: Details van brutobehoefte
+				measure 'Scheduled Receipt Details'
+					caption: Details van geplande ontvangst
+				measure 'Inventory by Lot Details'
+					caption: Details van voorraad per lot
+				measure 'Inventory by Serial No Details'
+					caption: Details van voorraad per serienr.
+				measure 'Bin Contents Details'
+					caption: Details van opslaglocatie-inhoud
+				measure 'Bin Contents by Item Tracking Details'
+					caption: Details van Opslaglocatie-inhoud per artikeltracering
+			table COMPANY
+				caption: BEDRIJF
+				measure 'Company Label'
+					caption: Bedrijfslabel
+			table ENVIRONMENT
+				caption: OMGEVING
+			table 'Item Category'
+				caption: Artikelcategorie
+				column 'Item Category Code'
+					caption: Artikelcategoriecode
+				column 'Item Category Description'
+					caption: Omschrijving van artikelcategorie
+				hierarchy 'Item Category Code Hierarchy'
+					caption: Hiërarchie van artikelcategoriecodes
+					level 'Item Category Code Level 1'
+						caption: Artikelcategoriecode niveau 1
+					level 'Item Category Code Level 2'
+						caption: Artikelcategoriecode niveau 2
+					level 'Item Category Code Level 3'
+						caption: Artikelcategoriecode niveau 3
+

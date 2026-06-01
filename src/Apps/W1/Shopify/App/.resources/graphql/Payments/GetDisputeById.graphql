@@ -1,0 +1,2 @@
+# cost: 6
+{"query":"{ shopifyPaymentsAccount { disputes(first: 1, query: \"id:{{Id}}\") { nodes { amount { amount currencyCode } reasonDetails { networkReasonCode reason } order { id } evidenceDueBy evidenceSentOn finalizedOn id status type } } } }"}

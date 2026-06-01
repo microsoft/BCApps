@@ -1,0 +1,1897 @@
+{
+  "version": "1.1.0",
+  "diagrams": [
+    {
+      "ordinal": 0,
+      "scrollPosition": {
+        "x": 64,
+        "y": 17
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 1154.1558619839425,
+            "y": 436.26777076149892
+          },
+          "nodeIndex": "Fiscal Calendar Time Intelligence",
+          "nodeLineageTag": "a5b0348a-e1fa-4173-8b14-f011a570c172",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 1
+        },
+        {
+          "location": {
+            "x": 1438.1558619839425,
+            "y": 436.26777076149892
+          },
+          "nodeIndex": "Standard Calendar Time Intelligence",
+          "nodeLineageTag": "da77effe-39f2-4dff-86b5-cb0fa3bd206d",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 2
+        },
+        {
+          "location": {
+            "x": 2006.1558619839425,
+            "y": 436.26777076149892
+          },
+          "nodeIndex": "Weekly Calendar Time Intelligence",
+          "nodeLineageTag": "0ebce29b-4f96-428b-a338-895a0762d775",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 3
+        },
+        {
+          "location": {
+            "x": 28.477921716997514,
+            "y": 830.03554152299807
+          },
+          "nodeIndex": "Customer",
+          "nodeLineageTag": "cd4698ab-c592-4ce7-9bf8-661142385bf6",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 26
+        },
+        {
+          "location": {
+            "x": 836.33014307050166,
+            "y": 583.50362272047653
+          },
+          "nodeIndex": "Date",
+          "nodeLineageTag": "11a4fdb3-5158-4100-8442-1a84223c4b82",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 4
+        },
+        {
+          "location": {
+            "x": 2290.1558619839425,
+            "y": 436.26777076149892
+          },
+          "nodeIndex": "Date Ref",
+          "nodeLineageTag": "0e1c9f84-ea79-4e20-92c1-b984e0358554",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 5
+        },
+        {
+          "location": {
+            "x": 2574.1558619839425,
+            "y": 436.26777076149892
+          },
+          "nodeIndex": "Date Table Setup",
+          "nodeLineageTag": "1f8ffa9a-61f9-4fc5-9dcc-6d36520cc60b",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 6
+        },
+        {
+          "location": {
+            "x": 233.07237954443926,
+            "y": 22.5
+          },
+          "nodeIndex": "Dimension Sets",
+          "nodeLineageTag": "429c6e17-af59-4d03-8c05-44433e0b3d42",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 7
+        },
+        {
+          "location": {
+            "x": 10,
+            "y": 376.01055653318275
+          },
+          "nodeIndex": "Item",
+          "nodeLineageTag": "c40a40e9-d278-4fd2-b077-3918c6213a0d",
+          "size": {
+            "height": 272,
+            "width": 234
+          },
+          "zIndex": 8
+        },
+        {
+          "location": {
+            "x": 2858.1558619839425,
+            "y": 436.26777076149892
+          },
+          "nodeIndex": "Localized Labels",
+          "nodeLineageTag": "59839a92-22f1-4d78-9cac-a89bd3406dca",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 9
+        },
+        {
+          "location": {
+            "x": 594.04575412975078,
+            "y": 60.5954483958119
+          },
+          "nodeIndex": "Location",
+          "nodeLineageTag": "ddfc8a61-a4a6-4225-baeb-c50df2a923ea",
+          "size": {
+            "height": 152,
+            "width": 234
+          },
+          "zIndex": 10
+        },
+        {
+          "location": {
+            "x": 520.07110083651628,
+            "y": 265.49871899245272
+          },
+          "nodeIndex": "Sales Budget",
+          "nodeLineageTag": "227da1e2-4498-4f07-a6d5-ccfa66f0dec9",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 12
+        },
+        {
+          "location": {
+            "x": 601.98934527211827,
+            "y": 936.39568809359139
+          },
+          "nodeIndex": "Salesperson",
+          "nodeLineageTag": "24dc6fa6-871a-492b-9724-536b3a735e0a",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 15
+        },
+        {
+          "location": {
+            "x": 3994.1558619839425,
+            "y": 522.26777076149892
+          },
+          "nodeIndex": "Working Days",
+          "nodeLineageTag": "20fc913b-ca75-4c4b-a7f7-a011423afe9f",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 17
+        },
+        {
+          "location": {
+            "x": 4979.2199000046985,
+            "y": 522.267770761499
+          },
+          "nodeIndex": "COMPANY",
+          "nodeLineageTag": "f966f944-f3f2-40d5-9651-a37b08bd007d",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 18
+        },
+        {
+          "location": {
+            "x": 6105.2199000046985,
+            "y": 522.267770761499
+          },
+          "nodeIndex": "Sales Budget Name",
+          "nodeLineageTag": "a86afb9d-95d3-4252-a0c4-dec98d7136d8",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 20
+        },
+        {
+          "location": {
+            "x": 5547.2199000046985,
+            "y": 426.26777076149904
+          },
+          "nodeIndex": "Opportunities",
+          "nodeLineageTag": "7393b9b2-64c3-45e1-85a1-1484eeb15866",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 22
+        },
+        {
+          "location": {
+            "x": 5263.2199000046985,
+            "y": 426.26777076149904
+          },
+          "nodeIndex": "Opportunity Entries",
+          "nodeLineageTag": "37398a2b-ec4c-4522-9670-69150c424849",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 23
+        },
+        {
+          "location": {
+            "x": 6947.2199000046985,
+            "y": 436.26777076149904
+          },
+          "nodeIndex": "Contacts",
+          "nodeLineageTag": "3fa851ee-1526-4e21-a283-32943d57995b",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 25
+        },
+        {
+          "location": {
+            "x": 7789.2199000046985,
+            "y": 522.267770761499
+          },
+          "nodeIndex": "Reason Codes",
+          "nodeLineageTag": "76def598-da7e-4552-a607-be257aa7e055",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 8357.2199000046985,
+            "y": 450.26777076149904
+          },
+          "nodeIndex": "Item Category",
+          "nodeLineageTag": "41e6de68-c3f4-4f21-9fbb-a76f2f4cd390",
+          "size": {
+            "height": 272,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 8631.2199000046985,
+            "y": 474.26777076149904
+          },
+          "nodeIndex": "Pareto Scale",
+          "size": {
+            "height": 224,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 8915.2199000046985,
+            "y": 534.267770761499
+          },
+          "nodeIndex": "ENVIRONMENT",
+          "nodeLineageTag": "269f6cde-63b2-48e8-8a26-72d123f9b409",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 9483.2199000046985,
+            "y": 498.26777076149904
+          },
+          "nodeIndex": "Sales Cycle Stages",
+          "nodeLineageTag": "c0b00219-a2df-4d52-956d-0b29772faeee",
+          "size": {
+            "height": 176,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 9757.2199000046985,
+            "y": 510.26777076149904
+          },
+          "nodeIndex": "Close Opportunity Codes",
+          "nodeLineageTag": "1748f80a-2a43-47b0-baad-33151638be88",
+          "size": {
+            "height": 152,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 10041.219900004699,
+            "y": 486.26777076149904
+          },
+          "nodeIndex": "Translated Localized Labels",
+          "size": {
+            "height": 200,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 10315.219900004699,
+            "y": 474.26777076149904
+          },
+          "nodeIndex": "Resources",
+          "nodeLineageTag": "ccbb6632-eaf8-4b65-9a53-1fa24438deac",
+          "size": {
+            "height": 224,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 10599.219900004699,
+            "y": 486.26777076149904
+          },
+          "nodeIndex": "G/L Accounts",
+          "nodeLineageTag": "4fc4c983-5bb3-45a7-a7a3-f6e0cb8b23da",
+          "size": {
+            "height": 200,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 11451.219900004699,
+            "y": 436.26777076149904
+          },
+          "nodeIndex": "Sales Value Entries",
+          "nodeLineageTag": "6f438992-683b-4784-bfed-ee7ca8de8e29",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 12911.602950019393,
+            "y": 371.275215371699
+          },
+          "nodeIndex": "Sales Invoice Lines",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 12343.219900004699,
+            "y": 401.26032615129907
+          },
+          "nodeIndex": "Sales Credit Lines",
+          "nodeLineageTag": "33461cda-5496-4e54-9561-8208200f67d7",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 12627.421461197884,
+            "y": 502.11991333154521
+          },
+          "nodeIndex": "Type",
+          "nodeLineageTag": "4f975a3b-27d8-407f-929b-42da43ec6657",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 12019.219900004699,
+            "y": 498.26777076149904
+          },
+          "nodeIndex": "Documents",
+          "size": {
+            "height": 176,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 11735.219900004699,
+            "y": 436.26777076149904
+          },
+          "nodeIndex": "Sales Lines",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 13185.602950019393,
+            "y": 416.26777076149904
+          },
+          "nodeIndex": "Project Ledger Entries",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 13459.602950019393,
+            "y": 411.26777076149904
+          },
+          "nodeIndex": "Project",
+          "nodeLineageTag": "3bc3f948-e8fc-4d1c-8762-244414324067",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {},
+          "nodeIndex": "Sales Line Type",
+          "nodeLineageTag": "ed625448-35cf-47d2-9a7c-dfbcfee6de7a",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {},
+          "nodeIndex": "Sales Document Type",
+          "nodeLineageTag": "6e42d4c6-577b-4cf4-b7e7-958306a5623b",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {},
+          "nodeIndex": "Item Ledger Document Type",
+          "nodeLineageTag": "7e644a9e-9132-4345-af3b-5cbb26c0882c",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {},
+          "nodeIndex": "Project Journal Line Type",
+          "nodeLineageTag": "fd71720f-551f-49f9-a65d-46b57de4e210",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 0
+        }
+      ],
+      "name": "All tables",
+      "zoomValue": 100,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    },
+    {
+      "ordinal": 1,
+      "scrollPosition": {
+        "x": 0,
+        "y": 223
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 363.03943002602648,
+            "y": 340.21532775306537
+          },
+          "nodeIndex": "Sales Budget",
+          "nodeLineageTag": "227da1e2-4498-4f07-a6d5-ccfa66f0dec9",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 64.235214622586,
+            "y": 517.4258810596956
+          },
+          "nodeIndex": "Customer",
+          "nodeLineageTag": "cd4698ab-c592-4ce7-9bf8-661142385bf6",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 0,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 61,
+            "y": 390.18655106145218
+          },
+          "nodeIndex": "Location",
+          "nodeLineageTag": "ddfc8a61-a4a6-4225-baeb-c50df2a923ea",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 0,
+          "expandedHeight": 152
+        },
+        {
+          "location": {
+            "x": 56.828788288151713,
+            "y": 134
+          },
+          "nodeIndex": "Date",
+          "nodeLineageTag": "11a4fdb3-5158-4100-8442-1a84223c4b82",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 0,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 62.313465440828168,
+            "y": 645.43060681717361
+          },
+          "nodeIndex": "Dimension Sets",
+          "nodeLineageTag": "429c6e17-af59-4d03-8c05-44433e0b3d42",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 0,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 59.8926651239463,
+            "y": 263.99321360608985
+          },
+          "nodeIndex": "Item",
+          "nodeLineageTag": "c40a40e9-d278-4fd2-b077-3918c6213a0d",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 0,
+          "expandedHeight": 272
+        },
+        {
+          "location": {
+            "x": 65,
+            "y": 780
+          },
+          "nodeIndex": "Sales Budget Name",
+          "nodeLineageTag": "a86afb9d-95d3-4252-a0c4-dec98d7136d8",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 0,
+          "expandedHeight": 128
+        }
+      ],
+      "name": "Sales Budgets",
+      "zoomValue": 100,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    },
+    {
+      "ordinal": 2,
+      "scrollPosition": {
+        "x": 0,
+        "y": 188
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 277.22747181065142,
+            "y": 126.84915402526576
+          },
+          "nodeIndex": "Opportunities",
+          "nodeLineageTag": "7393b9b2-64c3-45e1-85a1-1484eeb15866",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 4,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 278.27069366755472,
+            "y": 269.60241805076237
+          },
+          "nodeIndex": "Date",
+          "nodeLineageTag": "11a4fdb3-5158-4100-8442-1a84223c4b82",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 5,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 276.93393704790856,
+            "y": 386
+          },
+          "nodeIndex": "Salesperson",
+          "nodeLineageTag": "24dc6fa6-871a-492b-9724-536b3a735e0a",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 3,
+          "expandedHeight": 128
+        },
+        {
+          "location": {
+            "x": 645.93714509427059,
+            "y": 238
+          },
+          "nodeIndex": "Opportunity Entries",
+          "nodeLineageTag": "37398a2b-ec4c-4522-9670-69150c424849",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 6
+        },
+        {
+          "location": {
+            "x": 276,
+            "y": 0
+          },
+          "nodeIndex": "Contacts",
+          "nodeLineageTag": "3fa851ee-1526-4e21-a283-32943d57995b",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 7,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 270.20000076293945,
+            "y": 505
+          },
+          "nodeIndex": "Sales Cycle Stages",
+          "nodeLineageTag": "c0b00219-a2df-4d52-956d-0b29772faeee",
+          "size": {
+            "height": 176,
+            "width": 234
+          },
+          "zIndex": 1
+        },
+        {
+          "location": {
+            "x": 270.20000076293945,
+            "y": 697
+          },
+          "nodeIndex": "Close Opportunity Codes",
+          "nodeLineageTag": "1748f80a-2a43-47b0-baad-33151638be88",
+          "size": {
+            "height": 152,
+            "width": 234
+          },
+          "zIndex": 2
+        }
+      ],
+      "name": "Opportunity Entries",
+      "zoomValue": 100,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    },
+    {
+      "ordinal": 3,
+      "scrollPosition": {
+        "x": 0,
+        "y": 0
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 89,
+            "y": 78
+          },
+          "nodeIndex": "G/L Accounts",
+          "nodeLineageTag": "4fc4c983-5bb3-45a7-a7a3-f6e0cb8b23da",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 11,
+          "expandedHeight": 200
+        },
+        {
+          "location": {
+            "x": 94,
+            "y": 216
+          },
+          "nodeIndex": "Item",
+          "nodeLineageTag": "c40a40e9-d278-4fd2-b077-3918c6213a0d",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 5,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 89,
+            "y": 387
+          },
+          "nodeIndex": "Resources",
+          "nodeLineageTag": "ccbb6632-eaf8-4b65-9a53-1fa24438deac",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 12,
+          "expandedHeight": 224
+        },
+        {
+          "location": {
+            "x": 459,
+            "y": 0
+          },
+          "nodeIndex": "Date",
+          "nodeLineageTag": "11a4fdb3-5158-4100-8442-1a84223c4b82",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 10,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 828,
+            "y": 513
+          },
+          "nodeIndex": "Dimension Sets",
+          "nodeLineageTag": "429c6e17-af59-4d03-8c05-44433e0b3d42",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 6,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 833,
+            "y": 373
+          },
+          "nodeIndex": "Location",
+          "nodeLineageTag": "ddfc8a61-a4a6-4225-baeb-c50df2a923ea",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 7,
+          "expandedHeight": 152
+        },
+        {
+          "location": {
+            "x": 830,
+            "y": 174
+          },
+          "nodeIndex": "Salesperson",
+          "nodeLineageTag": "24dc6fa6-871a-492b-9724-536b3a735e0a",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 8,
+          "expandedHeight": 128
+        },
+        {
+          "location": {
+            "x": 834,
+            "y": 38
+          },
+          "nodeIndex": "Customer",
+          "nodeLineageTag": "cd4698ab-c592-4ce7-9bf8-661142385bf6",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 9,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 449,
+            "y": 599
+          },
+          "nodeIndex": "Type",
+          "nodeLineageTag": "4f975a3b-27d8-407f-929b-42da43ec6657",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 2
+        },
+        {
+          "location": {
+            "x": 91,
+            "y": 523
+          },
+          "nodeIndex": "Documents",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 3,
+          "expandedHeight": 176
+        },
+        {
+          "location": {
+            "x": 446,
+            "y": 213
+          },
+          "nodeIndex": "Sales Lines",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 4
+        },
+        {
+          "location": {
+            "x": 823.55555555555554,
+            "y": 678.33333333333326
+          },
+          "nodeIndex": "Project",
+          "nodeLineageTag": "3bc3f948-e8fc-4d1c-8762-244414324067",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 1
+        }
+      ],
+      "name": "Sales Line",
+      "zoomValue": 90,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    },
+    {
+      "ordinal": 4,
+      "scrollPosition": {
+        "x": 0,
+        "y": 0
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 561.96093002305849,
+            "y": 255.3626396198344
+          },
+          "nodeIndex": "Sales Value Entries",
+          "nodeLineageTag": "6f438992-683b-4784-bfed-ee7ca8de8e29",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 1
+        },
+        {
+          "location": {
+            "x": 981.984739003469,
+            "y": 241.44077957371729
+          },
+          "nodeIndex": "Salesperson",
+          "nodeLineageTag": "24dc6fa6-871a-492b-9724-536b3a735e0a",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 2,
+          "expandedHeight": 128
+        },
+        {
+          "location": {
+            "x": 154.13614086980934,
+            "y": 290.4621495334149
+          },
+          "nodeIndex": "Item",
+          "nodeLineageTag": "c40a40e9-d278-4fd2-b077-3918c6213a0d",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 3,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 976.470697517294,
+            "y": 555.83821517855347
+          },
+          "nodeIndex": "Dimension Sets",
+          "nodeLineageTag": "429c6e17-af59-4d03-8c05-44433e0b3d42",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 4,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 972.69963528803146,
+            "y": 73.813802148657544
+          },
+          "nodeIndex": "Customer",
+          "nodeLineageTag": "cd4698ab-c592-4ce7-9bf8-661142385bf6",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 5,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 569.42491452770037,
+            "y": 80.714292235077068
+          },
+          "nodeIndex": "Date",
+          "nodeLineageTag": "11a4fdb3-5158-4100-8442-1a84223c4b82",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 6,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 963.8724071140698,
+            "y": 406.8980510657068
+          },
+          "nodeIndex": "Location",
+          "nodeLineageTag": "ddfc8a61-a4a6-4225-baeb-c50df2a923ea",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 7,
+          "expandedHeight": 155
+        },
+        {
+          "location": {
+            "x": 548.35225666472843,
+            "y": 679.28937770737673
+          },
+          "nodeIndex": "Type",
+          "nodeLineageTag": "4f975a3b-27d8-407f-929b-42da43ec6657",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 8
+        },
+        {
+          "location": {
+            "x": 159.70634830068371,
+            "y": 144.00610896316635
+          },
+          "nodeIndex": "G/L Accounts",
+          "nodeLineageTag": "4fc4c983-5bb3-45a7-a7a3-f6e0cb8b23da",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 9,
+          "expandedHeight": 200
+        },
+        {
+          "location": {
+            "x": 146.82295418202233,
+            "y": 461.633086388226
+          },
+          "nodeIndex": "Resources",
+          "nodeLineageTag": "ccbb6632-eaf8-4b65-9a53-1fa24438deac",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 11,
+          "expandedHeight": 224
+        },
+        {
+          "location": {
+            "x": 137.50976749423538,
+            "y": 618.18131980991711
+          },
+          "nodeIndex": "Documents",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 0,
+          "expandedHeight": 176
+        },
+        {
+          "location": {
+            "x": 1058.7356393720049,
+            "y": 789.94260313355926
+          },
+          "nodeIndex": "Project",
+          "nodeLineageTag": "3bc3f948-e8fc-4d1c-8762-244414324067",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 0,
+          "expandedHeight": 300
+        }
+      ],
+      "name": "Value Entries",
+      "zoomValue": 79.553182037699827,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    },
+    {
+      "ordinal": 5,
+      "scrollPosition": {
+        "x": 0,
+        "y": 184.80000305175781
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 50.000000000000014,
+            "y": 300.07770665743107
+          },
+          "nodeIndex": "Sales Value Entries",
+          "nodeLineageTag": "6f438992-683b-4784-bfed-ee7ca8de8e29",
+          "size": {
+            "height": 248,
+            "width": 234
+          },
+          "zIndex": 3,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 661,
+            "y": 667
+          },
+          "nodeIndex": "Sales Credit Lines",
+          "nodeLineageTag": "33461cda-5496-4e54-9561-8208200f67d7",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 358.09562783399792,
+            "y": 300.19600356069463
+          },
+          "nodeIndex": "Documents",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 144.04502804022823,
+            "y": 650.3773962599937
+          },
+          "nodeIndex": "Sales Lines",
+          "size": {
+            "height": 248,
+            "width": 234
+          },
+          "zIndex": 0,
+          "expandedHeight": 300
+        }
+      ],
+      "name": "Sales Documents",
+      "zoomValue": 100,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    },
+    {
+      "ordinal": 6,
+      "scrollPosition": {
+        "x": 0,
+        "y": 51
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 337.04793646834719,
+            "y": 302.34236676636692
+          },
+          "nodeIndex": "Reason Codes",
+          "nodeLineageTag": "76def598-da7e-4552-a607-be257aa7e055",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 1
+        },
+        {
+          "location": {
+            "x": 624.10255969907712,
+            "y": 94.213973114583041
+          },
+          "nodeIndex": "Sales Value Entries",
+          "nodeLineageTag": "6f438992-683b-4784-bfed-ee7ca8de8e29",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 3
+        },
+        {
+          "location": {
+            "x": 498.11770167127781,
+            "y": 482.63605668748471
+          },
+          "nodeIndex": "Sales Lines",
+          "nodeLineageTag": "babb05ac-05b9-40cf-b2e6-434e9d36b778",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 50,
+            "y": 333.56608597993403
+          },
+          "nodeIndex": "Sales Credit Lines",
+          "nodeLineageTag": "33461cda-5496-4e54-9561-8208200f67d7",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 158.6151827152346,
+            "y": -50
+          },
+          "nodeIndex": "Sales Invoice Lines",
+          "nodeLineageTag": "043df25c-c335-44fb-bc2e-72f981afa7c8",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        }
+      ],
+      "name": "Reason Codes",
+      "zoomValue": 100,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    },
+    {
+      "ordinal": 7,
+      "scrollPosition": {
+        "x": 0,
+        "y": 0
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 265.25,
+            "y": 202.25
+          },
+          "nodeIndex": "G/L Accounts",
+          "nodeLineageTag": "4fc4c983-5bb3-45a7-a7a3-f6e0cb8b23da",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 3,
+          "expandedHeight": 200
+        },
+        {
+          "location": {
+            "x": 1047,
+            "y": 59
+          },
+          "nodeIndex": "Customer",
+          "nodeLineageTag": "cd4698ab-c592-4ce7-9bf8-661142385bf6",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 4,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 1071,
+            "y": 539
+          },
+          "nodeIndex": "Dimension Sets",
+          "nodeLineageTag": "429c6e17-af59-4d03-8c05-44433e0b3d42",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 5,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 1050,
+            "y": 364.25
+          },
+          "nodeIndex": "Location",
+          "nodeLineageTag": "ddfc8a61-a4a6-4225-baeb-c50df2a923ea",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 6,
+          "expandedHeight": 152
+        },
+        {
+          "location": {
+            "x": 620.75,
+            "y": 86.75
+          },
+          "nodeIndex": "Date",
+          "nodeLineageTag": "11a4fdb3-5158-4100-8442-1a84223c4b82",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 8,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 623,
+            "y": 291
+          },
+          "nodeIndex": "Sales Invoice Lines",
+          "nodeLineageTag": "043df25c-c335-44fb-bc2e-72f981afa7c8",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 7
+        },
+        {
+          "location": {
+            "x": 268.25,
+            "y": 518.75
+          },
+          "nodeIndex": "Item",
+          "nodeLineageTag": "c40a40e9-d278-4fd2-b077-3918c6213a0d",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 1,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 270.5,
+            "y": 371.75
+          },
+          "nodeIndex": "Resources",
+          "nodeLineageTag": "ccbb6632-eaf8-4b65-9a53-1fa24438deac",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 2,
+          "expandedHeight": 224
+        },
+        {
+          "location": {
+            "x": 1041.75,
+            "y": 206.25
+          },
+          "nodeIndex": "Salesperson",
+          "nodeLineageTag": "24dc6fa6-871a-492b-9724-536b3a735e0a",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 0,
+          "expandedHeight": 128
+        },
+        {
+          "location": {
+            "x": 621.75,
+            "y": 700
+          },
+          "nodeIndex": "Type",
+          "nodeLineageTag": "4f975a3b-27d8-407f-929b-42da43ec6657",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 264.25,
+            "y": 712.5
+          },
+          "nodeIndex": "Documents",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 0,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 1069.25,
+            "y": 688.75
+          },
+          "nodeIndex": "Project",
+          "nodeLineageTag": "3bc3f948-e8fc-4d1c-8762-244414324067",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 0,
+          "expandedHeight": 300
+        }
+      ],
+      "name": "Sales Invoice Lines",
+      "zoomValue": 80,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    },
+    {
+      "ordinal": 8,
+      "scrollPosition": {
+        "x": 0,
+        "y": 0
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 413.38984770780564,
+            "y": 182.93445959714688
+          },
+          "nodeIndex": "Sales Credit Lines",
+          "nodeLineageTag": "33461cda-5496-4e54-9561-8208200f67d7",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 10
+        },
+        {
+          "location": {
+            "x": 41.503237005448227,
+            "y": 446.41459918767146
+          },
+          "nodeIndex": "Item",
+          "nodeLineageTag": "c40a40e9-d278-4fd2-b077-3918c6213a0d",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 2,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 40.464673495645016,
+            "y": 285.92773517232735
+          },
+          "nodeIndex": "Resources",
+          "nodeLineageTag": "ccbb6632-eaf8-4b65-9a53-1fa24438deac",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 3,
+          "expandedHeight": 224
+        },
+        {
+          "location": {
+            "x": 828.09583997112691,
+            "y": 40.783812537475626
+          },
+          "nodeIndex": "Customer",
+          "nodeLineageTag": "cd4698ab-c592-4ce7-9bf8-661142385bf6",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 4,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 342.34379362236683,
+            "y": 11.25888952185278
+          },
+          "nodeIndex": "Date",
+          "nodeLineageTag": "11a4fdb3-5158-4100-8442-1a84223c4b82",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 5,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 426.67928942013242,
+            "y": 615.9401641128469
+          },
+          "nodeIndex": "Type",
+          "nodeLineageTag": "4f975a3b-27d8-407f-929b-42da43ec6657",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 6
+        },
+        {
+          "location": {
+            "x": 41.805858214264305,
+            "y": 140.06287895735176
+          },
+          "nodeIndex": "G/L Accounts",
+          "nodeLineageTag": "4fc4c983-5bb3-45a7-a7a3-f6e0cb8b23da",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 7,
+          "expandedHeight": 200
+        },
+        {
+          "location": {
+            "x": 826.18680190082841,
+            "y": 385.181923859403
+          },
+          "nodeIndex": "Location",
+          "nodeLineageTag": "ddfc8a61-a4a6-4225-baeb-c50df2a923ea",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 8,
+          "expandedHeight": 152
+        },
+        {
+          "location": {
+            "x": 822.41573967156614,
+            "y": 528.48228857137144
+          },
+          "nodeIndex": "Dimension Sets",
+          "nodeLineageTag": "429c6e17-af59-4d03-8c05-44433e0b3d42",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 9,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 822.41573967156614,
+            "y": 221.76922725803553
+          },
+          "nodeIndex": "Salesperson",
+          "nodeLineageTag": "24dc6fa6-871a-492b-9724-536b3a735e0a",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 41.847873030221393,
+            "y": 606.99861216160366
+          },
+          "nodeIndex": "Documents",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 0,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 1230.9474811749849,
+            "y": 366.32661271309138
+          },
+          "nodeIndex": "Project",
+          "nodeLineageTag": "3bc3f948-e8fc-4d1c-8762-244414324067",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        }
+      ],
+      "name": "Sales Credit Lines",
+      "zoomValue": 79.553182037699813,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    },
+    {
+      "ordinal": 9,
+      "scrollPosition": {
+        "x": 0,
+        "y": 158
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 588.9677339362114,
+            "y": 518.79038054939372
+          },
+          "nodeIndex": "Sales Invoice Lines",
+          "nodeLineageTag": "043df25c-c335-44fb-bc2e-72f981afa7c8",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 3
+        },
+        {
+          "location": {
+            "x": 635.86547759411769,
+            "y": 162.01265704955944
+          },
+          "nodeIndex": "Sales Value Entries",
+          "nodeLineageTag": "6f438992-683b-4784-bfed-ee7ca8de8e29",
+          "size": {
+            "height": 320,
+            "width": 272
+          },
+          "zIndex": 6,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 198.82348727027176,
+            "y": 518.91841374872865
+          },
+          "nodeIndex": "Sales Credit Lines",
+          "nodeLineageTag": "33461cda-5496-4e54-9561-8208200f67d7",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 4
+        },
+        {
+          "location": {
+            "x": 331.6078515114869,
+            "y": 383.72318603060688
+          },
+          "nodeIndex": "Type",
+          "nodeLineageTag": "4f975a3b-27d8-407f-929b-42da43ec6657",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 5,
+          "expandedHeight": 104
+        },
+        {
+          "location": {
+            "x": 339.07916208873041,
+            "y": 0
+          },
+          "nodeIndex": "Sales Lines",
+          "nodeLineageTag": "babb05ac-05b9-40cf-b2e6-434e9d36b778",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 2
+        },
+        {
+          "location": {
+            "x": 50,
+            "y": 165.29897534587531
+          },
+          "nodeIndex": "Project Ledger Entries",
+          "nodeLineageTag": "00e15ad7-0b55-47c6-806c-20d9c1240334",
+          "size": {
+            "height": 296,
+            "width": 234
+          },
+          "zIndex": 1,
+          "expandedHeight": 300
+        }
+      ],
+      "name": "Type",
+      "zoomValue": 100,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    },
+    {
+      "ordinal": 10,
+      "scrollPosition": {
+        "x": 174,
+        "y": 195
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 1055,
+            "y": 194
+          },
+          "nodeIndex": "Customer",
+          "nodeLineageTag": "cd4698ab-c592-4ce7-9bf8-661142385bf6",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 11,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 236,
+            "y": 506
+          },
+          "nodeIndex": "Item",
+          "nodeLineageTag": "c40a40e9-d278-4fd2-b077-3918c6213a0d",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 7,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 585,
+            "y": 124
+          },
+          "nodeIndex": "Date",
+          "nodeLineageTag": "11a4fdb3-5158-4100-8442-1a84223c4b82",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 8,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 232,
+            "y": 684
+          },
+          "nodeIndex": "Documents",
+          "nodeLineageTag": "131c73ef-3cf0-45e3-a166-91abcb825a5f",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 9,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 219,
+            "y": 324
+          },
+          "nodeIndex": "Resources",
+          "nodeLineageTag": "ccbb6632-eaf8-4b65-9a53-1fa24438deac",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 10,
+          "expandedHeight": 224
+        },
+        {
+          "location": {
+            "x": 228,
+            "y": 146
+          },
+          "nodeIndex": "G/L Accounts",
+          "nodeLineageTag": "4fc4c983-5bb3-45a7-a7a3-f6e0cb8b23da",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 12,
+          "expandedHeight": 200
+        },
+        {
+          "location": {
+            "x": 594,
+            "y": 812
+          },
+          "nodeIndex": "Type",
+          "nodeLineageTag": "4f975a3b-27d8-407f-929b-42da43ec6657",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 1
+        },
+        {
+          "location": {
+            "x": 1052,
+            "y": 353
+          },
+          "nodeIndex": "Salesperson",
+          "nodeLineageTag": "24dc6fa6-871a-492b-9724-536b3a735e0a",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 2
+        },
+        {
+          "location": {
+            "x": 1071,
+            "y": 568
+          },
+          "nodeIndex": "Location",
+          "nodeLineageTag": "ddfc8a61-a4a6-4225-baeb-c50df2a923ea",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 3,
+          "expandedHeight": 152
+        },
+        {
+          "location": {
+            "x": 1068,
+            "y": 735
+          },
+          "nodeIndex": "Dimension Sets",
+          "nodeLineageTag": "429c6e17-af59-4d03-8c05-44433e0b3d42",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 4,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 600,
+            "y": 396
+          },
+          "nodeIndex": "Project Ledger Entries",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 5
+        },
+        {
+          "location": {
+            "x": 1496,
+            "y": 451
+          },
+          "nodeIndex": "Project",
+          "nodeLineageTag": "3bc3f948-e8fc-4d1c-8762-244414324067",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 6
+        }
+      ],
+      "name": "Project Ledger Entries",
+      "zoomValue": 100,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    },
+    {
+      "ordinal": 11,
+      "scrollPosition": {
+        "x": 0,
+        "y": 0
+      },
+      "nodes": [],
+      "name": "Layout 1",
+      "zoomValue": 100,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    }
+  ],
+  "selectedDiagram": "Layout 1",
+  "defaultDiagram": "All tables"
+}

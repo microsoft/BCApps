@@ -1,0 +1,16 @@
+{
+	"folders": [
+        {
+            "name": "Quality Management - App",
+            "path": "app"
+        },
+        {
+            "name": "Quality Management - Test",
+            "path": "test"
+        },
+        {
+            "name": "Quality Management - Test Library",
+            "path": "Test Library"
+        }
+    ]
+}

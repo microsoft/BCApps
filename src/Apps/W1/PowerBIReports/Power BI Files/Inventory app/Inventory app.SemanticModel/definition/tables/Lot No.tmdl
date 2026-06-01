@@ -1,0 +1,69 @@
+table 'Lot No'
+	lineageTag: 4475260a-16ae-496f-ba47-f03a5bf56b10
+
+	column 'Lot No.'
+		dataType: string
+		lineageTag: 026700c8-9192-4f57-8a62-ed79774ff3d1
+		summarizeBy: none
+		sourceColumn: Lot No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Lot Key'
+		dataType: string
+		isHidden
+		lineageTag: 57f5c93b-5628-4f41-a62c-e7681b42c30a
+		summarizeBy: none
+		sourceColumn: Lot Key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Lot No' = m
+		mode: import
+		queryGroup: 'Dimension Tables'
+		source =
+				let
+				    Source = #"Item Ledger Entries",
+				    #"Removed Columns" = Table.RemoveColumns(
+				        Source,
+				        {
+				            "Entry No.",
+				            "Entry Type",
+				            "Document No.",
+				            "Posting Date",
+				            "Location Code",
+				            "Serial No.",
+				            "Source No. (Customer)",
+				            "Source No. (Vendor)",
+				            "Open",
+				            "Positive",
+				            "Qty.",
+				            "Remaining Qty.",
+				            "Cost Amt. (Actual)",
+				            "Sales Amt. (Actual)",
+				            "dimensionSetID",
+				            "Lot Key",
+				            "Expiration Date",
+				            "Serial Key",
+				            "invoicedQuantity"
+				        }
+				    ),
+				    #"Added Custom" = Table.AddColumn(
+				        #"Removed Columns", "Lot Key", each if [#"Lot No."] = "" then "" else [#"Item No."] & [#"Lot No."], type text
+				    ),
+				    #"Removed Duplicates" = Table.Distinct(#"Added Custom", {"Lot Key"}),
+				    #"Removed Columns1" = Table.RemoveColumns(
+				        #"Removed Duplicates", {"Item No.", "Quantity Per Unit of Measure", "Unit of Measure Code", "Document Type"}
+				    ),
+				    #"Removed Blank Rows" = Table.SelectRows(
+				        #"Removed Columns1", each not List.IsEmpty(List.RemoveMatchingItems(Record.FieldValues(_), {"", null}))
+				    )
+				in
+				    #"Removed Blank Rows"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

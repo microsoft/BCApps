@@ -1,0 +1,288 @@
+relationship a05dfaa0-89d4-4adc-a8e0-66226b94da81
+	fromColumn: 'Sales Budget'.'Customer No.'
+	toColumn: Customer.'Customer No.'
+
+relationship cff90432-c710-4828-bd30-946d6bf2fc6d
+	fromColumn: 'Sales Budget'.'Location Code'
+	toColumn: Location.'Location Code'
+
+relationship 4e70aa71-da69-4127-88b1-851b191156e6
+	fromColumn: 'Sales Budget'.'Dimension Set ID'
+	toColumn: 'Dimension Sets'.dimensionSetID
+
+relationship be2652f3-eba8-4d79-816f-20df08885cb5
+	fromColumn: 'Sales Budget'.'Item No.'
+	toColumn: Item.'Item No.'
+
+relationship e01e0966-fe72-83df-68ba-d45e4d5cf9f6
+	fromColumn: 'Sales Budget'.'Budget Name'
+	toColumn: 'Sales Budget Name'.'Sales Budget Name'
+
+relationship AutoDetected_bb4f1b6f-ee13-465f-a5d4-2fab44eb74eb
+	fromColumn: 'Opportunity Entries'.'Opportunity No.'
+	toColumn: Opportunities.'Opportunity No.'
+
+relationship AutoDetected_adf44cd0-350a-4216-9df9-c009d3b45e49
+	fromColumn: 'Opportunity Entries'.salespersonCode
+	toColumn: Salesperson.'Salesperson Code'
+
+relationship AutoDetected_6928c7a9-4b3f-4d56-980d-1961a1173b66
+	fromColumn: 'Opportunity Entries'.'Contact No.'
+	toColumn: Contacts.'Contact No.'
+
+relationship a0078399-9c7f-c49b-bc2c-3bfac14f25a8
+	fromColumn: Item.'Item Category Code'
+	toColumn: 'Item Category'.'Item Category Code'
+
+relationship cf361c63-b076-a9b7-250e-77673ec78f25
+	fromColumn: 'Opportunity Entries'.'Sales Cycle Key'
+	toColumn: 'Sales Cycle Stages'.'Sales Cycle Key'
+
+relationship d750f478-6f38-e5b0-7264-d2d5c5ace959
+	fromColumn: 'Opportunity Entries'.'Close Opportunity Code'
+	toColumn: 'Close Opportunity Codes'.'Close Opportunity Code'
+
+relationship 55474384-cd88-2158-d606-291371df6610
+	fromColumn: 'Sales Lines'.'Sales Key'
+	toColumn: Documents.'Sales Key'
+
+relationship 418acaa3-991f-af88-776d-92de03241a26
+	fromColumn: 'Sales Lines'.dimensionSetID
+	toColumn: 'Dimension Sets'.dimensionSetID
+
+relationship c6d1d5a3-070f-9ec3-53a1-cf5edcbfc6aa
+	fromColumn: 'Sales Lines'.'Location Code'
+	toColumn: Location.'Location Code'
+
+relationship 32360bef-c774-f00a-0172-a33f881d41e7
+	fromColumn: 'Sales Lines'.salespersonCode
+	toColumn: Salesperson.'Salesperson Code'
+
+relationship 55faad39-9ea7-f519-92a3-c07495979643
+	fromColumn: 'Sales Value Entries'.'Sales Key'
+	toColumn: Documents.'Sales Key'
+
+relationship 921e4e4a-c319-f26a-1508-7c44da01fbc2
+	fromColumn: 'Sales Value Entries'.salespersonPurchaserCode
+	toColumn: Salesperson.'Salesperson Code'
+
+relationship faf84d94-a7bc-5f6e-0a49-812f7bab6154
+	fromColumn: 'Sales Value Entries'.dimensionSetID
+	toColumn: 'Dimension Sets'.dimensionSetID
+
+relationship a9ad0c25-0a09-3a60-b0d4-18d7afb37df3
+	fromColumn: 'Sales Value Entries'.customerNo
+	toColumn: Customer.'Customer No.'
+
+relationship 22119b8a-8484-740d-b25f-7b353f1d4117
+	fromColumn: 'Sales Value Entries'.locationCode
+	toColumn: Location.'Location Code'
+
+relationship f4640028-2ac6-46d9-1a08-0de1d8e0168d
+	fromColumn: 'Sales Lines'.billToCustomerNo
+	toColumn: Customer.'Customer No.'
+
+relationship 73f8002e-7875-ffe8-f7cd-af28c8cfa519
+	fromColumn: 'Sales Lines'.returnReasonCode
+	toColumn: 'Reason Codes'.'Return Reason Code'
+
+relationship 00e2eaec-45dc-e4fe-8008-b873e7f61031
+	fromColumn: 'Sales Invoice Lines'.'Sales Key'
+	toColumn: Documents.'Sales Key'
+
+relationship 9f3909ec-af7a-44a3-81e5-997102c09e64
+	fromColumn: 'Sales Invoice Lines'.billToCustomerNo
+	toColumn: Customer.'Customer No.'
+
+relationship 9051025f-8aef-700f-d1b0-9ba77485423a
+	fromColumn: 'Sales Invoice Lines'.dimensionSetID
+	toColumn: 'Dimension Sets'.dimensionSetID
+
+relationship c7fb2b0e-26e3-dcc9-1d93-71a4cf48bea2
+	fromColumn: 'Sales Invoice Lines'.locationCode
+	toColumn: Location.'Location Code'
+
+relationship 40ddeb6d-ae86-7383-3262-5dee17c589cc
+	fromColumn: 'Sales Credit Lines'.'Sales Key'
+	toColumn: Documents.'Sales Key'
+
+relationship e6361125-bc5b-cd42-c83a-7d68d05e248d
+	fromColumn: 'Sales Credit Lines'.billToCustomerNo
+	toColumn: Customer.'Customer No.'
+
+relationship d1535228-3c39-b006-08cb-a855fc425333
+	fromColumn: 'Sales Invoice Lines'.salespersonCode
+	toColumn: Salesperson.'Salesperson Code'
+
+relationship 5e8456b0-0374-3119-3b34-924086465455
+	fromColumn: 'Sales Credit Lines'.locationCode
+	toColumn: Location.'Location Code'
+
+relationship e9ea4ba3-e840-f35a-5541-3aa5cd56ac5d
+	fromColumn: 'Sales Credit Lines'.dimensionSetID
+	toColumn: 'Dimension Sets'.dimensionSetID
+
+relationship 6a7fcf1f-6671-f212-a825-88ee574d7f84
+	fromColumn: 'Sales Credit Lines'.salespersonCode
+	toColumn: Salesperson.'Salesperson Code'
+
+relationship a41c84c5-bd75-6b42-db0d-0cd53863ee97
+	fromColumn: 'Project Ledger Entries'.'Sales Key'
+	toColumn: Documents.'Sales Key'
+
+relationship 8a86e6fc-21b4-fd72-8df4-556549332813
+	fromColumn: 'Project Ledger Entries'.salespersonCode
+	toColumn: Salesperson.'Salesperson Code'
+
+relationship a3c5470a-8de6-6c88-ead9-3672d452b088
+	fromColumn: 'Project Ledger Entries'.locationCode
+	toColumn: Location.'Location Code'
+
+relationship 2da8ef20-bbbc-5ba0-bd44-a34db91e19e7
+	fromColumn: 'Project Ledger Entries'.dimensionSetID
+	toColumn: 'Dimension Sets'.dimensionSetID
+
+relationship 6e04de67-1e99-7808-9d86-e3248cd04750
+	fromColumn: 'Sales Credit Lines'.returnReasonCode
+	toColumn: 'Reason Codes'.'Return Reason Code'
+
+relationship 113f664b-fba4-2c24-711e-aaf4fefdd6d4
+	fromColumn: 'Sales Invoice Lines'.returnReasonCode
+	toColumn: 'Reason Codes'.'Return Reason Code'
+
+relationship b056b23f-1097-6722-c7b4-ca22803c072e
+	fromColumn: 'Sales Value Entries'.returnReasonCode
+	toColumn: 'Reason Codes'.'Return Reason Code'
+
+relationship 78265123-c193-1efd-5101-1b824987713a
+	fromColumn: 'Project Ledger Entries'.projectNo
+	toColumn: Project.'Project No.'
+
+relationship 3b3c41d4-17dd-326d-93df-5dc36b8e50c2
+	fromColumn: 'Sales Credit Lines'.projectNo
+	toColumn: Project.'Project No.'
+
+relationship c570ab85-a257-5041-5fa4-222b01899529
+	fromColumn: 'Sales Invoice Lines'.projectNo
+	toColumn: Project.'Project No.'
+
+relationship 47db1cb8-06a0-66a2-6e0c-4c694d3807ce
+	fromColumn: 'Sales Value Entries'.projectNo
+	toColumn: Project.'Project No.'
+
+relationship 64922677-e64e-98af-6239-be1f3ccbae13
+	fromColumn: 'Sales Lines'.projectNo
+	toColumn: Project.'Project No.'
+
+relationship 5f530389-446d-0085-b25e-cc7caef97544
+	fromColumn: 'Sales Budget'.entryDate
+	toColumn: Date.Date
+
+relationship 3e823f07-627c-47e9-7bf0-fab85ddb39ed
+	fromColumn: 'Opportunity Entries'.'Estimated Close Date'
+	toColumn: Date.Date
+
+relationship df1dc8b9-4f4d-737f-ed9c-ad0d41c70386
+	fromColumn: 'Sales Value Entries'.postingDate
+	toColumn: Date.Date
+
+relationship 637e61d6-7e7c-3bb0-18e8-f1facd138ea1
+	fromColumn: 'Sales Invoice Lines'.postingDate
+	toColumn: Date.Date
+
+relationship ec4bc85b-338d-7046-50f4-42d2255ba6e8
+	fromColumn: 'Sales Credit Lines'.postingDate
+	toColumn: Date.Date
+
+relationship 421879d6-6d82-28f8-0200-33c4e94d1b84
+	fromColumn: 'Project Ledger Entries'.postingDate
+	toColumn: Date.Date
+
+relationship a8446424-b380-d68e-a07f-411a9ef7b589
+	fromColumn: 'Sales Lines'.'Shipment Date'
+	toColumn: Date.Date
+
+relationship 4289d23b-101e-6407-8f75-6be040b64264
+	fromColumn: 'Project Ledger Entries'.billToCustomerNo
+	toColumn: Customer.'Customer No.'
+
+relationship b2d02dfa-7243-d702-fa63-0a355addf768
+	fromColumn: 'Project Ledger Entries'.'Type Key'
+	toColumn: Type.'Type Key'
+
+relationship 39aee198-8834-744a-1720-dec46ea58b23
+	fromColumn: 'Sales Value Entries'.'Type Key'
+	toColumn: Type.'Type Key'
+
+relationship 819fdfb9-e8db-0991-e395-96a84289d28a
+	fromColumn: 'Sales Lines'.'Type Key'
+	toColumn: Type.'Type Key'
+
+relationship a128e984-769f-dc87-964d-3cbfd57e0f63
+	fromColumn: 'Sales Credit Lines'.'Type Key'
+	toColumn: Type.'Type Key'
+
+relationship 144e8790-534d-d0ec-9680-012364ba2d8f
+	fromColumn: 'Sales Invoice Lines'.'Type Key'
+	toColumn: Type.'Type Key'
+
+relationship 320a3131-dbd2-f336-48a7-47909b593f11
+	fromColumn: 'Sales Lines'.'Type Key'
+	toColumn: Item.'Type Key'
+
+relationship 4c54ba49-8216-a9a4-b6c8-615a474a3b78
+	fromColumn: 'Sales Lines'.'Type Key'
+	toColumn: 'G/L Accounts'.'Type Key'
+
+relationship 18abe6b4-cac1-bd27-ecfc-f45ebb104452
+	fromColumn: 'Sales Lines'.'Type Key'
+	toColumn: Resources.'Type Key'
+
+relationship d0a84a38-65f8-374a-b238-11f621ba8db1
+	fromColumn: 'Sales Value Entries'.'Type Key'
+	toColumn: 'G/L Accounts'.'Type Key'
+
+relationship c49889a0-3422-8447-c208-8368ebd47967
+	fromColumn: 'Sales Value Entries'.'Type Key'
+	toColumn: Item.'Type Key'
+
+relationship 7b76ad96-a6fb-d82e-25ca-1df65a2c1013
+	fromColumn: 'Sales Value Entries'.'Type Key'
+	toColumn: Resources.'Type Key'
+
+relationship 08f37121-17e4-ce74-65e0-b89c618d0101
+	fromColumn: 'Sales Invoice Lines'.'Type Key'
+	toColumn: 'G/L Accounts'.'Type Key'
+
+relationship 384ccee6-3f08-76b4-3c86-17d0a938fb85
+	fromColumn: 'Sales Invoice Lines'.'Type Key'
+	toColumn: Resources.'Type Key'
+
+relationship 2dfb5e73-bb12-b537-dd5d-00d710b6616e
+	fromColumn: 'Sales Invoice Lines'.'Type Key'
+	toColumn: Item.'Type Key'
+
+relationship 6f4956ec-9f32-c39d-2bb4-d300013888b7
+	fromColumn: 'Sales Credit Lines'.'Type Key'
+	toColumn: 'G/L Accounts'.'Type Key'
+
+relationship ce39df25-58da-668d-d5ae-0309ed97294e
+	fromColumn: 'Sales Credit Lines'.'Type Key'
+	toColumn: Resources.'Type Key'
+
+relationship 6c8df824-211b-b192-7ef3-6b7120d840ec
+	fromColumn: 'Sales Credit Lines'.'Type Key'
+	toColumn: Item.'Type Key'
+
+relationship 60c08887-ce84-1039-8764-8cdb0fda26b7
+	fromColumn: 'Project Ledger Entries'.'Type Key'
+	toColumn: Resources.'Type Key'
+
+relationship 31e40cf6-b1ac-ecde-de73-5b550d4d8a15
+	fromColumn: 'Project Ledger Entries'.'Type Key'
+	toColumn: Item.'Type Key'
+
+relationship 38ef91fa-aa8e-31a8-687b-b6b425d62897
+	fromColumn: 'Project Ledger Entries'.'Type Key'
+	toColumn: 'G/L Accounts'.'Type Key'
+

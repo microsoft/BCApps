@@ -7,8 +7,8 @@ namespace System.Test.Media;
 
 using System.Media;
 using System.TestLibraries.Media;
-using System.TestLibraries.Utilities;
 using System.TestLibraries.Security.AccessControl;
+using System.TestLibraries.Utilities;
 
 codeunit 135038 "Video Test"
 {

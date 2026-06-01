@@ -1,0 +1,2255 @@
+cultureInfo sv-SE
+	translations
+		model Model
+			table Item
+				caption: Artikel
+				column 'Item No. & Description'
+					caption: Artikelnummer och -beskrivning
+				column 'Item No.'
+					caption: Artikelnr
+				column 'Item Description'
+					caption: Artikelbeskrivning
+				column 'Item Base Unit of Measure'
+					caption: Basmåttenhet för artikel
+				column 'Item Unit Cost (LCY)'
+					caption: Styckkostnad för artikel (BVA)
+				column 'Item Inventory Posting Group'
+					caption: Lagerbokföringsmall för artikel
+				column 'Item Category Code'
+					caption: Artikelkategorikod
+				column 'Item Category Description'
+					caption: Beskrivning av artikelkategori
+				column 'Item Routing No.'
+					caption: routingNo
+				column 'Item Production BOM No.'
+					caption: productionBomNo
+				column 'Item Replenishment System'
+					caption: replenishmentSystem
+				column 'Item Single-Level Cap. Ovhd Cost'
+					caption: singleLevelCapOvhdCost
+				column 'Item Single-Level Capacity Cost'
+					caption: singleLevelCapacityCost
+				column 'Item Single-Level Material Cost'
+					caption: singleLevelMaterialCost
+				column 'Item Single-Level Mfg. Ovhd Cost'
+					caption: singleLevelMfgOvhdCost
+				column 'Item Single-Level Subcontrd. Cost'
+					caption: singleLevelSubcontrdCost
+				column 'Item Single-Lvl Mat. Non-Invt. Cost'
+					caption: singleLvlMatNonInvtCost
+				column 'Item Rolled-up Cap. Overhead Cost'
+					caption: rolledUpCapOverheadCost
+				column 'Item Rolled-up Capacity Cost'
+					caption: rolledUpCapacityCost
+				column 'Item Rolled-up Mat. Non-Invt. Cost'
+					caption: rolledUpMatNonInvtCost
+				column 'Item Rolled-up Material Cost'
+					caption: rolledUpMaterialCost
+				column 'Item Rolled-up Mfg. Ovhd Cost'
+					caption: rolledUpMfgOvhdCost
+				column 'Item Rolled-up Subcontracted Cost'
+					caption: rolledUpSubcontractedCost
+				column 'Item Scrap %'
+					caption: scrapPrc
+			table Location
+				caption: Plats
+				column 'Location Code'
+					caption: Platskod
+				column 'Location Name'
+					caption: Platsens namn
+			table Customer
+				caption: Kund
+				column 'Customer No. & Name'
+					caption: Kundnummer och -namn
+				column 'Customer No.'
+					caption: Kundnr
+				column 'Customer Name'
+					caption: Kundnamn
+				column 'Customer Address'
+					caption: Kundadress
+				column 'Customer Address 2'
+					caption: Kundadress 2
+				column 'Customer City'
+					caption: Kundens ort
+				column 'Customer County'
+					caption: Kundens län
+				column 'Customer Country/Region Code'
+					caption: Lands-/regionskod för kund
+				column 'Customer Posting Group'
+					caption: Kundbokföringsmall
+				column 'Customer Price Group'
+					caption: Kundprisgrupp
+				column 'Customer Discount Group'
+					caption: Kundrabattgrupp
+				column 'Customer Post Code'
+					caption: Kundens postnummer
+				measure 'No. of New Customers'
+					caption: Antal nya kunder
+				measure 'No. of Lost Customers'
+					caption: Antal förlorade kunder
+				measure 'Sales New Customers'
+					caption: Försäljning nya kunder
+				measure 'No. of Returning Customers'
+					caption: Antal återkommande kunder
+				measure 'Sales Returning Customers'
+					caption: Försäljning återkommande kunder
+				measure 'No. of Recovered Customers'
+					caption: Antal återvunna kunder
+				measure 'Sales Recovered Customers'
+					caption: Försäljning återvunna kunder
+				measure 'Sales Lost Customers (12M)'
+					caption: Försäljning förlorade kunder (12 M)
+				measure 'No. of Customers'
+					caption: Antal kunder
+			table Salesperson
+				caption: Säljare
+				column 'Salesperson Code'
+					caption: Säljarkod
+				column 'Salesperson Name'
+					caption: Säljarnamn
+			table 'Standard Calendar Time Intelligence'
+				caption: Tidsintelligens för standardkalender
+				measure 'Sales Amount YTD'
+					caption: Försäljningsbelopp ÅTD
+				measure 'Sales Amount PY'
+					caption: Försäljningsbelopp FÅ
+				measure 'Sales Amount PYTD'
+					caption: Försäljningsbelopp FÅTD
+				measure 'Sales Amount PQTD'
+					caption: Försäljningsbelopp FKTD
+				measure 'Sales Amount QTD'
+					caption: Försäljningsbelopp KTD
+				measure 'Sales Amount MTD'
+					caption: Försäljningsbelopp MTD
+				measure 'Sales Amount YOY %'
+					caption: Försäljningsbelopp ÅFÅ %
+				measure 'Sales Amount YOY'
+					caption: Försäljningsbelopp ÅFÅ
+				measure 'Sales Amount PQ'
+					caption: Försäljningsbelopp FK
+				measure 'Sales Amount QOQ'
+					caption: Försäljningsbelopp KFK
+				measure 'Sales Amount PM'
+					caption: Försäljningsbelopp FM
+				measure 'Sales Amount QOQ %'
+					caption: Försäljningsbelopp KFK %
+				measure 'Sales Amount MOM'
+					caption: Försäljningsbelopp MFM
+				measure 'Sales Amount MOM %'
+					caption: Försäljningsbelopp MFM %
+				measure 'Sales Amount MAT'
+					caption: Försäljningsbelopp GÅS
+				measure 'Sales Amount PYMAT'
+					caption: Försäljningsbelopp FÅGÅS
+				measure 'Sales Amount YOYTD'
+					caption: Försäljningsbelopp ÅFÅTD
+				measure 'Sales Amount YOYTD %'
+					caption: Försäljningsbelopp ÅFÅTD %
+				measure 'Sales Amount PYC'
+					caption: Försäljningsbelopp FÅK
+				measure 'Sales Amount YTDOPY'
+					caption: Försäljningsbelopp ÅTDÅTDÖFÅ
+				measure 'Sales Amount YTDOPY %'
+					caption: Försäljningsbelopp ÅTDÅTDÖFÅ %
+				measure 'Sales Amount QOQTD'
+					caption: Försäljningsbelopp KFKTD
+				measure 'Sales Amount QOQTD %'
+					caption: Försäljningsbelopp KFKTD %
+				measure 'Sales Amount PQC'
+					caption: Försäljningsbelopp FKK
+				measure 'Sales Amount QTDOPQ'
+					caption: Försäljningsbelopp KTDÖFK
+				measure 'Sales Amount QTDOPQ %'
+					caption: Försäljningsbelopp KTDÖFK %
+				measure 'Sales Amount PMTD'
+					caption: Försäljningsbelopp FMTD
+				measure 'Sales Amount MOMTD'
+					caption: Försäljningsbelopp MFMTD
+				measure 'Sales Amount MOMTD %'
+					caption: Försäljningsbelopp MFMTD %
+				measure 'Sales Amount PMC'
+					caption: Försäljningsbelopp FMK
+				measure 'Sales Amount MTDOPM'
+					caption: Försäljningsbelopp MTDÖFM
+				measure 'Sales Amount MTDOPM %'
+					caption: Försäljningsbelopp MTDÖFM %
+				measure 'Sales Amount AVG 30D'
+					caption: Försäljningsbelopp GMS 30D
+				measure 'Sales Amount AVG 3M'
+					caption: Försäljningsbelopp GMS 3M
+				measure 'Sales Amount AVG 1Y'
+					caption: Försäljningsbelopp 1Å
+				measure 'Sales Amount MATG'
+					caption: Försäljningsbelopp GÅST
+				measure 'Sales Amount MATG %'
+					caption: Försäljningsbelopp GÅST %
+				measure 'Sales Amount PP'
+					caption: Försäljningsbelopp FP
+				measure 'Sales Amount POP'
+					caption: Försäljningsbelopp PFP
+				measure 'Sales Amount POP %'
+					caption: Försäljningsbelopp PFP %
+				measure 'Sales Quantity YTD'
+					caption: Försäljningsantal ÅTD
+				measure 'Sales Quantity PY'
+					caption: Försäljningsantal FÅ
+				measure 'Sales Quantity PYTD'
+					caption: Försäljningsantal FÅTD
+				measure 'Sales Quantity PQTD'
+					caption: Försäljningsantal FKTD
+				measure 'Sales Quantity QTD'
+					caption: Försäljningsantal KTD
+				measure 'Sales Quantity MTD'
+					caption: Försäljningsantal MTD
+				measure 'Sales Quantity YOY %'
+					caption: Försäljningsantal ÅFÅ %
+				measure 'Sales Quantity YOY'
+					caption: Försäljningsantal ÅFÅ
+				measure 'Sales Quantity PQ'
+					caption: Försäljningsantal FK
+				measure 'Sales Quantity QOQ'
+					caption: Försäljningsantal KFK
+				measure 'Sales Quantity PM'
+					caption: Försäljningsantal FM
+				measure 'Sales Quantity QOQ %'
+					caption: Försäljningsantal KFK %
+				measure 'Sales Quantity MOM'
+					caption: Försäljningsantal MFM
+				measure 'Sales Quantity MOM %'
+					caption: Försäljningsantal MFM %
+				measure 'Sales Quantity MAT'
+					caption: Försäljningsantal GÅS
+				measure 'Sales Quantity PYMAT'
+					caption: Försäljningsantal FÅGÅS
+				measure 'Sales Quantity YOYTD'
+					caption: Försäljningsantal ÅFÅTD
+				measure 'Sales Quantity YOYTD %'
+					caption: Försäljningsantal ÅFÅTD %
+				measure 'Sales Quantity PYC'
+					caption: Försäljningsantal FÅK
+				measure 'Sales Quantity YTDOPY'
+					caption: Försäljningsantal ÅTDÅFÅ
+				measure 'Sales Quantity YTDOPY %'
+					caption: Försäljningsantal ÅTDÅFÅ %
+				measure 'Sales Quantity QOQTD'
+					caption: Försäljningsantal KFKTD
+				measure 'Sales Quantity QOQTD %'
+					caption: Försäljningsantal KFKTD %
+				measure 'Sales Quantity PQC'
+					caption: Försäljningsantal FKK
+				measure 'Sales Quantity QTDOPQ'
+					caption: Försäljningsantal KTDÖFK
+				measure 'Sales Quantity QTDOPQ %'
+					caption: Försäljningsantal KTDÖFK %
+				measure 'Sales Quantity PMTD'
+					caption: Försäljningsantal FMTD
+				measure 'Sales Quantity MOMTD'
+					caption: Försäljningsantal MFMTD
+				measure 'Sales Quantity MOMTD %'
+					caption: Försäljningsantal MFMTD %
+				measure 'Sales Quantity PMC'
+					caption: Försäljningsantal FMK
+				measure 'Sales Quantity MTDOPM'
+					caption: Försäljningsantal MTDÖFM
+				measure 'Sales Quantity MTDOPM %'
+					caption: Försäljningsantal MTDÖFM %
+				measure 'Sales Quantity AVG 30D'
+					caption: Försäljningsantal GMS 30D
+				measure 'Sales Quantity AVG 3M'
+					caption: Försäljningsantal GMS 3M
+				measure 'Sales Quantity AVG 1Y'
+					caption: Försäljningsantal GMS 1Å
+				measure 'Sales Quantity MATG'
+					caption: Försäljningsantal GÅST
+				measure 'Sales Quantity MATG %'
+					caption: Försäljningsantal GÅST %
+				measure 'Sales Quantity PP'
+					caption: Försäljningsantal FP
+				measure 'Sales Quantity POP'
+					caption: Försäljningsantal PFP
+				measure 'Sales Quantity POP %'
+					caption: Försäljningsantal PFP %
+				measure 'Gross Profit YTD'
+					caption: Bruttovinst ÅTD
+				measure 'Gross Profit PY'
+					caption: Bruttovinst FÅ
+				measure 'Gross Profit PYTD'
+					caption: Bruttovinst FÅTD
+				measure 'Gross Profit PQTD'
+					caption: Bruttovinst FKTD
+				measure 'Gross Profit QTD'
+					caption: Bruttovinst KTD
+				measure 'Gross Profit MTD'
+					caption: Bruttovinst MTD
+				measure 'Gross Profit YOY %'
+					caption: Bruttovinst ÅFÅ %
+				measure 'Gross Profit YOY'
+					caption: Bruttovinst ÅFÅ
+				measure 'Gross Profit PQ'
+					caption: Bruttovinst FK
+				measure 'Gross Profit QOQ'
+					caption: Bruttovinst KFK
+				measure 'Gross Profit PM'
+					caption: Bruttovinst FM
+				measure 'Gross Profit QOQ %'
+					caption: Bruttovinst KFK %
+				measure 'Gross Profit MOM'
+					caption: Bruttovinst MFM
+				measure 'Gross Profit MOM %'
+					caption: Bruttovinst MFM %
+				measure 'Gross Profit MAT'
+					caption: Bruttovinst GÅS
+				measure 'Gross Profit PYMAT'
+					caption: Bruttovinst FÅGÅS
+				measure 'Gross Profit YOYTD'
+					caption: Bruttovinst ÅFÅTD
+				measure 'Gross Profit YOYTD %'
+					caption: Bruttovinst ÅFÅTD %
+				measure 'Gross Profit PYC'
+					caption: Bruttovinst FÅK
+				measure 'Gross Profit YTDOPY'
+					caption: Bruttovinst ÅTDÅTDÖFÅ
+				measure 'Gross Profit YTDOPY %'
+					caption: Bruttovinst ÅTDÅTDÖFÅ %
+				measure 'Gross Profit QOQTD'
+					caption: Bruttovinst KFKTD
+				measure 'Gross Profit QOQTD %'
+					caption: Bruttovinst KFKTD %
+				measure 'Gross Profit PQC'
+					caption: Bruttovinst FKK
+				measure 'Gross Profit QTDOPQ'
+					caption: Bruttovinst KTDÖFK
+				measure 'Gross Profit QTDOPQ %'
+					caption: Bruttovinst KTDÖFK %
+				measure 'Gross Profit PMTD'
+					caption: Bruttovinst FMTD
+				measure 'Gross Profit MOMTD'
+					caption: Bruttovinst MFMTD
+				measure 'Gross Profit MOMTD %'
+					caption: Bruttovinst MFMTD %
+				measure 'Gross Profit PMC'
+					caption: Bruttovinst FMK
+				measure 'Gross Profit MTDOPM'
+					caption: Bruttovinst MTDÖFM
+				measure 'Gross Profit MTDOPM %'
+					caption: Bruttovinst MTDÖFM %
+				measure 'Gross Profit AVG 30D'
+					caption: Bruttovinst GMS 30D
+				measure 'Gross Profit AVG 3M'
+					caption: Bruttovinst GMS 3M
+				measure 'Gross Profit AVG 1Y'
+					caption: Bruttovinst GMS 1Å
+				measure 'Gross Profit MATG'
+					caption: Bruttovinst GÅST
+				measure 'Gross Profit MATG %'
+					caption: Bruttovinst GÅST %
+				measure 'Gross Profit PP'
+					caption: Bruttovinst FP
+				measure 'Gross Profit POP'
+					caption: Bruttovinst PFP
+				measure 'Gross Profit POP %'
+					caption: Bruttovinst PFP %
+				measure 'Gross Profit Margin YTD'
+					caption: Bruttovinstmarginal ÅTD
+				measure 'Gross Profit Margin PY'
+					caption: Bruttovinstmarginal FÅ
+				measure 'Gross Profit Margin PYTD'
+					caption: Bruttovinstmarginal FÅTD
+				measure 'Gross Profit Margin PQTD'
+					caption: Bruttovinstmarginal FKTD
+				measure 'Gross Profit Margin QTD'
+					caption: Bruttovinstmarginal KTD
+				measure 'Gross Profit Margin MTD'
+					caption: Bruttovinstmarginal MTD
+				measure 'Gross Profit Margin YOY %'
+					caption: Bruttovinstmarginal ÅFÅ %
+				measure 'Gross Profit Margin YOY'
+					caption: Bruttovinstmarginal ÅFÅ
+				measure 'Gross Profit Margin PQ'
+					caption: Bruttovinstmarginal FK
+				measure 'Gross Profit Margin QOQ'
+					caption: Bruttovinstmarginal KFK
+				measure 'Gross Profit Margin PM'
+					caption: Bruttovinstmarginal FM
+				measure 'Gross Profit Margin QOQ %'
+					caption: Bruttovinstmarginal KFK %
+				measure 'Gross Profit Margin MOM'
+					caption: Bruttovinstmarginal MFM
+				measure 'Gross Profit Margin MOM %'
+					caption: Bruttovinstmarginal MFM %
+				measure 'Gross Profit Margin MAT'
+					caption: Bruttovinstmarginal GÅS
+				measure 'Gross Profit Margin PYMAT'
+					caption: Bruttovinstmarginal FÅGÅS
+				measure 'Gross Profit Margin YOYTD'
+					caption: Bruttovinstmarginal ÅFÅTD
+				measure 'Gross Profit Margin YOYTD %'
+					caption: Bruttovinstmarginal ÅFÅTD %
+				measure 'Gross Profit Margin PYC'
+					caption: Bruttovinstmarginal FÅK
+				measure 'Gross Profit Margin YTDOPY'
+					caption: Bruttovinstmarginal ÅTDÅTDÖFÅ
+				measure 'Gross Profit Margin YTDOPY %'
+					caption: Bruttovinstmarginal ÅTDÅTDÖFÅ %
+				measure 'Gross Profit Margin QOQTD'
+					caption: Bruttovinstmarginal KFKTD
+				measure 'Gross Profit Margin QOQTD %'
+					caption: Bruttovinstmarginal KFKTD %
+				measure 'Gross Profit Margin PQC'
+					caption: Bruttovinstmarginal FKK
+				measure 'Gross Profit Margin QTDOPQ'
+					caption: Bruttovinstmarginal KTDÖFK
+				measure 'Gross Profit Margin QTDOPQ %'
+					caption: Bruttovinstmarginal KTDÖFK %
+				measure 'Gross Profit Margin PMTD'
+					caption: Bruttovinstmarginal FMTD
+				measure 'Gross Profit Margin MOMTD'
+					caption: Bruttovinstmarginal MFMTD
+				measure 'Gross Profit Margin MOMTD %'
+					caption: Bruttovinstmarginal MFMTD %
+				measure 'Gross Profit Margin PMC'
+					caption: Bruttovinstmarginal FMK
+				measure 'Gross Profit Margin MTDOPM'
+					caption: Bruttovinstmarginal MTDÖFM
+				measure 'Gross Profit Margin MTDOPM %'
+					caption: Bruttovinstmarginal MTDÖFM %
+				measure 'Gross Profit Margin AVG 30D'
+					caption: Bruttovinstmarginal GMS 30D
+				measure 'Gross Profit Margin AVG 3M'
+					caption: Bruttovinstmarginal GMS 3M
+				measure 'Gross Profit Margin AVG 1Y'
+					caption: Bruttovinstmarginal GMS 1Å
+				measure 'Gross Profit Margin MATG'
+					caption: Bruttovinstmarginal GÅST
+				measure 'Gross Profit Margin MATG %'
+					caption: Bruttovinstmarginal GÅST %
+				measure 'Gross Profit Margin PP'
+					caption: Bruttovinstmarginal FP
+				measure 'Gross Profit Margin POP'
+					caption: Bruttovinstmarginal PFP
+				measure 'Gross Profit Margin POP %'
+					caption: Bruttovinstmarginal PFP %
+				measure 'Cost Amount YTD'
+					caption: Kostnadsbelopp ÅTD
+				measure 'Cost Amount PY'
+					caption: Kostnadsbelopp FÅ
+				measure 'Cost Amount PYTD'
+					caption: Kostnadsbelopp FÅTD
+				measure 'Cost Amount PQTD'
+					caption: Kostnadsbelopp FKTD
+				measure 'Cost Amount QTD'
+					caption: Kostnadsbelopp KTD
+				measure 'Cost Amount MTD'
+					caption: Kostnadsbelopp MTD
+				measure 'Cost Amount YOY %'
+					caption: Kostnadsbelopp ÅFÅ %
+				measure 'Cost Amount YOY'
+					caption: Kostnadsbelopp ÅFÅ
+				measure 'Cost Amount PQ'
+					caption: Kostnadsbelopp FK
+				measure 'Cost Amount QOQ'
+					caption: Kostnadsbelopp KFK
+				measure 'Cost Amount PM'
+					caption: Kostnadsbelopp FM
+				measure 'Cost Amount QOQ %'
+					caption: Kostnadsbelopp KFK %
+				measure 'Cost Amount MOM'
+					caption: Kostnadsbelopp MFM
+				measure 'Cost Amount MOM %'
+					caption: Kostnadsbelopp MFM %
+				measure 'Cost Amount MAT'
+					caption: Kostnadsbelopp GÅS
+				measure 'Cost Amount PYMAT'
+					caption: Kostnadsbelopp FÅGÅS
+				measure 'Cost Amount YOYTD'
+					caption: Kostnadsbelopp ÅFÅTD
+				measure 'Cost Amount YOYTD %'
+					caption: Kostnadsbelopp ÅFÅTD %
+				measure 'Cost Amount PYC'
+					caption: Kostnadsbelopp FÅK
+				measure 'Cost Amount YTDOPY'
+					caption: Kostnadsbelopp ÅTDÅTDÖFÅ
+				measure 'Cost Amount YTDOPY %'
+					caption: Kostnadsbelopp ÅTDÅTDÖFÅ %
+				measure 'Cost Amount QOQTD'
+					caption: Kostnadsbelopp KFKTD
+				measure 'Cost Amount QOQTD %'
+					caption: Kostnadsbelopp KFKTD %
+				measure 'Cost Amount PQC'
+					caption: Kostnadsbelopp FKK
+				measure 'Cost Amount QTDOPQ'
+					caption: Kostnadsbelopp KTDÖFK
+				measure 'Cost Amount QTDOPQ %'
+					caption: Kostnadsbelopp KTDÖFK %
+				measure 'Cost Amount PMTD'
+					caption: Kostnadsbelopp FMTD
+				measure 'Cost Amount MOMTD'
+					caption: Kostnadsbelopp MFMTD
+				measure 'Cost Amount MOMTD %'
+					caption: Kostnadsbelopp MFMTD %
+				measure 'Cost Amount PMC'
+					caption: Kostnadsbelopp FMK
+				measure 'Cost Amount MTDOPM'
+					caption: Kostnadsbelopp MTDÖFM
+				measure 'Cost Amount MTDOPM %'
+					caption: Kostnadsbelopp MTDÖFM %
+				measure 'Cost Amount AVG 30D'
+					caption: Kostnadsbelopp GMS 30D
+				measure 'Cost Amount AVG 3M'
+					caption: Kostnadsbelopp GMS 3M
+				measure 'Cost Amount AVG 1Y'
+					caption: Kostnadsbelopp GMS 1Å
+				measure 'Cost Amount MATG'
+					caption: Kostnadsbelopp GÅST
+				measure 'Cost Amount MATG %'
+					caption: Kostnadsbelopp GÅST %
+				measure 'Cost Amount PP'
+					caption: Kostnadsbelopp FP
+				measure 'Cost Amount POP'
+					caption: Kostnadsbelopp PFP
+				measure 'Cost Amount POP %'
+					caption: Kostnadsbelopp PFP %
+				measure 'Cost Amount Non-Inv YTD'
+					caption: Kost.belopp, ej lagerf. ÅTD
+				measure 'Cost Amount Non-Inv PY'
+					caption: Kost.belopp, ej lagerf. FÅ
+				measure 'Cost Amount Non-Inv PYTD'
+					caption: Kost.belopp, ej lagerf. FÅTD
+				measure 'Cost Amount Non-Inv PQTD'
+					caption: Kost.belopp, ej lagerf. FKTD
+				measure 'Cost Amount Non-Inv QTD'
+					caption: Kost.belopp, ej lagerf. KTD
+				measure 'Cost Amount Non-Inv MTD'
+					caption: Kost.belopp, ej lagerf. MTD
+				measure 'Cost Amount Non-Inv YOY %'
+					caption: Kost.belopp, ej lagerf. ÅFÅ %
+				measure 'Cost Amount Non-Inv YOY'
+					caption: Kost.belopp, ej lagerf. ÅFÅ
+				measure 'Cost Amount Non-Inv PQ'
+					caption: Kost.belopp, ej lagerf. FK
+				measure 'Cost Amount Non-Inv QOQ'
+					caption: Kost.belopp, ej lagerf. KFK
+				measure 'Cost Amount Non-Inv PM'
+					caption: Kost.belopp, ej lagerf. FM
+				measure 'Cost Amount Non-Inv QOQ %'
+					caption: Kost.belopp, ej lagerf. KFK %
+				measure 'Cost Amount Non-Inv MOM'
+					caption: Kost.belopp, ej lagerf. MFM
+				measure 'Cost Amount Non-Inv MOM %'
+					caption: Kost.belopp, ej lagerf. MFM %
+				measure 'Cost Amount Non-Inv MAT'
+					caption: Kost.belopp, ej lagerf. GÅS
+				measure 'Cost Amount Non-Inv PYMAT'
+					caption: Kost.belopp, ej lagerf. FÅGÅS
+				measure 'Cost Amount Non-Inv YOYTD'
+					caption: Kost.belopp, ej lagerf. ÅFÅTD
+				measure 'Cost Amount Non-Inv YOYTD %'
+					caption: Kost.belopp, ej lagerf. ÅFÅTD %
+				measure 'Cost Amount Non-Inv PYC'
+					caption: Kost.belopp, ej lagerf. FÅK
+				measure 'Cost Amount Non-Inv YTDOPY'
+					caption: Kost.belopp, ej lagerf. ÅTDÅTDÖFÅ
+				measure 'Cost Amount Non-Inv YTDOPY %'
+					caption: Kost.belopp, ej lagerf. ÅTDÅTDÖFÅ %
+				measure 'Cost Amount Non-Inv QOQTD'
+					caption: Kost.belopp, ej lagerf. KFKTD
+				measure 'Cost Amount Non-Inv QOQTD %'
+					caption: Kost.belopp, ej lagerf. KFKTD %
+				measure 'Cost Amount Non-Inv PQC'
+					caption: Kost.belopp, ej lagerf. FKK
+				measure 'Cost Amount Non-Inv QTDOPQ'
+					caption: Kost.belopp, ej lagerf. KTDÖFK
+				measure 'Cost Amount Non-Inv QTDOPQ %'
+					caption: Kost.belopp, ej lagerf. KTDÖFK %
+				measure 'Cost Amount Non-Inv PMTD'
+					caption: Kost.belopp, ej lagerf. FMTD
+				measure 'Cost Amount Non-Inv MOMTD'
+					caption: Kost.belopp, ej lagerf. MFMTD
+				measure 'Cost Amount Non-Inv MOMTD %'
+					caption: Kost.belopp, ej lagerf. MFMTD %
+				measure 'Cost Amount Non-Inv PMC'
+					caption: Kost.belopp, ej lagerf. FMK
+				measure 'Cost Amount Non-Inv MTDOPM'
+					caption: Kost.belopp, ej lagerf. MTDÖFM
+				measure 'Cost Amount Non-Inv MTDOPM %'
+					caption: Kost.belopp, ej lagerf. MTDÖFM %
+				measure 'Cost Amount Non-Inv AVG 30D'
+					caption: Kost.belopp, ej lagerf. GMS 30D
+				measure 'Cost Amount Non-Inv AVG 3M'
+					caption: Kost.belopp, ej lagerf. GMS 3M
+				measure 'Cost Amount Non-Inv AVG 1Y'
+					caption: Kost.belopp, ej lagerf. GMS 1Å
+				measure 'Cost Amount Non-Inv MATG'
+					caption: Kost.belopp, ej lagerf. GÅST
+				measure 'Cost Amount Non-Inv MATG %'
+					caption: Kost.belopp, ej lagerf. GÅST %
+				measure 'Cost Amount Non-Inv PP'
+					caption: Kost.belopp, ej lagerf. FP
+				measure 'Cost Amount Non-Inv POP'
+					caption: Kost.belopp, ej lagerf. PFP
+				measure 'Cost Amount Non-Inv POP %'
+					caption: Kost.belopp, ej lagerf. PFP %
+			table 'Dimension Sets'
+				caption: Dimensionsuppsättningar
+				column 'Global Dimension 1'
+					caption: Global dimension 1
+				column 'Global Dimension 2'
+					caption: Global dimension 2
+				column 'Shortcut Dimension 3'
+					caption: Genväg dimension 3
+				column 'Shortcut Dimension 4'
+					caption: Genväg dimension 4
+				column 'Shortcut Dimension 5'
+					caption: Genväg dimension 5
+				column 'Shortcut Dimension 6'
+					caption: Genväg dimension 6
+				column 'Shortcut Dimension 7'
+					caption: Genväg dimension 7
+				column 'Shortcut Dimension 8'
+					caption: Genväg dimension 8
+				column id
+					caption: ID
+			table 'Sales Budget'
+				caption: Försäljningsbudget
+				column 'Entry No.'
+					caption: Transaktionsnr
+				column 'Budget Name'
+					caption: Budgetnamn
+				column 'Item No.'
+					caption: Artikelnr
+				column 'Location Code'
+					caption: Platskod
+				measure 'Budget Amount'
+					caption: Budgetbelopp
+				measure 'Budget Amount Variance'
+					caption: Avvikelse budgetbelopp
+				measure 'Budget Quantity'
+					caption: Budgeterat antal
+				measure 'Budget Quantity Variance'
+					caption: Avvikelse budgeterat antal
+				measure 'Budget Amount Variance %'
+					caption: Avvikelse budgetbelopp %
+				measure 'Budget Quantity Variance %'
+					caption: Avvikelse budgeterat antal %
+				measure 'Budget Back Link'
+					caption: Bakåtlänk för budget
+			table Date
+				caption: Datum
+				column 'Week Day'
+					caption: Vecka Dag
+				column 'Calendar Year'
+					caption: Kalender År
+				column 'Calendar Quarter'
+					caption: Kalender Kvartal
+				column 'Calendar Quarter Year'
+					caption: Kalender Kvartal År
+				column 'Calendar Month'
+					caption: Kalender Månad
+				column 'Calendar Month Year'
+					caption: Kalender Månad År
+				column 'Calendar Week'
+					caption: Kalender Vecka
+				column 'Calendar Week Year'
+					caption: Kalender Vecka År
+				column 'Calendar RelativeWeekPos'
+					caption: Kalender RelativtVeckaPos
+				column 'Calendar RelativeMonthPos'
+					caption: Kalender RelativtMånadPos
+				column 'Calendar RelativeQuarterPos'
+					caption: Kalender RelativtKvartalPos
+				column 'Calendar RelativeYearPos'
+					caption: Kalender RelativtÅrPos
+				column 'Calendar StartOfMonth'
+					caption: Kalender StartPåMånad
+				column 'Calendar EndOfMonth'
+					caption: Kalender SlutPåMånad
+				column 'Calendar StartOfQuarter'
+					caption: Kalender StartPåKvartal
+				column 'Calendar EndOfQuarter'
+					caption: Kalender SlutPåKvartal
+				column 'Calendar StartOfYear'
+					caption: Kalender StartPåÅr
+				column 'Calendar EndOfYear'
+					caption: Kalender Årsslut
+				column 'Calendar MonthDays'
+					caption: Kalender MånadDagar
+				column 'Calendar QuarterDays'
+					caption: Kalender KvartalDagar
+				column 'Calendar YearDays'
+					caption: Kalender ÅrDagar
+				column 'Calendar DayOfMonthNumber'
+					caption: Kalender DagIMånadNummer
+				column 'Calendar DayOfQuarterNumber'
+					caption: Kalender DagIKvartalNummer
+				column 'Calendar DayOfYearNumber'
+					caption: Kalender DagIÅrNummer
+				column 'Calendar DatePreviousWeek'
+					caption: Kalender DatumFöregåendeVecka
+				column 'Calendar DatePreviousMonth'
+					caption: Kalender DatumFöregåendeMånad
+				column 'Calendar DatePreviousQuarter'
+					caption: Kalender DatumFöregåendeKvartal
+				column 'Calendar DatePreviousYear'
+					caption: Kalender DatumFöregåendeÅr
+				column 'Fiscal Year'
+					caption: Räkenskapsår
+				column 'Fiscal Quarter'
+					caption: Räkenskapskalender Kvartal
+				column 'Fiscal Quarter Year'
+					caption: Räkenskapskalender Kvartal År
+				column 'Fiscal Month'
+					caption: Räkenskapskalender Månad
+				column 'Fiscal Month Year'
+					caption: Räkenskapskalender Månad År
+				column 'Fiscal Week'
+					caption: Räkenskapskalender Vecka
+				column 'Fiscal Week Year'
+					caption: Räkenskapskalender År Vecka
+				column 'Fiscal RelativeWeekPos'
+					caption: Räkenskapskalender RelativtVeckaPos
+				column 'Fiscal RelativeMonthPos'
+					caption: Räkenskapskalender: RelativtMånadPos
+				column 'Fiscal RelativeQuarterPos'
+					caption: Räkenskapskalender RelativtKvartalPos
+				column 'Fiscal RelativeYearPos'
+					caption: Räkenskapskalender RelativtÅrPos
+				column 'Fiscal StartOfMonth'
+					caption: Räkenskapskalender StartPåMånad
+				column 'Fiscal EndOfMonth'
+					caption: Räkenskapskalender SlutPåMånad
+				column 'Fiscal StartOfQuarter'
+					caption: Räkenskapskalender StartPåKvartal
+				column 'Fiscal EndOfQuarter'
+					caption: Räkenskapskalender SlutPåKvartal
+				column 'Fiscal StartOfYear'
+					caption: Räkenskapskalender StartPåÅr
+				column 'Fiscal EndOfYear'
+					caption: Räkenskapskalender Årsslut
+				column 'Fiscal MonthDays'
+					caption: Räkenskapskalender MånadDagar
+				column 'Fiscal QuarterDays'
+					caption: Räkenskapskalender KvartalDagar
+				column 'Fiscal YearDays'
+					caption: Räkenskapskalender ÅrDagar
+				column 'Fiscal DayOfMonthNumber'
+					caption: Räkenskapskalender DagIMÅnadNummer
+				column 'Fiscal DayOfQuarterNumber'
+					caption: Räkenskapskalender DagIKvartalNummer
+				column 'Fiscal DayOfYearNumber'
+					caption: Räkenskapskalender DagIÅrNummer
+				column 'Fiscal DatePreviousWeek'
+					caption: Räkenskapskalender DatumFöregåendeVecka
+				column 'Fiscal DatePreviousMonth'
+					caption: Räkenskapskalender DatumFöregåendeMånad
+				column 'Fiscal DatePreviousQuarter'
+					caption: Räkenskapskalender DatumFöregåendeKvartal
+				column 'Fiscal DatePreviousYear'
+					caption: Räkenskapskalender DatumFöregåendeÅr
+				column 'FW Year'
+					caption: RV År
+				column 'FW Quarter'
+					caption: RV Kvartal
+				column 'FW Quarter Year'
+					caption: RV Kvartal År
+				column 'FW Month'
+					caption: RV Månad
+				column 'FW Month Year'
+					caption: RV Månad År
+				column 'FW Week'
+					caption: RV Vecka
+				column 'FW Period'
+					caption: RV Period
+				column 'FW Week Year'
+					caption: RV Vecka År
+				column 'FW StartOfWeek'
+					caption: RV StartPåVecka
+				column 'FW EndOfWeek'
+					caption: RV SlutPåVecka
+				column 'FW RelativeWeekPos'
+					caption: RV RelativtVeckaPos
+				column 'FW RelativeMonthPos'
+					caption: RV RelativtMånPos
+				column 'FW RelativeQuarterPos'
+					caption: RV RelativtKvartalPos
+				column 'FW RelativeYearPos'
+					caption: RV RelativtÅrPos
+				column 'FW StartOfMonth'
+					caption: RV StartPåMånad
+				column 'FW EndOfMonth'
+					caption: RV SlutPå Månad
+				column 'FW StartOfQuarter'
+					caption: RV StartPåKvartal
+				column 'FW EndOfQuarter'
+					caption: RV SlutPåKvartal
+				column 'FW StartOfYear'
+					caption: RV StartPåÅr
+				column 'FW EndOfYear'
+					caption: RV Årsslut
+				column 'FW MonthDays'
+					caption: RV MånadDagar
+				column 'FW QuarterDays'
+					caption: RV KvartalDagar
+				column 'FW YearDays'
+					caption: RV ÅrDagar
+				column 'FW DatePreviousWeek'
+					caption: RV DatumFöregåendeVecka
+				column 'FW DatePreviousMonth'
+					caption: RV DatumFöregåendeMånad
+				column 'FW DatePreviousQuarter'
+					caption: RV DatumFöregåendeKvartal
+				column 'FW DatePreviousYear'
+					caption: RV DatumFöregåendeÅr
+				column 'Holiday Name'
+					caption: Namn på helgdag
+				column IsWorkingDay
+					caption: IsWorkingDay
+				column 'Day Type'
+					caption: Typ av dag
+				column 'Relative Day'
+					caption: Relativt Dag
+				hierarchy 'Fiscal Year-Quarter-Month-Week'
+					caption: Räkenskapskalender År-Kvartal-Månad-Vecka
+					level 'Fiscal Year'
+						caption: Räkenskapsår
+					level 'Fiscal Quarter Year'
+						caption: Räkenskapskalender Kvartal År
+					level 'Fiscal Month Year'
+						caption: Räkenskapskalender Månad År
+					level 'Fiscal Week Year'
+						caption: Räkenskapskalender År Vecka
+				hierarchy 'Calendar Year-Quarter-Month-Week'
+					caption: Kalender År-Kvartal-Månad-Vecka
+					level 'Calendar Year'
+						caption: Kalender År
+					level 'Calendar Quarter Year'
+						caption: Kalender Kvartal År
+					level 'Calendar Month Year'
+						caption: Kalender Månad År
+					level 'Calendar Week Year'
+						caption: Kalender Vecka År
+				hierarchy 'FW Year-Quarter-Month-Week'
+					caption: RV År-Kvartal-Månad-Vecka
+					level 'FW Year'
+						caption: RV År
+					level 'FW Quarter Year'
+						caption: RV Kvartal År
+					level 'FW Month Year'
+						caption: RV Månad År
+					level 'FW Week Year'
+						caption: RV Vecka År
+				hierarchy 'FW Year-Week'
+					caption: RV År-Vecka
+					level 'FW Year'
+						caption: RV År
+					level 'FW Week Year'
+						caption: RV Vecka År
+				hierarchy 'FW Year-Month-Week'
+					caption: RV År-Månad-Vecka
+					level 'FW Year'
+						caption: RV År
+					level 'FW Month Year'
+						caption: RV Månad År
+					level 'FW Week Year'
+						caption: RV Vecka År
+				hierarchy 'FW Year-Quarter-Week'
+					caption: RV År-Kvartal-Vecka
+					level 'FW Year'
+						caption: RV År
+					level 'FW Quarter Year'
+						caption: RV Kvartal År
+					level 'FW Week Year'
+						caption: RV Vecka År
+				hierarchy 'Calendar Year-Month-Week'
+					caption: Kalender År-Månad-Vecka
+					level 'Calendar Year'
+						caption: Kalender År
+					level 'Calendar Month Year'
+						caption: Kalender Månad År
+					level 'Calendar Week Year'
+						caption: Kalender Vecka År
+				hierarchy 'Calendar Year-Month'
+					caption: Kalender År-Månad
+					level 'Calendar Year'
+						caption: Kalender År
+					level 'Calendar Month Year'
+						caption: Kalender Månad År
+				hierarchy 'Fiscal Year-Month'
+					caption: Räkenskapskalender År-Månad
+					level 'Fiscal Year'
+						caption: Räkenskapsår
+					level 'Fiscal Month Year'
+						caption: Räkenskapskalender Månad År
+				hierarchy 'Fiscal Year-Month-Week'
+					caption: Räkenskapskalender År-Månad-Vecka
+					level 'Fiscal Year'
+						caption: Räkenskapsår
+					level 'Fiscal Month Year'
+						caption: Räkenskapskalender Månad År
+					level 'Fiscal Week Year'
+						caption: Räkenskapskalender År Vecka
+			table 'Fiscal Calendar Time Intelligence'
+				caption: Tidsintelligens för räkenskapskalender
+				measure 'Sales Amount YTD (Fiscal)'
+					caption: Försäljningsbelopp ÅTD (räkenskapskalender)
+				measure 'Sales Amount PY (Fiscal)'
+					caption: Försäljningsbelopp FÅ (räkenskapskalender)
+				measure 'Sales Amount PYTD (Fiscal)'
+					caption: Försäljningsbelopp FÅTD (räkenskapskalender)
+				measure 'Sales Amount PQTD (Fiscal)'
+					caption: Försäljningsbelopp FKTD (räkenskapskalender)
+				measure 'Sales Amount QTD (Fiscal)'
+					caption: Försäljningsbelopp KTD (räkenskapskalender)
+				measure 'Sales Amount MTD (Fiscal)'
+					caption: Försäljningsbelopp MTD (räkenskapskalender)
+				measure 'Sales Amount YOY % (Fiscal)'
+					caption: Försäljningsbelopp ÅFÅ % (räkenskapskalender)
+				measure 'Sales Amount YOY (Fiscal)'
+					caption: Försäljningsbelopp ÅFÅ (räkenskapskalender)
+				measure 'Sales Amount PQ (Fiscal)'
+					caption: Försäljningsbelopp FK (räkenskapskalender)
+				measure 'Sales Amount QOQ (Fiscal)'
+					caption: Försäljningsbelopp KFK (räkenskapskalender)
+				measure 'Sales Amount QOQ % (Fiscal)'
+					caption: Försäljningsbelopp KFK % (räkenskapskalender)
+				measure 'Sales Amount PM (Fiscal)'
+					caption: Försäljningsbelopp FM (räkenskapskalender)
+				measure 'Sales Amount MOM (Fiscal)'
+					caption: Försäljningsbelopp MFM (räkenskapskalender)
+				measure 'Sales Amount MOM % (Fiscal)'
+					caption: Försäljningsbelopp MFM % (räkenskapskalender)
+				measure 'Sales Amount MAT (Fiscal)'
+					caption: Försäljningsbelopp GÅS (räkenskapskalender)
+				measure 'Sales Amount PYMAT (Fiscal)'
+					caption: Försäljningsbelopp FÅGÅS (räkenskapskalender)
+				measure 'Sales Amount YOYTD (Fiscal)'
+					caption: Försäljningsbelopp ÅFÅTD (räkenskapskalender)
+				measure 'Sales Amount YOYTD % (Fiscal)'
+					caption: Försäljningsbelopp ÅFÅTD % (räkenskapskalender)
+				measure 'Sales Amount PYC (Fiscal)'
+					caption: Försäljningsbelopp FÅK (räkenskapskalender)
+				measure 'Sales Amount YTDOPY (Fiscal)'
+					caption: Försäljningsbelopp ÅTDÅTDÖFÅ (räkenskapskalender)
+				measure 'Sales Amount YTDOPY % (Fiscal)'
+					caption: Försäljningsbelopp ÅTDÅTDÖFÅ % (räkenskapskalender)
+				measure 'Sales Amount QOQTD (Fiscal)'
+					caption: Försäljningsbelopp KFKTD (räkenskapskalender)
+				measure 'Sales Amount QOQTD % (Fiscal)'
+					caption: Försäljningsbelopp KFKTD % (räkenskapskalender)
+				measure 'Sales Amount PQC (Fiscal)'
+					caption: Försäljningsbelopp FKK (räkenskapskalender)
+				measure 'Sales Amount QTDOPQ (Fiscal)'
+					caption: Försäljningsbelopp KTDÖFK (räkenskapskalender)
+				measure 'Sales Amount QTDOPQ % (Fiscal)'
+					caption: Försäljningsbelopp KTDÖFK % (räkenskapskalender)
+				measure 'Sales Amount PMTD (Fiscal)'
+					caption: Försäljningsbelopp FMTD (räkenskapskalender)
+				measure 'Sales Amount MOMTD % (Fiscal)'
+					caption: Försäljningsbelopp MFMTD % (räkenskapskalender)
+				measure 'Sales Amount MOMTD (Fiscal)'
+					caption: Försäljningsbelopp MFMTD (räkenskapskalender)
+				measure 'Sales Amount PMC (Fiscal)'
+					caption: Försäljningsbelopp FMK (räkenskapskalender)
+				measure 'Sales Amount MTDOPM (Fiscal)'
+					caption: Försäljningsbelopp MTDÖFM (räkenskapskalender)
+				measure 'Sales Amount MTDOPM % (Fiscal)'
+					caption: Försäljningsbelopp MTDÖFM % (räkenskapskalender)
+				measure 'Sales Amount AVG 30D (Fiscal)'
+					caption: Försäljningsbelopp GMS 30D (räkenskapskalender)
+				measure 'Sales Amount AVG 3M (Fiscal)'
+					caption: Försäljningsbelopp GMS 3M (räkenskapskalender)
+				measure 'Sales Amount AVG 1Y (Fiscal)'
+					caption: Försäljningsbelopp GMS 1Å (räkenskapskalender)
+				measure 'Sales Amount MATG (Fiscal)'
+					caption: Försäljningsbelopp GÅST (räkenskapskalender)
+				measure 'Sales Amount MATG % (Fiscal)'
+					caption: Försäljningsbelopp GÅST % (räkenskapskalender)
+				measure 'Sales Amount PP (Fiscal)'
+					caption: Försäljningsbelopp FP (räkenskapskalender)
+				measure 'Sales Amount POP (Fiscal)'
+					caption: Försäljningsbelopp PFP (räkenskapskalender)
+				measure 'Sales Amount POP % (Fiscal)'
+					caption: Försäljningsbelopp PFP % (räkenskapskalender)
+				measure 'Sales Amount MAT (364) (Fiscal)'
+					caption: Försäljningsbelopp GÅS (364) (räkenskapskalender)
+				measure 'Sales PYMAT (364) (Fiscal)'
+					caption: Försäljning FÅGÅS (364) (räkenskapskalender)
+				measure 'Sales Quantity YTD (Fiscal)'
+					caption: Försäljningsantal ÅTD (räkenskapskalender)
+				measure 'Sales Quantity PY (Fiscal)'
+					caption: Försäljningsantal FÅ (räkenskapskalender)
+				measure 'Sales Quantity PYTD (Fiscal)'
+					caption: Försäljningsantal FÅTD (räkenskapskalender)
+				measure 'Sales Quantity PQTD (Fiscal)'
+					caption: Försäljningsantal FKTD (räkenskapskalender)
+				measure 'Sales Quantity QTD (Fiscal)'
+					caption: Försäljningsantal KTD (räkenskapskalender)
+				measure 'Sales Quantity MTD (Fiscal)'
+					caption: Försäljningsantal MTD (räkenskapskalender)
+				measure 'Sales Quantity YOY % (Fiscal)'
+					caption: Försäljningsantal ÅFÅ % (räkenskapskalender)
+				measure 'Sales Quantity YOY (Fiscal)'
+					caption: Försäljningsantal ÅFÅ (räkenskapskalender)
+				measure 'Sales Quantity PQ (Fiscal)'
+					caption: Försäljningsantal FK (räkenskapskalender)
+				measure 'Sales Quantity QOQ (Fiscal)'
+					caption: Försäljningsantal KFK (räkenskapskalender)
+				measure 'Sales Quantity QOQ % (Fiscal)'
+					caption: Försäljningsantal KFK % (räkenskapskalender)
+				measure 'Sales Quantity PM (Fiscal)'
+					caption: Försäljningsantal FM (räkenskapskalender)
+				measure 'Sales Quantity MOM (Fiscal)'
+					caption: Försäljningsantal MFM (räkenskapskalender)
+				measure 'Sales Quantity MOM % (Fiscal)'
+					caption: Försäljningsantal MFM % (räkenskapskalender)
+				measure 'Sales Quantity MAT (Fiscal)'
+					caption: Försäljningsantal GÅS (räkenskapskalender)
+				measure 'Sales Quantity PYMAT (Fiscal)'
+					caption: Försäljningsantal FÅGÅS (räkenskapskalender)
+				measure 'Sales Quantity YOYTD (Fiscal)'
+					caption: Försäljningsantal ÅFÅTD (räkenskapskalender)
+				measure 'Sales Quantity YOYTD % (Fiscal)'
+					caption: Försäljningsantal ÅFÅTD % (räkenskapskalender)
+				measure 'Sales Quantity PYC (Fiscal)'
+					caption: Försäljningsantal FÅK (räkenskapskalender)
+				measure 'Sales Quantity YTDOPY (Fiscal)'
+					caption: Försäljningsantal ÅTDÅTDÖFÅ (räkenskapskalender)
+				measure 'Sales Quantity YTDOPY % (Fiscal)'
+					caption: Försäljningsantal ÅTDÅTDÖFÅ % (räkenskapskalender)
+				measure 'Sales Quantity QOQTD (Fiscal)'
+					caption: Försäljningsantal KFKTD (räkenskapskalender)
+				measure 'Sales Quantity QOQTD % (Fiscal)'
+					caption: Försäljningsantal KFKTD % (räkenskapskalender)
+				measure 'Sales Quantity PQC (Fiscal)'
+					caption: Försäljningsantal FKK (räkenskapskalender)
+				measure 'Sales Quantity QTDOPQ (Fiscal)'
+					caption: Försäljningsantal KTDÖFK (räkenskapskalender)
+				measure 'Sales Quantity QTDOPQ % (Fiscal)'
+					caption: Försäljningsantal KTDÖFK % (räkenskapskalender)
+				measure 'Sales Quantity PMTD (Fiscal)'
+					caption: Försäljningsantal FMTD (räkenskapskalender)
+				measure 'Sales Quantity MOMTD % (Fiscal)'
+					caption: Försäljningsantal MFMTD % (räkenskapskalender)
+				measure 'Sales Quantity MOMTD (Fiscal)'
+					caption: Försäljningsantal MFMTD (räkenskapskalender)
+				measure 'Sales Quantity PMC (Fiscal)'
+					caption: Försäljningsantal FMK (räkenskapskalender)
+				measure 'Sales Quantity MTDOPM (Fiscal)'
+					caption: Försäljningsantal MTDÖFM (räkenskapskalender)
+				measure 'Sales Quantity MTDOPM % (Fiscal)'
+					caption: Försäljningsantal MTDÖFM % (räkenskapskalender)
+				measure 'Sales Quantity AVG 30D (Fiscal)'
+					caption: Försäljningsantal GMS 30D (räkenskapskalender)
+				measure 'Sales Quantity AVG 3M (Fiscal)'
+					caption: Försäljningsantal GMS 3M (räkenskapskalender)
+				measure 'Sales Quantity AVG 1Y (Fiscal)'
+					caption: Försäljningsantal GMS 1Å (räkenskapskalender)
+				measure 'Sales Quantity MATG (Fiscal)'
+					caption: Försäljningsantal GÅST (räkenskapskalender)
+				measure 'Sales Quantity MATG % (Fiscal)'
+					caption: Försäljningsantal GÅST % (räkenskapskalender)
+				measure 'Sales Quantity PP (Fiscal)'
+					caption: Försäljningsantal FP (räkenskapskalender)
+				measure 'Sales Quantity POP (Fiscal)'
+					caption: Försäljningsantal PFP (räkenskapskalender)
+				measure 'Sales Quantity POP % (Fiscal)'
+					caption: Försäljningsantal PFP % (räkenskapskalender)
+				measure 'Cost Amount YTD (Fiscal)'
+					caption: Kostnadsbelopp ÅTD (räkenskapskalender)
+				measure 'Cost Amount PY (Fiscal)'
+					caption: Kostnadsbelopp FÅ (räkenskapskalender)
+				measure 'Cost Amount QTD (Fiscal)'
+					caption: Kostnadsbelopp KTD (räkenskapskalender)
+				measure 'Cost Amount MTD (Fiscal)'
+					caption: Kostnadsbelopp MTD (räkenskapskalender)
+				measure 'Cost Amount YOY % (Fiscal)'
+					caption: Kostnadsbelopp ÅFÅ % (räkenskapskalender)
+				measure 'Cost Amount YOY (Fiscal)'
+					caption: Kostnadsbelopp ÅFÅ (räkenskapskalender)
+				measure 'Cost Amount PQ (Fiscal)'
+					caption: Kostnadsbelopp FK (räkenskapskalender)
+				measure 'Cost Amount QOQ (Fiscal)'
+					caption: Kostnadsbelopp KFK (räkenskapskalender)
+				measure 'Cost Amount QOQ % (Fiscal)'
+					caption: Kostnadsbelopp KFK % (räkenskapskalender)
+				measure 'Cost Amount PM (Fiscal)'
+					caption: Kostnadsbelopp FM (räkenskapskalender)
+				measure 'Cost Amount MOM (Fiscal)'
+					caption: Kostnadsbelopp MFM (räkenskapskalender)
+				measure 'Cost Amount MOM % (Fiscal)'
+					caption: Kostnadsbelopp MFM % (räkenskapskalender)
+				measure 'Cost Amount PP (Fiscal)'
+					caption: Kostnadsbelopp FP (räkenskapskalender)
+				measure 'Cost Amount POP (Fiscal)'
+					caption: Kostnadsbelopp PFP (räkenskapskalender)
+				measure 'Cost Amount POP % (Fiscal)'
+					caption: Kostnadsbelopp PFP % (räkenskapskalender)
+				measure 'Cost Amount PYTD (Fiscal)'
+					caption: Kostnadsbelopp FÅTD (räkenskapskalender)
+				measure 'Cost Amount PQTD (Fiscal)'
+					caption: Kostnadsbelopp FKTD (räkenskapskalender)
+				measure 'Cost Amount YOYTD (Fiscal)'
+					caption: Kostnadsbelopp ÅFÅTD (räkenskapskalender)
+				measure 'Cost Amount YOYTD % (Fiscal)'
+					caption: Kostnadsbelopp ÅFÅTD % (räkenskapskalender)
+				measure 'Cost Amount QOQTD (Fiscal)'
+					caption: Kostnadsbelopp KFKTD (räkenskapskalender)
+				measure 'Cost Amount QOQTD % (Fiscal)'
+					caption: Kostnadsbelopp KFKTD % (räkenskapskalender)
+				measure 'Cost Amount PMTD (Fiscal)'
+					caption: Kostnadsbelopp FMTD (räkenskapskalender)
+				measure 'Cost Amount MOMTD % (Fiscal)'
+					caption: Kostnadsbelopp MFMTD % (räkenskapskalender)
+				measure 'Cost Amount MOMTD (Fiscal)'
+					caption: Kostnadsbelopp MFMTD (räkenskapskalender)
+				measure 'Cost Amount MAT (Fiscal)'
+					caption: Kostnadsbelopp GÅS (räkenskapskalender)
+				measure 'Cost Amount PYMAT (Fiscal)'
+					caption: Kostnadsbelopp FÅGÅS (räkenskapskalender)
+				measure 'Cost Amount MATG (Fiscal)'
+					caption: Kostnadsbelopp GÅST (räkenskapskalender)
+				measure 'Cost Amount MATG % (Fiscal)'
+					caption: Kostnadsbelopp GÅST % (räkenskapskalender)
+				measure 'Cost Amount MAT (364) (Fiscal)'
+					caption: Kostnadsbelopp GÅS (364) (räkenskapskalender)
+				measure 'Cost PYMAT (364) (Fiscal)'
+					caption: Kostnad FÅGÅS (364) (räkenskapskalender)
+				measure 'Cost Amount PYC (Fiscal)'
+					caption: Kostnadsbelopp FÅK (räkenskapskalender)
+				measure 'Cost Amount YTDOPY (Fiscal)'
+					caption: Kostnadsbelopp ÅTDÅTDÖFÅ (räkenskapskalender)
+				measure 'Cost Amount YTDOPY % (Fiscal)'
+					caption: Kostnadsbelopp ÅTDÅTDÖFÅ % (räkenskapskalender)
+				measure 'Cost Amount PQC (Fiscal)'
+					caption: Kostnadsbelopp FKK (räkenskapskalender)
+				measure 'Cost Amount QTDOPQ (Fiscal)'
+					caption: Kostnadsbelopp KTDÖFK (räkenskapskalender)
+				measure 'Cost Amount QTDOPQ % (Fiscal)'
+					caption: Kostnadsbelopp KTDÖFK % (räkenskapskalender)
+				measure 'Cost Amount PMC (Fiscal)'
+					caption: Kostnadsbelopp FMK (räkenskapskalender)
+				measure 'Cost Amount MTDOPM (Fiscal)'
+					caption: Kostnadsbelopp MTDÖFM (räkenskapskalender)
+				measure 'Cost Amount MTDOPM % (Fiscal)'
+					caption: Kostnadsbelopp MTDÖFM % (räkenskapskalender)
+				measure 'Cost Amount AVG 30D (Fiscal)'
+					caption: Kostnadsbelopp GMS 30D (räkenskapskalender)
+				measure 'Cost Amount AVG 3M (Fiscal)'
+					caption: Kostnadsbelopp GMS 3M (räkenskapskalender)
+				measure 'Cost Amount AVG 1Y (Fiscal)'
+					caption: Kostnadsbelopp GMS 1Å (räkenskapskalender)
+				measure 'Cost Amount Non-Inv YTD (Fiscal)'
+					caption: Kost.belopp, ej lagerf. ÅTD (räkenskapskalender)
+				measure 'Cost Amount Non-Inv QTD (Fiscal)'
+					caption: Kost.belopp, ej lagerf. KTD (räkenskapskalender)
+				measure 'Cost Amount Non-Inv MTD (Fiscal)'
+					caption: Kost.belopp, ej lagerf. MTD (räkenskapskalender)
+				measure 'Cost Amount Non-Inv PY (Fiscal)'
+					caption: Kost.belopp, ej lagerf. FÅ (räkenskapskalender)
+				measure 'Cost Amount Non-Inv YOY % (Fiscal)'
+					caption: Kost.belopp, ej lagerf. ÅFÅ % (räkenskapskalender)
+				measure 'Cost Amount Non-Inv YOY (Fiscal)'
+					caption: Kost.belopp, ej lagerf. ÅFÅ (räkenskapskalender)
+				measure 'Cost Amount Non-Inv PQ (Fiscal)'
+					caption: Kost.belopp, ej lagerf. FK (räkenskapskalender)
+				measure 'Cost Amount Non-Inv QOQ (Fiscal)'
+					caption: Kost.belopp, ej lagerf. KFK (räkenskapskalender)
+				measure 'Cost Amount Non-Inv QOQ % (Fiscal)'
+					caption: Kost.belopp, ej lagerf. KFK % (räkenskapskalender)
+				measure 'Cost Amount Non-Inv PM (Fiscal)'
+					caption: Kost.belopp, ej lagerf. FM (räkenskapskalender)
+				measure 'Cost Amount Non-Inv MOM (Fiscal)'
+					caption: Kost.belopp, ej lagerf. MFM (räkenskapskalender)
+				measure 'Cost Amount Non-Inv MOM % (Fiscal)'
+					caption: Kost.belopp, ej lagerf. MFM % (räkenskapskalender)
+				measure 'Cost Amount Non-Inv PP (Fiscal)'
+					caption: Kost.belopp, ej lagerf. FP (räkenskapskalender)
+				measure 'Cost Amount Non-Inv POP (Fiscal)'
+					caption: Kost.belopp, ej lagerf. PFP (räkenskapskalender)
+				measure 'Cost Amount Non-Inv POP % (Fiscal)'
+					caption: Kost.belopp, ej lagerf. PFP % (räkenskapskalender)
+				measure 'Cost Amount Non-Inv PYTD (Fiscal)'
+					caption: Kost.belopp, ej lagerf. FÅTD (räkenskapskalender)
+				measure 'Cost Amount Non-Inv PQTD (Fiscal)'
+					caption: Kost.belopp, ej lagerf. FKTD (räkenskapskalender)
+				measure 'Cost Amount Non-Inv YOYTD (Fiscal)'
+					caption: Kost.belopp, ej lagerf. ÅFÅTD (räkenskapskalender)
+				measure 'Cost Amount Non-Inv YOYTD % (Fiscal)'
+					caption: Kost.belopp, ej lagerf. ÅFÅTD % (räkenskapskalender)
+				measure 'Cost Amount Non-Inv QOQTD (Fiscal)'
+					caption: Kost.belopp, ej lagerf. KFKTD (räkenskapskalender)
+				measure 'Cost Amount Non-Inv QOQTD % (Fiscal)'
+					caption: Kost.belopp, ej lagerf. KFKTD % (räkenskapskalender)
+				measure 'Cost Amount Non-Inv PMTD (Fiscal)'
+					caption: Kost.belopp, ej lagerf. FMTD (räkenskapskalender)
+				measure 'Cost Amount Non-Inv MOMTD % (Fiscal)'
+					caption: Kost.belopp, ej lagerf. MFMTD % (räkenskapskalender)
+				measure 'Cost Amount Non-Inv MOMTD (Fiscal)'
+					caption: Kost.belopp, ej lagerf. MFMTD (räkenskapskalender)
+				measure 'Cost Amount Non-Inv MAT (Fiscal)'
+					caption: Kost.belopp, ej lagerf. GÅS (räkenskapskalender)
+				measure 'Cost Amount Non-Inv PYMAT (Fiscal)'
+					caption: Kost.belopp, ej lagerf. FÅGÅS (räkenskapskalender)
+				measure 'Cost Amount Non-Inv MATG (Fiscal)'
+					caption: Kost.belopp, ej lagerf. GÅST (räkenskapskalender)
+				measure 'Cost Amount Non-Inv MATG % (Fiscal)'
+					caption: Kost.belopp, ej lagerf. GÅST % (räkenskapskalender)
+				measure 'Cost Amount Non-Inv PYC (Fiscal)'
+					caption: Kost.belopp, ej lagerf. FÅK (räkenskapskalender)
+				measure 'Cost Amount Non-Inv YTDOPY (Fiscal)'
+					caption: Kost.belopp, ej lagerf. ÅTDÅTDÖFÅ (räkenskapskalender)
+				measure 'Cost Amount Non-Inv YTDOPY % (Fiscal)'
+					caption: Kost.belopp, ej lagerf. ÅTDÅTDÖFÅ % (räkenskapskalender)
+				measure 'Cost Amount Non-Inv PQC (Fiscal)'
+					caption: Kost.belopp, ej lagerf. FKK (räkenskapskalender)
+				measure 'Cost Amount Non-Inv QTDOPQ (Fiscal)'
+					caption: Kost.belopp, ej lagerf. KTDÖFK (räkenskapskalender)
+				measure 'Cost Amount Non-Inv QTDOPQ % (Fiscal)'
+					caption: Kost.belopp, ej lagerf. KTDÖFK % (räkenskapskalender)
+				measure 'Cost Amount Non-Inv PMC (Fiscal)'
+					caption: Kost.belopp, ej lagerf. FMK (räkenskapskalender)
+				measure 'Cost Amount Non-Inv MTDOPM (Fiscal)'
+					caption: Kost.belopp, ej lagerf. MTDÖFM (räkenskapskalender)
+				measure 'Cost Amount Non-Inv MTDOPM % (Fiscal)'
+					caption: Kost.belopp, ej lagerf. MTDÖFM % (räkenskapskalender)
+				measure 'Cost Amount Non-Inv AVG 30D (Fiscal)'
+					caption: Kost.belopp, ej lagerf. GMS 30D (räkenskapskalender)
+				measure 'Cost Amount Non-Inv AVG 3M (Fiscal)'
+					caption: Kost.belopp, ej lagerf. GMS 3M (räkenskapskalender)
+				measure 'Cost Amount Non-Inv AVG 1Y (Fiscal)'
+					caption: Kost.belopp, ej lagerf. GMS 1Å (räkenskapskalender)
+				measure 'Gross Profit YTD (Fiscal)'
+					caption: Bruttovinst ÅTD (räkenskapskalender)
+				measure 'Gross Profit QTD (Fiscal)'
+					caption: Bruttovinst KTD (räkenskapskalender)
+				measure 'Gross Profit MTD (Fiscal)'
+					caption: Bruttovinst MTD (räkenskapskalender)
+				measure 'Gross Profit PY (Fiscal)'
+					caption: Bruttovinst FÅ (räkenskapskalender)
+				measure 'Gross Profit YOY % (Fiscal)'
+					caption: Bruttovinst ÅFÅ % (räkenskapskalender)
+				measure 'Gross Profit YOY (Fiscal)'
+					caption: Bruttovinst ÅFÅ (räkenskapskalender)
+				measure 'Gross Profit PQ (Fiscal)'
+					caption: Bruttovinst FK (räkenskapskalender)
+				measure 'Gross Profit QOQ (Fiscal)'
+					caption: Bruttovinst KFK (räkenskapskalender)
+				measure 'Gross Profit QOQ % (Fiscal)'
+					caption: Bruttovinst KFK % (räkenskapskalender)
+				measure 'Gross Profit PM (Fiscal)'
+					caption: Bruttovinst FM (räkenskapskalender)
+				measure 'Gross Profit MOM (Fiscal)'
+					caption: Bruttovinst MFM (räkenskapskalender)
+				measure 'Gross Profit MOM % (Fiscal)'
+					caption: Bruttovinst MFM % (räkenskapskalender)
+				measure 'Gross Profit PP (Fiscal)'
+					caption: Bruttovinst FP (räkenskapskalender)
+				measure 'Gross Profit POP (Fiscal)'
+					caption: Bruttovinst PFP (räkenskapskalender)
+				measure 'Gross Profit POP % (Fiscal)'
+					caption: Bruttovinst PFP % (räkenskapskalender)
+				measure 'Gross Profit PYTD (Fiscal)'
+					caption: Bruttovinst FÅTD (räkenskapskalender)
+				measure 'Gross Profit PQTD (Fiscal)'
+					caption: Bruttovinst FKTD (räkenskapskalender)
+				measure 'Gross Profit YOYTD (Fiscal)'
+					caption: Bruttovinst ÅFÅTD (räkenskapskalender)
+				measure 'Gross Profit YOYTD % (Fiscal)'
+					caption: Bruttovinst ÅFÅTD % (räkenskapskalender)
+				measure 'Gross Profit QOQTD (Fiscal)'
+					caption: Bruttovinst KFKTD (räkenskapskalender)
+				measure 'Gross Profit  QOQTD % (Fiscal)'
+					caption: Bruttovinst KFKTD % (räkenskapskalender)
+				measure 'Gross Profit PMTD (Fiscal)'
+					caption: Bruttovinst FMTD (räkenskapskalender)
+				measure 'Gross Profit MOMTD % (Fiscal)'
+					caption: Bruttovinst MFMTD % (räkenskapskalender)
+				measure 'Gross Profit MOMTD (Fiscal)'
+					caption: Bruttovinst MFMTD (räkenskapskalender)
+				measure 'Gross Profit MAT (Fiscal)'
+					caption: Bruttovinst GÅS (räkenskapskalender)
+				measure 'Gross Profit PYMAT (Fiscal)'
+					caption: Bruttovinst FÅGÅS (räkenskapskalender)
+				measure 'Gross Profit MATG (Fiscal)'
+					caption: Bruttovinst GÅST (räkenskapskalender)
+				measure 'Gross Profit MATG % (Fiscal)'
+					caption: Bruttovinst GÅST % (räkenskapskalender)
+				measure 'Gross Profit MAT (364) (Fiscal)'
+					caption: Bruttovinst GÅS (364) (räkenskapskalender)
+				measure 'Gross Profit PYMAT (364) (Fiscal)'
+					caption: Bruttovinst FÅGÅS (364) (räkenskapskalender)
+				measure 'Gross Profit PYC (Fiscal)'
+					caption: Bruttovinst FÅK (räkenskapskalender)
+				measure 'Gross Profit YTDOPY (Fiscal)'
+					caption: Bruttovinst ÅTDÅTDÖFÅ (räkenskapskalender)
+				measure 'Gross Profit YTDOPY % (Fiscal)'
+					caption: Bruttovinst ÅTDÅTDÖFÅ % (räkenskapskalender)
+				measure 'Gross Profit PQC (Fiscal)'
+					caption: Bruttovinst FKK (räkenskapskalender)
+				measure 'Gross Profit QTDOPQ (Fiscal)'
+					caption: Bruttovinst KTDÖFK (räkenskapskalender)
+				measure 'Gross Profit QTDOPQ % (Fiscal)'
+					caption: Bruttovinst KTDÖFK % (räkenskapskalender)
+				measure 'Gross Profit PMC (Fiscal)'
+					caption: Bruttovinst FMK (räkenskapskalender)
+				measure 'Gross Profit MTDOPM (Fiscal)'
+					caption: Bruttovinst MTDÖFM (räkenskapskalender)
+				measure 'Gross Profit MTDOPM % (Fiscal)'
+					caption: Bruttovinst MTDÖFM % (räkenskapskalender)
+				measure 'Gross Profit AVG 30D (Fiscal)'
+					caption: Bruttovinst GMS 30D (räkenskapskalender)
+				measure 'Gross Profit AVG 3M (Fiscal)'
+					caption: Bruttovinst GMS 3M (räkenskapskalender)
+				measure 'Gross Profit AVG 1Y (Fiscal)'
+					caption: Bruttovinst GMS 1Å (räkenskapskalender)
+				measure 'Gross Profit Margin AVG 30D (Fiscal)'
+					caption: Bruttovinstmarginal GMS 30D (räkenskapskalender)
+				measure 'Gross Profit Margin AVG 3M (Fiscal)'
+					caption: Bruttovinstmarginal GMS 3M (räkenskapskalender)
+				measure 'Gross Profit Margin AVG 1Y (Fiscal)'
+					caption: Bruttovinstmarginal GMS 1Å (räkenskapskalender)
+				measure 'Gross Profit Margin PYC (Fiscal)'
+					caption: Bruttovinstmarginal FÅK (räkenskapskalender)
+				measure 'Gross Profit Margin YTDOPY (Fiscal)'
+					caption: Bruttovinstmarginal ÅTDÅTDÖFÅ (räkenskapskalender)
+				measure 'Gross Profit Margin YTDOPY % (Fiscal)'
+					caption: Bruttovinstmarginal ÅTDÅTDÖFÅ % (räkenskapskalender)
+				measure 'Gross Profit Margin PQC (Fiscal)'
+					caption: Bruttovinstmarginal FKK (räkenskapskalender)
+				measure 'Gross Profit Margin QTDOPQ (Fiscal)'
+					caption: Bruttovinstmarginal KTDÖFK (räkenskapskalender)
+				measure 'Gross Profit Margin QTDOPQ % (Fiscal)'
+					caption: Bruttovinstmarginal KTDÖFK % (räkenskapskalender)
+				measure 'Gross Profit Margin PMC (Fiscal)'
+					caption: Bruttovinstmarginal FMK (räkenskapskalender)
+				measure 'Gross Profit Margin MTDOPM (Fiscal)'
+					caption: Bruttovinstmarginal MTDÖFM (räkenskapskalender)
+				measure 'Gross Profit Margin MTDOPM % (Fiscal)'
+					caption: Bruttovinstmarginal MTDÖFM % (räkenskapskalender)
+				measure 'Gross Profit Margin MAT (Fiscal)'
+					caption: Bruttovinstmarginal GÅS (räkenskapskalender)
+				measure 'Gross Profit Margin PYMAT (Fiscal)'
+					caption: Bruttovinstmarginal FÅGÅS (räkenskapskalender)
+				measure 'Gross Profit Margin MATG (Fiscal)'
+					caption: Bruttovinstmarginal GÅST (räkenskapskalender)
+				measure 'Gross Profit Margin MATG % (Fiscal)'
+					caption: Bruttovinstmarginal GÅST % (räkenskapskalender)
+				measure 'Gross Profit Margin MAT (364) (Fiscal)'
+					caption: Bruttovinstmarginal GÅS (364) (räkenskapskalender)
+				measure 'Gross Profit Margin PYMAT (364) (Fiscal)'
+					caption: Bruttovinstmarginal FÅGÅS (364) (räkenskapskalender)
+				measure 'Gross Profit Margin PYTD (Fiscal)'
+					caption: Bruttovinstmarginal FÅTD (räkenskapskalender)
+				measure 'Gross Profit Margin PQTD (Fiscal)'
+					caption: Bruttovinstmarginal FKTD (räkenskapskalender)
+				measure 'Gross Profit Margin YOYTD (Fiscal)'
+					caption: Bruttovinstmarginal ÅFÅTD (räkenskapskalender)
+				measure 'Gross Profit Margin YOYTD % (Fiscal)'
+					caption: Bruttovinstmarginal ÅFÅTD % (räkenskapskalender)
+				measure 'Gross Profit Margin QOQTD (Fiscal)'
+					caption: Bruttovinstmarginal KFKTD (räkenskapskalender)
+				measure 'Gross Profit Margin QOQTD % (Fiscal)'
+					caption: Bruttovinstmarginal KFKTD % (räkenskapskalender)
+				measure 'Gross Profit Margin PMTD (Fiscal)'
+					caption: Bruttovinstmarginal FMTD (räkenskapskalender)
+				measure 'Gross Profit Margin MOMTD % (Fiscal)'
+					caption: Bruttovinstmarginal MFMTD % (räkenskapskalender)
+				measure 'Gross Profit Margin MOMTD (Fiscal)'
+					caption: Bruttovinstmarginal MFMTD (räkenskapskalender)
+				measure 'Gross Profit Margin PY (Fiscal)'
+					caption: Bruttovinstmarginal FÅ (räkenskapskalender)
+				measure 'Gross Profit Margin YOY % (Fiscal)'
+					caption: Bruttovinstmarginal ÅFÅ % (räkenskapskalender)
+				measure 'Gross Profit Margin YOY (Fiscal)'
+					caption: Bruttovinstmarginal ÅFÅ (räkenskapskalender)
+				measure 'Gross Profit Margin PQ (Fiscal)'
+					caption: Bruttovinstmarginal FK (räkenskapskalender)
+				measure 'Gross Profit Margin QOQ (Fiscal)'
+					caption: Bruttovinstmarginal KFK (räkenskapskalender)
+				measure 'Gross Profit Margin QOQ % (Fiscal)'
+					caption: Bruttovinstmarginal KFK % (räkenskapskalender)
+				measure 'Gross Profit Margin PM (Fiscal)'
+					caption: Bruttovinstmarginal FM (räkenskapskalender)
+				measure 'Gross Profit Margin MOM (Fiscal)'
+					caption: Bruttovinstmarginal MFM (räkenskapskalender)
+				measure 'Gross Profit Margin MOM % (Fiscal)'
+					caption: Bruttovinstmarginal MFM % (räkenskapskalender)
+				measure 'Gross Profit Margin PP (Fiscal)'
+					caption: Bruttovinstmarginal FP (räkenskapskalender)
+				measure 'Gross Profit Margin POP (Fiscal)'
+					caption: Bruttovinstmarginal PFP (räkenskapskalender)
+				measure 'Gross Profit Margin POP % (Fiscal)'
+					caption: Bruttovinstmarginal PFP % (räkenskapskalender)
+				measure 'Gross Profit Margin YTD (Fiscal)'
+					caption: Bruttovinstmarginal ÅTD (räkenskapskalender)
+				measure 'Gross Profit Margin QTD (Fiscal)'
+					caption: Bruttovinstmarginal KTD (räkenskapskalender)
+				measure 'Gross Profit Margin MTD (Fiscal)'
+					caption: Bruttovinstmarginal MTD (räkenskapskalender)
+			table 'Weekly Calendar Time Intelligence'
+				caption: Tidsintelligens för veckokalender
+				measure 'Sales Amount YTD (Weekly)'
+					caption: Försäljningsbelopp ÅTD (per vecka)
+				measure 'Sales Amount PY (Weekly)'
+					caption: Försäljningsbelopp FÅ (per vecka)
+				measure 'Sales Amount PYTD (Weekly)'
+					caption: Försäljningsbelopp FÅTD (per vecka)
+				measure 'Sales Amount PQTD (Weekly)'
+					caption: Försäljningsbelopp FKTD (per vecka)
+				measure 'Sales Amount QTD (Weekly)'
+					caption: Försäljningsbelopp KTD (per vecka)
+				measure 'Sales Amount MTD (Weekly)'
+					caption: Försäljningsbelopp MTD (per vecka)
+				measure 'Sales Amount YOY % (Weekly)'
+					caption: Försäljningsbelopp ÅFÅ % (per vecka)
+				measure 'Sales Amount YOY (Weekly)'
+					caption: Försäljningsbelopp ÅFÅ (per vecka)
+				measure 'Sales Amount PQ (Weekly)'
+					caption: Försäljningsbelopp FK (per vecka)
+				measure 'Sales Amount QOQ (Weekly)'
+					caption: Försäljningsbelopp KFK (per vecka)
+				measure 'Sales Amount QOQ % (Weekly)'
+					caption: Försäljningsbelopp KFK % (per vecka)
+				measure 'Sales Amount PW (Weekly)'
+					caption: Försäljningsbelopp FV (per vecka)
+				measure 'Sales Amount WOW (Weekly)'
+					caption: Försäljningsbelopp VFV (per vecka)
+				measure 'Sales Amount WOW % (Weekly)'
+					caption: Försäljningsbelopp VFV % (per vecka)
+				measure 'Sales Amount MAT (364) (Weekly)'
+					caption: Försäljningsbelopp GÅS (364) (per vecka)
+				measure 'Sales Amount PYMAT (364) (Weekly)'
+					caption: Försäljningsbelopp FÅGÅS (364) (per vecka)
+				measure 'Sales Amount YOYTD (Weekly)'
+					caption: Försäljningsbelopp ÅFÅTD (per vecka)
+				measure 'Sales Amount YOYTD % (Weekly)'
+					caption: Försäljningsbelopp ÅFÅTD % (per vecka)
+				measure 'Sales Amount PYC (Weekly)'
+					caption: Försäljningsbelopp FÅK (per vecka)
+				measure 'Sales Amount YTDOPY (Weekly)'
+					caption: Försäljningsbelopp ÅTDÅTDÖFÅ (per vecka)
+				measure 'Sales Amount YTDOPY % (Weekly)'
+					caption: Försäljningsbelopp ÅTDÅTDÖFÅ % (per vecka)
+				measure 'Sales Amount QOQTD (Weekly)'
+					caption: Försäljningsbelopp KFKTD (per vecka)
+				measure 'Sales Amount QOQTD % (Weekly)'
+					caption: Försäljningsbelopp KFKTD % (per vecka)
+				measure 'Sales Amount PQC (Weekly)'
+					caption: Försäljningsbelopp FKK (per vecka)
+				measure 'Sales Amount QTDOPQ (Weekly)'
+					caption: Försäljningsbelopp KTDÖFK (per vecka)
+				measure 'Sales Amount QTDOPQ % (Weekly)'
+					caption: Försäljningsbelopp KTDÖFK % (per vecka)
+				measure 'Sales Amount PWTD (Weekly)'
+					caption: Försäljningsbelopp FVTD (per vecka)
+				measure 'Sales Amount WOWTD (Weekly)'
+					caption: Försäljningsbelopp VFVTD (per vecka)
+				measure 'Sales Amount WOWTD % (Weekly)'
+					caption: Försäljningsbelopp VFVTD % (per vecka)
+				measure 'Sales Amount PWC (Weekly)'
+					caption: Försäljningsbelopp FVK (per vecka)
+				measure 'Sales Amount WTDOPW (Weekly)'
+					caption: Försäljningsbelopp VTDÖFV (per vecka)
+				measure 'Sales Amount WTDOPW % (Weekly)'
+					caption: Försäljningsbelopp VTDÖFV % (per vecka)
+				measure 'Sales Amount AVG 4W (Weekly)'
+					caption: Försäljningsbelopp GMS 4V (per vecka)
+				measure 'Sales Amount AVG 1Q (Weekly)'
+					caption: Försäljningsbelopp GMS 1K (per vecka)
+				measure 'Sales Amount AVG 1Y (Weekly)'
+					caption: Försäljningsbelopp GMS 1Å (per vecka)
+				measure 'Sales Amount MATG (Weekly)'
+					caption: Försäljningsbelopp GÅST (per vecka)
+				measure 'Sales Amount MATG % (Weekly)'
+					caption: Försäljningsbelopp GÅST % (per vecka)
+				measure 'Sales Amount PP (Weekly)'
+					caption: Försäljningsbelopp FP (per vecka)
+				measure 'Sales Amount POP (Weekly)'
+					caption: Försäljningsbelopp PFP (per vecka)
+				measure 'Sales Amount POP % (Weekly)'
+					caption: Försäljningsbelopp PFP % (per vecka)
+				measure 'Sales Amount WTD (Weekly)'
+					caption: Försäljningsbelopp VTD (per vecka)
+				measure 'Sales Quantity YTD (Weekly)'
+					caption: Försäljningsantal ÅTD (per vecka)
+				measure 'Sales Quantity PY (Weekly)'
+					caption: Försäljningsantal FÅ (per vecka)
+				measure 'Sales Quantity PYTD (Weekly)'
+					caption: Försäljningsantal FÅTD (per vecka)
+				measure 'Sales Quantity QTD (Weekly)'
+					caption: Försäljningsantal KTD (per vecka)
+				measure 'Sales Quantity PQTD (Weekly)'
+					caption: Försäljningsantal FKTD (per vecka)
+				measure 'Sales Quantity MTD (Weekly)'
+					caption: Försäljningsantal MTD (per vecka)
+				measure 'Sales Quantity YOY % (Weekly)'
+					caption: Försäljningsantal ÅFÅ % (per vecka)
+				measure 'Sales Quantity YOY (Weekly)'
+					caption: Försäljningsantal ÅFÅ (per vecka)
+				measure 'Sales Quantity PQ (Weekly)'
+					caption: Försäljningsantal FK (per vecka)
+				measure 'Sales Quantity QOQ (Weekly)'
+					caption: Försäljningsantal KFK (per vecka)
+				measure 'Sales Quantity QOQ % (Weekly)'
+					caption: Försäljningsantal KFK % (per vecka)
+				measure 'Sales Quantity PW (Weekly)'
+					caption: Försäljningsantal FV (per vecka)
+				measure 'Sales Quantity WOW (Weekly)'
+					caption: Försäljningsantal VFV (per vecka)
+				measure 'Sales Quantity WOW % (Weekly)'
+					caption: Försäljningsantal VFV % (per vecka)
+				measure 'Sales Quantity MAT (364) (Weekly)'
+					caption: Försäljningsantal GÅS (364) (per vecka)
+				measure 'Sales Quantity PYMAT (364) (Weekly)'
+					caption: Försäljningsantal FÅGÅS (364) (per vecka)
+				measure 'Sales Quantity YOYTD (Weekly)'
+					caption: Försäljningsantal ÅFÅTD (per vecka)
+				measure 'Sales Quantity YOYTD % (Weekly)'
+					caption: Försäljningsantal ÅFÅTD % (per vecka)
+				measure 'Sales Quantity PYC (Weekly)'
+					caption: Försäljningsantal FÅK (per vecka)
+				measure 'Sales Quantity YTDOPY (Weekly)'
+					caption: Försäljningsantal ÅTDÅTDÖFÅ (per vecka)
+				measure 'Sales Quantity YTDOPY  % (Weekly)'
+					caption: Försäljningsantal ÅTDÅTDÖFÅ % (per vecka)
+				measure 'Sales Quantity QOQTD (Weekly)'
+					caption: Försäljningsantal KFKTD (per vecka)
+				measure 'Sales Quantity QOQTD % (Weekly)'
+					caption: Försäljningsantal KFKTD % (per vecka)
+				measure 'Sales Quantity PQC (Weekly)'
+					caption: Försäljningsantal FKK (per vecka)
+				measure 'Sales Quantity QTDOPQ (Weekly)'
+					caption: Försäljningsantal KTDÖFK (per vecka)
+				measure 'Sales Quantity QTDOPQ % (Weekly)'
+					caption: Försäljningsantal KTDÖFK % (per vecka)
+				measure 'Sales Quantity PWTD (Weekly)'
+					caption: Försäljningsantal FVTD (per vecka)
+				measure 'Sales Quantity WOWTD (Weekly)'
+					caption: Försäljningsantal VFVTD (per vecka)
+				measure 'Sales Quantity WOWTD % (Weekly)'
+					caption: Försäljningsantal VFVTD % (per vecka)
+				measure 'Sales Quantity PWC (Weekly)'
+					caption: Försäljningsantal FVK (per vecka)
+				measure 'Sales Quantity WTDOPW (Weekly)'
+					caption: Försäljningsantal VTDÖFV (per vecka)
+				measure 'Sales Quantity WTDOPW % (Weekly)'
+					caption: Försäljningsantal VTDÖFV % (per vecka)
+				measure 'Sales Quantity AVG 4W (Weekly)'
+					caption: Försäljningsantal GMS 4V (per vecka)
+				measure 'Sales Quantity AVG 1Q (Weekly)'
+					caption: Försäljningsantal GMS 1K (per vecka)
+				measure 'Sales Quantity AVG 1Y (Weekly)'
+					caption: Försäljningsantal GMS 1Å (per vecka)
+				measure 'Sales Quantity MATG (Weekly)'
+					caption: Försäljningsantal GÅST (per vecka)
+				measure 'Sales Quantity MATG % (Weekly)'
+					caption: Försäljningsantal GÅST % (per vecka)
+				measure 'Sales Quantity PP (Weekly)'
+					caption: Försäljningsantal FP (per vecka)
+				measure 'Sales Quantity POP (Weekly)'
+					caption: Försäljningsantal PFP (per vecka)
+				measure 'Sales Quantity POP % (Weekly)'
+					caption: Försäljningsantal PFP % (per vecka)
+				measure 'Sales Quantity WTD (Weekly)'
+					caption: Försäljningsantal VTD (per vecka)
+				measure 'Gross Profit YTD (Weekly)'
+					caption: Bruttovinst ÅTD (per vecka)
+				measure 'Gross Profit PY (Weekly)'
+					caption: Bruttovinst FÅ (per vecka)
+				measure 'Gross Profit PYTD (Weekly)'
+					caption: Bruttovinst FÅTD (per vecka)
+				measure 'Gross Profit QTD (Weekly)'
+					caption: Bruttovinst KTD (per vecka)
+				measure 'Gross Profit PQTD (Weekly)'
+					caption: Bruttovinst FKTD (per vecka)
+				measure 'Gross Profit MTD (Weekly)'
+					caption: Bruttovinst MTD (per vecka)
+				measure 'Gross Profit YOY % (Weekly)'
+					caption: Bruttovinst ÅFÅ % (per vecka)
+				measure 'Gross Profit YOY (Weekly)'
+					caption: Bruttovinst ÅFÅ (per vecka)
+				measure 'Gross Profit PQ (Weekly)'
+					caption: Bruttovinst FK (per vecka)
+				measure 'Gross Profit QOQ (Weekly)'
+					caption: Bruttovinst KFK (per vecka)
+				measure 'Gross Profit QOQ % (Weekly)'
+					caption: Bruttovinst KFK % (per vecka)
+				measure 'Gross Profit PW (Weekly)'
+					caption: Bruttovinst FV (per vecka)
+				measure 'Gross Profit WOW (Weekly)'
+					caption: Bruttovinst VFV (per vecka)
+				measure 'Gross Profit WOW % (Weekly)'
+					caption: Bruttovinst VFV % (per vecka)
+				measure 'Gross Profit MAT (364) (Weekly)'
+					caption: Bruttovinst GÅS (364) (per vecka)
+				measure 'Gross Profit PYMAT (364) (Weekly)'
+					caption: Bruttovinst FÅGÅS (364) (per vecka)
+				measure 'Gross Profit YOYTD (Weekly)'
+					caption: Bruttovinst ÅFÅTD (per vecka)
+				measure 'Gross Profit YOYTD % (Weekly)'
+					caption: Bruttovinst ÅFÅTD % (per vecka)
+				measure 'Gross Profit PYC (Weekly)'
+					caption: Bruttovinst FÅK (per vecka)
+				measure 'Gross Profit YTDOPY (Weekly)'
+					caption: Bruttovinst ÅTDÅTDÖFÅ (per vecka)
+				measure 'Gross Profit YTDOPY % (Weekly)'
+					caption: Bruttovinst ÅTDÅTDÖFÅ % (per vecka)
+				measure 'Gross Profit QOQTD (Weekly)'
+					caption: Bruttovinst KFKTD (per vecka)
+				measure 'Gross Profit QOQTD % (Weekly)'
+					caption: Bruttovinst KFKTD % (per vecka)
+				measure 'Gross Profit PQC (Weekly)'
+					caption: Bruttovinst FKK (per vecka)
+				measure 'Gross Profit QTDOPQ (Weekly)'
+					caption: Bruttovinst KTDÖFK (per vecka)
+				measure 'Gross Profit QTDOPQ % (Weekly)'
+					caption: Bruttovinst KTDÖFK % (per vecka)
+				measure 'Gross Profit PWTD (Weekly)'
+					caption: Bruttovinst FVTD (per vecka)
+				measure 'Gross Profit WOWTD (Weekly)'
+					caption: Bruttovinst VFVTD (per vecka)
+				measure 'Gross Profit WOWTD % (Weekly)'
+					caption: Bruttovinst VFVTD % (per vecka)
+				measure 'Gross Profit PWC (Weekly)'
+					caption: Bruttovinst FVK (per vecka)
+				measure 'Gross Profit WTDOPW (Weekly)'
+					caption: Bruttovinst VTDÖFV (per vecka)
+				measure 'Gross Profit WTDOPW % (Weekly)'
+					caption: Bruttovinst VTDÖFV % (per vecka)
+				measure 'Gross Profit AVG 4W (Weekly)'
+					caption: Bruttovinst GMS 4V (per vecka)
+				measure 'Gross Profit AVG 1Q (Weekly)'
+					caption: Bruttovinst GMS 1K (per vecka)
+				measure 'Gross Profit AVG 1Y (Weekly)'
+					caption: Bruttovinst GMS 1Å (per vecka)
+				measure 'Gross Profit MATG (Weekly)'
+					caption: Bruttovinst GÅST (per vecka)
+				measure 'Gross Profit MATG % (Weekly)'
+					caption: Bruttovinst GÅST % (per vecka)
+				measure 'Gross Profit PP (Weekly)'
+					caption: Bruttovinst FP (per vecka)
+				measure 'Gross Profit POP (Weekly)'
+					caption: Bruttovinst PFP (per vecka)
+				measure 'Gross Profit POP % (Weekly)'
+					caption: Bruttovinst PFP % (per vecka)
+				measure 'Gross Profit WTD (Weekly)'
+					caption: Bruttovinst VTD (per vecka)
+				measure 'Gross Profit Margin YTD (Weekly)'
+					caption: Bruttovinstmarginal ÅTD (per vecka)
+				measure 'Gross Profit Margin QTD (Weekly)'
+					caption: Bruttovinstmarginal KTD (per vecka)
+				measure 'Gross Profit Margin MTD (Weekly)'
+					caption: Bruttovinstmarginal MTD (per vecka)
+				measure 'Gross Profit Margin WTD (Weekly)'
+					caption: Bruttovinstmarginal VTD (per vecka)
+				measure 'Gross Profit Margin PY (Weekly)'
+					caption: Bruttovinstmarginal FÅ (per vecka)
+				measure 'Gross Profit Margin YOY % (Weekly)'
+					caption: Bruttovinstmarginal ÅFÅ % (per vecka)
+				measure 'Gross Profit Margin YOY (Weekly)'
+					caption: Bruttovinstmarginal ÅFÅ (per vecka)
+				measure 'Gross Profit Margin PQ (Weekly)'
+					caption: Bruttovinstmarginal FK (per vecka)
+				measure 'Gross Profit Margin QOQ (Weekly)'
+					caption: Bruttovinstmarginal KFK (per vecka)
+				measure 'Gross Profit Margin QOQ % (Weekly)'
+					caption: Bruttovinstmarginal KFK % (per vecka)
+				measure 'Gross Profit Margin PW (Weekly)'
+					caption: Bruttovinstmarginal FV (per vecka)
+				measure 'Gross Profit Margin WOW (Weekly)'
+					caption: Bruttovinstmarginal VFV (per vecka)
+				measure 'Gross Profit Margin WOW % (Weekly)'
+					caption: Bruttovinstmarginal VFV % (per vecka)
+				measure 'Gross Profit Margin PP (Weekly)'
+					caption: Bruttovinstmarginal FP (per vecka)
+				measure 'Gross Profit Margin POP (Weekly)'
+					caption: Bruttovinstmarginal PFP (per vecka)
+				measure 'Gross Profit Margin POP % (Weekly)'
+					caption: Bruttovinstmarginal PFP % (per vecka)
+				measure 'Gross Profit Margin PYTD (Weekly)'
+					caption: Bruttovinstmarginal FÅTD (per vecka)
+				measure 'Gross Profit Margin PQTD (Weekly)'
+					caption: Bruttovinstmarginal FKTD (per vecka)
+				measure 'Gross Profit Margin YOYTD (Weekly)'
+					caption: Bruttovinstmarginal ÅFÅTD (per vecka)
+				measure 'Gross Profit Margin YOYTD % (Weekly)'
+					caption: Bruttovinstmarginal ÅFÅTD % (per vecka)
+				measure 'Gross Profit Margin QOQTD (Weekly)'
+					caption: Bruttovinstmarginal KFKTD (per vecka)
+				measure 'Gross Profit Margin QOQTD % (Weekly)'
+					caption: Bruttovinstmarginal KFKTD % (per vecka)
+				measure 'Gross Profit Margin PWTD (Weekly)'
+					caption: Bruttovinstmarginal FVTD (per vecka)
+				measure 'Gross Profit Margin WOWTD (Weekly)'
+					caption: Bruttovinstmarginal VFVTD (per vecka)
+				measure 'Gross Profit Margin WOWTD % (Weekly)'
+					caption: Bruttovinstmarginal VFVTD % (per vecka)
+				measure 'Gross Profit Margin MAT (364) (Weekly)'
+					caption: Bruttovinstmarginal GÅS (364) (per vecka)
+				measure 'Gross Profit Margin PYMAT (364) (Weekly)'
+					caption: Bruttovinstmarginal FÅGÅS (364) (per vecka)
+				measure 'Gross Profit Margin MATG (Weekly)'
+					caption: Bruttovinstmarginal GÅST (per vecka)
+				measure 'Gross Profit Margin MATG % (Weekly)'
+					caption: Bruttovinstmarginal GÅST % (per vecka)
+				measure 'Gross Profit Margin PYC (Weekly)'
+					caption: Bruttovinstmarginal FÅK (per vecka)
+				measure 'Gross Profit Margin YTDOPY (Weekly)'
+					caption: Bruttovinstmarginal ÅTDÅTDÖFÅ (per vecka)
+				measure 'Gross Profit Margin YTDOPY % (Weekly)'
+					caption: Bruttovinstmarginal ÅTDÅTDÖFÅ % (per vecka)
+				measure 'Gross Profit Margin PQC (Weekly)'
+					caption: Bruttovinstmarginal FKK (per vecka)
+				measure 'Gross Profit Margin QTDOPQ (Weekly)'
+					caption: Bruttovinstmarginal KTDÖFK (per vecka)
+				measure 'Gross Profit Margin QTDOPQ % (Weekly)'
+					caption: Bruttovinstmarginal KTDÖFK % (per vecka)
+				measure 'Gross Profit Margin PWC (Weekly)'
+					caption: Bruttovinstmarginal FVK (per vecka)
+				measure 'Gross Profit Margin WTDOPW (Weekly)'
+					caption: Bruttovinstmarginal VTDÖFV (per vecka)
+				measure 'Gross Profit Margin WTDOPW % (Weekly)'
+					caption: Bruttovinstmarginal VTDÖFV % (per vecka)
+				measure 'Gross Profit Margin AVG 4W (Weekly'
+					caption: Bruttovinstmarginal GMS 4V (per vecka)
+				measure 'Gross Profit Margin AVG 1Q (Weekly)'
+					caption: Bruttovinstmarginal GMS 1K (per vecka)
+				measure 'Gross Profit Margin AVG 1Y (Weekly)'
+					caption: Bruttovinstmarginal GMS 1Å (per vecka)
+				measure 'Cost Amount YTD (Weekly)'
+					caption: Kost.belopp ÅTD (per vecka)
+				measure 'Cost Amount QTD (Weekly)'
+					caption: Kost.belopp KTD (per vecka)
+				measure 'Cost Amount MTD (Weekly)'
+					caption: Kost.belopp MTD (per vecka)
+				measure 'Cost Amount WTD (Weekly)'
+					caption: Kost.belopp VTD (per vecka)
+				measure 'Cost Amount PY (Weekly)'
+					caption: Kost.belopp FÅ (per vecka)
+				measure 'Cost Amount YOY % (Weekly)'
+					caption: Kost.belopp ÅFÅ % (per vecka)
+				measure 'Cost Amount YOY (Weekly)'
+					caption: Kost.belopp ÅFÅ (per vecka)
+				measure 'Cost Amount PQ (Weekly)'
+					caption: Kost.belopp FK (per vecka)
+				measure 'Cost Amount QOQ (Weekly)'
+					caption: Kost.belopp KFK (per vecka)
+				measure 'Cost Amount QOQ % (Weekly)'
+					caption: Kost.belopp KFK % (per vecka)
+				measure 'Cost Amount PW (Weekly)'
+					caption: Kost.belopp FV (per vecka)
+				measure 'Cost Amount WOW (Weekly)'
+					caption: Kost.belopp VFV (per vecka)
+				measure 'Cost Amount WOW % (Weekly)'
+					caption: Kost.belopp VFV % (per vecka)
+				measure 'Cost Amount PP (Weekly)'
+					caption: Kost.belopp FP (per vecka)
+				measure 'Cost Amount POP (Weekly)'
+					caption: Kost.belopp PFP (per vecka)
+				measure 'Cost Amount POP % (Weekly)'
+					caption: Kost.belopp PFP % (per vecka)
+				measure 'Cost Amount PYTD (Weekly)'
+					caption: Kost.belopp FÅTD (per vecka)
+				measure 'Cost Amount PQTD (Weekly)'
+					caption: Kost.belopp FKTD (per vecka)
+				measure 'Cost Amount YOYTD (Weekly)'
+					caption: Kostnadsbelopp ÅFÅTD (per vecka)
+				measure 'Cost Amount YOYTD % (Weekly)'
+					caption: Kostnadsbelopp ÅFÅTD % (per vecka)
+				measure 'Cost Amount QOQTD (Weekly)'
+					caption: Kostnadsbelopp KFKTD (per vecka)
+				measure 'Cost Amount QOQTD % (Weekly)'
+					caption: Kostnadsbelopp KFKTD % (per vecka)
+				measure 'Cost Amount PWTD (Weekly)'
+					caption: Kost.belopp FVTD (per vecka)
+				measure 'Cost Amount WOWTD (Weekly)'
+					caption: Kostnadsbelopp VFVTD (per vecka)
+				measure 'Cost Amount WOWTD % (Weekly)'
+					caption: Kostnadsbelopp VFVTD % (per vecka)
+				measure 'Cost Amount MAT (364) (Weekly)'
+					caption: Kost.belopp GÅS (364) (per vecka)
+				measure 'Cost Amount PYMAT (364) (Weekly)'
+					caption: Kost.belopp PYPYMAT (364) (per vecka)
+				measure 'Cost Amount MATG (Weekly)'
+					caption: Kost.belopp GÅST (per vecka)
+				measure 'Cost Amount MATG % (Weekly)'
+					caption: Kost.belopp GÅST % (per vecka)
+				measure 'Cost Amount PYC (Weekly)'
+					caption: Kost.belopp FÅK (per vecka)
+				measure 'Cost Amount YTDOPY (Weekly)'
+					caption: Kostnadsbelopp ÅTDÅTDÖFÅ (per vecka)
+				measure 'Cost Amount YTDOPY % (Weekly)'
+					caption: Kostnadsbelopp ÅTDÅTDÖFÅ % (per vecka)
+				measure 'Cost Amount PQC (Weekly)'
+					caption: Kost.belopp FKK (per vecka)
+				measure 'Cost Amount QTDOPQ (Weekly)'
+					caption: Kostnadsbelopp KTDÖFK (per vecka)
+				measure 'Cost Amount QTDOPQ % (Weekly)'
+					caption: Kostnadsbelopp KTDÖFK % (per vecka)
+				measure 'Cost Amount PWC (Weekly)'
+					caption: Kost.belopp FVK (per vecka)
+				measure 'Cost Amount WTDOPW (Weekly)'
+					caption: Kostnadsbelopp VTDÖFV (per vecka)
+				measure 'Cost Amount WTDOPW % (Weekly)'
+					caption: Kostnadsbelopp VTDÖFV % (per vecka)
+				measure 'Cost Amount AVG 4W (Weekly)'
+					caption: Kost.belopp GMS 4V (per vecka)
+				measure 'Cost Amount AVG 1Q (Weekly)'
+					caption: Kost.belopp GMS 1K (per vecka)
+				measure 'Cost Amount AVG 1Y (Weekly)'
+					caption: Kost.belopp GMS 1Å (per vecka)
+				measure 'Cost Amount Non-Inv PY (Weekly)'
+					caption: Kost.belopp, ej lagerf. FÅ (per vecka)
+				measure 'Cost Amount Non-Inv YOY % (Weekly)'
+					caption: Kost.belopp, ej lagerf. ÅFÅ % (per vecka)
+				measure 'Cost Amount Non-Inv YOY (Weekly)'
+					caption: Kost.belopp, ej lagerf. ÅFÅ (per vecka)
+				measure 'Cost Amount Non-Inv PQ (Weekly)'
+					caption: Kost.belopp, ej lagerf. FK (per vecka)
+				measure 'Cost Amount Non-Inv QOQ (Weekly)'
+					caption: Kost.belopp, ej lagerf. KFK (per vecka)
+				measure 'Cost Amount Non-Inv QOQ % (Weekly)'
+					caption: Kost.belopp, ej lagerf. KFK % (per vecka)
+				measure 'Cost Amount Non-Inv PW (Weekly)'
+					caption: Kost.belopp, ej lagerf. FV (per vecka)
+				measure 'Cost Amount Non-Inv WOW (Weekly)'
+					caption: Kost.belopp, ej lagerf. VFV (per vecka)
+				measure 'Cost Amount Non-Inv WOW % (Weekly)'
+					caption: Kost.belopp, ej lagerf. VFV % (per vecka)
+				measure 'Cost Amount Non-Inv PP (Weekly)'
+					caption: Kost.belopp, ej lagerf. FP (per vecka)
+				measure 'Cost Amount Non-Inv POP (Weekly)'
+					caption: Kost.belopp, ej lagerf. PFP (per vecka)
+				measure 'Cost Amount Non-Inv POP % (Weekly)'
+					caption: Kost.belopp, ej lagerf. PFP % (per vecka)
+				measure 'Cost Amount Non-Inv PYTD (Weekly)'
+					caption: Kost.belopp, ej lagerf. FÅTD (per vecka)
+				measure 'Cost Amount Non-Inv PQTD (Weekly)'
+					caption: Kost.belopp, ej lagerf. FKTD (per vecka)
+				measure 'Cost Amount Non-Inv YOYTD (Weekly)'
+					caption: Kost.belopp, ej lagerf. ÅFÅTD (per vecka)
+				measure 'Cost Amount Non-Inv YOYTD % (Weekly)'
+					caption: Kost.belopp, ej lagerf. ÅFÅTD % (per vecka)
+				measure 'Cost Amount Non-Inv QOQTD (Weekly)'
+					caption: Kost.belopp, ej lagerf. KFKTD (per vecka)
+				measure 'Cost Amount Non-Inv QOQTD % (Weekly)'
+					caption: Kost.belopp, ej lagerf. KFKTD % (per vecka)
+				measure 'Cost Amount Non-Inv PWTD (Weekly)'
+					caption: Kost.belopp, ej lagerf. FVTD (per vecka)
+				measure 'Cost Amount Non-Inv WOWTD (Weekly)'
+					caption: Kost.belopp, ej lagerf. VFVTD (per vecka)
+				measure 'Cost Amount Non-Inv WOWTD % (Weekly)'
+					caption: Kost.belopp, ej lagerf. VFVTD % (per vecka)
+				measure 'Cost Amount Non-Inv MAT (364) (Weekly)'
+					caption: Kost.belopp, ej lagerf. GÅS (364) (per vecka)
+				measure 'Cost Amount Non-Inv PYMAT (364) (Weekly)'
+					caption: Kost.belopp, ej lagerf. FÅGÅS (364) (per vecka)
+				measure 'Cost Amount Non-Inv MATG (Weekly)'
+					caption: Kost.belopp, ej lagerf. GÅST (per vecka)
+				measure 'Cost Amount Non-Inv MATG % (Weekly)'
+					caption: Kost.belopp, ej lagerf. GÅST % (per vecka)
+				measure 'Cost Amount Non-Inv PYC (Weekly)'
+					caption: Kost.belopp, ej lagerf. FÅK (per vecka)
+				measure 'Cost Amount Non-Inv YTDOPY (Weekly)'
+					caption: Kost.belopp, ej lagerf. ÅTDÅTDÖFÅ (per vecka)
+				measure 'Cost Amount Non-Inv YTDOPY % (Weekly)'
+					caption: Kost.belopp, ej lagerf. ÅTDÅTDÖFÅ % (per vecka)
+				measure 'Cost Amount Non-Inv PQC (Weekly)'
+					caption: Kost.belopp, ej lagerf. FKK (per vecka)
+				measure 'Cost Amount Non-Inv QTDOPQ (Weekly)'
+					caption: Kost.belopp, ej lagerf. KTDÖFK (per vecka)
+				measure 'Cost Amount Non-Inv QTDOPQ % (Weekly)'
+					caption: Kost.belopp, ej lagerf. KTDÖFK % (per vecka)
+				measure 'Cost Amount Non-Inv PWC (Weekly)'
+					caption: Kost.belopp, ej lagerf. FVK (per vecka)
+				measure 'Cost Amount Non-Inv WTDOPW (Weekly)'
+					caption: Kost.belopp, ej lagerf. VTDÖFV (per vecka)
+				measure 'Cost Amount Non-Inv WTDOPW % (Weekly)'
+					caption: Kost.belopp, ej lagerf. VTDÖFV % (per vecka)
+				measure 'Cost Amount Non-Inv AVG 4W (Weekly)'
+					caption: Kost.belopp, ej lagerf. GMS 4V (per vecka)
+				measure 'Cost Amount Non-Inv AVG 1Q (Weekly)'
+					caption: Kost.belopp, ej lagerf. GMS 1K (per vecka)
+				measure 'Cost Amount Non-Inv AVG 1Y (Weekly)'
+					caption: Kost.belopp, ej lagerf. GMS 1Å (per vecka)
+				measure 'Cost Amount Non-Inv YTD (Weekly)'
+					caption: Kost.belopp, ej lagerf. ÅTD (per vecka)
+				measure 'Cost Amount Non-Inv QTD (Weekly)'
+					caption: Kost.belopp, ej lagerf. KTD (per vecka)
+				measure 'Cost Amount Non-Inv MTD (Weekly)'
+					caption: Kost.belopp, ej lagerf. MTD (per vecka)
+				measure 'Cost Amount Non-Inv WTD (Weekly)'
+					caption: Kost.belopp, ej lagerf. VTD (per vecka)
+			table 'Localized Labels'
+				measure 'My Report Title'
+					caption: Min rapportrubrik
+				measure 'My Button Caption'
+					caption: Min knapprubrik
+				measure 'My Visual Title'
+					caption: Min visuella rubrik
+				measure 'Top 5 Items Gross Profit'
+					caption: 5 bästa artiklar per bruttovinst
+				measure 'Top 5 Salesperson'
+					caption: 5 bästa säljare
+				measure 'Top 5 Customers'
+					caption: 5 bästa kunder
+				measure 'Document Value'
+					caption: Dokumentvärde
+				measure 'Document Count'
+					caption: Antal dokument
+				measure 'Sales Amount and Sales Amount AVG 30D (Fiscal) by Fiscal Month Year'
+					caption: Försäljningsbelopp och Försäljningsbelopp genomsnitt 30 dagar (räkenskapskalender) per Räkenskapskalender Månad År
+				measure 'Sales Overview'
+					caption: Försäljningsöversikt
+				measure 'Daily Sales'
+					caption: Daglig försäljning
+				measure 'Moving Averages'
+					caption: Glidande medelvärde
+				measure 'Moving Annual Total'
+					caption: Glidande årssumma
+				measure 'Previous Year MAT and MAT by Fiscal Month Year'
+					caption: Föregående år GÅS och GÅS per Räkenskapskalender Månad År
+				measure 'Period-Over-Period Growth'
+					caption: Tillväxt period-för-period
+				measure Month-To-Date
+					caption: Månad-till-datum
+				measure '% Share of Sales'
+					caption: % av försäljningskostnaden
+				measure 'Sales Amount, Sales Quantity and Gross Profit by Item Category Code'
+					caption: Försäljningsbelopp, Försäljningsantal och Bruttovinst per Artikelkategorinamn
+				measure 'Sales by Item'
+					caption: Försäljning per artikel
+				measure 'Sales by Customer'
+					caption: Försäljning per kund
+				measure 'Sales Amount, Sales Quantity and Gross Profit by Customer Name'
+					caption: Försäljningsbelopp, Försäljningsantal och Bruttovinst efter Kundnamn
+				measure 'Sales by Salesperson'
+					caption: Försäljning per säljare
+				measure 'Sales Amount, Sales Quantity and Gross Profit by Salesperson Code'
+					caption: Försäljningsbelopp, Försäljningsantal och Bruttovinst per Säljarkod
+				measure 'Actual vs Budget Quantity'
+					caption: Faktiskt vs. budgeterat antal
+				measure 'Actual vs Budget Amount'
+					caption: Faktiskt vs. budgeterat belopp
+				measure Sales
+					caption: Försäljning
+				measure 'for Business Central'
+					caption: för Business Central
+				measure 'USE, EDIT AND BUILD YOUR OWN REPORTS'
+					caption: ANVÄND, REDIGERA OCH SKAPA EGNA RAPPORTER
+				measure 'Sales includes a variety of pre-built reports to help you see your data immediately. You are able to edit these reports or build your own report from scratch.'
+					caption: Försäljning omfattar en mängd olika färdiga rapporter som gör det enkelt att se data direkt. Du kan redigera dessa rapporter eller skapa en egen rapport från grunden.
+				measure 'CONNECT YOUR DATA'
+					caption: ANSLUT DINA DATA
+				measure '1. Download the Sales Connector for Power BI'
+					caption: 1. Ladda ned Sales Connector for Power BI
+				measure '2. Configure Dynamics 365 Business Central'
+					caption: 2. Konfigurera Dynamics 365 Business Central
+				measure 'HELP AND SUPPORT'
+					caption: HJÄLP OCH SUPPORT
+				measure 'For help and support with your new report please visit the Analytics overview documentation.'
+					caption: Hjälp och support med den nya rapporten finns i översiktsdokumentationen för Analys.
+				measure 'OTHER POWER BI REPORTS'
+					caption: ÖVRIGA POWER BI-RAPPORTER
+				measure PURCHASE
+					caption: INKÖP
+				measure FINANCE
+					caption: EKONOMI
+				measure REBATES
+					caption: RABATTER
+				measure INVENTORY
+					caption: LAGER
+				measure JOBS
+					caption: PROJEKT
+				measure 'SALES '
+					caption: "FÖRSÄLJNING "
+				measure 'Sales Amount '
+					caption: "Försäljningsbelopp "
+				measure 'Sales Amount and Sales Amount Average 30 Days (Fiscal) by Fiscal Month Year'
+					caption: Försäljningsbelopp och Försäljningsbelopp genomsnitt 30 dagar (räkenskapskalender) per Räkenskapskalender Månad År
+				measure 'Previous Year and Current Moving Annual Total by Fiscal Month Year'
+					caption: Föregående år och aktuell glidande årssumma per Räkenskapskalender Månad År
+				measure 'Sales Amount Period-over-Period (Fiscal) and Sales Amount by Fiscal Month Year'
+					caption: Försäljningsbelopp period för period (räkenskapskalender) Försäljningsbelopp per Räkenskapskalender Månad År
+				measure 'Sales Amount Month-to-Date (Fiscal) by Date'
+					caption: Försäljningsbelopp Månad-till-datum (räkenskapskalender) per Datum
+				measure 'Last Refreshed'
+					caption: Uppdaterades senast
+				measure 'Company Name'
+					caption: Företagsnamn
+				measure 'Sales Amount by Salesperson'
+					caption: Försäljningsbelopp per säljare
+				measure 'Gross Profit by Item'
+					caption: Bruttovinst per artikel
+				measure 'Sales Amount by Customer'
+					caption: Försäljningsbelopp per kund
+				measure 'Sales Amount and Sales Amount Average 30 Days (Fiscal) by Fiscal Year'
+					caption: Försäljningsbelopp och Försäljningsbelopp genomsnitt 30 dagar (räkenskapskalender) per räkenskapsår
+				measure 'Monthly Comparison of Previous Year and Current Year Moving Annual Totals'
+					caption: Månadsjämförelse av glidande årssumma för föregående år och innevarande år
+				measure 'Sales Amount Period-over-Period (Fiscal) and Sales Amount by Fiscal Year'
+					caption: Försäljningsbelopp period för period (räkenskapskalender) Försäljningsbelopp per räkenskapsår
+				measure 'Sales Amount by Item Category'
+					caption: Försäljningsbelopp per artikelkategori
+				measure 'Sales Metrics by Salesperson'
+					caption: Försäljningsmått per säljare
+				measure 'Sales by Location'
+					caption: Försäljning per lagerställe
+				measure 'Sales Amount by Location'
+					caption: Försäljningsbelopp per lagerställe
+				measure 'Actual vs Budget'
+					caption: Utfall kontra budget
+				measure 'Actual vs Budget Purchase Analysis by Item Category'
+					caption: Analys av faktiska kontra budgeterade inköp per artikelkategori
+				measure 'Sales Drillthrough'
+					caption: Detaljerad analys av försäljning
+				measure 'Detailed Sales Ledger'
+					caption: Detaljerad försäljningsredovisning
+				measure 'Sales Amount by Month'
+					caption: Försäljningsbelopp per månad
+				measure PROJECTS
+					caption: PROJEKT
+				measure MANUFACTURING
+					caption: PRODUKTION
+				measure 'Month-To-Date Sales Performance'
+					caption: Försäljningsresultat hittills till månad
+				measure 'Top Customer Sales Contributions'
+					caption: Försäljningsbidrag från främsta kunder
+				measure 'Daily Sales by Date'
+					caption: Daglig försäljning per datum
+				measure 'Daily Sales by Entry No'
+					caption: Daglig försäljning per transaktionsnummer
+				measure 'Daily Sales Details'
+					caption: Daglig försäljningsinformation
+				measure 'Moving Annual Total Details'
+					caption: Information om glidande årssumma
+				measure 'Period-Over-Period Growth Details'
+					caption: Information om tillväxt period-för-period
+				measure 'Month-To-Date Details'
+					caption: Information om hittills till månad
+				measure 'Sales by Item Category Over Time'
+					caption: Försäljning per artikelkategori över tid
+				measure 'Sales by Item Details'
+					caption: Information om försäljning per artikel
+				measure 'Profitability by Item Category'
+					caption: Lönsamhet per artikelkategori
+				measure 'Gross Profit Pareto Analysis by Customer'
+					caption: Bruttovinst – Pareto-diagram per kund
+				measure 'Sales by Customer Details'
+					caption: Information om försäljning per kund
+				measure 'Estimated Opportunity Value'
+					caption: Uppskattat affärsmöjlighetsvärde
+				measure 'Sales by Salesperson Details'
+					caption: Information om försäljning per säljare
+				measure 'Profitability by Salesperson'
+					caption: Lönsamhet per säljare
+				measure 'Sales Amount by Customer Location'
+					caption: Försäljningsbelopp per kundlagerställe
+				measure 'Sales by Location Details'
+					caption: Information om försäljning per lagerställe
+				measure 'Sales Demographics'
+					caption: Försäljningsdemografi
+				measure 'Sales Metrics by Item Category'
+					caption: Försäljningsmått per artikelkategori
+				measure 'Sales by Customer Posting Group'
+					caption: Försäljning per kundbokföringsmall
+				measure 'Sales by Document Type'
+					caption: Försäljning per dokumenttyp
+				measure 'No. of Customers by Location'
+					caption: Antal kunder per lagerställe
+				measure 'Sales Decomposition'
+					caption: Försäljningsuppdelning
+				measure 'Sales Amount by Item Category Description'
+					caption: Beskrivning av försäljningsbelopp per artikelkategori
+				measure 'Sales Quantity by Salesperson Name'
+					caption: Försäljningskvantitet per säljares namn
+				measure 'Key Sales Influencers'
+					caption: Viktiga försäljningsinfluerare
+				measure 'Sales Amount by Item Category Code'
+					caption: Försäljningsbelopp per artikelkategorikod
+				measure 'Opportunity Overview'
+					caption: Översikt över affärsmöjligheten
+				measure 'Opportunity Value by Status'
+					caption: Affärsmöjlighetsvärde per status
+				measure 'Open Opportunities by Sales Cycle'
+					caption: Öppna affärsmöjligheter per försäljningscykel
+				measure 'Open Opportunities by Sales Cycle Stage'
+					caption: Öppna affärsmöjligheter per stadium i försäljningscykel
+				measure 'Estimated Value by Salesperson'
+					caption: Uppskattat värde per säljare
+				measure 'Estimated Value by Contact Location'
+					caption: Uppskattat värde per kontaktlagerställe
+				measure 'Sales Quote Overview'
+					caption: Översikt över försäljningsoffert
+				measure 'Sales Quotes by Customer Details'
+					caption: Information om försäljningsofferter per kund
+				measure 'Sales Quote Amount by Salesperson'
+					caption: Försäljningsoffertbelopp per säljare
+				measure 'Sales Quote Amount Over Time'
+					caption: Försäljningsoffertbelopp över tid
+				measure 'Sales Quote Amount by Item Category Code'
+					caption: Försäljningsoffertbelopp per artikelkategorikod
+				measure 'Sales Returns Overview'
+					caption: Översikt över försäljningsreturer
+				measure 'Sales Returns by Customer'
+					caption: Försäljningsreturer per kund
+				measure 'Sales Return Amount by Reason Code'
+					caption: Försäljningsreturbelopp per uppföljningskod
+				measure 'Sales Return Amount Over Time'
+					caption: Försäljningsreturbelopp över tid
+				measure 'Sales Return Amount by Item Category Code'
+					caption: Försäljningsreturbelopp per artikelkategorikod
+				measure 'Sales Opportunity Analysis'
+					caption: Analys av försäljningsmöjligheter
+				measure 'Estimated Value by Opportunity'
+					caption: Uppskattat per affärsmöjlighet
+				measure 'Opportunities by Closed Opportunity Code'
+					caption: Affärsmöjligheter per kod för avslutade affärsmöjligheter
+				measure 'Opportunities by Salesperson Details'
+					caption: Information om affärsmöjligheter per säljare
+				measure 'Opportunities by Closed Status'
+					caption: Affärsmöjligheter per avslutad status
+				measure 'Sales Drillthrough Details'
+					caption: Information om detaljerad analys av försäljning
+			table COMPANY
+				caption: FÖRETAG
+				measure 'Company Label'
+					caption: Företagsetikett
+			table 'Sales Budget Name'
+				caption: Namn på försäljningsbudget
+				column 'Sales Budget Description'
+					caption: Beskrivning av försäljningsbudget
+			table Opportunities
+				caption: Affärsmöjligheter
+				column 'Opportunity No.'
+					caption: Affärsmöjlighetsnr
+				column 'Opportunity Description'
+					caption: Beskrivning
+				column 'Opportunity Creation Date'
+					caption: Uppläggningsdatum för affärsmöjlighet
+				column 'Opportunity Status'
+					caption: Status
+				column 'Opportunity Closed'
+					caption: Stängda
+				column 'Opportunity Sales Document No.'
+					caption: Försäljningsdokumentnr
+				column 'Opportunity Sales Document Type'
+					caption: Förs.dokumenttyp
+				measure 'Opportunity Sales Quote Amount'
+					caption: Försäljningsoffertbelopp för affärsmöjlighet
+			table 'Opportunity Entries'
+				caption: Affärsmöjlighet transaktioner
+				column 'Opportunity No.'
+					caption: Affärsmöjlighetsnr
+				column 'Opportunity Entry No.'
+					caption: Affärsmöjlighet transaktionsnummer
+				column Active
+					caption: Aktivt
+				column 'Action Taken'
+					caption: Vidtagen åtgärd
+				column 'Date of Change'
+					caption: Uppdateringsdatum
+				column 'Estimated Close Date'
+					caption: Troligt avslutsdatum
+				column 'Completed (%)'
+					caption: Slutfört (%)
+				column 'Chances of Success (%)'
+					caption: Chans att lyckas (%)
+				column 'Probability (%)'
+					caption: Sannolikhet %
+				column 'Contact No.'
+					caption: Kontaktnummer
+				measure 'Calculated Current Value'
+					caption: Beräknat aktuellt värde
+				measure 'Estimated Value'
+					caption: Uppskattat värde
+				measure 'No. of Opportunities'
+					caption: Antal affärsmöjligheter
+				measure 'Active Calculated Current Value'
+					caption: Aktivt beräknat aktuellt värde
+				measure 'Active Estimated Value'
+					caption: Aktivt uppskattat värde
+				measure 'Average Chance of Success %'
+					caption: Genomsnittlig chans att lyckas %
+				measure 'Average Completed %'
+					caption: Genomsnitt slutfört %
+				measure 'Average Probability %'
+					caption: Genomsnittlig sannolikhet %
+				measure 'Opportunity Entries Back Link'
+					caption: Bakåtlänk för affärsmöjlighetstransaktioner
+				measure 'No. of Won Opportunities'
+					caption: Antal vunna affärsmöjligheter
+				measure 'No. of Lost Opportunities'
+					caption: Antal förlorade affärsmöjligheter
+				measure 'Win/Loss %'
+					caption: Vunna/förlorade %
+				measure 'Active Chance of Success %'
+					caption: Aktiv chans att lyckas %
+			table Contacts
+				caption: Kontakter
+				column 'Contact No.'
+					caption: Kontaktnummer
+				column 'Contact Name'
+					caption: Kontaktnamn
+				column 'Contact Company No.'
+					caption: Företagsnr
+				column 'Contact Company Name'
+					caption: Företagsnamn
+				column 'Contact Address'
+					caption: Kontaktens adress
+				column 'Contact Address 2'
+					caption: Kontaktadress 2
+				column 'Contact City'
+					caption: Kontaktens ort
+				column 'Contact Post Code'
+					caption: Kod för kontaktpost
+				column 'Contact County'
+					caption: Kontaktens län
+				column 'Contact Country/Region Code'
+					caption: Kod för kontaktens land/region
+				column 'Contact No. & Name'
+					caption: Kontaktens nummer och namn
+				column 'Contact Type'
+					caption: Kontakttyp
+			table 'Reason Codes'
+				caption: Uppföljningskoder
+				column 'Return Reason Code'
+					caption: Returorsakskod
+				column 'Return Reason Description'
+					caption: Beskrivning av returorsak
+			table 'Item Category'
+				caption: Artikelkategori
+				column 'Item Category Code'
+					caption: Artikelkategorikod
+				column 'Item Category Description'
+					caption: Beskrivning av artikelkategori
+				hierarchy 'Item Category Code Hierarchy'
+					caption: Hierarki för artikelkategorikod
+					level 'Item Category Code Level 1'
+						caption: Artikelkategorikod nivå 1
+					level 'Item Category Code Level 2'
+						caption: Artikelkategorikod nivå 2
+					level 'Item Category Code Level 3'
+						caption: Artikelkategorikod nivå 3
+					level 'Item Category Code'
+						caption: Artikelkategorikod
+			table 'Pareto Scale'
+				caption: Pareto-skala
+				column Value
+					caption: Värde
+			table 'Sales Cycle Stages'
+				caption: Stadier i försäljningscykel
+				column 'Sales Cycle Code'
+					caption: Försäljningscykelkod
+				column 'Sales Cycle Stage'
+					caption: Stadium i försäljningscykel
+				column 'Sales Cycle Stage Description'
+					caption: Beskrivning av stadium i försäljningscykel
+			table 'Close Opportunity Codes'
+				caption: Koder för Avsluta affärsmöjlighet
+				column 'Close Opportunity Code'
+					caption: Kod för Avsluta affärsmöjlighet
+				column 'Close Opportunity Type'
+					caption: Avslutstyp affärsmöjlighet
+				column 'Close Opportunity Description'
+					caption: Beskrivning av Avsluta affärsmöjlighet
+

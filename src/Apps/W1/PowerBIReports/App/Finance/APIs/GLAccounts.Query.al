@@ -1,0 +1,49 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+namespace Microsoft.Finance.PowerBIReports;
+
+using Microsoft.Finance.GeneralLedger.Account;
+
+query 36959 "G/L Accounts"
+{
+    Access = Internal;
+    QueryType = API;
+    AboutText = 'Provides access to general ledger account master data including account numbers, names, types, income/balance classification, and hierarchy structure. Enables Power BI reports to build chart of accounts hierarchies, categorize financial data, and structure balance sheet and income statement reports.';
+    Caption = 'Power BI G/L Accounts';
+    APIPublisher = 'microsoft';
+    APIGroup = 'analytics';
+    ApiVersion = 'v0.5', 'v1.0';
+    EntityName = 'generalLedgerAccount';
+    EntitySetName = 'generalLedgerAccounts';
+    DataAccessIntent = ReadOnly;
+
+    elements
+    {
+        dataitem(GLAccount; "G/L Account")
+        {
+            column(accountNo; "No.")
+            {
+            }
+            column(accountName; Name)
+            {
+            }
+            column(accountType; "Account Type")
+            {
+            }
+            column(incomeBalance; "Income/Balance")
+            {
+            }
+            column(accountSubcategoryEntryNo; "Account Subcategory Entry No.")
+            {
+            }
+            column(indentation; Indentation)
+            {
+            }
+            column(totaling; Totaling)
+            {
+            }
+        }
+    }
+}

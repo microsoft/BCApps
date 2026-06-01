@@ -1,0 +1,31 @@
+table 'Item Availability Filter'
+	lineageTag: 1c33adda-4650-4f65-88ee-62bddc51d6a1
+
+	calculationGroup
+
+		calculationItem 'Net Change' = SELECTEDMEASURE()
+
+		calculationItem 'Balance at Date' =
+				
+				CALCULATE(
+				    SELECTEDMEASURE(),
+				    FILTER ( ALL ( 'Date'[Date] ), 'Date'[Date] <= MAX ( 'Date'[Date] ) )
+				    )
+
+	column 'View As'
+		dataType: string
+		lineageTag: c0eaecca-323d-466a-b2b6-f1b8db3a1e6f
+		summarizeBy: none
+		sourceColumn: Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column Ordinal
+		dataType: int64
+		formatString: 0
+		lineageTag: cdc5d653-e209-485a-92cb-e12c2abf1d21
+		summarizeBy: sum
+		sourceColumn: Ordinal
+
+		annotation SummarizationSetBy = Automatic
+

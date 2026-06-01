@@ -1,0 +1,154 @@
+table Contacts
+	lineageTag: 3fa851ee-1526-4e21-a283-32943d57995b
+
+	column 'Contact No.'
+		dataType: string
+		lineageTag: aec05bbd-d4b0-4568-89f8-da32af5a2e30
+		summarizeBy: none
+		sourceColumn: Contact No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Contact Name'
+		dataType: string
+		lineageTag: 64695b47-eae6-4e9e-9e79-9e55d58794c9
+		summarizeBy: none
+		sourceColumn: Contact Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Contact Company No.'
+		dataType: string
+		lineageTag: 71d67149-d0d6-4a1a-ac02-66d8e8e5ad2f
+		summarizeBy: none
+		sourceColumn: Contact Company No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Contact Company Name'
+		dataType: string
+		lineageTag: 09148343-bee7-43df-a5de-f8b561257ca2
+		summarizeBy: none
+		sourceColumn: Contact Company Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Contact Address'
+		dataType: string
+		lineageTag: 78fd37c5-4d14-494f-9893-62be2d896a7d
+		dataCategory: Address
+		summarizeBy: none
+		sourceColumn: Contact Address
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Contact Address 2'
+		dataType: string
+		lineageTag: 1eb3f580-bf1d-452d-bf3a-0587fc928238
+		dataCategory: Address
+		summarizeBy: none
+		sourceColumn: Contact Address 2
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Contact City'
+		dataType: string
+		lineageTag: 9e590dd0-6064-4928-ac84-a91b653fdb82
+		dataCategory: City
+		summarizeBy: none
+		sourceColumn: Contact City
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Contact Post Code'
+		dataType: string
+		lineageTag: 07d89d49-baaf-4d79-bbe5-9a6522220f5f
+		dataCategory: PostalCode
+		summarizeBy: none
+		sourceColumn: Contact Post Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Contact County'
+		dataType: string
+		lineageTag: dc790918-5ac3-46a0-a5b8-7eae649bd1e0
+		dataCategory: StateOrProvince
+		summarizeBy: none
+		sourceColumn: Contact County
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Contact Country/Region Code'
+		dataType: string
+		lineageTag: b58af019-4c11-40aa-8d0e-bde1a9c0efec
+		dataCategory: Country
+		summarizeBy: none
+		sourceColumn: Contact Country/Region Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Contact No. & Name'
+		dataType: string
+		lineageTag: cfcf1ce7-7201-4552-8ae7-e572f8e633b7
+		summarizeBy: none
+		sourceColumn: Contact No. & Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Contact Type'
+		dataType: string
+		lineageTag: 66ef86a8-f893-4210-ab88-8ce7111fe923
+		summarizeBy: none
+		sourceColumn: Contact Type
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Contacts = m
+		mode: import
+		queryGroup: 'Dimension Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY, API_ENDPOINT, []),
+				    TableData = Source{[Name = "contacts", Signature = "table"]}[Data],
+				    #"Changed Type" = Table.TransformColumnTypes(
+				        TableData,
+				        {
+				            {"contactNo", type text},
+				            {"contactName", type text},
+				            {"companyNo", type text},
+				            {"companyName", type text},
+				            {"address", type text},
+				            {"address2", type text},
+				            {"city", type text},
+				            {"postCode", type text},
+				            {"county", type text},
+				            {"countryRegionCode", type text}
+				        }
+				    ),
+				    #"Renamed Columns" = Table.RenameColumns(
+				        #"Changed Type",
+				        {
+				            {"contactNo", "Contact No."},
+				            {"contactName", "Contact Name"},
+				            {"contactType", "Contact Type"},
+				            {"companyNo", "Contact Company No."},
+				            {"companyName", "Contact Company Name"},
+				            {"address2", "Contact Address 2"},
+				            {"postCode", "Contact Post Code"},
+				            {"countryRegionCode", "Contact Country/Region Code"},
+				            {"address", "Contact Address"},
+				            {"city", "Contact City"},
+				            {"county", "Contact County"}
+				        }
+				    ),
+				    #"Added Custom" = Table.AddColumn(
+				        #"Renamed Columns", "Contact No. & Name", each [#"Contact No."] & " " & [Contact Name], type text
+				    ),
+				    #"Removed Columns" = Table.RemoveColumns(#"Added Custom", {"ETag"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

@@ -155,10 +155,10 @@ codeunit 9175 "User Settings Impl."
 
     procedure UpdateUserSettings(NewUserSettings: Record "User Settings")
     var
-        CurrentUserSettings: Record "User Settings";
+        TempCurrentUserSettings: Record "User Settings";
     begin
-        GetUserSettings(NewUserSettings."User Security ID", CurrentUserSettings);
-        UpdateCurrentUsersSettings(CurrentUserSettings, NewUserSettings);
+        GetUserSettings(NewUserSettings."User Security ID", TempCurrentUserSettings);
+        UpdateUserSettings(TempCurrentUserSettings, NewUserSettings);
     end;
 
     procedure UpdateUserSettings(OldUserSettings: Record "User Settings"; NewUserSettings: Record "User Settings")
@@ -331,6 +331,22 @@ codeunit 9175 "User Settings Impl."
             end;
     end;
 
+    [Scope('OnPrem')]
+    procedure GetAllowedCompaniesForUser(UserSecurityId: Guid; var TempCompany: Record Company temporary)
+    var
+        Company: Record Company;
+        UserAccountHelper: DotNet NavUserAccountHelper;
+        CompanyName: Text[30];
+    begin
+        TempCompany.DeleteAll();
+        foreach CompanyName in UserAccountHelper.GetAllowedCompanies(UserSecurityId) do
+            if Company.Get(CompanyName) then begin
+                TempCompany := Company;
+                TempCompany."Display Name" := GetCompanyDisplayName(TempCompany);
+                TempCompany.Insert();
+            end;
+    end;
+
     procedure InitializePlatformSettings(UserSecurityID: Guid; var UserPersonalization: Record "User Personalization")
     var
         SessionSetting: SessionSettings;
@@ -442,7 +458,7 @@ codeunit 9175 "User Settings Impl."
 
     procedure OpenUserSettings(UserSecurityID: Guid)
     var
-        UserSettingsRec: Record "User Settings";
+        TempUserSettingsRec: Record "User Settings";
         UserSettings: Codeunit "User Settings";
         SettingsPageID: Integer;
         Handled: Boolean;
@@ -451,8 +467,8 @@ codeunit 9175 "User Settings Impl."
         UserSettings.OnBeforeOpenSettings(Handled);
         if Handled then
             exit;
-        UserSettings.GetUserSettings(UserSecurityID, UserSettingsRec);
-        Page.Run(SettingsPageID, UserSettingsRec);
+        UserSettings.GetUserSettings(UserSecurityID, TempUserSettingsRec);
+        Page.Run(SettingsPageID, TempUserSettingsRec);
     end;
 
     procedure HideExternalUsers(var UserPersonalization: Record "User Personalization")

@@ -1,0 +1,37 @@
+table 'Work Center Group'
+	lineageTag: 9b159fa1-9b4a-4a68-b1a5-3d1586c93cc4
+
+	column 'Work Center Group Code'
+		dataType: string
+		lineageTag: f97263d3-0b23-42e9-b3cd-63e801f24600
+		summarizeBy: none
+		sourceColumn: Work Center Group Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Work Center Group Name'
+		dataType: string
+		lineageTag: 2a8d7f2d-7cfa-4c77-b984-8ebdd002b82e
+		summarizeBy: none
+		sourceColumn: Work Center Group Name
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Work Center Group' = m
+		mode: import
+		queryGroup: 'Dimension Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(
+				        ENVIRONMENT, COMPANY, API_ENDPOINT, []
+				    ),
+				    TableData = Source{[Name = "workCenterGroups", Signature = "table"]}[Data],
+				    #"Renamed Columns" = Table.RenameColumns(TableData,{{"code", "Work Center Group Code"}, {"name", "Work Center Group Name"}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Renamed Columns",{"ETag"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

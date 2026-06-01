@@ -1,0 +1,262 @@
+table 'ABC Classification'
+	lineageTag: 8ffd963d-31f3-42e9-9ae6-0eee8bcff7b6
+
+	measure 'Sales Amount (ABC)' = ```
+			
+			VAR SalesByItem =
+			    ADDCOLUMNS (
+			        SELECTCOLUMNS (
+			            ALLSELECTED ( 'Item' ),
+			            'Item'[Item No.],
+			            'Item'[Item Description],
+			            'Item'[Item No. & Description],
+			            'Item'[Item Category Code]
+			        ),
+			        "@ItemSales", [Sales Amount]
+			    )
+			VAR AllSales =
+			    CALCULATE (
+			        [Sales Amount],
+			        ALLSELECTED ( 'Item' )
+			    )
+			VAR CumulatedPctByItem =
+			    ADDCOLUMNS (
+			        SalesByItem,
+			        "@CumulatedPct",
+			            VAR CurrentSalesAmt = [@ItemSales]
+			            VAR CumulatedSales =
+			                FILTER (
+			                    SalesByItem,
+			                    [@ItemSales] >= CurrentSalesAmt
+			                )
+			            VAR CumulatedSalesAmount =
+			                SUMX (
+			                    CumulatedSales,
+			                    [@ItemSales]
+			                )
+			            RETURN
+			                DIVIDE (
+			                    CumulatedSalesAmount,
+			                    AllSales
+			                )
+			    )
+			VAR ProductsInClass =
+			    FILTER (
+			        CROSSJOIN (
+			            CumulatedPctByItem,
+			            'ABC Classification'
+			        ),
+			        AND (
+			            [@CumulatedPct] > 'ABC Classification'[Lower Boundary],
+			            [@CumulatedPct] <= 'ABC Classification'[Upper Boundary]
+			        )
+			    )
+			VAR Result =
+			    CALCULATE (
+			        [Sales Amount],
+			        KEEPFILTERS ( ProductsInClass )
+			    )
+			RETURN
+			    IF (
+			        Result = 0,
+			        BLANK (),
+			        Result
+			    )
+			
+			```
+		formatString: #,0.00
+		displayFolder: _ABC Classification Measures
+		lineageTag: 1a2887f9-6ab2-489f-824d-ef6f260f60cd
+
+	measure 'No. of Items in Class' = ```
+			
+			
+			var ItemSales =
+			    ADDCOLUMNS (
+			        SELECTCOLUMNS(ALLSELECTED('Item'),'Item'[Item No.], 'Item'[Item Description], 'Item'[Item No. & Description]),
+			        "@Sales", [Sales Amount]
+			    )
+			var ItemSalesFiltered = 
+				FILTER(
+					ItemSales,
+					[@Sales] > 0
+				)
+			VAR AllSales =
+			    CALCULATE (
+			        [Sales Amount],
+			        ALLSELECTED ( 'Item' )
+			    )
+			VAR ItemSalesPerc =
+			    ADDCOLUMNS (
+			        ItemSalesFiltered,
+			        "@AggSales%",
+			        VAR CurrentSalesAmt = [@Sales]
+			        VAR CumulatedSales =
+			            SUMX (
+			                FILTER (
+			                    ItemSales,
+			                    [@Sales] >= CurrentSalesAmt
+			                ),
+			                [@Sales]
+			            )
+			        RETURN
+			            DIVIDE (
+			                CumulatedSales,
+			                AllSales
+			            )
+			    )
+			VAR ItemsInClass =
+			    FILTER (
+			        CROSSJOIN (
+			            ItemSalesPerc,
+			            'ABC Classification'
+			        ),
+			        AND (
+			            [@AggSales%] > 'ABC Classification'[Lower Boundary],
+			            [@AggSales%] <= 'ABC Classification'[Upper Boundary]
+			        )
+			    )
+			VAR Result =
+			    CALCULATE (
+			        COUNTROWS ( 'Item' ),
+			        KEEPFILTERS ( ItemsInClass )
+			    )
+			RETURN
+			    Result
+			```
+		formatString: 0
+		displayFolder: _ABC Classification Measures
+		lineageTag: eedc67f5-deca-40fd-a96e-d66453c7fe0c
+
+	measure 'Sales Quantity (ABC)' =
+			
+			VAR SalesByItem =
+			    ADDCOLUMNS (
+			        SELECTCOLUMNS (
+			            ALLSELECTED ( 'Item' ),
+			            'Item'[Item No.],
+			            'Item'[Item Description],
+			            'Item'[Item No. & Description],
+			            'Item'[Item Category Code]
+			        ),
+			        "@ItemSales", [Sales Quantity]
+			    )
+			VAR AllSales =
+			    CALCULATE (
+			        [Sales Quantity],
+			        ALLSELECTED ( 'Item' )
+			    )
+			VAR CumulatedPctByItem =
+			    ADDCOLUMNS (
+			        SalesByItem,
+			        "@CumulatedPct",
+			            VAR CurrentSalesQty = [@ItemSales]
+			            VAR CumulatedSales =
+			                FILTER (
+			                    SalesByItem,
+			                    [@ItemSales] >= CurrentSalesQty
+			                )
+			            VAR CumulatedSalesQuantity =
+			                SUMX (
+			                    CumulatedSales,
+			                    [@ItemSales]
+			                )
+			            RETURN
+			                DIVIDE (
+			                    CumulatedSalesQuantity,
+			                    AllSales
+			                )
+			    )
+			VAR ProductsInClass =
+			    FILTER (
+			        CROSSJOIN (
+			            CumulatedPctByItem,
+			            'ABC Classification'
+			        ),
+			        AND (
+			            [@CumulatedPct] > 'ABC Classification'[Lower Boundary],
+			            [@CumulatedPct] <= 'ABC Classification'[Upper Boundary]
+			        )
+			    )
+			VAR Result =
+			    CALCULATE (
+			        [Sales Quantity],
+			        KEEPFILTERS ( ProductsInClass )
+			    )
+			RETURN
+			    IF (
+			        Result = 0,
+			        BLANK (),
+			        Result
+			    )
+		formatString: #,0.00
+		displayFolder: _ABC Classification Measures
+		lineageTag: e0eaae18-d899-4dcb-ae1a-ecc3685ace3c
+
+	measure 'Percent of Sales Amount' =
+			
+			VAR AllSales =
+			    CALCULATE (
+			        [Sales Amount],
+			        ALLSELECTED ( 'Item' )
+			    )
+			RETURN DIVIDE('ABC Classification'[Sales Amount (ABC)], AllSales)
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: _ABC Classification Measures
+		lineageTag: 05184584-b383-40c7-8379-f6f809c060e6
+
+	column 'ABC Class'
+		lineageTag: 9c5db522-6f32-43e8-b8b6-9c09257be9cf
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [ABC Class]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Lower Boundary'
+		isHidden
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: f68b219d-cb06-49f1-a7cd-51e23ce9b50c
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Lower Boundary]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Upper Boundary'
+		isHidden
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: 1e51068d-54eb-4528-af26-a433acf45bf8
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Upper Boundary]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Class Boundaries' =
+			
+			'ABC Classification'[ABC Class] & " " & "(" & FORMAT('ABC Classification'[Lower Boundary],"0%") & " - " & FORMAT('ABC Classification'[Upper Boundary], "0%") & ")"
+		lineageTag: d0140c2a-a8b2-43e1-8690-25ee8b88a51d
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'ABC Classification' = calculated
+		mode: import
+		source =
+				
+				VAR A =
+				    MAX ( 'ABC Classes'[categoryA] )
+				VAR B =
+				    MAX ( 'ABC Classes'[categoryB] )
+				VAR C =
+				    MAX ( 'ABC Classes'[categoryC] )
+				RETURN
+				    UNION (
+				        ROW ( "ABC Class", "A", "Lower Boundary", 0, "Upper Boundary", A ),
+				        ROW ( "ABC Class", "B", "Lower Boundary", A, "Upper Boundary", A + B ),
+				        ROW ( "ABC Class", "C", "Lower Boundary", A + B, "Upper Boundary", 1 )
+				    )
+
+	annotation PBI_Id = 0caf2083755a4793bdd5aaa3409ddb44
+

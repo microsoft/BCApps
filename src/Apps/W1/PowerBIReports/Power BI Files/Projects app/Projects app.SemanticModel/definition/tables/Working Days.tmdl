@@ -1,0 +1,37 @@
+table 'Working Days'
+	isHidden
+	lineageTag: a3e98199-f988-4d5b-b6ca-06ffae7d0bc4
+
+	column FSG_PBI_Day_Number
+		dataType: int64
+		formatString: 0
+		lineageTag: 0abb0b05-f97a-49ec-b5fa-7ab68c3b8d71
+		summarizeBy: sum
+		sourceColumn: FSG_PBI_Day_Number
+
+		annotation SummarizationSetBy = Automatic
+
+	column id
+		dataType: string
+		lineageTag: 0f7f3aa6-b143-4394-b613-73d53d014d06
+		summarizeBy: none
+		sourceColumn: id
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Working Days' = m
+		mode: import
+		queryGroup: 'Date Table'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(#"ENVIRONMENT", #"COMPANY", #"API_ENDPOINT", []),
+				    TableData = Source{[Name = "workingDays", Signature = "table"]}[Data],
+				    #"Renamed Columns" = Table.RenameColumns(TableData, {{"dayNumber", "FSG_PBI_Day_Number"}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Renamed Columns", {"ETag"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

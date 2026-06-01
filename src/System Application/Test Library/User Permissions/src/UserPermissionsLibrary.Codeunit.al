@@ -5,8 +5,8 @@
 
 namespace System.TestLibraries.Security.AccessControl;
 
-using System.Security.AccessControl;
 using System.Environment;
+using System.Security.AccessControl;
 
 /// <summary>
 /// Library to operate with user permissions.

@@ -1,0 +1,147 @@
+table 'Warehouse Journal Lines (To Bin)'
+	isHidden
+	lineageTag: 9c727edb-7624-4b79-9de1-f95aa8206bd6
+
+	column itemNo
+		dataType: string
+		isHidden
+		lineageTag: 686f9427-2424-40fe-8ea9-c9e46caec2a6
+		summarizeBy: none
+		sourceColumn: itemNo
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column locationCode
+		dataType: string
+		isHidden
+		lineageTag: 93592777-bc7b-48e6-9459-245997867d09
+		summarizeBy: none
+		sourceColumn: locationCode
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column qtyBase
+		dataType: double
+		isHidden
+		lineageTag: b6cf354d-b18d-4995-83e9-b02cf4a4eeab
+		summarizeBy: sum
+		sourceColumn: qtyBase
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'To Bin Key'
+		dataType: string
+		isHidden
+		lineageTag: 2c108b03-48d8-4e34-aaf5-fbce22169151
+		summarizeBy: none
+		sourceColumn: To Bin Key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Zone Key'
+		dataType: string
+		isHidden
+		lineageTag: b31f2492-09ad-4d25-ad6e-7e53349f88e7
+		summarizeBy: none
+		sourceColumn: Zone Key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Lot Key'
+		dataType: string
+		isHidden
+		lineageTag: e5650194-d0b9-44d2-b423-680ef88242df
+		summarizeBy: none
+		sourceColumn: Lot Key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Serial Key'
+		dataType: string
+		isHidden
+		lineageTag: 3311bb0f-6719-4cda-a2c5-3719d5d5b66a
+		summarizeBy: none
+		sourceColumn: Serial Key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column qtyPerUnitOfMeasure
+		dataType: double
+		lineageTag: e21854fc-4e6a-4f2d-b0cd-cdf1d998f812
+		summarizeBy: sum
+		sourceColumn: qtyPerUnitOfMeasure
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column unitOfMeasureCode
+		dataType: string
+		lineageTag: 8a5fc428-b436-4cf1-9d1a-53597b935a03
+		summarizeBy: none
+		sourceColumn: unitOfMeasureCode
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Warehouse Journal Lines (To Bin)' = m
+		mode: import
+		queryGroup: 'Fact Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY,API_ENDPOINT, []),
+				    TableData = Source{[Name="toBinWarehouseJournalLines",Signature="table"]}[Data],
+				    #"Removed Columns" = Table.RemoveColumns(TableData, {"ETag"}),
+				    #"Changed Type" = Table.TransformColumnTypes(
+				        #"Removed Columns",
+				        {
+				            {"toBinCode", type text},
+				            {"itemNo", type text},
+				            {"locationCode", type text},
+				            {"qtyBase", type number},
+				            {"lotNo", type text},
+				            {"serialNo", type text},
+				            {"toZoneCode", type text},
+				            {"qtyPerUnitOfMeasure", type number},
+				            {"unitOfMeasureCode", type text}
+				        }
+				    ),
+				    #"Added Bin Key" = Table.AddColumn(
+				        #"Changed Type", "To Bin Key", each if [toBinCode] = "" then "" else [toBinCode] & "(" & [locationCode] & ")",
+				        type text
+				    ),
+				    #"Added Zone Key" = Table.AddColumn(
+				        #"Added Bin Key",
+				        "Zone Key",
+				        each if [toZoneCode] = "" then "" else [toZoneCode] & "(" & [locationCode] & ")",
+				        type text
+				    ),
+				    #"Added Lot Key" = Table.AddColumn(
+				        #"Added Zone Key", "Lot Key", each if [lotNo] = "" then "" else [itemNo] & [lotNo], type text
+				    ),
+				    #"Added Serial Key" = Table.AddColumn(
+				        #"Added Lot Key", "Serial Key", each if [serialNo] = "" then "" else [itemNo] & [serialNo], type text
+				    ),
+				    #"Removed Columns2" = Table.RemoveColumns(#"Added Serial Key", {"lotNo", "serialNo", "toZoneCode", "toBinCode"})
+				in
+				    #"Removed Columns2"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

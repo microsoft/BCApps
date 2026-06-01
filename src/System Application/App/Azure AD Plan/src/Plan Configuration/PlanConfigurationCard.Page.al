@@ -124,6 +124,22 @@ page 9069 "Plan Configuration Card"
                     PlanConfigurationImpl.OpenM365AdminCenter();
                 end;
             }
+
+            action(RestoreDefaultConfiguration)
+            {
+                ApplicationArea = All;
+                Caption = 'Restore Default Configuration';
+                Image = Default;
+                ToolTip = 'Restore license configurations to system defaults and remove any custom tenant permission sets.';
+                Visible = not Rec.Customized;
+
+                trigger OnAction()
+                var
+                    PlanConfigurationImpl: Codeunit "Plan Configuration Impl.";
+                begin
+                    PlanConfigurationImpl.RestoreDefaultConfiguration(Rec);
+                end;
+            }
         }
     }
 

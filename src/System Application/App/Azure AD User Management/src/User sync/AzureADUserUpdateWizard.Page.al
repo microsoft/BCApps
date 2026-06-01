@@ -5,9 +5,9 @@
 
 namespace System.Azure.Identity;
 
-using System.Utilities;
 using System.Environment.Configuration;
 using System.Security.User;
+using System.Utilities;
 
 /// <summary>
 /// Administrators can use this page to synchronize information about users from Microsoft 365 to Business Central.

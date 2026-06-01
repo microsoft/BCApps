@@ -1,0 +1,16 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "d89e1ff593a6bc545059",
+  "position": {
+    "x": 26.532247703798774,
+    "y": 462,
+    "z": 2000,
+    "height": 230.29014427746483,
+    "width": 601.39059304703483,
+    "tabOrder": 6000
+  },
+  "visualGroup": {
+    "displayName": "Gross Requirement KPI Card",
+    "groupMode": "ScaleMode"
+  }
+}

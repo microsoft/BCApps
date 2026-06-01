@@ -1,0 +1,42 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "83e8424bedac61e01b7f",
+  "position": {
+    "x": 27.142857142857146,
+    "y": 350,
+    "z": 2000,
+    "height": 76.363636363636346,
+    "width": 589.090909090909,
+    "tabOrder": 7000
+  },
+  "visualGroup": {
+    "displayName": "Edit And Build Reports Group",
+    "groupMode": "ScaleMode",
+    "objects": {
+      "background": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "color": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#ffffff'"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

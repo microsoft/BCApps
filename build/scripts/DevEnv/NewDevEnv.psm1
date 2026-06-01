@@ -59,7 +59,7 @@ function Create-BCContainer {
         Import-Module BcContainerHelper
 
         # Get artifactUrl from branch
-        $artifactUrl = Get-ConfigValue -Key "artifact" -ConfigType AL-Go
+        $artifactUrl = Get-CurrentBCArtifactUrl
 
         # Create a new container with a single tenant
         $bcContainerHelperConfig.sandboxContainersAreMultitenantByDefault = $false
@@ -319,7 +319,7 @@ function CreateCompilerFolder {
     }
 
     # Create compiler folder using the AL-Go artifact URL
-    $bcArtifactUrl = Get-ConfigValue -Key "artifact" -ConfigType AL-Go
+    $bcArtifactUrl = Get-CurrentBCArtifactUrl
     Write-Host "Creating compiler folder $compilerFolder" -ForegroundColor Yellow
     New-BcCompilerFolder -artifactUrl $bcArtifactUrl -cacheFolder $compilerFolder | Out-Null
     return $compilerFolder

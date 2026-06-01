@@ -5,10 +5,10 @@
 
 namespace Microsoft.Test.Foundation.NoSeries;
 
-using System.TestLibraries.Utilities;
-using System.TestLibraries.Security.AccessControl;
-using Microsoft.TestLibraries.Foundation.NoSeries;
 using Microsoft.Foundation.NoSeries;
+using Microsoft.TestLibraries.Foundation.NoSeries;
+using System.TestLibraries.Security.AccessControl;
+using System.TestLibraries.Utilities;
 
 codeunit 134530 "No. Series Tests"
 {
@@ -892,6 +892,82 @@ codeunit 134530 "No. Series Tests"
 
         // Call to GetLastNoUsed must return empty number
         Assert.AreEqual('', NoSeries.GetLastNoUsed(''), 'GetLastNoUsed should return empty code if argument supplied is empty code');
+    end;
+
+    [Test]
+    procedure TestManualShouldAllowBlankNoSeriesCode()
+    var
+        NoSeriesCU: Codeunit "No. Series";
+    begin
+        // [SCENARIO] TestManual should allow blank No. Series Code to enable users to enter manual numbers
+        // when no number series is configured in the setup page.
+        Initialize();
+
+        // [GIVEN] No number series is configured (empty code)
+        // [WHEN] TestManual is called with blank code
+        // [THEN] No error should be thrown - blank codes indicate manual entry is allowed
+        NoSeriesCU.TestManual('');
+    end;
+
+    [Test]
+    procedure TestManualWithDocNoShouldAllowBlankNoSeriesCode()
+    var
+        NoSeriesCU: Codeunit "No. Series";
+    begin
+        // [SCENARIO] TestManual with DocumentNo should allow blank No. Series Code
+        Initialize();
+
+        // [GIVEN] No number series is configured (empty code)
+        // [WHEN] TestManual is called with blank code and a document number
+        // [THEN] No error should be thrown
+        NoSeriesCU.TestManual('', 'MANUAL-001');
+    end;
+
+    [Test]
+    [HandlerFunctions('NoSeriesLinesPageHandler')]
+    procedure TestEditNoSeriesLinePreservesFilter()
+    var
+        NoSeriesPage: TestPage "No. Series";
+        NoSeriesCode, NoSeriesCode2 : Code[20];
+    begin
+        // [SCENARIO] When a user opens the No. Series page and drills down on a line and edits it, the filter on the line must be preserved.
+        Initialize();
+
+        // [GIVEN] Multiple No. Series with lines exist
+        // [GIVEN] A No. Series with 10 numbers
+        NoSeriesCode := CopyStr('A' + UpperCase(Any.AlphabeticText(MaxStrLen(NoSeriesCode))), 1, MaxStrLen(NoSeriesCode));
+        LibraryNoSeries.CreateNoSeries(NoSeriesCode);
+        LibraryNoSeries.CreateSequenceNoSeriesLine(NoSeriesCode, 1, '1', '10');
+        // [GIVEN] A No. Series with 10 numbers
+        NoSeriesCode2 := CopyStr('B' + UpperCase(Any.AlphabeticText(MaxStrLen(NoSeriesCode2))), 1, MaxStrLen(NoSeriesCode2));
+        LibraryNoSeries.CreateNoSeries(NoSeriesCode2);
+        LibraryNoSeries.CreateSequenceNoSeriesLine(NoSeriesCode2, 1, '1', '10');
+
+        // [WHEN] Open the No. Series page
+        NoSeriesPage.OpenView();
+        NoSeriesPage.GoToKey(NoSeriesCode);
+
+        // [WHEN] drill down on a line and close the page
+        NoSeriesPage.StartNo.Drilldown(); // pagehandler
+
+        // [THEN] You can still drill down
+        ClearLastError();
+        asserterror
+        begin
+            NoSeriesPage.StartNo.Drilldown(); // pagehandler
+            error('');
+        end;
+        LibraryAssert.ExpectedError('');
+    end;
+
+    [ModalPageHandler]
+    procedure NoSeriesLinesPageHandler(var NoSeriesLines: TestPage "No. Series Lines")
+    begin
+        // [WHEN] Editing the line
+        NoSeriesLines."Last No. Used".SetValue(IncStr(NoSeriesLines."Starting No.".Value()));
+
+        NoSeriesLines.Next();
+        LibraryAssert.AreEqual('', NoSeriesLines."Starting No.".Value(), 'The next line should not exist. The filter was removed.');
     end;
 
     [HandlerFunctions('NoSeriesLineDrilldownHandler')]

@@ -1,0 +1,39 @@
+table Salesperson
+	lineageTag: f229e1ee-eb72-4253-af81-91c9b5a4a709
+
+	column 'Salesperson Code'
+		dataType: string
+		isKey
+		lineageTag: 98ede92e-d6e1-47a6-bf69-78f3137e0020
+		summarizeBy: none
+		sourceColumn: Salesperson Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Salesperson Name'
+		dataType: string
+		lineageTag: f283a72e-3215-4975-b9c8-04dcf322becd
+		summarizeBy: none
+		sourceColumn: Salesperson Name
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Salesperson = m
+		mode: import
+		queryGroup: 'Dimension Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY,API_ENDPOINT, []),
+				    TableData = Source{[Name="salespersonPurchasers",Signature="table"]}[Data],
+				    #"Removed Other Columns" = Table.SelectColumns(TableData,{"salespersonPurchaserCode", "salespersonPurchaserName"}),
+				    #"Renamed Columns" = Table.RenameColumns(
+				        #"Removed Other Columns",
+				        {{"salespersonPurchaserCode", "Salesperson Code"}, {"salespersonPurchaserName", "Salesperson Name"}}
+				    )
+				in
+				    #"Renamed Columns"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

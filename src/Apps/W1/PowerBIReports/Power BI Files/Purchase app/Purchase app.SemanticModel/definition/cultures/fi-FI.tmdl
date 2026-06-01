@@ -1,0 +1,1501 @@
+cultureInfo fi-FI
+	translations
+		model Model
+			table Item
+				caption: Nimike
+				column 'Item No. & Description'
+					caption: Nimikkeen nro ja kuvaus
+				column 'Item No.'
+					caption: Nimikkeen numero
+				column 'Item Description'
+					caption: Nimikkeen kuvaus
+				column 'Item Base Unit of Measure'
+					caption: Perusmittayksikkö
+				column 'Item Unit Cost (LCY)'
+					caption: Nimikkeen yksikkökustannus (PVA)
+				column 'Item Inventory Posting Group'
+					caption: Varaston kirjausryhmä
+				column 'Item Category Code'
+					caption: Nimikeluokan koodi
+				column 'Item Category Description'
+					caption: Nimikeluokan kuvaus
+			table Location
+				caption: Sijainti
+				column 'Location Code'
+					caption: Sijaintikoodi
+				column 'Location Name'
+					caption: Sijainnin nimi
+				column 'Location Adjustment Bin Code'
+					caption: Sijainnin muutosvarastopaikkakoodi
+			table Vendor
+				caption: Toimittaja
+				column 'Vendor No. & Name'
+					caption: Toimittajan nro ja nimi
+				column 'Vendor No.'
+					caption: Toimittajanro
+				column 'Vendor Name'
+					caption: Toimittajan nimi
+				column 'Vendor Address'
+					caption: Toimittajan osoite
+				column 'Vendor Address 2'
+					caption: Toimittajan osoite 2
+				column 'Vendor City'
+					caption: Toimittajan paikkakunta
+				column 'Vendor Post Code'
+					caption: Toimittajan postinumero
+				column 'Vendor State'
+					caption: Toimittajan tila
+				column 'Vendor Country/Region Code'
+					caption: Toimittajan maa-/aluekoodi
+				column 'Vendor Posting Group'
+					caption: Toimittajan kirjausryhmä
+			table Purchaser
+				caption: Ostaja
+				column 'Purchaser Code'
+					caption: Ostajan koodi
+				column 'Purchaser Name'
+					caption: Ostajan nimi
+			table 'Dimension Sets'
+				caption: Dimensioyhdistelmät
+				column 'Global Dimension 1'
+					caption: Yleinen dimensio 1
+				column 'Global Dimension 2'
+					caption: Yleinen dimensio 2
+				column 'Shortcut Dimension 3'
+					caption: Pikadimensio 3
+				column 'Shortcut Dimension 4'
+					caption: Pikadimensio 4
+				column 'Shortcut Dimension 5'
+					caption: Pikadimensio 5
+				column 'Shortcut Dimension 6'
+					caption: Pikadimensio 6
+				column 'Shortcut Dimension 7'
+					caption: Pikadimensio 7
+				column 'Shortcut Dimension 8'
+					caption: Pikadimensio 8
+				column id
+					caption: tunnus
+			table 'Purchase Budget'
+				caption: Ostobudjetti
+				column 'Entry No.'
+					caption: Tapahtumanro
+				column 'Budget Name'
+					caption: Budjetin nimi
+				column Date
+					caption: Pvm
+				measure 'Budget Amount'
+					caption: Budjettisumma
+				measure 'Budget Quantity'
+					caption: Budjettimäärä
+				measure 'Budget Quantity Variance'
+					caption: Budjettimäärän vaihtelu
+				measure 'Budget Amount Variance'
+					caption: Budjettisumman vaihtelu
+				measure 'Budget Amount Variance %'
+					caption: Budjettisumman vaihteluprosentti
+				measure 'Budget Quantity Variance %'
+					caption: Budjettimäärän vaihteluprosentti
+			table Date
+				caption: Pvm
+				column 'Week Day'
+					caption: Viikonpäivä
+				column 'Calendar Year'
+					caption: Kalenterivuosi
+				column 'Calendar Quarter'
+					caption: Kalenterin vuosineljännes
+				column 'Calendar Quarter Year'
+					caption: Kalenteri – Vuosineljännes, vuosi
+				column 'Calendar Month'
+					caption: Kalenterikuukausi
+				column 'Calendar Month Year'
+					caption: Kalenterikuukausi, vuosi
+				column 'Calendar Week'
+					caption: Kalenteriviikko
+				column 'Calendar Week Year'
+					caption: Kalenteriviikko, vuosi
+				column 'Calendar RelativeWeekPos'
+					caption: Kalenteri – SuhteellisenViikonOstotilaukset
+				column 'Calendar RelativeMonthPos'
+					caption: Kalenteri – SuhteellisenKuukaudenOstotilaukset
+				column 'Calendar RelativeQuarterPos'
+					caption: Kalenteri – SuhteellisenVuosineljänneksenOstotilaukset
+				column 'Calendar RelativeYearPos'
+					caption: Kalenterin suhteellisen vuoden ostotilaukset
+				column 'Calendar StartOfMonth'
+					caption: Kalenteri – KuukausiAlkaa
+				column 'Calendar EndOfMonth'
+					caption: Kalenteri – KuukausiPäättyy
+				column 'Calendar StartOfQuarter'
+					caption: Kalenteri – VuosineljännesAlkaa
+				column 'Calendar EndOfQuarter'
+					caption: Kalenteri – VuosineljännesPäättyy
+				column 'Calendar StartOfYear'
+					caption: Kalenteri – VuosiAlkaa
+				column 'Calendar EndOfYear'
+					caption: Kalenteri – VuosiPäättyy
+				column 'Calendar MonthDays'
+					caption: Kalenteri – KuukaudenPäivät
+				column 'Calendar QuarterDays'
+					caption: Kalenteri – VuosineljänneksenPäivät
+				column 'Calendar YearDays'
+					caption: Kalenteri – VuodenPäivät
+				column 'Calendar DayOfMonthNumber'
+					caption: Kalenteri – PäiväKuukaudenNumero
+				column 'Calendar DayOfQuarterNumber'
+					caption: Kalenteri – PäiväVuosineljänneksenNumero
+				column 'Calendar DayOfYearNumber'
+					caption: Kalenteri – PäiväVuodenNumero
+				column 'Calendar DatePreviousWeek'
+					caption: Kalenteri – PäivämääräEdellinenViikko
+				column 'Calendar DatePreviousMonth'
+					caption: Kalenteri – PäivämääräEdellinenKuukausi
+				column 'Calendar DatePreviousQuarter'
+					caption: Kalenteri – PäivämääräEdellinenVuosineljännes
+				column 'Calendar DatePreviousYear'
+					caption: Kalenteri – PäivämääräEdellinenVuosi
+				column 'Fiscal Year'
+					caption: Tilikausi
+				column 'Fiscal Quarter'
+					caption: Kirjanpidon vuosineljännes
+				column 'Fiscal Quarter Year'
+					caption: Kirjanpito – Vuosineljännes, vuosi
+				column 'Fiscal Month'
+					caption: Kirjanpitokuukausi
+				column 'Fiscal Month Year'
+					caption: Kirjanpidon kuukausi, vuosi
+				column 'Fiscal Week'
+					caption: Kirjanpitoviikko
+				column 'Fiscal Week Year'
+					caption: Kirjanpitoviikko, vuosi
+				column 'Fiscal RelativeWeekPos'
+					caption: Kirjanpito – SuhteellisenViikonOstotilaukset
+				column 'Fiscal RelativeMonthPos'
+					caption: Kirjanpito – SuhteellisenKuukaudenOstotilaukset
+				column 'Fiscal RelativeQuarterPos'
+					caption: Kirjanpito – SuhteellisenVuosineljänneksenOstotilaukset
+				column 'Fiscal RelativeYearPos'
+					caption: Kirjanpito – SuhteellisenVuodenOstotilaukset
+				column 'Fiscal StartOfMonth'
+					caption: Kirjanpito – KuukausiAlkaa
+				column 'Fiscal EndOfMonth'
+					caption: Kirjanpito – KuukausiPäättyy
+				column 'Fiscal StartOfQuarter'
+					caption: Kirjanpito – VuosineljännesAlkaa
+				column 'Fiscal EndOfQuarter'
+					caption: Kirjanpito – VuosineljännesPäättyy
+				column 'Fiscal StartOfYear'
+					caption: Kirjanpito – VuosiAlkaa
+				column 'Fiscal EndOfYear'
+					caption: Kirjanpito – VuosiPäättyy
+				column 'Fiscal MonthDays'
+					caption: Kirjanpito – KuukaudenPäivät
+				column 'Fiscal QuarterDays'
+					caption: Kirjanpito – VuosineljänneksenPäivät
+				column 'Fiscal YearDays'
+					caption: Kirjanpito – VuodenPäivät
+				column 'Fiscal DayOfMonthNumber'
+					caption: Kirjanpito – PäiväKuukaudenNumero
+				column 'Fiscal DayOfQuarterNumber'
+					caption: Kirjanpito – PäiväVuosineljänneksenNumero
+				column 'Fiscal DayOfYearNumber'
+					caption: Kirjanpito – PäiväVuodenNumero
+				column 'Fiscal DatePreviousWeek'
+					caption: Kirjanpito – PäivämääräEdellinenViikko
+				column 'Fiscal DatePreviousMonth'
+					caption: Kirjanpito – PäivämääräEdellinenKuukausi
+				column 'Fiscal DatePreviousQuarter'
+					caption: Kirjanpito – PäivämääräEdellinenVuosineljännes
+				column 'Fiscal DatePreviousYear'
+					caption: Kirjanpito – PäivämääräEdellinenVuosi
+				column 'FW Year'
+					caption: KV – Vuosi
+				column 'FW Quarter'
+					caption: KV – Vuosineljännes
+				column 'FW Quarter Year'
+					caption: KV – Vuosineljännes, vuosi
+				column 'FW Month'
+					caption: KV – Kuukausi
+				column 'FW Month Year'
+					caption: KV – Kuukausi, vuosi
+				column 'FW Week'
+					caption: KV – Viikko
+				column 'FW Period'
+					caption: KV – Kausi
+				column 'FW Week Year'
+					caption: KV – Viikko, vuosi
+				column 'FW StartOfWeek'
+					caption: KV – ViikkoAlkaa
+				column 'FW EndOfWeek'
+					caption: KV – ViikkoPäättyy
+				column 'FW RelativeWeekPos'
+					caption: KV – SuhteellisenViikonOstotilaukset
+				column 'FW RelativeMonthPos'
+					caption: KV – SuhteellisenKuukaudenOstotilaukset
+				column 'FW RelativeQuarterPos'
+					caption: KV – SuhteellisenVuosineljänneksenOstotilaukset
+				column 'FW RelativeYearPos'
+					caption: KV – SuhteellisenVuodenOstotilaukset
+				column 'FW StartOfMonth'
+					caption: KV – KuukausiAlkaa
+				column 'FW EndOfMonth'
+					caption: KV – KuukausiPäättyy
+				column 'FW StartOfQuarter'
+					caption: KV – VuosineljännesAlkaa
+				column 'FW EndOfQuarter'
+					caption: KV – VuosineljännesPäättyy
+				column 'FW StartOfYear'
+					caption: KV – VuosiAlkaa
+				column 'FW EndOfYear'
+					caption: KV – VuosiPäättyy
+				column 'FW MonthDays'
+					caption: KV – KuukaudenPäivät
+				column 'FW QuarterDays'
+					caption: KV – VuosineljänneksenPäivät
+				column 'FW YearDays'
+					caption: KV – VuodenPäivät
+				column 'FW DatePreviousWeek'
+					caption: KV – PäivämääräEdellinenViikko
+				column 'FW DatePreviousMonth'
+					caption: KV – PäivämääräEdellinenKuukausi
+				column 'FW DatePreviousQuarter'
+					caption: KV – PäivämääräEdellinenVuosineljännes
+				column 'FW DatePreviousYear'
+					caption: KV – PäivämääräEdellinenVuosi
+				column 'Holiday Name'
+					caption: Loman nimi
+				column IsWorkingDay
+					caption: IsWorkingDay
+				column 'Day Type'
+					caption: Päivän tyyppi
+				column 'Relative Day'
+					caption: Suhteellinen päivämäärä
+				hierarchy 'Fiscal Year-Month'
+					caption: Kirjanpito – Vuosi-Kuukausi
+					level 'Fiscal Year'
+						caption: Tilikausi
+					level 'Fiscal Month Year'
+						caption: Kirjanpidon kuukausi, vuosi
+				hierarchy 'Fiscal Year-Quarter-Month-Week'
+					caption: Kirjanpito Vuosi-Vuosineljännes-Kuukausi-Viikko
+					level 'Fiscal Year'
+						caption: Tilikausi
+					level 'Fiscal Quarter Year'
+						caption: Kirjanpito – Vuosineljännes, vuosi
+					level 'Fiscal Month Year'
+						caption: Kirjanpidon kuukausi, vuosi
+					level 'Fiscal Week Year'
+						caption: Kirjanpitoviikko, vuosi
+				hierarchy 'Fiscal Year-Month-Week'
+					caption: Kirjanpito – Vuosi-Kuukausi-Viikko
+					level 'Fiscal Year'
+						caption: Tilikausi
+					level 'Fiscal Month Year'
+						caption: Kirjanpidon kuukausi, vuosi
+					level 'Fiscal Week Year'
+						caption: Kirjanpitoviikko, vuosi
+				hierarchy 'Calendar Year-Month'
+					caption: Kalenteri – Vuosi-Kuukausi
+					level 'Calendar Year'
+						caption: Kalenterivuosi
+					level 'Calendar Month Year'
+						caption: Kalenterikuukausi, vuosi
+				hierarchy 'Calendar Year-Quarter-Month-Week'
+					caption: Kalenteri – Vuosi-Vuosineljännes-Kuukausi-Viikko
+					level 'Calendar Year'
+						caption: Kalenterivuosi
+					level 'Calendar Quarter Year'
+						caption: Kalenteri – Vuosineljännes, vuosi
+					level 'Calendar Month Year'
+						caption: Kalenterikuukausi, vuosi
+					level 'Calendar Week Year'
+						caption: Kalenteriviikko, vuosi
+				hierarchy 'Calendar Year-Month-Week'
+					caption: Kalenteri – Vuosi-Kuukausi-Viikko
+					level 'Calendar Year'
+						caption: Kalenterivuosi
+					level 'Calendar Month Year'
+						caption: Kalenterikuukausi, vuosi
+					level 'Calendar Week Year'
+						caption: Kalenteriviikko, vuosi
+				hierarchy 'FW Year-Month-Week'
+					caption: KV – Vuosi-Kuukausi-Viikko
+					level 'FW Year'
+						caption: KV – Vuosi
+					level 'FW Month Year'
+						caption: KV – Kuukausi, vuosi
+					level 'FW Week Year'
+						caption: KV – Viikko, vuosi
+				hierarchy 'FW Year-Quarter-Month-Week'
+					caption: KV – Vuosi-Vuosineljännes-Kuukausi-Viikko
+					level 'FW Year'
+						caption: KV – Vuosi
+					level 'FW Quarter Year'
+						caption: KV – Vuosineljännes, vuosi
+					level 'FW Month Year'
+						caption: KV – Kuukausi, vuosi
+					level 'FW Week Year'
+						caption: KV – Viikko, vuosi
+				hierarchy 'FW Year-Week'
+					caption: KV – Vuosi-Viikko
+					level 'FW Year'
+						caption: KV – Vuosi
+					level 'FW Week Year'
+						caption: KV – Viikko, vuosi
+				hierarchy 'FW Year-Quarter-Week'
+					caption: KV – Vuosi-Vuosineljännes-Viikko
+					level 'FW Year'
+						caption: KV – Vuosi
+					level 'FW Quarter Year'
+						caption: KV – Vuosineljännes, vuosi
+					level 'FW Week Year'
+						caption: KV – Viikko, vuosi
+			table 'Standard Calendar Time Intelligence'
+				caption: Vakiokalenterin aikatiedot
+				measure 'Purchase Amount YTD'
+					caption: Ostosumma, VA
+				measure 'Purchase Amount PY'
+					caption: Ostosumma, EDV
+				measure 'Purchase Amount PYTD'
+					caption: Ostosumma, EDVA
+				measure 'Purchase Amount PQTD'
+					caption: Ostosumma, EDVNA
+				measure 'Purchase Amount QTD'
+					caption: Ostosumma, VNA
+				measure 'Purchase Amount MTD'
+					caption: Ostosumma, KKA
+				measure 'Purchase Amount YOY %'
+					caption: Ostosumma, VV, prosentteina
+				measure 'Purchase Amount YOY'
+					caption: Ostosumma, VV
+				measure 'Purchase Amount PQ'
+					caption: Ostosumma, EDVN
+				measure 'Purchase Amount QOQ'
+					caption: Ostosumma, VNVN
+				measure 'Purchase Amount PM'
+					caption: Ostosumma, EDKK
+				measure 'Purchase Amount QOQ %'
+					caption: Ostosumma, VNVN, prosentteina
+				measure 'Purchase Amount MOM'
+					caption: Ostosumma, KKKK
+				measure 'Purchase Amount MOM %'
+					caption: Ostosumma, KKKK, prosentteina
+				measure 'Purchase Amount MAT'
+					caption: Ostosumma, LVK
+				measure 'Purchase Amount PYMAT'
+					caption: Ostosumma, EDVLVK
+				measure 'Purchase Amount YOYTD'
+					caption: Ostosumma, VVTM
+				measure 'Purchase Amount YOYTD %'
+					caption: Ostosumma, VVTM, prosentteina
+				measure 'Purchase Amount PYC'
+					caption: Ostosumma, EDVVAL
+				measure 'Purchase Amount YTDOPY'
+					caption: Ostosumma, VAEDV
+				measure 'Purchase Amount YTDOPY %'
+					caption: Ostosumma, VAEDV, prosentteina
+				measure 'Purchase Amount QOQTD'
+					caption: Ostosumma, VNVNTM
+				measure 'Purchase Amount QOQTD %'
+					caption: Ostosumma, VNVNTM, prosentteina
+				measure 'Purchase Amount PQC'
+					caption: Ostosumma, EDVNVAL
+				measure 'Purchase Amount QTDOPQ'
+					caption: Ostosumma, VNAEDVN
+				measure 'Purchase Amount QTDOPQ %'
+					caption: Ostosumma, VNAEDVN, prosentteina
+				measure 'Purchase Amount PMTD'
+					caption: Ostosumma, EDKKA
+				measure 'Purchase Amount MOMTD'
+					caption: Ostosumma, KKKKTM
+				measure 'Purchase Amount MOMTD %'
+					caption: Ostosumma, KKKKTM, prosentteina
+				measure 'Purchase Amount PMC'
+					caption: Ostosumma, EDKKVAL
+				measure 'Purchase Amount MTDOPM'
+					caption: Ostosumma, KKAEDKK
+				measure 'Purchase Amount MTDOPM %'
+					caption: Ostosumma, KKAEDKK, prosentteina
+				measure 'Purchase Amount AVG 30D'
+					caption: Ostosumma, KA 30PV
+				measure 'Purchase Amount AVG 3M'
+					caption: Ostosumma, KA 3KK
+				measure 'Purchase Amount AVG 1Y'
+					caption: Ostosumma, KA 1V
+				measure 'Purchase Amount MATG'
+					caption: Ostosumma, KLVK
+				measure 'Purchase Amount MATG %'
+					caption: Ostosumma, KLVK, prosentteina
+				measure 'Purchase Amount PP'
+					caption: Ostosumma, EDK
+				measure 'Purchase Amount POP'
+					caption: Ostosumma, K-K
+				measure 'Purchase Amount POP %'
+					caption: Ostosumma, K-K, prosentteina
+				measure 'Purchase Quantity YTD'
+					caption: Ostomäärä, VA
+				measure 'Purchase Quantity PY'
+					caption: Ostomäärä, EDV
+				measure 'Purchase Quantity PYTD'
+					caption: Ostomäärä, EDVA
+				measure 'Purchase Quantity PQTD'
+					caption: Ostomäärä, EDVNA
+				measure 'Purchase Quantity QTD'
+					caption: Ostomäärä, VNA
+				measure 'Purchase Quantity MTD'
+					caption: Ostomäärä, KKA
+				measure 'Purchase Quantity YOY %'
+					caption: Ostomäärä, VV, prosentteina
+				measure 'Purchase Quantity YOY'
+					caption: Ostomäärä, VV
+				measure 'Purchase Quantity PQ'
+					caption: Ostomäärä, EDVN
+				measure 'Purchase Quantity QOQ'
+					caption: Ostomäärä, VNVN
+				measure 'Purchase Quantity PM'
+					caption: Ostomäärä, EDKK
+				measure 'Purchase Quantity QOQ %'
+					caption: Ostomäärä, VNVN, prosentteina
+				measure 'Purchase Quantity MOM'
+					caption: Ostomäärä, KKKK
+				measure 'Purchase Quantity MOM %'
+					caption: Ostomäärä, KKKK, prosentteina
+				measure 'Purchase Quantity MAT'
+					caption: Ostomäärä, LVK
+				measure 'Purchase Quantity PYMAT'
+					caption: Ostomäärä, EDVLVK
+				measure 'Purchase Quantity YOYTD'
+					caption: Ostomäärä, VVTM
+				measure 'Purchase Quantity YOYTD %'
+					caption: Ostomäärä, VVTM, prosentteina
+				measure 'Purchase Quantity PYC'
+					caption: Ostomäärä, EDVVAL
+				measure 'Purchase Quantity YTDOPY'
+					caption: Ostomäärä, VAEDV
+				measure 'Purchase Quantity YTDOPY %'
+					caption: Ostomäärä, VAEDV, prosentteina
+				measure 'Purchase Quantity QOQTD'
+					caption: Ostomäärä, VNVNTM
+				measure 'Purchase Quantity QOQTD %'
+					caption: Ostomäärä, VNVNTM, prosentteina
+				measure 'Purchase Quantity PQC'
+					caption: Ostomäärä, EDVNVAL
+				measure 'Purchase Quantity QTDOPQ'
+					caption: Ostomäärä, VNAEDVN
+				measure 'Purchase Quantity QTDOPQ %'
+					caption: Ostomäärä, VNAEDVN, prosentteina
+				measure 'Purchase Quantity PMTD'
+					caption: Ostomäärä, EDKKA
+				measure 'Purchase Quantity MOMTD'
+					caption: Ostomäärä, KKKKTM
+				measure 'Purchase Quantity MOMTD %'
+					caption: Ostomäärä, KKKKTM, prosentteina
+				measure 'Purchase Quantity PMC'
+					caption: Ostomäärä, EDKKVAL
+				measure 'Purchase Quantity MTDOPM'
+					caption: Ostomäärä, KKAEDKK
+				measure 'Purchase Quantity MTDOPM %'
+					caption: Ostomäärä, KKAEDKK, prosentteina
+				measure 'Purchase Quantity AVG 30D'
+					caption: Ostomäärä, KA 30PV
+				measure 'Purchase Quantity AVG 3M'
+					caption: Ostomäärä, KA 3KK
+				measure 'Purchase Quantity AVG 1Y'
+					caption: Ostomäärä, KA 1V
+				measure 'Purchase Quantity MATG'
+					caption: Ostomäärä, KLVK
+				measure 'Purchase Quantity MATG %'
+					caption: Ostomäärä, KLVK, prosentteina
+				measure 'Purchase Quantity PP'
+					caption: Ostomäärä, EDK
+				measure 'Purchase Quantity POP'
+					caption: Ostomäärä, K-K
+				measure 'Purchase Quantity POP %'
+					caption: Ostomäärä, K-K, prosentteina
+				measure 'Budget Amount YTD'
+					caption: Budjettisumma, VA
+				measure 'Budget Amount QTD'
+					caption: Budjettisumma, VNA
+				measure 'Budget Amount MTD'
+					caption: Budjettisumma, KKA
+				measure 'Budget Amount PY'
+					caption: Budjettisumma, EDV
+				measure 'Budget Amount YOY %'
+					caption: Budjettisumma, VV, prosentteina
+				measure 'Budget Amount YOY'
+					caption: Budjettisumma, VV
+				measure 'Budget Amount PQ'
+					caption: Budjettisumma, EDVN
+				measure 'Budget Amount QOQ'
+					caption: Budjettisumma, VNVN
+				measure 'Budget Amount PM'
+					caption: Budjettisumma, EDKK
+				measure 'Budget Amount QOQ %'
+					caption: Budjettisumma, VNVN, prosentteina
+				measure 'Budget Amount MOM'
+					caption: Budjettisumma, KKKK
+				measure 'Budget Amount MOM %'
+					caption: Budjettisumma, KKKK, prosentteina
+				measure 'Budget Amount PP'
+					caption: Budjettisumma, EDK
+				measure 'Budget Amount POP'
+					caption: Budjettisumma, K-K
+				measure 'Budget Amount POP %'
+					caption: Budjettisumma, K-K, prosentteina
+				measure 'Budget Amount PYTD'
+					caption: Budjettisumma, EDVA
+				measure 'Budget Amount PQTD'
+					caption: Budjettisumma, EDVNA
+				measure 'Budget Amount YOYTD'
+					caption: Budjettisumma, VVTM
+				measure 'Budget Amount YOYTD %'
+					caption: Budjettisumma, VVTM, prosentteina
+				measure 'Budget Amount QOQTD'
+					caption: Budjettisumma, VNVNTM
+				measure 'Budget Amount QOQTD %'
+					caption: Budjettisumma, VNVNTM, prosentteina
+				measure 'Budget Amount PMTD'
+					caption: Budjettisumma, EDKKA
+				measure 'Budget Amount MOMTD'
+					caption: Budjettisumma, KKKKTM
+				measure 'Budget Amount MOMTD %'
+					caption: Budjettisumma, KKKKTM, prosentteina
+				measure 'Budget Amount MAT'
+					caption: Budjettisumma, LVK
+				measure 'Budget Amount PYMAT'
+					caption: Budjettisumma, EDVLVK
+				measure 'Budget Amount MATG'
+					caption: Budjettisumma, KLVK
+				measure 'Budget Amount MATG %'
+					caption: Budjettisumma, KLVK, prosentteina
+				measure 'Budget Amount PYC'
+					caption: Budjettisumma, EDVVAL
+				measure 'Budget Amount YTDOPY'
+					caption: Budjettisumma, VAEDV
+				measure 'Budget Amount YTDOPY %'
+					caption: Budjettisumma, VAEDV, prosentteina
+				measure 'Budget Amount PQC'
+					caption: Budjettisumma, EDVNVAL
+				measure 'Budget Amount QTDOPQ'
+					caption: Budjettisumma, VNAEDVN
+				measure 'Budget Amount QTDOPQ %'
+					caption: Budjettisumma, VNAEDVN, prosentteina
+				measure 'Budget Amount PMC'
+					caption: Budjettisumma, EDKKVAL
+				measure 'Budget Amount MTDOPM'
+					caption: Budjettisumma, KKAEDKK
+				measure 'Budget Amount MTDOPM %'
+					caption: Budjettisumma, KKAEDKK, prosentteina
+				measure 'Budget Amount AVG 30D'
+					caption: Budjettisumma, KA 30PV
+				measure 'Budget Amount AVG 3M'
+					caption: Budjettisumma, KA 3KK
+				measure 'Budget Amount AVG 1Y'
+					caption: Budjettisumma, KA 1V
+				measure 'Budget Quantity YTD'
+					caption: Budjettimäärä, VA
+				measure 'Budget Quantity QTD'
+					caption: Budjettimäärä, VNA
+				measure 'Budget Quantity MTD'
+					caption: Budjettimäärä, KKA
+				measure 'Budget Quantity PY'
+					caption: Budjettimäärä, EDV
+				measure 'Budget Quantity YOY %'
+					caption: Budjettimäärä, VV, prosentteina
+				measure 'Budget Quantity YOY'
+					caption: Budjettimäärä, VV
+				measure 'Budget Quantity PQ'
+					caption: Budjettimäärä, EDVN
+				measure 'Budget Quantity QOQ'
+					caption: Budjettimäärä, VNVN
+				measure 'Budget Quantity PM'
+					caption: Budjettimäärä, EDKK
+				measure 'Budget Quantity QOQ %'
+					caption: Budjettimäärä, VNVN, prosentteina
+				measure 'Budget Quantity MOM'
+					caption: Budjettimäärä, KKKK
+				measure 'Budget Quantity MOM %'
+					caption: Budjettimäärä, KKKK, prosentteina
+				measure 'Budget Quantity PP'
+					caption: Budjettimäärä, EDK
+				measure 'Budget Quantity POP'
+					caption: Budjettimäärä, K-K
+				measure 'Budget Quantity POP %'
+					caption: Budjettimäärä, K-K, prosentteina
+				measure 'Budget Quantity PYTD'
+					caption: Budjettimäärä, EDVA
+				measure 'Budget Quantity PQTD'
+					caption: Budjettimäärä, EDVNA
+				measure 'Budget Quantity YOYTD'
+					caption: Budjettimäärä, VVTM
+				measure 'Budget Quantity YOYTD %'
+					caption: Budjettimäärä, VVTM, prosentteina
+				measure 'Budget Quantity QOQTD'
+					caption: Budjettimäärä, VNVNTM
+				measure 'Budget Quantity QOQTD %'
+					caption: Budjettimäärä, VNVNTM, prosentteina
+				measure 'Budget Quantity PMTD'
+					caption: Budjettimäärä, EDKKA
+				measure 'Budget Quantity MOMTD'
+					caption: Budjettimäärä, KKKKTM
+				measure 'Budget Quantity MOMTD %'
+					caption: Budjettimäärä, KKKKTM, prosentteina
+				measure 'Budget Quantity MAT'
+					caption: Budjettimäärä, LVK
+				measure 'Budget Quantity PYMAT'
+					caption: Budjettimäärä, EDVLVK
+				measure 'Budget Quantity MATG'
+					caption: Budjettimäärä, KLVK
+				measure 'Budget Quantity MATG %'
+					caption: Budjettimäärä, KLVK, prosentteina
+				measure 'Budget Quantity PYC'
+					caption: Budjettimäärä, EDVVAL
+				measure 'Budget Quantity YTDOPY'
+					caption: Budjettimäärä, VAEDV
+				measure 'Budget Quantity YTDOPY %'
+					caption: Budjettimäärä, VAEDV, prosentteina
+				measure 'Budget Quantity PQC'
+					caption: Budjettimäärä, EDVNVAL
+				measure 'Budget Quantity QTDOPQ'
+					caption: Budjettimäärä, VNAEDVN
+				measure 'Budget Quantity QTDOPQ %'
+					caption: Budjettimäärä, VNAEDVN, prosentteina
+				measure 'Budget Quantity PMC'
+					caption: Budjettimäärä, EDKKVAL
+				measure 'Budget Quantity MTDOPM'
+					caption: Budjettimäärä, KKAEDKK
+				measure 'Budget Quantity MTDOPM %'
+					caption: Budjettimäärä, KKAEDKK, prosentteina
+				measure 'Budget Quantity AVG 30D'
+					caption: Budjettimäärä, KA 30PV
+				measure 'Budget Quantity AVG 3M'
+					caption: Budjettimäärä, KA 3KK
+				measure 'Budget Quantity AVG 1Y'
+					caption: Budjettimäärä, KA 1V
+			table 'Fiscal Calendar Time Intelligence'
+				caption: Kirjanpitokalenterin aikatiedot
+				measure 'Purchase Amount YTD (Fiscal)'
+					caption: Ostosumma, VA (kirjanpito)
+				measure 'Purchase Amount QTD (Fiscal)'
+					caption: Ostosumma, VNA (kirjanpito)
+				measure 'Purchase Amount MTD (Fiscal)'
+					caption: Ostosumma KKA (kirjanpito)
+				measure 'Purchase Amount PY (Fiscal)'
+					caption: Ostosumma, EDV (kirjanpito)
+				measure 'Purchase Amount YOY % (Fiscal)'
+					caption: Ostosumma, VV, prosentteina (kirjanpito)
+				measure 'Purchase Amount YOY (Fiscal)'
+					caption: Ostosumma, VV (kirjanpito)
+				measure 'Purchase Amount PQ (Fiscal)'
+					caption: Ostosumma, EDVN (kirjanpito)
+				measure 'Purchase Amount QOQ (Fiscal)'
+					caption: Ostosumma, VNVN (kirjanpito)
+				measure 'Purchase Amount QOQ % (Fiscal)'
+					caption: Ostosumma, VNVN, prosentteina (kirjanpito)
+				measure 'Purchase Amount PM (Fiscal)'
+					caption: Ostosumma, EDKK (kirjanpito)
+				measure 'Purchase Amount MOM (Fiscal)'
+					caption: Ostosumma, KKKK (kirjanpito)
+				measure 'Purchase Amount MOM % (Fiscal)'
+					caption: Ostosumma, KKK, prosentteina (kirjanpito)
+				measure 'Purchase Amount PP (Fiscal)'
+					caption: Ostosumma, EDK (kirjanpito)
+				measure 'Purchase Amount POP (Fiscal)'
+					caption: Ostosumma, K-K (kirjanpito)
+				measure 'Purchase Amount POP % (Fiscal)'
+					caption: Ostosumma, K-K, prosentteina (kirjanpito)
+				measure 'Purchase Amount PYTD (Fiscal)'
+					caption: Ostosumma, EDVA (kirjanpito)
+				measure 'Purchase Amount PQTD (Fiscal)'
+					caption: Ostosumma, EDVNA (kirjanpito)
+				measure 'Purchase Amount YOYTD (Fiscal)'
+					caption: Ostosumma, VVTM (kirjanpito)
+				measure 'Purchase Amount YOYTD % (Fiscal)'
+					caption: Ostosumma, VVTM, prosentteina (kirjanpito)
+				measure 'Purchase Amount QOQTD (Fiscal)'
+					caption: Ostosumma, VNVNTM (kirjanpito)
+				measure 'Purchase Amount QOQTD % (Fiscal)'
+					caption: Ostosumma, VNVNTM, prosentteina (kirjanpito)
+				measure 'Purchase Amount PMTD (Fiscal)'
+					caption: Ostosumma, EDKKA (kirjanpito)
+				measure 'Purchase Amount MOMTD % (Fiscal)'
+					caption: Ostosumma, KKKKTM, prosentteina (kirjanpito)
+				measure 'Purchase Amount MOMTD (Fiscal)'
+					caption: Ostosumma, KKKKTM (kirjanpito)
+				measure 'Purchase Amount MAT (Fiscal)'
+					caption: Ostosumma, LVK (kirjanpito)
+				measure 'Purchase Amount PYMAT (Fiscal)'
+					caption: Ostosumma, EDVLVK (kirjanpito)
+				measure 'Purchase Amount MATG (Fiscal)'
+					caption: Ostosumma, KLVK (kirjanpito)
+				measure 'Purchase Amount MATG % (Fiscal)'
+					caption: Ostosumma, KLVK, prosentteina (kirjanpito)
+				measure 'Purchase Amount MAT (364) (Fiscal)'
+					caption: Ostosumma, LVK (364) (kirjanpito)
+				measure 'Purchase PYMAT (364) (Fiscal)'
+					caption: Osto, EDVLVK (364) (kirjanpito)
+				measure 'Purchase Amount PYC (Fiscal)'
+					caption: Ostosumma, EDVVAL (kirjanpito)
+				measure 'Purchase Amount YTDOPY (Fiscal)'
+					caption: Ostosumma, VAEDV (kirjanpito)
+				measure 'Purchase Amount YTDOPY % (Fiscal)'
+					caption: Ostosumma, VAEDV, prosentteina (kirjanpito)
+				measure 'Purchase Amount PQC (Fiscal)'
+					caption: Ostosumma, EDVNVAL (kirjanpito)
+				measure 'Purchase Amount QTDOPQ (Fiscal)'
+					caption: Ostosumma, VNAEDVN (kirjanpito)
+				measure 'Purchase Amount QTDOPQ % (Fiscal)'
+					caption: Ostosumma, VNAEDVN, prosentteina (kirjanpito)
+				measure 'Purchase Amount PMC (Fiscal)'
+					caption: Ostosumma, EDKKVAL (kirjanpito)
+				measure 'Purchase Amount MTDOPM (Fiscal)'
+					caption: Ostosumma, KKAEDKK (kirjanpito)
+				measure 'Purchase Amount MTDOPM % (Fiscal)'
+					caption: Ostosumma, KKAEDKK, prosentteina (kirjanpito)
+				measure 'Purchase Amount AVG 30D (Fiscal)'
+					caption: Ostosumma, KA, 30PV (kirjanpito)
+				measure 'Purchase Amount AVG 3M (Fiscal)'
+					caption: Ostosumma, KA, 3KK (kirjanpito)
+				measure 'Purchase Amount AVG 1Y (Fiscal)'
+					caption: Ostosumma, KA, 1V (kirjanpito)
+				measure 'Purchases Quantity YTD (Fiscal)'
+					caption: Ostomäärä, VA (kirjanpito)
+				measure 'Purchases Quantity QTD (Fiscal)'
+					caption: Ostomäärä, VNA (kirjanpito)
+				measure 'Purchases Quantity MTD (Fiscal)'
+					caption: Ostomäärä, KKA (kirjanpito)
+				measure 'Purchase Quantity PY (Fiscal)'
+					caption: Ostomäärä, EDV (kirjanpito)
+				measure 'Purchase Quantity YOY % (Fiscal)'
+					caption: Ostomäärä, VV, prosentteina (kirjanpito)
+				measure 'Purchase Quantity YOY (Fiscal)'
+					caption: Ostomäärä, VV (kirjanpito)
+				measure 'Purchase Quantity PQ (Fiscal)'
+					caption: Ostomäärä, EDVN (kirjanpito)
+				measure 'Purchase Quantity QOQ (Fiscal)'
+					caption: Ostomäärä, VNVN (kirjanpito)
+				measure 'Purchase Quantity QOQ % (Fiscal)'
+					caption: Ostomäärä, VNVN, prosentteina (kirjanpito)
+				measure 'Purchase Quantity PM (Fiscal)'
+					caption: Ostomäärä, EDKK (kirjanpito)
+				measure 'Purchase Quantity MOM (Fiscal)'
+					caption: Ostomäärä, KKKK (kirjanpito)
+				measure 'Purchase Quantity MOM % (Fiscal)'
+					caption: Ostomäärä, KKKK, prosentteina (kirjanpito)
+				measure 'Purchase Quantity PP (Fiscal)'
+					caption: Ostomäärä, EDK (kirjanpito)
+				measure 'Purchase Quantity POP (Fiscal)'
+					caption: Ostomäärä, K-K (kirjanpito)
+				measure 'Purchase Quantity POP % (Fiscal)'
+					caption: Ostomäärä, K-K, prosentteina (kirjanpito)
+				measure 'Purchase Quantity PYTD (Fiscal)'
+					caption: Ostomäärä, EDVA (kirjanpito)
+				measure 'Purchase Quantity PQTD (Fiscal)'
+					caption: Ostomäärä, EDVN (kirjanpito)
+				measure 'Purchase Quantity YOYTD (Fiscal)'
+					caption: Ostomäärä, VVTM (kirjanpito)
+				measure 'Purchase Quantity YOYTD % (Fiscal)'
+					caption: Ostomäärä, VVTM, prosentteina (kirjanpito)
+				measure 'Purchase Quantity QOQTD (Fiscal)'
+					caption: Ostomäärä, VNVNTM (kirjanpito)
+				measure 'Purchase Quantity QOQTD % (Fiscal)'
+					caption: Ostomäärä, VNVNTM, prosentteina (kirjanpito)
+				measure 'Purchase Quantity PMTD (Fiscal)'
+					caption: Ostomäärä, EDKKA (kirjanpito)
+				measure 'Purchase Quantity MOMTD % (Fiscal)'
+					caption: Ostomäärä, KKKKTM, prosentteina (kirjanpito)
+				measure 'Purchase Quantity MOMTD (Fiscal)'
+					caption: Ostomäärä, KKKKTM (kirjanpito)
+				measure 'Purchase Quantity MAT (Fiscal)'
+					caption: Ostomäärä, LVK (kirjanpito)
+				measure 'Purchase Quantity PYMAT (Fiscal)'
+					caption: Ostomäärä, EDVLVK (kirjanpito)
+				measure 'Purchase Quantity MATG (Fiscal)'
+					caption: Ostomäärä, KLVK (kirjanpito)
+				measure 'Purchase Quantity MATG % (Fiscal)'
+					caption: Ostomäärä, KLVK, prosentteina (kirjanpito)
+				measure 'Purchase Quantity PYC (Fiscal)'
+					caption: Ostomäärä, EDVVAL (kirjanpito)
+				measure 'Purchase Quantity YTDOPY (Fiscal)'
+					caption: Ostomäärä, VAEDV (kirjanpito)
+				measure 'Purchase Quantity YTDOPY % (Fiscal)'
+					caption: Ostomäärä, VAEDV, prosentteina (kirjanpito)
+				measure 'Purchase Quantity PQC (Fiscal)'
+					caption: Ostomäärä, EDVNVAL (kirjanpito)
+				measure 'Purchase Quantity QTDOPQ (Fiscal)'
+					caption: Ostomäärä, VNAEDVN (kirjanpito)
+				measure 'Purchase Quantity QTDOPQ % (Fiscal)'
+					caption: Ostomäärä, VNAEDVN, prosentteina (kirjanpito)
+				measure 'Purchase Quantity PMC (Fiscal)'
+					caption: Ostomäärä, EDKKVAL (kirjanpito)
+				measure 'Purchase Quantity MTDOPM (Fiscal)'
+					caption: Ostomäärä, KKAEDKK (kirjanpito)
+				measure 'Purchase Quantity MTDOPM % (Fiscal)'
+					caption: Ostomäärä, KKAEDKK, prosentteina (kirjanpito)
+				measure 'Purchase Quantity AVG 30D (Fiscal)'
+					caption: Ostomäärä, KA 30PV (kirjanpito)
+				measure 'Purchase Quantity AVG 3M (Fiscal)'
+					caption: Ostomäärä, KA 3KK (kirjanpito)
+				measure 'Purchase Quantity AVG 1Y (Fiscal)'
+					caption: Ostomäärä, KA 1V (kirjanpito)
+				measure 'Budget Amount YTD (Fiscal)'
+					caption: Budjettisumma, VA (kirjanpito)
+				measure 'Budget Amount QTD (Fiscal)'
+					caption: Budjettisumma, VNA (kirjanpito)
+				measure 'Budget Amount MTD (Fiscal)'
+					caption: Budjettisumma, KKA (kirjanpito)
+				measure 'Budget Amount PY (Fiscal)'
+					caption: Budjettisumma, EDV (kirjanpito)
+				measure 'Budget Amount YOY % (Fiscal)'
+					caption: Budjettisumma, VV, prosentteina (kirjanpito)
+				measure 'Budget Amount YOY (Fiscal)'
+					caption: Budjettisumma, VV (kirjanpito)
+				measure 'Budget Amount PQ (Fiscal)'
+					caption: Budjettisumma, EDVN (kirjanpito)
+				measure 'Budget Amount QOQ (Fiscal)'
+					caption: Budjettisumma, VNVN (kirjanpito)
+				measure 'Budget Amount QOQ % (Fiscal)'
+					caption: Budjettisumma, VNVN, prosentteina (kirjanpito)
+				measure 'Budget Amount PM (Fiscal)'
+					caption: Budjettisumma, EDKK (kirjanpito)
+				measure 'Budget Amount MOM (Fiscal)'
+					caption: Budjettisumma, KKKK (kirjanpito)
+				measure 'Budget Amount MOM % (Fiscal)'
+					caption: Budjettisumma, KKKK, prosentteina (kirjanpito)
+				measure 'Budget Amount PP (Fiscal)'
+					caption: Budjettisumma, EDK (kirjanpito)
+				measure 'Budget Amount POP (Fiscal)'
+					caption: Budjettisumma, K-K (kirjanpito)
+				measure 'Budget Amount POP % (Fiscal)'
+					caption: Budjettisumma, K-K, prosentteina (kirjanpito)
+				measure 'Budget Amount PYTD (Fiscal)'
+					caption: Budjettisumma, EDVA (kirjanpito)
+				measure 'Budget Amount PQTD (Fiscal)'
+					caption: Budjettisumma, EDVNA (kirjanpito)
+				measure 'Budget Amount YOYTD (Fiscal)'
+					caption: Budjettisumma, VVTM (kirjanpito)
+				measure 'Budget Amount YOYTD % (Fiscal)'
+					caption: Budjettisumma, VVTM, prosentteina (kirjanpito)
+				measure 'Budget Amount QOQTD (Fiscal)'
+					caption: Budjettisumma, VNVNTM (kirjanpito)
+				measure 'Budget Amount QOQTD % (Fiscal)'
+					caption: Budjettisumma, VNVNTM, prosentteina (kirjanpito)
+				measure 'Budget Amount PMTD (Fiscal)'
+					caption: Budjettisumma, EDKKA (kirjanpito)
+				measure 'Budget Amount MOMTD % (Fiscal)'
+					caption: Budjettisumma, KKKKTM, prosentteina (kirjanpito)
+				measure 'Budget Amount MOMTD (Fiscal)'
+					caption: Budjettisumma, KKKKTM (kirjanpito)
+				measure 'Budget Amount MAT (Fiscal)'
+					caption: Budjettisumma, LVK (kirjanpito)
+				measure 'Budget Amount PYMAT (Fiscal)'
+					caption: Budjettisumma, EDVLVK (kirjanpito)
+				measure 'Budget Amount MATG (Fiscal)'
+					caption: Budjettisumma, KLVK (kirjanpito)
+				measure 'Budget Amount MATG % (Fiscal)'
+					caption: Budjettisumma, KLVK, prosentteina (kirjanpito)
+				measure 'Budget Amount MAT (364) (Fiscal)'
+					caption: Budjettisumma, LVK (364) (kirjanpito)
+				measure 'Budget PYMAT (364) (Fiscal)'
+					caption: Budjetti, EDVLVK (364) (kirjanpito)
+				measure 'Budget Amount PYC (Fiscal)'
+					caption: Budjettisumma, EDVVAL (kirjanpito)
+				measure 'Budget Amount YTDOPY (Fiscal)'
+					caption: Budjettisumma, VAEDV (kirjanpito)
+				measure 'Budget Amount YTDOPY % (Fiscal)'
+					caption: Budjettisumma, VAEDV, prosentteina (kirjanpito)
+				measure 'Budget Amount PQC (Fiscal)'
+					caption: Budjettisumma, EDVNVAL (kirjanpito)
+				measure 'Budget Amount QTDOPQ (Fiscal)'
+					caption: Budjettisumma, VNAEDVN (kirjanpito)
+				measure 'Budget Amount QTDOPQ % (Fiscal)'
+					caption: Budjettisumma, VNAEDVN, prosentteina (kirjanpito)
+				measure 'Budget Amount PMC (Fiscal)'
+					caption: Budjettisumma, EDKKVAL (kirjanpito)
+				measure 'Budget Amount MTDOPM (Fiscal)'
+					caption: Budjettisumma, KKAEDKK (kirjanpito)
+				measure 'Budget Amount MTDOPM % (Fiscal)'
+					caption: Budjettisumma, KKAEDKK, prosentteina (kirjanpito)
+				measure 'Budget Amount AVG 30D (Fiscal)'
+					caption: Budjettisumma, KA 30PV (kirjanpito)
+				measure 'Budget Amount AVG 3M (Fiscal)'
+					caption: Budjettisumma, KA 3KK (kirjanpito)
+				measure 'Budget Amount AVG 1Y (Fiscal)'
+					caption: Budjettisumma, KA 1V (kirjanpito)
+				measure 'Budget Quantity YTD (Fiscal)'
+					caption: Budjettimäärä, VA (kirjanpito)
+				measure 'Budget Quantity QTD (Fiscal)'
+					caption: Budjettimäärä, VNA (kirjanpito)
+				measure 'Budget Quantity MTD (Fiscal)'
+					caption: Budjettimäärä, KKA (kirjanpito)
+				measure 'Budget Quantity PY (Fiscal)'
+					caption: Budjettimäärä, EDV (kirjanpito)
+				measure 'Budget Quantity YOY % (Fiscal)'
+					caption: Budjettimäärä, VV, prosentteina (kirjanpito)
+				measure 'Budget Quantity YOY (Fiscal)'
+					caption: Budjettimäärä, VV (kirjanpito)
+				measure 'Budget Quantity PQ (Fiscal)'
+					caption: Budjettimäärä, EDVN (kirjanpito)
+				measure 'Budget Quantity QOQ (Fiscal)'
+					caption: Budjettimäärä, VNVN (kirjanpito)
+				measure 'Budget Quantity QOQ % (Fiscal)'
+					caption: Budjettimäärä, VNVN, prosentteina (kirjanpito)
+				measure 'Budget Quantity PM (Fiscal)'
+					caption: Budjettimäärä, EDKK (kirjanpito)
+				measure 'Budget Quantity MOM (Fiscal)'
+					caption: Budjettimäärä, KKKK (kirjanpito)
+				measure 'Budget Quantity MOM % (Fiscal)'
+					caption: Budjettimäärä, KKKK, prosentteina (kirjanpito)
+				measure 'Budget Quantity PP (Fiscal)'
+					caption: Budjettimäärä, EDK (kirjanpito)
+				measure 'Budget Quantity POP (Fiscal)'
+					caption: Budjettimäärä, K-K (kirjanpito)
+				measure 'Budget Quantity POP % (Fiscal)'
+					caption: Budjettimäärä, K-K, prosentteina (kirjanpito)
+				measure 'Budget Quantity PYTD (Fiscal)'
+					caption: Budjettimäärä, EDVA (kirjanpito)
+				measure 'Budget Quantity PQTD (Fiscal)'
+					caption: Budjettimäärä, EDVNA (kirjanpito)
+				measure 'Budget Quantity YOYTD (Fiscal)'
+					caption: Budjettimäärä, VVTM (kirjanpito)
+				measure 'Budget Quantity YOYTD % (Fiscal)'
+					caption: Budjettimäärä, VVTM, prosentteina (kirjanpito)
+				measure 'Budget Quantity QOQTD (Fiscal)'
+					caption: Budjettimäärä, VNVNTM (kirjanpito)
+				measure 'Budget Quantity QOQTD % (Fiscal)'
+					caption: Budjettimäärä, VNVNTM, prosentteina (kirjanpito)
+				measure 'Budget Quantity PMTD (Fiscal)'
+					caption: Budjettimäärä, EDKKA (kirjanpito)
+				measure 'Budget Quantity MOMTD % (Fiscal)'
+					caption: Budjettimäärä, KKKKTM, prosentteina (kirjanpito)
+				measure 'Budget Quantity MOMTD (Fiscal)'
+					caption: Budjettimäärä, KKKKTM (kirjanpito)
+				measure 'Budget Quantity MAT (Fiscal)'
+					caption: Budjettimäärä, LVK (kirjanpito)
+				measure 'Budget Quantity PYMAT (Fiscal)'
+					caption: Budjettimäärä, EDVLVK (kirjanpito)
+				measure 'Budget Quantity MATG (Fiscal)'
+					caption: Budjettimäärä, KLVK (kirjanpito)
+				measure 'Budget Quantity MATG % (Fiscal)'
+					caption: Budjettimäärä, KLVK, prosentteina (kirjanpito)
+				measure 'Budget Quantity PYC (Fiscal)'
+					caption: Budjettimäärä, EDVVAL (kirjanpito)
+				measure 'Budget Quantity YTDOPY (Fiscal)'
+					caption: Budjettimäärä, VAEDV (kirjanpito)
+				measure 'Budget Quantity YTDOPY % (Fiscal)'
+					caption: Budjettimäärä, VAEDV, prosentteina (kirjanpito)
+				measure 'Budget Quantity PQC (Fiscal)'
+					caption: Budjettimäärä, EDVNVAL (kirjanpito)
+				measure 'Budget Quantity QTDOPQ (Fiscal)'
+					caption: Budjettimäärä, VNAEDVN (kirjanpito)
+				measure 'Budget Quantity QTDOPQ % (Fiscal)'
+					caption: Budjettimäärä, VNAEDVN, prosentteina (kirjanpito)
+				measure 'Budget Quantity PMC (Fiscal)'
+					caption: Budjettimäärä, EDKKVAL (kirjanpito)
+				measure 'Budget Quantity MTDOPM (Fiscal)'
+					caption: Budjettimäärä, KKAEDKK (kirjanpito)
+				measure 'Budget Quantity MTDOPM % (Fiscal)'
+					caption: Budjettimäärä, KKAEDKK, prosentteina (kirjanpito)
+				measure 'Budget Quantity AVG 30D (Fiscal)'
+					caption: Budjettimäärä, KA, 30PV (kirjanpito)
+				measure 'Budget Quantity AVG 3M (Fiscal)'
+					caption: Budjettimäärä, KA, 3KK (kirjanpito)
+				measure 'Budget Quantity AVG 1Y (Fiscal)'
+					caption: Budjettimäärä, KA, 1V (kirjanpito)
+			table 'Weekly Calendar Time Intelligence'
+				caption: Viikkokalenterin aikatiedot
+				measure 'Purchase Amount YTD (Weekly)'
+					caption: Ostosumma, VA (viikoittainen)
+				measure 'Purchase Amount QTD (Weekly)'
+					caption: Ostosumma, VNA (viikoittainen)
+				measure 'Purchase Amount MTD (Weekly)'
+					caption: Ostosumma, KKA (viikoittainen)
+				measure 'Purchase Amount WTD (Weekly)'
+					caption: Ostosumma, VKA (viikoittainen)
+				measure 'Purchase Amount PY (Weekly)'
+					caption: Ostosumma, EDV (viikoittainen)
+				measure 'Purchase Amount YOY % (Weekly)'
+					caption: Ostosumma, VV, prosentteina (viikoittainen)
+				measure 'Purchase Amount YOY (Weekly)'
+					caption: Ostosumma, VV (viikoittainen)
+				measure 'Purchase Amount PQ (Weekly)'
+					caption: Ostosumma, EDVN (viikoittainen)
+				measure 'Purchase Amount QOQ (Weekly)'
+					caption: Ostosumma, VNVN (viikoittainen)
+				measure 'Purchase Amount QOQ % (Weekly)'
+					caption: Ostosumma, VNVN, prosentteina (viikoittainen)
+				measure 'Purchase Amount PW (Weekly)'
+					caption: Ostosumma, EDVK (viikoittainen)
+				measure 'Purchase Amount WOW (Weekly)'
+					caption: Ostosumma, VKVK (viikoittainen)
+				measure 'Purchase Amount WOW % (Weekly)'
+					caption: Ostosumma, VKVK, prosentteina (viikoittainen)
+				measure 'Purchase Amount PP (Weekly)'
+					caption: Ostosumma, EDK (viikoittainen)
+				measure 'Purchase Amount POP (Weekly)'
+					caption: Ostosumma, K-K (viikoittainen)
+				measure 'Purchase Amount POP % (Weekly)'
+					caption: Ostosumma, K-K, prosentteina (viikoittainen)
+				measure 'Purchase Amount PYTD (Weekly)'
+					caption: Ostosumma, EDVA (viikoittainen)
+				measure 'Purchase Amount PQTD (Weekly)'
+					caption: Ostosumma, EDVNA (viikoittainen)
+				measure 'Purchase Amount YOYTD (Weekly)'
+					caption: Ostosumma, VVTM (viikoittainen)
+				measure 'Purchase Amount YOYTD % (Weekly)'
+					caption: Ostosumma, VVTM, prosentteina (viikoittainen)
+				measure 'Purchase Amount QOQTD (Weekly)'
+					caption: Ostosumma, VNVNTM (viikoittainen)
+				measure 'Purchase Amount QOQTD % (Weekly)'
+					caption: Ostosumma, VNVNTM, prosentteina (viikoittainen)
+				measure 'Purchase Amount PWTD (Weekly)'
+					caption: Ostosumma, EDVKA (viikoittainen)
+				measure 'Purchase Amount WOWTD (Weekly)'
+					caption: Ostosumma, VKVKTM (viikoittainen)
+				measure 'Purchase Amount WOWTD % (Weekly)'
+					caption: Ostosumma, VKVKTM, prosentteina (viikoittainen)
+				measure 'Purchase Amount MAT (364) (Weekly)'
+					caption: Ostosumma, LVK (364) (viikoittainen)
+				measure 'Purchase Amount PYMAT (364) (Weekly)'
+					caption: Ostosumma, EDVLVK (364) (viikoittainen)
+				measure 'Purchase Amount MATG (Weekly)'
+					caption: Ostosumma, KLVK (viikoittainen)
+				measure 'Purchase Amount MATG % (Weekly)'
+					caption: Ostosumma, KLVK, prosentteina (viikoittainen)
+				measure 'Purchase Amount PYC (Weekly)'
+					caption: Ostosumma, EDVVAL (viikoittainen)
+				measure 'Purchase Amount YTDOPY (Weekly)'
+					caption: Ostosumma, VAEDV (viikoittainen)
+				measure 'Purchase Amount YTDOPY % (Weekly)'
+					caption: Ostosumma, VAEDV, prosentteina (viikoittainen)
+				measure 'Purchase Amount PQC (Weekly)'
+					caption: Ostosumma, EDVNVAL (viikoittainen)
+				measure 'Purchase Amount QTDOPQ (Weekly)'
+					caption: Ostosumma, VNAEDVN (viikoittainen)
+				measure 'Purchase Amount QTDOPQ % (Weekly)'
+					caption: Ostosumma, VNAEDVN, prosentteina (viikoittainen)
+				measure 'Purchase Amount PWC (Weekly)'
+					caption: Ostosumma, EDVKVAL (viikoittainen)
+				measure 'Purchase Amount WTDOPW (Weekly)'
+					caption: Ostosumma, VKAEDVK (viikoittainen)
+				measure 'Purchase Amount WTDOPW % (Weekly)'
+					caption: Ostosumma, VKAEDVK, prosentteina (viikoittainen)
+				measure 'Purchase Amount AVG 4W (Weekly)'
+					caption: Ostosumma, KA 4VK (viikoittainen)
+				measure 'Purchase Amount AVG 1Q (Weekly)'
+					caption: Ostosumma, KA 1Q (viikoittainen)
+				measure 'Purchase Amount AVG 1Y (Weekly)'
+					caption: Ostosumma, KA 1V (viikoittainen)
+				measure 'Purchase Quantity YTD (Weekly)'
+					caption: Ostomäärä, VA (viikoittainen)
+				measure 'Purchase Quantity QTD (Weekly)'
+					caption: Ostomäärä, VNA (viikoittainen)
+				measure 'Purchase Quantity MTD (Weekly)'
+					caption: Ostomäärä, KKA (viikoittainen)
+				measure 'Purchase Quantity WTD (Weekly)'
+					caption: Ostomäärä, VKA (viikoittainen)
+				measure 'Purchase Quantity PY (Weekly)'
+					caption: Ostomäärä, EDV (viikoittainen)
+				measure 'Purchase Quantity YOY % (Weekly)'
+					caption: Ostomäärä, VV, prosentteina (viikoittainen)
+				measure 'Purchase Quantity YOY (Weekly)'
+					caption: Ostomäärä, VV (viikoittainen)
+				measure 'Purchase Quantity PQ (Weekly)'
+					caption: Ostomäärä, EDVN (viikoittainen)
+				measure 'Purchase Quantity QOQ (Weekly)'
+					caption: Ostomäärä, VNVN (viikoittainen)
+				measure 'Purchase Quantity QOQ % (Weekly)'
+					caption: Ostomäärä, VNVN, prosentteina (viikoittainen)
+				measure 'Purchase Quantity PW (Weekly)'
+					caption: Ostomäärä, EDVK (viikoittainen)
+				measure 'Purchase Quantity WOW (Weekly)'
+					caption: Ostomäärä, VKVK (viikoittainen)
+				measure 'Purchase Quantity WOW % (Weekly)'
+					caption: Ostomäärä, VKVK, prosentteina (viikoittainen)
+				measure 'Purchase Quantity PP (Weekly)'
+					caption: Ostomäärä, EDK (viikoittainen)
+				measure 'Purchase Quantity POP (Weekly)'
+					caption: Ostomäärä, K-K (viikoittainen)
+				measure 'Purchase Quantity POP % (Weekly)'
+					caption: Ostomäärä, K-K, prosentteina (viikoittainen)
+				measure 'Purchase Quantity PYTD (Weekly)'
+					caption: Ostomäärä, EDVA (viikoittainen)
+				measure 'Purchase Quantity PQTD (Weekly)'
+					caption: Ostomäärä, EDVNA (viikoittainen)
+				measure 'Purchase Quantity YOYTD (Weekly)'
+					caption: Ostomäärä, VVTM (viikoittainen)
+				measure 'Purchase Quantity YOYTD % (Weekly)'
+					caption: Ostomäärä, VVTM, prosentteina (viikoittainen)
+				measure 'Purchase Quantity QOQTD (Weekly)'
+					caption: Ostomäärä, VNVNTM (viikoittainen)
+				measure 'Purchase Quantity QOQTD % (Weekly)'
+					caption: Ostomäärä, VNVNTM, prosentteina (viikoittainen)
+				measure 'Purchase Quantity PWTD (Weekly)'
+					caption: Ostomäärä, EDVKA (viikoittainen)
+				measure 'Purchase Quantity WOWTD (Weekly)'
+					caption: Ostomäärä, VKVKTM (viikoittainen)
+				measure 'Purchase Quantity WOWTD % (Weekly)'
+					caption: Ostomäärä, VKVKTM, prosentteina (viikoittainen)
+				measure 'Purchase Quantity MAT (364) (Weekly)'
+					caption: Ostomäärä, LVK (364) (viikoittainen)
+				measure 'Purchase Quantity PYMAT (364) (Weekly)'
+					caption: Ostomäärä, EDVLVK (364) (viikoittainen)
+				measure 'Purchase Quantity MATG (Weekly)'
+					caption: Ostomäärä, KLVK (viikoittainen)
+				measure 'Purchase Quantity MATG % (Weekly)'
+					caption: Ostomäärä, KLVK, prosentteina (viikoittainen)
+				measure 'Purchase Quantity PYC (Weekly)'
+					caption: Ostomäärä, EDVVAL (viikoittainen)
+				measure 'Purchase Quantity YTDOPY (Weekly)'
+					caption: Ostomäärä, VAEDV (viikoittainen)
+				measure 'Purchase Quantity YTDOPY  % (Weekly)'
+					caption: Ostomäärä, VAEDV, prosentteina (viikoittainen)
+				measure 'Purchase Quantity PQC (Weekly)'
+					caption: Ostomäärä, EDVNVAL (viikoittainen)
+				measure 'Purchase Quantity QTDOPQ (Weekly)'
+					caption: Ostomäärä, VNAEDVN (viikoittainen)
+				measure 'Purchase Quantity QTDOPQ % (Weekly)'
+					caption: Ostomäärä, VNAEDVN, prosentteina (viikoittainen)
+				measure 'Purchase Quantity PWC (Weekly)'
+					caption: Ostomäärä, EDVKVAL (viikoittainen)
+				measure 'Purchase Quantity WTDOPW (Weekly)'
+					caption: Ostomäärä, VKAEDVK (viikoittainen)
+				measure 'Purchase Quantity WTDOPW % (Weekly)'
+					caption: Ostomäärä, VKAEDVK, prosentteina (viikoittainen)
+				measure 'Purchase Quantity AVG 4W (Weekly)'
+					caption: Ostomäärä, KA 4VK (viikoittainen)
+				measure 'Purchase Quantity AVG 1Q (Weekly)'
+					caption: Ostomäärä, KA 1Q (viikoittainen)
+				measure 'Purchase Quantity AVG 1Y (Weekly)'
+					caption: Ostomäärä, KA 1V (viikoittainen)
+				measure 'Budget Quantity YTD (Weekly)'
+					caption: Budjettimäärä, VA (viikoittainen)
+				measure 'Budget Quantity QTD (Weekly)'
+					caption: Budjettimäärä, VNA (viikoittainen)
+				measure 'Budget Quantity MTD (Weekly)'
+					caption: Budjettimäärä, KKA (viikoittainen)
+				measure 'Budget Quantity WTD (Weekly)'
+					caption: Budjettimäärä, VKA (viikoittainen)
+				measure 'Budget Quantity PY (Weekly)'
+					caption: Budjettimäärä, EDV (viikoittainen)
+				measure 'Budget Quantity YOY % (Weekly)'
+					caption: Budjettimäärä, VN, prosentteina (viikoittainen)
+				measure 'Budget Quantity YOY (Weekly)'
+					caption: Budjettimäärä, VV (viikoittainen)
+				measure 'Budget Quantity PQ (Weekly)'
+					caption: Budjettimäärä, EDVN (viikoittainen)
+				measure 'Budget Quantity QOQ (Weekly)'
+					caption: Budjettimäärä, VNVN (viikoittainen)
+				measure 'Budget Quantity QOQ % (Weekly)'
+					caption: Budjettimäärä, VNVN, prosentteina (viikoittainen)
+				measure 'Budget Quantity PW (Weekly)'
+					caption: Budjettimäärä, EDVK (viikoittainen)
+				measure 'Budget Quantity WOW (Weekly)'
+					caption: Budjettimäärä, VKVK (viikoittainen)
+				measure 'Budget Quantity WOW % (Weekly)'
+					caption: Budjettimäärä, VKVK, prosentteina (viikoittainen)
+				measure 'Budget Quantity PP (Weekly)'
+					caption: Budjettimäärä, EDK (viikoittainen)
+				measure 'Budget Quantity POP (Weekly)'
+					caption: Budjettimäärä, K-K (viikoittainen)
+				measure 'Budget Quantity POP % (Weekly)'
+					caption: Budjettimäärä, K-K, prosentteina (viikoittainen)
+				measure 'Budget Quantity PYTD (Weekly)'
+					caption: Budjettimäärä, EDVA (viikoittainen)
+				measure 'Budget Quantity PQTD (Weekly)'
+					caption: Budjettimäärä, EDVNA (viikoittainen)
+				measure 'Budget Quantity YOYTD (Weekly)'
+					caption: Budjettimäärä, VVTM (viikoittainen)
+				measure 'Budget Quantity YOYTD % (Weekly)'
+					caption: Budjettimäärä, VVTM, prosentteina (viikoittainen)
+				measure 'Budget Quantity QOQTD (Weekly)'
+					caption: Budjettimäärä, VNVNTM (viikoittainen)
+				measure 'Budget Quantity QOQTD % (Weekly)'
+					caption: Budjettimäärä, VNVNTM, prosentteina (viikoittainen)
+				measure 'Budget Quantity PWTD (Weekly)'
+					caption: Budjettimäärä, EDVKA (viikoittainen)
+				measure 'Budget Quantity WOWTD (Weekly)'
+					caption: Budjettimäärä, VKVKTM (viikoittainen)
+				measure 'Budget Quantity WOWTD % (Weekly)'
+					caption: Budjettimäärä, VKVKTM, prosentteina (viikoittainen)
+				measure 'Budget Quantity MAT (364) (Weekly)'
+					caption: Budjettimäärä, LVK (364) (viikoittainen)
+				measure 'Budget Quantity PYMAT (364) (Weekly)'
+					caption: Budjettimäärä, EDVLVK (364) (viikoittainen)
+				measure 'Budget Quantity MATG (Weekly)'
+					caption: Budjettimäärä, KLVK (viikoittainen)
+				measure 'Budget Quantity MATG % (Weekly)'
+					caption: Budjettimäärä, KLVK, prosentteina (viikoittainen)
+				measure 'Budget Quantity PYC (Weekly)'
+					caption: Budjettimäärä, EDVVAL (viikoittainen)
+				measure 'Budget Quantity YTDOPY (Weekly)'
+					caption: Budjettimäärä, VAEDV (viikoittainen)
+				measure 'Budget Quantity YTDOPY  % (Weekly)'
+					caption: Budjettimäärä, VAEDV, prosentteina (viikoittainen)
+				measure 'Budget Quantity PQC (Weekly)'
+					caption: Budjettimäärä, EDVNVAL (viikoittainen)
+				measure 'Budget Quantity QTDOPQ (Weekly)'
+					caption: Budjettimäärä, VNAEDVN (viikoittainen)
+				measure 'Budget Quantity QTDOPQ % (Weekly)'
+					caption: Budjettimäärä, VNAEDVN, prosentteina (viikoittainen)
+				measure 'Budget Quantity PWC (Weekly)'
+					caption: Budjettimäärä, EDVKVAL (viikoittainen)
+				measure 'Budget Quantity WTDOPW (Weekly)'
+					caption: Budjettimäärä, VKAEDVK (viikoittainen)
+				measure 'Budget Quantity WTDOPW % (Weekly)'
+					caption: Budjettimäärä, VKAEDVK, prosentteina (viikoittainen)
+				measure 'Budget Quantity AVG 4W (Weekly)'
+					caption: Budjettimäärä, KA 4VK (viikoittainen)
+				measure 'Budget Quantity AVG 1Q (Weekly)'
+					caption: Budjettimäärä, KA 1Q (viikoittainen)
+				measure 'Budget Quantity AVG 1Y (Weekly)'
+					caption: Budjettimäärä, KA 1V (viikoittainen)
+				measure 'Budget Amount YTD (Weekly)'
+					caption: Budjettisumma, VA (viikoittainen)
+				measure 'Budget Amount QTD (Weekly)'
+					caption: Budjettisumma, VNA (viikoittainen)
+				measure 'Budget Amount MTD (Weekly)'
+					caption: Budjettisumma, KKA (viikoittainen)
+				measure 'Budget Amount WTD (Weekly)'
+					caption: Budjettisumma, VKA (viikoittainen)
+				measure 'Budget Amount PY (Weekly)'
+					caption: Budjettisumma, EDV (viikoittainen)
+				measure 'Budget Amount YOY % (Weekly)'
+					caption: Budjettisumma, VV, prosentteina (viikoittainen)
+				measure 'Budget Amount YOY (Weekly)'
+					caption: Budjettisumma, VV (viikoittainen)
+				measure 'Budget Amount PQ (Weekly)'
+					caption: Budjettisumma, EDVN (viikoittainen)
+				measure 'Budget Amount QOQ (Weekly)'
+					caption: Budjettisumma, VNVN (viikoittainen)
+				measure 'Budget Amount QOQ % (Weekly)'
+					caption: Budjettisumma, VNVN, prosentteina (viikoittainen)
+				measure 'Budget Amount PW (Weekly)'
+					caption: Budjettisumma, EDVK (viikoittainen)
+				measure 'Budget Amount WOW (Weekly)'
+					caption: Budjettisumma, VKVK (viikoittainen)
+				measure 'Budget Amount WOW % (Weekly)'
+					caption: Budjettisumma, VKVK, prosentteina (viikoittainen)
+				measure 'Budget Amount PP (Weekly)'
+					caption: Budjettisumma, EDK (viikoittainen)
+				measure 'Budget Amount POP (Weekly)'
+					caption: Budjettisumma, K-K (viikoittainen)
+				measure 'Budget Amount POP % (Weekly)'
+					caption: Budjettisumma, K-K, prosentteina (viikoittainen)
+				measure 'Budget Amount PYTD (Weekly)'
+					caption: Budjettisumma, EDVA (viikoittainen)
+				measure 'Budget Amount PQTD (Weekly)'
+					caption: Budjettisumma, EDVNA (viikoittainen)
+				measure 'Budget Amount YOYTD (Weekly)'
+					caption: Budjettisumma, VVTM (viikoittainen)
+				measure 'Budget Amount YOYTD % (Weekly)'
+					caption: Budjettisumma, VVTM, prosentteina (viikoittainen)
+				measure 'Budget Amount QOQTD (Weekly)'
+					caption: Budjettisumma, VNVNTM (viikoittainen)
+				measure 'Budget Amount QOQTD % (Weekly)'
+					caption: Budjettisumma, VNVNTM, prosentteina (viikoittainen)
+				measure 'Budget Amount PWTD (Weekly)'
+					caption: Budjettisumma, EDVKA (viikoittainen)
+				measure 'Budget Amount WOWTD (Weekly)'
+					caption: Budjettisumma, VKVKTM (viikoittainen)
+				measure 'Budget Amount WOWTD % (Weekly)'
+					caption: Budjettisumma, VKVKTM, prosentteina (viikoittainen)
+				measure 'Budget Amount MAT (364) (Weekly)'
+					caption: Budjettisumma, LVK (364) (viikoittainen)
+				measure 'Budget Amount PYMAT (364) (Weekly)'
+					caption: Budjettisumma, EDVLVK (364) (viikoittainen)
+				measure 'Budget Amount MATG (Weekly)'
+					caption: Budjettisumma, KLVK (viikoittainen)
+				measure 'Budget Amount MATG % (Weekly)'
+					caption: Budjettisumma, KLVK, prosentteina (viikoittainen)
+				measure 'Budget Amount PYC (Weekly)'
+					caption: Budjettisumma, EDVVAL (viikoittainen)
+				measure 'Budget Amount YTDOPY (Weekly)'
+					caption: Budjettisumma, VAEDV (viikoittainen)
+				measure 'Budget Amount YTDOPY % (Weekly)'
+					caption: Budjettisumma, VAEDV, prosentteina (viikoittainen)
+				measure 'Budget Amount PQC (Weekly)'
+					caption: Budjettisumma, EDVNVAL (viikoittainen)
+				measure 'Budget Amount QTDOPQ (Weekly)'
+					caption: Budjettisumma, VNAEDVN (viikoittainen)
+				measure 'Budget Amount QTDOPQ % (Weekly)'
+					caption: Budjettisumma, VNAEDVN, prosentteina (viikoittainen)
+				measure 'Budget Amount PWC (Weekly)'
+					caption: Budjettisumma, EDVKVAL (viikoittainen)
+				measure 'Budget Amount WTDOPW (Weekly)'
+					caption: Budjettisumma, VKAEDVK (viikoittainen)
+				measure 'Budget Amount WTDOPW % (Weekly)'
+					caption: Budjettisumma, VKAEDVK, prosentteina (viikoittainen)
+				measure 'Budget Amount AVG 4W (Weekly)'
+					caption: Budjettisumma, KA 4VK (viikoittainen)
+				measure 'Budget Amount AVG 1Q (Weekly)'
+					caption: Budjettisumma, KA 1Q (viikoittainen)
+				measure 'Budget Amount AVG 1Y (Weekly)'
+					caption: Budjettisumma, KA 1V (viikoittainen)
+			table 'Localized Labels'
+				measure 'My Report Title'
+					caption: Oman raportin otsikko
+				measure 'My Button Caption'
+					caption: Oma painikkeen otsikko
+				measure 'My Visual Title'
+					caption: Oma visuaalinen otsikko
+				measure 'Purchases Overview'
+					caption: Ostojen yleiskatsaus
+				measure 'Purchases Decomposition'
+					caption: Ostojen purkaminen
+				measure 'Daily Purchases'
+					caption: Päivittäiset ostot
+				measure 'Moving Averages'
+					caption: Liukuvat keskiarvot
+				measure 'Moving Annual Total (MAT)'
+					caption: Liukuva vuosittainen kokonaissumma (LVK)
+				measure 'Period-Over-Period (POP)'
+					caption: Kaudesta toiseen (K-K)
+				measure 'Year-Over-Year (YOY)'
+					caption: Vuosi vuodelta (VV)
+				measure 'Purchases by Item'
+					caption: Ostot nimikkeen mukaan
+				measure 'Purchases by Purchaser'
+					caption: Ostot ostajan mukaan
+				measure 'Purchases by Vendor'
+					caption: Ostot toimittajan mukaan
+				measure 'Purchases by Location'
+					caption: Ostot sijainneittain
+				measure 'Actual vs. Budget Quantity'
+					caption: Toteutunut vrt. budjetoitu määrä
+				measure 'Actual vs. Budget Amount'
+					caption: Toteutunut vrt. budjetoitu summa
+				measure 'Item Drillthrough'
+					caption: Nimikkeeseen porautuminen
+				measure 'Vendor Drillthrough'
+					caption: Toimittajaan porautuminen
+				measure 'Location Drillthrough'
+					caption: Sijaintiin porautuminen
+				measure 'Purchaser Drillthrough'
+					caption: Ostajaan porautuminen
+				measure Purchase
+					caption: Osta
+				measure 'for Business Central'
+					caption: Business Centralille
+				measure 'CONNECT YOUR DATA'
+					caption: YHDISTÄ TIETOSI
+				measure '1. Download the Purchasing Connector for Power BI'
+					caption: 1. Lataa Purchasing Connector for Power BI
+				measure '2. Configure Dynamics 365 Business Central'
+					caption: 2. Määritä Dynamics 365 Business Central
+				measure 'USE, EDIT AND BUILD YOUR OWN REPORTS'
+					caption: KÄYTÄ, MUOKKAA JA LUO OMIA RAPORTTEJA
+				measure 'Purchasing includes a variety of pre-built reports to help you see your data immediately.'
+					caption: Ostaminen sisältää erilaisia etukäteen luotuja raportteja, joiden avulla voit tarkastella tietoja heti.
+				measure 'You are able to edit these reports or build your own report from scratch'
+					caption: Voit muokata näitä raportteja tai luoda oman raportin alusta alkaen.
+				measure 'HELP AND SUPPORT'
+					caption: OHJE JA TUKI
+				measure 'For help and support with your new report please visit the Analytics overview documentation.'
+					caption: Lisätietoja ja tukea uudelle raportillesi löydät analytiikan yleiskuvauksesta.
+				measure 'OTHER POWER BI REPORTS'
+					caption: MUUT POWER BI -RAPORTIT
+				measure SALES
+					caption: MYYNTI
+				measure FINANCE
+					caption: TALOUSHALLINTO
+				measure REBATES
+					caption: HYVITYKSET
+				measure INVENTORY
+					caption: VARASTO
+				measure JOBS
+					caption: TYÖT
+				measure 'Purchase Amounts'
+					caption: Ostosummat
+				measure 'Purchase Quantity by Item Category'
+					caption: Ostomäärä nimikeluokan mukaan
+				measure 'Top 5 Vendors by Amount by Source Type'
+					caption: Viisi suurinta toimittajaa summan mukaan lähdetyypin perusteella
+				measure 'Locations by Quantity'
+					caption: Sijainnit määrän mukaan
+				measure 'Document Count'
+					caption: Asiakirjamäärä
+				measure 'Purchase Quantities'
+					caption: Ostomäärät
+				measure 'Decomposition by Amount'
+					caption: Purkaminen summan mukaan
+				measure 'Purchase Amount and Purchase Amount 30 Days Average (Fiscal) by Fiscal Month Year'
+					caption: Ostosumma ja Ostosumman keskiarvo 30 päivän ajalta (kirjanpito) kirjanpitokuukauden vuoden mukaan
+				measure 'Previous Year & Current Year Moving Annual Total by Fiscal Month Year'
+					caption: Edellisen vuoden ja nykyisen vuoden liukuva vuosittainen kokonaissumma kirjanpitokuukauden vuoden mukaan
+				measure 'Purchase Amount Period-over-Period (Fiscal) and Purchase Amount by Fiscal Month Year'
+					caption: Ostosumma kaudesta toiseen (kirjanpito) ja Ostosumma kirjanpitokuukauden vuoden mukaan
+				measure 'Current Year and Previous Year (Fiscal) Purchase Amount by Fiscal Month Year'
+					caption: Nykyisen vuoden ja edellisen vuoden (kirjanpito) ostosumma kirjanpitokuukauden vuoden mukaan
+				measure 'Last Refreshed'
+					caption: Päivitetty viimeksi
+				measure 'Company Name'
+					caption: Yrityksen nimi
+				measure 'Purchase Quantity by Location'
+					caption: Ostomäärä sijainnin mukaan
+				measure 'Purchase Amounts of Top 5 Vendors'
+					caption: Viiden suurimman toimittajan ostosummat
+				measure 'Purchase Distribution by Item Category'
+					caption: Ostojakauma nimikeluokan mukaan
+				measure 'Purchases by Item Category'
+					caption: Ostot nimikeluokan mukaan
+				measure 'Purchase Amount by Item Category'
+					caption: Ostosumma nimikeluokan mukaan
+				measure 'Actual vs Budget'
+					caption: Toteutunut vrt. budjetoitu
+				measure 'Actual vs Budget Purchase Analysis by Item Category'
+					caption: Toteutunut vrt. budjetin oston analyysi nimikeluokan mukaan
+				measure 'Purchases Drillthrough'
+					caption: Ostoihin porautuminen
+				measure 'Detailed Purchase Ledger'
+					caption: Yksityiskohtainen ostokirjanpito
+				measure 'Total Purchase Amount by Fiscal Year'
+					caption: Ostosumma yhteensä tilikauden mukaan
+				measure PROJECTS
+					caption: PROJEKTIT
+				measure MANUFACTURING
+					caption: TUOTANTO
+				measure 'This card displays key metrics for business analysis. The card shows total purchase amount, document count, number of outstanding purchase orders, number of purchase invoices, outstanding amount, and invoiced amount.'
+					caption: Tämä kortti näyttää liiketoiminta-analyysin keskeiset mittarit. Kortissa näkyy ostojen kokonaissumma, asiakirjamäärä, avointen ostotilausten määrä, ostolaskujen määrä, avoin summa ja laskutettu summa.
+				measure 'The card displays key metrics for business analysis, including total purchase amount, document count, number of outstanding purchase orders, number of purchase invoices, outstanding amount excluding VAT, and invoiced amount.'
+					caption: Kortti näyttää liiketoiminta-analyysin keskeiset mittarit, kuten ostojen kokonaissumman, asiakirjamäärän, avointen ostotilausten määrän, ostolaskujen määrän, avoimen summan ja laskutetun summan.
+				measure 'Daily Purchases Details'
+					caption: Päivittäiset ostot – Tiedot
+				measure 'Moving Annual Total (MAT) Details'
+					caption: Liukuva vuosittainen kokonaissumma (MAT) – Tiedot
+				measure 'Period-Over-Period (POP) Details'
+					caption: Kasvu kaudesta toiseen (K-K) – Tiedot
+				measure 'Year-Over-Year (YOY) Details'
+					caption: Vuosi vuodelta (VV) – Tiedot
+				measure 'Purchases by Item Details'
+					caption: Ostot nimikkeittäin – Tiedot
+				measure 'Purchases by Vendor Details'
+					caption: Ostot toimittajan mukaan – Tiedot
+				measure 'Purchases by Purchaser Details'
+					caption: Ostot ostajan mukaan – Tiedot
+				measure 'Purchases by Location Details'
+					caption: Ostot sijainneittain – Tiedot
+				measure 'Purchases Drillthrough Details'
+					caption: Ostoihin porautuminen – Tiedot
+			table COMPANY
+				caption: YRITYS
+				measure 'Company Label'
+					caption: Yrityksen selite
+			table 'Purchase Budget Name'
+				caption: Ostobudjetin nimi
+				column 'Purchase Budget Description'
+					caption: Ostobudjetin kuvaus
+			table 'Item Category'
+				caption: Nimikeluokka
+				column 'Item Category Code'
+					caption: Nimikeluokan koodi
+				column 'Item Category Description'
+					caption: Nimikeluokan kuvaus
+				column 'Item Category Parent Category'
+					caption: Nimikeluokan pääluokka
+				column 'Item Category Code Level 1'
+					caption: Nimikeluokan kooditaso 1
+				column 'Item Category Code Level 2'
+					caption: Nimikeluokan kooditaso 2
+				column 'Item Category Code Level 3'
+					caption: Nimikeluokan kooditaso 3
+

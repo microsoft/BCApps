@@ -6,8 +6,8 @@
 namespace System.Test.Environment.Configuration;
 
 using System.Environment.Configuration;
-using System.TestLibraries.Utilities;
 using System.TestLibraries.Security.AccessControl;
+using System.TestLibraries.Utilities;
 
 codeunit 135003 "Feature Key Test"
 {

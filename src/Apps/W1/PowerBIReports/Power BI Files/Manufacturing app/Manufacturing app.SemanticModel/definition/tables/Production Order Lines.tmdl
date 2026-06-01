@@ -1,0 +1,323 @@
+table 'Production Order Lines'
+	lineageTag: a44ea935-88f3-4cbe-b453-1df1c006bef0
+
+	measure 'Quantity (Base)' = SUM('Production Order Lines'[quantityBase])
+		formatString: #,0.00
+		displayFolder: _Production Order Line Measures
+		lineageTag: 188e6493-cb12-47af-a885-2ed6df54e5e1
+
+	measure 'Remaining Quantity (Base)' = SUM('Production Order Lines'[remainingQtyBase])
+		formatString: #,0.00
+		displayFolder: _Production Order Line Measures
+		lineageTag: a7242318-5819-4cd9-b829-e8ebf6a630e1
+
+	measure 'Finished Quantity (Base)' = SUM('Production Order Lines'[finishedQtyBase])
+		formatString: #,0.00
+		displayFolder: _Production Order Line Measures
+		lineageTag: 408c8904-25a2-4827-a528-812685bd5cd0
+
+	column 'Prod. Order Status'
+		dataType: string
+		isHidden
+		lineageTag: c7ae2a89-e1a3-4fcd-8c80-408d89d2275f
+		summarizeBy: none
+		sourceColumn: Prod. Order Status
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Prod. Order No.'
+		dataType: string
+		isHidden
+		lineageTag: d29444f7-99c2-4296-93c0-63cd57c170fa
+		summarizeBy: none
+		sourceColumn: Prod. Order No.
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Item No.'
+		dataType: string
+		isHidden
+		lineageTag: 87ff98c5-0127-4831-9f59-550578eb903e
+		summarizeBy: none
+		sourceColumn: Item No.
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Location Code'
+		dataType: string
+		isHidden
+		lineageTag: 59689480-690d-44f7-9910-1cf57531cf8f
+		summarizeBy: none
+		sourceColumn: Location Code
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column quantityBase
+		dataType: double
+		isHidden
+		lineageTag: f7b26520-9688-413e-a4e8-996fe5eaaec5
+		summarizeBy: sum
+		sourceColumn: quantityBase
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column remainingQtyBase
+		dataType: double
+		isHidden
+		lineageTag: 0a02db5d-1fdd-404f-a5ed-4a50fb908717
+		summarizeBy: sum
+		sourceColumn: remainingQtyBase
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Due Date'
+		dataType: dateTime
+		isHidden
+		formatString: Long Date
+		lineageTag: 13f89fbd-b4a4-4a61-8cc0-72c15a1f654a
+		summarizeBy: none
+		sourceColumn: Due Date
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column dimensionSetID
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 3b1867a5-5e78-42eb-82ee-61d0d5fdf8bf
+		summarizeBy: none
+		sourceColumn: dimensionSetID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Location Name'
+		dataType: string
+		isHidden
+		lineageTag: c7fa0695-a299-4416-bf12-61316e86768c
+		summarizeBy: none
+		sourceColumn: Location Name
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Prod. Order Line No.'
+		dataType: int64
+		formatString: 0
+		lineageTag: 21178272-72b6-4f8d-aa9b-00e22efc1ff3
+		summarizeBy: none
+		sourceColumn: Prod. Order Line No.
+
+		annotation SummarizationSetBy = User
+
+	column 'Routing No.'
+		dataType: string
+		lineageTag: 27888e99-7bf8-4bde-ba50-9fa88dc8bff3
+		summarizeBy: none
+		sourceColumn: Routing No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Routing Reference No.'
+		dataType: int64
+		formatString: 0
+		lineageTag: 12de0296-4b2b-426f-b027-be6ace6a9127
+		summarizeBy: sum
+		sourceColumn: Routing Reference No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Prod. Order Key'
+		dataType: string
+		isHidden
+		lineageTag: 276cbd4a-2fb2-4198-a4c7-0a18a27eb7ba
+		summarizeBy: none
+		sourceColumn: Prod. Order Key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Prod. Order Line Key'
+		dataType: string
+		isHidden
+		isKey
+		lineageTag: ec978931-b112-48e8-a315-00f66135b76c
+		summarizeBy: none
+		sourceColumn: Prod. Order Line Key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column finishedQtyBase
+		dataType: double
+		isHidden
+		lineageTag: 5c9f70e8-d16d-4969-a7da-861c84b8361b
+		summarizeBy: sum
+		sourceColumn: finishedQtyBase
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column ShareOfTotalCapCost = ```
+			
+			
+			VAR FilteredProdOrderLinesTable =
+			    CALCULATETABLE (
+			        'Production Order Lines',
+			        ALLEXCEPT (
+			            'Production Order Lines',
+			            'Production Order Lines'[Prod. Order Key],
+			            'Production Order Lines'[Routing Reference No.],
+			            'Production Order Lines'[Routing No.]
+			        )
+			    )
+			VAR Qty =
+			    CALCULATE (
+			        SUM ( 'Production Order Lines'[quantityBase] ),
+			        FilteredProdOrderLinesTable
+			    )
+			RETURN
+			    DIVIDE (
+			        'Production Order Lines'[quantityBase],
+			        Qty
+			    )
+			
+			```
+		isHidden
+		lineageTag: 23ef4d5a-2688-4f0a-9c77-4555bb2923e6
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Routing Type'
+		dataType: string
+		lineageTag: 621bced8-d16f-4cb0-8f0c-844ed5d2872b
+		summarizeBy: none
+		sourceColumn: Routing Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column indirectCostPercent
+		dataType: double
+		isHidden
+		lineageTag: a6cc755a-7915-4ee9-abe5-4c9def6e4c92
+		summarizeBy: sum
+		sourceColumn: indirectCostPercent
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column overheadRate
+		dataType: double
+		isHidden
+		lineageTag: 0f1f45cb-c859-49f4-b3bd-2e0811c379b3
+		summarizeBy: sum
+		sourceColumn: overheadRate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Scrap Percent'
+		dataType: double
+		lineageTag: 96fe359b-09f0-45c3-b541-266b1eeea05d
+		summarizeBy: sum
+		sourceColumn: Scrap Percent
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Planning Level Code'
+		dataType: string
+		lineageTag: 336acb79-81cb-4d61-8fe0-3bce9461cbad
+		summarizeBy: none
+		sourceColumn: Planning Level Code
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Production Order Lines' = m
+		mode: import
+		queryGroup: 'Fact Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY, API_ENDPOINT, []),
+				    TableData = Source{[Name = "manufacturingProdOrderLines", Signature = "table"]}[Data],
+				    #"Changed Type" = Table.TransformColumnTypes(
+				        TableData,
+				        {
+				            {"prodOrderStatus", type text},
+				            {"prodOrderNo", type text},
+				            {"prodOrderLineNo", Int64.Type},
+				            {"itemNo", type text},
+				            {"locationCode", type text},
+				            {"quantityBase", type number},
+				            {"remainingQtyBase", type number},
+				            {"dueDate", type date},
+				            {"routingNo", type text},
+				            {"routingReferenceNo", Int64.Type},
+				            {"dimensionSetID", Int64.Type},
+				            {"locationName", type text},
+				            {"planningLevelCode", type text}
+				        }
+				    ),
+				    #"Renamed Columns" = Table.RenameColumns(
+				        #"Changed Type",
+				        {
+				            {"prodOrderStatus", "Prod. Order Status"},
+				            {"prodOrderNo", "Prod. Order No."},
+				            {"prodOrderLineNo", "Prod. Order Line No."},
+				            {"itemNo", "Item No."},
+				            {"locationCode", "Location Code"},
+				            {"dueDate", "Due Date"},
+				            {"routingNo", "Routing No."},
+				            {"routingReferenceNo", "Routing Reference No."},
+				            {"locationName", "Location Name"},
+				            {"routingType", "Routing Type"},
+				            {"scrapPrc", "Scrap Percent"},
+				            {"planningLevelCode", "Planning Level Code"}
+				        }
+				    ),
+				    #"Added Prod. Order Key" = Table.AddColumn(
+				        #"Renamed Columns", "Prod. Order Key", each [#"Prod. Order Status"] & " " & [#"Prod. Order No."], type text
+				    ),
+				    #"Added Prod. Order Line Key" = Table.AddColumn(
+				        #"Added Prod. Order Key",
+				        "Prod. Order Line Key",
+				        each [#"Prod. Order Status"] & " " & [#"Prod. Order No."] & " " & Number.ToText([#"Prod. Order Line No."]),
+				        type text
+				    ),
+				    #"Removed Columns" = Table.RemoveColumns(#"Added Prod. Order Line Key", {"ETag"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

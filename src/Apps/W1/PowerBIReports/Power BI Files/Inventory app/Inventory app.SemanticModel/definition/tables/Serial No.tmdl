@@ -1,0 +1,70 @@
+table 'Serial No'
+	lineageTag: 89e99e89-7df8-4afe-975d-5300e1a334bc
+
+	column 'Serial No.'
+		dataType: string
+		lineageTag: 772d3b03-73f0-4d6e-9c15-f2b76d839906
+		summarizeBy: none
+		sourceColumn: Serial No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Serial Key'
+		dataType: string
+		isHidden
+		lineageTag: 692a78db-64d9-4ef0-873e-f86a645d049a
+		summarizeBy: none
+		sourceColumn: Serial Key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Serial No' = m
+		mode: import
+		queryGroup: 'Dimension Tables'
+		source =
+				let
+				    Source = #"Item Ledger Entries",
+				    #"Removed Columns" = Table.RemoveColumns(
+				        Source,
+				        {
+				            "Entry No.",
+				            "Entry Type",
+				            "Document No.",
+				            "Posting Date",
+				            "Location Code",
+				            "Lot No.",
+				            "Source No. (Customer)",
+				            "Source No. (Vendor)",
+				            "Open",
+				            "Positive",
+				            "Qty.",
+				            "Remaining Qty.",
+				            "Expiration Date",
+				            "Cost Amt. (Actual)",
+				            "Sales Amt. (Actual)",
+				            "dimensionSetID",
+				            "Lot Key",
+				            "Serial Key",
+				            "invoicedQuantity"
+				        }
+				    ),
+				    #"Added Custom" = Table.AddColumn(
+				        #"Removed Columns", "Serial Key", each if [#"Serial No."] = "" then "" else [#"Item No."] & [#"Serial No."],
+				        type text
+				    ),
+				    #"Removed Duplicates" = Table.Distinct(#"Added Custom", {"Serial Key"}),
+				    #"Removed Columns1" = Table.RemoveColumns(
+				        #"Removed Duplicates", {"Item No.", "Quantity Per Unit of Measure", "Unit of Measure Code", "Document Type"}
+				    ),
+				    #"Removed Blank Rows" = Table.SelectRows(
+				        #"Removed Columns1", each not List.IsEmpty(List.RemoveMatchingItems(Record.FieldValues(_), {"", null}))
+				    )
+				in
+				    #"Removed Blank Rows"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

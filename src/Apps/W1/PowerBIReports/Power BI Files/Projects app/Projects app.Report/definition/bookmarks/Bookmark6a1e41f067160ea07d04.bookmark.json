@@ -1,0 +1,187 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/bookmark/1.4.0/schema.json",
+  "displayName": "Jobs Performance",
+  "name": "Bookmark6a1e41f067160ea07d04",
+  "options": {
+    "targetVisualNames": [],
+    "suppressData": true
+  },
+  "explorationState": {
+    "version": "1.3",
+    "activeSection": "ReportSection4b100a3a42980b76957c",
+    "sections": {
+      "ReportSection4b100a3a42980b76957c": {
+        "visualContainers": {
+          "5f39bd163cf0bb18ae0e": {
+            "filters": {
+              "byExpr": [
+                {
+                  "name": "8717eaf26697b77dcd51",
+                  "type": "Categorical",
+                  "expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Project"
+                        }
+                      },
+                      "Property": "Job No. & Description"
+                    }
+                  },
+                  "howCreated": 0
+                },
+                {
+                  "name": "b17165e747037ba517e9",
+                  "type": "Advanced",
+                  "expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Project Measures"
+                        }
+                      },
+                      "Property": "Total Cost Variance to Budget"
+                    }
+                  },
+                  "howCreated": 0
+                },
+                {
+                  "name": "280c22d2380e6c5df4be",
+                  "type": "Advanced",
+                  "expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Project Measures"
+                        }
+                      },
+                      "Property": "Actual (Total Cost)"
+                    }
+                  },
+                  "howCreated": 0
+                },
+                {
+                  "name": "e46711607e88542b89db",
+                  "type": "Advanced",
+                  "expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Project Measures"
+                        }
+                      },
+                      "Property": "Budget (Total Cost)"
+                    }
+                  },
+                  "howCreated": 0
+                },
+                {
+                  "name": "f0e4c5d9baa49cfab1e2",
+                  "type": "Advanced",
+                  "expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Project Measures"
+                        }
+                      },
+                      "Property": "Total Cost Variance to Budget %"
+                    }
+                  },
+                  "howCreated": 0
+                },
+                {
+                  "name": "d3b76e3eb63d96494187",
+                  "type": "Advanced",
+                  "expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Project Measures"
+                        }
+                      },
+                      "Property": "% Complete"
+                    }
+                  },
+                  "howCreated": 0
+                },
+                {
+                  "name": "a011e4e7915275fbed6c",
+                  "type": "Advanced",
+                  "expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Project Measures"
+                        }
+                      },
+                      "Property": "% Invoiced"
+                    }
+                  },
+                  "howCreated": 0
+                }
+              ]
+            },
+            "singleVisual": {
+              "visualType": "pivotTable",
+              "objects": {},
+              "orderBy": [
+                {
+                  "Direction": 2,
+                  "Expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Project Measures"
+                        }
+                      },
+                      "Property": "Total Cost Variance to Budget %"
+                    }
+                  }
+                }
+              ],
+              "activeProjections": {
+                "Rows": [
+                  {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Project"
+                        }
+                      },
+                      "Property": "Job No. & Description"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "objects": {
+      "merge": {
+        "outspacePane": [
+          {
+            "properties": {
+              "expanded": {
+                "expr": {
+                  "Literal": {
+                    "Value": "false"
+                  }
+                }
+              },
+              "visible": {
+                "expr": {
+                  "Literal": {
+                    "Value": "true"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

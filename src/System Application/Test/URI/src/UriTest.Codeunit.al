@@ -5,8 +5,8 @@
 
 namespace System.Test.Utilities;
 
-using System.Utilities;
 using System.TestLibraries.Utilities;
+using System.Utilities;
 
 codeunit 135070 "Uri Test"
 {
@@ -227,6 +227,66 @@ codeunit 135070 "Uri Test"
         TestUriWellformed('c:\\directory\filename', UriKind::Absolute, false);
         TestUriWellformed('file://c:/directory/filename', UriKind::Absolute, false);
         TestUriWellformed('http:\\\host/path/file', UriKind::Absolute, false);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure AreURIsHaveSameHostTest()
+    var
+        Uri: Codeunit Uri;
+    begin
+        // [Given] Two URIs with the same host
+        // [Then] AreURIsHaveSameHost should return true
+        LibraryAssert.IsTrue(Uri.AreURIsHaveSameHost('http://microsoft.com/path1', 'http://microsoft.com/path2'), 'URIs with same host should return true');
+        LibraryAssert.IsTrue(Uri.AreURIsHaveSameHost('https://contoso.com/test', 'https://contoso.com/other'), 'URIs with same scheme should return true');
+        LibraryAssert.IsTrue(Uri.AreURIsHaveSameHost('http://subdomain.example.com/test1', 'http://subdomain.example.com/test2'), 'URIs with same subdomain host should return true');
+
+        // [Given] URIs with different hosts
+        // [Then] AreURIsHaveSameHost should return false
+        LibraryAssert.IsFalse(Uri.AreURIsHaveSameHost('http://microsoft.com/path1', 'http://contoso.com/path2'), 'URIs with different hosts should return false');
+        LibraryAssert.IsFalse(Uri.AreURIsHaveSameHost('https://example.com/test', 'https://different.com/test'), 'URIs with different hosts should return false');
+        LibraryAssert.IsFalse(Uri.AreURIsHaveSameHost('http://subdomain1.example.com/test1', 'http://subdomain2.example.com/test2'), 'URIs with different subdomain host should return false');
+
+        // [Given] URIs with case differences in host
+        // [Then] AreURIsHaveSameHost should return true (case insensitive)
+        LibraryAssert.IsTrue(Uri.AreURIsHaveSameHost('http://Microsoft.com/path1', 'http://MICROSOFT.COM/path2'), 'URIs with case differences in host should return true');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure IsValidURIPatternTest()
+    var
+        Uri: Codeunit Uri;
+    begin
+        // [Given] URIs and patterns that should match
+        // [Then] IsValidURIPattern should return true
+        LibraryAssert.IsTrue(Uri.IsValidURIPattern('http://microsoft.com', '^https?://.*'), 'HTTP URI should match HTTP(S) pattern');
+        LibraryAssert.IsTrue(Uri.IsValidURIPattern('https://microsoft.com', '^https?://.*'), 'HTTPS URI should match HTTP(S) pattern');
+        LibraryAssert.IsTrue(Uri.IsValidURIPattern('ftp://files.example.com', '^ftp://.*'), 'FTP URI should match FTP pattern');
+        LibraryAssert.IsTrue(Uri.IsValidURIPattern('https://api.contoso.com/v1/users', '.*api\..*'), 'API URI should match API pattern');
+        LibraryAssert.IsTrue(Uri.IsValidURIPattern('http://subdomain.example.com', '.*\.example\.com$'), 'Subdomain URI should match domain pattern');
+        LibraryAssert.IsTrue(Uri.IsValidURIPattern('https://shop1.myshopify.com/admin/dashboard', '^(https)\:\/\/[a-zA-Z0-9][a-zA-Z0-9\-]*\.myshopify\.com[\/].*$'), 'URL should match provided pattern');
+
+        // [Given] URIs and patterns that should not match
+        // [Then] IsValidURIPattern should return false
+        LibraryAssert.IsFalse(Uri.IsValidURIPattern('http://microsoft.com', '^https://.*'), 'HTTP URI should not match HTTPS-only pattern');
+        LibraryAssert.IsFalse(Uri.IsValidURIPattern('ftp://files.example.com', '^https?://.*'), 'FTP URI should not match HTTP(S) pattern');
+        LibraryAssert.IsFalse(Uri.IsValidURIPattern('https://contoso.com', '.*microsoft\.com$'), 'Contoso URI should not match Microsoft domain pattern');
+        LibraryAssert.IsFalse(Uri.IsValidURIPattern('invalid-uri', '^https?://.*'), 'Invalid URI should not match valid URI pattern');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ValidateIntegrationURLTest()
+    var
+        Uri: Codeunit Uri;
+    begin
+        // [Given] Integration URLs with the same host and scheme stored in the setup table
+        LibraryAssert.AreEqual(Uri.ValidateIntegrationURL('https://valid-integration.com/api', 'https://valid-integration.com/api2'), 'https://valid-integration.com/api', 'Integration URLs should have the same host and scheme');
+        LibraryAssert.AreEqual(Uri.ValidateIntegrationURL('https://valid-integration.com/API1', 'https://valid-integration.com/API2'), 'https://valid-integration.com/API1', 'Integration URLs should have the same host and scheme');
+
+        // [Given] Invalid Integration URLs with different hosts or schemes
+        LibraryAssert.AreNotEqual(Uri.ValidateIntegrationURL('https://subdomain1.example.com/api', 'https://subdomain2.example.com/api'), 'https://subdomain1.example.com/api', 'Invalid integration URL should return false');
     end;
 
     local procedure TestUriWellformed(UriString: Text; UriKind: Enum UriKind; ExpectedResult: Boolean)

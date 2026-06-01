@@ -125,6 +125,7 @@ codeunit 1286 X509Certificate2
     /// </summary>
     /// <param name="CertBase64Value">Represents the certificate value encoded using the Base64 algorithm</param>
     /// <param name="Password">Certificate Password</param>
+    /// <returns>An XML string containing the public key of the certificate</returns>
     procedure GetCertificatePublicKey(CertBase64Value: Text; Password: SecretText): Text
     begin
         exit(X509Certificate2Impl.GetCertificatePublicKey(CertBase64Value, Password));
@@ -160,5 +161,39 @@ codeunit 1286 X509Certificate2
     procedure GetCertificateSerialNumberAsASCII(CertBase64Value: Text; Password: SecretText; var SerialNumberASCII: Text)
     begin
         X509Certificate2Impl.GetCertificateSerialNumberAsASCII(CertBase64Value, Password, SerialNumberASCII);
+    end;
+    
+    /// <summary>
+    /// Gets certificate public key as Base64 string
+    /// </summary>
+    /// <param name="CertBase64Value">Represents the certificate value encoded using the Base64 algorithm</param>
+    /// <param name="Password">Certificate Password</param>
+    /// <returns>The certificate public key</returns>
+    procedure GetCertificatePublicKeyAsBase64String(CertBase64Value: Text; Password: SecretText): Text
+    begin
+        exit(X509Certificate2Impl.GetCertificatePublicKeyAsBase64String(CertBase64Value, Password));
+    end;
+
+    /// <summary>
+    /// Returns the raw data for the certificate as a Base64 string.
+    /// </summary>
+    /// <param name="CertBase64Value">Represents the certificate value encoded using the Base64 algorithm</param>
+    /// <param name="Password">Certificate Password</param>
+    /// <returns>A Base64 string containing the X.509 certificate data</returns>
+    procedure GetRawCertDataAsBase64String(CertBase64Value: Text; Password: SecretText): Text
+    begin
+        exit(X509Certificate2Impl.GetRawCertDataAsBase64String(CertBase64Value, Password));
+    end;
+
+    /// <summary>
+    /// Creates a new instance of X509Certificate2 from the specified Base64 encoded certificate value. The certificate is exported as Base64 encoded string.
+    /// </summary>
+    /// <param name="CertificateBase64">The Base64 encoded certificate in PEM format.</param>
+    /// <param name="PrivateKeyXmlString">The private key in XML format.</param>
+    /// <param name="Password">The password to protect the private key.</param>
+    /// <returns>The Base64 encoded certificate including the private key.</returns>
+    procedure CreateFromPemAndExportAsBase64(CertificateBase64: Text; PrivateKeyXmlString: SecretText; Password: SecretText) CertBase64Value: Text
+    begin
+        exit(X509Certificate2Impl.CreateFromPemAndExportAsBase64(CertificateBase64, PrivateKeyXmlString, Password));
     end;
 }

@@ -22,7 +22,12 @@ codeunit 8890 "Send Email"
         EmailConnectorv2: Interface "Email Connector v2";
 #pragma warning restore AL0432
 #endif
+#if not CLEAN28
+#pragma warning disable AL0432
         EmailConnectorv3: Interface "Email Connector v3";
+#pragma warning restore AL0432
+#endif
+        EmailConnectorv4: Interface "Email Connector v4";
     begin
         EmailMessage.Get(Rec.Id);
 
@@ -34,8 +39,14 @@ codeunit 8890 "Send Email"
 #pragma warning restore AL0432
                 EmailConnectorv2.Reply(EmailMessage, AccountId);
 #endif
+#if not CLEAN28
+#pragma warning disable AL0432
             if EmailImpl.CheckAndGetEmailConnectorv3(EmailConnector, EmailConnectorv3) then
                 EmailConnectorv3.Reply(EmailMessage, AccountId);
+#pragma warning restore AL0432
+#endif
+            if EmailImpl.CheckAndGetEmailConnectorv4(EmailConnector, EmailConnectorv4) then
+                EmailConnectorv4.Reply(EmailMessage, AccountId);
         end else
             GlobalEmailConnector.Send(EmailMessage, AccountId);
     end;

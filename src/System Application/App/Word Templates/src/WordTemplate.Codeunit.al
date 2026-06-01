@@ -5,8 +5,8 @@
 
 namespace System.Integration.Word;
 
-using System.Reflection;
 using System.Integration;
+using System.Reflection;
 
 /// <summary>
 /// Exposes functionality to create and consume Word templates.
@@ -51,6 +51,15 @@ codeunit 9987 "Word Template"
     procedure GetDocument(var DocumentInStream: InStream)
     begin
         WordTemplateImpl.GetDocument(DocumentInStream);
+    end;
+
+    /// <summary>
+    /// Gets the merge fields used in the template.
+    /// </summary>
+    /// <param name="Value">Out parameter, the list of merge fields returned.</param>
+    procedure GetMergeFields(var Value: List of [Text])
+    begin
+        WordTemplateImpl.GetMergeFields(Value);
     end;
 
     /// <summary>

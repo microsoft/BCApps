@@ -1,0 +1,511 @@
+table 'Balance Sheet Measures'
+	lineageTag: 61462e08-f5a4-4d5b-ae1a-69e602499d89
+
+	measure 'Current Assets' =
+			VAR EntryNumber =
+			    LOOKUPVALUE (
+			        'Power BI Account Categories'[glAccCategoryEntryNo],
+			        'Power BI Account Categories'[powerBIAccCategory], "Current Assets (Level 2 Category)"
+			    )
+			RETURN
+			    CALCULATE (
+			        [Balance at Date],
+			        FILTER (
+			            ALL ( 'G/L Account Category'[GLAccCategoryPath] ),
+			            PATHCONTAINS (
+			                'G/L Account Category'[GLAccCategoryPath],
+			                EntryNumber
+			            )
+			        )
+			    )
+		formatString: #,0.00
+		displayFolder: ASSETS
+		lineageTag: 411b861e-e59e-4b26-a1ed-57e5f770062d
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Current Liabilities' =
+			VAR EntryNumber =
+			    LOOKUPVALUE (
+			        'Power BI Account Categories'[glAccCategoryEntryNo],
+			        'Power BI Account Categories'[powerBIAccCategory], "Current Liabilities (Level 2 Category)"
+			    )
+			RETURN
+			    CALCULATE (
+			        [Balance at Date],
+			        FILTER (
+			            ALL ( 'G/L Account Category'[GLAccCategoryPath] ),
+			            PATHCONTAINS (
+			                'G/L Account Category'[GLAccCategoryPath],
+			                EntryNumber
+			            )
+			        )
+			    ) * ( -1 )
+		formatString: #,0.00
+		displayFolder: LIABILITIES
+		lineageTag: 716e603e-3c38-47e2-9cd4-848ec4cd00cb
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure Inventory =
+			VAR EntryNumber =
+			    LOOKUPVALUE (
+			        'Power BI Account Categories'[glAccCategoryEntryNo],
+			        'Power BI Account Categories'[powerBIAccCategory], "Inventory (Level 3 Category)"
+			    )
+			RETURN
+			    CALCULATE (
+			        [Balance at Date],
+			        FILTER (
+			            ALL ( 'G/L Account Category'[GLAccCategoryPath] ),
+			            PATHCONTAINS (
+			                'G/L Account Category'[GLAccCategoryPath],
+			                EntryNumber
+			            )
+			        )
+			    )
+		formatString: #,0.00
+		displayFolder: ASSETS
+		lineageTag: b4a0db4c-4b6a-4d44-a8e5-9f35e3442b80
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Working Capital' = [Current Assets] - [Current Liabilities]
+		formatString: #,0.00
+		lineageTag: 17dc7e12-b4bf-45da-8690-036dfd4e6149
+
+		changedProperty = FormatString
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Shareholders'' Equity' =
+			VAR EntryNumber =
+			    LOOKUPVALUE (
+			        'Power BI Account Categories'[glAccCategoryEntryNo],
+			        'Power BI Account Categories'[powerBIAccCategory], "Shareholder's Equity (Level 2 Category)"
+			    )
+			RETURN
+			    CALCULATE (
+			        [Balance at Date],
+			        FILTER (
+			            ALL ( 'G/L Account Category'[GLAccCategoryPath] ),
+			            PATHCONTAINS (
+			                'G/L Account Category'[GLAccCategoryPath],
+			                EntryNumber
+			            )
+			        )
+			    ) * (-1)
+		formatString: #,0.00
+		displayFolder: EQUITY
+		lineageTag: 314d4276-ad53-4564-8970-db08b9aa6eb2
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure Liabilities =
+			VAR EntryNumber =
+			    LOOKUPVALUE (
+			        'Power BI Account Categories'[glAccCategoryEntryNo],
+			        'Power BI Account Categories'[powerBIAccCategory], "Liabilities (Level 1 Category)"
+			    )
+			RETURN
+			    CALCULATE (
+			        [Balance at Date],
+			        FILTER (
+			            ALL ( 'G/L Account Category'[GLAccCategoryPath] ),
+			            PATHCONTAINS (
+			                'G/L Account Category'[GLAccCategoryPath],
+			                EntryNumber
+			            )
+			        )
+			    ) * ( -1 )
+		formatString: #,0.00
+		displayFolder: LIABILITIES
+		lineageTag: 7ce79836-f738-4c51-81d9-3919ff285c4a
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure Assets =
+			VAR EntryNumber =
+			    LOOKUPVALUE (
+			        'Power BI Account Categories'[glAccCategoryEntryNo],
+			        'Power BI Account Categories'[powerBIAccCategory], "Assets (Level 1 Category)"
+			    )
+			RETURN
+			    CALCULATE (
+			        [Balance at Date],
+			        FILTER (
+			            ALL ( 'G/L Account Category'[GLAccCategoryPath] ),
+			            PATHCONTAINS (
+			                'G/L Account Category'[GLAccCategoryPath],
+			                EntryNumber
+			            )
+			        )
+			    )
+		formatString: #,0.00
+		displayFolder: ASSETS
+		lineageTag: 562ef123-5c35-47c1-97f7-ba4813132c4e
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure Equity =
+			VAR EntryNumber =
+			    LOOKUPVALUE (
+			        'Power BI Account Categories'[glAccCategoryEntryNo],
+			        'Power BI Account Categories'[powerBIAccCategory], "Equity (Level 1 Category)"
+			    )
+			RETURN
+			    CALCULATE (
+			        [Balance at Date],
+			        FILTER (
+			            ALL ( 'G/L Account Category'[GLAccCategoryPath] ),
+			            PATHCONTAINS (
+			                'G/L Account Category'[GLAccCategoryPath],
+			                EntryNumber
+			            )
+			        )
+			    ) * (-1)
+		formatString: #,0.00
+		displayFolder: EQUITY
+		lineageTag: e4d6cc43-1447-4cd9-bfa5-7e77add591e2
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Liabilities & Equity' = [Liabilities] + [Equity]
+		formatString: #,0.00
+		displayFolder: LIABILITIES
+		lineageTag: d5f0be19-a8cf-42f8-a40a-b6505198b21c
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Accounts Payable' =
+			VAR EntryNumber =
+			    LOOKUPVALUE (
+			        'Power BI Account Categories'[glAccCategoryEntryNo],
+			        'Power BI Account Categories'[powerBIAccCategory], "Accounts Payable (Level 3 Category)"
+			    )
+			RETURN
+			    CALCULATE (
+			        [Balance at Date],
+			        FILTER (
+			            ALL ( 'G/L Account Category'[GLAccCategoryPath] ),
+			            PATHCONTAINS (
+			                'G/L Account Category'[GLAccCategoryPath],
+			                EntryNumber
+			            )
+			        )
+			    ) * ( -1 )
+		formatString: #,0.00
+		displayFolder: LIABILITIES
+		lineageTag: 3cc1c883-ada8-4bf3-b121-9dac71d755d0
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Accounts Receivable' =
+			
+			VAR EntryNumber =
+			    LOOKUPVALUE (
+			        'Power BI Account Categories'[glAccCategoryEntryNo],
+			        'Power BI Account Categories'[powerBIAccCategory], "Accounts Receivable (Level 3 Category)"
+			    )
+			RETURN
+			    CALCULATE (
+			        [Balance at Date],
+			        FILTER (
+			            ALL ( 'G/L Account Category'[GLAccCategoryPath] ),
+			            PATHCONTAINS (
+			                'G/L Account Category'[GLAccCategoryPath],
+			                EntryNumber
+			            )
+			        )
+			    )
+		formatString: #,0.00
+		displayFolder: ASSETS
+		lineageTag: c1cf713a-3f31-4534-bfbf-dd851e327370
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Accounts Receivable (Beginning Balance)' =
+			VAR EntryNumber =
+			    LOOKUPVALUE (
+			        'Power BI Account Categories'[glAccCategoryEntryNo],
+			        'Power BI Account Categories'[powerBIAccCategory], "Accounts Receivable (Level 3 Category)"
+			    )
+			RETURN
+			    CALCULATE (
+			        [Balance at Date],
+			        FILTER (
+			            ALL ( 'G/L Account Category'[GLAccCategoryPath] ),
+			            PATHCONTAINS (
+			                'G/L Account Category'[GLAccCategoryPath],
+			                EntryNumber
+			            )
+			        ),
+			        FILTER (
+			            ALL ( 'Date'[Date] ),
+			            'Date'[Date] < MIN ( 'Date'[Date] )
+			        )
+			    )
+		formatString: #,0.00
+		displayFolder: ASSETS
+		lineageTag: 97f11fed-c598-4629-b315-796f31a949a7
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Accounts Receivable (Average)' =
+			DIVIDE (
+			    [Accounts Receivable (Beginning Balance)] + [Accounts Receivable],
+			    2
+			)
+		formatString: #,0.00
+		displayFolder: ASSETS
+		lineageTag: c72f202e-dfb7-43e6-a863-c5748df5e422
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Inventory (Beginning Balance)' =
+			VAR EntryNumber =
+			    LOOKUPVALUE (
+			        'Power BI Account Categories'[glAccCategoryEntryNo],
+			        'Power BI Account Categories'[powerBIAccCategory], "Inventory (Level 3 Category)"
+			    )
+			RETURN
+			    CALCULATE (
+			        [Balance at Date],
+			        FILTER (
+			            ALL ( 'G/L Account Category'[GLAccCategoryPath] ),
+			            PATHCONTAINS (
+			                'G/L Account Category'[GLAccCategoryPath],
+			                EntryNumber
+			            )
+			        ),
+			        FILTER (
+			            ALL ( 'Date'[Date] ),
+			            'Date'[Date] < MIN ( 'Date'[Date] )
+			        )
+			    )
+		formatString: #,0.00
+		displayFolder: ASSETS
+		lineageTag: 2b0c46ab-9a54-4a0d-b3a8-116409279aa5
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Inventory (Average)' = DIVIDE([Inventory] + [Inventory (Beginning Balance)],2)
+		formatString: #,0.00
+		displayFolder: ASSETS
+		lineageTag: 8e785f0a-39da-44d7-87da-aa4efdd81680
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Purchase Prepayments' =
+			VAR EntryNumber =
+			    LOOKUPVALUE (
+			        'Power BI Account Categories'[glAccCategoryEntryNo],
+			        'Power BI Account Categories'[powerBIAccCategory], "Purchase Prepayments (Level 3 Category)"
+			    )
+			RETURN
+			    CALCULATE (
+			        [Balance at Date],
+			        FILTER (
+			            ALL ( 'G/L Account Category'[GLAccCategoryPath] ),
+			            PATHCONTAINS (
+			                'G/L Account Category'[GLAccCategoryPath],
+			                EntryNumber
+			            )
+			        )
+			    )
+		formatString: #,0.00
+		lineageTag: 19c50b72-0329-4683-9e36-fb41816a1e12
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Liquid Assets' =
+			VAR EntryNumber =
+			    LOOKUPVALUE (
+			        'Power BI Account Categories'[glAccCategoryEntryNo],
+			        'Power BI Account Categories'[powerBIAccCategory], "Liquid Assets (Level 3 Category)"
+			    )
+			RETURN
+			    CALCULATE (
+			        [Balance at Date],
+			        FILTER (
+			            ALL ( 'G/L Account Category'[GLAccCategoryPath] ),
+			            PATHCONTAINS (
+			                'G/L Account Category'[GLAccCategoryPath],
+			                EntryNumber
+			            )
+			        )
+			    )
+		formatString: #,0.00
+		displayFolder: ASSETS
+		lineageTag: bf760026-fedd-4ca8-9e2f-2d5d7f491133
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Fixed Assets' =
+			VAR EntryNumber =
+			    LOOKUPVALUE (
+			        'Power BI Account Categories'[glAccCategoryEntryNo],
+			        'Power BI Account Categories'[powerBIAccCategory], "Fixed Assets (Level 2 Category)"
+			    )
+			RETURN
+			    CALCULATE (
+			        [Balance at Date],
+			        FILTER (
+			            ALL ( 'G/L Account Category'[GLAccCategoryPath] ),
+			            PATHCONTAINS (
+			                'G/L Account Category'[GLAccCategoryPath],
+			                EntryNumber
+			            )
+			        )
+			    )
+		formatString: #,0.00
+		displayFolder: ASSETS
+		lineageTag: 0c199677-5f9f-41ba-812c-9d27fefa2b47
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Capital Employed' = [Assets] - [Current Liabilities]
+		formatString: #,0.00
+		lineageTag: bd71b97c-5865-43ee-82d4-d123dad547fa
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Liabilities (Neg)' =
+			VAR EntryNumber =
+			    LOOKUPVALUE (
+			        'Power BI Account Categories'[glAccCategoryEntryNo],
+			        'Power BI Account Categories'[powerBIAccCategory], "Liabilities (Level 1 Category)"
+			    )
+			RETURN
+			    CALCULATE (
+			        [Balance at Date],
+			        FILTER (
+			            ALL ( 'G/L Account Category'[GLAccCategoryPath] ),
+			            PATHCONTAINS (
+			                'G/L Account Category'[GLAccCategoryPath],
+			                EntryNumber
+			            )
+			        )
+			    )
+		formatString: #,0.00
+		displayFolder: LIABILITIES
+		lineageTag: a95c556a-6316-4f33-8fff-b00d84d93106
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Accounts Payable (Neg)' =
+			VAR EntryNumber =
+			    LOOKUPVALUE (
+			        'Power BI Account Categories'[glAccCategoryEntryNo],
+			        'Power BI Account Categories'[powerBIAccCategory], "Accounts Payable (Level 3 Category)"
+			    )
+			RETURN
+			    CALCULATE (
+			        [Balance at Date],
+			        FILTER (
+			            ALL ( 'G/L Account Category'[GLAccCategoryPath] ),
+			            PATHCONTAINS (
+			                'G/L Account Category'[GLAccCategoryPath],
+			                EntryNumber
+			            )
+			        )
+			    )
+		formatString: #,0.00
+		displayFolder: LIABILITIES
+		lineageTag: 02857927-8038-4478-ba9c-9d80a793cc6d
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Payroll Liabilites' =
+			VAR EntryNumber =
+			    LOOKUPVALUE (
+			        'Power BI Account Categories'[glAccCategoryEntryNo],
+			        'Power BI Account Categories'[powerBIAccCategory], "Payroll Liabilities (Level 2 Category)"
+			    )
+			RETURN
+			    CALCULATE (
+			        [Balance at Date],
+			        FILTER (
+			            ALL ( 'G/L Account Category'[GLAccCategoryPath] ),
+			            PATHCONTAINS (
+			                'G/L Account Category'[GLAccCategoryPath],
+			                EntryNumber
+			            )
+			        )
+			    ) * ( -1 )
+		formatString: #,0.00
+		displayFolder: LIABILITIES
+		lineageTag: 8ad0052c-9672-41de-8c24-659c79e06ce3
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Longterm Liabilities' =
+			VAR EntryNumber =
+			    LOOKUPVALUE (
+			        'Power BI Account Categories'[glAccCategoryEntryNo],
+			        'Power BI Account Categories'[powerBIAccCategory], "Longterm Liabilities (Level 2 Category)"
+			    )
+			RETURN
+			    CALCULATE (
+			        [Balance at Date],
+			        FILTER (
+			            ALL ( 'G/L Account Category'[GLAccCategoryPath] ),
+			            PATHCONTAINS (
+			                'G/L Account Category'[GLAccCategoryPath],
+			                EntryNumber
+			            )
+			        )
+			    ) * ( -1 )
+		formatString: #,0.00
+		displayFolder: LIABILITIES
+		lineageTag: c8925826-7623-4d0e-98de-e76ac4f9bb2b
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Accounts Receivable (Net Change)' =
+			
+			VAR EntryNumber =
+			    LOOKUPVALUE (
+			        'Power BI Account Categories'[glAccCategoryEntryNo],
+			        'Power BI Account Categories'[powerBIAccCategory], "Accounts Receivable (Level 3 Category)"
+			    )
+			RETURN
+			    CALCULATE (
+			        [Net Change],
+			        FILTER (
+			            ALL ( 'G/L Account Category'[GLAccCategoryPath] ),
+			            PATHCONTAINS (
+			                'G/L Account Category'[GLAccCategoryPath],
+			                EntryNumber
+			            )
+			        )
+			    )
+		formatString: #,0.00
+		displayFolder: ASSETS
+		lineageTag: dbdc54a5-2150-4bf4-8ae9-64a05632e8fc
+
+	column Column1
+		dataType: string
+		isHidden
+		lineageTag: 11ce3556-2f48-4bd5-bb4b-57d990e7a056
+		summarizeBy: none
+		sourceColumn: Column1
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Balance Sheet Measures-3066f26e-17fb-4f92-9535-e2142d3e33bf' = m
+		mode: import
+		queryGroup: 'Parameters and Functions'
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type text) meta [Serialized.Text = true]) in type table [Column1 = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Column1", type text}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

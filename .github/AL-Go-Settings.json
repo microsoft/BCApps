@@ -1,14 +1,22 @@
 {
+  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go/d6059b86a7774031d5c41ca64a9efd4160c1c057/Actions/.Modules/settings.schema.json",
   "type": "PTE",
   "templateUrl": "https://github.com/microsoft/AL-Go-PTE@preview",
   "bcContainerHelperVersion": "preview",
   "runs-on": "windows-latest",
   "cacheImageName": "",
   "UsePsSession": false,
-  "artifact": "https://bcinsider-fvh2ekdjecfjd6gk.b02.azurefd.net/sandbox/27.0.33055.0/base",
+  "artifact": "bcinsider/Sandbox/29.0.50853.0//latest",
   "country": "base",
   "useProjectDependencies": true,
-  "repoVersion": "27.0",
+  "incrementalBuilds": {
+    "onPush": false,
+    "onPull_Request": true,
+    "onSchedule": false,
+    "retentionDays": 30,
+    "mode": "modifiedApps"
+  },
+  "repoVersion": "29.0",
   "conditionalSettings": [
     {
       "buildModes": [
@@ -16,11 +24,11 @@
       ],
       "settings": {
         "preprocessorSymbols": [
-          "CLEAN23",
-          "CLEAN24",
           "CLEAN25",
           "CLEAN26",
-          "CLEAN27"
+          "CLEAN27",
+          "CLEAN28",
+          "CLEAN29"
         ]
       }
     },
@@ -36,19 +44,62 @@
       }
     }
   ],
-  "unusedALGoSystemFiles": [
-    "AddExistingAppOrTestApp.yaml",
-    "CreateApp.yaml",
-    "CreateOnlineDevelopmentEnvironment.yaml",
-    "CreatePerformanceTestApp.yaml",
-    "CreateRelease.yaml",
-    "CreateTestApp.yaml",
-    "Current.yaml",
-    "NextMajor.yaml",
-    "NextMinor.yaml",
-    "PublishToEnvironment.yaml",
-    "Test Current.settings.json"
-  ],
+  "customALGoFiles": {
+    "filesToExclude": [
+      {
+        "sourceFolder": ".github/workflows",
+        "filter": "AddExistingAppOrTestApp.yaml"
+      },
+      {
+        "sourceFolder": ".github/workflows",
+        "filter": "CreateApp.yaml"
+      },
+      {
+        "sourceFolder": ".github/workflows",
+        "filter": "CreateOnlineDevelopmentEnvironment.yaml"
+      },
+      {
+        "sourceFolder": ".github/workflows",
+        "filter": "CreatePerformanceTestApp.yaml"
+      },
+      {
+        "sourceFolder": ".github/workflows",
+        "filter": "CreateRelease.yaml"
+      },
+      {
+        "sourceFolder": ".github/workflows",
+        "filter": "CreateTestApp.yaml"
+      },
+      {
+        "sourceFolder": ".github/workflows",
+        "filter": "Current.yaml"
+      },
+      {
+        "sourceFolder": ".github/workflows",
+        "filter": "NextMajor.yaml"
+      },
+      {
+        "sourceFolder": ".github/workflows",
+        "filter": "NextMinor.yaml"
+      },
+      {
+        "sourceFolder": ".github/workflows",
+        "filter": "PublishToEnvironment.yaml"
+      },
+      {
+        "sourceFolder": ".github",
+        "filter": "Test Current.settings.json"
+      },
+      {
+        "sourceFolder": ".github",
+        "filter": "Test Next Minor.settings.json"
+      },
+      {
+        "sourceFolder": ".github",
+        "filter": "Test Next Major.settings.json"
+      }
+    ]
+  },
   "excludeEnvironments": [
     "Official-Build"
   ],
@@ -87,12 +138,13 @@
     ]
   },
   "UpdateALGoSystemFilesEnvironment": "Official-Build",
-  "templateSha": "e788b9c3b4e348608cda7ed0040adf5fd10f83e3",
+  "templateSha": "261010c3ce198183e1dcb45385bcf88ee55766a8",
   "commitOptions": {
     "messageSuffix": "Related to AB#539394",
     "pullRequestAutoMerge": true,
     "pullRequestLabels": [
       "Automation"
     ]
-  }
+  },
+  "runNumberOffset": 60000
 }

@@ -5,10 +5,10 @@
 
 namespace System.Test.Security.User;
 
-using System.TestLibraries.Azure.ActiveDirectory;
-using System.TestLibraries.Security.User;
 using System.Azure.Identity;
 using System.Security.AccessControl;
+using System.TestLibraries.Azure.ActiveDirectory;
+using System.TestLibraries.Security.User;
 using System.TestLibraries.Utilities;
 
 codeunit 132908 "User Details Test"

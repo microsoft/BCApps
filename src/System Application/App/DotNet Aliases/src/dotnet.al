@@ -703,6 +703,14 @@ dotnet
         type("Microsoft.Dynamics.Nav.Runtime.Designer.NavDesignerALCopyResponse"; "NavDesignerALCopyResponse")
         {
         }
+
+        type("Microsoft.Dynamics.Nav.Runtime.AL.ALActivityLogEntry"; "ActivityLogEntry")
+        {
+        }
+
+        type("Microsoft.Dynamics.Nav.Runtime.ActivityLogAttribute"; "ActivityLogAttribute")
+        {
+        }
     }
 
     assembly("Microsoft.Dynamics.Nav.OAuth")
@@ -801,6 +809,21 @@ dotnet
         }
 
         type("Microsoft.BusinessCentral.DocumentProcessor.MailMerge"; "MailMerge")
+        {
+        }
+        type("Microsoft.BusinessCentral.DocumentProcessor.PdfDocumentInfo"; "PdfDocumentInfo")
+        {
+        }
+        type("Microsoft.BusinessCentral.DocumentProcessor.PdfConverter"; "PdfConverter")
+        {
+        }
+        type("Microsoft.BusinessCentral.DocumentProcessor.PdfTargetDevice"; "PdfTargetDevice")
+        {
+        }
+        type("Microsoft.BusinessCentral.DocumentProcessor.PdfAttachmentManager"; "PdfAttachmentManager")
+        {
+        }
+        type("Microsoft.BusinessCentral.DocumentProcessor.PdfAttachment"; "PdfAttachment")
         {
         }
     }
@@ -1180,8 +1203,6 @@ dotnet
 
     assembly("MailKit")
     {
-        Version = '2.15.0.0';
-        Culture = 'neutral';
         PublicKeyToken = '4e064fe7c44a8f1b';
 
         type("MailKit.Net.Smtp.SmtpClient"; "SmtpClient")
@@ -1215,8 +1236,6 @@ dotnet
 
     assembly("MimeKit")
     {
-        Version = '2.15.0.0';
-        Culture = 'neutral';
         PublicKeyToken = 'bede1c8a46c66814';
 
         type("MimeKit.BodyBuilder"; "MimeBodyBuilder")
@@ -1255,7 +1274,7 @@ dotnet
         {
         }
 
-        type("MimeKit.ContentObject"; "MimeContentObject")
+        type("MimeKit.EncodingConstraint"; "EncodingConstraint")
         {
         }
     }
@@ -2099,7 +2118,6 @@ dotnet
         type("System.Collections.Generic.List`1"; "GenericList1")
         {
         }
-
         type("System.Nullable`1"; "Nullable1")
         {
         }
@@ -2121,6 +2139,14 @@ dotnet
         }
 
         type("System.Activator"; "Activator")
+        {
+        }
+
+        type(System.Net.Sockets.SocketException; "SocketException")
+        {
+        }
+
+        type(System.InvalidOperationException; "InvalidOperationException")
         {
         }
     }
@@ -2188,6 +2214,48 @@ dotnet
         {
         }
         type("Microsoft.Dynamics.Nav.DataSearch.Models.SearchFilter"; "SearchFilter")
+        {
+        }
+    }
+    assembly("Renci.SshNet")
+    {
+        Culture = 'neutral';
+        PublicKeyToken = '1cee9f8bde3db106';
+
+        type(Renci.SshNet.SftpClient; "RenciSftpClient")
+        {
+        }
+
+        type(Renci.SshNet.Sftp.ISftpFile; "RenciISftpFile")
+        {
+        }
+
+        type(Renci.SshNet.PrivateKeyFile; "RenciPrivateKeyFile")
+        {
+        }
+
+        type(Renci.SshNet.Common.SshConnectionException; "SshConnectionException")
+        {
+        }
+
+        type(Renci.SshNet.Common.SshAuthenticationException; "SshAuthenticationException")
+        {
+        }
+
+        type(Renci.SshNet.Common.SftpPathNotFoundException; "SftpPathNotFoundException")
+        {
+        }
+
+        type(Renci.SshNet.Common.HostKeyEventArgs; "RenciHostKeyEventArgs")
+        {
+        }
+    }
+    assembly("Microsoft.Dynamics.Nav.PowerPlatform.Api")
+    {
+        Culture = 'neutral';
+        PublicKeyToken = '31bf3856ad364e35';
+
+        type("Microsoft.Dynamics.Nav.PowerPlatform.Api.PowerPlatformApiWrapper"; "PowerPlatformApiWrapper")
         {
         }
     }

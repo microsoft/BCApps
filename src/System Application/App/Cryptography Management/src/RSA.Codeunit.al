@@ -27,6 +27,17 @@ codeunit 1475 "RSA"
     end;
 
     /// <summary>
+    /// Creates a RSA object with private key and returns the XML string.
+    /// </summary>
+    /// <param name="PrivateKey">private key as text</param>
+    /// <param name="IncludePrivateParameters">true to include a public and private RSA key; false to include only the public key.</param>
+    /// <returns>An XML string containing the key of the current RSA object.</returns>
+    procedure ToSecretXmlString(PrivateKey: SecretText; IncludePrivateParameters: Boolean): SecretText
+    begin
+        exit(RSAImpl.ToSecretXmlString(PrivateKey, IncludePrivateParameters));
+    end;
+
+    /// <summary>
     /// Creates and returns an XML string containing the key of the current RSA object.
     /// </summary>
     /// <param name="IncludePrivateParameters">true to include a public and private RSA key; false to include only the public key.</param>

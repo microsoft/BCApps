@@ -29,6 +29,15 @@ codeunit 132915 "Azure AD User Test Library"
         IsUserDelegatedHelpdeskValue := NewValue;
     end;
 
+    /// <summary>
+    /// Mocks the behavior of IsUserDelegated.
+    /// </summary>
+    /// <param name="NewValue">The value to set.</param>
+    procedure SetIsUserDelegated(NewValue: Boolean)
+    begin
+        IsUserDelegatedValue := NewValue;
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Azure AD Graph User Impl.", 'OnIsUserDelegatedAdmin', '', false, false)]
     local procedure OverrideIsUserDelegatedAdmin(var IsUserDelegatedAdmin: Boolean; var Handled: Boolean)
     begin
@@ -43,6 +52,13 @@ codeunit 132915 "Azure AD User Test Library"
         Handled := true;
     end;
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Azure AD Graph User Impl.", 'OnIsUserDelegated', '', false, false)]
+    local procedure OverrideIsUserDelegated(var IsDelegatedUser: Boolean; var Handled: Boolean)
+    begin
+        IsDelegatedUser := IsUserDelegatedValue;
+        Handled := true;
+    end;
+
     var
-        IsUserDelegatedAdminValue, IsUserDelegatedHelpdeskValue : Boolean;
+        IsUserDelegatedAdminValue, IsUserDelegatedHelpdeskValue, IsUserDelegatedValue : Boolean;
 }

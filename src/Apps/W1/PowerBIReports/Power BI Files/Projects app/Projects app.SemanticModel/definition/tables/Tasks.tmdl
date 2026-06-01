@@ -1,0 +1,207 @@
+table Tasks
+	lineageTag: e064a10d-7469-46b5-b5f6-90916d8c34c6
+
+	measure 'Project Task Duration Days' = ```
+			
+			VAR StartingDate = 
+			CALCULATE(
+			    MIN('Project Planning Line'[Planning Date]),
+			    RELATEDTABLE('Project Planning Line')
+			)
+			VAR EndingDate = 
+			CALCULATE(
+			    MAX('Project Planning Line'[Planning Date]),
+			    RELATEDTABLE('Project Planning Line')
+			)
+			RETURN DATEDIFF(StartingDate,EndingDate,DAY)
+			```
+		formatString: 0
+		displayFolder: _Project Task Measures
+		lineageTag: b8047783-025d-4db9-bdd8-1e7fde73df61
+
+	measure 'Project Task Duration Weeks' = ```
+			
+			VAR StartingDate = 
+			CALCULATE(
+			    MIN('Project Planning Line'[Planning Date]),
+			    RELATEDTABLE('Project Planning Line')
+			)
+			VAR EndingDate = 
+			CALCULATE(
+			    MAX('Project Planning Line'[Planning Date]),
+			    RELATEDTABLE('Project Planning Line')
+			)
+			RETURN DATEDIFF(StartingDate,EndingDate,WEEK)
+			```
+		formatString: 0
+		displayFolder: _Project Task Measures
+		lineageTag: 40dd6353-de09-452e-88b0-83f0560a40ff
+
+	column 'Task Project No.'
+		dataType: string
+		lineageTag: fb4a38a8-6363-4d7e-8867-de95d5b03b29
+		summarizeBy: none
+		sourceColumn: Task Project No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Task No.'
+		dataType: string
+		lineageTag: 875f4a8c-aa1b-4690-923b-00205e032da6
+		summarizeBy: none
+		sourceColumn: Task No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Task Description'
+		dataType: string
+		lineageTag: ca518889-41ab-447d-bb11-486e9653265d
+		summarizeBy: none
+		sourceColumn: Task Description
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Task Totaling'
+		dataType: string
+		isHidden
+		lineageTag: 4dfd7449-517e-4f1e-aa28-c3274f4887ce
+		summarizeBy: none
+		sourceColumn: Task Totaling
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Task Type'
+		dataType: string
+		isHidden
+		lineageTag: 154b10ea-8cca-47d0-acc2-45aefa4c4e12
+		summarizeBy: none
+		sourceColumn: Task Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Task Indentation'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 532c0ee4-0e99-4cf5-8e4d-d8116c0411b7
+		summarizeBy: sum
+		sourceColumn: Task Indentation
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Task Project No. & Task No.'
+		dataType: string
+		lineageTag: 9ce7ff8e-c3e9-4e84-8e2a-e4ae784957a2
+		summarizeBy: none
+		sourceColumn: Task Project No. & Task No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Task Project Task & Description'
+		dataType: string
+		lineageTag: d01fc197-3929-4c9b-8e14-a21d75cb2dd2
+		summarizeBy: none
+		sourceColumn: Task Project Task & Description
+
+		annotation SummarizationSetBy = Automatic
+
+	/// This column calculates the task starting date by finding the earliest planning date from the Project Planning Line table for each task.
+	column 'Project Task Starting Date' =
+			
+			CALCULATE(
+			    MIN('Project Planning Line'[Planning Date]),
+			    RELATEDTABLE('Project Planning Line')
+			)
+		formatString: Short Date
+		lineageTag: bda650bb-2b5a-42fc-9fd7-c0999237f490
+		summarizeBy: none
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	/// This column calculates the task ending date by finding the latest planning date from the Project Planning Line table for each task.
+	column 'Project Task Ending Date' =
+			
+			CALCULATE(
+			    MAX('Project Planning Line'[Planning Date]),
+			    RELATEDTABLE('Project Planning Line')
+			)
+		formatString: Short Date
+		lineageTag: 46740dd3-fb4e-44a7-a033-cc5496f45027
+		summarizeBy: none
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column startingDate
+		dataType: dateTime
+		isHidden
+		formatString: Long Date
+		lineageTag: 6b48ec91-5d01-4fa6-a343-70bd3d659083
+		summarizeBy: none
+		sourceColumn: startingDate
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column endingDate
+		dataType: dateTime
+		isHidden
+		formatString: Long Date
+		lineageTag: 139cd523-e2f5-4b38-abdf-99a5436b28f4
+		summarizeBy: none
+		sourceColumn: endingDate
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	partition Tasks-0e50c7fd-5d99-4bc4-9ea2-ec449e6f4f4c = m
+		mode: import
+		queryGroup: 'Dimension Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY, API_ENDPOINT, []),
+				    TableData = Source{[Name = "jobTasks", Signature = "table"]}[Data],
+				    #"Renamed Columns" = Table.RenameColumns(
+				        TableData,
+				        {
+				            {"jobNo", "Task Project No."},
+				            {"jobTaskNo", "Task No."},
+				            {"jobTaskType", "Task Type"},
+				            {"description", "Task Description"},
+				            {"totaling", "Task Totaling"},
+				            {"indentation", "Task Indentation"}
+				        }
+				    ),
+				    #"Added Task Project Task No. & Task No." = Table.AddColumn(
+				        #"Renamed Columns", "Task Project No. & Task No.", each [#"Task Project No."] & " " & [#"Task No."], type text
+				    ),
+				    #"Added Task Project Task & Description" = Table.AddColumn(
+				        #"Added Task Project Task No. & Task No.",
+				        "Task Project Task & Description",
+				        each [#"Task Project No. & Task No."] & " " & [Task Description], type text
+				    ),
+				    #"Removed Column" = Table.RemoveColumns(#"Added Task Project Task & Description", {"ETag"})
+				in
+				    #"Removed Column"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

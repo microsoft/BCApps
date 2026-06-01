@@ -101,6 +101,11 @@ function Restore-BaselinesFromArtifacts {
         $BaselineVersion = $baselinePackage.Version
     }
 
+    if (-not (Test-Path $TargetFolder)) {
+        Write-Host "Creating target folder for baselines: $TargetFolder"
+        New-Item -ItemType Directory -Path $TargetFolder | Out-Null
+    }
+
     $baselineFolder = Join-Path (Get-BaseFolder) "out/baselineartifacts/$BaselineVersion"
 
     if (-not (Test-Path $baselineFolder)) {
@@ -117,22 +122,21 @@ function Restore-BaselinesFromArtifacts {
         }
         Write-Host "Downloading from $baselineURL to $baselineFolder"
         Download-Artifacts -artifactUrl $baselineURL -basePath $baselineFolder | Out-Null
+
+        # Copy all the files from the sandbox folder to the baseline folder
+        Get-ChildItem -Path "$baselineFolder/sandbox/$BaselineVersion/W1/Extensions" -Filter "*_$($BaselineVersion).app" -Recurse | ForEach-Object {
+            Write-Host "Copying $($_.FullName) to $TargetFolder"
+            Copy-Item -Path $_.FullName -Destination $TargetFolder -Force | Out-Null
+        }
     }
 
-    $baselineApp = Get-ChildItem -Path "$baselineFolder/sandbox/$BaselineVersion/W1/Extensions" -Filter "*_$($AppName)_$($BaselineVersion).app" -ErrorAction SilentlyContinue
+    $baselineApp = Get-ChildItem -Path $TargetFolder -Filter "*_$($AppName)_$($BaselineVersion).app" -ErrorAction SilentlyContinue
 
     if (-not $baselineApp) {
         Write-Host "Unable to find baseline app for $AppName in $baselineFolder"
         return
     }
 
-    if (-not (Test-Path $TargetFolder)) {
-        Write-Host "Creating target folder for baselines: $TargetFolder"
-        New-Item -ItemType Directory -Path $TargetFolder | Out-Null
-    }
-
-    Write-Host "Copying $($baselineApp.FullName) to $TargetFolder"
-    Copy-Item -Path $baselineApp.FullName -Destination $TargetFolder | Out-Null
 
     return $BaselineVersion
 }

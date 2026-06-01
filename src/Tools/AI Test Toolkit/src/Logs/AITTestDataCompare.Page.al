@@ -7,7 +7,7 @@ namespace System.TestTools.AITestToolkit;
 
 page 149039 "AIT Test Data Compare"
 {
-    Caption = 'AI Test Data';
+    Caption = 'AI Eval Data';
     PageType = Card;
     ApplicationArea = All;
     SourceTable = "AIT Log Entry";
@@ -67,7 +67,6 @@ page 149039 "AIT Test Data Compare"
                             Caption = 'Input Data';
                         }
                     }
-
 
                 }
             }

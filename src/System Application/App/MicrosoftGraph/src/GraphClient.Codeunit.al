@@ -139,4 +139,51 @@ codeunit 9350 "Graph Client"
     begin
         exit(GraphClientImpl.Delete(RelativeUriToResource, GraphOptionalParameters, HttpResponseMessage));
     end;
+
+    #region Pagination Support
+
+    /// <summary>
+    /// Get any request to the microsoft graph API with pagination support
+    /// </summary>
+    /// <remarks>Does not require UI interaction. This method handles pagination automatically.</remarks>
+    /// <param name="RelativeUriToResource">A relative uri including the resource segments</param>
+    /// <param name="GraphOptionalParameters">A wrapper for optional header and query parameters</param>
+    /// <param name="GraphPaginationData">The pagination data object to track pagination state</param>
+    /// <param name="HttpResponseMessage">The response message object.</param>
+    /// <returns>True if the operation was successful; otherwise - false.</returns>
+    /// <error>Authentication failed.</error>
+    procedure GetWithPagination(RelativeUriToResource: Text; GraphOptionalParameters: Codeunit "Graph Optional Parameters"; var GraphPaginationData: Codeunit "Graph Pagination Data"; var HttpResponseMessage: Codeunit "Http Response Message"): Boolean
+    begin
+        exit(GraphClientImpl.GetWithPagination(RelativeUriToResource, GraphOptionalParameters, GraphPaginationData, HttpResponseMessage));
+    end;
+
+    /// <summary>
+    /// Get the next page of results using pagination data
+    /// </summary>
+    /// <remarks>Does not require UI interaction.</remarks>
+    /// <param name="GraphPaginationData">The pagination data object containing the next link</param>
+    /// <param name="HttpResponseMessage">The response message object.</param>
+    /// <returns>True if the operation was successful; otherwise - false.</returns>
+    /// <error>Authentication failed.</error>
+    procedure GetNextPage(var GraphPaginationData: Codeunit "Graph Pagination Data"; var HttpResponseMessage: Codeunit "Http Response Message"): Boolean
+    begin
+        exit(GraphClientImpl.GetNextPage(GraphPaginationData, HttpResponseMessage));
+    end;
+
+    /// <summary>
+    /// Get all pages of results automatically
+    /// </summary>
+    /// <remarks>Does not require UI interaction. This method fetches all pages automatically and returns the combined results.</remarks>
+    /// <param name="RelativeUriToResource">A relative uri including the resource segments</param>
+    /// <param name="GraphOptionalParameters">A wrapper for optional header and query parameters</param>
+    /// <param name="HttpResponseMessage">The last response message object.</param>
+    /// <param name="JsonResults">A JSON array containing all results from all pages</param>
+    /// <returns>True if the operation was successful; otherwise - false.</returns>
+    /// <error>Authentication failed.</error>
+    procedure GetAllPages(RelativeUriToResource: Text; GraphOptionalParameters: Codeunit "Graph Optional Parameters"; var HttpResponseMessage: Codeunit "Http Response Message"; var JsonResults: JsonArray): Boolean
+    begin
+        exit(GraphClientImpl.GetAllPages(RelativeUriToResource, GraphOptionalParameters, HttpResponseMessage, JsonResults));
+    end;
+
+    #endregion
 }

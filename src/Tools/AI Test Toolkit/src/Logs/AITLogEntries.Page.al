@@ -7,12 +7,12 @@ namespace System.TestTools.AITestToolkit;
 
 page 149033 "AIT Log Entries"
 {
-    Caption = 'AI Log Entries';
+    Caption = 'AI Eval Log Entries';
     PageType = List;
     ApplicationArea = All;
     Editable = false;
     SourceTable = "AIT Log Entry";
-    Extensible = false;
+    Extensible = true;
     UsageCategory = None;
 
     layout
@@ -59,6 +59,12 @@ page 149033 "AIT Log Entries"
                 field("Procedure Name"; Rec."Procedure Name")
                 {
                 }
+                field(Dataset; Rec."Test Input Group Code")
+                {
+                }
+                field("Dataset Line No."; Rec."Test Input Code")
+                {
+                }
                 field("Original Operation"; Rec."Original Operation")
                 {
                     Visible = false;
@@ -68,8 +74,20 @@ page 149033 "AIT Log Entries"
                 {
                     StyleExpr = StatusStyleExpr;
                 }
+                field(ErrorMessageWithCallStack; ErrorMessageWithCallStack)
+                {
+                    Caption = 'Error Message';
+                    ToolTip = 'Specifies the error message. Click to see the error message and call stack.';
+                    Style = Unfavorable;
+
+                    trigger OnDrillDown()
+                    begin
+                        Message(ErrorMessageWithCallStack);
+                    end;
+                }
                 field(Accuracy; Rec."Test Method Line Accuracy")
                 {
+                    AutoFormatType = 0;
                 }
                 field("No. of Turns Passed"; Rec."No. of Turns Passed")
                 {
@@ -89,19 +107,13 @@ page 149033 "AIT Log Entries"
                 {
                     Visible = false;
                 }
-                field(Dataset; Rec."Test Input Group Code")
-                {
-                }
-                field("Dataset Line No."; Rec."Test Input Code")
-                {
-                }
                 field("Input Dataset Desc."; Rec."Test Input Description")
                 {
                 }
                 field("Input Text"; InputText)
                 {
                     Caption = 'Input';
-                    ToolTip = 'Specifies the test input of the test.';
+                    ToolTip = 'Specifies the test input of the eval.';
 
                     trigger OnDrillDown()
                     begin
@@ -110,8 +122,8 @@ page 149033 "AIT Log Entries"
                 }
                 field("Output Text"; OutputText)
                 {
-                    Caption = 'Test Output';
-                    ToolTip = 'Specifies the test output of the test.';
+                    Caption = 'Eval Output';
+                    ToolTip = 'Specifies the eval output of the eval.';
 
                     trigger OnDrillDown()
                     begin
@@ -124,25 +136,26 @@ page 149033 "AIT Log Entries"
                 field(TestRunDuration; TestRunDuration)
                 {
                     Caption = 'Duration';
-                    ToolTip = 'Specifies the duration of the iteration.';
+                    ToolTip = 'Specifies the duration of the eval.';
                 }
                 field(StartTime; Format(Rec."Start Time", 0, '<Year4>-<Month,2>-<Day,2> <Hours24>:<Minutes,2>:<Seconds,2><Second dec.>'))
                 {
                     Caption = 'Start Time';
-                    ToolTip = 'Specifies the start time of the test.';
+                    ToolTip = 'Specifies the start time of the eval.';
                     Visible = false;
                 }
                 field(EndTime; Format(Rec."End Time", 0, '<Year4>-<Month,2>-<Day,2> <Hours24>:<Minutes,2>:<Seconds,2><Second dec.>'))
                 {
                     Caption = 'End Time';
-                    ToolTip = 'Specifies the end time of the test.';
+                    ToolTip = 'Specifies the end time of the eval.';
                     Visible = false;
                 }
                 field(Message; ErrorMessage)
                 {
                     Caption = 'Error Message';
-                    ToolTip = 'Specifies the error message from the test.';
+                    ToolTip = 'Specifies the error message from the eval.';
                     Style = Unfavorable;
+                    Visible = false;
 
                     trigger OnDrillDown()
                     begin
@@ -158,6 +171,7 @@ page 149033 "AIT Log Entries"
                 {
                     Caption = 'Call stack';
                     Editable = false;
+                    Visible = false;
                     ToolTip = 'Specifies the call stack for this error.';
 
                     trigger OnDrillDown()
@@ -248,9 +262,9 @@ page 149033 "AIT Log Entries"
             }
             action("Download Test Output")
             {
-                Caption = 'Download Test Output';
+                Caption = 'Download eval output';
                 Image = Download;
-                ToolTip = 'Download the test output.';
+                ToolTip = 'Download the eval output.';
 
                 trigger OnAction()
                 var
@@ -261,9 +275,9 @@ page 149033 "AIT Log Entries"
             }
             action("View Test Data")
             {
-                Caption = 'View Test Data';
+                Caption = 'View eval data';
                 Image = CompareCOA;
-                ToolTip = 'View Test Data.';
+                ToolTip = 'View eval data.';
 
                 trigger OnAction()
                 begin
@@ -272,9 +286,9 @@ page 149033 "AIT Log Entries"
             }
             action("Download Test Summary")
             {
-                Caption = 'Download Test Summary';
+                Caption = 'Download eval summary';
                 Image = Export;
-                ToolTip = 'Downloads a summary of the test results.';
+                ToolTip = 'Downloads a summary of the eval results.';
 
                 trigger OnAction()
                 var
@@ -283,11 +297,34 @@ page 149033 "AIT Log Entries"
                     AITTestSuiteMgt.DownloadTestSummary(Rec);
                 end;
             }
+
+            action(RerunTest)
+            {
+                Caption = 'Rerun eval';
+                Image = Redo;
+                ToolTip = 'Rerun the eval for the selected line.';
+
+                trigger OnAction()
+                var
+                    AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
+                    Version: Integer;
+                begin
+                    Version := AITTestSuiteMgt.RerunTest(Rec);
+
+                    Rec.Reset();
+                    Rec.SetRange(Version, Version);
+                    CurrPage.Update(false);
+                end;
+            }
         }
         area(Promoted)
         {
             group(Category_Process)
             {
+
+                actionref("RerunTest_Promoted"; "RerunTest")
+                {
+                }
                 actionref(DeleteAll_Promoted; DeleteAll)
                 {
                 }
@@ -317,13 +354,14 @@ page 149033 "AIT Log Entries"
     }
 
     var
-        ClickToShowLbl: Label 'Show data input';
+        ClickToShowLbl: Label 'Show eval input';
         DoYouWantToDeleteQst: Label 'Do you want to delete all entries within the filter?';
         InputText: Text;
         TurnsText: Text;
         OutputText: Text;
         ErrorMessage: Text;
         ErrorCallStack: Text;
+        ErrorMessageWithCallStack: Text;
         StatusStyleExpr: Text;
         TurnsStyleExpr: Text;
         TestRunDuration: Duration;
@@ -346,9 +384,11 @@ page 149033 "AIT Log Entries"
     begin
         case Rec.Status of
             Rec.Status::Success:
-                StatusStyleExpr := 'Favorable';
+                StatusStyleExpr := Format(PageStyle::Favorable);
             Rec.Status::Error:
-                StatusStyleExpr := 'Unfavorable';
+                StatusStyleExpr := Format(PageStyle::Unfavorable);
+            Rec.Status::Skipped:
+                StatusStyleExpr := Format(PageStyle::Ambiguous);
             else
                 StatusStyleExpr := '';
         end;
@@ -358,22 +398,29 @@ page 149033 "AIT Log Entries"
     begin
         case Rec."No. of Turns Passed" of
             Rec."No. of Turns":
-                TurnsStyleExpr := 'Favorable';
+                TurnsStyleExpr := Format(PageStyle::Favorable);
             0:
-                TurnsStyleExpr := 'Unfavorable';
+                TurnsStyleExpr := Format(PageStyle::Unfavorable);
             else
-                TurnsStyleExpr := 'Ambiguous';
+                TurnsStyleExpr := Format(PageStyle::Ambiguous);
         end;
     end;
 
     local procedure SetErrorFields()
+    var
+        CRLF: Text[2];
     begin
         ErrorMessage := '';
         ErrorCallStack := '';
+        ErrorMessageWithCallStack := '';
 
         if Rec.Status = Rec.Status::Error then begin
             ErrorCallStack := Rec.GetErrorCallStack();
             ErrorMessage := Rec.GetMessage();
+
+            CRLF[1] := 13;
+            CRLF[2] := 10;
+            ErrorMessageWithCallStack := ErrorMessage + CRLF + CRLF + ErrorCallStack;
         end;
     end;
 

@@ -83,10 +83,9 @@ codeunit 9064 "Stor. Serv. Auth. Shared Key" implements "Storage Service Authori
         exit(StringToSign);
     end;
 
-    [TryFunction]
-    local procedure TryGetContentHeaders(var HttpRequestMessage: HttpRequestMessage; var RequestHttpHeaders: HttpHeaders)
+    local procedure TryGetContentHeaders(var HttpRequestMessage: HttpRequestMessage; var RequestHttpHeaders: HttpHeaders): Boolean
     begin
-        HttpRequestMessage.Content.GetHeaders(RequestHttpHeaders);
+        exit(HttpRequestMessage.Content.GetHeaders(RequestHttpHeaders));
     end;
 
     local procedure GetHeaderValueOrEmpty(Headers: HttpHeaders; HeaderKey: Text): Text

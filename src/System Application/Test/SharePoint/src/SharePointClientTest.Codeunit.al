@@ -5,10 +5,10 @@
 
 namespace System.Test.Integration.Sharepoint;
 
-using System.TestLibraries.Integration.Sharepoint;
 using System.Integration.Sharepoint;
-using System.Utilities;
+using System.TestLibraries.Integration.Sharepoint;
 using System.TestLibraries.Utilities;
+using System.Utilities;
 
 #pragma warning disable AA0217
 codeunit 132970 "SharePoint Client Test"

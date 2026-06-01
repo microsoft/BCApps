@@ -1,0 +1,1533 @@
+cultureInfo nl-NL
+	translations
+		model Model
+			table 'G/L Account Category'
+				caption: GB-rekeningcategorie
+				column 'G/L Acc. Category Description'
+					caption: Beschrijving van grootboekrekeningcategorie
+				column siblingSequenceNo
+					caption: siblingSequenceNo
+				column indentation
+					caption: indentatie
+				column accountCategory
+					caption: accountCategory
+				column incomeBalance
+					caption: incomeBalance
+				column additionalReportDefinition
+					caption: additionalReportDefinition
+				column systemGenerated
+					caption: systemGenerated
+				column hasChildren
+					caption: hasChildren
+				measure GLAccCategoryBrowseDepth
+					caption: GLAccCategoryBrowseDepth
+				measure GLAccCategoryMaxNodeDepth
+					caption: GLAccCategoryMaxNodeDepth
+				measure 'G/L Acc. Category Balance at Date'
+					caption: Saldo van grootboekrekeningcategorie op datum
+				measure 'G/L Acc. Category Net Change'
+					caption: Mutatie van grootboekrekeningcategorie
+				measure 'G/L Acc. Category Budget Balance at Date'
+					caption: Budgetsaldo van grootboekrekeningcategorie op datum
+				measure 'G/L Acc. Category Budget Amount'
+					caption: Budgetbedrag van grootboekrekeningcategorie
+				hierarchy 'G/L Account Category Hierarchy'
+					caption: Hiërarchie van grootboekrekeningcategorieën
+					level 'G/L Account Category (Level 1)'
+						caption: Grootboekrekeningcategorie (niveau 1)
+					level 'G/L Account Category (Level 2)'
+						caption: Grootboekrekeningcategorie (niveau 2)
+					level 'G/L Account Category (Level 3)'
+						caption: Grootboekrekeningcategorie (niveau 3)
+			table 'Balance Sheet Measures'
+				caption: Balansmaateenheden
+				measure 'Current Assets'
+					caption: Vlottende activa
+				measure 'Current Liabilities'
+					caption: Vlottende verplichtingen
+				measure Inventory
+					caption: Voorraad
+				measure 'Working Capital'
+					caption: Werkkapitaal
+				measure 'Shareholders'' Equity'
+					caption: Vermogen van aandeelhouders
+				measure Liabilities
+					caption: Verplichtingen
+				measure Assets
+					caption: Activa
+				measure Equity
+					caption: Vermogen
+				measure 'Liabilities & Equity'
+					caption: Verplichtingen en vermogen
+				measure 'Accounts Payable'
+					caption: Crediteuren
+				measure 'Accounts Receivable'
+					caption: Debiteuren
+				measure 'Accounts Receivable (Beginning Balance)'
+					caption: Debiteuren (beginsaldo)
+				measure 'Accounts Receivable (Average)'
+					caption: Debiteuren (gemiddelde)
+				measure 'Inventory (Beginning Balance)'
+					caption: Voorraad (beginsaldo)
+				measure 'Inventory (Average)'
+					caption: Voorraad (gemiddelde)
+				measure 'Purchase Prepayments'
+					caption: Vooruitbetalingen inkoop
+				measure 'Liquid Assets'
+					caption: Liquide middelen
+				measure 'Fixed Assets'
+					caption: Vaste activa
+				measure 'Capital Employed'
+					caption: Geïnvesteerd vermogen
+				measure 'Liabilities (Neg)'
+					caption: Verplichtingen (neg.)
+				measure 'Accounts Payable (Neg)'
+					caption: Crediteuren (neg.)
+				measure 'Payroll Liabilites'
+					caption: Salarisverplichtingen
+				measure 'Longterm Liabilities'
+					caption: Langlopende schulden
+			table 'Income Statement Measures'
+				caption: Maateenheden van resultatenrekening
+				measure Revenue
+					caption: Opbrengst
+				measure 'Cost of Goods Sold'
+					caption: KPV-kosten
+				measure Expense
+					caption: Onkosten
+				measure 'Interest Expense'
+					caption: Rentelasten
+				measure 'Tax Expense'
+					caption: Belastingkosten
+				measure 'Extraordinary Expense'
+					caption: Buitengewone kosten
+				measure 'Operating Expense - OPEX'
+					caption: Bedrijfskosten - OPEX
+				measure Purchases
+					caption: Inkopen
+				measure 'FX Losses Expense'
+					caption: Koersverlieskosten
+				measure 'Depreciation and Amortization'
+					caption: Afschrijving en amortisatie
+				measure 'Revenue (Balance at Date)'
+					caption: Opbrengst (saldo op datum)
+				measure 'Revenue (Beginning Balance)'
+					caption: Opbrengst (beginsaldo)
+				measure 'Interest Revenue'
+					caption: Renteopbrengst
+				measure 'FX Gains Revenue'
+					caption: Koerswinstopbrengst
+				measure 'Extraordinary Revenue'
+					caption: Buitengewone inkomsten
+				measure 'Operating Revenue'
+					caption: Bedrijfsopbrengst
+				measure 'Expense (Balance at Date)'
+					caption: Kosten (saldo op datum)
+				measure 'Expense (Beginning Balance)'
+					caption: Kosten (beginsaldo)
+				measure 'Interest Expense (Balance at Date)'
+					caption: Rentelasten (saldo op datum)
+				measure 'Interest Expense (Beginning Balance)'
+					caption: Rentelasten (beginsaldo)
+				measure 'FX Losses Expense (Balance at Date)'
+					caption: Koersverlieskosten (saldo op datum)
+				measure 'FX Losses Expense (Beginning Balance)'
+					caption: Koersverlieskosten (beginsaldo)
+				measure 'Tax Expense (Balance at Date)'
+					caption: Belastingkosten (saldo op datum)
+				measure 'Tax Expense (Beginning Balance)'
+					caption: Belastingkosten (beginsaldo)
+				measure 'Extraordinary Expense (Balance at Date)'
+					caption: Buitengewone kosten (saldo op datum)
+				measure 'Extraordinary Expense (Beginning Balance)'
+					caption: Buitengewone kosten (beginsaldo)
+				measure 'Interest Revenue (Balance at Date)'
+					caption: Renteopbrengst (saldo op datum)
+				measure 'Interest Revenue (Beginning Balance)'
+					caption: Renteopbrengst (beginsaldo)
+				measure 'FX Gains Revenue (Balance at Date)'
+					caption: Koerswinstopbrengst (saldo op datum)
+				measure 'FX Gains Revenue (Beginning Balance)'
+					caption: Koerswinstopbrengst (beginsaldo)
+				measure 'Extraordinary Revenue (Balance at Date)'
+					caption: Buitengewone inkomsten (saldo op datum)
+				measure 'Extraordinary Revenue (Beginning Balance)'
+					caption: Buitengewone inkomsten (beginsaldo)
+				measure 'Operating Expense - OPEX (Balance at Date)'
+					caption: Bedrijfskosten - OPEX (saldo op datum)
+				measure 'Operating Expense - OPEX (Beginning Balance)'
+					caption: Bedrijfskosten - OPEX (beginsaldo)
+				measure 'Operating Revenue (Balance at Date)'
+					caption: Bedrijfsopbrengst (saldo op datum)
+				measure 'Operating Revenue (Beginning Balance)'
+					caption: Bedrijfsopbrengst (beginsaldo)
+			table 'G/L Account'
+				caption: Grootboekrekening
+				column 'G/L Account No./Name'
+					caption: Nr./naam van grootboekrekening
+				column 'G/L Account No./Name Indented'
+					caption: Grootboekrekeningnr./naam ingesprongen
+				column 'Parent G/L Account No.'
+					caption: Bovenliggend grootboekrekeningnr.
+				column 'G/L Account No.'
+					caption: Nr. van grootboekrekening
+				column 'G/L Account Name'
+					caption: Naam van grootboekrekening
+				column 'Account Type'
+					caption: Rekeningsoort
+				column Income/Balance
+					caption: Resultaten/balans
+				column 'Account Subcategory Entry No.'
+					caption: Nr. van rekeningsubcategoriepost
+				measure 'G/L Acc. Balance at Date'
+					caption: Grootboeksaldo op datum
+				measure 'G/L Acc. Net Change'
+					caption: Grootboekrekeningmutatie
+				measure 'G/L Acc. Budget Balance at Date'
+					caption: Budgetsaldo van grootboekrekening op datum
+				measure 'G/L Acc. Budget Amount'
+					caption: Budgetbedrag van grootboekrekening
+				hierarchy 'G/L Account Hierarchy'
+					caption: Hiërarchie van grootboekrekeningen
+					level 'G/L Account (Level 1)'
+						caption: Grootboekrekening (niveau 1)
+					level 'G/L Account (Level 2)'
+						caption: Grootboekrekening (niveau 2)
+					level 'G/L Account (Level 3)'
+						caption: Grootboekrekening (niveau 3)
+					level 'G/L Account (Level 4)'
+						caption: Grootboekrekening (niveau 4)
+					level 'G/L Account (Level 5)'
+						caption: Grootboekrekening (niveau 5)
+			table 'Activity KPIs'
+				caption: Activiteit-KPI's
+				measure 'Average Collection Period (Days)'
+					caption: Gemiddelde incassoperiode (dagen)
+				measure '% Change in Revenue'
+					caption: % wijziging in opbrengst
+				measure '% Change in Operating Profit - EBIT'
+					caption: % mutatie bedrijfswinst - EBIT
+				measure 'Days Sales Outstanding - DSO'
+					caption: Dagen Verkoop Openstaand
+				measure 'Days Payable Outstanding - DPO'
+					caption: Dagen Betaalbaar Openstaand
+				measure 'Days Sales Of Inventory - DSI'
+					caption: Verkoopdagen van voorraad
+				measure 'Cash Conversion Cycle - CCC'
+					caption: Cashconversiecyclus
+				measure 'Degree Of Operating Leverage - DOL'
+					caption: Operationele hefboomwerking
+				measure 'Asset Turnover Ratio'
+					caption: Ratio omlooptijd activa
+				measure 'Inventory Turnover'
+					caption: Voorraadomzet
+			table 'Liquidity KPIs'
+				caption: Liquiditeits-KPI's
+				measure 'Current Ratio'
+					caption: Huidige ratio
+				measure 'Quick Ratio'
+					caption: Snelle ratio
+				measure 'Cash Ratio'
+					caption: Cashratio
+			table 'Profitability KPIs'
+				caption: Winstgevendheid-KPI's
+				measure 'Gross Profit Margin'
+					caption: Brutowinstmarge
+				measure 'Net Profit Margin'
+					caption: Nettowinstmarge
+				measure 'Gross Profit'
+					caption: Brutowinst
+				measure 'Net Profit'
+					caption: Nettowinst
+				measure 'Operating Profit - EBIT (Beginning Balance)'
+					caption: Bedrijfswinst - EBIT (beginsaldo)
+				measure 'Operating Profit - EBIT'
+					caption: Bedrijfswinst - EBIT
+				measure 'Operating Profit - EBIT (Balance at Date)'
+					caption: Bedrijfswinst - EBIT (saldo op datum)
+				measure 'Operating Profit Margin'
+					caption: Bedrijfswinstmarge
+				measure EBITDA
+					caption: EBITDA
+				measure 'Return On Assets - ROA'
+					caption: Rendement op activa
+				measure 'Return On Equity - ROE'
+					caption: Rendement op eigen vermogen
+				measure 'Return On Net Assets - RONA'
+					caption: Rendement op nettoactiva
+				measure 'Return On Capital Employed - ROCE'
+					caption: Rendement op geïnvesteerd kapitaal
+				measure 'Debt/Equity Ratio'
+					caption: Ratio schuld/eigen vermogen
+				measure 'Shareholder Equity Ratio'
+					caption: Ratio eigen vermogen
+				measure 'Debt Ratio'
+					caption: Ratio schuld
+			table 'G/L Budget Entries'
+				caption: Grootboekbudgetposten
+				column 'Budget Name'
+					caption: Budgetnaam
+				column 'Budget Date'
+					caption: Budgetdatum
+				column 'Entry No.'
+					caption: Postnr.
+				measure 'Budget Balance at Date'
+					caption: Budgetsaldo op datum
+				measure 'Budget Amount'
+					caption: Budgetbedrag
+				measure 'Budget Entry Back Link'
+					caption: Terugkoppeling Budgetpost
+			table 'Dimension Sets'
+				caption: Dimensiesets
+				column 'Global Dimension 1'
+					caption: Globale dimensie 1
+				column 'Global Dimension 2'
+					caption: Globale dimensie 2
+				column 'Shortcut Dimension 3'
+					caption: Shortcutdimensie 3
+				column 'Shortcut Dimension 4'
+					caption: Shortcutdimensie 4
+				column 'Shortcut Dimension 5'
+					caption: Shortcutdimensie 5
+				column 'Shortcut Dimension 6'
+					caption: Shortcutdimensie 6
+				column 'Shortcut Dimension 7'
+					caption: Shortcutdimensie 7
+				column 'Shortcut Dimension 8'
+					caption: Shortcutdimensie 8
+				column id
+					caption: id
+			table 'G/L Entries'
+				caption: Grootboekposten
+				column 'Posting Date'
+					caption: Boekingsdatum
+				column 'Closing Entry'
+					caption: Ultimopost
+				column 'Source Code'
+					caption: Broncode
+				column 'Source Type'
+					caption: Bronsoort
+				column 'Source No.'
+					caption: Bronnr.
+				column 'Entry No.'
+					caption: Postnr.
+				column Description
+					caption: Beschrijving
+				measure 'Net Change'
+					caption: Mutatie
+				measure 'Net Change (Neg)'
+					caption: Mutatie (neg.)
+				measure 'Balance at Date'
+					caption: Saldo op datum
+				measure Amount
+					caption: Bedrag
+				measure Balance
+					caption: Saldo
+				measure 'Variance to Budget'
+					caption: Verschil van budget
+				measure 'Variance to Budget %'
+					caption: Verschil van budget %
+				measure 'Balance at Date (Neg)'
+					caption: Saldo t/m datum (neg.)
+				measure 'Net Change Back Link'
+					caption: Terugkoppeling Mutatie
+				measure 'Balance At Date Back Link'
+					caption: Terugkoppeling Saldo op datum
+				measure 'Base Link'
+					caption: Basiskoppeling
+			table 'Standard Calendar Time Intelligence'
+				caption: Tijdinformatie standaardkalender
+				measure 'Net Change AVG 1Y'
+					caption: Mutatie GEM 1J
+				measure 'Net Change AVG 3M'
+					caption: Mutatie GEM 3M
+				measure 'Net Change AVG 30D'
+					caption: Mutatie GEM 30D
+				measure 'Net Change MTDOPM %'
+					caption: Mutatie MTHTVM %
+				measure 'Net Change MTDOPM'
+					caption: Mutatie MTHTVM
+				measure 'Net Change PMC'
+					caption: Mutatie VMA
+				measure 'Net Change QTDOPQ %'
+					caption: Mutatie KTHTVK %
+				measure 'Net Change QTDOPQ'
+					caption: Mutatie KTHTVK
+				measure 'Net Change PQC'
+					caption: Mutatie VKA
+				measure 'Net Change YTDOPY %'
+					caption: Mutatie JTHTVJ %
+				measure 'Net Change YTDOPY'
+					caption: Mutatie JTHTVJ
+				measure 'Net Change PYC'
+					caption: Mutatie VJA
+				measure 'Net Change MATG %'
+					caption: Mutatie VJTG %
+				measure 'Net Change MATG'
+					caption: Mutatie VJTG
+				measure 'Net Change PYMAT'
+					caption: Mutatie VJVJT
+				measure 'Net Change MAT'
+					caption: Mutatie VJT
+				measure 'Net Change MOMTD %'
+					caption: Mutatie MOMTH %
+				measure 'Net Change MOMTD'
+					caption: Mutatie MOMTH
+				measure 'Net Change PMTD'
+					caption: Mutatie VMTH
+				measure 'Net Change QOQTD %'
+					caption: Mutatie KOKTH %
+				measure 'Net Change QOQTD'
+					caption: Mutatie KOKTH
+				measure 'Net Change YOYTD %'
+					caption: Mutatie JOJTH %
+				measure 'Net Change YOYTD'
+					caption: Mutatie JOJTH
+				measure 'Net Change PQTD'
+					caption: Mutatie VKTH
+				measure 'Net Change PYTD'
+					caption: Mutatie VJTH
+				measure 'Net Change POP %'
+					caption: Mutatie PTP %
+				measure 'Net Change POP'
+					caption: Mutatie PTP
+				measure 'Net Change PP'
+					caption: Mutatie VP
+				measure 'Net Change MOM %'
+					caption: Mutatie MTM %
+				measure 'Net Change MOM'
+					caption: Mutatie MTM
+				measure 'Net Change QOQ %'
+					caption: Mutatie KTK %
+				measure 'Net Change PM'
+					caption: Mutatie VM
+				measure 'Net Change QOQ'
+					caption: Mutatie KTK
+				measure 'Net Change PQ'
+					caption: Mutatie VK
+				measure 'Net Change YOY'
+					caption: Mutatie JTJ
+				measure 'Net Change YOY %'
+					caption: Mutatie JTJ %
+				measure 'Net Change PY'
+					caption: Mutatie VJ
+				measure 'Net Change MTD'
+					caption: Mutatie MTH
+				measure 'Net Change QTD'
+					caption: Mutatie KTH
+				measure 'Net Change YTD'
+					caption: Mutatie JTH
+				measure 'Balance at Date AVG 1Y'
+					caption: Saldo op datum GEM 1J
+				measure 'Balance at Date AVG 3M'
+					caption: Saldo op datum GEM 3M
+				measure 'Balance at Date AVG 30D'
+					caption: Saldo op datum GEM 30D
+				measure 'Balance at Date MTDOPM %'
+					caption: Saldo op datum MTHTVM %
+				measure 'Balance at Date MTDOPM'
+					caption: Saldo op datum MTHTVM
+				measure 'Balance at Date PMC'
+					caption: Saldo op datum VMA
+				measure 'Balance at Date QTDOPQ %'
+					caption: Saldo op datum KTHTVK %
+				measure 'Balance at Date QTDOPQ'
+					caption: Saldo op datum KTHTVK
+				measure 'Balance at Date PQC'
+					caption: Saldo op datum VKA
+				measure 'Balance at Date YTDOPY %'
+					caption: Saldo op datum JTHTVJ %
+				measure 'Balance at Date YTDOPY'
+					caption: Saldo op datum JTHTVJ
+				measure 'Balance at Date PYC'
+					caption: Saldo op datum VJA
+				measure 'Balance at Date MATG %'
+					caption: Saldo op datum VJTG %
+				measure 'Balance at Date MATG'
+					caption: Saldo op datum VJTG
+				measure 'Balance at Date PYMAT'
+					caption: Saldo op datum VJVJT
+				measure 'Balance at Date MAT'
+					caption: Saldo op datum VJT
+				measure 'Balance at Date MOMTD %'
+					caption: Saldo op datum MOMTH %
+				measure 'Balance at Date MOMTD'
+					caption: Saldo op datum MOMTH
+				measure 'Balance at Date PMTD'
+					caption: Saldo op datum VMTH
+				measure 'Balance at Date QOQTD %'
+					caption: Saldo op datum KOKTH %
+				measure 'Balance at Date QOQTD'
+					caption: Saldo op datum KOKTH
+				measure 'Balance at Date YOYTD %'
+					caption: Saldo op datum JOJTH %
+				measure 'Balance at Date YOYTD'
+					caption: Saldo op datum JOJTH
+				measure 'Balance at Date PQTD'
+					caption: Saldo op datum VKTH
+				measure 'Balance at Date PYTD'
+					caption: Saldo op datum VJTH
+				measure 'Balance at Date POP %'
+					caption: Saldo op datum PTP %
+				measure 'Balance at Date POP'
+					caption: Saldo op datum PTP
+				measure 'Balance at Date PP'
+					caption: Saldo op datum VP
+				measure 'Balance at Date MOM %'
+					caption: Saldo op datum MTM %
+				measure 'Balance at Date MOM'
+					caption: Saldo op datum MTM
+				measure 'Balance at Date QOQ %'
+					caption: Saldo op datum KTK %
+				measure 'Balance at Date PM'
+					caption: Saldo op datum VM
+				measure 'Balance at Date QOQ'
+					caption: Saldo op datum KTK
+				measure 'Balance at Date PQ'
+					caption: Saldo op datum VK
+				measure 'Balance at Date YOY'
+					caption: Saldo op datum JTJ
+				measure 'Balance at Date YOY %'
+					caption: Saldo op datum JTJ %
+				measure 'Balance at Date PY'
+					caption: Saldo op datum VJ
+				measure 'Balance at Date MTD'
+					caption: Saldo op datum MTH
+				measure 'Balance at Date QTD'
+					caption: Saldo op datum KTH
+				measure 'Balance at Date YTD'
+					caption: Saldo op datum JTH
+			table 'Fiscal Calendar Time Intelligence'
+				caption: Fiscaal Kalender Tijdinformatie
+				measure 'Net Change YTD (Fiscal)'
+					caption: Mutatie JTH (fiscaal)
+				measure 'Net Change QTD (Fiscal)'
+					caption: Mutatie KTH (fiscaal)
+				measure 'Net Change MTD (Fiscal)'
+					caption: Mutatie MTH (fiscaal)
+				measure 'Net Change PY (Fiscal)'
+					caption: Mutatie VJ (fiscaal)
+				measure 'Net Change YOY % (Fiscal)'
+					caption: Mutatie JTJ % (fiscaal)
+				measure 'Net Change YOY (Fiscal)'
+					caption: Mutatie JTJ (fiscaal)
+				measure 'Net Change PQ (Fiscal)'
+					caption: Mutatie VK (fiscaal)
+				measure 'Net Change QOQ (Fiscal)'
+					caption: Mutatie KTK (fiscaal)
+				measure 'Net Change QOQ % (Fiscal)'
+					caption: Mutatie KTK % (fiscaal)
+				measure 'Net Change PM (Fiscal)'
+					caption: Mutatie VM (fiscaal)
+				measure 'Net Change MOM (Fiscal)'
+					caption: Mutatie MTM (fiscaal)
+				measure 'Net Change MOM % (Fiscal)'
+					caption: Mutatie MTM % (fiscaal)
+				measure 'Net Change PP (Fiscal)'
+					caption: Mutatie VP (fiscaal)
+				measure 'Net Change POP (Fiscal)'
+					caption: Mutatie PTP (fiscaal)
+				measure 'Net Change POP % (Fiscal)'
+					caption: Mutatie PTP % (fiscaal)
+				measure 'Net Change PYTD (Fiscal)'
+					caption: Mutatie VJTH (fiscaal)
+				measure 'Net Change PQTD (Fiscal)'
+					caption: Mutatie VKTH (fiscaal)
+				measure 'Net Change YOYTD (Fiscal)'
+					caption: Mutatie JOJTH (fiscaal)
+				measure 'Net Change YOYTD % (Fiscal)'
+					caption: Mutatie JOJTH % (fiscaal)
+				measure 'Net Change QOQTD (Fiscal)'
+					caption: Mutatie KOKTH (fiscaal)
+				measure 'Net Change QOQTD % (Fiscal)'
+					caption: Mutatie KOKTH % (fiscaal)
+				measure 'Net Change PMTD (Fiscal)'
+					caption: Mutatie VJVJT (fiscaal)
+				measure 'Net Change MOMTD % (Fiscal)'
+					caption: Mutatie MOMTH % (fiscaal)
+				measure 'Net Change MOMTD (Fiscal)'
+					caption: Mutatie MOMTH (fiscaal)
+				measure 'Net Change MAT (Fiscal)'
+					caption: Mutatie VJT (fiscaal)
+				measure 'Net Change PYMAT (Fiscal)'
+					caption: Mutatie VJVJT (fiscaal)
+				measure 'Net Change MATG (Fiscal)'
+					caption: Mutatie VJTG (fiscaal)
+				measure 'Net Change MATG % (Fiscal)'
+					caption: Mutatie VJTG % (fiscaal)
+				measure 'Net Change MAT (364) (Fiscal)'
+					caption: Mutatie VJT (364) (fiscaal)
+				measure 'Net Change PYMAT (364) (Fiscal)'
+					caption: Mutatie VJVJT (364) (fiscaal)
+				measure 'Net Change PYC (Fiscal)'
+					caption: Mutatie VJA (fiscaal)
+				measure 'Net Change YTDOPY (Fiscal)'
+					caption: Mutatie JTHTVJ (fiscaal)
+				measure 'Net Change YTDOPY % (Fiscal)'
+					caption: Mutatie JTHTVJ % (fiscaal)
+				measure 'Net Change PQC (Fiscal)'
+					caption: Mutatie VKA (fiscaal)
+				measure 'Net Change QTDOPQ (Fiscal)'
+					caption: Mutatie KTHTVK (fiscaal)
+				measure 'Net Change QTDOPQ % (Fiscal)'
+					caption: Mutatie KTHTVK % (fiscaal)
+				measure 'Net Change PMC (Fiscal)'
+					caption: Mutatie VMA (fiscaal)
+				measure 'Net Change MTDOPM (Fiscal)'
+					caption: Mutatie MTHTVM (fiscaal)
+				measure 'Net Change MTDOPM % (Fiscal)'
+					caption: Mutatie MTHTVM % (fiscaal)
+				measure 'Net Change AVG 30D (Fiscal)'
+					caption: Mutatie GEM 30D (fiscaal)
+				measure 'Net Change AVG 3M (Fiscal)'
+					caption: Mutatie GEM 3M (fiscaal)
+				measure 'Net Change AVG 1Y (Fiscal)'
+					caption: Mutatie GEM 1J (fiscaal)
+				measure 'Balance at Date YTD (Fiscal)'
+					caption: Saldo op datum JTH (fiscaal)
+				measure 'Balance at Date QTD (Fiscal)'
+					caption: Saldo op datum KTH (fiscaal)
+				measure 'Balance at Date MTD (Fiscal)'
+					caption: Saldo op datum MTH (fiscaal)
+				measure 'Balance at Date PY (Fiscal)'
+					caption: Saldo op datum VJ (fiscaal)
+				measure 'Balance at Date YOY % (Fiscal)'
+					caption: Saldo op datum JTJ % (fiscaal)
+				measure 'Balance at Date YOY (Fiscal)'
+					caption: Saldo op datum JTJ (fiscaal)
+				measure 'Balance at Date PQ (Fiscal)'
+					caption: Saldo op datum VK (fiscaal)
+				measure 'Balance at Date QOQ (Fiscal)'
+					caption: Saldo op datum KTK (fiscaal)
+				measure 'Balance at Date QOQ % (Fiscal)'
+					caption: Saldo op datum KTK % (fiscaal)
+				measure 'Balance at Date PM (Fiscal)'
+					caption: Saldo op datum VM (fiscaal)
+				measure 'Balance at Date MOM (Fiscal)'
+					caption: Saldo op datum MTM (fiscaal)
+				measure 'Balance at Date MOM % (Fiscal)'
+					caption: Saldo op datum MTM % (fiscaal)
+				measure 'Balance at Date PP (Fiscal)'
+					caption: Saldo op datum VP (fiscaal)
+				measure 'Balance at Date POP (Fiscal)'
+					caption: Saldo op datum PTP (fiscaal)
+				measure 'Balance at Date POP % (Fiscal)'
+					caption: Saldo op datum PTP % (fiscaal)
+				measure 'Balance at Date PYTD (Fiscal)'
+					caption: Saldo op datum VJTH (fiscaal)
+				measure 'Balance at Date PQTD (Fiscal)'
+					caption: Saldo op datum VKTH (fiscaal)
+				measure 'Balance at Date YOYTD (Fiscal)'
+					caption: Saldo op datum JOJTH (fiscaal)
+				measure 'Balance at Date YOYTD % (Fiscal)'
+					caption: Saldo op datum JOJTH % (fiscaal)
+				measure 'Balance at Date QOQTD (Fiscal)'
+					caption: Saldo op datum KOKTH (fiscaal)
+				measure 'Balance at Date QOQTD % (Fiscal)'
+					caption: Saldo op datum KOKTH % (fiscaal)
+				measure 'Balance at Date PMTD (Fiscal)'
+					caption: Saldo op datum VMTH (fiscaal)
+				measure 'Balance at Date MOMTD % (Fiscal)'
+					caption: Saldo op datum MOMTH % (fiscaal)
+				measure 'Balance at Date MOMTD (Fiscal)'
+					caption: Saldo op datum MOMTH (fiscaal)
+				measure 'Balance at Date MAT (Fiscal)'
+					caption: Saldo op datum VJT (fiscaal)
+				measure 'Balance at Date PYMAT (Fiscal)'
+					caption: Saldo op datum VJVJT (fiscaal)
+				measure 'Balance at Date MATG (Fiscal)'
+					caption: Saldo op datum VJTG (fiscaal)
+				measure 'Balance at Date MATG % (Fiscal)'
+					caption: Saldo op datum VJTG % (fiscaal)
+				measure 'Balance at Date MAT (364) (Fiscal)'
+					caption: Saldo op datum VJT (364) (fiscaal)
+				measure 'Balance at Date PYMAT (364) (Fiscal)'
+					caption: Saldo op datum VJVJT (364) (fiscaal)
+				measure 'Balance at Date PYC (Fiscal)'
+					caption: Saldo op datum VJA (fiscaal)
+				measure 'Balance at Date YTDOPY (Fiscal)'
+					caption: Saldo op datum JTHTVJ (fiscaal)
+				measure 'Balance at Date YTDOPY % (Fiscal)'
+					caption: Saldo op datum JTHTVJ % (fiscaal)
+				measure 'Balance at Date PQC (Fiscal)'
+					caption: Saldo op datum VKA (fiscaal)
+				measure 'Balance at Date QTDOPQ (Fiscal)'
+					caption: Saldo op datum KTHTVK (fiscaal)
+				measure 'Balance at Date QTDOPQ % (Fiscal)'
+					caption: Saldo op datum KTHTVK % (fiscaal)
+				measure 'Balance at Date PMC (Fiscal)'
+					caption: Saldo op datum VMA (fiscaal)
+				measure 'Balance at Date MTDOPM (Fiscal)'
+					caption: Saldo op datum MTHTVM (fiscaal)
+				measure 'Balance at Date MTDOPM % (Fiscal)'
+					caption: Saldo op datum MTHTVM % (fiscaal)
+				measure 'Balance at Date AVG 30D (Fiscal)'
+					caption: Saldo op datum GEM 30D (fiscaal)
+				measure 'Balance at Date AVG 3M (Fiscal)'
+					caption: Saldo op datum GEM 3M (fiscaal)
+				measure 'Balance at Date AVG 1Y (Fiscal)'
+					caption: Saldo op datum GEM 1J (fiscaal)
+			table 'Weekly Calendar Time Intelligence'
+				caption: Wekelijks Kalender Tijdinformatie
+				measure 'Net Change YTD (Weekly)'
+					caption: Mutatie JTH (wekelijks)
+				measure 'Net Change QTD (Weekly)'
+					caption: Mutatie KTH (wekelijks)
+				measure 'Net Change MTD (Weekly)'
+					caption: Mutatie MTH (wekelijks)
+				measure 'Net Change WTD (Weekly)'
+					caption: Mutatie WTH (wekelijks)
+				measure 'Net Change PY (Weekly)'
+					caption: Mutatie VJ (wekelijks)
+				measure 'Net Change YOY % (Weekly)'
+					caption: Mutatie JTJ % (wekelijks)
+				measure 'Net Change YOY (Weekly)'
+					caption: Mutatie JTJ (wekelijks)
+				measure 'Net Change PQ (Weekly)'
+					caption: Mutatie VK (wekelijks)
+				measure 'Net Change QOQ (Weekly)'
+					caption: Mutatie KTK (wekelijks)
+				measure 'Net Change QOQ % (Weekly)'
+					caption: Mutatie KTK % (wekelijks)
+				measure 'Net Change PW (Weekly)'
+					caption: Mutatie VW (wekelijks)
+				measure 'Net Change WOW (Weekly)'
+					caption: Mutatie WTW (wekelijks)
+				measure 'Net Change WOW % (Weekly)'
+					caption: Mutatie WTW % (wekelijks)
+				measure 'Net Change PP (Weekly)'
+					caption: Mutatie VP (wekelijks)
+				measure 'Net Change POP (Weekly)'
+					caption: Mutatie PTP (wekelijks)
+				measure 'Net Change POP % (Weekly)'
+					caption: Mutatie PTP % (wekelijks)
+				measure 'Net Change PYTD (Weekly)'
+					caption: Mutatie VJTH (wekelijks)
+				measure 'Net Change PQTD (Weekly)'
+					caption: Mutatie VKTH (wekelijks)
+				measure 'Net Change YOYTD (Weekly)'
+					caption: Mutatie JOJTH (wekelijks)
+				measure 'Net Change YOYTD % (Weekly)'
+					caption: Mutatie JOJTH % (wekelijks)
+				measure 'Net Change QOQTD (Weekly)'
+					caption: Mutatie KOKTH (wekelijks)
+				measure 'Sales Amount QOQTD % (Weekly)'
+					caption: Verkoopbedrag KOKTH % (wekelijks)
+				measure 'Net Change PWTD (Weekly)'
+					caption: Mutatie VWTH (wekelijks)
+				measure 'Net Change WOWTD (Weekly)'
+					caption: Mutatie WOWTH (wekelijks)
+				measure 'Net Change WOWTD % (Weekly)'
+					caption: Mutatie WOWTH % (wekelijks)
+				measure 'Net Change MAT (364) (Weekly)'
+					caption: Mutatie VJT (364) (wekelijks)
+				measure 'Net Change PYMAT (364) (Weekly)'
+					caption: Mutatie VJVJT (364) (wekelijks)
+				measure 'Net Change MATG (Weekly)'
+					caption: Mutatie VJTG (wekelijks)
+				measure 'Net Change MATG % (Weekly)'
+					caption: Mutatie VJTG % (wekelijks)
+				measure 'Net Change PYC (Weekly)'
+					caption: Mutatie VJA (wekelijks)
+				measure 'Net Change YTDOPY (Weekly)'
+					caption: Mutatie JTHTVJ (wekelijks)
+				measure 'Net Change YTDOPY % (Weekly)'
+					caption: Mutatie JTHTVJ % (wekelijks)
+				measure 'Net Change PQC (Weekly)'
+					caption: Mutatie VKA (wekelijks)
+				measure 'Net Change QTDOPQ (Weekly)'
+					caption: Mutatie KTHTVK (wekelijks)
+				measure 'Net Change QTDOPQ % (Weekly)'
+					caption: Mutatie KTHTVK % (wekelijks)
+				measure 'Net Change PWC (Weekly)'
+					caption: Mutatie VWA (wekelijks)
+				measure 'Net Change WTDOPW (Weekly)'
+					caption: Mutatie WTHTVW (wekelijks)
+				measure 'Net Change WTDOPW % (Weekly)'
+					caption: Mutatie WTHTVW % (wekelijks)
+				measure 'Net Change AVG 4W (Weekly)'
+					caption: Mutatie GEM 4W (wekelijks)
+				measure 'Net Change AVG 1Q (Weekly)'
+					caption: Mutatie GEM 1K (wekelijks)
+				measure 'Net Change AVG 1Y (Weekly)'
+					caption: Mutatie GEM 1J (wekelijks)
+				measure 'Balance at Date YTD (Weekly)'
+					caption: Saldo op datum JTH (wekelijks)
+				measure 'Balance at Date QTD (Weekly)'
+					caption: Saldo op datum KTH (wekelijks)
+				measure 'Balance at Date MTD (Weekly)'
+					caption: Saldo op datum MTH (wekelijks)
+				measure 'Balance at Date WTD (Weekly)'
+					caption: Saldo op datum WTH (wekelijks)
+				measure 'Balance at Date PY (Weekly)'
+					caption: Saldo op datum VJ (wekelijks)
+				measure 'Balance at Date YOY % (Weekly)'
+					caption: Saldo op datum JTJ % (wekelijks)
+				measure 'Balance at Date YOY (Weekly)'
+					caption: Saldo op datum JTJ (wekelijks)
+				measure 'Balance at Date PQ (Weekly)'
+					caption: Saldo op datum VK (wekelijks)
+				measure 'Balance at Date QOQ (Weekly)'
+					caption: Saldo op datum KTK (wekelijks)
+				measure 'Balance at Date QOQ % (Weekly)'
+					caption: Saldo op datum KTK % (wekelijks)
+				measure 'Balance at Date PW (Weekly)'
+					caption: Saldo op datum VW (wekelijks)
+				measure 'Balance at Date WOW (Weekly)'
+					caption: Saldo op datum WTW (wekelijks)
+				measure 'Balance at Date WOW % (Weekly)'
+					caption: Saldo op datum WTW % (wekelijks)
+				measure 'Balance at Date PP (Weekly)'
+					caption: Saldo op datum VP (wekelijks)
+				measure 'Balance at Date POP (Weekly)'
+					caption: Saldo op datum PTP (wekelijks)
+				measure 'Balance at Date POP % (Weekly)'
+					caption: Saldo op datum PTP % (wekelijks)
+				measure 'Balance at Date PYTD (Weekly)'
+					caption: Saldo op datum VJTH (wekelijks)
+				measure 'Balance at Date PQTD (Weekly)'
+					caption: Saldo op datum VKTH (wekelijks)
+				measure 'Balance at Date YOYTD (Weekly)'
+					caption: Saldo op datum JOJTH (wekelijks)
+				measure 'Balance at Date YOYTD % (Weekly)'
+					caption: Saldo op datum JOJTH % (wekelijks)
+				measure 'Balance at Date QOQTD (Weekly)'
+					caption: Saldo op datum KOKTH (wekelijks)
+				measure 'Balance at Date QOQTD % (Weekly)'
+					caption: Saldo op datum KOKTH % (wekelijks)
+				measure 'Balance at Date PWTD (Weekly)'
+					caption: Saldo op datum VWTH (wekelijks)
+				measure 'Balance at Date WOWTD (Weekly)'
+					caption: Saldo op datum WOWTH (wekelijks)
+				measure 'Balance at Date WOWTD % (Weekly)'
+					caption: Saldo op datum WOWTH % (wekelijks)
+				measure 'Balance at Date MAT (364) (Weekly)'
+					caption: Saldo op datum VJT (364) (wekelijks)
+				measure 'Balance at Date PYMAT (364) (Weekly)'
+					caption: Saldo op datum VJVJT (364) (wekelijks)
+				measure 'Balance at Date MATG (Weekly)'
+					caption: Saldo op datum VJTG (wekelijks)
+				measure 'Balance at Date MATG % (Weekly)'
+					caption: Saldo op datum VJTG % (wekelijks)
+				measure 'Balance at Date PYC (Weekly)'
+					caption: Saldo op datum VJA (wekelijks)
+				measure 'Balance at Date YTDOPY (Weekly)'
+					caption: Saldo op datum JTHTVJ (wekelijks)
+				measure 'Balance at Date YTDOPY % (Weekly)'
+					caption: Saldo op datum JTHTVJ % (wekelijks)
+				measure 'Balance at Date PQC (Weekly)'
+					caption: Saldo op datum VKA (wekelijks)
+				measure 'Balance at Date QTDOPQ (Weekly)'
+					caption: Saldo op datum KTHTVK (wekelijks)
+				measure 'Balance at Date QTDOPQ % (Weekly)'
+					caption: Saldo op datum KTHTVK % (wekelijks)
+				measure 'Balance at Date PWC (Weekly)'
+					caption: Saldo op datum VWA (wekelijks)
+				measure 'Balance at Date WTDOPW (Weekly)'
+					caption: Saldo op datum WTHTVW (wekelijks)
+				measure 'Balance at Date WTDOPW % (Weekly)'
+					caption: Saldo op datum WTHTVW % (wekelijks)
+				measure 'Balance at Date AVG 4W (Weekly)'
+					caption: Saldo op datum GEM 4W (wekelijks)
+				measure 'Balance at Date AVG 1Q (Weekly)'
+					caption: Saldo op datum GEM 1K (wekelijks)
+				measure 'Balance at Date AVG 1Y (Weekly)'
+					caption: Saldo op datum GEM 1J (wekelijks)
+			table 'Customer Ledger Entries'
+				caption: Klantenposten
+				column 'CLE Entry No.'
+					caption: KP-postnr.
+				column 'CLE Due Date'
+					caption: KP-vervaldatum
+				column 'CLE Open'
+					caption: KP openen
+				column 'CLE Posting Date'
+					caption: KP-boekingsdatum
+				column 'CLE Document Date'
+					caption: KP-documentdatum
+				column 'DCLE Entry No.'
+					caption: GKP-postnr.
+				column 'DCLE Posting Date'
+					caption: GKP-boekingsdatum
+				column 'Ledger Entry Amount'
+					caption: Postbedrag
+				column 'Entry Type'
+					caption: Boekingssoort
+				column 'Document Type'
+					caption: Documenttype
+				column 'Document No.'
+					caption: Documentnr.
+				column 'DCLE Initial Entry Due Date'
+					caption: Vervaldatum van eerste GKP-post
+				column 'Customer No.'
+					caption: Klantnr.
+				column 'Application No.'
+					caption: Vereffeningsnr.
+				column 'Applied Customer Ledger Entry No.'
+					caption: Vereffend klantenpostnr.
+				column 'Sales Invoice Header Document No.'
+					caption: Documentnr. van verkoopfactuurkop
+				column 'Payment Terms Code'
+					caption: Code van betalingsvoorwaarden
+				column 'Payment Discount Date'
+					caption: Datum van contantkorting
+				measure 'Original Amount (LCY)'
+					caption: Oorspronkelijk bedrag (LV)
+				measure 'Amount Receivable (LCY)'
+					caption: Te ontvangen bedrag (LV)
+				measure 'Balance (Accounts Receivable)'
+					caption: Saldo (debiteuren)
+				measure 'Bucket 1 (Receivables)'
+					caption: Bucket 1 (tegoeden)
+				measure 'Bucket 2 (Receivables)'
+					caption: Bucket 2 (tegoeden)
+				measure 'Bucket 3 (Receivables)'
+					caption: Bucket 3 (tegoeden)
+				measure 'Bucket 4 (Receivables)'
+					caption: Bucket 4 (tegoeden)
+				measure 'Current (Receivables)'
+					caption: Vlottend (tegoeden)
+				measure 'CLE Bucket 1 Back Link'
+					caption: Terugkoppeling KP-bucket 1
+				measure 'CLE Bucket 2 Back Link'
+					caption: Terugkoppeling KP-bucket 2
+				measure 'CLE Bucket 3 Back Link'
+					caption: Terugkoppeling KP-bucket 3
+				measure 'CLE Bucket 4 Back Link'
+					caption: Terugkoppeling KP-bucket 4
+				measure 'CLE Current Back Link'
+					caption: Terugkoppeling KP huidig
+				measure 'CLE Balance Back Link'
+					caption: Terugkoppeling KP-saldo
+			table 'Vendor Ledger Entries'
+				caption: Leveranciersposten
+				column 'VLE Entry No.'
+					caption: LP-postnr.
+				column 'VLE Due Date'
+					caption: LP-vervaldatum
+				column 'VLE Open'
+					caption: LP openen
+				column 'VLE Posting Date'
+					caption: LP-boekingsdatum
+				column 'VLE Document Date'
+					caption: LP-documentdatum
+				column 'DVLE Entry No.'
+					caption: GLP-postnr.
+				column 'DVLE Posting Date'
+					caption: GLP-boekingsdatum
+				column 'DVLE Ledger Entry Amount'
+					caption: GLP-postbedrag
+				column 'Entry Type'
+					caption: Boekingssoort
+				column 'Document Type'
+					caption: Documenttype
+				column 'Document No.'
+					caption: Documentnr.
+				column 'DVLE Initial Entry Due Date'
+					caption: Vervaldatum van eerste GLP-post
+				column 'Vendor No.'
+					caption: Leveranciersnr.
+				column 'Application No.'
+					caption: Vereffeningsnr.
+				column 'Applied Vendor Ledger Entry No.'
+					caption: Vereffend leverancierspostnr.
+				column 'PIH Document No.'
+					caption: IFK-documentnr.
+				column 'Payment Terms Code'
+					caption: Code van betalingsvoorwaarden
+				column 'Payment Discount Date'
+					caption: Datum van contantkorting
+				measure 'Amount Payable (LCY)'
+					caption: Te betalen bedrag (LV)
+				measure 'Bucket 2 (Payables)'
+					caption: Bucket 2 (schulden)
+				measure 'Bucket 1 (Payables)'
+					caption: Bucket 1 (schulden)
+				measure 'Bucket 3 (Payables)'
+					caption: Bucket 3 (schulden)
+				measure 'Bucket 4 (Payables)'
+					caption: Bucket 4 (schulden)
+				measure 'Current (Payables)'
+					caption: Huidig (schulden)
+				measure 'Balance (Accounts Payable)'
+					caption: Saldo (crediteuren)
+				measure 'Original Amount'
+					caption: Oorspronkelijk bedrag
+				measure 'VLE Bucket 1 Back Link'
+					caption: Terugkoppeling LP-bucket 1
+				measure 'VLE Bucket 2 Back Link'
+					caption: Terugkoppeling LP-bucket 2
+				measure 'VLE Bucket 3 Back Link'
+					caption: Terugkoppeling LP-bucket 3
+				measure 'VLE Bucket 4 Back Link'
+					caption: Terugkoppeling LP-bucket 4
+				measure 'VLE Current Back Link'
+					caption: Terugkoppeling LP huidig
+				measure 'VLE Balance Back Link'
+					caption: Terugkoppeling LP-saldo
+			table Vendors
+				caption: Leveranciers
+				column 'Vendor No.'
+					caption: Leveranciersnr.
+				column 'Vendor Name'
+					caption: Leveranciersnaam
+				column 'Vendor Address'
+					caption: Adres
+				column 'Vendor Address 2'
+					caption: Adres 2
+				column 'Vendor City'
+					caption: Plaats
+				column 'Vendor Post Code'
+					caption: Postcode
+				column 'Vendor State'
+					caption: Staat
+				column 'Vendor Country/Region Code'
+					caption: Land/regio-code
+				column 'Vendor Posting Group'
+					caption: Leveranciersboekingsgroep
+				column 'Vendor No. & Name'
+					caption: Nr. en naam van leverancier
+			table 'Calc. Group - Time Intelligence for Calendar (Standard)'
+				caption: Berekeningsgroep - Tijdinformatie voor kalender (standaard)
+				column 'Selected Measure'
+					caption: Geselecteerde maateenheid
+				column Type
+					caption: Type
+				column 'Sub Type'
+					caption: Subtype
+				hierarchy 'Calc. Group Hierarchy (Standard)'
+					caption: Hiërarchie van berekeningsgroepen (standaard)
+					level Type
+						caption: Type
+					level 'Sub Type'
+						caption: Subtype
+					level 'Selected Measure'
+						caption: Geselecteerde maateenheid
+			table 'Aging Date Parameter'
+				caption: Vervaldatumparameter
+				column 'AGING PARAMETER'
+					caption: VERVALPARAMETER
+			table 'Aging Bucket Period'
+				caption: Ouderdomsbucketperiode
+				measure 'Aging Bucket Period Value'
+					caption: Waarde van ouderdomsbucketperiode
+				measure 'Bucket 1 Range'
+					caption: Bereik bucket 1
+				measure 'Bucket 2 Range'
+					caption: Bereik bucket 2
+				measure 'Bucket 3 Range'
+					caption: Bereik bucket 3
+				measure 'Bucket 4 Range'
+					caption: Bereik bucket 4
+				measure 'Bucket 1 Date Range'
+					caption: Datumbereik bucket 1
+				measure 'Bucket 2 Date Range'
+					caption: Datumbereik budget 2
+				measure 'Bucket 3 Date Range'
+					caption: Datumbereik bucket 3
+				measure 'Bucket 4 Date Range'
+					caption: Datumbereik bucket 4
+			table Customers
+				caption: Klanten
+				column 'Customer No.'
+					caption: Klantnr.
+				column 'Customer Name'
+					caption: Klantnaam
+				column 'Customer Address'
+					caption: Adres
+				column 'Customer Address 2'
+					caption: Adres 2
+				column 'Customer City'
+					caption: Plaats
+				column 'CustomerPost Code'
+					caption: Postcode
+				column 'Customer State'
+					caption: Staat
+				column 'Country/Region Code'
+					caption: Land/regio-code
+				column 'Customer Posting Group'
+					caption: Klantboekingsgroep
+				column 'Customer Price Group'
+					caption: Klantenprijsgroep
+				column 'Customer Discount Group'
+					caption: Klantenkortingsgroep
+				column 'Customer No. & Name'
+					caption: Klantnr. en -naam
+			table 'Calc. Group - Time Intelligence for Calendar (Fiscal)'
+				caption: Berekeningsgroep - Tijdinformatie voor kalender (fiscaal)
+				column 'Selected Measure'
+					caption: Geselecteerde maateenheid
+				column Type
+					caption: Type
+				column 'Sub Type'
+					caption: Subtype
+				hierarchy 'Calc. Group Hierarchy (Fiscal)'
+					caption: Hiërarchie van berekeningsgroepen (fiscaal)
+					level Type
+						caption: Type
+					level 'Sub Type'
+						caption: Subtype
+					level 'Selected Measure'
+						caption: Geselecteerde maateenheid
+			table 'Calc. Group - Time Intelligence for Calenday (Weekly)'
+				caption: Berekeningsgroep - Tijdinformatie voor kalender (wekelijks)
+				column 'Selected Measure'
+					caption: Geselecteerde maateenheid
+				column Type
+					caption: Type
+				column 'Sub Type'
+					caption: Subtype
+				hierarchy 'Calc. Group Hierarchy (Weekly)'
+					caption: Hiërarchie van berekeningsgroepen (wekelijks)
+					level Type
+						caption: Type
+					level 'Sub Type'
+						caption: Subtype
+					level 'Selected Measure'
+						caption: Geselecteerde maateenheid
+			table Date
+				caption: Datum
+				column 'Week Day'
+					caption: Week Dag
+				column 'Day Type'
+					caption: Dagsoort
+				column 'Calendar Year'
+					caption: Kalender Jaar
+				column 'Calendar Quarter'
+					caption: Kalender Kwartaal
+				column 'Calendar Quarter Year'
+					caption: Kalender Kwartaal Jaar
+				column 'Calendar Month'
+					caption: Kalender Maand
+				column 'Calendar Month Year'
+					caption: Kalender Maand Jaar
+				column 'Calendar Week'
+					caption: Kalender Week
+				column 'Calendar Week Year'
+					caption: Kalender Week Jaar
+				column 'Calendar RelativeWeekPos'
+					caption: Kalender RelatieveWeekPos
+				column 'Calendar RelativeMonthPos'
+					caption: Kalender RelatieveMaandPos
+				column 'Calendar RelativeQuarterPos'
+					caption: Kalender RelatieveKwartaalPos
+				column 'Calendar RelativeYearPos'
+					caption: Kalender RelatieveJaarPos
+				column 'Calendar StartOfMonth'
+					caption: Kalender BeginVanMaand
+				column 'Calendar EndOfMonth'
+					caption: Kalender EindVanMaand
+				column 'Calendar StartOfQuarter'
+					caption: Kalender BeginVanKwartaal
+				column 'Calendar EndOfQuarter'
+					caption: Kalender EindVanKwartaal
+				column 'Calendar StartOfYear'
+					caption: Kalender BeginVanJaar
+				column 'Calendar EndOfYear'
+					caption: Kalender EindVanJaar
+				column 'Calendar MonthDays'
+					caption: Kalender MaandDagen
+				column 'Calendar QuarterDays'
+					caption: Kalender KwartaalDagen
+				column 'Calendar YearDays'
+					caption: Kalender Jaar Dagen
+				column 'Calendar DayOfMonthNumber'
+					caption: Kalender DagVanMaandNummer
+				column 'Calendar DayOfQuarterNumber'
+					caption: Kalender DagVanKwartaalNummer
+				column 'Calendar DayOfYearNumber'
+					caption: Kalender DagVanJaarNummer
+				column 'Calendar DatePreviousWeek'
+					caption: Kalender DatumVorigeWeek
+				column 'Calendar DatePreviousMonth'
+					caption: Kalender DatumVorigeMaand
+				column 'Calendar DatePreviousQuarter'
+					caption: Kalender DatumVorigKwartaal
+				column 'Calendar DatePreviousYear'
+					caption: Kalender DatumVorigJaar
+				column 'Fiscal Year'
+					caption: Fiscaal Jaar
+				column 'Fiscal Quarter'
+					caption: Fiscaal Kwartaal
+				column 'Fiscal Quarter Year'
+					caption: Fiscaal Kwartaal Jaar
+				column 'Fiscal Month'
+					caption: Fiscaal Maand
+				column 'Fiscal Month Year'
+					caption: Fiscaal Maand Jaar
+				column 'Fiscal Week'
+					caption: Fiscaal week
+				column 'Fiscal Week Year'
+					caption: Fiscaal Week Jaar
+				column 'Fiscal RelativeWeekPos'
+					caption: Fiscaal RelatieveWeekPos
+				column 'Fiscal RelativeMonthPos'
+					caption: Fiscaal RelatieveMaandPos
+				column 'Fiscal RelativeQuarterPos'
+					caption: Fiscaal RelatieveKwartaalPos
+				column 'Fiscal RelativeYearPos'
+					caption: Fiscaal RelatieveJaarPos
+				column 'Fiscal StartOfMonth'
+					caption: Fiscaal BeginVanMaand
+				column 'Fiscal EndOfMonth'
+					caption: Fiscaal EindVanMaand
+				column 'Fiscal StartOfQuarter'
+					caption: Fiscaal BeginVanKwartaal
+				column 'Fiscal EndOfQuarter'
+					caption: Fiscaal EindVanKwartaal
+				column 'Fiscal StartOfYear'
+					caption: Fiscaal BeginVanJaar
+				column 'Fiscal EndOfYear'
+					caption: Fiscaal EindVanJaar
+				column 'Fiscal MonthDays'
+					caption: Fiscaal MaandDagen
+				column 'Fiscal QuarterDays'
+					caption: Fiscaal KwartaalDagen
+				column 'Fiscal YearDays'
+					caption: Fiscaal JaarDagen
+				column 'Fiscal DayOfMonthNumber'
+					caption: Fiscaal DagVanMaandNummer
+				column 'Fiscal DayOfQuarterNumber'
+					caption: Fiscaal DagVanKwartaalNummer
+				column 'Fiscal DayOfYearNumber'
+					caption: Fiscaal DagVanJaarNummer
+				column 'Fiscal DatePreviousWeek'
+					caption: Fiscaal DatumVorigeWeek
+				column 'Fiscal DatePreviousMonth'
+					caption: Fiscaal DatumVorigeMaand
+				column 'Fiscal DatePreviousQuarter'
+					caption: Fiscaal DatumVorigKwartaal
+				column 'Fiscal DatePreviousYear'
+					caption: Fiscaal DatumVorigJaar
+				column 'FW Year'
+					caption: FW Jaar
+				column 'FW Quarter'
+					caption: FW Kwartaal
+				column 'FW Quarter Year'
+					caption: FW Kwartaal Jaar
+				column 'FW Month'
+					caption: FW Maand
+				column 'FW Month Year'
+					caption: FW Maand Jaar
+				column 'FW Week'
+					caption: FW Week
+				column 'FW Period'
+					caption: FW Periode
+				column 'FW Week Year'
+					caption: FW Week Jaar
+				column 'FW StartOfWeek'
+					caption: FW BeginVanWeek
+				column 'FW EndOfWeek'
+					caption: FW EindVanWeek
+				column 'FW RelativeWeekPos'
+					caption: FW RelatieveWeekPos
+				column 'FW RelativeMonthPos'
+					caption: FW RelatieveMaandPos
+				column 'FW RelativeQuarterPos'
+					caption: FW RelatieveKwartaalPos
+				column 'FW RelativeYearPos'
+					caption: FW RelatieveJaarPos
+				column 'FW StartOfMonth'
+					caption: FW BeginVanMaand
+				column 'FW EndOfMonth'
+					caption: FW EindVanMaand
+				column 'FW StartOfQuarter'
+					caption: FW BeginVanKwartaal
+				column 'FW EndOfQuarter'
+					caption: FW EindVanKwartaal
+				column 'FW StartOfYear'
+					caption: FW BeginVanJaar
+				column 'FW EndOfYear'
+					caption: FW EindVanJaar
+				column 'FW MonthDays'
+					caption: FW MaandDagen
+				column 'FW QuarterDays'
+					caption: FW Kwartaal Dagen
+				column 'FW YearDays'
+					caption: FW JaarDagen
+				column 'FW DayOfMonthNumber'
+					caption: FW DagVanMaandNummer
+				column 'FW DayOfQuarterNumber'
+					caption: FW DagVanKwartaalNummer
+				column 'FW DayOfYearNumber'
+					caption: FW DagVanJaarNummer
+				column 'FW DatePreviousWeek'
+					caption: FW DatumVorigeWeek
+				column 'FW DatePreviousMonth'
+					caption: FW DatumVorigeMaand
+				column 'FW DatePreviousQuarter'
+					caption: FW DatumVorigKwartaal
+				column 'FW DatePreviousYear'
+					caption: FW DatumVorigJaar
+				column 'Relative Day'
+					caption: Relatieve dag
+				column Sequential365DayNumber
+					caption: Sequentieel 365 DagNummer
+				measure 'No. of Days'
+					caption: Aantal dagen
+				hierarchy 'Fiscal Year-Quarter-Month-Week'
+					caption: Fiscaal Jaar-Kwartaal-Maand-Week
+					level 'Fiscal Year'
+						caption: Fiscaal Jaar
+					level 'Fiscal Quarter Year'
+						caption: Fiscaal Kwartaal Jaar
+					level 'Fiscal Month Year'
+						caption: Fiscaal Maand Jaar
+					level 'Fiscal Week Year'
+						caption: Fiscaal Week Jaar
+				hierarchy 'Calendar Year-Quarter-Month-Week'
+					caption: Kalender Jaar-Kwartaal-Maand-Week
+					level 'Calendar Year'
+						caption: Kalender Jaar
+					level 'Calendar Quarter Year'
+						caption: Kalender Kwartaal Jaar
+					level 'Calendar Month Year'
+						caption: Kalender Maand Jaar
+					level 'Calendar Week Year'
+						caption: Kalender Week Jaar
+				hierarchy 'FW Year-Quarter-Month-Week'
+					caption: FW Jaar-Kwartaal-Maand-Week
+					level 'FW Year'
+						caption: FW Jaar
+					level 'FW Quarter Year'
+						caption: FW Kwartaal Jaar
+					level 'FW Month Year'
+						caption: FW Maand Jaar
+					level 'FW Week Year'
+						caption: FW Week Jaar
+				hierarchy 'Fiscal Year-Month'
+					caption: Fiscaal Jaar-Maand
+					level 'Fiscal Year'
+						caption: Fiscaal Jaar
+					level 'Fiscal Month Year'
+						caption: Fiscaal Maand Jaar
+				hierarchy 'Fiscal Year-Month-Week'
+					caption: Fiscaal Jaar-Maand-Week
+					level 'Fiscal Year'
+						caption: Fiscaal Jaar
+					level 'Fiscal Month Year'
+						caption: Fiscaal Maand Jaar
+					level 'Fiscal Week Year'
+						caption: Fiscaal Week Jaar
+				hierarchy 'Calendar Year-Month'
+					caption: Kalender Jaar-Maand
+					level 'Calendar Year'
+						caption: Kalender Jaar
+					level 'Calendar Month Year'
+						caption: Kalender Maand Jaar
+				hierarchy 'Calendar Year-Month-Week'
+					caption: Kalender Jaar-Maand-Week
+					level 'Calendar Year'
+						caption: Kalender Jaar
+					level 'Calendar Month Year'
+						caption: Kalender Maand Jaar
+					level 'Calendar Week Year'
+						caption: Kalender Week Jaar
+				hierarchy 'FW Year-Month-Week'
+					caption: FW Jaar-Maand-Week
+					level 'FW Year'
+						caption: FW Jaar
+					level 'FW Month Year'
+						caption: FW Maand Jaar
+					level 'FW Week Year'
+						caption: FW Week Jaar
+				hierarchy 'FW Year-Quarter-Week'
+					caption: FW Jaar-Kwartaal-Week
+					level 'FW Year'
+						caption: FW Jaar
+					level 'FW Quarter Year'
+						caption: FW Kwartaal Jaar
+					level 'FW Week Year'
+						caption: FW Week Jaar
+				hierarchy 'FW Year-Week'
+					caption: FW Jaar-Week
+					level 'FW Year'
+						caption: FW Jaar
+					level 'FW Week Year'
+						caption: FW Week Jaar
+			table 'Localized Labels'
+				measure 'My Report Title'
+					caption: Mijn rapporttitel
+				measure 'My Button Caption'
+					caption: Bijschrift van mijn knop
+				measure 'My Visual Title'
+					caption: Mijn visuele titel
+				measure 'Financial Overview'
+					caption: Financieel overzicht
+				measure 'Income Statement by Month'
+					caption: Resultatenrekening per maand
+				measure 'Balance Sheet by Month'
+					caption: Balans per maand
+				measure 'Budget Comparison'
+					caption: Budgetvergelijking
+				measure 'Liquidity KPIs'
+					caption: Liquiditeits-KPI's
+				measure Profitability
+					caption: Winstgevendheid
+				measure 'Liabilities '
+					caption: "Verplichtingen "
+				measure 'Average Collection Period '
+					caption: "Gemiddelde incassoperiode "
+				measure 'Aged Receivables (Back Dating)'
+					caption: Vervallen tegoeden (terugdatering)
+				measure 'Aged Payables (Back Dating)'
+					caption: Vervallen schulden (terugdatering)
+				measure 'G/L Entries'
+					caption: Grootboekposten
+				measure 'Detailed Vendor Ledger Entries'
+					caption: Gedetailleerde leveranciersposten
+				measure 'Detailed Customer Ledger Entries'
+					caption: Gedetailleerde klantenposten
+				measure 'Income Statement Drill Through'
+					caption: Detailanalyse van resultatenrekening
+				measure 'Balance Sheet Drill Through'
+					caption: Detailanalyse van balans
+				measure 'Vendor Ledger Entries Drill Through'
+					caption: Detailanalyse van leveranciersposten
+				measure 'Customer Ledger Entries Drill Through'
+					caption: Detailanalyse van klantenposten
+				measure 'Liabilities Drill Through'
+					caption: Detailanalyse van liquiditeit
+				measure 'Finance App Change Log'
+					caption: Wijzigingslogbestand van Finance-app
+				measure 'As At Date'
+					caption: Vanaf datum
+				measure 'Aging Bucket Length'
+					caption: Lengte van ouderdomsbucket
+				measure 'Use Aging Date'
+					caption: Ouderdomsdatum gebruiken
+				measure 'Cost of Goods Sold '
+					caption: "KPV-kosten "
+				measure 'Net Profit '
+					caption: "Nettowinst "
+				measure 'Current Assets / Current Liabilities'
+					caption: Vlottende activa/vlottende verplichtingen
+				measure '(Current Assets - Inventory - Purch. Prepayments) /  Current Liabilities'
+					caption: (Vlottende activa - Voorraad - Inkoopvooruitbetalingen)/vlottende verplichtingen
+				measure 'Liquid Assets / Current Liabilities'
+					caption: Liquide activa/vlottende verplichtingen
+				measure 'Revenue - Cost of Goods Sold - Expenses'
+					caption: Opbrengst - KPV-kosten - Kosten
+				measure 'Net Profit / Revenue'
+					caption: Nettowinst/opbrengst
+				measure 'Revenue - Cost of Goods Sold'
+					caption: Opbrengst - KPV-kosten
+				measure 'Gross Profit / Revenue'
+					caption: Brutowinst/opbrengst
+				measure 'Liabilities by Month'
+					caption: Verplichtingen per maand
+				measure 'Revenue & Accounts Receivable (Average) by Month'
+					caption: Opbrengst en debiteuren (gemiddeld) per maand
+				measure 'Average Collection Period (Days) by Month'
+					caption: Gemiddelde incassoperiode (dagen) per maand
+				measure 'Operating Revenue '
+					caption: "Bedrijfsopbrengst "
+				measure 'Operating Expenses '
+					caption: "Bedrijfskosten "
+				measure 'AGED AR / AP'
+					caption: VERVALLEN AR/AP
+				measure 'Finance Analytics'
+					caption: Financiële analyse
+				measure for
+					caption: voor
+				measure 'CONNECT YOUR DATA'
+					caption: UW GEGEVENS VERBINDEN
+				measure '1. Download the Finance Connector for Power BI'
+					caption: 1. Download de Finance Connector for Power BI
+				measure '2. Configure Dynamics 365 Business Central'
+					caption: 2. Dynamics 365 Business Central configureren
+				measure 'USE, EDIT AND BUILD YOUR OWN REPORTS'
+					caption: UW EIGEN RAPPORTEN GEBRUIKEN, BEWERKEN EN MAKEN
+				measure 'Finance includes a variety of pre-built reports to help you see your data immediately. You are able to edit these reports or build your own report from scratch.'
+					caption: Financiën omvatten een verscheidenheid aan vooraf gemaakte rapporten om u te helpen uw gegevens direct te bekijken. U kunt deze rapporten bewerken of uw eigen rapport helemaal opnieuw maken.
+				measure 'HELP AND SUPPORT'
+					caption: HELP EN ONDERSTEUNING
+				measure 'For help and support with your new report please visit the Analytics overview documentation.'
+					caption: Ga voor hulp en ondersteuning met uw nieuwe rapport naar de Analytics-overzichtsdocumentatie.
+				measure 'OTHER POWER BI REPORTS'
+					caption: OVERIGE POWER BI-RAPPORTEN
+				measure PURCHASE
+					caption: INKOOP
+				measure SALES
+					caption: VERKOPEN
+				measure 'INVENTORY '
+					caption: "VOORRAAD "
+				measure MANUFACTURING
+					caption: PRODUCTIE
+				measure JOBS
+					caption: PROJECTEN
+				measure 'for Business Central'
+					caption: voor Business Central
+				measure 'Aged Accounts Receivable (AR) & Accounts Payable (AP)'
+					caption: Vervallen vorderingen (AR) en crediteuren (AP)
+				measure 'Aged Accounts Receivable & Accounts Payable'
+					caption: Vervallen vorderingen en crediteuren (AP)
+				measure 'Aged Accounts'
+					caption: Vervallen accounts
+				measure 'General Ledger (G/L) Entries'
+					caption: Grootboekposten
+				measure 'General Ledger Entries'
+					caption: Grootboekposten
+				measure 'Return On Assets - ROA by Month'
+					caption: Rendement op activa - ROA per maand
+				measure 'Top 5 Customers by Balance'
+					caption: Top 5 klanten per saldo
+				measure 'Top 5 Vendors by Balance'
+					caption: Top 5 leveranciers op saldo
+				measure 'Net Profit Margin by Month'
+					caption: Nettowinstmarge per maand
+				measure 'Asset Turnover Ratio by Month'
+					caption: Ratio omlooptijd activa per maand
+				measure 'Last Refreshed'
+					caption: Laatst vernieuwd
+				measure 'Company Name'
+					caption: Bedrijfsnaam
+				measure 'Liquidity Line Chart'
+					caption: Diagram Liquiditeitslijn
+				measure 'Net Profit by Month'
+					caption: Nettowinst per maand
+				measure 'Gross Profit by Month'
+					caption: Brutowinst per maand
+				measure 'Operating Profit - EBIT and EBITDA by Month'
+					caption: Bedrijfswinst - EBIT en EBITDA per maand
+				measure 'EBITDA '
+					caption: "EBITDA "
+				measure 'Revenue, Accounts Receivable (Average), No. of Days and Average Collection Period (Days) by Month'
+					caption: Opbrengst, Debiteuren (gemiddeld), Aantal dagen en Gemiddelde incassoperiode (dagen) per maand
+				measure 'Revenue, Net Profit, Net Profit Margin, Assets, Days Sales Outstanding, Days Sales of Inventory, Days Payable Outstanding.'
+					caption: Opbrengst, Nettowinst, Nettowinstmarge, Activa, Dagen verkoop openstaand, Verkoopdagen van voorraad, Dagen betaalbaar openstaand.
+				measure 'Current Ratio, Current Assets, Current Liabilities.'
+					caption: Huidige ratio, Vlottende activa, Vlottende verplichtingen.
+				measure 'Quick Ratio, Current Assets, Inventory.'
+					caption: Snelle ratio, Vlottende activa, Voorraad.
+				measure 'Cash Ratio, Liquid Assets, Current Liabilities.'
+					caption: Cashratio, Liquide middelen, Vlottende verplichtingen.
+				measure 'Net Profit, Revenue, Cost of Goods Sold.'
+					caption: Nettowinst, Opbrengst, KPV-kosten.
+				measure 'Net Profit Margin, Net Profit, Revenue.'
+					caption: Nettowinstmarge, Nettowinst, Opbrengst.
+				measure 'Gross Profit, Revenue, Cost of Goods Sold.'
+					caption: Brutowinst, Opbrengst, KPV-kosten.
+				measure 'Gross Profit Marging, Gross Profit, Revenue.'
+					caption: Brutowinstmarge, Brutowinst, Opbrengst.
+				measure 'Liabilities, Current Liabilities, Payrol Liabilities, Debt Ratio, Debt/Equity Ratio, Assets, Longterm Liabilities.'
+					caption: Verplichtingen, Vlottende verplichtingen, Salarisverplichtingen, Ratio schuld, Ratio schuld/eigen vermogen, Activa, Langlopende schulden.
+				measure 'Gross Profit Margin, Gross Profit, Revenue.'
+					caption: Brutowinstmarge, Brutowinst, Opbrengst.
+				measure 'Net Profit Margin by Fiscal Year and Month'
+					caption: Nettowinstmarge per boekjaar en -maand
+				measure 'Asset Turnover Ratio by Fiscal Year and Month'
+					caption: Ratio omlooptijd activa per boekjaar en -maand
+				measure 'Balance at Date (Neg) by Fiscal Year, Month and G/L Account No./Name'
+					caption: Saldo t/m datum (neg.) per boekjaar, -maand en Nr./naam van grootboekrekening
+			table COMPANY
+				caption: BEDRIJF
+				measure 'Company Label'
+					caption: Bedrijfslabel
+			table 'Closing Entry Filter Table'
+				caption: Tabel Ultimopostfilter
+				column CloseIncomeSourceCodeFilter
+					caption: CloseIncomeSourceCodeFilter
+			table 'Back Links'
+				caption: Terugkoppelingen
+

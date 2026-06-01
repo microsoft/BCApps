@@ -11,7 +11,9 @@ table 310 "No. Series Relationship"
     DataClassification = CustomerContent;
     DrillDownPageId = "No. Series Relationships";
     LookupPageId = "No. Series Relationships";
+#if not CLEANSCHEMA27
     MovedFrom = '437dbf0e-84ff-417a-965d-ed2bb9650972';
+#endif
     InherentEntitlements = rX;
     InherentPermissions = rX;
 

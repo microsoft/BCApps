@@ -1,0 +1,54 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+namespace Microsoft.Manufacturing.PowerBIReports;
+
+using Microsoft.Inventory.Ledger;
+
+#if not CLEAN28
+#pragma warning disable AL0801
+#endif
+query 37011 "Manuf. Value Entries - PBI API"
+{
+    Access = Internal;
+    Caption = 'Power BI Manufacturing Value Entries';
+    QueryType = API;
+    AboutText = 'Provides access to value entries for production orders including actual and expected costs, cost posted to G/L, and cost components by type. Enables Power BI reports to analyze production costs, WIP valuation, and manufacturing cost variances at the transaction level.';
+    APIPublisher = 'microsoft';
+    APIGroup = 'analytics';
+    ApiVersion = 'v0.5', 'v1.0';
+    EntityName = 'manufacturingValueEntry';
+    EntitySetName = 'manufacturingValueEntries';
+    DataAccessIntent = ReadOnly;
+
+    elements
+    {
+        dataitem(valueEntry; "Value Entry")
+        {
+            DataItemTableFilter = "Order Type" = const(Production);
+
+            column(entryNo; "Entry No.") { }
+            column(entryType; "Entry Type") { }
+            column(capacityLedgerEntryNo; "Capacity Ledger Entry No.") { }
+            column(valuationDate; "Valuation Date") { }
+            column(itemNo; "Item No.") { }
+            column(costAmountActual; "Cost Amount (Actual)") { }
+            column(costAmountExpected; "Cost Amount (Expected)") { }
+            column(expectedCostPostedtoGL; "Expected Cost Posted to G/L") { }
+            column(costPostedtoGL; "Cost Posted to G/L") { }
+            column(costPerUnit; "Cost per Unit") { }
+            column(itemLedgerEntryQuantity; "Item Ledger Entry Quantity") { }
+            column(valuedQuantity; "Valued Quantity") { }
+            column(locationCode; "Location Code") { }
+            column(itemLedgerEntryType; "Item Ledger Entry Type") { }
+            column(postingDate; "Posting Date") { }
+            column(type; Type) { }
+            column(no; "No.") { }
+            column(dimensionSetID; "Dimension Set ID") { }
+            column(orderType; "Order Type") { }
+            column(orderNo; "Order No.") { }
+            column(expectedCost; "Expected Cost") { }
+        }
+    }
+}

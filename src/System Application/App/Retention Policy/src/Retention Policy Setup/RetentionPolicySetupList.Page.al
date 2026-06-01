@@ -154,7 +154,9 @@ page 3903 "Retention Policy Setup List"
     trigger OnOpenPage()
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
+        RetenPolAllowedTables: Codeunit "Reten. Pol. Allowed Tables";
     begin
         FeatureTelemetry.LogUptake('0000FW0', 'Retention policies', Enum::"Feature Uptake Status"::Discovered);
+        RetenPolAllowedTables.OnRefreshAllowedTables();
     end;
 }

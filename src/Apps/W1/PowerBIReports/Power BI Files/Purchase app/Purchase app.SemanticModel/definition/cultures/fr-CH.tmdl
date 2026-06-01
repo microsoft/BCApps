@@ -1,0 +1,1501 @@
+cultureInfo fr-CH
+	translations
+		model Model
+			table Item
+				caption: Article
+				column 'Item No. & Description'
+					caption: N° et description d’article
+				column 'Item No.'
+					caption: N° d’article
+				column 'Item Description'
+					caption: Description de l’article
+				column 'Item Base Unit of Measure'
+					caption: Unité de base de mesure
+				column 'Item Unit Cost (LCY)'
+					caption: Coût unitaire article (DS)
+				column 'Item Inventory Posting Group'
+					caption: Groupe compta. stock
+				column 'Item Category Code'
+					caption: Code catégorie article
+				column 'Item Category Description'
+					caption: Description catégorie article
+			table Location
+				caption: Magasin
+				column 'Location Code'
+					caption: Code magasin
+				column 'Location Name'
+					caption: Nom du magasin
+				column 'Location Adjustment Bin Code'
+					caption: Code emplacement ajustement magasin
+			table Vendor
+				caption: Fournisseur
+				column 'Vendor No. & Name'
+					caption: N° et nom du fournisseur
+				column 'Vendor No.'
+					caption: N° fournisseur
+				column 'Vendor Name'
+					caption: Nom du fournisseur
+				column 'Vendor Address'
+					caption: Adresse fournisseur
+				column 'Vendor Address 2'
+					caption: Adresse fournisseur 2
+				column 'Vendor City'
+					caption: Ville fournisseur
+				column 'Vendor Post Code'
+					caption: CP fournisseur
+				column 'Vendor State'
+					caption: État fournisseur
+				column 'Vendor Country/Region Code'
+					caption: Code pays/région fournisseur
+				column 'Vendor Posting Group'
+					caption: Groupe comptabilisation fournisseur
+			table Purchaser
+				caption: Acheteur
+				column 'Purchaser Code'
+					caption: Code acheteur
+				column 'Purchaser Name'
+					caption: Nom de l’acheteur
+			table 'Dimension Sets'
+				caption: Ensembles de dimensions
+				column 'Global Dimension 1'
+					caption: Axe analytique principal 1
+				column 'Global Dimension 2'
+					caption: Axe analytique principal 2
+				column 'Shortcut Dimension 3'
+					caption: Raccourci axe 3
+				column 'Shortcut Dimension 4'
+					caption: Raccourci axe 4
+				column 'Shortcut Dimension 5'
+					caption: Raccourci axe 5
+				column 'Shortcut Dimension 6'
+					caption: Raccourci axe 6
+				column 'Shortcut Dimension 7'
+					caption: Raccourci axe 7
+				column 'Shortcut Dimension 8'
+					caption: Raccourci axe 8
+				column id
+					caption: ID
+			table 'Purchase Budget'
+				caption: Budget achat
+				column 'Entry No.'
+					caption: N° d’écriture
+				column 'Budget Name'
+					caption: Nom du budget
+				column Date
+					caption: Date
+				measure 'Budget Amount'
+					caption: Montant budgétaire
+				measure 'Budget Quantity'
+					caption: Quantité budgétaire
+				measure 'Budget Quantity Variance'
+					caption: Écart de quantité budgétaire
+				measure 'Budget Amount Variance'
+					caption: Écart de montant budgétaire
+				measure 'Budget Amount Variance %'
+					caption: % écart de montant budgétaire
+				measure 'Budget Quantity Variance %'
+					caption: % écart de quantité budgétaire
+			table Date
+				caption: Date
+				column 'Week Day'
+					caption: Jour semaine
+				column 'Calendar Year'
+					caption: Année civile
+				column 'Calendar Quarter'
+					caption: Trimestre civil
+				column 'Calendar Quarter Year'
+					caption: Trimestre civil
+				column 'Calendar Month'
+					caption: Mois civil
+				column 'Calendar Month Year'
+					caption: Mois et année civils
+				column 'Calendar Week'
+					caption: Semaine civile
+				column 'Calendar Week Year'
+					caption: Semaine d’année civile
+				column 'Calendar RelativeWeekPos'
+					caption: PosSemaineRelative civil
+				column 'Calendar RelativeMonthPos'
+					caption: PosMoisRelatif civil
+				column 'Calendar RelativeQuarterPos'
+					caption: PosTrimestreRelatif civil
+				column 'Calendar RelativeYearPos'
+					caption: PosAnnéeRelative civil
+				column 'Calendar StartOfMonth'
+					caption: DébutDuMois civil
+				column 'Calendar EndOfMonth'
+					caption: FinDuMois civil
+				column 'Calendar StartOfQuarter'
+					caption: DébutDuTrimestre civil
+				column 'Calendar EndOfQuarter'
+					caption: FinDeTrimestre civil
+				column 'Calendar StartOfYear'
+					caption: DébutAnnée civil
+				column 'Calendar EndOfYear'
+					caption: FinAnnée civile
+				column 'Calendar MonthDays'
+					caption: JourMois civils
+				column 'Calendar QuarterDays'
+					caption: JoursTrimestre civils
+				column 'Calendar YearDays'
+					caption: JoursAnnée civils
+				column 'Calendar DayOfMonthNumber'
+					caption: NuméroJourDuMois civil
+				column 'Calendar DayOfQuarterNumber'
+					caption: NuméroJourDuTrimestre civil
+				column 'Calendar DayOfYearNumber'
+					caption: NuméroJourAnnée civile
+				column 'Calendar DatePreviousWeek'
+					caption: DateSemainePrécédente civile
+				column 'Calendar DatePreviousMonth'
+					caption: DateMoisPrécédent civil
+				column 'Calendar DatePreviousQuarter'
+					caption: DateTrimestrePrécédent civil
+				column 'Calendar DatePreviousYear'
+					caption: DateAnnéePrécédente civile
+				column 'Fiscal Year'
+					caption: Exercice
+				column 'Fiscal Quarter'
+					caption: Trimestre d’exercice
+				column 'Fiscal Quarter Year'
+					caption: Trimestre d’exercice
+				column 'Fiscal Month'
+					caption: Mois d’exercice
+				column 'Fiscal Month Year'
+					caption: Mois et année d’exercice
+				column 'Fiscal Week'
+					caption: Semaine d’exercice
+				column 'Fiscal Week Year'
+					caption: Semaine et année d’exercice
+				column 'Fiscal RelativeWeekPos'
+					caption: PosSemaineRelative d’exercice
+				column 'Fiscal RelativeMonthPos'
+					caption: PosMoisRelatif d’exercice
+				column 'Fiscal RelativeQuarterPos'
+					caption: PosTrimestreRelatif d’exercice
+				column 'Fiscal RelativeYearPos'
+					caption: PosAnnéeRelative d’exercice
+				column 'Fiscal StartOfMonth'
+					caption: DébutDuMois d’exercice
+				column 'Fiscal EndOfMonth'
+					caption: FinDuMois d’exercice
+				column 'Fiscal StartOfQuarter'
+					caption: DébutDuTrimestre d’exercice
+				column 'Fiscal EndOfQuarter'
+					caption: FinDuTrimestre d’exercice
+				column 'Fiscal StartOfYear'
+					caption: DébutD’Exercice fiscal
+				column 'Fiscal EndOfYear'
+					caption: FinDeL’exercice fiscal
+				column 'Fiscal MonthDays'
+					caption: MoisJours d’exercice
+				column 'Fiscal QuarterDays'
+					caption: JoursTrimestre d’exercice
+				column 'Fiscal YearDays'
+					caption: AnnéeJours d’exercice
+				column 'Fiscal DayOfMonthNumber'
+					caption: NuméroMoisAnnée d’exercice
+				column 'Fiscal DayOfQuarterNumber'
+					caption: NuméroJourDuTrimestre d’exercice
+				column 'Fiscal DayOfYearNumber'
+					caption: NuméroJourAnnée d’exercice
+				column 'Fiscal DatePreviousWeek'
+					caption: DateSemainePrécédente d’exercice
+				column 'Fiscal DatePreviousMonth'
+					caption: DateMoisPrécédent d’exercice
+				column 'Fiscal DatePreviousQuarter'
+					caption: DateTrimestrePrécédent d’exercice
+				column 'Fiscal DatePreviousYear'
+					caption: DateAnnéePrécédente d’exercice
+				column 'FW Year'
+					caption: Année SE
+				column 'FW Quarter'
+					caption: Trimestre SE
+				column 'FW Quarter Year'
+					caption: Trimestre Année SE
+				column 'FW Month'
+					caption: Mois SE
+				column 'FW Month Year'
+					caption: Mois année SE
+				column 'FW Week'
+					caption: Semaine SE
+				column 'FW Period'
+					caption: Période SE
+				column 'FW Week Year'
+					caption: Semaine Année SE
+				column 'FW StartOfWeek'
+					caption: DébutDeSemaine SE
+				column 'FW EndOfWeek'
+					caption: FinDeSemaine SE
+				column 'FW RelativeWeekPos'
+					caption: PosSemaineRelative SE
+				column 'FW RelativeMonthPos'
+					caption: PosMoisRelatif SE
+				column 'FW RelativeQuarterPos'
+					caption: PosTrimestreRelatif SE
+				column 'FW RelativeYearPos'
+					caption: PosAnnéeRelative SE
+				column 'FW StartOfMonth'
+					caption: DébutDuMois SE
+				column 'FW EndOfMonth'
+					caption: FinDuMois SE
+				column 'FW StartOfQuarter'
+					caption: DébutDuTrimestre SE
+				column 'FW EndOfQuarter'
+					caption: FinDuTrimestre SE
+				column 'FW StartOfYear'
+					caption: DébutD’Exercice SE
+				column 'FW EndOfYear'
+					caption: FinAnnée SE
+				column 'FW MonthDays'
+					caption: MoisJours SE
+				column 'FW QuarterDays'
+					caption: JoursTrimestre SE
+				column 'FW YearDays'
+					caption: JoursAnnée SE
+				column 'FW DatePreviousWeek'
+					caption: DateSemainePrécédente SE
+				column 'FW DatePreviousMonth'
+					caption: DateMoisPrécédent SE
+				column 'FW DatePreviousQuarter'
+					caption: DateTrimestrePrécédent SE
+				column 'FW DatePreviousYear'
+					caption: DateAnnéePrécédente SE
+				column 'Holiday Name'
+					caption: Nom du jour férié
+				column IsWorkingDay
+					caption: IsWorkingDay
+				column 'Day Type'
+					caption: Type de jour
+				column 'Relative Day'
+					caption: Jour relatif
+				hierarchy 'Fiscal Year-Month'
+					caption: Année-mois d’exercice
+					level 'Fiscal Year'
+						caption: Exercice
+					level 'Fiscal Month Year'
+						caption: Mois et année d’exercice
+				hierarchy 'Fiscal Year-Quarter-Month-Week'
+					caption: Année-Trimestre-Mois-Semaine d’exercice
+					level 'Fiscal Year'
+						caption: Exercice
+					level 'Fiscal Quarter Year'
+						caption: Trimestre d’exercice
+					level 'Fiscal Month Year'
+						caption: Mois et année d’exercice
+					level 'Fiscal Week Year'
+						caption: Semaine et année d’exercice
+				hierarchy 'Fiscal Year-Month-Week'
+					caption: Année-Mois-Semaine d’exercice
+					level 'Fiscal Year'
+						caption: Exercice
+					level 'Fiscal Month Year'
+						caption: Mois et année d’exercice
+					level 'Fiscal Week Year'
+						caption: Semaine et année d’exercice
+				hierarchy 'Calendar Year-Month'
+					caption: Année-Mois civil
+					level 'Calendar Year'
+						caption: Année civile
+					level 'Calendar Month Year'
+						caption: Mois et année civils
+				hierarchy 'Calendar Year-Quarter-Month-Week'
+					caption: Semaine-Mois-Trimestre-Année civils
+					level 'Calendar Year'
+						caption: Année civile
+					level 'Calendar Quarter Year'
+						caption: Trimestre civil
+					level 'Calendar Month Year'
+						caption: Mois et année civils
+					level 'Calendar Week Year'
+						caption: Semaine et année civiles
+				hierarchy 'Calendar Year-Month-Week'
+					caption: Mois-Semaine-Année civils
+					level 'Calendar Year'
+						caption: Année civile
+					level 'Calendar Month Year'
+						caption: Mois et année civils
+					level 'Calendar Week Year'
+						caption: Semaine et année civiles
+				hierarchy 'FW Year-Month-Week'
+					caption: Année-Mois-Semaine d’exercice
+					level 'FW Year'
+						caption: Année SE
+					level 'FW Month Year'
+						caption: Mois Année SE
+					level 'FW Week Year'
+						caption: Semaine Année SE
+				hierarchy 'FW Year-Quarter-Month-Week'
+					caption: Année-Trimestre-Mois-Semaine SE
+					level 'FW Year'
+						caption: Année SE
+					level 'FW Quarter Year'
+						caption: Trimestre Année SE
+					level 'FW Month Year'
+						caption: Mois Année SE
+					level 'FW Week Year'
+						caption: Semaine Année SE
+				hierarchy 'FW Year-Week'
+					caption: Année-Semaine SE
+					level 'FW Year'
+						caption: Année SE
+					level 'FW Week Year'
+						caption: Semaine Année SE
+				hierarchy 'FW Year-Quarter-Week'
+					caption: Année-Trimestre-Semaine SE
+					level 'FW Year'
+						caption: Année SE
+					level 'FW Quarter Year'
+						caption: Trimestre Année SE
+					level 'FW Week Year'
+						caption: Semaine Année SE
+			table 'Standard Calendar Time Intelligence'
+				caption: Intelligence temporelle du calendrier standard
+				measure 'Purchase Amount YTD'
+					caption: Montant achat SA
+				measure 'Purchase Amount PY'
+					caption: Montant achat AP
+				measure 'Purchase Amount PYTD'
+					caption: Montant achat APAJ
+				measure 'Purchase Amount PQTD'
+					caption: Montant achat TPAJ
+				measure 'Purchase Amount QTD'
+					caption: Montant achat TAJ
+				measure 'Purchase Amount MTD'
+					caption: Montant achat MAJ
+				measure 'Purchase Amount YOY %'
+					caption: % montant achat AAA
+				measure 'Purchase Amount YOY'
+					caption: Montant achat AAA
+				measure 'Purchase Amount PQ'
+					caption: Montant achat TP
+				measure 'Purchase Amount QOQ'
+					caption: Montant achat TST
+				measure 'Purchase Amount PM'
+					caption: Montant achat MP
+				measure 'Purchase Amount QOQ %'
+					caption: % montant achat TST
+				measure 'Purchase Amount MOM'
+					caption: Montant achat MAM
+				measure 'Purchase Amount MOM %'
+					caption: % montant achat MAM
+				measure 'Purchase Amount MAT'
+					caption: Montant achat TAM
+				measure 'Purchase Amount PYMAT'
+					caption: Montant achat TAMAP
+				measure 'Purchase Amount YOYTD'
+					caption: Montant achat AAAACJ
+				measure 'Purchase Amount YOYTD %'
+					caption: % montant achat AAAACJ
+				measure 'Purchase Amount PYC'
+					caption: Montant achat APT
+				measure 'Purchase Amount YTDOPY'
+					caption: Montant achat SAPRAP
+				measure 'Purchase Amount YTDOPY %'
+					caption: % montant achat SAPRAP
+				measure 'Purchase Amount QOQTD'
+					caption: Montant achat TATACJ
+				measure 'Purchase Amount QOQTD %'
+					caption: % montant achat TATACJ
+				measure 'Purchase Amount PQC'
+					caption: Montant achat TPT
+				measure 'Purchase Amount QTDOPQ'
+					caption: Montant achat TAJPRTP
+				measure 'Purchase Amount QTDOPQ %'
+					caption: % montant achat TAJPRTP
+				measure 'Purchase Amount PMTD'
+					caption: Montant achat MPAJ
+				measure 'Purchase Amount MOMTD'
+					caption: Montant achat MAMACJ
+				measure 'Purchase Amount MOMTD %'
+					caption: % montant achat MAMACJ
+				measure 'Purchase Amount PMC'
+					caption: Montant achat MPT
+				measure 'Purchase Amount MTDOPM'
+					caption: Montant achat MAJPRMP
+				measure 'Purchase Amount MTDOPM %'
+					caption: % montant achat MAJPRMP
+				measure 'Purchase Amount AVG 30D'
+					caption: Montant achat MOY 30 J
+				measure 'Purchase Amount AVG 3M'
+					caption: Montant achat MOY 3 M
+				measure 'Purchase Amount AVG 1Y'
+					caption: Montant achat MOY 1 A
+				measure 'Purchase Amount MATG'
+					caption: Montant achat CTAM
+				measure 'Purchase Amount MATG %'
+					caption: % montant achat CTAM
+				measure 'Purchase Amount PP'
+					caption: Montant achat PP
+				measure 'Purchase Amount POP'
+					caption: Montant achat PSP
+				measure 'Purchase Amount POP %'
+					caption: % montant achat PSP
+				measure 'Purchase Quantity YTD'
+					caption: Quantité achat SA
+				measure 'Purchase Quantity PY'
+					caption: Quantité achat AP
+				measure 'Purchase Quantity PYTD'
+					caption: Quantité achat APAJ
+				measure 'Purchase Quantity PQTD'
+					caption: Quantité achat TPAJ
+				measure 'Purchase Quantity QTD'
+					caption: Quantité achat TAJ
+				measure 'Purchase Quantity MTD'
+					caption: Quantité achat MAJ
+				measure 'Purchase Quantity YOY %'
+					caption: % quantité achat AAA
+				measure 'Purchase Quantity YOY'
+					caption: Quantité achat AAA
+				measure 'Purchase Quantity PQ'
+					caption: Quantité achat TP
+				measure 'Purchase Quantity QOQ'
+					caption: Quantité achat TST
+				measure 'Purchase Quantity PM'
+					caption: Quantité achat MP
+				measure 'Purchase Quantity QOQ %'
+					caption: % quantité achat TST
+				measure 'Purchase Quantity MOM'
+					caption: Quantité achat MAM
+				measure 'Purchase Quantity MOM %'
+					caption: % quantité achat MAM
+				measure 'Purchase Quantity MAT'
+					caption: Quantité achat TAM
+				measure 'Purchase Quantity PYMAT'
+					caption: Quantité achat TAMAP
+				measure 'Purchase Quantity YOYTD'
+					caption: Quantité achat AAAACJ
+				measure 'Purchase Quantity YOYTD %'
+					caption: % quantité achat AAAACJ
+				measure 'Purchase Quantity PYC'
+					caption: Quantité achat APT
+				measure 'Purchase Quantity YTDOPY'
+					caption: Quantité achat SAPRAP
+				measure 'Purchase Quantity YTDOPY %'
+					caption: % quantité achat SAPRAP
+				measure 'Purchase Quantity QOQTD'
+					caption: Quantité achat TATACJ
+				measure 'Purchase Quantity QOQTD %'
+					caption: % quantité achat TATACJ
+				measure 'Purchase Quantity PQC'
+					caption: Quantité achat TPT
+				measure 'Purchase Quantity QTDOPQ'
+					caption: Quantité achat TAJPRTP
+				measure 'Purchase Quantity QTDOPQ %'
+					caption: % quantité achat TAJPRTP
+				measure 'Purchase Quantity PMTD'
+					caption: Quantité achat MPAJ
+				measure 'Purchase Quantity MOMTD'
+					caption: Quantité achat MAMACJ
+				measure 'Purchase Quantity MOMTD %'
+					caption: % quantité achat MAMACJ
+				measure 'Purchase Quantity PMC'
+					caption: Quantité achat MPT
+				measure 'Purchase Quantity MTDOPM'
+					caption: Quantité achat MAJPRMP
+				measure 'Purchase Quantity MTDOPM %'
+					caption: % quantité achat MAJPRMP
+				measure 'Purchase Quantity AVG 30D'
+					caption: Quantité achat MOY 30 J
+				measure 'Purchase Quantity AVG 3M'
+					caption: Quantité achat MOY 3 M
+				measure 'Purchase Quantity AVG 1Y'
+					caption: Quantité achat MOY 1 A
+				measure 'Purchase Quantity MATG'
+					caption: Quantité achat CTAM
+				measure 'Purchase Quantity MATG %'
+					caption: % quantité achat CTAM
+				measure 'Purchase Quantity PP'
+					caption: Quantité achat PP
+				measure 'Purchase Quantity POP'
+					caption: Quantité achat PSP
+				measure 'Purchase Quantity POP %'
+					caption: % quantité achat PSP
+				measure 'Budget Amount YTD'
+					caption: Montant budgétaire SA
+				measure 'Budget Amount QTD'
+					caption: Montant budgétaire TAJ
+				measure 'Budget Amount MTD'
+					caption: Montant budgétaire MAJ
+				measure 'Budget Amount PY'
+					caption: Montant budgétaire AP
+				measure 'Budget Amount YOY %'
+					caption: % montant budgétaire AAA
+				measure 'Budget Amount YOY'
+					caption: Montant budgétaire AAA
+				measure 'Budget Amount PQ'
+					caption: Montant budgétaire TP
+				measure 'Budget Amount QOQ'
+					caption: Montant budgétaire TST
+				measure 'Budget Amount PM'
+					caption: Montant budgétaire MP
+				measure 'Budget Amount QOQ %'
+					caption: % montant budgétaire TST
+				measure 'Budget Amount MOM'
+					caption: Montant budgétaire MAM
+				measure 'Budget Amount MOM %'
+					caption: % montant budgétaire MAM
+				measure 'Budget Amount PP'
+					caption: Montant budgétaire PP
+				measure 'Budget Amount POP'
+					caption: Montant budgétaire PSP
+				measure 'Budget Amount POP %'
+					caption: % montant budgétaire PSP
+				measure 'Budget Amount PYTD'
+					caption: Montant budgétaire APAJ
+				measure 'Budget Amount PQTD'
+					caption: Montant budgétaire TPAJ
+				measure 'Budget Amount YOYTD'
+					caption: Montant budgétaire AAAACJ
+				measure 'Budget Amount YOYTD %'
+					caption: % montant budgétaire AAAACJ
+				measure 'Budget Amount QOQTD'
+					caption: Montant budgétaire TATACJ
+				measure 'Budget Amount QOQTD %'
+					caption: % montant budgétaire TATACJ
+				measure 'Budget Amount PMTD'
+					caption: Montant budgétaire MPAJ
+				measure 'Budget Amount MOMTD'
+					caption: Montant budgétaire MAMACJ
+				measure 'Budget Amount MOMTD %'
+					caption: % montant budgétaire MAMACJ
+				measure 'Budget Amount MAT'
+					caption: Montant budgétaire TAM
+				measure 'Budget Amount PYMAT'
+					caption: Montant budgétaire TAMAP
+				measure 'Budget Amount MATG'
+					caption: Montant budgétaire CTAM
+				measure 'Budget Amount MATG %'
+					caption: % montant budgétaire CTAM
+				measure 'Budget Amount PYC'
+					caption: Montant budgétaire APT
+				measure 'Budget Amount YTDOPY'
+					caption: Montant budgétaire SAPRAP
+				measure 'Budget Amount YTDOPY %'
+					caption: % montant budgétaire SAPRAP
+				measure 'Budget Amount PQC'
+					caption: Montant budgétaire TPT
+				measure 'Budget Amount QTDOPQ'
+					caption: Montant budgétaire TAJPRTP
+				measure 'Budget Amount QTDOPQ %'
+					caption: % montant budgétaire TAJPRTP
+				measure 'Budget Amount PMC'
+					caption: Montant budgétaire MPT
+				measure 'Budget Amount MTDOPM'
+					caption: Montant budgétaire MAJPRMP
+				measure 'Budget Amount MTDOPM %'
+					caption: % montant budgétaire MAJPRMP
+				measure 'Budget Amount AVG 30D'
+					caption: Montant budgétaire MOY 30 J
+				measure 'Budget Amount AVG 3M'
+					caption: Montant budgétaire MOY 3 M
+				measure 'Budget Amount AVG 1Y'
+					caption: Montant budgétaire MOY 1 A
+				measure 'Budget Quantity YTD'
+					caption: Quantité budgétaire SA
+				measure 'Budget Quantity QTD'
+					caption: Quantité budgétaire TAJ
+				measure 'Budget Quantity MTD'
+					caption: Quantité budgétaire MAJ
+				measure 'Budget Quantity PY'
+					caption: Quantité budgétaire AP
+				measure 'Budget Quantity YOY %'
+					caption: % quantité budgétaire AAA
+				measure 'Budget Quantity YOY'
+					caption: Quantité budgétaire AAA
+				measure 'Budget Quantity PQ'
+					caption: Quantité budgétaire TP
+				measure 'Budget Quantity QOQ'
+					caption: Quantité budgétaire TST
+				measure 'Budget Quantity PM'
+					caption: Quantité budgétaire MP
+				measure 'Budget Quantity QOQ %'
+					caption: % quantité budgétaire TST
+				measure 'Budget Quantity MOM'
+					caption: Quantité budgétaire MAM
+				measure 'Budget Quantity MOM %'
+					caption: % quantité budgétaire MAM
+				measure 'Budget Quantity PP'
+					caption: Quantité budgétaire PP
+				measure 'Budget Quantity POP'
+					caption: Quantité budgétaire PSP
+				measure 'Budget Quantity POP %'
+					caption: % quantité budgétaire PSP
+				measure 'Budget Quantity PYTD'
+					caption: Quantité budgétaire APAJ
+				measure 'Budget Quantity PQTD'
+					caption: Quantité budgétaire TPAJ
+				measure 'Budget Quantity YOYTD'
+					caption: Quantité budgétaire AAAACJ
+				measure 'Budget Quantity YOYTD %'
+					caption: % quantité budgétaire AAAACJ
+				measure 'Budget Quantity QOQTD'
+					caption: Quantité budgétaire TATACJ
+				measure 'Budget Quantity QOQTD %'
+					caption: % quantité budgétaire TATACJ
+				measure 'Budget Quantity PMTD'
+					caption: Quantité budgétaire MPAJ
+				measure 'Budget Quantity MOMTD'
+					caption: Quantité budgétaire MAMACJ
+				measure 'Budget Quantity MOMTD %'
+					caption: % quantité budgétaire MAMACJ
+				measure 'Budget Quantity MAT'
+					caption: Quantité budgétaire TAM
+				measure 'Budget Quantity PYMAT'
+					caption: Quantité budgétaire TAMAP
+				measure 'Budget Quantity MATG'
+					caption: Quantité budgétaire CTAM
+				measure 'Budget Quantity MATG %'
+					caption: % quantité budgétaire CTAM
+				measure 'Budget Quantity PYC'
+					caption: Quantité budgétaire APT
+				measure 'Budget Quantity YTDOPY'
+					caption: Quantité budgétaire SAPRAP
+				measure 'Budget Quantity YTDOPY %'
+					caption: % quantité budgétaire SAPRAP
+				measure 'Budget Quantity PQC'
+					caption: Quantité budgétaire TPT
+				measure 'Budget Quantity QTDOPQ'
+					caption: Quantité budgétaire TAJPRTP
+				measure 'Budget Quantity QTDOPQ %'
+					caption: % quantité budgétaire TAJPRTP
+				measure 'Budget Quantity PMC'
+					caption: Quantité budgétaire MPT
+				measure 'Budget Quantity MTDOPM'
+					caption: Quantité budgétaire MAJPRMP
+				measure 'Budget Quantity MTDOPM %'
+					caption: % quantité budgétaire MAJPRMP
+				measure 'Budget Quantity AVG 30D'
+					caption: Quantité budgétaire MOY 30 J
+				measure 'Budget Quantity AVG 3M'
+					caption: Quantité budgétaire MOY 3 M
+				measure 'Budget Quantity AVG 1Y'
+					caption: Quantité budgétaire MOY 1 A
+			table 'Fiscal Calendar Time Intelligence'
+				caption: Intelligence temporelle du calendrier fiscal
+				measure 'Purchase Amount YTD (Fiscal)'
+					caption: Montant achat SA (fiscal)
+				measure 'Purchase Amount QTD (Fiscal)'
+					caption: Montant achat TAJ (fiscal)
+				measure 'Purchase Amount MTD (Fiscal)'
+					caption: Montant achat MAJ (fiscal)
+				measure 'Purchase Amount PY (Fiscal)'
+					caption: Montant achat AP (fiscal)
+				measure 'Purchase Amount YOY % (Fiscal)'
+					caption: % montant achat AAA (fiscal)
+				measure 'Purchase Amount YOY (Fiscal)'
+					caption: Montant achat AAA (fiscal)
+				measure 'Purchase Amount PQ (Fiscal)'
+					caption: Montant achat TP (fiscal)
+				measure 'Purchase Amount QOQ (Fiscal)'
+					caption: Montant achat TST (fiscal)
+				measure 'Purchase Amount QOQ % (Fiscal)'
+					caption: % montant achat TST (fiscal)
+				measure 'Purchase Amount PM (Fiscal)'
+					caption: Montant achat MP (fiscal)
+				measure 'Purchase Amount MOM (Fiscal)'
+					caption: Montant achat MAM (fiscal)
+				measure 'Purchase Amount MOM % (Fiscal)'
+					caption: % montant achat MAM (fiscal)
+				measure 'Purchase Amount PP (Fiscal)'
+					caption: Montant achat PP (fiscal)
+				measure 'Purchase Amount POP (Fiscal)'
+					caption: Montant achat PSP (fiscal)
+				measure 'Purchase Amount POP % (Fiscal)'
+					caption: % montant achat PSP (fiscal)
+				measure 'Purchase Amount PYTD (Fiscal)'
+					caption: Montant achat APAJ (fiscal)
+				measure 'Purchase Amount PQTD (Fiscal)'
+					caption: Montant achat TPAJ (fiscal)
+				measure 'Purchase Amount YOYTD (Fiscal)'
+					caption: Montant achat AAAACJ (fiscal)
+				measure 'Purchase Amount YOYTD % (Fiscal)'
+					caption: % montant achat AAAACJ (fiscal)
+				measure 'Purchase Amount QOQTD (Fiscal)'
+					caption: Montant achat TATACJ (fiscal)
+				measure 'Purchase Amount QOQTD % (Fiscal)'
+					caption: % montant achat TATACJ (fiscal)
+				measure 'Purchase Amount PMTD (Fiscal)'
+					caption: Montant achat MPAJ (fiscal)
+				measure 'Purchase Amount MOMTD % (Fiscal)'
+					caption: % montant achat MAMACJ (fiscal)
+				measure 'Purchase Amount MOMTD (Fiscal)'
+					caption: Montant achat MAMACJ (fiscal)
+				measure 'Purchase Amount MAT (Fiscal)'
+					caption: Montant achat TAM (fiscal)
+				measure 'Purchase Amount PYMAT (Fiscal)'
+					caption: Montant achat TAMAP (fiscal)
+				measure 'Purchase Amount MATG (Fiscal)'
+					caption: Montant achat CTAM (fiscal)
+				measure 'Purchase Amount MATG % (Fiscal)'
+					caption: % montant achat CTAM (fiscal)
+				measure 'Purchase Amount MAT (364) (Fiscal)'
+					caption: Montant achat TAM (364) (fiscal)
+				measure 'Purchase PYMAT (364) (Fiscal)'
+					caption: Achat TAMAP (364) (fiscal)
+				measure 'Purchase Amount PYC (Fiscal)'
+					caption: Montant achat APT (fiscal)
+				measure 'Purchase Amount YTDOPY (Fiscal)'
+					caption: Montant achat SAPRAP (fiscal)
+				measure 'Purchase Amount YTDOPY % (Fiscal)'
+					caption: % montant achat SAPRAP (fiscal)
+				measure 'Purchase Amount PQC (Fiscal)'
+					caption: Montant achat TPT (fiscal)
+				measure 'Purchase Amount QTDOPQ (Fiscal)'
+					caption: Montant achat TAJPRTP (fiscal)
+				measure 'Purchase Amount QTDOPQ % (Fiscal)'
+					caption: % montant achat TAJPRTP (fiscal)
+				measure 'Purchase Amount PMC (Fiscal)'
+					caption: Montant achat MPT (fiscal)
+				measure 'Purchase Amount MTDOPM (Fiscal)'
+					caption: Montant achat MAJPRMP (fiscal)
+				measure 'Purchase Amount MTDOPM % (Fiscal)'
+					caption: % montant achat MAJPRMP (fiscal)
+				measure 'Purchase Amount AVG 30D (Fiscal)'
+					caption: Montant achat MOY 30 J (fiscal)
+				measure 'Purchase Amount AVG 3M (Fiscal)'
+					caption: Montant chat MOY 3 M (fiscal)
+				measure 'Purchase Amount AVG 1Y (Fiscal)'
+					caption: Montant achat MOY 1 A (fiscal)
+				measure 'Purchases Quantity YTD (Fiscal)'
+					caption: Quantité achat SA (fiscal)
+				measure 'Purchases Quantity QTD (Fiscal)'
+					caption: Quantité achat TAJ (fiscal)
+				measure 'Purchases Quantity MTD (Fiscal)'
+					caption: Quantité achat MAJ (fiscal)
+				measure 'Purchase Quantity PY (Fiscal)'
+					caption: Quantité achat AP (fiscal)
+				measure 'Purchase Quantity YOY % (Fiscal)'
+					caption: % quantité achat AAA (fiscal)
+				measure 'Purchase Quantity YOY (Fiscal)'
+					caption: Quantité achat AAA (fiscal)
+				measure 'Purchase Quantity PQ (Fiscal)'
+					caption: Quantité achat TP (fiscal)
+				measure 'Purchase Quantity QOQ (Fiscal)'
+					caption: Quantité achat TST (fiscal)
+				measure 'Purchase Quantity QOQ % (Fiscal)'
+					caption: % quantité achat TST (fiscal)
+				measure 'Purchase Quantity PM (Fiscal)'
+					caption: Quantité achat MP (fiscal)
+				measure 'Purchase Quantity MOM (Fiscal)'
+					caption: Quantité achat MAM (fiscal)
+				measure 'Purchase Quantity MOM % (Fiscal)'
+					caption: % quantité achat MAM (fiscal)
+				measure 'Purchase Quantity PP (Fiscal)'
+					caption: Quantité achat PP (fiscal)
+				measure 'Purchase Quantity POP (Fiscal)'
+					caption: Quantité achat PSP (fiscal)
+				measure 'Purchase Quantity POP % (Fiscal)'
+					caption: % quantité achat PSP (fiscal)
+				measure 'Purchase Quantity PYTD (Fiscal)'
+					caption: Quantité achat APAJ (fiscal)
+				measure 'Purchase Quantity PQTD (Fiscal)'
+					caption: Quantité achat TPAJ (fiscal)
+				measure 'Purchase Quantity YOYTD (Fiscal)'
+					caption: Quantité achat AAAACJ (fiscal)
+				measure 'Purchase Quantity YOYTD % (Fiscal)'
+					caption: % quantité achat AAAACJ (fiscal)
+				measure 'Purchase Quantity QOQTD (Fiscal)'
+					caption: Quantité achat TATACJ (fiscal)
+				measure 'Purchase Quantity QOQTD % (Fiscal)'
+					caption: % quantité achat TATACJ (fiscal)
+				measure 'Purchase Quantity PMTD (Fiscal)'
+					caption: Quantité achat MPAJ (fiscal)
+				measure 'Purchase Quantity MOMTD % (Fiscal)'
+					caption: % quantité achat MAMACJ (fiscal)
+				measure 'Purchase Quantity MOMTD (Fiscal)'
+					caption: Quantité achat MAMACJ (fiscal)
+				measure 'Purchase Quantity MAT (Fiscal)'
+					caption: Quantité achat TAM (fiscal)
+				measure 'Purchase Quantity PYMAT (Fiscal)'
+					caption: Quantité achat TAMAP (fiscal)
+				measure 'Purchase Quantity MATG (Fiscal)'
+					caption: Quantité achat CTAM (fiscal)
+				measure 'Purchase Quantity MATG % (Fiscal)'
+					caption: % quantité achat CTAM (fiscal)
+				measure 'Purchase Quantity PYC (Fiscal)'
+					caption: Quantité achat APT (fiscal)
+				measure 'Purchase Quantity YTDOPY (Fiscal)'
+					caption: Quantité achat SAPRAP (fiscal)
+				measure 'Purchase Quantity YTDOPY % (Fiscal)'
+					caption: % quantité achat SAPRAP (fiscal)
+				measure 'Purchase Quantity PQC (Fiscal)'
+					caption: Quantité achat TPT (fiscal)
+				measure 'Purchase Quantity QTDOPQ (Fiscal)'
+					caption: Quantité achat TAJPRTP (fiscal)
+				measure 'Purchase Quantity QTDOPQ % (Fiscal)'
+					caption: % quantité achat TAJPRTP (fiscal)
+				measure 'Purchase Quantity PMC (Fiscal)'
+					caption: Quantité achat MPT (fiscal)
+				measure 'Purchase Quantity MTDOPM (Fiscal)'
+					caption: Quantité achat MAJPRMP (fiscal)
+				measure 'Purchase Quantity MTDOPM % (Fiscal)'
+					caption: % quantité achat MAJPRMP (fiscal)
+				measure 'Purchase Quantity AVG 30D (Fiscal)'
+					caption: Quantité achat MOY 30 J (fiscal)
+				measure 'Purchase Quantity AVG 3M (Fiscal)'
+					caption: Quantité achat MOY 3 M (fiscal)
+				measure 'Purchase Quantity AVG 1Y (Fiscal)'
+					caption: Quantité achat MOY 1 A (fiscal)
+				measure 'Budget Amount YTD (Fiscal)'
+					caption: Montant budgétaire SA (fiscal)
+				measure 'Budget Amount QTD (Fiscal)'
+					caption: Montant budgétaire TAJ (fiscal)
+				measure 'Budget Amount MTD (Fiscal)'
+					caption: Montant budgétaire MAJ (fiscal)
+				measure 'Budget Amount PY (Fiscal)'
+					caption: Montant budgétaire AP (fiscal)
+				measure 'Budget Amount YOY % (Fiscal)'
+					caption: % montant budgétaire AAA (fiscal)
+				measure 'Budget Amount YOY (Fiscal)'
+					caption: Montant budgétaire AAA (fiscal)
+				measure 'Budget Amount PQ (Fiscal)'
+					caption: Montant budgétaire TP (fiscal)
+				measure 'Budget Amount QOQ (Fiscal)'
+					caption: Montant budgétaire TST (fiscal)
+				measure 'Budget Amount QOQ % (Fiscal)'
+					caption: % montant budgétaire TST (fiscal)
+				measure 'Budget Amount PM (Fiscal)'
+					caption: Montant budgétaire MP (fiscal)
+				measure 'Budget Amount MOM (Fiscal)'
+					caption: Montant budgétaire MAM (fiscal)
+				measure 'Budget Amount MOM % (Fiscal)'
+					caption: % montant budgétaire MAM (fiscal)
+				measure 'Budget Amount PP (Fiscal)'
+					caption: Montant budgétaire PP (fiscal)
+				measure 'Budget Amount POP (Fiscal)'
+					caption: Montant budgétaire PSP (fiscal)
+				measure 'Budget Amount POP % (Fiscal)'
+					caption: % montant budgétaire PSP (fiscal)
+				measure 'Budget Amount PYTD (Fiscal)'
+					caption: Montant budgétaire APAJ (fiscal)
+				measure 'Budget Amount PQTD (Fiscal)'
+					caption: Montant budgétaire TPAJ (fiscal)
+				measure 'Budget Amount YOYTD (Fiscal)'
+					caption: Montant budgétaire AAAACJ (fiscal)
+				measure 'Budget Amount YOYTD % (Fiscal)'
+					caption: % montant budgétaire AAAACJ (fiscal)
+				measure 'Budget Amount QOQTD (Fiscal)'
+					caption: Montant budgétaire TATACJ (fiscal)
+				measure 'Budget Amount QOQTD % (Fiscal)'
+					caption: % montant budgétaire TATACJ (fiscal)
+				measure 'Budget Amount PMTD (Fiscal)'
+					caption: Montant budgétaire MPAJ (fiscal)
+				measure 'Budget Amount MOMTD % (Fiscal)'
+					caption: % montant budgétaire MAMACJ (fiscal)
+				measure 'Budget Amount MOMTD (Fiscal)'
+					caption: Montant budgétaire MAMACJ (fiscal)
+				measure 'Budget Amount MAT (Fiscal)'
+					caption: Montant budgétaire TAM (fiscal)
+				measure 'Budget Amount PYMAT (Fiscal)'
+					caption: Montant budgétaire TAMAP (fiscal)
+				measure 'Budget Amount MATG (Fiscal)'
+					caption: Montant budgétaire CTAM (fiscal)
+				measure 'Budget Amount MATG % (Fiscal)'
+					caption: % montant budgétaire CTAM (fiscal)
+				measure 'Budget Amount MAT (364) (Fiscal)'
+					caption: Montant budgétaire TAM (364) (fiscal)
+				measure 'Budget PYMAT (364) (Fiscal)'
+					caption: Budget TAMAP (364) (fiscal)
+				measure 'Budget Amount PYC (Fiscal)'
+					caption: Montant budgétaire APT (fiscal)
+				measure 'Budget Amount YTDOPY (Fiscal)'
+					caption: Montant budgétaire SAPRAP (fiscal)
+				measure 'Budget Amount YTDOPY % (Fiscal)'
+					caption: % montant budgétaire SAPRAP (fiscal)
+				measure 'Budget Amount PQC (Fiscal)'
+					caption: Montant budgétaire TPT (fiscal)
+				measure 'Budget Amount QTDOPQ (Fiscal)'
+					caption: Montant budgétaire TAJPRTP (fiscal)
+				measure 'Budget Amount QTDOPQ % (Fiscal)'
+					caption: % montant budgétaire TAJPRTP (fiscal)
+				measure 'Budget Amount PMC (Fiscal)'
+					caption: Montant budgétaire MPT (fiscal)
+				measure 'Budget Amount MTDOPM (Fiscal)'
+					caption: Montant budgétaire MAJPRMP (fiscal)
+				measure 'Budget Amount MTDOPM % (Fiscal)'
+					caption: % montant budgétaire MAJPRMP (fiscal)
+				measure 'Budget Amount AVG 30D (Fiscal)'
+					caption: Montant budgétaire MOY 30 J (fiscal)
+				measure 'Budget Amount AVG 3M (Fiscal)'
+					caption: Montant budgétaire MOY 3 M (fiscal)
+				measure 'Budget Amount AVG 1Y (Fiscal)'
+					caption: Montant budgétaire MOY 1 A (fiscal)
+				measure 'Budget Quantity YTD (Fiscal)'
+					caption: Quantité budgétaire SA (fiscal)
+				measure 'Budget Quantity QTD (Fiscal)'
+					caption: Quantité budgétaire TAJ (fiscal)
+				measure 'Budget Quantity MTD (Fiscal)'
+					caption: Quantité budgétaire MAJ (fiscal)
+				measure 'Budget Quantity PY (Fiscal)'
+					caption: Quantité budgétaire AP (fiscal)
+				measure 'Budget Quantity YOY % (Fiscal)'
+					caption: % quantité budgétaire AAA (fiscal)
+				measure 'Budget Quantity YOY (Fiscal)'
+					caption: Quantité budgétaire AAA (fiscal)
+				measure 'Budget Quantity PQ (Fiscal)'
+					caption: Quantité budgétaire TP (fiscal)
+				measure 'Budget Quantity QOQ (Fiscal)'
+					caption: Quantité budgétaire TST (fiscal)
+				measure 'Budget Quantity QOQ % (Fiscal)'
+					caption: % quantité budgétaire TST (fiscal)
+				measure 'Budget Quantity PM (Fiscal)'
+					caption: Quantité budgétaire MP (fiscal)
+				measure 'Budget Quantity MOM (Fiscal)'
+					caption: Quantité budgétaire MAM (fiscal)
+				measure 'Budget Quantity MOM % (Fiscal)'
+					caption: % quantité budgétaire MAM (fiscal)
+				measure 'Budget Quantity PP (Fiscal)'
+					caption: Quantité budgétaire PP (fiscal)
+				measure 'Budget Quantity POP (Fiscal)'
+					caption: Quantité budgétaire PSP (fiscal)
+				measure 'Budget Quantity POP % (Fiscal)'
+					caption: % quantité budgétaire PSP (fiscal)
+				measure 'Budget Quantity PYTD (Fiscal)'
+					caption: Quantité budgétaire APAJ (fiscal)
+				measure 'Budget Quantity PQTD (Fiscal)'
+					caption: Quantité budgétaire TPAJ (fiscal)
+				measure 'Budget Quantity YOYTD (Fiscal)'
+					caption: Quantité budgétaire AAAACJ (fiscal)
+				measure 'Budget Quantity YOYTD % (Fiscal)'
+					caption: % quantité budgétaire AAAACJ (fiscal)
+				measure 'Budget Quantity QOQTD (Fiscal)'
+					caption: Quantité budgétaire TATACJ (fiscal)
+				measure 'Budget Quantity QOQTD % (Fiscal)'
+					caption: % quantité budgétaire TATACJ (fiscal)
+				measure 'Budget Quantity PMTD (Fiscal)'
+					caption: Quantité budgétaire MPAJ (fiscal)
+				measure 'Budget Quantity MOMTD % (Fiscal)'
+					caption: % quantité budgétaire MAMACJ (fiscal)
+				measure 'Budget Quantity MOMTD (Fiscal)'
+					caption: Quantité budgétaire MAMACJ (fiscal)
+				measure 'Budget Quantity MAT (Fiscal)'
+					caption: Quantité budgétaire TAM (fiscal)
+				measure 'Budget Quantity PYMAT (Fiscal)'
+					caption: Quantité budgétaire TAMAP (fiscal)
+				measure 'Budget Quantity MATG (Fiscal)'
+					caption: Quantité budgétaire CTAM (fiscal)
+				measure 'Budget Quantity MATG % (Fiscal)'
+					caption: % quantité budgétaire CTAM (fiscal)
+				measure 'Budget Quantity PYC (Fiscal)'
+					caption: Quantité budgétaire APT (fiscal)
+				measure 'Budget Quantity YTDOPY (Fiscal)'
+					caption: Quantité budgétaire SAPRAP (fiscal)
+				measure 'Budget Quantity YTDOPY % (Fiscal)'
+					caption: % quantité budgétaire SAPRAP (fiscal)
+				measure 'Budget Quantity PQC (Fiscal)'
+					caption: Quantité budgétaire TPT (fiscal)
+				measure 'Budget Quantity QTDOPQ (Fiscal)'
+					caption: Quantité budgétaire TAJPRTP (fiscal)
+				measure 'Budget Quantity QTDOPQ % (Fiscal)'
+					caption: % quantité budgétaire TAJPRTP (fiscal)
+				measure 'Budget Quantity PMC (Fiscal)'
+					caption: Quantité budgétaire MPT (fiscal)
+				measure 'Budget Quantity MTDOPM (Fiscal)'
+					caption: Quantité budgétaire MAJPRMP (fiscal)
+				measure 'Budget Quantity MTDOPM % (Fiscal)'
+					caption: % quantité budgétaire MAJPRMP (fiscal)
+				measure 'Budget Quantity AVG 30D (Fiscal)'
+					caption: Quantité budgétaire MOY 30 J (fiscal)
+				measure 'Budget Quantity AVG 3M (Fiscal)'
+					caption: Quantité budgétaire MOY 3 M (fiscal)
+				measure 'Budget Quantity AVG 1Y (Fiscal)'
+					caption: Quantité budgétaire MOY 1 A (fiscal)
+			table 'Weekly Calendar Time Intelligence'
+				caption: Intelligence temporelle du calendrier hebdomadaire
+				measure 'Purchase Amount YTD (Weekly)'
+					caption: Montant achat SA (hebdomadaire)
+				measure 'Purchase Amount QTD (Weekly)'
+					caption: Montant achat TAJ (hebdomadaire)
+				measure 'Purchase Amount MTD (Weekly)'
+					caption: Montant achat MAJ (hebdomadaire)
+				measure 'Purchase Amount WTD (Weekly)'
+					caption: Montant achat SEC (hebdomadaire)
+				measure 'Purchase Amount PY (Weekly)'
+					caption: Montant achat AP (hebdomadaire)
+				measure 'Purchase Amount YOY % (Weekly)'
+					caption: % montant achat AAA (hebdomadaire)
+				measure 'Purchase Amount YOY (Weekly)'
+					caption: Montant achat AAA (hebdomadaire)
+				measure 'Purchase Amount PQ (Weekly)'
+					caption: Montant achat TP (hebdomadaire)
+				measure 'Purchase Amount QOQ (Weekly)'
+					caption: Montant achat TST (hebdomadaire)
+				measure 'Purchase Amount QOQ % (Weekly)'
+					caption: % montant achat TST (hebdomadaire)
+				measure 'Purchase Amount PW (Weekly)'
+					caption: Montant achat SP (hebdomadaire)
+				measure 'Purchase Amount WOW (Weekly)'
+					caption: Montant achat SAS (hebdomadaire)
+				measure 'Purchase Amount WOW % (Weekly)'
+					caption: % montant achat SAS (hebdomadaire)
+				measure 'Purchase Amount PP (Weekly)'
+					caption: Montant achat PP (hebdomadaire)
+				measure 'Purchase Amount POP (Weekly)'
+					caption: Montant achat PSP (hebdomadaire)
+				measure 'Purchase Amount POP % (Weekly)'
+					caption: % montant achat PSP (hebdomadaire)
+				measure 'Purchase Amount PYTD (Weekly)'
+					caption: Montant achat APAJ (hebdomadaire)
+				measure 'Purchase Amount PQTD (Weekly)'
+					caption: Montant achat TPAJ (hebdomadaire)
+				measure 'Purchase Amount YOYTD (Weekly)'
+					caption: Montant achat AAAACJ (hebdomadaire)
+				measure 'Purchase Amount YOYTD % (Weekly)'
+					caption: % montant achat AAAACJ (hebdomadaire)
+				measure 'Purchase Amount QOQTD (Weekly)'
+					caption: Montant achat TATACJ (hebdomadaire)
+				measure 'Purchase Amount QOQTD % (Weekly)'
+					caption: % montant achat TATACJ (hebdomadaire)
+				measure 'Purchase Amount PWTD (Weekly)'
+					caption: Montant achat SPAJ (hebdomadaire)
+				measure 'Purchase Amount WOWTD (Weekly)'
+					caption: Montant achat SASACJ (hebdomadaire)
+				measure 'Purchase Amount WOWTD % (Weekly)'
+					caption: % montant achat SASACJ (hebdomadaire)
+				measure 'Purchase Amount MAT (364) (Weekly)'
+					caption: Montant achat TAM (364) (hebdomadaire)
+				measure 'Purchase Amount PYMAT (364) (Weekly)'
+					caption: Montant achat TAMAP (364) (hebdomadaire)
+				measure 'Purchase Amount MATG (Weekly)'
+					caption: Montant achat CTAM (hebdomadaire)
+				measure 'Purchase Amount MATG % (Weekly)'
+					caption: % montant achat CTAM (hebdomadaire)
+				measure 'Purchase Amount PYC (Weekly)'
+					caption: Montant achat APT (hebdomadaire)
+				measure 'Purchase Amount YTDOPY (Weekly)'
+					caption: Montant achat SAPRAP (hebdomadaire)
+				measure 'Purchase Amount YTDOPY % (Weekly)'
+					caption: % montant achat SAPRAP (hebdomadaire)
+				measure 'Purchase Amount PQC (Weekly)'
+					caption: Montant achat TPT (hebdomadaire)
+				measure 'Purchase Amount QTDOPQ (Weekly)'
+					caption: Montant achat TAJPRTP (hebdomadaire)
+				measure 'Purchase Amount QTDOPQ % (Weekly)'
+					caption: % montant achat TAJPRTP (hebdomadaire)
+				measure 'Purchase Amount PWC (Weekly)'
+					caption: Montant achat SPT (hebdomadaire)
+				measure 'Purchase Amount WTDOPW (Weekly)'
+					caption: Montant achat SECPRSP (hebdomadaire)
+				measure 'Purchase Amount WTDOPW % (Weekly)'
+					caption: % montant achat SECPRSP (hebdomadaire)
+				measure 'Purchase Amount AVG 4W (Weekly)'
+					caption: Montant achat MOY 4 S (hebdomadaire)
+				measure 'Purchase Amount AVG 1Q (Weekly)'
+					caption: Montant achat MOY 1 T (hebdomadaire)
+				measure 'Purchase Amount AVG 1Y (Weekly)'
+					caption: Montant achat MOY 1 A (hebdomadaire)
+				measure 'Purchase Quantity YTD (Weekly)'
+					caption: Quantité achat SA (hebdomadaire)
+				measure 'Purchase Quantity QTD (Weekly)'
+					caption: Quantité achat TAJ (hebdomadaire)
+				measure 'Purchase Quantity MTD (Weekly)'
+					caption: Quantité achat MAJ (hebdomadaire)
+				measure 'Purchase Quantity WTD (Weekly)'
+					caption: Quantité achat SAD (hebdomadaire)
+				measure 'Purchase Quantity PY (Weekly)'
+					caption: Quantité achat AP (hebdomadaire)
+				measure 'Purchase Quantity YOY % (Weekly)'
+					caption: % quantité achat AAA (hebdomadaire)
+				measure 'Purchase Quantity YOY (Weekly)'
+					caption: Quantité achat AAA (hebdomadaire)
+				measure 'Purchase Quantity PQ (Weekly)'
+					caption: Quantité achat TP (hebdomadaire)
+				measure 'Purchase Quantity QOQ (Weekly)'
+					caption: Quantité achat TST (hebdomadaire)
+				measure 'Purchase Quantity QOQ % (Weekly)'
+					caption: % quantité achat TST (hebdomadaire)
+				measure 'Purchase Quantity PW (Weekly)'
+					caption: Quantité achat SP (hebdomadaire)
+				measure 'Purchase Quantity WOW (Weekly)'
+					caption: Quantité achat SAS (hebdomadaire)
+				measure 'Purchase Quantity WOW % (Weekly)'
+					caption: % quantité achat SAS (hebdomadaire)
+				measure 'Purchase Quantity PP (Weekly)'
+					caption: Quantité achat PP (hebdomadaire)
+				measure 'Purchase Quantity POP (Weekly)'
+					caption: Quantité achat PSP (hebdomadaire)
+				measure 'Purchase Quantity POP % (Weekly)'
+					caption: % quantité achat PSP (hebdomadaire)
+				measure 'Purchase Quantity PYTD (Weekly)'
+					caption: Quantité achat APAJ (hebdomadaire)
+				measure 'Purchase Quantity PQTD (Weekly)'
+					caption: Quantité achat TPAJ (hebdomadaire)
+				measure 'Purchase Quantity YOYTD (Weekly)'
+					caption: Quantité achat AAAACJ (hebdomadaire)
+				measure 'Purchase Quantity YOYTD % (Weekly)'
+					caption: % quantité achat AAAACJ (hebdomadaire)
+				measure 'Purchase Quantity QOQTD (Weekly)'
+					caption: Quantité achat TATACJ (hebdomadaire)
+				measure 'Purchase Quantity QOQTD % (Weekly)'
+					caption: % quantité achat TATACJ (hebdomadaire)
+				measure 'Purchase Quantity PWTD (Weekly)'
+					caption: Quantité achat SPAJ (hebdomadaire)
+				measure 'Purchase Quantity WOWTD (Weekly)'
+					caption: Quantité achat SASACJ (hebdomadaire)
+				measure 'Purchase Quantity WOWTD % (Weekly)'
+					caption: % quantité achat SASACJ (hebdomadaire)
+				measure 'Purchase Quantity MAT (364) (Weekly)'
+					caption: Quantité achat TAM (364) (hebdomadaire)
+				measure 'Purchase Quantity PYMAT (364) (Weekly)'
+					caption: Quantité achat TAMAP (364) (hebdomadaire)
+				measure 'Purchase Quantity MATG (Weekly)'
+					caption: Quantité achat CTAM (hebdomadaire)
+				measure 'Purchase Quantity MATG % (Weekly)'
+					caption: % quantité achat CTAM (hebdomadaire)
+				measure 'Purchase Quantity PYC (Weekly)'
+					caption: Quantité achat APT (hebdomadaire)
+				measure 'Purchase Quantity YTDOPY (Weekly)'
+					caption: Quantité achat SAPRAP (hebdomadaire)
+				measure 'Purchase Quantity YTDOPY  % (Weekly)'
+					caption: % quantité achat SAPRAP (hebdomadaire)
+				measure 'Purchase Quantity PQC (Weekly)'
+					caption: Quantité achat TPT (hebdomadaire)
+				measure 'Purchase Quantity QTDOPQ (Weekly)'
+					caption: Quantité achat TAJPRTP (hebdomadaire)
+				measure 'Purchase Quantity QTDOPQ % (Weekly)'
+					caption: % quantité achat TAJPRTP (hebdomadaire)
+				measure 'Purchase Quantity PWC (Weekly)'
+					caption: Quantité achat SPT (hebdomadaire)
+				measure 'Purchase Quantity WTDOPW (Weekly)'
+					caption: Quantité achat SECPRSP (hebdomadaire)
+				measure 'Purchase Quantity WTDOPW % (Weekly)'
+					caption: % quantité achat SECPRSP (hebdomadaire)
+				measure 'Purchase Quantity AVG 4W (Weekly)'
+					caption: Quantité achat MOY 4 S (hebdomadaire)
+				measure 'Purchase Quantity AVG 1Q (Weekly)'
+					caption: Quantité achat MOY 1 T (hebdomadaire)
+				measure 'Purchase Quantity AVG 1Y (Weekly)'
+					caption: Quantité achat MOY 1 A (hebdomadaire)
+				measure 'Budget Quantity YTD (Weekly)'
+					caption: Quantité budgétaire SA (hebdomadaire)
+				measure 'Budget Quantity QTD (Weekly)'
+					caption: Quantité budgétaire TAJ (hebdomadaire)
+				measure 'Budget Quantity MTD (Weekly)'
+					caption: Quantité budgétaire MAJ (hebdomadaire)
+				measure 'Budget Quantity WTD (Weekly)'
+					caption: Quantité budgétaire SAJ (hebdomadaire)
+				measure 'Budget Quantity PY (Weekly)'
+					caption: Quantité budgétaire AP (hebdomadaire)
+				measure 'Budget Quantity YOY % (Weekly)'
+					caption: % quantité budgétaire AAA (hebdomadaire)
+				measure 'Budget Quantity YOY (Weekly)'
+					caption: Quantité budgétaire AAA (hebdomadaire)
+				measure 'Budget Quantity PQ (Weekly)'
+					caption: Quantité budgétaire TP (hebdomadaire)
+				measure 'Budget Quantity QOQ (Weekly)'
+					caption: Quantité budgétaire TST (hebdomadaire)
+				measure 'Budget Quantity QOQ % (Weekly)'
+					caption: % quantité budgétaire TST (hebdomadaire)
+				measure 'Budget Quantity PW (Weekly)'
+					caption: Quantité budgétaire SP (hebdomadaire)
+				measure 'Budget Quantity WOW (Weekly)'
+					caption: Quantité budgétaire SAS (hebdomadaire)
+				measure 'Budget Quantity WOW % (Weekly)'
+					caption: % quantité budgétaire SAS (hebdomadaire)
+				measure 'Budget Quantity PP (Weekly)'
+					caption: Quantité budgétaire PP (hebdomadaire)
+				measure 'Budget Quantity POP (Weekly)'
+					caption: Quantité budgétaire PSP (hebdomadaire)
+				measure 'Budget Quantity POP % (Weekly)'
+					caption: % quantité budgétaire PSP (hebdomadaire)
+				measure 'Budget Quantity PYTD (Weekly)'
+					caption: Quantité budgétaire APAJ (hebdomadaire)
+				measure 'Budget Quantity PQTD (Weekly)'
+					caption: Quantité budgétaire TPAJ (hebdomadaire)
+				measure 'Budget Quantity YOYTD (Weekly)'
+					caption: Quantité budgétaire AAAACJ (hebdomadaire)
+				measure 'Budget Quantity YOYTD % (Weekly)'
+					caption: % quantité budgétaire AAAACJ (hebdomadaire)
+				measure 'Budget Quantity QOQTD (Weekly)'
+					caption: Quantité budgétaire TATACJ (hebdomadaire)
+				measure 'Budget Quantity QOQTD % (Weekly)'
+					caption: % quantité budgétaire TATACJ (hebdomadaire)
+				measure 'Budget Quantity PWTD (Weekly)'
+					caption: Quantité budgétaire SPAJ (hebdomadaire)
+				measure 'Budget Quantity WOWTD (Weekly)'
+					caption: Quantité budgétaire SASACJ (hebdomadaire)
+				measure 'Budget Quantity WOWTD % (Weekly)'
+					caption: % quantité budgétaire SASACJ (hebdomadaire)
+				measure 'Budget Quantity MAT (364) (Weekly)'
+					caption: Quantité budgétaire TAM (364) (hebdomadaire)
+				measure 'Budget Quantity PYMAT (364) (Weekly)'
+					caption: Quantité budgétaire TAMAP (364) (hebdomadaire)
+				measure 'Budget Quantity MATG (Weekly)'
+					caption: Quantité budgétaire CTAM (hebdomadaire)
+				measure 'Budget Quantity MATG % (Weekly)'
+					caption: % quantité budgétaire CTAM (hebdomadaire)
+				measure 'Budget Quantity PYC (Weekly)'
+					caption: Quantité budgétaire APT (hebdomadaire)
+				measure 'Budget Quantity YTDOPY (Weekly)'
+					caption: Quantité budgétaire SAPRAP (hebdomadaire)
+				measure 'Budget Quantity YTDOPY  % (Weekly)'
+					caption: % quantité budgétaire SAPRAP (hebdomadaire)
+				measure 'Budget Quantity PQC (Weekly)'
+					caption: Quantité budgétaire TPT (hebdomadaire)
+				measure 'Budget Quantity QTDOPQ (Weekly)'
+					caption: Quantité budgétaire TAJPRTP (hebdomadaire)
+				measure 'Budget Quantity QTDOPQ % (Weekly)'
+					caption: % quantité budgétaire TAJPRTP (hebdomadaire)
+				measure 'Budget Quantity PWC (Weekly)'
+					caption: Quantité budgétaire SPT (hebdomadaire)
+				measure 'Budget Quantity WTDOPW (Weekly)'
+					caption: Quantité budgétaire SECPRSP (hebdomadaire)
+				measure 'Budget Quantity WTDOPW % (Weekly)'
+					caption: % quantité budgétaire SECPRSP (hebdomadaire)
+				measure 'Budget Quantity AVG 4W (Weekly)'
+					caption: Quantité budgétaire MOY 4 S (hebdomadaire)
+				measure 'Budget Quantity AVG 1Q (Weekly)'
+					caption: Quantité budgétaire MOY 1 T (hebdomadaire)
+				measure 'Budget Quantity AVG 1Y (Weekly)'
+					caption: Quantité budgétaire MOY 1 A (hebdomadaire)
+				measure 'Budget Amount YTD (Weekly)'
+					caption: Montant budgétaire SA (hebdomadaire)
+				measure 'Budget Amount QTD (Weekly)'
+					caption: Montant budgétaire TAJ (hebdomadaire)
+				measure 'Budget Amount MTD (Weekly)'
+					caption: Montant budgétaire MAJ (hebdomadaire)
+				measure 'Budget Amount WTD (Weekly)'
+					caption: Montant budgétaire SAJ (hebdomadaire)
+				measure 'Budget Amount PY (Weekly)'
+					caption: Montant budgétaire AP (hebdomadaire)
+				measure 'Budget Amount YOY % (Weekly)'
+					caption: % Montant budgétaire AAA (hebdomadaire)
+				measure 'Budget Amount YOY (Weekly)'
+					caption: Montant budgétaire AAA (hebdomadaire)
+				measure 'Budget Amount PQ (Weekly)'
+					caption: Montant budgétaire TP (hebdomadaire)
+				measure 'Budget Amount QOQ (Weekly)'
+					caption: Montant budgétaire TST (hebdomadaire)
+				measure 'Budget Amount QOQ % (Weekly)'
+					caption: % montant budgétaire TST (hebdomadaire)
+				measure 'Budget Amount PW (Weekly)'
+					caption: Montant budgétaire SP (hebdomadaire)
+				measure 'Budget Amount WOW (Weekly)'
+					caption: Montant budgétaire SAS (hebdomadaire)
+				measure 'Budget Amount WOW % (Weekly)'
+					caption: % montant budgétaire SAS (hebdomadaire)
+				measure 'Budget Amount PP (Weekly)'
+					caption: Montant budgétaire PP (hebdomadaire)
+				measure 'Budget Amount POP (Weekly)'
+					caption: Montant budgétaire PSP (hebdomadaire)
+				measure 'Budget Amount POP % (Weekly)'
+					caption: % montant budgétaire PSP (hebdomadaire)
+				measure 'Budget Amount PYTD (Weekly)'
+					caption: Montant budgétaire APAJ (hebdomadaire)
+				measure 'Budget Amount PQTD (Weekly)'
+					caption: Montant budgétaire TPAJ (hebdomadaire)
+				measure 'Budget Amount YOYTD (Weekly)'
+					caption: Montant budgétaire AAAACJ (hebdomadaire)
+				measure 'Budget Amount YOYTD % (Weekly)'
+					caption: % montant budgétaire AAAACJ (hebdomadaire)
+				measure 'Budget Amount QOQTD (Weekly)'
+					caption: Montant budgétaire TATACJ (hebdomadaire)
+				measure 'Budget Amount QOQTD % (Weekly)'
+					caption: % montant budgétaire TATACJ (hebdomadaire)
+				measure 'Budget Amount PWTD (Weekly)'
+					caption: Montant budgétaire SPAJ (hebdomadaire)
+				measure 'Budget Amount WOWTD (Weekly)'
+					caption: Montant budgétaire SASACJ (hebdomadaire)
+				measure 'Budget Amount WOWTD % (Weekly)'
+					caption: % montant budgétaire SASACJ (hebdomadaire)
+				measure 'Budget Amount MAT (364) (Weekly)'
+					caption: Montant budgétaire TAM (364) (hebdomadaire)
+				measure 'Budget Amount PYMAT (364) (Weekly)'
+					caption: Montant budgétaire TAMAP (364) (hebdomadaire)
+				measure 'Budget Amount MATG (Weekly)'
+					caption: Montant budgétaire CTAM (hebdomadaire)
+				measure 'Budget Amount MATG % (Weekly)'
+					caption: % Montant budgétaire CTAM (hebdomadaire)
+				measure 'Budget Amount PYC (Weekly)'
+					caption: Montant budgétaire APT (hebdomadaire)
+				measure 'Budget Amount YTDOPY (Weekly)'
+					caption: Montant budgétaire SAPRAP (hebdomadaire)
+				measure 'Budget Amount YTDOPY % (Weekly)'
+					caption: % montant budgétaire SAPRAP (hebdomadaire)
+				measure 'Budget Amount PQC (Weekly)'
+					caption: Montant budgétaire TPT (hebdomadaire)
+				measure 'Budget Amount QTDOPQ (Weekly)'
+					caption: Montant budgétaire TAJPRTP (hebdomadaire)
+				measure 'Budget Amount QTDOPQ % (Weekly)'
+					caption: % Montant budgétaire TAJPRTP (hebdomadaire)
+				measure 'Budget Amount PWC (Weekly)'
+					caption: Montant budgétaire SPT (hebdomadaire)
+				measure 'Budget Amount WTDOPW (Weekly)'
+					caption: Montant budgétaire SECPRSP (hebdomadaire)
+				measure 'Budget Amount WTDOPW % (Weekly)'
+					caption: % montant budgétaire SECPRSP (hebdomadaire)
+				measure 'Budget Amount AVG 4W (Weekly)'
+					caption: Montant budgétaire MOY 4 S (hebdomadaire)
+				measure 'Budget Amount AVG 1Q (Weekly)'
+					caption: Montant budgétaire MOY 1 T (hebdomadaire)
+				measure 'Budget Amount AVG 1Y (Weekly)'
+					caption: Montant budgétaire MOY 1 A (hebdomadaire)
+			table 'Localized Labels'
+				measure 'My Report Title'
+					caption: Titre de l’état
+				measure 'My Button Caption'
+					caption: Légende de mon bouton
+				measure 'My Visual Title'
+					caption: Mon titre visuel
+				measure 'Purchases Overview'
+					caption: Vue d’ensemble d’Achats
+				measure 'Purchases Decomposition'
+					caption: Décomposition des achats
+				measure 'Daily Purchases'
+					caption: Achats quotidiens
+				measure 'Moving Averages'
+					caption: Moyennes mobiles
+				measure 'Moving Annual Total (MAT)'
+					caption: Total annuel mobile (TAM)
+				measure 'Period-Over-Period (POP)'
+					caption: Période sur période (PSP)
+				measure 'Year-Over-Year (YOY)'
+					caption: Année après année (AAA)
+				measure 'Purchases by Item'
+					caption: Achats par article
+				measure 'Purchases by Purchaser'
+					caption: Achats par acheteur
+				measure 'Purchases by Vendor'
+					caption: Achats par fournisseur
+				measure 'Purchases by Location'
+					caption: Achats par magasin
+				measure 'Actual vs. Budget Quantity'
+					caption: Quantité réelle par rapport au budget
+				measure 'Actual vs. Budget Amount'
+					caption: Montant réel par rapport au budget
+				measure 'Item Drillthrough'
+					caption: Extraction article
+				measure 'Vendor Drillthrough'
+					caption: Extraction fournisseur
+				measure 'Location Drillthrough'
+					caption: Extraction du magasin
+				measure 'Purchaser Drillthrough'
+					caption: Extraction de l’acheteur
+				measure Purchase
+					caption: Achat
+				measure 'for Business Central'
+					caption: pour Business Central
+				measure 'CONNECT YOUR DATA'
+					caption: CONNECTER VOS DONNÉES
+				measure '1. Download the Purchasing Connector for Power BI'
+					caption: 1. Téléchargez le connecteur d’achat pour Power BI
+				measure '2. Configure Dynamics 365 Business Central'
+					caption: 2. Configurez Dynamics 365 Business Central
+				measure 'USE, EDIT AND BUILD YOUR OWN REPORTS'
+					caption: UTILISEZ, MODIFIEZ ET CRÉEZ VOS PROPRES ÉTATS
+				measure 'Purchasing includes a variety of pre-built reports to help you see your data immediately.'
+					caption: Achats comprend une variété de rapports prédéfinis pour vous aider à voir vos données immédiatement.
+				measure 'You are able to edit these reports or build your own report from scratch'
+					caption: Vous pouvez modifier ces états ou créer votre propre état à partir de zéro
+				measure 'HELP AND SUPPORT'
+					caption: AIDE ET SUPPORT
+				measure 'For help and support with your new report please visit the Analytics overview documentation.'
+					caption: Pour obtenir de l’aide et de l’assistance concernant votre nouvel état, consultez la documentation de vue d’ensemble de l’analyse.
+				measure 'OTHER POWER BI REPORTS'
+					caption: AUTRES ÉTATS POWER BI
+				measure SALES
+					caption: VENTES
+				measure FINANCE
+					caption: FINANCE
+				measure REBATES
+					caption: REMISES
+				measure INVENTORY
+					caption: STOCK
+				measure JOBS
+					caption: PROJETS
+				measure 'Purchase Amounts'
+					caption: Montants achat
+				measure 'Purchase Quantity by Item Category'
+					caption: Quantité achat par catégorie d’article
+				measure 'Top 5 Vendors by Amount by Source Type'
+					caption: 5 premiers fournisseurs par montant par type origine
+				measure 'Locations by Quantity'
+					caption: Magasins par quantité
+				measure 'Document Count'
+					caption: Nombre de documents
+				measure 'Purchase Quantities'
+					caption: Quantités achat
+				measure 'Decomposition by Amount'
+					caption: Décomposition par montant
+				measure 'Purchase Amount and Purchase Amount 30 Days Average (Fiscal) by Fiscal Month Year'
+					caption: Montant achat et montant achat moyen 30 jours (fiscal) par mois et année d’exercice
+				measure 'Previous Year & Current Year Moving Annual Total by Fiscal Month Year'
+					caption: Total annuel mobile année précédente et année en cours par mois et année d’exercice
+				measure 'Purchase Amount Period-over-Period (Fiscal) and Purchase Amount by Fiscal Month Year'
+					caption: Montant achat période sur période (fiscal) et montant achat par mois et année d’exercice
+				measure 'Current Year and Previous Year (Fiscal) Purchase Amount by Fiscal Month Year'
+					caption: Année en cours et année précédente (fiscal), montant achat par mois et année d’exercice
+				measure 'Last Refreshed'
+					caption: Dernière actualisation
+				measure 'Company Name'
+					caption: Nom de la société
+				measure 'Purchase Quantity by Location'
+					caption: Quantité achat par magasin
+				measure 'Purchase Amounts of Top 5 Vendors'
+					caption: Montants achats des 5 premiers fournisseurs
+				measure 'Purchase Distribution by Item Category'
+					caption: Distribution achats par catégorie d’article
+				measure 'Purchases by Item Category'
+					caption: Achats par catégorie d’article
+				measure 'Purchase Amount by Item Category'
+					caption: Montant achat par catégorie d’article
+				measure 'Actual vs Budget'
+					caption: Comparatif Réel/Budget
+				measure 'Actual vs Budget Purchase Analysis by Item Category'
+					caption: Analyse des achats réels par rapport au budget par catégorie d’article
+				measure 'Purchases Drillthrough'
+					caption: Extraction des achats
+				measure 'Detailed Purchase Ledger'
+					caption: Comptabilité achat détaillée
+				measure 'Total Purchase Amount by Fiscal Year'
+					caption: Montant total de l’achat par exercice
+				measure PROJECTS
+					caption: PROJETS
+				measure MANUFACTURING
+					caption: FABRICATION
+				measure 'This card displays key metrics for business analysis. The card shows total purchase amount, document count, number of outstanding purchase orders, number of purchase invoices, outstanding amount, and invoiced amount.'
+					caption: Cette fiche affiche les mesures clés pour l’analyse commerciale. La fiche indique le montant achat total, le nombre de documents, le nombre de commandes achat ouvertes, le nombre de factures achat, le montant dû et le montant facturé.
+				measure 'The card displays key metrics for business analysis, including total purchase amount, document count, number of outstanding purchase orders, number of purchase invoices, outstanding amount excluding VAT, and invoiced amount.'
+					caption: La fiche affiche les mesures clés pour l’analyse commerciale, y compris le montant achat total, le nombre de documents, le nombre de commandes achat ouvertes, le nombre de factures achat, le montant dû hors TVA et le montant facturé.
+				measure 'Daily Purchases Details'
+					caption: Détails achats quotidiens
+				measure 'Moving Annual Total (MAT) Details'
+					caption: Détails total annuel mobile (TAM)
+				measure 'Period-Over-Period (POP) Details'
+					caption: Détails croissance d’une période à l’autre (PSP)
+				measure 'Year-Over-Year (YOY) Details'
+					caption: Détails année après année (AAA)
+				measure 'Purchases by Item Details'
+					caption: Détails achats par article
+				measure 'Purchases by Vendor Details'
+					caption: Détails achats par fournisseur
+				measure 'Purchases by Purchaser Details'
+					caption: Détails achats par acheteur
+				measure 'Purchases by Location Details'
+					caption: Détails achats par magasin
+				measure 'Purchases Drillthrough Details'
+					caption: Détails extraction des achats
+			table COMPANY
+				caption: SOCIÉTÉ
+				measure 'Company Label'
+					caption: Étiquette société
+			table 'Purchase Budget Name'
+				caption: Nom budget achats
+				column 'Purchase Budget Description'
+					caption: Désignation budget achat
+			table 'Item Category'
+				caption: Catégorie article
+				column 'Item Category Code'
+					caption: Code catégorie article
+				column 'Item Category Description'
+					caption: Désignation catégorie article
+				column 'Item Category Parent Category'
+					caption: Catégorie parent catégorie d’article
+				column 'Item Category Code Level 1'
+					caption: Code catégorie article niveau 1
+				column 'Item Category Code Level 2'
+					caption: Code catégorie article niveau 2
+				column 'Item Category Code Level 3'
+					caption: Code catégorie article niveau 3
+

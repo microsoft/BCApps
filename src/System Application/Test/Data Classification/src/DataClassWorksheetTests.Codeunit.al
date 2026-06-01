@@ -7,8 +7,8 @@ namespace System.Test.Privacy;
 
 using System.Privacy;
 using System.TestLibraries.Privacy;
-using System.TestLibraries.Utilities;
 using System.TestLibraries.Security.AccessControl;
+using System.TestLibraries.Utilities;
 
 codeunit 135159 "Data Class. Worksheet Tests"
 {

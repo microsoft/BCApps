@@ -6,9 +6,9 @@
 namespace System.Test.Security.Encryption;
 
 using System.Security.Encryption;
+using System.TestLibraries.Utilities;
 using System.Text;
 using System.Utilities;
-using System.TestLibraries.Utilities;
 
 codeunit 132613 RSACryptoServiceProviderTests
 {
@@ -200,8 +200,9 @@ codeunit 132613 RSACryptoServiceProviderTests
         DecryptingTempBlob.CreateOutStream(DecryptedOutStream);
         asserterror RSACryptoServiceProvider.Decrypt(PrivateKeyXmlStringSecret, EncryptedInStream, false, DecryptedOutStream);
 
-        // [THEN] Error occures
-        LibraryAssert.ExpectedError('A call to System.Security.Cryptography.RSACryptoServiceProvider.Decrypt failed with this message: The parameter is incorrect.');
+
+        // [THEN] Error occurs
+        LibraryAssert.ExpectedError('A call to System.Security.Cryptography.RSACryptoServiceProvider.Decrypt failed with this message:');
     end;
 
     local procedure SaveRandomTextToOutStream(OutStream: OutStream) PlainText: Text

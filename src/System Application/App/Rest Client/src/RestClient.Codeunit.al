@@ -159,6 +159,15 @@ codeunit 2350 "Rest Client"
         RestClientImpl.AddCertificate(Certificate, Password);
     end;
 
+    /// <summary>Sets the use of server certificate validation.</summary>
+    /// <param name="Value">If true, the server certificate validation is enabled. False to disable</param>
+    /// <remarks>Use this function to enable or disable the server certificate validation.
+    /// The Rest Client will be initialized if it was not initialized before.</remarks>
+    procedure SetUseServerCertificateValidation(Value: Boolean)
+    begin
+        RestClientImpl.SetUseServerCertificateValidation(Value);
+    end;
+
     /// <summary>Sets the user agent header of the Rest Client.</summary>
     /// <remarks>Use this function to overwrite the default User-Agent header.
     /// The default user agent header is "Dynamics 365 Business Central - |[Publisher]| [App Name]/[App Version]".

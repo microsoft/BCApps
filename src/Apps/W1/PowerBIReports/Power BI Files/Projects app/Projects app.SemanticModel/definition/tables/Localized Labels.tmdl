@@ -1,0 +1,290 @@
+table 'Localized Labels'
+	isHidden
+	lineageTag: 495aebb8-7fbf-4e34-a928-49dcb48e3f12
+
+	measure 'My Report Title' = 0
+		isHidden
+		lineageTag: 24177705-cdf5-4a68-afb1-4537dc7e8cd5
+
+	measure 'My Button Caption' = 0
+		isHidden
+		lineageTag: 28ebdd57-9ea3-494d-bfb4-f90796aa6400
+
+	measure 'My Visual Title' = 0
+		isHidden
+		lineageTag: 904b53bd-3b19-4bc1-8c43-52a21b894d6e
+
+	measure 'Projects Overview' = 0
+		isHidden
+		lineageTag: f3a2057e-7f96-4721-a0cb-ab10de71a523
+
+	measure 'Project Tasks' = 0
+		isHidden
+		lineageTag: 358262bc-f032-4150-ae14-ee2da428fe53
+
+	measure 'Project Profitability' = 0
+		isHidden
+		lineageTag: 1fe6251b-b535-4b02-a03d-27308765057b
+
+	measure 'Project Realization' = 0
+		isHidden
+		lineageTag: eef80772-4dab-4dde-9cc7-09d0c027c38c
+
+	measure 'Project Performance to Budget' = 0
+		isHidden
+		lineageTag: aae9de8d-3892-4d6d-a166-c5879c300bb6
+
+	measure 'Project Invoiced Sales by Type' = 0
+		isHidden
+		lineageTag: 01da1cd6-c886-4a92-a2f8-1339cdb043e0
+
+	measure 'Project Invoiced Sales by Customer' = 0
+		isHidden
+		lineageTag: 124e8971-6e59-4134-810a-db0923d07e33
+
+	measure 'Project Ledger Entry Drill Through' = 0
+		isHidden
+		lineageTag: 1f740acb-61cb-4e3d-b16a-bd5191baaf8a
+
+	measure 'Purchase Order Drill Through' = 0
+		isHidden
+		lineageTag: 06ac96f5-b7b3-4d07-a525-dde839993ec2
+
+	measure 'Project Planning Line Drill Through' = 0
+		isHidden
+		lineageTag: af86cf04-9307-46f4-b3a3-cb3a3046f3eb
+
+	measure 'Project KPIs' = 0
+		isHidden
+		lineageTag: e434318a-3ee4-4f51-9fc5-89d665d2e440
+
+	measure 'Actual Costs (Total Cost) vs. Budget (Total Cost)' = 0
+		isHidden
+		lineageTag: 36297923-7d17-488b-883b-97bb87140019
+
+	measure 'Actual Profit by Project' = 0
+		isHidden
+		lineageTag: b4bf9db7-7960-4c43-ae68-cc03ef733f51
+
+	measure 'Projects by Project Manager' = 0
+		isHidden
+		lineageTag: 55fca865-f0e0-42ee-9a80-84691b77211b
+
+	measure 'Realization by Projects' = 0
+		isHidden
+		lineageTag: 48a180fc-39d0-4b1e-b28a-a43209732671
+
+	measure 'Actual Profit vs. Initial Profit' = 0
+		isHidden
+		lineageTag: 7c4e7be8-1ffa-47fe-81f2-15641bed7f02
+
+	measure Actuals = 0
+		isHidden
+		lineageTag: 1a2dcbd5-a84e-4cfb-91cf-e211bc463a4e
+
+	measure Budgeted = 0
+		isHidden
+		lineageTag: 189d4d74-7013-4482-bba7-3aedb3e233f9
+
+	measure 'Realization KPIs' = 0
+		isHidden
+		lineageTag: 6999b0bb-d216-40f7-89c9-3b129ce16d8e
+
+	measure 'Realization by Project Manager' = 0
+		isHidden
+		lineageTag: ea109694-c2d3-4458-b1af-b5da054fa459
+
+	measure 'Actual Total Cost to Budget' = 0
+		isHidden
+		lineageTag: 66de4d4c-676a-4bd5-a67f-01040f2aaec1
+
+	measure 'Performance KPIs' = 0
+		isHidden
+		lineageTag: 8d103f56-c086-4132-a05a-14e5052ac041
+
+	measure 'Invoiced Sales KPIs' = 0
+		isHidden
+		lineageTag: 230421fc-c153-4933-bae2-06cc1b2712c1
+
+	measure Projects = 0
+		isHidden
+		lineageTag: 81cfd30a-a6c7-46a0-910d-a263b8665865
+
+	measure 'for Business Central' = 0
+		isHidden
+		lineageTag: 8c3e5843-4a44-49d1-b538-28fec4d26175
+
+	measure 'CONNECT YOUR DATA' = 0
+		isHidden
+		lineageTag: 2b503918-a28a-42d1-b8d5-9cb9875e9d59
+
+	measure '1. Download the Projects Connector for Power BI' = 0
+		isHidden
+		lineageTag: f7bb92e9-9245-40f5-9741-9aecbf66a229
+
+	measure '2. Configure Dynamics 365 Business Central' = 0
+		isHidden
+		lineageTag: 207ca512-a404-44dd-bd8e-1fdae2c99356
+
+	measure 'USE, EDIT AND BUILD YOUR OWN REPORTS' = 0
+		isHidden
+		lineageTag: 5b47d3e4-8ddd-4848-8a93-4ced68e714e5
+
+	measure 'Projects includes a variety of pre-built reports to help you see your data immediately.' = 0
+		isHidden
+		lineageTag: aa839c9b-90b3-47ef-ba96-a6e373f4a730
+
+	measure 'You are able to edit these reports or build your own report from scratch' = 0
+		isHidden
+		lineageTag: b75b98ee-a713-46cc-a5bb-782e7fb7ba66
+
+	measure 'HELP AND SUPPORT' = 0
+		isHidden
+		lineageTag: 1bd9121c-0f52-4da8-b3cc-103b668252ab
+
+	measure 'For help and support with your new report please visit the Analytics overview documentation.' = 0
+		isHidden
+		lineageTag: e9c0902a-6c8f-4554-b388-edeaef95f8b0
+
+	measure 'OTHER POWER BI REPORTS' = 0
+		isHidden
+		lineageTag: b68d75ae-655b-4d10-a6a1-cf2952e93324
+
+	measure PURCHASE = 0
+		isHidden
+		lineageTag: ff5fb1bf-292e-497c-9082-fe43c6430831
+
+	measure FINANCE = 0
+		isHidden
+		lineageTag: f3eab0f3-ec57-441c-a9e7-70598d08f3e5
+
+	measure INVENTORY = 0
+		isHidden
+		lineageTag: 2119c22e-1d03-417f-806c-3b00dfc83ac0
+
+	measure SALES = 0
+		isHidden
+		lineageTag: f0d235d2-6657-4741-bd16-b3d2474084bb
+
+	measure MANUFACTURING = 0
+		isHidden
+		lineageTag: a39fd7eb-6b3c-4db2-b388-6191fd244467
+
+	measure 'The project tasks shows project number and description, budget (total cost), actual cost (total cost), billable (total price), billable (invoiced price), actual (total price), realization percentage, actual profit, and actual profit margin percentage.' = 0
+		isHidden
+		lineageTag: 7d0594fa-6f90-4e7a-9299-fc21f43ac68d
+
+	measure 'The project profitability shows project number, type, number and description, actual (total cost), billable (invoiced price), actual profit margin percentage, and actual profit.' = 0
+		isHidden
+		lineageTag: 166f9358-5462-4b0f-9cfc-85364b7f450d
+
+	measure 'The project realization shows project number, type, number and description, billable (invoiced price), actual (total price), and realization percentage.' = 0
+		isHidden
+		lineageTag: 9a741c46-9e18-4eb5-9c72-2ef55971032e
+
+	measure 'The project performance to budget shows project number and description, status, budget (total cost), actual (total cost), total cost variance to budget, and total cost variance to budget percentage.' = 0
+		isHidden
+		lineageTag: 449f02f2-edb7-42ab-90c5-9d4fba7cb48b
+
+	measure 'The project invoiced sales by type shows type, number and description, project number, unit of measure, quantity, unit price (local currency), and billable (invoiced price).' = 0
+		isHidden
+		lineageTag: d53d8ba1-ed4d-4254-9fa4-8a3d9e06738f
+
+	measure 'The project invoiced sales by customer shows customer number and name, project number, type, number and description, quantity, unit price (local currency), and billable (invoiced price).' = 0
+		isHidden
+		lineageTag: 0b7b1806-d908-4e11-b8e3-8e443e494bf5
+
+	measure 'The project ledger entry drill through shows posting date, project number, task number, task entry type, type, number, description, unit of measure, quantity, unit cost, unit price, total cost, and total price.' = 0
+		isHidden
+		lineageTag: 22014cc8-8213-450a-8a9a-104b234cd250
+
+	measure 'The project order drill through shows project number, task number, source type,entry type, type, number, description, document number, quantity (base), amount (local currency), expected receipt date, outstanding amount on purchase order, amount received not invoiced, and document type.' = 0
+		isHidden
+		lineageTag: 1d00b679-d9b9-48c9-b7b5-1dbf8ca589a6
+
+	measure 'The project planning drill through shows project number, task number, line number, type, number, description, line type, planning line quantity, unit cost, unit price, planning line total cost, and planning line total price.' = 0
+		isHidden
+		lineageTag: c82443c3-8bc0-4209-8b12-2c0296ba06a9
+
+	measure 'Company Name' = 0
+		isHidden
+		lineageTag: c3fc9aef-f9bb-4072-9d40-6b5a0bf0f050
+
+	measure 'Last Refreshed' = 0
+		isHidden
+		lineageTag: 99a86e1b-d71c-4b7b-b208-abcce1db3451
+
+	measure 'Actual Profit Margin % vs Budget Profit Margin %' = 0
+		isHidden
+		lineageTag: fdf5dec6-d2f3-4e7d-bedb-cab2ac6d7147
+
+	measure 'Billable (Invoiced Price) and Actual (Total Price) by Project No. & Description' = 0
+		isHidden
+		lineageTag: fb897b74-8d18-4d11-83d6-82df41d3705e
+
+	measure 'Billable (Invoiced Price) by Type' = 0
+		isHidden
+		lineageTag: 55d5f225-d2f5-40b5-819f-419f12243e65
+
+	measure 'Profit Margin vs Budget Profit Margin' = 0
+		isHidden
+		lineageTag: 5dc335e3-f902-41e3-ac78-bd10d4beec26
+
+	measure 'Project Tasks by Project' = 0
+		isHidden
+		lineageTag: 85c6562f-9b12-414b-b171-c40b5fdae6e0
+
+	measure 'Project Timeline' = 0
+		isHidden
+		lineageTag: 37fd79f3-aa7c-4235-aec1-3685be67032d
+
+	measure 'Project Tasks Duration' = 0
+		isHidden
+		lineageTag: d3907e82-cfbe-4d29-a7e7-3eb1a8b82912
+
+	measure 'Project Task Details' = 0
+		isHidden
+		lineageTag: b56f19f5-9686-45df-8615-3469bb30fffd
+
+	measure 'Total Usage Cost to Total Budget Cost' = 0
+		isHidden
+		lineageTag: 7a33e673-fa01-4510-8dd8-9b34338e4fd6
+
+	measure 'Total Usage Price by Type' = 0
+		isHidden
+		lineageTag: 712eff8a-62bf-4c8d-9779-a3b68fb791b7
+
+	measure 'Total Usage Cost to Budget' = 0
+		isHidden
+		lineageTag: b9133587-c678-46b8-93b8-df1440bdf452
+
+	measure 'Total Budget Cost and Total Usage Cost by Type' = 0
+		isHidden
+		lineageTag: de2f9e46-3c57-47d2-9a55-67bcfd2cf0cb
+
+	measure 'Total Invoiced Price by Type' = 0
+		isHidden
+		lineageTag: e1259c1d-5d01-40e4-ac62-76b4ff334fee
+
+	measure 'Billable to Invoiced %' = 0
+		isHidden
+		lineageTag: ab9259a0-4a74-4b27-a2c7-f963a7bc42c1
+
+	measure 'Total Invoiced Price by Customer' = 0
+		isHidden
+		lineageTag: 7116304e-eb44-4334-8ed8-078cf41b16a5
+
+	column unused
+		isHidden
+		displayFolder: unused
+		lineageTag: dc3ba65e-4bf7-49d5-aeb5-88da8b918b58
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [unused]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Partition = calculated
+		mode: import
+		source = DATATABLE("unused", STRING, {{"This is a table automatically generated by Translations Builder"}})
+

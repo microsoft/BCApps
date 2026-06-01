@@ -5,8 +5,8 @@
 
 namespace System.TestLibraries.Device;
 
-using System.Text;
 using System.Device;
+using System.Text;
 
 codeunit 135101 "Camera Test Library"
 {

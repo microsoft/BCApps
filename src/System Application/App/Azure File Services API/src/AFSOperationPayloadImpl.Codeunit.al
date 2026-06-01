@@ -5,8 +5,8 @@
 
 namespace System.Azure.Storage.Files;
 
-using System.Azure.Storage;
 using System;
+using System.Azure.Storage;
 
 codeunit 8952 "AFS Operation Payload Impl."
 {

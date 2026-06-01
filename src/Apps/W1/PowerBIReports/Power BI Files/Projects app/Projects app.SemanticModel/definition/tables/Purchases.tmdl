@@ -1,0 +1,226 @@
+table Purchases
+	lineageTag: 0bf8bd97-3b45-4a32-84f6-0c174e5e0654
+
+	/// The Quantity on PO measure calculates the total quantity of items ordered in the Purchases table. It uses the SUM function to add up all the values in the Quantity (Base) column and returns the result.
+	measure 'Quantity on PO' = ```
+			SUM(Purchases[Quantity (Base)]) 
+			```
+		formatString: #,0.00
+		displayFolder: _Purchase Measures\Other
+		lineageTag: 2e71020d-559b-4b71-ad80-a3ad8fd2717e
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// The Amount on PO measure calculates the sum of the amount (in local currency) column in the Purchases table.
+	measure 'Amount on PO' = SUM('Purchases'[Amount (LCY)])
+		formatString: #,0.00
+		displayFolder: _Purchase Measures\Amount
+		lineageTag: a89a35c0-3267-40fc-844e-17cd3a0d1851
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	/// The Amount Rcvd. Not Invoiced measure calculates the total amount of purchases that have been received but not yet invoiced in the Purchases table.
+	measure 'Amount Rcvd. Not Invoiced' = ```
+			
+			CALCULATE (
+			    [Amount on PO],
+			    'Purchases'[Source Type] = "Purchase Orders (Received Not Invoiced)"
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: _Purchase Measures\Amount
+		lineageTag: 524bc0fe-7717-42da-b682-24c924188010
+
+	/// The Outstanding Amt. on PO measure calculates the total amount of outstanding purchase orders in the Purchases table.
+	measure 'Outstanding Amt. on PO' = ```
+			
+			CALCULATE (
+			    [Amount on PO],
+			    Purchases[Source Type] = "Purchase orders (Outstanding)"
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: _Purchase Measures\Amount
+		lineageTag: e551bac2-d918-466e-94e5-38cd24306ac1
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	/// The Purchase Order Count measure calculates the total number of purchase orders in the Purchases table. It uses the CALCULATE function to filter the table and returns the distinct count of the "Document No." column for the filtered rows.
+	measure 'Purchase Order Count' =
+			
+			CALCULATE(
+			    DISTINCTCOUNT('Purchases'[Document No.]),
+			    Purchases[Document Type] = "Order"
+			)
+		formatString: 0
+		displayFolder: _Purchase Measures\Other
+		lineageTag: d2c99b59-5d77-4d48-a976-6ecaa1096637
+
+	column 'Quantity (Base)'
+		dataType: double
+		isHidden
+		lineageTag: 261f6374-1606-4fbe-8b7a-675356d5b40d
+		summarizeBy: none
+		sourceColumn: Quantity (Base)
+
+		annotation SummarizationSetBy = User
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Amount (LCY)'
+		dataType: decimal
+		isHidden
+		formatString: #,0.00
+		lineageTag: 15ebb681-9153-4a5b-b7fe-6d14d992879d
+		summarizeBy: none
+		sourceColumn: Amount (LCY)
+
+		annotation SummarizationSetBy = User
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	column 'Expected Receipt Date'
+		dataType: dateTime
+		isHidden
+		formatString: d/mm/yyyy
+		lineageTag: 14349529-95ce-4746-9e75-13fb62dc1f76
+		summarizeBy: none
+		sourceColumn: Expected Receipt Date
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+		annotation PBI_FormatHint = {"isDateTimeCustom":true}
+
+	column 'Dimension Set ID'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: aa7a2dd3-a037-494a-ac25-a1b4d4ca0f38
+		summarizeBy: none
+		sourceColumn: Dimension Set ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Source Type'
+		dataType: string
+		lineageTag: 3d58c12c-fb9a-4007-a6ad-f5bfa7681107
+		summarizeBy: none
+		sourceColumn: Source Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column ETag
+		dataType: string
+		isHidden
+		lineageTag: 4a26f900-081f-45c4-a237-8283e0c57d46
+		summarizeBy: none
+		sourceColumn: ETag
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Document Type'
+		dataType: string
+		lineageTag: 1b1f16ef-4b4a-417c-b75e-5057a623b8f2
+		summarizeBy: none
+		sourceColumn: Document Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Line No.'
+		dataType: string
+		lineageTag: 0070f6f5-74c5-4d6f-b83a-81a786463b59
+		summarizeBy: none
+		sourceColumn: Line No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Document No.'
+		dataType: string
+		lineageTag: 8a38a873-afd8-4991-ab48-21cc36c3fe75
+		summarizeBy: none
+		sourceColumn: Document No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'No.'
+		dataType: string
+		lineageTag: 2508cc3c-2686-4501-9fe7-20b9729462bc
+		summarizeBy: none
+		sourceColumn: No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column Type
+		dataType: string
+		lineageTag: fa81b955-dd96-4193-b45f-a17e3217f216
+		summarizeBy: none
+		sourceColumn: Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column Description
+		dataType: string
+		lineageTag: 1b9d7d6f-5526-4a0a-a301-f1c857513a97
+		summarizeBy: none
+		sourceColumn: Description
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Project No'
+		dataType: string
+		lineageTag: c1609cef-a682-469c-bdcf-086ef0273847
+		summarizeBy: none
+		sourceColumn: Project No
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Task No'
+		dataType: string
+		lineageTag: 7a414e44-2f79-42db-8051-45c5ca9f8d26
+		summarizeBy: none
+		sourceColumn: Task No
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Project No Task No'
+		dataType: string
+		lineageTag: aaca3fcc-f0b4-4117-a31d-171e180bb726
+		summarizeBy: none
+		sourceColumn: Project No Task No
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Type Key'
+		dataType: string
+		isHidden
+		lineageTag: 9609c672-6cb9-4b5c-ae58-54073f8f1f6d
+		summarizeBy: none
+		sourceColumn: Type Key
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Purchases-217a9141-9fa4-492b-85ca-b1e910893ddb = m
+		mode: import
+		queryGroup: 'Fact Tables'
+		source =
+				let
+				    Source = Table.Combine({#"Purchase Lines Outstanding", #"Purchase Lines Received Not Invoiced"}),
+				    #"Added Custom" = Table.AddColumn(Source, "Project No Task No", each [Project No] & " " & [Task No]),
+				    #"Added Type Key" = Table.AddColumn(#"Added Custom", "Type Key", each [Type] & " " & [#"No."], type text)
+				in
+				    #"Added Type Key"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

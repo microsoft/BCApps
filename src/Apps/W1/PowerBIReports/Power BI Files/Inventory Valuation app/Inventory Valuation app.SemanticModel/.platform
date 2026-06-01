@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "SemanticModel",
+    "displayName": "Inventory Valuation app"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "fbee783a-1921-4ce9-b57f-04fc00b948f1"
+  }
+}

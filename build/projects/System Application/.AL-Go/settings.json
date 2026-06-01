@@ -1,23 +1,32 @@
 {
-    "projectName": "System Application and Tools",
-    "appFolders":  [
-        "../../../src/System Application/App",
-        "../../../src/Tools/AI Test Toolkit",
-        "../../../src/Tools/Test Framework/Test Libraries/*",
-        "../../../src/Tools/Test Framework/Test Runner"
-    ],
-    "buildModes": [ "Translated" ],
-    "doNotRunTests": true,
-    "useCompilerFolder": true,
-    "doNotPublishApps": true,
-    "ConditionalSettings": [
-        {
-            "branches": [
-                "releases/*.[0-5]"
-            ],
-            "settings": {
-                "buildModes": [ "Translated", "Strict"]
-            }
-        }
-    ]
+  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go/d6059b86a7774031d5c41ca64a9efd4160c1c057/Actions/.Modules/settings.schema.json",
+  "projectName": "System Application, Business Foundation and Tools",
+  "appFolders": [
+    "../../../src/System Application/App",
+    "../../../src/Business Foundation/App",
+    "../../../src/Tools/AI Test Toolkit",
+    "../../../src/Tools/Performance Toolkit/App",
+    "../../../src/Tools/Test Framework/Test Libraries/*",
+    "../../../src/Tools/Test Framework/Test Runner",
+    "../../../src/Tools/Red Team Scan"
+  ],
+  "testFolders": [
+    "../../../src/System Application/Test Library",
+    "../../../src/Business Foundation/Test Library"
+  ],
+  "doNotRunTests": true,
+  "useCompilerFolder": true,
+  "doNotPublishApps": true,
+  "ConditionalSettings": [
+    {
+      "branches": [
+        "releases/*.[0-5]"
+      ],
+      "settings": {
+        "buildModes": [
+          "Strict"
+        ]
+      }
+    }
+  ]
 }

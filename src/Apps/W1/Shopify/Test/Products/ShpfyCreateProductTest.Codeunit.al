@@ -1,0 +1,3224 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
+namespace Microsoft.Integration.Shopify.Test;
+
+using Microsoft.Integration.Shopify;
+using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Item.Catalog;
+using System.TestLibraries.Utilities;
+
+codeunit 139601 "Shpfy Create Product Test"
+{
+    Subtype = Test;
+    TestType = IntegrationTest;
+    TestPermissions = Disabled;
+    TestHttpRequestPolicy = BlockOutboundRequests;
+
+
+    var
+        ExportShop: Record "Shpfy Shop";
+        Any: Codeunit Any;
+        LibraryAssert: Codeunit "Library Assert";
+        OutboundHttpRequests: Codeunit "Library - Variable Storage";
+        LibraryRandom: Codeunit "Library - Random";
+        ShpfyInitializeTest: Codeunit "Shpfy Initialize Test";
+        ExportIsInitialized: Boolean;
+
+    [Test]
+    procedure UnitTestCreateTempProductFromItem()
+    var
+        Item: Record Item;
+        TempShopifyProduct: Record "Shpfy Product" temporary;
+        Shop: Record "Shpfy Shop";
+        TempShopifyVariant: Record "Shpfy Variant" temporary;
+        TempTag: Record "Shpfy Tag" temporary;
+        CreateProduct: Codeunit "Shpfy Create Product";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+    begin
+        // [SCENARIO] Create a Item with no variants from a Shopify Product with the SKU empty.
+        // [SCENARIO] Don't copy the extended text of the item.
+        // [SCENARIO] Don't copy the item attributtes.
+
+        // [GIVEN] The Shop with the setting "SKU Mapping" = " ";
+        Shop := InitializeTest.CreateShop();
+        Shop."SKU Mapping" := "Shpfy SKU Mapping"::" ";
+        Shop."Sync Item Extended Text" := false;
+        Shop."Sync Item Attributes" := false;
+        Shop.Modify();
+        CreateProduct.SetShop(Shop);
+
+        // [GIVEN] a Item record
+        Item := ProductInitTest.CreateItem(Shop."Item Templ. Code", Any.DecimalInRange(10, 100, 2), Any.DecimalInRange(100, 1000, 2));
+        Item.SetRecFilter();
+
+        // [WHEN] Invoke CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant)
+        CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant, TempTag);
+
+        // [THEN] TempShopifyProduct.Title = Item.Description
+        LibraryAssert.AreEqual(Item.Description, TempShopifyProduct.Title, 'TempShopifyProduct.Title = Item.Description');
+
+        // [THEN] TempShopifyVariant.SKU = ''
+        LibraryAssert.AreEqual('', TempShopifyVariant.SKU, 'TempShopifyVariant.SKU = ''''');
+
+        // [THEN] TempShopifyVariant.Price = Item.Price
+        LibraryAssert.AreEqual(Item."Unit Price", TempShopifyVariant.Price, 'TempShopifyVariant.Price := Item.Price');
+
+        // [THEN] TempShpyVariant."Unit Cost" = Item."Unit Cost";
+        LibraryAssert.AreEqual(Item."Unit Cost", TempShopifyVariant."Unit Cost", 'TempShpyVariant."Unit Cost" = Item."Unit Cost"');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() cannot contains the HTML section '<div class="productDescription">'
+        LibraryAssert.IsFalse(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productDescription">'), '<div class="productDescription">');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() cannot contains the HTML section '<div class="productAttributes">'
+        LibraryAssert.IsFalse(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productAttributes">'), '<div class="productAttributes">');
+    end;
+
+    [Test]
+    procedure UnitTestCreateTempProductFromItemWithExtendedText()
+    var
+        Item: Record Item;
+        TempShopifyProduct: Record "Shpfy Product" temporary;
+        Shop: Record "Shpfy Shop";
+        TempShopifyVariant: Record "Shpfy Variant" temporary;
+        TempTag: Record "Shpfy Tag" temporary;
+        CreateProduct: Codeunit "Shpfy Create Product";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+        ItemTemplateCode: Code[20];
+    begin
+        // [SCENARIO] Create a Item with no variants from a Shopify Product with the SKU empty.
+        // [SCENARIO] Copy the extended text of the item.
+        // [SCENARIO] Don't copy the item attributtes.
+
+        // [GIVEN] The Shop with the setting "SKU Mapping" = " ", "Sync Item Extended Text" = true;
+        Shop := InitializeTest.CreateShop();
+        Shop."SKU Mapping" := "Shpfy SKU Mapping"::" ";
+        Shop."Sync Item Extended Text" := true;
+        Shop."Sync Item Attributes" := false;
+        Shop.Modify();
+        CreateProduct.SetShop(Shop);
+
+        // [GIVEN] a Item record
+        ItemTemplateCode := Shop."Item Templ. Code";
+        Item := ProductInitTest.CreateItem(ItemTemplateCode, Any.DecimalInRange(10, 100, 2), Any.DecimalInRange(100, 1000, 2));
+        Item.SetRecFilter();
+
+        // [WHEN] Invoke CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant)
+        CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant, TempTag);
+
+        // [THEN] TempShopifyProduct.Title = Item.Description
+        LibraryAssert.AreEqual(Item.Description, TempShopifyProduct.Title, 'TempShopifyProduct.Title = Item.Description');
+
+        // [THEN] TempShopifyVariant.SKU = ''
+        LibraryAssert.AreEqual('', TempShopifyVariant.SKU, 'TempShopifyVariant.SKU = ''''');
+
+        // [THEN] TempShopifyVariant.Price = Item.Price
+        LibraryAssert.AreEqual(Item."Unit Price", TempShopifyVariant.Price, 'TempShopifyVariant.Price := Item.Price');
+
+        // [THEN] TempShpyVariant."Unit Cost" = Item."Unit Cost";
+        LibraryAssert.AreEqual(Item."Unit Cost", TempShopifyVariant."Unit Cost", 'TempShpyVariant."Unit Cost" = Item."Unit Cost"');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() must contains the HTML section '<div class="productDescription">'
+        LibraryAssert.IsTrue(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productDescription">'), '<div class="productDescription">');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() cannot contains the HTML section '<div class="productAttributes">'
+        LibraryAssert.IsFalse(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productAttributes">'), '<div class="productAttributes">');
+    end;
+
+    [Test]
+    procedure UnitTestCreateTempProductFromItemWithItemAttributes()
+    var
+        Item: Record Item;
+        Shop: Record "Shpfy Shop";
+        TempShopifyProduct: Record "Shpfy Product" temporary;
+        TempShopifyVariant: Record "Shpfy Variant" temporary;
+        TempTag: Record "Shpfy Tag" temporary;
+        CreateProduct: Codeunit "Shpfy Create Product";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+        ItemTemplateCode: Code[20];
+    begin
+        // [SCENARIO] Create a Item with no variants from a Shopify Product with the SKU empty.
+        // [SCENARIO] Don't copy the extended text of the item.
+        // [SCENARIO] Copy the item attributtes.
+
+        // [GIVEN] The Shop with the setting "SKU Mapping" = " ", "Sync Item Attributes" = true;
+        Shop := InitializeTest.CreateShop();
+        Shop."SKU Mapping" := "Shpfy SKU Mapping"::" ";
+        Shop."Sync Item Extended Text" := false;
+        Shop."Sync Item Attributes" := true;
+        Shop.Modify();
+        CreateProduct.SetShop(Shop);
+
+        // [GIVEN] a Item record
+        ItemTemplateCode := Shop."Item Templ. Code";
+        Item := ProductInitTest.CreateItem(ItemTemplateCode, Any.DecimalInRange(10, 100, 2), Any.DecimalInRange(100, 1000, 2));
+        Item.SetRecFilter();
+
+        // [WHEN] Invoke CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant)
+        CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant, TempTag);
+
+        // [THEN] TempShopifyProduct.Title = Item.Description
+        LibraryAssert.AreEqual(Item.Description, TempShopifyProduct.Title, 'TempShopifyProduct.Title = Item.Description');
+
+        // [THEN] TempShopifyVariant.SKU = ''
+        LibraryAssert.AreEqual('', TempShopifyVariant.SKU, 'TempShopifyVariant.SKU = ''''');
+
+        // [THEN] TempShopifyVariant.Price = Item.Price
+        LibraryAssert.AreEqual(Item."Unit Price", TempShopifyVariant.Price, 'TempShopifyVariant.Price := Item.Price');
+
+        // [THEN] TempShpyVariant."Unit Cost" = Item."Unit Cost";
+        LibraryAssert.AreEqual(Item."Unit Cost", TempShopifyVariant."Unit Cost", 'TempShpyVariant."Unit Cost" = Item."Unit Cost"');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() cannot contains the HTML section '<div class="productDescription">'
+        LibraryAssert.IsFalse(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productDescription">'), '<div class="productDescription">');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() contains the HTML section '<div class="productAttributes">'
+        LibraryAssert.IsTrue(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productAttributes">'), '<div class="productAttributes">');
+    end;
+
+    [Test]
+    procedure UnitTestCreateTempProductFromItemWithExtendedTextAndItemAttributes()
+    var
+        Item: Record Item;
+        TempShopifyProduct: Record "Shpfy Product" temporary;
+        Shop: Record "Shpfy Shop";
+        TempShopifyVariant: Record "Shpfy Variant" temporary;
+        TempTag: Record "Shpfy Tag" temporary;
+        CreateProduct: Codeunit "Shpfy Create Product";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+        ItemTemplateCode: Code[20];
+    begin
+        // [SCENARIO] Create a Item with no variants from a Shopify Product with the SKU empty.
+        // [SCENARIO] Copy the extended text of the item.
+        // [SCENARIO] Copy the item attributtes.
+
+        // [GIVEN] The Shop with the setting "SKU Mapping" = " ", "Sync Item Extended Text" = true, "Sync Item Attributes" = true;
+        Shop := InitializeTest.CreateShop();
+        Shop."SKU Mapping" := "Shpfy SKU Mapping"::" ";
+        Shop."Sync Item Extended Text" := true;
+        Shop."Sync Item Attributes" := true;
+        Shop.Modify();
+        CreateProduct.SetShop(Shop);
+
+        // [GIVEN] a Item record
+        ItemTemplateCode := Shop."Item Templ. Code";
+        Item := ProductInitTest.CreateItem(ItemTemplateCode, Any.DecimalInRange(10, 100, 2), Any.DecimalInRange(100, 1000, 2));
+        Item.SetRecFilter();
+
+        // [WHEN] Invoke CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant)
+        CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant, TempTag);
+
+        // [THEN] TempShopifyProduct.Title = Item.Description
+        LibraryAssert.AreEqual(Item.Description, TempShopifyProduct.Title, 'TempShopifyProduct.Title = Item.Description');
+
+        // [THEN] TempShopifyVariant.SKU = ''
+        LibraryAssert.AreEqual('', TempShopifyVariant.SKU, 'TempShopifyVariant.SKU = ''''');
+
+        // [THEN] TempShopifyVariant.Price = Item.Price
+        LibraryAssert.AreEqual(Item."Unit Price", TempShopifyVariant.Price, 'TempShopifyVariant.Price := Item.Price');
+
+        // [THEN] TempShpyVariant."Unit Cost" = Item."Unit Cost";
+        LibraryAssert.AreEqual(Item."Unit Cost", TempShopifyVariant."Unit Cost", 'TempShpyVariant."Unit Cost" = Item."Unit Cost"');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() contains the HTML section '<div class="productDescription">'
+        LibraryAssert.IsTrue(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productDescription">'), '<div class="productDescription">');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() contains the HTML section '<div class="productAttributes">'
+        LibraryAssert.IsTrue(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productAttributes">'), '<div class="productAttributes">');
+    end;
+
+    [Test]
+    procedure UnitTestCreateTempProductFromItemWithVariants()
+    var
+        Item: Record Item;
+        ItemVariant: Record "Item Variant";
+        TempShopifyProduct: Record "Shpfy Product" temporary;
+        Shop: Record "Shpfy Shop";
+        TempShopifyVariant: Record "Shpfy Variant" temporary;
+        TempTag: Record "Shpfy Tag" temporary;
+        CreateProduct: Codeunit "Shpfy Create Product";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+        ItemTemplateCode: Code[20];
+    begin
+        // [SCENARIO] Create a Item with variants from a Shopify Product with the SKU empty.
+        // [SCENARIO] Don't copy the extended text of the item.
+        // [SCENARIO] Don't copy the item attributtes.
+
+        // [GIVEN] The Shop with the setting "SKU Mapping" = " ";
+        Shop := InitializeTest.CreateShop();
+        Shop."SKU Mapping" := "Shpfy SKU Mapping"::" ";
+        Shop."Sync Item Extended Text" := false;
+        Shop."Sync Item Attributes" := false;
+        Shop.Modify();
+        CreateProduct.SetShop(Shop);
+
+        // [GIVEN] a Item record
+        ItemTemplateCode := Shop."Item Templ. Code";
+        Item := ProductInitTest.CreateItem(ItemTemplateCode, Any.DecimalInRange(10, 100, 2), Any.DecimalInRange(100, 1000, 2), true);
+        Item.SetRecFilter();
+
+        // [WHEN] Invoke CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant)
+        CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant, TempTag);
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() cannot contains the HTML section '<div class="productDescription">'
+        LibraryAssert.IsFalse(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productDescription">'), '<div class="productDescription">');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() cannot contains the HTML section '<div class="productAttributes">'
+        LibraryAssert.IsFalse(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productAttributes">'), '<div class="productAttributes">');
+
+        // [THEN] There are TempShopifyVariant records;
+        LibraryAssert.RecordIsNotEmpty(TempShopifyVariant);
+
+        if TempShopifyVariant.FindSet(false) then
+            repeat
+                // [THEN] There is a Item Variant record linked to the TempShopifyVariant record.
+                LibraryAssert.IsTrue(ItemVariant.GetBySystemId(TempShopifyVariant."Item Variant SystemId"), 'Item Variant Record is found.');
+
+                // [THEN] TempShopifyVariant.SKU = ''
+                LibraryAssert.AreEqual('', TempShopifyVariant.SKU, 'TempShopifyVariant.SKU = ''''');
+
+                // [THEN] TempShopifyVariant.Title = ItemVariant.Description
+                LibraryAssert.AreEqual(ItemVariant.Description, TempShopifyVariant.Title, 'TempShopifyVariant.Title = ItemVariant.Description');
+
+                // [THEN] TempShopifyVariant.Price = Item.Price
+                LibraryAssert.AreEqual(Item."Unit Price", TempShopifyVariant.Price, 'TempShopifyVariant.Price := Item.Price');
+
+                // [THEN] TempShpyVariant."Unit Cost" = Item."Unit Cost";
+                LibraryAssert.AreEqual(Item."Unit Cost", TempShopifyVariant."Unit Cost", 'TempShpyVariant."Unit Cost" = Item."Unit Cost"');
+
+                // [THEN] TempShopifyVariant."Option 1 Name" = 'Variant'
+                LibraryAssert.AreEqual('Variant', TempShopifyVariant."Option 1 Name", 'TempShopifyVariant."Option 1 Name" = ''Variant''');
+
+                // [THEN] TempShopifyVariant."Option 1 Value" = ItemVariant.Code
+                LibraryAssert.AreEqual(ItemVariant.Code, TempShopifyVariant."Option 1 Value", 'TempShopifyVariant."Option 1 Value" = ItemVariant.Code');
+
+            until TempShopifyVariant.Next() = 0;
+    end;
+
+    [Test]
+    procedure UnitTestCreateTempProductFromItemWithVariantsAndExtendedText()
+    var
+        Item: Record Item;
+        ItemVariant: Record "Item Variant";
+        TempShopifyProduct: Record "Shpfy Product" temporary;
+        Shop: Record "Shpfy Shop";
+        TempShopifyVariant: Record "Shpfy Variant" temporary;
+        TempTag: Record "Shpfy Tag" temporary;
+        CreateProduct: Codeunit "Shpfy Create Product";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+        ItemTemplateCode: Code[20];
+    begin
+        // [SCENARIO] Create a Item with variants from a Shopify Product with the SKU empty.
+        // [SCENARIO] Copy the extended text of the item.
+        // [SCENARIO] Don't copy the item attributtes.
+
+        // [GIVEN] The Shop with the setting "SKU Mapping" = " ", "Sync Item Extended Text" = true;
+        Shop := InitializeTest.CreateShop();
+        Shop."SKU Mapping" := "Shpfy SKU Mapping"::" ";
+        Shop."Sync Item Extended Text" := true;
+        Shop."Sync Item Attributes" := false;
+        Shop.Modify();
+        CreateProduct.SetShop(Shop);
+
+        // [GIVEN] a Item record
+        ItemTemplateCode := Shop."Item Templ. Code";
+        Item := ProductInitTest.CreateItem(ItemTemplateCode, Any.DecimalInRange(10, 100, 2), Any.DecimalInRange(100, 1000, 2), true);
+        Item.SetRecFilter();
+
+        // [WHEN] Invoke CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant)
+        CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant, TempTag);
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() must contains the HTML section '<div class="productDescription">'
+        LibraryAssert.IsTrue(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productDescription">'), '<div class="productDescription">');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() cannot contains the HTML section '<div class="productAttributes">'
+        LibraryAssert.IsFalse(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productAttributes">'), '<div class="productAttributes">');
+
+        // [THEN] There are TempShopifyVariant records;
+        LibraryAssert.RecordIsNotEmpty(TempShopifyVariant);
+
+        if TempShopifyVariant.FindSet(false) then
+            repeat
+                // [THEN] There is a Item Variant record linked to the TempShopifyVariant record.
+                LibraryAssert.IsTrue(ItemVariant.GetBySystemId(TempShopifyVariant."Item Variant SystemId"), 'Item Variant Record is found.');
+
+                // [THEN] TempShopifyVariant.SKU = ''
+                LibraryAssert.AreEqual('', TempShopifyVariant.SKU, 'TempShopifyVariant.SKU = ''''');
+
+                // [THEN] TempShopifyVariant.Title = ItemVariant.Description
+                LibraryAssert.AreEqual(ItemVariant.Description, TempShopifyVariant.Title, 'TempShopifyVariant.Title = ItemVariant.Description');
+
+                // [THEN] TempShopifyVariant.Price = Item.Price
+                LibraryAssert.AreEqual(Item."Unit Price", TempShopifyVariant.Price, 'TempShopifyVariant.Price := Item.Price');
+
+                // [THEN] TempShpyVariant."Unit Cost" = Item."Unit Cost";
+                LibraryAssert.AreEqual(Item."Unit Cost", TempShopifyVariant."Unit Cost", 'TempShpyVariant."Unit Cost" = Item."Unit Cost"');
+
+                // [THEN] TempShopifyVariant."Option 1 Name" = 'Variant'
+                LibraryAssert.AreEqual('Variant', TempShopifyVariant."Option 1 Name", 'TempShopifyVariant."Option 1 Name" = ''Variant''');
+
+                // [THEN] TempShopifyVariant."Option 1 Value" = ItemVariant.Code
+                LibraryAssert.AreEqual(ItemVariant.Code, TempShopifyVariant."Option 1 Value", 'TempShopifyVariant."Option 1 Value" = ItemVariant.Code');
+
+            until TempShopifyVariant.Next() = 0;
+    end;
+
+    [Test]
+    procedure UnitTestCreateTempProductFromItemWithVariantsAndItemAttributes()
+    var
+        Item: Record Item;
+        ItemVariant: Record "Item Variant";
+        Shop: Record "Shpfy Shop";
+        TempShopifyProduct: Record "Shpfy Product" temporary;
+        TempShopifyVariant: Record "Shpfy Variant" temporary;
+        TempTag: Record "Shpfy Tag" temporary;
+        CreateProduct: Codeunit "Shpfy Create Product";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+        ItemTemplateCode: Code[20];
+    begin
+        // [SCENARIO] Create a Item with variants from a Shopify Product with the SKU empty.
+        // [SCENARIO] Don't copy the extended text of the item.
+        // [SCENARIO] Copy the item attributtes.
+
+        // [GIVEN] The Shop with the setting "SKU Mapping" = " ", "Sync Item Attributes" = true;
+        Shop := InitializeTest.CreateShop();
+        Shop."SKU Mapping" := "Shpfy SKU Mapping"::" ";
+        Shop."Sync Item Extended Text" := false;
+        Shop."Sync Item Attributes" := true;
+        Shop.Modify();
+        CreateProduct.SetShop(Shop);
+
+        // [GIVEN] a Item record
+        ItemTemplateCode := Shop."Item Templ. Code";
+        Item := ProductInitTest.CreateItem(ItemTemplateCode, Any.DecimalInRange(10, 100, 2), Any.DecimalInRange(100, 1000, 2), true);
+        Item.SetRecFilter();
+
+        // [WHEN] Invoke CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant)
+        CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant, TempTag);
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() cannot contains the HTML section '<div class="productDescription">'
+        LibraryAssert.IsFalse(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productDescription">'), '<div class="productDescription">');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() contains the HTML section '<div class="productAttributes">'
+        LibraryAssert.IsTrue(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productAttributes">'), '<div class="productAttributes">');
+
+        // [THEN] There are TempShopifyVariant records;
+        LibraryAssert.RecordIsNotEmpty(TempShopifyVariant);
+
+        if TempShopifyVariant.FindSet(false) then
+            repeat
+                // [THEN] There is a Item Variant record linked to the TempShopifyVariant record.
+                LibraryAssert.IsTrue(ItemVariant.GetBySystemId(TempShopifyVariant."Item Variant SystemId"), 'Item Variant Record is found.');
+
+                // [THEN] TempShopifyVariant.SKU = ''
+                LibraryAssert.AreEqual('', TempShopifyVariant.SKU, 'TempShopifyVariant.SKU = ''''');
+
+                // [THEN] TempShopifyVariant.Title = ItemVariant.Description
+                LibraryAssert.AreEqual(ItemVariant.Description, TempShopifyVariant.Title, 'TempShopifyVariant.Title = ItemVariant.Description');
+
+                // [THEN] TempShopifyVariant.Price = Item.Price
+                LibraryAssert.AreEqual(Item."Unit Price", TempShopifyVariant.Price, 'TempShopifyVariant.Price := Item.Price');
+
+                // [THEN] TempShpyVariant."Unit Cost" = Item."Unit Cost";
+                LibraryAssert.AreEqual(Item."Unit Cost", TempShopifyVariant."Unit Cost", 'TempShpyVariant."Unit Cost" = Item."Unit Cost"');
+
+                // [THEN] TempShopifyVariant."Option 1 Name" = 'Variant'
+                LibraryAssert.AreEqual('Variant', TempShopifyVariant."Option 1 Name", 'TempShopifyVariant."Option 1 Name" = ''Variant''');
+
+                // [THEN] TempShopifyVariant."Option 1 Value" = ItemVariant.Code
+                LibraryAssert.AreEqual(ItemVariant.Code, TempShopifyVariant."Option 1 Value", 'TempShopifyVariant."Option 1 Value" = ItemVariant.Code');
+
+            until TempShopifyVariant.Next() = 0;
+    end;
+
+    [Test]
+    procedure UnitTestCreateTempProductFromItemWithVariantsAndExtendedTextAndItemAttributes()
+    var
+        Item: Record Item;
+        ItemVariant: Record "Item Variant";
+        TempShopifyProduct: Record "Shpfy Product" temporary;
+        Shop: Record "Shpfy Shop";
+        TempShopifyVariant: Record "Shpfy Variant" temporary;
+        TempTag: Record "Shpfy Tag" temporary;
+        CreateProduct: Codeunit "Shpfy Create Product";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+        ItemTemplateCode: Code[20];
+    begin
+        // [SCENARIO] Create a Item with variants from a Shopify Product with the SKU empty.
+        // [SCENARIO] Copy the extended text of the item.
+        // [SCENARIO] Copy the item attributtes.
+
+        // [GIVEN] The Shop with the setting "SKU Mapping" = " ", "Sync Item Extended Text" = true, "Sync Item Attributes" = true;
+        Shop := InitializeTest.CreateShop();
+        Shop."SKU Mapping" := "Shpfy SKU Mapping"::" ";
+        Shop."Sync Item Extended Text" := true;
+        Shop."Sync Item Attributes" := true;
+        Shop.Modify();
+        CreateProduct.SetShop(Shop);
+
+        // [GIVEN] a Item record
+        ItemTemplateCode := Shop."Item Templ. Code";
+        Item := ProductInitTest.CreateItem(ItemTemplateCode, Any.DecimalInRange(10, 100, 2), Any.DecimalInRange(100, 1000, 2), true);
+        Item.SetRecFilter();
+
+        // [WHEN] Invoke CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant)
+        CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant, TempTag);
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() contains the HTML section '<div class="productDescription">'
+        LibraryAssert.IsTrue(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productDescription">'), '<div class="productDescription">');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() contains the HTML section '<div class="productAttributes">'
+        LibraryAssert.IsTrue(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productAttributes">'), '<div class="productAttributes">');
+
+        // [THEN] There are TempShopifyVariant records;
+        LibraryAssert.RecordIsNotEmpty(TempShopifyVariant);
+
+        if TempShopifyVariant.FindSet(false) then
+            repeat
+                // [THEN] There is a Item Variant record linked to the TempShopifyVariant record.
+                LibraryAssert.IsTrue(ItemVariant.GetBySystemId(TempShopifyVariant."Item Variant SystemId"), 'Item Variant Record is found.');
+
+                // [THEN] TempShopifyVariant.SKU = ''
+                LibraryAssert.AreEqual('', TempShopifyVariant.SKU, 'TempShopifyVariant.SKU = ''''');
+
+                // [THEN] TempShopifyVariant.Title = ItemVariant.Description
+                LibraryAssert.AreEqual(ItemVariant.Description, TempShopifyVariant.Title, 'TempShopifyVariant.Title = ItemVariant.Description');
+
+                // [THEN] TempShopifyVariant.Price = Item.Price
+                LibraryAssert.AreEqual(Item."Unit Price", TempShopifyVariant.Price, 'TempShopifyVariant.Price := Item.Price');
+
+                // [THEN] TempShpyVariant."Unit Cost" = Item."Unit Cost";
+                LibraryAssert.AreEqual(Item."Unit Cost", TempShopifyVariant."Unit Cost", 'TempShpyVariant."Unit Cost" = Item."Unit Cost"');
+
+                // [THEN] TempShopifyVariant."Option 1 Name" = 'Variant'
+                LibraryAssert.AreEqual('Variant', TempShopifyVariant."Option 1 Name", 'TempShopifyVariant."Option 1 Name" = ''Variant''');
+
+                // [THEN] TempShopifyVariant."Option 1 Value" = ItemVariant.Code
+                LibraryAssert.AreEqual(ItemVariant.Code, TempShopifyVariant."Option 1 Value", 'TempShopifyVariant."Option 1 Value" = ItemVariant.Code');
+
+            until TempShopifyVariant.Next() = 0;
+    end;
+
+    [Test]
+    procedure UnitTestCreateTempProductFromItemWithSKUIsItemNo()
+    var
+        Item: Record Item;
+        TempShopifyProduct: Record "Shpfy Product" temporary;
+        Shop: Record "Shpfy Shop";
+        TempShopifyVariant: Record "Shpfy Variant" temporary;
+        TempTag: Record "Shpfy Tag" temporary;
+        CreateProduct: Codeunit "Shpfy Create Product";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+        ItemTemplateCode: Code[20];
+    begin
+        // [SCENARIO] Create a Item with no variants from a Shopify Product with the SKU mapped to Item No.
+        // [SCENARIO] Don't copy the extended text of the item.
+        // [SCENARIO] Don't copy the item attributtes.
+
+        // [GIVEN] The Shop with the setting "SKU Mapping" = "Item No.", "Sync Item Extended Text" = true;
+        Shop := InitializeTest.CreateShop();
+        Shop."SKU Mapping" := "Shpfy SKU Mapping"::"Item No.";
+        Shop."Sync Item Extended Text" := false;
+        Shop."Sync Item Attributes" := false;
+        Shop.Modify();
+        CreateProduct.SetShop(Shop);
+
+        // [GIVEN] a Item record
+        ItemTemplateCode := Shop."Item Templ. Code";
+        Item := ProductInitTest.CreateItem(ItemTemplateCode, Any.DecimalInRange(10, 100, 2), Any.DecimalInRange(100, 1000, 2));
+        Item.SetRecFilter();
+
+        // [WHEN] Invoke CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant)
+        CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant, TempTag);
+
+        // [THEN] TempShopifyProduct.Title = Item.Description
+        LibraryAssert.AreEqual(Item.Description, TempShopifyProduct.Title, 'TempShopifyProduct.Title = Item.Description');
+
+        // [THEN] TempShopifyVariant.SKU = Item."No."
+        LibraryAssert.AreEqual(Item."No.", TempShopifyVariant.SKU, 'TempShopifyVariant.SKU = Item."No."');
+
+        // [THEN] TempShopifyVariant.Price = Item.Price
+        LibraryAssert.AreEqual(Item."Unit Price", TempShopifyVariant.Price, 'TempShopifyVariant.Price := Item.Price');
+
+        // [THEN] TempShpyVariant."Unit Cost" = Item."Unit Cost";
+        LibraryAssert.AreEqual(Item."Unit Cost", TempShopifyVariant."Unit Cost", 'TempShpyVariant."Unit Cost" = Item."Unit Cost"');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() cannot contains the HTML section '<div class="productDescription">'
+        LibraryAssert.IsFalse(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productDescription">'), '<div class="productDescription">');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() cannot contains the HTML section '<div class="productAttributes">'
+        LibraryAssert.IsFalse(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productAttributes">'), '<div class="productAttributes">');
+    end;
+
+    [Test]
+    procedure UnitTestCreateTempProductFromItemWithSKUIsItemNoAndExtendedText()
+    var
+        Item: Record Item;
+        TempShopifyProduct: Record "Shpfy Product" temporary;
+        Shop: Record "Shpfy Shop";
+        TempShopifyVariant: Record "Shpfy Variant" temporary;
+        TempTag: Record "Shpfy Tag" temporary;
+        CreateProduct: Codeunit "Shpfy Create Product";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+        ItemTemplateCode: Code[20];
+    begin
+        // [SCENARIO] Create a Item with no variants from a Shopify Product with the SKU mapped to Item No.
+        // [SCENARIO] Copy the extended text of the item.
+        // [SCENARIO] Don't copy the item attributtes.
+
+        // [GIVEN] The Shop with the setting "SKU Mapping" = "Item No.", "Sync Item Extended Text" = true;
+        Shop := InitializeTest.CreateShop();
+        Shop."SKU Mapping" := "Shpfy SKU Mapping"::"Item No.";
+        Shop."Sync Item Extended Text" := true;
+        Shop."Sync Item Attributes" := false;
+        Shop.Modify();
+        CreateProduct.SetShop(Shop);
+
+        // [GIVEN] a Item record
+        ItemTemplateCode := Shop."Item Templ. Code";
+        Item := ProductInitTest.CreateItem(ItemTemplateCode, Any.DecimalInRange(10, 100, 2), Any.DecimalInRange(100, 1000, 2));
+        Item.SetRecFilter();
+
+        // [WHEN] Invoke CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant)
+        CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant, TempTag);
+
+        // [THEN] TempShopifyProduct.Title = Item.Description
+        LibraryAssert.AreEqual(Item.Description, TempShopifyProduct.Title, 'TempShopifyProduct.Title = Item.Description');
+
+        // [THEN] TempShopifyVariant.SKU = Item."No."
+        LibraryAssert.AreEqual(Item."No.", TempShopifyVariant.SKU, 'TempShopifyVariant.SKU = Item."No."');
+
+        // [THEN] TempShopifyVariant.Price = Item.Price
+        LibraryAssert.AreEqual(Item."Unit Price", TempShopifyVariant.Price, 'TempShopifyVariant.Price := Item.Price');
+
+        // [THEN] TempShpyVariant."Unit Cost" = Item."Unit Cost";
+        LibraryAssert.AreEqual(Item."Unit Cost", TempShopifyVariant."Unit Cost", 'TempShpyVariant."Unit Cost" = Item."Unit Cost"');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() must contains the HTML section '<div class="productDescription">'
+        LibraryAssert.IsTrue(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productDescription">'), '<div class="productDescription">');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() cannot contains the HTML section '<div class="productAttributes">'
+        LibraryAssert.IsFalse(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productAttributes">'), '<div class="productAttributes">');
+    end;
+
+    [Test]
+    procedure UnitTestCreateTempProductFromItemWithSKUIsItemNoAndItemAttributes()
+    var
+        Item: Record Item;
+        TempShopifyProduct: Record "Shpfy Product" temporary;
+        Shop: Record "Shpfy Shop";
+        TempShopifyVariant: Record "Shpfy Variant" temporary;
+        TempTag: Record "Shpfy Tag" temporary;
+        CreateProduct: Codeunit "Shpfy Create Product";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+        ItemTemplateCode: Code[20];
+    begin
+        // [SCENARIO] Create a Item with no variants from a Shopify Product with the SKU mapped to Item No.
+        // [SCENARIO] Don't copy the extended text of the item.
+        // [SCENARIO] Copy the item attributtes.
+
+        // [GIVEN] The Shop with the setting "SKU Mapping" = "Item No.", "Sync Item Attributes" = true;
+        Shop := InitializeTest.CreateShop();
+        Shop."SKU Mapping" := "Shpfy SKU Mapping"::"Item No.";
+        Shop."Sync Item Extended Text" := false;
+        Shop."Sync Item Attributes" := true;
+        Shop.Modify();
+        CreateProduct.SetShop(Shop);
+
+        // [GIVEN] a Item record
+        ItemTemplateCode := Shop."Item Templ. Code";
+        Item := ProductInitTest.CreateItem(ItemTemplateCode, Any.DecimalInRange(10, 100, 2), Any.DecimalInRange(100, 1000, 2));
+        Item.SetRecFilter();
+
+        // [WHEN] Invoke CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant)
+        CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant, TempTag);
+
+        // [THEN] TempShopifyProduct.Title = Item.Description
+        LibraryAssert.AreEqual(Item.Description, TempShopifyProduct.Title, 'TempShopifyProduct.Title = Item.Description');
+
+        // [THEN] TempShopifyVariant.SKU = Item."No."
+        LibraryAssert.AreEqual(Item."No.", TempShopifyVariant.SKU, 'TempShopifyVariant.SKU = Item."No."');
+
+        // [THEN] TempShopifyVariant.Price = Item.Price
+        LibraryAssert.AreEqual(Item."Unit Price", TempShopifyVariant.Price, 'TempShopifyVariant.Price := Item.Price');
+
+        // [THEN] TempShpyVariant."Unit Cost" = Item."Unit Cost";
+        LibraryAssert.AreEqual(Item."Unit Cost", TempShopifyVariant."Unit Cost", 'TempShpyVariant."Unit Cost" = Item."Unit Cost"');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() cannot contains the HTML section '<div class="productDescription">'
+        LibraryAssert.IsFalse(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productDescription">'), '<div class="productDescription">');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() contains the HTML section '<div class="productAttributes">'
+        LibraryAssert.IsTrue(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productAttributes">'), '<div class="productAttributes">');
+    end;
+
+    [Test]
+    procedure UnitTestCreateTempProductFromItemWithSKUIsItemNoAndExtendedTextAndItemAttributes()
+    var
+        Item: Record Item;
+        TempShopifyProduct: Record "Shpfy Product" temporary;
+        Shop: Record "Shpfy Shop";
+        TempShopifyVariant: Record "Shpfy Variant" temporary;
+        TempTag: Record "Shpfy Tag" temporary;
+        CreateProduct: Codeunit "Shpfy Create Product";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+        ItemTemplateCode: Code[20];
+    begin
+        // [SCENARIO] Create a Item with no variants from a Shopify Product with the SKU mapped to Item No.
+        // [SCENARIO] Copy the extended text of the item.
+        // [SCENARIO] Copy the item attributtes.
+
+        // [GIVEN] The Shop with the setting "SKU Mapping" = "Item No.", "Sync Item Extended Text" = true, "Sync Item Attributes" = true;
+        Shop := InitializeTest.CreateShop();
+        Shop."SKU Mapping" := "Shpfy SKU Mapping"::"Item No.";
+        Shop."Sync Item Extended Text" := true;
+        Shop."Sync Item Attributes" := true;
+        Shop.Modify();
+        CreateProduct.SetShop(Shop);
+
+        // [GIVEN] a Item record
+        ItemTemplateCode := Shop."Item Templ. Code";
+        Item := ProductInitTest.CreateItem(ItemTemplateCode, Any.DecimalInRange(10, 100, 2), Any.DecimalInRange(100, 1000, 2));
+        Item.SetRecFilter();
+
+        // [WHEN] Invoke CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant)
+        CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant, TempTag);
+
+        // [THEN] TempShopifyProduct.Title = Item.Description
+        LibraryAssert.AreEqual(Item.Description, TempShopifyProduct.Title, 'TempShopifyProduct.Title = Item.Description');
+
+        // [THEN] TempShopifyVariant.SKU = Item.No.
+        LibraryAssert.AreEqual(Item."No.", TempShopifyVariant.SKU, 'TempShopifyVariant.SKU = Item."No."');
+
+        // [THEN] TempShopifyVariant.Price = Item.Price
+        LibraryAssert.AreEqual(Item."Unit Price", TempShopifyVariant.Price, 'TempShopifyVariant.Price := Item.Price');
+
+        // [THEN] TempShpyVariant."Unit Cost" = Item."Unit Cost";
+        LibraryAssert.AreEqual(Item."Unit Cost", TempShopifyVariant."Unit Cost", 'TempShpyVariant."Unit Cost" = Item."Unit Cost"');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() contains the HTML section '<div class="productDescription">'
+        LibraryAssert.IsTrue(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productDescription">'), '<div class="productDescription">');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() contains the HTML section '<div class="productAttributes">'
+        LibraryAssert.IsTrue(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productAttributes">'), '<div class="productAttributes">');
+    end;
+
+    [Test]
+    procedure UnitTestCreateTempProductFromItemWithVariantsAndSKUIsItemNo()
+    var
+        Item: Record Item;
+        ItemVariant: Record "Item Variant";
+        TempShopifyProduct: Record "Shpfy Product" temporary;
+        Shop: Record "Shpfy Shop";
+        TempShopifyVariant: Record "Shpfy Variant" temporary;
+        TempTag: Record "Shpfy Tag" temporary;
+        CreateProduct: Codeunit "Shpfy Create Product";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+        ItemTemplateCode: Code[20];
+    begin
+        // [SCENARIO] Create a Item with variants from a Shopify Product with the SKU mapped to Item No.
+        // [SCENARIO] Don't copy the extended text of the item.
+        // [SCENARIO] Don't copy the item attributtes.
+
+        // [GIVEN] The Shop with the setting "SKU Mapping" = "Item No.";
+        Shop := InitializeTest.CreateShop();
+        Shop."SKU Mapping" := "Shpfy SKU Mapping"::"Item No.";
+        Shop."Sync Item Extended Text" := false;
+        Shop."Sync Item Attributes" := false;
+        Shop.Modify();
+        CreateProduct.SetShop(Shop);
+
+        // [GIVEN] a Item record
+        ItemTemplateCode := Shop."Item Templ. Code";
+        Item := ProductInitTest.CreateItem(ItemTemplateCode, Any.DecimalInRange(10, 100, 2), Any.DecimalInRange(100, 1000, 2), true);
+        Item.SetRecFilter();
+
+        // [WHEN] Invoke CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant)
+        CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant, TempTag);
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() cannot contains the HTML section '<div class="productDescription">'
+        LibraryAssert.IsFalse(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productDescription">'), '<div class="productDescription">');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() cannot contains the HTML section '<div class="productAttributes">'
+        LibraryAssert.IsFalse(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productAttributes">'), '<div class="productAttributes">');
+
+        // [THEN] There are TempShopifyVariant records;
+        LibraryAssert.RecordIsNotEmpty(TempShopifyVariant);
+
+        if TempShopifyVariant.FindSet(false) then
+            repeat
+                // [THEN] There is a Item Variant record linked to the TempShopifyVariant record.
+                LibraryAssert.IsTrue(ItemVariant.GetBySystemId(TempShopifyVariant."Item Variant SystemId"), 'Item Variant Record is found.');
+
+                // [THEN] TempShopifyVariant.SKU = Item."No."
+                LibraryAssert.AreEqual(Item."No.", TempShopifyVariant.SKU, 'TempShopifyVariant.SKU = Item."No."');
+
+                // [THEN] TempShopifyVariant.Title = ItemVariant.Description
+                LibraryAssert.AreEqual(ItemVariant.Description, TempShopifyVariant.Title, 'TempShopifyVariant.Title = ItemVariant.Description');
+
+                // [THEN] TempShopifyVariant.Price = Item.Price
+                LibraryAssert.AreEqual(Item."Unit Price", TempShopifyVariant.Price, 'TempShopifyVariant.Price := Item.Price');
+
+                // [THEN] TempShpyVariant."Unit Cost" = Item."Unit Cost";
+                LibraryAssert.AreEqual(Item."Unit Cost", TempShopifyVariant."Unit Cost", 'TempShpyVariant."Unit Cost" = Item."Unit Cost"');
+
+                // [THEN] TempShopifyVariant."Option 1 Name" = 'Variant'
+                LibraryAssert.AreEqual('Variant', TempShopifyVariant."Option 1 Name", 'TempShopifyVariant."Option 1 Name" = ''Variant''');
+
+                // [THEN] TempShopifyVariant."Option 1 Value" = ItemVariant.Code
+                LibraryAssert.AreEqual(ItemVariant.Code, TempShopifyVariant."Option 1 Value", 'TempShopifyVariant."Option 1 Value" = ItemVariant.Code');
+
+            until TempShopifyVariant.Next() = 0;
+    end;
+
+    [Test]
+    procedure UnitTestCreateTempProductFromItemWithVariantsAndSKUIsItemNoAndExtendedText()
+    var
+        Item: Record Item;
+        ItemVariant: Record "Item Variant";
+        TempShopifyProduct: Record "Shpfy Product" temporary;
+        Shop: Record "Shpfy Shop";
+        TempShopifyVariant: Record "Shpfy Variant" temporary;
+        TempTag: Record "Shpfy Tag" temporary;
+        CreateProduct: Codeunit "Shpfy Create Product";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+        ItemTemplateCode: Code[20];
+    begin
+        // [SCENARIO] Create a Item with variants from a Shopify Product with the SKU mapped to Item No.
+        // [SCENARIO] Copy the extended text of the item.
+        // [SCENARIO] Don't copy the item attributtes.
+
+        // [GIVEN] The Shop with the setting "SKU Mapping" = "Item No.", "Sync Item Extended Text" = true;
+        Shop := InitializeTest.CreateShop();
+        Shop."SKU Mapping" := "Shpfy SKU Mapping"::"Item No.";
+        Shop."Sync Item Extended Text" := true;
+        Shop."Sync Item Attributes" := false;
+        Shop.Modify();
+        CreateProduct.SetShop(Shop);
+
+        // [GIVEN] a Item record
+        ItemTemplateCode := Shop."Item Templ. Code";
+        Item := ProductInitTest.CreateItem(ItemTemplateCode, Any.DecimalInRange(10, 100, 2), Any.DecimalInRange(100, 1000, 2), true);
+        Item.SetRecFilter();
+
+        // [WHEN] Invoke CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant)
+        CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant, TempTag);
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() contains the HTML section '<div class="productDescription">'
+        LibraryAssert.IsTrue(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productDescription">'), '<div class="productDescription">');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() cannot contains the HTML section '<div class="productAttributes">'
+        LibraryAssert.IsFalse(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productAttributes">'), '<div class="productAttributes">');
+
+        // [THEN] There are TempShopifyVariant records;
+        LibraryAssert.RecordIsNotEmpty(TempShopifyVariant);
+
+        if TempShopifyVariant.FindSet(false) then
+            repeat
+                // [THEN] There is a Item Variant record linked to the TempShopifyVariant record.
+                LibraryAssert.IsTrue(ItemVariant.GetBySystemId(TempShopifyVariant."Item Variant SystemId"), 'Item Variant Record is found.');
+
+                // [THEN] TempShopifyVariant.SKU = Item."No."
+                LibraryAssert.AreEqual(Item."No.", TempShopifyVariant.SKU, 'TempShopifyVariant.SKU = Item."No."');
+
+                // [THEN] TempShopifyVariant.Title = ItemVariant.Description
+                LibraryAssert.AreEqual(ItemVariant.Description, TempShopifyVariant.Title, 'TempShopifyVariant.Title = ItemVariant.Description');
+
+                // [THEN] TempShopifyVariant.Price = Item.Price
+                LibraryAssert.AreEqual(Item."Unit Price", TempShopifyVariant.Price, 'TempShopifyVariant.Price := Item.Price');
+
+                // [THEN] TempShpyVariant."Unit Cost" = Item."Unit Cost";
+                LibraryAssert.AreEqual(Item."Unit Cost", TempShopifyVariant."Unit Cost", 'TempShpyVariant."Unit Cost" = Item."Unit Cost"');
+
+                // [THEN] TempShopifyVariant."Option 1 Name" = 'Variant'
+                LibraryAssert.AreEqual('Variant', TempShopifyVariant."Option 1 Name", 'TempShopifyVariant."Option 1 Name" = ''Variant''');
+
+                // [THEN] TempShopifyVariant."Option 1 Value" = ItemVariant.Code
+                LibraryAssert.AreEqual(ItemVariant.Code, TempShopifyVariant."Option 1 Value", 'TempShopifyVariant."Option 1 Value" = ItemVariant.Code');
+
+            until TempShopifyVariant.Next() = 0;
+    end;
+
+    [Test]
+    procedure UnitTestCreateTempProductFromItemWithVariantsAndSKUIsItemNoAndItemAttributes()
+    var
+        Item: Record Item;
+        ItemVariant: Record "Item Variant";
+        TempShopifyProduct: Record "Shpfy Product" temporary;
+        Shop: Record "Shpfy Shop";
+        TempShopifyVariant: Record "Shpfy Variant" temporary;
+        TempTag: Record "Shpfy Tag" temporary;
+        CreateProduct: Codeunit "Shpfy Create Product";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+        ItemTemplateCode: Code[20];
+    begin
+        // [SCENARIO] Create a Item with variants from a Shopify Product with the SKU mapped to Item No.
+        // [SCENARIO] Don't copy the extended text of the item.
+        // [SCENARIO] Copy the item attributtes.
+
+        // [GIVEN] The Shop with the setting "SKU Mapping" = "Item No.", "Sync Item Attributes" = true;
+        Shop := InitializeTest.CreateShop();
+        Shop."SKU Mapping" := "Shpfy SKU Mapping"::"Item No.";
+        Shop."Sync Item Extended Text" := false;
+        Shop."Sync Item Attributes" := true;
+        Shop.Modify();
+        CreateProduct.SetShop(Shop);
+
+        // [GIVEN] a Item record
+        ItemTemplateCode := Shop."Item Templ. Code";
+        Item := ProductInitTest.CreateItem(ItemTemplateCode, Any.DecimalInRange(10, 100, 2), Any.DecimalInRange(100, 1000, 2), true);
+        Item.SetRecFilter();
+
+        // [WHEN] Invoke CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant)
+        CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant, TempTag);
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() cannot contains the HTML section '<div class="productDescription">'
+        LibraryAssert.IsFalse(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productDescription">'), '<div class="productDescription">');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() contains the HTML section '<div class="productAttributes">'
+        LibraryAssert.IsTrue(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productAttributes">'), '<div class="productAttributes">');
+
+        // [THEN] There are TempShopifyVariant records;
+        LibraryAssert.RecordIsNotEmpty(TempShopifyVariant);
+
+        if TempShopifyVariant.FindSet(false) then
+            repeat
+                // [THEN] There is a Item Variant record linked to the TempShopifyVariant record.
+                LibraryAssert.IsTrue(ItemVariant.GetBySystemId(TempShopifyVariant."Item Variant SystemId"), 'Item Variant Record is found.');
+
+                // [THEN] TempShopifyVariant.SKU = Item."No."
+                LibraryAssert.AreEqual(Item."No.", TempShopifyVariant.SKU, 'TempShopifyVariant.SKU = Item."No."');
+
+                // [THEN] TempShopifyVariant.Title = ItemVariant.Description
+                LibraryAssert.AreEqual(ItemVariant.Description, TempShopifyVariant.Title, 'TempShopifyVariant.Title = ItemVariant.Description');
+
+                // [THEN] TempShopifyVariant.Price = Item.Price
+                LibraryAssert.AreEqual(Item."Unit Price", TempShopifyVariant.Price, 'TempShopifyVariant.Price := Item.Price');
+
+                // [THEN] TempShpyVariant."Unit Cost" = Item."Unit Cost";
+                LibraryAssert.AreEqual(Item."Unit Cost", TempShopifyVariant."Unit Cost", 'TempShpyVariant."Unit Cost" = Item."Unit Cost"');
+
+                // [THEN] TempShopifyVariant."Option 1 Name" = 'Variant'
+                LibraryAssert.AreEqual('Variant', TempShopifyVariant."Option 1 Name", 'TempShopifyVariant."Option 1 Name" = ''Variant''');
+
+                // [THEN] TempShopifyVariant."Option 1 Value" = ItemVariant.Code
+                LibraryAssert.AreEqual(ItemVariant.Code, TempShopifyVariant."Option 1 Value", 'TempShopifyVariant."Option 1 Value" = ItemVariant.Code');
+
+            until TempShopifyVariant.Next() = 0;
+    end;
+
+    [Test]
+    procedure UnitTestCreateTempProductFromItemWithVariantsAndSKUIsItemNoAndExtendedTextAndItemAttributes()
+    var
+        Item: Record Item;
+        ItemVariant: Record "Item Variant";
+        TempShopifyProduct: Record "Shpfy Product" temporary;
+        Shop: Record "Shpfy Shop";
+        TempShopifyVariant: Record "Shpfy Variant" temporary;
+        TempTag: Record "Shpfy Tag" temporary;
+        CreateProduct: Codeunit "Shpfy Create Product";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+        ItemTemplateCode: Code[20];
+    begin
+        // [SCENARIO] Create a Item with variants from a Shopify Product with the SKU mapped to Item No.
+        // [SCENARIO] Copy the extended text of the item.
+        // [SCENARIO] Copy the item attributtes.
+
+        // [GIVEN] The Shop with the setting "SKU Mapping" = "Item No.", "Sync Item Extended Text" = true, "Sync Item Attributes" = true;
+        Shop := InitializeTest.CreateShop();
+        Shop."SKU Mapping" := "Shpfy SKU Mapping"::"Item No.";
+        Shop."Sync Item Extended Text" := true;
+        Shop."Sync Item Attributes" := true;
+        Shop.Modify();
+        CreateProduct.SetShop(Shop);
+
+        // [GIVEN] a Item record
+        ItemTemplateCode := Shop."Item Templ. Code";
+        Item := ProductInitTest.CreateItem(ItemTemplateCode, Any.DecimalInRange(10, 100, 2), Any.DecimalInRange(100, 1000, 2), true);
+        Item.SetRecFilter();
+
+        // [WHEN] Invoke CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant)
+        CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant, TempTag);
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() contains the HTML section '<div class="productDescription">'
+        LibraryAssert.IsTrue(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productDescription">'), '<div class="productDescription">');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() contains the HTML section '<div class="productAttributes">'
+        LibraryAssert.IsTrue(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productAttributes">'), '<div class="productAttributes">');
+
+        // [THEN] There are TempShopifyVariant records;
+        LibraryAssert.RecordIsNotEmpty(TempShopifyVariant);
+
+        if TempShopifyVariant.FindSet(false) then
+            repeat
+                // [THEN] There is a Item Variant record linked to the TempShopifyVariant record.
+                LibraryAssert.IsTrue(ItemVariant.GetBySystemId(TempShopifyVariant."Item Variant SystemId"), 'Item Variant Record is found.');
+
+                // [THEN] TempShopifyVariant.SKU = Item."No."
+                LibraryAssert.AreEqual(Item."No.", TempShopifyVariant.SKU, 'TempShopifyVariant.SKU = Item."No."');
+
+                // [THEN] TempShopifyVariant.Title = ItemVariant.Description
+                LibraryAssert.AreEqual(ItemVariant.Description, TempShopifyVariant.Title, 'TempShopifyVariant.Title = ItemVariant.Description');
+
+                // [THEN] TempShopifyVariant.Price = Item.Price
+                LibraryAssert.AreEqual(Item."Unit Price", TempShopifyVariant.Price, 'TempShopifyVariant.Price := Item.Price');
+
+                // [THEN] TempShpyVariant."Unit Cost" = Item."Unit Cost";
+                LibraryAssert.AreEqual(Item."Unit Cost", TempShopifyVariant."Unit Cost", 'TempShpyVariant."Unit Cost" = Item."Unit Cost"');
+
+                // [THEN] TempShopifyVariant."Option 1 Name" = 'Variant'
+                LibraryAssert.AreEqual('Variant', TempShopifyVariant."Option 1 Name", 'TempShopifyVariant."Option 1 Name" = ''Variant''');
+
+                // [THEN] TempShopifyVariant."Option 1 Value" = ItemVariant.Code
+                LibraryAssert.AreEqual(ItemVariant.Code, TempShopifyVariant."Option 1 Value", 'TempShopifyVariant."Option 1 Value" = ItemVariant.Code');
+
+            until TempShopifyVariant.Next() = 0;
+    end;
+
+    [Test]
+    procedure UnitTestCreateTempProductFromItemWithSKUIsVariantCode()
+    var
+        Item: Record Item;
+        TempShopifyProduct: Record "Shpfy Product" temporary;
+        Shop: Record "Shpfy Shop";
+        TempShopifyVariant: Record "Shpfy Variant" temporary;
+        TempTag: Record "Shpfy Tag" temporary;
+        CreateProduct: Codeunit "Shpfy Create Product";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+        ItemTemplateCode: Code[20];
+    begin
+        // [SCENARIO] Create a Item with no variants from a Shopify Product with the SKU mapped to Variant Code.
+        // [SCENARIO] Don't copy the extended text of the item.
+        // [SCENARIO] Don't copy the item attributtes.
+
+        // [GIVEN] The Shop with the setting "SKU Mapping" = "Variant Code"
+        Shop := InitializeTest.CreateShop();
+        Shop."SKU Mapping" := "Shpfy SKU Mapping"::"Variant Code";
+        Shop."Sync Item Extended Text" := false;
+        Shop."Sync Item Attributes" := false;
+        Shop.Modify();
+        CreateProduct.SetShop(Shop);
+
+        // [GIVEN] a Item record
+        ItemTemplateCode := Shop."Item Templ. Code";
+        Item := ProductInitTest.CreateItem(ItemTemplateCode, Any.DecimalInRange(10, 100, 2), Any.DecimalInRange(100, 1000, 2));
+        Item.SetRecFilter();
+
+        // [WHEN] Invoke CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant)
+        CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant, TempTag);
+
+        // [THEN] TempShopifyProduct.Title = Item.Description
+        LibraryAssert.AreEqual(Item.Description, TempShopifyProduct.Title, 'TempShopifyProduct.Title = Item.Description');
+
+        // [THEN] TempShopifyVariant.SKU = ''"
+        LibraryAssert.AreEqual('', TempShopifyVariant.SKU, 'TempShopifyVariant.SKU = ''''');
+
+        // [THEN] TempShopifyVariant.Price = Item.Price
+        LibraryAssert.AreEqual(Item."Unit Price", TempShopifyVariant.Price, 'TempShopifyVariant.Price := Item.Price');
+
+        // [THEN] TempShpyVariant."Unit Cost" = Item."Unit Cost";
+        LibraryAssert.AreEqual(Item."Unit Cost", TempShopifyVariant."Unit Cost", 'TempShpyVariant."Unit Cost" = Item."Unit Cost"');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() cannot contains the HTML section '<div class="productDescription">'
+        LibraryAssert.IsFalse(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productDescription">'), '<div class="productDescription">');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() cannot contains the HTML section '<div class="productAttributes">'
+        LibraryAssert.IsFalse(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productAttributes">'), '<div class="productAttributes">');
+    end;
+
+    [Test]
+    procedure UnitTestCreateTempProductFromItemWithSKUIsVariantCodeAndExtendedText()
+    var
+        Item: Record Item;
+        TempShopifyProduct: Record "Shpfy Product" temporary;
+        Shop: Record "Shpfy Shop";
+        TempShopifyVariant: Record "Shpfy Variant" temporary;
+        TempTag: Record "Shpfy Tag" temporary;
+        CreateProduct: Codeunit "Shpfy Create Product";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+        ItemTemplateCode: Code[20];
+    begin
+        // [SCENARIO] Create a Item with no variants from a Shopify Product with the SKU mapped to Variant Code.
+        // [SCENARIO] Copy the extended text of the item.
+        // [SCENARIO] Don't copy the item attributtes.
+
+        // [GIVEN] The Shop with the setting "SKU Mapping" = "Variant Code", "Sync Item Extended Text" = true;
+        Shop := InitializeTest.CreateShop();
+        Shop."SKU Mapping" := "Shpfy SKU Mapping"::"Variant Code";
+        Shop."Sync Item Extended Text" := true;
+        Shop."Sync Item Attributes" := false;
+        Shop.Modify();
+        CreateProduct.SetShop(Shop);
+
+        // [GIVEN] a Item record
+        ItemTemplateCode := Shop."Item Templ. Code";
+        Item := ProductInitTest.CreateItem(ItemTemplateCode, Any.DecimalInRange(10, 100, 2), Any.DecimalInRange(100, 1000, 2));
+        Item.SetRecFilter();
+
+        // [WHEN] Invoke CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant)
+        CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant, TempTag);
+
+        // [THEN] TempShopifyProduct.Title = Item.Description
+        LibraryAssert.AreEqual(Item.Description, TempShopifyProduct.Title, 'TempShopifyProduct.Title = Item.Description');
+
+        // [THEN] TempShopifyVariant.SKU = ''
+        LibraryAssert.AreEqual('', TempShopifyVariant.SKU, 'TempShopifyVariant.SKU = ''''');
+
+        // [THEN] TempShopifyVariant.Price = Item.Price
+        LibraryAssert.AreEqual(Item."Unit Price", TempShopifyVariant.Price, 'TempShopifyVariant.Price := Item.Price');
+
+        // [THEN] TempShpyVariant."Unit Cost" = Item."Unit Cost";
+        LibraryAssert.AreEqual(Item."Unit Cost", TempShopifyVariant."Unit Cost", 'TempShpyVariant."Unit Cost" = Item."Unit Cost"');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() must contains the HTML section '<div class="productDescription">'
+        LibraryAssert.IsTrue(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productDescription">'), '<div class="productDescription">');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() cannot contains the HTML section '<div class="productAttributes">'
+        LibraryAssert.IsFalse(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productAttributes">'), '<div class="productAttributes">');
+    end;
+
+    [Test]
+    procedure UnitTestCreateTempProductFromItemWithSKUIsVariantCodeAndItemAttributes()
+    var
+        Item: Record Item;
+        TempShopifyProduct: Record "Shpfy Product" temporary;
+        Shop: Record "Shpfy Shop";
+        TempShopifyVariant: Record "Shpfy Variant" temporary;
+        TempTag: Record "Shpfy Tag" temporary;
+        CreateProduct: Codeunit "Shpfy Create Product";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+        ItemTemplateCode: Code[20];
+    begin
+        // [SCENARIO] Create a Item with no variants from a Shopify Product with the SKU mapped to Variant Code.
+        // [SCENARIO] Don't copy the extended text of the item.
+        // [SCENARIO] Copy the item attributtes.
+
+        // [GIVEN] The Shop with the setting "SKU Mapping" = "Variant Code", "Sync Item Attributes" = true;
+        Shop := InitializeTest.CreateShop();
+        Shop."SKU Mapping" := "Shpfy SKU Mapping"::"Variant Code";
+        Shop."Sync Item Extended Text" := false;
+        Shop."Sync Item Attributes" := true;
+        Shop.Modify();
+        CreateProduct.SetShop(Shop);
+
+        // [GIVEN] a Item record
+        ItemTemplateCode := Shop."Item Templ. Code";
+        Item := ProductInitTest.CreateItem(ItemTemplateCode, Any.DecimalInRange(10, 100, 2), Any.DecimalInRange(100, 1000, 2));
+        Item.SetRecFilter();
+
+        // [WHEN] Invoke CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant)
+        CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant, TempTag);
+
+        // [THEN] TempShopifyProduct.Title = Item.Description
+        LibraryAssert.AreEqual(Item.Description, TempShopifyProduct.Title, 'TempShopifyProduct.Title = Item.Description');
+
+        // [THEN] TempShopifyVariant.SKU = ''
+        LibraryAssert.AreEqual('', TempShopifyVariant.SKU, 'TempShopifyVariant.SKU = ''''');
+
+        // [THEN] TempShopifyVariant.Price = Item.Price
+        LibraryAssert.AreEqual(Item."Unit Price", TempShopifyVariant.Price, 'TempShopifyVariant.Price := Item.Price');
+
+        // [THEN] TempShpyVariant."Unit Cost" = Item."Unit Cost";
+        LibraryAssert.AreEqual(Item."Unit Cost", TempShopifyVariant."Unit Cost", 'TempShpyVariant."Unit Cost" = Item."Unit Cost"');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() cannot contains the HTML section '<div class="productDescription">'
+        LibraryAssert.IsFalse(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productDescription">'), '<div class="productDescription">');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() contains the HTML section '<div class="productAttributes">'
+        LibraryAssert.IsTrue(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productAttributes">'), '<div class="productAttributes">');
+    end;
+
+    [Test]
+    procedure UnitTestCreateTempProductFromItemWithSKUIsVariantCodeAndExtendedTextAndItemAttributes()
+    var
+        Item: Record Item;
+        TempShopifyProduct: Record "Shpfy Product" temporary;
+        Shop: Record "Shpfy Shop";
+        TempShopifyVariant: Record "Shpfy Variant" temporary;
+        TempTag: Record "Shpfy Tag" temporary;
+        CreateProduct: Codeunit "Shpfy Create Product";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+        ItemTemplateCode: Code[20];
+    begin
+        // [SCENARIO] Create a Item with no variants from a Shopify Product with the SKU mapped to Variant Code.
+        // [SCENARIO] Copy the extended text of the item.
+        // [SCENARIO] Copy the item attributtes.
+
+        // [GIVEN] The Shop with the setting "SKU Mapping" = "Variant Code", "Sync Item Extended Text" = true, "Sync Item Attributes" = true;
+        Shop := InitializeTest.CreateShop();
+        Shop."SKU Mapping" := "Shpfy SKU Mapping"::"Variant Code";
+        Shop."Sync Item Extended Text" := true;
+        Shop."Sync Item Attributes" := true;
+        Shop.Modify();
+        CreateProduct.SetShop(Shop);
+
+        // [GIVEN] a Item record
+        ItemTemplateCode := Shop."Item Templ. Code";
+        Item := ProductInitTest.CreateItem(ItemTemplateCode, Any.DecimalInRange(10, 100, 2), Any.DecimalInRange(100, 1000, 2));
+        Item.SetRecFilter();
+
+        // [WHEN] Invoke CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant)
+        CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant, TempTag);
+
+        // [THEN] TempShopifyProduct.Title = Item.Description
+        LibraryAssert.AreEqual(Item.Description, TempShopifyProduct.Title, 'TempShopifyProduct.Title = Item.Description');
+
+        // [THEN] TempShopifyVariant.SKU = ''
+        LibraryAssert.AreEqual('', TempShopifyVariant.SKU, 'TempShopifyVariant.SKU = ''''');
+
+        // [THEN] TempShopifyVariant.Price = Item.Price
+        LibraryAssert.AreEqual(Item."Unit Price", TempShopifyVariant.Price, 'TempShopifyVariant.Price := Item.Price');
+
+        // [THEN] TempShpyVariant."Unit Cost" = Item."Unit Cost";
+        LibraryAssert.AreEqual(Item."Unit Cost", TempShopifyVariant."Unit Cost", 'TempShpyVariant."Unit Cost" = Item."Unit Cost"');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() contains the HTML section '<div class="productDescription">'
+        LibraryAssert.IsTrue(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productDescription">'), '<div class="productDescription">');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() contains the HTML section '<div class="productAttributes">'
+        LibraryAssert.IsTrue(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productAttributes">'), '<div class="productAttributes">');
+    end;
+
+    [Test]
+    procedure UnitTestCreateTempProductFromItemWithVariantsAndSKUIsVariantCode()
+    var
+        Item: Record Item;
+        ItemVariant: Record "Item Variant";
+        TempShopifyProduct: Record "Shpfy Product" temporary;
+        Shop: Record "Shpfy Shop";
+        TempShopifyVariant: Record "Shpfy Variant" temporary;
+        TempTag: Record "Shpfy Tag" temporary;
+        CreateProduct: Codeunit "Shpfy Create Product";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+        ItemTemplateCode: Code[20];
+    begin
+        // [SCENARIO] Create a Item with variants from a Shopify Product with the SKU mapped to Variant Code.
+        // [SCENARIO] Don't copy the extended text of the item.
+        // [SCENARIO] Don't copy the item attributtes.
+
+        // [GIVEN] The Shop with the setting "SKU Mapping" = "Variant Code";
+        Shop := InitializeTest.CreateShop();
+        Shop."SKU Mapping" := "Shpfy SKU Mapping"::"Variant Code";
+        Shop."Sync Item Extended Text" := false;
+        Shop."Sync Item Attributes" := false;
+        Shop.Modify();
+        CreateProduct.SetShop(Shop);
+
+        // [GIVEN] a Item record
+        ItemTemplateCode := Shop."Item Templ. Code";
+        Item := ProductInitTest.CreateItem(ItemTemplateCode, Any.DecimalInRange(10, 100, 2), Any.DecimalInRange(100, 1000, 2), true);
+        Item.SetRecFilter();
+
+        // [WHEN] Invoke CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant)
+        CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant, TempTag);
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() cannot contains the HTML section '<div class="productDescription">'
+        LibraryAssert.IsFalse(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productDescription">'), '<div class="productDescription">');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() cannot contains the HTML section '<div class="productAttributes">'
+        LibraryAssert.IsFalse(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productAttributes">'), '<div class="productAttributes">');
+
+        // [THEN] There are TempShopifyVariant records;
+        LibraryAssert.RecordIsNotEmpty(TempShopifyVariant);
+
+        if TempShopifyVariant.FindSet(false) then
+            repeat
+                // [THEN] There is a Item Variant record linked to the TempShopifyVariant record.
+                LibraryAssert.IsTrue(ItemVariant.GetBySystemId(TempShopifyVariant."Item Variant SystemId"), 'Item Variant Record is found.');
+
+                // [THEN] TempShopifyVariant.SKU = ItemVariant.Code
+                LibraryAssert.AreEqual(ItemVariant.Code, TempShopifyVariant.SKU, 'TempShopifyVariant.SKU = ItemVariant.Code');
+
+                // [THEN] TempShopifyVariant.Title = ItemVariant.Description
+                LibraryAssert.AreEqual(ItemVariant.Description, TempShopifyVariant.Title, 'TempShopifyVariant.Title = ItemVariant.Description');
+
+                // [THEN] TempShopifyVariant.Price = Item.Price
+                LibraryAssert.AreEqual(Item."Unit Price", TempShopifyVariant.Price, 'TempShopifyVariant.Price := Item.Price');
+
+                // [THEN] TempShpyVariant."Unit Cost" = Item."Unit Cost";
+                LibraryAssert.AreEqual(Item."Unit Cost", TempShopifyVariant."Unit Cost", 'TempShpyVariant."Unit Cost" = Item."Unit Cost"');
+
+                // [THEN] TempShopifyVariant."Option 1 Name" = 'Variant'
+                LibraryAssert.AreEqual('Variant', TempShopifyVariant."Option 1 Name", 'TempShopifyVariant."Option 1 Name" = ''Variant''');
+
+                // [THEN] TempShopifyVariant."Option 1 Value" = ItemVariant.Code
+                LibraryAssert.AreEqual(ItemVariant.Code, TempShopifyVariant."Option 1 Value", 'TempShopifyVariant."Option 1 Value" = ItemVariant.Code');
+
+            until TempShopifyVariant.Next() = 0;
+    end;
+
+    [Test]
+    procedure UnitTestCreateTempProductFromItemWithVariantsAndSKUIsVariantCodeAndExtendedText()
+    var
+        Item: Record Item;
+        ItemVariant: Record "Item Variant";
+        TempShopifyProduct: Record "Shpfy Product" temporary;
+        Shop: Record "Shpfy Shop";
+        TempShopifyVariant: Record "Shpfy Variant" temporary;
+        TempTag: Record "Shpfy Tag" temporary;
+        CreateProduct: Codeunit "Shpfy Create Product";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+        ItemTemplateCode: Code[20];
+    begin
+        // [SCENARIO] Create a Item with variants from a Shopify Product with the SKU mapped to Variant Code.
+        // [SCENARIO] Copy the extended text of the item.
+        // [SCENARIO] Don't copy the item attributtes.
+
+        // [GIVEN] The Shop with the setting "SKU Mapping" = "Variant Code", "Sync Item Extended Text" = true;
+        Shop := InitializeTest.CreateShop();
+        Shop."SKU Mapping" := "Shpfy SKU Mapping"::"Variant Code";
+        Shop."Sync Item Extended Text" := true;
+        Shop."Sync Item Attributes" := false;
+        Shop.Modify();
+        CreateProduct.SetShop(Shop);
+
+        // [GIVEN] a Item record
+        ItemTemplateCode := Shop."Item Templ. Code";
+        Item := ProductInitTest.CreateItem(ItemTemplateCode, Any.DecimalInRange(10, 100, 2), Any.DecimalInRange(100, 1000, 2), true);
+        Item.SetRecFilter();
+
+        // [WHEN] Invoke CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant)
+        CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant, TempTag);
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() contains the HTML section '<div class="productDescription">'
+        LibraryAssert.IsTrue(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productDescription">'), '<div class="productDescription">');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() cannot contains the HTML section '<div class="productAttributes">'
+        LibraryAssert.IsFalse(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productAttributes">'), '<div class="productAttributes">');
+
+        // [THEN] There are TempShopifyVariant records;
+        LibraryAssert.RecordIsNotEmpty(TempShopifyVariant);
+
+        if TempShopifyVariant.FindSet(false) then
+            repeat
+                // [THEN] There is a Item Variant record linked to the TempShopifyVariant record.
+                LibraryAssert.IsTrue(ItemVariant.GetBySystemId(TempShopifyVariant."Item Variant SystemId"), 'Item Variant Record is found.');
+
+                // [THEN] TempShopifyVariant.SKU = ItemVariant.Code
+                LibraryAssert.AreEqual(ItemVariant.Code, TempShopifyVariant.SKU, 'TempShopifyVariant.SKU = ItemVariant.Code');
+
+                // [THEN] TempShopifyVariant.Title = ItemVariant.Description
+                LibraryAssert.AreEqual(ItemVariant.Description, TempShopifyVariant.Title, 'TempShopifyVariant.Title = ItemVariant.Description');
+
+                // [THEN] TempShopifyVariant.Price = Item.Price
+                LibraryAssert.AreEqual(Item."Unit Price", TempShopifyVariant.Price, 'TempShopifyVariant.Price := Item.Price');
+
+                // [THEN] TempShpyVariant."Unit Cost" = Item."Unit Cost";
+                LibraryAssert.AreEqual(Item."Unit Cost", TempShopifyVariant."Unit Cost", 'TempShpyVariant."Unit Cost" = Item."Unit Cost"');
+
+                // [THEN] TempShopifyVariant."Option 1 Name" = 'Variant'
+                LibraryAssert.AreEqual('Variant', TempShopifyVariant."Option 1 Name", 'TempShopifyVariant."Option 1 Name" = ''Variant''');
+
+                // [THEN] TempShopifyVariant."Option 1 Value" = ItemVariant.Code
+                LibraryAssert.AreEqual(ItemVariant.Code, TempShopifyVariant."Option 1 Value", 'TempShopifyVariant."Option 1 Value" = ItemVariant.Code');
+
+            until TempShopifyVariant.Next() = 0;
+    end;
+
+    [Test]
+    procedure UnitTestCreateTempProductFromItemWithVariantsAndSKUIsVariantCodeAndItemAttributes()
+    var
+        Item: Record Item;
+        ItemVariant: Record "Item Variant";
+        TempShopifyProduct: Record "Shpfy Product" temporary;
+        Shop: Record "Shpfy Shop";
+        TempShopifyVariant: Record "Shpfy Variant" temporary;
+        TempTag: Record "Shpfy Tag" temporary;
+        CreateProduct: Codeunit "Shpfy Create Product";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+        ItemTemplateCode: Code[20];
+    begin
+        // [SCENARIO] Create a Item with variants from a Shopify Product with the SKU mapped to Variant Code.
+        // [SCENARIO] Don't copy the extended text of the item.
+        // [SCENARIO] Copy the item attributtes.
+
+        // [GIVEN] The Shop with the setting "SKU Mapping" = "Variant Code", "Sync Item Attributes" = true;
+        Shop := InitializeTest.CreateShop();
+        Shop."SKU Mapping" := "Shpfy SKU Mapping"::"Variant Code";
+        Shop."Sync Item Extended Text" := false;
+        Shop."Sync Item Attributes" := true;
+        Shop.Modify();
+        CreateProduct.SetShop(Shop);
+
+        // [GIVEN] a Item record
+        ItemTemplateCode := Shop."Item Templ. Code";
+        Item := ProductInitTest.CreateItem(ItemTemplateCode, Any.DecimalInRange(10, 100, 2), Any.DecimalInRange(100, 1000, 2), true);
+        Item.SetRecFilter();
+
+        // [WHEN] Invoke CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant)
+        CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant, TempTag);
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() cannot contains the HTML section '<div class="productDescription">'
+        LibraryAssert.IsFalse(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productDescription">'), '<div class="productDescription">');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() contains the HTML section '<div class="productAttributes">'
+        LibraryAssert.IsTrue(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productAttributes">'), '<div class="productAttributes">');
+
+        // [THEN] There are TempShopifyVariant records;
+        LibraryAssert.RecordIsNotEmpty(TempShopifyVariant);
+
+        if TempShopifyVariant.FindSet(false) then
+            repeat
+                // [THEN] There is a Item Variant record linked to the TempShopifyVariant record.
+                LibraryAssert.IsTrue(ItemVariant.GetBySystemId(TempShopifyVariant."Item Variant SystemId"), 'Item Variant Record is found.');
+
+                // [THEN] TempShopifyVariant.SKU = ItemVariant.Code
+                LibraryAssert.AreEqual(ItemVariant.Code, TempShopifyVariant.SKU, 'TempShopifyVariant.SKU = ItemVariant.Code');
+
+                // [THEN] TempShopifyVariant.Title = ItemVariant.Description
+                LibraryAssert.AreEqual(ItemVariant.Description, TempShopifyVariant.Title, 'TempShopifyVariant.Title = ItemVariant.Description');
+
+                // [THEN] TempShopifyVariant.Price = Item.Price
+                LibraryAssert.AreEqual(Item."Unit Price", TempShopifyVariant.Price, 'TempShopifyVariant.Price := Item.Price');
+
+                // [THEN] TempShpyVariant."Unit Cost" = Item."Unit Cost";
+                LibraryAssert.AreEqual(Item."Unit Cost", TempShopifyVariant."Unit Cost", 'TempShpyVariant."Unit Cost" = Item."Unit Cost"');
+
+                // [THEN] TempShopifyVariant."Option 1 Name" = 'Variant'
+                LibraryAssert.AreEqual('Variant', TempShopifyVariant."Option 1 Name", 'TempShopifyVariant."Option 1 Name" = ''Variant''');
+
+                // [THEN] TempShopifyVariant."Option 1 Value" = ItemVariant.Code
+                LibraryAssert.AreEqual(ItemVariant.Code, TempShopifyVariant."Option 1 Value", 'TempShopifyVariant."Option 1 Value" = ItemVariant.Code');
+
+            until TempShopifyVariant.Next() = 0;
+    end;
+
+    [Test]
+    procedure UnitTestCreateTempProductFromItemWithVariantsAndSKUIsVariantCodeAndExtendedTextAndItemAttributes()
+    var
+        Item: Record Item;
+        ItemVariant: Record "Item Variant";
+        TempShopifyProduct: Record "Shpfy Product" temporary;
+        Shop: Record "Shpfy Shop";
+        TempShopifyVariant: Record "Shpfy Variant" temporary;
+        TempTag: Record "Shpfy Tag" temporary;
+        CreateProduct: Codeunit "Shpfy Create Product";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+        ItemTemplateCode: Code[20];
+    begin
+        // [SCENARIO] Create a Item with variants from a Shopify Product with the SKU mapped to Variant Code.
+        // [SCENARIO] Copy the extended text of the item.
+        // [SCENARIO] Copy the item attributtes.
+
+        // [GIVEN] The Shop with the setting "SKU Mapping" = "Variant Code", "Sync Item Extended Text" = true, "Sync Item Attributes" = true;
+        Shop := InitializeTest.CreateShop();
+        Shop."SKU Mapping" := "Shpfy SKU Mapping"::"Variant Code";
+        Shop."Sync Item Extended Text" := true;
+        Shop."Sync Item Attributes" := true;
+        Shop.Modify();
+        CreateProduct.SetShop(Shop);
+
+        // [GIVEN] a Item record
+        ItemTemplateCode := Shop."Item Templ. Code";
+        Item := ProductInitTest.CreateItem(ItemTemplateCode, Any.DecimalInRange(10, 100, 2), Any.DecimalInRange(100, 1000, 2), true);
+        Item.SetRecFilter();
+
+        // [WHEN] Invoke CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant)
+        CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant, TempTag);
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() contains the HTML section '<div class="productDescription">'
+        LibraryAssert.IsTrue(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productDescription">'), '<div class="productDescription">');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() contains the HTML section '<div class="productAttributes">'
+        LibraryAssert.IsTrue(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productAttributes">'), '<div class="productAttributes">');
+
+        // [THEN] There are TempShopifyVariant records;
+        LibraryAssert.RecordIsNotEmpty(TempShopifyVariant);
+
+        if TempShopifyVariant.FindSet(false) then
+            repeat
+                // [THEN] There is a Item Variant record linked to the TempShopifyVariant record.
+                LibraryAssert.IsTrue(ItemVariant.GetBySystemId(TempShopifyVariant."Item Variant SystemId"), 'Item Variant Record is found.');
+
+                // [THEN] TempShopifyVariant.SKU = ItemVariant.Code
+                LibraryAssert.AreEqual(ItemVariant.Code, TempShopifyVariant.SKU, 'TempShopifyVariant.SKU = ItemVariant.Code');
+
+                // [THEN] TempShopifyVariant.Title = ItemVariant.Description
+                LibraryAssert.AreEqual(ItemVariant.Description, TempShopifyVariant.Title, 'TempShopifyVariant.Title = ItemVariant.Description');
+
+                // [THEN] TempShopifyVariant.Price = Item.Price
+                LibraryAssert.AreEqual(Item."Unit Price", TempShopifyVariant.Price, 'TempShopifyVariant.Price := Item.Price');
+
+                // [THEN] TempShpyVariant."Unit Cost" = Item."Unit Cost";
+                LibraryAssert.AreEqual(Item."Unit Cost", TempShopifyVariant."Unit Cost", 'TempShpyVariant."Unit Cost" = Item."Unit Cost"');
+
+                // [THEN] TempShopifyVariant."Option 1 Name" = 'Variant'
+                LibraryAssert.AreEqual('Variant', TempShopifyVariant."Option 1 Name", 'TempShopifyVariant."Option 1 Name" = ''Variant''');
+
+                // [THEN] TempShopifyVariant."Option 1 Value" = ItemVariant.Code
+                LibraryAssert.AreEqual(ItemVariant.Code, TempShopifyVariant."Option 1 Value", 'TempShopifyVariant."Option 1 Value" = ItemVariant.Code');
+
+            until TempShopifyVariant.Next() = 0;
+    end;
+
+    [Test]
+    procedure UnitTestCreateTempProductFromItemWithSKUIsItemNoVariantCode()
+    var
+        Item: Record Item;
+        TempShopifyProduct: Record "Shpfy Product" temporary;
+        Shop: Record "Shpfy Shop";
+        TempShopifyVariant: Record "Shpfy Variant" temporary;
+        TempTag: Record "Shpfy Tag" temporary;
+        CreateProduct: Codeunit "Shpfy Create Product";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+        ItemTemplateCode: Code[20];
+    begin
+        // [SCENARIO] Create a Item with no variants from a Shopify Product with the SKU mapped to Item No. + Variant Code.
+        // [SCENARIO] Don't copy the extended text of the item.
+        // [SCENARIO] Don't copy the item attributtes.
+
+        // [GIVEN] The Shop with the setting "SKU Mapping" = "Item No. + Variant Code";
+        Shop := InitializeTest.CreateShop();
+        Shop."SKU Mapping" := "Shpfy SKU Mapping"::"Item No. + Variant Code";
+        Shop."Sync Item Extended Text" := false;
+        Shop."Sync Item Attributes" := false;
+        Shop.Modify();
+        CreateProduct.SetShop(Shop);
+
+        // [GIVEN] a Item record
+        ItemTemplateCode := Shop."Item Templ. Code";
+        Item := ProductInitTest.CreateItem(ItemTemplateCode, Any.DecimalInRange(10, 100, 2), Any.DecimalInRange(100, 1000, 2));
+        Item.SetRecFilter();
+
+        // [WHEN] Invoke CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant)
+        CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant, TempTag);
+
+        // [THEN] TempShopifyProduct.Title = Item.Description
+        LibraryAssert.AreEqual(Item.Description, TempShopifyProduct.Title, 'TempShopifyProduct.Title = Item.Description');
+
+        // [THEN] TempShopifyVariant.SKU = Item."No."
+        LibraryAssert.AreEqual(Item."No.", TempShopifyVariant.SKU, 'TempShopifyVariant.SKU = Item."No."');
+
+        // [THEN] TempShopifyVariant.Price = Item.Price
+        LibraryAssert.AreEqual(Item."Unit Price", TempShopifyVariant.Price, 'TempShopifyVariant.Price := Item.Price');
+
+        // [THEN] TempShpyVariant."Unit Cost" = Item."Unit Cost";
+        LibraryAssert.AreEqual(Item."Unit Cost", TempShopifyVariant."Unit Cost", 'TempShpyVariant."Unit Cost" = Item."Unit Cost"');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() cannot contains the HTML section '<div class="productDescription">'
+        LibraryAssert.IsFalse(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productDescription">'), '<div class="productDescription">');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() cannot contains the HTML section '<div class="productAttributes">'
+        LibraryAssert.IsFalse(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productAttributes">'), '<div class="productAttributes">');
+    end;
+
+    [Test]
+    procedure UnitTestCreateTempProductFromItemWithSKUIsItemNoVariantCodeAndExtendedText()
+    var
+        Item: Record Item;
+        TempShopifyProduct: Record "Shpfy Product" temporary;
+        Shop: Record "Shpfy Shop";
+        TempShopifyVariant: Record "Shpfy Variant" temporary;
+        TempTag: Record "Shpfy Tag" temporary;
+        CreateProduct: Codeunit "Shpfy Create Product";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+        ItemTemplateCode: Code[20];
+    begin
+        // [SCENARIO] Create a Item with no variants from a Shopify Product with the SKU mapped to Item No. + Variant Code.
+        // [SCENARIO] Copy the extended text of the item.
+        // [SCENARIO] Don't copy the item attributtes.
+
+        // [GIVEN] The Shop with the setting "SKU Mapping" = "Item No. + Variant Code", "Sync Item Extended Text" = true;
+        Shop := InitializeTest.CreateShop();
+        Shop."SKU Mapping" := "Shpfy SKU Mapping"::"Item No. + Variant Code";
+        Shop."Sync Item Extended Text" := true;
+        Shop."Sync Item Attributes" := false;
+        Shop.Modify();
+        CreateProduct.SetShop(Shop);
+
+        // [GIVEN] a Item record
+        ItemTemplateCode := Shop."Item Templ. Code";
+        Item := ProductInitTest.CreateItem(ItemTemplateCode, Any.DecimalInRange(10, 100, 2), Any.DecimalInRange(100, 1000, 2));
+        Item.SetRecFilter();
+
+        // [WHEN] Invoke CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant)
+        CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant, TempTag);
+
+        // [THEN] TempShopifyProduct.Title = Item.Description
+        LibraryAssert.AreEqual(Item.Description, TempShopifyProduct.Title, 'TempShopifyProduct.Title = Item.Description');
+
+        // [THEN] TempShopifyVariant.SKU = Item."No."
+        LibraryAssert.AreEqual(Item."No.", TempShopifyVariant.SKU, 'TempShopifyVariant.SKU = Item."No."');
+
+        // [THEN] TempShopifyVariant.Price = Item.Price
+        LibraryAssert.AreEqual(Item."Unit Price", TempShopifyVariant.Price, 'TempShopifyVariant.Price := Item.Price');
+
+        // [THEN] TempShpyVariant."Unit Cost" = Item."Unit Cost";
+        LibraryAssert.AreEqual(Item."Unit Cost", TempShopifyVariant."Unit Cost", 'TempShpyVariant."Unit Cost" = Item."Unit Cost"');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() must contains the HTML section '<div class="productDescription">'
+        LibraryAssert.IsTrue(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productDescription">'), '<div class="productDescription">');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() cannot contains the HTML section '<div class="productAttributes">'
+        LibraryAssert.IsFalse(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productAttributes">'), '<div class="productAttributes">');
+    end;
+
+    [Test]
+    procedure UnitTestCreateTempProductFromItemWithSKUIsItemNoVariantCodeAndItemAttributes()
+    var
+        Item: Record Item;
+        TempShopifyProduct: Record "Shpfy Product" temporary;
+        Shop: Record "Shpfy Shop";
+        TempShopifyVariant: Record "Shpfy Variant" temporary;
+        TempTag: Record "Shpfy Tag" temporary;
+        CreateProduct: Codeunit "Shpfy Create Product";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+        ItemTemplateCode: Code[20];
+    begin
+        // [SCENARIO] Create a Item with no variants from a Shopify Product with the SKU mapped to Item No. + Variant Code.
+        // [SCENARIO] Don't copy the extended text of the item.
+        // [SCENARIO] Copy the item attributtes.
+
+        // [GIVEN] The Shop with the setting "SKU Mapping" = "Item No. + Variant Code", "Sync Item Attributes" = true;
+        Shop := InitializeTest.CreateShop();
+        Shop."SKU Mapping" := "Shpfy SKU Mapping"::"Item No. + Variant Code";
+        Shop."Sync Item Extended Text" := false;
+        Shop."Sync Item Attributes" := true;
+        Shop.Modify();
+        CreateProduct.SetShop(Shop);
+
+        // [GIVEN] a Item record
+        ItemTemplateCode := Shop."Item Templ. Code";
+        Item := ProductInitTest.CreateItem(ItemTemplateCode, Any.DecimalInRange(10, 100, 2), Any.DecimalInRange(100, 1000, 2));
+        Item.SetRecFilter();
+
+        // [WHEN] Invoke CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant)
+        CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant, TempTag);
+
+        // [THEN] TempShopifyProduct.Title = Item.Description
+        LibraryAssert.AreEqual(Item.Description, TempShopifyProduct.Title, 'TempShopifyProduct.Title = Item.Description');
+
+        // [THEN] TempShopifyVariant.SKU = Item."No."
+        LibraryAssert.AreEqual(Item."No.", TempShopifyVariant.SKU, 'TempShopifyVariant.SKU = Item."No."');
+
+        // [THEN] TempShopifyVariant.Price = Item.Price
+        LibraryAssert.AreEqual(Item."Unit Price", TempShopifyVariant.Price, 'TempShopifyVariant.Price := Item.Price');
+
+        // [THEN] TempShpyVariant."Unit Cost" = Item."Unit Cost";
+        LibraryAssert.AreEqual(Item."Unit Cost", TempShopifyVariant."Unit Cost", 'TempShpyVariant."Unit Cost" = Item."Unit Cost"');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() cannot contains the HTML section '<div class="productDescription">'
+        LibraryAssert.IsFalse(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productDescription">'), '<div class="productDescription">');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() contains the HTML section '<div class="productAttributes">'
+        LibraryAssert.IsTrue(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productAttributes">'), '<div class="productAttributes">');
+    end;
+
+    [Test]
+    procedure UnitTestCreateTempProductFromItemWithSKUIsItemNoVariantCodeAndExtendedTextAndItemAttributes()
+    var
+        Item: Record Item;
+        TempShopifyProduct: Record "Shpfy Product" temporary;
+        Shop: Record "Shpfy Shop";
+        TempShopifyVariant: Record "Shpfy Variant" temporary;
+        TempTag: Record "Shpfy Tag" temporary;
+        CreateProduct: Codeunit "Shpfy Create Product";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+        ItemTemplateCode: Code[20];
+    begin
+        // [SCENARIO] Create a Item with no variants from a Shopify Product with the SKU mapped to Item No. + Variant Code.
+        // [SCENARIO] Copy the extended text of the item.
+        // [SCENARIO] Copy the item attributtes.
+
+        // [GIVEN] The Shop with the setting "SKU Mapping" = "Item No. + Variant Code", "Sync Item Extended Text" = true, "Sync Item Attributes" = true;
+        Shop := InitializeTest.CreateShop();
+        Shop."SKU Mapping" := "Shpfy SKU Mapping"::"Item No. + Variant Code";
+        Shop."Sync Item Extended Text" := true;
+        Shop."Sync Item Attributes" := true;
+        Shop.Modify();
+        CreateProduct.SetShop(Shop);
+
+        // [GIVEN] a Item record
+        ItemTemplateCode := Shop."Item Templ. Code";
+        Item := ProductInitTest.CreateItem(ItemTemplateCode, Any.DecimalInRange(10, 100, 2), Any.DecimalInRange(100, 1000, 2));
+        Item.SetRecFilter();
+
+        // [WHEN] Invoke CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant)
+        CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant, TempTag);
+
+        // [THEN] TempShopifyProduct.Title = Item.Description
+        LibraryAssert.AreEqual(Item.Description, TempShopifyProduct.Title, 'TempShopifyProduct.Title = Item.Description');
+
+        // [THEN] TempShopifyVariant.SKU = Item."No."
+        LibraryAssert.AreEqual(Item."No.", TempShopifyVariant.SKU, 'TempShopifyVariant.SKU = Item."No."');
+
+        // [THEN] TempShopifyVariant.Price = Item.Price
+        LibraryAssert.AreEqual(Item."Unit Price", TempShopifyVariant.Price, 'TempShopifyVariant.Price := Item.Price');
+
+        // [THEN] TempShpyVariant."Unit Cost" = Item."Unit Cost";
+        LibraryAssert.AreEqual(Item."Unit Cost", TempShopifyVariant."Unit Cost", 'TempShpyVariant."Unit Cost" = Item."Unit Cost"');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() contains the HTML section '<div class="productDescription">'
+        LibraryAssert.IsTrue(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productDescription">'), '<div class="productDescription">');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() contains the HTML section '<div class="productAttributes">'
+        LibraryAssert.IsTrue(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productAttributes">'), '<div class="productAttributes">');
+    end;
+
+    [Test]
+    procedure UnitTestCreateTempProductFromItemWithVariantsAndSKUIsItemNoVariantCode()
+    var
+        Item: Record Item;
+        ItemVariant: Record "Item Variant";
+        TempShopifyProduct: Record "Shpfy Product" temporary;
+        Shop: Record "Shpfy Shop";
+        TempShopifyVariant: Record "Shpfy Variant" temporary;
+        TempTag: Record "Shpfy Tag" temporary;
+        CreateProduct: Codeunit "Shpfy Create Product";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+        ItemTemplateCode: Code[20];
+    begin
+        // [SCENARIO] Create a Item with variants from a Shopify Product with the SKU mapped to Item No. + Variant Code.
+        // [SCENARIO] Don't copy the extended text of the item.
+        // [SCENARIO] Don't copy the item attributtes.
+
+        // [GIVEN] The Shop with the setting "SKU Mapping" = "Item No. + Variant Code";
+        Shop := InitializeTest.CreateShop();
+        Shop."SKU Mapping" := "Shpfy SKU Mapping"::"Item No. + Variant Code";
+        Shop."Sync Item Extended Text" := false;
+        Shop."Sync Item Attributes" := false;
+        Shop.Modify();
+        CreateProduct.SetShop(Shop);
+
+        // [GIVEN] a Item record
+        ItemTemplateCode := Shop."Item Templ. Code";
+        Item := ProductInitTest.CreateItem(ItemTemplateCode, Any.DecimalInRange(10, 100, 2), Any.DecimalInRange(100, 1000, 2), true);
+        Item.SetRecFilter();
+
+        // [WHEN] Invoke CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant)
+        CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant, TempTag);
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() cannot contains the HTML section '<div class="productDescription">'
+        LibraryAssert.IsFalse(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productDescription">'), '<div class="productDescription">');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() cannot contains the HTML section '<div class="productAttributes">'
+        LibraryAssert.IsFalse(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productAttributes">'), '<div class="productAttributes">');
+
+        // [THEN] There are TempShopifyVariant records;
+        LibraryAssert.RecordIsNotEmpty(TempShopifyVariant);
+
+        if TempShopifyVariant.FindSet(false) then
+            repeat
+                // [THEN] There is a Item Variant record linked to the TempShopifyVariant record.
+                LibraryAssert.IsTrue(ItemVariant.GetBySystemId(TempShopifyVariant."Item Variant SystemId"), 'Item Variant Record is found.');
+
+                // [THEN] TempShopifyVariant.SKU = Item No. + Shop."SKU Field Separator" + ItemVariant.Code
+                LibraryAssert.AreEqual(Item."No." + Shop."SKU Field Separator" + ItemVariant.Code, TempShopifyVariant.SKU, 'TempShopifyVariant.SKU = Item No. + Shop."SKU Field Separator" + ItemVariant.Code');
+
+                // [THEN] TempShopifyVariant.Title = ItemVariant.Description
+                LibraryAssert.AreEqual(ItemVariant.Description, TempShopifyVariant.Title, 'TempShopifyVariant.Title = ItemVariant.Description');
+
+                // [THEN] TempShopifyVariant.Price = Item.Price
+                LibraryAssert.AreEqual(Item."Unit Price", TempShopifyVariant.Price, 'TempShopifyVariant.Price := Item.Price');
+
+                // [THEN] TempShpyVariant."Unit Cost" = Item."Unit Cost";
+                LibraryAssert.AreEqual(Item."Unit Cost", TempShopifyVariant."Unit Cost", 'TempShpyVariant."Unit Cost" = Item."Unit Cost"');
+
+                // [THEN] TempShopifyVariant."Option 1 Name" = 'Variant'
+                LibraryAssert.AreEqual('Variant', TempShopifyVariant."Option 1 Name", 'TempShopifyVariant."Option 1 Name" = ''Variant''');
+
+                // [THEN] TempShopifyVariant."Option 1 Value" = ItemVariant.Code
+                LibraryAssert.AreEqual(ItemVariant.Code, TempShopifyVariant."Option 1 Value", 'TempShopifyVariant."Option 1 Value" = ItemVariant.Code');
+
+            until TempShopifyVariant.Next() = 0;
+    end;
+
+    [Test]
+    procedure UnitTestCreateTempProductFromItemWithVariantsAndSKUIsItemNoVariantCodeAndExtendedText()
+    var
+        Item: Record Item;
+        ItemVariant: Record "Item Variant";
+        TempShopifyProduct: Record "Shpfy Product" temporary;
+        Shop: Record "Shpfy Shop";
+        TempShopifyVariant: Record "Shpfy Variant" temporary;
+        TempTag: Record "Shpfy Tag" temporary;
+        CreateProduct: Codeunit "Shpfy Create Product";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+        ItemTemplateCode: Code[20];
+    begin
+        // [SCENARIO] Create a Item with variants from a Shopify Product with the SKU mapped to Item No. + Variant Code.
+        // [SCENARIO] Copy the extended text of the item.
+        // [SCENARIO] Don't copy the item attributtes.
+
+        // [GIVEN] The Shop with the setting "SKU Mapping" = "Item No. + Variant Code", "Sync Item Extended Text" = true;
+        Shop := InitializeTest.CreateShop();
+        Shop."SKU Mapping" := "Shpfy SKU Mapping"::"Item No. + Variant Code";
+        Shop."Sync Item Extended Text" := true;
+        Shop."Sync Item Attributes" := false;
+        Shop.Modify();
+        CreateProduct.SetShop(Shop);
+
+        // [GIVEN] a Item record
+        ItemTemplateCode := Shop."Item Templ. Code";
+        Item := ProductInitTest.CreateItem(ItemTemplateCode, Any.DecimalInRange(10, 100, 2), Any.DecimalInRange(100, 1000, 2), true);
+        Item.SetRecFilter();
+
+        // [WHEN] Invoke CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant)
+        CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant, TempTag);
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() contains the HTML section '<div class="productDescription">'
+        LibraryAssert.IsTrue(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productDescription">'), '<div class="productDescription">');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() cannot contains the HTML section '<div class="productAttributes">'
+        LibraryAssert.IsFalse(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productAttributes">'), '<div class="productAttributes">');
+
+        // [THEN] There are TempShopifyVariant records;
+        LibraryAssert.RecordIsNotEmpty(TempShopifyVariant);
+
+        if TempShopifyVariant.FindSet(false) then
+            repeat
+                // [THEN] There is a Item Variant record linked to the TempShopifyVariant record.
+                LibraryAssert.IsTrue(ItemVariant.GetBySystemId(TempShopifyVariant."Item Variant SystemId"), 'Item Variant Record is found.');
+
+                // [THEN] TempShopifyVariant.SKU = Item No. + Shop."SKU Field Separator" + ItemVariant.Code
+                LibraryAssert.AreEqual(Item."No." + Shop."SKU Field Separator" + ItemVariant.Code, TempShopifyVariant.SKU, 'TempShopifyVariant.SKU = Item No. + Shop."SKU Field Separator" + ItemVariant.Code');
+
+                // [THEN] TempShopifyVariant.Title = ItemVariant.Description
+                LibraryAssert.AreEqual(ItemVariant.Description, TempShopifyVariant.Title, 'TempShopifyVariant.Title = ItemVariant.Description');
+
+                // [THEN] TempShopifyVariant.Price = Item.Price
+                LibraryAssert.AreEqual(Item."Unit Price", TempShopifyVariant.Price, 'TempShopifyVariant.Price := Item.Price');
+
+                // [THEN] TempShpyVariant."Unit Cost" = Item."Unit Cost";
+                LibraryAssert.AreEqual(Item."Unit Cost", TempShopifyVariant."Unit Cost", 'TempShpyVariant."Unit Cost" = Item."Unit Cost"');
+
+                // [THEN] TempShopifyVariant."Option 1 Name" = 'Variant'
+                LibraryAssert.AreEqual('Variant', TempShopifyVariant."Option 1 Name", 'TempShopifyVariant."Option 1 Name" = ''Variant''');
+
+                // [THEN] TempShopifyVariant."Option 1 Value" = ItemVariant.Code
+                LibraryAssert.AreEqual(ItemVariant.Code, TempShopifyVariant."Option 1 Value", 'TempShopifyVariant."Option 1 Value" = ItemVariant.Code');
+
+            until TempShopifyVariant.Next() = 0;
+    end;
+
+    [Test]
+    procedure UnitTestCreateTempProductFromItemWithVariantsAndSKUIsItemNoVariantCodeAndItemAttributes()
+    var
+        Item: Record Item;
+        ItemVariant: Record "Item Variant";
+        TempShopifyProduct: Record "Shpfy Product" temporary;
+        Shop: Record "Shpfy Shop";
+        TempShopifyVariant: Record "Shpfy Variant" temporary;
+        TempTag: Record "Shpfy Tag" temporary;
+        CreateProduct: Codeunit "Shpfy Create Product";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+        ItemTemplateCode: Code[20];
+    begin
+        // [SCENARIO] Create a Item with variants from a Shopify Product with the SKU mapped to Item No. + Variant Code.
+        // [SCENARIO] Don't copy the extended text of the item.
+        // [SCENARIO] Copy the item attributtes.
+
+        // [GIVEN] The Shop with the setting "SKU Mapping" = "Item No. + Variant Code", "Sync Item Attributes" = true;
+        Shop := InitializeTest.CreateShop();
+        Shop."SKU Mapping" := "Shpfy SKU Mapping"::"Item No. + Variant Code";
+        Shop."Sync Item Extended Text" := false;
+        Shop."Sync Item Attributes" := true;
+        Shop.Modify();
+        CreateProduct.SetShop(Shop);
+
+        // [GIVEN] a Item record
+        ItemTemplateCode := Shop."Item Templ. Code";
+        Item := ProductInitTest.CreateItem(ItemTemplateCode, Any.DecimalInRange(10, 100, 2), Any.DecimalInRange(100, 1000, 2), true);
+        Item.SetRecFilter();
+
+        // [WHEN] Invoke CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant)
+        CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant, TempTag);
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() cannot contains the HTML section '<div class="productDescription">'
+        LibraryAssert.IsFalse(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productDescription">'), '<div class="productDescription">');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() contains the HTML section '<div class="productAttributes">'
+        LibraryAssert.IsTrue(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productAttributes">'), '<div class="productAttributes">');
+
+        // [THEN] There are TempShopifyVariant records;
+        LibraryAssert.RecordIsNotEmpty(TempShopifyVariant);
+
+        if TempShopifyVariant.FindSet(false) then
+            repeat
+                // [THEN] There is a Item Variant record linked to the TempShopifyVariant record.
+                LibraryAssert.IsTrue(ItemVariant.GetBySystemId(TempShopifyVariant."Item Variant SystemId"), 'Item Variant Record is found.');
+
+                // [THEN] TempShopifyVariant.SKU = Item No. + Shop."SKU Field Separator" + ItemVariant.Code
+                LibraryAssert.AreEqual(Item."No." + Shop."SKU Field Separator" + ItemVariant.Code, TempShopifyVariant.SKU, 'TempShopifyVariant.SKU = Item No. + Shop."SKU Field Separator" + ItemVariant.Code');
+
+                // [THEN] TempShopifyVariant.Title = ItemVariant.Description
+                LibraryAssert.AreEqual(ItemVariant.Description, TempShopifyVariant.Title, 'TempShopifyVariant.Title = ItemVariant.Description');
+
+                // [THEN] TempShopifyVariant.Price = Item.Price
+                LibraryAssert.AreEqual(Item."Unit Price", TempShopifyVariant.Price, 'TempShopifyVariant.Price := Item.Price');
+
+                // [THEN] TempShpyVariant."Unit Cost" = Item."Unit Cost";
+                LibraryAssert.AreEqual(Item."Unit Cost", TempShopifyVariant."Unit Cost", 'TempShpyVariant."Unit Cost" = Item."Unit Cost"');
+
+                // [THEN] TempShopifyVariant."Option 1 Name" = 'Variant'
+                LibraryAssert.AreEqual('Variant', TempShopifyVariant."Option 1 Name", 'TempShopifyVariant."Option 1 Name" = ''Variant''');
+
+                // [THEN] TempShopifyVariant."Option 1 Value" = ItemVariant.Code
+                LibraryAssert.AreEqual(ItemVariant.Code, TempShopifyVariant."Option 1 Value", 'TempShopifyVariant."Option 1 Value" = ItemVariant.Code');
+
+            until TempShopifyVariant.Next() = 0;
+    end;
+
+    [Test]
+    procedure UnitTestCreateTempProductFromItemWithVariantsAndSKUIsItemNoVariantCodeAndExtendedTextAndItemAttributes()
+    var
+        Item: Record Item;
+        ItemVariant: Record "Item Variant";
+        TempShopifyProduct: Record "Shpfy Product" temporary;
+        Shop: Record "Shpfy Shop";
+        TempShopifyVariant: Record "Shpfy Variant" temporary;
+        TempTag: Record "Shpfy Tag" temporary;
+        CreateProduct: Codeunit "Shpfy Create Product";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+        ItemTemplateCode: Code[20];
+    begin
+        // [SCENARIO] Create a Item with variants from a Shopify Product with the SKU mapped to Item No. + Variant Code.
+        // [SCENARIO] Copy the extended text of the item.
+        // [SCENARIO] Copy the item attributtes.
+
+        // [GIVEN] The Shop with the setting "SKU Mapping" = "Item No. + Variant Code", "Sync Item Extended Text" = true, "Sync Item Attributes" = true;
+        Shop := InitializeTest.CreateShop();
+        Shop."SKU Mapping" := "Shpfy SKU Mapping"::"Item No. + Variant Code";
+        Shop."Sync Item Extended Text" := true;
+        Shop."Sync Item Attributes" := true;
+        Shop.Modify();
+        CreateProduct.SetShop(Shop);
+
+        // [GIVEN] a Item record
+        ItemTemplateCode := Shop."Item Templ. Code";
+        Item := ProductInitTest.CreateItem(ItemTemplateCode, Any.DecimalInRange(10, 100, 2), Any.DecimalInRange(100, 1000, 2), true);
+        Item.SetRecFilter();
+
+        // [WHEN] Invoke CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant)
+        CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant, TempTag);
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() contains the HTML section '<div class="productDescription">'
+        LibraryAssert.IsTrue(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productDescription">'), '<div class="productDescription">');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() contains the HTML section '<div class="productAttributes">'
+        LibraryAssert.IsTrue(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productAttributes">'), '<div class="productAttributes">');
+
+        // [THEN] There are TempShopifyVariant records;
+        LibraryAssert.RecordIsNotEmpty(TempShopifyVariant);
+
+        if TempShopifyVariant.FindSet(false) then
+            repeat
+                // [THEN] There is a Item Variant record linked to the TempShopifyVariant record.
+                LibraryAssert.IsTrue(ItemVariant.GetBySystemId(TempShopifyVariant."Item Variant SystemId"), 'Item Variant Record is found.');
+
+                // [THEN] TempShopifyVariant.SKU = Item No. + Shop."SKU Field Separator" + ItemVariant.Code
+                LibraryAssert.AreEqual(Item."No." + Shop."SKU Field Separator" + ItemVariant.Code, TempShopifyVariant.SKU, 'TempShopifyVariant.SKU = Item No. + Shop."SKU Field Separator" + ItemVariant.Code');
+
+                // [THEN] TempShopifyVariant.Title = ItemVariant.Description
+                LibraryAssert.AreEqual(ItemVariant.Description, TempShopifyVariant.Title, 'TempShopifyVariant.Title = ItemVariant.Description');
+
+                // [THEN] TempShopifyVariant.Price = Item.Price
+                LibraryAssert.AreEqual(Item."Unit Price", TempShopifyVariant.Price, 'TempShopifyVariant.Price := Item.Price');
+
+                // [THEN] TempShpyVariant."Unit Cost" = Item."Unit Cost";
+                LibraryAssert.AreEqual(Item."Unit Cost", TempShopifyVariant."Unit Cost", 'TempShpyVariant."Unit Cost" = Item."Unit Cost"');
+
+                // [THEN] TempShopifyVariant."Option 1 Name" = 'Variant'
+                LibraryAssert.AreEqual('Variant', TempShopifyVariant."Option 1 Name", 'TempShopifyVariant."Option 1 Name" = ''Variant''');
+
+                // [THEN] TempShopifyVariant."Option 1 Value" = ItemVariant.Code
+                LibraryAssert.AreEqual(ItemVariant.Code, TempShopifyVariant."Option 1 Value", 'TempShopifyVariant."Option 1 Value" = ItemVariant.Code');
+
+            until TempShopifyVariant.Next() = 0;
+    end;
+
+    [Test]
+    procedure UnitTestCreateTempProductFromItemWithSKUIsVendorItemNo()
+    var
+        Item: Record Item;
+        TempShopifyProduct: Record "Shpfy Product" temporary;
+        Shop: Record "Shpfy Shop";
+        TempShopifyVariant: Record "Shpfy Variant" temporary;
+        TempTag: Record "Shpfy Tag" temporary;
+        CreateProduct: Codeunit "Shpfy Create Product";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+        ItemTemplateCode: Code[20];
+    begin
+        // [SCENARIO] Create a Item with no variants from a Shopify Product with the SKU mapped to Vendor Item No.
+        // [SCENARIO] Don't copy the extended text of the item.
+        // [SCENARIO] Don't copy the item attributtes.
+
+        // [GIVEN] The Shop with the setting "SKU Mapping" = "Vendor Item No.";
+        Shop := InitializeTest.CreateShop();
+        Shop."SKU Mapping" := "Shpfy SKU Mapping"::"Vendor Item No.";
+        Shop."Sync Item Extended Text" := false;
+        Shop."Sync Item Attributes" := false;
+        Shop.Modify();
+        CreateProduct.SetShop(Shop);
+
+        // [GIVEN] a Item record
+        ItemTemplateCode := Shop."Item Templ. Code";
+        Item := ProductInitTest.CreateItem(ItemTemplateCode, Any.DecimalInRange(10, 100, 2), Any.DecimalInRange(100, 1000, 2));
+        Item.SetRecFilter();
+
+        // [WHEN] Invoke CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant)
+        CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant, TempTag);
+
+        // [THEN] TempShopifyProduct.Title = Item.Description
+        LibraryAssert.AreEqual(Item.Description, TempShopifyProduct.Title, 'TempShopifyProduct.Title = Item.Description');
+
+        // [THEN] TempShopifyVariant.SKU = Item."Vendor Item No."
+        LibraryAssert.AreEqual(Item."Vendor Item No.", TempShopifyVariant.SKU, 'TempShopifyVariant.SKU = Item."Vendor Item No."');
+
+        // [THEN] TempShopifyVariant.Price = Item.Price
+        LibraryAssert.AreEqual(Item."Unit Price", TempShopifyVariant.Price, 'TempShopifyVariant.Price := Item.Price');
+
+        // [THEN] TempShpyVariant."Unit Cost" = Item."Unit Cost";
+        LibraryAssert.AreEqual(Item."Unit Cost", TempShopifyVariant."Unit Cost", 'TempShpyVariant."Unit Cost" = Item."Unit Cost"');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() cannot contains the HTML section '<div class="productDescription">'
+        LibraryAssert.IsFalse(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productDescription">'), '<div class="productDescription">');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() cannot contains the HTML section '<div class="productAttributes">'
+        LibraryAssert.IsFalse(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productAttributes">'), '<div class="productAttributes">');
+    end;
+
+    [Test]
+    procedure UnitTestCreateTempProductFromItemWithSKUIsVendorItemNoAndExtendedText()
+    var
+        Item: Record Item;
+        TempShopifyProduct: Record "Shpfy Product" temporary;
+        Shop: Record "Shpfy Shop";
+        TempShopifyVariant: Record "Shpfy Variant" temporary;
+        TempTag: Record "Shpfy Tag" temporary;
+        CreateProduct: Codeunit "Shpfy Create Product";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+        ItemTemplateCode: Code[20];
+    begin
+        // [SCENARIO] Create a Item with no variants from a Shopify Product with the SKU mapped to Vendor Item No.
+        // [SCENARIO] Copy the extended text of the item.
+        // [SCENARIO] Don't copy the item attributtes.
+
+        // [GIVEN] The Shop with the setting "SKU Mapping" = "Vendor Item No.", "Sync Item Extended Text" = true;
+        Shop := InitializeTest.CreateShop();
+        Shop."SKU Mapping" := "Shpfy SKU Mapping"::"Vendor Item No.";
+        Shop."Sync Item Extended Text" := true;
+        Shop."Sync Item Attributes" := false;
+        Shop.Modify();
+        CreateProduct.SetShop(Shop);
+
+        // [GIVEN] a Item record
+        ItemTemplateCode := Shop."Item Templ. Code";
+        Item := ProductInitTest.CreateItem(ItemTemplateCode, Any.DecimalInRange(10, 100, 2), Any.DecimalInRange(100, 1000, 2));
+        Item.SetRecFilter();
+
+        // [WHEN] Invoke CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant)
+        CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant, TempTag);
+
+        // [THEN] TempShopifyProduct.Title = Item.Description
+        LibraryAssert.AreEqual(Item.Description, TempShopifyProduct.Title, 'TempShopifyProduct.Title = Item.Description');
+
+        // [THEN] TempShopifyVariant.SKU = Item."Vendor Item No."
+        LibraryAssert.AreEqual(Item."Vendor Item No.", TempShopifyVariant.SKU, 'TempShopifyVariant.SKU = Item."Vendor Item No."');
+
+        // [THEN] TempShopifyVariant.Price = Item.Price
+        LibraryAssert.AreEqual(Item."Unit Price", TempShopifyVariant.Price, 'TempShopifyVariant.Price := Item.Price');
+
+        // [THEN] TempShpyVariant."Unit Cost" = Item."Unit Cost";
+        LibraryAssert.AreEqual(Item."Unit Cost", TempShopifyVariant."Unit Cost", 'TempShpyVariant."Unit Cost" = Item."Unit Cost"');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() must contains the HTML section '<div class="productDescription">'
+        LibraryAssert.IsTrue(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productDescription">'), '<div class="productDescription">');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() cannot contains the HTML section '<div class="productAttributes">'
+        LibraryAssert.IsFalse(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productAttributes">'), '<div class="productAttributes">');
+    end;
+
+    [Test]
+    procedure UnitTestCreateTempProductFromItemWithSKUIsVendorItemNoAndItemAttributes()
+    var
+        Item: Record Item;
+        TempShopifyProduct: Record "Shpfy Product" temporary;
+        Shop: Record "Shpfy Shop";
+        TempShopifyVariant: Record "Shpfy Variant" temporary;
+        TempTag: Record "Shpfy Tag" temporary;
+        CreateProduct: Codeunit "Shpfy Create Product";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+        ItemTemplateCode: Code[20];
+    begin
+        // [SCENARIO] Create a Item with no variants from a Shopify Product with the SKU mapped to Vendor Item No.
+        // [SCENARIO] Don't copy the extended text of the item.
+        // [SCENARIO] Copy the item attributtes.
+
+        // [GIVEN] The Shop with the setting "SKU Mapping" = "Vendor Item No.", "Sync Item Attributes" = true;
+        Shop := InitializeTest.CreateShop();
+        Shop."SKU Mapping" := "Shpfy SKU Mapping"::"Vendor Item No.";
+        Shop."Sync Item Extended Text" := false;
+        Shop."Sync Item Attributes" := true;
+        Shop.Modify();
+        CreateProduct.SetShop(Shop);
+
+        // [GIVEN] a Item record
+        ItemTemplateCode := Shop."Item Templ. Code";
+        Item := ProductInitTest.CreateItem(ItemTemplateCode, Any.DecimalInRange(10, 100, 2), Any.DecimalInRange(100, 1000, 2));
+        Item.SetRecFilter();
+
+        // [WHEN] Invoke CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant)
+        CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant, TempTag);
+
+        // [THEN] TempShopifyProduct.Title = Item.Description
+        LibraryAssert.AreEqual(Item.Description, TempShopifyProduct.Title, 'TempShopifyProduct.Title = Item.Description');
+
+        // [THEN] TempShopifyVariant.SKU = Item."Vendor Item No."
+        LibraryAssert.AreEqual(Item."Vendor Item No.", TempShopifyVariant.SKU, 'TempShopifyVariant.SKU = Item."Vendor Item No."');
+
+        // [THEN] TempShopifyVariant.Price = Item.Price
+        LibraryAssert.AreEqual(Item."Unit Price", TempShopifyVariant.Price, 'TempShopifyVariant.Price := Item.Price');
+
+        // [THEN] TempShpyVariant."Unit Cost" = Item."Unit Cost";
+        LibraryAssert.AreEqual(Item."Unit Cost", TempShopifyVariant."Unit Cost", 'TempShpyVariant."Unit Cost" = Item."Unit Cost"');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() cannot contains the HTML section '<div class="productDescription">'
+        LibraryAssert.IsFalse(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productDescription">'), '<div class="productDescription">');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() contains the HTML section '<div class="productAttributes">'
+        LibraryAssert.IsTrue(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productAttributes">'), '<div class="productAttributes">');
+    end;
+
+    [Test]
+    procedure UnitTestCreateTempProductFromItemWithSKUIsVendorItemNoAndExtendedTextAndItemAttributes()
+    var
+        Item: Record Item;
+        TempShopifyProduct: Record "Shpfy Product" temporary;
+        Shop: Record "Shpfy Shop";
+        TempShopifyVariant: Record "Shpfy Variant" temporary;
+        TempTag: Record "Shpfy Tag" temporary;
+        CreateProduct: Codeunit "Shpfy Create Product";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+        ItemTemplateCode: Code[20];
+    begin
+        // [SCENARIO] Create a Item with no variants from a Shopify Product with the SKU mapped to Vendor Item No.
+        // [SCENARIO] Copy the extended text of the item.
+        // [SCENARIO] Copy the item attributtes.
+
+        // [GIVEN] The Shop with the setting "SKU Mapping" = "Vendor Item No.", "Sync Item Extended Text" = true, "Sync Item Attributes" = true;
+        Shop := InitializeTest.CreateShop();
+        Shop."SKU Mapping" := "Shpfy SKU Mapping"::"Vendor Item No.";
+        Shop."Sync Item Extended Text" := true;
+        Shop."Sync Item Attributes" := true;
+        Shop.Modify();
+        CreateProduct.SetShop(Shop);
+
+        // [GIVEN] a Item record
+        ItemTemplateCode := Shop."Item Templ. Code";
+        Item := ProductInitTest.CreateItem(ItemTemplateCode, Any.DecimalInRange(10, 100, 2), Any.DecimalInRange(100, 1000, 2));
+        Item.SetRecFilter();
+
+        // [WHEN] Invoke CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant)
+        CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant, TempTag);
+
+        // [THEN] TempShopifyProduct.Title = Item.Description
+        LibraryAssert.AreEqual(Item.Description, TempShopifyProduct.Title, 'TempShopifyProduct.Title = Item.Description');
+
+        // [THEN] TempShopifyVariant.SKU = Item."Vendor Item No."
+        LibraryAssert.AreEqual(Item."Vendor Item No.", TempShopifyVariant.SKU, 'TempShopifyVariant.SKU = Item."Vendor Item No."');
+
+        // [THEN] TempShopifyVariant.Price = Item.Price
+        LibraryAssert.AreEqual(Item."Unit Price", TempShopifyVariant.Price, 'TempShopifyVariant.Price := Item.Price');
+
+        // [THEN] TempShpyVariant."Unit Cost" = Item."Unit Cost";
+        LibraryAssert.AreEqual(Item."Unit Cost", TempShopifyVariant."Unit Cost", 'TempShpyVariant."Unit Cost" = Item."Unit Cost"');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() contains the HTML section '<div class="productDescription">'
+        LibraryAssert.IsTrue(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productDescription">'), '<div class="productDescription">');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() contains the HTML section '<div class="productAttributes">'
+        LibraryAssert.IsTrue(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productAttributes">'), '<div class="productAttributes">');
+    end;
+
+    [Test]
+    procedure UnitTestCreateTempProductFromItemWithVariantsAndSKUIsVendorItemNo()
+    var
+        Item: Record Item;
+        ItemVariant: Record "Item Variant";
+        TempShopifyProduct: Record "Shpfy Product" temporary;
+        Shop: Record "Shpfy Shop";
+        TempShopifyVariant: Record "Shpfy Variant" temporary;
+        TempTag: Record "Shpfy Tag" temporary;
+        CreateProduct: Codeunit "Shpfy Create Product";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+        ItemReferenceMgt: Codeunit "Shpfy Item Reference Mgt.";
+        ItemTemplateCode: Code[20];
+        VendorItemNo: Text;
+    begin
+        // [SCENARIO] Create a Item with variants from a Shopify Product with the SKU mapped to Vendor Item No.
+        // [SCENARIO] Don't copy the extended text of the item.
+        // [SCENARIO] Don't copy the item attributtes.
+
+        // [GIVEN] The Shop with the setting "SKU Mapping" = "Vendor Item No."
+        Shop := InitializeTest.CreateShop();
+        Shop."SKU Mapping" := "Shpfy SKU Mapping"::"Vendor Item No.";
+        Shop."Sync Item Extended Text" := false;
+        Shop."Sync Item Attributes" := false;
+        Shop.Modify();
+        CreateProduct.SetShop(Shop);
+
+        // [GIVEN] a Item record
+        ItemTemplateCode := Shop."Item Templ. Code";
+        Item := ProductInitTest.CreateItem(ItemTemplateCode, Any.DecimalInRange(10, 100, 2), Any.DecimalInRange(100, 1000, 2), true);
+        Item.SetRecFilter();
+
+        // [WHEN] Invoke CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant)
+        CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant, TempTag);
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() cannot contains the HTML section '<div class="productDescription">'
+        LibraryAssert.IsFalse(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productDescription">'), '<div class="productDescription">');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() cannot contains the HTML section '<div class="productAttributes">'
+        LibraryAssert.IsFalse(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productAttributes">'), '<div class="productAttributes">');
+
+        // [THEN] There are TempShopifyVariant records;
+        LibraryAssert.RecordIsNotEmpty(TempShopifyVariant);
+
+        if TempShopifyVariant.FindSet(false) then
+            repeat
+                // [THEN] There is a Item Variant record linked to the TempShopifyVariant record.
+                LibraryAssert.IsTrue(ItemVariant.GetBySystemId(TempShopifyVariant."Item Variant SystemId"), 'Item Variant Record is found.');
+
+                // [THEN] TempShopifyVariant.SKU = VendorItemNo
+                VendorItemNo := ItemReferenceMgt.GetItemReference(Item."No.", ItemVariant.Code, Item."Sales Unit of Measure", "Item Reference Type"::Vendor, Item."Vendor No.");
+                LibraryAssert.AreEqual(VendorItemNo, TempShopifyVariant.SKU, 'TempShopifyVariant.SKU = VendorItemNo');
+
+                // [THEN] TempShopifyVariant.Title = ItemVariant.Description
+                LibraryAssert.AreEqual(ItemVariant.Description, TempShopifyVariant.Title, 'TempShopifyVariant.Title = ItemVariant.Description');
+
+                // [THEN] TempShopifyVariant.Price = Item.Price
+                LibraryAssert.AreEqual(Item."Unit Price", TempShopifyVariant.Price, 'TempShopifyVariant.Price := Item.Price');
+
+                // [THEN] TempShpyVariant."Unit Cost" = Item."Unit Cost";
+                LibraryAssert.AreEqual(Item."Unit Cost", TempShopifyVariant."Unit Cost", 'TempShpyVariant."Unit Cost" = Item."Unit Cost"');
+
+                // [THEN] TempShopifyVariant."Option 1 Name" = 'Variant'
+                LibraryAssert.AreEqual('Variant', TempShopifyVariant."Option 1 Name", 'TempShopifyVariant."Option 1 Name" = ''Variant''');
+
+                // [THEN] TempShopifyVariant."Option 1 Value" = ItemVariant.Code
+                LibraryAssert.AreEqual(ItemVariant.Code, TempShopifyVariant."Option 1 Value", 'TempShopifyVariant."Option 1 Value" = ItemVariant.Code');
+
+            until TempShopifyVariant.Next() = 0;
+    end;
+
+    [Test]
+    procedure UnitTestCreateTempProductFromItemWithVariantsAndSKUIsVendorItemNoAndExtendedText()
+    var
+        Item: Record Item;
+        ItemVariant: Record "Item Variant";
+        TempShopifyProduct: Record "Shpfy Product" temporary;
+        Shop: Record "Shpfy Shop";
+        TempShopifyVariant: Record "Shpfy Variant" temporary;
+        TempTag: Record "Shpfy Tag" temporary;
+        CreateProduct: Codeunit "Shpfy Create Product";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+        ItemReferenceMgt: Codeunit "Shpfy Item Reference Mgt.";
+        ItemTemplateCode: Code[20];
+        VendorItemNo: Text;
+    begin
+        // [SCENARIO] Create a Item with variants from a Shopify Product with the SKU mapped to Vendor Item No.
+        // [SCENARIO] Copy the extended text of the item.
+        // [SCENARIO] Don't copy the item attributtes.
+
+        // [GIVEN] The Shop with the setting "SKU Mapping" = "Vendor Item No.", "Sync Item Extended Text" = true
+        Shop := InitializeTest.CreateShop();
+        Shop."SKU Mapping" := "Shpfy SKU Mapping"::"Vendor Item No.";
+        Shop."Sync Item Extended Text" := true;
+        Shop."Sync Item Attributes" := false;
+        Shop.Modify();
+        CreateProduct.SetShop(Shop);
+
+        // [GIVEN] a Item record
+        ItemTemplateCode := Shop."Item Templ. Code";
+        Item := ProductInitTest.CreateItem(ItemTemplateCode, Any.DecimalInRange(10, 100, 2), Any.DecimalInRange(100, 1000, 2), true);
+        Item.SetRecFilter();
+
+        // [WHEN] Invoke CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant)
+        CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant, TempTag);
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() contains the HTML section '<div class="productDescription">'
+        LibraryAssert.IsTrue(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productDescription">'), '<div class="productDescription">');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() cannot contains the HTML section '<div class="productAttributes">'
+        LibraryAssert.IsFalse(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productAttributes">'), '<div class="productAttributes">');
+
+        // [THEN] There are TempShopifyVariant records;
+        LibraryAssert.RecordIsNotEmpty(TempShopifyVariant);
+
+        if TempShopifyVariant.FindSet(false) then
+            repeat
+                // [THEN] There is a Item Variant record linked to the TempShopifyVariant record.
+                LibraryAssert.IsTrue(ItemVariant.GetBySystemId(TempShopifyVariant."Item Variant SystemId"), 'Item Variant Record is found.');
+
+                // [THEN] TempShopifyVariant.SKU = VendorItemNo
+                VendorItemNo := ItemReferenceMgt.GetItemReference(Item."No.", ItemVariant.Code, Item."Sales Unit of Measure", "Item Reference Type"::Vendor, Item."Vendor No.");
+                LibraryAssert.AreEqual(VendorItemNo, TempShopifyVariant.SKU, 'TempShopifyVariant.SKU = VendorItemNo');
+
+                // [THEN] TempShopifyVariant.Title = ItemVariant.Description
+                LibraryAssert.AreEqual(ItemVariant.Description, TempShopifyVariant.Title, 'TempShopifyVariant.Title = ItemVariant.Description');
+
+                // [THEN] TempShopifyVariant.Price = Item.Price
+                LibraryAssert.AreEqual(Item."Unit Price", TempShopifyVariant.Price, 'TempShopifyVariant.Price := Item.Price');
+
+                // [THEN] TempShpyVariant."Unit Cost" = Item."Unit Cost";
+                LibraryAssert.AreEqual(Item."Unit Cost", TempShopifyVariant."Unit Cost", 'TempShpyVariant."Unit Cost" = Item."Unit Cost"');
+
+                // [THEN] TempShopifyVariant."Option 1 Name" = 'Variant'
+                LibraryAssert.AreEqual('Variant', TempShopifyVariant."Option 1 Name", 'TempShopifyVariant."Option 1 Name" = ''Variant''');
+
+                // [THEN] TempShopifyVariant."Option 1 Value" = ItemVariant.Code
+                LibraryAssert.AreEqual(ItemVariant.Code, TempShopifyVariant."Option 1 Value", 'TempShopifyVariant."Option 1 Value" = ItemVariant.Code');
+
+            until TempShopifyVariant.Next() = 0;
+    end;
+
+    [Test]
+    procedure UnitTestCreateTempProductFromItemWithVariantsAndSKUIsVendorItemNoAndItemAttributes()
+    var
+        Item: Record Item;
+        ItemVariant: Record "Item Variant";
+        TempShopifyProduct: Record "Shpfy Product" temporary;
+        Shop: Record "Shpfy Shop";
+        TempShopifyVariant: Record "Shpfy Variant" temporary;
+        TempTag: Record "Shpfy Tag" temporary;
+        CreateProduct: Codeunit "Shpfy Create Product";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+        ItemReferenceMgt: Codeunit "Shpfy Item Reference Mgt.";
+        ItemTemplateCode: Code[20];
+        VendorItemNo: Text;
+    begin
+        // [SCENARIO] Create a Item with variants from a Shopify Product with the SKU mapped to Vendor Item No.
+        // [SCENARIO] Don't copy the extended text of the item.
+        // [SCENARIO] Copy the item attributtes.
+
+        // [GIVEN] The Shop with the setting "SKU Mapping" = "Vendor Item No.", "Sync Item Attributes" = true
+        Shop := InitializeTest.CreateShop();
+        Shop."SKU Mapping" := "Shpfy SKU Mapping"::"Vendor Item No.";
+        Shop."Sync Item Extended Text" := false;
+        Shop."Sync Item Attributes" := true;
+        Shop.Modify();
+        CreateProduct.SetShop(Shop);
+
+        // [GIVEN] a Item record
+        ItemTemplateCode := Shop."Item Templ. Code";
+        Item := ProductInitTest.CreateItem(ItemTemplateCode, Any.DecimalInRange(10, 100, 2), Any.DecimalInRange(100, 1000, 2), true);
+        Item.SetRecFilter();
+
+        // [WHEN] Invoke CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant)
+        CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant, TempTag);
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() cannot contains the HTML section '<div class="productDescription">'
+        LibraryAssert.IsFalse(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productDescription">'), '<div class="productDescription">');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() contains the HTML section '<div class="productAttributes">'
+        LibraryAssert.IsTrue(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productAttributes">'), '<div class="productAttributes">');
+
+        // [THEN] There are TempShopifyVariant records;
+        LibraryAssert.RecordIsNotEmpty(TempShopifyVariant);
+
+        if TempShopifyVariant.FindSet(false) then
+            repeat
+                // [THEN] There is a Item Variant record linked to the TempShopifyVariant record.
+                LibraryAssert.IsTrue(ItemVariant.GetBySystemId(TempShopifyVariant."Item Variant SystemId"), 'Item Variant Record is found.');
+
+                // [THEN] TempShopifyVariant.SKU = VendorItemNo
+                VendorItemNo := ItemReferenceMgt.GetItemReference(Item."No.", ItemVariant.Code, Item."Sales Unit of Measure", "Item Reference Type"::Vendor, Item."Vendor No.");
+                LibraryAssert.AreEqual(VendorItemNo, TempShopifyVariant.SKU, 'TempShopifyVariant.SKU = VendorItemNo');
+
+                // [THEN] TempShopifyVariant.Title = ItemVariant.Description
+                LibraryAssert.AreEqual(ItemVariant.Description, TempShopifyVariant.Title, 'TempShopifyVariant.Title = ItemVariant.Description');
+
+                // [THEN] TempShopifyVariant.Price = Item.Price
+                LibraryAssert.AreEqual(Item."Unit Price", TempShopifyVariant.Price, 'TempShopifyVariant.Price := Item.Price');
+
+                // [THEN] TempShpyVariant."Unit Cost" = Item."Unit Cost";
+                LibraryAssert.AreEqual(Item."Unit Cost", TempShopifyVariant."Unit Cost", 'TempShpyVariant."Unit Cost" = Item."Unit Cost"');
+
+                // [THEN] TempShopifyVariant."Option 1 Name" = 'Variant'
+                LibraryAssert.AreEqual('Variant', TempShopifyVariant."Option 1 Name", 'TempShopifyVariant."Option 1 Name" = ''Variant''');
+
+                // [THEN] TempShopifyVariant."Option 1 Value" = ItemVariant.Code
+                LibraryAssert.AreEqual(ItemVariant.Code, TempShopifyVariant."Option 1 Value", 'TempShopifyVariant."Option 1 Value" = ItemVariant.Code');
+
+            until TempShopifyVariant.Next() = 0;
+    end;
+
+    [Test]
+    procedure UnitTestCreateTempProductFromItemWithVariantsAndSKUIsVendorItemNoAndExtendedTextAndItemAttributes()
+    var
+        Item: Record Item;
+        ItemVariant: Record "Item Variant";
+        TempShopifyProduct: Record "Shpfy Product" temporary;
+        Shop: Record "Shpfy Shop";
+        TempShopifyVariant: Record "Shpfy Variant" temporary;
+        TempTag: Record "Shpfy Tag" temporary;
+        CreateProduct: Codeunit "Shpfy Create Product";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+        ItemReferenceMgt: Codeunit "Shpfy Item Reference Mgt.";
+        ItemTemplateCode: Code[20];
+        VendorItemNo: Text;
+    begin
+        // [SCENARIO] Create a Item with variants from a Shopify Product with the SKU mapped to Vendor Item No.
+        // [SCENARIO] Copy the extended text of the item.
+        // [SCENARIO] Copy the item attributtes.
+
+        // [GIVEN] The Shop with the setting "SKU Mapping" = "Vendor Item No.", "Sync Item Extended Text" = true, "Sync Item Attributes" = true
+        Shop := InitializeTest.CreateShop();
+        Shop."SKU Mapping" := "Shpfy SKU Mapping"::"Vendor Item No.";
+        Shop."Sync Item Extended Text" := true;
+        Shop."Sync Item Attributes" := true;
+        Shop.Modify();
+        CreateProduct.SetShop(Shop);
+
+        // [GIVEN] a Item record
+        ItemTemplateCode := Shop."Item Templ. Code";
+        Item := ProductInitTest.CreateItem(ItemTemplateCode, Any.DecimalInRange(10, 100, 2), Any.DecimalInRange(100, 1000, 2), true);
+        Item.SetRecFilter();
+
+        // [WHEN] Invoke CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant)
+        CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant, TempTag);
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() contains the HTML section '<div class="productDescription">'
+        LibraryAssert.IsTrue(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productDescription">'), '<div class="productDescription">');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() contains the HTML section '<div class="productAttributes">'
+        LibraryAssert.IsTrue(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productAttributes">'), '<div class="productAttributes">');
+
+        // [THEN] There are TempShopifyVariant records;
+        LibraryAssert.RecordIsNotEmpty(TempShopifyVariant);
+
+        if TempShopifyVariant.FindSet(false) then
+            repeat
+                // [THEN] There is a Item Variant record linked to the TempShopifyVariant record.
+                LibraryAssert.IsTrue(ItemVariant.GetBySystemId(TempShopifyVariant."Item Variant SystemId"), 'Item Variant Record is found.');
+
+                // [THEN] TempShopifyVariant.SKU = VendorItemNo
+                VendorItemNo := ItemReferenceMgt.GetItemReference(Item."No.", ItemVariant.Code, Item."Sales Unit of Measure", "Item Reference Type"::Vendor, Item."Vendor No.");
+                LibraryAssert.AreEqual(VendorItemNo, TempShopifyVariant.SKU, 'TempShopifyVariant.SKU = VendorItemNo');
+
+                // [THEN] TempShopifyVariant.Title = ItemVariant.Description
+                LibraryAssert.AreEqual(ItemVariant.Description, TempShopifyVariant.Title, 'TempShopifyVariant.Title = ItemVariant.Description');
+
+                // [THEN] TempShopifyVariant.Price = Item.Price
+                LibraryAssert.AreEqual(Item."Unit Price", TempShopifyVariant.Price, 'TempShopifyVariant.Price := Item.Price');
+
+                // [THEN] TempShpyVariant."Unit Cost" = Item."Unit Cost";
+                LibraryAssert.AreEqual(Item."Unit Cost", TempShopifyVariant."Unit Cost", 'TempShpyVariant."Unit Cost" = Item."Unit Cost"');
+
+                // [THEN] TempShopifyVariant."Option 1 Name" = 'Variant'
+                LibraryAssert.AreEqual('Variant', TempShopifyVariant."Option 1 Name", 'TempShopifyVariant."Option 1 Name" = ''Variant''');
+
+                // [THEN] TempShopifyVariant."Option 1 Value" = ItemVariant.Code
+                LibraryAssert.AreEqual(ItemVariant.Code, TempShopifyVariant."Option 1 Value", 'TempShopifyVariant."Option 1 Value" = ItemVariant.Code');
+
+            until TempShopifyVariant.Next() = 0;
+    end;
+
+    [Test]
+    procedure UnitTestCreateTempProductFromItemWithSKUIsBarCode()
+    var
+        Item: Record Item;
+        TempShopifyProduct: Record "Shpfy Product" temporary;
+        Shop: Record "Shpfy Shop";
+        TempShopifyVariant: Record "Shpfy Variant" temporary;
+        TempTag: Record "Shpfy Tag" temporary;
+        CreateProduct: Codeunit "Shpfy Create Product";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+        ItemReferenceMgt: Codeunit "Shpfy Item Reference Mgt.";
+        ItemTemplateCode: Code[20];
+        BarCode: Text;
+    begin
+        // [SCENARIO] Create a Item with no variants from a Shopify Product with the SKU mapped to Bar Code.
+        // [SCENARIO] Don't copy the extended text of the item.
+        // [SCENARIO] Don't copy the item attributtes.
+
+        // [GIVEN] The Shop with the setting "SKU Mapping" = "Bar Code";
+        Shop := InitializeTest.CreateShop();
+        Shop."SKU Mapping" := "Shpfy SKU Mapping"::"Bar Code";
+        Shop."Sync Item Extended Text" := false;
+        Shop."Sync Item Attributes" := false;
+        Shop.Modify();
+        CreateProduct.SetShop(Shop);
+
+        // [GIVEN] a Item record
+        ItemTemplateCode := Shop."Item Templ. Code";
+        Item := ProductInitTest.CreateItem(ItemTemplateCode, Any.DecimalInRange(10, 100, 2), Any.DecimalInRange(100, 1000, 2));
+        Item.SetRecFilter();
+
+        // [WHEN] Invoke CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant)
+        CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant, TempTag);
+
+        // [THEN] TempShopifyProduct.Title = Item.Description
+        LibraryAssert.AreEqual(Item.Description, TempShopifyProduct.Title, 'TempShopifyProduct.Title = Item.Description');
+
+        // [THEN] TempShopifyVariant.SKU = Bar Code
+        BarCode := ItemReferenceMgt.GetItemBarcode(Item."No.", '', Item."Sales Unit of Measure");
+        LibraryAssert.AreEqual(BarCode, TempShopifyVariant.SKU, 'TempShopifyVariant.SKU = BarCode');
+
+        // [THEN] TempShopifyVariant.Price = Item.Price
+        LibraryAssert.AreEqual(Item."Unit Price", TempShopifyVariant.Price, 'TempShopifyVariant.Price := Item.Price');
+
+        // [THEN] TempShpyVariant."Unit Cost" = Item."Unit Cost";
+        LibraryAssert.AreEqual(Item."Unit Cost", TempShopifyVariant."Unit Cost", 'TempShpyVariant."Unit Cost" = Item."Unit Cost"');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() cannot contains the HTML section '<div class="productDescription">'
+        LibraryAssert.IsFalse(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productDescription">'), '<div class="productDescription">');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() cannot contains the HTML section '<div class="productAttributes">'
+        LibraryAssert.IsFalse(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productAttributes">'), '<div class="productAttributes">');
+    end;
+
+    [Test]
+    procedure UnitTestCreateTempProductFromItemWithSKUIsBarCodeAndExtendedText()
+    var
+        Item: Record Item;
+        TempShopifyProduct: Record "Shpfy Product" temporary;
+        Shop: Record "Shpfy Shop";
+        TempShopifyVariant: Record "Shpfy Variant" temporary;
+        TempTag: Record "Shpfy Tag" temporary;
+        CreateProduct: Codeunit "Shpfy Create Product";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+        ItemReferenceMgt: Codeunit "Shpfy Item Reference Mgt.";
+        ItemTemplateCode: Code[20];
+        BarCode: Text;
+    begin
+        // [SCENARIO] Create a Item with no variants from a Shopify Product with the SKU mapped to Bar Code.
+        // [SCENARIO] Copy the extended text of the item.
+        // [SCENARIO] Don't copy the item attributtes.
+
+        // [GIVEN] The Shop with the setting "SKU Mapping" = "Bar Code", "Sync Item Extended Text" = true;
+        Shop := InitializeTest.CreateShop();
+        Shop."SKU Mapping" := "Shpfy SKU Mapping"::"Bar Code";
+        Shop."Sync Item Extended Text" := true;
+        Shop."Sync Item Attributes" := false;
+        Shop.Modify();
+        CreateProduct.SetShop(Shop);
+
+        // [GIVEN] a Item record
+        ItemTemplateCode := Shop."Item Templ. Code";
+        Item := ProductInitTest.CreateItem(ItemTemplateCode, Any.DecimalInRange(10, 100, 2), Any.DecimalInRange(100, 1000, 2));
+        Item.SetRecFilter();
+
+        // [WHEN] Invoke CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant)
+        CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant, TempTag);
+
+        // [THEN] TempShopifyProduct.Title = Item.Description
+        LibraryAssert.AreEqual(Item.Description, TempShopifyProduct.Title, 'TempShopifyProduct.Title = Item.Description');
+
+        // [THEN] TempShopifyVariant.SKU = Bar Code
+        BarCode := ItemReferenceMgt.GetItemBarcode(Item."No.", '', Item."Sales Unit of Measure");
+        LibraryAssert.AreEqual(BarCode, TempShopifyVariant.SKU, 'TempShopifyVariant.SKU = BarCode');
+
+        // [THEN] TempShopifyVariant.Price = Item.Price
+        LibraryAssert.AreEqual(Item."Unit Price", TempShopifyVariant.Price, 'TempShopifyVariant.Price := Item.Price');
+
+        // [THEN] TempShpyVariant."Unit Cost" = Item."Unit Cost";
+        LibraryAssert.AreEqual(Item."Unit Cost", TempShopifyVariant."Unit Cost", 'TempShpyVariant."Unit Cost" = Item."Unit Cost"');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() must contains the HTML section '<div class="productDescription">'
+        LibraryAssert.IsTrue(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productDescription">'), '<div class="productDescription">');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() cannot contains the HTML section '<div class="productAttributes">'
+        LibraryAssert.IsFalse(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productAttributes">'), '<div class="productAttributes">');
+    end;
+
+    [Test]
+    procedure UnitTestCreateTempProductFromItemWithSKUIsBarCodeAndItemAttributes()
+    var
+        Item: Record Item;
+        TempShopifyProduct: Record "Shpfy Product" temporary;
+        Shop: Record "Shpfy Shop";
+        TempShopifyVariant: Record "Shpfy Variant" temporary;
+        TempTag: Record "Shpfy Tag" temporary;
+        CreateProduct: Codeunit "Shpfy Create Product";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+        ItemReferenceMgt: Codeunit "Shpfy Item Reference Mgt.";
+        ItemTemplateCode: Code[20];
+        BarCode: Text;
+    begin
+        // [SCENARIO] Create a Item with no variants from a Shopify Product with the SKU mapped to Bar Code.
+        // [SCENARIO] Don't copy the extended text of the item.
+        // [SCENARIO] Copy the item attributtes.
+
+        // [GIVEN] The Shop with the setting "SKU Mapping" = "Bar Code", "Sync Item Attributes" = true;
+        Shop := InitializeTest.CreateShop();
+        Shop."SKU Mapping" := "Shpfy SKU Mapping"::"Bar Code";
+        Shop."Sync Item Extended Text" := false;
+        Shop."Sync Item Attributes" := true;
+        Shop.Modify();
+        CreateProduct.SetShop(Shop);
+
+        // [GIVEN] a Item record
+        ItemTemplateCode := Shop."Item Templ. Code";
+        Item := ProductInitTest.CreateItem(ItemTemplateCode, Any.DecimalInRange(10, 100, 2), Any.DecimalInRange(100, 1000, 2));
+        Item.SetRecFilter();
+
+        // [WHEN] Invoke CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant)
+        CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant, TempTag);
+
+        // [THEN] TempShopifyProduct.Title = Item.Description
+        LibraryAssert.AreEqual(Item.Description, TempShopifyProduct.Title, 'TempShopifyProduct.Title = Item.Description');
+
+        // [THEN] TempShopifyVariant.SKU = Bar Code
+        BarCode := ItemReferenceMgt.GetItemBarcode(Item."No.", '', Item."Sales Unit of Measure");
+        LibraryAssert.AreEqual(BarCode, TempShopifyVariant.SKU, 'TempShopifyVariant.SKU = BarCode');
+
+        // [THEN] TempShopifyVariant.Price = Item.Price
+        LibraryAssert.AreEqual(Item."Unit Price", TempShopifyVariant.Price, 'TempShopifyVariant.Price := Item.Price');
+
+        // [THEN] TempShpyVariant."Unit Cost" = Item."Unit Cost";
+        LibraryAssert.AreEqual(Item."Unit Cost", TempShopifyVariant."Unit Cost", 'TempShpyVariant."Unit Cost" = Item."Unit Cost"');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() cannot contains the HTML section '<div class="productDescription">'
+        LibraryAssert.IsFalse(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productDescription">'), '<div class="productDescription">');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() contains the HTML section '<div class="productAttributes">'
+        LibraryAssert.IsTrue(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productAttributes">'), '<div class="productAttributes">');
+    end;
+
+    [Test]
+    procedure UnitTestCreateTempProductFromItemWithSKUIsBarCodeAndExtendedTextAndItemAttributes()
+    var
+        Item: Record Item;
+        TempShopifyProduct: Record "Shpfy Product" temporary;
+        Shop: Record "Shpfy Shop";
+        TempShopifyVariant: Record "Shpfy Variant" temporary;
+        TempTag: Record "Shpfy Tag" temporary;
+        CreateProduct: Codeunit "Shpfy Create Product";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+        ItemReferenceMgt: Codeunit "Shpfy Item Reference Mgt.";
+        ItemTemplateCode: Code[20];
+        BarCode: Text;
+    begin
+        // [SCENARIO] Create a Item with no variants from a Shopify Product with the SKU mapped to Bar Code.
+        // [SCENARIO] Copy the extended text of the item.
+        // [SCENARIO] Copy the item attributtes.
+
+        // [GIVEN] The Shop with the setting "SKU Mapping" = "Bar Code", "Sync Item Extended Text" = true, "Sync Item Attributes" = true;
+        Shop := InitializeTest.CreateShop();
+        Shop."SKU Mapping" := "Shpfy SKU Mapping"::"Bar Code";
+        Shop."Sync Item Extended Text" := true;
+        Shop."Sync Item Attributes" := true;
+        Shop.Modify();
+        CreateProduct.SetShop(Shop);
+
+        // [GIVEN] a Item record
+        ItemTemplateCode := Shop."Item Templ. Code";
+        Item := ProductInitTest.CreateItem(ItemTemplateCode, Any.DecimalInRange(10, 100, 2), Any.DecimalInRange(100, 1000, 2));
+        Item.SetRecFilter();
+
+        // [WHEN] Invoke CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant)
+        CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant, TempTag);
+
+        // [THEN] TempShopifyProduct.Title = Item.Description
+        LibraryAssert.AreEqual(Item.Description, TempShopifyProduct.Title, 'TempShopifyProduct.Title = Item.Description');
+
+        // [THEN] TempShopifyVariant.SKU = Bar Code
+        BarCode := ItemReferenceMgt.GetItemBarcode(Item."No.", '', Item."Sales Unit of Measure");
+        LibraryAssert.AreEqual(BarCode, TempShopifyVariant.SKU, 'TempShopifyVariant.SKU = BarCode');
+
+        // [THEN] TempShopifyVariant.Price = Item.Price
+        LibraryAssert.AreEqual(Item."Unit Price", TempShopifyVariant.Price, 'TempShopifyVariant.Price := Item.Price');
+
+        // [THEN] TempShpyVariant."Unit Cost" = Item."Unit Cost";
+        LibraryAssert.AreEqual(Item."Unit Cost", TempShopifyVariant."Unit Cost", 'TempShpyVariant."Unit Cost" = Item."Unit Cost"');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() contains the HTML section '<div class="productDescription">'
+        LibraryAssert.IsTrue(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productDescription">'), '<div class="productDescription">');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() contains the HTML section '<div class="productAttributes">'
+        LibraryAssert.IsTrue(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productAttributes">'), '<div class="productAttributes">');
+    end;
+
+    [Test]
+    procedure UnitTestCreateTempProductFromItemWithVariantsAndSKUIsBarCode()
+    var
+        Item: Record Item;
+        ItemVariant: Record "Item Variant";
+        TempShopifyProduct: Record "Shpfy Product" temporary;
+        Shop: Record "Shpfy Shop";
+        TempShopifyVariant: Record "Shpfy Variant" temporary;
+        TempTag: Record "Shpfy Tag" temporary;
+        CreateProduct: Codeunit "Shpfy Create Product";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+        ItemReferenceMgt: Codeunit "Shpfy Item Reference Mgt.";
+        ItemTemplateCode: Code[20];
+        BarCode: Text;
+    begin
+        // [SCENARIO] Create a Item with variants from a Shopify Product with the SKU mapped to Bar Code.
+        // [SCENARIO] Don't copy the extended text of the item.
+        // [SCENARIO] Don't copy the item attributtes.
+
+        // [GIVEN] The Shop with the setting "SKU Mapping" = "Bar Code"
+        Shop := InitializeTest.CreateShop();
+        Shop."SKU Mapping" := "Shpfy SKU Mapping"::"Bar Code";
+        Shop."Sync Item Extended Text" := false;
+        Shop."Sync Item Attributes" := false;
+        Shop.Modify();
+        CreateProduct.SetShop(Shop);
+
+        // [GIVEN] a Item record
+        ItemTemplateCode := Shop."Item Templ. Code";
+        Item := ProductInitTest.CreateItem(ItemTemplateCode, Any.DecimalInRange(10, 100, 2), Any.DecimalInRange(100, 1000, 2), true);
+        Item.SetRecFilter();
+
+        // [WHEN] Invoke CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant)
+        CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant, TempTag);
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() cannot contains the HTML section '<div class="productDescription">'
+        LibraryAssert.IsFalse(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productDescription">'), '<div class="productDescription">');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() cannot contains the HTML section '<div class="productAttributes">'
+        LibraryAssert.IsFalse(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productAttributes">'), '<div class="productAttributes">');
+
+        // [THEN] There are TempShopifyVariant records;
+        LibraryAssert.RecordIsNotEmpty(TempShopifyVariant);
+
+        if TempShopifyVariant.FindSet(false) then
+            repeat
+                // [THEN] There is a Item Variant record linked to the TempShopifyVariant record.
+                LibraryAssert.IsTrue(ItemVariant.GetBySystemId(TempShopifyVariant."Item Variant SystemId"), 'Item Variant Record is found.');
+
+                // [THEN] TempShopifyVariant.SKU = BarCode
+                BarCode := ItemReferenceMgt.GetItemBarcode(Item."No.", ItemVariant.Code, Item."Sales Unit of Measure");
+                LibraryAssert.AreEqual(BarCode, TempShopifyVariant.SKU, 'TempShopifyVariant.SKU = BarCode');
+
+                // [THEN] TempShopifyVariant.Title = ItemVariant.Description
+                LibraryAssert.AreEqual(ItemVariant.Description, TempShopifyVariant.Title, 'TempShopifyVariant.Title = ItemVariant.Description');
+
+                // [THEN] TempShopifyVariant.Price = Item.Price
+                LibraryAssert.AreEqual(Item."Unit Price", TempShopifyVariant.Price, 'TempShopifyVariant.Price := Item.Price');
+
+                // [THEN] TempShpyVariant."Unit Cost" = Item."Unit Cost";
+                LibraryAssert.AreEqual(Item."Unit Cost", TempShopifyVariant."Unit Cost", 'TempShpyVariant."Unit Cost" = Item."Unit Cost"');
+
+                // [THEN] TempShopifyVariant."Option 1 Name" = 'Variant'
+                LibraryAssert.AreEqual('Variant', TempShopifyVariant."Option 1 Name", 'TempShopifyVariant."Option 1 Name" = ''Variant''');
+
+                // [THEN] TempShopifyVariant."Option 1 Value" = ItemVariant.Code
+                LibraryAssert.AreEqual(ItemVariant.Code, TempShopifyVariant."Option 1 Value", 'TempShopifyVariant."Option 1 Value" = ItemVariant.Code');
+
+            until TempShopifyVariant.Next() = 0;
+    end;
+
+    [Test]
+    procedure UnitTestCreateTempProductFromItemWithVariantsAndSKUIsBarCodeAndExtendedText()
+    var
+        Item: Record Item;
+        ItemVariant: Record "Item Variant";
+        TempShopifyProduct: Record "Shpfy Product" temporary;
+        Shop: Record "Shpfy Shop";
+        TempShopifyVariant: Record "Shpfy Variant" temporary;
+        TempTag: Record "Shpfy Tag" temporary;
+        CreateProduct: Codeunit "Shpfy Create Product";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+        ItemReferenceMgt: Codeunit "Shpfy Item Reference Mgt.";
+        ItemTemplateCode: Code[20];
+        BarCode: Text;
+    begin
+        // [SCENARIO] Create a Item with variants from a Shopify Product with the SKU mapped to Bar Code.
+        // [SCENARIO] Copy the extended text of the item.
+        // [SCENARIO] Don't copy the item attributtes.
+
+        // [GIVEN] The Shop with the setting "SKU Mapping" = "Bar Code", "Sync Item Extended Text" = true
+        Shop := InitializeTest.CreateShop();
+        Shop."SKU Mapping" := "Shpfy SKU Mapping"::"Bar Code";
+        Shop."Sync Item Extended Text" := true;
+        Shop."Sync Item Attributes" := false;
+        Shop.Modify();
+        CreateProduct.SetShop(Shop);
+
+        // [GIVEN] a Item record
+        ItemTemplateCode := Shop."Item Templ. Code";
+        Item := ProductInitTest.CreateItem(ItemTemplateCode, Any.DecimalInRange(10, 100, 2), Any.DecimalInRange(100, 1000, 2), true);
+        Item.SetRecFilter();
+
+        // [WHEN] Invoke CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant)
+        CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant, TempTag);
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() contains the HTML section '<div class="productDescription">'
+        LibraryAssert.IsTrue(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productDescription">'), '<div class="productDescription">');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() cannot contains the HTML section '<div class="productAttributes">'
+        LibraryAssert.IsFalse(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productAttributes">'), '<div class="productAttributes">');
+
+        // [THEN] There are TempShopifyVariant records;
+        LibraryAssert.RecordIsNotEmpty(TempShopifyVariant);
+
+        if TempShopifyVariant.FindSet(false) then
+            repeat
+                // [THEN] There is a Item Variant record linked to the TempShopifyVariant record.
+                LibraryAssert.IsTrue(ItemVariant.GetBySystemId(TempShopifyVariant."Item Variant SystemId"), 'Item Variant Record is found.');
+
+                // [THEN] TempShopifyVariant.SKU = BarCode
+                BarCode := ItemReferenceMgt.GetItemBarcode(Item."No.", ItemVariant.Code, Item."Sales Unit of Measure");
+                LibraryAssert.AreEqual(BarCode, TempShopifyVariant.SKU, 'TempShopifyVariant.SKU = BarCode');
+
+                // [THEN] TempShopifyVariant.Title = ItemVariant.Description
+                LibraryAssert.AreEqual(ItemVariant.Description, TempShopifyVariant.Title, 'TempShopifyVariant.Title = ItemVariant.Description');
+
+                // [THEN] TempShopifyVariant.Price = Item.Price
+                LibraryAssert.AreEqual(Item."Unit Price", TempShopifyVariant.Price, 'TempShopifyVariant.Price := Item.Price');
+
+                // [THEN] TempShpyVariant."Unit Cost" = Item."Unit Cost";
+                LibraryAssert.AreEqual(Item."Unit Cost", TempShopifyVariant."Unit Cost", 'TempShpyVariant."Unit Cost" = Item."Unit Cost"');
+
+                // [THEN] TempShopifyVariant."Option 1 Name" = 'Variant'
+                LibraryAssert.AreEqual('Variant', TempShopifyVariant."Option 1 Name", 'TempShopifyVariant."Option 1 Name" = ''Variant''');
+
+                // [THEN] TempShopifyVariant."Option 1 Value" = ItemVariant.Code
+                LibraryAssert.AreEqual(ItemVariant.Code, TempShopifyVariant."Option 1 Value", 'TempShopifyVariant."Option 1 Value" = ItemVariant.Code');
+
+            until TempShopifyVariant.Next() = 0;
+    end;
+
+    [Test]
+    procedure UnitTestCreateTempProductFromItemWithVariantsAndSKUIsBarCodeAndItemAttributes()
+    var
+        Item: Record Item;
+        ItemVariant: Record "Item Variant";
+        TempShopifyProduct: Record "Shpfy Product" temporary;
+        Shop: Record "Shpfy Shop";
+        TempShopifyVariant: Record "Shpfy Variant" temporary;
+        TempTag: Record "Shpfy Tag" temporary;
+        CreateProduct: Codeunit "Shpfy Create Product";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+        ItemReferenceMgt: Codeunit "Shpfy Item Reference Mgt.";
+        ItemTemplateCode: Code[20];
+        BarCode: Text;
+    begin
+        // [SCENARIO] Create a Item with variants from a Shopify Product with the SKU mapped to Bar Code.
+        // [SCENARIO] Don't copy the extended text of the item.
+        // [SCENARIO] Copy the item attributtes.
+
+        // [GIVEN] The Shop with the setting "SKU Mapping" = "Bar Code", "Sync Item Attributes" = true
+        Shop := InitializeTest.CreateShop();
+        Shop."SKU Mapping" := "Shpfy SKU Mapping"::"Bar Code";
+        Shop."Sync Item Extended Text" := false;
+        Shop."Sync Item Attributes" := true;
+        Shop.Modify();
+        CreateProduct.SetShop(Shop);
+
+        // [GIVEN] a Item record
+        ItemTemplateCode := Shop."Item Templ. Code";
+        Item := ProductInitTest.CreateItem(ItemTemplateCode, Any.DecimalInRange(10, 100, 2), Any.DecimalInRange(100, 1000, 2), true);
+        Item.SetRecFilter();
+
+        // [WHEN] Invoke CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant)
+        CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant, TempTag);
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() cannot contains the HTML section '<div class="productDescription">'
+        LibraryAssert.IsFalse(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productDescription">'), '<div class="productDescription">');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() contains the HTML section '<div class="productAttributes">'
+        LibraryAssert.IsTrue(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productAttributes">'), '<div class="productAttributes">');
+
+        // [THEN] There are TempShopifyVariant records;
+        LibraryAssert.RecordIsNotEmpty(TempShopifyVariant);
+
+        if TempShopifyVariant.FindSet(false) then
+            repeat
+                // [THEN] There is a Item Variant record linked to the TempShopifyVariant record.
+                LibraryAssert.IsTrue(ItemVariant.GetBySystemId(TempShopifyVariant."Item Variant SystemId"), 'Item Variant Record is found.');
+
+                // [THEN] TempShopifyVariant.SKU = BarCode
+                BarCode := ItemReferenceMgt.GetItemBarcode(Item."No.", ItemVariant.Code, Item."Sales Unit of Measure");
+                LibraryAssert.AreEqual(BarCode, TempShopifyVariant.SKU, 'TempShopifyVariant.SKU = BarCode');
+
+                // [THEN] TempShopifyVariant.Title = ItemVariant.Description
+                LibraryAssert.AreEqual(ItemVariant.Description, TempShopifyVariant.Title, 'TempShopifyVariant.Title = ItemVariant.Description');
+
+                // [THEN] TempShopifyVariant.Price = Item.Price
+                LibraryAssert.AreEqual(Item."Unit Price", TempShopifyVariant.Price, 'TempShopifyVariant.Price := Item.Price');
+
+                // [THEN] TempShpyVariant."Unit Cost" = Item."Unit Cost";
+                LibraryAssert.AreEqual(Item."Unit Cost", TempShopifyVariant."Unit Cost", 'TempShpyVariant."Unit Cost" = Item."Unit Cost"');
+
+                // [THEN] TempShopifyVariant."Option 1 Name" = 'Variant'
+                LibraryAssert.AreEqual('Variant', TempShopifyVariant."Option 1 Name", 'TempShopifyVariant."Option 1 Name" = ''Variant''');
+
+                // [THEN] TempShopifyVariant."Option 1 Value" = ItemVariant.Code
+                LibraryAssert.AreEqual(ItemVariant.Code, TempShopifyVariant."Option 1 Value", 'TempShopifyVariant."Option 1 Value" = ItemVariant.Code');
+
+            until TempShopifyVariant.Next() = 0;
+    end;
+
+    [Test]
+    procedure UnitTestCreateTempProductFromItemWithVariantsAndSKUIsBarCodeAndExtendedTextAndItemAttributes()
+    var
+        Item: Record Item;
+        ItemVariant: Record "Item Variant";
+        TempShopifyProduct: Record "Shpfy Product" temporary;
+        Shop: Record "Shpfy Shop";
+        TempShopifyVariant: Record "Shpfy Variant" temporary;
+        TempTag: Record "Shpfy Tag" temporary;
+        CreateProduct: Codeunit "Shpfy Create Product";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+        ItemReferenceMgt: Codeunit "Shpfy Item Reference Mgt.";
+        ItemTemplateCode: Code[20];
+        BarCode: Text;
+    begin
+        // [SCENARIO] Create a Item with variants from a Shopify Product with the SKU mapped to Bar Code.
+        // [SCENARIO] Copy the extended text of the item.
+        // [SCENARIO] Copy the item attributtes.
+
+        // [GIVEN] The Shop with the setting "SKU Mapping" = "Bar Code", "Sync Item Extended Text" = true, "Sync Item Attributes" = true
+        Shop := InitializeTest.CreateShop();
+        Shop."SKU Mapping" := "Shpfy SKU Mapping"::"Bar Code";
+        Shop."Sync Item Extended Text" := true;
+        Shop."Sync Item Attributes" := true;
+        Shop.Modify();
+        CreateProduct.SetShop(Shop);
+
+        // [GIVEN] a Item record
+        ItemTemplateCode := Shop."Item Templ. Code";
+        Item := ProductInitTest.CreateItem(ItemTemplateCode, Any.DecimalInRange(10, 100, 2), Any.DecimalInRange(100, 1000, 2), true);
+        Item.SetRecFilter();
+
+        // [WHEN] Invoke CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant)
+        CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant, TempTag);
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() contains the HTML section '<div class="productDescription">'
+        LibraryAssert.IsTrue(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productDescription">'), '<div class="productDescription">');
+
+        // [THEN] TempShopifyProduct.GetDescriptionHtml() contains the HTML section '<div class="productAttributes">'
+        LibraryAssert.IsTrue(TempShopifyProduct.GetDescriptionHtml().Contains('<div class="productAttributes">'), '<div class="productAttributes">');
+
+        // [THEN] There are TempShopifyVariant records;
+        LibraryAssert.RecordIsNotEmpty(TempShopifyVariant);
+
+        if TempShopifyVariant.FindSet(false) then
+            repeat
+                // [THEN] There is a Item Variant record linked to the TempShopifyVariant record.
+                LibraryAssert.IsTrue(ItemVariant.GetBySystemId(TempShopifyVariant."Item Variant SystemId"), 'Item Variant Record is found.');
+
+                // [THEN] TempShopifyVariant.SKU = BarCode
+                BarCode := ItemReferenceMgt.GetItemBarcode(Item."No.", ItemVariant.Code, Item."Sales Unit of Measure");
+                LibraryAssert.AreEqual(BarCode, TempShopifyVariant.SKU, 'TempShopifyVariant.SKU = BarCode');
+
+                // [THEN] TempShopifyVariant.Title = ItemVariant.Description
+                LibraryAssert.AreEqual(ItemVariant.Description, TempShopifyVariant.Title, 'TempShopifyVariant.Title = ItemVariant.Description');
+
+                // [THEN] TempShopifyVariant.Price = Item.Price
+                LibraryAssert.AreEqual(Item."Unit Price", TempShopifyVariant.Price, 'TempShopifyVariant.Price := Item.Price');
+
+                // [THEN] TempShpyVariant."Unit Cost" = Item."Unit Cost";
+                LibraryAssert.AreEqual(Item."Unit Cost", TempShopifyVariant."Unit Cost", 'TempShpyVariant."Unit Cost" = Item."Unit Cost"');
+
+                // [THEN] TempShopifyVariant."Option 1 Name" = 'Variant'
+                LibraryAssert.AreEqual('Variant', TempShopifyVariant."Option 1 Name", 'TempShopifyVariant."Option 1 Name" = ''Variant''');
+
+                // [THEN] TempShopifyVariant."Option 1 Value" = ItemVariant.Code
+                LibraryAssert.AreEqual(ItemVariant.Code, TempShopifyVariant."Option 1 Value", 'TempShopifyVariant."Option 1 Value" = ItemVariant.Code');
+
+            until TempShopifyVariant.Next() = 0;
+    end;
+
+    [Test]
+    procedure UnitTestCreateTempProductSetsHSCodeAndCountryOfOrigin()
+    var
+        Item: Record Item;
+        TempShopifyProduct: Record "Shpfy Product" temporary;
+        Shop: Record "Shpfy Shop";
+        TempShopifyVariant: Record "Shpfy Variant" temporary;
+        TempTag: Record "Shpfy Tag" temporary;
+        CreateProduct: Codeunit "Shpfy Create Product";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+    begin
+        // [SCENARIO] Creating a temp product from an Item with Tariff No. and Country/Region of Origin Code
+        // should populate those fields on the Shopify variant.
+
+        // [GIVEN] A shop with HS/Country sync enabled
+        Shop := InitializeTest.CreateShop();
+        Shop."SKU Mapping" := "Shpfy SKU Mapping"::" ";
+        Shop."Sync HS Code and Country" := true;
+        Shop.Modify();
+        CreateProduct.SetShop(Shop);
+
+        // [GIVEN] An item with Tariff No. and Country/Region of Origin Code
+        Item := ProductInitTest.CreateItem(Shop."Item Templ. Code", Any.DecimalInRange(10, 100, 2), Any.DecimalInRange(100, 1000, 2));
+        Item."Tariff No." := '6402.99.0000';
+        Item."Country/Region of Origin Code" := 'US';
+        Item.Modify();
+        Item.SetRecFilter();
+
+        // [WHEN] CreateTempProduct is called
+        CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant, TempTag);
+
+        // [THEN] The variant has Tariff No. populated
+        LibraryAssert.AreEqual('6402.99.0000', TempShopifyVariant."Tariff No.", 'TempShopifyVariant."Tariff No." should match Item."Tariff No."');
+
+        // [THEN] The variant has Country/Region of Origin Code populated
+        LibraryAssert.AreEqual('US', TempShopifyVariant."Country/Region of Origin Code", 'TempShopifyVariant."Country/Region of Origin Code" should match Item."Country/Region of Origin Code"');
+    end;
+
+    [Test]
+    procedure UnitTestCreateTempProductEmptyHSCodeAndCountryOfOrigin()
+    var
+        Item: Record Item;
+        TempShopifyProduct: Record "Shpfy Product" temporary;
+        Shop: Record "Shpfy Shop";
+        TempShopifyVariant: Record "Shpfy Variant" temporary;
+        TempTag: Record "Shpfy Tag" temporary;
+        CreateProduct: Codeunit "Shpfy Create Product";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+    begin
+        // [SCENARIO] Creating a temp product from an Item without Tariff No. and Country/Region of Origin Code
+        // should leave those fields empty on the Shopify variant.
+
+        // [GIVEN] A shop with HS/Country sync enabled
+        Shop := InitializeTest.CreateShop();
+        Shop."SKU Mapping" := "Shpfy SKU Mapping"::" ";
+        Shop."Sync HS Code and Country" := true;
+        Shop.Modify();
+        CreateProduct.SetShop(Shop);
+
+        // [GIVEN] An item without Tariff No. and Country/Region of Origin Code
+        Item := ProductInitTest.CreateItem(Shop."Item Templ. Code", Any.DecimalInRange(10, 100, 2), Any.DecimalInRange(100, 1000, 2));
+        Item.SetRecFilter();
+
+        // [WHEN] CreateTempProduct is called
+        CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant, TempTag);
+
+        // [THEN] The variant has empty Tariff No.
+        LibraryAssert.AreEqual('', TempShopifyVariant."Tariff No.", 'TempShopifyVariant."Tariff No." should be empty');
+
+        // [THEN] The variant has empty Country/Region of Origin Code
+        LibraryAssert.AreEqual('', TempShopifyVariant."Country/Region of Origin Code", 'TempShopifyVariant."Country/Region of Origin Code" should be empty');
+    end;
+
+    [Test]
+    procedure UnitTestCreateTempProductWithVariantsSetsHSCodeAndCountryOfOrigin()
+    var
+        Item: Record Item;
+        TempShopifyProduct: Record "Shpfy Product" temporary;
+        Shop: Record "Shpfy Shop";
+        TempShopifyVariant: Record "Shpfy Variant" temporary;
+        TempTag: Record "Shpfy Tag" temporary;
+        CreateProduct: Codeunit "Shpfy Create Product";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+    begin
+        // [SCENARIO] Creating a temp product with variants from an Item with Tariff No. and Country/Region of Origin Code
+        // should populate both fields on all variant records.
+
+        // [GIVEN] A shop with HS/Country sync enabled
+        Shop := InitializeTest.CreateShop();
+        Shop."SKU Mapping" := "Shpfy SKU Mapping"::" ";
+        Shop."Sync HS Code and Country" := true;
+        Shop.Modify();
+        CreateProduct.SetShop(Shop);
+
+        // [GIVEN] An item with variants and Tariff No.
+        Item := ProductInitTest.CreateItem(Shop."Item Templ. Code", Any.DecimalInRange(10, 100, 2), Any.DecimalInRange(100, 1000, 2), true);
+        Item."Tariff No." := '8471.30.0100';
+        Item."Country/Region of Origin Code" := 'DE';
+        Item.Modify();
+        Item.SetRecFilter();
+
+        // [WHEN] CreateTempProduct is called
+        CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant, TempTag);
+
+        // [THEN] All variants have Tariff No. and Country of Origin populated
+        TempShopifyVariant.Reset();
+        if TempShopifyVariant.FindSet() then
+            repeat
+                LibraryAssert.AreEqual('8471.30.0100', TempShopifyVariant."Tariff No.", 'Each variant should have Tariff No.');
+                LibraryAssert.AreEqual('DE', TempShopifyVariant."Country/Region of Origin Code", 'Each variant should have Country/Region of Origin Code');
+            until TempShopifyVariant.Next() = 0;
+    end;
+
+    [Test]
+    [HandlerFunctions('ProductExportChildItemVariantHttpHandler')]
+    procedure UnitTestProductExportDoesNotCreateVariantsForChildItemVariants()
+    var
+        ParentItem: Record Item;
+        ChildItem: Record Item;
+        ChildItemVariantMapped: Record "Item Variant";
+        ChildItemVariantUnmapped: Record "Item Variant";
+        ShopifyProduct: Record "Shpfy Product";
+        ShopifyVariant: Record "Shpfy Variant";
+        ProductExport: Codeunit "Shpfy Product Export";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+    begin
+        // [SCENARIO] Product Export must not create additional Shopify variants
+        // [SCENARIO] for unmapped child-item variants when a child item was added as Shopify variant.
+        InitializeProductExport();
+
+        // [GIVEN] Register Expected Outbound API Requests.
+        RegExpectedOutboundHttpRequestsForProductExport();
+
+        // [GIVEN] A parent item (without BC variants) and a child item with two BC variants.
+        ParentItem := ProductInitTest.CreateItem(ExportShop."Item Templ. Code", Any.DecimalInRange(10, 100, 2), Any.DecimalInRange(100, 500, 2), false);
+        ChildItem := ProductInitTest.CreateItem(ExportShop."Item Templ. Code", Any.DecimalInRange(10, 100, 2), Any.DecimalInRange(100, 500, 2), false);
+        ChildItemVariantMapped := CreateItemVariantForExport(ChildItem, 'MAP');
+        ChildItemVariantUnmapped := CreateItemVariantForExport(ChildItem, 'UNMAPPED');
+
+        // [GIVEN] A Shopify product mapped to the parent item and one existing Shopify variant
+        // [GIVEN] mapped to only one child item variant.
+        ShopifyProduct := CreateShopifyProductForExport(ParentItem.SystemId);
+        ShopifyVariant := CreateMappedShopifyVariantForExport(ShopifyProduct.Id, ChildItem.SystemId, ChildItemVariantMapped.SystemId);
+
+        // [WHEN] Product export runs for the shop.
+        ProductExport.SetShop(ExportShop);
+        ExportShop.SetRange(Code, ExportShop.Code);
+        ProductExport.Run(ExportShop);
+        OutboundHttpRequests.AssertEmpty();
+
+        // [THEN] No new Shopify variant record is created for the unmapped child item variant.
+        ShopifyVariant.Reset();
+        ShopifyVariant.SetRange("Product Id", ShopifyProduct.Id);
+        ShopifyVariant.SetRange("Item SystemId", ChildItem.SystemId);
+        ShopifyVariant.SetRange("Item Variant SystemId", ChildItemVariantUnmapped.SystemId);
+        LibraryAssert.IsTrue(ShopifyVariant.IsEmpty(), 'Unexpected Shopify variant record created for unmapped child item variant.');
+    end;
+
+    [HttpClientHandler]
+    internal procedure ProductExportChildItemVariantHttpHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    var
+        ProductUpdateResponseTok: Label 'Products/ProductUpdateResponse.txt', Locked = true;
+        ProductVariantsBulkUpdateResponseTok: Label 'Products/ProductVariantsBulkUpdateResponse.txt', Locked = true;
+        UnexpectedAPICallsErr: Label 'More than expected API calls to Shopify detected.';
+    begin
+        if not ShpfyInitializeTest.VerifyRequestUrl(Request.Path, ExportShop."Shopify URL") then
+            exit(true);
+
+        case OutboundHttpRequests.Length() of
+            2:
+                LoadProductExportResourceIntoHttpResponse(ProductUpdateResponseTok, Response);
+            1:
+                LoadProductExportResourceIntoHttpResponse(ProductVariantsBulkUpdateResponseTok, Response);
+            0:
+                Error(UnexpectedAPICallsErr);
+        end;
+        exit(false);
+    end;
+
+    local procedure InitializeProductExport()
+    var
+        AccessToken: SecretText;
+    begin
+        Any.SetDefaultSeed();
+        OutboundHttpRequests.Clear();
+        if ExportIsInitialized then
+            exit;
+
+        ExportShop := ShpfyInitializeTest.CreateShop();
+        ExportShop."Can Update Shopify Products" := true;
+        ExportShop."Product Metafields To Shopify" := false;
+        ExportShop.Modify();
+        Commit();
+
+        AccessToken := LibraryRandom.RandText(20);
+        ShpfyInitializeTest.RegisterAccessTokenForShop(ExportShop.GetStoreName(), AccessToken);
+
+        ExportIsInitialized := true;
+    end;
+
+    local procedure RegExpectedOutboundHttpRequestsForProductExport()
+    begin
+        OutboundHttpRequests.Enqueue('GQL Update Product');
+        OutboundHttpRequests.Enqueue('GQL Update Product Variants');
+    end;
+
+    local procedure LoadProductExportResourceIntoHttpResponse(ResourceText: Text; var Response: TestHttpResponseMessage)
+    begin
+        Response.Content.WriteFrom(NavApp.GetResourceAsText(ResourceText, TextEncoding::UTF8));
+        OutboundHttpRequests.DequeueText();
+    end;
+
+    local procedure CreateItemVariantForExport(Item: Record Item; VariantCodePrefix: Text): Record "Item Variant"
+    var
+        ItemVariant: Record "Item Variant";
+    begin
+        ItemVariant.Init();
+        ItemVariant.Validate("Item No.", Item."No.");
+        ItemVariant.Code := CopyStr(VariantCodePrefix + Any.AlphabeticText(5), 1, MaxStrLen(ItemVariant.Code));
+        ItemVariant.Description := CopyStr(Any.AlphabeticText(20), 1, MaxStrLen(ItemVariant.Description));
+        ItemVariant.Insert();
+        exit(ItemVariant);
+    end;
+
+    local procedure CreateShopifyProductForExport(ItemSystemId: Guid): Record "Shpfy Product"
+    var
+        ShopifyProduct: Record "Shpfy Product";
+    begin
+        ShopifyProduct.Init();
+        ShopifyProduct.Id := Any.IntegerInRange(10000, 99999);
+        ShopifyProduct."Shop Code" := ExportShop.Code;
+        ShopifyProduct."Item SystemId" := ItemSystemId;
+        ShopifyProduct.Title := CopyStr(Any.AlphabeticText(20), 1, MaxStrLen(ShopifyProduct.Title));
+        ShopifyProduct.Insert();
+        exit(ShopifyProduct);
+    end;
+
+    local procedure CreateMappedShopifyVariantForExport(ProductId: BigInteger; ItemSystemId: Guid; ItemVariantSystemId: Guid): Record "Shpfy Variant"
+    var
+        ShopifyVariant: Record "Shpfy Variant";
+    begin
+        ShopifyVariant.Init();
+        ShopifyVariant.Id := Any.IntegerInRange(100000, 999999);
+        ShopifyVariant."Shop Code" := ExportShop.Code;
+        ShopifyVariant."Product Id" := ProductId;
+        ShopifyVariant."Item SystemId" := ItemSystemId;
+        ShopifyVariant."Item Variant SystemId" := ItemVariantSystemId;
+        ShopifyVariant."Option 1 Name" := 'Variant';
+        ShopifyVariant."Option 1 Value" := CopyStr(Any.AlphabeticText(10), 1, MaxStrLen(ShopifyVariant."Option 1 Value"));
+        ShopifyVariant.Title := CopyStr(Any.AlphabeticText(20), 1, MaxStrLen(ShopifyVariant.Title));
+        ShopifyVariant.Insert();
+        exit(ShopifyVariant);
+    end;
+}

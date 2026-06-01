@@ -5,8 +5,8 @@
 
 namespace System.TestTools.TestRunner;
 
-using System.TestTools.CodeCoverage;
 using System.Reflection;
+using System.TestTools.CodeCoverage;
 
 codeunit 130454 "Test Runner - Mgt"
 {
@@ -84,6 +84,7 @@ codeunit 130454 "Test Runner - Mgt"
     var
         TestMethodLineFunction: Record "Test Method Line";
         CodeunitTestMethodLine: Record "Test Method Line";
+        Skip: Boolean;
     begin
         if SkipLoggingResults then
             exit(true);
@@ -105,7 +106,11 @@ codeunit 130454 "Test Runner - Mgt"
         StartStopPermissionMock();
 
         SetStartTimeOnTestLine(TestMethodLineFunction);
-        OnBeforeTestMethodRun(TestMethodLineFunction, CodeunitID, CodeunitName, FunctionName, FunctionTestPermissions);
+
+        Skip := false;
+        OnBeforeTestMethodRun(TestMethodLineFunction, CodeunitID, CodeunitName, FunctionName, FunctionTestPermissions, Skip);
+        if Skip then
+            exit(false);
 
         exit(true);
     end;
@@ -257,7 +262,7 @@ codeunit 130454 "Test Runner - Mgt"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeTestMethodRun(var CurrentTestMethodLine: Record "Test Method Line"; CodeunitID: Integer; CodeunitName: Text[30]; FunctionName: Text[128]; FunctionTestPermissions: TestPermissions)
+    local procedure OnBeforeTestMethodRun(var CurrentTestMethodLine: Record "Test Method Line"; CodeunitID: Integer; CodeunitName: Text[30]; FunctionName: Text[128]; FunctionTestPermissions: TestPermissions; var Skip: Boolean)
     begin
     end;
 

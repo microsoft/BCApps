@@ -1,0 +1,1533 @@
+cultureInfo cs-CZ
+	translations
+		model Model
+			table 'G/L Account Category'
+				caption: Kategorie finančního účtu
+				column 'G/L Acc. Category Description'
+					caption: Popis kategorie finančního účtů
+				column siblingSequenceNo
+					caption: siblingSequenceNo
+				column indentation
+					caption: odsazení
+				column accountCategory
+					caption: accountCategory
+				column incomeBalance
+					caption: incomeBalance
+				column additionalReportDefinition
+					caption: additionalReportDefinition
+				column systemGenerated
+					caption: systemGenerated
+				column hasChildren
+					caption: hasChildren
+				measure GLAccCategoryBrowseDepth
+					caption: GLAccCategoryBrowseDepth
+				measure GLAccCategoryMaxNodeDepth
+					caption: GLAccCategoryMaxNodeDepth
+				measure 'G/L Acc. Category Balance at Date'
+					caption: Saldo do data kategorie fin. účtu
+				measure 'G/L Acc. Category Net Change'
+					caption: Pohyb na kategorii fin. účtu
+				measure 'G/L Acc. Category Budget Balance at Date'
+					caption: Saldo rozpočtu do data kategorie fin. účtu
+				measure 'G/L Acc. Category Budget Amount'
+					caption: Částka rozpočtu kategorie fin. účtu
+				hierarchy 'G/L Account Category Hierarchy'
+					caption: Hierarchie kategorie finančního účtu
+					level 'G/L Account Category (Level 1)'
+						caption: Kategorie finančního účtu (úroveň 1)
+					level 'G/L Account Category (Level 2)'
+						caption: Kategorie finančního účtu (úroveň 2)
+					level 'G/L Account Category (Level 3)'
+						caption: Kategorie finančního účtu (úroveň 3)
+			table 'Balance Sheet Measures'
+				caption: Míry rozvahy
+				measure 'Current Assets'
+					caption: Oběžná aktiva
+				measure 'Current Liabilities'
+					caption: Aktuální pasiva
+				measure Inventory
+					caption: Zásoby
+				measure 'Working Capital'
+					caption: Pracovní kapitál
+				measure 'Shareholders'' Equity'
+					caption: Vlastní jmění akcionářů
+				measure Liabilities
+					caption: Pasiva
+				measure Assets
+					caption: Majetek
+				measure Equity
+					caption: Jmění
+				measure 'Liabilities & Equity'
+					caption: Pasiva a jmění
+				measure 'Accounts Payable'
+					caption: Závazky
+				measure 'Accounts Receivable'
+					caption: Pohledávky
+				measure 'Accounts Receivable (Beginning Balance)'
+					caption: Pohledávky (počáteční saldo)
+				measure 'Accounts Receivable (Average)'
+					caption: Pohledávky (průměr)
+				measure 'Inventory (Beginning Balance)'
+					caption: Zásoby (počáteční saldo)
+				measure 'Inventory (Average)'
+					caption: Zásoby (průměr)
+				measure 'Purchase Prepayments'
+					caption: Nákupní zálohy
+				measure 'Liquid Assets'
+					caption: Likvidní aktiva
+				measure 'Fixed Assets'
+					caption: Dlouhodobý majetek
+				measure 'Capital Employed'
+					caption: Použitý kapitál
+				measure 'Liabilities (Neg)'
+					caption: Pasiva (neg.)
+				measure 'Accounts Payable (Neg)'
+					caption: Závazky (neg.)
+				measure 'Payroll Liabilites'
+					caption: Mzdové závazky
+				measure 'Longterm Liabilities'
+					caption: Dlouhodobé závazky
+			table 'Income Statement Measures'
+				caption: Míry výsledovky
+				measure Revenue
+					caption: Výnosy
+				measure 'Cost of Goods Sold'
+					caption: Náklady na prodané zboží
+				measure Expense
+					caption: Výdaje
+				measure 'Interest Expense'
+					caption: Úrokové náklady
+				measure 'Tax Expense'
+					caption: Daňový náklad
+				measure 'Extraordinary Expense'
+					caption: Mimořádný výdaj
+				measure 'Operating Expense - OPEX'
+					caption: Provozní výdaje – PRVÝD
+				measure Purchases
+					caption: Nákupy
+				measure 'FX Losses Expense'
+					caption: Výdaje na dev. ztráty
+				measure 'Depreciation and Amortization'
+					caption: Odpisy a amortizace
+				measure 'Revenue (Balance at Date)'
+					caption: Výnosy (saldo do data)
+				measure 'Revenue (Beginning Balance)'
+					caption: Výnosy (počáteční saldo)
+				measure 'Interest Revenue'
+					caption: Výnosové úroky
+				measure 'FX Gains Revenue'
+					caption: Výnosy z dev.
+				measure 'Extraordinary Revenue'
+					caption: Mimořádné výnosy
+				measure 'Operating Revenue'
+					caption: Provozní výnosy
+				measure 'Expense (Balance at Date)'
+					caption: Výdaje (saldo do data)
+				measure 'Expense (Beginning Balance)'
+					caption: Výdaje (počáteční saldo)
+				measure 'Interest Expense (Balance at Date)'
+					caption: Úrokové náklady (saldo do data)
+				measure 'Interest Expense (Beginning Balance)'
+					caption: Úrokové náklady (počáteční saldo)
+				measure 'FX Losses Expense (Balance at Date)'
+					caption: Výdaje na dev. ztráty (saldo do data)
+				measure 'FX Losses Expense (Beginning Balance)'
+					caption: Výdaje na dev. ztráty (počáteční saldo)
+				measure 'Tax Expense (Balance at Date)'
+					caption: Daňový náklad (saldo do data)
+				measure 'Tax Expense (Beginning Balance)'
+					caption: Daňový náklad (počáteční saldo)
+				measure 'Extraordinary Expense (Balance at Date)'
+					caption: Mimořádné výdaje (saldo do data)
+				measure 'Extraordinary Expense (Beginning Balance)'
+					caption: Mimořádné výdaje (počáteční saldo)
+				measure 'Interest Revenue (Balance at Date)'
+					caption: Výnosové úroky (saldo do data)
+				measure 'Interest Revenue (Beginning Balance)'
+					caption: Úrokové výnosy (počáteční saldo)
+				measure 'FX Gains Revenue (Balance at Date)'
+					caption: Výnosy z dev. (saldo do data)
+				measure 'FX Gains Revenue (Beginning Balance)'
+					caption: Výnosy z dev. (počáteční saldo)
+				measure 'Extraordinary Revenue (Balance at Date)'
+					caption: Mimořádné úroky (saldo do data)
+				measure 'Extraordinary Revenue (Beginning Balance)'
+					caption: Mimořádné úroky (počáteční saldo)
+				measure 'Operating Expense - OPEX (Balance at Date)'
+					caption: Provozní výdaje – PRVÝD (saldo do data)
+				measure 'Operating Expense - OPEX (Beginning Balance)'
+					caption: Provozní výdaje – PRVÝD (počáteční saldo)
+				measure 'Operating Revenue (Balance at Date)'
+					caption: Provozní úroky (saldo do data)
+				measure 'Operating Revenue (Beginning Balance)'
+					caption: Provozní výnosy (počáteční saldo)
+			table 'G/L Account'
+				caption: Finanční účet
+				column 'G/L Account No./Name'
+					caption: Číslo finančního účtu / název
+				column 'G/L Account No./Name Indented'
+					caption: Číslo finančního účtu / odsazený název
+				column 'Parent G/L Account No.'
+					caption: Číslo nadřízeného finančního účtu
+				column 'G/L Account No.'
+					caption: Číslo finančního účtu
+				column 'G/L Account Name'
+					caption: Název finančního účtu
+				column 'Account Type'
+					caption: Typ obchodního vztahu
+				column Income/Balance
+					caption: Výsledovka/Rozvaha
+				column 'Account Subcategory Entry No.'
+					caption: Číslo položky podkategorie účtu
+				measure 'G/L Acc. Balance at Date'
+					caption: Saldo do data fin. účtu
+				measure 'G/L Acc. Net Change'
+					caption: Pohyb na fin. účtu
+				measure 'G/L Acc. Budget Balance at Date'
+					caption: Saldo rozpočtu do data fin. účtu
+				measure 'G/L Acc. Budget Amount'
+					caption: Částka rozpočtu fin. účtu
+				hierarchy 'G/L Account Hierarchy'
+					caption: Hierarchie finančního účtu
+					level 'G/L Account (Level 1)'
+						caption: Finanční účet (úroveň 1)
+					level 'G/L Account (Level 2)'
+						caption: Finanční účet (úroveň 2)
+					level 'G/L Account (Level 3)'
+						caption: Finanční účet (úroveň 3)
+					level 'G/L Account (Level 4)'
+						caption: Finanční účet (úroveň 4)
+					level 'G/L Account (Level 5)'
+						caption: Finanční účet (úroveň 5)
+			table 'Activity KPIs'
+				caption: KPI aktivity
+				measure 'Average Collection Period (Days)'
+					caption: Průměrné období inkasa (dny)
+				measure '% Change in Revenue'
+					caption: Procentuální změna ve výnosech
+				measure '% Change in Operating Profit - EBIT'
+					caption: Procentuální změna provozního zisku – ZPZÚAD
+				measure 'Days Sales Outstanding - DSO'
+					caption: Počet dnů neuhrazeného prodeje – PDNP
+				measure 'Days Payable Outstanding - DPO'
+					caption: Dny neuhrazeného závazku – DNZ
+				measure 'Days Sales Of Inventory - DSI'
+					caption: Dny prodeje zásob – DPZ
+				measure 'Cash Conversion Cycle - CCC'
+					caption: Převodní cyklus hotovosti – PCH
+				measure 'Degree Of Operating Leverage - DOL'
+					caption: Stupeň provozní páky – SPK
+				measure 'Asset Turnover Ratio'
+					caption: Poměr obratu majetku
+				measure 'Inventory Turnover'
+					caption: Obrat zásob
+			table 'Liquidity KPIs'
+				caption: KPI likvidity
+				measure 'Current Ratio'
+					caption: Krátkodobý poměr
+				measure 'Quick Ratio'
+					caption: Rychlý poměr
+				measure 'Cash Ratio'
+					caption: Poměr hotovosti
+			table 'Profitability KPIs'
+				caption: KPI ziskovosti
+				measure 'Gross Profit Margin'
+					caption: Hrubá zisková marže
+				measure 'Net Profit Margin'
+					caption: Čistá zisková marže
+				measure 'Gross Profit'
+					caption: Hrubý zisk
+				measure 'Net Profit'
+					caption: Čistý zisk
+				measure 'Operating Profit - EBIT (Beginning Balance)'
+					caption: Provozní zisk – ZPZÚAD (počáteční saldo)
+				measure 'Operating Profit - EBIT'
+					caption: Provozní zisky – ZPZÚAD
+				measure 'Operating Profit - EBIT (Balance at Date)'
+					caption: Provozní zisky – ZPZÚAD (saldo do data)
+				measure 'Operating Profit Margin'
+					caption: Provozní zisková marže
+				measure EBITDA
+					caption: ZPZÚDAO
+				measure 'Return On Assets - ROA'
+					caption: Návratnost majetku – NM
+				measure 'Return On Equity - ROE'
+					caption: Návratnost jmění – NJ
+				measure 'Return On Net Assets - RONA'
+					caption: Návratnost čistého majetku – NČM
+				measure 'Return On Capital Employed - ROCE'
+					caption: Návratnost vloženého kapitálu – NVK
+				measure 'Debt/Equity Ratio'
+					caption: Poměr dluhu/jmění
+				measure 'Shareholder Equity Ratio'
+					caption: Poměr vlastního jmění akcionářů
+				measure 'Debt Ratio'
+					caption: Poměr dluhu
+			table 'G/L Budget Entries'
+				caption: Položky finančního rozpočtu
+				column 'Budget Name'
+					caption: Název rozpočtu
+				column 'Budget Date'
+					caption: Datum rozpočtu
+				column 'Entry No.'
+					caption: Číslo položky
+				measure 'Budget Balance at Date'
+					caption: Saldo rozpočtu do data
+				measure 'Budget Amount'
+					caption: Částka rozpočtu
+				measure 'Budget Entry Back Link'
+					caption: Položka rozpočtu – zpětný odkaz
+			table 'Dimension Sets'
+				caption: Sady dimenzí
+				column 'Global Dimension 1'
+					caption: Globální dimenze 1
+				column 'Global Dimension 2'
+					caption: Globální dimenze 2
+				column 'Shortcut Dimension 3'
+					caption: Zkratka dimenze 3
+				column 'Shortcut Dimension 4'
+					caption: Zkratka dimenze 4
+				column 'Shortcut Dimension 5'
+					caption: Zkratka dimenze 5
+				column 'Shortcut Dimension 6'
+					caption: Zkratka dimenze 6
+				column 'Shortcut Dimension 7'
+					caption: Zkratka dimenze 7
+				column 'Shortcut Dimension 8'
+					caption: Zkratka dimenze 8
+				column id
+					caption: ID
+			table 'G/L Entries'
+				caption: Věcné položky
+				column 'Posting Date'
+					caption: Zúčtovací datum
+				column 'Closing Entry'
+					caption: Uzávěrková položka
+				column 'Source Code'
+					caption: Kód původu
+				column 'Source Type'
+					caption: Typ původu
+				column 'Source No.'
+					caption: Číslo původu
+				column 'Entry No.'
+					caption: Číslo položky
+				column Description
+					caption: Popis
+				measure 'Net Change'
+					caption: Pohyb
+				measure 'Net Change (Neg)'
+					caption: Pohyb (neg.)
+				measure 'Balance at Date'
+					caption: Saldo do data
+				measure Amount
+					caption: Částka
+				measure Balance
+					caption: Saldo
+				measure 'Variance to Budget'
+					caption: Odchylka od rozpočtu
+				measure 'Variance to Budget %'
+					caption: Odchylka od rozpočtu (%)
+				measure 'Balance at Date (Neg)'
+					caption: Saldo do data (neg.)
+				measure 'Net Change Back Link'
+					caption: Pohyb – zpětný odkaz
+				measure 'Balance At Date Back Link'
+					caption: Zůstatek k datu – zpětný odkaz
+				measure 'Base Link'
+					caption: Základní odkaz
+			table 'Standard Calendar Time Intelligence'
+				caption: Časová analýza standardního kalendáře
+				measure 'Net Change AVG 1Y'
+					caption: Pohyb PRŮM 1R
+				measure 'Net Change AVG 3M'
+					caption: Pohyb PRŮM 3M
+				measure 'Net Change AVG 30D'
+					caption: Pohyb PRŮM 30D
+				measure 'Net Change MTDOPM %'
+					caption: Pohyb MKDDPPM (%)
+				measure 'Net Change MTDOPM'
+					caption: Pohyb MKDDPPM
+				measure 'Net Change PMC'
+					caption: Pohyb CPM
+				measure 'Net Change QTDOPQ %'
+					caption: Pohyb KDDVPK (%)
+				measure 'Net Change QTDOPQ'
+					caption: Pohyb KDDVPK
+				measure 'Net Change PQC'
+					caption: Pohyb CPK
+				measure 'Net Change YTDOPY %'
+					caption: Pohyb RKDDPPR (%)
+				measure 'Net Change YTDOPY'
+					caption: Pohyb RKDDPPR
+				measure 'Net Change PYC'
+					caption: Pohyb CPR
+				measure 'Net Change MATG %'
+					caption: Pohyb PCRR (%)
+				measure 'Net Change MATG'
+					caption: Pohyb PCRR
+				measure 'Net Change PYMAT'
+					caption: Pohyb PRSPR
+				measure 'Net Change MAT'
+					caption: Pohyb RPS
+				measure 'Net Change MOMTD %'
+					caption: Pohyb MMKDD (%)
+				measure 'Net Change MOMTD'
+					caption: Pohyb MMKDD
+				measure 'Net Change PMTD'
+					caption: Pohyb PMDD
+				measure 'Net Change QOQTD %'
+					caption: Pohyb MKKDD (%)
+				measure 'Net Change QOQTD'
+					caption: Pohyb MKKDD
+				measure 'Net Change YOYTD %'
+					caption: Pohyb MRKDD (%)
+				measure 'Net Change YOYTD'
+					caption: Pohyb MRKDD
+				measure 'Net Change PQTD'
+					caption: Pohyb PKDD
+				measure 'Net Change PYTD'
+					caption: Pohyb PRKDD
+				measure 'Net Change POP %'
+					caption: Pohyb MO (%)
+				measure 'Net Change POP'
+					caption: Pohyb MO
+				measure 'Net Change PP'
+					caption: Pohyb PO
+				measure 'Net Change MOM %'
+					caption: Pohyb MM (%)
+				measure 'Net Change MOM'
+					caption: Pohyb MM
+				measure 'Net Change QOQ %'
+					caption: Pohyb MK (%)
+				measure 'Net Change PM'
+					caption: Pohyb PM
+				measure 'Net Change QOQ'
+					caption: Pohyb MK
+				measure 'Net Change PQ'
+					caption: Pohyb PK
+				measure 'Net Change YOY'
+					caption: Pohyb MR
+				measure 'Net Change YOY %'
+					caption: Pohyb MR (%)
+				measure 'Net Change PY'
+					caption: Pohyb PR
+				measure 'Net Change MTD'
+					caption: Pohyb MKDD
+				measure 'Net Change QTD'
+					caption: Pohyb KKDD
+				measure 'Net Change YTD'
+					caption: Pohyb RKDD
+				measure 'Balance at Date AVG 1Y'
+					caption: Saldo do data PRŮM 1R
+				measure 'Balance at Date AVG 3M'
+					caption: Saldo do data PRŮM 3M
+				measure 'Balance at Date AVG 30D'
+					caption: Saldo do data PRŮM 30D
+				measure 'Balance at Date MTDOPM %'
+					caption: Saldo do data MKDDPPM (%)
+				measure 'Balance at Date MTDOPM'
+					caption: Saldo do data MKDDPPM
+				measure 'Balance at Date PMC'
+					caption: Saldo do data CPM
+				measure 'Balance at Date QTDOPQ %'
+					caption: Saldo do data KDDVPK (%)
+				measure 'Balance at Date QTDOPQ'
+					caption: Saldo do data KDDVPK
+				measure 'Balance at Date PQC'
+					caption: Saldo do data CPK
+				measure 'Balance at Date YTDOPY %'
+					caption: Saldo do data RKDDPPR (%)
+				measure 'Balance at Date YTDOPY'
+					caption: Saldo do data RKDDPPR
+				measure 'Balance at Date PYC'
+					caption: Saldo do data CPR
+				measure 'Balance at Date MATG %'
+					caption: Saldo do data PCRR (%)
+				measure 'Balance at Date MATG'
+					caption: Saldo do data PCRR
+				measure 'Balance at Date PYMAT'
+					caption: Saldo do data PRSPR
+				measure 'Balance at Date MAT'
+					caption: Saldo do data RPS
+				measure 'Balance at Date MOMTD %'
+					caption: Saldo do data MMKDD (%)
+				measure 'Balance at Date MOMTD'
+					caption: Saldo do data MMKDD
+				measure 'Balance at Date PMTD'
+					caption: Saldo do data PMDD
+				measure 'Balance at Date QOQTD %'
+					caption: Saldo do data MKKDD (%)
+				measure 'Balance at Date QOQTD'
+					caption: Saldo do data MKKDD
+				measure 'Balance at Date YOYTD %'
+					caption: Saldo do data MRKDD (%)
+				measure 'Balance at Date YOYTD'
+					caption: Saldo do data MRKDD
+				measure 'Balance at Date PQTD'
+					caption: Saldo do data PKDD
+				measure 'Balance at Date PYTD'
+					caption: Saldo do data PRKDD
+				measure 'Balance at Date POP %'
+					caption: Saldo do data MO (%)
+				measure 'Balance at Date POP'
+					caption: Saldo do data MO
+				measure 'Balance at Date PP'
+					caption: Saldo do data PO
+				measure 'Balance at Date MOM %'
+					caption: Saldo do data MM (%)
+				measure 'Balance at Date MOM'
+					caption: Saldo do data MM
+				measure 'Balance at Date QOQ %'
+					caption: Saldo do data MK (%)
+				measure 'Balance at Date PM'
+					caption: Saldo do data PM
+				measure 'Balance at Date QOQ'
+					caption: Saldo do data MK
+				measure 'Balance at Date PQ'
+					caption: Saldo do data PK
+				measure 'Balance at Date YOY'
+					caption: Saldo do data MR
+				measure 'Balance at Date YOY %'
+					caption: Saldo do data MR (%)
+				measure 'Balance at Date PY'
+					caption: Saldo do data PR
+				measure 'Balance at Date MTD'
+					caption: Saldo do data MKDD
+				measure 'Balance at Date QTD'
+					caption: Saldo do data KKDD
+				measure 'Balance at Date YTD'
+					caption: Saldo do data RKDD
+			table 'Fiscal Calendar Time Intelligence'
+				caption: Časová analýza fiskálního kalendáře
+				measure 'Net Change YTD (Fiscal)'
+					caption: Pohyb RKDD (fiskální)
+				measure 'Net Change QTD (Fiscal)'
+					caption: Pohyb KKDD (fiskální)
+				measure 'Net Change MTD (Fiscal)'
+					caption: Pohyb MKDD (fiskální)
+				measure 'Net Change PY (Fiscal)'
+					caption: Pohyb PR (fiskální)
+				measure 'Net Change YOY % (Fiscal)'
+					caption: Pohyb MR (%) (fiskální)
+				measure 'Net Change YOY (Fiscal)'
+					caption: Pohyb MR (fiskální)
+				measure 'Net Change PQ (Fiscal)'
+					caption: Pohyb PK (fiskální)
+				measure 'Net Change QOQ (Fiscal)'
+					caption: Pohyb MK (fiskální)
+				measure 'Net Change QOQ % (Fiscal)'
+					caption: Pohyb MK (%) (fiskální)
+				measure 'Net Change PM (Fiscal)'
+					caption: Pohyb PM (fiskální)
+				measure 'Net Change MOM (Fiscal)'
+					caption: Pohyb MM (fiskální)
+				measure 'Net Change MOM % (Fiscal)'
+					caption: Pohyb MM (%) (fiskální)
+				measure 'Net Change PP (Fiscal)'
+					caption: Pohyb PO (fiskální)
+				measure 'Net Change POP (Fiscal)'
+					caption: Pohyb MO (fiskální)
+				measure 'Net Change POP % (Fiscal)'
+					caption: Pohyb MO (%) (fiskální)
+				measure 'Net Change PYTD (Fiscal)'
+					caption: Pohyb PRKDD (fiskální)
+				measure 'Net Change PQTD (Fiscal)'
+					caption: Pohyb PKDD (fiskální)
+				measure 'Net Change YOYTD (Fiscal)'
+					caption: Pohyb MRKDD (fiskální)
+				measure 'Net Change YOYTD % (Fiscal)'
+					caption: Pohyb MRKDD (%) (fiskální)
+				measure 'Net Change QOQTD (Fiscal)'
+					caption: Pohyb MKKDD (fiskální)
+				measure 'Net Change QOQTD % (Fiscal)'
+					caption: Pohyb MKKDD (%) (fiskální)
+				measure 'Net Change PMTD (Fiscal)'
+					caption: Pohyb PMDD (fiskální)
+				measure 'Net Change MOMTD % (Fiscal)'
+					caption: Pohyb MMKDD (%) (fiskální)
+				measure 'Net Change MOMTD (Fiscal)'
+					caption: Pohyb MMKDD (fiskální)
+				measure 'Net Change MAT (Fiscal)'
+					caption: Pohyb RPS (fiskální)
+				measure 'Net Change PYMAT (Fiscal)'
+					caption: Pohyb PRSPR (fiskální)
+				measure 'Net Change MATG (Fiscal)'
+					caption: Pohyb PCRR (fiskální)
+				measure 'Net Change MATG % (Fiscal)'
+					caption: Pohyb PCRR (%) (fiskální)
+				measure 'Net Change MAT (364) (Fiscal)'
+					caption: Pohyb RPS (364) (fiskální)
+				measure 'Net Change PYMAT (364) (Fiscal)'
+					caption: Pohyb PRSPR (364) (fiskální)
+				measure 'Net Change PYC (Fiscal)'
+					caption: Pohyb CPR (fiskální)
+				measure 'Net Change YTDOPY (Fiscal)'
+					caption: Pohyb RKDDPPR (fiskální)
+				measure 'Net Change YTDOPY % (Fiscal)'
+					caption: Pohyb RKDDPPR (%) (fiskální)
+				measure 'Net Change PQC (Fiscal)'
+					caption: Pohyb CPK (fiskální)
+				measure 'Net Change QTDOPQ (Fiscal)'
+					caption: Pohyb KDDVPK (fiskální)
+				measure 'Net Change QTDOPQ % (Fiscal)'
+					caption: Pohyb KDDVPK (%) (fiskální)
+				measure 'Net Change PMC (Fiscal)'
+					caption: Pohyb CPM (fiskální)
+				measure 'Net Change MTDOPM (Fiscal)'
+					caption: Pohyb MKDDPPM (fiskální)
+				measure 'Net Change MTDOPM % (Fiscal)'
+					caption: Pohyb MKDDPPM (%) (fiskální)
+				measure 'Net Change AVG 30D (Fiscal)'
+					caption: Pohyb PRŮM 30D (fiskální)
+				measure 'Net Change AVG 3M (Fiscal)'
+					caption: Pohyb PRŮM 3M (fiskální)
+				measure 'Net Change AVG 1Y (Fiscal)'
+					caption: Pohyb PRŮM 1R (fiskální)
+				measure 'Balance at Date YTD (Fiscal)'
+					caption: Saldo do data RKDD (fiskální)
+				measure 'Balance at Date QTD (Fiscal)'
+					caption: Saldo do data KKDD (fiskální)
+				measure 'Balance at Date MTD (Fiscal)'
+					caption: Saldo do data MKDD (fiskální)
+				measure 'Balance at Date PY (Fiscal)'
+					caption: Saldo do data PR (fiskální)
+				measure 'Balance at Date YOY % (Fiscal)'
+					caption: Saldo do data MR (%) (fiskální)
+				measure 'Balance at Date YOY (Fiscal)'
+					caption: Saldo do data MR (fiskální)
+				measure 'Balance at Date PQ (Fiscal)'
+					caption: Saldo do data PK (fiskální)
+				measure 'Balance at Date QOQ (Fiscal)'
+					caption: Saldo do data MK (fiskální)
+				measure 'Balance at Date QOQ % (Fiscal)'
+					caption: Saldo do data MK (%) (fiskální)
+				measure 'Balance at Date PM (Fiscal)'
+					caption: Saldo do data PM (fiskální)
+				measure 'Balance at Date MOM (Fiscal)'
+					caption: Saldo do data MM (fiskální)
+				measure 'Balance at Date MOM % (Fiscal)'
+					caption: Saldo do data MM (%) (fiskální)
+				measure 'Balance at Date PP (Fiscal)'
+					caption: Saldo do data PO (fiskální)
+				measure 'Balance at Date POP (Fiscal)'
+					caption: Saldo do data MO (fiskální)
+				measure 'Balance at Date POP % (Fiscal)'
+					caption: Saldo do data MO (%) (fiskální)
+				measure 'Balance at Date PYTD (Fiscal)'
+					caption: Saldo do data PRKDD (fiskální)
+				measure 'Balance at Date PQTD (Fiscal)'
+					caption: Saldo do data PKDD (fiskální)
+				measure 'Balance at Date YOYTD (Fiscal)'
+					caption: Saldo do data MRKDD (fiskální)
+				measure 'Balance at Date YOYTD % (Fiscal)'
+					caption: Saldo do data MRKDD (%) (fiskální)
+				measure 'Balance at Date QOQTD (Fiscal)'
+					caption: Saldo do data MKKDD (fiskální)
+				measure 'Balance at Date QOQTD % (Fiscal)'
+					caption: Saldo do data MKKDD (%) (fiskální)
+				measure 'Balance at Date PMTD (Fiscal)'
+					caption: Saldo do data PMDD (fiskální)
+				measure 'Balance at Date MOMTD % (Fiscal)'
+					caption: Saldo do data MMKDD (%) (fiskální)
+				measure 'Balance at Date MOMTD (Fiscal)'
+					caption: Saldo do data MMKDD (fiskální)
+				measure 'Balance at Date MAT (Fiscal)'
+					caption: Saldo do data RPS (fiskální)
+				measure 'Balance at Date PYMAT (Fiscal)'
+					caption: Saldo do data PRSPR (fiskální)
+				measure 'Balance at Date MATG (Fiscal)'
+					caption: Saldo do data PCRR (fiskální)
+				measure 'Balance at Date MATG % (Fiscal)'
+					caption: Saldo do data PCRR (%) (fiskální)
+				measure 'Balance at Date MAT (364) (Fiscal)'
+					caption: Saldo do data RPS (364) (fiskální)
+				measure 'Balance at Date PYMAT (364) (Fiscal)'
+					caption: Saldo do data PRSPR (364) (fiskální)
+				measure 'Balance at Date PYC (Fiscal)'
+					caption: Saldo do data CPR (fiskální)
+				measure 'Balance at Date YTDOPY (Fiscal)'
+					caption: Saldo do data RKDDPPR (fiskální)
+				measure 'Balance at Date YTDOPY % (Fiscal)'
+					caption: Saldo do data RKDDPPR (%) (fiskální)
+				measure 'Balance at Date PQC (Fiscal)'
+					caption: Saldo do data CPK (fiskální)
+				measure 'Balance at Date QTDOPQ (Fiscal)'
+					caption: Saldo do data KDDVPK (fiskální)
+				measure 'Balance at Date QTDOPQ % (Fiscal)'
+					caption: Saldo do data KDDVPK (%) (fiskální)
+				measure 'Balance at Date PMC (Fiscal)'
+					caption: Saldo do data CPM (fiskální)
+				measure 'Balance at Date MTDOPM (Fiscal)'
+					caption: Saldo do data MKDDPPM (fiskální)
+				measure 'Balance at Date MTDOPM % (Fiscal)'
+					caption: Saldo do data MKDDPPM (%) (fiskální)
+				measure 'Balance at Date AVG 30D (Fiscal)'
+					caption: Saldo do data PRŮM 30D (fiskální)
+				measure 'Balance at Date AVG 3M (Fiscal)'
+					caption: Saldo do data PRŮM 3M (fiskální)
+				measure 'Balance at Date AVG 1Y (Fiscal)'
+					caption: Saldo do data PRŮM 1R (fiskální)
+			table 'Weekly Calendar Time Intelligence'
+				caption: Časová analýza týdenního kalendáře
+				measure 'Net Change YTD (Weekly)'
+					caption: Pohyb RKDD (týdenní)
+				measure 'Net Change QTD (Weekly)'
+					caption: Pohyb KKDD (týdenní)
+				measure 'Net Change MTD (Weekly)'
+					caption: Pohyb MKDD (týdenní)
+				measure 'Net Change WTD (Weekly)'
+					caption: Pohyb TKDD (týdenní)
+				measure 'Net Change PY (Weekly)'
+					caption: Pohyb PR (týdenní)
+				measure 'Net Change YOY % (Weekly)'
+					caption: Pohyb MR (%) (týdenní)
+				measure 'Net Change YOY (Weekly)'
+					caption: Pohyb MR (týdenní)
+				measure 'Net Change PQ (Weekly)'
+					caption: Pohyb PK (týdenní)
+				measure 'Net Change QOQ (Weekly)'
+					caption: Pohyb MK (týdenní)
+				measure 'Net Change QOQ % (Weekly)'
+					caption: Pohyb MK (%) (týdenní)
+				measure 'Net Change PW (Weekly)'
+					caption: Pohyb PT (týdenní)
+				measure 'Net Change WOW (Weekly)'
+					caption: Pohyb MT (týdenní)
+				measure 'Net Change WOW % (Weekly)'
+					caption: Pohyb MT (%) (týdenní)
+				measure 'Net Change PP (Weekly)'
+					caption: Pohyb PO (týdenní)
+				measure 'Net Change POP (Weekly)'
+					caption: Pohyb MO (týdenní)
+				measure 'Net Change POP % (Weekly)'
+					caption: Pohyb MO (%) (týdenní)
+				measure 'Net Change PYTD (Weekly)'
+					caption: Pohyb PRKDD (týdenní)
+				measure 'Net Change PQTD (Weekly)'
+					caption: Pohyb PKDD (týdenní)
+				measure 'Net Change YOYTD (Weekly)'
+					caption: Pohyb MRKDD (týdenní)
+				measure 'Net Change YOYTD % (Weekly)'
+					caption: Pohyb MRKDD (%) (týdenní)
+				measure 'Net Change QOQTD (Weekly)'
+					caption: Pohyb MKKDD (týdenní)
+				measure 'Sales Amount QOQTD % (Weekly)'
+					caption: Částka prodeje MKKDD (%) (týdenní)
+				measure 'Net Change PWTD (Weekly)'
+					caption: Pohyb PTKDD (týdenní)
+				measure 'Net Change WOWTD (Weekly)'
+					caption: Pohyb MTKDD (týdenní)
+				measure 'Net Change WOWTD % (Weekly)'
+					caption: Pohyb MTKDD (%) (týdenní)
+				measure 'Net Change MAT (364) (Weekly)'
+					caption: Pohyb RPS (364) (týdenní)
+				measure 'Net Change PYMAT (364) (Weekly)'
+					caption: Pohyb PRSPR (364) (týdenní)
+				measure 'Net Change MATG (Weekly)'
+					caption: Pohyb PCRR (týdenní)
+				measure 'Net Change MATG % (Weekly)'
+					caption: Pohyb PCRR (%) (týdenní)
+				measure 'Net Change PYC (Weekly)'
+					caption: Pohyb CPR (týdenní)
+				measure 'Net Change YTDOPY (Weekly)'
+					caption: Pohyb RKDDPPR (týdenní)
+				measure 'Net Change YTDOPY % (Weekly)'
+					caption: Pohyb RKDDPPR (%) (týdenní)
+				measure 'Net Change PQC (Weekly)'
+					caption: Pohyb CPK (týdenní)
+				measure 'Net Change QTDOPQ (Weekly)'
+					caption: Pohyb KDDVPK (týdenní)
+				measure 'Net Change QTDOPQ % (Weekly)'
+					caption: Pohyb KDDVPK (%) (týdenní)
+				measure 'Net Change PWC (Weekly)'
+					caption: Pohyb CPT (týdenní)
+				measure 'Net Change WTDOPW (Weekly)'
+					caption: Pohyb MTOPT (týdenní)
+				measure 'Net Change WTDOPW % (Weekly)'
+					caption: Pohyb MTOPT (%) (týdenní)
+				measure 'Net Change AVG 4W (Weekly)'
+					caption: Pohyb PRŮM 4T (týdenní)
+				measure 'Net Change AVG 1Q (Weekly)'
+					caption: Pohyb PRŮM 1K (týdenní)
+				measure 'Net Change AVG 1Y (Weekly)'
+					caption: Pohyb PRŮM 1R (týdenní)
+				measure 'Balance at Date YTD (Weekly)'
+					caption: Saldo do data RKDD (týdenní)
+				measure 'Balance at Date QTD (Weekly)'
+					caption: Saldo do data KKDD (týdenní)
+				measure 'Balance at Date MTD (Weekly)'
+					caption: Saldo do data MKDD (týdenní)
+				measure 'Balance at Date WTD (Weekly)'
+					caption: Saldo do data TKDD (týdenní)
+				measure 'Balance at Date PY (Weekly)'
+					caption: Saldo do data PR (týdenní)
+				measure 'Balance at Date YOY % (Weekly)'
+					caption: Saldo do data MR (%) (týdenní)
+				measure 'Balance at Date YOY (Weekly)'
+					caption: Saldo do data MR (týdenní)
+				measure 'Balance at Date PQ (Weekly)'
+					caption: Saldo do data PK (týdenní)
+				measure 'Balance at Date QOQ (Weekly)'
+					caption: Saldo do data MK (týdenní)
+				measure 'Balance at Date QOQ % (Weekly)'
+					caption: Saldo do data MK (%) (týdenní)
+				measure 'Balance at Date PW (Weekly)'
+					caption: Saldo do data PT (týdenní)
+				measure 'Balance at Date WOW (Weekly)'
+					caption: Saldo do data MT (týdenní)
+				measure 'Balance at Date WOW % (Weekly)'
+					caption: Saldo do data MT (%) (týdenní)
+				measure 'Balance at Date PP (Weekly)'
+					caption: Saldo do data PO (týdenní)
+				measure 'Balance at Date POP (Weekly)'
+					caption: Saldo do data MO (týdenní)
+				measure 'Balance at Date POP % (Weekly)'
+					caption: Saldo do data MO (%) (týdenní)
+				measure 'Balance at Date PYTD (Weekly)'
+					caption: Saldo do data PRKDD (týdenní)
+				measure 'Balance at Date PQTD (Weekly)'
+					caption: Saldo do data PKDD (týdenní)
+				measure 'Balance at Date YOYTD (Weekly)'
+					caption: Saldo do data MRKDD (týdenní)
+				measure 'Balance at Date YOYTD % (Weekly)'
+					caption: Saldo do data MRKDD (%) (týdenní)
+				measure 'Balance at Date QOQTD (Weekly)'
+					caption: Saldo do data MKKDD (týdenní)
+				measure 'Balance at Date QOQTD % (Weekly)'
+					caption: Saldo do data MKKDD (%) (týdenní)
+				measure 'Balance at Date PWTD (Weekly)'
+					caption: Saldo do data PTKDD (týdenní)
+				measure 'Balance at Date WOWTD (Weekly)'
+					caption: Saldo do data MTKDD (týdenní)
+				measure 'Balance at Date WOWTD % (Weekly)'
+					caption: Saldo do data MTKDD (%) (týdenní)
+				measure 'Balance at Date MAT (364) (Weekly)'
+					caption: Saldo do data RPS (364) (týdenní)
+				measure 'Balance at Date PYMAT (364) (Weekly)'
+					caption: Saldo do data PRSPR (364) (týdenní)
+				measure 'Balance at Date MATG (Weekly)'
+					caption: Saldo do data PCRR (týdenní)
+				measure 'Balance at Date MATG % (Weekly)'
+					caption: Saldo do data PCRR (%) (týdenní)
+				measure 'Balance at Date PYC (Weekly)'
+					caption: Saldo do data CPR (týdenní)
+				measure 'Balance at Date YTDOPY (Weekly)'
+					caption: Saldo do data RKDDPPR (týdenní)
+				measure 'Balance at Date YTDOPY % (Weekly)'
+					caption: Saldo do data RKDDPPR (%) (týdenní)
+				measure 'Balance at Date PQC (Weekly)'
+					caption: Saldo do data CPK (týdenní)
+				measure 'Balance at Date QTDOPQ (Weekly)'
+					caption: Saldo do data KDDVPK (týdenní)
+				measure 'Balance at Date QTDOPQ % (Weekly)'
+					caption: Saldo do data KDDVPK (%) (týdenní)
+				measure 'Balance at Date PWC (Weekly)'
+					caption: Saldo do data CPT (týdenní)
+				measure 'Balance at Date WTDOPW (Weekly)'
+					caption: Saldo do data MTOPT (týdenní)
+				measure 'Balance at Date WTDOPW % (Weekly)'
+					caption: Saldo do data MTOPT (%) (týdenní)
+				measure 'Balance at Date AVG 4W (Weekly)'
+					caption: Saldo do data PRŮM 4T (týdenní)
+				measure 'Balance at Date AVG 1Q (Weekly)'
+					caption: Saldo do data PRŮM 1K (týdenní)
+				measure 'Balance at Date AVG 1Y (Weekly)'
+					caption: Saldo do data PRŮM 1R (týdenní)
+			table 'Customer Ledger Entries'
+				caption: Položky zákazníka
+				column 'CLE Entry No.'
+					caption: Číslo položky PZ
+				column 'CLE Due Date'
+					caption: Datum splatnosti PZ
+				column 'CLE Open'
+					caption: Otevřená PZ
+				column 'CLE Posting Date'
+					caption: Zúčtovací datum PZ
+				column 'CLE Document Date'
+					caption: Datum dokumentu PZ
+				column 'DCLE Entry No.'
+					caption: Číslo položky PPZ
+				column 'DCLE Posting Date'
+					caption: Zúčtovací datum PPZ
+				column 'Ledger Entry Amount'
+					caption: Částka položky
+				column 'Entry Type'
+					caption: Typ položky
+				column 'Document Type'
+					caption: Typ dokladu
+				column 'Document No.'
+					caption: Číslo dokladu
+				column 'DCLE Initial Entry Due Date'
+					caption: Datum splatnosti původní položky PPZ
+				column 'Customer No.'
+					caption: Číslo zákazníka
+				column 'Application No.'
+					caption: Číslo žádosti
+				column 'Applied Customer Ledger Entry No.'
+					caption: Číslo vyrovnané položky zákazníka
+				column 'Sales Invoice Header Document No.'
+					caption: Číslo dokladu hlavičky prodejní faktury
+				column 'Payment Terms Code'
+					caption: Kód platební podmínky
+				column 'Payment Discount Date'
+					caption: Datum skonta
+				measure 'Original Amount (LCY)'
+					caption: Původní částka (LM)
+				measure 'Amount Receivable (LCY)'
+					caption: Částka pohledávky (LM)
+				measure 'Balance (Accounts Receivable)'
+					caption: Zůstatek (pohledávky)
+				measure 'Bucket 1 (Receivables)'
+					caption: Kbelík 1 (pohledávky)
+				measure 'Bucket 2 (Receivables)'
+					caption: Kbelík 2 (pohledávky)
+				measure 'Bucket 3 (Receivables)'
+					caption: Kbelík 3 (pohledávky)
+				measure 'Bucket 4 (Receivables)'
+					caption: Kbelík 4 (pohledávky)
+				measure 'Current (Receivables)'
+					caption: Aktuální (pohledávky)
+				measure 'CLE Bucket 1 Back Link'
+					caption: Kbelík PZ 1 – zpětný odkaz
+				measure 'CLE Bucket 2 Back Link'
+					caption: Kbelík PZ 2 – zpětný odkaz
+				measure 'CLE Bucket 3 Back Link'
+					caption: Kbelík PZ 3 – zpětný odkaz
+				measure 'CLE Bucket 4 Back Link'
+					caption: Kbelík PZ 4 – zpětný odkaz
+				measure 'CLE Current Back Link'
+					caption: Aktuální PZ – zpětný odkaz
+				measure 'CLE Balance Back Link'
+					caption: Zůstatek PZ – zpětný odkaz
+			table 'Vendor Ledger Entries'
+				caption: Položky dodavatele
+				column 'VLE Entry No.'
+					caption: Číslo položky PD
+				column 'VLE Due Date'
+					caption: Datum splatnosti PD
+				column 'VLE Open'
+					caption: Otevřená PD
+				column 'VLE Posting Date'
+					caption: Zúčtovací datum PD
+				column 'VLE Document Date'
+					caption: Datum dokumentu PD
+				column 'DVLE Entry No.'
+					caption: Číslo položky DPD
+				column 'DVLE Posting Date'
+					caption: Zúčtovací datum DPD
+				column 'DVLE Ledger Entry Amount'
+					caption: Částka položky DPD
+				column 'Entry Type'
+					caption: Typ položky
+				column 'Document Type'
+					caption: Typ dokladu
+				column 'Document No.'
+					caption: Číslo dokladu
+				column 'DVLE Initial Entry Due Date'
+					caption: Datum splatnosti původní položky DPD
+				column 'Vendor No.'
+					caption: Číslo dodavatele
+				column 'Application No.'
+					caption: Číslo žádosti
+				column 'Applied Vendor Ledger Entry No.'
+					caption: Číslo vyrovnané položky dodavatele
+				column 'PIH Document No.'
+					caption: Číslo dokladu ZNF
+				column 'Payment Terms Code'
+					caption: Kód platební podmínky
+				column 'Payment Discount Date'
+					caption: Datum skonta
+				measure 'Amount Payable (LCY)'
+					caption: Částka závazku (LM)
+				measure 'Bucket 2 (Payables)'
+					caption: Kbelík 2 (závazky)
+				measure 'Bucket 1 (Payables)'
+					caption: Kbelík 1 (závazky)
+				measure 'Bucket 3 (Payables)'
+					caption: Kbelík 3 (závazky)
+				measure 'Bucket 4 (Payables)'
+					caption: Kbelík 4 (závazky)
+				measure 'Current (Payables)'
+					caption: Aktuální (závazky)
+				measure 'Balance (Accounts Payable)'
+					caption: Saldo (závazky)
+				measure 'Original Amount'
+					caption: Původní částka
+				measure 'VLE Bucket 1 Back Link'
+					caption: Kbelík PD 1 – zpětný odkaz
+				measure 'VLE Bucket 2 Back Link'
+					caption: Kbelík PD 2 – zpětný odkaz
+				measure 'VLE Bucket 3 Back Link'
+					caption: Kbelík PD 3 – zpětný odkaz
+				measure 'VLE Bucket 4 Back Link'
+					caption: Kbelík PD 4 – zpětný odkaz
+				measure 'VLE Current Back Link'
+					caption: Aktuální PD – zpětný odkaz
+				measure 'VLE Balance Back Link'
+					caption: Zůstatek PD – zpětný odkaz
+			table Vendors
+				caption: Dodavatelé
+				column 'Vendor No.'
+					caption: Číslo dodavatele
+				column 'Vendor Name'
+					caption: Jméno dodavatele
+				column 'Vendor Address'
+					caption: Adresa
+				column 'Vendor Address 2'
+					caption: Adresa 2
+				column 'Vendor City'
+					caption: Město
+				column 'Vendor Post Code'
+					caption: Poštovní směrovací číslo
+				column 'Vendor State'
+					caption: Stát
+				column 'Vendor Country/Region Code'
+					caption: Kód země/oblasti
+				column 'Vendor Posting Group'
+					caption: Účto skupina dodavatele
+				column 'Vendor No. & Name'
+					caption: Číslo a jméno dodavatele
+			table 'Calc. Group - Time Intelligence for Calendar (Standard)'
+				caption: Skupina výpočtu – časová analýza pro kalendář (standardní)
+				column 'Selected Measure'
+					caption: Vybrané měřítko
+				column Type
+					caption: Typ
+				column 'Sub Type'
+					caption: Podtyp
+				hierarchy 'Calc. Group Hierarchy (Standard)'
+					caption: Hierarchie skupiny výpočtu (standardní)
+					level Type
+						caption: Typ
+					level 'Sub Type'
+						caption: Podtyp
+					level 'Selected Measure'
+						caption: Vybrané měřítko
+			table 'Aging Date Parameter'
+				caption: Parametr data pro sledování splatnosti
+				column 'AGING PARAMETER'
+					caption: PARAMETR SLEDOVÁNÍ SPLATNOSTI
+			table 'Aging Bucket Period'
+				caption: Období sledování splatnosti kbelíku
+				measure 'Aging Bucket Period Value'
+					caption: Hodnota období sledování splatnosti kbelíku
+				measure 'Bucket 1 Range'
+					caption: Rozsah kbelíku 1
+				measure 'Bucket 2 Range'
+					caption: Rozsah kbelíku 2
+				measure 'Bucket 3 Range'
+					caption: Rozsah kbelíku 3
+				measure 'Bucket 4 Range'
+					caption: Rozsah kbelíku 4
+				measure 'Bucket 1 Date Range'
+					caption: Rozsah dat kbelíku 1
+				measure 'Bucket 2 Date Range'
+					caption: Rozsah dat rozpočtu 2
+				measure 'Bucket 3 Date Range'
+					caption: Rozsah dat kbelíku 3
+				measure 'Bucket 4 Date Range'
+					caption: Rozsah dat kbelíku 4
+			table Customers
+				caption: Zákazníci
+				column 'Customer No.'
+					caption: Číslo zákazníka
+				column 'Customer Name'
+					caption: Jméno zákazníka
+				column 'Customer Address'
+					caption: Adresa
+				column 'Customer Address 2'
+					caption: Adresa 2
+				column 'Customer City'
+					caption: Město
+				column 'CustomerPost Code'
+					caption: Poštovní směrovací číslo
+				column 'Customer State'
+					caption: Stát
+				column 'Country/Region Code'
+					caption: Kód země/oblasti
+				column 'Customer Posting Group'
+					caption: Účto skupina zákazníka
+				column 'Customer Price Group'
+					caption: Cenová skupina zákazníka
+				column 'Customer Discount Group'
+					caption: Skupina slev zákazníka
+				column 'Customer No. & Name'
+					caption: Číslo a jméno zákazníka
+			table 'Calc. Group - Time Intelligence for Calendar (Fiscal)'
+				caption: Skupina výpočtu – časová analýza pro kalendář (fiskální)
+				column 'Selected Measure'
+					caption: Vybrané měřítko
+				column Type
+					caption: Typ
+				column 'Sub Type'
+					caption: Podtyp
+				hierarchy 'Calc. Group Hierarchy (Fiscal)'
+					caption: Hierarchie skupiny výpočtu (fiskální)
+					level Type
+						caption: Typ
+					level 'Sub Type'
+						caption: Podtyp
+					level 'Selected Measure'
+						caption: Vybrané měřítko
+			table 'Calc. Group - Time Intelligence for Calenday (Weekly)'
+				caption: Skupina výpočtu – časová analýza pro kalendář (týdenní)
+				column 'Selected Measure'
+					caption: Vybrané měřítko
+				column Type
+					caption: Typ
+				column 'Sub Type'
+					caption: Podtyp
+				hierarchy 'Calc. Group Hierarchy (Weekly)'
+					caption: Hierarchie skupiny výpočtu (týdenní)
+					level Type
+						caption: Typ
+					level 'Sub Type'
+						caption: Podtyp
+					level 'Selected Measure'
+						caption: Vybrané měřítko
+			table Date
+				caption: Datum
+				column 'Week Day'
+					caption: Den v týdnu
+				column 'Day Type'
+					caption: Typ dne
+				column 'Calendar Year'
+					caption: Kalendářní rok
+				column 'Calendar Quarter'
+					caption: Kalendářní kvartál
+				column 'Calendar Quarter Year'
+					caption: Rok kalendářního kvartálu
+				column 'Calendar Month'
+					caption: Kalendářní měsíc
+				column 'Calendar Month Year'
+					caption: Kalendářní měsíc v roce
+				column 'Calendar Week'
+					caption: Kalendářní týden
+				column 'Calendar Week Year'
+					caption: Kalendářní týden a rok
+				column 'Calendar RelativeWeekPos'
+					caption: Relativní pozice kalendářního týdne
+				column 'Calendar RelativeMonthPos'
+					caption: Relativní pozice kalendářního měsíce
+				column 'Calendar RelativeQuarterPos'
+					caption: Relativní pozice kalendářního kvartálu
+				column 'Calendar RelativeYearPos'
+					caption: Relativní pozice kalendářního roku
+				column 'Calendar StartOfMonth'
+					caption: Začátek kalendářního měsíce
+				column 'Calendar EndOfMonth'
+					caption: Konec kalendářního měsíce
+				column 'Calendar StartOfQuarter'
+					caption: Začátek kalendářního kvartálu
+				column 'Calendar EndOfQuarter'
+					caption: Konec kalendářního kvartálu
+				column 'Calendar StartOfYear'
+					caption: Začátek kalendářního roku
+				column 'Calendar EndOfYear'
+					caption: Konec kalendářního roku
+				column 'Calendar MonthDays'
+					caption: Kalendářní dny v měsíci
+				column 'Calendar QuarterDays'
+					caption: Dny kalendářního kvartálu
+				column 'Calendar YearDays'
+					caption: Dny kalendářního roku
+				column 'Calendar DayOfMonthNumber'
+					caption: Počet dní ve fiskálním měsíci
+				column 'Calendar DayOfQuarterNumber'
+					caption: Počet dní v kalendářním kvartálu
+				column 'Calendar DayOfYearNumber'
+					caption: Počet dní ve fiskálním roce
+				column 'Calendar DatePreviousWeek'
+					caption: Datum v předchozím kalendářním týdnu
+				column 'Calendar DatePreviousMonth'
+					caption: Datum v předchozím kalendářním měsíci
+				column 'Calendar DatePreviousQuarter'
+					caption: Datum v předchozím kalendářním kvartálu
+				column 'Calendar DatePreviousYear'
+					caption: Datum v předchozím kalendářním roce
+				column 'Fiscal Year'
+					caption: Fiskální rok
+				column 'Fiscal Quarter'
+					caption: Fiskální kvartál
+				column 'Fiscal Quarter Year'
+					caption: Fiskální rok kvartálu
+				column 'Fiscal Month'
+					caption: Fiskální měsíc
+				column 'Fiscal Month Year'
+					caption: FIskální rok měsíce
+				column 'Fiscal Week'
+					caption: Fiskální týden
+				column 'Fiscal Week Year'
+					caption: Fiskální týden a rok
+				column 'Fiscal RelativeWeekPos'
+					caption: Relativní pozice fiskálního týdne
+				column 'Fiscal RelativeMonthPos'
+					caption: Relativní pozice fiskálního měsíce
+				column 'Fiscal RelativeQuarterPos'
+					caption: Relativní pozice fiskálního kvartálu
+				column 'Fiscal RelativeYearPos'
+					caption: Relativní pozice fiskálního roku
+				column 'Fiscal StartOfMonth'
+					caption: Začátek fiskálního měsíce
+				column 'Fiscal EndOfMonth'
+					caption: Konec fiskálního měsíce
+				column 'Fiscal StartOfQuarter'
+					caption: Začátek fiskálního kvartálu
+				column 'Fiscal EndOfQuarter'
+					caption: Konec fiskálního kvartálu
+				column 'Fiscal StartOfYear'
+					caption: Začátek fiskálního roku
+				column 'Fiscal EndOfYear'
+					caption: Konec fiskálního roku
+				column 'Fiscal MonthDays'
+					caption: Dny fiskálního měsíce
+				column 'Fiscal QuarterDays'
+					caption: Dny fiskálního kvartálu
+				column 'Fiscal YearDays'
+					caption: Dny fiskálního roku
+				column 'Fiscal DayOfMonthNumber'
+					caption: Počet dní ve fiskálním měsíci
+				column 'Fiscal DayOfQuarterNumber'
+					caption: Počet dnů ve fiskálním kvartálu
+				column 'Fiscal DayOfYearNumber'
+					caption: Počet dní ve fiskálním roce
+				column 'Fiscal DatePreviousWeek'
+					caption: Datum v předchozím fiskálním týdnu
+				column 'Fiscal DatePreviousMonth'
+					caption: Datum v předchozím fiskálním měsíci
+				column 'Fiscal DatePreviousQuarter'
+					caption: Datum v předchozím fiskálním kvartálu
+				column 'Fiscal DatePreviousYear'
+					caption: Datum v předchozím fiskálním roce
+				column 'FW Year'
+					caption: Rok FT
+				column 'FW Quarter'
+					caption: Kvartál FT
+				column 'FW Quarter Year'
+					caption: Rok kvartálu FT
+				column 'FW Month'
+					caption: Měsíc FT
+				column 'FW Month Year'
+					caption: Rok měsíce FT
+				column 'FW Week'
+					caption: Týden FT
+				column 'FW Period'
+					caption: Období FT
+				column 'FW Week Year'
+					caption: Týden a rok FT
+				column 'FW StartOfWeek'
+					caption: Začátek týdne FT
+				column 'FW EndOfWeek'
+					caption: Konec týdne FT
+				column 'FW RelativeWeekPos'
+					caption: Relativní pozice týdne FT
+				column 'FW RelativeMonthPos'
+					caption: Relativní pozice měsíce FT
+				column 'FW RelativeQuarterPos'
+					caption: Relativní pozice kvartálu FT
+				column 'FW RelativeYearPos'
+					caption: Relativní pozice roku FT
+				column 'FW StartOfMonth'
+					caption: Začátek měsíce FT
+				column 'FW EndOfMonth'
+					caption: Konec měsíce FT
+				column 'FW StartOfQuarter'
+					caption: Začátek kvartálu FT
+				column 'FW EndOfQuarter'
+					caption: Konec kvartálu FT
+				column 'FW StartOfYear'
+					caption: Začátek roku FT
+				column 'FW EndOfYear'
+					caption: Konec roku FT
+				column 'FW MonthDays'
+					caption: Dny v měsíci FT
+				column 'FW QuarterDays'
+					caption: Dny kvartálu FT
+				column 'FW YearDays'
+					caption: Dny roku FT
+				column 'FW DayOfMonthNumber'
+					caption: Počet dní v měsíci FT
+				column 'FW DayOfQuarterNumber'
+					caption: Počet dnů v kvartálu FT
+				column 'FW DayOfYearNumber'
+					caption: Počet dní v roce FT
+				column 'FW DatePreviousWeek'
+					caption: Datum v předchozím týdnu FT
+				column 'FW DatePreviousMonth'
+					caption: Datum v předchozím měsíci FT
+				column 'FW DatePreviousQuarter'
+					caption: Datum v předchozím kvartálu FT
+				column 'FW DatePreviousYear'
+					caption: Datum v předchozím roce FT
+				column 'Relative Day'
+					caption: Relativní den
+				column Sequential365DayNumber
+					caption: Pořadové číslo dne 365
+				measure 'No. of Days'
+					caption: Počet dnů
+				hierarchy 'Fiscal Year-Quarter-Month-Week'
+					caption: Fiskální rok-kvartál-měsíc-týden
+					level 'Fiscal Year'
+						caption: Fiskální rok
+					level 'Fiscal Quarter Year'
+						caption: Fiskální rok kvartálu
+					level 'Fiscal Month Year'
+						caption: FIskální rok měsíce
+					level 'Fiscal Week Year'
+						caption: Fiskální týden a rok
+				hierarchy 'Calendar Year-Quarter-Month-Week'
+					caption: Kalendářní rok-kvartál-měsíc-týden
+					level 'Calendar Year'
+						caption: Kalendářní rok
+					level 'Calendar Quarter Year'
+						caption: Rok kalendářního kvartálu
+					level 'Calendar Month Year'
+						caption: Kalendářní měsíc v roce
+					level 'Calendar Week Year'
+						caption: Kalendářní týden a rok
+				hierarchy 'FW Year-Quarter-Month-Week'
+					caption: Rok-kvartál-měsíc-týden FT
+					level 'FW Year'
+						caption: Rok FT
+					level 'FW Quarter Year'
+						caption: Rok kvartálu FT
+					level 'FW Month Year'
+						caption: Rok měsíce FT
+					level 'FW Week Year'
+						caption: Týden a rok FT
+				hierarchy 'Fiscal Year-Month'
+					caption: Fiskální rok-měsíc
+					level 'Fiscal Year'
+						caption: Fiskální rok
+					level 'Fiscal Month Year'
+						caption: FIskální rok měsíce
+				hierarchy 'Fiscal Year-Month-Week'
+					caption: Fiskální rok-měsíc-týden
+					level 'Fiscal Year'
+						caption: Fiskální rok
+					level 'Fiscal Month Year'
+						caption: FIskální rok měsíce
+					level 'Fiscal Week Year'
+						caption: Fiskální týden a rok
+				hierarchy 'Calendar Year-Month'
+					caption: Kalendářní rok-měsíc
+					level 'Calendar Year'
+						caption: Kalendářní rok
+					level 'Calendar Month Year'
+						caption: Kalendářní měsíc v roce
+				hierarchy 'Calendar Year-Month-Week'
+					caption: Kalendářní rok-měsíc-týden
+					level 'Calendar Year'
+						caption: Kalendářní rok
+					level 'Calendar Month Year'
+						caption: Kalendářní měsíc v roce
+					level 'Calendar Week Year'
+						caption: Kalendářní týden a rok
+				hierarchy 'FW Year-Month-Week'
+					caption: Rok-měsíc-týden FT
+					level 'FW Year'
+						caption: Rok FT
+					level 'FW Month Year'
+						caption: Rok měsíce FT
+					level 'FW Week Year'
+						caption: Týden a rok FT
+				hierarchy 'FW Year-Quarter-Week'
+					caption: Rok-kvartál-týden FT
+					level 'FW Year'
+						caption: Rok FT
+					level 'FW Quarter Year'
+						caption: Rok kvartálu FT
+					level 'FW Week Year'
+						caption: Týden a rok FT
+				hierarchy 'FW Year-Week'
+					caption: Rok-týden FT
+					level 'FW Year'
+						caption: Rok FT
+					level 'FW Week Year'
+						caption: Týden a rok FT
+			table 'Localized Labels'
+				measure 'My Report Title'
+					caption: Můj nadpis sestavy
+				measure 'My Button Caption'
+					caption: Popisek mého tlačítka
+				measure 'My Visual Title'
+					caption: Název mého vizuálu
+				measure 'Financial Overview'
+					caption: Finanční přehled
+				measure 'Income Statement by Month'
+					caption: Výsledovka podle měsíce
+				measure 'Balance Sheet by Month'
+					caption: Rozvaha podle měsíce
+				measure 'Budget Comparison'
+					caption: Porovnání rozpočtu
+				measure 'Liquidity KPIs'
+					caption: KPI likvidity
+				measure Profitability
+					caption: Ziskovost
+				measure 'Liabilities '
+					caption: "Pasiva "
+				measure 'Average Collection Period '
+					caption: Průměrné období inkasa
+				measure 'Aged Receivables (Back Dating)'
+					caption: Splatné pohledávky (zpětné datování)
+				measure 'Aged Payables (Back Dating)'
+					caption: Splatné závazky (zpětné datování)
+				measure 'G/L Entries'
+					caption: Věcné položky
+				measure 'Detailed Vendor Ledger Entries'
+					caption: Detailní položky dodavatele
+				measure 'Detailed Customer Ledger Entries'
+					caption: Podrobné položky zákazníka
+				measure 'Income Statement Drill Through'
+					caption: Podrobné procházení výsledovky
+				measure 'Balance Sheet Drill Through'
+					caption: Podrobné procházení rozvahy
+				measure 'Vendor Ledger Entries Drill Through'
+					caption: Podrobné procházení položek dodavatele
+				measure 'Customer Ledger Entries Drill Through'
+					caption: Podrobné procházení položek zákazníka
+				measure 'Liabilities Drill Through'
+					caption: Podrobné procházení pasiv
+				measure 'Finance App Change Log'
+					caption: Protokol změn aplikace Finance
+				measure 'As At Date'
+					caption: K datu
+				measure 'Aging Bucket Length'
+					caption: Délka sledování splatnosti kbelíku
+				measure 'Use Aging Date'
+					caption: Použít datum pro sledování splatnosti
+				measure 'Cost of Goods Sold '
+					caption: "Náklady na prodané zboží "
+				measure 'Net Profit '
+					caption: "Čistý zisk "
+				measure 'Current Assets / Current Liabilities'
+					caption: Oběžná aktiva / Krátkodobá pasiva
+				measure '(Current Assets - Inventory - Purch. Prepayments) /  Current Liabilities'
+					caption: (Oběžná aktiva – Zásoby – Nákupní zálohy) / Krátkodobá pasiva
+				measure 'Liquid Assets / Current Liabilities'
+					caption: Likvidní aktiva / Krátkodobá pasiva
+				measure 'Revenue - Cost of Goods Sold - Expenses'
+					caption: Výnosy – Náklady na prodané zboží – Výdaje
+				measure 'Net Profit / Revenue'
+					caption: Čistý zisk / výnosy
+				measure 'Revenue - Cost of Goods Sold'
+					caption: Výnosy – Náklady na prodané zboží
+				measure 'Gross Profit / Revenue'
+					caption: Hrubý zisk / výnosy
+				measure 'Liabilities by Month'
+					caption: Pasiva podle měsíce
+				measure 'Revenue & Accounts Receivable (Average) by Month'
+					caption: Výnosy a pohledávky (průměr) podle měsíce
+				measure 'Average Collection Period (Days) by Month'
+					caption: Průměrné období inkasa (dny) podle měsíce
+				measure 'Operating Revenue '
+					caption: "Provozní výnosy "
+				measure 'Operating Expenses '
+					caption: "Provozní výdaje "
+				measure 'AGED AR / AP'
+					caption: SPLATNÉ SP / Z
+				measure 'Finance Analytics'
+					caption: Finanční analýza
+				measure for
+					caption: pro
+				measure 'CONNECT YOUR DATA'
+					caption: PŘIPOJENÍ DAT
+				measure '1. Download the Finance Connector for Power BI'
+					caption: 1. Stažení řešení Finance Connector for Power BI
+				measure '2. Configure Dynamics 365 Business Central'
+					caption: 2. Konfigurace Dynamics 365 Business Central
+				measure 'USE, EDIT AND BUILD YOUR OWN REPORTS'
+					caption: POUŽÍVÁNÍ, ÚPRAVA A TVORBA VLASTNÍCH SESTAV
+				measure 'Finance includes a variety of pre-built reports to help you see your data immediately. You are able to edit these reports or build your own report from scratch.'
+					caption: Finance obsahují řadu předpřipravených sestav, které vám pomohou okamžitě zobrazit vaše data. Tyto sestavy můžete upravovat nebo si vytvořit vlastní sestavu od základu.
+				measure 'HELP AND SUPPORT'
+					caption: POMOC A PODPORA
+				measure 'For help and support with your new report please visit the Analytics overview documentation.'
+					caption: Nápovědu a podporu k nové sestavě naleznete v dokumentaci k přehledu Analytics.
+				measure 'OTHER POWER BI REPORTS'
+					caption: DALŠÍ SESTAVY POWER BI
+				measure PURCHASE
+					caption: NÁKUP
+				measure SALES
+					caption: PRODEJ
+				measure 'INVENTORY '
+					caption: "ZÁSOBY "
+				measure MANUFACTURING
+					caption: VÝROBA
+				measure JOBS
+					caption: ÚLOHY
+				measure 'for Business Central'
+					caption: pro Business Central
+				measure 'Aged Accounts Receivable (AR) & Accounts Payable (AP)'
+					caption: Splatné pohledávky (SP) a závazky (Z)
+				measure 'Aged Accounts Receivable & Accounts Payable'
+					caption: Splatné pohledávky a závazky
+				measure 'Aged Accounts'
+					caption: Splatné pohledávky
+				measure 'General Ledger (G/L) Entries'
+					caption: Věcné položky
+				measure 'General Ledger Entries'
+					caption: Věcné položky
+				measure 'Return On Assets - ROA by Month'
+					caption: Návratnost majetku – NM podle měsíce
+				measure 'Top 5 Customers by Balance'
+					caption: 5 předních zákazníků podle zůstatku
+				measure 'Top 5 Vendors by Balance'
+					caption: 5 předních dodavatelů podle zůstatku
+				measure 'Net Profit Margin by Month'
+					caption: Čistá zisková marže podle měsíce
+				measure 'Asset Turnover Ratio by Month'
+					caption: Poměr obratu majetku podle měsíce
+				measure 'Last Refreshed'
+					caption: Naposledy aktualizováno
+				measure 'Company Name'
+					caption: Název společnosti
+				measure 'Liquidity Line Chart'
+					caption: Spojnicový graf likvidity
+				measure 'Net Profit by Month'
+					caption: Čistý zisk podle měsíce
+				measure 'Gross Profit by Month'
+					caption: Hrubý zisk podle měsíce
+				measure 'Operating Profit - EBIT and EBITDA by Month'
+					caption: Provozní zisk – ZPZÚAD a ZPZÚDAO podle měsíce
+				measure 'EBITDA '
+					caption: "ZPZÚDAO "
+				measure 'Revenue, Accounts Receivable (Average), No. of Days and Average Collection Period (Days) by Month'
+					caption: Výnosy, pohledávky (průměr), počet dní a průměrné období inkasa (dny) podle měsíce
+				measure 'Revenue, Net Profit, Net Profit Margin, Assets, Days Sales Outstanding, Days Sales of Inventory, Days Payable Outstanding.'
+					caption: Výnosy, čistý zisk, čistá zisková marže, majetky, počet dnů neuhrazeného prodeje, dny prodeje zásob, dny neuhrazeného závazku.
+				measure 'Current Ratio, Current Assets, Current Liabilities.'
+					caption: Krátkodobý poměr, běžná aktiva, krátkodobá pasiva.
+				measure 'Quick Ratio, Current Assets, Inventory.'
+					caption: Rychlý poměr, oběžná aktiva, zásoby.
+				measure 'Cash Ratio, Liquid Assets, Current Liabilities.'
+					caption: Poměr hotovosti, likvidní aktiva, krátkodobá pasiva.
+				measure 'Net Profit, Revenue, Cost of Goods Sold.'
+					caption: Čistý zisk, výnosy, náklady na prodané zboží.
+				measure 'Net Profit Margin, Net Profit, Revenue.'
+					caption: Čistá zisková marže, čistý zisk, výnosy.
+				measure 'Gross Profit, Revenue, Cost of Goods Sold.'
+					caption: Hrubý zisk, výnosy, náklady na prodané zboží.
+				measure 'Gross Profit Marging, Gross Profit, Revenue.'
+					caption: Hrubá zisková marže, hrubý zisk, výnosy.
+				measure 'Liabilities, Current Liabilities, Payrol Liabilities, Debt Ratio, Debt/Equity Ratio, Assets, Longterm Liabilities.'
+					caption: Pasiva, krátkodobá pasiva, mzdové závazky, poměr dluhu, poměr dluhu/jmění, majetky, dlouhodobá pasiva.
+				measure 'Gross Profit Margin, Gross Profit, Revenue.'
+					caption: Hrubá zisková marže, hrubý zisk, výnosy.
+				measure 'Net Profit Margin by Fiscal Year and Month'
+					caption: Čistá zisková marže podle fiskálního roku a měsíce
+				measure 'Asset Turnover Ratio by Fiscal Year and Month'
+					caption: Poměr obratu majetku podle fiskálního roku a měsíce
+				measure 'Balance at Date (Neg) by Fiscal Year, Month and G/L Account No./Name'
+					caption: Saldo do data (záporný) podle fiskálního roku, měsíce a čísla/názvu finančního účtu
+			table COMPANY
+				caption: SPOLEČNOST
+				measure 'Company Label'
+					caption: Popisek společnosti
+			table 'Closing Entry Filter Table'
+				caption: Tabulka filtru uzávěrkové položky
+				column CloseIncomeSourceCodeFilter
+					caption: CloseIncomeSourceCodeFilter
+			table 'Back Links'
+				caption: Zpětné odkazy
+

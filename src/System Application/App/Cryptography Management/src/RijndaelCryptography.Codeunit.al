@@ -169,6 +169,26 @@ codeunit 1258 "Rijndael Cryptography"
     end;
 
     /// <summary>
+    /// Returns encrypted binary data as base64
+    /// </summary>
+    /// <param name="BinaryDataAsBase64">The value to encrypt.</param>
+    /// <returns>Encrypted value.</returns>
+    procedure EncryptBinaryData(BinaryDataAsBase64: Text) EncryptedBinaryDataAsBase64: Text
+    begin
+        EncryptedBinaryDataAsBase64 := CryptographyManagementImpl.EncryptBinaryDataRijndael(BinaryDataAsBase64);
+    end;
+
+    /// <summary>
+    /// Returns encrypted binary data as base64
+    /// </summary>
+    /// <param name="BinaryDataAsBase64">The value to encrypt.</param>
+    /// <returns>Encrypted value.</returns>
+    procedure EncryptBinaryData(BinaryDataAsBase64: SecretText) EncryptedBinaryDataAsBase64: SecretText
+    begin
+        EncryptedBinaryDataAsBase64 := CryptographyManagementImpl.EncryptBinaryDataRijndaelSecret(BinaryDataAsBase64);
+    end;
+
+    /// <summary>
     /// Returns encrypted text as plain text.
     /// </summary>
     /// <param name="CryptedText">The value to decrypt.</param>
@@ -186,5 +206,25 @@ codeunit 1258 "Rijndael Cryptography"
     procedure Decrypt(CryptedText: SecretText) PlainText: SecretText
     begin
         PlainText := CryptographyManagementImpl.DecryptRijndaelSecret(CryptedText);
+    end;
+
+    /// <summary>
+    /// Returns decrypted binary data as base64
+    /// </summary>
+    /// <param name="CryptedBinaryDataAsBase64">The value to decrypt.</param>
+    /// <returns>Decrypted value.</returns>
+    procedure DecryptBinaryData(CryptedBinaryDataAsBase64: Text) BinaryDataAsBase64: Text
+    begin
+        BinaryDataAsBase64 := CryptographyManagementImpl.DecryptBinaryDataRijndael(CryptedBinaryDataAsBase64);
+    end;
+
+    /// <summary>
+    /// Returns decrypted binary data as base64
+    /// </summary>
+    /// <param name="CryptedBinaryDataAsBase64">The value to decrypt.</param>
+    /// <returns>Decrypted value.</returns>
+    procedure DecryptBinaryData(CryptedBinaryDataAsBase64: SecretText) BinaryDataAsBase64: SecretText
+    begin
+        BinaryDataAsBase64 := CryptographyManagementImpl.DecryptBinaryDataRijndaelSecret(CryptedBinaryDataAsBase64);
     end;
 }

@@ -77,6 +77,7 @@ page 130460 "AL Code Coverage"
                     DecimalPlaces = 2 : 2;
                     Editable = false;
                     ToolTip = 'Specifies the extent to which the application code is covered by tests.';
+                    AutoFormatType = 0;
                 }
             }
             repeater("Object")
@@ -99,6 +100,7 @@ page 130460 "AL Code Coverage"
                     Caption = 'Coverage %';
                     StyleExpr = CoveragePercentStyle;
                     ToolTip = 'Specifies the percentage applied to the code coverage line.';
+                    AutoFormatType = 0;
                 }
                 field(LineType; Rec."Line Type")
                 {
@@ -270,6 +272,11 @@ page 130460 "AL Code Coverage"
         SetStyles();
     end;
 
+    trigger OnAfterGetCurrRecord()
+    begin
+        CodeCoverageRunning := System.CodeCoverageLog();
+    end;
+
     trigger OnInit()
     begin
         RequiredCoveragePercent := 90;
@@ -295,11 +302,11 @@ page 130460 "AL Code Coverage"
     local procedure SetStyles()
     begin
         if Rec."Line Type" = Rec."Line Type"::Empty then
-            CoveragePercentStyle := 'Standard'
+            CoveragePercentStyle := Format(PageStyle::Standard)
         else
             if CoveragePercent < RequiredCoveragePercent then
-                CoveragePercentStyle := 'Unfavorable'
+                CoveragePercentStyle := Format(PageStyle::Unfavorable)
             else
-                CoveragePercentStyle := 'Favorable';
+                CoveragePercentStyle := Format(PageStyle::Favorable);
     end;
 }

@@ -6,8 +6,8 @@
 namespace System.Email;
 
 using System.DataAdministration;
-using System.Reflection;
 using System.Environment;
+using System.Reflection;
 using System.Security.AccessControl;
 
 permissionset 8900 "Email - Read"
@@ -24,6 +24,7 @@ permissionset 8900 "Email - Read"
                   tabledata "Email Message" = r,
                   tabledata "Email Message Attachment" = r,
                   tabledata "Email Outbox" = r,
+                  tabledata "Email Retry" = r,
                   tabledata "Email Inbox" = r,
                   tabledata "Email Rate Limit" = r,
                   tabledata "Email Recipient" = r,

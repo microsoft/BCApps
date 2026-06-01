@@ -5,8 +5,8 @@
 
 namespace System.Visualization;
 
-using System.Reflection;
 using System.Environment;
+using System.Reflection;
 
 codeunit 9702 "Cues And KPIs Impl."
 {

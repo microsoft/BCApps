@@ -76,7 +76,7 @@ codeunit 130452 "Test Runner - Get Methods"
         if not Handled then
             TestMethodLine.Insert(true);
 
-        OnAfterAddTestMethodLine(TestMethodLine, MaxLineNo);
+        OnAfterAddTestMethodLine(TestMethodLine, MaxLineNo, UpdateTests);
     end;
 
     [IntegrationEvent(false, false)]
@@ -90,7 +90,7 @@ codeunit 130452 "Test Runner - Get Methods"
     end;
 
     [InternalEvent(false, false)]
-    local procedure OnAfterAddTestMethodLine(var TestMethodLine: Record "Test Method Line"; var MaxLineNo: Integer)
+    local procedure OnAfterAddTestMethodLine(var TestMethodLine: Record "Test Method Line"; var MaxLineNo: Integer; IsUpdating: Boolean)
     begin
     end;
 }

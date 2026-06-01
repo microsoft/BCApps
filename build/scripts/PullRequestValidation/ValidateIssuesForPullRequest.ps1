@@ -95,7 +95,9 @@ $issueIds = $pullRequest.GetLinkedIssueIDs()
 
 # If the pull request is from a fork, validate that it links to an issue
 if ($pullRequest.IsFromFork()) {
-    Test-IssueIsLinked -IssueIds $issueIds -PullRequest $PullRequest
+    if (-not $pullRequest.GetLinkedADOWorkItemIDs()) {
+        Test-IssueIsLinked -IssueIds $issueIds -PullRequest $PullRequest
+    }
 }
 
 # Validate that all issues linked to the pull request are open and approved

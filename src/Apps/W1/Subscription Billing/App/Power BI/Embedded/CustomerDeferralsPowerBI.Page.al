@@ -1,0 +1,51 @@
+namespace Microsoft.PowerBIReports;
+
+using System.Integration.PowerBI;
+
+page 8112 "Customer Deferrals Power BI"
+{
+    UsageCategory = ReportsAndAnalysis;
+    ApplicationArea = All;
+    PageType = UserControlHost;
+    Caption = 'Customer Deferrals';
+    AboutTitle = 'About Customer Deferrals';
+    AboutText = 'The Customer Deferrals report provides an overview of deferred vs. released subscription sales amount.';
+
+    layout
+    {
+        area(Content)
+        {
+            usercontrol(PowerBIAddin; PowerBIManagement)
+            {
+                ApplicationArea = All;
+
+                trigger ControlAddInReady()
+                begin
+                    SetupHelper.InitializeEmbeddedAddin(CurrPage.PowerBIAddin, ReportId, ReportPageLbl);
+                end;
+
+                trigger ReportLoaded(ReportFilters: Text; ActivePageName: Text; ActivePageFilters: Text; CorrelationId: Text)
+                begin
+                    SetupHelper.LogReportLoaded(CorrelationId);
+                end;
+
+                trigger ErrorOccurred(Operation: Text; ErrorText: Text)
+                begin
+                    SetupHelper.LogError(Operation, ErrorText);
+                    SetupHelper.ShowPowerBIErrorNotification(Operation, ErrorText);
+                end;
+            }
+        }
+    }
+
+    var
+        SetupHelper: Codeunit "Power BI Report Setup";
+        ReportId: Guid;
+        ReportPageLbl: Label 'dcb80fad15d5002bc00d', Locked = true;
+
+    trigger OnOpenPage()
+    begin
+        ReportId := SetupHelper.OpenPowerBIEmbeddedReportPageValidation("PBI Report Setup"::"Subscription Billing App");
+    end;
+}
+

@@ -22,35 +22,35 @@ codeunit 132519 "AFS Init. Test Storage"
 
     procedure ClearFileShare(): Text
     var
-        AFSDirectoryContent: Record "AFS Directory Content";
+        TempAFSDirectoryContent: Record "AFS Directory Content";
         AFSFileClient: Codeunit "AFS File Client";
         Visited: List of [Text];
     begin
         AFSFileClient.Initialize(GetStorageAccountName(), GetFileShareName(), AFSGetTestStorageAuth.GetDefaultAccountSAS());
-        AFSFileClient.ListDirectory('', AFSDirectoryContent);
-        if not AFSDirectoryContent.FindSet() then
+        AFSFileClient.ListDirectory('', TempAFSDirectoryContent);
+        if not TempAFSDirectoryContent.FindSet() then
             exit;
-        DeleteDirectoryRecursive(AFSFileClient, AFSDirectoryContent, Visited);
+        DeleteDirectoryRecursive(AFSFileClient, TempAFSDirectoryContent, Visited);
     end;
 
-    local procedure DeleteDirectoryRecursive(var AFSFileClient: Codeunit "AFS File Client"; var AFSDirectoryContent: Record "AFS Directory Content"; var Visited: List of [Text])
+    local procedure DeleteDirectoryRecursive(var AFSFileClient: Codeunit "AFS File Client"; var TempAFSDirectoryContent: Record "AFS Directory Content"; var Visited: List of [Text])
     var
-        AFSDirectoryContentLocal: Record "AFS Directory Content";
+        TempAFSDirectoryContentLocal: Record "AFS Directory Content";
     begin
-        if not AFSDirectoryContent.FindSet() then
+        if not TempAFSDirectoryContent.FindSet() then
             exit;
         repeat
-            if not Visited.Contains(AFSDirectoryContent."Full Name") then
-                if AFSDirectoryContent."Resource Type" = AFSDirectoryContent."Resource Type"::File then
-                    AFSFileClient.DeleteFile(AFSDirectoryContent."Full Name")
+            if not Visited.Contains(TempAFSDirectoryContent."Full Name") then
+                if TempAFSDirectoryContent."Resource Type" = TempAFSDirectoryContent."Resource Type"::File then
+                    AFSFileClient.DeleteFile(TempAFSDirectoryContent."Full Name")
                 else begin
-                    AFSFileClient.ListDirectory(AFSDirectoryContent."Full Name", AFSDirectoryContentLocal);
-                    Visited.Add(AFSDirectoryContent."Full Name");
-                    DeleteDirectoryRecursive(AFSFileClient, AFSDirectoryContentLocal, Visited);
-                    AFSFileClient.DeleteDirectory(AFSDirectoryContent."Full Name");
-                    Visited.Remove(AFSDirectoryContent."Full Name");
+                    AFSFileClient.ListDirectory(TempAFSDirectoryContent."Full Name", TempAFSDirectoryContentLocal);
+                    Visited.Add(TempAFSDirectoryContent."Full Name");
+                    DeleteDirectoryRecursive(AFSFileClient, TempAFSDirectoryContentLocal, Visited);
+                    AFSFileClient.DeleteDirectory(TempAFSDirectoryContent."Full Name");
+                    Visited.Remove(TempAFSDirectoryContent."Full Name");
                 end;
-        until AFSDirectoryContent.Next() = 0;
+        until TempAFSDirectoryContent.Next() = 0;
     end;
 
     /// <summary>

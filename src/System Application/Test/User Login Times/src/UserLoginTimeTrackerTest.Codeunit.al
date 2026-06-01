@@ -5,9 +5,9 @@
 
 namespace System.Test.Security.AccessControl;
 
+using System.Security.AccessControl;
 using System.Security.User;
 using System.TestLibraries.Security.AccessControl;
-using System.Security.AccessControl;
 using System.TestLibraries.Utilities;
 
 codeunit 130044 "User Login Time Tracker Test"

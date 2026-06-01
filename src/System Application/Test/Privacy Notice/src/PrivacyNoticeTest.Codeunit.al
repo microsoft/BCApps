@@ -5,10 +5,10 @@
 
 namespace System.Test.Privacy;
 
-using System.Privacy;
 using System.Environment;
-using System.TestLibraries.Utilities;
+using System.Privacy;
 using System.TestLibraries.Security.AccessControl;
+using System.TestLibraries.Utilities;
 codeunit 132535 "Privacy Notice Test"
 {
     Subtype = Test;

@@ -1,0 +1,624 @@
+table 'Project Ledger Entry'
+	lineageTag: 760c1d99-b2f8-4635-a67c-349b496ce1e2
+
+	/// The Quantity measure calculates the total quantity of a product or service used in a project by summing the quantity in the Project Ledger Entry table and converting the measure to a postive value.
+	measure 'Project Ledger Entry Quantity' =
+			
+			SUM ( 'Project Ledger Entry'[qty] ) * -1
+		formatString: #,0.00
+		displayFolder: _Project Ledger Measures
+		lineageTag: 543c0e22-d676-4a18-b370-15507e518fe9
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// The Invoiced (Total Cost) measure calculates the total cost of all project ledger entries where the entry type is "Sale" in the Project Ledger Entry table.
+	measure 'Invoiced (Total Cost)' =
+			
+			CALCULATE (
+			    SUM ( 'Project Ledger Entry'[Total Cost (LCY)] ),
+			    'Project Ledger Entry'[Entry Type] = "Sale"
+			)
+		formatString: #,0.00
+		isHidden
+		displayFolder: _Project Ledger Measures\_Obsolete
+		lineageTag: 45f5f08f-9158-4e18-b4a8-8a43751890a9
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	/// The Total Price measure calculates the total price of all project ledger entries in the Project Ledger Entry table. It uses the SUMX function to iterate over each row in the table and multiply the quantity and unit price (in local currency) columns for each row. The results of each multiplication are then summed up to produce the total price.
+	measure 'Total Price' = SUM('Project Ledger Entry'[Total Price (LCY)])
+		formatString: #,0.00
+		isHidden
+		displayFolder: _Project Ledger Measures\_Obsolete
+		lineageTag: d9720ffa-1221-4d81-87f1-8e60e96d1788
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	/// The Actual (Total Price) measure calculates the total actual cost of project entries by calculating the total price (in local currency) in the Project Ledger Entry table and selecting only those entries with an entry type of "Usage". The result of this calculation is then converted to a positive value.
+	measure 'Actual (Total Price)' = ```
+			
+			CALCULATE (
+			    SUM ( 'Project Ledger Entry'[Total Price (LCY)] ),
+			    'Project Ledger Entry'[Entry Type] = "Usage"
+			) * ( -1 )
+			
+			```
+		formatString: #,0.00
+		isHidden
+		displayFolder: _Project Ledger Measures\_Obsolete
+		lineageTag: 640157eb-6799-42bf-bf2d-c930cf5f997e
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	/// The Billable (Invoiced Price) measure shows the total invoiced price of billable project entries by calculating the total price (in local currency) in the Project Ledger Entry table and selecting only those entries with an entry type of "Sale", which indicates that the project entry is billable.
+	measure 'Billable (Invoiced Price)' =
+			
+			CALCULATE (
+			    SUM ( 'Project Ledger Entry'[Total Price (LCY)] ),
+			    'Project Ledger Entry'[Entry Type] = "Sale"
+			)
+		formatString: #,0.00
+		isHidden
+		displayFolder: _Project Ledger Measures\_Obsolete
+		lineageTag: 6ded8b23-84f6-420a-b62d-df3705f2d3bb
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	/// The Actual (Total Cost) measure calculates the total cost (in local currency) of all project ledger entries where the type is "Usage" in the Project Ledger Entry table.
+	measure 'Actual (Total Cost)' = ```
+			
+			CALCULATE (
+			    SUM ( 'Project Ledger Entry'[Total Cost (LCY)] ),
+			    'Project Ledger Entry'[Entry Type] = "Usage"
+			)
+			
+			```
+		formatString: #,0.00
+		isHidden
+		displayFolder: _Project Ledger Measures\_Obsolete
+		lineageTag: dbd79572-a0c6-43f3-912e-6a569e02c47d
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	/// The Gen. Journal Usage (Total Cost) measure calculates the total cost of all project ledger entries where the type is "G/L Account" in the Project Ledger Entry table.
+	measure 'Gen. Journal Usage (Total Cost)' = ```
+			
+			CALCULATE(
+			    [Actual (Total Cost)],
+			    'Project Ledger Entry'[Type] = "G/L Account"
+			)
+			
+			```
+		formatString: #,0.00
+		isHidden
+		displayFolder: _Project Ledger Measures\_Obsolete
+		lineageTag: 6304be9a-2ee4-4347-bece-650243158552
+
+		changedProperty = IsHidden
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	/// The Labour Usage (Total Cost) measure calculates the total cost of all project ledger entries where the type is "Resource" in the Project Ledger Entry table.
+	measure 'Labour Usage (Total Cost)' = ```
+			
+			CALCULATE (
+			    [Actual (Total Cost)],
+			    'Project Ledger Entry'[Type] = "Resource"
+			)
+			
+			```
+		formatString: #,0.00
+		isHidden
+		displayFolder: _Project Ledger Measures\_Obsolete
+		lineageTag: bf03f467-a201-4330-9def-52546e3521d3
+
+		changedProperty = IsHidden
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	/// The Material Usage (Total Cost) measure calculates the total cost of all project ledger entries where the type is "Item" in the Project Ledger Entry table.
+	measure 'Material Usage (Total Cost)' = ```
+			
+			CALCULATE (
+			    [Actual (Total Cost)],
+			    'Project Ledger Entry'[Type] = "Item"
+			)
+			
+			```
+		formatString: #,0.00
+		isHidden
+		displayFolder: _Project Ledger Measures\_Obsolete
+		lineageTag: 552d053d-0d53-40ac-ab5c-2b4baa5cc2c1
+
+		changedProperty = IsHidden
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	/// The Invoiced (Total Price) measure calculates the total price of all project ledger entries where the entry type is "Sale" in the Project Ledger Entry table.
+	measure 'Invoiced (Total Price)' =
+			
+			CALCULATE (
+			    'Project Ledger Entry'[Total Price],
+			    'Project Ledger Entry'[Entry Type] = "Sale"
+			)
+		formatString: #,0.00
+		isHidden
+		displayFolder: _Project Ledger Measures\_Obsolete
+		lineageTag: 91cdbbc0-d77f-4636-83e3-f162de1b3618
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Project Ledger Line Amount' = SUMX('Project Ledger Entry', 'Project Ledger Entry'[qty] * 'Project Ledger Entry'[Unit Price (LCY)])
+		formatString: \$#,0.###############;-\$#,0.###############;\$#,0.###############
+		displayFolder: _Project Ledger Measures
+		lineageTag: 9ac9b15f-02a7-43c3-a851-d60ffd394f2e
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Total Usage Price' =
+			
+			CALCULATE([Project Ledger Line Amount],
+			'Project Ledger Entry'[Entry Type] = "Usage"
+			)
+		displayFolder: _Statistics\Totals
+		lineageTag: 7eb3c811-dd5d-4c66-8239-8bfbe5ff8fa4
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'G/L Account Usage Price' =
+			
+			CALCULATE([Project Ledger Line Amount],
+			'Project Ledger Entry'[Entry Type] = "Usage",
+			'Project Ledger Entry'[Type] = "G/L Account"
+			)
+		displayFolder: _Statistics\_Usage Price
+		lineageTag: 9c4a38a5-45cc-4fed-8122-5c8c3630cb60
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Item Usage Price' =
+			
+			CALCULATE([Project Ledger Line Amount],
+			'Project Ledger Entry'[Entry Type] = "Usage",
+			'Project Ledger Entry'[Type] = "Item"
+			)
+		displayFolder: _Statistics\_Usage Price
+		lineageTag: 86b08759-3d72-4e9e-8470-6ff2ccf11c27
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Resource Usage Price' =
+			
+			CALCULATE([Project Ledger Line Amount],
+			'Project Ledger Entry'[Entry Type] = "Usage",
+			'Project Ledger Entry'[Type] = "Resource"
+			)
+		displayFolder: _Statistics\_Usage Price
+		lineageTag: 63030f5d-9ce4-42e6-8c76-0b71bdaf9304
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Resource Invoiced Price' =
+			
+			CALCULATE([Project Ledger Line Amount],
+			'Project Ledger Entry'[Entry Type] = "Sale",
+			'Project Ledger Entry'[Type] = "Resource"
+			)
+		displayFolder: _Statistics\_Invoiced Price
+		lineageTag: 1839d640-4c79-4806-a5f9-3e1a3b825450
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Item Invoiced Price' =
+			
+			CALCULATE([Project Ledger Line Amount],
+			'Project Ledger Entry'[Entry Type] = "Sale",
+			'Project Ledger Entry'[Type] = "Item"
+			)
+		displayFolder: _Statistics\_Invoiced Price
+		lineageTag: f1529bef-4768-4301-826d-8a6784f032e2
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'G/L Account Invoiced Price' =
+			
+			CALCULATE([Project Ledger Line Amount],
+			'Project Ledger Entry'[Entry Type] = "Sale",
+			'Project Ledger Entry'[Type] = "G/L Account"
+			)
+		displayFolder: _Statistics\_Invoiced Price
+		lineageTag: d3166ce9-922e-4168-82f8-ceda36225d02
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Total Invoiced Price' =
+			
+			CALCULATE(ABS([Project Ledger Line Amount]),
+			'Project Ledger Entry'[Entry Type] = "Sale"
+			)
+		formatString: #,0.00
+		displayFolder: _Statistics\Totals
+		lineageTag: ac348787-e70b-4ca5-91b7-760fcd915286
+
+	measure 'Item Usage Cost' =
+			
+			CALCULATE(SUM('Project Ledger Entry'[Total Cost (LCY)]),
+			'Project Ledger Entry'[Entry Type] = "Usage",
+			'Project Ledger Entry'[Type] = "Item"
+			)
+		formatString: #,0.00
+		displayFolder: _Statistics\_Usage Cost
+		lineageTag: 655e67e8-641a-4e40-92b0-3e061eb6936a
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Resource Usage Cost' =
+			
+			CALCULATE(SUM('Project Ledger Entry'[Total Cost (LCY)]),
+			'Project Ledger Entry'[Entry Type] = "Usage",
+			'Project Ledger Entry'[Type] = "Resource"
+			)
+		formatString: #,0.00
+		displayFolder: _Statistics\_Usage Cost
+		lineageTag: 5c76f0f4-07a6-4d48-bd02-b372efef4b26
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'G/L Account Usage Cost' =
+			
+			CALCULATE(SUM('Project Ledger Entry'[Total Cost (LCY)]),
+			'Project Ledger Entry'[Entry Type] = "Usage",
+			'Project Ledger Entry'[Type] = "G/L Account"
+			)
+		formatString: \$#,0.###############;-\$#,0.###############;\$#,0.###############
+		displayFolder: _Statistics\_Usage Cost
+		lineageTag: b114ee3b-96a4-41d2-9a8c-dcf909561262
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'G/L Account Invoiced Cost' =
+			
+			CALCULATE(SUM('Project Ledger Entry'[Total Cost (LCY)]),
+			'Project Ledger Entry'[Entry Type] = "Sale",
+			'Project Ledger Entry'[Type] = "G/L Account"
+			)
+		formatString: \$#,0.###############;-\$#,0.###############;\$#,0.###############
+		displayFolder: _Statistics\_Invoiced Cost
+		lineageTag: ef51a0bf-edef-4614-bb4c-fd6fcae50b39
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Item Invoiced Cost' =
+			
+			CALCULATE(SUM('Project Ledger Entry'[Total Cost (LCY)]),
+			'Project Ledger Entry'[Entry Type] = "Sale",
+			'Project Ledger Entry'[Type] = "Item"
+			)
+		formatString: #,0.00
+		displayFolder: _Statistics\_Invoiced Cost
+		lineageTag: fd090860-9200-4db2-8d3f-c3e1b9840706
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Resource Invoiced Cost' =
+			
+			CALCULATE(SUM('Project Ledger Entry'[Total Cost (LCY)]),
+			'Project Ledger Entry'[Entry Type] = "Sale",
+			'Project Ledger Entry'[Type] = "Resource"
+			)
+		formatString: #,0.00
+		displayFolder: _Statistics\_Invoiced Cost
+		lineageTag: b0c42de9-d7fd-4132-81bc-1c6657617add
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Total Usage Cost' =
+			
+			CALCULATE(SUM('Project Ledger Entry'[Total Cost (LCY)]),
+			'Project Ledger Entry'[Entry Type] = "Usage"
+			)
+		formatString: #,0.00
+		displayFolder: _Statistics\Totals
+		lineageTag: 32491772-b0fe-468c-890c-1879dfa10842
+
+	measure 'Total Invoiced Costs' =
+			
+			CALCULATE(SUM('Project Ledger Entry'[Total Cost (LCY)]),
+			'Project Ledger Entry'[Entry Type] = "Sale"
+			)
+		formatString: #,0.00
+		displayFolder: _Statistics\Totals
+		lineageTag: 5732f777-4cbd-49ff-a67b-76144f79c65b
+
+	measure 'G/L Account Usage Profit' = [G/L Account Usage Price] - [G/L Account Usage Cost]
+		displayFolder: _Statistics\_Usage Profit
+		lineageTag: a3344c03-5672-476c-b293-043dcbe732a3
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'G/L Account Invoiced Profit' = [G/L Account Invoiced Price] - [G/L Account Invoiced Cost]
+		displayFolder: _Statistics\_Invoiced Profit
+		lineageTag: ce3d4a66-43bc-42b2-8a41-5b07e1e9a002
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Item Invoiced Profit' = [Item Invoiced Price] - [Item Invoiced Cost]
+		displayFolder: _Statistics\_Invoiced Profit
+		lineageTag: d240b2bd-20dd-40e5-910e-e5d70803853f
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Item Usage Profit' = [Item Usage Price] - [Item Usage Cost]
+		displayFolder: _Statistics\_Usage Profit
+		lineageTag: 417e8cf4-c4ca-47cd-a950-bbe720045a24
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Resource Invoiced Profit' = [Resource Invoiced Price] - [Resource Invoiced Cost]
+		displayFolder: _Statistics\_Invoiced Profit
+		lineageTag: 376ee5d9-5be7-4d12-be42-8e0f4d744131
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Resource Usage Profit' = [Resource Usage Price] - [Resource Usage Cost]
+		displayFolder: _Statistics\_Usage Profit
+		lineageTag: 42d5c2a0-83ed-43d8-bae4-0a850f9efe7c
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Total Invoiced Profit' = [Total Invoiced Price] + [Total Invoiced Costs]
+		displayFolder: _Statistics\Totals
+		lineageTag: fda28f21-7888-4757-888d-86af522f8053
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Total Usage Profit' = [Total Usage Price] - [Total Usage Cost]
+		displayFolder: _Statistics\Totals
+		lineageTag: 92077529-2925-4148-8dde-9ba91d9f1159
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Total Usage Profit Margin %' =
+			
+			DIVIDE([Total Usage Profit], [Total Usage Price])
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: _Statistics\Totals
+		lineageTag: 07b5d206-8186-45b3-a919-48edaf61ddeb
+
+	measure 'Total Invoiced Profit Margin %' = DIVIDE([Total Invoiced Profit], [Total Invoiced Price])
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: _Statistics\Totals
+		lineageTag: 9cff215b-5a76-492d-95cf-d34b34239cc4
+
+	column 'No. & Description'
+		dataType: string
+		lineageTag: 37e86fab-ea3e-4ff1-a54e-52770a106762
+		summarizeBy: none
+		sourceColumn: No. & Description
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Project No.'
+		dataType: string
+		isHidden
+		lineageTag: 45ff2d1c-f6ec-46de-bfcb-023b7be40bbe
+		summarizeBy: none
+		sourceColumn: Project No.
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Task No.'
+		dataType: string
+		lineageTag: 65e6a7ed-6c8b-4c85-adc8-fe5d6567a99a
+		summarizeBy: none
+		sourceColumn: Task No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Posting Date'
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: b9123abd-bbb2-4bfb-b5e3-ec5e325b7f4d
+		summarizeBy: none
+		sourceColumn: Posting Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Entry Type'
+		dataType: string
+		lineageTag: ffb98949-b433-457c-94c6-f1ab760c2696
+		summarizeBy: none
+		sourceColumn: Entry Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column Type
+		dataType: string
+		lineageTag: 8c202531-044e-47b9-af45-db2f346a1fcb
+		summarizeBy: none
+		sourceColumn: Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'No.'
+		dataType: string
+		lineageTag: e6143d38-c386-4721-a003-c72533de7824
+		summarizeBy: none
+		sourceColumn: No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column Description
+		dataType: string
+		lineageTag: 3184755a-8bef-4c5b-930f-f4b9dfb4012d
+		summarizeBy: none
+		sourceColumn: Description
+
+		annotation SummarizationSetBy = Automatic
+
+	column Location
+		dataType: string
+		lineageTag: 2598879c-f680-4e7f-849e-d698a5a1f798
+		summarizeBy: none
+		sourceColumn: Location
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Unit of Measure Code'
+		dataType: string
+		lineageTag: c48fd67f-ccac-4c3a-8fd2-8e6dcb47f33c
+		summarizeBy: none
+		sourceColumn: Unit of Measure Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column qty
+		dataType: double
+		isHidden
+		lineageTag: e9b41112-58fa-4006-9166-fd2b57848e1b
+		summarizeBy: none
+		sourceColumn: qty
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Unit Cost (LCY)'
+		dataType: decimal
+		formatString: #,0.00
+		lineageTag: 96ea187e-afe9-4be1-8783-6b27d944d6eb
+		summarizeBy: none
+		sourceColumn: Unit Cost (LCY)
+
+		annotation SummarizationSetBy = User
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	column 'Total Cost (LCY)'
+		dataType: decimal
+		isHidden
+		formatString: #,0.00
+		lineageTag: e10f206e-2039-4536-adbc-7b5af4ba6c12
+		summarizeBy: sum
+		sourceColumn: Total Cost (LCY)
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	column 'Unit Price (LCY)'
+		dataType: decimal
+		formatString: #,0.00
+		lineageTag: f372e7a3-81e7-45e7-a67c-62cf7f5dcc91
+		summarizeBy: none
+		sourceColumn: Unit Price (LCY)
+
+		annotation SummarizationSetBy = User
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	column 'Total Price (LCY)'
+		dataType: decimal
+		isHidden
+		formatString: #,0.00
+		lineageTag: 2f82e547-0e37-43ae-8a0f-afd85212e4fa
+		summarizeBy: sum
+		sourceColumn: Total Price (LCY)
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	column 'Dimension Set ID.'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: d9cad048-0e08-442d-b594-9aedb3894f1a
+		summarizeBy: none
+		sourceColumn: Dimension Set ID.
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Project No. Task No.'
+		dataType: string
+		isHidden
+		lineageTag: 334d73a0-8180-4700-843c-d881b1b1fca9
+		summarizeBy: none
+		sourceColumn: Project No. Task No.
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Type Key'
+		dataType: string
+		isHidden
+		lineageTag: 4af5d61a-bc08-4646-8d9f-7e332a625d68
+		summarizeBy: none
+		sourceColumn: Type Key
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Project Ledger Entry-911513fc-60d0-4e4c-9ef1-9b33644b630f' = m
+		mode: import
+		queryGroup: 'Fact Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY, API_ENDPOINT, []),
+				    TableData = Source{[Name = "jobLedgerEntries", Signature = "table"]}[Data],
+				    #"Renamed Columns" = Table.RenameColumns(
+				        TableData,
+				        {
+				            {"jobNo", "Project No."},
+				            {"jobTaskNo", "Task No."},
+				            {"postingDate", "Posting Date"},
+				            {"entryType", "Entry Type"},
+				            {"no", "No."},
+				            {"locationCode", "Location"},
+				            {"unitCostLCY", "Unit Cost (LCY)"},
+				            {"unitPrice", "Unit Price (LCY)"},
+				            {"totalCostLCY", "Total Cost (LCY)"},
+				            {"totalPriceLCY", "Total Price (LCY)"},
+				            {"dimensionSetID", "Dimension Set ID."},
+				            {"unitOfMeasureCode", "Unit of Measure Code"},
+				            {"type", "Type"},
+				            {"description", "Description"},
+				            {"quantity", "qty"}
+				        }
+				    ),
+				    #"Added Column" = Table.AddColumn(
+				        #"Renamed Columns", "Project No. Task No.", each [#"Project No."] & " " & [#"Task No."]
+				    ),
+				    #"Changed Types" = Table.TransformColumnTypes(
+				        #"Added Column",
+				        {
+				            {"Unit Cost (LCY)", Currency.Type},
+				            {"Unit Price (LCY)", Currency.Type},
+				            {"Total Cost (LCY)", Currency.Type},
+				            {"Total Price (LCY)", Currency.Type}
+				        }
+				    ),
+				    #"Added Column 2" = Table.AddColumn(
+				        #"Changed Types", "No. & Description", each [#"No."] & " " & [Description], type text
+				    ),
+				    #"Removed Columns" = Table.RemoveColumns(#"Added Column 2", {"auxiliaryIndex1", "ETag"}),
+				    #"Added Type Key" = Table.AddColumn(#"Removed Columns", "Type Key", each [Type] & " " & [#"No."], type text)
+				in
+				    #"Added Type Key"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

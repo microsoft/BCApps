@@ -1,0 +1,588 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "4b7e94a5670dbec6c2cb",
+  "position": {
+    "x": 26,
+    "y": 311.76470588235293,
+    "z": 1000,
+    "height": 384.11764705882354,
+    "width": 1227.0588235294117,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Location"
+                    }
+                  },
+                  "Property": "Location Code"
+                }
+              },
+              "queryRef": "Location.Location Code",
+              "nativeQueryRef": "Location Code"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Bin"
+                    }
+                  },
+                  "Property": "Bin Code"
+                }
+              },
+              "queryRef": "Bin.Bin Code",
+              "nativeQueryRef": "Bin Code"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Item"
+                    }
+                  },
+                  "Property": "Item No."
+                }
+              },
+              "queryRef": "Item.Item No.",
+              "nativeQueryRef": "Item No."
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Item"
+                    }
+                  },
+                  "Property": "Item Description"
+                }
+              },
+              "queryRef": "Item.Item Description",
+              "nativeQueryRef": "Item Description"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Bin"
+                    }
+                  },
+                  "Property": "Available Qty. to Take"
+                }
+              },
+              "queryRef": "Bin.Available Qty. to Take",
+              "nativeQueryRef": "Available Qty. to Take"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Bin"
+                    }
+                  },
+                  "Property": "Warehouse Quantity"
+                }
+              },
+              "queryRef": "Bin.Warehouse Quantity",
+              "nativeQueryRef": "Warehouse Quantity"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Bin"
+                    }
+                  },
+                  "Property": "Pick Quantity (Base)"
+                }
+              },
+              "queryRef": "Bin.Pick Quantity (Base)",
+              "nativeQueryRef": "Pick Quantity (Base)1"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Bin"
+                    }
+                  },
+                  "Property": "ATO Components Pick Qty."
+                }
+              },
+              "queryRef": "Bin.ATO Components Pick Qty.",
+              "nativeQueryRef": "ATO Components Pick Qty.1"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Bin"
+                    }
+                  },
+                  "Property": "Put-away Quantity (Base)"
+                }
+              },
+              "queryRef": "Bin.Put-away Quantity (Base)",
+              "nativeQueryRef": "Put-away Quantity (Base)1"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Bin"
+                    }
+                  },
+                  "Property": "Negative Adjmt. Qty. (Base)"
+                }
+              },
+              "queryRef": "Bin.Negative Adjmt. Qty. (Base)",
+              "nativeQueryRef": "Negative Adjmt. Qty. (Base)"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Bin"
+                    }
+                  },
+                  "Property": "Positive Adjmt. Qty. (Base)"
+                }
+              },
+              "queryRef": "Bin.Positive Adjmt. Qty. (Base)",
+              "nativeQueryRef": "Positive Adjmt. Qty. (Base)"
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "columnWidth": [
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "113D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Sales Measures.Average Sales Amount per Month"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "95D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Sales Measures.Average Sales Amount per Day"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "103.49997643864512D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "data": [
+              {
+                "scopeId": {
+                  "Comparison": {
+                    "ComparisonKind": 0,
+                    "Left": {
+                      "Column": {
+                        "Expression": {
+                          "SourceRef": {
+                            "Entity": "Location"
+                          }
+                        },
+                        "Property": "Location Name"
+                      }
+                    },
+                    "Right": {
+                      "Literal": {
+                        "Value": "null"
+                      }
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "values": [
+        {
+          "properties": {
+            "webURL": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Bin"
+                    }
+                  },
+                  "Property": "Warehouse Entries Link"
+                }
+              }
+            }
+          },
+          "selector": {
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 0
+                }
+              }
+            ],
+            "metadata": "Bin.Warehouse Quantity"
+          }
+        },
+        {
+          "properties": {
+            "webURL": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Bin"
+                    }
+                  },
+                  "Property": "Pick Quantity Link"
+                }
+              }
+            }
+          },
+          "selector": {
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 0
+                }
+              }
+            ],
+            "metadata": "Bin.Pick Quantity (Base)"
+          }
+        },
+        {
+          "properties": {
+            "webURL": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Bin"
+                    }
+                  },
+                  "Property": "Warehouse Journal Link"
+                }
+              }
+            }
+          },
+          "selector": {
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 0
+                }
+              }
+            ],
+            "metadata": "Bin.Negative Adjmt. Qty. (Base)"
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Translated Localized Labels"
+                    }
+                  },
+                  "Property": "Bin Contents Details Label"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "Filterfb7b7db1ce2dcb156e4c",
+        "ordinal": 0,
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Bin"
+              }
+            },
+            "Property": "Adjustment Bin"
+          }
+        },
+        "type": "Categorical",
+        "filter": {
+          "Version": 2,
+          "From": [
+            {
+              "Name": "b",
+              "Entity": "Bin",
+              "Type": 0
+            }
+          ],
+          "Where": [
+            {
+              "Condition": {
+                "In": {
+                  "Expressions": [
+                    {
+                      "Column": {
+                        "Expression": {
+                          "SourceRef": {
+                            "Source": "b"
+                          }
+                        },
+                        "Property": "Adjustment Bin"
+                      }
+                    }
+                  ],
+                  "Values": [
+                    [
+                      {
+                        "Literal": {
+                          "Value": "false"
+                        }
+                      }
+                    ]
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "howCreated": "User"
+      },
+      {
+        "name": "d50a3d640863598a176d",
+        "ordinal": 1,
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Bin"
+              }
+            },
+            "Property": "ATO Components Pick Qty."
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "30a606a40dac8a75de7d",
+        "ordinal": 2,
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Bin"
+              }
+            },
+            "Property": "Available Qty. to Take"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "3b2a25fc78e4ee69a810",
+        "ordinal": 3,
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Bin"
+              }
+            },
+            "Property": "Bin Code"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "3fd08ba40936070ba08d",
+        "ordinal": 4,
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Item"
+              }
+            },
+            "Property": "Item No."
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "00e6a0d08662564212a4",
+        "ordinal": 5,
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Location"
+              }
+            },
+            "Property": "Location Code"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "dcb260ed828d09e6d318",
+        "ordinal": 6,
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Bin"
+              }
+            },
+            "Property": "Negative Adjmt. Qty. (Base)"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "579272d0eb04401a42b6",
+        "ordinal": 7,
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Bin"
+              }
+            },
+            "Property": "Pick Quantity (Base)"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "ca77c94c00c89ed87b94",
+        "ordinal": 8,
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Bin"
+              }
+            },
+            "Property": "Positive Adjmt. Qty. (Base)"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "0a61e1c0dde25a7b62d7",
+        "ordinal": 9,
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Bin"
+              }
+            },
+            "Property": "Put-away Quantity (Base)"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "7fdd2e603e529de211d8",
+        "ordinal": 10,
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Bin"
+              }
+            },
+            "Property": "Warehouse Quantity"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "f04baab79b2d180c78e7",
+        "ordinal": 11,
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Item"
+              }
+            },
+            "Property": "Item Category Code"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "79156fc9d907de463ddd",
+        "ordinal": 12,
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Bin"
+              }
+            },
+            "Property": "Bin Zone Code"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      }
+    ],
+    "filterSortOrder": "Custom"
+  }
+}

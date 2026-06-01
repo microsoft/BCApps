@@ -1,0 +1,38 @@
+[
+    {
+        "bug": "The E2E tests for the Power BI apps are disabled in the BCApps pipeline by design. They are run when uptaking the artifacts in the NAV repo. Any contribution needs to ensure that the tests pass by running them locally, see more details in the README.md of the Power BI apps.",
+        "codeunitId": 139876,
+        "codeunitName": "E2E PowerBI Finance Test",
+        "method": "*"
+    },
+    {
+        "bug": "The E2E tests for the Power BI apps are disabled in the BCApps pipeline by design. They are run when uptaking the artifacts in the NAV repo. Any contribution needs to ensure that the tests pass by running them locally, see more details in the README.md of the Power BI apps.",
+        "codeunitId": 139877,
+        "codeunitName": "E2E PowerBI Inventory Test",
+        "method": "*"
+    },
+    {
+        "bug": "The E2E tests for the Power BI apps are disabled in the BCApps pipeline by design. They are run when uptaking the artifacts in the NAV repo. Any contribution needs to ensure that the tests pass by running them locally, see more details in the README.md of the Power BI apps.",
+        "codeunitId": 139878,
+        "codeunitName": "E2E PowerBI Manufacturing Test",
+        "method": "*"
+    },
+    {
+        "bug": "The E2E tests for the Power BI apps are disabled in the BCApps pipeline by design. They are run when uptaking the artifacts in the NAV repo. Any contribution needs to ensure that the tests pass by running them locally, see more details in the README.md of the Power BI apps.",
+        "codeunitId": 139879,
+        "codeunitName": "E2E PowerBI Project Test",
+        "method": "*"
+    },
+    {
+        "bug": "The E2E tests for the Power BI apps are disabled in the BCApps pipeline by design. They are run when uptaking the artifacts in the NAV repo. Any contribution needs to ensure that the tests pass by running them locally, see more details in the README.md of the Power BI apps.",
+        "codeunitId": 138880,
+        "codeunitName": "E2E PowerBI Purchases Test",
+        "method": "*"
+    },
+    {
+        "bug": "The E2E tests for the Power BI apps are disabled in the BCApps pipeline by design. They are run when uptaking the artifacts in the NAV repo. Any contribution needs to ensure that the tests pass by running them locally, see more details in the README.md of the Power BI apps.",
+        "codeunitId": 139881,
+        "codeunitName": "E2E PowerBI Sales Test",
+        "method": "*"
+    }
+]

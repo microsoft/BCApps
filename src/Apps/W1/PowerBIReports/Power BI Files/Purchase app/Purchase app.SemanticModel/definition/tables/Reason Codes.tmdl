@@ -1,0 +1,41 @@
+table 'Reason Codes'
+	lineageTag: c0cc41a4-049b-455a-92ce-d8b38f5825d7
+
+	column 'Return Reason Code'
+		dataType: string
+		lineageTag: aa98d255-c800-4a44-b96b-d7baf1d475f7
+		summarizeBy: none
+		sourceColumn: Return Reason Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Return Reason Description'
+		dataType: string
+		lineageTag: 43470f48-efc1-4a3d-8789-6301f84c3f4f
+		summarizeBy: none
+		sourceColumn: Return Reason Description
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Reason Codes' = m
+		mode: import
+		queryGroup: 'Dimension Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(#"ENVIRONMENT", #"COMPANY",#"API_ENDPOINT", []),
+				    TableData = Source{[Name="returnReasonCodes",Signature="table"]}[Data],
+				    #"Changed Type" = Table.TransformColumnTypes(
+				        TableData, {{"reasonCode", type text}, {"reasonDescription", type text}}
+				    ),
+				    #"Renamed Columns" = Table.RenameColumns(
+				        #"Changed Type",
+				        {{"reasonCode", "Return Reason Code"}, {"reasonDescription", "Return Reason Description"}}
+				    ),
+				    #"Removed Columns" = Table.RemoveColumns(#"Renamed Columns",{"ETag"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

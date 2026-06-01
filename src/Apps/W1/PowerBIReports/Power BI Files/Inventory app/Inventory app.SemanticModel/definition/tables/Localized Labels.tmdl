@@ -1,0 +1,430 @@
+table 'Localized Labels'
+	isHidden
+	lineageTag: cc17929f-5b17-4eef-8c7a-874f26cd8b03
+
+	measure 'My Report Title' = 0
+		isHidden
+		lineageTag: 40a209eb-152c-4485-a6d0-606365e45fe3
+
+	measure 'My Button Caption' = 0
+		isHidden
+		lineageTag: 1aafd251-11be-415e-8c24-f840bd57fb01
+
+	measure 'My Visual Title' = 0
+		isHidden
+		lineageTag: ad7e9846-a22e-4de8-9e2a-c930e4fd7381
+
+	measure 'Inventory Overview' = 0
+		isHidden
+		lineageTag: bd3f8bcd-9d78-469c-9881-838207b144c5
+
+	measure 'Inventory and Projected Available Balance' = 0
+		isHidden
+		lineageTag: a28082cb-f86d-4a12-8c7a-0a7ffb1ee6cf
+
+	measure 'Availability Outlook' = 0
+		isHidden
+		lineageTag: dbb442e4-15b3-42d3-ac3b-fe4eed0f3321
+
+	measure 'Inventory by Item' = 0
+		isHidden
+		lineageTag: 8dd59990-8a65-429f-a77f-dfe704992433
+
+	measure 'Inventory by Location' = 0
+		isHidden
+		lineageTag: 5e6c5407-ae4f-4a05-80d4-4eb720e671f1
+
+	measure 'Inventory on Hand by Location' = 0
+		isHidden
+		lineageTag: 9c861a82-562d-4ac8-943f-8b6c4aba7597
+
+	measure 'Purchase and Sales Quantity' = 0
+		isHidden
+		lineageTag: 4802cd8a-e484-46c8-a3a2-df043c8e50a9
+
+	measure 'Item Availability' = 0
+		isHidden
+		lineageTag: 1d210f27-f363-4527-896c-b2cb3560bc2d
+
+	measure 'Projected Available Balance vs. Quantity on Hand' = 0
+		isHidden
+		lineageTag: 5cc6fada-d6da-4f1f-b517-2a8036524d15
+
+	measure 'Gross Requirements vs. Projected Available Balance' = 0
+		isHidden
+		lineageTag: 32f22cf9-32bc-46f0-aa0d-f20661107688
+
+	measure 'Gross Requirements Earliest Dates' = 0
+		isHidden
+		lineageTag: f765683c-904e-467c-9c23-1c1bcd14bef8
+
+	measure 'Scheduled Receipt Earliest Dates' = 0
+		isHidden
+		lineageTag: 8aa5a2e7-4aa5-462f-a4c3-67218b4f7280
+
+	measure 'Purchase Order Drill Through' = 0
+		isHidden
+		lineageTag: 32245e32-7178-49af-8548-64f4111c40ec
+
+	measure 'Purchase Return Order Drill Through' = 0
+		isHidden
+		lineageTag: 673e50e4-999e-47bb-a4f0-dfb70221328f
+
+	measure 'Item Ledger Entry Drill through' = 0
+		isHidden
+		lineageTag: 01cd3081-3b61-4a4b-a78d-4309fc74537a
+
+	measure 'Production Order Drill Through' = 0
+		isHidden
+		lineageTag: 058574b5-1bca-4145-bacf-1b794478eb5c
+
+	measure 'Prod. Order Components Drill Through' = 0
+		isHidden
+		lineageTag: 6f07d96e-5e8e-4f9b-ae67-bb31d8980d8f
+
+	measure 'Sales Order Drill Through' = 0
+		isHidden
+		lineageTag: 889c3fae-5ce8-48af-8897-0a0d2998a7c9
+
+	measure 'Sales Return Order Drill Through' = 0
+		isHidden
+		lineageTag: 20af2c64-930f-4119-9ad7-0efc7bae10b8
+
+	measure 'Transfer Order Drill Through' = 0
+		isHidden
+		lineageTag: ebc443f2-1fd7-4b0c-89be-c2bc48a14cb5
+
+	measure 'Assembly Order Drill Through' = 0
+		isHidden
+		lineageTag: 6790acc6-0e51-4eaa-a2fe-717482fde808
+
+	measure 'Assembly Lines Drill Through' = 0
+		isHidden
+		lineageTag: 73b5830d-2bb0-44ef-b37a-0ff4c506ee31
+
+	measure 'Service Lines Drill Through' = 0
+		isHidden
+		lineageTag: 672d8637-1060-4127-b783-a4d833ac1323
+
+	measure 'Gross Requirement ' = 0
+		isHidden
+		lineageTag: abc4f34d-e8f6-4734-bdd4-af2a1ecabfc1
+
+	measure 'Scheduled Receipt ' = 0
+		isHidden
+		lineageTag: 3dd984e0-60ea-4c2b-94a9-7ea6db6c700b
+
+	measure 'Inventory by Lot ' = 0
+		isHidden
+		lineageTag: 50bc6810-aedc-408b-aa0d-f19dcb1e96e8
+
+	measure 'Inventory by Serial No.' = 0
+		isHidden
+		lineageTag: e63e9e9e-7739-4ead-8d2c-dddfb919c207
+
+	measure 'Bin Contents' = 0
+		isHidden
+		lineageTag: 0e5b4e0b-475c-48ec-84a7-9e1cb79c2cce
+
+	measure 'Bin Contents by Item Tracking' = 0
+		isHidden
+		lineageTag: cbc6ea42-9f89-481f-a55c-410796f3e280
+
+	measure 'Expired Inventory ' = 0
+		isHidden
+		lineageTag: 7543aab9-c97f-4f58-930a-edfa71bb8b64
+
+	measure 'Gross Requirements' = 0
+		isHidden
+		lineageTag: 0f551b77-db16-4ba0-a032-304d4e24251f
+
+	measure 'Scheduled Receipts' = 0
+		isHidden
+		lineageTag: 3e2e09c7-f373-422e-a8d8-d2f4cf2aa536
+
+	measure 'for Business Central' = 0
+		isHidden
+		lineageTag: ff15e3a6-f0cb-40d5-ab1c-107d56c501b6
+
+	measure 'CONNECT YOUR DATA' = 0
+		isHidden
+		lineageTag: 6906e151-93bf-4c6a-9601-228b8592c761
+
+	measure '1. Download the Inventory Connector for Power BI' = 0
+		isHidden
+		lineageTag: 99f3dcbe-ef53-4488-8d79-3a11d0e1a429
+
+	measure '2. Configure Dynamics 365 Business Central' = 0
+		isHidden
+		lineageTag: 056867ea-ef8f-46b7-97c9-4e07a82d387e
+
+	measure 'USE, EDIT AND BUILD YOUR OWN REPORTS' = 0
+		isHidden
+		lineageTag: 5fa0284d-4639-425b-bb70-50f654104fa1
+
+	measure 'Inventory includes a variety of pre-built reports to help you see your data immediately.' = 0
+		isHidden
+		lineageTag: 227ab12a-c7ee-44f4-a48e-6057dde01154
+
+	measure 'You are able to edit these reports or build your own report from scratch.' = 0
+		isHidden
+		lineageTag: a769b8ec-9860-48cd-a879-3015b17578d4
+
+	measure 'HELP AND SUPPORT' = 0
+		isHidden
+		lineageTag: 4b55c760-de33-4fed-afc3-da1c7547b42f
+
+	measure 'For help and support with your new report please visit the Analytics overview documentation.' = 0
+		isHidden
+		lineageTag: 8c200677-72ce-4496-a2d8-947029cf6ab1
+
+	measure 'OTHER POWER BI REPORTS' = 0
+		isHidden
+		lineageTag: 14f01507-d845-4874-9e71-268a393bf153
+
+	measure PURCHASE = 0
+		isHidden
+		lineageTag: 281f6ccb-03e2-48ea-b13b-24be863a82ba
+
+	measure FINANCE = 0
+		isHidden
+		lineageTag: 4186a4aa-0620-4651-9c3a-203470250de4
+
+	measure REBATES = 0
+		isHidden
+		lineageTag: 763035d1-ad9f-4abb-8e47-78cd912bacc9
+
+	measure SALES = 0
+		isHidden
+		lineageTag: 059973fd-1dba-4ada-9569-33b30bf4ba84
+
+	measure 'INVENTORY ' = 0
+		isHidden
+		lineageTag: caf04296-20f3-4a76-b344-a82e9145afa6
+
+	measure 'Inventory  ' = 0
+		isHidden
+		lineageTag: 67bae389-d51b-4212-8e39-a7a71c48f787
+
+	measure 'The inventory by item shows item category code, inventory, and the quantity on various documents.' = 0
+		isHidden
+		lineageTag: 9cf4ec2f-eaad-48cd-a41f-4ecae7d532c7
+
+	measure 'The inventory by location shows item number and description, and quantity on hand per location.' = 0
+		isHidden
+		lineageTag: 3861aa9a-7853-4911-a73f-f503c70c1733
+
+	measure 'The purchases and sales quantity shows item category code, purchase and sales quantities, and the quantity net change by deducting purchases to sales.' = 0
+		isHidden
+		lineageTag: b0ea157e-3733-4cb1-b493-96072c9a3593
+
+	measure 'The item availiblity shows item number, inventory, projected available balance, gross requirement, scheduled receipt, planned order receipt, and planned order releases.' = 0
+		isHidden
+		lineageTag: c09386d1-2427-4299-ae3c-533794a19b61
+
+	measure 'The gross requirement and projected available balance shows item number and description, and the quantity on various documents.' = 0
+		isHidden
+		lineageTag: 3a422950-9502-4361-b607-07989aab9460
+
+	measure 'The bin contents shows available quantity to take for each location and bin.' = 0
+		isHidden
+		lineageTag: 28906937-381d-4855-bba0-51940ec15663
+
+	measure 'The bin contents by item tracking shows item tracking details for each location and bin.' = 0
+		isHidden
+		lineageTag: aaf16c35-2439-4abe-9100-a4f6c3ea39da
+
+	measure 'The scheduled receipt and projected available balance shows item number and description, and the quantity on various documents.' = 0
+		isHidden
+		lineageTag: cddf64ec-fd13-4c44-9c7e-6d335853f9ed
+
+	measure 'Last Refreshed' = 0
+		isHidden
+		lineageTag: a47a5857-a4be-4f27-9245-3c8026acd799
+
+	measure 'Company Name' = 0
+		isHidden
+		lineageTag: de6f1f8b-5525-42dd-92c5-1c6e11d04894
+
+	measure 'Inventory (Quantity) by Location Code' = 0
+		isHidden
+		lineageTag: 17e46d85-be2a-4df1-8324-065eee6ca891
+
+	measure 'Scheduled Receipt and Projected Available Balance by Fiscal Year and Month' = 0
+		isHidden
+		lineageTag: a29d986d-6c42-48d5-b32e-f9e509e0d22d
+
+	measure 'Inventory (Quantity) by Lot No.' = 0
+		isHidden
+		lineageTag: 5a407949-4961-4cef-b0a9-01beeac0f8a0
+
+	measure 'Inventory (Quantity) by Serial No.' = 0
+		isHidden
+		lineageTag: bf3cab3e-c7c8-4fc9-8e82-bb80268faaac
+
+	measure MANUFACTURING = 0
+		isHidden
+		lineageTag: b3a0cef2-7e3a-4e26-8021-bd42a7a09f44
+
+	measure 'INVENTORY VALUATION' = 0
+		isHidden
+		lineageTag: 88b34c97-4385-4336-a7a8-b9d644adb5c4
+
+	measure 'Available Quantity to Take by Bin Code' = 0
+		isHidden
+		lineageTag: 5f873da4-27da-4b34-87e7-efd1a988e4dc
+
+	measure 'Projected Available Balance vs. Current Inventory' = 0
+		isHidden
+		lineageTag: 348330e1-17c3-49dd-9e04-0f05051663cb
+
+	measure 'Purchase vs. Sales Quantity Across Time' = 0
+		isHidden
+		lineageTag: 46da8dcc-2647-456d-a232-56d4354eaa57
+
+	measure 'Inventory by Item Details' = 0
+		isHidden
+		lineageTag: 0122ff87-b722-47ae-9cc4-8940f13b3d86
+
+	measure 'Inventory by Location Details' = 0
+		isHidden
+		lineageTag: d389b3f1-1d8b-4961-a658-856927636fe5
+
+	measure 'Purchase and Sales Quantity Details' = 0
+		isHidden
+		lineageTag: 97513cca-6f49-4c79-a040-475285fbc4ad
+
+	measure 'Item Availability Details' = 0
+		isHidden
+		lineageTag: d037676d-efd6-40b2-8318-5b71f4b08b1c
+
+	measure 'Gross Requirement Details' = 0
+		isHidden
+		lineageTag: 6e5594b3-6b78-4376-aa57-16ea29d06c12
+
+	measure 'Scheduled Receipt Details' = 0
+		isHidden
+		lineageTag: 8f609eaa-0503-4f68-ac04-c01443527f6e
+
+	measure 'Inventory by Lot Details' = 0
+		isHidden
+		lineageTag: ac252346-5736-447f-996c-badbe19e89cc
+
+	measure 'Inventory by Serial No Details' = 0
+		isHidden
+		lineageTag: 09db714c-7b8d-4f31-8492-6fcc07be8003
+
+	measure 'Bin Contents Details' = 0
+		isHidden
+		lineageTag: 2a97924d-f47e-4cca-9690-1f5e4d02af29
+
+	measure 'Bin Contents by Item Tracking Details' = 0
+		isHidden
+		lineageTag: 2fef474f-50f6-4986-baa4-721a8543336f
+
+	measure 'Inventory Sales Forecasting' = 0
+		isHidden
+		lineageTag: 1c1e4c94-38e0-4312-a4cb-b5eacfe9a14a
+
+	measure 'Sales Quantity Forecast' = 0
+		isHidden
+		lineageTag: 280819b3-49be-4616-9c1d-e4a094d742fb
+
+	measure 'Sales Quantity by Location' = 0
+		isHidden
+		lineageTag: 43054634-9ad6-4a19-be75-f41309421abf
+
+	measure 'Sales Quantity by Document Type' = 0
+		isHidden
+		lineageTag: 1ed0880e-7627-4faa-a063-1818c81f9651
+
+	measure 'Sales Quantity by Item Category' = 0
+		isHidden
+		lineageTag: e8fb4297-f9ff-41d6-8d86-47a467d0c580
+
+	measure 'Sales Quantity by Customer' = 0
+		isHidden
+		lineageTag: 9f998b9f-a8b0-4fdb-9fb5-b31c4e8ccafe
+
+	measure 'Inventory Purchase Forecasting' = 0
+		isHidden
+		lineageTag: f720fc7c-d7e9-43cd-a87b-e44a9e33311f
+
+	measure 'Purchase Quantity Forecast' = 0
+		isHidden
+		lineageTag: 28335247-4001-4d0b-96d9-a8a9871915f9
+
+	measure 'Purchase Quantity by Location' = 0
+		isHidden
+		lineageTag: 2b21f970-710e-4806-bfea-c3a36e5e319a
+
+	measure 'Purchase Quantity by Document Type' = 0
+		isHidden
+		lineageTag: 58c87efb-5f9f-4d69-939e-57795cd62774
+
+	measure 'Purchase Quantity by Item Category' = 0
+		isHidden
+		lineageTag: 15c9c6e4-7526-4a5b-b5a3-15389d459bd9
+
+	measure 'Purchase Quantity by Vendor' = 0
+		isHidden
+		lineageTag: 580f85cf-0eb1-4768-8b1e-eadf0eb2f598
+
+	measure 'Inventory Forecasting' = 0
+		isHidden
+		lineageTag: a2e97fb9-60d3-4e93-ae54-d850679811b9
+
+	measure 'Quantity Forecast' = 0
+		isHidden
+		lineageTag: 97cdcefb-f6d6-4733-9b75-351c52531b95
+
+	measure 'Quantity by Location' = 0
+		isHidden
+		lineageTag: c9f136e0-c411-460b-a057-a05320f02e4e
+
+	measure 'Quantity by Item' = 0
+		isHidden
+		lineageTag: ecb290a5-594c-46a7-bde9-f46d21f4a5ad
+
+	measure 'Quantity by Item Ledger Entry Type' = 0
+		isHidden
+		lineageTag: fa23f2ae-1811-4423-9ecb-ebbcf0bf50c0
+
+	measure 'ABC Analysis' = 0
+		isHidden
+		lineageTag: 065f67f1-6bcf-48f5-80ca-bba824d9c103
+
+	measure 'Sales Amount by Class' = 0
+		isHidden
+		lineageTag: 93049daa-3ce3-490d-917a-629a39565289
+
+	measure 'Sales Amount by Item Category' = 0
+		isHidden
+		lineageTag: d40e4046-c81b-4e30-be03-262caf7d6b96
+
+	measure 'ABC Class Details' = 0
+		isHidden
+		lineageTag: f9b49f26-e651-4c2b-8b98-2f6e48e905d3
+
+	measure 'Sales Amount by Item' = 0
+		isHidden
+		lineageTag: 54a34cd5-be6d-4c4b-a5ef-8511f4691cf1
+
+	measure 'Sales Amount by Item Details' = 0
+		isHidden
+		lineageTag: ea7dee1d-84a6-4d3a-93de-dbeb9a110592
+
+	column unused
+		isHidden
+		displayFolder: unused
+		lineageTag: 875a9082-979e-4608-a163-bb82b9e30c77
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [unused]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Partition = calculated
+		mode: import
+		source = DATATABLE("unused", STRING, {{"This is a table automatically generated by Translations Builder"}})
+

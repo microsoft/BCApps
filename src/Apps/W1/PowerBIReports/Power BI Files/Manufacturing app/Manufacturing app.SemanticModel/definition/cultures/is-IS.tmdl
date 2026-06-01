@@ -1,0 +1,1207 @@
+cultureInfo is-IS
+	translations
+		model Model
+			table Item
+				caption: Vara
+				column 'Item No. & Description'
+					caption: Vörunr. og lýsing
+				column 'Item No.'
+					caption: Vörunr.
+				column 'Item Description'
+					caption: Vörulýsing
+				column 'Item Unit Cost (LCY)'
+					caption: Kostnaðarverð vöru (SGM)
+				column 'Item Inventory Posting Group'
+					caption: Bókunarflokkur vörubirgða
+				column 'Item Category Code'
+					caption: Kóði yfirflokks vöru
+				column 'Item Category Description'
+					caption: Lýsing vöruflokks
+				column 'Item Routing No.'
+					caption: Leiðarnúmer vöru
+				column 'Item Production BOM No.'
+					caption: Nr. framleiðsluuppskriftar vöru
+				column 'Item Replenishment System'
+					caption: Áfyllingarkerfi vöru
+				column 'Item Single-Level Cap. Ovhd Cost'
+					caption: Afkastagetukostnaður vöru á einu stigi
+				column 'Item Single-Level Capacity Cost'
+					caption: Afkastakostnaður vöru á einu stigi
+				column 'Item Single-Level Material Cost'
+					caption: Efniskostnaður vöru á einu stigi
+				column 'Item Single-Level Mfg. Ovhd Cost'
+					caption: Framleiðslukostnaður vöru á einu stigi
+				column 'Item Single-Level Subcontrd. Cost'
+					caption: Undirverktakakostnaður vöru á einu stigi
+				column 'Item Base Unit of Measure'
+					caption: Grunnmælieining vöru
+				column 'Item Rolled-up Cap. Overhead Cost'
+					caption: Samant. sameiginl. getukostn. vöru
+				column 'Item Rolled-up Capacity Cost'
+					caption: Samantekinn getukostnaður vöru
+				column 'Item Rolled-up Material Cost'
+					caption: Samantekinn efniskostnaður vöru
+				column 'Item Rolled-up Mfg. Ovhd Cost'
+					caption: Samantekinn framleiðslukostnaður vöru
+				column 'Item Rolled-up Subcontracted Cost'
+					caption: Samantekinn undirverktakakostnaður vöru
+				column 'Item Scrap %'
+					caption: Úrkast vöru %
+				column 'Item Single-Lvl Mat. Non-Invt. Cost'
+					caption: Efniskostnaður vöru á einu stigi utan birgða
+				column 'Item Rolled-up Mat. Non-Invt. Cost'
+					caption: Samantekinn efniskostnaður vöru utan birgða
+			table Date
+				caption: Dagsetning
+				column DateKey
+					caption: DateKey
+				column 'Day of Month'
+					caption: Mánaðardagur
+				column WeekDayNumber
+					caption: WeekDayNumber
+				column 'Week Day'
+					caption: Vika Dagur
+				column 'Holiday Name'
+					caption: Heiti frídags
+				column IsWorkingDay
+					caption: IsWorkingDay
+				column 'Day Type'
+					caption: Dagsgerð
+				column DatesWithTransactions
+					caption: DatesWithTransactions
+				column 'Calendar YearNumber'
+					caption: Dagatal Númer árs
+				column 'Calendar Year'
+					caption: Almanaksár
+				column 'Calendar QuarterNumber'
+					caption: Dagatal Númer ársfjórðungs
+				column 'Calendar Quarter'
+					caption: Dagatal Ársfjórðungur
+				column 'Calendar YearQuarterNumber'
+					caption: Dagatal Númer árs og ársfjórðungs
+				column 'Calendar Quarter Year'
+					caption: Dagatal Ársfjórðungur Ár
+				column 'Calendar MonthNumber'
+					caption: Dagatal Númer mánaðar
+				column 'Calendar Month'
+					caption: Almanaksmánuður
+				column 'Calendar YearMonthNumber'
+					caption: Dagatal Númer árs og mánaðar
+				column 'Calendar Month Year'
+					caption: Dagatal Mánuður Ár
+				column 'Calendar WeekNumber'
+					caption: Dagatal Númer viku
+				column 'Calendar Week'
+					caption: Almanaksvika
+				column 'Calendar YearWeekNumber'
+					caption: Fjárhagsár Númer viku
+				column 'Calendar Week Year'
+					caption: Dagatal Vika Ár
+				column 'Calendar WeekYearOrder'
+					caption: Dagatal Vika ár pöntun
+				column 'Calendar RelativeWeekPos'
+					caption: Dagatal Staða samsvarandi viku
+				column 'Calendar RelativeMonthPos'
+					caption: Dagatal Staða samsvarandi mánaðar
+				column 'Calendar RelativeQuarterPos'
+					caption: Dagatal Staða samsvarandi ársfjórðungs
+				column 'Calendar RelativeYearPos'
+					caption: Dagatal Staða samsvarandi árs
+				column 'Calendar StartOfMonth'
+					caption: Dagatal Upphaf mánaðar
+				column 'Calendar EndOfMonth'
+					caption: Dagatal Mánaðarlok
+				column 'Calendar StartOfQuarter'
+					caption: Dagatal Upphaf ársfjórðungs
+				column 'Calendar EndOfQuarter'
+					caption: Dagatal Ársfjórðungslok
+				column 'Calendar StartOfYear'
+					caption: Dagatal Upphaf árs
+				column 'Calendar EndOfYear'
+					caption: Dagatal Árslok
+				column 'Calendar MonthDays'
+					caption: Dagatal Dagar mánaðar
+				column 'Calendar QuarterDays'
+					caption: Dagatal Dagar ársfjórðungs
+				column 'Calendar YearDays'
+					caption: Dagatal Dagar árs
+				column 'Calendar DayOfMonthNumber'
+					caption: Dagatal Númer mánaðardags
+				column 'Calendar DayOfQuarterNumber'
+					caption: Dagatal Númer dags innan ársfjórðungs
+				column 'Calendar DayOfYearNumber'
+					caption: Dagatal Númer dags innan árs
+				column 'Calendar DatePreviousWeek'
+					caption: Dagatal Dagsetning fyrri viku
+				column 'Calendar DatePreviousMonth'
+					caption: Dagatal Dagsetning fyrri mánaðar
+				column 'Calendar DatePreviousQuarter'
+					caption: Dagatal Dagsetning fyrri ársfjórðungs
+				column 'Calendar DatePreviousYear'
+					caption: Dagatal Dagsetning fyrra árs
+				column 'Fiscal Year'
+					caption: Fjárhagur Ár
+				column 'Fiscal YearNumber'
+					caption: Fjárhagur Númer árs
+				column 'Fiscal QuarterNumber'
+					caption: Fjárhagur Númer ársfjórðungs
+				column 'Fiscal Quarter'
+					caption: Fjórðungur Ársfjórðungur
+				column 'Fiscal YearQuarterNumber'
+					caption: Fjárhagur Númer árs og ársfjórðungs
+				column 'Fiscal Quarter Year'
+					caption: Fjárhagur Ársfjórðungur Ár
+				column 'Fiscal MonthNumber'
+					caption: Fjárhagur Númer mánaðar
+				column 'Fiscal MonthInQuarterNumber'
+					caption: Fjárhagur Númer mánaðar í ársfjórðungi
+				column 'Fiscal Month'
+					caption: Fjárhagur Mánuður
+				column 'Fiscal YearMonthNumber'
+					caption: Fjárhagur Númer árs og mánaðar
+				column 'Fiscal Month Year'
+					caption: Fjárhagur Mánuður Ár
+				column 'Fiscal WeekNumber'
+					caption: Fjárhagur Númer viku
+				column 'Fiscal Week'
+					caption: Vika fjárhagsárs
+				column 'Fiscal YearWeekNumber'
+					caption: Fjárhagur Númer árs og viku
+				column 'Fiscal Week Year'
+					caption: Fjárhagur Vika Ár
+				column 'Fiscal WeekYearOrder'
+					caption: Fjárhagur Pöntun viku árs
+				column 'Fiscal RelativeWeekPos'
+					caption: Fjárhagur Staða samsvarandi viku
+				column 'Fiscal RelativeMonthPos'
+					caption: Fjárhagur Staða samsvarandi mánaðar
+				column 'Fiscal RelativeQuarterPos'
+					caption: Fjárhagur Staða samsvarandi ársfjórðungs
+				column 'Fiscal RelativeYearPos'
+					caption: Fjárhagur Staða samsvarandi árs
+				column 'Fiscal StartOfMonth'
+					caption: Fjárhagur Upphaf mánaðar
+				column 'Fiscal EndOfMonth'
+					caption: Fjárhagur Mánaðarlok
+				column 'Fiscal StartOfQuarter'
+					caption: Fjárhagur Upphaf Ársfjórðungs
+				column 'Fiscal EndOfQuarter'
+					caption: Fjárhagur Ársfjórðungslok
+				column 'Fiscal StartOfYear'
+					caption: Fjárhagur Upphaf árs
+				column 'Fiscal EndOfYear'
+					caption: Fjárhagur Árslok
+				column 'Fiscal MonthDays'
+					caption: Fjárhagur Dagar mánaðar
+				column 'Fiscal QuarterDays'
+					caption: Fjárhagur Dagar ársfjórðungs
+				column 'Fiscal YearDays'
+					caption: Fjárhagur Dagar árs
+				column 'Fiscal DayOfMonthNumber'
+					caption: Fjárhagur Númer mánaðardags
+				column 'Fiscal DayOfQuarterNumber'
+					caption: Fjárhagur Númer dags innan ársfjórðungs
+				column 'Fiscal DayOfYearNumber'
+					caption: Fjárhagur Númer dags innan árs
+				column 'Fiscal DatePreviousWeek'
+					caption: Fjárhagur Dagsetning fyrri viku
+				column 'Fiscal DatePreviousMonth'
+					caption: Fjárhagur Dagsetning fyrri mánaðar
+				column 'Fiscal DatePreviousQuarter'
+					caption: Fjárhagur Dagsetning fyrri ársfjórðungs
+				column 'Fiscal DatePreviousYear'
+					caption: Fjárhagur Dagsetning fyrra árs
+				column 'FW YearNumber'
+					caption: Fjárhagsvika Númer árs
+				column 'FW Year'
+					caption: Fjárhagsvika Ár
+				column 'FW QuarterNumber'
+					caption: Fjárhagsvika Númer ársfjórðungs
+				column 'FW Quarter'
+					caption: Fjárhagsvika Ársfjórðungur
+				column 'FW YearQuarterNumber'
+					caption: Fjárhagsvika Númer árs og ársfjórðungs
+				column 'FW Quarter Year'
+					caption: Fjárhagsvika Ársfjórðungur Ár
+				column 'FW MonthNumber'
+					caption: Fjárhagsvika Númer mánaðar
+				column 'FW Month'
+					caption: Fjárhagsvika Mánuður
+				column 'FW YearMonthNumber'
+					caption: Fjárhagsvika Númer árs og mánaðar
+				column 'FW Month Year'
+					caption: Fjárhagsvika Mánuður Ár
+				column 'FW WeekNumber'
+					caption: Fjárhagsvika Númer viku
+				column 'FW Week'
+					caption: Fjárhagsvika Vika
+				column 'FW PeriodNumber'
+					caption: Fjárhagsvika Númer tímabils
+				column 'FW Period'
+					caption: Fjárhagsvika Tímabil
+				column 'FW YearWeekNumber'
+					caption: Fjárhagsvika Númer árs og viku
+				column 'FW Week Year'
+					caption: Fjárhagsvika Vika Ár
+				column 'FW StartOfWeek'
+					caption: Fjárhagsvika Upphaf viku
+				column 'FW EndOfWeek'
+					caption: Fjárhagsvika Vikulok
+				column 'FW RelativeWeekPos'
+					caption: Fjárhagsvika Staða samsvarandi viku
+				column 'FW RelativeMonthPos'
+					caption: Fjárhagsvika Staða samsvarandi mánaðar
+				column 'FW RelativeQuarterPos'
+					caption: Fjárhagsvika Staða samsvarandi ársfjórðungs
+				column 'FW RelativeYearPos'
+					caption: Fjárhagsvika Staða samsvarandi árs
+				column 'FW StartOfMonth'
+					caption: Fjárhagsvika Upphaf mánaðar
+				column 'FW EndOfMonth'
+					caption: Fjárhagsvika Mánaðarlok
+				column 'FW StartOfQuarter'
+					caption: Fjárhagsvika Upphaf ársfjórðungs
+				column 'FW EndOfQuarter'
+					caption: Fjárhagsvika Ársfjórðungslok
+				column 'FW StartOfYear'
+					caption: Fjárhagsvika Upphaf árs
+				column 'FW EndOfYear'
+					caption: Fjárhagsvika Árslok
+				column 'FW MonthDays'
+					caption: Fjárhagsvika Dagar mánaðar
+				column 'FW QuarterDays'
+					caption: Fjárhagsvika Dagar ársfjórðungs
+				column 'FW YearDays'
+					caption: Fjárhagsvika Dagar árs
+				column 'FW DayOfMonthNumber'
+					caption: Fjárhagsvika Númer mánaðardags
+				column 'FW DayOfQuarterNumber'
+					caption: Fjárhagsvika Númer dags innan ársfjórðungs
+				column 'FW DayOfYearNumber'
+					caption: Fjárhagsvika Númer dags innan árs
+				column 'FW DatePreviousWeek'
+					caption: Fjárhagsvika Dagsetning fyrri viku
+				column 'FW DatePreviousMonth'
+					caption: Fjárhagsvika Dagsetning fyrri mánaðar
+				column 'FW DatePreviousQuarter'
+					caption: Fjárhagsvika Dagsetning fyrri ársfjórðungs
+				column 'FW DatePreviousYear'
+					caption: Fjárhagsvika Dagsetning fyrra árs
+				column 'Relative Day'
+					caption: Samsvarandi dagur
+				column Sequential365DayNumber
+					caption: Sequential365DayNumber
+				hierarchy 'Fiscal Year-Month'
+					caption: Fjárhagur Ár-Mánuður
+					level 'Fiscal Year'
+						caption: Fjárhagur Ár
+					level 'Fiscal Month Year'
+						caption: Fjárhagur Mánuður Ár
+				hierarchy 'Fiscal Year-Month-Week'
+					caption: Fjárhagur Ár-Mánuður-Vika
+					level 'Fiscal Year'
+						caption: Fjárhagur Ár
+					level 'Fiscal Month Year'
+						caption: Fjárhagur Mánuður Ár
+					level 'Fiscal Week Year'
+						caption: Fjárhagur Vika Ár
+				hierarchy 'Fiscal Year-Quarter-Month-Week'
+					caption: Fjárhagur Ár-Ársfjórðungur-Mánuður-Vika
+					level 'Fiscal Year'
+						caption: Fjárhagur Ár
+					level 'Fiscal Quarter Year'
+						caption: Fjárhagur Ársfjórðungur Ár
+					level 'Fiscal Month Year'
+						caption: Fjárhagur Mánuður Ár
+					level 'Fiscal Week Year'
+						caption: Fjárhagur Vika Ár
+				hierarchy 'Calendar Year-Month'
+					caption: Dagatal Ár-Mánuður
+					level 'Calendar Year'
+						caption: Almanaksár
+					level 'Calendar Month Year'
+						caption: Dagatal Mánuður Ár
+				hierarchy 'Calendar Year-Month-Week'
+					caption: Dagatal Ár-Mánuður-Vika
+					level 'Calendar Year'
+						caption: Almanaksár
+					level 'Calendar Month Year'
+						caption: Dagatal Mánuður Ár
+					level 'Calendar Week Year'
+						caption: Dagatal Vika Ár
+				hierarchy 'Calendar Year-Quarter-Month-Week'
+					caption: Dagatal Ár-Ársfjórðungur-Mánuður-Vika
+					level 'Calendar Year'
+						caption: Almanaksár
+					level 'Calendar Quarter Year'
+						caption: Dagatal Ársfjórðungur Ár
+					level 'Calendar Month Year'
+						caption: Dagatal Mánuður Ár
+					level 'Calendar Week Year'
+						caption: Dagatal Vika Ár
+				hierarchy 'FW Year-Month-Week'
+					caption: Fjárhagsvika Ár-Mánuður-Vika
+					level 'FW Year'
+						caption: Fjárhagsvika Ár
+					level 'FW Month Year'
+						caption: Fjárhagsvika Mánuður Ár
+					level 'FW Week Year'
+						caption: Fjárhagsvika Vika Ár
+				hierarchy 'FW Year-Quarter-Month-Week'
+					caption: Fjárhagsvika Ár-Ársfjórðungur-Mánuður-Vika
+					level 'FW Year'
+						caption: Fjárhagsvika Ár
+					level 'FW Quarter Year'
+						caption: Fjárhagsvika Ársfjórðungur Ár
+					level 'FW Month Year'
+						caption: Fjárhagsvika Mánuður Ár
+					level 'FW Week Year'
+						caption: Fjárhagsvika Vika Ár
+				hierarchy 'FW Year-Quarter-Week'
+					caption: Fjárhagsvika Ár-Ársfjórðungur-Vika
+					level 'FW Year'
+						caption: Fjárhagsvika Ár
+					level 'FW Quarter Year'
+						caption: Fjárhagsvika Ársfjórðungur Ár
+					level 'FW Week Year'
+						caption: Fjárhagsvika Vika Ár
+				hierarchy 'FW Year-Week'
+					caption: Fjárhagsvika Ár-Vika
+					level 'FW Year'
+						caption: Fjárhagsvika Ár
+					level 'FW Week Year'
+						caption: Fjárhagsvika Vika Ár
+			table 'Work Center'
+				caption: Vinnustöð
+				column 'Work Center Name'
+					caption: Heiti vinnustöðvar
+				column 'Work Center Group Code'
+					caption: Kóði vinnustöðvarhóps
+				column 'Work Center Group Name'
+					caption: Heiti vinnustöðvarhóps
+				column 'Work Center No.'
+					caption: Vinnustöðvarnr.
+				column 'Work Center Subcontractor No.'
+					caption: Nr. undirverktaka vinnustöðvar
+				column 'Work Center Unit of Measure Code'
+					caption: Mælieiningarkóði vinnustöðvar
+				measure 'Work Center Availability After Orders'
+					caption: Staða vinnustöðvar eftir pöntun
+				measure 'Work Center Capacity (Effective)'
+					caption: Afkastageta vinnustöðvar (virk)
+				measure 'Work Center Load'
+					caption: Álag á vinnustöð
+				measure 'Work Center Allocated Time'
+					caption: Úthlutaður tími vinnustöðvar
+				measure 'Work Center Capacity (Total)'
+					caption: Afkastageta vinnustöðvar (alls)
+				measure 'Work Center Expected Efficiency %'
+					caption: Væntanleg virkni vinnustöðvar %
+				measure 'Work Center Actual Total Cost'
+					caption: Raunverulegur heildarkostnaður vinnustöðvar
+				measure 'Work Center Actual Efficiency %'
+					caption: Raunvirkni vinnustöðvar %
+				measure 'Work Center Actual Need'
+					caption: Raunþörf vinnustöðvar
+				measure 'Work Center Scrap %'
+					caption: Úrkast vinnustöðvar %
+				measure 'Work Center Scrap'
+					caption: Úrkast vinnustöðvar
+				measure 'Work Center Output'
+					caption: Úttak vinnustöðvar
+			table 'Working Days'
+				caption: Vinnudagar
+				column FSG_PBI_Day_Number
+					caption: FSG_PBI_Day_Number
+				column id
+					caption: auðkenni
+			table COMPANY
+				caption: FYRIRTÆKI
+				measure 'Company Label'
+					caption: Merki fyrirtækis
+			table 'Localized Labels'
+				measure 'My Report Title'
+					caption: Skýrslutitill notanda
+				measure 'My Button Caption'
+					caption: Texti hnapps notanda
+				measure 'My Visual Title'
+					caption: Sjónrænn titill notanda
+				measure 'Current Utilization'
+					caption: Núverandi notkun
+				measure 'Utilization %, Capacity Used (Hours) and Capacity Available (Hours) by Day'
+					caption: % nýtingar, fyrri framleiðsla (vinnustundir) og núverandi framleiðslugeta (vinnustundir) eftir degi
+				measure 'Utilization % and Expected Capacity Need % (Today)'
+					caption: % nýtingar og % áætlaðrar framleiðsluþarfar (í dag)
+				measure 'Utilization % and Expected Capacity Need % (Current Week)'
+					caption: % nýtingar og % áætlaðrar framleiðsluþarfar (núlíðandi vika)
+				measure 'Utilization % and Expected Capacity Need % (Current Year)'
+					caption: % nýtingar og % áætlaðrar framleiðsluþarfar (núlíðandi ár)
+				measure 'Historical Utilization'
+					caption: Fyrri notkun
+				measure 'Load %, Allocated Time (Hours) and Capacity Available (Hours) by Work Center Group Name'
+					caption: % álags, úthlutaður tími (vinnustundir) og núverandi framleiðslugeta (vinnustundir) eftir heiti vinnustöðvarhóps
+				measure 'Load % (Today)'
+					caption: % álags (í dag)
+				measure 'Load % (Current Week)'
+					caption: % álags (núlíðandi vika)
+				measure 'Load % (Current Year)'
+					caption: % álags (núlíðandi ár)
+				measure 'Allocated Hours'
+					caption: Úthlutaðar vinnustundir
+				measure 'Allocated Time (Hours) and Load % by Work Center Group Name and Name'
+					caption: Úthlutaður tími (vinnustundir) og % álags eftir heiti vinnustöðvarhóps
+				measure 'Allocated Time in Hours (Today)'
+					caption: Úthlutaður tími í vinnustundum (í dag)
+				measure 'Allocated Time in Hours (Current Week)'
+					caption: Úthlutaður tími í vinnustundum (núlíðandi vika)
+				measure 'Allocated Time in Hours (Current Year)'
+					caption: Úthlutaður tími í vinnustundum (núlíðandi ár)
+				measure 'Expected Capacity Need'
+					caption: Áætluð framleiðsluþörf
+				measure 'Expected Capacity Need (Hours) by Work Centre Group Code and Production Order Status'
+					caption: Áætluð framleiðsluþörf (vinnustundir) eftir kóða vinnustöðvarhóps og stöðu framleiðslupöntunar
+				measure 'Finished Production Order Breakdown'
+					caption: Sundurliðun á tilbúinni framleiðslupöntun
+				measure 'Expected Quantity (Base) and Finished Quantity (Base) by Month'
+					caption: Áætlað magn (grunnur) og tilbúið magn (grunnur) eftir mánuði
+				measure 'Consumption Variance'
+					caption: Frávik í notkun
+				measure 'Expected Consumption Cost Amount and Consumed Cost Amount (Actual) by Month'
+					caption: Áætluð upphæð neyslukostnaðar og neytt kostnaðarupphæð (raunveruleg) eftir mánuði
+				measure 'Capacity Variance'
+					caption: Frávik í framleiðslugetu
+				measure 'Expected Capacity Cost Amount and Capacity Cost Amount (Actual) by Month'
+					caption: Áætluð kostnaðarupphæð framleiðslugetu og kostnaðarupphæð framleiðslugetu (raunveruleg) eftir mánuði
+				measure 'Average Production Times'
+					caption: Meðaltími framleiðslu
+				measure 'Released Production Orders'
+					caption: Útgefnar framleiðslupantanir
+				measure 'Production Scrap'
+					caption: Framleiðslurýrnun
+				measure 'Capacity Scrap Quantity by Month'
+					caption: Úrkastsmagn v. framleiðslu eftir mánuði
+				measure 'Capacity Scrap Quantity by Scrap Code'
+					caption: Úrkastsmagn v. framleiðslu eftir úrkastskóða
+				measure 'Capacity Scrap Quantity by Location Code'
+					caption: Úrkastsmagn v. framleiðslu eftir staðsetningarkóða
+				measure Manufacturing
+					caption: Framleiðsla
+				measure 'for Business Central'
+					caption: fyrir Business Central
+				measure 'CONNECT YOUR DATA'
+					caption: TENGIÐ GÖGN
+				measure '2. Configure Dynamics 365 Business Central'
+					caption: 2. Grunnstillið Dynamics 365 Business Central
+				measure 'USE, EDIT AND BUILD YOUR OWN REPORTS'
+					caption: NOTIÐ, BREYTIÐ OG BÚIÐ TIL EIGIN SKÝRSLUR
+				measure 'HELP AND SUPPORT'
+					caption: HJÁLP OG STUÐNINGUR
+				measure 'For help and support with your new report please visit the Analytics overview documentation.'
+					caption: Lesið fylgigögn greiningaryfirlitsins til að fá hjálp og aðstoð við nýju skýrsluna.
+				measure 'OTHER POWER BI REPORTS'
+					caption: AÐRAR POWER BI-SKÝRSLUR
+				measure PURCHASE
+					caption: KAUP
+				measure FINANCE
+					caption: FJÁRMÁL
+				measure INVENTORY
+					caption: BIRGÐIR
+				measure SALES
+					caption: SALA
+				measure 'Last Refreshed'
+					caption: Síðast uppfært
+				measure 'Company Name'
+					caption: Heiti fyrirtækis
+				measure 'Capacity Scrap Quantity by Item Category Code'
+					caption: Úrkastsmagn v. framleiðslu eftir vöruflokkskóða
+				measure '1. Download the Manufacturing Connector for Power BI'
+					caption: 1. Sæktu framleiðslutengilinn fyrir Power BI
+				measure 'Manufacturing includes a variety of pre-built reports to help you see your data immediately.'
+					caption: Framleiðsla felur í sér innbyggðar skýrslur af ólíkum toga til að skoða gögn samstundis.
+				measure 'You are able to edit these reports or build your own report from scratch.'
+					caption: Hægt er að breyta þessum skýrslum eða búa til nýja skýrslu frá grunni.
+				measure PROJECTS
+					caption: VERKEFNI
+				measure 'Capacity Used (Hours), Capacity Available (Hours) and Utilization % by Date'
+					caption: Fyrri framleiðsla (vinnustundir), núverandi framleiðslugeta (vinnustundir) og % nýtingar eftir dagsetningu
+				measure 'Actual Cost by Source No.'
+					caption: Raunkostnaður eftir upprunanr.
+				measure 'Production Order Overview'
+					caption: Yfirlit framleiðslupantana
+				measure 'No. of Production Orders by Status'
+					caption: Fjöldi framleiðslupantana eftir stöðu
+				measure 'Completion Ratios by Source No.'
+					caption: Lokahlutföll eftir upprunanr.
+				measure 'Total Actual Cost Breakdown'
+					caption: Sundurliðun á raunkostnaði alls
+				measure 'Current Production Orders'
+					caption: Núverandi framleiðslupantanir
+				measure 'Current Work Center Utilization by Year, Month, Week and Day'
+					caption: Núverandi nýting vinnustöðvar eftir ári, mánuði, viku og degi
+				measure 'Work Center Load Over Time'
+					caption: Álag vinnustöðvar yfir tíma
+				measure 'Work Center Load Details'
+					caption: Upplýsingar um álag á vinnustöð
+				measure 'Work Center Load '
+					caption: "Álag á vinnustöð "
+				measure 'Allocated Time '
+					caption: "Ráðstafaður tími "
+				measure 'Allocated Time by Work Center Name'
+					caption: Úthlutaður tími eftir heiti vinnustöðvar
+				measure 'Allocated Time by Source No.'
+					caption: Úthlutaður tími eftir upprunanr.
+				measure 'Allocated Time by Type'
+					caption: Úthlutaður tími eftir gerð
+				measure 'Allocated Time Details'
+					caption: Upplýsingar um úthlutaðan tíma
+				measure 'Allocated Time by Production Order Status'
+					caption: Úthlutaður tími eftir stöðu framleiðslupöntunar
+				measure 'Expected Capacity Need by Work Center'
+					caption: Áætluð afkastaþörf eftir vinnustöð
+				measure 'Expected Capacity Need by Machine Center'
+					caption: Áætluð afkastaþörf vélastöðvar
+				measure 'Expected Capacity Need Details'
+					caption: Upplýsingar um áætlaða framleiðsluþörf
+				measure 'Expected Capacity Need by Source No.'
+					caption: Áætluð afkastaþörf eftir upprunanr.
+				measure 'Expected Material Dev % by Source No.'
+					caption: Áætlað efnisfráv % eftir upprunanr.
+				measure 'Expected Material Dev % by Production Order'
+					caption: Áætlað efnisfráv % eftir framleiðslupöntun
+				measure 'Consumption Variance Details'
+					caption: Upplýsingar um notkunarfrávik
+				measure 'Expected Capacity Dev % by Source No.'
+					caption: Áætlað afkastaveitu fráv % eftir upprunanr.
+				measure 'Expected Capacity Dev % by Production Order|'
+					caption: Áætlað afkastaveitu fráv % eftir framleiðslupöntun|
+				measure 'Capacity Variance Details'
+					caption: Upplýsingar um frávik í afkastagetu
+				measure 'Average Time Per Finished Quantity by Work Center'
+					caption: Meðaltími á klárað magn eftir vinnustöð
+				measure 'Average Time Per Finished Quantity by Source No.'
+					caption: Meðaltími á klárað magn eftir upprunanr.
+				measure 'Average Production Time Details'
+					caption: Upplýsingar um meðalframleiðslutíma á einingu
+				measure 'No. of Production Orders by Source No.'
+					caption: Fjöldi framleiðslupantana eftir upprunanr.
+				measure 'Released Production Order Details'
+					caption: Upplýsingar um útgefna framleiðslupöntun
+				measure 'Scrap Quantity by Work Center'
+					caption: Úrkastsmagn eftir vinnustöð
+				measure 'Work Center Statistics'
+					caption: Upplýsingar um vinnustöðvar
+				measure 'Statistic Details'
+					caption: Tölfræðilegar upplýsingar
+				measure 'Machine Center Statistics'
+					caption: Upplýsingar um vélastöðvar
+				measure 'Machine Center Load '
+					caption: "Álag á vélastöð "
+				measure 'Machine Center Load Details'
+					caption: Álagsupplýsingar vélastöðvar
+				measure 'Prod. Order List'
+					caption: Framl.pöntun - Listi
+				measure 'Prod. Order List Details'
+					caption: Upplýsingar um lista framl.pöntunar
+				measure 'Production Order Routing Lines Gantt'
+					caption: Leiðarlínur framleiðslupöntunar Gantt
+				measure 'Routing Line Operation Duration'
+					caption: Lengd aðgerðar leiðarlínu
+				measure 'Routing Line Details'
+					caption: Línuupplýsingar leiðar
+				measure 'Production Order WIP'
+					caption: Birgðapöntun – VÍV
+				measure 'Inventory Valuation - WIP'
+					caption: Verðmæti birgða - VÍV
+				measure 'Task List Drill Through'
+					caption: Verkefnalisti köfun
+				measure 'Task List Details'
+					caption: Upplýsingar um verkefnalista
+				measure 'Expected Capacity Need Variance'
+					caption: Áætluð breyting á framleiðsluþörf
+				measure 'Expected Capacity Cost Dev % by Source No.'
+					caption: Áætlaður afkastakostnaður fráv % eftir upprunanr.
+				measure 'Average Production Time Per Unit by Work Center'
+					caption: Meðalframleiðslutími á einingu eftir vinnustöð
+				measure 'Average Production Time Per Unit by Source No.'
+					caption: Meðalframleiðslutími á einingu eftir upprunanr.
+				measure 'Scrap Quantity Over Time'
+					caption: Úrkastsmagn yfir tíma
+				measure 'Scrap % by Production Order'
+					caption: Úrkast % eftir framleiðslupöntun
+				measure 'Scrap Quantity by Scrap Code'
+					caption: Úrkastsmagn eftir úrkastskóða
+				measure 'Scrap Quantity vs. Expected Scrap Quantity'
+					caption: Úrkastsmagn miðað við áætlað Úrkastsmagn
+				measure 'Production Order Time Line'
+					caption: Tímalína framleiðslupantana
+				measure 'Production Time Line'
+					caption: Tímalína framleiðslu
+			table 'Machine Center'
+				caption: Vélastöð
+				column 'Machine Center No.'
+					caption: Vélastöðvarnr.
+				column 'Machine Center Name'
+					caption: Heiti vélastöðvar
+				column 'Work Center No.'
+					caption: Vinnustöðvarnr.
+				column 'Work Center Unit of Measure'
+					caption: Mælieining vinnumiðstöðvar
+				measure 'Machine Center Capacity (Effective)'
+					caption: Afkastageta vélastöðvar (virk)
+				measure 'Machine Center Capacity (Total)'
+					caption: Afkastageta vélastöðvar (alls)
+				measure 'Machine Center Expected Efficiency %'
+					caption: Væntanleg virkni vélastöðvar %
+				measure 'Machine Center Actual Total Cost'
+					caption: Raunverulegur heildarkostnaður vélastöðvar
+				measure 'Machine Center Actual Efficiency %'
+					caption: Raunvirkni vélastöðvar %
+				measure 'Machine Center Actual Need'
+					caption: Raunþörf vélastöðvar
+				measure 'Machine Center Allocated Time'
+					caption: Úthlutaður tími vélastöðvar
+				measure 'Machine Center Output'
+					caption: Úttak vélastöðvar
+				measure 'Machine Center Scrap'
+					caption: Úrkast vélastöðvar
+				measure 'Machine Center Scrap %'
+					caption: Úrkast vélastöðvar %
+				measure 'Machine Center Run Time'
+					caption: Keyrslutími vélastöðvar
+				measure 'Machine Center Stop Time'
+					caption: Stöðvunartími vélastöðvar
+				measure 'Machine Center Stop %'
+					caption: Stöðvun vélastöðvar %
+				measure 'Machine Center Availability After Orders'
+					caption: Staða vélastöðvar eftir pöntunum
+				measure 'Machine Center Load'
+					caption: Álag á vélastöð
+			table 'Production Order Lines'
+				caption: Framleiðslupantanalínur
+				column quantityBase
+					caption: Magn (stofn)
+				column remainingQtyBase
+					caption: Eftirstandandi magn (grunnur)
+				column dimensionSetID
+					caption: Kenni víddasamstæðu
+				column 'Prod. Order Line No.'
+					caption: Framl.pöntunarlínunr.
+				column 'Routing No.'
+					caption: Leiðarnr.
+				column 'Routing Reference No.'
+					caption: Nr. leiðartilvísunar
+				column finishedQtyBase
+					caption: finishedQtyBase
+				column ShareOfTotalCapCost
+					caption: ShareOfTotalCapCost
+				column 'Routing Type'
+					caption: Tegund leiðar
+				column indirectCostPercent
+					caption: indirectCostPercent
+				column overheadRate
+					caption: overheadRate
+				column 'Scrap Percent'
+					caption: Úrkastprósenta
+				column 'Planning Level Code'
+					caption: Áætlunarstigskóði
+			table 'Prod Order Components'
+				caption: Íhlutir framl.pöntunar
+				column expectedQtyBase
+					caption: Væntanlegt magn (stofn)
+				column remainingQtyBase
+					caption: Eftirstandandi magn (grunnur)
+				column 'Routing Link Code'
+					caption: Leiðartengilskóði
+				column costAmount
+					caption: costAmount
+				column 'Prod Order Components Line No.'
+					caption: Línunr. íhluta framl.pöntunar
+			table 'Prod Order Capacity Need'
+				caption: Afkastaþörf framl.pöntunar
+				column 'Routing No.'
+					caption: Leiðarnr.
+				column 'Routing Reference No.'
+					caption: Nr. leiðartilvísunar
+				column 'Operation No.'
+					caption: Aðgerðarnr.
+				column 'Requested Only'
+					caption: Aðeins samkvæmt beiðni
+				column workCenterNo
+					caption: workCenterNo
+				column workCenterGroupCode
+					caption: workCenterGroupCode
+				column no
+					caption: númer
+				column Type
+					caption: Gerð
+				column neededTimeMs
+					caption: neededTimeMs
+				column neededTime
+					caption: neededTime
+				column 'Prod Order Capacity Need Line No.'
+					caption: Línunúmer afkastaþarfar framl.pöntunar
+				measure 'Needed Time'
+					caption: Tími sem þarf
+				measure 'Needed Time (MS)'
+					caption: Nauðsynlegur tími (MS)
+				measure 'Allocated Time'
+					caption: Ráðstafaður tími
+			table 'Prod Order Routing Lines'
+				caption: Leiðarlínur framl.pöntunar
+				column 'No.'
+					caption: Nr.
+				column 'Expected Capacity Need'
+					caption: Áætluð framleiðsluþörf
+				column 'Expected Capacity Ovhd. Cost'
+					caption: Áætlaður sameiginlegur framleiðslukostnaður
+				column 'Routing Link Code'
+					caption: Leiðartengilskóði
+				column Description
+					caption: Lýsing
+				column 'Expected Operation Cost Amt.'
+					caption: Áætluð upphæð framleiðslukostnaðar
+				column 'Routing No.'
+					caption: Leiðarnr.
+				column 'Routing Reference No.'
+					caption: Nr. leiðartilvísunar
+				column 'Operation No.'
+					caption: Aðgerðarnr.
+				column locationName
+					caption: locationName
+				column 'Setup Time'
+					caption: Uppsetningartími
+				column 'Run Time'
+					caption: Keyrslutími
+				column 'Wait Time'
+					caption: Biðtími
+				column 'Move Time'
+					caption: Flutningstími
+				column 'Routing Status'
+					caption: Staða leiðar
+				column 'Duration Total Hours'
+					caption: Tímalengd alls klukkustundir
+				column 'Duration Total Days'
+					caption: Tímalengd alls dagar
+				column 'Work/Machine Center Name'
+					caption: Heiti á vinnu/vélastöð
+				column workCenterNo
+					caption: workCenterNo
+				column 'Ending Date Time'
+					caption: Lokadagsetning og tími
+				column 'Starting Date Time'
+					caption: Upphafsdagsetning og tími
+				measure 'Operation Run Time'
+					caption: Keyrslutími aðgerðar
+				measure 'Operation Setup Time'
+					caption: Uppsetningartími aðgerðar
+				measure 'Operation Wait Time'
+					caption: Biðtími aðgerðar
+				measure 'Operation Move Time'
+					caption: Færslutími aðgerðar
+				measure 'Total Duration Hours'
+					caption: Heildarlengd í klukkustundum
+			table 'Item Ledger Entries'
+				caption: Birgðahöfuðbókarfærslur
+				column 'Serial No.'
+					caption: Raðnr.
+				column 'Lot No.'
+					caption: Lotunr.
+				column qty
+					caption: Magn
+				column costAmountActual
+					caption: Kostnaðarupphæð raunveruleg
+				column 'Entry Type'
+					caption: Færslugerð
+				column 'Order Type'
+					caption: Tegund pöntunar
+				column 'Order Line No.'
+					caption: Pantanalínunr.
+				column Positive
+					caption: Jákvæð
+				measure 'Output Quantity'
+					caption: Afkastað magn
+				measure 'Consumption Quantity'
+					caption: Notkunarmagn
+			table 'Capacity Ledger Entries'
+				caption: Afkastagetufærslur
+				column 'Order Type'
+					caption: Tegund pöntunar
+				column 'Order Line No.'
+					caption: Pantanalínunr.
+				column Type
+					caption: Gerð
+				column 'No.'
+					caption: Nr.
+				column Description
+					caption: Lýsing
+				column scrapQuantity
+					caption: scrapQuantity
+				column 'Routing No.'
+					caption: Leiðarnr.
+				column 'Routing Reference No.'
+					caption: Nr. leiðartilvísunar
+				column 'Operation No.'
+					caption: Aðgerðarnr.
+				column 'Scrap Code'
+					caption: Úrkastskóði
+				column directCost
+					caption: directCost
+				column overheadCost
+					caption: overheadCost
+				column 'Entry No.'
+					caption: Nr. færslu
+				column workCenterNo
+					caption: workCenterNo
+				column 'Work Shift Code'
+					caption: Vaktakóði
+				column Subcontracting
+					caption: Undirverktaka
+				column 'Capacity Unit of Measure'
+					caption: Mælieining afkastagetu
+				column 'Qty. Per Unit of Measure'
+					caption: Magn á mælieiningu
+				column 'Qty. Per Capacity Unit of Measure'
+					caption: Magn eftir mælieiningu afkastagetu
+				measure 'Direct Cost'
+					caption: Beinn kostnaður
+				measure 'Overhead Cost'
+					caption: Sameiginlegur kostnaður
+				measure 'Run Time'
+					caption: Keyrslutími
+				measure 'Setup Time'
+					caption: Uppsetningartími
+				measure 'Stop Time'
+					caption: Stöðvunartími
+				measure 'Scrap Quantity'
+					caption: Úrkastsmagn
+				measure 'Scrap %'
+					caption: Úrkast %
+				measure 'Capacity Ledger Output Quantity'
+					caption: Úttaksmagn afkastahöfuðbókar
+				measure 'Capacity Ledger Quantity'
+					caption: Magn afkastahöfuðbókar
+			table 'Calendar Entries'
+				caption: Dagatalsfærslur
+				column 'Capacity Type'
+					caption: Tegund afkastagetu
+				measure 'Capacity (Effective)'
+					caption: Afkastageta (í reynd)
+				measure 'Capacity (Total)'
+					caption: Afkastageta (alls)
+			table Location
+				caption: Staðsetningu
+				column 'Location Code'
+					caption: Kóði birgðageymslu
+				column 'Location Name'
+					caption: Heiti birgðageymslu
+			table 'Routing Link'
+				caption: Leiðartengill
+				column 'Routing Link Code'
+					caption: Leiðartengilskóði
+				column 'Routing Link Description'
+					caption: Lýsing á leiðartengli
+			table Routing
+				caption: Leið
+				column 'Routing No.'
+					caption: Leiðarnr.
+				column 'Routing Type'
+					caption: Tegund leiðar
+				column 'Routing Status'
+					caption: Staða leiðar
+				column 'Routing Description'
+					caption: Lýsing leiðar
+			table 'Work Center Group'
+				caption: Vinnustöðvaflokkur
+				column 'Work Center Group Code'
+					caption: Kóði vinnustöðvarhóps
+				column 'Work Center Group Name'
+					caption: Heiti vinnustöðvarhóps
+			table 'Value Entries'
+				caption: Virðisfærslur
+				column 'Entry No.'
+					caption: Nr. færslu
+				column 'Valuation Date'
+					caption: Reikningsdagur innlausnarvirðis
+				column costAmountActual
+					caption: costAmountActual
+				column 'Cost Per Unit'
+					caption: costPerUnit
+				column itemLedgerEntryQuantity
+					caption: itemLedgerEntryQuantity
+				column valuedQuantity
+					caption: valuedQuantity
+				column 'Item Ledger Entry Type'
+					caption: Birgðafærslutegund
+				column Type
+					caption: Gerð
+				column 'No.'
+					caption: Nr.
+				column 'Capacity Ledger Entry No.'
+					caption: capacityLedgerEntryNo
+				column 'Entry Type'
+					caption: entryType
+				column costPostedtoGL
+					caption: costPostedtoGL
+				column costAmountExpected
+					caption: costAmountExpected
+				column 'Order Type'
+					caption: orderType
+				column 'Order No.'
+					caption: orderNo
+				column expectedCostPostedtoGL
+					caption: expectedCostPostedtoGL
+				column 'Is Expected Cost'
+					caption: expectedCost
+				measure 'Beginning Balance Value'
+					caption: Upphafsstaða Gildi
+				measure 'Consumption Value'
+					caption: Notkunarvirði
+				measure 'Capacity Value'
+					caption: Afkastagetugildi
+				measure 'Output Value'
+					caption: Úttaksgildi
+				measure 'Ending Balance Value'
+					caption: Gildi lokastöðu
+				measure 'Cost Posted to G/L'
+					caption: Kostnaður bókaður í fjárhag
+			table 'Production Orders'
+				caption: Framleiðslupantanir
+				column 'Prod Order Status'
+					caption: Staða framl.pöntunar
+				column 'Prod Order No.'
+					caption: Framl.pöntun nr.
+				column 'Prod Order Source No.'
+					caption: Upprunanr. framl.pöntunar
+				column 'Prod Order Routing No.'
+					caption: Leiðarnr. framl.pöntunar
+				column 'Prod Order Starting Date'
+					caption: Upphafsdagur framl.pöntunar
+				column 'Prod Order Ending Date'
+					caption: Lokadagur framl.pöntunar
+				column 'Prod Order Due Date'
+					caption: Eindagi framl.pöntunar
+				column quantity
+					caption: magn
+				column 'Prod Order Description'
+					caption: Lýsing framl.pöntunar
+				column 'Prod Order Source Type'
+					caption: Tegund uppruna framl.pöntunar
+				column 'Production Order'
+					caption: Birgðapöntun
+				measure 'Planned Quantity'
+					caption: Áætlað magn
+				measure 'Expected Material Cost'
+					caption: Væntanlegur efniskostnaður
+				measure 'Expected Capacity Cost'
+					caption: Áætlaður afkastakostnaður
+				measure 'Expected Subcontracted Cost'
+					caption: Áætlaður undirverktakakostnaður
+				measure 'Expected Capacity Overhead Cost'
+					caption: Áætlaður sameiginlegur framleiðslukostnaður
+				measure 'Total Standard Cost'
+					caption: Staðlaður heildarkostnaður
+				measure 'Expected Manufacturing Overhead Cost'
+					caption: Áætlaður sameiginlegur framleiðslukostnaður
+				measure 'Total Expected Cost'
+					caption: Áætlaður kostnaður alls
+				measure 'Standard Capacity Cost'
+					caption: Staðlaður afkastagetukostnaður
+				measure 'Standard Material Cost'
+					caption: Staðlaður efniskostnaður
+				measure 'Standard Subcontracted Cost'
+					caption: Staðlaður undirverktakakostnaður
+				measure 'Standard Capacity Overhead Cost'
+					caption: Staðlaður sameiginlegur framleiðslukostnaður
+				measure 'Standard Manufacturing Overhead Cost'
+					caption: Staðlaður sameiginleigur framleiðslukostnaður
+				measure 'Actual Material Cost'
+					caption: Raunverulegur efniskostnaður
+				measure 'Actual Capacity Cost'
+					caption: Raunkostnaður afkastagetu
+				measure 'Actual Subcontracted Cost'
+					caption: Raunverulegur undirverktakakostnaður
+				measure 'Actual Capacity Overhead Cost'
+					caption: Raunverulegur sameiginlegur kostnaður afkastaveitu
+				measure 'Actual Manufacturing Overhead Cost'
+					caption: Raunverulegur sameiginleigur framleiðslukostnaður
+				measure 'Total Actual Cost'
+					caption: Raunkostnaður alls
+				measure 'Standard Material Cost Variance'
+					caption: Staðlað frávik efniskostnaðar
+				measure 'Standard Capacity Cost Variance'
+					caption: Staðlað frávik afkastakostnaðar
+				measure 'Standard Subcontracted Cost Variance'
+					caption: Staðlað frávik undirverktakakostnaðar
+				measure 'Standard Capacity Overhead Cost Variance'
+					caption: Staðlað frávik sameiginlegs framleiðslukostnaðar
+				measure 'Standard Manufacturing Overhead Cost Variance'
+					caption: Staðlað frávik sameiginlegs framleiðslukostnaðar
+				measure 'Total Standard Cost Variance'
+					caption: Staðlað kostnaðarfrávik alls
+				measure 'Standard Material Cost Dev %'
+					caption: Staðlaður efniskostnaður fráv %
+				measure 'Standard Capacity Cost Dev %'
+					caption: Staðlaður kostnaður afkastagetu fráv %
+				measure 'Standard Subcontracted Cost Dev %'
+					caption: Staðlaður undirverktakakostnaður fráv %
+				measure 'Standard Capacity Overhead Cost Dev %'
+					caption: Staðlaður sameiginlegur framleiðslukostnaður fráv %
+				measure 'Standard Manufacturing Overhead Cost Dev %'
+					caption: Staðlaður sameiginlegur framleiðslukostnaður fráv %
+				measure 'Total Standard Cost Dev %'
+					caption: Staðlaður heildarkostnaður frá %
+				measure 'Prod Order Expected Capacity Need (Finished)'
+					caption: Áætluð afkastaþörf framl.pöntunar (lokið)
+				measure 'Prod Order Actual Capacity Need'
+					caption: Raunveruleg afkastaþörf framl.pöntunar
+				measure 'Prod Order Expected Capacity Need (Non Finished)'
+					caption: Áætluð afkastaþörf framl.pöntunar (ólokið)
+				measure 'Prod Order Expected Capacity Need'
+					caption: Áætluð afkastaþörf framl.pöntunar
+				measure 'Finished Quantity'
+					caption: Tilbúið magn
+				measure 'Actual Time Used'
+					caption: Notaður rauntími
+				measure 'Finished %'
+					caption: Lokið %
+				measure 'Remaining %'
+					caption: Eftir %s
+				measure 'Variance Quantity'
+					caption: Fráviksmagn
+				measure 'Expected Capacity Cost Dev %'
+					caption: Áætlaður kostnaður afkastagetu fráv %
+				measure 'Expected Capacity Overhead Cost Dev %'
+					caption: Áætlaður sameiginlegur framleiðslukostnaður fráv %
+				measure 'Expected Manufacturing Overhead Cost Dev %'
+					caption: Áætlaður sameiginlegur framleiðslukostnaður fráv %
+				measure 'Expected Material Cost Dev %'
+					caption: Áætlaður efniskostnaður fráv %
+				measure 'Expected Subcontracted Cost Dev %'
+					caption: Áætlaður undirverktakakostnaður fráv %
+				measure 'Total Expected Cost Dev %'
+					caption: Áætlaður kostnaður alls fráv %
+				measure 'Expected Capacity Cost Variance'
+					caption: Áætlað frávik afkastakostnaðar
+				measure 'Expected Capacity Overhead Cost Variance'
+					caption: Áætlað frávik sameiginlegs framleiðslukostnaðar
+				measure 'Expected Manufacturing Overhead Cost Variance'
+					caption: Áætlað frávik sameiginlegs framleiðslurkostnaðar
+				measure 'Expected Material Cost Variance'
+					caption: Áætlað frávik efniskostnaðar
+				measure 'Expected Subcontracted Cost Variance'
+					caption: Áætlað frávik undirverktakakostnaðar
+				measure 'Total Expected Cost Variance'
+					caption: Áætlað kostnaðarfrávik alls
+				measure 'No. of Production Orders'
+					caption: Fjöldi framleiðslupantana
+				measure 'Average Production Time Per Finished Quantity'
+					caption: Meðalframleiðslutími á klárað magn
+				measure 'Prod Order Capacity Need Variance'
+					caption: Frávik afkastaþarfar framl.pöntunar
+				measure 'Prod Order Capacity Need Dev %'
+					caption: Afkastaþörf framl.pöntunar fráv %
+				measure 'Production Order Scrap %'
+					caption: Úrkast framleiðslupöntunar %
+				measure 'Expected Production Order Scrap Quantity'
+					caption: Áætlað úrkastsmagn í framleiðslupöntun
+			table 'Dimension Sets'
+				caption: Víddasamstæður
+				column id
+					caption: auðkenni
+				column dimensionSetID
+					caption: dimensionSetID
+				column valueCount
+					caption: valueCount
+				column 'Global Dimension 1'
+					caption: Altæk vídd 1
+				column dimension1ValueName
+					caption: dimension1ValueName
+				column 'Global Dimension 2'
+					caption: Altæk vídd 2
+				column dimension2ValueName
+					caption: dimension2ValueName
+				column 'Shortcut Dimension 3'
+					caption: Flýtivídd 3
+				column dimension3ValueName
+					caption: dimension3ValueName
+				column 'Shortcut Dimension 4'
+					caption: Flýtivídd 4
+				column dimension4ValueName
+					caption: dimension4ValueName
+				column 'Shortcut Dimension 5'
+					caption: Flýtivídd 5
+				column dimension5ValueName
+					caption: dimension5ValueName
+				column 'Shortcut Dimension 6'
+					caption: Flýtivídd 6
+				column dimension6ValueName
+					caption: dimension6ValueName
+				column 'Shortcut Dimension 7'
+					caption: Flýtivídd 7
+				column dimension7ValueName
+					caption: dimension7ValueName
+				column 'Shortcut Dimension 8'
+					caption: Flýtivídd 8
+				column dimension8ValueName
+					caption: dimension8ValueName
+			table 'Inventory Adjustment Entry Order Line'
+				caption: Pöntunarlína færslu birgðaleiðréttingar
+				column itemNo
+					caption: itemNo
+				column orderLineNo
+					caption: orderLineNo
+				column orderNo
+					caption: orderNo
+				column singleLevelMaterialCost
+					caption: singleLevelMaterialCost
+				column iSFinished
+					caption: iSFinished
+				column auxiliaryIndex1
+					caption: auxiliaryIndex1
+				column ETag
+					caption: ETag
+				column 'Adjustment Order Key'
+					caption: Pöntunarlykill leiðréttingar
+				column singleLevelCapacityCost
+					caption: singleLevelCapacityCost
+				column singleLevelSubcontrdCost
+					caption: singleLevelSubcontrdCost
+				column singleLevelCapOvhdCost
+					caption: singleLevelCapOvhdCost
+				column singleLevelMfgOvhdCost
+					caption: singleLevelMfgOvhdCost
+				column completelyInvoiced
+					caption: completelyInvoiced
+				column indirectCostPercent
+					caption: indirectCostPercent
+				column overheadRate
+					caption: overheadRate
+			table ENVIRONMENT
+				caption: UMHVERFIÐ
+			table 'Back Links'
+				caption: Baktenglar
+				measure 'Base Link'
+					caption: Grunntengill
+				measure 'Calendar Entries Back Link'
+					caption: Baktengill dagatalsfærslna
+				measure Ranged
+					caption: Bil
+				measure 'Prod. Order Capacity Need Back Link'
+					caption: Baktengill afkastaþörf framl.pöntunar
+				measure 'Work Center Need Qty Back Link'
+					caption: Baktengill þarfamagn vinnustöðvar
+			table 'Item Category'
+				caption: Vöruflokkur
+				column 'Item Category Code'
+					caption: Kóði yfirflokks vöru
+				column 'Item Category Description'
+					caption: Lýsing vöruflokks
+				hierarchy 'Item Category Code Hierarchy'
+					caption: Stigveldi vöruflokkskóða
+					level 'Item Category Code Level 1'
+						caption: Vöruflokkakóði af stigi 1
+					level 'Item Category Code Level 2'
+						caption: Vöruflokkakóði af stigi 2
+					level 'Item Category Code Level 3'
+						caption: Vöruflokkakóði af stigi 3
+

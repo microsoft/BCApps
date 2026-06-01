@@ -84,5 +84,19 @@ codeunit 135091 "Environment Information Test"
         // [Then] Should return false
         Assert.IsFalse(EnvironmentInformation.IsSaaS(), 'Testability should have dictacted a non- SaaS environment');
     end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestIsEarlyPreviewVersionIsSet()
+    begin
+        // [SCENARIO] Set the testability to true. IsEarlyPreview returns correct value.
+
+        // [Given] Set the testability early preview to true
+        EnvironmentInfoTestLibrary.SetTestabilityEarlyPreview(true);
+
+        // [When] Poll for IsEarlyPreview
+        // [Then] Should return true
+        Assert.IsTrue(EnvironmentInformation.IsEarlyPreview(), 'Testability should have dictated an early preview environment');
+    end;
 }
 

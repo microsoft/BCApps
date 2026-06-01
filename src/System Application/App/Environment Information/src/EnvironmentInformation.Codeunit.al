@@ -83,6 +83,34 @@ codeunit 457 "Environment Information"
     end;
 
     /// <summary>
+    /// Checks if the ring is preview.
+    /// </summary>
+    /// <returns>True if the ring is preview, false otherwise.</returns>
+    procedure IsPreview(): Boolean
+    begin
+        exit(EnvironmentInformationImpl.IsPreview());
+    end;
+
+    /// <summary>
+    /// Checks if the ring is early preview.
+    /// </summary>
+    /// <returns>True if the ring is early preview, false otherwise.</returns>
+    procedure IsEarlyPreview(): Boolean
+    begin
+        exit(EnvironmentInformationImpl.IsEarlyPreview());
+    end;
+
+    /// <summary>
+    /// Shows a notification if the ring is early preview.
+    /// </summary>
+    procedure ShowEarlyPreviewNotification()
+    var
+        EnvInfNotificationImpl: Codeunit "Env. Inf. Notification Impl.";
+    begin
+        EnvInfNotificationImpl.ShowEarlyPreviewNotification();
+    end;
+
+    /// <summary>
     /// Gets the application family.
     /// </summary>
     /// <returns>The application family.</returns>

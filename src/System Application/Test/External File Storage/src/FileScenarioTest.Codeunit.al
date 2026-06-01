@@ -7,8 +7,8 @@ namespace System.Test.ExternalFileStorage;
 
 using System.ExternalFileStorage;
 using System.TestLibraries.ExternalFileStorage;
-using System.TestLibraries.Utilities;
 using System.TestLibraries.Security.AccessControl;
+using System.TestLibraries.Utilities;
 
 codeunit 134752 "File Scenario Test"
 {

@@ -378,7 +378,7 @@ page 2516 "AppSource Product Details"
                 Item.SelectToken('price', PriceToken);
                 Price := PriceToken.AsObject();
                 Currency := GetStringValue(Price, 'currencyCode');
-                if not evaluate(PriceValue, GetStringValue(Price, 'listPrice')) then
+                if not Evaluate(PriceValue, GetStringValue(Price, 'listPrice'), 9) then
                     PriceValue := 0;
 
                 case GetStringValue(Item.AsObject(), 'termUnit') of

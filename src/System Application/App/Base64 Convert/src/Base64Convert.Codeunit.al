@@ -25,7 +25,7 @@ codeunit 4110 "Base64 Convert"
     /// <returns>The string representation, in base-64, of the input string.</returns>
     procedure ToBase64(String: Text): Text
     begin
-        exit(Base64ConvertImpl.ToBase64(String));
+        exit(this.Base64ConvertImpl.ToBase64(String));
     end;
 
     /// <summary>
@@ -35,7 +35,7 @@ codeunit 4110 "Base64 Convert"
     /// <returns>The secret string representation, in base-64, of the input secret string.</returns>
     procedure ToBase64(SecretString: SecretText): SecretText
     begin
-        exit(Base64ConvertImpl.ToBase64(SecretString));
+        exit(this.Base64ConvertImpl.ToBase64(SecretString));
     end;
 
     /// <summary>
@@ -46,7 +46,7 @@ codeunit 4110 "Base64 Convert"
     /// <returns>The string representation, in base-64, of the input string.</returns>
     procedure ToBase64(String: Text; TextEncoding: TextEncoding): Text
     begin
-        exit(Base64ConvertImpl.ToBase64(String, TextEncoding));
+        exit(this.Base64ConvertImpl.ToBase64(String, TextEncoding));
     end;
 
     /// <summary>
@@ -58,7 +58,7 @@ codeunit 4110 "Base64 Convert"
     /// <returns>The string representation, in base-64, of the input string.</returns>
     procedure ToBase64(String: Text; TextEncoding: TextEncoding; Codepage: Integer): Text
     begin
-        exit(Base64ConvertImpl.ToBase64(String, TextEncoding, Codepage));
+        exit(this.Base64ConvertImpl.ToBase64(String, TextEncoding, Codepage));
     end;
 
     /// <summary>
@@ -70,7 +70,7 @@ codeunit 4110 "Base64 Convert"
     /// <returns>The string representation, in base-64, of the input string.</returns>
     procedure ToBase64(String: Text; InsertLineBreaks: Boolean): Text
     begin
-        exit(Base64ConvertImpl.ToBase64(String, InsertLineBreaks));
+        exit(this.Base64ConvertImpl.ToBase64(String, InsertLineBreaks));
     end;
     /// <summary>
     /// Converts the value of the input string to its equivalent string representation that is encoded with base-64 digits.
@@ -83,7 +83,7 @@ codeunit 4110 "Base64 Convert"
     /// <returns>The string representation, in base-64, of the input string.</returns>
     procedure ToBase64(String: Text; InsertLineBreaks: Boolean; TextEncoding: TextEncoding; Codepage: Integer): Text
     begin
-        exit(Base64ConvertImpl.ToBase64(String, InsertLineBreaks, TextEncoding, Codepage));
+        exit(this.Base64ConvertImpl.ToBase64(String, InsertLineBreaks, TextEncoding, Codepage));
     end;
 
     /// <summary>
@@ -93,7 +93,7 @@ codeunit 4110 "Base64 Convert"
     /// <returns>The string representation, in base-64, of the input string.</returns>
     procedure ToBase64(InStream: InStream): Text
     begin
-        exit(Base64ConvertImpl.ToBase64(InStream));
+        exit(this.Base64ConvertImpl.ToBase64(InStream));
     end;
 
     /// <summary>
@@ -105,7 +105,72 @@ codeunit 4110 "Base64 Convert"
     /// <returns>The string representation, in base-64, of the input string.</returns>
     procedure ToBase64(InStream: InStream; InsertLineBreaks: Boolean): Text
     begin
-        exit(Base64ConvertImpl.ToBase64(InStream, InsertLineBreaks));
+        exit(this.Base64ConvertImpl.ToBase64(InStream, InsertLineBreaks));
+    end;
+
+    /// <summary>
+    /// Converts the value of the input stream to its equivalent string representation that is encoded with base-64 digits.
+    /// </summary>
+    /// <param name="InStream">The stream to read the input from.</param>
+    /// <param name="InsertLineBreaks">Specifies whether line breaks are inserted in the output.
+    /// If true, inserts line breaks after every 76 characters.</param>
+    /// <returns>The stream representation, in base-64, of the input string.</returns>
+    procedure ToBase64(InStream: InStream; InsertLineBreaks: Boolean; OutStream: OutStream)
+    begin
+        this.Base64ConvertImpl.ToBase64(InStream, InsertLineBreaks, OutStream);
+    end;
+
+    /// <summary>
+    /// Converts the value of the input string to its equivalent string representation that is encoded with base64 URL-safe characters.
+    /// </summary>
+    /// <param name="String">The string to convert.</param>
+    /// <returns>The string representation, in base64url, of the input string.</returns>
+    procedure ToBase64Url(String: Text): Text
+    begin
+        exit(this.Base64ConvertImpl.ToBase64Url(String));
+    end;
+
+    /// <summary>
+    /// Converts the value of the input secret string to its equivalent secret string representation that is encoded with base64 URL-safe characters.
+    /// </summary>
+    /// <param name="SecretString">The secret string to convert.</param>
+    /// <returns>The secret string representation, in base64url, of the input secret string.</returns>
+    procedure ToBase64Url(SecretString: SecretText): SecretText
+    begin
+        exit(this.Base64ConvertImpl.ToBase64Url(SecretString));
+    end;
+
+    /// <summary>
+    /// Converts the value of the input string to its equivalent string representation that is encoded with base64 URL-safe characters.
+    /// </summary>
+    /// <param name="String">The string to convert.</param>
+    /// <param name="TextEncoding">The TextEncoding for the input string.</param>
+    /// <returns>The string representation, in base64url, of the input string.</returns>
+    procedure ToBase64Url(String: Text; TextEncoding: TextEncoding): Text
+    begin
+        exit(this.Base64ConvertImpl.ToBase64Url(String, TextEncoding));
+    end;
+
+    /// <summary>
+    /// Converts the value of the input string to its equivalent string representation that is encoded with base64 URL-safe characters.
+    /// </summary>
+    /// <param name="String">The string to convert.</param>
+    /// <param name="TextEncoding">The TextEncoding for the input string.</param>
+    /// <param name="Codepage">The Codepage if TextEncoding is MsDos or Windows.</param>
+    /// <returns>The string representation, in base64url, of the input string.</returns>
+    procedure ToBase64Url(String: Text; TextEncoding: TextEncoding; Codepage: Integer): Text
+    begin
+        exit(this.Base64ConvertImpl.ToBase64Url(String, TextEncoding, Codepage));
+    end;
+
+    /// <summary>
+    /// Converts the value of the input stream to its equivalent string representation that is encoded with base64 URL-safe characters.
+    /// </summary>
+    /// <param name="InStream">The stream to read the input from.</param>
+    /// <returns>The string representation, in base64url, of the input string.</returns>
+    procedure ToBase64Url(InStream: InStream): Text
+    begin
+        exit(this.Base64ConvertImpl.ToBase64Url(InStream));
     end;
 
     /// <summary>
@@ -118,7 +183,7 @@ codeunit 4110 "Base64 Convert"
     /// or a non-white space-character among the padding characters.</error>
     procedure FromBase64(Base64String: Text): Text
     begin
-        exit(Base64ConvertImpl.FromBase64(Base64String));
+        exit(this.Base64ConvertImpl.FromBase64(Base64String));
     end;
 
     /// <summary>
@@ -131,7 +196,7 @@ codeunit 4110 "Base64 Convert"
     /// or a non-white space-character among the padding characters.</error>
     procedure FromBase64(Base64SecretString: SecretText): SecretText
     begin
-        exit(Base64ConvertImpl.FromBase64(Base64SecretString));
+        exit(this.Base64ConvertImpl.FromBase64(Base64SecretString));
     end;
 
     /// <summary>
@@ -145,7 +210,7 @@ codeunit 4110 "Base64 Convert"
     /// or a non-white space-character among the padding characters.</error>
     procedure FromBase64(Base64String: Text; TextEncoding: TextEncoding): Text
     begin
-        exit(Base64ConvertImpl.FromBase64(Base64String, TextEncoding));
+        exit(this.Base64ConvertImpl.FromBase64(Base64String, TextEncoding));
     end;
 
     /// <summary>
@@ -160,7 +225,7 @@ codeunit 4110 "Base64 Convert"
     /// or a non-white space-character among the padding characters.</error>
     procedure FromBase64(Base64String: Text; TextEncoding: TextEncoding; Codepage: Integer): Text
     begin
-        exit(Base64ConvertImpl.FromBase64(Base64String, TextEncoding, Codepage));
+        exit(this.Base64ConvertImpl.FromBase64(Base64String, TextEncoding, Codepage));
     end;
 
     /// <summary>
@@ -174,6 +239,6 @@ codeunit 4110 "Base64 Convert"
     /// or a non-white space-character among the padding characters.</error>
     procedure FromBase64(Base64String: Text; OutStream: OutStream)
     begin
-        Base64ConvertImpl.FromBase64(Base64String, OutStream);
+        this.Base64ConvertImpl.FromBase64(Base64String, OutStream);
     end;
 }

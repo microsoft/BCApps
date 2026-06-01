@@ -1,0 +1,107 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.0.0/schema.json",
+  "name": "0e40c80342a2c735f496",
+  "displayName": "Project Ledger Entry Drill through",
+  "displayOption": "FitToPage",
+  "height": 720,
+  "width": 1280,
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "Filterad3f9be7fd61ab5d56dd",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Project"
+              }
+            },
+            "Property": "Project No."
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "Drillthrough"
+      },
+      {
+        "name": "Filter8762a425b97fc257a738",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Project"
+              }
+            },
+            "Property": "Project No. & Description"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "Drillthrough"
+      },
+      {
+        "name": "c1fd4dd9ce1290369f4c",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Tasks"
+              }
+            },
+            "Property": "Task No."
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "Drillthrough"
+      }
+    ]
+  },
+  "pageBinding": {
+    "name": "48a111c782c2e21adef6",
+    "type": "Drillthrough",
+    "parameters": [
+      {
+        "name": "Param_Filterad3f9be7fd61ab5d56dd",
+        "boundFilter": "Filterad3f9be7fd61ab5d56dd",
+        "fieldExpr": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Project"
+              }
+            },
+            "Property": "Project No."
+          }
+        }
+      },
+      {
+        "name": "Param_Filter8762a425b97fc257a738",
+        "boundFilter": "Filter8762a425b97fc257a738",
+        "fieldExpr": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Project"
+              }
+            },
+            "Property": "Project No. & Description"
+          }
+        }
+      },
+      {
+        "name": "64f4eceb848d1d85a134",
+        "boundFilter": "c1fd4dd9ce1290369f4c",
+        "fieldExpr": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Tasks"
+              }
+            },
+            "Property": "Task No."
+          }
+        }
+      }
+    ],
+    "referenceScope": "CrossReport"
+  },
+  "visibility": "HiddenInViewMode"
+}

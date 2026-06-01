@@ -7,18 +7,19 @@ namespace System.TestTools.AITestToolkit;
 
 report 149030 "AIT Test Summary"
 {
-    Caption = 'AI Test Summary';
+    Caption = 'AI Eval Summary';
     ApplicationArea = All;
     UsageCategory = Tasks;
     DefaultLayout = Excel;
     ExcelLayout = 'AITestSummary.xlsx';
+    AccessByPermission = TableData "AIT Log Entry" = R;
 
     dataset
     {
         dataitem(Results; "AIT Log Entry")
         {
             RequestFilterFields = Version;
-            RequestFilterHeading = 'AI Test Log Entries';
+            RequestFilterHeading = 'AI Eval Log Entries';
 
             column(CodeunitID; Results."Codeunit ID")
             {

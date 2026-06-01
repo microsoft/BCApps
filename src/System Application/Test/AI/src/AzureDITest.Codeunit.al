@@ -6,9 +6,9 @@
 namespace System.Test.AI;
 
 using System.AI;
+using System.AI.DocumentIntelligence;
 using System.TestLibraries.AI;
 using System.TestLibraries.Environment;
-using System.AI.DocumentIntelligence;
 using System.TestLibraries.Utilities;
 
 codeunit 132685 "Azure DI Test"

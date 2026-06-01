@@ -1,0 +1,409 @@
+cultureInfo nl-BE
+	translations
+		model Model
+			table Item
+				caption: Artikel
+				column 'Item No. & Description'
+					caption: Artikelnr. en -beschrijving
+				column 'Item No.'
+					caption: Artikelnr.
+				column 'Item Description'
+					caption: Artikelbeschrijving
+				column 'Item Base Unit of Measure'
+					caption: Basiseenheid artikel
+				column 'Item Unit Cost (LCY)'
+					caption: Kostprijs per eenheid (LV)
+				column 'Item Inventory Posting Group'
+					caption: Voorraadboekingsgroep artikel
+				column 'Item Category Code'
+					caption: Artikelcategoriecode
+				column 'Item Category Description'
+					caption: Beschrijving van artikelcategorie
+			table Location
+				caption: Locatie
+				column 'Location Code'
+					caption: Locatiecode
+				column 'Location Name'
+					caption: Locatienaam
+				column 'Location Adjustment Bin Code'
+					caption: Opslaglocatiecode locatieherwaardering
+			table 'Value Entries'
+				caption: Waardeposten
+				column 'Entry No.'
+					caption: Postnr.
+				column 'Valuation Date'
+					caption: Waarderingsdatum
+				column 'Item Ledger Entry Type'
+					caption: Artikelboekingssoort
+				column 'Document Type'
+					caption: Documenttype
+				column Type
+					caption: Type
+				measure 'As of Beg. Date Label'
+					caption: Label vanaf begindatum
+				measure 'As of End Date Label'
+					caption: Label vanaf einddatum
+				measure 'Beginning Balance Cost Posted to G/L'
+					caption: Beginsaldo kosten geboekt naar grootboek
+				measure 'Beginning Balance Expected Cost Posted to G/L'
+					caption: Beginsaldo verwachte kosten geboekt naar grootboek
+				measure 'Beginning Balance Qty'
+					caption: Aantal van beginsaldo
+				measure 'Beginning Balance Cost Amount (Actual)'
+					caption: Beginsaldo kostenbedrag (werkelijk)
+				measure 'Beginning Balance Cost Amount (Expected)'
+					caption: Beginsaldo kostenbedrag (verwacht)
+				measure 'Beginning Balance Cost Amount (Incl. Exp Cost)'
+					caption: Beginsaldo kostenbedrag (incl. verwachte kosten)
+				measure 'Cost Amount (Actual)'
+					caption: Kostenbedrag (werkelijk)
+				measure 'Cost Amount (Expected)'
+					caption: Kostenbedrag (verwacht)
+				measure 'Cost Posted to G/L'
+					caption: Kosten geboekt naar grootboek
+				measure 'Expected Cost Posted to G/L'
+					caption: Verwachte kosten geboekt naar grootboek
+				measure 'Decrease Qty.'
+					caption: Aantal verlagen
+				measure 'Decrease Value'
+					caption: Waarde verlagen
+				measure 'Decrease Value (Expected)'
+					caption: Waarde verlagen (verwacht)
+				measure 'Decrease Value Expected Cost Included'
+					caption: Waarde verlagen inclusief verwachte kosten
+				measure 'Ending Balance Cost Amount (Incl. Exp Cost)'
+					caption: Eindsaldo kostenbedrag (incl. verwachte kosten)
+				measure 'Ending Balance Cost Posted to G/L'
+					caption: Eindsaldo kosten geboekt naar grootboek
+				measure 'Ending Balance Qty.'
+					caption: Aantal van eindsaldo
+				measure 'Ending Balance Cost Amount (Actual)'
+					caption: Eindsaldo kostenbedrag (werkelijk)
+				measure 'Ending Balance Cost Amount (Expected)'
+					caption: Eindsaldo kostenbedrag (verwacht)
+				measure 'Ending Balance Expected Cost Posted to G/L'
+					caption: Eindsaldo verwachte kosten geboekt naar grootboek
+				measure 'Increase Value Expected Cost Included'
+					caption: Waarde verhogen inclusief verwachte kosten
+				measure 'Increases Qty.'
+					caption: Aantal verlagen
+				measure 'Increases Value'
+					caption: Verhoogt waarde
+				measure 'Increases Value (Expected)'
+					caption: Verlaagt waarde (verwacht)
+				measure 'Invoiced Quantity'
+					caption: Gefactureerd aantal
+				measure 'Cost Amount (Incl. Exp Cost)'
+					caption: Kostenbedrag (incl. verwachte kosten)
+				measure 'Variance Cost Posted to G/L'
+					caption: Verschilkosten geboekt naar grootboek
+				measure 'Base Link'
+					caption: Basiskoppeling
+				measure 'Value Entry Back Link'
+					caption: Terugkoppeling Waardepost
+			table 'Dimension Sets'
+				caption: Dimensiecombinaties
+				column 'Global Dimension 1'
+					caption: Globale dimensie 1
+				column 'Global Dimension 2'
+					caption: Globale dimensie 2
+				column 'Shortcut Dimension 3'
+					caption: Shortcutdimensie 3
+				column 'Shortcut Dimension 4'
+					caption: Shortcutdimensie 4
+				column 'Shortcut Dimension 5'
+					caption: Shortcutdimensie 5
+				column 'Shortcut Dimension 6'
+					caption: Shortcutdimensie 6
+				column 'Shortcut Dimension 7'
+					caption: Shortcutdimensie 7
+				column 'Shortcut Dimension 8'
+					caption: Shortcutdimensie 8
+			table Date
+				caption: Datum
+				column 'Week Day'
+					caption: Week Dag
+				column 'Relative Day'
+					caption: Relatieve Dag
+				column 'Calendar Year'
+					caption: Kalender Jaar
+				column 'Calendar Quarter'
+					caption: Kalender Kwartaal
+				column 'Calendar Quarter Year'
+					caption: Kalender Kwartaal Jaar
+				column 'Calendar Month'
+					caption: Kalender Maand
+				column 'Calendar Month Year'
+					caption: Kalender Maand Jaar
+				column 'Calendar Week'
+					caption: Kalender Week
+				column 'Calendar Week Year'
+					caption: Kalender Week Jaar
+				column 'Calendar WeekYearOrder'
+					caption: Agenda WeekJaarVolgorde
+				column 'Calendar RelativeWeekPos'
+					caption: Kalender RelatieveWeekPos
+				column 'Calendar RelativeMonthPos'
+					caption: Kalender RelatieveMaandPos
+				column 'Calendar RelativeQuarterPos'
+					caption: Kalender RelatieveKwartaalPos
+				column 'Calendar RelativeYearPos'
+					caption: Kalender RelatieveJaarPos
+				column 'Calendar StartOfMonth'
+					caption: Kalender BeginVanMaand
+				column 'Calendar EndOfMonth'
+					caption: Kalender EindVanMaand
+				column 'Calendar StartOfQuarter'
+					caption: Kalender BeginVanKwartaal
+				column 'Calendar EndOfQuarter'
+					caption: Kalender EindVanKwartaal
+				column 'Calendar StartOfYear'
+					caption: Kalender BeginVanJaar
+				column 'Calendar EndOfYear'
+					caption: Kalender EindVanJaar
+				column 'Calendar MonthDays'
+					caption: Kalender MaandDagen
+				column 'Calendar QuarterDays'
+					caption: Kalender KwartaalDagen
+				column 'Calendar YearDays'
+					caption: Kalender JaarDagen
+				column 'Calendar DayOfMonthNumber'
+					caption: Kalender DagVanMaandNummer
+				column 'Calendar DayOfQuarterNumber'
+					caption: Kalender DagVanKwartaalNummer
+				column 'Calendar DayOfYearNumber'
+					caption: Kalender DagVanJaarNummer
+				column 'Calendar DatePreviousWeek'
+					caption: Kalender DatumVorigeWeek
+				column 'Calendar DatePreviousMonth'
+					caption: Kalender DatumVorigeMaand
+				column 'Calendar DatePreviousQuarter'
+					caption: Kalender DatumVorigKwartaal
+				column 'Calendar DatePreviousYear'
+					caption: Kalender DatumVorigJaar
+				column 'Fiscal Year'
+					caption: Fiscaal Jaar
+				column 'Fiscal QuarterNumber'
+					caption: Fiscaal KwartaalNummer
+				column 'Fiscal Quarter'
+					caption: Fiscaal Kwartaal
+				column 'Fiscal Quarter Year'
+					caption: Fiscaal Kwartaal Jaar
+				column 'Fiscal MonthInQuarterNumber'
+					caption: Fiscaal MaandInKwartaalNummer
+				column 'Fiscal Month'
+					caption: Fiscaal Maand
+				column 'Fiscal Month Year'
+					caption: Fiscaal Maand Jaar
+				column 'Fiscal WeekNumber'
+					caption: Fiscaal WeekNummer
+				column 'Fiscal Week'
+					caption: Fiscaal Week
+				column 'Fiscal Week Year'
+					caption: Fiscaal Week Jaar
+				column 'Fiscal WeekYearOrder'
+					caption: Fiscaal WeekJaarVolgorde
+				column 'Fiscal RelativeWeekPos'
+					caption: Fiscaal RelatieveWeekPos
+				column 'Fiscal RelativeMonthPos'
+					caption: Fiscaal RelatieveMaandPos
+				column 'Fiscal RelativeQuarterPos'
+					caption: Fiscaal RelatieveKwartaalPos
+				column 'Fiscal RelativeYearPos'
+					caption: Fiscaal RelatieveJaarPos
+				column 'Fiscal StartOfMonth'
+					caption: Fiscaal BeginVanMaand
+				column 'Fiscal EndOfMonth'
+					caption: Fiscaal EindVanMaand
+				column 'Fiscal StartOfQuarter'
+					caption: Fiscaal BeginVanKwartaal
+				column 'Fiscal EndOfQuarter'
+					caption: Fiscaal EindVanKwartaal
+				column 'Fiscal StartOfYear'
+					caption: Fiscaal BeginVanJaar
+				column 'Fiscal EndOfYear'
+					caption: Fiscaal EindVanJaar
+				column 'Fiscal MonthDays'
+					caption: Fiscaal MaandDagen
+				column 'Fiscal QuarterDays'
+					caption: Fiscaal KwartaalDagen
+				column 'Fiscal YearDays'
+					caption: Fiscaal JaarDagen
+				column 'Fiscal DayOfMonthNumber'
+					caption: Fiscaal DagVanMaandNummer
+				column 'Fiscal DayOfQuarterNumber'
+					caption: Fiscaal DagVanKwartaalNummer
+				column 'Fiscal DayOfYearNumber'
+					caption: Fiscaal DagVanJaarNummer
+				column 'Fiscal DatePreviousWeek'
+					caption: Fiscaal DatumVorigeWeek
+				column 'Fiscal DatePreviousMonth'
+					caption: Fiscaal DatumVorigeMaand
+				column 'Fiscal DatePreviousQuarter'
+					caption: Fiscaal DatumVorigKwartaal
+				column 'Fiscal DatePreviousYear'
+					caption: Fiscaal DatumVorigJaar
+				column 'FW Year'
+					caption: FW Jaar
+				column 'FW Quarter'
+					caption: FW Kwartaal
+				column 'FW Quarter Year'
+					caption: FW Kwartaal Jaar
+				column 'FW Month'
+					caption: FW Maand
+				column 'FW Month Year'
+					caption: FW Maand Jaar
+				column 'FW Week'
+					caption: FW Week
+				column 'FW Period'
+					caption: FW Periode
+				column 'FW Week Year'
+					caption: FW Week Jaar
+				column 'FW StartOfWeek'
+					caption: FW BeginVanWeek
+				column 'FW EndOfWeek'
+					caption: FW EindVanWeek
+				column 'FW RelativeWeekPos'
+					caption: FW RelatieveWeekPos
+				column 'FW RelativeMonthPos'
+					caption: FW RelatieveMaandPos
+				column 'FW RelativeQuarterPos'
+					caption: FW RelatieveKwartaalPos
+				column 'FW RelativeYearPos'
+					caption: FW RelatieveJaarPos
+				column 'FW StartOfMonth'
+					caption: FW BeginVanMaand
+				column 'FW EndOfMonth'
+					caption: FW EindVanMaand
+				column 'FW StartOfQuarter'
+					caption: FW BeginVanKwartaal
+				column 'FW EndOfQuarter'
+					caption: FW EindVanKwartaal
+				column 'FW StartOfYear'
+					caption: FW BeginVanJaar
+				column 'FW EndOfYear'
+					caption: FW EindVanJaar
+				column 'FW MonthDays'
+					caption: FW MaandDagen
+				column 'FW QuarterDays'
+					caption: FW KwartaalDagen
+				column 'FW YearDays'
+					caption: FW JaarDagen
+				column 'FW DayOfMonthNumber'
+					caption: FW DagVanMaandNummer
+				column 'FW DayOfQuarterNumber'
+					caption: FW DagVanKwartaalNummer
+				column 'FW DayOfYearNumber'
+					caption: FW DagVanJaarNummer
+				column 'FW DatePreviousWeek'
+					caption: FW DatumVorigeWeek
+				column 'FW DatePreviousMonth'
+					caption: FW DatumVorigeMaand
+				column 'FW DatePreviousQuarter'
+					caption: FW DatumVorigKwartaal
+				column 'FW DatePreviousYear'
+					caption: FW DatumVorigJaar
+				column 'Holiday Name'
+					caption: Vakantie Naam
+				column IsWorkingDay
+					caption: IsWorkingDay
+				column 'Day Type'
+					caption: Dagsoort
+			table 'Localized Labels'
+				measure 'My Report Title'
+					caption: Mijn rapporttitel
+				measure 'My Button Caption'
+					caption: Bijschrift van mijn knop
+				measure 'My Visual Title'
+					caption: Mijn visuele titel
+				measure 'Inventory Valuation'
+					caption: Voorraadwaardering
+				measure 'for Business Central'
+					caption: voor Business Central
+				measure 'CONNECT YOUR DATA'
+					caption: UW GEGEVENS VERBINDEN
+				measure '1. Download the Inventory Connector for Power BI'
+					caption: 1. Download de Voorraadconnector voor Power BI
+				measure '2. Configure Dynamics 365 Business Central'
+					caption: 2. Dynamics 365 Business Central configureren
+				measure 'USE, EDIT AND BUILD YOUR OWN REPORTS'
+					caption: UW EIGEN RAPPORTEN GEBRUIKEN, BEWERKEN EN MAKEN
+				measure 'Inventory Valuation includes a variety of pre-built reports to help you see your data immediately.'
+					caption: Voorraadwaardering bevat een verscheidenheid aan vooraf gemaakte rapporten om u te helpen uw gegevens direct te bekijken.
+				measure 'You are able to edit these reports or build your own report from scratch.'
+					caption: U kunt deze rapporten bewerken of uw eigen rapport helemaal opnieuw maken.
+				measure 'HELP AND SUPPORT'
+					caption: HELP EN ONDERSTEUNING
+				measure 'For help and support with your new report please visit the Analytics overview documentation.'
+					caption: Ga voor hulp en ondersteuning met uw nieuwe rapport naar de Analytics-overzichtsdocumentatie.
+				measure 'OTHER POWER BI REPORTS'
+					caption: OVERIGE POWER BI-RAPPORTEN
+				measure PURCHASE
+					caption: INKOOP
+				measure FINANCE
+					caption: FINANCIËN
+				measure PROJECTS
+					caption: PROJECTEN
+				measure INVENTORY
+					caption: VOORRAAD
+				measure SALES
+					caption: VERKOPEN
+				measure 'Inventory Valuation Overview'
+					caption: Overzicht van voorraadwaardering
+				measure 'Inventory Value & Cost Posted to G/L by Month Year'
+					caption: Voorraadwaarde en kosten geboekt naar grootboek per maand jaar
+				measure 'Inventory Value by Location'
+					caption: Voorraadwaarde per locatie
+				measure 'Inventory Quantity'
+					caption: Voorraadaantal
+				measure 'Inventory Valuation by Item'
+					caption: Voorraadwaardering per artikel
+				measure 'Inventory Valuation by Location'
+					caption: Voorraadwaardering per locatie
+				measure 'Detailed Inventory Valuation'
+					caption: Gedetailleerde voorraadwaardering
+				measure 'The inventory valuation by item shows item number, beginning balance value, increase value, decrease value, and ending balance value.'
+					caption: De voorraadwaardering per artikel bevat artikelnummer, beginsaldowaarde, toenamewaarde, afnamewaarde en eindsaldowaarde.
+				measure 'The inventory valuation by location shows location code, beginning balance value, increase value, decrease value, and ending balance value.'
+					caption: De voorraadwaardering per locatie bevat locatiecode, beginsaldowaarde, toenamewaarde, afnamewaarde en eindsaldowaarde.
+				measure 'The detailed inventory valuation shows date, item number and description, location code, document type, entry number, invoiced quantity, cost amount (actual), cost amount (expected), cost posted to G/L (actual), and cost posted to G/L (expected).'
+					caption: De gedetailleerde voorraadwaardering bevat datum, artikelnummer en -beschrijving, locatiecode, documenttype, postnummer, gefactureerd aantal, kostenbedrag (werkelijk), kostenbedrag (verwacht), naar grootboek geboekte kosten (werkelijk) en naar grootboek geboekte kosten (verwacht).
+				measure 'The inventory valuation by location shows location and ending balance value.'
+					caption: De voorraadwaardering per locatie bevat de locatie en de eindsaldowaarde.
+				measure 'The inventory valuation by item shows item category and ending balance quantity.'
+					caption: De voorraadwaardering per artikel bevat artikelcategorie en eindsaldoaantal.
+				measure 'Last Refreshed'
+					caption: Laatst vernieuwd
+				measure 'Company Name'
+					caption: Bedrijfsnaam
+				measure 'Inventory value as of '
+					caption: "Voorraadwaarde vanaf "
+				measure 'Ending Balance Value and Invoiced Quantity by Location Code'
+					caption: Eindsaldowaarde en gefactureerd aantal per locatiecode
+				measure 'Ending Balance Value, Ending Balance Posted to G/L and Variance by Month'
+					caption: Eindsaldowaarde, eindsaldo geboekt naar GB en verschil per maand
+				measure 'Ending Balance Quantity by Item Category Code'
+					caption: Eindsaldoaantal per artikelcategoriecode
+				measure 'Ending Balance Value by Location Name'
+					caption: Eindsaldowaarde per locatienaam
+			table COMPANY
+				caption: BEDRIJF
+				measure 'Company Label'
+					caption: Bedrijfslabel
+			table 'Item Category'
+				caption: Artikelcategorie
+				column 'Item Category Code'
+					caption: Artikelcategoriecode
+				column 'Item Category Description'
+					caption: Omschrijving van artikelcategorie
+				hierarchy 'Item Category Code Hierarchy'
+					caption: Hiërarchie van artikelcategoriecodes
+					level 'Item Category Code Level 1'
+						caption: Artikelcategoriecode niveau 1
+					level 'Item Category Code Level 2'
+						caption: Artikelcategoriecode niveau 2
+					level 'Item Category Code Level 3'
+						caption: Artikelcategoriecode niveau 3
+					level 'Item Category Code'
+						caption: Artikelcategoriecode
+

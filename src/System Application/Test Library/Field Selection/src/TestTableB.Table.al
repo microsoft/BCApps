@@ -21,7 +21,7 @@ table 135037 "Test Table B"
         field(2; MyField2; Decimal)
         {
             DataClassification = SystemMetadata;
-
+            AutoFormatType = 0;
         }
 
         field(3; MyField3; Text[50])

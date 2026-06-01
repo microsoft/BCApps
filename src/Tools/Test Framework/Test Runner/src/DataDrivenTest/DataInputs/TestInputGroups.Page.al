@@ -17,6 +17,7 @@ page 130462 "Test Input Groups"
     DeleteAllowed = true;
     InsertAllowed = false;
     ModifyAllowed = false;
+    SourceTableView = sorting("Group Name", Indentation, Code);
 
     layout
     {
@@ -24,8 +25,32 @@ page 130462 "Test Input Groups"
         {
             repeater(Main)
             {
+                TreeInitialState = CollapseAll;
+                IndentationColumn = Rec.Indentation;
+                IndentationControls = "Group Name";
+                ShowAsTree = true;
+
+                field(Indentation; Rec.Indentation)
+                {
+                    Visible = false;
+                    Caption = 'Indentation';
+                    ToolTip = 'Specifies the indentation level for the tree view';
+                }
+                field("Group Name"; Rec."Group Name")
+                {
+                }
                 field(Code; Rec.Code)
                 {
+                }
+                field("Language Name"; Rec."Language Name")
+                {
+                }
+                field("Language Tag"; Rec."Language Tag")
+                {
+                }
+                field("Language ID"; Rec."Language ID")
+                {
+                    Visible = false;
                 }
                 field(Description; Rec.Description)
                 {
@@ -37,10 +62,33 @@ page 130462 "Test Input Groups"
             }
         }
     }
+
     actions
     {
         area(Processing)
         {
+            action(DeleteSelected)
+            {
+                Caption = 'Delete Selected';
+                ToolTip = 'Delete the selected test input groups and their entries.';
+                Image = Delete;
+                Scope = Repeater;
+
+                trigger OnAction()
+                var
+                    TestInputGroup: Record "Test Input Group";
+                begin
+                    CurrPage.SetSelectionFilter(TestInputGroup);
+                    if TestInputGroup.IsEmpty() then
+                        exit;
+
+                    if not Confirm(DeleteSelectedQst) then
+                        exit;
+
+                    TestInputGroup.DeleteAll(true);
+                    CurrPage.Update(false);
+                end;
+            }
             fileuploadaction(ImportDataInputs)
             {
                 Caption = 'Import data-driven test inputs';
@@ -64,9 +112,15 @@ page 130462 "Test Input Groups"
         }
         area(Promoted)
         {
+            actionref(DeleteSelected_Promoted; DeleteSelected)
+            {
+            }
             actionref(ImportDefinition_Promoted; ImportDataInputs)
             {
             }
         }
     }
+
+    var
+        DeleteSelectedQst: Label 'Are you sure you want to delete the selected test input groups?';
 }

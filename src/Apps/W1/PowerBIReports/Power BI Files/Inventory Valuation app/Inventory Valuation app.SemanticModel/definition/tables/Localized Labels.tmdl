@@ -1,0 +1,170 @@
+table 'Localized Labels'
+	isHidden
+	lineageTag: 1e5a573b-94a6-4798-b243-c00ad9002e77
+
+	measure 'My Report Title' = 0
+		isHidden
+		lineageTag: 6c6a984a-84fb-4730-b8f0-e1f3d1e21adf
+
+	measure 'My Button Caption' = 0
+		isHidden
+		lineageTag: a2650c5f-a35d-469d-83ea-551aebeccc84
+
+	measure 'My Visual Title' = 0
+		isHidden
+		lineageTag: 4b8c2736-8d71-4f00-8186-8b750b50d592
+
+	measure 'Inventory Valuation' = 0
+		isHidden
+		lineageTag: f4dcb00b-bfda-4b46-931d-0fdb8471b2ec
+
+	measure 'for Business Central' = 0
+		isHidden
+		lineageTag: 23948c19-add8-486f-8f88-5688d08cb58b
+
+	measure 'CONNECT YOUR DATA' = 0
+		isHidden
+		lineageTag: a95c0904-6b27-414a-b3c0-23a5050555c7
+
+	measure '1. Download the Inventory Connector for Power BI' = 0
+		isHidden
+		lineageTag: d15ca069-f730-4e42-a3ca-cae573417163
+
+	measure '2. Configure Dynamics 365 Business Central' = 0
+		isHidden
+		lineageTag: ff4ee188-7c51-436d-aca4-df82c197d18c
+
+	measure 'USE, EDIT AND BUILD YOUR OWN REPORTS' = 0
+		isHidden
+		lineageTag: c3df7865-4baa-45a6-bb69-8b847b26bd1a
+
+	measure 'Inventory Valuation includes a variety of pre-built reports to help you see your data immediately.' = 0
+		isHidden
+		lineageTag: a4d2e6fe-1dd4-4d73-99bc-9c89eca2f872
+
+	measure 'You are able to edit these reports or build your own report from scratch.' = 0
+		isHidden
+		lineageTag: 549338b8-6083-48d8-8318-07163a23d10c
+
+	measure 'HELP AND SUPPORT' = 0
+		isHidden
+		lineageTag: 690955d9-903e-48e3-98ef-18b0ce9d98d6
+
+	measure 'For help and support with your new report please visit the Analytics overview documentation.' = 0
+		isHidden
+		lineageTag: e1d7d1b5-2a08-4b1c-a736-f63d5011f7f9
+
+	measure 'OTHER POWER BI REPORTS' = 0
+		isHidden
+		lineageTag: d7ce55f3-e296-468d-a606-414aadc1f8a7
+
+	measure PURCHASE = 0
+		isHidden
+		lineageTag: d50cb991-0e5e-43a5-899c-ac72f853533b
+
+	measure FINANCE = 0
+		isHidden
+		lineageTag: 35c1b501-e893-4a92-b1ac-39ad6457e423
+
+	measure PROJECTS = 0
+		isHidden
+		lineageTag: 7ba7ba4d-96cd-416f-86d9-4534ca3e8798
+
+	measure INVENTORY = 0
+		isHidden
+		lineageTag: e0c13e97-168b-4c94-b6da-8f2a790e5808
+
+	measure SALES = 0
+		isHidden
+		lineageTag: 1c487d7d-215b-402a-bb09-a4dc6366f848
+
+	measure 'Inventory Valuation Overview' = 0
+		isHidden
+		lineageTag: 6630333f-f9ef-498d-b69a-fae5c701d05d
+
+	measure 'Inventory Value & Cost Posted to G/L by Month Year' = 0
+		isHidden
+		lineageTag: 12e578f3-76f6-499a-af9a-89fbffc95359
+
+	measure 'Inventory Value by Location' = 0
+		isHidden
+		lineageTag: 5ed16968-6265-4545-b20e-f3f553fc122f
+
+	measure 'Inventory Quantity' = 0
+		isHidden
+		lineageTag: 6e0f2f3b-abaf-4c75-b9c9-dc392f83f8ea
+
+	measure 'Inventory Valuation by Item' = 0
+		isHidden
+		lineageTag: 7a142a3f-14da-4866-b32c-d2c628bcbd16
+
+	measure 'Inventory Valuation by Location' = 0
+		isHidden
+		lineageTag: b30c9e4e-b4cc-44db-add4-5de01c4df6e2
+
+	measure 'Detailed Inventory Valuation' = 0
+		isHidden
+		lineageTag: 9a676b24-9754-49df-b4b0-3b3de9ad682f
+
+	measure 'The inventory valuation by item shows item number, beginning balance value, increase value, decrease value, and ending balance value.' = 0
+		isHidden
+		lineageTag: c543457f-ee9b-4dba-8a15-901bcfc6471b
+
+	measure 'The inventory valuation by location shows location code, beginning balance value, increase value, decrease value, and ending balance value.' = 0
+		isHidden
+		lineageTag: 624121b4-9333-46bd-8644-36612e031ca1
+
+	measure 'The detailed inventory valuation shows date, item number and description, location code, document type, entry number, invoiced quantity, cost amount (actual), cost amount (expected), cost posted to G/L (actual), and cost posted to G/L (expected).' = 0
+		isHidden
+		lineageTag: 33456147-3a45-4003-93c3-592e2be1765b
+
+	measure 'The inventory valuation by location shows location and ending balance value.' = 0
+		isHidden
+		lineageTag: 0a296bb9-b809-482f-b5fe-ac5da2f60c0e
+
+	measure 'The inventory valuation by item shows item category and ending balance quantity.' = 0
+		isHidden
+		lineageTag: f2f7d27a-f3b4-4864-b3f2-e220292213e7
+
+	measure 'Last Refreshed' = 0
+		isHidden
+		lineageTag: 59a9ad95-f58c-4f8b-a198-2badaf8a1661
+
+	measure 'Company Name' = 0
+		isHidden
+		lineageTag: 65131f42-d901-47cc-973d-3b4d9f176a64
+
+	measure 'Inventory value as of ' = 0
+		isHidden
+		lineageTag: f0fa742a-c272-4982-98d4-99e5b77dc7e0
+
+	measure 'Ending Balance Value and Invoiced Quantity by Location Code' = 0
+		isHidden
+		lineageTag: 965b1606-888c-4150-ae38-bed56f71f3be
+
+	measure 'Ending Balance Value, Ending Balance Posted to G/L and Variance by Month' = 0
+		isHidden
+		lineageTag: b04db101-d5c9-4a6f-9d1a-19c18557990b
+
+	measure 'Ending Balance Quantity by Item Category Code' = 0
+		isHidden
+		lineageTag: 7e15d49d-9e12-4dc8-8964-44856463ecf1
+
+	measure 'Ending Balance Value by Location Name' = 0
+		isHidden
+		lineageTag: 97640500-de88-4f33-a34e-21b228453f47
+
+	column unused
+		isHidden
+		displayFolder: unused
+		lineageTag: 9583f7ae-49e0-43d8-9f00-6bcfaad23933
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [unused]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Partition = calculated
+		mode: import
+		source = DATATABLE("unused", STRING, {{"This is a table automatically generated by Translations Builder"}})
+

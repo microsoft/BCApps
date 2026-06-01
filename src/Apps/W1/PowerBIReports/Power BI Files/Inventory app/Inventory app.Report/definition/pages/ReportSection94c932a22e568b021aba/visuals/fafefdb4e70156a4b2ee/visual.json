@@ -1,0 +1,653 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "fafefdb4e70156a4b2ee",
+  "position": {
+    "x": 26,
+    "y": 383.33333333333337,
+    "z": 2000,
+    "height": 310.83333333333337,
+    "width": 1228.3333333333335,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "pivotTable",
+    "query": {
+      "queryState": {
+        "Rows": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Item"
+                    }
+                  },
+                  "Property": "Item Category Description"
+                }
+              },
+              "queryRef": "Item.Item Category Description",
+              "nativeQueryRef": "Item Category Description",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Item"
+                    }
+                  },
+                  "Property": "Item No. & Description"
+                }
+              },
+              "queryRef": "Item.Item No. & Description",
+              "nativeQueryRef": "Item No. & Description",
+              "active": true
+            }
+          ]
+        },
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Item"
+                    }
+                  },
+                  "Property": "Gross Requirement"
+                }
+              },
+              "queryRef": "Item.Gross Requirement",
+              "nativeQueryRef": "Gross Requirement"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Item"
+                    }
+                  },
+                  "Property": "Projected Available Balance"
+                }
+              },
+              "queryRef": "Item.Projected Available Balance",
+              "nativeQueryRef": "Projected Available Balance"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Sales Lines"
+                    }
+                  },
+                  "Property": "Qty. on Sales Order"
+                }
+              },
+              "queryRef": "Sales Lines.Qty. on Sales Order",
+              "nativeQueryRef": "Qty. on Sales Order"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Purchase Lines"
+                    }
+                  },
+                  "Property": "Qty. on Purch. Return"
+                }
+              },
+              "queryRef": "Purchase Lines.Qty. on Purch. Return",
+              "nativeQueryRef": "Qty. on Purch. Return"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Service Lines"
+                    }
+                  },
+                  "Property": "Qty. on Service Order"
+                }
+              },
+              "queryRef": "Service Lines.Qty. on Service Order",
+              "nativeQueryRef": "Qty. on Service Order"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Project Planning Lines"
+                    }
+                  },
+                  "Property": "Qty. on Projects"
+                }
+              },
+              "queryRef": "Job Planning Lines.Qty. on Job Order",
+              "nativeQueryRef": "Qty. on Job Order"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Prod Order Component Lines"
+                    }
+                  },
+                  "Property": "Qty. on Prod. Order Comp. Lines"
+                }
+              },
+              "queryRef": "Component Lines.Qty. on Component Lines",
+              "nativeQueryRef": "Qty. on Prod. Order Comp. Lines"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Transfer Lines"
+                    }
+                  },
+                  "Property": "Trans. Order Shipment (Qty.)"
+                }
+              },
+              "queryRef": "Transfer Lines.Trans. Order. Shipment (Qty.)",
+              "nativeQueryRef": "Trans. Order. Shipment (Qty.)"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Planning Component Lines"
+                    }
+                  },
+                  "Property": "Planning Issues (Qty.)"
+                }
+              },
+              "queryRef": "Planning Component Lines.Planning Issues (Qty.)",
+              "nativeQueryRef": "Planning Issues (Qty.)"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Assembly Lines"
+                    }
+                  },
+                  "Property": "Qty. on Asm. Component"
+                }
+              },
+              "queryRef": "Assembly Lines.Qty. on Asm. Component",
+              "nativeQueryRef": "Qty. on Asm. Component"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Measure": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Sales Lines"
+                  }
+                },
+                "Property": "Qty. on Sales Order"
+              }
+            },
+            "direction": "Descending"
+          }
+        ]
+      }
+    },
+    "expansionStates": [
+      {
+        "roles": [
+          "Rows"
+        ],
+        "levels": [
+          {
+            "queryRefs": [
+              "Item.Item Category Description"
+            ],
+            "isCollapsed": true,
+            "identityKeys": [
+              {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Item"
+                    }
+                  },
+                  "Property": "Item Category Description"
+                }
+              }
+            ],
+            "isPinned": true
+          },
+          {
+            "queryRefs": [
+              "Item.Item No. & Description"
+            ],
+            "isCollapsed": true,
+            "isPinned": true
+          }
+        ],
+        "root": {
+          "children": [
+            {
+              "identityValues": [
+                {
+                  "Literal": {
+                    "Value": "'Parts'"
+                  }
+                }
+              ],
+              "isToggled": true
+            }
+          ]
+        }
+      }
+    ],
+    "objects": {
+      "columnWidth": [
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "113D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Sales Measures.Average Sales Amount per Month"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "95D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Sales Measures.Average Sales Amount per Day"
+          }
+        }
+      ],
+      "values": [
+        {
+          "properties": {
+            "webURL": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Sales Lines"
+                    }
+                  },
+                  "Property": "Sales Order Line Link"
+                }
+              }
+            }
+          },
+          "selector": {
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 0
+                }
+              }
+            ],
+            "metadata": "Sales Lines.Qty. on Sales Order"
+          }
+        },
+        {
+          "properties": {
+            "webURL": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Service Lines"
+                    }
+                  },
+                  "Property": "Service Order Link"
+                }
+              }
+            }
+          },
+          "selector": {
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 0
+                }
+              }
+            ],
+            "metadata": "Service Lines.Qty. on Service Order"
+          }
+        },
+        {
+          "properties": {
+            "webURL": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Project Planning Lines"
+                    }
+                  },
+                  "Property": "Planning Line Link"
+                }
+              }
+            }
+          },
+          "selector": {
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 0
+                }
+              }
+            ],
+            "metadata": "Job Planning Lines.Qty. on Job Order"
+          }
+        },
+        {
+          "properties": {
+            "webURL": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Assembly Lines"
+                    }
+                  },
+                  "Property": "Assembly Line Quantity Link"
+                }
+              }
+            }
+          },
+          "selector": {
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 0
+                }
+              }
+            ],
+            "metadata": "Assembly Lines.Qty. on Asm. Component"
+          }
+        },
+        {
+          "properties": {
+            "webURL": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Prod Order Component Lines"
+                    }
+                  },
+                  "Property": "Prod. Order Components Link"
+                }
+              }
+            }
+          },
+          "selector": {
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 0
+                }
+              }
+            ],
+            "metadata": "Component Lines.Qty. on Component Lines"
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Translated Localized Labels"
+                    }
+                  },
+                  "Property": "Gross Requirement Details Label"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "visualTooltip": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "section": {
+              "expr": {
+                "Literal": {
+                  "Value": "'ReportSectionb9621105306a4dc988c7'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "1dbc050e097877e47ec0",
+        "ordinal": 0,
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Item"
+              }
+            },
+            "Property": "Gross Requirement"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "3fe694d20dcc02978e14",
+        "ordinal": 1,
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Item"
+              }
+            },
+            "Property": "Item No. & Description"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "41f19b6175becc0c1a05",
+        "ordinal": 2,
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Planning Component Lines"
+              }
+            },
+            "Property": "Planning Issues (Qty.)"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "b2580fa7606339859d4a",
+        "ordinal": 3,
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Item"
+              }
+            },
+            "Property": "Projected Available Balance"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "0f076bb91a0e090939a5",
+        "ordinal": 4,
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Assembly Lines"
+              }
+            },
+            "Property": "Qty. on Asm. Component"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "8fcd68794365b7ce20c1",
+        "ordinal": 5,
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Prod Order Component Lines"
+              }
+            },
+            "Property": "Qty. on Prod. Order Comp. Lines"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "7da333d67b65cec56b96",
+        "ordinal": 6,
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Project Planning Lines"
+              }
+            },
+            "Property": "Qty. on Projects"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "dd10e9da5c4a45597ae0",
+        "ordinal": 7,
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Purchase Lines"
+              }
+            },
+            "Property": "Qty. on Purch. Return"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "86c86a2c084367e0ace0",
+        "ordinal": 8,
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Sales Lines"
+              }
+            },
+            "Property": "Qty. on Sales Order"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "1a766a68966cbc31869e",
+        "ordinal": 9,
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Service Lines"
+              }
+            },
+            "Property": "Qty. on Service Order"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "c806b693e26e368a0acb",
+        "ordinal": 10,
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Transfer Lines"
+              }
+            },
+            "Property": "Trans. Order Shipment (Qty.)"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "9306221356ce889c1758",
+        "ordinal": 11,
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Item"
+              }
+            },
+            "Property": "Item Category Code"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      }
+    ],
+    "filterSortOrder": "Custom"
+  }
+}

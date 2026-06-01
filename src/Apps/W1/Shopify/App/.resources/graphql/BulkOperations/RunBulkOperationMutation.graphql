@@ -1,0 +1,2 @@
+# cost: 10
+{"query": "mutation { bulkOperationRunMutation(mutation: \"{{BulkMutation}}\", stagedUploadPath: \"{{ResourceUrl}}\") { bulkOperation { id status } userErrors { field message }}}"}

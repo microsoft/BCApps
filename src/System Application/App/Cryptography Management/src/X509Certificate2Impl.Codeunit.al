@@ -137,6 +137,26 @@ codeunit 1285 "X509Certificate2 Impl."
     end;
 
     [NonDebuggable]
+    procedure GetCertificatePublicKeyAsBase64String(CertBase64Value: Text; Password: SecretText): Text
+    var
+        X509Certificate2: DotNet X509Certificate2;
+        Convert: DotNet Convert;
+    begin
+        InitializeX509Certificate(CertBase64Value, Password, X509Certificate2);
+        exit(Convert.ToBase64String(X509Certificate2.GetPublicKey()));
+    end;
+
+    [NonDebuggable]
+    procedure GetRawCertDataAsBase64String(CertBase64Value: Text; Password: SecretText): Text
+    var
+        X509Certificate2: DotNet X509Certificate2;
+        Convert: DotNet Convert;
+    begin
+        InitializeX509Certificate(CertBase64Value, Password, X509Certificate2);
+        exit(Convert.ToBase64String(X509Certificate2.GetRawCertData()));
+    end;
+
+    [NonDebuggable]
     [TryFunction]
     local procedure TryInitializeCertificate(CertBase64Value: Text; Password: SecretText; var X509Certificate2: DotNet X509Certificate2)
     var
@@ -196,5 +216,30 @@ codeunit 1285 "X509Certificate2 Impl."
         end;
 
         exit(SerialNumberASCII);
+    end;
+
+    [NonDebuggable]
+    procedure CreateFromPemAndExportAsBase64(CertBase64: Text; PrivateKeyXmlString: SecretText; Password: SecretText): Text
+    var
+        RSA: Codeunit "RSA Impl.";
+        RSAEncryptionHelper: DotNet RSAEncryptionHelper;
+        BeginCertTok: Label '-----BEGIN CERTIFICATE-----', Locked = true;
+        EndCertTok: Label '-----END CERTIFICATE-----', Locked = true;
+    begin
+        if CertBase64 = '' then
+            exit;
+
+        if PrivateKeyXmlString.IsEmpty() then
+            exit;
+
+        if Password.IsEmpty() then
+            exit;
+
+        if not CertBase64.StartsWith(BeginCertTok) then
+            CertBase64 := BeginCertTok + CertBase64 + EndCertTok;
+
+        RSA.FromSecretXmlString(PrivateKeyXmlString);
+
+        exit(RSAEncryptionHelper.CreateBase64Pkcs12FromPem(CertBase64, RSA.ExportRSAPrivateKeyPem(), Password));
     end;
 }

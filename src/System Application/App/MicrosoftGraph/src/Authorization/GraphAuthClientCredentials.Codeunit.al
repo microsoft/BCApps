@@ -36,7 +36,7 @@ codeunit 9357 "Graph Auth. Client Credentials" implements "Graph Authorization"
         ClientCredentialsType := ClientCredentialsType::Certificate;
         AadTenantId := NewAadTenantId;
         ClientId := NewClientId;
-        Certificate := Certificate;
+        Certificate := NewCertificate;
         CertificatePassword := NewCertificatePassword;
         Scopes := NewScopes;
     end;

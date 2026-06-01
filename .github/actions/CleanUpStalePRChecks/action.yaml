@@ -1,0 +1,29 @@
+name: Clean Up Stale PR Checks
+author: Microsoft Corporation
+description: Delete stale PR status check workflow runs and add comments with instructions to unblock PRs
+inputs:
+  thresholdHours:
+    description: Threshold in hours for considering a check stale
+    required: false
+    default: '72'
+  maxRetries:
+    description: Maximum number of retry attempts
+    required: false
+    default: '3'
+  token:
+    description: The GitHub token running the action
+    required: false
+    default: ${{ github.token }}
+runs:
+  using: composite
+  steps:
+    - name: Clean Up Stale PR Checks
+      shell: pwsh
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+        GITHUB_REPOSITORY: ${{ github.repository }}
+      run: |
+        ${{ github.action_path }}/action.ps1 -thresholdHours ${{ inputs.thresholdHours }} -maxRetries ${{ inputs.maxRetries }}
+branding:
+  icon: rotate-cw
+  color: blue

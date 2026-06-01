@@ -1,0 +1,341 @@
+/// Sales Invoice Lines capture Resource and G/L credits.
+table 'Sales Credit Lines'
+	lineageTag: 33461cda-5496-4e54-9561-8208200f67d7
+
+	measure 'Sales Credit Line Amount' = -SUM('Sales Credit Lines'[amount])
+		displayFolder: _Sales Credit Line Measures
+		lineageTag: 55c606bf-f2b1-404d-981d-0db88370e951
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Sales Credit Line Cost Amount' = SUMX('Sales Credit Lines', 'Sales Credit Lines'[unitCostLCY] * 'Sales Credit Lines'[quantityBase])
+		formatString: #,0.00
+		displayFolder: _Sales Credit Line Measures
+		lineageTag: c27770b6-79d2-4944-94f6-5e1801b69543
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Sales Credit Line Gross Profit' = -[Sales Credit Line Amount] - [Sales Credit Line Cost Amount]
+		formatString: #,0.00
+		displayFolder: _Sales Credit Line Measures
+		lineageTag: 6d59b821-0540-4980-a6ed-b7647bad7873
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Sales Credit Line Gross Profit Margin' = -DIVIDE([Sales Credit Line Gross Profit],[Sales Credit Line Amount])
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: _Sales Credit Line Measures
+		lineageTag: 41f3bf03-9875-4052-9e3e-a4f9541d3050
+
+	/// The sum of the Sales Qty. (Base) column from the Sales table where the Source Type is Value Entries Invoiced.
+	measure 'Sales Credit Line Quantity' = -SUM('Sales Credit Lines'[quantityBase])
+		formatString: #,0.00
+		displayFolder: _Sales Credit Line Measures
+		lineageTag: f798c101-6eda-4a25-b4fd-665e6c42b1a5
+
+		changedProperty = IsHidden
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	column postingDate
+		dataType: dateTime
+		isHidden
+		formatString: Long Date
+		lineageTag: fab69380-e65c-4555-b562-d41f3897be74
+		summarizeBy: none
+		sourceColumn: postingDate
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column type
+		dataType: string
+		isHidden
+		lineageTag: 252becc7-fa01-4a84-991e-b61ab9ffeaa7
+		summarizeBy: none
+		sourceColumn: type
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Description
+		dataType: string
+		lineageTag: abe442a8-5639-4df4-a7d2-bfc4d06d7a4a
+		summarizeBy: none
+		sourceColumn: Description
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Document No.'
+		dataType: string
+		isHidden
+		lineageTag: e74a978a-e318-49f8-a9c3-bdf6a7ad5a23
+		summarizeBy: none
+		sourceColumn: Document No.
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Sales Credit Line No.'
+		dataType: int64
+		formatString: 0
+		lineageTag: 805211cf-3a44-41b0-9196-f1589d8d448d
+		summarizeBy: sum
+		sourceColumn: Sales Credit Line No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column no
+		dataType: string
+		isHidden
+		lineageTag: e5032b93-238e-45e9-b53f-5ad1355a258f
+		summarizeBy: none
+		sourceColumn: no
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column locationCode
+		dataType: string
+		isHidden
+		lineageTag: 7624886d-9d68-43fd-8dcf-09d65f297bc2
+		summarizeBy: none
+		sourceColumn: locationCode
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column quantityBase
+		dataType: double
+		isHidden
+		lineageTag: 7dcf14ef-1f52-458f-804b-fdff847239bf
+		summarizeBy: sum
+		sourceColumn: quantityBase
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column amount
+		dataType: double
+		isHidden
+		lineageTag: 3513772c-c07b-4fbd-b7a8-264880a67de0
+		summarizeBy: sum
+		sourceColumn: amount
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column unitCostLCY
+		dataType: double
+		isHidden
+		lineageTag: 90b802cc-abea-4172-8657-4df21dc85ed9
+		summarizeBy: sum
+		sourceColumn: unitCostLCY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column returnReasonCode
+		dataType: string
+		isHidden
+		lineageTag: 018e22ba-42d9-400d-bf33-7b010e676a59
+		summarizeBy: none
+		sourceColumn: returnReasonCode
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column shipmentDate
+		dataType: dateTime
+		isHidden
+		formatString: Long Date
+		lineageTag: 9d6aa8bd-1c07-4c5e-a951-204491c0218d
+		summarizeBy: none
+		sourceColumn: shipmentDate
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column dimensionSetID
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: e4fc7506-53dd-41e1-8f7d-c88b377a51ee
+		summarizeBy: none
+		sourceColumn: dimensionSetID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column projectNo
+		dataType: string
+		isHidden
+		lineageTag: 56131251-0f59-4b53-bf27-e1abe222e050
+		summarizeBy: none
+		sourceColumn: projectNo
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column billToCustomerNo
+		dataType: string
+		isHidden
+		lineageTag: dde71dec-4af1-42a3-88c0-c4bdb12fc2de
+		summarizeBy: none
+		sourceColumn: billToCustomerNo
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column sellToCustomerNo
+		dataType: string
+		isHidden
+		lineageTag: 0e38cf6f-34e1-435b-8bbb-4565717ec9b3
+		summarizeBy: none
+		sourceColumn: sellToCustomerNo
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column campaignNo
+		dataType: string
+		isHidden
+		lineageTag: 10cc9d6d-16da-454f-8386-71da4ea605e2
+		summarizeBy: none
+		sourceColumn: campaignNo
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column salespersonCode
+		dataType: string
+		isHidden
+		lineageTag: f3cf28d5-818f-4e03-b327-da6b5fdf4fdf
+		summarizeBy: none
+		sourceColumn: salespersonCode
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column opportunityNo
+		dataType: string
+		isHidden
+		lineageTag: 0dbc7b91-3f63-416d-b812-d1ef4a1a9a97
+		summarizeBy: none
+		sourceColumn: opportunityNo
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column ETag
+		dataType: string
+		isHidden
+		lineageTag: 1025c72d-0cc7-4a8f-9b68-00dee55a3d29
+		summarizeBy: none
+		sourceColumn: ETag
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Source Table'
+		dataType: string
+		isHidden
+		lineageTag: 75b2e5b0-88c7-4d55-82bf-0a78d4a09f88
+		summarizeBy: none
+		sourceColumn: Source Table
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Document Type'
+		dataType: string
+		isHidden
+		lineageTag: 5a5c8e44-ac6c-4b25-8c13-7633792dab45
+		summarizeBy: none
+		sourceColumn: Document Type
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Sales Key'
+		dataType: string
+		isHidden
+		lineageTag: d56c9e5b-b5bc-4442-b331-3359eaa9510e
+		summarizeBy: none
+		sourceColumn: Sales Key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column salesCreditDocumentNo
+		dataType: string
+		isHidden
+		lineageTag: afbe9bae-28e9-493f-a5f5-64b8e8890506
+		summarizeBy: none
+		sourceColumn: salesCreditDocumentNo
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Type Key'
+		dataType: string
+		isHidden
+		lineageTag: 46fd2d04-fa45-43b7-a74c-1705782314e6
+		summarizeBy: none
+		sourceColumn: Type Key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Sales Credit Lines' = m
+		mode: import
+		queryGroup: 'Fact Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(#"ENVIRONMENT", #"COMPANY", #"API_ENDPOINT", []),
+				    salesInvoiceLines_table = Source{[Name="salesCreditLines",Signature="table"]}[Data],
+				    #"Added Custom" = Table.AddColumn(salesInvoiceLines_table, "Source Table", each "Sales Credit Line", type text),
+				    #"Added Custom1" = Table.AddColumn(#"Added Custom", "Document Type", each "Posted Sales CR/Adj Note", type text),
+				    #"Added Custom2" = Table.AddColumn(#"Added Custom1", "Sales Key", each [Document Type] & " " & [documentNo] & " " & [#"Source Table"], type text),
+				    #"Renamed Columns" = Table.RenameColumns(#"Added Custom2",{{"documentNo", "Document No."}, {"description", "Description"}, {"lineNo", "Sales Credit Line No."}}),
+				    #"Added Type Key" = Table.AddColumn(#"Renamed Columns", "Type Key", each [type] & " " & [no], type text)
+				in
+				    #"Added Type Key"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

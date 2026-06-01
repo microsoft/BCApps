@@ -1,0 +1,300 @@
+tests:
+- name: ACCURACY_01
+  description: Test the accuracy of No Series creation for Purchase Orders.
+  question: Create No. Series for Purchase Orders.
+  expected_data:
+    - expected_number: 1
+    
+- name: ACCURACY_02
+  description: Test the accuracy of No Series creation for Items.
+  question: Make No. Series for Item.
+  expected_data:
+    - expected_number: 2
+
+- name: ACCURACY_03
+  description: Test the accuracy of No Series creation for Sales module.
+  question: Create No. Series for Sales module.
+  expected_data:
+    - expected_number: 22
+
+- name: ACCURACY_04
+  description: Test the accuracy of No Series creation for Resources.
+  question: Create No. Series for Resources.
+  expected_data:
+    - expected_number: 1
+
+- name: ACCURACY_05
+  description: Test the accuracy of No Series creation for Vendors.
+  question: Make a No. series for vendor.
+  expected_data:
+    - expected_number: 1
+
+- name: ACCURACY_06
+  description: Test the accuracy of No Series creation for Vendors.
+  question: Set up a No. series for vendors.
+  expected_data:
+    - expected_number: 1
+
+- name: ACCURACY_07
+  description: Test the accuracy of No Series creation for Items.
+  question: Create a No. Series for items.
+  expected_data:
+    - expected_number: 2
+
+- name: ACCURACY_08
+  description: Test the accuracy of No Series creation for Resources with increment.
+  question: Make a number series for resources. Increment by 2.
+  expected_data:
+    - expected_number: 1
+
+- name: ACCURACY_09
+  description: Test the accuracy of No Series creation for Time Sheets.
+  question: Create number series for time sheets.
+  expected_data:
+    - expected_number: 1
+
+- name: ACCURACY_10
+  description: Test the accuracy of No Series creation for Customers.
+  question: New No. Series for customers.
+  expected_data:
+    - expected_number: 1
+
+- name: ACCURACY_11
+  description: Test the accuracy of No Series creation for Sales Reminders.
+  question: Create No. Series for Sales Reminders.
+  expected_data:
+    - expected_number: 3
+
+- name: ACCURACY_12
+  description: Test the accuracy of No Series creation for Posted Credit Memos.
+  question: Create No. Series for Posted Credit Memos.
+  expected_data:
+    - expected_number: 2
+
+- name: ACCURACY_13
+  description: Test the accuracy of No Series creation for Inventory Picks.
+  question: Create No. Series for Inventory Picks
+  expected_data:
+    - expected_number: 1
+
+- name: ACCURACY_14
+  description: Test the accuracy of No Series creation for Sales module.
+  question: Generate no. series to setup the sales module in Business Central.
+  expected_data:
+    - expected_number: 22
+
+- name: ACCURACY_15
+  description: Test the accuracy of No Series creation for Fixed Asset.
+  question: Create No. Series for Fixed Asset.
+  expected_data:
+    - expected_number: 1
+
+- name: ACCURACY_16
+  description: Test the accuracy of No Series creation for Sales Quotes.
+  question: Give me no. series for Sales Quotes.
+  expected_data:
+    - expected_number: 1
+
+- name: ACCURACY_17
+  description: Test the accuracy of No Series creation for Purchase Quotes.
+  question: Create No. Series for Purchase Quotes.
+  expected_data:
+    - expected_number: 1
+
+- name: ACCURACY_18
+  description: Test the accuracy of No Series creation for Purchase Invoices.
+  question: Establish a sequential numbering for Purchase Invoices.
+  expected_data:
+    - expected_number: 1
+
+- name: ACCURACY_19
+  description: Test the accuracy of No Series creation for Inventory items.
+  question: Initiate a numbering protocol for Inventory item.
+  expected_data:
+    - expected_number: 1
+
+- name: ACCURACY_20
+  description: Test the accuracy of No Series creation for Service Module.
+  question: Create No. Series for the Service Module.
+  expected_data:
+    - expected_number: 14
+
+- name: ACCURACY_21
+  description: Test the accuracy of No Series creation for Service Management.
+  question: Set up a number series for Service Mgt.
+  expected_data:
+    - expected_number: 14
+
+- name: ACCURACY_22
+  description: Test the accuracy of No Series creation for Service Invoices.
+  question: Create a number series for Service Invoices.
+  expected_data:
+    - expected_number: 1
+
+- name: ACCURACY_23
+  description: Test the accuracy of No Series creation for Blanket Orders.
+  question: Create No. Series for Blanket Orders.
+  expected_data:
+    - expected_number: 3
+
+- name: ACCURACY_24
+  description: Test the accuracy of No Series creation for Transfer Orders.
+  question: Create No. Series for Transfer Orders.
+  expected_data:
+    - expected_number: 1
+
+- name: ACCURACY_25
+  description: Test the accuracy of No Series creation for Nonstock items.
+  question: Create No. Series for Nonstock items.
+  expected_data:
+    - expected_number: 1
+
+- name: ACCURACY_26
+  description: Test the accuracy of No Series creation for Contract Invoices.
+  question: Create No. Series for Contract Inovices.
+  expected_data:
+    - expected_number: 1
+
+- name: ACCURACY_27
+  description: Test the accuracy of No Series creation for Troubleshooting.
+  question: Create No. Series for Troubleshooting.
+  expected_data:
+    - expected_number: 1
+
+- name: ACCURACY_28
+  description: Test the accuracy of No Series creation for Blanket Orders.
+  question: Create number series for Blanket Orders.
+  expected_data:
+    - expected_number: 2
+
+- name: ACCURACY_29
+  description: Test the accuracy of No Series creation for Warehouse module.
+  question: Initiate number series for the warehouse module.
+  expected_data:
+    - expected_number: 12
+
+- name: ACCURACY_30
+  description: Test the accuracy of No Series creation for Manufacturing module.
+  question: Initiate number series for the manufaturing module.
+  expected_data:
+    - expected_number: 8
+
+- name: ACCURACY_31
+  description: Test the accuracy of No Series creation for Assembly module.
+  question: Create No. Series for the Assembly module.
+  expected_data:
+    - expected_number: 4
+
+- name: ACCURACY_32
+  description: Test the accuracy of No Series creation for Insurance Journal.
+  question: Give me a No. Series for the Insurance Journal.
+  expected_data:
+    - expected_number: 1
+
+- name: ACCURACY_33
+  description: Test the accuracy of No Series creation for General Ledger.
+  question: Create No. Series for General Ledger.
+  expected_data:
+    - expected_number: 1
+
+- name: ACCURACY_34
+  description: Test the accuracy of No Series creation for Machine Centers.
+  question: Create No. Series for Machine Centers.
+  expected_data:
+    - expected_number: 1
+
+- name: ACCURACY_35
+  description: Test the accuracy of No Series creation for Work Centers.
+  question: Create No. Series for Work Centers.
+  expected_data:
+    - expected_number: 1
+
+- name: ACCURACY_36
+  description: Test the accuracy of No Series creation for Cash Flow.
+  question: Generate No. Series for Cash Flow.
+  expected_data:
+    - expected_number: 1
+
+- name: ACCURACY_37
+  description: Test the accuracy of No Series creation for Purchase Orders with starting number.
+  question: Set up No. Series for purchase orders, starting with 5000
+  expected_data:
+    - expected_number: 1
+
+- name: ACCURACY_38
+  description: Test the accuracy of No Series creation for Vendors.
+  question: Create series for vendor.
+  expected_data:
+    - expected_number: 1
+
+- name: ACCURACY_39
+  description: Test the accuracy of No Series creation for Customers with specific range and increment.
+  question: Set up a series for customer. The series should start with 00001 and end with 50000. Increment should be 2.
+  expected_data:
+    - expected_number: 1
+
+- name: ACCURACY_40
+  description: Test the accuracy of No Series creation for Purchase Orders.
+  question: Generate a No. Series for Purchase Orders.
+  expected_data:
+    - expected_number: 1
+
+- name: ACCURACY_41
+  description: Test the accuracy of No Series creation for Items.
+  question: Establish No. Series for item.
+  expected_data:
+    - expected_number: 2
+
+- name: ACCURACY_42
+  description: Test the accuracy of No Series creation for Sales module.
+  question: Set up No. Series for the Sales module.
+  expected_data:
+    - expected_number: 22
+
+- name: ACCURACY_43
+  description: Test the accuracy of No Series creation for Resources.
+  question: Formulate No. Series for Resources.
+  expected_data:
+    - expected_number: 1
+
+- name: ACCURACY_44
+  description: Test the accuracy of No Series creation for Vendors.
+  question: Create a No. Series for vendors.
+  expected_data:
+    - expected_number: 1
+
+- name: ACCURACY_45
+  description: Test the accuracy of No Series creation for Items.
+  question: Develop a series for item.
+  expected_data:
+    - expected_number: 2
+
+- name: ACCURACY_46
+  description: Test the accuracy of No Series creation for Resources.
+  question: Initiate a number series for resources.
+  expected_data:
+    - expected_number: 1
+
+- name: ACCURACY_47
+  description: Test the accuracy of No Series creation for Time Sheets.
+  question: Construct number series for time sheets.
+  expected_data:
+    - expected_number: 1
+
+- name: ACCURACY_48
+  description: Test the accuracy of No Series creation for Purchase Orders.
+  question: Design No. Series for Purchase Orders.
+  expected_data:
+    - expected_number: 1
+
+- name: ACCURACY_49
+  description: Test the accuracy of No Series creation for Sales module.
+  question: Build series for the Sales module.
+  expected_data:
+    - expected_number: 20
+
+- name: ACCURACY_50
+  description: Test the accuracy of No Series creation for customers.
+  question: Create a number series. It should be for customers.
+  expected_data:
+    - expected_number: 1

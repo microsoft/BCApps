@@ -1,0 +1,1207 @@
+cultureInfo fr-CA
+	translations
+		model Model
+			table Item
+				caption: Article
+				column 'Item No. & Description'
+					caption: N° et description d’article
+				column 'Item No.'
+					caption: N° d’article
+				column 'Item Description'
+					caption: Description de l’article
+				column 'Item Unit Cost (LCY)'
+					caption: Coût unitaire des articles (CAD)
+				column 'Item Inventory Posting Group'
+					caption: Groupe d’enregistrement des stocks des articles
+				column 'Item Category Code'
+					caption: Code catégorie article
+				column 'Item Category Description'
+					caption: Description catégorie article
+				column 'Item Routing No.'
+					caption: Numéro d’acheminement de l’article
+				column 'Item Production BOM No.'
+					caption: N° nomenclature production article
+				column 'Item Replenishment System'
+					caption: Système réappro. article
+				column 'Item Single-Level Cap. Ovhd Cost'
+					caption: Coût des frais généraux de capacité à un seul niveau
+				column 'Item Single-Level Capacity Cost'
+					caption: Coût de capacité à un seul niveau des articles
+				column 'Item Single-Level Material Cost'
+					caption: Coût des articles à un seul niveau
+				column 'Item Single-Level Mfg. Ovhd Cost'
+					caption: Coût des frais généraux de fabrication à un seul niveau
+				column 'Item Single-Level Subcontrd. Cost'
+					caption: Coût des sous-traitants à un seul niveau
+				column 'Item Base Unit of Measure'
+					caption: Unité de mesure de base de l’article
+				column 'Item Rolled-up Cap. Overhead Cost'
+					caption: Frais généraux opérat. multi-niv. article
+				column 'Item Rolled-up Capacity Cost'
+					caption: Coût de capacité cumulé de l’article
+				column 'Item Rolled-up Material Cost'
+					caption: Coût matière multi-niv. article
+				column 'Item Rolled-up Mfg. Ovhd Cost'
+					caption: Frais gén. mat. multi-niv. article
+				column 'Item Rolled-up Subcontracted Cost'
+					caption: Coût s/traitance multi-niv. article
+				column 'Item Scrap %'
+					caption: % rebut article
+				column 'Item Single-Lvl Mat. Non-Invt. Cost'
+					caption: Coût des articles non gérés en stock à un seul niveau
+				column 'Item Rolled-up Mat. Non-Invt. Cost'
+					caption: Coût des articles non gérés en stock cumulé
+			table Date
+				caption: Date
+				column DateKey
+					caption: DateKey
+				column 'Day of Month'
+					caption: Jour du mois
+				column WeekDayNumber
+					caption: WeekDayNumber
+				column 'Week Day'
+					caption: Jour semaine
+				column 'Holiday Name'
+					caption: Nom du jour férié
+				column IsWorkingDay
+					caption: IsWorkingDay
+				column 'Day Type'
+					caption: Type de jour
+				column DatesWithTransactions
+					caption: DatesWithTransactions
+				column 'Calendar YearNumber'
+					caption: NuméroAnnée civile
+				column 'Calendar Year'
+					caption: Année civile
+				column 'Calendar QuarterNumber'
+					caption: NuméroTrimestre civil
+				column 'Calendar Quarter'
+					caption: Trimestre civil
+				column 'Calendar YearQuarterNumber'
+					caption: NuméroTrimestreAnnée civile
+				column 'Calendar Quarter Year'
+					caption: Trimestre civil
+				column 'Calendar MonthNumber'
+					caption: NuméroMois civil
+				column 'Calendar Month'
+					caption: Mois civil
+				column 'Calendar YearMonthNumber'
+					caption: NuméroMoisAnnée civile
+				column 'Calendar Month Year'
+					caption: Mois année civile
+				column 'Calendar WeekNumber'
+					caption: NuméroSemaine civile
+				column 'Calendar Week'
+					caption: Semaine civile
+				column 'Calendar YearWeekNumber'
+					caption: NuméroSemaineAnnée civile
+				column 'Calendar Week Year'
+					caption: Semaine année civile
+				column 'Calendar WeekYearOrder'
+					caption: OrdreSemaineAnnée civile
+				column 'Calendar RelativeWeekPos'
+					caption: PosSemaineRelative civile
+				column 'Calendar RelativeMonthPos'
+					caption: PosMoisRelatif civil
+				column 'Calendar RelativeQuarterPos'
+					caption: PosTrimestreRelatif civil
+				column 'Calendar RelativeYearPos'
+					caption: PosAnnéeRelative civile
+				column 'Calendar StartOfMonth'
+					caption: DébutDuMois civil
+				column 'Calendar EndOfMonth'
+					caption: FinDuMois civil
+				column 'Calendar StartOfQuarter'
+					caption: DébutDuTrimestre civil
+				column 'Calendar EndOfQuarter'
+					caption: FinDeTrimestre civil
+				column 'Calendar StartOfYear'
+					caption: DébutAnnée civile
+				column 'Calendar EndOfYear'
+					caption: FinAnnée civile
+				column 'Calendar MonthDays'
+					caption: JourMois civils
+				column 'Calendar QuarterDays'
+					caption: JoursTrimestre civils
+				column 'Calendar YearDays'
+					caption: JoursAnnée civile
+				column 'Calendar DayOfMonthNumber'
+					caption: NuméroJourDuMois civil
+				column 'Calendar DayOfQuarterNumber'
+					caption: NuméroJourDuTrimestre civil
+				column 'Calendar DayOfYearNumber'
+					caption: NuméroJourAnnée civile
+				column 'Calendar DatePreviousWeek'
+					caption: DateSemainePrécédente civile
+				column 'Calendar DatePreviousMonth'
+					caption: DateMoisPrécédent civil
+				column 'Calendar DatePreviousQuarter'
+					caption: DateTrimestrePrécédent civil
+				column 'Calendar DatePreviousYear'
+					caption: DateAnnéePrécédente civile
+				column 'Fiscal Year'
+					caption: Exercice financier
+				column 'Fiscal YearNumber'
+					caption: NuméroExercice
+				column 'Fiscal QuarterNumber'
+					caption: NuméroTrimestre d’exercice
+				column 'Fiscal Quarter'
+					caption: Trimestre d’exercice
+				column 'Fiscal YearQuarterNumber'
+					caption: NuméroTrimestreExercice
+				column 'Fiscal Quarter Year'
+					caption: Trimestre d’exercice
+				column 'Fiscal MonthNumber'
+					caption: NuméroMois d’exercice
+				column 'Fiscal MonthInQuarterNumber'
+					caption: NuméroMoisTrimestre d’exercice
+				column 'Fiscal Month'
+					caption: Mois d’exercice
+				column 'Fiscal YearMonthNumber'
+					caption: NuméroMoisExercice
+				column 'Fiscal Month Year'
+					caption: Mois et année d’exercice
+				column 'Fiscal WeekNumber'
+					caption: NuméroSemaine fiscale
+				column 'Fiscal Week'
+					caption: Semaine d’exercice
+				column 'Fiscal YearWeekNumber'
+					caption: NuméroSemaineExercice
+				column 'Fiscal Week Year'
+					caption: Semaine année d’exercice
+				column 'Fiscal WeekYearOrder'
+					caption: OrdreSemaineAnnée d’exercice
+				column 'Fiscal RelativeWeekPos'
+					caption: PosSemaineRelative d’exercice
+				column 'Fiscal RelativeMonthPos'
+					caption: PosMoisRelatif d’exercice
+				column 'Fiscal RelativeQuarterPos'
+					caption: PosTrimestreRelatif d’exercice
+				column 'Fiscal RelativeYearPos'
+					caption: PosAnnéeRelative d’exercice
+				column 'Fiscal StartOfMonth'
+					caption: DébutDuMois d’exercice
+				column 'Fiscal EndOfMonth'
+					caption: FinDuMois d’exercice
+				column 'Fiscal StartOfQuarter'
+					caption: DébutDuTrimestre d’exercice
+				column 'Fiscal EndOfQuarter'
+					caption: FinDuTrimestre d’exercice
+				column 'Fiscal StartOfYear'
+					caption: DébutExercice fiscal
+				column 'Fiscal EndOfYear'
+					caption: FinExercice fiscal
+				column 'Fiscal MonthDays'
+					caption: JoursMois d’exercice
+				column 'Fiscal QuarterDays'
+					caption: JoursTrimestre d’exercice
+				column 'Fiscal YearDays'
+					caption: JoursExercice
+				column 'Fiscal DayOfMonthNumber'
+					caption: NuméroJourDuMois d’exercice
+				column 'Fiscal DayOfQuarterNumber'
+					caption: NuméroJourDuTrimestre d’exercice
+				column 'Fiscal DayOfYearNumber'
+					caption: NuméroJourAnnée d’exercice
+				column 'Fiscal DatePreviousWeek'
+					caption: DateSemainePrécédente d’exercice
+				column 'Fiscal DatePreviousMonth'
+					caption: DateMoisPrécédent d’exercice
+				column 'Fiscal DatePreviousQuarter'
+					caption: DateTrimestrePrécédent d’exercice
+				column 'Fiscal DatePreviousYear'
+					caption: DateAnnéePrécédente d’exercice
+				column 'FW YearNumber'
+					caption: NuméroAnnée SE
+				column 'FW Year'
+					caption: Année SE
+				column 'FW QuarterNumber'
+					caption: NuméroTrimestre SE
+				column 'FW Quarter'
+					caption: Trimestre SE
+				column 'FW YearQuarterNumber'
+					caption: NuméroTrimestreAnnée SE
+				column 'FW Quarter Year'
+					caption: Trimestre année SE
+				column 'FW MonthNumber'
+					caption: NuméroMois SE
+				column 'FW Month'
+					caption: Mois SE
+				column 'FW YearMonthNumber'
+					caption: NuméroMoisAnnée SE
+				column 'FW Month Year'
+					caption: Mois année SE
+				column 'FW WeekNumber'
+					caption: NuméroSemaine SE
+				column 'FW Week'
+					caption: Semaine SE
+				column 'FW PeriodNumber'
+					caption: NuméroPériode SE
+				column 'FW Period'
+					caption: Période SE
+				column 'FW YearWeekNumber'
+					caption: NuméroSemaineAnnée SE
+				column 'FW Week Year'
+					caption: Semaine année SE
+				column 'FW StartOfWeek'
+					caption: DébutDeSemaine SE
+				column 'FW EndOfWeek'
+					caption: FinDeSemaine SE
+				column 'FW RelativeWeekPos'
+					caption: PosSemaineRelative SE
+				column 'FW RelativeMonthPos'
+					caption: PosMoisRelatif SE
+				column 'FW RelativeQuarterPos'
+					caption: PosTrimestreRelatif SE
+				column 'FW RelativeYearPos'
+					caption: PosAnnéeRelative SE
+				column 'FW StartOfMonth'
+					caption: DébutDuMois SE
+				column 'FW EndOfMonth'
+					caption: FinDuMois SE
+				column 'FW StartOfQuarter'
+					caption: DébutDuTrimestre SE
+				column 'FW EndOfQuarter'
+					caption: FinDuTrimestre SE
+				column 'FW StartOfYear'
+					caption: DébutExercice SE
+				column 'FW EndOfYear'
+					caption: FinAnnée SE
+				column 'FW MonthDays'
+					caption: JoursMois SE
+				column 'FW QuarterDays'
+					caption: JoursTrimestre SE
+				column 'FW YearDays'
+					caption: JoursAnnée SE
+				column 'FW DayOfMonthNumber'
+					caption: NuméroJourDuMois SE
+				column 'FW DayOfQuarterNumber'
+					caption: NuméroJourDuTrimestre SE
+				column 'FW DayOfYearNumber'
+					caption: NuméroJourAnnée SE
+				column 'FW DatePreviousWeek'
+					caption: DateSemainePrécédente SE
+				column 'FW DatePreviousMonth'
+					caption: DateMoisPrécédent SE
+				column 'FW DatePreviousQuarter'
+					caption: DateTrimestrePrécédent SE
+				column 'FW DatePreviousYear'
+					caption: DateAnnéePrécédente SE
+				column 'Relative Day'
+					caption: Jour relatif
+				column Sequential365DayNumber
+					caption: Sequential365DayNumber
+				hierarchy 'Fiscal Year-Month'
+					caption: Exercice financier-Mois
+					level 'Fiscal Year'
+						caption: Exercice financier
+					level 'Fiscal Month Year'
+						caption: Mois et année d’exercice
+				hierarchy 'Fiscal Year-Month-Week'
+					caption: Exercice financier-Mois-Semaine
+					level 'Fiscal Year'
+						caption: Exercice financier
+					level 'Fiscal Month Year'
+						caption: Mois et année d’exercice
+					level 'Fiscal Week Year'
+						caption: Semaine année d’exercice
+				hierarchy 'Fiscal Year-Quarter-Month-Week'
+					caption: Exercice financier-Trimestre-Mois-Semaine
+					level 'Fiscal Year'
+						caption: Exercice financier
+					level 'Fiscal Quarter Year'
+						caption: Trimestre d’exercice
+					level 'Fiscal Month Year'
+						caption: Mois et année d’exercice
+					level 'Fiscal Week Year'
+						caption: Semaine année d’exercice
+				hierarchy 'Calendar Year-Month'
+					caption: Année-Mois civil
+					level 'Calendar Year'
+						caption: Année civile
+					level 'Calendar Month Year'
+						caption: Mois année civile
+				hierarchy 'Calendar Year-Month-Week'
+					caption: Mois-Semaine-Année civils
+					level 'Calendar Year'
+						caption: Année civile
+					level 'Calendar Month Year'
+						caption: Mois année civile
+					level 'Calendar Week Year'
+						caption: Semaine année civile
+				hierarchy 'Calendar Year-Quarter-Month-Week'
+					caption: Semaine-Mois-Trimestre-Année civils
+					level 'Calendar Year'
+						caption: Année civile
+					level 'Calendar Quarter Year'
+						caption: Trimestre civil
+					level 'Calendar Month Year'
+						caption: Mois année civile
+					level 'Calendar Week Year'
+						caption: Semaine année civile
+				hierarchy 'FW Year-Month-Week'
+					caption: Année-Mois-Semaine SE
+					level 'FW Year'
+						caption: Année SE
+					level 'FW Month Year'
+						caption: Mois année SE
+					level 'FW Week Year'
+						caption: Semaine année SE
+				hierarchy 'FW Year-Quarter-Month-Week'
+					caption: Année-Trimestre-Mois-Semaine SE
+					level 'FW Year'
+						caption: Année SE
+					level 'FW Quarter Year'
+						caption: Trimestre année SE
+					level 'FW Month Year'
+						caption: Mois année SE
+					level 'FW Week Year'
+						caption: Semaine année SE
+				hierarchy 'FW Year-Quarter-Week'
+					caption: Année-Trimestre-Semaine SE
+					level 'FW Year'
+						caption: Année SE
+					level 'FW Quarter Year'
+						caption: Trimestre année SE
+					level 'FW Week Year'
+						caption: Semaine année SE
+				hierarchy 'FW Year-Week'
+					caption: Année-Semaine SE
+					level 'FW Year'
+						caption: Année SE
+					level 'FW Week Year'
+						caption: Semaine année SE
+			table 'Work Center'
+				caption: Atelier
+				column 'Work Center Name'
+					caption: Nom de l’atelier
+				column 'Work Center Group Code'
+					caption: Code de groupe d’ateliers
+				column 'Work Center Group Name'
+					caption: Nom du groupe d’ateliers
+				column 'Work Center No.'
+					caption: N° de l’atelier
+				column 'Work Center Subcontractor No.'
+					caption: Numéro du sous-traitant de l’atelier
+				column 'Work Center Unit of Measure Code'
+					caption: Code d’unité de mesure de l’atelier
+				measure 'Work Center Availability After Orders'
+					caption: Disponibilité des postes de travail après les ordres
+				measure 'Work Center Capacity (Effective)'
+					caption: Capacité de l’atelier (effective)
+				measure 'Work Center Load'
+					caption: Charge de l’atelier
+				measure 'Work Center Allocated Time'
+					caption: Temps alloué à l’atelier
+				measure 'Work Center Capacity (Total)'
+					caption: Capacité de l’atelier (totale)
+				measure 'Work Center Expected Efficiency %'
+					caption: Efficacité prévue de l’atelier
+				measure 'Work Center Actual Total Cost'
+					caption: Coût total réel de l’atelier
+				measure 'Work Center Actual Efficiency %'
+					caption: Efficacité réelle de l’atelier
+				measure 'Work Center Actual Need'
+					caption: Besoins réels de l’atelier
+				measure 'Work Center Scrap %'
+					caption: Pourcentage de rebut de l’atelier
+				measure 'Work Center Scrap'
+					caption: Rebut de l’atelier
+				measure 'Work Center Output'
+					caption: Production de l’atelier
+			table 'Working Days'
+				caption: Jours ouvrés
+				column FSG_PBI_Day_Number
+					caption: FSG_PBI_Day_Number
+				column id
+					caption: Code
+			table COMPANY
+				caption: COMPAGNIE
+				measure 'Company Label'
+					caption: Étiquette compagnie
+			table 'Localized Labels'
+				measure 'My Report Title'
+					caption: Titre de mon rapport
+				measure 'My Button Caption'
+					caption: Légende de mon bouton
+				measure 'My Visual Title'
+					caption: Mon titre visuel
+				measure 'Current Utilization'
+					caption: Utilisation actuelle
+				measure 'Utilization %, Capacity Used (Hours) and Capacity Available (Hours) by Day'
+					caption: % d’utilisation, Capacité utilisée (heures) et Capacité disponible (heures) par jour
+				measure 'Utilization % and Expected Capacity Need % (Today)'
+					caption: % d’utilisation et % de charge prévue (aujourd’hui)
+				measure 'Utilization % and Expected Capacity Need % (Current Week)'
+					caption: % d’utilisation et % de charge prévue (semaine en cours)
+				measure 'Utilization % and Expected Capacity Need % (Current Year)'
+					caption: % d’utilisation et % de charge prévue (année en cours)
+				measure 'Historical Utilization'
+					caption: Utilisation historique
+				measure 'Load %, Allocated Time (Hours) and Capacity Available (Hours) by Work Center Group Name'
+					caption: % charge, Temps affecté (heures) et Capacité disponible (heures) par nom du groupe d’ateliers
+				measure 'Load % (Today)'
+					caption: % de charge (aujourd’hui)
+				measure 'Load % (Current Week)'
+					caption: % charge (semaine en cours)
+				measure 'Load % (Current Year)'
+					caption: % charge (année en cours)
+				measure 'Allocated Hours'
+					caption: Heures affectées
+				measure 'Allocated Time (Hours) and Load % by Work Center Group Name and Name'
+					caption: Temps affecté (heures) et % charge par nom et nom du groupe d’ateliers
+				measure 'Allocated Time in Hours (Today)'
+					caption: Temps affecté en heures (aujourd’hui)
+				measure 'Allocated Time in Hours (Current Week)'
+					caption: Temps affecté en heures (semaine en cours)
+				measure 'Allocated Time in Hours (Current Year)'
+					caption: Temps affecté en heures (exercice en cours)
+				measure 'Expected Capacity Need'
+					caption: Charge prévue
+				measure 'Expected Capacity Need (Hours) by Work Centre Group Code and Production Order Status'
+					caption: Besoins prévu en capacité (heures) par code de groupe atelier et état du bon de production
+				measure 'Finished Production Order Breakdown'
+					caption: Répartition bons de production terminés
+				measure 'Expected Quantity (Base) and Finished Quantity (Base) by Month'
+					caption: Quantité prévue (base) et quantité finie (base) par mois
+				measure 'Consumption Variance'
+					caption: Écart de consommation
+				measure 'Expected Consumption Cost Amount and Consumed Cost Amount (Actual) by Month'
+					caption: Montant prévu du coût de la consommation et montant du coût consommé (réel) par mois
+				measure 'Capacity Variance'
+					caption: Écart capacité
+				measure 'Expected Capacity Cost Amount and Capacity Cost Amount (Actual) by Month'
+					caption: Montant prévu du coût de la capacité et montant du coût de la capacité (réel) par mois
+				measure 'Average Production Times'
+					caption: Temps de production moyens
+				measure 'Released Production Orders'
+					caption: Bons de production libérés
+				measure 'Production Scrap'
+					caption: Rebut de production
+				measure 'Capacity Scrap Quantity by Month'
+					caption: Quantité capacité rebut par mois
+				measure 'Capacity Scrap Quantity by Scrap Code'
+					caption: Capacité quantité rebut par code rebut
+				measure 'Capacity Scrap Quantity by Location Code'
+					caption: Quantité capacité rebut par code d’emplacement
+				measure Manufacturing
+					caption: Fabrication
+				measure 'for Business Central'
+					caption: pour Business Central
+				measure 'CONNECT YOUR DATA'
+					caption: CONNECTER VOS DONNÉES
+				measure '2. Configure Dynamics 365 Business Central'
+					caption: 2. Configurez Dynamics 365 Business Central
+				measure 'USE, EDIT AND BUILD YOUR OWN REPORTS'
+					caption: UTILISER, MODIFIER ET CRÉER VOS PROPRES RAPPORTS
+				measure 'HELP AND SUPPORT'
+					caption: AIDE ET SUPPORT
+				measure 'For help and support with your new report please visit the Analytics overview documentation.'
+					caption: Pour obtenir de l’aide et de l’assistance concernant votre nouveau rapport, consultez la documentation de vue d’ensemble de l’analyse.
+				measure 'OTHER POWER BI REPORTS'
+					caption: AUTRES RAPPORTS POWER BI
+				measure PURCHASE
+					caption: ACHAT
+				measure FINANCE
+					caption: FINANCIER
+				measure INVENTORY
+					caption: INVENTAIRE
+				measure SALES
+					caption: VENTES
+				measure 'Last Refreshed'
+					caption: Dernière actualisation
+				measure 'Company Name'
+					caption: Nom de la compagnie
+				measure 'Capacity Scrap Quantity by Item Category Code'
+					caption: Quantité capacité rebut par code catégorie article
+				measure '1. Download the Manufacturing Connector for Power BI'
+					caption: 1. Téléchargez le connecteur de fabrication pour Power BI
+				measure 'Manufacturing includes a variety of pre-built reports to help you see your data immediately.'
+					caption: Fabrication comprend une variété de rapports prédéfinis pour vous aider à voir vos données immédiatement.
+				measure 'You are able to edit these reports or build your own report from scratch.'
+					caption: Vous pouvez modifier ces rapports ou créer votre propre rapport à partir de zéro.
+				measure PROJECTS
+					caption: PROJETS
+				measure 'Capacity Used (Hours), Capacity Available (Hours) and Utilization % by Date'
+					caption: Capacité utilisée (heures), Capacité disponible (heures) et % d’utilisation par date
+				measure 'Actual Cost by Source No.'
+					caption: Coût réel par n° source
+				measure 'Production Order Overview'
+					caption: Synthèse des ordres de fabrication
+				measure 'No. of Production Orders by Status'
+					caption: Nombre d’ordres de fabrication par état
+				measure 'Completion Ratios by Source No.'
+					caption: Taux d’achèvement par n° source
+				measure 'Total Actual Cost Breakdown'
+					caption: Ventilation réel : coût total
+				measure 'Current Production Orders'
+					caption: Ordres de fabrication TEC
+				measure 'Current Work Center Utilization by Year, Month, Week and Day'
+					caption: Utilisation actuelle de l’atelier par année, mois, semaine et jour
+				measure 'Work Center Load Over Time'
+					caption: Charge de l’atelier au fil du temps
+				measure 'Work Center Load Details'
+					caption: Détails de la charge de l’atelier
+				measure 'Work Center Load '
+					caption: Charge de l’atelier
+				measure 'Allocated Time '
+					caption: Temps alloué
+				measure 'Allocated Time by Work Center Name'
+					caption: Temps alloué par nom d’atelier
+				measure 'Allocated Time by Source No.'
+					caption: Temps alloué par numéro de source
+				measure 'Allocated Time by Type'
+					caption: Temps alloué par type
+				measure 'Allocated Time Details'
+					caption: Détails du temps alloué
+				measure 'Allocated Time by Production Order Status'
+					caption: Temps alloué par état de l’ordre de fabrication
+				measure 'Expected Capacity Need by Work Center'
+					caption: Besoin en capacité prévu par atelier
+				measure 'Expected Capacity Need by Machine Center'
+					caption: Besoins en capacité prévus par unité de production
+				measure 'Expected Capacity Need Details'
+					caption: Détails charge prévue
+				measure 'Expected Capacity Need by Source No.'
+					caption: Charge prévue par n° source
+				measure 'Expected Material Dev % by Source No.'
+					caption: % de développement matière prévu par n° source
+				measure 'Expected Material Dev % by Production Order'
+					caption: Pourcentage d’écart de quantité prévu par ordre de fabrication
+				measure 'Consumption Variance Details'
+					caption: Détails écart de consommation
+				measure 'Expected Capacity Dev % by Source No.'
+					caption: % écart coût capacité prévu par n° source
+				measure 'Expected Capacity Dev % by Production Order|'
+					caption: Pourcentage d’écart de capacité prévu par ordre de fabrication
+				measure 'Capacity Variance Details'
+					caption: Détails écart capacité
+				measure 'Average Time Per Finished Quantity by Work Center'
+					caption: Temps moyen par quantité finie par atelier
+				measure 'Average Time Per Finished Quantity by Source No.'
+					caption: Temps moyen par quantité réalisée par n° source
+				measure 'Average Production Time Details'
+					caption: Détails temps de production moyen
+				measure 'No. of Production Orders by Source No.'
+					caption: Nombre d’ordres de fabrication par numéro de source
+				measure 'Released Production Order Details'
+					caption: Détails de l’ordre de fabrication libéré
+				measure 'Scrap Quantity by Work Center'
+					caption: Quantité de rebut par atelier
+				measure 'Work Center Statistics'
+					caption: Statistiques de l’atelier
+				measure 'Statistic Details'
+					caption: Détails des statistiques
+				measure 'Machine Center Statistics'
+					caption: Statistiques unité de production
+				measure 'Machine Center Load '
+					caption: Chargement unité de production
+				measure 'Machine Center Load Details'
+					caption: Détails du chargement unité de production
+				measure 'Prod. Order List'
+					caption: Liste des ordres de fabrication
+				measure 'Prod. Order List Details'
+					caption: Détails de la liste des ordres de fabrication
+				measure 'Production Order Routing Lines Gantt'
+					caption: Gantt des lignes d’itinéraire de l’ordre de fabrication
+				measure 'Routing Line Operation Duration'
+					caption: Durée de l’opération de la ligne d’itinéraire
+				measure 'Routing Line Details'
+					caption: Détails de la ligne d’itinéraire
+				measure 'Production Order WIP'
+					caption: Ordre de fabrication TEC
+				measure 'Inventory Valuation - WIP'
+					caption: Évaluation de l’inventaire - TEC
+				measure 'Task List Drill Through'
+					caption: Exploration liste des tâches
+				measure 'Task List Details'
+					caption: Détails liste tâches
+				measure 'Expected Capacity Need Variance'
+					caption: Écart charge prévue
+				measure 'Expected Capacity Cost Dev % by Source No.'
+					caption: % écart coût capacité prévu par n° source
+				measure 'Average Production Time Per Unit by Work Center'
+					caption: Temps de production moyen par unité par atelier
+				measure 'Average Production Time Per Unit by Source No.'
+					caption: Temps de production moyen par unité par n° origine
+				measure 'Scrap Quantity Over Time'
+					caption: Quantité de rebut dans le temps
+				measure 'Scrap % by Production Order'
+					caption: Pourcentage de rebut par ordre de fabrication
+				measure 'Scrap Quantity by Scrap Code'
+					caption: Quantité rebut par code rebut
+				measure 'Scrap Quantity vs. Expected Scrap Quantity'
+					caption: Quantité de rebut par rapport à quantité de rebut prévue
+				measure 'Production Order Time Line'
+					caption: Chronologie de l’ordre de fabrication
+				measure 'Production Time Line'
+					caption: Lignes temps de production
+			table 'Machine Center'
+				caption: Unité de production
+				column 'Machine Center No.'
+					caption: Numéro de l’unité de production
+				column 'Machine Center Name'
+					caption: Nom de l’unité de production
+				column 'Work Center No.'
+					caption: N° de l’atelier
+				column 'Work Center Unit of Measure'
+					caption: Unité de mesure de l’atelier
+				measure 'Machine Center Capacity (Effective)'
+					caption: Capacité unité de production (effective)
+				measure 'Machine Center Capacity (Total)'
+					caption: Capacité de l’unité de production (totale)
+				measure 'Machine Center Expected Efficiency %'
+					caption: Efficacité prévue unité de production
+				measure 'Machine Center Actual Total Cost'
+					caption: Coût total réel de l’unité de production
+				measure 'Machine Center Actual Efficiency %'
+					caption: Efficacité réelle unité de production
+				measure 'Machine Center Actual Need'
+					caption: Besoins réels unité de production
+				measure 'Machine Center Allocated Time'
+					caption: Temps alloué à l’unité de production
+				measure 'Machine Center Output'
+					caption: Production de l’unité de production
+				measure 'Machine Center Scrap'
+					caption: Brut unité de production
+				measure 'Machine Center Scrap %'
+					caption: Pourcentage de rebut unité de production
+				measure 'Machine Center Run Time'
+					caption: Temps de fonctionnement unité de production
+				measure 'Machine Center Stop Time'
+					caption: Temps d’arrêt unité de production
+				measure 'Machine Center Stop %'
+					caption: Pourcentage d’arrêt unité de production
+				measure 'Machine Center Availability After Orders'
+					caption: Disponibilité unité de production après les commandes
+				measure 'Machine Center Load'
+					caption: Chargement unité de production
+			table 'Production Order Lines'
+				caption: Lignes d’ordre de fabrication
+				column quantityBase
+					caption: Quantité (de base)
+				column remainingQtyBase
+					caption: Quantité restante (base)
+				column dimensionSetID
+					caption: Code de l’ensemble de dimensions
+				column 'Prod. Order Line No.'
+					caption: Numéro de ligne de l’ordre de fabrication
+				column 'Routing No.'
+					caption: Numéro d’itinéraire
+				column 'Routing Reference No.'
+					caption: Référence de l’itinéraire
+				column finishedQtyBase
+					caption: finishedQtyBase
+				column ShareOfTotalCapCost
+					caption: ShareOfTotalCapCost
+				column 'Routing Type'
+					caption: Type d’itinéraire
+				column indirectCostPercent
+					caption: indirectCostPercent
+				column overheadRate
+					caption: overheadRate
+				column 'Scrap Percent'
+					caption: Pourcentage de rebut
+				column 'Planning Level Code'
+					caption: Code niveau de planification
+			table 'Prod Order Components'
+				caption: Composantes de l’ordre de fabrication
+				column expectedQtyBase
+					caption: Quantité prévue (base)
+				column remainingQtyBase
+					caption: Quantité restante (base)
+				column 'Routing Link Code'
+					caption: Code de lien d’itinéraire
+				column costAmount
+					caption: costAmount
+				column 'Prod Order Components Line No.'
+					caption: Numéro de ligne des composants de l’ordre de fabrication
+			table 'Prod Order Capacity Need'
+				caption: Charge O.F.
+				column 'Routing No.'
+					caption: Numéro d’itinéraire
+				column 'Routing Reference No.'
+					caption: Référence de l’itinéraire
+				column 'Operation No.'
+					caption: N° opération
+				column 'Requested Only'
+					caption: Demandé seulement
+				column workCenterNo
+					caption: workCenterNo
+				column workCenterGroupCode
+					caption: workCenterGroupCode
+				column no
+					caption: n°
+				column Type
+					caption: Type
+				column neededTimeMs
+					caption: neededTimeMs
+				column neededTime
+					caption: neededTime
+				column 'Prod Order Capacity Need Line No.'
+					caption: N° ligne charge O.F.
+				measure 'Needed Time'
+					caption: Temps nécessaire
+				measure 'Needed Time (MS)'
+					caption: Temps nécessaire (ms)
+				measure 'Allocated Time'
+					caption: Temps alloué
+			table 'Prod Order Routing Lines'
+				caption: Lignes d’itinéraire de l’ordre de fabrication
+				column 'No.'
+					caption: N°
+				column 'Expected Capacity Need'
+					caption: Charge prévue
+				column 'Expected Capacity Ovhd. Cost'
+					caption: Frais gén. capacité prévus
+				column 'Routing Link Code'
+					caption: Code de lien d’itinéraire
+				column Description
+					caption: Description
+				column 'Expected Operation Cost Amt.'
+					caption: Coût opératoire total prévu
+				column 'Routing No.'
+					caption: Numéro d’itinéraire
+				column 'Routing Reference No.'
+					caption: Référence de l’itinéraire
+				column 'Operation No.'
+					caption: N° opération
+				column locationName
+					caption: locationName
+				column 'Setup Time'
+					caption: Temps de préparation
+				column 'Run Time'
+					caption: Temps d’exécution
+				column 'Wait Time'
+					caption: Temps d’attente
+				column 'Move Time'
+					caption: Temps de transfert
+				column 'Routing Status'
+					caption: Statut de l’itinéraire
+				column 'Duration Total Hours'
+					caption: Durée totale en heures
+				column 'Duration Total Days'
+					caption: Durée totale en jours
+				column 'Work/Machine Center Name'
+					caption: Nom du travail/centre de machines
+				column workCenterNo
+					caption: workCenterNo
+				column 'Ending Date Time'
+					caption: Date/Heure de fin
+				column 'Starting Date Time'
+					caption: Date/Heure de début
+				measure 'Operation Run Time'
+					caption: Temps d’exécution de l’opération
+				measure 'Operation Setup Time'
+					caption: Temps de préparation de l’opération
+				measure 'Operation Wait Time'
+					caption: Temps d’attente opération
+				measure 'Operation Move Time'
+					caption: Temps de transfert opération
+				measure 'Total Duration Hours'
+					caption: Durée totale en heures
+			table 'Item Ledger Entries'
+				caption: Écritures du grand livre
+				column 'Serial No.'
+					caption: N° de série
+				column 'Lot No.'
+					caption: N° de lot
+				column qty
+					caption: Quantité
+				column costAmountActual
+					caption: Coût réel
+				column 'Entry Type'
+					caption: Type écriture
+				column 'Order Type'
+					caption: Type commande
+				column 'Order Line No.'
+					caption: N° ligne commande
+				column Positive
+					caption: Positif
+				measure 'Output Quantity'
+					caption: Quantité produite
+				measure 'Consumption Quantity'
+					caption: Quantité consommée
+			table 'Capacity Ledger Entries'
+				caption: Écritures du grand livre des capacités
+				column 'Order Type'
+					caption: Type commande
+				column 'Order Line No.'
+					caption: N° ligne commande
+				column Type
+					caption: Type
+				column 'No.'
+					caption: N°
+				column Description
+					caption: Description
+				column scrapQuantity
+					caption: scrapQuantity
+				column 'Routing No.'
+					caption: Numéro d’itinéraire
+				column 'Routing Reference No.'
+					caption: Référence de l’itinéraire
+				column 'Operation No.'
+					caption: N° opération
+				column 'Scrap Code'
+					caption: Code rebut
+				column directCost
+					caption: directCost
+				column overheadCost
+					caption: overheadCost
+				column 'Entry No.'
+					caption: N° d’écriture
+				column workCenterNo
+					caption: workCenterNo
+				column 'Work Shift Code'
+					caption: Code équipe
+				column Subcontracting
+					caption: Sous-traitance
+				column 'Capacity Unit of Measure'
+					caption: Unité de mesure de capacité
+				column 'Qty. Per Unit of Measure'
+					caption: Quantité par unité de mesure
+				column 'Qty. Per Capacity Unit of Measure'
+					caption: Quantité par unité de mesure de capacité
+				measure 'Direct Cost'
+					caption: Coût direct
+				measure 'Overhead Cost'
+					caption: Frais généraux
+				measure 'Run Time'
+					caption: Temps d’exécution
+				measure 'Setup Time'
+					caption: Temps de préparation
+				measure 'Stop Time'
+					caption: Temps d’arrêt
+				measure 'Scrap Quantity'
+					caption: Quantité rebut
+				measure 'Scrap %'
+					caption: % rebut
+				measure 'Capacity Ledger Output Quantity'
+					caption: Quantité produite du grand livre des capacités
+				measure 'Capacity Ledger Quantity'
+					caption: Quantité du grand livre des capacités
+			table 'Calendar Entries'
+				caption: Écritures calendrier
+				column 'Capacity Type'
+					caption: Type capacité
+				measure 'Capacity (Effective)'
+					caption: Capacité (réelle)
+				measure 'Capacity (Total)'
+					caption: Capacité (totale)
+			table Location
+				caption: Emplacement
+				column 'Location Code'
+					caption: Code de localisation
+				column 'Location Name'
+					caption: Nom de l’emplacement
+			table 'Routing Link'
+				caption: Lien d’itinéraire
+				column 'Routing Link Code'
+					caption: Code de lien de routage
+				column 'Routing Link Description'
+					caption: Description du lien d’acheminement
+			table Routing
+				caption: Itinéraire
+				column 'Routing No.'
+					caption: Numéro d’acheminement
+				column 'Routing Type'
+					caption: Type d’acheminement
+				column 'Routing Status'
+					caption: Statut de la gamme
+				column 'Routing Description'
+					caption: Description de l’acheminement
+			table 'Work Center Group'
+				caption: Groupe d’ateliers
+				column 'Work Center Group Code'
+					caption: Code du groupe d’ateliers
+				column 'Work Center Group Name'
+					caption: Nom du groupe d’ateliers
+			table 'Value Entries'
+				caption: Écritures valeur
+				column 'Entry No.'
+					caption: N° d’écriture
+				column 'Valuation Date'
+					caption: Date évaluation
+				column costAmountActual
+					caption: costAmountActual
+				column 'Cost Per Unit'
+					caption: costPerUnit
+				column itemLedgerEntryQuantity
+					caption: itemLedgerEntryQuantity
+				column valuedQuantity
+					caption: valuedQuantity
+				column 'Item Ledger Entry Type'
+					caption: Type d’écriture du grand livre des articles
+				column Type
+					caption: Type
+				column 'No.'
+					caption: N°
+				column 'Capacity Ledger Entry No.'
+					caption: capacityLedgerEntryNo
+				column 'Entry Type'
+					caption: entryType
+				column costPostedtoGL
+					caption: costPostedtoGL
+				column costAmountExpected
+					caption: costAmountExpected
+				column 'Order Type'
+					caption: orderType
+				column 'Order No.'
+					caption: orderNo
+				column expectedCostPostedtoGL
+					caption: expectedCostPostedtoGL
+				column 'Is Expected Cost'
+					caption: expectedCost
+				measure 'Beginning Balance Value'
+					caption: Valeur de solde d’ouverture
+				measure 'Consumption Value'
+					caption: Valeur de consommation
+				measure 'Capacity Value'
+					caption: Valeur capacité
+				measure 'Output Value'
+					caption: Valeur sortie
+				measure 'Ending Balance Value'
+					caption: Valeur solde de clôture
+				measure 'Cost Posted to G/L'
+					caption: Coût reporté au grand livre
+			table 'Production Orders'
+				caption: Ordres de fabrication
+				column 'Prod Order Status'
+					caption: Statut de l’ordre de fabrication
+				column 'Prod Order No.'
+					caption: N° ordre de fabrication
+				column 'Prod Order Source No.'
+					caption: N° origine O.F.
+				column 'Prod Order Routing No.'
+					caption: Numéro d’acheminement de l’ordre de fabrication
+				column 'Prod Order Starting Date'
+					caption: Date de début de l’ordre de fabrication
+				column 'Prod Order Ending Date'
+					caption: Date de fin O.F.
+				column 'Prod Order Due Date'
+					caption: Date d’échéance de l’ordre de fabrication
+				column quantity
+					caption: quantité
+				column 'Prod Order Description'
+					caption: Description de l’ordre de fabrication
+				column 'Prod Order Source Type'
+					caption: Type origine O.F.
+				column 'Production Order'
+					caption: Ordre de fabrication
+				measure 'Planned Quantity'
+					caption: Quantité planifiée
+				measure 'Expected Material Cost'
+					caption: Coûts matière prévus
+				measure 'Expected Capacity Cost'
+					caption: Coût capacité prévu
+				measure 'Expected Subcontracted Cost'
+					caption: Coût sous-traitance prévu
+				measure 'Expected Capacity Overhead Cost'
+					caption: Coût des frais généraux de capacité prévue
+				measure 'Total Standard Cost'
+					caption: Coût standard total
+				measure 'Expected Manufacturing Overhead Cost'
+					caption: Frais généraux production prévus
+				measure 'Total Expected Cost'
+					caption: Coût prévu total
+				measure 'Standard Capacity Cost'
+					caption: Coût capacité standard
+				measure 'Standard Material Cost'
+					caption: Coût matière standard
+				measure 'Standard Subcontracted Cost'
+					caption: Coût sous-traitance standard
+				measure 'Standard Capacity Overhead Cost'
+					caption: Coût des frais généraux de capacité standard
+				measure 'Standard Manufacturing Overhead Cost'
+					caption: Frais généraux production standard
+				measure 'Actual Material Cost'
+					caption: Coût matière réel
+				measure 'Actual Capacity Cost'
+					caption: Coût capacité réel
+				measure 'Actual Subcontracted Cost'
+					caption: Coût sous-traitance réel
+				measure 'Actual Capacity Overhead Cost'
+					caption: Coût des frais généraux de capacité réelle
+				measure 'Actual Manufacturing Overhead Cost'
+					caption: Frais généraux production réels
+				measure 'Total Actual Cost'
+					caption: Réel : coût total
+				measure 'Standard Material Cost Variance'
+					caption: Écart coût matière standard
+				measure 'Standard Capacity Cost Variance'
+					caption: Écart coût capacité standard
+				measure 'Standard Subcontracted Cost Variance'
+					caption: Écart coût sous-traitance standard
+				measure 'Standard Capacity Overhead Cost Variance'
+					caption: Écart de coût des frais généraux de capacité standard
+				measure 'Standard Manufacturing Overhead Cost Variance'
+					caption: Écart frais généraux production standard
+				measure 'Total Standard Cost Variance'
+					caption: Écart coût standard total
+				measure 'Standard Material Cost Dev %'
+					caption: % écart coût matière standard
+				measure 'Standard Capacity Cost Dev %'
+					caption: % écart coût capacité standard
+				measure 'Standard Subcontracted Cost Dev %'
+					caption: % écart coût sous-traitance standard
+				measure 'Standard Capacity Overhead Cost Dev %'
+					caption: Écart de coût des frais généraux de capacité standard
+				measure 'Standard Manufacturing Overhead Cost Dev %'
+					caption: % écart frais généraux production standard
+				measure 'Total Standard Cost Dev %'
+					caption: % coût standard total
+				measure 'Prod Order Expected Capacity Need (Finished)'
+					caption: Charge prévue O.F. (fini)
+				measure 'Prod Order Actual Capacity Need'
+					caption: Charge réelle O.F.
+				measure 'Prod Order Expected Capacity Need (Non Finished)'
+					caption: Charge prévue O.F. (non fini)
+				measure 'Prod Order Expected Capacity Need'
+					caption: Charge prévue O.F.
+				measure 'Finished Quantity'
+					caption: Quantité réalisée
+				measure 'Actual Time Used'
+					caption: Temps passé réel
+				measure 'Finished %'
+					caption: % fini
+				measure 'Remaining %'
+					caption: % restant
+				measure 'Variance Quantity'
+					caption: Quantité écart
+				measure 'Expected Capacity Cost Dev %'
+					caption: % écart coût capacité prévu
+				measure 'Expected Capacity Overhead Cost Dev %'
+					caption: Écart de coût des frais généraux de capacité prévue
+				measure 'Expected Manufacturing Overhead Cost Dev %'
+					caption: % écart frais généraux production prévu
+				measure 'Expected Material Cost Dev %'
+					caption: % écart coûts matière prévus
+				measure 'Expected Subcontracted Cost Dev %'
+					caption: % écart coût sous-traitance prévu
+				measure 'Total Expected Cost Dev %'
+					caption: % écart coût prévu total
+				measure 'Expected Capacity Cost Variance'
+					caption: Écart coût capacité prévu
+				measure 'Expected Capacity Overhead Cost Variance'
+					caption: Écart de coût des frais généraux de capacité prévue
+				measure 'Expected Manufacturing Overhead Cost Variance'
+					caption: Écart frais généraux production prévu
+				measure 'Expected Material Cost Variance'
+					caption: Écart coûts matière prévus
+				measure 'Expected Subcontracted Cost Variance'
+					caption: Écart coût sous-traitance prévu
+				measure 'Total Expected Cost Variance'
+					caption: Écart coût prévu total
+				measure 'No. of Production Orders'
+					caption: Nombre d’ordres de fabrication
+				measure 'Average Production Time Per Finished Quantity'
+					caption: Temps de production moyen par quantité réalisée
+				measure 'Prod Order Capacity Need Variance'
+					caption: Écart charge O.F.
+				measure 'Prod Order Capacity Need Dev %'
+					caption: % écart charge O.F.
+				measure 'Production Order Scrap %'
+					caption: Pourcentage de rebut de l’ordre de fabrication
+				measure 'Expected Production Order Scrap Quantity'
+					caption: Quantité de rebut prévue de l’ordre de fabrication
+			table 'Dimension Sets'
+				caption: Ensembles de dimensions
+				column id
+					caption: Code
+				column dimensionSetID
+					caption: dimensionSetID
+				column valueCount
+					caption: valueCount
+				column 'Global Dimension 1'
+					caption: Dimension principale 1
+				column dimension1ValueName
+					caption: dimension1ValueName
+				column 'Global Dimension 2'
+					caption: Dimension principale 2
+				column dimension2ValueName
+					caption: dimension2ValueName
+				column 'Shortcut Dimension 3'
+					caption: Dimension de raccourci 3
+				column dimension3ValueName
+					caption: dimension3ValueName
+				column 'Shortcut Dimension 4'
+					caption: Dimension de raccourci 4
+				column dimension4ValueName
+					caption: dimension4ValueName
+				column 'Shortcut Dimension 5'
+					caption: Dimension de raccourci 5
+				column dimension5ValueName
+					caption: dimension5ValueName
+				column 'Shortcut Dimension 6'
+					caption: Dimension de raccourci 6
+				column dimension6ValueName
+					caption: dimension6ValueName
+				column 'Shortcut Dimension 7'
+					caption: Dimension de raccourci 7
+				column dimension7ValueName
+					caption: dimension7ValueName
+				column 'Shortcut Dimension 8'
+					caption: Dimension de raccourci 8
+				column dimension8ValueName
+					caption: dimension8ValueName
+			table 'Inventory Adjustment Entry Order Line'
+				caption: Ligne d’ordre de l’écriture d’ajustement d’inventaire
+				column itemNo
+					caption: itemNo
+				column orderLineNo
+					caption: orderLineNo
+				column orderNo
+					caption: orderNo
+				column singleLevelMaterialCost
+					caption: singleLevelMaterialCost
+				column iSFinished
+					caption: iSFinished
+				column auxiliaryIndex1
+					caption: auxiliaryIndex1
+				column ETag
+					caption: ETag
+				column 'Adjustment Order Key'
+					caption: Clé ordre d’ajustement
+				column singleLevelCapacityCost
+					caption: singleLevelCapacityCost
+				column singleLevelSubcontrdCost
+					caption: singleLevelSubcontrdCost
+				column singleLevelCapOvhdCost
+					caption: singleLevelCapOvhdCost
+				column singleLevelMfgOvhdCost
+					caption: singleLevelMfgOvhdCost
+				column completelyInvoiced
+					caption: completelyInvoiced
+				column indirectCostPercent
+					caption: indirectCostPercent
+				column overheadRate
+					caption: overheadRate
+			table ENVIRONMENT
+				caption: ENVIRONNEMENT
+			table 'Back Links'
+				caption: Liens secondaires
+				measure 'Base Link'
+					caption: Lien de base
+				measure 'Calendar Entries Back Link'
+					caption: Lien secondaire Écritures calendrier
+				measure Ranged
+					caption: Plage
+				measure 'Prod. Order Capacity Need Back Link'
+					caption: Besoins en capacité de production
+				measure 'Work Center Need Qty Back Link'
+					caption: Lien vers la quantité requise de l’atelier
+			table 'Item Category'
+				caption: Catégorie article
+				column 'Item Category Code'
+					caption: Code catégorie article
+				column 'Item Category Description'
+					caption: Description de la catégorie d’article
+				hierarchy 'Item Category Code Hierarchy'
+					caption: Hiérarchie code catégorie article
+					level 'Item Category Code Level 1'
+						caption: Code catégorie article niveau 1
+					level 'Item Category Code Level 2'
+						caption: Code catégorie article niveau 2
+					level 'Item Category Code Level 3'
+						caption: Code catégorie article niveau 3
+

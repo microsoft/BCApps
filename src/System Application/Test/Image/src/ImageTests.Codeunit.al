@@ -5,9 +5,9 @@
 
 namespace System.Test.Utilities;
 
+using System.TestLibraries.Utilities;
 using System.Text;
 using System.Utilities;
-using System.TestLibraries.Utilities;
 
 codeunit 135135 "Image Tests"
 {

@@ -6,9 +6,10 @@
 namespace System.Test.Apps;
 
 using System.Apps;
+using System.TestLibraries.Apps;
 using System.TestLibraries.Environment;
-using System.TestLibraries.Utilities;
 using System.TestLibraries.Security.AccessControl;
+using System.TestLibraries.Utilities;
 
 codeunit 133101 "Data Out Of Geo. App Test"
 {
@@ -17,6 +18,7 @@ codeunit 133101 "Data Out Of Geo. App Test"
     var
         DataOutOfGeoApp: Codeunit "Data Out Of Geo. App";
         EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
+        ExtensionMgtTestLibrary: Codeunit "Extension Mgt. Test Library";
         LibraryAssert: Codeunit "Library Assert";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         PermissionsMock: Codeunit "Permissions Mock";
@@ -42,7 +44,7 @@ codeunit 133101 "Data Out Of Geo. App Test"
         DataOutOfGeoApp.Add(RandAppTxt);
 
         // [WHEN] We open the extension installation page and we are installing the Out of Geo app.
-        MarketPlaceExtnDeployment.SetAppID(RandAppTxt);
+        ExtensionMgtTestLibrary.SetAppId(RandAppTxt, MarketPlaceExtnDeployment);
         MarketPlaceExtnDeployment.RunModal();
 
         // [THEN] No notifications are shown.
@@ -68,7 +70,7 @@ codeunit 133101 "Data Out Of Geo. App Test"
         // [GIVEN] That there is no appid inserted as Out Of Geo.
 
         // [WHEN] We open the extension installation page and we are installing the Out of Geo app.
-        MarketPlaceExtnDeployment.SetAppID(RandAppTxt);
+        ExtensionMgtTestLibrary.SetAppId(RandAppTxt, MarketPlaceExtnDeployment);
         MarketPlaceExtnDeployment.RunModal();
 
         // [THEN] No notifications are shown.
@@ -93,7 +95,7 @@ codeunit 133101 "Data Out Of Geo. App Test"
         DataOutOfGeoApp.Add(RandAppTxt);
 
         // [WHEN] We open the extension installation page and we are installing the Out of Geo app.
-        MarketPlaceExtnDeployment.SetAppID(RandAppTxt);
+        ExtensionMgtTestLibrary.SetAppId(RandAppTxt, MarketPlaceExtnDeployment);
         MarketPlaceExtnDeployment.RunModal();
 
         // [THEN] A notification about data geo. is shown.

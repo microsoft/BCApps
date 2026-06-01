@@ -12,7 +12,9 @@ using System.Utilities;
 codeunit 149037 "AIT AL Test Suite Mgt"
 {
     Permissions = tabledata "Test Method Line" = rmid,
-                  tabledata "AL Test Suite" = rmid;
+                  tabledata "AL Test Suite" = rmid,
+                  tabledata "Test Input" = rmid,
+                  tabledata "Test Input Group" = rmid;
 
     var
         RunProcedureOperationTok: Label 'Run Procedure', Locked = true;
@@ -25,13 +27,13 @@ codeunit 149037 "AIT AL Test Suite Mgt"
 
     internal procedure AssistEditTestRunner(var AITTestSuite: Record "AIT Test Suite")
     var
-        AllObjWithCaption: Record AllObjWithCaption;
+        CodeunitMetadata: Record "Codeunit Metadata";
         SelectTestRunner: Page "Select TestRunner";
     begin
         SelectTestRunner.LookupMode := true;
         if SelectTestRunner.RunModal() = Action::LookupOK then begin
-            SelectTestRunner.GetRecord(AllObjWithCaption);
-            AITTestSuite.Validate("Test Runner Id", AllObjWithCaption."Object ID");
+            SelectTestRunner.GetRecord(CodeunitMetadata);
+            AITTestSuite.Validate("Test Runner Id", CodeunitMetadata.ID);
             AITTestSuite.Modify(true);
         end;
     end;
@@ -130,8 +132,11 @@ codeunit 149037 "AIT AL Test Suite Mgt"
         if AITTestMethodLine."AL Test Suite" <> '' then begin
             ALTestSuite.SetFilter(Name, AITTestMethodLine."AL Test Suite");
             ALTestSuite.ReadIsolation := ALTestSuite.ReadIsolation::ReadUncommitted;
-            if ALTestSuite.FindFirst() then
+            if ALTestSuite.FindFirst() then begin
+                AssignTestRunnerToTestSuite(CopyStr(AITTestMethodLine."Test Suite Code", 1, MaxStrLen(AITTestSuite.Code)), ALTestSuite);
+                ALTestSuite.Modify(true);
                 exit(ALTestSuite);
+            end;
         end;
 
         if AITTestMethodLine."AL Test Suite" = '' then begin
@@ -141,13 +146,20 @@ codeunit 149037 "AIT AL Test Suite Mgt"
 
         ALTestSuite.Name := AITTestMethodLine."AL Test Suite";
         ALTestSuite.Description := CopyStr(AITTestMethodLine.Description, 1, MaxStrLen(ALTestSuite.Description));
-        AITTestSuite.ReadIsolation := IsolationLevel::ReadUncommitted;
-        AITTestSuite.SetLoadFields("Test Runner Id");
-        if AITTestSuite.Get(AITTestMethodLine."Test Suite Code") then
-            ALTestSuite."Test Runner Id" := AITTestSuite."Test Runner Id";
+        AssignTestRunnerToTestSuite(CopyStr(AITTestMethodLine."Test Suite Code", 1, MaxStrLen(AITTestSuite.Code)), ALTestSuite);
 
         ALTestSuite.Insert(true);
         exit(ALTestSuite);
+    end;
+
+    local procedure AssignTestRunnerToTestSuite(TestSuiteCode: Code[10]; var ALTestSuite: Record "AL Test Suite")
+    var
+        AITTestSuite: Record "AIT Test Suite";
+    begin
+        AITTestSuite.ReadIsolation := IsolationLevel::ReadUncommitted;
+        AITTestSuite.SetLoadFields("Test Runner Id");
+        if AITTestSuite.Get(TestSuiteCode) then
+            ALTestSuite."Test Runner Id" := AITTestSuite."Test Runner Id";
     end;
 
     local procedure GetUniqueAITTestSuiteCode(): Code[10]
@@ -194,6 +206,26 @@ codeunit 149037 "AIT AL Test Suite Mgt"
         end;
     end;
 
+    procedure GetTestOutputAsJson(var AITLogEntry: Record "AIT Log Entry"): JsonArray
+    var
+        OutputJsonArray: JsonArray;
+        OutputJson: JsonObject;
+        TestOutput: Text;
+    begin
+        AITLogEntry.SetLoadFields("Test Suite Code", "Output Data");
+        AITLogEntry.ReadIsolation := IsolationLevel::ReadUncommitted;
+        if AITLogEntry.FindSet() then
+            repeat
+                TestOutput := AITLogEntry.GetOutputBlob();
+                if TestOutput <> '' then begin
+                    OutputJson.ReadFrom(TestOutput);
+                    OutputJsonArray.Add(OutputJson);
+                end;
+            until AITLogEntry.Next() = 0;
+
+        exit(OutputJsonArray);
+    end;
+
     /// <summary>
     /// Import the Test Input Dataset from an InStream of a dataset in a supported format.
     /// Overwrite the dataset if the dataset with same filename is already imported by the same app
@@ -203,16 +235,55 @@ codeunit 149037 "AIT AL Test Suite Mgt"
     /// <param name="DatasetInStream">The InStream of the dataset file.</param>
     procedure ImportTestInputs(DatasetFileName: Text; var DatasetInStream: InStream)
     var
+        CallerModuleInfo: ModuleInfo;
+    begin
+        NavApp.GetCallerModuleInfo(CallerModuleInfo);
+        ImportTestInputs(DatasetFileName, DatasetInStream, CallerModuleInfo, 0, DatasetFileName);
+    end;
+
+    /// <summary>
+    /// Import the Test Input Dataset from an InStream of a dataset in a supported format with a specific language.
+    /// Overwrite the dataset if the dataset with same filename is already imported by the same app
+    /// Error if the dataset with the same filename is created by a different app
+    /// </summary>
+    /// <param name="DatasetFileName">The file name of the dataset file which will be used in the description of the dataset.</param>
+    /// <param name="DatasetInStream">The InStream of the dataset file.</param>
+    /// <param name="LanguageID">The language ID to use for the dataset import.</param>
+    procedure ImportTestInputs(DatasetFileName: Text; var DatasetInStream: InStream; LanguageID: Integer)
+    var
+        CallerModuleInfo: ModuleInfo;
+    begin
+        NavApp.GetCallerModuleInfo(CallerModuleInfo);
+        ImportTestInputs(DatasetFileName, DatasetInStream, CallerModuleInfo, LanguageID, DatasetFileName);
+    end;
+
+    /// <summary>
+    /// Import the Test Input Dataset from an InStream of a dataset in a supported format with a specific language.
+    /// Overwrite the dataset if the dataset with same filename is already imported by the same app
+    /// Error if the dataset with the same filename is created by a different app
+    /// </summary>
+    /// <param name="DatasetFileName">The file name of the dataset file which will be used in the description of the dataset.</param>
+    /// <param name="DatasetInStream">The InStream of the dataset file.</param>
+    /// <param name="LanguageID">The language ID to use for the dataset import.</param>
+    /// <param name="Name">The name to use for the dataset import.</param>
+    procedure ImportTestInputs(DatasetFileName: Text; var DatasetInStream: InStream; LanguageID: Integer; GroupName: Text)
+    var
+        CallerModuleInfo: ModuleInfo;
+    begin
+        NavApp.GetCallerModuleInfo(CallerModuleInfo);
+        ImportTestInputs(DatasetFileName, DatasetInStream, CallerModuleInfo, LanguageID, GroupName);
+    end;
+
+    local procedure ImportTestInputs(DatasetFileName: Text; var DatasetInStream: InStream; CallerModuleInfo: ModuleInfo; LanguageID: Integer; GroupName: Text)
+    var
         TestInputGroup: Record "Test Input Group";
         TestInputsManagement: Codeunit "Test Inputs Management";
-        CallerModuleInfo: ModuleInfo;
         EmptyGuid: Guid;
         SameDatasetNameErr: Label 'The test input dataset %1 with the same file name already exists. The dataset was uploaded %2. Please rename the current dataset or delete the existing dataset.', Comment = '%1 = test input dataset Name, %2 = "from the UI" or "by the app id: {app_id}';
         SourceOfTheDatasetIsUILbl: Label 'from the UI';
-        SourceOfTheDatasetIsAppIdLbl: Label 'by the app id: %1', Comment = '%1 = app id';
+        SourceOfTheDatasetIsAppIdLbl: Label 'previously by the app id: %1 and now with %2', Comment = '%1 = previous app id, %2 = current app id';
     begin
         // Check if the dataset with the same filename exists
-        NavApp.GetCallerModuleInfo(CallerModuleInfo);
         TestInputGroup.SetLoadFields(Code, "Imported by AppId");
 
         if TestInputGroup.Get(TestInputsManagement.GetTestInputGroupCodeFromFileName(DatasetFileName)) then
@@ -223,10 +294,10 @@ codeunit 149037 "AIT AL Test Suite Mgt"
                     EmptyGuid:
                         Error(SameDatasetNameErr, DatasetFileName, SourceOfTheDatasetIsUILbl)
                     else
-                        Error(SameDatasetNameErr, DatasetFileName, StrSubstNo(SourceOfTheDatasetIsAppIdLbl, TestInputGroup."Imported by AppId"));
+                        Error(SameDatasetNameErr, DatasetFileName, StrSubstNo(SourceOfTheDatasetIsAppIdLbl, TestInputGroup."Imported by AppId", CallerModuleInfo.Id));
                 end;
 
-        TestInputsManagement.UploadAndImportDataInputs(DatasetFileName, DatasetInStream, CallerModuleInfo.Id);
+        TestInputsManagement.UploadAndImportDataInputs(DatasetFileName, DatasetInStream, CallerModuleInfo.Id, LanguageID, GroupName);
     end;
 
     /// <summary>

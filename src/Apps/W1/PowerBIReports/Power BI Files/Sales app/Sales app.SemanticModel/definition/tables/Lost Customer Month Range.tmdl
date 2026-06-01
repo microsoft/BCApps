@@ -1,0 +1,26 @@
+table 'Lost Customer Month Range'
+	lineageTag: 7cbeb9b0-bea4-4c2b-a568-6c9e2026cc74
+
+	measure 'Lost Customer Month Range Value' = SELECTEDVALUE('Lost Customer Month Range'[Lost Customer Month Range], 1)
+		formatString: 0
+		lineageTag: 1661f9dc-8966-4b70-9802-4e4900720af6
+
+	column 'Lost Customer Month Range'
+		formatString: 0
+		lineageTag: 8d309c69-65cc-47df-b578-83b26cb501c4
+		summarizeBy: none
+		sourceColumn: [Value]
+
+		extendedProperty ParameterMetadata =
+				{
+				  "version": 0
+				}
+
+		annotation SummarizationSetBy = User
+
+	partition 'Lost Customer Month Range' = calculated
+		mode: import
+		source = GENERATESERIES(1, 12, 1)
+
+	annotation PBI_Id = 5f92545dc510448885823fca99bc4f70
+

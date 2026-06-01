@@ -1,0 +1,9 @@
+[
+    {
+        "FeatureName": "Fast cleanup of large tables in retention policy",
+        "Description": "A limited set of supported tables in Retention Policy now support TruncateAll: Change Log Entry, Integration Synch. Job Errors, Error Message, and Error Message Register. Truncate All clears the entire table, making cleanup much faster than row-by-row deletion. ",
+        "Category": "Administration",
+        "HelpURL": "",
+        "VideoURL": ""
+    }
+]

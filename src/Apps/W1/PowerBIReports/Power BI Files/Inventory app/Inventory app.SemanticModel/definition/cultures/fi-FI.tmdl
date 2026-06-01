@@ -1,0 +1,912 @@
+cultureInfo fi-FI
+	translations
+		model Model
+			table Item
+				caption: Nimike
+				column 'Item No. & Description'
+					caption: Nimikkeen nro ja kuvaus
+				column 'Item No.'
+					caption: Nimikkeen numero
+				column 'Item Description'
+					caption: Nimikkeen kuvaus
+				column 'Item Base Unit of Measure'
+					caption: Nimikkeen perusmittayksikkö
+				column 'Item Unit Cost (LCY)'
+					caption: Nimikkeen yksikkökustannus (PVA)
+				column 'Item Inventory Posting Group'
+					caption: Nimikkeen varaston kirjausryhmä
+				column 'Item Category Code'
+					caption: Nimikeluokan koodi
+				column 'Item Category Description'
+					caption: Nimikeluokan kuvaus
+				measure 'Scheduled Receipt'
+					caption: Aikataulutettu vastaanotto
+				measure 'Planned Order Releases'
+					caption: Suunnitellut tilausvapautukset
+				measure 'Gross Requirement'
+					caption: Bruttotarve
+				measure 'Projected Available Balance'
+					caption: Oletettu saatavilla oleva saldo
+				measure 'Planned Order Receipt'
+					caption: Suunniteltu vastaanotto
+			table Location
+				caption: Sijainti
+				column 'Location Code'
+					caption: Sijaintikoodi
+				column 'Location Name'
+					caption: Sijainnin nimi
+				column 'Location Adjustment Bin Code'
+					caption: Sijainnin muutosvarastopaikkakoodi
+			table Customer
+				caption: Asiakas
+				column 'Customer No. & Name'
+					caption: Asiakkaan nro ja nimi
+				column 'Customer No.'
+					caption: Asiakasnumero
+				column 'Customer Name'
+					caption: Asiakkaan nimi
+				column 'Customer Address'
+					caption: Asiakkaan osoite
+				column 'Customer Address 2'
+					caption: Asiakkaan osoite 2
+				column 'Customer City'
+					caption: Asiakkaan paikkakunta
+				column 'Customer Post Code'
+					caption: Asiakkaan postinumero
+				column 'Customer State'
+					caption: Asiakkaan tila
+				column 'Customer Country/Region Code'
+					caption: Asiakkaan maa-/aluekoodi
+				column 'Customer Posting Group'
+					caption: Asiakkaan kirjausryhmä
+				column 'Customer Price Group'
+					caption: Asiakkaan hintaryhmä
+				column 'Customer Discount Group'
+					caption: Asiakkaan alennusryhmä
+			table Date
+				caption: Pvm
+				column DateKey
+					caption: DateKey
+				column 'Day of Month'
+					caption: Kuukauden päivä
+				column WeekDayNumber
+					caption: WeekDayNumber
+				column 'Week Day'
+					caption: Viikonpäivä
+				column Sequential365DayNumber
+					caption: Sequential365DayNumber
+				column 'Relative Day'
+					caption: Suhteellinen päivämäärä
+				column 'Calendar YearNumber'
+					caption: Kalenteri – VuodenNumero
+				column 'Calendar Year'
+					caption: Kalenterivuosi
+				column 'Calendar QuarterNumber'
+					caption: Kalenteri – VuosineljänneksenNumero
+				column 'Calendar Quarter'
+					caption: Kalenterin vuosineljännes
+				column 'Calendar YearQuarterNumber'
+					caption: Kalenteri – VuodenVuosineljänneksenNumero
+				column 'Calendar Quarter Year'
+					caption: Kalenteri – Vuosineljännes, vuosi
+				column 'Calendar MonthNumber'
+					caption: Kalenteri – KuukaudenNumero
+				column 'Calendar Month'
+					caption: Kalenterikuukausi
+				column 'Calendar YearMonthNumber'
+					caption: Kalenteri – VuodenKuukaudenNumero
+				column 'Calendar Month Year'
+					caption: Kalenterikuukausi, vuosi
+				column 'Calendar WeekNumber'
+					caption: Kalenteri – ViikonNumero
+				column 'Calendar Week'
+					caption: Kalenteriviikko
+				column 'Calendar YearWeekNumber'
+					caption: Kalenteri – VuodenViikonNumero
+				column 'Calendar Week Year'
+					caption: Kalenteriviikko, vuosi
+				column 'Calendar WeekYearOrder'
+					caption: Kalenteri – ViikonVuodenJärjestys
+				column 'Calendar RelativeWeekPos'
+					caption: Kalenteri – SuhteellisenViikonOstotilaukset
+				column 'Calendar RelativeMonthPos'
+					caption: Kalenteri – SuhteellisenKuukaudenOstotilaukset
+				column 'Calendar RelativeQuarterPos'
+					caption: Kalenteri – SuhteellisenVuosineljänneksenOstotilaukset
+				column 'Calendar RelativeYearPos'
+					caption: Kalenterin suhteellisen vuoden ostotilaukset
+				column 'Calendar StartOfMonth'
+					caption: Kalenteri – KuukausiAlkaa
+				column 'Calendar EndOfMonth'
+					caption: Kalenteri – KuukausiPäättyy
+				column 'Calendar StartOfQuarter'
+					caption: Kalenteri – VuosineljännesAlkaa
+				column 'Calendar EndOfQuarter'
+					caption: Kalenteri – VuosineljännesPäättyy
+				column 'Calendar StartOfYear'
+					caption: Kalenteri – VuosiAlkaa
+				column 'Calendar EndOfYear'
+					caption: Kalenteri – VuosiPäättyy
+				column 'Calendar MonthDays'
+					caption: Kalenteri – KuukaudenPäivät
+				column 'Calendar QuarterDays'
+					caption: Kalenteri – VuosineljänneksenPäivät
+				column 'Calendar YearDays'
+					caption: Kalenteri – VuodenPäivät
+				column 'Calendar DayOfMonthNumber'
+					caption: Kalenteri – PäiväKuukaudenNumero
+				column 'Calendar DayOfQuarterNumber'
+					caption: Kalenteri – PäiväVuosineljänneksenNumero
+				column 'Calendar DayOfYearNumber'
+					caption: Kalenteri – PäiväVuodenNumero
+				column 'Calendar DatePreviousWeek'
+					caption: Kalenteri – PäivämääräEdellinenViikko
+				column 'Calendar DatePreviousMonth'
+					caption: Kalenteri – PäivämääräEdellinenKuukausi
+				column 'Calendar DatePreviousQuarter'
+					caption: Kalenteri – PäivämääräEdellinenVuosineljännes
+				column 'Calendar DatePreviousYear'
+					caption: Kalenteri – PäivämääräEdellinenVuosi
+				column 'Fiscal Year'
+					caption: Tilikausi
+				column 'Fiscal YearNumber'
+					caption: Kirjanpito – VuodenNumero
+				column 'Fiscal QuarterNumber'
+					caption: Kirjanpito – VuosineljänneksenNumero
+				column 'Fiscal Quarter'
+					caption: Kirjanpidon vuosineljännes
+				column 'Fiscal YearQuarterNumber'
+					caption: Kirjanpito – VuodenVuosineljänneksenNumero
+				column 'Fiscal Quarter Year'
+					caption: Kirjanpito – Vuosineljännes, vuosi
+				column 'Fiscal MonthNumber'
+					caption: Kirjanpito – KuukaudenNumero
+				column 'Fiscal MonthInQuarterNumber'
+					caption: Kirjanpito – KuukaudenNumeroVuosineljänneksessä
+				column 'Fiscal Month'
+					caption: Kirjanpitokuukausi
+				column 'Fiscal YearMonthNumber'
+					caption: Kirjanpito – VuodenKuukaudenNumero
+				column 'Fiscal Month Year'
+					caption: Kirjanpidon kuukausi, vuosi
+				column 'Fiscal WeekNumber'
+					caption: Kirjanpito – ViikonNumero
+				column 'Fiscal Week'
+					caption: Kirjanpitoviikko
+				column 'Fiscal YearWeekNumber'
+					caption: Kirjanpito – VuodenViikonNumero
+				column 'Fiscal Week Year'
+					caption: Kirjanpitoviikko, vuosi
+				column 'Fiscal WeekYearOrder'
+					caption: Kirjanpito – ViikonVuodenJärjestys
+				column 'Fiscal RelativeWeekPos'
+					caption: Kirjanpito – SuhteellisenViikonOstotilaukset
+				column 'Fiscal RelativeMonthPos'
+					caption: Kirjanpito – SuhteellisenKuukaudenOstotilaukset
+				column 'Fiscal RelativeQuarterPos'
+					caption: Kirjanpito – SuhteellisenVuosineljänneksenOstotilaukset
+				column 'Fiscal RelativeYearPos'
+					caption: Kirjanpito – SuhteellisenVuodenOstotilaukset
+				column 'Fiscal StartOfMonth'
+					caption: Kirjanpito – KuukausiAlkaa
+				column 'Fiscal EndOfMonth'
+					caption: Kirjanpito – KuukausiPäättyy
+				column 'Fiscal StartOfQuarter'
+					caption: Kirjanpito – VuosineljännesAlkaa
+				column 'Fiscal EndOfQuarter'
+					caption: Kirjanpito – VuosineljännesPäättyy
+				column 'Fiscal StartOfYear'
+					caption: Kirjanpito – VuosiAlkaa
+				column 'Fiscal EndOfYear'
+					caption: Kirjanpito – VuosiPäättyy
+				column 'Fiscal MonthDays'
+					caption: Kirjanpito – KuukaudenPäivät
+				column 'Fiscal QuarterDays'
+					caption: Kirjanpito – VuosineljänneksenPäivät
+				column 'Fiscal YearDays'
+					caption: Kirjanpito – VuodenPäivät
+				column 'Fiscal DayOfMonthNumber'
+					caption: Kirjanpito – PäiväKuukaudenNumero
+				column 'Fiscal DayOfQuarterNumber'
+					caption: Kirjanpito – PäiväVuosineljänneksenNumero
+				column 'Fiscal DayOfYearNumber'
+					caption: Kirjanpito – PäiväVuodenNumero
+				column 'Fiscal DatePreviousWeek'
+					caption: Kirjanpito – PäivämääräEdellinenViikko
+				column 'Fiscal DatePreviousMonth'
+					caption: Kirjanpito – PäivämääräEdellinenKuukausi
+				column 'Fiscal DatePreviousQuarter'
+					caption: Kirjanpito – PäivämääräEdellinenVuosineljännes
+				column 'Fiscal DatePreviousYear'
+					caption: Kirjanpito – PäivämääräEdellinenVuosi
+				column 'FW YearNumber'
+					caption: KV – VuodenNumero
+				column 'FW Year'
+					caption: KV – Vuosi
+				column 'FW QuarterNumber'
+					caption: KV – VuosineljänneksenNumero
+				column 'FW Quarter'
+					caption: KV – Vuosineljännes
+				column 'FW YearQuarterNumber'
+					caption: KV – VuodenVuosineljänneksenNumero
+				column 'FW Quarter Year'
+					caption: KV – Vuosineljännes, vuosi
+				column 'FW MonthNumber'
+					caption: KV – KuukaudenNumero
+				column 'FW Month'
+					caption: KV – Kuukausi
+				column 'FW YearMonthNumber'
+					caption: KV – VuodenKuukaudenNumero
+				column 'FW Month Year'
+					caption: KV – Kuukausi, vuosi
+				column 'FW WeekNumber'
+					caption: KV – ViikonNumero
+				column 'FW Week'
+					caption: KV – Viikko
+				column 'FW PeriodNumber'
+					caption: KV – KaudenNumero
+				column 'FW Period'
+					caption: KV – Kausi
+				column 'FW YearWeekNumber'
+					caption: KV – VuodenViikonNumero
+				column 'FW Week Year'
+					caption: KV – Viikko, vuosi
+				column 'FW StartOfWeek'
+					caption: KV – ViikkoAlkaa
+				column 'FW EndOfWeek'
+					caption: KV – ViikkoPäättyy
+				column 'FW RelativeWeekPos'
+					caption: KV – SuhteellisenViikonOstotilaukset
+				column 'FW RelativeMonthPos'
+					caption: KV – SuhteellisenKuukaudenOstotilaukset
+				column 'FW RelativeQuarterPos'
+					caption: KV – SuhteellisenVuosineljänneksenOstotilaukset
+				column 'FW RelativeYearPos'
+					caption: KV – SuhteellisenVuodenOstotilaukset
+				column 'FW StartOfMonth'
+					caption: KV – KuukausiAlkaa
+				column 'FW EndOfMonth'
+					caption: KV – KuukausiPäättyy
+				column 'FW StartOfQuarter'
+					caption: KV – VuosineljännesAlkaa
+				column 'FW EndOfQuarter'
+					caption: KV – VuosineljännesPäättyy
+				column 'FW StartOfYear'
+					caption: KV – VuosiAlkaa
+				column 'FW EndOfYear'
+					caption: KV – VuosiPäättyy
+				column 'FW MonthDays'
+					caption: KV – KuukaudenPäivät
+				column 'FW QuarterDays'
+					caption: KV – VuosineljänneksenPäivät
+				column 'FW YearDays'
+					caption: KV – VuodenPäivät
+				column 'FW DayOfMonthNumber'
+					caption: KV – PäiväKuukaudenNumero
+				column 'FW DayOfQuarterNumber'
+					caption: KV – PäiväVuosineljänneksenNumero
+				column 'FW DayOfYearNumber'
+					caption: KV – PäiväVuodenNumero
+				column 'FW DatePreviousWeek'
+					caption: KV – PäivämääräEdellinenViikko
+				column 'FW DatePreviousMonth'
+					caption: KV – PäivämääräEdellinenKuukausi
+				column 'FW DatePreviousQuarter'
+					caption: KV – PäivämääräEdellinenVuosineljännes
+				column 'FW DatePreviousYear'
+					caption: KV – PäivämääräEdellinenVuosi
+				column 'Holiday Name'
+					caption: Loman nimi
+				column IsWorkingDay
+					caption: IsWorkingDay
+				column 'Day Type'
+					caption: Päivän tyyppi
+				column DatesWithTransactions
+					caption: DatesWithTransactions
+				measure Ranged
+					caption: Järjestetty
+				hierarchy 'Fiscal Year-Month'
+					caption: Kirjanpito – Vuosi-Kuukausi
+					level 'Fiscal Year'
+						caption: Tilikausi
+					level 'Fiscal Month Year'
+						caption: Kirjanpidon kuukausi, vuosi
+				hierarchy 'Fiscal Year-Month-Week'
+					caption: Kirjanpito – Vuosi-Kuukausi-Viikko
+					level 'Fiscal Year'
+						caption: Tilikausi
+					level 'Fiscal Month Year'
+						caption: Kirjanpidon kuukausi, vuosi
+					level 'Fiscal Week Year'
+						caption: Kirjanpitoviikko, vuosi
+				hierarchy 'Fiscal Year-Quarter-Month-Week'
+					caption: Kirjanpito Vuosi-Vuosineljännes-Kuukausi-Viikko
+					level 'Fiscal Year'
+						caption: Tilikausi
+					level 'Fiscal Quarter Year'
+						caption: Kirjanpito – Vuosineljännes, vuosi
+					level 'Fiscal Month Year'
+						caption: Kirjanpidon kuukausi, vuosi
+					level 'Fiscal Week Year'
+						caption: Kirjanpitoviikko, vuosi
+				hierarchy 'Calendar Year-Month'
+					caption: Kalenteri – Vuosi-Kuukausi
+					level 'Calendar Year'
+						caption: Kalenterivuosi
+					level 'Calendar Month Year'
+						caption: Kalenterikuukausi, vuosi
+				hierarchy 'Calendar Year-Month-Week'
+					caption: Kalenteri – Vuosi-Kuukausi-Viikko
+					level 'Calendar Year'
+						caption: Kalenterivuosi
+					level 'Calendar Month Year'
+						caption: Kalenterikuukausi, vuosi
+					level 'Calendar Week Year'
+						caption: Kalenteriviikko, vuosi
+				hierarchy 'Calendar Year-Quarter-Month-Week'
+					caption: Kalenteri – Vuosi-Vuosineljännes-Kuukausi-Viikko
+					level 'Calendar Year'
+						caption: Kalenterivuosi
+					level 'Calendar Quarter Year'
+						caption: Kalenteri – Vuosineljännes, vuosi
+					level 'Calendar Month Year'
+						caption: Kalenterikuukausi, vuosi
+					level 'Calendar Week Year'
+						caption: Kalenteriviikko, vuosi
+				hierarchy 'FW Year-Week'
+					caption: KV – Vuosi-Viikko
+					level 'FW Year'
+						caption: KV – Vuosi
+					level 'FW Week Year'
+						caption: KV – Viikko, vuosi
+				hierarchy 'FW Year-Month-Week'
+					caption: KV – Vuosi-Kuukausi-Viikko
+					level 'FW Year'
+						caption: KV – Vuosi
+					level 'FW Month Year'
+						caption: KV – Kuukausi, vuosi
+					level 'FW Week Year'
+						caption: KV – Viikko, vuosi
+				hierarchy 'FW Year-Quarter-Week'
+					caption: KV – Vuosi-Vuosineljännes-Viikko
+					level 'FW Year'
+						caption: KV – Vuosi
+					level 'FW Quarter Year'
+						caption: KV – Vuosineljännes, vuosi
+					level 'FW Week Year'
+						caption: KV – Viikko, vuosi
+				hierarchy 'FW Year-Quarter-Month-Week'
+					caption: KV – Vuosi-Vuosineljännes-Kuukausi-Viikko
+					level 'FW Year'
+						caption: KV – Vuosi
+					level 'FW Quarter Year'
+						caption: KV – Vuosineljännes, vuosi
+					level 'FW Month Year'
+						caption: KV – Kuukausi, vuosi
+					level 'FW Week Year'
+						caption: KV – Viikko, vuosi
+			table Vendor
+				caption: Toimittaja
+				column 'Vendor No. & Name'
+					caption: Toimittajan nro ja nimi
+				column 'Vendor No.'
+					caption: Toimittajanro
+				column 'Vendor Name'
+					caption: Toimittajan nimi
+				column 'Vendor Address'
+					caption: Toimittajan osoite
+				column 'Vendor Address 2'
+					caption: Toimittajan osoite 2
+				column 'Vendor City'
+					caption: Toimittajan paikkakunta
+				column 'Vendor Post Code'
+					caption: Toimittajan postinumero
+				column 'Vendor State'
+					caption: Toimittajan tila
+				column 'Vendor Country/Region Code'
+					caption: Toimittajan maa-/aluekoodi
+				column 'Vendor Posting Group'
+					caption: Toimittajan kirjausryhmä
+			table 'Item Ledger Entries'
+				caption: Nimiketapahtumat
+				column 'Entry No.'
+					caption: Tapahtumanro
+				column 'Entry Type'
+					caption: Tapahtumatyyppi
+				column 'Expiration Date'
+					caption: Vanhentumispvm
+				column Open
+					caption: Avoin
+				column 'Document No.'
+					caption: Asiakirjanumero
+				column 'Quantity Per Unit of Measure'
+					caption: Määrä mittayksikköä kohden
+				column 'Unit of Measure Code'
+					caption: Mittayksikön koodi
+				column 'Document Type'
+					caption: Asiakirjatyyppi
+				measure 'Inventory (Quantity)'
+					caption: Varasto (määrä)
+				measure 'Remaining Quantity'
+					caption: Jäljellä oleva määrä
+				measure Quantity
+					caption: Määrä
+				measure 'Expired Inventory'
+					caption: Vanhentunut varasto
+				measure 'Net Qty. Sold'
+					caption: Myyty nettomäärä
+				measure 'Net Qty. Purchased'
+					caption: Ostettu nettomäärä
+				measure 'Invoiced Quantity'
+					caption: Laskutettu määrä
+				measure 'Base Link'
+					caption: Perus, linkki
+				measure 'Item Ledger Entries Link (Location Context)'
+					caption: Nimiketapahtumat – Linkki (sijaintikonteksti)
+				measure 'Item Ledger Entries Link'
+					caption: Nimiketapahtumat – Linkki
+				measure 'Item Ledger Entries Lot No Link'
+					caption: Nimiketapahtumien erä – Linkki
+				measure 'Item Ledger Entries Serial No Link'
+					caption: Nimiketapahtumien sarjanro – Linkki
+			table 'Dimension Sets'
+				caption: Dimensioyhdistelmät
+				column 'Global Dimension 1'
+					caption: Yleinen dimensio 1
+				column 'Global Dimension 2'
+					caption: Yleinen dimensio 2
+				column 'Shortcut Dimension 3'
+					caption: Pikadimensio 3
+				column 'Shortcut Dimension 4'
+					caption: Pikadimensio 4
+				column 'Shortcut Dimension 5'
+					caption: Pikadimensio 5
+				column 'Shortcut Dimension 6'
+					caption: Pikadimensio 6
+				column 'Shortcut Dimension 7'
+					caption: Pikadimensio 7
+				column 'Shortcut Dimension 8'
+					caption: Pikadimensio 8
+				column id
+					caption: tunnus
+			table 'Purchase Lines'
+				caption: Ostorivit
+				column 'Document No.'
+					caption: Asiakirjanumero
+				column 'Expected Receipt Date'
+					caption: Oletettu vastaanottopäivämäärä
+				column 'Document Type'
+					caption: Asiakirjatyyppi
+				column 'Quantity Per Unit of Measure'
+					caption: Määrä mittayksikköä kohden
+				column 'Unit of Measure Code'
+					caption: Mittayksikön koodi
+				measure 'Qty. on Purch. Order'
+					caption: Määrä ostotilauksessa
+				measure 'Qty. on Purch. Return'
+					caption: Määrä ostopalautuksessa
+				measure 'Purchase Return - Earliest Expected Receipt Date'
+					caption: Ostopalautus – Aikaisin oletettu vastaanottopäivämäärä
+				measure 'Purchase Order - Earliest Expected Receipt Date'
+					caption: Ostotilaus – Aikaisin oletettu vastaanottopäivämäärä
+				measure 'Purchase Order Quantity Link'
+					caption: Ostotilauksen määrä – Linkki
+				measure 'Purchase Return Order Quantity Link'
+					caption: Ostopalautustilauksen määrä – Linkki
+			table Zone
+				caption: Vyöhyke
+				column 'Zone Description'
+					caption: Vyöhykkeen kuvaus
+				column 'Zone Bin Type Code'
+					caption: Alueen varastopaikkatyypin koodi
+				column 'Zone Code'
+					caption: Vyöhykekoodi
+			table Bin
+				caption: Varastopaikka
+				column 'Bin Description'
+					caption: Varastopaikan kuvaus
+				column 'Bin Type Code'
+					caption: Varastopaikkatyypin koodi
+				column 'Bin Code'
+					caption: Varastopaikkakoodi
+				column 'Adjustment Bin'
+					caption: Muutosvarastopaikka
+				column 'Bin Zone Code'
+					caption: Varastopaikan aluekoodi
+				measure 'Available Qty. to Take'
+					caption: Saatav. ol. määrä otettavaksi
+				measure 'Quantity in Adjustment Bin'
+					caption: Määrä muutosvarastopaikassa
+				measure 'Positive Adjmt. Qty. (Base)'
+					caption: Positiivisen muutoksen määrä (perus)
+				measure 'Negative Adjmt. Qty. (Base)'
+					caption: Negatiivisen muutoksen määrä (perus)
+				measure 'Warehouse Quantity'
+					caption: Fyysisen varaston määrä
+				measure 'ATO Components Pick Qty.'
+					caption: Kok.pano tilausta varten -komponenttien poimintamäärä
+				measure 'Put-away Quantity (Base)'
+					caption: Hyllytyksen määrä (perus)
+				measure 'Pick Quantity (Base)'
+					caption: Poiminnan määrä (perus)
+				measure 'Warehouse Entries Link'
+					caption: Fyysisen varaston tapahtumat – Linkki
+				measure 'Pick Quantity Link'
+					caption: Poiminnan määrä – Linkki
+				measure 'Warehouse Journal Link'
+					caption: Fyysisen varaston päiväkirja – Linkki
+			table 'Sales Lines'
+				caption: Myyntirivit
+				column 'Document No.'
+					caption: Asiakirjanumero
+				column 'Shipment Date'
+					caption: Toimituspäivämäärä
+				column 'Document Type'
+					caption: Asiakirjatyyppi
+				column 'Quantity Per Unit of Measure'
+					caption: Määrä mittayksikköä kohden
+				column 'Unit of Measure Code'
+					caption: Mittayksikön koodi
+				measure 'Qty. on Sales Order'
+					caption: Määrä myyntitilauksessa
+				measure 'Qty. on Sales Return Order'
+					caption: Määrä myyntipalautustilauksessa
+				measure 'Sales Order - Earliest Shipment Date'
+					caption: Myyntitilaus – Aikaisin toimituspäivämäärä
+				measure 'Sales Retrun Order - Earliest Shipment Date'
+					caption: Myyntipalautustilaus – Aikaisin toimituspäivämäärä
+				measure 'Sales Order Line Link'
+					caption: Myyntitilausrivi – Linkki
+				measure 'Sales Return Order Line Link'
+					caption: Myyntipalautustilausrivi – Linkki
+			table 'Assembly Lines'
+				caption: Kokoonpanon rivit
+				column 'Due Date'
+					caption: Eräpäivä
+				column 'Document No.'
+					caption: Asiakirjanumero
+				column 'Quantity Per Unit of Measure'
+					caption: Määrä mittayksikköä kohden
+				column 'Unit of Measure Code'
+					caption: Mittayksikön koodi
+				measure 'Qty. on Asm. Component'
+					caption: Määrä kokoonpanokomponentissa
+				measure 'Assembly Lines - Earliest Due Date'
+					caption: Kokoonpanorivit – Aikaisin eräpäivä
+				measure 'Assembly Line Quantity Link'
+					caption: Kokoonpanorivin määrä – Linkki
+			table 'Assembly Headers'
+				caption: Kokoonpanon otsikot
+				column 'Document No.'
+					caption: Asiakirjanumero
+				column 'Due Date'
+					caption: Eräpäivä
+				column Status
+					caption: Tila
+				column 'Quantity Per Unit of Measure'
+					caption: Määrä mittayksikköä kohden
+				column 'Unit of Measure Code'
+					caption: Mittayksikön koodi
+				measure 'Qty. on Assembly Order'
+					caption: Määrä kokoonpanotilauksessa
+				measure 'Assembly Order - Earliest Due Date'
+					caption: Kokoonpanotilaus – Aikaisin eräpäivä
+				measure 'Assembly Order Quantity Link'
+					caption: Kokoonpanotilauksen määrä – Linkki
+			table 'Project Planning Lines'
+				caption: Projektin suunnittelurivit
+				column 'Document No.'
+					caption: Asiakirjanumero
+				column 'Quantity Per Unit of Measure'
+					caption: Määrä mittayksikköä kohden
+				column 'Unit of Measure Code'
+					caption: Mittayksikön koodi
+				measure 'Qty. on Projects'
+					caption: Määrä projekteissa
+				measure 'Project Planning - Earliest Planning Date'
+					caption: Projektin suunnittelu – Aikaisin suunnittelupvm
+				measure 'Planning Line Link'
+					caption: Projektirivi – Linkki
+			table 'Production Order Lines'
+				caption: Tuotantotilausrivit
+				column Status
+					caption: Tila
+				column 'Document No.'
+					caption: Asiakirjanumero
+				column 'Due Date'
+					caption: Eräpäivä
+				column 'Starting Date'
+					caption: Aloituspäivämäärä
+				column 'Quantity Per Unit of Measure'
+					caption: Määrä mittayksikköä kohden
+				column 'Unit of Measure Code'
+					caption: Mittayksikön koodi
+				measure 'Qty. on Prod. Order'
+					caption: Määrä tuotantotilauksessa
+				measure 'FP Order Receipt (Qty.)'
+					caption: Valm. tuot.til. vast.ot. (määrä)
+				measure 'Rel. Order Receipt (Qty.)'
+					caption: Vapaut. til. vast.ot. (määrä)
+				measure 'Scheduled Receipt (Qty.)'
+					caption: Aikataulutettu vastaanotto (määrä)
+				measure 'FP Order - Earliest Due Date'
+					caption: Valm. tuot.til – Aikaisin eräpäivä
+				measure 'Rel. Order - Earliest Due Date'
+					caption: Vapaut. tilaus – Aikaisin eräpäivä
+				measure 'Production Order Link'
+					caption: Tuotantotilaus – Linkki
+			table 'Prod Order Component Lines'
+				caption: Tuotantotilauksen komponenttirivit
+				column Status
+					caption: Tila
+				column 'Document No.'
+					caption: Asiakirjanumero
+				column 'Due Date'
+					caption: Eräpäivä
+				column 'Quantity Per Unit of Measure'
+					caption: Määrä mittayksikköä kohden
+				column 'Unit of Measure Code'
+					caption: Mittayksikön koodi
+				measure 'Qty. on Prod. Order Comp. Lines'
+					caption: Määrä tuot.til. komponenttiriveillä
+				measure 'Prod. Order Comp. Lines - Earliest Due Date'
+					caption: Tuot.til. komponenttirivit – Aikaisin eräpäivä
+				measure 'Prod. Order Components Link'
+					caption: Tuotantotilauksen komponentit – Linkki
+			table 'Service Lines'
+				caption: Huoltorivit
+				column 'Document No.'
+					caption: Asiakirjanumero
+				column 'Needed By Date'
+					caption: Tarvitaan päivämäärän mennessä
+				column 'Quantity Per Unit of Measure'
+					caption: Määrä mittayksikköä kohden
+				column 'Unit of Measure Code'
+					caption: Mittayksikön koodi
+				measure 'Qty. on Service Order'
+					caption: Määrä huoltotilauksessa
+				measure 'Service Lines - Earliest Needed by Date'
+					caption: Huoltorivit – Aikaisin tarvitaan päivämäärään mennessä
+				measure 'Service Order Link'
+					caption: Huoltotilaus – Linkki
+			table 'Transfer Lines'
+				caption: Siirtorivit
+				description: Määrittää nimikkeiden määrän, joka on vielä vastaanotettava mutta jota ei ole vielä toimitettu. Määrä lasketaan Määrä- ja Toimitettu määrä -kenttien erotuksena.
+				column 'Document No.'
+					caption: Asiakirjanumero
+				column 'Receipt Date'
+					caption: Vast.ott. pvm
+				column 'Transfer To Location Code'
+					caption: Siirrä kohteeseen -sijaintikoodi
+				column 'Transfer From Location Code'
+					caption: Kohteesta-sijaintikoodi
+				column 'Shipment Date'
+					caption: Toimituspäivämäärä
+				column 'In Transit Location Code'
+					caption: Kuljetuksessa-sijaintikoodi
+				column 'Quantity Per Unit of Measure'
+					caption: Määrä mittayksikköä kohden
+				column 'Unit of Measure Code'
+					caption: Mittayksikön koodi
+				measure 'Qty. in Transit'
+					caption: Määrä kuljetuksessa
+				measure 'Trans. Order Shipment (Qty.)'
+					caption: Siirtotilauksen toimitus (määrä)
+				measure 'Trans. Order Receipt (Qty.)'
+					caption: Siirtotilauksen vastaanotto (määrä)
+				measure 'Trans. Order Outstanding Qty.'
+					caption: Siirtotilauksen avoin määrä
+				measure 'Trans. Order Shipment - Earliest Shipment Date'
+					caption: Siirtotilauksen toimitus – Aikaisin toimituspäivämäärä
+				measure 'Trans. Order Receipt - Earliest Receipt Date'
+					caption: Siirtotilauksen vastaanotto – Aikaisin vastaanottopvm
+				measure 'Transfer Lines Quantity Link'
+					caption: Siirtorivien määrä – Linkki
+			table 'Planning Component Lines'
+				caption: Suunnittelukomponenttirivit
+				column 'Due Date'
+					caption: Eräpäivä
+				column 'Quantity Per Unit of Measure'
+					caption: Määrä mittayksikköä kohden
+				column 'Unit of Measure Code'
+					caption: Mittayksikön koodi
+				measure 'Planning Issues (Qty.)'
+					caption: Suunnittelun lähet. (määrä)
+				measure 'Planning Issues - Earliest Due Date'
+					caption: Suunnitteluongelmat – Aikaisin eräpäivä
+			table 'Item Availability Filter'
+				caption: Nimikkeen saatavuuden suodatus
+				column 'View As'
+					caption: Näyttömuoto
+				column Ordinal
+					caption: Järjestysluku
+			table 'Lot No'
+				caption: Eränro
+				column 'Lot No.'
+					caption: Eränro
+			table 'Serial No'
+				caption: Sarjanumero
+				column 'Serial No.'
+					caption: Sarjanumero
+			table 'Localized Labels'
+				measure 'My Report Title'
+					caption: Oman raportin otsikko
+				measure 'My Button Caption'
+					caption: Oma painikkeen otsikko
+				measure 'My Visual Title'
+					caption: Oma visuaalinen otsikko
+				measure 'Inventory Overview'
+					caption: Varaston yleiskatsaus
+				measure 'Inventory and Projected Available Balance'
+					caption: Varasto ja oletettu saatavilla oleva saldo
+				measure 'Availability Outlook'
+					caption: Saatavuusnäkymä
+				measure 'Inventory by Item'
+					caption: Varasto nimikkeittäin
+				measure 'Inventory by Location'
+					caption: Varasto sijainneittain
+				measure 'Inventory on Hand by Location'
+					caption: Varastosaldo sijainneittain
+				measure 'Purchase and Sales Quantity'
+					caption: Osto- ja myyntimäärä
+				measure 'Item Availability'
+					caption: Nimikkeen saatavuus
+				measure 'Projected Available Balance vs. Quantity on Hand'
+					caption: Oletettu saatavilla oleva saldo vrt. varastosaldo
+				measure 'Gross Requirements vs. Projected Available Balance'
+					caption: Bruttotarpeet vrt. oletettu saatavilla oleva saldo
+				measure 'Gross Requirements Earliest Dates'
+					caption: Bruttotarpeiden aikaisimmat päivämäärät
+				measure 'Scheduled Receipt Earliest Dates'
+					caption: Aikataulutetun vastaanoton aikaisimmat päivämäärät
+				measure 'Purchase Order Drill Through'
+					caption: Ostotilaukseen porautuminen
+				measure 'Purchase Return Order Drill Through'
+					caption: Ostopalautustilaukseen porautuminen
+				measure 'Item Ledger Entry Drill through'
+					caption: Nimiketapahtumaan porautuminen
+				measure 'Production Order Drill Through'
+					caption: Tuotantotilaukseen porautuminen
+				measure 'Prod. Order Components Drill Through'
+					caption: Tuotantotilauksen komponentteihin porautuminen
+				measure 'Sales Order Drill Through'
+					caption: Myyntitilaukseen porautuminen
+				measure 'Sales Return Order Drill Through'
+					caption: Myyntipalautustilaukseen porautuminen
+				measure 'Transfer Order Drill Through'
+					caption: Siirtotilaukseen porautuminen
+				measure 'Assembly Order Drill Through'
+					caption: Kokoonpanotilaukseen porautuminen
+				measure 'Assembly Lines Drill Through'
+					caption: Kokoonpanoriveihin porautuminen
+				measure 'Service Lines Drill Through'
+					caption: Huoltoriveihin porautuminen
+				measure 'Gross Requirement '
+					caption: "Bruttotarve "
+				measure 'Scheduled Receipt '
+					caption: "Aikataulutettu vastaanotto "
+				measure 'Inventory by Lot '
+					caption: "Varasto erittäin "
+				measure 'Inventory by Serial No.'
+					caption: Varasto sarjanroittain
+				measure 'Bin Contents'
+					caption: Varastopaikan sisältö
+				measure 'Bin Contents by Item Tracking'
+					caption: Varastopaikan sisältö nimikeseurannan mukaan
+				measure 'Expired Inventory '
+					caption: "Vanhentunut varasto "
+				measure 'Gross Requirements'
+					caption: Bruttotarpeet
+				measure 'Scheduled Receipts'
+					caption: Aikataulutetut vastaanotot
+				measure 'for Business Central'
+					caption: Business Centralille
+				measure 'CONNECT YOUR DATA'
+					caption: YHDISTÄ TIETOSI
+				measure '1. Download the Inventory Connector for Power BI'
+					caption: 1. Lataa Inventory Connector for Power BI
+				measure '2. Configure Dynamics 365 Business Central'
+					caption: 2. Määritä Dynamics 365 Business Central
+				measure 'USE, EDIT AND BUILD YOUR OWN REPORTS'
+					caption: KÄYTÄ, MUOKKAA JA LUO OMIA RAPORTTEJA
+				measure 'Inventory includes a variety of pre-built reports to help you see your data immediately.'
+					caption: Varasto sisältää erilaisia etukäteen luotuja raportteja, joiden avulla voit tarkastella tietoja heti.
+				measure 'You are able to edit these reports or build your own report from scratch.'
+					caption: Voit muokata näitä raportteja tai luoda oman raportin alusta alkaen.
+				measure 'HELP AND SUPPORT'
+					caption: OHJE JA TUKI
+				measure 'For help and support with your new report please visit the Analytics overview documentation.'
+					caption: Lisätietoja ja tukea uudelle raportillesi löydät analytiikan yleiskuvauksesta.
+				measure 'OTHER POWER BI REPORTS'
+					caption: MUUT POWER BI -RAPORTIT
+				measure PURCHASE
+					caption: OSTO
+				measure FINANCE
+					caption: TALOUSHALLINTO
+				measure REBATES
+					caption: HYVITYKSET
+				measure SALES
+					caption: MYYNTI
+				measure 'INVENTORY '
+					caption: "VARASTO "
+				measure 'Inventory  '
+					caption: "Varasto  "
+				measure 'The inventory by item shows item category code, inventory, and the quantity on various documents.'
+					caption: Varasto nimikkeittäin näyttää nimikeluokan koodin, varaston ja määrän eri asiakirjoissa.
+				measure 'The inventory by location shows item number and description, and quantity on hand per location.'
+					caption: Varasto sijainneittain näyttää nimikenumeron ja kuvauksen sekä varastosaldon sijaintia kohden.
+				measure 'The purchases and sales quantity shows item category code, purchase and sales quantities, and the quantity net change by deducting purchases to sales.'
+					caption: Osto- ja myyntimäärä näyttää nimikeluokan koodin, osto- ja myyntimäärät sekä määrän nettomuutoksen vähentämällä ostot myyntiin.
+				measure 'The item availiblity shows item number, inventory, projected available balance, gross requirement, scheduled receipt, planned order receipt, and planned order releases.'
+					caption: Nimikkeen saatavuus näyttää nimikenumeron, varaston, oletetun saatavilla olevan saldon, bruttotarpeen, aikataulutetun vastaanoton, suunnitellun tilauksen vastaanoton ja suunnitellut tilausvapautukset.
+				measure 'The gross requirement and projected available balance shows item number and description, and the quantity on various documents.'
+					caption: Bruttotarve ja oletettu saatavilla oleva saldo näyttävät nimikenumeron ja kuvauksen sekä määrän eri asiakirjoissa.
+				measure 'The bin contents shows available quantity to take for each location and bin.'
+					caption: Varastopaikan sisältö näyttää saatavilla olevan määrän, joka voidaan ottaa kullekin sijainnille ja varastopaikalle.
+				measure 'The bin contents by item tracking shows item tracking details for each location and bin.'
+					caption: Varastopaikan sisältö nimikeseurannan mukaan näyttää nimikeseurannan tiedot kullekin sijainnille ja varastopaikalle.
+				measure 'The scheduled receipt and projected available balance shows item number and description, and the quantity on various documents.'
+					caption: Aikataulutettu vastaanotto ja oletettu saatavilla oleva saldo näyttävät nimikenumeron ja kuvauksen sekä määrän eri asiakirjoissa.
+				measure 'Last Refreshed'
+					caption: Päivitetty viimeksi
+				measure 'Company Name'
+					caption: Yrityksen nimi
+				measure 'Inventory (Quantity) by Location Code'
+					caption: Varasto (määrä) sijaintikoodin mukaan
+				measure 'Scheduled Receipt and Projected Available Balance by Fiscal Year and Month'
+					caption: Aikataulutettu vastaanotto ja oletettu saatavilla oleva saldo tilikauden ja kuukauden mukaan
+				measure 'Inventory (Quantity) by Lot No.'
+					caption: Varasto (määrä) eränroittain
+				measure 'Inventory (Quantity) by Serial No.'
+					caption: Varasto (määrä) sarjanroittain
+				measure MANUFACTURING
+					caption: TUOTANTO
+				measure 'INVENTORY VALUATION'
+					caption: VARASTON ARVOSTUS
+				measure 'Available Quantity to Take by Bin Code'
+					caption: Saatavilla oleva varastopaikkakoodin mukaan otettava määrä
+				measure 'Projected Available Balance vs. Current Inventory'
+					caption: Oletettu saatavilla oleva saldo vrt. nykyinen varasto
+				measure 'Purchase vs. Sales Quantity Across Time'
+					caption: Ostomäärä vrt. myyntimäärä ajan kuluessa
+				measure 'Inventory by Item Details'
+					caption: Varasto nimikkeittäin – Tiedot
+				measure 'Inventory by Location Details'
+					caption: Varasto sijainneittain – Tiedot
+				measure 'Purchase and Sales Quantity Details'
+					caption: Osto- ja myyntimäärä – Tiedot
+				measure 'Item Availability Details'
+					caption: Nimikkeen saatavuus – Tiedot
+				measure 'Gross Requirement Details'
+					caption: Bruttotarve – Tiedot
+				measure 'Scheduled Receipt Details'
+					caption: Aikataulutettu vastaanotto – Tiedot
+				measure 'Inventory by Lot Details'
+					caption: Varasto erittäin – Tiedot
+				measure 'Inventory by Serial No Details'
+					caption: Varasto sarjanroittain – Tiedot
+				measure 'Bin Contents Details'
+					caption: Varastopaikan sisältö – Tiedot
+				measure 'Bin Contents by Item Tracking Details'
+					caption: Varastopaikan sisältö nimikeseurannan mukaan – Tiedot
+			table COMPANY
+				caption: YRITYS
+				measure 'Company Label'
+					caption: Yrityksen selite
+			table ENVIRONMENT
+				caption: YMPÄRISTÖ
+			table 'Item Category'
+				caption: Nimikeluokka
+				column 'Item Category Code'
+					caption: Nimikeluokan koodi
+				column 'Item Category Description'
+					caption: Nimikeluokan kuvaus
+				hierarchy 'Item Category Code Hierarchy'
+					caption: Nimikeluokan koodihierarkia
+					level 'Item Category Code Level 1'
+						caption: Nimikeluokan kooditaso 1
+					level 'Item Category Code Level 2'
+						caption: Nimikeluokan kooditaso 2
+					level 'Item Category Code Level 3'
+						caption: Nimikeluokan kooditaso 3
+

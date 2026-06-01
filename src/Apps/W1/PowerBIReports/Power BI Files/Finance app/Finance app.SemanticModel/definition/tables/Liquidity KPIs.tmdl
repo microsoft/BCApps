@@ -1,0 +1,42 @@
+table 'Liquidity KPIs'
+	lineageTag: f270f0d7-7345-4133-8fcc-cd818dc3bc36
+
+	measure 'Current Ratio' = DIVIDE([Current Assets],[Current Liabilities])
+		formatString: 0.00
+		lineageTag: 5254903a-d3f7-419e-be16-4484be543a58
+
+	measure 'Quick Ratio' = DIVIDE([Current Assets]-[Inventory] - [Purchase Prepayments],[Current Liabilities])
+		formatString: 0.00
+		lineageTag: b138cc48-e466-4163-be00-453205d991de
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Cash Ratio' = DIVIDE([Liquid Assets],[Current Liabilities])
+		formatString: 0.00
+		lineageTag: 8a2100dd-d9de-4461-bfc2-8ec10b3449d7
+
+	column Column1
+		dataType: string
+		isHidden
+		lineageTag: 5c97dcb0-a2a2-4bad-85e7-36fa12a14865
+		summarizeBy: none
+		sourceColumn: Column1
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Liquidity KPIs-50de2ae2-565c-430f-a5ea-cffe4638bb2a' = m
+		mode: import
+		queryGroup: 'Parameters and Functions'
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type text) meta [Serialized.Text = true]) in type table [Column1 = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Column1", type text}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

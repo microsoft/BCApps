@@ -50,5 +50,9 @@ dotnet
 
     }
 
+    assembly("Microsoft.Dynamics.BusinessCentral.DotNet.Helpers.Encryption")
+    {
+        type("Microsoft.Dynamics.BusinessCentral.DotNet.Helpers.RSAEncryptionHelper"; "RSAEncryptionHelper") { }
+    }
 }
 

@@ -1,0 +1,131 @@
+table Vendors
+	lineageTag: 408107af-c25d-4948-8717-8ea446127d2e
+
+	column 'Vendor No.'
+		dataType: string
+		isKey
+		lineageTag: 8a57adc5-712a-4f45-8885-12dd7f24f447
+		isDefaultLabel
+		summarizeBy: none
+		sourceColumn: Vendor No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Vendor Name'
+		dataType: string
+		lineageTag: d536790e-32c7-456f-bc41-905d14d59418
+		summarizeBy: none
+		sourceColumn: Vendor Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Vendor Address'
+		dataType: string
+		lineageTag: 5dd27886-e5f8-4054-9941-e69c3a7af04f
+		summarizeBy: none
+		sourceColumn: Vendor Address
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Vendor Address 2'
+		dataType: string
+		lineageTag: 409e7da3-999a-4db0-8d4e-fcfaf3726339
+		summarizeBy: none
+		sourceColumn: Vendor Address 2
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Vendor City'
+		dataType: string
+		lineageTag: f19709b6-128b-4010-855b-3cc2d28c9c7c
+		summarizeBy: none
+		sourceColumn: Vendor City
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Vendor Post Code'
+		dataType: string
+		lineageTag: 1be292f2-477d-4724-b01a-a86dd32e2c90
+		summarizeBy: none
+		sourceColumn: Vendor Post Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Vendor State'
+		dataType: string
+		lineageTag: 9dcd3364-6145-4c4d-b7d7-9890f4559f9b
+		summarizeBy: none
+		sourceColumn: Vendor State
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Vendor Country/Region Code'
+		dataType: string
+		lineageTag: 0f16ebc0-f487-460e-9f2f-a46086915f2c
+		summarizeBy: none
+		sourceColumn: Vendor Country/Region Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Vendor Posting Group'
+		dataType: string
+		lineageTag: 8bfec60c-3142-46d4-a18f-e126baa9f4fb
+		summarizeBy: none
+		sourceColumn: Vendor Posting Group
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Vendor No. & Name'
+		dataType: string
+		lineageTag: bb6ca3bf-dc2b-4416-9d7a-e56997791a2c
+		summarizeBy: none
+		sourceColumn: Vendor No. & Name
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Vendors-5370d590-93ff-4d5c-a059-09064ef9b4c5 = m
+		mode: import
+		queryGroup: 'Dimension Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY,API_ENDPOINT, []),
+				    TableData = Source{[Name="vendors",Signature="table"]}[Data],
+				    #"Changed Type" = Table.TransformColumnTypes(
+				        TableData,
+				        {
+				            {"vendorNo", type text},
+				            {"vendorName", type text},
+				            {"address", type text},
+				            {"address2", type text},
+				            {"city", type text},
+				            {"postCode", type text},
+				            {"county", type text},
+				            {"countryRegionCode", type text},
+				            {"vendorPostingGroup", type text}
+				        }
+				    ),
+				    #"Renamed Columns" = Table.RenameColumns(
+				        #"Changed Type",
+				        {
+				            {"vendorNo", "Vendor No."},
+				            {"vendorName", "Vendor Name"},
+				            {"address", "Vendor Address"},
+				            {"address2", "Vendor Address 2"},
+				            {"postCode", "Vendor Post Code"},
+				            {"city", "Vendor City"},
+				            {"countryRegionCode", "Vendor Country/Region Code"},
+				            {"vendorPostingGroup", "Vendor Posting Group"},
+				            {"county", "Vendor State"}
+				        }
+				    ),
+				    #"Added Custom" = Table.AddColumn(
+				        #"Renamed Columns", "Vendor No. & Name", each [#"Vendor No."] & " " & [Vendor Name], type text
+				    ),
+				    #"Removed Columns" = Table.RemoveColumns(#"Added Custom", {"ETag"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

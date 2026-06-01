@@ -6,10 +6,10 @@
 namespace System.Email;
 
 using System;
-using System.Text;
-using System.Telemetry;
-using System.Utilities;
 using System.Environment;
+using System.Telemetry;
+using System.Text;
+using System.Utilities;
 
 codeunit 8905 "Email Message Impl."
 {
@@ -103,6 +103,7 @@ codeunit 8905 "Email Message Impl."
     begin
         Clear(GlobalEmailMessageAttachment);
         Clear(GlobalEmailMessage);
+        InvalidateHeadersCache();
 
         GlobalEmailMessage.Id := CreateGuid();
         GlobalEmailMessage.Insert();
@@ -221,6 +222,103 @@ codeunit 8905 "Email Message Impl."
     begin
         SetBodyHTMLFormattedValue(Value);
         Modify();
+    end;
+
+    procedure AddHeader(HeaderName: Text; HeaderValue: Text)
+    begin
+        StoreHeader(HeaderName, HeaderValue, true);
+    end;
+
+    procedure SetHeader(HeaderName: Text; HeaderValue: Text)
+    begin
+        StoreHeader(HeaderName, HeaderValue, false);
+    end;
+
+    procedure GetHeader(HeaderName: Text; var Value: Text): Boolean
+    var
+        HeaderToken: JsonToken;
+        NormalizedName: Text;
+    begin
+        Value := '';
+        NormalizedName := NormalizeHeaderName(HeaderName);
+        if NormalizedName = '' then
+            exit(false);
+        EnsureHeadersLoaded();
+        if not GlobalHeadersJson.Get(NormalizedName, HeaderToken) then
+            exit(false);
+        if not HeaderToken.IsValue() then
+            exit(false);
+        Value := HeaderToken.AsValue().AsText();
+        exit(true);
+    end;
+
+    procedure FlushHeaders()
+    var
+        HeadersOutStream: OutStream;
+        HeadersText: Text;
+    begin
+        if not GlobalHeadersDirty then
+            exit;
+        Clear(GlobalEmailMessage."Message Headers");
+        if GlobalHeadersJson.Keys().Count() > 0 then begin
+            GlobalHeadersJson.WriteTo(HeadersText);
+            GlobalEmailMessage."Message Headers".CreateOutStream(HeadersOutStream, TextEncoding::UTF8);
+            HeadersOutStream.WriteText(HeadersText);
+        end;
+        Modify();
+        GlobalHeadersDirty := false;
+    end;
+
+    local procedure StoreHeader(HeaderName: Text; HeaderValue: Text; AppendIfPresent: Boolean)
+    var
+        ExistingToken: JsonToken;
+        NormalizedName: Text;
+        LineFeed: Text[1];
+    begin
+        NormalizedName := NormalizeHeaderName(HeaderName);
+        if NormalizedName = '' then
+            exit;
+        EnsureHeadersLoaded();
+        if GlobalHeadersJson.Get(NormalizedName, ExistingToken) then
+            if AppendIfPresent then begin
+                LineFeed[1] := 10;
+                GlobalHeadersJson.Replace(NormalizedName, ExistingToken.AsValue().AsText() + LineFeed + HeaderValue);
+            end else
+                GlobalHeadersJson.Replace(NormalizedName, HeaderValue)
+        else
+            GlobalHeadersJson.Add(NormalizedName, HeaderValue);
+        GlobalHeadersDirty := true;
+    end;
+
+    local procedure NormalizeHeaderName(HeaderName: Text): Text
+    begin
+        exit(LowerCase(DelChr(HeaderName, '<>', ' ')));
+    end;
+
+    local procedure EnsureHeadersLoaded()
+    var
+        HeadersInStream: InStream;
+        HeadersText: Text;
+    begin
+        if GlobalHeadersLoaded then
+            exit;
+        Clear(GlobalHeadersJson);
+        GlobalEmailMessage.CalcFields("Message Headers");
+        if GlobalEmailMessage."Message Headers".HasValue() then begin
+            GlobalEmailMessage."Message Headers".CreateInStream(HeadersInStream, TextEncoding::UTF8);
+            HeadersInStream.ReadText(HeadersText);
+            if HeadersText <> '' then
+                if not GlobalHeadersJson.ReadFrom(HeadersText) then
+                    Clear(GlobalHeadersJson);
+        end;
+        GlobalHeadersLoaded := true;
+    end;
+
+    local procedure InvalidateHeadersCache()
+    begin
+        Clear(GlobalHeadersJson);
+        GlobalHeadersLoaded := false;
+        GlobalHeadersDirty := false;
     end;
 
     procedure IsRead(): Boolean
@@ -619,7 +717,7 @@ codeunit 8905 "Email Message Impl."
 
     procedure GetRelatedAttachments(EmailMessageId: Guid; var EmailRelatedAttachmentOut: Record "Email Related Attachment"): Boolean
     var
-        EmailRelatedAttachment: Record "Email Related Attachment";
+        TempEmailRelatedAttachment: Record "Email Related Attachment";
         EmailRelatedRecord: Record "Email Related Record";
         Email: Codeunit Email;
         EmailImpl: Codeunit "Email Impl";
@@ -631,10 +729,10 @@ codeunit 8905 "Email Message Impl."
             exit(false);
 
         repeat
-            Email.OnFindRelatedAttachments(EmailRelatedRecord."Table Id", EmailRelatedRecord."System Id", EmailRelatedAttachment);
-            if EmailRelatedAttachment.FindSet() then
-                InsertRelatedAttachments(EmailRelatedRecord."Table Id", EmailRelatedRecord."System Id", EmailRelatedAttachment, EmailRelatedAttachmentOut);
-            EmailRelatedAttachment.DeleteAll();
+            Email.OnFindRelatedAttachments(EmailRelatedRecord."Table Id", EmailRelatedRecord."System Id", TempEmailRelatedAttachment);
+            if TempEmailRelatedAttachment.FindSet() then
+                InsertRelatedAttachments(EmailRelatedRecord."Table Id", EmailRelatedRecord."System Id", TempEmailRelatedAttachment, EmailRelatedAttachmentOut);
+            TempEmailRelatedAttachment.DeleteAll();
         until EmailRelatedRecord.Next() = 0;
 
         exit(true);
@@ -648,6 +746,7 @@ codeunit 8905 "Email Message Impl."
     procedure Get(MessageId: Guid): Boolean
     begin
         Clear(GlobalEmailMessageAttachment);
+        InvalidateHeadersCache();
 
         exit(GlobalEmailMessage.Get(MessageId));
     end;
@@ -665,7 +764,7 @@ codeunit 8905 "Email Message Impl."
             exit(EmptyGuid);
 
         for MessageNo := 1 to MessagesToIterate do begin
-            DeleteIfOrphaned(EmailMessage);
+            DeleteEmailMessageIfOrphaned(EmailMessage);
 
             if EmailMessage.Next() = 0 then
                 exit(EmptyGuid);
@@ -674,7 +773,7 @@ codeunit 8905 "Email Message Impl."
         exit(EmailMessage.Id);
     end;
 
-    local procedure DeleteIfOrphaned(var EmailMessage: Record "Email Message")
+    local procedure DeleteEmailMessageIfOrphaned(var EmailMessage: Record "Email Message")
     var
         EmailOutbox: Record "Email Outbox";
         SentEmail: Record "Sent Email";
@@ -688,6 +787,47 @@ codeunit 8905 "Email Message Impl."
             exit;
 
         EmailMessage.Delete();
+    end;
+
+    procedure DeleteEmailRecipientsIfOrphaned(StartMessageId: Guid; RecipientsToIterate: Integer) NextMessageId: Guid
+    var
+        EmailRecipients: Record "Email Recipient";
+        OrphanedDict: Dictionary of [Guid, Boolean];
+        EmptyGuid: Guid;
+        RecipientIdx: Integer;
+    begin
+        EmailRecipients.SetLoadFields("Email Message Id");
+        EmailRecipients.ReadIsolation(IsolationLevel::ReadCommitted);
+        EmailRecipients.SetFilter("Email Message Id", '>=%1', StartMessageId);
+
+        if not EmailRecipients.FindSet() then
+            exit;
+
+        for RecipientIdx := 1 to RecipientsToIterate do begin
+            if IsEmailRecipientOrphaned(OrphanedDict, EmailRecipients) then
+                EmailRecipients.Delete();
+
+            if EmailRecipients.Next() = 0 then
+                exit(EmptyGuid);
+        end;
+
+        exit(EmailRecipients."Email Message Id");
+    end;
+
+    local procedure IsEmailRecipientOrphaned(var OrphanedDict: Dictionary of [Guid, Boolean]; var EmailRecipient: Record "Email Recipient"): Boolean
+    var
+        EmailMessage: Record "Email Message";
+    begin
+        if OrphanedDict.ContainsKey(EmailRecipient."Email Message Id") then
+            exit(OrphanedDict.Get(EmailRecipient."Email Message Id"));
+        EmailMessage.SetRange(Id, EmailRecipient."Email Message Id");
+        if EmailMessage.IsEmpty() then begin
+            OrphanedDict.Add(EmailRecipient."Email Message Id", true);
+            exit(true);
+        end;
+
+        OrphanedDict.Add(EmailRecipient."Email Message Id", false);
+        exit(false);
     end;
 
     procedure ValidateRecipients()
@@ -965,6 +1105,9 @@ codeunit 8905 "Email Message Impl."
         GlobalEmailMessageAttachment: Record "Email Message Attachment";
         TenantMedia: Record "Tenant Media";
         Telemetry: Codeunit Telemetry;
+        GlobalHeadersJson: JsonObject;
+        GlobalHeadersLoaded: Boolean;
+        GlobalHeadersDirty: Boolean;
         EmailCategoryLbl: Label 'Email', Locked = true;
         EmailMessageQueuedCannotModifyErr: Label 'Cannot edit the email because it has been queued to be sent.';
         EmailMessageSentCannotModifyErr: Label 'Cannot edit the message because it has already been sent.';

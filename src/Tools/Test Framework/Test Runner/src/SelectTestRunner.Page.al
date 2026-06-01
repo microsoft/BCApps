@@ -11,9 +11,10 @@ page 130454 "Select TestRunner"
 {
     Editable = false;
     PageType = List;
-    SourceTable = AllObjWithCaption;
-    SourceTableView = where("Object Type" = const(Codeunit),
-                            "Object Subtype" = const('TestRunner'));
+#pragma warning disable AS0035
+    SourceTable = "CodeUnit Metadata";
+#pragma warning restore
+    SourceTableView = where(Subtype = const(TestRunner));
 
     layout
     {
@@ -22,12 +23,12 @@ page 130454 "Select TestRunner"
             repeater(Control1)
             {
                 ShowCaption = false;
-                field("Object ID"; Rec."Object ID")
+                field("Object ID"; Rec.ID)
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the Object ID';
                 }
-                field("Object Name"; Rec."Object Name")
+                field("Object Name"; Rec.Name)
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the Object Name';

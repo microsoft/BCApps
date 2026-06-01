@@ -5,8 +5,8 @@
 
 namespace System.Agents;
 
-using System.Security.User;
 using System.Environment.Configuration;
+using System.Globalization;
 
 page 4315 "Agent Card"
 {
@@ -36,6 +36,12 @@ page 4315 "Agent Card"
                     Tooltip = 'Specifies the type of the agent.';
                     Editable = false;
                 }
+                field(Availability; CopilotAvailabilityTxt)
+                {
+                    Caption = 'Availability';
+                    ToolTip = 'Specifies the availability of the agent.';
+                    Editable = false;
+                }
                 field(UserName; Rec."User Name")
                 {
                     ShowMandatory = true;
@@ -59,16 +65,36 @@ page 4315 "Agent Card"
                     field(AgentProfile; ProfileDisplayName)
                     {
                         ApplicationArea = Basic, Suite;
-                        Caption = 'Profile';
+                        Caption = 'Profile (Role)';
                         ToolTip = 'Specifies the profile that is associated with the agent.';
                         Editable = false;
 
                         trigger OnAssistEdit()
                         var
-                            AgentImpl: Codeunit "Agent Impl.";
+                            Agent: Codeunit Agent;
                         begin
-                            if AgentImpl.ProfileLookup(UserSettingsRecord) then
-                                AgentImpl.UpdateAgentUserSettings(UserSettingsRecord);
+                            if not Confirm(ProfileChangedQst, false) then
+                                exit;
+
+                            if Agent.ProfileLookup(TempUserSettingsRecord) then
+                                Agent.SetProfile(TempUserSettingsRecord."User Security ID", TempUserSettingsRecord."Profile ID", TempUserSettingsRecord."App ID");
+                        end;
+                    }
+                    field(Language; Language.GetWindowsLanguageName(TempUserSettingsRecord."Language ID"))
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Caption = 'Language';
+                        ToolTip = 'Specifies the display language for the agent.';
+                        Editable = false;
+
+                        trigger OnAssistEdit()
+                        var
+                            UserSettings: Codeunit "User Settings";
+                        begin
+                            UserSettings.GetUserSettings(Rec."User Security ID", TempUserSettingsRecord);
+                            Commit();
+                            Page.RunModal(Page::"Agent User Settings", TempUserSettingsRecord);
+                            CurrPage.Update(false);
                         end;
                     }
                 }
@@ -77,7 +103,7 @@ page 4315 "Agent Card"
                     ApplicationArea = Basic, Suite;
                     Importance = Standard;
                     Caption = 'State';
-                    ToolTip = 'Specifies if the agent is enabled or disabled.';
+                    ToolTip = 'Specifies if the agent is active or inactive.';
 
                     trigger OnValidate()
                     begin
@@ -86,17 +112,14 @@ page 4315 "Agent Card"
                     end;
                 }
             }
-
-            part(Permissions; "User Subform")
+            part(Permissions; "View Agent Permissions")
             {
-                Editable = ControlsEditable;
                 ApplicationArea = Basic, Suite;
-                Caption = 'Agent Permission Sets';
+                Caption = 'Agent Permissions';
                 SubPageLink = "User Security ID" = field("User Security ID");
             }
-            part(UserAccess; "Agent Access Control")
+            part(UserAccess; "View Agent Access Control")
             {
-                Editable = ControlsEditable;
                 ApplicationArea = Basic, Suite;
                 Caption = 'User Access';
                 SubPageLink = "Agent User Security ID" = field("User Security ID");
@@ -110,9 +133,10 @@ page 4315 "Agent Card"
             action(AgentSetup)
             {
                 ApplicationArea = Basic, Suite;
-                Caption = 'Setup';
-                ToolTip = 'Set up agent';
+                Caption = 'Configure';
+                ToolTip = 'Configure agent';
                 Image = SetupLines;
+                Enabled = Rec."Can Curr. User Configure Agent";
 
                 trigger OnAction()
                 begin
@@ -122,8 +146,8 @@ page 4315 "Agent Card"
             action(UserSettingsAction)
             {
                 ApplicationArea = Basic, Suite;
-                Caption = 'User Settings';
-                ToolTip = 'Set up the profile and regional settings for the agent.';
+                Caption = 'Agent User Settings';
+                ToolTip = 'Set up the user settings for the agent.';
                 Image = SetupLines;
 
                 trigger OnAction()
@@ -131,14 +155,15 @@ page 4315 "Agent Card"
                     UserSettings: Codeunit "User Settings";
                 begin
                     Rec.TestField("User Security ID");
-                    UserSettings.GetUserSettings(Rec."User Security ID", UserSettingsRecord);
-                    Page.RunModal(Page::"User Settings", UserSettingsRecord);
+                    UserSettings.GetUserSettings(Rec."User Security ID", TempUserSettingsRecord);
+                    Commit();
+                    Page.RunModal(Page::"Agent User Settings", TempUserSettingsRecord);
                 end;
             }
             action(AgentTasks)
             {
                 ApplicationArea = All;
-                Caption = 'Agent Tasks';
+                Caption = 'View tasks';
                 ToolTip = 'View agent tasks';
                 Image = Log;
 
@@ -168,17 +193,28 @@ page 4315 "Agent Card"
         }
     }
 
+    trigger OnOpenPage()
+    var
+        AgentUtilities: Codeunit "Agent Utilities";
+        AgentSystemPermissions: Codeunit "Agent System Permissions";
+    begin
+        AgentUtilities.BlockPageFromBeingOpenedByAgent();
+
+        if not AgentSystemPermissions.CurrentUserCanManageAgent(Rec."User Security ID") then
+            Error(YouDoNotHavePermissionToModifyThisAgentErr);
+    end;
+
     local procedure UpdateControls()
     var
         AgentImpl: Codeunit "Agent Impl.";
         UserSettings: Codeunit "User Settings";
     begin
         if not IsNullGuid(Rec."User Security ID") then begin
-            UserSettings.GetUserSettings(Rec."User Security ID", UserSettingsRecord);
-            ProfileDisplayName := AgentImpl.GetProfileName(UserSettingsRecord.Scope, UserSettingsRecord."App ID", UserSettingsRecord."Profile ID");
+            UserSettings.GetUserSettings(Rec."User Security ID", TempUserSettingsRecord);
+            ProfileDisplayName := UserSettings.GetProfileName(TempUserSettingsRecord);
         end;
 
-        ControlsEditable := Rec.State = Rec.State::Disabled;
+        CopilotAvailabilityTxt := AgentImpl.GetCopilotAvailabilityDisplayText(Rec);
     end;
 
     local procedure ChangeState()
@@ -210,19 +246,18 @@ page 4315 "Agent Card"
 
     local procedure OpenSetupPage()
     var
-        TempAgent: Record Agent temporary;
+        Agent: Codeunit Agent;
     begin
-        TempAgent.Copy(Rec);
-        TempAgent.Insert();
-        Page.RunModal(Rec."Setup Page ID", TempAgent);
+        Agent.OpenSetupPageId(Rec."Agent Metadata Provider", Rec."User Security ID");
         CurrPage.Update(false);
     end;
 
-
     var
-        UserSettingsRecord: Record "User Settings";
-        ProfileDisplayName: Text;
-        ControlsEditable: Boolean;
-        OpenConfigurationPageQst: Label 'To activate the agent, use the setup page. Would you like to open this page now?';
-        YouCannotEnableAgentWithoutUsingConfigurationPageErr: Label 'You can''t activate the agent from this page. Use the action to set up and activate the agent.';
+        TempUserSettingsRecord: Record "User Settings";
+        Language: Codeunit Language;
+        ProfileDisplayName, CopilotAvailabilityTxt : Text;
+        ProfileChangedQst: Label 'Changing the agent''s profile may affect its accuracy and performance. It could also grant access to unexpected fields and actions.\\Do you want to continue?';
+        OpenConfigurationPageQst: Label 'To activate the agent, use the configuration page. Would you like to open this page now?';
+        YouCannotEnableAgentWithoutUsingConfigurationPageErr: Label 'You can''t activate the agent from this page. Use the action to configure and activate the agent.';
+        YouDoNotHavePermissionToModifyThisAgentErr: Label 'You do not have permission to modify this agent. Contact your system administrator to update your permissions or to mark you as one of the administrators for the agent.';
 }

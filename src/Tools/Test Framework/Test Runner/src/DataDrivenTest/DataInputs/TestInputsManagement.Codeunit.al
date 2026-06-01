@@ -5,6 +5,8 @@
 
 namespace System.TestTools.TestRunner;
 
+using System.Globalization;
+
 codeunit 130458 "Test Inputs Management"
 {
     EventSubscriberInstance = Manual;
@@ -115,19 +117,39 @@ codeunit 130458 "Test Inputs Management"
     var
         EmptyGuid: Guid;
     begin
-        UploadAndImportDataInputs(FileName, TestInputInStream, EmptyGuid);
+        UploadAndImportDataInputs(FileName, TestInputInStream, EmptyGuid, 0);
     end;
 
     procedure UploadAndImportDataInputs(FileName: Text; TestInputInStream: InStream; ImportedByAppId: Guid)
+    begin
+        UploadAndImportDataInputs(FileName, TestInputInStream, ImportedByAppId, 0);
+    end;
+
+    procedure UploadAndImportDataInputs(FileName: Text; TestInputInStream: InStream; ImportedByAppId: Guid; LanguageID: Integer)
+    var
+        EmptyName: Text;
+    begin
+        UploadAndImportDataInputs(FileName, TestInputInStream, ImportedByAppId, LanguageID, EmptyName);
+    end;
+
+    procedure UploadAndImportDataInputs(FileName: Text; TestInputInStream: InStream; ImportedByAppId: Guid; LanguageID: Integer; GroupName: Text)
     var
         TestInputGroup: Record "Test Input Group";
         TestInput: Record "Test Input";
         InputText: Text;
+        SuiteSetupGroupName: Text;
         FileType: Text;
         TelemetryCD: Dictionary of [Text, Text];
     begin
+        ReadMetadataFromFile(FileName, TestInputInStream, LanguageID, GroupName, SuiteSetupGroupName, InputText);
+
         if not TestInputGroup.Find() then
-            CreateTestInputGroup(TestInputGroup, FileName, ImportedByAppId);
+            CreateTestInputGroup(TestInputGroup, FileName, ImportedByAppId, LanguageID, GroupName);
+
+        if SuiteSetupGroupName <> '' then begin
+            TestInputGroup."Suite Setup Group Name" := CopyStr(SuiteSetupGroupName, 1, MaxStrLen(TestInputGroup."Suite Setup Group Name"));
+            TestInputGroup.Modify(true);
+        end;
 
         if FileName.EndsWith(JsonFileExtensionTxt) then begin
             FileType := JsonFileExtensionTxt;
@@ -142,7 +164,6 @@ codeunit 130458 "Test Inputs Management"
 
         if FileName.EndsWith(YamlFileExtensionTxt) then begin
             FileType := YamlFileExtensionTxt;
-            TestInputInStream.Read(InputText);
             ParseDataInputsYaml(InputText, TestInputGroup);
         end;
 
@@ -192,7 +213,37 @@ codeunit 130458 "Test Inputs Management"
             TestInputGroupCode := CopyStr(FileName, 1, MaxStrLen(TestInputGroupCode));
     end;
 
-    local procedure CreateTestInputGroup(var TestInputGroup: Record "Test Input Group"; FileName: Text; ImportedByAppId: Guid)
+    local procedure ReadMetadataFromFile(FileName: Text; var TestInputInStream: InStream; var LanguageID: Integer; var GroupName: Text; var SuiteSetupGroupName: Text; var InputText: Text)
+    var
+        WindowsLanguage: Record "Windows Language";
+        MetadataJsonObject: JsonObject;
+        MetadataJsonToken: JsonToken;
+    begin
+        if not FileName.EndsWith(YamlFileExtensionTxt) then
+            exit;
+
+        TestInputInStream.Read(InputText);
+
+        if not MetadataJsonObject.ReadFromYaml(InputText) then
+            exit;
+
+        if MetadataJsonObject.Get(LanguageTok, MetadataJsonToken) then
+            if MetadataJsonToken.IsValue() then begin
+                WindowsLanguage.SetRange("Language Tag", MetadataJsonToken.AsValue().AsText());
+                if WindowsLanguage.FindFirst() then
+                    LanguageID := WindowsLanguage."Language ID";
+            end;
+
+        if MetadataJsonObject.Get(NameTok, MetadataJsonToken) then
+            if MetadataJsonToken.IsValue() then
+                GroupName := MetadataJsonToken.AsValue().AsText();
+
+        if MetadataJsonObject.Get(TestSuiteSetupTok, MetadataJsonToken) then
+            if MetadataJsonToken.IsValue() then
+                SuiteSetupGroupName := MetadataJsonToken.AsValue().AsText();
+    end;
+
+    local procedure CreateTestInputGroup(var TestInputGroup: Record "Test Input Group"; FileName: Text; ImportedByAppId: Guid; LanguageID: Integer; GroupName: Text)
     var
         EmptyGuid: Guid;
     begin
@@ -200,10 +251,18 @@ codeunit 130458 "Test Inputs Management"
 
         TestInputGroup.Description := CopyStr(FileName, 1, MaxStrLen(TestInputGroup.Description));
 
+        if GroupName <> '' then
+            TestInputGroup."Group Name" := CopyStr(GroupName, 1, MaxStrLen(TestInputGroup."Group Name"))
+        else
+            TestInputGroup."Group Name" := CopyStr(FileName, 1, MaxStrLen(TestInputGroup."Group Name"));
+
+        if LanguageID <> 0 then
+            TestInputGroup."Language ID" := LanguageID;
+
         if ImportedByAppId <> EmptyGuid then
             TestInputGroup."Imported by AppId" := ImportedByAppId;
 
-        TestInputGroup.Insert();
+        TestInputGroup.Insert(true);
     end;
 
     local procedure ParseDataInputs(TestData: Text; var TestInputGroup: Record "Test Input Group")
@@ -243,7 +302,14 @@ codeunit 130458 "Test Inputs Management"
         DataInputJsonArray: JsonArray;
     begin
         if not DataInputJsonObject.ReadFromYaml(TestData) then
-            Error(CouldNotParseInputErr);
+            Error(CouldNotParseYamlInputErr);
+
+        // Suite setup: store entire content as a single row (only when value is an object, not a scalar reference)
+        if DataInputJsonObject.Get(TestSuiteSetupTok, DataInputJsonToken) then
+            if not DataInputJsonToken.IsValue() then begin
+                InsertSuiteSetupDataInput(DataInputJsonToken, TestInputGroup);
+                exit;
+            end;
 
         if not DataInputJsonObject.Get(TestsTok, DataInputJsonToken) then begin
             InsertDataInputLine(DataInputJsonObject, TestInputGroup);
@@ -256,7 +322,27 @@ codeunit 130458 "Test Inputs Management"
             exit;
         end;
 
-        InsertDataInputLine(DataInputJsonObject, TestInputGroup);
+        InsertDataInputLine(DataInputJsonToken.AsObject(), TestInputGroup);
+    end;
+
+    local procedure InsertSuiteSetupDataInput(SuiteSetupJsonToken: JsonToken; var TestInputGroup: Record "Test Input Group")
+    var
+        TestInput: Record "Test Input";
+        SuiteSetupText: Text;
+    begin
+        TestInput.SetRange("Test Input Group Code", TestInputGroup.Code);
+        if not TestInput.IsEmpty() then
+            Error(SuiteSetupOnlyOneRowErr);
+
+        TestInput.Reset();
+        TestInput."Test Input Group Code" := TestInputGroup.Code;
+        TestInput."Language ID" := TestInputGroup."Language ID";
+        TestInput.Code := SuiteSetupInputCodeTok;
+        TestInput.Description := SuiteSetupInputCodeTok;
+        TestInput.Insert(true);
+
+        SuiteSetupJsonToken.WriteTo(SuiteSetupText);
+        TestInput.SetInput(TestInput, SuiteSetupText);
     end;
 
     local procedure InsertDataInputsFromJsonArray(var TestInputGroup: Record "Test Input Group"; var DataOnlyTestInputsArray: JsonArray)
@@ -277,6 +363,7 @@ codeunit 130458 "Test Inputs Management"
         TestInputText: Text;
     begin
         TestInput."Test Input Group Code" := TestInputGroup.Code;
+        TestInput."Language ID" := TestInputGroup."Language ID";
 
         if not DataOnlyTestInput.Get(TestInputTok, TestInputJsonToken) then
             TestInputJsonToken := DataOnlyTestInput.AsToken();
@@ -352,12 +439,18 @@ codeunit 130458 "Test Inputs Management"
     var
         DataNameTok: Label 'name', Locked = true;
         DescriptionTok: Label 'description', Locked = true;
+        LanguageTok: Label 'language', Locked = true;
+        NameTok: Label 'name', Locked = true;
         TestsTok: Label 'tests', Locked = true;
+        TestSuiteSetupTok: Label 'suite_setup', Locked = true;
         TestInputTok: Label 'testInput', Locked = true;
+        SuiteSetupInputCodeTok: Label 'SUITE-SETUP', Locked = true;
         ChooseFileLbl: Label 'Choose a file to import';
         TestInputNameTok: Label 'INPUT-', Locked = true;
-        CouldNotParseInputErr: Label 'Could not parse input dataset';
+        CouldNotParseYamlInputErr: Label 'The data does not represent valid YAML.';
+        CouldNotParseInputErr: Label 'Could not parse input dataset.';
         CouldNotParseJsonlInputErr: Label 'Could not parse JSONL input line: %1', Comment = '%1 = JSON Line Content';
+        SuiteSetupOnlyOneRowErr: Label 'Suite setup datasets can only contain a single entry per language.';
         LineTypeMustBeCodeunitErr: Label 'Line type must be Codeunit.';
         JsonFileExtensionTxt: Label '.json', Locked = true;
         JsonlFileExtensionTxt: Label '.jsonl', Locked = true;

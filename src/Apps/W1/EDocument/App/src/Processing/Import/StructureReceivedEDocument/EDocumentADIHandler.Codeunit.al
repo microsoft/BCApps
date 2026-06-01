@@ -1,0 +1,241 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+namespace Microsoft.EServices.EDocument.Format;
+
+using Microsoft.eServices.EDocument;
+using Microsoft.eServices.EDocument.Helpers;
+using Microsoft.eServices.EDocument.Processing.Import;
+using Microsoft.eServices.EDocument.Processing.Import.Purchase;
+using Microsoft.eServices.EDocument.Processing.Interfaces;
+using System.AI;
+using System.AI.DocumentIntelligence;
+using System.Text;
+using System.Utilities;
+
+codeunit 6174 "E-Document ADI Handler" implements IStructureReceivedEDocument, IStructuredFormatReader, IStructuredDataType
+{
+    Access = Internal;
+    InherentEntitlements = X;
+    InherentPermissions = X;
+
+    var
+        EDocumentJsonHelper: Codeunit "EDocument Json Helper";
+        StructuredData: Text;
+        FileFormat: Enum "E-Doc. File Format";
+        ReadIntoDraftImpl: Enum "E-Doc. Read into Draft";
+        FeatureNameTxt: label 'E-Document Matching Assistance', Locked = true;
+
+    procedure StructureReceivedEDocument(EDocumentDataStorage: Record "E-Doc. Data Storage"): Interface IStructuredDataType
+    var
+        Base64Convert: Codeunit "Base64 Convert";
+        AzureDocumentIntelligence: Codeunit "Azure Document Intelligence";
+        CopilotCapability: Codeunit "Copilot Capability";
+        FromTempBlob: Codeunit "Temp Blob";
+        Instream: InStream;
+        Data: Text;
+    begin
+        if not CopilotCapability.IsCapabilityRegistered(Enum::"Copilot Capability"::"E-Document Analysis") then
+            AzureDocumentIntelligence.RegisterCopilotCapability(Enum::"Copilot Capability"::"E-Document Analysis", Enum::"Copilot Availability"::Preview, '');
+
+        AzureDocumentIntelligence.SetCopilotCapability(Enum::"Copilot Capability"::"E-Document Analysis");
+
+        FromTempBlob := EDocumentDataStorage.GetTempBlob();
+        FromTempBlob.CreateInStream(InStream, TextEncoding::UTF8);
+        Data := Base64Convert.ToBase64(InStream);
+        StructuredData := AzureDocumentIntelligence.AnalyzeInvoice(Data);
+        // If the call to ADI fails the system module will return an empty string, in such case we want to carry on with a blank draft
+        if StructuredData = '' then begin
+            FileFormat := "E-Doc. File Format"::Unspecified;
+            ReadIntoDraftImpl := "E-Doc. Read into Draft"::"Blank Draft";
+        end else begin
+            FileFormat := "E-Doc. File Format"::JSON;
+            ReadIntoDraftImpl := "E-Doc. Read into Draft"::ADI;
+        end;
+        exit(this);
+    end;
+
+    procedure GetFileFormat(): Enum "E-Doc. File Format"
+    begin
+        exit(this.FileFormat);
+    end;
+
+    procedure GetContent(): Text
+    begin
+        exit(this.StructuredData);
+    end;
+
+    procedure GetReadIntoDraftImpl(): Enum "E-Doc. Read into Draft"
+    begin
+        exit(this.ReadIntoDraftImpl);
+    end;
+
+    procedure ReadIntoDraft(EDocument: Record "E-Document"; TempBlob: Codeunit "Temp Blob"): Enum "E-Doc. Process Draft"
+    var
+        TempEDocPurchaseHeader: Record "E-Document Purchase Header" temporary;
+        TempEDocPurchaseLine: Record "E-Document Purchase Line" temporary;
+        EDocPurchaseDraftUtility: Codeunit "E-Doc. Purchase Draft Utility";
+    begin
+        ReadIntoBuffer(EDocument, TempBlob, TempEDocPurchaseHeader, TempEDocPurchaseLine);
+        EDocPurchaseDraftUtility.PersistDraft(EDocument, TempEDocPurchaseHeader, TempEDocPurchaseLine);
+        exit(Enum::"E-Doc. Process Draft"::"Purchase Invoice");
+    end;
+
+    local procedure ReadIntoBuffer(
+        EDocument: Record "E-Document";
+        TempBlob: Codeunit "Temp Blob";
+        var TempEDocPurchaseHeader: Record "E-Document Purchase Header" temporary;
+        var TempEDocPurchaseLine: Record "E-Document Purchase Line" temporary)
+    var
+        InStream: InStream;
+        SourceJsonObject: JsonObject;
+        BlobAsText: Text;
+    begin
+        TempBlob.CreateInStream(InStream, TextEncoding::UTF8);
+        InStream.Read(BlobAsText);
+        SourceJsonObject.ReadFrom(BlobAsText);
+
+        PopulateEDocumentPurchaseHeader(EDocumentJsonHelper.GetHeaderFields(SourceJsonObject), TempEDocPurchaseHeader);
+        PopulateEDocumentPurchaseLines(EDocumentJsonHelper.GetLinesArray(SourceJsonObject), EDocument."Entry No", TempEDocPurchaseLine);
+        TempEDocPurchaseHeader."E-Document Entry No." := EDocument."Entry No";
+    end;
+
+    procedure View(EDocument: Record "E-Document"; TempBlob: Codeunit "Temp Blob")
+    var
+        TempEDocPurchaseHeader: Record "E-Document Purchase Header" temporary;
+        TempEDocPurchaseLine: Record "E-Document Purchase Line" temporary;
+        EDocReadablePurchaseDoc: Page "E-Doc. Readable Purchase Doc.";
+    begin
+        ReadIntoBuffer(EDocument, TempBlob, TempEDocPurchaseHeader, TempEDocPurchaseLine);
+        EDocReadablePurchaseDoc.SetBuffer(TempEDocPurchaseHeader, TempEDocPurchaseLine);
+        EDocReadablePurchaseDoc.Run();
+    end;
+
+    local procedure PopulateEDocumentPurchaseLines(ItemsArray: JsonArray; EDocumentEntryNo: Integer; var TempEDocPurchaseLine: Record "E-Document Purchase Line" temporary)
+    var
+        JsonTokenTemp, ItemToken : JsonToken;
+        ItemObject, LineObject : JsonObject;
+        LineNumber: Integer;
+    begin
+        TempEDocPurchaseLine.DeleteAll();
+
+        for LineNumber := 0 to ItemsArray.Count() do begin
+            if not ItemsArray.Get(LineNumber, ItemToken) then
+                continue;
+            Clear(TempEDocPurchaseLine);
+            TempEDocPurchaseLine.Validate("E-Document Entry No.", EDocumentEntryNo);
+            TempEDocPurchaseLine."Line No." := 10000 + (LineNumber * 10000);
+            ItemObject := ItemToken.AsObject();
+            ItemObject.Get('fields', JsonTokenTemp);
+            LineObject := JsonTokenTemp.AsObject();
+            PopulateEDocumentPurchaseLine(LineObject, TempEDocPurchaseLine);
+            TempEDocPurchaseLine.Insert();
+        end;
+    end;
+
+#pragma warning disable AA0139 // false positive: overflow handled by EDocumentJsonHelper.EDocumentJsonHelper.SetStringValueInField
+    local procedure PopulateEDocumentPurchaseHeader(FieldsJsonObject: JsonObject; var TempEDocPurchaseHeader: Record "E-Document Purchase Header" temporary)
+    var
+        ConfidenceScore: Decimal;
+    begin
+        EDocumentJsonHelper.SetStringValueInField('customerName', MaxStrLen(TempEDocPurchaseHeader."Customer Company Name"), FieldsJsonObject, TempEDocPurchaseHeader."Customer Company Name");
+        EDocumentJsonHelper.SetStringValueInField('customerId', MaxStrLen(TempEDocPurchaseHeader."Customer Company Id"), FieldsJsonObject, TempEDocPurchaseHeader."Customer Company Id");
+        EDocumentJsonHelper.SetStringValueInField('purchaseOrder', MaxStrLen(TempEDocPurchaseHeader."Purchase Order No."), FieldsJsonObject, TempEDocPurchaseHeader."Purchase Order No.");
+        EDocumentJsonHelper.SetStringValueInField('invoiceId', MaxStrLen(TempEDocPurchaseHeader."Sales Invoice No."), FieldsJsonObject, TempEDocPurchaseHeader."Sales Invoice No.");
+        EDocumentJsonHelper.SetDateValueInField('dueDate', FieldsJsonObject, TempEDocPurchaseHeader."Due Date");
+        EDocumentJsonHelper.SetDateValueInField('invoiceDate', FieldsJsonObject, TempEDocPurchaseHeader."Document Date");
+        EDocumentJsonHelper.SetStringValueInField('vendorName', MaxStrLen(TempEDocPurchaseHeader."Vendor Company Name"), FieldsJsonObject, TempEDocPurchaseHeader."Vendor Company Name");
+        EDocumentJsonHelper.SetStringValueInField('vendorAddress', MaxStrLen(TempEDocPurchaseHeader."Vendor Address"), FieldsJsonObject, TempEDocPurchaseHeader."Vendor Address");
+        EDocumentJsonHelper.SetStringValueInField('vendorAddressRecipient', MaxStrLen(TempEDocPurchaseHeader."Vendor Address Recipient"), FieldsJsonObject, TempEDocPurchaseHeader."Vendor Address Recipient");
+        EDocumentJsonHelper.SetStringValueInField('customerAddress', MaxStrLen(TempEDocPurchaseHeader."Customer Address"), FieldsJsonObject, TempEDocPurchaseHeader."Customer Address");
+        EDocumentJsonHelper.SetStringValueInField('customerAddressRecipient', MaxStrLen(TempEDocPurchaseHeader."Customer Address Recipient"), FieldsJsonObject, TempEDocPurchaseHeader."Customer Address Recipient");
+        EDocumentJsonHelper.SetStringValueInField('billingAddress', MaxStrLen(TempEDocPurchaseHeader."Billing Address"), FieldsJsonObject, TempEDocPurchaseHeader."Billing Address");
+        EDocumentJsonHelper.SetStringValueInField('billingAddressRecipient', MaxStrLen(TempEDocPurchaseHeader."Billing Address Recipient"), FieldsJsonObject, TempEDocPurchaseHeader."Billing Address Recipient");
+        EDocumentJsonHelper.SetStringValueInField('shippingAddress', MaxStrLen(TempEDocPurchaseHeader."Shipping Address"), FieldsJsonObject, TempEDocPurchaseHeader."Shipping Address");
+        EDocumentJsonHelper.SetStringValueInField('shippingAddressRecipient', MaxStrLen(TempEDocPurchaseHeader."Shipping Address Recipient"), FieldsJsonObject, TempEDocPurchaseHeader."Shipping Address Recipient");
+        EDocumentJsonHelper.SetCurrencyValueInField('subTotal', FieldsJsonObject, TempEDocPurchaseHeader."Sub Total", TempEDocPurchaseHeader."Currency Code");
+        EDocumentJsonHelper.SetCurrencyValueInField('totalTax', FieldsJsonObject, TempEDocPurchaseHeader."Total VAT", TempEDocPurchaseHeader."Currency Code");
+        EDocumentJsonHelper.SetCurrencyValueInField('invoiceTotal', FieldsJsonObject, TempEDocPurchaseHeader.Total, TempEDocPurchaseHeader."Currency Code");
+        EDocumentJsonHelper.SetCurrencyValueInField('amountDue', FieldsJsonObject, TempEDocPurchaseHeader."Amount Due", TempEDocPurchaseHeader."Currency Code");
+        EDocumentJsonHelper.SetCurrencyValueInField('previousUnpaidBalance', FieldsJsonObject, TempEDocPurchaseHeader."Previous Unpaid Balance", TempEDocPurchaseHeader."Currency Code");
+        EDocumentJsonHelper.SetStringValueInField('remittanceAddress', MaxStrLen(TempEDocPurchaseHeader."Remittance Address"), FieldsJsonObject, TempEDocPurchaseHeader."Remittance Address");
+        EDocumentJsonHelper.SetStringValueInField('remittanceAddressRecipient', MaxStrLen(TempEDocPurchaseHeader."Remittance Address Recipient"), FieldsJsonObject, TempEDocPurchaseHeader."Remittance Address Recipient");
+        EDocumentJsonHelper.SetDateValueInField('serviceStartDate', FieldsJsonObject, TempEDocPurchaseHeader."Service Start Date");
+        EDocumentJsonHelper.SetDateValueInField('serviceEndDate', FieldsJsonObject, TempEDocPurchaseHeader."Service End Date");
+        EDocumentJsonHelper.SetStringValueInField('vendorTaxId', MaxStrLen(TempEDocPurchaseHeader."Vendor VAT Id"), FieldsJsonObject, TempEDocPurchaseHeader."Vendor VAT Id");
+        EDocumentJsonHelper.SetStringValueInField('customerTaxId', MaxStrLen(TempEDocPurchaseHeader."Customer VAT Id"), FieldsJsonObject, TempEDocPurchaseHeader."Customer VAT Id");
+        EDocumentJsonHelper.SetStringValueInField('paymentTerm', MaxStrLen(TempEDocPurchaseHeader."Payment Terms"), FieldsJsonObject, TempEDocPurchaseHeader."Payment Terms");
+        EDocumentJsonHelper.SetNumberValueInField('confidence', FieldsJsonObject, ConfidenceScore);
+        if ConfidenceScore > 0 then
+            Session.LogMessage('0000PVR', 'Confidence score for the document extracted with ADI.', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', FeatureNameTxt, 'ConfidenceScore', Format(ConfidenceScore));
+    end;
+
+    local procedure PopulateEDocumentPurchaseLine(FieldsJsonObject: JsonObject; var TempEDocPurchaseLine: Record "E-Document Purchase Line" temporary)
+    begin
+        EDocumentJsonHelper.SetCurrencyValueInField('amount', FieldsJsonObject, TempEDocPurchaseLine."Sub Total", TempEDocPurchaseLine."Currency Code");
+        EDocumentJsonHelper.SetStringValueInField('description', MaxStrLen(TempEDocPurchaseLine.Description), FieldsJsonObject, TempEDocPurchaseLine.Description);
+        EDocumentJsonHelper.SetCurrencyValueInField('unitPrice', FieldsJsonObject, TempEDocPurchaseLine."Unit Price", TempEDocPurchaseLine."Currency Code");
+        EDocumentJsonHelper.SetNumberValueInField('quantity', FieldsJsonObject, TempEDocPurchaseLine.Quantity);
+        if TempEDocPurchaseLine.Quantity <= 0 then
+            TempEDocPurchaseLine.Quantity := 1;
+        EDocumentJsonHelper.SetStringValueInField('productCode', MaxStrLen(TempEDocPurchaseLine."Product Code"), FieldsJsonObject, TempEDocPurchaseLine."Product Code");
+        EDocumentJsonHelper.SetStringValueInField('unit', MaxStrLen(TempEDocPurchaseLine."Unit of Measure"), FieldsJsonObject, TempEDocPurchaseLine."Unit of Measure");
+        EDocumentJsonHelper.SetDateValueInField('date', FieldsJsonObject, TempEDocPurchaseLine.Date);
+        ResolveVATRateFromADI(FieldsJsonObject, TempEDocPurchaseLine);
+        if TempEDocPurchaseLine."Unit Price" <> 0 then
+            TempEDocPurchaseLine."Total Discount" := (TempEDocPurchaseLine."Unit Price" * TempEDocPurchaseLine.Quantity) - TempEDocPurchaseLine."Sub Total";
+    end;
+
+    local procedure ResolveVATRateFromADI(FieldsJsonObject: JsonObject; var TempEDocPurchaseLine: Record "E-Document Purchase Line" temporary)
+    var
+        TaxRateText: Text;
+        TaxAmount: Decimal;
+        TaxValueText: Text;
+        ParsedRate: Decimal;
+        UnusedCurrencyCode: Code[10];
+    begin
+        // 1. Prefer TaxRate (string) — unambiguous percentage field from ADI
+        EDocumentJsonHelper.SetStringValueInField('taxRate', MaxStrLen(TaxRateText), FieldsJsonObject, TaxRateText);
+        if TaxRateText <> '' then begin
+            ParsedRate := ParsePercentageFromText(TaxRateText);
+            if ParsedRate >= 0 then begin
+                TempEDocPurchaseLine."VAT Rate" := ParsedRate;
+                exit;
+            end;
+        end;
+
+        // 2. Fallback to Tax field — but it's ambiguous (can be amount, %, or Y/N)
+        EDocumentJsonHelper.SetCurrencyValueInField('tax', FieldsJsonObject, TaxAmount, UnusedCurrencyCode);
+        if TaxAmount = 0 then
+            exit;
+
+        // Check value_text to disambiguate
+        EDocumentJsonHelper.SetStringValueInField('tax', MaxStrLen(TaxValueText), FieldsJsonObject, TaxValueText);
+        if TaxValueText.Contains('%') then
+            // Tax field contains a percentage (e.g., "20%")
+            TempEDocPurchaseLine."VAT Rate" := TaxAmount
+        else
+            // Tax field contains a monetary amount (e.g., "$6.00") — compute percentage
+            if TempEDocPurchaseLine."Sub Total" > 0 then
+                TempEDocPurchaseLine."VAT Rate" := Round((TaxAmount / TempEDocPurchaseLine."Sub Total") * 100, 0.01);
+    end;
+
+    local procedure ParsePercentageFromText(TaxRateText: Text): Decimal
+    var
+        CleanedText: Text;
+        ParsedValue: Decimal;
+    begin
+        // Strip common non-numeric prefixes/suffixes: "VAT 20%", "20%", "20.0%", "20"
+        CleanedText := TaxRateText.Replace('%', '').Trim();
+        // Remove common prefixes like "VAT ", "Tax ", etc.
+        if CleanedText.StartsWith('VAT ') then
+            CleanedText := CopyStr(CleanedText, 5).Trim();
+        if CleanedText.StartsWith('Tax ') then
+            CleanedText := CopyStr(CleanedText, 5).Trim();
+        if Evaluate(ParsedValue, CleanedText) then
+            exit(ParsedValue);
+        exit(-1); // Signal parse failure
+    end;
+#pragma warning restore AA0139
+}

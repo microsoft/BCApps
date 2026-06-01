@@ -23,7 +23,14 @@ codeunit 130470 "AL Code Coverage Mgt."
     procedure Start(MultiSession: Boolean)
     begin
         if IsRunning then
-            Error('Already recording CC');
+            if GuiAllowed() then
+                if Confirm(RestartCodeCoverageQst) then begin
+                    ForceStopCodeCoverage();
+                    IsRunning := false;
+                end;
+
+        if IsRunning then
+            Error(CodeCoverageIsAlreadyRunningErr);
 
         System.CodeCoverageLog(true, MultiSession);
         IsRunning := true;
@@ -37,9 +44,16 @@ codeunit 130470 "AL Code Coverage Mgt."
 
     procedure Stop()
     begin
-        if not IsRunning then
-            Error('Not recording CC');
+        IsRunning := System.CodeCoverageLog();
 
+        if not IsRunning then
+            Error(CodeCoverageIsNotRunningErr);
+
+        ForceStopCodeCoverage();
+    end;
+
+    local procedure ForceStopCodeCoverage()
+    begin
         System.CodeCoverageLog(false, IsMultiSession);
         IsRunning := false;
     end;
@@ -258,4 +272,9 @@ codeunit 130470 "AL Code Coverage Mgt."
 
         exit(1.0)
     end;
+
+    var
+        RestartCodeCoverageQst: Label 'Code Coverage tracking is already started. Would you like to restart the Code Coverage?';
+        CodeCoverageIsAlreadyRunningErr: Label 'Code Coverage tracking is already started. You must stop it before starting a new one.';
+        CodeCoverageIsNotRunningErr: Label 'Code Coverage tracking is not started.';
 }

@@ -1,0 +1,598 @@
+table 'Localized Labels'
+	isHidden
+	lineageTag: 59839a92-22f1-4d78-9cac-a89bd3406dca
+
+	measure 'My Report Title' = 0
+		isHidden
+		lineageTag: 37bf44ec-4595-46a7-afb3-f5dd97ffbea4
+
+	measure 'My Button Caption' = 0
+		isHidden
+		lineageTag: 2a9b228d-5bb8-46eb-985d-673ab537b238
+
+	measure 'My Visual Title' = 0
+		isHidden
+		lineageTag: beb9a217-43ab-4828-a96d-db09588c387c
+
+	measure 'Top 5 Items Gross Profit' = 0
+		isHidden
+		lineageTag: a780b410-b515-4273-91b1-6712bd02e4ca
+
+	measure 'Top 5 Salesperson' = 0
+		isHidden
+		lineageTag: 8521b6fc-d036-4326-9050-e11b551a0f54
+
+	measure 'Top 5 Customers' = 0
+		isHidden
+		lineageTag: 89f73034-4fb5-43f0-8601-c67211fd31e1
+
+	measure 'Document Value' = 0
+		isHidden
+		lineageTag: 926e3d4d-dcac-4a46-b70c-a7d56360c7ee
+
+	measure 'Document Count' = 0
+		isHidden
+		lineageTag: 2252de9f-0180-4093-a051-65f93246b685
+
+	measure 'Sales Amount and Sales Amount AVG 30D (Fiscal) by Fiscal Month Year' = 0
+		isHidden
+		lineageTag: 61df57bf-59f1-4cc5-9ab7-d8b20c162a69
+
+	measure 'Sales Overview' = 0
+		isHidden
+		lineageTag: 94fc9acf-a996-457f-9071-6f9d120da8e1
+
+	measure 'Daily Sales' = 0
+		isHidden
+		lineageTag: a63f16b5-52aa-40da-8078-24486978934d
+
+	measure 'Moving Averages' = 0
+		isHidden
+		lineageTag: 25581360-1553-4c6c-827e-dbbe54451281
+
+	measure 'Moving Annual Total' = 0
+		isHidden
+		lineageTag: 50d6b44d-a425-4f87-994b-8404b527b10f
+
+	measure 'Previous Year MAT and MAT by Fiscal Month Year' = 0
+		isHidden
+		lineageTag: a01413cc-f705-47a3-a348-e3901cdfa889
+
+	measure 'Period-Over-Period Growth' = 0
+		isHidden
+		lineageTag: dfa3687d-be24-47ed-a133-b74af0813316
+
+	measure Month-To-Date = 0
+		isHidden
+		lineageTag: 2898ff12-db3a-42b8-aa47-bb8d17fff7b5
+
+	measure '% Share of Sales' = 0
+		isHidden
+		lineageTag: 7a460e64-567e-464f-b780-c8b277e44aab
+
+	measure 'Sales Amount, Sales Quantity and Gross Profit by Item Category Code' = 0
+		isHidden
+		lineageTag: 795bf49c-24cf-4a77-9da7-f7fb8cf08b6c
+
+	measure 'Sales by Item' = 0
+		isHidden
+		lineageTag: cb4e49a4-2742-4084-9f56-6cafc64b0f96
+
+	measure 'Sales by Customer' = 0
+		isHidden
+		lineageTag: cb19997e-a8d2-4571-98ac-34f6eb74dac0
+
+	measure 'Sales Amount, Sales Quantity and Gross Profit by Customer Name' = 0
+		isHidden
+		lineageTag: 0b4c4980-d2f9-4b78-8467-66ba7b912694
+
+	measure 'Sales by Salesperson' = 0
+		isHidden
+		lineageTag: 9f083de6-39f9-481b-b429-3c7183cbc067
+
+	measure 'Sales Amount, Sales Quantity and Gross Profit by Salesperson Code' = 0
+		isHidden
+		lineageTag: a5128f06-ebdb-401c-a757-357200158d37
+
+	measure 'Actual vs Budget Quantity' = 0
+		isHidden
+		lineageTag: 41ac133d-7b4d-4b7d-9dc1-6f5b89afbefc
+
+	measure 'Actual vs Budget Amount' = 0
+		isHidden
+		lineageTag: efa608f6-3967-4c7b-be97-076aa0704385
+
+	measure Sales = 0
+		isHidden
+		lineageTag: ac7570bb-53aa-4380-9985-4576219c48b5
+
+	measure 'for Business Central' = 0
+		isHidden
+		lineageTag: 4ecf3539-3730-4452-a216-73d6de9109a4
+
+	measure 'USE, EDIT AND BUILD YOUR OWN REPORTS' = 0
+		isHidden
+		lineageTag: 76a85908-bb65-4ebd-89d4-2912884453c5
+
+	measure 'Sales includes a variety of pre-built reports to help you see your data immediately. You are able to edit these reports or build your own report from scratch.' = 0
+		isHidden
+		lineageTag: df3bb9a7-279c-4542-a5f3-13d6fa88a63d
+
+	measure 'CONNECT YOUR DATA' = 0
+		isHidden
+		lineageTag: e4bfe546-0f9c-4691-ba88-0301cc2a6224
+
+	measure '1. Download the Sales Connector for Power BI' = 0
+		isHidden
+		lineageTag: 7edea062-15cb-49da-8e4d-c8a01cd8dbe7
+
+	measure '2. Configure Dynamics 365 Business Central' = 0
+		isHidden
+		lineageTag: d4794d6d-603e-41f3-8293-9dac8877b360
+
+	measure 'HELP AND SUPPORT' = 0
+		isHidden
+		lineageTag: b29940e2-5cb1-4d76-ad35-fc639a908cf3
+
+	measure 'For help and support with your new report please visit the Analytics overview documentation.' = 0
+		isHidden
+		lineageTag: 2f68b4d5-d1d4-4719-b9b7-6117871a4fc3
+
+	measure 'OTHER POWER BI REPORTS' = 0
+		isHidden
+		lineageTag: a2b2d224-5e51-4c38-90e0-a5421c190547
+
+	measure PURCHASE = 0
+		isHidden
+		lineageTag: aca05650-7e25-46fa-bd26-487f478e9edd
+
+	measure FINANCE = 0
+		isHidden
+		lineageTag: a2057f28-08d3-4798-a42d-d49f88388511
+
+	measure REBATES = 0
+		isHidden
+		lineageTag: a2b3b3b4-7b91-40f7-877c-3691faf6f47c
+
+	measure INVENTORY = 0
+		isHidden
+		lineageTag: a21f03b1-2af6-49dd-88d3-d5e9f6eaec22
+
+	measure JOBS = 0
+		isHidden
+		lineageTag: 33b1d79b-37bb-4a4c-9ebb-a8160b27e40d
+
+	measure 'SALES ' = 0
+		isHidden
+		lineageTag: a3cc4910-14b9-49a9-b1c4-6f126b32f8a4
+
+	measure 'Sales Amount ' = 0
+		isHidden
+		lineageTag: 49ea46e9-ed16-41be-b5b9-3bc44cc82c8b
+
+	measure 'Sales Amount and Sales Amount Average 30 Days (Fiscal) by Fiscal Month Year' = 0
+		isHidden
+		lineageTag: 223e521d-3396-4d50-8e3c-b6b8abf01348
+
+	measure 'Previous Year and Current Moving Annual Total by Fiscal Month Year' = 0
+		isHidden
+		lineageTag: 26713753-2c56-4ffa-8a58-daaeb9414354
+
+	measure 'Sales Amount Period-over-Period (Fiscal) and Sales Amount by Fiscal Month Year' = 0
+		isHidden
+		lineageTag: a1e793e9-13bf-4f17-a2f7-6d6278cad58c
+
+	measure 'Sales Amount Month-to-Date (Fiscal) by Date' = 0
+		isHidden
+		lineageTag: 5629b629-3fcc-45bb-9378-2079cb71e861
+
+	measure 'Last Refreshed' = 0
+		isHidden
+		lineageTag: 398cb092-ba29-48e9-b31c-3f35dc5f1633
+
+	measure 'Company Name' = 0
+		isHidden
+		lineageTag: 35504d12-268a-4941-b7db-1a3a467f1588
+
+	measure 'Sales Amount by Salesperson' = 0
+		isHidden
+		lineageTag: b38ae1a8-aeb8-4864-9767-68ca2658f7a5
+
+	measure 'Gross Profit by Item' = 0
+		isHidden
+		lineageTag: 5fa3eedf-f925-4b9b-a708-aedd7359b0e5
+
+	measure 'Sales Amount by Customer' = 0
+		isHidden
+		lineageTag: a7279f3b-0d49-4206-b055-caeafacbac3f
+
+	measure 'Sales Amount and Sales Amount Average 30 Days (Fiscal) by Fiscal Year' = 0
+		isHidden
+		lineageTag: bbfe1a0d-8fe3-4772-9c48-c657eb113c44
+
+	measure 'Monthly Comparison of Previous Year and Current Year Moving Annual Totals' = 0
+		isHidden
+		lineageTag: cbfc4903-2aea-4961-9d4c-8a0e0342b1fb
+
+	measure 'Sales Amount Period-over-Period (Fiscal) and Sales Amount by Fiscal Year' = 0
+		isHidden
+		lineageTag: 7f583f94-4459-477d-9e68-3e69ec5469f7
+
+	measure 'Sales Amount by Item Category' = 0
+		isHidden
+		lineageTag: 51eb5e7f-8402-4e9d-b155-d39433818037
+
+	measure 'Sales Metrics by Salesperson' = 0
+		isHidden
+		lineageTag: b5edb49d-c854-4f77-9867-a7236718e31b
+
+	measure 'Sales by Location' = 0
+		isHidden
+		lineageTag: 726ae4e1-7a23-412d-88e6-b4823f8fb656
+
+	measure 'Sales Amount by Location' = 0
+		isHidden
+		lineageTag: a0300a0f-0a9d-45f0-8aa1-6d7bc1cccaad
+
+	measure 'Actual vs Budget' = 0
+		isHidden
+		lineageTag: 5b163c97-9954-4dda-9793-281c9611e86f
+
+	measure 'Actual vs Budget Purchase Analysis by Item Category' = 0
+		isHidden
+		lineageTag: c2a74b7c-e93a-4925-bb9f-321d33917c1c
+
+	measure 'Sales Drillthrough' = 0
+		isHidden
+		lineageTag: 841a52a5-2008-4b06-963b-9490710ca30c
+
+	measure 'Detailed Sales Ledger' = 0
+		isHidden
+		lineageTag: cfe67061-ff6e-4a51-93e6-95879196531b
+
+	measure 'Sales Amount by Month' = 0
+		isHidden
+		lineageTag: 7ee74d56-9982-4db5-a2c5-c391e7fa9480
+
+	measure PROJECTS = 0
+		isHidden
+		lineageTag: 041d8263-1b5c-4f38-9989-da1f2fb718b3
+
+	measure MANUFACTURING = 0
+		isHidden
+		lineageTag: a39ed403-1dea-4f14-b633-f9ee0c9fc1bf
+
+	measure 'Month-To-Date Sales Performance' = 0
+		isHidden
+		lineageTag: 082b3aa1-3223-44c8-8352-443ff4d39f07
+
+	measure 'Top Customer Sales Contributions' = 0
+		isHidden
+		lineageTag: 7ee66395-780e-400a-893b-58088ac8c173
+
+	measure 'Daily Sales by Date' = 0
+		isHidden
+		lineageTag: e9d3cf2c-8a64-413d-b023-cc3e391331c9
+
+	measure 'Daily Sales by Entry No' = 0
+		isHidden
+		lineageTag: da8d4362-5b69-4873-8d4a-4931fc7b8ec8
+
+	measure 'Daily Sales Details' = 0
+		isHidden
+		lineageTag: 65b4cb45-dccc-4082-87e4-e8ae03f58075
+
+	measure 'Moving Annual Total Details' = 0
+		isHidden
+		lineageTag: 285bc459-56e2-4982-b902-620e8f9b9da7
+
+	measure 'Period-Over-Period Growth Details' = 0
+		isHidden
+		lineageTag: a1fa20d4-b3b5-4a73-a4d1-676ba3e0885c
+
+	measure 'Month-To-Date Details' = 0
+		isHidden
+		lineageTag: 66a807b5-978b-466d-b67d-3a76a66ec9aa
+
+	measure 'Sales by Item Category Over Time' = 0
+		isHidden
+		lineageTag: 3fad2bfd-706a-4fc2-965f-6ee8266e78fe
+
+	measure 'Sales by Item Details' = 0
+		isHidden
+		lineageTag: 5b6df5cd-9d33-4c74-a697-fe1913c1fbb1
+
+	measure 'Profitability by Item Category' = 0
+		isHidden
+		lineageTag: 99ec5f5f-ddf6-4b1e-86f7-f58d7581597c
+
+	measure 'Gross Profit Pareto Analysis by Customer' = 0
+		isHidden
+		lineageTag: f78ff70f-e7e4-46ef-bb29-6adfcb36bd22
+
+	measure 'Sales by Customer Details' = 0
+		isHidden
+		lineageTag: f1b23fec-f03f-496f-b9b6-51a836228e85
+
+	measure 'Estimated Opportunity Value' = 0
+		isHidden
+		lineageTag: 29703434-5222-4077-9e46-7d3ffd7d845f
+
+	measure 'Sales by Salesperson Details' = 0
+		isHidden
+		lineageTag: f0cec802-3115-44fa-910a-deb63fca5e21
+
+	measure 'Profitability by Salesperson' = 0
+		isHidden
+		lineageTag: 1ef0c4bd-439f-41c9-99e6-17c875b62d64
+
+	measure 'Sales Amount by Customer Location' = 0
+		isHidden
+		lineageTag: 857cf1cb-ad25-470c-be20-687a4d83386f
+
+	measure 'Sales by Location Details' = 0
+		isHidden
+		lineageTag: 456438d3-9366-4635-bf40-8d0e6c3c2802
+
+	measure 'Sales Demographics' = 0
+		isHidden
+		lineageTag: 3efbe715-671f-47bd-9de5-c25e94fee2bd
+
+	measure 'Sales Metrics by Item Category' = 0
+		isHidden
+		lineageTag: 4dad7f09-be32-4842-b060-c29393dcb32e
+
+	measure 'Sales by Customer Posting Group' = 0
+		isHidden
+		lineageTag: dad90ae7-8838-4984-96f6-1796ea88bcfd
+
+	measure 'Sales by Document Type' = 0
+		isHidden
+		lineageTag: 01715ee6-c29e-4b71-9b64-70bcbdec4d3d
+
+	measure 'No. of Customers by Location' = 0
+		isHidden
+		lineageTag: 03d29c7c-235b-41f8-9384-1a48cb037764
+
+	measure 'Sales Decomposition' = 0
+		isHidden
+		lineageTag: 47bb25ae-0a41-44e7-bdc0-1513bd821c2f
+
+	measure 'Sales Amount by Item Category Description' = 0
+		isHidden
+		lineageTag: f70c9c85-168d-4f39-83fa-c0198b57d907
+
+	measure 'Sales Quantity by Salesperson Name' = 0
+		isHidden
+		lineageTag: 297fbefc-f6df-46cb-af36-66dc87300b04
+
+	measure 'Key Sales Influencers' = 0
+		isHidden
+		lineageTag: f7ec7b0a-2b54-49f3-ab32-6bc528837ca3
+
+	measure 'Sales Amount by Item Category Code' = 0
+		isHidden
+		lineageTag: c6a44259-f3f0-4f0e-b3c6-dd19d0bad544
+
+	measure 'Opportunity Overview' = 0
+		isHidden
+		lineageTag: 617cc445-9a18-44e8-b8d1-d4eb39ade585
+
+	measure 'Opportunity Value by Status' = 0
+		isHidden
+		lineageTag: d949dc2c-0010-4977-9f75-193eff0764c9
+
+	measure 'Open Opportunities by Sales Cycle' = 0
+		isHidden
+		lineageTag: 1689eed2-2b28-463d-803f-cb5df2751bf3
+
+	measure 'Open Opportunities by Sales Cycle Stage' = 0
+		isHidden
+		lineageTag: d3b180b7-4b07-46b2-81a3-7aa48d7e7d49
+
+	measure 'Estimated Value by Salesperson' = 0
+		isHidden
+		lineageTag: 1ae0ef2c-cd92-45a5-8161-34be2fa56ce0
+
+	measure 'Estimated Value by Contact Location' = 0
+		isHidden
+		lineageTag: ef8c9674-1128-4696-9c4f-0d1956e5fc30
+
+	measure 'Sales Quote Overview' = 0
+		isHidden
+		lineageTag: e9bc00cb-8b3f-404a-b246-17a967e35ccf
+
+	measure 'Sales Quotes by Customer Details' = 0
+		isHidden
+		lineageTag: 28d56dac-6a02-4ed5-810f-e49246aa7ae1
+
+	measure 'Sales Quote Amount by Salesperson' = 0
+		isHidden
+		lineageTag: b146d4d0-5aec-4456-a431-6c04a20649c3
+
+	measure 'Sales Quote Amount Over Time' = 0
+		isHidden
+		lineageTag: f923794b-b49f-4656-b7d6-1ecc8d8051b5
+
+	measure 'Sales Quote Amount by Item Category Code' = 0
+		isHidden
+		lineageTag: 48262194-777a-492b-b2dc-3887b781905b
+
+	measure 'Sales Returns Overview' = 0
+		isHidden
+		lineageTag: a7b6cb97-8c34-4c81-a503-4a5338e85482
+
+	measure 'Sales Returns by Customer' = 0
+		isHidden
+		lineageTag: 68ca7afa-1afa-41f5-92d5-f5d91c1535e7
+
+	measure 'Sales Return Amount by Reason Code' = 0
+		isHidden
+		lineageTag: e2459490-ac5f-41f7-9af4-65779c062dce
+
+	measure 'Sales Return Amount Over Time' = 0
+		isHidden
+		lineageTag: 61c66635-b2ed-4570-9077-27142ee3b373
+
+	measure 'Sales Return Amount by Item Category Code' = 0
+		isHidden
+		lineageTag: d2586da3-0bbc-424c-881e-50444798e6a4
+
+	measure 'Sales Opportunity Analysis' = 0
+		isHidden
+		lineageTag: fbd82084-43eb-4ad7-b809-1ff930bc85d5
+
+	measure 'Estimated Value by Opportunity' = 0
+		isHidden
+		lineageTag: 3e261f02-e641-49ba-a8a8-210fc6748ba0
+
+	measure 'Opportunities by Closed Opportunity Code' = 0
+		isHidden
+		lineageTag: 49f630de-3721-4cd0-b069-add49a031e90
+
+	measure 'Opportunities by Salesperson Details' = 0
+		isHidden
+		lineageTag: 259baa9d-2a60-4683-a8ec-0d806a2755a5
+
+	measure 'Opportunities by Closed Status' = 0
+		isHidden
+		lineageTag: 09c17f4a-c404-495b-9e3e-558f430c68bf
+
+	measure 'Sales Drillthrough Details' = 0
+		isHidden
+		lineageTag: 1f0650bc-2c35-46a7-bedf-71c635cb2929
+
+	measure 'Actual vs Budget Sales Analysis by Item Category' = 0
+		isHidden
+		lineageTag: bae409cc-b202-4fb2-a80c-50a9a8f0d432
+
+	measure 'Adjusted Profit Pareto Analysis by Customer' = 0
+		isHidden
+		lineageTag: 0119486a-65b6-4837-bdc6-29e6127e0ffa
+
+	measure 'Sales Quantity Text' = 0
+		isHidden
+		lineageTag: 415f3507-1bab-4d50-bbc2-d98775c0d6d7
+
+	measure 'Sales (LCY) Text' = 0
+		isHidden
+		lineageTag: 43dd04b2-8d99-402c-8f8e-dd82aeb160e8
+
+	measure 'Actual vs Budget Over Period' = 0
+		isHidden
+		lineageTag: 63d120bc-849c-4dd2-9f8d-8ada1eddccf4
+
+	measure 'Sales Forecasting' = 0
+		isHidden
+		lineageTag: 1f8ea842-7f65-4d08-b1a3-f2484a26f1f9
+
+	measure 'Sales Amount Forecast' = 0
+		isHidden
+		lineageTag: 24369dc5-47a2-4e27-bc5c-998a9f02f10a
+
+	measure 'Sales Amount by Document Type' = 0
+		isHidden
+		lineageTag: b4e6abe1-3efc-4ba5-89f5-0069b5295674
+
+	measure 'Sales by Projects' = 0
+		isHidden
+		lineageTag: f44a5a9f-c623-4056-870c-02b3890a7090
+
+	measure 'Project Sales by Status' = 0
+		isHidden
+		lineageTag: 827db6c5-e31d-4c7a-8019-fb51b9acd775
+
+	measure 'Project Sales by Type' = 0
+		isHidden
+		lineageTag: 626e8221-1ccf-49cd-a3b2-d7855c6effa4
+
+	measure 'Project Sales by Project' = 0
+		isHidden
+		lineageTag: 4ed878b7-7f8d-4dee-a503-1e95c113d052
+
+	measure 'Sales by Project Details' = 0
+		isHidden
+		lineageTag: 1ccda65f-b36e-41df-a9ea-b1b4b7cc094e
+
+	measure 'Project Sales by Customer' = 0
+		isHidden
+		lineageTag: b0347215-19cb-46bf-a2bf-9d01cf4e28a5
+
+	measure 'Return Rate (Amount) by Customer' = 0
+		isHidden
+		lineageTag: 05a4c3db-fe2f-4e6e-8e19-d7dbabb14cdf
+
+	measure 'Total Credit (Amount) by Type and No' = 0
+		isHidden
+		lineageTag: 0428f608-769c-46ec-ba69-065103fbd69d
+
+	measure 'Total Credit (Amount) Over Time' = 0
+		isHidden
+		lineageTag: 6721c740-bd5c-4711-9633-49891d08ce31
+
+	measure 'Total Credit (Amount) by Return Reason Code' = 0
+		isHidden
+		lineageTag: bb30a5ae-00e0-4b33-8419-60caf0bcf34d
+
+	measure 'Sales % by Category' = 0
+		isHidden
+		lineageTag: 967814bd-5b79-4a0f-8b74-acf1575e2456
+
+	measure 'Sales (LCY) by Dimension ' = 0
+		isHidden
+		lineageTag: 848a8dbe-60e5-4647-afdd-06d24f8ea7a0
+
+	measure 'Actual vs. Budget Sales (LCY) by Item' = 0
+		isHidden
+		lineageTag: 7336b54b-3c43-4aa3-aa7c-a92bbbe11d19
+
+	measure 'Year-To-Date Sales (LCY) Over Time' = 0
+		isHidden
+		lineageTag: 9a67550e-0d9f-41ed-8d9f-8f5c9794f797
+
+	measure 'Customer Retention Overview' = 0
+		isHidden
+		lineageTag: faa2582c-a97c-48ff-8d3b-33ccf850be44
+
+	measure 'Customer Retention Over Time' = 0
+		isHidden
+		lineageTag: dc47d6b8-a5ff-4215-a582-b2b17b0fb4f0
+
+	measure 'Customer Retention' = 0
+		isHidden
+		lineageTag: d4e993b3-79d9-4f63-b3ae-ef0b9132fd0a
+
+	measure 'Customer Retention History' = 0
+		isHidden
+		lineageTag: d3bf3394-cb70-4ef9-b971-621b8bdf115b
+
+	measure 'New and Returning Customers' = 0
+		isHidden
+		lineageTag: 5c1496be-ff42-404a-9a7a-aa99d0c8784d
+
+	measure 'New and Returning Customer Sales' = 0
+		isHidden
+		lineageTag: 5a70466e-c120-4004-99d6-d7e2c430989c
+
+	measure 'Temporarily Lost vs. Recovered Customers' = 0
+		isHidden
+		lineageTag: 9a21b803-c1ad-4903-a4a9-9e6228d75d6c
+
+	measure 'Temporarily Lost vs. Lost Customers' = 0
+		isHidden
+		lineageTag: fa8348fb-9e92-4e0a-9218-926e919b8465
+
+	column unused
+		isHidden
+		displayFolder: unused
+		lineageTag: c1451dd5-5783-4797-9265-00b7943110d4
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [unused]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Partition = calculated
+		mode: import
+		source = DATATABLE("unused", STRING, {{"This is a table automatically generated by Translations Builder"}})
+

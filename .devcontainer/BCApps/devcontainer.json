@@ -1,0 +1,55 @@
+{
+  "name": "Business Central BC Apps",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+  "features": {
+    "ghcr.io/devcontainers/features/dotnet:2": {
+      "version": "8.0"
+    },
+    "ghcr.io/devcontainers/features/powershell:1": {},
+    "ghcr.io/devcontainers-contrib/features/jshint:2": {},
+    "ghcr.io/devcontainers/features/node:1": {}
+  },
+  "postCreateCommand": "dotnet --version && pwsh -NoLogo -Command '$PSVersionTable';yarn install",
+  "workspaceFolder": "/workspaces/BCApps",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-dynamics-smb.al@prerelease",
+        "GitHub.copilot",
+        "GitHub.vscode-pull-request-github",
+        "GitHub.vscode-github-actions",
+        "ms-azuretools.vscode-docker",
+        "ms-vscode.vscode-typescript-next",
+        "ms-vscode.yaml",
+        "ms-vscode.powershell"
+      ],
+      "settings": {
+        "editor.tabSize": 3,
+        "editor.insertSpaces": true,
+        "files.trimTrailingWhitespace": true,
+        "files.insertFinalNewline": true,
+        "al.enableCodeAnalysis": true,
+        "al.codeAnalyzers": [
+          "${AppSourceCop}",
+          "${CodeCop}",
+          "${UICop}"
+        ],
+        "al.useVsCodeAuthentication": true,
+        "github.copilot.enable": {
+          "enabled": true
+        },
+        "github.copilot.inlineSuggest.enable": true,
+        "powershell.integratedConsole.showOnStartup": false,
+        "chat.mcp.enabled": true
+      },
+      "mcp": {
+        "servers": {
+          "ms-learn-mcp": {
+            "url": "https://learn.microsoft.com/api/mcp",
+            "type": "http"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,1501 @@
+cultureInfo es-ES
+	translations
+		model Model
+			table Item
+				caption: Artículo
+				column 'Item No. & Description'
+					caption: N.º y descripción del artículo
+				column 'Item No.'
+					caption: N.º de artículo
+				column 'Item Description'
+					caption: Descripción del artículo
+				column 'Item Base Unit of Measure'
+					caption: Unidad medida base
+				column 'Item Unit Cost (LCY)'
+					caption: Coste unitario producto (DL)
+				column 'Item Inventory Posting Group'
+					caption: Grupo contable inventario
+				column 'Item Category Code'
+					caption: Código de categoría de artículo
+				column 'Item Category Description'
+					caption: Descripción de la categoría de artículo
+			table Location
+				caption: Almacén
+				column 'Location Code'
+					caption: Código de almacén
+				column 'Location Name'
+					caption: Nombre almacén
+				column 'Location Adjustment Bin Code'
+					caption: Código ajuste almacén
+			table Vendor
+				caption: Proveedor
+				column 'Vendor No. & Name'
+					caption: N.º y nombre del proveedor
+				column 'Vendor No.'
+					caption: N.º proveedor
+				column 'Vendor Name'
+					caption: Nombre del proveedor
+				column 'Vendor Address'
+					caption: Dirección del proveedor
+				column 'Vendor Address 2'
+					caption: Dirección de proveedor 2
+				column 'Vendor City'
+					caption: Ciudad proveedor
+				column 'Vendor Post Code'
+					caption: Código postal proveedor
+				column 'Vendor State'
+					caption: Estado del proveedor
+				column 'Vendor Country/Region Code'
+					caption: Cód. país/región proveedor
+				column 'Vendor Posting Group'
+					caption: Grupo contable proveedor
+			table Purchaser
+				caption: Comprador
+				column 'Purchaser Code'
+					caption: Cód. comprador
+				column 'Purchaser Name'
+					caption: Nombre de comprador
+			table 'Dimension Sets'
+				caption: Grupos de dimensiones
+				column 'Global Dimension 1'
+					caption: Dimensión global 1
+				column 'Global Dimension 2'
+					caption: Dimensión global 2
+				column 'Shortcut Dimension 3'
+					caption: Dim. acceso dir. 3
+				column 'Shortcut Dimension 4'
+					caption: Dim. acceso dir. 4
+				column 'Shortcut Dimension 5'
+					caption: Dim. acceso dir. 5
+				column 'Shortcut Dimension 6'
+					caption: Dim. acceso dir. 6
+				column 'Shortcut Dimension 7'
+					caption: Dim. acceso dir. 7
+				column 'Shortcut Dimension 8'
+					caption: Dim. acceso dir. 8
+				column id
+					caption: id.
+			table 'Purchase Budget'
+				caption: Presupuesto compra
+				column 'Entry No.'
+					caption: N.º de movimiento
+				column 'Budget Name'
+					caption: Nombre ppto.
+				column Date
+					caption: Fecha
+				measure 'Budget Amount'
+					caption: Importe presupuesto
+				measure 'Budget Quantity'
+					caption: Cantidad presupuesto
+				measure 'Budget Quantity Variance'
+					caption: Desviación cantidad presupuesto
+				measure 'Budget Amount Variance'
+					caption: Desviación importe ppto.
+				measure 'Budget Amount Variance %'
+					caption: Desviación importe ppto. %
+				measure 'Budget Quantity Variance %'
+					caption: Desviación cantidad presupuesto %
+			table Date
+				caption: Fecha
+				column 'Week Day'
+					caption: Día de la semana
+				column 'Calendar Year'
+					caption: Año natural
+				column 'Calendar Quarter'
+					caption: Trimestre natural
+				column 'Calendar Quarter Year'
+					caption: Trimestre año natural
+				column 'Calendar Month'
+					caption: Mes natural
+				column 'Calendar Month Year'
+					caption: Mes año natural
+				column 'Calendar Week'
+					caption: Semana natural
+				column 'Calendar Week Year'
+					caption: Semana año natural
+				column 'Calendar RelativeWeekPos'
+					caption: PosSemanaRelativa natural
+				column 'Calendar RelativeMonthPos'
+					caption: PosMesRelativa natural
+				column 'Calendar RelativeQuarterPos'
+					caption: PosTrimestreRelativa natural
+				column 'Calendar RelativeYearPos'
+					caption: PosAñoRelativa natural
+				column 'Calendar StartOfMonth'
+					caption: InicioDeMes natural
+				column 'Calendar EndOfMonth'
+					caption: FinDeMes natural
+				column 'Calendar StartOfQuarter'
+					caption: InicioDeTrimestre natural
+				column 'Calendar EndOfQuarter'
+					caption: FinDeTrimestre natural
+				column 'Calendar StartOfYear'
+					caption: InicioDeAño natural
+				column 'Calendar EndOfYear'
+					caption: FinDeAño natural
+				column 'Calendar MonthDays'
+					caption: DíasMes natural
+				column 'Calendar QuarterDays'
+					caption: TrimestreDías natural
+				column 'Calendar YearDays'
+					caption: AñoDías natural
+				column 'Calendar DayOfMonthNumber'
+					caption: NúmeroDeDíaDeMes natural
+				column 'Calendar DayOfQuarterNumber'
+					caption: NúmeroDeDíaDeTrimestre natural
+				column 'Calendar DayOfYearNumber'
+					caption: NúmeroDeDíaDeAño natural
+				column 'Calendar DatePreviousWeek'
+					caption: FechaSemanaAnterior natural
+				column 'Calendar DatePreviousMonth'
+					caption: FechaMesAnterior natural
+				column 'Calendar DatePreviousQuarter'
+					caption: FechaTrimestreAnterior natural
+				column 'Calendar DatePreviousYear'
+					caption: FechaAñoAnterior natural
+				column 'Fiscal Year'
+					caption: Ejercicio
+				column 'Fiscal Quarter'
+					caption: Trimestre fiscal
+				column 'Fiscal Quarter Year'
+					caption: Año trimestre fiscal
+				column 'Fiscal Month'
+					caption: Mes fiscal
+				column 'Fiscal Month Year'
+					caption: Mes Año fiscal
+				column 'Fiscal Week'
+					caption: Semana fiscal
+				column 'Fiscal Week Year'
+					caption: Semana año fiscal
+				column 'Fiscal RelativeWeekPos'
+					caption: PosSemanaRelativa fiscal
+				column 'Fiscal RelativeMonthPos'
+					caption: PosMesRelativa fiscal
+				column 'Fiscal RelativeQuarterPos'
+					caption: PosTrimestreRelativa fiscal
+				column 'Fiscal RelativeYearPos'
+					caption: PosAñoRelativa fiscal
+				column 'Fiscal StartOfMonth'
+					caption: InicioDeMes fiscal
+				column 'Fiscal EndOfMonth'
+					caption: FinDeMes fiscal
+				column 'Fiscal StartOfQuarter'
+					caption: InicioDeTrimestre fiscal
+				column 'Fiscal EndOfQuarter'
+					caption: FinDeTrimestre fiscal
+				column 'Fiscal StartOfYear'
+					caption: InicioDeAño fiscal
+				column 'Fiscal EndOfYear'
+					caption: FinDeAño fiscal
+				column 'Fiscal MonthDays'
+					caption: MesDías fiscal
+				column 'Fiscal QuarterDays'
+					caption: DíasTrimestre fiscal
+				column 'Fiscal YearDays'
+					caption: AñoDías fiscal
+				column 'Fiscal DayOfMonthNumber'
+					caption: NúmeroDeDíaDeMes fiscal
+				column 'Fiscal DayOfQuarterNumber'
+					caption: NúmeroDeDíaDeTrimestre fiscal
+				column 'Fiscal DayOfYearNumber'
+					caption: NúmerDeDíaDeAño fiscal
+				column 'Fiscal DatePreviousWeek'
+					caption: FechaSemanaAnterior fiscal
+				column 'Fiscal DatePreviousMonth'
+					caption: FechaMesAnterior fiscal
+				column 'Fiscal DatePreviousQuarter'
+					caption: FechaTrimestreAnterior fiscal
+				column 'Fiscal DatePreviousYear'
+					caption: FechaAñoAnterior fiscal
+				column 'FW Year'
+					caption: Año SF
+				column 'FW Quarter'
+					caption: Trimestre SF
+				column 'FW Quarter Year'
+					caption: Trimestre Año SF
+				column 'FW Month'
+					caption: Mes SF
+				column 'FW Month Year'
+					caption: Mes año SF
+				column 'FW Week'
+					caption: Semana SF
+				column 'FW Period'
+					caption: Periodo SF
+				column 'FW Week Year'
+					caption: Semana año SF
+				column 'FW StartOfWeek'
+					caption: InicioDeSemana SF
+				column 'FW EndOfWeek'
+					caption: FinDeSemana SF
+				column 'FW RelativeWeekPos'
+					caption: PosSemanaRelativa SF
+				column 'FW RelativeMonthPos'
+					caption: PosMesRelativa SF
+				column 'FW RelativeQuarterPos'
+					caption: PosTrimestreRelativa SF
+				column 'FW RelativeYearPos'
+					caption: PosAñoRelativa SF
+				column 'FW StartOfMonth'
+					caption: InicioDeMes SF
+				column 'FW EndOfMonth'
+					caption: FinDeMes SF
+				column 'FW StartOfQuarter'
+					caption: InicioDeTrimestre SF
+				column 'FW EndOfQuarter'
+					caption: FinDeTrimestre SF
+				column 'FW StartOfYear'
+					caption: InicioDeAño SF
+				column 'FW EndOfYear'
+					caption: FinDeAño SF
+				column 'FW MonthDays'
+					caption: MesDías FS
+				column 'FW QuarterDays'
+					caption: DíasTrimestre SF
+				column 'FW YearDays'
+					caption: DíasAño SF
+				column 'FW DatePreviousWeek'
+					caption: FechaSemanaAnterior SF
+				column 'FW DatePreviousMonth'
+					caption: FechaMesAnterior SF
+				column 'FW DatePreviousQuarter'
+					caption: FechaTrimestreAnterior SF
+				column 'FW DatePreviousYear'
+					caption: Fecha AñoAnterior SF
+				column 'Holiday Name'
+					caption: Nombre de día festivo
+				column IsWorkingDay
+					caption: IsWorkingDay
+				column 'Day Type'
+					caption: Tipo de pago
+				column 'Relative Day'
+					caption: Día relativo
+				hierarchy 'Fiscal Year-Month'
+					caption: Año-mes fiscal
+					level 'Fiscal Year'
+						caption: Ejercicio
+					level 'Fiscal Month Year'
+						caption: Mes año fiscal
+				hierarchy 'Fiscal Year-Quarter-Month-Week'
+					caption: Año-Trimestre-Mes-Semana fiscal
+					level 'Fiscal Year'
+						caption: Ejercicio
+					level 'Fiscal Quarter Year'
+						caption: Año trimestre fiscal
+					level 'Fiscal Month Year'
+						caption: Mes año fiscal
+					level 'Fiscal Week Year'
+						caption: Semana año fiscal
+				hierarchy 'Fiscal Year-Month-Week'
+					caption: Año-Mes-Semana fiscal
+					level 'Fiscal Year'
+						caption: Ejercicio
+					level 'Fiscal Month Year'
+						caption: Mes año fiscal
+					level 'Fiscal Week Year'
+						caption: Semana año fiscal
+				hierarchy 'Calendar Year-Month'
+					caption: Año-mes natural
+					level 'Calendar Year'
+						caption: Año natural
+					level 'Calendar Month Year'
+						caption: Mes año natural
+				hierarchy 'Calendar Year-Quarter-Month-Week'
+					caption: Año-Trimestre-Mes-Semana natural
+					level 'Calendar Year'
+						caption: Año natural
+					level 'Calendar Quarter Year'
+						caption: Trimestre año natural
+					level 'Calendar Month Year'
+						caption: Mes año natural
+					level 'Calendar Week Year'
+						caption: Semana año natural
+				hierarchy 'Calendar Year-Month-Week'
+					caption: Año-Mes-Semana natural
+					level 'Calendar Year'
+						caption: Año natural
+					level 'Calendar Month Year'
+						caption: Mes año natural
+					level 'Calendar Week Year'
+						caption: Semana año natural
+				hierarchy 'FW Year-Month-Week'
+					caption: Año-Mes-Semana SF
+					level 'FW Year'
+						caption: Año SF
+					level 'FW Month Year'
+						caption: Mes año SF
+					level 'FW Week Year'
+						caption: Semana año SF
+				hierarchy 'FW Year-Quarter-Month-Week'
+					caption: Año-Trimestre-Mes-Semana SF
+					level 'FW Year'
+						caption: Año SF
+					level 'FW Quarter Year'
+						caption: Trimestre año SF
+					level 'FW Month Year'
+						caption: Mes año SF
+					level 'FW Week Year'
+						caption: Semana año SF
+				hierarchy 'FW Year-Week'
+					caption: Semana-Año SF
+					level 'FW Year'
+						caption: Año SF
+					level 'FW Week Year'
+						caption: Semana año SF
+				hierarchy 'FW Year-Quarter-Week'
+					caption: Año-Trimestre-Semana SF
+					level 'FW Year'
+						caption: Año SF
+					level 'FW Quarter Year'
+						caption: Trimestre año SF
+					level 'FW Week Year'
+						caption: Semana año SF
+			table 'Standard Calendar Time Intelligence'
+				caption: Inteligencia de tiempo del calendario estándar
+				measure 'Purchase Amount YTD'
+					caption: Importe compra AHF
+				measure 'Purchase Amount PY'
+					caption: Importe compra AA
+				measure 'Purchase Amount PYTD'
+					caption: Importe compra AAHF
+				measure 'Purchase Amount PQTD'
+					caption: Importe compra TAHF
+				measure 'Purchase Amount QTD'
+					caption: Importe compra THF
+				measure 'Purchase Amount MTD'
+					caption: Importe compra MHF
+				measure 'Purchase Amount YOY %'
+					caption: Importe compra ATA %
+				measure 'Purchase Amount YOY'
+					caption: Importe compra ATA
+				measure 'Purchase Amount PQ'
+					caption: Importe compra TA
+				measure 'Purchase Amount QOQ'
+					caption: Importe compra TTT
+				measure 'Purchase Amount PM'
+					caption: Importe compra MA
+				measure 'Purchase Amount QOQ %'
+					caption: Importe compra TTT %
+				measure 'Purchase Amount MOM'
+					caption: Importe compra MTM
+				measure 'Purchase Amount MOM %'
+					caption: Importe compra MTM %
+				measure 'Purchase Amount MAT'
+					caption: Importe compra TAM
+				measure 'Purchase Amount PYMAT'
+					caption: Importe compra AATAM
+				measure 'Purchase Amount YOYTD'
+					caption: Importe compra AAAHLF
+				measure 'Purchase Amount YOYTD %'
+					caption: Importe compra AAAHLF %
+				measure 'Purchase Amount PYC'
+					caption: Importe compra AAC
+				measure 'Purchase Amount YTDOPY'
+					caption: Importe compra AHFRAA
+				measure 'Purchase Amount YTDOPY %'
+					caption: Importe compra AHFRAA %
+				measure 'Purchase Amount QOQTD'
+					caption: Importe compra TATHLF
+				measure 'Purchase Amount QOQTD %'
+					caption: Importe compra TATHLF %
+				measure 'Purchase Amount PQC'
+					caption: Importe compra TAC
+				measure 'Purchase Amount QTDOPQ'
+					caption: Importe compra THFRTA
+				measure 'Purchase Amount QTDOPQ %'
+					caption: Importe compra THFRTA %
+				measure 'Purchase Amount PMTD'
+					caption: Importe compra MAHF
+				measure 'Purchase Amount MOMTD'
+					caption: Importe compra MAMHLF
+				measure 'Purchase Amount MOMTD %'
+					caption: Importe compra MAMHLF %
+				measure 'Purchase Amount PMC'
+					caption: Importe compra MAC
+				measure 'Purchase Amount MTDOPM'
+					caption: Importe compra MHFTMA
+				measure 'Purchase Amount MTDOPM %'
+					caption: Importe compra MHFTMA %
+				measure 'Purchase Amount AVG 30D'
+					caption: Importe compra AVG 30D
+				measure 'Purchase Amount AVG 3M'
+					caption: Importe compra AVG 3M
+				measure 'Purchase Amount AVG 1Y'
+					caption: Importe compra AVG 1A
+				measure 'Purchase Amount MATG'
+					caption: Importe compra CTAM
+				measure 'Purchase Amount MATG %'
+					caption: Importe compra CTAM %
+				measure 'Purchase Amount PP'
+					caption: Importe compra PA
+				measure 'Purchase Amount POP'
+					caption: Importe compra PTP
+				measure 'Purchase Amount POP %'
+					caption: Importe compra PTP %
+				measure 'Purchase Quantity YTD'
+					caption: Cantidad compra AHF
+				measure 'Purchase Quantity PY'
+					caption: Cantidad compra AA
+				measure 'Purchase Quantity PYTD'
+					caption: Cantidad compra AAHF
+				measure 'Purchase Quantity PQTD'
+					caption: Cantidad compra TAHF
+				measure 'Purchase Quantity QTD'
+					caption: Cantidad compra THF
+				measure 'Purchase Quantity MTD'
+					caption: Cantidad compra MHF
+				measure 'Purchase Quantity YOY %'
+					caption: Cantidad compra ATA %
+				measure 'Purchase Quantity YOY'
+					caption: Cantidad compra ATA
+				measure 'Purchase Quantity PQ'
+					caption: Cantidad compra TA
+				measure 'Purchase Quantity QOQ'
+					caption: Cantidad compra TTT
+				measure 'Purchase Quantity PM'
+					caption: Cantidad compra MA
+				measure 'Purchase Quantity QOQ %'
+					caption: Cantidad compra TTT %
+				measure 'Purchase Quantity MOM'
+					caption: Cantidad compra MTM
+				measure 'Purchase Quantity MOM %'
+					caption: Cantidad compra MTM %
+				measure 'Purchase Quantity MAT'
+					caption: Cantidad compra TAM
+				measure 'Purchase Quantity PYMAT'
+					caption: Cantidad compra AATAM
+				measure 'Purchase Quantity YOYTD'
+					caption: Cantidad compra AAAHLF
+				measure 'Purchase Quantity YOYTD %'
+					caption: Cantidad compra AAAHLF %
+				measure 'Purchase Quantity PYC'
+					caption: Cantidad compra AAC
+				measure 'Purchase Quantity YTDOPY'
+					caption: Cantidad compra AHFRAA
+				measure 'Purchase Quantity YTDOPY %'
+					caption: Cantidad compra AHFRAA %
+				measure 'Purchase Quantity QOQTD'
+					caption: Cantidad compra TATHLF
+				measure 'Purchase Quantity QOQTD %'
+					caption: Cantidad compra TATHLF %
+				measure 'Purchase Quantity PQC'
+					caption: Cantidad compra TAC
+				measure 'Purchase Quantity QTDOPQ'
+					caption: Cantidad compra THFRTA
+				measure 'Purchase Quantity QTDOPQ %'
+					caption: Cantidad compra THFRTA %
+				measure 'Purchase Quantity PMTD'
+					caption: Cantidad compra MAHF
+				measure 'Purchase Quantity MOMTD'
+					caption: Cantidad compra MAMHLF
+				measure 'Purchase Quantity MOMTD %'
+					caption: Cantidad compra MAMHLF %
+				measure 'Purchase Quantity PMC'
+					caption: Cantidad compra MAC
+				measure 'Purchase Quantity MTDOPM'
+					caption: Cantidad compra MHFTMA
+				measure 'Purchase Quantity MTDOPM %'
+					caption: Cantidad compra MHFTMA %
+				measure 'Purchase Quantity AVG 30D'
+					caption: Cantidad compra AVG 30D
+				measure 'Purchase Quantity AVG 3M'
+					caption: Cantidad compra AVG 3M
+				measure 'Purchase Quantity AVG 1Y'
+					caption: Cantidad compra AVG 1A
+				measure 'Purchase Quantity MATG'
+					caption: Cantidad compra CTAM
+				measure 'Purchase Quantity MATG %'
+					caption: Cantidad compra CTAM %
+				measure 'Purchase Quantity PP'
+					caption: Cantidad compra PA
+				measure 'Purchase Quantity POP'
+					caption: Cantidad compra PTP
+				measure 'Purchase Quantity POP %'
+					caption: Cantidad compra PTP %
+				measure 'Budget Amount YTD'
+					caption: Importe presupuesto AHF
+				measure 'Budget Amount QTD'
+					caption: Importe presupuesto THF
+				measure 'Budget Amount MTD'
+					caption: Importe presupuesto MHF
+				measure 'Budget Amount PY'
+					caption: Importe presupuesto AA
+				measure 'Budget Amount YOY %'
+					caption: Importe presupuesto ATA %
+				measure 'Budget Amount YOY'
+					caption: Importe presupuesto ATA
+				measure 'Budget Amount PQ'
+					caption: Importe presupuesto TA
+				measure 'Budget Amount QOQ'
+					caption: Importe presupuesto TTT
+				measure 'Budget Amount PM'
+					caption: Importe presupuesto MA
+				measure 'Budget Amount QOQ %'
+					caption: Importe presupuesto TTT %
+				measure 'Budget Amount MOM'
+					caption: Importe presupuesto MTM
+				measure 'Budget Amount MOM %'
+					caption: Importe presupuesto MTM %
+				measure 'Budget Amount PP'
+					caption: Importe presupuesto PA
+				measure 'Budget Amount POP'
+					caption: Importe presupuesto PTP
+				measure 'Budget Amount POP %'
+					caption: Importe presupuesto PTP %
+				measure 'Budget Amount PYTD'
+					caption: Importe presupuesto AAHF
+				measure 'Budget Amount PQTD'
+					caption: Importe presupuesto TAHF
+				measure 'Budget Amount YOYTD'
+					caption: Importe presupuesto AAAHLF
+				measure 'Budget Amount YOYTD %'
+					caption: Importe presupuesto AAAHLF %
+				measure 'Budget Amount QOQTD'
+					caption: Importe presupuesto TATHLF
+				measure 'Budget Amount QOQTD %'
+					caption: Importe presupuesto TATHLF %
+				measure 'Budget Amount PMTD'
+					caption: Importe presupuesto MAHF
+				measure 'Budget Amount MOMTD'
+					caption: Importe presupuesto MAMHLF
+				measure 'Budget Amount MOMTD %'
+					caption: Importe presupuesto MAMHLF %
+				measure 'Budget Amount MAT'
+					caption: Importe presupuesto TAM
+				measure 'Budget Amount PYMAT'
+					caption: Importe presupuesto AATAM
+				measure 'Budget Amount MATG'
+					caption: Importe presupuesto CTAM
+				measure 'Budget Amount MATG %'
+					caption: Importe presupuesto CTAM %
+				measure 'Budget Amount PYC'
+					caption: Importe presupuesto AAC
+				measure 'Budget Amount YTDOPY'
+					caption: Importe presupuesto AHFRAA
+				measure 'Budget Amount YTDOPY %'
+					caption: Importe presupuesto AHFRAA %
+				measure 'Budget Amount PQC'
+					caption: Importe presupuesto TAC
+				measure 'Budget Amount QTDOPQ'
+					caption: Importe presupuesto THFRTA
+				measure 'Budget Amount QTDOPQ %'
+					caption: Importe presupuesto THFRTA %
+				measure 'Budget Amount PMC'
+					caption: Importe presupuesto MAC
+				measure 'Budget Amount MTDOPM'
+					caption: Importe presupuesto MHFTMA
+				measure 'Budget Amount MTDOPM %'
+					caption: Importe presupuesto MHFTMA %
+				measure 'Budget Amount AVG 30D'
+					caption: Importe presupuesto AVG 30D
+				measure 'Budget Amount AVG 3M'
+					caption: Importe presupuesto AVG 3M
+				measure 'Budget Amount AVG 1Y'
+					caption: Importe presupuesto AVG 1A
+				measure 'Budget Quantity YTD'
+					caption: Cantidad presupuesto AHF
+				measure 'Budget Quantity QTD'
+					caption: Cantidad presupuesto THF
+				measure 'Budget Quantity MTD'
+					caption: Cantidad presupuesto MHF
+				measure 'Budget Quantity PY'
+					caption: Cantidad presupuesto AA
+				measure 'Budget Quantity YOY %'
+					caption: Cantidad presupuesto ATA %
+				measure 'Budget Quantity YOY'
+					caption: Cantidad presupuesto ATA
+				measure 'Budget Quantity PQ'
+					caption: Cantidad presupuesto TA
+				measure 'Budget Quantity QOQ'
+					caption: Cantidad presupuesto TTT
+				measure 'Budget Quantity PM'
+					caption: Cantidad presupuesto MA
+				measure 'Budget Quantity QOQ %'
+					caption: Cantidad presupuesto TTT %
+				measure 'Budget Quantity MOM'
+					caption: Cantidad presupuesto MTM
+				measure 'Budget Quantity MOM %'
+					caption: Cantidad presupuesto MTM %
+				measure 'Budget Quantity PP'
+					caption: Cantidad presupuesto PA
+				measure 'Budget Quantity POP'
+					caption: Cantidad presupuesto PTP
+				measure 'Budget Quantity POP %'
+					caption: Cantidad presupuesto PTP %
+				measure 'Budget Quantity PYTD'
+					caption: Cantidad presupuesto AAHF
+				measure 'Budget Quantity PQTD'
+					caption: Cantidad presupuesto TAHF
+				measure 'Budget Quantity YOYTD'
+					caption: Cantidad presupuesto AAAHLF
+				measure 'Budget Quantity YOYTD %'
+					caption: Cantidad presupuesto AAAHLF %
+				measure 'Budget Quantity QOQTD'
+					caption: Cantidad presupuesto TATHLF
+				measure 'Budget Quantity QOQTD %'
+					caption: Cantidad presupuesto TATHLF %
+				measure 'Budget Quantity PMTD'
+					caption: Cantidad presupuesto MAHF
+				measure 'Budget Quantity MOMTD'
+					caption: Cantidad presupuesto MAMHLF
+				measure 'Budget Quantity MOMTD %'
+					caption: Cantidad presupuesto MAMHLF %
+				measure 'Budget Quantity MAT'
+					caption: Cantidad presupuesto TAM
+				measure 'Budget Quantity PYMAT'
+					caption: Cantidad presupuesto AATAM
+				measure 'Budget Quantity MATG'
+					caption: Cantidad presupuesto CTAM
+				measure 'Budget Quantity MATG %'
+					caption: Cantidad presupuesto CTAM %
+				measure 'Budget Quantity PYC'
+					caption: Cantidad presupuesto AAC
+				measure 'Budget Quantity YTDOPY'
+					caption: Cantidad presupuesto AHFRAA
+				measure 'Budget Quantity YTDOPY %'
+					caption: Cantidad presupuesto AHFRAA %
+				measure 'Budget Quantity PQC'
+					caption: Cantidad presupuesto TAC
+				measure 'Budget Quantity QTDOPQ'
+					caption: Cantidad presupuesto THFRTA
+				measure 'Budget Quantity QTDOPQ %'
+					caption: Cantidad presupuesto THFRTA %
+				measure 'Budget Quantity PMC'
+					caption: Cantidad presupuesto MAC
+				measure 'Budget Quantity MTDOPM'
+					caption: Cantidad presupuesto MHFTMA
+				measure 'Budget Quantity MTDOPM %'
+					caption: Cantidad presupuesto MHFTMA %
+				measure 'Budget Quantity AVG 30D'
+					caption: Cantidad presupuesto AVG 30D
+				measure 'Budget Quantity AVG 3M'
+					caption: Cantidad presupuesto AVG 3M
+				measure 'Budget Quantity AVG 1Y'
+					caption: Cantidad presupuesto AVG 1A
+			table 'Fiscal Calendar Time Intelligence'
+				caption: Inteligencia de tiempo del calendario fiscal
+				measure 'Purchase Amount YTD (Fiscal)'
+					caption: Importe compra AHF (fiscal)
+				measure 'Purchase Amount QTD (Fiscal)'
+					caption: Importe compra THF (fiscal)
+				measure 'Purchase Amount MTD (Fiscal)'
+					caption: Importe compra MHF (fiscal)
+				measure 'Purchase Amount PY (Fiscal)'
+					caption: Importe compra AA (fiscal)
+				measure 'Purchase Amount YOY % (Fiscal)'
+					caption: Importe compra ATA % (fiscal)
+				measure 'Purchase Amount YOY (Fiscal)'
+					caption: Importe compra ATA (fiscal)
+				measure 'Purchase Amount PQ (Fiscal)'
+					caption: Importe compra TA (fiscal)
+				measure 'Purchase Amount QOQ (Fiscal)'
+					caption: Importe compra TTT (fiscal)
+				measure 'Purchase Amount QOQ % (Fiscal)'
+					caption: Importe compra TTT % (fiscal)
+				measure 'Purchase Amount PM (Fiscal)'
+					caption: Importe compra MA (fiscal)
+				measure 'Purchase Amount MOM (Fiscal)'
+					caption: Importe compra MTM (fiscal)
+				measure 'Purchase Amount MOM % (Fiscal)'
+					caption: Importe compra MTM % (fiscal)
+				measure 'Purchase Amount PP (Fiscal)'
+					caption: Importe compra AVG PA (fiscal)
+				measure 'Purchase Amount POP (Fiscal)'
+					caption: Importe compra PTP (fiscal)
+				measure 'Purchase Amount POP % (Fiscal)'
+					caption: Importe compra PTP % (fiscal)
+				measure 'Purchase Amount PYTD (Fiscal)'
+					caption: Importe compra AAHF (fiscal)
+				measure 'Purchase Amount PQTD (Fiscal)'
+					caption: Importe compra TAHF (fiscal)
+				measure 'Purchase Amount YOYTD (Fiscal)'
+					caption: Importe compra AAAHLF (fiscal)
+				measure 'Purchase Amount YOYTD % (Fiscal)'
+					caption: Importe compra AAAHLF % (fiscal)
+				measure 'Purchase Amount QOQTD (Fiscal)'
+					caption: Importe compra TATHLF (fiscal)
+				measure 'Purchase Amount QOQTD % (Fiscal)'
+					caption: Importe compra TATHLF % (fiscal)
+				measure 'Purchase Amount PMTD (Fiscal)'
+					caption: Importe compra MAHF (fiscal)
+				measure 'Purchase Amount MOMTD % (Fiscal)'
+					caption: Importe compra MAMHLF % (fiscal)
+				measure 'Purchase Amount MOMTD (Fiscal)'
+					caption: Importe compra MAMHLF (fiscal)
+				measure 'Purchase Amount MAT (Fiscal)'
+					caption: Importe compra MAT (fiscal)
+				measure 'Purchase Amount PYMAT (Fiscal)'
+					caption: Importe compra AATAM (fiscal)
+				measure 'Purchase Amount MATG (Fiscal)'
+					caption: Importe compra CTAM (fiscal)
+				measure 'Purchase Amount MATG % (Fiscal)'
+					caption: Importe compra CTAM % (fiscal)
+				measure 'Purchase Amount MAT (364) (Fiscal)'
+					caption: Importe compra TAM (364) (fiscal)
+				measure 'Purchase PYMAT (364) (Fiscal)'
+					caption: Compra AATAM (364) (fiscal)
+				measure 'Purchase Amount PYC (Fiscal)'
+					caption: Importe compra AAC (fiscal)
+				measure 'Purchase Amount YTDOPY (Fiscal)'
+					caption: Importe compra AHFRAA (fiscal)
+				measure 'Purchase Amount YTDOPY % (Fiscal)'
+					caption: Importe compra AHFRAA % (fiscal)
+				measure 'Purchase Amount PQC (Fiscal)'
+					caption: Importe compra TAC (fiscal)
+				measure 'Purchase Amount QTDOPQ (Fiscal)'
+					caption: Importe compra THFRTA (fiscal)
+				measure 'Purchase Amount QTDOPQ % (Fiscal)'
+					caption: Importe compra THFRTA % (fiscal)
+				measure 'Purchase Amount PMC (Fiscal)'
+					caption: Importe compra MAC (fiscal)
+				measure 'Purchase Amount MTDOPM (Fiscal)'
+					caption: Importe compra MHFTMA (fiscal)
+				measure 'Purchase Amount MTDOPM % (Fiscal)'
+					caption: Importe compra MHFTMA % (fiscal)
+				measure 'Purchase Amount AVG 30D (Fiscal)'
+					caption: Importe compra AVG 30D (fiscal)
+				measure 'Purchase Amount AVG 3M (Fiscal)'
+					caption: Importe compra AVG 3M (fiscal)
+				measure 'Purchase Amount AVG 1Y (Fiscal)'
+					caption: Importe compra AVG 1A (fiscal)
+				measure 'Purchases Quantity YTD (Fiscal)'
+					caption: Cantidad compras AHF (fiscal)
+				measure 'Purchases Quantity QTD (Fiscal)'
+					caption: Cantidad compras THF (fiscal)
+				measure 'Purchases Quantity MTD (Fiscal)'
+					caption: Cantidad compras MHF (fiscal)
+				measure 'Purchase Quantity PY (Fiscal)'
+					caption: Cantidad compra AA (fiscal)
+				measure 'Purchase Quantity YOY % (Fiscal)'
+					caption: Cantidad compra ATA % (fiscal)
+				measure 'Purchase Quantity YOY (Fiscal)'
+					caption: Cantidad compra ATA (fiscal)
+				measure 'Purchase Quantity PQ (Fiscal)'
+					caption: Cantidad compra TA (fiscal)
+				measure 'Purchase Quantity QOQ (Fiscal)'
+					caption: Cantidad compra TTT (fiscal)
+				measure 'Purchase Quantity QOQ % (Fiscal)'
+					caption: Cantidad compra TTT % (fiscal)
+				measure 'Purchase Quantity PM (Fiscal)'
+					caption: Cantidad compra MA (fiscal)
+				measure 'Purchase Quantity MOM (Fiscal)'
+					caption: Cantidad compra MTM (fiscal)
+				measure 'Purchase Quantity MOM % (Fiscal)'
+					caption: Cantidad compra MTM % (fiscal)
+				measure 'Purchase Quantity PP (Fiscal)'
+					caption: Cantidad compra PA (fiscal)
+				measure 'Purchase Quantity POP (Fiscal)'
+					caption: Cantidad compra PTP (fiscal)
+				measure 'Purchase Quantity POP % (Fiscal)'
+					caption: Cantidad compra PTP % (fiscal)
+				measure 'Purchase Quantity PYTD (Fiscal)'
+					caption: Cantidad compra AAHF (fiscal)
+				measure 'Purchase Quantity PQTD (Fiscal)'
+					caption: Cantidad compra TAHF (fiscal)
+				measure 'Purchase Quantity YOYTD (Fiscal)'
+					caption: Cantidad compra AAAHLF (fiscal)
+				measure 'Purchase Quantity YOYTD % (Fiscal)'
+					caption: Cantidad compra AAAHLF % (fiscal)
+				measure 'Purchase Quantity QOQTD (Fiscal)'
+					caption: Cantidad compra TATHLF (fiscal)
+				measure 'Purchase Quantity QOQTD % (Fiscal)'
+					caption: Cantidad compra TATHLF % (fiscal)
+				measure 'Purchase Quantity PMTD (Fiscal)'
+					caption: Cantidad compra MAHF (fiscal)
+				measure 'Purchase Quantity MOMTD % (Fiscal)'
+					caption: Cantidad compra MAMHLF % (fiscal)
+				measure 'Purchase Quantity MOMTD (Fiscal)'
+					caption: Cantidad compra MAMHLF (fiscal)
+				measure 'Purchase Quantity MAT (Fiscal)'
+					caption: Cantidad compra TAM (fiscal)
+				measure 'Purchase Quantity PYMAT (Fiscal)'
+					caption: Cantidad compra AATAM (fiscal)
+				measure 'Purchase Quantity MATG (Fiscal)'
+					caption: Cantidad compra CTAM (fiscal)
+				measure 'Purchase Quantity MATG % (Fiscal)'
+					caption: Cantidad compra CTAM % (fiscal)
+				measure 'Purchase Quantity PYC (Fiscal)'
+					caption: Cantidad compra AAC (fiscal)
+				measure 'Purchase Quantity YTDOPY (Fiscal)'
+					caption: Cantidad compra AHFRAA (fiscal)
+				measure 'Purchase Quantity YTDOPY % (Fiscal)'
+					caption: Cantidad compra AHFRAA % (fiscal)
+				measure 'Purchase Quantity PQC (Fiscal)'
+					caption: Cantidad compra TAC (fiscal)
+				measure 'Purchase Quantity QTDOPQ (Fiscal)'
+					caption: Cantidad compra THFRTA (fiscal)
+				measure 'Purchase Quantity QTDOPQ % (Fiscal)'
+					caption: Cantidad compra THFRTA % (fiscal)
+				measure 'Purchase Quantity PMC (Fiscal)'
+					caption: Cantidad compra MAC (fiscal)
+				measure 'Purchase Quantity MTDOPM (Fiscal)'
+					caption: Cantidad compra MHFTMA (fiscal)
+				measure 'Purchase Quantity MTDOPM % (Fiscal)'
+					caption: Cantidad compra MHFTMA % (fiscal)
+				measure 'Purchase Quantity AVG 30D (Fiscal)'
+					caption: Cantidad compra AVG 30D (fiscal)
+				measure 'Purchase Quantity AVG 3M (Fiscal)'
+					caption: Cantidad compra AVG 3M (fiscal)
+				measure 'Purchase Quantity AVG 1Y (Fiscal)'
+					caption: Cantidad compra AVG 1A (fiscal)
+				measure 'Budget Amount YTD (Fiscal)'
+					caption: Importe presupuesto AHT (fiscal)
+				measure 'Budget Amount QTD (Fiscal)'
+					caption: Importe presupuesto THF (fiscal)
+				measure 'Budget Amount MTD (Fiscal)'
+					caption: Importe presupuesto MTD (fiscal)
+				measure 'Budget Amount PY (Fiscal)'
+					caption: Importe presupuesto AA (fiscal)
+				measure 'Budget Amount YOY % (Fiscal)'
+					caption: Importe presupuesto ATA % (fiscal)
+				measure 'Budget Amount YOY (Fiscal)'
+					caption: Importe presupuesto ATA (fiscal)
+				measure 'Budget Amount PQ (Fiscal)'
+					caption: Importe presupuesto TA (fiscal)
+				measure 'Budget Amount QOQ (Fiscal)'
+					caption: Importe presupuesto TTT (fiscal)
+				measure 'Budget Amount QOQ % (Fiscal)'
+					caption: Importe presupuesto TTT % (fiscal)
+				measure 'Budget Amount PM (Fiscal)'
+					caption: Importe presupuesto MA (fiscal)
+				measure 'Budget Amount MOM (Fiscal)'
+					caption: Importe presupuesto MTM (fiscal)
+				measure 'Budget Amount MOM % (Fiscal)'
+					caption: Importe presupuesto MTM % (fiscal)
+				measure 'Budget Amount PP (Fiscal)'
+					caption: Importe presupuesto PA (fiscal)
+				measure 'Budget Amount POP (Fiscal)'
+					caption: Importe presupuesto PTP (fiscal)
+				measure 'Budget Amount POP % (Fiscal)'
+					caption: Importe presupuesto PTP % (fiscal)
+				measure 'Budget Amount PYTD (Fiscal)'
+					caption: Importe presupuesto AAHF (fiscal)
+				measure 'Budget Amount PQTD (Fiscal)'
+					caption: Importe presupuesto TAHF (fiscal)
+				measure 'Budget Amount YOYTD (Fiscal)'
+					caption: Importe presupuesto AAAHLF (fiscal)
+				measure 'Budget Amount YOYTD % (Fiscal)'
+					caption: Importe presupuesto AAAHLF % (fiscal)
+				measure 'Budget Amount QOQTD (Fiscal)'
+					caption: Importe presupuesto TATHLF (fiscal)
+				measure 'Budget Amount QOQTD % (Fiscal)'
+					caption: Importe presupuesto TATHLF % (fiscal)
+				measure 'Budget Amount PMTD (Fiscal)'
+					caption: Importe presupuesto MAHF (fiscal)
+				measure 'Budget Amount MOMTD % (Fiscal)'
+					caption: Importe presupuesto MAMHLF % (fiscal)
+				measure 'Budget Amount MOMTD (Fiscal)'
+					caption: Importe presupuesto MAMHLF (fiscal)
+				measure 'Budget Amount MAT (Fiscal)'
+					caption: Importe presupuesto TAM (fiscal)
+				measure 'Budget Amount PYMAT (Fiscal)'
+					caption: Importe presupuesto AATAM (fiscal)
+				measure 'Budget Amount MATG (Fiscal)'
+					caption: Importe presupuesto CTAM (fiscal)
+				measure 'Budget Amount MATG % (Fiscal)'
+					caption: Importe presupuesto CTAM % (fiscal)
+				measure 'Budget Amount MAT (364) (Fiscal)'
+					caption: Importe presupuesto TAM (364) (fiscal)
+				measure 'Budget PYMAT (364) (Fiscal)'
+					caption: Importe presupuesto AATAM (364) (fiscal)
+				measure 'Budget Amount PYC (Fiscal)'
+					caption: Importe presupuesto AAC (fiscal)
+				measure 'Budget Amount YTDOPY (Fiscal)'
+					caption: Importe presupuesto AHFRAA (fiscal)
+				measure 'Budget Amount YTDOPY % (Fiscal)'
+					caption: Importe presupuesto AHFRAA % (fiscal)
+				measure 'Budget Amount PQC (Fiscal)'
+					caption: Importe presupuesto TAC (fiscal)
+				measure 'Budget Amount QTDOPQ (Fiscal)'
+					caption: Importe presupuesto THFRTA (fiscal)
+				measure 'Budget Amount QTDOPQ % (Fiscal)'
+					caption: Importe presupuesto THFRTA % (fiscal)
+				measure 'Budget Amount PMC (Fiscal)'
+					caption: Importe presupuesto MAC (fiscal)
+				measure 'Budget Amount MTDOPM (Fiscal)'
+					caption: Importe presupuesto MHFTMA (fiscal)
+				measure 'Budget Amount MTDOPM % (Fiscal)'
+					caption: Importe presupuesto MHFTMA % (fiscal)
+				measure 'Budget Amount AVG 30D (Fiscal)'
+					caption: Importe presupuesto AVG 30D (fiscal)
+				measure 'Budget Amount AVG 3M (Fiscal)'
+					caption: Importe presupuesto AVG 3M (fiscal)
+				measure 'Budget Amount AVG 1Y (Fiscal)'
+					caption: Importe presupuesto AVG 1A (fiscal)
+				measure 'Budget Quantity YTD (Fiscal)'
+					caption: Cantidad presupuesto AHF (fiscal)
+				measure 'Budget Quantity QTD (Fiscal)'
+					caption: Cantidad presupuesto THF (fiscal)
+				measure 'Budget Quantity MTD (Fiscal)'
+					caption: Cantidad presupuesto MHF (fiscal)
+				measure 'Budget Quantity PY (Fiscal)'
+					caption: Cantidad presupuesto AA (fiscal)
+				measure 'Budget Quantity YOY % (Fiscal)'
+					caption: Cantidad presupuesto ATA % (fiscal)
+				measure 'Budget Quantity YOY (Fiscal)'
+					caption: Cantidad presupuesto ATA (fiscal)
+				measure 'Budget Quantity PQ (Fiscal)'
+					caption: Cantidad presupuesto TA (fiscal)
+				measure 'Budget Quantity QOQ (Fiscal)'
+					caption: Cantidad presupuesto TTT (fiscal)
+				measure 'Budget Quantity QOQ % (Fiscal)'
+					caption: Cantidad presupuesto TTT % (fiscal)
+				measure 'Budget Quantity PM (Fiscal)'
+					caption: Cantidad presupuesto MA (fiscal)
+				measure 'Budget Quantity MOM (Fiscal)'
+					caption: Cantidad presupuesto MTM (fiscal)
+				measure 'Budget Quantity MOM % (Fiscal)'
+					caption: Cantidad presupuesto MTM % (fiscal)
+				measure 'Budget Quantity PP (Fiscal)'
+					caption: Cantidad presupuesto PA (fiscal)
+				measure 'Budget Quantity POP (Fiscal)'
+					caption: Cantidad presupuesto PTP (fiscal)
+				measure 'Budget Quantity POP % (Fiscal)'
+					caption: Cantidad presupuesto PTP % (fiscal)
+				measure 'Budget Quantity PYTD (Fiscal)'
+					caption: Cantidad presupuesto AAHF (fiscal)
+				measure 'Budget Quantity PQTD (Fiscal)'
+					caption: Cantidad presupuesto TAHF (fiscal)
+				measure 'Budget Quantity YOYTD (Fiscal)'
+					caption: Cantidad presupuesto AAAHLF (fiscal)
+				measure 'Budget Quantity YOYTD % (Fiscal)'
+					caption: Cantidad presupuesto AAAHLF % (fiscal)
+				measure 'Budget Quantity QOQTD (Fiscal)'
+					caption: Cantidad presupuesto TATHLF (fiscal)
+				measure 'Budget Quantity QOQTD % (Fiscal)'
+					caption: Cantidad presupuesto TATHLF % (fiscal)
+				measure 'Budget Quantity PMTD (Fiscal)'
+					caption: Cantidad presupuesto MAHF (fiscal)
+				measure 'Budget Quantity MOMTD % (Fiscal)'
+					caption: Cantidad presupuesto MAMHLF % (fiscal)
+				measure 'Budget Quantity MOMTD (Fiscal)'
+					caption: Cantidad presupuesto MAMHLF (fiscal)
+				measure 'Budget Quantity MAT (Fiscal)'
+					caption: Cantidad presupuesto TAM (fiscal)
+				measure 'Budget Quantity PYMAT (Fiscal)'
+					caption: Cantidad presupuesto AATAM (fiscal)
+				measure 'Budget Quantity MATG (Fiscal)'
+					caption: Cantidad presupuesto CTAM (fiscal)
+				measure 'Budget Quantity MATG % (Fiscal)'
+					caption: Cantidad presupuesto CTAM % (fiscal)
+				measure 'Budget Quantity PYC (Fiscal)'
+					caption: Cantidad presupuesto AAC (fiscal)
+				measure 'Budget Quantity YTDOPY (Fiscal)'
+					caption: Cantidad presupuesto AHFRAA (fiscal)
+				measure 'Budget Quantity YTDOPY % (Fiscal)'
+					caption: Cantidad presupuesto AHFRAA % (fiscal)
+				measure 'Budget Quantity PQC (Fiscal)'
+					caption: Cantidad presupuesto TAC (fiscal)
+				measure 'Budget Quantity QTDOPQ (Fiscal)'
+					caption: Cantidad presupuesto THFRTA (fiscal)
+				measure 'Budget Quantity QTDOPQ % (Fiscal)'
+					caption: Cantidad presupuesto THFRTA % (fiscal)
+				measure 'Budget Quantity PMC (Fiscal)'
+					caption: Cantidad presupuesto MAC (fiscal)
+				measure 'Budget Quantity MTDOPM (Fiscal)'
+					caption: Cantidad presupuesto MHFTMA (fiscal)
+				measure 'Budget Quantity MTDOPM % (Fiscal)'
+					caption: Cantidad presupuesto MHFTMA % (fiscal)
+				measure 'Budget Quantity AVG 30D (Fiscal)'
+					caption: Cantidad presupuesto AVG 30D (fiscal)
+				measure 'Budget Quantity AVG 3M (Fiscal)'
+					caption: Cantidad presupuesto AVG 3M (fiscal)
+				measure 'Budget Quantity AVG 1Y (Fiscal)'
+					caption: Cantidad presupuesto AVG 1A (fiscal)
+			table 'Weekly Calendar Time Intelligence'
+				caption: Inteligencia de tiempo del calendario semanal
+				measure 'Purchase Amount YTD (Weekly)'
+					caption: Importe compra AHF (semanal)
+				measure 'Purchase Amount QTD (Weekly)'
+					caption: Importe compra THF (semanal)
+				measure 'Purchase Amount MTD (Weekly)'
+					caption: Importe compra MHF (semanal)
+				measure 'Purchase Amount WTD (Weekly)'
+					caption: Importe compra SHF (semanal)
+				measure 'Purchase Amount PY (Weekly)'
+					caption: Importe compra AA (semanal)
+				measure 'Purchase Amount YOY % (Weekly)'
+					caption: Importe compra ATA % (semanal)
+				measure 'Purchase Amount YOY (Weekly)'
+					caption: Importe compra ATA (semanal)
+				measure 'Purchase Amount PQ (Weekly)'
+					caption: Importe compra TA (semanal)
+				measure 'Purchase Amount QOQ (Weekly)'
+					caption: Importe compra TTT (semanal)
+				measure 'Purchase Amount QOQ % (Weekly)'
+					caption: Importe compra TTT % (semanal)
+				measure 'Purchase Amount PW (Weekly)'
+					caption: Importe compra AVG SA (semanal)
+				measure 'Purchase Amount WOW (Weekly)'
+					caption: Importe compra STS (semanal)
+				measure 'Purchase Amount WOW % (Weekly)'
+					caption: Importe compra STS % (semanal)
+				measure 'Purchase Amount PP (Weekly)'
+					caption: Importe compra PA (semanal)
+				measure 'Purchase Amount POP (Weekly)'
+					caption: Importe compra PTP (semanal)
+				measure 'Purchase Amount POP % (Weekly)'
+					caption: Importe compra PTP % (semanal)
+				measure 'Purchase Amount PYTD (Weekly)'
+					caption: Importe compra AAHF (semanal)
+				measure 'Purchase Amount PQTD (Weekly)'
+					caption: Importe compra TAHF (semanal)
+				measure 'Purchase Amount YOYTD (Weekly)'
+					caption: Importe compra AAAHLF (semanal)
+				measure 'Purchase Amount YOYTD % (Weekly)'
+					caption: Importe compra AAAHLF % (semanal)
+				measure 'Purchase Amount QOQTD (Weekly)'
+					caption: Importe compra TATHLF (semanal)
+				measure 'Purchase Amount QOQTD % (Weekly)'
+					caption: Importe compra TATHLF % (semanal)
+				measure 'Purchase Amount PWTD (Weekly)'
+					caption: Importe compra SAHF (semanal)
+				measure 'Purchase Amount WOWTD (Weekly)'
+					caption: Importe compra SASHLF (semanal)
+				measure 'Purchase Amount WOWTD % (Weekly)'
+					caption: Importe compra SASHLF % (semanal)
+				measure 'Purchase Amount MAT (364) (Weekly)'
+					caption: Importe compra TAM (364) (semanal)
+				measure 'Purchase Amount PYMAT (364) (Weekly)'
+					caption: Importe compra AATAM (364) (semanal)
+				measure 'Purchase Amount MATG (Weekly)'
+					caption: Importe compra CTAM (semanal)
+				measure 'Purchase Amount MATG % (Weekly)'
+					caption: Importe compra CTAM % (semanal)
+				measure 'Purchase Amount PYC (Weekly)'
+					caption: Importe compra AAC (semanal)
+				measure 'Purchase Amount YTDOPY (Weekly)'
+					caption: Importe compra AHFRAA (semanal)
+				measure 'Purchase Amount YTDOPY % (Weekly)'
+					caption: Importe compra AHFRAA % (semanal)
+				measure 'Purchase Amount PQC (Weekly)'
+					caption: Importe compra TAC (semanal)
+				measure 'Purchase Amount QTDOPQ (Weekly)'
+					caption: Importe compra THFRTA (semanal)
+				measure 'Purchase Amount QTDOPQ % (Weekly)'
+					caption: Importe compra THFRTA % (semanal)
+				measure 'Purchase Amount PWC (Weekly)'
+					caption: Importe compra SAC (semanal)
+				measure 'Purchase Amount WTDOPW (Weekly)'
+					caption: Importe compra SHFRSA (semanal)
+				measure 'Purchase Amount WTDOPW % (Weekly)'
+					caption: Importe compra SHFRSA % (semanal)
+				measure 'Purchase Amount AVG 4W (Weekly)'
+					caption: Importe compra AVG 4S (semanal)
+				measure 'Purchase Amount AVG 1Q (Weekly)'
+					caption: Importe compra AVG 1T (semanal)
+				measure 'Purchase Amount AVG 1Y (Weekly)'
+					caption: Importe compra AVG 1A (semanal)
+				measure 'Purchase Quantity YTD (Weekly)'
+					caption: Cantidad compra AHF (semanal)
+				measure 'Purchase Quantity QTD (Weekly)'
+					caption: Cantidad compra THF (semanal)
+				measure 'Purchase Quantity MTD (Weekly)'
+					caption: Cantidad compra MHF (semanal)
+				measure 'Purchase Quantity WTD (Weekly)'
+					caption: Cantidad compra SHF (semanal)
+				measure 'Purchase Quantity PY (Weekly)'
+					caption: Cantidad compra AA (semanal)
+				measure 'Purchase Quantity YOY % (Weekly)'
+					caption: Cantidad compra ATA % (semanal)
+				measure 'Purchase Quantity YOY (Weekly)'
+					caption: Cantidad compra ATA (semanal)
+				measure 'Purchase Quantity PQ (Weekly)'
+					caption: Cantidad compra TA (semanal)
+				measure 'Purchase Quantity QOQ (Weekly)'
+					caption: Cantidad compra TTT (semanal)
+				measure 'Purchase Quantity QOQ % (Weekly)'
+					caption: Cantidad compra TTT % (semanal)
+				measure 'Purchase Quantity PW (Weekly)'
+					caption: Cantidad compra SA (semanal)
+				measure 'Purchase Quantity WOW (Weekly)'
+					caption: Cantidad compra STS (semanal)
+				measure 'Purchase Quantity WOW % (Weekly)'
+					caption: Cantidad compra STS % (semanal)
+				measure 'Purchase Quantity PP (Weekly)'
+					caption: Cantidad compra PA (semanal)
+				measure 'Purchase Quantity POP (Weekly)'
+					caption: Cantidad compra PTP (semanal)
+				measure 'Purchase Quantity POP % (Weekly)'
+					caption: Cantidad compra PTP % (semanal)
+				measure 'Purchase Quantity PYTD (Weekly)'
+					caption: Cantidad compra AAHF (semanal)
+				measure 'Purchase Quantity PQTD (Weekly)'
+					caption: Cantidad compra TAHF (semanal)
+				measure 'Purchase Quantity YOYTD (Weekly)'
+					caption: Cantidad compra AAAHLF (semanal)
+				measure 'Purchase Quantity YOYTD % (Weekly)'
+					caption: Cantidad compra AAAHLF % (semanal)
+				measure 'Purchase Quantity QOQTD (Weekly)'
+					caption: Cantidad compra TATHLF (semanal)
+				measure 'Purchase Quantity QOQTD % (Weekly)'
+					caption: Cantidad compra TATHLF % (semanal)
+				measure 'Purchase Quantity PWTD (Weekly)'
+					caption: Cantidad compra SAHF (semanal)
+				measure 'Purchase Quantity WOWTD (Weekly)'
+					caption: Cantidad compra SASHLF (semanal)
+				measure 'Purchase Quantity WOWTD % (Weekly)'
+					caption: Cantidad compra SASHLF % (semanal)
+				measure 'Purchase Quantity MAT (364) (Weekly)'
+					caption: Cantidad compra TAM (364) (semanal)
+				measure 'Purchase Quantity PYMAT (364) (Weekly)'
+					caption: Cantidad compra AATAM (364) (semanal)
+				measure 'Purchase Quantity MATG (Weekly)'
+					caption: Cantidad compra CTAM (semanal)
+				measure 'Purchase Quantity MATG % (Weekly)'
+					caption: Cantidad compra CTAM % (semanal)
+				measure 'Purchase Quantity PYC (Weekly)'
+					caption: Cantidad compra AAC (semanal)
+				measure 'Purchase Quantity YTDOPY (Weekly)'
+					caption: Cantidad compra AHFRAA (semanal)
+				measure 'Purchase Quantity YTDOPY  % (Weekly)'
+					caption: Cantidad compra AHFRAA % (semanal)
+				measure 'Purchase Quantity PQC (Weekly)'
+					caption: Cantidad compra TAC (semanal)
+				measure 'Purchase Quantity QTDOPQ (Weekly)'
+					caption: Cantidad compra THFRTA (semanal)
+				measure 'Purchase Quantity QTDOPQ % (Weekly)'
+					caption: Cantidad compra THFRTA % (semanal)
+				measure 'Purchase Quantity PWC (Weekly)'
+					caption: Cantidad compra SAC (semanal)
+				measure 'Purchase Quantity WTDOPW (Weekly)'
+					caption: Cantidad compra SHFRSA (semanal)
+				measure 'Purchase Quantity WTDOPW % (Weekly)'
+					caption: Cantidad compra SHFRSA % (semanal)
+				measure 'Purchase Quantity AVG 4W (Weekly)'
+					caption: Cantidad compra AVG 4S (semanal)
+				measure 'Purchase Quantity AVG 1Q (Weekly)'
+					caption: Cantidad compra AVG 1T (semanal)
+				measure 'Purchase Quantity AVG 1Y (Weekly)'
+					caption: Cantidad compra AVG 1A (semanal)
+				measure 'Budget Quantity YTD (Weekly)'
+					caption: Cantidad presupuesto AHF (semanal)
+				measure 'Budget Quantity QTD (Weekly)'
+					caption: Cantidad presupuesto THF (semanal)
+				measure 'Budget Quantity MTD (Weekly)'
+					caption: Cantidad presupuesto MHF (semanal)
+				measure 'Budget Quantity WTD (Weekly)'
+					caption: Cantidad presupuesto SHF (semanal)
+				measure 'Budget Quantity PY (Weekly)'
+					caption: Cantidad presupuesto AA (semanal)
+				measure 'Budget Quantity YOY % (Weekly)'
+					caption: Cantidad presupuesto ATA % (semanal)
+				measure 'Budget Quantity YOY (Weekly)'
+					caption: Cantidad presupuesto ATA (semanal)
+				measure 'Budget Quantity PQ (Weekly)'
+					caption: Cantidad presupuesto TA (semanal)
+				measure 'Budget Quantity QOQ (Weekly)'
+					caption: Cantidad presupuesto TTT (semanal)
+				measure 'Budget Quantity QOQ % (Weekly)'
+					caption: Cantidad presupuesto TTT % (semanal)
+				measure 'Budget Quantity PW (Weekly)'
+					caption: Cantidad presupuesto SA (semanal)
+				measure 'Budget Quantity WOW (Weekly)'
+					caption: Cantidad presupuesto STS (semanal)
+				measure 'Budget Quantity WOW % (Weekly)'
+					caption: Cantidad presupuesto STS % (semanal)
+				measure 'Budget Quantity PP (Weekly)'
+					caption: Cantidad presupuesto PA (semanal)
+				measure 'Budget Quantity POP (Weekly)'
+					caption: Cantidad presupuesto PTP (semanal)
+				measure 'Budget Quantity POP % (Weekly)'
+					caption: Cantidad presupuesto PTP % (semanal)
+				measure 'Budget Quantity PYTD (Weekly)'
+					caption: Cantidad presupuesto AAHF (semanal)
+				measure 'Budget Quantity PQTD (Weekly)'
+					caption: Cantidad presupuesto TAHF (semanal)
+				measure 'Budget Quantity YOYTD (Weekly)'
+					caption: Cantidad presupuesto AAAHLF (semanal)
+				measure 'Budget Quantity YOYTD % (Weekly)'
+					caption: Cantidad presupuesto AAAHLF % (semanal)
+				measure 'Budget Quantity QOQTD (Weekly)'
+					caption: Cantidad presupuesto TATHLF (semanal)
+				measure 'Budget Quantity QOQTD % (Weekly)'
+					caption: Cantidad presupuesto TATHLF % (semanal)
+				measure 'Budget Quantity PWTD (Weekly)'
+					caption: Cantidad presupuesto SAHF (semanal)
+				measure 'Budget Quantity WOWTD (Weekly)'
+					caption: Cantidad presupuesto SASHLF (semanal)
+				measure 'Budget Quantity WOWTD % (Weekly)'
+					caption: Cantidad presupuesto SASHLF % (semanal)
+				measure 'Budget Quantity MAT (364) (Weekly)'
+					caption: Cantidad presupuesto TAM (364) (semanal)
+				measure 'Budget Quantity PYMAT (364) (Weekly)'
+					caption: Cantidad presupuesto AATAM (364) (semanal)
+				measure 'Budget Quantity MATG (Weekly)'
+					caption: Cantidad presupuesto CTAM (semanal)
+				measure 'Budget Quantity MATG % (Weekly)'
+					caption: Cantidad presupuesto CTAM % (semanal)
+				measure 'Budget Quantity PYC (Weekly)'
+					caption: Cantidad presupuesto AAC (semanal)
+				measure 'Budget Quantity YTDOPY (Weekly)'
+					caption: Cantidad presupuesto AHFRAA (semanal)
+				measure 'Budget Quantity YTDOPY  % (Weekly)'
+					caption: Cantidad presupuesto AHFRAA % (semanal)
+				measure 'Budget Quantity PQC (Weekly)'
+					caption: Cantidad presupuesto TAC (semanal)
+				measure 'Budget Quantity QTDOPQ (Weekly)'
+					caption: Cantidad presupuesto THFRTA (semanal)
+				measure 'Budget Quantity QTDOPQ % (Weekly)'
+					caption: Cantidad presupuesto THFRTA % (semanal)
+				measure 'Budget Quantity PWC (Weekly)'
+					caption: Cantidad presupuesto SAC (semanal)
+				measure 'Budget Quantity WTDOPW (Weekly)'
+					caption: Cantidad presupuesto SHFRSA (semanal)
+				measure 'Budget Quantity WTDOPW % (Weekly)'
+					caption: Cantidad presupuesto SHFRSA % (semanal)
+				measure 'Budget Quantity AVG 4W (Weekly)'
+					caption: Cantidad presupuesto AVG 4S (semanal)
+				measure 'Budget Quantity AVG 1Q (Weekly)'
+					caption: Cantidad presupuesto AVG 1T (semanal)
+				measure 'Budget Quantity AVG 1Y (Weekly)'
+					caption: Cantidad presupuesto AVG 1A (semanal)
+				measure 'Budget Amount YTD (Weekly)'
+					caption: Importe presupuesto AHF (semanal)
+				measure 'Budget Amount QTD (Weekly)'
+					caption: Importe presupuesto THF (semanal)
+				measure 'Budget Amount MTD (Weekly)'
+					caption: Importe presupuesto MHF (semanal)
+				measure 'Budget Amount WTD (Weekly)'
+					caption: Importe presupuesto SHF (semanal)
+				measure 'Budget Amount PY (Weekly)'
+					caption: Importe presupuesto AA (semanal)
+				measure 'Budget Amount YOY % (Weekly)'
+					caption: Importe presupuesto ATA % (semanal)
+				measure 'Budget Amount YOY (Weekly)'
+					caption: Importe presupuesto ATA (semanal)
+				measure 'Budget Amount PQ (Weekly)'
+					caption: Importe presupuesto TA (semanal)
+				measure 'Budget Amount QOQ (Weekly)'
+					caption: Importe presupuesto TTT (semanal)
+				measure 'Budget Amount QOQ % (Weekly)'
+					caption: Importe presupuesto TTT % (semanal)
+				measure 'Budget Amount PW (Weekly)'
+					caption: Importe presupuesto SA (semanal)
+				measure 'Budget Amount WOW (Weekly)'
+					caption: Importe presupuesto STS (semanal)
+				measure 'Budget Amount WOW % (Weekly)'
+					caption: Importe presupuesto STS % (semanal)
+				measure 'Budget Amount PP (Weekly)'
+					caption: Importe presupuesto PA (semanal)
+				measure 'Budget Amount POP (Weekly)'
+					caption: Importe presupuesto PTP (semanal)
+				measure 'Budget Amount POP % (Weekly)'
+					caption: Importe presupuesto PTP % (semanal)
+				measure 'Budget Amount PYTD (Weekly)'
+					caption: Importe presupuesto AAHF (semanal)
+				measure 'Budget Amount PQTD (Weekly)'
+					caption: Importe presupuesto TAHF (semanal)
+				measure 'Budget Amount YOYTD (Weekly)'
+					caption: Importe presupuesto AAAHLF (semanal)
+				measure 'Budget Amount YOYTD % (Weekly)'
+					caption: Importe presupuesto AAAHLF % (semanal)
+				measure 'Budget Amount QOQTD (Weekly)'
+					caption: Importe presupuesto TATHLF (semanal)
+				measure 'Budget Amount QOQTD % (Weekly)'
+					caption: Importe presupuesto TATHLF % (semanal)
+				measure 'Budget Amount PWTD (Weekly)'
+					caption: Importe presupuesto SAHF (semanal)
+				measure 'Budget Amount WOWTD (Weekly)'
+					caption: Importe presupuesto SASHLF (semanal)
+				measure 'Budget Amount WOWTD % (Weekly)'
+					caption: Importe presupuesto SASHLF % (semanal)
+				measure 'Budget Amount MAT (364) (Weekly)'
+					caption: Importe presupuesto TAM (364) (semanal)
+				measure 'Budget Amount PYMAT (364) (Weekly)'
+					caption: Importe presupuesto AATAM (364) (semanal)
+				measure 'Budget Amount MATG (Weekly)'
+					caption: Importe presupuesto CTAM (semanal)
+				measure 'Budget Amount MATG % (Weekly)'
+					caption: Importe presupuesto CTAM % (semanal)
+				measure 'Budget Amount PYC (Weekly)'
+					caption: Importe presupuesto AAC (semanal)
+				measure 'Budget Amount YTDOPY (Weekly)'
+					caption: Importe presupuesto AHFRAA (semanal)
+				measure 'Budget Amount YTDOPY % (Weekly)'
+					caption: Importe presupuesto AHFRAA % (semanal)
+				measure 'Budget Amount PQC (Weekly)'
+					caption: Importe presupuesto TAC (semanal)
+				measure 'Budget Amount QTDOPQ (Weekly)'
+					caption: Importe presupuesto THFRTA (semanal)
+				measure 'Budget Amount QTDOPQ % (Weekly)'
+					caption: Importe presupuesto THFRTA % (semanal)
+				measure 'Budget Amount PWC (Weekly)'
+					caption: Importe presupuesto SAC (semanal)
+				measure 'Budget Amount WTDOPW (Weekly)'
+					caption: Importe presupuesto SHFRSA (semanal)
+				measure 'Budget Amount WTDOPW % (Weekly)'
+					caption: Importe presupuesto SHFRSA % (semanal)
+				measure 'Budget Amount AVG 4W (Weekly)'
+					caption: Importe presupuesto AVG 4S (semanal)
+				measure 'Budget Amount AVG 1Q (Weekly)'
+					caption: Importe presupuesto AVG 1T (semanal)
+				measure 'Budget Amount AVG 1Y (Weekly)'
+					caption: Importe presupuesto AVG 1A (semanal)
+			table 'Localized Labels'
+				measure 'My Report Title'
+					caption: Título del informe
+				measure 'My Button Caption'
+					caption: Título de botón
+				measure 'My Visual Title'
+					caption: Título visual
+				measure 'Purchases Overview'
+					caption: Información general de compras
+				measure 'Purchases Decomposition'
+					caption: Descomposición de compras
+				measure 'Daily Purchases'
+					caption: Compras diarias
+				measure 'Moving Averages'
+					caption: Medias móviles
+				measure 'Moving Annual Total (MAT)'
+					caption: Total anual móvil (TAM)
+				measure 'Period-Over-Period (POP)'
+					caption: Periodo tras periodo (PTP)
+				measure 'Year-Over-Year (YOY)'
+					caption: Año tras año (ATA)
+				measure 'Purchases by Item'
+					caption: Compras por producto
+				measure 'Purchases by Purchaser'
+					caption: Compras por comprador
+				measure 'Purchases by Vendor'
+					caption: Compras por proveedor
+				measure 'Purchases by Location'
+					caption: Compras por almacén
+				measure 'Actual vs. Budget Quantity'
+					caption: Cantidad real vs. ppto
+				measure 'Actual vs. Budget Amount'
+					caption: Importe real vs. ppto
+				measure 'Item Drillthrough'
+					caption: Análisis detallado de productos
+				measure 'Vendor Drillthrough'
+					caption: Análisis detallado de proveedor
+				measure 'Location Drillthrough'
+					caption: Análisis detallado de almacén
+				measure 'Purchaser Drillthrough'
+					caption: Análisis detallado de comprador
+				measure Purchase
+					caption: Compra
+				measure 'for Business Central'
+					caption: para Business Central
+				measure 'CONNECT YOUR DATA'
+					caption: CONECTAR LOS DATOS
+				measure '1. Download the Purchasing Connector for Power BI'
+					caption: 1. Descargar Purchasing Connector for Power BI
+				measure '2. Configure Dynamics 365 Business Central'
+					caption: 2. Configurar Dynamics 365 Business Central
+				measure 'USE, EDIT AND BUILD YOUR OWN REPORTS'
+					caption: USAR, EDITAR Y CREAR SUS PROPIOS INFORMES
+				measure 'Purchasing includes a variety of pre-built reports to help you see your data immediately.'
+					caption: Compras incluye una variedad de informes prediseñados para ayudarlo a ver sus datos de inmediato.
+				measure 'You are able to edit these reports or build your own report from scratch'
+					caption: Puede editar estos informes o crear el suyo propio desde cero
+				measure 'HELP AND SUPPORT'
+					caption: AYUDA Y SOPORTE
+				measure 'For help and support with your new report please visit the Analytics overview documentation.'
+					caption: Para obtener ayuda y soporte técnico con su nuevo informe, visite la documentación de información general de Analytics.
+				measure 'OTHER POWER BI REPORTS'
+					caption: OTROS INFORMES DE POWER BI
+				measure SALES
+					caption: VENTAS
+				measure FINANCE
+					caption: FINANZAS
+				measure REBATES
+					caption: DEVOLUCIONES
+				measure INVENTORY
+					caption: INVENTARIO
+				measure JOBS
+					caption: PROYECTOS
+				measure 'Purchase Amounts'
+					caption: Importes compra
+				measure 'Purchase Quantity by Item Category'
+					caption: Cantidad de compra por categoría de producto
+				measure 'Top 5 Vendors by Amount by Source Type'
+					caption: 5 proveedores principales por importe por tipo procedencia mov.
+				measure 'Locations by Quantity'
+					caption: Almacenes por cantidad
+				measure 'Document Count'
+					caption: Número de documentos
+				measure 'Purchase Quantities'
+					caption: Cantidades compra
+				measure 'Decomposition by Amount'
+					caption: Descomposición por importe
+				measure 'Purchase Amount and Purchase Amount 30 Days Average (Fiscal) by Fiscal Month Year'
+					caption: Importe de compra e importe de compra media de 30 días (fiscal) por mes año fiscal
+				measure 'Previous Year & Current Year Moving Annual Total by Fiscal Month Year'
+					caption: Total anual móvil de año actual y año anterior por mes año fiscal
+				measure 'Purchase Amount Period-over-Period (Fiscal) and Purchase Amount by Fiscal Month Year'
+					caption: Importe de compra de periodo tras periodo (fiscal) e importe de compra por mes año fiscal
+				measure 'Current Year and Previous Year (Fiscal) Purchase Amount by Fiscal Month Year'
+					caption: Importe de compra de año actual y año anterior (fiscal) por mes año fiscal
+				measure 'Last Refreshed'
+					caption: Última actualización
+				measure 'Company Name'
+					caption: Nombre empresa
+				measure 'Purchase Quantity by Location'
+					caption: Cantidad compra por almacén
+				measure 'Purchase Amounts of Top 5 Vendors'
+					caption: Importes de compra de los 5 principales proveedores
+				measure 'Purchase Distribution by Item Category'
+					caption: Distribución de compras por categoría de producto
+				measure 'Purchases by Item Category'
+					caption: Compras por categoría de producto
+				measure 'Purchase Amount by Item Category'
+					caption: Importe de compra por categoría de producto
+				measure 'Actual vs Budget'
+					caption: Valor real frente a presupuesto
+				measure 'Actual vs Budget Purchase Analysis by Item Category'
+					caption: Análisis de compras reales frente a presupuestadas por categoría de producto
+				measure 'Purchases Drillthrough'
+					caption: Análisis detallado de compras
+				measure 'Detailed Purchase Ledger'
+					caption: Movimientos detallados compras
+				measure 'Total Purchase Amount by Fiscal Year'
+					caption: Importe total de la compra por ejercicio
+				measure PROJECTS
+					caption: PROYECTOS
+				measure MANUFACTURING
+					caption: FABRICACIÓN
+				measure 'This card displays key metrics for business analysis. The card shows total purchase amount, document count, number of outstanding purchase orders, number of purchase invoices, outstanding amount, and invoiced amount.'
+					caption: En esta ficha se muestran métricas clave para el análisis empresarial. En ella se muestran el importe total de la compra, el número de documentos, el número de pedidos de compra pendientes, el número de facturas de compra, el importe pendiente y el importe facturado.
+				measure 'The card displays key metrics for business analysis, including total purchase amount, document count, number of outstanding purchase orders, number of purchase invoices, outstanding amount excluding VAT, and invoiced amount.'
+					caption: En esta ficha se muestran métricas clave para el análisis empresarial, como, por ejemplo, el importe total de la compra, el número de documentos, el número de pedidos de compra pendientes, el número de facturas de compra, el importe pendiente sin incluir el IVA y el importe facturado.
+				measure 'Daily Purchases Details'
+					caption: Detalles de compras diarias
+				measure 'Moving Annual Total (MAT) Details'
+					caption: Detalles totales anuales móviles (TAM)
+				measure 'Period-Over-Period (POP) Details'
+					caption: Detalles periodo tras periodo (PTP)
+				measure 'Year-Over-Year (YOY) Details'
+					caption: Detalles de año tras año (ATA)
+				measure 'Purchases by Item Details'
+					caption: Detalles de compras por producto
+				measure 'Purchases by Vendor Details'
+					caption: Detalles de compras por proveedor
+				measure 'Purchases by Purchaser Details'
+					caption: Detalles de compras por comprador
+				measure 'Purchases by Location Details'
+					caption: Detalles de compras por almacén
+				measure 'Purchases Drillthrough Details'
+					caption: Detalles de análisis detallado de compras
+			table COMPANY
+				caption: EMPRESA
+				measure 'Company Label'
+					caption: Etiqueta de empresa
+			table 'Purchase Budget Name'
+				caption: Nombre ppto. compra
+				column 'Purchase Budget Description'
+					caption: Descripción de presupuesto de compra
+			table 'Item Category'
+				caption: Categoría producto
+				column 'Item Category Code'
+					caption: Código de categoría de producto
+				column 'Item Category Description'
+					caption: Descripción de la categoría de producto
+				column 'Item Category Parent Category'
+					caption: Categoría principal de categoría de producto
+				column 'Item Category Code Level 1'
+					caption: Nivel 1 de código de categoría de producto
+				column 'Item Category Code Level 2'
+					caption: Nivel 2 de código de categoría de producto
+				column 'Item Category Code Level 3'
+					caption: Nivel 3 de código de categoría de producto
+

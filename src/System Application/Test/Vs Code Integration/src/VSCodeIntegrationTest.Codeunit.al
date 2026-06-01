@@ -7,9 +7,9 @@ namespace System.Test.Integration;
 
 using System.Apps;
 using System.Integration;
-using System.Tooling;
-using System.TestLibraries.Utilities;
 using System.TestLibraries.Security.AccessControl;
+using System.TestLibraries.Utilities;
+using System.Tooling;
 
 codeunit 138133 "VS Code Integration Test"
 {

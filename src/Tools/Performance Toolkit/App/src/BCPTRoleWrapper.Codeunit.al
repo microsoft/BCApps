@@ -44,7 +44,7 @@ codeunit 149002 "BCPT Role Wrapper"
         ExecuteBCPTLine(Rec, ActiveBCPTHeader, StartTime, CurrentWorkDate, PoissonLimit);
     end;
 
-    local procedure InitializeBCPTLineForRun(var BCPTLine: Record "BCPT Line"; var BCPTHeader: Record "BCPT Header"; PoissonLimit: Integer)
+    local procedure InitializeBCPTLineForRun(var BCPTLine: Record "BCPT Line"; var BCPTHeader: Record "BCPT Header"; var PoissonLimit: Integer)
     begin
         BCPTHeader.Get(BCPTLine."BCPT Code");
         if BCPTHeader."Started at" < CurrentDateTime() then

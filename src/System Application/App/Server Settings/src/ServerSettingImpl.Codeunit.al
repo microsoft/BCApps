@@ -38,6 +38,13 @@ codeunit 3703 "Server Setting Impl."
         exit(SaasExcelAddinEnabled);
     end;
 
+    procedure GetEnableEntraGroupsOnPrem() EnableEntraGroupsOnPrem: Boolean
+    begin
+        InitializeConfigSettings();
+        EnableEntraGroupsOnPrem := ALConfigSettings.EnableEntraGroupsOnPrem();
+        exit(EnableEntraGroupsOnPrem);
+    end;
+
     procedure GetApiServicesEnabled() ApiEnabled: Boolean
     begin
         InitializeConfigSettings();

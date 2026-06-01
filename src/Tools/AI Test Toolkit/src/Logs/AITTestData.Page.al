@@ -7,7 +7,7 @@ namespace System.TestTools.AITestToolkit;
 
 page 149041 "AIT Test Data"
 {
-    Caption = 'AI Test Data';
+    Caption = 'AI Eval Data';
     PageType = CardPart;
     ApplicationArea = All;
     Editable = false;
@@ -33,8 +33,7 @@ page 149041 "AIT Test Data"
         }
     }
 
-
-    internal procedure SetTestData(Text: Text)
+    procedure SetTestData(Text: Text)
     begin
         TestDataText := Text;
         CurrPage.Update(false);

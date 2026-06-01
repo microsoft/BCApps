@@ -5,9 +5,9 @@
 
 namespace Microsoft.Foundation.NoSeries;
 
-using System.Telemetry;
-using System.Azure.KeyVault;
 using System.AI;
+using System.Azure.KeyVault;
+using System.Telemetry;
 using System.Text.Json;
 
 codeunit 324 "No. Series Copilot Impl."
@@ -172,7 +172,7 @@ codeunit 324 "No. Series Copilot Impl."
         if not AzureOpenAI.IsEnabled(Enum::"Copilot Capability"::"No. Series Copilot") then
             exit;
 
-        AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT4oLatest());
+        AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT41Latest());
         AzureOpenAI.SetCopilotCapability(Enum::"Copilot Capability"::"No. Series Copilot");
         AOAIChatCompletionParams.SetMaxTokens(MaxOutputTokens());
         AOAIChatCompletionParams.SetTemperature(0);
@@ -522,9 +522,9 @@ codeunit 324 "No. Series Copilot Impl."
 
     local procedure ValidateGeneratedNoSeries(var RecRef: RecordRef)
     var
-        GeneratedNoSeries: Record "No. Series Generation Detail";
+        TempGeneratedNoSeries: Record "No. Series Generation Detail";
     begin
-        ValidateRecFieldNo(RecRef, GeneratedNoSeries.FieldNo("Is Next Year"));
+        ValidateRecFieldNo(RecRef, TempGeneratedNoSeries.FieldNo("Is Next Year"));
         RecRef.Modify(true);
     end;
 

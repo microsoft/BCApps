@@ -5,8 +5,8 @@
 
 namespace System.TestTools.TestRunner;
 
-using System.Reflection;
 using System.Environment;
+using System.Reflection;
 
 codeunit 130457 "Test Profile Management"
 {

@@ -22,7 +22,7 @@ page 8884 "Email User-Specified Address"
                 ShowCaption = false;
                 field(EmailAddressField; EmailAddresses)
                 {
-                    ApplicationArea = Basic, Suite, Invoicing;
+                    ApplicationArea = Basic, Suite;
                     Caption = 'Email Address';
                     ToolTip = 'Specifies the email address of the recipient.';
                     ShowMandatory = true;
@@ -61,4 +61,3 @@ page 8884 "Email User-Specified Address"
         EmailAddresses := Address;
     end;
 }
-

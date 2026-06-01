@@ -14,6 +14,10 @@
 - changed-files:
   - any-glob-to-any-file: ['src/Business Foundation/**']
 
+"AL: Apps (W1)":
+- changed-files:
+  - any-glob-to-any-file: ['src/Apps/W1/**']
+
 "AL: Tools":
 - changed-files:
   - any-glob-to-any-file: ['src/Tools/**']

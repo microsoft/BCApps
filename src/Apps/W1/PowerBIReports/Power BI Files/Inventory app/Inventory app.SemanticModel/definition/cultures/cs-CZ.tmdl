@@ -1,0 +1,912 @@
+cultureInfo cs-CZ
+	translations
+		model Model
+			table Item
+				caption: Zboží
+				column 'Item No. & Description'
+					caption: Číslo a popis zboží
+				column 'Item No.'
+					caption: Číslo zboží
+				column 'Item Description'
+					caption: Popis zboží
+				column 'Item Base Unit of Measure'
+					caption: Základní měrná jednotka zboží
+				column 'Item Unit Cost (LCY)'
+					caption: Pořizovací cena zboží (LM)
+				column 'Item Inventory Posting Group'
+					caption: Účto skupiny zásob zboží
+				column 'Item Category Code'
+					caption: Kód kategorie zboží
+				column 'Item Category Description'
+					caption: Popis kategorie zboží
+				measure 'Scheduled Receipt'
+					caption: Naplánovaný příjem
+				measure 'Planned Order Releases'
+					caption: Plánovaná vydání objednávky
+				measure 'Gross Requirement'
+					caption: Hrubý požadavek
+				measure 'Projected Available Balance'
+					caption: Předpokládané dostupné množství
+				measure 'Planned Order Receipt'
+					caption: Plánovaný příjem objednávky
+			table Location
+				caption: Lokace
+				column 'Location Code'
+					caption: Kód lokace
+				column 'Location Name'
+					caption: Název lokace
+				column 'Location Adjustment Bin Code'
+					caption: Kód korekční přihrádky umístění
+			table Customer
+				caption: Zákazník
+				column 'Customer No. & Name'
+					caption: Číslo a jméno zákazníka
+				column 'Customer No.'
+					caption: Číslo zákazníka
+				column 'Customer Name'
+					caption: Jméno zákazníka
+				column 'Customer Address'
+					caption: Adresa zákazníka
+				column 'Customer Address 2'
+					caption: Adresa zákazníka 2
+				column 'Customer City'
+					caption: Město zákazníka
+				column 'Customer Post Code'
+					caption: Poštovní směrovací číslo zákazníka
+				column 'Customer State'
+					caption: Stát zákazníka
+				column 'Customer Country/Region Code'
+					caption: Kód země/oblasti zákazníka
+				column 'Customer Posting Group'
+					caption: Účto skupina zákazníka
+				column 'Customer Price Group'
+					caption: Cenová skupina zákazníka
+				column 'Customer Discount Group'
+					caption: Skupina slev zákazníka
+			table Date
+				caption: Datum
+				column DateKey
+					caption: DateKey
+				column 'Day of Month'
+					caption: Den v měsíci
+				column WeekDayNumber
+					caption: WeekDayNumber
+				column 'Week Day'
+					caption: Den v týdnu
+				column Sequential365DayNumber
+					caption: Sequential365DayNumber
+				column 'Relative Day'
+					caption: Relativní den
+				column 'Calendar YearNumber'
+					caption: Číslo kalendářního roku
+				column 'Calendar Year'
+					caption: Kalendářní rok
+				column 'Calendar QuarterNumber'
+					caption: Číslo kalendářního kvartálu
+				column 'Calendar Quarter'
+					caption: Kalendářní kvartál
+				column 'Calendar YearQuarterNumber'
+					caption: Číslo kvartálu v kalendářním roce
+				column 'Calendar Quarter Year'
+					caption: Rok kalendářního kvartálu
+				column 'Calendar MonthNumber'
+					caption: Číslo kalendářního měsíce
+				column 'Calendar Month'
+					caption: Kalendářní měsíc
+				column 'Calendar YearMonthNumber'
+					caption: Číslo kalendářního měsíce roku
+				column 'Calendar Month Year'
+					caption: Kalendářní měsíc v roce
+				column 'Calendar WeekNumber'
+					caption: Číslo kalendářního týdne
+				column 'Calendar Week'
+					caption: Kalendářní týden
+				column 'Calendar YearWeekNumber'
+					caption: Číslo kalendářního týdne roku
+				column 'Calendar Week Year'
+					caption: Kalendářní týden a rok
+				column 'Calendar WeekYearOrder'
+					caption: Pořadí kalendářního týdne a roku
+				column 'Calendar RelativeWeekPos'
+					caption: Relativní pozice kalendářního týdne
+				column 'Calendar RelativeMonthPos'
+					caption: Relativní pozice kalendářního měsíce
+				column 'Calendar RelativeQuarterPos'
+					caption: Relativní pozice kalendářního kvartálu
+				column 'Calendar RelativeYearPos'
+					caption: Relativní pozice kalendářního roku
+				column 'Calendar StartOfMonth'
+					caption: Začátek kalendářního měsíce
+				column 'Calendar EndOfMonth'
+					caption: Konec kalendářního měsíce
+				column 'Calendar StartOfQuarter'
+					caption: Začátek kalendářního kvartálu
+				column 'Calendar EndOfQuarter'
+					caption: Konec kalendářního kvartálu
+				column 'Calendar StartOfYear'
+					caption: Začátek kalendářního roku
+				column 'Calendar EndOfYear'
+					caption: Konec kalendářního roku
+				column 'Calendar MonthDays'
+					caption: Kalendářní dny v měsíci
+				column 'Calendar QuarterDays'
+					caption: Dny kalendářního kvartálu
+				column 'Calendar YearDays'
+					caption: Dny kalendářního roku
+				column 'Calendar DayOfMonthNumber'
+					caption: Počet dní ve fiskálním měsíci
+				column 'Calendar DayOfQuarterNumber'
+					caption: Počet dní v kalendářním kvartálu
+				column 'Calendar DayOfYearNumber'
+					caption: Počet dní ve fiskálním roce
+				column 'Calendar DatePreviousWeek'
+					caption: Datum v předchozím kalendářním týdnu
+				column 'Calendar DatePreviousMonth'
+					caption: Datum v předchozím kalendářním měsíci
+				column 'Calendar DatePreviousQuarter'
+					caption: Datum v předchozím kalendářním kvartálu
+				column 'Calendar DatePreviousYear'
+					caption: Datum v předchozím kalendářním roce
+				column 'Fiscal Year'
+					caption: Fiskální rok
+				column 'Fiscal YearNumber'
+					caption: Číslo fiskálního roku
+				column 'Fiscal QuarterNumber'
+					caption: Číslo fiskálního kvartálu
+				column 'Fiscal Quarter'
+					caption: Fiskální kvartál
+				column 'Fiscal YearQuarterNumber'
+					caption: Číslo fiskálního kvartálu roku
+				column 'Fiscal Quarter Year'
+					caption: Fiskální rok kvartálu
+				column 'Fiscal MonthNumber'
+					caption: Číslo fiskálního měsíce
+				column 'Fiscal MonthInQuarterNumber'
+					caption: Číslo fiskálního měsíce v kvartálu
+				column 'Fiscal Month'
+					caption: Fiskální měsíc
+				column 'Fiscal YearMonthNumber'
+					caption: Číslo fiskálního měsíce roku
+				column 'Fiscal Month Year'
+					caption: FIskální rok měsíce
+				column 'Fiscal WeekNumber'
+					caption: Číslo fiskálního týdne
+				column 'Fiscal Week'
+					caption: Fiskální týden
+				column 'Fiscal YearWeekNumber'
+					caption: Číslo fiskálního týdne a roku
+				column 'Fiscal Week Year'
+					caption: Fiskální týden a rok
+				column 'Fiscal WeekYearOrder'
+					caption: Pořadí fiskálního týdne a roku
+				column 'Fiscal RelativeWeekPos'
+					caption: Relativní pozice fiskálního týdne
+				column 'Fiscal RelativeMonthPos'
+					caption: Relativní pozice fiskálního měsíce
+				column 'Fiscal RelativeQuarterPos'
+					caption: Relativní pozice fiskálního kvartálu
+				column 'Fiscal RelativeYearPos'
+					caption: Relativní pozice fiskálního roku
+				column 'Fiscal StartOfMonth'
+					caption: Začátek fiskálního měsíce
+				column 'Fiscal EndOfMonth'
+					caption: Konec fiskálního měsíce
+				column 'Fiscal StartOfQuarter'
+					caption: Začátek fiskálního kvartálu
+				column 'Fiscal EndOfQuarter'
+					caption: Konec fiskálního kvartálu
+				column 'Fiscal StartOfYear'
+					caption: Začátek fiskálního roku
+				column 'Fiscal EndOfYear'
+					caption: Konec fiskálního roku
+				column 'Fiscal MonthDays'
+					caption: Dny fiskálního měsíce
+				column 'Fiscal QuarterDays'
+					caption: Dny fiskálního kvartálu
+				column 'Fiscal YearDays'
+					caption: Dny fiskálního roku
+				column 'Fiscal DayOfMonthNumber'
+					caption: Počet dní ve fiskálním měsíci
+				column 'Fiscal DayOfQuarterNumber'
+					caption: Počet dnů ve fiskálním kvartálu
+				column 'Fiscal DayOfYearNumber'
+					caption: Počet dní ve fiskálním roce
+				column 'Fiscal DatePreviousWeek'
+					caption: Datum v předchozím fiskálním týdnu
+				column 'Fiscal DatePreviousMonth'
+					caption: Datum v předchozím fiskálním měsíci
+				column 'Fiscal DatePreviousQuarter'
+					caption: Datum v předchozím fiskálním kvartálu
+				column 'Fiscal DatePreviousYear'
+					caption: Datum v předchozím fiskálním roce
+				column 'FW YearNumber'
+					caption: Číslo roku FT
+				column 'FW Year'
+					caption: Rok FT
+				column 'FW QuarterNumber'
+					caption: Číslo kvartálu FT
+				column 'FW Quarter'
+					caption: Kvartál FT
+				column 'FW YearQuarterNumber'
+					caption: Číslo kvartálu roku FT
+				column 'FW Quarter Year'
+					caption: Rok kvartálu FT
+				column 'FW MonthNumber'
+					caption: Číslo měsíce FT
+				column 'FW Month'
+					caption: Měsíc FT
+				column 'FW YearMonthNumber'
+					caption: Číslo měsíce roku FT
+				column 'FW Month Year'
+					caption: Rok měsíce FT
+				column 'FW WeekNumber'
+					caption: Číslo týdne FT
+				column 'FW Week'
+					caption: Týden FT
+				column 'FW PeriodNumber'
+					caption: Číslo období FT
+				column 'FW Period'
+					caption: Období FT
+				column 'FW YearWeekNumber'
+					caption: Číslo týdne roku FT
+				column 'FW Week Year'
+					caption: Týden a rok FT
+				column 'FW StartOfWeek'
+					caption: Začátek týdne FT
+				column 'FW EndOfWeek'
+					caption: Konec týdne FT
+				column 'FW RelativeWeekPos'
+					caption: Relativní pozice týdne FT
+				column 'FW RelativeMonthPos'
+					caption: Relativní pozice měsíce FT
+				column 'FW RelativeQuarterPos'
+					caption: Relativní pozice kvartálu FT
+				column 'FW RelativeYearPos'
+					caption: Relativní pozice roku FT
+				column 'FW StartOfMonth'
+					caption: Začátek měsíce FT
+				column 'FW EndOfMonth'
+					caption: Konec měsíce FT
+				column 'FW StartOfQuarter'
+					caption: Začátek kvartálu FT
+				column 'FW EndOfQuarter'
+					caption: Konec kvartálu FT
+				column 'FW StartOfYear'
+					caption: Začátek roku FT
+				column 'FW EndOfYear'
+					caption: Konec roku FT
+				column 'FW MonthDays'
+					caption: Dny v měsíci FT
+				column 'FW QuarterDays'
+					caption: Dny kvartálu FT
+				column 'FW YearDays'
+					caption: Dny roku FT
+				column 'FW DayOfMonthNumber'
+					caption: Počet dní v měsíci FT
+				column 'FW DayOfQuarterNumber'
+					caption: Počet dnů v kvartálu FT
+				column 'FW DayOfYearNumber'
+					caption: Počet dní v roce FT
+				column 'FW DatePreviousWeek'
+					caption: Datum v předchozím týdnu FT
+				column 'FW DatePreviousMonth'
+					caption: Datum v předchozím měsíci FT
+				column 'FW DatePreviousQuarter'
+					caption: Datum v předchozím kvartálu FT
+				column 'FW DatePreviousYear'
+					caption: Datum v předchozím roce FT
+				column 'Holiday Name'
+					caption: Název svátku
+				column IsWorkingDay
+					caption: IsWorkingDay
+				column 'Day Type'
+					caption: Typ dne
+				column DatesWithTransactions
+					caption: DatesWithTransactions
+				measure Ranged
+					caption: V rozsahu
+				hierarchy 'Fiscal Year-Month'
+					caption: Fiskální rok-měsíc
+					level 'Fiscal Year'
+						caption: Fiskální rok
+					level 'Fiscal Month Year'
+						caption: FIskální rok měsíce
+				hierarchy 'Fiscal Year-Month-Week'
+					caption: Fiskální rok-měsíc-týden
+					level 'Fiscal Year'
+						caption: Fiskální rok
+					level 'Fiscal Month Year'
+						caption: FIskální rok měsíce
+					level 'Fiscal Week Year'
+						caption: Fiskální týden a rok
+				hierarchy 'Fiscal Year-Quarter-Month-Week'
+					caption: Fiskální rok-kvartál-měsíc-týden
+					level 'Fiscal Year'
+						caption: Fiskální rok
+					level 'Fiscal Quarter Year'
+						caption: Fiskální rok kvartálu
+					level 'Fiscal Month Year'
+						caption: FIskální rok měsíce
+					level 'Fiscal Week Year'
+						caption: Fiskální týden a rok
+				hierarchy 'Calendar Year-Month'
+					caption: Kalendářní rok-měsíc
+					level 'Calendar Year'
+						caption: Kalendářní rok
+					level 'Calendar Month Year'
+						caption: Kalendářní měsíc v roce
+				hierarchy 'Calendar Year-Month-Week'
+					caption: Kalendářní rok-měsíc-týden
+					level 'Calendar Year'
+						caption: Kalendářní rok
+					level 'Calendar Month Year'
+						caption: Kalendářní měsíc v roce
+					level 'Calendar Week Year'
+						caption: Kalendářní týden a rok
+				hierarchy 'Calendar Year-Quarter-Month-Week'
+					caption: Kalendářní rok-kvartál-měsíc-týden
+					level 'Calendar Year'
+						caption: Kalendářní rok
+					level 'Calendar Quarter Year'
+						caption: Rok kalendářního kvartálu
+					level 'Calendar Month Year'
+						caption: Kalendářní měsíc v roce
+					level 'Calendar Week Year'
+						caption: Kalendářní týden a rok
+				hierarchy 'FW Year-Week'
+					caption: Rok-týden FT
+					level 'FW Year'
+						caption: Rok FT
+					level 'FW Week Year'
+						caption: Týden a rok FT
+				hierarchy 'FW Year-Month-Week'
+					caption: Rok-měsíc-týden FT
+					level 'FW Year'
+						caption: Rok FT
+					level 'FW Month Year'
+						caption: Rok měsíce FT
+					level 'FW Week Year'
+						caption: Týden a rok FT
+				hierarchy 'FW Year-Quarter-Week'
+					caption: Rok-kvartál-týden FT
+					level 'FW Year'
+						caption: Rok FT
+					level 'FW Quarter Year'
+						caption: Rok kvartálu FT
+					level 'FW Week Year'
+						caption: Týden a rok FT
+				hierarchy 'FW Year-Quarter-Month-Week'
+					caption: Rok-kvartál-měsíc-týden FT
+					level 'FW Year'
+						caption: Rok FT
+					level 'FW Quarter Year'
+						caption: Rok kvartálu FT
+					level 'FW Month Year'
+						caption: Rok měsíce FT
+					level 'FW Week Year'
+						caption: Týden a rok FT
+			table Vendor
+				caption: Dodavatel
+				column 'Vendor No. & Name'
+					caption: Číslo a jméno dodavatele
+				column 'Vendor No.'
+					caption: Číslo dodavatele
+				column 'Vendor Name'
+					caption: Jméno dodavatele
+				column 'Vendor Address'
+					caption: Adresa dodavatele
+				column 'Vendor Address 2'
+					caption: Adresa dodavatele 2
+				column 'Vendor City'
+					caption: Město dodavatele
+				column 'Vendor Post Code'
+					caption: Poštovní směrovací číslo dodavatele
+				column 'Vendor State'
+					caption: Stav dodavatele
+				column 'Vendor Country/Region Code'
+					caption: Kód země/oblasti dodavatele
+				column 'Vendor Posting Group'
+					caption: Účto skupina dodavatele
+			table 'Item Ledger Entries'
+				caption: Položky zboží
+				column 'Entry No.'
+					caption: Číslo položky
+				column 'Entry Type'
+					caption: Typ položky
+				column 'Expiration Date'
+					caption: Datum platnosti
+				column Open
+					caption: Otevřené
+				column 'Document No.'
+					caption: Číslo dokladu
+				column 'Quantity Per Unit of Measure'
+					caption: Množství na měrnou jednotku
+				column 'Unit of Measure Code'
+					caption: Kód měrné jednotky
+				column 'Document Type'
+					caption: Typ dokladu
+				measure 'Inventory (Quantity)'
+					caption: Zásoby (množství)
+				measure 'Remaining Quantity'
+					caption: Zbývající množství
+				measure Quantity
+					caption: Množství
+				measure 'Expired Inventory'
+					caption: Prošlé zásoby
+				measure 'Net Qty. Sold'
+					caption: Prodané čisté množství
+				measure 'Net Qty. Purchased'
+					caption: Zakoupené čisté množství
+				measure 'Invoiced Quantity'
+					caption: Fakturované množství
+				measure 'Base Link'
+					caption: Základní odkaz
+				measure 'Item Ledger Entries Link (Location Context)'
+					caption: Odkaz na položky zboží (kontext lokace)
+				measure 'Item Ledger Entries Link'
+					caption: Odkaz na položky zboží
+				measure 'Item Ledger Entries Lot No Link'
+					caption: Odkaz na číslo šarže položek zboží
+				measure 'Item Ledger Entries Serial No Link'
+					caption: Odkaz na sériové číslo položek zboží
+			table 'Dimension Sets'
+				caption: Sady dimenzí
+				column 'Global Dimension 1'
+					caption: Globální dimenze 1
+				column 'Global Dimension 2'
+					caption: Globální dimenze 2
+				column 'Shortcut Dimension 3'
+					caption: Zkratka dimenze 3
+				column 'Shortcut Dimension 4'
+					caption: Zkratka dimenze 4
+				column 'Shortcut Dimension 5'
+					caption: Zkratka dimenze 5
+				column 'Shortcut Dimension 6'
+					caption: Zkratka dimenze 6
+				column 'Shortcut Dimension 7'
+					caption: Zkratka dimenze 7
+				column 'Shortcut Dimension 8'
+					caption: Zkratka dimenze 8
+				column id
+					caption: ID
+			table 'Purchase Lines'
+				caption: Nákupní řádky
+				column 'Document No.'
+					caption: Číslo dokladu
+				column 'Expected Receipt Date'
+					caption: Očekávané datum příjmu
+				column 'Document Type'
+					caption: Typ dokladu
+				column 'Quantity Per Unit of Measure'
+					caption: Množství na měrnou jednotku
+				column 'Unit of Measure Code'
+					caption: Kód měrné jednotky
+				measure 'Qty. on Purch. Order'
+					caption: Množ. na nák. objednávce
+				measure 'Qty. on Purch. Return'
+					caption: Množ. na nák. vratce
+				measure 'Purchase Return - Earliest Expected Receipt Date'
+					caption: Nákupní vratka – nejdřívější očekávané datum příjmu
+				measure 'Purchase Order - Earliest Expected Receipt Date'
+					caption: Nákupní objednávka – nejdřívější očekávané datum příjmu
+				measure 'Purchase Order Quantity Link'
+					caption: Odkaz na množství nákupní objednávky
+				measure 'Purchase Return Order Quantity Link'
+					caption: Odkaz na množství objednávky nákupní vratky
+			table Zone
+				caption: Zóna
+				column 'Zone Description'
+					caption: Popis zóny
+				column 'Zone Bin Type Code'
+					caption: Kód typu přihrádky zóny
+				column 'Zone Code'
+					caption: Kód zóny
+			table Bin
+				caption: Přihrádka
+				column 'Bin Description'
+					caption: Popis přihrádky
+				column 'Bin Type Code'
+					caption: Kód typu přihrádky
+				column 'Bin Code'
+					caption: Kód přihrádky
+				column 'Adjustment Bin'
+					caption: Korekční přihrádka
+				column 'Bin Zone Code'
+					caption: Kód zóny přihrádky
+				measure 'Available Qty. to Take'
+					caption: Dostupné množ. k výběru
+				measure 'Quantity in Adjustment Bin'
+					caption: Množství v korekční přihrádce
+				measure 'Positive Adjmt. Qty. (Base)'
+					caption: Množství k příjmu (základ)
+				measure 'Negative Adjmt. Qty. (Base)'
+					caption: Množství k výdeji (základ)
+				measure 'Warehouse Quantity'
+					caption: Skladové množství
+				measure 'ATO Components Pick Qty.'
+					caption: Množ. k vyskladnění komponentů SNZ
+				measure 'Put-away Quantity (Base)'
+					caption: Množství k zaskladnění (základ)
+				measure 'Pick Quantity (Base)'
+					caption: Vyskladněné množství (základ)
+				measure 'Warehouse Entries Link'
+					caption: Odkaz na položky skladu
+				measure 'Pick Quantity Link'
+					caption: Odkaz na vyskladněné množství
+				measure 'Warehouse Journal Link'
+					caption: Odkaz na deník skladu
+			table 'Sales Lines'
+				caption: Prodejní řádky
+				column 'Document No.'
+					caption: Číslo dokladu
+				column 'Shipment Date'
+					caption: Datum odeslání
+				column 'Document Type'
+					caption: Typ dokladu
+				column 'Quantity Per Unit of Measure'
+					caption: Množství na měrnou jednotku
+				column 'Unit of Measure Code'
+					caption: Kód měrné jednotky
+				measure 'Qty. on Sales Order'
+					caption: Množ. na prod. objednávce
+				measure 'Qty. on Sales Return Order'
+					caption: Množ. na objednávce prodejní vratky
+				measure 'Sales Order - Earliest Shipment Date'
+					caption: Prodejní objednávka – nejbližší datum odeslání
+				measure 'Sales Retrun Order - Earliest Shipment Date'
+					caption: Objednávka prodejní vratky – nejbližší datum odeslání
+				measure 'Sales Order Line Link'
+					caption: Odkaz na řádek prodejní objednávky
+				measure 'Sales Return Order Line Link'
+					caption: Odkaz na řádek objednávky prodejní vratky
+			table 'Assembly Lines'
+				caption: Řádky sestavení
+				column 'Due Date'
+					caption: Datum splatnosti
+				column 'Document No.'
+					caption: Číslo dokladu
+				column 'Quantity Per Unit of Measure'
+					caption: Množství na měrnou jednotku
+				column 'Unit of Measure Code'
+					caption: Kód měrné jednotky
+				measure 'Qty. on Asm. Component'
+					caption: Množ. na komponentě sestavení
+				measure 'Assembly Lines - Earliest Due Date'
+					caption: Řádky sestavení – nejbližší datum splatnosti
+				measure 'Assembly Line Quantity Link'
+					caption: Odkaz na množství řádku montáže
+			table 'Assembly Headers'
+				caption: Hlavičky sestavení
+				column 'Document No.'
+					caption: Číslo dokladu
+				column 'Due Date'
+					caption: Datum splatnosti
+				column Status
+					caption: Průběh
+				column 'Quantity Per Unit of Measure'
+					caption: Množství na měrnou jednotku
+				column 'Unit of Measure Code'
+					caption: Kód měrné jednotky
+				measure 'Qty. on Assembly Order'
+					caption: Množství na montážní zakázce
+				measure 'Assembly Order - Earliest Due Date'
+					caption: Montážní zakázka – nejbližší datum splatnosti
+				measure 'Assembly Order Quantity Link'
+					caption: Odkaz na množství montážní zakázky
+			table 'Project Planning Lines'
+				caption: Řádky plánování projektu
+				column 'Document No.'
+					caption: Číslo dokladu
+				column 'Quantity Per Unit of Measure'
+					caption: Množství na měrnou jednotku
+				column 'Unit of Measure Code'
+					caption: Kód měrné jednotky
+				measure 'Qty. on Projects'
+					caption: Množství v projektech
+				measure 'Project Planning - Earliest Planning Date'
+					caption: Plánování projektu – nejbližší datum plánování
+				measure 'Planning Line Link'
+					caption: Odkaz na řádek plánování
+			table 'Production Order Lines'
+				caption: Řádky výrobních zakázek
+				column Status
+					caption: Průběh
+				column 'Document No.'
+					caption: Číslo dokladu
+				column 'Due Date'
+					caption: Datum splatnosti
+				column 'Starting Date'
+					caption: Datum zahájení
+				column 'Quantity Per Unit of Measure'
+					caption: Množství na měrnou jednotku
+				column 'Unit of Measure Code'
+					caption: Kód měrné jednotky
+				measure 'Qty. on Prod. Order'
+					caption: Množství na výr. zakázce
+				measure 'FP Order Receipt (Qty.)'
+					caption: Příjem objednávky výrobku (množ.)
+				measure 'Rel. Order Receipt (Qty.)'
+					caption: Příjem vydané objednávky (množ.)
+				measure 'Scheduled Receipt (Qty.)'
+					caption: Naplánovaný příjem (množ.)
+				measure 'FP Order - Earliest Due Date'
+					caption: Objednávka výrobku – nejbližší datum splatnosti
+				measure 'Rel. Order - Earliest Due Date'
+					caption: Vydaná objednávka – nejbližší datum splatnosti
+				measure 'Production Order Link'
+					caption: Odkaz na výrobní zakázku
+			table 'Prod Order Component Lines'
+				caption: Řádky komponent výr. zakázky
+				column Status
+					caption: Průběh
+				column 'Document No.'
+					caption: Číslo dokladu
+				column 'Due Date'
+					caption: Datum splatnosti
+				column 'Quantity Per Unit of Measure'
+					caption: Množství na měrnou jednotku
+				column 'Unit of Measure Code'
+					caption: Kód měrné jednotky
+				measure 'Qty. on Prod. Order Comp. Lines'
+					caption: Množ. na řádcích komp. výr. zakázky
+				measure 'Prod. Order Comp. Lines - Earliest Due Date'
+					caption: Řádky komp. výr. zakázky – nejbližší datum splatnosti
+				measure 'Prod. Order Components Link'
+					caption: Odkaz na komponenty výr. zakázky
+			table 'Service Lines'
+				caption: Řádky servisu
+				column 'Document No.'
+					caption: Číslo dokladu
+				column 'Needed By Date'
+					caption: Potřebné do data
+				column 'Quantity Per Unit of Measure'
+					caption: Množství na měrnou jednotku
+				column 'Unit of Measure Code'
+					caption: Kód měrné jednotky
+				measure 'Qty. on Service Order'
+					caption: Množství na servisní zakázce
+				measure 'Service Lines - Earliest Needed by Date'
+					caption: Řádky servisu – nejbližší potřebné do data
+				measure 'Service Order Link'
+					caption: Odkaz servisní zakázku
+			table 'Transfer Lines'
+				caption: Řádky transferu
+				description: Určuje množství zboží, které zbývá přijmout, ale ještě není dodáno, jako rozdíl mezi poli Množství a Dodané množství.
+				column 'Document No.'
+					caption: Číslo dokladu
+				column 'Receipt Date'
+					caption: Datum příjmu
+				column 'Transfer To Location Code'
+					caption: Kód transferu na místo
+				column 'Transfer From Location Code'
+					caption: Kód transferu z místa
+				column 'Shipment Date'
+					caption: Datum odeslání
+				column 'In Transit Location Code'
+					caption: Kód lokace na cestě
+				column 'Quantity Per Unit of Measure'
+					caption: Množství na měrnou jednotku
+				column 'Unit of Measure Code'
+					caption: Kód měrné jednotky
+				measure 'Qty. in Transit'
+					caption: Množství na cestě
+				measure 'Trans. Order Shipment (Qty.)'
+					caption: Dodávka objednávky transferu (množ.)
+				measure 'Trans. Order Receipt (Qty.)'
+					caption: Příjemka objednávky transferu (množ.)
+				measure 'Trans. Order Outstanding Qty.'
+					caption: Zbývající množství objednávky transferu
+				measure 'Trans. Order Shipment - Earliest Shipment Date'
+					caption: Dodávka objednávky transferu – nejbližší datum odeslání
+				measure 'Trans. Order Receipt - Earliest Receipt Date'
+					caption: Příjemka objednávky transferu – nejbližší datum příjmu
+				measure 'Transfer Lines Quantity Link'
+					caption: Odkaz na množství řádků transferu
+			table 'Planning Component Lines'
+				caption: Řádky plánovaných komponent
+				column 'Due Date'
+					caption: Datum splatnosti
+				column 'Quantity Per Unit of Measure'
+					caption: Množství na měrnou jednotku
+				column 'Unit of Measure Code'
+					caption: Kód měrné jednotky
+				measure 'Planning Issues (Qty.)'
+					caption: Plánované výdeje (množ.)
+				measure 'Planning Issues - Earliest Due Date'
+					caption: Plánované výdeje – nejbližší datum splatnosti
+			table 'Item Availability Filter'
+				caption: Filtr dostupnosti zboží
+				column 'View As'
+					caption: Zobrazit jako
+				column Ordinal
+					caption: Pořadí
+			table 'Lot No'
+				caption: Číslo šarže
+				column 'Lot No.'
+					caption: Číslo šarže
+			table 'Serial No'
+				caption: Sériové č.
+				column 'Serial No.'
+					caption: Sériové č.
+			table 'Localized Labels'
+				measure 'My Report Title'
+					caption: Můj nadpis sestavy
+				measure 'My Button Caption'
+					caption: Popisek mého tlačítka
+				measure 'My Visual Title'
+					caption: Název mého vizuálu
+				measure 'Inventory Overview'
+					caption: Přehled zásob
+				measure 'Inventory and Projected Available Balance'
+					caption: Zásoby a předpokládané dostupné množství
+				measure 'Availability Outlook'
+					caption: Výhled dostupnosti
+				measure 'Inventory by Item'
+					caption: Zásoby podle zboží
+				measure 'Inventory by Location'
+					caption: Zásoby podle lokace
+				measure 'Inventory on Hand by Location'
+					caption: Zásoby na skladě podle lokace
+				measure 'Purchase and Sales Quantity'
+					caption: Nákupní a prodejní množství
+				measure 'Item Availability'
+					caption: Dostupnost zboží
+				measure 'Projected Available Balance vs. Quantity on Hand'
+					caption: Předpokládané dostupné množství vs. množství na skladě
+				measure 'Gross Requirements vs. Projected Available Balance'
+					caption: Hrubé požadavky vs. předpokládané dostupné množství
+				measure 'Gross Requirements Earliest Dates'
+					caption: Nejdřívější data hrubých požadavků
+				measure 'Scheduled Receipt Earliest Dates'
+					caption: Nejdřívější data naplánovaného příjmu
+				measure 'Purchase Order Drill Through'
+					caption: Podrobné procházení nákupních objednávek
+				measure 'Purchase Return Order Drill Through'
+					caption: Podrobné procházení objednávek nákupních vratek
+				measure 'Item Ledger Entry Drill through'
+					caption: Podrobné procházení položek zboží
+				measure 'Production Order Drill Through'
+					caption: Podrobné procházení výrobních zakázek
+				measure 'Prod. Order Components Drill Through'
+					caption: Podrobné procházení komponent výr. zakázky
+				measure 'Sales Order Drill Through'
+					caption: Podrobné procházení prodejních objednávek
+				measure 'Sales Return Order Drill Through'
+					caption: Podrobné procházení objednávek prodejních vratek
+				measure 'Transfer Order Drill Through'
+					caption: Podrobné procházení objednávek transferu
+				measure 'Assembly Order Drill Through'
+					caption: Podrobné procházení montážních zakázek
+				measure 'Assembly Lines Drill Through'
+					caption: Podrobné procházení řádků sestavení
+				measure 'Service Lines Drill Through'
+					caption: Podrobné procházení řádků servisu
+				measure 'Gross Requirement '
+					caption: "Hrubý požadavek "
+				measure 'Scheduled Receipt '
+					caption: "Naplánovaný příjem "
+				measure 'Inventory by Lot '
+					caption: "Zásoby podle šarže "
+				measure 'Inventory by Serial No.'
+					caption: Zásoby podle sériového čísla
+				measure 'Bin Contents'
+					caption: Obsah přihrádky
+				measure 'Bin Contents by Item Tracking'
+					caption: Obsah přihrádky podle sledování zboží
+				measure 'Expired Inventory '
+					caption: "Prošlé zásoby "
+				measure 'Gross Requirements'
+					caption: Hrubé požadavky
+				measure 'Scheduled Receipts'
+					caption: Naplánované příjmy
+				measure 'for Business Central'
+					caption: pro Business Central
+				measure 'CONNECT YOUR DATA'
+					caption: PŘIPOJENÍ DAT
+				measure '1. Download the Inventory Connector for Power BI'
+					caption: 1. Stažení řešení Inventory Connector for Power BI
+				measure '2. Configure Dynamics 365 Business Central'
+					caption: 2. Konfigurace Dynamics 365 Business Central
+				measure 'USE, EDIT AND BUILD YOUR OWN REPORTS'
+					caption: POUŽÍVÁNÍ, ÚPRAVA A TVORBA VLASTNÍCH SESTAV
+				measure 'Inventory includes a variety of pre-built reports to help you see your data immediately.'
+					caption: Zásoby obsahují řadu předpřipravených sestav, které vám pomohou okamžitě zobrazit vaše data.
+				measure 'You are able to edit these reports or build your own report from scratch.'
+					caption: Tyto sestavy můžete upravovat nebo si vytvořit vlastní sestavu od základu.
+				measure 'HELP AND SUPPORT'
+					caption: POMOC A PODPORA
+				measure 'For help and support with your new report please visit the Analytics overview documentation.'
+					caption: Nápovědu a podporu k nové sestavě naleznete v dokumentaci k přehledu Analytics.
+				measure 'OTHER POWER BI REPORTS'
+					caption: DALŠÍ SESTAVY POWER BI
+				measure PURCHASE
+					caption: NÁKUP
+				measure FINANCE
+					caption: FINANCE
+				measure REBATES
+					caption: RABATY
+				measure SALES
+					caption: PRODEJ
+				measure 'INVENTORY '
+					caption: "ZÁSOBY "
+				measure 'Inventory  '
+					caption: "Zásoby  "
+				measure 'The inventory by item shows item category code, inventory, and the quantity on various documents.'
+					caption: Zásoby podle zboží zobrazují kód kategorie zboží, zásoby a množství na různých dokladech.
+				measure 'The inventory by location shows item number and description, and quantity on hand per location.'
+					caption: Zásoby podle lokace zobrazují číslo a popis zboží a množství na skladě pro každou lokaci.
+				measure 'The purchases and sales quantity shows item category code, purchase and sales quantities, and the quantity net change by deducting purchases to sales.'
+					caption: Množství nákupu a prodeje zobrazuje kód kategorie zboží, množství nákupu a prodeje a pohyb kvality odečtením nákupu od prodeje.
+				measure 'The item availiblity shows item number, inventory, projected available balance, gross requirement, scheduled receipt, planned order receipt, and planned order releases.'
+					caption: Dostupnost zboží zobrazuje číslo zboží, zásoby, předpokládaný disponibilní zůstatek, hrubý požadavek, naplánovaný příjem, plánovaný příjem objednávky a plánovaná vydání objednávky.
+				measure 'The gross requirement and projected available balance shows item number and description, and the quantity on various documents.'
+					caption: Hrubý požadavek a předpokládané dostupné množství zobrazuje číslo a popis zboží a množství na různých dokladech.
+				measure 'The bin contents shows available quantity to take for each location and bin.'
+					caption: Obsah přihrádky zobrazuje dostupné množství pro každou lokaci a přihrádku.
+				measure 'The bin contents by item tracking shows item tracking details for each location and bin.'
+					caption: Obsah přihrádky podle sledování zboží zobrazuje podrobnosti sledování zboží pro každou lokaci a přihrádku.
+				measure 'The scheduled receipt and projected available balance shows item number and description, and the quantity on various documents.'
+					caption: Naplánovaný příjem a předpokládané dostupné množství zobrazuje číslo a popis zboží a množství na různých dokladech.
+				measure 'Last Refreshed'
+					caption: Naposledy aktualizováno
+				measure 'Company Name'
+					caption: Název společnosti
+				measure 'Inventory (Quantity) by Location Code'
+					caption: Zásoby (množství) podle kódu lokace
+				measure 'Scheduled Receipt and Projected Available Balance by Fiscal Year and Month'
+					caption: Naplánovaný příjem a předpokládané dostupné množství podle fiskálního roku a měsíce
+				measure 'Inventory (Quantity) by Lot No.'
+					caption: Zásoby (množství) podle čísla šarže
+				measure 'Inventory (Quantity) by Serial No.'
+					caption: Zásoby (množství) podle sériového čísla
+				measure MANUFACTURING
+					caption: VÝROBA
+				measure 'INVENTORY VALUATION'
+					caption: HODNOTA ZÁSOB
+				measure 'Available Quantity to Take by Bin Code'
+					caption: Dostupné množství k výběru podle kódu přihrádky
+				measure 'Projected Available Balance vs. Current Inventory'
+					caption: Předpokládané dostupné množství vs. aktuální zásoby
+				measure 'Purchase vs. Sales Quantity Across Time'
+					caption: Nákupní vs. prodejní množství v průběhu času
+				measure 'Inventory by Item Details'
+					caption: Zásoby podle zboží – podrobnosti
+				measure 'Inventory by Location Details'
+					caption: Zásoby podle lokace – podrobnosti
+				measure 'Purchase and Sales Quantity Details'
+					caption: Nákupní a prodejní množství – podrobnosti
+				measure 'Item Availability Details'
+					caption: Dostupnost zboží – podrobnosti
+				measure 'Gross Requirement Details'
+					caption: Hrubý požadavek – podrobnosti
+				measure 'Scheduled Receipt Details'
+					caption: Naplánovaný příjem – podrobnosti
+				measure 'Inventory by Lot Details'
+					caption: Zásoby podle šarže – podrobnosti
+				measure 'Inventory by Serial No Details'
+					caption: Zásoby podle sériového čísla – podrobnosti
+				measure 'Bin Contents Details'
+					caption: Obsah přihrádky – podrobnosti
+				measure 'Bin Contents by Item Tracking Details'
+					caption: Obsah přihrádky podle sledování zboží – podrobnosti
+			table COMPANY
+				caption: SPOLEČNOST
+				measure 'Company Label'
+					caption: Popisek společnosti
+			table ENVIRONMENT
+				caption: PROSTŘEDÍ
+			table 'Item Category'
+				caption: Kategorie zboží
+				column 'Item Category Code'
+					caption: Kód kategorie zboží
+				column 'Item Category Description'
+					caption: Popis kategorie zboží
+				hierarchy 'Item Category Code Hierarchy'
+					caption: HIerarchie kódu kategorie zboží
+					level 'Item Category Code Level 1'
+						caption: Kód kategorie zboží – úroveň 1
+					level 'Item Category Code Level 2'
+						caption: Kód kategorie zboží – úroveň 2
+					level 'Item Category Code Level 3'
+						caption: Kód kategorie zboží – úroveň 3
+

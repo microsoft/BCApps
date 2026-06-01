@@ -266,6 +266,19 @@ codeunit 9011 "Azure AD Graph User Impl."
     end;
 
     [NonDebuggable]
+    procedure IsUserDelegated(): Boolean
+    var
+        UserAccountHelper: DotNet NavUserAccountHelper;
+        IsDelegatedUser, Handled : Boolean;
+    begin
+        OnIsUserDelegated(IsDelegatedUser, Handled); // used to mock UserAccountHelper.IsDelegatedUser()
+        if Handled then
+            exit(IsDelegatedUser);
+
+        exit(UserAccountHelper.IsDelegatedUser());
+    end;
+
+    [NonDebuggable]
     local procedure SetUserLanguage(GraphUserToQuery: DotNet UserInfo; UserSecID: Guid)
     var
         Language: Codeunit Language;
@@ -357,6 +370,11 @@ codeunit 9011 "Azure AD Graph User Impl."
                 LanguageId := LanguageManagement.GetLanguageId(LanguageCode);
 
         exit(LanguageId);
+    end;
+
+    [InternalEvent(false)]
+    local procedure OnIsUserDelegated(var IsDelegatedUser: Boolean; var Handled: Boolean)
+    begin
     end;
 
     [InternalEvent(false)]
