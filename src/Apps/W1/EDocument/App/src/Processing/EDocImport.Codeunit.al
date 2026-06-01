@@ -840,7 +840,7 @@ codeunit 6140 "E-Doc. Import"
         EDocumentPurchaseLine.Quantity := PurchaseLine.Quantity;
         EDocumentPurchaseLine."Unit Price" := PurchaseLine."Direct Unit Cost";
         EDocumentPurchaseLine."Unit of Measure" := PurchaseLine."Unit of Measure Code";
-        EDocumentPurchaseLine."Sub Total" := PurchaseLine."Direct Unit Cost" * PurchaseLine.Quantity;
+        EDocumentPurchaseLine."Sub Total" := PurchaseLine.Amount;
         EDocumentPurchaseLine."Total Discount" := PurchaseLine."Line Discount Amount";
         EDocumentPurchaseLine."VAT Rate" := PurchaseLine."VAT %";
         EDocumentPurchaseLine."Currency Code" := PurchaseLine."Currency Code";
