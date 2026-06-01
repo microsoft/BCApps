@@ -60,7 +60,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         ConditionProductionFilterTok: Label 'WHERE(Order Type=FILTER(Production))', Locked = true;
         DefaultScheduleGroupTok: Label 'QM', Locked = true;
         ExpressionFormulaTok: Label '[No.]';
-        TestTypeErrInfoMsg: Label '%1Consider replacing this test in the template with a new one, or deleting existing inspections (if allowed). The test was last used on inspection %2.', Comment = '%1 = Error Title, %2 = Quality Inspection No.';
+        TestValueTypeChangeErrInfoMsg: Label 'Consider replacing this test in the template with a new one, or deleting existing inspections (if allowed). The test was last used on Inspection %1, Re-inspection %2.', Comment = '%1 = Quality Inspection No., %2 = Re-inspection No.';
         OnlyFieldExpressionErr: Label 'The Expression Formula can only be used with fields that are a type of Expression';
         VendorFilterCountryTok: Label 'WHERE(Country/Region Code=FILTER(CA))', Locked = true;
         VendorFilterNoTok: Label 'WHERE(No.=FILTER(%1))', Comment = '%1 = Vendor No.', Locked = true;
@@ -229,7 +229,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
     end;
 
     [Test]
-    procedure TestTable_ValidateTestValueType_ShouldError()
+    procedure TestTable_ValidateTestValueTypeChange_ShouldError()
     var
         ToLoadQltyTest: Record "Qlty. Test";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
@@ -252,7 +252,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         asserterror ToLoadQltyTest.Validate("Test Value Type", ToLoadQltyTest."Test Value Type"::"Value Type Boolean");
 
         // [THEN] An error is raised indicating the test value type cannot be changed because it's used in inspection
-        LibraryAssert.ExpectedError(StrSubstNo(TestTypeErrInfoMsg, '', QltyInspectionHeader."No."));
+        LibraryAssert.ExpectedError(StrSubstNo(TestValueTypeChangeErrInfoMsg, QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No."));
     end;
 
     [Test]
@@ -2113,8 +2113,6 @@ codeunit 139965 "Qlty. Tests - More Tests"
         LibraryAssert.ExpectedError(CanOnlyBeSetWhenToTypeIsInspectionErr);
     end;
 
-    // Test disabled due to inconsistent behavior across environments
-    // Bug 613059 to address the test stability issue
     [Test]
     procedure ApplicationAreaMgmt_IsQualityManagementApplicationAreaEnabled()
     var

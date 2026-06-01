@@ -37,6 +37,7 @@ Example:
 
 - Added support for upgrade tests and using previously released artifacts as baselines for appsourcecop.json
 - Added support for BCPT app compilation with workspace compilation
+- Added support for incremental builds (`modifiedApps` mode) with workspace compilation. Unmodified apps are downloaded from the baseline workflow run and excluded from workspace compilation, matching the behavior of the container-based path.
 
 ### Optimized dependency artifact downloads for multi-project repositories
 
