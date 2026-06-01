@@ -432,6 +432,37 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
 
     [Test]
     [HandlerFunctions('ConfirmYesHandler')]
+    procedure RecordDeleteKeepsBlobWhenFileIsFromAnotherEnvironment()
+    var
+        DocumentAttachment: Record "Document Attachment";
+        DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
+        ExternalFilePath: Text;
+    begin
+        // [SCENARIO] Files owned by another environment or company must not be deleted
+        // when the local attachment row is removed - the owning environment is responsible
+        // for the blob's lifecycle.
+        Initialize();
+        SetupFileScenarioWithTestConnector();
+        EnableFeatureWithDelete();
+
+        // [GIVEN] An externally-stored attachment carrying a foreign source environment hash
+        CreateDocumentAttachmentWithContent(DocumentAttachment);
+        DAExternalStorageImpl.UploadToExternalStorage(DocumentAttachment);
+        DocumentAttachment.SetRecFilter();
+        DocumentAttachment.FindFirst();
+        DocumentAttachment."Source Environment Hash" := 'DIFFERENTHASH123';
+        DocumentAttachment.Modify();
+        ExternalFilePath := DocumentAttachment."External File Path";
+
+        // [WHEN] The row is deleted
+        DocumentAttachment.Delete(true);
+
+        // [THEN] The blob is preserved
+        Assert.IsTrue(DAExternalStorageImpl.CheckIfFileExistInExternalStorage(ExternalFilePath), 'Blob should be preserved when the file belongs to another environment or company');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmYesHandler')]
     procedure RecordDeleteKeepsBlobWhenDeleteFromExternalStorageDisabled()
     var
         DocumentAttachment: Record "Document Attachment";
