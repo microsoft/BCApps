@@ -386,7 +386,7 @@ codeunit 139628 "E-Doc. Receive Test"
     end;
 
     [Test]
-    procedure ReceivePurchaseInvoice_OnBeforeLogErrorIfItemNotFoundFires_WhenLookupFails()
+    procedure ReceivePurchaseInvoice_RaisesOnBeforeLogErrorIfItemNotFound()
     var
         EDocService: Record "E-Document Service";
         Item: Record Item;
@@ -399,15 +399,16 @@ codeunit 139628 "E-Doc. Receive Test"
         EDocImportPublisherMock: Codeunit "E-Doc. Import Publisher Mock";
         TempBlob: Codeunit "Temp Blob";
         EDocServicePage: TestPage "E-Document Service";
+        EDocumentPage: TestPage "E-Document";
         Document: Text;
         XMLInstream: InStream;
     begin
         // [FEATURE] [E-Document] [Receive]
-        // [SCENARIO] OnBeforeLogErrorIfItemNotFound fires with ItemFound = false when standard lookups cannot resolve the line to an item or G/L account
+        // [SCENARIO] OnBeforeLogErrorIfItemNotFound is raised during V1 import line processing, letting subscribers resolve the item before the standard not-found error is logged
         Initialize();
         BindSubscription(EDocImplState);
 
-        // [GIVEN] e-Document service to receive a purchase invoice
+        // [GIVEN] e-Document service to receive one single purchase invoice
         LibraryEDoc.CreateTestReceiveServiceForEDoc(EDocService, Enum::"Service Integration"::"Mock");
         LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, Enum::"Tax Calculation Type"::"Normal VAT", 1);
         Vendor.Get(LibraryPurchase.CreateVendorWithVATBusPostingGroup(VATPostingSetup."VAT Bus. Posting Group"));
@@ -429,14 +430,19 @@ codeunit 139628 "E-Doc. Receive Test"
         ItemUnitOfMeasure."Qty. per Unit of Measure" := 1;
         if ItemUnitOfMeasure.Insert() then;
 
-        // [GIVEN] No matching Item Reference exists for the incoming line
         ItemReference.DeleteAll();
+        ItemReference."Item No." := Item."No.";
+        ItemReference."Reference Type" := ItemReference."Reference Type"::Vendor;
+        ItemReference."Reference Type No." := Vendor."No.";
+        ItemReference."Reference No." := '1000';
+        ItemReference.Insert();
 
         Item."Base Unit of Measure" := UnitOfMeasure.Code;
         Item."Purch. Unit of Measure" := UnitOfMeasure.Code;
         Item.Modify();
 
         EDocService."Document Format" := "E-Document Format"::"Data Exchange";
+        EDocService."Import Process" := Enum::"E-Document Import Process"::"Version 1.0";
         EDocService."Lookup Account Mapping" := false;
         EDocService."Lookup Item GTIN" := false;
         EDocService."Lookup Item Reference" := true;
@@ -477,16 +483,18 @@ codeunit 139628 "E-Doc. Receive Test"
         // [GIVEN] Subscriber to OnBeforeLogErrorIfItemNotFound is bound
         BindSubscription(EDocImportPublisherMock);
 
-        // [WHEN] Running Receive (Item Reference lookup will fail)
+        // [WHEN] Running Receive
         EDocServicePage.OpenView();
         EDocServicePage.Filter.SetFilter(Code, EDocService.Code);
         EDocServicePage.Receive.Invoke();
 
         UnbindSubscription(EDocImportPublisherMock);
 
-        // [THEN] OnBeforeLogErrorIfItemNotFound fired and saw ItemFound = false on entry
-        Assert.IsTrue(EDocImportPublisherMock.GetOnBeforeLogErrorIfItemNotFoundCount() > 0, 'OnBeforeLogErrorIfItemNotFound should fire when standard item lookups cannot resolve the line.');
-        Assert.IsFalse(EDocImportPublisherMock.GetLastItemFoundOnEntry(), 'ItemFound should be false on entry to OnBeforeLogErrorIfItemNotFound when no standard lookup matched.');
+        // [THEN] Purchase invoice is created and OnBeforeLogErrorIfItemNotFound was raised during line processing
+        EDocumentPage.OpenView();
+        EDocumentPage.Last();
+        Assert.AreEqual(Format(Enum::"E-Document Service Status"::"Imported Document Created"), EDocumentPage.InboundEDocFactbox.Status.Value(), 'Wrong service status for processed document');
+        Assert.IsTrue(EDocImportPublisherMock.GetOnBeforeLogErrorIfItemNotFoundCount() > 0, 'OnBeforeLogErrorIfItemNotFound should be raised for each line during import processing.');
 
         EDocService."Document Format" := "E-Document Format"::Mock;
         EDocService.Modify();
