@@ -9,6 +9,8 @@ using Microsoft.Manufacturing.Document;
 
 codeunit 99001549 "Subc. Change Prod.Order Status"
 {
+    Permissions = TableData "Subcontractor WIP Ledger Entry" = RIMD;
+
     [EventSubscriber(ObjectType::Page, Page::"Change Status on Prod. Order", OnAfterSet, '', false, false)]
     local procedure SetSubcontractingProductionOrderOnAfterSetSubcontractingWIPEntriesAffected(var Sender: Page "Change Status on Prod. Order"; ProdOrder: Record "Production Order"; var PostingDate: Date; var ReqUpdUnitCost: Boolean; var ProductionOrderStatus: Record "Production Order"; var FirmPlannedStatusEditable: Boolean; var ReleasedStatusEditable: Boolean; var FinishedStatusEditable: Boolean)
     begin
@@ -65,8 +67,8 @@ codeunit 99001549 "Subc. Change Prod.Order Status"
 Comment = '%1=Transfer Header No';
     begin
         TransferLine.SetLoadFields("Document No.");
-        TransferLine.SetCurrentKey("Prod. Order No.", "Routing No.", "Routing Reference No.", "Operation No.", "Subcontr. Purch. Order No.");
-        TransferLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        TransferLine.SetCurrentKey("Subc. Prod. Order No.", "Subc. Routing No.", "Subc. Routing Reference No.", "Subc. Operation No.", "Subc. Purch. Order No.");
+        TransferLine.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
         TransferLine.SetRange("Derived From Line No.", 0);
         if TransferLine.FindFirst() then
             Error(TransferOrderExistsErr, TransferLine."Document No.");

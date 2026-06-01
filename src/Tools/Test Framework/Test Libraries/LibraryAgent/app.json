@@ -1,0 +1,55 @@
+{
+  "id": "5afe217e-507a-40b4-9aa5-f4325b6e8230",
+  "name": "Agent Test Library",
+  "publisher": "Microsoft",
+  "brief": "Test library for automating agent related tests.",
+  "description": "Test library for automating agent related tests.",
+  "version": "29.0.0.0",
+  "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
+  "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
+  "help": "https://go.microsoft.com/fwlink/?linkid=2131960",
+  "url": "https://go.microsoft.com/fwlink/?LinkId=724011",
+  "contextSensitiveHelpUrl": "https://learn.microsoft.com/dynamics365/business-central/dev-itpro/developer/devenv-testing-application/",
+  "logo": "ExtensionLogo.png",
+  "dependencies": [
+    {
+      "id": "2156302a-872f-4568-be0b-60968696f0d5",
+      "name": "AI Test Toolkit",
+      "publisher": "Microsoft",
+      "version": "29.0.0.0"
+    },
+    {
+      "id": "dd0be2ea-f733-4d65-bb34-a28f4624fb14",
+      "name": "Library Assert",
+      "publisher": "Microsoft",
+      "version": "29.0.0.0"
+    }
+  ],
+  "internalsVisibleTo": [
+    {
+      "id": "66d1f41b-f670-4788-a2b3-0f82b4e5c05b",
+      "name": "Agent Test Internal Library",
+      "publisher": "Microsoft"
+    }
+  ],
+  "screenshots": [],
+  "platform": "29.0.0.0",
+  "idRanges": [
+    {
+      "from": 130560,
+      "to": 130569
+    }
+  ],
+  "features": [
+    "GenerateCaptions",
+    "TranslationFile",
+    "NoImplicitWith",
+    "NoPromotedActionProperties"
+  ],
+  "resourceExposurePolicy": {
+    "allowDebugging": true,
+    "allowDownloadingSource": true,
+    "includeSourceInSymbolFile": true
+  },
+  "target": "OnPrem"
+}

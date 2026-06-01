@@ -24,10 +24,10 @@ pageextension 99001542 "Subc. Manufacturing Setup" extends "Manufacturing Setup"
                         ApplicationArea = Manufacturing;
                         ToolTip = 'Specifies whether an additional Information Line of the Production Order Line will be created in a Subcontracting Purchase Order.';
                     }
-                    field("Subc. Inb. Whse. Handling Time"; Rec."Subc. Inb. Whse. Handling Time")
+                    field("Subc. Comp. Transfer Lead Time"; Rec."Subc. Comp. Transfer Lead Time")
                     {
                         ApplicationArea = Manufacturing;
-                        ToolTip = 'Specifies the time to calculate the Receipt Date in Transfer Line. The calculation will be Due Date from Prod. Order Component minus the entered date formula.';
+                        ToolTip = 'Specifies the lead time for transferring components to the subcontractor. This time is subtracted from the production component due date to calculate the transfer order receipt date.';
                     }
                     field("Subcontracting Template Name"; Rec."Subcontracting Template Name")
                     {
@@ -44,20 +44,10 @@ pageextension 99001542 "Subc. Manufacturing Setup" extends "Manufacturing Setup"
                         ApplicationArea = Manufacturing;
                         ToolTip = 'Specifies which Direct Unit Cost of a Prod. Order Component is to be used in the subcontracting purchase order. Standard: Standard pricing is used when procuring the component. Prod. Order Component: The calculated Direct Unit Cost of the Prod. Order Component Line is transferred to the subcontracting purchase order.';
                     }
-                    field(RefItemChargeToRcptSubLines; Rec.RefItemChargeToRcptSubLines)
-                    {
-                        ApplicationArea = Manufacturing;
-                        ToolTip = 'Specifies whether to enable the item charge assignment to purchase receipt lines with subcontracting. When enabled, the item charge is posted as a new value entry of type "Direct Cost", when it is assigned to a purchase receipt line with referenced production order line. This created value entry is automatically assigned to a capacity entry of the prod order.';
-                    }
                 }
                 group(SubcPurchaseProvision)
                 {
                     Caption = 'Purchase Provision';
-                    field("Rtng. Link Code Purch. Prov."; Rec."Rtng. Link Code Purch. Prov.")
-                    {
-                        ApplicationArea = Manufacturing;
-                        ToolTip = 'Specifies the value of the Routing Link Code for purchase provision.';
-                    }
                     field("Subc. Default Comp. Location"; Rec."Subc. Default Comp. Location")
                     {
                         ApplicationArea = Manufacturing;

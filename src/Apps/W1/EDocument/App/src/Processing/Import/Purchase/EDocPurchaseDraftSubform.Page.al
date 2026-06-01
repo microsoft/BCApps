@@ -13,6 +13,7 @@ using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
+using Microsoft.Purchases.Setup;
 
 page 6183 "E-Doc. Purchase Draft Subform"
 {
@@ -73,6 +74,12 @@ page 6183 "E-Doc. Purchase Draft Subform"
                     ApplicationArea = All;
                     Lookup = true;
                     ShowMandatory = true;
+                }
+                field("VAT Prod. Posting Group"; Rec."[BC] VAT Prod. Posting Group")
+                {
+                    ApplicationArea = All;
+                    Lookup = true;
+                    Visible = VATProdPostGroupIsVisible;
                 }
                 field("Item Reference No."; Rec."[BC] Item Reference No.")
                 {
@@ -402,7 +409,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
         EDocPOMatching: Codeunit "E-Doc. PO Matching";
         AdditionalColumns, OrderMatchedCaption, MatchWarningsCaption, MatchWarningsStyleExpr : Text;
         LineAmount: Decimal;
-        DimVisible1, DimVisible2, HasAdditionalColumns, IsEDocumentMatchedToAnyPOLine, IsLineMatchedToOrderLine, IsLineMatchedToReceiptLine, HasEDocumentOrderMatchWarnings : Boolean;
+        DimVisible1, DimVisible2, HasAdditionalColumns, IsEDocumentMatchedToAnyPOLine, IsLineMatchedToOrderLine, IsLineMatchedToReceiptLine, HasEDocumentOrderMatchWarnings, VATProdPostGroupIsVisible : Boolean;
         HistoryCantBeRetrievedErr: Label 'The purchase invoice that matched historically with this line can''t be opened.';
 
     trigger OnOpenPage()
@@ -419,6 +426,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
     trigger OnAfterGetCurrRecord()
     begin
         UpdatePOMatching();
+        SetVATProductPostingGroupVisibility();
     end;
 
     trigger OnAfterGetRecord()
@@ -431,6 +439,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
         IsLineMatchedToReceiptLine := EDocPOMatching.IsEDocumentLineMatchedToAnyReceiptLine(EDocumentPurchaseLine);
         OrderMatchedCaption := IsLineMatchedToOrderLine ? GetSummaryOfMatchedOrders() : '';
         UpdateMatchWarnings();
+        SetVATProductPostingGroupVisibility();
     end;
 
     internal procedure SetEDocumentPurchaseHeader(EDocPurchHeader: Record "E-Document Purchase Header")
@@ -454,6 +463,14 @@ page 6183 "E-Doc. Purchase Draft Subform"
 
         DimMgt.UseShortcutDims(
           DimVisible1, DimVisible2, DimOther, DimOther, DimOther, DimOther, DimOther, DimOther);
+    end;
+
+    local procedure SetVATProductPostingGroupVisibility()
+    var
+        PurchSetup: Record "Purchases & Payables Setup";
+    begin
+        PurchSetup.Get();
+        VATProdPostGroupIsVisible := PurchSetup."Resolve VAT Group Purch EDoc";
     end;
 
     local procedure UpdateCalculatedAmounts(UpdateParentRecord: Boolean)
@@ -639,5 +656,4 @@ page 6183 "E-Doc. Purchase Draft Subform"
         if WarningDetails.Length() > 0 then
             Message(WarningDetails.ToText());
     end;
-
 }

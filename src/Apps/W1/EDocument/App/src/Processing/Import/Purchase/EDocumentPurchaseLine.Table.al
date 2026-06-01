@@ -11,6 +11,7 @@ using Microsoft.Finance.AllocationAccount;
 using Microsoft.Finance.Deferral;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Finance.VAT.Setup;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
@@ -20,6 +21,7 @@ using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Utilities;
+using System.Log;
 using System.Reflection;
 using System.Utilities;
 
@@ -208,6 +210,26 @@ table 6101 "E-Document Purchase Line"
                 DimMgt.UpdateGlobalDimFromDimSetID("[BC] Dimension Set ID", "[BC] Shortcut Dimension 1 Code", "[BC] Shortcut Dimension 2 Code");
             end;
         }
+        field(110; "[BC] VAT Prod. Posting Group"; Code[20])
+        {
+            Caption = 'VAT Prod. Posting Group';
+            ToolTip = 'Specifies the VAT product posting group resolved from the extracted VAT rate.';
+            TableRelation = "VAT Product Posting Group";
+
+            trigger OnLookup()
+            var
+                Vendor: Record Vendor;
+                VATPostingSetup: Record "VAT Posting Setup";
+                EDocPurchDocHelper: Codeunit "E-Doc. Purch. Doc. Helper";
+            begin
+                Vendor := Rec.GetBCVendor();
+                if Vendor."No." = '' then
+                    exit;
+                EDocPurchDocHelper.SetNormalReverseChargeFilter(VATPostingSetup, Vendor."VAT Bus. Posting Group");
+                if Page.RunModal(Page::"VAT Posting Setup", VATPostingSetup) = Action::LookupOK then
+                    Validate("[BC] VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+            end;
+        }
         #endregion Validated fields
 
         #region Metadata fields [201-300]
@@ -372,6 +394,54 @@ table 6101 "E-Document Purchase Line"
     procedure GetBCVendor(): Record Vendor
     begin
         exit(GetEDocumentPurchaseHeader().GetBCVendor());
+    end;
+
+    internal procedure LogVATRateMismatch(VendVATBusPostingGroupCode: Code[20]; VATRate: Decimal)
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+        EDocPurchDocHelper: Codeunit "E-Doc. Purch. Doc. Helper";
+        ActivityLog: Codeunit "Activity Log Builder";
+        VATPostingSetupRef: RecordRef;
+        Reasoning: Text[250];
+        VATRateMismatchReasonLbl: Label 'VAT rate %1% extracted from the document could not be matched to a VAT Posting Setup for vendor''s VAT Business Posting Group %2.', Comment = '%1 = extracted VAT rate %, %2 = VAT Bus. Posting Group code';
+        VATRateMismatchTitleLbl: Label 'VAT Posting Setup for %1', Comment = '%1 = VAT Bus. Posting Group code';
+    begin
+        EDocPurchDocHelper.SetNormalReverseChargeFilter(VATPostingSetup, VendVATBusPostingGroupCode);
+        VATPostingSetupRef.GetTable(VATPostingSetup);
+
+        Reasoning := CopyStr(StrSubstNo(VATRateMismatchReasonLbl, Rec."VAT Rate", VendVATBusPostingGroupCode), 1, MaxStrLen(Reasoning));
+
+        ActivityLog
+            .Init(Database::"E-Document Purchase Line", Rec.FieldNo("[BC] VAT Prod. Posting Group"), Rec.SystemId)
+            .SetExplanation(Reasoning)
+            .SetType(Enum::"Activity Log Type"::AL)
+            .SetReferenceSource(Page::"VAT Posting Setup", VATPostingSetupRef)
+            .SetReferenceTitle(StrSubstNo(VATRateMismatchTitleLbl, VendVATBusPostingGroupCode))
+            .Log();
+    end;
+
+    internal procedure LogVATRateResolved(VendVATBusPostingGroupCode: Code[20]; VATRate: Decimal)
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+        EDocPurchDocHelper: Codeunit "E-Doc. Purch. Doc. Helper";
+        ActivityLog: Codeunit "Activity Log Builder";
+        VATPostingSetupRef: RecordRef;
+        Reasoning: Text[250];
+        VATRateResolvedReasonLbl: Label 'VAT rate %1% extracted from the document was matched to VAT Product Posting Group %2 for vendor''s VAT Business Posting Group %3.', Comment = '%1 = extracted VAT rate %, %2 = resolved VAT Prod. Posting Group code, %3 = VAT Bus. Posting Group code';
+        VATRateResolvedTitleLbl: Label 'VAT Posting Setup for %1', Comment = '%1 = VAT Bus. Posting Group code';
+    begin
+        EDocPurchDocHelper.SetNormalReverseChargeFilter(VATPostingSetup, VendVATBusPostingGroupCode);
+        VATPostingSetupRef.GetTable(VATPostingSetup);
+
+        Reasoning := CopyStr(StrSubstNo(VATRateResolvedReasonLbl, VATRate, Rec."[BC] VAT Prod. Posting Group", VendVATBusPostingGroupCode), 1, MaxStrLen(Reasoning));
+
+        ActivityLog
+            .Init(Database::"E-Document Purchase Line", Rec.FieldNo("[BC] VAT Prod. Posting Group"), Rec.SystemId)
+            .SetExplanation(Reasoning)
+            .SetType(Enum::"Activity Log Type"::AL)
+            .SetReferenceSource(Page::"VAT Posting Setup", VATPostingSetupRef)
+            .SetReferenceTitle(StrSubstNo(VATRateResolvedTitleLbl, VendVATBusPostingGroupCode))
+            .Log();
     end;
 
 }
