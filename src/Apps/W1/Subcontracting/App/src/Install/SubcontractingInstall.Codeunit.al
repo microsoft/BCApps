@@ -3,6 +3,9 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
+using Microsoft.Manufacturing.Setup;
+using System.Upgrade;
+using Microsoft.Upgrade;
 
 codeunit 99001501 "Subcontracting Install"
 {
@@ -36,6 +39,7 @@ codeunit 99001501 "Subcontracting Install"
         SubcontractingCompInit: Codeunit "Subcontracting Comp. Init.";
     begin
         SubcontractingCompInit.CreateBasicSubcontractingMgtSetup();
+        SetSubcontractingFeatureOnInstall();
     end;
 
     local procedure HandleReinstallPerCompany()
@@ -51,5 +55,21 @@ codeunit 99001501 "Subcontracting Install"
 
     local procedure HandleReinstallPerDatabase()
     begin
+    end;
+
+    local procedure SetSubcontractingFeatureOnInstall()
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+        UpgradeTag: Codeunit "Upgrade Tag";
+        SubcApplicationAreaHandler: Codeunit "Subc. Application Area Handler";
+        SubcUpgradeTagDefExt: Codeunit "Subc. Upgrade Tag Def. Ext.";
+        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
+    begin
+        if UpgradeTag.HasUpgradeTag(SubcUpgradeTagDefExt.GetSubcontractingUpgradeTag()) then
+            exit;
+
+        SubcApplicationAreaHandler.UpdateApplicationArea();
+
+        UpgradeTag.SetUpgradeTag(SubcUpgradeTagDefExt.GetSubcontractingUpgradeTag());
     end;
 }
