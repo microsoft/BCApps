@@ -57,38 +57,32 @@ function Ensure-Label {
 
 function Get-AwaitingApprovalPRs {
     Write-Host ""
-    Write-Host "Fetching workflow runs with status=action_required from $repo..."
+    Write-Host "Fetching open PRs in $repo (for head-SHA mapping)..."
+    $prsJson = Invoke-GhApi -Arguments @('--paginate', "repos/$repo/pulls?state=open&per_page=100", '--jq', '[.[] | {number: .number, sha: .head.sha}]')
+    $openPRs = @()
+    if ($prsJson) { $openPRs = @($prsJson | ConvertFrom-Json) }
+    Write-Host "Found $($openPRs.Count) open PR(s)"
+
+    # Map of current PR head SHA -> PR number. We match action_required runs
+    # against the *current* head only, so PRs with stale action_required runs
+    # from older commits (whose newer commits have been approved) are not
+    # falsely flagged.
+    $headShaToPR = @{}
+    foreach ($pr in $openPRs) {
+        if ($pr.sha) { $headShaToPR[$pr.sha] = [int]$pr.number }
+    }
+
+    Write-Host ""
+    Write-Host "Fetching workflow runs with status=action_required..."
     $runsJson = Invoke-GhApi -Arguments @("repos/$repo/actions/runs?status=action_required&per_page=100", '--jq', '.workflow_runs')
     $runs = @()
     if ($runsJson) { $runs = @($runsJson | ConvertFrom-Json) }
     Write-Host "Found $($runs.Count) action_required workflow run(s)"
 
     $awaiting = [System.Collections.Generic.HashSet[int]]::new()
-    $shaCache = @{}
-
     foreach ($run in $runs) {
-        $prNumbers = @()
-        $hasPRs = ($run.PSObject.Properties.Name -contains 'pull_requests') -and $run.pull_requests
-        if ($hasPRs -and $run.pull_requests.Count -gt 0) {
-            $prNumbers = @($run.pull_requests | ForEach-Object { [int]$_.number })
-        }
-        elseif ($run.PSObject.Properties.Name -contains 'head_sha' -and $run.head_sha) {
-            $sha = $run.head_sha
-            if (-not $shaCache.ContainsKey($sha)) {
-                try {
-                    $byShaJson = Invoke-GhApi -Arguments @("repos/$repo/commits/$sha/pulls", '--jq', '[.[] | select(.state=="open") | .number]')
-                    $shaCache[$sha] = @($byShaJson | ConvertFrom-Json)
-                }
-                catch {
-                    Write-Host "  ! Failed to resolve PRs for run $($run.id) (sha $sha): $_"
-                    $shaCache[$sha] = @()
-                }
-            }
-            $prNumbers = $shaCache[$sha]
-        }
-
-        foreach ($n in $prNumbers) {
-            [void]$awaiting.Add([int]$n)
+        if (($run.PSObject.Properties.Name -contains 'head_sha') -and $run.head_sha -and $headShaToPR.ContainsKey($run.head_sha)) {
+            [void]$awaiting.Add($headShaToPR[$run.head_sha])
         }
     }
 
