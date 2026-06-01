@@ -34,13 +34,13 @@ codeunit 99001505 "Subcontracting Management"
         PurchOrderExistErr: Label 'The currently selected component %1 is already used in Purchase Order %2. Therefore, it is not permitted to change the %3 field.', Comment = '%1=Item No, %2=Purchase Order No, %3=Field Caption';
         HasManufacturingSetup: Boolean;
 
-    procedure CalcReceiptDateFromProdCompDueDateWithInbWhseHandlingTime(ProdOrderComponent: Record "Prod. Order Component") ReceiptDate: Date
+    procedure CalcReceiptDateFromProdCompDueDateWithCompTransferLeadTime(ProdOrderComponent: Record "Prod. Order Component") ReceiptDate: Date
     begin
         GetManufacturingSetup();
-        if not HasManufacturingSetup or (Format(ManufacturingSetup."Subc. Inb. Whse. Handling Time") = '') then
+        if not HasManufacturingSetup or (Format(ManufacturingSetup."Subc. Comp. Transfer Lead Time") = '') then
             exit(ProdOrderComponent."Due Date");
 
-        ReceiptDate := CalcDate('-' + Format(ManufacturingSetup."Subc. Inb. Whse. Handling Time"), ProdOrderComponent."Due Date");
+        ReceiptDate := CalcDate('-' + Format(ManufacturingSetup."Subc. Comp. Transfer Lead Time"), ProdOrderComponent."Due Date");
 
         exit(ReceiptDate);
     end;
@@ -203,7 +203,7 @@ codeunit 99001505 "Subcontracting Management"
          TransferLine."Variant Code",
          TransferLine."Transfer-from Code",
          true,
-         0,
+         TransferLine."Quantity (Base)",
          TransferLine."Qty. per Unit of Measure",
          Database::"Transfer Line",
          0,  // Direction::Outbound
@@ -211,6 +211,28 @@ codeunit 99001505 "Subcontracting Management"
          '',
          0,
          TransferLine."Line No.");
+    end;
+
+    procedure ComponentHasExcessReservations(ProdOrderComponent: Record "Prod. Order Component"; MaxQtyBase: Decimal): Boolean
+    begin
+        exit(GetComponentReservedQtyBase(ProdOrderComponent) > MaxQtyBase);
+    end;
+
+    procedure GetComponentReservedQtyBase(ProdOrderComponent: Record "Prod. Order Component"): Decimal
+    var
+        ReservationEntry: Record "Reservation Entry";
+        ProdOrderCompReserve: Codeunit "Prod. Order Comp.-Reserve";
+        TotalReservedQtyBase: Decimal;
+    begin
+        if not ProdOrderCompReserve.FindReservEntry(ProdOrderComponent, ReservationEntry) then
+            exit(0);
+
+        if ReservationEntry.FindSet() then
+            repeat
+                TotalReservedQtyBase += Abs(ReservationEntry."Quantity (Base)");
+            until ReservationEntry.Next() = 0;
+
+        exit(TotalReservedQtyBase);
     end;
 
     procedure CreateReservEntryForTransferReceiptToProdOrderComp(

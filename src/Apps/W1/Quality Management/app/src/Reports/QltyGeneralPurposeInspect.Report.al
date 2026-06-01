@@ -6,7 +6,9 @@ namespace Microsoft.QualityManagement.Reports;
 
 using Microsoft.Foundation.Company;
 using Microsoft.Inventory.Item;
+#if not CLEAN29
 using Microsoft.QualityManagement.Configuration.Template;
+#endif
 using Microsoft.QualityManagement.Document;
 
 report 20405 "Qlty. General Purpose Inspect."
@@ -25,7 +27,14 @@ report 20405 "Qlty. General Purpose Inspect."
         dataitem(CurrentInspection; "Qlty. Inspection Header")
         {
             RequestFilterFields = "Source Item No.", "Source Variant Code", "Source Lot No.", "Source Serial No.", "Source Package No.", "Source Document No.", "No.", "Re-inspection No.", "Template Code";
-            column(QltyInspectionTemplate_Description; QltyInspectionTemplateHdr.Description) { } // CLEAN
+#if not CLEAN29
+            column(QltyInspectionTemplate_Description; QltyInspectionTemplateHdr.Description)
+            {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'RDLC-only layout column. To be removed along with the RDLC layout.';
+                ObsoleteTag = '29.0';
+            }
+#endif
             column(QltyInspection_Description; Description) { }
             column(QltyInspection_Status; Status) { }
             column(QltyInspection_Result_Code; "Result Code") { }
@@ -249,7 +258,11 @@ report 20405 "Qlty. General Purpose Inspect."
             trigger OnAfterGetRecord()
             begin
                 QltyReportMgmt.ResolveSourceItem(CurrentInspection, Item);
+#if not CLEAN29
+#pragma warning disable AL0432
                 QltyReportMgmt.ResolveInspectionTemplateCache(CurrentInspection."Template Code", QltyInspectionTemplateHdr);
+#pragma warning restore AL0432
+#endif
                 QltyReportMgmt.ResolveFinishedByPerson(CurrentInspection."Finished By User ID", FinishedByUserName, FinishedByTitle, FinishedByEmail, FinishedByPhone);
 
                 ItemTrackingText := QltyReportMgmt.BuildItemTrackingIdentifierText(CurrentInspection."Source Lot No.", CurrentInspection."Source Serial No.", CurrentInspection."Source Package No.");
@@ -269,13 +282,18 @@ report 20405 "Qlty. General Purpose Inspect."
             Summary = 'Built in layout for General Purpose Inspection report.';
             LayoutFile = './src/Reports/QltyGeneralPurposeInspection.docx';
         }
+#if not CLEAN29
         layout(QltyGeneralPurposeInspectionDefault)
         {
             Type = RDLC;
             Caption = 'General Purpose Inspection Report (RDLC)';
             Summary = 'Built in layout for General Purpose Inspection report.';
             LayoutFile = './src/Reports/QltyGeneralPurposeInspectionAlternate.rdl';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'The RDLC layout has been replaced by the Word layout and will be removed in a future release.';
+            ObsoleteTag = '29.0';
         }
+#endif
     }
 
     labels
@@ -300,7 +318,9 @@ report 20405 "Qlty. General Purpose Inspect."
     var
         Item: Record Item;
         CompanyInformation: Record "Company Information";
+#if not CLEAN29
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+#endif
         QltyReportMgmt: Codeunit "Qlty. Report Mgmt.";
         MatrixSourceRecordId: array[10] of RecordId;
         CompanyInformationArray: array[8] of Text[100];
