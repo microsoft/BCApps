@@ -30,7 +30,7 @@ page 99001502 "Subc. Routing Info Factbox"
             field(ShowQtyInSubcontractingOrder; SubcRoutingFactboxMgmt.GetPurchOrderQtyFromRoutingLine(Rec))
             {
                 AutoFormatType = 0;
-                Caption = 'Order Quantity';
+                Caption = 'Purch. Order Qty.';
                 DecimalPlaces = 0 : 5;
                 ToolTip = 'Specifies the dependent Quantity in Subcontracting Orders of this Prod. Order Routing Line.';
                 trigger OnDrillDown()
@@ -41,9 +41,9 @@ page 99001502 "Subc. Routing Info Factbox"
             field(ShowQtyShippedRequest; SubcRoutingFactboxMgmt.GetPurchReceiptQtyFromRoutingLine(Rec))
             {
                 AutoFormatType = 0;
-                Caption = 'Quantity received';
+                Caption = 'Quantity Received';
                 DecimalPlaces = 0 : 5;
-                ToolTip = 'Specifies the dependent Quantity received in Subcontracting Receipts of this Prod. Order Routing Line.';
+                ToolTip = 'Specifies the dependent Quantity Received in Subcontracting Receipts of this Prod. Order Routing Line.';
                 trigger OnDrillDown()
                 begin
                     ShowPurchaseReceipts();
@@ -52,9 +52,9 @@ page 99001502 "Subc. Routing Info Factbox"
             field(ShowQtyInvoicedRequest; SubcRoutingFactboxMgmt.GetPurchInvoicedQtyFromRoutingLine(Rec))
             {
                 AutoFormatType = 0;
-                Caption = 'Quantity invoiced';
+                Caption = 'Quantity Invoiced';
                 DecimalPlaces = 0 : 5;
-                ToolTip = 'Specifies the dependent Quantity invoiced in Subcontracting Invoices of this Prod. Order Routing Line.';
+                ToolTip = 'Specifies the dependent Quantity Invoiced in Subcontracting Invoices of this Prod. Order Routing Line.';
                 trigger OnDrillDown()
                 begin
                     ShowPurchaseInvoices();
@@ -62,9 +62,7 @@ page 99001502 "Subc. Routing Info Factbox"
             }
             field(ShowNoOfTransferOrdersFromProdOrderComp; SubcPurchFactboxMgmt.ShowTransferOrdersAndReturnOrder(Rec, false, false))
             {
-                AutoFormatType = 0;
                 Caption = 'Transfer Order Lines';
-                DecimalPlaces = 0 : 5;
                 ToolTip = 'Specifies the number of transfer order lines assigned to this routing line.';
                 trigger OnDrillDown()
                 begin
@@ -73,9 +71,7 @@ page 99001502 "Subc. Routing Info Factbox"
             }
             field(ShowNoOfReturnTransferOrdersFromProdOrderComp; SubcPurchFactboxMgmt.ShowTransferOrdersAndReturnOrder(Rec, false, true))
             {
-                AutoFormatType = 0;
                 Caption = 'Return Transfer Order Lines';
-                DecimalPlaces = 0 : 5;
                 ToolTip = 'Specifies the number of Return transfer order lines assigned to this routing line.';
                 trigger OnDrillDown()
                 begin
@@ -84,9 +80,7 @@ page 99001502 "Subc. Routing Info Factbox"
             }
             field(ShowNoOfLinkedComp; SubcRoutingFactboxMgmt.GetNoOfLinkedComponentsFromRouting(Rec))
             {
-                AutoFormatType = 0;
                 Caption = 'Components';
-                DecimalPlaces = 0 : 5;
                 ToolTip = 'Specifies the number of components linked to this routing line.';
                 trigger OnDrillDown()
                 begin

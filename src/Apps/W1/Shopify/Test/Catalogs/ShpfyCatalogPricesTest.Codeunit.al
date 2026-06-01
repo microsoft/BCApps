@@ -46,7 +46,9 @@ codeunit 139646 "Shpfy Catalog Prices Test"
         ComparePrice: Decimal;
     begin
         // Creating test data.
-        LibraryPriceCalculation.DisableExtendedPriceCalculation();
+        // Extended pricing is on by default in the tenant; explicitly select the V15 handler so the legacy Sales Price / Sales Line Discount data path is exercised.
+        LibraryPriceCalculation.EnableExtendedPriceCalculation();
+        LibraryPriceCalculation.SetupDefaultHandler("Price Calculation Handler"::"Business Central (Version 15.0)");
         Shop := InitializeTest.CreateShop();
         Shop."Allow Line Disc." := false;
         Shop.Modify();
@@ -112,7 +114,9 @@ codeunit 139646 "Shpfy Catalog Prices Test"
         ComparePrice: Decimal;
     begin
         // Creating test data.
-        LibraryPriceCalculation.DisableExtendedPriceCalculation();
+        // Extended pricing is on by default in the tenant; explicitly select the V15 handler so the legacy Sales Price / Sales Line Discount data path is exercised.
+        LibraryPriceCalculation.EnableExtendedPriceCalculation();
+        LibraryPriceCalculation.SetupDefaultHandler("Price Calculation Handler"::"Business Central (Version 15.0)");
         Shop := InitializeTest.CreateShop();
         Shop."Allow Line Disc." := false;
         Shop.Modify();
@@ -524,7 +528,8 @@ codeunit 139646 "Shpfy Catalog Prices Test"
         Catalog2.Validate("Sync Prices", true);
         Catalog2.Modify(true);
 
-        // [THEN] Catalog2 has Sync Prices = true
+        // [THEN] Catalog2 persists Sync Prices = true in the database
+        Catalog2.Get(CatalogId, ShopifyCompany2.SystemId);
         LibraryAssert.IsTrue(Catalog2."Sync Prices", 'Catalog2 should have Sync Prices enabled');
 
         // [THEN] Catalog1 has Sync Prices = false (disabled by the confirmation logic)
