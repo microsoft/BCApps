@@ -28,6 +28,7 @@ concurrency:
 jobs:
   SyncLabel:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     name: Sync 'needs-approval' label
     if: github.repository_owner == 'microsoft'
     steps:

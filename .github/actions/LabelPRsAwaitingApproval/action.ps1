@@ -24,14 +24,27 @@ function Invoke-GhApi {
         [int] $MaxRetries = 3
     )
     for ($attempt = 1; $attempt -le $MaxRetries; $attempt++) {
+        $stderrFile = [System.IO.Path]::GetTempFileName()
         try {
-            $result = & gh api @Arguments 2>&1
-            if ($LASTEXITCODE -eq 0) { return $result }
-            throw "gh api failed (exit $LASTEXITCODE): $result"
+            # Redirect stderr to a temp file so deprecation notices / warnings
+            # don't get prepended to stdout and break ConvertFrom-Json.
+            $stdout = & gh api @Arguments 2>$stderrFile
+            if ($LASTEXITCODE -eq 0) {
+                $stderrText = Get-Content -Path $stderrFile -Raw -ErrorAction SilentlyContinue
+                if ($stderrText -and $stderrText.Trim()) {
+                    Write-Host "  gh api stderr: $($stderrText.Trim())"
+                }
+                return $stdout
+            }
+            $stderrText = Get-Content -Path $stderrFile -Raw -ErrorAction SilentlyContinue
+            throw "gh api failed (exit $LASTEXITCODE): $stderrText"
         }
         catch {
             if ($attempt -eq $MaxRetries) { throw }
             Start-Sleep -Seconds ([Math]::Pow(2, $attempt))
+        }
+        finally {
+            Remove-Item -Path $stderrFile -ErrorAction SilentlyContinue
         }
     }
 }
@@ -58,9 +71,13 @@ function Ensure-Label {
 function Get-AwaitingApprovalPRs {
     Write-Host ""
     Write-Host "Fetching open PRs in $repo (for head-SHA mapping)..."
-    $prsJson = Invoke-GhApi -Arguments @('--paginate', "repos/$repo/pulls?state=open&per_page=100", '--jq', '[.[] | {number: .number, sha: .head.sha}]')
-    $openPRs = @()
-    if ($prsJson) { $openPRs = @($prsJson | ConvertFrom-Json) }
+    # With --paginate, gh runs the --jq filter against each page and emits the
+    # results concatenated. We use a filter that emits one JSON object per
+    # line, and parse them individually below (NDJSON style) - this avoids
+    # the "multiple JSON arrays concatenated" problem that breaks
+    # ConvertFrom-Json.
+    $prsJson = Invoke-GhApi -Arguments @('--paginate', "repos/$repo/pulls?state=open&per_page=100", '--jq', '.[] | {number: .number, sha: .head.sha}')
+    $openPRs = @($prsJson | Where-Object { $_ -and $_.ToString().Trim() } | ForEach-Object { $_ | ConvertFrom-Json })
     Write-Host "Found $($openPRs.Count) open PR(s)"
 
     # Map of current PR head SHA -> PR number. We match action_required runs
@@ -74,9 +91,8 @@ function Get-AwaitingApprovalPRs {
 
     Write-Host ""
     Write-Host "Fetching workflow runs with status=action_required..."
-    $runsJson = Invoke-GhApi -Arguments @("repos/$repo/actions/runs?status=action_required&per_page=100", '--jq', '.workflow_runs')
-    $runs = @()
-    if ($runsJson) { $runs = @($runsJson | ConvertFrom-Json) }
+    $runsJson = Invoke-GhApi -Arguments @('--paginate', "repos/$repo/actions/runs?status=action_required&per_page=100", '--jq', '.workflow_runs[]')
+    $runs = @($runsJson | Where-Object { $_ -and $_.ToString().Trim() } | ForEach-Object { $_ | ConvertFrom-Json })
     Write-Host "Found $($runs.Count) action_required workflow run(s)"
 
     $awaiting = [System.Collections.Generic.HashSet[int]]::new()
@@ -96,10 +112,10 @@ function Get-LabeledPRs {
     Write-Host ""
     Write-Host "Fetching open PRs currently labelled '$LabelName'..."
     $encoded = [Uri]::EscapeDataString($LabelName)
-    $json = Invoke-GhApi -Arguments @('--paginate', "repos/$repo/issues?state=open&labels=$encoded&per_page=100", '--jq', '[.[] | select(.pull_request) | .number]')
+    $json = Invoke-GhApi -Arguments @('--paginate', "repos/$repo/issues?state=open&labels=$encoded&per_page=100", '--jq', '.[] | select(.pull_request) | .number')
     $set = [System.Collections.Generic.HashSet[int]]::new()
-    if ($json) {
-        foreach ($n in @($json | ConvertFrom-Json)) { [void]$set.Add([int]$n) }
+    foreach ($n in @($json | Where-Object { $_ -and $_.ToString().Trim() -match '^\d+$' })) {
+        [void]$set.Add([int]$n)
     }
     Write-Host "Found $($set.Count) PR(s) with label '$LabelName'"
     return ,$set

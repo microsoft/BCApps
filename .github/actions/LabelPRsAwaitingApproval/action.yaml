@@ -22,10 +22,13 @@ runs:
       env:
         GH_TOKEN: ${{ inputs.token }}
         GITHUB_REPOSITORY: ${{ github.repository }}
+        ACTION_LABEL: ${{ inputs.label }}
+        ACTION_WHATIF: ${{ inputs.whatIf }}
+        ACTION_PATH: ${{ github.action_path }}
       run: |
         $whatIfSwitch = @{}
-        if ('${{ inputs.whatIf }}' -eq 'true') { $whatIfSwitch['WhatIf'] = $true }
-        & ${{ github.action_path }}/action.ps1 -Label '${{ inputs.label }}' @whatIfSwitch
+        if ($env:ACTION_WHATIF -eq 'true') { $whatIfSwitch['WhatIf'] = $true }
+        & "$env:ACTION_PATH/action.ps1" -Label $env:ACTION_LABEL @whatIfSwitch
 branding:
   icon: tag
   color: yellow
