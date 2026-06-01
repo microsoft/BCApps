@@ -537,14 +537,7 @@ codeunit 6166 "EDoc Import PEPPOL BIS 3.0"
     var
         MimeTypeUtility: Codeunit MimeTypeUtility;
     begin
-        // T2.5: replace MIME→extension case with platform reverse-lookup.
-        // Behavioral preservation: the prior code returned 'xlsx' for *both* the OOXML
-        // spreadsheet MIME and the ODF spreadsheet MIME ('application/vnd.oasis.opendocument.spreadsheet').
-        // That is an intentional storage-side normalization in the PEPPOL importer —
-        // it stores all spreadsheet attachments under the .xlsx extension. We keep that
-        // behavior by overriding the ODS → xlsx mapping explicitly. All other types
-        // (jpeg, png, pdf, xlsx) round-trip identically through MimeTypeUtility.GetExtension,
-        // and unknown MIMEs still return '' (drop) as before.
+        // ODS attachments are stored under .xlsx by this importer (legacy normalization).
         if MimeType = 'application/vnd.oasis.opendocument.spreadsheet' then
             exit('xlsx');
         exit(MimeTypeUtility.GetExtension(MimeType));
