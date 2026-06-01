@@ -51,11 +51,20 @@ function Invoke-GhApi {
 
 function Ensure-Label {
     param ([string] $Name)
+    $stderrFile = [System.IO.Path]::GetTempFileName()
     try {
-        Invoke-GhApi -Arguments @("repos/$repo/labels/$([Uri]::EscapeDataString($Name))") | Out-Null
-        Write-Host "Label '$Name' exists"
-    }
-    catch {
+        & gh api "repos/$repo/labels/$([Uri]::EscapeDataString($Name))" 2>$stderrFile | Out-Null
+        if ($LASTEXITCODE -eq 0) {
+            Write-Host "Label '$Name' exists"
+            return
+        }
+        $errText = Get-Content -Path $stderrFile -Raw -ErrorAction SilentlyContinue
+        # Only treat genuine "not found" responses as a signal to create the
+        # label. Other failures (rate limiting, 5xx, network) should bubble
+        # up so they're not masked as a missing-label condition.
+        if ($errText -notmatch 'HTTP 404|Not Found') {
+            throw "Unexpected error checking label '$Name' (exit $LASTEXITCODE): $errText"
+        }
         Write-Host "Label '$Name' not found - creating it"
         if ($WhatIf) {
             Write-Host "  [WhatIf] Would create label '$Name'"
@@ -65,6 +74,9 @@ function Ensure-Label {
         if ($LASTEXITCODE -ne 0) {
             throw "Failed to create label '$Name'"
         }
+    }
+    finally {
+        Remove-Item -Path $stderrFile -ErrorAction SilentlyContinue
     }
 }
 
@@ -80,13 +92,20 @@ function Get-AwaitingApprovalPRs {
     $openPRs = @($prsJson | Where-Object { $_ -and $_.ToString().Trim() } | ForEach-Object { $_ | ConvertFrom-Json })
     Write-Host "Found $($openPRs.Count) open PR(s)"
 
-    # Map of current PR head SHA -> PR number. We match action_required runs
-    # against the *current* head only, so PRs with stale action_required runs
-    # from older commits (whose newer commits have been approved) are not
-    # falsely flagged.
-    $headShaToPR = @{}
+    # Map of current PR head SHA -> list of PR numbers. We match action_required
+    # runs against the *current* head only, so PRs with stale action_required
+    # runs from older commits (whose newer commits have been approved) are not
+    # falsely flagged. A list (rather than a single PR) handles the edge case
+    # where multiple open PRs share the same head SHA (e.g. one PR per base
+    # branch from a single commit).
+    $headShaToPRs = @{}
     foreach ($pr in $openPRs) {
-        if ($pr.sha) { $headShaToPR[$pr.sha] = [int]$pr.number }
+        if ($pr.sha) {
+            if (-not $headShaToPRs.ContainsKey($pr.sha)) {
+                $headShaToPRs[$pr.sha] = [System.Collections.Generic.List[int]]::new()
+            }
+            $headShaToPRs[$pr.sha].Add([int]$pr.number)
+        }
     }
 
     Write-Host ""
@@ -97,8 +116,10 @@ function Get-AwaitingApprovalPRs {
 
     $awaiting = [System.Collections.Generic.HashSet[int]]::new()
     foreach ($run in $runs) {
-        if (($run.PSObject.Properties.Name -contains 'head_sha') -and $run.head_sha -and $headShaToPR.ContainsKey($run.head_sha)) {
-            [void]$awaiting.Add($headShaToPR[$run.head_sha])
+        if (($run.PSObject.Properties.Name -contains 'head_sha') -and $run.head_sha -and $headShaToPRs.ContainsKey($run.head_sha)) {
+            foreach ($prNum in $headShaToPRs[$run.head_sha]) {
+                [void]$awaiting.Add($prNum)
+            }
         }
     }
 
