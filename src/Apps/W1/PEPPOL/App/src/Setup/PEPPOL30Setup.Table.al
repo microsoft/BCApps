@@ -28,11 +28,13 @@ table 37202 "PEPPOL 3.0 Setup"
         {
             Caption = 'PEPPOL 3.0 Sales Format';
             ToolTip = 'Specifies the PEPPOL 3.0 format to be used for electronic documents of type sales.';
+            DataClassification = SystemMetadata;
         }
         field(3; "PEPPOL 3.0 Service Format"; Enum "PEPPOL 3.0 Format")
         {
             Caption = 'PEPPOL 3.0 Service Format';
             ToolTip = 'Specifies the PEPPOL 3.0 format to be used for electronic documents of type service.';
+            DataClassification = SystemMetadata;
         }
     }
 
