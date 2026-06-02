@@ -64,7 +64,7 @@ table 20403 "Qlty. Inspection Template Line"
             Caption = 'Test Value Type';
             Editable = false;
             FieldClass = FlowField;
-            ToolTip = 'Specifies the value type of the Test. The program automatically retrieves the value from the Test Value Type field on the Test template.';
+            ToolTip = 'Specifies the data value type of the test. The system automatically retrieves the value from the Test Value Type field on the Test template.';
         }
         field(7; "Allowable Values"; Text[500])
         {
@@ -72,7 +72,7 @@ table 20403 "Qlty. Inspection Template Line"
             Caption = 'Allowable Values';
             Editable = false;
             FieldClass = FlowField;
-            ToolTip = 'Specifies an expression for the range of values you can enter or select on the Quality Inspection line. The program automatically retrieves the value from the Allowable Values field on the Field template.';
+            ToolTip = 'Specifies an expression for the range of values you can enter or select on the quality Inspection line. The system automatically retrieves the value from the Allowable Values field on the Test template.';
         }
         field(10; "Copied From Template Code"; Code[20])
         {
