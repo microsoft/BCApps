@@ -61,7 +61,7 @@ codeunit 20440 "Qlty. Report Mgmt."
             ReportSelections.PrintReport(ReportSelections.Usage::"Quality Management - Certificate of Analysis", QltyInspectionHeader);
     end;
 
-    # region Telemetry logging methods
+    #region Telemetry logging methods
     internal procedure LogCertificateOfAnalysisReportRun()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
@@ -85,7 +85,7 @@ codeunit 20440 "Qlty. Report Mgmt."
     begin
         FeatureTelemetry.LogUptake('0000QIS', QltyManagementSetup.GetFeatureTelemetryName(), Enum::"Feature Uptake Status"::Used);
     end;
-    # endregion Telemetry logging methods
+    #endregion Telemetry logging methods
 
     #region Helper methods
     var
