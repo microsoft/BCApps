@@ -3453,16 +3453,17 @@ codeunit 139940 "Qlty. Inspection Utility"
     #endregion Qlty. Misc Helpers Wrappers
 
     /// <summary>
-    /// Wrapper for Qlty. Inspection Template Line.SelectMultipleTests()
-    /// Invokes the "Add multiple tests" feature for the given template, opening the Qlty. Tests
-    /// lookup so that callers (typically test handlers) can pick tests to be added to the template.
+    /// Wrapper for Qlty. Inspection Template Line.AddTests()
+    /// Adds the tests matching the provided selection filter to the given template, bypassing the Qlty. Tests lookup page.
+    /// Intended for unit tests of the "Add multiple tests" feature where TestPage cannot multi-select rows.
     /// </summary>
     /// <param name="QltyInspectionTemplateHdr">The template into which the selected tests will be inserted.</param>
-    internal procedure SelectMultipleTestsForTemplate(QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.")
+    /// <param name="SelectionFilter">A filter string (e.g. 'CODE1|CODE2') matching Qlty. Test codes to add.</param>
+    internal procedure AddTestsToTemplate(QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr."; SelectionFilter: Text)
     var
         QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
     begin
         QltyInspectionTemplateLine."Template Code" := QltyInspectionTemplateHdr.Code;
-        QltyInspectionTemplateLine.SelectMultipleTests();
+        QltyInspectionTemplateLine.AddTests(SelectionFilter);
     end;
 }

@@ -197,7 +197,7 @@ table 20403 "Qlty. Inspection Template Line"
             exit(QltyTests.GetSelectionFilter());
     end;
 
-    local procedure AddTests(SelectionFilter: Text)
+    internal procedure AddTests(SelectionFilter: Text)
     var
         QltyTest: Record "Qlty. Test";
     begin

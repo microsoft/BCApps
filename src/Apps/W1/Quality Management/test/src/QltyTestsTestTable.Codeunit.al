@@ -47,7 +47,6 @@ codeunit 139967 "Qlty. Tests - Test Table"
     var
         LibraryAssert: Codeunit "Library Assert";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
-        LibraryVariableStorage: Codeunit "Library - Variable Storage";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         NotFirstLoop: Boolean;
         AssistEditTemplateValue: Text;
@@ -4571,10 +4570,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         LibraryAssert.IsTrue(QltyInspectionGenRule.IsEmpty(), 'Generation rule should have been deleted.');
     end;
 
-    #region Add multiple tests to template
     [Test]
-    [HandlerFunctions('QltyTestsLookupHandler')]
-    procedure AddMultipleTests_AddsAllNewTestsToTemplate()
+    procedure AddMultipleTestsToTemplate()
     var
         QltyInspectionResult: Record "Qlty. Inspection Result";
         QltyTest: array[5] of Record "Qlty. Test";
@@ -4602,11 +4599,9 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] An empty template is created
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 0);
 
-        // [GIVEN] Mock that three tests (1|2|5) are selected in the lookup
-        LibraryVariableStorage.Enqueue(StrSubstNo('%1|%2|%3', QltyTest[1].Code, QltyTest[2].Code, QltyTest[5].Code));
-
+        // [GIVEN] Mock that three tests (1|2|5) are passed as the selection filter
         // [WHEN] Add multiple tests is invoked for the template
-        QltyInspectionUtility.SelectMultipleTestsForTemplate(QltyInspectionTemplateHdr);
+        QltyInspectionUtility.AddTestsToTemplate(QltyInspectionTemplateHdr, StrSubstNo('%1|%2|%3', QltyTest[1].Code, QltyTest[2].Code, QltyTest[5].Code));
 
         // [THEN] Three new template lines exist
         QltyInspectionTemplateLine.SetRange("Template Code", QltyInspectionTemplateHdr.Code);
@@ -4639,11 +4634,9 @@ codeunit 139967 "Qlty. Tests - Test Table"
         end;
 
 
-        // [GIVEN] Mock that two tests (2|4) are selected in the lookup. Note that test 2 is already on the template from the previous selection, so only test 4 should be added this time.
-        LibraryVariableStorage.Enqueue(StrSubstNo('%1|%2', QltyTest[2].Code, QltyTest[4].Code));
-
+        // [GIVEN] Mock that two tests (2|4) are passed as the selection filter. Note that test 2 is already on the template from the previous selection, so only test 4 should be added this time.
         // [WHEN] Add multiple tests is invoked for the template
-        QltyInspectionUtility.SelectMultipleTestsForTemplate(QltyInspectionTemplateHdr);
+        QltyInspectionUtility.AddTestsToTemplate(QltyInspectionTemplateHdr, StrSubstNo('%1|%2', QltyTest[2].Code, QltyTest[4].Code));
 
         // [THEN] The template contains exactly 4 lines (the original plus the one new test)
         QltyInspectionTemplateLine.Reset();
@@ -4659,42 +4652,15 @@ codeunit 139967 "Qlty. Tests - Test Table"
         LibraryAssert.AreEqual(1, QltyInspectionTemplateLine.Count(), 'The new test should be added to the template.');
 
 
-        // [GIVEN] Mock that two tests (1|4) are selected in the lookup. Note that both tests are already on the template, so no changes should be made to the template this time.
-        LibraryVariableStorage.Enqueue(StrSubstNo('%1|%2', QltyTest[1].Code, QltyTest[4].Code));
-
+        // [GIVEN] Mock that two tests (1|4) are passed as the selection filter. Note that both tests are already on the template, so no changes should be made to the template this time.
         // [WHEN] Add multiple tests is invoked for the template
-        QltyInspectionUtility.SelectMultipleTestsForTemplate(QltyInspectionTemplateHdr);
+        QltyInspectionUtility.AddTestsToTemplate(QltyInspectionTemplateHdr, StrSubstNo('%1|%2', QltyTest[1].Code, QltyTest[4].Code));
 
         // [THEN] No new lines are inserted
         QltyInspectionTemplateLine.Reset();
         QltyInspectionTemplateLine.SetRange("Template Code", QltyInspectionTemplateHdr.Code);
         LibraryAssert.AreEqual(4, QltyInspectionTemplateLine.Count(), 'No new template lines should be created when all selected tests are already present.');
     end;
-
-    [Test]
-    [HandlerFunctions('QltyTestsLookupCancelHandler')]
-    procedure AddMultipleTests_CancelLookupAddsNothing()
-    var
-        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
-        IgnoredQltyTest: Record "Qlty. Test";
-    begin
-        // [SCENARIO 618886] Cancelling the Qlty. Tests lookup leaves the template unchanged.
-        Initialize();
-
-        // [GIVEN] An empty template and an available quality test are created
-        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 0);
-        QltyInspectionUtility.CreateTest(IgnoredQltyTest, "Qlty. Test Value Type"::"Value Type Text");
-        LibraryVariableStorage.Enqueue(IgnoredQltyTest.Code);
-
-        // [WHEN] Add multiple tests is invoked but the lookup is cancelled
-        QltyInspectionUtility.SelectMultipleTestsForTemplate(QltyInspectionTemplateHdr);
-
-        // [THEN] No template lines are created
-        QltyInspectionTemplateLine.SetRange("Template Code", QltyInspectionTemplateHdr.Code);
-        LibraryAssert.AreEqual(0, QltyInspectionTemplateLine.Count(), 'No template lines should be created when the lookup is cancelled.');
-    end;
-    #endregion Add multiple tests to template
 
     local procedure Initialize()
     begin
@@ -4792,19 +4758,5 @@ codeunit 139967 "Qlty. Tests - Test Table"
     [ModalPageHandler]
     procedure CameraModalPageHandler(var Camera: TestPage Camera)
     begin
-    end;
-
-    [ModalPageHandler]
-    procedure QltyTestsLookupHandler(var QltyTests: TestPage "Qlty. Tests")
-    begin
-        QltyTests.Filter.SetFilter(Code, LibraryVariableStorage.DequeueText());
-        QltyTests.OK().Invoke();
-    end;
-
-    [ModalPageHandler]
-    procedure QltyTestsLookupCancelHandler(var QltyTests: TestPage "Qlty. Tests")
-    begin
-        QltyTests.Filter.SetFilter(Code, LibraryVariableStorage.DequeueText());
-        QltyTests.Cancel().Invoke();
     end;
 }
