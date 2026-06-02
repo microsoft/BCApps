@@ -904,7 +904,6 @@ codeunit 139913 "Vendor Deferrals Test"
         GLAccount: Record "G/L Account";
         GenJournalBatch: Record "Gen. Journal Batch";
         GenJournalLine: Record "Gen. Journal Line";
-        LibraryERM: Codeunit "Library - ERM";
     begin
         CreateGeneralJournalBatch(GenJournalBatch);
         LibraryERM.CreateGLAccount(GLAccount);
@@ -975,7 +974,6 @@ codeunit 139913 "Vendor Deferrals Test"
     local procedure CreateGeneralJournalBatch(var GenJournalBatch: Record "Gen. Journal Batch")
     var
         GenJournalTemplate: Record "Gen. Journal Template";
-        LibraryERM: Codeunit "Library - ERM";
     begin
         GenJournalTemplate.SetRange(Recurring, false);
         GenJournalTemplate.SetRange(Type, GenJournalTemplate.Type::General);
