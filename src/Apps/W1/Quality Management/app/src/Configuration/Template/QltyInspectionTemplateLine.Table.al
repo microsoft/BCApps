@@ -185,7 +185,7 @@ table 20403 "Qlty. Inspection Template Line"
         SelectionFilter := SelectInQltyTests();
 
         if SelectionFilter <> '' then
-            AddTests(SelectionFilter);
+            AddSelectedTests(SelectionFilter);
     end;
 
     local procedure SelectInQltyTests(): Text
@@ -197,7 +197,7 @@ table 20403 "Qlty. Inspection Template Line"
             exit(QltyTests.GetSelectionFilter());
     end;
 
-    internal procedure AddTests(SelectionFilter: Text)
+    internal procedure AddSelectedTests(SelectionFilter: Text)
     var
         QltyTest: Record "Qlty. Test";
     begin

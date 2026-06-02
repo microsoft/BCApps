@@ -4601,7 +4601,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
 
         // [GIVEN] Mock that three tests (1|2|5) are passed as the selection filter
         // [WHEN] Add multiple tests is invoked for the template
-        QltyInspectionUtility.AddTestsToTemplate(QltyInspectionTemplateHdr, StrSubstNo('%1|%2|%3', QltyTest[1].Code, QltyTest[2].Code, QltyTest[5].Code));
+        QltyInspectionUtility.AddSelectedTestsToTemplate(QltyInspectionTemplateHdr, StrSubstNo('%1|%2|%3', QltyTest[1].Code, QltyTest[2].Code, QltyTest[5].Code));
 
         // [THEN] Three new template lines exist
         QltyInspectionTemplateLine.SetRange("Template Code", QltyInspectionTemplateHdr.Code);
@@ -4636,7 +4636,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
 
         // [GIVEN] Mock that two tests (2|4) are passed as the selection filter. Note that test 2 is already on the template from the previous selection, so only test 4 should be added this time.
         // [WHEN] Add multiple tests is invoked for the template
-        QltyInspectionUtility.AddTestsToTemplate(QltyInspectionTemplateHdr, StrSubstNo('%1|%2', QltyTest[2].Code, QltyTest[4].Code));
+        QltyInspectionUtility.AddSelectedTestsToTemplate(QltyInspectionTemplateHdr, StrSubstNo('%1|%2', QltyTest[2].Code, QltyTest[4].Code));
 
         // [THEN] The template contains exactly 4 lines (the original plus the one new test)
         QltyInspectionTemplateLine.Reset();
@@ -4654,7 +4654,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
 
         // [GIVEN] Mock that two tests (1|4) are passed as the selection filter. Note that both tests are already on the template, so no changes should be made to the template this time.
         // [WHEN] Add multiple tests is invoked for the template
-        QltyInspectionUtility.AddTestsToTemplate(QltyInspectionTemplateHdr, StrSubstNo('%1|%2', QltyTest[1].Code, QltyTest[4].Code));
+        QltyInspectionUtility.AddSelectedTestsToTemplate(QltyInspectionTemplateHdr, StrSubstNo('%1|%2', QltyTest[1].Code, QltyTest[4].Code));
 
         // [THEN] No new lines are inserted
         QltyInspectionTemplateLine.Reset();
