@@ -9,6 +9,7 @@ using System.MCP;
 using System.Reflection;
 using System.TestLibraries.MCP;
 using System.TestLibraries.Utilities;
+using System.Text;
 using System.Utilities;
 
 codeunit 130130 "MCP Config Test"
@@ -207,6 +208,45 @@ codeunit 130130 "MCP Config Test"
         // [THEN] Allow create is set to true
         MCPConfigurationTool.GetBySystemId(ToolId);
         Assert.IsTrue(MCPConfigurationTool."Allow Create", 'Allow Create is not true');
+    end;
+
+    [Test]
+    procedure TestCopyConfiguration()
+    var
+        SourceMCPConfiguration: Record "MCP Configuration";
+        NewMCPConfiguration: Record "MCP Configuration";
+        SourceMCPConfigurationTool: Record "MCP Configuration Tool";
+        NewMCPConfigurationTool: Record "MCP Configuration Tool";
+        SourceConfigId: Guid;
+        SourceConfigToolId: Guid;
+        NewConfigId: Guid;
+    begin
+        // [GIVEN] Source configuration and tool are created
+        SourceConfigId := CreateMCPConfig(true, true, true, false);
+        SourceConfigToolId := CreateMCPConfigTool(SourceConfigId);
+
+        // [WHEN] Configuration is copied
+        SourceMCPConfiguration.GetBySystemId(SourceConfigId);
+        SourceMCPConfigurationTool.GetBySystemId(SourceConfigToolId);
+        NewConfigId := MCPConfig.CopyConfiguration(SourceConfigId, CopyStr('Copy of ' + SourceMCPConfiguration.Name, 1, 100), CopyStr('Copy of ' + SourceMCPConfiguration.Description, 1, 250));
+
+        // [THEN] New configuration is created with the same properties and tools
+        NewMCPConfiguration.GetBySystemId(NewConfigId);
+        Assert.AreEqual(NewMCPConfiguration.Name, 'Copy of ' + SourceMCPConfiguration.Name, 'Name mismatch');
+        Assert.AreEqual(NewMCPConfiguration.Description, 'Copy of ' + SourceMCPConfiguration.Description, 'Description mismatch');
+        Assert.AreEqual(NewMCPConfiguration.Active, SourceMCPConfiguration.Active, 'Active is not true');
+        Assert.AreEqual(NewMCPConfiguration.EnableDynamicToolMode, SourceMCPConfiguration.EnableDynamicToolMode, 'EnableDynamicToolMode is not true');
+        Assert.AreEqual(NewMCPConfiguration.AllowProdChanges, SourceMCPConfiguration.AllowProdChanges, 'AllowProdChanges is not true');
+
+        NewMCPConfigurationTool.SetRange(ID, NewConfigId);
+        NewMCPConfigurationTool.FindFirst();
+        Assert.AreEqual(NewMCPConfigurationTool."Object Id", SourceMCPConfigurationTool."Object Id", 'Object Id mismatch');
+        Assert.AreEqual(NewMCPConfigurationTool."Object Type", SourceMCPConfigurationTool."Object Type", 'Object Type mismatch');
+        Assert.AreEqual(NewMCPConfigurationTool."Allow Read", SourceMCPConfigurationTool."Allow Read", 'Allow Read mismatch');
+        Assert.AreEqual(NewMCPConfigurationTool."Allow Create", SourceMCPConfigurationTool."Allow Create", 'Allow Create mismatch');
+        Assert.AreEqual(NewMCPConfigurationTool."Allow Modify", SourceMCPConfigurationTool."Allow Modify", 'Allow Modify mismatch');
+        Assert.AreEqual(NewMCPConfigurationTool."Allow Delete", SourceMCPConfigurationTool."Allow Delete", 'Allow Delete mismatch');
+        Assert.AreEqual(NewMCPConfigurationTool."Allow Bound Actions", SourceMCPConfigurationTool."Allow Bound Actions", 'Allow Bound Actions mismatch');
     end;
 
     #endregion
@@ -476,128 +516,6 @@ codeunit 130130 "MCP Config Test"
     end;
 
     [Test]
-    procedure TestCopyConfiguration()
-    var
-        SourceMCPConfiguration: Record "MCP Configuration";
-        NewMCPConfiguration: Record "MCP Configuration";
-        SourceMCPConfigurationTool: Record "MCP Configuration Tool";
-        NewMCPConfigurationTool: Record "MCP Configuration Tool";
-        SourceConfigId: Guid;
-        SourceConfigToolId: Guid;
-        NewConfigId: Guid;
-    begin
-        // [GIVEN] Source configuration and tool are created
-        SourceConfigId := CreateMCPConfig(true, true, true, false);
-        SourceConfigToolId := CreateMCPConfigTool(SourceConfigId);
-
-        // [WHEN] Configuration is copied
-        SourceMCPConfiguration.GetBySystemId(SourceConfigId);
-        SourceMCPConfigurationTool.GetBySystemId(SourceConfigToolId);
-        NewConfigId := MCPConfig.CopyConfiguration(SourceConfigId, CopyStr('Copy of ' + SourceMCPConfiguration.Name, 1, 100), CopyStr('Copy of ' + SourceMCPConfiguration.Description, 1, 250));
-
-        // [THEN] New configuration is created with the same properties and tools
-        NewMCPConfiguration.GetBySystemId(NewConfigId);
-        Assert.AreEqual(NewMCPConfiguration.Name, 'Copy of ' + SourceMCPConfiguration.Name, 'Name mismatch');
-        Assert.AreEqual(NewMCPConfiguration.Description, 'Copy of ' + SourceMCPConfiguration.Description, 'Description mismatch');
-        Assert.AreEqual(NewMCPConfiguration.Active, SourceMCPConfiguration.Active, 'Active is not true');
-        Assert.AreEqual(NewMCPConfiguration.EnableDynamicToolMode, SourceMCPConfiguration.EnableDynamicToolMode, 'EnableDynamicToolMode is not true');
-        Assert.AreEqual(NewMCPConfiguration.AllowProdChanges, SourceMCPConfiguration.AllowProdChanges, 'AllowProdChanges is not true');
-
-        NewMCPConfigurationTool.SetRange(ID, NewConfigId);
-        NewMCPConfigurationTool.FindFirst();
-        Assert.AreEqual(NewMCPConfigurationTool."Object Id", SourceMCPConfigurationTool."Object Id", 'Object Id mismatch');
-        Assert.AreEqual(NewMCPConfigurationTool."Object Type", SourceMCPConfigurationTool."Object Type", 'Object Type mismatch');
-        Assert.AreEqual(NewMCPConfigurationTool."Allow Read", SourceMCPConfigurationTool."Allow Read", 'Allow Read mismatch');
-        Assert.AreEqual(NewMCPConfigurationTool."Allow Create", SourceMCPConfigurationTool."Allow Create", 'Allow Create mismatch');
-        Assert.AreEqual(NewMCPConfigurationTool."Allow Modify", SourceMCPConfigurationTool."Allow Modify", 'Allow Modify mismatch');
-        Assert.AreEqual(NewMCPConfigurationTool."Allow Delete", SourceMCPConfigurationTool."Allow Delete", 'Allow Delete mismatch');
-        Assert.AreEqual(NewMCPConfigurationTool."Allow Bound Actions", SourceMCPConfigurationTool."Allow Bound Actions", 'Allow Bound Actions mismatch');
-    end;
-
-    [Test]
-    procedure TestDefaultConfiguration()
-    var
-        MCPConfiguration: Record "MCP Configuration";
-    begin
-        // [GIVEN] Default configuration is created during setup
-
-        // [WHEN] Get default configuration is called
-        MCPConfiguration.Get();
-
-        // [THEN] Default configuration is active, dynamic tool mode and access to all read-only objects are enabled
-        Assert.IsTrue(MCPConfiguration.Active, 'Default configuration is not active');
-        Assert.IsTrue(MCPConfiguration.EnableDynamicToolMode, 'Dynamic tool mode is not enabled');
-        // Assert.IsTrue(MCPConfiguration.EnableDiscoverReadOnlyObjects, 'Access to all read-only objects is not enabled');
-    end;
-
-    [Test]
-    procedure TestDeleteDefaultConfiguration()
-    begin
-        // [GIVEN] Default configuration is created during setup
-
-        // [WHEN] Delete default configuration is called
-        asserterror MCPConfig.DeleteConfiguration(MCPConfig.GetConfigurationIdByName(''));
-
-        // [THEN] Error message is returned
-        Assert.ExpectedError('The default configuration cannot be deleted.');
-    end;
-
-    [Test]
-    procedure TestDisableFeaturesOnDefaultConfiguration()
-    var
-        ConfigId: Guid;
-    begin
-        // [GIVEN] Default configuration is created during setup
-        ConfigId := MCPConfig.GetConfigurationIdByName('');
-
-        // [WHEN] Disable access to all read-only objects is called
-        asserterror MCPConfig.EnableDiscoverReadOnlyObjects(ConfigId, false);
-
-        // [THEN] Error message is returned
-        Assert.ExpectedError('Access to all read-only objects cannot be disabled for the default configuration.');
-
-        // [WHEN] Disable dynamic tool mode is called
-        asserterror MCPConfig.EnableDynamicToolMode(ConfigId, false);
-
-        // [THEN] Error message is returned
-        Assert.ExpectedError('Dynamic tool mode cannot be disabled for the default configuration.');
-
-        // [WHEN] Deactivate configuration is called
-        asserterror MCPConfig.ActivateConfiguration(ConfigId, false);
-
-        // [THEN] Error message is returned
-        Assert.ExpectedError('The default configuration cannot be deactivated.');
-
-        // [WHEN] Create API tool is called
-        asserterror MCPConfig.CreateAPITool(ConfigId, Page::"Mock API");
-
-        // [THEN] Error message is returned
-        Assert.ExpectedError('Tools cannot be added to the default configuration.');
-    end;
-
-    [Test]
-    procedure TestDefaultConfigurationPage()
-    var
-        MCPConfiguration: Record "MCP Configuration";
-        MCPConfigCard: TestPage "MCP Config Card";
-    begin
-        // [GIVEN] Default configuration is created during setup
-        MCPConfiguration.Get('');
-
-        // [WHEN] Default configuration page is opened
-        MCPConfigCard.OpenEdit();
-        MCPConfigCard.GoToRecord(MCPConfiguration);
-
-        // [THEN] All fields are not editable and tool list is not visible
-        Assert.IsFalse(MCPConfigCard.Name.Editable(), 'Name field is editable');
-        Assert.IsFalse(MCPConfigCard.Description.Editable(), 'Description field is editable');
-        Assert.IsFalse(MCPConfigCard.Active.Editable(), 'Active field is editable');
-        Assert.IsFalse(MCPConfigCard.EnableDynamicToolMode.Editable(), 'EnableDynamicToolMode field is editable');
-        Assert.IsFalse(MCPConfigCard.DiscoverReadOnlyObjects.Editable(), 'DiscoverReadOnlyObjects field is editable');
-        Assert.IsFalse(MCPConfigCard.ToolList.Visible(), 'ToolList is visible');
-    end;
-
-    [Test]
     [HandlerFunctions('LookupAPIPublisherOKHandler')]
     procedure TestLookupAPIPublisher()
     var
@@ -780,32 +698,6 @@ codeunit 130130 "MCP Config Test"
         // [THEN] Allow Bound Actions remains false (not applicable for query tools)
         MCPConfigurationTool.GetBySystemId(ToolId);
         Assert.IsFalse(MCPConfigurationTool."Allow Bound Actions", 'Allow Bound Actions should remain false for query tools');
-    end;
-
-    [Test]
-    procedure TestFindMissingObjectWarningsForQueryTool()
-    var
-        MCPConfigurationTool: Record "MCP Configuration Tool";
-        TempMCPConfigWarning: Record "MCP Config Warning";
-        ConfigId: Guid;
-        ToolId: Guid;
-    begin
-        // [GIVEN] Configuration and query tool with non-existing object is created
-        ConfigId := CreateMCPConfig(false, false, true, false);
-        ToolId := CreateMCPQueryConfigTool(ConfigId);
-        MCPConfigurationTool.GetBySystemId(ToolId);
-        MCPConfigurationTool.Rename(MCPConfigurationTool.ID, MCPConfigurationTool."Object Type", -1); // non-existing object
-        Commit();
-
-        // [WHEN] Find warnings for configuration is called
-        MCPConfig.FindWarningsForConfiguration(ConfigId, TempMCPConfigWarning);
-
-        // [THEN] Warning is created for the query tool with non-existing object
-#pragma warning disable AA0210
-        TempMCPConfigWarning.SetRange("Warning Type", TempMCPConfigWarning."Warning Type"::"Missing Object");
-#pragma warning restore AA0210
-        TempMCPConfigWarning.SetRange("Tool Id", ToolId);
-        Assert.RecordCount(TempMCPConfigWarning, 1);
     end;
 
     #endregion
@@ -994,6 +886,32 @@ codeunit 130130 "MCP Config Test"
         Assert.RecordIsEmpty(TempMCPConfigWarning);
     end;
 
+    [Test]
+    procedure TestFindMissingObjectWarningsForQueryTool()
+    var
+        MCPConfigurationTool: Record "MCP Configuration Tool";
+        TempMCPConfigWarning: Record "MCP Config Warning";
+        ConfigId: Guid;
+        ToolId: Guid;
+    begin
+        // [GIVEN] Configuration and query tool with non-existing object is created
+        ConfigId := CreateMCPConfig(false, false, true, false);
+        ToolId := CreateMCPQueryConfigTool(ConfigId);
+        MCPConfigurationTool.GetBySystemId(ToolId);
+        MCPConfigurationTool.Rename(MCPConfigurationTool.ID, MCPConfigurationTool."Object Type", -1); // non-existing object
+        Commit();
+
+        // [WHEN] Find warnings for configuration is called
+        MCPConfig.FindWarningsForConfiguration(ConfigId, TempMCPConfigWarning);
+
+        // [THEN] Warning is created for the query tool with non-existing object
+#pragma warning disable AA0210
+        TempMCPConfigWarning.SetRange("Warning Type", TempMCPConfigWarning."Warning Type"::"Missing Object");
+#pragma warning restore AA0210
+        TempMCPConfigWarning.SetRange("Tool Id", ToolId);
+        Assert.RecordCount(TempMCPConfigWarning, 1);
+    end;
+
     #endregion
 
     #region Export/Import
@@ -1077,28 +995,91 @@ codeunit 130130 "MCP Config Test"
         Assert.AreEqual('v2.0', MCPConfigurationTool."API Version", 'API Version mismatch');
     end;
 
+    #endregion
+
+    #region Default Configuration
+
     [Test]
-    procedure TestConnectionStringOnPremDoesNotContainTenantIdOrEnvironmentName()
+    procedure TestDefaultConfiguration()
     var
-        ConfigName: Text[100];
-        ConnectionString: Text;
+        MCPConfiguration: Record "MCP Configuration";
     begin
-        // [GIVEN] A configuration name (test environment runs as on-prem)
-        ConfigName := CopyStr(Format(CreateGuid()), 1, 100);
+        // [GIVEN] Default configuration is created during setup
 
-        // [WHEN] Connection string is generated
-        ConnectionString := MCPConfigTestLibrary.GenerateConnectionString(ConfigName);
+        // [WHEN] Get default configuration is called
+        MCPConfiguration.Get();
 
-        // [THEN] Connection string contains the configuration name and company
-        Assert.IsTrue(ConnectionString.Contains('"ConfigurationName": "' + ConfigName + '"'), 'ConfigurationName not found in connection string');
-        Assert.IsTrue(ConnectionString.Contains('"Company": "' + CompanyName() + '"'), 'Company not found in connection string');
+        // [THEN] Default configuration is active, dynamic tool mode and access to all read-only objects are enabled
+        Assert.IsTrue(MCPConfiguration.Active, 'Default configuration is not active');
+        Assert.IsTrue(MCPConfiguration.EnableDynamicToolMode, 'Dynamic tool mode is not enabled');
+        Assert.IsTrue(MCPConfiguration.DiscoverReadOnlyObjects, 'Access to all read-only objects is not enabled');
+    end;
 
-        // [THEN] Connection string does not contain TenantId or EnvironmentName headers
-        Assert.IsFalse(ConnectionString.Contains('"TenantId"'), 'TenantId should not be present in on-prem connection string');
-        Assert.IsFalse(ConnectionString.Contains('"EnvironmentName"'), 'EnvironmentName should not be present in on-prem connection string');
+    [Test]
+    procedure TestDeleteDefaultConfiguration()
+    begin
+        // [GIVEN] Default configuration is created during setup
 
-        // [THEN] Connection string URL contains /mcp suffix
-        Assert.IsTrue(ConnectionString.Contains('/mcp'), 'On-prem URL should contain /mcp suffix');
+        // [WHEN] Delete default configuration is called
+        asserterror MCPConfig.DeleteConfiguration(MCPConfig.GetConfigurationIdByName(''));
+
+        // [THEN] Error message is returned
+        Assert.ExpectedError('The default configuration cannot be deleted.');
+    end;
+
+    [Test]
+    procedure TestDisableFeaturesOnDefaultConfiguration()
+    var
+        ConfigId: Guid;
+    begin
+        // [GIVEN] Default configuration is created during setup
+        ConfigId := MCPConfig.GetConfigurationIdByName('');
+
+        // [WHEN] Disable access to all read-only objects is called
+        asserterror MCPConfig.EnableDiscoverReadOnlyObjects(ConfigId, false);
+
+        // [THEN] Error message is returned
+        Assert.ExpectedError('Access to all read-only objects cannot be disabled for the default configuration.');
+
+        // [WHEN] Disable dynamic tool mode is called
+        asserterror MCPConfig.EnableDynamicToolMode(ConfigId, false);
+
+        // [THEN] Error message is returned
+        Assert.ExpectedError('Dynamic tool mode cannot be disabled for the default configuration.');
+
+        // [WHEN] Deactivate configuration is called
+        asserterror MCPConfig.ActivateConfiguration(ConfigId, false);
+
+        // [THEN] Error message is returned
+        Assert.ExpectedError('The default configuration cannot be deactivated.');
+
+        // [WHEN] Create API tool is called
+        asserterror MCPConfig.CreateAPITool(ConfigId, Page::"Mock API");
+
+        // [THEN] Error message is returned
+        Assert.ExpectedError('Tools cannot be added to the default configuration.');
+    end;
+
+    [Test]
+    procedure TestDefaultConfigurationPage()
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        MCPConfigCard: TestPage "MCP Config Card";
+    begin
+        // [GIVEN] Default configuration is created during setup
+        MCPConfiguration.Get('');
+
+        // [WHEN] Default configuration page is opened
+        MCPConfigCard.OpenEdit();
+        MCPConfigCard.GoToRecord(MCPConfiguration);
+
+        // [THEN] All fields are not editable and tool list is not visible
+        Assert.IsFalse(MCPConfigCard.Name.Editable(), 'Name field is editable');
+        Assert.IsFalse(MCPConfigCard.Description.Editable(), 'Description field is editable');
+        Assert.IsFalse(MCPConfigCard.Active.Editable(), 'Active field is editable');
+        Assert.IsFalse(MCPConfigCard.EnableDynamicToolMode.Editable(), 'EnableDynamicToolMode field is editable');
+        Assert.IsFalse(MCPConfigCard.DiscoverReadOnlyObjects.Editable(), 'DiscoverReadOnlyObjects field is editable');
+        Assert.IsFalse(MCPConfigCard.ToolList.Visible(), 'ToolList is visible');
     end;
 
     [Test]
@@ -1242,6 +1223,94 @@ codeunit 130130 "MCP Config Test"
         // [THEN] System default is re-marked as default
         SystemDefault.Get('');
         Assert.IsTrue(SystemDefault.Default, 'System default should be re-marked as default');
+    end;
+
+    #endregion
+
+    #region Connection String
+
+    [Test]
+    procedure TestConnectionStringOnPremDoesNotContainTenantIdOrEnvironmentName()
+    var
+        ConfigName: Text[100];
+        ConnectionString: Text;
+    begin
+        // [GIVEN] A configuration name (test environment runs as on-prem)
+        ConfigName := CopyStr(Format(CreateGuid()), 1, 100);
+
+        // [WHEN] Connection string is generated
+        ConnectionString := MCPConfigTestLibrary.GenerateConnectionString(ConfigName);
+
+        // [THEN] Connection string contains the configuration name and company
+        Assert.IsTrue(ConnectionString.Contains('"ConfigurationName": "' + ConfigName + '"'), 'ConfigurationName not found in connection string');
+        Assert.IsTrue(ConnectionString.Contains('"Company": "' + CompanyName() + '"'), 'Company not found in connection string');
+
+        // [THEN] Connection string does not contain TenantId or EnvironmentName headers
+        Assert.IsFalse(ConnectionString.Contains('"TenantId"'), 'TenantId should not be present in on-prem connection string');
+        Assert.IsFalse(ConnectionString.Contains('"EnvironmentName"'), 'EnvironmentName should not be present in on-prem connection string');
+
+        // [THEN] Connection string URL contains /mcp suffix
+        Assert.IsTrue(ConnectionString.Contains('/mcp'), 'On-prem URL should contain /mcp suffix');
+    end;
+
+    [Test]
+    procedure TestConnectionStringWithAsciiConfigNameIsNotEncoded()
+    var
+        ConfigName: Text[100];
+        ConnectionString: Text;
+    begin
+        // [GIVEN] A pure-ASCII configuration name
+        ConfigName := CopyStr('ascii-' + Format(CreateGuid()), 1, 100);
+
+        // [WHEN] Connection string is generated
+        ConnectionString := MCPConfigTestLibrary.GenerateConnectionString(ConfigName);
+
+        // [THEN] Configuration name is emitted verbatim, with no base64 wrapper anywhere
+        Assert.IsTrue(ConnectionString.Contains('"ConfigurationName": "' + ConfigName + '"'), 'ASCII ConfigurationName should be emitted verbatim');
+        Assert.IsFalse(ConnectionString.Contains('=?base64?'), 'ASCII connection string must not contain a base64 wrapper');
+    end;
+
+    [Test]
+    procedure TestConnectionStringWithNonAsciiConfigNameIsBase64Encoded()
+    var
+        Base64Convert: Codeunit "Base64 Convert";
+        ConfigName: Text[100];
+        ConnectionString: Text;
+        ExpectedEncodedValue: Text;
+    begin
+        // [GIVEN] A configuration name containing non-ASCII characters
+        ConfigName := CopyStr('München-Ñoño-' + Format(CreateGuid()), 1, 100);
+
+        // [WHEN] Connection string is generated
+        ConnectionString := MCPConfigTestLibrary.GenerateConnectionString(ConfigName);
+
+        // [THEN] ConfigurationName is wrapped as "=?base64?<utf8-base64>?="
+        ExpectedEncodedValue := '=?base64?' + Base64Convert.ToBase64(ConfigName, TextEncoding::UTF8) + '?=';
+        Assert.IsTrue(ConnectionString.Contains('"ConfigurationName": "' + ExpectedEncodedValue + '"'), 'Non-ASCII ConfigurationName should be base64-encoded per MCP spec');
+
+        // [THEN] The raw non-ASCII value is not emitted as a header value
+        Assert.IsFalse(ConnectionString.Contains('"ConfigurationName": "' + ConfigName + '"'), 'Raw non-ASCII ConfigurationName must not be emitted');
+    end;
+
+    [Test]
+    procedure TestEncodeForMCPHeaderIfNonAsciiHelper()
+    var
+        Base64Convert: Codeunit "Base64 Convert";
+        AsciiValue: Text;
+        NonAsciiValue: Text;
+    begin
+        // [GIVEN] ASCII and non-ASCII inputs
+        AsciiValue := 'CRONUS-Test-Company';
+        NonAsciiValue := 'München GmbH';
+
+        // [THEN] ASCII input is returned unchanged
+        Assert.AreEqual(AsciiValue, MCPConfigTestLibrary.EncodeForMCPHeaderIfNonAscii(AsciiValue), 'ASCII value should be returned unchanged');
+
+        // [THEN] Non-ASCII input is wrapped as "=?base64?<utf8-base64>?="
+        Assert.AreEqual('=?base64?' + Base64Convert.ToBase64(NonAsciiValue, TextEncoding::UTF8) + '?=', MCPConfigTestLibrary.EncodeForMCPHeaderIfNonAscii(NonAsciiValue), 'Non-ASCII value should be base64-encoded per MCP spec');
+
+        // [THEN] Empty input is returned unchanged (no non-ASCII chars)
+        Assert.AreEqual('', MCPConfigTestLibrary.EncodeForMCPHeaderIfNonAscii(''), 'Empty value should be returned unchanged');
     end;
 
     #endregion
