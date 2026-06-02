@@ -12,26 +12,26 @@ codeunit 99001539 "Subc. TransOrderPostShpt Ext"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"TransferOrder-Post Shipment", OnAfterCreateItemJnlLine, '', false, false)]
     local procedure OnAfterCreateItemJnlLine(var ItemJournalLine: Record "Item Journal Line"; TransferLine: Record "Transfer Line"; TransferShipmentHeader: Record "Transfer Shipment Header"; TransferShipmentLine: Record "Transfer Shipment Line")
     begin
-        ItemJournalLine."Prod. Order No." := TransferShipmentLine."Prod. Order No.";
-        ItemJournalLine."Prod. Order Line No." := TransferShipmentLine."Prod. Order Line No.";
+        ItemJournalLine."Subc. Prod. Order No." := TransferShipmentLine."Subc. Prod. Order No.";
+        ItemJournalLine."Subc. Prod. Order Line No." := TransferShipmentLine."Subc. Prod. Order Line No.";
         ItemJournalLine."Source No." := TransferShipmentHeader."Source ID";
-        ItemJournalLine."Source Type" := TransferShipmentHeader."Source Type";
-        ItemJournalLine."Prod. Order Comp. Line No." := TransferShipmentLine."Prod. Order Comp. Line No.";
-        ItemJournalLine."Subcontr. Purch. Order No." := TransferShipmentLine."Subcontr. Purch. Order No.";
-        ItemJournalLine."Subcontr. PO Line No." := TransferShipmentLine."Subcontr. PO Line No.";
-        ItemJournalLine."Subc. Operation No." := TransferLine."Operation No."
+        ItemJournalLine."Source Type" := TransferShipmentHeader."Subc. Source Type";
+        ItemJournalLine."Prod. Order Comp. Line No." := TransferShipmentLine."Subc. Prod. Ord. Comp Line No.";
+        ItemJournalLine."Subc. Purch. Order No." := TransferShipmentLine."Subc. Purch. Order No.";
+        ItemJournalLine."Subc. Purch. Order Line No." := TransferShipmentLine."Subc. Purch. Order Line No.";
+        ItemJournalLine."Subc. Operation No." := TransferLine."Subc. Operation No."
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"TransferOrder-Post Shipment", OnBeforeInsertTransShptLine, '', false, false)]
     local procedure OnBeforeInsertTransShptLine(var TransShptLine: Record "Transfer Shipment Line"; TransLine: Record "Transfer Line"; CommitIsSuppressed: Boolean)
     begin
-        TransShptLine."Subcontr. Purch. Order No." := TransLine."Subcontr. Purch. Order No.";
-        TransShptLine."Subcontr. PO Line No." := TransLine."Subcontr. PO Line No.";
-        TransShptLine."Prod. Order No." := TransLine."Prod. Order No.";
-        TransShptLine."Prod. Order Line No." := TransLine."Prod. Order Line No.";
-        TransShptLine."Prod. Order Comp. Line No." := TransLine."Prod. Order Comp. Line No.";
-        TransShptLine."Return Order" := TransLine."Return Order";
-        TransShptLine."Routing No." := TransLine."Routing No.";
-        TransShptLine."Routing Reference No." := TransLine."Routing Reference No.";
+        TransShptLine."Subc. Purch. Order No." := TransLine."Subc. Purch. Order No.";
+        TransShptLine."Subc. Purch. Order Line No." := TransLine."Subc. Purch. Order Line No.";
+        TransShptLine."Subc. Prod. Order No." := TransLine."Subc. Prod. Order No.";
+        TransShptLine."Subc. Prod. Order Line No." := TransLine."Subc. Prod. Order Line No.";
+        TransShptLine."Subc. Prod. Ord. Comp Line No." := TransLine."Subc. Prod. Ord. Comp Line No.";
+        TransShptLine."Subc. Return Order" := TransLine."Subc. Return Order";
+        TransShptLine."Subc. Routing No." := TransLine."Subc. Routing No.";
+        TransShptLine."Subc. Routing Reference No." := TransLine."Subc. Routing Reference No.";
     end;
 }

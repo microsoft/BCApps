@@ -33,7 +33,7 @@ pageextension 99001538 "Subc. Prod. Planner RoleCenter" extends "Production Plan
                     Caption = 'Subcontracting Purchase Orders';
                     RunObject = Page "Purchase Order List";
                     RunPageView = where("Document Type" = const(Order),
-                                        "Subcontracting Order" = const(true));
+                                        "Subc. Order" = const(true));
                     ToolTip = 'View the list of purchase orders that are subcontracting orders.';
                 }
                 action("Subc. Subcontracting Transfers")
@@ -41,8 +41,8 @@ pageextension 99001538 "Subc. Prod. Planner RoleCenter" extends "Production Plan
                     ApplicationArea = Manufacturing;
                     Caption = 'Subcontracting Transfers';
                     RunObject = Page "Transfer Orders";
-                    RunPageView = where("Source Type" = const(Subcontracting),
-                                        "Return Order" = const(false));
+                    RunPageView = where("Subc. Source Type" = const(Subcontracting),
+                                        "Subc. Return Order" = const(false));
                     ToolTip = 'View the list of outbound transfer orders to subcontractors.';
                 }
             }

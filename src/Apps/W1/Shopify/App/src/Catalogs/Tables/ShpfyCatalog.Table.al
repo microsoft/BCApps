@@ -199,6 +199,8 @@ table 30152 "Shpfy Catalog"
             exit;
         end;
 
+        Modify();
+
         OtherCatalog.ModifyAll("Sync Prices", false);
     end;
 

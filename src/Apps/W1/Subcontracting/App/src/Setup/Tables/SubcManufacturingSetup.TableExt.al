@@ -6,7 +6,6 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Foundation.Company;
 using Microsoft.Inventory.Requisition;
-using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.Setup;
 
 tableextension 99001501 "Subc. Manufacturing Setup" extends "Manufacturing Setup"
@@ -46,16 +45,10 @@ tableextension 99001501 "Subc. Manufacturing Setup" extends "Manufacturing Setup
             OptionCaption = 'Standard,Prod. Order Component';
             OptionMembers = Standard,"Prod. Order Component";
         }
-        field(99001505; "Subc. Inb. Whse. Handling Time"; DateFormula)
+        field(99001505; "Subc. Comp. Transfer Lead Time"; DateFormula)
         {
-            Caption = 'Subcontracting Inbound Whse. Handling Time';
+            Caption = 'Subcontracting Component Transfer Lead Time';
             DataClassification = CustomerContent;
-        }
-        field(99001506; "Rtng. Link Code Purch. Prov."; Code[10])
-        {
-            Caption = 'Routing Link Code Purchase Provision';
-            DataClassification = CustomerContent;
-            TableRelation = "Routing Link";
         }
         field(99001509; "Subc. Default Comp. Location"; Enum "Components at Location")
         {
@@ -80,11 +73,6 @@ tableextension 99001501 "Subc. Manufacturing Setup" extends "Manufacturing Setup
                         end;
                 end;
             end;
-        }
-        field(99001510; RefItemChargeToRcptSubLines; Boolean)
-        {
-            Caption = 'Item Charge to Subcontracting Purch. Receipt Lines';
-            DataClassification = CustomerContent;
         }
     }
 }

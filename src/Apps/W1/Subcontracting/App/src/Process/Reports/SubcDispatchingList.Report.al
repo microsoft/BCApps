@@ -44,7 +44,7 @@ report 99001504 "Subc. Dispatching List"
     {
         dataitem("Purchase Header"; "Purchase Header")
         {
-            DataItemTableView = sorting("Document Type", "Buy-from Vendor No.", "No.") where("Subcontracting Order" = const(true));
+            DataItemTableView = sorting("Document Type", "Buy-from Vendor No.", "No.") where("Subc. Order" = const(true));
             RequestFilterFields = "No.", "Buy-from Vendor No.", "No. Printed";
             RequestFilterHeading = 'Subcontractor - Dispatch List';
             column(AllowInvoiceDisc_Lbl; AllowInvoiceDiscCaptionLbl)
@@ -727,10 +727,10 @@ report 99001504 "Subc. Dispatching List"
             column(VendNo_Lbl; VendNoCaptionLbl)
             {
             }
-            column(Vendor__Subcontracting_Location_Code_; Vendor."Subcontr. Location Code")
+            column(Vendor__Subcontracting_Location_Code_; Vendor."Subc. Location Code")
             {
             }
-            column(Vendor__Subcontracting_Location_Code_Caption; Vendor.FieldCaption("Subcontr. Location Code"))
+            column(Vendor__Subcontracting_Location_Code_Caption; Vendor.FieldCaption("Subc. Location Code"))
             {
             }
             column(VendorIDCaption_Lbl; VendorIDCaptionLbl)
@@ -1024,7 +1024,7 @@ report 99001504 "Subc. Dispatching List"
                     {
                         DataItemLink = Status = field(Status), "Prod. Order No." = field("Prod. Order No."), "Prod. Order Line No." = field("Routing Reference No."), "Routing Link Code" = field("Routing Link Code");
                         DataItemTableView = sorting(Status, "Prod. Order No.", "Prod. Order Line No.", "Line No.");
-                        column(Expected_Qty___Base______Qty__transf__to_Subcontractor______Qty__in_Transit__Base__; "Expected Qty. (Base)" - "Qty. transf. to Subcontr" - "Qty. in Transit (Base)")
+                        column(Expected_Qty___Base______Qty__transf__to_Subcontractor______Qty__in_Transit__Base__; "Expected Qty. (Base)" - "Subc. Qty. transf. to Subcontr" - "Subc. Qty. in Transit (Base)")
                         {
                             DecimalPlaces = 0 : 5;
                         }
@@ -1037,16 +1037,16 @@ report 99001504 "Subc. Dispatching List"
                         column(Prod__Order_Component__Item_No__; "Item No.")
                         {
                         }
-                        column(Prod__Order_Component__Qty__in_Transit__Base__; "Qty. in Transit (Base)")
+                        column(Prod__Order_Component__Qty__in_Transit__Base__; "Subc. Qty. in Transit (Base)")
                         {
                         }
-                        column(Prod__Order_Component__Qty__in_Transit__Base__Caption; FieldCaption("Qty. in Transit (Base)"))
+                        column(Prod__Order_Component__Qty__in_Transit__Base__Caption; FieldCaption("Subc. Qty. in Transit (Base)"))
                         {
                         }
-                        column(Prod__Order_Component__Qty__transf__to_Subcontractor_; "Qty. transf. to Subcontr")
+                        column(Prod__Order_Component__Qty__transf__to_Subcontractor_; "Subc. Qty. transf. to Subcontr")
                         {
                         }
-                        column(Prod__Order_Component__Qty__transf__to_Subcontractor_Caption; FieldCaption("Qty. transf. to Subcontr"))
+                        column(Prod__Order_Component__Qty__transf__to_Subcontractor_Caption; FieldCaption("Subc. Qty. transf. to Subcontr"))
                         {
                         }
                         column(Prod__Order_Component_Description; Description)
@@ -1069,7 +1069,7 @@ report 99001504 "Subc. Dispatching List"
                         }
                         trigger OnPreDataItem()
                         begin
-                            SetRange("Purchase Order Filter", "Purchase Header"."No.");
+                            SetRange("Subc. Purchase Order Filter", "Purchase Header"."No.");
                         end;
                     }
                 }

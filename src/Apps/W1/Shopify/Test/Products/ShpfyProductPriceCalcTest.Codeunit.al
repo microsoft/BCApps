@@ -44,7 +44,9 @@ codeunit 139605 "Shpfy Product Price Calc. Test"
         ComparePrice: Decimal;
     begin
         // [INIT] Initialization startup data.
-        LibraryPriceCalculation.DisableExtendedPriceCalculation();
+        // Extended pricing is on by default in the tenant; explicitly select the V15 handler so the legacy Sales Price / Sales Line Discount data path is exercised.
+        LibraryPriceCalculation.EnableExtendedPriceCalculation();
+        LibraryPriceCalculation.SetupDefaultHandler("Price Calculation Handler"::"Business Central (Version 15.0)");
         Shop := InitializeTest.CreateShop();
         Shop."Allow Line Disc." := false;
         Shop.Modify();
