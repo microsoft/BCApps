@@ -92,7 +92,7 @@ table 20404 "Qlty. Inspection Gen. Rule"
         }
         field(12; "Source Table No."; Integer)
         {
-            Caption = 'Table No.';
+            Caption = 'Table';
             NotBlank = true;
             BlankZero = true;
             TableRelation = AllObjWithCaption."Object ID" where("Object Type" = const(Table),
@@ -277,10 +277,11 @@ table 20404 "Qlty. Inspection Gen. Rule"
         RuleCurrentlyDisabledLbl: Label 'The generation rule Sort Order %1, Template Code %2 is currently disabled. It will need to have an activation trigger of "Automatic Only" or "Manual or Automatic" before it will be triggered by "%3"', Comment = '%1=generation rule sort order,%2=generation rule template code,%3=auto trigger';
         ChooseTemplateFirstErr: Label 'Please choose the template first.';
         FilterLengthErr: Label 'This filter is too long and must be less than %1 characters.', Comment = '%1=filter string maximum length';
+        TableMissingErr: Label 'You must choose a Table for this generation rule before saving. Use the assist-edit button (…) on the Table column to pick one.';
 
     trigger OnInsert()
     begin
-        Rec.TestField("Source Table No.");
+        CheckSourceTableNoIsSet();
         UpdateSortOrder();
         SetEntryNo();
         SetIntentAndDefaultTriggerValuesFromSetup();
@@ -288,10 +289,16 @@ table 20404 "Qlty. Inspection Gen. Rule"
 
     trigger OnModify()
     begin
-        Rec.TestField("Source Table No.");
+        CheckSourceTableNoIsSet();
         UpdateSortOrder();
         if (xRec."Source Table No." <> Rec."Source Table No.") or (Rec.Intent = Rec.Intent::Unknown) or not GuiAllowed() then
             SetIntentAndDefaultTriggerValuesFromSetup();
+    end;
+
+    local procedure CheckSourceTableNoIsSet()
+    begin
+        if Rec."Source Table No." = 0 then
+            Error(TableMissingErr);
     end;
 
     internal procedure SetEntryNo()
