@@ -144,7 +144,7 @@ table 20406 "Qlty. Inspection Line"
             Editable = false;
             TableRelation = "Qlty. Inspection Result".Code;
             Caption = 'Result Code';
-            ToolTip = 'Specifies the result is automatically determined based on the test value and result configuration.';
+            ToolTip = 'Specifies the automatically calculated result based on the evaluation of the actual test value against the defined result conditions.';
 
             trigger OnValidate()
             var
@@ -162,13 +162,13 @@ table 20406 "Qlty. Inspection Line"
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = lookup("Qlty. Inspection Result"."Description" where("Code" = field("Result Code")));
-            ToolTip = 'Specifies the result description for this test result. The result is automatically retrieved based on the test value and result configuration.';
+            ToolTip = 'Specifies the description of the test result. This value is automatically retrieved from the result definition based on the Result Code field.';
         }
         field(30; "Evaluation Sequence"; Integer)
         {
             Editable = false;
             Caption = 'Evaluation Sequence';
-            ToolTip = 'Specifies the associated evaluation sequence for this test result. The result is automatically determined based on the test value and result configuration.';
+            ToolTip = 'Specifies the associated evaluation sequence of the test result. The value is automatically determined based on the actual test value and result configuration.';
         }
         field(33; "Failure State"; Enum "Qlty. Line Failure State")
         {
