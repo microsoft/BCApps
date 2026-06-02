@@ -3451,4 +3451,18 @@ codeunit 139940 "Qlty. Inspection Utility"
     end;
 
     #endregion Qlty. Misc Helpers Wrappers
+
+    /// <summary>
+    /// Wrapper for Qlty. Inspection Template Line.SelectMultipleTests()
+    /// Invokes the "Add multiple tests" feature for the given template, opening the Qlty. Tests
+    /// lookup so that callers (typically test handlers) can pick tests to be added to the template.
+    /// </summary>
+    /// <param name="QltyInspectionTemplateHdr">The template into which the selected tests will be inserted.</param>
+    internal procedure SelectMultipleTestsForTemplate(QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.")
+    var
+        QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
+    begin
+        QltyInspectionTemplateLine."Template Code" := QltyInspectionTemplateHdr.Code;
+        QltyInspectionTemplateLine.SelectMultipleTests();
+    end;
 }
