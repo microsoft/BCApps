@@ -344,7 +344,7 @@ page 20401 "Qlty. Tests"
         end;
     end;
 
-    #region Add Multiple Tests
+    #region Add multiple tests to template
     internal procedure GetSelectionFilter(): Text
     var
         QltyTest: Record "Qlty. Test";
@@ -362,5 +362,5 @@ page 20401 "Qlty. Tests"
         RecRef.GetTable(QltyTest);
         exit(SelectionFilterManagement.GetSelectionFilter(RecRef, QltyTest.FieldNo(Code)));
     end;
-    #endregion Add Multiple Tests
+    #endregion Add multiple tests to template
 }

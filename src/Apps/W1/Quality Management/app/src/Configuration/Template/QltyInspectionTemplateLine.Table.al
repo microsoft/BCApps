@@ -177,7 +177,7 @@ table 20403 "Qlty. Inspection Template Line"
         OnValidateExpressionFormula(Rec);
     end;
 
-    #region Add Multiple Tests
+    #region Add multiple tests to template
     internal procedure SelectMultipleTests()
     var
         SelectionFilter: Text;
@@ -225,7 +225,7 @@ table 20403 "Qlty. Inspection Template Line"
         NewQltyInspectionTemplateLine.EnsureResultsExist(true);
         NewQltyInspectionTemplateLine.Modify();
     end;
-    #endregion Add Multiple Tests
+    #endregion Add multiple tests to template
 
     /// <summary>
     /// Validates the expression formula.
