@@ -51,6 +51,7 @@ codeunit 139913 "Vendor Deferrals Test"
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryUtility: Codeunit "Library - Utility";
+        LibraryERM: Codeunit "Library - ERM";
         CorrectedDocumentNo: Code[20];
         PostedDocumentNo: Code[20];
         PostingDate: Date;
