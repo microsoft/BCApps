@@ -537,9 +537,13 @@ codeunit 6166 "EDoc Import PEPPOL BIS 3.0"
     var
         MimeTypeUtility: Codeunit MimeTypeUtility;
     begin
-        // ODS attachments are stored under .xlsx by this importer (legacy normalization).
-        if MimeType = 'application/vnd.oasis.opendocument.spreadsheet' then
-            exit('xlsx');
+        case MimeType of
+            // ODS attachments are stored under .xlsx by this importer (legacy normalization).
+            'application/vnd.oasis.opendocument.spreadsheet':
+                exit('xlsx');
+            'image/jpeg':
+                exit('jpeg');
+        end;
         exit(MimeTypeUtility.GetExtension(MimeType));
     end;
 
