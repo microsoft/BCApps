@@ -7,6 +7,8 @@ namespace Microsoft.QualityManagement.Configuration.Template.Test;
 using Microsoft.QualityManagement.Configuration.Result;
 using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Document;
+using Microsoft.QualityManagement.Setup;
+using System.Telemetry;
 
 /// <summary>
 /// This page lets you define data points, questions, measurements, and entries with their allowable values and default passing thresholds. You can later use these tests in Quality Inspection Templates
@@ -269,8 +271,12 @@ page 20401 "Qlty. Tests"
 
     trigger OnOpenPage()
     var
+        QltyManagementSetup: Record "Qlty. Management Setup";
+        FeatureTelemetry: Codeunit "Feature Telemetry";
         MatrixVisibleState: array[10] of Boolean;
     begin
+        FeatureTelemetry.LogUptake('0000QIG', QltyManagementSetup.GetFeatureTelemetryName(), Enum::"Feature Uptake Status"::Discovered);
+
         QltyResultConditionMgmt.GetDefaultPromotedResults(true, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, MatrixArrayCaptionSet, MatrixVisibleState);
         Visible1 := MatrixVisibleState[1];
         Visible2 := MatrixVisibleState[2];
