@@ -219,6 +219,8 @@ page 20402 "Qlty. Inspection Template"
         FeatureTelemetry: Codeunit "Feature Telemetry";
     begin
         FeatureTelemetry.LogUptake('0000QIH', QltyManagementSetup.GetFeatureTelemetryName(), Enum::"Feature Uptake Status"::"Set up");
+
+        exit(true);
     end;
 
     trigger OnModifyRecord(): Boolean
@@ -227,6 +229,8 @@ page 20402 "Qlty. Inspection Template"
         FeatureTelemetry: Codeunit "Feature Telemetry";
     begin
         FeatureTelemetry.LogUptake('0000QII', QltyManagementSetup.GetFeatureTelemetryName(), Enum::"Feature Uptake Status"::"Set up");
+
+        exit(true);
     end;
 
     local procedure UpdateControls()

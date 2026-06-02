@@ -298,6 +298,7 @@ page 20400 "Qlty. Management Setup"
         if not Rec.Get() then begin
             QltyAutoConfigure.EnsureBasicSetupExists(false);
             if Rec.Get() then;
+            FeatureTelemetry.LogUptake('0000QIE', Rec.GetFeatureTelemetryName(), Enum::"Feature Uptake Status"::"Set up");
         end;
     end;
 
