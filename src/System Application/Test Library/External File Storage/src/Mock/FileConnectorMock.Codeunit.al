@@ -17,6 +17,7 @@ codeunit 135810 "File Connector Mock"
     var
         TestFileAccount: Record "Test File Account";
         TestFileConnectorSetup: Record "Test File Connector Setup";
+        TestFileStorageConnector: Codeunit "Test File Storage Connector";
     begin
         TestFileConnectorSetup.DeleteAll();
         TestFileConnectorSetup.Init();
@@ -27,6 +28,8 @@ codeunit 135810 "File Connector Mock"
         TestFileConnectorSetup.Insert();
 
         TestFileAccount.DeleteAll();
+
+        TestFileStorageConnector.ResetLastDeletedPath();
     end;
 
     procedure GetAccounts(var FileAccount: Record "File Account")
@@ -119,10 +122,8 @@ codeunit 135810 "File Connector Mock"
 
     procedure GetLastDeletedPath(): Text
     var
-        TestFileConnectorSetup: Record "Test File Connector Setup";
+        TestFileStorageConnector: Codeunit "Test File Storage Connector";
     begin
-        if not TestFileConnectorSetup.FindFirst() then
-            exit('');
-        exit(TestFileConnectorSetup."Last Deleted File Path");
+        exit(TestFileStorageConnector.GetLastDeletedPath());
     end;
 }

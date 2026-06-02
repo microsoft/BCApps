@@ -28,10 +28,6 @@ table 135811 "Test File Connector Setup"
         {
             Caption = 'Unsuccessful Register';
         }
-        field(5; "Last Deleted File Path"; Text[2048])
-        {
-            Caption = 'Last Deleted File Path';
-        }
     }
 
     keys
