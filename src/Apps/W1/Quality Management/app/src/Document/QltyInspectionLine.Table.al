@@ -94,7 +94,7 @@ table 20406 "Qlty. Inspection Line"
             Caption = 'Test Value Type';
             Editable = false;
             FieldClass = FlowField;
-            ToolTip = 'Specifies the data type of the values you can enter or select for this test. Use Decimal for numerical measurements. Use Choice to give a list of options to choose from. If you want to choose options from an existing table, use Table Lookup.';
+            ToolTip = 'Specifies the data value type of the test. The system automatically retrieves the value from the Test Value Type field on the Test template.';
         }
         field(16; "Allowable Values"; Text[500])
         {
