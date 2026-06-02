@@ -14,7 +14,7 @@ pageextension 99001546 "Subc. Pstd. Whse Shipm Sub" extends "Posted Whse. Shipme
         {
             field("Transfer WIP Item"; Rec."Transfer WIP Item")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Visible = false;
             }
         }

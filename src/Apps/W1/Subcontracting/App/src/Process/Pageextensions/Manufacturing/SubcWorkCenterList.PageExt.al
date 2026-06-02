@@ -18,7 +18,7 @@ pageextension 99001507 "Subc. Work Center List" extends "Work Center List"
                 Image = SubcontractingWorksheet;
                 action("Subcontractor Prices")
                 {
-                    ApplicationArea = Manufacturing;
+                    ApplicationArea = Subcontracting;
                     Caption = 'Subcontractor Prices';
                     Enabled = IsSubcontractingWorkCenter;
                     Image = Price;
@@ -35,7 +35,7 @@ pageextension 99001507 "Subc. Work Center List" extends "Work Center List"
                 }
                 action("WIP Ledger Entries")
                 {
-                    ApplicationArea = Manufacturing;
+                    ApplicationArea = Subcontracting;
                     Caption = 'WIP Ledger Entries';
                     Image = LedgerEntries;
                     RunObject = page "Subc. WIP Ledger Entries";

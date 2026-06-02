@@ -36,17 +36,17 @@ pageextension 99001508 "Subc. Routing Lines" extends "Routing Lines"
         {
             field("Transfer WIP Item"; Rec."Transfer WIP Item")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Enabled = TransferWIPItemEnabled;
             }
             field("Transfer Description"; Rec."Transfer Description")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Enabled = Rec."Transfer WIP Item";
             }
             field("Transfer Description 2"; Rec."Transfer Description 2")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Enabled = Rec."Transfer WIP Item";
             }
         }
@@ -57,7 +57,7 @@ pageextension 99001508 "Subc. Routing Lines" extends "Routing Lines"
         {
             action("Subc. Prices")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Caption = 'Subcontracting Prices';
                 Image = Price;
                 ToolTip = 'View the related subcontracting prices.';

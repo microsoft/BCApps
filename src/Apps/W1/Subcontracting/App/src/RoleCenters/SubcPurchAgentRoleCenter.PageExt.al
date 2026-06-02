@@ -15,7 +15,7 @@ pageextension 99001541 "Subc. Purch. Agent Role Center" extends "Purchasing Agen
         {
             action("Subc. Subcontracting Worksheets")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Caption = 'Subcontracting Worksheets';
                 RunObject = Page "Req. Wksh. Names";
                 RunPageView = where("Template Type" = const(Subcontracting),

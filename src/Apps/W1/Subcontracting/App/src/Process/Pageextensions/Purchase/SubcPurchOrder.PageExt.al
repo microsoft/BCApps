@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -14,11 +14,11 @@ pageextension 99001523 "Subc. Purch. Order" extends "Purchase Order"
         {
             field("Subc. Order"; Rec."Subc. Order")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
             }
             field("Subc. Location Code"; Rec."Subc. Location Code")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Editable = false;
             }
         }
@@ -26,7 +26,7 @@ pageextension 99001523 "Subc. Purch. Order" extends "Purchase Order"
         {
             part(" Sub Purchase Line Factbox"; "Subc. Purchase Line Factbox")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Provider = PurchLines;
                 SubPageLink = "Document Type" = field("Document Type"), "Document No." = field("Document No."), "Line No." = field("Line No.");
                 Visible = ShowSubcontractingFactBox;
@@ -39,7 +39,7 @@ pageextension 99001523 "Subc. Purch. Order" extends "Purchase Order"
         {
             action(CreateTransfOrdToSubcontractor)
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Caption = 'Create Transf. Ord. to Subcontractor';
                 Image = NewDocument;
                 ToolTip = 'Create a transfer order to send to the subcontractor.';
@@ -55,7 +55,7 @@ pageextension 99001523 "Subc. Purch. Order" extends "Purchase Order"
             }
             action(CreateReturnFromSubcontractor)
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Caption = 'Create Return from Subcontractor';
                 Image = ReturnRelated;
                 ToolTip = 'Create a return document from the subcontractor.';
@@ -71,7 +71,7 @@ pageextension 99001523 "Subc. Purch. Order" extends "Purchase Order"
             }
             action(PrintSubcDispatchingList)
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Caption = 'Print Subcontractor Dispatching List';
                 Image = Print;
                 ToolTip = 'Print the dispatching list for the subcontractor.';

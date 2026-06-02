@@ -13,7 +13,7 @@ pageextension 99001544 "Subc.Change Status Prod. Order" extends "Change Status o
         {
             field("WIP Quantity Clean Up"; WIPQuantityCleanUp)
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Enabled = WIPQuantityCleanUpEnabled;
                 Visible = WIPQuantityCleanUpVisible;
                 Caption = 'WIP Quantity Clean Up';

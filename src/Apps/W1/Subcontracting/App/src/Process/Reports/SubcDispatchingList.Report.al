@@ -32,7 +32,7 @@ using System.Utilities;
 
 report 99001504 "Subc. Dispatching List"
 {
-    ApplicationArea = Manufacturing;
+    ApplicationArea = Subcontracting;
     Caption = 'Subcontractor - Dispatch List';
     DefaultLayout = Word;
     PreviewMode = PrintLayout;
@@ -1570,33 +1570,33 @@ report 99001504 "Subc. Dispatching List"
                     Caption = 'Options';
                     field(ArchiveDocument; ShouldArchiveDocument)
                     {
-                        ApplicationArea = Manufacturing;
+                        ApplicationArea = Subcontracting;
                         Caption = 'Archive Document';
                         ToolTip = 'Specifies whether to archive the order.';
                         Visible = false;
                     }
                     field(LogInteraction; ShouldLogInteraction)
                     {
-                        ApplicationArea = Manufacturing;
+                        ApplicationArea = Subcontracting;
                         Caption = 'Log Interaction';
                         Enabled = LogInteractionEnable;
                         ToolTip = 'Specifies if you want to log this interaction.';
                     }
                     field(SubcPrintAddressLine; PrintAddressLine)
                     {
-                        ApplicationArea = Manufacturing;
+                        ApplicationArea = Subcontracting;
                         Caption = 'Show Address Line';
                         ToolTip = 'Specifies if the address line is shown.';
                     }
                     field(SubcPrintFooterLine; PrintFooterLine)
                     {
-                        ApplicationArea = Manufacturing;
+                        ApplicationArea = Subcontracting;
                         Caption = 'Show Footer Line';
                         ToolTip = 'Specifies if the footer line is shown.';
                     }
                     field(SubcPrintBarCode; PrintBarCode)
                     {
-                        ApplicationArea = Manufacturing;
+                        ApplicationArea = Subcontracting;
                         Caption = 'Show Bar Code';
                         ToolTip = 'Specifies if the Barcode is shown.';
                     }

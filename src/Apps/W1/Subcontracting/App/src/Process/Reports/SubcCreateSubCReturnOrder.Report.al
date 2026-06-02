@@ -14,7 +14,7 @@ using Microsoft.Purchases.Vendor;
 
 report 99001502 "Subc. Create SubCReturnOrder"
 {
-    ApplicationArea = Manufacturing;
+    ApplicationArea = Subcontracting;
     Caption = 'Create Subcontracting Return Order';
     ProcessingOnly = true;
     UsageCategory = Tasks;

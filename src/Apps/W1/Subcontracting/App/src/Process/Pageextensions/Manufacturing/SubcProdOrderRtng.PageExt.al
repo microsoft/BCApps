@@ -37,32 +37,32 @@ pageextension 99001503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
         {
             field(Subcontracting; Rec.Subcontracting)
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
             }
             field("Transfer WIP Item"; Rec."Transfer WIP Item")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Enabled = TransferWIPItemEnabled;
             }
             field("Transfer Description"; Rec."Transfer Description")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Enabled = Rec."Transfer WIP Item";
             }
             field("Transfer Description 2"; Rec."Transfer Description 2")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Enabled = Rec."Transfer WIP Item";
                 Visible = false;
             }
             field("WIP Qty. (Base) at Subc."; Rec."WIP Qty. (Base) at Subc.")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Visible = false;
             }
             field("WIP Qty. (Base) in Transit"; Rec."WIP Qty. (Base) in Transit")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Visible = false;
             }
         }
@@ -70,7 +70,7 @@ pageextension 99001503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
         {
             part("Subc. Routing Info Factbox"; "Subc. Routing Info Factbox")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 SubPageLink = "Prod. Order No." = field("Prod. Order No."), "Routing No." = field("Routing No."), "Routing Reference No." = field("Routing Reference No."), "Operation No." = field("Operation No.");
             }
         }
@@ -81,7 +81,7 @@ pageextension 99001503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
         {
             action("Subcontracting Purchase Lines")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Caption = 'Subcontracting Purchase Order Lines';
                 Image = SubcontractingWorksheet;
                 RunObject = page "Purchase Lines";
@@ -90,7 +90,7 @@ pageextension 99001503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
             }
             action("WIP Ledger Entries")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Caption = 'WIP Ledger Entries';
                 Image = LedgerEntries;
                 RunObject = page "Subc. WIP Ledger Entries";
@@ -106,7 +106,7 @@ pageextension 99001503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
         {
             action("WIP Adjustment")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Caption = 'WIP Adjustment';
                 Image = AdjustEntries;
                 ToolTip = 'Manually adjust the WIP quantity for the selected prod. order routing line.';
@@ -124,7 +124,7 @@ pageextension 99001503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
             }
             action(CreateSubcontracting)
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Caption = 'Create Subcontracting Order';
                 Image = CreateDocument;
                 Enabled = CreateSubcontractingEnabled;
@@ -199,5 +199,5 @@ pageextension 99001503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
     begin
         Rec.Calcfields(Subcontracting);
         TransferWIPItemEnabled := Rec.Subcontracting;
-    end; 
+    end;
 }

@@ -14,7 +14,7 @@ pageextension 99001511 "Subc. Planning Comp" extends "Planning Components"
         {
             field("Subcontracting Type"; Rec."Subcontracting Type")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
             }
         }
     }

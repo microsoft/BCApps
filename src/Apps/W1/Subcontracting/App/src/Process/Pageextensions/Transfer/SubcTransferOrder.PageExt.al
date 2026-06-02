@@ -18,48 +18,48 @@ pageextension 99001526 "Subc. Transfer Order" extends "Transfer Order"
         {
             field("Subc. Source Type"; Rec."Subc. Source Type")
             {
-                ApplicationArea = Location;
+                ApplicationArea = Subcontracting;
                 Editable = false;
                 ToolTip = 'Specifies for which source type the transfer order is related to.';
                 Visible = false;
             }
             field(SourceSubtype; Rec."Source Subtype")
             {
-                ApplicationArea = Location;
+                ApplicationArea = Subcontracting;
                 Editable = false;
                 ToolTip = 'Specifies which source subtype the transfer order is related to.';
                 Visible = false;
             }
             field(SourceID; Rec."Source ID")
             {
-                ApplicationArea = Location;
+                ApplicationArea = Subcontracting;
                 Editable = false;
                 ToolTip = 'Specifies which source ID the transfer order is related to.';
                 Visible = false;
             }
             field(SourceRefNo; Rec."Source Ref. No.")
             {
-                ApplicationArea = Location;
+                ApplicationArea = Subcontracting;
                 Editable = false;
                 ToolTip = 'Specifies a reference number for the line, which the transfer order is related to.';
                 Visible = false;
             }
             field("Subc. Return Order"; Rec."Subc. Return Order")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Editable = false;
                 ToolTip = 'Specifies whether the existing transfer order is a return of the subcontractor.';
                 Visible = false;
             }
             field("Subcontr. Purch. Order No."; Rec."Subcontr. Purch. Order No.")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 ToolTip = 'Specifies the number of the related purchase order.';
                 Visible = false;
             }
             field("Subcontr. PO Line No."; Rec."Subcontr. PO Line No.")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 ToolTip = 'Specifies the number of the related purchase order line.';
                 Visible = false;
             }
@@ -68,7 +68,7 @@ pageextension 99001526 "Subc. Transfer Order" extends "Transfer Order"
         {
             part("Subc. Transfer Line Factbox"; "Subc. Transfer Line Factbox")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Provider = TransferLines;
                 SubPageLink = "Document No." = field("Document No."), "Line No." = field("Line No.");
                 Visible = ShowSubcontractingFactBox;

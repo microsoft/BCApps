@@ -19,7 +19,7 @@ pageextension 99001506 "Subc. Work Center Card" extends "Work Center Card"
 
                 action("Subcontractor Prices")
                 {
-                    ApplicationArea = Manufacturing;
+                    ApplicationArea = Subcontracting;
                     Caption = 'Subcontractor Prices';
                     Enabled = IsSubcontractingWorkCenter;
                     Image = Price;
@@ -34,7 +34,7 @@ pageextension 99001506 "Subc. Work Center Card" extends "Work Center Card"
         {
             action("WIP Ledger Entries")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Caption = 'WIP Ledger Entries';
                 Image = LedgerEntries;
                 RunObject = page "Subc. WIP Ledger Entries";

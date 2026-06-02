@@ -8,7 +8,7 @@ using Microsoft.Inventory.Item;
 
 page 99001561 "Subc. WIP Adjustment"
 {
-    ApplicationArea = Manufacturing;
+    ApplicationArea = Subcontracting;
     Caption = 'WIP Adjustment';
     PageType = StandardDialog;
     SourceTable = "Subcontractor WIP Ledger Entry";

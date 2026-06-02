@@ -12,11 +12,13 @@ using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.Setup;
+using Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
 
 report 99001505 "Subc. Calculate Subcontracts"
 {
+    ApplicationArea = Subcontracting;
     Caption = 'Calculate Subcontracts';
     ProcessingOnly = true;
 
@@ -90,8 +92,6 @@ report 99001505 "Subc. Calculate Subcontracts"
 
     trigger OnPreReport()
     begin
-        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
-            CurrReport.Quit();
         ReqWkshTmpl.Get(ReqLine."Worksheet Template Name");
         ReqWkShName.Get(ReqLine."Worksheet Template Name", ReqLine."Journal Batch Name");
         ReqLine.SetRange("Worksheet Template Name", ReqLine."Worksheet Template Name");
@@ -116,6 +116,7 @@ report 99001505 "Subc. Calculate Subcontracts"
         ItemVariant: Record "Item Variant";
         TempProdOrderRoutingLine: Record "Prod. Order Routing Line" temporary;
         MfgCostCalcMgt: Codeunit "Mfg. Cost Calculation Mgt.";
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
         UOMMgt: Codeunit "Unit of Measure Management";
         Window: Dialog;
         BaseQtyToPurch: Decimal;

@@ -15,7 +15,7 @@ using Microsoft.Purchases.Vendor;
 
 report 99001501 "Subc. Create Transf. Order"
 {
-    ApplicationArea = Manufacturing;
+    ApplicationArea = Subcontracting;
     Caption = 'Create Subcontracting Transfer Order';
     ProcessingOnly = true;
     UsageCategory = Tasks;

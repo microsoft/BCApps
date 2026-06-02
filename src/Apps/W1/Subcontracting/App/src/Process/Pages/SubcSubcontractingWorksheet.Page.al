@@ -13,7 +13,7 @@ using System.Security.User;
 
 page 99001504 "Subc. Subcontracting Worksheet"
 {
-    ApplicationArea = Manufacturing;
+    ApplicationArea = Subcontracting;
     AutoSplitKey = true;
     Caption = 'Subcontracting Worksheets';
     DataCaptionFields = "Journal Batch Name";
@@ -29,7 +29,6 @@ page 99001504 "Subc. Subcontracting Worksheet"
         {
             field(CurrentJnlBatchName; CurrentJnlBatchName)
             {
-                ApplicationArea = Manufacturing;
                 Caption = 'Name';
                 Lookup = true;
                 ToolTip = 'Specifies the name of the journal batch of the subcontracting worksheet.';
@@ -52,7 +51,6 @@ page 99001504 "Subc. Subcontracting Worksheet"
                 ShowCaption = false;
                 field(Type; Rec.Type)
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the type of requisition worksheet line you are creating.';
 
                     trigger OnValidate()
@@ -62,7 +60,6 @@ page 99001504 "Subc. Subcontracting Worksheet"
                 }
                 field("No."; Rec."No.")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
 
                     trigger OnValidate()
@@ -76,43 +73,35 @@ page 99001504 "Subc. Subcontracting Worksheet"
                 }
                 field("Accept Action Message"; Rec."Accept Action Message")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies whether to accept the action message proposed for the line.';
                 }
                 field("Action Message"; Rec."Action Message")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies an action to take to rebalance the demand-supply situation.';
                 }
                 field("Prod. Order No."; Rec."Prod. Order No.")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the number of the related production order.';
                 }
                 field("Operation No."; Rec."Operation No.")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the operation number for this routing line.';
                 }
                 field("Work Center No."; Rec."Work Center No.")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the work center number of the journal line.';
                 }
                 field(Description; Rec.Description)
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies text that describes the entry.';
                 }
                 field("Description 2"; Rec."Description 2")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies additional text describing the entry, or a remark about the requisition worksheet line.';
                     Visible = false;
                 }
                 field("Variant Code"; Rec."Variant Code")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the variant of the item on the line.';
                     Visible = false;
                     ShowMandatory = VariantCodeMandatory;
@@ -145,17 +134,14 @@ page 99001504 "Subc. Subcontracting Worksheet"
                 }
                 field(Quantity; Rec.Quantity)
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the number of units of the item.';
                 }
                 field("Unit of Measure Code"; Rec."Unit of Measure Code")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
                 }
                 field("Vendor No."; Rec."Vendor No.")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the number of the vendor who will ship the items in the purchase order.';
 
                     trigger OnValidate()
@@ -165,30 +151,25 @@ page 99001504 "Subc. Subcontracting Worksheet"
                 }
                 field("Order Address Code"; Rec."Order Address Code")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the order address of the related vendor.';
                     Visible = false;
                 }
                 field("Vendor Item No."; Rec."Vendor Item No.")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the number that the vendor uses for this item.';
                 }
                 field("Sell-to Customer No."; Rec."Sell-to Customer No.")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the number of the customer.';
                     Visible = false;
                 }
                 field("Ship-to Code"; Rec."Ship-to Code")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies a code for an alternate shipment address if you want to ship to another address than the one that has been entered automatically. This field is also used in case of drop shipment.';
                     Visible = false;
                 }
                 field("Currency Code"; Rec."Currency Code")
                 {
-                    ApplicationArea = Manufacturing;
                     AssistEdit = true;
                     ToolTip = 'Specifies the currency code for the requisition lines.';
                     Visible = false;
@@ -206,63 +187,52 @@ page 99001504 "Subc. Subcontracting Worksheet"
                 }
                 field("Direct Unit Cost"; Rec."Direct Unit Cost")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the cost of one unit of the selected item or resource.';
                 }
                 field("Line Discount %"; Rec."Line Discount %")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the discount percentage used to calculate the purchase line discount.';
                     Visible = false;
                 }
                 field("Order Date"; Rec."Order Date")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the order date that will apply to the requisition worksheet line.';
                     Visible = false;
                 }
                 field("Due Date"; Rec."Due Date")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the date when you can expect to receive the items.';
                 }
                 field("Requester ID"; Rec."Requester ID")
                 {
-                    ApplicationArea = Manufacturing;
                     LookupPageID = "User Lookup";
                     ToolTip = 'Specifies the ID of the user who is ordering the items on the line.';
                     Visible = false;
                 }
                 field(Confirmed; Rec.Confirmed)
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies whether the items on the line have been approved for purchase.';
                     Visible = false;
                 }
                 field("Subc. Standard Task Code"; Rec."Subc. Standard Task Code")
                 {
-                    ApplicationArea = Manufacturing;
                 }
                 field("Subc. Pricelist Cost"; Rec."Subc. Pricelist Cost")
                 {
-                    ApplicationArea = Manufacturing;
                     Visible = false;
                 }
                 field("Subc. UoM for Pricelist"; Rec."Subc. UoM for Pricelist")
                 {
-                    ApplicationArea = Manufacturing;
                     Visible = false;
                 }
                 field("PL UM Qty/Base UM Qty"; Rec."PL UM Qty/Base UM Qty")
                 {
                     AutoFormatType = 0;
-                    ApplicationArea = Manufacturing;
                     Visible = false;
                 }
                 field("Base UM Qty/PL UM Qty"; Rec."Base UM Qty/PL UM Qty")
                 {
                     AutoFormatType = 0;
-                    ApplicationArea = Manufacturing;
                     Visible = false;
                 }
             }
@@ -277,7 +247,6 @@ page 99001504 "Subc. Subcontracting Worksheet"
                         Caption = 'Description';
                         field(Description2; Description2)
                         {
-                            ApplicationArea = Manufacturing;
                             Editable = false;
                             ShowCaption = false;
                             ToolTip = 'Specifies an additional part of the worksheet description.';
@@ -288,7 +257,6 @@ page 99001504 "Subc. Subcontracting Worksheet"
                         Caption = 'Buy-from Vendor Name';
                         field(BuyFromVendorName; BuyFromVendorName)
                         {
-                            ApplicationArea = Manufacturing;
                             Caption = 'Buy-from Vendor Name';
                             Editable = false;
                             ToolTip = 'Specifies the vendor''s name.';
@@ -322,7 +290,6 @@ page 99001504 "Subc. Subcontracting Worksheet"
                 Image = Line;
                 action(Card)
                 {
-                    ApplicationArea = Manufacturing;
                     Caption = 'Card';
                     Image = EditLines;
                     RunObject = Codeunit "Req. Wksh.-Show Card";
@@ -367,7 +334,6 @@ page 99001504 "Subc. Subcontracting Worksheet"
                 Image = "Action";
                 action("Calculate Subcontracts")
                 {
-                    ApplicationArea = Manufacturing;
                     Caption = 'Calculate Subcontracts';
                     Ellipsis = true;
                     Image = Calculate;
@@ -383,7 +349,6 @@ page 99001504 "Subc. Subcontracting Worksheet"
                 }
                 action(CarryOutActionMessage)
                 {
-                    ApplicationArea = Manufacturing;
                     Caption = 'Carry Out Action Message';
                     Ellipsis = true;
                     Image = CarryOutActionMessage;
