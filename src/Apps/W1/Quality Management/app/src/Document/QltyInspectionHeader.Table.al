@@ -228,7 +228,7 @@ table 20405 "Qlty. Inspection Header"
         {
             Caption = 'Result';
             Editable = false;
-            ToolTip = 'Specifies the result description for this test result. The result is automatically determined based on the test value and result configuration.';
+            ToolTip = 'Specifies the result description for this test result. The value is automatically retrieved based on the test value and result configuration.';
             FieldClass = FlowField;
             CalcFormula = lookup("Qlty. Inspection Result"."Description" where("Code" = field("Result Code")));
         }
@@ -236,7 +236,7 @@ table 20405 "Qlty. Inspection Header"
         {
             Caption = 'Evaluation Sequence';
             Editable = false;
-            ToolTip = 'Specifies the associated evaluation sequence for this test result. The result is automatically determined based on the test value and result configuration.';
+            ToolTip = 'Specifies the associated evaluation sequence for this test result. The value is automatically retrieved based on the test value and result configuration.';
         }
         field(35; "Location Code"; Code[10])
         {

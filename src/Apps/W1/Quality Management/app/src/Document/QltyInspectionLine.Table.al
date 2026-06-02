@@ -94,7 +94,7 @@ table 20406 "Qlty. Inspection Line"
             Caption = 'Test Value Type';
             Editable = false;
             FieldClass = FlowField;
-            ToolTip = 'Specifies the data value type of the test. The system automatically retrieves the value from the Test Value Type field on the Test template.';
+            ToolTip = 'Specifies the data value type of the test. The value is automatically retrieved from the Test Value Type field on the test template.';
         }
         field(16; "Allowable Values"; Text[500])
         {
@@ -162,7 +162,7 @@ table 20406 "Qlty. Inspection Line"
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = lookup("Qlty. Inspection Result"."Description" where("Code" = field("Result Code")));
-            ToolTip = 'Specifies the result description for this test result. The result is automatically determined based on the test value and result configuration.';
+            ToolTip = 'Specifies the result description for this test result. The result is automatically retrieved based on the test value and result configuration.';
         }
         field(30; "Evaluation Sequence"; Integer)
         {
