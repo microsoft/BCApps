@@ -386,6 +386,7 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmYesHandler')]
     procedure Insert_NoSourceTableNo_ShouldError()
     var
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
@@ -412,6 +413,7 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmYesHandler')]
     procedure Modify_ClearSourceTableNo_ShouldError()
     var
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
@@ -435,6 +437,7 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmYesHandler')]
     procedure Insert_WithSourceTableNo_Succeeds()
     var
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
@@ -473,5 +476,11 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
         QltyInspectionGenRule."Template Code" := TemplateCode;
         QltyInspectionGenRule."Activation Trigger" := ActivationTrigger;
         QltyInspectionGenRule.Modify();
+    end;
+
+    [ConfirmHandler]
+    procedure ConfirmYesHandler(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Reply := true;
     end;
 }
