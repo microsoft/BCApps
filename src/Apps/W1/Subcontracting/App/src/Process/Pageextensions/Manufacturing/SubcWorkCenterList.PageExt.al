@@ -46,11 +46,21 @@ pageextension 99001507 "Subc. Work Center List" extends "Work Center List"
         }
     }
 
+    trigger OnOpenPage()
+    begin
+        SubcontractingEnabled := SubcFeatureFlagHandler.IsSubcontractingEnabled();
+    end;
+
     trigger OnAfterGetCurrRecord()
     begin
+        if not SubcontractingEnabled then
+            exit;
+
         IsSubcontractingWorkCenter := Rec."Subcontractor No." <> '';
     end;
 
     var
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+        SubcontractingEnabled: Boolean;
         IsSubcontractingWorkCenter: Boolean;
 }

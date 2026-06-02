@@ -13,10 +13,8 @@ pageextension 99001508 "Subc. Routing Lines" extends "Routing Lines"
         modify("No.")
         {
             trigger OnAfterValidate()
-            var
-                SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
             begin
-                if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+                if not SubcontractingEnabled then
                     exit;
                 UpdateWIPEnabled();
             end;
@@ -24,10 +22,8 @@ pageextension 99001508 "Subc. Routing Lines" extends "Routing Lines"
         modify(Type)
         {
             trigger OnAfterValidate()
-            var
-                SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
             begin
-                if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+                if not SubcontractingEnabled then
                     exit;
                 UpdateWIPEnabled();
             end;
@@ -70,17 +66,30 @@ pageextension 99001508 "Subc. Routing Lines" extends "Routing Lines"
         }
     }
 
+    trigger OnOpenPage()
+    begin
+        SubcontractingEnabled := SubcFeatureFlagHandler.IsSubcontractingEnabled();
+    end;
+
     trigger OnAfterGetRecord()
     begin
+        if not SubcontractingEnabled then
+            exit;
+
         UpdateWIPEnabled();
     end;
 
     trigger OnAfterGetCurrRecord()
     begin
+        if not SubcontractingEnabled then
+            exit;
+
         UpdateWIPEnabled();
     end;
 
     var
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+        SubcontractingEnabled: Boolean;
         TransferWIPItemEnabled: Boolean;
 
     local procedure UpdateWIPEnabled()
@@ -93,6 +102,9 @@ pageextension 99001508 "Subc. Routing Lines" extends "Routing Lines"
     var
         SubcontractorPrice: Record "Subcontractor Price";
     begin
+        if not SubcontractingEnabled then
+            exit;
+
         Rec.TestField(Type, Rec.Type::"Work Center");
         SubcontractorPrice.SetRange("Work Center No.", Rec."No.");
         if Rec."Standard Task Code" <> '' then

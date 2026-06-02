@@ -47,11 +47,22 @@ pageextension 99001506 "Subc. Work Center Card" extends "Work Center Card"
             Enabled = IsSubcontractingWorkCenter;
         }
     }
+
+    trigger OnOpenPage()
+    begin
+        SubcontractingEnabled := SubcFeatureFlagHandler.IsSubcontractingEnabled();
+    end;
+
     trigger OnAfterGetCurrRecord()
     begin
+        if not SubcontractingEnabled then
+            exit;
+
         IsSubcontractingWorkCenter := Rec."Subcontractor No." <> '';
     end;
 
     var
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+        SubcontractingEnabled: Boolean;
         IsSubcontractingWorkCenter: Boolean;
 }

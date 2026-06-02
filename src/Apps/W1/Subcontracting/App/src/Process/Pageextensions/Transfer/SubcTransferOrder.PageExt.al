@@ -80,20 +80,32 @@ pageextension 99001526 "Subc. Transfer Order" extends "Transfer Order"
 
     var
         ShowSubcontractingFactBox: Boolean;
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+        SubcontractingEnabled: Boolean;
 
     trigger OnOpenPage()
     begin
+        SubcontractingEnabled := SubcFeatureFlagHandler.IsSubcontractingEnabled();
+        if not SubcontractingEnabled then
+            exit;
+
         ShowSubcontractingFactBox := Rec."Subc. Source Type" = Rec."Subc. Source Type"::Subcontracting;
         EsEnableTransferFields := not IsPartiallyShipped();
     end;
 
     trigger OnAfterGetCurrRecord()
     begin
+        if not SubcontractingEnabled then
+            exit;
+
         ShowSubcontractingFactBox := Rec."Subc. Source Type" = Rec."Subc. Source Type"::Subcontracting;
     end;
 
     trigger OnAfterGetRecord()
     begin
+        if not SubcontractingEnabled then
+            exit;
+
         EsEnableTransferFields := not IsPartiallyShipped();
     end;
 

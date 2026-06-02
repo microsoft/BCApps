@@ -14,10 +14,8 @@ pageextension 99001503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
         modify(Type)
         {
             trigger OnAfterValidate()
-            var
-                SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
             begin
-                if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+                if not SubcontractingEnabled then
                     exit;
                 UpdateWIPEnabled();
             end;
@@ -25,10 +23,8 @@ pageextension 99001503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
         modify("No.")
         {
             trigger OnAfterValidate()
-            var
-                SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
             begin
-                if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+                if not SubcontractingEnabled then
                     exit;
                 UpdateWIPEnabled();
             end;
@@ -168,6 +164,8 @@ pageextension 99001503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
         }
     }
     var
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+        SubcontractingEnabled: Boolean;
         TransferWIPItemEnabled: Boolean;
         CreateSubcontractingEnabled: Boolean;
         CreateSubcontractingVisible: Boolean;
@@ -177,6 +175,10 @@ pageextension 99001503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
     var
         StatusFilter: Text;
     begin
+        SubcontractingEnabled := SubcFeatureFlagHandler.IsSubcontractingEnabled();
+        if not SubcontractingEnabled then
+            exit;
+
         StatusFilter := Rec.GetFilter(Rec.Status);
         if StatusFilter.Contains(Format("Production Order Status"::Released)) then
             CreateSubcontractingVisible := true
@@ -186,11 +188,17 @@ pageextension 99001503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
 
     trigger OnAfterGetRecord()
     begin
+        if not SubcontractingEnabled then
+            exit;
+
         UpdateWIPEnabled();
     end;
 
     trigger OnAfterGetCurrRecord()
     begin
+        if not SubcontractingEnabled then
+            exit;
+
         UpdateWIPEnabled();
         CreateSubcontractingEnabled := Rec.Subcontracting and (Rec.Status = "Production Order Status"::Released);
     end;

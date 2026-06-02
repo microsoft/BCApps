@@ -88,15 +88,24 @@ pageextension 99001523 "Subc. Purch. Order" extends "Purchase Order"
         }
     }
     var
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+        SubcontractingEnabled: Boolean;
         ShowSubcontractingFactBox: Boolean;
 
     trigger OnOpenPage()
     begin
+        SubcontractingEnabled := SubcFeatureFlagHandler.IsSubcontractingEnabled();
+        if not SubcontractingEnabled then
+            exit;
+
         ShowSubcontractingFactBox := SubcontractingInLines();
     end;
 
     trigger OnAfterGetCurrRecord()
     begin
+        if not SubcontractingEnabled then
+            exit;
+
         ShowSubcontractingFactBox := SubcontractingInLines();
     end;
 
