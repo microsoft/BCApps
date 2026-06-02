@@ -95,12 +95,12 @@ page 20438 "Qlty. Management Setup Guide"
     }
 
     var
+        QltyManagementSetup: Record "Qlty. Management Setup";
         MediaRepositoryStandard: Record "Media Repository";
         MediaResourcesStandard: Record "Media Resources";
         FeatureTelemetry: Codeunit "Feature Telemetry";
         TopBannerVisible: Boolean;
         MainPageVisible: Boolean;
-        QualityManagementTok: Label 'Quality Management', Locked = true;
         SettingsLinkLbl: Label 'Open My Settings';
 
     trigger OnInit();
@@ -111,7 +111,7 @@ page 20438 "Qlty. Management Setup Guide"
 
     trigger OnOpenPage();
     begin
-        FeatureTelemetry.LogUptake('0000QIC', QualityManagementTok, Enum::"Feature Uptake Status"::Discovered);
+        FeatureTelemetry.LogUptake('0000QIC', QltyManagementSetup.GetFeatureTelemetryName(), Enum::"Feature Uptake Status"::Discovered);
     end;
 
     local procedure DoneAction();
@@ -122,7 +122,7 @@ page 20438 "Qlty. Management Setup Guide"
     begin
         GuidedExperience.CompleteAssistedSetup(ObjectType::Page, Page::"Qlty. Management Setup Guide");
 
-        FeatureTelemetry.LogUptake('0000QIB', QualityManagementTok, Enum::"Feature Uptake Status"::"Set up");
+        FeatureTelemetry.LogUptake('0000QIB', QltyManagementSetup.GetFeatureTelemetryName(), Enum::"Feature Uptake Status"::"Set up");
 
         QltyNotificationMgmt.InitializeAllNotifications();
         QltyApplicationAreaMgmt.RefreshExperienceTierCurrentCompany();

@@ -26,6 +26,7 @@ using System.Device;
 using System.IO;
 using System.Reflection;
 using System.Security.AccessControl;
+using System.Telemetry;
 using System.Utilities;
 
 table 20405 "Qlty. Inspection Header"
@@ -839,7 +840,10 @@ table 20405 "Qlty. Inspection Header"
     /// Finishes the inspection.
     /// </summary>
     procedure FinishInspection()
+    var
+        FeatureTelemetry: Codeunit "Feature Telemetry";
     begin
+        FeatureTelemetry.LogUptake('0000QIP', QltyManagementSetup.GetFeatureTelemetryName(), Enum::"Feature Uptake Status"::Used);
         FinishInspectionAndPrompt(true);
     end;
 

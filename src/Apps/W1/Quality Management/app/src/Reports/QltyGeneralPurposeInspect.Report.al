@@ -297,6 +297,11 @@ report 20405 "Qlty. General Purpose Inspect."
         LastModifiedByLabel = 'Last modified by';
     }
 
+    trigger OnPreReport()
+    begin
+        QltyReportMgmt.LogGeneralPurposeInspectionReportRun();
+    end;
+
     var
         Item: Record Item;
         CompanyInformation: Record "Company Information";

@@ -274,6 +274,11 @@ report 20403 "Qlty. Non-Conformance"
         LastModifiedByLabel = 'Last modified by';
     }
 
+    trigger OnPreReport()
+    begin
+        QltyReportMgmt.LogNonConformanceReportRun();
+    end;
+
     var
         Item: Record Item;
         CompanyInformation: Record "Company Information";

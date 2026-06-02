@@ -6,6 +6,8 @@ namespace Microsoft.QualityManagement.Configuration.Template;
 
 using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Document;
+using Microsoft.QualityManagement.Setup;
+using System.Telemetry;
 
 /// 
 /// <summary>
@@ -71,6 +73,22 @@ table 20402 "Qlty. Inspection Template Hdr."
             Clustered = true;
         }
     }
+
+    trigger OnInsert()
+    var
+        QltyManagementSetup: Record "Qlty. Management Setup";
+        FeatureTelemetry: Codeunit "Feature Telemetry";
+    begin
+        FeatureTelemetry.LogUptake('0000QIH', QltyManagementSetup.GetFeatureTelemetryName(), Enum::"Feature Uptake Status"::"Set up");
+    end;
+
+    trigger OnModify()
+    var
+        QltyManagementSetup: Record "Qlty. Management Setup";
+        FeatureTelemetry: Codeunit "Feature Telemetry";
+    begin
+        FeatureTelemetry.LogUptake('0000QII', QltyManagementSetup.GetFeatureTelemetryName(), Enum::"Feature Uptake Status"::"Set up");
+    end;
 
     trigger OnDelete()
     var

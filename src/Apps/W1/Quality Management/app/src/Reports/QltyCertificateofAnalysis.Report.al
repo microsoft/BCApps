@@ -260,6 +260,11 @@ report 20401 "Qlty. Certificate of Analysis"
         DateLabel = 'Date';
     }
 
+    trigger OnPreReport()
+    begin
+        QltyReportMgmt.LogCertificateOfAnalysisReportRun();
+    end;
+
     var
         Item: Record Item;
         CompanyInformation: Record "Company Information";
