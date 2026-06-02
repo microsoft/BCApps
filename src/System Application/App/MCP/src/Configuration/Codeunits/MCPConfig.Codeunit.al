@@ -118,16 +118,16 @@ codeunit 8350 "MCP Config"
     end;
 
     /// <summary>
-    /// Enables or disables the AL Query Tools feature for the specified configuration.
+    /// Enables or disables the Data Query Tools feature for the specified configuration.
     /// </summary>
     /// <remarks>
-    /// MOCK: persisted in the "MCP Feature Activation" stand-in table until the platform adds an AL Query Tools field to `MCP Configuration`.
+    /// MOCK: persisted in the "MCP Feature Activation" stand-in table until the platform adds an Data Query Tools field to `MCP Configuration`.
     /// </remarks>
     /// <param name="ConfigId">The SystemId (GUID) of the configuration.</param>
     /// <param name="Enable">True to enable, false to disable.</param>
-    procedure EnableALQueryTools(ConfigId: Guid; Enable: Boolean)
+    procedure EnableDataQueryTools(ConfigId: Guid; Enable: Boolean)
     begin
-        MCPConfigImplementation.EnableALQueryTools(ConfigId, Enable);
+        MCPConfigImplementation.EnableDataQueryTools(ConfigId, Enable);
     end;
 
     /// <summary>

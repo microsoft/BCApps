@@ -5,7 +5,7 @@
 
 namespace System.MCP;
 
-// MOCK: stand-in persistence for the API Tools / AL Query Tools activation flags. The real booleans
+// MOCK: stand-in persistence for the API Tools / Data Query Tools activation flags. The real booleans
 // belong on the platform-owned "MCP Configuration" table, which the app cannot extend; when the
 // platform ships them, delete this table and repoint MCPConfigImplementation at the real fields.
 table 8356 "MCP Feature Activation"
@@ -24,9 +24,9 @@ table 8356 "MCP Feature Activation"
         {
             Caption = 'Enable API Tools';
         }
-        field(3; "Enable AL Query Tools"; Boolean)
+        field(3; "Enable Data Query Tools"; Boolean)
         {
-            Caption = 'Enable AL Query Tools';
+            Caption = 'Enable Data Query Tools';
         }
     }
 

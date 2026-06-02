@@ -20,9 +20,9 @@ enum 8351 "MCP Server Feature" implements "MCP Server Features"
         Caption = 'Dynamic Tool Mode';
         Implementation = "MCP Server Features" = "MCP Dyn. Tool Mode Feature";
     }
-    value(2; "AL Query Tools")
+    value(2; "Data Query Tools")
     {
-        Caption = 'AL Query Tools (Preview)';
-        Implementation = "MCP Server Features" = "MCP AL Query Tools Feature";
+        Caption = 'Data Query Tools (Preview)';
+        Implementation = "MCP Server Features" = "MCP Data Query Tools Feature";
     }
 }

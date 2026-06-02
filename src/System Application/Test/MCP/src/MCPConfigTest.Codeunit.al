@@ -281,31 +281,31 @@ codeunit 130130 "MCP Config Test"
 
     #endregion
 
-    #region AL Query Tools
+    #region Data Query Tools
 
-    // MOCK: AL Query Tools activation persists to the "MCP Feature Activation" stand-in table (MCP
+    // MOCK: Data Query Tools activation persists to the "MCP Feature Activation" stand-in table (MCP
     // Config Implementation); the public facade exposes no read-back, so these stay smoke tests that
     // only verify each procedure is callable. Replace with real state assertions once the platform
-    // adds the AL Query Tools field on MCP Configuration.
+    // adds the Data Query Tools field on MCP Configuration.
 
     [Test]
-    procedure TestEnableALQueryTools()
+    procedure TestEnableDataQueryTools()
     var
         ConfigId: Guid;
     begin
         // MOCK: smoke test for the facade procedure.
         ConfigId := CreateMCPConfig(false, false, true, false);
-        MCPConfig.EnableALQueryTools(ConfigId, true);
+        MCPConfig.EnableDataQueryTools(ConfigId, true);
     end;
 
     [Test]
-    procedure TestDisableALQueryTools()
+    procedure TestDisableDataQueryTools()
     var
         ConfigId: Guid;
     begin
         // MOCK: smoke test for the facade procedure.
         ConfigId := CreateMCPConfig(false, false, true, false);
-        MCPConfig.EnableALQueryTools(ConfigId, false);
+        MCPConfig.EnableDataQueryTools(ConfigId, false);
     end;
 
     #endregion
@@ -488,39 +488,13 @@ codeunit 130130 "MCP Config Test"
     end;
 
     [Test]
-    [HandlerFunctions('LookupAPIPageToolsOKHandler')]
-    procedure TestLookupAPIPageTools()
-    var
-        PageMetadata: Record "Page Metadata";
-        Result: Boolean;
+    [HandlerFunctions('LookupAPIObjectsOKHandler')]
+    procedure TestLookupAPIObjects()
     begin
-        // [GIVEN] No preselected page
-
-        // [WHEN] Lookup API tools is called and a page is selected
-        Result := MCPConfigTestLibrary.LookupAPIPageTools(PageMetadata);
-
-        // [THEN] Correct page is selected
-        Assert.IsTrue(Result, 'Result is not true');
-        PageMetadata.FindFirst();
-        Assert.AreEqual(Page::"Mock API", PageMetadata.ID, 'PageId mismatch');
-    end;
-
-    [Test]
-    [HandlerFunctions('LookupAPIQueryToolsOKHandler')]
-    procedure TestLookupAPIQueryTools()
-    var
-        QueryMetadata: Record "Query Metadata";
-        Result: Boolean;
-    begin
-        // [GIVEN] No preselected query
-
-        // [WHEN] Lookup API query tools is called and a query is selected
-        Result := MCPConfigTestLibrary.LookupAPIQueryTools(QueryMetadata);
-
-        // [THEN] Correct query is selected
-        Assert.IsTrue(Result, 'Result is not true');
-        QueryMetadata.FindFirst();
-        Assert.AreEqual(Query::"Mock API Query", QueryMetadata.ID, 'QueryId mismatch');
+        // [GIVEN] No preselected object
+        // [WHEN] The unified API lookup (pages + queries) is opened and an object is selected
+        // [THEN] A selection is returned
+        Assert.IsTrue(MCPConfigTestLibrary.LookupAPIObjects(), 'The lookup did not return a selection');
     end;
 
     [Test]
@@ -1306,8 +1280,8 @@ codeunit 130130 "MCP Config Test"
         Assert.AreEqual('API Tools', MCPConfigCard.ServerFeatureList.Feature.Value, 'Unexpected first feature');
         Assert.IsTrue(MCPConfigCard.ServerFeatureList.Next(), 'Dynamic Tool Mode row is missing');
         Assert.AreEqual('Dynamic Tool Mode', MCPConfigCard.ServerFeatureList.Feature.Value, 'Unexpected second feature');
-        Assert.IsTrue(MCPConfigCard.ServerFeatureList.Next(), 'AL Query Tools row is missing');
-        Assert.AreEqual('AL Query Tools (Preview)', MCPConfigCard.ServerFeatureList.Feature.Value, 'Unexpected third feature');
+        Assert.IsTrue(MCPConfigCard.ServerFeatureList.Next(), 'Data Query Tools row is missing');
+        Assert.AreEqual('Data Query Tools (Preview)', MCPConfigCard.ServerFeatureList.Feature.Value, 'Unexpected third feature');
         Assert.IsFalse(MCPConfigCard.ServerFeatureList.Next(), 'Unexpected extra feature rows');
     end;
 
@@ -1327,14 +1301,14 @@ codeunit 130130 "MCP Config Test"
         MCPConfigCard.GoToRecord(MCPConfiguration);
 
         // [THEN] Configure is enabled only on Dynamic Tool Mode (the one feature with settings).
-        // NOTE: API Tools / AL Query are also inactive here (mock), which on its own disables Configure;
+        // NOTE: API Tools / Data Query are also inactive here (mock), which on its own disables Configure;
         // Dynamic Tool Mode isolates the Configurable (HasSettings) gate since it is active.
         MCPConfigCard.ServerFeatureList.First(); // API Tools
         Assert.IsFalse(MCPConfigCard.ServerFeatureList.Configure.Enabled(), 'Configure should be disabled for API Tools');
         MCPConfigCard.ServerFeatureList.Next(); // Dynamic Tool Mode
         Assert.IsTrue(MCPConfigCard.ServerFeatureList.Configure.Enabled(), 'Configure should be enabled for Dynamic Tool Mode');
-        MCPConfigCard.ServerFeatureList.Next(); // AL Query Tools
-        Assert.IsFalse(MCPConfigCard.ServerFeatureList.Configure.Enabled(), 'Configure should be disabled for AL Query Tools');
+        MCPConfigCard.ServerFeatureList.Next(); // Data Query Tools
+        Assert.IsFalse(MCPConfigCard.ServerFeatureList.Configure.Enabled(), 'Configure should be disabled for Data Query Tools');
     end;
 
     [Test]
@@ -1542,17 +1516,10 @@ codeunit 130130 "MCP Config Test"
 
 
     [ModalPageHandler]
-    procedure LookupAPIPageToolsOKHandler(var MCPAPIConfigToolLookup: TestPage "MCP API Config Tool Lookup")
+    procedure LookupAPIObjectsOKHandler(var MCPAPIObjectLookup: TestPage "MCP API Object Lookup")
     begin
-        MCPAPIConfigToolLookup.GoToKey(Page::"Mock API");
-        MCPAPIConfigToolLookup.OK().Invoke();
-    end;
-
-    [ModalPageHandler]
-    procedure LookupAPIQueryToolsOKHandler(var MCPQueryConfigToolLookup: TestPage "MCP Query Config Tool Lookup")
-    begin
-        MCPQueryConfigToolLookup.GoToKey(Query::"Mock API Query");
-        MCPQueryConfigToolLookup.OK().Invoke();
+        MCPAPIObjectLookup.First();
+        MCPAPIObjectLookup.OK().Invoke();
     end;
 
     [ModalPageHandler]

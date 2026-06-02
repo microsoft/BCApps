@@ -256,7 +256,7 @@ codeunit 8351 "MCP Config Implementation"
         LogConfigurationModified(MCPConfiguration, xMCPConfiguration);
     end;
 
-    // MOCK: API Tools / AL Query Tools activation isn't on the platform-owned MCP Configuration table
+    // MOCK: API Tools / Data Query Tools activation isn't on the platform-owned MCP Configuration table
     // yet (which the app can't extend), so it's persisted in the MCP-owned "MCP Feature Activation"
     // table keyed by config SystemId. When the platform adds the real boolean fields, delete that
     // table and repoint these four procedures at them.
@@ -274,16 +274,16 @@ codeunit 8351 "MCP Config Implementation"
         end;
     end;
 
-    internal procedure EnableALQueryTools(ConfigId: Guid; Enable: Boolean)
+    internal procedure EnableDataQueryTools(ConfigId: Guid; Enable: Boolean)
     var
         MCPFeatureActivation: Record "MCP Feature Activation";
     begin
         if not MCPFeatureActivation.Get(ConfigId) then begin
             MCPFeatureActivation."Config Id" := ConfigId;
-            MCPFeatureActivation."Enable AL Query Tools" := Enable;
+            MCPFeatureActivation."Enable Data Query Tools" := Enable;
             MCPFeatureActivation.Insert();
         end else begin
-            MCPFeatureActivation."Enable AL Query Tools" := Enable;
+            MCPFeatureActivation."Enable Data Query Tools" := Enable;
             MCPFeatureActivation.Modify();
         end;
     end;
@@ -299,12 +299,12 @@ codeunit 8351 "MCP Config Implementation"
             exit(MCPFeatureActivation."Enable API Tools");
     end;
 
-    internal procedure IsALQueryToolsEnabled(ConfigId: Guid): Boolean
+    internal procedure IsDataQueryToolsEnabled(ConfigId: Guid): Boolean
     var
         MCPFeatureActivation: Record "MCP Feature Activation";
     begin
         if MCPFeatureActivation.Get(ConfigId) then
-            exit(MCPFeatureActivation."Enable AL Query Tools");
+            exit(MCPFeatureActivation."Enable Data Query Tools");
     end;
 
     local procedure CheckAllowCreateUpdateDeleteTools(ConfigId: Guid)
@@ -623,38 +623,65 @@ codeunit 8351 "MCP Config Implementation"
         MCPConfigurationTool.Modify();
     end;
 
-    internal procedure LookupAPIPageTools(var PageMetadata: Record "Page Metadata"): Boolean
+    internal procedure LookupAPIObjects(var SelectedObjects: Record "MCP API Object Buffer"): Boolean
     var
-        MCPAPIConfigToolLookup: Page "MCP API Config Tool Lookup";
+        TempMCPAPIObjectBuffer: Record "MCP API Object Buffer";
+        MCPAPIObjectLookup: Page "MCP API Object Lookup";
     begin
+        PopulateAPIObjects(TempMCPAPIObjectBuffer);
+        if TempMCPAPIObjectBuffer.IsEmpty() then
+            exit(false);
+
+        MCPAPIObjectLookup.SetObjects(TempMCPAPIObjectBuffer);
+        MCPAPIObjectLookup.LookupMode := true;
+        if MCPAPIObjectLookup.RunModal() <> Action::LookupOK then
+            exit(false);
+
+        MCPAPIObjectLookup.GetSelectedObjects(SelectedObjects);
+        exit(not SelectedObjects.IsEmpty());
+    end;
+
+    local procedure PopulateAPIObjects(var MCPAPIObjectBuffer: Record "MCP API Object Buffer")
+    var
+        PageMetadata: Record "Page Metadata";
+        QueryMetadata: Record "Query Metadata";
+    begin
+        MCPAPIObjectBuffer.Reset();
+        MCPAPIObjectBuffer.DeleteAll();
+
+        // API pages
         PageMetadata.SetRange(PageType, PageMetadata.PageType::API);
         PageMetadata.SetFilter("AL Namespace", '<>%1', 'Microsoft.API.V1');
         PageMetadata.SetFilter(APIVersion, '<>%1', 'beta');
+        if PageMetadata.FindSet() then
+            repeat
+                MCPAPIObjectBuffer.Init();
+                MCPAPIObjectBuffer."Object Type" := MCPAPIObjectBuffer."Object Type"::Page;
+                MCPAPIObjectBuffer."Object ID" := PageMetadata.ID;
+                MCPAPIObjectBuffer.Name := CopyStr(PageMetadata.Name, 1, MaxStrLen(MCPAPIObjectBuffer.Name));
+                MCPAPIObjectBuffer."Entity Name" := CopyStr(PageMetadata.EntityName, 1, MaxStrLen(MCPAPIObjectBuffer."Entity Name"));
+                MCPAPIObjectBuffer."API Publisher" := CopyStr(PageMetadata.APIPublisher, 1, MaxStrLen(MCPAPIObjectBuffer."API Publisher"));
+                MCPAPIObjectBuffer."API Group" := CopyStr(PageMetadata.APIGroup, 1, MaxStrLen(MCPAPIObjectBuffer."API Group"));
+                MCPAPIObjectBuffer."API Version" := CopyStr(PageMetadata.APIVersion, 1, MaxStrLen(MCPAPIObjectBuffer."API Version"));
+                if MCPAPIObjectBuffer.Insert() then;
+            until PageMetadata.Next() = 0;
 
-        MCPAPIConfigToolLookup.LookupMode := true;
-        MCPAPIConfigToolLookup.SetTableView(PageMetadata);
-        if MCPAPIConfigToolLookup.RunModal() <> Action::LookupOK then
-            exit(false);
-
-        MCPAPIConfigToolLookup.SetSelectionFilter(PageMetadata);
-        exit(true);
-    end;
-
-    internal procedure LookupAPIQueryTools(var QueryMetadata: Record "Query Metadata"): Boolean
-    var
-        MCPQueryConfigToolLookup: Page "MCP Query Config Tool Lookup";
-    begin
+        // API queries
         QueryMetadata.SetFilter(EntityName, '<>%1', '');
         QueryMetadata.SetFilter("AL Namespace", '<>%1', 'Microsoft.API.V1');
         QueryMetadata.SetFilter(ID, '<>%1&<>%2', 5480, 5481); // Exclude beta customer and vendor queries from Base Application, as they are already part of API v2.0
-
-        MCPQueryConfigToolLookup.LookupMode := true;
-        MCPQueryConfigToolLookup.SetTableView(QueryMetadata);
-        if MCPQueryConfigToolLookup.RunModal() <> Action::LookupOK then
-            exit(false);
-
-        MCPQueryConfigToolLookup.SetSelectionFilter(QueryMetadata);
-        exit(true);
+        if QueryMetadata.FindSet() then
+            repeat
+                MCPAPIObjectBuffer.Init();
+                MCPAPIObjectBuffer."Object Type" := MCPAPIObjectBuffer."Object Type"::Query;
+                MCPAPIObjectBuffer."Object ID" := QueryMetadata.ID;
+                MCPAPIObjectBuffer.Name := CopyStr(QueryMetadata.Name, 1, MaxStrLen(MCPAPIObjectBuffer.Name));
+                MCPAPIObjectBuffer."Entity Name" := CopyStr(QueryMetadata.EntityName, 1, MaxStrLen(MCPAPIObjectBuffer."Entity Name"));
+                MCPAPIObjectBuffer."API Publisher" := CopyStr(QueryMetadata.APIPublisher, 1, MaxStrLen(MCPAPIObjectBuffer."API Publisher"));
+                MCPAPIObjectBuffer."API Group" := CopyStr(QueryMetadata.APIGroup, 1, MaxStrLen(MCPAPIObjectBuffer."API Group"));
+                MCPAPIObjectBuffer."API Version" := CopyStr(QueryMetadata.APIVersion, 1, MaxStrLen(MCPAPIObjectBuffer."API Version"));
+                if MCPAPIObjectBuffer.Insert() then;
+            until QueryMetadata.Next() = 0;
     end;
 
     internal procedure GetAPIPublishers(var MCPAPIPublisherGroup: Record "MCP API Publisher Group")

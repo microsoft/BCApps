@@ -45,13 +45,22 @@ page 8350 "MCP Config List"
                     ToolTip = 'Specifies whether this configuration is the default. The default configuration is used when no configuration is specified by a connection. Clear this field to remove the default designation, in which case the system reverts to built-in default configuration.';
                     Editable = false;
                 }
-                field(EnableDynamicToolMode; Rec.EnableDynamicToolMode)
+                // MOCK: these two columns are function-sourced from the "MCP Feature Activation" stand-in
+                // table (via the impl getters) because the activation flags aren't on MCP Configuration
+                // yet. When the platform ships the fields, replace each source with the real Rec field
+                // (e.g. Rec."Enable API Tools" / Rec."Enable Data Query Tools") so they become normal
+                // bound columns (and can be made editable).
+                field(APITools; MCPConfigImplementation.IsAPIToolsEnabled(Rec.SystemId))
                 {
-                    ToolTip = 'Specifies whether to enable dynamic tool mode for this MCP configuration. When enabled, clients can search for tools within the configuration dynamically.';
+                    Caption = 'API Tools';
+                    ToolTip = 'Specifies whether the API Tools feature is enabled for this configuration.';
+                    Editable = false;
                 }
-                field(DiscoverReadOnlyObjects; Rec.DiscoverReadOnlyObjects)
+                field(DataQueryTools; MCPConfigImplementation.IsDataQueryToolsEnabled(Rec.SystemId))
                 {
-                    ToolTip = 'Specifies whether to allow discovery of read-only objects not defined in the configuration. Only supported with dynamic tool mode.';
+                    Caption = 'Data Query Tools';
+                    ToolTip = 'Specifies whether the Data Query Tools feature is enabled for this configuration.';
+                    Editable = false;
                 }
             }
         }
@@ -77,6 +86,40 @@ page 8350 "MCP Config List"
         }
         area(Processing)
         {
+            action(SetAsDefault)
+            {
+                Caption = 'Set as Default';
+                ToolTip = 'Set this configuration as the default. It will be used when no configuration is specified by a connection.';
+                Image = Approve;
+                AccessByPermission = tabledata "MCP Configuration" = M;
+                Scope = Repeater;
+                Enabled = not Rec.Default;
+
+                trigger OnAction()
+                var
+                    MCPConfigImplementation: Codeunit "MCP Config Implementation";
+                begin
+                    MCPConfigImplementation.SetAsDefaultConfiguration(Rec.SystemId);
+                    CurrPage.Update(false);
+                end;
+            }
+            action(ClearDefault)
+            {
+                Caption = 'Clear Default';
+                ToolTip = 'Remove the default designation from this configuration. The system will revert to built-in default settings.';
+                Image = Undo;
+                AccessByPermission = tabledata "MCP Configuration" = M;
+                Scope = Repeater;
+                Enabled = Rec.Default;
+
+                trigger OnAction()
+                var
+                    MCPConfigImplementation: Codeunit "MCP Config Implementation";
+                begin
+                    MCPConfigImplementation.ClearDefaultConfiguration();
+                    CurrPage.Update(false);
+                end;
+            }
             action(GiveFeedback)
             {
                 Caption = 'Give Feedback';
@@ -142,6 +185,8 @@ page 8350 "MCP Config List"
         area(Promoted)
         {
             actionref(Promoted_Copy; Copy) { }
+            actionref(Promoted_SetAsDefault; SetAsDefault) { }
+            actionref(Promoted_ClearDefault; ClearDefault) { }
             actionref(Promoted_GiveFeedback; GiveFeedback) { }
             actionref(Promoted_ExportConfiguration; ExportConfiguration) { }
             actionref(Promoted_ImportConfiguration; ImportConfiguration) { }

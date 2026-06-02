@@ -5,7 +5,7 @@
 
 namespace System.MCP;
 
-codeunit 8368 "MCP AL Query Tools Feature" implements "MCP Server Features"
+codeunit 8368 "MCP Data Query Tools Feature" implements "MCP Server Features"
 {
     Access = Internal;
 
@@ -13,14 +13,14 @@ codeunit 8368 "MCP AL Query Tools Feature" implements "MCP Server Features"
     var
         MCPConfigImplementation: Codeunit "MCP Config Implementation";
     begin
-        MCPConfigImplementation.EnableALQueryTools(ConfigId, Active);
+        MCPConfigImplementation.EnableDataQueryTools(ConfigId, Active);
     end;
 
     procedure IsActive(ConfigId: Guid): Boolean
     var
         MCPConfigImplementation: Codeunit "MCP Config Implementation";
     begin
-        exit(MCPConfigImplementation.IsALQueryToolsEnabled(ConfigId));
+        exit(MCPConfigImplementation.IsDataQueryToolsEnabled(ConfigId));
     end;
 
     procedure HasSettings(): Boolean
@@ -40,7 +40,7 @@ codeunit 8368 "MCP AL Query Tools Feature" implements "MCP Server Features"
 
     procedure LoadSystemTools(var MCPSystemTool: Record "MCP System Tool")
     begin
-        // MOCK: hardcoded preview of the AL Query system tools. Replace with a real MCP Utilities
+        // MOCK: hardcoded preview of the Data Query Tools system tools. Replace with a real MCP Utilities
         // call (mirroring GetSystemToolsInDynamicMode) once the platform exposes the catalog.
         InsertTool(MCPSystemTool, 'compile_al_query', 'Compile an AL query string and return diagnostics.');
         InsertTool(MCPSystemTool, 'run_al_query', 'Execute a previously compiled AL query and return the result set.');
@@ -53,12 +53,12 @@ codeunit 8368 "MCP AL Query Tools Feature" implements "MCP Server Features"
 
     local procedure InsertTool(var MCPSystemTool: Record "MCP System Tool"; ToolName: Text[100]; ToolDescription: Text[250])
     begin
-        MCPSystemTool."Server Feature" := MCPSystemTool."Server Feature"::"AL Query Tools";
+        MCPSystemTool."Server Feature" := MCPSystemTool."Server Feature"::"Data Query Tools";
         MCPSystemTool."Tool Name" := ToolName;
         MCPSystemTool."Tool Description" := ToolDescription;
         MCPSystemTool.Insert();
     end;
 
     var
-        DescriptionLbl: Label 'Adds system tools that compile and run AL query code submitted by the client on demand, letting agents author ad-hoc joins and aggregates that no pre-defined API query covers. API queries and API pages added to Available APIs are exposed independently and are not affected by this feature.';
+        DescriptionLbl: Label 'Adds system tools that compile and run data query code submitted by the client on demand, letting agents author ad-hoc joins and aggregates that no pre-defined API query covers. API queries and API pages added to Available APIs are exposed independently and are not affected by this feature.';
 }

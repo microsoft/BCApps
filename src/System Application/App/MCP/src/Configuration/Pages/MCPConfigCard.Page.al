@@ -64,19 +64,8 @@ page 8351 "MCP Config Card"
                     field(Default; Rec.Default)
                     {
                         Caption = 'Default';
-                        ToolTip = 'Specifies whether this configuration is the default. The default configuration is used when no configuration is specified by a connection. Clear this field to remove the default designation, in which case the system reverts to built-in default configuration.';
-                        Editable = not IsDefault;
-
-                        trigger OnValidate()
-                        begin
-                            if Rec.Default = xRec.Default then
-                                exit;
-
-                            if Rec.Default then
-                                MCPConfigImplementation.SetAsDefaultConfiguration(Rec.SystemId)
-                            else
-                                MCPConfigImplementation.ClearDefaultConfiguration();
-                        end;
+                        ToolTip = 'Specifies whether this configuration is the default. The default configuration is used when no configuration is specified by a connection. Use the Set as Default and Clear Default actions on the configuration list to change this.';
+                        Editable = false;
                     }
                     field(AllowProdChanges; Rec.AllowProdChanges)
                     {
