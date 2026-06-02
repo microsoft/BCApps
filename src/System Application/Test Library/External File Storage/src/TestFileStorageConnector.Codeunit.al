@@ -43,7 +43,13 @@ codeunit 135814 "Test File Storage Connector" implements "External File Storage 
     end;
 
     procedure DeleteFile(AccountId: Guid; Path: Text);
+    var
+        TestFileConnectorSetup: Record "Test File Connector Setup";
     begin
+        if TestFileConnectorSetup.FindFirst() then begin
+            TestFileConnectorSetup."Last Deleted File Path" := CopyStr(Path, 1, MaxStrLen(TestFileConnectorSetup."Last Deleted File Path"));
+            TestFileConnectorSetup.Modify();
+        end;
     end;
 
     procedure ListDirectories(AccountId: Guid; Path: Text; FilePaginationData: Codeunit "File Pagination Data"; var TempFileAccountContent: Record "File Account Content" temporary);

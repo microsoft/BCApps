@@ -391,13 +391,14 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         DocumentAttachment.SetRecFilter();
         DocumentAttachment.FindFirst();
         ExternalFilePath := DocumentAttachment."External File Path";
-        Assert.IsTrue(DAExternalStorageImpl.CheckIfFileExistInExternalStorage(ExternalFilePath), 'Precondition: blob should exist after upload');
+        Assert.AreNotEqual('', ExternalFilePath, 'Precondition: upload should set the External File Path');
 
         // [WHEN] The Document Attachment row is deleted (fires OnAfterDeleteEvent)
         DocumentAttachment.Delete(true);
 
-        // [THEN] The external blob is removed
-        Assert.IsFalse(DAExternalStorageImpl.CheckIfFileExistInExternalStorage(ExternalFilePath), 'Blob should be deleted from external storage when the attachment row is deleted');
+        // [THEN] The subscriber invoked DeleteFile against the external connector with the stored path
+        Assert.AreEqual(ExternalFilePath, FileConnectorMock.GetLastDeletedPath(),
+            'External connector DeleteFile should be invoked with the stored External File Path when the attachment row is deleted');
     end;
 
     [Test]
@@ -426,8 +427,9 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         // [WHEN] The row is deleted
         DocumentAttachment.Delete(true);
 
-        // [THEN] The shared blob is still present
-        Assert.IsTrue(DAExternalStorageImpl.CheckIfFileExistInExternalStorage(ExternalFilePath), 'Blob should be preserved when Skip Delete On Copy is set');
+        // [THEN] The subscriber must NOT invoke DeleteFile for this path
+        Assert.AreNotEqual(ExternalFilePath, FileConnectorMock.GetLastDeletedPath(),
+            'External connector DeleteFile should not be invoked when Skip Delete On Copy is set');
     end;
 
     [Test]
@@ -457,8 +459,9 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         // [WHEN] The row is deleted
         DocumentAttachment.Delete(true);
 
-        // [THEN] The blob is preserved
-        Assert.IsTrue(DAExternalStorageImpl.CheckIfFileExistInExternalStorage(ExternalFilePath), 'Blob should be preserved when the file belongs to another environment or company');
+        // [THEN] The subscriber must NOT invoke DeleteFile for this path
+        Assert.AreNotEqual(ExternalFilePath, FileConnectorMock.GetLastDeletedPath(),
+            'External connector DeleteFile should not be invoked when the file belongs to another environment or company');
     end;
 
     [Test]
@@ -484,8 +487,9 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         // [WHEN] The row is deleted
         DocumentAttachment.Delete(true);
 
-        // [THEN] The blob remains
-        Assert.IsTrue(DAExternalStorageImpl.CheckIfFileExistInExternalStorage(ExternalFilePath), 'Blob should be preserved when Delete from External Storage is disabled');
+        // [THEN] The subscriber must NOT invoke DeleteFile when the feature setting opts out
+        Assert.AreNotEqual(ExternalFilePath, FileConnectorMock.GetLastDeletedPath(),
+            'External connector DeleteFile should not be invoked when Delete from External Storage is disabled');
     end;
 
     #endregion

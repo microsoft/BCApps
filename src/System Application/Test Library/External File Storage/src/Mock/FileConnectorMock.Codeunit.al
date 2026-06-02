@@ -116,4 +116,13 @@ codeunit 135810 "File Connector Mock"
         TestFileConnectorSetup."Unsuccessful Register" := Fail;
         TestFileConnectorSetup.Modify();
     end;
+
+    procedure GetLastDeletedPath(): Text
+    var
+        TestFileConnectorSetup: Record "Test File Connector Setup";
+    begin
+        if not TestFileConnectorSetup.FindFirst() then
+            exit('');
+        exit(TestFileConnectorSetup."Last Deleted File Path");
+    end;
 }
