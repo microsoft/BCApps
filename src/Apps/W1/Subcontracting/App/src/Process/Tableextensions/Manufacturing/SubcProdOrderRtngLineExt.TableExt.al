@@ -175,13 +175,12 @@ tableextension 99001506 "Subc. ProdOrderRtngLine Ext." extends "Prod. Order Rout
         if ProdOrderLine.Find('-') then
             repeat
                 PurchLine.SetLoadFields(SystemId);
-                PurchLine.SetCurrentKey(
-                  "Document Type", Type, "Prod. Order No.", "Prod. Order Line No.", "Routing No.", "Operation No.");
-                PurchLine.SetRange("Document Type", PurchLine."Document Type"::Order);
-                PurchLine.SetRange(Type, PurchLine.Type::Item);
+                PurchLine.SetCurrentKey("Prod. Order No.", "Prod. Order Line No.", "Routing No.", "Operation No.");
                 PurchLine.SetRange("Prod. Order No.", "Prod. Order No.");
                 PurchLine.SetRange("Prod. Order Line No.", ProdOrderLine."Line No.");
                 PurchLine.SetRange("Operation No.", "Operation No.");
+                PurchLine.SetRange("Document Type", PurchLine."Document Type"::Order);
+                PurchLine.SetRange(Type, PurchLine.Type::Item);
                 if "Next Operation No." <> '' then begin
                     PurchLine.SetRange("Subc. Purchase Line Type", "Subc. Purchase Line Type"::LastOperation);
                     if PurchLine.FindFirst() then
@@ -210,12 +209,11 @@ tableextension 99001506 "Subc. ProdOrderRtngLine Ext." extends "Prod. Order Rout
         if ProdOrderLine.Find('-') then
             repeat
                 PurchLine.SetLoadFields(SystemId);
-                PurchLine.SetCurrentKey(
-                  "Document Type", Type, "Prod. Order No.", "Prod. Order Line No.", "Routing No.", "Operation No.");
-                PurchLine.SetRange("Document Type", PurchLine."Document Type"::Order);
-                PurchLine.SetRange(Type, PurchLine.Type::Item);
+                PurchLine.SetCurrentKey("Prod. Order No.", "Prod. Order Line No.", "Routing No.", "Operation No.");
                 PurchLine.SetRange("Prod. Order No.", "Prod. Order No.");
                 PurchLine.SetRange("Prod. Order Line No.", ProdOrderLine."Line No.");
+                PurchLine.SetRange("Document Type", PurchLine."Document Type"::Order);
+                PurchLine.SetRange(Type, PurchLine.Type::Item);
                 if "Next Operation No." = '' then begin
                     PrevProdOrderRoutingLine := Rec;
                     PrevProdOrderRoutingLine.SetRecFilter();
