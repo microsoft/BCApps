@@ -7,6 +7,7 @@ namespace Microsoft.eServices.EDocument.Test;
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Integration;
 using Microsoft.eServices.EDocument.IO.Peppol;
+using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Address;
