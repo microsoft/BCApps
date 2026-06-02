@@ -5,6 +5,7 @@
 namespace Microsoft.QualityManagement.Configuration.Template;
 
 using Microsoft.QualityManagement.Configuration.Result;
+using Microsoft.QualityManagement.Configuration.Template.Test;
 using Microsoft.QualityManagement.Document;
 
 /// <summary>
@@ -468,6 +469,26 @@ page 20403 "Qlty. Inspection Template Subf"
                         AssistEditConditionDescription(10);
                     end;
                 }
+            }
+        }
+    }
+
+    actions
+    {
+        area(Processing)
+        {
+            action(AddMultipleTests)
+            {
+                AccessByPermission = TableData "Qlty. Test" = R;
+                Caption = 'Select tests';
+                Ellipsis = true;
+                Image = SelectMore;
+                ToolTip = 'Add two or more tests to this template, by selecting from the full list of quality tests. Tests that already exist in the template are skipped.';
+
+                trigger OnAction()
+                begin
+                    Rec.SelectMultipleTests();
+                end;
             }
         }
     }

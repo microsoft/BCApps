@@ -177,6 +177,56 @@ table 20403 "Qlty. Inspection Template Line"
         OnValidateExpressionFormula(Rec);
     end;
 
+    #region Add Multiple Tests
+    internal procedure SelectMultipleTests()
+    var
+        SelectionFilter: Text;
+    begin
+        SelectionFilter := SelectInQltyTests();
+
+        if SelectionFilter <> '' then
+            AddTests(SelectionFilter);
+    end;
+
+    local procedure SelectInQltyTests(): Text
+    var
+        QltyTests: Page "Qlty. Tests";
+    begin
+        QltyTests.LookupMode(true);
+        if QltyTests.RunModal() = Action::LookupOK then
+            exit(QltyTests.GetSelectionFilter());
+    end;
+
+    local procedure AddTests(SelectionFilter: Text)
+    var
+        QltyTest: Record "Qlty. Test";
+    begin
+        QltyTest.SetFilter(Code, SelectionFilter);
+        if QltyTest.FindSet() then
+            repeat
+                AddTestToTemplateLine(QltyTest.Code);
+            until QltyTest.Next() = 0;
+    end;
+
+    local procedure AddTestToTemplateLine(QltyTestCode: Code[20])
+    var
+        ExistingQltyInspectionTemplateLine, NewQltyInspectionTemplateLine : Record "Qlty. Inspection Template Line";
+    begin
+        ExistingQltyInspectionTemplateLine.SetRange("Template Code", Rec."Template Code");
+        ExistingQltyInspectionTemplateLine.SetRange("Test Code", QltyTestCode);
+        if not ExistingQltyInspectionTemplateLine.IsEmpty() then
+            exit;
+
+        NewQltyInspectionTemplateLine.Init();
+        NewQltyInspectionTemplateLine."Template Code" := Rec."Template Code";
+        NewQltyInspectionTemplateLine.InitLineNoIfNeeded();
+        NewQltyInspectionTemplateLine.Validate("Test Code", QltyTestCode);
+        NewQltyInspectionTemplateLine.Insert(true);
+        NewQltyInspectionTemplateLine.EnsureResultsExist(true);
+        NewQltyInspectionTemplateLine.Modify();
+    end;
+    #endregion Add Multiple Tests
+
     /// <summary>
     /// Validates the expression formula.
     /// </summary>
