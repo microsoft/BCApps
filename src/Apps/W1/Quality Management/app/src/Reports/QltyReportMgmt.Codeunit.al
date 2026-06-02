@@ -24,8 +24,6 @@ codeunit 20440 "Qlty. Report Mgmt."
     var
         ReportSelections: Record "Report Selections";
     begin
-        LogGeneralPurposeInspectionReportRun();
-
         ReportSelections.SetRange(Usage, ReportSelections.Usage::"Quality Management - General Purpose Inspection");
         if ReportSelections.IsEmpty() then
             Report.Run(Report::"Qlty. General Purpose Inspect.", true, true, QltyInspectionHeader)
@@ -37,8 +35,6 @@ codeunit 20440 "Qlty. Report Mgmt."
     var
         ReportSelections: Record "Report Selections";
     begin
-        LogNonConformanceReportRun();
-
         ReportSelections.SetRange(Usage, ReportSelections.Usage::"Quality Management - Non-Conformance");
         if ReportSelections.IsEmpty() then
             Report.Run(Report::"Qlty. Non-Conformance", true, true, QltyInspectionHeader)
@@ -50,8 +46,6 @@ codeunit 20440 "Qlty. Report Mgmt."
     var
         ReportSelections: Record "Report Selections";
     begin
-        LogCertificateOfAnalysisReportRun();
-
         ReportSelections.SetRange(Usage, ReportSelections.Usage::"Quality Management - Certificate of Analysis");
         if ReportSelections.IsEmpty() then
             Report.Run(Report::"Qlty. Certificate of Analysis", true, true, QltyInspectionHeader)
