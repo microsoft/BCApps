@@ -92,6 +92,7 @@ codeunit 139629 "Library - E-Document"
         Customer.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
         Customer."VAT Registration No." := LibraryERM.GenerateVATRegistrationNo(CountryRegion.Code);
         Customer.Validate(GLN, '1234567890128');
+        Customer.Validate("E-Mail", 'edoc-test@contoso.com');
         Customer."Document Sending Profile" := DocumentSendingProfile.Code;
         Customer.Modify(true);
 
