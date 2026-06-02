@@ -35,9 +35,16 @@ codeunit 30161 "Shpfy Import Order"
 
     internal procedure ReimportExistingOrderConfirmIfConflicting(OrderHeader: Record "Shpfy Order Header")
     var
+        ShopToRefresh: Record "Shpfy Shop";
         OrderMapping: Codeunit "Shpfy Order Mapping";
     begin
         OrderHeader.Get(OrderHeader."Shopify Order Id");
+        if ShopToRefresh.Get(OrderHeader."Shop Code") then begin
+            ShopToRefresh.GetShopSettings();
+#pragma warning disable AA0214
+            ShopToRefresh.Modify();
+#pragma warning restore AA0214
+        end;
         ImportOrderAndCreateOrUpdate(OrderHeader."Shop Code", OrderHeader."Shopify Order Id");
         OrderHeader.Get(OrderHeader."Shopify Order Id");
         if OrderMapping.DoMapping(OrderHeader) then;
@@ -636,11 +643,13 @@ codeunit 30161 "Shpfy Import Order"
     var
         JOrderLine: JsonToken;
     begin
-        foreach JOrderLine in JOrderLines do
+        foreach JOrderLine in JOrderLines do begin
+            TempOrderLine.Init();
             if SetOrderLineValuesFromJson(JOrderLine, OrderId, TempOrderLine) then begin
                 TempOrderLine.Insert();
                 DataCaptureDict.Add(TempOrderLine."Line Id", JOrderLine);
             end;
+        end;
     end;
 
     internal procedure TranslateCurrencyCode(ShopifyCurrencyCode: Text): Code[10]

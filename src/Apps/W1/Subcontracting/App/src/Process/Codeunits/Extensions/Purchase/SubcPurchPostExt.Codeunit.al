@@ -17,13 +17,18 @@ using Microsoft.Purchases.History;
 using Microsoft.Purchases.Posting;
 codeunit 99001535 "Subc. Purch. Post Ext"
 {
-    var
-        SubcManagementSetup: Record "Subc. Management Setup";
-
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnBeforeItemJnlPostLine, '', false, false)]
     local procedure "Purch.-Post_OnBeforeItemJnlPostLine"(var ItemJournalLine: Record "Item Journal Line"; TempItemChargeAssignmentPurch: Record "Item Charge Assignment (Purch)" temporary)
     begin
         FillItemJnlLineForSubcontractingItemCharge(ItemJournalLine, TempItemChargeAssignmentPurch);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Mfg. Purch.-Post", OnAfterPostItemJnlLineCopyProdOrder, '', false, false)]
+    local procedure MfgPurchPostOnAfterPostItemJnlLineCopyProdOrder(var ItemJnlLine: Record "Item Journal Line"; PurchLine: Record "Purchase Line")
+    begin
+        ItemJnlLine."Subc. Purch. Order No." := PurchLine."Document No.";
+        ItemJnlLine."Subc. Purch. Order Line No." := PurchLine."Line No.";
+        ItemJnlLine."Subc. Operation No." := PurchLine."Operation No.";
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnPostItemChargePerRcptOnAfterCalcDistributeCharge, '', false, false)]
@@ -36,8 +41,6 @@ codeunit 99001535 "Subc. Purch. Post Ext"
     var
         PurchRcptLine: Record "Purch. Rcpt. Line";
     begin
-        if not SubcManagementSetup.ItemChargeToRcptSubReferenceEnabled() then
-            exit;
         if ItemJournalLine."Item Charge No." = '' then
             exit;
         if not PurchRcptLine.Get(TempItemChargeAssignmentPurch."Applies-to Doc. No.", TempItemChargeAssignmentPurch."Applies-to Doc. Line No.") then
@@ -52,9 +55,6 @@ codeunit 99001535 "Subc. Purch. Post Ext"
     var
         UnitofMeasureManagement: Codeunit "Unit of Measure Management";
     begin
-        if not SubcManagementSetup.ItemChargeToRcptSubReferenceEnabled() then
-            exit;
-
         if PurchRcptLine."Quantity (Base)" = 0 then
             if PurchRcptLineHasProdOrder(PurchRcptLine) then
                 PurchRcptLine."Quantity (Base)" := UnitofMeasureManagement.CalcBaseQty(
@@ -88,7 +88,7 @@ codeunit 99001535 "Subc. Purch. Post Ext"
         Item.SetLoadFields("Inventory Posting Group");
         Item.Get(ItemJournalLine."Item No.");
         ItemJournalLine."Inventory Posting Group" := Item."Inventory Posting Group";
-        ItemJournalLine."Item Charge Sub. Assign." := true;
+        ItemJournalLine."Subc. Item Charge Assign." := true;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnPostItemJnlLineOnAfterPostItemJnlLineJobConsumption, '', false, false)]

@@ -14,6 +14,7 @@ query 37007 "Manufacturing Setup - PBI API"
     Access = Internal;
     Caption = 'Power BI Manufacturing Setup';
     QueryType = API;
+    AboutText = 'Provides access to manufacturing setup configuration including capacity unit of measure settings. Enables Power BI reports to retrieve capacity display preferences for consistent unit formatting in manufacturing analytics and capacity reports.';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';
     ApiVersion = 'v0.5', 'v1.0';

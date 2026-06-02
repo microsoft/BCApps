@@ -9,6 +9,17 @@ using Microsoft.Warehouse.Document;
 
 pageextension 99001534 "Subc. Whse Rcpt Lines Ext." extends "Whse. Receipt Lines"
 {
+    layout
+    {
+        addlast(Control1)
+        {
+            field("Transfer WIP Item"; Rec."Transfer WIP Item")
+            {
+                ApplicationArea = Manufacturing;
+                Visible = false;
+            }
+        }
+    }
     actions
     {
         addafter("&Show Source Document Line")
@@ -24,9 +35,8 @@ pageextension 99001534 "Subc. Whse Rcpt Lines Ext." extends "Whse. Receipt Lines
                     ToolTip = 'View the related production order.';
                     trigger OnAction()
                     begin
-                        if Rec."Source Type" = Database::"Purchase Line" then
-                            if PurchaseLine.Get(Rec."Source Subtype", Rec."Source No.", Rec."Source Line No.") then
-                                ShowProductionOrder(PurchaseLine);
+                        if GetSourcePurchaseLine() then
+                            ShowProductionOrder(PurchaseLine);
                     end;
                 }
                 action("Production Order Routing")
@@ -37,9 +47,8 @@ pageextension 99001534 "Subc. Whse Rcpt Lines Ext." extends "Whse. Receipt Lines
                     ToolTip = 'View the related production order routing.';
                     trigger OnAction()
                     begin
-                        if Rec."Source Type" = Database::"Purchase Line" then
-                            if PurchaseLine.Get(Rec."Source Subtype", Rec."Source No.", Rec."Source Line No.") then
-                                ShowProductionOrderRouting(PurchaseLine);
+                        if GetSourcePurchaseLine() then
+                            ShowProductionOrderRouting(PurchaseLine);
                     end;
                 }
                 action("Production Order Components")
@@ -50,9 +59,8 @@ pageextension 99001534 "Subc. Whse Rcpt Lines Ext." extends "Whse. Receipt Lines
                     ToolTip = 'View the related production order components.';
                     trigger OnAction()
                     begin
-                        if Rec."Source Type" = Database::"Purchase Line" then
-                            if PurchaseLine.Get(Rec."Source Subtype", Rec."Source No.", Rec."Source Line No.") then
-                                ShowProductionOrderComponents(PurchaseLine);
+                        if GetSourcePurchaseLine() then
+                            ShowProductionOrderComponents(PurchaseLine);
                     end;
                 }
                 action("Transfer Order")
@@ -63,9 +71,8 @@ pageextension 99001534 "Subc. Whse Rcpt Lines Ext." extends "Whse. Receipt Lines
                     ToolTip = 'View the related transfer order.';
                     trigger OnAction()
                     begin
-                        if Rec."Source Type" = Database::"Purchase Line" then
-                            if PurchaseLine.Get(Rec."Source Subtype", Rec."Source No.", Rec."Source Line No.") then
-                                SubcPurchFactboxMgmt.ShowTransferOrdersAndReturnOrder(Rec, true, false);
+                        if GetSourcePurchaseLine() then
+                            SubcPurchFactboxMgmt.ShowTransferOrdersAndReturnOrder(PurchaseLine, true, false);
                     end;
                 }
                 action("Return Transfer Order")
@@ -76,9 +83,8 @@ pageextension 99001534 "Subc. Whse Rcpt Lines Ext." extends "Whse. Receipt Lines
                     ToolTip = 'View the related return transfer order.';
                     trigger OnAction()
                     begin
-                        if Rec."Source Type" = Database::"Purchase Line" then
-                            if PurchaseLine.Get(Rec."Source Subtype", Rec."Source No.", Rec."Source Line No.") then
-                                SubcPurchFactboxMgmt.ShowTransferOrdersAndReturnOrder(Rec, true, true);
+                        if GetSourcePurchaseLine() then
+                            SubcPurchFactboxMgmt.ShowTransferOrdersAndReturnOrder(PurchaseLine, true, true);
                     end;
                 }
             }
@@ -88,6 +94,18 @@ pageextension 99001534 "Subc. Whse Rcpt Lines Ext." extends "Whse. Receipt Lines
         PurchaseLine: Record "Purchase Line";
         SubcProdOrderFactboxMgmt: Codeunit "Subc. ProdO. Factbox Mgmt.";
         SubcPurchFactboxMgmt: Codeunit "Subc. Purch. Factbox Mgmt.";
+
+    local procedure GetSourcePurchaseLine(): Boolean
+    begin
+        if Rec."Source Type" <> Database::"Purchase Line" then
+            exit(false);
+        if (PurchaseLine."Document Type".AsInteger() = Rec."Source Subtype") and
+           (PurchaseLine."Document No." = Rec."Source No.") and
+           (PurchaseLine."Line No." = Rec."Source Line No.")
+        then
+            exit(true);
+        exit(PurchaseLine.Get(Rec."Source Subtype", Rec."Source No.", Rec."Source Line No."));
+    end;
 
     local procedure ShowProductionOrder(RecRelatedVariant: Variant)
     begin

@@ -58,7 +58,7 @@ pageextension 149032 "Agent Run History" extends "AIT Run History"
                 var
                     AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
                 begin
-                    AgentTestContextImpl.OpenAgentTaskList(Rec."Agent Task IDs - By Tag");
+                    AgentTestContextImpl.OpenAgentConsumptionOverview(Rec."Agent Task IDs - By Tag");
                 end;
             }
             field("Agent Task Count - By Tag"; AgentTaskCountByTag)

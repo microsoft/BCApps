@@ -24,7 +24,7 @@ using System.Utilities;
 /// (Complete, Pending, Error), credit memo lifecycle, HTTP failures during status checks,
 /// and mandate type mismatch scenarios.
 /// </summary>
-codeunit 148192 "Extended Integration Tests"
+codeunit 148225 "Extended Integration Tests"
 {
     Permissions = tabledata "Activation Mandate" = rimd,
                   tabledata "Connection Setup" = rimd,

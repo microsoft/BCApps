@@ -131,7 +131,6 @@ table 20403 "Qlty. Inspection Template Line"
             exit;
 
         InitLineNoIfNeeded();
-        EnsureResultsExist(true);
         Rec.CalcFields("Test Value Type");
     end;
 
@@ -139,13 +138,14 @@ table 20403 "Qlty. Inspection Template Line"
     var
         ExistingsQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
     begin
-        if Rec."Line No." = 0 then begin
-            ExistingsQltyInspectionTemplateLine.SetRange("Template Code", Rec."Template Code");
-            ExistingsQltyInspectionTemplateLine.SetCurrentKey("Template Code", "Line No.");
-            ExistingsQltyInspectionTemplateLine.Ascending(false);
-            if ExistingsQltyInspectionTemplateLine.FindFirst() then;
-            Rec."Line No." := ExistingsQltyInspectionTemplateLine."Line No." + 10000;
-        end;
+        if Rec."Line No." <> 0 then
+            exit;
+
+        ExistingsQltyInspectionTemplateLine.SetRange("Template Code", Rec."Template Code");
+        ExistingsQltyInspectionTemplateLine.SetCurrentKey("Template Code", "Line No.");
+        ExistingsQltyInspectionTemplateLine.Ascending(true);
+        if ExistingsQltyInspectionTemplateLine.FindLast() then;
+        Rec."Line No." := ExistingsQltyInspectionTemplateLine."Line No." + 10000;
     end;
 
     trigger OnModify()
