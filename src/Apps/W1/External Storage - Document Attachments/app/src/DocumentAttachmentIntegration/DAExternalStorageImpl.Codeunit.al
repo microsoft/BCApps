@@ -388,14 +388,14 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
             exit(true);
         end;
 
-        if not TryDeleteExternalFile(DocumentAttachment."External File Path", DocumentAttachment) then
+        if not DeleteExternalFile(DocumentAttachment."External File Path", DocumentAttachment) then
             exit(false);
 
         DocumentAttachment.MarkAsNotUploadedToExternal();
         exit(true);
     end;
 
-    local procedure TryDeleteExternalFile(ExternalFilePath: Text; DocumentAttachmentForTelemetry: Record "Document Attachment"): Boolean
+    local procedure DeleteExternalFile(ExternalFilePath: Text; DocumentAttachmentForTelemetry: Record "Document Attachment"): Boolean
     var
         TempFileAccount: Record "File Account";
         ExternalFileStorage: Codeunit "External File Storage";
@@ -835,7 +835,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         // The Document Attachment row is already deleted at this point, so we cannot
         // Find() or Modify() it. Delete the blob using the field values still carried
         // on Rec, bypassing the record-based DeleteFromExternalStorage entry point.
-        TryDeleteExternalFile(Rec."External File Path", Rec);
+        DeleteExternalFile(Rec."External File Path", Rec);
     end;
 
     /// <summary>
