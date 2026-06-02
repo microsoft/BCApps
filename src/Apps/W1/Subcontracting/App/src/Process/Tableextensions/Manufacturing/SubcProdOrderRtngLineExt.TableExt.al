@@ -110,7 +110,7 @@ tableextension 99001506 "Subc. ProdOrderRtngLine Ext." extends "Prod. Order Rout
             DecimalPlaces = 0 : 5;
             Editable = false;
             FieldClass = FlowField;
-            ToolTip = 'Specifies the total work-in-progress quantity (base) of the production order parent item currently held at the subcontractor location for this operation, as tracked by Subcontractor WIP Ledger Entries.';
+            ToolTip = 'Specifies the total work-in-progress quantity (base) of the production order parent item currently held at the subcontractor location for this operation, as tracked by Subcontracting WIP Entries.';
         }
         field(99001564; "WIP Qty. (Base) in Transit"; Decimal)
         {
