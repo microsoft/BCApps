@@ -10,8 +10,7 @@ using System.Environment.Configuration;
 
 codeunit 99001568 "Subc. Application Area Handler"
 {
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Application Area Mgmt. Facade",
-        OnGetPremiumExperienceAppAreas, '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Application Area Mgmt. Facade", OnGetPremiumExperienceAppAreas, '', false, false)]
     local procedure OnGetPremiumExperienceAppAreasSubscriber(var TempApplicationAreaSetup: Record "Application Area Setup")
     begin
         SetApplicationArea(TempApplicationAreaSetup);

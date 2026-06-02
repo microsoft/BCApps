@@ -22,8 +22,11 @@ tableextension 99001503 "Subc. Planning Comp Ext." extends "Planning Component"
             trigger OnValidate()
             var
                 Item: Record Item;
+                SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
                 SubcontractingManagement: Codeunit "Subcontracting Management";
             begin
+                if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+                    exit;
                 if "Subcontracting Type" = "Subcontracting Type"::Transfer then
                     if "Item No." <> '' then begin
                         Item.Get("Item No.");

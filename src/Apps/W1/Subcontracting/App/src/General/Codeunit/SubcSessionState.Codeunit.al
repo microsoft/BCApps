@@ -9,12 +9,15 @@ codeunit 99001500 "Subc. Session State"
     SingleInstance = true;
 
     var
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
         CodeDictionary: Dictionary of [Text, Code[1024]];
         DateDictionary: Dictionary of [Text, Date];
         RecordIDDictionary: Dictionary of [Text, RecordId];
 
     procedure ClearAllDictionariesForKey(StoredKey: Text)
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
 
         if CodeDictionary.ContainsKey(StoredKey) then
             CodeDictionary.Remove(StoredKey);
@@ -28,6 +31,9 @@ codeunit 99001500 "Subc. Session State"
 
     procedure SetCode(KeyToStore: Text; CodeToStore: Code[1024])
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
+
         if CodeDictionary.ContainsKey(KeyToStore) then
             CodeDictionary.Set(KeyToStore, CodeToStore)
         else
@@ -36,6 +42,9 @@ codeunit 99001500 "Subc. Session State"
 
     procedure SetDate(KeyToStore: Text; DateToStore: Date)
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
+
         if DateDictionary.ContainsKey(KeyToStore) then
             DateDictionary.Set(KeyToStore, DateToStore)
         else
@@ -44,6 +53,9 @@ codeunit 99001500 "Subc. Session State"
 
     procedure SetRecordID(KeyToStore: Text; RecordIDToStore: RecordId)
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
+
         if RecordIDDictionary.ContainsKey(KeyToStore) then
             RecordIDDictionary.Set(KeyToStore, RecordIDToStore)
         else
@@ -52,18 +64,27 @@ codeunit 99001500 "Subc. Session State"
 
     procedure GetCode(StoredKey: Text): Code[1024]
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
+
         if CodeDictionary.ContainsKey(StoredKey) then
             exit(CodeDictionary.Get(StoredKey));
     end;
 
     procedure GetDate(StoredKey: Text): Date
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
+
         if DateDictionary.ContainsKey(StoredKey) then
             exit(DateDictionary.Get(StoredKey));
     end;
 
     procedure GetRecordID(StoredKey: Text; var ReturnRecordID: RecordId)
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
+
         Clear(ReturnRecordID);
         if RecordIDDictionary.ContainsKey(StoredKey) then
             ReturnRecordID := RecordIDDictionary.Get(StoredKey);

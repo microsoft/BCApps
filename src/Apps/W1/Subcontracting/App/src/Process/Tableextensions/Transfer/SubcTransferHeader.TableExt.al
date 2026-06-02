@@ -38,7 +38,11 @@ tableextension 99001520 "Subc. Transfer Header" extends "Transfer Header"
             Caption = 'Source ID';
             DataClassification = CustomerContent;
             trigger OnLookup()
+            var
+                SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
             begin
+                if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+                    exit;
                 HandleSubcontractingSourceLookup(Rec);
             end;
         }
@@ -91,7 +95,11 @@ tableextension 99001520 "Subc. Transfer Header" extends "Transfer Header"
     end;
 
     procedure CheckDirectTransferPosting()
+    var
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
         TestField("Transfer-to Code");
     end;
 }

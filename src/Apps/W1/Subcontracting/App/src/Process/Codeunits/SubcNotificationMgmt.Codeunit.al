@@ -13,30 +13,41 @@ codeunit 99001506 "Subc. Notification Mgmt."
         ProdOrdNotificationNameLbl: Label 'Show Created Production Orders';
         SubcOrdNotificationDescriptionTxt: Label 'Show a notification if Subcontracting Orders were created for Subcontracting.';
         SubcOrdNotificationNameLbl: Label 'Show Created Subcontracting Orders';
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
 
     procedure ShowCreatedProductionOrderConfirmationMessageCode(): Code[50]
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit('');
         exit(UpperCase(GetShowCreatedProductionOrderCode()));
     end;
 
     procedure ShowCreatedSubcontractingOrderConfirmationMessageCode(): Code[50]
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit('');
         exit(UpperCase(GetShowCreatedSubContPurchOrderCode()));
     end;
 
     procedure GetShowCreatedProductionOrderCode(): Code[50]
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit('');
         exit('Show Created Production Orders');
     end;
 
     procedure GetShowCreatedSubContPurchOrderCode(): Code[50]
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit('');
         exit('Show Created Subcontracting Orders');
     end;
 
     [EventSubscriber(ObjectType::Page, Page::"My Notifications", OnInitializingNotificationWithDefaultState, '', false, false)]
     local procedure InitializeSubcontractingNotifications()
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
         RegisterSubcontrProductionOrderCreatedNotification();
         RegisterSubcontrPurchOrderCreatedNotification();
     end;
@@ -60,17 +71,23 @@ codeunit 99001506 "Subc. Notification Mgmt."
         MyNotifications: Record "My Notifications";
         PageMyNotifications: Page "My Notifications";
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
         PageMyNotifications.InitializeNotificationsWithDefaultState();
         MyNotifications.Disable(NotificationVar.Id());
     end;
 
     procedure GetGuidProductionOrderCreatedNotification(): Guid
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
         exit('{5d564aca-ce60-4345-ba68-e1e50976a346}');
     end;
 
     procedure GetGuidSubcontractingPOCreatedNotification(): Guid
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
         exit('{f7b10c9e-071a-4455-a048-d17b29ef764c}');
     end;
 }

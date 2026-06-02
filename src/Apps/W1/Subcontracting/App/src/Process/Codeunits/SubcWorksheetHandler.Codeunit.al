@@ -9,7 +9,12 @@ codeunit 99001558 "Subc. Worksheet Handler"
 {
     [EventSubscriber(ObjectType::Codeunit, Codeunit::ReqJnlManagement, OnOpenJnlBatchOnBeforeTemplateSelection, '', false, false)]
     local procedure OnOpenJnlBatchOnBeforeTemplateSelection(var RequisitionWkshName: Record "Requisition Wksh. Name"; var ReqWorksheetTemplateTypeList: List of [Enum Microsoft.Inventory.Requisition."Req. Worksheet Template Type"])
+    var
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
+
         ReqWorksheetTemplateTypeList.Add(Enum::"Req. Worksheet Template Type"::Subcontracting);
     end;
 }

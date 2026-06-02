@@ -20,7 +20,10 @@ tableextension 99001531 "Subc. Prod BOM Line Ext." extends "Production BOM Line"
             trigger OnValidate()
             var
                 Item: Record Item;
+                SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
             begin
+                if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+                    exit;
                 if "Subcontracting Type" = "Subcontracting Type"::Transfer then
                     if (Type = Type::Item) and ("No." <> '') then begin
                         Item.Get("No.");

@@ -16,7 +16,12 @@ tableextension 99001560 "Subc. Routing Line" extends "Routing Line"
         modify(Type)
         {
             trigger OnAfterValidate()
+            var
+                SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
             begin
+                if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+                    exit;
+
                 if Type = xRec.Type then
                     exit;
 
@@ -29,7 +34,10 @@ tableextension 99001560 "Subc. Routing Line" extends "Routing Line"
             trigger OnAfterValidate()
             var
                 WorkCenter: Record "Work Center";
+                SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
             begin
+                if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+                    exit;
                 if "No." = xRec."No." then
                     exit;
                 if Type <> "Capacity Type"::"Work Center" then begin
@@ -59,7 +67,11 @@ tableextension 99001560 "Subc. Routing Line" extends "Routing Line"
             ToolTip = 'Specifies whether the production order parent item (WIP item) is transferred to the subcontractor for this operation.';
 
             trigger OnValidate()
+            var
+                SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
             begin
+                if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+                    exit;
                 if "Transfer WIP Item" then begin
                     CalcFields(Subcontracting);
                     TestField(Subcontracting, true);

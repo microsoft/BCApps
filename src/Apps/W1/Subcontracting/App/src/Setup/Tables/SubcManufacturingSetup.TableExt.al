@@ -59,7 +59,10 @@ tableextension 99001501 "Subc. Manufacturing Setup" extends "Manufacturing Setup
             var
                 CompanyInformation: Record "Company Information";
                 ManufacturingSetup: Record "Manufacturing Setup";
+                SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
             begin
+                if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+                    exit;
                 case "Subc. Default Comp. Location" of
                     "Subc. Default Comp. Location"::Company:
                         begin

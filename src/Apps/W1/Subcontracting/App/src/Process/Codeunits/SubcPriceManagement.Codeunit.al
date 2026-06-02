@@ -22,12 +22,16 @@ codeunit 99001508 "Subc. Price Management"
 {
     var
         ManufacturingSetup: Record "Manufacturing Setup";
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
 
     procedure ApplySubcontractorPricingToProdOrderRouting(var ProdOrderLine: Record "Prod. Order Line"; var RoutingLine: Record "Routing Line"; var ProdOrderRoutingLine: Record "Prod. Order Routing Line")
     var
         SubcontractorPrice: Record "Subcontractor Price";
         WorkCenter: Record "Work Center";
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
+
         if not ManufacturingSetup.Get() then
             exit;
 
@@ -67,6 +71,9 @@ codeunit 99001508 "Subc. Price Management"
         SubcontractorPrice: Record "Subcontractor Price";
         WorkCenter: Record "Work Center";
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
+
         if not ManufacturingSetup.Get() then
             exit;
 
@@ -121,6 +128,9 @@ codeunit 99001508 "Subc. Price Management"
         UnitCost: Decimal;
         UnitCostCalculationType: Enum "Unit Cost Calculation Type";
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
+
         if RoutingLine.Type <> "Capacity Type Routing"::"Work Center" then
             exit;
 
@@ -206,6 +216,9 @@ codeunit 99001508 "Subc. Price Management"
         WorkCenter: Record "Work Center";
         VendorNo: Code[20];
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
+
         if (ProdOrderRoutingLine.Type <> "Capacity Type"::"Work Center") then
             exit;
 
@@ -262,6 +275,9 @@ codeunit 99001508 "Subc. Price Management"
         PriceListQty: Decimal;
         PriceListQtyPerUOM: Decimal;
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
+
         PriceListQtyPerUOM := 0;
         PriceListQty := 0;
         PriceListCost := 0;
@@ -342,6 +358,9 @@ codeunit 99001508 "Subc. Price Management"
 
     procedure ConvertPriceToUOM(ProdUOM: Code[10]; ProdQtyPerUoM: Decimal; PriceListUOM: Code[10]; PriceListQtyPerUOM: Decimal; PriceListCost: Decimal; var DirectCost: Decimal)
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
+
         if ProdUOM <> PriceListUOM then begin
             DirectCost := PriceListCost / PriceListQtyPerUOM;
             DirectCost := DirectCost * ProdQtyPerUoM;
@@ -407,6 +426,9 @@ codeunit 99001508 "Subc. Price Management"
         PriceListQty: Decimal;
         PriceListQtyPerUOM: Decimal;
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
+
         OrderDate := RequisitionLine."Order Date";
         if OrderDate = 0D then
             OrderDate := WorkDate();
@@ -462,6 +484,9 @@ codeunit 99001508 "Subc. Price Management"
         OrderDate: Date;
         DirectCost, PriceListCost, PriceListQty, PriceListQtyPerUOM : Decimal;
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
+
         OrderDate := PurchaseLine."Order Date";
         if OrderDate = 0D then
             OrderDate := WorkDate();

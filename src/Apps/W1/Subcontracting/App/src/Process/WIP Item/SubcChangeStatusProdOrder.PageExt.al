@@ -24,11 +24,17 @@ pageextension 99001544 "Subc.Change Status Prod. Order" extends "Change Status o
 
     trigger OnOpenPage()
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
+
         WIPQuantityCleanUp := true;
     end;
 
     trigger OnAfterGetCurrRecord()
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
+
         SetControlProperties();
     end;
 
@@ -37,21 +43,28 @@ pageextension 99001544 "Subc.Change Status Prod. Order" extends "Change Status o
 
     var
         ProductionOrder: Record "Production Order";
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
         WIPQuantityCleanUpEnabled, WIPQuantityCleanUpVisible : Boolean;
 
     procedure ReturnSubWIPQuantityCleanUp(): Boolean
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit(false);
         exit(WIPQuantityCleanUp);
     end;
 
     procedure SubcSetOrder(var ProductionOrderForStatusChange: Record "Production Order")
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
         ProductionOrder := ProductionOrderForStatusChange;
         SetControlProperties();
     end;
 
     procedure SubcGetOrder() ProductionOrderForStatusChange: Record "Production Order"
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit(ProductionOrder);
         ProductionOrderForStatusChange := ProductionOrder;
     end;
 

@@ -13,6 +13,9 @@ using Microsoft.Purchases.Vendor;
 
 codeunit 99001561 "Subc. Routing Factbox Mgmt."
 {
+    var
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+
     /// <summary>
     /// Returns the subcontractor vendor number for the work center on the given production order routing line.
     /// </summary>
@@ -22,6 +25,9 @@ codeunit 99001561 "Subc. Routing Factbox Mgmt."
     var
         WorkCenter: Record "Work Center";
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit('');
+
         if ProdOrderRoutingLine.Type = ProdOrderRoutingLine.Type::"Machine Center" then
             exit('');
         WorkCenter.SetLoadFields("Subcontractor No.");
@@ -38,6 +44,9 @@ codeunit 99001561 "Subc. Routing Factbox Mgmt."
         Vendor: Record Vendor;
         WorkCenter: Record "Work Center";
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
+
         if ProdOrderRoutingLine.Type = ProdOrderRoutingLine.Type::"Work Center" then begin
             WorkCenter.Get(ProdOrderRoutingLine."Work Center No.");
             if Vendor.Get(WorkCenter."Subcontractor No.") then
@@ -54,6 +63,9 @@ codeunit 99001561 "Subc. Routing Factbox Mgmt."
     var
         PurchaseLine: Record "Purchase Line";
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit(0);
+
         PurchaseLine.SetRange(PurchaseLine."Document Type", PurchaseLine."Document Type"::Order);
         PurchaseLine.SetRange(PurchaseLine."Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
         PurchaseLine.SetRange(PurchaseLine."Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.");
@@ -70,6 +82,9 @@ codeunit 99001561 "Subc. Routing Factbox Mgmt."
     var
         PurchaseLine: Record "Purchase Line";
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
+
         PurchaseLine.SetRange(PurchaseLine."Document Type", PurchaseLine."Document Type"::Order);
         PurchaseLine.SetRange(PurchaseLine."Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
         PurchaseLine.SetRange(PurchaseLine."Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.");
@@ -87,6 +102,9 @@ codeunit 99001561 "Subc. Routing Factbox Mgmt."
     var
         PurchRcptLine: Record "Purch. Rcpt. Line";
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit(0);
+
         PurchRcptLine.SetRange(PurchRcptLine."Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
         PurchRcptLine.SetRange(PurchRcptLine."Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.");
         PurchRcptLine.SetRange(PurchRcptLine."Operation No.", ProdOrderRoutingLine."Operation No.");
@@ -102,6 +120,9 @@ codeunit 99001561 "Subc. Routing Factbox Mgmt."
     var
         PurchRcptLine: Record "Purch. Rcpt. Line";
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
+
         PurchRcptLine.SetRange(PurchRcptLine."Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
         PurchRcptLine.SetRange(PurchRcptLine."Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.");
         PurchRcptLine.SetRange(PurchRcptLine."Operation No.", ProdOrderRoutingLine."Operation No.");
@@ -118,6 +139,9 @@ codeunit 99001561 "Subc. Routing Factbox Mgmt."
     var
         PurchInvLine: Record "Purch. Inv. Line";
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit(0);
+
         PurchInvLine.SetRange(PurchInvLine."Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
         PurchInvLine.SetRange(PurchInvLine."Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.");
         PurchInvLine.SetRange(PurchInvLine."Operation No.", ProdOrderRoutingLine."Operation No.");
@@ -133,6 +157,9 @@ codeunit 99001561 "Subc. Routing Factbox Mgmt."
     var
         PurchInvLine: Record "Purch. Inv. Line";
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
+
         PurchInvLine.SetCurrentKey(PurchInvLine.Type, PurchInvLine."Prod. Order No.", PurchInvLine."Prod. Order Line No.");
         PurchInvLine.SetRange(PurchInvLine."Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
         PurchInvLine.SetRange(PurchInvLine."Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.");
@@ -150,6 +177,9 @@ codeunit 99001561 "Subc. Routing Factbox Mgmt."
     var
         TransferLine: Record "Transfer Line";
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit(0);
+
         TransferLine.SetCurrentKey(TransferLine."Subc. Prod. Order No.", TransferLine."Subc. Prod. Order Line No.", TransferLine."Subc. Routing Reference No.", TransferLine."Subc. Routing No.", TransferLine."Subc. Operation No.");
         TransferLine.SetRange(TransferLine."Subc. Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
         TransferLine.SetRange(TransferLine."Subc. Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.");
@@ -169,6 +199,9 @@ codeunit 99001561 "Subc. Routing Factbox Mgmt."
     var
         TransferLine: Record "Transfer Line";
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit(0);
+
         TransferLine.SetCurrentKey(TransferLine."Subc. Prod. Order No.", TransferLine."Subc. Prod. Order Line No.", TransferLine."Subc. Routing Reference No.", TransferLine."Subc. Operation No.");
         TransferLine.SetRange(TransferLine."Subc. Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
         TransferLine.SetRange(TransferLine."Subc. Routing Reference No.", 0);
@@ -186,6 +219,9 @@ codeunit 99001561 "Subc. Routing Factbox Mgmt."
     var
         TransferLine: Record "Transfer Line";
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
+
         TransferLine.SetCurrentKey(TransferLine."Subc. Prod. Order No.", TransferLine."Subc. Prod. Order Line No.", TransferLine."Subc. Routing Reference No.", TransferLine."Subc. Routing No.", TransferLine."Subc. Operation No.");
         TransferLine.SetRange(TransferLine."Subc. Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
         TransferLine.SetRange(TransferLine."Subc. Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.");
@@ -203,6 +239,9 @@ codeunit 99001561 "Subc. Routing Factbox Mgmt."
     var
         TransferLine: Record "Transfer Line";
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
+
         TransferLine.SetCurrentKey(TransferLine."Subc. Prod. Order No.", TransferLine."Subc. Prod. Order Line No.", TransferLine."Subc. Routing Reference No.", TransferLine."Subc. Operation No.");
         TransferLine.SetRange(TransferLine."Subc. Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
         TransferLine.SetRange(TransferLine."Subc. Routing Reference No.", 0);
@@ -220,6 +259,9 @@ codeunit 99001561 "Subc. Routing Factbox Mgmt."
     var
         ProdOrderComponent: Record "Prod. Order Component";
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit(0);
+
         if ProdOrderRoutingLine."Routing Link Code" = '' then
             exit(0);
         ProdOrderComponent.SetRange(ProdOrderComponent.Status, ProdOrderRoutingLine.Status);
@@ -237,6 +279,9 @@ codeunit 99001561 "Subc. Routing Factbox Mgmt."
     var
         ProdOrderComponent: Record "Prod. Order Component";
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
+
         ProdOrderComponent.SetRange(ProdOrderComponent.Status, ProdOrderRoutingLine.Status);
         ProdOrderComponent.SetRange(ProdOrderComponent."Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
         ProdOrderComponent.SetRange(ProdOrderComponent."Prod. Order Line No.", ProdOrderRoutingLine."Routing Reference No.");

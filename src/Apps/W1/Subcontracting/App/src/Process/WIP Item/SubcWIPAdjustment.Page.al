@@ -112,6 +112,8 @@ page 99001561 "Subc. WIP Adjustment"
 
                     trigger OnValidate()
                     begin
+                        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+                            exit;
                         NewQuantities.Set(Rec."Entry No.", NewQuantityBase);
                         UpdateQuantityStyle();
                     end;
@@ -202,6 +204,8 @@ page 99001561 "Subc. WIP Adjustment"
 
                     trigger OnValidate()
                     begin
+                        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+                            exit;
                         NewQuantities.Set(Rec."Entry No.", NewQuantityBase);
                         UpdateQuantityStyle();
                     end;
@@ -226,12 +230,16 @@ page 99001561 "Subc. WIP Adjustment"
 
     trigger OnAfterGetRecord()
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
         NewQuantities.Get(Rec."Entry No.", NewQuantityBase);
         UpdateQuantityStyle();
     end;
 
     trigger OnOpenPage()
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
         PostingDate := WorkDate();
         DocumentType := DocumentType::"Adjustment (Manual)";
 
@@ -241,6 +249,8 @@ page 99001561 "Subc. WIP Adjustment"
 
     trigger OnQueryClosePage(CloseAction: Action): Boolean
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit(true);
         if CloseAction in [ACTION::OK, ACTION::LookupOK] then
             CreateAdjustmentEntries();
         exit(true);
@@ -248,6 +258,7 @@ page 99001561 "Subc. WIP Adjustment"
 
     var
         Item: Record Item;
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
         NewQuantities: Dictionary of [Integer, Decimal];
         PostingDate: Date;
         DocumentType: Enum "WIP Document Type";
@@ -268,6 +279,8 @@ page 99001561 "Subc. WIP Adjustment"
     var
         EntrySeq: Integer;
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
         EntrySeq := 1;
 
         if not Rec.IsEmpty() then
@@ -317,6 +330,8 @@ page 99001561 "Subc. WIP Adjustment"
 
     procedure SetDocumentNo(DocNo: Code[20])
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
         DocumentNo := DocNo;
     end;
 

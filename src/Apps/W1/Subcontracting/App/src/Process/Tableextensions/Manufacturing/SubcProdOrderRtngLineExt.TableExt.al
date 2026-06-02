@@ -19,7 +19,11 @@ tableextension 99001506 "Subc. ProdOrderRtngLine Ext." extends "Prod. Order Rout
         modify(Type)
         {
             trigger OnAfterValidate()
+            var
+                SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
             begin
+                if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+                    exit;
                 if Type = xRec.Type then
                     exit;
 
@@ -32,7 +36,10 @@ tableextension 99001506 "Subc. ProdOrderRtngLine Ext." extends "Prod. Order Rout
             trigger OnAfterValidate()
             var
                 WorkCenter: Record "Work Center";
+                SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
             begin
+                if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+                    exit;
                 if "No." = xRec."No." then
                     exit;
                 if Type <> "Capacity Type"::"Work Center" then begin
@@ -163,7 +170,10 @@ tableextension 99001506 "Subc. ProdOrderRtngLine Ext." extends "Prod. Order Rout
     var
         ProdOrderLine: Record "Prod. Order Line";
         PurchLine: Record "Purchase Line";
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
         if Status <> "Production Order Status"::Released then
             exit;
 
@@ -199,7 +209,10 @@ tableextension 99001506 "Subc. ProdOrderRtngLine Ext." extends "Prod. Order Rout
         ProdOrderLine: Record "Prod. Order Line";
         PurchLine: Record "Purchase Line";
         PrevProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
         if Status <> "Production Order Status"::Released then
             exit;
         ProdOrderLine.SetLoadFields(SystemId);

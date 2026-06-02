@@ -12,10 +12,13 @@ codeunit 99001566 "Subc. Posting Preview Subscr."
     var
         TempSubcontractorWIPLedgerEntry: Record "Subcontractor WIP Ledger Entry" temporary;
         PostingPreviewEventHandler: Codeunit "Posting Preview Event Handler";
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Posting Preview Event Handler", OnGetEntries, '', true, false)]
     local procedure GetEntriesOnGetEntries(TableNo: Integer; var RecRef: RecordRef)
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
         GetAllTables();
         case TableNo of
             Database::"Subcontractor WIP Ledger Entry":
@@ -26,6 +29,8 @@ codeunit 99001566 "Subc. Posting Preview Subscr."
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Posting Preview Event Handler", OnAfterShowEntries, '', true, false)]
     local procedure ShowEntriesOnAfterShowEntries(TableNo: Integer)
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
         GetAllTables();
         case TableNo of
             Database::"Subcontractor WIP Ledger Entry":
@@ -36,6 +41,8 @@ codeunit 99001566 "Subc. Posting Preview Subscr."
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Posting Preview Event Handler", OnAfterFillDocumentEntry, '', true, false)]
     local procedure FillDocumentEntryOnAfterFillDocumentEntry(var DocumentEntry: Record "Document Entry")
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
         GetAllTables();
         PostingPreviewEventHandler.InsertDocumentEntry(TempSubcontractorWIPLedgerEntry, DocumentEntry);
     end;

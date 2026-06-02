@@ -29,7 +29,11 @@ tableextension 99001524 "Subc. DirectTransHeader Ext." extends "Direct Trans. He
             Caption = 'Source ID';
             DataClassification = CustomerContent;
             trigger OnLookup()
+            var
+                SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
             begin
+                if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+                    exit;
                 HandleSubcontractingSourceLookup(Rec);
             end;
         }

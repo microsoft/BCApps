@@ -80,12 +80,18 @@ report 99001505 "Subc. Calculate Subcontracts"
     }
 
     trigger OnInitReport()
+    var
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            CurrReport.Quit();
         MfgSetup.Get();
     end;
 
     trigger OnPreReport()
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            CurrReport.Quit();
         ReqWkshTmpl.Get(ReqLine."Worksheet Template Name");
         ReqWkShName.Get(ReqLine."Worksheet Template Name", ReqLine."Journal Batch Name");
         ReqLine.SetRange("Worksheet Template Name", ReqLine."Worksheet Template Name");
@@ -123,6 +129,8 @@ report 99001505 "Subc. Calculate Subcontracts"
 
     procedure SetWkShLine(NewReqLine: Record "Requisition Line")
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
         ReqLine := NewReqLine;
     end;
 

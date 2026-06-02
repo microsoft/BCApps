@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -61,6 +61,13 @@ report 99001502 "Subc. Create SubCReturnOrder"
         }
     }
 
+    trigger OnInitReport()
+    var
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+    begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            CurrReport.Quit();
+    end;
 
     var
         TransferHeader: Record "Transfer Header";

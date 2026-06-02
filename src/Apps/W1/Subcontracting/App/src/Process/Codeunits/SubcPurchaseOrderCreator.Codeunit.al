@@ -27,6 +27,7 @@ codeunit 99001557 "Subc. Purchase Order Creator"
         ManufacturingSetup: Record "Manufacturing Setup";
         PageManagement: Codeunit "Page Management";
         UnitofMeasureManagement: Codeunit "Unit of Measure Management";
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
         HasManufacturingSetup: Boolean;
         OperationNo: Code[10];
         RoutingReferenceNo: Integer;
@@ -45,6 +46,9 @@ codeunit 99001557 "Subc. Purchase Order Creator"
         BaseQtyToPurch: Decimal;
         QtyToPurch: Decimal;
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit(0);
+
         GetManufacturingSetup();
         ManufacturingSetup.TestField("Subcontracting Template Name");
         ManufacturingSetup.TestField("Subcontracting Batch Name");
@@ -74,6 +78,9 @@ codeunit 99001557 "Subc. Purchase Order Creator"
         ProdOrderLine: Record "Prod. Order Line";
         PurchaseLine: Record "Purchase Line";
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
+
         GetManufacturingSetup();
 
         if not HasManufacturingSetup then
@@ -113,6 +120,9 @@ codeunit 99001557 "Subc. Purchase Order Creator"
         SubContractorWorkCenterNo: Code[20];
         DimensionSetIDArr: array[10] of Integer;
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
+
         GetManufacturingSetup();
         ProdOrderRoutingLine.SetLoadFields("Work Center No.", Status, "Prod. Order No.", "Routing Link Code");
         if ProdOrderRoutingLine.Get("Production Order Status"::Released, RequisitionLine."Prod. Order No.", RequisitionLine."Routing Reference No.", RequisitionLine."Routing No.", RequisitionLine."Operation No.") then begin
@@ -173,6 +183,9 @@ codeunit 99001557 "Subc. Purchase Order Creator"
         SubcNotificationMgmt: Codeunit "Subc. Notification Mgmt.";
         IsHandled: Boolean;
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
+
         OnBeforeShowCreatedPurchaseOrder(ProdOrderNo, NoOfCreatedPurchOrder, IsHandled);
         if IsHandled then
             exit;
@@ -211,21 +224,33 @@ codeunit 99001557 "Subc. Purchase Order Creator"
 
     internal procedure SetOperationNoForCreatedPurchaseOrder(OperationNoToSet: Code[10])
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
+
         OperationNo := OperationNoToSet;
     end;
 
     internal procedure ClearOperationNoForCreatedPurchaseOrder()
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
+
         Clear(OperationNo);
     end;
 
     internal procedure SetRoutingReferenceNoForCreatedPurchaseOrder(RoutingReferenceNoToSet: Integer)
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
+
         RoutingReferenceNo := RoutingReferenceNoToSet;
     end;
 
     internal procedure ClearRoutingReferenceNoForCreatedPurchaseOrder()
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
+
         Clear(RoutingReferenceNo);
     end;
 

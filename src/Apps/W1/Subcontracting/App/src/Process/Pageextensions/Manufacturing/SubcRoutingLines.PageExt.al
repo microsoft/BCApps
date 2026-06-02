@@ -13,14 +13,22 @@ pageextension 99001508 "Subc. Routing Lines" extends "Routing Lines"
         modify("No.")
         {
             trigger OnAfterValidate()
+            var
+                SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
             begin
+                if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+                    exit;
                 UpdateWIPEnabled();
             end;
         }
         modify(Type)
         {
             trigger OnAfterValidate()
+            var
+                SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
             begin
+                if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+                    exit;
                 UpdateWIPEnabled();
             end;
         }

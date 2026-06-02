@@ -26,6 +26,7 @@ codeunit 99001505 "Subcontracting Management"
     var
         ManufacturingSetup: Record "Manufacturing Setup";
         TempGlobalReservationEntry: Record "Reservation Entry" temporary;
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
         RoutingLinkUpdConfQst: Label 'If you change the Work Center, you will also change the default location for components with Routing Link Code=%1.\Do you want to continue anyway?', Comment = '%1=Routing Link Code';
         SuccessfullyUpdatedMsg: Label 'Successfully updated.';
         UpdateIsCancelledErr: Label 'Update cancelled.';
@@ -36,6 +37,9 @@ codeunit 99001505 "Subcontracting Management"
 
     procedure CalcReceiptDateFromProdCompDueDateWithCompTransferLeadTime(ProdOrderComponent: Record "Prod. Order Component") ReceiptDate: Date
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
+
         GetManufacturingSetup();
         if not HasManufacturingSetup or (Format(ManufacturingSetup."Subc. Comp. Transfer Lead Time") = '') then
             exit(ProdOrderComponent."Due Date");
@@ -47,6 +51,9 @@ codeunit 99001505 "Subcontracting Management"
 
     procedure ChangeLocationOnProdOrderComponent(var ProdOrderComponent: Record "Prod. Order Component"; VendorSubcontrLocation: Code[10]; OriginalLocationCode: Code[10]; OriginalBinCode: Code[20])
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
+
         case ProdOrderComponent."Subcontracting Type" of
             "Subcontracting Type"::InventoryByVendor,
             "Subcontracting Type"::Purchase:
@@ -70,6 +77,9 @@ codeunit 99001505 "Subcontracting Management"
 
     procedure ChangeLocationOnPlanningComponent(var PlanningComponent: Record "Planning Component"; VendorSubcontrLocation: Code[10]; OriginalLocationCode: Code[10]; OriginalBinCode: Code[20])
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
+
         case PlanningComponent."Subcontracting Type" of
             "Subcontracting Type"::InventoryByVendor,
             "Subcontracting Type"::Purchase:
@@ -93,6 +103,9 @@ codeunit 99001505 "Subcontracting Management"
 
     procedure CheckDirectTransferIsAllowedForTransferHeader(TransferHeader: Record "Transfer Header")
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
+
         TransferHeader.CheckDirectTransferPosting();
     end;
 
@@ -104,6 +117,8 @@ codeunit 99001505 "Subcontracting Management"
         ConfirmManagement: Codeunit "Confirm Management";
         PlanningGetParameters: Codeunit "Planning-Get Parameters";
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
 
         ProdOrderComponent.SetRange(Status, ProdOrderRoutingLine.Status);
         ProdOrderComponent.SetRange("Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
@@ -137,6 +152,9 @@ codeunit 99001505 "Subcontracting Management"
         WorkCenter: Record "Work Center";
         HasSubcontractor, IsHandled : Boolean;
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit(false);
+
         OnBeforeGetSubcontractor(WorkCenterNo, Vendor, HasSubcontractor, IsHandled);//DO NOT DELETE
         if IsHandled then
             exit(HasSubcontractor);
@@ -155,6 +173,9 @@ codeunit 99001505 "Subcontracting Management"
 
     procedure UpdateSubcontractorPriceForRequisitionLine(var RequisitionLine: Record "Requisition Line")
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
+
         if IsSubcontracting(RequisitionLine."Work Center No.") then
             RequisitionLine.UpdateSubcontractorPrice();
     end;
@@ -163,6 +184,9 @@ codeunit 99001505 "Subcontracting Management"
     var
         WorkCenter: Record "Work Center";
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
+
         if ProdOrderRoutingLine.Type <> "Capacity Type"::"Work Center" then
             exit;
 
@@ -183,6 +207,9 @@ codeunit 99001505 "Subcontracting Management"
         TempReservationEntry: Record "Reservation Entry" temporary;
         ProdOrderCompReserve: Codeunit "Prod. Order Comp.-Reserve";
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
+
         TempGlobalReservationEntry.Reset();
         TempGlobalReservationEntry.DeleteAll();
 
@@ -215,6 +242,9 @@ codeunit 99001505 "Subcontracting Management"
 
     procedure ComponentHasExcessReservations(ProdOrderComponent: Record "Prod. Order Component"; MaxQtyBase: Decimal): Boolean
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit(false);
+
         exit(GetComponentReservedQtyBase(ProdOrderComponent) > MaxQtyBase);
     end;
 
@@ -224,6 +254,9 @@ codeunit 99001505 "Subcontracting Management"
         ProdOrderCompReserve: Codeunit "Prod. Order Comp.-Reserve";
         TotalReservedQtyBase: Decimal;
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit(0);
+
         if not ProdOrderCompReserve.FindReservEntry(ProdOrderComponent, ReservationEntry) then
             exit(0);
 
@@ -243,6 +276,9 @@ codeunit 99001505 "Subcontracting Management"
         TempTrackingSpecification: Record "Tracking Specification" temporary;
         CreateReservEntry: Codeunit "Create Reserv. Entry";
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
+
         TempGlobalReservationEntry.SetRange("Reservation Status", TempGlobalReservationEntry."Reservation Status"::Reservation);
         if not TempGlobalReservationEntry.FindSet() then
             exit;
@@ -297,6 +333,9 @@ codeunit 99001505 "Subcontracting Management"
         TempTrackingSpecification: Record "Tracking Specification" temporary;
         ProdOrderCompReserve: Codeunit "Prod. Order Comp.-Reserve";
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
+
         if (TransferReceiptLine."Subc. Prod. Order No." = '') or (TransferReceiptLine."Subc. Operation No." = '') then
             exit;
         if not ProdOrderComponent.Get("Production Order Status"::Released, TransferReceiptLine."Subc. Prod. Order No.", TransferReceiptLine."Subc. Prod. Order Line No.", TransferReceiptLine."Subc. Prod. Ord. Comp Line No.") then
@@ -347,6 +386,9 @@ codeunit 99001505 "Subcontracting Management"
     var
         ProdOrderComponent: Record "Prod. Order Component";
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
+
         if ProdOrderComponent.Get("Production Order Status"::Released, TransferLine."Subc. Prod. Order No.", TransferLine."Subc. Prod. Order Line No.", TransferLine."Subc. Prod. Ord. Comp Line No.") then
             if ProdOrderComponent."Subc. Original Location Code" <> '' then begin
                 ChangeLocationOnProdOrderComponent(ProdOrderComponent, '', ProdOrderComponent."Subc. Original Location Code", ProdOrderComponent."Subc. Orig. Bin Code");
@@ -364,6 +406,9 @@ codeunit 99001505 "Subcontracting Management"
         OrigLocationCode, VendorSubcontractingLocationCode : Code[10];
         OrigBinCode: Code[20];
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
+
         if PlanningComponent."Routing Link Code" = '' then
             exit;
 
@@ -401,6 +446,9 @@ codeunit 99001505 "Subcontracting Management"
         OrigBinCode: Code[20];
         PurchOrderNo: Code[20];
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
+
         if ProdOrderComponent."Routing Link Code" = '' then
             exit;
 
@@ -457,6 +505,9 @@ codeunit 99001505 "Subcontracting Management"
         OrigLocationCode, VendorSubcontractingLocationCode : Code[10];
         OrigBinCode: Code[20];
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
+
         ProdOrderComponent.SetRange(Status, ProdOrderRoutingLine.Status);
         ProdOrderComponent.SetRange("Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
         ProdOrderComponent.SetRange("Prod. Order Line No.", ProdOrderRoutingLine."Routing Reference No.");
@@ -497,6 +548,9 @@ codeunit 99001505 "Subcontracting Management"
         CompanyInformation: Record "Company Information";
         ComponentsLocationCode: Code[10];
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit('');
+
         GetManufacturingSetup();
         ManufacturingSetup.TestField("Subc. Default Comp. Location");
 

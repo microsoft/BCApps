@@ -102,6 +102,8 @@ tableextension 99001517 "Subc. Transfer Line" extends "Transfer Line"
                 Item: Record Item;
                 UnitOfMeasureManagement: Codeunit "Unit of Measure Management";
             begin
+                if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+                    exit;
                 if "Transfer WIP Item" then begin
                     CheckForExistingReservationsOrItemTracking();
                     "Qty. per Unit of Measure" := 0;
@@ -163,6 +165,9 @@ tableextension 99001517 "Subc. Transfer Line" extends "Transfer Line"
         key(Key99001504; "Subc. Prod. Order No.", "Subc. Prod. Order Line No.", "Subc. Prod. Ord. Comp Line No.", "Subc. Purch. Order No.", "Subc. Return Order") { }
     }
 
+    var
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+
     internal procedure CheckForExistingReservationsOrItemTracking()
     var
         ReservationEntry: Record "Reservation Entry";
@@ -170,6 +175,8 @@ tableextension 99001517 "Subc. Transfer Line" extends "Transfer Line"
         ExistingItemTrackingErr: Label 'There is existing item tracking for this transfer line. Please remove the item tracking before changing the line to/from a WIP item transfer.';
         ExistingReservationEntriesErr: Label 'There are existing reservation entries for this transfer line. Please remove the reservation entries before changing the line to/from a WIP item transfer.';
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
         Rec.SetReservationFilters(ReservationEntry, "Transfer Direction"::Outbound);
         ReservationEntry.SetRange("Reservation Status", "Reservation Status"::Reservation);
         if not ReservationEntry.IsEmpty() then
@@ -198,6 +205,8 @@ tableextension 99001517 "Subc. Transfer Line" extends "Transfer Line"
         UnitOfMeasureManagement: Codeunit "Unit of Measure Management";
         QtyPerUoM: Decimal;
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
         Item.SetLoadFields("Base Unit of Measure");
         Item.Get("Item No.");
         QtyPerUoM := UnitOfMeasureManagement.GetQtyPerUnitOfMeasure(Item, "Unit of Measure Code");
@@ -208,6 +217,8 @@ tableextension 99001517 "Subc. Transfer Line" extends "Transfer Line"
     var
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
         if Rec."Transfer WIP Item" then
             if ProdOrderRoutingLine.Get("Production Order Status"::Released, "Subc. Prod. Order No.", "Subc. Routing Reference No.", "Subc. Routing No.", "Subc. Operation No.") then begin
                 Rec.Description := ProdOrderRoutingLine."Transfer Description";

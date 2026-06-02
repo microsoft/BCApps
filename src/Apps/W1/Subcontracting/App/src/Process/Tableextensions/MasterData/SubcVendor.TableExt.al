@@ -21,8 +21,11 @@ tableextension 99001507 "Subc. Vendor" extends Vendor
             trigger OnValidate()
             var
                 Location: Record Location;
+                SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
                 ErrorInfo: ErrorInfo;
             begin
+                if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+                    exit;
                 if "Subc. Location Code" = '' then
                     exit;
                 Location.Get("Subc. Location Code");

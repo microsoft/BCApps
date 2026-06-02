@@ -25,8 +25,11 @@ tableextension 99001502 "Subc. Prod Order Comp Ext." extends "Prod. Order Compon
             trigger OnValidate()
             var
                 Item: Record Item;
+                SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
                 SubcontractingManagement: Codeunit "Subcontracting Management";
             begin
+                if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+                    exit;
                 if "Subcontracting Type" = "Subcontracting Type"::Transfer then
                     if "Item No." <> '' then begin
                         Item.Get("Item No.");

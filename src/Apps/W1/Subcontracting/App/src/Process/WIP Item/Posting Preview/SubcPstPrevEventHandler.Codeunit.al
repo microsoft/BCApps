@@ -12,10 +12,14 @@ codeunit 99001567 "Subc. Pst. Prev. Event Handler"
     var
         TempSubcontractorWIPLedgerEntry: Record "Subcontractor WIP Ledger Entry" temporary;
         DocumentMaskTok: Label '***', Locked = true;
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
 
     [EventSubscriber(ObjectType::Table, Database::"Subcontractor WIP Ledger Entry", OnAfterInsertEvent, '', false, false)]
     local procedure OnInsertWIPEntry(var Rec: Record "Subcontractor WIP Ledger Entry")
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
+
         if Rec.IsTemporary() then
             exit;
 
@@ -29,12 +33,16 @@ codeunit 99001567 "Subc. Pst. Prev. Event Handler"
 
     procedure DeleteAll()
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
         TempSubcontractorWIPLedgerEntry.Reset();
         TempSubcontractorWIPLedgerEntry.DeleteAll();
     end;
 
     procedure GetTempSubcontractorWIPLedgerEntry(var OutTempSubcontractorWIPLedgerEntry: Record "Subcontractor WIP Ledger Entry" temporary)
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
         OutTempSubcontractorWIPLedgerEntry.Copy(TempSubcontractorWIPLedgerEntry, true);
     end;
 }
