@@ -18,7 +18,6 @@ using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Setup;
 using Microsoft.QualityManagement.Utilities;
 using System.Security.User;
-using System.Telemetry;
 
 codeunit 20440 "Qlty. Report Mgmt."
 {
@@ -54,32 +53,6 @@ codeunit 20440 "Qlty. Report Mgmt."
         else
             ReportSelections.PrintReport(ReportSelections.Usage::"Quality Management - Certificate of Analysis", QltyInspectionHeader);
     end;
-
-    #region Telemetry logging methods
-    internal procedure LogCertificateOfAnalysisReportRun()
-    var
-        QltyManagementSetup: Record "Qlty. Management Setup";
-        FeatureTelemetry: Codeunit "Feature Telemetry";
-    begin
-        FeatureTelemetry.LogUptake('0000QIQ', QltyManagementSetup.GetFeatureTelemetryName(), Enum::"Feature Uptake Status"::Used);
-    end;
-
-    internal procedure LogNonConformanceReportRun()
-    var
-        QltyManagementSetup: Record "Qlty. Management Setup";
-        FeatureTelemetry: Codeunit "Feature Telemetry";
-    begin
-        FeatureTelemetry.LogUptake('0000QIR', QltyManagementSetup.GetFeatureTelemetryName(), Enum::"Feature Uptake Status"::Used);
-    end;
-
-    internal procedure LogGeneralPurposeInspectionReportRun()
-    var
-        QltyManagementSetup: Record "Qlty. Management Setup";
-        FeatureTelemetry: Codeunit "Feature Telemetry";
-    begin
-        FeatureTelemetry.LogUptake('0000QIS', QltyManagementSetup.GetFeatureTelemetryName(), Enum::"Feature Uptake Status"::Used);
-    end;
-    #endregion Telemetry logging methods
 
     #region Helper methods
     var
