@@ -10,7 +10,12 @@ codeunit 99001538 "Subc. Transfer Rcpt Line Ext."
 {
     [EventSubscriber(ObjectType::Table, Database::"Transfer Receipt Line", OnAfterCopyFromTransferLine, '', false, false)]
     local procedure OnAfterCopyFromTransferLine_T5745(var TransferReceiptLine: Record "Transfer Receipt Line"; TransferLine: Record "Transfer Line")
+    var
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
+
         TransferReceiptLine."Subc. Purch. Order No." := TransferLine."Subc. Purch. Order No.";
         TransferReceiptLine."Subc. Purch. Order Line No." := TransferLine."Subc. Purch. Order Line No.";
         TransferReceiptLine."Subc. Prod. Order No." := TransferLine."Subc. Prod. Order No.";

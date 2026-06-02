@@ -12,7 +12,11 @@ codeunit 99001531 "Subc. Vendor Extension"
     local procedure OnAfterDeleteVendor(var Rec: Record Vendor; RunTrigger: Boolean)
     var
         SubcontractorPrice: Record "Subcontractor Price";
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
+
         if Rec.IsTemporary() then
             exit;
 

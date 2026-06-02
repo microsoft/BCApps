@@ -8,9 +8,15 @@ using Microsoft.Inventory.Transfer;
 
 codeunit 99001544 "Subc. Transfer Line Ext."
 {
+    var
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+
     [EventSubscriber(ObjectType::Table, Database::"Transfer Line", OnAfterGetTransHeader, '', false, false)]
     local procedure OnAfterGetTransHeader(var TransferLine: Record "Transfer Line"; TransferHeader: Record "Transfer Header")
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
+
         TransferLine."Subc. Return Order" := TransferHeader."Subc. Return Order";
     end;
 
@@ -19,6 +25,9 @@ codeunit 99001544 "Subc. Transfer Line Ext."
     var
         SubcontractingManagement: Codeunit "Subcontracting Management";
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
+
         if Rec.IsTemporary then
             exit;
 
@@ -31,6 +40,9 @@ codeunit 99001544 "Subc. Transfer Line Ext."
     [EventSubscriber(ObjectType::Table, Database::"Transfer Line", OnValidateItemNoOnCopyFromTempTransLine, '', false, false)]
     local procedure OnValidateItemNoOnCopyFromTempTransLine_TransferLine(var TransferLine: Record "Transfer Line"; TempTransferLine: Record "Transfer Line")
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
+
         CopySubFieldsFromTempTransferLineToTransferLine(TransferLine, TempTransferLine);
     end;
 

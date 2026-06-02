@@ -10,12 +10,18 @@ using Microsoft.Manufacturing.Routing;
 
 codeunit 99001517 "Subc. Calc. Prod. Order Ext."
 {
+    var
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Calculate Prod. Order", OnAfterTransferRoutingLine, '', false, false)]
     local procedure OnAfterTransferRoutingLine(var ProdOrderLine: Record "Prod. Order Line"; var RoutingLine: Record "Routing Line"; var ProdOrderRoutingLine: Record "Prod. Order Routing Line")
     var
         SubcPriceManagement: Codeunit "Subc. Price Management";
         SubcontractingManagement: Codeunit "Subcontracting Management";
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
+
         SubcontractingManagement.UpdateLinkedComponentsAfterRoutingTransfer(ProdOrderLine, RoutingLine, ProdOrderRoutingLine);
 
         SubcPriceManagement.ApplySubcontractorPricingToProdOrderRouting(ProdOrderLine, RoutingLine, ProdOrderRoutingLine);
@@ -24,11 +30,17 @@ codeunit 99001517 "Subc. Calc. Prod. Order Ext."
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Calculate Prod. Order", OnAfterTransferBOMComponent, '', false, false)]
     local procedure OnAfterTransferBOMComponent(var ProdOrderLine: Record "Prod. Order Line"; var ProductionBOMLine: Record "Production BOM Line"; var ProdOrderComponent: Record "Prod. Order Component"; LineQtyPerUOM: Decimal; ItemQtyPerUOM: Decimal)
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
+
         TransferSubcontractingFieldsBOMComponent(ProductionBOMLine, ProdOrderComponent);
     end;
 
     local procedure TransferSubcontractingFieldsBOMComponent(var ProductionBOMLine: Record "Production BOM Line"; var ProdOrderComponent: Record "Prod. Order Component")
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
+
         ProdOrderComponent."Subc. Original Location Code" := ProdOrderComponent."Location Code";
         ProdOrderComponent."Subc. Orig. Bin Code" := ProdOrderComponent."Bin Code";
         ProdOrderComponent."Component Supply Method" := ProductionBOMLine."Component Supply Method";

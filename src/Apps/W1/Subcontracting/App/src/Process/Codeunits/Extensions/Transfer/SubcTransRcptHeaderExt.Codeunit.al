@@ -10,7 +10,12 @@ codeunit 99001542 "Subc. Trans Rcpt Header Ext"
 {
     [EventSubscriber(ObjectType::Table, Database::"Transfer Receipt Header", OnAfterCopyFromTransferHeader, '', false, false)]
     local procedure OnAfterCopyFromTransferHeader(var TransferReceiptHeader: Record "Transfer Receipt Header"; TransferHeader: Record "Transfer Header")
+    var
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
+
         TransferReceiptHeader."Subc. Source Type" := TransferHeader."Subc. Source Type";
         TransferReceiptHeader."Source Subtype" := TransferHeader."Source Subtype";
         TransferReceiptHeader."Source ID" := TransferHeader."Source ID";

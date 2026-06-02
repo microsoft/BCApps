@@ -20,7 +20,11 @@ codeunit 99001521 "Subc. Calc BOM Tree Ext."
     local procedure OnBeforeCalcRoutingLineCosts(var RoutingLine: Record "Routing Line"; var LotSize: Decimal; var ScrapPct: Decimal; ParentItem: Record Item)
     var
         SubcSessionState: Codeunit "Subc. Session State";
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
+
         SubcSessionState.SetRecordID('OnBeforeCalcRoutingLineCosts', ParentItem.RecordId());
     end;
 }

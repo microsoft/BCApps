@@ -10,7 +10,12 @@ codeunit 99001512 "Subc. Reporting Triggers Ext"
 {
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reporting Triggers", SubstituteReport, '', false, false)]
     local procedure SubstituteDetailedCalculation(ReportId: Integer; var NewReportId: Integer)
+    var
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
+
         if ReportId = Report::"Subc. Detailed Calculation" then
             NewReportId := Report::"Subc. Detailed Calculation";
     end;

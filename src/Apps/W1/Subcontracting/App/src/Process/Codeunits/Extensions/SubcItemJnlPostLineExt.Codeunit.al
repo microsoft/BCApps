@@ -13,15 +13,24 @@ using Microsoft.Manufacturing.Document;
 
 codeunit 99001515 "Subc. ItemJnlPostLine Ext"
 {
+    var
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", OnAfterInitItemLedgEntry, '', false, false)]
     local procedure OnAfterInitItemLedgEntry(var NewItemLedgEntry: Record "Item Ledger Entry"; ItemJournalLine: Record "Item Journal Line"; var ItemLedgEntryNo: Integer)
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
+
         UpdateNewItemLedgerEntry(NewItemLedgEntry, ItemJournalLine);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", OnBeforeInsertCapLedgEntry, '', false, false)]
     local procedure OnBeforeInsertCapLedgEntry(var CapLedgEntry: Record "Capacity Ledger Entry"; ItemJournalLine: Record "Item Journal Line")
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
+
         UpdateCapLedgerEntry(CapLedgEntry, ItemJournalLine);
     end;
 
@@ -34,12 +43,18 @@ codeunit 99001515 "Subc. ItemJnlPostLine Ext"
 #endif
     local procedure OnAfterPostOutput(var ItemLedgerEntry: Record "Item Ledger Entry"; var ProdOrderLine: Record "Prod. Order Line"; var ItemJournalLine: Record "Item Journal Line")
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
+
         UpdateProdOrderRoutingLine(ProdOrderLine, ItemJournalLine);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", OnBeforeInsertCapValueEntry, '', false, false)]
     local procedure "Item Jnl.-Post Line_OnBeforeInsertCapValueEntry"(var ValueEntry: Record "Value Entry"; ItemJnlLine: Record "Item Journal Line")
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
+
         ClearInvoicedQuantityForItemChargeSubAssign(ValueEntry, ItemJnlLine);
     end;
 

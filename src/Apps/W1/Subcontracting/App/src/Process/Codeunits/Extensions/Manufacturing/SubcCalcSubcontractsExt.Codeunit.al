@@ -15,7 +15,11 @@ codeunit 99001529 "Subc. Calc Subcontracts Ext."
     local procedure OnAfterTransferProdOrderRoutingLine(var RequisitionLine: Record "Requisition Line"; ProdOrderRoutingLine: Record "Prod. Order Routing Line")
     var
         WorkCenter: Record "Work Center";
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
+
         if RequisitionLine."Description 2" = '' then begin
             WorkCenter.SetLoadFields("Name 2");
             if WorkCenter.Get(ProdOrderRoutingLine."Work Center No.") then

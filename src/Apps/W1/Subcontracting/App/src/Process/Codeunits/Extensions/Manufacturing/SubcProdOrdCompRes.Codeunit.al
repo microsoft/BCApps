@@ -21,7 +21,12 @@ codeunit 99001530 "Subc. Prod. Ord. Comp. Res."
     /// <param name="ShowError"></param>
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Prod. Order Comp.-Reserve", OnVerifyChangeOnBeforeHasError, '', false, false)]
     local procedure "Prod. Order Comp.-Reserve_OnVerifyChangeOnBeforeHasError"(NewProdOrderComp: Record "Prod. Order Component"; OldProdOrderComp: Record "Prod. Order Component"; var HasError: Boolean; var ShowError: Boolean)
+    var
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
     begin
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+            exit;
+
         HasError := false;
     end;
 }
