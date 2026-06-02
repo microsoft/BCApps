@@ -23,7 +23,7 @@ codeunit 99001522 "Subc. Planning Comp. Ext."
     [EventSubscriber(ObjectType::Table, Database::"Planning Component", OnAfterTransferFromComponent, '', false, false)]
     local procedure OnAfterTransferFromComponent(var PlanningComponent: Record "Planning Component"; var ProdOrderComp: Record "Prod. Order Component")
     begin
-        PlanningComponent."Subcontracting Type" := ProdOrderComp."Subcontracting Type";
+        PlanningComponent."Component Supply Method" := ProdOrderComp."Component Supply Method";
         PlanningComponent."Orig. Location Code" := ProdOrderComp."Subc. Original Location Code";
         PlanningComponent."Orig. Bin Code" := ProdOrderComp."Subc. Orig. Bin Code";
     end;
