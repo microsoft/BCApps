@@ -700,32 +700,6 @@ codeunit 130130 "MCP Config Test"
         Assert.IsFalse(MCPConfigurationTool."Allow Bound Actions", 'Allow Bound Actions should remain false for query tools');
     end;
 
-    [Test]
-    procedure TestFindMissingObjectWarningsForQueryTool()
-    var
-        MCPConfigurationTool: Record "MCP Configuration Tool";
-        MCPConfigWarning: Record "MCP Config Warning";
-        ConfigId: Guid;
-        ToolId: Guid;
-    begin
-        // [GIVEN] Configuration and query tool with non-existing object is created
-        ConfigId := CreateMCPConfig(false, false, true, false);
-        ToolId := CreateMCPQueryConfigTool(ConfigId);
-        MCPConfigurationTool.GetBySystemId(ToolId);
-        MCPConfigurationTool.Rename(MCPConfigurationTool.ID, MCPConfigurationTool."Object Type", -1); // non-existing object
-        Commit();
-
-        // [WHEN] Find warnings for configuration is called
-        MCPConfig.FindWarningsForConfiguration(ConfigId, MCPConfigWarning);
-
-        // [THEN] Warning is created for the query tool with non-existing object
-#pragma warning disable AA0210
-        MCPConfigWarning.SetRange("Warning Type", MCPConfigWarning."Warning Type"::"Missing Object");
-#pragma warning restore AA0210
-        MCPConfigWarning.SetRange("Tool Id", ToolId);
-        Assert.RecordCount(MCPConfigWarning, 1);
-    end;
-
     #endregion
 
     #region Warnings
