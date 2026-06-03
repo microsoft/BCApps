@@ -13,7 +13,7 @@ using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Receivables;
 
-codeunit 139547 "Aged Accounts Excel Reports"
+codeunit 139550 "Aged Accounts Excel Reports"
 {
     Subtype = Test;
     RequiredTestIsolation = Disabled;
