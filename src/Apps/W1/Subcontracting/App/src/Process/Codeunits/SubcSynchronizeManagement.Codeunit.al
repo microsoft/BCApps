@@ -37,14 +37,16 @@ codeunit 99001511 "Subc. Synchronize Management"
         if PurchaseLine."Qty. Received (Base)" <> 0 then
             exit;
 
-        if ProductionOrder.Get("Production Order Status"::Released, PurchaseLine."Prod. Order No.") then begin
-            if not ProductionOrder."Created from Purch. Order" then
-                exit;
-            if ProductionOrder."Due Date" <> PurchaseLine."Expected Receipt Date" then begin
-                ProductionOrder.SetUpdateEndDate();
-                ProductionOrder.Validate("Due Date", PurchaseLine."Expected Receipt Date");
-                ProductionOrder.Modify();
-            end;
+        if not ProductionOrder.Get("Production Order Status"::Released, PurchaseLine."Prod. Order No.") then
+            exit;
+
+        if not ProductionOrder."Created from Purch. Order" then
+            exit;
+
+        if ProductionOrder."Due Date" <> PurchaseLine."Expected Receipt Date" then begin
+            ProductionOrder.SetUpdateEndDate();
+            ProductionOrder.Validate("Due Date", PurchaseLine."Expected Receipt Date");
+            ProductionOrder.Modify();
         end;
     end;
 
@@ -69,35 +71,41 @@ codeunit 99001511 "Subc. Synchronize Management"
         if PurchaseLine."Qty. Received (Base)" <> 0 then
             exit;
 
-        if ProductionOrder.Get("Production Order Status"::Released, PurchaseLine."Prod. Order No.") then begin
-            if not ProductionOrder."Created from Purch. Order" then
-                exit;
+        if not ProductionOrder.Get("Production Order Status"::Released, PurchaseLine."Prod. Order No.") then
+            exit;
 
-            ItemUnitofMeasure.Get(PurchaseLine."No.", PurchaseLine."Unit of Measure Code");
-            PurchLineBaseQuantity :=
-                UnitofMeasureManagement.CalcBaseQty(PurchaseLine."No.", PurchaseLine."Variant Code", PurchaseLine."Unit of Measure Code", PurchaseLine.Quantity, ItemUnitofMeasure."Qty. per Unit of Measure", ItemUnitofMeasure."Qty. Rounding Precision", PurchaseLine.FieldCaption("Qty. Rounding Precision"), PurchaseLine.FieldCaption(Quantity), PurchaseLine.FieldCaption("Quantity (Base)"));
+        if not ProductionOrder."Created from Purch. Order" then
+            exit;
 
-            if ProductionOrder.Quantity <> PurchLineBaseQuantity then begin
-                ProductionOrder.Quantity := PurchLineBaseQuantity;
-                ProductionOrder.Modify();
-            end;
+        ItemUnitofMeasure.Get(PurchaseLine."No.", PurchaseLine."Unit of Measure Code");
+        PurchLineBaseQuantity :=
+            UnitofMeasureManagement.CalcBaseQty(PurchaseLine."No.", PurchaseLine."Variant Code", PurchaseLine."Unit of Measure Code", PurchaseLine.Quantity, ItemUnitofMeasure."Qty. per Unit of Measure", ItemUnitofMeasure."Qty. Rounding Precision", PurchaseLine.FieldCaption("Qty. Rounding Precision"), PurchaseLine.FieldCaption(Quantity), PurchaseLine.FieldCaption("Quantity (Base)"));
 
-            if ProdOrderLine.Get("Production Order Status"::Released, PurchaseLine."Prod. Order No.", PurchaseLine."Prod. Order Line No.") then
-                if ProdOrderLine.Quantity <> PurchLineBaseQuantity then begin
-                    ProdOrderLine.Validate(Quantity, PurchLineBaseQuantity);
-                    ProdOrderLine.Modify();
-                    ProdOrderComponent.SetRange(Status, "Production Order Status"::Released);
-                    ProdOrderComponent.SetRange("Prod. Order No.", PurchaseLine."Prod. Order No.");
-                    ProdOrderComponent.SetRange("Prod. Order Line No.", ProdOrderLine."Line No.");
-                    if not ProdOrderComponent.IsEmpty() then begin
-                        ProdOrderComponent.FindSet();
-                        repeat
-                            ProdOrderComponent.Validate("Quantity per");
-                            ProdOrderComponent.Modify();
-                        until ProdOrderComponent.Next() = 0;
-                    end;
-                end;
+        if ProductionOrder.Quantity <> PurchLineBaseQuantity then begin
+            ProductionOrder.Quantity := PurchLineBaseQuantity;
+            ProductionOrder.Modify();
         end;
+
+        if not ProdOrderLine.Get("Production Order Status"::Released, PurchaseLine."Prod. Order No.", PurchaseLine."Prod. Order Line No.") then
+            exit;
+
+        if ProdOrderLine.Quantity = PurchLineBaseQuantity then
+            exit;
+
+        ProdOrderLine.Validate(Quantity, PurchLineBaseQuantity);
+        ProdOrderLine.Modify();
+
+        ProdOrderComponent.SetRange("Prod. Order No.", PurchaseLine."Prod. Order No.");
+        ProdOrderComponent.SetRange("Prod. Order Line No.", ProdOrderLine."Line No.");
+        ProdOrderComponent.SetRange(Status, "Production Order Status"::Released);
+        if ProdOrderComponent.IsEmpty() then
+            exit;
+
+        ProdOrderComponent.FindSet();
+        repeat
+            ProdOrderComponent.Validate("Quantity per");
+            ProdOrderComponent.Modify();
+        until ProdOrderComponent.Next() = 0;
     end;
 
     procedure DeleteEnhancedDocumentsByChangeOfVendorNo(var PurchaseHeader: Record "Purchase Header"; var xPurchaseHeader: Record "Purchase Header")

@@ -630,13 +630,13 @@ codeunit 99001557 "Subc. Purchase Order Creator"
 
     local procedure PurchLineExists(var PurchaseLine: Record "Purchase Line"; ProdOrderLine: Record "Prod. Order Line"; ProdOrderRoutingLine: Record "Prod. Order Routing Line"): Boolean
     begin
-        PurchaseLine.SetCurrentKey("Document Type", Type, "Prod. Order No.", "Prod. Order Line No.", "Routing No.", "Operation No.");
-        PurchaseLine.SetRange("Document Type", "Purchase Document Type"::Order);
-        PurchaseLine.SetRange(Type, "Purchase Line Type"::Item);
+        PurchaseLine.SetCurrentKey("Prod. Order No.", "Prod. Order Line No.", "Routing No.", "Operation No.");
         PurchaseLine.SetRange("Prod. Order No.", ProdOrderLine."Prod. Order No.");
         PurchaseLine.SetRange("Prod. Order Line No.", ProdOrderLine."Line No.");
         PurchaseLine.SetRange("Routing No.", ProdOrderRoutingLine."Routing No.");
         PurchaseLine.SetRange("Operation No.", ProdOrderRoutingLine."Operation No.");
+        PurchaseLine.SetRange("Document Type", "Purchase Document Type"::Order);
+        PurchaseLine.SetRange(Type, "Purchase Line Type"::Item);
         PurchaseLine.SetRange("Planning Flexibility", "Reservation Planning Flexibility"::Unlimited);
         PurchaseLine.SetRange("Quantity Received", 0);
         exit(PurchaseLine.FindFirst());
