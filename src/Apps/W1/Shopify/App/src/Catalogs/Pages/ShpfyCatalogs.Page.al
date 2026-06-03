@@ -35,14 +35,10 @@ page 30159 "Shpfy Catalogs"
 
                     trigger OnDrillDown()
                     var
-                        ShopifyCompany: Record "Shpfy Company";
-                        CompanyCard: Page "Shpfy Company Card";
+                        Company: Record "Shpfy Company";
                     begin
-                        if ShopifyCompany.GetBySystemId(Rec."Company SystemId") then begin
-                            ShopifyCompany.SetRecFilter();
-                            CompanyCard.SetTableView(ShopifyCompany);
-                            CompanyCard.Run();
-                        end;
+                        if Company.GetBySystemId(Rec."Company SystemId") then
+                            Page.Run(Page::"Shpfy Company Card", Company);
                     end;
                 }
                 field(SyncPrices; Rec."Sync Prices") { }
