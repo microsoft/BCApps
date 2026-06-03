@@ -7,6 +7,7 @@ namespace System.Test.Azure.ActiveDirectory;
 
 using System;
 using System.Azure.Identity;
+using System.Security.AccessControl;
 using System.Security.User;
 using System.TestLibraries.Azure.ActiveDirectory;
 using System.TestLibraries.Environment;
@@ -17,6 +18,7 @@ using System.TestLibraries.Utilities;
 codeunit 132912 "Azure AD Plan Tests"
 {
     Subtype = Test;
+    Permissions = tabledata "User Property" = rimd;
     TestPermissions = Disabled;
     EventSubscriberInstance = Manual;
 
@@ -695,6 +697,76 @@ codeunit 132912 "Azure AD Plan Tests"
 
         // [Then] SUPER was not removed from the user
         LibraryAssert.IsTrue(UserPermissions.IsSuper(UserSID), 'User should be SUPER');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [CommitBehavior(CommitBehavior::Ignore)]
+    [Scope('OnPrem')]
+    procedure GDAPUserWithPreviousGuestPlanGetsAccessUpdated()
+    var
+        UserPlan: Record "User Plan";
+        UserProperty: Record "User Property";
+        AzureADPlan: Codeunit "Azure AD Plan";
+        UserPermissions: Codeunit "User Permissions";
+        AzureADPlanTestLibraries: Codeunit "Azure AD Plan Test Library";
+        AzureADUserTestLibrary: Codeunit "Azure AD User Test Library";
+        PlanConfigurationLibrary: Codeunit "Plan Configuration Library";
+        UserPermissionsLibrary: Codeunit "User Permissions Library";
+        AzureAdPlanTest: Codeunit "Azure AD Plan Tests";
+        PlanIds: Codeunit "Plan Ids";
+        UserSID: Guid;
+    begin
+        // [Scenario] A GDAP delegated admin user who was previously a guest user gets the GDAP plan
+        // assigned on login even when SkipUpdateUserAccess = true.
+        // Fix for ADO #612420: The early-exit conditions in AssignPlanToUserWithDelegatedRole
+        // prevented the GDAP plan from replacing the guest plan for returning users.
+
+        DeleteAllFromTablePlanAndUserPlan();
+        PlanConfigurationLibrary.ClearPlanConfigurations();
+        BindSubscription(AzureAdPlanTest);
+        EnvironmentInformationTestLibrary.SetTestabilitySoftwareAsAService(true);
+
+        // [Given] A SUPER user
+        UserSID := UserPermissionsLibrary.CreateSuperUser('NEWUSER');
+        UserPermissionsLibrary.CreateSuperUser('ANOTHERUSER');
+
+        // [Given] The Delegated Admin agent - Partner plan exists
+        AzureADPlanTestLibraries.CreatePlan(PlanIds.GetDelegatedAdminPlanId(), 'Delegated Admin agent - Partner', 9022, '7584DDCA-27B8-E911-BB26-000D3A2B005C');
+
+        // [Given] The user previously had a guest plan (simulating a former guest user)
+        AzureADPlanTestLibraries.AssignUserToPlan(UserSID, AzureADPlanTestLibraries.CreatePlan('Guest Plan'));
+
+        // [Given] The user has a UserProperty record (required for access update path)
+        if not UserProperty.Get(UserSID) then begin
+            UserProperty.Init();
+            UserProperty."User Security ID" := UserSID;
+            UserProperty."Authentication Object ID" := UserSID;
+            UserProperty.Insert();
+        end;
+
+        // [Given] The current user is a delegated admin
+        BindSubscription(AzureADUserTestLibrary);
+        AzureADUserTestLibrary.SetIsUserDelegatedAdmin(true);
+
+        // [Given] The plan configuration is NOT customized (default permissions apply)
+        // This avoids the RemoveSuperPermissions path which requires a real Windows user
+        LibraryAssert.IsFalse(AzureADPlan.IsPlanAssignedToUser(PlanIds.GetDelegatedAdminPlanId(), UserSID), 'GDAP plan should not yet be assigned');
+
+        // [When] The plan is assigned per delegated role with SkipUpdateUserAccess = true
+        // (simulating a returning user logging in - the caller Run() passes UserLoggedInEnvironment as SkipUpdateUserAccess)
+        AzureADPlan.AssignPlanToUserWithDelegatedRole(UserSID, true);
+
+        // [Then] The GDAP plan is assigned to the user (the old guest plan was replaced)
+        // Bug 612420: With the buggy code, the procedure exited early when SkipUpdateUserAccess = true
+        // and the user had existing plans, preventing the GDAP plan from being assigned.
+        UserPlan.SetRange("User Security ID", UserSID);
+        LibraryAssert.AreEqual(1, UserPlan.Count(), 'There should be exactly one plan assignment (guest plan replaced by GDAP plan)');
+        LibraryAssert.IsTrue(UserPlan.FindFirst(), 'There should be a plan assigned');
+        LibraryAssert.AreEqual(PlanIds.GetDelegatedAdminPlanId(), UserPlan."Plan ID", 'The delegated admin plan should be assigned, replacing the guest plan');
+
+        // [Then] SUPER is still assigned (plan config is not customized, so SUPER is not removed)
+        LibraryAssert.IsTrue(UserPermissions.IsSuper(UserSID), 'User should still be SUPER (plan config is not customized)');
     end;
 
     [Test]
