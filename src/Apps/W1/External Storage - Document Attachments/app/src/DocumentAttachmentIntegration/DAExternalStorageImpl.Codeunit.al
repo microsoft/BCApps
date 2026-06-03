@@ -397,14 +397,14 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
 
     local procedure DeleteExternalFile(ExternalFilePath: Text; DocumentAttachmentForTelemetry: Record "Document Attachment"): Boolean
     var
-        TempFileAccount: Record "File Account";
+        FileAccount: Record "File Account";
         ExternalFileStorage: Codeunit "External File Storage";
         FileScenarioCU: Codeunit "File Scenario";
         DAFeatureTelemetry: Codeunit "DA Feature Telemetry";
         FileScenario: Enum "File Scenario";
     begin
         FileScenario := FileScenario::"Doc. Attach. - External Storage";
-        if not FileScenarioCU.GetSpecificFileAccount(FileScenario, TempFileAccount) then
+        if not FileScenarioCU.GetSpecificFileAccount(FileScenario, FileAccount) then
             exit(false);
 
         ExternalFileStorage.Initialize(FileScenario);
