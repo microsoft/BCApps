@@ -31,6 +31,19 @@ page 30159 "Shpfy Catalogs"
                 {
                     Caption = 'Company';
                     Editable = false;
+                    DrillDown = true;
+
+                    trigger OnDrillDown()
+                    var
+                        ShopifyCompany: Record "Shpfy Company";
+                        CompanyCard: Page "Shpfy Company Card";
+                    begin
+                        if ShopifyCompany.GetBySystemId(Rec."Company SystemId") then begin
+                            ShopifyCompany.SetRecFilter();
+                            CompanyCard.SetTableView(ShopifyCompany);
+                            CompanyCard.Run();
+                        end;
+                    end;
                 }
                 field(SyncPrices; Rec."Sync Prices") { }
                 field("Currency Code"; Rec."Currency Code")
