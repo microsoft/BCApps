@@ -5,7 +5,6 @@
 namespace Microsoft.QualityManagement.Configuration.Template;
 
 using Microsoft.QualityManagement.Configuration.Result;
-using Microsoft.QualityManagement.Configuration.Template.Test;
 using Microsoft.QualityManagement.Document;
 
 /// <summary>
@@ -479,7 +478,7 @@ page 20403 "Qlty. Inspection Template Subf"
         {
             action(AddMultipleTests)
             {
-                AccessByPermission = TableData "Qlty. Test" = R;
+                AccessByPermission = tabledata "Qlty. Inspection Template Line" = I;
                 Caption = 'Select tests';
                 Ellipsis = true;
                 Image = SelectMore;
