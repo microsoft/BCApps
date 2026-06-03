@@ -54,6 +54,39 @@ report 149030 "AIT Test Summary"
             column(Error; ErrorCallstack)
             {
             }
+            column(EntryNo; Results."Entry No.")
+            {
+            }
+            column(Version; Results.Version)
+            {
+            }
+            column(Tag; Results.Tag)
+            {
+            }
+            column(RunID; Results."Run ID")
+            {
+            }
+            column(TestInputGroupCode; Results."Test Input Group Code")
+            {
+            }
+            column(TestInputCode; Results."Test Input Code")
+            {
+            }
+            column(TestInputDescription; Results."Test Input Description")
+            {
+            }
+            column(TokensConsumed; Results."Tokens Consumed")
+            {
+            }
+            column(DurationMs; Results."Duration (ms)")
+            {
+            }
+            column(StartTime; Results."Start Time")
+            {
+            }
+            column(EndTime; Results."End Time")
+            {
+            }
 
             trigger OnAfterGetRecord()
             begin
