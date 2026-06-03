@@ -243,13 +243,18 @@ codeunit 3904 "Apply Retention Policy Impl."
         RetenPolDeleting.DeleteRecords(RecordRef, TempRetenPolDeletingParam);
 
         if not TempRetenPolDeletingParam."Skip Event Indirect Perm. Req." then begin
-            ApplyRetentionPolicyFacade.OnApplyRetentionPolicyIndirectPermissionRequired(RecordRefDuplicate, Handled);
+            // Indirect-permission path: RecordRef is still open and retains its record marks.
+            // RecordRef.Duplicate() copies filters and the MarkedOnly flag but NOT the marks, so the
+            // subscriber must receive the original marked RecordRef - otherwise subset (marked) deletes
+            // would delete nothing. Count the remaining marked records, then close the original ref.
+            ApplyRetentionPolicyFacade.OnApplyRetentionPolicyIndirectPermissionRequired(RecordRef, Handled);
             if not Handled then
-                RetentionPolicyLog.LogError(LogCategory(), StrSubstNo(IndirectPermissionsRequiredErr, RecordRefDuplicate.Number, RecordRefDuplicate.Caption));
+                RetentionPolicyLog.LogError(LogCategory(), StrSubstNo(IndirectPermissionsRequiredErr, RecordRef.Number, RecordRef.Caption));
             Handled := false;
-        end;
-
-        RecordCountAfter := Count(RecordRefDuplicate);
+            RecordCountAfter := Count(RecordRef);
+            RecordRef.Close();
+        end else
+            RecordCountAfter := Count(RecordRefDuplicate);
         NumberOfRecordsDeleted := RecordCountBefore - RecordCountAfter;
         TotalNumberOfRecordsDeleted += NumberOfRecordsDeleted;
 

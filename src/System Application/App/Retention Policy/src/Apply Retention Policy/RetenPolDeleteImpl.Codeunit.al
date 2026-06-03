@@ -41,10 +41,14 @@ codeunit 3916 "Reten. Pol. Delete. Impl." implements "Reten. Pol. Deleting"
                     LimitRecordsToBeDeleted(RecordRef, RecordReferenceIndirectPermission, RetenPolDeletingParam."Skip Event Rec. Limit Exceeded", RetenPolDeletingParam."Max. Number of Rec. To Delete", RetenPolDeletingParam."Total Max. Nr. of Rec. to Del.");
                 end;
 
-        if not RetenPolDeletingParam."Indirect Permission Required" then
+        if not RetenPolDeletingParam."Indirect Permission Required" then begin
             RecordReferenceIndirectPermission.DeleteAll(RecordRef, true);
+            // Direct-permission path: close here. For the indirect-permission path the caller needs
+            // the still-open RecordRef (with its record marks intact) to raise
+            // OnApplyRetentionPolicyIndirectPermissionRequired, and closes it afterwards.
+            RecordRef.Close();
+        end;
         RetenPolDeletingParam."Skip Event Indirect Perm. Req." := not RetenPolDeletingParam."Indirect Permission Required";
-        RecordRef.Close();
     end;
 
     local procedure LimitRecordsToBeDeleted(var RecordRef: RecordRef; RecordReferenceIndirectPermission: Interface "Record Reference"; var SkipOnApplyRetentionPolicyRecordLimitExceeded: Boolean; MaxNumberOfRecordsToDelete: Integer; TotalMaxNumberOfRecordsToDelete: Integer)
