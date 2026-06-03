@@ -211,11 +211,6 @@ page 8351 "MCP Config Card"
     var
         MCPConfigImplementation: Codeunit "MCP Config Implementation";
         IsDefault: Boolean;
-        // MOCK: page-local driving the Available APIs sub-part visibility (a Visible property can't
-        // call a method, so we cache IsActive() here in RefreshSubPages). It's fed from the API Tools
-        // feature's IsActive(), which today reads the "MCP Feature Activation" stand-in table; once the
-        // platform adds the real config field it flips automatically through the impl getter, so the
-        // page-local itself stays — only this mock note is removed.
         APIToolsActive: Boolean;
         DesignatedDefaultCannotBeDeactivatedErr: Label 'The designated default configuration cannot be deactivated. Clear the default designation first.';
 

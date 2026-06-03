@@ -47,16 +47,16 @@ page 8350 "MCP Config List"
                 }
                 // MOCK: these two columns are function-sourced from the "MCP Feature Activation" stand-in
                 // table (via the impl getters) because the activation flags aren't on MCP Configuration
-                // yet. When the platform ships the fields, replace each source with the real Rec field
-                // (e.g. Rec."Enable API Tools" / Rec."Enable Data Query Tools") so they become normal
-                // bound columns (and can be made editable).
+                // yet.
                 field(APITools; MCPConfigImplementation.IsAPIToolsEnabled(Rec.SystemId))
+                // field(APITools; Rec.EnableApiTools)
                 {
                     Caption = 'API Tools';
                     ToolTip = 'Specifies whether the API Tools feature is enabled for this configuration.';
                     Editable = false;
                 }
                 field(DataQueryTools; MCPConfigImplementation.IsDataQueryToolsEnabled(Rec.SystemId))
+                // field(DataQueryTools; Rec.EnableAlQueryTools)
                 {
                     Caption = 'Data Query Tools';
                     ToolTip = 'Specifies whether the Data Query Tools feature is enabled for this configuration.';

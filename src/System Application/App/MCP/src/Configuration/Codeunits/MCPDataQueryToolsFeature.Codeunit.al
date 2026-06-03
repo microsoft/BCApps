@@ -40,11 +40,24 @@ codeunit 8368 "MCP Data Query Tools Feature" implements "MCP Server Features"
 
     procedure LoadSystemTools(var MCPSystemTool: Record "MCP System Tool")
     begin
-        // MOCK: hardcoded preview of the Data Query Tools system tools. Replace with a real MCP Utilities
-        // call (mirroring GetSystemToolsInDynamicMode) once the platform exposes the catalog.
+        // MOCK (PLATFORM-PENDING, BC-Platform PR #44811): hardcoded preview of the Data Query Tools system
+        // tools. When #44811 ships "MCP Utilities".GetSystemToolsInDataQuery(), delete this procedure and
+        // uncomment the productionized version below (mirrors the Dynamic Tool Mode handler).
         InsertTool(MCPSystemTool, 'compile_al_query', 'Compile an AL query string and return diagnostics.');
         InsertTool(MCPSystemTool, 'run_al_query', 'Execute a previously compiled AL query and return the result set.');
     end;
+
+    // PLATFORM-PENDING (BC-Platform PR #44811): productionized replacement for LoadSystemTools above.
+    // procedure LoadSystemTools(var MCPSystemTool: Record "MCP System Tool")
+    // var
+    //     MCPUtilities: Codeunit "MCP Utilities";
+    //     SystemTools: Dictionary of [Text, Text];
+    //     ToolName: Text;
+    // begin
+    //     SystemTools := MCPUtilities.GetSystemToolsInDataQuery();
+    //     foreach ToolName in SystemTools.Keys() do
+    //         InsertTool(MCPSystemTool, CopyStr(ToolName, 1, MaxStrLen(MCPSystemTool."Tool Name")), CopyStr(SystemTools.Get(ToolName), 1, MaxStrLen(MCPSystemTool."Tool Description")));
+    // end;
 
     procedure TryGetParentFeature(var ParentFeature: Enum "MCP Server Feature"): Boolean
     begin

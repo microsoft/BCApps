@@ -18,6 +18,8 @@ codeunit 8356 "MCP Upgrade"
     begin
         UpgradeMCPAPIToolVersion();
         UpgradeMCPSystemDefaultAsDefault();
+        // PLATFORM-PENDING (BC-Platform PR #44811): uncomment once MCP Configuration has the EnableApiTools field.
+        // EnableApiToolsOnExistingConfigurations();
     end;
 
     internal procedure UpgradeMCPAPIToolVersion()
@@ -62,11 +64,29 @@ codeunit 8356 "MCP Upgrade"
         UpgradeTag.SetUpgradeTag(GetMCPSystemDefaultAsDefaultUpgradeTag());
     end;
 
+    // PLATFORM-PENDING (BC-Platform PR #44811): when MCP Configuration has the EnableApiTools field, uncomment
+    // this procedure (plus its call in OnUpgradePerDatabase, its tag below, and its registration below) to
+    // turn API Tools on for every existing MCP configuration on upgrade — matching the field's
+    // InitValue = true for new configurations.
+    // internal procedure EnableApiToolsOnExistingConfigurations()
+    // var
+    //     MCPConfiguration: Record "MCP Configuration";
+    //     UpgradeTag: Codeunit "Upgrade Tag";
+    // begin
+    //     if UpgradeTag.HasDatabaseUpgradeTag(GetMCPEnableApiToolsUpgradeTag()) then
+    //         exit;
+    //
+    //     MCPConfiguration.ModifyAll(EnableApiTools, true);
+    //
+    //     UpgradeTag.SetUpgradeTag(GetMCPEnableApiToolsUpgradeTag());
+    // end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", OnGetPerDatabaseUpgradeTags, '', false, false)]
     local procedure RegisterUpgradeTags(var PerDatabaseUpgradeTags: List of [Code[250]])
     begin
         PerDatabaseUpgradeTags.Add(GetMCPAPIToolVersionUpgradeTag());
         PerDatabaseUpgradeTags.Add(GetMCPSystemDefaultAsDefaultUpgradeTag());
+        // PLATFORM-PENDING (BC-Platform PR #44811): PerDatabaseUpgradeTags.Add(GetMCPEnableApiToolsUpgradeTag());
     end;
 
     local procedure GetMCPAPIToolVersionUpgradeTag(): Text[250]
@@ -78,4 +98,10 @@ codeunit 8356 "MCP Upgrade"
     begin
         exit('MS-612454-MCPSystemDefaultAsDefault-20260216');
     end;
+
+    // PLATFORM-PENDING (BC-Platform PR #44811):
+    // local procedure GetMCPEnableApiToolsUpgradeTag(): Text[250]
+    // begin
+    //     exit('MS-631012-MCPEnableApiTools-20260603');
+    // end;
 }

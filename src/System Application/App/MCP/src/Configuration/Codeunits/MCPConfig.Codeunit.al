@@ -120,9 +120,6 @@ codeunit 8350 "MCP Config"
     /// <summary>
     /// Enables or disables the Data Query Tools feature for the specified configuration.
     /// </summary>
-    /// <remarks>
-    /// MOCK: persisted in the "MCP Feature Activation" stand-in table until the platform adds an Data Query Tools field to `MCP Configuration`.
-    /// </remarks>
     /// <param name="ConfigId">The SystemId (GUID) of the configuration.</param>
     /// <param name="Enable">True to enable, false to disable.</param>
     procedure EnableDataQueryTools(ConfigId: Guid; Enable: Boolean)
@@ -133,9 +130,6 @@ codeunit 8350 "MCP Config"
     /// <summary>
     /// Enables or disables the API Tools feature for the specified configuration.
     /// </summary>
-    /// <remarks>
-    /// MOCK: persisted in the "MCP Feature Activation" stand-in table until the platform adds an API Tools field to `MCP Configuration`.
-    /// </remarks>
     /// <param name="ConfigId">The SystemId (GUID) of the configuration.</param>
     /// <param name="Enable">True to enable, false to disable.</param>
     procedure EnableAPITools(ConfigId: Guid; Enable: Boolean)

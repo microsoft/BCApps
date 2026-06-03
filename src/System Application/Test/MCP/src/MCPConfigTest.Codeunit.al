@@ -254,10 +254,10 @@ codeunit 130130 "MCP Config Test"
 
     #region API Tools
 
-    // MOCK: API Tools activation persists to the "MCP Feature Activation" stand-in table (MCP Config
-    // Implementation); the public facade exposes no read-back, so these stay smoke tests that only
-    // verify the procedure is callable. Replace with real state assertions once the platform adds the
-    // API Tools field on MCP Configuration.
+    // MOCK (PLATFORM-PENDING, BC-Platform PR #44811): API Tools activation persists to the "MCP Feature
+    // Activation" stand-in table and the facade exposes no read-back, so these stay smoke tests that only
+    // verify the procedure is callable. When #44811 ships the EnableApiTools field, delete these two smoke
+    // tests and uncomment the productionized versions below (which assert the real field state).
 
     [Test]
     procedure TestEnableAPITools()
@@ -279,14 +279,40 @@ codeunit 130130 "MCP Config Test"
         MCPConfig.EnableAPITools(ConfigId, false);
     end;
 
+    // PLATFORM-PENDING (BC-Platform PR #44811): productionized replacements for the two smoke tests above.
+    // [Test]
+    // procedure TestEnableAPITools()
+    // var
+    //     MCPConfiguration: Record "MCP Configuration";
+    //     ConfigId: Guid;
+    // begin
+    //     ConfigId := CreateMCPConfig(false, false, true, false);
+    //     MCPConfig.EnableAPITools(ConfigId, true);
+    //     MCPConfiguration.GetBySystemId(ConfigId);
+    //     Assert.IsTrue(MCPConfiguration.EnableApiTools, 'API Tools should be enabled');
+    // end;
+    //
+    // [Test]
+    // procedure TestDisableAPITools()
+    // var
+    //     MCPConfiguration: Record "MCP Configuration";
+    //     ConfigId: Guid;
+    // begin
+    //     ConfigId := CreateMCPConfig(false, false, true, false);
+    //     MCPConfig.EnableAPITools(ConfigId, false);
+    //     MCPConfiguration.GetBySystemId(ConfigId);
+    //     Assert.IsFalse(MCPConfiguration.EnableApiTools, 'API Tools should be disabled');
+    // end;
+
     #endregion
 
     #region Data Query Tools
 
-    // MOCK: Data Query Tools activation persists to the "MCP Feature Activation" stand-in table (MCP
-    // Config Implementation); the public facade exposes no read-back, so these stay smoke tests that
-    // only verify each procedure is callable. Replace with real state assertions once the platform
-    // adds the Data Query Tools field on MCP Configuration.
+    // MOCK (PLATFORM-PENDING, BC-Platform PR #44811): Data Query Tools activation persists to the "MCP
+    // Feature Activation" stand-in table and the facade exposes no read-back, so these stay smoke tests
+    // that only verify each procedure is callable. When #44811 ships the EnableAlQueryTools field, delete
+    // these two smoke tests and uncomment the productionized versions below (which assert the real field
+    // state — our "Data Query Tools" maps onto the platform's EnableAlQueryTools field).
 
     [Test]
     procedure TestEnableDataQueryTools()
@@ -307,6 +333,31 @@ codeunit 130130 "MCP Config Test"
         ConfigId := CreateMCPConfig(false, false, true, false);
         MCPConfig.EnableDataQueryTools(ConfigId, false);
     end;
+
+    // PLATFORM-PENDING (BC-Platform PR #44811): productionized replacements for the two smoke tests above.
+    // [Test]
+    // procedure TestEnableDataQueryTools()
+    // var
+    //     MCPConfiguration: Record "MCP Configuration";
+    //     ConfigId: Guid;
+    // begin
+    //     ConfigId := CreateMCPConfig(false, false, true, false);
+    //     MCPConfig.EnableDataQueryTools(ConfigId, true);
+    //     MCPConfiguration.GetBySystemId(ConfigId);
+    //     Assert.IsTrue(MCPConfiguration.EnableAlQueryTools, 'Data Query Tools should be enabled');
+    // end;
+    //
+    // [Test]
+    // procedure TestDisableDataQueryTools()
+    // var
+    //     MCPConfiguration: Record "MCP Configuration";
+    //     ConfigId: Guid;
+    // begin
+    //     ConfigId := CreateMCPConfig(false, false, true, false);
+    //     MCPConfig.EnableDataQueryTools(ConfigId, false);
+    //     MCPConfiguration.GetBySystemId(ConfigId);
+    //     Assert.IsFalse(MCPConfiguration.EnableAlQueryTools, 'Data Query Tools should be disabled');
+    // end;
 
     #endregion
 
