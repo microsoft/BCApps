@@ -29,6 +29,15 @@ jobs:
       run:
         shell: pwsh
     steps:
+      - name: Download PR metadata artifact
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          github-token: ${{ github.token }}
+          run-id: ${{ github.event.workflow_run.id }}
+          pattern: copilot-pr-review-input-*
+          path: ${{ runner.temp }}/copilot-pr-review-input
+          merge-multiple: true
+
       - name: Resolve PR details
         id: pr
         env:
@@ -42,49 +51,43 @@ jobs:
 
           $expectedHeadSha = '${{ github.event.workflow_run.head_sha }}'
 
-          $prNumber = '${{ github.event.workflow_run.pull_requests[0].number }}'
-          if (-not $prNumber) {
-            $headOwner = '${{ github.event.workflow_run.head_repository.owner.login }}'
-            $headBranch = '${{ github.event.workflow_run.head_branch }}'
-            $baseBranch = '${{ github.event.workflow_run.pull_requests[0].base.ref }}'
+          $prNumber = $null
+          $resolvedHeadSha = $null
+          $resolvedBaseRef = $null
 
-            if (-not $headOwner -or -not $headBranch) {
-              throw 'No pull request number in workflow_run payload and insufficient head repo/branch metadata for fallback lookup.'
+          # Primary source: metadata artifact produced by the intake workflow run.
+          try {
+            $artifactDir = Join-Path $env:RUNNER_TEMP 'copilot-pr-review-input'
+            $metadataFile = Get-ChildItem -Path $artifactDir -Filter 'pr-metadata.json' -Recurse -File | Select-Object -First 1
+            if ($metadataFile) {
+              $metadata = Get-Content -Path $metadataFile.FullName -Raw | ConvertFrom-Json
+              if ($metadata.prNumber) { $prNumber = [string]$metadata.prNumber }
+              if ($metadata.headSha) { $resolvedHeadSha = [string]$metadata.headSha }
+              if ($metadata.baseRef) { $resolvedBaseRef = [string]$metadata.baseRef }
+              Write-Host "Resolved PR metadata from artifact file $($metadataFile.FullName)."
             }
-
-            $encodedHead = [System.Uri]::EscapeDataString("${headOwner}:$headBranch")
-            $query = "state=open&head=$encodedHead"
-            if ($baseBranch) {
-              $encodedBase = [System.Uri]::EscapeDataString($baseBranch)
-              $query = "$query&base=$encodedBase"
-            }
-
-            $searchUri = "https://api.github.com/repos/${{ github.repository }}/pulls?$query&per_page=30"
-            $candidates = Invoke-RestMethod -Uri $searchUri -Headers $headers -Method GET
-
-            $matchingCandidates = @($candidates | Where-Object { $_.head.sha -eq $expectedHeadSha })
-            if ($matchingCandidates.Count -eq 1) {
-              $prNumber = [string]$matchingCandidates[0].number
-            }
-            elseif ($matchingCandidates.Count -gt 1) {
-              throw 'Fallback PR lookup returned multiple PRs matching the workflow_run head SHA.'
-            }
+          }
+          catch {
+            Write-Warning "Failed to resolve PR metadata from artifact: $($_.Exception.Message)"
           }
 
           if (-not $prNumber) {
-            throw 'No pull request number found in workflow_run payload or fallback PR lookup.'
+            throw 'No pull request number found in artifact metadata.'
           }
 
           $uri = "https://api.github.com/repos/${{ github.repository }}/pulls/$prNumber"
           $pr = Invoke-RestMethod -Uri $uri -Headers $headers -Method GET
 
-          if ($expectedHeadSha -and $pr.head.sha -ne $expectedHeadSha) {
+          if (-not $resolvedHeadSha) { $resolvedHeadSha = [string]$pr.head.sha }
+          if (-not $resolvedBaseRef) { $resolvedBaseRef = [string]$pr.base.ref }
+
+          if ($expectedHeadSha -and $resolvedHeadSha -ne $expectedHeadSha) {
             throw 'Resolved PR head SHA does not match workflow_run head SHA.'
           }
 
-          "number=$($pr.number)" >> $env:GITHUB_OUTPUT
-          "head_sha=$($pr.head.sha)" >> $env:GITHUB_OUTPUT
-          "base_ref=$($pr.base.ref)" >> $env:GITHUB_OUTPUT
+          "number=$([string]$pr.number)" >> $env:GITHUB_OUTPUT
+          "head_sha=$resolvedHeadSha" >> $env:GITHUB_OUTPUT
+          "base_ref=$resolvedBaseRef" >> $env:GITHUB_OUTPUT
 
       - name: Checkout trusted base code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2

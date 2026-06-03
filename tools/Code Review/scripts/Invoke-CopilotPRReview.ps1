@@ -521,15 +521,29 @@ function Get-Findings {
         @($Output.Trim())
     }
 
+    $candidateIndex = 0
     foreach ($candidate in $candidates) {
+        $candidateIndex++
+        if ([string]::IsNullOrWhiteSpace($candidate)) { continue }
+        $trimmedCandidate = $candidate.Trim()
+
         try {
-            $parsed = $candidate | ConvertFrom-Json -ErrorAction Stop
+            $parsed = $trimmedCandidate | ConvertFrom-Json -ErrorAction Stop
         } catch {
             $message = $_.Exception.Message
             if ($message) {
-                $preview = $candidate.Trim()
-                if ($preview.Length -gt 160) { $preview = $preview.Substring(0, 160) + '...' }
-                $parseErrors.Add("$message | candidate: $preview")
+                $preview = $trimmedCandidate
+                if ($preview.Length -gt 1200) { $preview = $preview.Substring(0, 1200) + '...' }
+                $candidateHash = ''
+                try {
+                    $sha256 = [System.Security.Cryptography.SHA256]::Create()
+                    $bytes = [System.Text.Encoding]::UTF8.GetBytes($trimmedCandidate)
+                    $candidateHash = ([System.BitConverter]::ToString($sha256.ComputeHash($bytes))).Replace('-', '').ToLowerInvariant()
+                    $sha256.Dispose()
+                } catch {
+                    $candidateHash = 'unavailable'
+                }
+                $parseErrors.Add("candidateIndex=$candidateIndex; hash=$candidateHash; length=$($trimmedCandidate.Length); parserError=$message; preview=$preview")
             }
             continue
         }
@@ -978,6 +992,7 @@ function Save-ReviewArtifacts {
 
     $rawPath = Join-Path $ReviewOutputDir 'al-code-review-raw.txt'
     $jsonPath = Join-Path $ReviewOutputDir 'al-code-review-findings.json'
+    $parseErrorsPath = Join-Path $ReviewOutputDir 'al-code-review-parse-errors.txt'
 
     Set-Content -Path $rawPath -Value $RawOutput -Encoding UTF8
 
@@ -992,6 +1007,7 @@ function Save-ReviewArtifacts {
         parseErrors  = @($ParseErrors)
     }
     Set-Content -Path $jsonPath -Value ($payload | ConvertTo-Json -Depth 12) -Encoding UTF8
+    Set-Content -Path $parseErrorsPath -Value (@($ParseErrors) -join [Environment]::NewLine) -Encoding UTF8
 
     Write-Host "Saved review artifacts to $ReviewOutputDir"
 }
@@ -1043,7 +1059,7 @@ Save-ReviewArtifacts -RawOutput $output -Findings $findings -ParseErrors $script
 
 if ($FailOnParseError -and $findings.Count -eq 0 -and $script:LastParsingErrors.Count -gt 0) {
     $errorPreview = ($script:LastParsingErrors | Select-Object -First 3) -join ' || '
-    throw "Copilot output JSON parsing failed; refusing to post an empty review summary. Set COPILOT_REVIEW_FAIL_ON_PARSE_ERROR=false to bypass. Parse errors: $errorPreview"
+    throw "Copilot output JSON parsing failed; refusing to post an empty review summary. Set COPILOT_REVIEW_FAIL_ON_PARSE_ERROR=false to bypass. Parse errors: $errorPreview. Full parse diagnostics: $ReviewOutputDir/al-code-review-parse-errors.txt"
 }
 
 # Group findings by resolved domain so comment headers and summary use domain labels.
