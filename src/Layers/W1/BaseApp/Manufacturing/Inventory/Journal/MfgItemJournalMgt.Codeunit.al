@@ -102,11 +102,15 @@ codeunit 99000762 "Mfg. Item Journal Mgt."
         ProdOrderComp: Record "Prod. Order Component";
         ShouldCopyFromSingleProdOrderLine: Boolean;
         ShouldThrowRevaluationError: Boolean;
+        SkipInventoryValueZeroCheck: Boolean;
     begin
         case ItemJournalLine."Entry Type" of
             ItemJournalLine."Entry Type"::Output:
                 begin
-                    Item.TestField("Inventory Value Zero", false);
+                    SkipInventoryValueZeroCheck := false;
+                    OnOnValidateItemNoOnAfterValidateUnitofMeasureCodeOnBeforeCheckInventoryValueZero(ItemJournalLine, ProdOrderLine, SkipInventoryValueZeroCheck);
+                    if not SkipInventoryValueZeroCheck then
+                        Item.TestField("Inventory Value Zero", false);
                     ProdOrderLine.SetFilterByReleasedOrderNo(ItemJournalLine."Order No.");
                     ProdOrderLine.SetRange("Item No.", ItemJournalLine."Item No.");
                     ItemJournalLine.RunOnValidateItemNoOnAfterSetProdOrderLineItemNoFilter(ItemJournalLine, xItemJournalLine, ProdOrderLine);
@@ -740,5 +744,10 @@ codeunit 99000762 "Mfg. Item Journal Mgt."
     local procedure OnPreDataItemOnCalcStdCost(var Item: Record Item; PostingDate: Date; CalcBase: Enum "Inventory Value Calc. Base"; sender: Report "Calc. Inventory Value - Test")
     begin
         sender.CalculateStandardCost(Item, PostingDate, CalcBase);
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnOnValidateItemNoOnAfterValidateUnitofMeasureCodeOnBeforeCheckInventoryValueZero(var ItemJournalLine: Record "Item Journal Line"; var ProdOrderLine: Record "Prod. Order Line"; var SkipInventoryValueZeroCheck: Boolean)
+    begin
     end;
 }

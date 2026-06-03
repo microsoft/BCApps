@@ -13,6 +13,8 @@ using Microsoft.Integration.Dataverse;
 using Microsoft.Utilities;
 using System.Automation;
 using System.DataAdministration;
+using System.Environment.Configuration;
+using System.Integration.PowerBI;
 using System.Threading;
 
 codeunit 8912 "Environment Cleanup Subs"
@@ -89,11 +91,22 @@ codeunit 8912 "Environment Cleanup Subs"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Environment Cleanup", 'OnClearDatabaseConfig', '', false, false)]
     local procedure ClearDatabaseConfigProdToProd(SourceEnv: Enum "Environment Type"; DestinationEnv: Enum "Environment Type")
     begin
-        // Example on how to enfore a specific scenario. For instance prod to prod. 
+        // Example on how to enfore a specific scenario. For instance prod to prod.
         if (SourceEnv <> SourceEnv::Production) or (DestinationEnv <> DestinationEnv::Production) then
             exit;
 
         // Prod to prod copy cleanup code goes here
 
+    end;
+
+    [EventSubscriber(ObjectType::Report, Report::"Copy Company", 'OnAfterCreatedNewCompanyByCopyCompany', '', false, false)]
+    local procedure ClearPowerBIDeploymentsOnCopiedCompany(NewCompanyName: Text[30])
+    var
+        PBIDeploymentEvents: Codeunit "PBI Deployment Events";
+    begin
+        // Copy Company replicates Power BI deployment rows from the source company. Start the
+        // new company clean. Hosted here (rather than inside Modules/System/PowerBI) because
+        // the Power BI module can't reference Report::"Copy Company".
+        PBIDeploymentEvents.ClearDeploymentsForCompany(NewCompanyName);
     end;
 }

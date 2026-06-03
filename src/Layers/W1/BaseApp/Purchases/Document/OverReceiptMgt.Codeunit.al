@@ -50,6 +50,22 @@ codeunit 8510 "Over-Receipt Mgt."
         exit(PurchaseLine.Quantity = WarehouseReceiptLine.Quantity);
     end;
 
+    procedure IsOverReceiptPendingOnWarehouseReceiptLine(PurchaseLine: Record "Purchase Line"): Boolean
+    var
+        WarehouseReceiptLine: Record "Warehouse Receipt Line";
+        WhseManagement: Codeunit "Whse. Management";
+    begin
+        if not IsOverReceiptAllowed() then
+            exit(false);
+        if PurchaseLine."Over-Receipt Quantity" = 0 then
+            exit(false);
+        WhseManagement.SetSourceFilterForWhseRcptLine(
+            WarehouseReceiptLine, Database::"Purchase Line", PurchaseLine."Document Type".AsInteger(),
+            PurchaseLine."Document No.", PurchaseLine."Line No.", false);
+        WarehouseReceiptLine.SetFilter("Over-Receipt Quantity", '>0');
+        exit(not WarehouseReceiptLine.IsEmpty());
+    end;
+
     procedure IsQuantityUpdatedFromInvtPutAwayOverReceipt(PurchaseLine: Record "Purchase Line"): Boolean
     var
         WarehouseActivityLine: Record "Warehouse Activity Line";

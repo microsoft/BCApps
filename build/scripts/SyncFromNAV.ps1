@@ -17,7 +17,8 @@
       - src/Tools               <- App/BCApps/src/Tools
       - src/*.code-workspace    <- App/BCApps/src/*.code-workspace
 
-    src/DisabledTests and src/rulesets are NOT modified.
+    src/DisabledTests is merged (new entries from NAV are added, existing entries preserved).
+    src/rulesets is merged via 3-way git merge (base from main, theirs from NAV).
 
 .PARAMETER NAVRepoPath
     Path to the NAV repository root (e.g., C:\depot\NAV).
@@ -209,7 +210,149 @@ if ($LASTEXITCODE -ne 0) {
     throw "Update-CountryProjectSettings.ps1 failed with exit code $LASTEXITCODE"
 }
 
-# --- 9. Replace version variables in app.json files ---
+# --- 9. Merge src/rulesets from BCApps/src/rulesets ---
+Write-Host "`n=== Merging src/rulesets from BCApps/src/rulesets ==="
+$navRulesets = Join-Path $bcAppsSubmodule "src\rulesets"
+$privateRulesets = Join-Path $srcRoot "rulesets"
+if (Test-Path $navRulesets) {
+    $navRulesetFiles = Get-ChildItem $navRulesets -Filter "*.ruleset.json"
+    $mergeConflicts = @()
+    foreach ($navFile in $navRulesetFiles) {
+        $privatePath = Join-Path $privateRulesets $navFile.Name
+        if (-not (Test-Path $privatePath)) {
+            # New file in NAV, just copy it
+            Copy-Item $navFile.FullName $privatePath -Force
+            Write-Host "  Added new file: $($navFile.Name)"
+            continue
+        }
+        # 3-way merge: get base from main branch
+        $basePath = Join-Path $env:TEMP "ruleset-base-$($navFile.Name)"
+        git -C $repoRoot show "main:src/rulesets/$($navFile.Name)" > $basePath 2>$null
+        if ($LASTEXITCODE -ne 0) {
+            # No base available, copy NAV version
+            Copy-Item $navFile.FullName $privatePath -Force
+            Write-Host "  Copied (no base): $($navFile.Name)"
+        } else {
+            git merge-file $privatePath $basePath $navFile.FullName
+            $mergeResult = $LASTEXITCODE
+            if ($mergeResult -gt 0) {
+                Write-Warning "  $mergeResult conflict(s) in $($navFile.Name) - please resolve manually"
+                $mergeConflicts += $navFile.Name
+            } elseif ($mergeResult -eq 0) {
+                Write-Host "  Merged cleanly: $($navFile.Name)"
+            } else {
+                throw "git merge-file failed for $($navFile.Name)"
+            }
+        }
+        if (Test-Path $basePath) { Remove-Item $basePath -Force }
+    }
+    if ($mergeConflicts.Count -gt 0) {
+        Write-Warning "  Ruleset files with conflicts: $($mergeConflicts -join ', ')"
+    }
+} else {
+    Write-Warning "NAV rulesets path not found: $navRulesets"
+}
+
+# --- 10. Merge DisabledTests from NAV into src/DisabledTests ---
+Write-Host "`n=== Merging DisabledTests from NAV ==="
+$privateDisabledTests = Join-Path $srcRoot "DisabledTests"
+
+# Collect all NAV disabled test JSON files from known locations
+$navDisabledTestFiles = @()
+$navDisabledTestsDir = Join-Path $NAVRepoPath "App\DisabledTests"
+if (Test-Path $navDisabledTestsDir) {
+    $navDisabledTestFiles += Get-ChildItem $navDisabledTestsDir -Recurse -Filter "*.DisabledTest.json"
+}
+# Also check embedded DisabledTests in BCApps source (e.g. in app test folders)
+$bcAppsDisabledTests = Get-ChildItem $bcAppsSubmodule -Recurse -Filter "*.DisabledTest.json" -File 2>$null
+if ($bcAppsDisabledTests) {
+    $navDisabledTestFiles += $bcAppsDisabledTests
+}
+
+Write-Host "  Found $($navDisabledTestFiles.Count) NAV disabled test files"
+
+# Build index of Private files: codeunitId -> file path
+$privateIndex = @{} # codeunitId -> Private file path
+$privateFileContents = @{} # file path -> array of entries
+$privateFiles = Get-ChildItem $privateDisabledTests -Recurse -Filter "*.DisabledTest.json"
+foreach ($pf in $privateFiles) {
+    $entries = Get-Content $pf.FullName -Raw | ConvertFrom-Json
+    $privateFileContents[$pf.FullName] = $entries
+    foreach ($entry in $entries) {
+        if (-not $privateIndex.ContainsKey($entry.codeunitId)) {
+            $privateIndex[$entry.codeunitId] = $pf.FullName
+        }
+    }
+}
+
+# Merge NAV entries into Private
+$addedCount = 0
+$unmappedCodeunits = @()
+$modifiedFiles = @{}
+foreach ($navFile in $navDisabledTestFiles) {
+    $navEntries = Get-Content $navFile.FullName -Raw | ConvertFrom-Json
+    foreach ($navEntry in $navEntries) {
+        $targetFile = $privateIndex[$navEntry.codeunitId]
+        if (-not $targetFile) {
+            # New codeunit not in any Private file - track for warning
+            $key = "$($navEntry.codeunitId)|$($navEntry.codeunitName)"
+            if ($unmappedCodeunits -notcontains $key) {
+                $unmappedCodeunits += $key
+            }
+            continue
+        }
+
+        $existingEntries = $privateFileContents[$targetFile]
+
+        # Skip if Private already has a wildcard for this codeunit
+        $hasWildcard = $existingEntries | Where-Object { $_.codeunitId -eq $navEntry.codeunitId -and $_.method -eq '*' }
+        if ($hasWildcard) { continue }
+
+        # If NAV entry is wildcard, add it and it subsumes all individual methods
+        if ($navEntry.method -eq '*') {
+            $alreadyExists = $existingEntries | Where-Object { $_.codeunitId -eq $navEntry.codeunitId -and $_.method -eq '*' }
+            if (-not $alreadyExists) {
+                $privateFileContents[$targetFile] = @($existingEntries) + @($navEntry)
+                $modifiedFiles[$targetFile] = $true
+                $addedCount++
+            }
+            continue
+        }
+
+        # Check if this specific entry already exists
+        $exists = $existingEntries | Where-Object {
+            $_.codeunitId -eq $navEntry.codeunitId -and $_.method -eq $navEntry.method
+        }
+        if (-not $exists) {
+            $privateFileContents[$targetFile] = @($existingEntries) + @($navEntry)
+            $modifiedFiles[$targetFile] = $true
+            $addedCount++
+        }
+    }
+}
+
+# Write back only files that were actually modified
+foreach ($filePath in $modifiedFiles.Keys) {
+    $entries = $privateFileContents[$filePath]
+    $json = $entries | ConvertTo-Json -Depth 10
+    if ($entries.Count -eq 1) {
+        # ConvertTo-Json doesn't wrap single items in array
+        $json = "[$json]"
+    }
+    Set-Content $filePath $json -NoNewline
+}
+
+Write-Host "  Added $addedCount new entries to existing DisabledTest files"
+if ($unmappedCodeunits.Count -gt 0) {
+    Write-Warning "  $($unmappedCodeunits.Count) codeunit(s) from NAV not found in any Private DisabledTest file:"
+    foreach ($uc in $unmappedCodeunits) {
+        $parts = $uc -split '\|'
+        Write-Warning "    Codeunit $($parts[0]): $($parts[1])"
+    }
+    Write-Warning "  These may need manual mapping to the appropriate test app file."
+}
+
+# --- 11. Replace version variables in app.json files ---
 Write-Host "`n=== Replacing version variables in app.json files ==="
 $appJsonFiles = Get-ChildItem -Path $srcRoot -Recurse -Filter "app.json" | Where-Object {
     (Get-Content $_.FullName -Raw) -match '\$\(app_(currentVersion|minimumVersion|platformVersion)\)'
@@ -239,5 +382,4 @@ if ($remaining.Count -gt 0) {
 }
 
 Write-Host "`n=== Sync complete ==="
-Write-Host "Note: src/DisabledTests and src/rulesets were NOT modified."
 Write-Host "Review changes with 'git status' before committing."

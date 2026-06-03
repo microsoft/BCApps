@@ -185,7 +185,7 @@ codeunit 99000774 "Calculate Routing Line"
         IsHandled: Boolean;
     begin
         IsHandled := false;
-        OnBeforeCreateLoadBack(RemainNeedQty, CalendarEntry, TimeType, Write, FirstEntry, WaitTimeOnly, CurrentWorkCenterNo, ProdStartingDate, ProdStartingTime, ProdEndingDate, ProdEndingTime, IsHandled);
+        OnBeforeCreateLoadBack(RemainNeedQty, CalendarEntry, TimeType, Write, FirstEntry, WaitTimeOnly, CurrentWorkCenterNo, ProdStartingDate, ProdStartingTime, ProdEndingDate, ProdEndingTime, IsHandled, RemainNeedQtyBase);
         if IsHandled then
             exit;
 
@@ -286,7 +286,7 @@ codeunit 99000774 "Calculate Routing Line"
         IsHandled: Boolean;
     begin
         IsHandled := false;
-        OnBeforeCreateLoadForward(RemainNeedQty, CalendarEntry, TimeType, Write, LoadFactor, FirstEntry, WaitTimeOnly, CurrentWorkCenterNo, ProdStartingDate, ProdStartingTime, ProdEndingDate, ProdEndingTime, IsHandled);
+        OnBeforeCreateLoadForward(RemainNeedQty, CalendarEntry, TimeType, Write, LoadFactor, FirstEntry, WaitTimeOnly, CurrentWorkCenterNo, ProdStartingDate, ProdStartingTime, ProdEndingDate, ProdEndingTime, IsHandled, RemainNeedQtyBase);
         if IsHandled then
             exit;
 
@@ -2393,7 +2393,7 @@ codeunit 99000774 "Calculate Routing Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnCreateLoadForwardOnBeforeEndStopLoop(ProdOrderRoutingLine: Record "Prod. Order Routing Line"; TimeType: Enum "Routing Time Type"; var StopLoop: Boolean; FirstEntry: Boolean; WaitTimeOnly: Boolean; ProdStartingDate: Date; ProdStartingTime: Time; ProdEndingDate: Date; ProdEndingTime: Time; var RemainNeedQty: Decimal; var RemainNeedQtyBase: Decimal; Write: Boolean; LoadFactor: Decimal; CurrentWorkCenterNo: Code[20]; CurrentTimeFactor: Decimal; CurrentRounding: Decimal; var CalendarEntry: Record "Calendar Entry")
+    local procedure OnCreateLoadForwardOnBeforeEndStopLoop(ProdOrderRoutingLine: Record "Prod. Order Routing Line"; TimeType: Enum "Routing Time Type"; var StopLoop: Boolean; FirstEntry: Boolean; WaitTimeOnly: Boolean; ProdStartingDate: Date; ProdStartingTime: Time; ProdEndingDate: Date; ProdEndingTime: Time; var RemainNeedQty: Decimal; var RemainNeedQtyBase: Decimal; var Write: Boolean; LoadFactor: Decimal; CurrentWorkCenterNo: Code[20]; var CurrentTimeFactor: Decimal; var CurrentRounding: Decimal; var CalendarEntry: Record "Calendar Entry")
     begin
     end;
 
@@ -2558,12 +2558,12 @@ codeunit 99000774 "Calculate Routing Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCreateLoadBack(var RemainNeedQty: Decimal; CalendarEntry: Record "Calendar Entry"; TimeType: Enum "Routing Time Type"; Write: Boolean; FirstEntry: Boolean; WaitTimeOnly: Boolean; CurrentWorkCenterNo: Code[20]; ProdStartingDate: Date; ProdStartingTime: Time; ProdEndingDate: Date; ProdEndingTime: Time; var IsHandled: Boolean)
+    local procedure OnBeforeCreateLoadBack(var RemainNeedQty: Decimal; CalendarEntry: Record "Calendar Entry"; TimeType: Enum "Routing Time Type"; Write: Boolean; FirstEntry: Boolean; WaitTimeOnly: Boolean; CurrentWorkCenterNo: Code[20]; ProdStartingDate: Date; ProdStartingTime: Time; ProdEndingDate: Date; ProdEndingTime: Time; var IsHandled: Boolean; var RemainNeedQtyBase: Decimal)
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCreateLoadForward(var RemainNeedQty: Decimal; CalendarEntry: Record "Calendar Entry"; TimeType: Enum "Routing Time Type"; Write: Boolean; LoadFactor: Decimal; FirstEntry: Boolean; WaitTimeOnly: Boolean; CurrentWorkCenterNo: Code[20]; ProdStartingDate: Date; ProdStartingTime: Time; ProdEndingDate: Date; ProdEndingTime: Time; var IsHandled: Boolean)
+    local procedure OnBeforeCreateLoadForward(var RemainNeedQty: Decimal; CalendarEntry: Record "Calendar Entry"; TimeType: Enum "Routing Time Type"; Write: Boolean; LoadFactor: Decimal; FirstEntry: Boolean; WaitTimeOnly: Boolean; CurrentWorkCenterNo: Code[20]; ProdStartingDate: Date; ProdStartingTime: Time; ProdEndingDate: Date; ProdEndingTime: Time; var IsHandled: Boolean; var RemainNeedQtyBase: Decimal)
     begin
     end;
 

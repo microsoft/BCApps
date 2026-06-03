@@ -10,6 +10,7 @@ using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Purchases.Document;
+using Microsoft.Purchases.History;
 using Microsoft.Purchases.Payables;
 using System.Telemetry;
 
@@ -58,6 +59,19 @@ codeunit 6404 "E-Doc. Create Purch. Cr. Memo" implements IEDocumentFinishDraft, 
         EDocPurchaseDocumentHelper.RevertCreatedDocument(EDocument);
     end;
 
+    local procedure ResolveAppliesToFromExtInvoiceNo(ExtInvoiceNo: Text[100]; var PurchaseHeader: Record "Purchase Header")
+    var
+        PurchInvHeader: Record "Purch. Inv. Header";
+    begin
+        if PurchaseHeader."Pay-to Vendor No." <> '' then
+            PurchInvHeader.SetRange("Buy-from Vendor No.", PurchaseHeader."Pay-to Vendor No.");
+        PurchInvHeader.SetRange("Vendor Invoice No.", ExtInvoiceNo);
+        if PurchInvHeader.FindFirst() then begin
+            PurchaseHeader."Applies-to Doc. Type" := PurchaseHeader."Applies-to Doc. Type"::Invoice;
+            PurchaseHeader."Applies-to Doc. No." := PurchInvHeader."No.";
+        end;
+    end;
+
     procedure CreatePurchaseCreditMemo(EDocument: Record "E-Document"): Record "Purchase Header"
     var
         PurchaseHeader: Record "Purchase Header";
@@ -100,6 +114,7 @@ codeunit 6404 "E-Doc. Create Purch. Cr. Memo" implements IEDocumentFinishDraft, 
         if EDocumentPurchaseHeader."Purchase Order No." <> '' then
             PurchaseHeader."Vendor Order No." := CopyStr(EDocumentPurchaseHeader."Purchase Order No.", 1, MaxStrLen(PurchaseHeader."Vendor Order No."));
         PurchaseHeader.Insert(true);
+        EDocPurchaseDocumentHelper.ApplyDefaultPostingDateFromSetup(PurchaseHeader, EDocumentPurchaseHeader);
         PurchaseHeader.Modify();
 
         GLSetup.GetRecordOnce();
@@ -107,7 +122,10 @@ codeunit 6404 "E-Doc. Create Purch. Cr. Memo" implements IEDocumentFinishDraft, 
             EDocPurchaseDocumentHelper.ValidateFieldWithContext(PurchaseHeader, PurchaseHeader.FieldNo("Currency Code"), EDocumentPurchaseHeader."Currency Code");
 
         if EDocumentPurchaseHeader."Applies-to Doc. No." <> '' then
-            PurchaseHeader."Applies-to Doc. No." := CopyStr(EDocumentPurchaseHeader."Applies-to Doc. No.", 1, MaxStrLen(PurchaseHeader."Applies-to Doc. No."));
+            PurchaseHeader."Applies-to Doc. No." := CopyStr(EDocumentPurchaseHeader."Applies-to Doc. No.", 1, MaxStrLen(PurchaseHeader."Applies-to Doc. No."))
+        else
+            if EDocumentPurchaseHeader."Applies-to Ext. Invoice No." <> '' then
+                ResolveAppliesToFromExtInvoiceNo(EDocumentPurchaseHeader."Applies-to Ext. Invoice No.", PurchaseHeader);
 
         PurchaseHeader.Modify();
 

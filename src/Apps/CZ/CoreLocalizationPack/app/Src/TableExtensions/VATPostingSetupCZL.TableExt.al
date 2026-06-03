@@ -197,6 +197,7 @@ tableextension 11738 "VAT Posting Setup CZL" extends "VAT Posting Setup"
             else
                 "Allow Non-Deductible VAT" := "Allow Non-Deductible VAT"::"Allow";
         end;
+        "Non-Deductible VAT %" := 0;
     end;
 #if not CLEAN28
     [Obsolete('Use OnBeforeGetPurchaseLCYCorrRoundingAccCZL integration event instead.', '28.0')]

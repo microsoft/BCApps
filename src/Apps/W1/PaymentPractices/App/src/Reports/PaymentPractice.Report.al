@@ -29,6 +29,22 @@ report 685 "Payment Practice"
             column(Average_Actual_Payment_Period_Caption; FieldCaption("Average Actual Payment Period")) { }
             column(Pct_Paid_on_Time; "Pct Paid on Time") { }
             column(Pct_Paid_on_Time_Caption; FieldCaption("Pct Paid on Time")) { }
+            column(Mode_Payment_Time; "Mode Payment Time") { }
+            column(Mode_Payment_Time_Caption; FieldCaption("Mode Payment Time")) { }
+            column(Mode_Payment_Time_Min; "Mode Payment Time Min.") { }
+            column(Mode_Payment_Time_Min_Caption; FieldCaption("Mode Payment Time Min.")) { }
+            column(Mode_Payment_Time_Max; "Mode Payment Time Max.") { }
+            column(Mode_Payment_Time_Max_Caption; FieldCaption("Mode Payment Time Max.")) { }
+            column(Median_Payment_Time; "Median Payment Time") { }
+            column(Median_Payment_Time_Caption; FieldCaption("Median Payment Time")) { }
+            column(Percentile_80th_Payment_Time; "80th Percentile Payment Time") { }
+            column(Percentile_80th_Payment_Time_Caption; FieldCaption("80th Percentile Payment Time")) { }
+            column(Percentile_95th_Payment_Time; "95th Percentile Payment Time") { }
+            column(Percentile_95th_Payment_Time_Caption; FieldCaption("95th Percentile Payment Time")) { }
+            column(Pct_Peppol_Enabled; "Pct Peppol Enabled") { }
+            column(Pct_Peppol_Enabled_Caption; FieldCaption("Pct Peppol Enabled")) { }
+            column(Pct_Small_Business_Payments; "Pct Small Business Payments") { }
+            column(Pct_Small_Business_Payments_Caption; FieldCaption("Pct Small Business Payments")) { }
 
             dataitem(PaymentPracticeLine; "Payment Practice Line")
             {
@@ -66,6 +82,13 @@ report 685 "Payment Practice"
             Caption = 'Payment Practice by Period';
             Summary = 'Payment Practice by Period';
             LayoutFile = 'src/Reports/Payment Practice by Period.docx';
+        }
+        layout(PaymentPractice_SmallBusinessLayout)
+        {
+            Type = Word;
+            Caption = 'Payment Practice Small Business';
+            Summary = 'Payment Practice Small Business';
+            LayoutFile = 'src/Reports/Payment Practice Small Business.docx';
         }
         layout(PaymentPractice_VendorSizeLayout)
         {

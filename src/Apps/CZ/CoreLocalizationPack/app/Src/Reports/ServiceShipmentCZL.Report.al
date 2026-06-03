@@ -9,6 +9,7 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using Microsoft.HumanResources.Employee;
+using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Service.Setup;
 using Microsoft.Utilities;
@@ -29,24 +30,44 @@ report 31199 "Service Shipment CZL"
         dataitem("Company Information"; "Company Information")
         {
             DataItemTableView = sorting("Primary Key");
+#if not CLEAN29
             column(CompanyAddr1; CompanyAddr[1])
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Replaced by CompanyAddress1 column in Service Shipment Header dataitem to ensure address translation matches document language.';
+                ObsoleteTag = '29.0';
             }
             column(CompanyAddr2; CompanyAddr[2])
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Replaced by CompanyAddress2 column in Service Shipment Header dataitem to ensure address translation matches document language.';
+                ObsoleteTag = '29.0';
             }
             column(CompanyAddr3; CompanyAddr[3])
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Replaced by CompanyAddress3 column in Service Shipment Header dataitem to ensure address translation matches document language.';
+                ObsoleteTag = '29.0';
             }
             column(CompanyAddr4; CompanyAddr[4])
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Replaced by CompanyAddress4 column in Service Shipment Header dataitem to ensure address translation matches document language.';
+                ObsoleteTag = '29.0';
             }
             column(CompanyAddr5; CompanyAddr[5])
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Replaced by CompanyAddress5 column in Service Shipment Header dataitem to ensure address translation matches document language.';
+                ObsoleteTag = '29.0';
             }
             column(CompanyAddr6; CompanyAddr[6])
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Replaced by CompanyAddress6 column in Service Shipment Header dataitem to ensure address translation matches document language.';
+                ObsoleteTag = '29.0';
             }
+#endif
             column(RegistrationNo_CompanyInformation; "Registration No.")
             {
             }
@@ -85,10 +106,12 @@ report 31199 "Service Shipment CZL"
                     }
                 }
             }
+#if not CLEAN29
             trigger OnAfterGetRecord()
             begin
                 FormatAddress.Company(CompanyAddr, "Company Information");
             end;
+#endif
         }
         dataitem("Service Shipment Header"; "Service Shipment Header")
         {
@@ -171,6 +194,24 @@ report 31199 "Service Shipment CZL"
             {
             }
             column(DocFooterText; DocFooterText)
+            {
+            }
+            column(CompanyAddress1; CompanyAddr[1])
+            {
+            }
+            column(CompanyAddress2; CompanyAddr[2])
+            {
+            }
+            column(CompanyAddress3; CompanyAddr[3])
+            {
+            }
+            column(CompanyAddress4; CompanyAddr[4])
+            {
+            }
+            column(CompanyAddress5; CompanyAddr[5])
+            {
+            }
+            column(CompanyAddress6; CompanyAddr[6])
             {
             }
             column(CustAddr1; CustAddr[1])
@@ -404,10 +445,14 @@ report 31199 "Service Shipment CZL"
                 end;
             }
             trigger OnAfterGetRecord()
+            var
+                ResponsibilityCenter: Record "Responsibility Center";
             begin
                 CurrReport.Language := LanguageMgt.GetLanguageIdOrDefault("Language Code");
                 CurrReport.FormatRegion := LanguageMgt.GetFormatRegionOrDefault("Format Region");
+                FormatAddress.SetLanguageCode("Language Code");
 
+                FormatAddress.GetCompanyAddr("Service Shipment Header"."Responsibility Center", ResponsibilityCenter, "Company Information", CompanyAddr);
                 ServiceFormatAddress.ServiceShptShipTo(ShipToAddr, "Service Shipment Header");
                 ServiceFormatAddress.ServiceShptBillTo(CustAddr, ShipToAddr, "Service Shipment Header");
                 DocFooterText := FormatDocumentMgtCZL.GetDocumentFooterText("Language Code");

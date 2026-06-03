@@ -31,6 +31,7 @@ codeunit 4589 "SOA Upgrade"
     begin
         AddDailyEmailLimit();
         UpgradeUserSecurityIDField();
+        SetMarkEmailAsRead();
     end;
 
     local procedure RegisterCapability()
@@ -90,6 +91,21 @@ codeunit 4589 "SOA Upgrade"
         end;
     end;
 
+    local procedure SetMarkEmailAsRead()
+    var
+        SOASetup: Record "SOA Setup";
+        UpgradeTag: Codeunit "Upgrade Tag";
+    begin
+        if not UpgradeTag.HasUpgradeTag(GetSetMarkEmailAsReadTag()) then begin
+            if SOASetup.FindFirst() then begin
+                SOASetup."Mark Email As Read" := true;
+                SOASetup.Modify();
+            end;
+
+            UpgradeTag.SetUpgradeTag(GetSetMarkEmailAsReadTag());
+        end;
+    end;
+
     internal procedure GetRegisterSalesOrderAgentCapabilityTag(): Code[250]
     begin
         exit('MS-539550-SalesOrderAgentCapability-20240802');
@@ -110,6 +126,11 @@ codeunit 4589 "SOA Upgrade"
         exit('MS-597811-UserSecurityIDField-20251114');
     end;
 
+    internal procedure GetSetMarkEmailAsReadTag(): Code[250]
+    begin
+        exit('MS-621547-MarkEmailAsRead-20260521');
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", OnGetPerDatabaseUpgradeTags, '', false, false)]
     local procedure RegisterPerDatabaseUpgradeTags(var PerDatabaseUpgradeTags: List of [Code[250]])
     begin
@@ -120,5 +141,6 @@ codeunit 4589 "SOA Upgrade"
     local procedure RegisterPerCompanyUpgradeTags(var PerCompanyUpgradeTags: List of [Code[250]])
     begin
         PerCompanyUpgradeTags.Add(GetSetDailyEmailLimitTag());
+        PerCompanyUpgradeTags.Add(GetSetMarkEmailAsReadTag());
     end;
 }

@@ -82,6 +82,19 @@ page 4400 "SOA Setup"
                             ConfigUpdated();
                         end;
                     }
+                    field(MailboxFolder; MailboxFolder)
+                    {
+                        Caption = 'Folder';
+                        ToolTip = 'Specifies the email folder that the agent monitors. You need permission to the mailbox to activate the agent.';
+                        Editable = false;
+                        ShowMandatory = true;
+
+                        trigger OnAssistEdit()
+                        begin
+                            OnAssistEditMailboxFolder();
+                        end;
+
+                    }
                     field(LastSync; LastSync)
                     {
                         Caption = 'Last sync';
@@ -254,49 +267,7 @@ page 4400 "SOA Setup"
             group(SOAManageMailboxConfigCard)
             {
                 Caption = 'Manage mailbox';
-                InstructionalText = 'Send and receive email using the selected account.';
 
-                field(Mailbox2; MailboxName)
-                {
-                    Caption = 'Account';
-                    ToolTip = 'Specifies the email account that the agent monitors. You need permission to the mailbox to activate the agent.';
-                    Editable = false;
-                    ShowMandatory = true;
-
-                    trigger OnAssistEdit()
-                    begin
-                        OnAssistEditMailbox();
-                    end;
-
-                    trigger OnValidate()
-                    begin
-                        ConfigUpdated();
-                    end;
-                }
-                field(MailboxFolder; MailboxFolder)
-                {
-                    Caption = 'Folder';
-                    ToolTip = 'Specifies the email folder that the agent monitors. You need permission to the mailbox to activate the agent.';
-                    Editable = false;
-                    ShowMandatory = true;
-
-                    trigger OnAssistEdit()
-                    var
-                        TempEmailFolder: Record "Email Folders" temporary;
-                        EmailFolders: Page "Email Account Folders";
-                    begin
-                        EmailFolders.LookupMode(true);
-                        EmailFolders.SetEmailAccount(Rec."Email Account ID", Rec."Email Connector");
-                        if EmailFolders.RunModal() = Action::LookupOK then begin
-                            EmailFolders.GetRecord(TempEmailFolder);
-                            Rec."Email Folder" := TempEmailFolder."Folder Name";
-                            Rec."Email Folder Id" := TempEmailFolder."Id";
-                            MailboxFolder := TempEmailFolder."Folder Name";
-                            ConfigUpdated();
-                        end;
-                    end;
-
-                }
                 group(IncomingMail)
                 {
                     Caption = 'Incoming mail';
@@ -311,6 +282,23 @@ page 4400 "SOA Setup"
                         {
                             Caption = 'Analyze attachments';
                             ToolTip = 'Includes attachments when analyzing intent. Supported formats: PDF, PNG, JPG.';
+                            ShowCaption = false;
+
+                            trigger OnValidate()
+                            begin
+                                ConfigUpdated();
+                            end;
+                        }
+                    }
+                    group(MarkAsReadGrp)
+                    {
+                        Caption = 'Mark email as read';
+                        InstructionalText = 'Mark emails as read after the agent processes them.';
+
+                        field(MarkEmailAsRead; Rec."Mark Email As Read")
+                        {
+                            Caption = 'Mark email as read';
+                            ToolTip = 'Specifies whether the agent marks emails as read after processing them.';
                             ShowCaption = false;
 
                             trigger OnValidate()
@@ -437,6 +425,7 @@ page 4400 "SOA Setup"
         ReadyToActivateLbl: Label 'Ready to activate the sales order agent?\\The Copilot agent will run now and until you deactivate it.';
         ActivateWithoutMailboxLbl: Label 'There is no mailbox selected for the agent to monitor. Are you sure you want to continue? ';
         ActivateWithoutMailboxNameErr: Label 'To activate the agent with the current settings, a mailbox must be selected first.';
+        ActivateWithoutMailboxFolderErr: Label 'To activate the agent with the current settings, a mailbox folder must be selected first.';
         ActivateWithoutMonitoringLbl: Label 'The monitoring of email is not enabled. Are you sure you want to continue?';
         DeactivateWarningLbl: Label 'If you deactivate the agent, you won''t be able to reactivate it because you don''t have permission to the current mail account (activated by %1). Are you sure you want continue?', Comment = '%1=Username of user who activated the agent.';
     begin
@@ -457,6 +446,9 @@ page 4400 "SOA Setup"
                 SOASessionEvents.BindUserEvents();
                 if Rec."Incoming Monitoring" and Rec."Email Monitoring" and (MailboxName = '') then
                     Error(ActivateWithoutMailboxNameErr);
+
+                if Rec."Incoming Monitoring" and Rec."Email Monitoring" and (MailboxName <> '') and (MailboxFolder = '') then
+                    Error(ActivateWithoutMailboxFolderErr);
 
                 if Rec."Incoming Monitoring" and not Rec."Email Monitoring" then
                     if not Confirm(ActivateWithoutMailboxLbl) then
@@ -517,7 +509,7 @@ page 4400 "SOA Setup"
             if Rec."Email Folder" <> '' then
                 MailboxFolder := Rec."Email Folder"
             else
-                MailboxFolder := OptionalMailboxLbl;
+                MailboxFolder := '';
             ShowLastSync := CheckIsValidConfig() and (Rec."Last Sync At" <> 0DT);
             LastSync := Format(Rec."Last Sync At");
         end;
@@ -555,7 +547,7 @@ page 4400 "SOA Setup"
 
     local procedure CheckIsValidConfig(): Boolean
     begin
-        exit(Rec."Incoming Monitoring" and Rec."Email Monitoring" and (MailboxName <> ''));
+        exit(Rec."Incoming Monitoring" and Rec."Email Monitoring" and (MailboxName <> '') and (MailboxFolder <> ''));
     end;
 
     local procedure IsFirstConfig(): Boolean
@@ -586,6 +578,27 @@ page 4400 "SOA Setup"
         until TempEmailAccounts.Next() = 0;
     end;
 
+    local procedure OnAssistEditMailboxFolder()
+    var
+        TempEmailFolder: Record "Email Folders" temporary;
+        EmailFolders: Page "Email Account Folders";
+    begin
+        if IsNullGuid(Rec."Email Account ID") then begin
+            Message(SelectMailboxFirstMsg);
+            exit;
+        end;
+
+        EmailFolders.LookupMode(true);
+        EmailFolders.SetEmailAccount(Rec."Email Account ID", Rec."Email Connector");
+        if EmailFolders.RunModal() = Action::LookupOK then begin
+            EmailFolders.GetRecord(TempEmailFolder);
+            Rec."Email Folder" := TempEmailFolder."Folder Name";
+            Rec."Email Folder Id" := TempEmailFolder."Id";
+            MailboxFolder := TempEmailFolder."Folder Name";
+            ConfigUpdated();
+        end;
+    end;
+
     local procedure OnAssistEditMailbox()
     var
         EmailAccounts: Page "Email Accounts";
@@ -611,7 +624,7 @@ page 4400 "SOA Setup"
             MailboxName := Rec."Email Address";
             ConfigUpdated();
 
-            MailboxFolder := OptionalMailboxLbl;
+            MailboxFolder := '';
             Clear(Rec."Email Folder");
             Clear(Rec."Email Folder Id");
         end;
@@ -651,7 +664,7 @@ page 4400 "SOA Setup"
         LearnMoreBillingDocumentationLinkTxt: Label 'https://go.microsoft.com/fwlink/?linkid=2333517';
         DailyEmailLimitErr: Label 'The daily email limit must be greater than zero.';
         EmailSignatureModifyLbl: Label 'Edit signature';
+        SelectMailboxFirstMsg: Label 'Please select an email account first.';
         ConfiguredBy: Text[80];
-        OptionalMailboxLbl: Label '(optional)';
         IsConfigUpdated: Boolean;
 }

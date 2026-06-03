@@ -337,11 +337,6 @@ page 1386 "Vendor Templ. Card"
                     ApplicationArea = All;
                     Visible = false;
                 }
-                field("Delivery Reminder Terms"; Rec."Delivery Reminder Terms")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the delivery reminder terms code for the vendor.';
-                }
             }
         }
     }

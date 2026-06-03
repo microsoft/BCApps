@@ -89,13 +89,13 @@ codeunit 570 "G/L Account Category Mgt."
         GenerateAccountSchedulesOptionsTxt: Label 'Keep existing financial reports with their row definitions and create new ones.,Overwrite existing financial reports and row defintions.';
         DraftCodeTxt: Label 'DRAFT', Locked = true, MaxLength = 10;
         DraftNameTxt: Label 'Draft', MaxLength = 50;
-        DraftDescTxt: Label 'Report is under development and not available to users', MaxLength = 100;
+        DraftDescTxt: Label 'Definition is under development and not available to users', MaxLength = 100;
         ActiveCodeTxt: Label 'ACTIVE', Locked = true, MaxLength = 10;
         ActiveNameTxt: Label 'Active', MaxLength = 50;
-        ActiveDescTxt: Label 'Report has been tested and is available to users', MaxLength = 100;
+        ActiveDescTxt: Label 'Definition has been tested and is available to users', MaxLength = 100;
         RetiredCodeTxt: Label 'RETIRED', Locked = true, MaxLength = 10;
         RetiredNameTxt: Label 'Retired', MaxLength = 50;
-        RetiredDescTxt: Label 'Report is phased out and no longer available', MaxLength = 100;
+        RetiredDescTxt: Label 'Definition is phased out and no longer available', MaxLength = 100;
         GeneratedFromGLAccountCategoriesPageTxt: Label 'Generated from G/L Account Categories.', MaxLength = 40;
         ProfitabilityCatCodeTxt: Label 'PROFITABILITY', MaxLength = 20;
         ProfitabilityCatNameTxt: Label 'Profitability', MaxLength = 100;

@@ -3714,6 +3714,52 @@ codeunit 136102 "Service Contracts"
             'Next Invoice Date should be reverted for Contract 2');
     end;
 
+    [Test]
+    [HandlerFunctions('ServContrctTemplateListHandler,SignContractConfirmHandler')]
+    procedure PostPrepaidContractWithFullLineDiscountAndLineDiscountPosting()
+    var
+        GLEntry: Record "G/L Entry";
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
+        ServiceContractAccountGroup: Record "Service Contract Account Group";
+        ServiceContractHeader: Record "Service Contract Header";
+        ServiceContractLine: Record "Service Contract Line";
+        CurrentWorkDate: Date;
+    begin
+        // [FEATURE] [AI test 0.4] [Prepaid Contract] [Post Prepaid Contract Entries] [Line Discount]
+        // [SCENARIO] Posting prepaid contract entries does not throw a divide-by-zero error when a Service Ledger Entry has 100% Discount and Discount Posting is "Line Discounts".
+        Initialize();
+
+        // [GIVEN] Sales & Receivables Setup with "Discount Posting" = "Line Discounts"
+        CurrentWorkDate := WorkDate();
+        WorkDate := CalcDate('<-CM>', WorkDate());
+        LibrarySales.SetDiscountPostingSilent(SalesReceivablesSetup."Discount Posting"::"Line Discounts");
+
+        // [GIVEN] Signed Prepaid Service Contract "C" with Yearly Invoice Period, one line with 100% discount and one normal line
+        CreatePrepaidServiceContractWithFullDiscountLine(ServiceContractHeader, ServiceContractLine);
+        SignServContractDoc.SignContract(ServiceContractHeader);
+
+        // [GIVEN] Posted Service Invoice for "C"
+        ServiceContractHeader.Find();
+        WorkDate := ServiceContractHeader."Next Invoice Date";
+        CreateAndPostServiceInvoiceFromServiceContract(ServiceContractHeader);
+
+        // [WHEN] Run "Post Prepaid Service Contract Entries" batch job for "C"
+        ServiceContractHeader.Find();
+        PostPrepaidContractEntry(
+          ServiceContractHeader."Contract No.",
+          ServiceContractHeader."Starting Date",
+          ServiceContractHeader."Starting Date");
+
+        // [THEN] verify no divide-by-zero error is thrown and G/L Entries are created
+        ServiceContractAccountGroup.Get(ServiceContractHeader."Serv. Contract Acc. Gr. Code");
+        GLEntry.SetRange("G/L Account No.", ServiceContractAccountGroup."Non-Prepaid Contract Acc.");
+        GLEntry.SetRange("External Document No.", ServiceContractHeader."Contract No.");
+        Assert.RecordIsNotEmpty(GLEntry);
+
+        // Cleanup
+        WorkDate := CurrentWorkDate;
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -4258,6 +4304,39 @@ codeunit 136102 "Service Contracts"
         ServiceContractHeader.Validate("Annual Amount", ServiceContractHeader."Calcd. Annual Amount");
         ServiceContractHeader.Validate("Invoice Period", ServiceContractHeader."Invoice Period"::Year);
         ServiceContractHeader.Validate("Starting Date", ServiceContractHeader."Next Invoice Date");
+        ServiceContractHeader.Modify(true);
+    end;
+
+    local procedure CreatePrepaidServiceContractWithFullDiscountLine(var ServiceContractHeader: Record "Service Contract Header"; var ServiceContractLine: Record "Service Contract Line")
+    var
+        ServiceContractLine2: Record "Service Contract Line";
+    begin
+        // [GIVEN] Create contract header with account group
+        CreateContractHeader(ServiceContractHeader);
+
+        // [GIVEN] Set Service Period = 1Y (must be set before Invoice Period for prepaid)
+        Evaluate(ServiceContractHeader."Service Period", '<1Y>');
+        ServiceContractHeader.Validate("Service Period");
+        ServiceContractHeader.Modify(true);
+
+        // [GIVEN] Line 1 Set Line Value  and Line Discount = 100%
+        CreateServiceContractLine(ServiceContractLine, ServiceContractHeader);
+        ServiceContractLine.Validate("Line Value", LibraryRandom.RandIntInRange(100, 105));
+        ServiceContractLine.Validate("Line Discount %", LibraryRandom.RandIntInRange(100, 100));
+        ServiceContractLine.Modify(true);
+
+        // [GIVEN] Line 2 Set Line Value
+        CreateServiceContractLine(ServiceContractLine2, ServiceContractHeader);
+        ServiceContractLine2.Validate("Line Value", LibraryRandom.RandIntInRange(100, 105));
+        ServiceContractLine2.Modify(true);
+
+        // [GIVEN] Set Prepaid, Invoice Period = Year, Starting Date = first of month
+        ServiceContractHeader.Validate(Prepaid, true);
+        ServiceContractHeader.Validate("Invoice Period", ServiceContractHeader."Invoice Period"::Year);
+        ServiceContractHeader.Validate("Starting Date", ServiceContractHeader."Next Invoice Date");
+        ServiceContractHeader.Validate("Expiration Date", CalcDate('<1Y-1D>', ServiceContractHeader."Starting Date"));
+        ServiceContractHeader.CalcFields("Calcd. Annual Amount");
+        ServiceContractHeader.Validate("Annual Amount", ServiceContractHeader."Calcd. Annual Amount");
         ServiceContractHeader.Modify(true);
     end;
 

@@ -20,6 +20,7 @@ permissionsetextension 18665 "D365 FULL ACCESS - India TDS" extends "D365 FULL A
                   tabledata "Provisional Entry" = RIMD,
                   tabledata "TDS Challan Register" = RIMD,
                   tabledata "TDS Concessional Code" = RIMD,
+                  tabledata "TDS Concessional Code Archive" = RIMD,
                   tabledata "TDS Customer Concessional Code" = RIMD,
                   tabledata "TDS Entry" = RIMD,
                   tabledata "TDS Journal Batch" = RIMD,

@@ -20,7 +20,7 @@ tableextension 99001511 "Subc. Purchase Header Arch" extends "Purchase Header Ar
             TableRelation = Location where("Use As In-Transit" = const(false));
             ;
         }
-        field(99001521; "Subcontracting Order"; Boolean)
+        field(99001521; "Subc. Order"; Boolean)
         {
             CalcFormula = exist("Purchase Line" where("Document Type" = const(Order),
                                                        "Document No." = field("No."),

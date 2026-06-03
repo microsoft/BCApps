@@ -30,6 +30,7 @@ codeunit 5406 "Output Jnl.-Expl. Route"
         BaseQtyToPost: Decimal;
         SkipRecord: Boolean;
         IsLastOperation: Boolean;
+        SplitForTracking: Boolean;
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -109,6 +110,7 @@ codeunit 5406 "Output Jnl.-Expl. Route"
                         IsLastOperation := ProdOrderRtngLine."Next Operation No." = '';
                         OnBeforeInsertOutputJnlLineWithRtngLine(Rec, ProdOrderLine, SkipRecord, IsLastOperation, ProdOrderRtngLine);
                         if not SkipRecord then begin
+                            SplitForTracking := ShouldSplitLinesForSNTracking(Rec, ProdOrderLine."Item No.", IsLastOperation);
                             InsertOutputJnlLine(
                               Rec, NextLineNo, LineSpacing,
                               ProdOrderLine."Line No.",
@@ -120,9 +122,11 @@ codeunit 5406 "Output Jnl.-Expl. Route"
                               ProdOrderRtngLine."Operation No.",
                               ProdOrderLine."Unit of Measure Code",
                               BaseQtyToPost / ProdOrderLine."Qty. per Unit of Measure",
-                              IsLastOperation);
+                              IsLastOperation,
+                              SplitForTracking,
+                              ProdOrderLine);
                             OnRunOnAfterInsertOutputJnlLineWithRtngLine(ItemJnlLine, ProdOrderLine, ProdOrderRtngLine, NextLineNo);
-                            if IsLastOperation then
+                            if IsLastOperation and not SplitForTracking then
                                 ItemTrackingMgt.CopyItemTracking(ProdOrderLine.RowID1(), LastItemJnlLine.RowID1(), false);
                             OnAfterCopyItemTracking(LastItemJnlLine, IsLastOperation, NextLineNo);
                         end;
@@ -131,6 +135,7 @@ codeunit 5406 "Output Jnl.-Expl. Route"
                 until ProdOrderRtngLine.Next() = 0
             else
                 if ProdOrderLine."Remaining Quantity" > 0 then begin
+                    SplitForTracking := ShouldSplitLinesForSNTracking(Rec, ProdOrderLine."Item No.", true);
                     IsHandled := false;
                     OnBeforeInsertOutputJnlLineWithoutRtngLine(Rec, ProdOrderLine, IsHandled);
                     if not IsHandled then begin
@@ -144,9 +149,12 @@ codeunit 5406 "Output Jnl.-Expl. Route"
                           ProdOrderLine."Routing No.", ProdOrderLine."Routing Reference No.", '',
                           ProdOrderLine."Unit of Measure Code",
                           ProdOrderLine."Remaining Quantity",
-                          true);
+                          true,
+                          SplitForTracking,
+                          ProdOrderLine);
                         OnAfterInsertOutputJnlLineWithoutRtngLine(ItemJnlLine, ProdOrderLine, ProdOrderRtngLine, NextLineNo);
-                        ItemTrackingMgt.CopyItemTracking(ProdOrderLine.RowID1(), LastItemJnlLine.RowID1(), false);
+                        if not SplitForTracking then
+                            ItemTrackingMgt.CopyItemTracking(ProdOrderLine.RowID1(), LastItemJnlLine.RowID1(), false);
                         OnAfterCopyItemTracking(LastItemJnlLine, IsLastOperation, NextLineNo);
                     end;
                 end;
@@ -166,8 +174,9 @@ codeunit 5406 "Output Jnl.-Expl. Route"
         LastItemJnlLine: Record "Item Journal Line";
         ItemTrackingMgt: Codeunit "Item Tracking Management";
 
-    local procedure InsertOutputJnlLine(ItemJnlLine: Record "Item Journal Line"; var NextLineNo: Integer; LineSpacing: Integer; ProdOrderLineNo: Integer; ItemNo: Code[20]; VariantCode: Code[10]; LocationCode: Code[10]; BinCode: Code[20]; RoutingNo: Code[20]; RoutingRefNo: Integer; OperationNo: Code[10]; UnitOfMeasureCode: Code[10]; QtyToPost: Decimal; LastOperation: Boolean)
+    local procedure InsertOutputJnlLine(ItemJnlLine: Record "Item Journal Line"; var NextLineNo: Integer; LineSpacing: Integer; ProdOrderLineNo: Integer; ItemNo: Code[20]; VariantCode: Code[10]; LocationCode: Code[10]; BinCode: Code[20]; RoutingNo: Code[20]; RoutingRefNo: Integer; OperationNo: Code[10]; UnitOfMeasureCode: Code[10]; QtyToPost: Decimal; LastOperation: Boolean; SplitForTracking: Boolean; ProdOrderLine: Record "Prod. Order Line")
     var
+        TempProdOrderTracking: Record "Reservation Entry" temporary;
         DimMgt: Codeunit DimensionManagement;
         i: Integer;
         LinesToInsert: Integer;
@@ -175,14 +184,14 @@ codeunit 5406 "Output Jnl.-Expl. Route"
     begin
         LinesToInsert := 1;
         QtyPerLine := QtyToPost;
-        if ShouldSplitLinesForSNTracking(ItemJnlLine, ItemNo, LastOperation) then begin
+        if SplitForTracking then begin
             LinesToInsert := QtyToPost;
             QtyPerLine := 1;
+            CollectProdOrderTracking(ProdOrderLine, TempProdOrderTracking);
         end;
 
         for i := 1 to LinesToInsert do begin
             NextLineNo := NextLineNo + LineSpacing;
-
             ItemJnlLine."Line No." := NextLineNo;
             ItemJnlLine.Validate("Entry Type", ItemJnlLine."Entry Type"::Output);
             ItemJnlLine.Validate("Order Line No.", ProdOrderLineNo);
@@ -204,6 +213,9 @@ codeunit 5406 "Output Jnl.-Expl. Route"
             else
                 ItemJnlLine.Validate("Output Quantity", QtyPerLine);
 
+            if SplitForTracking then
+                AssignNextTrackingEntry(ItemJnlLine, TempProdOrderTracking);
+
             OnBeforeOutputItemJnlLineInsert(ItemJnlLine, LastOperation);
             DimMgt.UpdateGlobalDimFromDimSetID(
               ItemJnlLine."Dimension Set ID", ItemJnlLine."Shortcut Dimension 1 Code", ItemJnlLine."Shortcut Dimension 2 Code");
@@ -213,6 +225,42 @@ codeunit 5406 "Output Jnl.-Expl. Route"
 
             LastItemJnlLine := ItemJnlLine;
         end;
+    end;
+
+    local procedure CollectProdOrderTracking(ProdOrderLine: Record "Prod. Order Line"; var TempProdOrderTracking: Record "Reservation Entry" temporary)
+    var
+        ProdOrderReservEntry: Record "Reservation Entry";
+    begin
+        TempProdOrderTracking.Reset();
+        TempProdOrderTracking.DeleteAll();
+
+        ProdOrderReservEntry.SetPointer(ProdOrderLine.RowID1());
+        ProdOrderReservEntry.SetPointerFilter();
+        if not ProdOrderReservEntry.FindSet() then
+            exit;
+
+        repeat
+            TempProdOrderTracking := ProdOrderReservEntry;
+            TempProdOrderTracking.Insert();
+        until ProdOrderReservEntry.Next() = 0;
+
+        TempProdOrderTracking.FindSet();
+    end;
+
+    local procedure AssignNextTrackingEntry(var ItemJnlLine: Record "Item Journal Line"; var TempProdOrderTracking: Record "Reservation Entry" temporary)
+    var
+        SingleReservEntry: Record "Reservation Entry";
+    begin
+        if TempProdOrderTracking.IsEmpty() then
+            exit;
+
+        ItemJnlLine."Serial No." := TempProdOrderTracking."Serial No.";
+
+        SingleReservEntry := TempProdOrderTracking;
+        SingleReservEntry.SetRecFilter();
+        ItemTrackingMgt.CopyItemTracking(SingleReservEntry, ItemJnlLine.RowID1(), false);
+
+        if TempProdOrderTracking.Next() = 0 then;
     end;
 
     local procedure ShouldSplitLinesForSNTracking(ItemJnlLine: Record "Item Journal Line"; ItemNo: Code[20]; LastOperation: Boolean): Boolean

@@ -162,6 +162,10 @@ codeunit 2000042 "Post Coded Bank Statement"
                         CurrExchRate.ExchangeAmtLCYToFCY(GenJnlLine."Posting Date", GenJnlLine."Currency Code", GenJnlLine."Amount (LCY)", GenJnlLine."Currency Factor"));
                 end else
                     GenJnlLine.Validate(Amount, -CodBankStmtLine."Statement Amount");
+                if GenJnlLine."Currency Code" <> '' then begin
+                    GenJnlLine."Source Currency Code" := GenJnlLine."Currency Code";
+                    GenJnlLine."Source Currency Amount" := GenJnlLine.Amount;
+                end;
                 GenJnlLine."System-Created Entry" := true;
                 OnTransferCodBankStmtLinesOnBeforeGenJnlLineInsert(GenJnlLine, CodBankStmtLine);
                 GenJnlLine.Insert();

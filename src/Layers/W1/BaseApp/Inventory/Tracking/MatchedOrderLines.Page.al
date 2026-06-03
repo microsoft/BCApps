@@ -292,7 +292,7 @@ page 5818 "Matched Order Lines"
         LevelStyleExpr: Text;
         MatchedOrderLinesTok: Label 'Matched Order Lines', Locked = true;
 
-    internal procedure InitializePage(MatchedOrderLineSource2: Enum "Matched Order Line Source"; ShowFromHeader2: Boolean; SourceRecordSystemId2: Guid)
+    procedure InitializePage(MatchedOrderLineSource2: Enum "Matched Order Line Source"; ShowFromHeader2: Boolean; SourceRecordSystemId2: Guid)
     begin
         MatchedOrderLineSource := MatchedOrderLineSource2;
         ShowFromHeader := ShowFromHeader2;

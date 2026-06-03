@@ -457,10 +457,13 @@ codeunit 99000842 "Service Line-Reserve"
                     CreateReservEntry.SetApplyFromEntryNo(OldReservationEntry."Appl.-from Item Entry");
                 end;
 
-                TransferQty := CreateReservEntry.TransferReservEntry(DATABASE::"Item Journal Line",
-                    ItemJournalLine."Entry Type".AsInteger(), ItemJournalLine."Journal Template Name",
-                    ItemJournalLine."Journal Batch Name", 0, ItemJournalLine."Line No.",
-                    ItemJournalLine."Qty. per Unit of Measure", OldReservationEntry, TransferQty);
+                IsHandled := false;
+                OnTransServLineToItemJnlLineOnBeforeTransferReservationEntry(OldReservationEntry, ServiceLine, ItemJournalLine, IsHandled);
+                if not IsHandled then
+                    TransferQty := CreateReservEntry.TransferReservEntry(DATABASE::"Item Journal Line",
+                        ItemJournalLine."Entry Type".AsInteger(), ItemJournalLine."Journal Template Name",
+                        ItemJournalLine."Journal Batch Name", 0, ItemJournalLine."Line No.",
+                        ItemJournalLine."Qty. per Unit of Measure", OldReservationEntry, TransferQty);
 
             until (ReservationEngineMgt.NEXTRecord(OldReservationEntry) = 0) or (TransferQty = 0);
             CheckApplFromItemEntry := false;
@@ -792,6 +795,11 @@ codeunit 99000842 "Service Line-Reserve"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeTransServLineToItemJnlLine(var ServLine: Record "Service Line"; var ItemJnlLine: Record "Item Journal Line"; TransferQty: Decimal; var CheckApplFromItemEntry: Boolean; var Result: Decimal; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnTransServLineToItemJnlLineOnBeforeTransferReservationEntry(var ReservationEntry: Record "Reservation Entry"; var ServiceLine: Record "Service Line"; var ItemJournalLine: Record "Item Journal Line"; var IsHandled: Boolean)
     begin
     end;
 

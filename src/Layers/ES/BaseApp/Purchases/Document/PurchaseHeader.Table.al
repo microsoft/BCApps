@@ -8180,8 +8180,8 @@ table 38 "Purchase Header"
         if not PaymentTerm.Get("Payment Terms Code") then
             exit;
 
-        DueDateCalc := CalcDate(PaymentTerms."Due Date Calculation", "Document Date");
-        AdjustDueDate.PurchAdjustDueDate(DueDateCalc, "Document Date", PaymentTerms.CalculateMaxDueDate("Document Date"), "Pay-to Vendor No.");
+        DueDateCalc := CalcDate(PaymentTerm."Due Date Calculation", "Document Date");
+        AdjustDueDate.PurchAdjustDueDate(DueDateCalc, "Document Date", PaymentTerm.CalculateMaxDueDate("Document Date"), "Pay-to Vendor No.");
         if DueDateCalc = "Due Date" then
             "Due Date Modified" := false;
     end;

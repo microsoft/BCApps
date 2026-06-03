@@ -1876,6 +1876,72 @@ codeunit 136323 "Jobs - Multiple Customers"
         Assert.AreEqual(CustomerDimensionValue.Code, JobTaskDimension."Dimension Value Code", 'Customer dimension value should match');
     end;
 
+    [Test]
+    [HandlerFunctions('JobCreateSalesInvoiceHandler,MessageHandler')]
+    procedure CreateSalesInvoiceSucceedsWhenLastProjectTaskTypeIsTotal()
+    var
+        Job: Record Job;
+        JobTask: Record "Job Task";
+        JobPlanningLine: Record "Job Planning Line";
+        JobTaskPosting1: Record "Job Task";
+        JobTaskPosting2: Record "Job Task";
+        JobTaskTotal: Record "Job Task";
+        Customers: array[2] of Record Customer;
+        SalesHeaders: array[2] of Record "Sales Header";
+        JobCreateSalesInvoice: Report "Job Create Sales Invoice";
+        Qty: Decimal;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 634678] Creating Project Sales Invoice with Multiple Customers billing succeeds when last Project Task type is Total/Heading/Begin-Total/End-Total
+
+        Initialize();
+
+        // [GIVEN] Set Multiple Customers on Project Setup
+        SetMultiupleCustomersOnProjectSetup();
+
+        // [GIVEN] Create Customers
+        LibrarySales.CreateCustomer(Customers[1]);
+        LibrarySales.CreateCustomer(Customers[2]);
+
+        // [GIVEN] Create new Project with Customer 1
+        LibraryJob.CreateJob(Job, Customers[1]."No.");
+
+        // [GIVEN] Create Posting Task 1 with Customer 1
+        LibraryJob.CreateJobTask(Job, JobTaskPosting1);
+
+        // [GIVEN] Create Posting Task 2 with Customer 2
+        LibraryJob.CreateJobTask(Job, JobTaskPosting2);
+        JobTaskPosting2.Validate("Sell-to Customer No.", Customers[2]."No.");
+        JobTaskPosting2.Validate("Bill-to Customer No.", Customers[2]."No.");
+        JobTaskPosting2.Modify(true);
+
+        // [GIVEN] Create Total Task after the Posting Tasks (no Bill-to Customer needed on non-posting tasks)
+        LibraryJob.CreateJobTask(Job, JobTaskTotal);
+        JobTaskTotal.Validate("Job Task Type", JobTaskTotal."Job Task Type"::Total);
+        JobTaskTotal.Validate(Totaling, JobTaskPosting1."Job Task No." + '..' + JobTaskPosting2."Job Task No.");
+        JobTaskTotal.Modify(true);
+
+        // [GIVEN] Create Job Planning Lines with Qty to Transfer to Invoice for both Posting Tasks
+        Qty := LibraryRandom.RandInt(10);
+        CreateJobPlanningLineWithQtyToTransferToInvoice(JobPlanningLine, JobTaskPosting1, Qty, Qty);
+        CreateJobPlanningLineWithQtyToTransferToInvoice(JobPlanningLine, JobTaskPosting2, Qty, Qty);
+
+        // [GIVEN] Enqueue expected message for 2 invoices
+        LibraryVariableStorage.Enqueue(StrSubstNo(MultipleInvoiceCreatedMsg, 2));
+
+        // [WHEN] Run batch job "Create Job Sales Invoice" for all Job Tasks including the trailing Total task
+        Commit();  // Commit required for batch report.
+        JobTask.SetFilter("Job No.", '%1', Job."No.");
+        JobCreateSalesInvoice.SetTableView(JobTask);
+        JobCreateSalesInvoice.Run();
+
+        // [THEN] Sales Invoices are created for each posting task customer without error
+        FindSalesHeader(SalesHeaders[1], Customers[1]."No.", Customers[1]."No.", SalesHeaders[1]."Document Type"::Invoice);
+        FindSalesHeader(SalesHeaders[2], Customers[2]."No.", Customers[2]."No.", SalesHeaders[2]."Document Type"::Invoice);
+
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Jobs - Multiple Customers");

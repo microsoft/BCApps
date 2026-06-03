@@ -62,6 +62,7 @@ codeunit 137405 "SCM Item Tracking"
         SerialNoMustNotBeBlankErr: Label 'Serial No. must not be blank.';
         WhseActivityLineMustBeFoundErr: Label 'Warehouse Activity Line must be found.';
         SerialNoAlreadyOnInventoryErr: Label 'Serial No. %1 is already on inventory.', Comment = '%1 - Serial No.';
+        ExpirationDateErr: Label 'New Expiration Date must be equal to ''%1''  in Tracking Specification', Comment = '%1 - Expiration Date';
 
     [Test]
     [HandlerFunctions('ItemTrackingAssignTrackingNoAndVerifyQuantityHandler,EnterQuantityToCreateHandler')]
@@ -5328,6 +5329,58 @@ codeunit 137405 "SCM Item Tracking"
         SalesLine.OpenItemTrackingLines();
 
         // [THEN] No error is raised at the time of assignment of serial numbers and close the page.
+    end;
+
+    [Test]
+    [HandlerFunctions('ItemTrkgManualLotNoHandler')]
+    procedure ReclassificationWithPackageNoCannotChangeLotExpirationDate()
+    var
+        Item: Record Item;
+        ItemJnlLine: Record "Item Journal Line";
+        ReservEntry: Record "Reservation Entry";
+        LotNo: Code[50];
+        PackageNo: Code[50];
+        Qty: Integer;
+        OriginalExpirationDate: Date;
+        NewExpirationDate: Date;
+        QtyToUpdate: Option Quantity,"Quantity to Handle","Quantity to Invoice";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 630858] In the Item Reclassification Journal, adding a Package No. on the tracking line 
+        // for an existing lot must not allow the user to post a different expiration date for that lot.
+        Initialize();
+
+        // [GIVEN] Lot-tracked item with expiration date required (no package tracking)
+        LotNo := LibraryUtility.GenerateGUID();
+        PackageNo := LibraryUtility.GenerateGUID();
+        Qty := LibraryRandom.RandInt(100);
+        CreateItem(Item, CreateItemTrackingCodeLotSpecific(true), '', LibraryUtility.GetGlobalNoSeriesCode());
+
+        // [GIVEN] Lot "L" posted to inventory with Expiration Date "D1"
+        OriginalExpirationDate := WorkDate();
+        PostPositiveAdjmtWithLotExpTracking(Item, Qty, LotNo, OriginalExpirationDate);
+        PostPositiveAdjmtWithLotExpTracking(Item, Qty, LotNo, OriginalExpirationDate);
+
+        // [GIVEN] Reclassification journal line for the same item and quantity, lot "L" selected
+        CreateItemJournalLine(ItemJnlLine, Item, ItemJnlLine."Entry Type"::Transfer, Qty, 0);
+        EnqueueLotTrackingSpec(LotNo, QtyToUpdate::Quantity, Qty);
+        ItemJnlLine.OpenItemTrackingLines(false);
+
+        // [GIVEN] Package No. "P" added on the tracking line and a different New Expiration Date "D2" entered.
+        NewExpirationDate := CalcDate('<' + Format(LibraryRandom.RandIntInRange(1, 10)) + 'D>', OriginalExpirationDate);
+        FindReservationForItemJournal(ReservEntry, Item."No.");
+        ReservEntry.Validate("Package No.", PackageNo);
+        ReservEntry.Validate("New Package No.", PackageNo);
+        ReservEntry.Validate("New Expiration Date", NewExpirationDate);
+        ReservEntry.Validate("New Lot No.", ReservEntry."Lot No.");
+        ReservEntry.Modify(true);
+
+        // [WHEN] Posting the reclassification journal
+        asserterror PostItemJournalBatch(ItemJnlLine."Journal Template Name", ItemJnlLine."Journal Batch Name");
+
+        // [THEN] Posting fails because the new expiration date does not match the lot's existing one
+        Assert.ExpectedError(StrSubstNo(ExpirationDateErr, OriginalExpirationDate));
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     local procedure Initialize()

@@ -16,7 +16,7 @@ using System.Text;
 
 codeunit 5826 "Matched Order Line Mgmt."
 {
-    Access = Internal;
+    Access = Public;
     Permissions = TableData "Posted Matched Order Line" = RIMD;
 
     internal procedure ProcessMatchedReceiptOnInvoice(var PurchaseLine: Record "Purchase Line")
@@ -877,7 +877,7 @@ codeunit 5826 "Matched Order Line Mgmt."
         end;
     end;
 
-    internal procedure GetPurchaseOrderLines(PurchaseLine: Record "Purchase Line")
+    procedure GetPurchaseOrderLines(PurchaseLine: Record "Purchase Line")
     var
         PurchaseHeaderInvoice, PurchaseHeaderOrder : Record "Purchase Header";
         PurchaseLineInvoice, PurchaseLineOrder : Record "Purchase Line";
@@ -1064,7 +1064,7 @@ codeunit 5826 "Matched Order Line Mgmt."
         exit(true);
     end;
 
-    internal procedure ShowMatchedInvoiceLines(PurchaseLineOrder: Record "Purchase Line")
+    procedure ShowMatchedInvoiceLines(PurchaseLineOrder: Record "Purchase Line")
     var
         MatchedOrderLine: Record "Matched Order Line";
         PurchaseLine: Record "Purchase Line";

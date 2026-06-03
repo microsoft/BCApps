@@ -565,7 +565,7 @@ codeunit 99000835 "Item Jnl. Line-Reserve"
         end;
     end;
 
-    local procedure GetSourceValue(ReservationEntry: Record "Reservation Entry"; var SourceRecRef: RecordRef; ReturnOption: Option "Net Qty. (Base)","Gross Qty. (Base)"): Decimal
+    local procedure GetSourceValue(ReservationEntry: Record "Reservation Entry"; var SourceRecRef: RecordRef; ReturnOption: Option "Net Qty. (Base)","Gross Qty. (Base)") ReturnQty: Decimal
     var
         ItemJournalLine: Record "Item Journal Line";
     begin
@@ -573,11 +573,12 @@ codeunit 99000835 "Item Jnl. Line-Reserve"
         SourceRecRef.GetTable(ItemJournalLine);
         case ReturnOption of
             ReturnOption::"Net Qty. (Base)":
-                exit(ItemJournalLine."Quantity (Base)");
+                ReturnQty := ItemJournalLine."Quantity (Base)";
             ReturnOption::"Gross Qty. (Base)":
-                exit(ItemJournalLine."Quantity (Base)");
+                ReturnQty := ItemJournalLine."Quantity (Base)";
         end;
-        OnAfterGetSourceValue(ReservationEntry, SourceRecRef, ReturnOption);
+        OnAfterGetSourceValue(ReservationEntry, SourceRecRef, ReturnOption, ReturnQty);
+        exit(ReturnQty);
     end;
 
     [EventSubscriber(ObjectType::Page, Page::"Reservation Entries", 'OnLookupReserved', '', false, false)]
@@ -801,7 +802,7 @@ codeunit 99000835 "Item Jnl. Line-Reserve"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterGetSourceValue(var ReservationEntry: Record "Reservation Entry"; var SourceRecRef: RecordRef; ReturnOption: Option "Net Qty. (Base)","Gross Qty. (Base)")
+    local procedure OnAfterGetSourceValue(var ReservationEntry: Record "Reservation Entry"; var SourceRecRef: RecordRef; ReturnOption: Option "Net Qty. (Base)","Gross Qty. (Base)"; var ReturnQty: Decimal)
     begin
     end;
 

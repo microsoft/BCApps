@@ -11,17 +11,18 @@ codeunit 134377 "ERM Sales Blanket Order"
 
     var
         Assert: Codeunit Assert;
-        LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        LibraryApplicationArea: Codeunit "Library - Application Area";
         LibraryERM: Codeunit "Library - ERM";
+        LibraryInventory: Codeunit "Library - Inventory";
+        LibraryPurchase: Codeunit "Library - Purchase";
+        LibraryRandom: Codeunit "Library - Random";
+        LibrarySales: Codeunit "Library - Sales";
+        LibrarySetupStorage: Codeunit "Library - Setup Storage";
+        LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryUtility: Codeunit "Library - Utility";
         LibraryUtilityOnPrem: Codeunit "Library - Utility OnPrem";
-        LibraryInventory: Codeunit "Library - Inventory";
-        LibraryWarehouse: Codeunit "Library - Warehouse";
-        LibrarySales: Codeunit "Library - Sales";
-        LibraryRandom: Codeunit "Library - Random";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
-        LibrarySetupStorage: Codeunit "Library - Setup Storage";
-        LibraryPurchase: Codeunit "Library - Purchase";
+        LibraryWarehouse: Codeunit "Library - Warehouse";
         isInitialized: Boolean;
         AmountErrorMessage: Label '%1 must be %2 in %3.';
         FieldError: Label '%1 not updated correctly.';
@@ -36,6 +37,7 @@ codeunit 134377 "ERM Sales Blanket Order"
         ValueMustBeEqualErr: Label '%1 must be equal to %2 in the %3.', Comment = '%1 = Field Caption , %2 = Expected Value, %3 = Table Caption';
         TotalRecordCountErr: Label 'Total record count must be equal to %1', Comment = '%1 = Record Count.';
         SalesOrderLineDoesNotExistErr: Label 'Sales Order Line does not exist.';
+        CannotFindDescErr: Label 'Cannot find %1 with Description %2', Comment = '%1 = Type caption %2 = Description';
 
     [Test]
     [Scope('OnPrem')]
@@ -1549,6 +1551,186 @@ codeunit 134377 "ERM Sales Blanket Order"
         NotificationLifecycleMgt.RecallAllNotifications();
     end;
 
+    [Test]
+    procedure DescValidationErrorOnBlanketSalesOrderLineForGLAccount()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 631465] Error is raised when entering non-matching Description on Blanket Sales Order line with Type = G/L Account and empty No.
+        Initialize();
+
+        // [GIVEN] Foundation setup is enabled
+        LibraryApplicationArea.EnableFoundationSetup();
+
+        // [GIVEN] Create a new Blanket Sales Order with a customer and a sales line of type G/L Account, leaving the No. field empty.
+        CreateSalesDocWithGLAccountLine(SalesHeader, SalesLine, SalesHeader."Document Type"::"Blanket Order");
+
+        // [WHEN] Validate Description with a non-matching value.
+        asserterror SalesLine.Validate(Description, SalesHeader."No.");
+
+        // [THEN] Error "Cannot find G/L Account with Description" is raised.
+        Assert.ExpectedError(StrSubstNo(CannotFindDescErr, SalesLine.Type::"G/L Account", SalesLine.Description));
+        Assert.ExpectedErrorCode('Dialog');
+    end;
+
+    [Test]
+    procedure DescValidationErrorOnSalesReturnOrderLineForGLAccount()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 631465] Error is raised when entering non-matching Description on Sales Return Order line with Type = G/L Account and empty No.
+        Initialize();
+
+        // [GIVEN] Foundation setup is enabled
+        LibraryApplicationArea.EnableFoundationSetup();
+
+        // [GIVEN] Create a new Sales Return Order with a customer and a sales line of type G/L Account, leaving the No. field empty.
+        CreateSalesDocWithGLAccountLine(SalesHeader, SalesLine, SalesHeader."Document Type"::"Return Order");
+
+        // [WHEN] Validate Description with a non-matching value
+        asserterror SalesLine.Validate(Description, SalesHeader."No.");
+
+        // [THEN] Error "Cannot find G/L Account with Description" is raised.
+        Assert.ExpectedError(StrSubstNo(CannotFindDescErr, SalesLine.Type::"G/L Account", SalesLine.Description));
+        Assert.ExpectedErrorCode('Dialog');
+    end;
+
+    [Test]
+    procedure DescValidationErrorOnSalesOrderLineForGLAccount()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 631465] Error is raised when entering non-matching Description on Sales Order line with Type = G/L Account and empty No.
+        Initialize();
+
+        // [GIVEN] Foundation setup is enabled
+        LibraryApplicationArea.EnableFoundationSetup();
+
+        // [GIVEN] Create a new Sales Order with a customer and a sales line of type G/L Account, leaving the No. field empty.
+        CreateSalesDocWithGLAccountLine(SalesHeader, SalesLine, SalesHeader."Document Type"::Order);
+
+        // [WHEN] Validate Description with a non-matching value
+        asserterror SalesLine.Validate(Description, SalesHeader."No.");
+
+        // [THEN] Error "Cannot find G/L Account with Description" is raised.
+        Assert.ExpectedError(StrSubstNo(CannotFindDescErr, SalesLine.Type::"G/L Account", SalesLine.Description));
+        Assert.ExpectedErrorCode('Dialog');
+    end;
+
+    [Test]
+    procedure DescValidationErrorOnSalesInvoiceLineForGLAccount()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 631465] Error is raised when entering non-matching Description on Sales Invoice line with Type = G/L Account and empty No.
+        Initialize();
+
+        // [GIVEN] Foundation setup is enabled
+        LibraryApplicationArea.EnableFoundationSetup();
+
+        // [GIVEN] Create a new Sales Invoice with a customer and a sales line of type G/L Account, leaving the No. field empty.
+        CreateSalesDocWithGLAccountLine(SalesHeader, SalesLine, SalesHeader."Document Type"::Invoice);
+
+        // [WHEN] Validate Description with a non-matching value
+        asserterror SalesLine.Validate(Description, SalesHeader."No.");
+
+        // [THEN] Error "Cannot find G/L Account with Description" is raised.
+        Assert.ExpectedError(StrSubstNo(CannotFindDescErr, SalesLine.Type::"G/L Account", SalesLine.Description));
+        Assert.ExpectedErrorCode('Dialog');
+    end;
+
+    [Test]
+    procedure DescValidationErrorOnSalesQuoteLineForGLAccount()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 631465] Error is raised when entering non-matching Description on Sales Quote line with Type = G/L Account and empty No.
+        Initialize();
+
+        // [GIVEN] Foundation setup is enabled
+        LibraryApplicationArea.EnableFoundationSetup();
+
+        // [GIVEN] Create a new Sales Quote with a customer and a sales line of type G/L Account, leaving the No. field empty.
+        CreateSalesDocWithGLAccountLine(SalesHeader, SalesLine, SalesHeader."Document Type"::Quote);
+
+        // [WHEN] Validate Description with a non-matching value
+        asserterror SalesLine.Validate(Description, SalesHeader."No.");
+
+        // [THEN] Error "Cannot find G/L Account with Description" is raised.
+        Assert.ExpectedError(StrSubstNo(CannotFindDescErr, SalesLine.Type::"G/L Account", SalesLine.Description));
+        Assert.ExpectedErrorCode('Dialog');
+    end;
+
+    [Test]
+    procedure DescValidationNoErrorOnBlanketSalesOrderLineWhenGLAccountFound()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        GLAccount: Record "G/L Account";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 631465] No error occurs and No. is populated when Description matches a G/L Account name on Blanket Sales Order line
+        Initialize();
+
+        // [GIVEN] Foundation setup is enabled
+        LibraryApplicationArea.EnableFoundationSetup();
+
+        // [GIVEN] G/L Account "GA" with Direct Posting enabled
+        GLAccount.Get(LibraryERM.CreateGLAccountWithSalesSetup());
+
+        // [GIVEN] Create a new Blanket Sales Order with a customer and a sales line of type G/L Account, leaving the No. field empty.
+        CreateSalesDocWithGLAccountLine(SalesHeader, SalesLine, SalesHeader."Document Type"::"Blanket Order");
+
+        // [WHEN] Validate Description with the G/L Account Name
+        SalesLine.Validate(Description, GLAccount.Name);
+
+        // [THEN] No. is populated with the G/L Account No.
+        Assert.AreEqual(
+            GLAccount."No.", SalesLine."No.",
+            StrSubstNo(
+                ValueMustBeEqualErr, SalesLine.FieldCaption("No."), GLAccount."No.", SalesLine.TableCaption()));
+    end;
+
+    [Test]
+    procedure DescValidationNoErrorOnSalesReturnOrderLineWhenGLAccountFound()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        GLAccount: Record "G/L Account";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 631465] No error occurs and No. is populated when Description matches a G/L Account name on Sales Return Order line
+        Initialize();
+
+        // [GIVEN] Foundation setup is enabled
+        LibraryApplicationArea.EnableFoundationSetup();
+
+        // [GIVEN] G/L Account "GA" with Direct Posting enabled
+        GLAccount.Get(LibraryERM.CreateGLAccountWithSalesSetup());
+
+        // [GIVEN] Create a new Sales Return Order with a customer and a sales line of type G/L Account, leaving the No. field empty.
+        CreateSalesDocWithGLAccountLine(SalesHeader, SalesLine, SalesHeader."Document Type"::"Return Order");
+
+        // [WHEN] Validate Description with the G/L Account Name
+        SalesLine.Validate(Description, GLAccount.Name);
+
+        // [THEN] No. is populated with the G/L Account No.
+        Assert.AreEqual(
+            GLAccount."No.", SalesLine."No.",
+            StrSubstNo(
+                ValueMustBeEqualErr, SalesLine.FieldCaption("No."), GLAccount."No.", SalesLine.TableCaption()));
+    end;
+
     local procedure Initialize()
     var
         SalesReceivablesSetup: Record "Sales & Receivables Setup";
@@ -1573,6 +1755,12 @@ codeunit 134377 "ERM Sales Blanket Order"
         Commit();
         isInitialized := true;
         LibraryTestInitialize.OnAfterTestSuiteInitialize(CODEUNIT::"ERM Sales Blanket Order");
+    end;
+
+    local procedure CreateSalesDocWithGLAccountLine(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; DocumentType: Enum "Sales Document Type")
+    begin
+        LibrarySales.CreateSalesHeader(SalesHeader, DocumentType, LibrarySales.CreateCustomerNo());
+        LibrarySales.CreateSimpleItemSalesLine(SalesLine, SalesHeader, SalesLine.Type::"G/L Account");
     end;
 
     local procedure CopySalesDocument(var SalesHeader: Record "Sales Header"; CustomerNo: Code[20]; DocumentNo: Code[20]; DocumentType: Enum "Sales Document Type"; FromDocType: Enum "Sales Document Type"; Recalculate: Boolean)

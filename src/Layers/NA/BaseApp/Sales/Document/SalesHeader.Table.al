@@ -241,7 +241,8 @@ table 36 "Sales Header"
 
                 if xRec."Sell-to Customer No." <> "Sell-to Customer No." then begin
                     CopyCFDIFieldsFromCustomer();
-                    SalesCalcDiscountByType.ApplyDefaultInvoiceDiscount(0, Rec, not IsNullGuid(Rec.SystemId));
+                    if not IsNullGuid(Rec.SystemId) then
+                        SalesCalcDiscountByType.ApplyDefaultInvoiceDiscount(0, Rec, true);
                 end;
             end;
         }
@@ -351,7 +352,8 @@ table 36 "Sales Header"
 
                 if xRec."Bill-to Customer No." <> "Bill-to Customer No." then begin
                     CopyCFDIFieldsFromCustomer();
-                    SalesCalcDiscountByType.ApplyDefaultInvoiceDiscount(0, Rec, not IsNullGuid(Rec.SystemId));
+                    if not IsNullGuid(Rec.SystemId) then
+                        SalesCalcDiscountByType.ApplyDefaultInvoiceDiscount(0, Rec, true);
                 end;
             end;
         }
@@ -959,7 +961,8 @@ table 36 "Sales Header"
                     StandardCodesMgt.CheckShowSalesRecurringLinesNotification(Rec);
 
                 if "Currency Code" <> xRec."Currency Code" then
-                    SalesCalcDiscountByType.ApplyDefaultInvoiceDiscount(0, Rec, not IsNullGuid(Rec.SystemId));
+                    if not IsNullGuid(Rec.SystemId) then
+                        SalesCalcDiscountByType.ApplyDefaultInvoiceDiscount(0, Rec, true);
 
                 if Status = Status::Open then
                     SetCompanyBankAccount();
@@ -2254,7 +2257,8 @@ table 36 "Sales Header"
                 TestStatusOpen();
                 if xRec."VAT Bus. Posting Group" <> "VAT Bus. Posting Group" then begin
                     RecreateSalesLines(FieldCaption("VAT Bus. Posting Group"));
-                    SalesCalcDiscountByType.ApplyDefaultInvoiceDiscount(0, Rec, not IsNullGuid(Rec.SystemId));
+                    if not IsNullGuid(Rec.SystemId) then
+                        SalesCalcDiscountByType.ApplyDefaultInvoiceDiscount(0, Rec, true);
                 end;
             end;
         }
@@ -7109,6 +7113,7 @@ table 36 "Sales Header"
         SalesLine2.SetRange("Document No.", "No.");
         SalesLine2.SetRange("Drop Shipment", false);
         SalesLine2.SetRange(Type, SalesLine.Type::Item);
+        OnCheckShippingAdviceOnAfterSetLineFilters(SalesLine2, Rec);
         Result := true;
         if SalesLine2.FindSet() then
             repeat
@@ -10214,6 +10219,11 @@ table 36 "Sales Header"
     /// <param name="Result">The result of the shipping advice check.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCheckShippingAdvice(var SalesHeader: Record "Sales Header"; var Result: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCheckShippingAdviceOnAfterSetLineFilters(var SalesLine: Record "Sales Line"; var SalesHeader: Record "Sales Header")
     begin
     end;
 

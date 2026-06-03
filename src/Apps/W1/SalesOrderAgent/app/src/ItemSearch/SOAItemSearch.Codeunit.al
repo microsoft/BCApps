@@ -42,6 +42,8 @@ codeunit 4591 "SOA Item Search"
     var
         Item: Record Item;
         GlobalItemSearch: Codeunit "Global Item Search";
+        BroaderItemSearch: Codeunit "SOA Broader Item Search";
+        CandidateArray: JsonArray;
         DummySearchOptionalKeyWords: List of [Text];
         ItemNoFilter: Text;
     begin
@@ -72,7 +74,13 @@ codeunit 4591 "SOA Item Search"
         GlobalItemSearch.AddSearchRankingContext('', '', 0);
         GlobalItemSearch.SetupSOACapabilityInformation();
         GlobalItemSearch.SetupSearchQuery(SearchPrimaryKeyWords.Get(1), SearchPrimaryKeyWords, DummySearchOptionalKeyWords, true, 50);
-        ItemFilter := GlobalItemSearch.SearchAndReturnResultAsTxt(SearchPrimaryKeyWords.Get(1), 0, '|');
+
+        Clear(CandidateArray);
+        if GlobalItemSearch.SearchAndReturnResultsWithColumnValues(SearchPrimaryKeyWords.Get(1), 0, CandidateArray) then
+            ItemFilter := BroaderItemSearch.BuildResultFilterFromCandidates(CandidateArray, '|')
+        else
+            ItemFilter := '';
+
         SearchType := 'item_search';
     end;
 
@@ -170,15 +178,18 @@ codeunit 4591 "SOA Item Search"
         SOASetup: Record "SOA Setup";
         Item: Record Item;
         BroaderItemSearch: Codeunit "SOA Broader Item Search";
+        CandidateArray: JsonArray;
         SearchKeyWordsTrimmed: List of [Text];
         SearchFilter: Text;
         SplitSearchKeywords: Text;
         ItemFilter: Text;
-        TrimmedItemFilter: Text;
-        OriginalFilterGroup: Integer;
-        ItemSystemId: Guid;
+        SelectedMatchingItemFilter: Text;
+        SelectedAlternativeItemFilter: Text;
         SearchType: Text;
+        OriginalFilterGroup: Integer;
         CountBeforeAvailabilityCheck: Integer;
+        ApplyAvailabilityFilter: Boolean;
+        ItemSelectorUsed: Boolean;
     begin
         MatchingItem := true;
         OriginalFilterGroup := Rec.FilterGroup();
@@ -198,7 +209,7 @@ codeunit 4591 "SOA Item Search"
             exit;
 
         if (ItemFilter = '') and (SplitSearchKeywords <> '') then begin
-            BroaderItemSearch.BroaderItemSearch(ItemFilter, SplitSearchKeywords.TrimEnd(','));
+            BroaderItemSearch.BroaderItemSearch(ItemFilter, SplitSearchKeywords.TrimEnd(','), CandidateArray);
             MatchingItem := false;
             SearchType := 'broader_item_search';
         end;
@@ -206,23 +217,36 @@ codeunit 4591 "SOA Item Search"
         if SOASetup.FindFirst() then
             if ItemFilter <> '' then begin
                 CountBeforeAvailabilityCheck := ItemFilter.Split('|').Count();
-                foreach ItemSystemId in ItemFilter.Split('|') do begin
-                    if Item.GetBySystemId(ItemSystemId) then
-                        Item.CopyFilters(Rec);
+                ApplyAvailabilityFilter := CheckAvailability and (SOASetup."Search Only Available Items" and not SOASetup."Incl. Capable to Promise");
 
-                    if CheckAvailability and (SOASetup."Search Only Available Items" and not SOASetup."Incl. Capable to Promise") then begin
-                        if IsRequiredQuantityAvailable(Item, RequiredQuantity, InUOMCode) then
-                            TrimmedItemFilter += ItemSystemId + '|'
+                // Try item selection only for broader search results with multiple candidates
+                if (SearchType = 'broader_item_search') and (CountBeforeAvailabilityCheck > 1) then
+                    if SelectBestItem(ItemFilter, BuildSearchQueryText(SearchKeyWordsTrimmed), CandidateArray, SelectedMatchingItemFilter, SelectedAlternativeItemFilter) then begin
+                        ItemSelectorUsed := true;
+                        TelemetryCustomDimension.Add('ItemSelectorUsed', 'true');
+                    end else begin
+                        ItemSelectorUsed := false;
+                        TelemetryCustomDimension.Add('ItemSelectorUsed', 'false');
+                    end;
+
+                // When selector returns both sets, prefer available matching items.
+                // If none are available, retry availability filtering for alternatives.
+                if ItemSelectorUsed and (SelectedMatchingItemFilter <> '') then begin
+                    ItemFilter := BuildFilteredItemFilter(SelectedMatchingItemFilter, Rec, RequiredQuantity, InUOMCode, ApplyAvailabilityFilter);
+                    if (ItemFilter = '') and (SelectedAlternativeItemFilter <> '') then begin
+                        ItemFilter := BuildFilteredItemFilter(SelectedAlternativeItemFilter, Rec, RequiredQuantity, InUOMCode, ApplyAvailabilityFilter);
+                        MatchingItem := false;
                     end else
-                        TrimmedItemFilter += ItemSystemId + '|';
-
-                    if TrimmedItemFilter.Split('|').Count() - 1 = 10 then
-                        break;
-                end;
-                ItemFilter := TrimmedItemFilter.TrimEnd('|');
+                        MatchingItem := true;
+                end else
+                    if ItemSelectorUsed and (SelectedAlternativeItemFilter <> '') then begin
+                        ItemFilter := BuildFilteredItemFilter(SelectedAlternativeItemFilter, Rec, RequiredQuantity, InUOMCode, ApplyAvailabilityFilter);
+                        MatchingItem := false;
+                    end else
+                        ItemFilter := BuildFilteredItemFilter(ItemFilter, Rec, RequiredQuantity, InUOMCode, ApplyAvailabilityFilter);
             end;
 
-        if ItemFilter <> '' then begin //IsHandled only if the search is successful
+        if ItemFilter <> '' then begin
             Item.CopyFilters(Rec);
 
             Rec.Reset();
@@ -242,6 +266,92 @@ codeunit 4591 "SOA Item Search"
 
         IsHandled := true;
         OnAfterFindRecordItem(ItemFilter, Which, CrossColumnSearchFilter, Found, RequiredQuantity, InUOMCode);
+    end;
+
+    local procedure SelectBestItem(ItemFilter: Text; SearchQuery: Text; CandidateArray: JsonArray; var SelectedMatchingItemFilter: Text; var SelectedAlternativeItemFilter: Text): Boolean
+    var
+        Item: Record Item;
+        ItemSelector: Codeunit "SOA Item Selector";
+        ItemNoToSystemId: Dictionary of [Text, Text];
+        RawSelectedMatchingItemFilter: Text;
+        RawSelectedAlternativeItemFilter: Text;
+        SelectedMatchingItemNo: Text;
+        SelectedAlternativeItemNo: Text;
+    begin
+        SelectedMatchingItemFilter := '';
+        SelectedAlternativeItemFilter := '';
+
+        if CandidateArray.Count() > 0 then
+            if ItemSelector.SelectBestMatchingItem(SearchQuery, CandidateArray, SelectedMatchingItemFilter, SelectedAlternativeItemFilter) then begin
+                RawSelectedMatchingItemFilter := SelectedMatchingItemFilter;
+                RawSelectedAlternativeItemFilter := SelectedAlternativeItemFilter;
+
+                SelectedMatchingItemFilter := '';
+                SelectedAlternativeItemFilter := '';
+
+                // Single query: build a map of Item."No." -> SystemId for all candidates.
+                Item.SetLoadFields("No.", SystemId);
+                Item.SetFilter(SystemId, ItemFilter);
+                if Item.FindSet() then
+                    repeat
+                        ItemNoToSystemId.Add(Item."No.", Format(Item.SystemId));
+                    until Item.Next() = 0;
+
+                foreach SelectedMatchingItemNo in RawSelectedMatchingItemFilter.Split('|') do begin
+                    if SelectedMatchingItemNo = '' then
+                        continue;
+                    if ItemNoToSystemId.ContainsKey(SelectedMatchingItemNo) then
+                        if SelectedMatchingItemFilter = '' then
+                            SelectedMatchingItemFilter := ItemNoToSystemId.Get(SelectedMatchingItemNo)
+                        else
+                            SelectedMatchingItemFilter += '|' + ItemNoToSystemId.Get(SelectedMatchingItemNo);
+                end;
+
+                foreach SelectedAlternativeItemNo in RawSelectedAlternativeItemFilter.Split('|') do begin
+                    if SelectedAlternativeItemNo = '' then
+                        continue;
+                    if ItemNoToSystemId.ContainsKey(SelectedAlternativeItemNo) then
+                        if SelectedAlternativeItemFilter = '' then
+                            SelectedAlternativeItemFilter := ItemNoToSystemId.Get(SelectedAlternativeItemNo)
+                        else
+                            SelectedAlternativeItemFilter += '|' + ItemNoToSystemId.Get(SelectedAlternativeItemNo);
+                end;
+
+                if (SelectedMatchingItemFilter <> '') or (SelectedAlternativeItemFilter <> '') then
+                    exit(true);
+            end;
+        exit(false);
+    end;
+
+    local procedure BuildFilteredItemFilter(SourceItemFilter: Text; var Rec: Record Item; RequiredQuantity: Decimal; InUOMCode: Code[10]; ApplyAvailabilityFilter: Boolean): Text
+    var
+        Item: Record Item;
+        ItemSystemId: Guid;
+        FilteredItemFilter: Text;
+        ResultCount: Integer;
+    begin
+        if SourceItemFilter = '' then
+            exit('');
+
+        foreach ItemSystemId in SourceItemFilter.Split('|') do begin
+            if ApplyAvailabilityFilter then begin
+                if Item.GetBySystemId(ItemSystemId) then begin
+                    Item.CopyFilters(Rec);
+                    if IsRequiredQuantityAvailable(Item, RequiredQuantity, InUOMCode) then begin
+                        FilteredItemFilter += ItemSystemId + '|';
+                        ResultCount += 1;
+                    end;
+                end;
+            end else begin
+                FilteredItemFilter += ItemSystemId + '|';
+                ResultCount += 1;
+            end;
+
+            if ResultCount = 10 then
+                break;
+        end;
+
+        exit(FilteredItemFilter.TrimEnd('|'));
     end;
 
     local procedure ExtractSearchKeyWords(SearchFilter: Text; var SplitSearchKeywords: Text; var SearchKeyWordsTrimmed: List of [Text])
@@ -270,6 +380,20 @@ codeunit 4591 "SOA Item Search"
                     end;
                 end;
             end;
+    end;
+
+    local procedure BuildSearchQueryText(SearchKeyWordsTrimmed: List of [Text]): Text
+    var
+        SearchKeyword: Text;
+        SearchQueryBuilder: TextBuilder;
+    begin
+        foreach SearchKeyword in SearchKeyWordsTrimmed do begin
+            if SearchQueryBuilder.Length() > 0 then
+                SearchQueryBuilder.Append(' ');
+            SearchQueryBuilder.Append(SearchKeyword);
+        end;
+
+        exit(SearchQueryBuilder.ToText());
     end;
 
     local procedure IsRequiredQuantityAvailable(var Item: Record Item; RequiredQuantity: Decimal; LineUOM: Code[10]): Boolean

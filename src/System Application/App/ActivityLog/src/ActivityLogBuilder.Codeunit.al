@@ -99,4 +99,13 @@ codeunit 3111 "Activity Log Builder"
         ActivityLogBuilderImpl.Log();
     end;
 
+    /// <summary>
+    /// Retrieves the activity log entries for the specified table and system identifier as a JSON string.
+    /// </summary>
+    [Scope('OnPrem')]
+    procedure Query(TableNo: Integer; RecSystemId: Guid): Text
+    begin
+        exit(ActivityLogBuilderImpl.Query(TableNo, RecSystemId));
+    end;
+
 }

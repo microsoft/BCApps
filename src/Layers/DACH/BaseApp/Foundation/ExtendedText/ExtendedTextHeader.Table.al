@@ -220,10 +220,6 @@ table 279 "Extended Text Header"
             ToolTip = 'Specifies whether the text will be available on purchase return orders.';
             InitValue = true;
         }
-        field(5005270; "Delivery Reminder"; Boolean)
-        {
-            Caption = 'Delivery Reminder';
-        }
     }
 
     keys

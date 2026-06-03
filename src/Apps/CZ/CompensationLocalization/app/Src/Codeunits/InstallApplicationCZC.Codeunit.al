@@ -9,6 +9,7 @@ using Microsoft.EServices.EDocument;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Company;
+using Microsoft.Foundation.Reporting;
 using Microsoft.Purchases.Payables;
 using Microsoft.Sales.Receivables;
 using System.Upgrade;
@@ -23,7 +24,7 @@ codeunit 31270 "Install Application CZC"
                       tabledata "Posted Compensation Header CZC" = im,
                       tabledata "Posted Compensation Line CZC" = im,
                       tabledata "Source Code" = i,
-                      tabledata "Compens. Report Selections CZC" = i,
+                      tabledata "Report Selections" = i,
                       tabledata "Source Code Setup" = m,
                       tabledata "Cust. Ledger Entry" = m,
                       tabledata "Vendor Ledger Entry" = m,
@@ -133,25 +134,17 @@ codeunit 31270 "Install Application CZC"
     end;
 
     local procedure InitCompensationReportSelections()
-    var
-        ReportUsage: Enum "Compens. Report Sel. Usage CZC";
     begin
-        InsertCompensationReportSelectionsCZC(ReportUsage::"Compensation", '1', Report::"Compensation CZC");
-        InsertCompensationReportSelectionsCZC(ReportUsage::"Posted Compensation", '1', Report::"Posted Compensation CZC");
+        InsertReportSelections(Enum::"Report Selection Usage"::"Compensation CZC", '1', Report::"Compensation CZC");
+        InsertReportSelections(Enum::"Report Selection Usage"::"Posted Compensation CZC", '1', Report::"Posted Compensation CZC");
     end;
 
-    local procedure InsertCompensationReportSelectionsCZC(ReportUsage: Enum "Compens. Report Sel. Usage CZC"; ReportSequence: Code[10];
-                                                                           ReportID: Integer)
+    local procedure InsertReportSelections(ReportUsage: Enum "Report Selection Usage"; Sequence: Code[10]; ReportID: Integer)
     var
-        CompensReportSelectionsCZC: Record "Compens. Report Selections CZC";
+        ReportSelections: Record "Report Selections";
     begin
-        if CompensReportSelectionsCZC.Get(ReportUsage, ReportSequence) then
+        if ReportSelections.Get(ReportUsage, Sequence) then
             exit;
-
-        CompensReportSelectionsCZC.Init();
-        CompensReportSelectionsCZC.Validate(Usage, ReportUsage);
-        CompensReportSelectionsCZC.Validate(Sequence, ReportSequence);
-        CompensReportSelectionsCZC.Validate("Report ID", ReportID);
-        CompensReportSelectionsCZC.Insert();
+        ReportSelections.InsertRecord(ReportUsage, Sequence, ReportID);
     end;
 }

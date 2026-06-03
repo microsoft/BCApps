@@ -353,10 +353,9 @@ codeunit 18001 "GST Base Validation"
                 Rec."Source Type" := Rec."Source Type"::Customer;
 
         Rec."Executed Use Case ID" := GSTPostingManagement.GetUseCaseID();
-        if Rec."Source Type" = Rec."Source Type"::Vendor then
-            if Rec."Source No." = '' then
-                if GSTPostingManagement.GetPaytoVendorNo() <> '' then
-                    Rec."Source No." := GSTPostingManagement.GetPaytoVendorNo();
+        if GSTPostingManagement.GetPaytoVendorNo() <> '' then
+            if Rec."Source Type" = Rec."Source Type"::Vendor then
+                Rec."Source No." := GSTPostingManagement.GetPaytoVendorNo();
 
         if GSTPostingManagement.GetBuyerSellerRegNo() <> '' then
             Rec."Buyer/Seller Reg. No." := GSTPostingManagement.GetBuyerSellerRegNo();

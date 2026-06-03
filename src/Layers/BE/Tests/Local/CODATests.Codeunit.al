@@ -1123,6 +1123,52 @@ codeunit 144006 "CODA Tests"
         Assert.IsFalse(GenJnlLine.IsEmpty(), IncorrectNoOfRecordsErr);
     end;
 
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure SourceCurrFieldsSetInFinJnlWhenVendorHasFCYAndBankAccHasLCY()
+    var
+        BankAccount: Record "Bank Account";
+        CodaStatement: Record "CODA Statement";
+        CODAStatementLine: Record "CODA Statement Line";
+        CodBankStmtLine: Record "CODA Statement Line";
+        Vendor: Record Vendor;
+        GenJnlLine: Record "Gen. Journal Line";
+        TransactionCoding: Record "Transaction Coding";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 634020] Source Currency fields are populated on Gen. Journal Line when Vendor has FCY and Bank Account has LCY.
+        Initialize();
+
+        // [GIVEN] Create Vendor with Currency Code.
+        LibraryPurchase.CreateVendor(Vendor);
+        Vendor.Validate("Currency Code", CreateCurrencyAndExchangeRate());
+        Vendor.Modify(true);
+
+        // [GIVEN] Create Bank Account without Currency Code.
+        CreateBankAccounInformation(BankAccount);
+        BankAccount.Validate("Currency Code", '');
+        BankAccount.Modify(true);
+
+        // [GIVEN] Create CODA Statement with line for Vendor.
+        CreateCODAStament(CodaStatement, BankAccount, TransactionCoding);
+        CreateCODAStmtLinesForBankAcc(CodaStatement, TransactionCoding, CODAStatementLine, BankAccount, LibraryRandom.RandIntInRange(100, 200));
+        CODAStatementLine.Validate("Account Type", CODAStatementLine."Account Type"::Vendor);
+        CODAStatementLine.Validate("Account No.", Vendor."No.");
+        CODAStatementLine.Modify(true);
+
+        // [WHEN] Transfer to General Ledger.
+        CodBankStmtLine.SetRange("Bank Account No.", BankAccount."No.");
+        CodBankStmtLine.SetRange("Statement No.", CodaStatement."Statement No.");
+        CODEUNIT.Run(CODEUNIT::"Post Coded Bank Statement", CodBankStmtLine);
+
+        // [THEN] Verify Gen. Journal Line has "Source Currency Code" equal to "Currency Code" and "Source Currency Amount" equal to "Amount".
+        GenJnlLine.SetRange("Account No.", Vendor."No.");
+        GenJnlLine.SetRange("Bal. Account No.", BankAccount."No.");
+        GenJnlLine.FindFirst();
+        Assert.AreEqual(GenJnlLine."Currency Code", GenJnlLine."Source Currency Code", 'Source Currency Code should equal Currency Code');
+        Assert.AreEqual(GenJnlLine.Amount, GenJnlLine."Source Currency Amount", 'Source Currency Amount should equal Amount');
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"CODA Tests");

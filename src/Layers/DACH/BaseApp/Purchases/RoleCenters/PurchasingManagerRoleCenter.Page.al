@@ -73,12 +73,6 @@ page 8905 "Purchasing Manager Role Center"
                     Caption = 'Purchase Orders';
                     RunObject = page "Purchase Order List";
                 }
-                action("Delivery Reminder")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Delivery Reminder';
-                    RunObject = page "Delivery Reminder";
-                }
                 action("Blanket Orders")
                 {
                     ApplicationArea = Suite;
@@ -201,12 +195,6 @@ page 8905 "Purchasing Manager Role Center"
                         ApplicationArea = Suite;
                         Caption = 'Posted Purchase Receipts';
                         RunObject = page "Posted Purchase Receipts";
-                    }
-                    action("Issued Delivery Reminder")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Caption = 'Issued Delivery Reminder';
-                        RunObject = page "Issued Delivery Reminder";
                     }
                     action("G/L Registers")
                     {
@@ -761,12 +749,6 @@ page 8905 "Purchasing Manager Role Center"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Shipment Methods';
                     RunObject = page "Shipment Methods";
-                }
-                action("Delivery Reminder Terms")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Delivery Reminder Terms';
-                    RunObject = page "Delivery Reminder Terms";
                 }
                 action("Return Reasons")
                 {

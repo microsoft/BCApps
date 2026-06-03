@@ -33,9 +33,10 @@ codeunit 134287 "Non-Deductible VAT Statistics"
         MaxVATDifference: Decimal;
         VATAmount: Decimal;
         NonDeductibleVATAmount: Decimal;
+        OrigNonDedVATAmount: Decimal;
     begin
         // [FEATURE] [UI]
-        // [SCENARIO 456471] Non-Deductible VAT Amount is not changed in statistics when Stan changes the VAT amount
+        // [SCENARIO 456471] Non-Deductible VAT Amount is proportionally recalculated in statistics when Stan changes the VAT amount
 
         Initialize();
         MaxVATDifference := LibraryRandom.RandDecInDecimalRange(0.1, 1, 2);
@@ -51,8 +52,9 @@ codeunit 134287 "Non-Deductible VAT Statistics"
         LibraryPurchase.CreatePurchaseLineWithUnitCost(
             PurchaseLine, PurchaseHeader, LibraryInventory.CreateItemWithVATProdPostingGroup(VATPostingSetup."VAT Prod. Posting Group"),
             LibraryRandom.RandDec(100, 2), LibraryRandom.RandInt(100));
-        NonDeductibleVATAmount := PurchaseLine."Non-Deductible VAT Amount";
+        OrigNonDedVATAmount := PurchaseLine."Non-Deductible VAT Amount";
         VATAmount := PurchaseLine."Amount Including VAT" - PurchaseLine.Amount - MaxVATDifference;
+        NonDeductibleVATAmount := Round(VATAmount * VATPostingSetup."Non-Deductible VAT %" / 100, 0.01);
         LibraryVariableStorage.Enqueue(NonDeductibleVATAmount);
         LibraryVariableStorage.Enqueue(VATAmount);
 
@@ -63,19 +65,19 @@ codeunit 134287 "Non-Deductible VAT Statistics"
         PurchaseInvoicePage.PurchaseStatistics.Invoke();
 
         // [WHEN] Set "VAT Amount" = 19.99
-        // [THEN] "Non-Deductible VAT amount" remains 15 on statistics page
-        // [THEN] "Deductible Amount" is 4.99
-        // Called in PurchaseStatisticsModalPageHandler
+        // [THEN] "Non-Deductible VAT amount" is recalculated proportionally on statistics page
+        // [THEN] "Deductible Amount" is updated accordingly
+        // Called in PurchaseStatisticsChangeVATAmountPageHandler
 
         PurchaseLine.Find();
         // [THEN] "VAT Difference" is -0.01 in the purchase line
         PurchaseLine.TestField("VAT Difference", -MaxVATDifference);
         // [THEN] "Amount Including VAT" is 119.99 in the purchase line
         PurchaseLine.TestField("Amount Including VAT", PurchaseLine.Amount + VATAmount);
-        // [THEN] "Non-Deductible VAT" is 15 in the purchase line
+        // [THEN] "Non-Deductible VAT" is recalculated in the purchase line
         PurchaseLine.TestField("Non-Deductible VAT Amount", NonDeductibleVATAmount);
-        // [THEN] "Non-Deductible VAT Diff." is zero in the purchase line
-        PurchaseLine.TestField("Non-Deductible VAT Diff.", 0);
+        // [THEN] "Non-Deductible VAT Diff." reflects the proportional change
+        PurchaseLine.TestField("Non-Deductible VAT Diff.", NonDeductibleVATAmount - OrigNonDedVATAmount);
         LibraryVariableStorage.AssertEmpty();
     end;
 
@@ -573,6 +575,72 @@ codeunit 134287 "Non-Deductible VAT Statistics"
         LibraryVariableStorage.AssertEmpty();
     end;
 
+    [Test]
+    [HandlerFunctions('PurchaseStatisticsChangeVATAmountPageHandler')]
+    procedure NonDedAndDeductibleVATAmtRecalculatedProportionallyOnVATAmountChange()
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchaseInvoicePage: TestPage "Purchase Invoice";
+        MaxVATDifference: Decimal;
+        OrigNonDedVATAmount: Decimal;
+        VATAmount: Decimal;
+        NonDeductibleVATAmount: Decimal;
+    begin
+        // [FEATURE] [AI test 0.4] [UI]
+        // [SCENARIO 626363] Both Non-Deductible and Deductible VAT Amounts are recalculated proportionally on the statistics page when Stan changes the VAT Amount and Non-Deductible VAT % is partial (e.g. 40%)
+
+        Initialize();
+        MaxVATDifference := LibraryRandom.RandDecInDecimalRange(0.1, 1, 2);
+
+        // [GIVEN] "Allow VAT Difference" is enabled in Purchases Setup and "Max VAT Difference Allowed" is 10 in General Ledger Setup
+        SetAllowVATDifference(MaxVATDifference);
+
+        // [GIVEN] Create Non-Deductible Normal VAT Posting Setup
+        LibraryNonDeductibleVAT.CreateNonDeductibleNormalVATPostingSetup(VATPostingSetup);
+
+        // [GIVEN] Create Purchase invoice with VAT Amount and Non-Deductible VAT Amount
+        LibraryPurchase.CreatePurchHeader(
+            PurchaseHeader, PurchaseHeader."Document Type"::Invoice,
+            LibraryPurchase.CreateVendorWithVATBusPostingGroup(VATPostingSetup."VAT Bus. Posting Group"));
+        LibraryPurchase.CreatePurchaseLineWithUnitCost(
+            PurchaseLine, PurchaseHeader, LibraryInventory.CreateItemWithVATProdPostingGroup(VATPostingSetup."VAT Prod. Posting Group"),
+            LibraryRandom.RandIntInRange(100, 100), LibraryRandom.RandIntInRange(1, 2));
+        OrigNonDedVATAmount := PurchaseLine."Non-Deductible VAT Amount";
+        VATAmount := PurchaseLine."Amount Including VAT" - PurchaseLine.Amount - MaxVATDifference;
+        NonDeductibleVATAmount := Round(VATAmount * VATPostingSetup."Non-Deductible VAT %" / 100, 0.01);
+        LibraryVariableStorage.Enqueue(NonDeductibleVATAmount);
+        LibraryVariableStorage.Enqueue(VATAmount);
+
+        // [GIVEN] Open purchase invoice page
+        PurchaseInvoicePage.OpenEdit();
+        PurchaseInvoicePage.Filter.SetFilter("No.", PurchaseHeader."No.");
+
+        // [GIVEN] Open statistics of the invoice
+        PurchaseInvoicePage.PurchaseStatistics.Invoke();
+
+        // [WHEN] Update "VAT Amount" 
+        // [THEN] "Non-Deductible VAT amount" is recalculated proportionally on statistics page
+        // [THEN] "Deductible Amount" is updated accordingly
+        // Called in PurchaseStatisticsChangeVATAmountPageHandler
+
+        PurchaseLine.Find();
+        // [THEN] "VAT Difference" is -MaxVATDifference in the purchase line
+        PurchaseLine.TestField("VAT Difference", -MaxVATDifference);
+
+        // [THEN] "Amount Including VAT" is sum of Amount and VAT  in the purchase line
+        PurchaseLine.TestField("Amount Including VAT", PurchaseLine.Amount + VATAmount);
+
+        // [THEN] "Non-Deductible VAT" is recalculated in the purchase line
+        PurchaseLine.TestField("Non-Deductible VAT Amount", NonDeductibleVATAmount);
+
+        // [THEN] "Non-Deductible VAT Diff." reflects the proportional change
+        PurchaseLine.TestField("Non-Deductible VAT Diff.", NonDeductibleVATAmount - OrigNonDedVATAmount);
+
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -832,8 +900,8 @@ codeunit 134287 "Non-Deductible VAT Statistics"
     begin
         NonDeductibleVATAmount := LibraryVariableStorage.DequeueDecimal();
         VATAmount := LibraryVariableStorage.DequeueDecimal();
-        PurchaseStatisticsPage.SubForm.NonDeductibleAmount.SetValue(NonDeductibleVATAmount);
         PurchaseStatisticsPage.SubForm."VAT Amount".SetValue(VATAmount);
+        PurchaseStatisticsPage.SubForm.NonDeductibleAmount.SetValue(NonDeductibleVATAmount);
         PurchaseStatisticsPage.SubForm.DeductibleAmount.AssertEquals(VATAmount - NonDeductibleVATAmount);
     end;
 
@@ -852,8 +920,8 @@ codeunit 134287 "Non-Deductible VAT Statistics"
             PurchaseStatisticsPage.SubForm."VAT Amount".AssertEquals(VATAmount);
             PurchaseStatisticsPage.SubForm.DeductibleAmount.AssertEquals(VATAmount - NonDeductibleVATAmount);
         end else begin
-            PurchaseStatisticsPage.SubForm.NonDeductibleAmount.SetValue(NonDeductibleVATAmount);
             PurchaseStatisticsPage.SubForm."VAT Amount".SetValue(VATAmount);
+            PurchaseStatisticsPage.SubForm.NonDeductibleAmount.SetValue(NonDeductibleVATAmount);
         end;
     end;
 
@@ -878,8 +946,8 @@ codeunit 134287 "Non-Deductible VAT Statistics"
             VATAmountLinesPage.NonDeductibleAmount.AssertEquals(NonDeductibleVATAmount);
             VATAmountLinesPage.DeductibleAmount.AssertEquals(VATAmount - NonDeductibleVATAmount);
         end else begin
-            VATAmountLinesPage.NonDeductibleAmount.SetValue(NonDeductibleVATAmount);
             VATAmountLinesPage."VAT Amount".SetValue(VATAmount);
+            VATAmountLinesPage.NonDeductibleAmount.SetValue(NonDeductibleVATAmount);
         end;
     end;
 }

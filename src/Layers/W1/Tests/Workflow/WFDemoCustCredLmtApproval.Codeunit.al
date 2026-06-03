@@ -24,6 +24,61 @@ codeunit 134190 "WF Demo Cust Cred Lmt Approval"
         ApprovalEntryNotFoundErr: Label 'Approval Entry should exist when Credit Limit is changed.';
         PaymentTermsApprovalStatusErr: Label 'Payment terms approval status should remain Created after credit limit approval.';
 
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    [Scope('OnPrem')]
+    procedure ModifyOtherFieldWhileCreditLimitPendingApproval()
+    var
+        Workflow: Record Workflow;
+        ApprovalEntry: Record "Approval Entry";
+        Customer: Record Customer;
+        CurrentUserSetup: Record "User Setup";
+        IntermediateApproverUserSetup: Record "User Setup";
+        FinalApproverUserSetup: Record "User Setup";
+        WorkflowUserGroup: Record "Workflow User Group";
+        WorkflowRecordChange: Record "Workflow - Record Change";
+        WorkflowSetup: Codeunit "Workflow Setup";
+        CustomerCard: TestPage "Customer Card";
+        NewCreditLimit: Decimal;
+        NewPhoneNo: Text[30];
+    begin
+        // [FEATURE] [AI test 0.1]
+        // [SCENARIO 626945] User can modify other fields on Customer Card while Credit Limit approval is pending
+        Initialize();
+
+        // [GIVEN] Customer Credit Limit Change Approval Workflow is enabled with 3 approvers
+        LibraryWorkflow.CopyWorkflowTemplate(Workflow, WorkflowSetup.CustomerCreditLimitChangeApprovalWorkflowCode());
+        CreateUserSetupsAndGroupOfApproversForWorkflow(WorkflowUserGroup, CurrentUserSetup,
+          IntermediateApproverUserSetup, FinalApproverUserSetup);
+        LibraryWorkflow.SetWorkflowGroupApprover(Workflow.Code, WorkflowUserGroup.Code);
+        LibraryWorkflow.EnableWorkflow(Workflow);
+
+        // [GIVEN] Customer "C" with Credit Limit changed and sent for approval
+        NewCreditLimit := LibraryRandom.RandDec(1000, 2);
+        CreateCustomerAndChangeCreditLimitAndSendForApproval(Customer, NewCreditLimit);
+
+        // [WHEN] User opens Customer Card and modifies Phone No. via the page
+        NewPhoneNo := CopyStr(Format(LibraryRandom.RandIntInRange(100000000, 999999999)), 1, 30);
+        CustomerCard.OpenEdit();
+        CustomerCard.GotoRecord(Customer);
+        CustomerCard."Phone No.".SetValue(NewPhoneNo);
+        CustomerCard.OK().Invoke();
+
+        // [THEN] Phone No. is successfully updated without "not up-to-date" error
+        Customer.Get(Customer."No.");
+        Assert.AreEqual(NewPhoneNo, Customer."Phone No.", 'Phone No should be updated successfully');
+
+        // [THEN] Credit Limit approval workflow remains active
+        VerifyChangeRecordExists(Customer);
+        WorkflowRecordChange.SetRange("Record ID", Customer.RecordId);
+        WorkflowRecordChange.SetRange("Field No.", Customer.FieldNo("Credit Limit (LCY)"));
+        Assert.IsFalse(WorkflowRecordChange.IsEmpty, 'Workflow record change for Credit Limit should exist');
+
+        // [THEN] Approval entries still exist
+        LibraryDocumentApprovals.GetApprovalEntries(ApprovalEntry, Customer.RecordId);
+        Assert.IsFalse(ApprovalEntry.IsEmpty, 'Approval entries should still exist');
+    end;
+
     local procedure Initialize()
     var
         UserSetup: Record "User Setup";

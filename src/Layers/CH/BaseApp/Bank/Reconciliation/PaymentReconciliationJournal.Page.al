@@ -1041,7 +1041,6 @@ page 1290 "Payment Reconciliation Journal"
 
         FinanceChargeMemoEnabled := Rec."Account Type" = Rec."Account Type"::Customer;
         BankAccReconciliation.CalcFields("Total Balance on Bank Account", "Total Unposted Applied Amount", "Total Transaction Amount",
-          "Total Applied Amount", "Total Outstd Bank Transactions", "Total Outstd Payments",
           "Total Paid Amount", "Total Received Amount");
         AppliedBankAmounts := CalcAppliedBankAccountLines();
 

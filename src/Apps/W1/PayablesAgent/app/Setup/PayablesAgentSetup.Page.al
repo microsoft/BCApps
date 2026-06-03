@@ -262,8 +262,8 @@ page 3304 "Payables Agent Setup"
                 group(AdditionalFields)
                 {
                     Caption = 'Configure additional fields';
-                    InstructionalText = 'Payables Agent uses past invoice data to suggest details for new documents. You can configure which additional invoice fields should be auto-filled beyond what';
-                    field("Purchase Line Fields"; ConfigureAdditionalFieldsLbl)
+                    InstructionalText = 'When you turn a draft into an invoice, Payables Agent suggests field values from a matching invoice. You can add more field values if needed.';
+                    field("Purchase Line Fields"; AddFieldsLbl)
                     {
                         Caption = '';
                         ShowCaption = false;
@@ -370,6 +370,10 @@ page 3304 "Payables Agent Setup"
             exit(true);
         end;
 
+        // Save the changes made to the agent setup buffer
+        CurrPage.AgentSetupPart.Page.GetAgentSetupBuffer(TempAgentSetupBuffer);
+        SetupChanged := SetupChanged or AgentSetup.GetChangesMade(TempAgentSetupBuffer);
+
         if (CloseAction = CloseAction::Cancel) or (not SetupChanged) then
             exit(true);
 
@@ -464,7 +468,7 @@ page 3304 "Payables Agent Setup"
         SetupChanged, OCVFeedbackAsked : Boolean;
         OpenAgentDemoGuideVisible, SkipAutosetOfMonitorOutlook : Boolean;
         LearnMoreTxt: Label 'Learn more';
-        ConfigureAdditionalFieldsLbl: Label 'Configure additional fields';
+        AddFieldsLbl: Label 'Add fields';
         LearnMoreBillingDocumentationLinkTxt: Label 'https://go.microsoft.com/fwlink/?linkid=2333517';
         EnableCapabilityFirstErr: Label 'The Payables Agent capability is not configured. Please activate the Copilot capability.', Comment = 'Payables Agent is a term, and should not be translated.';
         SharedMailboxTipLbl: label 'The agent reads all PDF attachments from the specified mailbox. Therefore, we recommend using a dedicated shared mailbox for receiving payables documents.';

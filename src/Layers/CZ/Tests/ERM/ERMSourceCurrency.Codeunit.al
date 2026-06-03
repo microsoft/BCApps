@@ -21,6 +21,7 @@ codeunit 134897 "ERM Source Currency"
         SourceCurrencyCodeErr: Label 'The Source Currency Code should be equal to the Currency Code on the General Journal Line', Locked = true;
         SourceCurrencyAmountShouldBeZeroErr: Label 'The Source Currency Amount should be 0', Locked = true;
         SourceCurrencyAmountShouldMatchEnteredAmountErr: Label 'Source Currency Amount should match manually entered amount', Locked = true;
+        PayablesSCYAmountErr: Label 'Source Currency Amount on payables G/L entry should match the FCY invoice amount', Locked = true;
 
     [Test]
     procedure GenJournalPurchaseNormalVATLCY()
@@ -1793,6 +1794,51 @@ codeunit 134897 "ERM Source Currency"
 
         // [THEN] Source currency amounts on all G/L entries balance to 0.
         Assert.AreEqual(0, SCYBalance, TotalSCYAmountNotZeroErr);
+    end;
+
+    [Test]
+    procedure VendorFCYInvoicePayablesGLEntryHasCorrectSCYAmount()
+    var
+        Vendor: Record Vendor;
+        VendorPostingGroup: Record "Vendor Posting Group";
+        Currency: Record Currency;
+        GenJournalLine: Record "Gen. Journal Line";
+        GLEntry: Record "G/L Entry";
+        StartDate: Date;
+        InvoiceAmount: Decimal;
+        RelationalExchRateAmt: Decimal;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] Payables G/L entry has correct Source Currency Amount when posting FCY vendor invoice without Additional Reporting Currency
+        Initialize();
+
+        // [GIVEN] Start date "D" as WorkDate.
+        StartDate := WorkDate();
+
+        // [GIVEN] Currency "C" with Exchange Rate Amount = 100 and Relational Exch. Rate Amount between 1 and 29 on "D".
+        Currency.Get(LibraryERM.CreateCurrencyWithGLAccountSetup());
+        RelationalExchRateAmt := LibraryRandom.RandIntInRange(1, 29);
+        CreateCurrencyExchangeRate(Currency.Code, StartDate, 100, RelationalExchRateAmt);
+
+        // [GIVEN] Vendor "V".
+        LibraryPurchase.CreateVendor(Vendor);
+
+        // [GIVEN] Posted Purchase Invoice via Gen. Journal on "D" with amount 1000 in "C".
+        InvoiceAmount := 1000;
+        CreatePostGenJnlLineWithCurrency(
+            GenJournalLine, GenJournalLine."Document Type"::Invoice,
+            GenJournalLine."Account Type"::Vendor, Vendor."No.",
+            Currency.Code, -InvoiceAmount, StartDate);
+
+        // [THEN] The payables G/L entry has Source Currency Code equal to "C".
+        VendorPostingGroup.Get(Vendor."Vendor Posting Group");
+        GLEntry.SetRange("Document No.", GenJournalLine."Document No.");
+        GLEntry.SetRange("G/L Account No.", VendorPostingGroup."Payables Account");
+        GLEntry.FindFirst();
+        Assert.AreEqual(Currency.Code, GLEntry."Source Currency Code", SourceCurrencyCodeErr);
+
+        // [THEN] Source Currency Amount on payables G/L entry equals the FCY invoice amount.
+        Assert.AreEqual(-InvoiceAmount, GLEntry."Source Currency Amount", PayablesSCYAmountErr);
     end;
 
     local procedure CreatePurchaseInvoice(var PurchaseHeader: Record "Purchase Header"; VendorNo: Code[20]; GLAccountNo: Code[20]; WithForeignCurrency: Boolean)

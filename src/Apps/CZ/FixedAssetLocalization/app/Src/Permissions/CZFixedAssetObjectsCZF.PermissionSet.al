@@ -15,6 +15,7 @@ permissionset 11762 "CZ Fixed Asset - Objects CZF"
                   Codeunit "FA Acquisition Handler CZF" = X,
                   Codeunit "FA Deprec. Book Handler CZF" = X,
                   Codeunit "FA Disposal Handler CZF" = X,
+                  Codeunit "FA Ext. Post. Group Notif. CZF" = X,
                   Codeunit "FA General Report CZF" = X,
                   Codeunit "FA Insert G/L Acc. Handler CZF" = X,
                   Codeunit "FA History Handler CZF" = X,

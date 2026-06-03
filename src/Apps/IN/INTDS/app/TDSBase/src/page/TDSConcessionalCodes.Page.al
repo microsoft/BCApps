@@ -64,6 +64,17 @@ page 18690 "TDS Concessional Codes"
     {
         area(Processing)
         {
+            action(ShowArchive)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Archived Certificates';
+                Image = Archive;
+                Promoted = true;
+                PromotedCategory = Process;
+                PromotedIsBig = true;
+                RunObject = page "TDS Concessional Code Archives";
+                ToolTip = 'View previously replaced TDS Concessional Codes that have been moved to the archive.';
+            }
             action(EditInExcel)
             {
                 ApplicationArea = Basic, Suite;

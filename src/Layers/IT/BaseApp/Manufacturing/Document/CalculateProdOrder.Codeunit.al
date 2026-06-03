@@ -287,6 +287,7 @@ codeunit 99000773 "Calculate Prod. Order"
                                     ProdBOMLine[Level].SetRange("Version Code", ProdOrderLine."Production BOM Version Code");
                                 ProdBOMLine[Level].SetFilter("Starting Date", '%1|..%2', 0D, ProdOrderLine."Starting Date");
                                 ProdBOMLine[Level].SetFilter("Ending Date", '%1|%2..', 0D, ProdOrderLine."Starting Date");
+                                OnTransferBOMOnAfterProcessProdBOM(ProdBOMLine[Level], LineQtyPerUOM, ItemQtyPerUOM, ReqQty, ProdOrderLine);
                             end;
                     end;
                 end;
@@ -1214,6 +1215,11 @@ codeunit 99000773 "Calculate Prod. Order"
 
     [IntegrationEvent(false, false)]
     local procedure OnTransferBOMOnBeforeProcessProdBOM(ProdBOMLine: Record "Production BOM Line"; LineQtyPerUOM: Decimal; ItemQtyPerUOM: Decimal; var ReqQty: Decimal; var ProdOrderLine: Record "Prod. Order Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnTransferBOMOnAfterProcessProdBOM(var ProductionBOMLine: Record "Production BOM Line"; LineQtyPerUOM: Decimal; ItemQtyPerUOM: Decimal; var ReqQty: Decimal; ProdOrderLine: Record "Prod. Order Line")
     begin
     end;
 

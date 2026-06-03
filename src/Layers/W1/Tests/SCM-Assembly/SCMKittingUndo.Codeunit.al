@@ -27,6 +27,7 @@ using Microsoft.Warehouse.Ledger;
 using Microsoft.Warehouse.Request;
 using Microsoft.Warehouse.Setup;
 using Microsoft.Warehouse.Structure;
+using Microsoft.Warehouse.Tracking;
 using System.TestLibraries.Utilities;
 
 codeunit 137097 "SCM Kitting - Undo"
@@ -70,6 +71,7 @@ codeunit 137097 "SCM Kitting - Undo"
         isInitialized: Boolean;
         WorkDate2: Date;
         ATO_MUST_BE_NO: Label 'Assemble to Order must be equal to ''No''  in ';
+        INVT_MVMT_CREATED_Msg: Label 'Number of Invt. Movement activities';
         MSG_CANNOT_RESTORE: Label 'must be equal';
         MSG_UPDATE: Label 'Do you want to update the';
         MSG_CREATE_INVT_MOVM: Label 'Do you want to create Inventory Movement?';
@@ -82,6 +84,8 @@ codeunit 137097 "SCM Kitting - Undo"
         ConfirmUndoCount: Integer;
         MSG_WANT_RECREATE: Label 'Do you want to recreate the assembly order from the posted assembly order?';
         MSG_WANT_UNDO: Label 'Do you want to undo posting of the posted assembly order?';
+        WhseItemTrackingLinesShouldBeDeletedErr: Label 'Whse. Item Tracking Lines should be deleted after undo and recreate';
+        WhseItemTrackingLinesShouldExistErr: Label 'Whse. Item Tracking Lines should exist after registering inventory movement';
 
     [Normal]
     local procedure Initialize()
@@ -763,6 +767,12 @@ codeunit 137097 "SCM Kitting - Undo"
     procedure MessageActivityCreated(Text: Text[1024])
     begin
         Assert.IsTrue(StrPos(Text, MSG_ACTIVITY_CREATED) > 0, 'Actual:' + GetLastErrorText);
+    end;
+
+    [MessageHandler]
+    procedure MessageInvtMvmtCreated(Message: Text[1024])
+    begin
+        Assert.IsTrue(StrPos(Message, INVT_MVMT_CREATED_Msg) > 0, 'Actual:' + Message);
     end;
 
     local procedure CreateAssemblyListAndOrder(var AssemblyHeader: Record "Assembly Header"; ParentItem: Record Item; ComponentItem: Record Item; OrderQty: Decimal; QtyPer: Decimal)
@@ -1863,6 +1873,33 @@ codeunit 137097 "SCM Kitting - Undo"
         LibraryAssembly.UndoPostedAssembly(PostedAssemblyHeader, true, MSG_INSUFFICIENT_QTY);
     end;
 
+    local procedure CreateAssemblyItem(var Item: Record Item)
+    begin
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Replenishment System", Item."Replenishment System"::Assembly);
+        Item.Modify(true);
+    end;
+
+    local procedure SetBinsInLocation(var Location: Record Location; var HeaderBin: Record Bin; var ComponentsBin: Record Bin)
+    begin
+        LibraryWarehouse.FindBin(HeaderBin, Location.Code, '', 1);
+        LibraryWarehouse.FindBin(ComponentsBin, Location.Code, '', 2);
+        Location.Validate("Asm. Consump. Whse. Handling", "Asm. Consump. Whse. Handling"::"Inventory Movement");
+        Location.Validate("To-Assembly Bin Code", HeaderBin.Code);
+        Location.Validate("From-Assembly Bin Code", ComponentsBin.Code);
+        Location.Modify(true);
+    end;
+
+    local procedure FindInvtMovementLine(var WarehouseActivityLine: Record "Warehouse Activity Line"; SourceNo: Code[20]; LocationCode: Code[10])
+    begin
+        WarehouseActivityLine.SetRange("Source Type", Database::"Assembly Line");
+        WarehouseActivityLine.SetRange("Source Document", WarehouseActivityLine."Source Document"::"Assembly Consumption");
+        WarehouseActivityLine.SetRange("Source No.", SourceNo);
+        WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityLine."Activity Type"::"Invt. Movement");
+        WarehouseActivityLine.SetRange("Location Code", LocationCode);
+        WarehouseActivityLine.FindSet();
+    end;
+
     [Test]
     [HandlerFunctions('ConfirmUndo')]
     [Scope('OnPrem')]
@@ -2206,6 +2243,184 @@ codeunit 137097 "SCM Kitting - Undo"
         // Verification is done in ItemTrackingLinesModalPageHandler
 
         LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageInvtMvmtCreated')]
+    procedure UndoAndRecreateAsmOrderClearsWhseItemTrackingLinesWithLot()
+    var
+        AsmItem: Record Item;
+        AssemblyHeader: Record "Assembly Header";
+        AssemblyLine: Record "Assembly Line";
+        BOMComponent: Record "BOM Component";
+        CompItem: Record Item;
+        ComponentsBin: Record Bin;
+        HeaderBin: Record Bin;
+        ItemJournalLine: Record "Item Journal Line";
+        ItemTrackingCode: Record "Item Tracking Code";
+        PostedAssemblyHeader: Record "Posted Assembly Header";
+        ReservationEntry: Record "Reservation Entry";
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+        WhseItemTrackingLine: Record "Whse. Item Tracking Line";
+        Quantity: Decimal;
+        LotNo: Code[50];
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 635084] Whse. Item Tracking Lines are deleted when undoing a posted assembly order and recreating it
+        Initialize();
+        LotNo := LibraryUtility.GenerateGUID();
+        Quantity := LibraryRandom.RandIntInRange(50, 100);
+
+        // [GIVEN] Create a Location with bin mandatory and Asm. Consump. Whse. Handling = Inventory Movement
+        SetBinsInLocation(LocationSilver, HeaderBin, ComponentsBin);
+
+        // [GIVEN] Create a lot-tracked component item.
+        LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, false, true);
+        ItemTrackingCode.Validate("Lot Warehouse Tracking", true);
+        ItemTrackingCode.Modify(true);
+        LibraryItemTracking.CreateItemWithItemTrackingCode(CompItem, ItemTrackingCode);
+
+        // [GIVEN] Create a new Assembly item with lot-tracked.
+        CreateAssemblyItem(AsmItem);
+
+        // [GIVEN] Add the component to the Assembly BOM.
+        AddComponentToAssemblyList(
+          BOMComponent, "BOM Component Type"::Item, CompItem."No.", AsmItem."No.", '', 0, CompItem."Base Unit of Measure", 1);
+
+        // [GIVEN] Post the positive adjustment for the component item in the location and the specific bin for that location, with lot tracking.
+        LibraryInventory.CreateItemJournalLineInItemTemplate(ItemJournalLine, CompItem."No.", LocationSilver.Code, ComponentsBin.Code, Quantity);
+        LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, ItemJournalLine, '', LotNo, Quantity);
+        LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+
+        // [GIVEN] Create the Assembly Order.
+        CreateAssemblyOrder(AssemblyHeader, AsmItem, LocationSilver.Code, HeaderBin.Code, '', WorkDate2, Quantity / 2);
+
+        // [GIVEN] Find the assembly line.
+        FindAssemblyLine(AssemblyLine, AssemblyHeader."Document Type", AssemblyHeader."No.");
+
+        // [GIVEN] Release assembly order.
+        LibraryAssembly.ReleaseAO(AssemblyHeader);
+
+        // [GIVEN] Create inventory movement.
+        LibraryAssembly.CreateInvtMovement(AssemblyHeader."No.", false, false, true);
+
+        // [GIVEN] Find the inventory movement line and assign lot number to it.
+        FindInvtMovementLine(WarehouseActivityLine, AssemblyHeader."No.", LocationSilver.Code);
+        repeat
+            WarehouseActivityLine.Validate("Lot No.", LotNo);
+            WarehouseActivityLine.Modify(true);
+        until WarehouseActivityLine.Next() = 0;
+
+        // [GIVEN] Find the inventory movement line and register the warehouse activity.
+        FindInvtMovementLine(WarehouseActivityLine, AssemblyHeader."No.", LocationSilver.Code);
+        WarehouseActivityHeader.Get(WarehouseActivityLine."Activity Type", WarehouseActivityLine."No.");
+        LibraryWarehouse.AutoFillQtyHandleWhseActivity(WarehouseActivityHeader);
+        LibraryWarehouse.RegisterWhseActivity(WarehouseActivityHeader);
+
+        // [GIVEN] Whse. Item Tracking Lines exist for the assembly order
+        WhseItemTrackingLine.SetSourceFilter(Database::"Assembly Line", AssemblyHeader."Document Type".AsInteger(), AssemblyHeader."No.", -1, true);
+        Assert.IsFalse(WhseItemTrackingLine.IsEmpty(), WhseItemTrackingLinesShouldExistErr);
+
+        // [GIVEN] Post the assembly order
+        LibraryAssembly.PostAssemblyHeader(AssemblyHeader, '');
+
+        // [WHEN] Undo the posted assembly order with recreate
+        FindPostedAssemblyHeaderNotReversed(PostedAssemblyHeader, AssemblyHeader."No.");
+        LibraryAssembly.UndoPostedAssembly(PostedAssemblyHeader, true, '');
+
+        // [THEN] No Whse. Item Tracking Lines remain for the assembly order
+        WhseItemTrackingLine.Reset();
+        WhseItemTrackingLine.SetSourceFilter(Database::"Assembly Line", "Assembly Document Type"::Order.AsInteger(), AssemblyHeader."No.", -1, true);
+        Assert.IsTrue(WhseItemTrackingLine.IsEmpty(), WhseItemTrackingLinesShouldBeDeletedErr);
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageInvtMvmtCreated')]
+    procedure UndoAndRecreateAsmOrderClearsWhseItemTrackingLinesWithSerial()
+    var
+        AsmItem: Record Item;
+        AssemblyHeader: Record "Assembly Header";
+        AssemblyLine: Record "Assembly Line";
+        BOMComponent: Record "BOM Component";
+        CompItem: Record Item;
+        ComponentsBin: Record Bin;
+        HeaderBin: Record Bin;
+        ItemJournalLine: Record "Item Journal Line";
+        ItemTrackingCode: Record "Item Tracking Code";
+        PostedAssemblyHeader: Record "Posted Assembly Header";
+        ReservationEntry: Record "Reservation Entry";
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+        WhseItemTrackingLine: Record "Whse. Item Tracking Line";
+        SerialNo: Code[50];
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 635084] Whse. Item Tracking Lines with serial tracking are deleted when undoing and recreating assembly order
+        Initialize();
+        SerialNo := LibraryUtility.GenerateGUID();
+
+        // [GIVEN] Create a Location with bin mandatory and Asm. Consump. Whse. Handling = Inventory Movement.
+        SetBinsInLocation(LocationSilver, HeaderBin, ComponentsBin);
+
+        // [GIVEN] Create a serial-tracked component item.
+        LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, true, false);
+        ItemTrackingCode.Validate("SN Warehouse Tracking", true);
+        ItemTrackingCode.Modify(true);
+        LibraryItemTracking.CreateItemWithItemTrackingCode(CompItem, ItemTrackingCode);
+
+        // [GIVEN] Create a new Assembly item.
+        CreateAssemblyItem(AsmItem);
+
+        // [GIVEN] Add the component item to the Assembly BOM.
+        AddComponentToAssemblyList(
+          BOMComponent, "BOM Component Type"::Item, CompItem."No.", AsmItem."No.", '', 0, CompItem."Base Unit of Measure", 1);
+
+        // [GIVEN] Post the positive adjustment for the component item in the location and the specific bin for that location, with serial tracking.
+        LibraryInventory.CreateItemJournalLineInItemTemplate(ItemJournalLine, CompItem."No.", LocationSilver.Code, ComponentsBin.Code, 1);
+        LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, ItemJournalLine, SerialNo, '', 1);
+        LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+
+        // [GIVEN] Create the Assembly Order.
+        CreateAssemblyOrder(AssemblyHeader, AsmItem, LocationSilver.Code, HeaderBin.Code, '', WorkDate2, 1);
+
+        // [GIVEN] Find the assembly line.
+        FindAssemblyLine(AssemblyLine, AssemblyHeader."Document Type", AssemblyHeader."No.");
+
+        // [GIVEN] Release assembly order.
+        LibraryAssembly.ReleaseAO(AssemblyHeader);
+
+        // [GIVEN] Create inventory movement.
+        LibraryAssembly.CreateInvtMovement(AssemblyHeader."No.", false, false, true);
+
+        // [GIVEN] Find the inventory movement line and assign serial number to it.
+        FindInvtMovementLine(WarehouseActivityLine, AssemblyHeader."No.", LocationSilver.Code);
+        repeat
+            WarehouseActivityLine.Validate("Serial No.", SerialNo);
+            WarehouseActivityLine.Modify(true);
+        until WarehouseActivityLine.Next() = 0;
+
+        // [GIVEN] Find the inventory movement line and register the warehouse activity.
+        FindInvtMovementLine(WarehouseActivityLine, AssemblyHeader."No.", LocationSilver.Code);
+        WarehouseActivityHeader.Get(WarehouseActivityLine."Activity Type", WarehouseActivityLine."No.");
+        LibraryWarehouse.AutoFillQtyHandleWhseActivity(WarehouseActivityHeader);
+        LibraryWarehouse.RegisterWhseActivity(WarehouseActivityHeader);
+
+        // [GIVEN] Whse. Item Tracking Lines exist for the assembly order
+        WhseItemTrackingLine.SetSourceFilter(Database::"Assembly Line", AssemblyHeader."Document Type".AsInteger(), AssemblyHeader."No.", -1, true);
+        Assert.IsFalse(WhseItemTrackingLine.IsEmpty(), WhseItemTrackingLinesShouldExistErr);
+
+        // [GIVEN] Post the assembly order
+        LibraryAssembly.PostAssemblyHeader(AssemblyHeader, '');
+
+        // [WHEN] Undo the posted assembly order with recreate
+        FindPostedAssemblyHeaderNotReversed(PostedAssemblyHeader, AssemblyHeader."No.");
+        LibraryAssembly.UndoPostedAssembly(PostedAssemblyHeader, true, '');
+
+        // [THEN] No Whse. Item Tracking Lines remain for the assembly order
+        WhseItemTrackingLine.Reset();
+        WhseItemTrackingLine.SetSourceFilter(Database::"Assembly Line", "Assembly Document Type"::Order.AsInteger(), AssemblyHeader."No.", -1, true);
+        Assert.IsTrue(WhseItemTrackingLine.IsEmpty(), WhseItemTrackingLinesShouldBeDeletedErr);
     end;
 }
 

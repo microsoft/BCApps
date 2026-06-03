@@ -5,7 +5,9 @@
 namespace Microsoft.Finance.Compensations;
 
 using Microsoft.CRM.Contact;
+using Microsoft.CRM.Team;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Vendor;
@@ -16,10 +18,10 @@ using System.Utilities;
 
 report 31270 "Compensation CZC"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Src/Reports/Compensation.rdl';
     Caption = 'Compensation';
     UsageCategory = None;
+    DefaultRenderingLayout = "Compensation.rdl";
+    WordMergeDataItem = CompensationHeaderCZC;
 
     dataset
     {
@@ -36,6 +38,19 @@ report 31270 "Compensation CZC"
                 dataitem(PageLoop; "Integer")
                 {
                     DataItemTableView = sorting(Number) where(Number = const(1));
+
+                    column(DocumentLbl; DocumentLbl)
+                    {
+                    }
+                    column(GreetingLbl; GreetingLbl)
+                    {
+                    }
+                    column(ClosingLbl; ClosingLbl)
+                    {
+                    }
+                    column(BodyLbl; BodyLbl)
+                    {
+                    }
                     column(ResidenceLbl; ResidenceLbl)
                     {
                     }
@@ -117,6 +132,24 @@ report 31270 "Compensation CZC"
                     column(CompanyInfo_Name; CompanyInformation.Name)
                     {
                     }
+                    column(CompanyAddr1; CompanyAddr[1])
+                    {
+                    }
+                    column(CompanyAddr2; CompanyAddr[2])
+                    {
+                    }
+                    column(CompanyAddr3; CompanyAddr[3])
+                    {
+                    }
+                    column(CompanyAddr4; CompanyAddr[4])
+                    {
+                    }
+                    column(CompanyAddr5; CompanyAddr[5])
+                    {
+                    }
+                    column(CompanyAddr6; CompanyAddr[6])
+                    {
+                    }
                     column(CompensationHeader_AgreementNo; StrSubstNo(AgreementTxt, CompensationHeaderCZC."No."))
                     {
                     }
@@ -131,6 +164,15 @@ report 31270 "Compensation CZC"
                     }
                     column(PageLoop_Number; Number)
                     {
+                    }
+                    dataitem("Salesperson/Purchaser"; "Salesperson/Purchaser")
+                    {
+                        DataItemLink = Code = field("Salesperson/Purchaser Code");
+                        DataItemLinkReference = CompensationHeaderCZC;
+                        DataItemTableView = sorting(Code);
+                        column(Name_SalespersonPurchaser; Name)
+                        {
+                        }
                     }
                     dataitem(CustomerCompensationLineCZC; "Compensation Line CZC")
                     {
@@ -384,6 +426,8 @@ report 31270 "Compensation CZC"
                 CompanyInformation.Get();
                 GeneralLedgerSetup.Get();
                 GeneralLedgerSetup.TestField("LCY Code");
+
+                FormatAddress.Company(CompanyAddr, CompanyInformation);
             end;
         }
     }
@@ -408,6 +452,24 @@ report 31270 "Compensation CZC"
         }
     }
 
+    rendering
+    {
+        layout("Compensation.rdl")
+        {
+            Type = RDLC;
+            LayoutFile = './Src/Reports/Compensation.rdl';
+            Caption = 'Compensation (RDL)';
+            Summary = 'The Compensation (RDL) provides a detailed layout.';
+        }
+        layout("CompensationEmail.docx")
+        {
+            Type = Word;
+            LayoutFile = './Src/Reports/CompensationEmail.docx';
+            Caption = 'Compensation Email (Word)';
+            Summary = 'The Compensation Email (Word) provides an email body layout.';
+        }
+    }
+
     labels
     {
         DotsLbl = '......................................................................';
@@ -418,8 +480,10 @@ report 31270 "Compensation CZC"
         CustLedgerEntry: Record "Cust. Ledger Entry";
         GeneralLedgerSetup: Record "General Ledger Setup";
         TempCustomerCompensationLineCZC, TempVendorCompensationLineCZC : Record "Compensation Line CZC" temporary;
+        FormatAddress: Codeunit "Format Address";
         LanguageMgt: Codeunit Language;
         NoOfLoops: Integer;
+        CompanyAddr: array[8] of Text[100];
         AgreementTxt: Label 'AGREEMENT %1', Comment = '%1 = Compensation No.';
         ToDateTxt: Label 'To Date %1', Comment = '%1 = Posting Date';
         ReceivablesTxt: Label 'Receivables %1', Comment = '%1 = Company Name';
@@ -447,6 +511,10 @@ report 31270 "Compensation CZC"
         DocumentNoLbl: Label 'Document No';
         DocumentTypeLbl: Label 'Document Type';
         PostingDateLbl: Label 'Posting Date';
+        DocumentLbl: Label 'Compensation';
+        GreetingLbl: Label 'Hello';
+        ClosingLbl: Label 'Sincerely';
+        BodyLbl: Label 'Attached to this message, we are sending a compensation proposal for mutual receivables and payables.';
 
     protected var
         CompanyInformation: Record "Company Information";

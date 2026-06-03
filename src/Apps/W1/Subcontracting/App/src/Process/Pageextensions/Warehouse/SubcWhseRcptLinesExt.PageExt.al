@@ -9,6 +9,17 @@ using Microsoft.Warehouse.Document;
 
 pageextension 99001534 "Subc. Whse Rcpt Lines Ext." extends "Whse. Receipt Lines"
 {
+    layout
+    {
+        addlast(Control1)
+        {
+            field("Transfer WIP Item"; Rec."Transfer WIP Item")
+            {
+                ApplicationArea = Manufacturing;
+                Visible = false;
+            }
+        }
+    }
     actions
     {
         addafter("&Show Source Document Line")

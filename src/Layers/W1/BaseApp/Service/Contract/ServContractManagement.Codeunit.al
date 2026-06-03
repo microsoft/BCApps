@@ -1408,6 +1408,7 @@ codeunit 5940 ServContractManagement
     local procedure CreateRemainingPeriodInvoiceServiceLines(var CurrServContract: Record "Service Contract Header"; var ServHeader: Record "Service Header"; InvFrom: Date; InvTo: Date)
     var
         ServContractLine: Record "Service Contract Line";
+        LineInvFrom: Date;
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -1436,9 +1437,16 @@ codeunit 5940 ServContractManagement
                         ServHeader, CurrServContract."Contract Type",
                         CurrServContract."Contract No.", InvFrom, InvTo, true, false, ServContractLine."Line No.");
 
+                    if AppliedEntryNo <> 0 then begin
+                        if ServContractLine."Invoiced to Date" = 0D then
+                            LineInvFrom := ServContractLine."Starting Date"
+                        else
+                            LineInvFrom := ServContractLine."Invoiced to Date" + 1;
+                    end else
+                        LineInvFrom := InvFrom;
                     CreateServiceLine(
                       ServHeader, CurrServContract."Contract Type",
-                      CurrServContract."Contract No.", InvFrom, InvTo, AppliedEntryNo, true);
+                      CurrServContract."Contract No.", LineInvFrom, InvTo, AppliedEntryNo, true);
                 until ServContractLine.Next() = 0;
         end else begin
             CreateHeadingServiceLine(

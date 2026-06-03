@@ -71,16 +71,23 @@ codeunit 560 "CrossIntercompany Connector"
     internal procedure FinishICPartnerSetup(var TempICPartner: Record "IC Partner" temporary): Boolean
     var
         GeneralLedgerSetup: Record "General Ledger Setup";
+        CompanyJsonObject: JsonObject;
         JsonResponse: JsonArray;
+        DisplayNameToken: JsonToken;
+        NameToken: JsonToken;
         DisplayName: Text;
+        CompanyName: Text;
         CurrencyCode: Code[10];
     begin
         StoreTokenInICPartner := false;
         JsonResponse := RequestICPartnerCompanyInformation(TempICPartner);
-
-        DisplayName := FindValueFromJsonAttribute(JsonResponse, 'displayName');
+        CompanyJsonObject := RequestICPartnerCompany(TempICPartner);
+        CompanyJsonObject.Get('displayName', DisplayNameToken);
+        DisplayName := DisplayNameToken.AsValue().AsText();
+        CompanyJsonObject.Get('name', NameToken);
+        CompanyName := NameToken.AsValue().AsText();
         StoreTokenInICPartner := true;
-        if DisplayName = TempICPartner.Name then begin
+        if (DisplayName = TempICPartner.Name) or (CompanyName = TempICPartner.Name) then begin
 #pragma warning disable AA0139
             CurrencyCode := FindValueFromJsonAttribute(JsonResponse, 'currencyCode');
 #pragma warning restore AA0139
@@ -122,6 +129,17 @@ codeunit 560 "CrossIntercompany Connector"
     begin
         QueryURL := BuildQueryURL(ICPartner, GeneralAPIsPathTok, V1VersionTok, 'companyInformation');
         exit(GetRequest(QueryURL, HttpResponseBodyText, ICPartner));
+    end;
+
+    [NonDebuggable]
+    internal procedure RequestICPartnerCompany(ICPartner: Record "IC Partner"): JsonObject
+    var
+        QueryURL: Text;
+        HttpResponseBodyText: Text;
+    begin
+        QueryURL := ICPartner.GetSecret(ICPartner."Connection Url Key").Unwrap() + GeneralAPIsPathTok + '(' + RemoveCurlyBracketsAndUpperCases(ICPartner.GetSecret(ICPartner."Company Id Key").Unwrap()) + ')';
+        Send('GET', QueryURL, '', HttpResponseBodyText, ICPartner);
+        exit(ParseObjectData(HttpResponseBodyText));
     end;
 
     internal procedure RequestICPartnerBankAccount(ICPartner: Record "IC Partner"): JsonArray

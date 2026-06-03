@@ -349,6 +349,7 @@ codeunit 99000819 "Mfg. Planning Line Management"
         PlanningComponent."Worksheet Batch Name" := ReqLine."Journal Batch Name";
         PlanningComponent."Worksheet Line No." := ReqLine."Line No.";
         PlanningComponent."Line No." := NextPlanningCompLineNo;
+        OnCreatePlanningComponentFromProdBOMOnBeforeGetPlanningParameters(PlanningComponent, ReqLine, ProdBOMLine, CompSKU, LineQtyPerUOM, ItemQtyPerUOM, NextPlanningCompLineNo, SKU, Blocked);
         PlanningComponent.Validate("Item No.", ProdBOMLine."No.");
         PlanningComponent."Variant Code" := ProdBOMLine."Variant Code";
         PlanningComponent."Location Code" := SKU."Components at Location";
@@ -589,6 +590,11 @@ codeunit 99000819 "Mfg. Planning Line Management"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertPlanningComponent(var ReqLine: Record "Requisition Line"; var ProductionBOMLine: Record "Production BOM Line"; var PlanningComponent: Record "Planning Component"; LineQtyPerUOM: Decimal; ItemQtyPerUOM: Decimal)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCreatePlanningComponentFromProdBOMOnBeforeGetPlanningParameters(var PlanningComponent: Record "Planning Component"; RequisitionLine: Record "Requisition Line"; ProductionBOMLine: Record "Production BOM Line"; CompStockkeepingUnit: Record "Stockkeeping Unit"; LineQtyPerUOM: Decimal; ItemQtyPerUOM: Decimal; var NextPlanningCompLineNo: Integer; StockkeepingUnit: Record "Stockkeeping Unit"; Blocked: Boolean)
     begin
     end;
 }

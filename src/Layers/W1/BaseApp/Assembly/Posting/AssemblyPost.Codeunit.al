@@ -1247,11 +1247,16 @@ codeunit 900 "Assembly-Post"
 
     local procedure RecreateAsmOrderWithUndo(var PostedAsmHeader: Record "Posted Assembly Header")
     var
+        AsmCommentLine: Record "Assembly Comment Line";
         AsmHeader: Record "Assembly Header";
         AsmLine: Record "Assembly Line";
         PostedAsmLine: Record "Posted Assembly Line";
-        AsmCommentLine: Record "Assembly Comment Line";
+        ItemTrackingMgt: Codeunit "Item Tracking Management";
     begin
+        ItemTrackingMgt.DeleteWhseItemTrkgLines(
+            Database::"Assembly Line", "Assembly Document Type"::Order.AsInteger(),
+            PostedAsmHeader."Order No.", '', 0, 0, '', false);
+
         AsmHeader.Init();
         AsmHeader.TransferFields(PostedAsmHeader);
         AsmHeader."Document Type" := AsmHeader."Document Type"::Order;

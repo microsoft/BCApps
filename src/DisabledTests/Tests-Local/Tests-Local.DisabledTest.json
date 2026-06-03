@@ -20273,5 +20273,245 @@
     "codeunitId": 144354,
     "codeunitName": "Swiss SEPA CT 09 Export",
     "method": "SuggestVendorPaymentWithReferenceNo"
+  },
+  {
+    "codeunitId": 144015,
+    "codeunitName": "CODA Import Tests",
+    "method": "*"
+  },
+  {
+    "codeunitId": 144111,
+    "codeunitName": "E-Invoice Service",
+    "method": "*"
+  },
+  {
+    "codeunitId": 144056,
+    "codeunitName": "ERM Cash Basis",
+    "method": "RealizedVATAmountInExchRateOfPaymentWhenFCYPaymentToFCYInvoice"
+  },
+  {
+    "codeunitId": 144056,
+    "codeunitName": "ERM Cash Basis",
+    "method": "RealizedVATAmountInExchRateOfPaymentWhenFCYPaymentToFCYInvoiceUnapplyPurchase"
+  },
+  {
+    "codeunitId": 144056,
+    "codeunitName": "ERM Cash Basis",
+    "method": "RealizedVATAmountInManualExchRateOfPaymentFCYToPurchaseInvoiceFCY"
+  },
+  {
+    "codeunitId": 144056,
+    "codeunitName": "ERM Cash Basis",
+    "method": "VATRealizedGainLossForVendorLCYPaymentToFCYInvoice"
+  },
+  {
+    "codeunitId": 144003,
+    "codeunitName": "ERM Curr. Adjmt. Prepmt. Sales",
+    "method": "AdjInvToCancelPrepmtFail"
+  },
+  {
+    "codeunitId": 144003,
+    "codeunitName": "ERM Curr. Adjmt. Prepmt. Sales",
+    "method": "AdjInvToCancelPrepmtRaise"
+  },
+  {
+    "codeunitId": 144003,
+    "codeunitName": "ERM Curr. Adjmt. Prepmt. Sales",
+    "method": "AdjInvToNormalPrepmtFail"
+  },
+  {
+    "codeunitId": 144003,
+    "codeunitName": "ERM Curr. Adjmt. Prepmt. Sales",
+    "method": "AdjInvToNormalPrepmtRaise"
+  },
+  {
+    "codeunitId": 144003,
+    "codeunitName": "ERM Curr. Adjmt. Prepmt. Sales",
+    "method": "ApplicationOfCustomerPrepaymentToIinvoiceBySeparateDocumentForTrackedItem"
+  },
+  {
+    "codeunitId": 144003,
+    "codeunitName": "ERM Curr. Adjmt. Prepmt. Sales",
+    "method": "ApplicationOfCustomerPrepaymentToIinvoiceForTrackedIitem"
+  },
+  {
+    "codeunitId": 144003,
+    "codeunitName": "ERM Curr. Adjmt. Prepmt. Sales",
+    "method": "CrMemoItemChrgAssgntPostPmtToInvApplWithPrepmtDiffFCYExchUp"
+  },
+  {
+    "codeunitId": 144003,
+    "codeunitName": "ERM Curr. Adjmt. Prepmt. Sales",
+    "method": "CustomerPrepmtAppliedExchRateGainLossPostedAsItemChargeWithCancelPrepmtAdjmtInTA"
+  },
+  {
+    "codeunitId": 144003,
+    "codeunitName": "ERM Curr. Adjmt. Prepmt. Sales",
+    "method": "InvItemChrgAssgntPostPmtToInvApplWithPrepmtDiffFCYExchDown"
+  },
+  {
+    "codeunitId": 144003,
+    "codeunitName": "ERM Curr. Adjmt. Prepmt. Sales",
+    "method": "InvToCancelPrepmtCurrFail"
+  },
+  {
+    "codeunitId": 144003,
+    "codeunitName": "ERM Curr. Adjmt. Prepmt. Sales",
+    "method": "InvToCancelPrepmtCurrRaise"
+  },
+  {
+    "codeunitId": 144003,
+    "codeunitName": "ERM Curr. Adjmt. Prepmt. Sales",
+    "method": "NoEntryIfCancelPrepmtAdjmtInTA"
+  },
+  {
+    "codeunitId": 144003,
+    "codeunitName": "ERM Curr. Adjmt. Prepmt. Sales",
+    "method": "RefundToCancelPrepmtFail"
+  },
+  {
+    "codeunitId": 144003,
+    "codeunitName": "ERM Curr. Adjmt. Prepmt. Sales",
+    "method": "RefundToCancelPrepmtRaise"
+  },
+  {
+    "codeunitId": 144003,
+    "codeunitName": "ERM Curr. Adjmt. Prepmt. Sales",
+    "method": "UnapInvToCancelPrepmtCurrFail"
+  },
+  {
+    "codeunitId": 144003,
+    "codeunitName": "ERM Curr. Adjmt. Prepmt. Sales",
+    "method": "UnapInvToCancelPrepmtCurrRaise"
+  },
+  {
+    "codeunitId": 144003,
+    "codeunitName": "ERM Curr. Adjmt. Prepmt. Sales",
+    "method": "UnapplyPrepmtToInvWithCancelPrepmtAdjmt"
+  },
+  {
+    "codeunitId": 144003,
+    "codeunitName": "ERM Curr. Adjmt. Prepmt. Sales",
+    "method": "UnapplyPrepmtToInvWithCancelPrepmtAdjmtAndGLCorresp"
+  },
+  {
+    "codeunitId": 144003,
+    "codeunitName": "ERM Curr. Adjmt. Prepmt. Sales",
+    "method": "UnapplyRefToCancelPrepmtFail"
+  },
+  {
+    "codeunitId": 144003,
+    "codeunitName": "ERM Curr. Adjmt. Prepmt. Sales",
+    "method": "UnapplyRefToCancelPrepmtRaise"
+  },
+  {
+    "codeunitId": 142060,
+    "codeunitName": "ERM Misc. Report",
+    "method": "PostApplForCustomerWithPaymentsRemainingAmount"
+  },
+  {
+    "codeunitId": 142060,
+    "codeunitName": "ERM Misc. Report",
+    "method": "PostApplForVendorWithPaymentsRemainingAmount"
+  },
+  {
+    "codeunitId": 142060,
+    "codeunitName": "ERM Misc. Report",
+    "method": "PostApplicationForVendorWithRemainingAmount"
+  },
+  {
+    "codeunitId": 144002,
+    "codeunitName": "Report Layout - Local",
+    "method": "AccountOfficialAccBookEntryWithCombinedPostingDatesAndTransactionNos"
+  },
+  {
+    "codeunitId": 144002,
+    "codeunitName": "Report Layout - Local",
+    "method": "StandardSalesDraftInvoiceShowsVATClause"
+  },
+  {
+    "codeunitId": 144002,
+    "codeunitName": "Report Layout - Local",
+    "method": "StandardSalesInvoiceShowsVATClause"
+  },
+  {
+    "codeunitId": 144002,
+    "codeunitName": "Unit GST Prepayment-Sales",
+    "method": "*"
+  },
+  {
+    "codeunitId": 144020,
+    "codeunitName": "UT TAB Post Code - II",
+    "method": "*"
+  },
+  {
+    "codeunitId": 144050,
+    "codeunitName": "ERM Finance Reports",
+    "method": "GLVATReconciliationWithUnrealizedVATFalseAndPmtDisc"
+  },
+  {
+    "codeunitId": 144050,
+    "codeunitName": "ERM Finance Reports",
+    "method": "GLVATReconciliationWithUnrealizedVATFalseMultipleDisc"
+  },
+  {
+    "codeunitId": 144050,
+    "codeunitName": "ERM Finance Reports",
+    "method": "GLVATReconciliationWithUnrealizedVATTrueAndPmtDisc"
+  },
+  {
+    "codeunitId": 144050,
+    "codeunitName": "ERM Finance Reports",
+    "method": "GLVATReconciliationWithUnrealizedVATTrueMultipleDisc"
+  },
+  {
+    "codeunitId": 144108,
+    "codeunitName": "ERM Service Invoice ES",
+    "method": "ManualInvoiceDiscountAmountAllowInvoiceDiscountTrueNM"
+  },
+  {
+    "codeunitId": 144108,
+    "codeunitName": "ERM Service Invoice ES",
+    "method": "ServiceCreditMemoApplyEntries"
+  },
+  {
+    "codeunitId": 144108,
+    "codeunitName": "ERM Service Invoice ES",
+    "method": "ServiceCreditMemoApplyEntriesWithLookup"
+  },
+  {
+    "codeunitId": 144050,
+    "codeunitName": "ERM Finance Reports",
+    "method": "GLVATReconciliationWithUnrealizedVATFalseAndPmtDisc"
+  },
+  {
+    "codeunitId": 144050,
+    "codeunitName": "ERM Finance Reports",
+    "method": "GLVATReconciliationWithUnrealizedVATFalseMultipleDisc"
+  },
+  {
+    "codeunitId": 144050,
+    "codeunitName": "ERM Finance Reports",
+    "method": "GLVATReconciliationWithUnrealizedVATTrueAndPmtDisc"
+  },
+  {
+    "codeunitId": 144050,
+    "codeunitName": "ERM Finance Reports",
+    "method": "GLVATReconciliationWithUnrealizedVATTrueMultipleDisc"
+  },
+  {
+    "codeunitId": 144108,
+    "codeunitName": "ERM Service Invoice ES",
+    "method": "ManualInvoiceDiscountAmountAllowInvoiceDiscountTrueNM"
+  },
+  {
+    "codeunitId": 144108,
+    "codeunitName": "ERM Service Invoice ES",
+    "method": "ServiceCreditMemoApplyEntries"
+  },
+  {
+    "codeunitId": 144108,
+    "codeunitName": "ERM Service Invoice ES",
+    "method": "ServiceCreditMemoApplyEntriesWithLookup"
   }
 ]

@@ -12,6 +12,7 @@ codeunit 134893 "Background Document Posting"
         Assert: Codeunit Assert;
         LibrarySales: Codeunit "Library - Sales";
         LibraryPurchase: Codeunit "Library - Purchase";
+        LibraryERM: Codeunit "Library - ERM";
         LibraryRandom: Codeunit "Library - Random";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -462,6 +463,51 @@ codeunit 134893 "Background Document Posting"
 
         // [THEN] Posted Purchase Credit Memo was created.
         VerifyPostedPurchaseReturnOrder(PurchaseHeader);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure PostPurchCrMemoViaJobQueueUpdatesPurchOrderLine()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchInvHeader: Record "Purch. Inv. Header";
+        CreditMemoHeader: Record "Purchase Header";
+        ReturnReason: Record "Return Reason";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 633198] Purchase order line quantities are updated when credit memo from order is posted via job queue
+        Initialize();
+
+        // [GIVEN] Purchase Order "PO" with Item "I" and Quantity = 10
+        CreatePurchaseOrder(PurchaseHeader);
+        PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
+        PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+        PurchaseLine.FindFirst();
+        PurchaseLine.Validate("Qty. to Receive", Round(PurchaseLine.Quantity / 2, 1));
+        PurchaseLine.Modify(true);
+
+        // [GIVEN] Purchase Order "PO" is partially posted with Receive and Invoice
+        PurchInvHeader.Get(LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true));
+
+        // [GIVEN] Purchase Credit Memo "CM" created by copying from the Posted Invoice
+        LibraryPurchase.CreatePurchHeader(CreditMemoHeader, CreditMemoHeader."Document Type"::"Credit Memo", PurchaseHeader."Buy-from Vendor No.");
+        LibraryPurchase.CopyPurchaseDocument(CreditMemoHeader, "Purchase Document Type From"::"Posted Invoice", PurchInvHeader."No.", true, false);
+        CreditMemoHeader.Find();
+        CreditMemoHeader.Validate("Vendor Cr. Memo No.", CreditMemoHeader."No.");
+        LibraryERM.CreateReturnReasonCode(ReturnReason);
+        CreditMemoHeader."Reason Code" := ReturnReason.Code;
+        CreditMemoHeader.Modify(true);
+
+        // [WHEN] Post Purchase Credit Memo "CM" via Job Queue
+        PostPurchaseDocumentViaJobQueue(CreditMemoHeader);
+
+        // [THEN] Purchase Order Line "PO" has Quantity Invoiced = 0 and Quantity Received = 0
+        PurchaseLine.Find();
+        Assert.AreEqual(0, PurchaseLine."Quantity Invoiced", 'Quantity Invoiced should be reverted to 0');
+        Assert.AreEqual(0, PurchaseLine."Qty. Invoiced (Base)", 'Qty. Invoiced (Base) should be reverted to 0');
+        Assert.AreEqual(0, PurchaseLine."Quantity Received", 'Quantity Received should be reverted to 0');
+        Assert.AreEqual(0, PurchaseLine."Qty. Received (Base)", 'Qty. Received (Base) should be reverted to 0');
     end;
 
     local procedure Initialize()

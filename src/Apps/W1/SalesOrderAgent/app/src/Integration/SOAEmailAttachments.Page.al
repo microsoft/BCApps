@@ -61,9 +61,8 @@ page 4405 "SOA Email Attachments"
     trigger OnAfterGetRecord()
     begin
         AttachmentFileSize := FormatFileSize(Rec.Content.Length());
-        AttachmentStatus := GetReviewStatus();
-
-        AttentionReviewStatus := (AttachmentStatus <> AttachmentStatus::Reviewed);
+        AttachmentStatus := GetIgnoredReason();
+        AttentionReviewStatus := AttachmentStatus <> Format(Enum::"SOA Email Attachment Status"::Reviewed);
     end;
 
     internal procedure FormatFileSize(SizeInBytes: Integer): Text
@@ -81,42 +80,27 @@ page 4405 "SOA Email Attachments"
         exit(StrSubstNo(FileSizeTxt, Round(FileSizeConverted, 1, '>'), FileSizeUnit));
     end;
 
-    local procedure GetReviewStatus(): Enum "SOA Email Attachment Status"
+    local procedure GetIgnoredReason(): Text[250]
     var
         AgentTaskMessageAttachment: Record "Agent Task Message Attachment";
-        AgentTaskFile: Record "Agent Task File";
-        SOASetup: Codeunit "SOA Setup";
-        InStream: InStream;
-        ExceedsPageCountThreshold: Boolean;
+        IgnoredReasonText: Text[250];
     begin
         AgentTaskMessageAttachment.ReadIsolation(IsolationLevel::ReadCommitted);
-        AgentTaskMessageAttachment.SetLoadFields(Ignored);
+        AgentTaskMessageAttachment.SetLoadFields(Ignored, "Ignored Reason");
         AgentTaskMessageAttachment.SetRange("Task ID", Rec."Task ID");
         AgentTaskMessageAttachment.SetRange("File ID", Rec.ID);
         if not AgentTaskMessageAttachment.FindFirst() then
-            exit(AttachmentStatus::Reviewed);
+            exit('');
 
         if not AgentTaskMessageAttachment.Ignored then
-            exit(AttachmentStatus::Reviewed);
+            exit(Format(Enum::"SOA Email Attachment Status"::Reviewed));
 
-        if not SOASetup.SupportedAttachmentContentType(Rec."File MIME Type") then
-            exit(AttachmentStatus::UnsupportedFormat);
+        IgnoredReasonText := AgentTaskMessageAttachment."Ignored Reason";
+        // Defensive fallback for pre-existing records where Ignored=true but "Ignored Reason" is empty
+        if IgnoredReasonText = '' then
+            IgnoredReasonText := Format(Enum::"SOA Email Attachment Status"::NoRelevantContent);
 
-        if SOASetup.IsPdfAttachmentContentType(Rec."File MIME Type") then
-            if AgentTaskFile.Get(AgentTaskMessageAttachment."Task ID", AgentTaskMessageAttachment."File ID") then begin
-                AgentTaskFile.CalcFields(Content);
-                AgentTaskFile.Content.CreateInStream(InStream, GetDefaultEncoding());
-                if SOASetup.DocumentExceedsPageCountThreshold(InStream, ExceedsPageCountThreshold) then
-                    if ExceedsPageCountThreshold then
-                        exit(AttachmentStatus::ExceedsPageCount);
-            end;
-
-        AgentTaskMessageAttachment.Reset();
-        AgentTaskMessageAttachment.SetRange("Task ID", Rec."Task ID");
-        if AgentTaskMessageAttachment.Count() > SOASetup.GetMaxNoOfAttachmentsPerEmail() then
-            exit(AttachmentStatus::ExceedsNumberOfAttachments);
-
-        exit(AttachmentStatus::NoRelevantContent);
+        exit(IgnoredReasonText);
     end;
 
     internal procedure LoadRecords(var AgentTaskMessage: Record "Agent Task Message")
@@ -182,7 +166,7 @@ page 4405 "SOA Email Attachments"
 
     var
         AttachmentFileSize: Text;
-        AttachmentStatus: Enum "SOA Email Attachment Status";
+        AttachmentStatus: Text[250];
         AttentionReviewStatus: Boolean;
         FileSizeTxt: Label '%1 %2', Comment = '%1 = File Size, %2 = Unit of measurement', Locked = true;
 }

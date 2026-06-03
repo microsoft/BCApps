@@ -246,7 +246,7 @@ codeunit 333 "Req. Wksh.-Make Order"
                         end;
             end;
 
-        OnAfterCode(ReqLine, OrderLineCounter, OrderCounter, PrintPurchOrders, SuppressCommit, PurchOrderHeader);
+        OnAfterCode(ReqLine, OrderLineCounter, OrderCounter, PrintPurchOrders, SuppressCommit, PurchOrderHeader, this);
     end;
 
     local procedure CheckRunPrintPurchOrders()
@@ -1397,7 +1397,7 @@ codeunit 333 "Req. Wksh.-Make Order"
         exit(true);
     end;
 
-    local procedure GetTransferHeader(var TransferHeader: Record "Transfer Header"; RequisitionLine: Record "Requisition Line")
+    procedure GetTransferHeader(var TransferHeader: Record "Transfer Header"; RequisitionLine: Record "Requisition Line")
     begin
         TempTransHeader.SetRange("Transfer-from Code", RequisitionLine."Transfer-from Code");
         TempTransHeader.SetRange("Transfer-to Code", RequisitionLine."Location Code");
@@ -1405,7 +1405,7 @@ codeunit 333 "Req. Wksh.-Make Order"
             TransferHeader.Get(TempTransHeader."No.");
     end;
 
-    local procedure SetTransferHeader(TransferHeader: Record "Transfer Header")
+    procedure SetTransferHeader(TransferHeader: Record "Transfer Header")
     begin
         TempTransHeader := TransferHeader;
         if TempTransHeader.Insert() then;
@@ -1545,7 +1545,7 @@ codeunit 333 "Req. Wksh.-Make Order"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterCode(var RequisitionLine: Record "Requisition Line"; OrderLineCounter: Integer; OrderCounter: Integer; PrintPurchOrders: Boolean; SuppressCommit: Boolean; var PurchOrderHeader: Record "Purchase Header")
+    local procedure OnAfterCode(var RequisitionLine: Record "Requisition Line"; OrderLineCounter: Integer; OrderCounter: Integer; PrintPurchOrders: Boolean; SuppressCommit: Boolean; var PurchOrderHeader: Record "Purchase Header"; Sender: Codeunit "Req. Wksh.-Make Order")
     begin
     end;
 

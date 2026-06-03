@@ -40,7 +40,11 @@ codeunit 31271 "Data Class. Eval. Handler CZC"
         DataClassificationMgt.SetTableFieldsToNormal(Database::"Compensation Header CZC");
         DataClassificationMgt.SetTableFieldsToNormal(Database::"Compensation Line CZC");
         DataClassificationMgt.SetTableFieldsToNormal(Database::"Compensations Setup CZC");
+#if not CLEAN29
+#pragma warning disable AL0432
         DataClassificationMgt.SetTableFieldsToNormal(Database::"Compens. Report Selections CZC");
+#pragma warning restore AL0432
+#endif
         DataClassificationMgt.SetTableFieldsToNormal(Database::"Posted Compensation Header CZC");
         DataClassificationMgt.SetTableFieldsToNormal(Database::"Posted Compensation Line CZC");
 

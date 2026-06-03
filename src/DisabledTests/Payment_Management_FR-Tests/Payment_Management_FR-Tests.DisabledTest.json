@@ -423,5 +423,40 @@
     "codeunitId": 144040,
     "codeunitName": "UT TAB Payment Management",
     "method": "PaymentLineAccountDimension"
+  },
+  {
+    "bugId": 609445,
+    "codeunitId": 144035,
+    "codeunitName": "Test G/L Acc Sheet Reports",
+    "method": "GLSheetForeignCurrGLAccNoProvBal"
+  },
+  {
+    "bugId": 609445,
+    "codeunitId": 144035,
+    "codeunitName": "Test G/L Acc Sheet Reports",
+    "method": "GLSheetForeignCurrGLAccProvBalAccBlank"
+  },
+  {
+    "bugId": 609445,
+    "codeunitId": 144035,
+    "codeunitName": "Test G/L Acc Sheet Reports",
+    "method": "GLSheetForeignCurrGLAccProvBalWithCorrection"
+  },
+  {
+    "bugId": 609445,
+    "codeunitId": 144035,
+    "codeunitName": "Test G/L Acc Sheet Reports",
+    "method": "GLSheetForeignCurrLCYBalance"
+  },
+  {
+    "bugId": 609445,
+    "codeunitId": 144035,
+    "codeunitName": "Test G/L Acc Sheet Reports",
+    "method": "GLSheetForeignCurrPrintDebitCreditCorrectlyForTemporaryPostings"
+  },
+  {
+    "codeunitId": 144019,
+    "codeunitName": "UT TAB Post Code",
+    "method": "*"
   }
 ]

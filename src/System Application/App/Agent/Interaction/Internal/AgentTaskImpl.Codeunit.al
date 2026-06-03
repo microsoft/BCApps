@@ -43,7 +43,7 @@ codeunit 4300 "Agent Task Impl."
         Page.Run(Page::"Agent Task Log Entry List", AgentTaskLogEntry);
     end;
 
-    procedure CreateTask(AgentUserSecurityID: Guid; TaskTitle: Text[150]; ExternalID: Text[2048]; BillingContext: Enum "Agent Task Billing Context"; var NewAgentTask: Record "Agent Task")
+    procedure CreateTask(AgentUserSecurityID: Guid; TaskTitle: Text[150]; ExternalID: Text[2048]; BillingContext: Enum "Agent Task Billing Context"; ModelId: Code[30]; var NewAgentTask: Record "Agent Task")
     begin
         NewAgentTask."Agent User Security ID" := AgentUserSecurityID;
         NewAgentTask."Created By" := UserSecurityId();
@@ -51,6 +51,7 @@ codeunit 4300 "Agent Task Impl."
         NewAgentTask."Needs Attention" := false;
         NewAgentTask.Status := NewAgentTask.Status::Paused;
         NewAgentTask."External ID" := ExternalID;
+        NewAgentTask."Model ID" := ModelId;
         NewAgentTask."Billing Context" := BillingContext;
         NewAgentTask.Insert();
     end;
@@ -241,6 +242,23 @@ codeunit 4300 "Agent Task Impl."
                 exit(true);
 
         exit(false);
+    end;
+
+    procedure GetModelId(TaskId: BigInteger): Code[30]
+    var
+        AgentTaskRecord: Record "Agent Task";
+    begin
+        AgentTaskRecord.Get(TaskId);
+        exit(AgentTaskRecord."Model ID")
+    end;
+
+    procedure GetModelName(TaskId: BigInteger): Text[70]
+    var
+        AgentTaskRecord: Record "Agent Task";
+    begin
+        AgentTaskRecord.Get(TaskId);
+        AgentTaskRecord.CalcFields("Model Name");
+        exit(AgentTaskRecord."Model Name");
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", GetAgentTaskMessagePageId, '', true, true)]

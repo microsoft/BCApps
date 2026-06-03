@@ -9,8 +9,23 @@ using Microsoft.Warehouse.Document;
 
 pageextension 99001533 "Subc. Whse Rcpt Subform Ext." extends "Whse. Receipt Subform"
 {
+    layout
+    {
+        addlast(Control1)
+        {
+            field("Transfer WIP Item"; Rec."Transfer WIP Item")
+            {
+                ApplicationArea = Manufacturing;
+                Visible = false;
+            }
+        }
+    }
     actions
     {
+        modify(ItemTrackingLines)
+        {
+            Enabled = not Rec."Transfer WIP Item";
+        }
         addafter(ItemTrackingLines)
         {
             group(Production)

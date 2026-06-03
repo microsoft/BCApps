@@ -1553,6 +1553,9 @@ codeunit 134897 "ERM Source Currency"
         GLPostingPreview.Close();
     end;
 
+    // VendorFCYInvoicePayablesGLEntryHasCorrectSCYAmount and VendorFCYPaymentWithGainLossPayablesSCYBalances
+    // are intentionally not included in RU — the required helper procedures do not exist in this layer.
+
     local procedure CreatePurchaseInvoice(var PurchaseHeader: Record "Purchase Header"; VendorNo: Code[20]; GLAccountNo: Code[20]; WithForeignCurrency: Boolean)
     var
         PurchaseLine: Record "Purchase Line";

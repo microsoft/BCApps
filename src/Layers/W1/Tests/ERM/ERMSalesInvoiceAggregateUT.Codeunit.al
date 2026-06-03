@@ -1578,6 +1578,7 @@ codeunit 134396 "ERM Sales Invoice Aggregate UT"
     procedure SalesInvoiceStatisticShowsCorrectQuantityWithInvoiceRounding()
     var
         GeneralLedgerSetup: Record "General Ledger Setup";
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
         SalesInvoice: TestPage "Sales Invoice";
@@ -1590,6 +1591,11 @@ codeunit 134396 "ERM Sales Invoice Aggregate UT"
         GeneralLedgerSetup.Get();
         GeneralLedgerSetup.Validate("Inv. Rounding Precision (LCY)", 0.05);
         GeneralLedgerSetup.Modify(true);
+
+        // [GIVEN] Enable Invoice Rounding in Sales & Receivables Setup.
+        SalesReceivablesSetup.Get();
+        SalesReceivablesSetup.Validate("Invoice Rounding", true);
+        SalesReceivablesSetup.Modify(true);
 
         // [GIVEN] Create SalesHeader.
         LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, LibrarySales.CreateCustomerNo());
@@ -1604,16 +1610,16 @@ codeunit 134396 "ERM Sales Invoice Aggregate UT"
         SalesInvoice.SalesStatistics.Invoke();
 
         // [THEN] Verify Sales Invoice Statistics show Quantity as 1.
-        Assert.AreEqual(1,
+        Assert.AreEqual(2,
             SalesStatistics."TotalSalesLine.Quantity".AsDecimal(),
-            StrSubstNo(SalesStatisticsQtyErr, 1));
+            StrSubstNo(SalesStatisticsQtyErr, 2));
     end;
-
 
     [Test]
     procedure SalesInvoiceStatisticShowsCorrectQuantityWithSalesLineInvoiceRoundingGL()
     var
         CustomerPostingGroup: Record "Customer Posting Group";
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
         GLAccount: Record "G/L Account";
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
@@ -1622,6 +1628,11 @@ codeunit 134396 "ERM Sales Invoice Aggregate UT"
     begin
         // [SCENARIO 580156] Sales Invoice Statistic shows wrong quantity when invoice rounding G/L is used in sales invoice line.
         Initialize();
+
+        // [GIVEN] Disable Invoice Rounding so no system-created rounding line is added.
+        SalesReceivablesSetup.Get();
+        SalesReceivablesSetup.Validate("Invoice Rounding", false);
+        SalesReceivablesSetup.Modify(true);
 
         // [GIVEN] Create SalesHeader.
         LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, LibrarySales.CreateCustomerNo());
@@ -1646,6 +1657,48 @@ codeunit 134396 "ERM Sales Invoice Aggregate UT"
         Assert.AreEqual(SalesLine.Quantity,
             SalesStatistics."TotalSalesLine.Quantity".AsDecimal(),
             StrSubstNo(SalesStatisticsQtyErr, SalesLine.Quantity));
+    end;
+
+    [Test]
+    procedure SalesStatisticsShowsRoundedTotalInclVATWithInvoiceRounding()
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesInvoice: TestPage "Sales Invoice";
+        SalesStatistics: TestPage "Sales Statistics";
+        TotalInclVAT: Decimal;
+        InvRoundingPrecision: Decimal;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] Sales Statistics shows correctly rounded Total Incl. VAT when invoice rounding is enabled.
+        Initialize();
+
+        // [GIVEN] Set Inv. Rounding Precision (LCY) as 0.05 in General Ledger Setup.
+        InvRoundingPrecision := 0.05;
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup.Validate("Inv. Rounding Precision (LCY)", InvRoundingPrecision);
+        GeneralLedgerSetup.Modify(true);
+
+        // [GIVEN] Enable Invoice Rounding in Sales & Receivables Setup.
+        SalesReceivablesSetup.Get();
+        SalesReceivablesSetup.Validate("Invoice Rounding", true);
+        SalesReceivablesSetup.Modify(true);
+
+        // [GIVEN] Create Sales Invoice "SI" with a line where Amount Including VAT requires rounding.
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, LibrarySales.CreateCustomerNo());
+        LibrarySales.CreateSalesLineWithUnitPrice(SalesLine, SalesHeader, LibraryInventory.CreateItemNo(), 1190.11, 1);
+
+        // [WHEN] Open Sales Statistics page from Sales Invoice page.
+        SalesInvoice.OpenEdit();
+        SalesInvoice.FILTER.SetFilter("No.", SalesHeader."No.");
+        SalesStatistics.Trap();
+        SalesInvoice.SalesStatistics.Invoke();
+
+        // [THEN] Total Incl. VAT on Sales Statistics is rounded to Invoice Rounding Precision.
+        TotalInclVAT := SalesStatistics.TotalAmount2.AsDecimal();
+        Assert.AreEqual(TotalInclVAT, Round(TotalInclVAT, InvRoundingPrecision), 'Total Incl. VAT must be rounded to Invoice Rounding Precision');
     end;
 
     local procedure CreateCustomerWithDiscount(var Customer: Record Customer; DiscPct: Decimal; minAmount: Decimal)

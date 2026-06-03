@@ -120,6 +120,39 @@ codeunit 4395 "Global Item Search"
         exit(ResultFilter);
     end;
 
+    internal procedure SearchAndReturnResultsWithColumnValues(SearchPrimaryKeyWord: Text; MinContextAwareRankingScore: Decimal; var CandidateArray: JsonArray): Boolean
+    var
+        ALSearch: DotNet ALSearch;
+        ALSearchResult: DotNet ALSearchResult;
+        QueryResults: DotNet GenericList1;
+        ALSearchQueryResult: DotNet ALSearchQueryResult;
+        CandidateObject: JsonObject;
+        ColumnValuesJson: JsonObject;
+        ColumnValuesText: Text;
+        IncludeResult: Boolean;
+    begin
+        // Search
+        ALSearchResult := ALSearch.FindItems(ALSearchOptions, ALCopilotCapability);
+
+        // Process results
+        QueryResults := ALSearchResult.GetResultsForQuery(SearchPrimaryKeyWord);
+
+        foreach ALSearchQueryResult in QueryResults do begin
+            IncludeResult := (MinContextAwareRankingScore = 0) or (ALSearchQueryResult.ContextAwareRankingScore >= MinContextAwareRankingScore);
+            if IncludeResult then begin
+                Clear(CandidateObject);
+                Clear(ColumnValuesJson);
+                CandidateObject.Add('system_id', ALSearchQueryResult.SystemId);
+                ColumnValuesText := ALSearchQueryResult.ColumnValues;
+                if (ColumnValuesText <> '') and ColumnValuesJson.ReadFrom(ColumnValuesText) then
+                    CandidateObject.Add('column_values', ColumnValuesJson);
+                CandidateArray.Add(CandidateObject);
+            end;
+        end;
+
+        exit(CandidateArray.Count() > 0);
+    end;
+
     internal procedure CheckIsItemSearchReady(ErrorOnFalse: Boolean): Boolean
     var
         WaitingTime, SleepTime, TimeOutPeriod : Integer;

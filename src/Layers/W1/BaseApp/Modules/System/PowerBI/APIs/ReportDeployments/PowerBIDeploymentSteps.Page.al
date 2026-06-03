@@ -19,8 +19,8 @@ page 6348 "Power BI Deployment Steps"
                 field(StatusReached; Rec."Status Reached")
                 {
                     ApplicationArea = All;
-                    Caption = 'Status Reached';
-                    ToolTip = 'Specifies the upload status that had been reached when this record was created.';
+                    Caption = 'Stage Reached';
+                    ToolTip = 'Specifies the upload stage that had been reached when this record was created.';
                 }
                 field(Status; StepStatus)
                 {
@@ -31,9 +31,11 @@ page 6348 "Power BI Deployment Steps"
 
                     trigger OnDrillDown()
                     var
+                        DeploymentState: Record "Power BI Deployment State";
                         FailedReason: Text;
                     begin
-                        FailedReason := Rec.GetFailedReason();
+                        DeploymentState := Rec;
+                        FailedReason := DeploymentState.GetFailedReason();
                         if FailedReason <> '' then
                             Message(StrSubstNo(DeploymentFailedWithErrorMsg, FailedReason));
                     end;

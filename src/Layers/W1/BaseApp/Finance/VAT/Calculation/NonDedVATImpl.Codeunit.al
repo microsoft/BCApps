@@ -237,7 +237,10 @@ codeunit 6201 "Non-Ded. VAT Impl."
         if IsHandled then
             exit;
         if VATAmountLine."Non-Deductible VAT %" = 100 then
-            VATAmountLine.Validate("Non-Deductible VAT Amount", VATAmountLine."VAT Amount");
+            VATAmountLine.Validate("Non-Deductible VAT Amount", VATAmountLine."VAT Amount")
+        else
+            if VATAmountLine."Non-Deductible VAT %" <> 0 then
+                VATAmountLine.Validate("Non-Deductible VAT Amount", Round(VATAmountLine."VAT Amount" * VATAmountLine."Non-Deductible VAT %" / 100, 0.01));
         VATAmountLine."Deductible VAT Amount" := VATAmountLine."VAT Amount" - VATAmountLine."Non-Deductible VAT Amount";
         if VATAmountLine."Deductible VAT Amount" < 0 then
             VATAmountLine.FieldError("Deductible VAT Amount", CannotBeNegativeErr);

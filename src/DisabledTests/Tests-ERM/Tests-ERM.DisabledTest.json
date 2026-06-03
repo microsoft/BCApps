@@ -18383,5 +18383,145 @@
     "codeunitId": 134929,
     "codeunitName": "ERM MIR Test",
     "method": "MakeReminder"
+  },
+  {
+    "codeunitId": 134565,
+    "codeunitName": "Recurring Sales Line Test",
+    "method": "AddAutomaticRecurringSalesLines"
+  },
+  {
+    "codeunitId": 134909,
+    "codeunitName": "ERM Reminder/Fin.Charge Memo",
+    "method": "CancelFinChargeMemoWithClosedEntriesAndMandatoryDimension"
+  },
+  {
+    "codeunitId": 134900,
+    "codeunitName": "ERM Batch Job",
+    "method": "CreateInvoiceAndReminder"
+  },
+  {
+    "codeunitId": 134905,
+    "codeunitName": "ERM Issued Reminder Addnl Fee",
+    "method": "CreateRemindersBatch"
+  },
+  {
+    "codeunitId": 134905,
+    "codeunitName": "ERM Issued Reminder Addnl Fee",
+    "method": "SuggestReminderLinesBatch"
+  },
+  {
+    "codeunitId": 134377,
+    "codeunitName": "ERM Sales Blanket Order",
+    "method": "DescValidationErrorOnBlanketSalesOrderLineForGLAccount"
+  },
+  {
+    "codeunitId": 134377,
+    "codeunitName": "ERM Sales Blanket Order",
+    "method": "DescValidationErrorOnSalesQuoteLineForGLAccount"
+  },
+  {
+    "codeunitId": 134377,
+    "codeunitName": "ERM Sales Blanket Order",
+    "method": "DescValidationErrorOnSalesReturnOrderLineForGLAccount"
+  },
+  {
+    "codeunitId": 134929,
+    "codeunitName": "ERM MIR Test",
+    "method": "OnRunFinChrgMemoIssue"
+  },
+  {
+    "codeunitId": 134929,
+    "codeunitName": "ERM MIR Test",
+    "method": "OnRunReminderIssue"
+  },
+  {
+    "codeunitId": 134098,
+    "codeunitName": "ERM Invoice Disc. Distribution",
+    "method": "PurchaseOrderPartialInvoicingInvoiceDiscountAmountOnStatsGeneralTabWith11Lines"
+  },
+  {
+    "codeunitId": 134098,
+    "codeunitName": "ERM Invoice Disc. Distribution",
+    "method": "PurchaseOrderPartialInvoicingInvoiceDiscountAmtOnStatisticsGeneralTab"
+  },
+  {
+    "codeunitId": 134098,
+    "codeunitName": "ERM Invoice Disc. Distribution",
+    "method": "PurchaseOrderPartialInvoicingInvoiceDiscountAmtOnStatisticsInvoicingTab"
+  },
+  {
+    "codeunitId": 134098,
+    "codeunitName": "ERM Invoice Disc. Distribution",
+    "method": "PurchaseOrderPartialInvoicingInvoiceDiscountAmtOnSubtotals"
+  },
+  {
+    "codeunitId": 134565,
+    "codeunitName": "Recurring Sales Line Test",
+    "method": "AddAutomaticRecurringSalesLines"
+  },
+  {
+    "codeunitId": 134909,
+    "codeunitName": "ERM Reminder/Fin.Charge Memo",
+    "method": "CancelFinChargeMemoWithClosedEntriesAndMandatoryDimension"
+  },
+  {
+    "codeunitId": 134900,
+    "codeunitName": "ERM Batch Job",
+    "method": "CreateInvoiceAndReminder"
+  },
+  {
+    "codeunitId": 134905,
+    "codeunitName": "ERM Issued Reminder Addnl Fee",
+    "method": "CreateRemindersBatch"
+  },
+  {
+    "codeunitId": 134905,
+    "codeunitName": "ERM Issued Reminder Addnl Fee",
+    "method": "SuggestReminderLinesBatch"
+  },
+  {
+    "codeunitId": 134377,
+    "codeunitName": "ERM Sales Blanket Order",
+    "method": "DescValidationErrorOnBlanketSalesOrderLineForGLAccount"
+  },
+  {
+    "codeunitId": 134377,
+    "codeunitName": "ERM Sales Blanket Order",
+    "method": "DescValidationErrorOnSalesQuoteLineForGLAccount"
+  },
+  {
+    "codeunitId": 134377,
+    "codeunitName": "ERM Sales Blanket Order",
+    "method": "DescValidationErrorOnSalesReturnOrderLineForGLAccount"
+  },
+  {
+    "codeunitId": 134929,
+    "codeunitName": "ERM MIR Test",
+    "method": "OnRunFinChrgMemoIssue"
+  },
+  {
+    "codeunitId": 134929,
+    "codeunitName": "ERM MIR Test",
+    "method": "OnRunReminderIssue"
+  },
+  {
+    "codeunitId": 134098,
+    "codeunitName": "ERM Invoice Disc. Distribution",
+    "method": "PurchaseOrderPartialInvoicingInvoiceDiscountAmountOnStatsGeneralTabWith11Lines"
+  },
+  {
+    "codeunitId": 134098,
+    "codeunitName": "ERM Invoice Disc. Distribution",
+    "method": "PurchaseOrderPartialInvoicingInvoiceDiscountAmtOnStatisticsGeneralTab"
+  },
+  {
+    "codeunitId": 134098,
+    "codeunitName": "ERM Invoice Disc. Distribution",
+    "method": "PurchaseOrderPartialInvoicingInvoiceDiscountAmtOnStatisticsInvoicingTab"
+  },
+  {
+    "codeunitId": 134098,
+    "codeunitName": "ERM Invoice Disc. Distribution",
+    "method": "PurchaseOrderPartialInvoicingInvoiceDiscountAmtOnSubtotals"
   }
 ]

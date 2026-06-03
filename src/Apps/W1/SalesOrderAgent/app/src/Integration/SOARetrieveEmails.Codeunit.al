@@ -43,6 +43,7 @@ codeunit 4582 "SOA Retrieve Emails"
         PageCountExceededTelemetryTxt: label 'PDF Attachment ignored because it exceeds page count of %1.', Locked = true;
         PageCountCallFailedTelemetryTxt: label 'Unable to calculate PDF Attachment''s page count.', Locked = true;
         MaxAttachmentsExceededTelemetryTxt: label 'Number of attachments exceeds maximum allowed.', Locked = true;
+        ProcessedCategoryTok: Label 'Processed by Sales Order Agent', Locked = true;
 
     local procedure RetrieveEmails(var SOASetup: Record "SOA Setup")
     var
@@ -66,12 +67,13 @@ codeunit 4582 "SOA Retrieve Emails"
             exit;
         end;
 
-        TempFilters."Unread Emails" := true;
         TempFilters."Load Attachments" := true;
         TempFilters."Max No. of Emails" := SOAMailSetup.GetMaxNoOfEmails();
         TempFilters."Last Message Only" := true;
         TempFilters."Folder Id" := SOASetup."Email Folder Id";
         TempFilters."Earliest Email" := SOASetup."Earliest Sync At";
+        TempFilters."Category Filter Type" := TempFilters."Category Filter Type"::Exclude;
+        TempFilters.AddCategoryFilter(ProcessedCategoryTok);
         TempFilters.Insert();
 
         Email.RetrieveEmails(SOASetup."Email Account ID", SOASetup."Email Connector", EmailInbox, TempFilters);
@@ -90,7 +92,6 @@ codeunit 4582 "SOA Retrieve Emails"
             SOASetupCU.UpdateSOASetupInstructionsLastSync(SOASetup);
         end;
 
-        RemoveEmailsOutsideSyncRange(EmailInbox);
         AddEmailInboxToSOAEmails(SOASetup, EmailInbox);
         // Only update sync time if we're not syncing from a specific folder
         // Specifying a folder means we may miss emails if they are moved into the folder after we sync
@@ -148,14 +149,6 @@ codeunit 4582 "SOA Retrieve Emails"
         OnAfterProcessEmail(SOAEmail."Email Inbox ID");
     end;
 
-    local procedure RemoveEmailsOutsideSyncRange(var EmailInbox: Record "Email Inbox")
-    begin
-        repeat
-            if EmailInbox."Is Read" then
-                EmailInbox.Delete(true);
-        until EmailInbox.Next() = 0;
-    end;
-
     procedure AddEmailInboxToSOAEmails(SOASetup: Record "SOA Setup"; var EmailInbox: Record "Email Inbox")
     var
         SOAEmail: Record "SOA Email";
@@ -171,8 +164,11 @@ codeunit 4582 "SOA Retrieve Emails"
             SOAEmail."Sent DateTime" := EmailInbox."Sent DateTime";
             SOAEmail."Received DateTime" := EmailInbox."Received DateTime";
 
-            if SOAEmail.Insert() then
-                Email.MarkAsRead(SOASetup."Email Account ID", SOASetup."Email Connector", EmailInbox."External Message Id");
+            if SOAEmail.Insert() then begin
+                if SOASetup."Mark Email As Read" then
+                    Email.MarkAsRead(SOASetup."Email Account ID", SOASetup."Email Connector", EmailInbox."External Message Id");
+                Email.ApplyEmailCategory(SOASetup."Email Account ID", SOASetup."Email Connector", EmailInbox."External Message Id", ProcessedCategoryTok);
+            end;
         until EmailInbox.Next() = 0;
     end;
 
@@ -200,7 +196,7 @@ codeunit 4582 "SOA Retrieve Emails"
             .SetExternalId(EmailInbox."Conversation Id")
             .AddTaskMessage(AgentMessageBuilder);
 
-        AddEmailAttachmentToTaskMessage(AgentMessageBuilder, EmailMessage);
+        AddEmailAttachmentToTaskMessage(AgentMessageBuilder, EmailMessage, SOASetup);
         AgentTaskBuilder.Create();
 
         AgentTaskMessage := AgentTaskBuilder.GetAgentTaskMessageCreated();
@@ -211,7 +207,7 @@ codeunit 4582 "SOA Retrieve Emails"
         FeatureTelemetry.LogUsage('0000NDP', SOASetupCU.GetFeatureName(), TelemetryEmailAddedAsTaskLbl, TelemetryDimensions);
     end;
 
-    local procedure AddEmailAttachmentToTaskMessage(AgentTaskMessageBuilder: Codeunit "Agent Task Message Builder"; var EmailMessage: Codeunit "Email Message")
+    local procedure AddEmailAttachmentToTaskMessage(AgentTaskMessageBuilder: Codeunit "Agent Task Message Builder"; var EmailMessage: Codeunit "Email Message"; var SOASetupRec: Record "SOA Setup")
     var
         SOASetup: Codeunit "SOA Setup";
         InStream: InStream;
@@ -220,6 +216,7 @@ codeunit 4582 "SOA Retrieve Emails"
         ExceedsPageCountThreshold: Boolean;
         PdfContent: Boolean;
         Ignore: Boolean;
+        IgnoredReason: Text[250];
         NoOfAttachments: Integer;
         SupportedAttachmentLbl: Label 'Email has supported attachment: %1', Locked = true, Comment = '%1 = MIME type of the attachment';
         UnsupportedAttachmentLbl: Label 'Email has unsupported attachment: %1', Locked = true, Comment = '%1 = MIME type of the attachment';
@@ -230,6 +227,7 @@ codeunit 4582 "SOA Retrieve Emails"
         NoOfAttachments := 0;
         repeat
             if not EmailMessage.Attachments_IsInline() then begin
+                ExceedsPageCountThreshold := false;
                 EmailMessage.Attachments_GetContent(InStream);
                 FileMIMEType := CopyStr(EmailMessage.Attachments_GetContentType(), 1, 100);
                 IsFileMimeTypeSupported := SOASetup.SupportedAttachmentContentType(FileMIMEType);
@@ -242,8 +240,8 @@ codeunit 4582 "SOA Retrieve Emails"
                             FeatureTelemetry.LogUsage('0000QHL', SOASetup.GetFeatureName(), StrSubstNo(PageCountExceededTelemetryTxt, Format(SOASetup.PageCountThreshold())));
                     end;
                 end;
-                Ignore := IgnoreAttachment(IsFileMimeTypeSupported, ExceedsPageCountThreshold, NoOfAttachments);
-                AgentTaskMessageBuilder.AddAttachment(EmailMessage.Attachments_GetName(), FileMIMEType, InStream, Ignore);
+                Ignore := IgnoreAttachment(IsFileMimeTypeSupported, ExceedsPageCountThreshold, NoOfAttachments, SOASetupRec, IgnoredReason);
+                AgentTaskMessageBuilder.AddAttachment(EmailMessage.Attachments_GetName(), FileMIMEType, InStream, Ignore, IgnoredReason);
 
                 if not Ignore then
                     NoOfAttachments += 1;
@@ -260,16 +258,29 @@ codeunit 4582 "SOA Retrieve Emails"
             FeatureTelemetry.LogUsage('0000QK9', SOASetup.GetFeatureName(), MaxAttachmentsExceededTelemetryTxt);
     end;
 
-    local procedure IgnoreAttachment(IsFileMimeTypeSupported: Boolean; ExceedsPageCountThreshold: Boolean; NoOfAttachments: Integer): Boolean
+    local procedure IgnoreAttachment(IsFileMimeTypeSupported: Boolean; ExceedsPageCountThreshold: Boolean; NoOfAttachments: Integer; var SOASetupRec: Record "SOA Setup"; var IgnoredReason: Text[250]): Boolean
     begin
-        if not IsFileMimeTypeSupported then
-            exit(true);
+        IgnoredReason := '';
 
-        if ExceedsPageCountThreshold then
+        if not SOASetupRec."Analyze Attachments" then begin
+            IgnoredReason := CopyStr(Format(Enum::"SOA Email Attachment Status"::AnalyzeAttachmentsNotEnabled), 1, MaxStrLen(IgnoredReason));
             exit(true);
+        end;
 
-        if NoOfAttachments >= SOASetupCU.GetMaxNoOfAttachmentsPerEmail() then
+        if not IsFileMimeTypeSupported then begin
+            IgnoredReason := CopyStr(Format(Enum::"SOA Email Attachment Status"::UnsupportedFormat), 1, MaxStrLen(IgnoredReason));
             exit(true);
+        end;
+
+        if ExceedsPageCountThreshold then begin
+            IgnoredReason := CopyStr(Format(Enum::"SOA Email Attachment Status"::ExceedsPageCount), 1, MaxStrLen(IgnoredReason));
+            exit(true);
+        end;
+
+        if NoOfAttachments >= SOASetupCU.GetMaxNoOfAttachmentsPerEmail() then begin
+            IgnoredReason := CopyStr(Format(Enum::"SOA Email Attachment Status"::ExceedsNumberOfAttachments), 1, MaxStrLen(IgnoredReason));
+            exit(true);
+        end;
 
         exit(false);
     end;
@@ -313,7 +324,7 @@ codeunit 4582 "SOA Retrieve Emails"
             .SetIgnoreAttachment(not SOASetup."Analyze Attachments")
             .SetAgentTask(AgentTaskRecord);
 
-        AddEmailAttachmentToTaskMessage(AgentTaskMessageBuilder, EmailMessage);
+        AddEmailAttachmentToTaskMessage(AgentTaskMessageBuilder, EmailMessage, SOASetup);
         AgentTaskMessage := AgentTaskMessageBuilder.Create();
 
         SOAEmail.SetAgentMessageFields(AgentTaskMessage);

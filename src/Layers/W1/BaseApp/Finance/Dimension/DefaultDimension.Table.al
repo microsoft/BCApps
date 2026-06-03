@@ -879,11 +879,11 @@ table 352 "Default Dimension"
     end;
 
     /// <summary>
-    /// Creates a dimension value per account record from a dimension value.
-    /// Used to populate allowed dimension values for account-specific dimension restrictions.
+    /// Creates or updates a dimension value per account record from a dimension value.
+    /// Sets the Allowed flag to the value of ShouldUpdateAllowed.
     /// </summary>
     /// <param name="DimValue">The dimension value to create the account-specific record from.</param>
-    /// <param name="ShouldUpdateAllowed">Indicates whether to mark the dimension value as allowed.</param>
+    /// <param name="ShouldUpdateAllowed">The value to set on the Allowed field of the dimension value per account record.</param>
     procedure CreateDimValuePerAccountFromDimValue(DimValue: Record "Dimension Value"; ShouldUpdateAllowed: Boolean)
     var
         DimValuePerAccount: Record "Dim. Value per Account";

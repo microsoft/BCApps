@@ -8,14 +8,13 @@ using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Reports;
 using Microsoft.Finance.ReceivablesPayables;
-using Microsoft.FixedAssets.Depreciation;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.FixedAssets.Journal;
 using Microsoft.FixedAssets.Ledger;
+using Microsoft.FixedAssets.Posting;
 using Microsoft.FixedAssets.Setup;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Posting;
-using System.Environment.Configuration;
 
 codeunit 31236 "FA Acquisition Handler CZF"
 {
@@ -202,71 +201,34 @@ codeunit 31236 "FA Acquisition Handler CZF"
                 Rec."FA Posting Type" := Rec."FA Posting Type"::"Custom 2 CZF";
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Purchase Line", 'OnBeforeGetFAPostingGroup', '', false, false)]
-    local procedure AcquisitionAsCustom2OnBeforeGetFAPostingGroup(var PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
-    var
-        FADepreciationBook: Record "FA Depreciation Book";
-        FADeprBook: Record "FA Depreciation Book";
-        SetFADeprBook: Record "FA Depreciation Book";
-        FAPostingGroup: Record "FA Posting Group";
-        GLAccount: Record "G/L Account";
-        ApplicationAreaMgmt: Codeunit "Application Area Mgmt.";
+    [EventSubscriber(ObjectType::Table, Database::"Purchase Line", 'OnGetFAPostingGroupOnBeforeCheckGLAcc', '', false, false)]
+    local procedure AcquisitionAsCustom2OnGetFAPostingGroupOnBeforeCheckGLAcc(var PurchaseLine: Record "Purchase Line")
     begin
-        if PurchaseLine.Type <> PurchaseLine.Type::"Fixed Asset" then
-            exit;
-        if PurchaseLine."No." = '' then
-            exit;
+        PurchaseLine."FA Posting Type" := GetFAPostingType(PurchaseLine);
+    end;
 
-        FASetup.Get();
-        if PurchaseLine."Depreciation Book Code" = '' then begin
-            FADepreciationBook.SetRange("FA No.", PurchaseLine."No.");
-            FADepreciationBook.SetRange("Default FA Depreciation Book", true);
-
-            SetFADeprBook.SetRange("FA No.", PurchaseLine."No.");
-            case true of
-                SetFADeprBook.Count = 1:
-                    begin
-                        SetFADeprBook.FindFirst();
-                        PurchaseLine."Depreciation Book Code" := SetFADeprBook."Depreciation Book Code";
-                    end;
-                FADepreciationBook.FindFirst():
-                    PurchaseLine."Depreciation Book Code" := FADepreciationBook."Depreciation Book Code";
-                FADeprBook.Get(PurchaseLine."No.", FASetup."Default Depr. Book"):
-                    PurchaseLine."Depreciation Book Code" := FASetup."Default Depr. Book"
-                else
-                    PurchaseLine."Depreciation Book Code" := '';
-            end;
-
-            if PurchaseLine."Depreciation Book Code" = '' then
-                exit;
-        end;
-
-        if PurchaseLine."FA Posting Type" in [PurchaseLine."FA Posting Type"::" ", PurchaseLine."FA Posting Type"::"Acquisition Cost"] then
-            if FASetup."FA Acquisition As Custom 2 CZF" then
-                PurchaseLine."FA Posting Type" := PurchaseLine."FA Posting Type"::"Custom 2 CZF";
-
-        FADepreciationBook.Get(PurchaseLine."No.", PurchaseLine."Depreciation Book Code");
-        FADepreciationBook.TestField("FA Posting Group");
-        FAPostingGroup.GetPostingGroup(FADepreciationBook."FA Posting Group", FADepreciationBook."Depreciation Book Code");
-        case PurchaseLine."FA Posting Type" of
+    [EventSubscriber(ObjectType::Table, Database::"Purchase Line", 'OnGetFAPostingGroupOnBeforeLocalGLAccGet', '', false, false)]
+    local procedure GetGLAccountOnGetFAPostingGroupOnBeforeLocalGLAccGet(PurchaseLine: Record "Purchase Line"; FAPostingGroup: Record "FA Posting Group"; var GLAccount: Record "G/L Account"; var IsHandled: Boolean)
+    begin
+        case GetFAPostingType(PurchaseLine) of
             PurchaseLine."FA Posting Type"::Maintenance:
                 GLAccount.Get(FAPostingGroup.GetMaintenanceExpenseAccountCZF(PurchaseLine."Maintenance Code"));
             PurchaseLine."FA Posting Type"::"Custom 2 CZF":
-                begin
-                    FAPostingGroup.TestField("Custom 2 Account");
-                    GLAccount.Get(FAPostingGroup."Custom 2 Account");
-                end;
+                GLAccount.Get(FAPostingGroup.GetCustom2Account());
             else
                 exit;
         end;
 
-        GLAccount.CheckGLAcc();
-        if not ApplicationAreaMgmt.IsSalesTaxEnabled() then
-            GLAccount.TestField("Gen. Prod. Posting Group");
-        PurchaseLine."Gen. Prod. Posting Group" := GLAccount."Gen. Prod. Posting Group";
-        PurchaseLine."Tax Group Code" := GLAccount."Tax Group Code";
-        PurchaseLine.Validate("VAT Prod. Posting Group", GLAccount."VAT Prod. Posting Group");
         IsHandled := true;
+    end;
+
+    local procedure GetFAPostingType(PurchaseLine: Record "Purchase Line"): Enum "Purchase FA Posting Type"
+    begin
+        if not (PurchaseLine."FA Posting Type" in [PurchaseLine."FA Posting Type"::" ", PurchaseLine."FA Posting Type"::"Acquisition Cost"]) then
+            exit(PurchaseLine."FA Posting Type");
+        if not FASetup.IsFAAcquisitionAsCustom2CZL() then
+            exit(PurchaseLine."FA Posting Type");
+        exit(PurchaseLine."FA Posting Type"::"Custom 2 CZF");
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Purchase Line", 'OnBeforeCheckAcquisitionCost', '', false, false)]

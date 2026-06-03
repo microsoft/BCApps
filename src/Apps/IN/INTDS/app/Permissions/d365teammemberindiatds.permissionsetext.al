@@ -20,6 +20,7 @@ permissionsetextension 18668 "D365 TEAM MEMBER - India TDS" extends "D365 TEAM M
                   tabledata "Provisional Entry" = RIMD,
                   tabledata "TDS Challan Register" = RIMD,
                   tabledata "TDS Concessional Code" = RIMD,
+                  tabledata "TDS Concessional Code Archive" = RIMD,
                   tabledata "TDS Customer Concessional Code" = RIMD,
                   tabledata "TDS Entry" = RIMD,
                   tabledata "TDS Journal Batch" = RIMD,

@@ -62,6 +62,9 @@ codeunit 136145 "Service Contracts II"
         DescriptionLbl: Label '%1 - %2', Comment = '%1 = Start Date of Month, %2 = End Date of Month';
         DescriptionMustMatchErr: Label 'Description must match.';
         WrongCountErr: Label 'Worong number of Service Line are created';
+        ServiceLineStartDateErr: Label 'Service line for item C must start on its own starting date (03/01), not on the earliest new line date (02/01)';
+        ItemBInvoicedToDateErr: Label 'Item B "Invoiced to Date" must be 0D after deleting the retrospective invoice.';
+        ItemCInvoicedToDateErr: Label 'Item C "Invoiced to Date" must be 0D after deleting the retrospective invoice.';
 
     [Test]
     [HandlerFunctions('ServiceContractTemplateListHandler,CreateContractServiceOrdersRequestPageHandler,CreateContractInvoicesRequestPageHandler,YesConfirmHandler,MessageHandler')]
@@ -2337,6 +2340,157 @@ codeunit 136145 "Service Contracts II"
         VerifyCreditMemoLinesTaxFields(ServiceHeader, TaxArea.Code);
     end;
 
+    [Test]
+    [HandlerFunctions('DequeueReplyConfirmHandler,MessageHandler')]
+    [Scope('OnPrem')]
+    procedure RetrospectiveServiceLineStartDateIsPerLineNotEarliestForPrepaidContract()
+    var
+        ServiceContractHeader: Record "Service Contract Header";
+        ServiceContractLineA: Record "Service Contract Line";
+        ServiceContractLineB: Record "Service Contract Line";
+        ServiceContractLineC: Record "Service Contract Line";
+        ServiceHeader: Record "Service Header";
+        ServiceLine: Record "Service Line";
+        ServContractManagement: Codeunit ServContractManagement;
+        Year: Integer;
+        JanFirst: Date;
+        FebFirst: Date;
+        MarFirst: Date;
+        MarEnd: Date;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 629850] When a retrospective invoice is created for newly added lines on a prepaid quarterly contract, each service line starts at the line's own starting date.
+
+        Initialize();
+
+        // [GIVEN] Quarterly prepaid contract starting Jan 1, with item A, signed silently.
+        Year := Date2DMY(WorkDate(), 3);
+        JanFirst := DMY2Date(1, 1, Year);
+        FebFirst := DMY2Date(1, 2, Year);
+        MarFirst := DMY2Date(1, 3, Year);
+        MarEnd := CalcDate('<CM>', MarFirst);
+        WorkDate(JanFirst);
+        LibraryVariableStorage.Enqueue(false);  // "Create contract using template?" No (to allow Prepaid=true)
+        CreatePrepaidQuarterlyContractAndSignForBug629850(ServiceContractHeader, ServiceContractLineA);
+
+        // [GIVEN] Item B added at 02/01, user declines to create an invoice.
+        WorkDate(FebFirst);
+        LibraryVariableStorage.Enqueue(true);   // "Do you want to open service contract...?" Yes
+        LibraryVariableStorage.Enqueue(true);   // "New lines have been added..." Yes
+        LibraryVariableStorage.Enqueue(true);   // "Next Planned Service Date is 0D" Yes
+        LibraryVariableStorage.Enqueue(false);  // "Create invoice for period...?" No
+        AddLineAndLockPrepaidContractForBug629850(ServiceContractHeader, ServiceContractLineB);
+
+        // [GIVEN] Item C added at 03/01, user declines to create an invoice.
+        // Note: Contract remains Open after declining invoice, so no confirms fire for Item C
+        WorkDate(MarFirst);
+        AddLineAndLockPrepaidContractForBug629850(ServiceContractHeader, ServiceContractLineC);
+
+        // [WHEN] At 04/01 the retrospective invoice is created covering 02/01..03/31.
+        WorkDate(CalcDate('<CM+1D>', MarEnd));
+        ServiceContractHeader.Find();
+        // Ensure contract is locked (declining invoice in AddendumToContract may leave it Open)
+        if ServiceContractHeader."Change Status" = ServiceContractHeader."Change Status"::Open then begin
+            ServiceContractHeader."Change Status" := ServiceContractHeader."Change Status"::Locked;
+            ServiceContractHeader.Modify();
+        end;
+        ServContractManagement.InitCodeUnit();
+        ServContractManagement.CreateInvoice(ServiceContractHeader);
+
+        // [THEN] The service line for item C has description '03/01 - 03/31', not '02/01 - 03/31'.
+        ServiceHeader.SetRange("Document Type", ServiceHeader."Document Type"::Invoice);
+        ServiceHeader.SetRange("Contract No.", ServiceContractHeader."Contract No.");
+        ServiceHeader.FindFirst();
+        ServiceLine.SetRange("Document Type", ServiceLine."Document Type"::Invoice);
+        ServiceLine.SetRange("Document No.", ServiceHeader."No.");
+        ServiceLine.SetRange(Type, ServiceLine.Type::"G/L Account");
+        ServiceLine.SetFilter(Description, '*' + Format(MarFirst) + '*');
+        ServiceLine.FindFirst();
+        Assert.AreEqual(
+            StrSubstNo('%1 - %2', Format(MarFirst), Format(MarEnd)),
+            ServiceLine.Description,
+            ServiceLineStartDateErr);
+
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('DequeueReplyConfirmHandler,MessageHandler')]
+    [Scope('OnPrem')]
+    procedure InvoicedToDateResetForNewPrepaidContractItemsAfterDeletingRetrospectiveInvoice()
+    var
+        ServiceContractHeader: Record "Service Contract Header";
+        ServiceContractLineA: Record "Service Contract Line";
+        ServiceContractLineB: Record "Service Contract Line";
+        ServiceContractLineC: Record "Service Contract Line";
+        ServiceHeader: Record "Service Header";
+        ServContractManagement: Codeunit ServContractManagement;
+        Year: Integer;
+        JanFirst: Date;
+        FebFirst: Date;
+        MarFirst: Date;
+        MarEnd: Date;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 629850] Deleting the retrospective invoice for newly added prepaid contract items resets "Invoiced to Date" to 0D for those items.
+
+        Initialize();
+
+        // [GIVEN] Quarterly prepaid contract starting Jan 1, with item A, signed silently.
+        Year := Date2DMY(WorkDate(), 3);
+        JanFirst := DMY2Date(1, 1, Year);
+        FebFirst := DMY2Date(1, 2, Year);
+        MarFirst := DMY2Date(1, 3, Year);
+        MarEnd := CalcDate('<CM>', MarFirst);
+        WorkDate(JanFirst);
+        LibraryVariableStorage.Enqueue(false);  // "Create contract using template?" No (to allow Prepaid=true)
+        CreatePrepaidQuarterlyContractAndSignForBug629850(ServiceContractHeader, ServiceContractLineA);
+
+        // [GIVEN] Item B added at 02/01, user declines to create an invoice.
+        WorkDate(FebFirst);
+        LibraryVariableStorage.Enqueue(true);   // "Do you want to open service contract...?" Yes
+        LibraryVariableStorage.Enqueue(true);   // "New lines have been added..." Yes
+        LibraryVariableStorage.Enqueue(true);   // "Next Planned Service Date is 0D" Yes
+        LibraryVariableStorage.Enqueue(false);  // "Create invoice for period...?" No
+        AddLineAndLockPrepaidContractForBug629850(ServiceContractHeader, ServiceContractLineB);
+
+        // [GIVEN] Item C added at 03/01, user declines to create an invoice.
+        // Note: Contract remains Open after declining invoice, so no confirms fire for Item C
+        WorkDate(MarFirst);
+        AddLineAndLockPrepaidContractForBug629850(ServiceContractHeader, ServiceContractLineC);
+
+        // [GIVEN] At 04/01 the retrospective invoice is created covering 02/01..03/31.
+        WorkDate(CalcDate('<CM+1D>', MarEnd));
+        ServiceContractHeader.Find();
+        // Ensure contract is locked (declining invoice in AddendumToContract may leave it Open)
+        if ServiceContractHeader."Change Status" = ServiceContractHeader."Change Status"::Open then begin
+            ServiceContractHeader."Change Status" := ServiceContractHeader."Change Status"::Locked;
+            ServiceContractHeader.Modify();
+        end;
+        ServContractManagement.InitCodeUnit();
+        ServContractManagement.CreateInvoice(ServiceContractHeader);
+
+        // [WHEN] The retrospective invoice is deleted.
+        ServiceHeader.SetRange("Document Type", ServiceHeader."Document Type"::Invoice);
+        ServiceHeader.SetRange("Contract No.", ServiceContractHeader."Contract No.");
+        // Enqueue confirmations for each invoice deletion, then delete in reverse order (latest first)
+        ServiceHeader.FindSet();
+        repeat
+            LibraryVariableStorage.Enqueue(true);  // "Deleting will restore previous invoice dates..." Yes
+        until ServiceHeader.Next() = 0;
+        while ServiceHeader.FindLast() do
+            ServiceHeader.Delete(true);
+
+        // [THEN] Items B and C have "Invoiced to Date" = 0D.
+        ServiceContractLineB.Get(ServiceContractLineB."Contract Type", ServiceContractLineB."Contract No.", ServiceContractLineB."Line No.");
+        Assert.AreEqual(0D, ServiceContractLineB."Invoiced to Date", ItemBInvoicedToDateErr);
+
+        ServiceContractLineC.Get(ServiceContractLineC."Contract Type", ServiceContractLineC."Contract No.", ServiceContractLineC."Line No.");
+        Assert.AreEqual(0D, ServiceContractLineC."Invoiced to Date", ItemCInvoicedToDateErr);
+
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -3528,5 +3682,70 @@ codeunit 136145 "Service Contracts II"
         ServiceLine.SetRange("Document No.", ServiceHeader."No.");
         ServiceLine.SetRange(Type, ServiceLine.Type::"G/L Account");
         exit(ServiceLine.Count);
+    end;
+
+    local procedure CreatePrepaidQuarterlyContractAndSignForBug629850(
+        var ServiceContractHeader: Record "Service Contract Header";
+        var ServiceContractLine: Record "Service Contract Line")
+    var
+        ServiceItem: Record "Service Item";
+    begin
+        LibraryService.CreateServiceContractHeader(
+            ServiceContractHeader,
+            ServiceContractHeader."Contract Type"::Contract,
+            LibrarySales.CreateCustomerNo());
+        ServiceContractHeader.Validate(Prepaid, true);
+        ServiceContractHeader.Validate("Invoice Period", ServiceContractHeader."Invoice Period"::Quarter);
+        ServiceContractHeader.Validate("Starting Date", WorkDate());
+        ServiceContractHeader.Validate("Contract Lines on Invoice", true);
+        ServiceContractHeader.Validate("Serv. Contract Acc. Gr. Code", CreateAndUpdateServiceContractAccountGroup());
+        Evaluate(ServiceContractHeader."Service Period", '<3M>');
+        ServiceContractHeader.Modify(true);
+
+        LibraryService.CreateServiceItem(ServiceItem, ServiceContractHeader."Customer No.");
+        LibraryService.CreateServiceContractLine(ServiceContractLine, ServiceContractHeader, ServiceItem."No.");
+        ServiceContractLine.Validate("Line Cost", 12000);
+        ServiceContractLine.Validate("Line Value", 12000);
+        ServiceContractLine.Validate("Service Period", ServiceContractHeader."Service Period");
+        ServiceContractLine.Validate("Next Planned Service Date", WorkDate());
+        ServiceContractLine.Modify(true);
+
+        UpdateAnnualAmountInServiceContract(ServiceContractHeader);
+        ServiceContractHeader.Validate("Starting Date");
+        ServiceContractHeader.Modify(true);
+
+        SignContractSilent(ServiceContractHeader);
+
+        // Simulate that Q1 (Jan-Mar) was already invoiced, so next invoice period starts Apr 1
+        ServiceContractHeader.Find();
+        ServiceContractHeader."Next Invoice Date" := CalcDate('<CQ+1D>', WorkDate());
+        ServiceContractHeader."Next Invoice Period Start" := CalcDate('<CQ+1D>', WorkDate());
+        ServiceContractHeader."Next Invoice Period End" := CalcDate('<CQ+1D+3M-1D>', WorkDate());
+        ServiceContractHeader."Last Invoice Date" := CalcDate('<CQ>', WorkDate());
+        ServiceContractHeader."Last Invoice Period End" := CalcDate('<CQ>', WorkDate());
+        ServiceContractHeader.Modify();
+    end;
+
+    local procedure AddLineAndLockPrepaidContractForBug629850(
+        var ServiceContractHeader: Record "Service Contract Header";
+        var ServiceContractLine: Record "Service Contract Line")
+    var
+        LockOpenServContract: Codeunit "Lock-OpenServContract";
+    begin
+        ServiceContractHeader.Find();
+        LockOpenServContract.OpenServContract(ServiceContractHeader);
+        ServiceContractHeader.Find();
+        CreateServiceContractLine(ServiceContractLine, ServiceContractHeader, 0D);
+        UpdateAnnualAmountInServiceContract(ServiceContractHeader);
+        ServiceContractHeader.Find();
+        LockOpenServContract.LockServContract(ServiceContractHeader);
+        ServiceContractHeader.Find();
+    end;
+
+    [ConfirmHandler]
+    [Scope('OnPrem')]
+    procedure DequeueReplyConfirmHandler(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Reply := LibraryVariableStorage.DequeueBoolean();
     end;
 }

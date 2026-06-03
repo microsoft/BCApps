@@ -470,11 +470,6 @@ table 1383 "Vendor Templ."
         {
             Caption = 'Registration No.';
         }
-        field(5005270; "Delivery Reminder Terms"; Code[10])
-        {
-            Caption = 'Delivery Reminder Terms';
-            TableRelation = "Delivery Reminder Term";
-        }
         field(5055250; "Liq. Payment Terms Code"; Code[10])
         {
             Caption = 'Liq. Payment Terms Code';

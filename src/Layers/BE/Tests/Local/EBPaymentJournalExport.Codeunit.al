@@ -63,6 +63,7 @@ codeunit 144008 "EB - Payment Journal Export"
         YouCannotCreateDocumentCustomerPrivacyBlockedErr: Label 'You cannot create this type of document when Customer %1 is blocked for privacy.', Comment = '%1 - Customer No';
         InterbankClearingCodeOptionRef: Option " ",Normal,Urgent;
         PaymentMessageTxt: Label '011397265378';
+        SEPA00100109OutputFileName: Text;
 
     [Test]
     [HandlerFunctions('SuggestVendorPaymentsReportHandler,FileSEPAPaymentsReportHandler')]
@@ -1919,6 +1920,41 @@ codeunit 144008 "EB - Payment Journal Export"
         // Verify in OnBeforeDownloadXmlFile()
     end;
 
+
+    [Test]
+    [HandlerFunctions('FileSEPA00100109PmtsReportHandler')]
+    [Scope('OnPrem')]
+    procedure FileSEPA00100109PmtsConsolidatedLinesSeparatedByBeneficiaryIBAN()
+    var
+        PaymentJournalLine: Record "Payment Journal Line";
+        EBPaymentJournalExport: Codeunit "EB - Payment Journal Export";
+        FileName: Text;
+        BeneficiaryIBAN1: Code[50];
+        BeneficiaryIBAN2: Code[50];
+    begin
+        // [FEATURE] [SEPA] [File SEPA 001.001.09 Pmts]
+        // [SCENARIO 634902] Consolidated lines in File SEPA 001.001.09 Payments are grouped by Beneficiary IBAN
+        Initialize();
+
+        // [GIVEN] 3 Payment Journal Lines for the same vendor, 2 with IBAN1 and 1 with IBAN2
+        BeneficiaryIBAN1 := LibraryUtility.GenerateGUID();
+        BeneficiaryIBAN2 := LibraryUtility.GenerateGUID();
+        MockPaymentJnlLinesWithDifferentBeneficiaryIBAN(
+            PaymentJournalLine, PaymentJournalLine."Account Type"::Vendor,
+            LibraryPurchase.CreateVendorNo(), CreateSEPA00100109ExportProtocol(true),
+            3, BeneficiaryIBAN1, BeneficiaryIBAN2);
+
+        // [WHEN] Run File SEPA 001.001.09 Payments report
+        FileName := GenerateFileName();
+        SEPA00100109OutputFileName := FileName;
+        BindSubscription(EBPaymentJournalExport);
+        RunFileSEPA00100109PmtReport(PaymentJournalLine);
+        UnbindSubscription(EBPaymentJournalExport);
+
+        // Tear Down.
+        FileMgt.DeleteServerFile(FileName);
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"EB - Payment Journal Export");
@@ -2830,6 +2866,73 @@ codeunit 144008 "EB - Payment Journal Export"
         LibraryXMLRead.VerifyNodeValueInSubtree('CdtrAgt', 'Ctry', City);
     end;
 
+    local procedure MockPaymentJnlLinesWithDifferentBeneficiaryIBAN(var PaymentJournalLine: Record "Payment Journal Line"; AccountType: Option; AccountNo: Code[20]; ExportProtocol: Code[20]; NumberOfLines: Integer; BeneficiaryIBAN1: Code[50]; BeneficiaryIBAN2: Code[50])
+    var
+        PaymJournalBatch: Record "Paym. Journal Batch";
+        BeneficiaryBankAccNo: Code[20];
+        BankAccount: Code[20];
+        SwiftCode: Code[20];
+        i: Integer;
+    begin
+        CreatePaymentJnlBatch(PaymJournalBatch);
+        BeneficiaryBankAccNo := CopyStr(LibraryUtility.GenerateGUID(), 1, 20);
+        BankAccount := CopyStr(LibraryUtility.GenerateGUID(), 1, 20);
+        SwiftCode := CopyStr(LibraryUtility.GenerateGUID(), 1, 20);
+        for i := 1 to NumberOfLines do begin
+            PaymentJournalLine.Init();
+            PaymentJournalLine."Journal Template Name" := PaymJournalBatch."Journal Template Name";
+            PaymentJournalLine."Journal Batch Name" := PaymJournalBatch.Name;
+            PaymentJournalLine."Line No." := i * 10000;
+            PaymentJournalLine."Account Type" := AccountType;
+            PaymentJournalLine."Account No." := AccountNo;
+            PaymentJournalLine."Export Protocol Code" := ExportProtocol;
+            PaymentJournalLine."Payment Message" := LibraryUtility.GenerateGUID();
+            PaymentJournalLine.Amount := LibraryRandom.RandDec(10, 2);
+            PaymentJournalLine."Beneficiary Bank Account No." := BeneficiaryBankAccNo;
+            if i <= 2 then
+                PaymentJournalLine."Beneficiary IBAN" := BeneficiaryIBAN1
+            else
+                PaymentJournalLine."Beneficiary IBAN" := BeneficiaryIBAN2;
+            PaymentJournalLine."SWIFT Code" := SwiftCode;
+            PaymentJournalLine."Bank Country/Region Code" := PaymJournalBatch.Name;
+            PaymentJournalLine."Bank Account" := BankAccount;
+            PaymentJournalLine."Posting Date" := WorkDate();
+            PaymentJournalLine.Insert();
+        end;
+        PaymentJournalLine.SetFilter("Export Protocol Code", ExportProtocol);
+    end;
+
+    local procedure CreateSEPA00100109ExportProtocol(UseEuro: Boolean): Code[20]
+    var
+        ExportProtocol: Record "Export Protocol";
+    begin
+        ExportProtocol.Validate(Code, LibraryUtility.GenerateRandomCode(ExportProtocol.FieldNo(Code), DATABASE::"Export Protocol"));
+        ExportProtocol.Validate("Code Expenses", ExportProtocol."Code Expenses"::SHA);
+        if UseEuro then begin
+            ExportProtocol.Validate("Check Object ID", CODEUNIT::"Check SEPA Payments");
+            ExportProtocol.Validate("Export Object ID", REPORT::"File SEPA 001.001.09 Pmts")
+        end else begin
+            ExportProtocol.Validate("Check Object ID", CODEUNIT::"Check Non Euro SEPA Payments");
+            ExportProtocol.Validate("Export Object ID", REPORT::"File FCY SEPA 001.001.09 Pmts");
+        end;
+        ExportProtocol.Validate("Export No. Series", CreateNoSeries());
+        ExportProtocol.Insert(true);
+        exit(ExportProtocol.Code);
+    end;
+
+    local procedure RunFileSEPA00100109PmtReport(var PaymentJournalLine: Record "Payment Journal Line")
+    var
+        GenJournalBatch: Record "Gen. Journal Batch";
+    begin
+        CreateGenJnlBatch(GenJournalBatch);
+        LibraryVariableStorage.Enqueue(GenJournalBatch."Journal Template Name");
+        LibraryVariableStorage.Enqueue(GenJournalBatch.Name);
+        LibraryVariableStorage.Enqueue(false);
+        Commit();
+
+        Report.Run(Report::"File SEPA 001.001.09 Pmts", true, false, PaymentJournalLine);
+    end;
+
     [PageHandler]
     [Scope('OnPrem')]
     procedure ErrorPageHandler(var ExportCheckErrorLogs: TestPage "Export Check Error Logs")
@@ -2851,6 +2954,26 @@ codeunit 144008 "EB - Payment Journal Export"
     begin
     end;
 
+    [RequestPageHandler]
+    [Scope('OnPrem')]
+    procedure FileSEPA00100109PmtsReportHandler(var FileSEPA00100109Pmts: TestRequestPage "File SEPA 001.001.09 Pmts")
+    begin
+        FileSEPA00100109Pmts.JournalTemplateName.SetValue(LibraryVariableStorage.DequeueText());
+        FileSEPA00100109Pmts.JournalBatch.SetValue(LibraryVariableStorage.DequeueText());
+        FileSEPA00100109Pmts.AutomaticPosting.SetValue(LibraryVariableStorage.DequeueBoolean());
+        FileSEPA00100109Pmts.ExecutionDate.SetValue(WorkDate());
+        FileSEPA00100109Pmts.OK().Invoke();
+    end;
+
+    [EventSubscriber(ObjectType::Report, Report::"File SEPA 001.001.09 Pmts", 'OnBeforeDownloadXmlFile', '', false, false)]
+    local procedure OnBeforeDownloadXmlFileSEPA00100109(var TempBlob: Codeunit "Temp Blob"; var IsHandled: Boolean)
+    begin
+        if SEPA00100109OutputFileName = '' then
+            exit;
+        FileMgt.BLOBExportToServerFile(TempBlob, SEPA00100109OutputFileName);
+        IsHandled := true;
+    end;
+
     [EventSubscriber(ObjectType::Report, Report::"File SEPA Payments", 'OnBeforeDownloadXmlFile', '', false, false)]
     local procedure OnBeforeDownloadXmlFile(var TempBlob: Codeunit "Temp Blob"; var IsHandled: Boolean)
     var
@@ -2864,4 +2987,5 @@ codeunit 144008 "EB - Payment Journal Export"
         IsHandled := true;
     end;
 }
+
 

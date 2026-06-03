@@ -84,6 +84,9 @@ codeunit 18435 "Reference Invoice No. Mgt."
                     Error(SameDocErr);
 
                 if RefInvNo."Source Type" = RefInvNo."Source Type"::Vendor then begin
+                    if ReferenceInvoiceNo."Reference Invoice Nos." = '' then
+                        Error(VendInvNoErr, RefInvNo."Document No.");
+
                     VendorLedgerEntry.SetCurrentKey("Document No.", "Vendor No.", "Entry No.");
                     VendorLedgerEntry.SetRange("Vendor No.", RefInvNo."Source No.");
                     VendorLedgerEntry.SetRange("Document No.", ReferenceInvoiceNo."Reference Invoice Nos.");
@@ -99,6 +102,8 @@ codeunit 18435 "Reference Invoice No. Mgt."
                         GSTDocumentType := GenJnlDocumentType2GSTDocumentType(VendorLedgerEntry."Document Type");
                         DetailedGSTLedgerEntry.SetRange("Document Type", GSTDocumentType);
                         DetailedGSTLedgerEntry.SetRange("Source No.", RefInvNo."Source No.");
+                        if DetailedGSTLedgerEntry.IsEmpty() then
+                            DetailedGSTLedgerEntry.SetRange("Source No.");
                         if not DetailedGSTLedgerEntry.IsEmpty() then begin
                             if not ReferenceInvoiceNo.Verified then
                                 ReferenceInvoiceNo.Verified := true;

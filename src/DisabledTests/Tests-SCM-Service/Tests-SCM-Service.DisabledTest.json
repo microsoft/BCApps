@@ -5618,5 +5618,55 @@
     "codeunitId": 136511,
     "codeunitName": "Service Timesheet Posting UT",
     "method": "TestWithoutTimeSheet_ServiceOrderShip"
+  },
+  {
+    "codeunitId": 136130,
+    "codeunitName": "Service Statistics",
+    "method": "OrderStatisticsCost"
+  },
+  {
+    "codeunitId": 136130,
+    "codeunitName": "Service Statistics",
+    "method": "OrderWithPriceIncludingVAT"
+  },
+  {
+    "codeunitId": 136130,
+    "codeunitName": "Service Statistics",
+    "method": "OrderStatisticsCostNM"
+  },
+  {
+    "codeunitId": 136130,
+    "codeunitName": "Service Statistics",
+    "method": "OrderWithPriceIncludingVATNM"
+  },
+  {
+    "codeunitId": 136131,
+    "codeunitName": "Service Demand Overview",
+    "method": "ReservationQuantityForJobDemandAndTransferSupplyReserveFromSupply"
+  },
+  {
+    "codeunitId": 136131,
+    "codeunitName": "Service Demand Overview",
+    "method": "ReservationQuantityForServiceDemandAndTransferSupplyReserveFromSupply"
+  },
+  {
+    "codeunitId": 136131,
+    "codeunitName": "Service Demand Overview",
+    "method": "ReservationQuantityForJobDemandAndTransferSupplyReserveFromSupply"
+  },
+  {
+    "codeunitId": 136131,
+    "codeunitName": "Service Demand Overview",
+    "method": "ReservationQuantityForServiceDemandAndTransferSupplyReserveFromSupply"
+  },
+  {
+    "codeunitId": 136131,
+    "codeunitName": "Service Demand Overview",
+    "method": "ReservationQuantityForJobDemandAndTransferSupplyReserveFromSupply"
+  },
+  {
+    "codeunitId": 136131,
+    "codeunitName": "Service Demand Overview",
+    "method": "ReservationQuantityForServiceDemandAndTransferSupplyReserveFromSupply"
   }
 ]

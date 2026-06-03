@@ -1256,7 +1256,7 @@ codeunit 137084 "SCM Production Orders V"
         CompItem.Modify(true);
 
         // [GIVEN] Create Production item with Replenishment System "Prod. Order" and production BOM containing component.
-        CreateCertifiedProductionBOM(ProductionBOMHeader, CompItem);
+        LibraryManufacturing.CreateCertifiedProductionBOM(ProductionBOMHeader, CompItem."No.", 1);
         LibraryInventory.CreateItem(ProdItem);
         ProdItem.Validate("Replenishment System", ProdItem."Replenishment System"::"Prod. Order");
         ProdItem.Validate("Reordering Policy", ProdItem."Reordering Policy"::Order);
@@ -1315,7 +1315,7 @@ codeunit 137084 "SCM Production Orders V"
         CompItem.Modify(true);
 
         // [GIVEN] Create Production item with Replenishment System "Prod. Order" and production BOM containing component.
-        CreateCertifiedProductionBOM(ProductionBOMHeader, CompItem);
+        LibraryManufacturing.CreateCertifiedProductionBOM(ProductionBOMHeader, CompItem."No.", 1);
         LibraryInventory.CreateItem(ProdItem);
         ProdItem.Validate("Replenishment System", ProdItem."Replenishment System"::"Prod. Order");
         ProdItem.Validate("Reordering Policy", ProdItem."Reordering Policy"::Order);
@@ -1671,17 +1671,6 @@ codeunit 137084 "SCM Production Orders V"
         ProdOrderLine.FindFirst();
     end;
 
-    local procedure CreateCertifiedProductionBOM(var ProductionBOMHeader: Record "Production BOM Header"; CompItem: Record Item)
-    var
-        ProductionBOMLine: Record "Production BOM Line";
-    begin
-        LibraryManufacturing.CreateProductionBOMHeader(ProductionBOMHeader, CompItem."Base Unit of Measure");
-        LibraryManufacturing.CreateProductionBOMLine(
-            ProductionBOMHeader, ProductionBOMLine, '', ProductionBOMLine.Type::Item, CompItem."No.", 1);
-        ProductionBOMHeader.Validate(Status, ProductionBOMHeader.Status::Certified);
-        ProductionBOMHeader.Modify(true);
-    end;
-
     local procedure CreateLotTrackedPurchaseItem(var Item: Record Item)
     var
         ItemTrackingCode: Record "Item Tracking Code";
@@ -1701,7 +1690,7 @@ codeunit 137084 "SCM Production Orders V"
         ProductionBOMHeader: Record "Production BOM Header";
     begin
         LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, false, true);
-        CreateCertifiedProductionBOM(ProductionBOMHeader, ComponentItem);
+        LibraryManufacturing.CreateCertifiedProductionBOM(ProductionBOMHeader, ComponentItem."No.", 1);
         LibraryInventory.CreateItem(Item);
         Item.Validate("Item Tracking Code", ItemTrackingCode.Code);
         Item.Validate("Lot Nos.", LibraryUtility.GetGlobalNoSeriesCode());

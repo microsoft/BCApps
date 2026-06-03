@@ -599,10 +599,10 @@ codeunit 4509 "Email - Outlook API Helper"
             ContentType := CopyStr(GetTextFromJsonObject(AttachmentObject, 'contentType'), 1, MaxStrLen(ContentType));
             ContentBytesBase64 := GetTextFromJsonObject(AttachmentObject, 'contentBytes');
             IsInline := GetBooleanFromJsonObject(AttachmentObject, 'isInline');
+            ContentId := '';
             if AttachmentObject.Get('contentId', JsonToken) then
-                ContentId := CopyStr(JsonToken.AsValue().AsText(), 1, MaxStrLen(ContentId))
-            else
-                ContentId := '';
+                if not JsonToken.AsValue().IsNull() then
+                    ContentId := CopyStr(JsonToken.AsValue().AsText(), 1, MaxStrLen(ContentId));
 
             Clear(TempBlob);
             TempBlob.CreateOutStream(AttachmentOutStream);

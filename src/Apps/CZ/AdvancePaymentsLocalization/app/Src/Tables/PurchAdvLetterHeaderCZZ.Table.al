@@ -708,6 +708,16 @@ table 31008 "Purch. Adv. Letter Header CZZ"
             TableRelation = "Language Selection"."Language Tag";
             DataClassification = CustomerContent;
         }
+        field(110; "Date Filter"; Date)
+        {
+            Caption = 'Date Filter';
+            FieldClass = FlowFilter;
+        }
+        field(111; "VAT Date Filter"; Date)
+        {
+            Caption = 'VAT Date Filter';
+            FieldClass = FlowFilter;
+        }
 #pragma warning disable AA0232
         field(200; "Amount Including VAT"; Decimal)
 #pragma warning restore AA0232
@@ -744,7 +754,10 @@ table 31008 "Purch. Adv. Letter Header CZZ"
             Caption = 'To Pay Amount';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = - sum("Purch. Adv. Letter Entry CZZ".Amount where("Purch. Adv. Letter No." = field("No."), "Entry Type" = filter("Initial Entry" | Payment | Close)));
+            CalcFormula = - sum("Purch. Adv. Letter Entry CZZ".Amount where("Purch. Adv. Letter No." = field("No."),
+                                                                            "Entry Type" = filter("Initial Entry" | Payment | Close),
+                                                                            "VAT Date" = field("VAT Date Filter"),
+                                                                            "Posting Date" = field("Date Filter")));
         }
         field(206; "To Pay (LCY)"; Decimal)
         {
@@ -753,7 +766,10 @@ table 31008 "Purch. Adv. Letter Header CZZ"
             Caption = 'To Pay Amount (LCY)';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = - sum("Purch. Adv. Letter Entry CZZ"."Amount (LCY)" where("Purch. Adv. Letter No." = field("No."), "Entry Type" = filter("Initial Entry" | Payment | Close)));
+            CalcFormula = - sum("Purch. Adv. Letter Entry CZZ"."Amount (LCY)" where("Purch. Adv. Letter No." = field("No."),
+                                                                                    "Entry Type" = filter("Initial Entry" | Payment | Close),
+                                                                                    "VAT Date" = field("VAT Date Filter"),
+                                                                                    "Posting Date" = field("Date Filter")));
         }
         field(210; "To Use"; Decimal)
         {
@@ -762,7 +778,10 @@ table 31008 "Purch. Adv. Letter Header CZZ"
             Caption = 'To Use Amount';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = sum("Purch. Adv. Letter Entry CZZ".Amount where("Purch. Adv. Letter No." = field("No."), "Entry Type" = filter(Payment | Usage | Close)));
+            CalcFormula = sum("Purch. Adv. Letter Entry CZZ".Amount where("Purch. Adv. Letter No." = field("No."),
+                                                                          "Entry Type" = filter(Payment | Usage | Close),
+                                                                          "VAT Date" = field("VAT Date Filter"),
+                                                                          "Posting Date" = field("Date Filter")));
         }
         field(211; "To Use (LCY)"; Decimal)
         {
@@ -771,7 +790,34 @@ table 31008 "Purch. Adv. Letter Header CZZ"
             Caption = 'To Use Amount (LCY)';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = sum("Purch. Adv. Letter Entry CZZ"."Amount (LCY)" where("Purch. Adv. Letter No." = field("No."), "Entry Type" = filter(Payment | Usage | Close | "VAT Adjustment")));
+            CalcFormula = sum("Purch. Adv. Letter Entry CZZ"."Amount (LCY)" where("Purch. Adv. Letter No." = field("No."),
+                                                                                  "Entry Type" = filter(Payment | Usage | Close | "VAT Adjustment"),
+                                                                                  "VAT Date" = field("VAT Date Filter"),
+                                                                                  "Posting Date" = field("Date Filter")));
+        }
+        field(215; "VAT Amount"; Decimal)
+        {
+            AutoFormatType = 1;
+            AutoFormatExpression = Rec."Currency Code";
+            Caption = 'VAT Amount';
+            Editable = false;
+            FieldClass = FlowField;
+            CalcFormula = sum("Purch. Adv. Letter Entry CZZ"."VAT Amount" where("Purch. Adv. Letter No." = field("No."),
+                                                                                "Entry Type" = filter("VAT Payment" | "VAT Usage" | "VAT Close"),
+                                                                                "VAT Date" = field("VAT Date Filter"),
+                                                                                "Posting Date" = field("Date Filter")));
+        }
+        field(216; "VAT Amount (LCY)"; Decimal)
+        {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
+            Caption = 'VAT Amount (LCY)';
+            Editable = false;
+            FieldClass = FlowField;
+            CalcFormula = sum("Purch. Adv. Letter Entry CZZ"."VAT Amount (LCY)" where("Purch. Adv. Letter No." = field("No."),
+                                                                                      "Entry Type" = filter("VAT Payment" | "VAT Usage" | "VAT Close" | "VAT Adjustment" | "VAT Rate"),
+                                                                                      "VAT Date" = field("VAT Date Filter"),
+                                                                                      "Posting Date" = field("Date Filter")));
         }
         field(220; "Doc. Amount Incl. VAT"; Decimal)
         {

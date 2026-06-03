@@ -4,30 +4,23 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
-using Microsoft.Manufacturing.Document;
 using Microsoft.Purchases.Document;
-using Microsoft.Utilities;
-using System.Utilities;
 
 pageextension 99001524 "Subc. PO Subform" extends "Purchase Order Subform"
 {
-    actions
+    layout
     {
-        addlast("F&unctions")
+        addlast(Control1)
         {
-            action(CreateProdOrder)
+            field("Transfer WIP Item"; Rec."Transfer WIP Item")
             {
                 ApplicationArea = Manufacturing;
-                Caption = 'Create Production Order';
-                Image = CreateSerialNo;
-                ToolTip = 'Create the production order for the current purchase order.';
-                trigger OnAction()
-                begin
-                    Rec.TestStatusOpen();
-                    CreateProductionOrder(Codeunit::"Subc. CrPurchSubcon(Yes/No)", true);
-                end;
+                Visible = false;
             }
         }
+    }
+    actions
+    {
         addafter("F&unctions")
         {
             group(Production)
@@ -91,49 +84,10 @@ pageextension 99001524 "Subc. PO Subform" extends "Purchase Order Subform"
             }
         }
     }
+
     var
         SubcProdOrderFactboxMgmt: Codeunit "Subc. ProdO. Factbox Mgmt.";
         SubcPurchFactboxMgmt: Codeunit "Subc. Purch. Factbox Mgmt.";
-
-    local procedure CreateProductionOrder(CreatingCodeunitID: Integer; ShowCreatedDocument: Boolean)
-    var
-        ErrorMessageHandler: Codeunit "Error Message Handler";
-        ErrorMessageManagement: Codeunit "Error Message Management";
-        InstructionMgt: Codeunit "Instruction Mgt.";
-        SubcNotificationMgmt: Codeunit "Subc. Notification Mgmt.";
-        ProdOrderCreated: Boolean;
-    begin
-        ErrorMessageManagement.Activate(ErrorMessageHandler);
-
-        Commit(); // Used for following call of codeunit run
-        ProdOrderCreated := Codeunit.Run(CreatingCodeunitID, Rec);
-
-        if CreatingCodeunitID <> Codeunit::"Subc. CrPurchSubcon(Yes/No)" then
-            exit;
-
-        if ProdOrderCreated then begin
-            if ShowCreatedDocument then
-                if InstructionMgt.IsEnabled(SubcNotificationMgmt.ShowCreatedProductionOrderConfirmationMessageCode()) then
-                    ShowCreatedProdOrderConfirmationMessage()
-        end else
-            ErrorMessageHandler.ShowErrors();
-    end;
-
-    local procedure ShowCreatedProdOrderConfirmationMessage()
-    var
-        ProductionOrder: Record "Production Order";
-        InstructionMgt: Codeunit "Instruction Mgt.";
-        PageManagement: Codeunit "Page Management";
-        SubcNotificationMgmt: Codeunit "Subc. Notification Mgmt.";
-        OpenCreatedTransferOrderQst: Label 'The production order %1 was created from the current purchase order.\\Would you like to open the production order?', Comment = '%1=Production Order No.';
-    begin
-        ProductionOrder.SetRange(Status, "Production Order Status"::Released);
-        ProductionOrder.SetRange("No.", Rec."Prod. Order No.");
-        if ProductionOrder.FindFirst() then
-            if InstructionMgt.ShowConfirm(StrSubstNo(OpenCreatedTransferOrderQst, ProductionOrder."No."),
-              SubcNotificationMgmt.ShowCreatedProductionOrderConfirmationMessageCode()) then
-                PageManagement.PageRun(ProductionOrder);
-    end;
 
     local procedure ShowProductionOrder(RecRelatedVariant: Variant)
     begin

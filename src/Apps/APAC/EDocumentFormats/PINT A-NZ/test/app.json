@@ -54,6 +54,9 @@
       "to": 148004
     }
   ],
+  "resourceFolders": [
+    ".resources"
+  ],
   "resourceExposurePolicy": {
     "allowDebugging": true,
     "allowDownloadingSource": true,

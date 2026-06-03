@@ -12,17 +12,17 @@ pageextension 99001516 "Subc. Vendor Card" extends "Vendor Card"
     {
         addafter("Location Code")
         {
-            field("Subcontr. Location Code"; Rec."Subcontr. Location Code")
+            field("Subcr. Location Code"; Rec."Subc. Location Code")
             {
                 ApplicationArea = Manufacturing;
                 ToolTip = 'Specifies the subcontracting location where items from the vendor must be received by default after having performed an outside work.';
             }
-            field("Linked to Work Center"; Rec."Linked to Work Center")
+            field("Subc. Linked to Work Center"; Rec."Subc. Linked to Work Center")
             {
                 ApplicationArea = Manufacturing;
                 ToolTip = 'Specifies if a work center is related to the vendor.';
             }
-            field("Work Center No."; Rec."Work Center No.")
+            field("Subc. Work Center No."; Rec."Subc. Work Center No.")
             {
                 ApplicationArea = Manufacturing;
                 ToolTip = 'Specifies the work center for purchase provision related to the vendor.';

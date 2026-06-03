@@ -79,11 +79,19 @@ page 4358 "Agent Message Attachments"
                 Image = Import;
 
                 trigger OnAction()
+                var
+                    TempLastAgentTaskFile: Record "Agent Task File" temporary;
                 begin
+                    TempLastAgentTaskFile.Copy(Rec, true);
+                    TempLastAgentTaskFile.Reset();
+                    TempLastAgentTaskFile.SetCurrentKey(ID);
+                    if TempLastAgentTaskFile.FindLast() then;
+
                     if not AgentTaskMessageBuilder.UploadAttachment() then
                         exit;
+
                     Rec := AgentTaskMessageBuilder.GetLastAttachment();
-                    Rec.ID := Rec.Count() + 1;
+                    Rec.ID := TempLastAgentTaskFile.ID + 1;
                     Rec.Insert();
                 end;
             }

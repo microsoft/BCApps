@@ -1224,7 +1224,8 @@ codeunit 1002 "Job Create-Invoice"
         if Job."Task Billing Method" = Job."Task Billing Method"::"One customer" then
             Job.TestField("Bill-to Customer No.")
         else
-            JobTask.TestField("Bill-to Customer No.");
+            if JobTask."Job Task Type" = JobTask."Job Task Type"::Posting then
+                JobTask.TestField("Bill-to Customer No.");
     end;
 
     local procedure ReturnBillToCustomerNoDependingOnTaskBillingMethod(Job: Record Job; JobTask2: Record "Job Task"): Code[20]

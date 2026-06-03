@@ -1167,7 +1167,7 @@ UpdateDifferenceAmount(SalesHeader, TotalPrepmtInvLineBuffer, TempPrepmtInvLineB
                             NewAmountIncludingVAT := NewAmount + Round(VATAmount, Currency."Amount Rounding Precision");
                         end;
                         if DocumentType = DocumentType::"Credit Memo" then
-                            NewAmountIncludingVAT := CalcDifferAmt(SalesLine, NewAmountIncludingVAT);
+                            NewAmountIncludingVAT := CalcDifferAmt(SalesLine, NewAmountIncludingVAT, Currency."Amount Rounding Precision");
 
                         SalesLine."Prepayment Amount" := NewAmount;
                         SalesLine."Prepmt. Amt. Incl. VAT" :=
@@ -1947,14 +1947,14 @@ UpdateDifferenceAmount(SalesHeader, TotalPrepmtInvLineBuffer, TempPrepmtInvLineB
         PreviewMode := NewPreviewMode;
     end;
 
-    local procedure CalcDifferAmt(SalesLine: Record "Sales Line"; NewAmountIncludingVAT: Decimal): Decimal
+    local procedure CalcDifferAmt(SalesLine: Record "Sales Line"; NewAmountIncludingVAT: Decimal; AmtRoundingPrecision: Decimal): Decimal
     var
         AmountInclVAT: Decimal;
         AmountInclVATDiff: Decimal;
     begin
         if SalesLine."Prepayment %" = 100 then begin
             AmountInclVATDiff := NewAmountIncludingVAT - SalesLine."Prepmt. Amt. Incl. VAT";
-            if AmountInclVATDiff <> 0 then
+            if (AmountInclVATDiff <> 0) and (Abs(AmountInclVATDiff) <= AmtRoundingPrecision) then
                 AmountInclVAT := NewAmountIncludingVAT - AmountInclVATDiff
             else
                 AmountInclVAT := NewAmountIncludingVAT;

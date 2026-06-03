@@ -20,6 +20,7 @@ permissionsetextension 18662 "D365 BASIC ISV - India TDS" extends "D365 BASIC IS
                   tabledata "Provisional Entry" = RIMD,
                   tabledata "TDS Challan Register" = RIMD,
                   tabledata "TDS Concessional Code" = RIMD,
+                  tabledata "TDS Concessional Code Archive" = RIMD,
                   tabledata "TDS Customer Concessional Code" = RIMD,
                   tabledata "TDS Entry" = RIMD,
                   tabledata "TDS Journal Batch" = RIMD,

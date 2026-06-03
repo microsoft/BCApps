@@ -22,6 +22,7 @@ codeunit 134451 "ERM Fixed Assets"
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryUtility: Codeunit "Library - Utility";
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
         isInitialized: Boolean;
         UnknownError: Label 'Unknown error.';
         DateConfirmMessage: Label 'Posting Date %1 is different from Work Date %2.Do you want to continue?';
@@ -3562,6 +3563,60 @@ codeunit 134451 "ERM Fixed Assets"
         Assert.IsTrue(PurchInvHeader.Get(DocumentNo), PurchaseInvoicePostedLbl);
     end;
 
+    [Test]
+    [HandlerFunctions('DepreciationCalcConfirmHandler,FAPostingTypesOvervMatrixModalHandler')]
+    [Scope('OnPrem')]
+    procedure FAPostingTypesOverviewShowsZeroAfterDisposal()
+    var
+        DepreciationBook: Record "Depreciation Book";
+        FixedAsset: Record "Fixed Asset";
+        FAJournalBatch: Record "FA Journal Batch";
+        FAJournalLine: Record "FA Journal Line";
+        FADepreciationBook: Record "FA Depreciation Book";
+        FAPostingTypesOverview: TestPage "FA Posting Types Overview";
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 632772] FA Posting Types Overview Matrix shows zero for Acquisition Cost and Depreciation after complete disposal of a fixed asset.
+        Initialize();
+
+        // [GIVEN] Fixed Asset with Depreciation Book, Acquisition Cost and Depreciation posted.
+        CreateFixedAssetSetup(DepreciationBook);
+        LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset);
+        CreateFADepreciationBook(FixedAsset."No.", DepreciationBook.Code, FixedAsset."FA Posting Group");
+        UpdateIntegrationInBook(DepreciationBook, false, false, false);
+        UpdateAllowCorrectionInBook(DepreciationBook);
+
+        CreateFAJournalBatch(FAJournalBatch);
+        CreateFAJournalLine(
+            FAJournalLine, FAJournalBatch, FAJournalLine."FA Posting Type"::"Acquisition Cost",
+            FixedAsset."No.", DepreciationBook.Code, LibraryRandom.RandDecInRange(1000, 2000, 2));
+        LibraryFixedAsset.PostFAJournalLine(FAJournalLine);
+
+        RunCalculateDepreciation(FixedAsset."No.", DepreciationBook.Code, false);
+        PostDepreciationWithDocumentNo(DepreciationBook.Code);
+
+        // [WHEN] Complete disposal is posted.
+        FADepreciationBook.Get(FixedAsset."No.", DepreciationBook.Code);
+        CreateFAJournalBatch(FAJournalBatch);
+        CreateFAJournalLine(
+            FAJournalLine, FAJournalBatch, FAJournalLine."FA Posting Type"::Disposal,
+            FixedAsset."No.", DepreciationBook.Code, 0);
+        FAJournalLine.Validate("Posting Date", CalcDate('<1D>', WorkDate()));
+        FAJournalLine.Validate("FA Posting Date", CalcDate('<1D>', WorkDate()));
+        FAJournalLine.Modify(true);
+        LibraryFixedAsset.PostFAJournalLine(FAJournalLine);
+
+        // [THEN] FA Posting Types Overview Matrix shows zero for Book Value, Acquisition Cost, and Depreciation.
+        LibraryVariableStorage.Enqueue(FixedAsset."No.");
+        LibraryVariableStorage.Enqueue(DepreciationBook.Code);
+        FAPostingTypesOverview.OpenView();
+        FAPostingTypesOverview.Filter.SetFilter("No.", FixedAsset."No.");
+        FAPostingTypesOverview.ShowMatrix.Invoke();
+        FAPostingTypesOverview.Close();
+        VerifyFAPostingTypesOverviewValues();
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
     local procedure Initialize()
     var
         DimValue: Record "Dimension Value";
@@ -3595,6 +3650,7 @@ codeunit 134451 "ERM Fixed Assets"
         LibraryERMCountryData.UpdateSalesReceivablesSetup();
         LibraryERMCountryData.UpdateLocalData();
         LibrarySetupStorage.Save(DATABASE::"Purchases & Payables Setup");
+        LibrarySetupStorage.Save(DATABASE::"FA Setup");
         isInitialized := true;
         Commit();
         LibraryTestInitialize.OnAfterTestSuiteInitialize(CODEUNIT::"ERM Fixed Assets");
@@ -4685,6 +4741,13 @@ codeunit 134451 "ERM Fixed Assets"
         end;
     end;
 
+    local procedure VerifyFAPostingTypesOverviewValues()
+    begin
+        Assert.AreEqual(0, LibraryVariableStorage.DequeueDecimal(), 'Book Value should be 0 after disposal.');
+        Assert.AreEqual(0, LibraryVariableStorage.DequeueDecimal(), 'Acquisition Cost should be 0 after disposal.');
+        Assert.AreEqual(0, LibraryVariableStorage.DequeueDecimal(), 'Depreciation should be 0 after disposal.');
+    end;
+
     [RequestPageHandler]
     [Scope('OnPrem')]
     procedure FADepreciationBooksHandler(var CreateFADepreciationBooks: TestRequestPage "Create FA Depreciation Books")
@@ -4739,6 +4802,23 @@ codeunit 134451 "ERM Fixed Assets"
     procedure FAJournalBatchesHandler(var FAJournalBatches: TestPage "FA Journal Batches")
     begin
         FAJournalBatches.Name.AssertEquals(FAJournalBatchName);
+    end;
+
+    [ModalPageHandler]
+    [Scope('OnPrem')]
+    procedure FAPostingTypesOvervMatrixModalHandler(var FAPostingTypesOvervMatrix: TestPage "FA Posting Types Overv. Matrix")
+    var
+        FANo: Code[20];
+        DepreciationBookCode: Code[10];
+    begin
+        FANo := CopyStr(LibraryVariableStorage.DequeueText(), 1, MaxStrLen(FANo));
+        DepreciationBookCode := CopyStr(LibraryVariableStorage.DequeueText(), 1, MaxStrLen(DepreciationBookCode));
+        FAPostingTypesOvervMatrix.Filter.SetFilter("FA No.", FANo);
+        FAPostingTypesOvervMatrix.Filter.SetFilter("Depreciation Book Code", DepreciationBookCode);
+        FAPostingTypesOvervMatrix.First();
+        LibraryVariableStorage.Enqueue(FAPostingTypesOvervMatrix.Field1.AsDecimal());
+        LibraryVariableStorage.Enqueue(FAPostingTypesOvervMatrix.Field2.AsDecimal());
+        LibraryVariableStorage.Enqueue(FAPostingTypesOvervMatrix.Field3.AsDecimal());
     end;
 
     [ConfirmHandler]

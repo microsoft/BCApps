@@ -24,12 +24,17 @@ codeunit 4614 "SMTP Message Impl"
         FromNameOrEmailHasChangedTxt: Label 'The name or address has changed.', Locked = true;
         ObfuscateLbl: Label '%1*%2@%3', Comment = '%1 = First character of username , %2 = Last character of username, %3 = Host', Locked = true;
         ContentIdLbl: Label 'cid:%1', Comment = '%1 = Content id', Locked = true;
+        TooManyInlineImagesErr: Label 'Cannot add more than %1 inline images to a single email.', Comment = '%1 = Maximum number of inline images';
+        LinkedResourceEntities: array[100] of DotNet MimeEntity;
+        LinkedResourceEntityCount: Integer;
 
     procedure Initialize()
     begin
         if IsNull(EmailMimeMessage) or IsNull(MimeBodyBuilder) then begin
             EmailMimeMessage := EmailMimeMessage.MimeMessage();
             MimeBodyBuilder := MimeBodyBuilder.BodyBuilder();
+            Clear(LinkedResourceEntities);
+            LinkedResourceEntityCount := 0;
         end;
     end;
 
@@ -109,6 +114,8 @@ codeunit 4614 "SMTP Message Impl"
     begin
         Initialize();
         MimeBodyBuilder := MimeBodyBuilder.BodyBuilder();
+        Clear(LinkedResourceEntities);
+        LinkedResourceEntityCount := 0;
 
         if HtmlFormatted then
             MimeBodyBuilder.HtmlBody := Body
@@ -131,6 +138,22 @@ codeunit 4614 "SMTP Message Impl"
         Initialize();
         EmailMimeMessage.Body := MimeBodyBuilder.ToMessageBody();
         MimeMessage := EmailMimeMessage;
+    end;
+
+    /// <summary>
+    /// Builds the underlying MimeMessage and calls Prepare() on it — the same
+    /// code path that MailKit's SmtpClient.Send() takes internally. Exposed for
+    /// tests so they can verify the message can be serialized without pulling
+    /// MimeKit into the test library.
+    /// </summary>
+    [TryFunction]
+    internal procedure TryPrepareMessage()
+    var
+        MimeMessage: DotNet MimeMessage;
+        EncodingConstraint: DotNet EncodingConstraint;
+    begin
+        GetMessage(MimeMessage);
+        MimeMessage.Prepare(EncodingConstraint.SevenBit);
     end;
 
     /// <summary>
@@ -194,7 +217,6 @@ codeunit 4614 "SMTP Message Impl"
         String: DotNet String;
         MimeUtils: DotNet MimeUtils;
         MimeContentType: DotNet MimeContentType;
-        MimeEntity: DotNet MimeEntity;
         DocumentSource: Text;
         ImageElementValue: Text;
         Base64Img: Text;
@@ -237,10 +259,8 @@ codeunit 4614 "SMTP Message Impl"
 
                     ContentId := Format(CreateGuid(), 0, 3);
 
-                    if TryAddLinkedResources(Filename, Base64Img, MimeContentType, MimeEntity) then begin
-                        MimeEntity.ContentId := ContentId;
-                        ImageElementAttribute.Value(StrSubstNo(ContentIdLbl, ContentId));
-                    end
+                    if TryAddLinkedResource(Filename, Base64Img, MimeContentType, ContentId) then
+                        ImageElementAttribute.Value(StrSubstNo(ContentIdLbl, ContentId))
                     else
                         exit(false);
                 end;
@@ -253,15 +273,24 @@ codeunit 4614 "SMTP Message Impl"
     end;
 
     /// <summary>
-    /// Tries to add the base64 image to linked resources.
+    /// Tries to add the base64 image to linked resources and assign the ContentId.
+    /// The MimeEntity wrapper is stored in a codeunit-level array to prevent
+    /// AL from auto-disposing it when the local variable goes out of scope.
+    /// See LinkedResourceEntities declaration for details.
     /// </summary>
     /// <returns>True if there is no error.</returns>
     [TryFunction]
-    local procedure TryAddLinkedResources(Filename: Text; Base64Img: Text; MimeContentType: DotNet MimeContentType; var MimeEntity: DotNet MimeEntity)
+    local procedure TryAddLinkedResource(Filename: Text; Base64Img: Text; MimeContentType: DotNet MimeContentType; ContentId: Text)
     var
+        MimeEntity: DotNet MimeEntity;
         Convert: DotNet Convert;
     begin
+        if LinkedResourceEntityCount >= ArrayLen(LinkedResourceEntities) then
+            Error(TooManyInlineImagesErr, ArrayLen(LinkedResourceEntities));
         MimeEntity := MimeBodyBuilder.LinkedResources.Add(Filename, Convert.FromBase64String(Base64Img), MimeContentType);
+        MimeEntity.ContentId := ContentId;
+        LinkedResourceEntityCount += 1;
+        LinkedResourceEntities[LinkedResourceEntityCount] := MimeEntity;
     end;
 
     local procedure StripNotsupportChrInFileName(InText: Text): Text

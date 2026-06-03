@@ -15,6 +15,7 @@ using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Company;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.HumanResources.Employee;
+using Microsoft.Inventory.Location;
 using Microsoft.Sales.Customer;
 using Microsoft.Service.Setup;
 using Microsoft.Utilities;
@@ -35,24 +36,44 @@ report 31198 "Service Credit Memo CZL"
         dataitem("Company Information"; "Company Information")
         {
             DataItemTableView = sorting("Primary Key");
+#if not CLEAN29
             column(CompanyAddr1; CompanyAddr[1])
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Replaced by CompanyAddress1 column in Service Cr.Memo Header dataitem to ensure address translation matches document language.';
+                ObsoleteTag = '29.0';
             }
             column(CompanyAddr2; CompanyAddr[2])
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Replaced by CompanyAddress2 column in Service Cr.Memo Header dataitem to ensure address translation matches document language.';
+                ObsoleteTag = '29.0';
             }
             column(CompanyAddr3; CompanyAddr[3])
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Replaced by CompanyAddress3 column in Service Cr.Memo Header dataitem to ensure address translation matches document language.';
+                ObsoleteTag = '29.0';
             }
             column(CompanyAddr4; CompanyAddr[4])
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Replaced by CompanyAddress4 column in Service Cr.Memo Header dataitem to ensure address translation matches document language.';
+                ObsoleteTag = '29.0';
             }
             column(CompanyAddr5; CompanyAddr[5])
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Replaced by CompanyAddress5 column in Service Cr.Memo Header dataitem to ensure address translation matches document language.';
+                ObsoleteTag = '29.0';
             }
             column(CompanyAddr6; CompanyAddr[6])
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Replaced by CompanyAddress6 column in Service Cr.Memo Header dataitem to ensure address translation matches document language.';
+                ObsoleteTag = '29.0';
             }
+#endif
             column(RegistrationNo_CompanyInformation; "Registration No.")
             {
             }
@@ -79,10 +100,12 @@ report 31198 "Service Credit Memo CZL"
                     }
                 }
             }
+#if not CLEAN29
             trigger OnAfterGetRecord()
             begin
                 FormatAddress.Company(CompanyAddr, "Company Information");
             end;
+#endif
         }
         dataitem("Service Cr.Memo Header"; "Service Cr.Memo Header")
         {
@@ -243,6 +266,24 @@ report 31198 "Service Credit Memo CZL"
             {
             }
             column(DocFooterText; DocFooterText)
+            {
+            }
+            column(CompanyAddress1; CompanyAddr[1])
+            {
+            }
+            column(CompanyAddress2; CompanyAddr[2])
+            {
+            }
+            column(CompanyAddress3; CompanyAddr[3])
+            {
+            }
+            column(CompanyAddress4; CompanyAddr[4])
+            {
+            }
+            column(CompanyAddress5; CompanyAddr[5])
+            {
+            }
+            column(CompanyAddress6; CompanyAddr[6])
             {
             }
             column(CustAddr1; CustAddr[1])
@@ -488,6 +529,7 @@ report 31198 "Service Credit Memo CZL"
             begin
                 CurrReport.Language := LanguageMgt.GetLanguageIdOrDefault("Language Code");
                 CurrReport.FormatRegion := LanguageMgt.GetFormatRegionOrDefault("Format Region");
+                FormatAddress.SetLanguageCode("Language Code");
 
                 FormatAddressFields("Service Cr.Memo Header");
                 FormatDocumentFields("Service Cr.Memo Header");
@@ -614,7 +656,10 @@ report 31198 "Service Credit Memo CZL"
     end;
 
     local procedure FormatAddressFields(ServiceCrMemoHeader: Record "Service Cr.Memo Header")
+    var
+        ResponsibilityCenter: Record "Responsibility Center";
     begin
+        FormatAddress.GetCompanyAddr(ServiceCrMemoHeader."Responsibility Center", ResponsibilityCenter, "Company Information", CompanyAddr);
         ServiceFormatAddress.ServiceCrMemoBillTo(CustAddr, ServiceCrMemoHeader);
         ServiceFormatAddress.ServiceCrMemoShipTo(ShipToAddr, CustAddr, ServiceCrMemoHeader);
     end;

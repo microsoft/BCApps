@@ -24,10 +24,18 @@ enum 4594 "SOA Email Attachment Status"
     }
     value(3; ExceedsPageCount)
     {
-        Caption = 'Exceeds Page Count';
+        Caption = 'Exceeds page count';
     }
     value(4; ExceedsNumberOfAttachments)
     {
         Caption = 'Exceeds maximum number of attachments';
+    }
+    value(5; ExceedsContentLength)
+    {
+        Caption = 'Exceeds content length';
+    }
+    value(6; AnalyzeAttachmentsNotEnabled)
+    {
+        Caption = 'Analyze attachments not enabled';
     }
 }

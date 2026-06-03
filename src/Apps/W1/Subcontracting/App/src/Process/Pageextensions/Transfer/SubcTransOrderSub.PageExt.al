@@ -10,57 +10,64 @@ pageextension 99001529 "Subc. Trans. Order Sub." extends "Transfer Order Subform
 {
     layout
     {
+        addafter(Description)
+        {
+            field("Transfer WIP Item"; Rec."Transfer WIP Item")
+            {
+                ApplicationArea = Manufacturing;
+            }
+        }
         addafter("Receipt Date")
         {
-            field("Subcontr. Purch. Order No."; Rec."Subcontr. Purch. Order No.")
+            field("Subc. Purch. Order No."; Rec."Subc. Purch. Order No.")
             {
                 ApplicationArea = Manufacturing;
                 Editable = false;
                 Visible = false;
             }
-            field("Subcontr. PO Line No."; Rec."Subcontr. PO Line No.")
+            field("Subc. Purch. Order Line No."; Rec."Subc. Purch. Order Line No.")
             {
                 ApplicationArea = Manufacturing;
                 Editable = false;
                 Visible = false;
             }
-            field("Prod. Order No."; Rec."Prod. Order No.")
+            field("Prod. Order No."; Rec."Subc. Prod. Order No.")
             {
                 ApplicationArea = Manufacturing;
                 Editable = false;
                 Visible = false;
             }
-            field("Prod. Order Line No."; Rec."Prod. Order Line No.")
+            field("Subc. Prod. Order Line No."; Rec."Subc. Prod. Order Line No.")
             {
                 ApplicationArea = Manufacturing;
                 Editable = false;
                 Visible = false;
             }
-            field("Prod. Order. Comp. Line No."; Rec."Prod. Order Comp. Line No.")
+            field("Subc. Prod. Ord. Comp. Line No."; Rec."Subc. Prod. Ord. Comp Line No.")
             {
                 ApplicationArea = Manufacturing;
                 Editable = false;
                 Visible = false;
             }
-            field("Routing No."; Rec."Routing No.")
+            field("Subc. Routing No."; Rec."Subc. Routing No.")
             {
                 ApplicationArea = Manufacturing;
                 Editable = false;
                 Visible = false;
             }
-            field("Routing Reference No."; Rec."Routing Reference No.")
+            field("Subc. Routing Reference No."; Rec."Subc. Routing Reference No.")
             {
                 ApplicationArea = Manufacturing;
                 Editable = false;
                 Visible = false;
             }
-            field("WorkCenter No."; Rec."Work Center No.")
+            field("Subc. WorkCenter No."; Rec."Subc. Work Center No.")
             {
                 ApplicationArea = Manufacturing;
                 Editable = false;
                 Visible = false;
             }
-            field("Operation No."; Rec."Operation No.")
+            field("Subc. Operation No."; Rec."Subc. Operation No.")
             {
                 ApplicationArea = Manufacturing;
                 Editable = false;
@@ -70,6 +77,26 @@ pageextension 99001529 "Subc. Trans. Order Sub." extends "Transfer Order Subform
     }
     actions
     {
+        modify(Reserve)
+        {
+            Enabled = not Rec."Transfer WIP Item";
+        }
+        modify(ReserveFromInventory)
+        {
+            Enabled = not Rec."Transfer WIP Item";
+        }
+        modify("Item &Tracking Lines")
+        {
+            Enabled = not Rec."Transfer WIP Item";
+        }
+        modify(Shipment)
+        {
+            Enabled = not Rec."Transfer WIP Item";
+        }
+        modify(Receipt)
+        {
+            Enabled = not Rec."Transfer WIP Item";
+        }
         addafter("F&unctions")
         {
             group(Production)

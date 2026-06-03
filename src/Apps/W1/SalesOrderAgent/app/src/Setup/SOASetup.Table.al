@@ -199,6 +199,12 @@ table 4325 "SOA Setup"
             Caption = 'Email Folder Id';
             ToolTip = 'Specifies the unique identifier of the email folder that the agent monitors.';
         }
+        field(31; "Mark Email As Read"; Boolean)
+        {
+            Caption = 'Mark email as read';
+            ToolTip = 'Specifies whether the agent marks emails as read after processing them.';
+            DataClassification = SystemMetadata;
+        }
         field(50; "User Security ID"; Guid)
         {
             DataClassification = SystemMetadata;

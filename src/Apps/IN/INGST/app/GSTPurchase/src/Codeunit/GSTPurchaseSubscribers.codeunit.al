@@ -1627,6 +1627,11 @@ codeunit 18080 "GST Purchase Subscribers"
             end;
         end else
             GSTPostingManagement.SetPaytoVendorNo(PurchaseHeader."Pay-to Vendor No.");
+
+        if (PurchaseHeader."Order Address Code" <> '') and (PurchaseHeader."Order Address GST Reg. No." <> '') then begin
+            GSTPostingManagement.SetBuyerSellerRegNo(PurchaseHeader."Order Address GST Reg. No.");
+            GSTPostingManagement.SetBuyerSellerStateCode(PurchaseHeader."GST Order Address State");
+        end;
     end;
 
     local procedure CheckUnregisteredReverseCharge(PurchHeader: Record "Purchase Header")

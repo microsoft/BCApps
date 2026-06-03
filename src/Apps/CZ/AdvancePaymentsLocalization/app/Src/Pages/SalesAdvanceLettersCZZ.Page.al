@@ -117,6 +117,18 @@ page 31170 "Sales Advance Letters CZZ"
                     ToolTip = 'Specifies to use (LCY) amount.';
                     Visible = false;
                 }
+                field("VAT Amount"; Rec."VAT Amount")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies VAT amount.';
+                    Visible = false;
+                }
+                field("VAT Amount (LCY)"; Rec."VAT Amount (LCY)")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies VAT amount (LCY).';
+                    Visible = false;
+                }
                 field("Variable Symbol"; Rec."Variable Symbol")
                 {
                     ApplicationArea = Basic, Suite;

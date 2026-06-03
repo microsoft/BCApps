@@ -22,6 +22,13 @@
   "features": [
     "TranslationFile"
   ],
+  "internalsVisibleTo": [
+    {
+      "id": "8238f78b-cbe5-4339-b247-7771145b7470",
+      "name": "E-Document Format for PINT A-NZ Tests",
+      "publisher": "Microsoft"
+    }
+  ],
   "screenshots": [],
   "platform": "29.0.0.0",
   "idRanges": [

@@ -1523,7 +1523,12 @@ report 840 "Suggest Worksheet Lines"
     local procedure CalculateLineAmountForPurchaseLine(PurchHeader2: Record "Purchase Header"; PurchaseLine: Record "Purchase Line"): Decimal
     var
         PrepmtAmtInvLCY: Decimal;
+        PurchaseAmount: Decimal;
     begin
+        PurchaseAmount := GetPurchaseAmountForCFLine(PurchaseLine);
+        if PurchaseAmount = 0 then
+            exit(0);
+
         if PurchHeader2."Currency Code" <> '' then begin
             Currency.Get(PurchHeader2."Currency Code");
             PrepmtAmtInvLCY :=
@@ -1533,14 +1538,13 @@ report 840 "Suggest Worksheet Lines"
                   PurchaseLine."Prepmt. Amt. Inv.", PurchHeader2."Currency Factor"),
                 Currency."Amount Rounding Precision");
         end else
-            if GetPurchaseAmountForCFLine(PurchaseLine) <> 0 then
-                PrepmtAmtInvLCY := PurchaseLine."Prepmt. Amt. Inv.";
+            PrepmtAmtInvLCY := PurchaseLine."Prepmt. Amt. Inv.";
 
         Currency.InitRoundingPrecision();
         if PurchHeader2."Prices Including VAT" then
-            exit(-(GetPurchaseAmountForCFLine(PurchaseLine) - PrepmtAmtInvLCY));
+            exit(-(PurchaseAmount - PrepmtAmtInvLCY));
         exit(
-          -(GetPurchaseAmountForCFLine(PurchaseLine) -
+          -(PurchaseAmount -
             (PrepmtAmtInvLCY +
              Round(PrepmtAmtInvLCY * PurchaseLine."VAT %" / 100, Currency."Amount Rounding Precision", Currency.VATRoundingDirection()))));
     end;
@@ -1548,7 +1552,12 @@ report 840 "Suggest Worksheet Lines"
     local procedure CalculateLineAmountForSalesLine(SalesHeader2: Record "Sales Header"; SalesLine: Record "Sales Line"): Decimal
     var
         PrepmtAmtInvLCY: Decimal;
+        SalesAmount: Decimal;
     begin
+        SalesAmount := GetSalesAmountForCFLine(SalesLine);
+        if SalesAmount = 0 then
+            exit(0);
+
         if SalesHeader2."Currency Code" <> '' then begin
             Currency.Get(SalesHeader2."Currency Code");
             PrepmtAmtInvLCY :=
@@ -1562,9 +1571,9 @@ report 840 "Suggest Worksheet Lines"
 
         Currency.InitRoundingPrecision();
         if SalesHeader2."Prices Including VAT" then
-            exit(GetSalesAmountForCFLine(SalesLine) - PrepmtAmtInvLCY);
+            exit(SalesAmount - PrepmtAmtInvLCY);
         exit(
-          GetSalesAmountForCFLine(SalesLine) -
+          SalesAmount -
           (PrepmtAmtInvLCY +
            Round(PrepmtAmtInvLCY * SalesLine."VAT %" / 100, Currency."Amount Rounding Precision", Currency.VATRoundingDirection())));
     end;

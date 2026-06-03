@@ -1510,13 +1510,38 @@
     "method": "VerifyTaxAmountOnStandardSalesProFormaInv"
   },
   {
-    "method": "OrderDetailShowsSalesLineWithDiffShortcutDim1Code",
     "codeunitId": 134976,
-    "codeunitName": "ERM Sales Report"
+    "codeunitName": "ERM Sales Report",
+    "method": "OrderDetailShowsSalesLineWithDiffShortcutDim1Code"
   },
   {
-    "method": "OrderDetailFiltersCustomersByShipmentDate",
     "codeunitId": 134976,
-    "codeunitName": "ERM Sales Report"
+    "codeunitName": "ERM Sales Report",
+    "method": "OrderDetailFiltersCustomersByShipmentDate"
+  },
+  {
+    "codeunitId": 134976,
+    "codeunitName": "ERM Sales Report",
+    "method": "CustBalanceToDateReportDoesNotShowClosedCLEWhenUseWorkdateforApplUnapplIsTrueInGLSetup"
+  },
+  {
+    "codeunitId": 134976,
+    "codeunitName": "ERM Sales Report",
+    "method": "CustDetailTrialBalCorrOfRemAmtAfterExchRateAdj"
+  },
+  {
+    "codeunitId": 136900,
+    "codeunitName": "Service Reports",
+    "method": "PrepaidContrEntriesTestWarning"
+  },
+  {
+    "codeunitId": 134976,
+    "codeunitName": "ERM Sales Report",
+    "method": "CustDetailTrialBalCorrOfRemAmtAfterExchRateAdj"
+  },
+  {
+    "codeunitId": 136900,
+    "codeunitName": "Service Reports",
+    "method": "PrepaidContrEntriesTestWarning"
   }
 ]

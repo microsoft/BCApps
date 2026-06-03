@@ -160,8 +160,8 @@ table 560 "VAT Clause"
             exit(Result);
 
         if GetDocumentTypeAndLanguageCode(RecRelatedVariant, DocumentType, LanguageCode) then begin
-            TryFindDescriptionByDocumentType(DocumentType, LanguageCode);
-            TranslateDescription(LanguageCode);
+            if not TryFindDescriptionByDocumentType(DocumentType, LanguageCode) then
+                TranslateDescription(LanguageCode);
             exit(Description + ' ' + "Description 2");
         end;
 

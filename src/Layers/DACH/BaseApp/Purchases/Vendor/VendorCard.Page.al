@@ -527,11 +527,6 @@ page 26 "Vendor Card"
                     ApplicationArea = All;
                     Visible = OverReceiptAllowed;
                 }
-                field("Delivery Reminder Terms"; Rec."Delivery Reminder Terms")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the delivery reminder terms code for the vendor.';
-                }
             }
         }
         area(factboxes)

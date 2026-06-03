@@ -65,7 +65,7 @@ codeunit 1385 "Vendor Templ. Mgt."
         OnAfterApplyVendorTemplate(Vendor, VendorTempl);
     end;
 
-    local procedure ApplyTemplate(var Vendor: Record Vendor; VendorTempl: Record "Vendor Templ."; UpdateExistingValues: Boolean)
+    procedure ApplyTemplate(var Vendor: Record Vendor; VendorTempl: Record "Vendor Templ."; UpdateExistingValues: Boolean)
     var
         VendorRecRef: RecordRef;
         EmptyVendorRecRef: RecordRef;

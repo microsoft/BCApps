@@ -5,6 +5,7 @@
 
 namespace Microsoft.DemoData.Localization;
 
+using Microsoft.DemoData.Foundation;
 using Microsoft.DemoData.Purchase;
 using Microsoft.DemoData.Sales;
 using Microsoft.DemoTool;
@@ -124,6 +125,8 @@ codeunit 31465 "Contoso Compensations CZC"
                 SalesModule(ContosoDemoDataLevel);
             Enum::"Contoso Demo Data Module"::Purchase:
                 PurchaseModule(ContosoDemoDataLevel);
+            Enum::"Contoso Demo Data Module"::Foundation:
+                FoundationModule(ContosoDemoDataLevel);
         end;
     end;
 
@@ -148,6 +151,14 @@ codeunit 31465 "Contoso Compensations CZC"
                 CreatePurchaseDocumentCZC.Run();
             Enum::"Contoso Demo Data Level"::"Historical Data":
                 CreatePurchaseDocumentCZC.PostPurchaseCreditMemos();
+        end;
+    end;
+
+    local procedure FoundationModule(ContosoDemoDataLevel: Enum "Contoso Demo Data Level")
+    begin
+        case ContosoDemoDataLevel of
+            Enum::"Contoso Demo Data Level"::"Setup Data":
+                Codeunit.Run(Codeunit::"Create Custom Rep. Layout CZC");
         end;
     end;
 }

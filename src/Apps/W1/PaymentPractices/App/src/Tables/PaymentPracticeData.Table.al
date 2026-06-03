@@ -5,6 +5,7 @@
 namespace Microsoft.Finance.Analysis;
 
 using Microsoft.Purchases.Payables;
+using Microsoft.Sales.Customer;
 using Microsoft.Sales.Receivables;
 
 table 686 "Payment Practice Data"
@@ -78,6 +79,20 @@ table 686 "Payment Practice Data"
             AutoFormatType = 1;
             AutoFormatExpression = '';
         }
+        field(20; "Dispute Status"; Code[10])
+        {
+            TableRelation = "Dispute Status";
+            ToolTip = 'Specifies whether the invoice is flagged as disputed. Copied from the vendor ledger entry during data generation.';
+        }
+        field(21; "Overdue Due to Dispute"; Boolean)
+        {
+            Editable = false;
+            ToolTip = 'Specifies whether the invoice is overdue due to a dispute. This field is automatically calculated based on whether the invoice is overdue and has a dispute status.';
+        }
+        field(22; "SCF Payment Date"; Date)
+        {
+            ToolTip = 'Specifies when the supplier received payment under a supply chain finance arrangement. When filled in, replaces the payment posting date for calculating actual payment days.';
+        }
 
     }
 
@@ -112,6 +127,8 @@ table 686 "Payment Practice Data"
         "Invoice Amount" := -VendorLedgerEntry.Amount;
         "Pmt. Posting Date" := VendorLedgerEntry."Closed at Date";
         "Pmt. Entry No." := VendorLedgerEntry."Closed by Entry No.";
+        "SCF Payment Date" := VendorLedgerEntry."SCF Payment Date";
+        "Dispute Status" := VendorLedgerEntry."Dispute Status";
         if "Invoice Posting Date" <> 0D then
             "Agreed Payment Days" := "Due Date" - "Invoice Received Date";
         if "Pmt. Posting Date" <> 0D then
@@ -133,6 +150,7 @@ table 686 "Payment Practice Data"
         "Invoice Amount" := -CustLedgerEntry.Amount;
         "Pmt. Posting Date" := CustLedgerEntry."Closed at Date";
         "Pmt. Entry No." := CustLedgerEntry."Closed by Entry No.";
+        "Dispute Status" := CustLedgerEntry."Dispute Status";
         if "Invoice Posting Date" <> 0D then
             "Agreed Payment Days" := "Due Date" - "Invoice Received Date";
         if "Pmt. Posting Date" <> 0D then

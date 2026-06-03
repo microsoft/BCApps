@@ -381,7 +381,7 @@ codeunit 7322 "Create Inventory Pick/Movement"
 
         repeat
             IsHandled := false;
-            OnBeforeCreatePickOrMoveLineFromSalesLoop(CurrWarehouseActivityHeader, SalesHeader, IsHandled, SalesLine);
+            OnBeforeCreatePickOrMoveLineFromSalesLoop(CurrWarehouseActivityHeader, SalesHeader, IsHandled, SalesLine, CurrLocation, NextLineNo, LineCreated, CompleteShipment, AutoCreation, ShowError);
             if not IsHandled and CanPickSalesLine(SalesLine) then
                 if not NewWarehouseActivityLine.ActivityExists(Database::"Sales Line", SalesLine."Document Type".AsInteger(), SalesLine."Document No.", SalesLine."Line No.", 0, 0) then begin
                     NewWarehouseActivityLine.Init();
@@ -2003,7 +2003,7 @@ codeunit 7322 "Create Inventory Pick/Movement"
         NewWarehouseActivityLine."Qty. to Handle" := 0;
         NewWarehouseActivityLine."Qty. to Handle (Base)" := 0;
         NewWarehouseActivityLine."Qty. Rounding Precision" := 0;
-        OnBeforeNewWhseActivLineInsert(NewWarehouseActivityLine, CurrWarehouseActivityHeader);
+        OnBeforeNewWhseActivLineInsert(NewWarehouseActivityLine, CurrWarehouseActivityHeader, CurrLocation);
         NewWarehouseActivityLine.Insert();
         if CurrLocation."Bin Mandatory" and IsInvtMovement then begin
             // Place Action for inventory movement
@@ -2453,7 +2453,7 @@ codeunit 7322 "Create Inventory Pick/Movement"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCreatePickOrMoveLineFromSalesLoop(var WarehouseActivityHeader: Record "Warehouse Activity Header"; SalesHeader: Record "Sales Header"; var IsHandled: Boolean; SalesLine: Record "Sales Line")
+    local procedure OnBeforeCreatePickOrMoveLineFromSalesLoop(var WarehouseActivityHeader: Record "Warehouse Activity Header"; SalesHeader: Record "Sales Header"; var IsHandled: Boolean; SalesLine: Record "Sales Line"; Location: Record Location; var NextLineNo: Integer; var LineCreated: Boolean; var CompleteShipment: Boolean; AutoCreation: Boolean; ShowError: Boolean)
     begin
     end;
 
@@ -2509,7 +2509,7 @@ codeunit 7322 "Create Inventory Pick/Movement"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeNewWhseActivLineInsert(var WarehouseActivityLine: Record "Warehouse Activity Line"; WarehouseActivityHeader: Record "Warehouse Activity Header")
+    local procedure OnBeforeNewWhseActivLineInsert(var WarehouseActivityLine: Record "Warehouse Activity Line"; WarehouseActivityHeader: Record "Warehouse Activity Header"; Location: Record Location)
     begin
     end;
 

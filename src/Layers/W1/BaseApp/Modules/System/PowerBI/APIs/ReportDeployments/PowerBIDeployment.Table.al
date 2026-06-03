@@ -142,6 +142,34 @@ table 6316 "Power BI Deployment"
     end;
 
     /// <summary>
+    /// Wipes all local deployment tracking data for the current company across every deployable report.
+    /// Reports already uploaded to the Power BI workspace are not touched.
+    /// </summary>
+    procedure DeleteAllRecords()
+    begin
+        DeleteAllRecords(CompanyName());
+    end;
+
+    /// <summary>
+    /// Wipes all local deployment tracking data in the specified company.
+    /// Used by subscribers that need to clear records in a different company than the caller's
+    /// (e.g. after Copy Company, where the subscriber runs in the source company but must wipe the target).
+    /// </summary>
+    procedure DeleteAllRecords(InCompany: Text[30])
+    var
+        PowerBIDeployment: Record "Power BI Deployment";
+        PowerBIDeploymentState: Record "Power BI Deployment State";
+        PBIDeploymentEvents: Codeunit "PBI Deployment Events";
+    begin
+        PowerBIDeployment.ChangeCompany(InCompany);
+        PowerBIDeploymentState.ChangeCompany(InCompany);
+        PowerBIDeploymentState.DeleteAll();
+        PowerBIDeployment.DeleteAll();
+
+        PBIDeploymentEvents.OnAfterDeleteAllDeploymentRecords(InCompany);
+    end;
+
+    /// <summary>
     /// Creates a new state record for the given status.
     /// </summary>
     procedure RecordStep(NewStatus: Enum "Power BI Upload Status")

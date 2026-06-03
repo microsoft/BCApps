@@ -18,7 +18,7 @@ using System.Utilities;
 
 codeunit 10250 "Bulk Vendor Remit Reporting"
 {
-
+    Permissions = TableData "Check Ledger Entry" = rd;
     trigger OnRun()
     begin
     end;

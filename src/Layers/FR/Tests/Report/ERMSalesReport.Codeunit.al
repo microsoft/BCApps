@@ -53,6 +53,8 @@ codeunit 134976 "ERM Sales Report"
         CrMemoIncludesGoodsAndServicesTxt: Label 'Sales credit memo includes goods and services.';
         DescriptionVATClauseLineLbl: Label 'Description_VATClauseLine';
         CustWithDiffShipmentDateNotExpectedErr: Label 'Customer with shipment date different from %1 should not be shown in report.', Comment = '%1 = Shipment Date';
+        NoCustLbl: Label 'No_Cust', Locked = true;
+        CustBalanceLCYLbl: Label 'CustBalanceLCY', Locked = true;
 
     [Test]
     [HandlerFunctions('CustomerTrialBalanceRequestPageHandler')]
@@ -4134,6 +4136,56 @@ codeunit 134976 "ERM Sales Report"
         LibraryReportDataset.SetRange('No_Customer', CustomerNo[2]);
         Assert.AreEqual(0, LibraryReportDataset.RowCount(), StrSubstNo(CustWithDiffShipmentDateNotExpectedErr, ShipmentDate));
         LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('CustomerDetailTrialBalanceRequestPageHandler')]
+    procedure CustDetailTrialBalCorrOfRemAmtAfterExchRateAdj()
+    var
+        Customer: Record Customer;
+        GenJournalLine: Record "Gen. Journal Line";
+        CustNo: Code[20];
+        CurrencyCode: Code[10];
+        InvoiceAmount: Decimal;
+        i: Integer;
+    begin
+        // [FEATURE] [Customer - Detail Trial Bal.]
+        // [SCENARIO 630380] Customer Detail Trial Balance report shows correct balance when
+        // Correction of Remaining Amount entries exist from applying payments in FCY with rounding.
+        Initialize();
+
+        // [GIVEN] Create Currency with random exchange rate causing LCY rounding on application.
+        CurrencyCode := CreateCurrencyWithFixedExchRates(LibraryRandom.RandDec(1, 5));
+        CustNo := LibrarySales.CreateCustomerNo();
+        InvoiceAmount := LibraryRandom.RandDec(100, 2);
+
+        // [GIVEN] Create two posted invoices in FCY with random amount each.
+        for i := 1 to 2 do
+            CreatePostGeneralJournalLine(
+                GenJournalLine, GenJournalLine."Document Type"::Invoice, CustNo, CurrencyCode, InvoiceAmount, WorkDate());
+
+        // [GIVEN] Create posted payment in FCY equal to total invoiced amount, applied to both invoices.
+        CreatePostGeneralJournalLine(
+            GenJournalLine, GenJournalLine."Document Type"::Payment, CustNo, CurrencyCode, -2 * InvoiceAmount, WorkDate());
+        ApplyPaymentToAllOpenInvoices(GenJournalLine."Document No.", CustNo);
+
+        // [WHEN] Run Customer Detail Trial Balance Report.
+        LibraryVariableStorage.Enqueue(false); // ShowAmountsInLCY
+        LibraryVariableStorage.Enqueue(false); // NewPageperCustomer
+        LibraryVariableStorage.Enqueue(false); // ExcludeCustHaveaBalanceOnly
+        LibraryVariableStorage.Enqueue(CustNo);
+        Commit();
+        REPORT.Run(REPORT::"Customer - Detail Trial Bal.");
+
+        // [THEN] Verify CustBalanceLCY equals Customer Net Change (LCY) which includes correction entries.
+        Customer.Get(CustNo);
+        Customer.SetFilter("Date Filter", '%1..', WorkDate());
+        Customer.CalcFields("Net Change (LCY)");
+        LibraryReportDataset.LoadDataSetFile();
+        LibraryReportDataset.SetRange(NoCustLbl, CustNo);
+        Assert.IsTrue(LibraryReportDataset.GetNextRow(), StrSubstNo(RowNotFoundErr, NoCustLbl, CustNo));
+        while LibraryReportDataset.GetNextRow() do;
+        LibraryReportDataset.AssertCurrentRowValueEquals(CustBalanceLCYLbl, Customer."Net Change (LCY)");
     end;
 
     local procedure Initialize()

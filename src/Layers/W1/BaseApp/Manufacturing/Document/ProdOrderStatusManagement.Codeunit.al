@@ -180,7 +180,7 @@ codeunit 5407 "Prod. Order Status Management"
         exit(ConfirmManagement.GetResponseOrDefault(StrSubstNo(CanReOpenFinishedProdOrderQst, ProdOrder."No."), true));
     end;
 
-    local procedure ProcessProdOrderForReopen(var ProdOrder: Record "Production Order")
+    procedure ProcessProdOrderForReopen(var ProdOrder: Record "Production Order")
     var
         ProdOrderLine: Record "Prod. Order Line";
     begin

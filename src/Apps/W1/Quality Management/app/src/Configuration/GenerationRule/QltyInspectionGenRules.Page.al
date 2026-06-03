@@ -207,7 +207,7 @@ page 20405 "Qlty. Inspection Gen. Rules"
             action(CreateNewGenerationRuleForAsmSGuide)
             {
                 Caption = 'Create Assembly Rule';
-                ToolTip = 'Specifies to create a rule for assembly.';
+                ToolTip = 'Create a generation rule for assembly.';
                 Image = AssemblyBOM;
                 ApplicationArea = Assembly;
 
@@ -225,7 +225,7 @@ page 20405 "Qlty. Inspection Gen. Rules"
             {
                 ApplicationArea = Assembly;
                 Caption = 'Edit Assembly Rule';
-                ToolTip = 'Edit a Rule for assembly.';
+                ToolTip = 'Edit a generation rule for assembly.';
                 Image = EditLines;
                 Scope = Repeater;
                 Visible = ShowEditAssemblyRuleSetupGuide;
@@ -248,7 +248,7 @@ page 20405 "Qlty. Inspection Gen. Rules"
             action(CreateNewGenerationRuleForProdSGuide)
             {
                 Caption = 'Create Production Rule';
-                ToolTip = 'Specifies to create a rule for production.';
+                ToolTip = 'Create a generation rule for production.';
                 Image = Production;
                 ApplicationArea = Manufacturing;
 
@@ -266,7 +266,7 @@ page 20405 "Qlty. Inspection Gen. Rules"
             {
                 ApplicationArea = Manufacturing;
                 Caption = 'Edit Production Rule';
-                ToolTip = 'Edit a Rule for production.';
+                ToolTip = 'Edit a generation rule for production.';
                 Image = EditLines;
                 Scope = Repeater;
                 Visible = ShowEditProductionRuleSetupGuide;
@@ -289,7 +289,7 @@ page 20405 "Qlty. Inspection Gen. Rules"
             action(CreateNewGenerationRuleForRecSetupGuide)
             {
                 Caption = 'Create Receiving Rule';
-                ToolTip = 'Specifies to create a rule for receiving.';
+                ToolTip = 'Create a generation rule for receiving.';
                 Image = Receipt;
                 ApplicationArea = All;
 
@@ -307,7 +307,7 @@ page 20405 "Qlty. Inspection Gen. Rules"
             {
                 ApplicationArea = All;
                 Caption = 'Edit Receiving Rule';
-                ToolTip = 'Edit a Rule for receiving.';
+                ToolTip = 'Edit a generation rule for receiving.';
                 Image = EditLines;
                 Scope = Repeater;
                 Visible = ShowEditReceivingRuleSetupGuide;
@@ -330,7 +330,7 @@ page 20405 "Qlty. Inspection Gen. Rules"
             action(CreateNewGenerationRuleForWhseSGuide)
             {
                 Caption = 'Create Bin Movement Rule';
-                ToolTip = 'Specifies to create a rule for a bin movement.';
+                ToolTip = 'Create a generation rule for warehouse bin movements.';
                 Image = CreateMovement;
                 ApplicationArea = Warehouse;
 
@@ -348,7 +348,7 @@ page 20405 "Qlty. Inspection Gen. Rules"
             {
                 ApplicationArea = Warehouse;
                 Caption = 'Edit Bin Movement Rule';
-                ToolTip = 'Edit a rule for a bin movement.';
+                ToolTip = 'Edit a generation rule for a bin movement.';
                 Image = EditAdjustments;
                 Scope = Repeater;
                 Visible = ShowEditMovementRuleSetupGuide;

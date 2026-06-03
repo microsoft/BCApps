@@ -227,7 +227,14 @@ codeunit 4399 "SOA Annotation"
     var
         AgentTaskMessageAttachment: Record "Agent Task Message Attachment";
         SOABilling: Codeunit "SOA Billing";
+        InStream: InStream;
+        TelemetryDimensions: Dictionary of [Text, Text];
         IrrelevanceReason: Text;
+        AttachmentContentTxt: Text;
+        IndividualTok: Label 'Individual', Locked = true;
+        CumulativeTok: Label 'Cumulative', Locked = true;
+        TotalContentLength: Integer;
+        AttachmentContentLength: Integer;
         IsAttachmentRelevant: Boolean;
     begin
         AgentTaskMessageAttachment.ReadIsolation(IsolationLevel::ReadCommitted);
@@ -238,19 +245,50 @@ codeunit 4399 "SOA Annotation"
             exit(false);
 
         repeat
-            // Check each attachment for relevance
-            if not CheckIfAttachmentRelevant(AgentTaskMessage, AgentTaskMessageAttachment, IrrelevanceReason) then begin
-                AgentTaskMessageAttachment.Ignored := true;
-                AgentTaskMessageAttachment.Modify();
-                SOABilling.LogIrrelevantAttachment(AgentTaskMessageAttachment.SystemId, AgentTaskMessage."Task ID", AgentTaskMessage.ID, AgentTaskMessageAttachment."File ID");
-            end
-            else begin
-                IsAttachmentRelevant := true;
-                SOABilling.LogRelevantAttachment(AgentTaskMessageAttachment.SystemId, AgentTaskMessage."Task ID", AgentTaskMessage.ID, AgentTaskMessageAttachment."File ID");
-            end;
+            // Check if attachment content exceeds maximum token limit
+            AgentTaskMessageAttachment.CalcFields("Text Content");
+            AgentTaskMessageAttachment."Text Content".CreateInStream(InStream, TextEncoding::UTF8);
+            InStream.Read(AttachmentContentTxt);
+            AttachmentContentLength := StrLen(AttachmentContentTxt);
+            if AttachmentContentLength > GetMaxAttachmentContentLength() then
+                IgnoreAttachmentExceedsContentLength(AgentTaskMessageAttachment, AgentTaskMessage, SOABilling, TelemetryDimensions, AttachmentContentLength, IndividualTok)
+            else
+                // Check each attachment for relevance
+                if not CheckIfAttachmentRelevant(AgentTaskMessage, AgentTaskMessageAttachment, IrrelevanceReason) then begin
+                    AgentTaskMessageAttachment.Ignored := true;
+                    AgentTaskMessageAttachment."Ignored Reason" := Format(Enum::"SOA Email Attachment Status"::NoRelevantContent);
+                    AgentTaskMessageAttachment.Modify();
+                    SOABilling.LogIrrelevantAttachment(AgentTaskMessageAttachment.SystemId, AgentTaskMessage."Task ID", AgentTaskMessage.ID, AgentTaskMessageAttachment."File ID");
+                end else begin
+                    // Check if adding this relevant attachment would exceed the cumulative content length limit
+                    TotalContentLength += AttachmentContentLength;
+                    if TotalContentLength > GetMaxAttachmentContentLength() then begin
+                        TotalContentLength -= AttachmentContentLength;
+                        IgnoreAttachmentExceedsContentLength(AgentTaskMessageAttachment, AgentTaskMessage, SOABilling, TelemetryDimensions, AttachmentContentLength, CumulativeTok);
+                    end else begin
+                        IsAttachmentRelevant := true;
+                        SOABilling.LogRelevantAttachment(AgentTaskMessageAttachment.SystemId, AgentTaskMessage."Task ID", AgentTaskMessage.ID, AgentTaskMessageAttachment."File ID");
+                    end;
+                end;
         until AgentTaskMessageAttachment.Next() = 0;
         Commit();
         exit(IsAttachmentRelevant);
+    end;
+
+    local procedure IgnoreAttachmentExceedsContentLength(var AgentTaskMessageAttachment: Record "Agent Task Message Attachment"; AgentTaskMessage: Record "Agent Task Message"; SOABilling: Codeunit "SOA Billing"; var TelemetryDimensions: Dictionary of [Text, Text]; ContentLength: Integer; ExceedsReason: Text)
+    begin
+        AgentTaskMessageAttachment.Ignored := true;
+        AgentTaskMessageAttachment."Ignored Reason" := Format(Enum::"SOA Email Attachment Status"::ExceedsContentLength);
+        AgentTaskMessageAttachment.Modify();
+        SOABilling.LogIrrelevantAttachment(AgentTaskMessageAttachment.SystemId, AgentTaskMessage."Task ID", AgentTaskMessage.ID, AgentTaskMessageAttachment."File ID");
+
+        TelemetryDimensions.Add('TaskId', Format(AgentTaskMessage."Task ID"));
+        TelemetryDimensions.Add('MessageId', Format(AgentTaskMessage.ID));
+        TelemetryDimensions.Add('FileId', Format(AgentTaskMessageAttachment."File ID"));
+        TelemetryDimensions.Add('ContentLength', Format(ContentLength));
+        TelemetryDimensions.Add('ExceedsReason', ExceedsReason);
+        FeatureTelemetry.LogUsage('0000TT3', SOASetupCU.GetFeatureName(), 'Attachment content exceeds maximum token limit.', TelemetryDimensions);
+        Clear(TelemetryDimensions);
     end;
 
     local procedure CheckIfAttachmentRelevant(AgentTaskMessage: Record "Agent Task Message"; AgentTaskMessageAttachment: Record "Agent Task Message Attachment"; var IrrelevanceReason: Text): Boolean
@@ -273,7 +311,6 @@ codeunit 4399 "SOA Annotation"
 
         TelemetryDimensions.Add('TaskId', Format(AgentTaskMessageAttachment."Task ID"));
         TelemetryDimensions.Add('MessageId', Format(AgentTaskMessageAttachment."Message ID"));
-        TelemetryDimensions.Add('AgentUserSecurityId', Format(AgentTaskMessage."Agent User Security ID"));
 
         if not GetIrrelevantAttachmentPrompt(Prompt) then begin
             FeatureTelemetry.LogError('0000Q7L', SOASetupCU.GetFeatureName(), 'Retrieve SOA Irrelevant Prompt', 'Unable to retrieve SOA Irrelevant Prompt from Azure Key Vault.', GetLastErrorCallStack(), TelemetryDimensions);
@@ -342,7 +379,6 @@ codeunit 4399 "SOA Annotation"
         AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT41Latest());
 
         TelemetryDimensions.Add('TaskId', Format(AgentTaskMessage."Task ID"));
-        TelemetryDimensions.Add('AgentUserSecurityId', Format(AgentTaskMessage."Agent User Security ID"));
 
         if not GetIrrelevantMessagePrompt(Prompt) then begin
             FeatureTelemetry.LogError('0000PPC', SOASetupCU.GetFeatureName(), 'Retrieve SOA Irrelevant Prompt', 'Unable to retrieve SOA Irrelevant Prompt from Azure Key Vault.', GetLastErrorCallStack(), TelemetryDimensions);
@@ -434,5 +470,10 @@ codeunit 4399 "SOA Annotation"
 
         Prompt := SecretStrSubstNo(BCSOAIrrelevanceAttachment.Unwrap(), BCSOAResponsibilitiesPrompt);
         exit(true);
+    end;
+
+    local procedure GetMaxAttachmentContentLength(): Integer
+    begin
+        exit(150000); // Approximately 50K tokens
     end;
 }

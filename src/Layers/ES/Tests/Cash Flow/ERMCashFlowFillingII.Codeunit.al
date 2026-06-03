@@ -2224,6 +2224,105 @@ codeunit 134553 "ERM Cash Flow - Filling II"
         LibraryVariableStorage.AssertEmpty();
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure FullyInvoicedPOWithFCYAndPrepmtNotInCashFlow()
+    var
+        CashFlowForecast: Record "Cash Flow Forecast";
+        PurchaseHeader: Record "Purchase Header";
+        CFWorksheetLine: Record "Cash Flow Worksheet Line";
+        GLAccount: Record "G/L Account";
+        VATPostingSetup: Record "VAT Posting Setup";
+        Vendor: Record Vendor;
+        CurrencyCode: Code[10];
+        DocumentNo: Code[20];
+        ConsiderSource: array[16] of Boolean;
+        JournalLineCount: Integer;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] Fully invoiced PO with FCY and prepayment should not appear in Cash Flow
+        Initialize();
+
+        // [GIVEN] Purchase Order "PO" with foreign currency and prepayment
+        CurrencyCode := CreateCurrencyWithExchangeRate(LibraryRandom.RandDec(1, 2));
+        LibraryPurchase.CreatePrepaymentVATSetup(GLAccount, VATPostingSetup."VAT Calculation Type"::"Normal VAT");
+        Vendor.Get(LibraryPurchase.CreateVendorWithBusPostingGroups(GLAccount."Gen. Bus. Posting Group", GLAccount."VAT Bus. Posting Group"));
+        Vendor.Validate("Currency Code", CurrencyCode);
+        Vendor.Modify(true);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        PurchaseHeader.Validate("Prepayment Due Date", WorkDate());
+        PurchaseHeader.Modify(true);
+        LibraryCashFlowHelper.CreatePurchaseLine(PurchaseHeader, GLAccount);
+
+        // [GIVEN] Prepayment invoice is posted for "PO"
+        LibraryCashFlowHelper.AddAndPostPOPrepaymentInvoice(PurchaseHeader, LibraryRandom.RandIntInRange(10, 50));
+
+        // [GIVEN] "PO" is received and fully invoiced
+        DocumentNo := PurchaseHeader."No.";
+        PurchaseHeader.Find();
+        PurchaseHeader.Validate("Vendor Invoice No.", LibraryUtility.GenerateGUID());
+        PurchaseHeader.Modify(true);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        // [GIVEN] Cash Flow Forecast "CF" is created
+        LibraryCashFlowHelper.CreateCashFlowForecastDefault(CashFlowForecast);
+
+        // [WHEN] Suggest Worksheet Lines is run with Purchase Orders enabled
+        ConsiderSource[SourceType::"Purchase Orders".AsInteger()] := true;
+        FillJournalWithoutGroupBy(ConsiderSource, CashFlowForecast."No.");
+
+        // [THEN] No Cash Flow Worksheet Line exists for "PO" with Source Type "Purchase Orders"
+        JournalLineCount := LibraryCashFlowHelper.FilterSingleJournalLine(CFWorksheetLine, DocumentNo, SourceType::"Purchase Orders", CashFlowForecast."No.");
+        Assert.AreEqual(0, JournalLineCount, StrSubstNo(UnexpectedCFWorksheetLineCountErr, CashFlowForecast."No.", DocumentNo));
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure FullyInvoicedSOWithFCYAndPrepmtNotInCashFlow()
+    var
+        CashFlowForecast: Record "Cash Flow Forecast";
+        SalesHeader: Record "Sales Header";
+        CFWorksheetLine: Record "Cash Flow Worksheet Line";
+        GLAccount: Record "G/L Account";
+        VATPostingSetup: Record "VAT Posting Setup";
+        Customer: Record Customer;
+        CurrencyCode: Code[10];
+        DocumentNo: Code[20];
+        ConsiderSource: array[16] of Boolean;
+        JournalLineCount: Integer;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] Fully invoiced SO with FCY and prepayment should not appear in Cash Flow
+        Initialize();
+
+        // [GIVEN] Sales Order "SO" with foreign currency and prepayment
+        CurrencyCode := CreateCurrencyWithExchangeRate(LibraryRandom.RandDec(1, 2));
+        LibrarySales.CreatePrepaymentVATSetup(GLAccount, VATPostingSetup."VAT Calculation Type"::"Normal VAT");
+        Customer.Get(LibrarySales.CreateCustomerWithBusPostingGroups(GLAccount."Gen. Bus. Posting Group", GLAccount."VAT Bus. Posting Group"));
+        Customer.Validate("Currency Code", CurrencyCode);
+        Customer.Modify(true);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, Customer."No.");
+        LibraryCashFlowHelper.CreateSalesLine(SalesHeader, GLAccount);
+
+        // [GIVEN] Prepayment invoice is posted for "SO"
+        LibraryCashFlowHelper.AddAndPostSOPrepaymentInvoice(SalesHeader, LibraryRandom.RandIntInRange(10, 50));
+
+        // [GIVEN] "SO" is shipped and fully invoiced
+        DocumentNo := SalesHeader."No.";
+        LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [GIVEN] Cash Flow Forecast "CF" is created
+        LibraryCashFlowHelper.CreateCashFlowForecastDefault(CashFlowForecast);
+
+        // [WHEN] Suggest Worksheet Lines is run with Sales Orders enabled
+        ConsiderSource[SourceType::"Sales Orders".AsInteger()] := true;
+        FillJournalWithoutGroupBy(ConsiderSource, CashFlowForecast."No.");
+
+        // [THEN] No Cash Flow Worksheet Line exists for "SO" with Source Type "Sales Orders"
+        JournalLineCount := LibraryCashFlowHelper.FilterSingleJournalLine(CFWorksheetLine, DocumentNo, SourceType::"Sales Orders", CashFlowForecast."No.");
+        Assert.AreEqual(0, JournalLineCount, StrSubstNo(UnexpectedCFWorksheetLineCountErr, CashFlowForecast."No.", DocumentNo));
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";

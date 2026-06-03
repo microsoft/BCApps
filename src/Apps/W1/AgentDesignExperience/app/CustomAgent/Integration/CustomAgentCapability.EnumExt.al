@@ -11,6 +11,6 @@ enumextension 4350 "Custom Agent Capability" extends "Copilot Capability"
 {
     value(4376; "Custom Agent")
     {
-        Caption = 'Custom Agent';
+        Caption = 'Agent Design Experience';
     }
 }

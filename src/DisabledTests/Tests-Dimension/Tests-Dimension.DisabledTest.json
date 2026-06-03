@@ -883,5 +883,29 @@
     "codeunitId": 134485,
     "codeunitName": "ERM Dimension Shortcuts",
     "method": "VerifyDimensionsAreUpdatedOnSalesLineOnChangeSalespersonOnSalesHeader"
+  },
+  {
+    "codeunitId": 134483,
+    "codeunitName": "ERM Change Global Dimensions",
+    "method": "T203_ListOfTablesIncludesAllTablesWithGlobalAndDefaultDimFields",
+    "bug": 609761
+  },
+  {
+    "bugId": 609134,
+    "codeunitId": 134483,
+    "codeunitName": "ERM Change Global Dimensions",
+    "method": "T111_ActionPrepareFillsTableList"
+  },
+  {
+    "bugId": 609134,
+    "codeunitId": 134483,
+    "codeunitName": "ERM Change Global Dimensions",
+    "method": "T112_NewDimCodesAreRestoredOnPageReopen"
+  },
+  {
+    "bugId": 609134,
+    "codeunitId": 134483,
+    "codeunitName": "ERM Change Global Dimensions",
+    "method": "T117_ActionPrepareDisabledIfLogEntriesAreInBlankStatus"
   }
 ]

@@ -423,6 +423,9 @@ codeunit 1605 "PEPPOL Management"
         CountrySubentity := CompanyInfo.County;
         IdentificationCode := GetCountryISOCode(CompanyInfo."Country/Region Code");
         ListID := GetISO3166_1Alpha2();
+
+        OnAfterGetAccountingSupplierPartyPostalAddr(
+            SalesHeader, CompanyInfo, StreetName, SupplierAdditionalStreetName, CityName, PostalZone, CountrySubentity, IdentificationCode, ListID);
     end;
 
     /// <summary>
@@ -2819,6 +2822,23 @@ codeunit 1605 "PEPPOL Management"
     /// <param name="IsBISBilling">Indicates whether this is BIS billing format.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetAccountingSupplierPartyInfoByFormat(var SupplierEndpointID: Text; var SupplierSchemeID: Text; var SupplierName: Text; IsBISBilling: Boolean)
+    begin
+    end;
+
+    /// <summary>
+    /// Raised after retrieving the accounting supplier party postal address for PEPPOL export.
+    /// </summary>
+    /// <param name="SalesHeader">Specifies the sales header record.</param>
+    /// <param name="CompanyInformation">Specifies the company information record used to populate the address.</param>
+    /// <param name="StreetName">Specifies the street name.</param>
+    /// <param name="SupplierAdditionalStreetName">Specifies the additional street name.</param>
+    /// <param name="CityName">Specifies the city name.</param>
+    /// <param name="PostalZone">Specifies the postal code.</param>
+    /// <param name="CountrySubentity">Specifies the county or region.</param>
+    /// <param name="IdentificationCode">Specifies the country ISO code.</param>
+    /// <param name="ListID">Specifies the country code list identifier.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterGetAccountingSupplierPartyPostalAddr(SalesHeader: Record "Sales Header"; CompanyInformation: Record "Company Information"; var StreetName: Text; var SupplierAdditionalStreetName: Text; var CityName: Text; var PostalZone: Text; var CountrySubentity: Text; var IdentificationCode: Text; var ListID: Text)
     begin
     end;
 

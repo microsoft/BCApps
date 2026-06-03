@@ -17,6 +17,13 @@ codeunit 4596 "SOA Broader Item Search"
 
     internal procedure BroaderItemSearch(var ItemFilter: Text; SearchFilter: Text)
     var
+        DummyCandidateArray: JsonArray;
+    begin
+        BroaderItemSearch(ItemFilter, SearchFilter, DummyCandidateArray);
+    end;
+
+    internal procedure BroaderItemSearch(var ItemFilter: Text; SearchFilter: Text; var CandidateArray: JsonArray)
+    var
         BroaderItemSearchFunc: Codeunit "SOA Broader Item Search Func";
         ExtractedItemEntities: JsonArray;
         SearchQuery: Text;
@@ -26,6 +33,7 @@ codeunit 4596 "SOA Broader Item Search"
         Top: Integer;
     begin
         if AICall(BroaderItemSearchFunc, BuildBroaderItemSearchSystemPrompt(), ItemFilter, SearchFilter) then begin
+            BroaderItemSearchFunc.GetBroaderSearchResults(ItemFilter, CandidateArray);
             BroaderItemSearchFunc.GetSearchParameters(ExtractedItemEntities, SearchQuery, IncludeSynonyms, UseContextAwareRanking, MaximumQueryResultsToRank, Top);
 
             OnAfterBroaderSearchLog(ItemFilter, ExtractedItemEntities, SearchQuery, IncludeSynonyms, UseContextAwareRanking, MaximumQueryResultsToRank, Top);
@@ -77,7 +85,7 @@ codeunit 4596 "SOA Broader Item Search"
     end;
 
     [TryFunction]
-    internal procedure SearchBroader(ItemResultsArray: JsonArray; SearchQuery: Text; Top: Integer; MaximumQueryResultsToRank: Integer; IncludeSynonyms: Boolean; UseContextAwareRanking: Boolean; var ItemFilter: Text)
+    internal procedure SearchBroader(ItemResultsArray: JsonArray; SearchQuery: Text; Top: Integer; MaximumQueryResultsToRank: Integer; IncludeSynonyms: Boolean; UseContextAwareRanking: Boolean; var ItemFilter: Text; var CandidateArray: JsonArray)
     var
         Item: Record "Item";
         GlobalItemSearch: Codeunit "Global Item Search";
@@ -98,8 +106,34 @@ codeunit 4596 "SOA Broader Item Search"
         SearchAdditionalKeyWords := GetOptionalKeywords(ItemToken);
         GlobalItemSearch.SetupSearchQuery(SearchPrimaryKeyWords.Get(1), SearchPrimaryKeyWords, SearchAdditionalKeyWords, true, Top);
 
-        //Search Items using platform data search
-        ItemFilter := GlobalItemSearch.SearchAndReturnResultAsTxt(SearchPrimaryKeyWords.Get(1), 0.79, '|');
+        // Search items using platform data search and keep ColumnValues for downstream ranking.
+        Clear(CandidateArray);
+        if GlobalItemSearch.SearchAndReturnResultsWithColumnValues(SearchPrimaryKeyWords.Get(1), 0.79, CandidateArray) then
+            ItemFilter := BuildResultFilterFromCandidates(CandidateArray, '|')
+        else
+            ItemFilter := '';
+    end;
+
+    internal procedure BuildResultFilterFromCandidates(CandidateArray: JsonArray; Delimiter: Text): Text
+    var
+        CandidateToken: JsonToken;
+        SystemIdToken: JsonToken;
+        CandidateObject: JsonObject;
+        ResultFilter: TextBuilder;
+    begin
+        if Delimiter = '' then
+            Delimiter := '|';
+
+        foreach CandidateToken in CandidateArray do begin
+            CandidateObject := CandidateToken.AsObject();
+            if CandidateObject.Get('system_id', SystemIdToken) then begin
+                if ResultFilter.Length() > 0 then
+                    ResultFilter.Append(Delimiter);
+                ResultFilter.Append(SystemIdToken.AsValue().AsText());
+            end;
+        end;
+
+        exit(ResultFilter.ToText());
     end;
 
     local procedure GetMandatoryKeyword(ItemObjectToken: JsonToken) SearchKeyword: Text

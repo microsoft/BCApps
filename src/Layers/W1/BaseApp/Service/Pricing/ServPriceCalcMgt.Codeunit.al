@@ -438,6 +438,8 @@ codeunit 6087 "Serv. Price Calc. Mgt."
                         CopySalesDiscToSalesDisc(FromSalesLineDisc, ToSalesLineDisc);
                     end;
 
+                    OnFindSalesLineDiscOnAfterCopyItemDiscGroup(FromSalesLineDisc, ToSalesLineDisc);
+
                     if InclCampaigns then begin
                         InclCampaigns := TempCampaignTargetGr.Next() <> 0;
                         FromSalesLineDisc.SetRange("Sales Code", TempCampaignTargetGr."Campaign No.");
@@ -493,7 +495,14 @@ codeunit 6087 "Serv. Price Calc. Mgt."
     end;
 
     local procedure CopySalesDiscToSalesDisc(var FromSalesLineDisc: Record "Sales Line Discount"; var ToSalesLineDisc: Record "Sales Line Discount")
+    var
+        IsHandled: Boolean;
     begin
+        IsHandled := false;
+        OnBeforeCopySalesDiscToSalesDisc(FromSalesLineDisc, ToSalesLineDisc, IsHandled);
+        if IsHandled then
+            exit;
+
         if FromSalesLineDisc.FindSet() then
             repeat
                 ToSalesLineDisc := FromSalesLineDisc;
@@ -881,6 +890,16 @@ codeunit 6087 "Serv. Price Calc. Mgt."
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterFindSalesLineDisc(var ToSalesLineDisc: Record "Sales Line Discount"; CustNo: Code[20]; ContNo: Code[20]; CustDiscGrCode: Code[20]; CampaignNo: Code[20]; ItemNo: Code[20]; ItemDiscGrCode: Code[20]; VariantCode: Code[10]; UOM: Code[10]; CurrencyCode: Code[10]; StartingDate: Date; ShowAll: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnFindSalesLineDiscOnAfterCopyItemDiscGroup(var FromSalesLineDiscount: Record "Sales Line Discount"; var ToSalesLineDiscount: Record "Sales Line Discount")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeCopySalesDiscToSalesDisc(var FromSalesLineDiscount: Record "Sales Line Discount"; var ToSalesLineDiscount: Record "Sales Line Discount"; var IsHandled: Boolean)
     begin
     end;
 

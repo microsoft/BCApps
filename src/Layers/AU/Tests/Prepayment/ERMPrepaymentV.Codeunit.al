@@ -4939,6 +4939,77 @@
         VerifyYourReferenceValue(SalesHeader, SalesHeaderNo);
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure SecondPrepmtCrMemoReverseChargeVATIsZero()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        GeneralPostingSetup: Record "General Posting Setup";
+        VATPostingSetup: Record "VAT Posting Setup";
+        Customer: Record Customer;
+        SalesCrMemoLine: Record "Sales Cr.Memo Line";
+        DocumentNo: Code[20];
+    begin
+        // [SCENARIO 632381] Second Prepayment Credit Memo should have zero VAT when using Reverse Charge VAT.
+        // Post prepmt invoice, credit memo, re-invoice, increase prepmt% to 100%, post invoice, then credit memo.
+        // The final credit memo must have VAT Amount = 0 for Reverse Charge VAT.
+        Initialize();
+
+        // [GIVEN] VAT Posting Setup with Reverse Charge VAT
+        LibraryERM.CreateVATPostingSetupWithAccounts(
+            VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Reverse Charge VAT", LibraryRandom.RandIntInRange(10, 25));
+
+        // [GIVEN] General Posting Setup with Sales Prepayments Account
+        CreateGeneralPostingSetup(GeneralPostingSetup);
+        UpdateSalesPrepmtAccount(
+            CreateGLAccountWithGivenSetup(VATPostingSetup, GeneralPostingSetup),
+            GeneralPostingSetup."Gen. Bus. Posting Group", GeneralPostingSetup."Gen. Prod. Posting Group");
+
+        // [GIVEN] Customer with matching posting groups
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Validate("Gen. Bus. Posting Group", GeneralPostingSetup."Gen. Bus. Posting Group");
+        Customer.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+        Customer.Modify(true);
+
+        // [GIVEN] Sales Order with 30% prepayment and a line using Reverse Charge VAT
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, Customer."No.");
+        SalesHeader.Validate("Prepayment %", LibraryRandom.RandIntInRange(30, 30));
+        SalesHeader.Modify(true);
+
+        LibrarySales.CreateSalesLine(
+            SalesLine, SalesHeader, SalesLine.Type::"G/L Account",
+            CreateGLAccountWithGivenSetup(VATPostingSetup, GeneralPostingSetup), LibraryRandom.RandIntInRange(10, 15));
+        SalesLine.Validate("Unit Price", LibraryRandom.RandDec(100, 1));
+        SalesLine.Modify(true);
+
+        // [GIVEN] Post prepayment invoice then credit memo (first cycle)
+        LibrarySales.PostSalesPrepaymentInvoice(SalesHeader);
+        LibrarySales.PostSalesPrepaymentCrMemo(SalesHeader);
+
+        // [GIVEN] Post prepayment invoice again (still 30%)
+        LibrarySales.PostSalesPrepaymentInvoice(SalesHeader);
+
+        // [GIVEN] Reopen order, change prepayment to 100%, post prepayment invoice for remaining 70%
+        LibrarySales.ReopenSalesDocument(SalesHeader);
+        SalesHeader.Validate("Prepayment %", 100);
+        SalesHeader.Modify(true);
+
+        LibrarySales.PostSalesPrepaymentInvoice(SalesHeader);
+
+        // [WHEN] Post prepayment credit memo (should reverse 100%)
+        DocumentNo := GetPostedDocumentNo(SalesHeader."Prepmt. Cr. Memo No. Series");
+        LibrarySales.PostSalesPrepaymentCrMemo(SalesHeader);
+
+        // [THEN] The posted credit memo lines have zero VAT amount (Reverse Charge VAT on sales = 0)
+        SalesCrMemoLine.SetRange("Document No.", DocumentNo);
+        SalesCrMemoLine.FindFirst();
+        Assert.AreEqual(
+            0,
+            SalesCrMemoLine."Amount Including VAT" - SalesCrMemoLine.Amount,
+            LineAmountMustMatchErr);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";

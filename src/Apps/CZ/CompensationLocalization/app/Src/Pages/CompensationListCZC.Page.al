@@ -309,6 +309,23 @@ page 31274 "Compensation List CZC"
         }
         area(Reporting)
         {
+            action(SendCustom)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Send';
+                Ellipsis = true;
+                Image = SendToMultiple;
+                ToolTip = 'Prepare to send the document according to the customer''s or vendor''s sending profile, such as attached to an email. The Send document to window opens first so you can confirm or select a sending profile.';
+
+                trigger OnAction()
+                var
+                    CompensationHeaderCZC: Record "Compensation Header CZC";
+                begin
+                    CompensationHeaderCZC := Rec;
+                    CurrPage.SetSelectionFilter(CompensationHeaderCZC);
+                    CompensationHeaderCZC.PerformManualSendRecords();
+                end;
+            }
             action(Print)
             {
                 ApplicationArea = Basic, Suite;
@@ -321,9 +338,25 @@ page 31274 "Compensation List CZC"
                 var
                     CompensationHeaderCZC: Record "Compensation Header CZC";
                 begin
-                    CompensationHeaderCZC.Get(Rec."No.");
+                    CompensationHeaderCZC := Rec;
                     CurrPage.SetSelectionFilter(CompensationHeaderCZC);
                     CompensationHeaderCZC.PerformManualPrintRecords(true);
+                end;
+            }
+            action(Email)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = '&Email';
+                Image = Email;
+                ToolTip = 'Prepare to email the document. The Send Email window opens prefilled with the customer''s email address so you can add or edit information.';
+
+                trigger OnAction()
+                var
+                    CompensationHeaderCZC: Record "Compensation Header CZC";
+                begin
+                    CompensationHeaderCZC := Rec;
+                    CurrPage.SetSelectionFilter(CompensationHeaderCZC);
+                    CompensationHeaderCZC.PerformManualEmailRecords(true);
                 end;
             }
             action(PrintToAttachment)
@@ -334,8 +367,12 @@ page 31274 "Compensation List CZC"
                 ToolTip = 'Create a PDF file and attach it to the document.';
 
                 trigger OnAction()
+                var
+                    CompensationHeaderCZC: Record "Compensation Header CZC";
                 begin
-                    Rec.PrintToDocumentAttachment();
+                    CompensationHeaderCZC := Rec;
+                    CurrPage.SetSelectionFilter(CompensationHeaderCZC);
+                    Rec.PrintToDocumentAttachment(CompensationHeaderCZC);
                 end;
             }
         }
@@ -397,7 +434,13 @@ page 31274 "Compensation List CZC"
                 actionref(Print_Promoted; Print)
                 {
                 }
+                actionref(Email_Promoted; Email)
+                {
+                }
                 actionref(PrintToAttachment_Promoted; PrintToAttachment)
+                {
+                }
+                actionref(SendCustom_Promoted; SendCustom)
                 {
                 }
             }

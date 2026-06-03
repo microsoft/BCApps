@@ -4,16 +4,16 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.Compensations;
 
+using Microsoft.CRM.Contact;
 using Microsoft.CRM.Team;
 using Microsoft.Foundation.Address;
-using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.Navigate;
 using Microsoft.Foundation.NoSeries;
+using Microsoft.Foundation.Reporting;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using System.Globalization;
 using System.Security.AccessControl;
-using System.Utilities;
 
 #pragma warning disable AA0232
 table 31274 "Posted Compensation Header CZC"
@@ -185,7 +185,8 @@ table 31274 "Posted Compensation Header CZC"
     end;
 
     var
-        CompensReportSelectionsCZC: Record "Compens. Report Selections CZC";
+        ContactNotSupportedErr: Label 'Sending to contact is not supported for compensation document. Please select a customer or vendor company type.';
+        ContactRelatedCustVendNotFoundErr: Label 'Cannot send email for contact %1 because no related customer or vendor was found.', Comment = '%1 = Contact No.';
 
     procedure Navigation()
     var
@@ -195,59 +196,144 @@ table 31274 "Posted Compensation Header CZC"
         Navigate.Run();
     end;
 
-    procedure PrintRecords(ShowRequestForm: Boolean)
+    /// <summary>
+    /// Sends the compensation records by email.
+    /// </summary>
+    /// <param name="ShowDialog">Whether to show the email dialog.</param>
+    procedure EmailRecords(ShowDialog: Boolean)
     var
-        PostedCompensationHeaderCZC: Record "Posted Compensation Header CZC";
+        DocumentSendingProfile: Record "Document Sending Profile";
+        ReportSelections: Record "Report Selections";
     begin
-        PostedCompensationHeaderCZC.Reset();
-        PostedCompensationHeaderCZC.Copy(Rec);
-        PostedCompensationHeaderCZC.FindFirst();
-        CompensReportSelectionsCZC.SetRange(Usage, CompensReportSelectionsCZC.Usage::"Posted Compensation");
-        CompensReportSelectionsCZC.SetFilter("Report ID", '<>0');
-        CompensReportSelectionsCZC.FindSet();
-        repeat
-            Report.RunModal(CompensReportSelectionsCZC."Report ID", ShowRequestForm, false, PostedCompensationHeaderCZC);
-        until CompensReportSelectionsCZC.Next() = 0;
+        case "Company Type" of
+            "Company Type"::Customer:
+                DocumentSendingProfile.TrySendToEMail(
+                    Enum::"Report Selection Usage"::"Posted Compensation CZC".AsInteger(), Rec, FieldNo("No."), GetDocumentTypeText(), FieldNo("Company No."), ShowDialog);
+            "Company Type"::Vendor:
+                ReportSelections.SendEmailToVendor(
+                    Enum::"Report Selection Usage"::"Posted Compensation CZC".AsInteger(), Rec, Rec."No.", GetDocumentTypeText(), ShowDialog, Rec."Company No.");
+            "Company Type"::Contact:
+                SendEmailToContact(ShowDialog);
+        end;
     end;
 
+    local procedure SendEmailToContact(ShowDialog: Boolean)
+    var
+        Customer: Record Customer;
+        Contact: Record Contact;
+        Vendor: Record Vendor;
+        ReportSelections: Record "Report Selections";
+    begin
+        Contact.Get("Company No.");
+
+        if Contact.FindCustomer(Customer) then begin
+            ReportSelections.SendEmailToCust(
+                Enum::"Report Selection Usage"::"Posted Compensation CZC".AsInteger(), Rec, Rec."No.", GetDocumentTypeText(), ShowDialog, Customer."No.");
+            exit;
+        end;
+        if Contact.FindVendor(Vendor) then begin
+            ReportSelections.SendEmailToVendor(
+                Enum::"Report Selection Usage"::"Posted Compensation CZC".AsInteger(), Rec, Rec."No.", GetDocumentTypeText(), ShowDialog, Vendor."No.");
+            exit;
+        end;
+
+        Error(ContactRelatedCustVendNotFoundErr, "Company No.");
+    end;
+
+    /// <summary>
+    /// Sends selected compensation reports to the companies. Before this procedure is called,
+    /// compensation documents are selected on the page and then selection filter is used to filter the selected documents.
+    /// </summary>
+    /// <remarks>
+    /// Shows profile selection window and then send the selected reports to the companies.
+    /// </remarks>
+    procedure SendRecords()
+    var
+        DocumentSendingProfile: Record "Document Sending Profile";
+        ReportSelections: Record "Report Selections";
+    begin
+        case "Company Type" of
+            "Company Type"::Customer:
+                DocumentSendingProfile.SendCustomerRecords(
+                    ReportSelections.Usage::"Posted Compensation CZC".AsInteger(), Rec, GetDocumentTypeText(), "Company No.", "No.",
+                    FieldNo("Company No."), FieldNo("No."));
+            "Company Type"::Vendor:
+                DocumentSendingProfile.SendVendorRecords(
+                    ReportSelections.Usage::"Posted Compensation CZC".AsInteger(), Rec, GetDocumentTypeText(), "Company No.", "No.",
+                    FieldNo("Company No."), FieldNo("No."));
+            "Company Type"::Contact:
+                Error(ContactNotSupportedErr);
+        end;
+    end;
+
+    /// <summary>
+    /// Prints selected compensation reports. Before this procedure is called,
+    /// compensation documents are selected on the page and then selection filter is used to filter the selected documents.
+    /// </summary>
+    /// <param name="ShowDialog">
+    /// Request window for the report will be displayed if true, otherwise the default settings are used.
+    /// </param>
+    procedure PrintRecords(ShowDialog: Boolean)
+    var
+        DocumentSendingProfile: Record "Document Sending Profile";
+    begin
+        case "Company Type" of
+            "Company Type"::Customer:
+                DocumentSendingProfile.TrySendToPrinter(
+                    Enum::"Report Selection Usage"::"Posted Compensation CZC".AsInteger(), Rec, FieldNo("Company No."), ShowDialog);
+            "Company Type"::Vendor:
+                DocumentSendingProfile.TrySendToPrinterVendor(
+                    Enum::"Report Selection Usage"::"Posted Compensation CZC".AsInteger(), Rec, FieldNo("Company No."), ShowDialog);
+            "Company Type"::Contact:
+                DocumentSendingProfile.TrySendToPrinter(
+                    Enum::"Report Selection Usage"::"Posted Compensation CZC".AsInteger(), Rec, 0, ShowDialog);
+        end;
+    end;
+
+    /// <summary>
+    /// Prints the compensation documents and saves them as document attachments.
+    /// </summary>
     procedure PrintToDocumentAttachment()
     var
         PostedCompensationHeaderCZC: Record "Posted Compensation Header CZC";
-        DocumentAttachment: Record "Document Attachment";
-        DocumentAttachmentMgmt: Codeunit "Document Attachment Mgmt";
-        TempBlob: Codeunit "Temp Blob";
-        RecordRef: RecordRef;
-        DummyInStream: InStream;
-        ReportOutStream: OutStream;
-        DocumentInStream: InStream;
-        FileName: Text[250];
-        DocumentAttachmentFileNameLbl: Label '%1 %2', Comment = '%1 = Usage, %2 = Compensation No.';
     begin
         PostedCompensationHeaderCZC.Copy(Rec);
         PostedCompensationHeaderCZC.SetRecFilter();
-        RecordRef.GetTable(PostedCompensationHeaderCZC);
-        if not RecordRef.FindFirst() then
-            exit;
+        PrintToDocumentAttachment(PostedCompensationHeaderCZC);
+    end;
 
-        CompensReportSelectionsCZC.SetRange(Usage, CompensReportSelectionsCZC.Usage::"Posted Compensation");
-        CompensReportSelectionsCZC.SetFilter("Report ID", '<>0');
-        CompensReportSelectionsCZC.FindSet();
-        repeat
-            if not Report.RdlcLayout(CompensReportSelectionsCZC."Report ID", DummyInStream) then
-                exit;
+    /// <summary>
+    /// Prints the compensation documents and saves them as document attachments.
+    /// </summary>
+    /// <param name="PostedCompensationHeaderCZC">The compensation records to print and attach.</param>
+    procedure PrintToDocumentAttachment(var PostedCompensationHeaderCZC: Record "Posted Compensation Header CZC")
+    var
+        ShowNotificationAction: Boolean;
+    begin
+        ShowNotificationAction := PostedCompensationHeaderCZC.Count() = 1;
+        if PostedCompensationHeaderCZC.FindSet() then
+            repeat
+                DoPrintToDocumentAttachment(PostedCompensationHeaderCZC, ShowNotificationAction);
+            until PostedCompensationHeaderCZC.Next() = 0;
+    end;
 
-            Clear(TempBlob);
-            TempBlob.CreateOutStream(ReportOutStream);
-            Report.SaveAs(CompensReportSelectionsCZC."Report ID", '', ReportFormat::Pdf, ReportOutStream, RecordRef);
+    local procedure DoPrintToDocumentAttachment(PostedCompensationHeaderCZC: Record "Posted Compensation Header CZC"; ShowNotificationAction: Boolean)
+    var
+        ReportSelections: Record "Report Selections";
+        RepSelManualHandlerCZC: Codeunit "Rep. Sel. Manual Handler CZC";
+    begin
+        PostedCompensationHeaderCZC.SetRecFilter();
+        RepSelManualHandlerCZC.SetPostedCompensationHeader(PostedCompensationHeaderCZC);
+        BindSubscription(RepSelManualHandlerCZC);
+        ReportSelections.SaveAsDocumentAttachment(
+            ReportSelections.Usage::"Posted Compensation CZC".AsInteger(), PostedCompensationHeaderCZC, PostedCompensationHeaderCZC."No.", PostedCompensationHeaderCZC."Company No.", ShowNotificationAction);
+        UnbindSubscription(RepSelManualHandlerCZC);
+    end;
 
-            Clear(DocumentAttachment);
-            DocumentAttachment.InitFieldsFromRecRef(RecordRef);
-            FileName := DocumentAttachment.FindUniqueFileName(
-                        StrSubstNo(DocumentAttachmentFileNameLbl, CompensReportSelectionsCZC.Usage, PostedCompensationHeaderCZC."No."), 'pdf');
-            TempBlob.CreateInStream(DocumentInStream);
-            DocumentAttachment.SaveAttachmentFromStream(DocumentInStream, RecordRef, FileName);
-        until CompensReportSelectionsCZC.Next() = 0;
-        DocumentAttachmentMgmt.ShowNotification(RecordRef, CompensReportSelectionsCZC.Count(), true);
+    local procedure GetDocumentTypeText(): Text[150]
+    var
+        ReportDistributionMgt: Codeunit "Report Distribution Management";
+    begin
+        exit(ReportDistributionMgt.GetFullDocumentTypeText(Rec));
     end;
 }
-

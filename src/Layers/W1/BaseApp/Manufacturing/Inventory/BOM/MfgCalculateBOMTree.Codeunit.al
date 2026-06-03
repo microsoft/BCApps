@@ -178,7 +178,7 @@ codeunit 99000781 "Mfg. Calculate BOM Tree"
             then begin
                 repeat
                     RunIteration := RoutingLine."No." <> '';
-                    OnGenerateProdCompSubTreeOnBeforeRoutingLineLoop(RoutingLine, BOMBuffer, RunIteration);
+                    OnGenerateProdCompSubTreeOnBeforeRoutingLineLoop(RoutingLine, BOMBuffer, RunIteration, ItemFilter);
 #if not CLEAN27
                     sender.RunOnGenerateProdCompSubTreeOnBeforeRoutingLineLoop(RoutingLine, BOMBuffer, RunIteration);
 #endif
@@ -291,6 +291,7 @@ codeunit 99000781 "Mfg. Calculate BOM Tree"
         BOMBuffer.AddCapacityCost(CapCost, CapCost);
         BOMBuffer.AddSubcontrdCost(SubcontractedCapCost, SubcontractedCapCost);
         BOMBuffer.AddCapOvhdCost(CapOverhead, CapOverhead);
+        OnAfterCalcRoutingLineCosts(RoutingLine, LotSize, ScrapPct, CapCost, SubcontractedCapCost, CapOverhead, BOMBuffer, ParentItem);
     end;
 
     local procedure GetBOMUnitOfMeasure(ProdBOMNo: Code[20]; ProdBOMVersionNo: Code[20]): Code[10]
@@ -392,12 +393,17 @@ codeunit 99000781 "Mfg. Calculate BOM Tree"
     end;
 
     [IntegrationEvent(false, false)]
+    local procedure OnAfterCalcRoutingLineCosts(RoutingLine: Record Microsoft.Manufacturing.Routing."Routing Line"; LotSize: Decimal; ScrapPercent: Decimal; var CapacityCost: Decimal; var SubcontractedCapacityCost: Decimal; var CapacityOverhead: Decimal; var BOMBuffer: Record "BOM Buffer"; var ParentItem: Record Item)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
     local procedure OnBeforeTransferProdBOMLine(var BOMBuffer: Record "BOM Buffer"; var ProdBOMLine: Record Microsoft.Manufacturing.ProductionBOM."Production BOM Line"; var ParentItem: Record Item; var ParentBOMBuffer: Record "BOM Buffer"; var EntryNo: Integer; TreeType: Option " ",Availability,Cost; var IsHandled: Boolean)
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnGenerateProdCompSubTreeOnBeforeRoutingLineLoop(var RoutingLine: Record Microsoft.Manufacturing.Routing."Routing Line"; var BOMBuffer: Record "BOM Buffer"; var RunIteration: Boolean)
+    local procedure OnGenerateProdCompSubTreeOnBeforeRoutingLineLoop(var RoutingLine: Record Microsoft.Manufacturing.Routing."Routing Line"; var BOMBuffer: Record "BOM Buffer"; var RunIteration: Boolean; ItemFilter: Record Item)
     begin
     end;
 

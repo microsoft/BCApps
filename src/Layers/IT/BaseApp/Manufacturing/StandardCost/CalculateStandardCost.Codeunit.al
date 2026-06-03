@@ -650,6 +650,8 @@ codeunit 5812 "Calculate Standard Cost"
           Item."Single-Level Mfg. Ovhd Cost" +
           Item."Single-Lvl Mat. Non-Invt. Cost";
 
+        OnCalcMfgItemOnAfterCalculateCosts(SLMat, SLCap, SLSub, SLCapOvhd, SLMfgOvhd, Item, LotSize, MfgItemQtyBase, Level, CalculationDate, RUMat);
+
         TempItem := Item;
         TempItem.Insert();
     end;
@@ -1297,7 +1299,7 @@ codeunit 5812 "Calculate Standard Cost"
         CostTime: Decimal;
         UnitCostCalculation: Enum "Unit Cost Calculation Type";
     begin
-        OnBeforeCalcRtngLineCost(RoutingLine, MfgItemQtyBase);
+        OnBeforeCalcRtngLineCost(RoutingLine, MfgItemQtyBase, ParentItem);
         if (RoutingLine.Type = RoutingLine.Type::"Work Center") and (RoutingLine."No." <> '') then
             WorkCenter.Get(RoutingLine."No.");
 
@@ -1338,8 +1340,9 @@ codeunit 5812 "Calculate Standard Cost"
         OvhdRate: Decimal;
         CostTime: Decimal;
         UnitCostCalculation: Enum "Unit Cost Calculation Type";
+        DummyParentItem: Record Item;
     begin
-        OnBeforeCalcRtngLineCost(RoutingLine, MfgItemQtyBase);
+        OnBeforeCalcRtngLineCost(RoutingLine, MfgItemQtyBase, DummyParentItem);
         if (RoutingLine.Type = RoutingLine.Type::"Work Center") and (RoutingLine."No." <> '') then
             WorkCenter.Get(RoutingLine."No.");
 
@@ -1424,7 +1427,7 @@ codeunit 5812 "Calculate Standard Cost"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCalcRtngLineCost(var RoutingLine: Record "Routing Line"; MfgItemQtyBase: Decimal)
+    local procedure OnBeforeCalcRtngLineCost(var RoutingLine: Record "Routing Line"; MfgItemQtyBase: Decimal; var ParentItem: Record Item)
     begin
     end;
 
@@ -1495,6 +1498,11 @@ codeunit 5812 "Calculate Standard Cost"
 
     [IntegrationEvent(false, false)]
     local procedure OnCalcMfgItemOnBeforeCalculateCosts(var SLMat: Decimal; var SLCap: Decimal; var SLSub: Decimal; var SLCapOvhd: Decimal; var SLMfgOvhd: Decimal; var Item: Record Item; LotSize: Decimal; MfgItemQtyBase: Decimal; Level: Integer; CalculationDate: Date; var RUMat: Decimal)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCalcMfgItemOnAfterCalculateCosts(SingleLevelMaterial: Decimal; SingleLevelCapacity: Decimal; SingleLevelSubcontracted: Decimal; SingleLevelCapacityOverhead: Decimal; SingleLevelMfgOverhead: Decimal; var Item: Record Item; LotSize: Decimal; MfgItemQtyBase: Decimal; Level: Integer; CalculationDate: Date; RolledUpMaterial: Decimal)
     begin
     end;
 

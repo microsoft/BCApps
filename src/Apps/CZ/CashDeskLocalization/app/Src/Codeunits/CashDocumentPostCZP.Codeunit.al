@@ -286,11 +286,11 @@ codeunit 11729 "Cash Document-Post CZP"
         TempGenJournalLine."Currency Code" := InitCashDocumentHeaderCZP."Currency Code";
         TempGenJournalLine."Currency Factor" := InitCashDocumentHeaderCZP."Currency Factor";
         if TempGenJournalLine."Account Type" = TempGenJournalLine."Account Type"::"Fixed Asset" then begin
-            TempGenJournalLine.Validate(TempGenJournalLine."Depreciation Book Code", InitCashDocumentLineCZP."Depreciation Book Code");
-            TempGenJournalLine.Validate(TempGenJournalLine."FA Posting Type", InitCashDocumentLineCZP."FA Posting Type");
-            TempGenJournalLine.Validate(TempGenJournalLine."Maintenance Code", InitCashDocumentLineCZP."Maintenance Code");
-            TempGenJournalLine.Validate(TempGenJournalLine."Duplicate in Depreciation Book", InitCashDocumentLineCZP."Duplicate in Depreciation Book");
-            TempGenJournalLine.Validate(TempGenJournalLine."Use Duplication List", InitCashDocumentLineCZP."Use Duplication List");
+            TempGenJournalLine."Depreciation Book Code" := InitCashDocumentLineCZP."Depreciation Book Code";
+            TempGenJournalLine."FA Posting Type" := InitCashDocumentLineCZP."FA Posting Type";
+            TempGenJournalLine."Maintenance Code" := InitCashDocumentLineCZP."Maintenance Code";
+            TempGenJournalLine."Duplicate in Depreciation Book" := InitCashDocumentLineCZP."Duplicate in Depreciation Book";
+            TempGenJournalLine."Use Duplication List" := InitCashDocumentLineCZP."Use Duplication List";
         end;
         TempGenJournalLine."Source Currency Code" := TempGenJournalLine."Currency Code";
         TempGenJournalLine."Source Currency Amount" := TempGenJournalLine.Amount;

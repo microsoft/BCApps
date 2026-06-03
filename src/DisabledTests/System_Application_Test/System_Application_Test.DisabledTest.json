@@ -2513,5 +2513,30 @@
     "codeunitId": 133963,
     "method": "VerifyMessageFromFieldIsSet",
     "codeunitName": "Agent Message Test"
+  },
+  {
+    "codeunitId": 133960,
+    "codeunitName": "Agent Task Test",
+    "method": "*"
+  },
+  {
+    "codeunitId": 133961,
+    "codeunitName": "Agent Test",
+    "method": "*"
+  },
+  {
+    "codeunitId": 133962,
+    "codeunitName": "Agent Task Management Test",
+    "method": "*"
+  },
+  {
+    "codeunitId": 133963,
+    "codeunitName": "Agent Message Test",
+    "method": "*"
+  },
+  {
+    "codeunitId": 135135,
+    "codeunitName": "Image Tests",
+    "method": "CreateImageFromStreamTest"
   }
 ]

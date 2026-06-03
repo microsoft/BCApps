@@ -71,22 +71,20 @@ codeunit 148004 "Library - Compensation CZC"
 
     procedure GetCompensationReport(): Integer
     var
-        CompensReportSelectionsCZC: Record "Compens. Report Selections CZC";
+        ReportSelections: Record "Report Selections";
     begin
-        CompensReportSelectionsCZC.SetRange(Usage, CompensReportSelectionsCZC.Usage::Compensation);
-        CompensReportSelectionsCZC.SetFilter("Report ID", '<>0');
-        CompensReportSelectionsCZC.FindFirst();
-        exit(CompensReportSelectionsCZC."Report ID");
+        ReportSelections.SetRange(Usage, ReportSelections.Usage::"Compensation CZC");
+        ReportSelections.FindFirst();
+        exit(ReportSelections."Report ID");
     end;
 
     procedure GetPostedCompensationReport(): Integer
     var
-        CompensReportSelectionsCZC: Record "Compens. Report Selections CZC";
+        ReportSelections: Record "Report Selections";
     begin
-        CompensReportSelectionsCZC.SetRange(Usage, CompensReportSelectionsCZC.Usage::"Posted Compensation");
-        CompensReportSelectionsCZC.SetFilter("Report ID", '<>0');
-        CompensReportSelectionsCZC.FindFirst();
-        exit(CompensReportSelectionsCZC."Report ID");
+        ReportSelections.SetRange(Usage, ReportSelections.Usage::"Posted Compensation CZC");
+        ReportSelections.FindFirst();
+        exit(ReportSelections."Report ID");
     end;
 
     procedure RunReleaseCompensation(var CompensationHeaderCZC: Record "Compensation Header CZC")

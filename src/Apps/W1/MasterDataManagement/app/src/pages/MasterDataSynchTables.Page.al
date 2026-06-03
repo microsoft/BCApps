@@ -17,7 +17,8 @@ page 7233 "Master Data Synch. Tables"
     UsageCategory = Lists;
     AdditionalSearchTerms = 'mdm,master data management,master data';
     Permissions = tabledata "Integration Table Mapping" = r,
-                  tabledata "Job Queue Entry" = r;
+                  tabledata "Job Queue Entry" = r,
+                  tabledata "Master Data Mgt. Coupling" = r;
 
     layout
     {
@@ -579,6 +580,11 @@ page 7233 "Master Data Synch. Tables"
         MasterDataManagementSetupDefaults.GenerateIntegrationTableMapping(IntegrationTableMapping, AllFieldsDisabledList, IntegrationTableMappingName, TableNo, '', false, ShouldEnqueueJob);
     end;
 
+    local procedure GetSkippedRecordsNotificationId(): Guid
+    begin
+        exit('d4f9e8a3-7b2c-4f6a-9d1e-3a8c5b7e0f12');
+    end;
+
     trigger OnAfterGetRecord()
     begin
         IntegrationTableCaptionValue := ObjectTranslation.TranslateObject(ObjectTranslation."Object Type"::Table, Rec."Integration Table ID");
@@ -596,6 +602,26 @@ page 7233 "Master Data Synch. Tables"
         HasRecords := not Rec.IsEmpty();
     end;
 
+    trigger OnAfterGetCurrRecord()
+    var
+        MasterDataMgtCoupling: Record "Master Data Mgt. Coupling";
+    begin
+        SkippedRecordsNotification.Id := GetSkippedRecordsNotificationId();
+        SkippedRecordsNotification.Recall();
+
+        if Rec."Table ID" = 0 then
+            exit;
+        MasterDataMgtCoupling.SetCurrentKey(Skipped, "Table ID");
+        MasterDataMgtCoupling.SetRange(Skipped, true);
+        MasterDataMgtCoupling.SetRange("Table ID", Rec."Table ID");
+        if MasterDataMgtCoupling.IsEmpty() then
+            exit;
+
+        SkippedRecordsNotification.Message(SkippedRecordsNotificationMsg);
+        SkippedRecordsNotification.Scope(NotificationScope::LocalScope);
+        SkippedRecordsNotification.Send();
+    end;
+
     trigger OnInit()
     var
         MasterDataMgtUpgrade: Codeunit "Master Data Mgt. Upgrade";
@@ -607,6 +633,7 @@ page 7233 "Master Data Synch. Tables"
     var
         ObjectTranslation: Record "Object Translation";
         TypeHelper: Codeunit "Type Helper";
+        SkippedRecordsNotification: Notification;
         IntegrationFieldCaptionValue: Text;
         IntegrationFieldTypeValue: Text;
         IntegrationTableCaptionValue: Text[250];
@@ -634,6 +661,7 @@ page 7233 "Master Data Synch. Tables"
         TableNotPerCompanyErr: label 'Table %1 is shared across all companies of this environment. Choose another table.', Comment = '%1 - a table name';
         TableNotOfTypeNormalErr: label 'Table %1 is either declared as temporary, a query or as an interface for accessing an external entity. Choose another table.', Comment = '%1 - a table name';
         TablePermissionMissingErr: label 'Your license doesn''t grant you permissions for writing into table %1. Choose another table.', Comment = '%1 - a table name';
+        SkippedRecordsNotificationMsg: label 'Synchronization of some records of this table was paused due to repetitive errors. Choose ''Run Full Synchronization'' to rerun the synchronization on them and examine the errors.';
         HasRecords: Boolean;
         DataSynchEnabled: Boolean;
 

@@ -7,7 +7,6 @@ using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Company;
 using Microsoft.Utilities;
-using System;
 using System.Apps;
 using System.Azure.KeyVault;
 using System.DataAdministration;
@@ -115,6 +114,7 @@ codeunit 1450 "MS - Yodlee Service Mgt."
         TelemetryActivitySuccessTxt: Label 'Successful Activity "%1", Message "%2".', Locked = true;
         TelemetryActivityFailureTxt: Label 'Failed Activity "%1", Message "%2".', Locked = true;
         GLBConsumerName: Text;
+        GLBLastImportedTransactionCount: Integer;
         FailureAction: Option IgnoreError,RethrowError,RethrowErrorWithConfirm;
         CobrandTokenExpiredTxt: Label 'Cached cobrand token has expired.', Locked = true;
         ConsumerTokenExpiredTxt: Label 'Cached consumer token has expired.', Locked = true;
@@ -165,6 +165,21 @@ codeunit 1450 "MS - Yodlee Service Mgt."
         Fastlink4MfaRefreshExtraParamsTok: Label 'providerAccountId=%1&flow=refresh&callback=%2&configName=DefaultFL4', Locked = true;
         FastlinkAccessConsentExtraParamsTok: Label 'siteAccountId=%1&flow=manageConsent&callback=%2', Locked = true;
         FastlinkEditAccountExtraParamsTok: Label 'providerAccountId=%1&flow=edit&callback=%2', Locked = true;
+        SecurityAuditConsumerProvisionedTxt: Label 'Yodlee consumer provisioned for the user.', Locked = true;
+        SecurityAuditConsumerProvisioningFailedTxt: Label 'Yodlee consumer provisioning failed.', Locked = true;
+        SecurityAuditConsumerRemovedTxt: Label 'Yodlee consumer removed.', Locked = true;
+        SecurityAuditConsumerRemovalFailedTxt: Label 'Yodlee consumer removal failed.', Locked = true;
+        SecurityAuditFastLinkSessionOpenedTxt: Label 'Envestnet Yodlee FastLink session opened (flow: %1).', Locked = true;
+        SecurityAuditBankAccountLinkedTxt: Label 'Bank account %1 linked to online bank account %2 (provider %3).', Locked = true;
+        SecurityAuditBankAccountUnlinkedTxt: Label 'Bank account %1 unlinked from online bank account.', Locked = true;
+        SecurityAuditConsentRevokedTxt: Label 'Online bank account %1 consent revoked or expired (status: %2).', Locked = true;
+        SecurityAuditBankAuthFailureTxt: Label 'Authentication failure at online bank for online bank account %1 (status: %2).', Locked = true;
+        SecurityAuditYodleeUnauthorizedTxt: Label 'Envestnet Yodlee API rejected request with status %1.', Locked = true;
+        SecurityAuditTransactionsImportedTxt: Label 'Transactions imported from online bank account %1 for bank account %2: %3 transactions in date range %4..%5.', Locked = true;
+        FastLinkFlowLinkTxt: Label 'add new bank account', Locked = true;
+        FastLinkFlowEditTxt: Label 'edit bank account credentials', Locked = true;
+        FastLinkFlowConsentTxt: Label 'manage consent', Locked = true;
+        FastLinkFlowMfaRefreshTxt: Label 'refresh with MFA', Locked = true;
         BankAccountNameDisplayLbl: Label '%1 - %2', Locked = true;
         LabelDateExprTok: Label '<%1D>', Locked = true;
         HttpRequestBlockedErr: Label 'Envestnet Yodlee Bank Feeds app is not allowed to make HTTP requests when running in a non-production environment.';
@@ -443,6 +458,8 @@ codeunit 1450 "MS - Yodlee Service Mgt."
             ExtraParams := STRSUBSTNO(FastlinkLinkingExtraParamsTok, TypeHelper.UrlEncode(BankName)); // prepopulate search with bank name
 
         Data := GetFastlinkData(ExtraParams, ErrorText);
+        if (ErrorText = '') and (Data <> '') then
+            LogSecurityAuditFastLinkSession(ExtraParams);
         exit(ErrorText = '');
     end;
 
@@ -457,6 +474,8 @@ codeunit 1450 "MS - Yodlee Service Mgt."
             ExtraParams := StrSubstNo(FastlinkMfaRefreshExtraParamsTok, TypeHelper.UrlEncode(BankStatementServiceId), TypeHelper.UrlEncode(CallbackUrl));
 
         Data := GetFastlinkData(ExtraParams, ErrorText);
+        if (ErrorText = '') and (Data <> '') then
+            LogSecurityAuditFastLinkSession(ExtraParams);
         exit(ErrorText = '');
     end;
 
@@ -471,6 +490,8 @@ codeunit 1450 "MS - Yodlee Service Mgt."
             ExtraParams += ('&' + Fastlink4ExtraParamsTok);
 
         Data := GetFastlinkData(ExtraParams, ErrorText);
+        if (ErrorText = '') and (Data <> '') then
+            LogSecurityAuditFastLinkSession(ExtraParams);
         exit(ErrorText = '');
     end;
 
@@ -485,6 +506,8 @@ codeunit 1450 "MS - Yodlee Service Mgt."
             ExtraParams += ('&' + Fastlink4ExtraParamsTok);
 
         Data := GetFastlinkData(ExtraParams, ErrorText);
+        if (ErrorText = '') and (Data <> '') then
+            LogSecurityAuditFastLinkSession(ExtraParams);
         exit(ErrorText = '');
     end;
 
@@ -592,6 +615,7 @@ codeunit 1450 "MS - Yodlee Service Mgt."
 
         if not GetResponseValue('/', Response, ErrorText) then begin
             LogActivityFailed(RemoveConsumerTxt, ErrorText, FailureAction::IgnoreError, '', StrSubstNo(TelemetryActivityFailureTxt, RemoveConsumerTxt, ErrorText), Verbosity::Error);
+            LogSecurityAuditEvent(SecurityAuditConsumerRemovalFailedTxt, SecurityOperationResult::Failure, AuditCategory::UserManagement);
 
             // We may be ignoring errors so we should still remove data if the consumer account is invalid (i.e. we could not get a valid consumer token)
             if (CobrandToken <> '') and (ConsumerToken <> '') then begin
@@ -602,6 +626,7 @@ codeunit 1450 "MS - Yodlee Service Mgt."
         end;
 
         LogActivitySucceed(RemoveConsumerTxt, SuccessRemoveConsumerTxt, StrSubstNo(TelemetryActivitySuccessTxt, RemoveConsumerTxt, SuccessRemoveConsumerTxt));
+        LogSecurityAuditEvent(SecurityAuditConsumerRemovedTxt, SecurityOperationResult::Success, AuditCategory::UserManagement);
 
         MSYodleeBankAccLink.DELETEALL(true);
 
@@ -658,6 +683,7 @@ codeunit 1450 "MS - Yodlee Service Mgt."
 
         if not GetResponseValue('/', Response, ErrorText) then begin
             ErrorText := GetAdjustedErrorText(ErrorText, FailedRegisterConsumerTxt);
+            LogSecurityAuditEvent(SecurityAuditConsumerProvisioningFailedTxt, SecurityOperationResult::Failure, AuditCategory::UserManagement);
             if IsStaleCredentialsErr(ErrorText) then begin
                 ErrorText := StaleCredentialsErr;
                 LogActivityFailed(RegisterConsumerTxt, ErrorText, FailureAction::RethrowError, '', StrSubstNo(TelemetryActivityFailureTxt, RegisterConsumerTxt, ErrorText), Verbosity::Warning);
@@ -673,6 +699,7 @@ codeunit 1450 "MS - Yodlee Service Mgt."
         end;
 
         LogActivitySucceed(RegisterConsumerTxt, SuccessRegisterConsumerTxt, StrSubstNo(TelemetryActivitySuccessTxt, RegisterConsumerTxt, SuccessRegisterConsumerTxt));
+        LogSecurityAuditEvent(SecurityAuditConsumerProvisionedTxt, SecurityOperationResult::Success, AuditCategory::UserManagement);
 
         MSYodleeBankServiceSetup.VALIDATE("Consumer Name", COPYSTR(Username, 1, MAXSTRLEN(MSYodleeBankServiceSetup."Consumer Name")));
         MSYodleeBankServiceSetup.SaveConsumerPassword(MSYodleeBankServiceSetup."Consumer Password", Password.Unwrap());
@@ -920,6 +947,8 @@ codeunit 1450 "MS - Yodlee Service Mgt."
     begin
         GetLinkedBankAccount(OnlineBankAccountID, AccountNode);
         DatasetRefreshStatus := FindNodeText(AccountNode, '/root/root/account/dataset[./name/text()=''BASIC_AGG_DATA'']/additionalStatus');
+
+        LogSecurityAuditRefreshStatus(OnlineBankAccountID, DatasetRefreshStatus);
 
         if DatasetRefreshStatus in ['LOGIN_IN_PROGRESS', 'DATA_RETRIEVAL_IN_PROGRESS', 'ACCT_SUMMARY_RECEIVED', ''] then
             exit(false);
@@ -1284,6 +1313,9 @@ codeunit 1450 "MS - Yodlee Service Mgt."
         MSYodleeBankAccLink.INSERT();
 
         LogActivitySucceed(STRSUBSTNO(LinkBankAccountTxt, BankAccount."No."), SuccessTxt, StrSubstNo(TelemetryActivitySuccessTxt, LinkBankAccountTxt, SuccessTxt));
+        LogSecurityAuditEvent(
+            StrSubstNo(SecurityAuditBankAccountLinkedTxt, BankAccount."No.", MSYodleeBankAccLink."Online Bank Account ID", MSYodleeBankAccLink."Online Bank ID"),
+            SecurityOperationResult::Success, AuditCategory::CustomerFacing);
         exit(true);
     end;
 
@@ -1314,6 +1346,7 @@ codeunit 1450 "MS - Yodlee Service Mgt."
                 BankAccount.VALIDATE("Automatic Stmt. Import Enabled", false);
             BankAccount.MODIFY(true);
             LogActivitySucceed(STRSUBSTNO(UnlinkBankAccountTxt, BankAccount."No."), SuccessTxt, StrSubstNo(TelemetryActivitySuccessTxt, UnLinkBankAccountTxt, SuccessTxt));
+            LogSecurityAuditEvent(StrSubstNo(SecurityAuditBankAccountUnlinkedTxt, BankAccount."No."), SecurityOperationResult::Success, AuditCategory::CustomerFacing);
         end;
     end;
 
@@ -1498,61 +1531,42 @@ codeunit 1450 "MS - Yodlee Service Mgt."
         exit(true);
     end;
 
-    [TryFunction]
-    local procedure TryVerifyXMLChars(InputText: Text)
-    var
-        "System.Xml.XmlConvert": DotNet XmlConvert;
+    local procedure IsValidXmlChar(CharCode: Integer): Boolean
     begin
-        "System.Xml.XmlConvert".VerifyXmlChars(InputText);
+        // Matches System.Xml.XmlConvert.IsXmlChar (per UTF-16 code unit):
+        // #x9 | #xA | #xD | [#x20-#xD7FF] | [#xE000-#xFFFD]
+        // Surrogate halves (#xD800..#xDFFF) are NOT valid in isolation and are stripped, mirroring the original .NET behavior.
+        if CharCode in [9, 10, 13] then
+            exit(true);
+        if (CharCode >= 32) and (CharCode <= 55295) then // #x20..#xD7FF
+            exit(true);
+        if (CharCode >= 57344) and (CharCode <= 65533) then // #xE000..#xFFFD
+            exit(true);
+        exit(false);
     end;
 
     local procedure RemoveInvalidXMLCharacters(var InputText: Text)
     var
-        "System.Xml.XmlConvert": DotNet XmlConvert;
-        "System.String": DotNet String;
+        Regex: Codeunit Regex;
+        ResultBuilder: TextBuilder;
         Character: Char;
+        HasInvalid: Boolean;
     begin
-        if not TryVerifyXMLChars(InputText) then begin
-            "System.String" := InputText;
-            InputText := '';
-            foreach Character in "System.String" do
-                if "System.Xml.XmlConvert".IsXmlChar(Character) then
-                    InputText += Character;
-        end;
-        // so far, in icms we have only seen Char x014 coming from Yodlee
-        // therefore remove this one first and continue only if there are more
-        InputText := InputText.Replace('&#x14', '');
+        foreach Character in InputText do
+            if IsValidXmlChar(Character) then
+                ResultBuilder.Append(Character)
+            else
+                HasInvalid := true;
+
+        if HasInvalid then
+            InputText := ResultBuilder.ToText();
+
+        // Strip XML numeric character references for C0 control chars (excluding tab/LF/CR):
+        // &#x00..&#x08, &#x0B, &#x0C, &#x0E..&#x1F. Matches the historical 28-Replace set
+        // (uppercase-only, no trailing ';' required) so the bug-compatible behavior is preserved.
         if StrPos(InputText, '&#x') = 0 then
             exit;
-
-        InputText := InputText.Replace('&#x00', '');
-        InputText := InputText.Replace('&#x01', '');
-        InputText := InputText.Replace('&#x02', '');
-        InputText := InputText.Replace('&#x03', '');
-        InputText := InputText.Replace('&#x04', '');
-        InputText := InputText.Replace('&#x05', '');
-        InputText := InputText.Replace('&#x06', '');
-        InputText := InputText.Replace('&#x07', '');
-        InputText := InputText.Replace('&#x08', '');
-        InputText := InputText.Replace('&#x0B', '');
-        InputText := InputText.Replace('&#x0C', '');
-        InputText := InputText.Replace('&#x0E', '');
-        InputText := InputText.Replace('&#x0F', '');
-        InputText := InputText.Replace('&#x10', '');
-        InputText := InputText.Replace('&#x11', '');
-        InputText := InputText.Replace('&#x12', '');
-        InputText := InputText.Replace('&#x13', '');
-        InputText := InputText.Replace('&#x15', '');
-        InputText := InputText.Replace('&#x16', '');
-        InputText := InputText.Replace('&#x17', '');
-        InputText := InputText.Replace('&#x18', '');
-        InputText := InputText.Replace('&#x19', '');
-        InputText := InputText.Replace('&#x1A', '');
-        InputText := InputText.Replace('&#x1B', '');
-        InputText := InputText.Replace('&#x1C', '');
-        InputText := InputText.Replace('&#x1D', '');
-        InputText := InputText.Replace('&#x1E', '');
-        InputText := InputText.Replace('&#x1F', '');
+        InputText := Regex.Replace(InputText, '&#x(0[0-8BCEF]|1[0-9A-F])', '');
     end;
 
     local procedure CopyLinkedBankAccountsToTemp(var TempBankAccount: Record "Bank Account" temporary);
@@ -1694,8 +1708,13 @@ codeunit 1450 "MS - Yodlee Service Mgt."
             Error(RequestUnsuccessfulErr);
         end;
 
-        if not GetHttpResponseMessage.IsSuccessStatusCode() then
-            Errortext := STRSUBSTNO(RemoteServerErr, GetHttpResponseMessage.HttpStatusCode(), GetHttpResponseMessage.ReasonPhrase());
+        if not GetHttpResponseMessage.IsSuccessStatusCode() then begin
+            Errortext := StrSubstNo(RemoteServerErr, GetHttpResponseMessage.HttpStatusCode(), GetHttpResponseMessage.ReasonPhrase());
+            if GetHttpResponseMessage.HttpStatusCode() in [401, 403] then
+                LogSecurityAuditEvent(
+                    StrSubstNo(SecurityAuditYodleeUnauthorizedTxt, GetHttpResponseMessage.HttpStatusCode()),
+                    SecurityOperationResult::Failure, AuditCategory::Authentication);
+        end;
 
         if UrlIsBankStatementImport(URL) then begin
             GetHttpResponseMessage.Content().ReadAs(BankFeedText);
@@ -2139,6 +2158,39 @@ codeunit 1450 "MS - Yodlee Service Mgt."
         GLBConsumerName := ConsumerName;
     end;
 
+    local procedure LogSecurityAuditEvent(ResultDescription: Text; OperationResult: SecurityOperationResult; Category: AuditCategory)
+    begin
+        Session.LogSecurityAudit(YodleeServiceNameTxt, OperationResult, ResultDescription, Category);
+    end;
+
+    local procedure LogSecurityAuditFastLinkSession(ExtraParams: Text)
+    var
+        FlowDescription: Text;
+    begin
+        case true of
+            ExtraParams.Contains('flow=refresh'):
+                FlowDescription := FastLinkFlowMfaRefreshTxt;
+            ExtraParams.Contains('flow=manageConsent'):
+                FlowDescription := FastLinkFlowConsentTxt;
+            ExtraParams.Contains('flow=edit'):
+                FlowDescription := FastLinkFlowEditTxt;
+            else
+                FlowDescription := FastLinkFlowLinkTxt;
+        end;
+        LogSecurityAuditEvent(StrSubstNo(SecurityAuditFastLinkSessionOpenedTxt, FlowDescription), SecurityOperationResult::Success, AuditCategory::CustomerFacing);
+    end;
+
+    local procedure LogSecurityAuditRefreshStatus(OnlineBankAccountId: Text; DatasetRefreshStatus: Text)
+    begin
+        case DatasetRefreshStatus of
+            'CONSENT_EXPIRED', 'CONSENT_REVOKED', 'CONSENT_REQUIRED':
+                LogSecurityAuditEvent(StrSubstNo(SecurityAuditConsentRevokedTxt, OnlineBankAccountId, DatasetRefreshStatus), SecurityOperationResult::Failure, AuditCategory::Authentication);
+            '402', 'CREDENTIALS_UPDATE_NEEDED', 'INCORRECT_CREDENTIALS', 'INCORRECT_OAUTH_TOKEN', '407', 'ACCOUNT_LOCKED',
+            '518', '519', '520', '522', '523', '524', '526', 'ADDL_AUTHENTICATION_REQUIRED', 'INVALID_ADDL_INFO_PROVIDED', 'NEW_AUTHENTICATION_REQUIRED':
+                LogSecurityAuditEvent(StrSubstNo(SecurityAuditBankAuthFailureTxt, OnlineBankAccountId, DatasetRefreshStatus), SecurityOperationResult::Failure, AuditCategory::Authentication);
+        end;
+    end;
+
     procedure EnableTraceLog(NewTraceLogEnabled: Boolean);
     begin
         GLBTraceLogEnabled := NewTraceLogEnabled;
@@ -2302,6 +2354,9 @@ codeunit 1450 "MS - Yodlee Service Mgt."
         LogActivitySucceed(GetBankTxTxt, STRSUBSTNO(SuccessGetTxForAccTxt, BankAccount."No."), StrSubstNo(TelemetryActivitySuccessTxt, GetBankTxTxt, SuccessGetTxForAccTxt));
 
         ReturnOnlyPostedTransactions(TempBlobResponse);
+        LogSecurityAuditEvent(
+            StrSubstNo(SecurityAuditTransactionsImportedTxt, MSYodleeBankAccLink."Online Bank Account ID", BankAccount."No.", GLBLastImportedTransactionCount, FromDate, ToDate),
+            SecurityOperationResult::Success, AuditCategory::CustomerFacing);
         Handled := true;
     end;
 
@@ -2326,6 +2381,7 @@ codeunit 1450 "MS - Yodlee Service Mgt."
         cr: Char;
     begin
         cr := 10;
+        GLBLastImportedTransactionCount := 0;
         if BankFeedTextList.Count = 0 then
             exit;
 
@@ -2353,6 +2409,7 @@ codeunit 1450 "MS - Yodlee Service Mgt."
                 foreach TransactionNode in PostedTransactionsNodeList do begin
                     TransactionNode.WriteTo(TransactionNodeTxt);
                     PostedTransactionsTxt += TransactionNodeTxt;
+                    GLBLastImportedTransactionCount += 1;
                 end;
         end;
 

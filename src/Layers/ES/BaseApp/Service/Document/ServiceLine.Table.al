@@ -4287,7 +4287,7 @@ table 5902 "Service Line"
             end;
         end else begin
             ServItem.CalcFields("Service Item Components");
-            if ServItem."Service Item Components" and not HideReplacementDialog then begin
+            if ServItem."Service Item Components" and not HideReplacementDialog and GuiAllowed() then begin
                 Select := StrMenu(Text006, GetStrMenuDefaultValue());
                 case Select of
                     1:

@@ -24,6 +24,7 @@ codeunit 134398 "ERM Sales/Purch. Correct. Docs"
         LibraryErrorMessage: Codeunit "Library - Error Message";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryWarehouse: Codeunit "Library - Warehouse";
+        LibraryWorkflow: Codeunit "Library - Workflow";
         IsInitialized: Boolean;
         QtyErr: Label '%1 is wrong';
         CancelQtyErr: Label '%1 is wrong after cancel';
@@ -2226,6 +2227,64 @@ codeunit 134398 "ERM Sales/Purch. Correct. Docs"
         LibraryVariableStorage.AssertEmpty();
     end;
 
+    [Test]
+    [HandlerFunctions('ConfirmHandlerYesTrackCount')]
+    procedure CorrectPurchInvDoesNotOpenPurchInvWhenPurchCreditMemoWorkflowEnabled()
+    var
+        PurchInvHeader: Record "Purch. Inv. Header";
+        PurchaseHeader: Record "Purchase Header";
+        Workflow: Record Workflow;
+        WorkflowSetup: Codeunit "Workflow Setup";
+        PostedPurchaseInvoice: TestPage "Posted Purchase Invoice";
+        PurchaseCreditMemo: TestPage "Purchase Credit Memo";
+        InvoiceNo: Code[20];
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 634884] When correcting a posted purchase invoice and credit memo posting fails due to workflow, the system opens the credit memo page instead of an unrelated purchase invoice.
+        Initialize();
+
+        // [GIVEN] Create a Purchase Invoice and post it.
+        LibraryPurchase.CreatePurchaseInvoice(PurchaseHeader);
+        InvoiceNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+        PurchInvHeader.Get(InvoiceNo);
+        Commit();
+
+        // [GIVEN] Purchase Credit Memo Approval Workflow is enabled.
+        LibraryWorkflow.CreateEnabledWorkflow(Workflow, WorkflowSetup.PurchaseCreditMemoApprovalWorkflowCode());
+
+        // [WHEN] User clicks Correct on the posted purchase invoice and confirms the dialog.
+        PurchaseCreditMemo.Trap();
+        PostedPurchaseInvoice.OpenEdit();
+        PostedPurchaseInvoice.Filter.SetFilter("No.", InvoiceNo);
+        Commit();
+        PostedPurchaseInvoice.CorrectInvoice.Invoke();
+
+        // [THEN] Purchase Credit Memo page is opened
+        PurchaseCreditMemo."Buy-from Vendor No.".AssertEquals(PurchInvHeader."Buy-from Vendor No.");
+        PurchaseCreditMemo.Close();
+
+        // [THEN] Exactly 2 confirm dialogs were shown
+        LibraryVariableStorage.DequeueText();
+        LibraryVariableStorage.DequeueText();
+        LibraryVariableStorage.AssertEmpty();
+
+        // [THEN] An unposted purchase credit memo exists.
+        PurchaseHeader.SetRange("Document Type", PurchaseHeader."Document Type"::"Credit Memo");
+        PurchaseHeader.SetRange("Applies-to Doc. No.", PurchInvHeader."No.");
+        Assert.RecordIsNotEmpty(PurchaseHeader);
+
+        // [THEN] No new purchase invoice was created
+        PurchaseHeader.Reset();
+        PurchaseHeader.SetRange("Document Type", PurchaseHeader."Document Type"::Invoice);
+        PurchaseHeader.SetRange("Buy-from Vendor No.", PurchInvHeader."Buy-from Vendor No.");
+        Assert.RecordIsEmpty(PurchaseHeader);
+
+        // Cleanup
+        Workflow.Validate(Enabled, false);
+        Workflow.Modify(true);
+        Workflow.Delete(true);
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"ERM Sales/Purch. Correct. Docs");
@@ -2881,6 +2940,13 @@ codeunit 134398 "ERM Sales/Purch. Correct. Docs"
     begin
         LibraryVariableStorage.Enqueue(Question);
         Reply := false;
+    end;
+
+    [ConfirmHandler]
+    procedure ConfirmHandlerYesTrackCount(Question: Text[1024]; var Reply: Boolean)
+    begin
+        LibraryVariableStorage.Enqueue(Question);
+        Reply := true;
     end;
 }
 

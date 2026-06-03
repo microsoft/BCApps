@@ -1,3 +1,4 @@
+#if not CLEAN29
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -9,6 +10,9 @@ using System.Environment.Consumption;
 
 page 4585 "SOA Billing Overview"
 {
+    ObsoleteState = Pending;
+    ObsoleteReason = 'This page is no longer needed, use the page from the system app.';
+    ObsoleteTag = '29.0';
     PageType = List;
     ApplicationArea = All;
     SourceTable = "User AI Consumption Data";
@@ -85,3 +89,4 @@ page 4585 "SOA Billing Overview"
         DescriptionTxt: Text;
 }
 
+#endif

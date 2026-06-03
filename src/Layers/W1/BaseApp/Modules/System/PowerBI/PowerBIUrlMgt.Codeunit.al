@@ -11,6 +11,8 @@ codeunit 6324 "Power BI Url Mgt"
         BaseApiUrlOverride: Text;
         PowerBIHomePageUrlProdTxt: Label 'https://go.microsoft.com/fwlink/?linkid=2150161', Locked = true;
         PowerBIHomePageUrlPpeTxt: Label 'https://powerbi-df.analysis-df.windows.net/', Locked = true;
+        PowerBIReportPortalUrlProdTxt: Label 'https://app.powerbi.com/groups/me/reports/', Locked = true;
+        PowerBIReportPortalUrlPpeTxt: Label 'https://powerbi-df.analysis-df.windows.net/groups/me/reports/', Locked = true;
 
     /// <summary>
     /// Returns the AAD resource URL for Power BI.
@@ -74,6 +76,22 @@ codeunit 6324 "Power BI Url Mgt"
             exit(PowerBIHomePageUrlPpeTxt);
 
         exit(PowerBIHomePageUrlProdTxt);
+    end;
+
+    /// <summary>
+    /// Returns the web URL to open a report in the Power BI portal (My Workspace).
+    /// </summary>
+    [Scope('OnPrem')]
+    procedure GetPowerBIReportUrl(ReportId: Guid): Text
+    var
+        ReportIdText: Text;
+    begin
+        ReportIdText := LowerCase(Format(ReportId, 0, 4));
+
+        if UrlHelper.IsPPE() then
+            exit(PowerBIReportPortalUrlPpeTxt + ReportIdText);
+
+        exit(PowerBIReportPortalUrlProdTxt + ReportIdText);
     end;
 
     /// <summary>

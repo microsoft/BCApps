@@ -306,6 +306,19 @@ codeunit 1520 "Workflow Event Handling"
 
         OnAddWorkflowEventPredecessorsToLibrary(EventFunctionName);
     end;
+    
+    local procedure HandleEventWithxRecAndRefreshRec(FunctionName: Code[128]; var Rec: Variant; xRec: Variant)
+    var
+        RecRef: RecordRef;
+    begin
+        /// Wraps HandleEventWithxRec and re-fetches Rec from the database afterwards.
+        /// Workflow responses may modify the record and call
+        /// RecRef.Modify(true), which bumps the system version stamp
+        WorkflowManagement.HandleEventWithxRec(FunctionName, Rec, xRec);
+        RecRef.GetTable(Rec);
+        if RecRef.Get(RecRef.RecordId) then
+            RecRef.SetTable(Rec);
+    end;
 
     procedure AddEventToLibrary(FunctionName: Code[128]; TableID: Integer; Description: Text[250]; RequestPageID: Integer; UsedForRecordChange: Boolean)
     var
@@ -889,48 +902,69 @@ codeunit 1520 "Workflow Event Handling"
 
     [EventSubscriber(ObjectType::Table, Database::"Customer", 'OnAfterModifyEvent', '', false, false)]
     procedure RunWorkflowOnCustomerChanged(var Rec: Record Customer; var xRec: Record Customer; RunTrigger: Boolean)
+    var
+        RecVariant: Variant;
     begin
         if Rec.IsTemporary() then
             exit;
 
-        if Format(xRec) <> Format(Rec) then
-            WorkflowManagement.HandleEventWithxRec(RunWorkflowOnCustomerChangedCode(), Rec, xRec);
+        if Format(xRec) <> Format(Rec) then begin
+            RecVariant := Rec;
+            HandleEventWithxRecAndRefreshRec(RunWorkflowOnCustomerChangedCode(), RecVariant, xRec);
+            Rec := RecVariant;
+        end;
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Customer", 'OnAfterRenameEvent', '', false, false)]
     local procedure RunWorkflowOnCustomerRenamed(var Rec: Record Customer; var xRec: Record Customer; RunTrigger: Boolean)
+    var
+        RecVariant: Variant;
     begin
         if Rec.IsTemporary() then
             exit;
 
-        if Format(xRec) <> Format(Rec) then
-            WorkflowManagement.HandleEventWithxRec(RunWorkflowOnCustomerChangedCode(), Rec, xRec);
+        if Format(xRec) <> Format(Rec) then begin
+            RecVariant := Rec;
+            HandleEventWithxRecAndRefreshRec(RunWorkflowOnCustomerChangedCode(), RecVariant, xRec);
+            Rec := RecVariant;
+        end;
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Vendor", 'OnAfterModifyEvent', '', false, false)]
     procedure RunWorkflowOnVendorChanged(var Rec: Record Vendor; var xRec: Record Vendor; RunTrigger: Boolean)
+    var
+        RecVariant: Variant;
     begin
         if Rec.IsTemporary() then
             exit;
 
-        if Format(xRec) <> Format(Rec) then
-            WorkflowManagement.HandleEventWithxRec(RunWorkflowOnVendorChangedCode(), Rec, xRec);
+        if Format(xRec) <> Format(Rec) then begin
+            RecVariant := Rec;
+            HandleEventWithxRecAndRefreshRec(RunWorkflowOnVendorChangedCode(), RecVariant, xRec);
+            Rec := RecVariant;
+        end;
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Vendor", 'OnAfterRenameEvent', '', false, false)]
     local procedure RunWorkflowOnVendorRenamed(var Rec: Record Vendor; var xRec: Record Vendor; RunTrigger: Boolean)
+    var
+        RecVariant: Variant;
     begin
         if Rec.IsTemporary() then
             exit;
 
-        if Format(xRec) <> Format(Rec) then
-            WorkflowManagement.HandleEventWithxRec(RunWorkflowOnVendorChangedCode(), Rec, xRec);
+        if Format(xRec) <> Format(Rec) then begin
+            RecVariant := Rec;
+            HandleEventWithxRecAndRefreshRec(RunWorkflowOnVendorChangedCode(), RecVariant, xRec);
+            Rec := RecVariant;
+        end;
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Item", 'OnAfterModifyEvent', '', false, false)]
     procedure RunWorkflowOnItemChanged(var Rec: Record Item; var xRec: Record Item; RunTrigger: Boolean)
     var
         GenJnlPostPreview: Codeunit "Gen. Jnl.-Post Preview";
+        RecVariant: Variant;
     begin
         if Rec.IsTemporary() then
             exit;
@@ -938,14 +972,18 @@ codeunit 1520 "Workflow Event Handling"
         if GenJnlPostPreview.IsActive() then
             exit;
 
-        if Format(xRec) <> Format(Rec) then
-            WorkflowManagement.HandleEventWithxRec(RunWorkflowOnItemChangedCode(), Rec, xRec);
+        if Format(xRec) <> Format(Rec) then begin
+            RecVariant := Rec;
+            HandleEventWithxRecAndRefreshRec(RunWorkflowOnItemChangedCode(), RecVariant, xRec);
+            Rec := RecVariant;
+        end;
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Item", 'OnAfterRenameEvent', '', false, false)]
     local procedure RunWorkflowOnItemRenamed(var Rec: Record Item; var xRec: Record Item; RunTrigger: Boolean)
     var
         GenJnlPostPreview: Codeunit "Gen. Jnl.-Post Preview";
+        RecVariant: Variant;
     begin
         if Rec.IsTemporary() then
             exit;
@@ -953,8 +991,11 @@ codeunit 1520 "Workflow Event Handling"
         if GenJnlPostPreview.IsActive() then
             exit;
 
-        if Format(xRec) <> Format(Rec) then
-            WorkflowManagement.HandleEventWithxRec(RunWorkflowOnItemChangedCode(), Rec, xRec);
+        if Format(xRec) <> Format(Rec) then begin
+            RecVariant := Rec;
+            HandleEventWithxRecAndRefreshRec(RunWorkflowOnItemChangedCode(), RecVariant, xRec);
+            Rec := RecVariant;
+        end;
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Incoming Document", 'OnAfterCreateGenJnlLineFromIncomingDocSuccess', '', false, false)]

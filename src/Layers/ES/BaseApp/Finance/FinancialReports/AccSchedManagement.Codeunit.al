@@ -2823,8 +2823,10 @@ codeunit 8 AccSchedManagement
                   GetDimTotalingFilter(3, TempColumnLayout."Dimension 3 Totaling"),
                   GetDimTotalingFilter(4, TempColumnLayout."Dimension 4 Totaling"));
                 GLAccAnalysisView.SetFilter("Business Unit Filter", TempColumnLayout."Business Unit Totaling");
-                if TempColumnLayout."G/L Account Totaling" <> '' then
+                if TempColumnLayout."G/L Account Totaling" <> '' then begin
+                    GLAccAnalysisView.SetFilter("No.", TempColumnLayout."G/L Account Totaling");
                     GLAcc.SetFilter("No.", TempColumnLayout."G/L Account Totaling");
+                end;
                 if SubcategoryEntryFilter <> '' then begin
                     GlAcc.SetRange("Account Type", GlAcc."Account Type"::Posting);
                     GLAcc.SetFilter("Account Subcategory Entry No.", SubcategoryEntryFilter);

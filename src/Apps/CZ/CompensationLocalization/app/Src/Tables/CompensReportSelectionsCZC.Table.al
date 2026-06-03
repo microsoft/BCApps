@@ -1,4 +1,5 @@
-﻿// ------------------------------------------------------------------------------------------------
+﻿#if not CLEANSCHEMA32
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -10,7 +11,15 @@ using System.Reflection;
 table 31271 "Compens. Report Selections CZC"
 {
     Caption = 'Compensation Report Selections';
+#if not CLEAN29
     LookupPageId = "Compens. Report Selections CZC";
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
+#else
+    ObsoleteState = Removed;
+    ObsoleteTag = '32.0';
+#endif
+    ObsoleteReason = 'The table is replaced by a standard table "Report Selections" to store report selections for compensations.';
 
     fields
     {
@@ -38,7 +47,7 @@ table 31271 "Compens. Report Selections CZC"
         }
         field(4; "Report Caption"; Text[250])
         {
-            CalcFormula = Lookup(AllObjWithCaption."Object Caption" where("Object Type" = const(Report), "Object ID" = field("Report ID")));
+            CalcFormula = lookup(AllObjWithCaption."Object Caption" where("Object Type" = const(Report), "Object ID" = field("Report ID")));
             Caption = 'Report Caption';
             Editable = false;
             FieldClass = FlowField;
@@ -56,8 +65,19 @@ table 31271 "Compens. Report Selections CZC"
         }
     }
 
+    trigger OnInsert()
+    begin
+        Error(ObsoleteTableErr);
+    end;
+
+    trigger OnModify()
+    begin
+        Error(ObsoleteTableErr);
+    end;
+
     var
         LastReportSelections: Record "Report Selections";
+        ObsoleteTableErr: Label 'The "Compens. Report Selections CZC" table is replaced by a standard table "Report Selections" to store report selections for compensations. For insert or modify operations, please use "Report Selection - Comp. CZC" page instead.';
 
     procedure NewRecord()
     begin
@@ -68,3 +88,4 @@ table 31271 "Compens. Report Selections CZC"
             Sequence := '1';
     end;
 }
+#endif

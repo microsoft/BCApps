@@ -668,5 +668,23 @@
     "codeunitId": 133508,
     "codeunitName": "E-Doc. PO Matching Unit Tests",
     "method": "CalculatePOMatchWarningsGeneratesOverReceiptWarning"
+  },
+  {
+    "bug": "609684",
+    "codeunitId": 139746,
+    "codeunitName": "E-Doc. Email Tests",
+    "method": "*"
+  },
+  {
+    "bug": "608829",
+    "codeunitId": 139659,
+    "codeunitName": "E-Doc. Line Matching Test",
+    "method": "*"
+  },
+  {
+    "bug": "Not Provided",
+    "codeunitId": 139235,
+    "codeunitName": "PEPPOL30 Management Tests",
+    "method": "*"
   }
 ]

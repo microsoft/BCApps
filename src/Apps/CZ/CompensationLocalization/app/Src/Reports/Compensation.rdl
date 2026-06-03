@@ -2940,6 +2940,18 @@ End Function</Code>
         <Field Name="CompensationHeader_No">
           <DataField>CompensationHeader_No</DataField>
         </Field>
+        <Field Name="DocumentLbl">
+          <DataField>DocumentLbl</DataField>
+        </Field>
+        <Field Name="GreetingLbl">
+          <DataField>GreetingLbl</DataField>
+        </Field>
+        <Field Name="ClosingLbl">
+          <DataField>ClosingLbl</DataField>
+        </Field>
+        <Field Name="BodyLbl">
+          <DataField>BodyLbl</DataField>
+        </Field>
         <Field Name="ResidenceLbl">
           <DataField>ResidenceLbl</DataField>
         </Field>
@@ -3021,6 +3033,24 @@ End Function</Code>
         <Field Name="CompanyInfo_Name">
           <DataField>CompanyInfo_Name</DataField>
         </Field>
+        <Field Name="CompanyAddr1">
+          <DataField>CompanyAddr1</DataField>
+        </Field>
+        <Field Name="CompanyAddr2">
+          <DataField>CompanyAddr2</DataField>
+        </Field>
+        <Field Name="CompanyAddr3">
+          <DataField>CompanyAddr3</DataField>
+        </Field>
+        <Field Name="CompanyAddr4">
+          <DataField>CompanyAddr4</DataField>
+        </Field>
+        <Field Name="CompanyAddr5">
+          <DataField>CompanyAddr5</DataField>
+        </Field>
+        <Field Name="CompanyAddr6">
+          <DataField>CompanyAddr6</DataField>
+        </Field>
         <Field Name="CompensationHeader_AgreementNo">
           <DataField>CompensationHeader_AgreementNo</DataField>
         </Field>
@@ -3035,6 +3065,9 @@ End Function</Code>
         </Field>
         <Field Name="PageLoop_Number">
           <DataField>PageLoop_Number</DataField>
+        </Field>
+        <Field Name="Name_SalespersonPurchaser">
+          <DataField>Name_SalespersonPurchaser</DataField>
         </Field>
         <Field Name="CustomerCompensationLine_Name">
           <DataField>CustomerCompensationLine_Name</DataField>

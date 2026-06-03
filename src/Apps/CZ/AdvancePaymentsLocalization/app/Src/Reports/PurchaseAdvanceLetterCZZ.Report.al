@@ -11,6 +11,7 @@ using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.HumanResources.Employee;
+using Microsoft.Inventory.Location;
 using Microsoft.Sales.Setup;
 using Microsoft.Utilities;
 using System.EMail;
@@ -32,24 +33,44 @@ report 31016 "Purchase - Advance Letter CZZ"
         dataitem("Company Information"; "Company Information")
         {
             DataItemTableView = sorting("Primary Key");
+#if not CLEAN29
             column(CompanyAddr1; CompanyAddr[1])
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Replaced by CompanyAddress1 column in Purch. Advance Letter Header dataitem to ensure address translation matches document language.';
+                ObsoleteTag = '29.0';
             }
             column(CompanyAddr2; CompanyAddr[2])
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Replaced by CompanyAddress2 column in Purch. Advance Letter Header dataitem to ensure address translation matches document language.';
+                ObsoleteTag = '29.0';
             }
             column(CompanyAddr3; CompanyAddr[3])
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Replaced by CompanyAddress3 column in Purch. Advance Letter Header dataitem to ensure address translation matches document language.';
+                ObsoleteTag = '29.0';
             }
             column(CompanyAddr4; CompanyAddr[4])
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Replaced by CompanyAddress4 column in Purch. Advance Letter Header dataitem to ensure address translation matches document language.';
+                ObsoleteTag = '29.0';
             }
             column(CompanyAddr5; CompanyAddr[5])
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Replaced by CompanyAddress5 column in Purch. Advance Letter Header dataitem to ensure address translation matches document language.';
+                ObsoleteTag = '29.0';
             }
             column(CompanyAddr6; CompanyAddr[6])
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Replaced by CompanyAddress6 column in Purch. Advance Letter Header dataitem to ensure address translation matches document language.';
+                ObsoleteTag = '29.0';
             }
+#endif
             column(RegistrationNo_CompanyInformation; "Registration No.")
             {
             }
@@ -76,11 +97,12 @@ report 31016 "Purchase - Advance Letter CZZ"
                     }
                 }
             }
-
+#if not CLEAN29
             trigger OnAfterGetRecord()
             begin
                 FormatAddress.Company(CompanyAddr, "Company Information");
             end;
+#endif
 
             trigger OnPreDataItem()
             begin
@@ -168,6 +190,24 @@ report 31016 "Purchase - Advance Letter CZZ"
             {
             }
             column(DocFooterText; DocFooterText)
+            {
+            }
+            column(CompanyAddress1; CompanyAddr[1])
+            {
+            }
+            column(CompanyAddress2; CompanyAddr[2])
+            {
+            }
+            column(CompanyAddress3; CompanyAddr[3])
+            {
+            }
+            column(CompanyAddress4; CompanyAddr[4])
+            {
+            }
+            column(CompanyAddress5; CompanyAddr[5])
+            {
+            }
+            column(CompanyAddress6; CompanyAddr[6])
             {
             }
             column(VendAddr1; VendAddr[1])
@@ -289,13 +329,12 @@ report 31016 "Purchase - Advance Letter CZZ"
             begin
                 CurrReport.Language := LanguageMgt.GetLanguageIdOrDefault("Language Code");
                 CurrReport.FormatRegion := LanguageMgt.GetFormatRegionOrDefault("Format Region");
+                FormatAddress.SetLanguageCode("Language Code");
 
                 if "Currency Code" = '' then
                     "Currency Code" := "General Ledger Setup"."LCY Code";
 
-                FormatAddress.FormatAddr(VendAddr, "Pay-to Name", "Pay-to Name 2", "Pay-to Contact", "Pay-to Address", "Pay-to Address 2",
-                  "Pay-to City", "Pay-to Post Code", "Pay-to County", "Pay-to Country/Region Code");
-
+                FormatAddressFields("Purch. Advance Letter Header");
                 FormatDocumentFields("Purch. Advance Letter Header");
             end;
         }
@@ -367,6 +406,17 @@ report 31016 "Purchase - Advance Letter CZZ"
         FormatDocument.SetPaymentMethod(PaymentMethod, PurchAdvLetterHeaderCZZ."Payment Method Code", PurchAdvLetterHeaderCZZ."Language Code");
 
         DocFooterText := FormatDocumentMgtCZL.GetDocumentFooterText(PurchAdvLetterHeaderCZZ."Language Code");
+    end;
+
+    local procedure FormatAddressFields(PurchAdvLetterHeaderCZZ: Record "Purch. Adv. Letter Header CZZ")
+    var
+        ResponsibilityCenter: Record "Responsibility Center";
+    begin
+        FormatAddress.GetCompanyAddr(PurchAdvLetterHeaderCZZ."Responsibility Center", ResponsibilityCenter, "Company Information", CompanyAddr);
+        FormatAddress.FormatAddr(VendAddr,
+            PurchAdvLetterHeaderCZZ."Pay-to Name", PurchAdvLetterHeaderCZZ."Pay-to Name 2", PurchAdvLetterHeaderCZZ."Pay-to Contact",
+            PurchAdvLetterHeaderCZZ."Pay-to Address", PurchAdvLetterHeaderCZZ."Pay-to Address 2", PurchAdvLetterHeaderCZZ."Pay-to City",
+            PurchAdvLetterHeaderCZZ."Pay-to Post Code", PurchAdvLetterHeaderCZZ."Pay-to County", PurchAdvLetterHeaderCZZ."Pay-to Country/Region Code");
     end;
 
     local procedure IsReportInPreviewMode(): Boolean

@@ -53,5 +53,10 @@
     "codeunitId": 139511,
     "codeunitName": "Intrastat IT Test",
     "method": "ValidateIntrastatReportLineDateWithQuarterlyPeriod"
+  },
+  {
+    "codeunitId": 139511,
+    "codeunitName": "Intrastat IT Test",
+    "method": "ItemLedgerEntryForPurchase"
   }
 ]

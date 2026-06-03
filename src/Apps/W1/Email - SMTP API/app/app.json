@@ -25,6 +25,11 @@
       "publisher": "Microsoft"
     },
     {
+      "id": "b300f707-59e0-4ce4-9770-85b3965a1d11",
+      "name": "Email - SMTP API Tests",
+      "publisher": "Microsoft"
+    },
+    {
       "id": "68e13fa3-217a-4be0-9141-99e5bf0ca818",
       "name": "Email - SMTP Connector",
       "publisher": "Microsoft"

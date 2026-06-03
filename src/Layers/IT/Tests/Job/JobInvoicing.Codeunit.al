@@ -57,6 +57,13 @@
         WrongNoOfLinesLbl: Label 'Wrong number of lines created.';
         ValueFalseErr: Label 'Value must be equal to false';
         ExpectedValueErr: Label '%1 should be equal to %2', Comment = '%1 = Field Caption, %2 = Expected Value';
+        InitialQtyToTransferErr: Label 'Initial Qty. to Transfer should equal Quantity';
+        FirstSalesInvoiceCreatedErr: Label 'First sales invoice should be created';
+        QtyTransferredShouldEqualQtyErr: Label 'After transfer, Qty. Transferred should equal Quantity';
+        SalesLineWithGLAccountTypeErr: Label 'Sales line with GL Account type should exist';
+        SalesLineTypeChangedErr: Label 'Sales line type should be changed to Comment';
+        SecondSalesInvoiceCreatedErr: Label 'Second sales invoice should be created';
+        SecondInvoiceDifferentNoErr: Label 'Second invoice should have different number';
 
     [Test]
     [HandlerFunctions('TransferToInvoiceHandler,MessageHandler')]
@@ -4256,6 +4263,73 @@
         JobPlanningLineInvoice.SetRange("Job Planning Line No.", JobPlanningLineText."Line No.");
         JobPlanningLineInvoice.SetRange("Document Type", JobPlanningLineInvoice."Document Type"::Invoice);
         Assert.RecordIsEmpty(JobPlanningLineInvoice);
+    end;
+
+    [Test]
+    [HandlerFunctions('TransferToInvoiceHandler,MessageHandler')]
+    [Scope('OnPrem')]
+    procedure DeleteModifiedInvoiceRestoresJobPlanningLineQty()
+    var
+        JobPlanningLine: Record "Job Planning Line";
+        SalesHeader: Record "Sales Header";
+        SalesHeader2: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+    begin
+        // [SCENARIO 633095] Deleting a sales invoice whose line type was modified should restore Job Planning Line quantities
+        // [GIVEN] Create job, job task, and job planning line with Type = GL Account, Line Type = Billable
+        // [WHEN] Create a sales invoice from the planning line
+        // [WHEN] Modify the sales line type from GL Account to Comment (simulating user modification)
+        // [WHEN] Delete the modified sales invoice
+        // [THEN] Verify "Qty. Transferred to Invoice" is reset to 0
+        // [THEN] Verify "Qty. to Transfer to Invoice" is restored to original quantity
+        // [THEN] Verify we can successfully create a new sales invoice from the same planning line
+
+        // [GIVEN] Setup
+        Initialize();
+        Plan(LibraryJob.PlanningLineTypeContract(), LibraryJob.GLAccountType(), JobPlanningLine);
+
+        // [THEN] Verify initial Qty. to Transfer equals Quantity
+        Assert.AreEqual(JobPlanningLine.Quantity, JobPlanningLine."Qty. to Transfer to Invoice", InitialQtyToTransferErr);
+
+        // [WHEN] Create first invoice
+        TransferJobPlanningLine(JobPlanningLine, 1, false, SalesHeader);
+
+        // [THEN] Verify first invoice created
+        Assert.IsTrue(SalesHeader."No." <> '', FirstSalesInvoiceCreatedErr);
+        JobPlanningLine.CalcFields("Qty. Transferred to Invoice");
+        Assert.AreEqual(JobPlanningLine.Quantity, JobPlanningLine."Qty. Transferred to Invoice", QtyTransferredShouldEqualQtyErr);
+
+        // [GIVEN] Modify the sales line type from GL Account to Comment
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        SalesLine.SetRange(Type, SalesLine.Type::"G/L Account");
+        Assert.IsTrue(SalesLine.FindFirst(), SalesLineWithGLAccountTypeErr);
+
+        // [WHEN] Change to blank type (comment)
+        SalesLine.Validate(Type, SalesLine.Type::" ");
+        SalesLine.Modify(true);
+
+        // [THEN] Verify the sales line type has been changed
+        SalesLine.Get(SalesLine."Document Type", SalesLine."Document No.", SalesLine."Line No.");
+        Assert.AreEqual(SalesLine.Type::" ", SalesLine.Type, SalesLineTypeChangedErr);
+
+        // [WHEN] Delete the modified invoice
+        SalesHeader.Delete(true);
+
+        // [THEN] Verify first invoice deleted and quantities restored
+        JobPlanningLine.Get(JobPlanningLine."Job No.", JobPlanningLine."Job Task No.", JobPlanningLine."Line No.");
+        JobPlanningLine.CalcFields("Qty. Transferred to Invoice");
+        Assert.AreEqual(0, JobPlanningLine."Qty. Transferred to Invoice", JobPlanningLine.FieldCaption("Qty. Transferred to Invoice"));
+        Assert.AreEqual(JobPlanningLine.Quantity, JobPlanningLine."Qty. to Transfer to Invoice", JobPlanningLine.FieldCaption("Qty. to Transfer to Invoice"));
+
+        // [WHEN] Create second invoice (verifying the fix works)
+        TransferJobPlanningLine(JobPlanningLine, 1, false, SalesHeader2);
+
+        // [THEN] Verify second invoice created successfully
+        Assert.IsTrue(SalesHeader2."No." <> '', SecondSalesInvoiceCreatedErr);
+        Assert.AreNotEqual(SalesHeader."No.", SalesHeader2."No.", SecondInvoiceDifferentNoErr);
+        JobPlanningLine.CalcFields("Qty. Transferred to Invoice");
+        Assert.AreEqual(JobPlanningLine.Quantity, JobPlanningLine."Qty. Transferred to Invoice", QtyTransferredShouldEqualQtyErr);
     end;
 
     local procedure Initialize()

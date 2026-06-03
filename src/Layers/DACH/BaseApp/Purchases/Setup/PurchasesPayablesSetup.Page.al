@@ -8,7 +8,6 @@ using Microsoft.EServices.EDocument;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Pricing.Calculation;
 using Microsoft.Purchases.Vendor;
-using System.Telemetry;
 
 page 460 "Purchases & Payables Setup"
 {
@@ -118,19 +117,6 @@ page 460 "Purchases & Payables Setup"
                 {
                     ApplicationArea = Prepayments;
                     Importance = Additional;
-                }
-                field("Default Del. Rem. Date Field"; Rec."Default Del. Rem. Date Field")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the date field of the purchase order line corresponding to the creation of delivery reminders.';
-
-                    trigger OnValidate()
-                    var
-                        FeatureTelemetry: Codeunit "Feature Telemetry";
-                        DeliverTok: Label 'DACH Delivery Reminder', Locked = true;
-                    begin
-                        FeatureTelemetry.LogUptake('0001Q0Q', DeliverTok, Enum::"Feature Uptake Status"::Discovered);
-                    end;
                 }
                 field("Prepmt. Auto Update Frequency"; Rec."Prepmt. Auto Update Frequency")
                 {
@@ -295,16 +281,6 @@ page 460 "Purchases & Payables Setup"
                 {
                     Visible = ExtendedPriceEnabled;
                     ApplicationArea = Basic, Suite;
-                }
-                field("Delivery Reminder Nos."; Rec."Delivery Reminder Nos.")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number series code used to assign numbers to delivery reminders.';
-                }
-                field("Issued Delivery Reminder Nos."; Rec."Issued Delivery Reminder Nos.")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number series code used to assign numbers to delivery reminders when they are issued.';
                 }
             }
             group("Background Posting")

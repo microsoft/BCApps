@@ -342,7 +342,7 @@ report 7323 "Create Invt Put-away/Pick/Mvmt"
         until TempWarehouseActivityHeader.Next() = 0;
     end;
 
-    local procedure CheckWhseRequest(var WarehouseRequest: Record "Warehouse Request") SkipRecord: Boolean
+    procedure CheckWhseRequest(var WarehouseRequest: Record "Warehouse Request") SkipRecord: Boolean
     var
         SalesHeader: Record "Sales Header";
         TransferHeader: Record "Transfer Header";

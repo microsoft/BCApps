@@ -3123,5 +3123,160 @@
     "codeunitId": 137931,
     "codeunitName": "SCM - Movement",
     "method": "ValidateBinCodeForActionTypePlaceShouldNotUpdateWhenBinTypeRecieve"
+  },
+  {
+    "codeunitId": 137350,
+    "codeunitName": "SCM Inventory Reports - III",
+    "method": "InventoryValueOnInventoryValuationAfterAdjustCostItemEntries"
+  },
+  {
+    "codeunitId": 137350,
+    "codeunitName": "SCM Inventory Reports - III",
+    "method": "ValueOfWIPAfterRunningInventoryValuationWIPReport"
+  },
+  {
+    "codeunitId": 137351,
+    "codeunitName": "SCM Inventory Reports - IV",
+    "method": "ItemAgeCompositionReportAfterPostingSalesOrder"
+  },
+  {
+    "codeunitId": 137351,
+    "codeunitName": "SCM Inventory Reports - IV",
+    "method": "ItemBudgetReportWithWholeAmountOptionTrue"
+  },
+  {
+    "codeunitId": 137054,
+    "codeunitName": "SCM Supply Planning",
+    "method": "CalculatePlanningWorksheetAndCarryOutWithBaseCalendar"
+  },
+  {
+    "codeunitId": 137054,
+    "codeunitName": "SCM Supply Planning",
+    "method": "DemandSupplyWithMultipleUOMCarryOutActionMessageAndRerunRegenerativePlan"
+  },
+  {
+    "codeunitId": 137054,
+    "codeunitName": "SCM Supply Planning",
+    "method": "SuppliesRescheduledIfCancelNewActionsBlockedByLargeDampenerQty"
+  },
+  {
+    "codeunitId": 137049,
+    "codeunitName": "SCM Reservation",
+    "method": "RoundingIssuesTransferAssembly"
+  },
+  {
+    "codeunitId": 137049,
+    "codeunitName": "SCM Reservation",
+    "method": "RoundingIssuesTransferILE"
+  },
+  {
+    "codeunitId": 137049,
+    "codeunitName": "SCM Reservation",
+    "method": "RoundingIssuesTransferProduction"
+  },
+  {
+    "codeunitId": 137049,
+    "codeunitName": "SCM Reservation",
+    "method": "RoundingIssuesTransferPurchase"
+  },
+  {
+    "codeunitId": 137038,
+    "codeunitName": "SCM Transfers",
+    "method": "UndoTransShpt_LotTracking"
+  },
+  {
+    "codeunitId": 137038,
+    "codeunitName": "SCM Transfers",
+    "method": "UndoTransShpt_LotTracking_AdditionalUoM"
+  },
+  {
+    "codeunitId": 137038,
+    "codeunitName": "SCM Transfers",
+    "method": "UndoTransShpt_LotTracking_PartialPosting"
+  },
+  {
+    "codeunitId": 137038,
+    "codeunitName": "SCM Transfers",
+    "method": "UndoTransShpt_SNTracking"
+  },
+  {
+    "codeunitId": 137038,
+    "codeunitName": "SCM Transfers",
+    "method": "UndoTransShptLineFindsCorrectTrackingInfo"
+  },
+  {
+    "codeunitId": 137038,
+    "codeunitName": "SCM Transfers",
+    "method": "UndoTransShptLineWhenLocationMandatory"
+  },
+  {
+    "codeunitId": 137038,
+    "codeunitName": "SCM Transfers",
+    "method": "TestTransferOrderNotifications"
+  },
+  {
+    "codeunitId": 137038,
+    "codeunitName": "SCM Transfers",
+    "method": "UndoTransferShipmentLineWithUOM"
+  },
+  {
+    "codeunitId": 137049,
+    "codeunitName": "SCM Reservation",
+    "method": "RoundingIssuesTransferAssembly"
+  },
+  {
+    "codeunitId": 137049,
+    "codeunitName": "SCM Reservation",
+    "method": "RoundingIssuesTransferILE"
+  },
+  {
+    "codeunitId": 137049,
+    "codeunitName": "SCM Reservation",
+    "method": "RoundingIssuesTransferProduction"
+  },
+  {
+    "codeunitId": 137049,
+    "codeunitName": "SCM Reservation",
+    "method": "RoundingIssuesTransferPurchase"
+  },
+  {
+    "codeunitId": 137038,
+    "codeunitName": "SCM Transfers",
+    "method": "UndoTransShpt_LotTracking"
+  },
+  {
+    "codeunitId": 137038,
+    "codeunitName": "SCM Transfers",
+    "method": "UndoTransShpt_LotTracking_AdditionalUoM"
+  },
+  {
+    "codeunitId": 137038,
+    "codeunitName": "SCM Transfers",
+    "method": "UndoTransShpt_LotTracking_PartialPosting"
+  },
+  {
+    "codeunitId": 137038,
+    "codeunitName": "SCM Transfers",
+    "method": "UndoTransShpt_SNTracking"
+  },
+  {
+    "codeunitId": 137038,
+    "codeunitName": "SCM Transfers",
+    "method": "UndoTransShptLineFindsCorrectTrackingInfo"
+  },
+  {
+    "codeunitId": 137038,
+    "codeunitName": "SCM Transfers",
+    "method": "UndoTransShptLineWhenLocationMandatory"
+  },
+  {
+    "codeunitId": 137038,
+    "codeunitName": "SCM Transfers",
+    "method": "TestTransferOrderNotifications"
+  },
+  {
+    "codeunitId": 137038,
+    "codeunitName": "SCM Transfers",
+    "method": "UndoTransferShipmentLineWithUOM"
   }
 ]

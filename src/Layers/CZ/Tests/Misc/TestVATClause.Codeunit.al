@@ -367,6 +367,52 @@ codeunit 134067 "Test VAT Clause"
             StrSubstNo(VATClauseTextErr, VATClause.Code, VATClauseByDocTypeTrans.Description + ' ' + VATClauseByDocTypeTrans."Description 2", VATClauseText));
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure GetDescription_DocTypeTransHasPriorityOverTranslation()
+    var
+        VATClause: Record "VAT Clause";
+        VATClauseTranslation: Record "VAT Clause Translation";
+        VATClauseByDocType: Record "VAT Clause by Doc. Type";
+        VATClauseByDocTypeTrans: Record "VAT Clause by Doc. Type Trans.";
+        SalesHeader: Record "Sales Header";
+        VATClauseText: Text;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 631957] VAT Clause by Doc. Type Translation has priority over VAT Clause Translation when both exist
+        Initialize();
+
+        // [GIVEN] VAT Clause "VC" with Description "D1" and Description 2 "D2"
+        CreateVATClause(VATClause);
+
+        // [GIVEN] VAT Clause Translation for "VC" with Language "L" and Description "DT1" and Description 2 "DT2"
+        CreateVATClauseTranslation(VATClauseTranslation, VATClause);
+
+        // [GIVEN] VAT Clause by Doc. Type for "VC" with Document Type Invoice
+        CreateVATClauseByDocType(VATClauseByDocType, RefVATClauseDocumentType::Invoice, VATClause);
+
+        // [GIVEN] VAT Clause by Doc. Type Trans. for "VC" with Document Type Invoice, Language "L" and Description "DIT1" and Description 2 "DIT2"
+        VATClauseByDocTypeTrans.Init();
+        VATClauseByDocTypeTrans.Validate("VAT Clause Code", VATClause.Code);
+        VATClauseByDocTypeTrans.Validate("Document Type", RefVATClauseDocumentType::Invoice);
+        VATClauseByDocTypeTrans.Validate("Language Code", VATClauseTranslation."Language Code");
+        VATClauseByDocTypeTrans.Validate(Description, GenerateVATClauseDescription());
+        VATClauseByDocTypeTrans.Validate("Description 2", GenerateVATClauseDescription());
+        VATClauseByDocTypeTrans.Insert(true);
+
+        // [GIVEN] Sales invoice "SI" with Language Code "L"
+        LibrarySales.CreateSalesInvoice(SalesHeader);
+        SalesHeader."Language Code" := VATClauseTranslation."Language Code";
+        SalesHeader.Modify();
+
+        // [WHEN] GetDescriptionText is called with Sales Invoice "SI"
+        VATClauseText := VATClause.GetDescriptionText(SalesHeader);
+
+        // [THEN] The description text contains the Doc. Type Translation description "DIT1" and "DIT2", not the general Translation "DT1" and "DT2"
+        Assert.AreEqual(VATClauseByDocTypeTrans.Description + ' ' + VATClauseByDocTypeTrans."Description 2", VATClauseText,
+            StrSubstNo(VATClauseTextErr, VATClause.Code, VATClauseByDocTypeTrans.Description + ' ' + VATClauseByDocTypeTrans."Description 2", VATClauseText));
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";

@@ -44,7 +44,8 @@
   "resourceExposurePolicy": {
     "allowDebugging": true,
     "allowDownloadingSource": true,
-    "includeSourceInSymbolFile": true
+    "includeSourceInSymbolFile": true,
+    "applyToDevExtension": true
   },
   "resourceFolders": [
     "Resources/Files"

@@ -11,6 +11,9 @@ page 6347 "Power BI Report Deployments"
     InsertAllowed = false;
     DeleteAllowed = false;
     ModifyAllowed = false;
+    AnalysisModeEnabled = false;
+    AboutTitle = 'About Power BI report deployments';
+    AboutText = 'Deploy Power BI reports to your workspace, update them when new versions are available, and retry deployments that have failed. This experience is only available in evaluation companies.';
 
     layout
     {
@@ -27,7 +30,7 @@ page 6347 "Power BI Report Deployments"
                 field(DeploymentStatus; Rec."Deployment Status")
                 {
                     ApplicationArea = All;
-                    Caption = 'Status';
+                    Caption = 'Deployment Status';
                     ToolTip = 'Specifies the deployment status of the report.';
                     StyleExpr = StatusStyle;
 
@@ -45,7 +48,7 @@ page 6347 "Power BI Report Deployments"
                 {
                     ApplicationArea = All;
                     Editable = false;
-                    Caption = 'Current Step';
+                    Caption = 'Current Deployment Step';
                     ToolTip = 'Specifies the current pipeline step for reports that are installing or in error.';
                 }
                 field(DeployedVersion; Rec."Deployed Version")
@@ -83,7 +86,8 @@ page 6347 "Power BI Report Deployments"
                     ApplicationArea = All;
                     Caption = 'Deploy';
                     Image = Setup;
-                    ToolTip = 'Deploys the selected reports to your Power BI workspace.';
+                    Enabled = IsEvaluationCompany;
+                    ToolTip = 'Deploys the selected reports to your Power BI workspace. Only available in evaluation companies.';
 
                     trigger OnAction()
                     var
@@ -114,8 +118,8 @@ page 6347 "Power BI Report Deployments"
                     ApplicationArea = All;
                     Caption = 'Update';
                     Image = UpdateXML;
-                    Enabled = CanUpdate;
-                    ToolTip = 'Updates the selected reports to the latest available version.';
+                    Enabled = IsEvaluationCompany and CanUpdate;
+                    ToolTip = 'Updates the selected reports to the latest available version. Only available in evaluation companies.';
 
                     trigger OnAction()
                     var
@@ -144,8 +148,8 @@ page 6347 "Power BI Report Deployments"
                     ApplicationArea = All;
                     Caption = 'Retry';
                     Image = ResetStatus;
-                    Enabled = CanRetry;
-                    ToolTip = 'Resets the failed deployment and retries from scratch.';
+                    Enabled = IsEvaluationCompany and CanRetry;
+                    ToolTip = 'Resets the failed deployment and retries from scratch. Only available in evaluation companies.';
 
                     trigger OnAction()
                     var
@@ -174,7 +178,8 @@ page 6347 "Power BI Report Deployments"
                     ApplicationArea = All;
                     Caption = 'Download PBIX';
                     Image = ExportFile;
-                    ToolTip = 'Downloads the PBIX file of the selected report.';
+                    Enabled = IsEvaluationCompany;
+                    ToolTip = 'Downloads the PBIX file of the selected report. Only available in evaluation companies.';
 
                     trigger OnAction()
                     var
@@ -191,12 +196,32 @@ page 6347 "Power BI Report Deployments"
                 action(Refresh)
                 {
                     ApplicationArea = All;
-                    Caption = 'Refresh';
+                    Caption = 'Reload';
                     Image = Refresh;
-                    ToolTip = 'Refreshes the deployment status of the reports.';
+                    Enabled = IsEvaluationCompany;
+                    ToolTip = 'Refreshes the deployment status of the reports. Only available in evaluation companies.';
 
                     trigger OnAction()
                     begin
+                        Rec.LoadReports();
+                        CurrPage.Update(false);
+                    end;
+                }
+                action(ClearDeploymentRecords)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Clear Deployment Records';
+                    Image = ClearLog;
+                    Enabled = IsEvaluationCompany;
+                    ToolTip = 'Wipes all local Power BI deployment tracking data. Reports already uploaded to the Power BI workspace are not removed. Only available in evaluation companies.';
+
+                    trigger OnAction()
+                    var
+                        PowerBIDeployment: Record "Power BI Deployment";
+                    begin
+                        if not Confirm(ClearDeploymentRecordsQst) then
+                            exit;
+                        PowerBIDeployment.DeleteAllRecords();
                         Rec.LoadReports();
                         CurrPage.Update(false);
                     end;
@@ -205,26 +230,26 @@ page 6347 "Power BI Report Deployments"
         }
         area(navigation)
         {
+            action(OpenInPowerBI)
+            {
+                ApplicationArea = All;
+                Caption = 'Open in Power BI';
+                Image = Open;
+                Enabled = IsEvaluationCompany and CanOpenInPowerBI;
+                ToolTip = 'Opens the deployed report in Power BI. Only available in evaluation companies.';
+
+                trigger OnAction()
+                var
+                    PowerBIDeployment: Record "Power BI Deployment";
+                    PowerBIUrlMgt: Codeunit "Power BI Url Mgt";
+                begin
+                    PowerBIDeployment.Get(Rec."Report Id");
+                    Hyperlink(PowerBIUrlMgt.GetPowerBIReportUrl(PowerBIDeployment."Uploaded Report ID"));
+                end;
+            }
             group(NavigateActions)
             {
                 Caption = 'Navigate';
-
-                action(OpenInPowerBI)
-                {
-                    ApplicationArea = All;
-                    Caption = 'Open in Power BI';
-                    Image = Open;
-                    Enabled = CanOpenInPowerBI;
-                    ToolTip = 'Opens the deployed report in Power BI.';
-
-                    trigger OnAction()
-                    var
-                        PowerBIDeployment: Record "Power BI Deployment";
-                    begin
-                        PowerBIDeployment.Get(Rec."Report Id");
-                        Hyperlink(PowerBIDeployment."Report Embed Url");
-                    end;
-                }
             }
         }
         area(Promoted)
@@ -248,14 +273,16 @@ page 6347 "Power BI Report Deployments"
                 actionref(Refresh_Promoted; Refresh)
                 {
                 }
+                actionref(ClearDeploymentRecords_Promoted; ClearDeploymentRecords)
+                {
+                }
+                actionref(OpenInPowerBI_Promoted; OpenInPowerBI)
+                {
+                }
             }
             group(Category_Category2)
             {
                 Caption = 'Navigate';
-
-                actionref(OpenInPowerBI_Promoted; OpenInPowerBI)
-                {
-                }
             }
         }
     }
@@ -265,8 +292,7 @@ page 6347 "Power BI Report Deployments"
         Company: Record Company;
     begin
         Company.Get(CompanyName());
-        if not Company."Evaluation Company" then
-            Error('');
+        IsEvaluationCompany := Company."Evaluation Company";
         Rec.LoadReports();
     end;
 
@@ -306,7 +332,9 @@ page 6347 "Power BI Report Deployments"
         CanUpdate: Boolean;
         CanRetry: Boolean;
         CanOpenInPowerBI: Boolean;
+        IsEvaluationCompany: Boolean;
         NoReportSelectedErr: Label 'No report has been selected for deployment.';
         DownloadDialogTitleLbl: Label 'Download Power BI Report';
         PbixFileFilterLbl: Label 'Power BI Files (*.pbix)|*.pbix';
+        ClearDeploymentRecordsQst: Label 'This will wipe all local Power BI deployment tracking data for this company. Reports already in your Power BI workspace will not be removed. Continue?';
 }

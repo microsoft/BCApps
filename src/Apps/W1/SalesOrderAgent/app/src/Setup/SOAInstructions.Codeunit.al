@@ -144,6 +144,44 @@ codeunit 4598 "SOA Instructions"
         exit(MailTemplateCheckSystemPrompt);
     end;
 
+    [NonDebuggable]
+    internal procedure GetItemSelectorSystemPrompt(var Prompt: SecretText): Boolean
+    begin
+        exit(ReadResourcePrompt('itemselector-task.prompty', Prompt));
+    end;
+
+    [NonDebuggable]
+    internal procedure GetItemSelectorPrompt(): SecretText
+    var
+        Prompt: SecretText;
+    begin
+        if not ReadResourcePrompt('itemselector-tool.prompty', Prompt) then
+            Error(ConstructingPromptFailedErr);
+
+        exit(Prompt);
+    end;
+
+    [NonDebuggable]
+    local procedure ReadResourcePrompt(ResourceName: Text; var Prompt: SecretText): Boolean
+    var
+        InStream: InStream;
+        TextBuilder: TextBuilder;
+        TextLine: Text;
+    begin
+        NavApp.GetResource(ResourceName, InStream, TextEncoding::UTF8);
+
+        InStream.ReadText(TextLine);
+        TextBuilder.Append(TextLine);
+        while not InStream.EOS() do begin
+            InStream.ReadText(TextLine);
+            TextBuilder.AppendLine('');
+            TextBuilder.Append(TextLine);
+        end;
+
+        Prompt := TextBuilder.ToText();
+        exit(true);
+    end;
+
     [TryFunction]
     [NonDebuggable]
     local procedure TryFormatInstructionsText(var InstructionsText: Text; CultureName: Text)

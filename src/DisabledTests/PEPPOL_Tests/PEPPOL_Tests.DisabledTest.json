@@ -38,5 +38,22 @@
     "codeunitId": 139236,
     "codeunitName": "PEPPOL BIS BillingTests",
     "method": "PEPPOL_XMLExport_DeliveryInfo_ServiceInvoice"
+  },
+  {
+    "bug": "635880",
+    "codeunitId": 139235,
+    "codeunitName": "PEPPOL30 Management Tests",
+    "method": "PEPPOL_XMLExport_DeliveryInfo_ServiceInvoice"
+  },
+  {
+    "bug": "635880",
+    "codeunitId": 139235,
+    "codeunitName": "PEPPOL30 Management Tests",
+    "method": "PEPPOL_XMLExport_DeliveryInfo_ServiceCrMemo"
+  },
+  {
+    "codeunitId": 139236,
+    "codeunitName": "PEPPOL BIS BillingTests",
+    "method": "*"
   }
 ]

@@ -20,6 +20,7 @@ codeunit 31264 "Upgrade Tag Definitions CZC"
         PerCompanyUpgradeTags.Add(GetDataVersion180PerCompanyUpgradeTag());
         PerCompanyUpgradeTags.Add(GetCompensationLanguageCodeUpgradeTag());
         PerCompanyUpgradeTags.Add(GetPostedCompensationLanguageCodeUpgradeTag());
+        PerCompanyUpgradeTags.Add(GetUseReportSelectionsUpgradeTag());
     end;
 
     procedure GetDataVersion180PerDatabaseUpgradeTag(): Code[250]
@@ -40,5 +41,10 @@ codeunit 31264 "Upgrade Tag Definitions CZC"
     internal procedure GetPostedCompensationLanguageCodeUpgradeTag(): Code[250]
     begin
         exit('CZC-434074-PostedCompensationLanguageCode-20220427');
+    end;
+
+    internal procedure GetUseReportSelectionsUpgradeTag(): Code[250]
+    begin
+        exit('CZC-624916-UseReportSelections-20260422');
     end;
 }

@@ -777,6 +777,54 @@ codeunit 134213 "WF Demo Item Unit Pri Approval"
         ApprovalsMgmt.OpenApprovalEntriesPage(Item.RecordId);
     end;
 
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    [Scope('OnPrem')]
+    procedure ModifyOtherFieldViaItemCardWhileUnitPricePendingApproval()
+    var
+        Workflow: Record Workflow;
+        ApprovalEntry: Record "Approval Entry";
+        Item: Record Item;
+        CurrentUserSetup: Record "User Setup";
+        IntermediateApproverUserSetup: Record "User Setup";
+        FinalApproverUserSetup: Record "User Setup";
+        WorkflowUserGroup: Record "Workflow User Group";
+        WorkflowSetup: Codeunit "Workflow Setup";
+        ItemCard: TestPage "Item Card";
+        NewUnitPrice: Decimal;
+        NewDescription: Text[100];
+    begin
+        // [FEATURE] [AI test 0.1]
+        // [SCENARIO 626945] User can modify other fields via Item Card page while Unit Price approval is pending
+        Initialize();
+
+        // [GIVEN] Item Unit Price Change Approval Workflow is enabled with 3 approvers
+        LibraryWorkflow.CopyWorkflowTemplate(Workflow, WorkflowSetup.ItemUnitPriceChangeApprovalWorkflowCode());
+        CreateUserSetupsAndGroupOfApproversForWorkflow(WorkflowUserGroup, CurrentUserSetup,
+          IntermediateApproverUserSetup, FinalApproverUserSetup);
+        LibraryWorkflow.SetWorkflowGroupApprover(Workflow.Code, WorkflowUserGroup.Code);
+        LibraryWorkflow.EnableWorkflow(Workflow);
+
+        // [GIVEN] Item with Unit Price changed and sent for approval
+        NewUnitPrice := LibraryRandom.RandDec(1000, 2);
+        CreateItemAndChangeUnitPriceAndSendForApproval(Item, NewUnitPrice);
+
+        // [WHEN] User opens Item Card and modifies Description via the page
+        NewDescription := CopyStr(LibraryUtility.GenerateRandomText(100), 1, 100);
+        ItemCard.OpenEdit();
+        ItemCard.GotoRecord(Item);
+        ItemCard.Description.SetValue(NewDescription);
+        ItemCard.OK().Invoke();
+
+        // [THEN] Description is successfully updated without "not up-to-date" error
+        Item.Get(Item."No.");
+        Assert.AreEqual(NewDescription, Item.Description, 'Description should be updated successfully via Item Card');
+
+        // [THEN] Approval entries still exist for Unit Price change
+        LibraryDocumentApprovals.GetApprovalEntries(ApprovalEntry, Item.RecordId);
+        Assert.IsFalse(ApprovalEntry.IsEmpty, 'Approval entries should still exist after page-level save');
+    end;
+
     [MessageHandler]
     [Scope('OnPrem')]
     procedure MessageHandlerValidateMessage(Message: Text[1024])

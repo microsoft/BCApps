@@ -459,6 +459,281 @@ codeunit 139758 "Master Data Mgt. Synch. Tests"
         Assert.AreEqual(JobQueueEntry.Status::Ready, JobQueueEntry.Status, '');
     end;
 
+    [Test]
+    [HandlerFunctions('SynchronizationEnabledMessageHandler')]
+    procedure ConsecutiveFailuresMarkCouplingAsSkipped()
+    var
+        SourceCustomer: Record Customer;
+        DestinationCustomer: Record Customer;
+        MasterDataMgtCoupling: Record "Master Data Mgt. Coupling";
+        IntegrationRecordManagement: Codeunit "Integration Record Management";
+        MasterDataMgtSynchTests: Codeunit "Master Data Mgt. Synch. Tests";
+        SourceRecordRef: RecordRef;
+        JobId: Guid;
+        I: Integer;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] After three consecutive failures the coupling is automatically marked as Skipped so the platform stops retrying it.
+        Initialize();
+
+        // [GIVEN] A coupling between two customers with no failures yet
+        CreateCoupledCustomers(SourceCustomer, DestinationCustomer, MasterDataMgtCoupling);
+
+        // [WHEN] MarkLastSynchAsFailure is invoked three times for the same source record
+        SourceRecordRef.GetTable(SourceCustomer);
+        JobId := CreateGuid();
+        BindSubscription(MasterDataMgtSynchTests);
+        for I := 1 to 3 do
+            IntegrationRecordManagement.MarkLastSynchAsFailure(TableConnectionType::ExternalSQL, SourceRecordRef, false, JobId);
+        UnbindSubscription(MasterDataMgtSynchTests);
+
+        // [THEN] The coupling is marked as Skipped and the consecutive-failure counter equals the threshold
+        MasterDataMgtCoupling.Get(MasterDataMgtCoupling."Integration System ID", MasterDataMgtCoupling."Local System ID");
+        Assert.AreEqual(3, MasterDataMgtCoupling."Consecutive Failure Count", 'Counter should equal the threshold after 3 failures');
+        Assert.IsTrue(MasterDataMgtCoupling.Skipped, 'Coupling should be marked Skipped after 3 failures');
+    end;
+
+    [Test]
+    [HandlerFunctions('SynchronizationEnabledMessageHandler')]
+    procedure TwoFailuresDoNotMarkCouplingAsSkipped()
+    var
+        SourceCustomer: Record Customer;
+        DestinationCustomer: Record Customer;
+        MasterDataMgtCoupling: Record "Master Data Mgt. Coupling";
+        IntegrationRecordManagement: Codeunit "Integration Record Management";
+        MasterDataMgtSynchTests: Codeunit "Master Data Mgt. Synch. Tests";
+        SourceRecordRef: RecordRef;
+        JobId: Guid;
+        I: Integer;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] Two consecutive failures are below the threshold so the coupling stays active and is not marked as Skipped.
+        Initialize();
+
+        // [GIVEN] A coupling between two customers with no failures yet
+        CreateCoupledCustomers(SourceCustomer, DestinationCustomer, MasterDataMgtCoupling);
+
+        // [WHEN] MarkLastSynchAsFailure is invoked twice for the same source record
+        SourceRecordRef.GetTable(SourceCustomer);
+        JobId := CreateGuid();
+        BindSubscription(MasterDataMgtSynchTests);
+        for I := 1 to 2 do
+            IntegrationRecordManagement.MarkLastSynchAsFailure(TableConnectionType::ExternalSQL, SourceRecordRef, false, JobId);
+        UnbindSubscription(MasterDataMgtSynchTests);
+
+        // [THEN] The coupling has counter 2 and is still not Skipped
+        MasterDataMgtCoupling.Get(MasterDataMgtCoupling."Integration System ID", MasterDataMgtCoupling."Local System ID");
+        Assert.AreEqual(2, MasterDataMgtCoupling."Consecutive Failure Count", 'Counter should equal 2 after 2 failures');
+        Assert.IsFalse(MasterDataMgtCoupling.Skipped, 'Coupling should not be Skipped before threshold is reached');
+    end;
+
+    [Test]
+    [HandlerFunctions('SynchronizationEnabledMessageHandler')]
+    procedure IsIntegrationRecordSkippedReturnsTrueWhenSkipped()
+    var
+        SourceCustomer: Record Customer;
+        DestinationCustomer: Record Customer;
+        MasterDataMgtCoupling: Record "Master Data Mgt. Coupling";
+        IntegrationRecordManagement: Codeunit "Integration Record Management";
+        MasterDataMgtSynchTests: Codeunit "Master Data Mgt. Synch. Tests";
+        SourceRecordRef: RecordRef;
+        IsSkipped: Boolean;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] When a coupling is Skipped the platform query IsIntegrationRecordSkipped returns true so no further error rows are inserted.
+        Initialize();
+
+        // [GIVEN] A coupling that has already been escalated to Skipped
+        CreateCoupledCustomers(SourceCustomer, DestinationCustomer, MasterDataMgtCoupling);
+        MasterDataMgtCoupling.Skipped := true;
+        MasterDataMgtCoupling."Consecutive Failure Count" := 3;
+        MasterDataMgtCoupling.Modify();
+
+        // [WHEN] The platform asks whether the source record is currently skipped
+        SourceRecordRef.GetTable(SourceCustomer);
+        BindSubscription(MasterDataMgtSynchTests);
+        IsSkipped := IntegrationRecordManagement.IsIntegrationRecordSkipped(TableConnectionType::ExternalSQL, SourceRecordRef, false);
+        UnbindSubscription(MasterDataMgtSynchTests);
+
+        // [THEN] The platform receives true and will skip the record on the next synch run
+        Assert.IsTrue(IsSkipped, 'IsIntegrationRecordSkipped should return true for a Skipped coupling');
+    end;
+
+    [Test]
+    [HandlerFunctions('SynchronizationEnabledMessageHandler')]
+    procedure SuccessfulSynchResetsCounterAndSkippedFlag()
+    var
+        SourceCustomer: Record Customer;
+        DestinationCustomer: Record Customer;
+        MasterDataMgtCoupling: Record "Master Data Mgt. Coupling";
+        IntegrationTableMapping: Record "Integration Table Mapping";
+        IntegrationRecordManagement: Codeunit "Integration Record Management";
+        MasterDataMgtSynchTests: Codeunit "Master Data Mgt. Synch. Tests";
+        JobId: Guid;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] A successful synchronization clears the consecutive-failure counter and the Skipped flag so the coupling rejoins regular synch.
+        Initialize();
+
+        // [GIVEN] A coupling currently marked as Skipped with a non-zero counter
+        CreateCoupledCustomers(SourceCustomer, DestinationCustomer, MasterDataMgtCoupling);
+        MasterDataMgtCoupling.Skipped := true;
+        MasterDataMgtCoupling."Consecutive Failure Count" := 2;
+        MasterDataMgtCoupling.Modify();
+
+        // [WHEN] A successful synch is reported via UpdateIntegrationTableTimestamp for that record
+        IntegrationTableMapping.SetRange(Type, IntegrationTableMapping.Type::"Master Data Management");
+        IntegrationTableMapping.SetRange("Table ID", Database::Customer);
+        IntegrationTableMapping.FindFirst();
+        JobId := CreateGuid();
+        BindSubscription(MasterDataMgtSynchTests);
+        IntegrationRecordManagement.UpdateIntegrationTableTimestamp(
+            TableConnectionType::ExternalSQL, MasterDataMgtCoupling."Integration System ID",
+            CurrentDateTime(), Database::Customer, CurrentDateTime(), JobId, IntegrationTableMapping.Direction::FromIntegrationTable);
+        UnbindSubscription(MasterDataMgtSynchTests);
+
+        // [THEN] Both the counter and the Skipped flag are cleared
+        MasterDataMgtCoupling.Get(MasterDataMgtCoupling."Integration System ID", MasterDataMgtCoupling."Local System ID");
+        Assert.AreEqual(0, MasterDataMgtCoupling."Consecutive Failure Count", 'Counter should be cleared on success');
+        Assert.IsFalse(MasterDataMgtCoupling.Skipped, 'Skipped flag should be cleared on success');
+    end;
+
+    [Test]
+    [HandlerFunctions('SynchronizationEnabledMessageHandler')]
+    procedure RunFullSynchronizationResetsCountersAndSkippedFlags()
+    var
+        SourceCustomerA: Record Customer;
+        DestinationCustomerA: Record Customer;
+        SourceCustomerB: Record Customer;
+        DestinationCustomerB: Record Customer;
+        MasterDataMgtCouplingA: Record "Master Data Mgt. Coupling";
+        MasterDataMgtCouplingB: Record "Master Data Mgt. Coupling";
+        IntegrationTableMapping: Record "Integration Table Mapping";
+        MasterDataMgtSynchTests: Codeunit "Master Data Mgt. Synch. Tests";
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] Run Full Synchronization re-includes Skipped couplings and clears their counters; couplings with sub-threshold counters that were not Skipped are left alone.
+        Initialize();
+
+        // [GIVEN] Coupling A is Skipped with counter 3 and coupling B has counter 2 but is not Skipped
+        CreateCoupledCustomers(SourceCustomerA, DestinationCustomerA, MasterDataMgtCouplingA);
+        MasterDataMgtCouplingA.Skipped := true;
+        MasterDataMgtCouplingA."Consecutive Failure Count" := 3;
+        MasterDataMgtCouplingA.Modify();
+        CreateCoupledCustomers(SourceCustomerB, DestinationCustomerB, MasterDataMgtCouplingB);
+        MasterDataMgtCouplingB.Skipped := false;
+        MasterDataMgtCouplingB."Consecutive Failure Count" := 2;
+        MasterDataMgtCouplingB.Modify();
+
+        // [WHEN] The user triggers Run Full Synchronization on the Customer mapping
+        IntegrationTableMapping.SetRange(Type, IntegrationTableMapping.Type::"Master Data Management");
+        IntegrationTableMapping.SetRange("Table ID", Database::Customer);
+        IntegrationTableMapping.SetRange("Delete After Synchronization", false);
+        IntegrationTableMapping.FindFirst();
+        BindSubscription(MasterDataMgtSynchTests);
+        IntegrationTableMapping.SynchronizeNow(true, false);
+        UnbindSubscription(MasterDataMgtSynchTests);
+
+        // [THEN] Coupling A is no longer Skipped and its counter is reset
+        MasterDataMgtCouplingA.Get(MasterDataMgtCouplingA."Integration System ID", MasterDataMgtCouplingA."Local System ID");
+        Assert.IsFalse(MasterDataMgtCouplingA.Skipped, 'Skipped coupling should be re-included by Run Full Synchronization');
+        Assert.AreEqual(0, MasterDataMgtCouplingA."Consecutive Failure Count", 'Counter on previously Skipped coupling should be reset');
+
+        // [THEN] Coupling B is untouched - counters on non-Skipped rows are intentionally not reset
+        MasterDataMgtCouplingB.Get(MasterDataMgtCouplingB."Integration System ID", MasterDataMgtCouplingB."Local System ID");
+        Assert.IsFalse(MasterDataMgtCouplingB.Skipped, 'Coupling B should remain not Skipped');
+        Assert.AreEqual(2, MasterDataMgtCouplingB."Consecutive Failure Count", 'Counter on non-Skipped coupling should be left alone');
+    end;
+
+    [Test]
+    [HandlerFunctions('SynchronizationEnabledMessageHandler')]
+    procedure ValidatingLocalSystemIdResetsCounter()
+    var
+        SourceCustomer: Record Customer;
+        DestinationCustomer: Record Customer;
+        NewDestinationCustomer: Record Customer;
+        MasterDataMgtCoupling: Record "Master Data Mgt. Coupling";
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] Recoupling a record by validating Local System ID resets the consecutive-failure counter and the Skipped flag.
+        Initialize();
+
+        // [GIVEN] A coupling currently Skipped with a non-zero counter
+        CreateCoupledCustomers(SourceCustomer, DestinationCustomer, MasterDataMgtCoupling);
+        MasterDataMgtCoupling.Skipped := true;
+        MasterDataMgtCoupling."Consecutive Failure Count" := 2;
+        MasterDataMgtCoupling.Modify();
+
+        // [WHEN] The Local System ID is revalidated (triggers OnValidate which clears the counters)
+        LibrarySales.CreateCustomer(NewDestinationCustomer);
+        MasterDataMgtCoupling.Validate("Local System ID", NewDestinationCustomer.SystemId);
+
+        // [THEN] The counter and Skipped flag are reset in-memory by the OnValidate trigger
+        Assert.AreEqual(0, MasterDataMgtCoupling."Consecutive Failure Count", 'Counter should be cleared on recoupling');
+        Assert.IsFalse(MasterDataMgtCoupling.Skipped, 'Skipped flag should be cleared on recoupling');
+    end;
+
+    [Test]
+    [HandlerFunctions('SynchronizationEnabledMessageHandler')]
+    procedure DuplicateMdmSynchErrorsAreNotDeletedAnymore()
+    var
+        IntegrationTableMapping: Record "Integration Table Mapping";
+        IntegrationSynchJob: Record "Integration Synch. Job";
+        IntegrationSynchJobErrorsFirst: Record "Integration Synch. Job Errors";
+        IntegrationSynchJobErrorsSecond: Record "Integration Synch. Job Errors";
+        SourceCustomer: Record Customer;
+        SourceRecordId: RecordID;
+        DuplicateErrorMessage: Text[250];
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] The legacy duplicate-error cleanup subscriber has been removed so two error rows for the same source record and message both remain after Insert. The escalation-to-Skipped mechanism is what now bounds the log size.
+        Initialize();
+
+        // [GIVEN] An MDM integration synch job and a source record to error against
+        IntegrationTableMapping.SetRange(Type, IntegrationTableMapping.Type::"Master Data Management");
+        IntegrationTableMapping.SetRange("Table ID", Database::Customer);
+        IntegrationTableMapping.SetRange("Delete After Synchronization", false);
+        IntegrationTableMapping.FindFirst();
+        IntegrationSynchJob.Init();
+        IntegrationSynchJob.ID := CreateGuid();
+        IntegrationSynchJob."Integration Table Mapping Name" := IntegrationTableMapping.Name;
+        IntegrationSynchJob."Start Date/Time" := CurrentDateTime();
+        IntegrationSynchJob.Insert();
+        LibrarySales.CreateCustomer(SourceCustomer);
+        SourceRecordId := SourceCustomer.RecordId();
+        DuplicateErrorMessage := CopyStr(LibraryRandom.RandText(50), 1, MaxStrLen(DuplicateErrorMessage));
+
+        // [WHEN] Two error rows with the same source record and message are inserted
+        IntegrationSynchJobErrorsFirst.Init();
+        IntegrationSynchJobErrorsFirst."Integration Synch. Job ID" := IntegrationSynchJob.ID;
+        IntegrationSynchJobErrorsFirst."Source Record ID" := SourceRecordId;
+        IntegrationSynchJobErrorsFirst.Message := DuplicateErrorMessage;
+        IntegrationSynchJobErrorsFirst."Date/Time" := CurrentDateTime();
+        IntegrationSynchJobErrorsFirst.Insert(true);
+        IntegrationSynchJobErrorsSecond.Init();
+        IntegrationSynchJobErrorsSecond."Integration Synch. Job ID" := IntegrationSynchJob.ID;
+        IntegrationSynchJobErrorsSecond."Source Record ID" := SourceRecordId;
+        IntegrationSynchJobErrorsSecond.Message := DuplicateErrorMessage;
+        IntegrationSynchJobErrorsSecond."Date/Time" := CurrentDateTime();
+        IntegrationSynchJobErrorsSecond.Insert(true);
+
+        // [THEN] Both rows still exist - the older one was not silently deleted
+        Assert.IsTrue(IntegrationSynchJobErrorsFirst.Get(IntegrationSynchJobErrorsFirst."No."), 'The first error row should still exist; the legacy cleanup subscriber must be gone');
+        Assert.IsTrue(IntegrationSynchJobErrorsSecond.Get(IntegrationSynchJobErrorsSecond."No."), 'The newly inserted error row should exist');
+    end;
+
+    local procedure CreateCoupledCustomers(var SourceCustomer: Record Customer; var DestinationCustomer: Record Customer; var MasterDataMgtCoupling: Record "Master Data Mgt. Coupling")
+    begin
+        LibrarySales.CreateCustomer(SourceCustomer);
+        LibrarySales.CreateCustomer(DestinationCustomer);
+        MasterDataMgtCoupling.Init();
+        MasterDataMgtCoupling."Integration System ID" := SourceCustomer.SystemId;
+        MasterDataMgtCoupling."Local System ID" := DestinationCustomer.SystemId;
+        MasterDataMgtCoupling."Table ID" := Database::Customer;
+        MasterDataMgtCoupling."Last Synch. Modified On" := DestinationCustomer.SystemModifiedAt;
+        MasterDataMgtCoupling.Insert();
+    end;
+
     local procedure EnableSetup()
     var
         MasterDataManagementSetup: Record "Master Data Management Setup";

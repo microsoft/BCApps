@@ -56,7 +56,10 @@ report 6032 "Post Prepaid Contract Entries"
                 if SalesSetup."Discount Posting" in
                    [SalesSetup."Discount Posting"::"Line Discounts", SalesSetup."Discount Posting"::"All Discounts"]
                 then
-                    AmtInclDisc := Round(("Amount (LCY)" / (1 - ("Discount %" / 100))))
+                    if "Discount %" = 100 then
+                        AmtInclDisc := 0
+                    else
+                        AmtInclDisc := Round(("Amount (LCY)" / (1 - ("Discount %" / 100))))
                 else
                     AmtInclDisc := "Amount (LCY)";
 

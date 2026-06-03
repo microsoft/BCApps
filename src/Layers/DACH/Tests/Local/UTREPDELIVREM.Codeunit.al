@@ -213,7 +213,7 @@ codeunit 142040 "UT REP DELIVREM"
         // Verify: Verify Warning for Purchase Order on Report Delivery Reminder - Test.
         LibraryReportDataset.LoadDataSetFile();
         LibraryReportDataset.AssertElementWithValueExists('Delivery_Reminder_Header_No_', DeliveryReminderHeader."No.");
-        LibraryReportDataset.AssertElementWithValueExists('ErrorText_Number__Control97', 'Delivery Remainder Line has no valid Purch. Order Line');
+        LibraryReportDataset.AssertElementWithValueExists('ErrorText_Number__Control97', 'Delivery Reminder Line has no valid Purch. Order Line');
     end;
 
     [Test]

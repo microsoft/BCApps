@@ -11,14 +11,14 @@ codeunit 99001538 "Subc. Transfer Rcpt Line Ext."
     [EventSubscriber(ObjectType::Table, Database::"Transfer Receipt Line", OnAfterCopyFromTransferLine, '', false, false)]
     local procedure OnAfterCopyFromTransferLine_T5745(var TransferReceiptLine: Record "Transfer Receipt Line"; TransferLine: Record "Transfer Line")
     begin
-        TransferReceiptLine."Subcontr. Purch. Order No." := TransferLine."Subcontr. Purch. Order No.";
-        TransferReceiptLine."Subcontr. PO Line No." := TransferLine."Subcontr. PO Line No.";
-        TransferReceiptLine."Prod. Order No." := TransferLine."Prod. Order No.";
-        TransferReceiptLine."Prod. Order Line No." := TransferLine."Prod. Order Line No.";
-        TransferReceiptLine."Prod. Order Comp. Line No." := TransferLine."Prod. Order Comp. Line No.";
-        TransferReceiptLine."Routing No." := TransferLine."Routing No.";
-        TransferReceiptLine."Routing Reference No." := TransferLine."Routing Reference No.";
-        TransferReceiptLine."Work Center No." := TransferLine."Work Center No.";
-        TransferReceiptLine."Operation No." := TransferLine."Operation No.";
+        TransferReceiptLine."Subc. Purch. Order No." := TransferLine."Subc. Purch. Order No.";
+        TransferReceiptLine."Subc. Purch. Order Line No." := TransferLine."Subc. Purch. Order Line No.";
+        TransferReceiptLine."Subc. Prod. Order No." := TransferLine."Subc. Prod. Order No.";
+        TransferReceiptLine."Subc. Prod. Order Line No." := TransferLine."Subc. Prod. Order Line No.";
+        TransferReceiptLine."Subc. Prod. Ord. Comp Line No." := TransferLine."Subc. Prod. Ord. Comp Line No.";
+        TransferReceiptLine."Subc. Routing No." := TransferLine."Subc. Routing No.";
+        TransferReceiptLine."Subc. Routing Reference No." := TransferLine."Subc. Routing Reference No.";
+        TransferReceiptLine."Subc. Work Center No." := TransferLine."Subc. Work Center No.";
+        TransferReceiptLine."Subc. Operation No." := TransferLine."Subc. Operation No.";
     end;
 }

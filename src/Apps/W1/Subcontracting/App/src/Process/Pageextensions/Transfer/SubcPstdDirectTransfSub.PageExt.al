@@ -66,6 +66,11 @@ pageextension 99001532 "Subc. PstdDirectTransfSub" extends "Posted Direct Transf
                 ToolTip = 'Specifies the number of the related production operation no.';
                 Visible = false;
             }
+            field("Transfer WIP Item"; Rec."Transfer WIP Item")
+            {
+                ApplicationArea = Manufacturing;
+                Visible = false;
+            }
         }
     }
     actions

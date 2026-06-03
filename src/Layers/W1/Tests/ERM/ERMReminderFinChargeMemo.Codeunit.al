@@ -39,6 +39,7 @@ codeunit 134909 "ERM Reminder/Fin.Charge Memo"
         NotAllRemindersCancelledTxt: Label 'One or more of the selected issued reminders could not be canceled.\\Do you want to see a list of the issued reminders that were not canceled?';
         NotAllFinChMemosCancelledTxt: Label 'One or more of the selected issued finance charge memos could not be canceled.\\Do you want to see a list of the issued finance charge memos that were not canceled?';
         IssuedReminderErr: Label 'Amount must be in opposite sign.';
+        DimensionSetIdShouldBeAssignedOnReversalPostingErr: Label 'Dimension Set ID should be assigned on reversal posting';
 
     [Test]
     [HandlerFunctions('DocumentEntriesRequestPageHandler,NavigatePagehandler')]
@@ -1384,6 +1385,109 @@ codeunit 134909 "ERM Reminder/Fin.Charge Memo"
 
         // [THEN] Amount must be same but in opposite sign.
         VerifyAmountInGLEntries(IssuedReminderHeader."No.");
+    end;
+
+    [Test]
+    [HandlerFunctions('BatchCancelIssuedFinChargeMemosRequestPageHandler')]
+    [Scope('OnPrem')]
+    procedure CancelFinChargeMemoWithClosedEntriesAndMandatoryDimension()
+    var
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        Customer: Record Customer;
+        CustomerPostingGroup: Record "Customer Posting Group";
+        DefaultDimension: Record "Default Dimension";
+        DimValue: Record "Dimension Value";
+        FinanceChargeMemoHeader: Record "Finance Charge Memo Header";
+        FinanceChargeTerms: Record "Finance Charge Terms";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalLine: Record "Gen. Journal Line";
+        GLEntry: Record "G/L Entry";
+        IssuedFinChargeMemoHeader: Record "Issued Fin. Charge Memo Header";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        InterestAccountNo: Code[20];
+        InvoiceNo: Code[20];
+        InvoiceDate: Date;
+        DueDate: Date;
+        PaymentDate: Date;
+        FinChargeDate: Date;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 633116] Cancel Issued Finance Charge Memo with Interest Calculation = Closed Entries and Code Mandatory dimension on Interest Account
+        Initialize();
+
+        // [GIVEN] Finance Charge Terms with Interest Calculation = Closed Entries, Post Interest = true
+        LibraryERM.CreateFinanceChargeTerms(FinanceChargeTerms);
+        FinanceChargeTerms.Validate("Interest Calculation", FinanceChargeTerms."Interest Calculation"::"Closed Entries");
+        FinanceChargeTerms.Validate("Interest Calculation Method", FinanceChargeTerms."Interest Calculation Method"::"Average Daily Balance");
+        FinanceChargeTerms.Validate("Interest Rate", 0.05);
+        FinanceChargeTerms.Validate("Interest Period (Days)", 1);
+        Evaluate(FinanceChargeTerms."Due Date Calculation", '<30D>');
+        FinanceChargeTerms.Validate("Post Interest", true);
+        FinanceChargeTerms.Validate("Post Additional Fee", true);
+        FinanceChargeTerms.Modify(true);
+
+        // [GIVEN] Customer with Finance Charge Terms and Customer Posting Group
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Validate("Fin. Charge Terms Code", FinanceChargeTerms.Code);
+        Customer.Modify(true);
+
+        // [GIVEN] Default Dimension with Value Posting = Code Mandatory on the Interest Account in Customer Posting Group
+        CustomerPostingGroup.Get(Customer."Customer Posting Group");
+        InterestAccountNo := CustomerPostingGroup."Interest Account";
+        LibraryDimension.CreateDimWithDimValue(DimValue);
+        LibraryDimension.CreateDefaultDimensionGLAcc(DefaultDimension, InterestAccountNo, DimValue."Dimension Code", DimValue.Code);
+        DefaultDimension.Validate("Value Posting", DefaultDimension."Value Posting"::"Code Mandatory");
+        DefaultDimension.Modify(true);
+
+        // [GIVEN] Posted Sales Invoice with Due Date in the past
+        InvoiceDate := CalcDate('<-30D>', WorkDate());
+        DueDate := CalcDate('<-20D>', WorkDate());
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, Customer."No.");
+        SalesHeader.Validate("Document Date", InvoiceDate);
+        SalesHeader."Posting Date" := InvoiceDate;
+        SalesHeader.Validate("Due Date", DueDate);
+        SalesHeader.Modify(true);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, CreateItem(), 1);
+        SalesLine.Validate("Unit Price", 5000);
+        SalesLine.Modify(true);
+        InvoiceNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [GIVEN] Payment applied to the posted invoice to close the entry
+        PaymentDate := CalcDate('<-17D>', WorkDate());
+        LibraryERM.SelectGenJnlBatch(GenJournalBatch);
+        LibraryERM.ClearGenJournalLines(GenJournalBatch);
+        CustLedgerEntry.SetRange("Customer No.", Customer."No.");
+        CustLedgerEntry.SetRange("Document Type", CustLedgerEntry."Document Type"::Invoice);
+        CustLedgerEntry.SetRange("Document No.", InvoiceNo);
+        CustLedgerEntry.FindFirst();
+        CustLedgerEntry.CalcFields("Remaining Amount");
+        LibraryERM.CreateGeneralJnlLine(
+            GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+            GenJournalLine."Document Type"::Payment, GenJournalLine."Account Type"::Customer,
+            Customer."No.", -CustLedgerEntry."Remaining Amount");
+        GenJournalLine.Validate("Posting Date", PaymentDate);
+        GenJournalLine.Validate("Applies-to Doc. Type", GenJournalLine."Applies-to Doc. Type"::Invoice);
+        GenJournalLine.Validate("Applies-to Doc. No.", InvoiceNo);
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [GIVEN] Finance Charge Memo created and issued
+        FinChargeDate := WorkDate();
+        CreateSuggestFinanceChargeMemo(FinanceChargeMemoHeader, Customer."No.", FinChargeDate);
+        IssuedFinChargeMemoHeader.Get(IssuingFinanceChargeMemos(FinanceChargeMemoHeader."No."));
+
+        // [WHEN] Cancel the Issued Finance Charge Memo
+        RunCancelIssuedFinChargeMemo(IssuedFinChargeMemoHeader);
+        IssuedFinChargeMemoHeader.Find();
+
+        // [THEN] Reversal G/L entries have correct dimensions
+        GLEntry.Reset();
+        GLEntry.SetRange("Document No.", IssuedFinChargeMemoHeader."No.");
+        GLEntry.SetRange("G/L Account No.", InterestAccountNo);
+        GLEntry.SetFilter("Transaction No.", '>%1', GLEntry."Transaction No.");
+        GLEntry.FindLast();
+        Assert.AreNotEqual(0, GLEntry."Dimension Set ID", DimensionSetIdShouldBeAssignedOnReversalPostingErr);
     end;
 
     local procedure Initialize()

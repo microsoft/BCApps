@@ -524,7 +524,8 @@ codeunit 139646 "Shpfy Catalog Prices Test"
         Catalog2.Validate("Sync Prices", true);
         Catalog2.Modify(true);
 
-        // [THEN] Catalog2 has Sync Prices = true
+        // [THEN] Catalog2 persists Sync Prices = true in the database
+        Catalog2.Get(CatalogId, ShopifyCompany2.SystemId);
         LibraryAssert.IsTrue(Catalog2."Sync Prices", 'Catalog2 should have Sync Prices enabled');
 
         // [THEN] Catalog1 has Sync Prices = false (disabled by the confirmation logic)

@@ -1953,5 +1953,15 @@
     "codeunitId": 144161,
     "codeunitName": "ERM Loc Num",
     "method": "VoidElectronicVendorPayment"
+  },
+  {
+    "codeunitId": 134202,
+    "codeunitName": "Document Approval - Users",
+    "method": "*"
+  },
+  {
+    "codeunitId": 139101,
+    "codeunitName": "Document Service Mgmt Test",
+    "method": "*"
   }
 ]

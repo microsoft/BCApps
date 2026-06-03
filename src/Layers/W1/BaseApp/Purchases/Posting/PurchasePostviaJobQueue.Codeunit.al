@@ -40,6 +40,8 @@ codeunit 98 "Purchase Post via Job Queue"
                 BatchProcessingMgt.ResetBatchID();
             Error(GetLastErrorText);
         end;
+        if PurchHeader."Document Type" = PurchHeader."Document Type"::"Credit Memo" then
+            PurchHeader.UpdatePurchaseOrderLineIfExist();
         if PurchHeader."Print Posted Documents" then begin
             RecRefToPrint.GetTable(PurchHeader);
             BatchPostingPrintMgt.PrintPurchaseDocument(RecRefToPrint);

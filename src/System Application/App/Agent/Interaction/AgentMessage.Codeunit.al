@@ -57,15 +57,13 @@ codeunit 4307 "Agent Message"
         AgentMessageImpl.UpdateText(TaskID, MessageID, NewMessageText);
     end;
 
+#if not CLEAN29
     /// <summary>
     /// Updates the message text.
     /// </summary>
-    /// <remarks>
-    /// This method will be marked as obsolete soon:
-    /// [Obsolete('Use the overload that takes TaskID and MessageID instead.', '30.0')]
-    /// </remarks>
     /// <param name="AgentTaskMessage">The message record to update.</param>
     /// <param name="NewMessageText">New message text to set.</param>
+    [Obsolete('Use the overload that takes TaskID and MessageID instead.', '29.0')]
     procedure UpdateText(var AgentTaskMessage: Record "Agent Task Message"; NewMessageText: Text)
     var
         AgentMessageImpl: Codeunit "Agent Message Impl.";
@@ -73,6 +71,7 @@ codeunit 4307 "Agent Message"
         FeatureAccessManagement.AgentManagementAllowed(true);
         AgentMessageImpl.UpdateText(AgentTaskMessage, NewMessageText);
     end;
+#endif
 
     /// <summary>
     /// Check if it is possible to edit the message.
@@ -115,14 +114,12 @@ codeunit 4307 "Agent Message"
         AgentMessageImpl.SetStatusToSent(TaskID, MessageID);
     end;
 
+#if not CLEAN29
     /// <summary>
     /// Sets the message status to sent.
     /// </summary>
-    /// <remarks>
-    /// This method will be marked as obsolete soon:
-    /// [Obsolete('Use the overload that takes TaskID and MessageID instead.', '30.0')]
-    /// </remarks>
     /// <param name="AgentTaskMessage">Agent task message to update status.</param>
+    [Obsolete('Use the overload that takes TaskID and MessageID instead.', '29.0')]
     procedure SetStatusToSent(var AgentTaskMessage: Record "Agent Task Message")
     var
         AgentMessageImpl: Codeunit "Agent Message Impl.";
@@ -130,6 +127,7 @@ codeunit 4307 "Agent Message"
         FeatureAccessManagement.AgentManagementAllowed(true);
         AgentMessageImpl.SetStatusToSent(AgentTaskMessage);
     end;
+#endif
 
     /// <summary>
     /// Add an attachment to the task message.

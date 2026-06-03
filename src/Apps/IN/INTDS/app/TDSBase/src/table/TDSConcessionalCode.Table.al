@@ -95,4 +95,49 @@ table 18688 "TDS Concessional Code"
             Clustered = true;
         }
     }
+
+    trigger OnInsert()
+    begin
+        ArchiveExistingCertIfAny();
+    end;
+
+    local procedure ArchiveExistingCertIfAny()
+    var
+        ExistingCert: Record "TDS Concessional Code";
+        ArchivedCert: Record "TDS Concessional Code Archive";
+        ReplaceExistingCertQst: Label 'An existing TDS Concessional Code (%1) is already defined for Vendor %2, Section %3. It will be moved to the archive and replaced by this new certificate.\Do you want to continue?', Comment = '%1 = Certificate No., %2 = Vendor No., %3 = Section';
+        CannotReplaceErr: Label 'Insert cancelled. The existing certificate (%1) for Vendor %2, Section %3 was not replaced.', Comment = '%1 = Certificate No., %2 = Vendor No., %3 = Section';
+    begin
+        if ("Vendor No." = '') or (Section = '') then
+            exit;
+
+        ExistingCert.SetRange("Vendor No.", "Vendor No.");
+        ExistingCert.SetRange(Section, Section);
+        if not ExistingCert.FindSet() then
+            exit;
+
+        if not Confirm(ReplaceExistingCertQst, false,
+            ExistingCert."Certificate No.",
+            ExistingCert."Vendor No.",
+            ExistingCert.Section)
+        then
+            Error(CannotReplaceErr,
+                ExistingCert."Certificate No.",
+                ExistingCert."Vendor No.",
+                ExistingCert.Section);
+
+        repeat
+            ArchivedCert.Init();
+            ArchivedCert.TransferFields(ExistingCert, true);
+            ArchivedCert."Archived On" := CurrentDateTime();
+            ArchivedCert."Archived By" := CopyStr(UserId(), 1, MaxStrLen(ArchivedCert."Archived By"));
+            if not ArchivedCert.Insert() then
+                ArchivedCert.Modify();
+        until ExistingCert.Next() = 0;
+
+        ExistingCert.Reset();
+        ExistingCert.SetRange("Vendor No.", "Vendor No.");
+        ExistingCert.SetRange(Section, Section);
+        ExistingCert.DeleteAll();
+    end;
 }

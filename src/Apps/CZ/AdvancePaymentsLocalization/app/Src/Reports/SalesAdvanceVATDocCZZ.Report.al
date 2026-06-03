@@ -14,6 +14,7 @@ using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.HumanResources.Employee;
+using Microsoft.Inventory.Location;
 using Microsoft.Sales.Setup;
 using Microsoft.Utilities;
 using System.Globalization;
@@ -34,24 +35,44 @@ report 31015 "Sales - Advance VAT Doc. CZZ"
         dataitem("Company Information"; "Company Information")
         {
             DataItemTableView = sorting("Primary Key");
+#if not CLEAN29
             column(CompanyAddr1; CompanyAddr[1])
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Replaced by CompanyAddress1 column in Sales Adv. Letter Header dataitem to ensure address translation matches document language.';
+                ObsoleteTag = '29.0';
             }
             column(CompanyAddr2; CompanyAddr[2])
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Replaced by CompanyAddress2 column in Sales Adv. Letter Header dataitem to ensure address translation matches document language.';
+                ObsoleteTag = '29.0';
             }
             column(CompanyAddr3; CompanyAddr[3])
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Replaced by CompanyAddress3 column in Sales Adv. Letter Header dataitem to ensure address translation matches document language.';
+                ObsoleteTag = '29.0';
             }
             column(CompanyAddr4; CompanyAddr[4])
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Replaced by CompanyAddress4 column in Sales Adv. Letter Header dataitem to ensure address translation matches document language.';
+                ObsoleteTag = '29.0';
             }
             column(CompanyAddr5; CompanyAddr[5])
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Replaced by CompanyAddress5 column in Sales Adv. Letter Header dataitem to ensure address translation matches document language.';
+                ObsoleteTag = '29.0';
             }
             column(CompanyAddr6; CompanyAddr[6])
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Replaced by CompanyAddress6 column in Sales Adv. Letter Header dataitem to ensure address translation matches document language.';
+                ObsoleteTag = '29.0';
             }
+#endif
             column(RegistrationNo_CompanyInformation; "Registration No.")
             {
             }
@@ -89,11 +110,12 @@ report 31015 "Sales - Advance VAT Doc. CZZ"
                     end;
                 }
             }
-
+#if not CLEAN29
             trigger OnAfterGetRecord()
             begin
                 FormatAddress.Company(CompanyAddr, "Company Information");
             end;
+#endif
 
             trigger OnPreDataItem()
             begin
@@ -246,6 +268,24 @@ report 31015 "Sales - Advance VAT Doc. CZZ"
                 {
                 }
                 column(DocFooterText; DocFooterText)
+                {
+                }
+                column(CompanyAddress1; CompanyAddr[1])
+                {
+                }
+                column(CompanyAddress2; CompanyAddr[2])
+                {
+                }
+                column(CompanyAddress3; CompanyAddr[3])
+                {
+                }
+                column(CompanyAddress4; CompanyAddr[4])
+                {
+                }
+                column(CompanyAddress5; CompanyAddr[5])
+                {
+                }
+                column(CompanyAddress6; CompanyAddr[6])
                 {
                 }
                 column(CustAddr1; CustAddr[1])
@@ -436,6 +476,7 @@ report 31015 "Sales - Advance VAT Doc. CZZ"
                 begin
                     CurrReport.Language := LanguageMgt.GetLanguageIdOrDefault("Language Code");
                     CurrReport.FormatRegion := LanguageMgt.GetFormatRegionOrDefault("Format Region");
+                    FormatAddress.SetLanguageCode("Language Code");
 
                     if IsCreditMemo(TempSalesAdvLetterEntry) then
                         DocumentLabel := CrMemoDocumentLbl
@@ -479,8 +520,7 @@ report 31015 "Sales - Advance VAT Doc. CZZ"
                             ExchRateText := '';
                     end;
 
-                    FormatAddress.FormatAddr(CustAddr, "Bill-to Name", "Bill-to Name 2", "Bill-to Contact", "Bill-to Address", "Bill-to Address 2",
-                      "Bill-to City", "Bill-to Post Code", "Bill-to County", "Bill-to Country/Region Code");
+                    FormatAddressFields("Sales Adv. Letter Header");
 
                     if "Payment Terms Code" = '' then
                         PaymentTerms.Init()
@@ -611,5 +651,16 @@ report 31015 "Sales - Advance VAT Doc. CZZ"
         exit(((SalesAdvLetterEntryCZZ."Entry Type" = SalesAdvLetterEntryCZZ."Entry Type"::"VAT Payment") and (DocumentAmount > 0)) or
              ((SalesAdvLetterEntryCZZ."Entry Type" = SalesAdvLetterEntryCZZ."Entry Type"::"VAT Usage") and (DocumentAmount < 0)) or
              (SalesAdvLetterEntryCZZ."Entry Type" = SalesAdvLetterEntryCZZ."Entry Type"::"VAT Close"));
+    end;
+
+    local procedure FormatAddressFields(SalesAdvLetterHeaderCZZ: Record "Sales Adv. Letter Header CZZ")
+    var
+        ResponsibilityCenter: Record "Responsibility Center";
+    begin
+        FormatAddress.GetCompanyAddr(SalesAdvLetterHeaderCZZ."Responsibility Center", ResponsibilityCenter, "Company Information", CompanyAddr);
+        FormatAddress.FormatAddr(CustAddr,
+            SalesAdvLetterHeaderCZZ."Bill-to Name", SalesAdvLetterHeaderCZZ."Bill-to Name 2", SalesAdvLetterHeaderCZZ."Bill-to Contact",
+            SalesAdvLetterHeaderCZZ."Bill-to Address", SalesAdvLetterHeaderCZZ."Bill-to Address 2", SalesAdvLetterHeaderCZZ."Bill-to City",
+            SalesAdvLetterHeaderCZZ."Bill-to Post Code", SalesAdvLetterHeaderCZZ."Bill-to County", SalesAdvLetterHeaderCZZ."Bill-to Country/Region Code");
     end;
 }

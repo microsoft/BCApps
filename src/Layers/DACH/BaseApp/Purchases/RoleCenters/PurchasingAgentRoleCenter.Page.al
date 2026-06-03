@@ -233,13 +233,6 @@ page 9007 "Purchasing Agent Role Center"
                 RunObject = Page "Purchase Credit Memos";
                 ToolTip = 'Create purchase credit memos to mirror sales credit memos that vendors send to you for incorrect or damaged items that you have paid for and then returned to the vendor. If you need more control of the purchase return process, such as warehouse documents for the physical handling, use purchase return orders, in which purchase credit memos are integrated. Purchase credit memos can be created automatically from PDF or image files from your vendors by using the Incoming Documents feature. Note: If you have not yet paid for an erroneous purchase, you can simply cancel the posted purchase invoice to automatically revert the financial transaction.';
             }
-            action("Delivery Reminders")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Delivery Reminders';
-                RunObject = Page "Delivery Reminder List";
-                ToolTip = 'View the list of ongoing reminders to vendors about late delivery.';
-            }
             action("Assembly Orders")
             {
                 ApplicationArea = Assembly;
@@ -388,13 +381,6 @@ page 9007 "Purchasing Agent Role Center"
                     RunObject = Page "Posted Purchase Credit Memos";
                     ToolTip = 'Open the list of posted purchase credit memos.';
                 }
-                action("Issued Delivery Reminders")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Issued Delivery Reminders';
-                    RunObject = Page "Issued Delivery Reminders List";
-                    ToolTip = 'View or print the delivery reminder.';
-                }
                 action("Posted Assembly Orders")
                 {
                     ApplicationArea = Assembly;
@@ -441,14 +427,6 @@ page 9007 "Purchasing Agent Role Center"
                 RunObject = Page "Purchase Return Order";
                 RunPageMode = Create;
                 ToolTip = 'Create a new purchase return order to return received items.';
-            }
-            action("Delivery Reminder")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Delivery Reminder';
-                Image = ReceiptReminder;
-                RunObject = Page "Delivery Reminder";
-                ToolTip = 'Create a reminder to a vendor about late delivery.';
             }
         }
         area(processing)
@@ -517,13 +495,6 @@ page 9007 "Purchasing Agent Role Center"
             {
                 Caption = 'Administration';
                 IsHeader = true;
-            }
-            action("Delivery Reminder Terms")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Delivery Reminder Terms';
-                RunObject = Page "Delivery Reminder Terms";
-                ToolTip = 'Set up reminder terms that you select from on vendor cards to define when and how to remind the vendor of late delivery.';
             }
             separator(History)
             {

@@ -11,7 +11,6 @@ using Microsoft.HumanResources.Absence;
 using Microsoft.HumanResources.Employee;
 using Microsoft.HumanResources.Payables;
 using Microsoft.Inventory.Intrastat;
-using Microsoft.Purchases.Document;
 using Microsoft.Sales.Archive;
 using System.Privacy;
 
@@ -49,15 +48,6 @@ codeunit 1752 "Data Class. Eval. Data Country"
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Data Exp. Primary Key Buffer");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Key Buffer");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Number Series Buffer");
-        DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Delivery Reminder Header");
-        DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Delivery Reminder Line");
-        DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Issued Deliv. Reminder Header");
-        DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Issued Deliv. Reminder Line");
-        DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Delivery Reminder Ledger Entry");
-        DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Delivery Reminder Comment Line");
-        DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Delivery Reminder Term");
-        DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Delivery Reminder Level");
-        DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Delivery Reminder Text");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Sales Header Archive");
         OnAfterClassifyCountrySpecificTables();
     end;

@@ -95,6 +95,22 @@ codeunit 18438 "GST Item Charge Subscribers"
             TempItemChargeAssgntPurch."Amount to Assign" += GSTAmountLoaded * TempItemChargeAssgntPurch."Qty. to Assign";
     end;
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", 'OnPostItemChargePerOrderOnAfterCopyToItemJnlLine', '', false, false)]
+    local procedure PurchPostOnPostItemChargePerOrderOnAfterCopyToItemJnlLine(
+        var ItemJournalLine: Record "Item Journal Line";
+        var PurchaseLine: Record "Purchase Line")
+    var
+        GSTPercent: Decimal;
+    begin
+        if (PurchaseLine.Type <> PurchaseLine.Type::"Charge (Item)") or
+            (PurchaseLine."GST Credit" <> PurchaseLine."GST Credit"::"Non-Availment") then
+            exit;
+
+        GSTPercent := GetItemChargeGSTPercent(PurchaseLine);
+        if GSTPercent <> 0 then
+            ItemJournalLine.Amount += Round(ItemJournalLine.Amount * GSTPercent / 100);
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", 'OnPostItemChargeOnBeforePostItemJnlLine', '', false, false)]
     local procedure PurchPostOnPostItemChargeOnBeforePostItemJnlLine(
         var PurchaseLineToPost: Record "Purchase Line";

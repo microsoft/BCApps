@@ -458,5 +458,15 @@
     "codeunitId": 148219,
     "codeunitName": "Sust. Value Chain Fixed Asset",
     "method": "TestFAReclassJournalLineWithFAJournalLine"
+  },
+  {
+    "codeunitId": 148190,
+    "codeunitName": "Sust. Value Entry Test",
+    "method": "VerifySustainabilityFieldsShouldBeUpdatedFromItemAndWorkCenter"
+  },
+  {
+    "codeunitId": 148190,
+    "codeunitName": "Sust. Value Entry Test",
+    "method": "VerifySustainabilityValueEntryShouldBeCreatedWhenPurchDocumentIsPosted"
   }
 ]

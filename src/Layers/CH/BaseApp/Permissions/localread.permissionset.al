@@ -6,7 +6,6 @@ using Microsoft.Finance.GeneralLedger.Reports;
 using Microsoft.Finance.VAT.Reporting;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Inventory.Intrastat;
-using Microsoft.Purchases.Document;
 
 permissionset 1002 "LOCAL READ"
 {
@@ -24,17 +23,8 @@ permissionset 1002 "LOCAL READ"
                   tabledata "Data Export Record Type" = R,
                   tabledata "Data Export Setup" = R,
                   tabledata "Data Export Table Relation" = R,
-                  tabledata "Delivery Reminder Comment Line" = R,
-                  tabledata "Delivery Reminder Header" = R,
-                  tabledata "Delivery Reminder Ledger Entry" = R,
-                  tabledata "Delivery Reminder Level" = R,
-                  tabledata "Delivery Reminder Line" = R,
-                  tabledata "Delivery Reminder Term" = R,
-                  tabledata "Delivery Reminder Text" = R,
                   tabledata "DTA Setup" = R,
                   tabledata "ESR Setup" = R,
-                  tabledata "Issued Deliv. Reminder Header" = R,
-                  tabledata "Issued Deliv. Reminder Line" = R,
                   tabledata "Key Buffer" = R,
                   tabledata "LSV Journal" = R,
                   tabledata "LSV Journal Line" = R,

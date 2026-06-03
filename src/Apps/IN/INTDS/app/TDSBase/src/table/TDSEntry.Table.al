@@ -519,11 +519,23 @@ table 18689 "TDS Entry"
     trigger OnInsert()
     var
         VendorLedgerEntry: Record "Vendor Ledger Entry";
+        VendorLedgerEntryByTransaction: Record "Vendor Ledger Entry";
         DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry";
         TDSEntityManagement: Codeunit "TDS Entity Management";
     begin
+        VendorLedgerEntry.Reset();
         VendorLedgerEntry.SetRange("Transaction No.", Rec."Transaction No.");
-        if VendorLedgerEntry.FindFirst() then begin
+        VendorLedgerEntry.SetRange("Vendor No.", Rec."Vendor No.");
+        VendorLedgerEntry.SetRange("Document Type", Rec."Document Type");
+        VendorLedgerEntry.SetRange("Document No.", Rec."Document No.");
+
+        if not VendorLedgerEntry.FindFirst() then begin
+            VendorLedgerEntryByTransaction.SetRange("Transaction No.", Rec."Transaction No.");
+            if VendorLedgerEntryByTransaction.FindFirst() then
+                VendorLedgerEntry := VendorLedgerEntryByTransaction;
+        end;
+
+        if not VendorLedgerEntry.IsEmpty() then begin
             if VendorLedgerEntry."Document Type" in [VendorLedgerEntry."Document Type"::Invoice, VendorLedgerEntry."Document Type"::Payment] then
                 VendorLedgerEntry."Total TDS Including SHE CESS" += Rec."Total TDS Including SHE CESS";
 

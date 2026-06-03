@@ -554,6 +554,7 @@ report 5753 "Get Source Documents"
     procedure SetDoNotFillQtytoHandle(DoNotFillQtytoHandleToSet: Boolean)
     begin
         DoNotFillQuantityToHandle := DoNotFillQtytoHandleToSet;
+        OnAfterSetDoNotFillQtytoHandle(DoNotFillQuantityToHandle, RequestType, "Warehouse Request"."Source No.", WhseReceiptHeader, WhseShptHeader);
     end;
 
     procedure SetReservedFromStock(NewReservedFromStock: Enum "Reservation From Stock")
@@ -1018,6 +1019,11 @@ report 5753 "Get Source Documents"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSalesHeaderOnAfterGetRecord(var SalesHeader: Record "Sales Header"; var SalesHeaderCounted: Boolean; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterSetDoNotFillQtytoHandle(var DoNotFillQuantityToHandle: Boolean; RequestType: Option Receive,Ship; SourceDocumentNo: Code[20]; var WarehouseReceiptHeader: Record "Warehouse Receipt Header"; var WarehouseShipmentHeader: Record "Warehouse Shipment Header")
     begin
     end;
 

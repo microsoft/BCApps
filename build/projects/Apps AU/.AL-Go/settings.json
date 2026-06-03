@@ -167,6 +167,7 @@
     "../../../src/Apps/W1/OnboardingSignals/test",
     "../../../src/Apps/W1/Onprem Permissions/test",
     "../../../src/Apps/W1/PaymentPractices/Test",
+    "../../../src/Apps/W1/PaymentPractices/Test Library",
     "../../../src/Apps/W1/PayPalPaymentsStandard/test",
     "../../../src/Apps/W1/PEPPOL/Test",
     "../../../src/Apps/W1/PlanConfiguration/test",

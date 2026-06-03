@@ -27,6 +27,8 @@ permissionset 11772 "CZ Compensation - Objects CZC"
                   Codeunit "Navigate Handler CZC" = X,
                   Codeunit "Notification Handler CZC" = X,
                   Codeunit "Release Compens. Document CZC" = X,
+                  Codeunit "Report Selection Handler CZC" = X,
+                  Codeunit "Rep. Sel. Manual Handler CZC" = X,
                   Codeunit "Upgrade Application CZC" = X,
                   Codeunit "Upgrade Tag Definitions CZC" = X,
                   Codeunit "Vendor Handler CZC" = X,
@@ -38,18 +40,27 @@ permissionset 11772 "CZ Compensation - Objects CZC"
                   Page "Compensations Setup CZC" = X,
                   Page "Compensation Subform CZC" = X,
                   Page "Compens. Cust. LE Subform CZC" = X,
+#if not CLEAN29
+#pragma warning disable AL0432
                   Page "Compens. Report Selections CZC" = X,
+#pragma warning restore AL0432
+#endif
                   Page "Compens. Vendor LE Subform CZC" = X,
                   Page "Posted Compensation Card CZC" = X,
                   Page "Posted Compensation List CZC" = X,
                   Page "Posted Compensation Subf. CZC" = X,
                   Page "Posted Compensation Lines CZC" = X,
+                  Page "Report Selection - Comp. CZC" = X,
                   Report "Compensation CZC" = X,
                   Report "Posted Compensation CZC" = X,
                   Table "Compensation Header CZC" = X,
                   Table "Compensation Line CZC" = X,
                   Table "Compensations Setup CZC" = X,
+#if not CLEAN29
+#pragma warning disable AL0432
                   Table "Compens. Report Selections CZC" = X,
+#pragma warning restore AL0432
+#endif
                   Table "Posted Compensation Header CZC" = X,
                   Table "Posted Compensation Line CZC" = X;
 }

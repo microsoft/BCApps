@@ -1,4 +1,5 @@
-﻿// ------------------------------------------------------------------------------------------------
+﻿#if not CLEAN29
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -9,12 +10,15 @@ using System.Reflection;
 page 31271 "Compens. Report Selections CZC"
 {
     ApplicationArea = Basic, Suite;
-    Caption = 'Report Selection - Compensation';
+    Caption = 'Report Selection - Compensation (Obsolete)';
     DelayedInsert = true;
     PageType = Worksheet;
     SaveValues = true;
     SourceTable = "Compens. Report Selections CZC";
     UsageCategory = Administration;
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
+    ObsoleteReason = 'The page is replaced by a new page "Report Selection - Comp. CZC" that uses the standard "Report Selections" table to store report selections for compensations.';
 
     layout
     {
@@ -69,12 +73,6 @@ page 31271 "Compens. Report Selections CZC"
         }
     }
 
-
-    trigger OnNewRecord(BelowxRec: Boolean)
-    begin
-        Rec.NewRecord();
-    end;
-
     trigger OnOpenPage()
     begin
         SetUsageFilter();
@@ -95,3 +93,4 @@ page 31271 "Compens. Report Selections CZC"
         Rec.FilterGroup(0);
     end;
 }
+#endif

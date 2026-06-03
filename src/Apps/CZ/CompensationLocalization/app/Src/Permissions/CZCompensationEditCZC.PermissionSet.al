@@ -12,8 +12,12 @@ permissionset 11771 "CZ Compensation - Edit CZC"
 
     IncludedPermissionSets = "CZ Compensation - Read CZC";
 
-    Permissions = tabledata "Compens. Report Selections CZC" = IMD,
-                  tabledata "Compensation Header CZC" = IMD,
+    Permissions = tabledata "Compensation Header CZC" = IMD,
+#if not CLEAN29
+#pragma warning disable AL0432
+                  tabledata "Compens. Report Selections CZC" = IMD,
+#pragma warning restore AL0432
+#endif
                   tabledata "Compensation Line CZC" = IMD,
                   tabledata "Compensations Setup CZC" = IMD,
                   tabledata "Posted Compensation Header CZC" = IMD,

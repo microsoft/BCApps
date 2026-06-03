@@ -4008,5 +4008,180 @@
     "codeunitId": 134777,
     "codeunitName": "SCM Item Journal Post Preview",
     "method": "TestPreviewPostingNotShowingErrorFromProductionJournal"
+  },
+  {
+    "codeunitId": 137614,
+    "codeunitName": "SCM Costing Rollup Sev 3",
+    "method": "B292993_GLEntriesAfterPostToGL"
+  },
+  {
+    "codeunitId": 137614,
+    "codeunitName": "SCM Costing Rollup Sev 3",
+    "method": "B292993_PostInvCostToGLPerEntry"
+  },
+  {
+    "codeunitId": 137296,
+    "codeunitName": "SCM Inventory Misc. IV",
+    "method": "DoNotUpdatePhysInvCountingPeriodOnPhysInventoryOutsideThePeriod"
+  },
+  {
+    "codeunitId": 137296,
+    "codeunitName": "SCM Inventory Misc. IV",
+    "method": "NextPhysInvtCountingPeriodIsAfterLastInventoryDateDoneOutsidePeriod"
+  },
+  {
+    "codeunitId": 137296,
+    "codeunitName": "SCM Inventory Misc. IV",
+    "method": "PurchLineDiscForVendorWithPartialQty"
+  },
+  {
+    "codeunitId": 137023,
+    "codeunitName": "SCM Reservation Worksheet",
+    "method": "CheckingCurrentStockAndReservedQty"
+  },
+  {
+    "codeunitId": 137023,
+    "codeunitName": "SCM Reservation Worksheet",
+    "method": "CheckingOutstandingQtyReservedQtyReservedFromStock"
+  },
+  {
+    "codeunitId": 137023,
+    "codeunitName": "SCM Reservation Worksheet",
+    "method": "GettingDemandAndValidateFields"
+  },
+  {
+    "codeunitId": 137023,
+    "codeunitName": "SCM Reservation Worksheet",
+    "method": "GettingDemandWithDateFilter"
+  },
+  {
+    "codeunitId": 137023,
+    "codeunitName": "SCM Reservation Worksheet",
+    "method": "GettingDemandWithLocationFilter"
+  },
+  {
+    "codeunitId": 137023,
+    "codeunitName": "SCM Reservation Worksheet",
+    "method": "ShowingSourceDocument"
+  },
+  {
+    "codeunitId": 137014,
+    "codeunitName": "SCM Fulfillment",
+    "method": "CreateInvtPickOnlyForReservedFromStockPurchaseReturnLines"
+  },
+  {
+    "codeunitId": 137014,
+    "codeunitName": "SCM Fulfillment",
+    "method": "ReservedFromStockStatesOnPurchaseReturnHeader"
+  },
+  {
+    "codeunitId": 137014,
+    "codeunitName": "SCM Fulfillment",
+    "method": "ReservedQtyFromInventoryForPurchaseReturnHeader"
+  },
+  {
+    "codeunitId": 137014,
+    "codeunitName": "SCM Fulfillment",
+    "method": "ReservedQtyFromInventoryForPurchaseReturnLine"
+  },
+  {
+    "codeunitId": 137023,
+    "codeunitName": "SCM Reservation Worksheet",
+    "method": "CheckingCurrentStockAndReservedQty"
+  },
+  {
+    "codeunitId": 137023,
+    "codeunitName": "SCM Reservation Worksheet",
+    "method": "CheckingOutstandingQtyReservedQtyReservedFromStock"
+  },
+  {
+    "codeunitId": 137023,
+    "codeunitName": "SCM Reservation Worksheet",
+    "method": "GettingDemandAndValidateFields"
+  },
+  {
+    "codeunitId": 137023,
+    "codeunitName": "SCM Reservation Worksheet",
+    "method": "GettingDemandWithDateFilter"
+  },
+  {
+    "codeunitId": 137023,
+    "codeunitName": "SCM Reservation Worksheet",
+    "method": "GettingDemandWithLocationFilter"
+  },
+  {
+    "codeunitId": 137023,
+    "codeunitName": "SCM Reservation Worksheet",
+    "method": "ShowingSourceDocument"
+  },
+  {
+    "codeunitId": 137014,
+    "codeunitName": "SCM Fulfillment",
+    "method": "CreateInvtPickOnlyForReservedFromStockPurchaseReturnLines"
+  },
+  {
+    "codeunitId": 137014,
+    "codeunitName": "SCM Fulfillment",
+    "method": "ReservedFromStockStatesOnPurchaseReturnHeader"
+  },
+  {
+    "codeunitId": 137014,
+    "codeunitName": "SCM Fulfillment",
+    "method": "ReservedQtyFromInventoryForPurchaseReturnHeader"
+  },
+  {
+    "codeunitId": 137014,
+    "codeunitName": "SCM Fulfillment",
+    "method": "ReservedQtyFromInventoryForPurchaseReturnLine"
+  },
+  {
+    "codeunitId": 137023,
+    "codeunitName": "SCM Reservation Worksheet",
+    "method": "CheckingCurrentStockAndReservedQty"
+  },
+  {
+    "codeunitId": 137023,
+    "codeunitName": "SCM Reservation Worksheet",
+    "method": "CheckingOutstandingQtyReservedQtyReservedFromStock"
+  },
+  {
+    "codeunitId": 137023,
+    "codeunitName": "SCM Reservation Worksheet",
+    "method": "GettingDemandAndValidateFields"
+  },
+  {
+    "codeunitId": 137023,
+    "codeunitName": "SCM Reservation Worksheet",
+    "method": "GettingDemandWithDateFilter"
+  },
+  {
+    "codeunitId": 137023,
+    "codeunitName": "SCM Reservation Worksheet",
+    "method": "GettingDemandWithLocationFilter"
+  },
+  {
+    "codeunitId": 137023,
+    "codeunitName": "SCM Reservation Worksheet",
+    "method": "ShowingSourceDocument"
+  },
+  {
+    "codeunitId": 137014,
+    "codeunitName": "SCM Fulfillment",
+    "method": "CreateInvtPickOnlyForReservedFromStockPurchaseReturnLines"
+  },
+  {
+    "codeunitId": 137014,
+    "codeunitName": "SCM Fulfillment",
+    "method": "ReservedFromStockStatesOnPurchaseReturnHeader"
+  },
+  {
+    "codeunitId": 137014,
+    "codeunitName": "SCM Fulfillment",
+    "method": "ReservedQtyFromInventoryForPurchaseReturnHeader"
+  },
+  {
+    "codeunitId": 137014,
+    "codeunitName": "SCM Fulfillment",
+    "method": "ReservedQtyFromInventoryForPurchaseReturnLine"
   }
 ]

@@ -1186,6 +1186,79 @@ codeunit 134000 "ERM Apply Sales/Receivables"
         VerifyGLEntrySourceCurrenyAmount(PaymentDocNo, Currency.Code, GenJournalLine."Document Type"::Payment);
     end;
 
+    [Test]
+    [HandlerFunctions('CustomerLedgerEntriesApplyPageHandler,ApplyCustomerEntriesPostAppPageHandler,PostApplicationPageHandler')]
+    [Scope('OnPrem')]
+    procedure DimensionErrorOnApplyPaymentToInvoiceOnGainLossAcc()
+    var
+        Currency: Record Currency;
+        CurrencyExchangeRate: Record "Currency Exchange Rate";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        DimensionValue: Record "Dimension Value";
+        GenJournalLine: Record "Gen. Journal Line";
+        CustomerNo: Code[20];
+        InvoiceDocumentNo: Code[20];
+        PaymentDocumentNo: Code[20];
+        InvoiceAmountFCY: Decimal;
+        InvoiceAmountLCY: Decimal;
+        ExchRateAdjustFactor: Decimal;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 632163] Dimension error when applying LCY payment to FCY invoice with default dimension on gain/loss account
+        Initialize();
+
+        // [GIVEN] "Appln. between Currencies" = All in Sales Setup.
+        UpdateApplnBetweenCurrenciesAllInSalesSetup();
+
+        // [GIVEN] Currency "C" with Realized Gains Account having default dimension "D" with "Value Posting" = "Same Code"
+        LibraryERM.CreateCurrency(Currency);
+        LibraryERM.SetCurrencyGainLossAccounts(Currency);
+        Currency.Validate("Residual Gains Account", Currency."Realized Gains Acc.");
+        Currency.Validate("Residual Losses Account", Currency."Realized Losses Acc.");
+        Currency.Modify(true);
+        CreateDefaultDimensionGLAccSameValue(DimensionValue, Currency."Realized Gains Acc.");
+
+        // [GIVEN] Exchange rate for Currency "C"
+        LibraryERM.CreateRandomExchangeRate(Currency.Code);
+
+        // [GIVEN] Customer "CU" without dimension "D"
+        CustomerNo := LibrarySales.CreateCustomerNo();
+
+        // [GIVEN] Posted Sales Invoice "SI" in Currency "C"
+        InvoiceAmountFCY := LibraryRandom.RandIntInRange(1000, 2000);
+        CreateAndPostGenJnlLine(
+            GenJournalLine, WorkDate(), GenJournalLine."Document Type"::Invoice,
+            InvoiceAmountFCY, CustomerNo, Currency.Code);
+        InvoiceDocumentNo := GenJournalLine."Document No.";
+
+        // [GIVEN] Posted LCY Payment "P" with amount equal to invoice LCY amount
+        InvoiceAmountLCY := LibraryERM.ConvertCurrency(InvoiceAmountFCY, Currency.Code, '', WorkDate());
+        CreateAndPostGenJnlLine(
+            GenJournalLine, WorkDate(), GenJournalLine."Document Type"::Payment,
+            -InvoiceAmountLCY, CustomerNo, '');
+        PaymentDocumentNo := GenJournalLine."Document No.";
+
+        // [GIVEN] Exchange rate is modified to create realized gain (increase relational exchange rate = FCY worth more in LCY)
+        ExchRateAdjustFactor := 1 + LibraryRandom.RandDecInRange(1, 5, 1) / 10; // 1.1 to 1.5
+        CurrencyExchangeRate.SetRange("Currency Code", Currency.Code);
+        CurrencyExchangeRate.FindFirst();
+        CurrencyExchangeRate.Validate("Relational Exch. Rate Amount", CurrencyExchangeRate."Relational Exch. Rate Amount" * ExchRateAdjustFactor);
+        CurrencyExchangeRate.Validate("Relational Adjmt Exch Rate Amt", CurrencyExchangeRate."Relational Adjmt Exch Rate Amt" * ExchRateAdjustFactor);
+        CurrencyExchangeRate.Modify(true);
+
+        // [WHEN] Apply Payment to Invoice via Customer Ledger Entries page (this should post realized gain/loss to Currency."Realized Gains Acc.")
+        LibraryVariableStorage.Enqueue(InvoiceDocumentNo);
+        LibraryVariableStorage.Enqueue(WorkDate());
+        CustLedgerEntry.SetRange("Customer No.", CustomerNo);
+        CustLedgerEntry.SetRange("Document No.", PaymentDocumentNo);
+        CustLedgerEntry.SetRange("Document Type", CustLedgerEntry."Document Type"::Payment);
+        CustLedgerEntry.FindFirst();
+        asserterror PAGE.Run(PAGE::"Customer Ledger Entries", CustLedgerEntry);
+
+        // [THEN] Dimension error occurs because Realized Gains Acc. requires dimension "D" with "Same Code"
+        Assert.ExpectedErrorCode(DialogTxt);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -1760,5 +1833,29 @@ codeunit 134000 "ERM Apply Sales/Receivables"
         ApplyCustomerEntries.FILTER.SetFilter("Document No.", LibraryVariableStorage.DequeueText());
         ApplyCustomerEntries."Set Applies-to ID".Invoke();
         ApplyCustomerEntries.OK().Invoke();
+    end;
+
+    [PageHandler]
+    [Scope('OnPrem')]
+    procedure CustomerLedgerEntriesApplyPageHandler(var CustomerLedgerEntries: TestPage "Customer Ledger Entries")
+    begin
+        CustomerLedgerEntries."Apply Entries".Invoke();
+    end;
+
+    [ModalPageHandler]
+    [Scope('OnPrem')]
+    procedure ApplyCustomerEntriesPostAppPageHandler(var ApplyCustomerEntries: TestPage "Apply Customer Entries")
+    begin
+        ApplyCustomerEntries.FILTER.SetFilter("Document No.", LibraryVariableStorage.DequeueText());
+        ApplyCustomerEntries."Set Applies-to ID".Invoke();
+        ApplyCustomerEntries."Post Application".Invoke();
+    end;
+
+    [ModalPageHandler]
+    [Scope('OnPrem')]
+    procedure PostApplicationPageHandler(var PostApplication: TestPage "Post Application")
+    begin
+        PostApplication.PostingDate.SetValue(LibraryVariableStorage.DequeueDate());
+        PostApplication.OK().Invoke();
     end;
 }

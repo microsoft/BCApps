@@ -46,6 +46,7 @@ codeunit 4772 "Create Mfg Prod. Routing"
         PackingTok: Label 'Packing', MaxLength = 30;
         AssemblingTok: Label 'Assembling', MaxLength = 50;
         InspectionTok: Label 'Inspection', MaxLength = 50;
+        ExternalProcessingTok: Label 'External Processing', MaxLength = 50;
 
     local procedure Scenario1()
     begin
@@ -88,14 +89,14 @@ codeunit 4772 "Create Mfg Prod. Routing"
     local procedure Scenario5Subcontracting()
     begin
         ContosoManufacturing.InsertRoutingHeader(SPSCM1009SUB1(), AirpotSubcontr1Tok, 0);
-        ContosoManufacturing.InsertRoutingLine(SPSCM1009SUB1(), '', OperationNo10(), OperationNo20(), "Capacity Type Routing"::"Work Center", MfgCapacity.WorkCenter500(), BodyAssemblyTok, 0, 25, 100, 0, '', ContosoUtilities.AdjustPrice(28.12));  //Currency  
+        ContosoManufacturing.InsertRoutingLine(SPSCM1009SUB1(), '', OperationNo10(), OperationNo20(), "Capacity Type Routing"::"Work Center", MfgCapacity.WorkCenter500(), BodyAssemblyTok, 0, 25, 100, 0, RoutingLink500(), ContosoUtilities.AdjustPrice(28.12));  //Currency
         ContosoManufacturing.InsertRoutingLine(SPSCM1009SUB1(), '', OperationNo20(), '30', "Capacity Type Routing"::"Machine Center", MfgCapacity.MachineCenter110(), ElectricalWiringTok, 60, 18, 1, 0, '', 0);
         ContosoManufacturing.InsertRoutingLine(SPSCM1009SUB1(), '', '30', '40', "Capacity Type Routing"::"Work Center", MfgCapacity.WorkCenter100(), TestingTok, 10, 9, 1, 0, '', 0);
         ContosoManufacturing.InsertRoutingLine(SPSCM1009SUB1(), '', '40', '', "Capacity Type Routing"::"Machine Center", MfgCapacity.MachineCenter210(), PackingTok, 10, 8, 1, 0, '', 0);
         CertifyRouting(SPSCM1009SUB1());
 
         ContosoManufacturing.InsertRoutingHeader(SPSCM1009SUB2(), AirpotSubcontr2Tok, 0);
-        ContosoManufacturing.InsertRoutingLine(SPSCM1009SUB2(), '', OperationNo10(), '', "Capacity Type Routing"::"Work Center", MfgCapacity.WorkCenter500(), UnitAssemblyTok, 0, 25, 100, 0, '', ContosoUtilities.AdjustPrice(45.32));  //Currency
+        ContosoManufacturing.InsertRoutingLine(SPSCM1009SUB2(), '', OperationNo10(), '', "Capacity Type Routing"::"Work Center", MfgCapacity.WorkCenter500(), UnitAssemblyTok, 0, 25, 100, 0, RoutingLink500(), ContosoUtilities.AdjustPrice(45.32));  //Currency
         CertifyRouting(SPSCM1009SUB2());
     end;
 
@@ -103,6 +104,7 @@ codeunit 4772 "Create Mfg Prod. Routing"
     begin
         ContosoManufacturing.InsertRoutingLink(RoutingLink100(), AssemblingTok);
         ContosoManufacturing.InsertRoutingLink(RoutingLink300(), InspectionTok);
+        ContosoManufacturing.InsertRoutingLink(RoutingLink500(), ExternalProcessingTok);
     end;
 
     local procedure UpdateItems(ItemNo: Code[20]; RoutingNo: Code[20])
@@ -146,6 +148,11 @@ codeunit 4772 "Create Mfg Prod. Routing"
     procedure RoutingLink300(): Code[10]
     begin
         exit('300');
+    end;
+
+    procedure RoutingLink500(): Code[10]
+    begin
+        exit('500');
     end;
 
     procedure SPBOM2000(): Code[20]

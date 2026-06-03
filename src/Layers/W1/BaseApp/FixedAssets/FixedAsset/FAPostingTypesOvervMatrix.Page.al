@@ -856,43 +856,64 @@ page 9277 "FA Posting Types Overv. Matrix"
             10:// 'Depreciable Basis'
                 begin
                     if FADeprBook.FindFirst() then
-                        FADeprBook.CalcFields("Depreciable Basis");
+                        if FADeprBook."Disposal Date" > 0D then
+                            FADeprBook."Depreciable Basis" := 0
+                        else
+                            FADeprBook.CalcFields("Depreciable Basis");
                     MATRIX_CellData[MATRIX_ColumnOrdinal] := MatrixMgt.RoundAmount(FADeprBook."Depreciable Basis", RoundingFactor);
                 end;
             2:// 'Acquisition Cost'
                 begin
                     if FADeprBook.FindFirst() then
-                        FADeprBook.CalcFields("Acquisition Cost");
+                        if FADeprBook."Disposal Date" > 0D then
+                            FADeprBook."Acquisition Cost" := 0
+                        else
+                            FADeprBook.CalcFields("Acquisition Cost");
                     MATRIX_CellData[MATRIX_ColumnOrdinal] := MatrixMgt.RoundAmount(FADeprBook."Acquisition Cost", RoundingFactor);
                 end;
             3:// 'Depreciation'
                 begin
                     if FADeprBook.FindFirst() then
-                        FADeprBook.CalcFields(Depreciation);
+                        if FADeprBook."Disposal Date" > 0D then
+                            FADeprBook.Depreciation := 0
+                        else
+                            FADeprBook.CalcFields(Depreciation);
                     MATRIX_CellData[MATRIX_ColumnOrdinal] := MatrixMgt.RoundAmount(FADeprBook.Depreciation, RoundingFactor);
                 end;
             4:// 'Write-Down'
                 begin
                     if FADeprBook.FindFirst() then
-                        FADeprBook.CalcFields("Write-Down");
+                        if FADeprBook."Disposal Date" > 0D then
+                            FADeprBook."Write-Down" := 0
+                        else
+                            FADeprBook.CalcFields("Write-Down");
                     MATRIX_CellData[MATRIX_ColumnOrdinal] := MatrixMgt.RoundAmount(FADeprBook."Write-Down", RoundingFactor);
                 end;
             5:// 'Appreciation'
                 begin
                     if FADeprBook.FindFirst() then
-                        FADeprBook.CalcFields(Appreciation);
+                        if FADeprBook."Disposal Date" > 0D then
+                            FADeprBook.Appreciation := 0
+                        else
+                            FADeprBook.CalcFields(Appreciation);
                     MATRIX_CellData[MATRIX_ColumnOrdinal] := MatrixMgt.RoundAmount(FADeprBook.Appreciation, RoundingFactor);
                 end;
             6:// 'Custom 1'
                 begin
                     if FADeprBook.FindFirst() then
-                        FADeprBook.CalcFields("Custom 1");
+                        if FADeprBook."Disposal Date" > 0D then
+                            FADeprBook."Custom 1" := 0
+                        else
+                            FADeprBook.CalcFields("Custom 1");
                     MATRIX_CellData[MATRIX_ColumnOrdinal] := MatrixMgt.RoundAmount(FADeprBook."Custom 1", RoundingFactor);
                 end;
             7:// 'Custom 2'
                 begin
                     if FADeprBook.FindFirst() then
-                        FADeprBook.CalcFields("Custom 2");
+                        if FADeprBook."Disposal Date" > 0D then
+                            FADeprBook."Custom 2" := 0
+                        else
+                            FADeprBook.CalcFields("Custom 2");
                     MATRIX_CellData[MATRIX_ColumnOrdinal] := MatrixMgt.RoundAmount(FADeprBook."Custom 2", RoundingFactor);
                 end;
             9:// 'Gain/Loss'
@@ -910,7 +931,10 @@ page 9277 "FA Posting Types Overv. Matrix"
             11:// 'Salvage Value'
                 begin
                     if FADeprBook.FindFirst() then
-                        FADeprBook.CalcFields("Salvage Value");
+                        if FADeprBook."Disposal Date" > 0D then
+                            FADeprBook."Salvage Value" := 0
+                        else
+                            FADeprBook.CalcFields("Salvage Value");
                     MATRIX_CellData[MATRIX_ColumnOrdinal] := MatrixMgt.RoundAmount(FADeprBook."Salvage Value", RoundingFactor);
                 end;
         end;

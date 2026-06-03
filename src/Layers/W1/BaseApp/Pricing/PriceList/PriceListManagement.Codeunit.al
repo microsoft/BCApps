@@ -326,7 +326,7 @@ codeunit 7017 "Price List Management"
             SetHeadersFilters(PriceListLine, DuplicatePriceListLine);
         end;
         SetAssetFilters(PriceListLine, DuplicatePriceListLine);
-        OnBeforeFindDuplicatePriceListLine(PriceListLine, DuplicatePriceListLine);
+        OnBeforeFindDuplicatePriceListLine(PriceListLine, DuplicatePriceListLine, AsLineDefaults, SearchInside);
         exit(DuplicatePriceListLine.FindFirst());
     end;
 
@@ -1053,7 +1053,7 @@ codeunit 7017 "Price List Management"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeFindDuplicatePriceListLine(PriceListLine: Record "Price List Line"; var DuplicatePriceListLine: Record "Price List Line")
+    local procedure OnBeforeFindDuplicatePriceListLine(PriceListLine: Record "Price List Line"; var DuplicatePriceListLine: Record "Price List Line"; AsLineDefaults: Boolean; SearchInside: Boolean)
     begin
     end;
 

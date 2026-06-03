@@ -224,6 +224,10 @@ codeunit 18716 "TDS Subscribers"
         TDSConcessionalCode.SetRange("Vendor No.", GenJournalLine."Account No.");
         TDSConcessionalCode.SetRange(Section, GenJournalLine."TDS Section Code");
         TDSConcessionalCode.SetFilter("Certificate Value", '<>%1', 0);
+        if GenJournalLine."Posting Date" <> 0D then begin
+            TDSConcessionalCode.SetFilter("Start Date", '<=%1', GenJournalLine."Posting Date");
+            TDSConcessionalCode.SetFilter("End Date", '>=%1', GenJournalLine."Posting Date");
+        end;
         if not TDSConcessionalCode.FindFirst() then
             exit;
 
@@ -337,8 +341,17 @@ codeunit 18716 "TDS Subscribers"
         TDSConcessionalCode.SetRange("Vendor No.", PurchaseLine."Pay-to Vendor No.");
         TDSConcessionalCode.SetRange(Section, PurchaseLine."TDS Section Code");
         TDSConcessionalCode.SetFilter("Certificate Value", '<>%1', 0);
-        if not TDSConcessionalCode.FindFirst() then
+        if PurchaseHeader."Posting Date" <> 0D then begin
+            TDSConcessionalCode.SetFilter("Start Date", '<=%1', PurchaseHeader."Posting Date");
+            TDSConcessionalCode.SetFilter("End Date", '>=%1', PurchaseHeader."Posting Date");
+        end;
+        if not TDSConcessionalCode.FindFirst() then begin
+            if PurchaseHeader."Remaining TDS Cert. Value" <> 0 then begin
+                PurchaseHeader."Remaining TDS Cert. Value" := 0;
+                PurchaseHeader.Modify();
+            end;
             exit;
+        end;
 
         TDSEntry.Reset();
         TDSEntry.SetRange("Vendor No.", PurchaseLine."Pay-to Vendor No.");
@@ -420,6 +433,26 @@ codeunit 18716 "TDS Subscribers"
         PurchaseLine.SetFilter("TDS Section Code", '<>%1', '');
         if PurchaseLine.FindSet() then
             repeat
+                CalculateTax.CallTaxEngineOnPurchaseLine(PurchaseLine, PurchaseLine);
+            until PurchaseLine.Next() = 0;
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Purchase Header", 'OnAfterValidateEvent', 'Posting Date', false, false)]
+    local procedure OnAfterValidatePostingDateForTDS(var Rec: Record "Purchase Header"; var xRec: Record "Purchase Header")
+    var
+        PurchaseLine: Record "Purchase Line";
+        CalculateTax: Codeunit "Calculate Tax";
+    begin
+        if Rec."Posting Date" = xRec."Posting Date" then
+            exit;
+
+        PurchaseLine.SetCurrentKey("Document Type", "Document No.", "TDS Section Code");
+        PurchaseLine.SetRange("Document Type", Rec."Document Type");
+        PurchaseLine.SetRange("Document No.", Rec."No.");
+        PurchaseLine.SetFilter("TDS Section Code", '<>%1', '');
+        if PurchaseLine.FindSet() then
+            repeat
+                UpdateTDSCertificateUsage(PurchaseLine);
                 CalculateTax.CallTaxEngineOnPurchaseLine(PurchaseLine, PurchaseLine);
             until PurchaseLine.Next() = 0;
     end;

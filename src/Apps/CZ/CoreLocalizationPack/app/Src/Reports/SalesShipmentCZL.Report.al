@@ -12,6 +12,7 @@ using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using Microsoft.Foundation.Shipping;
 using Microsoft.HumanResources.Employee;
+using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Reports;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Sales.Customer;
@@ -34,24 +35,44 @@ report 31191 "Sales Shipment CZL"
         dataitem("Company Information"; "Company Information")
         {
             DataItemTableView = sorting("Primary Key");
+#if not CLEAN29
             column(CompanyAddr1; CompanyAddr[1])
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Replaced by CompanyAddress1 column in Sales Shipment Header dataitem to ensure address translation matches document language.';
+                ObsoleteTag = '29.0';
             }
             column(CompanyAddr2; CompanyAddr[2])
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Replaced by CompanyAddress2 column in Sales Shipment Header dataitem to ensure address translation matches document language.';
+                ObsoleteTag = '29.0';
             }
             column(CompanyAddr3; CompanyAddr[3])
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Replaced by CompanyAddress3 column in Sales Shipment Header dataitem to ensure address translation matches document language.';
+                ObsoleteTag = '29.0';
             }
             column(CompanyAddr4; CompanyAddr[4])
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Replaced by CompanyAddress4 column in Sales Shipment Header dataitem to ensure address translation matches document language.';
+                ObsoleteTag = '29.0';
             }
             column(CompanyAddr5; CompanyAddr[5])
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Replaced by CompanyAddress5 column in Sales Shipment Header dataitem to ensure address translation matches document language.';
+                ObsoleteTag = '29.0';
             }
             column(CompanyAddr6; CompanyAddr[6])
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Replaced by CompanyAddress6 column in Sales Shipment Header dataitem to ensure address translation matches document language.';
+                ObsoleteTag = '29.0';
             }
+#endif
             column(RegistrationNo_CompanyInformation; "Registration No.")
             {
             }
@@ -78,10 +99,12 @@ report 31191 "Sales Shipment CZL"
                     }
                 }
             }
+#if not CLEAN29
             trigger OnAfterGetRecord()
             begin
                 FormatAddress.Company(CompanyAddr, "Company Information");
             end;
+#endif
         }
         dataitem("Sales Shipment Header"; "Sales Shipment Header")
         {
@@ -176,6 +199,24 @@ report 31191 "Sales Shipment CZL"
             {
             }
             column(DocFooterText; DocFooterText)
+            {
+            }
+            column(CompanyAddress1; CompanyAddr[1])
+            {
+            }
+            column(CompanyAddress2; CompanyAddr[2])
+            {
+            }
+            column(CompanyAddress3; CompanyAddr[3])
+            {
+            }
+            column(CompanyAddress4; CompanyAddr[4])
+            {
+            }
+            column(CompanyAddress5; CompanyAddr[5])
+            {
+            }
+            column(CompanyAddress6; CompanyAddr[6])
             {
             }
             column(CustAddr1; CustAddr[1])
@@ -417,9 +458,9 @@ report 31191 "Sales Shipment CZL"
             begin
                 CurrReport.Language := LanguageMgt.GetLanguageIdOrDefault("Language Code");
                 CurrReport.FormatRegion := LanguageMgt.GetFormatRegionOrDefault("Format Region");
+                FormatAddress.SetLanguageCode("Language Code");
 
-                FormatAddress.SalesShptShipTo(ShipToAddr, "Sales Shipment Header");
-                FormatAddress.SalesShptBillTo(CustAddr, ShipToAddr, "Sales Shipment Header");
+                FormatAddressFields("Sales Shipment Header");
                 FormatDocument.SetShipmentMethod(ShipmentMethod, "Shipment Method Code", "Language Code");
                 DocFooterText := FormatDocumentMgtCZL.GetDocumentFooterText("Language Code");
 
@@ -566,5 +607,14 @@ report 31191 "Sales Shipment CZL"
         MailManagement: Codeunit "Mail Management";
     begin
         exit(CurrReport.Preview or MailManagement.IsHandlingGetEmailBody());
+    end;
+
+    local procedure FormatAddressFields(SalesShipmentHeader: Record "Sales Shipment Header")
+    var
+        ResponsibilityCenter: Record "Responsibility Center";
+    begin
+        FormatAddress.GetCompanyAddr(SalesShipmentHeader."Responsibility Center", ResponsibilityCenter, "Company Information", CompanyAddr);
+        FormatAddress.SalesShptShipTo(ShipToAddr, SalesShipmentHeader);
+        FormatAddress.SalesShptBillTo(CustAddr, ShipToAddr, SalesShipmentHeader);
     end;
 }

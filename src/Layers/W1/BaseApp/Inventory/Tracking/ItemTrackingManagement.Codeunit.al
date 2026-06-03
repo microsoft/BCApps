@@ -595,6 +595,11 @@ codeunit 6500 "Item Tracking Management"
         CopyItemTracking3(ReservEntry, ToRowID, SwapSign, SkipReservation, ReservEntry."Reservation Status"::Prospect);
     end;
 
+    procedure CopyItemTracking(var ReservEntry: Record "Reservation Entry"; ToRowID: Text[250]; SwapSign: Boolean)
+    begin
+        CopyItemTracking3(ReservEntry, ToRowID, SwapSign, false, ReservEntry."Reservation Status"::Prospect);
+    end;
+
     local procedure CopyItemTracking3(var ReservEntry: Record "Reservation Entry"; ToRowID: Text[250]; SwapSign: Boolean; SkipReservation: Boolean; NewReservationStatus: Enum "Reservation Status")
     var
         ReservEntry1: Record "Reservation Entry";
@@ -2149,14 +2154,14 @@ codeunit 6500 "Item Tracking Management"
         ItemLedgEntry.SetRange("Item No.", ItemNo);
         ItemLedgEntry.SetRange("Variant Code", VariantCode);
         ItemLedgEntry.SetRange(Positive, true);
-        if (ItemTrackingSetup."Lot No." <> '') or (ItemTrackingSetup."Package No." <> '') then begin
-            if ItemTrackingSetup."Lot No." <> '' then
-                ItemLedgEntry.SetRange("Lot No.", ItemTrackingSetup."Lot No.");
-            if ItemTrackingSetup."Package No." <> '' then
-                ItemLedgEntry.SetRange("Package No.", ItemTrackingSetup."Package No.");
-        end else
+        if ItemTrackingSetup."Lot No." <> '' then
+            ItemLedgEntry.SetRange("Lot No.", ItemTrackingSetup."Lot No.")
+        else
             if ItemTrackingSetup."Serial No." <> '' then
-                ItemLedgEntry.SetRange("Serial No.", ItemTrackingSetup."Serial No.");
+                ItemLedgEntry.SetRange("Serial No.", ItemTrackingSetup."Serial No.")
+            else
+                if ItemTrackingSetup."Package No." <> '' then
+                    ItemLedgEntry.SetRange("Package No.", ItemTrackingSetup."Package No.");
         EntryFound := ItemLedgEntry.FindLast();
         exit(EntryFound);
     end;

@@ -25,6 +25,7 @@ table 7231 "Master Data Mgt. Coupling"
                 "Last Synch. Int. Modified On" := 0DT;
                 "Last Synch. Int. Result" := 0;
                 Skipped := false;
+                "Consecutive Failure Count" := 0;
             end;
         }
         field(3; "Local System ID"; Guid)
@@ -37,6 +38,7 @@ table 7231 "Master Data Mgt. Coupling"
                 "Last Synch. Modified On" := 0DT;
                 "Last Synch. Result" := 0;
                 Skipped := false;
+                "Consecutive Failure Count" := 0;
             end;
         }
         field(4; "Last Synch. Modified On"; DateTime)
@@ -82,6 +84,12 @@ table 7231 "Master Data Mgt. Coupling"
         {
             Caption = 'Skipped';
             Editable = false;
+        }
+        field(12; "Consecutive Failure Count"; Integer)
+        {
+            Caption = 'Consecutive Failure Count';
+            Editable = false;
+            MinValue = 0;
         }
     }
 
@@ -400,16 +408,13 @@ table 7231 "Master Data Mgt. Coupling"
         else
             Found := FindByIntegrationSystemID(MasterDataManagement.GetIntegrationSystemIdFromRecRef(SourceRecRef));
         if Found then begin
-            if MarkedAsSkipped then
+            "Consecutive Failure Count" += 1;
+            if "Consecutive Failure Count" > GetMaxConsecutiveFailures() then
                 Skipped := true;
             if DirectionToIntTable then begin
-                if (not Skipped) and ("Last Synch. Int. Result" = "Last Synch. Int. Result"::Failure) then
-                    Skipped := false;
                 "Last Synch. Int. Job ID" := JobId;
                 "Last Synch. Int. Result" := "Last Synch. Int. Result"::Failure
             end else begin
-                if (not Skipped) and ("Last Synch. Result" = "Last Synch. Result"::Failure) then
-                    Skipped := false;
                 "Last Synch. Job ID" := JobId;
                 "Last Synch. Result" := "Last Synch. Result"::Failure;
             end;
@@ -417,6 +422,16 @@ table 7231 "Master Data Mgt. Coupling"
                 MarkedAsSkipped := true;
             Modify(true);
         end;
+    end;
+
+    internal procedure GetMaxConsecutiveFailures(): Integer
+    begin
+        // After this many consecutive synchronization failures for the same coupled record,
+        // the record is marked Skipped so the synchronization engine stops retrying it on every
+        // run. This bounds the size of the Integration Synch. Job Errors log and the consumption
+        // of identity values on it. The user can re-include skipped records via Run Full
+        // Synchronization on the Synchronization Tables page.
+        exit(2);
     end;
 
     internal procedure FindRowFromRecordID(SourceRecordID: RecordID; var MasterDataMgtCoupling: Record "Master Data Mgt. Coupling"): Boolean

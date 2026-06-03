@@ -32,7 +32,7 @@ report 2000007 "File SEPA 001.001.09 Pmts"
     {
         dataitem("Payment Journal Line"; "Payment Journal Line")
         {
-            DataItemTableView = sorting("Bank Account", "Beneficiary Bank Account No.", Status, "Account Type", "Account No.", "Currency Code", "Posting Date");
+            DataItemTableView = sorting("Bank Account", "Beneficiary Bank Account No.", "Beneficiary IBAN", Status, "Account Type", "Account No.", "Currency Code", "Posting Date");
 
             trigger OnAfterGetRecord()
             var
@@ -371,7 +371,7 @@ report 2000007 "File SEPA 001.001.09 Pmts"
     var
         XMLNewChild: DotNet XmlNode;
         AddressLine1: Text[110];
-        begin
+    begin
         PaymentInformationCounter := PaymentInformationCounter + 1;
         AddElement(XMLNodeCurr, 'PmtInf', '', '', XMLNewChild);
         XMLNodeCurr := XMLNewChild;
@@ -464,7 +464,7 @@ report 2000007 "File SEPA 001.001.09 Pmts"
         XMLNewChild: DotNet XmlNode;
         RootNode: DotNet XmlNode;
         AddressLine1: Text[110];
-        begin
+    begin
         OnBeforeExportTransactionInformation(PmtJnlLine, PaymentMessage);
 
         GetCVAccount(PmtJnlLine);
@@ -741,7 +741,8 @@ report 2000007 "File SEPA 001.001.09 Pmts"
             IsPaymentMessageTooLong(PmtJnlLine."Payment Message") or
             (ConsolidatedPmtJnlLine."Account Type" <> PmtJnlLine."Account Type") or
             (ConsolidatedPmtJnlLine."Account No." <> PmtJnlLine."Account No.") or
-            (ConsolidatedPmtJnlLine."Beneficiary Bank Account No." <> PmtJnlLine."Beneficiary Bank Account No.");
+            (ConsolidatedPmtJnlLine."Beneficiary Bank Account No." <> PmtJnlLine."Beneficiary Bank Account No.") or
+            (ConsolidatedPmtJnlLine."Beneficiary IBAN" <> PmtJnlLine."Beneficiary IBAN");
 
         OnAfterNewConsolidatedPayment(PmtJnlLine, ConsolidatedPmtJnlLine, ReturnValue);
 

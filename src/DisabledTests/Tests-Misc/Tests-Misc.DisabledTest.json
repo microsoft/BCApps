@@ -3473,5 +3473,22 @@
     "method": "AssistedCompanySetupCreateAccountingPeriodWithNonBlankStartDate",
     "codeunitId": 139301,
     "codeunitName": "Assisted Company Setup Tests"
+  },
+  {
+    "codeunitId": 134681,
+    "codeunitName": "RC Page Dispatcher Test",
+    "method": "T101_ReportListPriceSheetAsListPriceSheetV16",
+    "bug": 609761
+  },
+  {
+    "codeunitId": 134681,
+    "codeunitName": "RC Page Dispatcher Test",
+    "method": "T102_ReportSalesPromotionAsSalesPromotionV16",
+    "bug": 609761
+  },
+  {
+    "codeunitId": 139020,
+    "codeunitName": "Test Job Queue SNAP",
+    "method": "T181_CalcNextDailyRunTestStartingAndEndingTimesAreEqual"
   }
 ]

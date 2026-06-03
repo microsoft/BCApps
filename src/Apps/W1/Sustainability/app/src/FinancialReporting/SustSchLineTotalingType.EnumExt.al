@@ -6,6 +6,6 @@ enumextension 6211 "Sust. Sch. Line Totaling Type" extends "Acc. Schedule Line T
 {
     value(6210; "Sust. Accounts")
     {
-        Caption = 'Sust. Accounts';
+        Caption = 'Sustainability Accounts';
     }
 }

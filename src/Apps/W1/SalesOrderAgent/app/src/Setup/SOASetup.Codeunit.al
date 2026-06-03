@@ -167,6 +167,7 @@ codeunit 4400 "SOA Setup"
             SOASetup."Unknown Sender In. Msg. Review" := TempSOASetup."Unknown Sender In. Msg. Review";
             SOASetup."Instructions Last Sync At" := TempSOASetup."Instructions Last Sync At";
             SOASetup."Configure Email Template" := TempSOASetup."Configure Email Template";
+            SOASetup."Mark Email As Read" := TempSOASetup."Mark Email As Read";
             CopyMailSignatureField(TempSOASetup, SOASetup);
             SOASetup."Message Limit" := TempSOASetup."Message Limit";
             SOASetup."Send Sales Quote" := TempSOASetup."Send Sales Quote";
@@ -215,6 +216,7 @@ codeunit 4400 "SOA Setup"
         TelemetryCustomDimension.Add('ConfigureEmailTemplate', Format(TempSOASetup."Configure Email Template"));
         TelemetryCustomDimension.Add('KnownSenderInMsgReview', Format(TempSOASetup."Known Sender In. Msg. Review"));
         TelemetryCustomDimension.Add('UnknownSenderInMsgReview', Format(TempSOASetup."Unknown Sender In. Msg. Review"));
+        TelemetryCustomDimension.Add('MarkEmailAsRead', Format(TempSOASetup."Mark Email As Read"));
         TelemetryCustomDimension.Add('MessageLimit', Format(TempSOASetup."Message Limit"));
         if not IsNullGuid(TempSOASetup."Email Account ID") then
             TelemetryCustomDimension.Add('HasEmailAccountId', 'true')
@@ -618,6 +620,7 @@ codeunit 4400 "SOA Setup"
         TempSOASetup."Email Monitoring" := true;
         SetDefaultSalesDocConfig(TempSOASetup, true);
         TempSOASetup."Analyze Attachments" := true;
+        TempSOASetup."Mark Email As Read" := true;
         TempSOASetup."User Security ID" := AgentUserSecurityID;
         SetDefaultEmailSignature(TempSOASetup);
         TempSOASetup.Insert();
@@ -682,7 +685,7 @@ codeunit 4400 "SOA Setup"
     begin
         // First activation
         if TempSOASetup."Activated At" = 0DT then begin
-            TempSOASetup."Earliest Sync At" := CurrentDateTime();
+            TempSOASetup."Earliest Sync At" := CreateDateTime(Today(), 0T);
             TempSOASetup."Last Sync At" := TempSOASetup."Earliest Sync At";
             exit;
         end;
@@ -742,7 +745,7 @@ codeunit 4400 "SOA Setup"
 
     internal procedure PageCountThreshold(): Integer
     begin
-        exit(10)
+        exit(50)
     end;
 
     internal procedure GetMaxNoOfAttachmentsPerEmail(): Integer

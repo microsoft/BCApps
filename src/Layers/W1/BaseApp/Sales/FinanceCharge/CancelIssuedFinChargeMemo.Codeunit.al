@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.FinanceCharge;
 
+using Microsoft.Finance.Dimension;
+using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Posting;
 using Microsoft.Finance.GeneralLedger.Setup;
@@ -38,6 +40,7 @@ codeunit 1395 "Cancel Issued Fin. Charge Memo"
         SourceCodeSetup: Record "Source Code Setup";
         TempErrorMessage: Record "Error Message" temporary;
         GLSetup: Record "General Ledger Setup";
+        DimMgt: Codeunit DimensionManagement;
         FinChargeMemoSourceCode: Code[10];
         TotalAmount: Decimal;
         TotalAmountLCY: Decimal;
@@ -117,7 +120,7 @@ codeunit 1395 "Cancel Issued Fin. Charge Memo"
         end;
 
         if FeePosted then
-            PostGenJnlLines();
+            PostGenJnlLines(IssuedFinChargeMemoHeader);
 
         OnAfterCancelIssuedFinChargeMemo(IssuedFinChargeMemoHeader);
     end;
@@ -267,13 +270,16 @@ codeunit 1395 "Cancel Issued Fin. Charge Memo"
         end;
     end;
 
-    local procedure PostGenJnlLines()
+    local procedure PostGenJnlLines(IssuedFinChargeMemoHeader: Record "Issued Fin. Charge Memo Header")
     var
+        GenJnlLine2: Record "Gen. Journal Line";
         GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";
     begin
         if TempGenJnlLine.FindSet() then
             repeat
-                GenJnlPostLine.RunWithCheck(TempGenJnlLine);
+                GenJnlLine2 := TempGenJnlLine;
+                SetDimensions(GenJnlLine2, IssuedFinChargeMemoHeader);
+                GenJnlPostLine.RunWithCheck(GenJnlLine2);
             until TempGenJnlLine.Next() = 0;
 
         TempGenJnlLine.DeleteAll();
@@ -361,6 +367,25 @@ codeunit 1395 "Cancel Issued Fin. Charge Memo"
         CustLedgerEntry.SetRange("Customer No.", IssuedFinChargeMemoHeader."Customer No.");
         CustLedgerEntry.SetRange("Document No.", IssuedFinChargeMemoHeader."No.");
         exit(not CustLedgerEntry.IsEmpty);
+    end;
+
+    local procedure SetDimensions(var GenJnlLine: Record "Gen. Journal Line"; var IssuedFinChargeMemoHeader: Record "Issued Fin. Charge Memo Header")
+    var
+        DefaultDimension: Record "Default Dimension";
+        DefaultDimSource: List of [Dictionary of [Integer, Code[20]]];
+    begin
+        GenJnlLine."Shortcut Dimension 1 Code" := IssuedFinChargeMemoHeader."Shortcut Dimension 1 Code";
+        GenJnlLine."Shortcut Dimension 2 Code" := IssuedFinChargeMemoHeader."Shortcut Dimension 2 Code";
+        GenJnlLine."Dimension Set ID" := IssuedFinChargeMemoHeader."Dimension Set ID";
+        if GenJnlLine."Account Type" = GenJnlLine."Account Type"::"G/L Account" then begin
+            DimMgt.AddDimSource(DefaultDimSource, Database::"G/L Account", GenJnlLine."Account No.");
+            DefaultDimension.SetRange("Table ID", Database::"G/L Account");
+            DefaultDimension.SetRange("No.", GenJnlLine."Account No.");
+            if not DefaultDimension.IsEmpty() then
+                GenJnlLine."Dimension Set ID" :=
+                    DimMgt.GetRecDefaultDimID(
+                        GenJnlLine, 0, DefaultDimSource, FinChargeMemoSourceCode, GenJnlLine."Shortcut Dimension 1 Code", GenJnlLine."Shortcut Dimension 2 Code", GenJnlLine."Dimension Set ID", 0);
+        end;
     end;
 
     /// <summary>

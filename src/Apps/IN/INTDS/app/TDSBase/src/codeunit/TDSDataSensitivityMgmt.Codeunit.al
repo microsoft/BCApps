@@ -26,6 +26,7 @@ codeunit 18692 "TDS Data Sensitivity Mgmt."
         SetTableFieldsToNormal(Database::"Act Applicable");
         SetTableFieldsToNormal(Database::"Allowed Sections");
         SetTableFieldsToNormal(Database::"TDS Concessional Code");
+        SetTableFieldsToNormal(Database::"TDS Concessional Code Archive");
         SetTableFieldsToNormal(Database::"TDS Entry");
         SetTableFieldsToNormal(Database::"TDS Nature Of Remittance");
         SetTableFieldsToNormal(Database::"TDS Posting Setup");

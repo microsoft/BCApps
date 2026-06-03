@@ -1298,7 +1298,13 @@ codeunit 1303 "Correct Posted Sales Invoice"
     var
         SalesInvoiceLine: Record "Sales Invoice Line";
         TempSalesShipmentLine: Record "Sales Shipment Line" temporary;
+        IsHandled: Boolean;
     begin
+        IsHandled := false;
+        OnBeforeTestIfDropShipmentDocument(SalesInvoiceHeader, IsHandled);
+        if IsHandled then
+            exit;
+
         SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeader."No.");
         SalesInvoiceLine.SetRange("Drop Shipment", true);
         if SalesInvoiceLine.FindFirst() then begin
@@ -1314,6 +1320,16 @@ codeunit 1303 "Correct Posted Sales Invoice"
     /// <param name="SalesInvoiceHeader">The posted sales invoice being copied from.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCreateCopyDocument(var SalesHeader: Record "Sales Header"; var SalesInvoiceHeader: Record "Sales Invoice Header")
+    begin
+    end;
+
+    /// <summary>
+    /// Raised before testing whether to drop shipment document exists for the posted sales invoice.
+    /// </summary>
+    /// <param name="SalesInvoiceHeader">The posted sales invoice being validated.</param>
+    /// <param name="IsHandled">Set to true to skip default drop shipment document validation.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeTestIfDropShipmentDocument(var SalesInvoiceHeader: Record "Sales Invoice Header"; var IsHandled: Boolean)
     begin
     end;
 

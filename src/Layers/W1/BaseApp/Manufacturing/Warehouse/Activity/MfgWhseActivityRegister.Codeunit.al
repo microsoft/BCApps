@@ -208,23 +208,36 @@ codeunit 99000765 "Mfg. Whse. Activity Register"
 
     local procedure UpdateCompletelyPickedProdOrderComponent(WarehouseActivityLine: Record "Warehouse Activity Line")
     var
-        ProdOrderComponent: Record "Prod. Order Component";
+        ProdOrderComponent, ProdOrderComponentToUpdate : Record "Prod. Order Component";
         Item: Record Item;
+        NonInventoriableItemsByNo: Dictionary of [Code[20], Boolean];
+        IsNonInventoriableItemType: Boolean;
     begin
-        ProdOrderComponent.SetRange("Prod. Order No.", WarehouseActivityLine."Source No.");
         ProdOrderComponent.SetRange(Status, ProdOrderComponent.Status::Released);
+        ProdOrderComponent.SetRange("Prod. Order No.", WarehouseActivityLine."Source No.");
         ProdOrderComponent.SetRange("Completely Picked", false);
-        ProdOrderComponent.SetLoadFields("Item No.", "Flushing Method", "Completely Picked");
+        ProdOrderComponent.SetAutoCalcFields("Pick Qty.");
+        ProdOrderComponent.SetLoadFields("Completely Picked", "Flushing Method", "Item No.", "Unit of Measure Code");
         if ProdOrderComponent.FindSet() then
             repeat
-                ProdOrderComponent.CalcFields("Pick Qty.");
-                Item.SetLoadFields("No.", Type);
-                if Item.Get(ProdOrderComponent."Item No.") then
-                    if ((ProdOrderComponent."Flushing Method" = ProdOrderComponent."Flushing Method"::Backward) or Item.IsNonInventoriableType())
-                        and (ProdOrderComponent."Pick Qty." = 0) then begin
-                        ProdOrderComponent."Completely Picked" := true;
-                        ProdOrderComponent.Modify();
-                    end;
+                if ProdOrderComponent."Pick Qty." <> 0 then
+                    continue;
+
+                if not NonInventoriableItemsByNo.Get(ProdOrderComponent."Item No.", IsNonInventoriableItemType) then begin
+                    Item.SetLoadFields("No.", Type);
+                    if not Item.Get(ProdOrderComponent."Item No.") then
+                        continue;
+
+                    IsNonInventoriableItemType := Item.IsNonInventoriableType();
+                    NonInventoriableItemsByNo.Add(ProdOrderComponent."Item No.", IsNonInventoriableItemType);
+                end;
+
+                if (ProdOrderComponent."Flushing Method" = ProdOrderComponent."Flushing Method"::Backward) or IsNonInventoriableItemType
+                then begin
+                    ProdOrderComponentToUpdate := ProdOrderComponent;
+                    ProdOrderComponentToUpdate."Completely Picked" := true;
+                    ProdOrderComponentToUpdate.Modify();
+                end;
             until ProdOrderComponent.Next() = 0;
     end;
 

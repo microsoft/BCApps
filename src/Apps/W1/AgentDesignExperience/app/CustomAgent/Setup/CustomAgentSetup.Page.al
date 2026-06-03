@@ -205,7 +205,7 @@ page 4350 "Custom Agent Setup"
                 group(AgentModelGroup)
                 {
                     Caption = 'Agent model';
-                    InstructionalText = 'Choose the model the agent uses to complete tasks. Auto means the agent uses the default model that can change over time.';
+                    InstructionalText = 'Choose the model the agent uses to complete tasks. (Auto uses the default model, which may change over time.)';
 
                     field(AgentModelName; SelectedModelDisplayName)
                     {

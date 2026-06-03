@@ -1579,17 +1579,6 @@ page 50 "Purchase Order"
                         end;
                     }
                 }
-                action("Deliv. Reminder Ledger &Entries")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Deliv. Reminder Ledger &Entries';
-                    Image = ReceiptReminder;
-                    RunObject = Page "Deliv. Reminder Ledger Entries";
-                    RunPageLink = "Order No." = field("No.");
-                    RunPageView = sorting("Order No.", "Order Line No.", "Posting Date")
-                                  order(ascending);
-                    ToolTip = 'View the entries that were created when delivery reminders were created. You can navigate to investigate each entry further.';
-                }
                 action("Archive Document")
                 {
                     ApplicationArea = Suite;

@@ -1195,7 +1195,7 @@ codeunit 99000893 "Mfg. Create Put-away"
         IsHandled: Boolean;
     begin
         IsHandled := false;
-        OnBeforeGetPutAwayUOMForProdOrderLine(PutAwayItemUnitOfMeasure, ProdOrderLine, IsHandled);
+        OnBeforeGetPutAwayUOMForProdOrderLine(PutAwayItemUnitOfMeasure, ProdOrderLine, IsHandled, BasePutAwayItemUnitOfMeasure);
         if IsHandled then
             exit;
 
@@ -1375,7 +1375,7 @@ codeunit 99000893 "Mfg. Create Put-away"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeGetPutAwayUOMForProdOrderLine(var ItemUnitOfMeasure: Record "Item Unit of Measure"; ProdOrderLine: Record "Prod. Order Line"; var IsHandled: Boolean)
+    local procedure OnBeforeGetPutAwayUOMForProdOrderLine(var ItemUnitOfMeasure: Record "Item Unit of Measure"; ProdOrderLine: Record "Prod. Order Line"; var IsHandled: Boolean; var BasePutAwayItemUnitOfMeasure: Record "Item Unit of Measure")
     begin
     end;
 

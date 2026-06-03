@@ -137,11 +137,6 @@ page 386 "Extended Text"
                 {
                     ApplicationArea = Basic, Suite;
                 }
-                field("Delivery Reminder"; Rec."Delivery Reminder")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies whether the extended text will be available on delivery reminders.';
-                }
             }
         }
         area(factboxes)

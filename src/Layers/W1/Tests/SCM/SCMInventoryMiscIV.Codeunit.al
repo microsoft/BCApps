@@ -39,6 +39,9 @@ codeunit 137296 "SCM Inventory Misc. IV"
         WrongNextCountingEndDateErr: Label 'Wrong next phys. inventory counting period end date.';
         CalculateNeedVARParameterOutputValueErr: Label '%1 output value is wrong', Comment = '%1 - VAR Parameter Name';
         LocCodeIsModifiedErr: Label 'Location Code has been modified.';
+        OverReceiptQtyPreservedErr: Label 'Over-Receipt Quantity should be preserved after partial posting';
+        QtyReceivedMismatchErr: Label 'Quantity Received should match partial receipt quantity';
+        QtyOutstandingMismatchErr: Label 'Qty. Outstanding should reflect remaining quantity';
 
     [Test]
     [Scope('OnPrem')]
@@ -1927,6 +1930,73 @@ codeunit 137296 "SCM Inventory Misc. IV"
 
         Item.TestField("Next Counting Start Date", CalcDate('<WD2>', Item."Last Counting Period Update"));
         Item.TestField("Next Counting End Date", CalcDate('<WD2 + 6D>', Item."Last Counting Period Update"));
+    end;
+
+    [Test]
+    [HandlerFunctions('SentNotificationHandler')]
+    [Scope('OnPrem')]
+    procedure OverReceiptQtyPreservedAfterPartialWhseReceiptPost()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Location: Record Location;
+        WarehouseEmployee: Record "Warehouse Employee";
+        WarehouseReceiptHeader: Record "Warehouse Receipt Header";
+        WarehouseReceiptLine: Record "Warehouse Receipt Line";
+        Item: Record Item;
+        OverReceiptCode: Record "Over-Receipt Code";
+        OriginalQty: Decimal;
+        OverReceiptQty: Decimal;
+        PartialReceiveQty: Decimal;
+    begin
+        // [FEATURE] [Over-Receipt] [Warehouse Receipt] [AI test]
+        // [SCENARIO 630271] Over-Receipt Quantity on Purchase Line "PL" is preserved after partial warehouse receipt posting
+        Initialize();
+
+        // [GIVEN] Location "L" with Require Receipt enabled
+        LibraryWarehouse.CreateLocationWMS(Location, false, false, false, true, false);
+        LibraryWarehouse.CreateWarehouseEmployee(WarehouseEmployee, Location.Code, false);
+
+        // [GIVEN] Item "I" with Over-Receipt Code
+        LibraryInventory.CreateItem(Item);
+        OverReceiptCode.FindFirst();
+        Item.Validate("Over-Receipt Code", OverReceiptCode.Code);
+        Item.Modify(true);
+
+        // [GIVEN] Purchase Order "PO" with Purchase Line "PL" where Quantity = 10
+        OriginalQty := 10;
+        OverReceiptQty := 1;
+        PartialReceiveQty := 5;
+        LibraryPurchase.CreatePurchaseDocumentWithItem(
+            PurchaseHeader, PurchaseLine, PurchaseHeader."Document Type"::Order,
+            LibraryPurchase.CreateVendorNo(), Item."No.", OriginalQty, Location.Code, WorkDate());
+
+        // [GIVEN] Warehouse Receipt "WR" created from "PO" with Over-Receipt Quantity = 1 (total Qty. to Receive = 11)
+        LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
+        LibraryWarehouse.CreateWhseReceiptFromPO(PurchaseHeader);
+        FindWarehouseReceiptLine(WarehouseReceiptLine, PurchaseHeader."No.");
+        WarehouseReceiptLine.Validate("Qty. to Receive", OriginalQty + OverReceiptQty);
+        WarehouseReceiptLine.Modify(true);
+
+        // [GIVEN] Partial Qty. to Receive = 5 set on "WR"
+        WarehouseReceiptLine.Validate("Qty. to Receive", PartialReceiveQty);
+        WarehouseReceiptLine.Modify(true);
+
+        // [WHEN] Post partial warehouse receipt "WR"
+        WarehouseReceiptHeader.Get(WarehouseReceiptLine."No.");
+        LibraryWarehouse.PostWhseReceipt(WarehouseReceiptHeader);
+
+        // [THEN] Over-Receipt Quantity on "PL" is preserved = 1
+        PurchaseLine.Find();
+        Assert.AreEqual(OverReceiptQty, PurchaseLine."Over-Receipt Quantity", OverReceiptQtyPreservedErr);
+
+        // [THEN] Quantity Received on "PL" = 5
+        Assert.AreEqual(PartialReceiveQty, PurchaseLine."Quantity Received", QtyReceivedMismatchErr);
+
+        // [THEN] Qty. Outstanding on "WR" = 6 (11 - 5)
+        WarehouseReceiptLine.Find();
+        Assert.AreEqual(OriginalQty + OverReceiptQty - PartialReceiveQty, WarehouseReceiptLine."Qty. Outstanding", QtyOutstandingMismatchErr);
+        LibraryNotificationMgt.RecallNotificationsForRecordID(PurchaseHeader.RecordId);
     end;
 
     local procedure Initialize()

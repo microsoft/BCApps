@@ -1778,6 +1778,10 @@ codeunit 7233 "Master Data Management"
             MasterDataMgtCoupling."Last Synch. Modified On" := ModifiedOn;
         if IntegrationTableModfiedOn > MasterDataMgtCoupling."Last Synch. Int. Modified On" then
             MasterDataMgtCoupling."Last Synch. Int. Modified On" := IntegrationTableModfiedOn;
+        // Successful synch -> reset the consecutive-failure counter and clear Skipped so the
+        // record participates in regular incremental synchronization again.
+        MasterDataMgtCoupling."Consecutive Failure Count" := 0;
+        MasterDataMgtCoupling.Skipped := false;
         MasterDataMgtCoupling.Modify(true);
         IsHandled := true;
     end;
@@ -2117,6 +2121,21 @@ codeunit 7233 "Master Data Management"
             Clear(IntegrationTableMapping."Synch. Modified On Filter");
             Clear(IntegrationTableMapping."Synch. Int. Tbl. Mod. On Fltr.");
             IntegrationTableMapping.Modify();
+            // Run Full Synchronization should re-include previously skipped records and reset
+            // their consecutive-failure counters so the synch run retries them and either
+            // succeeds or logs fresh errors the user can investigate. Counters of 1 or 2 on
+            // non-skipped rows are harmless (they'll auto-reset on success or escalate to
+            // Skipped on the next failure), so we only touch the bounded Skipped subset.
+            // The (Skipped, "Table ID") key on Master Data Mgt. Coupling supports this filter.
+            if IntegrationTableMapping."Table ID" <> 0 then begin
+                MasterDataMgtCoupling.SetRange("Table ID", IntegrationTableMapping."Table ID");
+                MasterDataMgtCoupling.SetRange(Skipped, true);
+                MasterDataMgtCoupling.ModifyAll("Consecutive Failure Count", 0);
+                MasterDataMgtCoupling.ModifyAll(Skipped, false);
+                // Clear the Skipped filter so the timestamp-reset block below operates on all
+                // couplings of the table, not just the rows we just unskipped.
+                MasterDataMgtCoupling.SetRange(Skipped);
+            end;
         end;
         if ResetSynchonizationTimestampOnRecords then begin
             MasterDataMgtCoupling.SetRange("Table ID", IntegrationTableMapping."Table ID");

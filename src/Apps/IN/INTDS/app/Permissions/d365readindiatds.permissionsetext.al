@@ -20,6 +20,7 @@ permissionsetextension 18667 "D365 READ - India TDS" extends "D365 READ"
                   tabledata "Provisional Entry" = R,
                   tabledata "TDS Challan Register" = R,
                   tabledata "TDS Concessional Code" = R,
+                  tabledata "TDS Concessional Code Archive" = R,
                   tabledata "TDS Customer Concessional Code" = R,
                   tabledata "TDS Entry" = R,
                   tabledata "TDS Journal Batch" = R,

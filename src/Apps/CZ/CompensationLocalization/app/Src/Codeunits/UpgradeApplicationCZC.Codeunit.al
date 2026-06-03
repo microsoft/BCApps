@@ -5,9 +5,13 @@
 namespace Microsoft.Finance.Compensations;
 
 using Microsoft.CRM.Contact;
+#if not CLEANSCHEMA32
+using Microsoft.Foundation.Reporting;
+#endif
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using System.Environment.Configuration;
+using System.Reflection;
 using System.Upgrade;
 
 codeunit 31263 "Upgrade Application CZC"
@@ -22,7 +26,6 @@ codeunit 31263 "Upgrade Application CZC"
     trigger OnUpgradePerDatabase()
     begin
         DataUpgradeMgt.SetUpgradeInProgress();
-        SetDatabaseUpgradeTags();
     end;
 
     trigger OnUpgradePerCompany()
@@ -30,7 +33,9 @@ codeunit 31263 "Upgrade Application CZC"
         DataUpgradeMgt.SetUpgradeInProgress();
         UpgradeCompensationLanguage();
         UpgradePostedCompensationLanguage();
-        SetCompanyUpgradeTags();
+#if not CLEANSCHEMA32
+        UpgradeReportSelections();
+#endif
     end;
 
     local procedure UpgradeCompensationLanguage()
@@ -72,6 +77,50 @@ codeunit 31263 "Upgrade Application CZC"
 
         UpgradeTag.SetUpgradeTag(UpgradeTagDefinitionsCZC.GetPostedCompensationLanguageCodeUpgradeTag());
     end;
+#if not CLEANSCHEMA32
+
+    local procedure UpgradeReportSelections()
+    var
+        CompensReportSelectionsCZC: Record "Compens. Report Selections CZC";
+        ReportSelections: Record "Report Selections";
+    begin
+        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitionsCZC.GetUseReportSelectionsUpgradeTag()) then
+            exit;
+
+        if CompensReportSelectionsCZC.FindSet(false) then
+            repeat
+                case CompensReportSelectionsCZC.Usage of
+                    CompensReportSelectionsCZC.Usage::"Compensation":
+                        begin
+                            ReportSelections.InsertRecord(Enum::"Report Selection Usage"::"Compensation CZC", CompensReportSelectionsCZC."Sequence", CompensReportSelectionsCZC."Report ID");
+                            AddEmailBodyLayout(ReportSelections, 'CompensationEmail.docx');
+                        end;
+                    CompensReportSelectionsCZC.Usage::"Posted Compensation":
+                        begin
+                            ReportSelections.InsertRecord(Enum::"Report Selection Usage"::"Posted Compensation CZC", CompensReportSelectionsCZC.Sequence, CompensReportSelectionsCZC."Report ID");
+                            AddEmailBodyLayout(ReportSelections, 'PostedCompensationEmail.docx');
+                        end;
+                end;
+            until CompensReportSelectionsCZC.Next() = 0;
+
+        UpgradeTag.SetUpgradeTag(UpgradeTagDefinitionsCZC.GetUseReportSelectionsUpgradeTag());
+    end;
+
+    local procedure AddEmailBodyLayout(ReportSelections: Record "Report Selections"; ReportLayoutName: Text[250])
+    var
+        ReportLayoutList: Record "Report Layout List";
+    begin
+        ReportLayoutList.SetRange("Report ID", ReportSelections."Report ID");
+        ReportLayoutList.SetRange(Name, ReportLayoutName);
+        if not ReportLayoutList.FindFirst() then
+            exit;
+
+        ReportSelections."Use for Email Body" := true;
+        ReportSelections."Email Body Layout Name" := CopyStr(ReportLayoutName, 1, MaxStrLen(ReportSelections."Email Body Layout Name"));
+        ReportSelections."Email Body Layout AppID" := ReportLayoutList."Application ID";
+        ReportSelections.Modify();
+    end;
+#endif
 
     internal procedure GetLanguageCode(CompanyType: Enum "Compensation Company Type CZC"; CompanyNo: Code[20]): Code[10]
     var
@@ -127,17 +176,5 @@ codeunit 31263 "Upgrade Application CZC"
                         exit(Vendor."Format Region");
                 end;
         end;
-    end;
-
-    local procedure SetDatabaseUpgradeTags();
-    begin
-        if not UpgradeTag.HasUpgradeTag(UpgradeTagDefinitionsCZC.GetDataVersion180PerDatabaseUpgradeTag()) then
-            UpgradeTag.SetUpgradeTag(UpgradeTagDefinitionsCZC.GetDataVersion180PerDatabaseUpgradeTag());
-    end;
-
-    local procedure SetCompanyUpgradeTags();
-    begin
-        if not UpgradeTag.HasUpgradeTag(UpgradeTagDefinitionsCZC.GetDataVersion180PerCompanyUpgradeTag()) then
-            UpgradeTag.SetUpgradeTag(UpgradeTagDefinitionsCZC.GetDataVersion180PerCompanyUpgradeTag());
     end;
 }

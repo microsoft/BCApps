@@ -17,6 +17,8 @@ codeunit 4597 "SOA Broader Item Search Func" implements "AOAI Function"
     var
         BroaderItemSearch: Codeunit "SOA Broader Item Search";
         SearchQuery: Text;
+        SearchResultFilter: Text;
+        SearchResultCandidates: JsonArray;
         ItemResultsArray: JsonArray;
         Top: Integer;
         MaximumQueryResultsToRank: Integer;
@@ -47,8 +49,11 @@ codeunit 4597 "SOA Broader Item Search Func" implements "AOAI Function"
             MaximumQueryResultsToRank := 25;
             IncludeSynonyms := false;
             UseContextAwareRanking := true;
-            if BroaderItemSearch.SearchBroader(ItemResultsArray, SearchQuery, Top, MaximumQueryResultsToRank, IncludeSynonyms, UseContextAwareRanking, ItemFilter) then
+            Clear(SearchResultCandidates);
+            if BroaderItemSearch.SearchBroader(ItemResultsArray, SearchQuery, Top, MaximumQueryResultsToRank, IncludeSynonyms, UseContextAwareRanking, ItemFilter, SearchResultCandidates) then begin
+                SearchResultFilter := ItemFilter;
                 exit(ItemFilter);
+            end;
         end;
     end;
 
@@ -70,5 +75,11 @@ codeunit 4597 "SOA Broader Item Search Func" implements "AOAI Function"
         UseContextAwareRank := UseContextAwareRanking;
         MaxQueryResultsToRank := MaximumQueryResultsToRank;
         TakeTop := Top;
+    end;
+
+    internal procedure GetBroaderSearchResults(var ItemFilter: Text; var CandidateArray: JsonArray)
+    begin
+        ItemFilter := SearchResultFilter;
+        CandidateArray := SearchResultCandidates;
     end;
 }

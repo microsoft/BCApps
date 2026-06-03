@@ -1246,7 +1246,7 @@ codeunit 18390 "GST Transfer Order Receipt"
         Direction: Enum "Transfer Direction";
         AmtToLoad: Decimal;
     begin
-        if TransferLine."Qty. to Receive" = 0 then
+        if TransferLine."Qty. to Receive (Base)" = 0 then
             exit;
 
         SetItemLedgerEntryFilter(ItemLedgEntry, TransferLine, TransRcptHeader);

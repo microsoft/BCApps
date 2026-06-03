@@ -44,9 +44,21 @@ codeunit 3303 "Payables Agent" implements IAgentMetadata, IAgentFactory
         PAAnnotation.GetAgentAnnotations(AgentUserId, Annotations);
     end;
 
-    procedure GetAgentTaskMessagePageId(AgentUserId: Guid; MessageId: Guid): Integer
+    procedure GetAgentTaskMessagePageId(AgentUserId: Guid; MessageId: Guid) PageId: Integer
+    var
+        AgentTaskMessage: Record "Agent Task Message";
+        EDocument: Record "E-Document";
+        EDocumentEntryNo: Integer;
     begin
-        exit(Page::"PA Agent Email Task");
+        if not AgentTaskMessage.Get(MessageId) then
+            exit;
+        if not Evaluate(EDocumentEntryNo, AgentTaskMessage."External ID") then
+            exit;
+        if not EDocument.Get(EDocumentEntryNo) then
+            exit;
+        if EDocument."Outlook Mail Message Id" <> '' then
+            exit(Page::"PA Agent Email Task");
+        exit(Page::"PA Agent Upload Task");
     end;
 
     procedure GetDefaultInitials(): Text[4]

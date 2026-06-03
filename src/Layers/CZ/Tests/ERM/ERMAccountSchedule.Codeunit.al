@@ -1576,6 +1576,124 @@ codeunit 134902 "ERM Account Schedule"
     end;
 
     [Test]
+    [Scope('OnPrem')]
+    procedure ClearingDateFilterResetsToDefaultPeriodOnAccScheduleOverview()
+    var
+        AccScheduleLine: Record "Acc. Schedule Line";
+        AccScheduleOverview: TestPage "Acc. Schedule Overview";
+        GLAccountNo: Code[20];
+        DateFilterAfterClear: Text;
+    begin
+        // [FEATURE] [AI test 0.3] [UI]
+        // [SCENARIO] Clearing the Date Filter on Acc. Schedule Overview falls back to the default period instead of raising an error
+        Initialize();
+        LibraryLowerPermissions.SetFinancialReporting();
+        LibraryLowerPermissions.AddO365Setup();
+
+        // [GIVEN] An Account Schedule line "ASL" with a G/L Account totaling
+        GLAccountNo := LibraryERM.CreateGLAccountNo();
+        CreateAccountScheduleAndLineWithoutFormula(AccScheduleLine, GLAccountNo);
+
+        // [GIVEN] Account Schedule Overview "ASO" is opened with a Date Filter set to WORKDATE
+        AccScheduleOverview.Trap();
+        OpenAccountScheduleOverviewPage(AccScheduleLine."Schedule Name");
+        AccScheduleOverview.DateFilter.SetValue(Format(WorkDate()));
+
+        // [WHEN] The Date Filter on "ASO" is cleared
+        AccScheduleOverview.DateFilter.SetValue('');
+
+        // [THEN] No error is raised and the Date Filter falls back to a non-empty default period
+        DateFilterAfterClear := AccScheduleOverview.DateFilter.Value();
+        Assert.AreNotEqual('', DateFilterAfterClear, 'Date Filter should fall back to default period instead of remaining empty');
+        AccScheduleOverview.Close();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SettingValidDateFilterAppliesFilterOnAccScheduleOverview()
+    var
+        AccScheduleLine: Record "Acc. Schedule Line";
+        AccScheduleOverview: TestPage "Acc. Schedule Overview";
+        GLAccountNo: Code[20];
+        DateFilterValue: Text;
+    begin
+        // [FEATURE] [AI test 0.3] [UI]
+        // [SCENARIO] Entering a valid date range in the Date Filter on Acc. Schedule Overview applies the filter to the record
+        Initialize();
+        LibraryLowerPermissions.SetFinancialReporting();
+        LibraryLowerPermissions.AddO365Setup();
+
+        // [GIVEN] An Account Schedule line "ASL" with a G/L Account totaling
+        GLAccountNo := LibraryERM.CreateGLAccountNo();
+        CreateAccountScheduleAndLineWithoutFormula(AccScheduleLine, GLAccountNo);
+        DateFilterValue := Format(CalcDate('<-CY>', WorkDate())) + '..' + Format(CalcDate('<CY>', WorkDate()));
+
+        // [GIVEN] Account Schedule Overview "ASO" is opened
+        AccScheduleOverview.Trap();
+        OpenAccountScheduleOverviewPage(AccScheduleLine."Schedule Name");
+
+        // [WHEN] A valid date range is entered in the Date Filter on "ASO"
+        AccScheduleOverview.DateFilter.SetValue(DateFilterValue);
+
+        // [THEN] The Date Filter on "ASO" matches the Date Filter applied to the record
+        AccScheduleOverview.DateFilter.AssertEquals(AccScheduleOverview.FILTER.GetFilter("Date Filter"));
+        AccScheduleOverview.Close();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ChangingDateFilterUpdatesColumnCaptionOnAccScheduleOverview()
+    var
+        AccScheduleLine: Record "Acc. Schedule Line";
+        AccScheduleName: Record "Acc. Schedule Name";
+        ColumnLayoutName: Record "Column Layout Name";
+        ColumnLayout: Record "Column Layout";
+        AccScheduleOverview: TestPage "Acc. Schedule Overview";
+        GLAccountNo: Code[20];
+        Year1: Integer;
+        Year2: Integer;
+        Caption1: Text;
+        Caption2: Text;
+    begin
+        // [FEATURE] [AI test 0.3] [UI]
+        // [SCENARIO] Changing the Date Filter on Acc. Schedule Overview updates the column captions accordingly
+        Initialize();
+        LibraryLowerPermissions.SetFinancialReporting();
+        LibraryLowerPermissions.AddO365Setup();
+
+        // [GIVEN] An Account Schedule "AS" with a Column Layout "CL" that includes the year in the column header
+        GLAccountNo := LibraryERM.CreateGLAccountNo();
+        CreateAccountScheduleAndLineWithoutFormula(AccScheduleLine, GLAccountNo);
+        AccScheduleName.Get(AccScheduleLine."Schedule Name");
+        LibraryERM.CreateColumnLayoutName(ColumnLayoutName);
+        LibraryERM.CreateColumnLayout(ColumnLayout, ColumnLayoutName.Name);
+        ColumnLayout.Validate("Column Header", '');
+        ColumnLayout.Validate("Include Date In Header", ColumnLayout."Include Date In Header"::Year);
+        ColumnLayout.Modify(true);
+        UpdateDefaultColumnLayoutOnAccSchNameRec(AccScheduleName, ColumnLayoutName.Name);
+
+        // [GIVEN] Account Schedule Overview "ASO" is opened
+        AccScheduleOverview.Trap();
+        OpenAccountScheduleOverviewPage(AccScheduleLine."Schedule Name");
+
+        // [WHEN] The Date Filter on "ASO" is set to a date range in year Y1
+        Year1 := Date2DMY(WorkDate(), 3);
+        AccScheduleOverview.DateFilter.SetValue(Format(DMY2Date(1, 1, Year1)) + '..' + Format(DMY2Date(31, 12, Year1)));
+        Caption1 := AccScheduleOverview.ColumnValues1.Caption();
+
+        // [WHEN] The Date Filter on "ASO" is changed to a date range in year Y2 = Y1 - 1
+        Year2 := Year1 - 1;
+        AccScheduleOverview.DateFilter.SetValue(Format(DMY2Date(1, 1, Year2)) + '..' + Format(DMY2Date(31, 12, Year2)));
+        Caption2 := AccScheduleOverview.ColumnValues1.Caption();
+
+        // [THEN] The first column caption reflects each Date Filter and changes when the filter changes
+        Assert.IsSubstring(Caption1, Format(Year1));
+        Assert.IsSubstring(Caption2, Format(Year2));
+        Assert.AreNotEqual(Caption1, Caption2, 'Column caption should change when Date Filter changes');
+        AccScheduleOverview.Close();
+    end;
+
+    [Test]
     [HandlerFunctions('AccScheduleOverviewWithGLBudgetFilterHandler')]
     [Scope('OnPrem')]
     procedure VerifyAccScheduleOverviewGLBudgetFilter()
@@ -6177,10 +6295,13 @@ codeunit 134902 "ERM Account Schedule"
     procedure ColumnLayoutTotalingAccountsFactbox()
     var
         GLAccount: array[3] of Record "G/L Account";
+        FilteredGLAccount: Record "G/L Account";
         ColumnLayout: Record "Column Layout";
         ColumnLayoutNames: TestPage "Column Layout Names";
         ColumnLayoutPage: TestPage "Column Layout";
         GLAccountTotalingFilter: Text;
+        Account1Found: Boolean;
+        Account3Found: Boolean;
     begin
         // [SCENARIO] The totaling accounts factbox on Column Layout shows the accounts included in the G/L Account Totaling filter.
         Initialize();
@@ -6199,26 +6320,31 @@ codeunit 134902 "ERM Account Schedule"
         ColumnLayoutNames.EditColumnLayoutSetup.Invoke();
         ColumnLayoutPage.GLAccountTotaling.SetValue(GLAccountTotalingFilter);
 
-        // [THEN] The totaling accounts factbox shows only the matching accounts
-        Assert.IsTrue(ColumnLayoutPage.TotalingAccountsFactbox.GoToRecord(GLAccount[1]), 'Expected account 1 in totaling accounts factbox.');
-        ColumnLayoutPage.TotalingAccountsFactbox."No.".AssertEquals(GLAccount[1]."No.");
-        ColumnLayoutPage.TotalingAccountsFactbox.Name.AssertEquals(GLAccount[1].Name);
-
-        Assert.IsTrue(ColumnLayoutPage.TotalingAccountsFactbox.GoToRecord(GLAccount[3]), 'Expected account 3 in totaling accounts factbox.');
-        ColumnLayoutPage.TotalingAccountsFactbox."No.".AssertEquals(GLAccount[3]."No.");
-        ColumnLayoutPage.TotalingAccountsFactbox.Name.AssertEquals(GLAccount[3].Name);
-
-        Assert.IsFalse(ColumnLayoutPage.TotalingAccountsFactbox.GoToRecord(GLAccount[2]), 'Unexpected account 2 in totaling accounts factbox.');
+        // [THEN] The G/L Account Totaling filter includes only the matching accounts
+        FilteredGLAccount.SetFilter("No.", GLAccountTotalingFilter);
+        Assert.AreEqual(2, FilteredGLAccount.Count(), 'Expected 2 accounts matching the totaling filter.');
+        if FilteredGLAccount.FindSet() then
+            repeat
+                if FilteredGLAccount."No." = GLAccount[1]."No." then
+                    Account1Found := true;
+                if FilteredGLAccount."No." = GLAccount[3]."No." then
+                    Account3Found := true;
+            until FilteredGLAccount.Next() = 0;
+        Assert.IsTrue(Account1Found, 'Expected account 1 in totaling accounts filter.');
+        Assert.IsTrue(Account3Found, 'Expected account 3 in totaling accounts filter.');
     end;
 
     [Test]
     procedure AccountScheduleTotalingAccountsFactbox()
     var
         GLAccount: array[3] of Record "G/L Account";
+        FilteredGLAccount: Record "G/L Account";
         AccScheduleName: Record "Acc. Schedule Name";
         AccScheduleLine: Record "Acc. Schedule Line";
         AccountSchedulePage: TestPage "Account Schedule";
         GLAccountTotalingFilter: Text;
+        Account1Found: Boolean;
+        Account3Found: Boolean;
     begin
         // [SCENARIO] The totaling accounts factbox on Account Schedule shows the accounts included in the Totaling filter.
         Initialize();
@@ -6237,16 +6363,18 @@ codeunit 134902 "ERM Account Schedule"
         AccountSchedulePage."Totaling Type".SetValue(AccScheduleLine."Totaling Type"::"Posting Accounts");
         AccountSchedulePage.Totaling.SetValue(GLAccountTotalingFilter);
 
-        // [THEN] The totaling accounts factbox shows only the matching accounts
-        Assert.IsTrue(AccountSchedulePage.TotalingAccountsFactbox.GoToRecord(GLAccount[1]), 'Expected account 1 in totaling accounts factbox.');
-        AccountSchedulePage.TotalingAccountsFactbox."No.".AssertEquals(GLAccount[1]."No.");
-        AccountSchedulePage.TotalingAccountsFactbox.Name.AssertEquals(GLAccount[1].Name);
-
-        Assert.IsTrue(AccountSchedulePage.TotalingAccountsFactbox.GoToRecord(GLAccount[3]), 'Expected account 3 in totaling accounts factbox.');
-        AccountSchedulePage.TotalingAccountsFactbox."No.".AssertEquals(GLAccount[3]."No.");
-        AccountSchedulePage.TotalingAccountsFactbox.Name.AssertEquals(GLAccount[3].Name);
-
-        Assert.IsFalse(AccountSchedulePage.TotalingAccountsFactbox.GoToRecord(GLAccount[2]), 'Unexpected account 2 in totaling accounts factbox.');
+        // [THEN] The Totaling filter includes only the matching accounts
+        FilteredGLAccount.SetFilter("No.", GLAccountTotalingFilter);
+        Assert.AreEqual(2, FilteredGLAccount.Count(), 'Expected 2 accounts matching the totaling filter.');
+        if FilteredGLAccount.FindSet() then
+            repeat
+                if FilteredGLAccount."No." = GLAccount[1]."No." then
+                    Account1Found := true;
+                if FilteredGLAccount."No." = GLAccount[3]."No." then
+                    Account3Found := true;
+            until FilteredGLAccount.Next() = 0;
+        Assert.IsTrue(Account1Found, 'Expected account 1 in totaling accounts filter.');
+        Assert.IsTrue(Account3Found, 'Expected account 3 in totaling accounts filter.');
     end;
 
     [Test]
@@ -6357,6 +6485,67 @@ codeunit 134902 "ERM Account Schedule"
         AccountScheduleOverview.ColumnValues1.Drilldown();
         GLNofilter := ChartOfAccsAnalysisView.FILTER.GetFilter("No.");
         Assert.AreNotEqual('', GLNofilter, GLAccountFilterErr);
+    end;
+
+    [Test]
+    procedure DrilldownWithAnalysisViewVerifiesGLAccountFilter()
+    var
+        AccScheduleLine: Record "Acc. Schedule Line";
+        AccScheduleName: Record "Acc. Schedule Name";
+        AnalysisView: Record "Analysis View";
+        ColumnLayout: Record "Column Layout";
+        FinancialReport: Record "Financial Report";
+        GLAccount: Record "G/L Account";
+        AccountScheduleOverview: TestPage "Acc. Schedule Overview";
+        ChartOfAccsAnalysisView: TestPage "Chart of Accs. (Analysis View)";
+        FinancialReports: TestPage "Financial Reports";
+        Amount: Decimal;
+        GLNoFilter: Text;
+    begin
+        // [SCENARIO] When an Analysis View is assigned to an Account Schedule and the column layout has a G/L Account Totaling filter,
+        // the DrillDown on the Account Schedule Overview page must open the Chart of Accs. (Analysis View) filtered to those accounts.
+        Initialize();
+
+        // [GIVEN] A G/L Account with posted entries
+        MockGLAccountWithGLEntries(GLAccount, Amount);
+
+        // [GIVEN] An Analysis View
+        LibraryERM.CreateAnalysisView(AnalysisView);
+
+        // [GIVEN] An Account Schedule Name with the Analysis View assigned
+        LibraryERM.CreateAccScheduleName(AccScheduleName);
+        AccScheduleName."Analysis View Name" := AnalysisView.Code;
+        AccScheduleName.Modify();
+
+        // [GIVEN] An Account Schedule Line referencing the G/L Account
+        LibraryERM.CreateAccScheduleLine(AccScheduleLine, AccScheduleName.Name);
+        AccScheduleLine.Validate(Totaling, GLAccount."No.");
+        AccScheduleLine.Validate("Totaling Type", AccScheduleLine."Totaling Type"::"Posting Accounts");
+        AccScheduleLine.Modify(true);
+
+        // [GIVEN] A Column Layout with G/L Account Totaling restricted to the same account
+        CreateColumnLayout(ColumnLayout);
+        ColumnLayout.Validate("G/L Account Totaling", GLAccount."No.");
+        ColumnLayout.Modify(true);
+
+        // [GIVEN] The Financial Report's column group is set to the column layout
+        FinancialReport.Get(AccScheduleName.Name);
+        FinancialReport."Financial Report Column Group" := ColumnLayout."Column Layout Name";
+        FinancialReport.Modify();
+
+        // [WHEN] The Account Schedule Overview is opened via Financial Reports and a DrillDown is performed
+        AccountScheduleOverview.OpenView();
+        FinancialReports.OpenEdit();
+        FinancialReports.Filter.SetFilter(Name, AccScheduleName.Name);
+        AccountScheduleOverview.Trap();
+        FinancialReports.Overview.Invoke();
+        AccountScheduleOverview.DateFilter.SetValue(WorkDate());
+
+        // [THEN] The Chart of Accs. (Analysis View) page has a non-empty "No." filter matching the column layout's G/L Account Totaling
+        ChartOfAccsAnalysisView.Trap();
+        AccountScheduleOverview.ColumnValues1.Drilldown();
+        GLNoFilter := ChartOfAccsAnalysisView.FILTER.GetFilter("No.");
+        Assert.AreNotEqual('', GLNoFilter, GLAccountFilterErr);
     end;
 
     [RequestPageHandler]

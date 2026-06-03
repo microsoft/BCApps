@@ -579,20 +579,6 @@ table 312 "Purchases & Payables Setup"
             ObsoleteTag = '25.0';
         }
 #endif
-        field(5005270; "Delivery Reminder Nos."; Code[20])
-        {
-            Caption = 'Delivery Reminder Nos.';
-            TableRelation = "No. Series";
-        }
-        field(5005271; "Issued Delivery Reminder Nos."; Code[20])
-        {
-            Caption = 'Issued Delivery Reminder Nos.';
-            TableRelation = "No. Series";
-        }
-        field(5005272; "Default Del. Rem. Date Field"; Enum "Delivery Reminder Date Type")
-        {
-            Caption = 'Default Del. Rem. Date Field';
-        }
     }
 
     keys

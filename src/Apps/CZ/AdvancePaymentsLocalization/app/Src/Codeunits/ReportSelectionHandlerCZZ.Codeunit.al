@@ -68,20 +68,13 @@ codeunit 31420 "Report Selection Handler CZZ"
 
     [EventSubscriber(ObjectType::Page, Page::"Customer Report Selections", 'OnAfterFilterCustomerUsageReportSelections', '', false, false)]
     local procedure AddSalesAdvanceReportsOnAfterFilterCustomerUsageReportSelections(var ReportSelections: Record "Report Selections")
+    var
+        UsageFilter: Text;
     begin
-        ReportSelections.SetFilter(
-            Usage, '%1|%2|%3|%4|%5|%6|%7|%8|%9|%10|%11',
-            "Report Selection Usage"::"S.Quote",
-            "Report Selection Usage"::"S.Order",
-            "Report Selection Usage"::"S.Invoice",
-            "Report Selection Usage"::"S.Cr.Memo",
-            "Report Selection Usage"::"C.Statement",
-            "Report Selection Usage"::JQ,
-            "Report Selection Usage"::Reminder,
-            "Report Selection Usage"::"S.Shipment",
-            "Report Selection Usage"::"Pro Forma S. Invoice",
-            "Report Selection Usage"::"Sales Advance Letter CZZ",
-            "Report Selection Usage"::"Sales Advance VAT Document CZZ");
+        UsageFilter := StrSubstNo('%1|%2', "Report Selection Usage"::"Sales Advance Letter CZZ", "Report Selection Usage"::"Sales Advance VAT Document CZZ");
+        if ReportSelections.GetFilter(Usage) <> '' then
+            UsageFilter := StrSubstNo('%1|%2', ReportSelections.GetFilter(Usage), UsageFilter);
+        ReportSelections.SetFilter(Usage, UsageFilter);
     end;
 
     [EventSubscriber(ObjectType::Page, Page::"Vendor Report Selections", 'OnMapTableUsageValueToPageValueOnCaseElse', '', false, false)]
@@ -108,15 +101,13 @@ codeunit 31420 "Report Selection Handler CZZ"
 
     [EventSubscriber(ObjectType::Page, Page::"Vendor Report Selections", 'OnAfterFilterVendorUsageReportSelections', '', false, false)]
     local procedure AddPurchaseAdvanceReportsOnAfterFilterVendorUsageReportSelections(var ReportSelections: Record "Report Selections")
+    var
+        UsageFilter: Text;
     begin
-        ReportSelections.SetFilter(
-            Usage, '%1|%2|%3|%4|%5|%6',
-            ReportSelections.Usage::"P.Order",
-            ReportSelections.Usage::"V.Remittance",
-            ReportSelections.Usage::"P.V.Remit.",
-            ReportSelections.Usage::"P.Ret.Shpt.",
-            ReportSelections.Usage::"Purchase Advance Letter CZZ",
-            ReportSelections.Usage::"Purchase Advance VAT Document CZZ");
+        UsageFilter := StrSubstNo('%1|%2', "Report Selection Usage"::"Purchase Advance Letter CZZ", "Report Selection Usage"::"Purchase Advance VAT Document CZZ");
+        if ReportSelections.GetFilter(Usage) <> '' then
+            UsageFilter := StrSubstNo('%1|%2', ReportSelections.GetFilter(Usage), UsageFilter);
+        ReportSelections.SetFilter(Usage, UsageFilter);
     end;
 
     procedure InsertRepSelection(ReportUsage: Enum "Report Selection Usage"; Sequence: Code[10]; ReportID: Integer)
