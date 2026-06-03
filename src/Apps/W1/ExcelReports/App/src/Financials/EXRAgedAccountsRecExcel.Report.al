@@ -126,6 +126,7 @@ report 4402 "EXR Aged Accounts Rec Excel"
                 Clear(AgingData);
                 AgingData.DeleteAll();
                 InsertAgingData(CustomerAgingData);
+                CurrencyCodeDisplayCode := AgingData."Currency Code";
             end;
         }
 

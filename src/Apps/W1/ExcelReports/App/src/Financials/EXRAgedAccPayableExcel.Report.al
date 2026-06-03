@@ -127,6 +127,7 @@ report 4403 "EXR Aged Acc Payable Excel"
                 Clear(AgingData);
                 AgingData.DeleteAll();
                 InsertAgingData(VendorAgingData);
+                CurrencyCodeDisplayCode := AgingData."Currency Code";
             end;
         }
 
