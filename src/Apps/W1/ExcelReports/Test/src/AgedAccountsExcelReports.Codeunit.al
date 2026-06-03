@@ -6,7 +6,6 @@
 namespace Microsoft.Finance.ExcelReports.Test;
 
 using Microsoft.Finance.ExcelReports;
-using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Vendor;
