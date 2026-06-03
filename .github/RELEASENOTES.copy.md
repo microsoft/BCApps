@@ -6,6 +6,15 @@ Note that when using the preview version of AL-Go for GitHub, we recommend you U
 
 When compiling apps with the workspace compiler, AL-Go now reads the `dotNetVersion` from the BC artifact's `manifest.json` (copied into the compiler folder by BcContainerHelper) and selects an installed .NET runtime whose major version matches. This avoids version drift between the build agent's highest installed runtime and the platform the artifact was built against. If the manifest does not declare a `dotNetVersion`, or no installed runtime matches the required major, versioned .NET assembly probing paths are omitted (a warning is logged in the latter case).
 
+### New compiler folder hooks
+
+Two new hooks are available for customizing the compiler folder creation process when workspace compilation is enabled:
+
+- **PreNewBcCompilerFolder.ps1** - Runs before `New-BcCompilerFolder` is called. Receives a `[hashtable] $parameters` argument containing the parameters that will be passed to `New-BcCompilerFolder`. The script can modify the hashtable in-place to customize the compiler folder creation (e.g., add a `platformArtifactUrl` to use a specific platform version).
+- **PostNewBcCompilerFolder.ps1** - Runs after the compiler folder is created. Receives `[hashtable] $parameters` and `[string] $compilerFolder` arguments.
+
+Place these scripts in your project's `.AL-Go` folder to use them.
+
 ### New AL-Go hooks (experimental)
 
 AL-Go for GitHub now supports a new generic hook mechanism that is independent of BcContainerHelper. A new `RunHook` action invokes scripts placed in the project's `.AL-Go` folder at well-known extension points in the workflows. The first such extension point is `BuildInitialize`, which runs in the build workflow immediately after `Read settings` (so AL-Go settings are available as environment variables).
