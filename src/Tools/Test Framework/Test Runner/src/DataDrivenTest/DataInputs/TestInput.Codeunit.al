@@ -37,7 +37,7 @@ codeunit 130460 "Test Input"
     /// which the platform raises inside the test method's TestPermissions scope. When a test declares a
     /// TestPermissions value other than Disabled, the platform overrides the effective permissions and the
     /// IndirectRead on the "Test Input" table fails. Calling this from a context that still runs under full
-    /// permissions before the test runner is invoked caches the input so the later read inside the restricted
+    /// permissions (before the test runner is invoked) caches the input so the later read inside the restricted
     /// scope is a no-op.
     /// </remarks>
     procedure PreloadTestInput(TestInputGroupCode: Code[100]; TestInputCode: Code[100])
