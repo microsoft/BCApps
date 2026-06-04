@@ -3464,6 +3464,6 @@ codeunit 139940 "Qlty. Inspection Utility"
         QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
     begin
         QltyInspectionTemplateLine."Template Code" := QltyInspectionTemplateHdr.Code;
-        QltyInspectionTemplateLine.AddSelectedTests(SelectionFilter);
+        QltyInspectionTemplateLine.AddSelectedTests(QltyInspectionTemplateLine."Template Code", SelectionFilter);
     end;
 }

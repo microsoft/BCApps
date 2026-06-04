@@ -480,13 +480,14 @@ page 20403 "Qlty. Inspection Template Subf"
             {
                 AccessByPermission = tabledata "Qlty. Inspection Template Line" = I;
                 Caption = 'Select tests';
+                ToolTip = 'Add two or more tests to this template, by selecting from the full list of quality tests. Tests that already exist in the template are skipped.';
                 Ellipsis = true;
                 Image = SelectMore;
-                ToolTip = 'Add two or more tests to this template, by selecting from the full list of quality tests. Tests that already exist in the template are skipped.';
+                Enabled = Rec."Template Code" <> '';
 
                 trigger OnAction()
                 begin
-                    Rec.SelectMultipleTests();
+                    Rec.SelectMultipleTests(Rec."Template Code");
                 end;
             }
         }

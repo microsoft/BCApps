@@ -178,14 +178,17 @@ table 20403 "Qlty. Inspection Template Line"
     end;
 
     #region Add multiple tests to template
-    internal procedure SelectMultipleTests()
+    internal procedure SelectMultipleTests(TemplateCode: Code[20])
     var
         SelectionFilter: Text;
     begin
+        if TemplateCode = '' then
+            exit;
+
         SelectionFilter := SelectInQltyTests();
 
         if SelectionFilter <> '' then
-            AddSelectedTests(SelectionFilter);
+            AddSelectedTests(TemplateCode, SelectionFilter);
     end;
 
     local procedure SelectInQltyTests(): Text
@@ -197,28 +200,28 @@ table 20403 "Qlty. Inspection Template Line"
             exit(QltyTests.GetSelectionFilter());
     end;
 
-    internal procedure AddSelectedTests(SelectionFilter: Text)
+    internal procedure AddSelectedTests(TemplateCode: Code[20]; SelectionFilter: Text)
     var
         QltyTest: Record "Qlty. Test";
     begin
         QltyTest.SetFilter(Code, SelectionFilter);
         if QltyTest.FindSet() then
             repeat
-                AddTestToTemplateLine(QltyTest.Code);
+                AddTestToTemplateLine(TemplateCode, QltyTest.Code);
             until QltyTest.Next() = 0;
     end;
 
-    local procedure AddTestToTemplateLine(QltyTestCode: Code[20])
+    local procedure AddTestToTemplateLine(TemplateCode: Code[20]; QltyTestCode: Code[20])
     var
         ExistingQltyInspectionTemplateLine, NewQltyInspectionTemplateLine : Record "Qlty. Inspection Template Line";
     begin
-        ExistingQltyInspectionTemplateLine.SetRange("Template Code", Rec."Template Code");
+        ExistingQltyInspectionTemplateLine.SetRange("Template Code", TemplateCode);
         ExistingQltyInspectionTemplateLine.SetRange("Test Code", QltyTestCode);
         if not ExistingQltyInspectionTemplateLine.IsEmpty() then
             exit;
 
         NewQltyInspectionTemplateLine.Init();
-        NewQltyInspectionTemplateLine."Template Code" := Rec."Template Code";
+        NewQltyInspectionTemplateLine."Template Code" := TemplateCode;
         NewQltyInspectionTemplateLine.InitLineNoIfNeeded();
         NewQltyInspectionTemplateLine.Validate("Test Code", QltyTestCode);
         NewQltyInspectionTemplateLine.Insert(true);
