@@ -485,9 +485,10 @@ codeunit 139629 "Library - E-Document"
 
     procedure CreatePurchaseOrderWithLine(var Vendor: Record Vendor; var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; Quantity: Decimal)
     begin
+        VATPostingSetup.TestField("VAT Prod. Posting Group");
         LibraryPurchase.CreatePurchHeader(PurchaseHeader, Enum::"Purchase Document Type"::Order, Vendor."No.");
         Clear(StandardItem);
-        CreateGenericItem(StandardItem);
+        CreateGenericItem(StandardItem, VATPostingSetup."VAT Prod. Posting Group");
         LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, StandardItem."No.", Quantity);
     end;
 

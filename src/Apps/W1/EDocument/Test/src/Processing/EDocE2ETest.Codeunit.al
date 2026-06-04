@@ -36,6 +36,7 @@ codeunit 139624 "E-Doc E2E Test"
     var
         Customer: Record Customer;
         EDocumentService: Record "E-Document Service";
+        SalesEDocumentService: Record "E-Document Service";
         Assert: Codeunit Assert;
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryEDoc: Codeunit "Library - E-Document";
@@ -1613,11 +1614,11 @@ codeunit 139624 "E-Doc E2E Test"
         // [FEATURE] [E-Document] [Processing] 
         // [SCENARIO] Check that E-Document is created when posting sales shipment
         this.Initialize(Enum::"Service Integration"::"Mock");
-        this.LibraryEDoc.AddEDocServiceSupportedType(this.EDocumentService, Enum::"E-Document Type"::"Sales Shipment");
+        this.LibraryEDoc.AddEDocServiceSupportedType(this.SalesEDocumentService, Enum::"E-Document Type"::"Sales Shipment");
 
         // [GIVEN] Setup E-Document service for sending shipment
-        this.EDocumentService."Document Format" := Enum::"E-Document Format"::"PEPPOL BIS 3.0";
-        this.EDocumentService.Modify(false);
+        this.SalesEDocumentService."Document Format" := Enum::"E-Document Format"::"PEPPOL BIS 3.0";
+        this.SalesEDocumentService.Modify(false);
 
         // [WHEN] Create sales order and post shipment for it
         SalesShipmentHeader := this.LibraryEDoc.PostSalesShipment(this.Customer);
@@ -2122,7 +2123,7 @@ codeunit 139624 "E-Doc E2E Test"
         EDocumentService.DeleteAll();
 
         LibraryEDoc.SetupStandardVAT();
-        LibraryEDoc.SetupStandardSalesScenario(Customer, EDocumentService, Enum::"E-Document Format"::Mock, Integration);
+        LibraryEDoc.SetupStandardSalesScenario(Customer, SalesEDocumentService, Enum::"E-Document Format"::Mock, Integration);
         LibraryEDoc.SetupStandardPurchaseScenario(Vendor, EDocumentService, Enum::"E-Document Format"::Mock, Integration);
         EDocumentService.Modify();
 
