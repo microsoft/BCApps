@@ -1,0 +1,31 @@
+{
+  "id": "851c68ef-cc68-4e99-9044-87943941964a",
+  "name": "Integration SyncEngine",
+  "publisher": "Microsoft",
+  "brief": "Integration Synchronization Engine for Microsoft Dynamics 365 Business Central.",
+  "description": "Integration Synchronization Engine provides the framework for integrating Business Central with external services such as Microsoft Dataverse.",
+  "version": "29.0.0.0",
+  "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
+  "EULA": "https://go.microsoft.com/fwlink/?linkid=2182906",
+  "help": "https://go.microsoft.com/fwlink/?LinkId=724011",
+  "url": "https://go.microsoft.com/fwlink/?LinkId=724011",
+  "logo": "ExtensionLogo.png",
+  "application": "29.0.0.0",
+  "screenshots": [],
+  "platform": "29.0.0.0",
+  "idRanges": [
+    {
+      "from": 5310,
+      "to": 5399
+    }
+  ],
+  "resourceExposurePolicy": {
+    "allowDebugging": true,
+    "allowDownloadingSource": true,
+    "includeSourceInSymbolFile": true
+  },
+  "features": [
+    "NoImplicitWith",
+    "TranslationFile"
+  ]
+}
