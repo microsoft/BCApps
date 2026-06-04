@@ -8,6 +8,8 @@ using Microsoft.Foundation.Company;
 using Microsoft.Inventory.Item;
 using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Document;
+using Microsoft.QualityManagement.Setup;
+using System.Telemetry;
 
 report 20405 "Qlty. General Purpose Inspect."
 {
@@ -296,6 +298,14 @@ report 20405 "Qlty. General Purpose Inspect."
         DateLabel = 'Date';
         LastModifiedByLabel = 'Last modified by';
     }
+
+    trigger OnPreReport()
+    var
+        QltyManagementSetup: Record "Qlty. Management Setup";
+        FeatureTelemetry: Codeunit "Feature Telemetry";
+    begin
+        FeatureTelemetry.LogUptake('0000QIS', QltyManagementSetup.GetFeatureTelemetryName(), Enum::"Feature Uptake Status"::Used);
+    end;
 
     var
         Item: Record Item;

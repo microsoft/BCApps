@@ -7,6 +7,7 @@ namespace Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.Foundation.Attachment;
 using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Document;
+using Microsoft.QualityManagement.Setup;
 using System.Telemetry;
 
 /// <summary>
@@ -201,7 +202,6 @@ page 20402 "Qlty. Inspection Template"
     var
         ShowSampleSizeFixedQuantity: Boolean;
         ShowSampleSizePercentage: Boolean;
-        QualityManagementTok: Label 'Quality Management', Locked = true;
 
     local procedure GetDataCaptionExpression(): Text
     begin
@@ -209,11 +209,24 @@ page 20402 "Qlty. Inspection Template"
     end;
 
     trigger OnAfterGetRecord()
+    begin
+        UpdateControls();
+    end;
+
+    trigger OnInsertRecord(BelowxRec: Boolean): Boolean
     var
+        QltyManagementSetup: Record "Qlty. Management Setup";
         FeatureTelemetry: Codeunit "Feature Telemetry";
     begin
-        FeatureTelemetry.LogUptake('0000QIA', QualityManagementTok, Enum::"Feature Uptake Status"::Used);
-        UpdateControls();
+        FeatureTelemetry.LogUptake('0000QIH', QltyManagementSetup.GetFeatureTelemetryName(), Enum::"Feature Uptake Status"::"Set up");
+    end;
+
+    trigger OnModifyRecord(): Boolean
+    var
+        QltyManagementSetup: Record "Qlty. Management Setup";
+        FeatureTelemetry: Codeunit "Feature Telemetry";
+    begin
+        FeatureTelemetry.LogUptake('0000QII', QltyManagementSetup.GetFeatureTelemetryName(), Enum::"Feature Uptake Status"::"Set up");
     end;
 
     local procedure UpdateControls()

@@ -8,6 +8,8 @@ using Microsoft.Foundation.Company;
 using Microsoft.Inventory.Item;
 using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Document;
+using Microsoft.QualityManagement.Setup;
+using System.Telemetry;
 
 report 20401 "Qlty. Certificate of Analysis"
 {
@@ -259,6 +261,14 @@ report 20401 "Qlty. Certificate of Analysis"
         StatusLabel = 'Status';
         DateLabel = 'Date';
     }
+
+    trigger OnPreReport()
+    var
+        QltyManagementSetup: Record "Qlty. Management Setup";
+        FeatureTelemetry: Codeunit "Feature Telemetry";
+    begin
+        FeatureTelemetry.LogUptake('0000QIQ', QltyManagementSetup.GetFeatureTelemetryName(), Enum::"Feature Uptake Status"::Used);
+    end;
 
     var
         Item: Record Item;

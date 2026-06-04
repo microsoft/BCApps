@@ -364,13 +364,6 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     /// <param name="DocumentAttachment">The document attachment record to delete from external storage.</param>
     /// <returns>True if deletion was successful, false otherwise.</returns>
     procedure DeleteFromExternalStorage(var DocumentAttachment: Record "Document Attachment"): Boolean
-    var
-        FileAccount: Record "File Account";
-        ExternalFileStorage: Codeunit "External File Storage";
-        FileScenarioCU: Codeunit "File Scenario";
-        DAFeatureTelemetry: Codeunit "DA Feature Telemetry";
-        FileScenario: Enum "File Scenario";
-        ExternalFilePath: Text;
     begin
         // Check if feature is enabled
         if not IsFeatureEnabled() then
@@ -395,23 +388,31 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
             exit(true);
         end;
 
-        // Use the stored external file path
-        ExternalFilePath := DocumentAttachment."External File Path";
+        if not DeleteExternalFile(DocumentAttachment."External File Path", DocumentAttachment) then
+            exit(false);
 
-        // Search for External Storage assigned File Scenario
+        DocumentAttachment.MarkAsNotUploadedToExternal();
+        exit(true);
+    end;
+
+    local procedure DeleteExternalFile(ExternalFilePath: Text; DocumentAttachmentForTelemetry: Record "Document Attachment"): Boolean
+    var
+        FileAccount: Record "File Account";
+        ExternalFileStorage: Codeunit "External File Storage";
+        FileScenarioCU: Codeunit "File Scenario";
+        DAFeatureTelemetry: Codeunit "DA Feature Telemetry";
+        FileScenario: Enum "File Scenario";
+    begin
         FileScenario := FileScenario::"Doc. Attach. - External Storage";
         if not FileScenarioCU.GetSpecificFileAccount(FileScenario, FileAccount) then
             exit(false);
 
-        // Delete the file with connector using the File Account framework
         ExternalFileStorage.Initialize(FileScenario);
-        if ExternalFileStorage.DeleteFile(ExternalFilePath) then begin
-            DocumentAttachment.MarkAsNotUploadedToExternal();
-            DAFeatureTelemetry.LogFileDeleted(DocumentAttachment);
-            exit(true);
-        end;
+        if not ExternalFileStorage.DeleteFile(ExternalFilePath) then
+            exit(false);
 
-        exit(false);
+        DAFeatureTelemetry.LogFileDeleted(DocumentAttachmentForTelemetry);
+        exit(true);
     end;
 
     /// <summary>
@@ -800,7 +801,6 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     local procedure OnAfterDeleteDocumentAttachment(var Rec: Record "Document Attachment"; RunTrigger: Boolean)
     var
         ExternalStorageSetup: Record "DA External Storage Setup";
-        ExternalStorageImpl: Codeunit "DA External Storage Impl.";
     begin
         // Exit early if trigger is not running
         if not RunTrigger then
@@ -810,7 +810,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         if Rec.IsTemporary() then
             exit;
 
-        // Check if auto upload is enabled
+        // Check if auto delete is enabled
         if not ExternalStorageSetup.Get() then
             exit;
 
@@ -821,13 +821,21 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         if not Rec."Stored Externally" then
             exit;
 
-        // Delete from external storage
-        ExternalStorageImpl.DeleteFromExternalStorage(Rec);
+        if Rec."External File Path" = '' then
+            exit;
 
-        if Rec."Skip Delete On Copy" then begin
-            Rec."Skip Delete On Copy" := false;
-            Rec.Modify();
-        end;
+        // Copied attachments share the source file - never delete the shared blob
+        if Rec."Skip Delete On Copy" then
+            exit;
+
+        // Files from another environment/company are managed by their owning environment
+        if IsFileFromAnotherEnvironmentOrCompany(Rec) then
+            exit;
+
+        // The Document Attachment row is already deleted at this point, so we cannot
+        // Find() or Modify() it. Delete the blob using the field values still carried
+        // on Rec, bypassing the record-based DeleteFromExternalStorage entry point.
+        DeleteExternalFile(Rec."External File Path", Rec);
     end;
 
     /// <summary>

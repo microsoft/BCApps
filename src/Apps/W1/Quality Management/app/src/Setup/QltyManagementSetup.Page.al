@@ -285,7 +285,6 @@ page 20400 "Qlty. Management Setup"
     var
         QltyAutoConfigure: Codeunit "Qlty. Auto Configure";
         FeatureTelemetry: Codeunit "Feature Telemetry";
-        QualityManagementTok: Label 'Quality Management', Locked = true;
         IsSaaS: Boolean;
 
     trigger OnOpenPage()
@@ -294,11 +293,12 @@ page 20400 "Qlty. Management Setup"
     begin
         IsSaaS := EnvironmentInformation.IsSaaS();
 
-        FeatureTelemetry.LogUptake('0000QID', QualityManagementTok, Enum::"Feature Uptake Status"::Discovered);
+        FeatureTelemetry.LogUptake('0000QID', Rec.GetFeatureTelemetryName(), Enum::"Feature Uptake Status"::Discovered);
+
         if not Rec.Get() then begin
             QltyAutoConfigure.EnsureBasicSetupExists(false);
             if Rec.Get() then;
-            FeatureTelemetry.LogUptake('0000QIE', QualityManagementTok, Enum::"Feature Uptake Status"::"Set up");
+            FeatureTelemetry.LogUptake('0000QIE', Rec.GetFeatureTelemetryName(), Enum::"Feature Uptake Status"::"Set up");
         end;
     end;
 
