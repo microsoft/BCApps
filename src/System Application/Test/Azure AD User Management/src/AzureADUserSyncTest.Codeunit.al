@@ -867,6 +867,11 @@ codeunit 132928 "Azure AD User Sync Test"
         // Can't have TransactionModel::AutoRollback + CommitBehavior::Ignore, because isolated events only work
         // if at the moment of raising we are not in the write transaction (which is achieved by calling Commit())
         Initialize();
+        // Initialize() deletes existing User records (e.g. the MSOLSYNC daemon user seeded into the
+        // System DACPAC), which opens a write transaction. Commit here so the OnApplyUpdateFromAzureGraph
+        // event below is raised outside a write transaction, allowing the subscriber error to be isolated
+        // and surfaced on the buffer instead of propagating (bug 637527).
+        Commit();
         BogusUserSecurityId := CreateGuid();
 
         // [GIVEN] A pending Change update referencing a user that does not exist in BC, so the subscriber errors on User.Get
