@@ -348,7 +348,6 @@ page 20401 "Qlty. Tests"
     internal procedure GetSelectionFilter(): Text
     var
         QltyTest: Record "Qlty. Test";
-
     begin
         CurrPage.SetSelectionFilter(QltyTest);
         exit(GetSelectionFilterForTest(QltyTest));
