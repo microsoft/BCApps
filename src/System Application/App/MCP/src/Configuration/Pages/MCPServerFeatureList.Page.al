@@ -154,13 +154,9 @@ page 8368 "MCP Server Feature List"
         ServerFeature := Rec.Feature;
         ServerFeature.SetActive(ParentSystemId, NewActive);
 
-        if ServerFeature.IsActive(ParentSystemId) then
-            Rec.Status := Rec.Status::Active
-        else
-            Rec.Status := Rec.Status::Inactive;
-
-        Rec.Modify();
-        SetStatusStyle();
+        // Reload so a cascaded change to another feature (disabling API Tools turns off
+        // Dynamic Tool Mode) is reflected on every row, not just the one toggled.
+        Reload(ParentSystemId, ActionsEnabled);
         CurrPage.Update();
     end;
 

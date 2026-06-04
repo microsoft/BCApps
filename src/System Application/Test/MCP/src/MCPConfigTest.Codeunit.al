@@ -278,6 +278,26 @@ codeunit 130130 "MCP Config Test"
         Assert.IsFalse(MCPConfiguration.EnableApiTools, 'API Tools should be disabled');
     end;
 
+    [Test]
+    procedure TestDisableAPIToolsDisablesDynamicToolMode()
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        ConfigId: Guid;
+    begin
+        // [GIVEN] A configuration with API Tools, Dynamic Tool Mode, and Discover Read-Only Objects on
+        ConfigId := CreateMCPConfig(false, true, true, true);
+        MCPConfig.EnableAPITools(ConfigId, true);
+
+        // [WHEN] API Tools is disabled
+        MCPConfig.EnableAPITools(ConfigId, false);
+
+        // [THEN] Dynamic Tool Mode and Discover Read-Only Objects cascade off with it
+        MCPConfiguration.GetBySystemId(ConfigId);
+        Assert.IsFalse(MCPConfiguration.EnableApiTools, 'API Tools should be disabled');
+        Assert.IsFalse(MCPConfiguration.EnableDynamicToolMode, 'Dynamic Tool Mode should cascade off');
+        Assert.IsFalse(MCPConfiguration.DiscoverReadOnlyObjects, 'Discover Read-Only Objects should cascade off');
+    end;
+
     #endregion
 
     #region Data Query Tools

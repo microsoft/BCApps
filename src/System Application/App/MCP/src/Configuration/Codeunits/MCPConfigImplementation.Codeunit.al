@@ -265,6 +265,12 @@ codeunit 8351 "MCP Config Implementation"
             Error(ConfigurationNotFoundErr);
         xMCPConfiguration := MCPConfiguration;
         MCPConfiguration.EnableApiTools := Enable;
+        if not Enable then begin
+            // Dynamic Tool Mode requires API Tools, so disabling API Tools cascades it off
+            // (mirroring how disabling Dynamic Tool Mode clears Discover Read-Only Objects).
+            MCPConfiguration.EnableDynamicToolMode := false;
+            MCPConfiguration.DiscoverReadOnlyObjects := false;
+        end;
         MCPConfiguration.Modify();
         LogConfigurationModified(MCPConfiguration, xMCPConfiguration);
     end;
@@ -1472,6 +1478,14 @@ codeunit 8351 "MCP Config Implementation"
         if MCPConfiguration.DiscoverReadOnlyObjects <> xMCPConfiguration.DiscoverReadOnlyObjects then begin
             Dimensions.Add('OldDiscoverReadOnlyObjects', Format(xMCPConfiguration.DiscoverReadOnlyObjects));
             Dimensions.Add('NewDiscoverReadOnlyObjects', Format(MCPConfiguration.DiscoverReadOnlyObjects));
+        end;
+        if MCPConfiguration.EnableApiTools <> xMCPConfiguration.EnableApiTools then begin
+            Dimensions.Add('OldApiTools', Format(xMCPConfiguration.EnableApiTools));
+            Dimensions.Add('NewApiTools', Format(MCPConfiguration.EnableApiTools));
+        end;
+        if MCPConfiguration.EnableAlQueryTools <> xMCPConfiguration.EnableAlQueryTools then begin
+            Dimensions.Add('OldDataQueryTools', Format(xMCPConfiguration.EnableAlQueryTools));
+            Dimensions.Add('NewDataQueryTools', Format(MCPConfiguration.EnableAlQueryTools));
         end;
         Session.LogMessage('0000QE9', MCPConfigurationModifiedLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, Dimensions);
         Session.LogAuditMessage(StrSubstNo(MCPConfigurationAuditModifiedLbl, MCPConfiguration.Name, UserSecurityId(), CompanyName()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 3, 0);

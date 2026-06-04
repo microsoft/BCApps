@@ -61,16 +61,11 @@ page 8369 "MCP Server Feature Settings"
 
     internal procedure SaveChanges()
     var
-        ParentConfig: Record "MCP Configuration";
+        MCPConfigImplementation: Codeunit "MCP Config Implementation";
     begin
         case Feature of
             Feature::"Dynamic Tool Mode":
-                begin
-                    if not ParentConfig.GetBySystemId(ConfigSystemId) then
-                        exit;
-                    ParentConfig.DiscoverReadOnlyObjects := DiscoverReadOnlyObjectsLocal;
-                    ParentConfig.Modify(true);
-                end;
+                MCPConfigImplementation.EnableDiscoverReadOnlyObjects(ConfigSystemId, DiscoverReadOnlyObjectsLocal);
         end;
     end;
 
