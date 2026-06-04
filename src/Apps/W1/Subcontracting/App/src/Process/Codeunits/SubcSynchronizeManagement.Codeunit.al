@@ -156,7 +156,7 @@ codeunit 99001511 "Subc. Synchronize Management"
                                     PurchaseLine2.DeleteAll(true);
 
                                 TransferHeader.SetCurrentKey("Source ID", "Subc. Source Type", "Source Subtype");
-                                TransferHeader.SetRange("Source ID", PurchaseHeader."Buy-from Vendor No.");
+                                TransferHeader.SetRange("Source ID", xPurchaseHeader."Buy-from Vendor No.");
                                 TransferHeader.SetRange("Subc. Source Type", "Transfer Source Type"::Subcontracting);
                                 TransferHeader.SetRange("Source Subtype", TransferHeader."Source Subtype"::"2");
                                 TransferHeader.SetRange("Subcontr. Purch. Order No.", PurchaseHeader."No.");
@@ -164,7 +164,7 @@ codeunit 99001511 "Subc. Synchronize Management"
                                     TransferHeader.FindFirst();
                                     ItemLedgerEntry2.SetRange("Order Type", "Inventory Order Type"::Production);
                                     ItemLedgerEntry2.SetRange("Order No.", ProductionOrder."No.");
-                                    if ItemLedgerEntry.IsEmpty() then
+                                    if ItemLedgerEntry2.IsEmpty() then
                                         TransferHeader.Delete(true);
                                 end;
                                 ProductionOrder.Delete();
