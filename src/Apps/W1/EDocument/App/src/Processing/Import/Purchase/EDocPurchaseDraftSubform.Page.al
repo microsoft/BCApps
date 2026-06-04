@@ -10,6 +10,7 @@ using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.Finance.Deferral;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
@@ -381,6 +382,22 @@ page 6183 "E-Doc. Purchase Draft Subform"
                         trigger OnAction()
                         begin
                             Page.Run(Page::"Chart of Accounts");
+                        end;
+                    }
+                    action(OpenItems)
+                    {
+                        ApplicationArea = All;
+                        Caption = 'Items';
+                        ToolTip = 'Opens the item list to look up items for this line.';
+                        Image = Item;
+                        Scope = Repeater;
+
+                        trigger OnAction()
+                        var
+                            Item: Record Item;
+                        begin
+                            Item.SetRange(Blocked, false);
+                            Page.Run(Page::"Item List", Item);
                         end;
                     }
                     action(OpenDeferralTemplates)
