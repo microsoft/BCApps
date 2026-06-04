@@ -23,6 +23,8 @@ codeunit 133501 EDocCopilotPORedTeaming
 
     var
         //AdversarialSimulation: Codeunit "Adversarial Simulation";
+        LibraryERM: Codeunit "Library - ERM";
+        LibraryPurchase: Codeunit "Library - Purchase";
         Initialized: Boolean;
 
     local procedure Initialize()
@@ -35,6 +37,7 @@ codeunit 133501 EDocCopilotPORedTeaming
         // AdversarialSimulation.StartXPIA();
 
         CreateVATPostingGroups();
+        SetPurchaseHeaderNoSeriesAndTemplatesInSetup();
         Initialized := true;
     end;
 
@@ -51,7 +54,6 @@ codeunit 133501 EDocCopilotPORedTeaming
         Assert: Codeunit Assert;
         AITContext: Codeunit "AIT Test Context";
         EDocPOAOAIFunctionE2E: Codeunit "E-Doc. PO AOAI Function";
-        LibraryPurchase: Codeunit "Library - Purchase";
         EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
         EDocPOCopilotMatching: Codeunit "E-Doc. PO Copilot Matching";
         JsonContent: JsonObject;
@@ -70,8 +72,6 @@ codeunit 133501 EDocCopilotPORedTeaming
         EDocument.Init();
         EDocument."Entry No" := 0;
         EDocument.Insert();
-        LibraryPurchase.SetOrderNoSeriesInSetup();
-        SetPurchInvoiceJournalTemplateInSetup();
         LibraryPurchase.CreatePurchHeader(PH, PH."Document Type"::Order, LibraryPurchase.CreateVendorNo());
 
 
@@ -135,26 +135,26 @@ codeunit 133501 EDocCopilotPORedTeaming
     var
         VATBusPostingGroup: Record "VAT Business Posting Group";
         VATProdPostingGroup: Record "VAT Product Posting Group";
-        LibraryERM: Codeunit "Library - ERM";
     begin
         LibraryERM.CreateVATBusinessPostingGroup(VATBusPostingGroup);
         LibraryERM.CreateVATProductPostingGroup(VATProdPostingGroup);
     end;
 
-    local procedure SetPurchInvoiceJournalTemplateInSetup()
+    local procedure SetPurchaseHeaderNoSeriesAndTemplatesInSetup()
     var
         GenJournalTemplate: Record "Gen. Journal Template";
         PurchasesPayablesSetup: Record "Purchases & Payables Setup";
-        LibraryERM: Codeunit "Library - ERM";
     begin
+        LibraryPurchase.SetOrderNoSeriesInSetup();
+        LibraryPurchase.SetPostedNoSeriesInSetup();
         LibraryERM.CreateGenJournalTemplate(GenJournalTemplate);
         GenJournalTemplate.Validate(Type, GenJournalTemplate.Type::Purchases);
         GenJournalTemplate.Validate("Posting No. Series", LibraryERM.CreateNoSeriesCode());
         GenJournalTemplate.Modify(true);
         PurchasesPayablesSetup.Get();
-        PurchasesPayablesSetup."P. Invoice Template Name" := GenJournalTemplate.Name;
-        PurchasesPayablesSetup."P. Cr. Memo Template Name" := GenJournalTemplate.Name;
-        PurchasesPayablesSetup.Modify();
+        PurchasesPayablesSetup.Validate("P. Invoice Template Name", GenJournalTemplate.Name);
+        PurchasesPayablesSetup.Validate("P. Cr. Memo Template Name", GenJournalTemplate.Name);
+        PurchasesPayablesSetup.Modify(true);
     end;
 
 }

@@ -2749,9 +2749,9 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         GenJournalTemplate.Validate("Posting No. Series", LibraryERM.CreateNoSeriesCode());
         GenJournalTemplate.Modify(true);
         PurchasesPayablesSetup.Get();
-        PurchasesPayablesSetup."P. Invoice Template Name" := GenJournalTemplate.Name;
-        PurchasesPayablesSetup."P. Cr. Memo Template Name" := GenJournalTemplate.Name;
-        PurchasesPayablesSetup.Modify();
+        PurchasesPayablesSetup.Validate("P. Invoice Template Name", GenJournalTemplate.Name);
+        PurchasesPayablesSetup.Validate("P. Cr. Memo Template Name", GenJournalTemplate.Name);
+        PurchasesPayablesSetup.Modify(true);
     end;
 
     local procedure SetupPOMatchingConfiguration(Configuration: Enum "E-Doc. PO M. Configuration"; VendorNo: Code[20]; IncludeVendorInList: Boolean)
@@ -2790,18 +2790,18 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
 
     local procedure Initialize()
     begin
+        if IsInitialized then
+            exit;
+
         LibraryLowerPermission.SetOutsideO365Scope();
+        CreateVATPostingGroups();
+        LibraryEDocument.SetupStandardVAT();
+        LibraryEDocument.SetupStandardPurchaseScenario(Vendor, EDocumentService, Enum::"E-Document Format"::Mock, Enum::"Service Integration"::Mock, Enum::"E-Document Import Process"::"Version 2.0");
         LibraryPurchase.SetOrderNoSeriesInSetup();
         LibraryPurchase.SetPostedNoSeriesInSetup();
         SetInvoiceNoSeriesInSetup();
         SetPurchInvoiceJournalTemplateInSetup();
         ClearPurchaseDocumentsForVendor();
-
-        if IsInitialized then
-            exit;
-        CreateVATPostingGroups();
-        LibraryEDocument.SetupStandardVAT();
-        LibraryEDocument.SetupStandardPurchaseScenario(Vendor, EDocumentService, Enum::"E-Document Format"::Mock, Enum::"Service Integration"::Mock, Enum::"E-Document Import Process"::"Version 2.0");
         IsInitialized := true;
     end;
 

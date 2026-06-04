@@ -114,7 +114,7 @@ codeunit 135003 "Feature Key Test"
         PermissionsMock.Set('Feature Key Admin');
         Initialize();
         // [GIVEN] 'One Way' Feature 'X' is enabled, no FeatureDataUpdateStatus for Company 'A'
-        ID := GetOneWayFeatureId(true);
+        ID := GetOneWayDataUpdateFeatureId();
         FeatureKey.Get(ID);
         FeatureKey.TestField("Is One Way");
         FeatureKey.Validate(Enabled, FeatureKey.Enabled::"All Users");
@@ -145,7 +145,7 @@ codeunit 135003 "Feature Key Test"
         Initialize();
         BindSubscription(FeatureKeyTestHandler);
         // [GIVEN] 'One Way' Feature 'X' is disabled 
-        ID := GetOneWayFeatureId(true);
+        ID := GetOneWayDataUpdateFeatureId();
         FeatureKey.Get(ID);
         FeatureKeyTestHandler.Set('', false);
 
@@ -180,7 +180,7 @@ codeunit 135003 "Feature Key Test"
         Initialize();
         BindSubscription(FeatureKeyTestHandler);
         // [GIVEN] 'One Way' Feature 'X' is disabled 
-        ID := GetOneWayFeatureId(true);
+        ID := GetOneWayDataUpdateFeatureId();
         FeatureKey.Get(ID);
         FeatureKeyTestHandler.Set(ID, false);
 
@@ -191,14 +191,14 @@ codeunit 135003 "Feature Key Test"
         // [WHEN] Enable feature and answer yes to 'One Way' confirmation 
         FeatureManagement.EnabledFor.Value(Format(FeatureKey.Enabled::"All Users"));
 
-        // [THEN] "Schedule Feature Data Update" open where is Description 'PackageTracking...',
+        // [THEN] "Schedule Feature Data Update" opens with the feature task description
         Descr := LibraryVariableStorage.DequeueText(); // from ScheduleDataUpdateModalHandler
         Assert.AreEqual(ID + '...', Descr, 'Description is wrong');
         // [THEN]  Controls "Review Data" and "I accept..." are visible
         Assert.IsTrue(LibraryVariableStorage.DequeueBoolean(), 'ReviewData is not visible');
         Assert.IsTrue(LibraryVariableStorage.DequeueBoolean(), 'Agree is not visible');
         // [WHEN] Review Data // done in ScheduleDataUpdateModalHandler
-        // [THEN] Message: 'PackageTracking Data'
+        // [THEN] Message contains the feature review data
         Assert.AreEqual(ID + ' Data', LibraryVariableStorage.DequeueText(), 'review data message');
 
         LibraryVariableStorage.AssertEmpty();
@@ -219,7 +219,7 @@ codeunit 135003 "Feature Key Test"
         Initialize();
         BindSubscription(FeatureKeyTestHandler);
         // [GIVEN] 'One Way' Feature 'X' is disabled 
-        ID := GetOneWayFeatureId(true);
+        ID := GetOneWayDataUpdateFeatureId();
         FeatureKey.Get(ID);
         FeatureKeyTestHandler.Set(ID, false);
 
@@ -230,7 +230,7 @@ codeunit 135003 "Feature Key Test"
         // [WHEN] Enable feature and answer yes to 'One Way' confirmation 
         FeatureManagement.EnabledFor.Value(Format(FeatureKey.Enabled::"All Users"));
 
-        // [THEN] "Schedule Feature Data Update" open where is Description 'PackageTracking...',
+        // [THEN] "Schedule Feature Data Update" opens with the feature task description
         Descr := LibraryVariableStorage.DequeueText(); // from ScheduleDataUpdateUpdateModalHandler
         Assert.AreEqual(ID + '...', Descr, 'Description is wrong');
         // [THEN]  Controls "Review Data" and "I accept..." are visible
@@ -573,6 +573,11 @@ codeunit 135003 "Feature Key Test"
     begin
         FeatureDataUpdateStatus.SetFilter("Company Name", '<>%1', CompanyName());
         FeatureDataUpdateStatus.DeleteAll();
+    end;
+
+    local procedure GetOneWayDataUpdateFeatureId(): Text[50]
+    begin
+        exit('SalesPrices');
     end;
 
     local procedure GetOneWayFeatureId(IsOneWay: Boolean): Text[50];

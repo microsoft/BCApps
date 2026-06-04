@@ -31,6 +31,7 @@ codeunit 139629 "Library - E-Document"
     procedure SetupStandardVAT()
     begin
         Clear(VATPostingSetup);
+        Clear(StandardItem);
         LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, Enum::"Tax Calculation Type"::"Normal VAT", 1);
     end;
 
@@ -81,6 +82,10 @@ codeunit 139629 "Library - E-Document"
         DocumentSendingProfile."Electronic Document" := DocumentSendingProfile."Electronic Document"::"Extended E-Document Service Flow";
         DocumentSendingProfile."Electronic Service Flow" := WorkflowCode;
         DocumentSendingProfile.Modify();
+
+        // Ensure Customer Nos. is configured (required by Customer.OnInsert in some localizations)
+        LibraryUtility.UpdateSetupNoSeriesCode(
+            Database::"Sales & Receivables Setup", SalesSetup.FieldNo("Customer Nos."));
 
         // Create Customer for sales scenario
         LibrarySales.CreateCustomer(Customer);
@@ -426,7 +431,7 @@ codeunit 139629 "Library - E-Document"
     procedure CreateGenericItem(var Item: Record Item; VATProdPostingGroupCode: Code[20])
     begin
         CreateGenericItem(Item);
-        Item."VAT Prod. Posting Group" := VATPostingSetup."VAT Prod. Posting Group";
+        Item."VAT Prod. Posting Group" := VATProdPostingGroupCode;
         Item.Modify();
     end;
 
