@@ -10,8 +10,7 @@ using Microsoft.Inventory.Item;
 using Microsoft.QualityManagement.Configuration.Template;
 #endif
 using Microsoft.QualityManagement.Document;
-using Microsoft.QualityManagement.Setup;
-using System.Telemetry;
+using Microsoft.QualityManagement.Telemetry;
 
 report 20405 "Qlty. General Purpose Inspect."
 {
@@ -319,10 +318,9 @@ report 20405 "Qlty. General Purpose Inspect."
 
     trigger OnPreReport()
     var
-        QltyManagementSetup: Record "Qlty. Management Setup";
-        FeatureTelemetry: Codeunit "Feature Telemetry";
+        QltyMgmtFeatureTelemetry: Codeunit "Qlty. Mgmt. Feature Telemetry";
     begin
-        FeatureTelemetry.LogUptake('0000QIS', QltyManagementSetup.GetFeatureTelemetryName(), Enum::"Feature Uptake Status"::Used);
+        QltyMgmtFeatureTelemetry.LogFeatureUsage(ObjectType::Report, Report::"Qlty. General Purpose Inspect.", 'Print report General Purpose Inspection');
     end;
 
     var
