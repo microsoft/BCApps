@@ -21,6 +21,7 @@ codeunit 3705 "Azure AD Tenant Impl."
         TenantDomainNameErr: Label 'Failed to retrieve the Microsoft Entra tenant domain name.';
         CountryLetterCodeErr: Label 'Failed to retrieve the Microsoft Entra tenant country letter code.';
         PreferredLanguageErr: Label 'Failed to retrieve the Microsoft Entra tenant preferred language code.';
+        VerifiedDomainsErr: Label 'Failed to retrieve the Microsoft Entra tenant verified domains.';
 
     procedure GetAadTenantId(): Text
     var
@@ -60,6 +61,20 @@ codeunit 3705 "Azure AD Tenant Impl."
             exit(CopyStr(TenantInfo.PreferredLanguage(), 1, 2));
 
         Error(PreferredLanguageErr);
+    end;
+
+    procedure GetVerifiedDomains() Domains: List of [Text]
+    var
+        VerifiedDomain: DotNet VerifiedDomainInfo;
+    begin
+        Initialize();
+        if IsNull(TenantInfo) then
+            Error(VerifiedDomainsErr);
+
+        foreach VerifiedDomain in TenantInfo.VerifiedDomains() do
+            if not IsNull(VerifiedDomain) then
+                if VerifiedDomain.Name() <> '' then
+                    Domains.Add(VerifiedDomain.Name());
     end;
 
     procedure GetPowerPlatformTenantURL(): Text

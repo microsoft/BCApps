@@ -63,6 +63,17 @@ codeunit 433 "Azure AD Tenant"
     end;
 
     /// <summary>
+    /// Gets the verified domain names registered on the current Microsoft Entra tenant.
+    /// If the Microsoft Graph API cannot be reached, the error is displayed.
+    /// </summary>
+    /// <returns>A list of verified domain names (e.g. "contoso.com", "contoso.onmicrosoft.com").</returns>
+    /// <error>Cannot retrieve the Microsoft Entra tenant verified domains.</error>
+    procedure GetVerifiedDomains(): List of [Text]
+    begin
+        exit(AzureADTenantImpl.GetVerifiedDomains());
+    end;
+
+    /// <summary>
     /// Gets the Power Platform tenant URL.
     /// </summary>
     /// <returns>The Power Platform tenant URL. If AzureADTenantID is empty, it returns an empty string.</returns>
