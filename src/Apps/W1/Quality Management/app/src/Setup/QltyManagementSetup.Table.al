@@ -446,6 +446,17 @@ table 20400 "Qlty. Management Setup"
         exit(ApplicationAreaMgmtFacade.IsPremiumExperienceEnabled());
     end;
 
+    /// <summary>
+    /// Returns the telemetry feature name for quality management functionality tracking.
+    /// </summary>
+    /// <returns>Feature name used for telemetry logging</returns>
+    internal procedure GetFeatureTelemetryName(): Text
+    var
+        QualityManagementTok: Label 'Quality Management', Locked = true;
+    begin
+        exit(QualityManagementTok);
+    end;
+
     internal procedure GetSetupVideoLink(): Text
     begin
         exit('');
