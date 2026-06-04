@@ -204,6 +204,9 @@ table 20403 "Qlty. Inspection Template Line"
     var
         QltyTest: Record "Qlty. Test";
     begin
+        if (TemplateCode = '') or (SelectionFilter = '') then
+            exit;
+
         QltyTest.SetFilter(Code, SelectionFilter);
         if QltyTest.FindSet() then
             repeat
