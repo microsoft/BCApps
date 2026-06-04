@@ -33,6 +33,12 @@ page 8351 "MCP Config Card"
                     {
                         ToolTip = 'Specifies the name of the MCP configuration.';
                         Editable = not IsDefault and not Rec.Active;
+
+                        trigger OnValidate()
+                        begin
+                            if IsNullGuid(Rec.SystemId) then
+                                CurrPage.Update();
+                        end;
                     }
                     field(Description; Rec.Description)
                     {

@@ -45,18 +45,13 @@ page 8350 "MCP Config List"
                     ToolTip = 'Specifies whether this configuration is the default. The default configuration is used when no configuration is specified by a connection. Clear this field to remove the default designation, in which case the system reverts to built-in default configuration.';
                     Editable = false;
                 }
-                // MOCK: these two columns are function-sourced from the "MCP Feature Activation" stand-in
-                // table (via the impl getters) because the activation flags aren't on MCP Configuration
-                // yet.
-                field(APITools; MCPConfigImplementation.IsAPIToolsEnabled(Rec.SystemId))
-                // field(APITools; Rec.EnableApiTools)
+                field(APITools; Rec.EnableApiTools)
                 {
                     Caption = 'API Tools';
                     ToolTip = 'Specifies whether the API Tools feature is enabled for this configuration.';
                     Editable = false;
                 }
-                field(DataQueryTools; MCPConfigImplementation.IsDataQueryToolsEnabled(Rec.SystemId))
-                // field(DataQueryTools; Rec.EnableAlQueryTools)
+                field(DataQueryTools; Rec.EnableAlQueryTools)
                 {
                     Caption = 'Data Query Tools';
                     ToolTip = 'Specifies whether the Data Query Tools feature is enabled for this configuration.';

@@ -256,102 +256,49 @@ codeunit 8351 "MCP Config Implementation"
         LogConfigurationModified(MCPConfiguration, xMCPConfiguration);
     end;
 
-    // MOCK (PLATFORM-PENDING, BC-Platform PR #44811): API Tools / Data Query Tools activation isn't on the
-    // platform-owned MCP Configuration table yet, so it's persisted in the MCP-owned "MCP Feature Activation"
-    // table keyed by config SystemId. When #44811 ships the EnableApiTools (field 8) and EnableAlQueryTools
-    // (field 9) booleans, delete these four procedures + table 8356 "MCP Feature Activation" + its
-    // permission-set entries, and uncomment the productionized versions below the getters.
     internal procedure EnableAPITools(ConfigId: Guid; Enable: Boolean)
     var
-        MCPFeatureActivation: Record "MCP Feature Activation";
+        MCPConfiguration: Record "MCP Configuration";
+        xMCPConfiguration: Record "MCP Configuration";
     begin
-        if not MCPFeatureActivation.Get(ConfigId) then begin
-            MCPFeatureActivation."Config Id" := ConfigId;
-            MCPFeatureActivation."Enable API Tools" := Enable;
-            MCPFeatureActivation.Insert();
-        end else begin
-            MCPFeatureActivation."Enable API Tools" := Enable;
-            MCPFeatureActivation.Modify();
-        end;
+        if not MCPConfiguration.GetBySystemId(ConfigId) then
+            Error(ConfigurationNotFoundErr);
+        xMCPConfiguration := MCPConfiguration;
+        MCPConfiguration.EnableApiTools := Enable;
+        MCPConfiguration.Modify();
+        LogConfigurationModified(MCPConfiguration, xMCPConfiguration);
     end;
 
     internal procedure EnableDataQueryTools(ConfigId: Guid; Enable: Boolean)
     var
-        MCPFeatureActivation: Record "MCP Feature Activation";
+        MCPConfiguration: Record "MCP Configuration";
+        xMCPConfiguration: Record "MCP Configuration";
     begin
-        if not MCPFeatureActivation.Get(ConfigId) then begin
-            MCPFeatureActivation."Config Id" := ConfigId;
-            MCPFeatureActivation."Enable Data Query Tools" := Enable;
-            MCPFeatureActivation.Insert();
-        end else begin
-            MCPFeatureActivation."Enable Data Query Tools" := Enable;
-            MCPFeatureActivation.Modify();
-        end;
+        if not MCPConfiguration.GetBySystemId(ConfigId) then
+            Error(ConfigurationNotFoundErr);
+        xMCPConfiguration := MCPConfiguration;
+        MCPConfiguration.EnableAlQueryTools := Enable;
+        MCPConfiguration.Modify();
+        LogConfigurationModified(MCPConfiguration, xMCPConfiguration);
     end;
 
-    // MOCK (PLATFORM-PENDING, BC-Platform PR #44811): reads of the "MCP Feature Activation" stand-in.
     internal procedure IsAPIToolsEnabled(ConfigId: Guid): Boolean
     var
-        MCPFeatureActivation: Record "MCP Feature Activation";
+        MCPConfiguration: Record "MCP Configuration";
     begin
-        if MCPFeatureActivation.Get(ConfigId) then
-            exit(MCPFeatureActivation."Enable API Tools");
+        if not MCPConfiguration.GetBySystemId(ConfigId) then
+            MCPConfiguration.Init(); // not persisted yet (new config): reflect the table default (InitValue)
+        exit(MCPConfiguration.EnableApiTools);
     end;
 
     internal procedure IsDataQueryToolsEnabled(ConfigId: Guid): Boolean
     var
-        MCPFeatureActivation: Record "MCP Feature Activation";
+        MCPConfiguration: Record "MCP Configuration";
     begin
-        if MCPFeatureActivation.Get(ConfigId) then
-            exit(MCPFeatureActivation."Enable Data Query Tools");
+        if not MCPConfiguration.GetBySystemId(ConfigId) then
+            MCPConfiguration.Init(); // not persisted yet (new config): reflect the table default (InitValue)
+        exit(MCPConfiguration.EnableAlQueryTools);
     end;
-
-    // PLATFORM-PENDING (BC-Platform PR #44811): productionized replacements for the four mock procedures
-    // above. When #44811 ships, delete the four mocks + table 8356 + its permission-set entries, then
-    // uncomment these. ("Data Query Tools" is our UX name; it maps to the platform's EnableAlQueryTools
-    // field — the platform keeps the "AL Query Tools" name. See design.md Appendix E.)
-    //
-    // internal procedure EnableAPITools(ConfigId: Guid; Enable: Boolean)
-    // var
-    //     MCPConfiguration: Record "MCP Configuration";
-    //     xMCPConfiguration: Record "MCP Configuration";
-    // begin
-    //     if not MCPConfiguration.GetBySystemId(ConfigId) then
-    //         Error(ConfigurationNotFoundErr);
-    //     xMCPConfiguration := MCPConfiguration;
-    //     MCPConfiguration.EnableApiTools := Enable;
-    //     MCPConfiguration.Modify();
-    //     LogConfigurationModified(MCPConfiguration, xMCPConfiguration);
-    // end;
-    //
-    // internal procedure EnableDataQueryTools(ConfigId: Guid; Enable: Boolean)
-    // var
-    //     MCPConfiguration: Record "MCP Configuration";
-    //     xMCPConfiguration: Record "MCP Configuration";
-    // begin
-    //     if not MCPConfiguration.GetBySystemId(ConfigId) then
-    //         Error(ConfigurationNotFoundErr);
-    //     xMCPConfiguration := MCPConfiguration;
-    //     MCPConfiguration.EnableAlQueryTools := Enable;
-    //     MCPConfiguration.Modify();
-    //     LogConfigurationModified(MCPConfiguration, xMCPConfiguration);
-    // end;
-    //
-    // internal procedure IsAPIToolsEnabled(ConfigId: Guid): Boolean
-    // var
-    //     MCPConfiguration: Record "MCP Configuration";
-    // begin
-    //     if MCPConfiguration.GetBySystemId(ConfigId) then
-    //         exit(MCPConfiguration.EnableApiTools);
-    // end;
-    //
-    // internal procedure IsDataQueryToolsEnabled(ConfigId: Guid): Boolean
-    // var
-    //     MCPConfiguration: Record "MCP Configuration";
-    // begin
-    //     if MCPConfiguration.GetBySystemId(ConfigId) then
-    //         exit(MCPConfiguration.EnableAlQueryTools);
-    // end;
 
     local procedure CheckAllowCreateUpdateDeleteTools(ConfigId: Guid)
     var
@@ -1320,6 +1267,8 @@ codeunit 8351 "MCP Config Implementation"
         ConfigJson.Add('enableDynamicToolMode', MCPConfiguration.EnableDynamicToolMode);
         ConfigJson.Add('discoverReadOnlyObjects', MCPConfiguration.DiscoverReadOnlyObjects);
         ConfigJson.Add('allowProdChanges', MCPConfiguration.AllowProdChanges);
+        ConfigJson.Add('enableApiTools', MCPConfiguration.EnableApiTools);
+        ConfigJson.Add('enableAlQueryTools', MCPConfiguration.EnableAlQueryTools);
 
         MCPConfigurationTool.SetRange(ID, ConfigId);
         if MCPConfigurationTool.FindSet() then
@@ -1386,6 +1335,12 @@ codeunit 8351 "MCP Config Implementation"
 
         if ConfigJson.Contains('allowProdChanges') then
             MCPConfiguration.AllowProdChanges := ConfigJson.GetBoolean('allowProdChanges');
+
+        if ConfigJson.Contains('enableApiTools') then
+            MCPConfiguration.EnableApiTools := ConfigJson.GetBoolean('enableApiTools');
+
+        if ConfigJson.Contains('enableAlQueryTools') then
+            MCPConfiguration.EnableAlQueryTools := ConfigJson.GetBoolean('enableAlQueryTools');
 
         MCPConfiguration.Insert();
         LogConfigurationCreated(MCPConfiguration);

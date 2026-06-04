@@ -254,110 +254,57 @@ codeunit 130130 "MCP Config Test"
 
     #region API Tools
 
-    // MOCK (PLATFORM-PENDING, BC-Platform PR #44811): API Tools activation persists to the "MCP Feature
-    // Activation" stand-in table and the facade exposes no read-back, so these stay smoke tests that only
-    // verify the procedure is callable. When #44811 ships the EnableApiTools field, delete these two smoke
-    // tests and uncomment the productionized versions below (which assert the real field state).
-
     [Test]
     procedure TestEnableAPITools()
     var
+        MCPConfiguration: Record "MCP Configuration";
         ConfigId: Guid;
     begin
-        // MOCK: smoke test for the facade procedure.
         ConfigId := CreateMCPConfig(false, false, true, false);
         MCPConfig.EnableAPITools(ConfigId, true);
+        MCPConfiguration.GetBySystemId(ConfigId);
+        Assert.IsTrue(MCPConfiguration.EnableApiTools, 'API Tools should be enabled');
     end;
 
     [Test]
     procedure TestDisableAPITools()
     var
+        MCPConfiguration: Record "MCP Configuration";
         ConfigId: Guid;
     begin
-        // MOCK: smoke test for the facade procedure.
         ConfigId := CreateMCPConfig(false, false, true, false);
         MCPConfig.EnableAPITools(ConfigId, false);
+        MCPConfiguration.GetBySystemId(ConfigId);
+        Assert.IsFalse(MCPConfiguration.EnableApiTools, 'API Tools should be disabled');
     end;
-
-    // PLATFORM-PENDING (BC-Platform PR #44811): productionized replacements for the two smoke tests above.
-    // [Test]
-    // procedure TestEnableAPITools()
-    // var
-    //     MCPConfiguration: Record "MCP Configuration";
-    //     ConfigId: Guid;
-    // begin
-    //     ConfigId := CreateMCPConfig(false, false, true, false);
-    //     MCPConfig.EnableAPITools(ConfigId, true);
-    //     MCPConfiguration.GetBySystemId(ConfigId);
-    //     Assert.IsTrue(MCPConfiguration.EnableApiTools, 'API Tools should be enabled');
-    // end;
-    //
-    // [Test]
-    // procedure TestDisableAPITools()
-    // var
-    //     MCPConfiguration: Record "MCP Configuration";
-    //     ConfigId: Guid;
-    // begin
-    //     ConfigId := CreateMCPConfig(false, false, true, false);
-    //     MCPConfig.EnableAPITools(ConfigId, false);
-    //     MCPConfiguration.GetBySystemId(ConfigId);
-    //     Assert.IsFalse(MCPConfiguration.EnableApiTools, 'API Tools should be disabled');
-    // end;
 
     #endregion
 
     #region Data Query Tools
 
-    // MOCK (PLATFORM-PENDING, BC-Platform PR #44811): Data Query Tools activation persists to the "MCP
-    // Feature Activation" stand-in table and the facade exposes no read-back, so these stay smoke tests
-    // that only verify each procedure is callable. When #44811 ships the EnableAlQueryTools field, delete
-    // these two smoke tests and uncomment the productionized versions below (which assert the real field
-    // state — our "Data Query Tools" maps onto the platform's EnableAlQueryTools field).
-
     [Test]
     procedure TestEnableDataQueryTools()
     var
+        MCPConfiguration: Record "MCP Configuration";
         ConfigId: Guid;
     begin
-        // MOCK: smoke test for the facade procedure.
         ConfigId := CreateMCPConfig(false, false, true, false);
         MCPConfig.EnableDataQueryTools(ConfigId, true);
+        MCPConfiguration.GetBySystemId(ConfigId);
+        Assert.IsTrue(MCPConfiguration.EnableAlQueryTools, 'Data Query Tools should be enabled');
     end;
 
     [Test]
     procedure TestDisableDataQueryTools()
     var
+        MCPConfiguration: Record "MCP Configuration";
         ConfigId: Guid;
     begin
-        // MOCK: smoke test for the facade procedure.
         ConfigId := CreateMCPConfig(false, false, true, false);
         MCPConfig.EnableDataQueryTools(ConfigId, false);
+        MCPConfiguration.GetBySystemId(ConfigId);
+        Assert.IsFalse(MCPConfiguration.EnableAlQueryTools, 'Data Query Tools should be disabled');
     end;
-
-    // PLATFORM-PENDING (BC-Platform PR #44811): productionized replacements for the two smoke tests above.
-    // [Test]
-    // procedure TestEnableDataQueryTools()
-    // var
-    //     MCPConfiguration: Record "MCP Configuration";
-    //     ConfigId: Guid;
-    // begin
-    //     ConfigId := CreateMCPConfig(false, false, true, false);
-    //     MCPConfig.EnableDataQueryTools(ConfigId, true);
-    //     MCPConfiguration.GetBySystemId(ConfigId);
-    //     Assert.IsTrue(MCPConfiguration.EnableAlQueryTools, 'Data Query Tools should be enabled');
-    // end;
-    //
-    // [Test]
-    // procedure TestDisableDataQueryTools()
-    // var
-    //     MCPConfiguration: Record "MCP Configuration";
-    //     ConfigId: Guid;
-    // begin
-    //     ConfigId := CreateMCPConfig(false, false, true, false);
-    //     MCPConfig.EnableDataQueryTools(ConfigId, false);
-    //     MCPConfiguration.GetBySystemId(ConfigId);
-    //     Assert.IsFalse(MCPConfiguration.EnableAlQueryTools, 'Data Query Tools should be disabled');
-    // end;
 
     #endregion
 
@@ -1012,11 +959,14 @@ codeunit 130130 "MCP Config Test"
         ConfigJson: JsonObject;
         JsonToken: JsonToken;
     begin
-        // [GIVEN] Configuration with two tools is created
+        // [GIVEN] Configuration with two tools and both tool features enabled is created
         ConfigId := CreateMCPConfig(false, true, true, true);
         CreateMCPConfigTool(ConfigId);
         CreateMCPConfigTool(ConfigId);
         MCPConfiguration.GetBySystemId(ConfigId);
+        MCPConfiguration.EnableApiTools := true;
+        MCPConfiguration.EnableAlQueryTools := true;
+        MCPConfiguration.Modify();
 
         // [WHEN] Export configuration is called
         TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
@@ -1032,6 +982,12 @@ codeunit 130130 "MCP Config Test"
 
         ConfigJson.Get('enableDynamicToolMode', JsonToken);
         Assert.AreEqual(true, JsonToken.AsValue().AsBoolean(), 'EnableDynamicToolMode mismatch');
+
+        ConfigJson.Get('enableApiTools', JsonToken);
+        Assert.AreEqual(true, JsonToken.AsValue().AsBoolean(), 'EnableApiTools mismatch');
+
+        ConfigJson.Get('enableAlQueryTools', JsonToken);
+        Assert.AreEqual(true, JsonToken.AsValue().AsBoolean(), 'EnableAlQueryTools mismatch');
 
         ConfigJson.Get('tools', JsonToken);
         Assert.AreEqual(2, JsonToken.AsArray().Count(), 'Tools count mismatch');
@@ -1050,10 +1006,14 @@ codeunit 130130 "MCP Config Test"
         NewName: Text[100];
         NewDescription: Text[250];
     begin
-        // [GIVEN] Configuration with two tools is created and exported
+        // [GIVEN] Configuration with two tools and both tool features enabled is created and exported
         SourceConfigId := CreateMCPConfig(false, true, true, true);
         CreateMCPConfigTool(SourceConfigId);
         CreateMCPConfigTool(SourceConfigId);
+        MCPConfiguration.GetBySystemId(SourceConfigId);
+        MCPConfiguration.EnableApiTools := true;
+        MCPConfiguration.EnableAlQueryTools := true;
+        MCPConfiguration.Modify();
 
         TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
         MCPConfig.ExportConfiguration(SourceConfigId, OutStream);
@@ -1071,6 +1031,8 @@ codeunit 130130 "MCP Config Test"
         Assert.IsFalse(MCPConfiguration.Active, 'Imported config should be inactive');
         Assert.IsTrue(MCPConfiguration.EnableDynamicToolMode, 'EnableDynamicToolMode mismatch');
         Assert.IsTrue(MCPConfiguration.DiscoverReadOnlyObjects, 'DiscoverReadOnlyObjects mismatch');
+        Assert.IsTrue(MCPConfiguration.EnableApiTools, 'EnableApiTools mismatch');
+        Assert.IsTrue(MCPConfiguration.EnableAlQueryTools, 'EnableAlQueryTools mismatch');
 
         // [THEN] Tools are imported with correct API version
         MCPConfigurationTool.SetRange(ID, ImportedConfigId);
