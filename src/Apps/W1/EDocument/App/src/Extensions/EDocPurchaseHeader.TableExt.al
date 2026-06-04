@@ -33,9 +33,22 @@ tableextension 6169 "E-Doc. Purchase Header" extends "Purchase Header"
         }
     }
 
+    trigger OnDelete()
+    var
+        EDocument: Record "E-Document";
+        CannotDeletePurchOrderWithActiveEDocErr: Label 'You cannot delete a purchase order that is linked to an active e-document.';
+    begin
+        if Rec."Document Type" <> Rec."Document Type"::Order then
+            exit;
+            
+        EDocument.SetRange("Document Record ID", Rec.RecordId());
+        if EDocument.FindFirst() then
+            if EDocument.Status <> "E-Document Status"::Canceled then
+                Error(CannotDeletePurchOrderWithActiveEDocErr);
+    end;
+
     internal procedure IsLinkedToEDoc(EDocumentToExclude: Record "E-Document"): Boolean
     begin
         exit(not IsNullGuid("E-Document Link") and ("E-Document Link" <> EDocumentToExclude.SystemId));
-    end;
-
+    end;  
 }

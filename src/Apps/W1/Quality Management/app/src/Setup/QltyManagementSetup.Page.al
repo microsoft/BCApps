@@ -50,7 +50,6 @@ page 20400 "Qlty. Management Setup"
                         ApplicationArea = All;
                         AboutTitle = 'Inspection creation option';
                         AboutText = 'Control if new quality inspections should be created when similar inspections already exist.';
-
                     }
                     field("Inspection Search Criteria"; Rec."Inspection Search Criteria")
                     {

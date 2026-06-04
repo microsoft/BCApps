@@ -15,6 +15,14 @@ codeunit 4300 "Agent Task Impl."
     InherentEntitlements = X;
     InherentPermissions = X;
 
+    procedure GetStepsDoneCount(AgentTaskID: BigInteger): Integer
+    var
+        AgentTask: Record "Agent Task";
+    begin
+        AgentTask.Get(AgentTaskID);
+        exit(GetStepsDoneCount(AgentTask));
+    end;
+
     procedure GetStepsDoneCount(var AgentTask: Record "Agent Task"): Integer
     var
         AgentTaskLogEntry: Record "Agent Task Log Entry";
@@ -33,6 +41,14 @@ codeunit 4300 "Agent Task Impl."
         AgentTaskLogEntry.Details.CreateInStream(ContentInStream, GetDefaultEncoding());
         ContentInStream.Read(ContentText);
         exit(ContentText);
+    end;
+
+    procedure ShowTaskLogEntries(AgentTaskID: BigInteger)
+    var
+        AgentTask: Record "Agent Task";
+    begin
+        AgentTask.Get(AgentTaskID);
+        ShowTaskLogEntries(AgentTask);
     end;
 
     procedure ShowTaskLogEntries(var AgentTask: Record "Agent Task")
