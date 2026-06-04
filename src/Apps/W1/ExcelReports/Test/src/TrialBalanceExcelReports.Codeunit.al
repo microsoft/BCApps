@@ -10,7 +10,6 @@ using Microsoft.Finance.Dimension;
 using Microsoft.Finance.ExcelReports;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Budget;
-using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
 
 codeunit 139544 "Trial Balance Excel Reports"
