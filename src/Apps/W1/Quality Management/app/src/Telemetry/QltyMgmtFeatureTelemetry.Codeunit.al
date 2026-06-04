@@ -9,6 +9,7 @@ using System.Telemetry;
 codeunit 20458 "Qlty. Mgmt. Feature Telemetry"
 {
     Access = Internal;
+    InherentEntitlements = X;
     InherentPermissions = X;
 
     var
