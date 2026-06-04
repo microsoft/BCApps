@@ -120,9 +120,11 @@ codeunit 8026 "Process Usage Data Billing"
 
             end;
 
-        if UsageDataBilling.Amount <> Round(Amount, Currency."Unit-Amount Rounding Precision") then begin
+        if (UsageDataBilling.Amount <> Round(Amount, Currency."Amount Rounding Precision")) or
+           (UsageDataBilling."Unit Price" <> Round(UnitPrice, Currency."Unit-Amount Rounding Precision"))
+        then begin
             UsageDataBilling."Unit Price" := Round(UnitPrice, Currency."Unit-Amount Rounding Precision");
-            UsageDataBilling.Amount := Round(Amount, Currency."Unit-Amount Rounding Precision");
+            UsageDataBilling.Amount := Round(Amount, Currency."Amount Rounding Precision");
             if UsageDataBilling.Quantity < 0 then
                 UsageDataBilling.Amount *= -1;
             UsageDataBilling.Modify(true);

@@ -43,6 +43,14 @@ report 4403 "EXR Aged Acc Payable Excel"
                 DataItemTableView = sorting("Vendor Source No.");
                 DataItemLink = "Vendor Source No." = field("No.");
 
+                column(DocumentType; "Document Type")
+                {
+                    IncludeCaption = true;
+                }
+                column(DocumentNo; "Document No.")
+                {
+                    IncludeCaption = true;
+                }
                 column(PeriodStart;
                 "Period Start Date")
                 {
@@ -355,6 +363,7 @@ report 4403 "EXR Aged Acc Payable Excel"
         AgingData."Vendor Source No." := VendorLedgerEntry."Vendor No.";
         AgingData."Source Name" := VendorLedgerEntry."Vendor Name";
         AgingData."Document No." := VendorLedgerEntry."Document No.";
+        AgingData."Document Type" := VendorLedgerEntry."Document Type";
         AgingData."Dimension 1 Code" := VendorLedgerEntry."Global Dimension 1 Code";
         AgingData."Dimension 2 Code" := VendorLedgerEntry."Global Dimension 2 Code";
         AgingData."Currency Code" := VendorLedgerEntry."Currency Code";

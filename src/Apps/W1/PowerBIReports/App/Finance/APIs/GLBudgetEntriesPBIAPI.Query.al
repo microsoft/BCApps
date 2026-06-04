@@ -10,6 +10,7 @@ query 36960 "G/L Budget Entries - PBI API"
 {
     Access = Internal;
     QueryType = API;
+    AboutText = 'Provides access to general ledger budget entries including budget names, account numbers, dates, amounts, and dimension set IDs. Enables Power BI reports to analyze budgeted amounts, perform variance analysis against actuals, and create budget vs. actual financial dashboards.';
     Caption = 'Power BI G/L Budget Entries';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';

@@ -58,7 +58,11 @@ pageextension 149034 "Agent Test Suite" extends "AIT Test Suite"
                     Editable = false;
                     Caption = 'Copilot Credits Consumed';
                     ToolTip = 'Specifies the total Copilot Credits consumed by the Agent Tasks in the current version.';
-                    Visible = ConsumedCreditsVisible;
+
+                    trigger OnDrillDown()
+                    begin
+                        AgentTestContextImpl.OpenAgentConsumptionOverview(AgentTaskIDs);
+                    end;
                 }
                 field("Agent Task Count"; AgentTaskCount)
                 {
@@ -105,16 +109,9 @@ pageextension 149034 "Agent Test Suite" extends "AIT Test Suite"
         }
     }
 
-    trigger OnOpenPage()
-    var
-        AgentSystemPermissions: Codeunit "Agent System Permissions";
-    begin
-        ConsumedCreditsVisible := AgentSystemPermissions.CurrentUserCanSeeConsumptionData();
-        UpdateIsAgentTestType();
-    end;
-
     trigger OnAfterGetCurrRecord()
     begin
+        UpdateIsAgentTestType();
         UpdateAgentTaskMetrics();
         UpdateAgentUserName();
         ShowNotifications();
@@ -127,7 +124,7 @@ pageextension 149034 "Agent Test Suite" extends "AIT Test Suite"
 
     local procedure UpdateAgentTaskMetrics()
     begin
-        CopilotCredits := ConsumedCreditsVisible ? AgentTestContextImpl.GetCopilotCredits(Rec.Code, Rec.Version, '', 0) : -1;
+        CopilotCredits := AgentTestContextImpl.GetCopilotCredits(Rec.Code, Rec.Version, '', 0);
         AgentTaskIDs := AgentTestContextImpl.GetAgentTaskIDs(Rec.Code, Rec.Version, '', 0);
         AgentTaskCount := AgentTestContextImpl.GetAgentTaskCount(AgentTaskIDs);
     end;
@@ -189,7 +186,6 @@ pageextension 149034 "Agent Test Suite" extends "AIT Test Suite"
         AgentTaskIDs: Text;
         AgentTaskCount: Integer;
         AgentUserName: Code[50];
-        ConsumedCreditsVisible: Boolean;
         IsAgentTestType: Boolean;
         AgentWithNameNotFoundErr: Label 'An agent with the name %1 was not found.', Comment = '%1 - The name of the agent';
 }

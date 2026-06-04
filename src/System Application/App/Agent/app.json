@@ -94,6 +94,13 @@
       "version": "29.0.0.0"
     }
   ],
+  "internalsVisibleTo": [
+    {
+      "id": "a8c7f9d2-4e5b-4a1c-9f8e-6d3b2a1c4e5f",
+      "name": "Agent Test",
+      "publisher": "Microsoft"
+    }
+  ],
   "propagateDependencies": true,
   "features": [
     "TranslationFile",

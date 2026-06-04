@@ -65,7 +65,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         OptionsTok: Label 'Option1,Option2,Option3';
         Option1Tok: Label 'Option1';
         NoTok: Label 'No';
-        ExistingInspectiontErr: Label 'The test %1 exists on %2 inspections (such as %3 with template %4). The test can not be deleted if it is being used on a Quality Inspection.', Comment = '%1=the test, %2=count of inspections, %3=one example inspection, %4=example template.';
+        ExistingInspectiontErr: Label 'The test %1 exists on %2 inspections (such as %3 with template %4). The test cannot be deleted if it is being used on a quality inspection.', Comment = '%1=the test, %2=count of inspections, %3=one example inspection, %4=example template.';
         DescriptionTxt: Label 'Specific Gravity';
         SuggestedCodeTxtTestValueTxt: Label 'SPECIFICGRAVITY';
         Description2Txt: Label '><{}.@!`~''"|\/?&*()-_$#-=,%%:ELECTRICAL CONDUCTIVITY';

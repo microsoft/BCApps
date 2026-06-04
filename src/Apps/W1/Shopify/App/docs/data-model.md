@@ -8,6 +8,10 @@ The Shop table is the center of the configuration universe. Every sync operation
 
 Synchronization Info stores the last sync timestamp per shop and sync type (products, customers, orders, inventory, etc.). It is keyed on Shop Code + Synchronization Type. For order sync specifically, the key is the Shop's integer hash (`"Shop Id"`) rather than the Shop Code -- this allows multiple BC companies connected to the same Shopify store to share one order sync cursor without re-importing the same orders.
 
+The Shop table includes plan-based feature flags. The `"Advanced Shopify Plan"` field (207) is set to true for Plus, Plus Trial, Development, and Advanced plans, and currently gates staff member features. The old `"B2B Enabled"` field (117) has been obsoleted (CLEAN29/CLEANSCHEMA32 guards) -- B2B features are now unconditionally available on all plans.
+
+*Updated: 2026-04-08 -- B2B Enabled obsoleted, Advanced Shopify Plan added*
+
 Shop Location maps Shopify fulfillment locations to BC warehouse locations. Each mapping includes a stock calculation enum that determines how to compute available stock for that pairing.
 
 ```mermaid
@@ -131,11 +135,15 @@ erDiagram
     COMPANY }o--|| SHOP : belongs_to
 ```
 
-The B2B order flow differs from D2C: when an order has a `"Company Id"`, the connector uses the company mapping strategy instead of the customer mapping strategy, and it looks up the company location to determine the bill-to/ship-to customer.
+The B2B order flow differs from D2C: when an order has a `"Company Id"`, the connector uses the company mapping strategy instead of the customer mapping strategy, and it looks up the company location to determine the bill-to/ship-to customer. B2B features (companies, catalogs, company sync) are available on all Shopify plans -- they are no longer gated by a plan-specific flag.
+
+*Updated: 2026-04-08 -- B2B no longer gated by plan*
 
 ## Payments and transactions
 
-Order Transactions record the individual payment events on an order (authorization, capture, refund). They are imported from Shopify and store amounts, gateway names, and status.
+Order Transactions record the individual payment events on an order (authorization, capture, refund). They are imported from Shopify and store amounts, gateway names, and status. A `"Shop"` field links each transaction to its Shop record (populated via upgrade DataTransfer from Order Header).
+
+*Updated: 2026-04-08 -- Shop field added to OrderTransaction*
 
 Gift Cards have their own table because they serve dual roles: as a line item when purchased and as a payment instrument when redeemed.
 

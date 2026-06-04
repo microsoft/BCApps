@@ -76,4 +76,11 @@ if ($DisableTestIsolation)
     $parameters["testRunnerCodeunitId"] = "130450" # Test Runner with Codeunit test isolation
 }
 
+if ($parameters["appName"] -eq "System Application Test" -or $parameters["appName"] -eq "Agent Test")
+{
+    Write-Host "Enabling AgentsFeature for '$($parameters["appName"])' tests"
+    Set-BcContainerServerConfiguration -containerName $parameters.ContainerName -keyName "AgentsFeatureEnabled" -keyValue "true"
+    Restart-BcContainer -containerName $parameters.ContainerName
+}
+
 return Invoke-TestsWithReruns -parameters $parameters

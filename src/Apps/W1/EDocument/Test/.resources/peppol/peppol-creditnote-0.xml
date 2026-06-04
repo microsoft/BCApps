@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<CreditNote xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
+	xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"
+	xmlns:ccts="urn:un:unece:uncefact:documentation:2"
+	xmlns:qdt="urn:oasis:names:specification:ubl:schema:xsd:QualifiedDatatypes-2"
+	xmlns:udt="urn:un:unece:uncefact:data:specification:UnqualifiedDataTypesSchemaModule:2"
+	xmlns="urn:oasis:names:specification:ubl:schema:xsd:CreditNote-2">
+	<cbc:CustomizationID>urn:cen.eu:en16931:2017#compliant#urn:fdc:peppol.eu:2017:poacc:billing:3.0</cbc:CustomizationID>
+	<cbc:ProfileID>urn:fdc:peppol.eu:2017:poacc:billing:01:1.0</cbc:ProfileID>
+	<cbc:ID>CN-5001</cbc:ID>
+	<cbc:IssueDate>2026-02-15</cbc:IssueDate>
+	<cbc:CreditNoteTypeCode>381</cbc:CreditNoteTypeCode>
+	<cbc:DocumentCurrencyCode>XYZ</cbc:DocumentCurrencyCode>
+	<cbc:BuyerReference>1</cbc:BuyerReference>
+	<cac:OrderReference>
+		<cbc:ID>5</cbc:ID>
+	</cac:OrderReference>
+	<cac:BillingReference>
+		<cac:InvoiceDocumentReference>
+			<cbc:ID>103033</cbc:ID>
+			<cbc:IssueDate>2026-01-22</cbc:IssueDate>
+		</cac:InvoiceDocumentReference>
+	</cac:BillingReference>
+	<cac:AccountingSupplierParty>
+		<cac:Party>
+			<cbc:EndpointID schemeID="0088">1234567890128</cbc:EndpointID>
+			<cac:PartyName>
+				<cbc:Name>CRONUS International</cbc:Name>
+			</cac:PartyName>
+			<cac:PostalAddress>
+				<cbc:StreetName>Main Street, 14</cbc:StreetName>
+				<cbc:CityName>Birmingham</cbc:CityName>
+				<cbc:PostalZone>B27 4KT</cbc:PostalZone>
+				<cac:Country>
+					<cbc:IdentificationCode>GB</cbc:IdentificationCode>
+				</cac:Country>
+			</cac:PostalAddress>
+			<cac:PartyTaxScheme>
+				<cbc:CompanyID>GB123456789</cbc:CompanyID>
+				<cac:TaxScheme>
+					<cbc:ID>VAT</cbc:ID>
+				</cac:TaxScheme>
+			</cac:PartyTaxScheme>
+			<cac:PartyLegalEntity>
+				<cbc:RegistrationName>CRONUS International</cbc:RegistrationName>
+				<cbc:CompanyID>123456789</cbc:CompanyID>
+			</cac:PartyLegalEntity>
+			<cac:Contact>
+				<cbc:Name>Jim Olive</cbc:Name>
+				<cbc:ElectronicMail>JO@contoso.com</cbc:ElectronicMail>
+			</cac:Contact>
+		</cac:Party>
+	</cac:AccountingSupplierParty>
+	<cac:AccountingCustomerParty>
+		<cac:Party>
+			<cbc:EndpointID schemeID="9932">789456278</cbc:EndpointID>
+			<cac:PartyIdentification>
+				<cbc:ID schemeID="0088">8712345000004</cbc:ID>
+			</cac:PartyIdentification>
+			<cac:PartyName>
+				<cbc:Name>The Cannon Group PLC</cbc:Name>
+			</cac:PartyName>
+			<cac:PostalAddress>
+				<cbc:StreetName>192 Market Square</cbc:StreetName>
+				<cbc:CityName>Birmingham</cbc:CityName>
+				<cbc:PostalZone>B27 4KT</cbc:PostalZone>
+				<cac:Country>
+					<cbc:IdentificationCode>GB</cbc:IdentificationCode>
+				</cac:Country>
+			</cac:PostalAddress>
+			<cac:PartyTaxScheme>
+				<cbc:CompanyID>GB789456278</cbc:CompanyID>
+				<cac:TaxScheme>
+					<cbc:ID>VAT</cbc:ID>
+				</cac:TaxScheme>
+			</cac:PartyTaxScheme>
+			<cac:PartyLegalEntity>
+				<cbc:RegistrationName>The Cannon Group PLC</cbc:RegistrationName>
+				<cbc:CompanyID>789456278</cbc:CompanyID>
+			</cac:PartyLegalEntity>
+			<cac:Contact>
+				<cbc:Name>Mr. Andy Teal</cbc:Name>
+			</cac:Contact>
+		</cac:Party>
+	</cac:AccountingCustomerParty>
+	<cac:PaymentMeans>
+		<cbc:PaymentMeansCode>30</cbc:PaymentMeansCode>
+		<cbc:PaymentDueDate>2026-03-15</cbc:PaymentDueDate>
+	</cac:PaymentMeans>
+	<cac:TaxTotal>
+		<cbc:TaxAmount currencyID="XYZ">500</cbc:TaxAmount>
+		<cac:TaxSubtotal>
+			<cbc:TaxableAmount currencyID="XYZ">2000</cbc:TaxableAmount>
+			<cbc:TaxAmount currencyID="XYZ">500</cbc:TaxAmount>
+			<cac:TaxCategory>
+				<cbc:ID>S</cbc:ID>
+				<cbc:Percent>25</cbc:Percent>
+				<cac:TaxScheme>
+					<cbc:ID>VAT</cbc:ID>
+				</cac:TaxScheme>
+			</cac:TaxCategory>
+		</cac:TaxSubtotal>
+	</cac:TaxTotal>
+	<cac:LegalMonetaryTotal>
+		<cbc:LineExtensionAmount currencyID="XYZ">2000</cbc:LineExtensionAmount>
+		<cbc:TaxExclusiveAmount currencyID="XYZ">2000</cbc:TaxExclusiveAmount>
+		<cbc:TaxInclusiveAmount currencyID="XYZ">2500</cbc:TaxInclusiveAmount>
+		<cbc:AllowanceTotalAmount currencyID="XYZ">0</cbc:AllowanceTotalAmount>
+		<cbc:PayableAmount currencyID="XYZ">2500</cbc:PayableAmount>
+	</cac:LegalMonetaryTotal>
+	<cac:CreditNoteLine>
+		<cbc:ID>10000</cbc:ID>
+		<cbc:CreditedQuantity unitCode="PCS">1</cbc:CreditedQuantity>
+		<cbc:LineExtensionAmount currencyID="XYZ">2000</cbc:LineExtensionAmount>
+		<cac:Item>
+			<cbc:Name>Bicycle - Return</cbc:Name>
+			<cac:StandardItemIdentification>
+				<cbc:ID>1000</cbc:ID>
+			</cac:StandardItemIdentification>
+			<cac:ClassifiedTaxCategory>
+				<cbc:ID>S</cbc:ID>
+				<cbc:Percent>25</cbc:Percent>
+				<cac:TaxScheme>
+					<cbc:ID>VAT</cbc:ID>
+				</cac:TaxScheme>
+			</cac:ClassifiedTaxCategory>
+		</cac:Item>
+		<cac:Price>
+			<cbc:PriceAmount currencyID="XYZ">2000.00</cbc:PriceAmount>
+			<cbc:BaseQuantity unitCode="PCS">1</cbc:BaseQuantity>
+		</cac:Price>
+	</cac:CreditNoteLine>
+</CreditNote>

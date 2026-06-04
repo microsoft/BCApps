@@ -209,7 +209,7 @@ table 20405 "Qlty. Inspection Header"
             Editable = false;
             TableRelation = "Qlty. Inspection Result".Code;
             Caption = 'Result Code';
-            ToolTip = 'Specifies the result is automatically determined based on the test value and result configuration.';
+            ToolTip = 'Specifies the result automatically calculated from inspection test lines based on their evaluation sequence. The calculation prioritizes lines that failed the acceptable quality level and then lines that have the lowest evaluation sequence.';
 
             trigger OnValidate()
             var
@@ -228,7 +228,7 @@ table 20405 "Qlty. Inspection Header"
         {
             Caption = 'Result';
             Editable = false;
-            ToolTip = 'Specifies the result description for this test result. The result is automatically determined based on the test value and result configuration.';
+            ToolTip = 'Specifies the description of the inspection result. This value is automatically retrieved from the result definition based on the Result Code field.';
             FieldClass = FlowField;
             CalcFormula = lookup("Qlty. Inspection Result"."Description" where("Code" = field("Result Code")));
         }
@@ -236,7 +236,7 @@ table 20405 "Qlty. Inspection Header"
         {
             Caption = 'Evaluation Sequence';
             Editable = false;
-            ToolTip = 'Specifies the associated evaluation sequence for this test result. The result is automatically determined based on the test value and result configuration.';
+            ToolTip = 'Specifies the associated evaluation sequence of the inspection result. The value is automatically determined from the result definition based on the Result Code field.';
         }
         field(35; "Location Code"; Code[10])
         {
@@ -991,6 +991,16 @@ table 20405 "Qlty. Inspection Header"
     procedure CreateReinspection()
     var
         NewlyCreatedReQltyInspectionHeader: Record "Qlty. Inspection Header";
+    begin
+        CreateReinspection(NewlyCreatedReQltyInspectionHeader);
+    end;
+
+    /// <summary>
+    /// Creates a Re-inspection and returns the created record.
+    /// </summary>
+    /// <param name="ReinspectionQltyInspectionHeader">The newly created re-inspection header.</param>
+    procedure CreateReinspection(var ReinspectionQltyInspectionHeader: Record "Qlty. Inspection Header")
+    var
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         Proceed: Boolean;
     begin
@@ -1007,7 +1017,7 @@ table 20405 "Qlty. Inspection Header"
         else
             Proceed := true;
         if Proceed then
-            QltyInspectionCreate.CreateReinspection(Rec, NewlyCreatedReQltyInspectionHeader);
+            QltyInspectionCreate.CreateReinspection(Rec, ReinspectionQltyInspectionHeader);
     end;
 
     /// <summary>

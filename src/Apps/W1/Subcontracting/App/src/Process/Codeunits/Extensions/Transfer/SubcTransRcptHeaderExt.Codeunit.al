@@ -11,11 +11,11 @@ codeunit 99001542 "Subc. Trans Rcpt Header Ext"
     [EventSubscriber(ObjectType::Table, Database::"Transfer Receipt Header", OnAfterCopyFromTransferHeader, '', false, false)]
     local procedure OnAfterCopyFromTransferHeader(var TransferReceiptHeader: Record "Transfer Receipt Header"; TransferHeader: Record "Transfer Header")
     begin
-        TransferReceiptHeader."Source Type" := TransferHeader."Source Type";
+        TransferReceiptHeader."Subc. Source Type" := TransferHeader."Subc. Source Type";
         TransferReceiptHeader."Source Subtype" := TransferHeader."Source Subtype";
         TransferReceiptHeader."Source ID" := TransferHeader."Source ID";
         TransferReceiptHeader."Source Ref. No." := TransferHeader."Source Ref. No.";
-        TransferReceiptHeader."Return Order" := TransferHeader."Return Order";
+        TransferReceiptHeader."Subc. Return Order" := TransferHeader."Subc. Return Order";
         TransferReceiptHeader."Subcontr. Purch. Order No." := TransferHeader."Subcontr. Purch. Order No.";
         TransferReceiptHeader."Subcontr. PO Line No." := TransferHeader."Subcontr. PO Line No.";
     end;
