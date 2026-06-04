@@ -844,6 +844,7 @@ table 20405 "Qlty. Inspection Header"
         QltyMgmtFeatureTelemetry: Codeunit "Qlty. Mgmt. Feature Telemetry";
     begin
         QltyMgmtFeatureTelemetry.LogFeatureUsage(ObjectType::Table, Database::"Qlty. Inspection Header", 'FinishInspection');
+
         FinishInspectionAndPrompt(true);
     end;
 
