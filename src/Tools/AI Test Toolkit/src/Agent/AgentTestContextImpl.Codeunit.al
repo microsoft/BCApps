@@ -194,7 +194,10 @@ codeunit 149049 "Agent Test Context Impl."
             repeat
                 if not TaskIDList.Contains(AgentTestTaskLog."Agent Task ID") then begin
                     TaskIDList.Add(AgentTestTaskLog."Agent Task ID");
-                    TaskIDTextList.Add(Format(AgentTestTaskLog."Agent Task ID"));
+                    // Format using XML/invariant culture (format 9) to avoid locale thousands
+                    // separators that would otherwise be split as extra IDs by the comma-based
+                    // serialization used in GetAgentTaskCount and ConvertCommaSeparatedToFilter.
+                    TaskIDTextList.Add(Format(AgentTestTaskLog."Agent Task ID", 0, 9));
                 end;
             until AgentTestTaskLog.Next() = 0;
 

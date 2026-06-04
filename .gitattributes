@@ -1,0 +1,16 @@
+* text=auto
+
+*.app binary
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
+*.ttf binary
+*.woff binary
+*.woff2 binary
+*.eot binary
+*.pdf binary
+*.zip binary
+*.dll binary
+*.exe binary
+*.snk binary
