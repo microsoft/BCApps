@@ -13,6 +13,7 @@ codeunit 132920 "ABS Blob Client Test"
     Subtype = Test;
 
     [Test]
+    [Scope('OnPrem')]
     procedure PutBlobBlockBlobStreamTest()
     var
         Response: Codeunit "ABS Operation Response";
@@ -47,6 +48,7 @@ codeunit 132920 "ABS Blob Client Test"
     end;
 
     [Test]
+    [Scope('OnPrem')]
     procedure PutMultipleBlocksTextToSingleBlobTest()
     var
         Response: Codeunit "ABS Operation Response";
@@ -116,6 +118,7 @@ codeunit 132920 "ABS Blob Client Test"
     end;
 
     [Test]
+    [Scope('OnPrem')]
     procedure ListBlobsTest()
     var
         TempABSContainerContent: Record "ABS Container Content";
@@ -162,6 +165,7 @@ codeunit 132920 "ABS Blob Client Test"
     end;
 
     [Test]
+    [Scope('OnPrem')]
     procedure ListBlobsTestNextMarker()
     var
         ABSOperationResponse: Codeunit "ABS Operation Response";
@@ -215,6 +219,7 @@ codeunit 132920 "ABS Blob Client Test"
     end;
 
     [Test] // Failing if ran against azurite, as BLOB tags are not supported there
+    [Scope('OnPrem')]
     procedure ListBlobsTestIncludeTags()
     var
         ABSOperationResponse: Codeunit "ABS Operation Response";
@@ -264,6 +269,7 @@ codeunit 132920 "ABS Blob Client Test"
     end;
 
     [Test]
+    [Scope('OnPrem')]
     procedure ListBlobHierarchyTest()
     var
         TempABSContainerContent: Record "ABS Container Content";
@@ -455,6 +461,7 @@ codeunit 132920 "ABS Blob Client Test"
     end;
 
     [Test] // Failing if ran against azurite, as BLOB tags are not supported there
+    [Scope('OnPrem')]
     procedure GetBlockBlobTagsTest()
     var
         ABSOperationResponse: Codeunit "ABS Operation Response";
@@ -501,6 +508,7 @@ codeunit 132920 "ABS Blob Client Test"
     end;
 
     [Test] // Failing if ran against azurite, as BLOB tags are not supported there
+    [Scope('OnPrem')]
     procedure GetBlockBlobChangedTagsTest()
     var
         ABSOperationResponse: Codeunit "ABS Operation Response";
@@ -558,6 +566,7 @@ codeunit 132920 "ABS Blob Client Test"
     end;
 
     [Test] // Failing if ran against azurite, as BLOB tags are not supported there
+    [Scope('OnPrem')]
     procedure GetBlockBlobEmptyTagsTest()
     var
         ABSOperationResponse: Codeunit "ABS Operation Response";
@@ -600,6 +609,7 @@ codeunit 132920 "ABS Blob Client Test"
     end;
 
     [Test]
+    [Scope('OnPrem')]
     procedure LeaseBlobTest()
     var
         Response: Codeunit "ABS Operation Response";
@@ -659,6 +669,7 @@ codeunit 132920 "ABS Blob Client Test"
     end;
 
     [Test]
+    [Scope('OnPrem')]
     procedure GetBlobPropertiesTest()
     var
         ABSOperationResponse: Codeunit "ABS Operation Response";
@@ -697,6 +708,7 @@ codeunit 132920 "ABS Blob Client Test"
     end;
 
     [Test]
+    [Scope('OnPrem')]
     procedure BlobExistsTest()
     var
         ABSOperationResponse: Codeunit "ABS Operation Response";
@@ -815,6 +827,7 @@ codeunit 132920 "ABS Blob Client Test"
     end;
 
     [Test] // Failing if ran against azurite, as BLOB MetaData are not supported there
+    [Scope('OnPrem')]
     procedure GetBlockBlobMetaDataTest()
     var
         ABSOperationResponse: Codeunit "ABS Operation Response";

@@ -24,12 +24,12 @@ codeunit 133954 "Library Mock Agent"
         TempUserSettings: Record "User Settings" temporary;
         Agent: Codeunit Agent;
     begin
+        EnsureEnabledSuperUserExists();
+
         AgentRecord.SetRange("Agent Metadata Provider", AgentRecord."Agent Metadata Provider"::"SDK Mock Agent");
         AgentRecord.SetFilter("User Name", AgentUserName);
         if AgentRecord.FindFirst() then
             exit(AgentRecord."User Security ID");
-
-        EnsureEnabledSuperUserExists();
 
         AgentId := Agent.Create("Agent Metadata Provider"::"SDK Mock Agent", AgentUserName, DisplayName, TempAgentAccessControl);
         Agent.Activate(AgentId);
@@ -108,8 +108,9 @@ codeunit 133954 "Library Mock Agent"
         if AccessControl.FindSet() then
             repeat
                 if User.Get(AccessControl."User Security ID") then
-                    if IsEnabledBusinessUser(User) then
-                        exit(true);
+                    if User."User Name" = SuperUserNameTok then
+                        if IsEnabledBusinessUser(User) then
+                            exit(true);
             until AccessControl.Next() = 0;
 
         exit(false);

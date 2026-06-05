@@ -8,7 +8,10 @@ codeunit 139629 "Library - E-Document"
 #pragma warning restore AA0247
 {
     EventSubscriberInstance = Manual;
-    Permissions = tabledata "E-Document Service" = rimd,
+    Permissions = tabledata "E-Document" = rimd,
+                    tabledata "E-Document Purchase Header" = r,
+                    tabledata "E-Document Service" = rimd,
+                    tabledata "E-Document Service Status" = rimd,
                     tabledata "E-Doc. Service Supported Type" = rimd,
                     tabledata "E-Doc. Mapping" = rimd;
 

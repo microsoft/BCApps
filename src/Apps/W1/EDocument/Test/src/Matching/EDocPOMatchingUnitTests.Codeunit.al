@@ -22,6 +22,8 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
 {
     Subtype = Test;
     TestType = UnitTest;
+    Permissions = tabledata "Purch. Rcpt. Header" = rimd,
+                  tabledata "Purch. Rcpt. Line" = rimd;
 
     var
         Vendor: Record Vendor;

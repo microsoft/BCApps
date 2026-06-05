@@ -24,6 +24,7 @@ codeunit 133528 EDocCopilotPOGeneralHarms
         //AdversarialSimulation: Codeunit "Adversarial Simulation";
         LibraryERM: Codeunit "Library - ERM";
         LibraryPurchase: Codeunit "Library - Purchase";
+        LibraryUtility: Codeunit "Library - Utility";
         Initialized: Boolean;
 
     local procedure Initialize()
@@ -137,6 +138,8 @@ codeunit 133528 EDocCopilotPOGeneralHarms
         GenJournalTemplate: Record "Gen. Journal Template";
         PurchasesPayablesSetup: Record "Purchases & Payables Setup";
     begin
+        LibraryUtility.UpdateSetupNoSeriesCode(
+            Database::"Purchases & Payables Setup", PurchasesPayablesSetup.FieldNo("Vendor Nos."));
         LibraryPurchase.SetOrderNoSeriesInSetup();
         LibraryPurchase.SetPostedNoSeriesInSetup();
         LibraryERM.CreateGenJournalTemplate(GenJournalTemplate);

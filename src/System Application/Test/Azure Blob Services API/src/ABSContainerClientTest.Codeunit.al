@@ -13,6 +13,7 @@ codeunit 132919 "ABS Container Client Test"
     Subtype = Test;
 
     [Test]
+    [Scope('OnPrem')]
     procedure CreateContainerSharedKeyTest()
     var
         Response: Codeunit "ABS Operation Response";
@@ -35,6 +36,7 @@ codeunit 132919 "ABS Container Client Test"
     end;
 
     [Test]
+    [Scope('OnPrem')]
     procedure CreateContainerFailedTest()
     var
         Response: Codeunit "ABS Operation Response";
@@ -60,6 +62,7 @@ codeunit 132919 "ABS Container Client Test"
     end;
 
     [Test]
+    [Scope('OnPrem')]
     procedure ListContainersTest()
     var
         TempContainers: Record "ABS Container";
@@ -95,6 +98,7 @@ codeunit 132919 "ABS Container Client Test"
     end;
 
     [Test]
+    [Scope('OnPrem')]
     procedure LeaseContainerTest()
     var
         Response: Codeunit "ABS Operation Response";

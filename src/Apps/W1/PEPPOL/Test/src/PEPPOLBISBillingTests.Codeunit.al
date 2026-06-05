@@ -1345,6 +1345,7 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         Customer.Get(CreateCustomerWithAddressAndGLN());
         LibraryService.CreateServiceHeader(ServiceHeader, ServiceHeader."Document Type"::Invoice, Customer."No.");
         ServiceHeader.Validate("Due Date", LibraryRandom.RandDate(10));
+        ServiceHeader.Validate("E-Mail", 'sellto@example.com');
         ServiceHeader.Modify(true);
         CreateVATPostingSetupWithTATCalcType(
           VATPostingSetup, ServiceHeader."VAT Bus. Posting Group", GetTaxCategoryS(),
@@ -1795,6 +1796,7 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         LibraryService.CreateServiceHeader(ServiceHeader, DocumentType, Customer."No.");
         ServiceHeader.Validate("Due Date", LibraryRandom.RandDate(10));
         ServiceHeader.Validate("Currency Code", CurrencyCode);
+        ServiceHeader.Validate("E-Mail", 'sellto@example.com');
         ServiceHeader.Modify(true);
         LibraryService.CreateServiceLineWithQuantity(
           ServiceLine, ServiceHeader, ServiceLine.Type::"G/L Account", LibraryERM.CreateGLAccountWithSalesSetup(), 1);
