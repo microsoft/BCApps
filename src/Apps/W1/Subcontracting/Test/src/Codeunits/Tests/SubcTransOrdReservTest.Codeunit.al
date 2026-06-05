@@ -6,6 +6,8 @@ namespace Microsoft.Manufacturing.Subcontracting.Test;
 
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Journal;
+using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.Document;
@@ -159,6 +161,98 @@ codeunit 149915 "Subc. TransOrd. Reserv. Test"
         Assert.AreEqual(18, TransferLine."Quantity (Base)", 'Transfer line base qty should reflect the reduced PO qty');
     end;
 
+    [Test]
+    procedure ExcessLotQuantityReceiptReservesOnlyComponentNeed()
+    var
+        Item: Record Item;
+        ProdOrderComponent: Record "Prod. Order Component";
+        ProductionOrder: Record "Production Order";
+        TransferReceiptLine: Record "Transfer Receipt Line";
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        WorkCenter: array[2] of Record "Work Center";
+        MachineCenter: array[2] of Record "Machine Center";
+    begin
+        // [SCENARIO 634465] Receiving a transfer back from the subcontractor with a lot quantity that exceeds the component need must reserve only the remaining need and leave the excess as free inventory instead of failing with "Reserved quantity cannot be greater than 0".
+
+        // [GIVEN] A transfer-subcontracting released production order whose lot-tracked component needs 10
+        Initialize();
+        SetupTransferReservationScenario(Item, WorkCenter, MachineCenter, ProductionOrder, ProdOrderComponent, 10, 1, false);
+        EnableLotTrackingOnTransferComponent(Item);
+
+        // [GIVEN] 15 lot-tracked units of the component were received at the component location (5 more than needed)
+        PostComponentInventoryAsLot(ProdOrderComponent."Item No.", ProdOrderComponent."Location Code", 'LOT01', 15);
+        FindPostedComponentItemLedgerEntry(ItemLedgerEntry, ProdOrderComponent."Item No.", ProdOrderComponent."Location Code");
+
+        // [WHEN] The posted transfer receipt line is reserved against the production order component
+        BuildTransferReceiptLineForComponent(TransferReceiptLine, ProdOrderComponent, ItemLedgerEntry);
+        SubcontractingManagement.TransferReservationEntryFromPstTransferLineToProdOrderComp(TransferReceiptLine);
+
+        // [THEN] Only the component need (10) is reserved in a single capped reservation; the 5 excess units stay as free inventory
+        Assert.AreEqual(10, SubcontractingManagement.GetComponentReservedQtyBase(ProdOrderComponent), 'Only the component need must be reserved');
+        Assert.AreEqual(1, CountProdOrderComponentReservations(ProdOrderComponent), 'A single capped lot reservation must be created on the component');
+    end;
+
+    [Test]
+    procedure ExcessSerialQuantityReceiptReservesOnlyComponentNeed()
+    var
+        Item: Record Item;
+        ProdOrderComponent: Record "Prod. Order Component";
+        ProductionOrder: Record "Production Order";
+        TransferReceiptLine: Record "Transfer Receipt Line";
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        WorkCenter: array[2] of Record "Work Center";
+        MachineCenter: array[2] of Record "Machine Center";
+    begin
+        // [SCENARIO 636820] Receiving serial-tracked units in excess of the component need must reserve only the needed serials and skip the excess serials instead of failing with "Reserved quantity cannot be greater than 0".
+
+        // [GIVEN] A transfer-subcontracting released production order whose serial-tracked component needs 3
+        Initialize();
+        SetupTransferReservationScenario(Item, WorkCenter, MachineCenter, ProductionOrder, ProdOrderComponent, 3, 1, true);
+
+        // [GIVEN] 5 serial-tracked units of the component were received at the component location (2 more than needed)
+        PostComponentInventoryAsSerials(ProdOrderComponent."Item No.", ProdOrderComponent."Location Code", 5);
+        FindPostedComponentItemLedgerEntry(ItemLedgerEntry, ProdOrderComponent."Item No.", ProdOrderComponent."Location Code");
+
+        // [WHEN] The posted transfer receipt line is reserved against the production order component
+        BuildTransferReceiptLineForComponent(TransferReceiptLine, ProdOrderComponent, ItemLedgerEntry);
+        SubcontractingManagement.TransferReservationEntryFromPstTransferLineToProdOrderComp(TransferReceiptLine);
+
+        // [THEN] Exactly three serials are reserved and the two excess serials stay as free inventory
+        Assert.AreEqual(3, SubcontractingManagement.GetComponentReservedQtyBase(ProdOrderComponent), 'Only the needed serials must be reserved');
+        Assert.AreEqual(3, CountProdOrderComponentReservations(ProdOrderComponent), 'Exactly three serial reservations must be created on the component');
+    end;
+
+    [Test]
+    procedure ExcessPackageQuantityReceiptReservesOnlyComponentNeed()
+    var
+        Item: Record Item;
+        ProdOrderComponent: Record "Prod. Order Component";
+        ProductionOrder: Record "Production Order";
+        TransferReceiptLine: Record "Transfer Receipt Line";
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        WorkCenter: array[2] of Record "Work Center";
+        MachineCenter: array[2] of Record "Machine Center";
+    begin
+        // [SCENARIO 634465] Package-tracked quantity is divisible like a lot, so receiving more than the component need must reserve only the remaining need and leave the excess as free inventory instead of failing with "Reserved quantity cannot be greater than 0".
+
+        // [GIVEN] A transfer-subcontracting released production order whose package-tracked component needs 10
+        Initialize();
+        SetupTransferReservationScenario(Item, WorkCenter, MachineCenter, ProductionOrder, ProdOrderComponent, 10, 1, false);
+        EnablePackageTrackingOnTransferComponent(Item);
+
+        // [GIVEN] 15 package-tracked units of the component were received at the component location (5 more than needed)
+        PostComponentInventoryAsPackage(ProdOrderComponent."Item No.", ProdOrderComponent."Location Code", 'PKG01', 15);
+        FindPostedComponentItemLedgerEntry(ItemLedgerEntry, ProdOrderComponent."Item No.", ProdOrderComponent."Location Code");
+
+        // [WHEN] The posted transfer receipt line is reserved against the production order component
+        BuildTransferReceiptLineForComponent(TransferReceiptLine, ProdOrderComponent, ItemLedgerEntry);
+        SubcontractingManagement.TransferReservationEntryFromPstTransferLineToProdOrderComp(TransferReceiptLine);
+
+        // [THEN] Only the component need (10) is reserved in a single capped reservation; the 5 excess units stay as free inventory
+        Assert.AreEqual(10, SubcontractingManagement.GetComponentReservedQtyBase(ProdOrderComponent), 'Only the component need must be reserved');
+        Assert.AreEqual(1, CountProdOrderComponentReservations(ProdOrderComponent), 'A single capped package reservation must be created on the component');
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Subc. TransOrd. Reserv. Test");
@@ -192,7 +286,7 @@ codeunit 149915 "Subc. TransOrd. Reserv. Test"
         SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, true);
         SubcWarehouseLibrary.CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
         SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
-        SubcontractingMgmtLibrary.UpdateProdBomWithSubcontractingType(Item, "Subcontracting Type"::Transfer);
+        SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Transfer to Vendor");
         UpdateTransferComponentQuantityPer(Item, ComponentQtyPer);
         if SerialTrackedComponent then
             EnableSerialTrackingOnTransferComponent(Item);
@@ -248,6 +342,100 @@ codeunit 149915 "Subc. TransOrd. Reserv. Test"
         ComponentItem.Modify(true);
     end;
 
+    local procedure EnableLotTrackingOnTransferComponent(Item: Record Item)
+    var
+        ComponentItem: Record Item;
+        ProductionBOMLine: Record "Production BOM Line";
+        ItemTrackingCode: Record "Item Tracking Code";
+        LotNoSeries: Record "No. Series";
+        LotNoSeriesLine: Record "No. Series Line";
+    begin
+        ProductionBOMLine.SetRange("Production BOM No.", Item."Production BOM No.");
+        ProductionBOMLine.FindLast();
+        ComponentItem.Get(ProductionBOMLine."No.");
+
+        LibraryUtility.CreateNoSeries(LotNoSeries, true, true, false);
+        LibraryUtility.CreateNoSeriesLine(LotNoSeriesLine, LotNoSeries.Code, 'L0000000001', 'L0000000999');
+        LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, false, true, false);
+
+        ComponentItem.Validate("Item Tracking Code", ItemTrackingCode.Code);
+        ComponentItem.Validate("Lot Nos.", LotNoSeries.Code);
+        ComponentItem.Modify(true);
+    end;
+
+    local procedure PostComponentInventoryAsLot(ItemNo: Code[20]; LocationCode: Code[10]; LotNo: Code[50]; Qty: Decimal)
+    var
+        ItemJournalLine: Record "Item Journal Line";
+        ReservationEntry: Record "Reservation Entry";
+    begin
+        LibraryInventory.CreateItemJournalLineInItemTemplate(ItemJournalLine, ItemNo, LocationCode, '', Qty);
+        LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, ItemJournalLine, '', LotNo, '', Qty);
+        LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+    end;
+
+    local procedure EnablePackageTrackingOnTransferComponent(Item: Record Item)
+    var
+        ComponentItem: Record Item;
+        ProductionBOMLine: Record "Production BOM Line";
+        ItemTrackingCode: Record "Item Tracking Code";
+    begin
+        ProductionBOMLine.SetRange("Production BOM No.", Item."Production BOM No.");
+        ProductionBOMLine.FindLast();
+        ComponentItem.Get(ProductionBOMLine."No.");
+
+        LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, false, false, true);
+
+        ComponentItem.Validate("Item Tracking Code", ItemTrackingCode.Code);
+        ComponentItem.Modify(true);
+    end;
+
+    local procedure PostComponentInventoryAsPackage(ItemNo: Code[20]; LocationCode: Code[10]; PackageNo: Code[50]; Qty: Decimal)
+    var
+        ItemJournalLine: Record "Item Journal Line";
+        ReservationEntry: Record "Reservation Entry";
+    begin
+        LibraryInventory.CreateItemJournalLineInItemTemplate(ItemJournalLine, ItemNo, LocationCode, '', Qty);
+        LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, ItemJournalLine, '', '', PackageNo, Qty);
+        LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+    end;
+
+    local procedure PostComponentInventoryAsSerials(ItemNo: Code[20]; LocationCode: Code[10]; Qty: Integer)
+    var
+        ItemJournalLine: Record "Item Journal Line";
+        ReservationEntry: Record "Reservation Entry";
+        i: Integer;
+    begin
+        // All serials are posted from a single journal line so the resulting item ledger entries
+        // share the same Document No. and Document Line No. (as a real transfer receipt would).
+        LibraryInventory.CreateItemJournalLineInItemTemplate(ItemJournalLine, ItemNo, LocationCode, '', Qty);
+        for i := 1 to Qty do
+            LibraryItemTracking.CreateItemJournalLineItemTracking(
+                ReservationEntry, ItemJournalLine, CopyStr(StrSubstNo(SerialNoTok, i), 1, 50), '', '', 1);
+        LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+    end;
+
+    local procedure FindPostedComponentItemLedgerEntry(var ItemLedgerEntry: Record "Item Ledger Entry"; ItemNo: Code[20]; LocationCode: Code[10])
+    begin
+        ItemLedgerEntry.SetRange("Item No.", ItemNo);
+        ItemLedgerEntry.SetRange("Location Code", LocationCode);
+        ItemLedgerEntry.SetRange(Positive, true);
+        ItemLedgerEntry.FindFirst();
+    end;
+
+    local procedure BuildTransferReceiptLineForComponent(var TransferReceiptLine: Record "Transfer Receipt Line"; ProdOrderComponent: Record "Prod. Order Component"; ItemLedgerEntry: Record "Item Ledger Entry")
+    begin
+        // The reservation procedure only reads the transfer receipt line, so an in-memory record is sufficient.
+        TransferReceiptLine.Init();
+        TransferReceiptLine."Document No." := ItemLedgerEntry."Document No.";
+        TransferReceiptLine."Line No." := ItemLedgerEntry."Document Line No.";
+        TransferReceiptLine."Item No." := ProdOrderComponent."Item No.";
+        TransferReceiptLine."Transfer-to Code" := ProdOrderComponent."Location Code";
+        TransferReceiptLine."Subc. Prod. Order No." := ProdOrderComponent."Prod. Order No.";
+        TransferReceiptLine."Subc. Prod. Order Line No." := ProdOrderComponent."Prod. Order Line No.";
+        TransferReceiptLine."Subc. Prod. Ord. Comp Line No." := ProdOrderComponent."Line No.";
+        TransferReceiptLine."Subc. Operation No." := '10';
+    end;
+
     local procedure CreateSubcontractingPurchaseOrderAndReduceQuantity(Item: Record Item; WorkCenter: Record "Work Center"; ProductionOrder: Record "Production Order"; var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; ReducedQty: Decimal)
     begin
         SubcontractingMgmtLibrary.CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter."No.");
@@ -281,7 +469,7 @@ codeunit 149915 "Subc. TransOrd. Reserv. Test"
         ProdOrderComponent.SetRange(Status, ProductionOrder.Status);
         ProdOrderComponent.SetRange("Prod. Order No.", ProductionOrder."No.");
 #pragma warning disable AA0210
-        ProdOrderComponent.SetRange("Subcontracting Type", ProdOrderComponent."Subcontracting Type"::Transfer);
+        ProdOrderComponent.SetRange("Component Supply Method", ProdOrderComponent."Component Supply Method"::"Transfer to Vendor");
 #pragma warning restore AA0210
         ProdOrderComponent.FindFirst();
     end;
@@ -388,6 +576,7 @@ codeunit 149915 "Subc. TransOrd. Reserv. Test"
     var
         Assert: Codeunit Assert;
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
+        LibraryInventory: Codeunit "Library - Inventory";
         LibraryItemTracking: Codeunit "Library - Item Tracking";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
@@ -395,6 +584,7 @@ codeunit 149915 "Subc. TransOrd. Reserv. Test"
         LibraryUtility: Codeunit "Library - Utility";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         SubcontractingMgmtLibrary: Codeunit "Subc. Management Library";
+        SubcontractingManagement: Codeunit "Subcontracting Management";
         SubSetupLibrary: Codeunit "Subc. Setup Library";
         SubcWarehouseLibrary: Codeunit "Subc. Warehouse Library";
         IsInitialized: Boolean;

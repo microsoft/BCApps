@@ -37,6 +37,7 @@ codeunit 9029 "Azure AD User Sync Impl."
         FetchingUpdatesForDeviceGroupTxt: Label 'Fetching updates for device group.', Locked = true;
         ApplyingUserUpdateTxt: Label 'Applying update for user security ID [%1] with authentication object ID [%2]. Blank Guids indicate users not present in BC.', Comment = '%1 = user security ID (guid) and %2 = authentication object ID (guid)', Locked = true;
         FailedToUpdateUserTxt: Label 'Failed to update user record. Error details: [%1]', Comment = '%1 = ErrorCallStack', Locked = true;
+        UnknownUpdateErrorTxt: Label 'An unknown error occurred while applying the update.';
         UserCreatedTxt: Label 'A new user with authentication object ID [%1] and security ID [%2] has been created.', Comment = '%1 = authentication object ID (guid); %2 = user security ID (guid)', Locked = true;
         ApplyingEntityUpdateTxt: Label 'Updating %1 for user [%2]', Comment = '%1 = the update entity e.g. Full name, Plan etc.; %2 = user security ID (guid)', Locked = true;
         NewUserChangesTxt: Label 'A new user with authentication object ID [%1] received property [%2] from Graph.', Comment = '%1 = authentication object ID (guid); %2 = the update entity e.g. Full name, Plan etc.; %3 = new value of entity; %4 = original value of entity from Graph', Locked = true;
@@ -487,6 +488,7 @@ codeunit 9029 "Azure AD User Sync Impl."
     var
         User: Record User;
         UpdatedSuccessfully: Boolean;
+        ErrorText: Text;
     begin
         Session.LogMessage('0000BHN', StrSubstNo(ApplyingUserUpdateTxt, AzureADUserUpdate."User Security ID", AzureADUserUpdate."Authentication Object ID"), Verbosity::Normal, DataClassification::EndUserPseudonymousIdentifiers, TelemetryScope::ExtensionPublisher, 'Category', UserSetupCategoryTxt);
 
@@ -495,8 +497,14 @@ codeunit 9029 "Azure AD User Sync Impl."
             OnApplyUpdateFromAzureGraph(AzureADUserUpdate, User, UpdatedSuccessfully);
             if UpdatedSuccessfully then
                 NumberOfSuccessfulUpdates += 1
-            else
+            else begin
+                ErrorText := GetLastErrorText();
                 Session.LogMessage('0000BPA', StrSubstNo(FailedToUpdateUserTxt, GetLastErrorCallStack), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', UserSetupCategoryTxt);
+                if ErrorText = '' then
+                    ErrorText := UnknownUpdateErrorTxt;
+                AzureADUserUpdate."Error Message" := CopyStr(ErrorText, 1, MaxStrLen(AzureADUserUpdate."Error Message"));
+                AzureADUserUpdate.Modify();
+            end;
         until AzureADUserUpdate.Next() = 0;
         Commit();
     end;

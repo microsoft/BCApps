@@ -195,9 +195,9 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         Qty: Decimal;
     begin
         // [SCENARIO] When posting a subcontracting purchase order where the BOM has a component
-        // with Subcontracting Type = "Purchase with Service" and Flushing Method = Backward,
+        // with Component Supply Method = "Purchase with Service" and Flushing Method = Backward,
         // the component is consumed via backward flushing when the output is posted.
-        // BOM: 1 component item (Subcontracting Type = Purchase with Service, linked to Routing Line 100).
+        // BOM: 1 component item (Component Supply Method = Purchase with Service, linked to Routing Line 100).
         // Routing: 1 subcontracting line (Operation 100).
         // Purchase order has 2 lines: Finished Good (output) + Component (Purchase with Service).
         // After posting the purchase order:
@@ -234,12 +234,12 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
             ComponentItem, "Costing Method"::FIFO, LibraryRandom.RandInt(10),
             "Reordering Policy"::"Lot-for-Lot", "Flushing Method"::Backward, '', '');
 
-        // [GIVEN] A production BOM with one component, Subcontracting Type = Purchase with Service
+        // [GIVEN] A production BOM with one component, Component Supply Method = Purchase with Service
         LibraryManufacturing.CreateProductionBOMHeader(ProductionBOMHeader, ComponentItem."Base Unit of Measure");
         LibraryManufacturing.CreateProductionBOMLine(
             ProductionBOMHeader, ProductionBOMLine, '', ProductionBOMLine.Type::Item, ComponentItem."No.", 1);
         ProductionBOMLine.Validate("Routing Link Code", RoutingLink.Code);
-        ProductionBOMLine.Validate("Subcontracting Type", "Subcontracting Type"::Purchase);
+        ProductionBOMLine.Validate("Component Supply Method", "Component Supply Method"::"Vendor-Supplied");
         ProductionBOMLine.Modify(true);
         ProductionBOMHeader.Validate(Status, ProductionBOMHeader.Status::Certified);
         ProductionBOMHeader.Modify(true);
