@@ -9,6 +9,7 @@ using System.Azure.Identity;
 using System.Environment;
 using System.Feedback;
 using System.Reflection;
+using System.Text;
 using System.Utilities;
 
 codeunit 8351 "MCP Config Implementation"
@@ -1100,11 +1101,26 @@ codeunit 8351 "MCP Config Implementation"
             JsonBuilder.AppendLine('    "TenantId": "' + TenantId + '",');
             JsonBuilder.AppendLine('    "EnvironmentName": "' + EnvironmentName + '",');
         end;
-        JsonBuilder.AppendLine('    "Company": "' + Company + '",');
-        JsonBuilder.AppendLine('    "ConfigurationName": "' + ConfigurationName + '"');
+        // Company and ConfigurationName are the only header values the customer can populate
+        // with non-ASCII characters. The MCP server detects the "=?base64?<value>?=" wrapper
+        // and decodes the UTF-8 bytes; ASCII values are emitted unchanged to remain
+        // backward-compatible with existing client configurations.
+        JsonBuilder.AppendLine('    "Company": "' + EncodeForMCPHeaderIfNonAscii(Company) + '",');
+        JsonBuilder.AppendLine('    "ConfigurationName": "' + EncodeForMCPHeaderIfNonAscii(ConfigurationName) + '"');
         JsonBuilder.AppendLine('  }');
         JsonBuilder.AppendLine('}');
         exit(JsonBuilder.ToText());
+    end;
+
+    internal procedure EncodeForMCPHeaderIfNonAscii(Value: Text): Text
+    var
+        Base64Convert: Codeunit "Base64 Convert";
+        Regex: Codeunit Regex;
+    begin
+        if not Regex.IsMatch(Value, '[^\x00-\x7F]') then
+            exit(Value);
+
+        exit('=?base64?' + Base64Convert.ToBase64(Value, TextEncoding::UTF8) + '?=');
     end;
 
     internal procedure CreateEntraApplication(Name: Text[100]; Description: Text[250]; ClientId: Guid)

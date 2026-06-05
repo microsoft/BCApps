@@ -92,7 +92,7 @@ codeunit 149909 "Subc. Whse Data Integrity"
         SubcWarehouseLibrary.CreateLocationWithWarehouseHandling(Location);
 
         Vendor.Get(WorkCenter[1]."Subcontractor No.");
-        Vendor."Subcontr. Location Code" := Location.Code;
+        Vendor."Subc. Location Code" := Location.Code;
         Vendor."Location Code" := Location.Code;
         Vendor.Modify();
 
@@ -145,7 +145,7 @@ codeunit 149909 "Subc. Whse Data Integrity"
         SubcWarehouseLibrary.CreateLocationWithWarehouseHandling(Location);
 
         Vendor.Get(WorkCenter[2]."Subcontractor No.");
-        Vendor."Subcontr. Location Code" := Location.Code;
+        Vendor."Subc. Location Code" := Location.Code;
         Vendor."Location Code" := Location.Code;
         Vendor.Modify();
 
@@ -203,7 +203,7 @@ codeunit 149909 "Subc. Whse Data Integrity"
         SubcWarehouseLibrary.CreateLocationWithWarehouseHandling(Location);
 
         Vendor.Get(WorkCenter[2]."Subcontractor No.");
-        Vendor."Subcontr. Location Code" := Location.Code;
+        Vendor."Subc. Location Code" := Location.Code;
         Vendor."Location Code" := Location.Code;
         Vendor.Modify();
 
@@ -260,7 +260,7 @@ codeunit 149909 "Subc. Whse Data Integrity"
         SubcWarehouseLibrary.CreateLocationWithWarehouseHandling(Location);
 
         Vendor.Get(WorkCenter[2]."Subcontractor No.");
-        Vendor."Subcontr. Location Code" := Location.Code;
+        Vendor."Subc. Location Code" := Location.Code;
         Vendor."Location Code" := Location.Code;
         Vendor.Modify();
 
@@ -339,7 +339,7 @@ codeunit 149909 "Subc. Whse Data Integrity"
 
         // [GIVEN] Configure Vendor
         Vendor.Get(WorkCenter[2]."Subcontractor No.");
-        Vendor."Subcontr. Location Code" := Location.Code;
+        Vendor."Subc. Location Code" := Location.Code;
         Vendor."Location Code" := Location.Code;
         Vendor.Modify();
 

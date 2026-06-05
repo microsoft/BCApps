@@ -82,7 +82,7 @@ tableextension 99001512 "Subc. Purchase Line" extends "Purchase Line"
             DataClassification = CustomerContent;
             Editable = false;
         }
-        field(99001550; "Whse. Outstanding Quantity"; Decimal)
+        field(99001550; "Subc.Whse.Outstanding Quantity"; Decimal)
         {
             AccessByPermission = TableData Location = R;
             AutoFormatType = 0;
@@ -105,6 +105,12 @@ tableextension 99001512 "Subc. Purchase Line" extends "Purchase Line"
             ToolTip = 'Specifies whether this purchase line is linked to a WIP item transfer operation.';
         }
     }
+
+    keys
+    {
+        key(SubcPurchLineKey; "Subc. Purchase Line Type") { }
+    }
+
     procedure GetQuantityPerUOM(): Decimal
     var
         ItemUnitofMeasure: Record "Item Unit of Measure";

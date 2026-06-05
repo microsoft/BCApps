@@ -25,25 +25,25 @@ pageextension 99001504 "Subc. Rel. Prod. Order" extends "Released Production Ord
         }
         addafter("Item Ledger E&ntries")
         {
-            action("Subcontracting Transfer Entries")
+            action("Subc. Transfer Entries")
             {
                 ApplicationArea = Manufacturing;
                 Caption = 'Subcontracting Transfer Entries';
                 Image = ItemLedger;
                 RunObject = page "Item Ledger Entries";
                 RunPageLink = "Entry Type" = const(Transfer),
-                                      "Prod. Order No." = field("No.");
+                                      "Subc. Prod. Order No." = field("No.");
                 RunPageView = sorting("Order Type", "Order No.");
                 ToolTip = 'View the list of subcontracting transfers.';
             }
             action("WIP Ledger Entries")
             {
                 ApplicationArea = Manufacturing;
-                Caption = 'WIP Ledger Entries';
+                Caption = 'Subcontracting WIP Entries';
                 Image = LedgerEntries;
                 RunObject = page "Subc. WIP Ledger Entries";
                 RunPageLink = "Prod. Order Status" = field(Status), "Prod. Order No." = field("No.");
-                ToolTip = 'View the Subcontractor WIP Ledger Entries for this production order.';
+                ToolTip = 'View the Subcontracting WIP Entries for this production order.';
             }
         }
         addlast("F&unctions")
