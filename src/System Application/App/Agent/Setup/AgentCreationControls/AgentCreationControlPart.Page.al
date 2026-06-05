@@ -60,6 +60,7 @@ page 4332 "Agent Creation Control Part"
                 }
                 field(Description; Rec.Description)
                 {
+                    ShowMandatory = true;
                 }
             }
         }
@@ -100,7 +101,7 @@ page 4332 "Agent Creation Control Part"
         CreationControlLookup.LookupMode := true;
         if CreationControlLookup.RunModal() = Action::LookupOK then begin
             CreationControlLookup.GetRecord(TempAgentCreationControlLookup);
-            Rec."Company Name" := CopyStr(TempAgentCreationControlLookup."Key", 1, MaxStrLen(Rec."Company Name"));
+            Rec.Validate(Rec."Company Name", CopyStr(TempAgentCreationControlLookup."Key", 1, MaxStrLen(Rec."Company Name")));
             UpdateDisplayTexts();
         end;
     end;

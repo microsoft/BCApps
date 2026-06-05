@@ -239,17 +239,16 @@ page 99001504 "Subc. Subcontracting Worksheet"
                     ToolTip = 'Specifies whether the items on the line have been approved for purchase.';
                     Visible = false;
                 }
-                field("Standard Task Code"; Rec."Standard Task Code")
+                field("Subc. Standard Task Code"; Rec."Subc. Standard Task Code")
                 {
                     ApplicationArea = Manufacturing;
-                    Editable = false;
                 }
-                field("Pricelist Cost"; Rec."Pricelist Cost")
+                field("Subc. Pricelist Cost"; Rec."Subc. Pricelist Cost")
                 {
                     ApplicationArea = Manufacturing;
                     Visible = false;
                 }
-                field("UoM for Pricelist"; Rec."UoM for Pricelist")
+                field("Subc. UoM for Pricelist"; Rec."Subc. UoM for Pricelist")
                 {
                     ApplicationArea = Manufacturing;
                     Visible = false;
@@ -317,9 +316,9 @@ page 99001504 "Subc. Subcontracting Worksheet"
     {
         area(navigation)
         {
-            group("&Line")
+            group(Line)
             {
-                Caption = '&Line';
+                Caption = 'Line';
                 Image = Line;
                 action(Card)
                 {
@@ -330,10 +329,10 @@ page 99001504 "Subc. Subcontracting Worksheet"
                     ShortCutKey = 'Shift+F7';
                     ToolTip = 'View or change detailed information about the record on the document or journal line.';
                 }
-                action("Item &Tracking Lines")
+                action(ItemTrackingLines)
                 {
                     ApplicationArea = ItemTracking;
-                    Caption = 'Item &Tracking Lines';
+                    Caption = 'Item Tracking Lines';
                     Image = ItemTrackingLines;
                     ShortCutKey = 'Ctrl+Alt+I';
                     ToolTip = 'View or edit serial, lot and package numbers that are assigned to the item on the document or journal line.';
@@ -362,9 +361,9 @@ page 99001504 "Subc. Subcontracting Worksheet"
         }
         area(processing)
         {
-            group("F&unctions")
+            group("Functions")
             {
-                Caption = 'F&unctions';
+                Caption = 'Functions';
                 Image = "Action";
                 action("Calculate Subcontracts")
                 {
@@ -385,7 +384,7 @@ page 99001504 "Subc. Subcontracting Worksheet"
                 action(CarryOutActionMessage)
                 {
                     ApplicationArea = Manufacturing;
-                    Caption = 'Carry &Out Action Message';
+                    Caption = 'Carry Out Action Message';
                     Ellipsis = true;
                     Image = CarryOutActionMessage;
                     ToolTip = 'Use a batch job to help you create actual supply orders from the order proposals.';
@@ -414,7 +413,7 @@ page 99001504 "Subc. Subcontracting Worksheet"
             {
                 Caption = 'Line', Comment = 'Generated from the PromotedActionCategories property index 3.';
 
-                actionref("Item &Tracking Lines_Promoted"; "Item &Tracking Lines")
+                actionref(ItemTrackingLines_Promoted; ItemTrackingLines)
                 {
                 }
                 actionref(Dimensions_Promoted; Dimensions)

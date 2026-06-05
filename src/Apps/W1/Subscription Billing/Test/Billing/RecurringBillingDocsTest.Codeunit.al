@@ -776,6 +776,49 @@ codeunit 139687 "Recurring Billing Docs Test"
     end;
 
     [Test]
+    [HandlerFunctions('CreateVendorBillingDocsContractPageHandler,ExchangeRateSelectionModalPageHandler,MessageHandler')]
+    procedure CreateBillingDocumentsForVendorContractSetsRecurringBillingBeforeVendorValidation()
+    var
+        PayToVendor: Record Vendor;
+        PurchHdrSub: Codeunit "Rec. Billing Purch. Hdr. Sub.";
+    begin
+        // [SCENARIO #4302] When creating billing documents from a vendor contract where "Pay-to Vendor No."
+        // differs from "Buy-from Vendor No.", the purchase header must have "Recurring Billing" = true
+        // before "Pay-to Vendor No." is validated. Localization extensions that check "Recurring Billing"
+        // inside that validation (e.g., Hungarian localization) would otherwise raise an error.
+        Initialize();
+
+        // [GIVEN] A vendor contract with contract lines and a separate Pay-to Vendor
+        ContractTestLibrary.CreateVendorInLCY(PayToVendor);
+        ContractTestLibrary.CreateVendorContractAndCreateContractLinesForItems(VendorContract, ServiceObject, '');
+        ContractTestLibrary.DisableDeferralsForVendorContract(VendorContract, false);
+        VendorContract.SetHideValidationDialog(true);
+        VendorContract.Validate("Pay-to Vendor No.", PayToVendor."No.");
+        VendorContract.Modify(false);
+
+        // [GIVEN] A billing proposal for the vendor contract
+        ContractTestLibrary.CreateBillingProposal(BillingTemplate, Enum::"Service Partner"::Vendor);
+
+        // [GIVEN] A subscriber that errors if "Recurring Billing" is false when "Pay-to Vendor No." is validated
+        BindSubscription(PurchHdrSub);
+
+        // [WHEN] Billing documents are created from the proposal (subscriber errors if "Recurring Billing" is false during vendor validation)
+        CreateBillingDocuments(false);
+
+        // Unbind before assertions to ensure cleanup regardless of assertion results
+        UnbindSubscription(PurchHdrSub);
+
+        // [THEN] The created purchase header has "Recurring Billing" = true
+        BillingLine.SetFilter("Document No.", '<>%1', '');
+        BillingLine.FindFirst();
+        PurchaseHeader.Get(Enum::"Purchase Document Type"::Invoice, BillingLine."Document No.");
+        PurchaseHeader.TestField("Recurring Billing", true);
+
+        // [THEN] The Pay-to Vendor matches the contract
+        PurchaseHeader.TestField("Pay-to Vendor No.", PayToVendor."No.");
+    end;
+
+    [Test]
     [HandlerFunctions('CheckDialogConfirmHandler,ExchangeRateSelectionModalPageHandler,CreateVendorBillingDocsTestOpenPageHandler,MessageHandler')]
     procedure CheckVendorBillingProposalCanBeCreatedForPurchaseInvoiceExists()
     var

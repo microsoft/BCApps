@@ -11,7 +11,7 @@ using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 
-codeunit 139897 "E-Doc. Send Subscriber Test"
+codeunit 139899 "E-Doc. Send Subscriber Test"
 {
     Subtype = Test;
     TestPermissions = Disabled;

@@ -97,6 +97,11 @@ page 4300 "Agent Task List"
                         TaskPane.ShowAgent(Rec."Agent User Security ID");
                     end;
                 }
+                field(TaskArchived; Rec.Archived)
+                {
+                    Caption = 'Archived';
+                    ToolTip = 'Specifies whether the task is archived.';
+                }
                 field(CreatedByID; Rec."Created By")
                 {
                     Visible = false;
@@ -168,7 +173,41 @@ page 4300 "Agent Task List"
                 var
                     AgentTaskImpl: Codeunit "Agent Task Impl.";
                 begin
-                    AgentTaskImpl.StopTask(Rec, Rec."Status"::"Stopped by User", true);
+                    AgentTaskImpl.StopTask(Rec.ID, Rec."Status"::"Stopped by User", true);
+                    CurrPage.Update(false);
+                end;
+            }
+            action(Archive)
+            {
+                ApplicationArea = All;
+                Caption = 'Archive';
+                ToolTip = 'Archive the selected tasks.';
+                Enabled = TaskSelected;
+                Image = Archive;
+                Scope = Repeater;
+
+                trigger OnAction()
+                var
+                    SelectedAgentTask: Record "Agent Task";
+                    AgentTaskImpl: Codeunit "Agent Task Impl.";
+                    SelectedCount: Integer;
+                    UserConfirm: Boolean;
+                begin
+                    CurrPage.SetSelectionFilter(SelectedAgentTask);
+                    SelectedCount := SelectedAgentTask.Count();
+                    if SelectedCount = 0 then
+                        exit;
+
+                    if SelectedCount > 1 then
+                        if not Confirm(AreYouSureThatYouWantToArchiveTheTasksQst, false, SelectedCount) then
+                            exit;
+
+                    UserConfirm := SelectedCount = 1; // Only confirm from the ArchiveTask call when there is one task, otherwise we have already confirmed with the user.
+                    if SelectedAgentTask.FindSet() then
+                        repeat
+                            AgentTaskImpl.ArchiveTask(SelectedAgentTask.ID, UserConfirm);
+                        until SelectedAgentTask.Next() = 0;
+
                     CurrPage.Update(false);
                 end;
             }
@@ -201,6 +240,20 @@ page 4300 "Agent Task List"
             }
         }
     }
+
+    views
+    {
+        view(Archived)
+        {
+            Caption = 'Archived';
+            Filters = where(Archived = const(true));
+        }
+    }
+
+    trigger OnOpenPage()
+    begin
+        Rec.SetRange(Archived, false);
+    end;
 
     trigger OnAfterGetRecord()
     begin
@@ -241,4 +294,5 @@ page 4300 "Agent Task List"
         NumberOfStepsDone: Integer;
         TaskSelected: Boolean;
         ConsumedCredits: Decimal;
+        AreYouSureThatYouWantToArchiveTheTasksQst: Label 'Are you sure that you want to archive the %1 selected tasks?', Comment = '%1 = number of selected tasks';
 }

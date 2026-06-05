@@ -56,7 +56,7 @@ codeunit 139894 "EDoc Structured Validations"
         Assert.AreEqual('A123', EDocumentPurchaseLine."Product Code", 'The product code in the purchase line does not allign with the mock data.');
         Assert.AreEqual('hours', EDocumentPurchaseLine."Unit of Measure", 'The unit of measure in the purchase line does not allign with the mock data.');
         Assert.AreEqual(DMY2Date(4, 3, 2021), EDocumentPurchaseLine.Date, 'The date in the purchase line does not allign with the mock data.');
-        Assert.AreEqual(6, EDocumentPurchaseLine."VAT Rate", 'The amount in the purchase line does not allign with the mock data.');
+        Assert.AreEqual(10, EDocumentPurchaseLine."VAT Rate", 'The VAT rate in the purchase line does not match the expected percentage.');
 
         EDocumentPurchaseLine.Next();
         Assert.AreEqual(30, EDocumentPurchaseLine."Sub Total", 'The amount in the purchase line does not allign with the mock data.');
@@ -67,7 +67,7 @@ codeunit 139894 "EDoc Structured Validations"
         Assert.AreEqual('B456', EDocumentPurchaseLine."Product Code", 'The product code in the purchase line does not allign with the mock data.');
         Assert.AreEqual('', EDocumentPurchaseLine."Unit of Measure", 'The unit of measure in the purchase line does not allign with the mock data.');
         Assert.AreEqual(DMY2Date(5, 3, 2021), EDocumentPurchaseLine.Date, 'The date in the purchase line does not allign with the mock data.');
-        Assert.AreEqual(3, EDocumentPurchaseLine."VAT Rate", 'The amount in the purchase line does not allign with the mock data.');
+        Assert.AreEqual(10, EDocumentPurchaseLine."VAT Rate", 'The VAT rate in the purchase line does not match the expected percentage.');
 
         EDocumentPurchaseLine.Next();
         Assert.AreEqual(10, EDocumentPurchaseLine."Sub Total", 'The amount does not allign with the mock data.');
@@ -77,7 +77,7 @@ codeunit 139894 "EDoc Structured Validations"
         Assert.AreEqual('C789', EDocumentPurchaseLine."Product Code", 'The product code does not allign with the mock data.');
         Assert.AreEqual('pages', EDocumentPurchaseLine."Unit of Measure", 'The unit of measure does not allign with the mock data.');
         Assert.AreEqual(DMY2Date(6, 3, 2021), EDocumentPurchaseLine.Date, 'The date does not allign with the mock data.');
-        Assert.AreEqual(1, EDocumentPurchaseLine."VAT Rate", 'The amount does not allign with the mock data.');
+        Assert.AreEqual(10, EDocumentPurchaseLine."VAT Rate", 'The VAT rate in the purchase line does not match the expected percentage.');
     end;
 
     internal procedure AssertMinimalCAPIDocumentParsed(EDocumentEntryNo: Integer)
@@ -165,7 +165,7 @@ codeunit 139894 "EDoc Structured Validations"
         Assert.AreEqual(DMY2Date(15, 03, 2026), EDocumentPurchaseHeader."Due Date", 'The due date does not match the mock data.');
         Assert.AreEqual('XYZ', EDocumentPurchaseHeader."Currency Code", 'The currency code does not match the mock data.');
         Assert.AreEqual('5', EDocumentPurchaseHeader."Purchase Order No.", 'The order reference does not match the mock data.');
-        Assert.AreEqual('103033', EDocumentPurchaseHeader."Vendor Invoice No.", 'The billing reference (vendor invoice no.) does not match the mock data.');
+        Assert.AreEqual('103033', EDocumentPurchaseHeader."Applies-to Ext. Invoice No.", 'The billing reference (vendor invoice no.) does not match the mock data.');
         Assert.AreEqual('CRONUS International', EDocumentPurchaseHeader."Vendor Company Name", 'The vendor name does not match the mock data.');
         Assert.AreEqual('Main Street, 14', EDocumentPurchaseHeader."Vendor Address", 'The vendor street does not match the mock data.');
         Assert.AreEqual('GB123456789', EDocumentPurchaseHeader."Vendor VAT Id", 'The vendor VAT id does not match the mock data.');
@@ -439,7 +439,7 @@ codeunit 139894 "EDoc Structured Validations"
         // CreditNote without PaymentMeans/PaymentDueDate: DueDate should be blank
         Assert.AreEqual(0D, EDocumentPurchaseHeader."Due Date", 'Due Date should be blank when CreditNote has no PaymentMeans/PaymentDueDate.');
         Assert.AreEqual(ExpectedCurrencyCode('EUR', GLSetup."LCY Code"), EDocumentPurchaseHeader."Currency Code", 'The currency code does not match.');
-        Assert.AreEqual('Snippet1', EDocumentPurchaseHeader."Vendor Invoice No.", 'The BillingReference (Vendor Invoice No.) does not match.');
+        Assert.AreEqual('Snippet1', EDocumentPurchaseHeader."Applies-to Ext. Invoice No.", 'The BillingReference (Vendor Invoice No.) does not match.');
         Assert.AreEqual('SupplierTradingName Ltd.', EDocumentPurchaseHeader."Vendor Company Name", 'The vendor name does not match.');
         Assert.AreEqual('GB1232434', EDocumentPurchaseHeader."Vendor VAT Id", 'The vendor VAT id does not match.');
         Assert.AreEqual(1656.25, EDocumentPurchaseHeader.Total, 'The total does not match.');

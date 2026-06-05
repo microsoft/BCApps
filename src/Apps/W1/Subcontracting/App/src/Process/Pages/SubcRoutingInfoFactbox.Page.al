@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -12,12 +12,13 @@ page 99001502 "Subc. Routing Info Factbox"
     Caption = 'Subcontracting Routing Details';
     Editable = false;
     PageType = CardPart;
+    RefreshOnActivate = true;
     SourceTable = "Prod. Order Routing Line";
     layout
     {
         area(Content)
         {
-            field(ShowSubcontractor; SubcFactboxMgmt.GetSubcontractorNo(Rec))
+            field(ShowSubcontractor; SubcRoutingFactboxMgmt.GetSubcontractorNo(Rec))
             {
                 Caption = 'Subcontractor';
                 ToolTip = 'Specifies the assigned Subcontractor No. of this Prod. Order Routing Line.';
@@ -26,102 +27,100 @@ page 99001502 "Subc. Routing Info Factbox"
                     ShowSubcontractorFromRouting();
                 end;
             }
-            field(ShowQtyInSubcontractingOrder; SubcFactboxMgmt.GetPurchOrderQtyFromRoutingLine(Rec))
+            field(ShowQtyInSubcontractingOrder; SubcRoutingFactboxMgmt.GetPurchOrderQtyFromRoutingLine(Rec))
             {
                 AutoFormatType = 0;
-                Caption = 'Order Quantity';
+                Caption = 'Purch. Order Qty.';
                 DecimalPlaces = 0 : 5;
-                ToolTip = 'Specifies the depended Quantity in Subcontracting Orders of this Prod. Order Routing Line.';
+                ToolTip = 'Specifies the dependent Quantity in Subcontracting Orders of this Prod. Order Routing Line.';
                 trigger OnDrillDown()
                 begin
                     ShowPurchaseOrders();
                 end;
             }
-            field(ShowQtyShippedRequest; SubcFactboxMgmt.GetPurchReceiptQtyFromRoutingLine(Rec))
+            field(ShowQtyShippedRequest; SubcRoutingFactboxMgmt.GetPurchReceiptQtyFromRoutingLine(Rec))
             {
                 AutoFormatType = 0;
-                Caption = 'Quantity received';
+                Caption = 'Quantity Received';
                 DecimalPlaces = 0 : 5;
-                ToolTip = 'Specifies the depended Quantity received in Subcontracting Receipts of this Prod. Order Routing Line.';
+                ToolTip = 'Specifies the dependent Quantity Received in Subcontracting Receipts of this Prod. Order Routing Line.';
                 trigger OnDrillDown()
                 begin
                     ShowPurchaseReceipts();
                 end;
             }
-            field(ShowQtyInvoicedRequest; SubcFactboxMgmt.GetPurchInvoicedQtyFromRoutingLine(Rec))
+            field(ShowQtyInvoicedRequest; SubcRoutingFactboxMgmt.GetPurchInvoicedQtyFromRoutingLine(Rec))
             {
                 AutoFormatType = 0;
-                Caption = 'Quantity invoiced';
+                Caption = 'Quantity Invoiced';
                 DecimalPlaces = 0 : 5;
-                ToolTip = 'Specifies the depended Quantity invoiced in Subcontracting Invoices of this Prod. Order Routing Line.';
+                ToolTip = 'Specifies the dependent Quantity Invoiced in Subcontracting Invoices of this Prod. Order Routing Line.';
                 trigger OnDrillDown()
                 begin
                     ShowPurchaseInvoices();
                 end;
             }
-            field(ShowNoOfTransferOrdersFromProdOrderComp; SubcFactboxMgmt.GetNoOfTransferLinesFromRouting(Rec))
+            field(ShowNoOfTransferOrdersFromProdOrderComp; SubcPurchFactboxMgmt.ShowTransferOrdersAndReturnOrder(Rec, false, false))
             {
-                AutoFormatType = 0;
                 Caption = 'Transfer Order Lines';
-                DecimalPlaces = 0 : 5;
                 ToolTip = 'Specifies the number of transfer order lines assigned to this routing line.';
                 trigger OnDrillDown()
-                var
                 begin
-                    SubcFactboxMgmt.ShowTransferOrdersAndReturnOrder(Rec, true, false);
+                    SubcPurchFactboxMgmt.ShowTransferOrdersAndReturnOrder(Rec, true, false);
                 end;
             }
-            field(ShowNoOfReturnTransferOrdersFromProdOrderComp; SubcFactboxMgmt.GetNoOfReturnTransferLinesFromRouting(Rec))
+            field(ShowNoOfReturnTransferOrdersFromProdOrderComp; SubcPurchFactboxMgmt.ShowTransferOrdersAndReturnOrder(Rec, false, true))
             {
-                AutoFormatType = 0;
                 Caption = 'Return Transfer Order Lines';
-                DecimalPlaces = 0 : 5;
                 ToolTip = 'Specifies the number of Return transfer order lines assigned to this routing line.';
                 trigger OnDrillDown()
-                var
                 begin
-                    SubcFactboxMgmt.ShowTransferOrdersAndReturnOrder(Rec, true, true);
+                    SubcPurchFactboxMgmt.ShowTransferOrdersAndReturnOrder(Rec, true, true);
                 end;
             }
-            field(ShowNoOfLinkedComp; SubcFactboxMgmt.GetNoOfLinkedComponentsFromRouting(Rec))
+            field(ShowNoOfLinkedComp; SubcRoutingFactboxMgmt.GetNoOfLinkedComponentsFromRouting(Rec))
             {
-                AutoFormatType = 0;
                 Caption = 'Components';
-                DecimalPlaces = 0 : 5;
                 ToolTip = 'Specifies the number of components linked to this routing line.';
                 trigger OnDrillDown()
-                var
                 begin
                     ShowProdOrderComponents();
                 end;
+            }
+            field("WIP Qty. (Base) at Subc."; Rec."WIP Qty. (Base) at Subc.")
+            {
+            }
+            field("WIP Qty. (Base) in Transit"; Rec."WIP Qty. (Base) in Transit")
+            {
             }
         }
     }
     local procedure ShowSubcontractorFromRouting()
     begin
-        SubcFactboxMgmt.ShowSubcontractor(Rec);
+        SubcRoutingFactboxMgmt.ShowSubcontractor(Rec);
     end;
 
     local procedure ShowPurchaseOrders()
     begin
-        SubcFactboxMgmt.ShowPurchaseOrderLinesFromRouting(Rec);
+        SubcRoutingFactboxMgmt.ShowPurchaseOrderLinesFromRouting(Rec);
     end;
 
     local procedure ShowPurchaseReceipts()
     begin
-        SubcFactboxMgmt.ShowPurchaseReceiptLinesFromRouting(Rec);
+        SubcRoutingFactboxMgmt.ShowPurchaseReceiptLinesFromRouting(Rec);
     end;
 
     local procedure ShowPurchaseInvoices()
     begin
-        SubcFactboxMgmt.ShowPurchaseInvoiceLinesFromRouting(Rec);
+        SubcRoutingFactboxMgmt.ShowPurchaseInvoiceLinesFromRouting(Rec);
     end;
 
     local procedure ShowProdOrderComponents()
     begin
-        SubcFactboxMgmt.ShowProdOrderComponents(Rec);
+        SubcRoutingFactboxMgmt.ShowProdOrderComponents(Rec);
     end;
 
     var
-        SubcFactboxMgmt: Codeunit "Subc. Factbox Mgmt.";
+        SubcRoutingFactboxMgmt: Codeunit "Subc. Routing Factbox Mgmt.";
+        SubcPurchFactboxMgmt: Codeunit "Subc. Purch. Factbox Mgmt.";
 }

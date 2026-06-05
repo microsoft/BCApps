@@ -128,7 +128,7 @@ table 149040 "AIT Eval Monthly Copilot Cred."
     begin
         if EnvironmentInformation.IsSaaSInfrastructure() then begin
             Rec."Company Name" := GetAllCompaniesTok();
-            Rec."Monthly Credit Limit" := 200;
+            Rec."Monthly Credit Limit" := 2500;
             Rec."Enforcement Enabled" := true;
         end else begin
             Rec."Company Name" := GetAllCompaniesTok();

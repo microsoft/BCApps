@@ -741,6 +741,42 @@ codeunit 139544 "Trial Balance Excel Reports"
         Assert.AreEqual(CustLedgerEntry."Document No.", ReportDocumentNo, DocumentNoShouldMatchErr);
     end;
 
+    [Test]
+    [HandlerFunctions('EXRAgedAccPayablePostingDateHandler')]
+    procedure AgedAccountsPayableReportAgesByPostingDate()
+    var
+        Vendor: Record Vendor;
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        Variant: Variant;
+        RequestPageXml: Text;
+        ReportingDateText: Text;
+        ReportingDate: Date;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] Aged Accounts Payable report uses Posting Date as Reporting Date when aging by Posting Date
+        InitializeAgingData();
+
+        // [GIVEN] Vendor "V" with an open ledger entry where Posting Date, Document Date, and Due Date are distinct
+        CreateMinimalVendor(Vendor);
+        CreateVendorLedgerEntry(VendorLedgerEntry, Vendor."No.", "Gen. Journal Document Type"::Invoice);
+        VendorLedgerEntry."Document Date" := WorkDate() - 10;
+        VendorLedgerEntry.Modify();
+        Commit();
+
+        // [WHEN] Running the Aged Accounts Payable Excel report with Aging By = Posting Date
+        RequestPageXml := Report.RunRequestPage(Report::"EXR Aged Acc Payable Excel", RequestPageXml);
+        LibraryReportDataset.RunReportAndLoad(Report::"EXR Aged Acc Payable Excel", Variant, RequestPageXml);
+
+        // [THEN] The Reporting Date matches the Posting Date of the vendor ledger entry
+        LibraryReportDataset.SetXmlNodeList('DataItem[@name="AgingData"]');
+        Assert.AreEqual(1, LibraryReportDataset.RowCount(), 'One aging entry should be exported');
+        LibraryReportDataset.GetNextRow();
+        LibraryReportDataset.FindCurrentRowValue('ReportingDate', Variant);
+        ReportingDateText := Variant;
+        Evaluate(ReportingDate, ReportingDateText);
+        Assert.AreEqual(VendorLedgerEntry."Posting Date", ReportingDate, 'Reporting Date should match the Posting Date when aging by Posting Date');
+    end;
+
     local procedure CreateSampleBusinessUnits(HowMany: Integer)
     var
         BusinessUnit: Record "Business Unit";
@@ -1008,6 +1044,14 @@ codeunit 139544 "Trial Balance Excel Reports"
     begin
         EXRAgedAccountsRecExcel.AgedAsOfOption.SetValue(WorkDate());
         EXRAgedAccountsRecExcel.OK().Invoke();
+    end;
+
+    [RequestPageHandler]
+    procedure EXRAgedAccPayablePostingDateHandler(var EXRAgedAccPayableExcel: TestRequestPage "EXR Aged Acc Payable Excel")
+    begin
+        EXRAgedAccPayableExcel.AgedAsOfOption.SetValue(WorkDate());
+        EXRAgedAccPayableExcel.AgingbyOption.SetValue('Posting Date');
+        EXRAgedAccPayableExcel.OK().Invoke();
     end;
 
 #if not CLEAN27

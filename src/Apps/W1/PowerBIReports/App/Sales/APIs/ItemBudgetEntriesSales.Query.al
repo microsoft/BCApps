@@ -10,6 +10,7 @@ query 37004 "Item Budget Entries - Sales"
 {
     Access = Internal;
     QueryType = API;
+    AboutText = 'Provides access to sales item budget entries including budgeted quantities, sales amounts, and dimension data. Enables Power BI reports to analyze sales forecasts, budget vs. actual comparisons, and sales planning by item, location, and customer.';
     Caption = 'Power BI Sales Item Budget Entries';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';
