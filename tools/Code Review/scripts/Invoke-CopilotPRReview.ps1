@@ -26,6 +26,7 @@
         COPILOT_MODEL                      – explicit model name passed to copilot CLI
         MINIMUM_SEVERITY                   – Critical | High | Medium | Low  (default: Medium)
         MAX_FINDINGS_PER_DOMAIN            – cap on posted findings (default: 25)
+        COPILOT_REVIEW_CLI_TIMEOUT_MINUTES – Copilot CLI timeout in minutes (default: 30)
         COMMENT_DELAY_SECONDS              – sleep between API posts (default: 0.5)
         REVIEW_OUTPUT_DIR                  – output folder for raw + parsed review files
 #>
@@ -46,6 +47,7 @@ $CopilotModel     = ($env:COPILOT_MODEL ?? '').Trim()
 $MinimumSeverity  = $env:MINIMUM_SEVERITY ?? 'Medium'
 $MaxContextSize   = [int]($env:MAX_REVIEW_CONTEXT_SIZE ?? 150000)
 $MaxFindings      = [int]($env:MAX_FINDINGS_PER_DOMAIN ?? 25)
+$CopilotCliTimeoutMinutes = [int]($env:COPILOT_REVIEW_CLI_TIMEOUT_MINUTES ?? 30)
 $FailOnParseErrorRaw = (($env:COPILOT_REVIEW_FAIL_ON_PARSE_ERROR ?? 'true') + '').Trim().ToLowerInvariant()
 $FailOnParseError = @('1','true','yes','on') -contains $FailOnParseErrorRaw
 $EmbedDiffInPromptRaw = (($env:COPILOT_REVIEW_EMBED_DIFF ?? 'false') + '').Trim().ToLowerInvariant()
@@ -97,6 +99,10 @@ function Assert-Config {
 
     if (-not (Get-Command copilot -ErrorAction SilentlyContinue)) {
         throw 'Copilot CLI not found in PATH. Install @github/copilot before running this script.'
+    }
+
+    if ($CopilotCliTimeoutMinutes -lt 1) {
+        throw "COPILOT_REVIEW_CLI_TIMEOUT_MINUTES must be a positive integer. Actual: $CopilotCliTimeoutMinutes"
     }
 }
 
@@ -476,10 +482,11 @@ function Invoke-CopilotCli {
         $stdoutTask = $process.StandardOutput.ReadToEndAsync()
         $stderrTask = $process.StandardError.ReadToEndAsync()
 
-        $completed = $process.WaitForExit(1200000)   # 20 min timeout in ms
+        $timeoutMs = $CopilotCliTimeoutMinutes * 60 * 1000
+        $completed = $process.WaitForExit($timeoutMs)
         if (-not $completed) {
             try { $process.Kill($true) } catch { Write-Error "Failed to terminate timed out Copilot CLI process: $($_.Exception.Message)" }
-            throw 'Copilot CLI timed out after 20 minutes.'
+            throw "Copilot CLI timed out after $CopilotCliTimeoutMinutes minutes."
         }
 
         [System.Threading.Tasks.Task]::WaitAll(@($stdoutTask, $stderrTask))

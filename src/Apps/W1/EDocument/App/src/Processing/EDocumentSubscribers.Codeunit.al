@@ -193,6 +193,26 @@ codeunit 6103 "E-Document Subscribers"
     begin
         EDocumentProcessing.RunEDocumentCheck(ServiceHeader, EDocumentProcessingPhase::Release);
     end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Release Purchase Document", 'OnAfterReleasePurchaseDoc', '', false, false)]
+    local procedure OnAfterReleasePurchaseDoc(var PurchaseHeader: Record "Purchase Header"; PreviewMode: Boolean; var LinesWereModified: Boolean; SkipWhseRequestOperations: Boolean)
+    var
+        DocumentSendingProfile: Record "Document Sending Profile";
+        EDocumentHelper: Codeunit "E-Document Helper";
+        SourceDocumentHeader: RecordRef;
+    begin
+        if PreviewMode then
+            exit;
+
+        if PurchaseHeader."Document Type" <> PurchaseHeader."Document Type"::Order then
+            exit;
+
+        SourceDocumentHeader.GetTable(PurchaseHeader);
+        if not EDocumentHelper.IsElectronicDocument(SourceDocumentHeader, DocumentSendingProfile) then
+            exit;
+
+        CreateEDocumentFromPostedDocument(SourceDocumentHeader, DocumentSendingProfile, Enum::"E-Document Type"::"Purchase Order", true);
+    end;
     #endregion Release events
 
     #region Posting check events
@@ -641,10 +661,15 @@ codeunit 6103 "E-Document Subscribers"
 
     procedure CreateEDocumentFromPostedDocument(PostedRecord: Variant; DocumentSendingProfile: Record "Document Sending Profile")
     begin
-        CreateEDocumentFromPostedDocument(PostedRecord, DocumentSendingProfile, EDocumentProcessing.GetTypeFromSourceDocument(PostedRecord));
+        CreateEDocumentFromPostedDocument(PostedRecord, DocumentSendingProfile, EDocumentProcessing.GetTypeFromSourceDocument(PostedRecord), false);
     end;
 
     procedure CreateEDocumentFromPostedDocument(PostedRecord: Variant; DocumentSendingProfile: Record "Document Sending Profile"; DocumentType: Enum "E-Document Type")
+    begin
+        CreateEDocumentFromPostedDocument(PostedRecord, DocumentSendingProfile, DocumentType, false);
+    end;
+
+    procedure CreateEDocumentFromPostedDocument(PostedRecord: Variant; DocumentSendingProfile: Record "Document Sending Profile"; DocumentType: Enum "E-Document Type"; AllowReExport: Boolean)
     var
         TypeHelper: Codeunit "Type Helper";
         RecordRef: RecordRef;
@@ -660,7 +685,7 @@ codeunit 6103 "E-Document Subscribers"
         if (DocumentSendingProfile."Electronic Document" <> DocumentSendingProfile."Electronic Document"::"Extended E-Document Service Flow") then
             exit;
 
-        EDocExport.CreateEDocument(PostedSourceDocumentHeader, DocumentSendingProfile, DocumentType);
+        EDocExport.CreateEDocument(PostedSourceDocumentHeader, DocumentSendingProfile, DocumentType, AllowReExport);
     end;
 
     local procedure PointEDocumentToPostedDocument(OpenRecord: Variant; PostedRecord: Variant; PostedDocumentNo: Code[20]; DocumentType: Enum "E-Document Type")
@@ -668,7 +693,7 @@ codeunit 6103 "E-Document Subscribers"
         EDocument: Record "E-Document";
     begin
         if IsEDocumentLinkedToPurchaseDocument(EDocument, OpenRecord) then begin
-            Edocument.TestField(Direction, Enum::"E-Document Direction"::Incoming);
+            EDocument.TestField(Direction, Enum::"E-Document Direction"::Incoming);
             UpdateToPostedPurchaseEDocument(EDocument, PostedRecord, PostedDocumentNo, DocumentType);
             RemoveEDocumentLinkFromPurchaseDocument(OpenRecord);
         end;
