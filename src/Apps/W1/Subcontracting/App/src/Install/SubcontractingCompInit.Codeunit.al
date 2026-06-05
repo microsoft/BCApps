@@ -14,7 +14,7 @@ codeunit 99001503 "Subcontracting Comp. Init."
         ReqWkshTempNameLbl: Label 'SUBCONTR', MaxLength = 10;
         ReqWkshDescLbl: Label 'Subcontracting', MaxLength = 100;
         ReqWkshNameLbl: Label 'SUBCONTR', MaxLength = 10;
-        DefaultInboundWhseHandlingTimeLbl: Label '<1D>', Locked = true;
+        DefaultCompTransferLeadTimeLbl: Label '<1D>', Locked = true;
 
     procedure CreateBasicSubcontractingMgtSetup()
     begin
@@ -34,7 +34,7 @@ codeunit 99001503 "Subcontracting Comp. Init."
             exit;
 
         ManufacturingSetup."Create Prod. Order Info Line" := true;
-        Evaluate(ManufacturingSetup."Subc. Inb. Whse. Handling Time", GetDefaultInboundWhseHandlingTime());
+        Evaluate(ManufacturingSetup."Subc. Comp. Transfer Lead Time", GetDefaultCompTransferLeadTime());
         ManufacturingSetup.Modify(true);
     end;
 
@@ -81,8 +81,8 @@ codeunit 99001503 "Subcontracting Comp. Init."
         RequisitionWkshName.Insert(true);
     end;
 
-    local procedure GetDefaultInboundWhseHandlingTime(): Text
+    local procedure GetDefaultCompTransferLeadTime(): Text
     begin
-        exit(DefaultInboundWhseHandlingTimeLbl);
+        exit(DefaultCompTransferLeadTimeLbl);
     end;
 }

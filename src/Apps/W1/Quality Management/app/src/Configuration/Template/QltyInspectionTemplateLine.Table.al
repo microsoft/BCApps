@@ -56,7 +56,7 @@ table 20403 "Qlty. Inspection Template Line"
         field(4; Description; Text[100])
         {
             Caption = 'Description';
-            ToolTip = 'Specifies the description that is to be displayed. Contains the value of the description field from the Test template. You can replace the text as needed.';
+            ToolTip = 'Specifies the description that is to be displayed. Contains the value of the description field from the test template. You can replace the text as needed.';
         }
         field(5; "Test Value Type"; Enum "Qlty. Test Value Type")
         {
@@ -64,7 +64,7 @@ table 20403 "Qlty. Inspection Template Line"
             Caption = 'Test Value Type';
             Editable = false;
             FieldClass = FlowField;
-            ToolTip = 'Specifies the value type of the Test. The program automatically retrieves the value from the Test Value Type field on the Test template.';
+            ToolTip = 'Specifies the data value type of the test. The value is automatically retrieved from the Test Value Type field on the test template.';
         }
         field(7; "Allowable Values"; Text[500])
         {
@@ -72,7 +72,7 @@ table 20403 "Qlty. Inspection Template Line"
             Caption = 'Allowable Values';
             Editable = false;
             FieldClass = FlowField;
-            ToolTip = 'Specifies an expression for the range of values you can enter or select on the Quality Inspection line. The program automatically retrieves the value from the Allowable Values field on the Field template.';
+            ToolTip = 'Specifies an expression for the range of values you can enter or select on the quality Inspection line. The value is automatically retrieved from the Allowable Values field on the test template.';
         }
         field(10; "Copied From Template Code"; Code[20])
         {
@@ -85,7 +85,7 @@ table 20403 "Qlty. Inspection Template Line"
             Caption = 'Default Value';
             Editable = false;
             FieldClass = FlowField;
-            ToolTip = 'Specifies a default value to set on the inspection.';
+            ToolTip = 'Specifies a default value to set on the inspection. The value is automatically retrieved from the Default Value field on the test template.';
         }
         field(12; "Expression Formula"; Text[500])
         {
@@ -131,7 +131,6 @@ table 20403 "Qlty. Inspection Template Line"
             exit;
 
         InitLineNoIfNeeded();
-        EnsureResultsExist(true);
         Rec.CalcFields("Test Value Type");
     end;
 
@@ -139,13 +138,14 @@ table 20403 "Qlty. Inspection Template Line"
     var
         ExistingsQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
     begin
-        if Rec."Line No." = 0 then begin
-            ExistingsQltyInspectionTemplateLine.SetRange("Template Code", Rec."Template Code");
-            ExistingsQltyInspectionTemplateLine.SetCurrentKey("Template Code", "Line No.");
-            ExistingsQltyInspectionTemplateLine.Ascending(false);
-            if ExistingsQltyInspectionTemplateLine.FindFirst() then;
-            Rec."Line No." := ExistingsQltyInspectionTemplateLine."Line No." + 10000;
-        end;
+        if Rec."Line No." <> 0 then
+            exit;
+
+        ExistingsQltyInspectionTemplateLine.SetRange("Template Code", Rec."Template Code");
+        ExistingsQltyInspectionTemplateLine.SetCurrentKey("Template Code", "Line No.");
+        ExistingsQltyInspectionTemplateLine.Ascending(true);
+        if ExistingsQltyInspectionTemplateLine.FindLast() then;
+        Rec."Line No." := ExistingsQltyInspectionTemplateLine."Line No." + 10000;
     end;
 
     trigger OnModify()
