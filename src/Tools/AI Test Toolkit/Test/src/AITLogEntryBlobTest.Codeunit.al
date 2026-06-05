@@ -122,13 +122,15 @@ codeunit 149060 "AIT Log Entry Blob Test"
     procedure InputBlobRoundtripLargeText()
     var
         AITLogEntry: Record "AIT Log Entry";
+        ExpectedBuilder: TextBuilder;
         EntryNo: Integer;
         Expected: Text;
         i: Integer;
     begin
         // [SCENARIO] Content larger than a typical Read default length must roundtrip without truncation or error.
         for i := 1 to 200 do
-            Expected += 'The quick brown fox jumps over the lazy dog. ';
+            ExpectedBuilder.Append('The quick brown fox jumps over the lazy dog. ');
+        Expected := ExpectedBuilder.ToText();
 
         EntryNo := CreatePersistedLogEntry(Expected, Expected);
         AITLogEntry.Get(EntryNo);
