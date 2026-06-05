@@ -75,9 +75,6 @@ report 149030 "AIT Test Summary"
             column(TestInputDescription; Results."Test Input Description")
             {
             }
-            column(TokensConsumed; Results."Tokens Consumed")
-            {
-            }
             column(DurationMs; Results."Duration (ms)")
             {
             }
