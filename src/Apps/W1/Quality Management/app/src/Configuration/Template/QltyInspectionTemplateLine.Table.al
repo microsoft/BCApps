@@ -177,6 +177,62 @@ table 20403 "Qlty. Inspection Template Line"
         OnValidateExpressionFormula(Rec);
     end;
 
+    #region Add multiple tests to template
+    internal procedure SelectMultipleTests(TemplateCode: Code[20])
+    var
+        SelectionFilter: Text;
+    begin
+        if TemplateCode = '' then
+            exit;
+
+        SelectionFilter := SelectInQltyTests();
+
+        if SelectionFilter <> '' then
+            AddSelectedTests(TemplateCode, SelectionFilter);
+    end;
+
+    local procedure SelectInQltyTests(): Text
+    var
+        QltyTests: Page "Qlty. Tests";
+    begin
+        QltyTests.LookupMode(true);
+        if QltyTests.RunModal() = Action::LookupOK then
+            exit(QltyTests.GetSelectionFilter());
+    end;
+
+    internal procedure AddSelectedTests(TemplateCode: Code[20]; SelectionFilter: Text)
+    var
+        QltyTest: Record "Qlty. Test";
+    begin
+        if (TemplateCode = '') or (SelectionFilter = '') then
+            exit;
+
+        QltyTest.SetFilter(Code, SelectionFilter);
+        if QltyTest.FindSet() then
+            repeat
+                AddTestToTemplateLine(TemplateCode, QltyTest.Code);
+            until QltyTest.Next() = 0;
+    end;
+
+    local procedure AddTestToTemplateLine(TemplateCode: Code[20]; QltyTestCode: Code[20])
+    var
+        ExistingQltyInspectionTemplateLine, NewQltyInspectionTemplateLine : Record "Qlty. Inspection Template Line";
+    begin
+        ExistingQltyInspectionTemplateLine.SetRange("Template Code", TemplateCode);
+        ExistingQltyInspectionTemplateLine.SetRange("Test Code", QltyTestCode);
+        if not ExistingQltyInspectionTemplateLine.IsEmpty() then
+            exit;
+
+        NewQltyInspectionTemplateLine.Init();
+        NewQltyInspectionTemplateLine."Template Code" := TemplateCode;
+        NewQltyInspectionTemplateLine.InitLineNoIfNeeded();
+        NewQltyInspectionTemplateLine.Validate("Test Code", QltyTestCode);
+        NewQltyInspectionTemplateLine.Insert(true);
+        NewQltyInspectionTemplateLine.EnsureResultsExist(true);
+        NewQltyInspectionTemplateLine.Modify();
+    end;
+    #endregion Add multiple tests to template
+
     /// <summary>
     /// Validates the expression formula.
     /// </summary>
