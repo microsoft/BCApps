@@ -1,0 +1,8 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go/6ce99a8c1b840818da308fae257c14ed6bf76c70/Actions/.Modules/settings.schema.json",
+  "projectName": "AI Test Toolkit Tests",
+  "testFolders": [
+    "../../../src/Tools/AI Test Toolkit/Test"
+  ],
+  "installOnlyReferencedApps": false
+}

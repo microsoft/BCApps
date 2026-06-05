@@ -218,7 +218,7 @@ table 149034 "AIT Log Entry"
     begin
         Clear("Input Data");
         "Input Data".CreateOutStream(OutStream, GetDefaultTextEncoding());
-        OutStream.Write(NewInput);
+        OutStream.WriteText(NewInput);
     end;
 
     procedure GetInputBlob(): Text
@@ -228,7 +228,7 @@ table 149034 "AIT Log Entry"
     begin
         CalcFields("Input Data");
         "Input Data".CreateInStream(InStream, GetDefaultTextEncoding());
-        InStream.Read(InputContent);
+        InStream.ReadText(InputContent);
         exit(InputContent);
     end;
 
@@ -238,7 +238,7 @@ table 149034 "AIT Log Entry"
     begin
         Clear("Output Data");
         "Output Data".CreateOutStream(OutStream, GetDefaultTextEncoding());
-        OutStream.Write(NewOutput);
+        OutStream.WriteText(NewOutput);
     end;
 
     procedure GetOutputBlob(): Text
@@ -248,7 +248,7 @@ table 149034 "AIT Log Entry"
     begin
         CalcFields("Output Data");
         "Output Data".CreateInStream(InStream, GetDefaultTextEncoding());
-        InStream.Read(OutputContent);
+        InStream.ReadText(OutputContent);
         exit(OutputContent);
     end;
 

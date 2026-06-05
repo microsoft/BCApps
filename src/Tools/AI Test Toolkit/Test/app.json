@@ -1,0 +1,45 @@
+{
+  "id": "9648be58-4568-4689-8280-34dd9bda6cb4",
+  "name": "AI Test Toolkit Tests",
+  "publisher": "Microsoft",
+  "brief": "Test suite for the AI Test Toolkit.",
+  "description": "Contains tests for the AI Test Toolkit.",
+  "version": "29.0.0.0",
+  "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
+  "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
+  "help": "https://go.microsoft.com/fwlink/?LinkId=724011",
+  "url": "https://go.microsoft.com/fwlink/?LinkId=724011",
+  "logo": "./logo/ExtensionLogo.png",
+  "dependencies": [
+    {
+      "id": "2156302a-872f-4568-be0b-60968696f0d5",
+      "name": "AI Test Toolkit",
+      "publisher": "Microsoft",
+      "version": "29.0.0.0"
+    },
+    {
+      "id": "dd0be2ea-f733-4d65-bb34-a28f4624fb14",
+      "name": "Library Assert",
+      "publisher": "Microsoft",
+      "version": "29.0.0.0"
+    }
+  ],
+  "screenshots": [],
+  "idRanges": [
+    {
+      "from": 149060,
+      "to": 149089
+    }
+  ],
+  "platform": "29.0.0.0",
+  "features": [
+    "TranslationFile",
+    "GenerateCaptions"
+  ],
+  "resourceExposurePolicy": {
+    "allowDebugging": true,
+    "allowDownloadingSource": true,
+    "includeSourceInSymbolFile": true
+  },
+  "target": "OnPrem"
+}
