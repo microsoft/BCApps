@@ -131,28 +131,28 @@ codeunit 139992 "Subc. Subcontracting Sync Test"
         Initialize();
 
         // [GIVEN] Subcontracting setup with Transfer-type Production Order "P" for item "I", Subcontracting PO for vendor "V1", Transfer Order "T"
-        SubcontractingMgmtLibrary.UpdateManufacturingSetupWithSubcontractingLocation();
-        SubcontractingMgmtLibrary.SetupInventorySetup();
+        SubcManagementLibrary.UpdateManufacturingSetupWithSubcontractingLocation();
+        SubcManagementLibrary.SetupInventorySetup();
         Subcontracting := true;
         UnitCostCalculation := UnitCostCalculation::Units;
 
         CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
         CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
         UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
-        SubcontractingMgmtLibrary.UpdateProdBomWithSubcontractingType(Item, "Subcontracting Type"::Transfer);
+        SubcManagementLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Transfer to Vendor");
         UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(ProductionLocation);
-        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+        SubcManagementLibrary.CreateAndRefreshProductionOrder(
             ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
         ProductionOrder.Get(ProductionOrder.Status, ProductionOrder."No.");
         ProductionOrder."Created from Purch. Order" := true;
         ProductionOrder.Modify();
         UpdateSubMgmtSetupWithReqWkshTemplate();
         SetAllProdOrderTransferComponentLocations(ProductionOrder."No.", ProductionLocation.Code);
-        SubcontractingMgmtLibrary.CreateTransferRoute(WorkCenter[2], ProductionOrder);
+        SubcManagementLibrary.CreateTransferRoute(WorkCenter[2], ProductionOrder);
 
-        SubcontractingMgmtLibrary.CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
+        SubcManagementLibrary.CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
 
         PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
         PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
@@ -201,28 +201,28 @@ codeunit 139992 "Subc. Subcontracting Sync Test"
         Initialize();
 
         // [GIVEN] Subcontracting setup with Transfer-type Production Order "P", Subcontracting PO for vendor "V1", Transfer Order "T"
-        SubcontractingMgmtLibrary.UpdateManufacturingSetupWithSubcontractingLocation();
-        SubcontractingMgmtLibrary.SetupInventorySetup();
+        SubcManagementLibrary.UpdateManufacturingSetupWithSubcontractingLocation();
+        SubcManagementLibrary.SetupInventorySetup();
         Subcontracting := true;
         UnitCostCalculation := UnitCostCalculation::Units;
 
         CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
         CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
         UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
-        SubcontractingMgmtLibrary.UpdateProdBomWithSubcontractingType(Item, "Subcontracting Type"::Transfer);
+        SubcManagementLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Transfer to Vendor");
         UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(ProductionLocation);
-        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+        SubcManagementLibrary.CreateAndRefreshProductionOrder(
             ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", 1);  // Use quantity 1
         ProductionOrder.Get(ProductionOrder.Status, ProductionOrder."No.");
         ProductionOrder."Created from Purch. Order" := true;
         ProductionOrder.Modify();
         UpdateSubMgmtSetupWithReqWkshTemplate();
         SetAllProdOrderTransferComponentLocations(ProductionOrder."No.", ProductionLocation.Code);
-        SubcontractingMgmtLibrary.CreateTransferRoute(WorkCenter[2], ProductionOrder);
+        SubcManagementLibrary.CreateTransferRoute(WorkCenter[2], ProductionOrder);
 
-        SubcontractingMgmtLibrary.CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
+        SubcManagementLibrary.CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
 
         PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
         PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
@@ -484,7 +484,7 @@ codeunit 139992 "Subc. Subcontracting Sync Test"
         ProdOrderComp: Record "Prod. Order Component";
     begin
         ProdOrderComp.SetRange("Prod. Order No.", ProdOrderNo);
-        ProdOrderComp.SetRange("Subcontracting Type", ProdOrderComp."Subcontracting Type"::Transfer);
+        ProdOrderComp.SetRange("Component Supply Method", ProdOrderComp."Component Supply Method"::"Transfer to Vendor");
         if ProdOrderComp.FindSet() then
             repeat
                 ProdOrderComp."Location Code" := LocationCode;
