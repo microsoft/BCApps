@@ -35,6 +35,7 @@ codeunit 8351 "MCP Config Implementation"
         DesignatedDefaultCannotBeDeactivatedErr: Label 'The designated default configuration cannot be deactivated. Clear the default designation first.';
         ConfigurationMustBeActiveErr: Label 'Only active configurations can be set as the default.';
         DynamicToolModeRequiredErr: Label 'Dynamic tool mode needs to be enabled to discover read-only objects.';
+        APIToolsRequiredForDynamicErr: Label 'API Tools must be enabled before Dynamic Tool Mode can be enabled.';
         VersionNotValidErr: Label 'The API version is not valid for the selected tool.';
         MCPConfigurationCreatedLbl: Label 'MCP Configuration created', Locked = true;
         MCPConfigurationModifiedLbl: Label 'MCP Configuration modified', Locked = true;
@@ -224,6 +225,9 @@ codeunit 8351 "MCP Config Implementation"
         if not Enable and IsDefaultConfiguration(MCPConfiguration) then
             Error(DynamicToolModeCannotBeDisabledErr);
 
+        if Enable and not IsAPIToolsEnabled(ConfigId) then
+            Error(APIToolsRequiredForDynamicErr);
+
         MCPConfiguration.EnableDynamicToolMode := Enable;
         if not Enable then
             MCPConfiguration.DiscoverReadOnlyObjects := false;
@@ -250,6 +254,56 @@ codeunit 8351 "MCP Config Implementation"
         MCPConfiguration.DiscoverReadOnlyObjects := Enable;
         MCPConfiguration.Modify();
         LogConfigurationModified(MCPConfiguration, xMCPConfiguration);
+    end;
+
+    internal procedure EnableAPITools(ConfigId: Guid; Enable: Boolean)
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        xMCPConfiguration: Record "MCP Configuration";
+    begin
+        if not MCPConfiguration.GetBySystemId(ConfigId) then
+            Error(ConfigurationNotFoundErr);
+        xMCPConfiguration := MCPConfiguration;
+        MCPConfiguration.EnableApiTools := Enable;
+        if not Enable then begin
+            // Dynamic Tool Mode requires API Tools, so disabling API Tools cascades it off
+            // (mirroring how disabling Dynamic Tool Mode clears Discover Read-Only Objects).
+            MCPConfiguration.EnableDynamicToolMode := false;
+            MCPConfiguration.DiscoverReadOnlyObjects := false;
+        end;
+        MCPConfiguration.Modify();
+        LogConfigurationModified(MCPConfiguration, xMCPConfiguration);
+    end;
+
+    internal procedure EnableDataQueryTools(ConfigId: Guid; Enable: Boolean)
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        xMCPConfiguration: Record "MCP Configuration";
+    begin
+        if not MCPConfiguration.GetBySystemId(ConfigId) then
+            Error(ConfigurationNotFoundErr);
+        xMCPConfiguration := MCPConfiguration;
+        MCPConfiguration.EnableAlQueryTools := Enable;
+        MCPConfiguration.Modify();
+        LogConfigurationModified(MCPConfiguration, xMCPConfiguration);
+    end;
+
+    internal procedure IsAPIToolsEnabled(ConfigId: Guid): Boolean
+    var
+        MCPConfiguration: Record "MCP Configuration";
+    begin
+        if not MCPConfiguration.GetBySystemId(ConfigId) then
+            MCPConfiguration.Init(); // not persisted yet (new config): reflect the table default (InitValue)
+        exit(MCPConfiguration.EnableApiTools);
+    end;
+
+    internal procedure IsDataQueryToolsEnabled(ConfigId: Guid): Boolean
+    var
+        MCPConfiguration: Record "MCP Configuration";
+    begin
+        if not MCPConfiguration.GetBySystemId(ConfigId) then
+            MCPConfiguration.Init(); // not persisted yet (new config): reflect the table default (InitValue)
+        exit(MCPConfiguration.EnableAlQueryTools);
     end;
 
     local procedure CheckAllowCreateUpdateDeleteTools(ConfigId: Guid)
@@ -568,38 +622,65 @@ codeunit 8351 "MCP Config Implementation"
         MCPConfigurationTool.Modify();
     end;
 
-    internal procedure LookupAPIPageTools(var PageMetadata: Record "Page Metadata"): Boolean
+    internal procedure LookupAPIObjects(var SelectedObjects: Record "MCP API Object Buffer"): Boolean
     var
-        MCPAPIConfigToolLookup: Page "MCP API Config Tool Lookup";
+        TempMCPAPIObjectBuffer: Record "MCP API Object Buffer";
+        MCPAPIObjectLookup: Page "MCP API Object Lookup";
     begin
+        PopulateAPIObjects(TempMCPAPIObjectBuffer);
+        if TempMCPAPIObjectBuffer.IsEmpty() then
+            exit(false);
+
+        MCPAPIObjectLookup.SetObjects(TempMCPAPIObjectBuffer);
+        MCPAPIObjectLookup.LookupMode := true;
+        if MCPAPIObjectLookup.RunModal() <> Action::LookupOK then
+            exit(false);
+
+        MCPAPIObjectLookup.GetSelectedObjects(SelectedObjects);
+        exit(not SelectedObjects.IsEmpty());
+    end;
+
+    local procedure PopulateAPIObjects(var MCPAPIObjectBuffer: Record "MCP API Object Buffer")
+    var
+        PageMetadata: Record "Page Metadata";
+        QueryMetadata: Record "Query Metadata";
+    begin
+        MCPAPIObjectBuffer.Reset();
+        MCPAPIObjectBuffer.DeleteAll();
+
+        // API pages
         PageMetadata.SetRange(PageType, PageMetadata.PageType::API);
         PageMetadata.SetFilter("AL Namespace", '<>%1', 'Microsoft.API.V1');
         PageMetadata.SetFilter(APIVersion, '<>%1', 'beta');
+        if PageMetadata.FindSet() then
+            repeat
+                MCPAPIObjectBuffer.Init();
+                MCPAPIObjectBuffer."Object Type" := MCPAPIObjectBuffer."Object Type"::Page;
+                MCPAPIObjectBuffer."Object ID" := PageMetadata.ID;
+                MCPAPIObjectBuffer.Name := CopyStr(PageMetadata.Name, 1, MaxStrLen(MCPAPIObjectBuffer.Name));
+                MCPAPIObjectBuffer."Entity Name" := CopyStr(PageMetadata.EntityName, 1, MaxStrLen(MCPAPIObjectBuffer."Entity Name"));
+                MCPAPIObjectBuffer."API Publisher" := CopyStr(PageMetadata.APIPublisher, 1, MaxStrLen(MCPAPIObjectBuffer."API Publisher"));
+                MCPAPIObjectBuffer."API Group" := CopyStr(PageMetadata.APIGroup, 1, MaxStrLen(MCPAPIObjectBuffer."API Group"));
+                MCPAPIObjectBuffer."API Version" := CopyStr(PageMetadata.APIVersion, 1, MaxStrLen(MCPAPIObjectBuffer."API Version"));
+                if MCPAPIObjectBuffer.Insert() then;
+            until PageMetadata.Next() = 0;
 
-        MCPAPIConfigToolLookup.LookupMode := true;
-        MCPAPIConfigToolLookup.SetTableView(PageMetadata);
-        if MCPAPIConfigToolLookup.RunModal() <> Action::LookupOK then
-            exit(false);
-
-        MCPAPIConfigToolLookup.SetSelectionFilter(PageMetadata);
-        exit(true);
-    end;
-
-    internal procedure LookupAPIQueryTools(var QueryMetadata: Record "Query Metadata"): Boolean
-    var
-        MCPQueryConfigToolLookup: Page "MCP Query Config Tool Lookup";
-    begin
+        // API queries
         QueryMetadata.SetFilter(EntityName, '<>%1', '');
         QueryMetadata.SetFilter("AL Namespace", '<>%1', 'Microsoft.API.V1');
         QueryMetadata.SetFilter(ID, '<>%1&<>%2', 5480, 5481); // Exclude beta customer and vendor queries from Base Application, as they are already part of API v2.0
-
-        MCPQueryConfigToolLookup.LookupMode := true;
-        MCPQueryConfigToolLookup.SetTableView(QueryMetadata);
-        if MCPQueryConfigToolLookup.RunModal() <> Action::LookupOK then
-            exit(false);
-
-        MCPQueryConfigToolLookup.SetSelectionFilter(QueryMetadata);
-        exit(true);
+        if QueryMetadata.FindSet() then
+            repeat
+                MCPAPIObjectBuffer.Init();
+                MCPAPIObjectBuffer."Object Type" := MCPAPIObjectBuffer."Object Type"::Query;
+                MCPAPIObjectBuffer."Object ID" := QueryMetadata.ID;
+                MCPAPIObjectBuffer.Name := CopyStr(QueryMetadata.Name, 1, MaxStrLen(MCPAPIObjectBuffer.Name));
+                MCPAPIObjectBuffer."Entity Name" := CopyStr(QueryMetadata.EntityName, 1, MaxStrLen(MCPAPIObjectBuffer."Entity Name"));
+                MCPAPIObjectBuffer."API Publisher" := CopyStr(QueryMetadata.APIPublisher, 1, MaxStrLen(MCPAPIObjectBuffer."API Publisher"));
+                MCPAPIObjectBuffer."API Group" := CopyStr(QueryMetadata.APIGroup, 1, MaxStrLen(MCPAPIObjectBuffer."API Group"));
+                MCPAPIObjectBuffer."API Version" := CopyStr(QueryMetadata.APIVersion, 1, MaxStrLen(MCPAPIObjectBuffer."API Version"));
+                if MCPAPIObjectBuffer.Insert() then;
+            until QueryMetadata.Next() = 0;
     end;
 
     internal procedure GetAPIPublishers(var MCPAPIPublisherGroup: Record "MCP API Publisher Group")
@@ -848,27 +929,6 @@ codeunit 8351 "MCP Config Implementation"
         if AllObjWithCaption.Get(ObjectType, MCPConfigurationTool."Object ID") then
             exit(CopyStr(AllObjWithCaption."Object Name", 1, 100));
         exit('');
-    end;
-
-    internal procedure LoadSystemTools(var MCPSystemTool: Record "MCP System Tool")
-    var
-        MCPUtilities: Codeunit "MCP Utilities";
-        SystemTools: Dictionary of [Text, Text];
-        ToolName: Text;
-    begin
-        MCPSystemTool.Reset();
-        MCPSystemTool.DeleteAll();
-
-        SystemTools := MCPUtilities.GetSystemToolsInDynamicMode();
-        foreach ToolName in SystemTools.Keys() do
-            InsertSystemTool(MCPSystemTool, CopyStr(ToolName, 1, MaxStrLen(MCPSystemTool."Tool Name")), CopyStr(SystemTools.Get(ToolName), 1, MaxStrLen(MCPSystemTool."Tool Description")));
-    end;
-
-    local procedure InsertSystemTool(var MCPSystemTool: Record "MCP System Tool"; ToolName: Text[100]; ToolDescription: Text[250])
-    begin
-        MCPSystemTool."Tool Name" := ToolName;
-        MCPSystemTool."Tool Description" := ToolDescription;
-        MCPSystemTool.Insert();
     end;
 
     internal procedure ValidateAPIPageVersion(ObjectId: Integer; APIVersion: Text)
@@ -1213,6 +1273,8 @@ codeunit 8351 "MCP Config Implementation"
         ConfigJson.Add('enableDynamicToolMode', MCPConfiguration.EnableDynamicToolMode);
         ConfigJson.Add('discoverReadOnlyObjects', MCPConfiguration.DiscoverReadOnlyObjects);
         ConfigJson.Add('allowProdChanges', MCPConfiguration.AllowProdChanges);
+        ConfigJson.Add('enableApiTools', MCPConfiguration.EnableApiTools);
+        ConfigJson.Add('enableAlQueryTools', MCPConfiguration.EnableAlQueryTools);
 
         MCPConfigurationTool.SetRange(ID, ConfigId);
         if MCPConfigurationTool.FindSet() then
@@ -1279,6 +1341,12 @@ codeunit 8351 "MCP Config Implementation"
 
         if ConfigJson.Contains('allowProdChanges') then
             MCPConfiguration.AllowProdChanges := ConfigJson.GetBoolean('allowProdChanges');
+
+        if ConfigJson.Contains('enableApiTools') then
+            MCPConfiguration.EnableApiTools := ConfigJson.GetBoolean('enableApiTools');
+
+        if ConfigJson.Contains('enableAlQueryTools') then
+            MCPConfiguration.EnableAlQueryTools := ConfigJson.GetBoolean('enableAlQueryTools');
 
         MCPConfiguration.Insert();
         LogConfigurationCreated(MCPConfiguration);
@@ -1410,6 +1478,14 @@ codeunit 8351 "MCP Config Implementation"
         if MCPConfiguration.DiscoverReadOnlyObjects <> xMCPConfiguration.DiscoverReadOnlyObjects then begin
             Dimensions.Add('OldDiscoverReadOnlyObjects', Format(xMCPConfiguration.DiscoverReadOnlyObjects));
             Dimensions.Add('NewDiscoverReadOnlyObjects', Format(MCPConfiguration.DiscoverReadOnlyObjects));
+        end;
+        if MCPConfiguration.EnableApiTools <> xMCPConfiguration.EnableApiTools then begin
+            Dimensions.Add('OldApiTools', Format(xMCPConfiguration.EnableApiTools));
+            Dimensions.Add('NewApiTools', Format(MCPConfiguration.EnableApiTools));
+        end;
+        if MCPConfiguration.EnableAlQueryTools <> xMCPConfiguration.EnableAlQueryTools then begin
+            Dimensions.Add('OldDataQueryTools', Format(xMCPConfiguration.EnableAlQueryTools));
+            Dimensions.Add('NewDataQueryTools', Format(MCPConfiguration.EnableAlQueryTools));
         end;
         Session.LogMessage('0000QE9', MCPConfigurationModifiedLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, Dimensions);
         Session.LogAuditMessage(StrSubstNo(MCPConfigurationAuditModifiedLbl, MCPConfiguration.Name, UserSecurityId(), CompanyName()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 3, 0);
