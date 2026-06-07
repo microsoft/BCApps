@@ -157,7 +157,7 @@ page 8368 "MCP Server Feature List"
         // Reload so a cascaded change to another feature (disabling API Tools turns off
         // Dynamic Tool Mode) is reflected on every row, not just the one toggled.
         Reload(ParentSystemId, ActionsEnabled);
-        CurrPage.Update();
+        CurrPage.Update(false);
     end;
 
     local procedure SetStatusStyle()
