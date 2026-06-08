@@ -32,6 +32,33 @@ codeunit 139566 "Shpfy Payments Test"
     end;
 
     [Test]
+    procedure UnitTestImportPayoutWithExternalTraceId()
+    var
+        Payout: Record "Shpfy Payout";
+        PaymentsAPI: Codeunit "Shpfy Payments API";
+        Id: BigInteger;
+        ExpectedExternalTraceId: Text;
+        JPayout: JsonObject;
+    begin
+        // [SCENARIO] Import payout correctly imports the externalTraceId field (2026-01 API)
+        Initialize();
+
+        // [GIVEN] A random Generated Payout with externalTraceId
+        Id := Any.IntegerInRange(10000, 99999);
+        ExpectedExternalTraceId := Any.AlphanumericText(50);
+        JPayout := GetRandomPayout(Id, ExpectedExternalTraceId);
+
+        // [WHEN] Invoke the function ImportPayout(JPayout)
+        PaymentsAPI.SetShop(Shop);
+        PaymentsAPI.ImportPayout(JPayout);
+
+        // [THEN] We must find the "Shpfy Payout" record with the correct externalTraceId and Shop Code
+        LibraryAssert.IsTrue(Payout.Get(Id), 'Get "Shpfy Payout" record');
+        LibraryAssert.AreEqual(ExpectedExternalTraceId, Payout."External Trace Id", 'External Trace Id should match');
+        LibraryAssert.AreEqual(Shop.Code, Payout."Shop Code", 'Shop Code should match');
+    end;
+
+    [Test]
     procedure UnitTestImportPayoutBackfillsShopCode()
     var
         Payout: Record "Shpfy Payout";
@@ -44,7 +71,7 @@ codeunit 139566 "Shpfy Payments Test"
 
         // [GIVEN] An existing payout record imported without a shop context (blank Shop Code)
         Id := Any.IntegerInRange(10000, 99999);
-        JPayout := GetRandomPayout(Id);
+        JPayout := GetRandomPayout(Id, Any.AlphanumericText(50));
         PaymentsAPI.ImportPayout(JPayout);
         LibraryAssert.IsTrue(Payout.Get(Id), 'Payout should be created');
         LibraryAssert.AreEqual('', Payout."Shop Code", 'Shop Code should initially be blank');
@@ -58,7 +85,7 @@ codeunit 139566 "Shpfy Payments Test"
         LibraryAssert.AreEqual(Shop.Code, Payout."Shop Code", 'Shop Code should be backfilled on existing payout');
     end;
 
-    local procedure GetRandomPayout(Id: BigInteger): JsonObject
+    local procedure GetRandomPayout(Id: BigInteger; ExternalTraceId: Text): JsonObject
     var
         JPayout: JsonObject;
         JNet: JsonObject;
@@ -68,11 +95,12 @@ codeunit 139566 "Shpfy Payments Test"
     begin
         JPayout.Add('id', StrSubstNo(PayoutGidTxt, Id));
         JPayout.Add('status', 'SCHEDULED');
+        JPayout.Add('externalTraceId', ExternalTraceId);
         JPayout.Add('issuedAt', Format(Today, 0, 9));
         JNet.Add('amount', Any.DecimalInRange(1000, 2));
         JNet.Add('currencyCode', 'USD');
         JPayout.Add('net', JNet);
-
+        
         // Add summary with fee/gross amounts
         JAmount.Add('amount', 0);
         JSummary.Add('adjustmentsFee', JAmount);
@@ -86,7 +114,7 @@ codeunit 139566 "Shpfy Payments Test"
         JSummary.Add('retriedPayoutsFee', JAmount);
         JSummary.Add('retriedPayoutsGross', JAmount);
         JPayout.Add('summary', JSummary);
-
+        
         exit(JPayout);
     end;
 
