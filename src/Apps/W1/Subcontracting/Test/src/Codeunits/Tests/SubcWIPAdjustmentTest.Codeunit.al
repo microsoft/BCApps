@@ -127,6 +127,56 @@ codeunit 149914 "Subc. WIP Adjustment Test"
             'ADJ-003', 'Aggregation Test', '');
     end;
 
+    [Test]
+    [HandlerFunctions('WIPAdjustmentPageHandler')]
+    procedure WIPAdjustment_NegativeQuantity_RaisesError()
+    var
+        WIPLedgerEntry: Record "Subcontractor WIP Ledger Entry";
+        WIPAdjustmentPage: Page "Subc. WIP Adjustment";
+        ProdOrderNo: Code[20];
+    begin
+        // [SCENARIO] Entering a negative new quantity on the WIP Adjustment page raises an error
+        Initialize();
+
+        // [GIVEN] A WIP ledger entry exists for a production order with an initial quantity of 10
+        CreateTestWIPSetup(WIPLedgerEntry, 10, ProdOrderNo);
+
+        // [GIVEN] The WIP Adjustment page handler will attempt to set the new quantity to -50
+        SetHandlerValues(-50, '', '', '');
+
+        // [WHEN] The WIP Adjustment page is opened and a negative quantity is entered
+        WIPAdjustmentPage.SetWIPLedgerEntry(WIPLedgerEntry);
+
+        // [THEN] An error is raised indicating that the new quantity must not be negative
+        asserterror WIPAdjustmentPage.RunModal();
+        Assert.ExpectedError('must not be negative');
+    end;
+
+    [Test]
+    [HandlerFunctions('WIPAdjustmentPageHandler')]
+    procedure WIPAdjustment_QuantityExceedsProdOrderQty_RaisesError()
+    var
+        WIPLedgerEntry: Record "Subcontractor WIP Ledger Entry";
+        WIPAdjustmentPage: Page "Subc. WIP Adjustment";
+        ProdOrderNo: Code[20];
+    begin
+        // [SCENARIO] Entering a new quantity exceeding the production order line quantity raises an error
+        Initialize();
+
+        // [GIVEN] A production order line with quantity 10 and a WIP ledger entry with initial quantity 5
+        CreateTestWIPSetupWithProdOrderQty(WIPLedgerEntry, 5, 10, ProdOrderNo);
+
+        // [GIVEN] The WIP Adjustment page handler will attempt to set the new quantity to 15 (exceeds prod order qty of 10)
+        SetHandlerValues(15, '', '', '');
+
+        // [WHEN] The WIP Adjustment page is opened and a quantity exceeding the production order is entered
+        WIPAdjustmentPage.SetWIPLedgerEntry(WIPLedgerEntry);
+
+        // [THEN] An error is raised indicating that the new quantity must not exceed the production order line quantity
+        asserterror WIPAdjustmentPage.RunModal();
+        Assert.ExpectedError('must not exceed the production order line quantity');
+    end;
+
     [ModalPageHandler]
     procedure WIPAdjustmentPageHandler(var WIPAdjustmentPage: TestPage "Subc. WIP Adjustment")
     begin
@@ -239,6 +289,46 @@ codeunit 149914 "Subc. WIP Adjustment Test"
             WIPLedgerEntry, Item."No.", Location.Code,
             ProductionOrder, ProdOrderLine, ProdOrderRoutingLine,
             'WC-001', Quantity2, false);
+
+        ProdOrderNo := ProductionOrder."No.";
+        WIPLedgerEntry.SetRange("Prod. Order No.", ProdOrderNo);
+    end;
+
+    /// <summary>
+    /// Creates a WIP ledger entry linked to a real Prod. Order Line with the specified quantity.
+    /// The Prod. Order Line is inserted without running triggers to allow testing the
+    /// exceeding-quantity validation without requiring a full production order setup.
+    /// </summary>
+    local procedure CreateTestWIPSetupWithProdOrderQty(var WIPLedgerEntry: Record "Subcontractor WIP Ledger Entry"; WIPQuantityBase: Decimal; ProdOrderQty: Decimal; var ProdOrderNo: Code[20])
+    var
+        Item: Record Item;
+        Location: Record Location;
+        ProductionOrder: Record "Production Order";
+        ProdOrderLine: Record "Prod. Order Line";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+    begin
+        LibraryInventory.CreateItem(Item);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+
+        ProductionOrder."No." := CopyStr(
+            LibraryUtility.GenerateRandomCode(ProductionOrder.FieldNo("No."), Database::"Production Order"),
+            1, MaxStrLen(ProductionOrder."No."));
+
+        ProdOrderLine.Status := "Production Order Status"::Released;
+        ProdOrderLine."Prod. Order No." := ProductionOrder."No.";
+        ProdOrderLine."Line No." := 10000;
+        ProdOrderLine."Quantity (Base)" := ProdOrderQty;
+        ProdOrderLine."Unit of Measure Code" := Item."Base Unit of Measure";
+        ProdOrderLine.Insert(false);
+
+        ProdOrderRoutingLine."Routing No." := 'RTNG-001';
+        ProdOrderRoutingLine."Routing Reference No." := 10000;
+        ProdOrderRoutingLine."Operation No." := '10';
+
+        SubcontractingMgmtLibrary.CreateWIPLedgerEntry(
+            WIPLedgerEntry, Item."No.", Location.Code,
+            ProductionOrder, ProdOrderLine, ProdOrderRoutingLine,
+            'WC-001', WIPQuantityBase, false);
 
         ProdOrderNo := ProductionOrder."No.";
         WIPLedgerEntry.SetRange("Prod. Order No.", ProdOrderNo);
