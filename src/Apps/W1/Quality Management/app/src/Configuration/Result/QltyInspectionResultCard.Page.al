@@ -9,7 +9,7 @@ namespace Microsoft.QualityManagement.Configuration.Result;
 /// </summary>
 page 20417 "Qlty. Inspection Result Card"
 {
-    Caption = 'Quality Inspection Result Card';
+    Caption = 'Quality Inspection Result';
     AboutTitle = 'About Inspection Result details';
     AboutText = 'Inspection result shows the outcome of an inspection, such as *In progress, Fail*, or *Pass*. Use this page to set up custom grades to match your process.';
     SourceTable = "Qlty. Inspection Result";
