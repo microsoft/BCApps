@@ -214,6 +214,7 @@ table 20411 "Qlty. Inspection Result"
         PromptFirstExistingInspectionQst: Label 'This result, although not set on an inspection, is available to previous inspections. Are you sure you want to remove this result? This cannot be undone.';
         PromptFirstExistingTemplateQst: Label 'This result is currently defined on some Quality Inspection Templates. Are you sure you want to remove this result? This cannot be undone.';
         PromptFirstExistingTestQst: Label 'This result is currently defined on some tests. Are you sure you want to remove this result? This cannot be undone.';
+        MustChangePriorityErr: Label 'Evaluation Sequence must be unique, you cannot have two results with the same evaluation sequence. Result %1 %2 already has the same evaluation sequence %3.', Comment = '%1=Result Code, %2=Result description, %3=Evaluation Sequence';
         DefaultResultInProgressCodeLbl: Label 'INPROGRESS', Locked = true, MaxLength = 20;
         ResultCodePassLbl: Label 'PASS', MaxLength = 20;
         ResultCodeGoodLbl: Label 'GOOD', MaxLength = 20;
@@ -357,13 +358,12 @@ table 20411 "Qlty. Inspection Result"
     internal procedure ValidateEvaluationSequenceNotUsedElsewhere()
     var
         ExistingQltyInspectionResult: Record "Qlty. Inspection Result";
-        MustChangePriorityErr: Label 'Evaluation Sequence must be unique, you cannot have two results with the same evaluation sequence. Result [%1/%2] already has the same evaluation sequence.', Comment = '%1=The result code, %2=the result description';
     begin
         ExistingQltyInspectionResult.SetFilter(Code, '<>%1', Rec.Code);
         ExistingQltyInspectionResult.SetRange("Evaluation Sequence", Rec."Evaluation Sequence");
         ExistingQltyInspectionResult.SetLoadFields(Description);
         if ExistingQltyInspectionResult.FindFirst() then
-            Error(MustChangePriorityErr, ExistingQltyInspectionResult.Code, ExistingQltyInspectionResult.Description);
+            Error(MustChangePriorityErr, ExistingQltyInspectionResult.Code, ExistingQltyInspectionResult.Description, Rec."Evaluation Sequence");
     end;
 
     /// <summary>
