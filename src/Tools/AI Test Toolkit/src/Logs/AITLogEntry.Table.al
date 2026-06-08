@@ -224,12 +224,10 @@ table 149034 "AIT Log Entry"
     procedure GetInputBlob(): Text
     var
         InStream: InStream;
-        InputContent: Text;
     begin
         CalcFields("Input Data");
         "Input Data".CreateInStream(InStream, GetDefaultTextEncoding());
-        InStream.ReadText(InputContent);
-        exit(InputContent);
+        exit(ReadAllText(InStream));
     end;
 
     procedure SetOutputBlob(NewOutput: Text)
@@ -244,12 +242,10 @@ table 149034 "AIT Log Entry"
     procedure GetOutputBlob(): Text
     var
         InStream: InStream;
-        OutputContent: Text;
     begin
         CalcFields("Output Data");
         "Output Data".CreateInStream(InStream, GetDefaultTextEncoding());
-        InStream.ReadText(OutputContent);
-        exit(OutputContent);
+        exit(ReadAllText(InStream));
     end;
 
     procedure SetMessage(NewMessageText: Text)
@@ -264,12 +260,10 @@ table 149034 "AIT Log Entry"
     procedure GetMessage(): Text
     var
         MessageInStream: InStream;
-        MessageText: Text;
     begin
         CalcFields("Message Text");
         "Message Text".CreateInStream(MessageInStream, GetDefaultTextEncoding());
-        MessageInStream.ReadText(MessageText);
-        exit(MessageText);
+        exit(ReadAllText(MessageInStream));
     end;
 
     procedure SetErrorCallStack(ErrorCallStack: Text)
@@ -284,12 +278,27 @@ table 149034 "AIT Log Entry"
     procedure GetErrorCallStack(): Text
     var
         ErrorCallStackInStream: InStream;
-        ErrorCallStackText: Text;
     begin
         CalcFields("Error Call Stack");
         "Error Call Stack".CreateInStream(ErrorCallStackInStream, GetDefaultTextEncoding());
-        ErrorCallStackInStream.ReadText(ErrorCallStackText);
-        exit(ErrorCallStackText);
+        exit(ReadAllText(ErrorCallStackInStream));
+    end;
+
+    local procedure ReadAllText(var InStream: InStream): Text
+    var
+        TextBuilder: TextBuilder;
+        Line: Text;
+        CRLF: Text[2];
+    begin
+        CRLF[1] := 13;
+        CRLF[2] := 10;
+        while not InStream.EOS do begin
+            InStream.ReadText(Line);
+            if TextBuilder.Length > 0 then
+                TextBuilder.Append(CRLF);
+            TextBuilder.Append(Line);
+        end;
+        exit(TextBuilder.ToText());
     end;
 
     local procedure GetDefaultTextEncoding(): TextEncoding
