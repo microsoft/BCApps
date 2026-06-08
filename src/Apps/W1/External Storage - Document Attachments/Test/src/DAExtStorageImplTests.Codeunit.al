@@ -368,6 +368,132 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
 
     #endregion
 
+    #region OnAfterDelete Subscriber Tests
+
+    [Test]
+    [HandlerFunctions('ConfirmYesHandler')]
+    procedure RecordDeleteRemovesBlobFromExternalStorage()
+    var
+        DocumentAttachment: Record "Document Attachment";
+        DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
+        ExternalFilePath: Text;
+    begin
+        // [SCENARIO] Deleting a Document Attachment row must delete its blob via the OnAfterDelete subscriber.
+        // Regression test for the bug where the subscriber called DeleteFromExternalStorage(Rec), which
+        // started with Rec.Find() and exited because the row was already gone, leaving the blob orphaned.
+        Initialize();
+        SetupFileScenarioWithTestConnector();
+        EnableFeatureWithDelete();
+
+        // [GIVEN] A document attachment that has been uploaded to external storage
+        CreateDocumentAttachmentWithContent(DocumentAttachment);
+        DAExternalStorageImpl.UploadToExternalStorage(DocumentAttachment);
+        DocumentAttachment.SetRecFilter();
+        DocumentAttachment.FindFirst();
+        ExternalFilePath := DocumentAttachment."External File Path";
+        Assert.AreNotEqual('', ExternalFilePath, 'Precondition: upload should set the External File Path');
+
+        // [WHEN] The Document Attachment row is deleted (fires OnAfterDeleteEvent)
+        DocumentAttachment.Delete(true);
+
+        // [THEN] The subscriber invoked DeleteFile against the external connector with the stored path
+        Assert.AreEqual(ExternalFilePath, FileConnectorMock.GetLastDeletedPath(),
+            'External connector DeleteFile should be invoked with the stored External File Path when the attachment row is deleted');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmYesHandler')]
+    procedure RecordDeleteKeepsBlobWhenSkipDeleteOnCopyIsSet()
+    var
+        DocumentAttachment: Record "Document Attachment";
+        DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
+        ExternalFilePath: Text;
+    begin
+        // [SCENARIO] When the row was created by an attachment copy, the blob is shared with the source
+        // and must NOT be deleted when the copy is removed.
+        Initialize();
+        SetupFileScenarioWithTestConnector();
+        EnableFeatureWithDelete();
+
+        // [GIVEN] An externally-stored attachment flagged as a copy
+        CreateDocumentAttachmentWithContent(DocumentAttachment);
+        DAExternalStorageImpl.UploadToExternalStorage(DocumentAttachment);
+        DocumentAttachment.SetRecFilter();
+        DocumentAttachment.FindFirst();
+        DocumentAttachment."Skip Delete On Copy" := true;
+        DocumentAttachment.Modify();
+        ExternalFilePath := DocumentAttachment."External File Path";
+
+        // [WHEN] The row is deleted
+        DocumentAttachment.Delete(true);
+
+        // [THEN] The subscriber must NOT invoke DeleteFile for this path
+        Assert.AreNotEqual(ExternalFilePath, FileConnectorMock.GetLastDeletedPath(),
+            'External connector DeleteFile should not be invoked when Skip Delete On Copy is set');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmYesHandler')]
+    procedure RecordDeleteKeepsBlobWhenFileIsFromAnotherEnvironment()
+    var
+        DocumentAttachment: Record "Document Attachment";
+        DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
+        ExternalFilePath: Text;
+    begin
+        // [SCENARIO] Files owned by another environment or company must not be deleted
+        // when the local attachment row is removed - the owning environment is responsible
+        // for the blob's lifecycle.
+        Initialize();
+        SetupFileScenarioWithTestConnector();
+        EnableFeatureWithDelete();
+
+        // [GIVEN] An externally-stored attachment carrying a foreign source environment hash
+        CreateDocumentAttachmentWithContent(DocumentAttachment);
+        DAExternalStorageImpl.UploadToExternalStorage(DocumentAttachment);
+        DocumentAttachment.SetRecFilter();
+        DocumentAttachment.FindFirst();
+        DocumentAttachment."Source Environment Hash" := 'DIFFERENTHASH123';
+        DocumentAttachment.Modify();
+        ExternalFilePath := DocumentAttachment."External File Path";
+
+        // [WHEN] The row is deleted
+        DocumentAttachment.Delete(true);
+
+        // [THEN] The subscriber must NOT invoke DeleteFile for this path
+        Assert.AreNotEqual(ExternalFilePath, FileConnectorMock.GetLastDeletedPath(),
+            'External connector DeleteFile should not be invoked when the file belongs to another environment or company');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmYesHandler')]
+    procedure RecordDeleteKeepsBlobWhenDeleteFromExternalStorageDisabled()
+    var
+        DocumentAttachment: Record "Document Attachment";
+        DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
+        ExternalFilePath: Text;
+    begin
+        // [SCENARIO] When the user opted out of automatic deletion, the blob must stay even if the row is deleted.
+        Initialize();
+        SetupFileScenarioWithTestConnector();
+        EnableFeature(); // "Delete from External Storage" = false
+
+        // [GIVEN] An uploaded externally-stored attachment
+        CreateDocumentAttachmentWithContent(DocumentAttachment);
+        DAExternalStorageImpl.UploadToExternalStorage(DocumentAttachment);
+        DocumentAttachment.SetRecFilter();
+        DocumentAttachment.FindFirst();
+        ExternalFilePath := DocumentAttachment."External File Path";
+
+        // [WHEN] The row is deleted
+        DocumentAttachment.Delete(true);
+
+        // [THEN] The subscriber must NOT invoke DeleteFile when the feature setting opts out
+        Assert.AreNotEqual(ExternalFilePath, FileConnectorMock.GetLastDeletedPath(),
+            'External connector DeleteFile should not be invoked when Delete from External Storage is disabled');
+    end;
+
+    #endregion
+
     #region MIME Type Tests
 
     [Test]
