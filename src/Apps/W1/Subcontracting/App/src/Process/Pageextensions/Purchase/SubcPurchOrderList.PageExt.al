@@ -19,6 +19,17 @@ pageextension 99001525 "Subc. PurchOrderList" extends "Purchase Order List"
             }
         }
     }
+    views
+    {
+        addlast
+        {
+            view(SubcontractingOrders)
+            {
+                Caption = 'Subcontracting Orders';
+                Filters = where("Subc. Order" = const(true));
+            }
+        }
+    }
     actions
     {
         addafter("Create Inventor&y Put-away/Pick")
