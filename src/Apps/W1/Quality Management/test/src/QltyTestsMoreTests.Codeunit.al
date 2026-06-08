@@ -2271,6 +2271,151 @@ codeunit 139965 "Qlty. Tests - More Tests"
         LibraryAssert.AreEqual(LotNo, QltyInspectionHeader."Source Lot No.", 'Inspection should have the correct lot number.');
     end;
 
+    [Test]
+    procedure TestTable_DefaultValueNotAllowedForTextExpression()
+    var
+        QltyTest: Record "Qlty. Test";
+        TestCode: Text;
+    begin
+        // [SCENARIO] Default Value cannot be set on tests that are a type of Text Expression
+        Initialize();
+
+        // [GIVEN] A random test code is generated
+        QltyInspectionUtility.GenerateRandomCharacters(20, TestCode);
+
+        // [GIVEN] A new quality test with Test Value Type "Value Type Text Expression" is created
+        QltyTest.Validate(Code, CopyStr(TestCode, 1, MaxStrLen(QltyTest.Code)));
+        QltyTest.Validate(Description, LibraryUtility.GenerateRandomText(MaxStrLen(QltyTest.Description)));
+        QltyTest.Validate("Test Value Type", QltyTest."Test Value Type"::"Value Type Text Expression");
+        QltyTest.Insert();
+
+        // [WHEN] Attempting to set Default Value on a Text Expression test
+        asserterror QltyTest.Validate("Default Value", 'some text');
+
+        // [THEN] An error is raised indicating Default Value is not allowed for Text Expression tests
+        LibraryAssert.ExpectedError('The Default Value cannot be set on tests that are a type of Text Expression.');
+    end;
+
+    [Test]
+    procedure TemplateLine_ExpressionFormulaCopiedFromTest()
+    var
+        QltyTest: Record "Qlty. Test";
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
+        TestCode: Text;
+    begin
+        // [SCENARIO] Expression Formula is copied from the test to the template line when the test is added
+        Initialize();
+
+        // [GIVEN] A random test code is generated
+        QltyInspectionUtility.GenerateRandomCharacters(20, TestCode);
+
+        // [GIVEN] A quality test with Test Value Type "Value Type Text Expression" and an Expression Formula is created
+        QltyTest.Validate(Code, CopyStr(TestCode, 1, MaxStrLen(QltyTest.Code)));
+        QltyTest.Validate(Description, LibraryUtility.GenerateRandomText(MaxStrLen(QltyTest.Description)));
+        QltyTest.Validate("Test Value Type", QltyTest."Test Value Type"::"Value Type Text Expression");
+        QltyTest.Insert();
+        QltyTest.Validate("Expression Formula", ExpressionFormulaTok);
+        QltyTest.Modify();
+
+        // [GIVEN] A template is created
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 0);
+
+        // [WHEN] A template line is created with the test code
+        QltyInspectionTemplateLine.Init();
+        QltyInspectionTemplateLine."Template Code" := QltyInspectionTemplateHdr.Code;
+        QltyInspectionTemplateLine.InitLineNoIfNeeded();
+        QltyInspectionTemplateLine.Validate("Test Code", QltyTest.Code);
+        QltyInspectionTemplateLine.Insert(true);
+
+        // [THEN] The Expression Formula is copied from the test to the template line
+        LibraryAssert.AreEqual(ExpressionFormulaTok, QltyInspectionTemplateLine."Expression Formula", 'Expression Formula should be copied from the test to the template line.');
+    end;
+
+    [Test]
+    procedure TemplateLine_ExpressionFormulaEmptyWhenTestHasNoFormula()
+    var
+        QltyTest: Record "Qlty. Test";
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
+        TestCode: Text;
+    begin
+        // [SCENARIO] Expression Formula on template line is empty when the test has no formula
+        Initialize();
+
+        // [GIVEN] A random test code is generated
+        QltyInspectionUtility.GenerateRandomCharacters(20, TestCode);
+
+        // [GIVEN] A quality test with Test Value Type "Value Type Text Expression" but no Expression Formula is created
+        QltyTest.Validate(Code, CopyStr(TestCode, 1, MaxStrLen(QltyTest.Code)));
+        QltyTest.Validate(Description, LibraryUtility.GenerateRandomText(MaxStrLen(QltyTest.Description)));
+        QltyTest.Validate("Test Value Type", QltyTest."Test Value Type"::"Value Type Text Expression");
+        QltyTest.Insert();
+
+        // [GIVEN] A template is created
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 0);
+
+        // [WHEN] A template line is created with the test code
+        QltyInspectionTemplateLine.Init();
+        QltyInspectionTemplateLine."Template Code" := QltyInspectionTemplateHdr.Code;
+        QltyInspectionTemplateLine.InitLineNoIfNeeded();
+        QltyInspectionTemplateLine.Validate("Test Code", QltyTest.Code);
+        QltyInspectionTemplateLine.Insert(true);
+
+        // [THEN] The Expression Formula on the template line is empty
+        LibraryAssert.AreEqual('', QltyInspectionTemplateLine."Expression Formula", 'Expression Formula should be empty when the test has no formula.');
+    end;
+
+    [Test]
+    procedure TemplateLine_ExpressionFormulaUpdatedWhenTestCodeChanges()
+    var
+        QltyTest1: Record "Qlty. Test";
+        QltyTest2: Record "Qlty. Test";
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
+        TestCode1: Text;
+        TestCode2: Text;
+        ExpressionFormula2Tok: Label '[Source Item No.]', Locked = true;
+    begin
+        // [SCENARIO] Expression Formula is updated when the Test Code on a template line is changed to a different test
+        Initialize();
+
+        // [GIVEN] Two random test codes are generated
+        QltyInspectionUtility.GenerateRandomCharacters(20, TestCode1);
+        QltyInspectionUtility.GenerateRandomCharacters(20, TestCode2);
+
+        // [GIVEN] A first quality test with an Expression Formula is created
+        QltyTest1.Validate(Code, CopyStr(TestCode1, 1, MaxStrLen(QltyTest1.Code)));
+        QltyTest1.Validate(Description, LibraryUtility.GenerateRandomText(MaxStrLen(QltyTest1.Description)));
+        QltyTest1.Validate("Test Value Type", QltyTest1."Test Value Type"::"Value Type Text Expression");
+        QltyTest1.Insert();
+        QltyTest1.Validate("Expression Formula", ExpressionFormulaTok);
+        QltyTest1.Modify();
+
+        // [GIVEN] A second quality test with a different Expression Formula is created
+        QltyTest2.Validate(Code, CopyStr(TestCode2, 1, MaxStrLen(QltyTest2.Code)));
+        QltyTest2.Validate(Description, LibraryUtility.GenerateRandomText(MaxStrLen(QltyTest2.Description)));
+        QltyTest2.Validate("Test Value Type", QltyTest2."Test Value Type"::"Value Type Text Expression");
+        QltyTest2.Insert();
+        QltyTest2.Validate("Expression Formula", ExpressionFormula2Tok);
+        QltyTest2.Modify();
+
+        // [GIVEN] A template is created with the first test
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 0);
+        QltyInspectionTemplateLine.Init();
+        QltyInspectionTemplateLine."Template Code" := QltyInspectionTemplateHdr.Code;
+        QltyInspectionTemplateLine.InitLineNoIfNeeded();
+        QltyInspectionTemplateLine.Validate("Test Code", QltyTest1.Code);
+        QltyInspectionTemplateLine.Insert(true);
+
+        // [WHEN] The Test Code on the template line is changed to the second test
+        QltyInspectionTemplateLine.Validate("Test Code", QltyTest2.Code);
+        QltyInspectionTemplateLine.Modify(true);
+
+        // [THEN] The Expression Formula is updated to the second test's formula
+        LibraryAssert.AreEqual(ExpressionFormula2Tok, QltyInspectionTemplateLine."Expression Formula", 'Expression Formula should be updated when the test code is changed.');
+    end;
+
     local procedure Initialize()
     begin
         if IsInitialized then
