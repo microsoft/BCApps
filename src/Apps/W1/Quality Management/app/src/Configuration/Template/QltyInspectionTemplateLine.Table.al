@@ -97,7 +97,7 @@ table 20403 "Qlty. Inspection Template Line"
                 Rec.CalcFields("Test Value Type");
                 if Rec."Expression Formula" <> '' then begin
                     if not (Rec."Test Value Type" in [Rec."Test Value Type"::"Value Type Text Expression"]) then
-                        Error(OnlyFieldExpressionErr);
+                        Error(ExpressionFormulaOnlyForTextExpressionErr);
 
                     ValidateExpressionFormula();
                 end;
@@ -123,7 +123,7 @@ table 20403 "Qlty. Inspection Template Line"
     }
 
     var
-        OnlyFieldExpressionErr: Label 'The Expression Formula can only be used with fields that are a type of Expression';
+        ExpressionFormulaOnlyForTextExpressionErr: Label 'The Expression Formula can only be used with tests that are a type of Text Expression';
 
     trigger OnInsert()
     begin

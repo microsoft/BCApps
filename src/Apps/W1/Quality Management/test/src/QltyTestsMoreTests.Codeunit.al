@@ -61,7 +61,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         DefaultScheduleGroupTok: Label 'QM', Locked = true;
         ExpressionFormulaTok: Label '[No.]';
         TestValueTypeChangeErrInfoMsg: Label 'Consider replacing this test in the template with a new one, or deleting existing inspections (if allowed). The test was last used on Inspection %1, Re-inspection %2.', Comment = '%1 = Quality Inspection No., %2 = Re-inspection No.';
-        OnlyFieldExpressionErr: Label 'The Expression Formula can only be used with fields that are a type of Expression';
+        ExpressionFormulaOnlyForTextExpressionErr: Label 'The Expression Formula can only be used with tests that are a type of Text Expression';
         VendorFilterCountryTok: Label 'WHERE(Country/Region Code=FILTER(CA))', Locked = true;
         VendorFilterNoTok: Label 'WHERE(No.=FILTER(%1))', Comment = '%1 = Vendor No.', Locked = true;
         ThereIsNoResultErr: Label 'There is no result called "%1". Please add the result, or change the existing result conditions.', Comment = '%1=the result';
@@ -105,7 +105,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         asserterror ToLoadQltyTest.Validate("Expression Formula", ExpressionFormulaTok);
 
         // [THEN] An error is raised indicating Expression Formula is only for Expression test value types
-        LibraryAssert.ExpectedError(OnlyFieldExpressionErr);
+        LibraryAssert.ExpectedError(ExpressionFormulaOnlyForTextExpressionErr);
     end;
 
     [Test]
@@ -612,7 +612,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         asserterror ConfigurationToLoadQltyInspectionTemplateLine.Validate("Expression Formula", ExpressionFormulaTok);
 
         // [THEN] An error is raised indicating Expression Formula is only for Expression field types
-        LibraryAssert.ExpectedError(OnlyFieldExpressionErr);
+        LibraryAssert.ExpectedError(ExpressionFormulaOnlyForTextExpressionErr);
     end;
 
     [Test]
