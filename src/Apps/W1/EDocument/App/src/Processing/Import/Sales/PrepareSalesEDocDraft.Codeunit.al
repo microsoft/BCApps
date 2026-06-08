@@ -10,7 +10,7 @@ using Microsoft.eServices.EDocument.Processing.Interfaces;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 
-codeunit 6410 "Prepare Sales E-Doc. Draft" implements IProcessStructuredDataSales
+codeunit 6426 "Prepare Sales E-Doc. Draft" implements IProcessStructuredDataSales
 {
     Access = Internal;
 
