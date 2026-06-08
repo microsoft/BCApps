@@ -374,7 +374,7 @@ page 20407 "Qlty. Inspection Subform"
             exit;
 
         Rec.CalcFields("Test Value Type");
-        exit(not (Rec."Test Value Type" in [Rec."Test Value Type"::"Value Type Label"]));
+        exit(not (Rec."Test Value Type" in [Rec."Test Value Type"::"Value Type Label", Rec."Test Value Type"::"Value Type Text Expression"]));
     end;
 
     /// <summary>
