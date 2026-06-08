@@ -553,6 +553,32 @@ codeunit 99001505 "Subcontracting Management"
         exit(ComponentsLocationCode);
     end;
 
+    internal procedure IsSubcontractingPurchaseDocument(PurchaseHeader: Record "Purchase Header"): Boolean
+    var
+        PurchaseLine: Record "Purchase Line";
+    begin
+        PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
+        PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+        PurchaseLine.SetFilter("Prod. Order No.", '<>%1', '');
+        PurchaseLine.SetFilter("Prod. Order Line No.", '<>%1', 0);
+        exit(not PurchaseLine.IsEmpty());
+    end;
+
+    internal procedure IsSubcontractingPurchaseLine(PurchaseLine: Record "Purchase Line"): Boolean
+    begin
+        exit((PurchaseLine."Prod. Order No." <> '') and (PurchaseLine."Prod. Order Line No." <> 0));
+    end;
+
+    internal procedure IsSubcontractingTransferDocument(TransferHeader: Record "Transfer Header"): Boolean
+    begin
+        exit(TransferHeader."Subc. Source Type" = TransferHeader."Subc. Source Type"::Subcontracting);
+    end;
+
+    internal procedure IsSubcontractingTransferLine(TransferLine: Record "Transfer Line"): Boolean
+    begin
+        exit((TransferLine."Subc. Prod. Order No." <> '') and (TransferLine."Subc. Prod. Order Line No." <> 0));
+    end;
+
     local procedure GetManufacturingSetup()
     begin
         if HasManufacturingSetup then

@@ -95,6 +95,7 @@ tableextension 99001517 "Subc. Transfer Line" extends "Transfer Line"
         {
             Caption = 'Transfer WIP Item';
             DataClassification = CustomerContent;
+            Editable = false;
             ToolTip = 'Specifies whether this transfer line represents a WIP item transfer. When enabled, a WIP item transfer can be created.';
 
             trigger OnValidate()

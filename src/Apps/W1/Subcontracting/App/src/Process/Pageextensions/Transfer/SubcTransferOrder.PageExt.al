@@ -79,17 +79,20 @@ pageextension 99001526 "Subc. Transfer Order" extends "Transfer Order"
         EsEnableTransferFields: Boolean;
 
     var
+        SubcontractingManagement: Codeunit "Subcontracting Management";
         ShowSubcontractingFactBox: Boolean;
 
     trigger OnOpenPage()
     begin
-        ShowSubcontractingFactBox := Rec."Subc. Source Type" = Rec."Subc. Source Type"::Subcontracting;
+        ShowSubcontractingFactBox := SubcontractingManagement.IsSubcontractingTransferDocument(Rec);
+        CurrPage.TransferLines.Page.SetIsSubcontracting(ShowSubcontractingFactBox);
         EsEnableTransferFields := not IsPartiallyShipped();
     end;
 
     trigger OnAfterGetCurrRecord()
     begin
-        ShowSubcontractingFactBox := Rec."Subc. Source Type" = Rec."Subc. Source Type"::Subcontracting;
+        ShowSubcontractingFactBox := SubcontractingManagement.IsSubcontractingTransferDocument(Rec);
+        CurrPage.TransferLines.Page.SetIsSubcontracting(ShowSubcontractingFactBox);
     end;
 
     trigger OnAfterGetRecord()
