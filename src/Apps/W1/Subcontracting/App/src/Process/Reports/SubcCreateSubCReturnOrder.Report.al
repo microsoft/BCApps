@@ -336,7 +336,7 @@ report 99001502 "Subc. Create SubCReturnOrder"
         Item.SetLoadFields("Base Unit of Measure", "Rounding Precision", Description, "Description 2");
         Item.Get(ProdOrderLine."Item No.");
 
-        foreach TransferFromLoc in WIPSourceLocationList do begin
+        foreach TransferFromLoc in WIPSourceLocationList do
             if TransferFromLoc <> CompanyWHLocationCode then begin
                 WIPQtyBase := WIPSourceQtyDict.Get(TransferFromLoc);
                 if ProdOrderLine."Qty. per Unit of Measure" <> 0 then
@@ -348,7 +348,6 @@ report 99001502 "Subc. Create SubCReturnOrder"
                     InsertWIPReturnTransferLine(PurchaseLine, ProdOrderLine, ProdOrderRoutingLine, WIPQtyInUOM);
                 end;
             end;
-        end;
 
         exit(false);
     end;
