@@ -78,6 +78,9 @@ report 99001502 "Subc. Create SubCReturnOrder"
         TransferRoute: Record "Transfer Route";
         SubcontractingManagement: Codeunit "Subcontracting Management";
     begin
+        if (TransferFromLocationCode <> '') and (TransferFromLocationCode = TransferToLocationCode) then
+            exit;
+
         TransferHeader.Reset();
         TransferHeader.SetRange("Source Subtype", TransferHeader."Source Subtype"::"2");
         TransferHeader.SetRange("Source ID", "Purchase Header"."Buy-from Vendor No.");
@@ -196,6 +199,9 @@ report 99001502 "Subc. Create SubCReturnOrder"
                 if QtyToPost > AvailableToReturn then
                     QtyToPost := AvailableToReturn;
                 if QtyToPost > 0 then
+                    if (SubcFromLocationCode <> '') and (SubcFromLocationCode = ProdOrderComponent."Subc. Original Location Code") then
+                        QtyToPost := 0;
+                if QtyToPost > 0 then
                     if InsertLine then begin
 
                         InsertTransferHeader(SubcFromLocationCode, ProdOrderComponent."Subc. Original Location Code");
@@ -235,6 +241,13 @@ report 99001502 "Subc. Create SubCReturnOrder"
                         if TransferHeader."Transfer-to Code" <> ProdOrderComponent."Location Code" then begin
                             ProdOrderComponent.Validate("Location Code", TransferHeader."Transfer-to Code");
                             ProdOrderComponent.GetDefaultBin();
+                            // Items are being returned to the original location, so clear the tracked
+                            // original location/bin codes. Validate("Location Code", ...) triggers a
+                            // subscriber that resets "Subc. Original Location Code" to the previous
+                            // (subcontractor) location, which would corrupt subsequent return attempts
+                            // by making Transfer-from equal Transfer-to.
+                            ProdOrderComponent."Subc. Original Location Code" := '';
+                            ProdOrderComponent."Subc. Orig. Bin Code" := '';
                         end;
                         ProdOrderComponent.Modify();
 
@@ -313,21 +326,27 @@ report 99001502 "Subc. Create SubCReturnOrder"
         if WIPSourceLocationList.Count() = 0 then
             exit(false);
 
-        if not InsertLine then
-            exit(true);
+        if not InsertLine then begin
+            foreach TransferFromLoc in WIPSourceLocationList do
+                if TransferFromLoc <> CompanyWHLocationCode then
+                    exit(true);
+            exit(false);
+        end;
 
         Item.SetLoadFields("Base Unit of Measure", "Rounding Precision", Description, "Description 2");
         Item.Get(ProdOrderLine."Item No.");
 
         foreach TransferFromLoc in WIPSourceLocationList do begin
-            WIPQtyBase := WIPSourceQtyDict.Get(TransferFromLoc);
-            if ProdOrderLine."Qty. per Unit of Measure" <> 0 then
-                WIPQtyInUOM := Round(WIPQtyBase / ProdOrderLine."Qty. per Unit of Measure", UOMManagement.QtyRndPrecision())
-            else
-                WIPQtyInUOM := Round(WIPQtyBase, UOMManagement.QtyRndPrecision());
-            if WIPQtyInUOM > 0 then begin
-                InsertTransferHeader(TransferFromLoc, CompanyWHLocationCode);
-                InsertWIPReturnTransferLine(PurchaseLine, ProdOrderLine, ProdOrderRoutingLine, WIPQtyInUOM);
+            if TransferFromLoc <> CompanyWHLocationCode then begin
+                WIPQtyBase := WIPSourceQtyDict.Get(TransferFromLoc);
+                if ProdOrderLine."Qty. per Unit of Measure" <> 0 then
+                    WIPQtyInUOM := Round(WIPQtyBase / ProdOrderLine."Qty. per Unit of Measure", UOMManagement.QtyRndPrecision())
+                else
+                    WIPQtyInUOM := Round(WIPQtyBase, UOMManagement.QtyRndPrecision());
+                if WIPQtyInUOM > 0 then begin
+                    InsertTransferHeader(TransferFromLoc, CompanyWHLocationCode);
+                    InsertWIPReturnTransferLine(PurchaseLine, ProdOrderLine, ProdOrderRoutingLine, WIPQtyInUOM);
+                end;
             end;
         end;
 
