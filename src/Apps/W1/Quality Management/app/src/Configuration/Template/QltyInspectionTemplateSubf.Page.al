@@ -472,6 +472,27 @@ page 20403 "Qlty. Inspection Template Subf"
         }
     }
 
+    actions
+    {
+        area(Processing)
+        {
+            action(AddMultipleTests)
+            {
+                AccessByPermission = tabledata "Qlty. Inspection Template Line" = I;
+                Caption = 'Select tests';
+                ToolTip = 'Add two or more tests to this template, by selecting from the full list of quality tests. Tests that already exist in the template are skipped.';
+                Ellipsis = true;
+                Image = SelectMore;
+                Enabled = Rec."Template Code" <> '';
+
+                trigger OnAction()
+                begin
+                    Rec.SelectMultipleTests(Rec."Template Code");
+                end;
+            }
+        }
+    }
+
     var
         QltyResultConditionMgmt: Codeunit "Qlty. Result Condition Mgmt.";
         MatrixSourceRecordId: array[10] of RecordId;

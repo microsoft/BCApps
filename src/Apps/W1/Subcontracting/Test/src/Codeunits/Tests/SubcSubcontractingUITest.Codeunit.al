@@ -256,7 +256,7 @@ codeunit 139990 "Subc. Subcontracting UI Test"
     end;
 
     [Test]
-    procedure CheckCustCtrl_PageProductionBOMLinesSubcontractingType()
+    procedure CheckCustCtrl_PageProductionBOMLinesComponentSupplyMethod()
     var
         PageControl: Record "Page Control Field";
         ProdBOMLine: Record "Production BOM Line";
@@ -271,15 +271,15 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         // [WHEN] Find Control on Page
         PageControl.SetRange(TableNo, Database::"Production BOM Line");
         PageControl.SetRange(PageNo, Page::"Production BOM Lines");
-        PageControl.SetRange(FieldNo, ProdBOMLine.FieldNo("Subcontracting Type"));
+        PageControl.SetRange(FieldNo, ProdBOMLine.FieldNo("Component Supply Method"));
         ControlExist := not PageControl.IsEmpty();
 
         // [THEN]
-        Assert.AreEqual(true, ControlExist, StrSubstNo(ControlNotExistMsg, ProdBOMLine.FieldCaption("Subcontracting Type")));
+        Assert.AreEqual(true, ControlExist, StrSubstNo(ControlNotExistMsg, ProdBOMLine.FieldCaption("Component Supply Method")));
     end;
 
     [Test]
-    procedure CheckCustCtrl_PageProductionBOMVersionLinesSubcontractingType()
+    procedure CheckCustCtrl_PageProductionBOMVersionLinesComponentSupplyMethod()
     var
         PageControl: Record "Page Control Field";
         ProdBOMLine: Record "Production BOM Line";
@@ -294,14 +294,14 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         // [WHEN] Find Control on Page
         PageControl.SetRange(TableNo, Database::"Production BOM Line");
         PageControl.SetRange(PageNo, Page::"Production BOM Version Lines");
-        PageControl.SetRange(FieldNo, ProdBOMLine.FieldNo("Subcontracting Type"));
+        PageControl.SetRange(FieldNo, ProdBOMLine.FieldNo("Component Supply Method"));
         ControlExist := not PageControl.IsEmpty();
         // [THEN]
-        Assert.AreEqual(true, ControlExist, StrSubstNo(ControlNotExistMsg, ProdBOMLine.FieldCaption("Subcontracting Type")));
+        Assert.AreEqual(true, ControlExist, StrSubstNo(ControlNotExistMsg, ProdBOMLine.FieldCaption("Component Supply Method")));
     end;
 
     [Test]
-    procedure CheckCustCtrl_PagePlanningComponentSubcontractingType()
+    procedure CheckCustCtrl_PagePlanningComponentComponentSupplyMethod()
     var
         PageControl: Record "Page Control Field";
         PlanComp: Record "Planning Component";
@@ -316,11 +316,11 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         // [WHEN] Find Control on Page
         PageControl.SetRange(TableNo, Database::"Planning Component");
         PageControl.SetRange(PageNo, Page::"Planning Components");
-        PageControl.SetRange(FieldNo, PlanComp.FieldNo("Subcontracting Type"));
+        PageControl.SetRange(FieldNo, PlanComp.FieldNo("Component Supply Method"));
         ControlExist := not PageControl.IsEmpty();
 
         // [THEN]
-        Assert.AreEqual(true, ControlExist, StrSubstNo(ControlNotExistMsg, PlanComp.FieldCaption("Subcontracting Type")));
+        Assert.AreEqual(true, ControlExist, StrSubstNo(ControlNotExistMsg, PlanComp.FieldCaption("Component Supply Method")));
     end;
 
     [Test]
