@@ -8,6 +8,7 @@ using Microsoft.QualityManagement.Configuration.Result;
 using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Telemetry;
+using System.Text;
 
 /// <summary>
 /// This page lets you define data points, questions, measurements, and entries with their allowable values and default passing thresholds. You can later use these tests in Quality Inspection Templates
@@ -346,4 +347,23 @@ page 20401 "Qlty. Tests"
             UpdateMatrixDataConditionDescription(Matrix);
         end;
     end;
+
+    #region Add multiple tests to template
+    internal procedure GetSelectionFilter(): Text
+    var
+        QltyTest: Record "Qlty. Test";
+    begin
+        CurrPage.SetSelectionFilter(QltyTest);
+        exit(GetSelectionFilterForTest(QltyTest));
+    end;
+
+    local procedure GetSelectionFilterForTest(var QltyTest: Record "Qlty. Test"): Text
+    var
+        SelectionFilterManagement: Codeunit SelectionFilterManagement;
+        RecRef: RecordRef;
+    begin
+        RecRef.GetTable(QltyTest);
+        exit(SelectionFilterManagement.GetSelectionFilter(RecRef, QltyTest.FieldNo(Code)));
+    end;
+    #endregion Add multiple tests to template
 }
