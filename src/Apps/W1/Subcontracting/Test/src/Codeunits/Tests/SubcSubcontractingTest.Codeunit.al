@@ -3542,7 +3542,6 @@ codeunit 139989 "Subc. Subcontracting Test"
         PurchaseLine: Record "Purchase Line";
         TransferHeader: Record "Transfer Header";
         TransferLine: Record "Transfer Line";
-        Vendor: Record Vendor;
         WorkCenter: array[2] of Record "Work Center";
         PurchaseHeaderPage: TestPage "Purchase Order";
     begin
