@@ -1,0 +1,22 @@
+[
+  {
+    "codeunitId": 137614,
+    "codeunitName": "SCM Costing Rollup Sev 3",
+    "method": "B256325_PostOutputJournalFromRelProdOrder"
+  },
+  {
+    "codeunitId": 137614,
+    "codeunitName": "SCM Costing Rollup Sev 3",
+    "method": "B256325_PostOutputJournalWithAppliesToEntry"
+  },
+  {
+    "codeunitId": 137614,
+    "codeunitName": "SCM Costing Rollup Sev 3",
+    "method": "B292993_GLEntriesAfterPostToGL"
+  },
+  {
+    "codeunitId": 137614,
+    "codeunitName": "SCM Costing Rollup Sev 3",
+    "method": "B292993_PostInvCostToGLPerEntry"
+  }
+]

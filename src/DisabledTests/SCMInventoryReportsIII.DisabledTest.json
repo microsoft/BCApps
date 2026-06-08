@@ -1,0 +1,12 @@
+[
+  {
+    "codeunitId": 137350,
+    "codeunitName": "SCM Inventory Reports - III",
+    "method": "InventoryValueOnInventoryValuationAfterAdjustCostItemEntries"
+  },
+  {
+    "codeunitId": 137350,
+    "codeunitName": "SCM Inventory Reports - III",
+    "method": "ValueOfWIPAfterRunningInventoryValuationWIPReport"
+  }
+]

@@ -1,0 +1,27 @@
+[
+  {
+    "codeunitId": 144001,
+    "codeunitName": "MX CFDI",
+    "method": "TimeZoneRequestStampPayment"
+  },
+  {
+    "codeunitId": 144001,
+    "codeunitName": "MX CFDI",
+    "method": "TimeZoneRequestStampSalesCreditMemoSellTo"
+  },
+  {
+    "codeunitId": 144001,
+    "codeunitName": "MX CFDI",
+    "method": "TimeZoneRequestStampSalesInvoiceShipTo"
+  },
+  {
+    "codeunitId": 144001,
+    "codeunitName": "MX CFDI",
+    "method": "TimeZoneRequestStampServiceCreditMemoCust"
+  },
+  {
+    "codeunitId": 144001,
+    "codeunitName": "MX CFDI",
+    "method": "TimeZoneRequestStampServiceInvoiceBillTo"
+  }
+]

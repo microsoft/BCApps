@@ -1,0 +1,17 @@
+[
+  {
+    "codeunitId": 134161,
+    "codeunitName": "Pmt Export Mgt Gen. Jnl Test",
+    "method": "ExportAgainPmtJnlLineAutoApplied"
+  },
+  {
+    "codeunitId": 134161,
+    "codeunitName": "Pmt Export Mgt Gen. Jnl Test",
+    "method": "ExportPmtJnlLineManuallyApplied"
+  },
+  {
+    "codeunitId": 134161,
+    "codeunitName": "Pmt Export Mgt Gen. Jnl Test",
+    "method": "ExportPmtJnlLineNotApplied"
+  }
+]

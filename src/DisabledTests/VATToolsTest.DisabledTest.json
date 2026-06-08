@@ -1,0 +1,22 @@
+[
+  {
+    "codeunitId": 144001,
+    "codeunitName": "VAT Tools Test",
+    "method": "OnlyVATAmountInclNonDeductibleVATInVATReturnWithPropDed50"
+  },
+  {
+    "codeunitId": 144001,
+    "codeunitName": "VAT Tools Test",
+    "method": "OnlyVATBaseInclNonDeductibleVATInVATReturnWithPropDed50"
+  },
+  {
+    "codeunitId": 144001,
+    "codeunitName": "VAT Tools Test",
+    "method": "VATBaseAndAmountInclNonDeductibleVATInVATReturnWithPropDed0"
+  },
+  {
+    "codeunitId": 144001,
+    "codeunitName": "VAT Tools Test",
+    "method": "VATBaseAndAmountInclNonDeductibleVATInVATReturnWithPropDed50"
+  }
+]

@@ -1,0 +1,22 @@
+[
+  {
+    "codeunitId": 144003,
+    "codeunitName": "ERM Payment Journal",
+    "method": "CheckExportedPaymentJournalLines"
+  },
+  {
+    "codeunitId": 144003,
+    "codeunitName": "ERM Payment Journal",
+    "method": "CheckExportedPaymentJournalLinesInternational"
+  },
+  {
+    "codeunitId": 144003,
+    "codeunitName": "ERM Payment Journal",
+    "method": "ExportPmntJnlLinesWithBatchContainingDigits"
+  },
+  {
+    "codeunitId": 144003,
+    "codeunitName": "ERM Payment Journal",
+    "method": "ExportPmntJnlLinesWithBatchContainingDigitsInternational"
+  }
+]

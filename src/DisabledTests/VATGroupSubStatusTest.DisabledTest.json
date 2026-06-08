@@ -1,0 +1,26 @@
+[
+  {
+    "bugId": 609282,
+    "codeunitId": 139741,
+    "codeunitName": "VAT Group Sub. Status Test",
+    "method": "TestButtonUpdateStatusVATReportPage"
+  },
+  {
+    "bugId": 609282,
+    "codeunitId": 139741,
+    "codeunitName": "VAT Group Sub. Status Test",
+    "method": "TestUpdateSingleVATReportStatus"
+  },
+  {
+    "bugId": 609282,
+    "codeunitId": 139741,
+    "codeunitName": "VAT Group Sub. Status Test",
+    "method": "TestVATGroupSubmissionStatusBatchRequest"
+  },
+  {
+    "bugId": 609282,
+    "codeunitId": 139741,
+    "codeunitName": "VAT Group Sub. Status Test",
+    "method": "TestVATGroupSubmissionStatusErrorSingleGETRequestInBatch"
+  }
+]

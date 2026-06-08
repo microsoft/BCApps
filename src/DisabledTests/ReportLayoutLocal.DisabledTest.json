@@ -1,0 +1,17 @@
+[
+  {
+    "codeunitId": 144002,
+    "codeunitName": "Report Layout - Local",
+    "method": "AccountOfficialAccBookEntryWithCombinedPostingDatesAndTransactionNos"
+  },
+  {
+    "codeunitId": 144002,
+    "codeunitName": "Report Layout - Local",
+    "method": "StandardSalesDraftInvoiceShowsVATClause"
+  },
+  {
+    "codeunitId": 144002,
+    "codeunitName": "Report Layout - Local",
+    "method": "StandardSalesInvoiceShowsVATClause"
+  }
+]

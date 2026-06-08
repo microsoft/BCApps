@@ -1,0 +1,20 @@
+[
+  {
+    "codeunitId": 144006,
+    "codeunitName": "CODA Tests",
+    "method": "CODAStatementCannotTransferredToGeneralLedgerWhenCustomerBlocked",
+    "bug": "618779"
+  },
+  {
+    "codeunitId": 144006,
+    "codeunitName": "CODA Tests",
+    "method": "AmountLCYInFinJnlIsEqualToStmtAmtOfCODAStmtLineIfCurrCodeIsBlankInBankAcc",
+    "bug": "618779"
+  },
+  {
+    "codeunitId": 144006,
+    "codeunitName": "CODA Tests",
+    "method": "CODAStmtTransferredWhenCustBlockedShipOrInvoice",
+    "bug": "618779"
+  }
+]

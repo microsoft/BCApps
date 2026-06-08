@@ -1,0 +1,22 @@
+[
+  {
+    "codeunitId": 134071,
+    "codeunitName": "Test Suppress Commit in Post",
+    "method": "TestPostOneOfEachCommit"
+  },
+  {
+    "codeunitId": 134071,
+    "codeunitName": "Test Suppress Commit in Post",
+    "method": "TestPostOneOfEachNoCommit"
+  },
+  {
+    "codeunitId": 134071,
+    "codeunitName": "Test Suppress Commit in Post",
+    "method": "TestPostSalesPrepaymentInvoiceCommit"
+  },
+  {
+    "codeunitId": 134071,
+    "codeunitName": "Test Suppress Commit in Post",
+    "method": "TestPostSalesPrepaymentInvoiceNoCommit"
+  }
+]

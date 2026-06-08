@@ -1,0 +1,62 @@
+[
+  {
+    "codeunitId": 132520,
+    "codeunitName": "AFS File Client Test",
+    "method": "*"
+  },
+  {
+    "codeunitId": 132520,
+    "codeunitName": "AFS File Client Test",
+    "method": "CopyFileTest"
+  },
+  {
+    "codeunitId": 132520,
+    "codeunitName": "AFS File Client Test",
+    "method": "CreateAndGetFileInDirectoryTest"
+  },
+  {
+    "codeunitId": 132520,
+    "codeunitName": "AFS File Client Test",
+    "method": "CreateTextFileNoParentDirectoryTest"
+  },
+  {
+    "codeunitId": 132520,
+    "codeunitName": "AFS File Client Test",
+    "method": "CreateTextFileStorageAccountKeyTest"
+  },
+  {
+    "codeunitId": 132520,
+    "codeunitName": "AFS File Client Test",
+    "method": "CreateTextFileTest"
+  },
+  {
+    "codeunitId": 132520,
+    "codeunitName": "AFS File Client Test",
+    "method": "DeleteDirectoryTest"
+  },
+  {
+    "codeunitId": 132520,
+    "codeunitName": "AFS File Client Test",
+    "method": "DeleteFileTest"
+  },
+  {
+    "codeunitId": 132520,
+    "codeunitName": "AFS File Client Test",
+    "method": "FileMetadataTest"
+  },
+  {
+    "codeunitId": 132520,
+    "codeunitName": "AFS File Client Test",
+    "method": "ListDirectoryTest"
+  },
+  {
+    "codeunitId": 132520,
+    "codeunitName": "AFS File Client Test",
+    "method": "ListDirectoryWithTimestampsAndEtagTest"
+  },
+  {
+    "codeunitId": 132520,
+    "codeunitName": "AFS File Client Test",
+    "method": "MaxResultsAndMarkerTest"
+  }
+]

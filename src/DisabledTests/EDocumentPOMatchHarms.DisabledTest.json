@@ -1,0 +1,20 @@
+[
+    {
+        "bug": "Not Provided",
+        "codeunitId": 133528,
+        "codeunitName": "EDocCopilotPOGeneralHarms",
+        "method": "*"
+    },
+    {
+        "bug": "Not Provided",
+        "codeunitId": 133501,
+        "codeunitName": "EDocCopilotPORedTeaming",
+        "method": "*"
+    },
+    {
+        "bug": "Not Provided",
+        "codeunitId": 133527,
+        "codeunitName": "EDocCopilotPOUPIAHarms",
+        "method": "*"
+    }
+]

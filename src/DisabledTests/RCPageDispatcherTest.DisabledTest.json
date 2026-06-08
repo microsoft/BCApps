@@ -1,0 +1,26 @@
+[
+  {
+    "codeunitId": 134681,
+    "codeunitName": "RC Page Dispatcher Test",
+    "method": "T009_ReportPriceListAsItemPriceList",
+    "bug": 609761
+  },
+  {
+    "codeunitId": 134681,
+    "codeunitName": "RC Page Dispatcher Test",
+    "method": "T010_ReportPriceListAsItemPriceList",
+    "bug": 609761
+  },
+  {
+    "codeunitId": 134681,
+    "codeunitName": "RC Page Dispatcher Test",
+    "method": "T101_ReportListPriceSheetAsListPriceSheetV16",
+    "bug": 609761
+  },
+  {
+    "codeunitId": 134681,
+    "codeunitName": "RC Page Dispatcher Test",
+    "method": "T102_ReportSalesPromotionAsSalesPromotionV16",
+    "bug": 609761
+  }
+]

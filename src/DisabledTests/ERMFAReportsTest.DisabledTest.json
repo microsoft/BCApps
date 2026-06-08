@@ -1,0 +1,14 @@
+[
+  {
+    "codeunitId": 144714,
+    "codeunitName": "ERM FA Reports Test",
+    "method": "FAMovementAct",
+    "bug": "618779"
+  },
+  {
+    "codeunitId": 144714,
+    "codeunitName": "ERM FA Reports Test",
+    "method": "PostedFAMovementAct",
+    "bug": "618779"
+  }
+]

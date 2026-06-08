@@ -1,0 +1,14 @@
+[
+  {
+    "codeunitId": 144072,
+    "codeunitName": "ERM Miscellaneous ES",
+    "method": "NonDeductibleVATOnPurchasesInvoiceBookReport",
+    "bugs": "618779"
+  },
+  {
+    "codeunitId": 144072,
+    "codeunitName": "ERM Miscellaneous ES",
+    "method": "TwoRowsPrintedWithNonDedtVATInPurchInvBookReportForTwoVATEntriesHavingSamePurchInvHdrNo",
+    "bugs": "618779"
+  }
+]

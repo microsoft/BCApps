@@ -1,0 +1,52 @@
+[
+  {
+    "codeunitId": 134476,
+    "codeunitName": "ERM Dimension Purchase",
+    "method": "DimensionOnInvoiceRounding"
+  },
+  {
+    "codeunitId": 134476,
+    "codeunitName": "ERM Dimension Purchase",
+    "method": "PurchaseInvoiceFCYMultipleLinesAndDimensionsWithNormalVATACYIsFCY"
+  },
+  {
+    "codeunitId": 134476,
+    "codeunitName": "ERM Dimension Purchase",
+    "method": "PurchaseInvoiceFCYMultipleLinesAndDimensionsWithNormalVATACYIsNotFCY"
+  },
+  {
+    "codeunitId": 134476,
+    "codeunitName": "ERM Dimension Purchase",
+    "method": "PurchaseInvoiceFCYMultipleLinesAndDimensionsWithReverseChargeVATACYIsFCY"
+  },
+  {
+    "codeunitId": 134476,
+    "codeunitName": "ERM Dimension Purchase",
+    "method": "PurchaseInvoiceFCYMultipleLinesAndDimensionsWithReverseChargeVATACYIsNotFCY"
+  },
+  {
+    "codeunitId": 134476,
+    "codeunitName": "ERM Dimension Purchase",
+    "method": "PurchaseInvoiceMultipleLinesAndDimensionsWithNormalVAT"
+  },
+  {
+    "codeunitId": 134476,
+    "codeunitName": "ERM Dimension Purchase",
+    "method": "PurchaseInvoiceMultipleLinesAndDimensionsWithNormalVATFCY"
+  },
+  {
+    "codeunitId": 134476,
+    "codeunitName": "ERM Dimension Purchase",
+    "method": "PurchaseInvoiceMultipleLinesAndDimensionsWithReverseChargeVAT"
+  },
+  {
+    "codeunitId": 134476,
+    "codeunitName": "ERM Dimension Purchase",
+    "method": "PurchaseInvoiceMultipleLinesAndDimensionsWithReverseChargeVATACY"
+  },
+  {
+    "codeunitId": 134476,
+    "codeunitName": "ERM Dimension Purchase",
+    "method": "PurchaseInvoiceMultipleLinesAndDimensionsWithReverseChargeVATFCY"
+  }
+]

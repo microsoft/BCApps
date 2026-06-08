@@ -1,0 +1,12 @@
+[
+  {
+    "codeunitId": 144003,
+    "codeunitName": "IT - Activity Code",
+    "method": "PostingPossibleWithActivityCodeForPurchaseDocumentsNotMandatory"
+  },
+  {
+    "codeunitId": 144003,
+    "codeunitName": "IT - Activity Code",
+    "method": "PostingPossibleWithActivityCodeForSalesDocumentsNotMandatory"
+  }
+]

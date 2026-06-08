@@ -1,0 +1,17 @@
+[
+  {
+    "codeunitId": 144004,
+    "codeunitName": "Domicilations",
+    "method": "DimensionsTransferedInGenJournalLines"
+  },
+  {
+    "codeunitId": 144004,
+    "codeunitName": "Domicilations",
+    "method": "FileDomicilations_SaveFileForSimpleLine_FileCreated"
+  },
+  {
+    "codeunitId": 144004,
+    "codeunitName": "Domicilations",
+    "method": "SuggestFileDomiciliationWithoutDomiciliationNo"
+  }
+]

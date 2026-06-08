@@ -1,0 +1,42 @@
+[
+  {
+    "codeunitId": 144741,
+    "codeunitName": "BCPT Setup Card Test",
+    "method": "NoOfSqlCallsAreLogged"
+  },
+  {
+    "codeunitId": 144741,
+    "codeunitName": "BCPT Setup Card Test",
+    "method": "ErrorsAreLogged"
+  },
+  {
+    "codeunitId": 144741,
+    "codeunitName": "BCPT Setup Card Test",
+    "method": "ExportImportOneBCPTSuite"
+  },
+  {
+    "codeunitId": 144741,
+    "codeunitName": "BCPT Setup Card Test",
+    "method": "ExportImportMultipleBCPTSuite"
+  },
+  {
+    "codeunitId": 144741,
+    "codeunitName": "BCPT Setup Card Test",
+    "method": "SuiteCanBeRunInPRTMode"
+  },
+  {
+    "codeunitId": 144741,
+    "codeunitName": "BCPT Setup Card Test",
+    "method": "SuiteCanBeRunInPRTModeWithRandomDelay"
+  },
+  {
+    "codeunitId": 144741,
+    "codeunitName": "BCPT Setup Card Test",
+    "method": "PerfRunCanBeCancelled"
+  },
+  {
+    "codeunitId": 144741,
+    "codeunitName": "BCPT Setup Card Test",
+    "method": "BCPTSetupMaxConcurrentUsers"
+  }
+]

@@ -1,0 +1,12 @@
+[
+  {
+    "codeunitId": 139018,
+    "codeunitName": "Job Queue Entry Tests",
+    "method": "RunJQWithinStartOfDayAndEndTime"
+  },
+  {
+    "codeunitId": 139018,
+    "codeunitName": "Job Queue Entry Tests",
+    "method": "RunJQWithinStartTimeAndEndOfDay"
+  }
+]

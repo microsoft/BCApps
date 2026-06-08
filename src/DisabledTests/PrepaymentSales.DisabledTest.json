@@ -1,0 +1,17 @@
+[
+  {
+    "codeunitId": 144011,
+    "codeunitName": "Prepayment Sales",
+    "method": "PartialPrepmtCreditMemoWithoutPrepmtIncludeTax"
+  },
+  {
+    "codeunitId": 144011,
+    "codeunitName": "Prepayment Sales",
+    "method": "PostSalesOrderPartialPrepmtInvoiceWithoutPrepmtIncludeTax"
+  },
+  {
+    "codeunitId": 144011,
+    "codeunitName": "Prepayment Sales",
+    "method": "SalesOrderPostPartialPrepmtInvoicePrepmtIncludeTax"
+  }
+]

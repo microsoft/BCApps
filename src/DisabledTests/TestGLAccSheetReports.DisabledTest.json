@@ -1,0 +1,32 @@
+[
+  {
+    "bugId": 609445,
+    "codeunitId": 144035,
+    "codeunitName": "Test G/L Acc Sheet Reports",
+    "method": "GLSheetForeignCurrGLAccNoProvBal"
+  },
+  {
+    "bugId": 609445,
+    "codeunitId": 144035,
+    "codeunitName": "Test G/L Acc Sheet Reports",
+    "method": "GLSheetForeignCurrGLAccProvBalAccBlank"
+  },
+  {
+    "bugId": 609445,
+    "codeunitId": 144035,
+    "codeunitName": "Test G/L Acc Sheet Reports",
+    "method": "GLSheetForeignCurrGLAccProvBalWithCorrection"
+  },
+  {
+    "bugId": 609445,
+    "codeunitId": 144035,
+    "codeunitName": "Test G/L Acc Sheet Reports",
+    "method": "GLSheetForeignCurrLCYBalance"
+  },
+  {
+    "bugId": 609445,
+    "codeunitId": 144035,
+    "codeunitName": "Test G/L Acc Sheet Reports",
+    "method": "GLSheetForeignCurrPrintDebitCreditCorrectlyForTemporaryPostings"
+  }
+]

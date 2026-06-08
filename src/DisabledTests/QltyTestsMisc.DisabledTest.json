@@ -1,0 +1,8 @@
+[
+    {
+        "bug": "Not Provided",
+        "codeunitId": 139964,
+        "codeunitName": "Qlty. Tests - Misc.",
+        "method": "BlockTrackingWarehouseTransaction_InvPutaway_MostRecentFinishedModified_ShouldError"
+    }
+]

@@ -1,0 +1,17 @@
+[
+  {
+    "codeunitId": 136900,
+    "codeunitName": "Service Reports",
+    "method": "PrepaidContrEntriesTestWarning"
+  },
+  {
+    "codeunitId": 136900,
+    "codeunitName": "Service Reports",
+    "method": "ServiceInvoiceReportLineSorting"
+  },
+  {
+    "codeunitId": 136900,
+    "codeunitName": "Service Reports",
+    "method": "ServiceInvoiceShowsTranslatedVATClause"
+  }
+]

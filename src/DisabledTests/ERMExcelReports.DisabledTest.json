@@ -1,0 +1,26 @@
+[
+  {
+    "codeunitId": 134999,
+    "codeunitName": "ERM Excel Reports",
+    "method": "GeneralJournalTestTotalBalance",
+    "bug": "618779"
+  },
+  {
+    "codeunitId": 134999,
+    "codeunitName": "ERM Excel Reports",
+    "method": "GenJournalTestReportOnRecurringGenJnlLinesWithPercentInDocNo",
+    "bug": "618779"
+  },
+  {
+    "codeunitId": 134999,
+    "codeunitName": "ERM Excel Reports",
+    "method": "ZeroAmountWarningGeneralJournalTestEmptyGenPostingType",
+    "bug": "618779"
+  },
+  {
+    "codeunitId": 134999,
+    "codeunitName": "ERM Excel Reports",
+    "method": "ZeroAmountWarningGeneralJournalTestNotEmptyGenPostingType",
+    "bug": "618779"
+  }
+]

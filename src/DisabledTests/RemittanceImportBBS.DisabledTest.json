@@ -1,0 +1,32 @@
+[
+  {
+    "codeunitId": 144131,
+    "codeunitName": "Remittance - Import BBS",
+    "method": "ImportCorrectBBSPaymentFile"
+  },
+  {
+    "codeunitId": 144131,
+    "codeunitName": "Remittance - Import BBS",
+    "method": "ImportingBBSFileWithoutClosingLineRaisesError"
+  },
+  {
+    "codeunitId": 144131,
+    "codeunitName": "Remittance - Import BBS",
+    "method": "ImportingFileWithControlBatchDoesntCreateEntriesInJournal"
+  },
+  {
+    "codeunitId": 144131,
+    "codeunitName": "Remittance - Import BBS",
+    "method": "ImportingFileWithDimensions"
+  },
+  {
+    "codeunitId": 144131,
+    "codeunitName": "Remittance - Import BBS",
+    "method": "SelectingNoAfterPaymentIsImportedRemovesAllImportedEntries"
+  },
+  {
+    "codeunitId": 144131,
+    "codeunitName": "Remittance - Import BBS",
+    "method": "SpecifyingJournalTemplateNameImportsToSpecifiedJournalAndShowsSettlementDialog"
+  }
+]

@@ -1,0 +1,72 @@
+[
+  {
+    "codeunitId": 134612,
+    "codeunitName": "Test Editing Permissions",
+    "method": "IsaacIdentifiedPermissionSetsToBeNonEditable"
+  },
+  {
+    "codeunitId": 134612,
+    "codeunitName": "Test Editing Permissions",
+    "method": "RenameUserDefinedPermissionSet"
+  },
+  {
+    "codeunitId": 134612,
+    "codeunitName": "Test Editing Permissions",
+    "method": "RenameUserDefinedPermissionSetUsedUsersSettings"
+  },
+  {
+    "codeunitId": 134612,
+    "codeunitName": "Test Editing Permissions",
+    "method": "StanCanCopyExtensionPermissionSetsToNewTenantPermissionSets"
+  },
+  {
+    "codeunitId": 134612,
+    "codeunitName": "Test Editing Permissions",
+    "method": "StanCanCopyPermissionSetsToNewTenantPermissionSets"
+  },
+  {
+    "codeunitId": 134612,
+    "codeunitName": "Test Editing Permissions",
+    "method": "StanCanCopyPermissionSetsToNewTenantPermissionSetsWithoutCopyingLink"
+  },
+  {
+    "codeunitId": 134612,
+    "codeunitName": "Test Editing Permissions",
+    "method": "StanCanCreateNewTenantPermissionSets"
+  },
+  {
+    "codeunitId": 134612,
+    "codeunitName": "Test Editing Permissions",
+    "method": "StanCanDeleteCopiedApplicationPermissionSets"
+  },
+  {
+    "codeunitId": 134612,
+    "codeunitName": "Test Editing Permissions",
+    "method": "StanCanDeleteCopiedExtensionPermissionSets"
+  },
+  {
+    "codeunitId": 134612,
+    "codeunitName": "Test Editing Permissions",
+    "method": "StanCanDeleteNewlyCreatedTenantPermissionSets"
+  },
+  {
+    "codeunitId": 134612,
+    "codeunitName": "Test Editing Permissions",
+    "method": "StanCannotCopyMultiplePermissionSetsSimultaneously"
+  },
+  {
+    "codeunitId": 134612,
+    "codeunitName": "Test Editing Permissions",
+    "method": "StanGetsNotifiedWhenHashOfPermissionSetChanges"
+  },
+  {
+    "codeunitId": 134612,
+    "codeunitName": "Test Editing Permissions",
+    "method": "StanHasToSpecifyNewNameForCopiedPermissionSet"
+  },
+  {
+    "codeunitId": 134612,
+    "codeunitName": "Test Editing Permissions",
+    "method": "StanHasToUseUniqueNameForCopiedPermissionSet"
+  }
+]

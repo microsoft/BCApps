@@ -1,0 +1,12 @@
+[
+  {
+    "codeunitId": 147670,
+    "codeunitName": "SL Migration Vendor 1099 Tests",
+    "method": "TestVendor1099Migration"
+  },
+  {
+    "codeunitId": 147670,
+    "codeunitName": "SL Migration Vendor 1099 Tests",
+    "method": "ValidateSL1099BoxMappingData"
+  }
+]

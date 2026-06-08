@@ -1,0 +1,12 @@
+[
+  {
+    "codeunitId": 138015,
+    "codeunitName": "O365 Correct Sales Invoice",
+    "method": "CorrectInvoicePostedFromTwoShipmentsOfSingleOrder"
+  },
+  {
+    "codeunitId": 138015,
+    "codeunitName": "O365 Correct Sales Invoice",
+    "method": "CorrectInvoicePostedFromTwoShipmentsOfTwoOrders"
+  }
+]

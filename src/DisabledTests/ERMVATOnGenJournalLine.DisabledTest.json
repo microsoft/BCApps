@@ -1,0 +1,12 @@
+[
+  {
+    "codeunitId": 134029,
+    "codeunitName": "ERM VAT On Gen Journal Line",
+    "method": "NegativeVATDiffOnGenJnlLine"
+  },
+  {
+    "codeunitId": 134029,
+    "codeunitName": "ERM VAT On Gen Journal Line",
+    "method": "PositiveVATDiffOnGenJnlLine"
+  }
+]

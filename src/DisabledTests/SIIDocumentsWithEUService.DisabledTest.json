@@ -1,0 +1,22 @@
+[
+  {
+    "codeunitId": 147523,
+    "codeunitName": "SII Documents With EU Service",
+    "method": "PurchCrMemoWithECAmount"
+  },
+  {
+    "codeunitId": 147523,
+    "codeunitName": "SII Documents With EU Service",
+    "method": "PurchCrMemoWithECAmountAndDiffCorrType"
+  },
+  {
+    "codeunitId": 147523,
+    "codeunitName": "SII Documents With EU Service",
+    "method": "PurchInvWithECAmount"
+  },
+  {
+    "codeunitId": 147523,
+    "codeunitName": "SII Documents With EU Service",
+    "method": "ReplacementPurchCrMemoWithECAmount"
+  }
+]

@@ -1,0 +1,32 @@
+[
+  {
+    "codeunitId": 138698,
+    "codeunitName": "AllProfile V2 Test",
+    "method": "NoAppProfilesArePresent"
+  },
+  {
+    "codeunitId": 138698,
+    "codeunitName": "AllProfile V2 Test",
+    "method": "NoDuplicateProfileIdsArePresent"
+  },
+  {
+    "codeunitId": 138698,
+    "codeunitName": "AllProfile V2 Test",
+    "method": "TestCanSetAnyProfileInMySettings"
+  },
+  {
+    "codeunitId": 138698,
+    "codeunitName": "AllProfile V2 Test",
+    "method": "TestCopyDefaultProfileDoesNotCreateAnotherDefault"
+  },
+  {
+    "codeunitId": 138698,
+    "codeunitName": "AllProfile V2 Test",
+    "method": "TestCopyProfileActionCard"
+  },
+  {
+    "codeunitId": 138698,
+    "codeunitName": "AllProfile V2 Test",
+    "method": "TestCopyProfileActionList"
+  }
+]
