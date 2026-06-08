@@ -95,7 +95,7 @@ table 20400 "Qlty. Management Setup"
         field(27; "Additional Picture Handling"; Enum "Qlty. Add. Picture Handling")
         {
             Caption = 'Additional Picture Handling';
-            ToolTip = 'Specifies what to do with a picture after it has been taken.';
+            ToolTip = 'Specifies additional actions for pictures taken during inspections. By default, pictures are stored in the inspection, and only the most recent version is retained. Previous versions can be preserved with additional options.';
 
             trigger OnValidate()
             begin

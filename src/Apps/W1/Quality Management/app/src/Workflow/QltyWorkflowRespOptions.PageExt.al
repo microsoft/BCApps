@@ -71,13 +71,13 @@ pageextension 20403 "Qlty. Workflow Resp. Options" extends "Workflow Response Op
                 {
                     Visible = QltyShouldShowGrpQuantity;
                     Caption = 'Quantity';
-                    InstructionalText = 'In most scenarios you will want to use the entire lot/serial/package if it is being quarantined. If you want a specific amount you can define it here. If this value is zero and also you are not moving the entire amount then the journal entry will use the Quantity defined on the inspection itself.';
+                    InstructionalText = 'Choose how the system determines what quantity to move. "Entire Lot/Serial/Package" searches posted inventory entries - use this only when inventory has already been received. For workflows triggered on inspection creation (before receipt posting), use "Sample Quantity" or "Specific Quantity" instead, which read the location from the source document.';
 
                     field(Qlty_QuantityMoveAll; QltyMoveAll)
                     {
                         ApplicationArea = QualityManagement;
                         Caption = 'Entire Lot/Serial/Package';
-                        ToolTip = 'Specifies that this will use the entire lot/serial/package.';
+                        ToolTip = 'Specifies that the system searches posted inventory (Item Ledger Entries and Bin Content) for the lot, serial, or package defined on the inspection, and uses the full available quantity. Requires item tracking to be specified on the inspection, and the inventory must already be received/posted.';
 
                         trigger OnValidate()
                         var
