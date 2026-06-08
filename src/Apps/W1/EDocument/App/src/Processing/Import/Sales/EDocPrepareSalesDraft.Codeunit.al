@@ -5,11 +5,11 @@
 namespace Microsoft.eServices.EDocument.Processing.Import.Sales;
 
 using Microsoft.eServices.EDocument;
-using System.Log;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
 using Microsoft.Foundation.UOM;
 using Microsoft.Sales.Customer;
+using System.Log;
 
 /// <summary>
 /// Shared logic for preparing sales order drafts. Resolves customer and sales lines

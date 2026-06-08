@@ -7,7 +7,6 @@ namespace Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
 using Microsoft.Purchases.Vendor;
-using Microsoft.Sales.Customer;
 
 codeunit 6125 "Prepare Purchase E-Doc. Draft" implements IProcessStructuredData
 {
@@ -37,8 +36,4 @@ codeunit 6125 "Prepare Purchase E-Doc. Draft" implements IProcessStructuredData
         Vendor := PrepareDraftHelper.GetVendor(EDocument, Customizations);
     end;
 
-    procedure GetCustomer(EDocument: Record "E-Document"; Customizations: Enum "E-Doc. Proc. Customizations") Customer: Record Customer
-    begin
-        Clear(Customer);
-    end;
 }

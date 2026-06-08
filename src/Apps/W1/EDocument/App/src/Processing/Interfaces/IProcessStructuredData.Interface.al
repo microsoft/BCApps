@@ -7,7 +7,6 @@ namespace Microsoft.eServices.EDocument.Processing.Interfaces;
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.Purchases.Vendor;
-using Microsoft.Sales.Customer;
 
 /// <summary>
 /// Describe the data processing used to assign Business Central values to the E-Document data structures
@@ -24,11 +23,6 @@ interface IProcessStructuredData
     /// Get the vendor for the E-Document
     /// </summary>
     procedure GetVendor(EDocument: Record "E-Document"; Customizations: Enum "E-Doc. Proc. Customizations"): Record Vendor;
-
-    /// <summary>
-    /// Get the customer for the E-Document
-    /// </summary>
-    procedure GetCustomer(EDocument: Record "E-Document"; Customizations: Enum "E-Doc. Proc. Customizations"): Record Customer;
 
     /// <summary>
     /// Open the draft page for the E-Document

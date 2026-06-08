@@ -64,6 +64,7 @@ page 6154 "E-Doc. Sales Draft Subform"
                 {
                     ApplicationArea = All;
                     Editable = false;
+                    ToolTip = 'Specifies the VAT rate of this line.';
                 }
                 field("Shortcut Dimension 1 Code"; Rec."[BC] Shortcut Dimension 1 Code")
                 {
