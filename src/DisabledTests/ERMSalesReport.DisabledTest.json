@@ -1,8 +1,0 @@
-[
-  {
-    "codeunitId": 134976,
-    "codeunitName": "ERM Sales Report",
-    "method": "CustBalanceToDateReportDoesNotShowClosedCLEWhenUseWorkdateforApplUnapplIsTrueInGLSetup",
-    "bug": "618779"
-  }
-]

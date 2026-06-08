@@ -1,0 +1,447 @@
+[
+  {
+    "codeunitId": 134077,
+    "codeunitName": "ERM Currency Factor",
+    "method": "GeneralJournalWithAmount"
+  },
+  {
+    "codeunitId": 134077,
+    "codeunitName": "ERM Currency Factor",
+    "method": "GeneralJournalWithApplyEntry"
+  },
+  {
+    "codeunitId": 134082,
+    "codeunitName": "ERM Apply Invoice EMU Currency",
+    "method": "ApplyInvoiceEMUCurrAdjExchRate"
+  },
+  {
+    "codeunitId": 134082,
+    "codeunitName": "ERM Apply Invoice EMU Currency",
+    "method": "ApplyInvoiceWithEMUCurrency"
+  },
+  {
+    "codeunitId": 134232,
+    "codeunitName": "ERM Prepare Journal",
+    "method": "CustomerBlockedOpeningBalanceNotCreated"
+  },
+  {
+    "codeunitId": 134232,
+    "codeunitName": "ERM Prepare Journal",
+    "method": "CustomerPrivacyBlockedAllOpeningBalanceNotCreated"
+  },
+  {
+    "codeunitId": 134232,
+    "codeunitName": "ERM Prepare Journal",
+    "method": "CustomersOpeningBalanceUsesCorrectPostingDateInClassicMode"
+  },
+  {
+    "codeunitId": 134232,
+    "codeunitName": "ERM Prepare Journal",
+    "method": "CustomersOpeningBalanceUsesCorrectPostingDateInSimpleMode"
+  },
+  {
+    "codeunitId": 134232,
+    "codeunitName": "ERM Prepare Journal",
+    "method": "PrepareCreateCustomerOpeningBalance"
+  },
+  {
+    "codeunitId": 134232,
+    "codeunitName": "ERM Prepare Journal",
+    "method": "PrepareCreateVendorOpeningBalance"
+  },
+  {
+    "codeunitId": 134232,
+    "codeunitName": "ERM Prepare Journal",
+    "method": "VendorBlockedOpeningBalanceNotCreated"
+  },
+  {
+    "codeunitId": 134232,
+    "codeunitName": "ERM Prepare Journal",
+    "method": "VendorPrivacyBlockedAllOpeningBalanceNotCreated"
+  },
+  {
+    "codeunitId": 134232,
+    "codeunitName": "ERM Prepare Journal",
+    "method": "VendorsOpeningBalanceUsesCorrectPostingDateInClassicMode"
+  },
+  {
+    "codeunitId": 134232,
+    "codeunitName": "ERM Prepare Journal",
+    "method": "VendorsOpeningBalanceUsesCorrectPostingDateInSimpleMode"
+  },
+  {
+    "codeunitId": 134250,
+    "codeunitName": "Match General Jnl Lines UT",
+    "method": "MatchCustLedgerEntryCustNoVsAmt"
+  },
+  {
+    "codeunitId": 134250,
+    "codeunitName": "Match General Jnl Lines UT",
+    "method": "MatchCustLedgerEntryDescVsDesc2"
+  },
+  {
+    "codeunitId": 134250,
+    "codeunitName": "Match General Jnl Lines UT",
+    "method": "MatchCustLedgerEntryDocNoAndName"
+  },
+  {
+    "codeunitId": 134250,
+    "codeunitName": "Match General Jnl Lines UT",
+    "method": "MatchCustLedgerEntryDocNoAndNameDesc2"
+  },
+  {
+    "codeunitId": 134250,
+    "codeunitName": "Match General Jnl Lines UT",
+    "method": "MatchCustLedgerEntryDocNoVsName"
+  },
+  {
+    "codeunitId": 134250,
+    "codeunitName": "Match General Jnl Lines UT",
+    "method": "MatchCustLedgerEntryDocNoVsNameDesc2"
+  },
+  {
+    "codeunitId": 134250,
+    "codeunitName": "Match General Jnl Lines UT",
+    "method": "MatchCustLedgerEntryDocNoVsNoDesc2"
+  },
+  {
+    "codeunitId": 134250,
+    "codeunitName": "Match General Jnl Lines UT",
+    "method": "MatchCustLedgerEntryGeneral"
+  },
+  {
+    "codeunitId": 134250,
+    "codeunitName": "Match General Jnl Lines UT",
+    "method": "MatchToEarlierCustLedgerEntryNotAllowed"
+  },
+  {
+    "codeunitId": 134250,
+    "codeunitName": "Match General Jnl Lines UT",
+    "method": "MatchToEarlierVendorLedgerEntryNotAllowed"
+  },
+  {
+    "codeunitId": 134250,
+    "codeunitName": "Match General Jnl Lines UT",
+    "method": "MatchVendorLedgerEntryDocNoAndName"
+  },
+  {
+    "codeunitId": 134250,
+    "codeunitName": "Match General Jnl Lines UT",
+    "method": "MatchVendorLedgerEntryDocNoAndNameDesc2"
+  },
+  {
+    "codeunitId": 134250,
+    "codeunitName": "Match General Jnl Lines UT",
+    "method": "MatchVendorLedgerEntryDocNoVsName"
+  },
+  {
+    "codeunitId": 134250,
+    "codeunitName": "Match General Jnl Lines UT",
+    "method": "MatchVendorLedgerEntryDocNoVsNameDesc2"
+  },
+  {
+    "codeunitId": 134250,
+    "codeunitName": "Match General Jnl Lines UT",
+    "method": "MatchVendorLedgerEntryDocNoVsNoDesc2"
+  },
+  {
+    "codeunitId": 134250,
+    "codeunitName": "Match General Jnl Lines UT",
+    "method": "MatchVendorLedgerEntryGeneral"
+  },
+  {
+    "codeunitId": 134250,
+    "codeunitName": "Match General Jnl Lines UT",
+    "method": "MatchVendorLedgerEntryVendorNoVsAmt"
+  },
+  {
+    "codeunitId": 134321,
+    "codeunitName": "General Journal Batch Approval",
+    "method": "ApprovalRequestSentToFirstQualifiedApproverSalesPersonSalesOrder"
+  },
+  {
+    "codeunitId": 134408,
+    "codeunitName": "Incom. Doc. Attach. FactBox",
+    "method": "AttachIncomingDocFilesShouldNotGiveErrorWhenCreatePurchDocUsingRecurringLines"
+  },
+  {
+    "codeunitId": 134408,
+    "codeunitName": "Incom. Doc. Attach. FactBox",
+    "method": "CashReceiptJournal_Multiline_Attach_Prev_Next"
+  },
+  {
+    "codeunitId": 134408,
+    "codeunitName": "Incom. Doc. Attach. FactBox",
+    "method": "GeneralJournal_Multiline_Attach_Prev_Next"
+  },
+  {
+    "codeunitId": 134408,
+    "codeunitName": "Incom. Doc. Attach. FactBox",
+    "method": "PaymentJournal_Multiline_Attach_Prev_Next"
+  },
+  {
+    "codeunitId": 134408,
+    "codeunitName": "Incom. Doc. Attach. FactBox",
+    "method": "PaymentJournalPreviewPostingWithMainAttachmentInOneLineAndSupportingAttachmentOnOtherLine"
+  },
+  {
+    "codeunitId": 134408,
+    "codeunitName": "Incom. Doc. Attach. FactBox",
+    "method": "PurchaseJournal_Multiline_Attach_Prev_Next"
+  },
+  {
+    "codeunitId": 134408,
+    "codeunitName": "Incom. Doc. Attach. FactBox",
+    "method": "PurchaseJournalWithMainAttachmentInOneLineAndSupportingAttachmentOnOtherLine"
+  },
+  {
+    "codeunitId": 134408,
+    "codeunitName": "Incom. Doc. Attach. FactBox",
+    "method": "SalesJournal_Multiline_Attach_Prev_Next"
+  },
+  {
+    "codeunitId": 134420,
+    "codeunitName": "ERM Journal Posting",
+    "method": "RecordLinkDeletedAfterPostingGenJnlLine"
+  },
+  {
+    "codeunitId": 134420,
+    "codeunitName": "ERM Journal Posting",
+    "method": "TestGenJnlPosting_NoSeries_Match"
+  },
+  {
+    "codeunitId": 134420,
+    "codeunitName": "ERM Journal Posting",
+    "method": "TestGenJnlPosting_NoSeries_Match_2lines"
+  },
+  {
+    "codeunitId": 134420,
+    "codeunitName": "ERM Journal Posting",
+    "method": "TestGenJnlPosting_NoSeries_Match_2linesReversed"
+  },
+  {
+    "codeunitId": 134420,
+    "codeunitName": "ERM Journal Posting",
+    "method": "TestGenJnlPosting_NoSeries_Match_2linesReversedNoForceBalance"
+  },
+  {
+    "codeunitId": 134420,
+    "codeunitName": "ERM Journal Posting",
+    "method": "TestGenJnlPosting_NoSeries_NoMatch"
+  },
+  {
+    "codeunitId": 134420,
+    "codeunitName": "ERM Journal Posting",
+    "method": "TestGenJnlPosting_NoSeries_PatternMatch"
+  },
+  {
+    "codeunitId": 134920,
+    "codeunitName": "ERM General Journal UT",
+    "method": "AppliesToExtDocNoOnApplyCustLedgEntry"
+  },
+  {
+    "codeunitId": 134920,
+    "codeunitName": "ERM General Journal UT",
+    "method": "AppliesToExtDocNoOnApplyVendLedgEntry"
+  },
+  {
+    "codeunitId": 134920,
+    "codeunitName": "ERM General Journal UT",
+    "method": "ClearAppliesToExtDocNoOnClearApplyCustLedgEntry"
+  },
+  {
+    "codeunitId": 134920,
+    "codeunitName": "ERM General Journal UT",
+    "method": "ClearAppliesToExtDocNoOnClearApplyVendLedgEntry"
+  },
+  {
+    "codeunitId": 134920,
+    "codeunitName": "ERM General Journal UT",
+    "method": "DueDateOnCrMemoGenJournalLineEmptyPaymentTerms"
+  },
+  {
+    "codeunitId": 134920,
+    "codeunitName": "ERM General Journal UT",
+    "method": "DueDateOnInvoiceGenJournalLineEmptyPaymentTerms"
+  },
+  {
+    "codeunitId": 134920,
+    "codeunitName": "ERM General Journal UT",
+    "method": "GetAmountFromVendLedgerEntry"
+  },
+  {
+    "codeunitId": 134920,
+    "codeunitName": "ERM General Journal UT",
+    "method": "NoDeleteWithJobQueueStatusScheduledOrPosting"
+  },
+  {
+    "codeunitId": 134920,
+    "codeunitName": "ERM General Journal UT",
+    "method": "NoModifyWithJobQueueStatusScheduledOrPosting"
+  },
+  {
+    "codeunitId": 134920,
+    "codeunitName": "ERM General Journal UT",
+    "method": "NoRenameWithJobQueueStatusScheduledOrPosting"
+  },
+  {
+    "codeunitId": 134920,
+    "codeunitName": "ERM General Journal UT",
+    "method": "NoRenumberingForPrintedDoc"
+  },
+  {
+    "codeunitId": 134920,
+    "codeunitName": "ERM General Journal UT",
+    "method": "NoRenumberWithJobQueueStatusScheduledOrPosting"
+  },
+  {
+    "codeunitId": 134920,
+    "codeunitName": "ERM General Journal UT",
+    "method": "RenumberDocNoMultipleLinesWhenGenJnlLineDeleted"
+  },
+  {
+    "codeunitId": 134920,
+    "codeunitName": "ERM General Journal UT",
+    "method": "RenumberDocNoMultipleLinesWithAppliesToIdCustomer"
+  },
+  {
+    "codeunitId": 134920,
+    "codeunitName": "ERM General Journal UT",
+    "method": "RenumberDocNoMultipleLinesWithAppliesToIdVendor"
+  },
+  {
+    "codeunitId": 134920,
+    "codeunitName": "ERM General Journal UT",
+    "method": "RenumberDocNoOneLineWithAppliesToIdCustomer"
+  },
+  {
+    "codeunitId": 134920,
+    "codeunitName": "ERM General Journal UT",
+    "method": "RenumberDocNoOneLineWithAppliesToIdVendor"
+  },
+  {
+    "codeunitId": 134920,
+    "codeunitName": "ERM General Journal UT",
+    "method": "TestCreateGenJnlBatchPostWebService"
+  },
+  {
+    "codeunitId": 134930,
+    "codeunitName": "ERM Applies-To Doc. No.",
+    "method": "AccountNoChangedFromBlankToCustomerWhenValidateApplToDocNo"
+  },
+  {
+    "codeunitId": 134930,
+    "codeunitName": "ERM Applies-To Doc. No.",
+    "method": "AccountNoChangedFromBlankToVendorWhenValidateApplToDocNo"
+  },
+  {
+    "codeunitId": 134930,
+    "codeunitName": "ERM Applies-To Doc. No.",
+    "method": "AppliesToDocNoClearedOnUpdateVendorAccountNo"
+  },
+  {
+    "codeunitId": 134930,
+    "codeunitName": "ERM Applies-To Doc. No.",
+    "method": "AppliesToDocNoClearedOnUpdateVendorBalAccountNo"
+  },
+  {
+    "codeunitId": 134930,
+    "codeunitName": "ERM Applies-To Doc. No.",
+    "method": "AppliesToDocNoIsNotClearedOnUpdateGLAccountNo"
+  },
+  {
+    "codeunitId": 134930,
+    "codeunitName": "ERM Applies-To Doc. No.",
+    "method": "AppliesToDocNoIsNotClearedOnUpdateGLBalAccountNo"
+  },
+  {
+    "codeunitId": 134930,
+    "codeunitName": "ERM Applies-To Doc. No.",
+    "method": "AppliesToIdClearedOnUpdateVendorAccountNo"
+  },
+  {
+    "codeunitId": 134930,
+    "codeunitName": "ERM Applies-To Doc. No.",
+    "method": "AppliesToIdClearedOnUpdateVendorBalAccountNo"
+  },
+  {
+    "codeunitId": 134930,
+    "codeunitName": "ERM Applies-To Doc. No.",
+    "method": "AppliesToIdIsNotClearedOnUpdateGLAccountNo"
+  },
+  {
+    "codeunitId": 134930,
+    "codeunitName": "ERM Applies-To Doc. No.",
+    "method": "AppliesToIdIsNotClearedOnUpdateGLBalAccountNo"
+  },
+  {
+    "codeunitId": 134932,
+    "codeunitName": "ERM Gen. Jnl. Error Handling",
+    "method": "BatchErrorsDrillDown"
+  },
+  {
+    "codeunitId": 134932,
+    "codeunitName": "ERM Gen. Jnl. Error Handling",
+    "method": "CurrentLineTwoErrors"
+  },
+  {
+    "codeunitId": 134932,
+    "codeunitName": "ERM Gen. Jnl. Error Handling",
+    "method": "GeneralJournalCatchCheckPostError"
+  },
+  {
+    "codeunitId": 134932,
+    "codeunitName": "ERM Gen. Jnl. Error Handling",
+    "method": "JournalLineErrorsFactBoxFieldErrorNoErrorMessage"
+  },
+  {
+    "codeunitId": 134932,
+    "codeunitName": "ERM Gen. Jnl. Error Handling",
+    "method": "NumberOfDocumentOutOfBalanceErrors"
+  },
+  {
+    "codeunitId": 134932,
+    "codeunitName": "ERM Gen. Jnl. Error Handling",
+    "method": "NumberOfLinesWithErrors"
+  },
+  {
+    "codeunitId": 134933,
+    "codeunitName": "Net Cust/Vend Balances Test",
+    "method": "T003_DrillDownBalanceAsVendor"
+  },
+  {
+    "codeunitId": 134933,
+    "codeunitName": "Net Cust/Vend Balances Test",
+    "method": "T004_DrillDownBalanceAsCustomer"
+  },
+  {
+    "codeunitId": 134933,
+    "codeunitName": "Net Cust/Vend Balances Test",
+    "method": "T005_DrillDownBalanceAsVendorStatsFactBox"
+  },
+  {
+    "codeunitId": 134933,
+    "codeunitName": "Net Cust/Vend Balances Test",
+    "method": "T006_DrillDownBalanceAsCustomerStatsFactBox"
+  },
+  {
+    "codeunitId": 134933,
+    "codeunitName": "Net Cust/Vend Balances Test",
+    "method": "T033_VendorInvoiceFCYToCustomerInvoiceFCYOnDiffDates"
+  },
+  {
+    "codeunitId": 136602,
+    "codeunitName": "ERM RS Create Journal Lines",
+    "method": "CheckGLAccTypePostingOnVendorPostingGroup"
+  },
+  {
+    "codeunitId": 136602,
+    "codeunitName": "ERM RS Create Journal Lines",
+    "method": "CustomerWithoutFilter"
+  },
+  {
+    "codeunitId": 136602,
+    "codeunitName": "ERM RS Create Journal Lines",
+    "method": "VendorWithoutFilter"
+  }
+]

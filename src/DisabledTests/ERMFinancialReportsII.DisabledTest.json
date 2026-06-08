@@ -1,8 +1,0 @@
-[
-  {
-    "codeunitId": 134986,
-    "codeunitName": "ERM Financial Reports II",
-    "method": "InterestAmountOnReminderStatistics",
-    "bug": "618779"
-  }
-]

@@ -1,0 +1,17 @@
+[
+  {
+    "codeunitId": 148012,
+    "codeunitName": "IRS 1099 Emailing Tests",
+    "method": "EmailFromCardWhenEmailNotSetup"
+  },
+  {
+    "codeunitId": 148012,
+    "codeunitName": "IRS 1099 Emailing Tests",
+    "method": "EmailFromListWhenEmailNotSetup"
+  },
+  {
+    "codeunitId": 148018,
+    "codeunitName": "IRS 1099 API Tests",
+    "method": "IRS1099DocumentsAPISunshine"
+  }
+]
