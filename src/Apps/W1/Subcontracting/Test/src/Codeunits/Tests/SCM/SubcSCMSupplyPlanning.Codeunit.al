@@ -29,7 +29,7 @@ using Microsoft.Warehouse.Ledger;
 using Microsoft.Warehouse.Structure;
 using System.TestLibraries.Utilities;
 
-codeunit 149913 "Subc SCM Supply Planning"
+codeunit 149922 "Subc SCM Supply Planning"
 {
     Subtype = Test;
     TestPermissions = Disabled;
@@ -1030,7 +1030,7 @@ codeunit 149913 "Subc SCM Supply Planning"
     local procedure CalculateSubcontractingWorksheetForBatch(RequisitionWkshName: Record "Requisition Wksh. Name"; WorkCenter: Record "Work Center")
     var
         RequisitionLine: Record "Requisition Line";
-        CalculateSubcontracts: Report Microsoft.Manufacturing.Subcontracting."Subc. Calculate Subcontracts";
+        CalculateSubcontracts: Report Microsoft.Manufacturing.Planning."Subc. Calculate Subcontracts";
     begin
         RequisitionLine.Init();
         RequisitionLine."Worksheet Template Name" := RequisitionWkshName."Worksheet Template Name";
