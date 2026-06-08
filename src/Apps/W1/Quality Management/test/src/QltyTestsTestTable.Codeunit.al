@@ -65,7 +65,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         OptionsTok: Label 'Option1,Option2,Option3';
         Option1Tok: Label 'Option1';
         NoTok: Label 'No';
-        ExistingInspectiontErr: Label 'The test %1 exists on %2 inspections (such as %3 with template %4). The test can not be deleted if it is being used on a Quality Inspection.', Comment = '%1=the test, %2=count of inspections, %3=one example inspection, %4=example template.';
+        ExistingInspectiontErr: Label 'The test %1 exists on %2 inspections (such as %3 with template %4). The test cannot be deleted if it is being used on a quality inspection.', Comment = '%1=the test, %2=count of inspections, %3=one example inspection, %4=example template.';
         DescriptionTxt: Label 'Specific Gravity';
         SuggestedCodeTxtTestValueTxt: Label 'SPECIFICGRAVITY';
         Description2Txt: Label '><{}.@!`~''"|\/?&*()-_$#-=,%%:ELECTRICAL CONDUCTIVITY';
@@ -91,6 +91,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         ResultCode1Tok: Label '><{}.@!`~''';
         ResultCode2Tok: Label '"|\/?&*()';
         CannotBeRemovedExistingInspectionErr: Label 'This result cannot be removed because it is being used actively on at least one existing Quality Inspection. If you no longer want to use this result consider changing the description, or consider changing the visibility not to be promoted. You can also change the "Copy" setting on the result.';
+        TestAddedExactlyOnceErr: Label 'Test %1 should be added exactly once.', Comment = '%1 = quality test code';
         IsInitialized: Boolean;
 
     [Test]
@@ -4570,56 +4571,95 @@ codeunit 139967 "Qlty. Tests - Test Table"
     end;
 
     [Test]
-    procedure TemplateTable_AddTestToTemplate()
+    procedure AddMultipleTestsToTemplate()
     var
-        ToLoadQltyInspectionResult: Record "Qlty. Inspection Result";
-        ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        ConfigurationToLoadQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
-        TestToLoadQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
-        DurationTemplateToLoadQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
-        ToLoadQltyTest: Record "Qlty. Test";
+        QltyInspectionResult: Record "Qlty. Inspection Result";
+        QltyTest: array[5] of Record "Qlty. Test";
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
+        TestQltyIResultConditConf, ForTemplateQltyIResultConditConf : Record "Qlty. I. Result Condit. Conf.";
         ResultCode: Text;
+        Index: Integer;
     begin
-        // [SCENARIO] Add test to template creates template line and copies result conditions
+        // [SCENARIO 618886] Selecting multiple tests through adds all selected tests as new template lines, with copied result conditions.
+        // [SCENARIO 618886] When the selection includes a test that is already on the template, that test is skipped and only the missing tests are inserted.
+        // [SCENARIO 618886] When every selected test already exists on the template, no new lines are created.
         Initialize();
 
         // [GIVEN] A result is created
         QltyInspectionUtility.GenerateRandomCharacters(20, ResultCode);
-        ToLoadQltyInspectionResult.Code := CopyStr(ResultCode, 1, MaxStrLen(ToLoadQltyInspectionResult.Code));
-        ToLoadQltyInspectionResult."Result Category" := ToLoadQltyInspectionResult."Result Category"::Acceptable;
-        ToLoadQltyInspectionResult.Insert();
+        QltyInspectionResult.Code := CopyStr(ResultCode, 1, MaxStrLen(QltyInspectionResult.Code));
+        QltyInspectionResult."Result Category" := QltyInspectionResult."Result Category"::Acceptable;
+        QltyInspectionResult.Insert();
 
-        // [GIVEN] A test is created
-        ToLoadQltyTest.Code := CopyStr(ResultCode, 1, MaxStrLen(ToLoadQltyTest.Code));
-        ToLoadQltyTest."Test Value Type" := ToLoadQltyTest."Test Value Type"::"Value Type Integer";
-        ToLoadQltyTest.Insert();
-
-        // [GIVEN] A result condition is created for the test
-        TestToLoadQltyIResultConditConf."Condition Type" := TestToLoadQltyIResultConditConf."Condition Type"::Test;
-        TestToLoadQltyIResultConditConf."Target Code" := ToLoadQltyTest.Code;
-        TestToLoadQltyIResultConditConf."Test Code" := ToLoadQltyTest.Code;
-        TestToLoadQltyIResultConditConf."Result Code" := ToLoadQltyInspectionResult.Code;
-        TestToLoadQltyIResultConditConf.Insert();
+        // [GIVEN] Five quality tests created
+        for Index := 1 to ArrayLen(QltyTest) do
+            QltyInspectionUtility.CreateTest(QltyTest[Index], "Qlty. Test Value Type"::"Value Type Integer");
 
         // [GIVEN] An empty template is created
-        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 0);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 0);
 
-        // [WHEN] Adding test to template
-        LibraryAssert.IsTrue(ConfigurationToLoadQltyInspectionTemplateHdr.AddTestToTemplate(ToLoadQltyTest.Code), 'Should add template line for test');
+        // [GIVEN] Mock that three tests (1|2|5) are passed as the selection filter
+        // [WHEN] Add multiple tests is invoked for the template
+        QltyInspectionUtility.AddSelectedTestsToTemplate(QltyInspectionTemplateHdr, StrSubstNo('%1|%2|%3', QltyTest[1].Code, QltyTest[2].Code, QltyTest[5].Code));
 
-        // [THEN] Template line is created with correct test code
-        ConfigurationToLoadQltyInspectionTemplateLine.SetRange("Template Code", ConfigurationToLoadQltyInspectionTemplateHdr.Code);
-        ConfigurationToLoadQltyInspectionTemplateLine.FindFirst();
-        LibraryAssert.AreEqual(ToLoadQltyTest.Code, ConfigurationToLoadQltyInspectionTemplateLine."Test Code", 'Should be correct test code.');
+        // [THEN] Three new template lines exist
+        QltyInspectionTemplateLine.SetRange("Template Code", QltyInspectionTemplateHdr.Code);
+        LibraryAssert.AreEqual(3, QltyInspectionTemplateLine.Count(), 'All selected tests should be added to the template.');
 
-        // [THEN] Result condition is copied to template
-        DurationTemplateToLoadQltyIResultConditConf.SetRange("Condition Type", DurationTemplateToLoadQltyIResultConditConf."Condition Type"::Template);
-        DurationTemplateToLoadQltyIResultConditConf.SetRange("Target Code", ConfigurationToLoadQltyInspectionTemplateHdr.Code);
-        DurationTemplateToLoadQltyIResultConditConf.FindFirst();
+        for Index := 1 to ArrayLen(QltyTest) do begin
+            // Tests 3 and 4 were not selected in the lookup, so skip the per-test assertions for them
+            if Index in [3, 4] then
+                continue;
 
-        // [THEN] Template result condition has correct test and result codes
-        LibraryAssert.AreEqual(ToLoadQltyTest.Code, DurationTemplateToLoadQltyIResultConditConf."Test Code", 'Should be correct test code.');
-        LibraryAssert.AreEqual(ToLoadQltyInspectionResult.Code, DurationTemplateToLoadQltyIResultConditConf."Result Code", 'Should be correct result code.');
+            QltyInspectionTemplateLine.SetRange("Test Code", QltyTest[Index].Code);
+
+            // [THEN] Each selected test is represented on the template exactly once
+            LibraryAssert.AreEqual(1, QltyInspectionTemplateLine.Count(), StrSubstNo(TestAddedExactlyOnceErr, QltyTest[Index].Code));
+
+            // [THEN] Result condition is copied to template for each test
+            TestQltyIResultConditConf.SetRange("Condition Type", TestQltyIResultConditConf."Condition Type"::Test);
+            TestQltyIResultConditConf.SetRange("Target Code", QltyTest[Index].Code);
+            if TestQltyIResultConditConf.FindSet() then
+                repeat
+                    ForTemplateQltyIResultConditConf.SetRange("Condition Type", ForTemplateQltyIResultConditConf."Condition Type"::Template);
+                    ForTemplateQltyIResultConditConf.SetRange("Target Code", QltyInspectionTemplateHdr.Code);
+                    ForTemplateQltyIResultConditConf.SetRange("Test Code", QltyTest[Index].Code);
+                    ForTemplateQltyIResultConditConf.SetRange("Result Code", TestQltyIResultConditConf."Result Code");
+                    LibraryAssert.IsTrue(ForTemplateQltyIResultConditConf.FindFirst(), 'A result condition should have been created for the template.');
+                    LibraryAssert.AreEqual(TestQltyIResultConditConf.Condition, ForTemplateQltyIResultConditConf.Condition, 'Condition should be the same.');
+                    LibraryAssert.AreEqual(TestQltyIResultConditConf."Condition Description", ForTemplateQltyIResultConditConf."Condition Description", 'Condition Description should be the same.');
+                    LibraryAssert.AreEqual(TestQltyIResultConditConf.Priority, ForTemplateQltyIResultConditConf.Priority, 'Priority should be the same.');
+                until TestQltyIResultConditConf.Next() = 0;
+        end;
+
+
+        // [GIVEN] Mock that two tests (2|4) are passed as the selection filter. Note that test 2 is already on the template from the previous selection, so only test 4 should be added this time.
+        // [WHEN] Add multiple tests is invoked for the template
+        QltyInspectionUtility.AddSelectedTestsToTemplate(QltyInspectionTemplateHdr, StrSubstNo('%1|%2', QltyTest[2].Code, QltyTest[4].Code));
+
+        // [THEN] The template contains exactly 4 lines (the original plus the one new test)
+        QltyInspectionTemplateLine.Reset();
+        QltyInspectionTemplateLine.SetRange("Template Code", QltyInspectionTemplateHdr.Code);
+        LibraryAssert.AreEqual(4, QltyInspectionTemplateLine.Count(), 'All selected tests should be added to the template.');
+
+        // [THEN] The pre-existing line for test 2 was not duplicated on the template
+        QltyInspectionTemplateLine.SetRange("Test Code", QltyTest[2].Code);
+        LibraryAssert.AreEqual(1, QltyInspectionTemplateLine.Count(), 'The existing test should appear only once.');
+
+        // [THEN] Test 4 is added to the template
+        QltyInspectionTemplateLine.SetRange("Test Code", QltyTest[4].Code);
+        LibraryAssert.AreEqual(1, QltyInspectionTemplateLine.Count(), 'The new test should be added to the template.');
+
+
+        // [GIVEN] Mock that two tests (1|4) are passed as the selection filter. Note that both tests are already on the template, so no changes should be made to the template this time.
+        // [WHEN] Add multiple tests is invoked for the template
+        QltyInspectionUtility.AddSelectedTestsToTemplate(QltyInspectionTemplateHdr, StrSubstNo('%1|%2', QltyTest[1].Code, QltyTest[4].Code));
+
+        // [THEN] No new lines are inserted
+        QltyInspectionTemplateLine.Reset();
+        QltyInspectionTemplateLine.SetRange("Template Code", QltyInspectionTemplateHdr.Code);
+        LibraryAssert.AreEqual(4, QltyInspectionTemplateLine.Count(), 'No new template lines should be created when all selected tests are already present.');
     end;
 
     local procedure Initialize()

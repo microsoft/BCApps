@@ -250,7 +250,7 @@ page 99001500 "Subcontractor Prices"
         Vendor: Record Vendor;
         IsLookupMode: Boolean;
         MultipleVendorsSelectedErr: Label 'More than one vendor uses these subcontractor prices. To copy prices, the Vendor No. Filter field must contain one vendor only.';
-        MultipleWorkCenterSelectedErr: Label 'More than one work center uses these subcontractor prices. To copy prices, the Vendor No. Filter field must contain one vendor only.';
+        MultipleWorkCenterSelectedErr: Label 'More than one work center uses these subcontractor prices. To copy prices, the Work Center No. Filter field must contain one work center only.';
         NoDataWithinFilterErr: Label 'There is no %1 within the filter %2.',
             Comment = '@@@=%1: Field(Code), %2: GetFilter(Code)';
         PlaceholderLbl: Label '%1 %2 %3 %4 ', Locked = true;

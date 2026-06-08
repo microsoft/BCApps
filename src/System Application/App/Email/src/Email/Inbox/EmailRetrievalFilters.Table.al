@@ -67,6 +67,10 @@ table 8885 "Email Retrieval Filters"
             InitValue = "Include";
             Caption = 'Category Filter Type';
         }
+        field(11; "Load Headers"; Boolean)
+        {
+            Caption = 'Load Headers';
+        }
     }
 
     keys

@@ -12,7 +12,7 @@ pageextension 99001510 "Subc. Prod BOM Lines" extends "Production BOM Lines"
     {
         addlast(Control1)
         {
-            field("Subcontracting Type"; Rec."Subcontracting Type")
+            field("Component Supply Method"; Rec."Component Supply Method")
             {
                 ApplicationArea = Manufacturing;
             }
