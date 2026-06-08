@@ -22,7 +22,7 @@ permissions:
 
 jobs:
   intake:
-    if: github.event.pull_request.draft == false
+    if: github.event.pull_request.draft == false && github.event.pull_request.user.login != 'business-central-bot[bot]'
     runs-on: ubuntu-latest
     defaults:
       run:

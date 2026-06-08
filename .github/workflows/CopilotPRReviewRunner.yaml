@@ -87,7 +87,7 @@ jobs:
           "base_ref=$($pr.base.ref)" >> $env:GITHUB_OUTPUT
 
       - name: Checkout trusted base code
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           ref: refs/heads/main
           path: trusted
@@ -116,6 +116,7 @@ jobs:
           MAX_FINDINGS_PER_DOMAIN: ${{ vars.COPILOT_REVIEW_MAX_FINDINGS_PER_DOMAIN || '25' }}
           COPILOT_REVIEW_FAIL_ON_PARSE_ERROR: ${{ vars.COPILOT_REVIEW_FAIL_ON_PARSE_ERROR || 'true' }}
           COPILOT_REVIEW_EMBED_DIFF: ${{ vars.COPILOT_REVIEW_EMBED_DIFF || 'false' }}
+          COPILOT_REVIEW_CLI_TIMEOUT_MINUTES: ${{ vars.COPILOT_REVIEW_CLI_TIMEOUT_MINUTES || '30' }}
           COPILOT_REVIEW_AGENT_LABEL: ${{ vars.COPILOT_REVIEW_AGENT_LABEL || 'copilot-pr-review' }}
           COPILOT_REVIEW_AGENT_RELEASE_DATE: ${{ vars.COPILOT_REVIEW_AGENT_RELEASE_DATE }}
           COPILOT_REVIEW_AGENT_RELEASE_VERSION: ${{ vars.COPILOT_REVIEW_AGENT_RELEASE_VERSION || '0' }}

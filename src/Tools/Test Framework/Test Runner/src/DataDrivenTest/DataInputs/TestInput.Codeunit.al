@@ -24,13 +24,36 @@ codeunit 130460 "Test Input"
 
     internal procedure InitializeTestInputsBeforeTestMethodRun(CodeunitID: Integer; CodeunitName: Text[30]; FunctionName: Text[128]; FunctionTestPermissions: TestPermissions; var CurrentTestMethodLine: Record "Test Method Line")
     begin
-        if CurrentTestMethodLine."Data Input" = '' then
+        LoadTestInput(CurrentTestMethodLine."Data Input Group Code", CurrentTestMethodLine."Data Input");
+    end;
+
+    /// <summary>
+    /// Pre-loads the test input into the single-instance globals before the test method runs.
+    /// </summary>
+    /// <param name="TestInputGroupCode">The test input group code to load.</param>
+    /// <param name="TestInputCode">The test input code to load.</param>
+    /// <remarks>
+    /// The data-driven test framework reads the "Test Input" table from a subscriber to OnBeforeTestMethodRun,
+    /// which the platform raises inside the test method's TestPermissions scope. When a test declares a
+    /// TestPermissions value other than Disabled, the platform overrides the effective permissions and the
+    /// IndirectRead on the "Test Input" table fails. Calling this from a context that still runs under full
+    /// permissions (before the test runner is invoked) caches the input so the later read inside the restricted
+    /// scope is a no-op.
+    /// </remarks>
+    procedure PreloadTestInput(TestInputGroupCode: Code[100]; TestInputCode: Code[100])
+    begin
+        LoadTestInput(TestInputGroupCode, TestInputCode);
+    end;
+
+    local procedure LoadTestInput(TestInputGroupCode: Code[100]; TestInputCode: Code[100])
+    begin
+        if TestInputCode = '' then
             exit;
 
-        if (CurrentTestMethodLine."Data Input" = DataPerTest.Code) and (CurrentTestMethodLine."Data Input Group Code" = DataPerTest."Test Input Group Code") then
+        if (TestInputCode = DataPerTest.Code) and (TestInputGroupCode = DataPerTest."Test Input Group Code") then
             exit;
 
-        DataPerTest.Get(CurrentTestMethodLine."Data Input Group Code", CurrentTestMethodLine."Data Input");
+        DataPerTest.Get(TestInputGroupCode, TestInputCode);
 
         DataPerTestTestInput.Initialize(DataPerTest.GetInput(DataPerTest));
     end;
