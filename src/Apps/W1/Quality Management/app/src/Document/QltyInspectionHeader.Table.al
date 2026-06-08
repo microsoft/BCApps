@@ -20,13 +20,13 @@ using Microsoft.QualityManagement.Integration.Inventory;
 using Microsoft.QualityManagement.Integration.Inventory.Transfer;
 using Microsoft.QualityManagement.Reports;
 using Microsoft.QualityManagement.Setup;
+using Microsoft.QualityManagement.Telemetry;
 using Microsoft.QualityManagement.Utilities;
 using Microsoft.QualityManagement.Workflow;
 using System.Device;
 using System.IO;
 using System.Reflection;
 using System.Security.AccessControl;
-using System.Telemetry;
 using System.Utilities;
 
 table 20405 "Qlty. Inspection Header"
@@ -841,9 +841,9 @@ table 20405 "Qlty. Inspection Header"
     /// </summary>
     procedure FinishInspection()
     var
-        FeatureTelemetry: Codeunit "Feature Telemetry";
+        QltyMgmtFeatureTelemetry: Codeunit "Qlty. Mgmt. Feature Telemetry";
     begin
-        FeatureTelemetry.LogUptake('0000QIP', QltyManagementSetup.GetFeatureTelemetryName(), Enum::"Feature Uptake Status"::Used);
+        QltyMgmtFeatureTelemetry.LogFeatureUsage(ObjectType::Table, Database::"Qlty. Inspection Header", 'FinishInspection');
         FinishInspectionAndPrompt(true);
     end;
 

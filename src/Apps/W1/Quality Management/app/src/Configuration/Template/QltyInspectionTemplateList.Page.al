@@ -7,8 +7,7 @@ namespace Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.Foundation.Attachment;
 using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Document;
-using Microsoft.QualityManagement.Setup;
-using System.Telemetry;
+using Microsoft.QualityManagement.Telemetry;
 
 /// <summary>
 /// A Quality Inspection Template is an inspection plan containing a set of questions and data points that you want to collect.
@@ -143,9 +142,8 @@ page 20404 "Qlty. Inspection Template List"
 
     trigger OnOpenPage()
     var
-        QltyManagementSetup: Record "Qlty. Management Setup";
-        FeatureTelemetry: Codeunit "Feature Telemetry";
+        QltyMgmtFeatureTelemetry: Codeunit "Qlty. Mgmt. Feature Telemetry";
     begin
-        FeatureTelemetry.LogUptake('0000QIJ', QltyManagementSetup.GetFeatureTelemetryName(), Enum::"Feature Uptake Status"::Discovered);
+        QltyMgmtFeatureTelemetry.LogFeatureUptakeDiscovered(ObjectType::Page, Page::"Qlty. Inspection Template List");
     end;
 }

@@ -15,10 +15,9 @@ using Microsoft.QualityManagement.Dispositions.Move;
 using Microsoft.QualityManagement.Dispositions.Purchase;
 using Microsoft.QualityManagement.Dispositions.PutAway;
 using Microsoft.QualityManagement.Dispositions.Transfer;
-using Microsoft.QualityManagement.Setup;
+using Microsoft.QualityManagement.Telemetry;
 using Microsoft.QualityManagement.Utilities;
 using Microsoft.Warehouse.Structure;
-using System.Telemetry;
 
 /// <summary>
 /// List of Quality Inspections
@@ -714,10 +713,9 @@ page 20408 "Qlty. Inspection List"
 
     trigger OnOpenPage()
     var
-        QltyManagementSetup: Record "Qlty. Management Setup";
-        FeatureTelemetry: Codeunit "Feature Telemetry";
+        QltyMgmtFeatureTelemetry: Codeunit "Qlty. Mgmt. Feature Telemetry";
     begin
-        FeatureTelemetry.LogUptake('0000QIM', QltyManagementSetup.GetFeatureTelemetryName(), Enum::"Feature Uptake Status"::Discovered);
+        QltyMgmtFeatureTelemetry.LogFeatureUptakeDiscovered(ObjectType::Page, Page::"Qlty. Inspection List");
     end;
 
     trigger OnAfterGetRecord()

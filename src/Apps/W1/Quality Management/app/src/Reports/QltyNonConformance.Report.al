@@ -8,8 +8,7 @@ using Microsoft.Foundation.Company;
 using Microsoft.Inventory.Item;
 using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Document;
-using Microsoft.QualityManagement.Setup;
-using System.Telemetry;
+using Microsoft.QualityManagement.Telemetry;
 
 report 20403 "Qlty. Non-Conformance"
 {
@@ -278,10 +277,9 @@ report 20403 "Qlty. Non-Conformance"
 
     trigger OnPreReport()
     var
-        QltyManagementSetup: Record "Qlty. Management Setup";
-        FeatureTelemetry: Codeunit "Feature Telemetry";
+        QltyMgmtFeatureTelemetry: Codeunit "Qlty. Mgmt. Feature Telemetry";
     begin
-        FeatureTelemetry.LogUptake('0000QIR', QltyManagementSetup.GetFeatureTelemetryName(), Enum::"Feature Uptake Status"::Used);
+        QltyMgmtFeatureTelemetry.LogFeatureUsage(ObjectType::Report, Report::"Qlty. Non-Conformance", 'Print report Non-Conformance');
     end;
 
     var
