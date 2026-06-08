@@ -19,17 +19,6 @@ pageextension 99001525 "Subc. PurchOrderList" extends "Purchase Order List"
             }
         }
     }
-    views
-    {
-        addlast
-        {
-            view(SubcontractingOrders)
-            {
-                Caption = 'Subcontracting Orders';
-                Filters = where("Subc. Order" = const(true));
-            }
-        }
-    }
     actions
     {
         addafter("Create Inventor&y Put-away/Pick")
@@ -81,6 +70,17 @@ pageextension 99001525 "Subc. PurchOrderList" extends "Purchase Order List"
                     PurchaseHeader.SetRecFilter();
                     Report.Run(Report::"Subc. Dispatching List", true, false, PurchaseHeader);
                 end;
+            }
+        }
+    }
+    views
+    {
+        addlast
+        {
+            view(SubcontractingOrders)
+            {
+                Caption = 'Subcontracting Orders';
+                Filters = where("Subc. Order" = const(true));
             }
         }
     }
