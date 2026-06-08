@@ -154,6 +154,9 @@ table 20401 "Qlty. Test"
 
             trigger OnValidate()
             begin
+                if (Rec."Default Value" <> '') and (Rec."Test Value Type" in [Rec."Test Value Type"::"Value Type Text Expression"]) then
+                    Error(DefaultValueNotAllowedForTextExpressionErr);
+
                 Rec.ValidateAllowableValuesOnDefault();
             end;
         }
@@ -205,6 +208,7 @@ table 20401 "Qlty. Test"
         ThereIsNoResultErr: Label 'There is no result called "%1". Please add the result, or change the existing result conditions.', Comment = '%1=the result';
         ReviewResultsErr: Label 'Advanced configuration required. Please review the result configurations for test "%1", for result "%2".', Comment = '%1=the test, %2=the result';
         ExpressionFormulaOnlyForTextExpressionErr: Label 'The Expression Formula can only be used with tests that are a type of Text Expression';
+        DefaultValueNotAllowedForTextExpressionErr: Label 'The Default Value cannot be set on tests that are a type of Text Expression. The value is computed from the Expression Formula.';
         BooleanChoiceListLbl: Label 'No,Yes';
         ExistingInspectionErr: Label 'The test %1 exists on %2 inspections (such as %3 with template %4). The test cannot be deleted if it is being used on a quality inspection.', Comment = '%1=the test, %2=count of inspections, %3=one example inspection, %4=example template.';
         DeleteQst: Label 'The test %3 exists on %1 Quality Inspection Template(s) (such as template %2) that will be deleted. Do you wish to proceed?', Comment = '%1 = the lines, %2= the Template Code, %3=the test';

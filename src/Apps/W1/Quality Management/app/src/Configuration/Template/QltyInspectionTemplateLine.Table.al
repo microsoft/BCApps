@@ -48,6 +48,7 @@ table 20403 "Qlty. Inspection Template Line"
                     if QltyTest.Get("Test Code") then begin
                         Rec.Description := QltyTest.Description;
                         Rec."Unit of Measure Code" := QltyTest."Unit of Measure Code";
+                        Rec."Expression Formula" := QltyTest."Expression Formula";
                     end;
 
                 EnsureResultsExist(Rec."Test Code" <> xRec."Test Code");
