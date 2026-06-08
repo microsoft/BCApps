@@ -49,7 +49,7 @@ table 30141 "Shpfy Return Line"
         }
         field(6; "Return Reason"; Enum "Shpfy Return Reason")
         {
-            Caption = 'Return Reason';
+            Caption = 'Return Reason (deprecated)';
             DataClassification = SystemMetadata;
             Editable = false;
         }
@@ -103,6 +103,38 @@ table 30141 "Shpfy Return Line"
         {
             Caption = 'Customer Note';
             DataClassification = SystemMetadata;
+        }
+        field(15; Type; Enum "Shpfy Return Line Type")
+        {
+            Caption = 'Type';
+            DataClassification = SystemMetadata;
+            Editable = false;
+        }
+        field(16; "Unit Price"; Decimal)
+        {
+            Caption = 'Unit Price';
+            DataClassification = SystemMetadata;
+            Editable = false;
+            AutoFormatType = 1;
+            AutoFormatExpression = "Unit Price Currency";
+        }
+        field(17; "Unit Price Currency"; Code[10])
+        {
+            Caption = 'Unit Price Currency';
+            DataClassification = SystemMetadata;
+            Editable = false;
+        }
+        field(18; "Return Reason Name"; Text[100])
+        {
+            Caption = 'Return Reason';
+            DataClassification = SystemMetadata;
+            Editable = false;
+        }
+        field(19; "Return Reason Handle"; Text[100])
+        {
+            Caption = 'Return Reason Handle';
+            DataClassification = SystemMetadata;
+            Editable = false;
         }
         field(101; "Item No."; Code[20])
         {
