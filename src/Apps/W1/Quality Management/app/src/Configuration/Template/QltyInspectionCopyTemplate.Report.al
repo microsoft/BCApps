@@ -6,8 +6,7 @@ namespace Microsoft.QualityManagement.Configuration.Template;
 
 using Microsoft.Inventory.Item;
 using Microsoft.QualityManagement.Configuration.Result;
-using Microsoft.QualityManagement.Setup;
-using System.Telemetry;
+using Microsoft.QualityManagement.Telemetry;
 
 /// <summary>
 /// Copy/Duplicate an Existing Quality Inspection Template.
@@ -105,10 +104,9 @@ report 20402 "Qlty. Inspection Copy Template"
 
     trigger OnPreReport()
     var
-        QltyManagementSetup: Record "Qlty. Management Setup";
-        FeatureTelemetry: Codeunit "Feature Telemetry";
+        QltyMgmtFeatureTelemetry: Codeunit "Qlty. Mgmt. Feature Telemetry";
     begin
-        FeatureTelemetry.LogUptake('0000QIN', QltyManagementSetup.GetFeatureTelemetryName(), Enum::"Feature Uptake Status"::"Set up");
+        QltyMgmtFeatureTelemetry.LogFeatureUptakeSetup(ObjectType::Report, Report::"Qlty. Inspection Copy Template");
     end;
 
     var

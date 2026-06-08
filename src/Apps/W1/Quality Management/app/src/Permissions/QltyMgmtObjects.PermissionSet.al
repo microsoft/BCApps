@@ -37,11 +37,10 @@ using Microsoft.QualityManagement.Setup;
 using Microsoft.QualityManagement.Setup.ApplicationAreas;
 using Microsoft.QualityManagement.Setup.ManualSetup;
 using Microsoft.QualityManagement.Setup.SetupGuide;
+using Microsoft.QualityManagement.Telemetry;
 using Microsoft.QualityManagement.Utilities;
 using Microsoft.QualityManagement.Workflow;
 
-#pragma warning disable AS0125
-#pragma warning disable AS0090
 permissionset 20406 "QltyMgmt - Objects"
 {
     Caption = 'Quality Management - Objects';
@@ -99,6 +98,7 @@ permissionset 20406 "QltyMgmt - Objects"
         codeunit "Qlty. Item Tracking" = X,
         codeunit "Qlty. Traversal" = X,
         codeunit "Qlty. Workflow Setup" = X,
+        codeunit "Qlty. Mgmt. Feature Telemetry" = X,
 
         // Pages
         page "Qlty. Lookup Field Choose" = X,
@@ -171,5 +171,3 @@ permissionset 20406 "QltyMgmt - Objects"
         table "Qlty. Inspection Header" = X,
         table "Qlty. Test" = X;
 }
-#pragma warning restore AS0090
-#pragma warning restore AS0125
