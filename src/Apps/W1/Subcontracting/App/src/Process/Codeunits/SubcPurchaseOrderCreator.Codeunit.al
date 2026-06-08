@@ -24,20 +24,19 @@ using System.Utilities;
 codeunit 99001557 "Subc. Purchase Order Creator"
 {
     var
-        SubcManagementSetup: Record "Subc. Management Setup";
         ManufacturingSetup: Record "Manufacturing Setup";
         PageManagement: Codeunit "Page Management";
         UnitofMeasureManagement: Codeunit "Unit of Measure Management";
-        HasSubManagementSetup: Boolean;
         HasManufacturingSetup: Boolean;
         OperationNo: Code[10];
         RoutingReferenceNo: Integer;
-        PurchOrderCreatedTxt: Label '%1 Purchase Order(s) created.\\Do you want to view them?', Comment = '%1 = No of Purchase Order(s) created.';
-        PurchOrderAlreadyCreatedQst: Label 'Purchase order(s) have already been created.\\Do you want to view them?';
+        PurchOrderCreatedSingularTxt: Label 'A purchase order was created.\\Do you want to view it?';
+        PurchOrderCreatedPluralTxt: Label '%1 purchase orders were created.\\Do you want to view them?', Comment = '%1 = number of purchase orders created';
+        PurchOrderAlreadyCreatedQst: Label 'Purchase orders have already been created.\\Do you want to view them?';
         CreationOfSubcontractingOrderIsNotAllowedErr: Label 'You cannot create Subcontracting Order, because the Production Order %1 is not released.', Comment = '%1=Production Order No.';
         NoProdOrderLineWithRemQtyErr: Label 'No Prod. Order Line with Remaining Quantity.';
-        BlankLocationConfirmQst: Label 'One or more Prod. Order Components with Subcontracting Type Transfer have a blank Location Code. Without a Location Code, you will not be able to create a transfer order to send the components to the subcontractor.\\Do you want to create the Subcontracting Order anyway?';
-        SameAsSubcLocConfirmQst: Label 'One or more Prod. Order Components with Subcontracting Type Transfer have Location Code %1, which is the same as the Subcontracting Location Code of vendor %2. A transfer order cannot be created from and to the same location.\\Do you want to create the Subcontracting Order anyway?', Comment = '%1=Component Location Code, %2=Vendor No.';
+        BlankLocationConfirmQst: Label 'One or more Prod. Order Components with Component Supply Method Transfer to Vendor have a blank Location Code. Without a Location Code, you will not be able to create a transfer order to send the components to the subcontractor.\\Do you want to create the Subcontracting Order anyway?';
+        SameAsSubcLocConfirmQst: Label 'One or more Prod. Order Components with Component Supply Method Transfer to Vendor have Location Code %1, which is the same as the Subcontracting Location Code of vendor %2. A transfer order cannot be created from and to the same location.\\Do you want to create the Subcontracting Order anyway?', Comment = '%1=Component Location Code, %2=Vendor No.';
         NotEnoughSpaceErr: Label 'There is not enough space to insert the subcontracting info line.';
 
     procedure CreateSubcontractingPurchaseOrderFromRoutingLine(ProdOrderRoutingLine: Record "Prod. Order Routing Line") NoOfCreatedPurchOrder: Integer
@@ -114,7 +113,7 @@ codeunit 99001557 "Subc. Purchase Order Creator"
         SubContractorWorkCenterNo: Code[20];
         DimensionSetIDArr: array[10] of Integer;
     begin
-        GetSubmanagementSetup();
+        GetManufacturingSetup();
         ProdOrderRoutingLine.SetLoadFields("Work Center No.", Status, "Prod. Order No.", "Routing Link Code");
         if ProdOrderRoutingLine.Get("Production Order Status"::Released, RequisitionLine."Prod. Order No.", RequisitionLine."Routing Reference No.", RequisitionLine."Routing No.", RequisitionLine."Operation No.") then begin
             WorkCenter.SetLoadFields("Subcontractor No.");
@@ -126,7 +125,7 @@ codeunit 99001557 "Subc. Purchase Order Creator"
                     ProdOrderComponent.SetRange(Status, ProdOrderRoutingLine.Status);
                     ProdOrderComponent.SetRange("Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
                     ProdOrderComponent.SetRange("Prod. Order Line No.", RequisitionLine."Prod. Order Line No.");
-                    ProdOrderComponent.SetRange("Subcontracting Type", "Subcontracting Type"::Purchase);
+                    ProdOrderComponent.SetRange("Component Supply Method", "Component Supply Method"::"Vendor-Supplied");
                     ProdOrderComponent.SetRange("Routing Link Code", ProdOrderRoutingLine."Routing Link Code");
                     if ProdOrderComponent.FindSet() then
                         repeat
@@ -181,7 +180,7 @@ codeunit 99001557 "Subc. Purchase Order Creator"
         if NoOfCreatedPurchOrder = 0 then
             exit;
         if InstructionMgt.IsEnabled(SubcNotificationMgmt.GetShowCreatedSubContPurchOrderCode()) then
-            if InstructionMgt.ShowConfirm(StrSubstNo(PurchOrderCreatedTxt, NoOfCreatedPurchOrder), SubcNotificationMgmt.GetShowCreatedSubContPurchOrderCode()) and
+            if InstructionMgt.ShowConfirm(GetPurchOrderCreatedMessage(NoOfCreatedPurchOrder), SubcNotificationMgmt.GetShowCreatedSubContPurchOrderCode()) and
                 GuiAllowed()
             then begin
                 PurchaseLine.SetCurrentKey("Document Type", Type, "Prod. Order No.");
@@ -201,6 +200,13 @@ codeunit 99001557 "Subc. Purchase Order Creator"
                     PageManagement.PageRun(PurchaseHeader);
                 end;
             end;
+    end;
+
+    local procedure GetPurchOrderCreatedMessage(NoOfCreatedPurchOrder: Integer): Text
+    begin
+        if NoOfCreatedPurchOrder > 1 then
+            exit(StrSubstNo(PurchOrderCreatedPluralTxt, NoOfCreatedPurchOrder));
+        exit(PurchOrderCreatedSingularTxt);
     end;
 
     internal procedure SetOperationNoForCreatedPurchaseOrder(OperationNoToSet: Code[10])
@@ -292,24 +298,24 @@ codeunit 99001557 "Subc. Purchase Order Creator"
         WorkCenter.SetLoadFields("Subcontractor No.");
         WorkCenter.Get(ProdOrderRoutingLine."Work Center No.");
 
-        Vendor.SetLoadFields("Subcontr. Location Code");
+        Vendor.SetLoadFields("Subc. Location Code");
         if not Vendor.Get(WorkCenter."Subcontractor No.") then
             exit(true);
 
         ProdOrderComponent.SetRange(Status, ProdOrderRoutingLine.Status);
         ProdOrderComponent.SetRange("Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
         ProdOrderComponent.SetRange("Routing Link Code", ProdOrderRoutingLine."Routing Link Code");
-        ProdOrderComponent.SetRange("Subcontracting Type", "Subcontracting Type"::Transfer);
+        ProdOrderComponent.SetRange("Component Supply Method", "Component Supply Method"::"Transfer to Vendor");
 
         ProdOrderComponent.SetRange("Location Code", '');
         if not ProdOrderComponent.IsEmpty() then
             if not ConfirmManagement.GetResponseOrDefault(BlankLocationConfirmQst, true) then
                 exit(false);
 
-        if Vendor."Subcontr. Location Code" <> '' then begin
-            ProdOrderComponent.SetRange("Location Code", Vendor."Subcontr. Location Code");
+        if Vendor."Subc. Location Code" <> '' then begin
+            ProdOrderComponent.SetRange("Location Code", Vendor."Subc. Location Code");
             if not ProdOrderComponent.IsEmpty() then
-                if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(SameAsSubcLocConfirmQst, Vendor."Subcontr. Location Code", Vendor."No."), true) then
+                if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(SameAsSubcLocConfirmQst, Vendor."Subc. Location Code", Vendor."No."), true) then
                     exit(false);
         end;
 
@@ -371,14 +377,6 @@ codeunit 99001557 "Subc. Purchase Order Creator"
         BaseQuantityToPurch := QtyAdjdForRoutingScrap - (OutputQtyBaseOnPurchOrder + ActOutputQtyBase);
 
         exit(BaseQuantityToPurch);
-    end;
-
-    local procedure GetSubmanagementSetup()
-    begin
-        if HasSubManagementSetup then
-            exit;
-        if SubcManagementSetup.Get() then
-            HasSubManagementSetup := true;
     end;
 
     local procedure GetManufacturingSetup()
@@ -552,6 +550,7 @@ codeunit 99001557 "Subc. Purchase Order Creator"
 
         RequisitionLine.Description := ProdOrderRoutingLine.Description;
         RequisitionLine."Description 2" := ProdOrderRoutingLine."Description 2";
+        RequisitionLine.Validate("Subc. Standard Task Code", ProdOrderRoutingLine."Standard Task Code");
         SetVendorItemNo(RequisitionLine);
 
         if PurchLineExists(PurchaseLine, ProdOrderLine, ProdOrderRoutingLine) then begin

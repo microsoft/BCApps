@@ -16,7 +16,7 @@ tableextension 99001529 "Subc. Manufacturing Cue" extends "Manufacturing Cue"
         {
             AccessByPermission = tabledata "Purchase Header" = R;
             CalcFormula = count("Purchase Header" where("Document Type" = const(Order),
-                                                         "Subcontracting Order" = const(true)));
+                                                         "Subc. Order" = const(true)));
             Caption = 'Subcontracting Purchase Orders';
             Editable = false;
             FieldClass = FlowField;
@@ -46,8 +46,8 @@ tableextension 99001529 "Subc. Manufacturing Cue" extends "Manufacturing Cue"
         field(99001563; "Transfers to Subcontractor"; Integer)
         {
             AccessByPermission = tabledata "Transfer Header" = R;
-            CalcFormula = count("Transfer Header" where("Source Type" = const(Subcontracting),
-                                                         "Return Order" = const(false)));
+            CalcFormula = count("Transfer Header" where("Subc. Source Type" = const(Subcontracting),
+                                                         "Subc. Return Order" = const(false)));
             Caption = 'Transfers to Subcontractor';
             Editable = false;
             FieldClass = FlowField;
@@ -56,8 +56,8 @@ tableextension 99001529 "Subc. Manufacturing Cue" extends "Manufacturing Cue"
         field(99001564; "Returns from Subcontractor"; Integer)
         {
             AccessByPermission = tabledata "Transfer Header" = R;
-            CalcFormula = count("Transfer Header" where("Source Type" = const(Subcontracting),
-                                                         "Return Order" = const(true)));
+            CalcFormula = count("Transfer Header" where("Subc. Source Type" = const(Subcontracting),
+                                                         "Subc. Return Order" = const(true)));
             Caption = 'Returns from Subcontractor';
             Editable = false;
             FieldClass = FlowField;

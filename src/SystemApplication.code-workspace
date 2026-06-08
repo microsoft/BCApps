@@ -1,6 +1,10 @@
 {
 	"folders": [
 		{
+			"name": "LibraryAgent",
+			"path": "Tools\\Test Framework\\Test Libraries\\LibraryAgent"
+		},
+		{
 			"name": "Any",
 			"path": "Tools\\Test Framework\\Test Libraries\\Any"
 		},
