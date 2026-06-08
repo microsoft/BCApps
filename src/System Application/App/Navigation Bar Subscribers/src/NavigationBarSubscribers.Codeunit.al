@@ -32,4 +32,11 @@ codeunit 154 "Navigation Bar Subscribers"
     internal procedure OnBeforeDefaultOpenGeneralSetupExperience(var Handled: Boolean)
     begin
     end;
+
+    /// <summary>Notifies that the Default Open Copilot AI Capabilities has been invoked.</summary>
+    /// <param name="Handled">The flag which if set, would stop executing the event.</param> 
+    [IntegrationEvent(false, false)]
+    internal procedure OnBeforeDefaultOpenCopilotAICapabilities(var Handled: Boolean)
+    begin
+    end;
 }

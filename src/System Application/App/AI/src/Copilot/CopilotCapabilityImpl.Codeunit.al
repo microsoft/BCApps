@@ -518,6 +518,13 @@ codeunit 7774 "Copilot Capability Impl"
         IsEnabled := AzureOpenAI.IsEnabled(CopilotCapability, Silent, AppId);
     end;
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Navigation Bar Subscribers", 'OnBeforeDefaultOpenCopilotAICapabilities', '', false, false)]
+    local procedure OpenCopilotAICapabilities(var Handled: Boolean)
+    begin
+        Page.Run(Page::"Copilot AI Capabilities");
+        Handled := true;
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", GetCopilotCapabilityInfo, '', false, false)]
     local procedure GetCopilotCapabilityInfo(Capability: Integer; AppId: Guid; var CapabilityInfo: JsonObject)
     var
