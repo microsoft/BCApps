@@ -409,6 +409,8 @@ table 20406 "Qlty. Inspection Line"
         if not GetInspection() then
             exit;
 
+        EvaluateSelfIfOnlyLineIsTextExpression();
+
         OthersInSameQltyInspectionLine.SetRange("Inspection No.", Rec."Inspection No.");
         OthersInSameQltyInspectionLine.SetRange("Re-inspection No.", Rec."Re-inspection No.");
         OthersInSameQltyInspectionLine.SetFilter("Test Value Type", '%1', QltyInspectionTemplateLine."Test Value Type"::"Value Type Text Expression");
@@ -463,6 +465,21 @@ table 20406 "Qlty. Inspection Line"
                     OthersInSameQltyInspectionLine.ValidateTestValue();
 
             until OthersInSameQltyInspectionLine.Next() = 0;
+    end;
+
+    local procedure EvaluateSelfIfOnlyLineIsTextExpression()
+    var
+        OtherQltyInspectionLine: Record "Qlty. Inspection Line";
+    begin
+        Rec.CalcFields("Test Value Type");
+        if Rec."Test Value Type" <> Rec."Test Value Type"::"Value Type Text Expression" then
+            exit;
+
+        OtherQltyInspectionLine.SetRange("Inspection No.", Rec."Inspection No.");
+        OtherQltyInspectionLine.SetRange("Re-inspection No.", Rec."Re-inspection No.");
+        OtherQltyInspectionLine.SetFilter("Line No.", '<>%1', Rec."Line No.");
+        if OtherQltyInspectionLine.IsEmpty() then
+            Rec.EvaluateTextExpression(QltyInspectionHeader);
     end;
 
     internal procedure EvaluateTextExpression(var EvaluateAgainstQltyInspectionHeader: Record "Qlty. Inspection Header")
