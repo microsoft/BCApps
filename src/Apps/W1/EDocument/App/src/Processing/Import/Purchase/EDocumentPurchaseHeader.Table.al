@@ -14,7 +14,6 @@ using System.Telemetry;
 
 table 6100 "E-Document Purchase Header"
 {
-    Access = Internal;
     ReplicateData = false;
     InherentEntitlements = RIMDX;
     InherentPermissions = RIMDX;

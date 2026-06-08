@@ -318,5 +318,5 @@ page 8704 "Indexes List Part"
     var
         SetCompanyName: Text;
         TurnOffIndexWarningQst: Label 'Turning a non-AL defined index off cannot be undone. Please confirm.';
-        TurnOnIndexQueueInfoMsg: Label 'The index has been enqueued to be turned on, it will attempted during the subsequent maintenance window (over the night local time).';
+        TurnOnIndexQueueInfoMsg: Label 'The index has been enqueued to be turned on. It will be attempted during the subsequent maintenance window (overnight local time).';
 }
