@@ -85,4 +85,3 @@ pageextension 99001525 "Subc. PurchOrderList" extends "Purchase Order List"
         }
     }
 }
-}
