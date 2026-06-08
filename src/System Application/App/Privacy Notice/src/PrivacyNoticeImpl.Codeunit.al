@@ -28,6 +28,7 @@ codeunit 1565 "Privacy Notice Impl."
         PrivacyNoticeAutoApprovedByAdminTelemetryTxt: Label 'The privacy notice %1 was auto-approved by the admin', Comment = '%1 = Identifier of a privacy notice', Locked = true;
         PrivacyNoticeAutoRejectedByAdminTelemetryTxt: Label 'The privacy notice %1 was auto-rejected by the admin', Comment = '%1 = Identifier of a privacy notice', Locked = true;
         PrivacyNoticeAutoApprovedByUserTelemetryTxt: Label 'The privacy notice %1 was auto-approved by the user', Comment = '%1 = Identifier of a privacy notice', Locked = true;
+        PrivacyNoticeAutoApprovedByDefaultTelemetryTxt: Label 'The privacy notice %1 was auto-approved by the runtime default policy', Comment = '%1 = Identifier of a privacy notice', Locked = true;
         ShowingPrivacyNoticeTelemetryTxt: Label 'Showing privacy notice %1', Comment = '%1 = Identifier of a privacy notice', Locked = true;
         PrivacyNoticeApprovalResultTelemetryTxt: Label 'Approval State after showing privacy notice %1: %2', Comment = '%1 = Identifier of a privacy notice, %2 = Approval state of a privacy notice', Locked = true;
         CheckPrivacyNoticeApprovalStateTelemetryTxt: Label 'Checking privacy approval state for privacy notice %1', Comment = '%1 = Identifier of a privacy notice', Locked = true;
@@ -107,6 +108,12 @@ codeunit 1565 "Privacy Notice Impl."
             exit(true); // If user clicked no, they will still be notified until admin makes a decision
         end;
 
+        // Apply the runtime default policy (e.g. non-EUDB tenants auto-approve Copilot) without persisting an admin decision.
+        if ShouldApproveByDefault(PrivacyNoticeId) then begin
+            Session.LogMessage('', StrSubstNo(PrivacyNoticeAutoApprovedByDefaultTelemetryTxt, PrivacyNoticeId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTxt);
+            exit(true);
+        end;
+
         // Show privacy notice and store user decision
         // if the user is admin then show an approval message for everyone
         // if the user is not admin then show an approval message for this specific user
@@ -156,6 +163,13 @@ codeunit 1565 "Privacy Notice Impl."
             Session.LogMessage('0000GKF', StrSubstNo(UserPrivacyApprovalStateTelemetryTxt, "Privacy Notice Approval State"::Agreed, PrivacyNoticeId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTxt);
             exit("Privacy Notice Approval State"::Agreed); // If user clicked no, they will still be notified until admin makes a decision
         end;
+
+        // Apply the runtime default policy (e.g. non-EUDB tenants auto-approve Copilot) without persisting an admin decision.
+        if ShouldApproveByDefault(PrivacyNoticeId) then begin
+            Session.LogMessage('', StrSubstNo(PrivacyNoticeAutoApprovedByDefaultTelemetryTxt, PrivacyNoticeId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTxt);
+            exit("Privacy Notice Approval State"::Agreed);
+        end;
+
         Session.LogMessage('0000GKG', StrSubstNo(UserPrivacyApprovalStateTelemetryTxt, "Privacy Notice Approval State"::"Not set", PrivacyNoticeId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTxt);
         exit("Privacy Notice Approval State"::"Not set");
     end;
@@ -237,10 +251,20 @@ codeunit 1565 "Privacy Notice Impl."
     var
         PrivacyNoticeApproval: Codeunit "Privacy Notice Approval";
     begin
-        if ShouldApproveByDefault(PrivacyNotice.ID) then begin
+        if ShouldApproveByDefault(PrivacyNotice.ID) and ShouldPersistDefaultApproval(PrivacyNotice.ID) then begin
             PrivacyNoticeApproval.SetApprovalState(PrivacyNotice.ID, EmptyGuid, "Privacy Notice Approval State"::Agreed);
             PrivacyNotice.CalcFields(Enabled);
         end;
+    end;
+
+    // Integrations listed here keep their admin-panel state as "Let Users Decide" by default; the runtime default is resolved on every approval check.
+    local procedure ShouldPersistDefaultApproval(IntegrationID: Text): Boolean
+    var
+        SystemPrivacyNoticeReg: Codeunit "System Privacy Notice Reg.";
+    begin
+        if CheckIntegrationIDEquality(SystemPrivacyNoticeReg.GetMicrosoftCopilotID(), IntegrationID) then
+            exit(false);
+        exit(true);
     end;
 
     [TryFunction]
