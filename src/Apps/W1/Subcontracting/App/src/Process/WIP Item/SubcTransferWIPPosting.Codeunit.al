@@ -71,7 +71,6 @@ codeunit 99001541 "Subc. Transfer WIP Posting"
     local procedure HandleWipTransferOnBeforeCheckEmptyQuantity(ItemJnlLine: Record "Item Journal Line"; var IsHandled: Boolean)
     var
         TransferLine: Record "Transfer Line";
-        CannotPostTheseLinesErr: Label 'You cannot post these lines because you have not entered a quantity on one or more of the lines. ';
     begin
         if ItemJnlLine."Order Type" <> "Inventory Order Type"::Transfer then
             exit;
@@ -80,9 +79,6 @@ codeunit 99001541 "Subc. Transfer WIP Posting"
             exit;
         if not TransferLine."Transfer WIP Item" then
             exit;
-        if ItemJnlLine."Document Type" = "Item Ledger Document Type"::"Direct Transfer" then
-            if (ItemJnlLine."Quantity" = 0) and (ItemJnlLine."Invoiced Quantity" = 0) then
-                Error(ErrorInfo.Create(CannotPostTheseLinesErr, true));
         IsHandled := true;
     end;
 
