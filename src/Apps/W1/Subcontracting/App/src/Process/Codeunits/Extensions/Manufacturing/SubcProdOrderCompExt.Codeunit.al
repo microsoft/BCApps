@@ -72,15 +72,15 @@ codeunit 99001524 "Subc. Prod. Order Comp. Ext."
         TransferShipmentLine: Record "Transfer Shipment Line";
         ConfirmManagement: Codeunit "Confirm Management";
     begin
-        if ProdOrderComponent."Subcontracting Type" <> "Subcontracting Type"::Transfer then
+        if ProdOrderComponent."Component Supply Method" <> "Component Supply Method"::"Transfer to Vendor" then
             exit;
 
         TransferShipmentLine.SetRange("Subc. Prod. Order No.", ProdOrderComponent."Prod. Order No.");
         TransferShipmentLine.SetRange("Subc. Prod. Order Line No.", ProdOrderComponent."Prod. Order Line No.");
         TransferShipmentLine.SetRange("Subc. Prod. Ord. Comp Line No.", ProdOrderComponent."Line No.");
         TransferShipmentLine.SetRange("Item No.", ProdOrderComponent."Item No.");
+        TransferShipmentLine.SetLoadFields(SystemId);
         if not TransferShipmentLine.IsEmpty() then begin
-            TransferShipmentLine.SetLoadFields(SystemId);
             TransferShipmentLine.FindFirst();
             if not ConfirmManagement.GetResponse(StrSubstNo(ExistingPostedTransferLineQst, TransferShipmentLine."Document No.")) then
                 Error('');
@@ -107,15 +107,19 @@ codeunit 99001524 "Subc. Prod. Order Comp. Ext."
         PurchaseLine: Record "Purchase Line";
         TempPurchaseLine: Record "Purchase Line" temporary;
     begin
-        if ProdOrderComponent."Subcontracting Type" <> ProdOrderComponent."Subcontracting Type"::Purchase then
+        if ProdOrderComponent."Component Supply Method" <> ProdOrderComponent."Component Supply Method"::"Vendor-Supplied" then
             exit;
 
+        PurchaseLine.SetCurrentKey("Prod. Order No.", "Prod. Order Line No.", "Routing No.", "Operation No.");
         PurchaseLine.SetRange("Prod. Order No.", ProdOrderComponent."Prod. Order No.");
         PurchaseLine.SetRange("Prod. Order Line No.", ProdOrderComponent."Prod. Order Line No.");
+        PurchaseLine.SetLoadFields("Document Type", "Document No.", "Line No.");
         if PurchaseLine.FindSet() then
             repeat
                 TempPurchaseLine.Init();
-                TempPurchaseLine.TransferFields(PurchaseLine);
+                TempPurchaseLine."Document Type" := PurchaseLine."Document Type";
+                TempPurchaseLine."Document No." := PurchaseLine."Document No.";
+                TempPurchaseLine."Line No." := PurchaseLine."Line No.";
                 TempPurchaseLine.Insert();
             until PurchaseLine.Next() = 0;
 
@@ -143,7 +147,7 @@ codeunit 99001524 "Subc. Prod. Order Comp. Ext."
         if ProdOrderComponent."Location Code" = xProdOrderComponent."Location Code" then
             exit;
 
-        if ProdOrderComponent."Subcontracting Type" <> "Subcontracting Type"::Transfer then
+        if ProdOrderComponent."Component Supply Method" <> "Component Supply Method"::"Transfer to Vendor" then
             exit;
 
         TransferLine.SetCurrentKey("Subc. Prod. Order No.", "Subc. Routing No.", "Subc. Routing Reference No.", "Subc. Operation No.", "Subc. Purch. Order No.");
@@ -258,7 +262,7 @@ codeunit 99001524 "Subc. Prod. Order Comp. Ext."
         PlanningGetParameters: Codeunit "Planning-Get Parameters";
         SubcontractingManagement: Codeunit "Subcontracting Management";
     begin
-        if ProdOrderComponent."Subcontracting Type" = ProdOrderComponent."Subcontracting Type"::Transfer then
+        if ProdOrderComponent."Component Supply Method" = ProdOrderComponent."Component Supply Method"::"Transfer to Vendor" then
             exit;
 
         ProdOrderLine.SetLoadFields("Routing No.", "Routing Reference No.", "Item No.", "Variant Code", "Location Code");
@@ -269,6 +273,7 @@ codeunit 99001524 "Subc. Prod. Order Comp. Ext."
             ProdOrderRoutingLine.SetRange("Routing No.", ProdOrderLine."Routing No.");
             ProdOrderRoutingLine.SetRange("Routing Reference No.", ProdOrderLine."Routing Reference No.");
             ProdOrderRoutingLine.SetRange("Routing Link Code", ProdOrderComponent."Routing Link Code");
+            ProdOrderRoutingLine.SetLoadFields("Starting Date", "Starting Time", Type, "No.");
             if ProdOrderRoutingLine.FindFirst() then begin
                 ProdOrderComponent."Due Date" := ProdOrderRoutingLine."Starting Date";
                 ProdOrderComponent."Due Time" := ProdOrderRoutingLine."Starting Time";

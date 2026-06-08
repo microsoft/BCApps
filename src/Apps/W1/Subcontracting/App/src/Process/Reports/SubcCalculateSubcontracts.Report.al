@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace Microsoft.Manufacturing.Subcontracting;
+namespace Microsoft.Manufacturing.Planning;
 
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.UOM;
@@ -194,13 +194,13 @@ report 99001505 "Subc. Calculate Subcontracts"
         OnAfterTransferProdOrderRoutingLine(ReqLine, ProdOrderRoutingLine);
         // If purchase order already exist we will change this if possible
         PurchLine.Reset();
-        PurchLine.SetCurrentKey("Document Type", Type, "Prod. Order No.", "Prod. Order Line No.", "Routing No.", "Operation No.");
-        PurchLine.SetRange("Document Type", PurchLine."Document Type"::Order);
-        PurchLine.SetRange(Type, PurchLine.Type::Item);
+        PurchLine.SetCurrentKey("Prod. Order No.", "Prod. Order Line No.", "Routing No.", "Operation No.");
         PurchLine.SetRange("Prod. Order No.", ProdOrderLine."Prod. Order No.");
         PurchLine.SetRange("Prod. Order Line No.", ProdOrderLine."Line No.");
         PurchLine.SetRange("Routing No.", ProdOrderRoutingLine."Routing No.");
         PurchLine.SetRange("Operation No.", ProdOrderRoutingLine."Operation No.");
+        PurchLine.SetRange("Document Type", PurchLine."Document Type"::Order);
+        PurchLine.SetRange(Type, PurchLine.Type::Item);
         PurchLine.SetRange("Planning Flexibility", PurchLine."Planning Flexibility"::Unlimited);
         PurchLine.SetRange("Quantity Received", 0);
         if PurchLine.FindFirst() then begin

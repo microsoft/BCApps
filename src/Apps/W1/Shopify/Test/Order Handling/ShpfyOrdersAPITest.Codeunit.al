@@ -32,10 +32,13 @@ codeunit 139608 "Shpfy Orders API Test"
         Any: Codeunit Any;
         CompanyLocationId: BigInteger;
         IsInitialized: Boolean;
+        PlanRefreshExpected: Boolean;
+        PlanRefreshCallCount: Integer;
         OrdersToImportChannelLiableMismatchTxt: Label 'Orders to import Channel Liable Taxes mismatch when %1.', Locked = true;
         OrderLevelTaxLineExpectedTxt: Label 'An order-level tax line should exist when %1.', Locked = true;
         ChannelLiableFlagMismatchTxt: Label 'Channel Liable flag mismatch when %1.', Locked = true;
         OrderHeaderChannelLiableMismatchTxt: Label 'Order header Channel Liable Taxes mismatch when %1.', Locked = true;
+        DowngradedPlanShopResponseTok: Label '{"data":{"shop":{"name":"Test","plan":{"publicDisplayName":"Basic Shopify","partnerDevelopment":false,"shopifyPlus":false},"weightUnit":"KILOGRAMS"}},"extensions":{"cost":{"requestedQueryCost":1,"actualQueryCost":1,"throttleStatus":{"maximumAvailable":2000.0,"currentlyAvailable":1999,"restoreRate":100.0}}}}', Locked = true;
 
     [Test]
     procedure UnitTestExtractShopifyOrdersToImport()
@@ -1536,6 +1539,74 @@ codeunit 139608 "Shpfy Orders API Test"
         LibraryAssert.IsFalse(OrderLine.Tip, 'Tip flag must not be propagated to the subsequent regular order line');
     end;
 
+    [Test]
+    [HandlerFunctions('OrdersAPIHttpHandler')]
+    procedure TestGetShopSettingsClearsStaleAdvancedShopifyPlanFlag()
+    var
+        LocalShop: Record "Shpfy Shop";
+    begin
+        // [SCENARIO] Bug 635878: when the merchant downgrades from a Plus/Advanced plan to a
+        // standard plan, Shop.GetShopSettings() must clear the cached "Advanced Shopify Plan"
+        // flag based on the live response from Shopify so the order GraphQL query stops
+        // requesting the staffMember field (which would otherwise fail with ACCESS_DENIED).
+        Initialize();
+
+        // [GIVEN] Shop has a stale "Advanced Shopify Plan" flag set to true
+        LocalShop.Get(Shop.Code);
+        LocalShop."Advanced Shopify Plan" := true;
+        LocalShop.Modify(false);
+
+        // [GIVEN] The HTTP handler is primed to return a downgraded-plan response
+        PlanRefreshExpected := true;
+
+        // [WHEN] GetShopSettings is called
+        LocalShop.GetShopSettings();
+
+        // [THEN] The Advanced Shopify Plan flag is cleared based on the live response
+        LibraryAssert.IsFalse(LocalShop."Advanced Shopify Plan", 'Stale Advanced Shopify Plan flag should be refreshed to false after plan downgrade.');
+        LibraryAssert.AreEqual(1, PlanRefreshCallCount, 'GetShopSettings should issue exactly one plan-refresh query.');
+    end;
+
+    [Test]
+    [HandlerFunctions('OrdersAPIHttpHandler')]
+    procedure TestSyncOrdersFromShopifyReportRefreshesAdvancedShopifyPlanFlag()
+    var
+        ShopFilter: Record "Shpfy Shop";
+        OrdersToImport: Record "Shpfy Orders to Import";
+        SyncOrdersFromShopify: Report "Shpfy Sync Orders from Shopify";
+    begin
+        // [SCENARIO] Bug 635878: the bulk "Sync Orders from Shopify" report must refresh
+        // the cached "Advanced Shopify Plan" flag before importing orders, so a plan
+        // downgrade does not leave the connector requesting the staffMember field that
+        // the new plan can no longer grant access to.
+        Initialize();
+
+        // [GIVEN] Shop has a stale "Advanced Shopify Plan" flag set to true
+        Shop.Get(Shop.Code);
+        Shop."Advanced Shopify Plan" := true;
+        Shop."Auto Create Orders" := false;
+        Shop.Modify(false);
+        Commit();
+
+        // [GIVEN] No orders are queued so the report only exercises the Shop dataitem trigger
+        OrdersToImport.SetRange("Shop Code", Shop.Code);
+        OrdersToImport.DeleteAll(false);
+
+        // [GIVEN] The HTTP handler is primed to return a downgraded-plan response
+        PlanRefreshExpected := true;
+
+        // [WHEN] The "Sync Orders from Shopify" report runs against this shop
+        ShopFilter.SetRange(Code, Shop.Code);
+        SyncOrdersFromShopify.SetTableView(ShopFilter);
+        SyncOrdersFromShopify.UseRequestPage(false);
+        SyncOrdersFromShopify.Run();
+
+        // [THEN] The Advanced Shopify Plan flag is refreshed on the persisted Shop record
+        Shop.Get(Shop.Code);
+        LibraryAssert.IsFalse(Shop."Advanced Shopify Plan", 'Bulk sync report should refresh Advanced Shopify Plan flag before importing orders.');
+        LibraryAssert.AreEqual(1, PlanRefreshCallCount, 'Bulk sync report should issue exactly one plan-refresh query.');
+    end;
+
     local procedure CreateTaxArea(var TaxArea: Record "Tax Area"; var ShopifyTaxArea: Record "Shpfy Tax Area"; ShopParam: Record "Shpfy Shop")
     var
         ShopifyCustomerTemplate: Record "Shpfy Customer Template";
@@ -1637,6 +1708,11 @@ codeunit 139608 "Shpfy Orders API Test"
         CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
         AccessToken: SecretText;
     begin
+        // Reset per-test mock state so a previous test's assertion failure cannot leak
+        // the plan-refresh flag into the next test and corrupt unrelated HTTP calls.
+        PlanRefreshExpected := false;
+        PlanRefreshCallCount := 0;
+
         if IsInitialized then
             exit;
 
@@ -1656,6 +1732,12 @@ codeunit 139608 "Shpfy Orders API Test"
     begin
         if not InitializeTest.VerifyRequestUrl(Request.Path, Shop."Shopify URL") then
             exit(true);
+
+        if PlanRefreshExpected and (PlanRefreshCallCount = 0) then begin
+            PlanRefreshCallCount += 1;
+            Response.Content.WriteFrom(DowngradedPlanShopResponseTok);
+            exit(false);
+        end;
 
         if CompanyLocationId <> 0 then begin
             Body := NavApp.GetResourceAsText('Order Handling/CompanyLocationResult.txt', TextEncoding::UTF8);
