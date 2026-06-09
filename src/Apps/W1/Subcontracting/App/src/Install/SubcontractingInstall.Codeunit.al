@@ -47,6 +47,7 @@ codeunit 99001501 "Subcontracting Install"
         SubcontractingCompInit: Codeunit "Subcontracting Comp. Init.";
     begin
         SubcontractingCompInit.CreateBasicSubcontractingMgtSetup();
+        SetSubcontractingFeatureOnInstall();
     end;
 
     local procedure HandleFreshInstallPerDatabase()
