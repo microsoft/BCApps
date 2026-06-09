@@ -2373,30 +2373,18 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyTest2: Record "Qlty. Test";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
-        TestCode1: Text;
-        TestCode2: Text;
         ExpressionFormula2Tok: Label '[Source Item No.]', Locked = true;
     begin
         // [SCENARIO] Expression Formula is updated when the Test Code on a template line is changed to a different test
         Initialize();
 
-        // [GIVEN] Two random test codes are generated
-        QltyInspectionUtility.GenerateRandomCharacters(20, TestCode1);
-        QltyInspectionUtility.GenerateRandomCharacters(20, TestCode2);
-
         // [GIVEN] A first quality test with an Expression Formula is created
-        QltyTest1.Validate(Code, CopyStr(TestCode1, 1, MaxStrLen(QltyTest1.Code)));
-        QltyTest1.Validate(Description, LibraryUtility.GenerateRandomText(MaxStrLen(QltyTest1.Description)));
-        QltyTest1.Validate("Test Value Type", QltyTest1."Test Value Type"::"Value Type Text Expression");
-        QltyTest1.Insert();
+        QltyInspectionUtility.CreateTest(QltyTest1, QltyTest1."Test Value Type"::"Value Type Text Expression");
         QltyTest1.Validate("Expression Formula", ExpressionFormulaTok);
         QltyTest1.Modify();
 
         // [GIVEN] A second quality test with a different Expression Formula is created
-        QltyTest2.Validate(Code, CopyStr(TestCode2, 1, MaxStrLen(QltyTest2.Code)));
-        QltyTest2.Validate(Description, LibraryUtility.GenerateRandomText(MaxStrLen(QltyTest2.Description)));
-        QltyTest2.Validate("Test Value Type", QltyTest2."Test Value Type"::"Value Type Text Expression");
-        QltyTest2.Insert();
+        QltyInspectionUtility.CreateTest(QltyTest2, QltyTest2."Test Value Type"::"Value Type Text Expression");
         QltyTest2.Validate("Expression Formula", ExpressionFormula2Tok);
         QltyTest2.Modify();
 
