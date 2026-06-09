@@ -662,9 +662,9 @@ codeunit 139611 "Shpfy Order Refund Test"
 
         // [THEN] One item line carries a positive quantity, one a negative quantity, summing to the net refund.
         SalesLine.SetFilter(Quantity, '>%1', 0);
-        LibraryAssert.IsTrue(SalesLine.FindFirst(), 'Credit memo must contain a positive-qty Type::Item line for the returned item.');
+        LibraryAssert.IsFalse(SalesLine.IsEmpty(), 'Credit memo must contain a positive-qty Type::Item line for the returned item.');
         SalesLine.SetFilter(Quantity, '<%1', 0);
-        LibraryAssert.IsTrue(SalesLine.FindFirst(), 'Credit memo must contain a negative-qty Type::Item line for the exchange item.');
+        LibraryAssert.IsFalse(SalesLine.IsEmpty(), 'Credit memo must contain a negative-qty Type::Item line for the exchange item.');
 
         // Tear down
         ResetProcessOnRefund(RefundId);
