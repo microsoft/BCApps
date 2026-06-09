@@ -12,7 +12,9 @@ The export flow is driven by `ShpfyProductExport.Codeunit.al`. It iterates all S
 
 The update flow relies heavily on hash-based change detection. Before making any API call, the codeunit computes the current hash of the product's tags, HTML description, and images, then compares them against the stored hashes on the Product record. Only fields that have actually changed result in API calls. This is critical because Shopify's GraphQL API has per-store rate limits, and a full product catalog update without change detection would quickly exhaust the budget.
 
-Price sync can run independently of the full product sync via the `OnlyUpdatePrice` flag. When enabled, prices are batched into a bulk mutation (`ShpfyBulkUpdateProductPrice.Codeunit.al`) for efficiency. If the bulk operation fails, it falls back to individual variant price updates, reverting variant changes on failure.
+Price sync can run independently of the full product sync via the `OnlyUpdatePrice` flag. When enabled, prices are batched into a bulk mutation (`ShpfyBulkUpdateProductPrice.Codeunit.al`) for efficiency. If the bulk operation fails, it falls back to individual variant price updates, reverting variant changes on failure. Item price sync is skipped when the item's unit of measure is invalid, preventing errors from propagating into Shopify pricing data.
+
+*Updated: 2026-04-08 -- Price sync skipped for invalid unit of measure*
 
 The product body HTML is assembled from BC data by `CreateProductBody()` in the export codeunit -- it concatenates extended text, marketing text, and item attributes into an HTML structure. Events fire before and after this assembly (`OnBeforeCreateProductBodyHtml`, `OnAfterCreateProductBodyHtml`), allowing extensions to customize the output.
 
@@ -52,7 +54,9 @@ Order processing is the most complex flow in the connector. It spans multiple co
 
 ### Import
 
-`ShpfyImportOrder.Codeunit.al` takes an order from the staging table and creates the full Order Header and Order Lines. It parses the GraphQL response to populate all address blocks, financial fields (in both currencies), customer IDs, discount codes, attributes, tax lines, and risk assessments. The `OnAfterImportShopifyOrderHeader` and `OnAfterCreateShopifyOrderAndLines` events fire after import.
+`ShpfyImportOrder.Codeunit.al` takes an order from the staging table and creates the full Order Header and Order Lines. It parses the GraphQL response to populate all address blocks, financial fields (in both currencies), customer IDs, discount codes, attributes, tax lines, and risk assessments. Staff member handling during order import is gated by the Shop's `"Advanced Shopify Plan"` flag (true for Plus, Plus Trial, Development, and Advanced plans). The `OnAfterImportShopifyOrderHeader` and `OnAfterCreateShopifyOrderAndLines` events fire after import.
+
+*Updated: 2026-04-08 -- Staff member gating moved from B2B Enabled to Advanced Shopify Plan*
 
 ### Mapping
 
@@ -90,6 +94,10 @@ The header creation in `CreateHeaderFromShopifyOrder()` is notably manual -- it 
 The `"Create Invoices From Orders"` setting causes fully-fulfilled orders to be created as Sales Invoices instead of Sales Orders. The `"Use Shopify Order No."` setting uses the Shopify order number (e.g., "#1001") as the BC document number, which requires the number series to have Manual Nos. enabled.
 
 Special line types require attention: gift card purchases map to the `"Sold Gift Card Account"` G/L account, tips map to `"Tip Account"`, and shipping charges map to `"Shipping Charges Account"`. These are all configured on the Shop record.
+
+The Shopify Order page includes contact lookup and validation, allowing users to verify and resolve customer contact information directly from the order.
+
+*Updated: 2026-04-08 -- Contact lookup/validation added to Shopify Order page*
 
 ## Fulfillment
 
@@ -136,3 +144,9 @@ Export to Shopify is handled by `ShpfyCustomerExport.Codeunit.al`. It creates or
 Company sync follows the same pattern but with `ShpfyCompanyImport.Codeunit.al` and `ShpfyCompanyExport.Codeunit.al`. Company mapping uses `ICompanyMapping` with strategies including By Email/Phone, By Tax ID, and Default Company. The B2B chain is: Company -> Company Location -> Customer (the location's main contact becomes the BC customer).
 
 When a B2B order arrives, the customer resolution differs from D2C: the connector looks up the company's main contact customer ID and the company location to determine the sell-to and ship-to customer numbers. This can result in different BC customers for different company locations of the same Shopify company.
+
+## Test infrastructure
+
+Test mocking uses the HttpClientHandler pattern rather than `IsTestInProgress` checks. Test codeunits inject a mock HTTP handler that intercepts Shopify API calls and returns canned responses, avoiding conditional test logic scattered through production code.
+
+*Updated: 2026-04-08 -- Test mocking migrated from IsTestInProgress to HttpClientHandler*

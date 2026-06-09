@@ -183,6 +183,7 @@ codeunit 30185 "Shpfy Sync Products"
     internal procedure ConfirmAddItemToShopify(Item: Record Item; var ShopifyShop: Record "Shpfy Shop"): Boolean
     var
         ShopifyProduct: Record "Shpfy Product";
+        ShopifyVariant: Record "Shpfy Variant";
         ShopSelection: Page "Shpfy Shop Selection";
         AddItemConfirm: Page "Shpfy Add Item Confirm";
         MappedShopsFilter: Text;
@@ -196,11 +197,17 @@ codeunit 30185 "Shpfy Sync Products"
             if AddItemConfirm.RunModal() = Action::OK then
                 exit(true);
         end else begin
-            ShopifyProduct.SetRange("Item SystemId", Item.systemId);
-            if ShopifyProduct.FindSet() then begin
+            ShopifyProduct.SetRange("Item SystemId", Item.SystemId);
+            if ShopifyProduct.FindSet() then
                 repeat
                     MappedShopsFilter += '<>' + ShopifyProduct."Shop Code" + '&';
                 until ShopifyProduct.Next() = 0;
+            ShopifyVariant.SetRange("Item SystemId", Item.SystemId);
+            if ShopifyVariant.FindSet() then
+                repeat
+                    MappedShopsFilter += '<>' + ShopifyVariant."Shop Code" + '&';
+                until ShopifyVariant.Next() = 0;
+            if MappedShopsFilter <> '' then begin
                 MappedShopsFilter := MappedShopsFilter.TrimEnd('&');
                 ShopifyShop.SetFilter(Code, MappedShopsFilter);
             end;

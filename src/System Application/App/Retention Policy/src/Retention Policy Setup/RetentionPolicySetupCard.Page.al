@@ -213,9 +213,9 @@ page 3901 "Retention Policy Setup Card"
 
                 trigger OnAction()
                 var
-                    RetentionPolicySetupImpl: Codeunit "Retention Policy Setup Impl.";
+                    ApplyRetentionPolicy: Codeunit "Apply Retention Policy";
                 begin
-                    RetentionPolicySetupImpl.TruncateTableRecords(Rec);
+                    ApplyRetentionPolicy.TruncateTableRecords(Rec);
                 end;
             }
         }

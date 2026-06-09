@@ -16,7 +16,7 @@ pageextension 99001526 "Subc. Transfer Order" extends "Transfer Order"
         }
         addlast(General)
         {
-            field(SourceType; Rec."Source Type")
+            field("Subc. Source Type"; Rec."Subc. Source Type")
             {
                 ApplicationArea = Location;
                 Editable = false;
@@ -44,7 +44,7 @@ pageextension 99001526 "Subc. Transfer Order" extends "Transfer Order"
                 ToolTip = 'Specifies a reference number for the line, which the transfer order is related to.';
                 Visible = false;
             }
-            field("Return Order"; Rec."Return Order")
+            field("Subc. Return Order"; Rec."Subc. Return Order")
             {
                 ApplicationArea = Manufacturing;
                 Editable = false;
@@ -79,17 +79,20 @@ pageextension 99001526 "Subc. Transfer Order" extends "Transfer Order"
         EsEnableTransferFields: Boolean;
 
     var
+        SubcontractingManagement: Codeunit "Subcontracting Management";
         ShowSubcontractingFactBox: Boolean;
 
     trigger OnOpenPage()
     begin
-        ShowSubcontractingFactBox := Rec."Source Type" = Rec."Source Type"::Subcontracting;
+        ShowSubcontractingFactBox := SubcontractingManagement.IsSubcontractingTransferDocument(Rec);
+        CurrPage.TransferLines.Page.SetIsSubcontracting(ShowSubcontractingFactBox);
         EsEnableTransferFields := not IsPartiallyShipped();
     end;
 
     trigger OnAfterGetCurrRecord()
     begin
-        ShowSubcontractingFactBox := Rec."Source Type" = Rec."Source Type"::Subcontracting;
+        ShowSubcontractingFactBox := SubcontractingManagement.IsSubcontractingTransferDocument(Rec);
+        CurrPage.TransferLines.Page.SetIsSubcontracting(ShowSubcontractingFactBox);
     end;
 
     trigger OnAfterGetRecord()

@@ -2087,6 +2087,63 @@ codeunit 148155 "Contracts Test"
         CustomerContract.TestField("Sell-to Customer No.", NewCustomer."No.");
     end;
 
+    [Test]
+    procedure ShipToAddressIsUpdatedWhenSellToAddressIsChanged()
+    var
+        Customer: Record Customer;
+        CustomerContract: Record "Customer Subscription Contract";
+    begin
+        // [SCENARIO] Ship-To address fields are in sync with Sell-To address fields when Ship-to Code is blank
+        Initialize();
+
+        // [GIVEN] A customer contract where sell-to and ship-to addresses are equal
+        ContractTestLibrary.CreateCustomer(Customer);
+        ContractTestLibrary.CreateCustomerContract(CustomerContract, Customer."No.");
+        CustomerContract.DontNotifyCurrentUserAgain(CustomerContract.GetModifyBillToCustomerAddressNotificationId());
+        CustomerContract.DontNotifyCurrentUserAgain(CustomerContract.GetModifyCustomerAddressNotificationId());
+
+        Assert.AreEqual('', CustomerContract."Ship-to Code", 'Ship-to Code should be blank for default (sell-to) address.');
+        Assert.IsTrue(CustomerContract.ShipToAddressEqualsSellToAddress(), 'Setup: Ship-to and Sell-to address should be equal before the test.');
+
+        // [WHEN] Changing the sell-to address fields on the contract
+        CustomerContract.Validate("Sell-to Address", CopyStr(LibraryRandom.RandText(MaxStrLen(CustomerContract."Sell-to Address")), 1, MaxStrLen(CustomerContract."Sell-to Address")));
+        CustomerContract.Validate("Sell-to Address 2", CopyStr(LibraryRandom.RandText(MaxStrLen(CustomerContract."Sell-to Address 2")), 1, MaxStrLen(CustomerContract."Sell-to Address 2")));
+        CustomerContract.Validate("Sell-to Contact", CopyStr(LibraryRandom.RandText(MaxStrLen(CustomerContract."Sell-to Contact")), 1, MaxStrLen(CustomerContract."Sell-to Contact")));
+        CustomerContract.Modify(true);
+
+        // [THEN] Ship-To address fields are updated to match Sell-To address fields
+        Assert.IsTrue(CustomerContract.ShipToAddressEqualsSellToAddress(), 'Ship-to address fields should be in sync with Sell-to address fields.');
+    end;
+
+    [Test]
+    procedure ShipToAddressIsNotUpdatedWhenShipToCodeIsSet()
+    var
+        Customer: Record Customer;
+        CustomerContract: Record "Customer Subscription Contract";
+        ShipToAddress: Record "Ship-to Address";
+    begin
+        // [SCENARIO] Ship-To address fields are NOT updated when an alternate Ship-to Code is set
+        Initialize();
+
+        // [GIVEN] A customer contract with an alternate ship-to address
+        ContractTestLibrary.CreateCustomer(Customer);
+        ContractTestLibrary.CreateCustomerContract(CustomerContract, Customer."No.");
+        CustomerContract.DontNotifyCurrentUserAgain(CustomerContract.GetModifyBillToCustomerAddressNotificationId());
+        CustomerContract.DontNotifyCurrentUserAgain(CustomerContract.GetModifyCustomerAddressNotificationId());
+
+        ShipToAddress.SetRange("Customer No.", Customer."No.");
+        ShipToAddress.FindFirst();
+        CustomerContract.Validate("Ship-to Code", ShipToAddress.Code);
+        CustomerContract.Modify(true);
+
+        // [WHEN] Changing the sell-to address on the contract
+        CustomerContract.Validate("Sell-to Address", CopyStr(LibraryRandom.RandText(MaxStrLen(CustomerContract."Sell-to Address")), 1, MaxStrLen(CustomerContract."Sell-to Address")));
+        CustomerContract.Modify(true);
+
+        // [THEN] Ship-To address is NOT updated (it retains the alternate ship-to address)
+        Assert.AreNotEqual(CustomerContract."Sell-to Address", CustomerContract."Ship-to Address", 'Ship-to Address should not be changed when Ship-to Code is set.');
+    end;
+
     #endregion Tests
 
     #region Procedures

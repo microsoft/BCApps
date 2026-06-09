@@ -1,0 +1,34 @@
+name: Label PRs Awaiting Workflow Approval
+author: Microsoft Corporation
+description: Adds or removes a label on open PRs based on whether they have workflow runs in the 'action_required' state (waiting for maintainer approval).
+inputs:
+  token:
+    description: The GitHub token running the action
+    required: false
+    default: ${{ github.token }}
+  label:
+    description: The label to add to PRs that have workflow runs awaiting approval
+    required: false
+    default: 'needs-approval'
+  whatIf:
+    description: If 'true', logs intended changes without applying them
+    required: false
+    default: 'false'
+runs:
+  using: composite
+  steps:
+    - name: Sync 'needs-approval' label
+      shell: pwsh
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+        GITHUB_REPOSITORY: ${{ github.repository }}
+        ACTION_LABEL: ${{ inputs.label }}
+        ACTION_WHATIF: ${{ inputs.whatIf }}
+        ACTION_PATH: ${{ github.action_path }}
+      run: |
+        $whatIfSwitch = @{}
+        if ($env:ACTION_WHATIF -eq 'true') { $whatIfSwitch['WhatIf'] = $true }
+        & "$env:ACTION_PATH/action.ps1" -Label $env:ACTION_LABEL @whatIfSwitch
+branding:
+  icon: tag
+  color: yellow

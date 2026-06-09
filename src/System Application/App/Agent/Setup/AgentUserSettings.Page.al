@@ -137,11 +137,20 @@ page 4317 "Agent User Settings"
     procedure InitializeTemp(var UserSettingsRec: Record "User Settings")
     begin
         TemporaryRecord := true;
+        Rec."User Security ID" := UserSettingsRec."User Security ID";
         SetGlobalsFromRec(UserSettingsRec);
     end;
 
     procedure GetValues(var UserSettingsRec: Record "User Settings")
     begin
+        if TemporaryRecord then begin
+            UserSettingsRec."User Security ID" := GlobalUserSecurityId;
+            UserSettingsRec."Language ID" := GlobalLanguageID;
+            UserSettingsRec."Locale ID" := GlobalLocaleID;
+            UserSettingsRec."Time Zone" := GlobalTimeZoneText;
+            exit;
+        end;
+
         UserSettingsRec.Copy(Rec);
     end;
 
@@ -155,6 +164,7 @@ page 4317 "Agent User Settings"
     local procedure SetGlobalsFromRec(var UserSettingsRec: Record "User Settings")
     begin
         Rec.Copy(UserSettingsRec);
+        GlobalUserSecurityId := Rec."User Security ID";
         GlobalLanguageID := Rec."Language ID";
         GlobalLocaleID := Rec."Locale ID";
         GlobalTimeZoneText := Rec."Time Zone";
@@ -164,6 +174,7 @@ page 4317 "Agent User Settings"
         Language: Codeunit Language;
         TimeZoneSelection: Codeunit "Time Zone Selection";
         UserSettings: Codeunit "User Settings";
+        GlobalUserSecurityId: Guid;
         ProfileDisplayName: Text;
         GlobalTimeZoneText: Text[180];
         GlobalLocaleID: Integer;

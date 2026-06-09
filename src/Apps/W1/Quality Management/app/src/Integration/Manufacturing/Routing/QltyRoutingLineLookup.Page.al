@@ -1,4 +1,4 @@
-#if not CLEAN29
+#if not CLEAN28
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -16,7 +16,7 @@ page 20463 "Qlty. Routing Line Lookup"
     ApplicationArea = Manufacturing;
     ObsoleteReason = 'Unused and replaced with "Routing Line List" page.';
     ObsoleteState = Pending;
-    ObsoleteTag = '29.0';
+    ObsoleteTag = '28.0';
 
     layout
     {
@@ -24,7 +24,6 @@ page 20463 "Qlty. Routing Line Lookup"
         {
             repeater(General)
             {
-#pragma warning disable AA0218
                 field("Operation No."; Rec."Operation No.")
                 {
                 }
@@ -123,6 +122,5 @@ page 20463 "Qlty. Routing Line Lookup"
             }
         }
     }
-#pragma warning restore AA0218
 }
 #endif

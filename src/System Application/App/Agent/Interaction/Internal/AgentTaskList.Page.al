@@ -6,7 +6,6 @@
 namespace System.Agents;
 
 using System.Agents.TaskPane;
-using System.Environment.Consumption;
 
 page 4300 "Agent Task List"
 {
@@ -98,6 +97,11 @@ page 4300 "Agent Task List"
                         TaskPane.ShowAgent(Rec."Agent User Security ID");
                     end;
                 }
+                field(TaskArchived; Rec.Archived)
+                {
+                    Caption = 'Archived';
+                    ToolTip = 'Specifies whether the task is archived.';
+                }
                 field(CreatedByID; Rec."Created By")
                 {
                     Visible = false;
@@ -108,7 +112,6 @@ page 4300 "Agent Task List"
                 }
                 field(Credits; ConsumedCredits)
                 {
-                    Visible = ConsumedCreditsVisible;
                     Caption = 'Copilot credits';
                     ToolTip = 'Specifies the number of Copilot credits consumed by the agent task.';
                     AutoFormatType = 0;
@@ -116,10 +119,9 @@ page 4300 "Agent Task List"
 
                     trigger OnDrillDown()
                     var
-                        UserAIConsumptionData: Record "User AI Consumption Data";
+                        AgentConsumptionOverview: Codeunit "Agent Consumption Overview";
                     begin
-                        UserAIConsumptionData.SetRange("Agent Task Id", Rec.ID);
-                        Page.Run(Page::"Agent Consumption Overview", UserAIConsumptionData);
+                        AgentConsumptionOverview.OpenAgentTaskConsumptionOverview(Rec.ID);
                     end;
                 }
             }
@@ -171,7 +173,41 @@ page 4300 "Agent Task List"
                 var
                     AgentTaskImpl: Codeunit "Agent Task Impl.";
                 begin
-                    AgentTaskImpl.StopTask(Rec, Rec."Status"::"Stopped by User", true);
+                    AgentTaskImpl.StopTask(Rec.ID, Rec."Status"::"Stopped by User", true);
+                    CurrPage.Update(false);
+                end;
+            }
+            action(Archive)
+            {
+                ApplicationArea = All;
+                Caption = 'Archive';
+                ToolTip = 'Archive the selected tasks.';
+                Enabled = TaskSelected;
+                Image = Archive;
+                Scope = Repeater;
+
+                trigger OnAction()
+                var
+                    SelectedAgentTask: Record "Agent Task";
+                    AgentTaskImpl: Codeunit "Agent Task Impl.";
+                    SelectedCount: Integer;
+                    UserConfirm: Boolean;
+                begin
+                    CurrPage.SetSelectionFilter(SelectedAgentTask);
+                    SelectedCount := SelectedAgentTask.Count();
+                    if SelectedCount = 0 then
+                        exit;
+
+                    if SelectedCount > 1 then
+                        if not Confirm(AreYouSureThatYouWantToArchiveTheTasksQst, false, SelectedCount) then
+                            exit;
+
+                    UserConfirm := SelectedCount = 1; // Only confirm from the ArchiveTask call when there is one task, otherwise we have already confirmed with the user.
+                    if SelectedAgentTask.FindSet() then
+                        repeat
+                            AgentTaskImpl.ArchiveTask(SelectedAgentTask.ID, UserConfirm);
+                        until SelectedAgentTask.Next() = 0;
+
                     CurrPage.Update(false);
                 end;
             }
@@ -205,11 +241,18 @@ page 4300 "Agent Task List"
         }
     }
 
+    views
+    {
+        view(Archived)
+        {
+            Caption = 'Archived';
+            Filters = where(Archived = const(true));
+        }
+    }
+
     trigger OnOpenPage()
-    var
-        AgentSystemPermissions: Codeunit "Agent System Permissions";
     begin
-        ConsumedCreditsVisible := AgentSystemPermissions.CurrentUserCanSeeConsumptionData();
+        Rec.SetRange(Archived, false);
     end;
 
     trigger OnAfterGetRecord()
@@ -226,16 +269,9 @@ page 4300 "Agent Task List"
 
     local procedure CalculateTaskConsumedCredits()
     var
-        UserAIConsumptionData: Record "User AI Consumption Data";
+        AgentConsumptionOverview: Codeunit "Agent Consumption Overview";
     begin
-        if not ConsumedCreditsVisible then begin
-            Clear(ConsumedCredits);
-            exit;
-        end;
-
-        UserAIConsumptionData.SetRange("Agent Task Id", Rec.ID);
-        UserAIConsumptionData.CalcSums("Copilot Credits");
-        ConsumedCredits := UserAIConsumptionData."Copilot Credits";
+        ConsumedCredits := AgentConsumptionOverview.GetCopilotCreditsConsumed(Rec.ID);
     end;
 
     local procedure UpdateControls()
@@ -258,5 +294,5 @@ page 4300 "Agent Task List"
         NumberOfStepsDone: Integer;
         TaskSelected: Boolean;
         ConsumedCredits: Decimal;
-        ConsumedCreditsVisible: Boolean;
+        AreYouSureThatYouWantToArchiveTheTasksQst: Label 'Are you sure that you want to archive the %1 selected tasks?', Comment = '%1 = number of selected tasks';
 }

@@ -52,6 +52,11 @@ table 8900 "Email Message"
             Access = Internal;
             DataClassification = CustomerContent;
         }
+        field(8; "Message Headers"; Blob)
+        {
+            Access = Internal;
+            DataClassification = CustomerContent;
+        }
     }
 
     keys

@@ -23,18 +23,14 @@ using System.TestLibraries.Utilities;
 /// </summary>
 codeunit 139561 "Shpfy Initialize Test"
 {
-    EventSubscriberInstance = Manual;
-
     var
         DummyCustomer: Record Customer;
         DummyItem: Record Item;
         TempShop: Record "Shpfy Shop" temporary;
         Any: Codeunit Any;
-        LibraryAssert: Codeunit "Library Assert";
         CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
         LibraryERM: Codeunit "Library - ERM";
         LibraryRandom: Codeunit "Library - Random";
-        ShopifyAccessToken: Text;
 #pragma warning disable AA0240
         DummyCustomerEmailLbl: Label 'dummy@customer.com';
 #pragma warning restore AA0240
@@ -50,7 +46,6 @@ codeunit 139561 "Shpfy Initialize Test"
         RefundGLAccount: Record "G/L Account";
         Shop: Record "Shpfy Shop";
         VATPostingSetup: Record "VAT Posting Setup";
-        ShpfyInitializeTest: Codeunit "Shpfy Initialize Test";
         Code: Code[10];
         CustomerTemplateCode: Code[20];
         ItemTemplateCode: Code[20];
@@ -58,7 +53,6 @@ codeunit 139561 "Shpfy Initialize Test"
         GenPostingType: Enum "General Posting Type";
         UrlTxt: Label 'https://%1.myshopify.com', Comment = '%1 = Shop name', Locked = true;
     begin
-        BindSubscription(ShpfyInitializeTest);
         if not TempShop.IsEmpty() then
             if Shop.Get(TempShop.Code) then
                 exit(Shop);
@@ -94,7 +88,6 @@ codeunit 139561 "Shpfy Initialize Test"
         if Shop.Insert() then;
         Commit();
         CommunicationMgt.SetShop(Shop);
-        CommunicationMgt.SetTestInProgress(true);
         CreateDummyCustomer(CustomerTemplateCode);
         CreateDummyItem(ItemTemplateCode);
         if not TempShop.Get(Code) then begin
@@ -102,7 +95,6 @@ codeunit 139561 "Shpfy Initialize Test"
             TempShop.Insert();
             Commit();
         end;
-        UnbindSubscription(ShpfyInitializeTest);
         exit(Shop);
     end;
 
@@ -345,32 +337,6 @@ codeunit 139561 "Shpfy Initialize Test"
         end;
     end;
 
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Shpfy Communication Events", 'OnGetAccessToken', '', true, false)]
-    local procedure OnGetAccessToken(var AccessToken: Text)
-    begin
-        if ShopifyAccessToken = '' then
-            ShopifyAccessToken := Any.AlphanumericText(50);
-        AccessToken := ShopifyAccessToken;
-    end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Shpfy Communication Events", 'OnClientSend', '', true, false)]
-    local procedure OnClientSend(HttpRequestMessage: HttpRequestMessage; var HttpResponseMessage: HttpResponseMessage)
-    begin
-        TestRequestHeaderContainsAccessToken(HttpRequestMessage);
-    end;
-
-    local procedure TestRequestHeaderContainsAccessToken(HttpRequestMessage: HttpRequestMessage)
-    var
-        Headers: HttpHeaders;
-        ShopifyAccessTokenTxt: Label 'X-Shopify-Access-Token', Locked = true;
-        Values: array[1] of Text;
-    begin
-        HttpRequestMessage.GetHeaders(Headers);
-        LibraryAssert.IsTrue(Headers.Contains(ShopifyAccessTokenTxt), 'access token doesn''t exist');
-        Headers.GetValues(ShopifyAccessTokenTxt, Values);
-        LibraryAssert.IsTrue(Values[1] = ShopifyAccessToken, 'invalid access token');
-    end;
 
     internal procedure CreateVATPostingSetup(BusinessPostingGroup: Code[20]; ProductPostingGroup: Code[20])
     var

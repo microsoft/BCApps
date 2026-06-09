@@ -5,8 +5,6 @@
 
 namespace System.TestTools.AITestToolkit;
 
-using System.Agents;
-
 pageextension 149030 "Agent Log Entries" extends "AIT Log Entries"
 {
     layout
@@ -20,7 +18,11 @@ pageextension 149030 "Agent Log Entries" extends "AIT Log Entries"
                 Caption = 'Copilot Credits Consumed';
                 ToolTip = 'Specifies the total Copilot Credits consumed by the Agent Tasks for this log entry.';
                 Editable = false;
-                Visible = ConsumedCreditsVisible;
+
+                trigger OnDrillDown()
+                begin
+                    AgentTestContextImpl.OpenAgentConsumptionOverview(AgentTaskIDs);
+                end;
             }
             field("Agent Task IDs"; AgentTaskIDs)
             {
@@ -37,14 +39,18 @@ pageextension 149030 "Agent Log Entries" extends "AIT Log Entries"
                 end;
             }
         }
+        addafter(TestOutcome)
+        {
+            part(AgentDetails; "AIT Agent Log Entry Part")
+            {
+                ApplicationArea = All;
+                SubPageLink =
+                    "Test Log Entry ID" = field("Entry No."),
+                    "Test Suite Code" = field("Test Suite Code");
+                Visible = AgentTaskIDs <> '';
+            }
+        }
     }
-
-    trigger OnOpenPage()
-    var
-        AgentSystemPermissions: Codeunit "Agent System Permissions";
-    begin
-        ConsumedCreditsVisible := AgentSystemPermissions.CurrentUserCanSeeConsumptionData();
-    end;
 
     trigger OnAfterGetRecord()
     begin
@@ -53,7 +59,7 @@ pageextension 149030 "Agent Log Entries" extends "AIT Log Entries"
 
     local procedure UpdateAgentTaskMetrics()
     begin
-        CopilotCredits := ConsumedCreditsVisible ? AgentTestContextImpl.GetCopilotCreditsForLogEntry(Rec."Entry No.") : -1;
+        CopilotCredits := AgentTestContextImpl.GetCopilotCreditsForLogEntry(Rec."Entry No.");
         AgentTaskIDs := AgentTestContextImpl.GetAgentTaskIDsForLogEntry(Rec."Entry No.");
     end;
 
@@ -61,5 +67,4 @@ pageextension 149030 "Agent Log Entries" extends "AIT Log Entries"
         AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
         CopilotCredits: Decimal;
         AgentTaskIDs: Text;
-        ConsumedCreditsVisible: Boolean;
 }

@@ -114,8 +114,6 @@ codeunit 30165 "Shpfy Orders API"
         JAttrib: JsonObject;
     begin
         CommunicationMgt.SetShop(ShopifyShop);
-        if CommunicationMgt.GetTestInProgress() then
-            exit;
         Clear(OrderAttribute);
         OrderAttribute."Order Id" := OrderHeader."Shopify Order Id";
         OrderAttribute."Key" := CopyStr(KeyName, 1, MaxStrLen(OrderAttribute."Key"));

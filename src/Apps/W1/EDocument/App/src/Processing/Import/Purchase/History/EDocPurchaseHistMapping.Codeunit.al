@@ -159,7 +159,7 @@ codeunit 6120 "E-Doc. Purchase Hist. Mapping"
             if UnitOfMeasure.Get(PurchInvLine."Unit of Measure") then // we only assign if it's a valid unit of measure
                 EDocumentPurchaseLine."[BC] Unit of Measure" := CopyStr(PurchInvLine."Unit of Measure", 1, MaxStrLen(EDocumentPurchaseLine."[BC] Unit of Measure"));
 
-        if (EDocumentPurchaseLine."[BC] Purchase Line Type" = "Purchase Line Type"::" ") and (EDocumentPurchaseLine."[BC] Purchase Type No." = '') then begin
+        if EDocumentPurchaseLine."[BC] Purchase Type No." = '' then begin
             // We first check if the purchase invoice line came from an allocation account line
             // If so, we set the account type and number explictly since the type and number of the line has changed
             if not IsNullGuid(PurchInvLine."Alloc. Purch. Line SystemId") then begin
@@ -212,8 +212,10 @@ codeunit 6120 "E-Doc. Purchase Hist. Mapping"
     var
         EDocPurchLineFieldSetup: Record "ED Purchase Line Field Setup";
         EDocPurchLineField: Record "E-Document Line - Field";
+        EDocImportErrorContext: Codeunit "E-Doc. Import Error Context";
         NewPurchLineRecordRef: RecordRef;
         NewPurchLineFieldRef: FieldRef;
+        FieldValue: Variant;
     begin
         if not EDocPurchLineFieldSetup.FindSet() then
             exit;
@@ -223,7 +225,10 @@ codeunit 6120 "E-Doc. Purchase Hist. Mapping"
                 continue;
             EDocPurchLineField.Get(EDocumentPurchaseLine, EDocPurchLineFieldSetup);
             NewPurchLineFieldRef := NewPurchLineRecordRef.Field(EDocPurchLineFieldSetup."Field No.");
-            NewPurchLineFieldRef.Validate(EDocPurchLineField.GetValue());
+            FieldValue := EDocPurchLineField.GetValue();
+            EDocImportErrorContext.OnSetAdditionalFieldContext(NewPurchLineFieldRef.Name(), EDocPurchLineFieldSetup."Field No.", EDocPurchLineField.GetValueAsText());
+            NewPurchLineFieldRef.Validate(FieldValue);
+            EDocImportErrorContext.ClearAdditionalFieldContext();
         until EDocPurchLineFieldSetup.Next() = 0;
         NewPurchLineRecordRef.SetTable(PurchaseLine);
     end;
