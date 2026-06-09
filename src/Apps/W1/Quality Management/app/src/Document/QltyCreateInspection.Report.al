@@ -238,6 +238,7 @@ report 20400 "Qlty. Create Inspection"
         NotAValidQltyInspectionTemplateErr: Label '''%1'' is not a valid Quality Inspection Template. Please re-configure the available Quality Inspection Templates.', Comment = '%1=The template that was expected';
         PleaseChooseARecordFirstErr: Label 'Choose which record you want to create a Quality Inspection for, then try again.';
         NoCompatibleGenRuleQst: Label 'Could not find any compatible inspection generation rules for the template %1. Do you want to open the Quality Inspection Generation Rules page to create one?', Comment = '%1=the template code';
+        NoLookupPageForSourceTableErr: Label 'The source configuration ''%1'' is mapped to table ''%2'', which has no list or lookup page available. Choose a different Source.', Comment = '%1=Source configuration code, %2=From Table caption';
 
     trigger OnPreReport()
     var
