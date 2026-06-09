@@ -37,9 +37,9 @@ codeunit 6409 "E-Doc. Sales Providers" implements ICustomerProvider, ISalesLineP
     procedure GetCustomer(EDocument: Record "E-Document") Customer: Record Customer
     var
         EDocSalesHeader: Record "E-Document Sales Header";
+        ServiceParticipant: Record "Service Participant";
         EDocErrorHelper: Codeunit "E-Document Error Helper";
         EDocumentImportHelper: Codeunit "E-Document Import Helper";
-        ServiceParticipant: Record "Service Participant";
         EDocumentHasNoBuyerInformation: Boolean;
     begin
         EDocSalesHeader.GetFromEDocument(EDocument);
@@ -118,11 +118,11 @@ codeunit 6409 "E-Doc. Sales Providers" implements ICustomerProvider, ISalesLineP
     var
         EDocument: Record "E-Document";
         EDocSalesHeader: Record "E-Document Sales Header";
+        Item: Record Item;
+        ItemReference: Record "Item Reference";
         EDocImpSessionTelemetry: Codeunit "E-Doc. Imp. Session Telemetry";
         EDocActivityLogSession: Codeunit "E-Doc. Activity Log Session";
         ActivityLog: Codeunit "Activity Log Builder";
-        Item: Record Item;
-        ItemReference: Record "Item Reference";
     begin
         EDocument.Get(EDocumentSalesLine."E-Document Entry No.");
         EDocSalesHeader.GetFromEDocument(EDocument);

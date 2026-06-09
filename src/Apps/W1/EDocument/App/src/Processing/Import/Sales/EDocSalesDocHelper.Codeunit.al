@@ -5,8 +5,8 @@
 namespace Microsoft.eServices.EDocument.Processing.Import.Sales;
 
 using Microsoft.eServices.EDocument;
-using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.EServices.EDocument.Processing;
+using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.Finance.Dimension;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Sales.Document;

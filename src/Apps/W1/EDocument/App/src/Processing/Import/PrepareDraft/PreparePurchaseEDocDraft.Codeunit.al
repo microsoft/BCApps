@@ -35,5 +35,4 @@ codeunit 6125 "Prepare Purchase E-Doc. Draft" implements IProcessStructuredData
     begin
         Vendor := PrepareDraftHelper.GetVendor(EDocument, Customizations);
     end;
-
 }

@@ -49,7 +49,7 @@ codeunit 6405 "E-Doc. Create Sales Order" implements IEDocumentFinishDraft, IEDo
     end;
 
     /// <summary>
-    /// Default implementation: creates a Sales Header and Sales Lines from the staged draft data.
+    /// Default implementation: creates a Sales Order and Sales Order Lines from the staged draft data.
     /// </summary>
     procedure CreateSalesOrder(EDocument: Record "E-Document"): Record "Sales Header"
     var

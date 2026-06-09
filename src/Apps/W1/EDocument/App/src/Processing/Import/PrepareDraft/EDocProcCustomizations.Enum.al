@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Processing.Import;
 
-using Microsoft.eServices.EDocument.Processing.Interfaces;
 using Microsoft.EServices.EDocument.Processing.Import.Sales;
+using Microsoft.eServices.EDocument.Processing.Interfaces;
 
 enum 6110 "E-Doc. Proc. Customizations" implements
     IVendorProvider,

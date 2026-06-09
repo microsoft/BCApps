@@ -5,10 +5,10 @@
 namespace Microsoft.eServices.EDocument.Test;
 
 using Microsoft.eServices.EDocument;
+using Microsoft.eServices.EDocument.Processing.Import.Sales;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
 using Microsoft.Purchases.Document;
 using Microsoft.Sales.Document;
-using Microsoft.eServices.EDocument.Processing.Import.Sales;
 codeunit 133503 "E-Doc. Processing Mocks" implements IEDocumentCreatePurchaseInvoice, IEDocumentCreatePurchaseCreditMemo, IEDocumentCreateSalesOrder
 {
 

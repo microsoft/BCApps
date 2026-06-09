@@ -35,5 +35,4 @@ codeunit 6403 "EDoc Prepare Cr. Memo Draft" implements IProcessStructuredData
     begin
         Vendor := PrepareDraftHelper.GetVendor(EDocument, Customizations);
     end;
-
 }

@@ -12,9 +12,10 @@ using System.Utilities;
 page 6153 "E-Document Sales Draft"
 {
     ApplicationArea = Basic, Suite;
+    UsageCategory = None;
     Caption = 'Sales Document Draft';
     PageType = Card;
-    SourceTable = "E-Document Sales Header";
+    SourceTable = "E-Document Sales Header";    
     InsertAllowed = false;
     DeleteAllowed = true;
     ModifyAllowed = true;

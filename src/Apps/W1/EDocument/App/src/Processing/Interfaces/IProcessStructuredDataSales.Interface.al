@@ -18,5 +18,4 @@ interface IProcessStructuredDataSales extends IProcessStructuredData
     /// Get the customer for the E-Document
     /// </summary>
     procedure GetCustomer(EDocument: Record "E-Document"; Customizations: Enum "E-Doc. Proc. Customizations"): Record Customer;
-
 }

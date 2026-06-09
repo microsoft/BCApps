@@ -45,7 +45,7 @@ table 6154 "E-Document Sales Line"
             Caption = 'External Line Id';
             Editable = false;
         }
-        field(4; "Description"; Text[250])
+        field(4; "Description"; Text[100])
         {
             Caption = 'Description';
             ToolTip = 'Specifies the description.';

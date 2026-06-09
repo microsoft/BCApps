@@ -14,8 +14,8 @@ using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Purchases.Document;
-using Microsoft.Sales.Document;
 using Microsoft.Purchases.Vendor;
+using Microsoft.Sales.Document;
 using System.Utilities;
 
 codeunit 6140 "E-Doc. Import"

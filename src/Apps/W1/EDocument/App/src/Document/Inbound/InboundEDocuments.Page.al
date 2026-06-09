@@ -120,7 +120,17 @@ page 6105 "Inbound E-Documents"
                     ToolTip = 'Specifies the status of the agent task for this document.';
                     Editable = false;
                 }
-                field("Vendor Name"; SenderNameTxt)
+#if not CLEAN28
+                field("Vendor Name"; EDocumentPurchaseHeader."Vendor Company Name")
+                {
+                    Caption = 'Sender';
+                    ToolTip = 'Specifies the vendor name of the document.';
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Replaced by the AgentTaskStatus field.';
+                    ObsoleteTag = '28.0';
+                }
+#endif
+                field(SenderName; SenderNameTxt)
                 {
                     Caption = 'Sender';
                     ToolTip = 'Specifies the sender name of the document.';
@@ -418,6 +428,23 @@ page 6105 "Inbound E-Documents"
     var
         EDocumentProcessing: Codeunit "E-Document Processing";
     begin
+        PopulateSenderName();
+        RecordLinkTxt := EDocumentProcessing.GetRecordLinkText(Rec);
+        PopulateDocumentNameTxt();
+        PopulateConfirmedVendorNameTxt();
+        PopulateTaskInfo();
+        SetDocumentTypeStyleExpression();
+
+        HasPdf := false;
+        if EDocDataStorage.Get(Rec."Unstructured Data Entry No.") then
+            HasPdf := EDocDataStorage."File Format" = Enum::"E-Doc. File Format"::PDF;
+#if not CLEAN27
+        SetEmailActionsVisibility();
+#endif
+    end;
+
+    local procedure PopulateSenderName()
+    begin
         case Rec."Document Type" of
             Rec."Document Type"::"Sales Order":
                 if EDocumentSalesHeader.Get(Rec."Entry No") then
@@ -440,18 +467,6 @@ page 6105 "Inbound E-Documents"
                 SenderNameTxt := '';
             end;
         end;
-        RecordLinkTxt := EDocumentProcessing.GetRecordLinkText(Rec);
-        PopulateDocumentNameTxt();
-        PopulateConfirmedVendorNameTxt();
-        PopulateTaskInfo();
-        SetDocumentTypeStyleExpression();
-
-        HasPdf := false;
-        if EDocDataStorage.Get(Rec."Unstructured Data Entry No.") then
-            HasPdf := EDocDataStorage."File Format" = Enum::"E-Doc. File Format"::PDF;
-#if not CLEAN27
-        SetEmailActionsVisibility();
-#endif
     end;
 
     local procedure PopulateDocumentNameTxt()
