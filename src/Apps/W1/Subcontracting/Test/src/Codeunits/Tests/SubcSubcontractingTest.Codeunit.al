@@ -3573,7 +3573,9 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         // [GIVEN] The vendor-supplied component purchase line exists
         ProductionBOMLine.SetRange("Production BOM No.", Item."Production BOM No.");
+#pragma warning disable AA0210        
         ProductionBOMLine.SetRange("Component Supply Method", "Component Supply Method"::"Vendor-Supplied");
+#pragma warning restore AA0210
         ProductionBOMLine.FindFirst();
         ComponentItem.Get(ProductionBOMLine."No.");
 
@@ -3604,7 +3606,9 @@ codeunit 139989 "Subc. Subcontracting Test"
         ProdOrderComponent.SetRange(Status, "Production Order Status"::Released);
         ProdOrderComponent.SetRange("Prod. Order No.", ProductionOrder."No.");
         ProdOrderComponent.SetRange("Item No.", ComponentItem."No.");
+#pragma warning disable AA0210        
         ProdOrderComponent.SetRange("Component Supply Method", "Component Supply Method"::"Vendor-Supplied");
+#pragma warning restore AA0210
         ProdOrderComponent.FindFirst();
 
         PurchaseLineComp.FindFirst();
