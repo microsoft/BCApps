@@ -458,5 +458,1005 @@
     "codeunitId": 144019,
     "codeunitName": "UT TAB Post Code",
     "method": "*"
+  },
+  {
+    "codeunitId": 144013,
+    "codeunitName": "VAT On Sales/Purchase Document",
+    "method": "AddReverseChargeItemToSalesLine"
+  },
+  {
+    "codeunitId": 144013,
+    "codeunitName": "VAT On Sales/Purchase Document",
+    "method": "CheckInvoiceWithReverseChargeItems"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "Alt. Cust. VAT Doc. BE Tests",
+    "method": "ChangeBillToCustomerAndRevertBack"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "Alt. Cust. VAT Doc. BE Tests",
+    "method": "ChangeBillToCustomerWhenBillToVATCalc"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "Alt. Cust. VAT Doc. BE Tests",
+    "method": "ChangeBillToCustomerWhenSellToVATCalc"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "Alt. Cust. VAT Doc. BE Tests",
+    "method": "ChangeCustomerAfterShipToAddressConnectedToAlternativeCustVATSetup"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "Alt. Cust. VAT Doc. BE Tests",
+    "method": "ChangeShipToAddressNoConnectionToAlternativeCustVATSetup"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "Alt. Cust. VAT Doc. BE Tests",
+    "method": "ChangeShipToCountryCodeConnectionToAlternativeCustVATSetup"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "Alt. Cust. VAT Doc. BE Tests",
+    "method": "ChangeVATCountryCodeConnectionToAlternativeCustVATSetup"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "Alt. Cust. VAT Doc. BE Tests",
+    "method": "ChangeVATCountryCodeNoConnectionToAlternativeCustVATSetup"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "Alt. Cust. VAT Doc. BE Tests",
+    "method": "ClearEntepriseNoWhenGettingVATRegNoFromAltCustVATRegConnectedToShipToAddress"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "Alt. Cust. VAT Doc. BE Tests",
+    "method": "ClearShipToAddressConnectedToAlternativeCustVATSetup"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "Alt. Cust. VAT Doc. BE Tests",
+    "method": "ClearShipToAddressConnectedToAlternativeCustVATSetupSellToCustomer"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "IT - VAT Reporting - Sales",
+    "method": "CustSalesTaxRepContact"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "IT - VAT Reporting - Sales",
+    "method": "CustSalesTaxRepCust"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "IT - VAT Reporting - Sales",
+    "method": "EUCountrySalesInv"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "Alt. Cust. VAT Doc. BE Tests",
+    "method": "GetCustomerVATRegistrationNumberForPostedInvoiceUsesVATCountryCode"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "IT - VAT Reporting - Sales",
+    "method": "InvIndCustNonResCountryRegion"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "IT - VAT Reporting - Sales",
+    "method": "InvIndCustNonResDateOfBirth"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "IT - VAT Reporting - Sales",
+    "method": "InvIndCustNonResExclVATRep"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "IT - VAT Reporting - Sales",
+    "method": "InvIndCustNonResFirstName"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "IT - VAT Reporting - Sales",
+    "method": "InvIndCustNonResLastName"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "IT - VAT Reporting - Sales",
+    "method": "InvIndCustNonResPlaceOfBirth"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "IT - VAT Reporting - Sales",
+    "method": "InvIndCustResExclVATRep"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "IT - VAT Reporting - Sales",
+    "method": "InvIndCustResFiscalCode"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "IT - VAT Reporting - Sales",
+    "method": "InvKnCustResExclVATRep"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "IT - VAT Reporting - Sales",
+    "method": "InvKnCustResVATRegNo"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "IT - VAT Reporting - Sales",
+    "method": "OperationTypeIsFilledWhenBillToCustomerIsChanged"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "IT - VAT Reporting - Sales",
+    "method": "SalesCMLineRefToCrYear"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "IT - VAT Reporting - Sales",
+    "method": "SalesCMLineRefToCurrent"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "IT - VAT Reporting - Sales",
+    "method": "SalesCMRefToBlank"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "IT - VAT Reporting - Sales",
+    "method": "SalesCMRefToCrYear"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "IT - VAT Reporting - Sales",
+    "method": "SalesCMRefToCurrent"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "IT - VAT Reporting - Sales",
+    "method": "SalesCMRefToPrevious"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "IT - VAT Reporting - Sales",
+    "method": "SalesInvExcl"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "IT - VAT Reporting - Sales",
+    "method": "SalesInvExcl2"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "IT - VAT Reporting - Sales",
+    "method": "SalesInvExcl2WVAT"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "IT - VAT Reporting - Sales",
+    "method": "SalesInvExclWVAT"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "IT - VAT Reporting - Sales",
+    "method": "SalesInvIncl"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "IT - VAT Reporting - Sales",
+    "method": "SalesInvInclWVAT"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "IT - VAT Reporting - Sales",
+    "method": "SalesInvPostExcl"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "IT - VAT Reporting - Sales",
+    "method": "SalesInvPostExclWVAT"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "IT - VAT Reporting - Sales",
+    "method": "SalesInvPostIncl"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "IT - VAT Reporting - Sales",
+    "method": "SalesInvPostInclWVAT"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "IT - VAT Reporting - Sales",
+    "method": "SalesOrdLnkBlOrdMultiLinesWVAT"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "IT - VAT Reporting - Sales",
+    "method": "SalesOrdLnkBlOrdMultipleLines"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "IT - VAT Reporting - Sales",
+    "method": "SalesOrdLnkBlOrdSingleLine"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "IT - VAT Reporting - Sales",
+    "method": "SalesOrdLnkBlOrdSingleLineWVAT"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "IT - VAT Reporting - Sales",
+    "method": "SalesOrdPrep"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "IT - VAT Reporting - Sales",
+    "method": "SalesOrdWithContPostMultiLine"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "IT - VAT Reporting - Sales",
+    "method": "SalesOrdWithContPostSingleLine"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "IT - VAT Reporting - Sales",
+    "method": "SalesPrePayInvPost"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "IT - VAT Reporting - Sales",
+    "method": "SalesRtnOrdLineRefToPrevious"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "IT - VAT Reporting - Sales",
+    "method": "SalesRtnOrdRefToCrYear"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "IT - VAT Reporting - Sales",
+    "method": "SalesRtnOrdRefToCurrent"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "IT - VAT Reporting - Sales",
+    "method": "SalesRtnOrdRefToPrevious"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "Alt. Cust. VAT Doc. BE Tests",
+    "method": "ShipToCountryCodeEqualsVATCountryCodeOfAlternativeCustVATSetup"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "Alt. Cust. VAT Doc. BE Tests",
+    "method": "ShipToCountryCodeEqualsVATCountryCodeOfAlternativeCustVATSetupConfirmed"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "Alt. Cust. VAT Doc. BE Tests",
+    "method": "ShipToCountryCodeEqualsVATCountryCodeOfAlternativeCustVATSetupNotConfirmed"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "Alt. Cust. VAT Doc. BE Tests",
+    "method": "ShipToCountryCodeOfCustEqualsVATCountryCodeOfAlternativeCustVATSetup"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "VAT On Sales/Purchase Document",
+    "method": "VATAmtOnStatsAfterPartialPostPurchaseOrder"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "VAT On Sales/Purchase Document",
+    "method": "VATAmtOnStatsAfterPartialPostPurchOrder"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "VAT On Sales/Purchase Document",
+    "method": "VATAmtOnStatsAfterPartialPostPurchRetOrder"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "VAT On Sales/Purchase Document",
+    "method": "VATAmtOnStatsAfterPartialPostPurchReturnOrder"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "VAT On Sales/Purchase Document",
+    "method": "VATAmtOnStatsAfterPartialPostSalesOrder"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "VAT On Sales/Purchase Document",
+    "method": "VATAmtOnStatsAfterPartialPostSalesOrderNM"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "VAT On Sales/Purchase Document",
+    "method": "VATAmtOnStatsAfterPartialPostSalesRetOrder"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "VAT On Sales/Purchase Document",
+    "method": "VATAmtOnStatsAfterPartialPostSalesRetOrderNM"
+  },
+  {
+    "codeunitId": 144013,
+    "codeunitName": "Sales Documents With Tax",
+    "method": "ApplyingPartialPaymentOnCrMemoShouldNotShowIncorrectBalanceOnApplyCustomerEntriesPage"
+  },
+  {
+    "codeunitId": 144013,
+    "codeunitName": "UT Cash Bank Giro",
+    "method": "CheckBankAccNoWithValidAccountNoLocalFunctionalityMgt"
+  },
+  {
+    "codeunitId": 144013,
+    "codeunitName": "VAT Annual Listing Report",
+    "method": "NonVATLiableIsNotPrinted"
+  },
+  {
+    "codeunitId": 144013,
+    "codeunitName": "Sales Documents With Tax",
+    "method": "OnActionStatisticsPostedSalesInvoiceWithPositiveAndNegativeAmounts"
+  },
+  {
+    "codeunitId": 144013,
+    "codeunitName": "Sales Documents With Tax",
+    "method": "OnActionStatisticsPostedSalesInvoiceWithPositiveAndNegativeAmountsNM"
+  },
+  {
+    "codeunitId": 144013,
+    "codeunitName": "Sales Documents With Tax",
+    "method": "PaymentAppliedEntriesWithoutVATCashAppliedReport"
+  },
+  {
+    "codeunitId": 144013,
+    "codeunitName": "Sales Documents With Tax",
+    "method": "PaymentAppliedEntriesWithVATCashAppliedReport"
+  },
+  {
+    "codeunitId": 144013,
+    "codeunitName": "Sales Documents With Tax",
+    "method": "PostedCreditMemoResourceWithTax"
+  },
+  {
+    "codeunitId": 144013,
+    "codeunitName": "Sales Documents With Tax",
+    "method": "PostedSalesInvoiceResourceWithTax"
+  },
+  {
+    "codeunitId": 144013,
+    "codeunitName": "Sales Documents With Tax",
+    "method": "SalesReturnOrderFullLineDiscountPctWithPartialPosting"
+  },
+  {
+    "codeunitId": 144013,
+    "codeunitName": "Sales Documents With Tax",
+    "method": "SpecialOrdersAlwaysCombined"
+  },
+  {
+    "codeunitId": 144013,
+    "codeunitName": "Sales Documents With Tax",
+    "method": "SpecialOrdersNeverCombined"
+  },
+  {
+    "codeunitId": 144017,
+    "codeunitName": "IT - SEPA.02 DD Unit Test",
+    "method": "CumulativeLinesNotAllowedWithMandate"
+  },
+  {
+    "codeunitId": 144017,
+    "codeunitName": "IT - SEPA.02 DD Unit Test",
+    "method": "CustBankAccMustBeOfMandate"
+  },
+  {
+    "codeunitId": 144017,
+    "codeunitName": "IT - SEPA.02 DD Unit Test",
+    "method": "CustomerBillFloppyReportOnExportBilToFloppyFileAction"
+  },
+  {
+    "codeunitId": 144017,
+    "codeunitName": "IT - SEPA.02 DD Unit Test",
+    "method": "CustomerBillLineErrorsAreDeleted"
+  },
+  {
+    "codeunitId": 144017,
+    "codeunitName": "IT - SEPA.02 DD Unit Test",
+    "method": "EmptyFiscalCodeAndVATRegistrationNoInCustBillsFloppy"
+  },
+  {
+    "codeunitId": 144017,
+    "codeunitName": "IT - SEPA.02 DD Unit Test",
+    "method": "EmptyFiscalCodeAndVATRegistrationNoInExportedIssuedBill"
+  },
+  {
+    "codeunitId": 144017,
+    "codeunitName": "IT - SEPA.02 DD Unit Test",
+    "method": "ErrorsDeletedBetweenFormats"
+  },
+  {
+    "codeunitId": 144017,
+    "codeunitName": "IT - SEPA.02 DD Unit Test",
+    "method": "ExportBilltoFileFiscalCode"
+  },
+  {
+    "codeunitId": 144017,
+    "codeunitName": "IT - SEPA.02 DD Unit Test",
+    "method": "ExportBilltoFileFiscalCodeVATRegistrationNo"
+  },
+  {
+    "codeunitId": 144017,
+    "codeunitName": "IT - SEPA.02 DD Unit Test",
+    "method": "ExportBilltoFileFiscalCodeVATRegistrationNoAreEmpty"
+  },
+  {
+    "codeunitId": 144017,
+    "codeunitName": "IT - SEPA.02 DD Unit Test",
+    "method": "ExportBilltoFileVATRegistrationNo"
+  },
+  {
+    "codeunitId": 144017,
+    "codeunitName": "IT - SEPA.02 DD Unit Test",
+    "method": "ExportIssuedBilltoFileFiscalCode"
+  },
+  {
+    "codeunitId": 144017,
+    "codeunitName": "IT - SEPA.02 DD Unit Test",
+    "method": "ExportIssuedBilltoFileFiscalCodeVATRegistrationNo"
+  },
+  {
+    "codeunitId": 144017,
+    "codeunitName": "IT - SEPA.02 DD Unit Test",
+    "method": "ExportIssuedBilltoFileFiscalCodeVATRegistrationNoAreEmpty"
+  },
+  {
+    "codeunitId": 144017,
+    "codeunitName": "IT - SEPA.02 DD Unit Test",
+    "method": "ExportIssuedBilltoFileVATRegistrationNo"
+  },
+  {
+    "codeunitId": 144017,
+    "codeunitName": "IT - SEPA.02 DD Unit Test",
+    "method": "ExportWithErrors"
+  },
+  {
+    "codeunitId": 144017,
+    "codeunitName": "IT - SEPA.02 DD Unit Test",
+    "method": "FillBufferSunshine"
+  },
+  {
+    "codeunitId": 144017,
+    "codeunitName": "IT - SEPA.02 DD Unit Test",
+    "method": "FiscalCodeInCustBillsFloppy"
+  },
+  {
+    "codeunitId": 144017,
+    "codeunitName": "IT - SEPA.02 DD Unit Test",
+    "method": "FiscalCodeInExportedIssuedBill"
+  },
+  {
+    "codeunitId": 144017,
+    "codeunitName": "ERM Tax Entry",
+    "method": "FullUnrealizedTaxTypeFirstFullyPaid"
+  },
+  {
+    "codeunitId": 144017,
+    "codeunitName": "ERM Tax Entry",
+    "method": "FullUnrealizedTaxTypeLast"
+  },
+  {
+    "codeunitId": 144017,
+    "codeunitName": "IT - SEPA.02 DD Unit Test",
+    "method": "IssuedCustBillSunshine"
+  },
+  {
+    "codeunitId": 144017,
+    "codeunitName": "IT - SEPA.02 DD Unit Test",
+    "method": "IssuedCustBillWithErrors"
+  },
+  {
+    "codeunitId": 144017,
+    "codeunitName": "IT - SEPA.02 DD Unit Test",
+    "method": "LegacyFormatCheckBankAccount"
+  },
+  {
+    "codeunitId": 144017,
+    "codeunitName": "IT - SEPA.02 DD Unit Test",
+    "method": "LegacyFormatCheckPmtMethod"
+  },
+  {
+    "codeunitId": 144017,
+    "codeunitName": "IT - SEPA.02 DD Unit Test",
+    "method": "MandateNotAllowedWithCumulativeLines"
+  },
+  {
+    "codeunitId": 144017,
+    "codeunitName": "IT - SEPA.02 DD Unit Test",
+    "method": "NumericFinalCustBillNoInCustBillsFloppy"
+  },
+  {
+    "codeunitId": 144017,
+    "codeunitName": "IT - SEPA.02 DD Unit Test",
+    "method": "NumericFinalCustBillNoInIssuedCustBillsFloppy"
+  },
+  {
+    "codeunitId": 144017,
+    "codeunitName": "IT - SEPA.02 DD Unit Test",
+    "method": "OnlyFiscalCodeInCustBillsFloppy"
+  },
+  {
+    "codeunitId": 144017,
+    "codeunitName": "IT - SEPA.02 DD Unit Test",
+    "method": "OnlyFiscalCodeInExportedIssuedBill"
+  },
+  {
+    "codeunitId": 144017,
+    "codeunitName": "IT - SEPA.02 DD Unit Test",
+    "method": "OrgIdOthrIdNodeHasCUCValueWhenExportDDEntry"
+  },
+  {
+    "codeunitId": 144017,
+    "codeunitName": "ERM Tax Entry",
+    "method": "PartialUnrealizedTaxTypeFirstFullyPaid"
+  },
+  {
+    "codeunitId": 144017,
+    "codeunitName": "IT - SEPA.02 DD Unit Test",
+    "method": "PartnerTypeError"
+  },
+  {
+    "codeunitId": 144017,
+    "codeunitName": "VATEXP Report Test",
+    "method": "SalesInvoiceReportBusNoProd"
+  },
+  {
+    "codeunitId": 144017,
+    "codeunitName": "VATEXP Report Test",
+    "method": "SalesInvoiceReportBusProd"
+  },
+  {
+    "codeunitId": 144017,
+    "codeunitName": "VATEXP Report Test",
+    "method": "SalesInvoiceReportNoBusNoProd"
+  },
+  {
+    "codeunitId": 144017,
+    "codeunitName": "VATEXP Report Test",
+    "method": "SalesInvoiceReportNoBusProd"
+  },
+  {
+    "codeunitId": 144017,
+    "codeunitName": "IT - SEPA.02 DD Unit Test",
+    "method": "SuggestCustomerBillLines"
+  },
+  {
+    "codeunitId": 144017,
+    "codeunitName": "IT - SEPA.02 DD Unit Test",
+    "method": "SuggestCustomerBillLinesWithPartnerTypeBlank"
+  },
+  {
+    "codeunitId": 144017,
+    "codeunitName": "IT - SEPA.02 DD Unit Test",
+    "method": "SuggestCustomerBillLinesWithPartnerTypeNotBlank"
+  },
+  {
+    "codeunitId": 144017,
+    "codeunitName": "IT - SEPA.02 DD Unit Test",
+    "method": "UI_CustomerBillFloppyReportRunOnExportIssuedBilToFloppyFileAction"
+  },
+  {
+    "codeunitId": 144017,
+    "codeunitName": "IT - SEPA.02 DD Unit Test",
+    "method": "VATRegistrationNoInCustBillsFloppy"
+  },
+  {
+    "codeunitId": 144017,
+    "codeunitName": "IT - SEPA.02 DD Unit Test",
+    "method": "VATRegistrationNoInExportedIssuedBill"
+  },
+  {
+    "codeunitId": 144022,
+    "codeunitName": "Sales Docs With Tax O365",
+    "method": "CustomerListOrderStatusAfterPostSalesOrderAsShip"
+  },
+  {
+    "codeunitId": 144022,
+    "codeunitName": "Test Telebank Pages",
+    "method": "DescriptionWhenChangeAccountNoCustomerNoToBlank"
+  },
+  {
+    "codeunitId": 144022,
+    "codeunitName": "Test Telebank Pages",
+    "method": "DescriptionWhenChangeAccountNoToAnotherCustomerNo"
+  },
+  {
+    "codeunitId": 144022,
+    "codeunitName": "Test Telebank Pages",
+    "method": "DescriptionWhenChangeAccountNoToAnotherVendorNo"
+  },
+  {
+    "codeunitId": 144022,
+    "codeunitName": "Test Telebank Pages",
+    "method": "DescriptionWhenChangedManually"
+  },
+  {
+    "codeunitId": 144022,
+    "codeunitName": "Test Telebank Pages",
+    "method": "DescriptionWhenSetAccountNoCustomerNo"
+  },
+  {
+    "codeunitId": 144022,
+    "codeunitName": "Test Telebank Pages",
+    "method": "DescriptionWhenSetAccountNoVendorNo"
+  },
+  {
+    "codeunitId": 144022,
+    "codeunitName": "Test Telebank Pages",
+    "method": "DomiciliationJournalEditRec"
+  },
+  {
+    "codeunitId": 144022,
+    "codeunitName": "Test Telebank Pages",
+    "method": "EBPaymentJournalEditRec"
+  },
+  {
+    "codeunitId": 144022,
+    "codeunitName": "E-BANKING Import Test",
+    "method": "GenJnlLineBalAccWithBankAccBatchBalAcc"
+  },
+  {
+    "codeunitId": 144022,
+    "codeunitName": "E-BANKING Import Test",
+    "method": "GenJnlLineBalAccWithGLAccBatchBalAcc"
+  },
+  {
+    "codeunitId": 144022,
+    "codeunitName": "Sales Docs With Tax O365",
+    "method": "SalesOrderFullLineDiscountPctWithPartialPosting"
+  },
+  {
+    "codeunitId": 144022,
+    "codeunitName": "Sales Docs With Tax O365",
+    "method": "SalesOrderWithAdditionalReportingCurrency"
+  },
+  {
+    "codeunitId": 144022,
+    "codeunitName": "Sales Docs With Tax O365",
+    "method": "SalesOrderWithCAVendorAndAdditionalReportingCurrency"
+  },
+  {
+    "codeunitId": 144022,
+    "codeunitName": "Sales Docs With Tax O365",
+    "method": "SalesOrderWithoutTaxAreaCode"
+  },
+  {
+    "codeunitId": 144022,
+    "codeunitName": "E-BANKING Import Test",
+    "method": "TestDomesticImportOfPaymentFile"
+  },
+  {
+    "codeunitId": 144022,
+    "codeunitName": "E-BANKING Import Test",
+    "method": "TestDomesticImportOfThePaymentFileTheSecondTime"
+  },
+  {
+    "codeunitId": 144022,
+    "codeunitName": "E-BANKING Import Test",
+    "method": "TestDomesticImportOfTwoPaymentFiles"
+  },
+  {
+    "codeunitId": 144022,
+    "codeunitName": "Sales Docs With Tax O365",
+    "method": "VerifyInvAdjustValueOnCustomerSalesStatisticsReport"
+  },
+  {
+    "codeunitId": 144022,
+    "codeunitName": "Sales Docs With Tax O365",
+    "method": "VerifyInvAdjustValueOnSalespersonCommissionsReport"
+  },
+  {
+    "codeunitId": 144022,
+    "codeunitName": "Sales Docs With Tax O365",
+    "method": "VerifyInvAdjustValueOnSalespersonStatisticsByInvReport"
+  },
+  {
+    "codeunitId": 144023,
+    "codeunitName": "ERM VAT O365",
+    "method": "VATEntriesAfterPostSalesApplication"
+  },
+  {
+    "codeunitId": 144023,
+    "codeunitName": "ERM VAT O365",
+    "method": "VATEntriesAfterPostSalesCreditMemo"
+  },
+  {
+    "codeunitId": 144023,
+    "codeunitName": "ERM VAT O365",
+    "method": "VATEntriesAfterPostSalesOrder"
+  },
+  {
+    "codeunitId": 144024,
+    "codeunitName": "Test Financial Journals",
+    "method": "CalculateBalanceTotalDifferenceOnFinancialJournalWithGenJournalTemplateNameMandatory"
+  },
+  {
+    "codeunitId": 144024,
+    "codeunitName": "Test Financial Journals",
+    "method": "CalculateBalanceTotalDifferenceOnFinancialJournalWithoutGenJournalTemplateNameMandatory"
+  },
+  {
+    "codeunitId": 144024,
+    "codeunitName": "Test Financial Journals",
+    "method": "CanCancelCorrectivePurchaseCreditMemo"
+  },
+  {
+    "codeunitId": 144024,
+    "codeunitName": "Test Financial Journals",
+    "method": "CanCancelCorrectiveSalesCreditMemo"
+  },
+  {
+    "codeunitId": 144024,
+    "codeunitName": "Test Financial Journals",
+    "method": "CannotCancelCorrectivePurchaseCreditMemo"
+  },
+  {
+    "codeunitId": 144024,
+    "codeunitName": "Test Financial Journals",
+    "method": "CannotCancelCorrectiveSalesCreditMemo"
+  },
+  {
+    "codeunitId": 144024,
+    "codeunitName": "Test Financial Journals",
+    "method": "CannotCorrectPostedPurchaseInvoice"
+  },
+  {
+    "codeunitId": 144024,
+    "codeunitName": "Test Financial Journals",
+    "method": "CannotCorrectPostedSalesInvoice"
+  },
+  {
+    "codeunitId": 144024,
+    "codeunitName": "Purch. Documents With Tax",
+    "method": "ItemUnitCostAfterPostPurchOrdWithItemAndItemCharge"
+  },
+  {
+    "codeunitId": 144024,
+    "codeunitName": "UT REP VATREP",
+    "method": "OnAfterGetRecordVATEntryWithBaseVATEntryExceptionReport"
+  },
+  {
+    "codeunitId": 144024,
+    "codeunitName": "UT REP VATREP",
+    "method": "OnAfterGetRecordVATEntryWithoutBaseVATEntryExceptionReport"
+  },
+  {
+    "codeunitId": 144024,
+    "codeunitName": "Test Financial Journals",
+    "method": "PostCustomerLedgerEntries"
+  },
+  {
+    "codeunitId": 144024,
+    "codeunitName": "Test Financial Journals",
+    "method": "PostFinancialJournalWithoutAccountNo"
+  },
+  {
+    "codeunitId": 144024,
+    "codeunitName": "Test Financial Journals",
+    "method": "PostGLAccountLedgerEntries"
+  },
+  {
+    "codeunitId": 144024,
+    "codeunitName": "Test Financial Journals",
+    "method": "PostMultipleFinancialJournalLinesWhenAccountNoIsBlankForAnyJournalLine"
+  },
+  {
+    "codeunitId": 144024,
+    "codeunitName": "Vendor Payment Order",
+    "method": "RunVendorPaymentOrderReportBatchName"
+  },
+  {
+    "codeunitId": 144024,
+    "codeunitName": "Vendor Payment Order",
+    "method": "RunVendorPaymentOrderReportBatchNameDebitDate"
+  },
+  {
+    "codeunitId": 144024,
+    "codeunitName": "Vendor Payment Order",
+    "method": "RunVendorPaymentOrderReportBatchNameDebitDateShowAddressLines"
+  },
+  {
+    "codeunitId": 144024,
+    "codeunitName": "Vendor Payment Order",
+    "method": "TransferVendorPreferableBankToPurchHeaderBankCode"
+  },
+  {
+    "codeunitId": 144024,
+    "codeunitName": "Test Financial Journals",
+    "method": "ValidateBankReconciliationForm"
+  },
+  {
+    "codeunitId": 144024,
+    "codeunitName": "Test Financial Journals",
+    "method": "ValidateCorrectBalanceAccountType"
+  },
+  {
+    "codeunitId": 144024,
+    "codeunitName": "Test Financial Journals",
+    "method": "ValidatePostingErrorOnInvalidAmount"
+  },
+  {
+    "codeunitId": 144024,
+    "codeunitName": "Test Financial Journals",
+    "method": "ValidatePostingErrorOnMissingDocumentNo"
+  },
+  {
+    "codeunitId": 144024,
+    "codeunitName": "Purch. Documents With Tax",
+    "method": "ValueEntriesAfterPostPurchOrdWithItemAndItemCharge"
+  },
+  {
+    "codeunitId": 144038,
+    "codeunitName": "ERM Sales Purch Documents",
+    "method": "VATEntryPurchaseInvoiceWithBillToSellToVATCalc"
+  },
+  {
+    "codeunitId": 144038,
+    "codeunitName": "ERM Sales Purch Documents",
+    "method": "VATEntrySalesInvoiceWithBillToSellToVATCalc"
+  },
+  {
+    "codeunitId": 144040,
+    "codeunitName": "Test LSV DD Payment Export",
+    "method": "LSVCollectionAuthorisationExcelOutput"
+  },
+  {
+    "codeunitId": 144040,
+    "codeunitName": "Test LSV DD Payment Export",
+    "method": "ChangeLSVJournalLineStatus"
+  },
+  {
+    "codeunitId": 144040,
+    "codeunitName": "Test LSV DD Payment Export",
+    "method": "CreateDDFileFromLSVJournalMultipleCustBankAccount"
+  },
+  {
+    "codeunitId": 144040,
+    "codeunitName": "Test LSV DD Payment Export",
+    "method": "CreateDDFileFromLSVJournalNoCustBankAccount"
+  },
+  {
+    "codeunitId": 144040,
+    "codeunitName": "Test LSV DD Payment Export",
+    "method": "CreateDDFileFromLSVJournalNoGIROForCustBankAccount"
+  },
+  {
+    "codeunitId": 144040,
+    "codeunitName": "Test LSV DD Payment Export",
+    "method": "CreateLSVFileCustBankAccountHasNoIBANOrBankAccNo"
+  },
+  {
+    "codeunitId": 144040,
+    "codeunitName": "Test LSV DD Payment Export",
+    "method": "CreateLSVFileMultipleCustBankAccount"
+  },
+  {
+    "codeunitId": 144040,
+    "codeunitName": "Test LSV DD Payment Export",
+    "method": "CreateLSVFileNoCustBankAccount"
+  },
+  {
+    "codeunitId": 144040,
+    "codeunitName": "Test LSV DD Payment Export",
+    "method": "DeleteLSVJournal"
+  },
+  {
+    "codeunitId": 144040,
+    "codeunitName": "Test LSV DD Payment Export",
+    "method": "DeleteLSVJournalLine"
+  },
+  {
+    "codeunitId": 144040,
+    "codeunitName": "Test LSV DD Payment Export",
+    "method": "CreateDDFileWithCombinePerCustomerError"
+  },
+  {
+    "codeunitId": 144040,
+    "codeunitName": "Test LSV DD Payment Export",
+    "method": "LSVCollectionOrder"
+  },
+  {
+    "codeunitId": 144040,
+    "codeunitName": "Test LSV DD Payment Export",
+    "method": "ReopenCollection"
+  },
+  {
+    "codeunitId": 144040,
+    "codeunitName": "Test LSV DD Payment Export",
+    "method": "CheckLSVSetupSenderInfo"
+  },
+  {
+    "codeunitId": 144040,
+    "codeunitName": "Test LSV DD Payment Export",
+    "method": "CheckLSVSetupOtherInfo"
+  },
+  {
+    "codeunitId": 144040,
+    "codeunitName": "Test LSV DD Payment Export",
+    "method": "CheckLSVSetupCustomerIDSizeError"
+  },
+  {
+    "codeunitId": 144040,
+    "codeunitName": "Test LSV DD Payment Export",
+    "method": "CheckLSVSetupSenderIDSizeError"
+  },
+  {
+    "codeunitId": 144040,
+    "codeunitName": "Test LSV DD Payment Export",
+    "method": "CheckLSVSetupOnDelete"
+  },
+  {
+    "codeunitId": 144040,
+    "codeunitName": "Test LSV DD Payment Export",
+    "method": "SuggestLSVCollection"
+  },
+  {
+    "codeunitId": 144040,
+    "codeunitName": "Test LSV DD Payment Export",
+    "method": "SuggestLSVCollectionWithCreditMemoAndDiscount"
+  },
+  {
+    "codeunitId": 144040,
+    "codeunitName": "Test LSV DD Payment Export",
+    "method": "CreateLSVCollectionWithManualLines"
+  },
+  {
+    "codeunitId": 144040,
+    "codeunitName": "Test LSV DD Payment Export",
+    "method": "CloseLSVCollectionWithManualLines"
+  },
+  {
+    "codeunitId": 144040,
+    "codeunitName": "Test LSV DD Payment Export",
+    "method": "LSVCollectionAdvice"
+  },
+  {
+    "codeunitId": 144040,
+    "codeunitName": "Test LSV DD Payment Export",
+    "method": "LSVCustomerbankList"
+  },
+  {
+    "codeunitId": 144040,
+    "codeunitName": "Test LSV DD Payment Export",
+    "method": "LSVCollectionAuthorisationXMLOutput"
+  },
+  {
+    "codeunitId": 144040,
+    "codeunitName": "Test LSV DD Payment Export",
+    "method": "LSVCollectionJournal"
+  },
+  {
+    "codeunitId": 144040,
+    "codeunitName": "Test LSV DD Payment Export",
+    "method": "ModifyPostingDate"
   }
 ]

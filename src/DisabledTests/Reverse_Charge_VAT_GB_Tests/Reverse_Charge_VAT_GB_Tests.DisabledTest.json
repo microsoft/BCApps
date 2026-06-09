@@ -48,5 +48,405 @@
     "codeunitId": 144012,
     "codeunitName": "IT - VAT Reporting - Export",
     "method": "ExportForVendorWithoutFiscalCode_Datifattura"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "Checklist Revenue and VAT Test",
+    "method": "AmountVATBaseDiffIncludedDataItem"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "IT - VAT Reporting - Export",
+    "method": "CancelReport"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "UT TAB Cash Bank Giro",
+    "method": "CheckBalanceTypeBankCBGStatementError"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "UT TAB Cash Bank Giro",
+    "method": "CheckBalanceTypeCashCBGStatementError"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "Purchase Documents With Tax",
+    "method": "CheckLineDiscAmountWithPartiallyPosting"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "IT - VAT Reporting - Export",
+    "method": "DatifatturaPurchaseDocumentsWithSameNoAndTypeForDifferenVendorExportedAsSeparateElements"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "IT - VAT Reporting - Export",
+    "method": "DatifatturaSalesDocumentsWithSameNoAndTypeForDifferenVendorExportedAsSeparateElements"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "IT - VAT Reporting - Export",
+    "method": "ErrorWhenExportForCustomerWithoutFiscalCodeAndVATRegNo_Datifattura"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "IT - VAT Reporting - Export",
+    "method": "ErrorWhenExportForIndividualCustomerWithoutFiscalCodeAndVATRegNo_Datifattura"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "IT - VAT Reporting - Export",
+    "method": "ErrorWhenExportForIndividualVendorWithoutFiscalCodeAndVATRegNo_Datifattura"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "IT - VAT Reporting - Export",
+    "method": "ErrorWhenExportForVendorWithoutFiscalCodeAndVATRegNo_Datifattura"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "IT - VAT Reporting - Export",
+    "method": "ExportDatiFatturaAfterChangingFatturaDocTypeInVATReportLine"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "IT - VAT Reporting - Export",
+    "method": "ExportDatiFatturaForPurchaseInvoiceDateNodes"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "IT - VAT Reporting - Export",
+    "method": "ExportDatiFatturaForPurchaseInvoiceDatiIVA"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "IT - VAT Reporting - Export",
+    "method": "ExportDatiFatturaForSalesInvoiceDateNodes"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "IT - VAT Reporting - Export",
+    "method": "ExportDatiFatturaForSalesInvoiceDatiIVA"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "IT - VAT Reporting - Export",
+    "method": "ExportDatiFatturaForSalesInvoiceWithNonDefaultFatturaDocType"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "IT - VAT Reporting - Export",
+    "method": "ExportDatiFatturaNaturaReverseChargeVAT"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "IT - VAT Reporting - Export",
+    "method": "ExportedVATReportConsistsOfLinesFromOneVATReport_Datifattura"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "IT - VAT Reporting - Export",
+    "method": "ExportEUPurchaseInvoiceForGoods"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "IT - VAT Reporting - Export",
+    "method": "ExportEUPurchaseInvoiceForServices"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "IT - VAT Reporting - Export",
+    "method": "ExportFiscalCodeFromIndividualCustomerInVATReport_Datifattura"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "IT - VAT Reporting - Export",
+    "method": "ExportFiscalCodeFromIndividualVendorInVATReport_Datifattura"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "IT - VAT Reporting - Export",
+    "method": "ExportForCustomerWithoutVATRegNo_Datifattura"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "IT - VAT Reporting - Export",
+    "method": "ExportForeignGoodsPurchaseInvoiceWithLinkedCustomsAuthorityPurchaseInvoice"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "IT - VAT Reporting - Export",
+    "method": "ExportForIndividualCustomerWithoutFiscalCode_Datifattura"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "IT - VAT Reporting - Export",
+    "method": "ExportForIndividualVendorWithoutFiscalCode_Datifattura"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "IT - VAT Reporting - Export",
+    "method": "ExportForVendorWithoutVATRegNo_Datifattura"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "IT - VAT Reporting - Export",
+    "method": "ExportOneFileHaving1000CedentePrestatoreDTRCount_Datifattura"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "IT - VAT Reporting - Export",
+    "method": "ExportOneFileHaving1000CessionarioCommittenteDTECount_Datifattura"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "IT - VAT Reporting - Export",
+    "method": "ExportTwoPurchaseInvoicesWithoutVendLedgEntries"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "IT - VAT Reporting - Export",
+    "method": "IntermediatoryFieldsBlank"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "IT - VAT Reporting - Export",
+    "method": "IntermediatoryTaxRepBlank"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "IT - VAT Reporting - Export",
+    "method": "IntermediatoryTaxRepNotBlank"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "IT - VAT Reporting - Export",
+    "method": "LinesFromOnePurchDocumentCreateOneDatiFatturaBody"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "IT - VAT Reporting - Export",
+    "method": "LinesFromOneSalesDocumentCreateOneDatiFatturaBody"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "IT - VAT Reporting - Export",
+    "method": "LinesFromTwoPurchDocumentsWithSameNoCreateTwoDatiFatturaBody"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "IT - VAT Reporting - Export",
+    "method": "LinesFromTwoSalesDocumentsWithSameNoCreateTwoDatiFatturaBody"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "Checklist Revenue and VAT Test",
+    "method": "NoAmountVATBaseDiffExcludedDataItem"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "UT TAB Cash Bank Giro",
+    "method": "OnValidateAppliesToIDCBGStatementLineError"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "UT TAB Cash Bank Giro",
+    "method": "OnValidateIdentificationCurrencyCBGStmtLineError"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "ERM Payment Tolerance FR",
+    "method": "PmtToleranceWarningPaymentLineCustomer"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "ERM Payment Tolerance FR",
+    "method": "PmtToleranceWarningPaymentLineVendor"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "ERM Payment Tolerance FR",
+    "method": "PmtTolWarningOnPmntLineAfterAppliesToIdCustomer"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "ERM Payment Tolerance FR",
+    "method": "PmtTolWarningOnPmntLineAfterAppliesToIdVendor"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "Purchase Documents With Tax",
+    "method": "PostPurchaseOrderTypeGLAccount"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "Purchase Documents With Tax",
+    "method": "PostPurchaseOrderWithTypeItem"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "Checklist Revenue and VAT Test",
+    "method": "PrintChecklistRevenueAndVAT"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "UT TAB Cash Bank Giro",
+    "method": "ProcessStatementAsGenJournalTypeBankCBGStmtErr"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "UT TAB Cash Bank Giro",
+    "method": "ProcessStatementAsGenJournalTypeCashCBGStmtErr"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "Purchase Documents With Tax",
+    "method": "PurchaseOrderWithAdditionalReportingCurrency"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "Purchase Documents With Tax",
+    "method": "PurchaseOrderWithCAVendorAndAdditionalReportingCurrency"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "Purchase Documents With Tax",
+    "method": "PurchaseOrderWithoutTaxAreaCode"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "Purchase Documents With Tax",
+    "method": "PurchaseOrderWithProvincialTaxAreaCode"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "Purchase Documents With Tax",
+    "method": "PurchaseOrderWithTypeGLAccount"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "Purchase Documents With Tax",
+    "method": "PurchaseOrderWithTypeItem"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "IT - VAT Reporting - Export",
+    "method": "PurchCrMemoNonResIndividual"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "IT - VAT Reporting - Export",
+    "method": "PurchCrMemoNonResNonIndividual"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "IT - VAT Reporting - Export",
+    "method": "PurchCrMemoResidentIndividual"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "IT - VAT Reporting - Export",
+    "method": "PurchCrMemoResNonIndividual"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "IT - VAT Reporting - Export",
+    "method": "PurchNonResidentIndividual"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "IT - VAT Reporting - Export",
+    "method": "PurchNonResidentNonIndividual"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "Purchase Documents With Tax",
+    "method": "PurchOrderWithTypeGLAccount"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "Purchase Documents With Tax",
+    "method": "PurchOrderWithTypeItem"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "IT - VAT Reporting - Export",
+    "method": "PurchResidentIndividual"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "IT - VAT Reporting - Export",
+    "method": "PurchResidentNonIndividual"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "IT - VAT Reporting - Export",
+    "method": "SalesCrMemoNonResIndividual"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "IT - VAT Reporting - Export",
+    "method": "SalesCrMemoNonResNonIndividual"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "IT - VAT Reporting - Export",
+    "method": "SalesCrMemoResidentIndividual"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "IT - VAT Reporting - Export",
+    "method": "SalesCrMemoResNonIndividual"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "IT - VAT Reporting - Export",
+    "method": "SalesNonResidentIndividual"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "IT - VAT Reporting - Export",
+    "method": "SalesNonResidentNonIndividual"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "IT - VAT Reporting - Export",
+    "method": "SalesResidentIndividual"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "IT - VAT Reporting - Export",
+    "method": "SalesResidentNonIndividual"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "IT - VAT Reporting - Export",
+    "method": "SpecialContract"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "IT - VAT Reporting - Export",
+    "method": "SplitFileDependingOnCedentePrestatoreDTRCount_Datifattura"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "IT - VAT Reporting - Export",
+    "method": "SplitFileDependingOnCessionarioCommittenteDTECount_Datifattura"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "IT - VAT Reporting - Export",
+    "method": "SplitFileOnSalesAndPurchases_Datifattura"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "IT - VAT Reporting - Export",
+    "method": "SubstitutiveReport"
+  },
+  {
+    "codeunitId": 144012,
+    "codeunitName": "Checklist Revenue and VAT Test",
+    "method": "ValidatePostedJournalLinesOnReport"
   }
 ]

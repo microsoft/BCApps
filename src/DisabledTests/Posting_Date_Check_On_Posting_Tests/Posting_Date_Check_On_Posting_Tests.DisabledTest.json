@@ -8,5 +8,210 @@
     "codeunitId": 144000,
     "codeunitName": "Init Posting Date Check",
     "method": "PurchSetupInitialDefaultCheckOnPostingMethod"
+  },
+  {
+    "codeunitId": 144000,
+    "codeunitName": "IT - Fixed Assets",
+    "method": "AcceleratedDepreciation"
+  },
+  {
+    "codeunitId": 144000,
+    "codeunitName": "IT - Fixed Assets",
+    "method": "AnticipatedDepreciation"
+  },
+  {
+    "codeunitId": 144000,
+    "codeunitName": "MX CFDI Unit Test",
+    "method": "CancelCustomerLedgerEntryNoReason"
+  },
+  {
+    "codeunitId": 144000,
+    "codeunitName": "MX CFDI Unit Test",
+    "method": "CancelCustomerLedgerEntryNoSubstitution"
+  },
+  {
+    "codeunitId": 144000,
+    "codeunitName": "MX CFDI Unit Test",
+    "method": "CancelSalesCrMemoNoReason"
+  },
+  {
+    "codeunitId": 144000,
+    "codeunitName": "MX CFDI Unit Test",
+    "method": "CancelSalesCrMemoNoSubstitution"
+  },
+  {
+    "codeunitId": 144000,
+    "codeunitName": "MX CFDI Unit Test",
+    "method": "CancelSalesInvoiceNoReason"
+  },
+  {
+    "codeunitId": 144000,
+    "codeunitName": "MX CFDI Unit Test",
+    "method": "CancelSalesInvoiceNoSubstitution"
+  },
+  {
+    "codeunitId": 144000,
+    "codeunitName": "MX CFDI Unit Test",
+    "method": "CancelSalesShipmentNoReason"
+  },
+  {
+    "codeunitId": 144000,
+    "codeunitName": "MX CFDI Unit Test",
+    "method": "CancelSalesShipmentNoSubstitution"
+  },
+  {
+    "codeunitId": 144000,
+    "codeunitName": "MX CFDI Unit Test",
+    "method": "CancelServiceCrMemoNoReason"
+  },
+  {
+    "codeunitId": 144000,
+    "codeunitName": "MX CFDI Unit Test",
+    "method": "CancelServiceCrMemoNoSubstitution"
+  },
+  {
+    "codeunitId": 144000,
+    "codeunitName": "MX CFDI Unit Test",
+    "method": "CancelServiceInvoiceNoReason"
+  },
+  {
+    "codeunitId": 144000,
+    "codeunitName": "MX CFDI Unit Test",
+    "method": "CancelServiceInvoiceNoSubstitution"
+  },
+  {
+    "codeunitId": 144000,
+    "codeunitName": "MX CFDI Unit Test",
+    "method": "CancelTransferShipmentNoReason"
+  },
+  {
+    "codeunitId": 144000,
+    "codeunitName": "MX CFDI Unit Test",
+    "method": "CancelTransferShipmentNoSubstitution"
+  },
+  {
+    "codeunitId": 144000,
+    "codeunitName": "Non-Deductible VAT Tests",
+    "method": "CheckUsingNoVATForReverseCharge"
+  },
+  {
+    "codeunitId": 144000,
+    "codeunitName": "Non-Deductible VAT Tests",
+    "method": "CheckUsingVATForReverseCharge"
+  },
+  {
+    "codeunitId": 144000,
+    "codeunitName": "Non-Deductible VAT Tests",
+    "method": "CheckVATAmountOnPurchCrMemoWithReverseVAT"
+  },
+  {
+    "codeunitId": 144000,
+    "codeunitName": "Non-Deductible VAT Tests",
+    "method": "CheckVATAmountOnPurchInvoiceWithReverseVAT"
+  },
+  {
+    "codeunitId": 144000,
+    "codeunitName": "Non-Deductible VAT Tests",
+    "method": "CheckVATAmountOnPurchInvoiceWithSingleLineNormalVAT"
+  },
+  {
+    "codeunitId": 144000,
+    "codeunitName": "Non-Deductible VAT Tests",
+    "method": "CheckVATAmountOnPurchInvoiceWithSingleLineReverseVAT"
+  },
+  {
+    "codeunitId": 144000,
+    "codeunitName": "Non-Deductible VAT Tests",
+    "method": "CheckVATAmtOnPurchInvoiceWithSingleLineNormalVAT"
+  },
+  {
+    "codeunitId": 144000,
+    "codeunitName": "Non-Deductible VAT Tests",
+    "method": "CheckVATAmtOnPurchInvoiceWithSingleLineReverseVAT"
+  },
+  {
+    "codeunitId": 144000,
+    "codeunitName": "Non-Deductible VAT Tests",
+    "method": "CheckVATBaseAmountOnPurchaseInvoiceWithReverseVAT"
+  },
+  {
+    "codeunitId": 144000,
+    "codeunitName": "Non-Deductible VAT Tests",
+    "method": "CheckVATBaseAmountOnSalesInvoiceWithReverseVAT"
+  },
+  {
+    "codeunitId": 144000,
+    "codeunitName": "IT - Fixed Assets",
+    "method": "DepreciationCompConfirmation"
+  },
+  {
+    "codeunitId": 144000,
+    "codeunitName": "IT - Fixed Assets",
+    "method": "DepreciationCompDeprIntSameGroup"
+  },
+  {
+    "codeunitId": 144000,
+    "codeunitName": "IT - Fixed Assets",
+    "method": "DepreciationCompDiffGroup"
+  },
+  {
+    "codeunitId": 144000,
+    "codeunitName": "IT - Fixed Assets",
+    "method": "DepreciationCompSameGroup"
+  },
+  {
+    "codeunitId": 144000,
+    "codeunitName": "IT - Fixed Assets",
+    "method": "DepreciationNoCompSameGroup"
+  },
+  {
+    "codeunitId": 144000,
+    "codeunitName": "VAT Rounding",
+    "method": "PostCreditMemoApplyInvRoundAmtToVATTest"
+  },
+  {
+    "codeunitId": 144000,
+    "codeunitName": "Non-Deductible VAT Tests",
+    "method": "PurchaseDocumentTotalsOnSequenceOfUpdateLineAmountAndNonDeductibleVATPercent"
+  },
+  {
+    "codeunitId": 144000,
+    "codeunitName": "Non-Deductible VAT Tests",
+    "method": "PurchaseDocumentUpdateDeferralCodeAndNonDeductibleVAT"
+  },
+  {
+    "codeunitId": 144000,
+    "codeunitName": "Non-Deductible VAT Tests",
+    "method": "VATBaseAmountOnVATEntriesWithVATBaseDiscountAnd100PctNonDeductibleVATNormalVAT"
+  },
+  {
+    "codeunitId": 144000,
+    "codeunitName": "Non-Deductible VAT Tests",
+    "method": "VATBaseAmountOnVATEntriesWithVATBaseDiscountAnd100PctNonDeductibleVATReverseChargeVAT"
+  },
+  {
+    "codeunitId": 144000,
+    "codeunitName": "Non-Deductible VAT Tests",
+    "method": "VATBaseAmountOnVATEntriesWithVATBaseDiscountAnd70PctNonDeductibleVATNormalVAT"
+  },
+  {
+    "codeunitId": 144000,
+    "codeunitName": "Non-Deductible VAT Tests",
+    "method": "VATBaseAmountOnVATEntriesWithVATBaseDiscountAnd70PctNonDeductibleVATReverseChargeVAT"
+  },
+  {
+    "codeunitId": 144000,
+    "codeunitName": "Non-Deductible VAT Tests",
+    "method": "VerifyNonDedVATOnPurchInvoiceMultipleLineNormalVAT"
+  },
+  {
+    "codeunitId": 144000,
+    "codeunitName": "Non-Deductible VAT Tests",
+    "method": "VerifyNonDedVATOnPurchInvoiceMultipleLineReverseVAT"
+  },
+  {
+    "codeunitId": 144000,
+    "codeunitName": "Non-Deductible VAT Tests",
+    "method": "VerifyNonDedVATOnPurchInvoiceMultipleLineReverseVATLCY"
   }
 ]

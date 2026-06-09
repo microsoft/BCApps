@@ -33,5 +33,10 @@
     "codeunitId": 148018,
     "codeunitName": "Test UK Postcode GetAddress.io",
     "method": "TestGetAddressIOSpecificAddress"
+  },
+  {
+    "codeunitId": 148018,
+    "codeunitName": "IRS 1099 API Tests",
+    "method": "IRS1099DocumentsAPISunshine"
   }
 ]

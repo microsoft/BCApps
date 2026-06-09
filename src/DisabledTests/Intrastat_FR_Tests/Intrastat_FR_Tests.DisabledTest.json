@@ -18,5 +18,105 @@
     "codeunitId": 144081,
     "codeunitName": "Intrastat FR Test",
     "method": "TransactionOutOfFilterNotExported"
+  },
+  {
+    "codeunitId": 144081,
+    "codeunitName": "SCM Subcontracting",
+    "method": "CalcConsumptionWithoutSubconProcurement"
+  },
+  {
+    "codeunitId": 144081,
+    "codeunitName": "SCM Subcontracting",
+    "method": "CalculateSubcontractsWithBlockedAndNonBlockedItems"
+  },
+  {
+    "codeunitId": 144081,
+    "codeunitName": "SCM Subcontracting",
+    "method": "ChangeStatusProdOrderError"
+  },
+  {
+    "codeunitId": 144081,
+    "codeunitName": "SCM Subcontracting",
+    "method": "MultipleSubconOrderWithOneReleasedProdOrder"
+  },
+  {
+    "codeunitId": 144081,
+    "codeunitName": "SCM Subcontracting",
+    "method": "PostReceiptSubcontractingOrderWithTransportReasonCodeNoSeries"
+  },
+  {
+    "codeunitId": 144081,
+    "codeunitName": "SCM Subcontracting",
+    "method": "ProdOrderComponentIsReservedFromILECreatedOnSubconInboundTransferPost"
+  },
+  {
+    "codeunitId": 144081,
+    "codeunitName": "SCM Subcontracting",
+    "method": "ReturnSubconTransferOrderAfterAllGoodsReturnedError"
+  },
+  {
+    "codeunitId": 144081,
+    "codeunitName": "SCM Subcontracting",
+    "method": "ReturnSubconTransferOrderAfterPartialReceiveSubconOrder"
+  },
+  {
+    "codeunitId": 144081,
+    "codeunitName": "SCM Subcontracting",
+    "method": "ReturnSubconTransferOrderWithoutProcurement"
+  },
+  {
+    "codeunitId": 144081,
+    "codeunitName": "SCM Subcontracting",
+    "method": "ShipSubcontractingTransferOrderWithPostedShptNos"
+  },
+  {
+    "codeunitId": 144081,
+    "codeunitName": "SCM Subcontracting",
+    "method": "SubcontractingOrderLocationCodeChange"
+  },
+  {
+    "codeunitId": 144081,
+    "codeunitName": "SCM Subcontracting",
+    "method": "SubcontractingOrderWithBin"
+  },
+  {
+    "codeunitId": 144081,
+    "codeunitName": "SCM Subcontracting",
+    "method": "SubcontractingTransferOrdersCountryRegionCodes"
+  },
+  {
+    "codeunitId": 144081,
+    "codeunitName": "SCM Subcontracting",
+    "method": "SubconTransferMovesExistingReservationOfProdOrderCompToInboundTransfer"
+  },
+  {
+    "codeunitId": 144081,
+    "codeunitName": "SCM Subcontracting",
+    "method": "SubconTransferOrderAfterAllGoodsTransferedError"
+  },
+  {
+    "codeunitId": 144081,
+    "codeunitName": "SCM Subcontracting",
+    "method": "SubconTransferOrderDoesNotRequireWarehouseHandlingToShip"
+  },
+  {
+    "codeunitId": 144081,
+    "codeunitName": "SCM Subcontracting",
+    "method": "SubconTransferWithWIPAndOrdinaryItemCheckInventory"
+  },
+  {
+    "codeunitId": 144081,
+    "codeunitName": "SCM Subcontracting",
+    "method": "SubconTransferWithWIPAndOrdinaryItemWhseEntryIsPosted"
+  },
+  {
+    "codeunitId": 144081,
+    "codeunitName": "SCM Subcontracting",
+    "method": "VerifyCapacityLedgerEntryMustNotBeReversedWhenSubcontractingIsTrue"
+  },
+  {
+    "codeunitId": 144081,
+    "codeunitName": "SCM Subcontracting",
+    "method": "VerifyPostReceiveOnSubcontractingTransferOrderForWIPItem"
   }
 ]

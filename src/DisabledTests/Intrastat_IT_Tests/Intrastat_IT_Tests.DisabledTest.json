@@ -58,5 +58,70 @@
     "codeunitId": 139511,
     "codeunitName": "Intrastat IT Test",
     "method": "ItemLedgerEntryForPurchase"
+  },
+  {
+    "codeunitId": 139511,
+    "codeunitName": "SAF-T Tests",
+    "method": "CreditBalanceForPurchInvoice"
+  },
+  {
+    "codeunitId": 139511,
+    "codeunitName": "SAF-T Tests",
+    "method": "CurrencyAmountForFCYPayment"
+  },
+  {
+    "codeunitId": 139511,
+    "codeunitName": "SAF-T Tests",
+    "method": "DebitBalanceForPurchCrMemo"
+  },
+  {
+    "codeunitId": 139511,
+    "codeunitName": "SAF-T Tests",
+    "method": "DebitCreditAmountWhenPaymentReversed"
+  },
+  {
+    "codeunitId": 139511,
+    "codeunitName": "SAF-T Tests",
+    "method": "ExportGeneralLedgerEntries"
+  },
+  {
+    "codeunitId": 139511,
+    "codeunitName": "SAF-T Tests",
+    "method": "ExportGLAccountWithExtendedCategory"
+  },
+  {
+    "codeunitId": 139511,
+    "codeunitName": "SAF-T Tests",
+    "method": "ExportGLAccountWithExtendedGroupingCode"
+  },
+  {
+    "codeunitId": 139511,
+    "codeunitName": "SAF-T Tests",
+    "method": "ExportGLAccountWithRegularCategory"
+  },
+  {
+    "codeunitId": 139511,
+    "codeunitName": "SAF-T Tests",
+    "method": "ExportGLAccountWithRegularGroupingCode"
+  },
+  {
+    "codeunitId": 139511,
+    "codeunitName": "SAF-T Tests",
+    "method": "ExportMasterFiles"
+  },
+  {
+    "codeunitId": 139511,
+    "codeunitName": "SAF-T Tests",
+    "method": "ExportSourceDocuments"
+  },
+  {
+    "codeunitId": 139511,
+    "codeunitName": "SAF-T Tests",
+    "method": "GLEntriesGroupedByDocNoAndPostingDate"
+  },
+  {
+    "codeunitId": 139511,
+    "codeunitName": "SAF-T Tests",
+    "method": "GLEntryTotalsContainValuesFromAllPeriods"
   }
 ]

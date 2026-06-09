@@ -148,5 +148,60 @@
     "codeunitId": 148017,
     "codeunitName": "Posting Restrictions Tests",
     "method": "PostToGLInSandboxSaaSWhenCVRNumberIsBlank"
+  },
+  {
+    "codeunitId": 148017,
+    "codeunitName": "FEC Audit File Export Tests",
+    "method": "ExportBankAccountDetailedBalanceInvoicesLCYAndFCY"
+  },
+  {
+    "codeunitId": 148017,
+    "codeunitName": "FEC Audit File Export Tests",
+    "method": "ExportBankAccountDetailedBalanceTwoAdjustedEntriesFCYDiffAccount"
+  },
+  {
+    "codeunitId": 148017,
+    "codeunitName": "FEC Audit File Export Tests",
+    "method": "ExportBankAccountDetailedBalanceTwoAdjustedEntriesFCYSameAccount"
+  },
+  {
+    "codeunitId": 148017,
+    "codeunitName": "FEC Audit File Export Tests",
+    "method": "ExportCustomerDetailedBalanceAppliedInvoiceFCY"
+  },
+  {
+    "codeunitId": 148017,
+    "codeunitName": "FEC Audit File Export Tests",
+    "method": "ExportCustomerDetailedBalanceInvoicesLCYAndFCY"
+  },
+  {
+    "codeunitId": 148017,
+    "codeunitName": "FEC Audit File Export Tests",
+    "method": "ExportCustomerDetailedBalanceTwoAdjustedInvoicesFCYDiffAccount"
+  },
+  {
+    "codeunitId": 148017,
+    "codeunitName": "FEC Audit File Export Tests",
+    "method": "ExportCustomerDetailedBalanceTwoAdjustedInvoicesFCYSameAccount"
+  },
+  {
+    "codeunitId": 148017,
+    "codeunitName": "FEC Audit File Export Tests",
+    "method": "ExportVendorDetailedBalanceAppliedInvoiceFCY"
+  },
+  {
+    "codeunitId": 148017,
+    "codeunitName": "FEC Audit File Export Tests",
+    "method": "ExportVendorDetailedBalanceInvoicesLCYAndFCY"
+  },
+  {
+    "codeunitId": 148017,
+    "codeunitName": "FEC Audit File Export Tests",
+    "method": "ExportVendorDetailedBalanceTwoAdjustedInvoicesFCYDiffAccount"
+  },
+  {
+    "codeunitId": 148017,
+    "codeunitName": "FEC Audit File Export Tests",
+    "method": "ExportVendorDetailedBalanceTwoAdjustedInvoicesFCYSameAccount"
   }
 ]

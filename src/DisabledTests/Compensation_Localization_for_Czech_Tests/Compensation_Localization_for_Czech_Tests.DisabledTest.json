@@ -63,5 +63,10 @@
     "codeunitId": 148110,
     "codeunitName": "Incoming Documents CZC",
     "method": "TestIfCompensationAlreadyExists"
+  },
+  {
+    "codeunitId": 148110,
+    "codeunitName": "SAF-T XML Tests 1.3",
+    "method": "MasterFile"
   }
 ]

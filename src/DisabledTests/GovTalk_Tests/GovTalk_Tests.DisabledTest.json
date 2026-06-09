@@ -43,5 +43,350 @@
     "codeunitId": 144034,
     "codeunitName": "Test Submit VAT Declare Rqst",
     "method": "TestSubmitRejectedRequest"
+  },
+  {
+    "codeunitId": 144029,
+    "codeunitName": "SEPA.08 DD Functional Test",
+    "method": "CheckPmtLineDeleteExportErrors"
+  },
+  {
+    "codeunitId": 144029,
+    "codeunitName": "SEPA.08 DD Functional Test",
+    "method": "CheckPmtLineExportErrors"
+  },
+  {
+    "codeunitId": 144029,
+    "codeunitName": "SEPA.08 DD Functional Test",
+    "method": "CheckPmtLinePartnerTypeError"
+  },
+  {
+    "codeunitId": 144029,
+    "codeunitName": "SEPA.08 DD Functional Test",
+    "method": "ExportPmtLineDiffThanCustomerNotAllowed"
+  },
+  {
+    "codeunitId": 144029,
+    "codeunitName": "SEPA.08 DD Functional Test",
+    "method": "ExportPmtLineDiffThanInvoiceNotAllowed"
+  },
+  {
+    "codeunitId": 144029,
+    "codeunitName": "SEPA.08 DD Functional Test",
+    "method": "ExportPmtLineOneToManyNotAllowed"
+  },
+  {
+    "codeunitId": 144029,
+    "codeunitName": "SEPA.08 DD Functional Test",
+    "method": "ExportPmtLineWithAppliesToDocNo"
+  },
+  {
+    "codeunitId": 144029,
+    "codeunitName": "SEPA.08 DD Functional Test",
+    "method": "ExportPmtLineWithAppliesToID"
+  },
+  {
+    "codeunitId": 144029,
+    "codeunitName": "SEPA.08 DD Functional Test",
+    "method": "ExportPmtLineWithoutApplication"
+  },
+  {
+    "codeunitId": 144029,
+    "codeunitName": "SEPA.08 DD Functional Test",
+    "method": "ExportSecondPmtHeaderWithoutError"
+  },
+  {
+    "codeunitId": 144029,
+    "codeunitName": "SEPA.08 DD Functional Test",
+    "method": "ReplaceClosedMandate"
+  },
+  {
+    "codeunitId": 144029,
+    "codeunitName": "SEPA.08 DD Functional Test",
+    "method": "SuggestCustPayments"
+  },
+  {
+    "codeunitId": 144029,
+    "codeunitName": "SEPA.08 DD Functional Test",
+    "method": "SuggestCustPaymentsDiffPartnerType"
+  },
+  {
+    "codeunitId": 144029,
+    "codeunitName": "SEPA.08 DD Functional Test",
+    "method": "ValidateBankAccCodeOnPmtLine"
+  },
+  {
+    "codeunitId": 144029,
+    "codeunitName": "SEPA.08 DD Functional Test",
+    "method": "ValidateMandateIdOnPmtLineWithBankAcc"
+  },
+  {
+    "codeunitId": 144029,
+    "codeunitName": "SEPA.08 DD Functional Test",
+    "method": "ValidateMandateIdOnPmtLineWithoutBankAcc"
+  },
+  {
+    "codeunitId": 144030,
+    "codeunitName": "SEPA.09 CT Functional Test",
+    "method": "ExportSEPACTSvcLvlCd"
+  },
+  {
+    "codeunitId": 144030,
+    "codeunitName": "SEPA.09 CT Functional Test",
+    "method": "LocalDataExported"
+  },
+  {
+    "codeunitId": 144030,
+    "codeunitName": "SEPA.09 CT Functional Test",
+    "method": "XmlFileCreditor"
+  },
+  {
+    "codeunitId": 144030,
+    "codeunitName": "SEPA.09 CT Functional Test",
+    "method": "XmlFileCreditorPreserveNonLatinChars"
+  },
+  {
+    "codeunitId": 144030,
+    "codeunitName": "SEPA.09 CT Functional Test",
+    "method": "XmlFileDebitor"
+  },
+  {
+    "codeunitId": 144030,
+    "codeunitName": "SEPA.09 CT Functional Test",
+    "method": "XmlFileDeclarationAndVersion"
+  },
+  {
+    "codeunitId": 144030,
+    "codeunitName": "SEPA.09 CT Functional Test",
+    "method": "XmlFileGroupHeader"
+  },
+  {
+    "codeunitId": 144030,
+    "codeunitName": "SEPA.09 CT Functional Test",
+    "method": "XmlFileInitiatingParty"
+  },
+  {
+    "codeunitId": 144030,
+    "codeunitName": "SEPA.09 CT Functional Test",
+    "method": "XmlFilePaymentInformationHeader"
+  },
+  {
+    "codeunitId": 144034,
+    "codeunitName": "UT REP Payment Management",
+    "method": "OnAfterGetRecordPaymentLineBlankCurrencyDraftError"
+  },
+  {
+    "codeunitId": 144034,
+    "codeunitName": "UT REP Payment Management",
+    "method": "OnAfterGetRecordPaymentLineWithCurrencyDraft"
+  },
+  {
+    "codeunitId": 144029,
+    "codeunitName": "Manual VAT Correction",
+    "method": "RowNoIsLinkedToVATStmtLineRow"
+  },
+  {
+    "codeunitId": 144030,
+    "codeunitName": "IT - SEPA.08 DD Unit Test",
+    "method": "CumulativeLinesNotAllowedWithMandate"
+  },
+  {
+    "codeunitId": 144030,
+    "codeunitName": "IT - SEPA.08 DD Unit Test",
+    "method": "CustBankAccMustBeOfMandate"
+  },
+  {
+    "codeunitId": 144030,
+    "codeunitName": "IT - SEPA.08 DD Unit Test",
+    "method": "CustomerBillFloppyReportOnExportBilToFloppyFileAction"
+  },
+  {
+    "codeunitId": 144030,
+    "codeunitName": "IT - SEPA.08 DD Unit Test",
+    "method": "CustomerBillLineErrorsAreDeleted"
+  },
+  {
+    "codeunitId": 144030,
+    "codeunitName": "IT - SEPA.08 DD Unit Test",
+    "method": "EmptyFiscalCodeAndVATRegistrationNoInCustBillsFloppy"
+  },
+  {
+    "codeunitId": 144030,
+    "codeunitName": "IT - SEPA.08 DD Unit Test",
+    "method": "EmptyFiscalCodeAndVATRegistrationNoInExportedIssuedBill"
+  },
+  {
+    "codeunitId": 144030,
+    "codeunitName": "IT - SEPA.08 DD Unit Test",
+    "method": "ErrorsDeletedBetweenFormats"
+  },
+  {
+    "codeunitId": 144030,
+    "codeunitName": "IT - SEPA.08 DD Unit Test",
+    "method": "ExportBilltoFileFiscalCode"
+  },
+  {
+    "codeunitId": 144030,
+    "codeunitName": "IT - SEPA.08 DD Unit Test",
+    "method": "ExportBilltoFileFiscalCodeVATRegistrationNo"
+  },
+  {
+    "codeunitId": 144030,
+    "codeunitName": "IT - SEPA.08 DD Unit Test",
+    "method": "ExportBilltoFileFiscalCodeVATRegistrationNoAreEmpty"
+  },
+  {
+    "codeunitId": 144030,
+    "codeunitName": "IT - SEPA.08 DD Unit Test",
+    "method": "ExportBilltoFileVATRegistrationNo"
+  },
+  {
+    "codeunitId": 144030,
+    "codeunitName": "IT - SEPA.08 DD Unit Test",
+    "method": "ExportIssuedBilltoFileFiscalCode"
+  },
+  {
+    "codeunitId": 144030,
+    "codeunitName": "IT - SEPA.08 DD Unit Test",
+    "method": "ExportIssuedBilltoFileFiscalCodeVATRegistrationNo"
+  },
+  {
+    "codeunitId": 144030,
+    "codeunitName": "IT - SEPA.08 DD Unit Test",
+    "method": "ExportIssuedBilltoFileFiscalCodeVATRegistrationNoAreEmpty"
+  },
+  {
+    "codeunitId": 144030,
+    "codeunitName": "IT - SEPA.08 DD Unit Test",
+    "method": "ExportIssuedBilltoFileVATRegistrationNo"
+  },
+  {
+    "codeunitId": 144030,
+    "codeunitName": "IT - SEPA.08 DD Unit Test",
+    "method": "ExportWithErrors"
+  },
+  {
+    "codeunitId": 144030,
+    "codeunitName": "IT - SEPA.08 DD Unit Test",
+    "method": "FillBufferSunshine"
+  },
+  {
+    "codeunitId": 144030,
+    "codeunitName": "IT - SEPA.08 DD Unit Test",
+    "method": "FiscalCodeInCustBillsFloppy"
+  },
+  {
+    "codeunitId": 144030,
+    "codeunitName": "IT - SEPA.08 DD Unit Test",
+    "method": "FiscalCodeInExportedIssuedBill"
+  },
+  {
+    "codeunitId": 144030,
+    "codeunitName": "IT - SEPA.08 DD Unit Test",
+    "method": "IssuedCustBillSunshine"
+  },
+  {
+    "codeunitId": 144030,
+    "codeunitName": "IT - SEPA.08 DD Unit Test",
+    "method": "IssuedCustBillWithErrors"
+  },
+  {
+    "codeunitId": 144030,
+    "codeunitName": "IT - SEPA.08 DD Unit Test",
+    "method": "LegacyFormatCheckBankAccount"
+  },
+  {
+    "codeunitId": 144030,
+    "codeunitName": "IT - SEPA.08 DD Unit Test",
+    "method": "LegacyFormatCheckPmtMethod"
+  },
+  {
+    "codeunitId": 144030,
+    "codeunitName": "IT - SEPA.08 DD Unit Test",
+    "method": "MandateNotAllowedWithCumulativeLines"
+  },
+  {
+    "codeunitId": 144030,
+    "codeunitName": "IT - SEPA.08 DD Unit Test",
+    "method": "NumericFinalCustBillNoInCustBillsFloppy"
+  },
+  {
+    "codeunitId": 144030,
+    "codeunitName": "IT - SEPA.08 DD Unit Test",
+    "method": "NumericFinalCustBillNoInIssuedCustBillsFloppy"
+  },
+  {
+    "codeunitId": 144030,
+    "codeunitName": "IT - SEPA.08 DD Unit Test",
+    "method": "OnlyFiscalCodeInCustBillsFloppy"
+  },
+  {
+    "codeunitId": 144030,
+    "codeunitName": "IT - SEPA.08 DD Unit Test",
+    "method": "OnlyFiscalCodeInExportedIssuedBill"
+  },
+  {
+    "codeunitId": 144030,
+    "codeunitName": "IT - SEPA.08 DD Unit Test",
+    "method": "OrgIdOthrIdNodeHasCUCValueWhenExportDDEntry"
+  },
+  {
+    "codeunitId": 144030,
+    "codeunitName": "IT - SEPA.08 DD Unit Test",
+    "method": "PartnerTypeError"
+  },
+  {
+    "codeunitId": 144030,
+    "codeunitName": "IT - SEPA.08 DD Unit Test",
+    "method": "SuggestCustomerBillLines"
+  },
+  {
+    "codeunitId": 144030,
+    "codeunitName": "IT - SEPA.08 DD Unit Test",
+    "method": "SuggestCustomerBillLinesWithPartnerTypeBlank"
+  },
+  {
+    "codeunitId": 144030,
+    "codeunitName": "IT - SEPA.08 DD Unit Test",
+    "method": "SuggestCustomerBillLinesWithPartnerTypeNotBlank"
+  },
+  {
+    "codeunitId": 144030,
+    "codeunitName": "IT - SEPA.08 DD Unit Test",
+    "method": "UI_CustomerBillFloppyReportRunOnExportIssuedBilToFloppyFileAction"
+  },
+  {
+    "codeunitId": 144030,
+    "codeunitName": "IT - SEPA.08 DD Unit Test",
+    "method": "VATRegistrationNoInCustBillsFloppy"
+  },
+  {
+    "codeunitId": 144030,
+    "codeunitName": "IT - SEPA.08 DD Unit Test",
+    "method": "VATRegistrationNoInExportedIssuedBill"
+  },
+  {
+    "codeunitId": 144034,
+    "codeunitName": "Test Vendor Ranking",
+    "method": "VendorRankingBalance"
+  },
+  {
+    "codeunitId": 144034,
+    "codeunitName": "Test Vendor Ranking",
+    "method": "VendorRankingBalanceDue"
+  },
+  {
+    "codeunitId": 144034,
+    "codeunitName": "Test Vendor Ranking",
+    "method": "VendorRankingInvoiceAmount"
+  },
+  {
+    "codeunitId": 144034,
+    "codeunitName": "Test Vendor Ranking",
+    "method": "VendorRankingPayments"
+  },
+  {
+    "codeunitId": 144034,
+    "codeunitName": "Test Vendor Ranking",
+    "method": "VendorRankingPurchase"
   }
 ]

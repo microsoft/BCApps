@@ -328,5 +328,90 @@
     "codeunitId": 138400,
     "codeunitName": "RS Pack Content - Evaluation",
     "method": "CausesOfAbsence"
+  },
+  {
+    "codeunitId": 138300,
+    "codeunitName": "RS Pack Content - Standard",
+    "method": "GenPostingGroupCount"
+  },
+  {
+    "codeunitId": 138300,
+    "codeunitName": "RS Pack Content - Standard",
+    "method": "GenPostingSetupAccounts"
+  },
+  {
+    "codeunitId": 138300,
+    "codeunitName": "RS Pack Content - Standard",
+    "method": "NontaxableInGenPostingSetup"
+  },
+  {
+    "codeunitId": 138300,
+    "codeunitName": "RS Pack Content - Standard",
+    "method": "TaxGroupNonTaxable"
+  },
+  {
+    "codeunitId": 138400,
+    "codeunitName": "RS Pack Content - Evaluation",
+    "method": "BASXMLFieldIDsSetup"
+  },
+  {
+    "codeunitId": 138400,
+    "codeunitName": "RS Pack Content - Evaluation",
+    "method": "ContactsHaveBlankTerritiryCode"
+  },
+  {
+    "codeunitId": 138400,
+    "codeunitName": "RS Pack Content - Evaluation",
+    "method": "CountItemLedgerEntries"
+  },
+  {
+    "codeunitId": 138400,
+    "codeunitName": "RS Pack Content - Evaluation",
+    "method": "CustomersAreTaxLiableAndUseBankTransfer"
+  },
+  {
+    "codeunitId": 138400,
+    "codeunitName": "RS Pack Content - Evaluation",
+    "method": "GenPostingGroupCount"
+  },
+  {
+    "codeunitId": 138400,
+    "codeunitName": "RS Pack Content - Evaluation",
+    "method": "GenPostingSetupAccounts"
+  },
+  {
+    "codeunitId": 138400,
+    "codeunitName": "RS Pack Content - Evaluation",
+    "method": "HistoricalSalesDataForAllItems"
+  },
+  {
+    "codeunitId": 138400,
+    "codeunitName": "RS Pack Content - Evaluation",
+    "method": "NontaxableInGenPostingSetup"
+  },
+  {
+    "codeunitId": 138400,
+    "codeunitName": "RS Pack Content - Evaluation",
+    "method": "OpportunityChartShowsData"
+  },
+  {
+    "codeunitId": 138400,
+    "codeunitName": "RS Pack Content - Evaluation",
+    "method": "ShipToAddressIsInTheCorrectRegionCountry"
+  },
+  {
+    "codeunitId": 138400,
+    "codeunitName": "RS Pack Content - Evaluation",
+    "method": "TaxGroupNonTaxable"
+  },
+  {
+    "codeunitId": 138400,
+    "codeunitName": "RS Pack Content - Evaluation",
+    "method": "VATPostingSetupCount"
+  },
+  {
+    "codeunitId": 138400,
+    "codeunitName": "RS Pack Content - Evaluation",
+    "method": "VendorsAreTaxLiableAndUseBankTransfer"
   }
 ]
