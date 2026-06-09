@@ -10,15 +10,19 @@ using Microsoft.Purchases.Document;
 
 codeunit 99001516 "Subc. Req. Wksh. Make Ord."
 {
+#if not CLEAN29
     var
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
 
+#endif
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Req. Wksh.-Make Order", OnAfterInsertPurchOrderLine, '', false, false)]
     local procedure OnAfterInsertPurchOrderLine(var PurchOrderLine: Record "Purchase Line"; var NextLineNo: Integer; var RequisitionLine: Record "Requisition Line")
     begin
+#if not CLEAN29
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
             exit;
 
+#endif
         HandleSubcontractingAfterPurchOrderLineInsert(PurchOrderLine, RequisitionLine);
     end;
 
@@ -28,9 +32,11 @@ codeunit 99001516 "Subc. Req. Wksh. Make Ord."
         PurchaseLineWithService: Record "Purchase Line";
         SubcPurchaseOrderCreator: Codeunit "Subc. Purchase Order Creator";
     begin
+#if not CLEAN29
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
             exit;
 
+#endif
         if RequisitionLine."Prod. Order No." = '' then
             exit;
         PurchaseLineWithService."Document Type" := PurchaseHeader."Document Type";

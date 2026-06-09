@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -18,12 +18,16 @@ codeunit 99001523 "Subc. Carry Out Action Ext."
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Mfg. Carry Out Action", OnAfterTransferPlanningComp, '', false, false)]
 #endif
     local procedure OnAfterTransferPlanningComp(var PlanningComponent: Record "Planning Component"; var ProdOrderComponent: Record "Prod. Order Component")
+#if not CLEAN29
     var
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#endif
     begin
+#if not CLEAN29
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
             exit;
 
+#endif
         ProdOrderComponent."Component Supply Method" := PlanningComponent."Component Supply Method";
         ProdOrderComponent."Subc. Original Location Code" := PlanningComponent."Orig. Location Code";
         ProdOrderComponent."Subc. Orig. Bin Code" := PlanningComponent."Orig. Bin Code";

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -186,16 +186,20 @@ table 99001560 "Subcontractor WIP Ledger Entry"
         key(Key5; "Document No.", "Posting Date") { }
     }
 
+#if not CLEAN29
     var
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#endif
     /// <summary>
     /// Filters the record set to WIP entries for the given production order.
     /// When SetKey is true, the sort key is aligned to Key3 before applying the filters.
     /// </summary>
     procedure SetProductionOrderFilter(ProductionOrder: Record "Production Order"; SetKey: Boolean)
     begin
+#if not CLEAN29
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
             exit;
+#endif
         if SetKey then
             SetCurrentKey("Prod. Order No.", "Prod. Order Status", "Prod. Order Line No.", "Routing Reference No.", "Routing No.", "Operation No.", "Location Code");
         SetRange("Prod. Order No.", ProductionOrder."No.");
@@ -208,8 +212,10 @@ table 99001560 "Subcontractor WIP Ledger Entry"
     /// </summary>
     procedure SetProductionOrderRoutingFilter(ProdOrderRoutingLine: Record "Prod. Order Routing Line"; SetKey: Boolean)
     begin
+#if not CLEAN29
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
             exit;
+#endif
         if SetKey then
             SetCurrentKey("Prod. Order No.", "Prod. Order Status", "Prod. Order Line No.", "Routing Reference No.", "Routing No.", "Operation No.", "Location Code");
         SetRange("Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
@@ -226,8 +232,10 @@ table 99001560 "Subcontractor WIP Ledger Entry"
     var
         SequenceNoMgt: Codeunit "Sequence No. Mgt.";
     begin
+#if not CLEAN29
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
             exit(0);
+#endif
         exit(SequenceNoMgt.GetNextSeqNo(DATABASE::"Subcontractor WIP Ledger Entry"));
     end;
 }

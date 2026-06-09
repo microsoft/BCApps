@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -20,11 +20,15 @@ codeunit 99001521 "Subc. Calc BOM Tree Ext."
     local procedure OnBeforeCalcRoutingLineCosts(var RoutingLine: Record "Routing Line"; var LotSize: Decimal; var ScrapPct: Decimal; ParentItem: Record Item)
     var
         SubcSessionState: Codeunit "Subc. Session State";
+#if not CLEAN29
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#endif
     begin
+#if not CLEAN29
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
             exit;
 
+#endif
         SubcSessionState.SetRecordID('OnBeforeCalcRoutingLineCosts', ParentItem.RecordId());
     end;
 }

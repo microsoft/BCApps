@@ -22,11 +22,15 @@ tableextension 99001503 "Subc. Planning Comp Ext." extends "Planning Component"
             trigger OnValidate()
             var
                 Item: Record Item;
+#if not CLEAN29
                 SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#endif
                 SubcontractingManagement: Codeunit "Subcontracting Management";
             begin
+#if not CLEAN29
                 if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
                     exit;
+#endif
                 if "Component Supply Method" = "Component Supply Method"::"Transfer to Vendor" then
                     if "Item No." <> '' then begin
                         Item.Get("Item No.");

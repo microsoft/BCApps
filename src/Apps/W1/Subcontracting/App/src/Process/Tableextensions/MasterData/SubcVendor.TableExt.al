@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -21,11 +21,15 @@ tableextension 99001507 "Subc. Vendor" extends Vendor
             trigger OnValidate()
             var
                 Location: Record Location;
+#if not CLEAN29
                 SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#endif
                 ErrorInfo: ErrorInfo;
             begin
+#if not CLEAN29
                 if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
                     exit;
+#endif
                 if "Subc. Location Code" = '' then
                     exit;
                 Location.Get("Subc. Location Code");

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -10,15 +10,19 @@ using Microsoft.Manufacturing.Document;
 codeunit 99001549 "Subc. Change Prod.Order Status"
 {
     Permissions = TableData "Subcontractor WIP Ledger Entry" = RIMD;
+#if not CLEAN29
 
     var
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#endif
 
     [EventSubscriber(ObjectType::Page, Page::"Change Status on Prod. Order", OnAfterSet, '', false, false)]
     local procedure SetSubcontractingProductionOrderOnAfterSetSubcontractingWIPEntriesAffected(var Sender: Page "Change Status on Prod. Order"; ProdOrder: Record "Production Order"; var PostingDate: Date; var ReqUpdUnitCost: Boolean; var ProductionOrderStatus: Record "Production Order"; var FirmPlannedStatusEditable: Boolean; var ReleasedStatusEditable: Boolean; var FinishedStatusEditable: Boolean)
     begin
+#if not CLEAN29
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
             exit;
+#endif
         Sender.SubcSetOrder(ProdOrder);
     end;
 
@@ -31,8 +35,10 @@ codeunit 99001549 "Subc. Change Prod.Order Status"
         NewPostingDate: Date;
         NewStatus: Enum "Production Order Status";
     begin
+#if not CLEAN29
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
             exit;
+#endif
         if ChangeStatusOnProdOrder.ReturnSubWIPQuantityCleanUp() then begin
             ChangeStatusOnProdOrder.ReturnPostingInfo(NewStatus, NewPostingDate, NewUpdateUnitCost, FinishOrderWithoutOutput);
             SubcTransferWIPPosting.CreateAdjustmentWIPEntriesOnFinishProdOrder(ChangeStatusOnProdOrder.SubcGetOrder(), NewPostingDate);
@@ -42,24 +48,30 @@ codeunit 99001549 "Subc. Change Prod.Order Status"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Prod. Order Status Management", OnAfterTransferRelatedTablesToReleasedProdOrder, '', false, false)]
     local procedure ReopenWIPEntriesOnAfterTransferRelatedTablesToReleasedProdOrder(ProductionOrder: Record "Production Order")
     begin
+#if not CLEAN29
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
             exit;
+#endif
         ReopenWIPEntries(ProductionOrder);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Prod. Order Status Management", OnBeforeChangeStatusOnProdOrder, '', false, false)]
     local procedure CheckForOpenTransferOrdersOnBeforeChangeStatusOnProdOrder(var ProductionOrder: Record "Production Order"; NewStatus: Option; var IsHandled: Boolean; NewPostingDate: Date; NewUpdateUnitCost: Boolean)
     begin
+#if not CLEAN29
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
             exit;
+#endif
         CheckForOpenTransferOrders(ProductionOrder);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Prod. Order Status Management", OnAfterChangeStatusOnProdOrder, '', false, false)]
     local procedure UpdateWIPLedgerEntryProdOrderRelationOnAfterChangeStatus(var ProdOrder: Record "Production Order"; var ToProdOrder: Record "Production Order"; NewStatus: Enum "Production Order Status"; NewPostingDate: Date; NewUpdateUnitCost: Boolean; var SuppressCommit: Boolean; xProductionOrder: Record "Production Order")
     begin
+#if not CLEAN29
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
             exit;
+#endif
         UpdateWIPLedgerEntryProdOrderRelation(xProductionOrder, ToProdOrder, NewStatus);
     end;
 

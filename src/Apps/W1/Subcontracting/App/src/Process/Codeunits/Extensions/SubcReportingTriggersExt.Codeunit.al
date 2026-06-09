@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -10,12 +10,16 @@ codeunit 99001512 "Subc. Reporting Triggers Ext"
 {
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reporting Triggers", SubstituteReport, '', false, false)]
     local procedure SubstituteDetailedCalculation(ReportId: Integer; var NewReportId: Integer)
+#if not CLEAN29
     var
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#endif
     begin
+#if not CLEAN29
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
             exit;
 
+#endif
         if ReportId = Report::"Subc. Detailed Calculation" then
             NewReportId := Report::"Subc. Detailed Calculation";
     end;

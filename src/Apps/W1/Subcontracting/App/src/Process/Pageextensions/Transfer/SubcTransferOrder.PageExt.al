@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -80,32 +80,40 @@ pageextension 99001526 "Subc. Transfer Order" extends "Transfer Order"
 
     var
         ShowSubcontractingFactBox: Boolean;
+#if not CLEAN29
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
         SubcontractingEnabled: Boolean;
+#endif
 
     trigger OnOpenPage()
     begin
+#if not CLEAN29
         SubcontractingEnabled := SubcFeatureFlagHandler.IsSubcontractingEnabled();
         if not SubcontractingEnabled then
             exit;
 
+#endif
         ShowSubcontractingFactBox := Rec."Subc. Source Type" = Rec."Subc. Source Type"::Subcontracting;
         EsEnableTransferFields := not IsPartiallyShipped();
     end;
 
     trigger OnAfterGetCurrRecord()
     begin
+#if not CLEAN29
         if not SubcontractingEnabled then
             exit;
 
+#endif
         ShowSubcontractingFactBox := Rec."Subc. Source Type" = Rec."Subc. Source Type"::Subcontracting;
     end;
 
     trigger OnAfterGetRecord()
     begin
+#if not CLEAN29
         if not SubcontractingEnabled then
             exit;
 
+#endif
         EsEnableTransferFields := not IsPartiallyShipped();
     end;
 

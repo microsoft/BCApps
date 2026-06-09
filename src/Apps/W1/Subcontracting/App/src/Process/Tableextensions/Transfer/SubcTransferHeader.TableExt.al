@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -38,11 +38,15 @@ tableextension 99001520 "Subc. Transfer Header" extends "Transfer Header"
             Caption = 'Source ID';
             DataClassification = CustomerContent;
             trigger OnLookup()
+#if not CLEAN29
             var
                 SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#endif
             begin
+#if not CLEAN29
                 if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
                     exit;
+#endif
                 HandleSubcontractingSourceLookup(Rec);
             end;
         }
@@ -95,11 +99,15 @@ tableextension 99001520 "Subc. Transfer Header" extends "Transfer Header"
     end;
 
     procedure CheckDirectTransferPosting()
+#if not CLEAN29
     var
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#endif
     begin
+#if not CLEAN29
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
             exit;
+#endif
         TestField("Transfer-to Code");
     end;
 }

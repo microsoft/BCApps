@@ -16,7 +16,9 @@ using Microsoft.Purchases.Document;
 codeunit 99001511 "Subc. Synchronize Management"
 {
     var
+#if not CLEAN29
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#endif
         CannotDeleteSubcOrderTitleLbl: Label 'Transfer Order Exists';
         CannotDeleteSubcOrderWithTransferOrderErr: Label 'You cannot delete Subcontracting Order %1 because Transfer Order %2 is associated with it. Delete or receive the Transfer Order first.', Comment = '%1=Subcontracting Order No., %2=Transfer Order No.';
         CannotDeleteSubcOrderWithTransferOrdersErr: Label 'You cannot delete Subcontracting Order %1 because Transfer Orders are associated with it. Delete or receive all Transfer Orders first.', Comment = '%1=Subcontracting Order No.';
@@ -26,9 +28,11 @@ codeunit 99001511 "Subc. Synchronize Management"
     var
         ProductionOrder: Record "Production Order";
     begin
+#if not CLEAN29
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
             exit;
 
+#endif
         if not IsSubcontractingLine(PurchaseLine) then
             exit;
 
@@ -59,9 +63,11 @@ codeunit 99001511 "Subc. Synchronize Management"
         UnitofMeasureManagement: Codeunit "Unit of Measure Management";
         PurchLineBaseQuantity: Decimal;
     begin
+#if not CLEAN29
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
             exit;
 
+#endif
         if not IsSubcontractingLine(PurchaseLine) then
             exit;
 
@@ -116,9 +122,11 @@ codeunit 99001511 "Subc. Synchronize Management"
         PurchaseLine, PurchaseLine2, PurchaseLineModify : Record "Purchase Line";
         TransferHeader: Record "Transfer Header";
     begin
+#if not CLEAN29
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
             exit;
 
+#endif
         PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
         PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
         PurchaseLine.SetRange(Type, "Purchase Line Type"::Item);
@@ -190,9 +198,11 @@ codeunit 99001511 "Subc. Synchronize Management"
         TransferHeader: Record "Transfer Header";
         TransferOrderErrorInfo: ErrorInfo;
     begin
+#if not CLEAN29
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
             exit;
 
+#endif
         TransferHeader.SetRange("Subcontr. Purch. Order No.", PurchaseHeader."No.");
         if TransferHeader.IsEmpty() then
             exit;
@@ -215,9 +225,11 @@ codeunit 99001511 "Subc. Synchronize Management"
         ProductionOrder: Record "Production Order";
         PurchaseLine2: Record "Purchase Line";
     begin
+#if not CLEAN29
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
             exit;
 
+#endif
         if not IsSubcontractingLine(PurchaseLine) then
             exit;
 

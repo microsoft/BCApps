@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -30,8 +30,10 @@ table 99001500 "Subcontractor Price"
             var
                 Vendor: Record Vendor;
             begin
+#if not CLEAN29
                 if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
                     exit;
+#endif
                 if Vendor.Get("Vendor No.") then
                     "Currency Code" := Vendor."Currency Code";
             end;
@@ -44,8 +46,10 @@ table 99001500 "Subcontractor Price"
 
             trigger OnValidate()
             begin
+#if not CLEAN29
                 if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
                     exit;
+#endif
                 if "Item No." <> xRec."Item No." then begin
                     "Unit of Measure Code" := '';
                     "Variant Code" := '';
@@ -73,8 +77,10 @@ table 99001500 "Subcontractor Price"
             Caption = 'Starting Date';
             trigger OnValidate()
             begin
+#if not CLEAN29
                 if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
                     exit;
+#endif
                 if ("Starting Date" > "Ending Date") and ("Ending Date" <> 0D) then
                     Error(InvalidStartingDateErr, FieldCaption("Starting Date"), FieldCaption("Ending Date"));
             end;
@@ -115,8 +121,10 @@ table 99001500 "Subcontractor Price"
             Caption = 'Ending Date';
             trigger OnValidate()
             begin
+#if not CLEAN29
                 if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
                     exit;
+#endif
                 Validate("Starting Date");
             end;
         }
@@ -151,30 +159,38 @@ table 99001500 "Subcontractor Price"
     }
     trigger OnInsert()
     begin
+#if not CLEAN29
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
             exit;
+#endif
         TestField("Vendor No.");
         TestField("Item No.");
     end;
 
     trigger OnRename()
     begin
+#if not CLEAN29
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
             exit;
+#endif
         TestField("Vendor No.");
         TestField("Item No.");
     end;
 
     var
+#if not CLEAN29
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#endif
         InvalidStartingDateErr: Label '%1 cannot be after %2', Comment = '%1=Field Caption for starting date, %2=Field Caption for ending date';
 
     procedure CopySubcontractorPriceToVendorsSubcontractorPrice(var SubcontractorPrice: Record "Subcontractor Price"; VendNo: Code[20]; WorkCenterNo: Code[20])
     var
         NewSubcontractorPrice: Record "Subcontractor Price";
     begin
+#if not CLEAN29
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
             exit;
+#endif
         if SubcontractorPrice.FindSet() then
             repeat
                 NewSubcontractorPrice := SubcontractorPrice;
@@ -186,8 +202,10 @@ table 99001500 "Subcontractor Price"
 
     internal procedure DeletePricesForVendor(VendorNo: Code[20])
     begin
+#if not CLEAN29
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
             exit;
+#endif
         SetCurrentKey("Vendor No.");
         SetRange("Vendor No.", VendorNo);
         if not IsEmpty() then
@@ -196,8 +214,10 @@ table 99001500 "Subcontractor Price"
 
     internal procedure DeletePricesForWorkCenter(WorkCenterNo: Code[20])
     begin
+#if not CLEAN29
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
             exit;
+#endif
         SetCurrentKey("Work Center No.");
         SetRange("Work Center No.", WorkCenterNo);
         if not IsEmpty() then
@@ -206,8 +226,10 @@ table 99001500 "Subcontractor Price"
 
     internal procedure DeletePricesForItem(ItemNo: Code[20])
     begin
+#if not CLEAN29
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
             exit;
+#endif
         SetCurrentKey("Item No.");
         SetRange("Item No.", ItemNo);
         if not IsEmpty() then

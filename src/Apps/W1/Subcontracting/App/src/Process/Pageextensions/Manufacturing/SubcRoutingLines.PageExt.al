@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -14,8 +14,10 @@ pageextension 99001508 "Subc. Routing Lines" extends "Routing Lines"
         {
             trigger OnAfterValidate()
             begin
+#if not CLEAN29
                 if not SubcontractingEnabled then
                     exit;
+#endif
                 UpdateWIPEnabled();
             end;
         }
@@ -23,8 +25,10 @@ pageextension 99001508 "Subc. Routing Lines" extends "Routing Lines"
         {
             trigger OnAfterValidate()
             begin
+#if not CLEAN29
                 if not SubcontractingEnabled then
                     exit;
+#endif
                 UpdateWIPEnabled();
             end;
         }
@@ -66,30 +70,38 @@ pageextension 99001508 "Subc. Routing Lines" extends "Routing Lines"
         }
     }
 
+#if not CLEAN29
     trigger OnOpenPage()
     begin
         SubcontractingEnabled := SubcFeatureFlagHandler.IsSubcontractingEnabled();
     end;
+#endif
 
     trigger OnAfterGetRecord()
     begin
+#if not CLEAN29
         if not SubcontractingEnabled then
             exit;
 
+#endif
         UpdateWIPEnabled();
     end;
 
     trigger OnAfterGetCurrRecord()
     begin
+#if not CLEAN29
         if not SubcontractingEnabled then
             exit;
 
+#endif
         UpdateWIPEnabled();
     end;
 
     var
+#if not CLEAN29
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
         SubcontractingEnabled: Boolean;
+#endif
         TransferWIPItemEnabled: Boolean;
 
     local procedure UpdateWIPEnabled()
@@ -102,9 +114,11 @@ pageextension 99001508 "Subc. Routing Lines" extends "Routing Lines"
     var
         SubcontractorPrice: Record "Subcontractor Price";
     begin
+#if not CLEAN29
         if not SubcontractingEnabled then
             exit;
 
+#endif
         Rec.TestField(Type, Rec.Type::"Work Center");
         SubcontractorPrice.SetRange("Work Center No.", Rec."No.");
         if Rec."Standard Task Code" <> '' then

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -13,41 +13,53 @@ codeunit 99001506 "Subc. Notification Mgmt."
         ProdOrdNotificationNameLbl: Label 'Show Created Production Orders';
         SubcOrdNotificationDescriptionTxt: Label 'Show a notification if Subcontracting Orders were created for Subcontracting.';
         SubcOrdNotificationNameLbl: Label 'Show Created Subcontracting Orders';
+#if not CLEAN29
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#endif
 
     procedure ShowCreatedProductionOrderConfirmationMessageCode(): Code[50]
     begin
+#if not CLEAN29
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
             exit('');
+#endif
         exit(UpperCase(GetShowCreatedProductionOrderCode()));
     end;
 
     procedure ShowCreatedSubcontractingOrderConfirmationMessageCode(): Code[50]
     begin
+#if not CLEAN29
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
             exit('');
+#endif
         exit(UpperCase(GetShowCreatedSubContPurchOrderCode()));
     end;
 
     procedure GetShowCreatedProductionOrderCode(): Code[50]
     begin
+#if not CLEAN29
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
             exit('');
+#endif
         exit('Show Created Production Orders');
     end;
 
     procedure GetShowCreatedSubContPurchOrderCode(): Code[50]
     begin
+#if not CLEAN29
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
             exit('');
+#endif
         exit('Show Created Subcontracting Orders');
     end;
 
     [EventSubscriber(ObjectType::Page, Page::"My Notifications", OnInitializingNotificationWithDefaultState, '', false, false)]
     local procedure InitializeSubcontractingNotifications()
     begin
+#if not CLEAN29
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
             exit;
+#endif
         RegisterSubcontrProductionOrderCreatedNotification();
         RegisterSubcontrPurchOrderCreatedNotification();
     end;
@@ -71,23 +83,29 @@ codeunit 99001506 "Subc. Notification Mgmt."
         MyNotifications: Record "My Notifications";
         PageMyNotifications: Page "My Notifications";
     begin
+#if not CLEAN29
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
             exit;
+#endif
         PageMyNotifications.InitializeNotificationsWithDefaultState();
         MyNotifications.Disable(NotificationVar.Id());
     end;
 
     procedure GetGuidProductionOrderCreatedNotification(): Guid
     begin
+#if not CLEAN29
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
             exit;
+#endif
         exit('{5d564aca-ce60-4345-ba68-e1e50976a346}');
     end;
 
     procedure GetGuidSubcontractingPOCreatedNotification(): Guid
     begin
+#if not CLEAN29
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
             exit;
+#endif
         exit('{f7b10c9e-071a-4455-a048-d17b29ef764c}');
     end;
 }

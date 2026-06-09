@@ -21,9 +21,11 @@ tableextension 99001512 "Subc. Purchase Line" extends "Purchase Line"
         {
             trigger OnBeforeValidate()
             begin
+#if not CLEAN29
                 if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
                     exit;
 
+#endif
                 SetSubcontractingLineType();
             end;
         }
@@ -31,9 +33,11 @@ tableextension 99001512 "Subc. Purchase Line" extends "Purchase Line"
         {
             trigger OnAfterValidate()
             begin
+#if not CLEAN29
                 if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
                     exit;
 
+#endif
                 SetSubcontractingLineType();
             end;
         }
@@ -116,15 +120,19 @@ tableextension 99001512 "Subc. Purchase Line" extends "Purchase Line"
     {
         key(SubcPurchLineKey; "Subc. Purchase Line Type") { }
     }
+#if not CLEAN29
     var
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#endif
 
     procedure GetQuantityPerUOM(): Decimal
     var
         ItemUnitofMeasure: Record "Item Unit of Measure";
     begin
+#if not CLEAN29
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
             exit(0);
+#endif
         ItemUnitofMeasure.SetLoadFields("Qty. per Unit of Measure");
         ItemUnitofMeasure.Get("No.", "Unit of Measure Code");
         exit(ItemUnitofMeasure."Qty. per Unit of Measure");
@@ -134,8 +142,10 @@ tableextension 99001512 "Subc. Purchase Line" extends "Purchase Line"
     var
         ItemUnitofMeasure: Record "Item Unit of Measure";
     begin
+#if not CLEAN29
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
             exit(0);
+#endif
         ItemUnitofMeasure.SetLoadFields("Qty. per Unit of Measure");
         ItemUnitofMeasure.Get("No.", "Unit of Measure Code");
         exit(Round(Quantity * ItemUnitofMeasure."Qty. per Unit of Measure", 0.00001));
@@ -155,8 +165,10 @@ tableextension 99001512 "Subc. Purchase Line" extends "Purchase Line"
         UOMMgt: Codeunit "Unit of Measure Management";
         QtyPerUoM: Decimal;
     begin
+#if not CLEAN29
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
             exit(0);
+#endif
         Testfield(Type, "Purchase Line Type"::Item);
         Item.Get(Rec."No.");
         QtyPerUoM := UOMMgt.GetQtyPerUnitOfMeasure(Item, Rec."Unit of Measure Code");
@@ -174,8 +186,10 @@ tableextension 99001512 "Subc. Purchase Line" extends "Purchase Line"
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         IsValidLine: Boolean;
     begin
+#if not CLEAN29
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
             exit(false);
+#endif
         if Rec."Operation No." = '' then
             exit(false);
         ProductionOrder.SetLoadFields("Source Type");
@@ -196,8 +210,10 @@ tableextension 99001512 "Subc. Purchase Line" extends "Purchase Line"
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         IsValidLine: Boolean;
     begin
+#if not CLEAN29
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
             exit(false);
+#endif
         ProdOrderRoutingLine.SetLoadFields("Next Operation No.");
         IsValidLine := ProdOrderRoutingLine.Get("Production Order Status"::Released, Rec."Prod. Order No.", Rec."Routing Reference No.", Rec."Routing No.", Rec."Operation No.");
         IsValidLine := IsValidLine and (ProdOrderRoutingLine."Next Operation No." = '');

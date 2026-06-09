@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -82,11 +82,11 @@ report 99001505 "Subc. Calculate Subcontracts"
     }
 
     trigger OnInitReport()
-    var
-        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
     begin
+#if not CLEAN29
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
             CurrReport.Quit();
+#endif
         MfgSetup.Get();
     end;
 
@@ -116,7 +116,9 @@ report 99001505 "Subc. Calculate Subcontracts"
         ItemVariant: Record "Item Variant";
         TempProdOrderRoutingLine: Record "Prod. Order Routing Line" temporary;
         MfgCostCalcMgt: Codeunit "Mfg. Cost Calculation Mgt.";
+#if not CLEAN29
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#endif
         UOMMgt: Codeunit "Unit of Measure Management";
         Window: Dialog;
         BaseQtyToPurch: Decimal;
@@ -130,8 +132,10 @@ report 99001505 "Subc. Calculate Subcontracts"
 
     procedure SetWkShLine(NewReqLine: Record "Requisition Line")
     begin
+#if not CLEAN29
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
             exit;
+#endif
         ReqLine := NewReqLine;
     end;
 

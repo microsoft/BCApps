@@ -10,17 +10,21 @@ using Microsoft.Manufacturing.StandardCost;
 
 codeunit 99001514 "Subc. Calc.StandardCost Ext."
 {
+#if not CLEAN29
     var
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
 
+#endif
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Calculate Standard Cost", OnAfterCalcRtngLineCost, '', false, false)]
     local procedure OnAfterCalcRtngLineCost(RoutingLine: Record "Routing Line"; MfgItemQtyBase: Decimal; var SLSub: Decimal)
     var
         SubcPriceManagement: Codeunit "Subc. Price Management";
     begin
+#if not CLEAN29
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
             exit;
 
+#endif
         SubcPriceManagement.CalcStandardCostOnAfterCalcRtngLineCost(RoutingLine, MfgItemQtyBase, SLSub);
     end;
 
@@ -29,9 +33,11 @@ codeunit 99001514 "Subc. Calc.StandardCost Ext."
     var
         SubcSessionState: Codeunit "Subc. Session State";
     begin
+#if not CLEAN29
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
             exit;
 
+#endif
         SubcSessionState.SetRecordID('OnCalcMfgItemOnBeforeCalcRtngCost', Item.RecordId());
     end;
 
@@ -40,9 +46,11 @@ codeunit 99001514 "Subc. Calc.StandardCost Ext."
     var
         SubcSessionState: Codeunit "Subc. Session State";
     begin
+#if not CLEAN29
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
             exit;
 
+#endif
         SubcSessionState.SetDate('OnAfterSetProperties', NewCalculationDate);
     end;
 }

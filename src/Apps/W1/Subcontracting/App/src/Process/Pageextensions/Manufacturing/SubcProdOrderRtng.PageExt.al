@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -15,8 +15,10 @@ pageextension 99001503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
         {
             trigger OnAfterValidate()
             begin
+#if not CLEAN29
                 if not SubcontractingEnabled then
                     exit;
+#endif
                 UpdateWIPEnabled();
             end;
         }
@@ -24,8 +26,10 @@ pageextension 99001503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
         {
             trigger OnAfterValidate()
             begin
+#if not CLEAN29
                 if not SubcontractingEnabled then
                     exit;
+#endif
                 UpdateWIPEnabled();
             end;
         }
@@ -164,8 +168,10 @@ pageextension 99001503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
         }
     }
     var
+#if not CLEAN29
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
         SubcontractingEnabled: Boolean;
+#endif
         TransferWIPItemEnabled: Boolean;
         CreateSubcontractingEnabled: Boolean;
         CreateSubcontractingVisible: Boolean;
@@ -175,10 +181,12 @@ pageextension 99001503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
     var
         StatusFilter: Text;
     begin
+#if not CLEAN29
         SubcontractingEnabled := SubcFeatureFlagHandler.IsSubcontractingEnabled();
         if not SubcontractingEnabled then
             exit;
 
+#endif
         StatusFilter := Rec.GetFilter(Rec.Status);
         if StatusFilter.Contains(Format("Production Order Status"::Released)) then
             CreateSubcontractingVisible := true
@@ -188,17 +196,19 @@ pageextension 99001503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
 
     trigger OnAfterGetRecord()
     begin
+#if not CLEAN29
         if not SubcontractingEnabled then
             exit;
-
+#endif
         UpdateWIPEnabled();
     end;
 
     trigger OnAfterGetCurrRecord()
     begin
+#if not CLEAN29
         if not SubcontractingEnabled then
             exit;
-
+#endif
         UpdateWIPEnabled();
         CreateSubcontractingEnabled := Rec.Subcontracting and (Rec.Status = "Production Order Status"::Released);
     end;

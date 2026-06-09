@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -10,8 +10,10 @@ using Microsoft.Purchases.Document;
 
 codeunit 99001562 "Subc. Comp. Factbox Mgmt."
 {
+#if not CLEAN29
     var
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#endif
 
     /// <summary>
     /// Returns the total consumption quantity posted for the given production order component via its linked routing operation.
@@ -23,9 +25,11 @@ codeunit 99001562 "Subc. Comp. Factbox Mgmt."
         ItemLedgerEntry: Record "Item Ledger Entry";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
     begin
+#if not CLEAN29
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
             exit(0);
 
+#endif
         GetProdOrderRtngLineFromProdOrderComp(ProdOrderRoutingLine, ProdOrderComponent);
 
         ItemLedgerEntry.SetCurrentKey(ItemLedgerEntry."Order Type", ItemLedgerEntry."Order No.", ItemLedgerEntry."Order Line No.", ItemLedgerEntry."Entry Type", ItemLedgerEntry."Prod. Order Comp. Line No.");
@@ -49,9 +53,11 @@ codeunit 99001562 "Subc. Comp. Factbox Mgmt."
         ItemLedgerEntry: Record "Item Ledger Entry";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
     begin
+#if not CLEAN29
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
             exit;
 
+#endif
         GetProdOrderRtngLineFromProdOrderComp(ProdOrderRoutingLine, ProdOrderComponent);
 
         ItemLedgerEntry.SetCurrentKey(ItemLedgerEntry."Order Type", ItemLedgerEntry."Order No.", ItemLedgerEntry."Order Line No.", ItemLedgerEntry."Entry Type", ItemLedgerEntry."Prod. Order Comp. Line No.");
@@ -74,9 +80,11 @@ codeunit 99001562 "Subc. Comp. Factbox Mgmt."
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         PurchaseLine: Record "Purchase Line";
     begin
+#if not CLEAN29
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
             exit(0);
 
+#endif
         if ProdOrderComponent."Routing Link Code" = '' then
             exit(0);
         if ProdOrderComponent."Component Supply Method" <> ProdOrderComponent."Component Supply Method"::"Vendor-Supplied" then
@@ -104,9 +112,11 @@ codeunit 99001562 "Subc. Comp. Factbox Mgmt."
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         PurchaseLine: Record "Purchase Line";
     begin
+#if not CLEAN29
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
             exit;
 
+#endif
         if ProdOrderComponent."Routing Link Code" = '' then
             exit;
         if ProdOrderComponent."Component Supply Method" <> ProdOrderComponent."Component Supply Method"::"Vendor-Supplied" then
@@ -134,9 +144,11 @@ codeunit 99001562 "Subc. Comp. Factbox Mgmt."
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         PurchaseLine: Record "Purchase Line";
     begin
+#if not CLEAN29
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
             exit(0);
 
+#endif
         if ProdOrderComponent."Routing Link Code" = '' then
             exit(0);
         if ProdOrderComponent."Component Supply Method" <> ProdOrderComponent."Component Supply Method"::"Vendor-Supplied" then
@@ -164,9 +176,11 @@ codeunit 99001562 "Subc. Comp. Factbox Mgmt."
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         PurchaseLine: Record "Purchase Line";
     begin
+#if not CLEAN29
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
             exit;
 
+#endif
         if ProdOrderComponent."Routing Link Code" = '' then
             exit;
         if ProdOrderComponent."Component Supply Method" <> ProdOrderComponent."Component Supply Method"::"Vendor-Supplied" then

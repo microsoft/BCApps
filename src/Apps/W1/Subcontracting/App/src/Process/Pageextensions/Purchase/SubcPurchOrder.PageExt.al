@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -88,24 +88,30 @@ pageextension 99001523 "Subc. Purch. Order" extends "Purchase Order"
         }
     }
     var
+#if not CLEAN29
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
         SubcontractingEnabled: Boolean;
+#endif
         ShowSubcontractingFactBox: Boolean;
 
     trigger OnOpenPage()
     begin
+#if not CLEAN29
         SubcontractingEnabled := SubcFeatureFlagHandler.IsSubcontractingEnabled();
         if not SubcontractingEnabled then
             exit;
 
+#endif
         ShowSubcontractingFactBox := SubcontractingInLines();
     end;
 
     trigger OnAfterGetCurrRecord()
     begin
+#if not CLEAN29
         if not SubcontractingEnabled then
             exit;
 
+#endif
         ShowSubcontractingFactBox := SubcontractingInLines();
     end;
 

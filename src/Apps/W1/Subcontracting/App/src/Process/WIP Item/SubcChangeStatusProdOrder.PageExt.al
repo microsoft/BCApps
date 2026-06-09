@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,17 +24,21 @@ pageextension 99001544 "Subc.Change Status Prod. Order" extends "Change Status o
 
     trigger OnOpenPage()
     begin
+#if not CLEAN29
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
             exit;
 
+#endif
         WIPQuantityCleanUp := true;
     end;
 
     trigger OnAfterGetCurrRecord()
     begin
+#if not CLEAN29
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
             exit;
 
+#endif
         SetControlProperties();
     end;
 
@@ -43,28 +47,36 @@ pageextension 99001544 "Subc.Change Status Prod. Order" extends "Change Status o
 
     var
         ProductionOrder: Record "Production Order";
+#if not CLEAN29
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#endif
         WIPQuantityCleanUpEnabled, WIPQuantityCleanUpVisible : Boolean;
 
     procedure ReturnSubWIPQuantityCleanUp(): Boolean
     begin
+#if not CLEAN29
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
             exit(false);
+#endif
         exit(WIPQuantityCleanUp);
     end;
 
     procedure SubcSetOrder(var ProductionOrderForStatusChange: Record "Production Order")
     begin
+#if not CLEAN29
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
             exit;
+#endif
         ProductionOrder := ProductionOrderForStatusChange;
         SetControlProperties();
     end;
 
     procedure SubcGetOrder() ProductionOrderForStatusChange: Record "Production Order"
     begin
+#if not CLEAN29
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
             exit(ProductionOrder);
+#endif
         ProductionOrderForStatusChange := ProductionOrder;
     end;
 

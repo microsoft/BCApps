@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -19,11 +19,15 @@ tableextension 99001506 "Subc. ProdOrderRtngLine Ext." extends "Prod. Order Rout
         modify(Type)
         {
             trigger OnAfterValidate()
+#if not CLEAN29
             var
                 SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#endif
             begin
+#if not CLEAN29
                 if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
                     exit;
+#endif
                 if Type = xRec.Type then
                     exit;
 
@@ -36,10 +40,14 @@ tableextension 99001506 "Subc. ProdOrderRtngLine Ext." extends "Prod. Order Rout
             trigger OnAfterValidate()
             var
                 WorkCenter: Record "Work Center";
+#if not CLEAN29
                 SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#endif
             begin
+#if not CLEAN29
                 if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
                     exit;
+#endif
                 if "No." = xRec."No." then
                     exit;
                 if Type <> "Capacity Type"::"Work Center" then begin
@@ -170,10 +178,14 @@ tableextension 99001506 "Subc. ProdOrderRtngLine Ext." extends "Prod. Order Rout
     var
         ProdOrderLine: Record "Prod. Order Line";
         PurchLine: Record "Purchase Line";
+#if not CLEAN29
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#endif
     begin
+#if not CLEAN29
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
             exit;
+#endif
         if Status <> "Production Order Status"::Released then
             exit;
 
@@ -208,10 +220,14 @@ tableextension 99001506 "Subc. ProdOrderRtngLine Ext." extends "Prod. Order Rout
         ProdOrderLine: Record "Prod. Order Line";
         PurchLine: Record "Purchase Line";
         PrevProdOrderRoutingLine: Record "Prod. Order Routing Line";
+#if not CLEAN29
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#endif
     begin
+#if not CLEAN29
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
             exit;
+#endif
         if Status <> "Production Order Status"::Released then
             exit;
         ProdOrderLine.SetLoadFields(SystemId);
