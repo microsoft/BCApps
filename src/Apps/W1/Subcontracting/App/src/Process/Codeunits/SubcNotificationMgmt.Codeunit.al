@@ -93,19 +93,11 @@ codeunit 99001506 "Subc. Notification Mgmt."
 
     procedure GetGuidProductionOrderCreatedNotification(): Guid
     begin
-#if not CLEAN29
-        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
-            exit;
-#endif
         exit('{5d564aca-ce60-4345-ba68-e1e50976a346}');
     end;
 
     procedure GetGuidSubcontractingPOCreatedNotification(): Guid
     begin
-#if not CLEAN29
-        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
-            exit;
-#endif
         exit('{f7b10c9e-071a-4455-a048-d17b29ef764c}');
     end;
 }

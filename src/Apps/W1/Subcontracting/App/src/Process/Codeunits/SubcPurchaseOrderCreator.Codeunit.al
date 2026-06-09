@@ -234,41 +234,21 @@ codeunit 99001557 "Subc. Purchase Order Creator"
 
     internal procedure SetOperationNoForCreatedPurchaseOrder(OperationNoToSet: Code[10])
     begin
-#if not CLEAN29
-        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
-            exit;
-
-#endif
         OperationNo := OperationNoToSet;
     end;
 
     internal procedure ClearOperationNoForCreatedPurchaseOrder()
     begin
-#if not CLEAN29
-        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
-            exit;
-
-#endif
         Clear(OperationNo);
     end;
 
     internal procedure SetRoutingReferenceNoForCreatedPurchaseOrder(RoutingReferenceNoToSet: Integer)
     begin
-#if not CLEAN29
-        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
-            exit;
-
-#endif
         RoutingReferenceNo := RoutingReferenceNoToSet;
     end;
 
     internal procedure ClearRoutingReferenceNoForCreatedPurchaseOrder()
     begin
-#if not CLEAN29
-        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
-            exit;
-
-#endif
         Clear(RoutingReferenceNo);
     end;
 
