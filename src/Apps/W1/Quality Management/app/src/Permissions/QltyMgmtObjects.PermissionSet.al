@@ -109,6 +109,7 @@ permissionset 20406 "QltyMgmt - Objects"
         page "Qlty. Tests" = X,
         page "Qlty. Inspection Gen. Rules" = X,
         page "Qlty. Inspection Result List" = X,
+        page "Qlty. Inspection Result Card" = X,
         page "Qlty. Test Lookup Values" = X,
         page "Qlty. Manager Role Center" = X,
         page "Qlty. Management Setup Guide" = X,
