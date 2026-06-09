@@ -76,7 +76,7 @@ report 20400 "Qlty. Create Inspection"
                             OldTableNo: Integer;
                         begin
                             if QltInspectionTemplateToCreate <> '' then
-                                while not QltyInspecGenRuleMgmt.FindAllCompatibleGenerationRules(QltInspectionTemplateToCreate, TempCompatibleQltyInspectionGenRule) do begin
+                                if not QltyInspecGenRuleMgmt.FindAllCompatibleGenerationRules(QltInspectionTemplateToCreate, TempCompatibleQltyInspectionGenRule) then begin
                                     if not Confirm(StrSubstNo(NoCompatibleGenRuleQst, QltInspectionTemplateToCreate)) then
                                         exit(false);
 
@@ -85,6 +85,9 @@ report 20400 "Qlty. Create Inspection"
                                     Clear(QltyInspectionGenRules);
                                     QltyInspectionGenRules.SetTableView(QltyInspectionGenRule);
                                     QltyInspectionGenRules.RunModal();
+
+                                    if not QltyInspecGenRuleMgmt.FindAllCompatibleGenerationRules(QltInspectionTemplateToCreate, TempCompatibleQltyInspectionGenRule) then
+                                        exit(false);
                                 end;
 
                             OldTableNo := QltyInspectSourceConfig."From Table No.";
