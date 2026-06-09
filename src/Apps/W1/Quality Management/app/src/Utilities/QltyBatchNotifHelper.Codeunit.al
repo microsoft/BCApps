@@ -33,9 +33,12 @@ codeunit 20456 "Qlty. Batch Notif. Helper"
         Clear(BatchCreatedInspectionIds);
     end;
 
-    internal procedure TrackCreatedInspection(InspectionNo: Code[20])
+    internal procedure TrackCreatedInspection(InspectionNo: Code[20]; IsNewlyCreated: Boolean)
     begin
         if not IsBatchActive then
+            exit;
+
+        if not IsNewlyCreated then
             exit;
 
         if InspectionNo = '' then
