@@ -56,7 +56,7 @@ table 20403 "Qlty. Inspection Template Line"
         field(4; Description; Text[100])
         {
             Caption = 'Description';
-            ToolTip = 'Specifies the description that is to be displayed. Contains the value of the description field from the Test template. You can replace the text as needed.';
+            ToolTip = 'Specifies the description that is to be displayed. Contains the value of the description field from the test template. You can replace the text as needed.';
         }
         field(5; "Test Value Type"; Enum "Qlty. Test Value Type")
         {
@@ -64,7 +64,7 @@ table 20403 "Qlty. Inspection Template Line"
             Caption = 'Test Value Type';
             Editable = false;
             FieldClass = FlowField;
-            ToolTip = 'Specifies the value type of the Test. The program automatically retrieves the value from the Test Value Type field on the Test template.';
+            ToolTip = 'Specifies the data value type of the test. The value is automatically retrieved from the Test Value Type field on the test template.';
         }
         field(7; "Allowable Values"; Text[500])
         {
@@ -72,7 +72,7 @@ table 20403 "Qlty. Inspection Template Line"
             Caption = 'Allowable Values';
             Editable = false;
             FieldClass = FlowField;
-            ToolTip = 'Specifies an expression for the range of values you can enter or select on the Quality Inspection line. The program automatically retrieves the value from the Allowable Values field on the Field template.';
+            ToolTip = 'Specifies an expression for the range of values you can enter or select on the quality Inspection line. The value is automatically retrieved from the Allowable Values field on the test template.';
         }
         field(10; "Copied From Template Code"; Code[20])
         {
@@ -85,7 +85,7 @@ table 20403 "Qlty. Inspection Template Line"
             Caption = 'Default Value';
             Editable = false;
             FieldClass = FlowField;
-            ToolTip = 'Specifies a default value to set on the inspection.';
+            ToolTip = 'Specifies a default value to set on the inspection. The value is automatically retrieved from the Default Value field on the test template.';
         }
         field(12; "Expression Formula"; Text[500])
         {
@@ -176,6 +176,62 @@ table 20403 "Qlty. Inspection Template Line"
 
         OnValidateExpressionFormula(Rec);
     end;
+
+    #region Add multiple tests to template
+    internal procedure SelectMultipleTests(TemplateCode: Code[20])
+    var
+        SelectionFilter: Text;
+    begin
+        if TemplateCode = '' then
+            exit;
+
+        SelectionFilter := SelectInQltyTests();
+
+        if SelectionFilter <> '' then
+            AddSelectedTests(TemplateCode, SelectionFilter);
+    end;
+
+    local procedure SelectInQltyTests(): Text
+    var
+        QltyTests: Page "Qlty. Tests";
+    begin
+        QltyTests.LookupMode(true);
+        if QltyTests.RunModal() = Action::LookupOK then
+            exit(QltyTests.GetSelectionFilter());
+    end;
+
+    internal procedure AddSelectedTests(TemplateCode: Code[20]; SelectionFilter: Text)
+    var
+        QltyTest: Record "Qlty. Test";
+    begin
+        if (TemplateCode = '') or (SelectionFilter = '') then
+            exit;
+
+        QltyTest.SetFilter(Code, SelectionFilter);
+        if QltyTest.FindSet() then
+            repeat
+                AddTestToTemplateLine(TemplateCode, QltyTest.Code);
+            until QltyTest.Next() = 0;
+    end;
+
+    local procedure AddTestToTemplateLine(TemplateCode: Code[20]; QltyTestCode: Code[20])
+    var
+        ExistingQltyInspectionTemplateLine, NewQltyInspectionTemplateLine : Record "Qlty. Inspection Template Line";
+    begin
+        ExistingQltyInspectionTemplateLine.SetRange("Template Code", TemplateCode);
+        ExistingQltyInspectionTemplateLine.SetRange("Test Code", QltyTestCode);
+        if not ExistingQltyInspectionTemplateLine.IsEmpty() then
+            exit;
+
+        NewQltyInspectionTemplateLine.Init();
+        NewQltyInspectionTemplateLine."Template Code" := TemplateCode;
+        NewQltyInspectionTemplateLine.InitLineNoIfNeeded();
+        NewQltyInspectionTemplateLine.Validate("Test Code", QltyTestCode);
+        NewQltyInspectionTemplateLine.Insert(true);
+        NewQltyInspectionTemplateLine.EnsureResultsExist(true);
+        NewQltyInspectionTemplateLine.Modify();
+    end;
+    #endregion Add multiple tests to template
 
     /// <summary>
     /// Validates the expression formula.

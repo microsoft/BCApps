@@ -5,6 +5,7 @@
 namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Foundation.Company;
+using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Location;
@@ -296,6 +297,10 @@ codeunit 99001505 "Subcontracting Management"
         TempForReservationEntry: Record "Reservation Entry" temporary;
         TempTrackingSpecification: Record "Tracking Specification" temporary;
         ProdOrderCompReserve: Codeunit "Prod. Order Comp.-Reserve";
+        UnitOfMeasureManagement: Codeunit "Unit of Measure Management";
+        QtyToReserve: Decimal;
+        QtyToReserveBase: Decimal;
+        AvailableToReserveBase: Decimal;
     begin
         if (TransferReceiptLine."Subc. Prod. Order No." = '') or (TransferReceiptLine."Subc. Operation No." = '') then
             exit;
@@ -308,36 +313,59 @@ codeunit 99001505 "Subcontracting Management"
         ItemLedgerEntry.SetRange("Document No.", TransferReceiptLine."Document No.");
         ItemLedgerEntry.SetRange("Document Line No.", TransferReceiptLine."Line No.");
         ItemLedgerEntry.SetRange("Location Code", TransferReceiptLine."Transfer-to Code");
-        ItemLedgerEntry.SetLoadFields("Serial No.", "Lot No.", "Package No.", "Variant Code", "Location Code", "Qty. per Unit of Measure", Quantity);
+        ItemLedgerEntry.SetLoadFields("Serial No.", "Lot No.", "Package No.", "Variant Code", "Location Code", Quantity);
         if not ItemLedgerEntry.IsEmpty() then begin
             ItemLedgerEntry.FindSet();
             repeat
                 if (ItemLedgerEntry."Lot No." <> '') or (ItemLedgerEntry."Serial No." <> '') or (ItemLedgerEntry."Package No." <> '') then begin
-                    if not TempTrackingSpecification.IsEmpty() then
-                        TempTrackingSpecification.DeleteAll();
-                    TempTrackingSpecification."Source Type" := Database::"Item Ledger Entry";
-                    TempTrackingSpecification."Source Subtype" := 0;
-                    TempTrackingSpecification."Source ID" := '';
-                    TempTrackingSpecification."Source Batch Name" := '';
-                    TempTrackingSpecification."Source Prod. Order Line" := 0;
-                    TempTrackingSpecification."Source Ref. No." := ItemLedgerEntry."Entry No.";
-                    TempTrackingSpecification."Variant Code" := ItemLedgerEntry."Variant Code";
-                    TempTrackingSpecification."Location Code" := ItemLedgerEntry."Location Code";
-                    TempTrackingSpecification."Serial No." := ItemLedgerEntry."Serial No.";
-                    TempTrackingSpecification."Lot No." := ItemLedgerEntry."Lot No.";
-                    TempTrackingSpecification."Package No." := ItemLedgerEntry."Package No.";
-                    TempTrackingSpecification."Qty. per Unit of Measure" := ItemLedgerEntry."Qty. per Unit of Measure";
-                    TempTrackingSpecification.Insert();
+                    // Only reserve up to the component's remaining need. Excess received quantity
+                    // (e.g. when more was transferred to/from the subcontractor than the component requires)
+                    // is left as free inventory instead of failing with "Reserved quantity cannot be greater than 0".
+                    ProdOrderComponent.CalcFields("Reserved Qty. (Base)");
+                    AvailableToReserveBase := Abs(ProdOrderComponent."Remaining Qty. (Base)") - Abs(ProdOrderComponent."Reserved Qty. (Base)");
 
-                    ProdOrderCompReserve.CreateReservationSetFrom(TempTrackingSpecification);
-                    TempForReservationEntry.CopyTrackingFromSpec(TempTrackingSpecification);
-                    ProdOrderCompReserve.CreateReservation(
-                      ProdOrderComponent,
-                      ProdOrderComponent.Description,
-                      ProdOrderComponent."Due Date",
-                      ItemLedgerEntry.Quantity,
-                      ItemLedgerEntry.Quantity * ItemLedgerEntry."Qty. per Unit of Measure",
-                      TempForReservationEntry);
+                    // Item ledger entry quantities are always stored in the base unit of measure.
+                    QtyToReserveBase := ItemLedgerEntry.Quantity;
+                    if QtyToReserveBase > AvailableToReserveBase then
+                        // Serial-tracked entries are indivisible, so skip the entry entirely when it no longer
+                        // fully fits. Lot- and package-tracked entries can be reserved partially.
+                        if ItemLedgerEntry."Serial No." <> '' then
+                            QtyToReserveBase := 0
+                        else
+                            QtyToReserveBase := AvailableToReserveBase;
+
+                    if QtyToReserveBase > 0 then begin
+                        if ProdOrderComponent."Qty. per Unit of Measure" <> 0 then
+                            QtyToReserve := UnitOfMeasureManagement.CalcQtyFromBase(QtyToReserveBase, ProdOrderComponent."Qty. per Unit of Measure")
+                        else
+                            QtyToReserve := QtyToReserveBase;
+
+                        if not TempTrackingSpecification.IsEmpty() then
+                            TempTrackingSpecification.DeleteAll();
+                        TempTrackingSpecification."Source Type" := Database::"Item Ledger Entry";
+                        TempTrackingSpecification."Source Subtype" := 0;
+                        TempTrackingSpecification."Source ID" := '';
+                        TempTrackingSpecification."Source Batch Name" := '';
+                        TempTrackingSpecification."Source Prod. Order Line" := 0;
+                        TempTrackingSpecification."Source Ref. No." := ItemLedgerEntry."Entry No.";
+                        TempTrackingSpecification."Variant Code" := ItemLedgerEntry."Variant Code";
+                        TempTrackingSpecification."Location Code" := ItemLedgerEntry."Location Code";
+                        TempTrackingSpecification."Serial No." := ItemLedgerEntry."Serial No.";
+                        TempTrackingSpecification."Lot No." := ItemLedgerEntry."Lot No.";
+                        TempTrackingSpecification."Package No." := ItemLedgerEntry."Package No.";
+                        TempTrackingSpecification."Qty. per Unit of Measure" := ProdOrderComponent."Qty. per Unit of Measure";
+                        TempTrackingSpecification.Insert();
+
+                        ProdOrderCompReserve.CreateReservationSetFrom(TempTrackingSpecification);
+                        TempForReservationEntry.CopyTrackingFromSpec(TempTrackingSpecification);
+                        ProdOrderCompReserve.CreateReservation(
+                          ProdOrderComponent,
+                          ProdOrderComponent.Description,
+                          ProdOrderComponent."Due Date",
+                          QtyToReserve,
+                          QtyToReserveBase,
+                          TempForReservationEntry);
+                    end;
                 end;
             until ItemLedgerEntry.Next() = 0;
         end;
@@ -523,6 +551,32 @@ codeunit 99001505 "Subcontracting Management"
         end;
 
         exit(ComponentsLocationCode);
+    end;
+
+    internal procedure IsSubcontractingPurchaseDocument(PurchaseHeader: Record "Purchase Header"): Boolean
+    var
+        PurchaseLine: Record "Purchase Line";
+    begin
+        PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
+        PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+        PurchaseLine.SetFilter("Prod. Order No.", '<>%1', '');
+        PurchaseLine.SetFilter("Prod. Order Line No.", '<>%1', 0);
+        exit(not PurchaseLine.IsEmpty());
+    end;
+
+    internal procedure IsSubcontractingPurchaseLine(PurchaseLine: Record "Purchase Line"): Boolean
+    begin
+        exit((PurchaseLine."Prod. Order No." <> '') and (PurchaseLine."Prod. Order Line No." <> 0));
+    end;
+
+    internal procedure IsSubcontractingTransferDocument(TransferHeader: Record "Transfer Header"): Boolean
+    begin
+        exit(TransferHeader."Subc. Source Type" = TransferHeader."Subc. Source Type"::Subcontracting);
+    end;
+
+    internal procedure IsSubcontractingTransferLine(TransferLine: Record "Transfer Line"): Boolean
+    begin
+        exit((TransferLine."Subc. Prod. Order No." <> '') and (TransferLine."Subc. Prod. Order Line No." <> 0));
     end;
 
     local procedure GetManufacturingSetup()

@@ -43,7 +43,7 @@ table 20401 "Qlty. Test"
         field(3; "Test Value Type"; Enum "Qlty. Test Value Type")
         {
             Caption = 'Test Value Type';
-            ToolTip = 'Specifies the data type of the values you can enter or select for this test. Use Decimal for numerical measurements. Use Choice to give a list of options to choose from. If you want to choose options from an existing table, use Table Lookup.';
+            ToolTip = 'Specifies the type of data that can be entered for this test. Options include: Decimal or Integer for numeric measurements, Date or Date and Time for date-based entries, Boolean for yes/no questions, Option for predefined options, Table Lookup to select from existing records,Text for free-form entries, Label for display-only text, or Text Expression for calculated values.';
 
             trigger OnValidate()
             begin
