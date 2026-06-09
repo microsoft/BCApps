@@ -85,7 +85,7 @@ If you are working on the V2.0 import pipeline (Prepare Draft / Finish Draft sta
 
 ## Copilot PO matching
 
-When automatic matching (V1 interactive system) leaves unmatched lines, users can invoke Copilot from the matching page. `EDocPOCopilotMatching.MatchWithCopilot()` builds a prompt containing imported line and PO line descriptions, sends it to Azure OpenAI (GPT-4.1 via the `"E-Document Matching Assistance"` Copilot capability), and interprets the response through function-calling tools.
+When automatic matching (V1 interactive system) leaves unmatched lines, users can invoke Copilot from the matching page. `EDocPOCopilotMatching.MatchWithCopilot()` builds a prompt containing imported line and PO line descriptions, sends it to Azure OpenAI (GPT-5.3 chat via the `"E-Document Matching Assistance"` Copilot capability), and interprets the response through function-calling tools.
 
 The Copilot result is **grounded** before being shown: the framework verifies that proposed matches respect the cost difference threshold configured in `"Purchases & Payables Setup"."E-Document Matching Difference"`. Proposals that exceed the threshold are discarded. Accepted proposals are surfaced on a proposal page where the user reviews and confirms.
 

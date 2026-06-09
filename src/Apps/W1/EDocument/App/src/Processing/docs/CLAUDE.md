@@ -10,7 +10,7 @@ The Processing module orchestrates what happens to E-Documents between creation 
 
 **Order matching.** For incoming purchase orders, `EDocLineMatching.Codeunit.al` matches imported e-document lines to existing purchase order lines. Automatic matching filters on UOM, unit cost, and discount, then uses `CalculateStringNearness()` above 80% for description matching, plus Item Reference and Text-to-Account Mapping lookups. The Copilot subfolder adds AI-assisted matching via Azure OpenAI when automatic matching leaves unmatched lines.
 
-**AI tools.** `EDocAIToolProcessor.Codeunit.al` is a generic Copilot orchestrator that configures Azure OpenAI (GPT-4.1), registers AI tools as function calls, and processes responses. The `Tools/` subfolder provides implementations for historical matching, G/L account matching, deferral matching, and similar-description lookups.
+**AI tools.** `EDocAIToolProcessor.Codeunit.al` is a generic Copilot orchestrator that configures Azure OpenAI (GPT-5.3 chat), registers AI tools as function calls, and processes responses. The `Tools/` subfolder provides implementations for historical matching, G/L account matching, deferral matching, and similar-description lookups.
 
 ## Things to know
 
@@ -22,7 +22,7 @@ The Processing module orchestrates what happens to E-Documents between creation 
 
 - Order matching only applies to incoming purchase orders (`"Document Type" = "Purchase Order"`, `Direction = Incoming`, `Status = "Order Linked"`). The matching page lets users match manually, run automatic matching, or invoke Copilot. Accepted matches persist to the `"E-Doc. Order Match"` table and update `"Qty. to Invoice"` on purchase lines.
 
-- The Copilot PO matching (`EDocPOCopilotMatching.Codeunit.al`) builds a user prompt from imported line and PO line descriptions, sends it to GPT-4.1 with function-calling tools, and grounds the result by verifying cost/quantity thresholds before surfacing proposals.
+- The Copilot PO matching (`EDocPOCopilotMatching.Codeunit.al`) builds a user prompt from imported line and PO line descriptions, sends it to GPT-5.3 chat with function-calling tools, and grounds the result by verifying cost/quantity thresholds before surfacing proposals.
 
 - `EDocumentBackgroundJobs` manages three job types: the one-shot "created flow" trigger, the recurring 5-minute `GetResponse` poller, and the recurrent batch send/import jobs with configurable frequency.
 
