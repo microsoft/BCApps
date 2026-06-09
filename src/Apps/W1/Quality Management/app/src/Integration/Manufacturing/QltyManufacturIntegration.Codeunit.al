@@ -32,6 +32,20 @@ codeunit 20407 "Qlty. Manufactur. Integration"
     /// <param name="ItemLedgerEntry"></param>
     /// <param name="ProdOrderLine"></param>
     /// <param name="ItemJournalLine"></param>
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Management Setup", 'R', InherentPermissionsScope::Permissions)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Gen. Rule", 'R', InherentPermissionsScope::Permissions)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Result."Qlty. Inspection Result", 'R', InherentPermissionsScope::Permissions)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Template.Test."Qlty. Test", 'R', InherentPermissionsScope::Permissions)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Template.Test."Qlty. Test Lookup Value", 'R', InherentPermissionsScope::Permissions)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Template."Qlty. Inspection Template Hdr.", 'R', InherentPermissionsScope::Permissions)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Template."Qlty. Inspection Template Line", 'R', InherentPermissionsScope::Permissions)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.SourceConfiguration."Qlty. Inspect. Src. Fld. Conf.", 'R', InherentPermissionsScope::Permissions)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.SourceConfiguration."Qlty. Inspect. Source Config.", 'R', InherentPermissionsScope::Permissions)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Header", 'RIM', InherentPermissionsScope::Permissions)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Line", 'RIM', InherentPermissionsScope::Permissions)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Result."Qlty. I. Result Condit. Conf.", 'RIM', InherentPermissionsScope::Permissions)]
+    [InherentPermissions(PermissionObjectType::Codeunit, Codeunit::Microsoft.QualityManagement.AccessControl."Qlty. Permission Mgmt.", 'X', InherentPermissionsScope::Permissions)]
+    [InherentPermissions(PermissionObjectType::Codeunit, Codeunit::Microsoft.QualityManagement.Workflow."Qlty. Start Workflow", 'X', InherentPermissionsScope::Permissions)]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Mfg. Item Jnl.-Post Line", 'OnAfterPostOutput', '', true, true)]
     local procedure HandleOnAfterPostOutput(var ItemLedgerEntry: Record "Item Ledger Entry"; var ProdOrderLine: Record "Prod. Order Line"; var ItemJournalLine: Record "Item Journal Line")
     var
@@ -85,6 +99,20 @@ codeunit 20407 "Qlty. Manufactur. Integration"
             AttemptCreateInspectionPosting(ProdOrderRoutingLine, VerifiedItemLedgerEntry, ProdOrderLine, ItemJournalLine, QltyInspectionGenRule);
     end;
 
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Management Setup", 'R', InherentPermissionsScope::Permissions)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Gen. Rule", 'R', InherentPermissionsScope::Permissions)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Result."Qlty. Inspection Result", 'R', InherentPermissionsScope::Permissions)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Template.Test."Qlty. Test", 'R', InherentPermissionsScope::Permissions)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Template.Test."Qlty. Test Lookup Value", 'R', InherentPermissionsScope::Permissions)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Template."Qlty. Inspection Template Hdr.", 'R', InherentPermissionsScope::Permissions)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Template."Qlty. Inspection Template Line", 'R', InherentPermissionsScope::Permissions)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.SourceConfiguration."Qlty. Inspect. Src. Fld. Conf.", 'R', InherentPermissionsScope::Permissions)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.SourceConfiguration."Qlty. Inspect. Source Config.", 'R', InherentPermissionsScope::Permissions)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Header", 'RIM', InherentPermissionsScope::Permissions)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Line", 'RIM', InherentPermissionsScope::Permissions)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Result."Qlty. I. Result Condit. Conf.", 'RIM', InherentPermissionsScope::Permissions)]
+    [InherentPermissions(PermissionObjectType::Codeunit, Codeunit::Microsoft.QualityManagement.AccessControl."Qlty. Permission Mgmt.", 'X', InherentPermissionsScope::Permissions)]
+    [InherentPermissions(PermissionObjectType::Codeunit, Codeunit::Microsoft.QualityManagement.Workflow."Qlty. Start Workflow", 'X', InherentPermissionsScope::Permissions)]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Prod. Order Status Management", 'OnAfterChangeStatusOnProdOrder', '', true, true)]
     local procedure HandleOnAfterChangeStatusOnProdOrder(var ProdOrder: Record "Production Order"; var ToProdOrder: Record "Production Order"; NewStatus: Enum "Production Order Status"; NewPostingDate: Date; NewUpdateUnitCost: Boolean; var SuppressCommit: Boolean; xProductionOrder: Record "Production Order")
     var
@@ -139,6 +167,20 @@ codeunit 20407 "Qlty. Manufactur. Integration"
         UpdateReferencesForProductionOrderRoutingLine(FromProdOrderRoutingLine, ToProdOrderRoutingLine);
     end;
 
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Management Setup", 'R', InherentPermissionsScope::Permissions)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Gen. Rule", 'R', InherentPermissionsScope::Permissions)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Result."Qlty. Inspection Result", 'R', InherentPermissionsScope::Permissions)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Template.Test."Qlty. Test", 'R', InherentPermissionsScope::Permissions)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Template.Test."Qlty. Test Lookup Value", 'R', InherentPermissionsScope::Permissions)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Template."Qlty. Inspection Template Hdr.", 'R', InherentPermissionsScope::Permissions)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Template."Qlty. Inspection Template Line", 'R', InherentPermissionsScope::Permissions)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.SourceConfiguration."Qlty. Inspect. Src. Fld. Conf.", 'R', InherentPermissionsScope::Permissions)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.SourceConfiguration."Qlty. Inspect. Source Config.", 'R', InherentPermissionsScope::Permissions)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Header", 'RIM', InherentPermissionsScope::Permissions)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Line", 'RIM', InherentPermissionsScope::Permissions)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Result."Qlty. I. Result Condit. Conf.", 'RIM', InherentPermissionsScope::Permissions)]
+    [InherentPermissions(PermissionObjectType::Codeunit, Codeunit::Microsoft.QualityManagement.AccessControl."Qlty. Permission Mgmt.", 'X', InherentPermissionsScope::Permissions)]
+    [InherentPermissions(PermissionObjectType::Codeunit, Codeunit::Microsoft.QualityManagement.Workflow."Qlty. Start Workflow", 'X', InherentPermissionsScope::Permissions)]
     [EventSubscriber(ObjectType::Report, Report::"Refresh Production Order", 'OnAfterRefreshProdOrder', '', true, true)]
     local procedure HandleOnAfterRefreshProdOrder(var ProductionOrder: Record "Production Order"; ErrorOccured: Boolean)
     var
@@ -165,7 +207,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
     /// </summary>
     /// <param name="OldProductionOrder"></param>
     /// <param name="NewProductionOrder"></param>
-    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Header", 'rm')]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Header", 'RM')]
     local procedure UpdateReferencesForProductionOrder(OldProductionOrder: Record "Production Order"; NewProductionOrder: Record "Production Order")
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
@@ -203,7 +245,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
     /// </summary>
     /// <param name="OldProdOrderLine"></param>
     /// <param name="NewProdOrderLine"></param>
-    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Header", 'rm')]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Header", 'RM')]
     local procedure UpdateReferencesForProductionOrderLine(OldProdOrderLine: Record "Prod. Order Line"; NewProdOrderLine: Record "Prod. Order Line")
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
@@ -241,7 +283,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
     /// </summary>
     /// <param name="OldProdOrderRoutingLine"></param>
     /// <param name="NewProdOrderRoutingLine"></param>
-    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Header", 'rm')]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Header", 'RM')]
     local procedure UpdateReferencesForProductionOrderRoutingLine(OldProdOrderRoutingLine: Record "Prod. Order Routing Line"; NewProdOrderRoutingLine: Record "Prod. Order Routing Line")
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";

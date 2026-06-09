@@ -20,6 +20,20 @@ using Microsoft.Warehouse.Journal;
 /// </summary>
 codeunit 20412 "Qlty. Assembly Integration"
 {
+    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Setup."Qlty. Management Setup", 'R', InherentPermissionsScope::Permissions)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Gen. Rule", 'R', InherentPermissionsScope::Permissions)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Result."Qlty. Inspection Result", 'R', InherentPermissionsScope::Permissions)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Template.Test."Qlty. Test", 'R', InherentPermissionsScope::Permissions)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Template.Test."Qlty. Test Lookup Value", 'R', InherentPermissionsScope::Permissions)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Template."Qlty. Inspection Template Hdr.", 'R', InherentPermissionsScope::Permissions)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Template."Qlty. Inspection Template Line", 'R', InherentPermissionsScope::Permissions)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.SourceConfiguration."Qlty. Inspect. Src. Fld. Conf.", 'R', InherentPermissionsScope::Permissions)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.SourceConfiguration."Qlty. Inspect. Source Config.", 'R', InherentPermissionsScope::Permissions)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Header", 'RIM', InherentPermissionsScope::Permissions)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Line", 'RIM', InherentPermissionsScope::Permissions)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Result."Qlty. I. Result Condit. Conf.", 'RIM', InherentPermissionsScope::Permissions)]
+    [InherentPermissions(PermissionObjectType::Codeunit, Codeunit::Microsoft.QualityManagement.AccessControl."Qlty. Permission Mgmt.", 'X', InherentPermissionsScope::Permissions)]
+    [InherentPermissions(PermissionObjectType::Codeunit, Codeunit::Microsoft.QualityManagement.Workflow."Qlty. Start Workflow", 'X', InherentPermissionsScope::Permissions)]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Assembly-Post", 'OnAfterPost', '', true, true)]
     local procedure HandleOnAfterPost(var AssemblyHeader: Record "Assembly Header"; var AssemblyLine: Record "Assembly Line"; PostedAssemblyHeader: Record "Posted Assembly Header"; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line"; var ResJnlPostLine: Codeunit "Res. Jnl.-Post Line"; var WhseJnlRegisterLine: Codeunit "Whse. Jnl.-Register Line")
     var
