@@ -120,7 +120,7 @@ page 6105 "Inbound E-Documents"
                     ToolTip = 'Specifies the status of the agent task for this document.';
                     Editable = false;
                 }
-#if not CLEAN28
+#if not CLEAN29
                 field("Vendor Name"; EDocumentPurchaseHeader."Vendor Company Name")
                 {
                     Caption = 'Sender';

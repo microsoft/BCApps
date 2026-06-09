@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Processing.Import;
 
-using Microsoft.eServices.EDocument.Processing.Interfaces;
 using Microsoft.eServices.EDocument.Processing.Import.Sales;
+using Microsoft.eServices.EDocument.Processing.Interfaces;
 
 /// <summary>
 /// Enum for E-Document Processing
