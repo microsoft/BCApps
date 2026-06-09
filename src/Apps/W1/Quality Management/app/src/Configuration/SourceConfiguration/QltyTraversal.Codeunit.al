@@ -497,22 +497,28 @@ codeunit 20408 "Qlty. Traversal"
         CurrentField: Record Field;
         QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
         QltyInspectSrcFldConf: Record "Qlty. Inspect. Src. Fld. Conf.";
-        ChainedQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
         Test: Text;
     begin
         Recursion -= 1;
         if Recursion <= 0 then
             Error(ConfigurationNestingOrCircularErr);
 
+        // Iterate over every enabled source config that originates from FromTable.
+        // For each, first look for a field line that maps directly to (ToTable, TestFieldNo)
+        // on the inspection. If none is found and the config is a chained-table config,
+        // recurse via its intermediate "To Table No." so that mappings reachable through
+        // multi-hop chains (e.g. Warehouse Receipt Line -> Purchase Line -> Inspection)
+        // are also considered.
         QltyInspectSourceConfig.SetRange(Enabled, true);
         QltyInspectSourceConfig.SetRange("From Table No.", FromTable);
-        QltyInspectSourceConfig.SetRange("To Table No.", ToTable);
         if not QltyInspectSourceConfig.FindSet() then
             exit;
 
         repeat
             if not ListOfConsideredSourceRecords.Contains(QltyInspectSourceConfig.Code) then begin
                 ListOfConsideredSourceRecords.Add(QltyInspectSourceConfig.Code);
+
+                QltyInspectSrcFldConf.Reset();
                 QltyInspectSrcFldConf.SetRange(Code, QltyInspectSourceConfig.Code);
                 QltyInspectSrcFldConf.SetRange("To Table No.", ToTable);
                 QltyInspectSrcFldConf.SetRange("To Field No.", TestFieldNo);
@@ -530,58 +536,21 @@ codeunit 20408 "Qlty. Traversal"
                     if ResultText <> '' then
                         exit;
                 end;
+
+                if QltyInspectSourceConfig."To Type" = QltyInspectSourceConfig."To Type"::"Chained table" then begin
+                    Test := GetSourceFieldInfoFromChain(
+                        ListOfConsideredSourceRecords,
+                        Recursion,
+                        QltyInspectSourceConfig."To Table No.",
+                        ToTable,
+                        TestFieldNo,
+                        BackupFieldCaption);
+                    if Test <> '' then begin
+                        ResultText := Test;
+                        exit;
+                    end;
+                end;
             end;
-
-            ChainedQltyInspectSourceConfig.Reset();
-            ChainedQltyInspectSourceConfig.SetRange(Enabled, true);
-            ChainedQltyInspectSourceConfig.SetRange("To Table No.", ToTable);
-            ChainedQltyInspectSourceConfig.SetRange("To Type", ChainedQltyInspectSourceConfig."To Type"::"Chained table");
-            if ChainedQltyInspectSourceConfig.FindSet() then
-                repeat
-                    if not ListOfConsideredSourceRecords.Contains(ChainedQltyInspectSourceConfig.Code) then begin
-                        QltyInspectSrcFldConf.Reset();
-                        QltyInspectSrcFldConf.SetRange(Code, QltyInspectSrcFldConf.Code);
-                        QltyInspectSrcFldConf.SetRange("To Table No.", ToTable);
-                        QltyInspectSrcFldConf.SetRange("To Field No.", TestFieldNo);
-                        QltyInspectSrcFldConf.SetRange("To Type", QltyInspectSrcFldConf."To Type"::Inspection);
-                        Test := GetSourceFieldInfoFromChain(
-                            ListOfConsideredSourceRecords,
-                            Recursion,
-                            ChainedQltyInspectSourceConfig."From Table No.",
-                            ChainedQltyInspectSourceConfig."To Table No.",
-                            TestFieldNo,
-                            BackupFieldCaption);
-                        if Test <> '' then
-                            ResultText := Test;
-                    end;
-                until (ChainedQltyInspectSourceConfig.Next() = 0) or (ResultText <> '');
-
-            if ResultText <> '' then
-                exit;
-
-            ChainedQltyInspectSourceConfig.Reset();
-            ChainedQltyInspectSourceConfig.SetRange(Enabled, true);
-            ChainedQltyInspectSourceConfig.SetRange("To Table No.", FromTable);
-            ChainedQltyInspectSourceConfig.SetRange("To Type", ChainedQltyInspectSourceConfig."To Type"::"Chained table");
-            if ChainedQltyInspectSourceConfig.FindSet() then
-                repeat
-                    if not ListOfConsideredSourceRecords.Contains(ChainedQltyInspectSourceConfig.Code) then begin
-                        QltyInspectSrcFldConf.Reset();
-                        QltyInspectSrcFldConf.SetRange(Code, QltyInspectSrcFldConf.Code);
-                        QltyInspectSrcFldConf.SetRange("To Table No.", FromTable);
-                        QltyInspectSrcFldConf.SetRange("To Field No.", TestFieldNo);
-                        QltyInspectSrcFldConf.SetRange("To Type", QltyInspectSrcFldConf."To Type"::Inspection);
-                        Test := GetSourceFieldInfoFromChain(
-                            ListOfConsideredSourceRecords,
-                            Recursion,
-                            ChainedQltyInspectSourceConfig."From Table No.",
-                            ChainedQltyInspectSourceConfig."To Table No.",
-                            TestFieldNo,
-                            BackupFieldCaption);
-                        if Test <> '' then
-                            ResultText := Test;
-                    end;
-                until (ChainedQltyInspectSourceConfig.Next() = 0) or (ResultText <> '')
         until QltyInspectSourceConfig.Next() = 0;
     end;
 

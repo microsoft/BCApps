@@ -18,9 +18,6 @@ page 20411 "Qlty. Source Config Line Part"
     PageType = ListPart;
     ShowFilter = false;
     SourceTable = "Qlty. Inspect. Src. Fld. Conf.";
-    InsertAllowed = false;
-    ModifyAllowed = false;
-    DeleteAllowed = false;
     ApplicationArea = QualityManagement;
 
     layout

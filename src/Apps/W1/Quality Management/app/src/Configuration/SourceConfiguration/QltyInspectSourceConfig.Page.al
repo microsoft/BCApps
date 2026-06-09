@@ -14,7 +14,7 @@ page 20410 "Qlty. Inspect. Source Config."
     PageType = ListPlus;
     SourceTable = "Qlty. Inspect. Source Config.";
     RefreshOnActivate = true;
-    Editable = false;
+    Editable = true;
     UsageCategory = None;
     ApplicationArea = QualityManagement;
     AboutTitle = 'Populating data from tables in Business Central';
