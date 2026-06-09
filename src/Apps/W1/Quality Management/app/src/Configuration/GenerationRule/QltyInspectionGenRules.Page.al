@@ -480,7 +480,6 @@ page 20405 "Qlty. Inspection Gen. Rules"
 
     trigger OnAfterGetCurrRecord()
     begin
-        Rec.CalcFields("Table Caption");
         UpdateControls();
     end;
 
