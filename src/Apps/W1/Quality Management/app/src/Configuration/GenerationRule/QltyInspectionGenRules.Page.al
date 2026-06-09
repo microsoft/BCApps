@@ -60,7 +60,8 @@ page 20405 "Qlty. Inspection Gen. Rules"
                     trigger OnAssistEdit()
                     begin
                         Rec.HandleOnAssistEditSourceTable();
-                        CurrPage.SaveRecord();
+                        if Rec."Source Table No." <> 0 then
+                            CurrPage.SaveRecord();
                         if xRec."Entry No." = Rec."Entry No." then
                             CurrPage.Update(true);
                     end;
