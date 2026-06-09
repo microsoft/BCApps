@@ -191,6 +191,7 @@ codeunit 30166 "Shpfy Process Order"
         Discount: Decimal;
     begin
         OrderLine.SetRange("Shopify Order Id", OrderHeader."Shopify Order Id");
+        OrderLine.SetRange("Is Exchange Item", false);
         OrderLine.CalcSums("Discount Amount");
         OrderShippingCharges.SetRange("Shopify Order Id", OrderHeader."Shopify Order Id");
         OrderShippingCharges.CalcSums("Discount Amount");
@@ -231,6 +232,7 @@ codeunit 30166 "Shpfy Process Order"
             SalesLine.Insert(true);
         end;
         ShopifyOrderLine.SetRange("Shopify Order Id", ShopifyOrderHeader."Shopify Order Id");
+        ShopifyOrderLine.SetRange("Is Exchange Item", false);
         if ShopifyOrderLine.FindSet() then
             repeat
                 OrderEvents.OnBeforeCreateItemSalesLine(ShopifyOrderHeader, ShopifyOrderLine, SalesHeader, SalesLine, IsHandled);

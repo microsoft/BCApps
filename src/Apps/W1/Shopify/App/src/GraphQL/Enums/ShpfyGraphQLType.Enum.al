@@ -600,4 +600,20 @@ enum 30111 "Shpfy GraphQL Type"
     {
         Caption = 'Has Fulfillment Service';
     }
+    value(148; Orders_GetOrderExchangeLineItems)
+    {
+        Caption = 'Get Order Exchange Line Items';
+    }
+    value(149; Orders_GetNextOrderExchangeLineItems)
+    {
+        Caption = 'Get Next Order Exchange Line Items';
+    }
+    value(150; Refunds_GetRefundExchangeLines)
+    {
+        Caption = 'Get Refund Exchange Lines';
+    }
+    value(151; Refunds_GetNextRefundExchangeLines)
+    {
+        Caption = 'Get Next Refund Exchange Lines';
+    }
 }
