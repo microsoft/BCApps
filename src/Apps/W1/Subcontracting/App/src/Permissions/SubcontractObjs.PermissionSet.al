@@ -3,6 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
+using Microsoft.Manufacturing.Planning;
 
 permissionset 99001501 "Subcontract. - Objs"
 {
@@ -67,6 +68,10 @@ permissionset 99001501 "Subcontract. - Objs"
         codeunit "Subc. Transfer WIP Posting" = X,
         codeunit "Subc. WhsePostShipment Ext" = X,
         codeunit "Subc. WIP Item Ledg Find Entry" = X,
+        codeunit "Subc. Application Area Handler" = X,
+        codeunit "Subc. Feature Flag Handler" = X,
+        codeunit "Subc. Upgrade Tag Def. Ext." = X,
+        codeunit "Subc. Worksheet Handler" = X,
 
         // Pages
         page "Subc. Prod. Order Components" = X,
@@ -76,10 +81,12 @@ permissionset 99001501 "Subcontract. - Objs"
         page "Subcontractor Prices" = X,
         page "Subc. WIP Adjustment" = X,
         page "Subc. WIP Ledger Entries" = X,
+        page "Subc. Subcontracting Worksheet" = X,
 
         // Reports
         report "Subc. Create Transf. Order" = X,
         report "Subc. Create SubCReturnOrder" = X,
         report "Subc. Detailed Calculation" = X,
-        report "Subc. Dispatching List" = X;
+        report "Subc. Dispatching List" = X,
+        report "Subc. Calculate Subcontracts" = X;
 }
