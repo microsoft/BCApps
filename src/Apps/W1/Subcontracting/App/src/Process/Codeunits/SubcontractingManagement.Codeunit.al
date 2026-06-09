@@ -375,6 +375,12 @@ codeunit 99001505 "Subcontracting Management"
     var
         ProdOrderComponent: Record "Prod. Order Component";
     begin
+        if TransferLine."Subc. Return Order" then
+            exit;
+
+        if TransferLine."Quantity Shipped" <> 0 then
+            exit;
+
         if ProdOrderComponent.Get("Production Order Status"::Released, TransferLine."Subc. Prod. Order No.", TransferLine."Subc. Prod. Order Line No.", TransferLine."Subc. Prod. Ord. Comp Line No.") then
             if ProdOrderComponent."Subc. Original Location Code" <> '' then begin
                 ChangeLocationOnProdOrderComponent(ProdOrderComponent, '', ProdOrderComponent."Subc. Original Location Code", ProdOrderComponent."Subc. Orig. Bin Code");

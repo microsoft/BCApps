@@ -71,6 +71,7 @@ report 99001502 "Subc. Create SubCReturnOrder"
         NothingToCreateErr: Label 'Nothing to create. No components or WIP items to return for the specified subcontracting order.';
         OrderNoDoesNotExistInProdOrderErr: Label 'Operation %1 in the subcontracting order %2 does not exist in the routing %3 of the production order %4.', Comment = '%1=Operation No., %2=Purchase Order No., %3=Routing No., %4=Production Order No.';
         OrderNoIsNotSubcontractorErr: Label 'Order %1 is not a Subcontractor work.', Comment = '%1=Purchase Order No.';
+        SubcLocationCodeMissingErr: Label 'The Subc. Location Code must be specified on Vendor %1 or the Subcontracting Purchase Order to create return orders.', Comment = '%1=Vendor No.';
         WarningToSpecifyPurchOrderErr: Label 'Warning. Specify a Purchase Order No. for the Subcontractor work.';
 
     local procedure InsertTransferHeader(TransferFromLocationCode: Code[10]; TransferToLocationCode: Code[10])
@@ -260,23 +261,22 @@ report 99001502 "Subc. Create SubCReturnOrder"
         TransferLine2: Record "Transfer Line";
     begin
         if PurchaseLine."Document No." = '' then
-            exit;
+            exit(false);
         TransferLine2.SetRange("Subc. Purch. Order No.", PurchaseLine."Document No.");
         TransferLine2.SetRange("Subc. Purch. Order Line No.", PurchaseLine."Line No.");
         TransferLine2.SetRange("Subc. Prod. Order No.", PurchaseLine."Prod. Order No.");
         TransferLine2.SetRange("Subc. Prod. Order Line No.", PurchaseLine."Prod. Order Line No.");
         TransferLine2.SetRange("Subc. Return Order", true);
-        if not TransferLine2.IsEmpty() then
-            exit(false);
+        exit(not TransferLine2.IsEmpty());
     end;
 
-    local procedure GetTransferFromLocationCode(var TransferToLocationCode: Code[10])
+    local procedure GetTransferFromLocationCode(var SubcLocationCode: Code[10])
     begin
-        TransferToLocationCode := "Purchase Header"."Subc. Location Code";
-        if TransferToLocationCode = '' then begin
-            TransferToLocationCode := Vendor."Subc. Location Code";
-            if TransferToLocationCode = '' then
-                Vendor.TestField("Subc. Location Code");
+        SubcLocationCode := "Purchase Header"."Subc. Location Code";
+        if SubcLocationCode = '' then begin
+            SubcLocationCode := Vendor."Subc. Location Code";
+            if SubcLocationCode = '' then
+                Error(SubcLocationCodeMissingErr, Vendor."No.");
         end;
     end;
 
