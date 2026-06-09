@@ -165,6 +165,24 @@ pageextension 99001503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
                     end;
                 end;
             }
+            action("WIP Adjustment")
+            {
+                ApplicationArea = Manufacturing;
+                Caption = 'WIP Adjustment';
+                Image = AdjustEntries;
+                ToolTip = 'Manually adjust the WIP quantity for the selected prod. order routing line.';
+
+                trigger OnAction()
+                var
+                    WIPLedgerEntry: Record "Subcontractor WIP Ledger Entry";
+                    WIPAdjustmentPage: Page "Subc. WIP Adjustment";
+                begin
+                    WIPLedgerEntry.SetProductionOrderRoutingFilter(Rec, true);
+                    WIPAdjustmentPage.SetWIPLedgerEntry(WIPLedgerEntry);
+                    WIPAdjustmentPage.SetDocumentNo(Rec."Prod. Order No.");
+                    WIPAdjustmentPage.RunModal();
+                end;
+            }
         }
     }
     var
