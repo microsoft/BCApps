@@ -18,20 +18,16 @@ using Microsoft.Purchases.Posting;
 codeunit 99001535 "Subc. Purch. Post Ext"
 {
     var
-        CancelNotSupportedErr: Label 'You cannot cancel or correct posted purchase invoice %1 because it contains item charge(s) assigned to a subcontracting service receipt. Create a purchase credit memo manually and assign the item charge to the posted subcontracting receipt line.', Comment = '%1 = Posted Purchase Invoice No.';
+        CancelNotSupportedErr: Label 'You cannot cancel or correct posted purchase invoice %1 because it contains item charges assigned to a subcontracting order receipt.\Create a purchase credit memo manually and assign the item charge to the posted subcontracting receipt line.', Comment = '%1 = Posted Purchase Invoice No.';
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Correct Posted Purch. Invoice", OnAfterTestCorrectInvoiceIsAllowed, '', false, false)]
-    local procedure "Correct Posted Purch. Invoice_OnAfterTestCorrectInvoiceIsAllowed"(var PurchInvHeader: Record "Purch. Inv. Header"; Cancelling: Boolean)
-    begin
-        BlockIfHasSubcontractingItemChargeValueEntry(PurchInvHeader);
-    end;
-
-    local procedure BlockIfHasSubcontractingItemChargeValueEntry(PurchInvHeader: Record "Purch. Inv. Header")
+    local procedure BlockCancelIfHasSubcontractingItemChargeValueEntry(var PurchInvHeader: Record "Purch. Inv. Header"; Cancelling: Boolean)
     var
         ValueEntry: Record "Value Entry";
     begin
         ValueEntry.SetRange("Document Type", ValueEntry."Document Type"::"Purchase Invoice");
         ValueEntry.SetRange("Document No.", PurchInvHeader."No.");
+        ValueEntry.SetFilter("Item Charge No.", '<>%1', '');
         ValueEntry.SetFilter("Capacity Ledger Entry No.", '<>%1', 0);
         if not ValueEntry.IsEmpty() then
             Error(CancelNotSupportedErr, PurchInvHeader."No.");
