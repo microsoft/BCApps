@@ -12,7 +12,9 @@ codeunit 99001517 "Subc. Calc. Prod. Order Ext."
 {
 #if not CLEAN29
     var
+#pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
 
 #endif
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Calculate Prod. Order", OnAfterTransferRoutingLine, '', false, false)]
@@ -22,9 +24,10 @@ codeunit 99001517 "Subc. Calc. Prod. Order Ext."
         SubcontractingManagement: Codeunit "Subcontracting Management";
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         SubcontractingManagement.UpdateLinkedComponentsAfterRoutingTransfer(ProdOrderLine, RoutingLine, ProdOrderRoutingLine);
 
@@ -35,9 +38,10 @@ codeunit 99001517 "Subc. Calc. Prod. Order Ext."
     local procedure OnAfterTransferBOMComponent(var ProdOrderLine: Record "Prod. Order Line"; var ProductionBOMLine: Record "Production BOM Line"; var ProdOrderComponent: Record "Prod. Order Component"; LineQtyPerUOM: Decimal; ItemQtyPerUOM: Decimal)
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         TransferSubcontractingFieldsBOMComponent(ProductionBOMLine, ProdOrderComponent);
     end;
@@ -45,9 +49,10 @@ codeunit 99001517 "Subc. Calc. Prod. Order Ext."
     local procedure TransferSubcontractingFieldsBOMComponent(var ProductionBOMLine: Record "Production BOM Line"; var ProdOrderComponent: Record "Prod. Order Component")
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         ProdOrderComponent."Subc. Original Location Code" := ProdOrderComponent."Location Code";
         ProdOrderComponent."Subc. Orig. Bin Code" := ProdOrderComponent."Bin Code";

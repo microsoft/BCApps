@@ -188,7 +188,9 @@ table 99001560 "Subcontractor WIP Ledger Entry"
 
 #if not CLEAN29
     var
+#pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
 #endif
     /// <summary>
     /// Filters the record set to WIP entries for the given production order.
@@ -197,7 +199,9 @@ table 99001560 "Subcontractor WIP Ledger Entry"
     procedure SetProductionOrderFilter(ProductionOrder: Record "Production Order"; SetKey: Boolean)
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
 #endif
         if SetKey then
@@ -213,7 +217,9 @@ table 99001560 "Subcontractor WIP Ledger Entry"
     procedure SetProductionOrderRoutingFilter(ProdOrderRoutingLine: Record "Prod. Order Routing Line"; SetKey: Boolean)
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
 #endif
         if SetKey then
@@ -233,7 +239,9 @@ table 99001560 "Subcontractor WIP Ledger Entry"
         SequenceNoMgt: Codeunit "Sequence No. Mgt.";
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit(0);
 #endif
         exit(SequenceNoMgt.GetNextSeqNo(DATABASE::"Subcontractor WIP Ledger Entry"));

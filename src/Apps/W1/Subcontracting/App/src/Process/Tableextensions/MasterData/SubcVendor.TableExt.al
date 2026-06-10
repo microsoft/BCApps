@@ -22,12 +22,16 @@ tableextension 99001507 "Subc. Vendor" extends Vendor
             var
                 Location: Record Location;
 #if not CLEAN29
+#pragma warning disable AL0432
                 SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
 #endif
                 ErrorInfo: ErrorInfo;
             begin
 #if not CLEAN29
+#pragma warning disable AL0432
                 if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
                     exit;
 #endif
                 if "Subc. Location Code" = '' then

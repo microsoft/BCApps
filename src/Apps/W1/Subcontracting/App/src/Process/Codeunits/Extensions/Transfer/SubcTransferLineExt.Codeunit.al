@@ -10,16 +10,19 @@ codeunit 99001544 "Subc. Transfer Line Ext."
 {
 #if not CLEAN29
     var
+#pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
 
 #endif
     [EventSubscriber(ObjectType::Table, Database::"Transfer Line", OnAfterGetTransHeader, '', false, false)]
     local procedure OnAfterGetTransHeader(var TransferLine: Record "Transfer Line"; TransferHeader: Record "Transfer Header")
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         TransferLine."Subc. Return Order" := TransferHeader."Subc. Return Order";
     end;
@@ -30,9 +33,10 @@ codeunit 99001544 "Subc. Transfer Line Ext."
         SubcontractingManagement: Codeunit "Subcontracting Management";
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         if Rec.IsTemporary then
             exit;
@@ -47,9 +51,10 @@ codeunit 99001544 "Subc. Transfer Line Ext."
     local procedure OnValidateItemNoOnCopyFromTempTransLine_TransferLine(var TransferLine: Record "Transfer Line"; TempTransferLine: Record "Transfer Line")
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         CopySubFieldsFromTempTransferLineToTransferLine(TransferLine, TempTransferLine);
     end;

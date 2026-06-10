@@ -169,7 +169,9 @@ pageextension 99001503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
     }
     var
 #if not CLEAN29
+#pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
         SubcontractingEnabled: Boolean;
 #endif
         TransferWIPItemEnabled: Boolean;
@@ -182,10 +184,11 @@ pageextension 99001503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
         StatusFilter: Text;
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         SubcontractingEnabled := SubcFeatureFlagHandler.IsSubcontractingEnabled();
+#pragma warning restore AL0432
         if not SubcontractingEnabled then
             exit;
-
 #endif
         StatusFilter := Rec.GetFilter(Rec.Status);
         if StatusFilter.Contains(Format("Production Order Status"::Released)) then

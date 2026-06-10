@@ -31,7 +31,9 @@ table 99001500 "Subcontractor Price"
                 Vendor: Record Vendor;
             begin
 #if not CLEAN29
+#pragma warning disable AL0432
                 if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
                     exit;
 #endif
                 if Vendor.Get("Vendor No.") then
@@ -47,7 +49,9 @@ table 99001500 "Subcontractor Price"
             trigger OnValidate()
             begin
 #if not CLEAN29
+#pragma warning disable AL0432
                 if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
                     exit;
 #endif
                 if "Item No." <> xRec."Item No." then begin
@@ -78,7 +82,9 @@ table 99001500 "Subcontractor Price"
             trigger OnValidate()
             begin
 #if not CLEAN29
+#pragma warning disable AL0432
                 if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
                     exit;
 #endif
                 if ("Starting Date" > "Ending Date") and ("Ending Date" <> 0D) then
@@ -122,7 +128,9 @@ table 99001500 "Subcontractor Price"
             trigger OnValidate()
             begin
 #if not CLEAN29
+#pragma warning disable AL0432
                 if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
                     exit;
 #endif
                 Validate("Starting Date");
@@ -160,7 +168,9 @@ table 99001500 "Subcontractor Price"
     trigger OnInsert()
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
 #endif
         TestField("Vendor No.");
@@ -170,7 +180,9 @@ table 99001500 "Subcontractor Price"
     trigger OnRename()
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
 #endif
         TestField("Vendor No.");
@@ -179,7 +191,9 @@ table 99001500 "Subcontractor Price"
 
     var
 #if not CLEAN29
+#pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
 #endif
         InvalidStartingDateErr: Label '%1 cannot be after %2', Comment = '%1=Field Caption for starting date, %2=Field Caption for ending date';
 
@@ -188,7 +202,9 @@ table 99001500 "Subcontractor Price"
         NewSubcontractorPrice: Record "Subcontractor Price";
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
 #endif
         if SubcontractorPrice.FindSet() then
@@ -203,7 +219,9 @@ table 99001500 "Subcontractor Price"
     internal procedure DeletePricesForVendor(VendorNo: Code[20])
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
 #endif
         SetCurrentKey("Vendor No.");
@@ -215,7 +233,9 @@ table 99001500 "Subcontractor Price"
     internal procedure DeletePricesForWorkCenter(WorkCenterNo: Code[20])
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
 #endif
         SetCurrentKey("Work Center No.");
@@ -227,7 +247,9 @@ table 99001500 "Subcontractor Price"
     internal procedure DeletePricesForItem(ItemNo: Code[20])
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
 #endif
         SetCurrentKey("Item No.");

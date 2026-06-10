@@ -10,7 +10,9 @@ codeunit 99001565 "Subc. Posting Preview Binding"
 {
 #if not CLEAN29
     var
+#pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
 #endif
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Preview", OnAfterBindSubscription, '', true, false)]
@@ -30,7 +32,9 @@ codeunit 99001565 "Subc. Posting Preview Binding"
         SubcPostingPreviewHandler: Codeunit "Subc. Pst. Prev. Event Handler";
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
 #endif
         SubcPostingPreviewHandler.DeleteAll();
@@ -42,7 +46,9 @@ codeunit 99001565 "Subc. Posting Preview Binding"
         SubcPostingPreviewHandler: Codeunit "Subc. Pst. Prev. Event Handler";
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
 #endif
         exit(UnbindSubscription(SubcPostingPreviewHandler));

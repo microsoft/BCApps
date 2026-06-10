@@ -25,7 +25,9 @@ tableextension 99001510 "Subc. RequisitionLine" extends "Requisition Line"
             trigger OnValidate()
             begin
 #if not CLEAN29
+#pragma warning disable AL0432
                 if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
                     exit;
 #endif
                 if (Type = Type::Item) and
@@ -56,7 +58,9 @@ tableextension 99001510 "Subc. RequisitionLine" extends "Requisition Line"
             trigger OnValidate()
             begin
 #if not CLEAN29
+#pragma warning disable AL0432
                 if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
                     exit;
 #endif
                 if (CurrFieldNo = FieldNo("PL UM Qty/Base UM Qty")) and
@@ -78,7 +82,9 @@ tableextension 99001510 "Subc. RequisitionLine" extends "Requisition Line"
             trigger OnValidate()
             begin
 #if not CLEAN29
+#pragma warning disable AL0432
                 if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
                     exit;
 #endif
                 if (CurrFieldNo = FieldNo("Subc. UoM for Pricelist")) and
@@ -118,7 +124,9 @@ tableextension 99001510 "Subc. RequisitionLine" extends "Requisition Line"
     }
 #if not CLEAN29
     var
+#pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
 #endif
 
     procedure GetQuantityForUOM(): Decimal
@@ -126,7 +134,9 @@ tableextension 99001510 "Subc. RequisitionLine" extends "Requisition Line"
         ItemUnitofMeasure: Record "Item Unit of Measure";
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit(0);
 #endif
         ItemUnitofMeasure.Get("No.", "Unit of Measure Code");
@@ -138,7 +148,9 @@ tableextension 99001510 "Subc. RequisitionLine" extends "Requisition Line"
         ItemUnitofMeasure: Record "Item Unit of Measure";
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit(0);
 #endif
         ItemUnitofMeasure.Get("No.", "Unit of Measure Code");
@@ -150,7 +162,9 @@ tableextension 99001510 "Subc. RequisitionLine" extends "Requisition Line"
         SubcPriceManagement: Codeunit "Subc. Price Management";
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
 #endif
         if (Type = Type::Item) and ("No." <> '') and ("Prod. Order No." <> '') then
@@ -162,7 +176,9 @@ tableextension 99001510 "Subc. RequisitionLine" extends "Requisition Line"
         SubcPriceManagement: Codeunit "Subc. Price Management";
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
 #endif
         if (Type = Type::Item) and ("No." <> '') and ("Prod. Order No." <> '') then

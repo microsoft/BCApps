@@ -49,7 +49,9 @@ pageextension 99001507 "Subc. Work Center List" extends "Work Center List"
     trigger OnOpenPage()
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         SubcontractingEnabled := SubcFeatureFlagHandler.IsSubcontractingEnabled();
+#pragma warning restore AL0432
 #endif
     end;
 
@@ -65,7 +67,9 @@ pageextension 99001507 "Subc. Work Center List" extends "Work Center List"
 
     var
 #if not CLEAN29
+#pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
         SubcontractingEnabled: Boolean;
 #endif
         IsSubcontractingWorkCenter: Boolean;

@@ -12,7 +12,9 @@ codeunit 99001562 "Subc. Comp. Factbox Mgmt."
 {
 #if not CLEAN29
     var
+#pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
 #endif
 
     /// <summary>
@@ -26,7 +28,9 @@ codeunit 99001562 "Subc. Comp. Factbox Mgmt."
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit(0);
 
 #endif
@@ -54,9 +58,10 @@ codeunit 99001562 "Subc. Comp. Factbox Mgmt."
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         GetProdOrderRtngLineFromProdOrderComp(ProdOrderRoutingLine, ProdOrderComponent);
 
@@ -81,7 +86,9 @@ codeunit 99001562 "Subc. Comp. Factbox Mgmt."
         PurchaseLine: Record "Purchase Line";
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit(0);
 
 #endif
@@ -113,9 +120,10 @@ codeunit 99001562 "Subc. Comp. Factbox Mgmt."
         PurchaseLine: Record "Purchase Line";
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         if ProdOrderComponent."Routing Link Code" = '' then
             exit;
@@ -145,7 +153,9 @@ codeunit 99001562 "Subc. Comp. Factbox Mgmt."
         PurchaseLine: Record "Purchase Line";
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit(0);
 
 #endif
@@ -177,9 +187,10 @@ codeunit 99001562 "Subc. Comp. Factbox Mgmt."
         PurchaseLine: Record "Purchase Line";
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         if ProdOrderComponent."Routing Link Code" = '' then
             exit;

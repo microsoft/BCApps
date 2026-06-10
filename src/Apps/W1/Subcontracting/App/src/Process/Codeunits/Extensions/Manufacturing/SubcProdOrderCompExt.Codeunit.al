@@ -17,7 +17,9 @@ codeunit 99001524 "Subc. Prod. Order Comp. Ext."
 {
     var
 #if not CLEAN29
+#pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
 #endif
         ExistingPostedTransferLineQst: Label 'The component has already been assigned to the posted subcontracting transfer order %1.\\Do you want to continue?', Comment = '%1=Transfer Order No';
         ExistingPurchLineErr: Label 'You cannot change this field because the component is already assigned to subcontracting purchase order %1.\\Updating the quantity is only allowed through the purchase order.', Comment = '%1=Document No';
@@ -28,9 +30,10 @@ codeunit 99001524 "Subc. Prod. Order Comp. Ext."
     local procedure OnAfterInitFromProdOrderComp(ProdOrderComponent: Record "Prod. Order Component")
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         ValidateSubcontractingReservationConstraints(ProdOrderComponent);
     end;
@@ -39,9 +42,10 @@ codeunit 99001524 "Subc. Prod. Order Comp. Ext."
     local procedure OnAfterValidateBinCode(var Rec: Record "Prod. Order Component"; var xRec: Record "Prod. Order Component"; CurrFieldNo: Integer)
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         if Rec.IsTemporary then
             exit;
@@ -52,9 +56,10 @@ codeunit 99001524 "Subc. Prod. Order Comp. Ext."
     local procedure OnAfterValidateLocationCode(var Rec: Record "Prod. Order Component"; var xRec: Record "Prod. Order Component"; CurrFieldNo: Integer)
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         if Rec.IsTemporary then
             exit;
@@ -65,9 +70,10 @@ codeunit 99001524 "Subc. Prod. Order Comp. Ext."
     local procedure OnAfterValidateRoutingLinkCode(var Rec: Record "Prod. Order Component"; var xRec: Record "Prod. Order Component"; CurrFieldNo: Integer)
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         if Rec.IsTemporary then
             exit;
@@ -78,9 +84,10 @@ codeunit 99001524 "Subc. Prod. Order Comp. Ext."
     local procedure OnBeforeValidateLocationCode(var Rec: Record "Prod. Order Component"; var xRec: Record "Prod. Order Component"; CurrFieldNo: Integer)
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         if Rec.IsTemporary then
             exit;
@@ -91,9 +98,10 @@ codeunit 99001524 "Subc. Prod. Order Comp. Ext."
     local procedure OnBeforeValidateQuantityPer(var Rec: Record "Prod. Order Component"; var xRec: Record "Prod. Order Component"; CurrFieldNo: Integer)
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         if Rec.IsTemporary then
             exit;

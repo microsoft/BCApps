@@ -10,7 +10,9 @@ codeunit 99001513 "Subc. Req.Line Extension"
 {
 #if not CLEAN29
     var
+#pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
 
 #endif
     [EventSubscriber(ObjectType::Table, Database::"Requisition Line", OnAfterGetDirectCost, '', false, false)]
@@ -19,9 +21,10 @@ codeunit 99001513 "Subc. Req.Line Extension"
         SubcontractingManagement: Codeunit "Subcontracting Management";
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         SubcontractingManagement.UpdateSubcontractorPriceForRequisitionLine(RequisitionLine);
     end;
@@ -30,9 +33,10 @@ codeunit 99001513 "Subc. Req.Line Extension"
     local procedure OnAfterValidateVendorNo(var Rec: Record "Requisition Line"; var xRec: Record "Requisition Line"; CurrFieldNo: Integer)
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         if Rec.IsTemporary then
             exit;
@@ -45,9 +49,10 @@ codeunit 99001513 "Subc. Req.Line Extension"
     local procedure OnAfterValidateQuantity(var Rec: Record "Requisition Line"; var xRec: Record "Requisition Line"; CurrFieldNo: Integer)
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         if Rec.IsTemporary then
             exit;
@@ -60,9 +65,10 @@ codeunit 99001513 "Subc. Req.Line Extension"
     local procedure ReqWkshTemplateOnAfterValidateRecurring(var Rec: Record "Req. Wksh. Template")
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         if not Rec.Recurring then
             case Rec.Type of

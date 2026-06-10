@@ -13,16 +13,19 @@ codeunit 99001540 "Subc. TransOrderPostRcpt Ext"
 {
 #if not CLEAN29
     var
+#pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
 
 #endif
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"TransferOrder-Post Receipt", OnBeforePostItemJournalLine, '', false, false)]
     local procedure OnBeforePostItemJournalLine(var ItemJournalLine: Record "Item Journal Line"; TransferLine: Record "Transfer Line"; TransferReceiptHeader: Record "Transfer Receipt Header"; TransferReceiptLine: Record "Transfer Receipt Line"; CommitIsSuppressed: Boolean)
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         ItemJournalLine."Subc. Prod. Order No." := TransferReceiptLine."Subc. Prod. Order No.";
         ItemJournalLine."Subc. Prod. Order Line No." := TransferReceiptLine."Subc. Prod. Order Line No.";
@@ -38,9 +41,10 @@ codeunit 99001540 "Subc. TransOrderPostRcpt Ext"
     local procedure OnBeforeInsertTransRcptLine(var TransRcptLine: Record "Transfer Receipt Line"; TransLine: Record "Transfer Line"; CommitIsSuppressed: Boolean)
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         TransRcptLine."Subc. Purch. Order No." := TransLine."Subc. Purch. Order No.";
         TransRcptLine."Subc. Purch. Order Line No." := TransLine."Subc. Purch. Order Line No.";
@@ -58,9 +62,10 @@ codeunit 99001540 "Subc. TransOrderPostRcpt Ext"
         ProdOrderComponent: Record "Prod. Order Component";
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         if (TransferLine."Subc. Prod. Order No." = '') or (TransferLine."Subc. Prod. Order Line No." = 0) or (TransferLine."Subc. Prod. Ord. Comp Line No." = 0) then
             exit;

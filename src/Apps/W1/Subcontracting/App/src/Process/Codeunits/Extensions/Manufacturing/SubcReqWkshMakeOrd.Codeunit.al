@@ -12,16 +12,19 @@ codeunit 99001516 "Subc. Req. Wksh. Make Ord."
 {
 #if not CLEAN29
     var
+#pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
 
 #endif
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Req. Wksh.-Make Order", OnAfterInsertPurchOrderLine, '', false, false)]
     local procedure OnAfterInsertPurchOrderLine(var PurchOrderLine: Record "Purchase Line"; var NextLineNo: Integer; var RequisitionLine: Record "Requisition Line")
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         HandleSubcontractingAfterPurchOrderLineInsert(PurchOrderLine, RequisitionLine);
     end;
@@ -33,9 +36,10 @@ codeunit 99001516 "Subc. Req. Wksh. Make Ord."
         SubcPurchaseOrderCreator: Codeunit "Subc. Purchase Order Creator";
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         if RequisitionLine."Prod. Order No." = '' then
             exit;

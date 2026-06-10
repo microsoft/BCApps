@@ -17,7 +17,9 @@ codeunit 99001511 "Subc. Synchronize Management"
 {
     var
 #if not CLEAN29
+#pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
 #endif
         CannotDeleteSubcOrderTitleLbl: Label 'Transfer Order Exists';
         CannotDeleteSubcOrderWithTransferOrderErr: Label 'You cannot delete Subcontracting Order %1 because Transfer Order %2 is associated with it. Delete or receive the Transfer Order first.', Comment = '%1=Subcontracting Order No., %2=Transfer Order No.';
@@ -29,9 +31,10 @@ codeunit 99001511 "Subc. Synchronize Management"
         ProductionOrder: Record "Production Order";
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         if not IsSubcontractingLine(PurchaseLine) then
             exit;
@@ -64,9 +67,10 @@ codeunit 99001511 "Subc. Synchronize Management"
         PurchLineBaseQuantity: Decimal;
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         if not IsSubcontractingLine(PurchaseLine) then
             exit;
@@ -123,9 +127,10 @@ codeunit 99001511 "Subc. Synchronize Management"
         TransferHeader: Record "Transfer Header";
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
         PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
@@ -199,9 +204,10 @@ codeunit 99001511 "Subc. Synchronize Management"
         TransferOrderErrorInfo: ErrorInfo;
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         TransferHeader.SetRange("Subcontr. Purch. Order No.", PurchaseHeader."No.");
         if TransferHeader.IsEmpty() then
@@ -226,9 +232,10 @@ codeunit 99001511 "Subc. Synchronize Management"
         PurchaseLine2: Record "Purchase Line";
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         if not IsSubcontractingLine(PurchaseLine) then
             exit;

@@ -113,7 +113,9 @@ page 99001561 "Subc. WIP Adjustment"
                     trigger OnValidate()
                     begin
 #if not CLEAN29
+#pragma warning disable AL0432
                         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
                             exit;
 #endif
                         NewQuantities.Set(Rec."Entry No.", NewQuantityBase);
@@ -207,7 +209,9 @@ page 99001561 "Subc. WIP Adjustment"
                     trigger OnValidate()
                     begin
 #if not CLEAN29
+#pragma warning disable AL0432
                         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
                             exit;
 #endif
                         NewQuantities.Set(Rec."Entry No.", NewQuantityBase);
@@ -235,7 +239,9 @@ page 99001561 "Subc. WIP Adjustment"
     trigger OnAfterGetRecord()
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
 #endif
         NewQuantities.Get(Rec."Entry No.", NewQuantityBase);
@@ -245,7 +251,9 @@ page 99001561 "Subc. WIP Adjustment"
     trigger OnOpenPage()
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
 #endif
         PostingDate := WorkDate();
@@ -258,7 +266,9 @@ page 99001561 "Subc. WIP Adjustment"
     trigger OnQueryClosePage(CloseAction: Action): Boolean
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit(true);
 #endif
         if CloseAction in [ACTION::OK, ACTION::LookupOK] then
@@ -269,7 +279,9 @@ page 99001561 "Subc. WIP Adjustment"
     var
         Item: Record Item;
 #if not CLEAN29
+#pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
 #endif
         NewQuantities: Dictionary of [Integer, Decimal];
         PostingDate: Date;
@@ -292,7 +304,9 @@ page 99001561 "Subc. WIP Adjustment"
         EntrySeq: Integer;
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
 #endif
         EntrySeq := 1;
@@ -345,7 +359,9 @@ page 99001561 "Subc. WIP Adjustment"
     procedure SetDocumentNo(DocNo: Code[20])
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
 #endif
         DocumentNo := DocNo;

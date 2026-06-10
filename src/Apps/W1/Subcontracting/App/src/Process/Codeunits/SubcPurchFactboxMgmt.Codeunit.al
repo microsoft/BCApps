@@ -20,7 +20,9 @@ codeunit 99001560 "Subc. Purch. Factbox Mgmt."
         MultipleLbl: Label 'Multiple', MaxLength = 20;
         NoTransferExistsMsg: Label 'No transfer order exists for this purchase order.';
 #if not CLEAN29
+#pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
 #endif
 
     /// <summary>
@@ -35,9 +37,10 @@ codeunit 99001560 "Subc. Purch. Factbox Mgmt."
         PurchOrderLineNo: Integer;
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         if not GetPurchaseOrderNoByVariant(RecRelatedVariant, PurchOrderNo, PurchOrderLineNo) then
             exit;
@@ -59,7 +62,9 @@ codeunit 99001560 "Subc. Purch. Factbox Mgmt."
         PurchOrderLineNo: Integer;
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit(0);
 
 #endif
@@ -85,7 +90,9 @@ codeunit 99001560 "Subc. Purch. Factbox Mgmt."
         PurchOrderLineNo: Integer;
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit('');
 
 #endif
@@ -120,7 +127,9 @@ codeunit 99001560 "Subc. Purch. Factbox Mgmt."
         PurchOrderLineNo: Integer;
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit('');
 
 #endif
@@ -152,7 +161,9 @@ codeunit 99001560 "Subc. Purch. Factbox Mgmt."
         PurchOrderLineNo: Integer;
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit(0);
 
 #endif
@@ -193,7 +204,9 @@ codeunit 99001560 "Subc. Purch. Factbox Mgmt."
         ProdOrderLineNo: Integer;
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit(false);
 
 #endif
@@ -272,7 +285,9 @@ codeunit 99001560 "Subc. Purch. Factbox Mgmt."
         NoOfTransferHeaders: Integer;
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit(0);
 
 #endif
@@ -369,7 +384,9 @@ codeunit 99001560 "Subc. Purch. Factbox Mgmt."
     procedure CalcNoOfPurchasePrices(var PurchaseLine: Record "Purchase Line"): Integer
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit(0);
 
 #endif
@@ -386,9 +403,10 @@ codeunit 99001560 "Subc. Purch. Factbox Mgmt."
         SubcontractorPrice: Record "Subcontractor Price";
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         FilterSubContractorPriceForPurchLine(SubcontractorPrice, PurchaseLine);
 

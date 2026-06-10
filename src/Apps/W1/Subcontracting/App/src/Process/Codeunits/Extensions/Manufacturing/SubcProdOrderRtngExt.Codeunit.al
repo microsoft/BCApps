@@ -12,16 +12,19 @@ codeunit 99001520 "Subc. Prod. Order Rtng. Ext."
 {
 #if not CLEAN29
     var
+#pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
 
 #endif
     [EventSubscriber(ObjectType::Table, Database::"Prod. Order Routing Line", OnAfterDeleteEvent, '', false, false)]
     local procedure OnAfterDeleteProdOrderRtngLine(var Rec: Record "Prod. Order Routing Line"; RunTrigger: Boolean)
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         if Rec.IsTemporary then
             exit;
@@ -38,9 +41,10 @@ codeunit 99001520 "Subc. Prod. Order Rtng. Ext."
         SubcontractingManagement: Codeunit "Subcontracting Management";
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         if Rec.IsTemporary then
             exit;
@@ -53,9 +57,10 @@ codeunit 99001520 "Subc. Prod. Order Rtng. Ext."
     local procedure OnAfterValidateRoutingLinkCode(var Rec: Record "Prod. Order Routing Line"; var xRec: Record "Prod. Order Routing Line"; CurrFieldNo: Integer)
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         if Rec.IsTemporary then
             exit;
@@ -68,9 +73,10 @@ codeunit 99001520 "Subc. Prod. Order Rtng. Ext."
         SubcPriceManagement: Codeunit "Subc. Price Management";
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         if Rec.IsTemporary then
             exit;
@@ -83,9 +89,10 @@ codeunit 99001520 "Subc. Prod. Order Rtng. Ext."
         SubcPriceManagement: Codeunit "Subc. Price Management";
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         SubcPriceManagement.GetSubcPriceList(ProdOrderRoutingLine);
     end;
@@ -94,9 +101,10 @@ codeunit 99001520 "Subc. Prod. Order Rtng. Ext."
     local procedure OnAfterCopyFromRoutingLine(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; RoutingLine: Record "Routing Line")
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         ProdOrderRoutingLine."Transfer WIP Item" := RoutingLine."Transfer WIP Item";
         ProdOrderRoutingLine."Transfer Description" := RoutingLine."Transfer Description";
@@ -107,9 +115,10 @@ codeunit 99001520 "Subc. Prod. Order Rtng. Ext."
     local procedure CheckSubcontractingOnCalculateOnBeforeProdOrderRtngLineLoopIteration(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var ProdOrderLine: Record "Prod. Order Line"; var IsHandled: Boolean)
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         ProdOrderRoutingLine.CheckForSubcontractingPurchaseLineTypeMismatch();
     end;

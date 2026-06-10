@@ -40,11 +40,15 @@ tableextension 99001520 "Subc. Transfer Header" extends "Transfer Header"
             trigger OnLookup()
 #if not CLEAN29
             var
+#pragma warning disable AL0432
                 SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
 #endif
             begin
 #if not CLEAN29
+#pragma warning disable AL0432
                 if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
                     exit;
 #endif
                 HandleSubcontractingSourceLookup(Rec);
@@ -101,11 +105,15 @@ tableextension 99001520 "Subc. Transfer Header" extends "Transfer Header"
     procedure CheckDirectTransferPosting()
 #if not CLEAN29
     var
+#pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
 #endif
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
 #endif
         TestField("Transfer-to Code");

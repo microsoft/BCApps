@@ -13,7 +13,9 @@ codeunit 99001533 "Subc. Purchase Header Ext"
 {
     var
 #if not CLEAN29
+#pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
 #endif
         SubcSynchronizeManagement: Codeunit "Subc. Synchronize Management";
 
@@ -21,9 +23,10 @@ codeunit 99001533 "Subc. Purchase Header Ext"
     local procedure OnAfterCopyBuyFromVendorFieldsFromVendor(var PurchaseHeader: Record "Purchase Header"; Vendor: Record Vendor; xPurchaseHeader: Record "Purchase Header")
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         PurchaseHeader."Subc. Location Code" := Vendor."Subc. Location Code";
     end;
@@ -32,9 +35,10 @@ codeunit 99001533 "Subc. Purchase Header Ext"
     local procedure OnAfterValidateEventBuyFromVendorNo(var Rec: Record "Purchase Header"; var xRec: Record "Purchase Header")
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         SubcSynchronizeManagement.DeleteEnhancedDocumentsByChangeOfVendorNo(Rec, xRec);
     end;
@@ -43,9 +47,10 @@ codeunit 99001533 "Subc. Purchase Header Ext"
     local procedure CheckTransferOrderOnBeforeDeleteEvent(var Rec: Record "Purchase Header"; RunTrigger: Boolean)
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         if Rec.IsTemporary() then
             exit;
@@ -60,9 +65,10 @@ codeunit 99001533 "Subc. Purchase Header Ext"
         TransferHeader: Record "Transfer Header";
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         PurchaseHeader.Get(TransferOrderErrorInfo.RecordId);
         TransferHeader.SetRange("Subcontr. Purch. Order No.", PurchaseHeader."No.");
@@ -77,9 +83,10 @@ codeunit 99001533 "Subc. Purchase Header Ext"
     local procedure ClearSubcLocationCodeOnAfterCopyPurchHeaderDone(var ToPurchaseHeader: Record "Purchase Header")
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         ToPurchaseHeader."Subc. Location Code" := '';
     end;

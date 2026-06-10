@@ -61,18 +61,20 @@ report 99001502 "Subc. Create SubCReturnOrder"
         }
     }
 
+#if not CLEAN29
     trigger OnInitReport()
-#if not CLEAN29
     var
+#pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
-#endif
+#pragma warning restore AL0432
     begin
-#if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             CurrReport.Quit();
-#endif
     end;
 
+#endif
     var
         TransferHeader: Record "Transfer Header";
         TransferLine: Record "Transfer Line";

@@ -15,7 +15,9 @@ codeunit 99001534 "Subc. Purchase Line Ext"
 {
     var
 #if not CLEAN29
+#pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
 #endif
         SubcSynchronizeManagement: Codeunit "Subc. Synchronize Management";
         QtyMismatchTitleLbl: Label 'Quantity Mismatch';
@@ -32,9 +34,10 @@ codeunit 99001534 "Subc. Purchase Line Ext"
     local procedure OnAfterDeleteEvent(var Rec: Record "Purchase Line"; RunTrigger: Boolean)
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         if Rec.IsTemporary() then
             exit;
@@ -49,9 +52,10 @@ codeunit 99001534 "Subc. Purchase Line Ext"
     local procedure OnAfterValidateExpectedReceiptDate(var Rec: Record "Purchase Line"; var xRec: Record "Purchase Line"; CurrFieldNo: Integer)
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         if Rec.IsTemporary then
             exit;
@@ -64,9 +68,10 @@ codeunit 99001534 "Subc. Purchase Line Ext"
     local procedure OnAfterValidateQuantity(var Rec: Record "Purchase Line"; var xRec: Record "Purchase Line"; CurrFieldNo: Integer)
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         if Rec.IsTemporary then
             exit;
@@ -79,9 +84,10 @@ codeunit 99001534 "Subc. Purchase Line Ext"
     local procedure OnAfterValidateUnitOfMeasureCode(var Rec: Record "Purchase Line"; var xRec: Record "Purchase Line"; CurrFieldNo: Integer)
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         if Rec.IsTemporary then
             exit;
@@ -94,9 +100,10 @@ codeunit 99001534 "Subc. Purchase Line Ext"
     local procedure OnBeforeUpdateDirectUnitCost(var PurchLine: Record "Purchase Line"; xPurchLine: Record "Purchase Line"; CalledByFieldNo: Integer; CurrFieldNo: Integer; var Handled: Boolean)
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         if PurchLine."Prod. Order No." <> '' then begin
             Handled := true;
@@ -111,9 +118,10 @@ codeunit 99001534 "Subc. Purchase Line Ext"
     local procedure OnValidateVariantCodeOnBeforeDropShipmentError(PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         if PurchaseLine."Prod. Order No." <> '' then
             Error(ChangeVariantNoNotAllowedErr, PurchaseLine.FieldCaption(PurchaseLine."Variant Code"), PurchaseLine."Prod. Order No.");
@@ -131,9 +139,10 @@ codeunit 99001534 "Subc. Purchase Line Ext"
     local procedure OpenProdOrderLineItemTrackingOnBeforeOpenItemTrackingLines(PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         if OpenItemTrackingOfProdOrderLine(PurchaseLine, false) then
             IsHandled := true;
@@ -219,9 +228,10 @@ codeunit 99001534 "Subc. Purchase Line Ext"
         PageManagement: Codeunit "Page Management";
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         PurchaseLine.SetLoadFields("Prod. Order No.");
         PurchaseLine.Get(OverDeliveryErrorInfo.RecordId);
@@ -236,9 +246,10 @@ codeunit 99001534 "Subc. Purchase Line Ext"
         ProdOrderLine: Record "Prod. Order Line";
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         PurchaseLine.SetLoadFields(Type, "No.", "Prod. Order No.", "Prod. Order Line No.", "Routing Reference No.", "Routing No.", "Operation No.", Quantity, "Qty. to Receive", "Qty. to Receive (Base)", "Qty. Rounding Precision", "Outstanding Quantity");
         PurchaseLine.Get(OverDeliveryErrorInfo.RecordId);
@@ -257,9 +268,10 @@ codeunit 99001534 "Subc. Purchase Line Ext"
         ProdOrderLine: Record "Prod. Order Line";
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         PurchaseLine.SetLoadFields(Type, "No.", "Prod. Order No.", "Prod. Order Line No.", "Routing Reference No.", "Routing No.", "Operation No.", "Qty. to Receive", "Qty. to Receive (Base)", "Qty. Rounding Precision", "Outstanding Quantity");
         PurchaseLine.Get(OverDeliveryErrorInfo.RecordId);

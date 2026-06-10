@@ -73,7 +73,9 @@ pageextension 99001508 "Subc. Routing Lines" extends "Routing Lines"
 #if not CLEAN29
     trigger OnOpenPage()
     begin
+#pragma warning disable AL0432
         SubcontractingEnabled := SubcFeatureFlagHandler.IsSubcontractingEnabled();
+#pragma warning restore AL0432
     end;
 #endif
 
@@ -99,7 +101,9 @@ pageextension 99001508 "Subc. Routing Lines" extends "Routing Lines"
 
     var
 #if not CLEAN29
+#pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
         SubcontractingEnabled: Boolean;
 #endif
         TransferWIPItemEnabled: Boolean;

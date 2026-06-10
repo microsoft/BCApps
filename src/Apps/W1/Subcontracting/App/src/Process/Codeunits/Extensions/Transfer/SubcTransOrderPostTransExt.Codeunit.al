@@ -16,16 +16,19 @@ codeunit 99001547 "Subc. TransOrderPostTrans Ext"
 {
 #if not CLEAN29
     var
+#pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
 
 #endif
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"TransferOrder-Post Transfer", OnAfterCreateItemJnlLine, '', false, false)]
     local procedure OnAfterCreateItemJnlLine(var ItemJnlLine: Record "Item Journal Line"; TransLine: Record "Transfer Line"; DirectTransHeader: Record "Direct Trans. Header"; DirectTransLine: Record "Direct Trans. Line")
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         ItemJnlLine."Subc. Prod. Order No." := DirectTransLine."Prod. Order No.";
         ItemJnlLine."Subc. Prod. Order Line No." := DirectTransLine."Prod. Order Line No.";
@@ -39,9 +42,10 @@ codeunit 99001547 "Subc. TransOrderPostTrans Ext"
     local procedure OnInsertDirectTransHeaderOnBeforeGetNextNo(var DirectTransHeader: Record "Direct Trans. Header"; TransferHeader: Record "Transfer Header")
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         DirectTransHeader."Source Type" := TransferHeader."Subc. Source Type";
         DirectTransHeader."Source ID" := TransferHeader."Source ID";
@@ -57,9 +61,10 @@ codeunit 99001547 "Subc. TransOrderPostTrans Ext"
         ProdOrderComponent: Record "Prod. Order Component";
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         if (TransferLine."Subc. Prod. Order No." = '') or (TransferLine."Subc. Prod. Order Line No." = 0) or (TransferLine."Subc. Prod. Ord. Comp Line No." = 0) then
             exit;
@@ -75,9 +80,10 @@ codeunit 99001547 "Subc. TransOrderPostTrans Ext"
     local procedure OnAfterPostItemJnlLineReceipt(ItemJnlLine: Record "Item Journal Line"; var TransLine3: Record "Transfer Line"; var TransRcptHeader2: Record "Transfer Receipt Header"; var TransRcptLine2: Record "Transfer Receipt Line"; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line")
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         if not ItemJnlLine."Direct Transfer" then
             exit;
@@ -89,9 +95,10 @@ codeunit 99001547 "Subc. TransOrderPostTrans Ext"
     local procedure OnAfterPostItemJnlLineDirectTransfer(var TransferLine3: Record "Transfer Line"; DirectTransHeader2: Record "Direct Trans. Header"; DirectTransLine2: Record "Direct Trans. Line"; ItemJournalLine: Record "Item Journal Line"; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line")
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         HandleDirectTransferReservationAndTracking(TransferLine3, ItemJnlPostLine);
     end;

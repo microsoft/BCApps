@@ -18,11 +18,15 @@ tableextension 99001560 "Subc. Routing Line" extends "Routing Line"
             trigger OnAfterValidate()
 #if not CLEAN29
             var
+#pragma warning disable AL0432
                 SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
 #endif
             begin
 #if not CLEAN29
+#pragma warning disable AL0432
                 if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
                     exit;
 
 #endif
@@ -39,11 +43,15 @@ tableextension 99001560 "Subc. Routing Line" extends "Routing Line"
             var
                 WorkCenter: Record "Work Center";
 #if not CLEAN29
+#pragma warning disable AL0432
                 SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
 #endif
             begin
 #if not CLEAN29
+#pragma warning disable AL0432
                 if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
                     exit;
 #endif
                 if "No." = xRec."No." then
@@ -77,11 +85,15 @@ tableextension 99001560 "Subc. Routing Line" extends "Routing Line"
             trigger OnValidate()
             var
 #if not CLEAN29
+#pragma warning disable AL0432
                 SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
 #endif
             begin
 #if not CLEAN29
+#pragma warning disable AL0432
                 if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
                     exit;
 #endif
                 if "Transfer WIP Item" then begin

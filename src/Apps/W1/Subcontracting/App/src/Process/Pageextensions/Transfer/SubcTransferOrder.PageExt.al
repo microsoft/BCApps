@@ -82,17 +82,20 @@ pageextension 99001526 "Subc. Transfer Order" extends "Transfer Order"
         SubcontractingManagement: Codeunit "Subcontracting Management";
         ShowSubcontractingFactBox: Boolean;
 #if not CLEAN29
+#pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
         SubcontractingEnabled: Boolean;
 #endif
 
     trigger OnOpenPage()
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         SubcontractingEnabled := SubcFeatureFlagHandler.IsSubcontractingEnabled();
+#pragma warning restore AL0432
         if not SubcontractingEnabled then
             exit;
-
 #endif
         ShowSubcontractingFactBox := SubcontractingManagement.IsSubcontractingTransferDocument(Rec);
         CurrPage.TransferLines.Page.SetIsSubcontracting(ShowSubcontractingFactBox);

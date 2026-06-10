@@ -102,7 +102,9 @@ codeunit 139993 "Subc. Feature Flag Test"
     [Scope('OnPrem')]
     procedure GuardReturnsTrueWhenEnabled()
     var
+#pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
     begin
         // [SCENARIO] IsSubcontractingEnabled returns true when Legacy Subcontracting toggle is OFF
         Initialize();
@@ -112,14 +114,18 @@ codeunit 139993 "Subc. Feature Flag Test"
 
         // [WHEN] Call IsSubcontractingEnabled
         // [THEN] Returns true
+#pragma warning disable AL0432
         Assert.IsTrue(SubcFeatureFlagHandler.IsSubcontractingEnabled(), 'Guard should return true when Legacy Subcontracting is disabled.');
+#pragma warning restore AL0432
     end;
 
     [Test]
     [Scope('OnPrem')]
     procedure GuardReturnsFalseWhenDisabled()
     var
+#pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
     begin
         // [SCENARIO] IsSubcontractingEnabled returns false when Legacy Subcontracting toggle is ON
         Initialize();
@@ -129,7 +135,9 @@ codeunit 139993 "Subc. Feature Flag Test"
 
         // [WHEN] Call IsSubcontractingEnabled
         // [THEN] Returns false
+#pragma warning disable AL0432
         Assert.IsFalse(SubcFeatureFlagHandler.IsSubcontractingEnabled(), 'Guard should return false when Legacy Subcontracting is enabled.');
+#pragma warning restore AL0432
     end;
 
     [Test]
@@ -138,7 +146,9 @@ codeunit 139993 "Subc. Feature Flag Test"
     var
         ManufacturingSetup: Record "Manufacturing Setup";
         ManufacturingSetupBackup: Record "Manufacturing Setup" temporary;
+#pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
     begin
         // [SCENARIO] IsSubcontractingEnabled returns false when no ManufacturingSetup record exists
         Initialize();
@@ -150,7 +160,9 @@ codeunit 139993 "Subc. Feature Flag Test"
 
         // [WHEN] Call IsSubcontractingEnabled
         // [THEN] Returns false
+#pragma warning disable AL0432
         Assert.IsFalse(SubcFeatureFlagHandler.IsSubcontractingEnabled(), 'Guard should return false when ManufacturingSetup does not exist.');
+#pragma warning restore AL0432
 
         // Restore ManufacturingSetup
         ManufacturingSetup.Init();
@@ -239,7 +251,9 @@ codeunit 139993 "Subc. Feature Flag Test"
             ManufacturingSetup.Init();
             ManufacturingSetup.Insert();
         end;
+#pragma warning disable AL0432
         ManufacturingSetup."Legacy Subcontracting" := Enabled;
+#pragma warning restore AL0432
         ManufacturingSetup.Modify();
     end;
 

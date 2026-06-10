@@ -25,9 +25,10 @@ pageextension 99001544 "Subc.Change Status Prod. Order" extends "Change Status o
     trigger OnOpenPage()
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         WIPQuantityCleanUp := true;
     end;
@@ -35,9 +36,10 @@ pageextension 99001544 "Subc.Change Status Prod. Order" extends "Change Status o
     trigger OnAfterGetCurrRecord()
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         SetControlProperties();
     end;
@@ -48,14 +50,18 @@ pageextension 99001544 "Subc.Change Status Prod. Order" extends "Change Status o
     var
         ProductionOrder: Record "Production Order";
 #if not CLEAN29
+#pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
 #endif
         WIPQuantityCleanUpEnabled, WIPQuantityCleanUpVisible : Boolean;
 
     procedure ReturnSubWIPQuantityCleanUp(): Boolean
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit(false);
 #endif
         exit(WIPQuantityCleanUp);
@@ -64,7 +70,9 @@ pageextension 99001544 "Subc.Change Status Prod. Order" extends "Change Status o
     procedure SubcSetOrder(var ProductionOrderForStatusChange: Record "Production Order")
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
 #endif
         ProductionOrder := ProductionOrderForStatusChange;
@@ -74,7 +82,9 @@ pageextension 99001544 "Subc.Change Status Prod. Order" extends "Change Status o
     procedure SubcGetOrder() ProductionOrderForStatusChange: Record "Production Order"
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit(ProductionOrder);
 #endif
         ProductionOrderForStatusChange := ProductionOrder;

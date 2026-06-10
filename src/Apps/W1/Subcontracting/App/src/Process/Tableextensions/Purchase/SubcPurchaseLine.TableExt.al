@@ -22,7 +22,9 @@ tableextension 99001512 "Subc. Purchase Line" extends "Purchase Line"
             trigger OnBeforeValidate()
             begin
 #if not CLEAN29
+#pragma warning disable AL0432
                 if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
                     exit;
 
 #endif
@@ -34,7 +36,9 @@ tableextension 99001512 "Subc. Purchase Line" extends "Purchase Line"
             trigger OnAfterValidate()
             begin
 #if not CLEAN29
+#pragma warning disable AL0432
                 if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
                     exit;
 
 #endif
@@ -122,7 +126,9 @@ tableextension 99001512 "Subc. Purchase Line" extends "Purchase Line"
     }
 #if not CLEAN29
     var
+#pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
 #endif
 
     procedure GetQuantityPerUOM(): Decimal
@@ -130,7 +136,9 @@ tableextension 99001512 "Subc. Purchase Line" extends "Purchase Line"
         ItemUnitofMeasure: Record "Item Unit of Measure";
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit(0);
 #endif
         ItemUnitofMeasure.SetLoadFields("Qty. per Unit of Measure");
@@ -143,7 +151,9 @@ tableextension 99001512 "Subc. Purchase Line" extends "Purchase Line"
         ItemUnitofMeasure: Record "Item Unit of Measure";
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit(0);
 #endif
         ItemUnitofMeasure.SetLoadFields("Qty. per Unit of Measure");
@@ -166,7 +176,9 @@ tableextension 99001512 "Subc. Purchase Line" extends "Purchase Line"
         QtyPerUoM: Decimal;
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit(0);
 #endif
         Testfield(Type, "Purchase Line Type"::Item);
@@ -187,7 +199,9 @@ tableextension 99001512 "Subc. Purchase Line" extends "Purchase Line"
         IsValidLine: Boolean;
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit(false);
 #endif
         if Rec."Operation No." = '' then
@@ -211,7 +225,9 @@ tableextension 99001512 "Subc. Purchase Line" extends "Purchase Line"
         IsValidLine: Boolean;
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit(false);
 #endif
         ProdOrderRoutingLine.SetLoadFields("Next Operation No.");

@@ -13,14 +13,18 @@ codeunit 99001566 "Subc. Posting Preview Subscr."
         TempSubcontractorWIPLedgerEntry: Record "Subcontractor WIP Ledger Entry" temporary;
         PostingPreviewEventHandler: Codeunit "Posting Preview Event Handler";
 #if not CLEAN29
+#pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
 #endif
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Posting Preview Event Handler", OnGetEntries, '', true, false)]
     local procedure GetEntriesOnGetEntries(TableNo: Integer; var RecRef: RecordRef)
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
 #endif
         GetAllTables();
@@ -34,7 +38,9 @@ codeunit 99001566 "Subc. Posting Preview Subscr."
     local procedure ShowEntriesOnAfterShowEntries(TableNo: Integer)
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
 #endif
         GetAllTables();
@@ -48,7 +54,9 @@ codeunit 99001566 "Subc. Posting Preview Subscr."
     local procedure FillDocumentEntryOnAfterFillDocumentEntry(var DocumentEntry: Record "Document Entry")
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
 #endif
         GetAllTables();

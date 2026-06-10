@@ -21,13 +21,16 @@ codeunit 99001521 "Subc. Calc BOM Tree Ext."
     var
         SubcSessionState: Codeunit "Subc. Session State";
 #if not CLEAN29
+#pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
 #endif
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         SubcSessionState.SetRecordID('OnBeforeCalcRoutingLineCosts', ParentItem.RecordId());
     end;

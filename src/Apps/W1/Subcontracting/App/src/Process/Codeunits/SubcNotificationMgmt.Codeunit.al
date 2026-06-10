@@ -14,13 +14,17 @@ codeunit 99001506 "Subc. Notification Mgmt."
         SubcOrdNotificationDescriptionTxt: Label 'Show a notification if Subcontracting Orders were created for Subcontracting.';
         SubcOrdNotificationNameLbl: Label 'Show Created Subcontracting Orders';
 #if not CLEAN29
+#pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
 #endif
 
     procedure ShowCreatedProductionOrderConfirmationMessageCode(): Code[50]
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit('');
 #endif
         exit(UpperCase(GetShowCreatedProductionOrderCode()));
@@ -29,7 +33,9 @@ codeunit 99001506 "Subc. Notification Mgmt."
     procedure ShowCreatedSubcontractingOrderConfirmationMessageCode(): Code[50]
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit('');
 #endif
         exit(UpperCase(GetShowCreatedSubContPurchOrderCode()));
@@ -38,7 +44,9 @@ codeunit 99001506 "Subc. Notification Mgmt."
     procedure GetShowCreatedProductionOrderCode(): Code[50]
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit('');
 #endif
         exit('Show Created Production Orders');
@@ -47,7 +55,9 @@ codeunit 99001506 "Subc. Notification Mgmt."
     procedure GetShowCreatedSubContPurchOrderCode(): Code[50]
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit('');
 #endif
         exit('Show Created Subcontracting Orders');
@@ -57,7 +67,9 @@ codeunit 99001506 "Subc. Notification Mgmt."
     local procedure InitializeSubcontractingNotifications()
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
 #endif
         RegisterSubcontrProductionOrderCreatedNotification();
@@ -84,7 +96,9 @@ codeunit 99001506 "Subc. Notification Mgmt."
         PageMyNotifications: Page "My Notifications";
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
 #endif
         PageMyNotifications.InitializeNotificationsWithDefaultState();

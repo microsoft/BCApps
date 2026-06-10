@@ -104,7 +104,9 @@ tableextension 99001517 "Subc. Transfer Line" extends "Transfer Line"
                 UnitOfMeasureManagement: Codeunit "Unit of Measure Management";
             begin
 #if not CLEAN29
+#pragma warning disable AL0432
                 if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
                     exit;
 #endif
                 if "Transfer WIP Item" then begin
@@ -170,7 +172,9 @@ tableextension 99001517 "Subc. Transfer Line" extends "Transfer Line"
 
 #if not CLEAN29
     var
+#pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
 #endif
 
     internal procedure CheckForExistingReservationsOrItemTracking()
@@ -181,7 +185,9 @@ tableextension 99001517 "Subc. Transfer Line" extends "Transfer Line"
         ExistingReservationEntriesErr: Label 'There are existing reservation entries for this transfer line. Please remove the reservation entries before changing the line to/from a WIP item transfer.';
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
 #endif
         Rec.SetReservationFilters(ReservationEntry, "Transfer Direction"::Outbound);
@@ -213,7 +219,9 @@ tableextension 99001517 "Subc. Transfer Line" extends "Transfer Line"
         QtyPerUoM: Decimal;
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
 #endif
         Item.SetLoadFields("Base Unit of Measure");
@@ -227,7 +235,9 @@ tableextension 99001517 "Subc. Transfer Line" extends "Transfer Line"
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
 #endif
         if Rec."Transfer WIP Item" then

@@ -25,14 +25,18 @@ codeunit 99001541 "Subc. Transfer WIP Posting"
     var
         WIPLedgEntryNo: Integer;
 #if not CLEAN29
+#pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
 #endif
 
     [EventSubscriber(ObjectType::Table, Database::"Transfer Header", OnUpdateTransLinesOnAfterUpdateFromDirectTransfer, '', false, false)]
     local procedure OnUpdateTransLinesOnAfterUpdateFromDirectTransfer(var TransferLine: Record "Transfer Line"; TempTransferLine: Record "Transfer Line")
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
 #endif
         if TempTransferLine."Transfer WIP Item" then begin
@@ -47,7 +51,9 @@ codeunit 99001541 "Subc. Transfer WIP Posting"
         TransferRoute: Record "Transfer Route";
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
 #endif
         if not Rec."Direct Transfer" and xRec."Direct Transfer" then
@@ -61,7 +67,9 @@ codeunit 99001541 "Subc. Transfer WIP Posting"
     local procedure HandleWipTransferOnBeforeValidateQuantityShipIsBalanced(var TransferLine: Record "Transfer Line"; xTransferLine: Record "Transfer Line"; var IsHandled: Boolean)
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
 #endif
         if TransferLine."Transfer WIP Item" then
@@ -72,7 +80,9 @@ codeunit 99001541 "Subc. Transfer WIP Posting"
     local procedure HandleWipTransferOnBeforeValidateQuantityReceiveIsBalanced(var TransferLine: Record "Transfer Line"; xTransferLine: Record "Transfer Line"; var IsHandled: Boolean)
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
 #endif
         if TransferLine."Transfer WIP Item" then
@@ -83,7 +93,9 @@ codeunit 99001541 "Subc. Transfer WIP Posting"
     local procedure HandleWipTransferOnBeforeCheckItemInInventory(TransferLine: Record "Transfer Line"; var IsHandled: Boolean)
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
 #endif
         if TransferLine."Transfer WIP Item" then
@@ -97,7 +109,9 @@ codeunit 99001541 "Subc. Transfer WIP Posting"
         CannotPostTheseLinesErr: Label 'You cannot post these lines because you have not entered a quantity on one or more of the lines. ';
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
 #endif
         if ItemJnlLine."Order Type" <> "Inventory Order Type"::Transfer then
@@ -118,7 +132,9 @@ codeunit 99001541 "Subc. Transfer WIP Posting"
     local procedure HandleWipTransferShipmentLineOnAfterCopyFromTransferLine(var TransferShipmentLine: Record "Transfer Shipment Line"; TransferLine: Record "Transfer Line")
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
 #endif
         TransferShipmentLine."Transfer WIP Item" := TransferLine."Transfer WIP Item";
@@ -129,7 +145,9 @@ codeunit 99001541 "Subc. Transfer WIP Posting"
     local procedure HandleWipTransferReceiptLineOnAfterCopyFromTransferLine(var TransferReceiptLine: Record "Transfer Receipt Line"; TransferLine: Record "Transfer Line")
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
 #endif
         TransferReceiptLine."Transfer WIP Item" := TransferLine."Transfer WIP Item";
@@ -140,7 +158,9 @@ codeunit 99001541 "Subc. Transfer WIP Posting"
     local procedure HandleWipDirectTransLineOnAfterCopyFromTransferLine(var DirectTransLine: Record "Direct Trans. Line"; TransferLine: Record "Transfer Line")
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
 #endif
         DirectTransLine."Transfer WIP Item" := TransferLine."Transfer WIP Item";
@@ -151,7 +171,9 @@ codeunit 99001541 "Subc. Transfer WIP Posting"
     local procedure HandleWipTransferOnNoItemLedgerEntriesCheckIsNeeded(TransShptLine: Record "Transfer Shipment Line"; var NoCheckNeeded: Boolean)
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
 #endif
         if TransShptLine."Transfer WIP Item" then
@@ -162,7 +184,9 @@ codeunit 99001541 "Subc. Transfer WIP Posting"
     local procedure HandleWipTransferOnBeforeShowReservation(var TransferLine: Record "Transfer Line"; var IsHandled: Boolean)
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
 #endif
         TransferLine.TestField("Transfer WIP Item", false);
@@ -174,7 +198,9 @@ codeunit 99001541 "Subc. Transfer WIP Posting"
         TransferLine: Record "Transfer Line";
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
 #endif
         if SourceRecRef.Number = Database::"Transfer Line" then begin
@@ -187,7 +213,9 @@ codeunit 99001541 "Subc. Transfer WIP Posting"
     local procedure HandleWipTransferOnBeforeOpenItemTrackingLines(var TransferLine: Record "Transfer Line"; var IsHandled: Boolean)
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
 #endif
         TransferLine.TestField("Transfer WIP Item", false);
@@ -199,7 +227,9 @@ codeunit 99001541 "Subc. Transfer WIP Posting"
         Location: Record Location;
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
 #endif
         if TransferLine."Transfer WIP Item" then begin
@@ -219,7 +249,9 @@ codeunit 99001541 "Subc. Transfer WIP Posting"
     local procedure HandleWipTransferOnTransLine2ReceiptLineOnAfterInitNewLine(var WarehouseReceiptLine: Record "Warehouse Receipt Line"; WarehouseReceiptHeader: Record "Warehouse Receipt Header"; TransferLine: Record "Transfer Line"; var QtyOnRcptLineSet: Boolean)
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
 #endif
         WarehouseReceiptLine."Transfer WIP Item" := TransferLine."Transfer WIP Item";
@@ -340,7 +372,9 @@ codeunit 99001541 "Subc. Transfer WIP Posting"
         SubcontractorWIPLedgerEntry: Record "Subcontractor WIP Ledger Entry";
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
 #endif
         SubcontractorWIPLedgerEntry.SetProductionOrderFilter(ProductionOrder, false);

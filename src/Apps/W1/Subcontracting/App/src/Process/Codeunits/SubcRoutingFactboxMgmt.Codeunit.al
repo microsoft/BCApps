@@ -15,7 +15,9 @@ codeunit 99001561 "Subc. Routing Factbox Mgmt."
 {
 #if not CLEAN29
     var
+#pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
 
 #endif
     /// <summary>
@@ -28,7 +30,9 @@ codeunit 99001561 "Subc. Routing Factbox Mgmt."
         WorkCenter: Record "Work Center";
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit('');
 
 #endif
@@ -49,9 +53,10 @@ codeunit 99001561 "Subc. Routing Factbox Mgmt."
         WorkCenter: Record "Work Center";
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         if ProdOrderRoutingLine.Type = ProdOrderRoutingLine.Type::"Work Center" then begin
             WorkCenter.Get(ProdOrderRoutingLine."Work Center No.");
@@ -70,7 +75,9 @@ codeunit 99001561 "Subc. Routing Factbox Mgmt."
         PurchaseLine: Record "Purchase Line";
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit(0);
 
 #endif
@@ -91,9 +98,10 @@ codeunit 99001561 "Subc. Routing Factbox Mgmt."
         PurchaseLine: Record "Purchase Line";
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         PurchaseLine.SetRange(PurchaseLine."Document Type", PurchaseLine."Document Type"::Order);
         PurchaseLine.SetRange(PurchaseLine."Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
@@ -113,7 +121,9 @@ codeunit 99001561 "Subc. Routing Factbox Mgmt."
         PurchRcptLine: Record "Purch. Rcpt. Line";
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit(0);
 
 #endif
@@ -133,9 +143,10 @@ codeunit 99001561 "Subc. Routing Factbox Mgmt."
         PurchRcptLine: Record "Purch. Rcpt. Line";
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         PurchRcptLine.SetRange(PurchRcptLine."Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
         PurchRcptLine.SetRange(PurchRcptLine."Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.");
@@ -154,7 +165,9 @@ codeunit 99001561 "Subc. Routing Factbox Mgmt."
         PurchInvLine: Record "Purch. Inv. Line";
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit(0);
 
 #endif
@@ -174,9 +187,10 @@ codeunit 99001561 "Subc. Routing Factbox Mgmt."
         PurchInvLine: Record "Purch. Inv. Line";
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         PurchInvLine.SetCurrentKey(PurchInvLine.Type, PurchInvLine."Prod. Order No.", PurchInvLine."Prod. Order Line No.");
         PurchInvLine.SetRange(PurchInvLine."Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
@@ -196,7 +210,9 @@ codeunit 99001561 "Subc. Routing Factbox Mgmt."
         TransferLine: Record "Transfer Line";
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit(0);
 
 #endif
@@ -220,7 +236,9 @@ codeunit 99001561 "Subc. Routing Factbox Mgmt."
         TransferLine: Record "Transfer Line";
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit(0);
 
 #endif
@@ -242,9 +260,10 @@ codeunit 99001561 "Subc. Routing Factbox Mgmt."
         TransferLine: Record "Transfer Line";
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         TransferLine.SetCurrentKey(TransferLine."Subc. Prod. Order No.", TransferLine."Subc. Prod. Order Line No.", TransferLine."Subc. Routing Reference No.", TransferLine."Subc. Routing No.", TransferLine."Subc. Operation No.");
         TransferLine.SetRange(TransferLine."Subc. Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
@@ -264,9 +283,10 @@ codeunit 99001561 "Subc. Routing Factbox Mgmt."
         TransferLine: Record "Transfer Line";
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         TransferLine.SetCurrentKey(TransferLine."Subc. Prod. Order No.", TransferLine."Subc. Prod. Order Line No.", TransferLine."Subc. Routing Reference No.", TransferLine."Subc. Operation No.");
         TransferLine.SetRange(TransferLine."Subc. Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
@@ -286,7 +306,9 @@ codeunit 99001561 "Subc. Routing Factbox Mgmt."
         ProdOrderComponent: Record "Prod. Order Component";
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit(0);
 
 #endif
@@ -308,9 +330,10 @@ codeunit 99001561 "Subc. Routing Factbox Mgmt."
         ProdOrderComponent: Record "Prod. Order Component";
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         ProdOrderComponent.SetRange(ProdOrderComponent.Status, ProdOrderRoutingLine.Status);
         ProdOrderComponent.SetRange(ProdOrderComponent."Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");

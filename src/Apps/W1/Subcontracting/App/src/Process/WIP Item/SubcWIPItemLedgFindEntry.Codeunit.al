@@ -13,7 +13,9 @@ codeunit 99001564 "Subc. WIP Item Ledg Find Entry"
         [SecurityFiltering(SecurityFilter::Filtered)]
         SubcontractorWIPLedgerEntry: Record "Subcontractor WIP Ledger Entry";
 #if not CLEAN29
+#pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
 #endif
 
 
@@ -21,7 +23,9 @@ codeunit 99001564 "Subc. WIP Item Ledg Find Entry"
     local procedure OnFindWIPLedgerEntries(var DocumentEntry: Record "Document Entry"; DocNoFilter: Text; PostingDateFilter: Text)
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
 #endif
         FindWIPItemEntries(DocumentEntry, DocNoFilter, PostingDateFilter);
@@ -49,7 +53,9 @@ codeunit 99001564 "Subc. WIP Item Ledg Find Entry"
     local procedure OnShowWIPLedgerEntries(var Sender: Page Navigate; var DocumentEntry: Record "Document Entry"; DocNoFilter: Text; PostingDateFilter: Text; ItemTrackingSearch: Boolean; ContactType: Enum "Navigate Contact Type"; ContactNo: Code[250]; ExtDocNo: Code[250])
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
 #endif
         if DocumentEntry."Table ID" = Database::"Subcontractor WIP Ledger Entry" then begin

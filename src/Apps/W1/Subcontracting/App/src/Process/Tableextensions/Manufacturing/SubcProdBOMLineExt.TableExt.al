@@ -21,11 +21,15 @@ tableextension 99001531 "Subc. Prod BOM Line Ext." extends "Production BOM Line"
             var
                 Item: Record Item;
 #if not CLEAN29
+#pragma warning disable AL0432
                 SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
 #endif
             begin
 #if not CLEAN29
+#pragma warning disable AL0432
                 if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
                     exit;
 #endif
                 if "Component Supply Method" = "Component Supply Method"::"Transfer to Vendor" then

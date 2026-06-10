@@ -94,7 +94,9 @@ pageextension 99001523 "Subc. Purch. Order" extends "Purchase Order"
     }
     var
 #if not CLEAN29
+#pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
         SubcontractingEnabled: Boolean;
 #endif
         SubcontractingManagement: Codeunit "Subcontracting Management";
@@ -103,10 +105,11 @@ pageextension 99001523 "Subc. Purch. Order" extends "Purchase Order"
     trigger OnOpenPage()
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         SubcontractingEnabled := SubcFeatureFlagHandler.IsSubcontractingEnabled();
+#pragma warning restore AL0432
         if not SubcontractingEnabled then
             exit;
-
 #endif
         HasSubcontractingContext := SubcontractingManagement.IsSubcontractingPurchaseDocument(Rec);
         CurrPage.PurchLines.Page.SetIsSubcontracting(HasSubcontractingContext);

@@ -62,9 +62,13 @@ report 99001501 "Subc. Create Transf. Order"
 #if not CLEAN29
     trigger OnInitReport()
     var
+#pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
     begin
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             CurrReport.Quit();
     end;
 #endif

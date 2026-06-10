@@ -14,16 +14,19 @@ codeunit 99001522 "Subc. Planning Comp. Ext."
 {
 #if not CLEAN29
     var
+#pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
 
 #endif
     [EventSubscriber(ObjectType::Table, Database::"Planning Component", OnAfterValidateEvent, "Routing Link Code", false, false)]
     local procedure OnAfterValidateRoutingLinkCode(var Rec: Record "Planning Component"; var xRec: Record "Planning Component"; CurrFieldNo: Integer)
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         if Rec.IsTemporary then
             exit;
@@ -34,9 +37,10 @@ codeunit 99001522 "Subc. Planning Comp. Ext."
     local procedure OnAfterTransferFromComponent(var PlanningComponent: Record "Planning Component"; var ProdOrderComp: Record "Prod. Order Component")
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         PlanningComponent."Component Supply Method" := ProdOrderComp."Component Supply Method";
         PlanningComponent."Orig. Location Code" := ProdOrderComp."Subc. Original Location Code";
@@ -47,9 +51,10 @@ codeunit 99001522 "Subc. Planning Comp. Ext."
     local procedure OnAfterValidateLocationCode(var Rec: Record "Planning Component"; var xRec: Record "Planning Component"; CurrFieldNo: Integer)
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         if Rec.IsTemporary then
             exit;
@@ -61,9 +66,10 @@ codeunit 99001522 "Subc. Planning Comp. Ext."
     local procedure OnAfterValidateBinCode(var Rec: Record "Planning Component"; var xRec: Record "Planning Component"; CurrFieldNo: Integer)
     begin
 #if not CLEAN29
+#pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
 #endif
         if Rec.IsTemporary then
             exit;
