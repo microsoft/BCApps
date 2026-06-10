@@ -77,7 +77,7 @@ report 99001502 "Subc. Create SubCReturnOrder"
     local procedure InsertTransferHeader(TransferFromLocationCode: Code[10]; TransferToLocationCode: Code[10])
     var
         TransferRoute: Record "Transfer Route";
-        SubcontractingManagement: Codeunit "Subcontracting Management";
+        SubcTransferManagement: Codeunit "Subc. Transfer Management";
     begin
         TransferHeader.Reset();
         TransferHeader.SetRange("Source Subtype", TransferHeader."Source Subtype"::"2");
@@ -96,7 +96,7 @@ report 99001502 "Subc. Create SubCReturnOrder"
             TransferHeader.Validate("Transfer-to Code", TransferToLocationCode);
 
             if not TransferRoute.Get(TransferFromLocationCode, TransferToLocationCode) or (TransferRoute."In-Transit Code" = '') then begin
-                SubcontractingManagement.CheckDirectTransferIsAllowedForTransferHeader(TransferHeader);
+                SubcTransferManagement.CheckDirectTransferIsAllowedForTransferHeader(TransferHeader);
                 TransferHeader.Validate("Direct Transfer", true);
             end;
 
@@ -154,7 +154,7 @@ report 99001502 "Subc. Create SubCReturnOrder"
         ProdOrderLine: Record "Prod. Order Line";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         MfgCostCalculationMgt: Codeunit "Mfg. Cost Calculation Mgt.";
-        SubcontractingManagement: Codeunit "Subcontracting Management";
+        SubcTransferManagement: Codeunit "Subc. Transfer Management";
         UnitofMeasureManagement: Codeunit "Unit of Measure Management";
         SubcFromLocationCode: Code[10];
         AvailableToReturn: Decimal;
@@ -227,7 +227,7 @@ report 99001502 "Subc. Create SubCReturnOrder"
 
                         TransferLine.Insert();
 
-                        SubcontractingManagement.TransferReservationEntryFromProdOrderCompToTransferOrder(TransferLine, ProdOrderComponent);
+                        SubcTransferManagement.TransferReservationEntryFromProdOrderCompToTransferOrder(TransferLine, ProdOrderComponent);
 
                         if ProdOrderComponent."Subc. Original Location Code" = '' then
                             ProdOrderComponent."Subc. Original Location Code" := ProdOrderComponent."Location Code";
@@ -239,7 +239,7 @@ report 99001502 "Subc. Create SubCReturnOrder"
                         end;
                         ProdOrderComponent.Modify();
 
-                        SubcontractingManagement.CreateReservEntryForTransferReceiptToProdOrderComp(TransferLine, ProdOrderComponent);
+                        SubcTransferManagement.CreateReservEntryForTransferReceiptToProdOrderComp(TransferLine, ProdOrderComponent);
                     end else
                         exit(true);
             until ProdOrderComponent.Next() = 0;

@@ -67,6 +67,126 @@ codeunit 99001534 "Subc. Purchase Line Ext"
             SubcSynchronizeManagement.SynchronizeQuantity(Rec, xRec);
     end;
 
+    [EventSubscriber(ObjectType::Table, Database::"Purchase Line", OnBeforeValidateEvent, Quantity, false, false)]
+    local procedure OnBeforeValidateQuantity(var Rec: Record "Purchase Line"; var xRec: Record "Purchase Line"; CurrFieldNo: Integer)
+    var
+        SubcTransferManagement: Codeunit "Subc. Transfer Management";
+    begin
+        if Rec.IsTemporary() then
+            exit;
+
+        if Rec."Prod. Order No." = '' then
+            exit;
+
+        if CurrFieldNo <> Rec.FieldNo(Quantity) then
+            exit;
+
+        if Rec.Quantity = xRec.Quantity then
+            exit;
+
+        SubcTransferManagement.CheckSubcPurchLineCanBeModified(Rec, Rec.FieldCaption(Quantity));
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Purchase Line", OnBeforeValidateEvent, "No.", false, false)]
+    local procedure OnBeforeValidateNo(var Rec: Record "Purchase Line"; var xRec: Record "Purchase Line"; CurrFieldNo: Integer)
+    var
+        SubcTransferManagement: Codeunit "Subc. Transfer Management";
+    begin
+        if Rec.IsTemporary() then
+            exit;
+
+        if Rec."Prod. Order No." = '' then
+            exit;
+
+        if CurrFieldNo <> Rec.FieldNo("No.") then
+            exit;
+
+        if Rec."No." = xRec."No." then
+            exit;
+
+        SubcTransferManagement.CheckSubcPurchLineCanBeModified(Rec, Rec.FieldCaption("No."));
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Purchase Line", OnBeforeValidateEvent, "Location Code", false, false)]
+    local procedure OnBeforeValidateLocationCode(var Rec: Record "Purchase Line"; var xRec: Record "Purchase Line"; CurrFieldNo: Integer)
+    var
+        SubcTransferManagement: Codeunit "Subc. Transfer Management";
+    begin
+        if Rec.IsTemporary() then
+            exit;
+
+        if Rec."Prod. Order No." = '' then
+            exit;
+
+        if CurrFieldNo <> Rec.FieldNo("Location Code") then
+            exit;
+
+        if Rec."Location Code" = xRec."Location Code" then
+            exit;
+
+        SubcTransferManagement.CheckSubcPurchLineCanBeModified(Rec, Rec.FieldCaption("Location Code"));
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Purchase Line", OnBeforeValidateEvent, "Bin Code", false, false)]
+    local procedure OnBeforeValidateBinCode(var Rec: Record "Purchase Line"; var xRec: Record "Purchase Line"; CurrFieldNo: Integer)
+    var
+        SubcTransferManagement: Codeunit "Subc. Transfer Management";
+    begin
+        if Rec.IsTemporary() then
+            exit;
+
+        if Rec."Prod. Order No." = '' then
+            exit;
+
+        if CurrFieldNo <> Rec.FieldNo("Bin Code") then
+            exit;
+
+        if Rec."Bin Code" = xRec."Bin Code" then
+            exit;
+
+        SubcTransferManagement.CheckSubcPurchLineCanBeModified(Rec, Rec.FieldCaption("Bin Code"));
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Purchase Line", OnBeforeValidateEvent, "Variant Code", false, false)]
+    local procedure OnBeforeValidateVariantCode(var Rec: Record "Purchase Line"; var xRec: Record "Purchase Line"; CurrFieldNo: Integer)
+    var
+        SubcTransferManagement: Codeunit "Subc. Transfer Management";
+    begin
+        if Rec.IsTemporary() then
+            exit;
+
+        if Rec."Prod. Order No." = '' then
+            exit;
+
+        if CurrFieldNo <> Rec.FieldNo("Variant Code") then
+            exit;
+
+        if Rec."Variant Code" = xRec."Variant Code" then
+            exit;
+
+        SubcTransferManagement.CheckSubcPurchLineCanBeModified(Rec, Rec.FieldCaption("Variant Code"));
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Purchase Line", OnBeforeValidateEvent, "Unit of Measure Code", false, false)]
+    local procedure OnBeforeValidateUnitOfMeasureCode(var Rec: Record "Purchase Line"; var xRec: Record "Purchase Line"; CurrFieldNo: Integer)
+    var
+        SubcTransferManagement: Codeunit "Subc. Transfer Management";
+    begin
+        if Rec.IsTemporary() then
+            exit;
+
+        if Rec."Prod. Order No." = '' then
+            exit;
+
+        if CurrFieldNo <> Rec.FieldNo("Unit of Measure Code") then
+            exit;
+
+        if Rec."Unit of Measure Code" = xRec."Unit of Measure Code" then
+            exit;
+
+        SubcTransferManagement.CheckSubcPurchLineCanBeModified(Rec, Rec.FieldCaption("Unit of Measure Code"));
+    end;
+
     [EventSubscriber(ObjectType::Table, Database::"Purchase Line", OnBeforeUpdateDirectUnitCost, '', false, false)]
     local procedure OnBeforeUpdateDirectUnitCost(var PurchLine: Record "Purchase Line"; xPurchLine: Record "Purchase Line"; CalledByFieldNo: Integer; CurrFieldNo: Integer; var Handled: Boolean)
     begin
