@@ -9,6 +9,10 @@ using Microsoft.Manufacturing.Setup;
 
 codeunit 99001569 "Subc. Feature Flag Handler"
 {
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
+    ObsoleteReason = 'Legacy Subcontracting will be discontinued, environments should move to the Subcontracting App so this codeunit will be removed in a future release.';
+
     [Obsolete('Legacy Subcontracting will be discontinued, environments should move to the Subcontracting App so this codeunit will be removed in a future release.', '29.0')]
     procedure IsSubcontractingEnabled(): Boolean
     var
