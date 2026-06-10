@@ -478,6 +478,48 @@ codeunit 139544 "Trial Balance Excel Reports"
     end;
 
     [Test]
+    procedure QueryPathDoesNotDoubleCountNestedTotals()
+    var
+        GLAccount: Record "G/L Account";
+        TempDimension1Values, TempDimension2Values : Record "Dimension Value" temporary;
+        TrialBalanceData: Record "EXR Trial Balance Buffer";
+        TrialBalance: Codeunit "Trial Balance";
+        PostingAccountNo, ChildTotalNo, ParentTotalNo : Code[20];
+        EntryAmount: Decimal;
+    begin
+        // [SCENARIO] A parent End-Total whose Totaling range contains a nested child End-Total must not double-count the child's amounts.
+        // [GIVEN] A posting account (10000), a child End-Total (20000) totaling the posting account,
+        //         and a parent End-Total (30000) whose range 10000..29999 spans BOTH the posting account and the child End-Total's number.
+        // The total accounts are processed in No. order, so the child (20000) is inserted into the buffer before the parent (30000) is computed.
+        Initialize();
+        PostingAccountNo := CreateGLAccountWithNo('10000', Enum::"G/L Account Type"::Posting, '');
+        ChildTotalNo := CreateGLAccountWithNo('20000', Enum::"G/L Account Type"::"End-Total", '10000..19999');
+        ParentTotalNo := CreateGLAccountWithNo('30000', Enum::"G/L Account Type"::"End-Total", '10000..29999');
+
+        // [GIVEN] A single entry posted to the posting account
+        EntryAmount := 1000;
+        CreateGLEntryWithAmount(PostingAccountNo, '', '', '', WorkDate(), EntryAmount);
+
+        // [WHEN] Running the query-based trial balance for the current year
+        GLAccount.SetRange("Date Filter", DMY2Date(1, 1, Date2DMY(WorkDate(), 3)), DMY2Date(31, 12, Date2DMY(WorkDate(), 3)));
+        TrialBalance.ConfigureTrialBalance(false, false);
+        TrialBalance.InsertTrialBalanceReportData(GLAccount, TempDimension1Values, TempDimension2Values, TrialBalanceData);
+
+        // [THEN] The child End-Total equals the entry amount (the posting account counted once)
+        TrialBalanceData.Reset();
+        TrialBalanceData.SetRange("G/L Account No.", ChildTotalNo);
+        TrialBalanceData.FindFirst();
+        Assert.AreEqual(EntryAmount, TrialBalanceData.Balance, 'Child End-Total should sum the posting account once');
+
+        // [THEN] The parent End-Total ALSO equals the entry amount, not twice:
+        // its Totaling range includes the child End-Total's already-inserted buffer row, which must not be re-summed.
+        TrialBalanceData.Reset();
+        TrialBalanceData.SetRange("G/L Account No.", ParentTotalNo);
+        TrialBalanceData.FindFirst();
+        Assert.AreEqual(EntryAmount, TrialBalanceData.Balance, 'Parent End-Total must not double-count the nested child End-Total');
+    end;
+
+    [Test]
     procedure QueryPathPopulatesBudgetFields()
     var
         GLAccount: Record "G/L Account";
@@ -818,6 +860,21 @@ codeunit 139544 "Trial Balance Excel Reports"
         GLAccount."Account Type" := AccountType;
         GLAccount.Totaling := CopyStr(Totaling, 1, 250);
         GLAccount.Modify();
+    end;
+
+    local procedure CreateGLAccountWithNo(No: Code[20]; AccountType: Enum "G/L Account Type"; Totaling: Text): Code[20]
+    var
+        GLAccount: Record "G/L Account";
+    begin
+        // Insert with an explicit No. so the test controls both the FindSet (No.) ordering of the
+        // total accounts and whether one total's number falls inside another total's Totaling range.
+        GLAccount.Init();
+        GLAccount."No." := No;
+        GLAccount.Name := No;
+        GLAccount."Account Type" := AccountType;
+        GLAccount.Totaling := CopyStr(Totaling, 1, MaxStrLen(GLAccount.Totaling));
+        GLAccount.Insert();
+        exit(No);
     end;
 
     local procedure Initialize()
