@@ -49,6 +49,81 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmHandler,HandleTransferOrder,HandleCreateTransferOrderMsg')]
+    procedure DirectTransferPostingWithWIPItemDoesNotErrorOnQuantity()
+    var
+        Bin: Record Bin;
+        DirectTransHeader: Record "Direct Trans. Header";
+        Item: Record Item;
+        Location: Record Location;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProdOrderComp: Record "Prod. Order Component";
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        WorkCenter: array[2] of Record "Work Center";
+        PurchaseHeaderPage: TestPage "Purchase Order";
+    begin
+        // [SCENARIO 636823] Direct Transfer posting with WIP items should not fail with "quantity not entered" error
+        // when Inventory Setup has Direct Transfer Posting = Direct Transfer.
+        Initialize();
+
+        // [GIVEN] Inventory Setup with Direct Transfer Posting = Direct Transfer
+        SubcontractingMgmtLibrary.SetupInventorySetup();
+        SubcontractingMgmtLibrary.UpdateManufacturingSetupWithSubcontractingLocation();
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+
+        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Transfer to Vendor");
+        UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
+
+        UpdateSubMgmtSetupWithReqWkshTemplate();
+        SubcontractingMgmtLibrary.UpdateProdOrderCompWithLocationCode(ProductionOrder."No.");
+
+        // [GIVEN] Subcontracting purchase order and transfer order to vendor (no in-transit route = direct transfer)
+        SubcontractingMgmtLibrary.CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
+
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        PurchaseLine.FindFirst();
+
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+        PurchaseHeaderPage.OpenView();
+        PurchaseHeaderPage.GoToRecord(PurchaseHeader);
+        PurchaseHeaderPage.CreateTransfOrdToSubcontractor.Invoke();
+
+        ProdOrderComp.SetRange("Prod. Order No.", ProductionOrder."No.");
+#pragma warning disable AA0210
+        ProdOrderComp.SetRange("Component Supply Method", ProdOrderComp."Component Supply Method"::"Transfer to Vendor");
+#pragma warning restore AA0210
+        ProdOrderComp.FindFirst();
+
+        TransferLine.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
+        TransferLine.SetRange("Item No.", ProdOrderComp."Item No.");
+        TransferLine.FindFirst();
+        TransferHeader.Get(TransferLine."Document No.");
+
+        Item.Get(ProdOrderComp."Item No.");
+        Location.Get(TransferHeader."Transfer-from Code");
+        CreateInventory(Item, Location, Bin, ProdOrderComp."Expected Qty. (Base)");
+
+        // [WHEN] Post the direct transfer (transfer order includes both component and WIP lines)
+        Codeunit.Run(Codeunit::"TransferOrder-Post Transfer", TransferHeader);
+
+        // [THEN] Direct Trans. Header is created without error (posting succeeds)
+        DirectTransHeader.SetRange("Subcontr. Purch. Order No.", PurchaseHeader."No.");
+        Assert.RecordIsNotEmpty(DirectTransHeader);
+    end;
+
+    [Test]
     [HandlerFunctions('ConfirmHandler,HandleTransferOrder')]
     procedure CreateTransferOrderFromSecondSubcontractingOrderOpensReusedTransferOrder()
     var
@@ -3525,81 +3600,6 @@ codeunit 139989 "Subc. Subcontracting Test"
         Assert.AreEqual(
             PcsPrice, RequisitionLine."Direct Unit Cost",
             'GetSubcPriceForReqLine must pick the price row matching the line''s Unit of Measure when FixedUOM is empty.');
-    end;
-
-    [Test]
-    [HandlerFunctions('ConfirmHandler,HandleTransferOrder,HandleCreateTransferOrderMsg')]
-    procedure DirectTransferPostingWithWIPItemDoesNotErrorOnQuantity()
-    var
-        Bin: Record Bin;
-        DirectTransHeader: Record "Direct Trans. Header";
-        Item: Record Item;
-        Location: Record Location;
-        MachineCenter: array[2] of Record "Machine Center";
-        ProdOrderComp: Record "Prod. Order Component";
-        ProductionOrder: Record "Production Order";
-        PurchaseHeader: Record "Purchase Header";
-        PurchaseLine: Record "Purchase Line";
-        TransferHeader: Record "Transfer Header";
-        TransferLine: Record "Transfer Line";
-        WorkCenter: array[2] of Record "Work Center";
-        PurchaseHeaderPage: TestPage "Purchase Order";
-    begin
-        // [SCENARIO 636823] Direct Transfer posting with WIP items should not fail with "quantity not entered" error
-        // when Inventory Setup has Direct Transfer Posting = Direct Transfer.
-        Initialize();
-
-        // [GIVEN] Inventory Setup with Direct Transfer Posting = Direct Transfer
-        SubcontractingMgmtLibrary.SetupInventorySetup();
-        SubcontractingMgmtLibrary.UpdateManufacturingSetupWithSubcontractingLocation();
-        Subcontracting := true;
-        UnitCostCalculation := UnitCostCalculation::Units;
-
-        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
-        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
-        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
-        SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Transfer to Vendor");
-        UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
-
-        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
-            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
-
-        UpdateSubMgmtSetupWithReqWkshTemplate();
-        SubcontractingMgmtLibrary.UpdateProdOrderCompWithLocationCode(ProductionOrder."No.");
-
-        // [GIVEN] Subcontracting purchase order and transfer order to vendor (no in-transit route = direct transfer)
-        SubcontractingMgmtLibrary.CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
-
-        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
-        PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
-        PurchaseLine.FindFirst();
-
-        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
-        PurchaseHeaderPage.OpenView();
-        PurchaseHeaderPage.GoToRecord(PurchaseHeader);
-        PurchaseHeaderPage.CreateTransfOrdToSubcontractor.Invoke();
-
-        ProdOrderComp.SetRange("Prod. Order No.", ProductionOrder."No.");
-#pragma warning disable AA0210
-        ProdOrderComp.SetRange("Component Supply Method", ProdOrderComp."Component Supply Method"::"Transfer to Vendor");
-#pragma warning restore AA0210
-        ProdOrderComp.FindFirst();
-
-        TransferLine.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
-        TransferLine.SetRange("Item No.", ProdOrderComp."Item No.");
-        TransferLine.FindFirst();
-        TransferHeader.Get(TransferLine."Document No.");
-
-        Item.Get(ProdOrderComp."Item No.");
-        Location.Get(TransferHeader."Transfer-from Code");
-        CreateInventory(Item, Location, Bin, ProdOrderComp."Expected Qty. (Base)");
-
-        // [WHEN] Post the direct transfer (transfer order includes both component and WIP lines)
-        Codeunit.Run(Codeunit::"TransferOrder-Post Transfer", TransferHeader);
-
-        // [THEN] Direct Trans. Header is created without error (posting succeeds)
-        DirectTransHeader.SetRange("Subcontr. Purch. Order No.", PurchaseHeader."No.");
-        Assert.RecordIsNotEmpty(DirectTransHeader);
     end;
 
     local procedure CreateUOMCodeSortingAfter(BaseUOMCode: Code[10]): Code[10]
