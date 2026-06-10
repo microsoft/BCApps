@@ -127,7 +127,7 @@ page 6105 "Inbound E-Documents"
                     ToolTip = 'Specifies the vendor name of the document.';
                     ObsoleteState = Pending;
                     ObsoleteReason = 'Replaced by the AgentTaskStatus field.';
-                    ObsoleteTag = '28.0';
+                    ObsoleteTag = '29.0';
                 }
 #endif
                 field(SenderName; SenderNameTxt)
