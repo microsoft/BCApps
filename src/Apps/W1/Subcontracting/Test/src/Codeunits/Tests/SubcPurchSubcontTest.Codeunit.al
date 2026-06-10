@@ -10,8 +10,10 @@ using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Tracking;
+using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Document;
+using Microsoft.Manufacturing.MachineCenter;
 using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.Setup;
@@ -313,6 +315,38 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         Assert.AreEqual(0, ComponentItem.Inventory, 'Component inventory should be zero after backward flushing.');
     end;
 
+    [Test]
+    [HandlerFunctions('DoConfirmCreateProdOrderForSubcontractingProcess,TransferOrderPageHandler')]
+    procedure CannotModifySubcPurchLineWhenTransferOrderExists()
+    var
+        Item: Record Item;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        WorkCenter: array[2] of Record "Work Center";
+        SubcTransferManagement: Codeunit "Subc. Transfer Management";
+    begin
+        // [SCENARIO] Modifying key fields on a subcontracting purchase line must be blocked
+        // when a transfer order exists for the linked production order.
+        Initialize();
+
+        // [GIVEN] A subcontracting purchase order with a linked transfer order
+        SetupSubcScenarioWithTransferOrder(Item, WorkCenter, MachineCenter, ProductionOrder, PurchaseHeader, PurchaseLine);
+
+        // [THEN] CheckSubcPurchLineCanBeModified blocks modification of Quantity
+        asserterror SubcTransferManagement.CheckSubcPurchLineCanBeModified(PurchaseLine, PurchaseLine.FieldCaption(Quantity));
+        Assert.ExpectedError('You cannot change Quantity on the subcontracting purchase line');
+
+        // [THEN] CheckSubcPurchLineCanBeModified blocks modification of Location Code
+        asserterror SubcTransferManagement.CheckSubcPurchLineCanBeModified(PurchaseLine, PurchaseLine.FieldCaption("Location Code"));
+        Assert.ExpectedError('You cannot change Location Code on the subcontracting purchase line');
+
+        // [THEN] CheckSubcPurchLineCanBeModified blocks modification of Variant Code
+        asserterror SubcTransferManagement.CheckSubcPurchLineCanBeModified(PurchaseLine, PurchaseLine.FieldCaption("Variant Code"));
+        Assert.ExpectedError('You cannot change Variant Code on the subcontracting purchase line');
+    end;
+
     [ModalPageHandler]
     procedure ItemTrackingLinesSimpleHandler(var ItemTrackingLines: TestPage "Item Tracking Lines")
     begin
@@ -410,5 +444,46 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         GeneralPostingSetup."Gen. Prod. Posting Group" := GenProdPostingGroup;
         GeneralPostingSetup.Insert();
         GeneralPostingSetup.SuggestSetupAccounts();
+    end;
+
+    local procedure SetupSubcScenarioWithTransferOrder(var Item: Record Item; var WorkCenter: array[2] of Record "Work Center"; var MachineCenter: array[2] of Record "Machine Center"; var ProductionOrder: Record "Production Order"; var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line")
+    var
+        PurchaseOrderPage: TestPage "Purchase Order";
+    begin
+        SubcontractingMgmtLibrary.UpdateManufacturingSetupWithSubcontractingLocation();
+        SubcontractingMgmtLibrary.SetupInventorySetup();
+
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, true);
+        SubcWarehouseLibrary.CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Transfer to Vendor");
+        SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", 10);
+        SubcWarehouseLibrary.UpdateSubMgmtSetupWithReqWkshTemplate();
+        SubcontractingMgmtLibrary.UpdateProdOrderCompWithLocationCode(ProductionOrder."No.");
+        SubcontractingMgmtLibrary.CreateTransferRoute(WorkCenter[2], ProductionOrder);
+
+        SubcontractingMgmtLibrary.CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
+#pragma warning disable AA0210
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+#pragma warning restore AA0210
+        PurchaseLine.FindFirst();
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+
+        PurchaseOrderPage.OpenView();
+        PurchaseOrderPage.GoToRecord(PurchaseHeader);
+        PurchaseOrderPage.CreateTransfOrdToSubcontractor.Invoke();
+        PurchaseOrderPage.Close();
+
+        PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
+    end;
+
+    [PageHandler]
+    procedure TransferOrderPageHandler(var TransfOrderPage: TestPage "Transfer Order")
+    begin
+        TransfOrderPage.OK().Invoke();
     end;
 }
