@@ -27,6 +27,8 @@ page 20406 "Qlty. Inspection"
 {
     UsageCategory = None;
     Caption = 'Quality Inspection';
+    AboutTitle = 'About Quality Inspection document';
+    AboutText = 'The Quality Inspection document is used to manage quality inspections for items, including recording inspection results, taking pictures, and navigating to related documents. The header contains general information about the inspection, while the lines contain details about each quality test performed. You can also create re-inspections, print reports, and perform actions like moving inventory or changing item tracking information based on the inspection results.';
     DataCaptionExpression = GetDataCaptionExpression();
     InsertAllowed = false;
     PageType = Card;
