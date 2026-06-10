@@ -36,7 +36,7 @@ codeunit 20404 "Qlty. Inspection - Create"
         LastQltyInspectionCreateStatus: Enum "Qlty. Inspection Create Status";
         PreventShowingGeneratedInspectionEvenIfConfigured: Boolean;
         AvoidThrowingErrorWhenPossible: Boolean;
-        LastInspectionWasNewlyCreated: Boolean;
+        LastInspectionIsNewlyCreated: Boolean;
         ProgrammerErrNotARecordRefErr: Label 'Cannot find inspections with %1. Please supply a "Record" or "RecordRef".', Comment = '%1=the variant being supplied that is not a RecordRef. Your system might have an extension or customization that needs to be re-configured.';
         CannotFindTemplateErr: Label 'Cannot find a Quality Inspection Template or Quality Inspection Generation Rule to match %1. Ensure there is a Quality Inspection Generation Rule that will match this record.', Comment = '%1=The record identifier';
         UnableToCreateInspectionForErr: Label 'Unable to create an inspection for the record [%1], please review the Quality Inspection Source Configuration and also the Quality Inspection Generation Rules, you likely need additional configuration to work with this record.', Comment = '%1=the record id of what is being attempted to have an inspection created for.';
@@ -288,7 +288,7 @@ codeunit 20404 "Qlty. Inspection - Create"
         end;
 
         Clear(LastCreatedQltyInspectionHeader);
-        LastInspectionWasNewlyCreated := false;
+        LastInspectionIsNewlyCreated := false;
 
         TempQltyInspectionGenRule.CopyFilters(TempFiltersQltyInspectionGenRule);
 
@@ -356,7 +356,7 @@ codeunit 20404 "Qlty. Inspection - Create"
 
             QltyInspectionHeader.SetIsCreating(false);
             LastCreatedQltyInspectionHeader := QltyInspectionHeader;
-            LastInspectionWasNewlyCreated := IsNewlyCreatedInspection;
+            LastInspectionIsNewlyCreated := IsNewlyCreatedInspection;
 
             if IsNewlyCreatedInspection then
                 QltyStartWorkflow.StartWorkflowInspectionCreated(QltyInspectionHeader);
@@ -371,7 +371,7 @@ codeunit 20404 "Qlty. Inspection - Create"
                     if IsNewlyCreatedInspection then
                         QltyNotificationMgmt.NotifyInspectionCreated(QltyInspectionHeader);
         end else begin
-            LastInspectionWasNewlyCreated := false;
+            LastInspectionIsNewlyCreated := false;
             LogCreateInspectionProblem(TargetRecordRef, UnableToCreateInspectionForErr, Format(OriginalRecordId));
             if IsManualCreation and (not AvoidThrowingErrorWhenPossible) then
                 Error(UnableToCreateInspectionForErr, Format(OriginalRecordId));
@@ -789,9 +789,9 @@ codeunit 20404 "Qlty. Inspection - Create"
     /// Only meaningful immediately after a successful CreateInspection... call.
     /// </summary>
     /// <returns>True when the last inspection was newly created; false when it was reused or no inspection was returned.</returns>
-    internal procedure WasLastInspectionNewlyCreated(): Boolean
+    internal procedure IsLastInspectionNewlyCreated(): Boolean
     begin
-        exit(LastInspectionWasNewlyCreated);
+        exit(LastInspectionIsNewlyCreated);
     end;
 
     /// <summary>

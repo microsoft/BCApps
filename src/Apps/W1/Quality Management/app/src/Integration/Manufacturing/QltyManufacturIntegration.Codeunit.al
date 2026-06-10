@@ -390,7 +390,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
                                 if MadeInspection then begin
                                     QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
                                     ListOfInspectionIds.Add(QltyInspectionHeader.RecordId());
-                                    QltyBatchNotifHelper.TrackCreatedInspection(QltyInspectionHeader."No.", QltyInspectionCreate.WasLastInspectionNewlyCreated());
+                                    QltyBatchNotifHelper.TrackCreatedInspection(QltyInspectionHeader."No.", QltyInspectionCreate.IsLastInspectionNewlyCreated());
                                     CreatedAtLeastOneInspectionForRoutingLine := true;
                                 end;
                             until ReservationEntry.Next() = 0;
@@ -400,7 +400,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
                             if MadeInspection then begin
                                 QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
                                 ListOfInspectionIds.Add(QltyInspectionHeader.RecordId());
-                                QltyBatchNotifHelper.TrackCreatedInspection(QltyInspectionHeader."No.", QltyInspectionCreate.WasLastInspectionNewlyCreated());
+                                QltyBatchNotifHelper.TrackCreatedInspection(QltyInspectionHeader."No.", QltyInspectionCreate.IsLastInspectionNewlyCreated());
                                 CreatedAtLeastOneInspectionForRoutingLine := true;
                             end;
                         end;
@@ -421,7 +421,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
                             if MadeInspection then begin
                                 QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
                                 ListOfInspectionIds.Add(QltyInspectionHeader.RecordId());
-                                QltyBatchNotifHelper.TrackCreatedInspection(QltyInspectionHeader."No.", QltyInspectionCreate.WasLastInspectionNewlyCreated());
+                                QltyBatchNotifHelper.TrackCreatedInspection(QltyInspectionHeader."No.", QltyInspectionCreate.IsLastInspectionNewlyCreated());
                                 CreatedAtLeastOneInspectionForOrderLine := true;
                             end;
 
@@ -431,7 +431,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
                         if MadeInspection then begin
                             QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
                             ListOfInspectionIds.Add(QltyInspectionHeader.RecordId());
-                            QltyBatchNotifHelper.TrackCreatedInspection(QltyInspectionHeader."No.", QltyInspectionCreate.WasLastInspectionNewlyCreated());
+                            QltyBatchNotifHelper.TrackCreatedInspection(QltyInspectionHeader."No.", QltyInspectionCreate.IsLastInspectionNewlyCreated());
                             CreatedAtLeastOneInspectionForOrderLine := true;
                         end;
                     end;
@@ -442,7 +442,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
             if MadeInspection then begin
                 QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
                 ListOfInspectionIds.Add(QltyInspectionHeader.RecordId());
-                QltyBatchNotifHelper.TrackCreatedInspection(QltyInspectionHeader."No.", QltyInspectionCreate.WasLastInspectionNewlyCreated());
+                QltyBatchNotifHelper.TrackCreatedInspection(QltyInspectionHeader."No.", QltyInspectionCreate.IsLastInspectionNewlyCreated());
                 CreatedInspectionForProdOrder := MadeInspection;
             end;
         end;
