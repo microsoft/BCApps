@@ -177,6 +177,69 @@ codeunit 149914 "Subc. WIP Adjustment Test"
         Assert.ExpectedError('must not exceed the production order line quantity');
     end;
 
+    [Test]
+    [HandlerFunctions('WIPAdjustmentPageHandler')]
+    procedure WIPAdjustment_ZeroNewQuantity_Succeeds()
+    var
+        WIPLedgerEntry: Record "Subcontractor WIP Ledger Entry";
+        WIPAdjustmentPage: Page "Subc. WIP Adjustment";
+        ProdOrderNo: Code[20];
+        InitialQty: Decimal;
+    begin
+        // [SCENARIO] Entering zero as the new quantity succeeds (lower boundary: 0 is allowed, < 0 is not)
+        Initialize();
+
+        // [GIVEN] A WIP ledger entry with initial quantity 5 and a prod. order line quantity of 10
+        InitialQty := 5;
+        CreateTestWIPSetupWithProdOrderQty(WIPLedgerEntry, InitialQty, 10, ProdOrderNo);
+
+        // [GIVEN] The WIP Adjustment page handler will set the new quantity to 0 (lower boundary)
+        SetHandlerValues(0, 'ADJ-ZRO', 'Zero Qty Test', '');
+
+        // [WHEN] The WIP Adjustment page is opened and a zero quantity is confirmed
+        WIPAdjustmentPage.SetWIPLedgerEntry(WIPLedgerEntry);
+        WIPAdjustmentPage.RunModal();
+
+        // [THEN] A negative adjustment entry is created reducing the WIP quantity to zero
+        AssertWIPQuantitySum(ProdOrderNo, 0);
+        AssertAdjustmentEntry(
+            ProdOrderNo, -InitialQty,
+            "WIP Ledger Entry Type"::"Negative Adjustment",
+            'ADJ-ZRO', 'Zero Qty Test', '');
+    end;
+
+    [Test]
+    [HandlerFunctions('WIPAdjustmentPageHandler')]
+    procedure WIPAdjustment_ExactProdOrderQuantity_Succeeds()
+    var
+        WIPLedgerEntry: Record "Subcontractor WIP Ledger Entry";
+        WIPAdjustmentPage: Page "Subc. WIP Adjustment";
+        ProdOrderNo: Code[20];
+        InitialQty, ProdOrderQty : Decimal;
+    begin
+        // [SCENARIO] Entering exactly the production order line quantity succeeds (upper boundary: = is allowed, > is not)
+        Initialize();
+
+        // [GIVEN] A WIP ledger entry with initial quantity 3 and a prod. order line quantity of 10
+        InitialQty := 3;
+        ProdOrderQty := 10;
+        CreateTestWIPSetupWithProdOrderQty(WIPLedgerEntry, InitialQty, ProdOrderQty, ProdOrderNo);
+
+        // [GIVEN] The WIP Adjustment page handler will set the new quantity exactly equal to the prod. order line quantity
+        SetHandlerValues(ProdOrderQty, 'ADJ-MAX', 'Exact Prod Order Qty Test', '');
+
+        // [WHEN] The WIP Adjustment page is opened and the production order line quantity is confirmed
+        WIPAdjustmentPage.SetWIPLedgerEntry(WIPLedgerEntry);
+        WIPAdjustmentPage.RunModal();
+
+        // [THEN] A positive adjustment entry is created raising the WIP quantity to the production order line quantity
+        AssertWIPQuantitySum(ProdOrderNo, ProdOrderQty);
+        AssertAdjustmentEntry(
+            ProdOrderNo, ProdOrderQty - InitialQty,
+            "WIP Ledger Entry Type"::"Positive Adjustment",
+            'ADJ-MAX', 'Exact Prod Order Qty Test', '');
+    end;
+
     [ModalPageHandler]
     procedure WIPAdjustmentPageHandler(var WIPAdjustmentPage: TestPage "Subc. WIP Adjustment")
     begin
@@ -241,8 +304,12 @@ codeunit 149914 "Subc. WIP Adjustment Test"
         ProductionOrder."No." := CopyStr(
             LibraryUtility.GenerateRandomCode(ProductionOrder.FieldNo("No."), Database::"Production Order"),
             1, MaxStrLen(ProductionOrder."No."));
+        ProdOrderLine.Status := "Production Order Status"::Released;
+        ProdOrderLine."Prod. Order No." := ProductionOrder."No.";
         ProdOrderLine."Line No." := 10000;
+        ProdOrderLine."Quantity (Base)" := QuantityBase + 100;
         ProdOrderLine."Unit of Measure Code" := Item."Base Unit of Measure";
+        ProdOrderLine.Insert(false);
         ProdOrderRoutingLine."Routing No." := 'RTNG-001';
         ProdOrderRoutingLine."Routing Reference No." := 10000;
         ProdOrderRoutingLine."Operation No." := '10';
@@ -275,8 +342,12 @@ codeunit 149914 "Subc. WIP Adjustment Test"
         ProductionOrder."No." := CopyStr(
             LibraryUtility.GenerateRandomCode(ProductionOrder.FieldNo("No."), Database::"Production Order"),
             1, MaxStrLen(ProductionOrder."No."));
+        ProdOrderLine.Status := "Production Order Status"::Released;
+        ProdOrderLine."Prod. Order No." := ProductionOrder."No.";
         ProdOrderLine."Line No." := 10000;
+        ProdOrderLine."Quantity (Base)" := Quantity1 + Quantity2 + 100;
         ProdOrderLine."Unit of Measure Code" := Item."Base Unit of Measure";
+        ProdOrderLine.Insert(false);
         ProdOrderRoutingLine."Routing No." := 'RTNG-001';
         ProdOrderRoutingLine."Routing Reference No." := 10000;
         ProdOrderRoutingLine."Operation No." := '10';

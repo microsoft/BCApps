@@ -385,8 +385,8 @@ page 99001561 "Subc. WIP Adjustment"
         if NewQty < 0 then
             Error(NewQuantityMustNotBeNegativeErr);
         ProdOrderLine.SetLoadFields("Quantity (Base)");
-        if ProdOrderLine.Get(Rec."Prod. Order Status", Rec."Prod. Order No.", Rec."Prod. Order Line No.") then
-            if NewQty > ProdOrderLine."Quantity (Base)" then
-                Error(NewQuantityExceedsProdOrderQtyErr, ProdOrderLine."Quantity (Base)");
+        ProdOrderLine.Get(Rec."Prod. Order Status", Rec."Prod. Order No.", Rec."Prod. Order Line No.");
+        if NewQty > ProdOrderLine."Quantity (Base)" then
+            Error(NewQuantityExceedsProdOrderQtyErr, ProdOrderLine."Quantity (Base)");
     end;
 }
