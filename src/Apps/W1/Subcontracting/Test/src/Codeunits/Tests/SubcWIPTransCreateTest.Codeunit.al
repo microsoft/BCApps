@@ -1097,7 +1097,7 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         // [GIVEN] Verify the purchase line received the item's Purch. Unit of Measure (BOX)
         PurchaseLine.Validate("Unit of Measure Code", UnitOfMeasure.Code);
         PurchaseLine.Validate(Quantity, ProdOrderQty / BoxQtyPerPCS);
-        PurchaseLine.Modify();
+PurchaseLine.Modify(true);
 
         PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
 
