@@ -301,7 +301,9 @@ report 99001501 "Subc. Create Transf. Order"
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         UOMManagement: Codeunit "Unit of Measure Management";
         TransferFromLoc: Code[10];
+        TransferToLocCode: Code[10];
         WIPPreviousOperationNo: Code[10];
+        PostedWIPQtyBase: Decimal;
         PurchLineQtyBase: Decimal;
         QtyPerPurchUom: Decimal;
         WIPQtyBase: Decimal;
@@ -332,6 +334,11 @@ report 99001501 "Subc. Create Transf. Order"
         if not InsertLine then
             exit(true);
 
+        if WIPSourceLocationList.Count() = 1 then begin
+            GetTransferToLocationCodeForPurchaseHeader("Purchase Header", Vendor, TransferToLocCode);
+            PostedWIPQtyBase := GetWIPQtyBase(PurchaseLine, TransferToLocCode);
+        end;
+
         Item.SetLoadFields("Base Unit of Measure");
         Item.Get(ProdOrderLine."Item No.");
         QtyPerPurchUom := UOMManagement.GetQtyPerUnitOfMeasure(Item, PurchaseLine."Unit of Measure Code");
@@ -339,6 +346,9 @@ report 99001501 "Subc. Create Transf. Order"
         foreach TransferFromLoc in WIPSourceLocationList do begin
             WIPQtyBase := WIPSourceQtyDict.Get(TransferFromLoc);
             WIPPreviousOperationNoDict.Get(TransferFromLoc, WIPPreviousOperationNo);
+            if WIPSourceLocationList.Count() = 1 then
+                if WIPQtyBase > PurchLineQtyBase - PostedWIPQtyBase then
+                    WIPQtyBase := PurchLineQtyBase - PostedWIPQtyBase;
             if QtyPerPurchUom <> 0 then
                 WIPQtyInUOM := Round(WIPQtyBase / QtyPerPurchUom, UOMManagement.QtyRndPrecision())
             else
