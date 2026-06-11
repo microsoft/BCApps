@@ -29,7 +29,6 @@ using Microsoft.Sales.Document;
 using Microsoft.Test.QualityManagement.TestLibraries;
 using Microsoft.Warehouse.Document;
 using Microsoft.Warehouse.Ledger;
-using System.Environment.Configuration;
 using System.Reflection;
 using System.TestLibraries.Utilities;
 using System.Threading;
