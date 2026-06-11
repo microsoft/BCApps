@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
-using Microsoft.Foundation.Company;
 using Microsoft.Manufacturing.Setup;
 using System.Environment.Configuration;
 
