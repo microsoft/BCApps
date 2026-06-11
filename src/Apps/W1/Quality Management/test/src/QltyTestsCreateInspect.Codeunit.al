@@ -33,7 +33,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         CannotFindTemplateErr: Label 'Cannot find a Quality Inspection Template or Quality Inspection Generation Rule to match %1. Ensure there is a Quality Inspection Generation Rule that will match this record.', Comment = '%1=The record identifier';
         ProgrammerErrNotARecordRefErr: Label 'Cannot find inspections with %1. Please supply a "Record" or "RecordRef".', Comment = '%1=the variant being supplied that is not a RecordRef. Your system might have an extension or customization that needs to be re-configured.';
-        UnableToCreateInspectionForRecordErr: Label 'Cannot find enough details to make an inspection for your record(s)Try making sure that there is a source configuration for your record, and then also make sure there is sufficient information in your inspection generation rules. The table involved is %1.', Comment = '%1=the table involved.';
+        UnableToCreateInspectionForRecordErr: Label 'Cannot find enough details to make an inspection for your record(s). Try making sure that there is a source configuration for your record, and then also make sure there is sufficient information in your inspection generation rules. The table involved is %1.', Comment = '%1=the table involved.';
         UnableToCreateInspectionForParentOrChildErr: Label 'Cannot find enough details to make an inspection for your record(s). Try making sure that there is a source configuration for your record, and then also make sure there is sufficient information in your inspection generation rules. Two tables involved are %1 and %2.', Comment = '%1=the parent table, %2=the child and original table.';
         IsInitialized: Boolean;
 
@@ -2587,7 +2587,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
         FirstRoutingLineRecordRef: RecordRef;
         AllRoutingLinesRecordRef: RecordRef;
-        CreatedQltyInspectionIds, AllResolvedQltyInspectionIds: List of [Code[20]];
+        CreatedQltyInspectionIds, AllResolvedQltyInspectionIds : List of [Code[20]];
         OrdersList: List of [Code[20]];
         ProductionOrder: Code[20];
         PreviousQltyCreateInspectBehavior: Enum "Qlty. Inspect. Creation Option";
