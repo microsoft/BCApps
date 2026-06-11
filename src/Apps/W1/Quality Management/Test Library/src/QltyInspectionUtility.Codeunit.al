@@ -1337,6 +1337,47 @@ codeunit 139940 "Qlty. Inspection Utility"
     end;
 
     /// <summary>
+    /// Wrapper for QltyInspectionCreate.CreateInspection that also reports whether the returned inspection was newly created or reused.
+    /// Use this in tests that verify the "newly created vs reused" distinction (e.g., to assert the inspection-created notification
+    /// is only raised for newly created inspections).
+    /// </summary>
+    /// <param name="TargetRecordRef">The source record to create an inspection from.</param>
+    /// <param name="IsManualCreation">True when user manually creates inspection; False for automatic/triggered creation.</param>
+    /// <param name="OutQltyInspectionHeader">Output: the created or reused inspection header.</param>
+    /// <param name="OutIsNewlyCreated">Output: true when the inspection was newly inserted; false when an existing inspection was reused.</param>
+    /// <returns>True if an inspection was created or found/reused.</returns>
+    internal procedure CreateInspectionAndReportIfNewlyCreated(TargetRecordRef: RecordRef; IsManualCreation: Boolean; var OutQltyInspectionHeader: Record "Qlty. Inspection Header"; var OutIsNewlyCreated: Boolean): Boolean
+    var
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
+        Result: Boolean;
+    begin
+        Result := QltyInspectionCreate.CreateInspection(TargetRecordRef, IsManualCreation);
+        OutIsNewlyCreated := false;
+        if Result then begin
+            QltyInspectionCreate.GetCreatedInspection(OutQltyInspectionHeader);
+            OutIsNewlyCreated := QltyInspectionCreate.IsLastInspectionNewlyCreated();
+        end;
+        exit(Result);
+    end;
+
+    /// <summary>
+    /// Wrapper for internal QltyInspectionCreate.CreateMultipleInspectionsWithoutDisplaying.
+    /// Returns both the inspections that were newly created and the full set of inspections that were resolved
+    /// (new + reused).
+    /// </summary>
+    /// <param name="SetOfRecordsRecordRef">RecordRef containing the records to create inspections for.</param>
+    /// <param name="IsManualCreation">Whether this is a manual creation (affects display behavior).</param>
+    /// <param name="TempFiltersQltyInspectionGenRule">Temporary record with filters that constrain which generation rules apply.</param>
+    /// <param name="OutNewlyCreatedQltyInspectionIds">Output: list of inspection "No." values for inspections that were newly inserted.</param>
+    /// <param name="OutAllResolvedQltyInspectionIds">Output: list of inspection "No." values for every inspection that was newly inserted or reused.</param>
+    internal procedure CreateMultipleInspectionsWithoutDisplaying(var SetOfRecordsRecordRef: RecordRef; IsManualCreation: Boolean; var TempFiltersQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary; var OutNewlyCreatedQltyInspectionIds: List of [Code[20]]; var OutAllResolvedQltyInspectionIds: List of [Code[20]])
+    var
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
+    begin
+        QltyInspectionCreate.CreateMultipleInspectionsWithoutDisplaying(SetOfRecordsRecordRef, IsManualCreation, TempFiltersQltyInspectionGenRule, OutNewlyCreatedQltyInspectionIds, OutAllResolvedQltyInspectionIds);
+    end;
+
+    /// <summary>
     /// Wrapper for QltyInspectionCreate.CreateInspectionWithVariant.
     /// Creates a quality inspection from a variant using generation rule configuration.
     /// </summary>
@@ -1496,10 +1537,10 @@ codeunit 139940 "Qlty. Inspection Utility"
     /// <summary>
     /// Wrapper for QltyInspectionCreate.FindExistingInspectionWithVariant (simple overload).
     /// Finds an existing inspection matching the given variant.
-    /// </summary>
-    /// <param name="RaiseErrorIfNoRuleIsFound">If true, raises an error when no matching rule is found.</param>
-    /// <param name="ReferenceVariant">The source record to find an inspection for.</param>
-    /// <param name="OutQltyInspectionHeader">Output: the found inspection header.</param>
+    /// </summary>         
+    /// <param name="RaiseErrorIfNoRuleIsFound">If true, raises an error when no matching rule is found.</param>         
+    /// <param name="ReferenceVariant">The source record to find an inspection for.</param>         
+    /// <param name="OutQltyInspectionHeader">Output: the found inspection header.</param>         
     /// <returns>True if an existing inspection was found.</returns>
     internal procedure FindExistingInspectionWithVariant(RaiseErrorIfNoRuleIsFound: Boolean; ReferenceVariant: Variant; var OutQltyInspectionHeader: Record "Qlty. Inspection Header"): Boolean
     var
@@ -1513,9 +1554,9 @@ codeunit 139940 "Qlty. Inspection Utility"
     /// Finds existing inspections with generation rule filtering.
     /// </summary>
     /// <param name="TargetRecordRef">The main target record.</param>
-    /// <param name="OptionalVariant2">Optional second variant.</param>
-    /// <param name="OptionalVariant3">Optional third variant.</param>
-    /// <param name="OptionalVariant4">Optional fourth variant.</param>
+    /// <param name="OptionalVariant2">Optional second variant.</param>         
+    /// <param name="OptionalVariant3">Optional third variant.</param>         
+    /// <param name="OptionalVariant4">Optional fourth variant.</param>         
     /// <param name="TempQltyInspectionGenRule">Temporary generation rule for filtering.</param>
     /// <param name="OutQltyInspectionHeader">Output: the found inspection header.</param>
     /// <param name="FindAll">If true, finds all matching inspections.</param>
@@ -1527,7 +1568,7 @@ codeunit 139940 "Qlty. Inspection Utility"
         exit(QltyInspectionCreate.FindExistingInspectionWithVariant(TargetRecordRef, OptionalVariant2, OptionalVariant3, OptionalVariant4, TempQltyInspectionGenRule, OutQltyInspectionHeader, FindAll));
     end;
 
-    #endregion Qlty. Inspection - Create Wrappers
+    #endregion Qlty. Inspection - Create Wrappers         
 
     #region Qlty. Disposition Wrappers
 
