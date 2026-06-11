@@ -869,7 +869,7 @@ codeunit 20404 "Qlty. Inspection - Create"
             if NewlyCreatedCount > 0 then
                 DisplayInspectionsIfConfigured(IsManualCreation, NewlyCreatedQltyInspectionIds)
             else begin
-                ExistingMatchedCount := AllResolvedQltyInspectionIds.Count() - NewlyCreatedCount;
+                ExistingMatchedCount := AllResolvedQltyInspectionIds.Count();
                 if ExistingMatchedCount > 0 then
                     if Confirm(StrSubstNo(SomeInspectionsMatchedQst, ExistingMatchedCount), true) then
                         DisplayInspectionsIfConfigured(IsManualCreation, AllResolvedQltyInspectionIds);
