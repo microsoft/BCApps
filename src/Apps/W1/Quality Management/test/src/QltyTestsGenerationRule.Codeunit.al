@@ -461,7 +461,7 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
         QltyInspectionGenRule.Insert(true);
 
         // [THEN] The rule is persisted
-        LibraryAssert.IsTrue(QltyInspectionGenRule.Find(), 'The generation rule should be persisted after insert');
+        LibraryAssert.IsFalse(QltyInspectionGenRule.IsEmpty(), 'The generation rule should be persisted after insert');
     end;
 
     local procedure DeleteAllAndCreateOneGenerationRule(TemplateCode: Code[20]; ActivationTrigger: Enum "Qlty. Gen. Rule Act. Trigger")
