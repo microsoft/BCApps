@@ -93,13 +93,13 @@ pageextension 99001523 "Subc. Purch. Order" extends "Purchase Order"
         }
     }
     var
+        SubcontractingManagement: Codeunit "Subcontracting Management";
 #if not CLEAN29
 #pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
 #pragma warning restore AL0432
         SubcontractingEnabled: Boolean;
 #endif
-        SubcontractingManagement: Codeunit "Subcontracting Management";
         HasSubcontractingContext: Boolean;
 
     trigger OnOpenPage()

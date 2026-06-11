@@ -11,12 +11,12 @@ codeunit 99001567 "Subc. Pst. Prev. Event Handler"
 
     var
         TempSubcontractorWIPLedgerEntry: Record "Subcontractor WIP Ledger Entry" temporary;
-        DocumentMaskTok: Label '***', Locked = true;
 #if not CLEAN29
 #pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
 #pragma warning restore AL0432
 #endif
+        DocumentMaskTok: Label '***', Locked = true;
 
     [EventSubscriber(ObjectType::Table, Database::"Subcontractor WIP Ledger Entry", OnAfterInsertEvent, '', false, false)]
     local procedure OnInsertWIPEntry(var Rec: Record "Subcontractor WIP Ledger Entry")

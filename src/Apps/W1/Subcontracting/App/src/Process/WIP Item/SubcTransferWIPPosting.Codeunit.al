@@ -23,12 +23,12 @@ codeunit 99001541 "Subc. Transfer WIP Posting"
     Permissions = TableData "Subcontractor WIP Ledger Entry" = RIMD;
 
     var
-        WIPLedgEntryNo: Integer;
 #if not CLEAN29
 #pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
 #pragma warning restore AL0432
 #endif
+        WIPLedgEntryNo: Integer;
 
     [EventSubscriber(ObjectType::Table, Database::"Transfer Header", OnUpdateTransLinesOnAfterUpdateFromDirectTransfer, '', false, false)]
     local procedure OnUpdateTransLinesOnAfterUpdateFromDirectTransfer(var TransferLine: Record "Transfer Line"; TempTransferLine: Record "Transfer Line")

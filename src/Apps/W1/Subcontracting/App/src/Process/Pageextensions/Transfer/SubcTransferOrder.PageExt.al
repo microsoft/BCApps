@@ -80,13 +80,13 @@ pageextension 99001526 "Subc. Transfer Order" extends "Transfer Order"
 
     var
         SubcontractingManagement: Codeunit "Subcontracting Management";
-        ShowSubcontractingFactBox: Boolean;
 #if not CLEAN29
 #pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
 #pragma warning restore AL0432
         SubcontractingEnabled: Boolean;
 #endif
+        ShowSubcontractingFactBox: Boolean;
 
     trigger OnOpenPage()
     begin

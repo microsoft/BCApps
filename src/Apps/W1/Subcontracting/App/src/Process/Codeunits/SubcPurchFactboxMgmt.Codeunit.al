@@ -17,13 +17,13 @@ using System.Text;
 codeunit 99001560 "Subc. Purch. Factbox Mgmt."
 {
     var
-        MultipleLbl: Label 'Multiple', MaxLength = 20;
-        NoTransferExistsMsg: Label 'No transfer order exists for this purchase order.';
 #if not CLEAN29
 #pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
 #pragma warning restore AL0432
 #endif
+        MultipleLbl: Label 'Multiple', MaxLength = 20;
+        NoTransferExistsMsg: Label 'No transfer order exists for this purchase order.';
 
     /// <summary>
     /// Opens the Purchase Order page for the subcontracting purchase order linked to the given variant record.

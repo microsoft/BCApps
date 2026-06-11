@@ -9,15 +9,15 @@ using System.Environment.Configuration;
 codeunit 99001506 "Subc. Notification Mgmt."
 {
     var
-        ProdOrdNotificationDescriptionTxt: Label 'Show a notification if Production Orders were created for Subcontracting.';
-        ProdOrdNotificationNameLbl: Label 'Show Created Production Orders';
-        SubcOrdNotificationDescriptionTxt: Label 'Show a notification if Subcontracting Orders were created for Subcontracting.';
-        SubcOrdNotificationNameLbl: Label 'Show Created Subcontracting Orders';
 #if not CLEAN29
 #pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
 #pragma warning restore AL0432
 #endif
+        ProdOrdNotificationDescriptionTxt: Label 'Show a notification if Production Orders were created for Subcontracting.';
+        ProdOrdNotificationNameLbl: Label 'Show Created Production Orders';
+        SubcOrdNotificationDescriptionTxt: Label 'Show a notification if Subcontracting Orders were created for Subcontracting.';
+        SubcOrdNotificationNameLbl: Label 'Show Created Subcontracting Orders';
 
     procedure ShowCreatedProductionOrderConfirmationMessageCode(): Code[50]
     begin
