@@ -41,6 +41,7 @@ codeunit 99001515 "Subc. ItemJnlPostLine Ext"
     local procedure "Item Jnl.-Post Line_OnBeforeInsertCapValueEntry"(var ValueEntry: Record "Value Entry"; ItemJnlLine: Record "Item Journal Line")
     begin
         ClearInvoicedQuantityForItemChargeSubAssign(ValueEntry, ItemJnlLine);
+        CopyItemChargeNoForItemChargeSubAssign(ValueEntry, ItemJnlLine);
     end;
 
     local procedure UpdateProdOrderRoutingLine(var ProdOrderLine: Record "Prod. Order Line"; var ItemJournalLine: Record "Item Journal Line")
@@ -89,5 +90,11 @@ codeunit 99001515 "Subc. ItemJnlPostLine Ext"
     begin
         if ItemJournalLine."Subc. Item Charge Assign." and (ValueEntry."Entry Type" = "Cost Entry Type"::"Direct Cost") then
             ValueEntry."Invoiced Quantity" := 0;
+    end;
+
+    local procedure CopyItemChargeNoForItemChargeSubAssign(var ValueEntry: Record "Value Entry"; ItemJournalLine: Record "Item Journal Line")
+    begin
+        if ItemJournalLine."Subc. Item Charge Assign." and (ItemJournalLine."Item Charge No." <> '') then
+            ValueEntry."Item Charge No." := ItemJournalLine."Item Charge No.";
     end;
 }
