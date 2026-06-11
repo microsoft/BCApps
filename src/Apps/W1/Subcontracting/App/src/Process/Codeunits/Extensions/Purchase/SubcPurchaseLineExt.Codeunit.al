@@ -37,6 +37,21 @@ codeunit 99001534 "Subc. Purchase Line Ext"
         SubcSynchronizeManagement.DeleteEnhancedDocumentsByDeletePurchLine(Rec);
     end;
 
+    [EventSubscriber(ObjectType::Table, Database::"Purchase Line", OnBeforeDeleteEvent, '', false, false)]
+    local procedure CheckTransferOnBeforeDeleteEvent(var Rec: Record "Purchase Line"; RunTrigger: Boolean)
+    var
+        SubcTransferManagement: Codeunit "Subc. Transfer Management";
+    begin
+        if Rec.IsTemporary() then
+            exit;
+        if not RunTrigger then
+            exit;
+        if Rec."Prod. Order No." = '' then
+            exit;
+
+        SubcTransferManagement.CheckSubcPurchLineCanBeDeleted(Rec);
+    end;
+
     [EventSubscriber(ObjectType::Table, Database::"Purchase Line", OnAfterValidateEvent, "Expected Receipt Date", false, false)]
     local procedure OnAfterValidateExpectedReceiptDate(var Rec: Record "Purchase Line"; var xRec: Record "Purchase Line"; CurrFieldNo: Integer)
     begin

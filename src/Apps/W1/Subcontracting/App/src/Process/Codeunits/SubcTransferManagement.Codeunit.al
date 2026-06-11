@@ -19,9 +19,11 @@ codeunit 99001504 "Subc. Transfer Management"
         ManufacturingSetup: Record "Manufacturing Setup";
         TempGlobalReservationEntry: Record "Reservation Entry" temporary;
         CannotModifySubcPurchLineErr: Label 'You cannot change %1 on the subcontracting purchase line because transfer orders exist for the linked production order %2.', Comment = '%1=Field Caption, %2=Production Order No.';
-        CannotModifyStockAtSubcErr: Label 'You cannot change %1 on the subcontracting purchase line because stock has been transferred to the subcontractor for production order %2.', Comment = '%1=Field Caption, %2=Production Order No.';
+        CannotModifyStockAtSubcErr: Label 'You cannot change %1 on the subcontracting purchase line because there are remaining components or WIP items transferred to the subcontractor for production order %2.', Comment = '%1=Field Caption, %2=Production Order No.';
         CannotModifySubcTransferLineErr: Label 'You cannot change %1 on the subcontracting transfer line because it is linked to production order %2.', Comment = '%1=Field Caption, %2=Production Order No.';
         CannotModifySubcTransferHeaderErr: Label 'You cannot change %1 on the subcontracting transfer order because it contains lines linked to a production order.', Comment = '%1=Field Caption';
+        CannotDeletePurchLineTransferExistsErr: Label 'You cannot delete the subcontracting purchase line because transfer orders exist for the linked production order %1.', Comment = '%1=Production Order No.';
+        CannotDeletePurchLineStockAtSubcErr: Label 'You cannot delete the subcontracting purchase line because there are remaining components or WIP items transferred to the subcontractor for production order %1.', Comment = '%1=Production Order No.';
         CannotDeleteStockAtSubcErr: Label 'You cannot delete Subcontracting Order %1 because components or WIP items have been transferred to the subcontractor location for production order %2.', Comment = '%1=Purchase Order No., %2=Production Order No.';
         HasManufacturingSetup: Boolean;
 
@@ -283,6 +285,17 @@ codeunit 99001504 "Subc. Transfer Management"
             Error(CannotModifyStockAtSubcErr, FieldCaption, PurchaseLine."Prod. Order No.");
     end;
 
+    internal procedure CheckSubcPurchLineCanBeDeleted(PurchaseLine: Record "Purchase Line")
+    begin
+        if not PurchaseLine."Transfer WIP Item" then
+            exit;
+
+        if HasSubcTransferForPurchLine(PurchaseLine) then
+            Error(CannotDeletePurchLineTransferExistsErr, PurchaseLine."Prod. Order No.");
+        if HasStockAtSubcLocation(PurchaseLine) then
+            Error(CannotDeletePurchLineStockAtSubcErr, PurchaseLine."Prod. Order No.");
+    end;
+
     internal procedure CheckStockAtSubcLocationForPurchHeader(PurchaseHeader: Record "Purchase Header")
     var
         PurchaseLine: Record "Purchase Line";
@@ -312,14 +325,16 @@ codeunit 99001504 "Subc. Transfer Management"
     var
         ProdOrderComponent: Record "Prod. Order Component";
         SubcWIPLedgerEntry: Record "Subcontractor WIP Ledger Entry";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         NetStockAtSubcLocation: Decimal;
     begin
+        GetProdOrderRoutingLinkCode(ProdOrderRoutingLine, PurchaseLine);
         ProdOrderComponent.SetCurrentKey(Status, "Prod. Order No.", "Routing Link Code");
         ProdOrderComponent.SetRange(Status, "Production Order Status"::Released);
         ProdOrderComponent.SetRange("Prod. Order No.", PurchaseLine."Prod. Order No.");
         ProdOrderComponent.SetRange("Prod. Order Line No.", PurchaseLine."Prod. Order Line No.");
         ProdOrderComponent.SetRange("Subc. Purchase Order Filter", PurchaseLine."Document No.");
-        ProdOrderComponent.SetRange("Routing Link Code", GetProdOrderRoutingLinkCode(PurchaseLine));
+        ProdOrderComponent.SetRange("Routing Link Code", ProdOrderRoutingLine."Routing Link Code");
         ProdOrderComponent.SetRange("Component Supply Method", ProdOrderComponent."Component Supply Method"::"Transfer to Vendor");
         ProdOrderComponent.SetAutoCalcFields("Subc. Qty. transf. to Subcontr");
         if ProdOrderComponent.FindSet() then
@@ -327,7 +342,7 @@ codeunit 99001504 "Subc. Transfer Management"
                 if ProdOrderComponent."Subc. Qty. transf. to Subcontr" <> 0 then begin
                     NetStockAtSubcLocation := ProdOrderComponent."Subc. Qty. transf. to Subcontr";
                     NetStockAtSubcLocation -= CalcConsumedQtyAtSubcLocation(ProdOrderComponent);
-                    if NetStockAtSubcLocation <> 0 then
+                    if NetStockAtSubcLocation > 0 then
                         exit(true);
                 end;
             until ProdOrderComponent.Next() = 0;
@@ -335,10 +350,12 @@ codeunit 99001504 "Subc. Transfer Management"
         SubcWIPLedgerEntry.SetCurrentKey("Prod. Order No.", "Prod. Order Status", "Prod. Order Line No.", "Routing Reference No.", "Routing No.", "Operation No.", "Location Code");
         SubcWIPLedgerEntry.SetRange("Prod. Order No.", PurchaseLine."Prod. Order No.");
         SubcWIPLedgerEntry.SetRange("Prod. Order Status", "Production Order Status"::Released);
-        SubcWIPLedgerEntry.SetRange("Prod. Order Line No.", PurchaseLine."Subc. Prod. Order Line No.");
-        SubcWIPLedgerEntry.SetRange("Routing Reference No.", PurchaseLine."Subc. Rtng Reference No.");
-        SubcWIPLedgerEntry.SetRange("Routing No.", PurchaseLine."Subc. Routing No.");
-        SubcWIPLedgerEntry.SetRange("Operation No.", PurchaseLine."Subc. Operation No.");
+        SubcWIPLedgerEntry.SetRange("Prod. Order Line No.", PurchaseLine."Prod. Order Line No.");
+        SubcWIPLedgerEntry.SetRange("Routing Reference No.", PurchaseLine."Routing Reference No.");
+        SubcWIPLedgerEntry.SetRange("Routing No.", PurchaseLine."Routing No.");
+        SubcWIPLedgerEntry.SetRange("Operation No.", PurchaseLine."Operation No.");
+
+        SubcWIPLedgerEntry.SetRange("In Transit", false);
         SubcWIPLedgerEntry.CalcSums("Quantity (Base)");
         if SubcWIPLedgerEntry."Quantity (Base)" <> 0 then
             exit(true);
@@ -388,9 +405,8 @@ codeunit 99001504 "Subc. Transfer Management"
         HasManufacturingSetup := ManufacturingSetup.Get();
     end;
 
-    local procedure GetProdOrderRoutingLinkCode(PurchaseLine: Record "Purchase Line"): Code[10]
+    local procedure GetProdOrderRoutingLinkCode(ProdOrderRoutingLine: Record "Prod. Order Routing Line"; PurchaseLine: Record "Purchase Line")
     var
-        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         RoutingOperationNotFoundErr: Label 'Operation %1 in the subcontracting order %2 does not exist in the routing %3 of the production order %4.', Comment = '%1=Operation No., %2=Purchase Order No., %3=Routing No., %4=Production Order No.';
     begin
         if not ProdOrderRoutingLine.Get(
@@ -401,7 +417,5 @@ codeunit 99001504 "Subc. Transfer Management"
             PurchaseLine."Operation No.")
         then
             Error(RoutingOperationNotFoundErr, PurchaseLine."Operation No.", PurchaseLine."Document No.", PurchaseLine."Routing No.", PurchaseLine."Prod. Order No.");
-
-        exit(ProdOrderRoutingLine."Routing Link Code");
     end;
 }

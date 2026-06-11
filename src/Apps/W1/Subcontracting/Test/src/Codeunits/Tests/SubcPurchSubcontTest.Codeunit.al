@@ -390,7 +390,7 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         // [VERIFY] Modification is blocked because stock exists at the subcontractor location
         PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
         asserterror SubcTransferManagement.CheckSubcPurchLineCanBeModified(PurchaseLine, PurchaseLine.FieldCaption(Quantity));
-        Assert.ExpectedError('stock has been transferred');
+        Assert.ExpectedError('remaining components or WIP items transferred to the subcontractor');
 
         // [VERIFY] Purchase Order deletion is blocked because stock was transferred to the subcontractor location
         PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
@@ -399,6 +399,18 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         // [GIVEN] All transferred stock has been consumed at the subcontractor location
         FindTransferProdOrderComponent(ProdOrderComponent, PurchaseLine);
         LibraryMfgManagement.PostConsumptionForAllComponents(ProdOrderComponent);
+
+        // [VERIFY] Modification is blocked because WIP item remains at the subcontractor location
+        PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
+        asserterror SubcTransferManagement.CheckSubcPurchLineCanBeModified(PurchaseLine, PurchaseLine.FieldCaption(Quantity));
+        Assert.ExpectedError('remaining components or WIP items transferred to the subcontractor');
+
+        // [WHEN] Return transfer order is created and posted to return remaining WIP item from subcontractor location
+        PurchaseHeader.Get(PurchaseHeader."Document Type", PurchaseHeader."No.");
+        CreateReturnTransferOrderForPurchaseOrder(PurchaseHeader);
+
+        FindTransferOrderForPurchaseLine(TransferHeader, PurchaseLine);
+        PostDirectTransferOrder(TransferHeader);
 
         // [WHEN] CheckSubcPurchLineCanBeModified is called after full consumption
         // [THEN] No error is raised because net stock at the subcontractor location is zero
@@ -650,6 +662,12 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
     begin
         PurchaseHeader.SetRecFilter();
         Report.Run(Report::"Subc. Create Transf. Order", false, false, PurchaseHeader);
+    end;
+
+    local procedure CreateReturnTransferOrderForPurchaseOrder(var PurchaseHeader: Record "Purchase Header")
+    begin
+        PurchaseHeader.SetRecFilter();
+        Report.Run(Report::"Subc. Create SubCReturnOrder", false, false, PurchaseHeader);
     end;
 
     local procedure SetupSubContractingProdOrder(var Item: Record Item; var Location: Record Location; var WorkCenter: array[2] of Record "Work Center"; var MachineCenter: array[2] of Record "Machine Center"; var ProductionOrder: Record "Production Order"; ComponentSupplyMethod: Enum "Component Supply Method"; ProductionQty: Decimal)
