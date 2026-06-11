@@ -191,8 +191,10 @@ report 99001502 "Subc. Create SubCReturnOrder"
                 ProdOrderComponent.CalcFields(
                     "Subc. Qty. in Transit (Base)", "Subc. Qty. transf. to Subcontr",
                     "RetQtyOnTransOrder (Base)", "RetQtyInTransit (Base)");
+
                 AvailableToReturn :=
                     Abs(ProdOrderComponent."Subc. Qty. in Transit (Base)") + Abs(ProdOrderComponent."Subc. Qty. transf. to Subcontr")
+                    + SubcTransferManagement.CalcConsumedQtyAtSubcLocation(ProdOrderComponent) // consumption is negative, reduces available qty
                     - Abs(ProdOrderComponent."RetQtyOnTransOrder (Base)") - Abs(ProdOrderComponent."RetQtyInTransit (Base)");
                 if QtyToPost > AvailableToReturn then
                     QtyToPost := AvailableToReturn;

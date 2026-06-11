@@ -276,6 +276,9 @@ codeunit 99001504 "Subc. Transfer Management"
 
     internal procedure CheckSubcPurchLineCanBeModified(PurchaseLine: Record "Purchase Line"; FieldCaption: Text)
     begin
+        if not PurchaseLine."Transfer WIP Item" then
+            exit;
+
         if HasSubcTransferForPurchLine(PurchaseLine) then
             Error(CannotModifySubcPurchLineErr, FieldCaption, PurchaseLine."Prod. Order No.");
         if HasStockAtSubcLocation(PurchaseLine) then
@@ -296,37 +299,60 @@ codeunit 99001504 "Subc. Transfer Management"
     var
         ProdOrderComponent: Record "Prod. Order Component";
         SubcWIPLedgerEntry: Record "Subcontractor WIP Ledger Entry";
+        NetStockAtSubcLocation: Decimal;
     begin
+        ProdOrderComponent.SetCurrentKey(Status, "Prod. Order No.", "Routing Link Code");
         ProdOrderComponent.SetRange(Status, "Production Order Status"::Released);
         ProdOrderComponent.SetRange("Prod. Order No.", PurchaseLine."Prod. Order No.");
         ProdOrderComponent.SetRange("Prod. Order Line No.", PurchaseLine."Prod. Order Line No.");
         ProdOrderComponent.SetRange("Subc. Purchase Order Filter", PurchaseLine."Document No.");
+        ProdOrderComponent.SetRange("Routing Link Code", GetProdOrderRoutingLinkCode(PurchaseLine));
+        ProdOrderComponent.SetRange("Component Supply Method", ProdOrderComponent."Component Supply Method"::"Transfer to Vendor");
         ProdOrderComponent.SetAutoCalcFields("Subc. Qty. transf. to Subcontr");
         if ProdOrderComponent.FindSet() then
             repeat
-                if ProdOrderComponent."Subc. Qty. transf. to Subcontr" <> 0 then
-                    exit(true);
+                if ProdOrderComponent."Subc. Qty. transf. to Subcontr" <> 0 then begin
+                    NetStockAtSubcLocation := ProdOrderComponent."Subc. Qty. transf. to Subcontr";
+                    NetStockAtSubcLocation -= CalcConsumedQtyAtSubcLocation(ProdOrderComponent);
+                    if NetStockAtSubcLocation <> 0 then
+                        exit(true);
+                end;
             until ProdOrderComponent.Next() = 0;
 
-        if PurchaseLine."Transfer WIP Item" then begin
-            SubcWIPLedgerEntry.SetRange("Prod. Order Status", "Production Order Status"::Released);
-            SubcWIPLedgerEntry.SetRange("Prod. Order No.", PurchaseLine."Prod. Order No.");
-            SubcWIPLedgerEntry.SetRange("Prod. Order Line No.", PurchaseLine."Subc. Prod. Order Line No.");
-            SubcWIPLedgerEntry.SetRange("Routing No.", PurchaseLine."Subc. Routing No.");
-            SubcWIPLedgerEntry.SetRange("Routing Reference No.", PurchaseLine."Subc. Rtng Reference No.");
-            SubcWIPLedgerEntry.SetRange("Operation No.", PurchaseLine."Subc. Operation No.");
-            SubcWIPLedgerEntry.CalcSums("Quantity (Base)");
-            if SubcWIPLedgerEntry."Quantity (Base)" <> 0 then
-                exit(true);
-        end;
+        SubcWIPLedgerEntry.SetCurrentKey("Prod. Order No.", "Prod. Order Status", "Prod. Order Line No.", "Routing Reference No.", "Routing No.", "Operation No.", "Location Code");
+        SubcWIPLedgerEntry.SetRange("Prod. Order No.", PurchaseLine."Prod. Order No.");
+        SubcWIPLedgerEntry.SetRange("Prod. Order Status", "Production Order Status"::Released);
+        SubcWIPLedgerEntry.SetRange("Prod. Order Line No.", PurchaseLine."Subc. Prod. Order Line No.");
+        SubcWIPLedgerEntry.SetRange("Routing Reference No.", PurchaseLine."Subc. Rtng Reference No.");
+        SubcWIPLedgerEntry.SetRange("Routing No.", PurchaseLine."Subc. Routing No.");
+        SubcWIPLedgerEntry.SetRange("Operation No.", PurchaseLine."Subc. Operation No.");
+        SubcWIPLedgerEntry.CalcSums("Quantity (Base)");
+        if SubcWIPLedgerEntry."Quantity (Base)" <> 0 then
+            exit(true);
 
         exit(false);
+    end;
+
+    internal procedure CalcConsumedQtyAtSubcLocation(ProdOrderComponent: Record "Prod. Order Component"): Decimal
+    var
+        ItemLedgerEntry: Record "Item Ledger Entry";
+    begin
+        ItemLedgerEntry.SetCurrentKey("Order Type", "Order No.", "Order Line No.", "Entry Type", "Prod. Order Comp. Line No.");
+        ItemLedgerEntry.SetRange("Order Type", ItemLedgerEntry."Order Type"::Production);
+        ItemLedgerEntry.SetRange("Order No.", ProdOrderComponent."Prod. Order No.");
+        ItemLedgerEntry.SetRange("Order Line No.", ProdOrderComponent."Prod. Order Line No.");
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Consumption);
+        ItemLedgerEntry.SetRange("Prod. Order Comp. Line No.", ProdOrderComponent."Line No.");
+        ItemLedgerEntry.SetRange("Location Code", ProdOrderComponent."Location Code");
+        ItemLedgerEntry.CalcSums(Quantity);
+        exit(-ItemLedgerEntry.Quantity);
     end;
 
     internal procedure CheckSubcTransferLineCanBeModified(TransferLine: Record "Transfer Line"; FieldCaption: Text)
     begin
         if IsSubcontractingTransferLine(TransferLine) then
-            Error(CannotModifySubcTransferLineErr, FieldCaption, TransferLine."Subc. Prod. Order No.");
+            if not TransferLine."Transfer WIP Item" then //for now allow updating WIP item lines
+                Error(CannotModifySubcTransferLineErr, FieldCaption, TransferLine."Subc. Prod. Order No.");
     end;
 
     internal procedure CheckSubcTransferHeaderCanBeModified(TransferHeader: Record "Transfer Header"; FieldCaption: Text)
@@ -347,5 +373,22 @@ codeunit 99001504 "Subc. Transfer Management"
         if HasManufacturingSetup then
             exit;
         HasManufacturingSetup := ManufacturingSetup.Get();
+    end;
+
+    local procedure GetProdOrderRoutingLinkCode(PurchaseLine: Record "Purchase Line"): Code[10]
+    var
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        RoutingOperationNotFoundErr: Label 'Operation %1 in the subcontracting order %2 does not exist in the routing %3 of the production order %4.', Comment = '%1=Operation No., %2=Purchase Order No., %3=Routing No., %4=Production Order No.';
+    begin
+        if not ProdOrderRoutingLine.Get(
+            "Production Order Status"::Released,
+            PurchaseLine."Prod. Order No.",
+            PurchaseLine."Routing Reference No.",
+            PurchaseLine."Routing No.",
+            PurchaseLine."Operation No.")
+        then
+            Error(RoutingOperationNotFoundErr, PurchaseLine."Operation No.", PurchaseLine."Document No.", PurchaseLine."Routing No.", PurchaseLine."Prod. Order No.");
+
+        exit(ProdOrderRoutingLine."Routing Link Code");
     end;
 }
