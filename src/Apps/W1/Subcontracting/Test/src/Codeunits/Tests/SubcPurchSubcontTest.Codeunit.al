@@ -392,6 +392,10 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         asserterror SubcTransferManagement.CheckSubcPurchLineCanBeModified(PurchaseLine, PurchaseLine.FieldCaption(Quantity));
         Assert.ExpectedError('stock has been transferred');
 
+        // [VERIFY] Purchase Order deletion is blocked because stock was transferred to the subcontractor location
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+        asserterror PurchaseHeader.Delete(true);
+
         // [GIVEN] All transferred stock has been consumed at the subcontractor location
         FindTransferProdOrderComponent(ProdOrderComponent, PurchaseLine);
         LibraryMfgManagement.PostConsumptionForAllComponents(ProdOrderComponent);

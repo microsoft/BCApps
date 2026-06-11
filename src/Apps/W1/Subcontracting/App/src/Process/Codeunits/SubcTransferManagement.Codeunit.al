@@ -22,6 +22,7 @@ codeunit 99001504 "Subc. Transfer Management"
         CannotModifyStockAtSubcErr: Label 'You cannot change %1 on the subcontracting purchase line because stock has been transferred to the subcontractor for production order %2.', Comment = '%1=Field Caption, %2=Production Order No.';
         CannotModifySubcTransferLineErr: Label 'You cannot change %1 on the subcontracting transfer line because it is linked to production order %2.', Comment = '%1=Field Caption, %2=Production Order No.';
         CannotModifySubcTransferHeaderErr: Label 'You cannot change %1 on the subcontracting transfer order because it contains lines linked to a production order.', Comment = '%1=Field Caption';
+        CannotDeleteStockAtSubcErr: Label 'You cannot delete Subcontracting Order %1 because components or WIP items have been transferred to the subcontractor location for production order %2.', Comment = '%1=Purchase Order No., %2=Production Order No.';
         HasManufacturingSetup: Boolean;
 
     procedure CalcReceiptDateFromProdCompDueDateWithCompTransferLeadTime(ProdOrderComponent: Record "Prod. Order Component") ReceiptDate: Date
@@ -43,7 +44,6 @@ codeunit 99001504 "Subc. Transfer Management"
     procedure TransferReservationEntryFromProdOrderCompToTransferOrder(TransferLine: Record "Transfer Line"; ProdOrderComponent: Record "Prod. Order Component")
     var
         ReservationEntry: Record "Reservation Entry";
-        TempReservationEntry: Record "Reservation Entry" temporary;
         ProdOrderCompReserve: Codeunit "Prod. Order Comp.-Reserve";
     begin
         TempGlobalReservationEntry.Reset();
@@ -57,8 +57,6 @@ codeunit 99001504 "Subc. Transfer Management"
                 TempGlobalReservationEntry := ReservationEntry;
                 TempGlobalReservationEntry.Insert();
             until ReservationEntry.Next() = 0;
-
-        TempReservationEntry.Copy(TempGlobalReservationEntry, true);
 
         ReservationEntry.TransferReservations(
          ReservationEntry,
@@ -283,6 +281,21 @@ codeunit 99001504 "Subc. Transfer Management"
             Error(CannotModifySubcPurchLineErr, FieldCaption, PurchaseLine."Prod. Order No.");
         if HasStockAtSubcLocation(PurchaseLine) then
             Error(CannotModifyStockAtSubcErr, FieldCaption, PurchaseLine."Prod. Order No.");
+    end;
+
+    internal procedure CheckStockAtSubcLocationForPurchHeader(PurchaseHeader: Record "Purchase Header")
+    var
+        PurchaseLine: Record "Purchase Line";
+    begin
+        PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
+        PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+        PurchaseLine.SetFilter("Prod. Order No.", '<>%1', '');
+        PurchaseLine.SetRange("Transfer WIP Item", true);
+        if PurchaseLine.FindSet() then
+            repeat
+                if HasStockAtSubcLocation(PurchaseLine) then
+                    Error(CannotDeleteStockAtSubcErr, PurchaseHeader."No.", PurchaseLine."Prod. Order No.");
+            until PurchaseLine.Next() = 0;
     end;
 
     local procedure HasSubcTransferForPurchLine(PurchaseLine: Record "Purchase Line"): Boolean

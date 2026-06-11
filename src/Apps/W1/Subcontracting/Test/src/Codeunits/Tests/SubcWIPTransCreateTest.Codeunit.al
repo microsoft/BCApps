@@ -923,7 +923,9 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
 
         // [VERIFY] Return transfer line no longer exists
         TransferLine.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
+#pragma warning disable AA0210
         TransferLine.SetRange("Transfer WIP Item", true);
+#pragma warning restore AA0210
         TransferLine.SetRange("Subc. Return Order", true);
         Assert.RecordIsEmpty(TransferLine);
 
@@ -933,7 +935,9 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
 
         // [THEN] A new return transfer line is created successfully
         TransferLine.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
+#pragma warning disable AA0210
         TransferLine.SetRange("Transfer WIP Item", true);
+#pragma warning restore AA0210
         TransferLine.SetRange("Subc. Return Order", true);
         Assert.RecordIsNotEmpty(TransferLine);
         TransferLine.FindFirst();

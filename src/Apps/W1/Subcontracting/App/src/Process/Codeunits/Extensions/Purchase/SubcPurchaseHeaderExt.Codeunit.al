@@ -13,6 +13,7 @@ codeunit 99001533 "Subc. Purchase Header Ext"
 {
     var
         SubcSynchronizeManagement: Codeunit "Subc. Synchronize Management";
+        SubcTransferManagement: Codeunit "Subc. Transfer Management";
 
     [EventSubscriber(ObjectType::Table, Database::"Purchase Header", OnAfterCopyBuyFromVendorFieldsFromVendor, '', false, false)]
     local procedure OnAfterCopyBuyFromVendorFieldsFromVendor(var PurchaseHeader: Record "Purchase Header"; Vendor: Record Vendor; xPurchaseHeader: Record "Purchase Header")
@@ -34,6 +35,7 @@ codeunit 99001533 "Subc. Purchase Header Ext"
         if not RunTrigger then
             exit;
         SubcSynchronizeManagement.CheckTransferOrderExistsForPurchaseHeader(Rec);
+        SubcTransferManagement.CheckStockAtSubcLocationForPurchHeader(Rec);
     end;
 
     internal procedure ShowTransferOrdersForPurchHeader(TransferOrderErrorInfo: ErrorInfo)
