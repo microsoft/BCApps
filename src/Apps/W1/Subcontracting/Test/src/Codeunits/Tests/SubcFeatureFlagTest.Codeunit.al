@@ -145,7 +145,7 @@ codeunit 139993 "Subc. Feature Flag Test"
     procedure GuardReturnsFalseWhenSetupNotExists()
     var
         ManufacturingSetup: Record "Manufacturing Setup";
-        ManufacturingSetupBackup: Record "Manufacturing Setup" temporary;
+        TempManufacturingSetupBackup: Record "Manufacturing Setup" temporary;
 #pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
 #pragma warning restore AL0432
@@ -154,7 +154,7 @@ codeunit 139993 "Subc. Feature Flag Test"
         Initialize();
 
         if ManufacturingSetup.Get() then begin
-            ManufacturingSetupBackup.Copy(ManufacturingSetup);
+            TempManufacturingSetupBackup.Copy(ManufacturingSetup);
             ManufacturingSetup.Delete();
         end;
 
@@ -166,7 +166,7 @@ codeunit 139993 "Subc. Feature Flag Test"
 
         // Restore ManufacturingSetup
         ManufacturingSetup.Init();
-        ManufacturingSetup.Copy(ManufacturingSetupBackup);
+        ManufacturingSetup.Copy(TempManufacturingSetupBackup);
         ManufacturingSetup.Insert();
         Commit();
     end;
