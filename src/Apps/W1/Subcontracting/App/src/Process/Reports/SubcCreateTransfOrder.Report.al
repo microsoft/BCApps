@@ -151,7 +151,7 @@ report 99001501 "Subc. Create Transf. Order"
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         MfgCostCalculationMgt: Codeunit "Mfg. Cost Calculation Mgt.";
         SubcProdOrdCompRes: Codeunit "Subc. Prod. Ord. Comp. Res.";
-        SubcontractingManagement: Codeunit "Subcontracting Management";
+        SubcTransferManagement: Codeunit "Subc. Transfer Management";
         UnitofMeasureManagement: Codeunit "Unit of Measure Management";
         TransferFromLocationCode: Code[10];
         QtyPerUom: Decimal;
@@ -212,7 +212,7 @@ report 99001501 "Subc. Create Transf. Order"
                         TransferLine.Validate(Quantity, Round(QtyToPost / ProdOrderComponent."Qty. per Unit of Measure", Item."Rounding Precision", '>'));
 
                         if ProdOrderComponent."Due Date" <> 0D then
-                            TransferLine.Validate("Receipt Date", SubcontractingManagement.CalcReceiptDateFromProdCompDueDateWithCompTransferLeadTime(ProdOrderComponent));
+                            TransferLine.Validate("Receipt Date", SubcTransferManagement.CalcReceiptDateFromProdCompDueDateWithCompTransferLeadTime(ProdOrderComponent));
 
                         TransferLine."Subc. Purch. Order No." := PurchaseLine."Document No.";
                         TransferLine."Subc. Purch. Order Line No." := PurchaseLine."Line No.";
@@ -230,10 +230,10 @@ report 99001501 "Subc. Create Transf. Order"
                         if ProdOrderComponent."Subc. Orig. Bin Code" = '' then
                             ProdOrderComponent."Subc. Orig. Bin Code" := ProdOrderComponent."Bin Code";
 
-                        if SubcontractingManagement.ComponentHasExcessReservations(ProdOrderComponent, TransferLine."Quantity (Base)") then
-                            Error(ExcessReservationsErr, TransferLine."Quantity (Base)", SubcontractingManagement.GetComponentReservedQtyBase(ProdOrderComponent), ProdOrderComponent."Item No.");
+                        if SubcTransferManagement.ComponentHasExcessReservations(ProdOrderComponent, TransferLine."Quantity (Base)") then
+                            Error(ExcessReservationsErr, TransferLine."Quantity (Base)", SubcTransferManagement.GetComponentReservedQtyBase(ProdOrderComponent), ProdOrderComponent."Item No.");
 
-                        SubcontractingManagement.TransferReservationEntryFromProdOrderCompToTransferOrder(TransferLine, ProdOrderComponent);
+                        SubcTransferManagement.TransferReservationEntryFromProdOrderCompToTransferOrder(TransferLine, ProdOrderComponent);
                         if TransferHeader."Transfer-to Code" <> ProdOrderComponent."Location Code" then begin
                             if Item."Order Tracking Policy" = Item."Order Tracking Policy"::None then
                                 ProdOrderComponent.Validate("Location Code", TransferHeader."Transfer-to Code")
@@ -246,7 +246,7 @@ report 99001501 "Subc. Create Transf. Order"
                         end;
                         ProdOrderComponent.Modify();
 
-                        SubcontractingManagement.CreateReservEntryForTransferReceiptToProdOrderComp(TransferLine, ProdOrderComponent);
+                        SubcTransferManagement.CreateReservEntryForTransferReceiptToProdOrderComp(TransferLine, ProdOrderComponent);
                     end else
                         exit(true);
             until ProdOrderComponent.Next() = 0;
