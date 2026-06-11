@@ -34,6 +34,11 @@ codeunit 99001533 "Subc. Purchase Header Ext"
             exit;
         if not RunTrigger then
             exit;
+
+        Rec.CalcFields("Subc. Order");
+        if not Rec."Subc. Order" then
+            exit;
+
         SubcSynchronizeManagement.CheckTransferOrderExistsForPurchaseHeader(Rec);
         SubcTransferManagement.CheckStockAtSubcLocationForPurchHeader(Rec);
     end;
