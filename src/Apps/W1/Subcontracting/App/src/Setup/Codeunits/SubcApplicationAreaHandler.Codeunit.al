@@ -15,7 +15,7 @@ codeunit 99001568 "Subc. Application Area Handler"
 #if not CLEAN29
         SetApplicationArea(TempApplicationAreaSetup);
 #else
-        TempApplicationAreaSetup."Subcontracting" := TempApplicationAreaSetup.Manufacturing; 
+        TempApplicationAreaSetup."Subcontracting" := TempApplicationAreaSetup.Manufacturing;
 #endif
     end;
 
@@ -29,7 +29,9 @@ codeunit 99001568 "Subc. Application Area Handler"
 #pragma warning restore AL0432
         if ManufacturingSetup.Get() then
 #pragma warning disable AL0432
-            TempApplicationAreaSetup."Subcontracting" := not ManufacturingSetup."Legacy Subcontracting";
+            TempApplicationAreaSetup."Subcontracting" := not ManufacturingSetup."Legacy Subcontracting"
+        else
+            TempApplicationAreaSetup."Subcontracting" := true;
 #pragma warning restore AL0432
     end;
 #endif
