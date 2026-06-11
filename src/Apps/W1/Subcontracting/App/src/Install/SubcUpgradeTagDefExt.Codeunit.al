@@ -14,7 +14,6 @@ codeunit 99001570 "Subc. Upgrade Tag Def. Ext."
         PerCompanyUpgradeTags.Add(GetSubcontractingUpgradeTag());
     end;
 
-
     internal procedure GetSubcontractingUpgradeTag(): Code[250]
     begin
         exit('MS-406123-Subcontracting-20260601');
