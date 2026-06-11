@@ -55,7 +55,7 @@ page 99001560 "Subc. WIP Ledger Entries"
                 field("Quantity (Base)"; Rec."Quantity (Base)")
                 {
                 }
-                field("Unit of Measure Code"; Rec."Unit of Measure Code")
+                field("Base Unit of Measure"; Rec."Base Unit of Measure")
                 {
                 }
                 field("Prod. Order Status"; Rec."Prod. Order Status")

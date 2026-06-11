@@ -68,12 +68,12 @@ table 99001560 "Subcontractor WIP Ledger Entry"
             DecimalPlaces = 0 : 5;
             ToolTip = 'Specifies the WIP quantity in base unit of measure';
         }
-        field(8; "Unit of Measure Code"; Code[10])
+        field(8; "Base Unit of Measure"; Code[10])
         {
-            Caption = 'Unit of Measure Code';
+            Caption = 'Base Unit of Measure';
             DataClassification = CustomerContent;
             TableRelation = "Item Unit of Measure".Code where("Item No." = field("Item No."));
-            ToolTip = 'Specifies the unit of measure code.';
+            ToolTip = 'Specifies the base unit of measure of the item.';
         }
         field(9; "Document Type"; Enum "WIP Document Type")
         {

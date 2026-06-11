@@ -83,4 +83,11 @@ Comment = '%1=Transfer Header No';
         SubcontractorWIPLedgerEntry.SetRange("Prod. Order Status", NewStatus);
         SubcontractorWIPLedgerEntry.ModifyAll("Prod. Order No.", ToProdOrder."No.");
     end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Transfer Line", OnValidateUnitofMeasureCodeOnBeforeValidateQuantity, '', false, false)]
+    local procedure OnValidateUnitofMeasureCodeOnBeforeValidateQuantity(var TransferLine: Record "Transfer Line"; Item: Record Microsoft.Inventory.Item.Item; xTransferLine: Record "Transfer Line")
+    begin
+        if TransferLine."Transfer WIP Item" then
+            TransferLine."Qty. per Unit of Measure" := 0;
+    end;
 }
