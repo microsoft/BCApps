@@ -2626,7 +2626,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         foreach ProductionOrder in OrdersList do begin
             ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder);
             ProdOrderRoutingLine.FindLast();
-            AllRoutingLinesRecordRef.Copy(ProdOrderRoutingLine, false);
+            AllRoutingLinesRecordRef.GetTable(ProdOrderRoutingLine);
             AllRoutingLinesRecordRef.Insert();
         end;
 

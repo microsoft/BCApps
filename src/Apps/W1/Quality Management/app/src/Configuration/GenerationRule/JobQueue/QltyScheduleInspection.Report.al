@@ -93,8 +93,7 @@ report 20412 "Qlty. Schedule Inspection"
 
     trigger OnPostReport()
     var
-        NewlyCreatedCount: Integer;
-        ExistingMatchedCount: Integer;
+        NewlyCreatedCount, ExistingMatchedCount : Integer;
         ShouldDisplay: Boolean;
     begin
         if not GuiAllowed() then
@@ -107,14 +106,16 @@ report 20412 "Qlty. Schedule Inspection"
 
         NewlyCreatedCount := NewlyCreatedQltyInspectionIds.Count();
         ExistingMatchedCount := AllResolvedQltyInspectionIds.Count() - NewlyCreatedCount;
+        if ExistingMatchedCount < 0 then
+            ExistingMatchedCount := 0;
 
         case true of
             (NewlyCreatedCount > 0) and (ExistingMatchedCount > 0):
-                ShouldDisplay := Confirm(StrSubstNo(SomeInspectionsCreatedOrMatchedQst, NewlyCreatedCount, ExistingMatchedCount));
+                ShouldDisplay := Confirm(StrSubstNo(SomeInspectionsCreatedOrMatchedQst, NewlyCreatedCount, ExistingMatchedCount), true);
             NewlyCreatedCount > 0:
-                ShouldDisplay := Confirm(StrSubstNo(SomeInspectionsCreatedQst, NewlyCreatedCount));
+                ShouldDisplay := Confirm(StrSubstNo(SomeInspectionsCreatedQst, NewlyCreatedCount), true);
             else
-                ShouldDisplay := Confirm(StrSubstNo(SomeInspectionsMatchedQst, ExistingMatchedCount));
+                ShouldDisplay := Confirm(StrSubstNo(SomeInspectionsMatchedQst, ExistingMatchedCount), true);
         end;
 
         if ShouldDisplay then

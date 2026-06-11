@@ -47,6 +47,7 @@ codeunit 20404 "Qlty. Inspection - Create"
         UnableToCreateInspectionForParentOrChildErr: Label 'Cannot find enough details to make an inspection for your record(s). Try making sure that there is a source configuration for your record, and then also make sure there is sufficient information in your inspection generation rules. Two tables involved are %1 and %2.', Comment = '%1=the parent table, %2=the child and original table.';
         UnableToCreateInspectionForRecordErr: Label 'Cannot find enough details to make an inspection for your record(s). Try making sure that there is a source configuration for your record, and then also make sure there is sufficient information in your inspection generation rules. The table involved is %1.', Comment = '%1=the table involved.';
         RecordShouldBeTemporaryErr: Label 'This code is only intended to run in a temporary fashion. This error is likely occurring from an integration issue.';
+        SomeInspectionsMatchedQst: Label 'No new inspections were created, but %1 existing inspections matched. Do you want to see them?', Comment = '%1=the count of existing inspections that were matched (reused).';
         UnknownRecordTok: Label 'Unknown record', Locked = true;
 
     /// <summary>
@@ -281,6 +282,8 @@ codeunit 20404 "Qlty. Inspection - Create"
         OriginalRecordTableNo: Integer;
         IsNewlyCreatedInspection: Boolean;
     begin
+        LastInspectionIsNewlyCreated := false;
+
         case true of
             TargetRecordRef.Number() = 0,
             not QltyManagementSetup.GetSetupRecord():
@@ -288,7 +291,6 @@ codeunit 20404 "Qlty. Inspection - Create"
         end;
 
         Clear(LastCreatedQltyInspectionHeader);
-        LastInspectionIsNewlyCreated := false;
 
         TempQltyInspectionGenRule.CopyFilters(TempFiltersQltyInspectionGenRule);
 
@@ -786,11 +788,14 @@ codeunit 20404 "Qlty. Inspection - Create"
     /// Indicates whether the inspection returned by the last create call was newly inserted
     /// or whether an existing matching inspection was reused (e.g. when the Inspection Creation
     /// Option is configured to use an existing inspection if available).
-    /// Only meaningful immediately after a successful CreateInspection... call.
+    /// Only valid immediately after a successful CreateInspection* call on this instance.
     /// </summary>
-    /// <returns>True when the last inspection was newly created; false when it was reused or no inspection was returned.</returns>
+    /// <returns>True when the last inspection was newly created; false when it was reused, no inspection was returned.</returns>
     internal procedure IsLastInspectionNewlyCreated(): Boolean
     begin
+        if LastCreatedQltyInspectionHeader."No." = '' then
+            exit(false);
+
         exit(LastInspectionIsNewlyCreated);
     end;
 
@@ -855,14 +860,24 @@ codeunit 20404 "Qlty. Inspection - Create"
     internal procedure CreateMultipleInspectionsForMultipleRecords(var SetOfRecordsRecordRef: RecordRef; IsManualCreation: Boolean; var TempFiltersQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary)
     var
         NewlyCreatedQltyInspectionIds, AllResolvedQltyInspectionIds : List of [Code[20]];
+        NewlyCreatedCount, ExistingMatchedCount : Integer;
     begin
         CreateMultipleInspectionsWithoutDisplaying(SetOfRecordsRecordRef, IsManualCreation, TempFiltersQltyInspectionGenRule, NewlyCreatedQltyInspectionIds, AllResolvedQltyInspectionIds);
 
-        if IsManualCreation and GuiAllowed() then
-            DisplayInspectionsIfConfigured(IsManualCreation, NewlyCreatedQltyInspectionIds);
+        if IsManualCreation and GuiAllowed() then begin
+            NewlyCreatedCount := NewlyCreatedQltyInspectionIds.Count();
+            if NewlyCreatedCount > 0 then
+                DisplayInspectionsIfConfigured(IsManualCreation, NewlyCreatedQltyInspectionIds)
+            else begin
+                ExistingMatchedCount := AllResolvedQltyInspectionIds.Count() - NewlyCreatedCount;
+                if ExistingMatchedCount > 0 then
+                    if Confirm(StrSubstNo(SomeInspectionsMatchedQst, ExistingMatchedCount), true) then
+                        DisplayInspectionsIfConfigured(IsManualCreation, AllResolvedQltyInspectionIds);
+            end;
+        end;
     end;
 
-    internal procedure DisplayInspectionsIfConfigured(IsManualCreation: Boolean; var CreatedQltyInspectionIds: List of [Code[20]])
+    internal procedure DisplayInspectionsIfConfigured(IsManualCreation: Boolean; var ToDisplayQltyInspectionIds: List of [Code[20]])
     var
         CreatedQltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyNotificationMgmt: Codeunit "Qlty. Notification Mgmt.";
@@ -875,7 +890,7 @@ codeunit 20404 "Qlty. Inspection - Create"
         MaxSafeFilterLength := 1024;
 
         if GuiAllowed() then begin
-            foreach InspectionNo in CreatedQltyInspectionIds do
+            foreach InspectionNo in ToDisplayQltyInspectionIds do
                 if InspectionNo <> '' then begin
                     if StrLen(PipeSeparatedFilter) > 1 then
                         PipeSeparatedFilter += '|';
@@ -887,12 +902,12 @@ codeunit 20404 "Qlty. Inspection - Create"
                 end;
 
             if FilterExceedsMaxLength then begin
-                QltyNotificationMgmt.NotifyMultipleInspectionsCreatedByCount(CreatedQltyInspectionIds.Count());
+                QltyNotificationMgmt.NotifyMultipleInspectionsCreatedByCount(ToDisplayQltyInspectionIds.Count());
                 exit;
             end;
 
             CreatedQltyInspectionHeader.SetFilter("No.", PipeSeparatedFilter);
-            if CreatedQltyInspectionIds.Count() = 1 then begin
+            if ToDisplayQltyInspectionIds.Count() = 1 then begin
                 CreatedQltyInspectionHeader.SetCurrentKey("No.", "Re-inspection No.");
                 CreatedQltyInspectionHeader.FindLast();
                 if IsManualCreation then
