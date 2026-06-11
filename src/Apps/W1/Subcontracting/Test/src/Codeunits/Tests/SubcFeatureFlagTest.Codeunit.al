@@ -153,10 +153,9 @@ codeunit 139993 "Subc. Feature Flag Test"
         // [SCENARIO] IsSubcontractingEnabled returns false when no ManufacturingSetup record exists
         Initialize();
 
-        if ManufacturingSetup.Get() then begin
-            TempManufacturingSetupBackup.Copy(ManufacturingSetup);
-            ManufacturingSetup.Delete();
-        end;
+        ManufacturingSetup.Get();
+        TempManufacturingSetupBackup.Copy(ManufacturingSetup);
+        ManufacturingSetup.Delete();
 
         // [WHEN] Call IsSubcontractingEnabled
         // [THEN] Returns false
@@ -230,6 +229,10 @@ codeunit 139993 "Subc. Feature Flag Test"
     end;
 
     local procedure Initialize()
+    var
+        SubcontractingMgmtLibrary: Codeunit "Subc. Management Library";
+        LibraryMfgManagement: Codeunit "Subc. Library Mfg. Management";
+        SubSetupLibrary: Codeunit "Subc. Setup Library";
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Subc. Feature Flag Test");
 
@@ -238,6 +241,9 @@ codeunit 139993 "Subc. Feature Flag Test"
 
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Subc. Feature Flag Test");
         LibraryApplicationArea.EnablePremiumSetup();
+        SubcontractingMgmtLibrary.Initialize();
+        LibraryMfgManagement.Initialize();
+        SubSetupLibrary.InitSetupFields();
         Initialized := true;
         Commit();
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Subc. Feature Flag Test");
