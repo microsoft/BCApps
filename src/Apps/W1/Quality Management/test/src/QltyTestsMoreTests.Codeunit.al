@@ -2121,10 +2121,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         // [SCENARIO] Quality Management application area is enabled by default on Essential experience
         Initialize();
 
-        // [GIVEN] The current company is set to the Essential experience tier.
-        // This recomputes and persists the Application Area Setup, firing the Quality Management
-        // subscriber (OnGetEssentialExperienceAppAreas), so the test establishes its own precondition
-        // instead of depending on ambient company state.
+        // [GIVEN] Essential experience is active for the current company
         LibraryApplicationArea.EnableEssentialSetup();
 
         // [WHEN] Checking if Quality Management application area is enabled
