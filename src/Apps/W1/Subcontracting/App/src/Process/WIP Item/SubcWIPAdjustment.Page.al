@@ -5,6 +5,7 @@
 namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Inventory.Item;
+using Microsoft.Manufacturing.Document;
 
 page 99001561 "Subc. WIP Adjustment"
 {
@@ -112,6 +113,7 @@ page 99001561 "Subc. WIP Adjustment"
 
                     trigger OnValidate()
                     begin
+                        ValidateNewQuantity(NewQuantityBase);
                         NewQuantities.Set(Rec."Entry No.", NewQuantityBase);
                         UpdateQuantityStyle();
                     end;
@@ -202,6 +204,7 @@ page 99001561 "Subc. WIP Adjustment"
 
                     trigger OnValidate()
                     begin
+                        ValidateNewQuantity(NewQuantityBase);
                         NewQuantities.Set(Rec."Entry No.", NewQuantityBase);
                         UpdateQuantityStyle();
                     end;
@@ -258,6 +261,8 @@ page 99001561 "Subc. WIP Adjustment"
         LineCount: Integer;
         CaptionLbl: Label 'Production Order %1 %2', Comment = '%1=Prod. Order Status,%2=Prod. Order Number';
         NothingToAdjustErr: Label 'There are no WIP quantities to adjust, because there are no existing ledger entries for the specified source.';
+        NewQuantityMustNotBeNegativeErr: Label 'New Quantity (Base) must not be negative.';
+        NewQuantityExceedsProdOrderQtyErr: Label 'New Quantity (Base) must not exceed the production order line quantity of %1.', Comment = '%1=Production order line quantity (base)';
 
     /// <summary>
     /// Populates the page source table with one row per (Routing Reference No., Operation No., Location Code)
@@ -371,5 +376,17 @@ page 99001561 "Subc. WIP Adjustment"
         if ItemNo <> Item."No." then
             Item.Get(ItemNo);
         exit(Item."Base Unit of Measure");
+    end;
+
+    local procedure ValidateNewQuantity(NewQty: Decimal)
+    var
+        ProdOrderLine: Record "Prod. Order Line";
+    begin
+        if NewQty < 0 then
+            Error(NewQuantityMustNotBeNegativeErr);
+        ProdOrderLine.SetLoadFields("Quantity (Base)");
+        ProdOrderLine.Get(Rec."Prod. Order Status", Rec."Prod. Order No.", Rec."Prod. Order Line No.");
+        if NewQty > ProdOrderLine."Quantity (Base)" then
+            Error(NewQuantityExceedsProdOrderQtyErr, ProdOrderLine."Quantity (Base)");
     end;
 }
