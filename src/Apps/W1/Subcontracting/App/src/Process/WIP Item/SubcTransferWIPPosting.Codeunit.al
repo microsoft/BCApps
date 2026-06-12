@@ -205,7 +205,8 @@ codeunit 99001541 "Subc. Transfer WIP Posting"
 #endif
         if SourceRecRef.Number = Database::"Transfer Line" then begin
             SourceRecRef.SetTable(TransferLine);
-            TransferLine.CheckForExistingReservationsOrItemTracking();
+            if TransferLine."Transfer WIP Item" then
+                TransferLine.CheckForExistingReservationsOrItemTracking();
         end;
     end;
 
