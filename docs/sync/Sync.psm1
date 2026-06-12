@@ -83,11 +83,16 @@ function Invoke-ThreeWayMerge {
     $fileName = Split-Path $TargetFile -Leaf
     $basePath = Join-Path $env:TEMP "merge-base-$fileName"
     $oldEAP = $ErrorActionPreference; $ErrorActionPreference = "Continue"
-    git -C $SourceRepoPath show "${BaseCommit}:$BaseRelativePath" 2>$null | Join-String -Separator "`r`n" | Set-Content $basePath -NoNewline
+    $baseLines = git -C $SourceRepoPath show "${BaseCommit}:$BaseRelativePath" 2>$null
     $ErrorActionPreference = $oldEAP
     if ($LASTEXITCODE -ne 0) {
         throw "Cannot get base for $fileName from $SourceRepoPath at commit $BaseCommit (path: $BaseRelativePath)"
     }
+    # Write with same line endings as target file to avoid spurious conflicts
+    $targetContent = [System.IO.File]::ReadAllBytes($TargetFile)
+    $useCRLF = [System.Array]::IndexOf($targetContent, [byte]13) -ge 0
+    $sep = if ($useCRLF) { "`r`n" } else { "`n" }
+    ($baseLines -join $sep) + $sep | Set-Content $basePath -NoNewline
     git merge-file $TargetFile $basePath $SourceFile 2>&1 | Out-Null
     $mergeResult = $LASTEXITCODE
     if ($mergeResult -ge 128) {
@@ -296,4 +301,4 @@ function Complete-SyncCommit {
     }
 }
 
-Export-ModuleMember -Function Invoke-Robocopy, Invoke-ThreeWayMerge, Merge-DisabledTests, Enter-SyncBranch, Complete-SyncCommit, Get-SyncState, Set-SyncState, ConvertTo-NormalizedJson
+Export-ModuleMember -Function Invoke-Robocopy, Invoke-ThreeWayMerge, Merge-SharedFiles, Merge-DisabledTests, Enter-SyncBranch, Complete-SyncCommit, Get-SyncState, Set-SyncState, ConvertTo-NormalizedJson

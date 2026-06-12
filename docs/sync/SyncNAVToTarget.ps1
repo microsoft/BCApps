@@ -62,9 +62,11 @@ $navStatus = (git -C $NAVRepoPath status --porcelain 2>&1)
 if ($LASTEXITCODE -ne 0) { throw "Failed to check NAV repo status" }
 if ($navStatus) { throw "NAV repo has pending changes. Please commit or discard them before syncing." }
 
-$targetStatus = (git -C $TargetRepoPath status --porcelain 2>&1)
-if ($LASTEXITCODE -ne 0) { throw "Failed to check target repo status" }
-if ($targetStatus) { throw "Target repo has pending changes. Please commit or discard them before syncing." }
+if (-not $NoCommit) {
+    $targetStatus = (git -C $TargetRepoPath status --porcelain 2>&1)
+    if ($LASTEXITCODE -ne 0) { throw "Failed to check target repo status" }
+    if ($targetStatus) { throw "Target repo has pending changes. Please commit or discard them before syncing." }
+}
 
 # Verify BCApps submodule commit
 $bcAppsSubmodule = Join-Path $NAVRepoPath "App\BCApps"
