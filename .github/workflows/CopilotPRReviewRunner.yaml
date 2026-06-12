@@ -106,7 +106,6 @@ jobs:
       - name: Run Copilot PR review
         env:
           GITHUB_TOKEN: ${{ github.token }}
-          GH_TOKEN: ${{ github.token }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           REVIEW_WORKSPACE: ${{ github.workspace }}/trusted
           REVIEW_OUTPUT_DIR: ${{ github.workspace }}/review-output

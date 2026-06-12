@@ -15,11 +15,10 @@
 
 .NOTES
     Required environment variables:
-        GITHUB_TOKEN       – workflow token (write:pull-requests, write:issues)
-        GH_TOKEN           – GitHub Actions token used for Copilot CLI authentication
-                             (granted Copilot access via the workflow's
-                             copilot-requests: write permission). Defaults to
-                             GITHUB_TOKEN when not set separately.
+        GITHUB_TOKEN       – GitHub Actions token used for both the GitHub API
+                             (write:pull-requests, write:issues) and Copilot CLI
+                             authentication (granted Copilot access via the
+                             workflow's copilot-requests: write permission).
         GITHUB_REPOSITORY  – owner/repo
         GITHUB_WORKSPACE   – path to the checked-out repository
         PR_NUMBER          – pull request number
@@ -41,7 +40,6 @@ $ErrorActionPreference = 'Stop'
 # Configuration
 # ---------------------------------------------------------------------------
 $GithubToken      = $env:GITHUB_TOKEN
-$CopilotToken     = $env:GH_TOKEN ?? $env:GITHUB_TOKEN
 $Repository       = $env:GITHUB_REPOSITORY
 $TrustedWorkspace = $env:REVIEW_WORKSPACE ?? $env:GITHUB_WORKSPACE ?? (Get-Location).Path
 $PrNumber         = [int]($env:PR_NUMBER ?? 0)
@@ -444,7 +442,7 @@ function Invoke-CopilotCli {
         $val = [System.Environment]::GetEnvironmentVariable($key)
         if ($val) { $cleanEnv[$key] = $val }
     }
-    $cleanEnv['GH_TOKEN'] = $CopilotToken
+    $cleanEnv['GH_TOKEN'] = $GithubToken
     $cleanEnv['CI']       = 'true'
 
     # Write prompt to a temp file and use stdin redirect to avoid command-line length limits
