@@ -57,7 +57,7 @@ codeunit 99001551 "Subc. WhsePostReceipt Ext"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"TransferOrder-Post Receipt", OnAfterTransRcptLineModify, '', false, false)]
     local procedure OnAfterTransRcptLineModify(var TransferReceiptLine: Record "Transfer Receipt Line"; TransferLine: Record "Transfer Line"; CommitIsSuppressed: Boolean)
     var
-        SubcontractingManagement: Codeunit "Subcontracting Management";
+        SubcTransferManagement: Codeunit "Subc. Transfer Management";
     begin
 #if not CLEAN29
 #pragma warning disable AL0432
@@ -65,7 +65,7 @@ codeunit 99001551 "Subc. WhsePostReceipt Ext"
 #pragma warning restore AL0432
             exit;
 #endif
-        SubcontractingManagement.TransferReservationEntryFromPstTransferLineToProdOrderComp(TransferReceiptLine);
+        SubcTransferManagement.TransferReservationEntryFromPstTransferLineToProdOrderComp(TransferReceiptLine);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purchases Warehouse Mgt.", OnAfterGetQuantityRelatedParameter, '', false, false)]

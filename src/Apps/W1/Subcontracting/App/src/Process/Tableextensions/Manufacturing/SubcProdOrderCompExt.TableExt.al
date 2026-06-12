@@ -60,9 +60,8 @@ tableextension 99001502 "Subc. Prod Order Comp Ext." extends "Prod. Order Compon
                                                                   "Subc. Prod. Order Line No." = field("Prod. Order Line No."),
                                                                   "Prod. Order Comp. Line No." = field("Line No."),
                                                                   "Subc. Purch. Order No." = field("Subc. Purchase Order Filter"),
-                                                                  "Location Code" = field("Location Code"),
-                                                                  Open = const(true)
-                                                                  )
+                                                                  "Location Code" = field("Location Code"))
+
                                 );
             Caption = 'Qty. transf. to Subcontractor';
             DecimalPlaces = 0 : 5;

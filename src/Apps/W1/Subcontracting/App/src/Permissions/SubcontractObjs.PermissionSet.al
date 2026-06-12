@@ -48,6 +48,7 @@ permissionset 99001501 "Subcontract. - Objs"
         codeunit "Subcontracting Management" = X,
         codeunit "Subc. Synchronize Management" = X,
         codeunit "Subc. Transfer Line Ext." = X,
+        codeunit "Subc. Transfer Management" = X,
         codeunit "Subc. Transfer Rcpt Line Ext." = X,
         codeunit "Subc. Transfer Shpt Line Ext." = X,
         codeunit "Subc. TransOrderPostRcpt Ext" = X,
