@@ -336,6 +336,7 @@ codeunit 99001504 "Subc. Transfer Management"
         ProdOrderComponent.SetRange("Subc. Purchase Order Filter", PurchaseLine."Document No.");
         ProdOrderComponent.SetRange("Routing Link Code", ProdOrderRoutingLine."Routing Link Code");
         ProdOrderComponent.SetRange("Component Supply Method", ProdOrderComponent."Component Supply Method"::"Transfer to Vendor");
+        ProdOrderComponent.SetLoadFields("Subc. Qty. transf. to Subcontr", "Location Code");
         ProdOrderComponent.SetAutoCalcFields("Subc. Qty. transf. to Subcontr");
         if ProdOrderComponent.FindSet() then
             repeat
@@ -354,7 +355,6 @@ codeunit 99001504 "Subc. Transfer Management"
         SubcWIPLedgerEntry.SetRange("Routing Reference No.", PurchaseLine."Routing Reference No.");
         SubcWIPLedgerEntry.SetRange("Routing No.", PurchaseLine."Routing No.");
         SubcWIPLedgerEntry.SetRange("Operation No.", PurchaseLine."Operation No.");
-
         SubcWIPLedgerEntry.SetRange("In Transit", false);
         SubcWIPLedgerEntry.CalcSums("Quantity (Base)");
         if SubcWIPLedgerEntry."Quantity (Base)" <> 0 then
@@ -374,6 +374,7 @@ codeunit 99001504 "Subc. Transfer Management"
         ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Consumption);
         ItemLedgerEntry.SetRange("Prod. Order Comp. Line No.", ProdOrderComponent."Line No.");
         ItemLedgerEntry.SetRange("Location Code", ProdOrderComponent."Location Code");
+        ItemLedgerEntry.SetLoadFields(Quantity);
         ItemLedgerEntry.CalcSums(Quantity);
         exit(-ItemLedgerEntry.Quantity);
     end;
