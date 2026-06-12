@@ -37,6 +37,7 @@ codeunit 20445 "Qlty. Inventory Availability"
         QtyToReceiveNameLbl: Label 'Qty. to Receive', Locked = true;
         QtyToHandleBaseNameLbl: Label 'Qty. to Handle (Base)', Locked = true;
         QuantityToHandleNameLbl: Label 'Quantity to Handle', Locked = true;
+        CannotMoveFromReceiveBinErr: Label 'The items for inspection %1 are still in the receiving bin %2 at location %3 and cannot be moved yet. Put the items away first by using a Put-Away, and then move the inventory.', Comment = '%1=the inspection, %2=from bin code, %3=from location code';
 
     /// <summary>
     /// GetCurrentLocationOfTrackedInventory gets the current location of the Item+Item tracking defined on the inspection.
@@ -454,6 +455,27 @@ codeunit 20445 "Qlty. Inventory Availability"
         end;
 
         OnAfterPopulateBinContentBuffer(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, TempQuantityQltyDispositionBuffer, TempExistingInventoryBinContent);
+    end;
+
+    /// <summary>
+    /// Raises an error if the inventory would be moved from a receiving bin, which is not allowed in directed put-away and pick locations until the items have been put away.
+    /// </summary>
+    /// <param name="QltyInspectionHeader">The inspection the inventory move relates to.</param>
+    /// <param name="FromLocationCode">The location code the inventory is being moved from.</param>
+    /// <param name="FromBinCode">The bin code the inventory is being moved from.</param>
+    internal procedure ErrorIfFromBinIsReceiveBin(QltyInspectionHeader: Record "Qlty. Inspection Header"; FromLocationCode: Code[10]; FromBinCode: Code[20])
+    var
+        FromBin: Record Bin;
+        BinType: Record "Bin Type";
+    begin
+        if (FromLocationCode = '') or (FromBinCode = '') then
+            exit;
+        if not FromBin.Get(FromLocationCode, FromBinCode) then
+            exit;
+        if not BinType.Get(FromBin."Bin Type Code") then
+            exit;
+        if BinType.Receive then
+            Error(CannotMoveFromReceiveBinErr, QltyInspectionHeader.GetFriendlyIdentifier(), FromBinCode, FromLocationCode);
     end;
 
     [IntegrationEvent(false, false)]
