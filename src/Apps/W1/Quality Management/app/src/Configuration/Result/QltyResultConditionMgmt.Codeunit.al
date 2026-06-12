@@ -19,7 +19,8 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
         tabledata "Qlty. Inspection Template Line" = r,
         tabledata "Qlty. Inspection Result" = r,
         tabledata "Qlty. Test" = r,
-        tabledata "Qlty. I. Result Condit. Conf." = rim;
+        tabledata "Qlty. I. Result Condit. Conf." = rim,
+        tabledata "Qlty. Inspection Header" = r;
 
     var
         ConfirmManagement: Codeunit "Confirm Management";

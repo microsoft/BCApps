@@ -35,8 +35,13 @@ table 20405 "Qlty. Inspection Header"
     DrillDownPageId = "Qlty. Inspection List";
     LookupPageId = "Qlty. Inspection List";
     DataClassification = CustomerContent;
-    Permissions = tabledata "Qlty. Inspection Line" = d,
-                  tabledata "Qlty. I. Result Condit. Conf." = d;
+    Permissions = tabledata "Qlty. Management Setup" = r,
+                  tabledata "Qlty. Inspection Result" = r,
+                  tabledata "Qlty. Inspection Template Hdr." = r,
+                  tabledata "Qlty. Inspection Template Line" = r,
+                  tabledata "Qlty. Inspection Header" = rm,
+                  tabledata "Qlty. Inspection Line" = rmd,
+                  tabledata "Qlty. I. Result Condit. Conf." = rd;
 
     fields
     {

@@ -27,7 +27,8 @@ codeunit 20404 "Qlty. Inspection - Create"
         tabledata "Qlty. Inspection Gen. Rule" = r,
         tabledata "Qlty. Inspection Header" = rim,
         tabledata "Qlty. Inspection Line" = rim,
-        tabledata "Qlty. I. Result Condit. Conf." = rim;
+        tabledata "Qlty. I. Result Condit. Conf." = rim,
+        tabledata "Qlty. Inspection Template Line" = r;
 
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
@@ -354,11 +355,14 @@ codeunit 20404 "Qlty. Inspection - Create"
             if IsNewlyCreatedInspection then
                 QltyStartWorkflow.StartWorkflowInspectionCreated(QltyInspectionHeader);
 
-            if GuiAllowed() and not PreventShowingGeneratedInspectionEvenIfConfigured
-                and (QltyInspectionHeader."No." <> '') then
-                if IsManualCreation then
-                    Page.Run(Page::"Qlty. Inspection", QltyInspectionHeader)
-                else
+            if GuiAllowed() and
+               not PreventShowingGeneratedInspectionEvenIfConfigured and
+               (QltyInspectionHeader."No." <> '')
+            then
+                if IsManualCreation then begin
+                    if not TryRunInspectionPage(QltyInspectionHeader) then
+                        QltyNotificationMgmt.NotifyInspectionCreated(QltyInspectionHeader);
+                end else
                     QltyNotificationMgmt.NotifyInspectionCreated(QltyInspectionHeader);
         end else begin
             LogCreateInspectionProblem(TargetRecordRef, UnableToCreateInspectionForErr, Format(OriginalRecordId));
@@ -367,6 +371,12 @@ codeunit 20404 "Qlty. Inspection - Create"
         end;
 
         OnAfterCreateInspectionAfterDialog(TargetRecordRef, RecordRefToBufferTriggeringRecord, IsManualCreation, OptionalSpecificTemplate, TempQltyInspectionGenRule, QltyInspectionHeader, OptionalRec2Variant, OptionalRec3Variant);
+    end;
+
+    [TryFunction]
+    local procedure TryRunInspectionPage(var QltyInspectionHeader: Record "Qlty. Inspection Header")
+    begin
+        Page.Run(Page::"Qlty. Inspection", QltyInspectionHeader);
     end;
 
     /// <summary>
