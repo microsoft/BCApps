@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
+using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Transfer;
 
 codeunit 99001544 "Subc. Transfer Line Ext."
@@ -83,6 +84,13 @@ codeunit 99001544 "Subc. Transfer Line Ext."
     local procedure OnValidateItemNoOnCopyFromTempTransLine_TransferLine(var TransferLine: Record "Transfer Line"; TempTransferLine: Record "Transfer Line")
     begin
         CopySubFieldsFromTempTransferLineToTransferLine(TransferLine, TempTransferLine);
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Transfer Line", OnValidateUnitofMeasureCodeOnBeforeValidateQuantity, '', false, false)]
+    local procedure OnValidateUnitofMeasureCodeOnBeforeValidateQuantity(var TransferLine: Record "Transfer Line"; Item: Record Item; xTransferLine: Record "Transfer Line")
+    begin
+        if TransferLine."Transfer WIP Item" then
+            TransferLine."Qty. per Unit of Measure" := 0;
     end;
 
     local procedure CopySubFieldsFromTempTransferLineToTransferLine(var TransferLine: Record "Transfer Line"; TempTransferLine: Record "Transfer Line")
