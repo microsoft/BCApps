@@ -197,6 +197,10 @@ codeunit 139545 "Fixed Asset Excel Reports"
         LibraryReportDataset.FindCurrentRowValue('Amount', Variant);
         ReportAmount := Variant;
         ReportAmount := Round(ReportAmount, 1);
+        RestoreAccountingPeriods(TempSavedAccountingPeriod);
+        LibrarySetupStorage.Restore();
+        Commit();
+
         Assert.AreEqual(ExpectedProjectedDepr, ReportAmount, ProjectedDeprMismatchLbl);
 
         // Restore accounting periods to avoid affecting other test apps.
