@@ -23,9 +23,11 @@ codeunit 20404 "Qlty. Inspection - Create"
     EventSubscriberInstance = Manual;
     InherentPermissions = X;
     Permissions =
-        tabledata "Qlty. Inspection Header" = Rim,
-        tabledata "Qlty. Inspection Line" = Rim,
-        tabledata "Qlty. I. Result Condit. Conf." = RIM;
+        tabledata "Qlty. Management Setup" = r,
+        tabledata "Qlty. Inspection Gen. Rule" = r,
+        tabledata "Qlty. Inspection Header" = rim,
+        tabledata "Qlty. Inspection Line" = rim,
+        tabledata "Qlty. I. Result Condit. Conf." = rim;
 
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
@@ -257,12 +259,6 @@ codeunit 20404 "Qlty. Inspection - Create"
         exit(InternalCreateInspectionWithSpecificTemplate(TargetRecordRef, IsManualCreation, OptionalSpecificTemplate, OptionalRec2Variant, OptionalRec3Variant, DummyRec4Variant, TempDummyQltyInspectionGenRule));
     end;
 
-    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Gen. Rule", 'R', InherentPermissionsScope::Both)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Header", 'RIM', InherentPermissionsScope::Both)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Line", 'RIM', InherentPermissionsScope::Both)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. I. Result Condit. Conf.", 'RIM', InherentPermissionsScope::Both)]
-    [InherentPermissions(PermissionObjectType::Codeunit, Codeunit::"Qlty. Permission Mgmt.", 'X', InherentPermissionsScope::Both)]
-    [InherentPermissions(PermissionObjectType::Codeunit, Codeunit::"Qlty. Start Workflow", 'X', InherentPermissionsScope::Both)]
     local procedure InternalCreateInspectionWithSpecificTemplate(TargetRecordRef: RecordRef; IsManualCreation: Boolean; OptionalSpecificTemplate: Code[20]; OptionalRec2Variant: Variant; OptionalRec3Variant: Variant; OptionalRec4Variant: Variant; var TempFiltersQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary) QltyInspectionCreateStatus: Enum "Qlty. Inspection Create Status"
     var
         TempQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary;

@@ -19,6 +19,10 @@ using System.Reflection;
 /// </summary>
 codeunit 20408 "Qlty. Traversal"
 {
+    Permissions =
+        tabledata "Qlty. Inspect. Src. Fld. Conf." = r,
+        tabledata "Qlty. Inspect. Source Config." = r;
+
     var
         QltyConfigurationHelpers: Codeunit "Qlty. Configuration Helpers";
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";

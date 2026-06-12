@@ -12,6 +12,8 @@ using System.Security.AccessControl;
 
 codeunit 20599 "Qlty. Misc Helpers"
 {
+    Permissions = tabledata "Qlty. Test Lookup Value" = r;
+
     var
         DateKeywordTxt: Label 'Date';
         YesNoKeyword1Txt: Label 'Does the';

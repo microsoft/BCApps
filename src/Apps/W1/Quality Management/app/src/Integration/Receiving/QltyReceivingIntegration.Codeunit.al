@@ -26,25 +26,17 @@ using Microsoft.Warehouse.Journal;
 
 codeunit 20411 "Qlty. Receiving Integration"
 {
+    Permissions =
+        tabledata "Qlty. Management Setup" = r,
+        tabledata "Qlty. Inspection Gen. Rule" = r,
+        tabledata "Qlty. Inspection Header" = r;
+
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         ApplicableReceivingQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         QltyBatchNotifHelper: Codeunit "Qlty. Batch Notif. Helper";
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Management Setup", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Gen. Rule", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Result."Qlty. Inspection Result", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Template.Test."Qlty. Test", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Template.Test."Qlty. Test Lookup Value", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Template."Qlty. Inspection Template Hdr.", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Template."Qlty. Inspection Template Line", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.SourceConfiguration."Qlty. Inspect. Src. Fld. Conf.", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.SourceConfiguration."Qlty. Inspect. Source Config.", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Header", 'RIM', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Line", 'RIM', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Result."Qlty. I. Result Condit. Conf.", 'RIM', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::Codeunit, Codeunit::Microsoft.QualityManagement.AccessControl."Qlty. Permission Mgmt.", 'X', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::Codeunit, Codeunit::Microsoft.QualityManagement.Workflow."Qlty. Start Workflow", 'X', InherentPermissionsScope::Permissions)]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", 'OnAfterPurchRcptLineInsert', '', true, true)]
     local procedure HandleOnAfterPurchRcptLineInsert(PurchaseLine: Record "Purchase Line"; var PurchRcptLine: Record "Purch. Rcpt. Line"; ItemLedgShptEntryNo: Integer; WhseShip: Boolean; WhseReceive: Boolean; CommitIsSupressed: Boolean; PurchInvHeader: Record "Purch. Inv. Header"; var TempTrackingSpecification: Record "Tracking Specification" temporary; PurchRcptHeader: Record "Purch. Rcpt. Header"; TempWhseRcptHeader: Record "Warehouse Receipt Header"; xPurchLine: Record "Purchase Line"; var TempPurchLineGlobal: Record "Purchase Line" temporary)
     var
@@ -61,11 +53,9 @@ codeunit 20411 "Qlty. Receiving Integration"
         if not QltyManagementSetup.GetSetupRecord() then
             exit;
 
-        ApplicableReceivingQltyInspectionGenRule.Reset();
-        ApplicableReceivingQltyInspectionGenRule.SetRange("Purchase Order Trigger", ApplicableReceivingQltyInspectionGenRule."Purchase Order Trigger"::OnPurchaseOrderPostReceive);
-        ApplicableReceivingQltyInspectionGenRule.SetFilter("Activation Trigger", '%1|%2', ApplicableReceivingQltyInspectionGenRule."Activation Trigger"::"Manual or Automatic", ApplicableReceivingQltyInspectionGenRule."Activation Trigger"::"Automatic only");
-        if ApplicableReceivingQltyInspectionGenRule.IsEmpty() then
+        if not HasPurchaseOrderPostReceiveGenRule(ApplicableReceivingQltyInspectionGenRule) then
             exit;
+
         if PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.") then;
 
         TempTrackingSpecification.SetFilter("Quantity Handled (Base)", '<>0');
@@ -105,19 +95,6 @@ codeunit 20411 "Qlty. Receiving Integration"
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Management Setup", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Gen. Rule", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Result."Qlty. Inspection Result", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Template.Test."Qlty. Test", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Template.Test."Qlty. Test Lookup Value", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Template."Qlty. Inspection Template Hdr.", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Template."Qlty. Inspection Template Line", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.SourceConfiguration."Qlty. Inspect. Src. Fld. Conf.", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.SourceConfiguration."Qlty. Inspect. Source Config.", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Header", 'RIM', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Line", 'RIM', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Result."Qlty. I. Result Condit. Conf.", 'RIM', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::Codeunit, Codeunit::Microsoft.QualityManagement.AccessControl."Qlty. Permission Mgmt.", 'X', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::Codeunit, Codeunit::Microsoft.QualityManagement.Workflow."Qlty. Start Workflow", 'X', InherentPermissionsScope::Permissions)]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Post Receipt", 'OnPostWhseJnlLineOnBeforeWhseJnlRegisterLineRun', '', true, true)]
     local procedure HandleOnPostWhseJnlLineOnBeforeWhseJnlRegisterLineRun(var WarehouseJournalLine: Record "Warehouse Journal Line"; PostedWhseReceiptHeader: Record "Posted Whse. Receipt Header")
     begin
@@ -127,30 +104,15 @@ codeunit 20411 "Qlty. Receiving Integration"
         if not QltyManagementSetup.GetSetupRecord() then
             exit;
 
-        ApplicableReceivingQltyInspectionGenRule.Reset();
-        ApplicableReceivingQltyInspectionGenRule.SetRange("Warehouse Receipt Trigger", ApplicableReceivingQltyInspectionGenRule."Warehouse Receipt Trigger"::OnWarehouseReceiptPost);
-        ApplicableReceivingQltyInspectionGenRule.SetFilter("Activation Trigger", '%1|%2', ApplicableReceivingQltyInspectionGenRule."Activation Trigger"::"Manual or Automatic", ApplicableReceivingQltyInspectionGenRule."Activation Trigger"::"Automatic only");
-        if not ApplicableReceivingQltyInspectionGenRule.IsEmpty() then begin
-            QltyBatchNotifHelper.BeginBatch();
-            AttemptCreateInspectionWithWhseJournalLine(WarehouseJournalLine, PostedWhseReceiptHeader);
-            QltyBatchNotifHelper.EndBatch();
-        end;
+        if not HasWarehouseReceiptPostGenRule(ApplicableReceivingQltyInspectionGenRule) then
+            exit;
+
+        QltyBatchNotifHelper.BeginBatch();
+        AttemptCreateInspectionWithWhseJournalLine(WarehouseJournalLine, PostedWhseReceiptHeader);
+        QltyBatchNotifHelper.EndBatch();
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Management Setup", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Gen. Rule", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Result."Qlty. Inspection Result", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Template.Test."Qlty. Test", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Template.Test."Qlty. Test Lookup Value", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Template."Qlty. Inspection Template Hdr.", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Template."Qlty. Inspection Template Line", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.SourceConfiguration."Qlty. Inspect. Src. Fld. Conf.", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.SourceConfiguration."Qlty. Inspect. Source Config.", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Header", 'RIM', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Line", 'RIM', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Result."Qlty. I. Result Condit. Conf.", 'RIM', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::Codeunit, Codeunit::Microsoft.QualityManagement.AccessControl."Qlty. Permission Mgmt.", 'X', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::Codeunit, Codeunit::Microsoft.QualityManagement.Workflow."Qlty. Start Workflow", 'X', InherentPermissionsScope::Permissions)]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purchases Warehouse Mgt.", 'OnAfterCreateRcptLineFromPurchLine', '', true, true)]
     local procedure HandleOnAfterCreateRcptLineFromPurchLine(var WarehouseReceiptLine: Record "Warehouse Receipt Line"; WarehouseReceiptHeader: Record "Warehouse Receipt Header"; PurchaseLine: Record "Purchase Line")
     var
@@ -162,31 +124,16 @@ codeunit 20411 "Qlty. Receiving Integration"
         if not QltyManagementSetup.GetSetupRecord() then
             exit;
 
-        ApplicableReceivingQltyInspectionGenRule.Reset();
-        ApplicableReceivingQltyInspectionGenRule.SetRange("Warehouse Receipt Trigger", ApplicableReceivingQltyInspectionGenRule."Warehouse Receipt Trigger"::OnWarehouseReceiptCreate);
-        ApplicableReceivingQltyInspectionGenRule.SetFilter("Activation Trigger", '%1|%2', ApplicableReceivingQltyInspectionGenRule."Activation Trigger"::"Manual or Automatic", ApplicableReceivingQltyInspectionGenRule."Activation Trigger"::"Automatic only");
-        if not ApplicableReceivingQltyInspectionGenRule.IsEmpty() then begin
-            OptionalSource := PurchaseLine;
-            QltyBatchNotifHelper.BeginBatch();
-            AttemptCreateInspectionWithReceiptLine(WarehouseReceiptLine, WarehouseReceiptHeader, OptionalSource);
-            QltyBatchNotifHelper.EndBatch();
-        end;
+        if not HasWarehouseReceiptCreateGenRule(ApplicableReceivingQltyInspectionGenRule) then
+            exit;
+
+        OptionalSource := PurchaseLine;
+        QltyBatchNotifHelper.BeginBatch();
+        AttemptCreateInspectionWithReceiptLine(WarehouseReceiptLine, WarehouseReceiptHeader, OptionalSource);
+        QltyBatchNotifHelper.EndBatch();
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Management Setup", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Gen. Rule", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Result."Qlty. Inspection Result", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Template.Test."Qlty. Test", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Template.Test."Qlty. Test Lookup Value", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Template."Qlty. Inspection Template Hdr.", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Template."Qlty. Inspection Template Line", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.SourceConfiguration."Qlty. Inspect. Src. Fld. Conf.", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.SourceConfiguration."Qlty. Inspect. Source Config.", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Header", 'RIM', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Line", 'RIM', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Result."Qlty. I. Result Condit. Conf.", 'RIM', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::Codeunit, Codeunit::Microsoft.QualityManagement.AccessControl."Qlty. Permission Mgmt.", 'X', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::Codeunit, Codeunit::Microsoft.QualityManagement.Workflow."Qlty. Start Workflow", 'X', InherentPermissionsScope::Permissions)]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", 'OnBeforePostItemTrackingLine', '', true, true)]
     local procedure HandleOnBeforePostItemTrackingLine(SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; var TempItemLedgEntryNotInvoiced: Record "Item Ledger Entry" temporary; HasATOShippedNotInvoiced: Boolean; var IsHandled: Boolean; var ItemLedgShptEntryNo: Integer; var RemQtyToBeInvoiced: Decimal; var RemQtyToBeInvoicedBase: Decimal; SalesInvoiceHeader: Record "Sales Invoice Header"; SalesCrMemoHeader: Record "Sales Cr.Memo Header")
     var
@@ -208,9 +155,8 @@ codeunit 20411 "Qlty. Receiving Integration"
         if not QltyManagementSetup.GetSetupRecord() then
             exit;
 
-        QltyInspectionGenRule.SetRange("Sales Return Trigger", QltyInspectionGenRule."Sales Return Trigger"::OnSalesReturnOrderPostReceive);
-        QltyInspectionGenRule.SetFilter("Activation Trigger", '%1|%2', QltyInspectionGenRule."Activation Trigger"::"Manual or Automatic", QltyInspectionGenRule."Activation Trigger"::"Automatic only");
-        if not QltyInspectionGenRule.IsEmpty() then begin
+        if HasSalesReturnOrderPostReceiveGenRule(QltyInspectionGenRule) then begin
+
             SourceVariant := SalesLine;
             QltyWarehouseIntegration.CollectSourceItemTracking(SourceVariant, TempTrackingSpecification);
             IsHandled := false;
@@ -242,19 +188,6 @@ codeunit 20411 "Qlty. Receiving Integration"
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Management Setup", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Gen. Rule", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Result."Qlty. Inspection Result", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Template.Test."Qlty. Test", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Template.Test."Qlty. Test Lookup Value", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Template."Qlty. Inspection Template Hdr.", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Template."Qlty. Inspection Template Line", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.SourceConfiguration."Qlty. Inspect. Src. Fld. Conf.", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.SourceConfiguration."Qlty. Inspect. Source Config.", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Header", 'RIM', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Line", 'RIM', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Result."Qlty. I. Result Condit. Conf.", 'RIM', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::Codeunit, Codeunit::Microsoft.QualityManagement.AccessControl."Qlty. Permission Mgmt.", 'X', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::Codeunit, Codeunit::Microsoft.QualityManagement.Workflow."Qlty. Start Workflow", 'X', InherentPermissionsScope::Permissions)]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"TransferOrder-Post Transfer", 'OnAfterInsertDirectTransLine', '', true, true)]
     local procedure HandleOnAfterInsertDirectTransLine(var DirectTransLine: Record "Direct Trans. Line"; DirectTransHeader: Record "Direct Trans. Header"; TransLine: Record "Transfer Line")
     var
@@ -266,30 +199,15 @@ codeunit 20411 "Qlty. Receiving Integration"
         if not QltyManagementSetup.GetSetupRecord() then
             exit;
 
-        ApplicableReceivingQltyInspectionGenRule.Reset();
-        ApplicableReceivingQltyInspectionGenRule.SetRange("Transfer Order Trigger", ApplicableReceivingQltyInspectionGenRule."Transfer Order Trigger"::OnTransferOrderPostReceive);
-        ApplicableReceivingQltyInspectionGenRule.SetFilter("Activation Trigger", '%1|%2', ApplicableReceivingQltyInspectionGenRule."Activation Trigger"::"Manual or Automatic", ApplicableReceivingQltyInspectionGenRule."Activation Trigger"::"Automatic only");
-        if not ApplicableReceivingQltyInspectionGenRule.IsEmpty() then begin
-            QltyBatchNotifHelper.BeginBatch();
-            AttemptCreateInspectionWithReceiveTransferLine(TransLine, UnusedTransTransferReceiptHeader, DirectTransHeader);
-            QltyBatchNotifHelper.EndBatch();
-        end;
+        if not HasTransferOrderPostReceiveGenRule(ApplicableReceivingQltyInspectionGenRule) then
+            exit;
+
+        QltyBatchNotifHelper.BeginBatch();
+        AttemptCreateInspectionWithReceiveTransferLine(TransLine, UnusedTransTransferReceiptHeader, DirectTransHeader);
+        QltyBatchNotifHelper.EndBatch();
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Management Setup", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Gen. Rule", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Result."Qlty. Inspection Result", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Template.Test."Qlty. Test", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Template.Test."Qlty. Test Lookup Value", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Template."Qlty. Inspection Template Hdr.", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Template."Qlty. Inspection Template Line", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.SourceConfiguration."Qlty. Inspect. Src. Fld. Conf.", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.SourceConfiguration."Qlty. Inspect. Source Config.", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Header", 'RIM', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Line", 'RIM', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Result."Qlty. I. Result Condit. Conf.", 'RIM', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::Codeunit, Codeunit::Microsoft.QualityManagement.AccessControl."Qlty. Permission Mgmt.", 'X', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::Codeunit, Codeunit::Microsoft.QualityManagement.Workflow."Qlty. Start Workflow", 'X', InherentPermissionsScope::Permissions)]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"TransferOrder-Post Receipt", 'OnAfterInsertTransRcptLine', '', true, true)]
     local procedure HandleOnAfterInsertTransRcptLine(var TransRcptLine: Record "Transfer Receipt Line"; TransLine: Record "Transfer Line"; CommitIsSuppressed: Boolean; TransferReceiptHeader: Record "Transfer Receipt Header")
     var
@@ -301,30 +219,15 @@ codeunit 20411 "Qlty. Receiving Integration"
         if not QltyManagementSetup.GetSetupRecord() then
             exit;
 
-        ApplicableReceivingQltyInspectionGenRule.Reset();
-        ApplicableReceivingQltyInspectionGenRule.SetRange("Transfer Order Trigger", ApplicableReceivingQltyInspectionGenRule."Transfer Order Trigger"::OnTransferOrderPostReceive);
-        ApplicableReceivingQltyInspectionGenRule.SetFilter("Activation Trigger", '%1|%2', ApplicableReceivingQltyInspectionGenRule."Activation Trigger"::"Manual or Automatic", ApplicableReceivingQltyInspectionGenRule."Activation Trigger"::"Automatic only");
-        if not ApplicableReceivingQltyInspectionGenRule.IsEmpty() then begin
-            QltyBatchNotifHelper.BeginBatch();
-            AttemptCreateInspectionWithReceiveTransferLine(TransLine, TransferReceiptHeader, UnusedDirectTransHeader);
-            QltyBatchNotifHelper.EndBatch();
-        end;
+        if not HasTransferOrderPostReceiveGenRule(ApplicableReceivingQltyInspectionGenRule) then
+            exit;
+
+        QltyBatchNotifHelper.BeginBatch();
+        AttemptCreateInspectionWithReceiveTransferLine(TransLine, TransferReceiptHeader, UnusedDirectTransHeader);
+        QltyBatchNotifHelper.EndBatch();
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Management Setup", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Gen. Rule", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Result."Qlty. Inspection Result", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Template.Test."Qlty. Test", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Template.Test."Qlty. Test Lookup Value", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Template."Qlty. Inspection Template Hdr.", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Template."Qlty. Inspection Template Line", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.SourceConfiguration."Qlty. Inspect. Src. Fld. Conf.", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.SourceConfiguration."Qlty. Inspect. Source Config.", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Header", 'RIM', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Line", 'RIM', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Result."Qlty. I. Result Condit. Conf.", 'RIM', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::Codeunit, Codeunit::Microsoft.QualityManagement.AccessControl."Qlty. Permission Mgmt.", 'X', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::Codeunit, Codeunit::Microsoft.QualityManagement.Workflow."Qlty. Start Workflow", 'X', InherentPermissionsScope::Permissions)]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Release Purchase Document", 'OnAfterReleasePurchaseDoc', '', true, true)]
     local procedure HandleOnAfterReleasePurchDoc(var PurchaseHeader: Record "Purchase Header"; PreviewMode: Boolean; var LinesWereModified: Boolean; SkipWhseRequestOperations: Boolean)
     var
@@ -339,10 +242,7 @@ codeunit 20411 "Qlty. Receiving Integration"
         if not QltyManagementSetup.GetSetupRecord() then
             exit;
 
-        ApplicableReceivingQltyInspectionGenRule.Reset();
-        ApplicableReceivingQltyInspectionGenRule.SetRange("Purchase Order Trigger", ApplicableReceivingQltyInspectionGenRule."Purchase Order Trigger"::OnPurchaseOrderRelease);
-        ApplicableReceivingQltyInspectionGenRule.SetFilter("Activation Trigger", '%1|%2', ApplicableReceivingQltyInspectionGenRule."Activation Trigger"::"Manual or Automatic", ApplicableReceivingQltyInspectionGenRule."Activation Trigger"::"Automatic only");
-        if ApplicableReceivingQltyInspectionGenRule.IsEmpty() then
+        if not HasPurchaseOrderReleaseGenRule(ApplicableReceivingQltyInspectionGenRule) then
             exit;
 
         QltyBatchNotifHelper.BeginBatch();
@@ -545,6 +445,60 @@ codeunit 20411 "Qlty. Receiving Integration"
         GenJnlPostPreview: Codeunit "Gen. Jnl.-Post Preview";
     begin
         IsInPreviewPostingMode := GenJnlPostPreview.IsActive();
+    end;
+
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Gen. Rule", 'R', InherentPermissionsScope::Permissions)]
+    local procedure HasPurchaseOrderPostReceiveGenRule(var QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule"): Boolean
+    begin
+        QltyInspectionGenRule.Reset();
+        QltyInspectionGenRule.SetRange("Purchase Order Trigger", QltyInspectionGenRule."Purchase Order Trigger"::OnPurchaseOrderPostReceive);
+        QltyInspectionGenRule.SetFilter("Activation Trigger", '%1|%2', QltyInspectionGenRule."Activation Trigger"::"Manual or Automatic", QltyInspectionGenRule."Activation Trigger"::"Automatic only");
+        exit(not QltyInspectionGenRule.IsEmpty());
+    end;
+
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Gen. Rule", 'R', InherentPermissionsScope::Permissions)]
+    local procedure HasWarehouseReceiptPostGenRule(var QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule"): Boolean
+    begin
+        QltyInspectionGenRule.Reset();
+        QltyInspectionGenRule.SetRange("Warehouse Receipt Trigger", QltyInspectionGenRule."Warehouse Receipt Trigger"::OnWarehouseReceiptPost);
+        QltyInspectionGenRule.SetFilter("Activation Trigger", '%1|%2', QltyInspectionGenRule."Activation Trigger"::"Manual or Automatic", QltyInspectionGenRule."Activation Trigger"::"Automatic only");
+        exit(not QltyInspectionGenRule.IsEmpty());
+    end;
+
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Gen. Rule", 'R', InherentPermissionsScope::Permissions)]
+    local procedure HasWarehouseReceiptCreateGenRule(var QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule"): Boolean
+    begin
+        QltyInspectionGenRule.Reset();
+        QltyInspectionGenRule.SetRange("Warehouse Receipt Trigger", QltyInspectionGenRule."Warehouse Receipt Trigger"::OnWarehouseReceiptCreate);
+        QltyInspectionGenRule.SetFilter("Activation Trigger", '%1|%2', QltyInspectionGenRule."Activation Trigger"::"Manual or Automatic", QltyInspectionGenRule."Activation Trigger"::"Automatic only");
+        exit(not QltyInspectionGenRule.IsEmpty());
+    end;
+
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Gen. Rule", 'R', InherentPermissionsScope::Permissions)]
+    local procedure HasSalesReturnOrderPostReceiveGenRule(var QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule"): Boolean
+    begin
+        QltyInspectionGenRule.Reset();
+        QltyInspectionGenRule.SetRange("Sales Return Trigger", QltyInspectionGenRule."Sales Return Trigger"::OnSalesReturnOrderPostReceive);
+        QltyInspectionGenRule.SetFilter("Activation Trigger", '%1|%2', QltyInspectionGenRule."Activation Trigger"::"Manual or Automatic", QltyInspectionGenRule."Activation Trigger"::"Automatic only");
+        exit(not QltyInspectionGenRule.IsEmpty());
+    end;
+
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Gen. Rule", 'R', InherentPermissionsScope::Permissions)]
+    local procedure HasTransferOrderPostReceiveGenRule(var QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule"): Boolean
+    begin
+        QltyInspectionGenRule.Reset();
+        QltyInspectionGenRule.SetRange("Transfer Order Trigger", QltyInspectionGenRule."Transfer Order Trigger"::OnTransferOrderPostReceive);
+        QltyInspectionGenRule.SetFilter("Activation Trigger", '%1|%2', QltyInspectionGenRule."Activation Trigger"::"Manual or Automatic", QltyInspectionGenRule."Activation Trigger"::"Automatic only");
+        exit(not QltyInspectionGenRule.IsEmpty());
+    end;
+
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Gen. Rule", 'R', InherentPermissionsScope::Permissions)]
+    local procedure HasPurchaseOrderReleaseGenRule(var QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule"): Boolean
+    begin
+        QltyInspectionGenRule.Reset();
+        QltyInspectionGenRule.SetRange("Purchase Order Trigger", QltyInspectionGenRule."Purchase Order Trigger"::OnPurchaseOrderRelease);
+        QltyInspectionGenRule.SetFilter("Activation Trigger", '%1|%2', QltyInspectionGenRule."Activation Trigger"::"Manual or Automatic", QltyInspectionGenRule."Activation Trigger"::"Automatic only");
+        exit(not QltyInspectionGenRule.IsEmpty());
     end;
 
     /// <summary>

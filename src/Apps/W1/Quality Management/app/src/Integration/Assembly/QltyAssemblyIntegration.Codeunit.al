@@ -20,20 +20,10 @@ using Microsoft.Warehouse.Journal;
 /// </summary>
 codeunit 20412 "Qlty. Assembly Integration"
 {
-    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Setup."Qlty. Management Setup", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Gen. Rule", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Result."Qlty. Inspection Result", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Template.Test."Qlty. Test", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Template.Test."Qlty. Test Lookup Value", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Template."Qlty. Inspection Template Hdr.", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Template."Qlty. Inspection Template Line", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.SourceConfiguration."Qlty. Inspect. Src. Fld. Conf.", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.SourceConfiguration."Qlty. Inspect. Source Config.", 'R', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Header", 'RIM', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Line", 'RIM', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Result."Qlty. I. Result Condit. Conf.", 'RIM', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::Codeunit, Codeunit::Microsoft.QualityManagement.AccessControl."Qlty. Permission Mgmt.", 'X', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::Codeunit, Codeunit::Microsoft.QualityManagement.Workflow."Qlty. Start Workflow", 'X', InherentPermissionsScope::Permissions)]
+    Permissions =
+        tabledata "Qlty. Inspection Gen. Rule" = r,
+        tabledata "Qlty. Inspection Header" = rm;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Assembly-Post", 'OnAfterPost', '', true, true)]
     local procedure HandleOnAfterPost(var AssemblyHeader: Record "Assembly Header"; var AssemblyLine: Record "Assembly Line"; PostedAssemblyHeader: Record "Posted Assembly Header"; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line"; var ResJnlPostLine: Codeunit "Res. Jnl.-Post Line"; var WhseJnlRegisterLine: Codeunit "Whse. Jnl.-Register Line")
     var
@@ -49,9 +39,7 @@ codeunit 20412 "Qlty. Assembly Integration"
         HasInspection: Boolean;
         IsHandled: Boolean;
     begin
-        QltyInspectionGenRule.SetRange("Assembly Trigger", QltyInspectionGenRule."Assembly Trigger"::OnAssemblyOutputPost);
-        QltyInspectionGenRule.SetFilter("Activation Trigger", '%1|%2', QltyInspectionGenRule."Activation Trigger"::"Manual or Automatic", QltyInspectionGenRule."Activation Trigger"::"Automatic only");
-        if QltyInspectionGenRule.IsEmpty() then
+        if not HasAssemblyOutputPostGenRule(QltyInspectionGenRule) then
             exit;
 
         MgtItemTrackingDocManagement.FindShptRcptEntries(TempSpecTrackingSpecification, Database::"Posted Assembly Header", 0, PostedAssemblyHeader."No.", '', 0, 0, '');
@@ -88,6 +76,14 @@ codeunit 20412 "Qlty. Assembly Integration"
             OnAfterAttemptCreateInspectionFromPostedAssembly(AssemblyHeader, PostedAssemblyHeader, TempSpecTrackingSpecification, QltyInspectionHeader);
         end;
         QltyBatchNotifHelper.EndBatch();
+    end;
+
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Gen. Rule", 'R', InherentPermissionsScope::Permissions)]
+    local procedure HasAssemblyOutputPostGenRule(var QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule"): Boolean
+    begin
+        QltyInspectionGenRule.SetRange("Assembly Trigger", QltyInspectionGenRule."Assembly Trigger"::OnAssemblyOutputPost);
+        QltyInspectionGenRule.SetFilter("Activation Trigger", '%1|%2', QltyInspectionGenRule."Activation Trigger"::"Manual or Automatic", QltyInspectionGenRule."Activation Trigger"::"Automatic only");
+        exit(not QltyInspectionGenRule.IsEmpty());
     end;
 
     /// <summary>
