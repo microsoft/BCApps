@@ -365,7 +365,7 @@ codeunit 20404 "Qlty. Inspection - Create"
                (QltyInspectionHeader."No." <> '')
             then
                 if IsManualCreation then begin
-                    if not TryRunInspectionPage(QltyInspectionHeader) then
+                    if not TryRunInspectionPage(Page::"Qlty. Inspection", QltyInspectionHeader) then
                         QltyNotificationMgmt.NotifyInspectionCreated(QltyInspectionHeader);
                 end else
                     if IsNewlyCreatedInspection then
@@ -380,10 +380,19 @@ codeunit 20404 "Qlty. Inspection - Create"
         OnAfterCreateInspectionAfterDialog(TargetRecordRef, RecordRefToBufferTriggeringRecord, IsManualCreation, OptionalSpecificTemplate, TempQltyInspectionGenRule, QltyInspectionHeader, OptionalRec2Variant, OptionalRec3Variant);
     end;
 
+    /// <summary>
+    /// Attempts to run the specified inspection page for the given inspection header.
+    /// Wrapped as a TryFunction because <c>Page.Run</c> will throw a permission error
+    /// when the current user is not permitted to read the underlying inspection records.
+    /// Callers should treat a false return as "page could not be shown" and fall back to a
+    /// non-interactive path such as a notification.
+    /// </summary>
+    /// <param name="PageId">The ID of the page to run (e.g. Page::"Qlty. Inspection" or Page::"Qlty. Inspection List").</param>
+    /// <param name="QltyInspectionHeader">The inspection header (or filtered set) to display on the page.</param>
     [TryFunction]
-    local procedure TryRunInspectionPage(var QltyInspectionHeader: Record "Qlty. Inspection Header")
+    local procedure TryRunInspectionPage(PageId: Integer; var QltyInspectionHeader: Record "Qlty. Inspection Header")
     begin
-        Page.Run(Page::"Qlty. Inspection", QltyInspectionHeader);
+        Page.Run(PageId, QltyInspectionHeader);
     end;
 
     /// <summary>
@@ -914,15 +923,17 @@ codeunit 20404 "Qlty. Inspection - Create"
             if ToDisplayQltyInspectionIds.Count() = 1 then begin
                 CreatedQltyInspectionHeader.SetCurrentKey("No.", "Re-inspection No.");
                 CreatedQltyInspectionHeader.FindLast();
-                if IsManualCreation then
-                    Page.Run(Page::"Qlty. Inspection", CreatedQltyInspectionHeader)
-                else
+                if IsManualCreation then begin
+                    if not TryRunInspectionPage(Page::"Qlty. Inspection", CreatedQltyInspectionHeader) then
+                        QltyNotificationMgmt.NotifyInspectionCreated(CreatedQltyInspectionHeader);
+                end else
                     QltyNotificationMgmt.NotifyInspectionCreated(CreatedQltyInspectionHeader);
             end else begin
                 CreatedQltyInspectionHeader.FindSet();
-                if IsManualCreation then
-                    Page.Run(Page::"Qlty. Inspection List", CreatedQltyInspectionHeader)
-                else
+                if IsManualCreation then begin
+                    if not TryRunInspectionPage(Page::"Qlty. Inspection List", CreatedQltyInspectionHeader) then
+                        QltyNotificationMgmt.NotifyMultipleInspectionsCreated(CreatedQltyInspectionHeader);
+                end else
                     QltyNotificationMgmt.NotifyMultipleInspectionsCreated(CreatedQltyInspectionHeader);
             end;
         end;

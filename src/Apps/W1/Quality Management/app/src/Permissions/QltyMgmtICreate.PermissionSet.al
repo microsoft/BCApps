@@ -28,7 +28,9 @@ using Microsoft.Warehouse.Ledger;
 /// Grants the minimum permissions required to initiate quality inspections from
 /// automatic procedures triggered by other operations (for example, production order
 /// completion, purchase receipts, warehouse activities, and similar background
-/// scenarios). Setup and configuration data is exposed as read-only, while inspection
+/// scenarios), as well as from manual actions invoked by the user in the UI
+/// (for example, the "Create Quality Inspection" action on documents and lines).
+/// Setup and configuration data is exposed as read-only, while inspection
 /// records can be created and updated, so that Quality Management data is only
 /// modified through Quality Management code paths and not by direct user interaction.
 /// </summary>
