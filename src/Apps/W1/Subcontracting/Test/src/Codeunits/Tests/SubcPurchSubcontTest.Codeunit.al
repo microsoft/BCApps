@@ -510,6 +510,118 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         PostDirectTransferOrder(ReturnTransferHeader);
     end;
 
+    [Test]
+    [HandlerFunctions('DoConfirmCreateProdOrderForSubcontractingProcess,HandleTransferOrder')]
+    procedure CannotModifyOrDeleteRoutingLineWhenTransferOrderExistsWithTransferToVendor()
+    var
+        Item: Record Item;
+        HomeLocation: Record Location;
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        WorkCenter: array[2] of Record "Work Center";
+        MachineCenter: array[2] of Record "Machine Center";
+        ProdOrderRtng: TestPage "Prod. Order Routing";
+    begin
+        // [SCENARIO] Modifying key fields or deleting a Prod. Order Routing Line must be blocked
+        // when subcontracting transfer orders exist for Transfer to Vendor components.
+        Initialize();
+
+        // [GIVEN] A subcontracting purchase order with a linked transfer order
+        SetupSubContractingProdOrder(Item, HomeLocation, WorkCenter, MachineCenter, ProductionOrder, "Component Supply Method"::"Transfer to Vendor", LibraryRandom.RandIntInRange(1, 10));
+        CreateSubcontractingPurchaseOrderForProdOrder(PurchaseHeader, PurchaseLine, Item, WorkCenter, ProductionOrder);
+        CreateTransferOrderForPurchaseOrder(PurchaseHeader);
+
+        // [GIVEN] Find routing line for the subcontracting work center
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+#pragma warning disable AA0210
+        ProdOrderRoutingLine.SetRange("Transfer WIP Item", true);
+#pragma warning restore AA0210
+        ProdOrderRoutingLine.FindFirst();
+
+        // [THEN] Changing No. is blocked
+        ProdOrderRtng.OpenEdit();
+        ProdOrderRtng.GoToRecord(ProdOrderRoutingLine);
+        asserterror ProdOrderRtng."No.".SetValue(WorkCenter[1]."No.");
+        Assert.ExpectedError('You cannot change this routing line because transfer orders exist');
+        ProdOrderRtng.Close();
+
+        // [THEN] Changing Type is blocked
+        ProdOrderRtng.OpenEdit();
+        ProdOrderRtng.GoToRecord(ProdOrderRoutingLine);
+        asserterror ProdOrderRtng.Type.SetValue(ProdOrderRoutingLine.Type::"Machine Center");
+        Assert.ExpectedError('You cannot change this routing line because transfer orders exist');
+        ProdOrderRtng.Close();
+
+        // [THEN] Changing Routing Link Code is blocked
+        ProdOrderRtng.OpenEdit();
+        ProdOrderRtng.GoToRecord(ProdOrderRoutingLine);
+        asserterror ProdOrderRtng."Routing Link Code".SetValue('');
+        Assert.ExpectedError('You cannot change this routing line because transfer orders exist');
+        ProdOrderRtng.Close();
+
+        // [THEN] Deleting the routing line is blocked
+        asserterror ProdOrderRoutingLine.Delete(true);
+        Assert.ExpectedError('You cannot change this routing line because transfer orders exist');
+    end;
+
+    [Test]
+    [HandlerFunctions('DoConfirmCreateProdOrderForSubcontractingProcess,HandleTransferOrder')]
+    procedure CannotModifyOrDeleteRoutingLineWhenTransferOrderExistsWithVendorSupplied()
+    var
+        Item: Record Item;
+        HomeLocation: Record Location;
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        WorkCenter: array[2] of Record "Work Center";
+        MachineCenter: array[2] of Record "Machine Center";
+        ProdOrderRtng: TestPage "Prod. Order Routing";
+    begin
+        // [SCENARIO] Modifying key fields or deleting a Prod. Order Routing Line must be blocked
+        // when subcontracting transfer orders exist for Transfer to Vendor components.
+        Initialize();
+
+        // [GIVEN] A subcontracting purchase order with a linked transfer order
+        SetupSubContractingProdOrder(Item, HomeLocation, WorkCenter, MachineCenter, ProductionOrder, "Component Supply Method"::"Vendor-Supplied", LibraryRandom.RandIntInRange(1, 10));
+        CreateSubcontractingPurchaseOrderForProdOrder(PurchaseHeader, PurchaseLine, Item, WorkCenter, ProductionOrder);
+        CreateTransferOrderForPurchaseOrder(PurchaseHeader);
+
+        // [GIVEN] Find routing line for the subcontracting work center
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+#pragma warning disable AA0210
+        ProdOrderRoutingLine.SetRange("Transfer WIP Item", true);
+#pragma warning restore AA0210
+        ProdOrderRoutingLine.FindFirst();
+
+        // [THEN] Changing No. is blocked
+        ProdOrderRtng.OpenEdit();
+        ProdOrderRtng.GoToRecord(ProdOrderRoutingLine);
+        asserterror ProdOrderRtng."No.".SetValue(WorkCenter[1]."No.");
+        Assert.ExpectedError('You cannot change this routing line because transfer orders exist');
+        ProdOrderRtng.Close();
+
+        // [THEN] Changing Type is blocked
+        ProdOrderRtng.OpenEdit();
+        ProdOrderRtng.GoToRecord(ProdOrderRoutingLine);
+        asserterror ProdOrderRtng.Type.SetValue(ProdOrderRoutingLine.Type::"Machine Center");
+        Assert.ExpectedError('You cannot change this routing line because transfer orders exist');
+        ProdOrderRtng.Close();
+
+        // [THEN] Changing Routing Link Code is blocked
+        ProdOrderRtng.OpenEdit();
+        ProdOrderRtng.GoToRecord(ProdOrderRoutingLine);
+        asserterror ProdOrderRtng."Routing Link Code".SetValue('');
+        Assert.ExpectedError('You cannot change this routing line because transfer orders exist');
+        ProdOrderRtng.Close();
+
+        // [THEN] Deleting the routing line is blocked
+        asserterror ProdOrderRoutingLine.Delete(true);
+        Assert.ExpectedError('You cannot change this routing line because transfer orders exist');
+    end;
+
     [ModalPageHandler]
     procedure ItemTrackingLinesSimpleHandler(var ItemTrackingLines: TestPage "Item Tracking Lines")
     begin
