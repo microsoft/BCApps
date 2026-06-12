@@ -76,7 +76,6 @@ $script:LastParsingErrors = [System.Collections.Generic.List[string]]::new()
 # ---------------------------------------------------------------------------
 function Assert-Config {
     if (-not $GithubToken)     { throw 'GITHUB_TOKEN is required' }
-    if (-not $CopilotToken)    { throw 'GH_TOKEN (or GITHUB_TOKEN) is required for Copilot CLI authentication' }
     if ($PrNumber -eq 0)       { throw 'PR_NUMBER is required' }
     if (-not $PrHeadSha)       { throw 'PR_HEAD_SHA is required' }
     if (-not $SeverityOrder.ContainsKey($MinimumSeverity)) {
