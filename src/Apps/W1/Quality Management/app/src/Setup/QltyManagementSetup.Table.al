@@ -526,9 +526,6 @@ table 20400 "Qlty. Management Setup"
 
     internal procedure GetSetupRecord(): Boolean
     begin
-        if not Rec.ReadPermission() then
-            exit(false);
-
         exit(Rec.Get());
     end;
 
