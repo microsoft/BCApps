@@ -53,6 +53,12 @@ codeunit 99001534 "Subc. Purchase Line Ext"
     var
         SubcTransferManagement: Codeunit "Subc. Transfer Management";
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if Rec.IsTemporary() then
             exit;
         if not RunTrigger then
@@ -116,6 +122,12 @@ codeunit 99001534 "Subc. Purchase Line Ext"
     var
         SubcTransferManagement: Codeunit "Subc. Transfer Management";
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if Rec.IsTemporary() then
             exit;
 
@@ -136,6 +148,12 @@ codeunit 99001534 "Subc. Purchase Line Ext"
     var
         SubcTransferManagement: Codeunit "Subc. Transfer Management";
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if Rec.IsTemporary() then
             exit;
 
@@ -156,6 +174,12 @@ codeunit 99001534 "Subc. Purchase Line Ext"
     var
         SubcTransferManagement: Codeunit "Subc. Transfer Management";
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if Rec.IsTemporary() then
             exit;
 
@@ -176,6 +200,12 @@ codeunit 99001534 "Subc. Purchase Line Ext"
     var
         SubcTransferManagement: Codeunit "Subc. Transfer Management";
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if Rec.IsTemporary() then
             exit;
 
@@ -196,6 +226,12 @@ codeunit 99001534 "Subc. Purchase Line Ext"
     var
         SubcTransferManagement: Codeunit "Subc. Transfer Management";
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if Rec.IsTemporary() then
             exit;
 
@@ -216,6 +252,12 @@ codeunit 99001534 "Subc. Purchase Line Ext"
     var
         SubcTransferManagement: Codeunit "Subc. Transfer Management";
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if Rec.IsTemporary() then
             exit;
 
