@@ -1,10 +1,10 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Inventory.Transfer;
 
-#if not CLEAN27
+#if not CLEAN28
 using Microsoft.Manufacturing.Document;
 #endif
 
@@ -124,7 +124,7 @@ page 5749 "Transfer Lines"
                     begin
                         TransferHeader.Get(Rec."Document No.");
                         TransferHeader.CalcFields("Subcontracting Order");
-#if not CLEAN27
+#if not CLEAN28
                         if TransferHeader."Subcontracting Order" then
                             PAGE.Run(PAGE::"Subcontr. Transfer Order", TransferHeader)
                         else

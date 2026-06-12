@@ -213,7 +213,7 @@ page 6347 "Power BI Report Deployments"
                     Caption = 'Clear Deployment Records';
                     Image = ClearLog;
                     Enabled = IsEvaluationCompany;
-                    ToolTip = 'Wipes all local Power BI deployment tracking data. Reports already uploaded to the Power BI workspace are not removed. Only available in evaluation companies.';
+                    ToolTip = 'Deletes all data in Business Central about Power BI deployments (shown in this list). Reports already uploaded to the Power BI workspace are not removed. Only available in evaluation companies.';
 
                     trigger OnAction()
                     var

@@ -168,13 +168,18 @@ codeunit 6432 "Logiq Integration Management"
 
         this.DownloadDocuments(HttpRequest, HttpResponse);
 
-        HttpResponse.Content.ReadAs(InStr);
-        DocumentsArray.ReadFrom(InStr);
-        for i := 0 to DocumentsArray.Count() - 1 do begin
-            Clear(TempBlob);
-            TempBlob.CreateOutStream(OutStr, TextEncoding::UTF8);
-            DocumentsArray.GetObject(i).WriteTo(OutStr);
-            Documents.Add(TempBlob);
+        // The Logiq /listfiles endpoint returns 204 No Content (empty body)
+        // when there are no files to retrieve. Treat that as "no documents"
+        // and skip JSON parsing.
+        if HttpResponse.HttpStatusCode <> 204 then begin
+            HttpResponse.Content.ReadAs(InStr);
+            if DocumentsArray.ReadFrom(InStr) then
+                for i := 0 to DocumentsArray.Count() - 1 do begin
+                    Clear(TempBlob);
+                    TempBlob.CreateOutStream(OutStr, TextEncoding::UTF8);
+                    DocumentsArray.GetObject(i).WriteTo(OutStr);
+                    Documents.Add(TempBlob);
+                end;
         end;
 
         ReceiveContext.Http().SetHttpRequestMessage(HttpRequest);

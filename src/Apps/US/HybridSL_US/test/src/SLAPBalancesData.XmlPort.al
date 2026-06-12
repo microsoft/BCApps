@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.DataMigration.SL;
 
-xmlport 147658 "SL AP Balances Data"
+xmlport 147678 "SL AP Balances Data"
 {
     Caption = 'SL AP Balances data for import/export';
     Direction = Both;
@@ -94,7 +94,7 @@ xmlport 147658 "SL AP Balances Data"
                     end;
 
                     SLAPBalances.VendID := VendID;
-                    SLAPBalances.CpnyID := CopyStr(CpnyID, 1, MaxStrLen(SLAPBalances.CpnyID));
+                    SLAPBalances.CpnyID := CopyStr(CompanyName(), 1, MaxStrLen(SLAPBalances.CpnyID));
                     Evaluate(SLAPBalances.CYBox00, CYBox00);
                     Evaluate(SLAPBalances.CYBox01, CYBox01);
                     Evaluate(SLAPBalances.CYBox02, CYBox02);
@@ -124,6 +124,6 @@ xmlport 147658 "SL AP Balances Data"
     end;
 
     var
-        CaptionRow: Boolean;
         SLAPBalances: Record "SL AP_Balances";
+        CaptionRow: Boolean;
 }

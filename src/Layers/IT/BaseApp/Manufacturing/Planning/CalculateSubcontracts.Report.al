@@ -1,4 +1,4 @@
-#if not CLEAN29
+﻿#if not CLEAN29
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -15,7 +15,7 @@ using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
-#if not CLEAN27
+#if not CLEAN28
 using Microsoft.Purchases.Vendor;
 #endif
 
@@ -48,7 +48,7 @@ report 99001015 "Calculate Subcontracts"
             }
 
             trigger OnAfterGetRecord()
-#if not CLEAN27
+#if not CLEAN28
             var
                 Vendor: Record Vendor;
 #endif
@@ -56,7 +56,7 @@ report 99001015 "Calculate Subcontracts"
                 if "Subcontractor No." = '' then
                     CurrReport.Skip();
 
-#if not CLEAN27
+#if not CLEAN28
                 if "Subcontractor No." <> '' then begin
                     Vendor.Get("Work Center"."Subcontractor No.");
                     if Vendor."Privacy Blocked" then begin
@@ -141,7 +141,7 @@ report 99001015 "Calculate Subcontracts"
         BaseQtyToPurch: Decimal;
         QtyToPurch: Decimal;
         GLSetupRead: Boolean;
-#if not CLEAN27
+#if not CLEAN28
         Text1130000: Label 'Production Order %1 skipped because Item No. %2 is blocked';
         Text1130001: Label 'Work Center %1 skipped because Vendor %2  is blocked';
         PrivacyBlockedMsg: Label 'Work Center %1 skipped because Vendor %2 is blocked for privacy.', Comment = '%1 = work center code, %2 = vendor code.';
@@ -226,7 +226,7 @@ report 99001015 "Calculate Subcontracts"
         ReqLine."Routing No." := ProdOrderRoutingLine."Routing No.";
         ReqLine."Operation No." := ProdOrderRoutingLine."Operation No.";
         ReqLine."Work Center No." := ProdOrderRoutingLine."Work Center No.";
-#if not CLEAN27
+#if not CLEAN28
         ReqLine."Standard Task Code" := ProdOrderRoutingLine."Standard Task Code";
         ReqLine."Variant Code" := ProdOrderLine."Variant Code";
         ReqLine."WIP Item" := ProdOrderRoutingLine."WIP Item";
@@ -384,7 +384,7 @@ report 99001015 "Calculate Subcontracts"
                 if ProdOrderLine.FindSet() then begin
                     DeleteRepeatedReqLines(TempProdOrderRoutingLine);
                     repeat
-#if not CLEAN27
+#if not CLEAN28
                         Item.Get(ProdOrderLine."Item No.");
                         if Item.Blocked then
                             Message(Text1130000, TempProdOrderRoutingLine."Prod. Order No.", ProdOrderLine."Item No.")
@@ -403,7 +403,7 @@ report 99001015 "Calculate Subcontracts"
 #pragma warning restore AL0432
                             if QtyToPurch > 0 then
                                 InsertReqWkshLine(TempProdOrderRoutingLine);
-#if not CLEAN27
+#if not CLEAN28
                         end;
 #endif
                     until ProdOrderLine.Next() = 0;

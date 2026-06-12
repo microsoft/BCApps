@@ -1080,7 +1080,8 @@ table 37 "Sales Line"
 
                 case "VAT Calculation Type" of
                     "VAT Calculation Type"::"Normal VAT",
-                    "VAT Calculation Type"::"Reverse Charge VAT":
+                    "VAT Calculation Type"::"Reverse Charge VAT",
+                    "VAT Calculation Type"::"No Taxable VAT":
                         begin
                             "VAT Base Amount" :=
                               Round(Amount * (1 - GetVatBaseDiscountPct(SalesHeader) / 100), Currency."Amount Rounding Precision");
@@ -1128,7 +1129,8 @@ table 37 "Sales Line"
                 "Amount Including VAT" := Round("Amount Including VAT", Currency."Amount Rounding Precision");
                 case "VAT Calculation Type" of
                     "VAT Calculation Type"::"Normal VAT",
-                    "VAT Calculation Type"::"Reverse Charge VAT":
+                    "VAT Calculation Type"::"Reverse Charge VAT",
+                    "VAT Calculation Type"::"No Taxable VAT":
                         begin
                             Amount :=
                               Round(
@@ -4438,15 +4440,15 @@ table 37 "Sales Line"
         CalendarMgmt: Codeunit "Calendar Management";
         PostingSetupMgt: Codeunit PostingSetupManagement;
         ApplicationAreaMgmt: Codeunit "Application Area Mgmt.";
+#if not CLEAN29
+        ReportManagementAPAC: Codeunit Microsoft.Foundation.Reporting."Report Management APAC";
+#endif
         PriceType: Enum "Price Type";
         FieldCausedPriceCalculation: Integer;
         FullAutoReservation: Boolean;
         HasBeenShown: Boolean;
         PlannedShipmentDateCalculated: Boolean;
         PlannedDeliveryDateCalculated: Boolean;
-        OnesText: array[20] of Text[30];
-        TensText: array[10] of Text[30];
-        ExponentText: array[5] of Text[30];
         VATBase: Decimal;
         VATAmt: Decimal;
         GLSetupRead: Boolean;
@@ -4504,70 +4506,6 @@ table 37 "Sales Line"
         Text059: Label 'must have the same sign as the return receipt';
 #pragma warning disable AA0470
         Text060: Label 'The quantity that you are trying to invoice is greater than the quantity in return receipt %1.';
-#pragma warning restore AA0470
-        Text1500000: Label 'ONE';
-        Text1500001: Label 'TWO';
-        Text1500002: Label 'THREE';
-        Text1500003: Label 'FOUR';
-        Text1500004: Label 'FIVE';
-        Text1500005: Label 'SIX';
-        Text1500006: Label 'SEVEN';
-        Text1500007: Label 'EIGHT';
-        Text1500008: Label 'NINE';
-        Text1500009: Label 'TEN';
-        Text1500010: Label 'ELEVEN';
-        Text1500011: Label 'TWELVE';
-        Text1500012: Label 'THIRTEEN';
-        Text1500013: Label 'FOURTEEN';
-        Text1500014: Label 'FIFTEEN';
-        Text1500015: Label 'SIXTEEN';
-        Text1500016: Label 'SEVENTEEN';
-        Text1500017: Label 'EIGHTEEN';
-        Text1500018: Label 'NINETEEN';
-        Text1500019: Label 'TWENTY';
-        Text1500020: Label 'THIRTY';
-        Text1500021: Label 'FORTY';
-        Text1500022: Label 'FIFTY';
-        Text1500023: Label 'SIXTY';
-        Text1500024: Label 'SEVENTY';
-        Text1500025: Label 'EIGHTY';
-        Text1500026: Label 'NINETY';
-        Text1500027: Label 'THOUSAND';
-        Text1500028: Label 'MILLION';
-        Text1500029: Label 'BILLION';
-        Text1500030: Label 'NUENG';
-        Text1500031: Label 'SAWNG';
-        Text1500032: Label 'SARM';
-        Text1500033: Label 'SI';
-        Text1500034: Label 'HA';
-        Text1500035: Label 'HOK';
-        Text1500036: Label 'CHED';
-        Text1500037: Label 'PAED';
-        Text1500038: Label 'KOW';
-        Text1500039: Label 'SIB';
-        Text1500040: Label 'SIB-ED';
-        Text1500041: Label 'SIB-SAWNG';
-        Text1500042: Label 'SIB-SARM';
-        Text1500043: Label 'SIB-SI';
-        Text1500044: Label 'SIB-HA';
-        Text1500045: Label 'SIB-HOK';
-        Text1500046: Label 'SIB-CHED';
-        Text1500047: Label 'SIB-PAED';
-        Text1500048: Label 'SIB-KOW';
-        Text1500049: Label 'YI-SIB';
-        Text1500050: Label 'SARM-SIB';
-        Text1500051: Label 'SI-SIB';
-        Text1500052: Label 'HA-SIB';
-        Text1500053: Label 'HOK-SIB';
-        Text1500054: Label 'CHED-SIB';
-        Text1500055: Label 'PAED-SIB';
-        Text1500056: Label 'KOW-SIB';
-        Text1500057: Label 'PHAN';
-        Text1500058: Label 'LAAN?';
-        Text1500059: Label 'PHAN-LAAN?';
-        Text1500060: Label 'HUNDRED';
-        Text1500061: Label 'ZERO';
-        Text1500062: Label 'AND';
 #pragma warning restore AA0074
         ShippingMoreUnitsThanReceivedErr: Label 'You cannot ship more than the %1 units that you have received for document no. %2.';
 #pragma warning restore AA0470
@@ -5784,6 +5722,8 @@ table 37 "Sales Line"
         GenPostingSetup: Record "General Posting Setup";
         GLAcc: Record "G/L Account";
         IsHandled: Boolean;
+        VATPostingSetupRetrieved: Boolean;
+        SkipClear: Boolean;
     begin
         IsHandled := false;
         OnBeforeUpdatePrepmtSetupFields(Rec, IsHandled, CurrFieldNo);
@@ -5805,10 +5745,17 @@ table 37 "Sales Line"
                 GetGLSetup();
                 if GLSetup.CheckFullGSTonPrepayment("VAT Bus. Posting Group", "VAT Prod. Posting Group") then
                     GLAcc.TestField("VAT Prod. Posting Group", "VAT Prod. Posting Group");
-                VATPostingSetup.Get("VAT Bus. Posting Group", GLAcc."VAT Prod. Posting Group");
+                VATPostingSetupRetrieved := false;
+                OnUpdatePrepmtSetupFieldsOnBeforeGetVATPostingSetup(Rec, GLAcc, VATPostingSetup, VATPostingSetupRetrieved);
+                if not VATPostingSetupRetrieved then
+                    VATPostingSetup.Get("VAT Bus. Posting Group", GLAcc."VAT Prod. Posting Group");
                 VATPostingSetup.TestField("VAT Calculation Type", "VAT Calculation Type");
-            end else
-                Clear(VATPostingSetup);
+            end else begin
+                SkipClear := false;
+                OnUpdatePrepmtSetupFieldsOnBeforeClearVATPostingSetup(Rec, VATPostingSetup, SkipClear);
+                if not SkipClear then
+                    Clear(VATPostingSetup);
+            end;
             if ("Prepayment VAT %" <> 0) and ("Prepayment VAT %" <> VATPostingSetup."VAT %") and ("Prepmt. Amt. Inv." <> 0) then
                 Error(CannotChangePrepmtAmtDiffVAtPctErr);
             CopyPrepaymentFromVATPostingSetup(VATPostingSetup);
@@ -6124,7 +6071,10 @@ table 37 "Sales Line"
             TotalVATBaseAmount := 0;
             if ("VAT Calculation Type" = "VAT Calculation Type"::"Sales Tax") or
                (("VAT Calculation Type" in
-                 ["VAT Calculation Type"::"Normal VAT", "VAT Calculation Type"::"Reverse Charge VAT"]) and ("VAT %" <> 0))
+                 ["VAT Calculation Type"::"Normal VAT",
+                  "VAT Calculation Type"::"No Taxable VAT",
+                  "VAT Calculation Type"::"Reverse Charge VAT"]) and
+                ("VAT %" <> 0))
             then begin
                 SalesLine2.SetFilter("VAT %", '<>0');
                 if not SalesLine2.IsEmpty() then begin
@@ -6150,7 +6100,8 @@ table 37 "Sales Line"
             if SalesHeader."Prices Including VAT" then
                 case "VAT Calculation Type" of
                     "VAT Calculation Type"::"Normal VAT",
-                    "VAT Calculation Type"::"Reverse Charge VAT":
+                    "VAT Calculation Type"::"Reverse Charge VAT",
+                    "VAT Calculation Type"::"No Taxable VAT":
                         begin
                             Amount :=
                               Round(
@@ -6193,7 +6144,8 @@ table 37 "Sales Line"
             else
                 case "VAT Calculation Type" of
                     "VAT Calculation Type"::"Normal VAT",
-                    "VAT Calculation Type"::"Reverse Charge VAT":
+                    "VAT Calculation Type"::"Reverse Charge VAT",
+                    "VAT Calculation Type"::"No Taxable VAT":
                         begin
                             Amount := Round(CalcLineAmount(), Currency."Amount Rounding Precision");
                             "VAT Base Amount" :=
@@ -9837,184 +9789,31 @@ table 37 "Sales Line"
             exit(SalesSetup."Document Default Line Type");
     end;
 
+#if not CLEAN29
+    [Obsolete('Moved to codeunit "Report Management APAC"', '29.0')]
     procedure InitTextVariable()
     begin
-        OnesText[1] := Text1500000;
-        OnesText[2] := Text1500001;
-        OnesText[3] := Text1500002;
-        OnesText[4] := Text1500003;
-        OnesText[5] := Text1500004;
-        OnesText[6] := Text1500005;
-        OnesText[7] := Text1500006;
-        OnesText[8] := Text1500007;
-        OnesText[9] := Text1500008;
-        OnesText[10] := Text1500009;
-        OnesText[11] := Text1500010;
-        OnesText[12] := Text1500011;
-        OnesText[13] := Text1500012;
-        OnesText[14] := Text1500013;
-        OnesText[15] := Text1500014;
-        OnesText[16] := Text1500015;
-        OnesText[17] := Text1500016;
-        OnesText[18] := Text1500017;
-        OnesText[19] := Text1500018;
-
-        TensText[1] := '';
-        TensText[2] := Text1500019;
-        TensText[3] := Text1500020;
-        TensText[4] := Text1500021;
-        TensText[5] := Text1500022;
-        TensText[6] := Text1500023;
-        TensText[7] := Text1500024;
-        TensText[8] := Text1500025;
-        TensText[9] := Text1500026;
-
-        ExponentText[1] := '';
-        ExponentText[2] := Text1500027;
-        ExponentText[3] := Text1500028;
-        ExponentText[4] := Text1500029;
+        ReportManagementAPAC.InitTextVariable();
     end;
 
+    [Obsolete('Moved to codeunit ReportManagementAPAC', '29.0')]
     procedure InitTextVariableTH()
     begin
-        OnesText[1] := Text1500030;
-        OnesText[2] := Text1500031;
-        OnesText[3] := Text1500032;
-        OnesText[4] := Text1500033;
-        OnesText[5] := Text1500034;
-        OnesText[6] := Text1500035;
-        OnesText[7] := Text1500036;
-        OnesText[8] := Text1500037;
-        OnesText[9] := Text1500038;
-        OnesText[10] := Text1500039;
-        OnesText[11] := Text1500040;
-        OnesText[12] := Text1500041;
-        OnesText[13] := Text1500042;
-        OnesText[14] := Text1500043;
-        OnesText[15] := Text1500044;
-        OnesText[16] := Text1500045;
-        OnesText[17] := Text1500046;
-        OnesText[18] := Text1500047;
-        OnesText[19] := Text1500048;
-
-        TensText[1] := '';
-        TensText[2] := Text1500049;
-        TensText[3] := Text1500050;
-        TensText[4] := Text1500051;
-        TensText[5] := Text1500052;
-        TensText[6] := Text1500053;
-        TensText[7] := Text1500054;
-        TensText[8] := Text1500055;
-        TensText[9] := Text1500056;
-
-        ExponentText[1] := '';
-        ExponentText[2] := Text1500057;
-        ExponentText[3] := Text1500058;
-        ExponentText[4] := Text1500059;
+        ReportManagementAPAC.InitTextVariableTH();
     end;
 
+    [Obsolete('Moved to codeunit ReportManagementAPAC', '29.0')]
     procedure FormatNoText(var NoText: array[2] of Text[80]; No: Decimal; CurrencyCode: Code[10])
-    var
-        PrintExponent: Boolean;
-        Ones: Integer;
-        Tens: Integer;
-        Hundreds: Integer;
-        Exponent: Integer;
-        NoTextIndex: Integer;
     begin
-        Clear(NoText);
-        NoTextIndex := 1;
-        NoText[1] := '****';
-
-        if No < 1 then
-            AddToNoText(NoText, NoTextIndex, PrintExponent, Text1500061)
-        else
-            for Exponent := 4 downto 1 do begin
-                PrintExponent := false;
-                Ones := No div Power(1000, Exponent - 1);
-                Hundreds := Ones div 100;
-                Tens := (Ones mod 100) div 10;
-                Ones := Ones mod 10;
-                if Hundreds > 0 then begin
-                    AddToNoText(NoText, NoTextIndex, PrintExponent, OnesText[Hundreds]);
-                    AddToNoText(NoText, NoTextIndex, PrintExponent, Text1500060);
-                end;
-                if Tens >= 2 then begin
-                    AddToNoText(NoText, NoTextIndex, PrintExponent, TensText[Tens]);
-                    if Ones > 0 then
-                        AddToNoText(NoText, NoTextIndex, PrintExponent, OnesText[Ones]);
-                end else
-                    if (Tens * 10 + Ones) > 0 then
-                        AddToNoText(NoText, NoTextIndex, PrintExponent, OnesText[Tens * 10 + Ones]);
-                if PrintExponent and (Exponent > 1) then
-                    AddToNoText(NoText, NoTextIndex, PrintExponent, ExponentText[Exponent]);
-                No := No - (Hundreds * 100 + Tens * 10 + Ones) * Power(1000, Exponent - 1);
-            end;
-
-        AddToNoText(NoText, NoTextIndex, PrintExponent, Text1500062);
-        AddToNoText(NoText, NoTextIndex, PrintExponent, Format(No * 100) + '/100');
-
-        if CurrencyCode <> '' then
-            AddToNoText(NoText, NoTextIndex, PrintExponent, CurrencyCode);
+        ReportManagementAPAC.FormatNoText(NoText, No, CurrencyCode);
     end;
 
+    [Obsolete('Moved to codeunit ReportManagementAPAC', '29.0')]
     procedure FormatNoTextTH(var NoText: array[2] of Text[80]; No: Decimal; CurrencyCode: Code[10])
-    var
-        PrintExponent: Boolean;
-        Ones: Integer;
-        Tens: Integer;
-        Hundreds: Integer;
-        Exponent: Integer;
-        NoTextIndex: Integer;
     begin
-        Clear(NoText);
-        NoTextIndex := 1;
-        NoText[1] := '****';
-
-        if No < 1 then
-            AddToNoText(NoText, NoTextIndex, PrintExponent, Text1500061)
-        else
-            for Exponent := 4 downto 1 do begin
-                PrintExponent := false;
-                Ones := No div Power(1000, Exponent - 1);
-                Hundreds := Ones div 100;
-                Tens := (Ones mod 100) div 10;
-                Ones := Ones mod 10;
-                if Hundreds > 0 then begin
-                    AddToNoText(NoText, NoTextIndex, PrintExponent, OnesText[Hundreds]);
-                    AddToNoText(NoText, NoTextIndex, PrintExponent, Text1500060);
-                end;
-                if Tens >= 2 then begin
-                    AddToNoText(NoText, NoTextIndex, PrintExponent, TensText[Tens]);
-                    if Ones > 0 then
-                        AddToNoText(NoText, NoTextIndex, PrintExponent, OnesText[Ones]);
-                end else
-                    if (Tens * 10 + Ones) > 0 then
-                        AddToNoText(NoText, NoTextIndex, PrintExponent, OnesText[Tens * 10 + Ones]);
-                if PrintExponent and (Exponent > 1) then
-                    AddToNoText(NoText, NoTextIndex, PrintExponent, ExponentText[Exponent]);
-                No := No - (Hundreds * 100 + Tens * 10 + Ones) * Power(1000, Exponent - 1);
-            end;
-
-        AddToNoText(NoText, NoTextIndex, PrintExponent, Text1500062);
-        AddToNoText(NoText, NoTextIndex, PrintExponent, Format(No * 100) + '/100');
-
-        if CurrencyCode <> '' then
-            AddToNoText(NoText, NoTextIndex, PrintExponent, CurrencyCode);
+        ReportManagementAPAC.FormatNoTextTH(NoText, No, CurrencyCode);
     end;
-
-    local procedure AddToNoText(var NoText: array[2] of Text[80]; var NoTextIndex: Integer; var PrintExponent: Boolean; AddText: Text[30])
-    begin
-        PrintExponent := true;
-
-        while StrLen(NoText[NoTextIndex] + ' ' + AddText) > MaxStrLen(NoText[1]) do begin
-            NoTextIndex := NoTextIndex + 1;
-            if NoTextIndex > ArrayLen(NoText) then
-                Error(Text029, AddText);
-        end;
-
-        NoText[NoTextIndex] := DelChr(NoText[NoTextIndex] + ' ' + AddText, '<');
-    end;
+#endif
 
     local procedure CalculateFullGST(var PrepmtLineAmount: Decimal): Boolean
     var
@@ -13107,6 +12906,16 @@ table 37 "Sales Line"
     /// <param name="CurrentFieldNo">The current field number.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdatePrepmtSetupFields(var SalesLine: Record "Sales Line"; var IsHandled: Boolean; CurrentFieldNo: Integer)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnUpdatePrepmtSetupFieldsOnBeforeGetVATPostingSetup(var SalesLine: Record "Sales Line"; GLAccount: Record "G/L Account"; var VATPostingSetup: Record "VAT Posting Setup"; var VATPostingSetupRetrieved: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnUpdatePrepmtSetupFieldsOnBeforeClearVATPostingSetup(var SalesLine: Record "Sales Line"; var VATPostingSetup: Record "VAT Posting Setup"; var SkipClear: Boolean)
     begin
     end;
 

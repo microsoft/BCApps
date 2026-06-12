@@ -5,6 +5,8 @@
 namespace Microsoft.Service.Document;
 
 using Microsoft.EServices.EDocument;
+using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Sales.Customer;
 using Microsoft.Service.History;
@@ -237,5 +239,42 @@ tableextension 10790 "Service Header ES" extends "Service Header"
         "SII Last Summary Doc. No.".CreateOutStream(OutStreamObj, TextEncoding::UTF8);
         OutStreamObj.WriteText(SIISummaryDocNoText);
     end;
+
+    /// <summary>
+    /// Validates payment terms and calculates due date and payment discount date based on document type and payment terms configuration.
+    /// </summary>
+    procedure ValidatePaymentTerms()
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        PaymentTerms: Record "Payment Terms";
+        AdjustDueDate: Codeunit "Due Date-Adjust";
+    begin
+        GeneralLedgerSetup.GetRecordOnce();
+        if ("Document Type" <> "Document Type"::"Credit Memo") or
+           (GeneralLedgerSetup."Payment Discount Type" = GeneralLedgerSetup."Payment Discount Type"::"Calc. Pmt. Disc. on Lines")
+        then
+            if ("Payment Terms Code" <> '') and ("Document Date" <> 0D) then begin
+                PaymentTerms.Get("Payment Terms Code");
+                "Due Date" := CalcDate(PaymentTerms."Due Date Calculation", "Document Date");
+                AdjustDueDate.SalesAdjustDueDate(
+                  "Due Date", "Document Date", PaymentTerms.CalculateMaxDueDate("Document Date"), "Bill-to Customer No.");
+                "Pmt. Discount Date" := CalcDate(PaymentTerms."Due Date Calculation", "Document Date");
+            end else begin
+                "Due Date" := "Document Date";
+                AdjustDueDate.SalesAdjustDueDate("Due Date", "Document Date", 99991231D, "Bill-to Customer No.");
+                "Pmt. Discount Date" := "Document Date";
+            end;
+        if ("Document Type" = "Document Type"::"Credit Memo") and ("Payment Terms Code" <> '') then begin
+        if ("Document Type" = "Document Type"::"Credit Memo") and ("Payment Terms Code" <> '') then begin
+            if PaymentTerms.Code <> "Payment Terms Code" then
+                PaymentTerms.Get("Payment Terms Code");
+            if not PaymentTerms."Calc. Pmt. Disc. on Cr. Memos" then
+                "Pmt. Discount Date" := 0D;
+        end;
+            if not PaymentTerms."Calc. Pmt. Disc. on Cr. Memos" then
+                "Pmt. Discount Date" := 0D;
+        end;
+    end;
+
 
 }

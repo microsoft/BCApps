@@ -20,9 +20,11 @@ codeunit 137213 BarcodeScannerItemTrackTest
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryItemTracking: Codeunit "Library - Item Tracking";
         LibrarytestInitialize: Codeunit "Library - Test Initialize";
+        LibraryUtility: Codeunit "Library - Utility";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         Assert: Codeunit Assert;
         ScanQtyExceedMaximumMsg: Label 'Item tracking is successfully defined for quantity';
+        SerialWithParenthesesErr: Label 'Serial with parentheses should have been found by exact match';
 
 
     [Test]
@@ -609,6 +611,56 @@ codeunit 137213 BarcodeScannerItemTrackTest
         Assert.ExpectedError('already exists');
     end;
 
+    [Test]
+    [HandlerFunctions('OutBoundItemTrackingLineHandler,ItemTrackingTypeStrMenuHandler,OutBoundContinuousScanHandler')]
+    procedure OutBoundScanSerialNoWithParenthesesFindsExactMatch()
+    var
+        Item: Record Item;
+        ItemJournalLine: Record "Item Journal Line";
+        ReservationEntry: Record "Reservation Entry";
+        LibraryRandom: Codeunit "Library - Random";
+        ItemTrackingLines: Page Microsoft.Inventory.Tracking."Item Tracking Lines";
+        SerialNo: Code[50];
+        Quantity: Decimal;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] Scanning a serial no containing parentheses on outbound finds exact match without filter error
+        Initialize();
+
+        // [GIVEN] Create serial specific tracked item
+        LibraryItemTracking.CreateSerialItem(Item);
+
+        // [GIVEN] Post item with serial no containing parentheses (GS1 barcode format) to inventory
+        Quantity := LibraryRandom.RandIntInRange(1, 2);
+        SerialNo := '(21)' + LibraryUtility.GenerateGUID();
+        CreateItemJournalLineWithItemTrackingOnLines(ItemJournalLine, ItemJournalLine."Entry Type"::"Positive Adjmt.", Item."No.", Quantity);
+        ItemJournalLine."Serial No." := SerialNo;
+        ItemJournalLine.Modify(true);
+        LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+
+        // [GIVEN] Create a negative adjustment journal line with qty > 1 to allow scanning loop to continue
+        LibraryInventory.CreateItemJnlLine(ItemJournalLine, ItemJournalLine."Entry Type"::"Negative Adjmt.", WorkDate(), Item."No.", Quantity, '');
+
+        // [GIVEN] The Stored value is used to select 'Serial No' on StrMenu
+        LibraryVariableStorage.Enqueue('Serial No');
+
+        // [WHEN] Scan the serial no with parentheses on outbound
+        LibraryVariableStorage.Enqueue(SerialNo);
+        LibraryVariableStorage.Enqueue('');
+
+        // [WHEN] Open Item Tracking Lines in outbound mode and scan
+        asserterror CreateItemTrackingLines(ItemJournalLine, ItemTrackingLines, true);
+        Assert.ExpectedError(ScanQtyExceedMaximumMsg);
+
+        // [THEN] Reservation Entry is created with correct serial no and quantity (Base) = 1 (serial was found)
+        ReservationEntry.SetRange("Source Type", Database::"Item Journal Line");
+        ReservationEntry.SetRange("Source ID", ItemJournalLine."Journal Template Name");
+        ReservationEntry.SetRange("Source Batch Name", ItemJournalLine."Journal Batch Name");
+        ReservationEntry.SetRange("Serial No.", SerialNo);
+        ReservationEntry.FindFirst();
+        Assert.AreEqual(Quantity, Abs(ReservationEntry."Quantity (Base)"), SerialWithParenthesesErr);
+    end;
+
     local procedure Initialize()
     begin
         LibrarytestInitialize.OnTestInitialize(Codeunit::"Item Tracking Test");
@@ -743,6 +795,23 @@ codeunit 137213 BarcodeScannerItemTrackTest
             ContinuousScanningPage."Scanning Area".SetValue(temp)
         else
             CheckContentOfContinuousScanningTestPage(ContinuousScanningPage);
+        ContinuousScanningPage.Ok().Invoke();
+    end;
+
+    [ModalPageHandler]
+    procedure OutBoundItemTrackingLineHandler(var ItemTrackingLinesTestPage: TestPage "Item Tracking Lines")
+    begin
+        ItemTrackingLinesTestPage."Scan multiple".Invoke();
+    end;
+
+    [ModalPageHandler]
+    procedure OutBoundContinuousScanHandler(var ContinuousScanningPage: TestPage "Continuous Item Tracking")
+    var
+        InputValue: Text;
+    begin
+        InputValue := LibraryVariableStorage.DequeueText();
+        if InputValue <> '' then
+            ContinuousScanningPage."Scanning Area".SetValue(InputValue);
         ContinuousScanningPage.Ok().Invoke();
     end;
 }

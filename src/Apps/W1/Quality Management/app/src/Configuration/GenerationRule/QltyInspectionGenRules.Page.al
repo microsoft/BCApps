@@ -9,6 +9,7 @@ using Microsoft.QualityManagement.Integration.Manufacturing;
 using Microsoft.QualityManagement.Integration.Receiving;
 using Microsoft.QualityManagement.Integration.Warehouse;
 using Microsoft.QualityManagement.Setup;
+using Microsoft.QualityManagement.Telemetry;
 
 page 20405 "Qlty. Inspection Gen. Rules"
 {
@@ -467,7 +468,10 @@ page 20405 "Qlty. Inspection Gen. Rules"
     trigger OnOpenPage()
     var
         QltyInspecGenRuleMgmt: Codeunit "Qlty. Inspec. Gen. Rule Mgmt.";
+        QltyMgmtFeatureTelemetry: Codeunit "Qlty. Mgmt. Feature Telemetry";
     begin
+        QltyMgmtFeatureTelemetry.LogFeatureUptakeDiscovered(ObjectType::Page, Page::"Qlty. Inspection Gen. Rules");
+
         Rec.SetFilter("Table ID Filter", QltyInspecGenRuleMgmt.GetFilterForAvailableConfigurations());
         AttemptUpdateUnknownIntents();
         IdentifyIfPageStartedWithATemplate();

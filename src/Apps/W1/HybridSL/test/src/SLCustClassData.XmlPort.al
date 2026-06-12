@@ -64,6 +64,6 @@ xmlport 147611 "SL CustClass Data"
     end;
 
     var
-        CaptionRow: Boolean;
         SLCustClass: Record "SL CustClass";
+        CaptionRow: Boolean;
 }

@@ -475,7 +475,8 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
             exit;
 
         case PurchLine."VAT Calculation Type" of
-            PurchLine."VAT Calculation Type"::"Normal VAT", PurchLine."VAT Calculation Type"::"Full VAT":
+            PurchLine."VAT Calculation Type"::"Normal VAT", PurchLine."VAT Calculation Type"::"Full VAT",
+            PurchLine."VAT Calculation Type"::"No Taxable VAT":
                 InvoicePostingBuffer.CalcDiscount(
                   PurchHeader."Prices Including VAT", -PurchLine."Inv. Discount Amount", -PurchLineACY."Inv. Discount Amount");
             PurchLine."VAT Calculation Type"::"Reverse Charge VAT":
@@ -501,7 +502,8 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
             exit;
 
         case PurchLine."VAT Calculation Type" of
-            PurchLine."VAT Calculation Type"::"Normal VAT", PurchLine."VAT Calculation Type"::"Full VAT":
+            PurchLine."VAT Calculation Type"::"Normal VAT", PurchLine."VAT Calculation Type"::"Full VAT",
+            PurchLine."VAT Calculation Type"::"No Taxable VAT":
                 InvoicePostingBuffer.CalcDiscount(
                   PurchHeader."Prices Including VAT", -PurchLine."Line Discount Amount", -PurchLineACY."Line Discount Amount");
             PurchLine."VAT Calculation Type"::"Reverse Charge VAT":
@@ -1170,8 +1172,8 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
               Round(RemainingPmtDiscPossible / VendLedgEntry."Adjusted Currency Factor");
             GenJnlLine."Amount Including VAT (ACY)" := TotalPurchLineLCY."Amount Including VAT (ACY)"
         end;
-
         GenJnlLine."Allow Zero-Amount Posting" := true;
+
         GenJnlLine."Orig. Pmt. Disc. Possible" := TotalPurchLine."Pmt. Discount Amount";
         GenJnlLine."Orig. Pmt. Disc. Possible(LCY)" :=
             CurrExchRate.ExchangeAmtFCYToLCY(

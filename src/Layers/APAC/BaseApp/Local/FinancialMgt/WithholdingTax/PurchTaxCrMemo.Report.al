@@ -13,8 +13,8 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
+using Microsoft.Foundation.Reporting;
 using Microsoft.Inventory.Location;
-using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
 using System.Globalization;
 using System.Utilities;
@@ -712,11 +712,11 @@ report 28073 "Purch. - Tax Cr. Memo"
                   Round(
                     CurrExchRate.ExchangeAmtFCYToLCY(
                       WorkDate(), "Currency Code", "Amount Including VAT", "Currency Factor"));
-                PurchaseLine.InitTextVariable();
-                PurchaseLine.FormatNoText(AmountLangA, "Amount Including VAT", "Currency Code");
+                ReportManagementAPAC.InitTextVariable();
+                ReportManagementAPAC.FormatNoText(AmountLangA, "Amount Including VAT", "Currency Code");
                 if ShowTHFormatting then begin
-                    PurchaseLine.InitTextVariableTH();
-                    PurchaseLine.FormatNoTextTH(AmountLangB, "Amount Including VAT", "Currency Code");
+                    ReportManagementAPAC.InitTextVariableTH();
+                    ReportManagementAPAC.FormatNoTextTH(AmountLangB, "Amount Including VAT", "Currency Code");
                 end else begin
                     AmountLangB[1] := '';
                     AmountLangB[2] := '';
@@ -823,10 +823,12 @@ report 28073 "Purch. - Tax Cr. Memo"
         DimSetEntry1: Record "Dimension Set Entry";
         DimSetEntry2: Record "Dimension Set Entry";
         RespCenter: Record "Responsibility Center";
+        CurrExchRate: Record "Currency Exchange Rate";
         LanguageMgt: Codeunit Language;
         PurchTaxCrMemoCountPrinted: Codeunit "Purch. Tax Cr.Memo-Printed";
         FormatAddr: Codeunit "Format Address";
         SegManagement: Codeunit SegManagement;
+        ReportManagementAPAC: Codeunit "Report Management APAC";
         VendAddr: array[8] of Text[100];
         ShipToAddr: array[8] of Text[100];
         CompanyAddr: array[8] of Text[100];
@@ -862,8 +864,6 @@ report 28073 "Purch. - Tax Cr. Memo"
         TotalInclVATTextLCY: Text[50];
         TotalExclVATTextLCY: Text[50];
         AmountLCY: Decimal;
-        CurrExchRate: Record "Currency Exchange Rate";
-        PurchaseLine: Record "Purchase Line";
         ShowTHFormatting: Boolean;
         TypeNO: Integer;
         OutputNO: Integer;

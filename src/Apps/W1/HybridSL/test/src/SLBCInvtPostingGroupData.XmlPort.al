@@ -62,6 +62,6 @@ xmlport 147658 "SL BC Invt Posting Group Data"
     end;
 
     var
-        CaptionRow: Boolean;
         InventoryPostingGroup: Record "Inventory Posting Group";
+        CaptionRow: Boolean;
 }

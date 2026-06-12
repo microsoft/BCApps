@@ -153,6 +153,7 @@ page 1702 "Deferral Schedule"
         RecCount: Integer;
         ExpectedCount: Integer;
         ShowNoofPeriodsError: Boolean;
+        IsHandled: Boolean;
     begin
         // Prevent closing of the window if the sum of the periods does not equal the Amount to Defer
         if DeferralHeader.Get(Rec."Deferral Doc. Type",
@@ -182,11 +183,14 @@ page 1702 "Deferral Schedule"
             Rec.FieldError("No. of Periods");
 
         DeferralLine.SetFilter("Posting Date", '>%1', 0D);
-        if DeferralLine.FindFirst() then begin
-            EarliestPostingDate := DeferralLine."Posting Date";
-            if EarliestPostingDate <> DeferralHeader."Start Date" then
-                Error(PostingDateErr);
-        end;
+        IsHandled := false;
+        OnOnQueryClosePageOnBeforeCheckEarliestPostingDate(Rec, DeferralLine, IsHandled);
+        if not IsHandled then
+            if DeferralLine.FindFirst() then begin
+                EarliestPostingDate := DeferralLine."Posting Date";
+                if EarliestPostingDate <> DeferralHeader."Start Date" then
+                    Error(PostingDateErr);
+            end;
     end;
 
     var
@@ -344,6 +348,11 @@ page 1702 "Deferral Schedule"
     /// </remarks>
     [IntegrationEvent(false, false)]
     local procedure OnOnQueryClosePageOnAfterDeferralLineSetFilters(DeferralHeader: Record "Deferral Header"; var DeferralLine: Record "Deferral Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnOnQueryClosePageOnBeforeCheckEarliestPostingDate(DeferralHeader: Record "Deferral Header"; var DeferralLine: Record "Deferral Line"; var IsHandled: Boolean)
     begin
     end;
 }

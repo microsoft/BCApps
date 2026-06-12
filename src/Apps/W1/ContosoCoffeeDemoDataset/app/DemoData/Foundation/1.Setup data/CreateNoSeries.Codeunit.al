@@ -24,7 +24,7 @@ codeunit 5278 "Create No. Series"
         ContosoNoSeries.InsertNoSeries(Bank(), BANKLbl, 'B010', 'B990', '', '', 10, Enum::"No. Series Implementation"::Sequence, true);
         ContosoNoSeries.InsertNoSeries(Campaign(), CampaignLbl, 'CP0001', 'CP9999', '', '', 1, Enum::"No. Series Implementation"::Sequence, true);
         ContosoNoSeries.InsertNoSeries(CashFlow(), CashFlowLbl, 'CF100001', 'CF200000', '', '', 1, Enum::"No. Series Implementation"::Normal, true);
-        ContosoNoSeries.InsertNoSeries(Contact(), ContactLbl, 'CT000001', 'CT100000', '', '', 1, Enum::"No. Series Implementation"::Normal, true);
+        ContosoNoSeries.InsertNoSeries(Contact(), ContactLbl, 'CT000001', 'CT100000', '', '', 1, Enum::"No. Series Implementation"::Sequence, true);
         ContosoNoSeries.InsertNoSeries(DraftInvoice(), DraftInvoiceLbl, 'D-00001', 'D-99999', 'D-99899', '', 1, Enum::"No. Series Implementation"::Sequence, true);
         ContosoNoSeries.InsertNoSeries(PostedInvoice(), PostedInvoiceLbl, '00001', '99999', '99899', '', 1, Enum::"No. Series Implementation"::Sequence, true);
         ContosoNoSeries.InsertNoSeries(Estimate(), EstimateLbl, 'E-00001', 'E-99999', 'E-99899', '', 1, Enum::"No. Series Implementation"::Sequence, true);

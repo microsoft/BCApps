@@ -103,6 +103,6 @@ xmlport 147607 "SL SOAddress Data"
     end;
 
     var
-        CaptionRow: Boolean;
         SLSOAddress: Record "SL SOAddress";
+        CaptionRow: Boolean;
 }

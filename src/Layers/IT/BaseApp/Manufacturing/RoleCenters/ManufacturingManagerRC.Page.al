@@ -179,7 +179,7 @@ page 8903 "Manufacturing Manager RC"
                         RunObject = page "Recurring Capacity Journal";
                     }
                 }
-#if not CLEAN27
+#if not CLEAN28
                 group("Group6")
                 {
                     Caption = 'Reports';
@@ -259,7 +259,7 @@ page 8903 "Manufacturing Manager RC"
                         Caption = 'Assembly Orders';
                         RunObject = page "Assembly Orders";
                     }
-#if not CLEAN27
+#if not CLEAN28
                     action("Subcontracting Orders")
                     {
                         ApplicationArea = Manufacturing;
@@ -499,7 +499,7 @@ page 8903 "Manufacturing Manager RC"
                         Caption = 'Work/Machine Center Load';
                         RunObject = Report "Work/Machine Center Load";
                     }
-#if not CLEAN27
+#if not CLEAN28
                     action("Subcontractor Dispatch List")
                     {
                         ApplicationArea = Basic, Suite;

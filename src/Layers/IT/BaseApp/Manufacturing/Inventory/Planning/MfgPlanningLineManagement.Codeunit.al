@@ -107,7 +107,7 @@ codeunit 99000819 "Mfg. Planning Line Management"
 
     local procedure TransferRoutingLine(var PlanningRoutingLine: Record "Planning Routing Line"; ReqLine: Record "Requisition Line"; RoutingLine: Record "Routing Line")
     var
-#if not CLEAN27
+#if not CLEAN28
         WorkCenter: Record Microsoft.Manufacturing.WorkCenter."Work Center";
         SubcontractorPrices: Record "Subcontractor Prices";
         SubcontractingPricesMgt: Codeunit SubcontractingPricesMgt;
@@ -130,7 +130,7 @@ codeunit 99000819 "Mfg. Planning Line Management"
         PlanningLineManagement.RunOnTransferRoutingLineOnBeforeCalcRoutingCostPerUnit(PlanningRoutingLine, ReqLine, RoutingLine);
 #endif
 
-#if not CLEAN27
+#if not CLEAN28
         if RoutingLine.Type = RoutingLine.Type::"Work Center" then
             WorkCenter.Get(RoutingLine."Work Center No.");
 

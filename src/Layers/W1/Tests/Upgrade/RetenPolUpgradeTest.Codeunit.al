@@ -97,6 +97,32 @@ codeunit 135952 "Reten. Pol. Upgrade Test"
         LibraryAssert.AreEqual(DataExch.FieldNo(SystemCreatedAt), RetentionPolicySetup."Date Field No.", 'Date Field No. is incorrect initialized');
     end;
 
+    [Test]
+    procedure TestFinancialReportExportLogRetentionPolicyUpdated()
+    var
+        RetentionPolicySetup: Record "Retention Policy Setup";
+        FinancialReportExportLog: Record "Financial Report Export Log";
+        RetenPolInstallBaseApp: Codeunit "Reten. Pol. Install - BaseApp";
+    begin
+        // [FEATURE] [AI test 0.4]
+        Initialize();
+
+        // [GIVEN] The allowed tables are refreshed
+        RetenPolInstallBaseApp.AddAllowedTables(true);
+
+        // [GIVEN] The retention policy setup for Financial Report Export Log is empty
+        RetentionPolicySetup.SetRange("Table Id", Database::"Financial Report Export Log");
+        RetentionPolicySetup.DeleteAll();
+
+        // [WHEN] The retention policy setup for Financial Report Export Log is created
+        Clear(RetentionPolicySetup);
+        RetentionPolicySetup.Validate("Table Id", Database::"Financial Report Export Log");
+        RetentionPolicySetup.Insert(true);
+
+        // [THEN] The retention policy setup line for Financial Report Export Log is created with the correct date field
+        LibraryAssert.AreEqual(FinancialReportExportLog.FieldNo("Start Date/Time"), RetentionPolicySetup."Date Field No.", 'Date Field No. is incorrect initialized');
+    end;
+
     local procedure Initialize()
     begin
         if IsInitialized then

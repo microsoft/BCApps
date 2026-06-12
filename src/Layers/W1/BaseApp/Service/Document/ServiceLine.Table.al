@@ -642,7 +642,8 @@ table 5902 "Service Line"
                 Amount := Round(Amount, Currency."Amount Rounding Precision");
                 case "VAT Calculation Type" of
                     "VAT Calculation Type"::"Normal VAT",
-                    "VAT Calculation Type"::"Reverse Charge VAT":
+                    "VAT Calculation Type"::"Reverse Charge VAT",
+                    "VAT Calculation Type"::"No Taxable VAT":
                         begin
                             "VAT Base Amount" :=
                               Round(Amount * (1 - GetVatBaseDiscountPct(ServHeader) / 100), Currency."Amount Rounding Precision");
@@ -689,7 +690,8 @@ table 5902 "Service Line"
                 "Amount Including VAT" := Round("Amount Including VAT", Currency."Amount Rounding Precision");
                 case "VAT Calculation Type" of
                     "VAT Calculation Type"::"Normal VAT",
-                    "VAT Calculation Type"::"Reverse Charge VAT":
+                    "VAT Calculation Type"::"Reverse Charge VAT",
+                    "VAT Calculation Type"::"No Taxable VAT":
                         begin
                             Amount :=
                               Round(
@@ -4835,6 +4837,7 @@ table 5902 "Service Line"
             if ("VAT Calculation Type" = "VAT Calculation Type"::"Sales Tax") or
                (("VAT Calculation Type" in
                  ["VAT Calculation Type"::"Normal VAT",
+                  "VAT Calculation Type"::"No Taxable VAT",
                   "VAT Calculation Type"::"Reverse Charge VAT"]) and
                 ("VAT %" <> 0))
             then
@@ -4853,7 +4856,8 @@ table 5902 "Service Line"
             if ServHeader."Prices Including VAT" then
                 case "VAT Calculation Type" of
                     "VAT Calculation Type"::"Normal VAT",
-                    "VAT Calculation Type"::"Reverse Charge VAT":
+                    "VAT Calculation Type"::"Reverse Charge VAT",
+                    "VAT Calculation Type"::"No Taxable VAT":
                         begin
                             Amount :=
                               (TotalLineAmount - TotalInvDiscAmount + CalcLineAmount()) / (1 + GetVATPct() / 100) -
@@ -4895,7 +4899,8 @@ table 5902 "Service Line"
                 if not IsHandled then
                     case "VAT Calculation Type" of
                         "VAT Calculation Type"::"Normal VAT",
-                      "VAT Calculation Type"::"Reverse Charge VAT":
+                        "VAT Calculation Type"::"Reverse Charge VAT",
+                        "VAT Calculation Type"::"No Taxable VAT":
                             begin
                                 Amount := Round(CalcLineAmount(), Currency."Amount Rounding Precision");
                                 "VAT Base Amount" :=

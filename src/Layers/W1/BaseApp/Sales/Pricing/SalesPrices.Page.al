@@ -374,8 +374,6 @@ page 7002 "Sales Prices"
         CustPriceGr: Record "Customer Price Group";
         Campaign: Record Campaign;
         ClientTypeManagement: Codeunit "Client Type Management";
-        StartingDateFilter: Text;
-        CurrencyCodeFilter: Text;
         PageCaptionText: Text;
 #pragma warning disable AA0074
         Text000: Label 'All Customers';
@@ -392,11 +390,13 @@ page 7002 "Sales Prices"
         IncorrectSalesTypeToCopyPricesErr: Label 'To copy sales prices, The Sales Type Filter field must contain Customer.';
 
     protected var
+        StartingDateFilter: Text;
+        CurrencyCodeFilter: Text;
         SalesTypeFilter: Option Customer,"Customer Price Group","All Customers",Campaign,"None";
         SalesCodeFilter: Text;
         ItemNoFilter: Text;
 
-    local procedure GetRecFilters()
+    procedure GetRecFilters()
     begin
         if Rec.GetFilters() <> '' then
             UpdateBasicRecFilters();
@@ -452,6 +452,8 @@ page 7002 "Sales Prices"
             Rec.SetFilter("Currency Code", CurrencyCodeFilter)
         else
             Rec.SetRange("Currency Code");
+
+        OnSetRecFiltersOnBeforeCheckFilters(Rec);
 
         case SalesTypeFilter of
             SalesTypeFilter::Customer:
@@ -678,6 +680,11 @@ page 7002 "Sales Prices"
     /// <param name="IsHandled">Set to true to skip the default filter retrieval logic.</param>
     [IntegrationEvent(true, false)]
     local procedure OnOpenPageOnBeforeGetRecFilters(var SalesPrice: Record "Sales Price"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnSetRecFiltersOnBeforeCheckFilters(var SalesPrice: Record "Sales Price")
     begin
     end;
 

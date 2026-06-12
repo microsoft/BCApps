@@ -115,6 +115,8 @@ codeunit 7301 "Whse. Jnl.-Register Line"
     begin
         GlobalWhseEntryNo := WhseEntry.GetNextEntryNo();
 
+        OnInitWhseEntryOnBeforeInitWhseEntry(WhseEntry, WhseJnlLine, ZoneCode, BinCode, Sign, GlobalWhseEntryNo);
+
         WhseEntry.Init();
         WhseEntry."Entry No." := GlobalWhseEntryNo;
         WhseEntry."Journal Template Name" := WhseJnlLine."Journal Template Name";
@@ -617,6 +619,11 @@ codeunit 7301 "Whse. Jnl.-Register Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnInitWhseEntryCopyFromWhseJnlLine(var WarehouseEntry: Record "Warehouse Entry"; var WarehouseJournalLine: Record "Warehouse Journal Line"; OnMovement: Boolean; Sign: Integer; Location: Record Location; BinCode: Code[20]; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnInitWhseEntryOnBeforeInitWhseEntry(var WarehouseEntry: Record "Warehouse Entry"; var WarehouseJournalLine: Record "Warehouse Journal Line"; ZoneCode: Code[10]; BinCode: Code[20]; Sign: Integer; var GlobalWhseEntryNo: Integer)
     begin
     end;
 

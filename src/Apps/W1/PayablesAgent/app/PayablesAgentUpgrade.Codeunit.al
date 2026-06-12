@@ -39,9 +39,15 @@ codeunit 3305 "Payables Agent Upgrade"
     var
         PayablesAgent: Codeunit "Payables Agent";
         PATrial: Codeunit "PA Trial";
+        EnvironmentInformation: Codeunit "Environment Information";
     begin
         if UpgradeTag.HasUpgradeTag(GetMarkTrialEndedIfPayablesAgentExistsTag()) then
             exit;
+
+        if not EnvironmentInformation.IsSaaSInfrastructure() then begin
+            UpgradeTag.SetUpgradeTag(GetMarkTrialEndedIfPayablesAgentExistsTag());
+            exit;
+        end;
 
         if PayablesAgent.PayablesAgentExistsAcrossAllCompanies() then
             PATrial.MarkTrialEnded();

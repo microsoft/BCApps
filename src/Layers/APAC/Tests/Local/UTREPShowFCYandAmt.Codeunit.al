@@ -93,23 +93,23 @@ codeunit 141061 "UT REP Show FCY and Amt"
 
     local procedure ConvertNumberToText(Amount: Decimal; CurrencyCode: Code[10]): Text[80]
     var
-        SalesLine: Record "Sales Line";
+        ReportManagementAPAC: Codeunit "Report Management APAC";
         CheckAmountText: array[2] of Text[80];
     begin
         // Calculation from number to text.
-        SalesLine.InitTextVariable();
-        SalesLine.FormatNoText(CheckAmountText, Amount, CurrencyCode);
+        ReportManagementAPAC.InitTextVariable();
+        ReportManagementAPAC.FormatNoText(CheckAmountText, Amount, CurrencyCode);
         exit(CheckAmountText[1]);
     end;
 
     local procedure ConvertNumberToTextTH(Amount: Decimal; CurrencyCode: Code[10]): Text[80]
     var
-        SalesLine: Record "Sales Line";
+        ReportManagementAPAC: Codeunit "Report Management APAC";
         CheckAmountText: array[2] of Text[80];
     begin
         // Calculation from number to text.
-        SalesLine.InitTextVariableTH();
-        SalesLine.FormatNoTextTH(CheckAmountText, Amount, CurrencyCode);
+        ReportManagementAPAC.InitTextVariableTH();
+        ReportManagementAPAC.FormatNoTextTH(CheckAmountText, Amount, CurrencyCode);
         exit(CheckAmountText[1]);
     end;
 

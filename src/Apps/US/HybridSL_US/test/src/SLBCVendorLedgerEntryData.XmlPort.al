@@ -6,7 +6,7 @@ namespace Microsoft.DataMigration.SL;
 
 using Microsoft.Purchases.Payables;
 
-xmlport 147661 "SL BC Vendor Ledger Entry Data"
+xmlport 147681 "SL BC Vendor Ledger Entry Data"
 {
     Caption = 'BC Vendor Ledger Entry data for import/export';
     Direction = Both;
@@ -109,6 +109,6 @@ xmlport 147661 "SL BC Vendor Ledger Entry Data"
     end;
 
     var
-        CaptionRow: Boolean;
         TempVendorLedgerEntry: Record "Vendor Ledger Entry" temporary;
+        CaptionRow: Boolean;
 }

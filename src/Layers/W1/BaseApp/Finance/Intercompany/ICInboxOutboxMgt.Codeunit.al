@@ -2213,7 +2213,7 @@ codeunit 427 ICInboxOutboxMgt
         GLSetupFound := true;
     end;
 
-    local procedure GetNextICTransactionNo(): Integer
+    procedure GetNextICTransactionNo(): Integer
     begin
         EnsureICTransactionNoSequenceExists();
         exit(NumberSequence.Next(ICTransactionNoSequenceTok));

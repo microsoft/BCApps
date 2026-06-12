@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -549,17 +549,17 @@ table 99000830 "Planning Routing Line"
                 Validate("Ending Time");
             end;
         }
-#if not CLEANSCHEMA30
+#if not CLEANSCHEMA31
         field(12180; "WIP Item"; Boolean)
         {
             Caption = 'WIP Item';
             ObsoleteReason = 'Preparation for replacement by Subcontracting app';
-#if not CLEAN27
+#if not CLEAN28
             ObsoleteState = Pending;
             ObsoleteTag = '27.0';
 #else
             ObsoleteState = Removed;
-            ObsoleteTag = '30.0';
+            ObsoleteTag = '31.0';
 #endif
         }
 #endif
@@ -1014,7 +1014,7 @@ table 99000830 "Planning Routing Line"
         "Sequence No.(Backward)" := RoutingLine."Sequence No. (Backward)";
         "Fixed Scrap Qty. (Accum.)" := RoutingLine."Fixed Scrap Qty. (Accum.)";
         "Scrap Factor % (Accumulated)" := RoutingLine."Scrap Factor % (Accumulated)";
-#if not CLEAN27
+#if not CLEAN28
         "WIP Item" := RoutingLine."WIP Item";
 #endif
 

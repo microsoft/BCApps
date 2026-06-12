@@ -329,6 +329,7 @@ page 1872 "Item Availability Check"
 
         PurchaseLine.Validate(Type, PurchaseLine.Type::Item);
         PurchaseLine.Validate("No.", Rec."No.");
+        PurchaseLine.Validate("Location Code", LocationCode);
         PurchaseLine.Validate("Variant Code", VariantCode);
         PurchaseLine.Validate("Unit of Measure Code", UnitOfMeasureCode);
         PurchaseLine.Validate(Quantity, -TotalQuantity);

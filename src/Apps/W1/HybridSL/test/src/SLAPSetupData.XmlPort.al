@@ -60,6 +60,6 @@ xmlport 147613 "SL APSetup Data"
     end;
 
     var
-        CaptionRow: Boolean;
         SLAPSetup: Record "SL APSetup";
+        CaptionRow: Boolean;
 }

@@ -3006,6 +3006,109 @@ codeunit 137159 "SCM Warehouse VII"
         Assert.AreEqual(AO2Qty, WarehouseActivityLine.Quantity, QuantityMustBeSame);
     end;
 
+    [Test]
+    [HandlerFunctions('ItemTrackingLinesSNHandler,EnterQuantityToCreatePageHandler,WhseSrcCreateDocReqHandler,DummyMessageHandler')]
+    procedure VerifyPickRegistersAfterDeletingPickWithChangedSerial()
+    var
+        Location: Record Location;
+        InventoryBin: Record Bin;
+        JobBin: Record Bin;
+        Item: Record Item;
+        Job: Record Job;
+        JobTask: Record "Job Task";
+        JobPlanningLine: Record "Job Planning Line";
+        WhseActivityHeader: Record "Warehouse Activity Header";
+        WhseActivityLine: Record "Warehouse Activity Line";
+        WhseItemTrackingLine: Record "Whse. Item Tracking Line";
+        WarehouseEmployee: Record "Warehouse Employee";
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        ItemTrackingMode: Option " ",AssignLotNo,AssignSerialNo,AssignMultipleLotNo,SelectEntries,SelectSerialNo,SelectLotNo;
+        SerialNo, SerialNo2 : Code[50];
+    begin
+        // [SCENARIO 637708] Warehouse Pick can be registered after a previous pick whose serial was changed is deleted.
+        // Without the fix, stranded Whse. Item Tracking Line (T6550) records accumulate and block pick registration
+        // with error: "Item tracking defined for source line amounts to more than the quantity you have entered."
+        Initialize();
+
+        // [GIVEN] Create Location with Bin Mandatory and Job Consump. Whse. Handling = Warehouse Pick (mandatory)
+        LibraryWarehouse.CreateLocationWMS(Location, true, false, false, false, false);
+        Location.Validate("Job Consump. Whse. Handling", Location."Job Consump. Whse. Handling"::"Warehouse Pick (mandatory)");
+        Location.Modify(true);
+        LibraryWarehouse.CreateWarehouseEmployee(WarehouseEmployee, Location.Code, false);
+
+        // [GIVEN] Create Bins
+        LibraryWarehouse.CreateBin(InventoryBin, Location.Code, LibraryUtility.GenerateGUID(), '', '');
+        LibraryWarehouse.CreateBin(JobBin, Location.Code, LibraryUtility.GenerateGUID(), '', '');
+        Location.Validate("To-Job Bin Code", JobBin.Code);
+        Location.Modify(true);
+
+        // [GIVEN] Create serial-tracked Item
+        CreateItemWithItemTrackingCode(Item, false, true, false, '', LibraryUtility.GetGlobalNoSeriesCode());
+
+        // [GIVEN] Post inventory with Qty = 2 using Item Journal to create two serial numbers
+        LibraryVariableStorage.Enqueue(ItemTrackingMode::AssignSerialNo);
+        CreateAndPostItemJournalLine(Location.Code, InventoryBin.Code, Item."No.", '', 2, false, true);
+        LibraryVariableStorage.DequeueText(); // Clear enqueued serial from handler
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::"Positive Adjmt.");
+        ItemLedgerEntry.FindSet();
+        SerialNo := ItemLedgerEntry."Serial No.";
+        ItemLedgerEntry.Next();
+        SerialNo2 := ItemLedgerEntry."Serial No.";
+
+        // [GIVEN] Create Job with Job Task and Job Planning Line for Qty = 1
+        CreateJobWithJobTask(JobTask);
+        LibraryJob.CreateJobPlanningLine(JobPlanningLine."Line Type"::"Both Budget and Billable", JobPlanningLine.Type::Item, JobTask, JobPlanningLine);
+        UpdateJobPlanningLine(JobPlanningLine, Item."No.", Location.Code, 1);
+
+        // [GIVEN] Assign serial SN01 on Job Planning Line item tracking
+        LibraryVariableStorage.Enqueue(ItemTrackingMode::SelectSerialNo);
+        LibraryVariableStorage.Enqueue(SerialNo);
+        LibraryVariableStorage.Enqueue(1);
+        JobPlanningLine.OpenItemTrackingLines();
+
+        // [GIVEN] Create Warehouse Pick #1 from Job — T6550 record created for SN01
+        Job.Get(JobTask."Job No.");
+        OpenJobAndCreateWarehousePick(Job);
+        SetWhseItemTrackingLineFilters(WhseItemTrackingLine, Item."No.", Location.Code, Job."No.");
+        Assert.RecordIsNotEmpty(WhseItemTrackingLine);
+
+        // [GIVEN] Change serial number on all pick lines from SN01 to SN02
+        FindWarehouseActivityHeader(WhseActivityHeader, Location.Code, WhseActivityHeader.Type::Pick);
+        WhseActivityLine.SetRange("No.", WhseActivityHeader."No.");
+        WhseActivityLine.FindSet();
+        repeat
+            WhseActivityLine.Validate("Serial No.", SerialNo2);
+            WhseActivityLine.Modify(true);
+        until WhseActivityLine.Next() = 0;
+
+        // [GIVEN] Revert serial number on all pick lines back from SN02 to SN01
+        WhseActivityLine.FindSet();
+        repeat
+            WhseActivityLine.Validate("Serial No.", SerialNo);
+            WhseActivityLine.Modify(true);
+        until WhseActivityLine.Next() = 0;
+
+        // [GIVEN] Delete Warehouse Pick #1 — T6550 must be cleaned up, no stranded records
+        WhseActivityHeader.Delete(true);
+        SetWhseItemTrackingLineFilters(WhseItemTrackingLine, Item."No.", Location.Code, Job."No.");
+        Assert.RecordIsEmpty(WhseItemTrackingLine);
+
+        // [GIVEN] Create Warehouse Pick #2 from Job
+        OpenJobAndCreateWarehousePick(Job);
+
+        // [GIVEN] Find Pick #2 and set Qty. to Handle
+        FindWarehouseActivityHeader(WhseActivityHeader, Location.Code, WhseActivityHeader.Type::Pick);
+        ValidateQtyToHandleInWhseActivityLines(Location, 1);
+
+        // [WHEN] Register Warehouse Pick #2
+        LibraryWarehouse.RegisterWhseActivity(WhseActivityHeader);
+
+        // [THEN] Pick registered successfully — Job Planning Line reflects picked quantity
+        JobPlanningLine.Find();
+        Assert.AreEqual(1, JobPlanningLine."Qty. Picked", PickQtyAndQtyPickedMustMatchErr);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";

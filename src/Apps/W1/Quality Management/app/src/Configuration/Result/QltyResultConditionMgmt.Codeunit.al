@@ -562,30 +562,36 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
         QltyIResultConditConf.SetRange("Result Visibility", QltyIResultConditConf."Result Visibility"::Promoted);
         QltyIResultConditConf.SetCurrentKey("Condition Type", "Result Visibility", Priority, "Target Code", "Target Re-inspection No.", "Target Line No.");
         QltyIResultConditConf.Ascending(false);
-        if QltyIResultConditConf.FindSet() then
+
+        // Drive iteration by Qlty. Inspection Result using the same ordering and filters as
+        // GetDefaultPromotedResults so that a given "Result Code" always maps to the same Iterator slot.
+        QltyInspectionResult.SetRange("Result Visibility", QltyInspectionResult."Result Visibility"::Promoted);
+        QltyInspectionResult.SetCurrentKey("Result Visibility", "Evaluation Sequence");
+        QltyInspectionResult.Ascending(false);
+        if QltyInspectionResult.FindSet() then begin
+            Iterator := 0;
             repeat
-                if QltyInspectionResult.Get(QltyIResultConditConf."Result Code") then begin
-                    Iterator += 1;
-                    if Iterator <= GetMaxResultConditions() then begin
-                        MatrixVisibleStateToSet[Iterator] := true;
-                        if QltyInspectionResult.Description <> '' then
-                            MatrixArrayToSetCaptionSet[Iterator] := QltyInspectionResult.Description
-                        else
-                            MatrixArrayToSetCaptionSet[Iterator] := QltyInspectionResult.Code;
-                        MatrixArrayToSetConditionCellData[Iterator] := QltyIResultConditConf.Condition;
-                        MatrixArrayToSetConditionDescriptionCellData[Iterator] := QltyIResultConditConf."Condition Description";
-                        if MatrixArrayToSetConditionDescriptionCellData[Iterator] = '' then
-                            MatrixArrayToSetConditionDescriptionCellData[Iterator] := MatrixArrayToSetConditionCellData[Iterator];
+                Iterator += 1;
+                QltyIResultConditConf.SetRange("Result Code", QltyInspectionResult.Code);
+                if QltyIResultConditConf.FindFirst() then begin
+                    MatrixVisibleStateToSet[Iterator] := true;
+                    if QltyInspectionResult.Description <> '' then
+                        MatrixArrayToSetCaptionSet[Iterator] := QltyInspectionResult.Description
+                    else
+                        MatrixArrayToSetCaptionSet[Iterator] := QltyInspectionResult.Code;
+                    MatrixArrayToSetConditionCellData[Iterator] := QltyIResultConditConf.Condition;
+                    MatrixArrayToSetConditionDescriptionCellData[Iterator] := QltyIResultConditConf."Condition Description";
+                    if MatrixArrayToSetConditionDescriptionCellData[Iterator] = '' then
+                        MatrixArrayToSetConditionDescriptionCellData[Iterator] := MatrixArrayToSetConditionCellData[Iterator];
 
-                        if (not OptionalQltyInspectionHeader.IsTemporary()) and (OptionalQltyInspectionHeader."No." <> '') then
-                            if MatrixArrayToSetConditionDescriptionCellData[Iterator].Contains('[') then
-                                MatrixArrayToSetConditionDescriptionCellData[Iterator] := QltyExpressionMgmt.EvaluateTextExpression(MatrixArrayToSetConditionDescriptionCellData[Iterator], OptionalQltyInspectionHeader, OptionalQltyInspectionLine);
+                    if (not OptionalQltyInspectionHeader.IsTemporary()) and (OptionalQltyInspectionHeader."No." <> '') then
+                        if MatrixArrayToSetConditionDescriptionCellData[Iterator].Contains('[') then
+                            MatrixArrayToSetConditionDescriptionCellData[Iterator] := QltyExpressionMgmt.EvaluateTextExpression(MatrixArrayToSetConditionDescriptionCellData[Iterator], OptionalQltyInspectionHeader, OptionalQltyInspectionLine);
 
-                        MatrixSourceRecordId[Iterator] := QltyIResultConditConf.RecordId();
-                    end else
-                        break;
+                    MatrixSourceRecordId[Iterator] := QltyIResultConditConf.RecordId();
                 end;
-            until (QltyIResultConditConf.Next() = 0) or (Iterator >= MaxResultConditions);
+            until (QltyInspectionResult.Next() = 0) or (Iterator >= MaxResultConditions);
+        end;
     end;
 
     local procedure GetMaxResultConditions(): Integer

@@ -8,7 +8,7 @@ using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.Routing;
-#if not CLEAN27
+#if not CLEAN28
 using Microsoft.Purchases.Vendor;
 using System.Security.AccessControl;
 #endif
@@ -26,7 +26,7 @@ tableextension 99000829 "Mfg. Planning Component" extends "Planning Component"
             trigger OnValidate()
             var
                 PlanningRtngLine: Record "Planning Routing Line";
-#if not CLEAN27
+#if not CLEAN28
                 SKU: Record "Stockkeeping Unit";
                 Vendor: Record Vendor;
                 SubcontractingManagement: Codeunit SubcontractingManagement;
@@ -42,7 +42,7 @@ tableextension 99000829 "Mfg. Planning Component" extends "Planning Component"
 
                 "Due Date" := ReqLine."Starting Date";
                 "Due Time" := ReqLine."Starting Time";
-#if CLEAN27
+#if CLEAN28
                 if "Routing Link Code" <> '' then begin
                     PlanningRtngLine.SetRange("Worksheet Template Name", "Worksheet Template Name");
                     PlanningRtngLine.SetRange("Worksheet Batch Name", "Worksheet Batch Name");
@@ -309,7 +309,7 @@ tableextension 99000829 "Mfg. Planning Component" extends "Planning Component"
     begin
     end;
 
-#if not CLEAN27
+#if not CLEAN28
     [Obsolete('Preparation for replacement by Subcontracting app', '27.0')]
     [IntegrationEvent(false, false)]
     local procedure OnValidateRoutingLinkCodeOnBeforeSubcontractorProcurementCheck(var PlanningComponent: Record "Planning Component"; Vendor: Record Vendor; var IsHandled: Boolean)

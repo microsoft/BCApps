@@ -258,6 +258,32 @@ codeunit 138070 "O365 Alt. Ship Addr. S. Ord."
         VerifyShipToControlState(SalesOrder, ShipToOptions::"Default (Sell-to Address)");
     end;
 
+    [Test]
+    procedure DeleteShipToAddrClearsCustomerShipToCode()
+    var
+        Customer: Record Customer;
+        ShipToAddress: Record "Ship-to Address";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 634352] Deleting a Ship-to Address clears the matching Ship-to Code on the Customer card
+        Initialize();
+
+        // [GIVEN] Customer "C" with Ship-to Address "SA"
+        LibrarySales.CreateCustomer(Customer);
+        LibrarySales.CreateShipToAddress(ShipToAddress, Customer."No.");
+
+        // [GIVEN] Customer "C" has Ship-to Code set to "SA"
+        Customer."Ship-to Code" := ShipToAddress.Code;
+        Customer.Modify();
+
+        // [WHEN] Ship-to Address "SA" is deleted
+        ShipToAddress.Delete(true);
+
+        // [THEN] Customer "C" Ship-to Code is cleared
+        Customer.Get(Customer."No.");
+        Assert.AreEqual('', Customer."Ship-to Code", 'Ship-to Code should be cleared on Customer after deleting Ship-to Address');
+    end;
+
     local procedure Initialize()
     var
         LibraryApplicationArea: Codeunit "Library - Application Area";

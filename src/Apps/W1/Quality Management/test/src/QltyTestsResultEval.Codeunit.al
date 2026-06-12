@@ -2071,6 +2071,440 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         LibraryAssert.ExpectedError(StrSubstNo(Expected4Err, OptionListQltyInspectionLine."Test Code"));
     end;
 
+    [Test]
+    procedure ValidateAllowableValuesFormat_Decimal_ValidFormats()
+    var
+        DecimalQltyTest: Record "Qlty. Test";
+    begin
+        // [SCENARIO] Validate that ValidateAllowableValuesFormat accepts valid decimal filter expressions
+
+        // [GIVEN] A quality test with decimal type is created
+        DecimalQltyTest.Init();
+        DecimalQltyTest.Code := 'TESTDEC';
+        DecimalQltyTest.Description := 'Test Decimal';
+        DecimalQltyTest."Test Value Type" := DecimalQltyTest."Test Value Type"::"Value Type Decimal";
+        DecimalQltyTest.Insert();
+
+        // [WHEN] Allowable values are set to range expression "0..100"
+        DecimalQltyTest."Allowable Values" := '0..100';
+        // [THEN] ValidateAllowableValuesFormat passes without error
+        DecimalQltyTest.ValidateAllowableValuesFormat();
+
+        // [WHEN] Allowable values are set to greater than expression ">0"
+        DecimalQltyTest."Allowable Values" := '>0';
+        // [THEN] ValidateAllowableValuesFormat passes without error
+        DecimalQltyTest.ValidateAllowableValuesFormat();
+
+        // [WHEN] Allowable values are set to less than or equal expression "<=50"
+        DecimalQltyTest."Allowable Values" := '<=50';
+        // [THEN] ValidateAllowableValuesFormat passes without error
+        DecimalQltyTest.ValidateAllowableValuesFormat();
+
+        // [WHEN] Allowable values are set to exact value "25.5"
+        DecimalQltyTest."Allowable Values" := '25.5';
+        // [THEN] ValidateAllowableValuesFormat passes without error
+        DecimalQltyTest.ValidateAllowableValuesFormat();
+
+        // [WHEN] Allowable values are set to list of values "10|20|30"
+        DecimalQltyTest."Allowable Values" := '10|20|30';
+        // [THEN] ValidateAllowableValuesFormat passes without error
+        DecimalQltyTest.ValidateAllowableValuesFormat();
+
+        // [WHEN] Allowable values are blank
+        DecimalQltyTest."Allowable Values" := '';
+        // [THEN] ValidateAllowableValuesFormat passes without error
+        DecimalQltyTest.ValidateAllowableValuesFormat();
+
+        // [WHEN] Allowable values contain expression with brackets "[Field]"
+        DecimalQltyTest."Allowable Values" := '0..[Field]';
+        // [THEN] ValidateAllowableValuesFormat is deferred and passes without error
+        DecimalQltyTest.ValidateAllowableValuesFormat();
+
+        // [WHEN] Allowable values are set to not empty condition "<>''"
+        DecimalQltyTest."Allowable Values" := '<>''''';
+        // [THEN] ValidateAllowableValuesFormat passes without error
+        DecimalQltyTest.ValidateAllowableValuesFormat();
+    end;
+
+    [Test]
+    procedure ValidateAllowableValuesFormat_Decimal_InvalidFormats()
+    var
+        DecimalQltyTest: Record "Qlty. Test";
+    begin
+        // [SCENARIO] Validate that ValidateAllowableValuesFormat rejects invalid decimal filter expressions
+
+        // [GIVEN] A quality test with decimal type is created
+        DecimalQltyTest.Init();
+        DecimalQltyTest.Code := 'TESTDEC2';
+        DecimalQltyTest.Description := 'Test Decimal Invalid';
+        DecimalQltyTest."Test Value Type" := DecimalQltyTest."Test Value Type"::"Value Type Decimal";
+        DecimalQltyTest.Insert();
+
+        // [WHEN] Allowable values are set to invalid text "not a number"
+        DecimalQltyTest."Allowable Values" := 'not a number';
+        // [THEN] ValidateAllowableValuesFormat raises an error
+        asserterror DecimalQltyTest.ValidateAllowableValuesFormat();
+
+        // [WHEN] Allowable values are set to invalid operator "==5"
+        DecimalQltyTest."Allowable Values" := '==5';
+        // [THEN] ValidateAllowableValuesFormat raises an error
+        asserterror DecimalQltyTest.ValidateAllowableValuesFormat();
+    end;
+
+    [Test]
+    procedure ValidateAllowableValuesFormat_Integer_ValidFormats()
+    var
+        IntegerQltyTest: Record "Qlty. Test";
+    begin
+        // [SCENARIO] Validate that ValidateAllowableValuesFormat accepts valid integer filter expressions
+
+        // [GIVEN] A quality test with integer type is created
+        IntegerQltyTest.Init();
+        IntegerQltyTest.Code := 'TESTINT';
+        IntegerQltyTest.Description := 'Test Integer';
+        IntegerQltyTest."Test Value Type" := IntegerQltyTest."Test Value Type"::"Value Type Integer";
+        IntegerQltyTest.Insert();
+
+        // [WHEN] Allowable values are set to range expression "0..100"
+        IntegerQltyTest."Allowable Values" := '0..100';
+        // [THEN] ValidateAllowableValuesFormat passes without error
+        IntegerQltyTest.ValidateAllowableValuesFormat();
+
+        // [WHEN] Allowable values are set to greater than expression ">0"
+        IntegerQltyTest."Allowable Values" := '>0';
+        // [THEN] ValidateAllowableValuesFormat passes without error
+        IntegerQltyTest.ValidateAllowableValuesFormat();
+
+        // [WHEN] Allowable values are set to less than or equal expression "<=50"
+        IntegerQltyTest."Allowable Values" := '<=50';
+        // [THEN] ValidateAllowableValuesFormat passes without error
+        IntegerQltyTest.ValidateAllowableValuesFormat();
+
+        // [WHEN] Allowable values are set to exact value "25"
+        IntegerQltyTest."Allowable Values" := '25';
+        // [THEN] ValidateAllowableValuesFormat passes without error
+        IntegerQltyTest.ValidateAllowableValuesFormat();
+
+        // [WHEN] Allowable values are set to list of values "1|2|3|4|5"
+        IntegerQltyTest."Allowable Values" := '1|2|3|4|5';
+        // [THEN] ValidateAllowableValuesFormat passes without error
+        IntegerQltyTest.ValidateAllowableValuesFormat();
+
+        // [WHEN] Allowable values are blank
+        IntegerQltyTest."Allowable Values" := '';
+        // [THEN] ValidateAllowableValuesFormat passes without error
+        IntegerQltyTest.ValidateAllowableValuesFormat();
+
+        // [WHEN] Allowable values contain expression with brackets "[Field]"
+        IntegerQltyTest."Allowable Values" := '1..[Field]';
+        // [THEN] ValidateAllowableValuesFormat is deferred and passes without error
+        IntegerQltyTest.ValidateAllowableValuesFormat();
+    end;
+
+    [Test]
+    procedure ValidateAllowableValuesFormat_Integer_InvalidFormats()
+    var
+        IntegerQltyTest: Record "Qlty. Test";
+    begin
+        // [SCENARIO] Validate that ValidateAllowableValuesFormat rejects invalid integer filter expressions
+
+        // [GIVEN] A quality test with integer type is created
+        IntegerQltyTest.Init();
+        IntegerQltyTest.Code := 'TESTINT2';
+        IntegerQltyTest.Description := 'Test Integer Invalid';
+        IntegerQltyTest."Test Value Type" := IntegerQltyTest."Test Value Type"::"Value Type Integer";
+        IntegerQltyTest.Insert();
+
+        // [WHEN] Allowable values are set to decimal value "1.5"
+        IntegerQltyTest."Allowable Values" := '1.5';
+        // [THEN] ValidateAllowableValuesFormat raises an error
+        asserterror IntegerQltyTest.ValidateAllowableValuesFormat();
+
+        // [WHEN] Allowable values are set to invalid text "not an integer"
+        IntegerQltyTest."Allowable Values" := 'not an integer';
+        // [THEN] ValidateAllowableValuesFormat raises an error
+        asserterror IntegerQltyTest.ValidateAllowableValuesFormat();
+    end;
+
+    [Test]
+    procedure ValidateAllowableValuesFormat_Date_ValidFormats()
+    var
+        DateQltyTest: Record "Qlty. Test";
+    begin
+        // [SCENARIO] Validate that ValidateAllowableValuesFormat accepts valid date filter expressions
+
+        // [GIVEN] A quality test with date type is created
+        DateQltyTest.Init();
+        DateQltyTest.Code := 'TESTDATE';
+        DateQltyTest.Description := 'Test Date';
+        DateQltyTest."Test Value Type" := DateQltyTest."Test Value Type"::"Value Type Date";
+        DateQltyTest.Insert();
+
+        // [WHEN] Allowable values are set to exact date "2024-01-01"
+        DateQltyTest."Allowable Values" := '2024-01-01';
+        // [THEN] ValidateAllowableValuesFormat passes without error
+        DateQltyTest.ValidateAllowableValuesFormat();
+
+        // [WHEN] Allowable values are set to date range "2024-01-01..2024-12-31"
+        DateQltyTest."Allowable Values" := '2024-01-01..2024-12-31';
+        // [THEN] ValidateAllowableValuesFormat passes without error
+        DateQltyTest.ValidateAllowableValuesFormat();
+
+        // [WHEN] Allowable values are set to greater than date ">2024-01-01"
+        DateQltyTest."Allowable Values" := '>2024-01-01';
+        // [THEN] ValidateAllowableValuesFormat passes without error
+        DateQltyTest.ValidateAllowableValuesFormat();
+
+        // [WHEN] Allowable values are blank
+        DateQltyTest."Allowable Values" := '';
+        // [THEN] ValidateAllowableValuesFormat passes without error
+        DateQltyTest.ValidateAllowableValuesFormat();
+
+        // [WHEN] Allowable values contain expression with brackets "[Field]"
+        DateQltyTest."Allowable Values" := '>[Field]';
+        // [THEN] ValidateAllowableValuesFormat is deferred and passes without error
+        DateQltyTest.ValidateAllowableValuesFormat();
+    end;
+
+    [Test]
+    procedure ValidateAllowableValuesFormat_Date_InvalidFormats()
+    var
+        DateQltyTest: Record "Qlty. Test";
+    begin
+        // [SCENARIO] Validate that ValidateAllowableValuesFormat rejects invalid date filter expressions
+
+        // [GIVEN] A quality test with date type is created
+        DateQltyTest.Init();
+        DateQltyTest.Code := 'TESTDATE2';
+        DateQltyTest.Description := 'Test Date Invalid';
+        DateQltyTest."Test Value Type" := DateQltyTest."Test Value Type"::"Value Type Date";
+        DateQltyTest.Insert();
+
+        // [WHEN] Allowable values are set to invalid date "99/99/9999"
+        DateQltyTest."Allowable Values" := '99/99/9999';
+        // [THEN] ValidateAllowableValuesFormat raises an error
+        asserterror DateQltyTest.ValidateAllowableValuesFormat();
+
+        // [WHEN] Allowable values are set to invalid text "not a date"
+        DateQltyTest."Allowable Values" := 'not a date';
+        // [THEN] ValidateAllowableValuesFormat raises an error
+        asserterror DateQltyTest.ValidateAllowableValuesFormat();
+    end;
+
+    [Test]
+    procedure ValidateAllowableValuesFormat_DateTime_ValidFormats()
+    var
+        DateTimeQltyTest: Record "Qlty. Test";
+    begin
+        // [SCENARIO] Validate that ValidateAllowableValuesFormat accepts valid datetime filter expressions
+
+        // [GIVEN] A quality test with datetime type is created
+        DateTimeQltyTest.Init();
+        DateTimeQltyTest.Code := 'TESTDT';
+        DateTimeQltyTest.Description := 'Test DateTime';
+        DateTimeQltyTest."Test Value Type" := DateTimeQltyTest."Test Value Type"::"Value Type DateTime";
+        DateTimeQltyTest.Insert();
+
+        // [WHEN] Allowable values are set to exact datetime "2024-01-01 10:30:00"
+        DateTimeQltyTest."Allowable Values" := '2024-01-01 10:30:00';
+        // [THEN] ValidateAllowableValuesFormat passes without error
+        DateTimeQltyTest.ValidateAllowableValuesFormat();
+
+        // [WHEN] Allowable values are set to datetime range "2024-01-01 00:00:00..2024-12-31 23:59:59"
+        DateTimeQltyTest."Allowable Values" := '2024-01-01 00:00:00..2024-12-31 23:59:59';
+        // [THEN] ValidateAllowableValuesFormat passes without error
+        DateTimeQltyTest.ValidateAllowableValuesFormat();
+
+        // [WHEN] Allowable values are set to greater than datetime ">2024-01-01 10:00:00"
+        DateTimeQltyTest."Allowable Values" := '>2024-01-01 10:00:00';
+        // [THEN] ValidateAllowableValuesFormat passes without error
+        DateTimeQltyTest.ValidateAllowableValuesFormat();
+
+        // [WHEN] Allowable values are blank
+        DateTimeQltyTest."Allowable Values" := '';
+        // [THEN] ValidateAllowableValuesFormat passes without error
+        DateTimeQltyTest.ValidateAllowableValuesFormat();
+
+        // [WHEN] Allowable values contain expression with brackets "[Field]"
+        DateTimeQltyTest."Allowable Values" := '<[Field]';
+        // [THEN] ValidateAllowableValuesFormat is deferred and passes without error
+        DateTimeQltyTest.ValidateAllowableValuesFormat();
+    end;
+
+    [Test]
+    procedure ValidateAllowableValuesFormat_DateTime_InvalidFormats()
+    var
+        DateTimeQltyTest: Record "Qlty. Test";
+    begin
+        // [SCENARIO] Validate that ValidateAllowableValuesFormat rejects invalid datetime filter expressions
+
+        // [GIVEN] A quality test with datetime type is created
+        DateTimeQltyTest.Init();
+        DateTimeQltyTest.Code := 'TESTDT2';
+        DateTimeQltyTest.Description := 'Test DateTime Invalid';
+        DateTimeQltyTest."Test Value Type" := DateTimeQltyTest."Test Value Type"::"Value Type DateTime";
+        DateTimeQltyTest.Insert();
+
+        // [WHEN] Allowable values are set to invalid datetime "99/99/9999 99:99:99"
+        DateTimeQltyTest."Allowable Values" := '99/99/9999 99:99:99';
+        // [THEN] ValidateAllowableValuesFormat raises an error
+        asserterror DateTimeQltyTest.ValidateAllowableValuesFormat();
+
+        // [WHEN] Allowable values are set to invalid text "not a datetime"
+        DateTimeQltyTest."Allowable Values" := 'not a datetime';
+        // [THEN] ValidateAllowableValuesFormat raises an error
+        asserterror DateTimeQltyTest.ValidateAllowableValuesFormat();
+    end;
+
+    [Test]
+    procedure ValidateAllowableValuesFormat_Boolean_ValidFormats()
+    var
+        BooleanQltyTest: Record "Qlty. Test";
+    begin
+        // [SCENARIO] Validate that ValidateAllowableValuesFormat accepts valid boolean values
+
+        // [GIVEN] A quality test with boolean type is created
+        BooleanQltyTest.Init();
+        BooleanQltyTest.Code := 'TESTBOOL';
+        BooleanQltyTest.Description := 'Test Boolean';
+        BooleanQltyTest."Test Value Type" := BooleanQltyTest."Test Value Type"::"Value Type Boolean";
+        BooleanQltyTest.Insert();
+
+        // [WHEN] Allowable values are set to "Yes"
+        BooleanQltyTest."Allowable Values" := 'Yes';
+        // [THEN] ValidateAllowableValuesFormat passes without error
+        BooleanQltyTest.ValidateAllowableValuesFormat();
+
+        // [WHEN] Allowable values are set to "No"
+        BooleanQltyTest."Allowable Values" := 'No';
+        // [THEN] ValidateAllowableValuesFormat passes without error
+        BooleanQltyTest.ValidateAllowableValuesFormat();
+
+        // [WHEN] Allowable values are set to "True"
+        BooleanQltyTest."Allowable Values" := 'True';
+        // [THEN] ValidateAllowableValuesFormat passes without error
+        BooleanQltyTest.ValidateAllowableValuesFormat();
+
+        // [WHEN] Allowable values are set to "False"
+        BooleanQltyTest."Allowable Values" := 'False';
+        // [THEN] ValidateAllowableValuesFormat passes without error
+        BooleanQltyTest.ValidateAllowableValuesFormat();
+
+        // [WHEN] Allowable values are set to "1"
+        BooleanQltyTest."Allowable Values" := '1';
+        // [THEN] ValidateAllowableValuesFormat passes without error
+        BooleanQltyTest.ValidateAllowableValuesFormat();
+
+        // [WHEN] Allowable values are set to "0"
+        BooleanQltyTest."Allowable Values" := '0';
+        // [THEN] ValidateAllowableValuesFormat passes without error
+        BooleanQltyTest.ValidateAllowableValuesFormat();
+
+        // [WHEN] Allowable values are set to "On"
+        BooleanQltyTest."Allowable Values" := 'On';
+        // [THEN] ValidateAllowableValuesFormat passes without error
+        BooleanQltyTest.ValidateAllowableValuesFormat();
+
+        // [WHEN] Allowable values are set to "Off"
+        BooleanQltyTest."Allowable Values" := 'Off';
+        // [THEN] ValidateAllowableValuesFormat passes without error
+        BooleanQltyTest.ValidateAllowableValuesFormat();
+
+        // [WHEN] Allowable values are set to single-letter "Y"
+        BooleanQltyTest."Allowable Values" := 'Y';
+        // [THEN] ValidateAllowableValuesFormat passes without error
+        BooleanQltyTest.ValidateAllowableValuesFormat();
+
+        // [WHEN] Allowable values are set to single-letter "N"
+        BooleanQltyTest."Allowable Values" := 'N';
+        // [THEN] ValidateAllowableValuesFormat passes without error
+        BooleanQltyTest.ValidateAllowableValuesFormat();
+
+        // [WHEN] Allowable values are blank
+        BooleanQltyTest."Allowable Values" := '';
+        // [THEN] ValidateAllowableValuesFormat passes without error
+        BooleanQltyTest.ValidateAllowableValuesFormat();
+
+        // [WHEN] Allowable values contain expression with brackets "[Field]"
+        BooleanQltyTest."Allowable Values" := '[Field]';
+        // [THEN] ValidateAllowableValuesFormat is deferred and passes without error
+        BooleanQltyTest.ValidateAllowableValuesFormat();
+    end;
+
+    [Test]
+    procedure ValidateAllowableValuesFormat_Boolean_InvalidFormats()
+    var
+        BooleanQltyTest: Record "Qlty. Test";
+    begin
+        // [SCENARIO] Validate that ValidateAllowableValuesFormat rejects invalid boolean values
+
+        // [GIVEN] A quality test with boolean type is created
+        BooleanQltyTest.Init();
+        BooleanQltyTest.Code := 'TESTBOOL2';
+        BooleanQltyTest.Description := 'Test Boolean Invalid';
+        BooleanQltyTest."Test Value Type" := BooleanQltyTest."Test Value Type"::"Value Type Boolean";
+        BooleanQltyTest.Insert();
+
+        // [WHEN] Allowable values are set to invalid text "Maybe"
+        BooleanQltyTest."Allowable Values" := 'Maybe';
+        // [THEN] ValidateAllowableValuesFormat raises an error
+        asserterror BooleanQltyTest.ValidateAllowableValuesFormat();
+
+        // [WHEN] Allowable values are set to invalid number "2"
+        BooleanQltyTest."Allowable Values" := '2';
+        // [THEN] ValidateAllowableValuesFormat raises an error
+        asserterror BooleanQltyTest.ValidateAllowableValuesFormat();
+
+        // [WHEN] Allowable values are set to invalid text "not a boolean"
+        BooleanQltyTest."Allowable Values" := 'not a boolean';
+        // [THEN] ValidateAllowableValuesFormat raises an error
+        asserterror BooleanQltyTest.ValidateAllowableValuesFormat();
+
+        // [WHEN] Allowable values are set to invalid text "abc"
+        BooleanQltyTest."Allowable Values" := 'abc';
+        // [THEN] ValidateAllowableValuesFormat raises an error
+        asserterror BooleanQltyTest.ValidateAllowableValuesFormat();
+    end;
+
+    [Test]
+    procedure ValidateAllowableValuesFormat_NonValidatedTypes()
+    var
+        TextQltyTest: Record "Qlty. Test";
+        OptionQltyTest: Record "Qlty. Test";
+    begin
+        // [SCENARIO] Validate that ValidateAllowableValuesFormat does not validate non-numeric/non-date types
+
+        // [GIVEN] A quality test with text type is created
+        TextQltyTest.Init();
+        TextQltyTest.Code := 'TESTTEXT';
+        TextQltyTest.Description := 'Test Text';
+        TextQltyTest."Test Value Type" := TextQltyTest."Test Value Type"::"Value Type Text";
+        TextQltyTest.Insert();
+
+        // [WHEN] Allowable values are set to any text value "A|B|C"
+        TextQltyTest."Allowable Values" := 'A|B|C';
+        // [THEN] ValidateAllowableValuesFormat passes without error (no validation for text type)
+        TextQltyTest.ValidateAllowableValuesFormat();
+
+        // [WHEN] Allowable values are set to any arbitrary text
+        TextQltyTest."Allowable Values" := 'any text value';
+        // [THEN] ValidateAllowableValuesFormat passes without error
+        TextQltyTest.ValidateAllowableValuesFormat();
+
+        // [GIVEN] A quality test with option type is created
+        OptionQltyTest.Init();
+        OptionQltyTest.Code := 'TESTOPT';
+        OptionQltyTest.Description := 'Test Option';
+        OptionQltyTest."Test Value Type" := OptionQltyTest."Test Value Type"::"Value Type Option";
+        OptionQltyTest.Insert();
+
+        // [WHEN] Allowable values are set to comma-separated options "Option1,Option2,Option3"
+        OptionQltyTest."Allowable Values" := 'Option1,Option2,Option3';
+        // [THEN] ValidateAllowableValuesFormat passes without error (no validation for option type)
+        OptionQltyTest.ValidateAllowableValuesFormat();
+    end;
+
+
     local procedure GetTemplateLineConfigFilters(var QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line"; var OutTemplateLineQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.")
     begin
         OutTemplateLineQltyIResultConditConf.SetRange("Condition Type", OutTemplateLineQltyIResultConditConf."Condition Type"::Template);

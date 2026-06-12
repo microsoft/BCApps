@@ -109,6 +109,12 @@ table 9010 "Azure AD User Update Buffer"
             Editable = false;
             DataClassification = EndUserIdentifiableInformation;
         }
+        field(10; "Error Message"; Text[2048])
+        {
+            Caption = 'Error Message';
+            Editable = false;
+            DataClassification = EndUserIdentifiableInformation;
+        }
     }
 
     keys

@@ -62,6 +62,6 @@ xmlport 147603 "SL BC Gen. Bus. Posting Group"
     end;
 
     var
-        CaptionRow: Boolean;
         GenBusinessPostingGroup: Record "Gen. Business Posting Group";
+        CaptionRow: Boolean;
 }

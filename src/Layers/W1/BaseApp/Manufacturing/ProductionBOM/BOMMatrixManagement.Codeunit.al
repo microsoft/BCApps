@@ -71,51 +71,52 @@ codeunit 99000771 "BOM Matrix Management"
     begin
         IsHandled := false;
         OnBeforeCompareTwoItems(Item1, Item2, CalcDate, NewMultiLevel, VersionCode1, VersionCode2, UnitOfMeasureCode1, UnitOfMeasureCode2, IsHandled);
-        if IsHandled then
-            exit;
+        if not IsHandled then begin
+            GlobalCalcDate := CalcDate;
 
-        GlobalCalcDate := CalcDate;
+            TempComponentList.DeleteAll();
+            TempComponentEntry.Reset();
+            TempComponentEntry.DeleteAll();
 
-        TempComponentList.DeleteAll();
-        TempComponentEntry.Reset();
-        TempComponentEntry.DeleteAll();
+            MultiLevel := NewMultiLevel;
+            MatrixType := MatrixType::Item;
 
-        MultiLevel := NewMultiLevel;
-        MatrixType := MatrixType::Item;
+            VersionCode1 :=
+              VersionMgt.GetBOMVersion(
+                Item1."Production BOM No.",
+                GlobalCalcDate, false);
+            UnitOfMeasureCode1 :=
+              VersionMgt.GetBOMUnitOfMeasure(
+                Item1."Production BOM No.", VersionCode1);
 
-        VersionCode1 :=
-          VersionMgt.GetBOMVersion(
-            Item1."Production BOM No.",
-            GlobalCalcDate, false);
-        UnitOfMeasureCode1 :=
-          VersionMgt.GetBOMUnitOfMeasure(
-            Item1."Production BOM No.", VersionCode1);
+            ItemAssembly := Item1;
+            BuildMatrix(
+              Item1."Production BOM No.",
+              VersionCode1, 1,
+              UOMMgt.GetQtyPerUnitOfMeasure(
+                Item1, UnitOfMeasureCode1) /
+              UOMMgt.GetQtyPerUnitOfMeasure(
+                Item1, Item1."Base Unit of Measure"));
 
-        ItemAssembly := Item1;
-        BuildMatrix(
-          Item1."Production BOM No.",
-          VersionCode1, 1,
-          UOMMgt.GetQtyPerUnitOfMeasure(
-            Item1, UnitOfMeasureCode1) /
-          UOMMgt.GetQtyPerUnitOfMeasure(
-            Item1, Item1."Base Unit of Measure"));
+            VersionCode2 :=
+              VersionMgt.GetBOMVersion(
+                Item2."Production BOM No.",
+                GlobalCalcDate, false);
+            UnitOfMeasureCode2 :=
+              VersionMgt.GetBOMUnitOfMeasure(
+                Item2."Production BOM No.", VersionCode2);
 
-        VersionCode2 :=
-          VersionMgt.GetBOMVersion(
-            Item2."Production BOM No.",
-            GlobalCalcDate, false);
-        UnitOfMeasureCode2 :=
-          VersionMgt.GetBOMUnitOfMeasure(
-            Item2."Production BOM No.", VersionCode2);
+            ItemAssembly := Item2;
+            BuildMatrix(
+              Item2."Production BOM No.",
+              VersionCode2, 1,
+              UOMMgt.GetQtyPerUnitOfMeasure(
+                Item2, UnitOfMeasureCode2) /
+              UOMMgt.GetQtyPerUnitOfMeasure(
+                Item2, Item2."Base Unit of Measure"));
+        end;
 
-        ItemAssembly := Item2;
-        BuildMatrix(
-          Item2."Production BOM No.",
-          VersionCode2, 1,
-          UOMMgt.GetQtyPerUnitOfMeasure(
-            Item2, UnitOfMeasureCode2) /
-          UOMMgt.GetQtyPerUnitOfMeasure(
-            Item2, Item2."Base Unit of Measure"));
+        OnAfterCompareTwoItems(Item1, Item2, CalcDate, NewMultiLevel, VersionCode1, VersionCode2, UnitOfMeasureCode1, UnitOfMeasureCode2);
     end;
 
     procedure BOMMatrixFromBOM(ProductionBOMHeader: Record "Production BOM Header"; NewMultiLevel: Boolean)
@@ -124,23 +125,24 @@ codeunit 99000771 "BOM Matrix Management"
     begin
         IsHandled := false;
         OnBeforeBOMMatrixFromBOM(ProductionBOMHeader, NewMultiLevel, IsHandled);
-        if IsHandled then
-            exit;
+        if not IsHandled then begin
+            TempComponentList.DeleteAll();
+            TempComponentEntry.Reset();
+            TempComponentEntry.DeleteAll();
 
-        TempComponentList.DeleteAll();
-        TempComponentEntry.Reset();
-        TempComponentEntry.DeleteAll();
+            MultiLevel := NewMultiLevel;
+            MatrixType := MatrixType::Version;
+            BuildMatrix(ProductionBOMHeader."No.", '', 1, 1);
+            ProdBOMVersion.SetRange("Production BOM No.", ProductionBOMHeader."No.");
 
-        MultiLevel := NewMultiLevel;
-        MatrixType := MatrixType::Version;
-        BuildMatrix(ProductionBOMHeader."No.", '', 1, 1);
-        ProdBOMVersion.SetRange("Production BOM No.", ProductionBOMHeader."No.");
+            if ProdBOMVersion.Find('-') then
+                repeat
+                    GlobalCalcDate := ProdBOMVersion."Starting Date";
+                    BuildMatrix(ProductionBOMHeader."No.", ProdBOMVersion."Version Code", 1, 1);
+                until ProdBOMVersion.Next() = 0;
+        end;
 
-        if ProdBOMVersion.Find('-') then
-            repeat
-                GlobalCalcDate := ProdBOMVersion."Starting Date";
-                BuildMatrix(ProductionBOMHeader."No.", ProdBOMVersion."Version Code", 1, 1);
-            until ProdBOMVersion.Next() = 0;
+        OnAfterBOMMatrixFromBOM(ProductionBOMHeader, NewMultiLevel);
     end;
 
     local procedure BuildMatrix(ProductionBOMNo: Code[20]; VersionCode: Code[20]; Level: Integer; Quantity: Decimal)
@@ -217,12 +219,14 @@ codeunit 99000771 "BOM Matrix Management"
                             end;
                         end;
                     ProductionBOMLine.Type::"Production BOM":
-                        if ProdBOMHeader.Get(ProductionBOMLine."No.") then
+                        if ProdBOMHeader.Get(ProductionBOMLine."No.") then begin
+                            OnBuildMatrixForProductionBOMOnAfterGetHeader(ProductionBOMLine);
                             BuildMatrix(
                                 ProdBOMHeader."No.",
                                 GetVersion(ProdBOMHeader."No."),
                                 Level + 1,
                                 Quantity * ProductionBOMLine.Quantity);
+                        end;
                 end;
             until ProductionBOMLine.Next() = 0;
     end;
@@ -264,6 +268,21 @@ codeunit 99000771 "BOM Matrix Management"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeBuildMatrix(ProductionBOMNo: Code[20]; var VersionCode: Code[20]; Level: Integer; Quantity: Decimal; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBuildMatrixForProductionBOMOnAfterGetHeader(var ProductionBOMLine: Record "Production BOM Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterCompareTwoItems(Item1: Record Item; Item2: Record Item; CalcDate: Date; NewMultiLevel: Boolean; VersionCode1: Code[20]; VersionCode2: Code[20]; UnitOfMeasureCode1: Code[10]; UnitOfMeasureCode2: Code[10])
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterBOMMatrixFromBOM(ProductionBOMHeader: Record "Production BOM Header"; NewMultiLevel: Boolean)
     begin
     end;
 }

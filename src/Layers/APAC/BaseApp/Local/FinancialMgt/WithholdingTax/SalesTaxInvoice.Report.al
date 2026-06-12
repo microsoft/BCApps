@@ -15,10 +15,10 @@ using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using Microsoft.Foundation.PaymentTerms;
+using Microsoft.Foundation.Reporting;
 using Microsoft.Foundation.Shipping;
 using Microsoft.Inventory.Location;
 using Microsoft.Sales.Customer;
-using Microsoft.Sales.Document;
 using Microsoft.Sales.Setup;
 using System.Globalization;
 using System.Utilities;
@@ -782,11 +782,11 @@ report 28072 "Sales - Tax Invoice"
                   Round(
                     CurrExchRate.ExchangeAmtFCYToLCY(
                       WorkDate(), "Currency Code", "Amount Including VAT", "Currency Factor"));
-                SalesLine.InitTextVariable();
-                SalesLine.FormatNoText(AmountLangA, "Amount Including VAT", "Currency Code");
+                ReportManagementAPAC.InitTextVariable();
+                ReportManagementAPAC.FormatNoText(AmountLangA, "Amount Including VAT", "Currency Code");
                 if ShowTHFormatting then begin
-                    SalesLine.InitTextVariableTH();
-                    SalesLine.FormatNoTextTH(AmountLangB, "Amount Including VAT", "Currency Code");
+                    ReportManagementAPAC.InitTextVariableTH();
+                    ReportManagementAPAC.FormatNoTextTH(AmountLangB, "Amount Including VAT", "Currency Code");
                 end else begin
                     AmountLangB[1] := '';
                     AmountLangB[2] := '';
@@ -929,6 +929,7 @@ report 28072 "Sales - Tax Invoice"
         SalesTaxInvCountPrinted: Codeunit "Sales Tax Inv.-Printed";
         FormatAddr: Codeunit "Format Address";
         SegManagement: Codeunit SegManagement;
+        ReportManagementAPAC: Codeunit "Report Management APAC";
         CustAddr: array[8] of Text[100];
         ShipToAddr: array[8] of Text[100];
         CompanyAddr: array[8] of Text[100];
@@ -964,7 +965,6 @@ report 28072 "Sales - Tax Invoice"
         Text003: Label 'COPY';
         Text004: Label 'Sales - Tax Invoice %1';
         Text006: Label 'Total %1 Excl. VAT';
-        SalesLine: Record "Sales Line";
         ShowTHFormatting: Boolean;
         TypeNO: Integer;
         OutputNO: Integer;

@@ -108,15 +108,14 @@ xmlport 147644 "SL BC Purchase Line Data"
 
     procedure GetExpectedPurchaseLines(var NewTempPurchaseLine: Record "Purchase Line" temporary)
     begin
-        if TempPurchaseLine.FindSet() then begin
+        if TempPurchaseLine.FindSet() then
             repeat
                 NewTempPurchaseLine.Copy(TempPurchaseLine);
                 NewTempPurchaseLine.Insert();
             until TempPurchaseLine.Next() = 0;
-        end;
     end;
 
     var
-        CaptionRow: Boolean;
         TempPurchaseLine: Record "Purchase Line" temporary;
+        CaptionRow: Boolean;
 }

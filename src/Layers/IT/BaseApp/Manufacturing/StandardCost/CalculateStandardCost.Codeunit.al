@@ -318,6 +318,7 @@ codeunit 5812 "Calculate Standard Cost"
         Item3: Record Item;
         NoOfRecords: Integer;
         LineCount: Integer;
+        IsHandled: Boolean;
     begin
         NewTempItem.DeleteAll();
 
@@ -325,6 +326,12 @@ codeunit 5812 "Calculate Standard Cost"
         OnBeforeCalcItems(Item2);
 
         NoOfRecords := Item.Count();
+
+        IsHandled := false;
+        OnCalcItemsOnBeforeProcessItems(Item2, NewTempItem, IsHandled);
+        if IsHandled then
+            exit;
+
         if ShowDialog then
             Window.Open(Text002);
 
@@ -409,7 +416,7 @@ codeunit 5812 "Calculate Standard Cost"
                                     Item."Rolled-up Material Cost" += ComponentQuantity * CompItem."Unit Cost";
                                     Item."Single-Level Material Cost" += ComponentQuantity * CompItem."Unit Cost"
                                 end;
-                            OnCalcAssemblyItemOnAfterCalcItemCost(Item, CompItem, BOMComp, ComponentQuantity);
+                            OnCalcAssemblyItemOnAfterCalcItemCost(Item, CompItem, BOMComp, ComponentQuantity, Level, CalcMfgItems);
                         end;
                     BOMComp.Type::Resource:
                         begin
@@ -1411,6 +1418,11 @@ codeunit 5812 "Calculate Standard Cost"
     begin
     end;
 
+    [IntegrationEvent(false, false)]
+    local procedure OnCalcItemsOnBeforeProcessItems(var Item2: Record Item; var NewTempItem: Record Item; var IsHandled: Boolean)
+    begin
+    end;
+
     internal procedure RunOnBeforeCalcItem(var Item: Record Item; UseAssemblyList: Boolean; var IsHandled: Boolean)
     begin
         OnBeforeCalcItem(Item, UseAssemblyList, IsHandled);
@@ -1472,12 +1484,15 @@ codeunit 5812 "Calculate Standard Cost"
     end;
 
     internal procedure RunOnCalcAssemblyItemOnAfterCalcItemCost(var Item: Record Item; CompItem: Record Item; BOMComponent: Record "BOM Component"; ComponentQuantity: Decimal)
+    var
+        DummyLevel: Integer;
+        DummyCalcMfgItems: Boolean;
     begin
-        OnCalcAssemblyItemOnAfterCalcItemCost(Item, CompItem, BOMComponent, ComponentQuantity);
+        OnCalcAssemblyItemOnAfterCalcItemCost(Item, CompItem, BOMComponent, ComponentQuantity, DummyLevel, DummyCalcMfgItems);
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnCalcAssemblyItemOnAfterCalcItemCost(var Item: Record Item; CompItem: Record Item; BOMComponent: Record "BOM Component"; ComponentQuantity: Decimal)
+    local procedure OnCalcAssemblyItemOnAfterCalcItemCost(var Item: Record Item; CompItem: Record Item; BOMComponent: Record "BOM Component"; var ComponentQuantity: Decimal; var Level: Integer; var CalcMfgItems: Boolean)
     begin
     end;
 

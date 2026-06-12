@@ -26,6 +26,7 @@ pageextension 99001524 "Subc. PO Subform" extends "Purchase Order Subform"
             group(Production)
             {
                 Caption = 'Production';
+                Visible = HasSubcontractingContext;
                 action("Production Order")
                 {
                     ApplicationArea = Manufacturing;
@@ -88,6 +89,13 @@ pageextension 99001524 "Subc. PO Subform" extends "Purchase Order Subform"
     var
         SubcProdOrderFactboxMgmt: Codeunit "Subc. ProdO. Factbox Mgmt.";
         SubcPurchFactboxMgmt: Codeunit "Subc. Purch. Factbox Mgmt.";
+        HasSubcontractingContext: Boolean;
+
+    internal procedure SetIsSubcontracting(IsSubcontractingRelated: Boolean)
+    begin
+        HasSubcontractingContext := IsSubcontractingRelated;
+        CurrPage.Update();
+    end;
 
     local procedure ShowProductionOrder(RecRelatedVariant: Variant)
     begin

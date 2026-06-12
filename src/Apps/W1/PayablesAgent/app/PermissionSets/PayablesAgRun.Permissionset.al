@@ -46,7 +46,8 @@ permissionset 3303 "Payables Ag. - Run"
     tabledata "Change Log Entry" = i, // Needed when the customer has Change Log or Monitor Sensitive Fields enabled for tables the agent writes to (e.g. User Environment Login on login)
     // Other
     tabledata "Agent Task Message" = R, // Needed to add the filter of the e-documents that are available for the current session of the agent
-    tabledata "Agent Task" = RM; // Needed to read the agent task from the inbound e-document page and update the agent task title when the agent picks up an e-document
+    tabledata "Agent Task" = RM, // Needed to read the agent task from the inbound e-document page and update the agent task title when the agent picks up an e-document
+    tabledata "PA Known Sender" = RI; // Read for dedup check + insert on agent-driven processing steps. Modify/Delete reserved for admins.
 
     ExcludedPermissionSets =
         // Permissions that are not needed for the agent to perform their tasks

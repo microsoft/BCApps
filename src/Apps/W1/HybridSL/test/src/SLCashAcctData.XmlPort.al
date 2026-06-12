@@ -66,7 +66,7 @@ xmlport 147635 "SL CashAcct Data"
                         currXMLport.Skip();
                     end;
 
-                    SLCashAcct.CpnyID := CpnyID;
+                    SLCashAcct.CpnyID := CopyStr(CompanyName(), 1, MaxStrLen(SLCashAcct.CpnyID));
                     SLCashAcct.BankAcct := BankAcct;
                     SLCashAcct.BankSub := BankSub;
                     Evaluate(SLCashAcct.AcceptGLUpdates, AcceptGLUpdates);
@@ -88,6 +88,6 @@ xmlport 147635 "SL CashAcct Data"
     end;
 
     var
-        CaptionRow: Boolean;
         SLCashAcct: Record "SL CashAcct";
+        CaptionRow: Boolean;
 }

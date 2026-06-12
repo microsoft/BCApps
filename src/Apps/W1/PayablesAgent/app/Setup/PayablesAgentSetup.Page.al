@@ -36,106 +36,141 @@ page 3304 "Payables Agent Setup"
                 ApplicationArea = All;
                 UpdatePropagation = Both;
             }
-            group(TryPayablesAgent)
+            group(TrialAndCostGroup)
             {
-                Visible = IsEligibleForTrialVisible;
-                Caption = 'Try the Payables Agent';
-                InstructionalText = 'Get help processing your invoices with AI. It''s free and safe to try.';
+                ShowCaption = false;
 
-                field(Benefit1; BenefitAddInvoiceLbl)
+                group(TryPayablesAgent)
                 {
-                    ShowCaption = false;
-                    Editable = false;
-                    ToolTip = 'Specifies a benefit of trying the Payables Agent.', Comment = 'Payables Agent is a term, and should not be translated.';
-                }
-                field(Benefit2; BenefitDraftReviewLbl)
-                {
-                    ShowCaption = false;
-                    Editable = false;
-                    ToolTip = 'Specifies a benefit of trying the Payables Agent.', Comment = 'Payables Agent is a term, and should not be translated.';
-                }
-                field(Benefit3; BenefitNoAutoPostLbl)
-                {
-                    ShowCaption = false;
-                    Editable = false;
-                    ToolTip = 'Specifies a benefit of trying the Payables Agent.', Comment = 'Payables Agent is a term, and should not be translated.';
-                }
-                field(Benefit4; BenefitNoDisruptionLbl)
-                {
-                    ShowCaption = false;
-                    Editable = false;
-                    ToolTip = 'Specifies a benefit of trying the Payables Agent.', Comment = 'Payables Agent is a term, and should not be translated.';
-                }
-                group(UploadInvoiceGroup)
-                {
-                    Caption = 'Upload invoice to try out agent capabilities';
+                    Visible = IsEligibleForTrialVisible;
+                    Caption = 'Try the Payables Agent';
+                    InstructionalText = 'Get help processing your invoices with AI. It''s free and safe to try.';
 
-                    field(SelectFile; SelectedFileName)
+                    field(Benefit1; BenefitAddInvoiceLbl)
                     {
-                        Caption = 'Select file';
-                        ShowMandatory = true;
+                        ShowCaption = false;
                         Editable = false;
-                        ToolTip = 'Specifies the PDF invoice file to upload for the Payables Agent trial.', Comment = 'Payables Agent is a term, and should not be translated.';
-
-                        trigger OnAssistEdit()
-                        begin
-                            UploadTrialInvoiceAndActivateAgent();
-                        end;
+                        ToolTip = 'Specifies a benefit of trying the Payables Agent.', Comment = 'Payables Agent is a term, and should not be translated.';
                     }
-                    field(TrySampleInvoices; TrySampleInvoicesLbl)
+                    field(Benefit2; BenefitDraftReviewLbl)
+                    {
+                        ShowCaption = false;
+                        Editable = false;
+                        ToolTip = 'Specifies a benefit of trying the Payables Agent.', Comment = 'Payables Agent is a term, and should not be translated.';
+                    }
+                    field(Benefit3; BenefitNoAutoPostLbl)
+                    {
+                        ShowCaption = false;
+                        Editable = false;
+                        ToolTip = 'Specifies a benefit of trying the Payables Agent.', Comment = 'Payables Agent is a term, and should not be translated.';
+                    }
+                    field(Benefit4; BenefitNoDisruptionLbl)
+                    {
+                        ShowCaption = false;
+                        Editable = false;
+                        ToolTip = 'Specifies a benefit of trying the Payables Agent.', Comment = 'Payables Agent is a term, and should not be translated.';
+                    }
+                    group(UploadInvoiceGroup)
+                    {
+                        Caption = 'Upload invoice to try out agent capabilities';
+
+                        field(SelectFile; SelectedFileName)
+                        {
+                            Caption = 'Select file';
+                            ShowMandatory = true;
+                            Editable = false;
+                            ToolTip = 'Specifies the PDF invoice file to upload for the Payables Agent trial.', Comment = 'Payables Agent is a term, and should not be translated.';
+
+                            trigger OnAssistEdit()
+                            begin
+                                UploadTrialInvoiceAndActivateAgent();
+                            end;
+                        }
+                        field(TrySampleInvoices; TrySampleInvoicesLbl)
+                        {
+                            ShowCaption = false;
+                            StyleExpr = true;
+                            Style = StandardAccent;
+                            Editable = false;
+                            ToolTip = 'Opens a guide with sample invoices to try the Payables Agent.', Comment = 'Payables Agent is a term, and should not be translated.';
+
+                            trigger OnDrillDown()
+                            begin
+                                PADemoGuide.OpenGuidePage();
+                            end;
+                        }
+                    }
+                }
+                group(PayablesAgentTrialMode)
+                {
+                    Visible = IsInTrialModeVisible;
+                    Caption = 'Payables Agent Trial';
+                    InstructionalText = 'Payables Agent is in trial mode. In trial mode the agent does not consume billable AI credits. When ending trial mode, Payables Agent will start to consume billable AI credits.';
+
+                    field(TrialProgress; TrialProgressText)
+                    {
+                        ShowCaption = false;
+                        Editable = false;
+                        ToolTip = 'Specifies the number of invoices processed during the trial.';
+                    }
+                    group(UploadInvoiceInTrialGroup)
+                    {
+                        Caption = 'Upload invoice to try out agent capabilities';
+
+                        field(SelectFileInTrial; SelectedFileName)
+                        {
+                            Caption = 'Select file';
+                            ShowMandatory = true;
+                            Editable = false;
+                            ToolTip = 'Specifies the PDF invoice file to upload for the Payables Agent trial.', Comment = 'Payables Agent is a term, and should not be translated.';
+
+                            trigger OnAssistEdit()
+                            begin
+                                UploadTrialInvoiceAndActivateAgent();
+                            end;
+                        }
+                        field(TrySampleInvoicesInTrial; TrySampleInvoicesLbl)
+                        {
+                            ShowCaption = false;
+                            StyleExpr = true;
+                            Style = StandardAccent;
+                            Editable = false;
+                            ToolTip = 'Opens a guide with sample invoices to try the Payables Agent.', Comment = 'Payables Agent is a term, and should not be translated.';
+
+                            trigger OnDrillDown()
+                            begin
+                                PADemoGuide.OpenGuidePage();
+                            end;
+                        }
+                    }
+                }
+                group(CostEstimateGroup)
+                {
+                    Caption = 'Cost estimate per invoice';
+
+                    field(CostEstimateValue; CostEstimateText)
+                    {
+                        ShowCaption = false;
+                        Editable = false;
+                        ToolTip = 'Specifies the estimated cost per processed invoice in US dollars, calculated as AI credits consumed multiplied by $0.01 per credit, divided by the number of invoices processed.';
+                    }
+                    field(EstimateText; CostEstimateInfoLbl)
+                    {
+                        ShowCaption = false;
+                        Editable = false;
+                        ToolTip = 'Specifies the text to show when no cost estimate is available yet.', Comment = 'Payables Agent is a term, and should not be translated.';
+                    }
+                    field(LearnMoreCost; LearnMoreCostLbl)
                     {
                         ShowCaption = false;
                         StyleExpr = true;
                         Style = StandardAccent;
                         Editable = false;
-                        ToolTip = 'Opens a guide with sample invoices to try the Payables Agent.', Comment = 'Payables Agent is a term, and should not be translated.';
+                        ToolTip = 'Opens documentation about consumption-based billing for the Payables Agent.', Comment = 'Payables Agent is a term, and should not be translated.';
 
                         trigger OnDrillDown()
                         begin
-                            PADemoGuide.OpenGuidePage();
-                        end;
-                    }
-                }
-            }
-            group(PayablesAgentTrialMode)
-            {
-                Visible = IsInTrialModeVisible;
-                Caption = 'Payables Agent Trial';
-                InstructionalText = 'Payables Agent is in trial mode. In trial mode the agent does not consume billable AI credits. When ending trial mode, Payables Agent will start to consume billable AI credits.';
-
-                field(TrialProgress; TrialProgressText)
-                {
-                    ShowCaption = false;
-                    Editable = false;
-                    ToolTip = 'Specifies the number of invoices processed during the trial.';
-                }
-                group(UploadInvoiceInTrialGroup)
-                {
-                    Caption = 'Upload invoice to try out agent capabilities';
-
-                    field(SelectFileInTrial; SelectedFileName)
-                    {
-                        Caption = 'Select file';
-                        ShowMandatory = true;
-                        Editable = false;
-                        ToolTip = 'Specifies the PDF invoice file to upload for the Payables Agent trial.', Comment = 'Payables Agent is a term, and should not be translated.';
-
-                        trigger OnAssistEdit()
-                        begin
-                            UploadTrialInvoiceAndActivateAgent();
-                        end;
-                    }
-                    field(TrySampleInvoicesInTrial; TrySampleInvoicesLbl)
-                    {
-                        ShowCaption = false;
-                        StyleExpr = true;
-                        Style = StandardAccent;
-                        Editable = false;
-                        ToolTip = 'Opens a guide with sample invoices to try the Payables Agent.', Comment = 'Payables Agent is a term, and should not be translated.';
-
-                        trigger OnDrillDown()
-                        begin
-                            PADemoGuide.OpenGuidePage();
+                            Hyperlink(PACostEstimate.GetLearnMoreUrl());
                         end;
                     }
                 }
@@ -174,7 +209,7 @@ page 3304 "Payables Agent Setup"
                         ShowCaption = false;
                         ToolTip = 'Specifies if the mailbox will be monitored.';
                     }
-                    field(Mailbox; TempEmailAccount."Email Address")
+                    field(Mailbox; MailboxAddress)
                     {
                         Caption = 'Email account';
                         ToolTip = 'Specifies the Microsoft 365 mailbox from which to download PDF document attachments.';
@@ -183,11 +218,48 @@ page 3304 "Payables Agent Setup"
 
                         trigger OnAssistEdit()
                         var
+                            TempEmailAccount: Record "Email Account" temporary;
                             OutlookIntegration: Codeunit "Outlook Integration Impl.";
+                            PrevAccountId: Guid;
                         begin
+                            PrevAccountId := TempOutlookSetup."Email Account ID";
+                            TempEmailAccount."Account Id" := TempOutlookSetup."Email Account ID";
+                            TempEmailAccount.Connector := TempOutlookSetup."Email Connector";
                             if OutlookIntegration.SelectEmailAccount(TempEmailAccount) then begin
+                                TempOutlookSetup."Email Account ID" := TempEmailAccount."Account Id";
+                                TempOutlookSetup."Email Connector" := TempEmailAccount.Connector;
+                                MailboxAddress := TempEmailAccount."Email Address";
+                                if PrevAccountId <> TempOutlookSetup."Email Account ID" then begin
+                                    Clear(TempOutlookSetup."Email Folder");
+                                    Clear(TempOutlookSetup."Email Folder Id");
+                                end;
                                 SetupChanged := true;
                                 CalcOpenAgentDemoGuideVisible();
+                                CurrPage.Update();
+                            end;
+                        end;
+                    }
+                    field(MailboxFolder; TempOutlookSetup."Email Folder")
+                    {
+                        Caption = 'Folder';
+                        ToolTip = 'Specifies the email folder that the agent monitors. Leave blank to monitor the entire mailbox.';
+                        Editable = false;
+
+                        trigger OnAssistEdit()
+                        var
+                            TempEmailFolder: Record "Email Folders" temporary;
+                            EmailFolders: Page "Email Account Folders";
+                        begin
+                            if IsNullGuid(TempOutlookSetup."Email Account ID") then
+                                Error(SelectMailboxFirstErr);
+
+                            EmailFolders.LookupMode(true);
+                            EmailFolders.SetEmailAccount(TempOutlookSetup."Email Account ID", TempOutlookSetup."Email Connector");
+                            if EmailFolders.RunModal() = Action::LookupOK then begin
+                                EmailFolders.GetRecord(TempEmailFolder);
+                                TempOutlookSetup."Email Folder" := TempEmailFolder."Folder Name";
+                                TempOutlookSetup."Email Folder Id" := TempEmailFolder."Id";
+                                SetupChanged := true;
                                 CurrPage.Update();
                             end;
                         end;
@@ -318,9 +390,11 @@ page 3304 "Payables Agent Setup"
         CurrPage.AgentSetupPart.Page.Update();
         Rec := PASetupConfiguration.GetPayablesAgentSetup();
         TempEDocumentService := PASetupConfiguration.GetEDocumentService();
-        TempEmailAccount := PASetupConfiguration.GetEmailAccount();
+        TempOutlookSetup := PASetupConfiguration.GetOutlookSetup();
+        MailboxAddress := PASetupConfiguration.GetEmailAccount()."Email Address";
         CalcOpenAgentDemoGuideVisible();
         CalcTrialExperienceVisible();
+        CalcCostEstimate();
         if TrialExperienceVisible then
             CurrPage.Caption(ExplorePayablesAgentCaptionLbl);
         if Rec.Insert() then;
@@ -356,6 +430,7 @@ page 3304 "Payables Agent Setup"
             OCVFeedbackAsked := true;
         end;
         CalcTrialExperienceVisible();
+        CalcCostEstimate();
     end;
 
     trigger OnQueryClosePage(CloseAction: Action): Boolean
@@ -387,7 +462,7 @@ page 3304 "Payables Agent Setup"
         PASetupConfiguration.SetAgentSetupBuffer(TempAgentSetupBuffer);
         PASetupConfiguration.SetPayablesAgentSetup(Rec);
         PASetupConfiguration.SetEDocumentService(TempEDocumentService);
-        PASetupConfiguration.SetEmailAccount(TempEmailAccount);
+        PASetupConfiguration.SetOutlookSetup(TempOutlookSetup);
         PayablesAgentSetup.ApplyPayablesAgentSetup(PASetupConfiguration);
     end;
 
@@ -404,6 +479,24 @@ page 3304 "Payables Agent Setup"
         if IsInTrialModeVisible then
             TrialProgressText := StrSubstNo(TrialProgressLbl, PATrial.GetTrialInvoiceCount(), PATrial.GetTrialInvoiceLimit());
 
+    end;
+
+    local procedure CalcCostEstimate()
+    var
+        InvoiceCount: Integer;
+        CostPerInvoiceUSD: Decimal;
+        FormattedCost: Text;
+    begin
+        CostPerInvoiceUSD := PACostEstimate.GetCostEstimatePerInvoiceUSD(InvoiceCount);
+        if InvoiceCount = 0 then begin
+            CostEstimateText := CostPreTrialLbl;
+            exit;
+        end;
+        FormattedCost := PACostEstimate.FormatCostPerInvoiceUSD(CostPerInvoiceUSD);
+        if IsInTrialModeVisible then
+            CostEstimateText := StrSubstNo(NoChargeDuringTrialLbl, FormattedCost)
+        else
+            CostEstimateText := FormattedCost;
     end;
 
     /// <summary>
@@ -452,7 +545,7 @@ page 3304 "Payables Agent Setup"
 
     var
         TempEDocumentService: Record "E-Document Service" temporary;
-        TempEmailAccount: Record "Email Account" temporary;
+        TempOutlookSetup: Record "Outlook Setup" temporary;
         TempAgentSetupBuffer: Record "Agent Setup Buffer";
         AgentSetup: Codeunit "Agent Setup";
         PayablesAgentSetup: Codeunit "Payables Agent Setup";
@@ -460,18 +553,26 @@ page 3304 "Payables Agent Setup"
         PADemoGuide: Codeunit "PA Demo Guide";
         PayablesAgentOCV: Codeunit "Payables Agent OCV";
         PATrial: Codeunit "PA Trial";
+        PACostEstimate: Codeunit "PA Cost Estimate";
         SelectedFileName: Text[250];
+        MailboxAddress: Text;
         TrialProgressText: Text;
+        CostEstimateText: Text;
         TrialExperienceVisible: Boolean;
         IsEligibleForTrialVisible: Boolean;
         IsInTrialModeVisible: Boolean;
         SetupChanged, OCVFeedbackAsked : Boolean;
         OpenAgentDemoGuideVisible, SkipAutosetOfMonitorOutlook : Boolean;
         LearnMoreTxt: Label 'Learn more';
+        LearnMoreCostLbl: Label 'Learn more about cost';
+        CostEstimateInfoLbl: Label 'Estimate only. Actual cost may differ.';
+        CostPreTrialLbl: Label 'Estimate will show when the agent starts processing invoices.';
+        NoChargeDuringTrialLbl: Label '%1 (no charge during trial)', Comment = '%1 is the formatted cost-per-invoice text, e.g. "$0.80 per invoice"';
         AddFieldsLbl: Label 'Add fields';
         LearnMoreBillingDocumentationLinkTxt: Label 'https://go.microsoft.com/fwlink/?linkid=2333517';
         EnableCapabilityFirstErr: Label 'The Payables Agent capability is not configured. Please activate the Copilot capability.', Comment = 'Payables Agent is a term, and should not be translated.';
-        SharedMailboxTipLbl: label 'The agent reads all PDF attachments from the specified mailbox. Therefore, we recommend using a dedicated shared mailbox for receiving payables documents.';
+        SharedMailboxTipLbl: Label 'The agent reads all PDF attachments from the specified mailbox. Therefore, we recommend using a dedicated shared mailbox for receiving payables documents.';
+        SelectMailboxFirstErr: Label 'Select an email account before choosing a folder.';
         OpenAgentDemoGuideLbl: Label 'Sample invoice guide';
         TrySampleInvoicesLbl: Label 'Try some sample invoices';
         TryWithUploadManuallyTok: Label 'User uploaded a file to try the agent.', Locked = true;

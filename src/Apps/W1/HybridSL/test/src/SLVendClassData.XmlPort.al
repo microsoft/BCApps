@@ -64,6 +64,6 @@ xmlport 147614 "SL VendClass Data"
     end;
 
     var
-        CaptionRow: Boolean;
         SLVendClass: Record "SL VendClass";
+        CaptionRow: Boolean;
 }

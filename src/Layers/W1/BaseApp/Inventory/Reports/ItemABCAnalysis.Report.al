@@ -10,7 +10,7 @@ using Microsoft.Inventory.Item;
 report 723 "Item - ABC Analysis"
 {
     ApplicationArea = Basic, Suite;
-    Caption = 'Item - ABC Analysis';
+    Caption = 'Item - ABC Analysis (Excel)';
     DefaultRenderingLayout = Excel;
     UsageCategory = ReportsAndAnalysis;
 

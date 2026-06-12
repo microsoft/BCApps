@@ -1963,6 +1963,63 @@ codeunit 137014 "SCM Fulfillment"
             WarehouseShipmentLine, Database::"Sales Line", SalesHeader[2]."Document Type".AsInteger(), SalesHeader[2]."No.", Location.Code);
     end;
 
+    [Test]
+    procedure CalcConsumptionSkipsForwardFlushWithRoutingLinkCode()
+    var
+        ManualItem: Record Item;
+        ForwardItem: Record Item;
+        RoutingLink: Record "Routing Link";
+        ProductionOrder: Record "Production Order";
+        ProdOrderLine: Record "Prod. Order Line";
+        ProdOrderComponent: Record "Prod. Order Component";
+        ItemJournalBatch: Record "Item Journal Batch";
+        ConsumptionJournalLine: Record "Item Journal Line";
+    begin
+        // [FEATURE] [AI test 0.4] [Production] [Component] [Calc. Consumption]
+        // [SCENARIO 635060] Calc. Consumption skips Forward flushing components with Routing Link Code
+        Initialize();
+
+        // [GIVEN] Item "MI" with Manual flushing and Item "FI" with Forward flushing
+        LibraryInventory.CreateItem(ManualItem);
+        LibraryInventory.CreateItem(ForwardItem);
+        ForwardItem.Validate("Flushing Method", ForwardItem."Flushing Method"::Forward);
+        ForwardItem.Modify(true);
+
+        // [GIVEN] Routing Link "RL"
+        LibraryManufacturing.CreateRoutingLink(RoutingLink);
+
+        // [GIVEN] Released Production Order with two components
+        LibraryManufacturing.CreateAndRefreshProductionOrder(
+            ProductionOrder, ProductionOrder.Status::Released,
+            ProductionOrder."Source Type"::Item, LibraryInventory.CreateItemNo(), 1);
+        ProdOrderLine.SetRange(Status, ProductionOrder.Status);
+        ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderLine.FindFirst();
+
+        // [GIVEN] Component "MI" with Manual flushing (no routing link)
+        CreateProdOrderComponent(ProdOrderComponent, ProdOrderLine, ManualItem."No.", 1);
+
+        // [GIVEN] Component "FI" with Forward flushing and Routing Link Code "RL"
+        CreateProdOrderComponent(ProdOrderComponent, ProdOrderLine, ForwardItem."No.", 1);
+        ProdOrderComponent.Validate("Routing Link Code", RoutingLink.Code);
+        ProdOrderComponent.Modify(true);
+
+        // [GIVEN] Inventory posted for both items
+        PostItemToInventory(ManualItem."No.", '', '', 10);
+        PostItemToInventory(ForwardItem."No.", '', '', 10);
+
+        // [WHEN] Running Calc. Consumption report
+        RunCalcConsumption(ProductionOrder, ItemJournalBatch);
+
+        // [THEN] Only Manual flushing component "MI" has a consumption journal line
+        ConsumptionJournalLine.SetRange("Journal Template Name", ItemJournalBatch."Journal Template Name");
+        ConsumptionJournalLine.SetRange("Journal Batch Name", ItemJournalBatch.Name);
+        ConsumptionJournalLine.SetRange("Order No.", ProductionOrder."No.");
+        Assert.RecordCount(ConsumptionJournalLine, 1);
+        ConsumptionJournalLine.FindFirst();
+        Assert.AreEqual(ManualItem."No.", ConsumptionJournalLine."Item No.", 'Only Manual flushing component should have a journal line');
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"SCM Fulfillment");
@@ -2042,6 +2099,25 @@ codeunit 137014 "SCM Fulfillment"
     begin
         LibraryInventory.CreateItemJournalLineInItemTemplate(ItemJournalLine, ItemNo, LocationCode, BinCode, Qty);
         LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+    end;
+
+    local procedure RunCalcConsumption(var ProductionOrder: Record "Production Order"; var ItemJournalBatch: Record "Item Journal Batch")
+    var
+        ProdOrderComponent: Record "Prod. Order Component";
+        CalcConsumption: Report "Calc. Consumption";
+    begin
+        LibraryInventory.CreateItemJournalBatchByType(ItemJournalBatch, ItemJournalBatch."Template Type"::Consumption);
+        Commit();
+        CalcConsumption.InitializeRequest(WorkDate(), 1);
+        CalcConsumption.SetTemplateAndBatchName(ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name);
+        ProductionOrder.SetRange(Status, ProductionOrder.Status);
+        ProductionOrder.SetRange("No.", ProductionOrder."No.");
+        CalcConsumption.SetTableView(ProductionOrder);
+        ProdOrderComponent.SetRange(Status, ProductionOrder.Status);
+        ProdOrderComponent.SetRange("Prod. Order No.", ProductionOrder."No.");
+        CalcConsumption.SetTableView(ProdOrderComponent);
+        CalcConsumption.UseRequestPage(false);
+        CalcConsumption.RunModal();
     end;
 
     local procedure FindWhseShipment(var WarehouseShipmentLine: Record "Warehouse Shipment Line"; SourceType: Option; SourceSubtype: Option; SourceNo: Code[20]; LocationCode: Code[10])

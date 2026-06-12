@@ -214,6 +214,6 @@ xmlport 147621 "SL BC Item Tracking Code Data"
     end;
 
     var
-        CaptionRow: Boolean;
         ItemTrackingCode: Record "Item Tracking Code";
+        CaptionRow: Boolean;
 }

@@ -709,21 +709,54 @@ codeunit 6153 "API Webhook Notification Mgt."
     local procedure DeleteHangingJob(): Boolean
     var
         JobQueueEntry: Record "Job Queue Entry";
+        JobQueueEntryToDelete: Record "Job Queue Entry";
         Deleted: Boolean;
     begin
-        // delete the hanging job as it blocks staring other jobs of the same category
-        JobQueueEntry.SetLoadFields(Scheduled, "Earliest Start Date/Time");
+        // Delete hanging jobs as they block starting other jobs of the same category. A job is hanging when
+        // the task scheduler no longer tracks it (Scheduled = false), or when it is stuck in status Ready with
+        // an Earliest Start Date/Time well in the past. Iterating over both In Process and Ready entries (instead
+        // of only the first In Process entry) ensures the category can self-heal once such zombie jobs accumulate.
+        JobQueueEntry.SetLoadFields(Scheduled, Status, "Earliest Start Date/Time");
         JobQueueEntry.SetRange("Job Queue Category Code", JobQueueCategoryCodeLbl);
-        JobQueueEntry.SetRange(Status, JobQueueEntry.Status::"In Process");
-        if JobQueueEntry.FindFirst() then begin
-            JobQueueEntry.CalcFields(Scheduled);
-            if not JobQueueEntry.Scheduled then begin
-                Session.LogMessage('0000EF4', StrSubstNo(DeleteHangingJobMsg, DateTimeToString(JobQueueEntry."Earliest Start Date/Time")), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', APIWebhookCategoryLbl);
-                JobQueueEntry.Delete();
-                Deleted := true;
-            end;
-        end;
+        JobQueueEntry.SetFilter(Status, '%1|%2', JobQueueEntry.Status::"In Process", JobQueueEntry.Status::Ready);
+        if JobQueueEntry.FindSet() then
+            repeat
+                if IsHangingJob(JobQueueEntry) then begin
+                    Session.LogMessage('0000EF4', StrSubstNo(DeleteHangingJobMsg, DateTimeToString(JobQueueEntry."Earliest Start Date/Time")), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', APIWebhookCategoryLbl);
+                    JobQueueEntryToDelete := JobQueueEntry;
+                    JobQueueEntryToDelete.Delete();
+                    Deleted := true;
+                end;
+            until JobQueueEntry.Next() = 0;
         exit(Deleted);
+    end;
+
+    local procedure IsHangingJob(var JobQueueEntry: Record "Job Queue Entry"): Boolean
+    begin
+        // An In Process entry that the task scheduler no longer tracks (Scheduled = false) will never run
+        // again on its own. For Ready entries Scheduled = false just means the scheduler has not picked the
+        // task up yet, which is normal and must not be treated as hanging.
+        if JobQueueEntry.Status = JobQueueEntry.Status::"In Process" then begin
+            JobQueueEntry.CalcFields(Scheduled);
+            if not JobQueueEntry.Scheduled then
+                exit(true);
+        end;
+        // A Ready entry stuck well past its earliest start time is also considered hanging.
+        if (JobQueueEntry.Status = JobQueueEntry.Status::Ready) and
+           (JobQueueEntry."Earliest Start Date/Time" <> 0DT) and
+           (JobQueueEntry."Earliest Start Date/Time" + GetStuckReadyJobThreshold() < CurrentDateTime())
+        then
+            exit(true);
+        exit(false);
+    end;
+
+    local procedure GetStuckReadyJobThreshold(): Duration
+    begin
+        // A Ready job whose Earliest Start Date/Time is more than six hours in the past is considered stuck.
+        // The threshold is kept well above the worst-case backlog: jobs are scheduled every 30 minutes and up
+        // to the maximum number of jobs can be queued, so a genuinely healthy job can legitimately wait a couple
+        // of hours before running. Six hours leaves ample margin so only truly stuck jobs are reclaimed.
+        exit(6 * 60 * 60 * 1000);
     end;
 
     local procedure CreateJob(EarliestStartDateTime: DateTime)
@@ -846,7 +879,7 @@ codeunit 6153 "API Webhook Notification Mgt."
         Clear(CachedDetailedLoggingEnabled);
     end;
 
-    local procedure GetMaxNumberOfJobs(): Integer
+    procedure GetMaxNumberOfJobs(): Integer
     begin
         exit(20);
     end;

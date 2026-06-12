@@ -58,6 +58,7 @@ xmlport 147622 "SL Account Staging Data"
                         currXMLport.Skip();
                     end;
 
+                    Clear(SLAccountStaging);
                     SLAccountStaging.AcctNum := AccountNumber;
                     SLAccountStaging.Name := Name;
                     SLAccountStaging.SearchName := SearchName;
@@ -77,6 +78,6 @@ xmlport 147622 "SL Account Staging Data"
     end;
 
     var
-        CaptionRow: Boolean;
         SLAccountStaging: Record "SL Account Staging";
+        CaptionRow: Boolean;
 }

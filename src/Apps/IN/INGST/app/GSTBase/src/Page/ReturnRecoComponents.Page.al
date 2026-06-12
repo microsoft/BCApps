@@ -10,6 +10,7 @@ page 18007 "Return & Reco Components"
     ApplicationArea = Basic, Suite;
     UsageCategory = Administration;
     SourceTable = "Retrun & Reco. Components";
+    SourceTableView = sorting("Sequence No.") order(ascending);
 
     layout
     {
@@ -17,6 +18,11 @@ page 18007 "Return & Reco Components"
         {
             repeater(General)
             {
+                field("Sequence No."; Rec."Sequence No.")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the sequence in which the component will be displayed in GST Settlement.';
+                }
                 field("Component ID"; Rec."Component ID")
                 {
                     ApplicationArea = Basic, Suite;

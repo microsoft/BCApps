@@ -964,7 +964,7 @@ table 296 "Reminder Line"
         IssuedReminderLine.SetRange(Type, IssuedReminderLine.Type::"Line Fee");
         IssuedReminderLine.SetRange("No. of Reminders", IssuedNoOfReminders);
         IssuedReminderLine.SetRange(Canceled, false);
-        exit(IssuedReminderLine.FindFirst())
+        exit(IssuedReminderLine.FindFirst());
     end;
 
     local procedure GetReminderLevel(var ReminderLevel: Record "Reminder Level"; LevelStart: Integer; LevelEnd: Integer)

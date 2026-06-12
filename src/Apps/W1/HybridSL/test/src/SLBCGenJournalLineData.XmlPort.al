@@ -171,15 +171,14 @@ xmlport 147630 "SL BC Gen. Journal Line Data"
 
     procedure GetExpectedGenJournalLines(var NewTempGenJournalLine: Record "Gen. Journal Line" temporary)
     begin
-        if TempGenJournalLine.FindSet() then begin
+        if TempGenJournalLine.FindSet() then
             repeat
                 NewTempGenJournalLine.Copy(TempGenJournalLine);
                 NewTempGenJournalLine.Insert();
             until TempGenJournalLine.Next() = 0;
-        end;
     end;
 
     var
-        CaptionRow: Boolean;
         TempGenJournalLine: Record "Gen. Journal Line" temporary;
+        CaptionRow: Boolean;
 }

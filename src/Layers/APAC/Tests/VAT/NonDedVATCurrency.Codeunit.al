@@ -17,6 +17,7 @@ codeunit 134286 "Non. Ded. VAT Currency"
         LibraryNonDeductibleVAT: Codeunit "Library - NonDeductible VAT";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryJournals: Codeunit "Library - Journals";
+        LibraryUtility: Codeunit "Library - Utility";
         Assert: Codeunit Assert;
         isInitialized: Boolean;
 
@@ -170,6 +171,75 @@ codeunit 134286 "Non. Ded. VAT Currency"
 
         // [THEN] G/L Entries are balanced in both LCY and ACY
         VerifyGLEntriesBalanced(DocNo, PurchHeader."Posting Date");
+    end;
+
+    [Test]
+    procedure PostFCYJournalWithNonDedVAT100NoGLConsistencyError()
+    var
+        GenJournalBatch: Record "Gen. Journal Batch";
+        BankAccountLine: Record "Gen. Journal Line";
+        GLAccountLine: Record "Gen. Journal Line";
+        VATPostingSetup: Record "VAT Posting Setup";
+        BankAccount: Record "Bank Account";
+        CurrencyCode: Code[10];
+        PostingDate: Date;
+        DocumentNo: Code[20];
+        FCYAmount: Decimal;
+        ExchangeRateAmount: Decimal;
+        RelationalExchRateAmount: Decimal;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 624215] Posting FCY general journal with Non-Deductible VAT % = 100 does not cause G/L Entry consistency error.
+        Initialize();
+
+        // [GIVEN] VAT Posting Setup with random VAT % and Non-Deductible VAT % = 100
+        LibraryERM.CreateVATPostingSetupWithAccounts(
+            VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", LibraryRandom.RandIntInRange(10, 25));
+        LibraryNonDeductibleVAT.SetAllowNonDeductibleVATForVATPostingSetup(VATPostingSetup);
+        VATPostingSetup.Validate("Non-Deductible VAT %", 100);
+        VATPostingSetup.Modify(true);
+
+        // [GIVEN] Currency "C" with random exchange rate
+        PostingDate := WorkDate();
+        ExchangeRateAmount := LibraryRandom.RandIntInRange(10, 200);
+        RelationalExchRateAmount := LibraryRandom.RandDecInRange(100, 1000, 2);
+        CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(PostingDate, ExchangeRateAmount, RelationalExchRateAmount);
+
+        // [GIVEN] Bank Account "BA" with currency "C"
+        LibraryERM.CreateBankAccount(BankAccount);
+        BankAccount.Validate("Currency Code", CurrencyCode);
+        BankAccount.Modify(true);
+
+        // [GIVEN] General Journal batch with two lines sharing the same document number
+        LibraryJournals.CreateGenJournalBatch(GenJournalBatch);
+        DocumentNo := LibraryUtility.GenerateGUID();
+        FCYAmount := LibraryRandom.RandDec(100, 2);
+
+        // [GIVEN] Line 1: Bank Account "BA" with negative FCY amount
+        LibraryERM.CreateGeneralJnlLine(
+            BankAccountLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+            BankAccountLine."Document Type"::" ",
+            BankAccountLine."Account Type"::"Bank Account", BankAccount."No.", -FCYAmount);
+        BankAccountLine.Validate("Posting Date", PostingDate);
+        BankAccountLine.Validate("Document No.", DocumentNo);
+        BankAccountLine.Modify(true);
+
+        // [GIVEN] Line 2: G/L Account with Non-Deductible VAT, Gen. Posting Type = Purchase, positive FCY amount
+        LibraryERM.CreateGeneralJnlLine(
+            GLAccountLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+            GLAccountLine."Document Type"::" ",
+            GLAccountLine."Account Type"::"G/L Account",
+            LibraryERM.CreateGLAccountWithVATPostingSetup(VATPostingSetup, "General Posting Type"::Purchase), FCYAmount);
+        GLAccountLine.Validate("Posting Date", PostingDate);
+        GLAccountLine.Validate("Document No.", DocumentNo);
+        GLAccountLine.Validate("Currency Code", CurrencyCode);
+        GLAccountLine.Modify(true);
+
+        // [WHEN] Post the journal batch
+        LibraryERM.PostGeneralJnlLine(BankAccountLine);
+
+        // [THEN] G/L Entries are balanced in LCY (no consistency error)
+        VerifyGLEntriesBalanced(DocumentNo, PostingDate);
     end;
 
     local procedure Initialize()

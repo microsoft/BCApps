@@ -5668,6 +5668,8 @@ table 37 "Sales Line"
         GenPostingSetup: Record "General Posting Setup";
         GLAcc: Record "G/L Account";
         IsHandled: Boolean;
+        VATPostingSetupRetrieved: Boolean;
+        SkipClear: Boolean;
     begin
         IsHandled := false;
         OnBeforeUpdatePrepmtSetupFields(Rec, IsHandled, CurrFieldNo);
@@ -5686,10 +5688,17 @@ table 37 "Sales Line"
             GenPostingSetup.Get("Gen. Bus. Posting Group", "Gen. Prod. Posting Group");
             if GenPostingSetup."Sales Prepayments Account" <> '' then begin
                 GLAcc.Get(GenPostingSetup."Sales Prepayments Account");
-                VATPostingSetup.Get("VAT Bus. Posting Group", GLAcc."VAT Prod. Posting Group");
+                VATPostingSetupRetrieved := false;
+                OnUpdatePrepmtSetupFieldsOnBeforeGetVATPostingSetup(Rec, GLAcc, VATPostingSetup, VATPostingSetupRetrieved);
+                if not VATPostingSetupRetrieved then
+                    VATPostingSetup.Get("VAT Bus. Posting Group", GLAcc."VAT Prod. Posting Group");
                 VATPostingSetup.TestField("VAT Calculation Type", "VAT Calculation Type");
-            end else
-                Clear(VATPostingSetup);
+            end else begin
+                SkipClear := false;
+                OnUpdatePrepmtSetupFieldsOnBeforeClearVATPostingSetup(Rec, VATPostingSetup, SkipClear);
+                if not SkipClear then
+                    Clear(VATPostingSetup);
+            end;
             if ("Prepayment VAT %" <> 0) and ("Prepayment VAT %" <> VATPostingSetup."VAT %") and ("Prepmt. Amt. Inv." <> 0) then
                 Error(CannotChangePrepmtAmtDiffVAtPctErr);
             CopyPrepaymentFromVATPostingSetup(VATPostingSetup);
@@ -5979,8 +5988,10 @@ table 37 "Sales Line"
             TotalVATBaseAmount := 0;
             if ("VAT Calculation Type" = "VAT Calculation Type"::"Sales Tax") or
                (("VAT Calculation Type" in
-                 ["VAT Calculation Type"::"Normal VAT", "VAT Calculation Type"::"No Taxable VAT",
-                  "VAT Calculation Type"::"Reverse Charge VAT"]) and ("VAT %" <> 0))
+                 ["VAT Calculation Type"::"Normal VAT",
+                  "VAT Calculation Type"::"No Taxable VAT",
+                  "VAT Calculation Type"::"Reverse Charge VAT"]) and
+                ("VAT %" <> 0))
             then begin
                 SalesLine2.SetFilter("VAT %", '<>0');
                 if not SalesLine2.IsEmpty() then begin
@@ -12359,6 +12370,16 @@ table 37 "Sales Line"
     /// <param name="CurrentFieldNo">The current field number.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdatePrepmtSetupFields(var SalesLine: Record "Sales Line"; var IsHandled: Boolean; CurrentFieldNo: Integer)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnUpdatePrepmtSetupFieldsOnBeforeGetVATPostingSetup(var SalesLine: Record "Sales Line"; GLAccount: Record "G/L Account"; var VATPostingSetup: Record "VAT Posting Setup"; var VATPostingSetupRetrieved: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnUpdatePrepmtSetupFieldsOnBeforeClearVATPostingSetup(var SalesLine: Record "Sales Line"; var VATPostingSetup: Record "VAT Posting Setup"; var SkipClear: Boolean)
     begin
     end;
 

@@ -128,7 +128,7 @@ table 137 "Inc. Doc. Attachment Overview"
         IsHandled: Boolean;
     begin
         IsHandled := false;
-        OnBeforeNameDrillDown(Rec, IsHandled);
+        OnBeforeNameDrillDown(Rec, DownloadFilePreset, IsHandled);
         if IsHandled then
             exit;
 
@@ -290,7 +290,7 @@ table 137 "Inc. Doc. Attachment Overview"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeNameDrillDown(var IncDocAttachmentOverview: Record "Inc. Doc. Attachment Overview"; var IsHandled: Boolean)
+    local procedure OnBeforeNameDrillDown(var IncDocAttachmentOverview: Record "Inc. Doc. Attachment Overview"; DownloadFilePreset: Boolean; var IsHandled: Boolean)
     begin
     end;
 }

@@ -156,9 +156,9 @@ codeunit 5395 "Create Column Layout"
         ContosoAccountSchedule.InsertColumnLayout('', 30000, '', '', Enum::"Column Layout Type"::"Net Change", Enum::"Column Layout Entry Type"::Entries, '', false, Enum::"Column Layout Show"::Always, '', false);
 
         ColumnLayoutName := CreateColumnLayoutName.PeriodsDefinition();
-        ContosoAccountSchedule.InsertColumnLayout(ColumnLayoutName, 10000, '10', CurrentPeriodLbl, Enum::"Column Layout Type"::"Net Change", Enum::"Column Layout Entry Type"::Entries, '', false, Enum::"Column Layout Show"::Always, '', false);
-        ContosoAccountSchedule.InsertColumnLayout(ColumnLayoutName, 20000, '10', CurrentPeriodMinus1Lbl, Enum::"Column Layout Type"::"Net Change", Enum::"Column Layout Entry Type"::Entries, '', false, Enum::"Column Layout Show"::Always, '-1P', false);
-        ContosoAccountSchedule.InsertColumnLayout(ColumnLayoutName, 30000, '10', CurrentPeriodMinus2Lbl, Enum::"Column Layout Type"::"Net Change", Enum::"Column Layout Entry Type"::Entries, '', false, Enum::"Column Layout Show"::Always, '-2P', false);
+        ContosoAccountSchedule.InsertColumnLayout(ColumnLayoutName, 10000, '10', CurrentPeriodLbl, Enum::"Column Layout Type"::"Net Change", Enum::"Column Layout Entry Type"::Entries, '', false, Enum::"Column Layout Show"::Always, '', false, Enum::ColumnHeaderDateType::MonthAndYear);
+        ContosoAccountSchedule.InsertColumnLayout(ColumnLayoutName, 20000, '10', '', Enum::"Column Layout Type"::"Net Change", Enum::"Column Layout Entry Type"::Entries, '', false, Enum::"Column Layout Show"::Always, '-1P', false, Enum::ColumnHeaderDateType::MonthAndYear);
+        ContosoAccountSchedule.InsertColumnLayout(ColumnLayoutName, 30000, '10', '', Enum::"Column Layout Type"::"Net Change", Enum::"Column Layout Entry Type"::Entries, '', false, Enum::"Column Layout Show"::Always, '-2P', false, Enum::ColumnHeaderDateType::MonthAndYear);
     end;
 
     var
@@ -173,9 +173,7 @@ codeunit 5395 "Create Column Layout"
         BalanceAtDateCreditLbl: Label 'Balance at Date Credit', MaxLength = 30;
         KeyFigureLbl: Label 'Key Figure', MaxLength = 30;
         BalanceLbl: Label 'Balance', MaxLength = 30;
-        CurrentPeriodLbl: Label 'CURRENT PERIOD', MaxLength = 30;
-        CurrentPeriodMinus1Lbl: Label 'CURRENT PERIOD - 1', MaxLength = 30;
-        CurrentPeriodMinus2Lbl: Label 'CURRENT PERIOD - 2', MaxLength = 30;
+        CurrentPeriodLbl: Label 'Current period', MaxLength = 30;
         AmountLbl: Label 'Amount', MaxLength = 30;
         AmountUntilDateLbl: Label 'Amount until date', MaxLength = 30;
         EntireFiscalYearLbl: Label 'Entire Fiscal Year', MaxLength = 30;

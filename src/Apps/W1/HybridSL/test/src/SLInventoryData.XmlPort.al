@@ -108,6 +108,6 @@ xmlport 147619 "SL Inventory Data"
     end;
 
     var
-        CaptionRow: Boolean;
         SLInventory: Record "SL Inventory Buffer";
+        CaptionRow: Boolean;
 }

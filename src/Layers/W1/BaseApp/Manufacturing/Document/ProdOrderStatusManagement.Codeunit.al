@@ -32,6 +32,7 @@ using System.Utilities;
 codeunit 5407 "Prod. Order Status Management"
 {
     Permissions = TableData "Source Code Setup" = r,
+                  TableData Item = m,
                   TableData "Production Order" = rimd,
                   TableData "Prod. Order Capacity Need" = rid,
                   TableData "Inventory Adjmt. Entry (Order)" = rim;

@@ -16,5 +16,7 @@ permissionset 3304 "Payables Ag. - Adm."
         "Payables Ag. - Read",
         "Email - Admin",
         M365EDocConnEdit;
-    Permissions = tabledata "Payables Agent Setup" = IM;
+    Permissions =
+        tabledata "Payables Agent Setup" = IM,
+        tabledata "PA Known Sender" = IMD;
 }

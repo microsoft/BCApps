@@ -86,6 +86,6 @@ xmlport 147624 "SL Company Migration Settings"
     // end;
 
     var
-        CaptionRow: Boolean;
         SLCompanyMigrationSettings: Record "SL Company Migration Settings";
+        CaptionRow: Boolean;
 }

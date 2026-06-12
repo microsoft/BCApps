@@ -1171,13 +1171,13 @@ codeunit 11 "Gen. Jnl.-Check Line"
 
         if (GenJnlLine."Currency Code" <> '') and (GenJnlLine."Currency Code" <> GLSetup."LCY Code") then begin
             CheckAccountCurrencyCode(
-                GenJnlLine."Account No.", GenJnlLine."Account Type", GenJnlLine."Currency Code", ACYOnlyPosting);
+                GenJnlLine, GenJnlLine."Account No.", GenJnlLine."Account Type", GenJnlLine."Currency Code", ACYOnlyPosting);
             CheckAccountCurrencyCode(
-                GenJnlLine."Bal. Account No.", GenJnlLine."Bal. Account Type", GenJnlLine."Currency Code", ACYOnlyPosting);
+                GenJnlLine, GenJnlLine."Bal. Account No.", GenJnlLine."Bal. Account Type", GenJnlLine."Currency Code", ACYOnlyPosting);
         end;
     end;
 
-    local procedure CheckAccountCurrencyCode(AccountNo: Code[20]; AccountType: Enum "Gen. Journal Account Type"; CurrencyCode: Code[10]; ACYOnly: Boolean)
+    local procedure CheckAccountCurrencyCode(GenJnlLine: Record "Gen. Journal Line"; AccountNo: Code[20]; AccountType: Enum "Gen. Journal Account Type"; CurrencyCode: Code[10]; ACYOnly: Boolean)
     var
         GLAccount: Record "G/L Account";
         BankAccount: Record "Bank Account";
@@ -1200,6 +1200,8 @@ codeunit 11 "Gen. Jnl.-Check Line"
                 begin
                     Customer.Get(AccountNo);
                     CustomerPostingGroup.Get(Customer."Customer Posting Group");
+                    if CustomerPostingGroup."Receivables Account" = '' then
+                        CustomerPostingGroup.Get(GenJnlLine."Posting Group");
                     GLAccount.Get(CustomerPostingGroup."Receivables Account");
                     CheckGLAccountSourceCurrency(GLAccount, CurrencyCode);
                 end;
@@ -1207,6 +1209,8 @@ codeunit 11 "Gen. Jnl.-Check Line"
                 begin
                     Vendor.Get(AccountNo);
                     VendorPostingGroup.Get(Vendor."Vendor Posting Group");
+                    if VendorPostingGroup."Payables Account" = '' then
+                        VendorPostingGroup.Get(GenJnlLine."Posting Group");
                     GLAccount.Get(VendorPostingGroup."Payables Account");
                     CheckGLAccountSourceCurrency(GLAccount, CurrencyCode);
                 end;
@@ -1214,6 +1218,8 @@ codeunit 11 "Gen. Jnl.-Check Line"
                 begin
                     BankAccount.Get(AccountNo);
                     BankAccountPostingGroup.Get(BankAccount."Bank Acc. Posting Group");
+                    if BankAccountPostingGroup."G/L Account No." = '' then
+                        BankAccountPostingGroup.Get(GenJnlLine."Posting Group");
                     GLAccount.Get(BankAccountPostingGroup."G/L Account No.");
                     CheckGLAccountSourceCurrency(GLAccount, CurrencyCode);
                 end;

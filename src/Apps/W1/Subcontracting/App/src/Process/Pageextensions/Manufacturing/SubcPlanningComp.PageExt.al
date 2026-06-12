@@ -12,7 +12,7 @@ pageextension 99001511 "Subc. Planning Comp" extends "Planning Components"
     {
         addlast(Control1)
         {
-            field("Subcontracting Type"; Rec."Subcontracting Type")
+            field("Component Supply Method"; Rec."Component Supply Method")
             {
                 ApplicationArea = Manufacturing;
             }

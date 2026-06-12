@@ -64,6 +64,6 @@ xmlport 147617 "SL ProductClass Data"
     end;
 
     var
-        CaptionRow: Boolean;
         SLProductClass: Record "SL ProductClass";
+        CaptionRow: Boolean;
 }

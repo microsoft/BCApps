@@ -597,7 +597,6 @@ page 20462 "Qlty. Prod. Gen. Rule S. Guide"
     end;
 
     local procedure NextAction();
-
     begin
         CurrPage.Update(true);
         ChangeToStep(CurrentStepCounter + 1);

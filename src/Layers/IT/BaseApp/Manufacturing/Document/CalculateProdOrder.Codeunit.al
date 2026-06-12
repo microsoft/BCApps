@@ -117,7 +117,7 @@ codeunit 99000773 "Calculate Prod. Order"
     var
         WorkCenter: Record "Work Center";
         MachineCenter: Record "Machine Center";
-#if not CLEAN27
+#if not CLEAN28
         SubcPrices: Record "Subcontractor Prices";
         SubcontractingPriceMgt: Codeunit SubcontractingPricesMgt;
         SubcontractingManagement: Codeunit SubcontractingManagement;
@@ -128,7 +128,7 @@ codeunit 99000773 "Calculate Prod. Order"
         ProdOrderRoutingLine."Prod. Order No." := ProdOrderLine."Prod. Order No.";
         ProdOrderRoutingLine."Routing Reference No." := ProdOrderLine."Routing Reference No.";
         ProdOrderRoutingLine."Routing No." := ProdOrderLine."Routing No.";
-#if not CLEAN27
+#if not CLEAN28
         ProdOrderRoutingLine."Operation No." := RoutingLine."Operation No.";
 #endif
         ProdOrderRoutingLine.CopyFromRoutingLine(RoutingLine);
@@ -146,7 +146,7 @@ codeunit 99000773 "Calculate Prod. Order"
         end;
 
         OnTransferRoutingOnBeforeCalcRoutingCostPerUnit(ProdOrderRoutingLine, ProdOrderLine, RoutingLine);
-#if not CLEAN27
+#if not CLEAN28
         if (ProdOrderRoutingLine.Type = ProdOrderRoutingLine.Type::"Work Center") and
            (WorkCenter."Subcontractor No." <> '')
         then begin
@@ -172,7 +172,7 @@ codeunit 99000773 "Calculate Prod. Order"
 
         OnTransferRoutingOnbeforeValidateDirectUnitCost(ProdOrderRoutingLine, ProdOrderLine, RoutingLine);
 
-#if not CLEAN27
+#if not CLEAN28
         ProdOrderRoutingLine."WIP Item" := RoutingLine."WIP Item";
         if (ProdOrderRoutingLine."Routing Link Code" <> '') and
            (WorkCenter."Subcontractor No." <> '')
@@ -340,7 +340,7 @@ codeunit 99000773 "Calculate Prod. Order"
                 QtyRoundPrecision := UOMMgt.GetQtyRoundingPrecision(Item2, ProdBOMLine[Level]."Unit of Measure Code");
             CheckingRoundingPrecision(Item2, ProdLineItem, QtyRoundPrecision, Level);
             if (QtyRoundPrecision <> 0) and (QtyRoundPrecision < 1) then
-                ProdOrderComp."Quantity per" := Round(ProdBOMLine[Level]."Quantity per" * LineQtyPerUOM / ItemQtyPerUOM, QtyRoundPrecision)
+                ProdOrderComp."Quantity per" := Round(ProdBOMLine[Level]."Quantity per" * LineQtyPerUOM / ItemQtyPerUOM, UOMMgt.QtyRndPrecision())
             else
                 ProdOrderComp."Quantity per" := ProdBOMLine[Level]."Quantity per" * LineQtyPerUOM / ItemQtyPerUOM;
             ProdOrderComp.Length := ProdBOMLine[Level].Length;

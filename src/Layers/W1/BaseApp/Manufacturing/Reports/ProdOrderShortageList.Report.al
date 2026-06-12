@@ -300,7 +300,7 @@ report 99000788 "Prod. Order - Shortage List"
                           CompItem."Scheduled Receipt (Qty.)" -
                           CompItem.Inventory;
 
-                        OnOnAfterGetRecordOnAfterCalculateNeededQty("Prod. Order Component", TempProdOrderLine, TempProdOrderComp, CompItem, NeededQty);
+                        OnOnAfterGetRecordOnAfterCalculateNeededQty("Prod. Order Component", TempProdOrderLine, TempProdOrderComp, CompItem, NeededQty, RemainingQty, QtyOnHandAfterProd);
 
                         if NeededQty < 0 then
                             NeededQty := 0;
@@ -476,7 +476,7 @@ report 99000788 "Prod. Order - Shortage List"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnOnAfterGetRecordOnAfterCalculateNeededQty(ProdOrderComponent: Record "Prod. Order Component"; var TempProdOrderLine: Record "Prod. Order Line" temporary; var TempProdOrderComponent: Record "Prod. Order Component" temporary; var Item: Record Item; var NeededQty: Decimal)
+    local procedure OnOnAfterGetRecordOnAfterCalculateNeededQty(ProdOrderComponent: Record "Prod. Order Component"; var TempProdOrderLine: Record "Prod. Order Line" temporary; var TempProdOrderComponent: Record "Prod. Order Component" temporary; var Item: Record Item; var NeededQty: Decimal; var RemainingQty: Decimal; var QtyOnHandAfterProd: Decimal)
     begin
     end;
 }

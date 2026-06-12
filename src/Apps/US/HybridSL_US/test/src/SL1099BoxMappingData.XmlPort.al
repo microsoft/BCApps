@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.DataMigration.SL;
 
-xmlport 147656 "SL 1099 Box Mapping Data"
+xmlport 147676 "SL 1099 Box Mapping Data"
 {
     Caption = 'SL 1099 Box Mapping data for import/export';
     Direction = Both;
@@ -79,6 +79,6 @@ xmlport 147656 "SL 1099 Box Mapping Data"
     end;
 
     var
-        CaptionRow: Boolean;
         TempSL1099BoxMapping: Record "SL 1099 Box Mapping" temporary;
+        CaptionRow: Boolean;
 }

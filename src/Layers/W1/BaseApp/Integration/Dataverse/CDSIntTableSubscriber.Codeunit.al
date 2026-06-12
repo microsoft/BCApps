@@ -1393,8 +1393,14 @@ codeunit 7205 "CDS Int. Table. Subscriber"
         CRMIntegrationManagement: Codeunit "CRM Integration Management";
         DestinationFieldRef: FieldRef;
         NewCode: Text;
+        IsHandled: Boolean;
     begin
         if not (CRMIntegrationManagement.IsCDSIntegrationEnabled() or CRMIntegrationManagement.IsCRMIntegrationEnabled()) then
+            exit;
+
+        IsHandled := false;
+        OnBeforeSetSalespersonPurchaserCode(DestinationRecordRef, IsHandled);
+        if IsHandled then
             exit;
 
         // We need to create a new code for this SP.
@@ -1407,6 +1413,11 @@ codeunit 7205 "CDS Int. Table. Subscriber"
 
         DestinationFieldRef := DestinationRecordRef.Field(SalespersonPurchaser.FieldNo(Code));
         DestinationFieldRef.Value := NewCode;
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeSetSalespersonPurchaserCode(var DestinationRecordRef: RecordRef; var IsHandled: Boolean)
+    begin
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Integration Table Synch.", 'OnAfterInitSynchJob', '', true, true)]

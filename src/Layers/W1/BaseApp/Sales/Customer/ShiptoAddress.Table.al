@@ -360,6 +360,15 @@ table 222 "Ship-to Address"
         Name := Cust.Name;
     end;
 
+    trigger OnDelete()
+    begin
+        if Cust.Get("Customer No.") then
+            if Cust."Ship-to Code" = Code then begin
+                Cust.Validate("Ship-to Code", '');
+                Cust.Modify(true);
+            end;
+    end;
+
     trigger OnModify()
     begin
         "Last Date Modified" := Today;

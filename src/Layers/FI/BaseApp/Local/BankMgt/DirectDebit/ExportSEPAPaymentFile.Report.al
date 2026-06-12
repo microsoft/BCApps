@@ -130,7 +130,7 @@ report 13403 "Export SEPA Payment File"
     trigger OnPreReport()
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
-        SEPACTExportFile: Codeunit "SEPA CT-Export File";     
+        SEPACTExportFile: Codeunit "SEPA CT-Export File";
     begin
         FeatureTelemetry.LogUptake('0000N2J', SEPACTExportFile.FeatureName(), Enum::"Feature Uptake Status"::Used);
         FeatureTelemetry.LogUsage('0000N2K', SEPACTExportFile.FeatureName(), 'Report (FI) Export SEPA Payment File');
@@ -215,8 +215,12 @@ report 13403 "Export SEPA Payment File"
         XMLDomMgt.AddElement(XMLNodeCurr, 'PstlAdr', '', '', XMLNewChild);
         XMLNodeCurr := XMLNewChild;
 
-        XMLDomMgt.AddElement(XMLNodeCurr, 'AdrLine', GetAddressLine(0, 1), '', XMLNewChild);
-        XMLDomMgt.AddElement(XMLNodeCurr, 'AdrLine', GetAddressLine(0, 2), '', XMLNewChild);
+        if (CompanyInfo.Address <> '') or (CompanyInfo."Address 2" <> '') then
+            XMLDomMgt.AddElement(XMLNodeCurr, 'StrtNm', CopyStr(GetAddressLine(0, 1), 1, 70), '', XMLNewChild);
+        if DelChr(CompanyInfo."Post Code", '<>') <> '' then
+            XMLDomMgt.AddElement(XMLNodeCurr, 'PstCd', CopyStr(DelChr(CompanyInfo."Post Code", '<>'), 1, 16), '', XMLNewChild);
+        if DelChr(CompanyInfo.City, '<>') <> '' then
+            XMLDomMgt.AddElement(XMLNodeCurr, 'TwnNm', CopyStr(DelChr(CompanyInfo.City, '<>'), 1, 35), '', XMLNewChild);
         XMLDomMgt.AddElement(XMLNodeCurr, 'Ctry', CopyStr(CompanyInfo."Country/Region Code", 1, 2), '', XMLNewChild);
         XMLNodeCurr := XMLNodeCurr.ParentNode;
         XMLDomMgt.AddElement(XMLNodeCurr, 'Id', '', '', XMLNewChild);
@@ -250,8 +254,12 @@ report 13403 "Export SEPA Payment File"
         XMLDomMgt.AddElement(XMLNodeCurr, 'PstlAdr', '', '', XMLNewChild);
         XMLNodeCurr := XMLNewChild;
 
-        XMLDomMgt.AddElement(XMLNodeCurr, 'AdrLine', GetAddressLine(0, 1), '', XMLNewChild);
-        XMLDomMgt.AddElement(XMLNodeCurr, 'AdrLine', GetAddressLine(0, 2), '', XMLNewChild);
+        if (CompanyInfo.Address <> '') or (CompanyInfo."Address 2" <> '') then
+            XMLDomMgt.AddElement(XMLNodeCurr, 'StrtNm', CopyStr(GetAddressLine(0, 1), 1, 70), '', XMLNewChild);
+        if DelChr(CompanyInfo."Post Code", '<>') <> '' then
+            XMLDomMgt.AddElement(XMLNodeCurr, 'PstCd', CopyStr(DelChr(CompanyInfo."Post Code", '<>'), 1, 16), '', XMLNewChild);
+        if DelChr(CompanyInfo.City, '<>') <> '' then
+            XMLDomMgt.AddElement(XMLNodeCurr, 'TwnNm', CopyStr(DelChr(CompanyInfo.City, '<>'), 1, 35), '', XMLNewChild);
         XMLDomMgt.AddElement(XMLNodeCurr, 'Ctry', CopyStr(CompanyInfo."Country/Region Code", 1, 2), '', XMLNewChild);
         XMLNodeCurr := XMLNodeCurr.ParentNode;
 
@@ -336,12 +344,12 @@ report 13403 "Export SEPA Payment File"
             XMLNodeCurr := XMLNewChild;
             if VendBankAcc.Address <> '' then
                 XMLDomMgt.AddElement(
-                    XMLNodeCurr, 'AdrLine',
+                    XMLNodeCurr, 'StrtNm',
                     CopyStr(JoinAddressFields(VendBankAcc.Address, VendBankAcc."Address 2"), 1, 70), '', XMLNewChild);
+            if DelChr(VendBankAcc."Post Code", '<>') <> '' then
+                XMLDomMgt.AddElement(XMLNodeCurr, 'PstCd', CopyStr(DelChr(VendBankAcc."Post Code", '<>'), 1, 16), '', XMLNewChild);
             if VendBankAcc.City <> '' then
-                XMLDomMgt.AddElement(
-                    XMLNodeCurr, 'AdrLine',
-                    CopyStr(JoinAddressFields(VendBankAcc."Post Code", VendBankAcc.City), 1, 70), '', XMLNewChild);
+                XMLDomMgt.AddElement(XMLNodeCurr, 'TwnNm', CopyStr(DelChr(VendBankAcc.City, '<>'), 1, 35), '', XMLNewChild);
             XMLDomMgt.AddElement(XMLNodeCurr, 'Ctry', VendBankAcc."Country/Region Code", '', XMLNewChild);
 
             XMLNodeCurr := XMLNodeCurr.ParentNode;
@@ -358,8 +366,12 @@ report 13403 "Export SEPA Payment File"
         XMLDomMgt.AddElement(XMLNodeCurr, 'PstlAdr', '', '', XMLNewChild);
         XMLNodeCurr := XMLNewChild;
 
-        XMLDomMgt.AddElement(XMLNodeCurr, 'AdrLine', CopyStr(GetAddressLine(1, 1), 1, 70), '', XMLNewChild);
-        XMLDomMgt.AddElement(XMLNodeCurr, 'AdrLine', CopyStr(GetAddressLine(1, 2), 1, 70), '', XMLNewChild);
+        if (Vendor.Address <> '') or (Vendor."Address 2" <> '') then
+            XMLDomMgt.AddElement(XMLNodeCurr, 'StrtNm', CopyStr(GetAddressLine(1, 1), 1, 70), '', XMLNewChild);
+        if DelChr(Vendor."Post Code", '<>') <> '' then
+            XMLDomMgt.AddElement(XMLNodeCurr, 'PstCd', CopyStr(DelChr(Vendor."Post Code", '<>'), 1, 16), '', XMLNewChild);
+        if DelChr(Vendor.City, '<>') <> '' then
+            XMLDomMgt.AddElement(XMLNodeCurr, 'TwnNm', CopyStr(DelChr(Vendor.City, '<>'), 1, 35), '', XMLNewChild);
         XMLDomMgt.AddElement(XMLNodeCurr, 'Ctry', CopyStr(Vendor."Country/Region Code", 1, 2), '', XMLNewChild);
         XMLNodeCurr := XMLNodeCurr.ParentNode;
         XMLNodeCurr := XMLNodeCurr.ParentNode;

@@ -1865,6 +1865,50 @@ codeunit 134851 "Purchase Over Receipt"
         NotificationLifecycleMgt.RecallAllNotifications();
     end;
 
+    [Test]
+    procedure ValidateWhseRcptLineOverReceiptQtyAfterClearingCodeAndQuantity()
+    var
+        WarehouseReceiptHeader: Record "Warehouse Receipt Header";
+        WarehouseReceiptLine: Record "Warehouse Receipt Line";
+        PurchaseOverReceipt: Codeunit "Purchase Over Receipt";
+        WarehouseReceipt: TestPage "Warehouse Receipt";
+        QuantyBeforeOverRecipt: Decimal;
+        OverReceiptQty: Decimal;
+    begin
+        // [SCENARIO 636594] Re-validating Over-Receipt Quantity after clearing Over-Receipt Code should not double-deduct Quantity
+        Initialize();
+
+        // [GIVEN] "Over Receipt" feature is enabled.
+        PurchaseOverReceipt.SetOverReceiptFeatureEnabled(true);
+        BindSubscription(PurchaseOverReceipt);
+
+        // [GIVEN] Create a warehouse receipt with Quantity.
+        CreateWarehouseReceipt(WarehouseReceiptHeader, WarehouseReceiptLine);
+
+        QuantyBeforeOverRecipt := WarehouseReceiptLine.Quantity;
+        OverReceiptQty := LibraryRandom.RandIntInRange(1, 5);
+
+        // [GIVEN] Open warehouse receipt page and set "Over-Receipt Quantity".
+        WarehouseReceipt.OpenEdit();
+        WarehouseReceipt.Filter.SetFilter("No.", WarehouseReceiptHeader."No.");
+        WarehouseReceipt.WhseReceiptLines."Over-Receipt Quantity".SetValue(OverReceiptQty);
+        WarehouseReceipt.WhseReceiptLines."Quantity".AssertEquals(QuantyBeforeOverRecipt + OverReceiptQty);
+
+        // [GIVEN] Over-Receipt Code is cleared, which cascades Over-Receipt Quantity to 0 and Quantity back to 10
+        WarehouseReceipt.WhseReceiptLines."Over-Receipt Code".SetValue('');
+
+        // [WHEN] Re-validate "Over-Receipt Quantity" to 0 (simulating stale xRec page re-trigger)
+        WarehouseReceipt.WhseReceiptLines."Over-Receipt Quantity".SetValue(0);
+
+        // [THEN] Quantity remains 10 (no double-deduction)
+        WarehouseReceipt.WhseReceiptLines."Quantity".AssertEquals(QuantyBeforeOverRecipt);
+        WarehouseReceipt.Close();
+        WarehouseReceiptLine.Get(WarehouseReceiptLine."No.", WarehouseReceiptLine."Line No.");
+        Assert.AreEqual(QuantyBeforeOverRecipt, WarehouseReceiptLine.Quantity, QuantityAfterOverReceiptErr);
+
+        NotificationLifecycleMgt.RecallAllNotifications();
+    end;
+
     local procedure Initialize()
     var
         InventorySetup: Record "Inventory Setup";

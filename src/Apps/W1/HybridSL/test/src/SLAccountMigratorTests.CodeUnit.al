@@ -11,11 +11,12 @@ using System.TestLibraries.Utilities;
 codeunit 147602 "SL Account Migrator Tests"
 {
     Subtype = Test;
+    TestType = IntegrationTest;
     TestPermissions = Disabled;
 
     var
-        Assert: Codeunit "Library Assert";
         SLCompanyAdditionalSettings: Record "SL Company Additional Settings";
+        Assert: Codeunit "Library Assert";
         SLTestHelperFunctions: Codeunit "SL Test Helper Functions";
         IsInitialized: Boolean;
 

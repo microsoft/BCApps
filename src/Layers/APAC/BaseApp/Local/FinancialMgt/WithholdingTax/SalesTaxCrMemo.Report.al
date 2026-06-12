@@ -14,9 +14,9 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
+using Microsoft.Foundation.Reporting;
 using Microsoft.Inventory.Location;
 using Microsoft.Sales.Customer;
-using Microsoft.Sales.Document;
 using Microsoft.Sales.Setup;
 using System.Globalization;
 using System.Utilities;
@@ -738,8 +738,8 @@ report 28074 "Sales - Tax Cr. Memo"
                 CheckReport.InitTextVariable();
                 CheckReport.FormatNoText(AmountLangA, "Amount Including VAT", "Currency Code");
                 if ShowTHFormatting then begin
-                    SalesLine.InitTextVariableTH();
-                    SalesLine.FormatNoTextTH(AmountLangB, "Amount Including VAT", "Currency Code");
+                    ReportManagementAPAC.InitTextVariableTH();
+                    ReportManagementAPAC.FormatNoTextTH(AmountLangB, "Amount Including VAT", "Currency Code");
                 end else begin
                     AmountLangB[1] := '';
                     AmountLangB[2] := '';
@@ -859,11 +859,13 @@ report 28074 "Sales - Tax Cr. Memo"
         TempVATAmountLine: Record "VAT Amount Line" temporary;
         DimSetEntry1: Record "Dimension Set Entry";
         DimSetEntry2: Record "Dimension Set Entry";
+        CurrExchRate: Record "Currency Exchange Rate";
+        RespCenter: Record "Responsibility Center";
         LanguageMgt: Codeunit Language;
         SalestaxCrMemoCountPrinted: Codeunit "Sales Tax Cr.Memo-Printed";
         FormatAddr: Codeunit "Format Address";
         SegManagement: Codeunit SegManagement;
-        RespCenter: Record "Responsibility Center";
+        ReportManagementAPAC: Codeunit "Report Management APAC";
         CustAddr: array[8] of Text[100];
         ShipToAddr: array[8] of Text[100];
         CompanyAddr: array[8] of Text[100];
@@ -900,10 +902,8 @@ report 28074 "Sales - Tax Cr. Memo"
         TotalExclVATTextLCY: Text[50];
         AmountLCY: Decimal;
         AmountIncLCY: Decimal;
-        CurrExchRate: Record "Currency Exchange Rate";
         CheckReport: Report Check;
         CurrencyLCY: Boolean;
-        SalesLine: Record "Sales Line";
         ShowTHFormatting: Boolean;
         OutputNo: Integer;
         TypeNO: Integer;

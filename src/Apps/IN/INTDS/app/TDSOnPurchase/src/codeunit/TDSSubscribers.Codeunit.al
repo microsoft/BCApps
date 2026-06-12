@@ -107,10 +107,17 @@ codeunit 18716 "TDS Subscribers"
     var
         PurchaseLine: Record "Purchase Line";
         CalculateTax: Codeunit "Calculate Tax";
+        IsHandled: Boolean;
     begin
-        PurchaseLine.SetLoadFields("Document Type", "Document No.");
+        OnBeforeRecalcTaxOnAfterCalcPurchaseDiscount(PurchaseHeader, IsHandled);
+        if IsHandled then
+            exit;
+
+        PurchaseLine.SetLoadFields("Document Type", "Document No.", "TDS Section Code");
         PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
         PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+        PurchaseLine.SetFilter("TDS Section Code", '<>%1', '');
+        OnFindPurchaseLineOnAfterCalcPurchaseDiscount(PurchaseLine, PurchaseHeader);
         if PurchaseLine.FindSet() then
             repeat
                 CalculateTax.CallTaxEngineOnPurchaseLine(PurchaseLine, PurchaseLine);
@@ -523,6 +530,16 @@ codeunit 18716 "TDS Subscribers"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidatePurchLineAppliesToID(PurchaseHeader: Record "Purchase Header"; PurchLine: Record "Purchase Line"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeRecalcTaxOnAfterCalcPurchaseDiscount(var PurchaseHeader: Record "Purchase Header"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnFindPurchaseLineOnAfterCalcPurchaseDiscount(var PurchaseLine: Record "Purchase Line"; var PurchaseHeader: Record "Purchase Header")
     begin
     end;
 }

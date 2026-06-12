@@ -21,6 +21,8 @@ codeunit 134287 "Non-Deductible VAT Statistics"
         Assert: Codeunit Assert;
         isInitialized: Boolean;
         GLEntryConsistentErr: Label 'G/L Entry is inconsistent';
+        NonDeductibleVATDiffErr: Label 'Non-Deductible VAT Diff. should not be zero after statistics change';
+        PostedPurchaseInvoiceCancelledErr: Label 'Posted Purchase Invoice must be cancelled';
 
     [Test]
     [HandlerFunctions('PurchaseStatisticsChangeVATAmountPageHandler')]
@@ -641,6 +643,77 @@ codeunit 134287 "Non-Deductible VAT Statistics"
         LibraryVariableStorage.AssertEmpty();
     end;
 
+    [Test]
+    [HandlerFunctions('PurchaseStatisticsChangeVATAmountPageHandler')]
+    procedure CancelPostedPurchInvWithNonDedVATDiff()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr.";
+        PurchInvHeader: Record "Purch. Inv. Header";
+        VATPostingSetup: Record "VAT Posting Setup";
+        CorrectPostedPurchInvoice: Codeunit "Correct Posted Purch. Invoice";
+        PurchaseInvoicePage: TestPage "Purchase Invoice";
+        MaxVATDifference: Decimal;
+        NonDeductibleVATAmount: Decimal;
+        VATAmount: Decimal;
+        DocNo: Code[20];
+    begin
+        // [FEATURE] [AI test 0.4] [Cancel Posted Purchase Invoice]
+        // [SCENARIO 632835] Cancel a posted purchase invoice with Non-Deductible VAT after adjusting the VAT amount in Statistics
+
+        Initialize();
+        MaxVATDifference := LibraryRandom.RandDecInDecimalRange(0.1, 1, 2);
+
+        // [GIVEN] "Allow VAT Difference" is enabled in Purchases Setup
+        // [GIVEN] Set "Max VAT Difference"  in General Ledger Setup
+        SetAllowVATDifference(MaxVATDifference);
+
+        // [GIVEN] Normal VAT Posting Setup with "VAT %"  and Non-Deductible VAT %" as 100.
+        LibraryNonDeductibleVAT.CreateNonDeductibleNormalVATPostingSetup(VATPostingSetup);
+        VATPostingSetup.Validate("Non-Deductible VAT %", LibraryRandom.RandIntInRange(100, 100));
+        VATPostingSetup.Modify(true);
+
+        // [GIVEN] Purchase invoice with item line
+        LibraryPurchase.CreatePurchHeader(
+            PurchaseHeader, PurchaseHeader."Document Type"::Invoice,
+            LibraryPurchase.CreateVendorWithVATBusPostingGroup(VATPostingSetup."VAT Bus. Posting Group"));
+        PurchaseHeader.Validate("Vendor Invoice No.", LibraryUtility.GenerateGUID());
+        PurchaseHeader.Modify(true);
+        LibraryPurchase.CreatePurchaseLineWithUnitCost(
+            PurchaseLine, PurchaseHeader, LibraryInventory.CreateItemWithVATProdPostingGroup(VATPostingSetup."VAT Prod. Posting Group"),
+            LibraryRandom.RandDec(100, 2), LibraryRandom.RandInt(1));
+
+        // [GIVEN] Adjust Non-Deductible VAT Amount in Statistics (decrease by MaxVATDifference)
+        VATAmount := PurchaseLine."Amount Including VAT" - PurchaseLine.Amount - MaxVATDifference;
+        NonDeductibleVATAmount := VATAmount;
+        LibraryVariableStorage.Enqueue(NonDeductibleVATAmount);
+        LibraryVariableStorage.Enqueue(VATAmount);
+
+        PurchaseInvoicePage.OpenEdit();
+        PurchaseInvoicePage.Filter.SetFilter("No.", PurchaseHeader."No.");
+        PurchaseInvoicePage.PurchaseStatistics.Invoke();
+
+        PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
+        Assert.AreNotEqual(0, PurchaseLine."Non-Deductible VAT Diff.", NonDeductibleVATDiffErr);
+
+        // [GIVEN] Post the purchase invoice
+        DocNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+        PurchInvHeader.Get(DocNo);
+
+        // [WHEN] Cancel the posted purchase invoice
+        CorrectPostedPurchInvoice.CancelPostedInvoice(PurchInvHeader);
+
+        // [THEN] The posted purchase invoice is cancelled
+        PurchInvHeader.Find();
+        PurchInvHeader.CalcFields(Cancelled);
+        Assert.AreEqual(true, PurchInvHeader.Cancelled, PostedPurchaseInvoiceCancelledErr);
+
+        // [THEN] A posted purchase credit memo exists for the cancellation
+        PurchCrMemoHdr.SetRange("Applies-to Doc. No.", PurchInvHeader."No.");
+        Assert.RecordIsNotEmpty(PurchCrMemoHdr);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -949,5 +1022,11 @@ codeunit 134287 "Non-Deductible VAT Statistics"
             VATAmountLinesPage."VAT Amount".SetValue(VATAmount);
             VATAmountLinesPage.NonDeductibleAmount.SetValue(NonDeductibleVATAmount);
         end;
+    end;
+
+    [ConfirmHandler]
+    procedure ConfirmHandlerYes(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Reply := true;
     end;
 }

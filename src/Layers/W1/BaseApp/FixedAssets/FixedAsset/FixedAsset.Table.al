@@ -332,7 +332,7 @@ table 5600 "Fixed Asset"
         }
         field(9002; "Responsible Employee Id"; Guid)
         {
-            Caption = 'Responsible Employee';
+            Caption = 'Responsible Employee Id';
             DataClassification = SystemMetadata;
             TableRelation = Employee.SystemId;
 

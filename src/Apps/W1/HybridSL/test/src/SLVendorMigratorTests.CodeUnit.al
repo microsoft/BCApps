@@ -14,6 +14,7 @@ codeunit 147603 "SL Vendor Migrator Tests"
 {
     EventSubscriberInstance = Manual;
     Subtype = Test;
+    TestType = IntegrationTest;
     TestPermissions = Disabled;
 
     var
@@ -29,8 +30,7 @@ codeunit 147603 "SL Vendor Migrator Tests"
         TempVendor: Record Vendor temporary;
         VendorDataMigrationFacade: Codeunit "Vendor Data Migration Facade";
         SLVendorMigrator: Codeunit "SL Vendor Migrator";
-        SLExpectedBCVendorData: XmlPort "SL BC Vendor Data Expected";
-        SLVendorInstream: InStream;
+        SLExpectedBCVendorData: XmlPort "SL BC Vendor Data Temporary";
         BCVendorInstream: InStream;
     begin
         // [Scenario] Vendor Class migration is turned on
@@ -76,8 +76,7 @@ codeunit 147603 "SL Vendor Migrator Tests"
         TempVendor: Record Vendor temporary;
         VendorDataMigrationFacade: Codeunit "Vendor Data Migration Facade";
         SLVendorMigrator: Codeunit "SL Vendor Migrator";
-        SLExpectedBCVendorData: XmlPort "SL BC Vendor Data Expected";
-        SLVendorInstream: InStream;
+        SLExpectedBCVendorData: XmlPort "SL BC Vendor Data Temporary";
         BCVendorInstream: InStream;
     begin
         // [Scenario] Vendor Class migration is turned off
@@ -119,8 +118,7 @@ codeunit 147603 "SL Vendor Migrator Tests"
         TempVendor: Record Vendor temporary;
         VendorDataMigrationFacade: Codeunit "Vendor Data Migration Facade";
         SLVendorMigrator: Codeunit "SL Vendor Migrator";
-        SLExpectedBCVendorData: XmlPort "SL BC Vendor Data Expected";
-        SLVendorInstream: InStream;
+        SLExpectedBCVendorData: XmlPort "SL BC Vendor Data Temporary";
         BCVendorInstream: InStream;
     begin
         // [Scenario] Inactive Vendors is turned on
@@ -163,8 +161,7 @@ codeunit 147603 "SL Vendor Migrator Tests"
         TempVendor: Record Vendor temporary;
         VendorDataMigrationFacade: Codeunit "Vendor Data Migration Facade";
         SLVendorMigrator: Codeunit "SL Vendor Migrator";
-        SLExpectedBCVendorData: XmlPort "SL BC Vendor Data Expected";
-        SLVendorInstream: InStream;
+        SLExpectedBCVendorData: XmlPort "SL BC Vendor Data Temporary";
         BCVendorInstream: InStream;
     begin
         // [Scenario] Inactive Vendors is turned off

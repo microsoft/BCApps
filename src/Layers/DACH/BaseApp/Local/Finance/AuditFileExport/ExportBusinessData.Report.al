@@ -369,6 +369,9 @@ report 11015 "Export Business Data"
     local procedure WriteTable(DataExportRecordSource: Record "Data Export Record Source"; var RecRef: RecordRef)
     var
         RecRefToExport: RecordRef;
+        AutoCalcFieldNos: Dictionary of [Integer, Boolean];
+        AutoCalcFieldNoList: List of [Integer];
+        AutoCalcFieldNo: Integer;
         CurrBlobIndex: Integer;
         FirstBlobIndex: Integer;
     begin
@@ -377,8 +380,11 @@ report 11015 "Export Business Data"
 
         CacheFlowFilterFieldNos(DataExportRecordSource);
         PreApplyFlowFilters(DataExportRecordSource, RecRef);
+        PrepareLoadFields(DataExportRecordSource, RecRef);
+        PrepareAutoCalcFields(DataExportRecordSource, AutoCalcFieldNos);
 
         if RecRef.FindSet() then begin
+            AutoCalcFieldNoList := AutoCalcFieldNos.Keys();
             CurrBlobIndex := GetCurrentBlobIndex(DataExportRecordSource."Line No.");
             FirstBlobIndex := GetFirstBlobIndex(DataExportRecordSource."Line No.");
             NoOfRecordsArr[FirstBlobIndex] += RecRef.Count();
@@ -386,7 +392,12 @@ report 11015 "Export Business Data"
                 Window.Update(1, RecRef.Caption);
             repeat
                 RecRefToExport := RecRef.Duplicate();
-                WriteRecord(DataExportRecordSource, RecRefToExport, CurrBlobIndex);
+                // Calculate FlowFields explicitly per record; SetAutoCalcFields cannot batch via a loop
+                // (each call replaces the set), so we calculate directly to keep AutoCalcFieldNos honest.
+                foreach AutoCalcFieldNo in AutoCalcFieldNoList do
+                    RecRefToExport.Field(AutoCalcFieldNo).CalcField();
+
+                WriteRecord(DataExportRecordSource, RecRefToExport, CurrBlobIndex, AutoCalcFieldNos);
                 UpdateProgressBar();
                 WriteRelatedRecords(DataExportRecordSource, RecRefToExport);
             until RecRef.Next() = 0;
@@ -469,22 +480,26 @@ report 11015 "Export Business Data"
         end;
     end;
 
-    local procedure WriteRecord(var DataExportRecordSource: Record "Data Export Record Source"; var RecRef: RecordRef; var CurrBlobIndex: Integer)
+    local procedure WriteRecord(var DataExportRecordSource: Record "Data Export Record Source"; var RecRef: RecordRef; var CurrBlobIndex: Integer; var AutoCalcFieldNos: Dictionary of [Integer, Boolean])
     var
+        RecordBuilder: TextBuilder;
         RecordText: Text;
-        FieldValue: Text;
+        IsFirstField: Boolean;
     begin
         FilterCachedFields(DataExportRecordSource);
         if TempDataExportRecordField.FindSet() then begin
             if IsCurrentBlobFull(CurrBlobIndex) then
                 CurrBlobIndex := InitNewTempBlob(DataExportRecordSource."Line No.", CurrBlobIndex);
+            IsFirstField := true;
             repeat
-                FieldValue :=
+                if not IsFirstField then
+                    RecordBuilder.Append(';');
+                RecordBuilder.Append(
                   GetCachedDataExportRecFieldValue(
-                    TempDataExportRecordField, DataExportRecordSource, RecRef);
-                RecordText += FieldValue + ';';
+                    TempDataExportRecordField, DataExportRecordSource, RecRef, AutoCalcFieldNos));
+                IsFirstField := false;
             until TempDataExportRecordField.Next() = 0;
-            RecordText := CopyStr(RecordText, 1, StrLen(RecordText) - 1);
+            RecordText := RecordBuilder.ToText();
             DotNetStreamWriterArr[CurrBlobIndex].WriteLine(RecordText);
             UpdateBlobDataSize(CurrBlobIndex, StrLen(RecordText));
         end;
@@ -635,18 +650,101 @@ report 11015 "Export Business Data"
         FieldValueText := FormatField2String(FieldRef, DataExportRecordField);
     end;
 
-    local procedure GetCachedDataExportRecFieldValue(var DataExportRecordField: Record "Data Export Record Field"; var DataExportRecordSource: Record "Data Export Record Source"; RecRef: RecordRef) FieldValueText: Text
+    local procedure GetCachedDataExportRecFieldValue(var DataExportRecordField: Record "Data Export Record Field"; var DataExportRecordSource: Record "Data Export Record Source"; RecRef: RecordRef; var AutoCalcFieldNos: Dictionary of [Integer, Boolean]) FieldValueText: Text
     var
         FieldRef: FieldRef;
+        FlowFilterFieldRef: FieldRef;
+        SavedFlowFilters: Dictionary of [Integer, Text];
+        FlowFilterFieldNos: List of [Integer];
+        FlowFilterFieldNo: Integer;
+        SavedFilterTxt: Text;
     begin
         FieldRef := RecRef.Field(DataExportRecordField."Field No.");
-        if DataExportRecordField."Field Class" = DataExportRecordField."Field Class"::FlowField then begin
-            if DataExportRecordField."Date Filter Handling" <> DataExportRecordSource."Date Filter Handling" then
-                SetFlowFilterDateFieldCached(DataExportRecordField, DataExportRecordSource."Date Filter Field No.", RecRef);
-            FieldRef := RecRef.Field(DataExportRecordField."Field No.");
-            FieldRef.CalcField();
-        end;
+        if DataExportRecordField."Field Class" = DataExportRecordField."Field Class"::FlowField then
+            if not AutoCalcFieldNos.ContainsKey(DataExportRecordField."Field No.") then begin
+                if DataExportRecordField."Date Filter Handling" <> DataExportRecordSource."Date Filter Handling" then begin
+                    if DataExportRecordSource."Date Filter Field No." > 0 then begin
+                        FlowFilterFieldRef := RecRef.Field(DataExportRecordSource."Date Filter Field No.");
+                        SavedFlowFilters.Add(DataExportRecordSource."Date Filter Field No.", FlowFilterFieldRef.GetFilter());
+                    end else
+                        if FlowFilterFieldNosCache.Get(DataExportRecordField."Table No.", FlowFilterFieldNos) then
+                            foreach FlowFilterFieldNo in FlowFilterFieldNos do begin
+                                FlowFilterFieldRef := RecRef.Field(FlowFilterFieldNo);
+                                SavedFlowFilters.Add(FlowFilterFieldNo, FlowFilterFieldRef.GetFilter());
+                            end;
+
+                    SetFlowFilterDateFieldCached(DataExportRecordField, DataExportRecordSource."Date Filter Field No.", RecRef);
+                end;
+
+                FieldRef := RecRef.Field(DataExportRecordField."Field No.");
+                FieldRef.CalcField();
+
+                foreach FlowFilterFieldNo in SavedFlowFilters.Keys() do begin
+                    SavedFilterTxt := SavedFlowFilters.Get(FlowFilterFieldNo);
+                    FlowFilterFieldRef := RecRef.Field(FlowFilterFieldNo);
+                    if SavedFilterTxt = '' then
+                        FlowFilterFieldRef.SetRange()
+                    else
+                        FlowFilterFieldRef.SetFilter(SavedFilterTxt);
+                end;
+            end;
         FieldValueText := FormatField2String(FieldRef, DataExportRecordField);
+    end;
+
+    local procedure PrepareLoadFields(DataExportRecordSource: Record "Data Export Record Source"; var RecRef: RecordRef)
+    var
+        DataExportTableRelation: Record "Data Export Table Relation";
+        AddedFieldNos: Dictionary of [Integer, Boolean];
+        LoadFieldNos: List of [Integer];
+        LoadFieldIndex: Integer;
+    begin
+        FilterCachedFields(DataExportRecordSource);
+        if TempDataExportRecordField.FindSet() then
+            repeat
+                if (TempDataExportRecordField."Field Class" = TempDataExportRecordField."Field Class"::Normal) and
+                   (not AddedFieldNos.ContainsKey(TempDataExportRecordField."Field No."))
+                then begin
+                    LoadFieldNos.Add(TempDataExportRecordField."Field No.");
+                    AddedFieldNos.Add(TempDataExportRecordField."Field No.", true);
+                end;
+            until TempDataExportRecordField.Next() = 0;
+
+        // Relation-from fields are read by WriteRelatedRecords on the parent RecRef;
+        // include them so SetLoadFields does not strip them from the row buffer.
+        DataExportTableRelation.SetRange("Data Export Code", DataExportRecordSource."Data Export Code");
+        DataExportTableRelation.SetRange("Data Exp. Rec. Type Code", DataExportRecordSource."Data Exp. Rec. Type Code");
+        DataExportTableRelation.SetRange("From Table No.", DataExportRecordSource."Table No.");
+        if DataExportTableRelation.FindSet() then
+            repeat
+                if not AddedFieldNos.ContainsKey(DataExportTableRelation."From Field No.") then begin
+                    LoadFieldNos.Add(DataExportTableRelation."From Field No.");
+                    AddedFieldNos.Add(DataExportTableRelation."From Field No.", true);
+                end;
+            until DataExportTableRelation.Next() = 0;
+
+        // SetLoadFields replaces the set on every call, so use AddLoadFields for the remaining fields.
+        if LoadFieldNos.Count() > 0 then begin
+            RecRef.SetLoadFields(LoadFieldNos.Get(1));
+            for LoadFieldIndex := 2 to LoadFieldNos.Count() do
+                RecRef.AddLoadFields(LoadFieldNos.Get(LoadFieldIndex));
+        end;
+    end;
+
+    local procedure PrepareAutoCalcFields(DataExportRecordSource: Record "Data Export Record Source"; var AutoCalcFieldNos: Dictionary of [Integer, Boolean])
+    begin
+        // SetAutoCalcFields cannot be accumulated in a loop (each call replaces the set), so we do
+        // not pre-configure auto-calc here. The dictionary just records which FlowFields share the
+        // source's Date Filter Handling so callers can CalcField them directly without filter games.
+        Clear(AutoCalcFieldNos);
+        FilterCachedFields(DataExportRecordSource);
+        if TempDataExportRecordField.FindSet() then
+            repeat
+                if (TempDataExportRecordField."Field Class" = TempDataExportRecordField."Field Class"::FlowField) and
+                   (TempDataExportRecordField."Date Filter Handling" = DataExportRecordSource."Date Filter Handling") and
+                   (not AutoCalcFieldNos.ContainsKey(TempDataExportRecordField."Field No."))
+                then
+                    AutoCalcFieldNos.Add(TempDataExportRecordField."Field No.", true);
+            until TempDataExportRecordField.Next() = 0;
     end;
 
     [Scope('OnPrem')]

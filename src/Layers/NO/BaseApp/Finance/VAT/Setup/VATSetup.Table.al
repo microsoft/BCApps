@@ -162,6 +162,7 @@ table 189 "VAT Setup"
 
     var
         UserSetupManagement: Codeunit "User Setup Management";
+        RecordHasBeenRead: Boolean;
         OneWayWarningMsg: Label 'After you enable this feature, you cannot turn it off again. This is because the feature may include changes to your data and may initiate an upgrade of some database tables as soon as you enable it.\\We strongly recommend that you first enable and test this feature on a sandbox environment that has a copy of production data before doing this on a production environment.\\For detailed information about the impact of enabling this feature, you should choose No and use the Learn more link.\\Are you sure you want to enable this feature?';
         NotPossibleToDisableNonDedVATErr: Label 'It is not possible to disable the Non-Deductible VAT';
         CompleteVATPostingSetupLbl: Label 'Choose Complete to open the VAT Posting Setup page where you can allow certain VAT Posting Setup for Non-Deductible VAT and set Non-Deductible VAT %';
@@ -188,6 +189,17 @@ table 189 "VAT Setup"
     begin
         UserSetupManagement.CheckAllowedVATDatesRange("Allow VAT Date From",
           "Allow VAT Date To", NotificationType, DATABASE::"General Ledger Setup");
+    end;
+
+    /// <summary>
+    /// Ensures the VAT Setup record is read from the database only once per session for performance optimization.
+    /// </summary>
+    procedure GetRecordOnce()
+    begin
+        if RecordHasBeenRead then
+            exit;
+        Get();
+        RecordHasBeenRead := true;
     end;
 }
 

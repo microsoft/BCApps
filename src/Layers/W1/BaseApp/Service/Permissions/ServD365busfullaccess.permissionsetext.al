@@ -14,6 +14,10 @@ using Microsoft.Service.Setup;
 permissionsetextension 5906 "SERV D365 BUS FULL ACCESS" extends "D365 BUS FULL ACCESS"
 {
     Permissions =
+                  tabledata "Service Header" = Rm,
+                  tabledata "Service Invoice Header" = Rm,
+                  tabledata "Service Shipment Header" = Rm,
+                  tabledata "Service Cr.Memo Header" = Rm,
                   tabledata "Contract Change Log" = RIMD,
                   tabledata "Contract Gain/Loss Entry" = RIM,
                   tabledata "Contract Group" = RIMD,

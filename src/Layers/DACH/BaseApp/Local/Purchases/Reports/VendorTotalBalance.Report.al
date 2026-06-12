@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -8,6 +8,7 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Period;
 using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Vendor;
+using System.Telemetry;
 
 report 11004 "Vendor Total-Balance"
 {
@@ -234,7 +235,7 @@ report 11004 "Vendor Total-Balance"
                 StartBalance := "Net Change (LCY)";
 
                 SetRange("Date Filter", StartDate, EndDate);
-                CalcFields("Debit Amount (LCY)", "Credit Amount (LCY)");
+                SetDebitCreditFromCache(Vendor, PeriodDebitTotals, PeriodCreditTotals);
                 OnAfterGetRecordVendorPeriodOnAfterCalcFieldsDebitCreditAmountLCY(Vendor);
 
                 PeriodDebitAmount := "Debit Amount (LCY)";
@@ -302,7 +303,7 @@ report 11004 "Vendor Total-Balance"
                 PeriodEndBalance := "Net Change (LCY)";
 
                 SetRange("Date Filter", YearStartDate, EndDate);
-                CalcFields("Debit Amount (LCY)", "Credit Amount (LCY)");
+                SetDebitCreditFromCache(Vendor, YearDebitTotals, YearCreditTotals);
                 OnAfterGetRecordVendorYearOnAfterCalcFieldsDebitCreditAmountLCY(Vendor);
                 YearDebitAmount := "Debit Amount (LCY)";
                 YearCreditAmount := "Credit Amount (LCY)";
@@ -370,6 +371,10 @@ report 11004 "Vendor Total-Balance"
             end;
 
             trigger OnPreDataItem()
+            var
+                Telemetry: Codeunit Telemetry;
+                CustomDimensions: Dictionary of [Text, Text];
+                StartTime: DateTime;
             begin
                 Clear(StartBalance);
                 Clear(PeriodDebitAmount);
@@ -378,6 +383,14 @@ report 11004 "Vendor Total-Balance"
                 Clear(YearDebitAmount);
                 Clear(YearCreditAmount);
                 Clear(EndBalance);
+
+                StartTime := CurrentDateTime();
+
+                GetDebitCreditTotals(StartDate, EndDate, PeriodDebitTotals, PeriodCreditTotals);
+                GetDebitCreditTotals(YearStartDate, EndDate, YearDebitTotals, YearCreditTotals);
+
+                CustomDimensions.Add('DurationSec', Format(Round((CurrentDateTime() - StartTime) / 1000, 1)));
+                Telemetry.LogMessage('0000TZG', DebitCreditTotalsLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, CustomDimensions);
             end;
         }
     }
@@ -455,6 +468,10 @@ report 11004 "Vendor Total-Balance"
         VendorLedgEntry2: Record "Vendor Ledger Entry";
         DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry";
         DetailedVendorLedgEntry2: Record "Detailed Vendor Ledg. Entry";
+        PeriodDebitTotals: Dictionary of [Code[20], Decimal];
+        PeriodCreditTotals: Dictionary of [Code[20], Decimal];
+        YearDebitTotals: Dictionary of [Code[20], Decimal];
+        YearCreditTotals: Dictionary of [Code[20], Decimal];
         VendorFilter: Text;
         PeriodText: Text;
         YearText: Text[30];
@@ -487,12 +504,60 @@ report 11004 "Vendor Total-Balance"
         Debit__CreditCaption_Control1140027Lbl: Label 'Debit/ Credit';
         Starting_BalanceCaptionLbl: Label 'Starting Balance';
         TotalCaptionLbl: Label 'Total';
+        DebitCreditTotalsLbl: Label 'Debit/Credit totals received for Vendor Total-Balance', Locked = true;
 
     protected var
         EndBalance: Decimal;
         EndBalanceType: Option " ",Debit,Credit;
         PeriodEndBalance: Decimal;
         PeriodEndBalanceType: Option " ",Debit,Credit;
+
+    local procedure SetDebitCreditFromCache(var VendorRec: Record Vendor; var DebitTotals: Dictionary of [Code[20], Decimal]; var CreditTotals: Dictionary of [Code[20], Decimal])
+    var
+        DebitAmt: Decimal;
+        CreditAmt: Decimal;
+    begin
+        if not DebitTotals.Get(VendorRec."No.", DebitAmt) then
+            DebitAmt := 0;
+        if not CreditTotals.Get(VendorRec."No.", CreditAmt) then
+            CreditAmt := 0;
+        VendorRec."Debit Amount (LCY)" := DebitAmt;
+        VendorRec."Credit Amount (LCY)" := CreditAmt;
+    end;
+
+    local procedure GetDebitCreditTotals(DateFrom: Date; DateTo: Date; var DebitTotals: Dictionary of [Code[20], Decimal]; var CreditTotals: Dictionary of [Code[20], Decimal])
+    var
+        DetailedVendorLedgEntry3: Record "Detailed Vendor Ledg. Entry";
+        VendorDebitCreditAmount: Query "Vendor Debit Credit Amount";
+        FilterText: Text;
+    begin
+        Clear(DebitTotals);
+        Clear(CreditTotals);
+
+        FilterText := Vendor.GetFilter("No.");
+        if FilterText <> '' then
+            VendorDebitCreditAmount.SetFilter(Vendor_No, FilterText);
+
+        VendorDebitCreditAmount.SetFilter(Entry_Type, '<>%1', DetailedVendorLedgEntry3."Entry Type"::Application);
+        VendorDebitCreditAmount.SetRange(Posting_Date, DateFrom, DateTo);
+
+        FilterText := Vendor.GetFilter("Global Dimension 1 Filter");
+        if FilterText <> '' then
+            VendorDebitCreditAmount.SetFilter(Initial_Entry_Global_Dim_1, FilterText);
+        FilterText := Vendor.GetFilter("Global Dimension 2 Filter");
+        if FilterText <> '' then
+            VendorDebitCreditAmount.SetFilter(Initial_Entry_Global_Dim_2, FilterText);
+        FilterText := Vendor.GetFilter("Currency Filter");
+        if FilterText <> '' then
+            VendorDebitCreditAmount.SetFilter(Currency_Code, FilterText);
+
+        VendorDebitCreditAmount.Open();
+        while VendorDebitCreditAmount.Read() do begin
+            DebitTotals.Set(VendorDebitCreditAmount.Vendor_No, VendorDebitCreditAmount.Sum_Debit_Amount_LCY);
+            CreditTotals.Set(VendorDebitCreditAmount.Vendor_No, VendorDebitCreditAmount.Sum_Credit_Amount_LCY);
+        end;
+        VendorDebitCreditAmount.Close();
+    end;
 
     [Scope('OnPrem')]
     procedure GetAdjAmount(VendorLedgEntryEntryNo: Integer): Decimal

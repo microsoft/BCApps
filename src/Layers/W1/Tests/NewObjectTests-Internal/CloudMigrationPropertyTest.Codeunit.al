@@ -809,6 +809,9 @@ codeunit 135160 "Cloud Migration Property Test"
         ListOfTablesToMigrate.Add(6121); // Database::"E-Document"
         ListOfTablesToMigrate.Add(6103); // Database::"E-Document Service"
 
+        // PEPPOL (pulled into the Internal group as a dependency of E-Document Core)
+        ListOfTablesToMigrate.Add(37202); // Database::"PEPPOL 3.0 Setup"
+
         // Other tables
         ListOfTablesToMigrate.Add(Database::"Acc. Sched. Cell Value");
         ListOfTablesToMigrate.Add(Database::"Acc. Sched. Chart Setup Line");

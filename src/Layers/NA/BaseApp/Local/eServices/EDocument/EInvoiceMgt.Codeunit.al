@@ -4380,7 +4380,7 @@ codeunit 10145 "E-Invoice Mgt."
             exit(CustLedgerEntry."Date/Time First Req. Sent");
 
         CustLedgerEntry."Date/Time First Req. Sent" :=
-          FormatAsDateTime(CustLedgerEntry."Document Date", Time, GetTimeZoneFromCustomer(CustLedgerEntry."Customer No."));
+            FormatDateTime(ConvertCurrentDateTimeToTimeZone(GetTimeZoneFromCustomer(CustLedgerEntry."Customer No.")));
         exit(CustLedgerEntry."Date/Time First Req. Sent");
     end;
 

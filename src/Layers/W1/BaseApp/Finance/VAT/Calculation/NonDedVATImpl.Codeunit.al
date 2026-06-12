@@ -609,6 +609,7 @@ codeunit 6201 "Non-Ded. VAT Impl."
 
         PurchaseLine."Non-Deductible VAT Base" := -PurchaseLine."Non-Deductible VAT Base";
         PurchaseLine."Non-Deductible VAT Amount" := -PurchaseLine."Non-Deductible VAT Amount";
+        PurchaseLine."Non-Deductible VAT Diff." := -PurchaseLine."Non-Deductible VAT Diff.";
     end;
 
     procedure Reverse(var InvoicePostingBuffer: Record "Invoice Posting Buffer")
@@ -788,6 +789,15 @@ codeunit 6201 "Non-Ded. VAT Impl."
             GenJournalLine.Validate("Non-Deductible VAT Amount LCY", GenJournalLine."Non-Deductible VAT Amount");
             exit;
         end;
+        if (GetNonDedVATPctFromGenJournalLine(GenJournalLine) = 100) and (GenJournalLine."VAT Difference" = 0) then begin
+            GenJournalLine.Validate(
+                "Non-Deductible VAT Base LCY",
+                Round(GenJournalLine."VAT Base Amount (LCY)" * GetNonDedVATPctFromGenJournalLine(GenJournalLine) / 100, Currency."Amount Rounding Precision"));
+            GenJournalLine.Validate(
+                "Non-Deductible VAT Amount LCY",
+                Round((GenJournalLine."Amount (LCY)" - GenJournalLine."VAT Base Amount (LCY)") * GetNonDedVATPctFromGenJournalLine(GenJournalLine) / 100, Currency."Amount Rounding Precision"));
+            exit;
+        end;
         GenJournalLine.Validate(
             "Non-Deductible VAT Base LCY",
             Round(
@@ -826,6 +836,15 @@ codeunit 6201 "Non-Ded. VAT Impl."
         if GenJournalLine."Currency Code" = '' then begin
             GenJournalLine.Validate("Bal. Non-Ded. VAT Base LCY", GenJournalLine."Bal. Non-Ded. VAT Base");
             GenJournalLine.Validate("Bal. Non-Ded. VAT Amount LCY", GenJournalLine."Bal. Non-Ded. VAT Amount");
+            exit;
+        end;
+        if (GetBalNonDedVATPctFromGenJournalLine(GenJournalLine) = 100) and (GenJournalLine."Bal. VAT Difference" = 0) then begin
+            GenJournalLine.Validate(
+                "Bal. Non-Ded. VAT Base LCY",
+                Round(GenJournalLine."Bal. VAT Base Amount (LCY)" * GetBalNonDedVATPctFromGenJournalLine(GenJournalLine) / 100, Currency."Amount Rounding Precision"));
+            GenJournalLine.Validate(
+                "Bal. Non-Ded. VAT Amount LCY",
+                Round((-GenJournalLine."Bal. VAT Base Amount (LCY)" - GenJournalLine."Amount (LCY)") * GetBalNonDedVATPctFromGenJournalLine(GenJournalLine) / 100, Currency."Amount Rounding Precision"));
             exit;
         end;
         GenJournalLine.Validate(

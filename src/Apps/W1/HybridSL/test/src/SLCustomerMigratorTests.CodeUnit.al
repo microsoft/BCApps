@@ -15,6 +15,7 @@ codeunit 147600 "SL Customer Migrator Tests"
 {
     EventSubscriberInstance = Manual;
     Subtype = Test;
+    TestType = IntegrationTest;
     TestPermissions = Disabled;
 
     var
@@ -31,7 +32,6 @@ codeunit 147600 "SL Customer Migrator Tests"
         CustomerDataMigrationFacade: Codeunit "Customer Data Migration Facade";
         SLCustomerMigrator: Codeunit "SL Customer Migrator";
         SLExpectedBCCustomerData: XmlPort "SL BC Customer Data";
-        SLCustomerInstream: InStream;
         BCCustomerInstream: InStream;
     begin
         // [Scenario] Customer Class migration is turned on
@@ -75,7 +75,6 @@ codeunit 147600 "SL Customer Migrator Tests"
         CustomerDataMigrationFacade: Codeunit "Customer Data Migration Facade";
         SLCustomerMigrator: Codeunit "SL Customer Migrator";
         SLExpectedBCCustomerData: XmlPort "SL BC Customer Data";
-        SLCustomerInstream: InStream;
         BCCustomerInstream: InStream;
     begin
         // [Scenario] Customer Class migration is turned off
@@ -121,7 +120,6 @@ codeunit 147600 "SL Customer Migrator Tests"
         CustomerDataMigrationFacade: Codeunit "Customer Data Migration Facade";
         SLCustomerMigrator: Codeunit "SL Customer Migrator";
         SLExpectedBCCustomerData: XmlPort "SL BC Customer Data";
-        SLCustomerInstream: InStream;
         BCCustomerInstream: InStream;
     begin
         // [Scenario] Inactive Customers is turned on
@@ -167,7 +165,6 @@ codeunit 147600 "SL Customer Migrator Tests"
         CustomerDataMigrationFacade: Codeunit "Customer Data Migration Facade";
         SLCustomerMigrator: Codeunit "SL Customer Migrator";
         SLExpectedBCCustomerData: XmlPort "SL BC Customer Data";
-        SLCustomerInstream: InStream;
         BCCustomerInstream: InStream;
     begin
         // [Scenario] Inactive Customers is turned off

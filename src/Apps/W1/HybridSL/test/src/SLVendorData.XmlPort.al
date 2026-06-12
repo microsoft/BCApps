@@ -132,6 +132,6 @@ xmlport 147615 "SL Vendor Data"
     end;
 
     var
-        CaptionRow: Boolean;
         SLVendor: Record "SL Vendor";
+        CaptionRow: Boolean;
 }

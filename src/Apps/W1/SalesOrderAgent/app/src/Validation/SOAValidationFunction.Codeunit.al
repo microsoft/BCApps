@@ -6,9 +6,7 @@
 namespace Microsoft.Agent.SalesOrderAgent;
 
 using System.AI;
-using System.Azure.KeyVault;
 using System.Globalization;
-using System.Telemetry;
 
 codeunit 4302 "SOA Validation Function" implements "AOAI Function"
 {
@@ -19,22 +17,15 @@ codeunit 4302 "SOA Validation Function" implements "AOAI Function"
     var
         IrrelevantReason: Text;
         Irrelevant: Boolean;
-        LoadToolErr: Label 'Failed to parse the validate tool. Expected a valid JSON object from Azure Key Vault.';
-        AKVRetrievalErr: Label 'Unable to retrieve SOA Irrelevant Prompt from Azure Key Vault.', Locked = true;
+        LoadToolErr: Label 'Failed to parse the validate tool. Expected a valid JSON object.';
+        IrrelevanceValidateToolTok: Label 'Prompts/MessageValidation/irrelevance-validate-tool.md', Locked = true;
 
     procedure GetPrompt(): JsonObject
     var
-        AzureKeyVault: Codeunit "Azure Key Vault";
-        SOASetupCU: Codeunit "SOA Setup";
-        FeatureTelemetry: Codeunit "Feature Telemetry";
         Tool: JsonObject;
         ToolText: Text;
-        TelemetryDimensions: Dictionary of [Text, Text];
     begin
-        if not AzureKeyVault.GetAzureKeyVaultSecret('BCSOAIrrelevanceValidateToolV27', ToolText) then begin
-            FeatureTelemetry.LogError('0000PPJ', SOASetupCU.GetFeatureName(), 'Get AKV Secret', AKVRetrievalErr, GetLastErrorCallStack(), TelemetryDimensions);
-            Error(AKVRetrievalErr);
-        end;
+        ToolText := NavApp.GetResourceAsText(IrrelevanceValidateToolTok, TextEncoding::UTF8);
         ReplaceAgentLanguageInPrompt(ToolText);
         if not Tool.ReadFrom(ToolText) then
             Error(LoadToolErr);

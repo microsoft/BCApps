@@ -501,7 +501,7 @@ codeunit 134976 "ERM Sales Report"
 
         Commit();
         Customer.SetRange("No.", SalesHeader."Sell-to Customer No.");
-        
+
         // [WHEN] Run report "Customer/Item Sales"
         RequestPageXML := Report.RunRequestPage(Report::"Customer/Item Sales", RequestPageXML);
         LibraryReportDataset.RunReportAndLoad(Report::"Customer/Item Sales", Customer, RequestPageXML);
@@ -532,7 +532,7 @@ codeunit 134976 "ERM Sales Report"
     begin
         // [SCENARIO] Check that correct Sub Totals and Grand Totals are showing on the Customer Item Sales Report after posting several Sales Orders.
         Initialize();
-        
+
         // [GIVEN] Create Customer "C1" and post two Sales Headers
         LibrarySales.CreateCustomer(Customer);
         CreateSalesDocumentWithLine(SalesHeader, SalesLine, SalesHeader."Document Type"::Order, Customer."No.");
@@ -545,7 +545,7 @@ codeunit 134976 "ERM Sales Report"
         SalesLine.Validate("Unit Cost", LibraryRandom.RandDecInRange(500, 1000, 2));
         SalesLine.Modify(true);
         LibrarySales.PostSalesDocument(SalesHeader, true, true);
-        
+
         // [GIVEN] Create Customer "C2" and post one Sales Header
         LibrarySales.CreateCustomer(Customer2);
         Clear(SalesHeader);
@@ -557,7 +557,7 @@ codeunit 134976 "ERM Sales Report"
 
         Commit();
         Customer.SetFilter("No.", '%1|%2', Customer."No.", Customer2."No.");
-        
+
         // [WHEN] Run report "Customer/Item Sales"
         RequestPageXML := Report.RunRequestPage(Report::"Customer/Item Sales", RequestPageXML);
         LibraryReportDataset.RunReportAndLoad(Report::"Customer/Item Sales", Customer, RequestPageXML);
@@ -638,8 +638,8 @@ codeunit 134976 "ERM Sales Report"
     procedure OverdueEntriesStatementReport()
     var
         GenJournalLine: Record "Gen. Journal Line";
-        Amount: Decimal;
         PeriodLength: DateFormula;
+        Amount: Decimal;
     begin
         // Verify Overdue Entries in Statement Report when Print Overdue Entries option is True.
 
@@ -663,8 +663,8 @@ codeunit 134976 "ERM Sales Report"
     procedure ReversedEntriesStatementReport()
     var
         GenJournalLine: Record "Gen. Journal Line";
-        Amount: Decimal;
         PeriodLength: DateFormula;
+        Amount: Decimal;
     begin
         // Verify Reversed Entries in Statement Report When Print Reversed Entries option is True.
 
@@ -689,8 +689,8 @@ codeunit 134976 "ERM Sales Report"
     procedure UnappliedEntryStatementReport()
     var
         GenJournalLine: Record "Gen. Journal Line";
-        Amount: Decimal;
         PeriodLength: DateFormula;
+        Amount: Decimal;
     begin
         // Verify Unapplied Entries in Statement Report when Print Unapplied Entries option is True.
 
@@ -715,8 +715,8 @@ codeunit 134976 "ERM Sales Report"
     procedure PrintAgingBandStatementReport()
     var
         GenJournalLine: Record "Gen. Journal Line";
-        Amount: Decimal;
         PeriodLength: DateFormula;
+        Amount: Decimal;
         PostingDate: Date;
     begin
         // Verify Statement Report when Include Aging Band option is True.
@@ -742,8 +742,8 @@ codeunit 134976 "ERM Sales Report"
     procedure CustomerStatementReport()
     var
         GenJournalLine: Record "Gen. Journal Line";
-        Amount: Decimal;
         PeriodLength: DateFormula;
+        Amount: Decimal;
         PostingDate: Date;
     begin
         // Verify Statement Report when Print Overdue Entries, Print Reversed Entries, Print Unapplied Entries and Include Aging Band
@@ -910,6 +910,7 @@ codeunit 134976 "ERM Sales Report"
           GenJournalLinePayment, GenJournalLinePayment."Document Type"::Payment, GenJournalLine."Account No.", '',
           2 * -LibraryRandom.RandDec(100, 2), CalcDate('<' + Format(LibraryRandom.RandInt(5)) + 'D>', WorkDate()));
         RunCustomerDetailedAging(GenJournalLinePayment);
+        LibraryReportDataset.LoadDataSetFile();
         LibraryReportDataset.SetRange(DocumentNoLbl, '');
         LibraryReportDataset.GetNextRow();
 
@@ -2714,7 +2715,7 @@ codeunit 134976 "ERM Sales Report"
     [Test]
     procedure ReportTotalsBufferFormatAmountFormatted()
     var
-        ReportTotalsBuffer: Record "Report Totals Buffer" temporary;
+        TempReportTotalsBuffer: Record "Report Totals Buffer" temporary;
         CurrencyCode: Code[10];
     begin
         // [FEATURE] [UT]
@@ -2725,11 +2726,11 @@ codeunit 134976 "ERM Sales Report"
         CurrencyCode := CreateCurrencyWithDecimalPlaces();
 
         // [WHEN] Invoke "Report Totals Buffer".Add(...) with AutoFormatExp and Amount = 123.123
-        ReportTotalsBuffer.Add('', 123.123, true, true, true, CurrencyCode);
+        TempReportTotalsBuffer.Add('', 123.123, true, true, true, CurrencyCode);
 
         // [THEN] "Amount Formatted" = 123.123
-        ReportTotalsBuffer.FindFirst();
-        Assert.IsTrue(ReportTotalsBuffer."Amount Formatted".EndsWith('.123'), WrongDecimalErr);
+        TempReportTotalsBuffer.FindFirst();
+        Assert.IsTrue(TempReportTotalsBuffer."Amount Formatted".EndsWith('.123'), WrongDecimalErr);
     end;
 
     [Test]
@@ -3201,8 +3202,8 @@ codeunit 134976 "ERM Sales Report"
         SalesHeader: Record "Sales Header";
         SalesShipmentHeader: Record "Sales Shipment Header";
         SalesLine: Record "Sales Line";
-        PostedDocumentNo: Code[20];
         InteractionLogEntry: Record "Interaction Log Entry";
+        PostedDocumentNo: Code[20];
         LogInteraction: Boolean;
         ParametersXml: Text;
     begin
@@ -3478,12 +3479,237 @@ codeunit 134976 "ERM Sales Report"
         LibraryReportDataset.AssertCurrentRowValueEquals(CustBalanceLCYLbl, Customer."Net Change (LCY)");
     end;
 
+    [Test]
+    [HandlerFunctions('CustomerTrialBalanceRequestPageHandler')]
+    procedure CustomerTrialBalanceIgnoreApplicationEntries()
+    var
+        InvoiceGenJournalLine: Record "Gen. Journal Line";
+        PaymentGenJournalLine: Record "Gen. Journal Line";
+        CustomerNo: Code[20];
+        InvoiceAmount: Decimal;
+        ExpectedDebitAmount: Decimal;
+        ExpectedCreditAmount: Decimal;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 575179] Report aggregates debit/credit from non-Application entry types and excludes Application entries.
+        Initialize();
+
+        // [GIVEN] One invoice and one payment posted for the same customer and then applied.
+        CustomerNo := LibrarySales.CreateCustomerNo();
+        InvoiceAmount := LibraryRandom.RandDec(1000, 2);
+        CreatePostGeneralJournalLine(
+            InvoiceGenJournalLine, InvoiceGenJournalLine."Document Type"::Invoice, CustomerNo, '', InvoiceAmount, WorkDate());
+        CreatePostGeneralJournalLine(
+            PaymentGenJournalLine, PaymentGenJournalLine."Document Type"::Payment, CustomerNo, '', -InvoiceAmount, WorkDate());
+        ApplyPaymentToAllOpenInvoices(PaymentGenJournalLine."Document No.", CustomerNo);
+
+        GetDetailedCustLedgEntrySums(
+            CustomerNo, CalcDate('<-CY>', WorkDate()), CalcDate('<CY>', WorkDate()),
+            '', '', '', ExpectedDebitAmount, ExpectedCreditAmount);
+
+        // [WHEN] Run Customer - Trial Balance report for current year.
+        RunCustomerTrialBalanceReportForCY(CustomerNo, '', '');
+
+        // [THEN] The report shows sums from non-Application entry types only.
+        VerifyCustomerTrialBalanceDCAmounts(CustomerNo, ExpectedDebitAmount, ExpectedCreditAmount);
+    end;
+
+    [Test]
+    procedure CustomerTrialBalanceNoFilterRestrictsQueryScope()
+    var
+        Customer: Record Customer;
+        FirstCustomerNo: Code[20];
+        SecondCustomerNo: Code[20];
+        ThirdCustomerNo: Code[20];
+        FirstDebitAmount: Decimal;
+        FirstCreditAmount: Decimal;
+        SecondDebitAmount: Decimal;
+        SecondCreditAmount: Decimal;
+        ThirdDebitAmount: Decimal;
+        ThirdCreditAmount: Decimal;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 575179] Customer No. filter limits dataset to the requested customers.
+        Initialize();
+
+        // [GIVEN] Three customers with posted debit/credit entries in the same period.
+        FirstCustomerNo := CreatePostDebitCreditJournalLines(FirstDebitAmount, FirstCreditAmount, CreateCustomer());
+        SecondCustomerNo := CreatePostDebitCreditJournalLines(SecondDebitAmount, SecondCreditAmount, CreateCustomer());
+        ThirdCustomerNo := CreatePostDebitCreditJournalLines(ThirdDebitAmount, ThirdCreditAmount, CreateCustomer());
+
+        // [WHEN] Run report for the first and third customers only.
+        Customer.SetFilter("No.", FirstCustomerNo + '|' + ThirdCustomerNo);
+        Customer.SetRange("Date Filter", CalcDate('<-CY>', WorkDate()), CalcDate('<CY>', WorkDate()));
+        Commit();
+        LibraryReportDataset.RunReportAndLoad(Report::"Customer - Trial Balance", Customer, '');
+
+        // [THEN] First and third customer values are present.
+        LibraryReportDataset.MoveToRow(LibraryReportDataset.FindRow('No_Customer', FirstCustomerNo) + 1);
+        LibraryReportDataset.AssertCurrentRowValueEquals('PeriodDebitAmt', FirstDebitAmount);
+        LibraryReportDataset.AssertCurrentRowValueEquals('PeriodCreditAmt', Abs(FirstCreditAmount));
+
+        LibraryReportDataset.MoveToRow(LibraryReportDataset.FindRow('No_Customer', ThirdCustomerNo) + 1);
+        LibraryReportDataset.AssertCurrentRowValueEquals('PeriodDebitAmt', ThirdDebitAmount);
+        LibraryReportDataset.AssertCurrentRowValueEquals('PeriodCreditAmt', Abs(ThirdCreditAmount));
+
+        // [THEN] Second customer is excluded from report.
+        LibraryReportDataset.AssertElementWithValueNotExist('No_Customer', SecondCustomerNo);
+    end;
+
+    [Test]
+    procedure CustomerTrialBalancePostingGroupFilter()
+    var
+        FirstCustomerPostingGroup: Record "Customer Posting Group";
+        SecondCustomerPostingGroup: Record "Customer Posting Group";
+        FirstCustomer: Record Customer;
+        SecondCustomer: Record Customer;
+        Customer: Record Customer;
+        FirstDebitAmount: Decimal;
+        FirstCreditAmount: Decimal;
+        SecondDebitAmount: Decimal;
+        SecondCreditAmount: Decimal;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 575179] Customer Posting Group filter restricts aggregation.
+        Initialize();
+
+        // [GIVEN] Two posting groups and two customers in different groups.
+        LibrarySales.CreateCustomerPostingGroup(FirstCustomerPostingGroup);
+        LibrarySales.CreateCustomerPostingGroup(SecondCustomerPostingGroup);
+
+        LibrarySales.CreateCustomer(FirstCustomer);
+        FirstCustomer.Validate("Customer Posting Group", FirstCustomerPostingGroup.Code);
+        FirstCustomer.Modify(true);
+
+        LibrarySales.CreateCustomer(SecondCustomer);
+        SecondCustomer.Validate("Customer Posting Group", SecondCustomerPostingGroup.Code);
+        SecondCustomer.Modify(true);
+
+        CreatePostDebitCreditJournalLines(FirstDebitAmount, FirstCreditAmount, FirstCustomer."No.");
+        CreatePostDebitCreditJournalLines(SecondDebitAmount, SecondCreditAmount, SecondCustomer."No.");
+
+        // [WHEN] Run report with Customer Posting Group filter.
+        Customer.SetRange("Date Filter", CalcDate('<-CY>', WorkDate()), CalcDate('<CY>', WorkDate()));
+        Customer.SetFilter("Customer Posting Group", FirstCustomerPostingGroup.Code);
+        Commit();
+        LibraryReportDataset.RunReportAndLoad(Report::"Customer - Trial Balance", Customer, '');
+
+        // [THEN] Only customers in selected posting group are shown.
+        LibraryReportDataset.MoveToRow(LibraryReportDataset.FindRow('No_Customer', FirstCustomer."No.") + 1);
+        LibraryReportDataset.AssertCurrentRowValueEquals('PeriodDebitAmt', FirstDebitAmount);
+        LibraryReportDataset.AssertCurrentRowValueEquals('PeriodCreditAmt', Abs(FirstCreditAmount));
+
+        LibraryReportDataset.AssertElementWithValueNotExist('No_Customer', SecondCustomer."No.");
+    end;
+
+    [Test]
+    [HandlerFunctions('CustomerTrialBalanceRequestPageHandler')]
+    procedure CustomerTrialBalanceScenario4GlobalDimensionFilter()
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        CustomerNo: Code[20];
+        GlobalDim1Value: Code[20];
+        GlobalDim2Value: Code[20];
+        DebitAmount: Decimal;
+        CreditAmount: Decimal;
+        DebitAmountDim: Decimal;
+        CreditAmountDim: Decimal;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 575179] Global dimension filter restricts debit/credit aggregation.
+        Initialize();
+
+        // [GIVEN] New Dimension Values for Global Dimension: "G1","G2"
+        CreateGlobalDimValues(GlobalDim1Value, GlobalDim2Value);
+
+        // [GIVEN] Post Customer ledger entries with Debit Amount = "D" and Credit Amount = "C" without dimensions
+        CustomerNo := CreatePostDebitCreditJournalLines(DebitAmount, CreditAmount, CreateCustomer());
+
+        // [GIVEN] Post Customer ledger entries with Debit Amount = "D1" and Credit Amount = "C1" and dimensions "G1","G2"
+        DebitAmountDim := LibraryRandom.RandDec(1000, 2);
+        CreditAmountDim := -LibraryRandom.RandDec(1000, 2);
+        CreateDebitCreditJournalLinesWithDimensions(
+            GenJournalLine, CustomerNo, DebitAmountDim, CreditAmountDim, GlobalDim1Value, GlobalDim2Value);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [WHEN] Run Customer - Trial Balance report with filters by dimensions "G1","G2"
+        RunCustomerTrialBalanceReportForCY(CustomerNo, GlobalDim1Value, GlobalDim2Value);
+
+        // [THEN] Only dimension-filtered amounts are shown in report.
+        VerifyCustomerTrialBalanceDCAmounts(CustomerNo, DebitAmountDim, Abs(CreditAmountDim));
+
+        // [THEN] Sums of all amounts are not shown in report
+        LibraryReportDataset.AssertElementWithValueNotExist('PeriodDebitAmt', DebitAmount + DebitAmountDim);
+    end;
+
+    [Test]
+    [HandlerFunctions('CustomerTrialBalanceRequestPageHandler')]
+    procedure CustomerTrialBalanceCurrencyFilter()
+    var
+        FirstGenJournalLine: Record "Gen. Journal Line";
+        CustomerNo: Code[20];
+        CurrencyCode: Code[10];
+        ExpectedDebitAmount: Decimal;
+        ExpectedCreditAmount: Decimal;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 575179] Currency filter restricts debit/credit aggregation.
+        Initialize();
+
+        // [GIVEN] Customer entries in LCY and FCY.
+        CustomerNo := CreateCustomer();
+        CurrencyCode := LibraryERM.CreateCurrencyWithRandomExchRates();
+
+        CreatePostGeneralJournalLine(
+            FirstGenJournalLine, FirstGenJournalLine."Document Type"::Invoice, CustomerNo, '', LibraryRandom.RandDec(1000, 2), WorkDate());
+        CreatePostGeneralJournalLine(
+            FirstGenJournalLine, FirstGenJournalLine."Document Type"::Payment, CustomerNo, '', -LibraryRandom.RandDec(1000, 2), WorkDate());
+        CreatePostGeneralJournalLine(
+            FirstGenJournalLine, FirstGenJournalLine."Document Type"::Invoice, CustomerNo, CurrencyCode, LibraryRandom.RandDec(1000, 2), WorkDate());
+        CreatePostGeneralJournalLine(
+            FirstGenJournalLine, FirstGenJournalLine."Document Type"::Payment, CustomerNo, CurrencyCode, -LibraryRandom.RandDec(1000, 2), WorkDate());
+
+        GetDetailedCustLedgEntrySums(
+            CustomerNo, CalcDate('<-CY>', WorkDate()), CalcDate('<CY>', WorkDate()),
+            CurrencyCode, '', '', ExpectedDebitAmount, ExpectedCreditAmount);
+
+        // [WHEN] Run report with Currency Filter = FCY code.
+        RunCustomerTrialBalanceReportForCYWithFilters(CustomerNo, '', '', '', CurrencyCode);
+
+        // [THEN] Only FCY entries contribute to totals.
+        VerifyCustomerTrialBalanceDCAmounts(CustomerNo, ExpectedDebitAmount, ExpectedCreditAmount);
+    end;
+
+    [Test]
+    [HandlerFunctions('CustomerTrialBalanceRequestPageHandler')]
+    procedure CustomerTrialBalanceNoEntriesInRangeShowsZeroAmounts()
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        CustomerNo: Code[20];
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 575179] Customer with no entries in current period has zero Period Debit/Credit.
+        Initialize();
+
+        // [GIVEN] Customer has only prior-year entries.
+        CustomerNo := CreateCustomer();
+        CreatePostGeneralJournalLine(GenJournalLine, GenJournalLine."Document Type"::Invoice,
+            CustomerNo, '', LibraryRandom.RandDec(1000, 2), CalcDate('<-1Y>', WorkDate()));
+
+        // [WHEN] Run report for current year.
+        RunCustomerTrialBalanceReportForCY(CustomerNo, '', '');
+
+        // [THEN] Period amounts are zero.
+        VerifyCustomerTrialBalanceDCAmounts(CustomerNo, 0, 0);
+    end;
+
     local procedure Initialize()
     begin
         LibraryApplicationArea.DisableApplicationAreaSetup();
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"ERM Sales Report");
         LibrarySetupStorage.Restore();
         LibraryVariableStorage.Clear();
+        Clear(LibraryReportDataset);
 
         // Lazy Setup.
         if isInitialized then
@@ -3606,7 +3832,7 @@ codeunit 134976 "ERM Sales Report"
     end;
 #endif
 
-    local procedure CreateCustomerItemReferenceNo(var Customer: Record Customer; var Item: Record Item): Code[20]
+    local procedure CreateCustomerItemReferenceNo(var Customer: Record Customer; var Item: Record Item): Code[50]
     var
         ItemReference: Record "Item Reference";
     begin
@@ -3620,7 +3846,6 @@ codeunit 134976 "ERM Sales Report"
     local procedure CreateGeneralJournalLine(var GenJournalLine: Record "Gen. Journal Line"; DocumentType: Enum "Gen. Journal Document Type"; CustomerNo: Code[20]; CurrencyCode: Code[10]; Amount: Decimal; PostingDate: Date)
     var
         GenJournalBatch: Record "Gen. Journal Batch";
-        LibraryERM: Codeunit "Library - ERM";
     begin
         ClearGenJournalLine(GenJournalBatch);
         LibraryERM.CreateGeneralJnlLine(
@@ -3632,8 +3857,6 @@ codeunit 134976 "ERM Sales Report"
     end;
 
     local procedure CreatePostGeneralJournalLine(var GenJournalLine: Record "Gen. Journal Line"; DocumentType: Enum "Gen. Journal Document Type"; CustomerNo: Code[20]; CurrencyCode: Code[10]; Amount: Decimal; PostingDate: Date)
-    var
-        LibraryERM: Codeunit "Library - ERM";
     begin
         CreateGeneralJournalLine(GenJournalLine, DocumentType, CustomerNo, CurrencyCode, Amount, PostingDate);
         LibraryERM.PostGeneralJnlLine(GenJournalLine);
@@ -3876,8 +4099,6 @@ codeunit 134976 "ERM Sales Report"
     end;
 
     local procedure CreatePostGeneralJournalLineWithDueDate(var GenJournalLine: Record "Gen. Journal Line"; DocumentType: Enum "Gen. Journal Document Type"; CustomerNo: Code[20]; CurrencyCode: Code[10]; Amount: Decimal; PostingDate: Date; DueDate: Date)
-    var
-        LibraryERM: Codeunit "Library - ERM";
     begin
         CreateGeneralJournalLine(GenJournalLine, DocumentType, CustomerNo, CurrencyCode, Amount, PostingDate);
         GenJournalLine.Validate("Due Date", DueDate);
@@ -4166,6 +4387,20 @@ codeunit 134976 "ERM Sales Report"
         REPORT.Run(REPORT::"Customer - Trial Balance", true, false, Customer);
     end;
 
+    local procedure RunCustomerTrialBalanceReportForCYWithFilters(CustomerNoFilter: Text; Dim1Filter: Code[20]; Dim2Filter: Code[20]; CustomerPostingGroupFilter: Code[20]; CurrencyFilter: Code[10])
+    var
+        Customer: Record Customer;
+    begin
+        if CustomerNoFilter <> '' then
+            Customer.SetFilter("No.", CustomerNoFilter);
+        Customer.SetRange("Date Filter", CalcDate('<-CY>', WorkDate()), CalcDate('<CY>', WorkDate()));
+        Customer.SetFilter("Global Dimension 1 Filter", Dim1Filter);
+        Customer.SetFilter("Global Dimension 2 Filter", Dim2Filter);
+        Customer.SetFilter("Customer Posting Group", CustomerPostingGroupFilter);
+        Customer.SetFilter("Currency Filter", CurrencyFilter);
+        Report.Run(Report::"Customer - Trial Balance", true, false, Customer);
+    end;
+
 #if not CLEAN28
     [Obsolete('Customer - List report is deprecated.', '28.0')]
     local procedure RunCustomerListReport(var Customer: Record Customer)
@@ -4406,6 +4641,25 @@ codeunit 134976 "ERM Sales Report"
           StrSubstNo(RowNotFoundErr, 'No_Customer', CustomerNo));
         LibraryReportDataset.AssertCurrentRowValueEquals('PeriodDebitAmt', DebitAmount);
         LibraryReportDataset.AssertCurrentRowValueEquals('PeriodCreditAmt', CreditAmount);
+    end;
+
+    local procedure GetDetailedCustLedgEntrySums(CustomerNo: Code[20]; DateFrom: Date; DateTo: Date; CurrencyFilter: Code[10]; Dim1Filter: Code[20]; Dim2Filter: Code[20]; var DebitAmountLCY: Decimal; var CreditAmountLCY: Decimal)
+    var
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+    begin
+        DetailedCustLedgEntry.SetRange("Customer No.", CustomerNo);
+        DetailedCustLedgEntry.SetRange("Posting Date", DateFrom, DateTo);
+        DetailedCustLedgEntry.SetFilter("Entry Type", '<>%1', DetailedCustLedgEntry."Entry Type"::Application);
+        if Dim1Filter <> '' then
+            DetailedCustLedgEntry.SetFilter("Initial Entry Global Dim. 1", Dim1Filter);
+        if Dim2Filter <> '' then
+            DetailedCustLedgEntry.SetFilter("Initial Entry Global Dim. 2", Dim2Filter);
+        if CurrencyFilter <> '' then
+            DetailedCustLedgEntry.SetFilter("Currency Code", CurrencyFilter);
+        DetailedCustLedgEntry.CalcSums("Debit Amount (LCY)", "Credit Amount (LCY)");
+
+        DebitAmountLCY := DetailedCustLedgEntry."Debit Amount (LCY)";
+        CreditAmountLCY := DetailedCustLedgEntry."Credit Amount (LCY)";
     end;
 
     local procedure VerifyCustomerOrderSummarySalesAmount(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line")

@@ -6,7 +6,7 @@ namespace Microsoft.DataMigration.SL;
 
 using Microsoft.Purchases.Vendor;
 
-codeunit 147651 "SL Test Helper Functions"
+codeunit 147671 "SL Test Helper Functions"
 {
     procedure GetInputStreamFromResource(ResourcePath: Text; var ResInstream: InStream)
     begin
@@ -136,7 +136,7 @@ codeunit 147651 "SL Test Helper Functions"
     var
         SLCompanyMigrationSettings: Record "SL Company Migration Settings";
         SLCompanyAdditionalSettings: Record "SL Company Additional Settings";
-        CompanyNameText: Text[30];
+        CompanyNameText: Text[150];
     begin
         CompanyNameText := CompanyName();
 

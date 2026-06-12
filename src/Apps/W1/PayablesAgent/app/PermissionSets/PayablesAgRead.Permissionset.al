@@ -10,5 +10,7 @@ permissionset 3305 "Payables Ag. - Read"
 {
     Caption = 'Payables Agent - Read', Comment = 'Payables Agent is a term, and should not be translated.';
     Assignable = true;
-    Permissions = tabledata "Payables Agent Setup" = R;
+    Permissions =
+        tabledata "Payables Agent Setup" = R,
+        tabledata "PA Known Sender" = R;
 }

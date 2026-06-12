@@ -47,7 +47,7 @@ codeunit 99000843 "Undo Prod. Posting Mgmt."
 
         OnReverseProdItemLedgerEntryOnAfterProcessItemLedgerEntries(ItemLedgerEntry);
 
-        if Processed then
+        if Processed and not HideDialog then
             Message(PostedSuccessfullyMsg);
     end;
 
@@ -66,7 +66,7 @@ codeunit 99000843 "Undo Prod. Posting Mgmt."
                 Processed := true;
             until CapacityLedgEntry.Next() = 0;
 
-        if Processed then
+        if Processed and not HideDialog then
             Message(PostedSuccessfullyMsg);
     end;
 

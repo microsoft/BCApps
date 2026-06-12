@@ -576,6 +576,9 @@ table 18689 "TDS Entry"
         TDSEntry.Reset();
         TDSEntry.SetCurrentKey("Transaction No.");
         TDSEntry.SetRange("Transaction No.", "Transaction No.");
+        TDSEntry.SetRange("Vendor No.", "Vendor No.");
+        TDSEntry.SetRange("Document Type", "Document Type");
+        TDSEntry.SetRange("Document No.", "Document No.");
         TDSEntry.SetFilter("Entry No.", '<>%1', "Entry No.");
         TDSEntry.SetFilter(Section, '<>%1', Section);
         exit(not TDSEntry.IsEmpty);

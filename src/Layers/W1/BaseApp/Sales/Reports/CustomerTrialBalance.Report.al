@@ -10,6 +10,8 @@ namespace Microsoft.Sales.Reports;
 
 using Microsoft.Foundation.Period;
 using Microsoft.Sales.Customer;
+using Microsoft.Sales.Receivables;
+using System.Telemetry;
 
 report 129 "Customer - Trial Balance"
 {
@@ -129,12 +131,27 @@ report 129 "Customer - Trial Balance"
             trigger OnAfterGetRecord()
             begin
                 CalcAmounts(
-                  PeriodStartDate, PeriodEndDate,
+                  PeriodStartDate, PeriodDebitTotals, PeriodCreditTotals,
                   PeriodBeginBalance, PeriodDebitAmt, PeriodCreditAmt, YTDTotal);
 
                 CalcAmounts(
-                  FiscalYearStartDate, PeriodEndDate,
+                  FiscalYearStartDate, YTDDebitTotals, YTDCreditTotals,
                   YTDBeginBalance, YTDDebitAmt, YTDCreditAmt, YTDTotal);
+            end;
+
+            trigger OnPreDataItem()
+            var
+                Telemetry: Codeunit Telemetry;
+                CustomDimensions: Dictionary of [Text, Text];
+                StartTime: DateTime;
+            begin
+                StartTime := CurrentDateTime();
+
+                GetDebitCreditTotals(PeriodStartDate, PeriodEndDate, PeriodDebitTotals, PeriodCreditTotals);
+                GetDebitCreditTotals(FiscalYearStartDate, PeriodEndDate, YTDDebitTotals, YTDCreditTotals);
+
+                CustomDimensions.Add('DurationSec', Format(Round((CurrentDateTime() - StartTime) / 1000, 1)));
+                Telemetry.LogMessage('0000TZJ', DebitCreditTotalsLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, CustomDimensions);
             end;
         }
     }
@@ -189,6 +206,10 @@ report 129 "Customer - Trial Balance"
 
     var
         AccountingPeriod: Record "Accounting Period";
+        PeriodDebitTotals: Dictionary of [Code[20], Decimal];
+        PeriodCreditTotals: Dictionary of [Code[20], Decimal];
+        YTDDebitTotals: Dictionary of [Code[20], Decimal];
+        YTDCreditTotals: Dictionary of [Code[20], Decimal];
         PeriodBeginBalance: Decimal;
         PeriodDebitAmt: Decimal;
         PeriodCreditAmt: Decimal;
@@ -222,8 +243,9 @@ report 129 "Customer - Trial Balance"
         FiscalYearToDateCaptionLbl: Label 'Fiscal Year-To-Date';
         NetChangeCaptionLbl: Label 'Net Change';
         TotalinLCYCaptionLbl: Label 'Total in LCY';
+        DebitCreditTotalsLbl: Label 'Debit/Credit totals received for Customer Trial Balance', Locked = true;
 
-    local procedure CalcAmounts(DateFrom: Date; DateTo: Date; var BeginBalance: Decimal; var DebitAmt: Decimal; var CreditAmt: Decimal; var TotalBalance: Decimal)
+    local procedure CalcAmounts(DateFrom: Date; var DebitTotals: Dictionary of [Code[20], Decimal]; var CreditTotals: Dictionary of [Code[20], Decimal]; var BeginBalance: Decimal; var DebitAmt: Decimal; var CreditAmt: Decimal; var TotalBalance: Decimal)
     var
         CustomerCopy: Record Customer;
     begin
@@ -233,12 +255,50 @@ report 129 "Customer - Trial Balance"
         CustomerCopy.CalcFields("Net Change (LCY)");
         BeginBalance := CustomerCopy."Net Change (LCY)";
 
-        CustomerCopy.SetRange("Date Filter", DateFrom, DateTo);
-        CustomerCopy.CalcFields("Debit Amount (LCY)", "Credit Amount (LCY)");
-        DebitAmt := CustomerCopy."Debit Amount (LCY)";
-        CreditAmt := CustomerCopy."Credit Amount (LCY)";
+        if not DebitTotals.Get(Customer."No.", DebitAmt) then
+            DebitAmt := 0;
+        if not CreditTotals.Get(Customer."No.", CreditAmt) then
+            CreditAmt := 0;
 
         TotalBalance := BeginBalance + DebitAmt - CreditAmt;
+    end;
+
+    local procedure GetDebitCreditTotals(DateFrom: Date; DateTo: Date; var DebitTotals: Dictionary of [Code[20], Decimal]; var CreditTotals: Dictionary of [Code[20], Decimal])
+    var
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        CustomerDebitCreditAmount: Query "Customer Debit Credit Amount";
+        FilterText: Text;
+    begin
+        Clear(DebitTotals);
+        Clear(CreditTotals);
+
+        FilterText := Customer.GetFilter("No.");
+        if FilterText <> '' then
+            CustomerDebitCreditAmount.SetFilter(Customer_No, FilterText);
+
+        CustomerDebitCreditAmount.SetFilter(Entry_Type, '<>%1', DetailedCustLedgEntry."Entry Type"::Application);
+        CustomerDebitCreditAmount.SetRange(Posting_Date, DateFrom, DateTo);
+
+        FilterText := Customer.GetFilter("Global Dimension 1 Filter");
+        if FilterText <> '' then
+            CustomerDebitCreditAmount.SetFilter(Initial_Entry_Global_Dim_1, FilterText);
+        FilterText := Customer.GetFilter("Global Dimension 2 Filter");
+        if FilterText <> '' then
+            CustomerDebitCreditAmount.SetFilter(Initial_Entry_Global_Dim_2, FilterText);
+        FilterText := Customer.GetFilter("Currency Filter");
+        if FilterText <> '' then
+            CustomerDebitCreditAmount.SetFilter(Currency_Code, FilterText);
+
+        FilterText := Customer.GetFilter("Customer Posting Group");
+        if FilterText <> '' then
+            CustomerDebitCreditAmount.SetFilter(Customer_Posting_Group, FilterText);
+
+        CustomerDebitCreditAmount.Open();
+        while CustomerDebitCreditAmount.Read() do begin
+            DebitTotals.Set(CustomerDebitCreditAmount.Customer_No, CustomerDebitCreditAmount.Sum_Debit_Amount_LCY);
+            CreditTotals.Set(CustomerDebitCreditAmount.Customer_No, CustomerDebitCreditAmount.Sum_Credit_Amount_LCY);
+        end;
+        CustomerDebitCreditAmount.Close();
     end;
 }
 

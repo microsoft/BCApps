@@ -132,7 +132,13 @@ codeunit 99000872 "Sales Availability Mgt."
         FullAutoReservation: Boolean;
         QtyToReserve: Decimal;
         QtyToReserveBase: Decimal;
+        IsHandled: Boolean;
     begin
+        IsHandled := false;
+        OnBeforeOnUpdateSourceLine(OrderPromisingLine, IsHandled);
+        if IsHandled then
+            exit;
+
         case OrderPromisingLine."Source Type" of
             OrderPromisingLine."Source Type"::Sales:
                 begin
@@ -850,6 +856,11 @@ codeunit 99000872 "Sales Availability Mgt."
 
     [IntegrationEvent(false, false)]
     local procedure OnSetSalesHeaderOnAfterFilterSalesLine(var SalesLine: Record "Sales Line"; var SalesHeader: Record "Sales Header")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeOnUpdateSourceLine(var OrderPromisingLine: Record "Order Promising Line"; var IsHandled: Boolean)
     begin
     end;
 }

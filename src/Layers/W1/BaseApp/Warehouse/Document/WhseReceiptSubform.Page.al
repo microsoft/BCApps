@@ -187,6 +187,10 @@ page 5769 "Whse. Receipt Subform"
                 {
                     ApplicationArea = Warehouse;
                     Visible = OverReceiptAllowed;
+                    trigger OnValidate()
+                    begin
+                        CurrPage.Update(true);
+                    end;
                 }
             }
         }

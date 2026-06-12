@@ -618,6 +618,7 @@ codeunit 80 "Sales-Post"
     begin
         TempSalesLineLocal.Modify();
         SalesLine.Get(TempSalesLineLocal.RecordId);
+        OnModifyTempLineOnBeforeTransferFields(SalesLine, TempSalesLineLocal);
         SalesLine.TransferFields(TempSalesLineLocal, false);
         OnModifyTempLineOnBeforeSalesLineModify(SalesLine);
         SalesLine.Modify();
@@ -2053,6 +2054,7 @@ codeunit 80 "Sales-Post"
         ItemJnlLine2."Shortcut Dimension 1 Code" := ItemChargeSalesLine."Shortcut Dimension 1 Code";
         ItemJnlLine2."Shortcut Dimension 2 Code" := ItemChargeSalesLine."Shortcut Dimension 2 Code";
         ItemJnlLine2."Dimension Set ID" := ItemChargeSalesLine."Dimension Set ID";
+        UpdateItemJnlLineDimSetIDFromAppliedShipmentEntry(ItemJnlLine2);
         ItemJnlLine2."Gen. Prod. Posting Group" := ItemChargeSalesLine."Gen. Prod. Posting Group";
 
         OnPostItemChargePerOrderOnAfterCopyToItemJnlLine(
@@ -11601,6 +11603,23 @@ codeunit 80 "Sales-Post"
         OnAfterValidatePostingAndDocumentDate(SalesHeader, SuppressCommit, PreviewMode, ReplacePostingDate, ReplaceDocumentDate);
     end;
 
+    local procedure UpdateItemJnlLineDimSetIDFromAppliedShipmentEntry(var ItemJnlLine2: Record "Item Journal Line")
+    var
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        DimensionMgt: Codeunit DimensionManagement;
+        DimSetID: array[10] of Integer;
+    begin
+        if ItemJnlLine2."Item Shpt. Entry No." <> 0 then begin
+            ItemLedgerEntry.SetLoadFields("Dimension Set ID");
+            ItemLedgerEntry.Get(ItemJnlLine2."Item Shpt. Entry No.");
+            DimSetID[1] := ItemLedgerEntry."Dimension Set ID";
+            DimSetID[2] := ItemJnlLine2."Dimension Set ID";
+
+            ItemJnlLine2."Dimension Set ID" :=
+                DimensionMgt.GetCombinedDimensionSetID(DimSetID, ItemJnlLine2."Shortcut Dimension 1 Code", ItemJnlLine2."Shortcut Dimension 2 Code");
+        end;
+    end;
+
     local procedure UpdateSalesLineDimSetIDFromAppliedEntry(var SalesLineToPost: Record "Sales Line"; SalesLine: Record "Sales Line")
     var
         ItemLedgEntry: Record "Item Ledger Entry";
@@ -13293,6 +13312,11 @@ codeunit 80 "Sales-Post"
 
     [IntegrationEvent(false, false)]
     local procedure OnModifyTempLineOnAfterSalesLineModify(var SalesLine: Record "Sales Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnModifyTempLineOnBeforeTransferFields(var SalesLine: Record "Sales Line"; var TempSalesLine: Record "Sales Line" temporary)
     begin
     end;
 

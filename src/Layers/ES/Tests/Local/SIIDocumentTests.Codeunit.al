@@ -2382,6 +2382,43 @@ codeunit 147520 SIIDocumentTests
 
     [Test]
     [Scope('OnPrem')]
+    procedure PurchInvWithInvTypeLCAndReverseChargeVATXML()
+    var
+        CountryRegion: Record "Country/Region";
+        PurchaseHeader: Record "Purchase Header";
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        SIIDocUploadState: Record "SII Doc. Upload State";
+        XMLDoc: DotNet XmlDocument;
+        VATRate: Decimal;
+        Amount: Decimal;
+    begin
+        // [FEATURE] [AI test 0.4] [Purchase] [Invoice] [XML] [Reverse Charge] [VAT]
+        // [SCENARIO 637259] Reverse Charge VAT Amount exports under the DesgloseIVA for the purchase invoice with invoice type "LC"
+        Initialize();
+
+        // [GIVEN] Posted Purchase Invoice with "Invoice Type" = "Customs - Complementary Liquidation", one Purchase Line where
+        // [GIVEN] line is calculated as Reverse Charge VAT with VAT Amount = "X"
+        LibraryERM.CreateCountryRegion(CountryRegion);
+        LibrarySII.CreatePurchDocWithReverseChargeVAT(
+          PurchaseHeader, VATRate, Amount, PurchaseHeader."Document Type"::Invoice, CountryRegion.Code);
+        PurchaseHeader.Validate("Invoice Type", PurchaseHeader."Invoice Type"::"Customs - Complementary Liquidation");
+        PurchaseHeader.Modify(true);
+        LibraryERM.FindVendorLedgerEntry(
+          VendorLedgerEntry, PurchaseHeader."Document Type", LibraryPurchase.PostPurchaseDocument(PurchaseHeader, false, true));
+
+        // [GIVEN] SII version is "2.1"
+        SIIXMLCreator.SetSIIVersionNo(SIIDocUploadState."Version No."::"2.1");
+
+        // [WHEN] XML is generated
+        Assert.IsTrue(SIIXMLCreator.GenerateXml(VendorLedgerEntry, XMLDoc, UploadType::Regular, false), IncorrectXMLDocErr);
+
+        // [THEN] 'sii:CuotaSoportada' under 'sii:DesgloseIVA" has value = "X" and no 'sii:InversionSujetoPasivo' block is emitted
+        LibrarySII.VerifyOneNodeWithValueByXPath(
+          XMLDoc, XPathPurchBaseImponibleTok, '/sii:CuotaSoportada', SIIXMLCreator.FormatNumber(Round(VATRate * Amount / 100)));
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure FechaOperacionNextDateAfterPostingDateSalesCreditMemoWithSchemeCode14AndVersion11bis()
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
@@ -3411,7 +3448,7 @@ codeunit 147520 SIIDocumentTests
         asserterror SIISetup.Validate(InvoicesIssuedEndpointUrl, 'https://evil.com/wlpl/SSII-FACT/ws/fe/SiiFactFEV1SOAP');
 
         // [THEN] An error is thrown about invalid endpoint URL
-        Assert.ExpectedError('The endpoint URL must start with one of the following base URLs');
+        Assert.ExpectedError('is not on the allow-list for this feature');
         Assert.ExpectedErrorCode('Dialog');
     end;
 
@@ -3432,7 +3469,7 @@ codeunit 147520 SIIDocumentTests
         asserterror SIISetup.Validate(InvoicesReceivedEndpointUrl, 'http://www1.agenciatributaria.gob.es/wlpl/SSII-FACT/ws/fr/SiiFactFRV1SOAP');
 
         // [THEN] An error is thrown about invalid endpoint URL
-        Assert.ExpectedError('The endpoint URL must start with one of the following base URLs');
+        Assert.ExpectedError('is not on the allow-list for this feature');
         Assert.ExpectedErrorCode('Dialog');
     end;
 
@@ -3453,7 +3490,7 @@ codeunit 147520 SIIDocumentTests
         asserterror SIISetup.Validate(PaymentsIssuedEndpointUrl, 'https://www1.agenciatributaria.gob.es.evil.com/wlpl/SSII-FACT/ws/fr/SiiFactPAGV1SOAP');
 
         // [THEN] An error is thrown about invalid endpoint URL
-        Assert.ExpectedError('The endpoint URL must start with one of the following base URLs');
+        Assert.ExpectedError('is not on the allow-list for this feature');
         Assert.ExpectedErrorCode('Dialog');
     end;
 
@@ -3474,7 +3511,7 @@ codeunit 147520 SIIDocumentTests
         asserterror SIISetup.Validate(PaymentsReceivedEndpointUrl, 'https://totally-wrong-domain.com/something');
 
         // [THEN] An error is thrown about invalid endpoint URL
-        Assert.ExpectedError('The endpoint URL must start with one of the following base URLs');
+        Assert.ExpectedError('is not on the allow-list for this feature');
         Assert.ExpectedErrorCode('Dialog');
     end;
 
@@ -3495,7 +3532,7 @@ codeunit 147520 SIIDocumentTests
         asserterror SIISetup.Validate(CollectionInCashEndpointUrl, 'https://malicious-site.org/wlpl/SSII-FACT/ws/pm/SiiFactCMV1SOAP');
 
         // [THEN] An error is thrown about invalid endpoint URL
-        Assert.ExpectedError('The endpoint URL must start with one of the following base URLs');
+        Assert.ExpectedError('is not on the allow-list for this feature');
         Assert.ExpectedErrorCode('Dialog');
     end;
 

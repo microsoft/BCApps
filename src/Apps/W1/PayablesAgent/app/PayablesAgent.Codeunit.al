@@ -50,7 +50,8 @@ codeunit 3303 "Payables Agent" implements IAgentMetadata, IAgentFactory
         EDocument: Record "E-Document";
         EDocumentEntryNo: Integer;
     begin
-        if not AgentTaskMessage.Get(MessageId) then
+        AgentTaskMessage.SetRange(ID, MessageId);
+        if not AgentTaskMessage.FindFirst() then
             exit;
         if not Evaluate(EDocumentEntryNo, AgentTaskMessage."External ID") then
             exit;
@@ -144,6 +145,7 @@ codeunit 3303 "Payables Agent" implements IAgentMetadata, IAgentFactory
     var
         Agent: Record Agent;
         AgentTask: Record "Agent Task";
+        PayablesAgentSetupRec: Record "Payables Agent Setup";
         PayablesAgentSetup: Codeunit "Payables Agent Setup";
         PayablesAgentKPI: Codeunit "Payables Agent KPI";
         EDocImpSessionTelemetry: Codeunit "E-Doc. Imp. Session Telemetry";
@@ -176,8 +178,10 @@ codeunit 3303 "Payables Agent" implements IAgentMetadata, IAgentFactory
 
         BuildAgentTask(EDocument, Agent);
 
+        PayablesAgentSetupRec.GetSetup();
         CustomDimensions.Set('Category', PayablesAgentSetup.FeatureName());
         CustomDimensions.Set('SystemId', EDocImpSessionTelemetry.CreateSystemIdText(EDocument.SystemId));
+        CustomDimensions.Set('ReviewIncomingInvoice', Format(PayablesAgentSetupRec."Review Incoming Invoice", 0, 9));
         Telemetry.LogMessage('0000PJA', 'Payables Agent Task Received', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
         PayablesAgentKPI.InsertKPIEntry("PA KPI Scenario"::"Agent Tasks Received");
     end;

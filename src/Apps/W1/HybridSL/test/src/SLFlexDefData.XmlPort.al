@@ -128,6 +128,6 @@ xmlport 147627 "SL FlexDef Data"
     end;
 
     var
-        CaptionRow: Boolean;
         SLFlexDef: Record "SL FlexDef";
+        CaptionRow: Boolean;
 }

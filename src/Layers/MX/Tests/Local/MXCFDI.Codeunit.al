@@ -7295,6 +7295,258 @@
         Assert.ExpectedError(StrSubstNo(CertificateNotExistErr, SATCertificateCodeB));
     end;
 
+    [Test]
+    [HandlerFunctions('StrMenuHandler')]
+    procedure PaymentStampFechaUsesStampDateWhenPostingDateDiffers()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        Customer: Record Customer;
+        PagoNode: DotNet XmlNode;
+        PaymentNo: Code[20];
+        FileName: Text;
+        FechaValue: Text;
+        FechaPagoValue: Text;
+        PastWorkDate: Date;
+        SavedWorkDate: Date;
+    begin
+        // [FEATURE] [Payment Stamp]
+        // [SCENARIO] Comprobante/@Fecha uses the stamp request date and pago20:Pago/@FechaPago
+        //            uses the payment posting date when the dates differ
+        Initialize();
+
+        // [GIVEN] The work date is set to a past date to post the payment with a past posting date
+        SavedWorkDate := WorkDate();
+        PastWorkDate := CalcDate('<-30D>', Today());
+        WorkDate(PastWorkDate);
+
+        // [GIVEN] A sales invoice "SI" is posted for customer "C"
+        SalesInvoiceHeader.Get(CreateAndPostDoc(DATABASE::"Sales Invoice Header", CreatePaymentMethodForSAT()));
+        SalesInvoiceHeader.CalcFields("Amount Including VAT");
+        UpdateCustomerSATPaymentFields(SalesInvoiceHeader."Sell-to Customer No.");
+
+        Customer.Get(SalesInvoiceHeader."Sell-to Customer No.");
+        Customer.Validate("Payment Method Code", CreatePaymentMethodForSAT());
+        Customer.Modify(true);
+
+        // [GIVEN] A payment journal line of type Payment is posted and applied to the invoice
+        PaymentNo :=
+          CreatePostPayment(
+            SalesInvoiceHeader."Sell-to Customer No.",
+            SalesInvoiceHeader."No.",
+            -SalesInvoiceHeader."Amount Including VAT",
+            '');
+
+        // [GIVEN] The work date is restored to the current date before requesting the stamp
+        WorkDate(Today());
+
+        // [WHEN] A stamp request is sent for the payment
+        RequestStamp(
+            DATABASE::"Cust. Ledger Entry",
+            PaymentNo,
+            ResponseOption::Success,
+            ActionOption::"Request Stamp");
+
+        ExportPaymentToServerFile(
+            CustLedgerEntry,
+            FileName,
+            CustLedgerEntry."Document Type"::Payment,
+            PaymentNo);
+
+        // [THEN] The date portion of Comprobante/@Fecha equals the stamp request date
+        InitXMLReaderForPagos20(FileName);
+        FechaValue := LibraryXPathXMLReader.GetRootAttributeValue('Fecha');
+
+        Assert.AreEqual(
+            FormatDate(Today()),
+            CopyStr(FechaValue, 1, 10),
+            'Comprobante/@Fecha date portion must equal the stamp request date');
+
+        // [THEN] pago20:Pago/@FechaPago date portion equals the payment posting date
+        // Note: only validate date portion (YYYY-MM-DD) to keep test timezone-independent.
+        LibraryXPathXMLReader.GetNodeByXPath('cfdi:Complemento/pago20:Pagos/pago20:Pago', PagoNode);
+        FechaPagoValue := LibraryXPathXMLReader.GetAttributeValueFromNode(PagoNode, 'FechaPago');
+        Assert.AreEqual(
+            FormatDate(PastWorkDate),
+            CopyStr(FechaPagoValue, 1, 10),
+            'FechaPago date portion must equal the payment posting date');
+
+        // [THEN] Comprobante/@Fecha and pago20:Pago/@FechaPago have different date values
+        Assert.AreNotEqual(
+            CopyStr(FechaValue, 1, 10),
+            CopyStr(FechaPagoValue, 1, 10),
+            'Comprobante/@Fecha and FechaPago must differ when posting date differs from stamp request date');
+
+        // [CLEANUP] Restore the original work date
+        WorkDate(SavedWorkDate);
+    end;
+
+    [Test]
+    [HandlerFunctions('StrMenuHandler')]
+    procedure PaymentStampDatesMatchWhenPostingDateIsToday()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        Customer: Record Customer;
+        PagoNode: DotNet XmlNode;
+        PaymentNo: Code[20];
+        FileName: Text;
+        FechaValue: Text;
+        FechaPagoValue: Text;
+        SavedWorkDate: Date;
+    begin
+        // [FEATURE] [Payment Stamp]
+        // [SCENARIO] Comprobante/@Fecha and pago20:Pago/@FechaPago contain the same date
+        //            when the payment posting date equals the stamp request date
+        Initialize();
+
+        // [GIVEN] The work date is set to today so that the payment posting date equals the stamp request date
+        SavedWorkDate := WorkDate();
+        WorkDate(Today());
+
+        // [GIVEN] A sales invoice "SI" is posted for customer "C"
+        SalesInvoiceHeader.Get(CreateAndPostDoc(DATABASE::"Sales Invoice Header", CreatePaymentMethodForSAT()));
+        SalesInvoiceHeader.CalcFields("Amount Including VAT");
+        UpdateCustomerSATPaymentFields(SalesInvoiceHeader."Sell-to Customer No.");
+
+        Customer.Get(SalesInvoiceHeader."Sell-to Customer No.");
+        Customer.Validate("Payment Method Code", CreatePaymentMethodForSAT());
+        Customer.Modify(true);
+
+        // [GIVEN] A payment journal line of type Payment is posted and applied to the invoice with posting date equal to the stamp request date
+        PaymentNo :=
+          CreatePostPayment(
+            SalesInvoiceHeader."Sell-to Customer No.",
+            SalesInvoiceHeader."No.",
+            -SalesInvoiceHeader."Amount Including VAT",
+            '');
+
+        // [WHEN] A stamp request is sent for the payment
+        RequestStamp(
+            DATABASE::"Cust. Ledger Entry",
+            PaymentNo,
+            ResponseOption::Success,
+            ActionOption::"Request Stamp");
+
+        ExportPaymentToServerFile(
+            CustLedgerEntry,
+            FileName,
+            CustLedgerEntry."Document Type"::Payment,
+            PaymentNo);
+
+        // [THEN] The date portion of Comprobante/@Fecha equals the date portion of pago20:Pago/@FechaPago
+        InitXMLReaderForPagos20(FileName);
+        FechaValue := LibraryXPathXMLReader.GetRootAttributeValue('Fecha');
+        LibraryXPathXMLReader.GetNodeByXPath('cfdi:Complemento/pago20:Pagos/pago20:Pago', PagoNode);
+        FechaPagoValue := LibraryXPathXMLReader.GetAttributeValueFromNode(PagoNode, 'FechaPago');
+
+        Assert.AreEqual(
+            CopyStr(FechaValue, 1, 10),
+            CopyStr(FechaPagoValue, 1, 10),
+            'Comprobante/@Fecha and FechaPago must have the same date when the posting date equals the stamp request date');
+
+        // [CLEANUP] Restore original work date
+        WorkDate(SavedWorkDate);
+    end;
+
+    [Test]
+    [HandlerFunctions('StrMenuHandler')]
+    procedure PaymentStampOtherXmlAttributesUnchangedByDateFix()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        Customer: Record Customer;
+        FileName: Text;
+        PaymentNo: Code[20];
+        SavedWorkDate: Date;
+        PastWorkDate: Date;
+    begin
+        // [FEATURE] [Payment Stamp]
+        // [SCENARIO] Payment XML contains expected attribute values when the posting date differs from the stamp request date
+        Initialize();
+
+        // [GIVEN] The work date is set to a past date to post the payment with a past posting date
+        SavedWorkDate := WorkDate();
+        PastWorkDate := CalcDate('<-30D>', Today());
+        WorkDate(PastWorkDate);
+
+        // [GIVEN] A sales invoice "SI" is posted for customer "C"
+        SalesInvoiceHeader.Get(CreateAndPostDoc(DATABASE::"Sales Invoice Header", CreatePaymentMethodForSAT()));
+        SalesInvoiceHeader.CalcFields("Amount Including VAT");
+        UpdateCustomerSATPaymentFields(SalesInvoiceHeader."Sell-to Customer No.");
+
+        Customer.Get(SalesInvoiceHeader."Sell-to Customer No.");
+        Customer.Validate("Payment Method Code", CreatePaymentMethodForSAT());
+        Customer.Modify(true);
+
+        // [GIVEN] A payment journal line of type Payment is posted and applied to the invoice
+        PaymentNo :=
+          CreatePostPayment(
+            SalesInvoiceHeader."Sell-to Customer No.",
+            SalesInvoiceHeader."No.",
+            -SalesInvoiceHeader."Amount Including VAT",
+            '');
+
+        // [GIVEN] The work date is restored to the current date before requesting the stamp
+        WorkDate(Today());
+
+        // [WHEN] A stamp request is sent for the payment
+        RequestStamp(
+            DATABASE::"Cust. Ledger Entry",
+            PaymentNo,
+            ResponseOption::Success,
+            ActionOption::"Request Stamp");
+
+        ExportPaymentToServerFile(
+            CustLedgerEntry,
+            FileName,
+            CustLedgerEntry."Document Type"::Payment,
+            PaymentNo);
+
+        // [THEN] Root Comprobante attributes contain expected values
+        InitXMLReaderForPagos20(FileName);
+        LibraryXPathXMLReader.VerityAttributeFromRootNode('Version', '4.0');
+        LibraryXPathXMLReader.VerityAttributeFromRootNode('SubTotal', '0');
+        LibraryXPathXMLReader.VerityAttributeFromRootNode('Moneda', 'XXX');
+        LibraryXPathXMLReader.VerityAttributeFromRootNode('Total', '0');
+        LibraryXPathXMLReader.VerityAttributeFromRootNode('TipoDeComprobante', 'P');
+
+        // [THEN] Concepto attributes contain expected values
+        LibraryXPathXMLReader.VerifyAttributeValue(
+            'cfdi:Conceptos/cfdi:Concepto',
+            'ValorUnitario',
+            '0');
+        LibraryXPathXMLReader.VerifyAttributeValue(
+            'cfdi:Conceptos/cfdi:Concepto',
+            'Importe',
+            '0');
+
+        // [THEN] Pago attributes contain expected values
+        LibraryXPathXMLReader.VerifyAttributeValue(
+            'cfdi:Complemento/pago20:Pagos/pago20:Pago',
+            'MonedaP',
+            'MXN');
+        LibraryXPathXMLReader.VerifyAttributeValue(
+            'cfdi:Complemento/pago20:Pagos/pago20:Pago',
+            'FormaDePagoP',
+            SATUtilities.GetSATPaymentMethod(CustLedgerEntry."Payment Method Code"));
+
+        // [THEN] Pagos version attribute contains expected value
+        LibraryXPathXMLReader.VerifyAttributeValue(
+            'cfdi:Complemento/pago20:Pagos',
+            'Version',
+            '2.0');
+
+        // [THEN] DoctoRelacionado contains expected NumParcialidad value
+        LibraryXPathXMLReader.VerifyAttributeValue(
+            'cfdi:Complemento/pago20:Pagos/pago20:Pago/pago20:DoctoRelacionado',
+            'NumParcialidad',
+            '1');
+
+        // [CLEANUP] Restore original work date
+        WorkDate(SavedWorkDate);
+    end;
+
     local procedure Initialize()
     var
         PostCode: Record "Post Code";
@@ -8825,6 +9077,11 @@
         exit(
           Format(
             CreateDateTime(DocDate, DocTime), 0, '<Year4>-<Month,2>-<Day,2>T<Hours24,2>:<Minutes,2>:<Seconds,2>'));
+    end;
+
+    local procedure FormatDate(InputDate: Date): Text[10]
+    begin
+        exit(Format(InputDate, 0, '<Year4>-<Month,2>-<Day,2>'));
     end;
 
     local procedure GetCurrentDateTimeInUserTimeZone(): DateTime

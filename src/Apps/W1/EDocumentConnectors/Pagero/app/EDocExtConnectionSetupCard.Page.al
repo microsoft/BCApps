@@ -148,10 +148,8 @@ page 6361 "EDoc Ext Connection Setup Card"
     end;
 
     trigger OnClosePage()
-    var
     begin
         Rec.TestField("Company Id");
-        Rec.TestField("Send Mode");
     end;
 
     var

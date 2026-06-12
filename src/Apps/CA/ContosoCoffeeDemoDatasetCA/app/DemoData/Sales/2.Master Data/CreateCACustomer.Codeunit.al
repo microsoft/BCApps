@@ -74,7 +74,7 @@ codeunit 27081 "Create CA Customer"
         AlpineSkiHouseAddressLbl: Label '110 - 9th Avenue SW, 8th Floor', MaxLength = 100, Locked = true;
         RelecloudAddressLbl: Label '858 Beatty Street, 6th Floor', MaxLength = 100, Locked = true;
         WinnipegLbl: Label 'Winnipeg', MaxLength = 30;
-        MissisaugaLbl: Label 'Missisauga', MaxLength = 30;
+        MissisaugaLbl: Label 'Mississauga', MaxLength = 30;
         OttawaLbl: Label 'Ottawa', MaxLength = 30;
         CalgaryLbl: Label 'Calgary', MaxLength = 30;
         VancouverLbl: Label 'Vancouver', MaxLength = 30;

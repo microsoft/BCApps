@@ -16,51 +16,51 @@ codeunit 4598 "SOA Instructions"
     InherentEntitlements = X;
     InherentPermissions = X;
 
-    local procedure GetAzureKeyVaultSecret(var SecretValue: SecretText; SecretName: Text): Boolean
-    var
-        AzureKeyVault: Codeunit "Azure Key Vault";
-    begin
-        exit(AzureKeyVault.GetAzureKeyVaultSecret(SecretName, SecretValue));
-    end;
-
-    local procedure GetAzureKeyVaultSecretLogTelemetryError(var SecretValue: SecretText; SecretName: Text; TelemetryErrorCode: Text; FeatureName: Text; EventName: Text; ErrorText: Text): Boolean
-    var
-        FeatureTelemetry: Codeunit "Feature Telemetry";
-    begin
-        if not GetAzureKeyVaultSecret(SecretValue, SecretName) then begin
-            FeatureTelemetry.LogError(TelemetryErrorCode, FeatureName, EventName, ErrorText);
-            exit(false);
-        end;
-        exit(true);
-    end;
-
+    [NonDebuggable]
     internal procedure GetSOAInstructions(): SecretText
     var
-        InstructionsSecret: SecretText;
+        AzureKeyVault: Codeunit "Azure Key Vault";
+        SignaturePlaceholderSecretText: SecretText;
+        SecurityPromptSecretText: SecretText;
+        SecurityPromptPlaceholderText: Text;
+        SecurityPromptReplacementText: Text;
+        SignaturePlaceholderText: Text;
+        InstructionsText: Text;
+        SOAInstructionsPromptTok: Label 'Prompts/SalesOrderAgent-AgentInstructions.md', Locked = true;
+        SignaturePlaceholderTok: Label '%1', Locked = true;
+        SecurityPromptReplacementTok: Label '%2', Locked = true;
+        SOAInstructionsSecurityPromptTok: Label 'SalesOrderAgent-AgentInstructions-SecurityPromptV28', Locked = true;
+        SOAInstructionsSecurityPromptPlaceholderTok: Label '{{$SAFETYCLAUSE}}', Locked = true;
+        FailedToRetrieveKVAgentInstructionsSecurityPromptTxt: Label 'Failed to retrieve Sales Order Agent instructions security prompt from Azure Key Vault.', Locked = true;
+        UnableToConfigureAgentInstructionsErr: Label 'Unable to configure Sales Order Agent instructions.';
     begin
-        if not GetAzureKeyVaultSecretLogTelemetryError(InstructionsSecret, GetSOAInstructionsLbl(),
-            '0000NKG', SOASetup.GetFeatureName(), 'Get instructions from Key Vault - SOAInstructions', TelemetryGetInstructionsFailedErr) then
-            Error(SOASetupFailedErr);
-        exit(InstructionsSecret);
+        InstructionsText := NavApp.GetResourceAsText(SOAInstructionsPromptTok, TextEncoding::UTF8);
+        if not AzureKeyVault.GetAzureKeyVaultSecret(SOAInstructionsSecurityPromptTok, SecurityPromptSecretText) then begin
+            Session.LogMessage('0000U4D', FailedToRetrieveKVAgentInstructionsSecurityPromptTxt, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', SOASetup.GetFeatureName());
+            Error(UnableToConfigureAgentInstructionsErr);
+        end;
+
+        SecurityPromptPlaceholderText := SOAInstructionsSecurityPromptPlaceholderTok;
+        SecurityPromptReplacementText := SecurityPromptReplacementTok;
+        InstructionsText := InstructionsText.Replace(SecurityPromptPlaceholderText, SecurityPromptReplacementText);
+        SignaturePlaceholderText := SignaturePlaceholderTok;
+        SignaturePlaceholderSecretText := SignaturePlaceholderText;
+        exit(SecretText.SecretStrSubstNo(InstructionsText, SignaturePlaceholderSecretText, SecurityPromptSecretText));
     end;
 
     internal procedure GetBroaderItemSearchPrompt(): SecretText
     var
-        BroaderItemSearchPrompt: SecretText;
+        BroaderItemSearchPromptTok: Label 'Prompts/ItemSearch/item-entity-attribute-extraction-tool.md', Locked = true;
     begin
-        if not GetAzureKeyVaultSecretLogTelemetryError(BroaderItemSearchPrompt, GetBroaderItemSearchPromptLbl(),
-            '0000MJE', SOASetup.GetFeatureName(), 'Get prompt from Key Vault', TelemetryGetInstructionsFailedErr) then
-            Error(ConstructingPromptFailedErr);
-        exit(BroaderItemSearchPrompt);
+        exit(NavApp.GetResourceAsText(BroaderItemSearchPromptTok, TextEncoding::UTF8));
     end;
 
     internal procedure GetBroaderItemSearchSystemPrompt(): SecretText
     var
         BroaderItemSearchSystemPrompt: SecretText;
+        BroaderItemSearchSystemPromptTok: Label 'Prompts/ItemSearch/item-entity-attribute-extraction-task.md', Locked = true;
     begin
-        if not GetAzureKeyVaultSecretLogTelemetryError(BroaderItemSearchSystemPrompt, GetBroaderItemSearchSystemPromptLbl(),
-            '0000MJE', SOASetup.GetFeatureName(), 'Get prompt from Key Vault', TelemetryGetInstructionsFailedErr) then
-            Error(ConstructingPromptFailedErr);
+        BroaderItemSearchSystemPrompt := NavApp.GetResourceAsText(BroaderItemSearchSystemPromptTok, TextEncoding::UTF8);
         AddCultureToBroaderItemSearchSystemPrompt(BroaderItemSearchSystemPrompt);
         exit(BroaderItemSearchSystemPrompt);
     end;
@@ -76,6 +76,7 @@ codeunit 4598 "SOA Instructions"
         LanguageCode: Code[10];
         FormatRegion: Text[80];
         LanguageID: Integer;
+        BroaderItemSearchTaskPromptNameTok: Label 'item-entity-attribute-extraction-task.md', Locked = true;
     begin
         InstructionsText := Prompt.Unwrap();
         SOASetup.GetCommunicationLanguageCodeAndFormat(AgentSession.GetCurrentSessionAgentTaskId(), LanguageCode, FormatRegion);
@@ -83,85 +84,79 @@ codeunit 4598 "SOA Instructions"
             LanguageID := Language.GetLanguageId(LanguageCode);
             CultureName := Language.GetCultureName(LanguageID);
             if not TryFormatInstructionsText(InstructionsText, CultureName) then
-                FeatureTelemetry.LogError('0000PN7', SOASetup.GetFeatureName(), GetBroaderItemSearchSystemPromptLbl(), FailedToFormatInstructionsTextErr);
+                FeatureTelemetry.LogError('0000PN7', SOASetup.GetFeatureName(), BroaderItemSearchTaskPromptNameTok, FailedToFormatInstructionsTextErr);
             Prompt := InstructionsText;
         end;
     end;
 
     internal procedure GetOutputMessageSignatureUpdateTool(): SecretText
     var
-        OutputMessageSignatureUpdateTool: SecretText;
+        SignatureUpdateToolTok: Label 'Prompts/MailTemplate/signature-update-tool.md', Locked = true;
     begin
-        if not GetAzureKeyVaultSecretLogTelemetryError(
-            OutputMessageSignatureUpdateTool,
-            GetOutputMessageSignatureUpdateToolLbl(),
-            '0000NKG', SOASetup.GetFeatureName(), 'Get prompt from Key Vault - SignatureUpdateTool', TelemetryGetInstructionsFailedErr)
-        then
-            Error(ConstructingPromptFailedErr);
-
-        exit(OutputMessageSignatureUpdateTool);
+        exit(NavApp.GetResourceAsText(SignatureUpdateToolTok, TextEncoding::UTF8));
     end;
 
     internal procedure GetOutputMessageSignatureUpdateSystemPrompt(): SecretText
     var
-        OutputMessageSignatureUpdateSystemPrompt: SecretText;
+        SignatureUpdateInstructionsTok: Label 'Prompts/MailTemplate/signature-update-instructions.md', Locked = true;
     begin
-        if not GetAzureKeyVaultSecretLogTelemetryError(
-            OutputMessageSignatureUpdateSystemPrompt,
-            GetOutputMessageSignatureUpdateSystemPromptLbl(),
-            '0000NKG', SOASetup.GetFeatureName(), 'Get prompt from Key Vault - SignatureUpdateSystemPrompt', TelemetryGetInstructionsFailedErr)
-        then
-            Error(ConstructingPromptFailedErr);
-
-        exit(OutputMessageSignatureUpdateSystemPrompt);
+        exit(NavApp.GetResourceAsText(SignatureUpdateInstructionsTok, TextEncoding::UTF8));
     end;
 
     internal procedure GetMailTemplateCheckTool(): SecretText
     var
-        MailTemplateCheckTool: SecretText;
+        MailTemplateCheckToolTok: Label 'Prompts/MailTemplate/mail-template-check-tool.md', Locked = true;
     begin
-        if not GetAzureKeyVaultSecretLogTelemetryError(
-            MailTemplateCheckTool,
-            GetMailTemplateCheckToolLbl(),
-            '0000NKG', SOASetup.GetFeatureName(), 'Get prompt from Key Vault - MailTemplateCheckTool', TelemetryGetInstructionsFailedErr)
-        then
-            Error(ConstructingPromptFailedErr);
-
-        exit(MailTemplateCheckTool);
+        exit(NavApp.GetResourceAsText(MailTemplateCheckToolTok, TextEncoding::UTF8));
     end;
 
+    [NonDebuggable]
     internal procedure GetMailTemplateCheckSystemPrompt(): SecretText
     var
-        MailTemplateCheckSystemPrompt: SecretText;
+        AzureKeyVault: Codeunit "Azure Key Vault";
+        SafetyPromptSecretText: SecretText;
+        HarmfulContentSecretText: SecretText;
+        MailTemplateCheckPromptTemplate: Text;
+        MailTemplateCheckInstructionsTok: Label 'Prompts/MailTemplate/mail-template-check-instructions.md', Locked = true;
+        MailTemplateCheckSafetyPromptTok: Label 'SalesOrderAgent-MailTemplateCheck-SafetyPromptV28', Locked = true;
+        MailTemplateCheckHarmfulContentPromptTok: Label 'SalesOrderAgent-MailTemplateCheck-HarmfulContentPromptV28', Locked = true;
+        FailedToRetrieveKVSafetyPromptTxt: Label 'Failed to retrieve Mail Template Check safety prompt from Azure Key Vault.', Locked = true;
+        FailedToRetrieveKVHarmfulContentPromptTxt: Label 'Failed to retrieve Mail Template Check harmful content prompt from Azure Key Vault.', Locked = true;
+        UnableToConfigureMailTemplateCheckPromptErr: Label 'Unable to configure mail template check instructions.';
     begin
-        if not GetAzureKeyVaultSecretLogTelemetryError(
-            MailTemplateCheckSystemPrompt,
-            GetMailTemplateCheckInstructionsLbl(),
-            '0000NKG', SOASetup.GetFeatureName(), 'Get prompt from Key Vault - MailTemplateCheckSystemPrompt', TelemetryGetInstructionsFailedErr)
-        then
-            Error(ConstructingPromptFailedErr);
+        MailTemplateCheckPromptTemplate := NavApp.GetResourceAsText(MailTemplateCheckInstructionsTok, TextEncoding::UTF8);
 
-        exit(MailTemplateCheckSystemPrompt);
+        if not AzureKeyVault.GetAzureKeyVaultSecret(MailTemplateCheckHarmfulContentPromptTok, HarmfulContentSecretText) then begin
+            Session.LogMessage('0000U4B', FailedToRetrieveKVHarmfulContentPromptTxt, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', SOASetup.GetFeatureName());
+            Error(UnableToConfigureMailTemplateCheckPromptErr);
+        end;
+
+        if not AzureKeyVault.GetAzureKeyVaultSecret(MailTemplateCheckSafetyPromptTok, SafetyPromptSecretText) then begin
+            Session.LogMessage('0000U4C', FailedToRetrieveKVSafetyPromptTxt, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', SOASetup.GetFeatureName());
+            Error(UnableToConfigureMailTemplateCheckPromptErr);
+        end;
+
+        exit(SecretText.SecretStrSubstNo(MailTemplateCheckPromptTemplate, HarmfulContentSecretText, SafetyPromptSecretText));
     end;
 
-    [NonDebuggable]
     internal procedure GetItemSelectorSystemPrompt(var Prompt: SecretText): Boolean
+    var
+        ItemSelectorTaskPromptTok: Label 'Prompts/ItemSearch/itemselector-task.md', Locked = true;
     begin
-        exit(ReadResourcePrompt('itemselector-task.prompty', Prompt));
+        exit(ReadResourcePrompt(ItemSelectorTaskPromptTok, Prompt));
     end;
 
-    [NonDebuggable]
     internal procedure GetItemSelectorPrompt(): SecretText
     var
         Prompt: SecretText;
+        ItemSelectorToolPromptTok: Label 'Prompts/ItemSearch/itemselector-tool.md', Locked = true;
     begin
-        if not ReadResourcePrompt('itemselector-tool.prompty', Prompt) then
+        if not ReadResourcePrompt(ItemSelectorToolPromptTok, Prompt) then
             Error(ConstructingPromptFailedErr);
 
         exit(Prompt);
     end;
 
-    [NonDebuggable]
     local procedure ReadResourcePrompt(ResourceName: Text; var Prompt: SecretText): Boolean
     var
         InStream: InStream;
@@ -183,51 +178,13 @@ codeunit 4598 "SOA Instructions"
     end;
 
     [TryFunction]
-    [NonDebuggable]
     local procedure TryFormatInstructionsText(var InstructionsText: Text; CultureName: Text)
     begin
         InstructionsText := StrSubstNo(InstructionsText, CultureName);
     end;
 
-    local procedure GetOutputMessageSignatureUpdateSystemPromptLbl(): Text
-    begin
-        exit('BCSOAOutputMessageSignatureUpdateInstructionsV27');
-    end;
-
-    local procedure GetOutputMessageSignatureUpdateToolLbl(): Text
-    begin
-        exit('BCSOAOutputMessageSignatureUpdateToolV27');
-    end;
-
-    local procedure GetMailTemplateCheckInstructionsLbl(): Text
-    begin
-        exit('BCSOAMailTemplateCheckInstructionsV27');
-    end;
-
-    local procedure GetMailTemplateCheckToolLbl(): Text
-    begin
-        exit('BCSOAMailTemplateCheckToolV27');
-    end;
-
-    local procedure GetBroaderItemSearchSystemPromptLbl(): Text
-    begin
-        exit('BCSOABroaderItemSearchTaskPromptV27');
-    end;
-
-    local procedure GetBroaderItemSearchPromptLbl(): Text
-    begin
-        exit('BCSOABroaderItemSearchPromptV27');
-    end;
-
-    local procedure GetSOAInstructionsLbl(): Text
-    begin
-        exit('BCSOAInstructionsV271');
-    end;
-
     var
         SOASetup: Codeunit "SOA Setup";
         ConstructingPromptFailedErr: label 'There was an error with sending the call to Copilot. Log a Business Central support request about this.', Comment = 'Copilot is a Microsoft service name and must not be translated';
-        TelemetryGetInstructionsFailedErr: label 'There was an error getting instructions from the Key Vault.', Locked = true;
-        SOASetupFailedErr: label 'There was an error setting up the Sales Order Copilot. Log a Business Central support request about this.';
         FailedToFormatInstructionsTextErr: label 'Failed to format broader item search instructions text with culture name.', Locked = true;
 }

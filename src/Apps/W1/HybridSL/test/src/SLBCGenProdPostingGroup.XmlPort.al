@@ -60,15 +60,14 @@ xmlport 147623 "SL BC Gen. Prod. Posting Group"
 
     procedure GetExpectedGeneralProductPostingGroups(var NewTempGeneralProductPostingGroup: Record "Gen. Product Posting Group" temporary)
     begin
-        if TempGeneralProductPostingGroup.FindSet() then begin
+        if TempGeneralProductPostingGroup.FindSet() then
             repeat
                 NewTempGeneralProductPostingGroup.Copy(TempGeneralProductPostingGroup);
                 NewTempGeneralProductPostingGroup.Insert();
             until TempGeneralProductPostingGroup.Next() = 0;
-        end;
     end;
 
     var
-        CaptionRow: Boolean;
         TempGeneralProductPostingGroup: Record "Gen. Product Posting Group" temporary;
+        CaptionRow: Boolean;
 }

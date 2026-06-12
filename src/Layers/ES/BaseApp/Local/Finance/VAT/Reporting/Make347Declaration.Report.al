@@ -1602,7 +1602,9 @@ report 10707 "Make 347 Declaration"
 
     local procedure AppendLine(Content: Text)
     begin
+        OnBeforeAppendLine(Content);
         TextList.Add(Content);
+        OnAfterAppendLine(Content);
     end;
 
     local procedure InsertFirstLine(Content: Text)
@@ -1615,6 +1617,7 @@ report 10707 "Make 347 Declaration"
         TextLine: Text;
         TextToWrite: Text[500];
     begin
+        OnBeforeWriteLinesToFile(TextList);
         OutFile.Seek(0);
         foreach TextLine in TextList do begin
             TextToWrite := CopyStr(TextLine, 1, MaxStrLen(TextToWrite));
@@ -1630,6 +1633,21 @@ report 10707 "Make 347 Declaration"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreateCountryRegionFilter(var CountryRegionFilter: Text; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeAppendLine(var Content: Text)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterAppendLine(Content: Text)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeWriteLinesToFile(var TextList: List of [Text])
     begin
     end;
 }

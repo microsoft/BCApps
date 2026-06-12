@@ -185,9 +185,15 @@ report 108 "Customer - Order Detail"
                     {
                     }
                     trigger OnAfterGetRecord()
+                    var
+                        IsHandled: Boolean;
                     begin
                         ReportHasData := true;
                         OrderNoAndDate := StrSubstNo(OrderNoAndDateLbl, "Sales Header"."No.", Format("Sales Header"."Order Date", 0, '<Closing><Day> <Month Text> <Year4>'));
+                        IsHandled := false;
+                        OnSalesLineOnAfterGetRecordOnBeforeNewOrder("Sales Line", IsHandled);
+                        if IsHandled then
+                            CurrReport.Skip();
                         NewOrder := "Document No." <> SalesHeader."No.";
                         if NewOrder then
                             SalesHeader.Get(Enum::"Sales Document Type"::Order, "Document No.");
@@ -552,6 +558,11 @@ report 108 "Customer - Order Detail"
     procedure InitializeRequest(ShowAmountInLCY: Boolean)
     begin
         PrintAmountsInLCY := ShowAmountInLCY;
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnSalesLineOnAfterGetRecordOnBeforeNewOrder(var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
+    begin
     end;
 }
 

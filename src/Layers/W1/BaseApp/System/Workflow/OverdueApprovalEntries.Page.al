@@ -11,6 +11,8 @@ page 666 "Overdue Approval Entries"
     Permissions = TableData "Overdue Approval Entry" = d;
     SourceTable = "Overdue Approval Entry";
     UsageCategory = History;
+    AboutTitle = 'About overdue approval entries';
+    AboutText = 'Get an overview of approval requests that are past their due date. You can see which documents are waiting for approval, who the approver is, when reminder emails were sent, and which business documents are affected. This overview helps you follow up on delayed approvals and keep approval workflows moving.';
 
     layout
     {

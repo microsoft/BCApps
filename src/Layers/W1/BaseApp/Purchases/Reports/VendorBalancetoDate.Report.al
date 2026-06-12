@@ -450,11 +450,11 @@ report 321 "Vendor - Balance to Date"
     local procedure AddVendorDimensionFilter(var VendorLedgerEntry: Record "Vendor Ledger Entry")
     begin
         if Vendor.GetFilter("Global Dimension 1 Filter") <> '' then
-            VendorLedgerEntry.SetRange("Global Dimension 1 Code", Vendor.GetFilter("Global Dimension 1 Filter"));
+            VendorLedgerEntry.SetFilter("Global Dimension 1 Code", Vendor.GetFilter("Global Dimension 1 Filter"));
         if Vendor.GetFilter("Global Dimension 2 Filter") <> '' then
-            VendorLedgerEntry.SetRange("Global Dimension 2 Code", Vendor.GetFilter("Global Dimension 2 Filter"));
+            VendorLedgerEntry.SetFilter("Global Dimension 2 Code", Vendor.GetFilter("Global Dimension 2 Filter"));
         if Vendor.GetFilter("Currency Filter") <> '' then
-            VendorLedgerEntry.SetRange("Currency Code", Vendor.GetFilter("Currency Filter"));
+            VendorLedgerEntry.SetFilter("Currency Code", Vendor.GetFilter("Currency Filter"));
     end;
 
     local procedure CalcTotalVendorAmount()

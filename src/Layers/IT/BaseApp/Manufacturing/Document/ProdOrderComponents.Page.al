@@ -182,7 +182,7 @@ page 99000818 "Prod. Order Components"
                     ApplicationArea = Manufacturing;
                     Caption = 'Consumed Quantity (Base)';
                 }
-#if not CLEAN27
+#if not CLEAN28
                 field("Qty. on Transfer Order (Base)"; Rec."Qty. on Transfer Order (Base)")
                 {
                     ApplicationArea = Manufacturing;

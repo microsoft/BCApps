@@ -424,6 +424,12 @@ codeunit 5920 ServItemManagement
         ServItemLine.TestField("Service Item No.", '');
         ServItemLine.TestField("Document No.");
         ServItemLine.TestField(Description);
+
+        IsHandled := false;
+        OnCreateServItemOnServItemLineOnBeforeConfirmCreateServItem(ServItemLine, IsHandled);
+        if IsHandled then
+            exit;
+
         if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(Text000), true) then
             exit;
 
@@ -767,6 +773,11 @@ codeunit 5920 ServItemManagement
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreateServItemOnServItemLine(var ServItemLine: Record "Service Item Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCreateServItemOnServItemLineOnBeforeConfirmCreateServItem(var ServiceItemLine: Record "Service Item Line"; var IsHandled: Boolean)
     begin
     end;
 

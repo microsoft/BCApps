@@ -308,13 +308,13 @@ report 5756 "Create Warehouse Location"
         TempWhseJnlLine.Insert();
     end;
 
-    local procedure GetItem(ItemNo: Code[20])
+    procedure GetItem(ItemNo: Code[20])
     begin
         if Item."No." <> ItemNo then
             Item.Get(ItemNo);
     end;
 
-    local procedure GetItemUnitOfMeasure(ItemNo: Code[20]; UOMCode: Code[10])
+    procedure GetItemUnitOfMeasure(ItemNo: Code[20]; UOMCode: Code[10])
     begin
         if (ItemUnitOfMeasure."Item No." <> ItemNo) or
            (ItemUnitOfMeasure.Code <> UOMCode)

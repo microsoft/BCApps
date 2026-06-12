@@ -73,12 +73,12 @@ codeunit 5438 "Create Currency Exchange Rate"
         ContosoCurrency.InsertCurrencyExchangeRate(Currency.USD(), date, 100, 100, 65.7023, 65.7023);
         ContosoCurrency.InsertCurrencyExchangeRate(Currency.GBP(), date, 100, 100, 87.1351, 87.1351);
         ContosoCurrency.InsertCurrencyExchangeRate(Currency.SEK(), date, 100, 100, 10.1674, 10.1674);
-        ContosoCurrency.InsertCurrencyExchangeRate(Currency.EUR(), date, 100, 100, 87.1351, 87.1351);
+        ContosoCurrency.InsertCurrencyExchangeRate(Currency.EUR(), date, 1, 1, 0.871351, 0.871351);
 
         date := DMY2Date(2, 4, 2013);
         ContosoCurrency.InsertCurrencyExchangeRate(Currency.USD(), date, 100, 100, 67.8129, 67.8129);
         ContosoCurrency.InsertCurrencyExchangeRate(Currency.GBP(), date, 100, 100, 87.1351, 87.1351);
         ContosoCurrency.InsertCurrencyExchangeRate(Currency.SEK(), date, 100, 100, 10.477, 10.477);
-        ContosoCurrency.InsertCurrencyExchangeRate(Currency.EUR(), date, 100, 100, 87.0721, 87.0721);
+        ContosoCurrency.InsertCurrencyExchangeRate(Currency.EUR(), date, 1, 1, 0.870721, 0.870721);
     end;
 }

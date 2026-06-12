@@ -312,6 +312,11 @@ table 303 "Finance Charge Memo Line"
                                 "VAT %" := 0;
                             "VAT Amount" := Round("VAT Amount", Currency."Amount Rounding Precision");
                         end;
+                    "VAT Calculation Type"::"No Taxable VAT":
+                        begin
+                            "VAT Amount" := 0;
+                            "VAT %" := 0;
+                        end;
                 end;
             end;
         }

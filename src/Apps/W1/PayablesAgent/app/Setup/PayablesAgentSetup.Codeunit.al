@@ -42,12 +42,10 @@ codeunit 3307 "Payables Agent Setup"
     var
         Agent: Record Agent;
         EDocumentService: Record "E-Document Service";
-        TempEmailAccount: Record "Email Account" temporary;
         PayablesAgentSetup: Record "Payables Agent Setup";
         TempAgentSetupBuffer: Record "Agent Setup Buffer";
         OutlookSetup: Record "Outlook Setup";
         AgentSetup: Codeunit "Agent Setup";
-        EmailAccount: Codeunit "Email Account";
     begin
         // Skipping configuring the Agent framework records is valid in tests
         if not PASetupConfiguration.GetSkipAgentConfiguration() then begin
@@ -66,13 +64,10 @@ codeunit 3307 "Payables Agent Setup"
         PayablesAgentSetup.GetSetup();
         if EDocumentService.Get(PayablesAgentSetup."E-Document Service Code") then;
         if OutlookSetup.Get() then;
-        EmailAccount.GetAllAccounts(false, TempEmailAccount);
-        if not TempEmailAccount.Get(OutlookSetup."Email Account ID", OutlookSetup."Email Connector") then
-            Clear(TempEmailAccount);
 
         PASetupConfiguration.SetPayablesAgentSetup(PayablesAgentSetup);
         PASetupConfiguration.SetEDocumentService(EDocumentService);
-        PASetupConfiguration.SetEmailAccount(TempEmailAccount);
+        PASetupConfiguration.SetOutlookSetup(OutlookSetup);
     end;
 
     /// <summary>
@@ -117,9 +112,11 @@ codeunit 3307 "Payables Agent Setup"
             OutlookSetup."Consent Received" := true;
         end;
 
-        EmailAccountChanged := OutlookSetup."Email Account ID" <> PASetupConfiguration.GetEmailAccount()."Account Id";
-        OutlookSetup."Email Account ID" := PASetupConfiguration.GetEmailAccount()."Account Id";
-        OutlookSetup."Email Connector" := PASetupConfiguration.GetEmailAccount().Connector;
+        EmailAccountChanged := OutlookSetup."Email Account ID" <> PASetupConfiguration.GetOutlookSetup()."Email Account ID";
+        OutlookSetup."Email Account ID" := PASetupConfiguration.GetOutlookSetup()."Email Account ID";
+        OutlookSetup."Email Connector" := PASetupConfiguration.GetOutlookSetup()."Email Connector";
+        OutlookSetup."Email Folder" := PASetupConfiguration.GetOutlookSetup()."Email Folder";
+        OutlookSetup."Email Folder Id" := PASetupConfiguration.GetOutlookSetup()."Email Folder Id";
         if EmailAccountChanged then
             OutlookSetup."Last Sync At" := 0DT;
 
@@ -127,7 +124,7 @@ codeunit 3307 "Payables Agent Setup"
             if not PASetupConfiguration.GetSkipEmailVerification() then begin
 
                 if PASetupConfiguration.GetPayablesAgentSetup()."Monitor Outlook" then
-                    if IsNullGuid(PASetupConfiguration.GetEmailAccount()."Account Id") then
+                    if IsNullGuid(PASetupConfiguration.GetOutlookSetup()."Email Account ID") then
                         Error(ActivateWithoutMailboxNameErr);
 
                 // Update last activated

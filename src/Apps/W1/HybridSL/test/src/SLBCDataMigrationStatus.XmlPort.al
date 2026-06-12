@@ -86,6 +86,6 @@ xmlport 147605 "SL BC Data Migration Status"
     end;
 
     var
-        CaptionRow: Boolean;
         DataMigrationStatus: Record "Data Migration Status";
+        CaptionRow: Boolean;
 }

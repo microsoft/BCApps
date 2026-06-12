@@ -792,6 +792,95 @@
         VerifyTaxAmount(PurchaseHeader, TaxGroup.Code);
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure PurchOrderPrepmtExclTaxWithExpenseCapitalizeMaxAmount()
+    var
+        TaxArea: Record "Tax Area";
+        TaxGroupTaxable: Record "Tax Group";
+        TaxGroupNonTaxable: Record "Tax Group";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        TempPurchaseLine: Record "Purchase Line" temporary;
+        VATPostingSetup: Record "VAT Posting Setup";
+        TempVATAmountLine: Record "VAT Amount Line" temporary;
+        GLAccount: Record "G/L Account";
+        Vendor: Record Vendor;
+        GenPostingSetup: Record "General Posting Setup";
+        PurchPostPrepayments: Codeunit "Purchase-Post Prepayments";
+        PrepmtTotalAmount: Decimal;
+        PrepmtVATAmount: Decimal;
+        PrepmtVATAmountText: Text[30];
+        TotalPrepmtLineAmount: Decimal;
+        TaxRate: Decimal;
+        MaxAmount: Decimal;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 633186] Prepayment Exclude Tax shows correct base amount with Expense/Capitalize tax and Maximum Amount/Qty
+        Initialize();
+
+        // [GIVEN] Tax area with one jurisdiction: 1% rate, Expense/Capitalize = TRUE, Maximum Amount/Qty = 5000
+        TaxRate := 1;
+        MaxAmount := 5000;
+        LibraryERM.CreateTaxGroup(TaxGroupTaxable);
+        LibraryERM.CreateTaxGroup(TaxGroupNonTaxable);
+        LibraryERM.CreateTaxArea(TaxArea);
+        CreateTaxJurisdictionWithTaxRateAndMaxAmount(TaxArea.Code, TaxGroupTaxable.Code, TaxRate, true, MaxAmount);
+
+        // [GIVEN] Purchase Order with "Prepayment %" = 100 and "Prepmt. Include Tax" = TRUE
+        UpdatePurchaseSetup(true);
+        CreateVATPostingSetupForSalesTax(VATPostingSetup);
+        CreateVendor(Vendor, VATPostingSetup, TaxArea.Code);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        PurchaseHeader.Validate("Prepayment %", 100);
+        PurchaseHeader.Validate("Prepmt. Include Tax", true);
+        PurchaseHeader.Modify(true);
+
+        // [GIVEN] Three taxable G/L Account lines with amounts 6000, 7000, 8000 each exceeding Maximum
+        CreateGLAccount(GLAccount, VATPostingSetup."VAT Prod. Posting Group", TaxGroupTaxable.Code);
+        GenPostingSetup.Get(Vendor."Gen. Bus. Posting Group", GLAccount."Gen. Prod. Posting Group");
+        GenPostingSetup."Purch. Prepayments Account" := CreateGLAccountNo(VATPostingSetup."VAT Prod. Posting Group", TaxGroupTaxable.Code);
+        GenPostingSetup.Modify(true);
+
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::"G/L Account", GLAccount."No.", 1);
+        PurchaseLine.Validate("Direct Unit Cost", 6000);
+        PurchaseLine.Modify(true);
+
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::"G/L Account", GLAccount."No.", 1);
+        PurchaseLine.Validate("Direct Unit Cost", 7000);
+        PurchaseLine.Modify(true);
+
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::"G/L Account", GLAccount."No.", 1);
+        PurchaseLine.Validate("Direct Unit Cost", 8000);
+        PurchaseLine.Modify(true);
+
+        // [GIVEN] One non-taxable G/L Account line with amount 1000
+        CreateGLAccount(GLAccount, VATPostingSetup."VAT Prod. Posting Group", TaxGroupNonTaxable.Code);
+
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::"G/L Account", GLAccount."No.", 1);
+        PurchaseLine.Validate("Direct Unit Cost", 1000);
+        PurchaseLine.Modify(true);
+
+        // [GIVEN] Total Prepmt. Line Amount across all lines
+        PurchaseLine.Reset();
+        PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
+        PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+        PurchaseLine.CalcSums("Prepmt. Line Amount");
+        TotalPrepmtLineAmount := PurchaseLine."Prepmt. Line Amount";
+
+        // [WHEN] SumPrepmt is called (as Statistics page does)
+        PurchPostPrepayments.GetPurchLines(PurchaseHeader, 0, TempPurchaseLine);
+        PurchPostPrepayments.SumPrepmt(PurchaseHeader, TempPurchaseLine, TempVATAmountLine, PrepmtTotalAmount, PrepmtVATAmount, PrepmtVATAmountText);
+
+        // [THEN] Prepayment Exclude Tax (PrepmtTotalAmount) equals total base Prepmt. Line Amount without tax
+        Assert.AreEqual(TotalPrepmtLineAmount, PrepmtTotalAmount,
+            'Prepayment Exclude Tax should show base prepayment amount without tax');
+
+        // [THEN] Prepayment VAT Amount equals correct cumulative tax (Maximum applied once, not per line)
+        Assert.AreEqual(Round(MaxAmount * TaxRate / 100), PrepmtVATAmount,
+            'Prepayment VAT Amount should apply Maximum Amount once to document total');
+    end;
+
     local procedure Initialize()
     var
         ReportSelections: Record "Report Selections";
@@ -1028,6 +1117,26 @@
 
         LibraryERM.CreateTaxAreaLine(TaxAreaLine, TaxAreaCode, TaxJurisdiction.Code);
         CreateTaxDetail(TaxDetail, TaxAreaLine."Tax Jurisdiction Code", TaxGroupCode, SalesTaxRate, ExpenseTax);
+        exit(TaxJurisdiction.Code);
+    end;
+
+    local procedure CreateTaxJurisdictionWithTaxRateAndMaxAmount(TaxAreaCode: Code[20]; TaxGroupCode: Code[20]; SalesTaxRate: Decimal; ExpenseTax: Boolean; MaximumAmount: Decimal): Code[10]
+    var
+        GLAccount: Record "G/L Account";
+        TaxJurisdiction: Record "Tax Jurisdiction";
+        TaxAreaLine: Record "Tax Area Line";
+        TaxDetail: Record "Tax Detail";
+    begin
+        LibraryERM.CreateGLAccount(GLAccount);
+        LibraryERM.CreateTaxJurisdiction(TaxJurisdiction);
+        TaxJurisdiction.Validate("Tax Account (Sales)", GLAccount."No.");
+        TaxJurisdiction.Validate("Tax Account (Purchases)", GLAccount."No.");
+        TaxJurisdiction.Modify(true);
+
+        LibraryERM.CreateTaxAreaLine(TaxAreaLine, TaxAreaCode, TaxJurisdiction.Code);
+        CreateTaxDetail(TaxDetail, TaxAreaLine."Tax Jurisdiction Code", TaxGroupCode, SalesTaxRate, ExpenseTax);
+        TaxDetail.Validate("Maximum Amount/Qty.", MaximumAmount);
+        TaxDetail.Modify(true);
         exit(TaxJurisdiction.Code);
     end;
 

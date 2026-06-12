@@ -20513,5 +20513,10 @@
     "codeunitId": 144108,
     "codeunitName": "ERM Service Invoice ES",
     "method": "ServiceCreditMemoApplyEntriesWithLookup"
+  },
+  {
+    "codeunitId": 144108,
+    "codeunitName": "ERM Service Invoice ES",
+    "method": "ManualInvoiceDiscountAmountAllowInvoiceDiscountTrue"
   }
 ]

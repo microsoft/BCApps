@@ -11,7 +11,9 @@ using Microsoft.Foundation.Company;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Inventory.Item;
 using Microsoft.QualityManagement.Configuration.Result;
+#if not CLEAN29
 using Microsoft.QualityManagement.Configuration.Template;
+#endif
 using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Setup;
 using Microsoft.QualityManagement.Utilities;
@@ -116,6 +118,8 @@ codeunit 20440 "Qlty. Report Mgmt."
             Item.Get(QltyInspectionHeader."Source Item No.");
     end;
 
+#if not CLEAN29
+    [Obsolete('Unused by Word layouts. Used only by RDLC layouts, and will be removed with the RDLC layouts.', '29.0')]
     internal procedure ResolveInspectionTemplateCache(TemplateCode: Code[20]; var QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.")
     begin
         if QltyInspectionTemplateHdr.Code = TemplateCode then
@@ -124,6 +128,7 @@ codeunit 20440 "Qlty. Report Mgmt."
         Clear(QltyInspectionTemplateHdr);
         if QltyInspectionTemplateHdr.Get(TemplateCode) then;
     end;
+#endif
 
     internal procedure ResolveFinishedByPerson(FinishedByUserId: Code[50]; var FinishedByUserName: Text; var FinishedByTitle: Text; var FinishedByEmail: Text; var FinishedByPhone: Text)
     var

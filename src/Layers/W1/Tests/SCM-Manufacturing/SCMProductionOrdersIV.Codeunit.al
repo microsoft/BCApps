@@ -8,6 +8,7 @@ using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.NoSeries;
+using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.BOM;
 using Microsoft.Inventory.Costing;
 using Microsoft.Inventory.Item;
@@ -91,6 +92,8 @@ codeunit 137083 "SCM Production Orders IV"
         FieldMustBeVisibleErr: Label '%1 must be visible in Page %2', Comment = '%1 = Field Caption , %2 = Page Caption';
         FieldMustBeEnabledErr: Label '%1 must be enabled in Page %2', Comment = '%1 = Field Caption , %2 = Page Caption';
         ItemMustBeEqualErr: Label '%1 must be equal to %2 for Item No. %3 in the %4.', Comment = '%1 = Field Caption , %2 = Expected Value, %3 = Item No., %4 = Table Caption';
+        QtyPerNotRoundedToItemPrecisionErr: Label 'Quantity per must be %1 (unrounded BOM value), not coarsely rounded to item precision %2.', Comment = '%1 = Expected Quantity Per, %2 = Item Rounding Precision';
+        ExpectedQtyRoundingErr: Label 'Expected Quantity must be %1 (= Round(%2 x %3, %4)).', Comment = ' %1 = Expected Quantity, %2 = Quantity Per, %3 = Prod. Order Qty, %4 = Rounding Precision';
 
     [Test]
     [HandlerFunctions('ConfirmHandlerTrue,MessageHandler')]
@@ -5509,5 +5512,88 @@ codeunit 137083 "SCM Production Orders IV"
                     InventoryGLReconMatrix.Field1.AsDecimal(),
                     StrSubstNo(ValueMustBeEqualErr, InventoryGLReconMatrix.Field1.Caption(), MaterialVariance + MaterialNonInventoryVariance, InventoryGLReconMatrix.Caption));
         until not InventoryGLReconMatrix.Next();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure QuantityPerNotRoundedToItemPrecisionOnRefreshProdOrder()
+    var
+        CompItem: Record Item;
+        FGItem: Record Item;
+        CompItemUOM: Record "Item Unit of Measure";
+        FGItemUOM: Record "Item Unit of Measure";
+        UnitOfMeasure: Record "Unit of Measure";
+        ProductionBOMHeader: Record "Production BOM Header";
+        ProductionBOMLine: Record "Production BOM Line";
+        ProductionOrder: Record "Production Order";
+        ProdOrderComp: Record "Prod. Order Component";
+        QuantityPer: Decimal;
+        ProdOrderQty: Decimal;
+        ItemRoundingPrecision: Decimal;
+        ExpectedQty: Decimal;
+    begin
+        // [FEATURE] [Production Order Component] [Quantity Per] [Rounding Precision]
+        Initialize();
+        // [SCENARIO 632440] Quantity Per on Prod. Order Component preserves BOM value and is not rounded to the item's Qty. Rounding Precision when refreshing a production order.
+
+        LibraryInventory.CreateUnitOfMeasureCode(UnitOfMeasure);
+        ItemRoundingPrecision := 0.001;
+        QuantityPer := 0.0025;
+        ProdOrderQty := 515;
+
+        // [GIVEN] Component item with Qty. Rounding Precision = 0.001
+        LibraryInventory.CreateItem(CompItem);
+        LibraryInventory.CreateItemUnitOfMeasure(CompItemUOM, CompItem."No.", UnitOfMeasure.Code, 1, ItemRoundingPrecision);
+        CompItem.Validate("Base Unit of Measure", UnitOfMeasure.Code);
+        CompItem.Validate("Rounding Precision", ItemRoundingPrecision);
+        CompItem.Validate("Replenishment System", CompItem."Replenishment System"::Purchase);
+        CompItem.Modify(true);
+
+        // [GIVEN] FG item with Replenishment System = Prod. Order
+        LibraryInventory.CreateItem(FGItem);
+        LibraryInventory.CreateItemUnitOfMeasure(FGItemUOM, FGItem."No.", UnitOfMeasure.Code, 1, 1);
+        FGItem.Validate("Base Unit of Measure", UnitOfMeasure.Code);
+        FGItem.Validate("Replenishment System", FGItem."Replenishment System"::"Prod. Order");
+        FGItem.Validate("Rounding Precision", 1);
+        FGItem.Modify(true);
+
+        // [GIVEN] Certified Production BOM with Component Quantity Per = 0.0025
+        LibraryManufacturing.CreateProductionBOMHeader(ProductionBOMHeader, UnitOfMeasure.Code);
+        LibraryManufacturing.CreateProductionBOMLine(
+            ProductionBOMHeader, ProductionBOMLine, '', ProductionBOMLine.Type::Item, CompItem."No.", QuantityPer);
+        ProductionBOMHeader.Validate(Status, ProductionBOMHeader.Status::Certified);
+        ProductionBOMHeader.Modify(true);
+        FGItem.Validate("Production BOM No.", ProductionBOMHeader."No.");
+        FGItem.Modify(true);
+
+        // [WHEN] A Released Production Order for 515 is created and refreshed
+        LibraryManufacturing.CreateAndRefreshProductionOrder(
+            ProductionOrder,
+            ProductionOrder.Status::Released,
+            ProductionOrder."Source Type"::Item,
+            FGItem."No.",
+            ProdOrderQty);
+
+        // [THEN] Prod. Order Component "Quantity per" = 0.0025 (not rounded to item precision 0.003)
+        FindProdOrderCompByItemNo(ProdOrderComp, ProductionOrder, CompItem."No.");
+        Assert.AreEqual(
+            QuantityPer,
+            ProdOrderComp."Quantity per",
+            StrSubstNo(QtyPerNotRoundedToItemPrecisionErr, QuantityPer, ItemRoundingPrecision));
+
+        // [THEN] Expected Quantity = Round(0.0025 x 515, 0.001) = 1.288
+        ExpectedQty := Round(QuantityPer * ProdOrderQty, ItemRoundingPrecision);
+        Assert.AreEqual(
+            ExpectedQty,
+            ProdOrderComp."Expected Quantity",
+            StrSubstNo(ExpectedQtyRoundingErr, ExpectedQty, QuantityPer, ProdOrderQty, ItemRoundingPrecision));
+    end;
+
+    local procedure FindProdOrderCompByItemNo(var ProdOrderComp: Record "Prod. Order Component"; ProductionOrder: Record "Production Order"; ItemNo: Code[20])
+    begin
+        ProdOrderComp.SetRange(Status, ProductionOrder.Status);
+        ProdOrderComp.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderComp.SetRange("Item No.", ItemNo);
+        ProdOrderComp.FindFirst();
     end;
 }

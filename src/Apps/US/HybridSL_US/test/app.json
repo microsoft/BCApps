@@ -43,7 +43,7 @@
   "screenshots": [],
   "idRanges": [
     {
-      "from": 147650,
+      "from": 147670,
       "to": 147699
     }
   ],
@@ -53,6 +53,7 @@
     "includeSourceInSymbolFile": true
   },
   "features": [
-    "NoImplicitWith"
+    "NoImplicitWith",
+    "TranslationFile"
   ]
 }

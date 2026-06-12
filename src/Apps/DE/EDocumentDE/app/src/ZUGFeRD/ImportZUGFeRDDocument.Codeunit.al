@@ -80,6 +80,7 @@ codeunit 13919 "Import ZUGFeRD Document"
         DocumentType: Text;
         DocumentNamespace: Text;
         PdfAttachmentStream: InStream;
+        CompleteInfoParsed: Boolean;
         DocumentElementLbl: Label '%1:%2', Comment = '%1 = Namespace, %2 = Document', Locked = true;
         CrossIndustryInvoiceLbl: Label 'CrossIndustryInvoice', Locked = true;
     begin
@@ -94,18 +95,21 @@ codeunit 13919 "Import ZUGFeRD Document"
         PurchaseHeader."Buy-from Vendor No." := EDocument."Bill-to/Pay-to No.";
         PurchaseHeader."Currency Code" := EDocument."Currency Code";
 
-        case UpperCase(DocumentType) of
-            '380', '384', '751', '877':
-                if DocumentNamespace <> '' then
-                    CreateInvoice(EDocument, PurchaseHeader, PurchaseLine, TempXMLBuffer, StrSubstNo(DocumentElementLbl, DocumentNamespace, CrossIndustryInvoiceLbl))
-                else
-                    CreateInvoice(EDocument, PurchaseHeader, PurchaseLine, TempXMLBuffer, CrossIndustryInvoiceLbl);
-            '381', '261':
-                if DocumentNamespace <> '' then
-                    CreateCreditMemo(EDocument, PurchaseHeader, PurchaseLine, TempXMLBuffer, StrSubstNo(DocumentElementLbl, DocumentNamespace, CrossIndustryInvoiceLbl))
-                else
-                    CreateCreditMemo(EDocument, PurchaseHeader, PurchaseLine, TempXMLBuffer, CrossIndustryInvoiceLbl);
-        end;
+        CompleteInfoParsed := false;
+        OnParseCompleteInfoOnBeforeDocumentTypeCheck(DocumentType, EDocument, TempXMLBuffer, DocumentNamespace, CrossIndustryInvoiceLbl, PurchaseHeader, PurchaseLine, CompleteInfoParsed);
+        if not CompleteInfoParsed then
+            case UpperCase(DocumentType) of
+                '380', '384', '751', '877':
+                    if DocumentNamespace <> '' then
+                        CreateInvoice(EDocument, PurchaseHeader, PurchaseLine, TempXMLBuffer, StrSubstNo(DocumentElementLbl, DocumentNamespace, CrossIndustryInvoiceLbl))
+                    else
+                        CreateInvoice(EDocument, PurchaseHeader, PurchaseLine, TempXMLBuffer, CrossIndustryInvoiceLbl);
+                '381', '261':
+                    if DocumentNamespace <> '' then
+                        CreateCreditMemo(EDocument, PurchaseHeader, PurchaseLine, TempXMLBuffer, StrSubstNo(DocumentElementLbl, DocumentNamespace, CrossIndustryInvoiceLbl))
+                    else
+                        CreateCreditMemo(EDocument, PurchaseHeader, PurchaseLine, TempXMLBuffer, CrossIndustryInvoiceLbl);
+            end;
         FeatureTelemetry.LogUsage('0000WXJ', FeatureNameTok, StrSubstNo(EndEventNameTok, EDocument."Document Type", EDocument."Incoming E-Document No."));
     end;
 
@@ -235,7 +239,7 @@ codeunit 13919 "Import ZUGFeRD Document"
             RecRef.GetTable(PurchaseLine);
             EDocumentImportHelper.FindGLAccountForLine(EDocument, RecRef);
             PurchaseLine."No." := RecRef.Field(PurchaseLine.FieldNo("No.")).Value;
-            PurchaseLine.Insert(true);
+            PurchaseLine.Insert();
             LineNo += 10000;
         end;
     end;
@@ -329,7 +333,7 @@ codeunit 13919 "Import ZUGFeRD Document"
     begin
         PurchaseHeader."Document Type" := PurchaseHeader."Document Type"::Invoice;
         PurchaseHeader."No." := CopyStr(GetNodeByPath(TempXMLBuffer, '/' + DocumentElement + '/rsm:ExchangedDocument/ram:ID'), 1, MaxStrLen(PurchaseHeader."No."));
-        PurchaseHeader.Insert(true);
+        PurchaseHeader.Insert();
 
         LastLineNo := GetLastLineNo(PurchaseHeader);
 
@@ -343,8 +347,8 @@ codeunit 13919 "Import ZUGFeRD Document"
 
         // Insert last line
         if PurchaseLine."Document No." <> '' then
-            PurchaseLine.Insert(true);
-        PurchaseHeader.Modify(true);
+            PurchaseLine.Insert();
+        PurchaseHeader.Modify();
 
         CreateAllowanceChargeLines(EDocument, PurchaseHeader, PurchaseLine, TempXMLBuffer, DocumentElement);
     end;
@@ -384,7 +388,7 @@ codeunit 13919 "Import ZUGFeRD Document"
             '/' + DocumentType + '/rsm:SupplyChainTradeTransaction/ram:IncludedSupplyChainTradeLineItem':
                 begin
                     if PurchaseLine."Document No." <> '' then
-                        PurchaseLine.Insert(true);
+                        PurchaseLine.Insert();
 
                     PurchaseLine.Init();
                     PurchaseLine."Document Type" := PurchaseHeader."Document Type";
@@ -480,7 +484,7 @@ codeunit 13919 "Import ZUGFeRD Document"
     begin
         PurchaseHeader."Document Type" := PurchaseHeader."Document Type"::"Credit Memo";
         PurchaseHeader."No." := CopyStr(GetNodeByPath(TempXMLBuffer, '/' + DocumentElement + '/rsm:ExchangedDocument/ram:ID'), 1, MaxStrLen(PurchaseHeader."No."));
-        PurchaseHeader.Insert(true);
+        PurchaseHeader.Insert();
 
         LastLineNo := GetLastLineNo(PurchaseHeader);
 
@@ -494,8 +498,8 @@ codeunit 13919 "Import ZUGFeRD Document"
 
         // Insert last line
         if PurchaseLine."Document No." <> '' then
-            PurchaseLine.Insert(true);
-        PurchaseHeader.Modify(true);
+            PurchaseLine.Insert();
+        PurchaseHeader.Modify();
 
         CreateAllowanceChargeLines(EDocument, PurchaseHeader, PurchaseLine, TempXMLBuffer, DocumentElement);
     end;
@@ -535,7 +539,7 @@ codeunit 13919 "Import ZUGFeRD Document"
             '/' + DocumentType + '/rsm:SupplyChainTradeTransaction/ram:IncludedSupplyChainTradeLineItem':
                 begin
                     if PurchaseLine."Document No." <> '' then
-                        PurchaseLine.Insert(true);
+                        PurchaseLine.Insert();
 
                     PurchaseLine.Init();
                     PurchaseLine."Document Type" := PurchaseHeader."Document Type";
@@ -603,6 +607,11 @@ codeunit 13919 "Import ZUGFeRD Document"
 
     [IntegrationEvent(false, false)]
     internal procedure OnParseBasicInfoOnBeforeDocumentTypeCheck(var DocumentType: Text; var EDocument: Record "E-Document"; var TempXMLBuffer: Record "XML Buffer" temporary; DocumentNamespace: Text; CrossIndustryInvoiceLbl: Text; PdfInStream: InStream; var BasicInfoParsed: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    internal procedure OnParseCompleteInfoOnBeforeDocumentTypeCheck(var DocumentType: Text; var EDocument: Record "E-Document"; var TempXMLBuffer: Record "XML Buffer" temporary; DocumentNamespace: Text; CrossIndustryInvoiceLbl: Text; var PurchaseHeader: Record "Purchase Header" temporary; var PurchaseLine: Record "Purchase Line" temporary; var CompleteInfoParsed: Boolean)
     begin
     end;
 }

@@ -132,6 +132,6 @@ xmlport 147645 "SL BC Vendor for Open POs Data"
     end;
 
     var
-        CaptionRow: Boolean;
         Vendor: Record Vendor;
+        CaptionRow: Boolean;
 }

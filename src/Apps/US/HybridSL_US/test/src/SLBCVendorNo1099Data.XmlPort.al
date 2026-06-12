@@ -6,7 +6,7 @@ namespace Microsoft.DataMigration.SL;
 
 using Microsoft.Purchases.Vendor;
 
-xmlport 147654 "SL BC Vendor No 1099 Data"
+xmlport 147674 "SL BC Vendor No 1099 Data"
 {
     Caption = 'Vendor data without 1099 information for import/export';
     Direction = Both;
@@ -134,6 +134,6 @@ xmlport 147654 "SL BC Vendor No 1099 Data"
     end;
 
     var
-        CaptionRow: Boolean;
         BCVendor: Record Vendor;
+        CaptionRow: Boolean;
 }

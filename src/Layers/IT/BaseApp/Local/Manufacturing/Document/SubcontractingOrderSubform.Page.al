@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -121,7 +121,7 @@ page 12153 "Subcontracting Order Subform"
                     ToolTip = 'Specifies the unit of measure for the item.';
                     Visible = false;
                 }
-#if not CLEAN27
+#if not CLEAN28
                 field("WIP Item"; Rec."WIP Item")
                 {
                     ApplicationArea = Manufacturing;
@@ -205,7 +205,7 @@ page 12153 "Subcontracting Order Subform"
                     BlankZero = true;
                     ToolTip = 'Specifies the number of items that have been received.';
                 }
-#if not CLEAN27
+#if not CLEAN28
                 field("Not Proc. WIP Qty to Receive"; Rec."Not Proc. WIP Qty to Receive")
                 {
                     ApplicationArea = Manufacturing;
@@ -446,7 +446,7 @@ page 12153 "Subcontracting Order Subform"
                         Rec.ValidateShortcutDimCode(8, ShortcutDimCode[8]);
                     end;
                 }
-#if not CLEAN27
+#if not CLEAN28
                 field("UoM for Pricelist"; Rec."UoM for Pricelist")
                 {
                     ApplicationArea = Manufacturing;

@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -555,6 +555,7 @@ codeunit 90 "Purch.-Post"
         OnBeforeModifyTempLine(TempPurchLineLocal);
         TempPurchLineLocal.Modify();
         PurchLine.Get(TempPurchLineLocal.RecordId);
+        OnModifyTempLineOnBeforeTransferFields(PurchLine, TempPurchLineLocal);
         PurchLine.TransferFields(TempPurchLineLocal, false);
         PurchLine.Modify();
         OnAfterModifyTempLine(PurchLine);
@@ -1513,7 +1514,10 @@ codeunit 90 "Purch.-Post"
         ItemJnlLine.CopyFromPurchHeader(PurchHeader);
         ItemJnlLine.CopyFromPurchLine(PurchLine);
 
-        PostItemJnlLineCopyDocumentFields(ItemJnlLine, PurchHeader, PurchLine, QtyToBeInvoiced, QtyToBeReceived);
+        IsHandled := false;
+        OnPostItemJnlLineOnBeforePostItemJnlLineCopyDocumentFields(ItemJnlLine, PurchHeader, PurchLine, QtyToBeInvoiced, QtyToBeReceived, WhseReceive, WhseShip, InvtPickPutaway, IsHandled);
+        if not IsHandled then
+            PostItemJnlLineCopyDocumentFields(ItemJnlLine, PurchHeader, PurchLine, QtyToBeInvoiced, QtyToBeReceived);
 
         if QtyToBeInvoiced <> 0 then
             ItemJnlLine."Invoice No." := GenJnlLineDocNo;
@@ -1917,6 +1921,7 @@ codeunit 90 "Purch.-Post"
             ItemJnlLine2."Shortcut Dimension 1 Code" := ItemChargePurchLine."Shortcut Dimension 1 Code";
             ItemJnlLine2."Shortcut Dimension 2 Code" := ItemChargePurchLine."Shortcut Dimension 2 Code";
             ItemJnlLine2."Dimension Set ID" := ItemChargePurchLine."Dimension Set ID";
+            UpdateItemJnlLineDimSetIDFromAppliedShipmentEntry(ItemJnlLine2);
             ItemJnlLine2."Gen. Prod. Posting Group" := ItemChargePurchLine."Gen. Prod. Posting Group";
 
             OnPostItemChargePerOrderOnAfterCopyToItemJnlLine(
@@ -6495,6 +6500,23 @@ codeunit 90 "Purch.-Post"
         OnAfterUpdatePurchLineDimSetIDFromAppliedEntry(PurchaseLineToPost, PurchaseLine);
     end;
 
+    local procedure UpdateItemJnlLineDimSetIDFromAppliedShipmentEntry(var ItemJnlLine2: Record "Item Journal Line")
+    var
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        DimensionMgt: Codeunit DimensionManagement;
+        DimSetID: array[10] of Integer;
+    begin
+        if ItemJnlLine2."Item Shpt. Entry No." <> 0 then begin
+            ItemLedgerEntry.SetLoadFields("Dimension Set ID");
+            ItemLedgerEntry.Get(ItemJnlLine2."Item Shpt. Entry No.");
+            DimSetID[1] := ItemLedgerEntry."Dimension Set ID";
+            DimSetID[2] := ItemJnlLine2."Dimension Set ID";
+
+            ItemJnlLine2."Dimension Set ID" :=
+                DimensionMgt.GetCombinedDimensionSetID(DimSetID, ItemJnlLine2."Shortcut Dimension 1 Code", ItemJnlLine2."Shortcut Dimension 2 Code");
+        end;
+    end;
+
     local procedure CheckCertificateOfSupplyStatus(ReturnShptHeader: Record "Return Shipment Header"; ReturnShptLine: Record "Return Shipment Line")
     var
         CertificateOfSupply: Record "Certificate of Supply";
@@ -8392,6 +8414,11 @@ codeunit 90 "Purch.-Post"
         OnAfterGetGeneralPostingSetup(GenPostingSetup, PurchLine);
     end;
 
+    procedure GetGlobalTempItemChargeAssgntPurch(var TempItemChargeAssignmentPurch: Record "Item Charge Assignment (Purch)" temporary)
+    begin
+        TempItemChargeAssignmentPurch.Copy(TempItemChargeAssgntPurch, true);
+    end;
+
     local procedure PostResJnlLine(var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line")
     var
         ResJournalLine: Record "Res. Journal Line";
@@ -9314,6 +9341,11 @@ codeunit 90 "Purch.-Post"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeModifyTempLine(var TempPurchaseLine: Record "Purchase Line" temporary)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnModifyTempLineOnBeforeTransferFields(var PurchaseLine: Record "Purchase Line"; var TempPurchaseLine: Record "Purchase Line" temporary)
     begin
     end;
 
@@ -10283,6 +10315,11 @@ codeunit 90 "Purch.-Post"
 
     [IntegrationEvent(false, false)]
     local procedure OnPostItemJnlLineOnAfterCopyDocumentFields(var ItemJournalLine: Record "Item Journal Line"; PurchaseLine: Record "Purchase Line"; WarehouseReceiptHeader: Record "Warehouse Receipt Header"; WarehouseShipmentHeader: Record "Warehouse Shipment Header"; PurchRcptHeader: Record "Purch. Rcpt. Header"; GenJnlLineExtDocNo: Code[35]; QtyToBeInvoiced: Decimal)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnPostItemJnlLineOnBeforePostItemJnlLineCopyDocumentFields(var ItemJournalLine: Record "Item Journal Line"; PurchaseHeader: Record "Purchase Header"; PurchaseLine: Record "Purchase Line"; QtyToBeInvoiced: Decimal; QtyToBeReceived: Decimal; WhseReceive: Boolean; WhseShip: Boolean; InvtPickPutaway: Boolean; var IsHandled: Boolean)
     begin
     end;
 

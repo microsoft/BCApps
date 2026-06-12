@@ -60,7 +60,7 @@ xmlport 147639 "SL ItemSite Buffer Data"
                     SLItemSite.InvtID := InvtID;
                     SLItemSite.SiteID := SiteID;
                     Evaluate(SLItemSite.AvgCost, AvgCost);
-                    SLItemSite.CpnyID := CopyStr(CpnyID, 1, MaxStrLen(SLItemSite.CpnyID));
+                    SLItemSite.CpnyID := CopyStr(CompanyName(), 1, MaxStrLen(SLItemSite.CpnyID));
                     Evaluate(SLItemSite.QtyOnHand, QtyOnHand);
                     Evaluate(SLItemSite.StdCost, StdCost);
                     SLItemSite.Insert();
@@ -76,6 +76,6 @@ xmlport 147639 "SL ItemSite Buffer Data"
     end;
 
     var
-        CaptionRow: Boolean;
         SLItemSite: Record "SL ItemSite Buffer";
+        CaptionRow: Boolean;
 }

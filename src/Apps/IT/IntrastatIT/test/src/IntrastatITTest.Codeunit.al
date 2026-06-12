@@ -3124,8 +3124,9 @@ codeunit 139511 "Intrastat IT Test"
         // [GIVEN] Create Intrastat Report with Statistics Period 
         LibraryIntrastat.CreateIntrastatReportLine(IntrastatReportLine);
 
-        // [GIVEN] Update Intrastat Report Header with Periodicity = Month
+        // [GIVEN] Update Intrastat Report Header with Periodicity = Quarter
         IntrastatReportHeader.Get(IntrastatReportLine."Intrastat No.");
+        IntrastatReportHeader.Validate("Statistics Period", GetStatisticalPeriodQuarter(WorkDate()));
         IntrastatReportHeader.Validate("Periodicity", IntrastatReportHeader.Periodicity::Quarter);
         IntrastatReportHeader.Modify();
 

@@ -100,6 +100,6 @@ xmlport 147634 "SL Address Data"
     end;
 
     var
-        CaptionRow: Boolean;
         SLAddress: Record "SL Address";
+        CaptionRow: Boolean;
 }

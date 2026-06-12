@@ -6,9 +6,9 @@ namespace Microsoft.DataMigration.SL;
 
 using Microsoft.Inventory.Item;
 
-xmlport 147646 "SL BC Item for Open Order Data"
+xmlport 147646 "SL BC Item for Open POs Data"
 {
-    Caption = 'SL BC Item for Open Order data for import/export';
+    Caption = 'SL BC Item for Open POs data for import/export';
     Direction = Both;
     FieldSeparator = ',';
     RecordSeparator = '<CR><LF>';
@@ -134,6 +134,6 @@ xmlport 147646 "SL BC Item for Open Order Data"
     end;
 
     var
-        CaptionRow: Boolean;
         Item: Record Item;
+        CaptionRow: Boolean;
 }

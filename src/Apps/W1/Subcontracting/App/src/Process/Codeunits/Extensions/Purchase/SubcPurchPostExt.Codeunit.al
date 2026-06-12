@@ -12,14 +12,26 @@ using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Posting;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Manufacturing.Capacity;
-using Microsoft.Manufacturing.Setup;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Posting;
 codeunit 99001535 "Subc. Purch. Post Ext"
 {
     var
-        ManufacturingSetup: Record "Manufacturing Setup";
+        CancelNotSupportedErr: Label 'You cannot cancel or correct posted purchase invoice %1 because it contains item charges assigned to a subcontracting order receipt.\Create a purchase credit memo manually and assign the item charge to the posted subcontracting receipt line.', Comment = '%1 = Posted Purchase Invoice No.';
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Correct Posted Purch. Invoice", OnAfterTestCorrectInvoiceIsAllowed, '', false, false)]
+    local procedure BlockCancelIfHasSubcontractingItemChargeValueEntry(var PurchInvHeader: Record "Purch. Inv. Header"; Cancelling: Boolean)
+    var
+        ValueEntry: Record "Value Entry";
+    begin
+        ValueEntry.SetRange("Document Type", ValueEntry."Document Type"::"Purchase Invoice");
+        ValueEntry.SetRange("Document No.", PurchInvHeader."No.");
+        ValueEntry.SetFilter("Item Charge No.", '<>%1', '');
+        ValueEntry.SetFilter("Capacity Ledger Entry No.", '<>%1', 0);
+        if not ValueEntry.IsEmpty() then
+            Error(CancelNotSupportedErr, PurchInvHeader."No.");
+    end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnBeforeItemJnlPostLine, '', false, false)]
     local procedure "Purch.-Post_OnBeforeItemJnlPostLine"(var ItemJournalLine: Record "Item Journal Line"; TempItemChargeAssignmentPurch: Record "Item Charge Assignment (Purch)" temporary)
@@ -45,8 +57,6 @@ codeunit 99001535 "Subc. Purch. Post Ext"
     var
         PurchRcptLine: Record "Purch. Rcpt. Line";
     begin
-        if not ManufacturingSetup.ItemChargeToRcptSubReferenceEnabled() then
-            exit;
         if ItemJournalLine."Item Charge No." = '' then
             exit;
         if not PurchRcptLine.Get(TempItemChargeAssignmentPurch."Applies-to Doc. No.", TempItemChargeAssignmentPurch."Applies-to Doc. Line No.") then
@@ -61,9 +71,6 @@ codeunit 99001535 "Subc. Purch. Post Ext"
     var
         UnitofMeasureManagement: Codeunit "Unit of Measure Management";
     begin
-        if not ManufacturingSetup.ItemChargeToRcptSubReferenceEnabled() then
-            exit;
-
         if PurchRcptLine."Quantity (Base)" = 0 then
             if PurchRcptLineHasProdOrder(PurchRcptLine) then
                 PurchRcptLine."Quantity (Base)" := UnitofMeasureManagement.CalcBaseQty(

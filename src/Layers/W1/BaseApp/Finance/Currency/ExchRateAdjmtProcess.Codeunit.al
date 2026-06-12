@@ -2653,6 +2653,7 @@ codeunit 699 "Exch. Rate Adjmt. Process"
         DtldVendLedgEntry.Amount := 0;
         DtldVendLedgEntry."Vendor No." := VendLedgEntry."Vendor No.";
         DtldVendLedgEntry."Currency Code" := VendLedgEntry."Currency Code";
+        DtldVendLedgEntry."Posting Group" := VendLedgEntry."Vendor Posting Group";
         DtldVendLedgEntry."User ID" := CopyStr(UserId, 1, MaxStrLen(DtldVendLedgEntry."User ID"));
         DtldVendLedgEntry."Source Code" := SourceCodeSetup."Exchange Rate Adjmt.";
         DtldVendLedgEntry."Journal Batch Name" := VendLedgEntry."Journal Batch Name";

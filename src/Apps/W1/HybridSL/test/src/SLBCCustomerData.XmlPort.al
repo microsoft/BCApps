@@ -144,15 +144,14 @@ xmlport 147604 "SL BC Customer Data"
 
     procedure GetExpectedCustomers(var NewTempCustomer: Record Customer temporary)
     begin
-        if TempCustomer.FindSet() then begin
+        if TempCustomer.FindSet() then
             repeat
                 NewTempCustomer.Copy(TempCustomer);
                 NewTempCustomer.Insert();
             until TempCustomer.Next() = 0;
-        end;
     end;
 
     var
-        CaptionRow: Boolean;
         TempCustomer: Record Customer temporary;
+        CaptionRow: Boolean;
 }

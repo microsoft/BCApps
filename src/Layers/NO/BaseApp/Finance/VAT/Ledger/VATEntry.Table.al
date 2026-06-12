@@ -50,7 +50,8 @@ table 254 "VAT Entry"
                     TableData "Issued Fin. Charge Memo Header" = rm,
                     TableData "Purch. Inv. Header" = rm,
                     TableData "Purch. Cr. Memo Hdr." = rm,
-                    TableData "G/L Entry" = rm;
+                    TableData "G/L Entry" = rm,
+                    TableData "VAT Entry" = m;
     DataClassification = CustomerContent;
 
     fields
@@ -1134,8 +1135,13 @@ table 254 "VAT Entry"
         VATEntryLocal: Record "VAT Entry";
         ConfirmManagement: Codeunit "Confirm Management";
         Window: Dialog;
+        EntryNosByGLAccountNo: Dictionary of [Code[20], List of [Integer]];
+        EntryNos: List of [Integer];
+        GLAccountNoToSet: Code[20];
         NoOfRecords: Integer;
         Index: Integer;
+        LastShownProgress: Integer;
+        Progress: Integer;
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -1156,20 +1162,35 @@ table 254 "VAT Entry"
                 Window.Open(AdjustTitleMsg + ProgressMsg);
             end;
         end;
-        // Iterate in the caller's current key (callers pass primary key,
-        // see Report 11 "G/L - VAT Reconciliation"). Iterating on the PK
-        // means Modify("G/L Acc. No.") never invalidates the cursor
-        // (Halloween problem) because "G/L Acc. No." is not part of the
-        // PK keyset used for pagination.
+        // Pass 1: read-only resolve target G/L Acc. No. per VAT entry and group entry numbers
+        // by target account; the writes happen in pass 2, avoiding Halloween risk.
         VATEntryLocal.SetLoadFields("G/L Acc. No.", "Entry No.", "Transaction No.", "Gen. Bus. Posting Group", "Gen. Prod. Posting Group", "VAT Bus. Posting Group", "VAT Prod. Posting Group", "Tax Area Code", "Tax Liable", "Tax Group Code", "Use Tax");
         Index := 0;
-        if VATEntryLocal.FindSet(true) then
+        if VATEntryLocal.FindSet() then
             repeat
-                AdjustGLAccountNoOnRec(VATEntryLocal);
+                if TryGetGLAccountNoForVATEntry(VATEntryLocal, GLAccountNoToSet) then begin
+                    if not EntryNosByGLAccountNo.Get(GLAccountNoToSet, EntryNos) then begin
+                        Clear(EntryNos);
+                        EntryNosByGLAccountNo.Add(GLAccountNoToSet, EntryNos);
+                    end;
+                    EntryNos.Add(VATEntryLocal."Entry No.");
+                    EntryNosByGLAccountNo.Set(GLAccountNoToSet, EntryNos);
+                end;
                 Index += 1;
-                if WithUI and GuiAllowed() and (NoOfRecords > 0) then
-                    Window.Update(2, Round(Index / NoOfRecords * 10000, 1));
+                if WithUI and GuiAllowed() and (NoOfRecords > 0) then begin
+                    Progress := Round(Index / NoOfRecords * 10000, 1);
+                    // Throttle UI round-trips: only refresh on whole-percent changes.
+                    if Progress >= LastShownProgress + 100 then begin
+                        Window.Update(2, Progress);
+                        LastShownProgress := Progress;
+                    end;
+                end;
             until VATEntryLocal.Next() = 0;
+
+        // Pass 2: one ModifyAll per (target account, chunk of Entry No.) instead of one Modify
+        // per row; collapses N database round-trips to ceil(N / ChunkSize) per distinct account.
+        ApplyBatchedGLAccountNoUpdates(EntryNosByGLAccountNo);
+
         if WithUI and GuiAllowed() then
             Window.Close();
 
@@ -1206,24 +1227,85 @@ table 254 "VAT Entry"
         until VATEntryLocal.Next() = 0;
     end;
 
-    local procedure AdjustGLAccountNoOnRec(var VATEntry: Record "VAT Entry")
+    local procedure TryGetGLAccountNoForVATEntry(var VATEntry: Record "VAT Entry"; var GLAccountNo: Code[20]): Boolean
     var
         GLEntry: Record "G/L Entry";
         GLEntryVATEntryLink: Record "G/L Entry - VAT Entry Link";
-        VATEntryEdit: Codeunit "VAT Entry - Edit";
     begin
         GLEntryVATEntryLink.SetCurrentKey("VAT Entry No.");
         GLEntryVATEntryLink.SetRange("VAT Entry No.", VATEntry."Entry No.");
         if not GLEntryVATEntryLink.FindFirst() then begin
             if not AddMissingGLEntryVATEntryLink(VATEntry, GLEntry, GLEntryVATEntryLink) then
-                exit;
+                exit(false);
         end else begin
             GLEntry.SetLoadFields("G/L Account No.");
             if not GLEntry.Get(GLEntryVATEntryLink."G/L Entry No.") then
-                exit;
+                exit(false);
         end;
+        GLAccountNo := GLEntry."G/L Account No.";
+        exit(true);
+    end;
 
-        VATEntryEdit.SetGLAccountNo(VATEntry, GLEntry."G/L Account No.");
+    local procedure ApplyBatchedGLAccountNoUpdates(EntryNosByGLAccountNo: Dictionary of [Code[20], List of [Integer]])
+    var
+        VATEntryUpdate: Record "VAT Entry";
+        EntryNoFilter: TextBuilder;
+        EntryNos: List of [Integer];
+        GLAccountNo: Code[20];
+        EntryNo: Integer;
+        EntryNoTxt: Text;
+        InChunk: Integer;
+        ChunkSize: Integer;
+        MaxEntryNoFilterLength: Integer;
+        TotalChunkDuration: Duration;
+        ChunkCount: Integer;
+        AvgChunkDurationMs: Integer;
+        TelemetryTxt: Label 'Adjust G/L Account No. on VAT entries: average modify time per chunk is %1 ms.', Locked = true;
+        TelemetryCategoryTok: Label 'AL VAT Entry G/L Reconciliation', Locked = true;
+    begin
+        ChunkSize := 100;
+        MaxEntryNoFilterLength := 900;
+        foreach GLAccountNo in EntryNosByGLAccountNo.Keys() do begin
+            EntryNos := EntryNosByGLAccountNo.Get(GLAccountNo);
+            InChunk := 0;
+            foreach EntryNo in EntryNos do begin
+                // Format with XML-invariant style to avoid locale thousand separators in the filter string.
+                EntryNoTxt := Format(EntryNo, 0, 9);
+                // Flush when adding the next entry would exceed the chunk size or the safe filter length.
+                if (InChunk = ChunkSize) or
+                   ((InChunk > 0) and ((EntryNoFilter.Length() + 1 + StrLen(EntryNoTxt)) > MaxEntryNoFilterLength)) then begin
+                    FlushBatchedGLAccountNoUpdate(VATEntryUpdate, EntryNoFilter, GLAccountNo, TotalChunkDuration, ChunkCount);
+                    InChunk := 0;
+                end;
+                if InChunk > 0 then
+                    EntryNoFilter.Append('|');
+                EntryNoFilter.Append(EntryNoTxt);
+                InChunk += 1;
+            end;
+            FlushBatchedGLAccountNoUpdate(VATEntryUpdate, EntryNoFilter, GLAccountNo, TotalChunkDuration, ChunkCount);
+        end;
+        if ChunkCount > 0 then begin
+            AvgChunkDurationMs := Round((TotalChunkDuration div 1) / ChunkCount, 1);
+            Session.LogMessage('0000PVR', StrSubstNo(TelemetryTxt, AvgChunkDurationMs), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok);
+        end;
+    end;
+
+    local procedure FlushBatchedGLAccountNoUpdate(var VATEntryUpdate: Record "VAT Entry"; var EntryNoFilter: TextBuilder; GLAccountNo: Code[20]; var TotalChunkDuration: Duration; var ChunkCount: Integer)
+    var
+        StartTime: DateTime;
+    begin
+        if EntryNoFilter.Length() = 0 then
+            exit;
+        StartTime := CurrentDateTime();
+        VATEntryUpdate.Reset();
+        // Re-apply the empty-account filter from pass 1 so a concurrent writer between passes
+        // cannot have its G/L Acc. No. overwritten by this batch update.
+        VATEntryUpdate.SetRange("G/L Acc. No.", '');
+        VATEntryUpdate.SetFilter("Entry No.", EntryNoFilter.ToText());
+        VATEntryUpdate.ModifyAll("G/L Acc. No.", GLAccountNo, false);
+        EntryNoFilter.Clear();
+        TotalChunkDuration += CurrentDateTime() - StartTime;
+        ChunkCount += 1;
     end;
 
     local procedure AddMissingGLEntryVATEntryLink(var VATEntry: Record "VAT Entry"; var GLEntry: Record "G/L Entry"; var GLEntryVATEntryLink: Record "G/L Entry - VAT Entry Link"): Boolean

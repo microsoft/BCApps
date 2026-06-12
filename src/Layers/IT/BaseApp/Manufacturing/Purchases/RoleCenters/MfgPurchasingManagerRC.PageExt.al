@@ -57,7 +57,7 @@ pageextension 99000761 "Mfg. Purchasing Manager RC" extends "Purchasing Manager 
                 RunObject = report "Prod. Order - Mat. Requisition";
             }
         }
-#if not CLEAN27
+#if not CLEAN28
         // IT Subcontracting
         addafter("Return Orders")
         {

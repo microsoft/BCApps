@@ -2414,6 +2414,7 @@ codeunit 10750 "SII XML Creator"
           (VATCalcType = VATEntry."VAT Calculation Type"::"Reverse Charge VAT") and
           (not SIIManagement.VendorIsIntraCommunity(VendNo)) and
           (InvoiceType <> GetF5InvoiceType()) and
+          (InvoiceType <> LCLbl) and
           (not SIIInitialDocUpload.DateWithinInitialUploadPeriod(PostingDate)));
     end;
 

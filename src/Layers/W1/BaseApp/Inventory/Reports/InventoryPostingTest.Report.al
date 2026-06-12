@@ -636,6 +636,7 @@ report 702 "Inventory Posting - Test"
                             else
                                 Item.SetFilter("Location Filter", '%1', '');
                             Item.CalcFields(Inventory);
+                            OnItemJournalLineOnAfterGetRecordOnAfterCalcItemInventory(Item, "Item Journal Line");
 
                             if Item.Inventory - QtyToPostBase < 0 then
                                 if "Location Code" <> '' then
@@ -955,6 +956,11 @@ report 702 "Inventory Posting - Test"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeItemJournalLineOnAfterGetRecord(ItemJournalLine: Record "Item Journal Line"; var ErrorCounter: Integer; var ErrorText: array[30] of Text[250])
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnItemJournalLineOnAfterGetRecordOnAfterCalcItemInventory(var Item: Record Item; ItemJournalLine: Record "Item Journal Line")
     begin
     end;
 

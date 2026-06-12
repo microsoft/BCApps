@@ -64,6 +64,6 @@ xmlport 147606 "SL SalesTax Data"
     end;
 
     var
-        CaptionRow: Boolean;
         SLSalesTax: Record "SL SalesTax";
+        CaptionRow: Boolean;
 }

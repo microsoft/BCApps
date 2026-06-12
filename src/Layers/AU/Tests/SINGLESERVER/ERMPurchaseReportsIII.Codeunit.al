@@ -39,6 +39,8 @@ codeunit 134988 "ERM Purchase Reports III"
         RowVisibilityErr: Label 'Analysis row must only be visible in Purchase Analysis Matrix when Show <> No.';
         ColumnVisibilityErr: Label 'Analysis column must only be visible in Purchase Analysis Matrix when Show <> Never.';
         ColumnDoesNotExistErr: Label 'Analysis column does not exist in Analysis Column Template and therefore must not be visible.';
+        ExpectedInvoiceEntryErr: Label 'Expected invoice entry for dimension value %1 in report', Comment = '%1 = Dimension Value Code';
+        UnexpectedEntryOutsideRangeErr: Label 'Report should not contain entry for dimension value outside the range filter';
 
     [Test]
     [HandlerFunctions('RHVendorTrialBalance')]
@@ -364,8 +366,8 @@ codeunit 134988 "ERM Purchase Reports III"
     var
         PurchaseHeader: Record "Purchase Header";
         PurchRcptHeader: Record "Purch. Rcpt. Header";
-        PostedPurchaseReceipt: TestPage "Posted Purchase Receipt";
         PostedPurchaseReceiptPage: Page "Posted Purchase Receipt";
+        PostedPurchaseReceipt: TestPage "Posted Purchase Receipt";
         DocumentNo: Code[20];
     begin
         // Verify Document Entry report for Purchase Receipt.
@@ -396,8 +398,8 @@ codeunit 134988 "ERM Purchase Reports III"
     var
         PurchaseHeader: Record "Purchase Header";
         ReturnShipmentHeader: Record "Return Shipment Header";
-        PostedReturnShipment: TestPage "Posted Return Shipment";
         PostedReturnShipmentPage: Page "Posted Return Shipment";
+        PostedReturnShipment: TestPage "Posted Return Shipment";
         DocumentNo: Code[20];
     begin
         // Verify Document Entry report for Purchase Return Shipment.
@@ -428,8 +430,8 @@ codeunit 134988 "ERM Purchase Reports III"
     procedure DocumentEntriesWithTransferShipment()
     var
         TransferShipmentHeader: Record "Transfer Shipment Header";
-        PostedTransferShipment: TestPage "Posted Transfer Shipment";
         PostedTransferShipmentPage: Page "Posted Transfer Shipment";
+        PostedTransferShipment: TestPage "Posted Transfer Shipment";
         TransferOrderNo: Code[20];
     begin
         // Verify Transfer Shipment Header on Document Entries Report.
@@ -456,8 +458,8 @@ codeunit 134988 "ERM Purchase Reports III"
     procedure DocumentEntriesWithTransferReceipt()
     var
         TransferReceiptHeader: Record "Transfer Receipt Header";
-        PostedTransferReceipt: TestPage "Posted Transfer Receipt";
         PostedTransferReceiptPage: Page "Posted Transfer Receipt";
+        PostedTransferReceipt: TestPage "Posted Transfer Receipt";
         TransferOrderNo: Code[20];
     begin
         // Verify Transfer Receipt Header on Document Entries Report.
@@ -1032,6 +1034,267 @@ codeunit 134988 "ERM Purchase Reports III"
         VerifyPurchQuoteLinesGoOneAfterAnother(PurchaseLine, TextPurchaseLine);
     end;
 
+    [Test]
+    [HandlerFunctions('RHVendorTrialBalance')]
+    procedure VendorTrialBalanceIgnoreApplicationEntries()
+    var
+        InvoiceGenJournalLine: Record "Gen. Journal Line";
+        PaymentGenJournalLine: Record "Gen. Journal Line";
+        VendorNo: Code[20];
+        InvoiceAmount: Integer;
+        ExpectedDebitAmount: Decimal;
+        ExpectedCreditAmount: Decimal;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 575179] Report aggregates debit/credit from non-Application entry types and excludes Application entries.
+        Initialize();
+
+        // [GIVEN] One invoice and one payment posted for the same vendor and then applied.
+        VendorNo := CreateVendor();
+        InvoiceAmount := -LibraryRandom.RandIntInRange(100, 1000);
+        CreateGenJournalLine(
+            InvoiceGenJournalLine, WorkDate(), VendorNo,
+            InvoiceGenJournalLine."Document Type"::Invoice, InvoiceGenJournalLine."Document Type"::" ", '', InvoiceAmount);
+        LibraryERM.PostGeneralJnlLine(InvoiceGenJournalLine);
+
+        CreateGenJournalLine(
+            PaymentGenJournalLine, WorkDate(), VendorNo,
+            PaymentGenJournalLine."Document Type"::Payment, PaymentGenJournalLine."Document Type"::Invoice,
+            InvoiceGenJournalLine."Document No.", -InvoiceAmount);
+        LibraryERM.PostGeneralJnlLine(PaymentGenJournalLine);
+
+        GetDetailedVendorLedgEntrySums(
+            VendorNo, CalcDate('<-CY>', WorkDate()), CalcDate('<CY>', WorkDate()),
+            '', '', '', '', ExpectedDebitAmount, ExpectedCreditAmount);
+
+        // [WHEN] Run Vendor - Trial Balance report for current year.
+        RunVendorTrialBalanceReportForCYWithFilters(VendorNo, '', '', '', '');
+
+        // [THEN] The report shows sums from non-Application entry types only.
+        VerifyVendorTrialBalanceDCAmounts(VendorNo, ExpectedDebitAmount, ExpectedCreditAmount);
+    end;
+
+    [Test]
+    procedure VendorTrialBalanceNoFilterRestrictsQueryScope()
+    var
+        Vendor: Record Vendor;
+        FirstVendorNo: Code[20];
+        SecondVendorNo: Code[20];
+        ThirdVendorNo: Code[20];
+        FirstDebitAmount: Decimal;
+        FirstCreditAmount: Decimal;
+        SecondDebitAmount: Decimal;
+        SecondCreditAmount: Decimal;
+        ThirdDebitAmount: Decimal;
+        ThirdCreditAmount: Decimal;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 575179] Vendor No. filter limits dataset to the requested vendors.
+        Initialize();
+
+        // [GIVEN] Three vendors with posted debit/credit entries in the same period.
+        FirstVendorNo := CreateVendor();
+        SecondVendorNo := CreateVendor();
+        ThirdVendorNo := CreateVendor();
+        CreateAndPostVendorDebitCreditJournalLinesWithFilters(FirstDebitAmount, FirstCreditAmount, FirstVendorNo, '', '', '');
+        CreateAndPostVendorDebitCreditJournalLinesWithFilters(SecondDebitAmount, SecondCreditAmount, SecondVendorNo, '', '', '');
+        CreateAndPostVendorDebitCreditJournalLinesWithFilters(ThirdDebitAmount, ThirdCreditAmount, ThirdVendorNo, '', '', '');
+
+        // [WHEN] Run report for the first and third vendors only.
+        Vendor.SetFilter("No.", FirstVendorNo + '|' + ThirdVendorNo);
+        Vendor.SetRange("Date Filter", CalcDate('<-CY>', WorkDate()), CalcDate('<CY>', WorkDate()));
+        Commit();
+        LibraryReportDataset.RunReportAndLoad(Report::"Vendor - Trial Balance", Vendor, '');
+
+        // [THEN] First and third vendor values are present.
+        LibraryReportDataset.MoveToRow(LibraryReportDataset.FindRow('No_Vendor', FirstVendorNo) + 1);
+        LibraryReportDataset.AssertCurrentRowValueEquals('PeriodDebitAmt', FirstDebitAmount);
+        LibraryReportDataset.AssertCurrentRowValueEquals('PeriodCreditAmt', FirstCreditAmount);
+
+        LibraryReportDataset.MoveToRow(LibraryReportDataset.FindRow('No_Vendor', ThirdVendorNo) + 1);
+        LibraryReportDataset.AssertCurrentRowValueEquals('PeriodDebitAmt', ThirdDebitAmount);
+        LibraryReportDataset.AssertCurrentRowValueEquals('PeriodCreditAmt', ThirdCreditAmount);
+
+        // [THEN] Second vendor is excluded from report.
+        LibraryReportDataset.AssertElementWithValueNotExist('No_Vendor', SecondVendorNo);
+    end;
+
+    [Test]
+    procedure VendorTrialBalancePostingGroupFilter()
+    var
+        FirstVendorPostingGroup: Record "Vendor Posting Group";
+        SecondVendorPostingGroup: Record "Vendor Posting Group";
+        FirstVendor: Record Vendor;
+        SecondVendor: Record Vendor;
+        Vendor: Record Vendor;
+        ExpectedDebitAmount: Decimal;
+        ExpectedCreditAmount: Decimal;
+        DebitAmount: Decimal;
+        CreditAmount: Decimal;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 575179] Vendor Posting Group filter restricts aggregation.
+        Initialize();
+
+        // [GIVEN] Two posting groups and two vendors in different groups.
+        LibraryPurchase.CreateVendorPostingGroup(FirstVendorPostingGroup);
+        LibraryPurchase.CreateVendorPostingGroup(SecondVendorPostingGroup);
+
+        LibraryPurchase.CreateVendor(FirstVendor);
+        FirstVendor.Validate("Vendor Posting Group", FirstVendorPostingGroup.Code);
+        FirstVendor.Modify(true);
+
+        LibraryPurchase.CreateVendor(SecondVendor);
+        SecondVendor.Validate("Vendor Posting Group", SecondVendorPostingGroup.Code);
+        SecondVendor.Modify(true);
+
+        CreateAndPostVendorDebitCreditJournalLinesWithFilters(DebitAmount, CreditAmount, FirstVendor."No.", '', '', '');
+        CreateAndPostVendorDebitCreditJournalLinesWithFilters(DebitAmount, CreditAmount, SecondVendor."No.", '', '', '');
+
+        GetDetailedVendorLedgEntrySums(
+            FirstVendor."No.", CalcDate('<-CY>', WorkDate()), CalcDate('<CY>', WorkDate()),
+            '', '', '', FirstVendorPostingGroup.Code, ExpectedDebitAmount, ExpectedCreditAmount);
+
+        // [WHEN] Run report with Vendor Posting Group filter.
+        Vendor.SetRange("Date Filter", CalcDate('<-CY>', WorkDate()), CalcDate('<CY>', WorkDate()));
+        Vendor.SetFilter("Vendor Posting Group", FirstVendorPostingGroup.Code);
+        Commit();
+        LibraryReportDataset.RunReportAndLoad(Report::"Vendor - Trial Balance", Vendor, '');
+
+        // [THEN] Only vendors in selected posting group are shown.
+        LibraryReportDataset.MoveToRow(LibraryReportDataset.FindRow('No_Vendor', FirstVendor."No.") + 1);
+        LibraryReportDataset.AssertCurrentRowValueEquals('PeriodDebitAmt', ExpectedDebitAmount);
+        LibraryReportDataset.AssertCurrentRowValueEquals('PeriodCreditAmt', ExpectedCreditAmount);
+
+        LibraryReportDataset.AssertElementWithValueNotExist('No_Vendor', SecondVendor."No.");
+    end;
+
+    [Test]
+    [HandlerFunctions('RHVendorTrialBalance')]
+    procedure VendorTrialBalanceScenario4GlobalDimensionFilter()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        GlobalDim1Value: Code[20];
+        GlobalDim2Value: Code[20];
+        Amount: Decimal;
+        AmountDim: Decimal;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 575179] Global dimension filter restricts debit/credit aggregation.
+        Initialize();
+
+        // [GIVEN] New Dimension Values for Global Dimension: "G1","G2"
+        CreateGlobalDimValues(GlobalDim1Value, GlobalDim2Value);
+
+        // [GIVEN] Posted Purchase Order with Amount = "X" without dimensions
+        Amount :=
+            CreatePurchaseDocument(
+                PurchaseHeader, CreateVendor(), Format(LibraryRandom.RandInt(100)),
+                PurchaseHeader."Document Type"::Order, LibraryInventory.CreateItemNo());
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        // [GIVEN] Vendor Ledger Entry with Amount = "X1" and dimensions "G1","G2"
+        AmountDim := CreateAndPostGeneralJournalLineWithDimensions(PurchaseHeader."Buy-from Vendor No.", GlobalDim1Value, GlobalDim2Value);
+
+        // [WHEN] Run Vendor - Trial Balance Report with dimension filters
+        RunVendorTrialBalanceReport(
+            PurchaseHeader."Buy-from Vendor No.", PurchaseHeader."Posting Date", GlobalDim1Value, GlobalDim2Value);
+
+        // [THEN] Only dimension-filtered amount is shown in report
+        VerifyVendorTrialBalanceReportValues(PurchaseHeader."Buy-from Vendor No.", AmountDim);
+
+        // [THEN] Sum of all amounts is not shown in report
+        LibraryReportDataset.AssertElementWithValueNotExist('PeriodCreditAmt', Amount);
+    end;
+
+    [Test]
+    [HandlerFunctions('RHVendorTrialBalance')]
+    procedure VendorTrialBalanceCurrencyFilter()
+    var
+        VendorNo: Code[20];
+        CurrencyCode: Code[10];
+        ExpectedDebitAmount: Decimal;
+        ExpectedCreditAmount: Decimal;
+        DebitAmount: Decimal;
+        CreditAmount: Decimal;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 575179] Currency filter restricts debit/credit aggregation.
+        Initialize();
+
+        // [GIVEN] Vendor entries in LCY and FCY.
+        VendorNo := CreateVendor();
+        CurrencyCode := CreateCurrency();
+        CreateAndPostVendorDebitCreditJournalLinesWithFilters(DebitAmount, CreditAmount, VendorNo, '', '', '');
+        CreateAndPostVendorDebitCreditJournalLinesWithFilters(DebitAmount, CreditAmount, VendorNo, '', '', CurrencyCode);
+
+        GetDetailedVendorLedgEntrySums(
+            VendorNo, CalcDate('<-CY>', WorkDate()), CalcDate('<CY>', WorkDate()),
+            CurrencyCode, '', '', '', ExpectedDebitAmount, ExpectedCreditAmount);
+
+        // [WHEN] Run report with Currency Filter = FCY code.
+        RunVendorTrialBalanceReportForCYWithFilters(VendorNo, '', '', '', CurrencyCode);
+
+        // [THEN] Only FCY entries contribute to totals.
+        VerifyVendorTrialBalanceDCAmounts(VendorNo, ExpectedDebitAmount, ExpectedCreditAmount);
+    end;
+
+    [Test]
+    [HandlerFunctions('RHVendorTrialBalance')]
+    procedure VendorTrialBalanceNoEntriesInRangeShowsZeroAmounts()
+    var
+        InvoiceGenJournalLine: Record "Gen. Journal Line";
+        VendorNo: Code[20];
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 575179] Vendor with no entries in current period has zero Period Debit/Credit.
+        Initialize();
+
+        // [GIVEN] Vendor has only prior-year entries.
+        VendorNo := CreateVendor();
+        CreateGenJournalLine(
+            InvoiceGenJournalLine, CalcDate('<-1Y>', WorkDate()), VendorNo, InvoiceGenJournalLine."Document Type"::Invoice,
+            InvoiceGenJournalLine."Document Type"::" ", '', -LibraryRandom.RandIntInRange(100, 1000));
+        LibraryERM.PostGeneralJnlLine(InvoiceGenJournalLine);
+
+        // [WHEN] Run report for current year.
+        RunVendorTrialBalanceReportForCYWithFilters(VendorNo, '', '', '', '');
+
+        // [THEN] Period amounts are zero.
+        VerifyVendorTrialBalanceDCAmounts(VendorNo, 0, 0);
+    end;
+
+    [Test]
+    [HandlerFunctions('RHVendorBalanceToDate')]
+    procedure VendBalToDateDimRangeFilterIncludesMatchingEntries()
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        VendorNo: Code[20];
+        DimValueCode: array[4] of Code[20];
+        i: Integer;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] Vendor Balance to Date report with dimension range filter includes entries within the range and excludes entries outside
+        Initialize();
+
+        // [GIVEN] Create Vendor.
+        GeneralLedgerSetup.Get();
+        VendorNo := CreateVendor();
+
+        // [GIVEN] Create dimension values under Global Dimension 1.
+        CreateSortedDimensionValues(DimValueCode, GeneralLedgerSetup."Global Dimension 1 Code");
+
+        // [GIVEN] Post purchase invoices for each dimension value.
+        for i := 1 to ArrayLen(DimValueCode) do
+            CreateCustomerAndPostGenJnlLinesWithFilters(VendorNo, DimValueCode[i], '', '');
+
+        // [WHEN] Run Vendor - Balance to Date report with Global Dimension 1 Filter.
+        RunVendorBalanceToDateWithDimFilter(VendorNo, StrSubstNo('%1..%2', DimValueCode[1], DimValueCode[3]));
+
+        // [THEN] Verify Report contains entries for correct amounts and excludes entries outside of the range.
+        VerifyVendBalToDateDimRangeEntries(VendorNo, DimValueCode);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -1325,7 +1588,6 @@ codeunit 134988 "ERM Purchase Reports III"
     var
         Dimension: Record Dimension;
         DimensionValue: Record "Dimension Value";
-        LibraryDimension: Codeunit "Library - Dimension";
     begin
         LibraryDimension.FindDimension(Dimension);
         LibraryDimension.FindDimensionValue(DimensionValue, Dimension.Code);
@@ -1520,6 +1782,29 @@ codeunit 134988 "ERM Purchase Reports III"
         LibraryERM.PostGeneralJnlLine(GenJournalLine);
     end;
 
+    local procedure CreateAndPostVendorDebitCreditJournalLinesWithFilters(var DebitAmount: Decimal; var CreditAmount: Decimal; VendorNo: Code[20]; GlobalDimension1Code: Code[20]; GlobalDimension2Code: Code[20]; CurrencyCode: Code[10])
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+    begin
+        CreditAmount := LibraryRandom.RandDec(1000, 2);
+        LibraryJournals.CreateGenJournalLineWithBatch(
+            GenJournalLine, GenJournalLine."Document Type"::Invoice, GenJournalLine."Account Type"::Vendor, VendorNo, -CreditAmount);
+        GenJournalLine.Validate("Shortcut Dimension 1 Code", GlobalDimension1Code);
+        GenJournalLine.Validate("Shortcut Dimension 2 Code", GlobalDimension2Code);
+        GenJournalLine.Validate("Currency Code", CurrencyCode);
+        GenJournalLine.Modify();
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        DebitAmount := LibraryRandom.RandDec(1000, 2);
+        LibraryJournals.CreateGenJournalLineWithBatch(
+            GenJournalLine, GenJournalLine."Document Type"::Payment, GenJournalLine."Account Type"::Vendor, VendorNo, DebitAmount);
+        GenJournalLine.Validate("Shortcut Dimension 1 Code", GlobalDimension1Code);
+        GenJournalLine.Validate("Shortcut Dimension 2 Code", GlobalDimension2Code);
+        GenJournalLine.Validate("Currency Code", CurrencyCode);
+        GenJournalLine.Modify();
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+    end;
+
     local procedure CreateHeaderAndLineDimSetID(var HeaderDimensionValue: Record "Dimension Value"; var Line1DimensionValue: array[4] of Record "Dimension Value"; var Line2DimensionValue: array[4] of Record "Dimension Value"; var HeaderDimSetID: Integer; var LineDimSetID: array[2] of Integer; NoOfDimsPerLine: Integer)
     var
         i: Integer;
@@ -1677,6 +1962,20 @@ codeunit 134988 "ERM Purchase Reports III"
         Vendor.SetFilter("Global Dimension 2 Filter", Dim2Filter);
         VendorTrialBalance.SetTableView(Vendor);
         VendorTrialBalance.Run();
+    end;
+
+    local procedure RunVendorTrialBalanceReportForCYWithFilters(VendorNoFilter: Text; Dim1Filter: Code[20]; Dim2Filter: Code[20]; VendorPostingGroupFilter: Code[20]; CurrencyFilter: Code[10])
+    var
+        Vendor: Record Vendor;
+    begin
+        if VendorNoFilter <> '' then
+            Vendor.SetFilter("No.", VendorNoFilter);
+        Vendor.SetRange("Date Filter", CalcDate('<-CY>', WorkDate()), CalcDate('<CY>', WorkDate()));
+        Vendor.SetFilter("Global Dimension 1 Filter", Dim1Filter);
+        Vendor.SetFilter("Global Dimension 2 Filter", Dim2Filter);
+        Vendor.SetFilter("Vendor Posting Group", VendorPostingGroupFilter);
+        Vendor.SetFilter("Currency Filter", CurrencyFilter);
+        Report.Run(Report::"Vendor - Trial Balance", true, false, Vendor);
     end;
 
     local procedure RunVendorBalanceToDate(VendorNo: Code[20]; GlobalDimension1Filter: Text; GlobalDimension2Filter: Text; CurrencyFilter: Text)
@@ -1892,6 +2191,36 @@ codeunit 134988 "ERM Purchase Reports III"
         LibraryReportDataset.AssertCurrentRowValueEquals('YTDTotal', -Amount); // This for Ending Balance
     end;
 
+    local procedure VerifyVendorTrialBalanceDCAmounts(VendorNo: Code[20]; DebitAmount: Decimal; CreditAmount: Decimal)
+    begin
+        LibraryReportDataset.LoadDataSetFile();
+        LibraryReportDataset.SetRange('No_Vendor', VendorNo);
+        Assert.IsTrue(LibraryReportDataset.GetNextRow(), StrSubstNo(RowNotFoundErr, 'No_Vendor', VendorNo));
+        LibraryReportDataset.AssertCurrentRowValueEquals('PeriodDebitAmt', DebitAmount);
+        LibraryReportDataset.AssertCurrentRowValueEquals('PeriodCreditAmt', CreditAmount);
+    end;
+
+    local procedure GetDetailedVendorLedgEntrySums(VendorNo: Code[20]; DateFrom: Date; DateTo: Date; CurrencyFilter: Code[10]; Dim1Filter: Code[20]; Dim2Filter: Code[20]; VendorPostingGroupFilter: Code[20]; var DebitAmountLCY: Decimal; var CreditAmountLCY: Decimal)
+    var
+        DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry";
+    begin
+        DetailedVendorLedgEntry.SetRange("Vendor No.", VendorNo);
+        DetailedVendorLedgEntry.SetRange("Posting Date", DateFrom, DateTo);
+        DetailedVendorLedgEntry.SetFilter("Entry Type", '<>%1', DetailedVendorLedgEntry."Entry Type"::Application);
+        if Dim1Filter <> '' then
+            DetailedVendorLedgEntry.SetFilter("Initial Entry Global Dim. 1", Dim1Filter);
+        if Dim2Filter <> '' then
+            DetailedVendorLedgEntry.SetFilter("Initial Entry Global Dim. 2", Dim2Filter);
+        if CurrencyFilter <> '' then
+            DetailedVendorLedgEntry.SetFilter("Currency Code", CurrencyFilter);
+        if VendorPostingGroupFilter <> '' then
+            DetailedVendorLedgEntry.SetFilter("Posting Group", VendorPostingGroupFilter);
+        DetailedVendorLedgEntry.CalcSums("Debit Amount (LCY)", "Credit Amount (LCY)");
+
+        DebitAmountLCY := DetailedVendorLedgEntry."Debit Amount (LCY)";
+        CreditAmountLCY := DetailedVendorLedgEntry."Credit Amount (LCY)";
+    end;
+
     local procedure VerifyVendorBalanceToBalance(VendorNo: Code[20]; GlobalDimension1Code: Code[20]; GlobalDimension2Code: Code[20]; CurrencyCode: Code[10])
     var
         VendorLedgerEntry: Record "Vendor Ledger Entry";
@@ -2057,6 +2386,55 @@ codeunit 134988 "ERM Purchase Reports III"
         LibraryReportDataset.AssertElementWithValueExists('ExpectedReceiptDate', Format(PurchaseLine."Expected Receipt Date", 0, 4));
         LibraryReportDataset.AssertElementWithValueExists('PromisedReceiptDate', Format(PurchaseLine."Promised Receipt Date", 0, 4));
         LibraryReportDataset.AssertElementWithValueExists('RequestedReceiptDate', Format(PurchaseLine."Requested Receipt Date", 0, 4));
+    end;
+
+    local procedure CreateSortedDimensionValues(var SortedDimValueCode: array[4] of Code[20]; DimensionCode: Code[20])
+    var
+        DimensionValue: Record "Dimension Value";
+        TempCode: Code[20];
+        i: Integer;
+        j: Integer;
+    begin
+        for i := 1 to ArrayLen(SortedDimValueCode) do begin
+            LibraryDimension.CreateDimensionValue(DimensionValue, DimensionCode);
+            SortedDimValueCode[i] := DimensionValue.Code;
+        end;
+        for i := 1 to ArrayLen(SortedDimValueCode) - 1 do
+            for j := i + 1 to ArrayLen(SortedDimValueCode) do
+                if SortedDimValueCode[i] > SortedDimValueCode[j] then begin
+                    TempCode := SortedDimValueCode[i];
+                    SortedDimValueCode[i] := SortedDimValueCode[j];
+                    SortedDimValueCode[j] := TempCode;
+                end;
+    end;
+
+    local procedure RunVendorBalanceToDateWithDimFilter(VendorNo: Code[20]; GlobalDimension1Filter: Text)
+    var
+        Vendor: Record Vendor;
+    begin
+        Vendor.SetRange("No.", VendorNo);
+        Vendor.SetFilter("Global Dimension 1 Filter", GlobalDimension1Filter);
+        Vendor.SetRange("Date Filter", WorkDate());
+        REPORT.Run(REPORT::"Vendor - Balance to Date", true, false, Vendor);
+    end;
+
+    local procedure VerifyVendBalToDateDimRangeEntries(VendorNo: Code[20]; DimValueCode: array[4] of Code[20])
+    var
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        GenJournalLine: Record "Gen. Journal Line";
+        i: Integer;
+    begin
+        LibraryReportDataset.LoadDataSetFile();
+        LibraryReportDataset.SetRange('DocType_VendLedgEntry3', Format(GenJournalLine."Document Type"::Invoice));
+        for i := 1 to 3 do begin
+            VendorLedgerEntry.SetRange("Vendor No.", VendorNo);
+            VendorLedgerEntry.SetRange("Global Dimension 1 Code", DimValueCode[i]);
+            VendorLedgerEntry.FindFirst();
+            VendorLedgerEntry.CalcFields(Amount);
+            Assert.IsTrue(LibraryReportDataset.GetNextRow(), StrSubstNo(ExpectedInvoiceEntryErr, DimValueCode[i]));
+            LibraryReportDataset.AssertCurrentRowValueEquals('OriginalAmt', Format(VendorLedgerEntry.Amount));
+        end;
+        Assert.IsFalse(LibraryReportDataset.GetNextRow(), UnexpectedEntryOutsideRangeErr);
     end;
 
     [ModalPageHandler]

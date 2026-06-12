@@ -346,7 +346,10 @@ codeunit 4508 "Email - Outlook API Client" implements "Email - Outlook API Clien
             QueryParameters := QueryParameters + '$expand=attachments&';
 
         QueryParameters := QueryParameters + '$top=' + Format(Filters."Max No. of Emails") + '&';
-        QueryParameters := QueryParameters + '$select=' + RetrieveEmailSelectedFieldsTxt + '&';
+        QueryParameters := QueryParameters + '$select=' + RetrieveEmailSelectedFieldsTxt;
+        if Filters."Load Headers" then
+            QueryParameters := QueryParameters + ',internetMessageHeaders';
+        QueryParameters := QueryParameters + '&';
         QueryParameters := QueryParameters + '$count=true&';
         QueryParameters := QueryParameters + '$orderby=receivedDateTime asc&';
 

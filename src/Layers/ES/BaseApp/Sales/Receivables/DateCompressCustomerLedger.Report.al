@@ -471,6 +471,7 @@ report 198 "Date Compress Customer Ledger"
 
         ReminderEntry.SetRange("Customer Entry No.", CustLedgEntry."Entry No.");
         ReminderEntry.DeleteAll();
+        OnSummarizeEntryOnBeforeDeleteCustLedgEntry(CustLedgEntry);
         CustLedgEntry.Delete();
         DateComprReg."No. Records Deleted" := DateComprReg."No. Records Deleted" + 1;
         Window.Update(4, DateComprReg."No. Records Deleted");
@@ -773,6 +774,11 @@ report 198 "Date Compress Customer Ledger"
     /// <param name="NewCustLedgEntry">The new compressed customer ledger entry.</param>
     [IntegrationEvent(false, false)]
     local procedure OnSummarizeDtldEntryOnAfterInitDtldCustLedgEntryBuffer(var DtldCustLedgEntryBuffer: Record "Detailed Cust. Ledg. Entry"; var DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; var OriginCustLedgEntry: Record "Cust. Ledger Entry"; var NewCustLedgEntry: Record "Cust. Ledger Entry")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnSummarizeEntryOnBeforeDeleteCustLedgEntry(var CustLedgerEntry: Record "Cust. Ledger Entry")
     begin
     end;
 }

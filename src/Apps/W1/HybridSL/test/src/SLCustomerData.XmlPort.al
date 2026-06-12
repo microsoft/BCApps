@@ -132,6 +132,6 @@ xmlport 147600 "SL Customer Data"
     end;
 
     var
-        CaptionRow: Boolean;
         SLCustomer: Record "SL Customer";
+        CaptionRow: Boolean;
 }

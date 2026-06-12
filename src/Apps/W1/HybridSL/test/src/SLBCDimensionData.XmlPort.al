@@ -70,6 +70,6 @@ xmlport 147628 "SL BC Dimension Data"
     end;
 
     var
-        CaptionRow: Boolean;
         DimensionRec: Record Dimension;
+        CaptionRow: Boolean;
 }

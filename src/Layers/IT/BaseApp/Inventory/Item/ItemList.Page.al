@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -1929,7 +1929,7 @@ page 31 "Item List"
                     RunPageLink = "Item No." = field("No.");
                     ToolTip = 'View or edit the percentages of the purchase price that can be paid as a prepayment.';
                 }
-#if not CLEAN27
+#if not CLEAN28
                 action("Subcontracting Prices")
                 {
                     ApplicationArea = Manufacturing;

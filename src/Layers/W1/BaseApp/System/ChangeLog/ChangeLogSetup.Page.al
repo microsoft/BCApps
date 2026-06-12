@@ -13,6 +13,8 @@ page 592 "Change Log Setup"
     PageType = Card;
     SourceTable = "Change Log Setup";
     UsageCategory = Administration;
+    AboutTitle = 'About change log setup';
+    AboutText = 'Control how changes to business data are tracked. You can choose which tables and fields the system logs when users modify data. Tracking changes helps you find out what changed, who made the change, and when it happened, which is useful for audits and troubleshooting. Because logging changes can affect performance and increase database size, enable it only for the data that you need to monitor.';
 
     layout
     {

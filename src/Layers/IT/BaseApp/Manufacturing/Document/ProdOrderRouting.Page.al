@@ -55,7 +55,7 @@ page 99000817 "Prod. Order Routing"
                 {
                     ApplicationArea = Manufacturing;
                 }
-#if not CLEAN27
+#if not CLEAN28
                 field("WIP Item"; Rec."WIP Item")
                 {
                     ApplicationArea = Manufacturing;
@@ -298,7 +298,7 @@ page 99000817 "Prod. Order Routing"
                     ApplicationArea = Manufacturing;
                     Visible = false;
                 }
-#if not CLEAN27
+#if not CLEAN28
                 field("Qty. WIP on Transfer Order"; Rec."Qty. WIP on Transfer Order")
                 {
                     ApplicationArea = Manufacturing;

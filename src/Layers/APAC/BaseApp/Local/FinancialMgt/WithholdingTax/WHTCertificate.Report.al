@@ -7,7 +7,7 @@ namespace Microsoft.Finance.WithholdingTax;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
-using Microsoft.Purchases.Document;
+using Microsoft.Foundation.Reporting;
 using Microsoft.Purchases.Setup;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
@@ -344,8 +344,8 @@ report 14303 "WHT Certificate"
                 TotalBaseLCY := TotalBaseLCY + WHTBaseLCY;
 
                 if GlobalLanguage = 1054 then begin
-                    PurchLine.InitTextVariable();
-                    PurchLine.FormatNoText(AmtInWords, TotalAmountLCY, "WHT Entry"."Currency Code");
+                    ReportManagementAPAC.InitTextVariable();
+                    ReportManagementAPAC.FormatNoText(AmtInWords, TotalAmountLCY, "WHT Entry"."Currency Code");
                 end;
             end;
 
@@ -388,7 +388,9 @@ report 14303 "WHT Certificate"
         Vendor: Record Vendor;
         PurchSetup: Record "Purchases & Payables Setup";
         WHTEntry2: Record "WHT Entry";
+        WHTPostingSetup: Record "WHT Posting Setup";
         FormatAddr: Codeunit "Format Address";
+        ReportManagementAPAC: Codeunit "Report Management APAC";
         TotalAmountLCY: Decimal;
         TotalBaseLCY: Decimal;
         WHTAmountLCY: Decimal;
@@ -397,8 +399,6 @@ report 14303 "WHT Certificate"
         VendAddr: array[8] of Text[100];
         CompanyAddr: array[8] of Text[100];
         AmtInWords: array[2] of Text[200];
-        PurchLine: Record "Purchase Line";
-        WHTPostingSetup: Record "WHT Posting Setup";
         CheckBox1: Code[10];
         CheckBox2: Code[10];
         CheckBox1s: Code[10];

@@ -86,15 +86,14 @@ xmlport 147602 "SL BC GL Account Data"
 
     procedure GetExpectedGLAccounts(var NewTempGLAccount: Record "G/L Account" temporary)
     begin
-        if TempGLAccount.FindSet() then begin
+        if TempGLAccount.FindSet() then
             repeat
                 NewTempGLAccount.Copy(TempGLAccount);
                 NewTempGLAccount.Insert();
             until TempGLAccount.Next() = 0;
-        end;
     end;
 
     var
-        CaptionRow: Boolean;
         TempGLAccount: Record "G/L Account" temporary;
+        CaptionRow: Boolean;
 }

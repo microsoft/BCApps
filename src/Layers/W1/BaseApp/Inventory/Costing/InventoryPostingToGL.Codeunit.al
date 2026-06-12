@@ -130,6 +130,13 @@ codeunit 5802 "Inventory Posting To G/L"
         OnAfterSetRunOnlyCheck(CalledFromItemPosting, RunOnlyCheck, CalledFromTestReport);
     end;
 
+    procedure GetGLRegister(var GLRegister: Record "G/L Register"; var NextVATEntryNo: Integer; var NextTransactionNo: Integer)
+    begin
+        GenJnlPostLine.GetGLReg(GLRegister);
+        NextVATEntryNo := GenJnlPostLine.GetNextVATEntryNo();
+        NextTransactionNo := GenJnlPostLine.GetNextTransactionNo();
+    end;
+
     procedure BufferInvtPosting(var ValueEntry: Record "Value Entry"): Boolean
     var
         CostToPost: Decimal;

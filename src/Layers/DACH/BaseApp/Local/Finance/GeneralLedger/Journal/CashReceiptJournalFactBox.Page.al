@@ -378,6 +378,7 @@ page 35516 "Cash Receipt Journal FactBox"
                         Rec."Posting Date", CustLedgEntry."Currency Code", Rec."Currency Code", CurrPaymDiscDeductAmount);
             end;
             CurrPaymDiscDeductAmount := Round(CurrPaymDiscDeductAmount, Currency."Amount Rounding Precision");
+            OnUpdateInfoBoxOnAfterCalcCurrPaymDiscDeductAmount(Rec, CustLedgEntry, PaymDiscDeductAmount, CurrPaymDiscDeductAmount);
 
             // Accepted Payment Tolerance
             CurrAcceptedPaymentTol := CustLedgEntry."Accepted Payment Tolerance";
@@ -398,11 +399,14 @@ page 35516 "Cash Receipt Journal FactBox"
             end;
 
             // Pmt. Disc is not applied if entry is not closed
-            if CurrRemainAfterPayment > 0 then begin
-                CurrRemainAfterPayment := CurrRemainAfterPayment - CurrPaymDiscDeductAmount;
-                RemainAfterPaymentText := Format(CurrRemainAfterPayment, 0, Text002);
-                CurrPaymDiscDeductAmount := 0;
-            end;
+            IsHandled := false;
+            OnUpdateInfoBoxOnBeforeCheckRemainAfterPayment(Rec, CustLedgEntry, CurrRemainAfterPayment, CurrPaymDiscDeductAmount, IsHandled);
+            if not IsHandled then
+                if CurrRemainAfterPayment > 0 then begin
+                    CurrRemainAfterPayment := CurrRemainAfterPayment - CurrPaymDiscDeductAmount;
+                    RemainAfterPaymentText := Format(CurrRemainAfterPayment, 0, Text002);
+                    CurrPaymDiscDeductAmount := 0;
+                end;
             OeRemainAmountFC += CurrOeRemainAmountFC;
             PMTDiscount += CurrPMTDiscount;
             PaymDiscDeductAmount += CurrPaymDiscDeductAmount;
@@ -410,6 +414,22 @@ page 35516 "Cash Receipt Journal FactBox"
             RemainAfterPayment += CurrRemainAfterPayment;
             RemainAfterPaymentText := Format(RemainAfterPayment, 0, Text002);
         until CustLedgEntry.Next() = 0;
+
+        OnAfterUpdateInfoBox(
+            Rec,
+            OeRemainAmountFC,
+            PMTDiscount,
+            PaymDiscDeductAmount,
+            AcceptedPaymentTol,
+            RemainAfterPayment,
+            RemainAfterPaymentText,
+            RemainAfterPaymentCaption,
+            PostingDate,
+            DueDate,
+            PmtDiscDate,
+            AgeDays,
+            PaymDiscDays,
+            DueDays);
     end;
 
     [IntegrationEvent(true, false)]
@@ -439,6 +459,21 @@ page 35516 "Cash Receipt Journal FactBox"
 
     [IntegrationEvent(false, false)]
     local procedure OnUpdateInfoBoxOnAfterCalcRemainingAmount(var CustLedgerEntry: Record "Cust. Ledger Entry")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnUpdateInfoBoxOnAfterCalcCurrPaymDiscDeductAmount(var GenJournalLine: Record "Gen. Journal Line"; var CustLedgerEntry: Record "Cust. Ledger Entry"; var PaymDiscDeductAmount: Decimal; var CurrPaymDiscDeductAmount: Decimal)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnUpdateInfoBoxOnBeforeCheckRemainAfterPayment(var GenJournalLine: Record "Gen. Journal Line"; var CustLedgerEntry: Record "Cust. Ledger Entry"; var CurrRemainAfterPayment: Decimal; var CurrPaymDiscDeductAmount: Decimal; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterUpdateInfoBox(var GenJournalLine: Record "Gen. Journal Line"; var OeRemainAmountFC: Decimal; var PMTDiscount: Decimal; var PaymDiscDeductAmount: Decimal; var AcceptedPaymentTol: Decimal; var RemainAfterPayment: Decimal; var RemainAfterPaymentText: Text[30]; var RemainAfterPaymentCaption: Text[30]; var PostingDate: Date; var DueDate: Date; var PmtDiscDate: Date; var AgeDays: Integer; var PaymDiscDays: Integer; var DueDays: Integer)
     begin
     end;
 }

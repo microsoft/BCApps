@@ -125,15 +125,14 @@ xmlport 147636 "SL BC Bank Account Data"
 
     procedure GetExpectedBankAccounts(var NewTempBankAccount: Record "Bank Account" temporary)
     begin
-        if TempBankAccount.FindSet() then begin
+        if TempBankAccount.FindSet() then
             repeat
                 NewTempBankAccount.Copy(TempBankAccount);
                 NewTempBankAccount.Insert();
             until TempBankAccount.Next() = 0;
-        end;
     end;
 
     var
-        CaptionRow: Boolean;
         TempBankAccount: Record "Bank Account" temporary;
+        CaptionRow: Boolean;
 }

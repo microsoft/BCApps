@@ -11,8 +11,8 @@ using Microsoft.QualityManagement.Configuration.SourceConfiguration;
 using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Configuration.Template.Test;
 using Microsoft.QualityManagement.Setup.ApplicationAreas;
+using Microsoft.QualityManagement.Telemetry;
 using System.Environment;
-using System.Telemetry;
 
 page 20400 "Qlty. Management Setup"
 {
@@ -50,7 +50,6 @@ page 20400 "Qlty. Management Setup"
                         ApplicationArea = All;
                         AboutTitle = 'Inspection creation option';
                         AboutText = 'Control if new quality inspections should be created when similar inspections already exist.';
-
                     }
                     field("Inspection Search Criteria"; Rec."Inspection Search Criteria")
                     {
@@ -284,21 +283,21 @@ page 20400 "Qlty. Management Setup"
 
     var
         QltyAutoConfigure: Codeunit "Qlty. Auto Configure";
-        FeatureTelemetry: Codeunit "Feature Telemetry";
-        QualityManagementTok: Label 'Quality Management', Locked = true;
         IsSaaS: Boolean;
 
     trigger OnOpenPage()
     var
         EnvironmentInformation: Codeunit "Environment Information";
+        QltyMgmtFeatureTelemetry: Codeunit "Qlty. Mgmt. Feature Telemetry";
     begin
         IsSaaS := EnvironmentInformation.IsSaaS();
 
-        FeatureTelemetry.LogUptake('0000QID', QualityManagementTok, Enum::"Feature Uptake Status"::Discovered);
+        QltyMgmtFeatureTelemetry.LogFeatureUptakeDiscovered(ObjectType::Page, Page::"Qlty. Management Setup");
+
         if not Rec.Get() then begin
             QltyAutoConfigure.EnsureBasicSetupExists(false);
             if Rec.Get() then;
-            FeatureTelemetry.LogUptake('0000QIE', QualityManagementTok, Enum::"Feature Uptake Status"::"Set up");
+            QltyMgmtFeatureTelemetry.LogFeatureUptakeSetUp(ObjectType::Page, Page::"Qlty. Management Setup");
         end;
     end;
 

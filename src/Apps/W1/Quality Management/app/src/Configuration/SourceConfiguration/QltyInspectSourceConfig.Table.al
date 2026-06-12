@@ -101,7 +101,7 @@ table 20407 "Qlty. Inspect. Source Config."
         {
             InitValue = Inspection;
             Caption = 'To Type';
-            ToolTip = 'Specifies whether this connects to an inspection, or a chained table.';
+            ToolTip = 'Specifies the destination type for this mapping. "Inspection" maps fields directly to the quality inspection header. "Chained table" links to another table as an intermediate step, allowing you to pull data from related records (such as item attributes or customer details) for use in filters or visibility. "Item Tracking" maps to item tracking information like lot or serial numbers.';
 
             trigger OnValidate()
             begin

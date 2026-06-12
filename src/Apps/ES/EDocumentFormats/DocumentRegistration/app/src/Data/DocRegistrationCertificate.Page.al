@@ -3,7 +3,9 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocument.Verifactu;
+
 using System.Security.Encryption;
+using System.Security.User;
 using System.Utilities;
 
 page 10778 "Doc. Registration Certificate"
@@ -154,8 +156,14 @@ page 10778 "Doc. Registration Certificate"
     end;
 
     trigger OnOpenPage()
+    var
+        UserPermissions: Codeunit "User Permissions";
     begin
         if Rec.Code = '' then begin
+
+            if not UserPermissions.IsSuper(UserSecurityId()) then
+                Error(UserMustBeSuperErr);
+
             IsNewRecord := true;
             CheckEncryption();
             if not DocRegistrationCertMgt.UploadAndVerifyCert(Rec) then
@@ -195,6 +203,7 @@ page 10778 "Doc. Registration Certificate"
         ExpiredNotification: Notification;
         IsNewRecord: Boolean;
         CertWrongPasswordErr: Label 'The password is not correct.';
+        UserMustBeSuperErr: Label 'You must have the SUPER permission set to create a new certificate.';
         PasswordNotificationMsg: Label 'You must enter the password for this certificate.';
         ExpiredNewCertMsg: Label 'You cannot upload the certificate%1 because it is past its expiration date.', Comment = '%1=file name, e.g. Certfile.pfx';
         IsPasswordRequired: Boolean;

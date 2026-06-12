@@ -92,7 +92,7 @@ xmlport 147631 "SL ARDoc Buffer Data"
                     SLARDocBuffer.RefNbr := RefNbr;
                     SLARDocBuffer.BatNbr := BatNbr;
                     Evaluate(SLARDocBuffer.BatSeq, BatSeq);
-                    SLARDocBuffer.CpnyID := CopyStr(CpnyID, 1, MaxStrLen(SLARDocBuffer.CpnyID));
+                    SLARDocBuffer.CpnyID := CopyStr(CompanyName(), 1, MaxStrLen(SLARDocBuffer.CpnyID));
                     Evaluate(SLARDocBuffer.DocBal, DocBal);
                     Evaluate(SLARDocBuffer.DocDate, DocDate);
                     SLARDocBuffer.DocDesc := DocDesc;
@@ -116,6 +116,6 @@ xmlport 147631 "SL ARDoc Buffer Data"
     end;
 
     var
-        CaptionRow: Boolean;
         SLARDocBuffer: Record "SL ARDoc Buffer";
+        CaptionRow: Boolean;
 }

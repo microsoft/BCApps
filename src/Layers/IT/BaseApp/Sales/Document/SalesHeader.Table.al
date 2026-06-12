@@ -4049,9 +4049,13 @@ table 36 "Sales Header"
         CRMIntTableSubscriber: Codeunit "CRM Int. Table. Subscriber";
         ShowPostedDocsToPrint: Boolean;
         DisableAggregateTableUpdate: Codeunit "Disable Aggregate Table Update";
+        IsHandled: Boolean;
     begin
-        if "Posting No." <> '' then
-            Error(Text1130019);
+        IsHandled := false;
+        OnDeleteOnBeforeCheckPostingNo(Rec, IsHandled);
+        if not IsHandled then
+            if "Posting No." <> '' then
+                Error(Text1130019);
         if not UserSetupMgt.CheckRespCenter(0, "Responsibility Center") then
             Error(
               Text022,
@@ -14778,6 +14782,11 @@ table 36 "Sales Header"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeResponsibilityCenterValidate(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnDeleteOnBeforeCheckPostingNo(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 }

@@ -438,6 +438,9 @@ codeunit 4509 "Email - Outlook API Helper"
         if HasAttachments then
             AddAttachmentsToMessage(EmailJsonObject, EmailMessage);
 
+        if Filters."Load Headers" then
+            SetMessageHeaders(EmailJsonObject, EmailMessage);
+
         EmailInbox.Id := 0;
         EmailInbox."External Message Id" := CopyStr(ExternalMessageId, 1, MaxStrLen(EmailInbox."External Message Id"));
         EmailInbox."Conversation Id" := CopyStr(ConversationId, 1, MaxStrLen(EmailInbox."Conversation Id"));
@@ -610,6 +613,30 @@ codeunit 4509 "Email - Outlook API Helper"
             TempBlob.CreateInStream(AttachmentInStream);
             EmailMessage.AddAttachment(AttachmentName, ContentType, IsInline, ContentId, AttachmentInStream);
         end;
+    end;
+
+    local procedure SetMessageHeaders(EmailJsonObject: JsonObject; var EmailMessage: Codeunit "Email Message")
+    var
+        HeadersArray: JsonArray;
+        HeaderObject: JsonObject;
+        JsonToken: JsonToken;
+        Counter: Integer;
+    begin
+        if not EmailJsonObject.Get('internetMessageHeaders', JsonToken) then
+            exit;
+        if not JsonToken.IsArray() then
+            exit;
+        HeadersArray := JsonToken.AsArray();
+        for Counter := 0 to HeadersArray.Count() - 1 do begin
+            HeadersArray.Get(Counter, JsonToken);
+            if not JsonToken.IsObject() then
+                continue;
+            HeaderObject := JsonToken.AsObject();
+            EmailMessage.AddHeader(
+                GetTextFromJsonObject(HeaderObject, 'name'),
+                GetTextFromJsonObject(HeaderObject, 'value'));
+        end;
+        EmailMessage.FlushHeaders();
     end;
 
     local procedure GetIntegerFromJsonObject(JsonObject: JsonObject; KeyName: Text): Integer

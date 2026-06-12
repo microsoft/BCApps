@@ -60,6 +60,6 @@ xmlport 147601 "SL ARSetup Data"
     end;
 
     var
-        CaptionRow: Boolean;
         SLARSetup: Record "SL ARSetup";
+        CaptionRow: Boolean;
 }

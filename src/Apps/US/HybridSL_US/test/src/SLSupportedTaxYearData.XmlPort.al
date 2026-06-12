@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.DataMigration.SL;
 
-xmlport 147655 "SL Supported Tax Year Data"
+xmlport 147675 "SL Supported Tax Year Data"
 {
     Caption = 'SL Supported Tax Year data for import/export';
     Direction = Both;
@@ -63,6 +63,6 @@ xmlport 147655 "SL Supported Tax Year Data"
     end;
 
     var
-        CaptionRow: Boolean;
         TempSLSupportedTaxYear: Record "SL Supported Tax Year" temporary;
+        CaptionRow: Boolean;
 }

@@ -1845,6 +1845,30 @@ codeunit 148004 "Test Verifactu Export"
         Assert.IsTrue(XMLText.Contains('FechaHoraHusoGenRegistro'), 'XML should contain FechaHoraHusoGenRegistro');
         Assert.IsTrue(XMLText.Contains('TipoHuella'), 'XML should contain TipoHuella');
     end;
+
+    [Test]
+    procedure ExportSalesInvoiceWithZeroTotalsFormatsCorrectly()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        Customer: Record Customer;
+        XMLText: Text;
+    begin
+        // [SCENARIO] Export formats zero amounts with two decimal places as "0.00"
+        Initialize();
+
+        // [GIVEN] Posted sales invoice with zero VAT (0% rate)
+        LibrarySales.CreateCustomerWithCountryCodeAndVATRegNo(Customer);
+        CreatePostedSalesInvoice(SalesInvoiceHeader, Customer."No.", LibraryRandom.RandDecInRange(1000, 5000, 2), 0);
+
+        // [WHEN] Export procedure is invoked
+        ExportInvoice(SalesInvoiceHeader, XMLText);
+
+        // [THEN] CuotaTotal contains "0.00" (VAT amount with two decimals)
+        Assert.IsTrue(XMLText.Contains('0.00'), 'XML should contain zero amount formatted with two decimals');
+        // [THEN] ImporteTotal is formatted with two decimal places
+        SalesInvoiceHeader.CalcFields("Amount Including VAT");
+        Assert.IsTrue(XMLText.Contains(Format(SalesInvoiceHeader."Amount Including VAT", 0, '<Precision,2:2><Standard Format,9>')), 'ImporteTotal should have two decimal places');
+    end;
     #endregion
 
     local procedure Initialize()
@@ -2322,8 +2346,13 @@ codeunit 148004 "Test Verifactu Export"
 
     local procedure VerifyDocumentTotals(XMLText: Text; VATAmount: Decimal; Amount: Decimal)
     begin
-        Assert.IsTrue(XMLText.Contains(Format(VATAmount, 0, 9)), 'XML should contain CuotaTotal');
-        Assert.IsTrue(XMLText.Contains(Format(Amount, 0, 9)), 'XML should contain ImporteTotal');
+        Assert.IsTrue(XMLText.Contains(FormatAmount(VATAmount)), 'XML should contain CuotaTotal');
+        Assert.IsTrue(XMLText.Contains(FormatAmount(Amount)), 'XML should contain ImporteTotal');
+    end;
+
+    local procedure FormatAmount(Amount: Decimal): Text
+    begin
+        exit(Format(Amount, 0, '<Precision,2:2><Standard Format,9>'));
     end;
 
     local procedure VerifyXMLRootElement(XMLText: Text)

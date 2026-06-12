@@ -80,6 +80,6 @@ xmlport 147637 "SL CASetup Data"
     end;
 
     var
-        CaptionRow: Boolean;
         SLCASetup: Record "SL CASetup";
+        CaptionRow: Boolean;
 }

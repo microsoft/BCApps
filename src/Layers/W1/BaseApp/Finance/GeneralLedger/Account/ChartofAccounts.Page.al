@@ -702,6 +702,11 @@ page 16 "Chart of Accounts"
             Caption = 'Uncategorized accounts';
             Filters = where("Account Category" = const(" "));
         }
+        view(NoSubCategory)
+        {
+            Caption = 'Uncategorized accounts (missing sub category)';
+            Filters = where("Account Subcategory Entry No." = const(0));
+        }
     }
 
     trigger OnAfterGetRecord()

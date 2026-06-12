@@ -1820,7 +1820,7 @@ codeunit 134806 "RED Test Unit for SalesPurDoc2"
         GLEntry.SetRange("Document No.", DocumentNo);
         Assert.RecordCount(GLEntry, ExpectedCount);
         GLEntry.SetRange("Source Code", DeferralSourceCode);
-        Assert.RecordCount(GLEntry, ExpectedCount - 5);
+        Assert.RecordCount(GLEntry, ExpectedCount - 7);
         GLEntry.SetRange("Source Code");
         PostedDeferralLine.SetRange("Document No.", DocumentNo);
         PostedDeferralLine.CalcSums(Amount);

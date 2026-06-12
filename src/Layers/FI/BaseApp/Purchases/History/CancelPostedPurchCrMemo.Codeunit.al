@@ -70,6 +70,7 @@ codeunit 1402 "Cancel Posted Purch. Cr. Memo"
         PurchHeader: Record "Purchase Header";
         PurchInvHeader: Record "Purch. Inv. Header";
     begin
+        OnCancelPostedCrMemoOnBeforeTestCorrectCrMemoIsAllowed(PurchCrMemoHdr);
         TestCorrectCrMemoIsAllowed(PurchCrMemoHdr);
         if not CODEUNIT.Run(CODEUNIT::"Cancel Posted Purch. Cr. Memo", PurchCrMemoHdr) then begin
             PurchInvHeader.SetRange("Applies-to Doc. No.", PurchCrMemoHdr."No.");
@@ -324,7 +325,7 @@ codeunit 1402 "Cancel Posted Purch. Cr. Memo"
         IsHandled := false;
         OnBeforeTestIfAnyFreeNumberSeries(PurchCrMemoHdr, IsHandled);
         if IsHandled then
-           exit;
+            exit;
 
         PostingDate := WorkDate();
         PurchasesPayablesSetup.Get();
@@ -574,6 +575,11 @@ codeunit 1402 "Cancel Posted Purch. Cr. Memo"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterTestCorrectCrMemoIsAllowed(var PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr.")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCancelPostedCrMemoOnBeforeTestCorrectCrMemoIsAllowed(var PurchCrMemoHeader: Record "Purch. Cr. Memo Hdr.")
     begin
     end;
 

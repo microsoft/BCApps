@@ -21,7 +21,7 @@ table 99001560 "Subcontractor WIP Ledger Entry"
 
     fields
     {
-        field(1; "Entry No."; BigInteger)
+        field(1; "Entry No."; Integer)
         {
             Caption = 'Entry No.';
             DataClassification = CustomerContent;

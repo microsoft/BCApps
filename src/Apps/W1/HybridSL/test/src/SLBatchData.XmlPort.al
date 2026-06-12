@@ -66,7 +66,7 @@ xmlport 147632 "SL Batch Data"
                     SLBatch.Module := Module;
                     SLBatch.BatNbr := BatNbr;
                     SLBatch.Acct := Acct;
-                    SLBatch.CpnyID := CopyStr(CpnyID, 1, MaxStrLen(SLBatch.CpnyID));
+                    SLBatch.CpnyID := CopyStr(CompanyName(), 1, MaxStrLen(SLBatch.CpnyID));
                     SLBatch.JrnlType := JrnlType;
                     SLBatch.LedgerID := LedgerID;
                     Evaluate(SLBatch.Rlsed, Rlsed);
@@ -84,6 +84,6 @@ xmlport 147632 "SL Batch Data"
     end;
 
     var
-        CaptionRow: Boolean;
         SLBatch: Record "SL Batch";
+        CaptionRow: Boolean;
 }

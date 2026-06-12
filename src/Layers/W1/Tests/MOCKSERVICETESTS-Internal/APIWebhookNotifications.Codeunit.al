@@ -829,14 +829,14 @@ codeunit 135088 "API Webhook Notifications"
         // [GIVEN] an Item API Webhook Subscription
         CreateItemWebhookSubscription(false);
         // [GIVEN] Max number of job queue entries
-        for I := 1 to 20 do
+        for I := 1 to APIWebhookNotificationMgt.GetMaxNumberOfJobs() do
             CreateApiWebhookJobQueueEntry(ProcessingTime + I * MillisecondsPerHour(), true);
 
         // [WHEN] we CREATE an item
         CreateItem();
 
         // [THEN] Number of job queue entries still equals to max number of jobs
-        VerifyJobQueueEntryOnWebhookSubscription(20);
+        VerifyJobQueueEntryOnWebhookSubscription(APIWebhookNotificationMgt.GetMaxNumberOfJobs());
     end;
 
     [Test]
@@ -852,7 +852,7 @@ codeunit 135088 "API Webhook Notifications"
         // [GIVEN] an Item API Webhook Subscription
         CreateItemWebhookSubscription(false);
         // [GIVEN] Max number of job queue entries, one job is hanging
-        for I := 1 to 19 do
+        for I := 1 to APIWebhookNotificationMgt.GetMaxNumberOfJobs() - 1 do
             CreateApiWebhookJobQueueEntry(ProcessingTime + I * MillisecondsPerHour(), true);
         JobId := CreateApiWebhookJobQueueEntry(ProcessingTime, true);
         JobQueueEntry.Get(JobId);
@@ -864,7 +864,34 @@ codeunit 135088 "API Webhook Notifications"
         // [THEN] The hanging job is deleted
         Assert.IsFalse(JobQueueEntry.Get(JobId), 'Hanging job has not been deleted');
         // [THEN] Number of job queue entries still equals to max number of jobs
-        VerifyJobQueueEntryOnWebhookSubscription(20);
+        VerifyJobQueueEntryOnWebhookSubscription(APIWebhookNotificationMgt.GetMaxNumberOfJobs());
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestDeleteStuckReadyJobQueueEntryWhenExceedMaxNumberOfJobs()
+    var
+        JobQueueEntry: Record "Job Queue Entry";
+        JobId: Guid;
+        I: Integer;
+    begin
+        // [SCENARIO] A job stuck in status Ready with an Earliest Start Date/Time well in the past is reclaimed
+        // even when the task scheduler still tracks it (Scheduled = true), so the category can self-heal.
+        Initialize();
+        // [GIVEN] an Item API Webhook Subscription
+        CreateItemWebhookSubscription(false);
+        // [GIVEN] Max number of job queue entries, one is stuck in Ready with an Earliest Start Date/Time well past the stuck threshold
+        for I := 1 to APIWebhookNotificationMgt.GetMaxNumberOfJobs() - 1 do
+            CreateApiWebhookJobQueueEntry(ProcessingTime + I * MillisecondsPerHour(), true);
+        JobId := CreateApiWebhookJobQueueEntry(ProcessingTime - 7 * MillisecondsPerHour(), true);
+
+        // [WHEN] we CREATE an item
+        CreateItem();
+
+        // [THEN] The stuck Ready job is reclaimed
+        Assert.IsFalse(JobQueueEntry.Get(JobId), 'Stuck Ready job has not been deleted');
+        // [THEN] Number of job queue entries still equals to max number of jobs
+        VerifyJobQueueEntryOnWebhookSubscription(APIWebhookNotificationMgt.GetMaxNumberOfJobs());
     end;
 
     [Test]

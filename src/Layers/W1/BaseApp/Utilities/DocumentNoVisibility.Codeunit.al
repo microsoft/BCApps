@@ -545,13 +545,19 @@ codeunit 1400 DocumentNoVisibility
         exit(MarketingSetup."Contact Nos.");
     end;
 
-    procedure ForceShowNoSeriesForDocNo(NoSeriesCode: Code[20]): Boolean
+    procedure ForceShowNoSeriesForDocNo(NoSeriesCode: Code[20]) DocNoVisible: Boolean
     var
         NoSeries: Record "No. Series";
         NoSeriesRelationship: Record "No. Series Relationship";
         NoSeriesBatch: Codeunit "No. Series - Batch";
         SeriesDate: Date;
+        IsHandled: Boolean;
     begin
+        IsHandled := false;
+        OnBeforeForceShowNoSeriesForDocNo(NoSeriesCode, DocNoVisible, IsHandled);
+        if IsHandled then
+            exit(DocNoVisible);
+
         if not NoSeries.Get(NoSeriesCode) then
             exit(true);
 
@@ -564,6 +570,11 @@ codeunit 1400 DocumentNoVisibility
             exit(true);
 
         exit(NoSeriesBatch.GetNextNo(NoSeriesCode, SeriesDate, true) = '');
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeForceShowNoSeriesForDocNo(NoSeriesCode: Code[20]; var DocNoVisible: Boolean; var IsHandled: Boolean)
+    begin
     end;
 
     [IntegrationEvent(false, false)]

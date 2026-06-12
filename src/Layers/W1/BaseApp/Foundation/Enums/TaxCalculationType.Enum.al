@@ -25,4 +25,8 @@ enum 254 "Tax Calculation Type"
     {
         Caption = 'Sales Tax';
     }
+    value(4; "No Taxable VAT")
+    {
+        Caption = 'No Taxable VAT';
+    }
 }

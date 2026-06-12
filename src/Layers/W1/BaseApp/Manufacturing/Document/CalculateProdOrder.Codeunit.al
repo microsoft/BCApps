@@ -306,7 +306,7 @@ codeunit 99000773 "Calculate Prod. Order"
                 QtyRoundPrecision := UOMMgt.GetQtyRoundingPrecision(Item2, ProdBOMLine[Level]."Unit of Measure Code");
             CheckingRoundingPrecision(Item2, ProdLineItem, QtyRoundPrecision, Level);
             if (QtyRoundPrecision <> 0) and (QtyRoundPrecision < 1) then
-                ProdOrderComp."Quantity per" := Round(ProdBOMLine[Level]."Quantity per" * LineQtyPerUOM / ItemQtyPerUOM, QtyRoundPrecision)
+                ProdOrderComp."Quantity per" := Round(ProdBOMLine[Level]."Quantity per" * LineQtyPerUOM / ItemQtyPerUOM, UOMMgt.QtyRndPrecision())
             else
                 ProdOrderComp."Quantity per" := ProdBOMLine[Level]."Quantity per" * LineQtyPerUOM / ItemQtyPerUOM;
             ProdOrderComp.Length := ProdBOMLine[Level].Length;

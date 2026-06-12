@@ -4,14 +4,14 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.DataMigration.SL;
 
-using Microsoft.Inventory.Item;
 using Microsoft.Sales.Document;
 using System.TestLibraries.Utilities;
 
-codeunit 147651 "SL SO Migrator Tests"
+codeunit 147606 "SL SO Migrator Tests"
 {
     EventSubscriberInstance = Manual;
     Subtype = Test;
+    TestType = IntegrationTest;
     TestPermissions = Disabled;
 
     var
@@ -128,7 +128,6 @@ codeunit 147651 "SL SO Migrator Tests"
 
     local procedure Initialize()
     var
-        Item: Record Item;
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
         SLSOHeader: Record "SL SOHeader Buffer";

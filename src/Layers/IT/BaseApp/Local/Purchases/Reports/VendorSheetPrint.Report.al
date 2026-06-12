@@ -271,8 +271,7 @@ report 12110 "Vendor Sheet - Print"
 
                         trigger OnPreDataItem()
                         begin
-                            SetRange("Document Type", "Vendor Ledger Entry"."Document Type");
-                            SetRange("Document No.", "Vendor Ledger Entry"."Document No.");
+                            SetRange("Vendor Ledger Entry No.", "Vendor Ledger Entry"."Entry No.");
                             SetRange("Entry Type", "Entry Type"::"Correction of Remaining Amount");
                         end;
                     }

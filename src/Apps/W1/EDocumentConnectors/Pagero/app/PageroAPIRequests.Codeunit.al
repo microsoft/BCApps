@@ -241,7 +241,6 @@ codeunit 6363 "Pagero API Requests"
         Clear(HttpResponseMessage);
         if not ExternalConnectionSetup.Get() then
             Error(MissingSetupErr);
-        ExternalConnectionSetup.TestField("Send Mode");
         ExternalConnectionSetup.TestField("Company Id");
     end;
 

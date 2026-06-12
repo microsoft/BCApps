@@ -2052,6 +2052,7 @@ codeunit 18318 "GST Settlement"
     begin
         Window.Open(PaymentBufferMsg);
         DetailedGSTLedgerEntry.LockTable();
+        ReturnRecoComponent.SetCurrentKey("Sequence No.");
         if ReturnRecoComponent.FindSet() then
             repeat
                 Window.Update(1, ReturnRecoComponent."Component Name");
@@ -2064,7 +2065,8 @@ codeunit 18318 "GST Settlement"
                    AccountNo,
                    PostingDate,
                    BankRefNo,
-                   BankRefDate);
+                   BankRefDate,
+                   ReturnRecoComponent."Sequence No.");
 
                 GetLiabilityAndCredit(GSTPaymentBuffer, Liability, RevChargeLiability, CreditAvailable);
                 GetpostedAmount(
@@ -2137,7 +2139,8 @@ codeunit 18318 "GST Settlement"
                          AccountNo: Code[20];
                          PostingDate: Date;
                          BankRefNo: Code[10];
-                         BankRefDate: Date)
+                         BankRefDate: Date;
+                         SequenceNo: Integer)
     var
         GSTRegistrationNos: Record "GST Registration Nos.";
     begin
@@ -2155,6 +2158,7 @@ codeunit 18318 "GST Settlement"
         GSTPaymentBuffer."Period end Date" := GetPeriodendDate(PostingDate);
         GSTPaymentBuffer."Bank Reference No." := BankRefNo;
         GSTPaymentBuffer."Bank Reference Date" := BankRefDate;
+        GSTPaymentBuffer."Sequence No." := SequenceNo;
         GSTPaymentBuffer.Insert(true);
     end;
 

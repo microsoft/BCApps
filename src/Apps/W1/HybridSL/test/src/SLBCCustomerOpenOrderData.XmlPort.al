@@ -149,6 +149,6 @@ xmlport 147652 "SL BC Customer Open Order Data"
     end;
 
     var
-        CaptionRow: Boolean;
         Customer: Record Customer;
+        CaptionRow: Boolean;
 }

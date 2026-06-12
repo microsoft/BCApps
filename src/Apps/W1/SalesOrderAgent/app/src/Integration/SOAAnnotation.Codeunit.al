@@ -30,6 +30,7 @@ codeunit 4399 "SOA Annotation"
         AnnotationAgentTaskFailureLbl: Label 'The agent can''t currently access the selected mailbox.';
         AnnotationAgentTaskSendRepliesFailureLbl: Label 'The agent can''t currently send email replies from the selected mailbox. Please ensure the mailbox has the proper ''send as'' permissions in the Exchange admin portal.';
         AnnotationIrrelevantLbl: Label 'All or parts of this message may not be relevant for %1', Comment = '%1 = Agent Name';
+        IrrelevanceSecurityPromptTok: Label 'SalesOrderAgent-Irrelevance-SecurityPromptV28', Locked = true;
 
     internal procedure GetAgentAnnotations(AgentUserId: Guid; var Annotations: Record "Agent Annotation")
     var
@@ -440,35 +441,33 @@ codeunit 4399 "SOA Annotation"
         AOAIChatCompletionParams.SetTemperature(0);
     end;
 
-    [NonDebuggable]
     local procedure GetIrrelevantMessagePrompt(var Prompt: SecretText): Boolean
     var
         AzureKeyVault: Codeunit "Azure Key Vault";
-        BCSOAResponsibilitiesPrompt: SecretText;
-        BCSOAIrrelevanceMessage: SecretText;
+        IrrelevanceSecurityPrompt: SecretText;
+        PromptTemplate: Text;
+        IrrelevanceMessagePromptTok: Label 'Prompts/MessageValidation/irrelevance-message.md', Locked = true;
     begin
-        if not AzureKeyVault.GetAzureKeyVaultSecret('BCSOAResponsibilitiesV27', BCSOAResponsibilitiesPrompt) then
-            exit(false);
-        if not AzureKeyVault.GetAzureKeyVaultSecret('BCSOAIrrelevanceMessageV27', BCSOAIrrelevanceMessage) then
+        PromptTemplate := NavApp.GetResourceAsText(IrrelevanceMessagePromptTok, TextEncoding::UTF8);
+        if not AzureKeyVault.GetAzureKeyVaultSecret(IrrelevanceSecurityPromptTok, IrrelevanceSecurityPrompt) then
             exit(false);
 
-        Prompt := SecretStrSubstNo(BCSOAIrrelevanceMessage.Unwrap(), BCSOAResponsibilitiesPrompt);
+        Prompt := SecretText.SecretStrSubstNo(PromptTemplate, IrrelevanceSecurityPrompt);
         exit(true);
     end;
 
-    [NonDebuggable]
     local procedure GetIrrelevantAttachmentPrompt(var Prompt: SecretText): Boolean
     var
         AzureKeyVault: Codeunit "Azure Key Vault";
-        BCSOAResponsibilitiesPrompt: SecretText;
-        BCSOAIrrelevanceAttachment: SecretText;
+        IrrelevanceSecurityPrompt: SecretText;
+        PromptTemplate: Text;
+        IrrelevanceAttachmentPromptTok: Label 'Prompts/MessageValidation/irrelevance-attachment.md', Locked = true;
     begin
-        if not AzureKeyVault.GetAzureKeyVaultSecret('BCSOAResponsibilitiesV27', BCSOAResponsibilitiesPrompt) then
-            exit(false);
-        if not AzureKeyVault.GetAzureKeyVaultSecret('BCSOAIrrelevanceAttachmentV27', BCSOAIrrelevanceAttachment) then
+        PromptTemplate := NavApp.GetResourceAsText(IrrelevanceAttachmentPromptTok, TextEncoding::UTF8);
+        if not AzureKeyVault.GetAzureKeyVaultSecret(IrrelevanceSecurityPromptTok, IrrelevanceSecurityPrompt) then
             exit(false);
 
-        Prompt := SecretStrSubstNo(BCSOAIrrelevanceAttachment.Unwrap(), BCSOAResponsibilitiesPrompt);
+        Prompt := SecretText.SecretStrSubstNo(PromptTemplate, IrrelevanceSecurityPrompt);
         exit(true);
     end;
 

@@ -5,7 +5,6 @@
 namespace Microsoft.DataMigration.SL;
 
 using Microsoft.Inventory.Item;
-using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Location;
 using System.Integration;
@@ -117,12 +116,10 @@ codeunit 147610 "SL Item Migrator Tests"
         SLInventory: Record "SL Inventory Buffer";
         SLItemSiteBuffer: Record "SL ItemSite Buffer";
         SLMigrationWarning: Record "SL Migration Warnings";
-        TempItemJournalLine: Record "Item Journal Line" temporary;
         ItemDataMigrationFacade: Codeunit "Item Data Migration Facade";
         SLHelperFunctions: Codeunit "SL Helper Functions";
         SLItemMigrator: Codeunit "SL Item Migrator";
         SLInventoryInstream: InStream;
-        ItemJournalLineInstream: InStream;
     begin
         // [Scenario] SL Inventory Quantity and Cost migration to Item Journal Lines
 
@@ -168,7 +165,7 @@ codeunit 147610 "SL Item Migrator Tests"
                 ItemLedgerEntry.Reset();
                 ItemLedgerEntry.SetFilter("Item No.", CopyStr(SLItemSiteBuffer.InvtID, 1, MaxStrLen(ItemLedgerEntry."Item No.")));
                 ItemLedgerEntry.SetFilter("Location Code", SLItemSiteBuffer.SiteId);
-                ItemLedgerEntry.FindSet();
+                ItemLedgerEntry.FindFirst();
 
                 Assert.AreEqual(SLItemSiteBuffer.QtyOnHand, ItemLedgerEntry.Quantity, 'Quantity does not match for Item (' + ItemLedgerEntry."Item No." + ')' + ' at Location (' + ItemLedgerEntry."Location Code" + ')');
 

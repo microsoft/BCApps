@@ -692,6 +692,7 @@ report 7305 "Whse.-Source - Create Document"
             WhseDoc::"Posted Receipt", WhseDoc::"Put-away Worksheet", WhseDoc::"Internal Put-away":
                 WarehouseActivityHeader.SetRange(Type, WarehouseActivityHeader.Type::"Put-away");
         end;
+        OnPostReportOnAfterSetWhseActivHeaderTypeFilter(WarehouseActivityHeader, WhseDoc);
 
         if WarehouseActivityHeader.Find('-') then begin
             IsHandled := false;
@@ -1460,6 +1461,11 @@ report 7305 "Whse.-Source - Create Document"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterCreatePutawayGetWhseActivHeaderNo(var FirstActivityNo: Code[20]; var LastActivityNo: Code[20])
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnPostReportOnAfterSetWhseActivHeaderTypeFilter(var WarehouseActivityHeader: Record "Warehouse Activity Header"; WhseDoc: Option "Whse. Mov.-Worksheet","Posted Receipt","Internal Pick","Internal Put-away",Production,"Put-away Worksheet",Assembly,"Service Order",Job)
     begin
     end;
 }

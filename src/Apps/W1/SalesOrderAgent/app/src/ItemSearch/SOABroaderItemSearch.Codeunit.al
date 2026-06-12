@@ -103,12 +103,11 @@ codeunit 4596 "SOA Broader Item Search"
         //Add Search Queries
         ItemResultsArray.Get(0, ItemToken);
         SearchPrimaryKeyWords.Add(GetMandatoryKeyword(ItemToken));
-        SearchAdditionalKeyWords := GetOptionalKeywords(ItemToken);
-        GlobalItemSearch.SetupSearchQuery(SearchPrimaryKeyWords.Get(1), SearchPrimaryKeyWords, SearchAdditionalKeyWords, true, Top);
+        GlobalItemSearch.SetupSearchQuery(SearchPrimaryKeyWords.Get(1), SearchPrimaryKeyWords, SearchAdditionalKeyWords, false, Top);
 
         // Search items using platform data search and keep ColumnValues for downstream ranking.
         Clear(CandidateArray);
-        if GlobalItemSearch.SearchAndReturnResultsWithColumnValues(SearchPrimaryKeyWords.Get(1), 0.79, CandidateArray) then
+        if GlobalItemSearch.SearchAndReturnResultsWithColumnValues(SearchPrimaryKeyWords.Get(1), 0.75, CandidateArray) then
             ItemFilter := BuildResultFilterFromCandidates(CandidateArray, '|')
         else
             ItemFilter := '';
@@ -141,7 +140,7 @@ codeunit 4596 "SOA Broader Item Search"
         JsonToken: JsonToken;
     begin
         if ItemObjectToken.AsObject().Get('item_name', JsonToken) then
-            SearchKeyword := '(' + JsonToken.AsValue().AsText() + AddSynonyms(ItemObjectToken) + AddConcatenatedKeyword(ItemObjectToken) + AddPluralItemName(ItemObjectToken) + ')';
+            SearchKeyword := '(' + JsonToken.AsValue().AsText() + AddSynonyms(ItemObjectToken) + AddConcatenatedKeyword(ItemObjectToken) + AddPluralItemName(ItemObjectToken) + GetOptionalKeywords(ItemObjectToken) + ')';
     end;
 
     local procedure AddSynonyms(ItemObjectToken: JsonToken): Text
@@ -190,18 +189,18 @@ codeunit 4596 "SOA Broader Item Search"
         exit(PluralItemName);
     end;
 
-    local procedure GetOptionalKeywords(ItemObjectToken: JsonToken): List of [Text]
+    local procedure GetOptionalKeywords(ItemObjectToken: JsonToken): Text
     var
         JsonToken: JsonToken;
         JsonArray: JsonArray;
-        SearchKeywords: List of [Text];
+        OptionalKeywords: Text;
     begin
         if ItemObjectToken.AsObject().Get('features', JsonToken) then begin
             JsonArray := JsonToken.AsArray();
             foreach JsonToken in JsonArray do
-                SearchKeywords.Add(JsonToken.AsValue().AsText());
+                OptionalKeywords += '|' + JsonToken.AsValue().AsText();
         end;
-        exit(SearchKeywords);
+        exit(OptionalKeywords);
     end;
 
     local procedure MaxTokens(): Integer

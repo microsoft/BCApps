@@ -65,7 +65,8 @@ report 5172 "Delete Expired Sales Quotes"
 
         trigger OnOpenPage()
         begin
-            ValidToDate := WorkDate();
+            if ValidToDate = 0D then
+                ValidToDate := WorkDate();
         end;
     }
 

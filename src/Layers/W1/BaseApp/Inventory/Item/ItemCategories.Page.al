@@ -113,8 +113,13 @@ page 5730 "Item Categories"
     end;
 
     trigger OnOpenPage()
+    var
+        IsHandled: Boolean;
     begin
-        ItemCategoryManagement.CheckPresentationOrder();
+        IsHandled := false;
+        OnOnOpenPageOnBeforeCheckPresentationOrder(Rec, IsHandled);
+        if not IsHandled then
+            ItemCategoryManagement.CheckPresentationOrder();
     end;
 
     protected var
@@ -133,6 +138,11 @@ page 5730 "Item Categories"
     procedure SetSelection(var ItemCategory: Record "Item Category")
     begin
         CurrPage.SetSelectionFilter(ItemCategory);
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnOnOpenPageOnBeforeCheckPresentationOrder(var ItemCategory: Record "Item Category"; var IsHandled: Boolean)
+    begin
     end;
 }
 

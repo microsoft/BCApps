@@ -47,6 +47,20 @@ codeunit 3316 "PA Events"
             PayablesAgentKPI.InsertKPIEntry("PA KPI Scenario"::"Agent E-Docs Finalized by Agent");
     end;
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. Import", OnAfterProcessIncomingEDocument, '', false, false)]
+    local procedure RecordKnownSenderOnAgentProcessingStep(EDocument: Record "E-Document")
+    var
+        PAKnownSender: Record "PA Known Sender";
+        PayablesAgent: Codeunit "Payables Agent";
+        PayablesAgentSetup: Codeunit "Payables Agent Setup";
+        SessionID: BigInteger;
+    begin
+        if not PayablesAgentSetup.WasEDocumentCreatedByAgent(EDocument) then
+            exit;
+        if not PayablesAgent.IsPayablesAgentSession(SessionID) then
+            exit;
+        PAKnownSender.InsertIfNew(EDocument);
+    end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", OnFeedbackEvent, '', false, false)]
     local procedure OnFeedbackEventForPayablesAgentTasks(PageId: Integer; Context: Dictionary of [Text, Text]; var Handled: Boolean)

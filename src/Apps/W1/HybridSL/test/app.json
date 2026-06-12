@@ -2,10 +2,15 @@
   "id": "c9b38161-dd8d-40a9-8920-60ccbf8d7a59",
   "name": "Dynamics SL Migration Tests",
   "publisher": "Microsoft",
+  "brief": "Test for migrating Microsoft Dynamics SL Data to Dynamics 365 Business Central",  
+  "description": "Test for the Business Central Dynamics SL Migration",
   "version": "29.0.0.0",
   "resourceFolders": [".resources"],
-  "description": "Test for the Business Central Dynamics SL Migration",
-  "brief": "Test for migrating Microsoft Dynamics SL Data to Dynamics 365 Business Central",  
+  "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
+  "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
+  "help": "https://go.microsoft.com/fwlink/?linkid=2005800",
+  "url": "https://go.microsoft.com/fwlink/?LinkId=724011",
+  "contextSensitiveHelpUrl": "https://go.microsoft.com/fwlink/?linkid=2005800",
   "logo": "ExtensionLogo.png",
   "dependencies": [
     {
@@ -35,19 +40,17 @@
   ],
   "screenshots": [],
   "platform": "29.0.0.0",
-  "application": "29.0.0.0",
   "idRanges": [
     {
       "from": 147600,
-      "to": 147680
+      "to": 147669
     }
   ],
+  "target": "OnPrem",
   "resourceExposurePolicy": {
     "allowDebugging": false,
     "allowDownloadingSource": true,
     "includeSourceInSymbolFile": true
   },
-  "features": [
-    "NoImplicitWith"
-  ]
+  "application": "29.0.0.0"
 }

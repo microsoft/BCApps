@@ -87,7 +87,7 @@ page 9011 "Shop Supervisor Mfg Foundation"
                 ApplicationArea = Manufacturing;
                 Caption = 'Subcontractor - Dis&patch List';
                 Image = "Report";
-#if not CLEAN27
+#if not CLEAN28
                 RunObject = Report "Subcontr. Dispatching List";
 #else
                 RunObject = Report "Subcontractor - Dispatch List";
@@ -275,7 +275,7 @@ page 9011 "Shop Supervisor Mfg Foundation"
                 RunObject = Page "Transfer Orders";
                 ToolTip = 'Move inventory items between company locations. With transfer orders, you ship the outbound transfer from one location and receive the inbound transfer at the other location. This allows you to manage the involved warehouse activities and provides more certainty that inventory quantities are updated correctly.';
             }
-#if not CLEAN27
+#if not CLEAN28
             action("Subcontracting Orders")
             {
                 ApplicationArea = Basic, Suite;

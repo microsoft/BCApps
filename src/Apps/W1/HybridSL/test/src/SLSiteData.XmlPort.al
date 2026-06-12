@@ -70,7 +70,7 @@ xmlport 147640 "SL Site Data"
                     SLSite.Addr1 := Addr1;
                     SLSite.Addr2 := Addr2;
                     SLSite.City := City;
-                    SLSite.CpnyID := CpnyID;
+                    SLSite.CpnyID := CopyStr(CompanyName(), 1, MaxStrLen(SLSite.CpnyID));
                     SLSite.Fax := Fax;
                     SLSite.Name := Name;
                     SLSite.Phone := Phone;
@@ -88,6 +88,6 @@ xmlport 147640 "SL Site Data"
     end;
 
     var
-        CaptionRow: Boolean;
         SLSite: Record "SL Site";
+        CaptionRow: Boolean;
 }

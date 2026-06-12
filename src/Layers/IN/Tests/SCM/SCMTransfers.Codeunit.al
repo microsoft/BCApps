@@ -10,45 +10,46 @@
     end;
 
     var
-        LibraryRandom: Codeunit "Library - Random";
-        LibraryManufacturing: Codeunit "Library - Manufacturing";
-        LibraryWarehouse: Codeunit "Library - Warehouse";
-        LibraryInventory: Codeunit "Library - Inventory";
-        LibraryPlanning: Codeunit "Library - Planning";
-        LibraryPurchase: Codeunit "Library - Purchase";
-        LibrarySales: Codeunit "Library - Sales";
-        LibraryItemTracking: Codeunit "Library - Item Tracking";
-        LibraryVariableStorage: Codeunit "Library - Variable Storage";
+        Assert: Codeunit Assert;
         LibraryCosting: Codeunit "Library - Costing";
         LibraryDimension: Codeunit "Library - Dimension";
         LibraryERM: Codeunit "Library - ERM";
+        LibraryInventory: Codeunit "Library - Inventory";
+        LibraryItemTracking: Codeunit "Library - Item Tracking";
+        LibraryManufacturing: Codeunit "Library - Manufacturing";
+        LibraryPlanning: Codeunit "Library - Planning";
+        LibraryPurchase: Codeunit "Library - Purchase";
+        LibraryRandom: Codeunit "Library - Random";
+        LibrarySales: Codeunit "Library - Sales";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryUtility: Codeunit "Library - Utility";
-        Assert: Codeunit Assert;
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
+        LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         DummyTransferOrderPage: TestPage "Transfer Order";
         LocationCode: array[5] of Code[10];
         SourceDocument: Option ,"S. Order","S. Invoice","S. Credit Memo","S. Return Order","P. Order","P. Invoice","P. Credit Memo","P. Return Order","Inb. Transfer","Outb. Transfer","Prod. Consumption","Item Jnl.","Phys. Invt. Jnl.","Reclass. Jnl.","Consumption Jnl.","Output Jnl.","BOM Jnl.","Serv. Order","Job Jnl.","Assembly Consumption","Assembly Order";
         TrackingOption: Option AssignLotNo,AssignSerialNo,SelectEntries,ShowEntries,VerifyEntries,AssignManualLotNos;
         isInitialized: Boolean;
-        NoOfLinesMustBeEqualErr: Label 'No. of Line Must Be Equal.';
-        TransferOrderCountErr: Label 'Wrong Transfer Order''s count';
-        ItemIsNotOnInventoryErr: Label 'Item %1 is not in inventory.', Locked = true;
-        UpdateFromHeaderLinesQst: Label 'You may have changed a dimension.\\Do you want to update the lines?';
-        UpdateLineDimQst: Label 'You have changed one or more dimensions on the';
-        TransferOrderSubpageNotUpdatedErr: Label 'Transfer Order subpage is not updated.';
         AnotherItemWithSameDescTxt: Label 'We found an item with the description';
-        RoundingTo0Err: Label 'Rounding of the field';
-        RoundingErr: Label 'is of lower precision than expected';
-        RoundingBalanceErr: Label 'This will cause the quantity and base quantity fields to be out of balance.';
+        ApplToItemEntryErr: Label '%1 must be %2 in %3.', Comment = '%1 is Appl-to Item Entry, %2 is Item Ledger Entry No. and %3 is Transfer Line';
+        DerivedTransLineErr: Label 'Expected no Derived Transfer Line i.e. line with "Derived From Line No." equal to original transfer line.';
         ILECorrectedAndNotErr: Label 'Expected same number of corrected and not corrected Item Ledger Entries for undone Transfer Shipment';
         ILEIncorrectSumErr: Label 'Expected sum of quantities to be 0 for Item Ledger Entries after undone Transfer Shipment';
+        IncorrectSNUndoneErr: Label 'The Serial No. of the item on the transfer shipment line that was undone was different from the SN on the corresponding transfer line.';
+        ItemIsNotOnInventoryErr: Label 'Item %1 is not in inventory.', Locked = true;
+        LocationCodeSameErr: Label 'Location Code must be same.';
+        NoOfLinesMustBeEqualErr: Label 'No. of Line Must Be Equal.';
+        RoundingBalanceErr: Label 'This will cause the quantity and base quantity fields to be out of balance.';
+        RoundingErr: Label 'is of lower precision than expected';
+        RoundingTo0Err: Label 'Rounding of the field';
+        TransferOrderCountErr: Label 'Wrong Transfer Order''s count';
+        TransferOrderSubpageNotUpdatedErr: Label 'Transfer Order subpage is not updated.';
         TransShptIncorrectSumErr: Label 'Expected sum of quantities to be 0 for Transfer Shipment Lines of undone Transfer Shipment';
         TransShptLineNotCorrectionErr: Label 'Expected Line of undone Transfer Shipment to have "Correction Line"=true, but it din''t';
         UndoneTransLineQtyErr: Label 'Expected Quantity to be 0 after Transfer Shipment was undone';
-        DerivedTransLineErr: Label 'Expected no Derived Transfer Line i.e. line with "Derived From Line No." equal to original transfer line.';
-        IncorrectSNUndoneErr: Label 'The Serial No. of the item on the transfer shipment line that was undone was different from the SN on the corresponding transfer line.';
-        ApplToItemEntryErr: Label '%1 must be %2 in %3.', Comment = '%1 is Appl-to Item Entry, %2 is Item Ledger Entry No. and %3 is Transfer Line';
+        UpdateFromHeaderLinesQst: Label 'You may have changed a dimension.\\Do you want to update the lines?';
+        UpdateLineDimQst: Label 'You have changed one or more dimensions on the';
         VariantCodeMandatoryErr: Label '%1 must have a value in %2: Document No.=%3, Line No.=%4. It cannot be zero or empty.', Comment = '%1:Field Caption, %2: TableCaption, %3:Document No, %4: Line No.';
 
     [Test]
@@ -4220,6 +4221,47 @@
         LibraryInventory.PostTransferHeader(TransferHeader, true, true);
     end;
 
+    [Test]
+    [HandlerFunctions('ItemAvailCheckCreatePurchOrderModalHandler,PurchaseOrderFromAvailCheckPageHandler')]
+    procedure AvailCheckCreatePurchOrderSetsLocationCode()
+    var
+        FromLocation: Record Location;
+        Item: Record Item;
+        PurchaseLine: Record "Purchase Line";
+        Vendor: Record Vendor;
+        ItemCheckAvail: Codeunit "Item-Check Avail.";
+        ItemAvailabilityCheck: Page "Item Availability Check";
+        AvailabilityCheckNotification: Notification;
+        Quantity: Decimal;
+    begin
+        // [SCENARIO 634463] Creating Purchase Order from Availability Check page sets Location Code on purchase line.
+        Initialize();
+        Quantity := LibraryRandom.RandIntInRange(100, 200);
+
+        // [GIVEN] Create a vendor and an item.
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Vendor No.", Vendor."No.");
+        Item.Modify(true);
+
+        // [GIVEN] Create a location with inventory posting setup.
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(FromLocation);
+
+        // [GIVEN] A notification populated with item and location data (simulating transfer order availability check).
+        ItemAvailabilityCheck.PopulateDataOnNotification(
+            AvailabilityCheckNotification, Item."No.", Item."Base Unit of Measure",
+            0, 0, 0, 0, 0, 0, 0, -Quantity, WorkDate(), FromLocation.Code);
+
+        // [WHEN] User opens Item Availability Check from the notification and creates a Purchase Order.
+        ItemCheckAvail.ShowNotificationDetails(AvailabilityCheckNotification);
+
+        // [THEN] The purchase line has Location Code = FromLocation.Code.
+        PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
+        PurchaseLine.SetRange("No.", Item."No.");
+        PurchaseLine.FindFirst();
+        Assert.AreEqual(FromLocation.Code, PurchaseLine."Location Code", LocationCodeSameErr);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -6074,6 +6116,18 @@
         PostedPurchaseReceiptLines.SetRecord(PurchRcptLine);
 
         Response := ACTION::LookupOK;
+    end;
+
+    [ModalPageHandler]
+    procedure ItemAvailCheckCreatePurchOrderModalHandler(var ItemAvailabilityCheck: TestPage "Item Availability Check")
+    begin
+        ItemAvailabilityCheck."Purchase Order".Invoke();
+    end;
+
+    [PageHandler]
+    procedure PurchaseOrderFromAvailCheckPageHandler(var PurchaseOrder: TestPage "Purchase Order")
+    begin
+        PurchaseOrder.Close();
     end;
 }
 

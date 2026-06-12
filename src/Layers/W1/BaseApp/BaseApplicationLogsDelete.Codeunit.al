@@ -5,6 +5,7 @@
 namespace Microsoft;
 
 using Microsoft.EServices.EDocument;
+using Microsoft.Finance.FinancialReports;
 using Microsoft.Integration.Dataverse;
 using Microsoft.Integration.SyncEngine;
 using Microsoft.Projects.Project.Archive;
@@ -32,6 +33,7 @@ codeunit 3995 "Base Application Logs Delete"
                 tabledata "Dataverse Entity Change" = rd,
                 tabledata "Error Message" = rd,
                 tabledata "Error Message Register" = rd,
+                tabledata "Financial Report Export Log" = rd,
                 tabledata "Integration Synch. Job" = rd,
                 tabledata "Integration Synch. Job Errors" = rd,
                 tabledata "Job Queue Log Entry" = rd,
@@ -71,6 +73,7 @@ codeunit 3995 "Base Application Logs Delete"
             Database::"Job Archive",
             Database::"Purchase Header Archive",
             Database::"Dataverse Entity Change",
+            Database::"Financial Report Export Log",
             Database::"Sent Notification Entry",
             Database::"Posted Invt. Pick Header",
             Database::"Posted Invt. Put-away Header",

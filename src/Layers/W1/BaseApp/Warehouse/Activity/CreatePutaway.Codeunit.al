@@ -563,6 +563,7 @@ codeunit 7313 "Create Put-away"
     procedure CalcQtyToPutAway(EmptyZoneBin: Boolean; NewBinContent: Boolean)
     var
         ActionType: Enum "Warehouse Action Type";
+        IsHandled: Boolean;
     begin
         if CurrLocation."Bin Mandatory" then begin
             ActionType := ActionType::Place;
@@ -576,12 +577,16 @@ codeunit 7313 "Create Put-away"
             PostedWhseReceiptLine, CurrLocation, CurrBin, CrossDockInfo, EmptyZoneBin, QtyToPutAwayBase, EverythingHandled, RemQtyToPutAwayBase, NewBinContent);
         QtyToPickBase := QtyToPickBase + QtyToPutAwayBase;
         if QtyToPutAwayBase > 0 then begin
-            LineNo := LineNo + 10000;
-            if NewBinContent and CurrLocation."Directed Put-away and Pick" then
-                CreateBinContent(PostedWhseReceiptLine);
-            CreateNewWhseActivity(
-              PostedWhseReceiptLine, CurrWarehouseActivityLine, ActionType, LineNo,
-              0, QtyToPutAwayBase, true, false, EmptyZoneBin, false)
+            IsHandled := false;
+            OnCalcQtyToPutAwayOnBeforeCreateBinContent(CurrLocation, PostedWhseReceiptLine, CurrBin, QtyToPutAwayBase, IsHandled);
+            if not IsHandled then begin
+                LineNo := LineNo + 10000;
+                if NewBinContent and CurrLocation."Directed Put-away and Pick" then
+                    CreateBinContent(PostedWhseReceiptLine);
+                CreateNewWhseActivity(
+                  PostedWhseReceiptLine, CurrWarehouseActivityLine, ActionType, LineNo,
+                  0, QtyToPutAwayBase, true, false, EmptyZoneBin, false);
+            end;
         end
     end;
 
@@ -1253,6 +1258,11 @@ codeunit 7313 "Create Put-away"
 
     [IntegrationEvent(false, false)]
     local procedure OnCalcQtyToPutAwayOnAfterSetQtyToPutAwayBase(PostedWhseRcptLine: Record "Posted Whse. Receipt Line"; Location: Record Location; Bin: Record Bin; CrossDockInfo: Option; EmptyZoneBin: Boolean; var QtyToPutAwayBase: Decimal; var EverythingHandled: Boolean; var RemQtyToPutAwayBase: Decimal; NewBinContent: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCalcQtyToPutAwayOnBeforeCreateBinContent(Location: Record Location; PostedWhseReceiptLine: Record "Posted Whse. Receipt Line"; Bin: Record Bin; QtyToPutAwayBase: Decimal; var IsHandled: Boolean)
     begin
     end;
 

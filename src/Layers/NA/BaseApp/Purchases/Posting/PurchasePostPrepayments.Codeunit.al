@@ -963,7 +963,10 @@ codeunit 444 "Purchase-Post Prepayments"
         PrevVATPct: Decimal;
     begin
         CalcVATAmountLines(PurchHeader, PurchLine, VATAmountLine, 2);
-        UpdateVATOnLines(PurchHeader, PurchLine, VATAmountLine, 2);
+        if PurchHeader."Tax Area Code" = '' then
+            UpdateVATOnLines(PurchHeader, PurchLine, VATAmountLine, 2)
+        else
+            UpdateSalesTaxOnLines(PurchLine, PurchHeader."Prepmt. Include Tax", PurchHeader, 2);
         BuildInvLineBuffer(PurchHeader, PurchLine, 2, TempPrepmtInvLineBuf, false);
         if TempPrepmtInvLineBuf.Find('-') then begin
             PrevVATPct := TempPrepmtInvLineBuf.GetVATPct();
@@ -1513,15 +1516,20 @@ codeunit 444 "Purchase-Post Prepayments"
         end;
     end;
 
-    procedure UpdateSalesTaxOnLines(var PurchLine: Record "Purchase Line"; IncludeTax: Boolean; PurchHeader: Record "Purchase Header"; DocumentType: Option Invoice,"Credit Memo")
+    procedure UpdateSalesTaxOnLines(var PurchLine: Record "Purchase Line"; IncludeTax: Boolean; PurchHeader: Record "Purchase Header"; DocumentType: Option Invoice,"Credit Memo",Statistic)
     var
         Currency: Record Currency;
     begin
         Currency.Initialize(PurchHeader."Currency Code");
         if PurchLine.FindSet() then
             repeat
-                PurchLine."Prepayment Amount" := PrepmtAmount(PurchLine, DocumentType, IncludeTax);
-                PurchLine."Prepmt. Amt. Incl. VAT" := PurchLine."Prepayment Amount";
+                if DocumentType = DocumentType::Statistic then begin
+                    PurchLine."Prepayment Amount" := PrepmtAmount(PurchLine, DocumentType, false);
+                    PurchLine."Prepmt. Amt. Incl. VAT" := PrepmtAmount(PurchLine, DocumentType, IncludeTax);
+                end else begin
+                    PurchLine."Prepayment Amount" := PrepmtAmount(PurchLine, DocumentType, IncludeTax);
+                    PurchLine."Prepmt. Amt. Incl. VAT" := PurchLine."Prepayment Amount";
+                end;
                 PurchLine."Prepayment VAT %" := 0;
                 PurchLine.Modify();
             until PurchLine.Next() = 0;

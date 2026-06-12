@@ -141,6 +141,7 @@ codeunit 2752 "Universal Print Graph Helper"
         ResponseContent: Text;
         ResponseJsonObject: JsonObject;
     begin
+        FileName := JobId + '_' + FileName;
         BodyPropertiesJsonObject.Add('documentName', FileName);
         BodyPropertiesJsonObject.Add('contentType', DocumentType);
         BodyPropertiesJsonObject.Add('size', Size);

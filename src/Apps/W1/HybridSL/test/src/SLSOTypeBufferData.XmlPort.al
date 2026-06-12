@@ -48,7 +48,7 @@ xmlport 147657 "SL SOType Buffer Data"
                         currXMLport.Skip();
                     end;
 
-                    SLSOTypeBuffer.CpnyID := CopyStr(CpnyID, 1, MaxStrLen(SLSOTypeBuffer.CpnyID));
+                    SLSOTypeBuffer.CpnyID := CopyStr(CompanyName(), 1, MaxStrLen(SLSOTypeBuffer.CpnyID));
                     SLSOTypeBuffer.SOTypeID := SOTypeID;
                     SLSOTypeBuffer.Behavior := Behavior;
                     SLSOTypeBuffer.Insert();
@@ -64,6 +64,6 @@ xmlport 147657 "SL SOType Buffer Data"
     end;
 
     var
-        CaptionRow: Boolean;
         SLSOTypeBuffer: Record "SL SOType Buffer";
+        CaptionRow: Boolean;
 }

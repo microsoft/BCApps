@@ -96,7 +96,7 @@ xmlport 147608 "SL AcctHist Data"
                         currXMLport.Skip();
                     end;
 
-                    SLAcctHist.CpnyID := CopyStr(CpnyID, 1, MaxStrLen(SLAcctHist.CpnyID));
+                    SLAcctHist.CpnyID := CopyStr(CompanyName(), 1, MaxStrLen(SLAcctHist.CpnyID));
                     SLAcctHist.Acct := Acct;
                     SLAcctHist.Sub := Sub;
                     SLAcctHist.LedgerID := LedgerID;
@@ -128,6 +128,6 @@ xmlport 147608 "SL AcctHist Data"
     end;
 
     var
-        CaptionRow: Boolean;
         SLAcctHist: Record "SL AcctHist";
+        CaptionRow: Boolean;
 }

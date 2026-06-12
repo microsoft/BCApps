@@ -31,6 +31,7 @@
         LibraryLowerPermissions: Codeunit "Library - Lower Permissions";
         CopyFromToPriceListLine: Codeunit CopyFromToPriceListLine;
         LibraryTemplates: Codeunit "Library - Templates";
+        LibraryNonDeductibleVAT: Codeunit "Library - NonDeductible VAT";
         LibraryFiscalYear: Codeunit "Library - Fiscal Year";
         isInitialized: Boolean;
         VATAmountErr: Label 'VAT Amount must be %1 in VAT Amount Line.', Comment = '%1 = Amount';
@@ -38,6 +39,7 @@
         AmountErr: Label '%1 must be Equal in %2.', Comment = '%1 = Field Name, %2 = Field Value';
         CurrencyErr: Label 'Currency Code must be Equal in %1.', Comment = '%1 = Table Name';
         InvoiceDiscountErr: Label '%1 must be %2 in %3.', Comment = '%1 = Field Name, %2 = Amount, %3 = Table Name';
+        PriceIncludingVATChangeMsg: Label 'You have modified the Prices Including VAT field.';
         ValidateErr: Label '%1 must be %2 in %3 Entry No. = %4.', Comment = '%1 = Field Name, %2 =Amount, %3 = Table Name, %4 = Entry No.';
         PageNotOpenErr: Label 'The TestPage is not open.';
         NoOfRecordErr: Label 'No. of records must be 1.';
@@ -64,6 +66,8 @@
         ChangeExtendedTextErr: Label 'You cannot change %1 for Extended Text Line.', Comment = '%1= Field Caption';
         PayToVendorNoShouldBeSameErr: Label 'Pay-to Vendor No. should be set to the selected vendor.';
         DeleteVendorPurchaseDocExistsErr: Label 'The salesperson/purchaser %1 cannot be deleted because vendor ledger entries exist.', Comment = '%1 = Salesperson/Purchaser code.';
+        NonDeductibleVATBaseNegativeErr: Label 'Non-Deductible VAT Base must not be negative on line %1, but was %2', Comment = '%1 = Line No., %2 = Non-Deductible VAT Base';
+        NonDeductibleVATAmountNegativeErr: Label 'Non-Deductible VAT Amount must not be negative on line %1, but was %2', Comment = '%1 = Line No., %2 = Non-Deductible VAT Amount';
 
     [Test]
     [Scope('OnPrem')]
@@ -3272,6 +3276,51 @@
         DeleteVendorPurchaseDocExistsErr, SalespersonPurchaser1.Code));
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    [HandlerFunctions('ConfirmHandlerNo')]
+    procedure NonDeductibleVATNotNegativeWhenPricesInclVATToggledNoRecalc()
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+        PurchHeader: Record "Purchase Header";
+        PurchLine: Record "Purchase Line";
+        GeneralPostingType: Enum "General Posting Type";
+        GLAccountNo: Code[20];
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 635054] Non-Deductible VAT Base and Amount must not become negative when toggling Prices Including VAT with multiple lines and declining to update Direct Unit Cost
+        Initialize();
+
+        // [GIVEN] VAT Posting Setup with Non-Deductible VAT
+        LibraryNonDeductibleVAT.CreateNonDeductibleNormalVATPostingSetup(VATPostingSetup);
+        GLAccountNo := LibraryERM.CreateGLAccountWithVATPostingSetup(VATPostingSetup, GeneralPostingType::Purchase);
+
+        // [GIVEN] Purchase invoice with two lines using the same VAT posting group, different amounts
+        LibraryPurchase.CreatePurchHeader(
+            PurchHeader, PurchHeader."Document Type"::Invoice,
+            LibraryPurchase.CreateVendorWithVATBusPostingGroup(VATPostingSetup."VAT Bus. Posting Group"));
+        CreatePurchaseLineWithDirectUnitCost(PurchLine, PurchHeader, GLAccountNo, LibraryRandom.RandInt(10));
+        CreatePurchaseLineWithDirectUnitCost(PurchLine, PurchHeader, GLAccountNo, LibraryRandom.RandInt(100));
+
+        // [WHEN] Enable "Prices Including VAT" without recalculating prices
+        UpdatePricesIncludingVATOnPurchaseHeader(PurchHeader, true);
+
+        // [THEN] Non-Deductible VAT Base and Non-Deductible VAT Amount are not negative on any line
+        PurchLine.SetRange("Document Type", PurchHeader."Document Type");
+        PurchLine.SetRange("Document No.", PurchHeader."No.");
+        PurchLine.FindSet();
+        repeat
+            Assert.IsTrue(
+                PurchLine."Non-Deductible VAT Base" >= 0,
+                StrSubstNo(NonDeductibleVATBaseNegativeErr,
+                    PurchLine."Line No.", PurchLine."Non-Deductible VAT Base"));
+            Assert.IsTrue(
+                PurchLine."Non-Deductible VAT Amount" >= 0,
+                StrSubstNo(NonDeductibleVATAmountNegativeErr,
+                    PurchLine."Line No.", PurchLine."Non-Deductible VAT Amount"));
+        until PurchLine.Next() = 0;
+    end;
+
     local procedure Initialize()
     var
         ICSetup: Record "IC Setup";
@@ -3353,6 +3402,20 @@
         Item.Type := Item.Type::Service;
         Item.Modify(true);
         exit(Item."No.");
+    end;
+
+    local procedure CreatePurchaseLineWithDirectUnitCost(var PurchLine: Record "Purchase Line"; PurchHeader: Record "Purchase Header"; GLAccountNo: Code[20]; DirectUnitCost: Decimal)
+    begin
+        LibraryPurchase.CreatePurchaseLine(PurchLine, PurchHeader, PurchLine.Type::"G/L Account", GLAccountNo, 1);
+        PurchLine.Validate("Direct Unit Cost", DirectUnitCost);
+        PurchLine.Modify(true);
+    end;
+
+    local procedure UpdatePricesIncludingVATOnPurchaseHeader(var PurchaseHeader: Record "Purchase Header"; PricesIncludingVAT: Boolean)
+    begin
+        LibraryVariableStorage.Enqueue(PriceIncludingVATChangeMsg);
+        PurchaseHeader.Validate("Prices Including VAT", PricesIncludingVAT);
+        PurchaseHeader.Modify(true);
     end;
 
     local procedure CreateNonStockItem(): Code[20]
@@ -4672,6 +4735,13 @@
     procedure ConfirmHandlerYesNo(Question: Text[1024]; var Reply: Boolean)
     begin
         Reply := LibraryVariableStorage.DequeueBoolean();
+    end;
+
+    [ConfirmHandler]
+    [Scope('OnPrem')]
+    procedure ConfirmHandlerNo(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Reply := false;
     end;
 
     [RequestPageHandler]

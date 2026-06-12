@@ -22,9 +22,9 @@ page 99001503 "Subc. Prod. Order Components"
             repeater(Components)
             {
                 ShowCaption = false;
-                field("Subcontracting Type"; Rec."Subcontracting Type")
+                field("Component Supply Method"; Rec."Component Supply Method")
                 {
-                    ToolTip = 'Specifies the Type of Subcontracting that is assigned to the Production Order Component.';
+                    ToolTip = 'Specifies how components are supplied to the subcontractor for the production order component.';
                 }
                 field("Item No."; Rec."Item No.")
                 {

@@ -33,11 +33,18 @@ report 5405 "Calc. Consumption"
                     NeededQty: Decimal;
                     IsHandled: Boolean;
                 begin
+                    if ("Flushing Method" = "Flushing Method"::Forward) and
+                       ("Routing Link Code" <> '') then
+                        CurrReport.Skip();
+
                     Window.Update(2, "Item No.");
 
                     Clear(ItemJnlLine);
                     Item.Get("Item No.");
-                    ProdOrderLine.Get(Status, "Prod. Order No.", "Prod. Order Line No.");
+                    IsHandled := false;
+                    OnAfterGetRecordProdOrderCompOnBeforeGetProdOrderLine(Status, "Prod. Order No.", "Prod. Order Line No.", ProdOrderLine, IsHandled);
+                    if not IsHandled then
+                        ProdOrderLine.Get(Status, "Prod. Order No.", "Prod. Order Line No.");
 
                     IsHandled := false;
                     OnBeforeGetNeededQty(NeededQty, CalcBasedOn, "Prod. Order Component", "Production Order", PostingDate, IsHandled);
@@ -405,6 +412,11 @@ report 5405 "Calc. Consumption"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetNeededQty(var NeededQty: Decimal; CalcBasedOn: Option "Actual Output","Expected Output"; ProdOrderComponent: Record "Prod. Order Component"; ProductionOrder: Record "Production Order"; PostingDate: Date; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterGetRecordProdOrderCompOnBeforeGetProdOrderLine(ProductionOrderStatus: Enum "Production Order Status"; ProductionOrderNo: Code[20]; ProductionOrderLineNo: Integer; var ProdOrderLine: Record "Prod. Order Line"; var IsHandled: Boolean)
     begin
     end;
 }

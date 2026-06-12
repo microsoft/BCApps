@@ -82,6 +82,6 @@ xmlport 147625 "SL Segments"
     // end;
 
     var
-        CaptionRow: Boolean;
         SLSegments: Record "SL Segments";
+        CaptionRow: Boolean;
 }

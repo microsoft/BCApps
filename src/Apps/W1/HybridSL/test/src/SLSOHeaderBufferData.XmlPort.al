@@ -87,7 +87,7 @@ xmlport 147653 "SL SOHeader Buffer Data"
                         currXMLport.Skip();
                     end;
 
-                    SLSOHeaderBuffer.CpnyID := CopyStr(CpnyID, 1, MaxStrLen(SLSOHeaderBuffer.CpnyID));
+                    SLSOHeaderBuffer.CpnyID := CopyStr(CompanyName(), 1, MaxStrLen(SLSOHeaderBuffer.CpnyID));
                     SLSOHeaderBuffer.OrdNbr := OrdNbr;
                     SLSOHeaderBuffer.CustID := CustID;
                     Evaluate(SLSOHeaderBuffer.OrdDate, OrdDate);
@@ -116,6 +116,6 @@ xmlport 147653 "SL SOHeader Buffer Data"
     end;
 
     var
-        CaptionRow: Boolean;
         SLSOHeaderBuffer: Record "SL SOHeader Buffer";
+        CaptionRow: Boolean;
 }

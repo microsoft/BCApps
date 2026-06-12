@@ -9,7 +9,7 @@ using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using Microsoft.Sales.History;
 using Microsoft.Service.History;
-using System.Reflection;
+using System.DateTime;
 using System.Security.Encryption;
 using System.Telemetry;
 using System.Text;
@@ -248,8 +248,8 @@ codeunit 10778 "Verifactu Export"
 
     local procedure InsertTotals(var InvoiceXMLNode: XmlElement; var SalesInvoiceHeader: Record "Sales Invoice Header")
     begin
-        InvoiceXMLNode.Add(XmlElement.Create('CuotaTotal', XmlNamespaceSum1, SalesInvoiceHeader."Amount Including VAT" - SalesInvoiceHeader.Amount));
-        InvoiceXMLNode.Add(XmlElement.Create('ImporteTotal', XmlNamespaceSum1, SalesInvoiceHeader."Amount Including VAT"));
+        InvoiceXMLNode.Add(XmlElement.Create('CuotaTotal', XmlNamespaceSum1, FormatAmount(SalesInvoiceHeader."Amount Including VAT" - SalesInvoiceHeader.Amount)));
+        InvoiceXMLNode.Add(XmlElement.Create('ImporteTotal', XmlNamespaceSum1, FormatAmount(SalesInvoiceHeader."Amount Including VAT")));
     end;
 
     local procedure FindLineInTempSalesInvoiceLine(var TempSalesInvoiceLine: Record "Sales Invoice Line" temporary; var SalesInvoiceLine: Record "Sales Invoice Line"): Boolean
@@ -274,9 +274,9 @@ codeunit 10778 "Verifactu Export"
             '&' +
             'TipoFactura=' + InvoiceType +
             '&' +
-            'CuotaTotal=' + Format(SalesInvoiceHeader."Amount Including VAT" - SalesInvoiceHeader.Amount, 0, 9) +
+            'CuotaTotal=' + FormatAmount(SalesInvoiceHeader."Amount Including VAT" - SalesInvoiceHeader.Amount) +
             '&' +
-            'ImporteTotal=' + Format(SalesInvoiceHeader."Amount Including VAT", 0, 9) +
+            'ImporteTotal=' + FormatAmount(SalesInvoiceHeader."Amount Including VAT") +
             '&' +
             'Huella=' + PreviousHuella +
             '&' +
@@ -438,8 +438,8 @@ codeunit 10778 "Verifactu Export"
 
     local procedure InsertTotals(var InvoiceXMLNode: XmlElement; var ServiceInvoiceHeader: Record "Service Invoice Header")
     begin
-        InvoiceXMLNode.Add(XmlElement.Create('CuotaTotal', XmlNamespaceSum1, ServiceInvoiceHeader."Amount Including VAT" - ServiceInvoiceHeader.Amount));
-        InvoiceXMLNode.Add(XmlElement.Create('ImporteTotal', XmlNamespaceSum1, ServiceInvoiceHeader."Amount Including VAT"));
+        InvoiceXMLNode.Add(XmlElement.Create('CuotaTotal', XmlNamespaceSum1, FormatAmount(ServiceInvoiceHeader."Amount Including VAT" - ServiceInvoiceHeader.Amount)));
+        InvoiceXMLNode.Add(XmlElement.Create('ImporteTotal', XmlNamespaceSum1, FormatAmount(ServiceInvoiceHeader."Amount Including VAT")));
     end;
 
     local procedure FindLineInTempServiceInvoiceLine(var TempServiceInvoiceLine: Record "Service Invoice Line" temporary; var ServiceInvoiceLine: Record "Service Invoice Line"): Boolean
@@ -464,9 +464,9 @@ codeunit 10778 "Verifactu Export"
             '&' +
             'TipoFactura=' + InvoiceType +
             '&' +
-            'CuotaTotal=' + Format(ServiceInvoiceHeader."Amount Including VAT" - ServiceInvoiceHeader.Amount, 0, 9) +
+            'CuotaTotal=' + FormatAmount(ServiceInvoiceHeader."Amount Including VAT" - ServiceInvoiceHeader.Amount) +
             '&' +
-            'ImporteTotal=' + Format(ServiceInvoiceHeader."Amount Including VAT", 0, 9) +
+            'ImporteTotal=' + FormatAmount(ServiceInvoiceHeader."Amount Including VAT") +
             '&' +
             'Huella=' + PreviousHuella +
             '&' +
@@ -630,8 +630,8 @@ codeunit 10778 "Verifactu Export"
 
     local procedure InsertTotals(var InvoiceXMLNode: XmlElement; var SalesCrMemoHeader: Record "Sales Cr.Memo Header")
     begin
-        InvoiceXMLNode.Add(XmlElement.Create('CuotaTotal', XmlNamespaceSum1, -(SalesCrMemoHeader."Amount Including VAT" - SalesCrMemoHeader.Amount)));
-        InvoiceXMLNode.Add(XmlElement.Create('ImporteTotal', XmlNamespaceSum1, -SalesCrMemoHeader."Amount Including VAT"));
+        InvoiceXMLNode.Add(XmlElement.Create('CuotaTotal', XmlNamespaceSum1, FormatAmount(-(SalesCrMemoHeader."Amount Including VAT" - SalesCrMemoHeader.Amount))));
+        InvoiceXMLNode.Add(XmlElement.Create('ImporteTotal', XmlNamespaceSum1, FormatAmount(-SalesCrMemoHeader."Amount Including VAT")));
     end;
 
     local procedure GenerateHash(SalesCrMemoHeader: Record "Sales Cr.Memo Header"; InvoiceType: Text; VerifactuDateTime: Text; PreviousHuella: Text): Text[64]
@@ -649,9 +649,9 @@ codeunit 10778 "Verifactu Export"
             '&' +
             'TipoFactura=' + InvoiceType +
             '&' +
-            'CuotaTotal=' + Format(-(SalesCrMemoHeader."Amount Including VAT" - SalesCrMemoHeader.Amount), 0, 9) +
+            'CuotaTotal=' + FormatAmount(-(SalesCrMemoHeader."Amount Including VAT" - SalesCrMemoHeader.Amount)) +
             '&' +
-            'ImporteTotal=' + Format(-SalesCrMemoHeader."Amount Including VAT", 0, 9) +
+            'ImporteTotal=' + FormatAmount(-SalesCrMemoHeader."Amount Including VAT") +
             '&' +
             'Huella=' + PreviousHuella +
             '&' +
@@ -839,8 +839,8 @@ codeunit 10778 "Verifactu Export"
 
     local procedure InsertTotals(var InvoiceXMLNode: XmlElement; var ServiceCrMemoHeader: Record "Service Cr.Memo Header")
     begin
-        InvoiceXMLNode.Add(XmlElement.Create('CuotaTotal', XmlNamespaceSum1, -(ServiceCrMemoHeader."Amount Including VAT" - ServiceCrMemoHeader.Amount)));
-        InvoiceXMLNode.Add(XmlElement.Create('ImporteTotal', XmlNamespaceSum1, -ServiceCrMemoHeader."Amount Including VAT"));
+        InvoiceXMLNode.Add(XmlElement.Create('CuotaTotal', XmlNamespaceSum1, FormatAmount(-(ServiceCrMemoHeader."Amount Including VAT" - ServiceCrMemoHeader.Amount))));
+        InvoiceXMLNode.Add(XmlElement.Create('ImporteTotal', XmlNamespaceSum1, FormatAmount(-ServiceCrMemoHeader."Amount Including VAT")));
     end;
 
     local procedure FindLineInTempServiceCrMemoLine(var TempServiceCrMemoLine: Record "Service Cr.Memo Line" temporary; var ServiceCrMemoLine: Record "Service Cr.Memo Line"): Boolean
@@ -865,9 +865,9 @@ codeunit 10778 "Verifactu Export"
             '&' +
             'TipoFactura=' + InvoiceType +
             '&' +
-            'CuotaTotal=' + Format(-(ServiceCrMemoHeader."Amount Including VAT" - ServiceCrMemoHeader.Amount), 0, 9) +
+            'CuotaTotal=' + FormatAmount(-(ServiceCrMemoHeader."Amount Including VAT" - ServiceCrMemoHeader.Amount)) +
             '&' +
-            'ImporteTotal=' + Format(-ServiceCrMemoHeader."Amount Including VAT", 0, 9) +
+            'ImporteTotal=' + FormatAmount(-ServiceCrMemoHeader."Amount Including VAT") +
             '&' +
             'Huella=' + PreviousHuella +
             '&' +
@@ -1014,14 +1014,14 @@ codeunit 10778 "Verifactu Export"
 
     procedure GetCustomDateTimeFormat(LocalDT: DateTime): Text
     var
-        TypeHelper: Codeunit "Type Helper";
+        TimeZoneCU: Codeunit "Time Zone";
         TimeZoneOffset: Duration;
         OffsetMinutes: Integer;
         OffsetHours: Integer;
         OffsetSign: Text[1];
         OffsetText: Text;
     begin
-        TypeHelper.GetTimezoneOffset(TimeZoneOffset, GetTimeZoneFromCompany());
+        TimeZoneOffset := TimeZoneCU.GetTimezoneOffset(LocalDT, GetTimeZoneFromCompany());
 
         OffsetMinutes := Abs(TimeZoneOffset div 60000);
 
@@ -1047,10 +1047,13 @@ codeunit 10778 "Verifactu Export"
     local procedure GetTimeZoneFromCompany(): Text
     var
         PostCode: Record "Post Code";
+        TimeZoneId: Text;
     begin
         if PostCode.Get(CompanyInformation."Post Code", CompanyInformation.City) then
-            exit(PostCode."Time Zone");
-        exit('');
+            TimeZoneId := PostCode."Time Zone";
+        if TimeZoneId = '' then
+            TimeZoneId := 'Romance Standard Time';
+        exit(TimeZoneId);
     end;
 
     local procedure FormatTime(Value: Integer): Text
@@ -1064,6 +1067,11 @@ codeunit 10778 "Verifactu Export"
     local procedure FormatDate(DateValue: Date): Text
     begin
         exit(Format(DateValue, 0, '<Day,2>-<Month,2>-<Year4>'));
+    end;
+
+    local procedure FormatAmount(Amount: Decimal): Text
+    begin
+        exit(Format(Amount, 0, '<Precision,2:2><Standard Format,9>'));
     end;
 
     local procedure GetVATIdentifier(VATIdentifier: Code[20]): Text

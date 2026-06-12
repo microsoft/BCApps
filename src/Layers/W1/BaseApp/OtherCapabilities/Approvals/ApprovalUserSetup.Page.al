@@ -14,7 +14,7 @@ page 663 "Approval User Setup"
     Caption = 'Approval User Setup';
     PageType = List;
     AboutTitle = 'About Approval User Setup';
-    AboutText = 'Configure approval roles, limits, substitutes, and notification settings for users involved in approval workflows to control who can approve sales, purchases, and requests, and under what conditions.';
+    AboutText = 'Before you can create workflows that involve approval steps, you must set up the users who are involved in approval processes. You can also set amount limits for different types of requests, define substitute approvers, and set up notifications.';
     RefreshOnActivate = true;
     SourceTable = "User Setup";
     UsageCategory = Administration;

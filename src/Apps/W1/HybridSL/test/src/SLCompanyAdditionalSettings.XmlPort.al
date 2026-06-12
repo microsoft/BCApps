@@ -204,6 +204,6 @@ xmlport 147612 "SL Company Additional Settings"
     end;
 
     var
-        CaptionRow: Boolean;
         SLCompanyAdditionalSettings: Record "SL Company Additional Settings";
+        CaptionRow: Boolean;
 }

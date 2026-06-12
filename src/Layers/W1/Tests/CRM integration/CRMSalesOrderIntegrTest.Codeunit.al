@@ -1880,6 +1880,7 @@ codeunit 139175 "CRM Sales Order Integr. Test"
         // [GIVEN] A coupled CRM Sales Order and BC Sales Header
         PrepareCRMSalesOrder(CRMSalesorder, 0, 0);
         CreateSalesOrderInNAV(CRMSalesorder, SalesHeader);
+        EnsureVATPostingSetupOnSalesLines(SalesHeader);
 
         // [GIVEN] Header has Prepayment % > 0; validate propagates to lines and computes Prepmt. Line Amount
         SalesHeader.Validate("Prepayment %", LibraryRandom.RandIntInRange(20, 80));
@@ -1940,6 +1941,7 @@ codeunit 139175 "CRM Sales Order Integr. Test"
         // [GIVEN] A coupled CRM Sales Order and BC Sales Header
         PrepareCRMSalesOrder(CRMSalesorder, 0, 0);
         CreateSalesOrderInNAV(CRMSalesorder, SalesHeader);
+        EnsureVATPostingSetupOnSalesLines(SalesHeader);
 
         // [GIVEN] Header has Prepayment % > 0; validate propagates to lines and computes Prepmt. Line Amount
         SalesHeader.Validate("Prepayment %", LibraryRandom.RandIntInRange(20, 80));
@@ -2140,6 +2142,24 @@ codeunit 139175 "CRM Sales Order Integr. Test"
         CRMSalesOrderToSalesOrder: Codeunit "CRM Sales Order to Sales Order";
     begin
         CRMSalesOrderToSalesOrder.CreateInNAV(CRMSalesorder, SalesHeader);
+    end;
+
+    local procedure EnsureVATPostingSetupOnSalesLines(SalesHeader: Record "Sales Header")
+    var
+        SalesLine: Record "Sales Line";
+        VATPostingSetup: Record "VAT Posting Setup";
+    begin
+        // Prepayment % validation on the header propagates to lines and runs UpdatePrepmtSetupFields,
+        // which requires a VAT Posting Setup entry for each line's (VAT Bus. Posting Group, VAT Prod.
+        // Posting Group). CRM-sourced sales lines may land on a combination that the default test
+        // VAT data does not cover — insert it on the fly so the validation has the setup it needs.
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        if SalesLine.FindSet() then
+            repeat
+                if not VATPostingSetup.Get(SalesLine."VAT Bus. Posting Group", SalesLine."VAT Prod. Posting Group") then
+                    LibraryERM.CreateVATPostingSetup(VATPostingSetup, SalesLine."VAT Bus. Posting Group", SalesLine."VAT Prod. Posting Group");
+            until SalesLine.Next() = 0;
     end;
 
     local procedure CreateSalesInvoiceWithGetShipmentLine(var SalesHeaderInvoice: Record "Sales Header"; SalesHeaderOrder: Record "Sales Header"; ShipmentNo: Code[20])

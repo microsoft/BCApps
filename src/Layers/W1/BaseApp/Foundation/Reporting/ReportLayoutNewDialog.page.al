@@ -78,6 +78,11 @@ page 9662 "Report Layout New Dialog"
                 Caption = 'Format Options';
                 ToolTip = 'Specifies the format of the layout.';
                 OptionCaption = 'RDLC,Word,Excel,External';
+
+                trigger OnValidate()
+                begin
+                    CurrPage.Update(false);
+                end;
             }
             field(AvailableInAllCompanies; AvailableInAllCompanies)
             {
@@ -91,11 +96,18 @@ page 9662 "Report Layout New Dialog"
                 Caption = 'Create a Blank Layout from the report object';
                 ToolTip = 'Specifies whether the layout should be created from the report design or from an existing layout on disk.';
             }
-            field(ExcelMultipleDataSheets; ExcelMultipleDataSheets)
+            group(ExcelOptions)
             {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Create Multiple Data Sheets';
-                ToolTip = 'Specifies whether the Excel layout should contain multiple data sheets.';
+                Caption = 'Excel Options';
+                ShowCaption = true;
+                Visible = FormatOptions = FormatOptions::Excel;
+
+                field(ExcelMultipleDataSheets; ExcelMultipleDataSheets)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Create Multiple Data Sheets';
+                    ToolTip = 'Specifies whether the Excel layout should contain multiple data sheets.';
+                }
             }
         }
     }

@@ -6,6 +6,7 @@ namespace Microsoft.Service.Document;
 
 codeunit 5905 "Service-Printed"
 {
+    Permissions = tabledata "Service Header" = rm;
     TableNo = "Service Header";
 
     trigger OnRun()

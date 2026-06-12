@@ -226,10 +226,20 @@ codeunit 5239 "Contoso Account Schedule"
 
     procedure InsertColumnLayout(ColumnLayoutName: Code[10]; LineNo: Integer; ColumnNo: Code[10]; ColumnHeader: Text[30]; ColumnType: Enum "Column Layout Type"; LedgerEntryType: Enum "Column Layout Entry Type"; Formula: Code[80]; ShowOppositeSign: Boolean; Show: Enum "Column Layout Show"; ComparisonPeriodFormula: Code[20]; HideCurrencySymbol: Boolean)
     begin
-        InsertColumnLayout(ColumnLayoutName, LineNo, ColumnNo, ColumnHeader, ColumnType, LedgerEntryType, Enum::"Account Schedule Amount Type"::"Net Amount", Formula, ShowOppositeSign, Show, ComparisonPeriodFormula, HideCurrencySymbol, 1033);
+        InsertColumnLayout(ColumnLayoutName, LineNo, ColumnNo, ColumnHeader, ColumnType, LedgerEntryType, Enum::"Account Schedule Amount Type"::"Net Amount", Formula, ShowOppositeSign, Show, ComparisonPeriodFormula, HideCurrencySymbol, 1033, Enum::ColumnHeaderDateType::Blank);
+    end;
+
+    procedure InsertColumnLayout(ColumnLayoutName: Code[10]; LineNo: Integer; ColumnNo: Code[10]; ColumnHeader: Text[30]; ColumnType: Enum "Column Layout Type"; LedgerEntryType: Enum "Column Layout Entry Type"; Formula: Code[80]; ShowOppositeSign: Boolean; Show: Enum "Column Layout Show"; ComparisonPeriodFormula: Code[20]; HideCurrencySymbol: Boolean; IncludeDateInHeader: Enum ColumnHeaderDateType)
+    begin
+        InsertColumnLayout(ColumnLayoutName, LineNo, ColumnNo, ColumnHeader, ColumnType, LedgerEntryType, Enum::"Account Schedule Amount Type"::"Net Amount", Formula, ShowOppositeSign, Show, ComparisonPeriodFormula, HideCurrencySymbol, 1033, IncludeDateInHeader);
     end;
 
     procedure InsertColumnLayout(ColumnLayoutName: Code[10]; LineNo: Integer; ColumnNo: Code[10]; ColumnHeader: Text[30]; ColumnType: Enum "Column Layout Type"; LedgerEntryType: Enum "Column Layout Entry Type"; AmountType: Enum "Account Schedule Amount Type"; Formula: Code[80]; ShowOppositeSign: Boolean; Show: Enum "Column Layout Show"; ComparisonPeriodFormula: Code[20]; HideCurrencySymbol: Boolean; FormulaLCID: Integer)
+    begin
+        InsertColumnLayout(ColumnLayoutName, LineNo, ColumnNo, ColumnHeader, ColumnType, LedgerEntryType, AmountType, Formula, ShowOppositeSign, Show, ComparisonPeriodFormula, HideCurrencySymbol, FormulaLCID, Enum::ColumnHeaderDateType::Blank);
+    end;
+
+    procedure InsertColumnLayout(ColumnLayoutName: Code[10]; LineNo: Integer; ColumnNo: Code[10]; ColumnHeader: Text[30]; ColumnType: Enum "Column Layout Type"; LedgerEntryType: Enum "Column Layout Entry Type"; AmountType: Enum "Account Schedule Amount Type"; Formula: Code[80]; ShowOppositeSign: Boolean; Show: Enum "Column Layout Show"; ComparisonPeriodFormula: Code[20]; HideCurrencySymbol: Boolean; FormulaLCID: Integer; IncludeDateInHeader: Enum ColumnHeaderDateType)
     var
         ColumnLayout: Record "Column Layout";
         Exists: Boolean;
@@ -254,6 +264,7 @@ codeunit 5239 "Contoso Account Schedule"
         ColumnLayout.Validate("Comparison Period Formula LCID", FormulaLCID);
         ColumnLayout."Comparison Period Formula" := ComparisonPeriodFormula;
         ColumnLayout.Validate("Hide Currency Symbol", HideCurrencySymbol);
+        ColumnLayout.Validate("Include Date In Header", IncludeDateInHeader);
 
         if Exists then
             ColumnLayout.Modify(true)

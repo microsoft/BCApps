@@ -60,6 +60,6 @@ xmlport 147618 "SL INSetup Data"
     end;
 
     var
-        CaptionRow: Boolean;
         SLINSetup: Record "SL INSetup";
+        CaptionRow: Boolean;
 }

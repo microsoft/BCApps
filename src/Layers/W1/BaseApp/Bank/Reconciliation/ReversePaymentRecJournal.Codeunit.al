@@ -476,6 +476,8 @@ codeunit 386 "Reverse Payment Rec. Journal"
                 StatementLineNo += 10000;
                 InsertRelatedAndAppliedEntries(PostedPaymentReconHdr."Bank Account No.", PostedPaymentReconHdr."Statement No.", StatementLineNo, EmployeeLedgerEntry);
             until EmployeeLedgerEntry.Next() = 0;
+
+        OnAfterInsertRelatedAndAppliedEntriesOfGLRegister(GLRegister, PostedPaymentReconHdr, StatementLineNo);
     end;
 
     local procedure RefreshRelatedEntryReversalStatus(var PaymentRecRelatedEntry: Record "Payment Rec. Related Entry")
@@ -758,6 +760,8 @@ codeunit 386 "Reverse Payment Rec. Journal"
                         until EmployeeLedgerEntry.Next() = 0;
                 end;
         end;
+
+        OnAfterInsertRelatedAndAppliedEntries(BankAccountNo, StatementNo, StatementLineNo, AccountType, BankAccountLedgerEntry);
     end;
 
     local procedure InsertRelatedAndAppliedEntries(BankAccountNo: Code[20]; StatementNo: Code[20]; StatementLineNo: Integer; AccountType: Enum "Gen. Journal Account Type")
@@ -980,6 +984,16 @@ codeunit 386 "Reverse Payment Rec. Journal"
 
     [IntegrationEvent(false, false)]
     local procedure OnInsertRelatedAndAppliedEntriesOnAfterFilterEmployeeLedgerEntry(var EmployeeLedgerEntry: Record "Employee Ledger Entry"; var BankAccountLedgerEntry: Record "Bank Account Ledger Entry")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterInsertRelatedAndAppliedEntriesOfGLRegister(var GLRegister: Record "G/L Register"; var PostedPaymentReconHdr: Record "Posted Payment Recon. Hdr"; var StatementLineNo: Integer)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterInsertRelatedAndAppliedEntries(BankAccountNo: Code[20]; StatementNo: Code[20]; StatementLineNo: Integer; AccountType: Enum "Gen. Journal Account Type"; var BankAccountLedgerEntry: Record "Bank Account Ledger Entry")
     begin
     end;
 }

@@ -65,9 +65,14 @@ codeunit 144068 "UT REP Posting Routine"
         VATBookEntryNumberCap: Label 'VATBookEntry__Entry_No__';
         LedgerAmountCap: Label 'LedgAmount';
         LibraryERM: Codeunit "Library - ERM";
+        LibraryJournals: Codeunit "Library - Journals";
+        LibraryPurchase: Codeunit "Library - Purchase";
         LibraryUtility: Codeunit "Library - Utility";
         UnpostedSalesDocumentsMsg: Label 'An unposted sales document with posting number %1 exists.\\%2.', Comment = '%1=Posting No.,%2=Sales Header RecordID';
         UnpostedPurchDocumentsMsg: Label 'An unposted puchase document with posting number %1 exists.\\%2.', Comment = '%1=Posting No.,%2=Purchase Header RecordID';
+        CorrectionDLEExpectedErr: Label 'Expected at least one Correction of Remaining Amount DLE';
+        CorrectionEntryPrintedOnceErr: Label 'Each Correction of Remaining Amount entry must be printed exactly once';
+        DateFilterTok: Label '%1..%2', Locked = true;
         isInitialized: Boolean;
 
     [Test]
@@ -1081,6 +1086,50 @@ codeunit 144068 "UT REP Posting Routine"
         LibraryReportDataset.AssertElementWithValueExists(StartOnHandAmountLCYCap, DetailedCustLedgEntry."Amount (LCY)");
     end;
 
+    [Test]
+    [HandlerFunctions('VendorSheetPrintDateRangeRPH')]
+    procedure VendSheetPrintCorrEntryNotDuplicatedForSameDocNo()
+    var
+        DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry";
+        Vendor: Record Vendor;
+        CurrencyCode: Code[10];
+        SharedDocNo: Code[20];
+        CorrectionCount: Integer;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 634877] "Correction of Remaining Amount" is printed once in "Vendor Sheet - Print" when invoice and payment share the same Document No.
+        Initialize();
+
+        // [GIVEN] Create Currency with exchange rate.
+        CurrencyCode := CreateCurrencyWithRoundingRate();
+
+        // [GIVEN] Create Vendor with posting group configured for rounding accounts.
+        LibraryPurchase.CreateVendor(Vendor);
+        EnsureVendPostingGroupRoundingAccounts(Vendor);
+
+        // [GIVEN] Post FCY invoice with Document No. and a second FCY invoice with a different Document No.
+        SharedDocNo := LibraryUtility.GenerateGUID();
+        PostVendorJournalLine(Vendor."No.", SharedDocNo, CurrencyCode, "Gen. Journal Document Type"::Invoice, -1);
+        PostVendorJournalLine(Vendor."No.", LibraryUtility.GenerateGUID(), CurrencyCode, "Gen. Journal Document Type"::Invoice, -1);
+
+        // [GIVEN] Post FCY payment with the same Document No. as invoice.
+        PostVendorJournalLine(Vendor."No.", SharedDocNo, CurrencyCode, "Gen. Journal Document Type"::Payment, 2);
+
+        // [GIVEN] Payment is applied to both invoices, creating a "Correction of Remaining Amount" entry due to LCY rounding.
+        ApplyVendorPaymentToInvoices(Vendor."No.");
+
+        // [GIVEN] Check At least one "Correction of Remaining Amount" Detailed Vendor Ledger Entry exists.
+        FilterCorrectionDtldVendLedgEntries(DetailedVendorLedgEntry, Vendor."No.");
+        Assert.IsTrue(DetailedVendorLedgEntry.FindFirst(), CorrectionDLEExpectedErr);
+
+        // [WHEN] Run report "Vendor Sheet - Print" for Vendor.
+        RunVendorSheetPrintReport(Vendor."No.", StrSubstNo(DateFilterTok, WorkDate(), WorkDate()));
+
+        // [THEN] Verify "Correction of Remaining Amount" entries are printed exactly once per entry.
+        CorrectionCount := CountCorrectionEntriesInReport();
+        Assert.AreEqual(DetailedVendorLedgEntry.Count(), CorrectionCount, CorrectionEntryPrintedOnceErr);
+    end;
+
     local procedure Initialize()
     begin
         LibrarySetupStorage.Restore();
@@ -1518,6 +1567,93 @@ codeunit 144068 "UT REP Posting Routine"
         LibraryReportDataset.AssertElementWithValueExists(AmountCaption, ExpectedAmount);
     end;
 
+    local procedure CreateCurrencyWithRoundingRate(): Code[10]
+    begin
+        // Exchange rate 3:1 causes rounding: 1 FCY = 0.33 LCY, 2 FCY = 0.67 LCY (not 0.66)
+        exit(LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), 3, 3));
+    end;
+
+    local procedure PostVendorJournalLine(VendorNo: Code[20]; DocumentNo: Code[20]; CurrencyCode: Code[10]; DocumentType: Enum "Gen. Journal Document Type"; Amount: Decimal)
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+    begin
+        LibraryJournals.CreateGenJournalLineWithBatch(
+            GenJournalLine, DocumentType,
+            GenJournalLine."Account Type"::Vendor, VendorNo, Amount);
+        GenJournalLine.Validate("Document No.", DocumentNo);
+        GenJournalLine.Validate("Currency Code", CurrencyCode);
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+    end;
+
+    local procedure FilterCorrectionDtldVendLedgEntries(var DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry"; VendorNo: Code[20])
+    begin
+        DetailedVendorLedgEntry.SetRange("Vendor No.", VendorNo);
+        DetailedVendorLedgEntry.SetRange("Entry Type", DetailedVendorLedgEntry."Entry Type"::"Correction of Remaining Amount");
+    end;
+
+    local procedure ApplyVendorPaymentToInvoices(VendorNo: Code[20])
+    var
+        PaymentVendorLedgerEntry: Record "Vendor Ledger Entry";
+        InvoiceVendorLedgerEntry: Record "Vendor Ledger Entry";
+    begin
+        PaymentVendorLedgerEntry.SetRange("Vendor No.", VendorNo);
+        PaymentVendorLedgerEntry.SetRange("Document Type", PaymentVendorLedgerEntry."Document Type"::Payment);
+        PaymentVendorLedgerEntry.FindFirst();
+        PaymentVendorLedgerEntry.CalcFields("Remaining Amount");
+        LibraryERM.SetApplyVendorEntry(PaymentVendorLedgerEntry, PaymentVendorLedgerEntry."Remaining Amount");
+        InvoiceVendorLedgerEntry.SetRange("Vendor No.", VendorNo);
+        InvoiceVendorLedgerEntry.SetRange("Document Type", InvoiceVendorLedgerEntry."Document Type"::Invoice);
+        InvoiceVendorLedgerEntry.SetRange(Open, true);
+        LibraryERM.SetAppliestoIdVendor(InvoiceVendorLedgerEntry);
+        LibraryERM.PostVendLedgerApplication(PaymentVendorLedgerEntry);
+    end;
+
+    local procedure EnsureVendPostingGroupRoundingAccounts(Vendor: Record Vendor)
+    var
+        VendorPostingGroup: Record "Vendor Posting Group";
+        GLAccountNo: Code[20];
+    begin
+        VendorPostingGroup.Get(Vendor."Vendor Posting Group");
+        if VendorPostingGroup."Debit Rounding Account" = '' then begin
+            GLAccountNo := LibraryERM.CreateGLAccountNo();
+            VendorPostingGroup."Debit Rounding Account" := GLAccountNo;
+            VendorPostingGroup."Credit Rounding Account" := GLAccountNo;
+            VendorPostingGroup.Modify();
+        end;
+    end;
+
+    local procedure RunVendorSheetPrintReport(VendorNo: Code[20]; DateFilter: Text)
+    begin
+        LibraryVariableStorage.Enqueue(VendorNo);
+        LibraryVariableStorage.Enqueue(DateFilter);
+        Commit();
+        REPORT.Run(REPORT::"Vendor Sheet - Print");
+    end;
+
+    local procedure CountCorrectionEntriesInReport(): Integer
+    var
+        EntryTypeValue: Variant;
+        EntryNoValue: Variant;
+        PrevEntryNo: Text;
+        CorrectionCount: Integer;
+    begin
+        LibraryReportDataset.LoadDataSetFile();
+        PrevEntryNo := '';
+        while LibraryReportDataset.GetNextRow() do
+            if LibraryReportDataset.CurrentRowHasElement(DtldVendLedgEntryTypeCap) then begin
+                LibraryReportDataset.FindCurrentRowValue(DtldVendLedgEntryTypeCap, EntryTypeValue);
+                if Format(EntryTypeValue) = CorrectionAmountTxt then begin
+                    LibraryReportDataset.FindCurrentRowValue(DetailedVendLedgEntryNumberCap, EntryNoValue);
+                    if Format(EntryNoValue) <> PrevEntryNo then begin
+                        CorrectionCount += 1;
+                        PrevEntryNo := Format(EntryNoValue);
+                    end;
+                end;
+            end;
+        exit(CorrectionCount);
+    end;
+
     [RequestPageHandler]
     [Scope('OnPrem')]
     procedure AccountBookSheetPrintRequestPageHandler(var AccountBookSheetPrint: TestRequestPage "Account Book Sheet - Print")
@@ -1642,6 +1778,20 @@ codeunit 144068 "UT REP Posting Routine"
     procedure BankSheetPrintRPH(var BankSheetPrint: TestRequestPage "Bank Sheet - Print")
     begin
         BankSheetPrint.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
+    end;
+
+    [RequestPageHandler]
+    [Scope('OnPrem')]
+    procedure VendorSheetPrintDateRangeRPH(var VendorSheetPrint: TestRequestPage "Vendor Sheet - Print")
+    var
+        No: Variant;
+        DateFilter: Variant;
+    begin
+        LibraryVariableStorage.Dequeue(No);
+        LibraryVariableStorage.Dequeue(DateFilter);
+        VendorSheetPrint.Vendor.SetFilter("No.", No);
+        VendorSheetPrint.Vendor.SetFilter("Date Filter", DateFilter);
+        VendorSheetPrint.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 
     [MessageHandler]

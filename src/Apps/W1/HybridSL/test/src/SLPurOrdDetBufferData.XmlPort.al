@@ -97,7 +97,7 @@ xmlport 147642 "SL PurOrdDet Buffer Data"
                     SLPurOrdDetBuffer.LineRef := LineRef;
                     Evaluate(SLPurOrdDetBuffer.CnvFact, CnvFact);
                     Evaluate(SLPurOrdDetBuffer.CostReceived, CostReceived);
-                    SLPurOrdDetBuffer.CpnyID := CopyStr(CpnyID, 1, MaxStrLen(SLPurOrdDetBuffer.CpnyID));
+                    SLPurOrdDetBuffer.CpnyID := CopyStr(CompanyName(), 1, MaxStrLen(SLPurOrdDetBuffer.CpnyID));
                     Evaluate(SLPurOrdDetBuffer.ExtCost, ExtCost);
                     SLPurOrdDetBuffer.InvtID := InvtID;
                     Evaluate(SLPurOrdDetBuffer.LineID, LineID);
@@ -125,6 +125,6 @@ xmlport 147642 "SL PurOrdDet Buffer Data"
     end;
 
     var
-        CaptionRow: Boolean;
         SLPurOrdDetBuffer: Record "SL PurOrdDet Buffer";
+        CaptionRow: Boolean;
 }

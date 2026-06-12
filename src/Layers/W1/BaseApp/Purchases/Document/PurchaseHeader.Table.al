@@ -730,7 +730,7 @@ table 38 "Purchase Header"
             var
                 IsHandled: Boolean;
             begin
-                OnBeforeValidateLocationCode(Rec, IsHandled);
+                OnBeforeValidateLocationCode(Rec, IsHandled, xRec, CurrFieldNo);
                 if IsHandled then
                     exit;
 
@@ -882,6 +882,15 @@ table 38 "Purchase Header"
                         PurchLine.SetPurchHeader(Rec);
 
                         Currency.Initialize("Currency Code");
+
+                        if not RecalculatePrice and "Prices Including VAT" then begin
+                            PurchLine.FindSet();
+                            repeat
+                                PurchLine.Amount := Round(PurchLine.CalcLineAmount() / (1 + PurchLine."VAT %" / 100), Currency."Amount Rounding Precision");
+                                PurchLine."Amount Including VAT" := Round(PurchLine.CalcLineAmount(), Currency."Amount Rounding Precision");
+                                PurchLine.Modify();
+                            until PurchLine.Next() = 0;
+                        end;
 
                         PurchLine.FindSet();
                         repeat
@@ -8619,7 +8628,7 @@ table 38 "Purchase Header"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeValidateLocationCode(var PurchaseHeader: Record "Purchase Header"; var IsHandled: Boolean)
+    local procedure OnBeforeValidateLocationCode(var PurchaseHeader: Record "Purchase Header"; var IsHandled: Boolean; xPurchaseHeader: Record "Purchase Header"; CurrFieldNo: Integer)
     begin
     end;
 

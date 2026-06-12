@@ -225,7 +225,7 @@ codeunit 13915 "Import XRechnung Document"
             RecRef.GetTable(PurchaseLine);
             EDocumentImportHelper.FindGLAccountForLine(EDocument, RecRef);
             PurchaseLine."No." := RecRef.Field(PurchaseLine.FieldNo("No.")).Value;
-            PurchaseLine.Insert(true);
+            PurchaseLine.Insert();
             LineNo += 10000;
         end;
     end;
@@ -276,7 +276,7 @@ codeunit 13915 "Import XRechnung Document"
     begin
         PurchaseHeader."Document Type" := PurchaseHeader."Document Type"::Invoice;
         PurchaseHeader."No." := CopyStr(GetNodeByPath(TempXMLBuffer, '/' + DocumentType + '/cbc:ID'), 1, MaxStrLen(PurchaseHeader."No."));
-        PurchaseHeader.Insert(true);
+        PurchaseHeader.Insert();
 
         LastLineNo := GetLastLineNo(PurchaseHeader);
 
@@ -292,8 +292,8 @@ codeunit 13915 "Import XRechnung Document"
         AddAttachment(DocumentAttachment, DocumentAttachmentData, EDocument);
 
         // Insert last line
-        PurchaseLine.Insert(true);
-        PurchaseHeader.Modify(true);
+        PurchaseLine.Insert();
+        PurchaseHeader.Modify();
 
         CreateAllowanceChargeLines(EDocument, PurchaseHeader, PurchaseLine, TempXMLBuffer, DocumentType);
     end;
@@ -351,7 +351,7 @@ codeunit 13915 "Import XRechnung Document"
             '/' + DocumentType + '/cac:InvoiceLine':
                 begin
                     if PurchaseLine."Document No." <> '' then
-                        PurchaseLine.Insert(true);
+                        PurchaseLine.Insert();
 
                     PurchaseLine.Init();
                     PurchaseLine."Document Type" := PurchaseHeader."Document Type";
@@ -439,7 +439,7 @@ codeunit 13915 "Import XRechnung Document"
     begin
         PurchaseHeader."Document Type" := PurchaseHeader."Document Type"::"Credit Memo";
         PurchaseHeader."No." := CopyStr(GetNodeByPath(TempXMLBuffer, '/' + DocumentType + '/cbc:ID'), 1, MaxStrLen(PurchaseHeader."No."));
-        PurchaseHeader.Insert(true);
+        PurchaseHeader.Insert();
 
         LastLineNo := GetLastLineNo(PurchaseHeader);
 
@@ -455,8 +455,8 @@ codeunit 13915 "Import XRechnung Document"
         AddAttachment(DocumentAttachment, DocumentAttachmentData, EDocument);
 
         // Insert last line
-        PurchaseLine.Insert(true);
-        PurchaseHeader.Modify(true);
+        PurchaseLine.Insert();
+        PurchaseHeader.Modify();
 
         CreateAllowanceChargeLines(EDocument, PurchaseHeader, PurchaseLine, TempXMLBuffer, DocumentType);
     end;
@@ -488,7 +488,7 @@ codeunit 13915 "Import XRechnung Document"
             '/' + DocumentType + '/cac:CreditNoteLine':
                 begin
                     if PurchaseLine."Document No." <> '' then
-                        PurchaseLine.Insert(true);
+                        PurchaseLine.Insert();
 
                     PurchaseLine.Init();
                     PurchaseLine."Document Type" := PurchaseHeader."Document Type";

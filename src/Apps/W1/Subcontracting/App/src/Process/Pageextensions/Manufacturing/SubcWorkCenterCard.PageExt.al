@@ -35,11 +35,11 @@ pageextension 99001506 "Subc. Work Center Card" extends "Work Center Card"
             action("WIP Ledger Entries")
             {
                 ApplicationArea = Manufacturing;
-                Caption = 'WIP Ledger Entries';
+                Caption = 'Subcontracting WIP Entries';
                 Image = LedgerEntries;
                 RunObject = page "Subc. WIP Ledger Entries";
                 RunPageLink = "Work Center No." = field("No.");
-                ToolTip = 'View the Subcontractor WIP Ledger Entries that track work-in-progress quantities at this work center''s subcontracting location.';
+                ToolTip = 'View the Subcontracting WIP Entries that track work-in-progress quantities at this work center''s subcontracting location.';
             }
         }
         modify("Subcontractor - Dispatch List")

@@ -699,7 +699,7 @@ codeunit 333 "Req. Wksh.-Make Order"
                 PurchOrderLine.UpdateUnitCost();
             end;
 
-#if not CLEAN27
+#if not CLEAN28
         if ReqLine2."Prod. Order No." <> '' then begin
             PurchOrderLine."Base UM Qty/Pricelist UM Qty" := ReqLine2."Base UM Qty/Pricelist UM Qty";
             PurchOrderLine."UoM for Pricelist" := ReqLine2."UoM for Pricelist";

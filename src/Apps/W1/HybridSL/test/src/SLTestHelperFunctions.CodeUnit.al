@@ -81,7 +81,9 @@ codeunit 147601 "SL Test Helper Functions"
         SLCompanyAdditionalSettings: Record "SL Company Additional Settings";
         CompanyNameText: Text[30];
     begin
+#pragma warning disable AA0139
         CompanyNameText := CompanyName();
+#pragma warning restore AA0139
 
         if not SLCompanyMigrationSettings.Get(CompanyNameText) then begin
             SLCompanyMigrationSettings.Name := CompanyNameText;

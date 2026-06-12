@@ -1108,7 +1108,6 @@ report 20 "Calc. and Post VAT Settlement"
         UseAmtsInAddCurr: Boolean;
         HeaderText: Text[30];
         CountryRegionFilter: Text;
-        ActivityCodeFilter: Text;
 #if not CLEAN27
         PriorPeriodVATEntry: Record "Periodic Settlement VAT Entry";
         PriorPeriodVATEntry2: Record "Periodic Settlement VAT Entry";
@@ -1196,6 +1195,7 @@ report 20 "Calc. and Post VAT Settlement"
         EntrdStartDate: Date;
         EndDateReq: Date;
         PostingDate: Date;
+        ActivityCodeFilter: Text;
 
     procedure InitializeRequest(NewStartDate: Date; NewEndDate: Date; NewPostingDate: Date; NewDocNo: Code[20]; NewSettlementAcc: Code[20]; NewPosRoundAcc: Code[20]; NewNegRoundAcc: Code[20]; ShowVATEntries: Boolean; Post: Boolean)
     begin

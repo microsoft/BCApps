@@ -1134,6 +1134,7 @@ table 5767 "Warehouse Activity Line"
     var
         WarehouseActivityLine2: Record "Warehouse Activity Line";
         WhseWkshLine: Record "Whse. Worksheet Line";
+        DeletedWarehouseActivityLine: Record "Warehouse Activity Line";
         Confirmed: Boolean;
         DeleteLineConfirmed: Boolean;
     begin
@@ -1173,9 +1174,11 @@ table 5767 "Warehouse Activity Line"
         if WarehouseActivityLine2.Find('-') then
             repeat
                 OnDeleteRelatedWhseActivLinesOnBeforeDeleteWhseActivLine2(WarehouseActivityLine, WarehouseActivityLine2, CalledFromHeader);
+                DeletedWarehouseActivityLine := WarehouseActivityLine2;
                 DeleteWarehouseActivityLine2(WarehouseActivityLine2, CalledFromHeader);
                 WarehouseActivityLine2.DeleteBinContent(Enum::"Warehouse Action Type"::Place.AsInteger());
                 WarehouseActivityLine.UpdateRelatedItemTrkg(WarehouseActivityLine2);
+                CleanupJobWhseItemTrackingLineOnDelete(DeletedWarehouseActivityLine);
                 OnDeleteRelatedWhseActivLinesOnAfterUpdateRelatedItemTrkg(WarehouseActivityLine, WarehouseActivityLine2, CalledFromHeader);
             until WarehouseActivityLine2.Next() = 0;
 
@@ -1901,6 +1904,26 @@ table 5767 "Warehouse Activity Line"
                             WhseItemTrackingLine.Modify();
                 until WhseItemTrackingLine.Next() = 0;
         end;
+    end;
+
+    local procedure CleanupJobWhseItemTrackingLineOnDelete(DeletedWarehouseActivityLine: Record "Warehouse Activity Line")
+    var
+        RemainingWarehouseActivityLine: Record "Warehouse Activity Line";
+    begin
+        if DeletedWarehouseActivityLine."Whse. Document Type" <> DeletedWarehouseActivityLine."Whse. Document Type"::Job then
+            exit;
+
+        RemainingWarehouseActivityLine.SetRange("Activity Type", DeletedWarehouseActivityLine."Activity Type");
+        RemainingWarehouseActivityLine.SetSourceFilter(
+          DeletedWarehouseActivityLine."Source Type", DeletedWarehouseActivityLine."Source Subtype", DeletedWarehouseActivityLine."Source No.",
+          DeletedWarehouseActivityLine."Source Line No.", -1, false);
+        RemainingWarehouseActivityLine.SetRange("Location Code", DeletedWarehouseActivityLine."Location Code");
+        if not RemainingWarehouseActivityLine.IsEmpty() then
+            exit;
+
+        ItemTrackingMgt.DeleteWhseItemTrkgLines(
+            Database::"Job Planning Line", DeletedWarehouseActivityLine."Source Subtype", DeletedWarehouseActivityLine."Source No.", '', 0,
+            DeletedWarehouseActivityLine."Source Line No.", DeletedWarehouseActivityLine."Location Code", true);
     end;
 
     local procedure SetWhseItemTrkgLineFiltersWhseShipment(var WhseItemTrackingLine: Record "Whse. Item Tracking Line"; WarehouseActivityLine: Record "Warehouse Activity Line")

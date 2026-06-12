@@ -1,4 +1,4 @@
-﻿#if not CLEANSCHEMA30
+#if not CLEANSCHEMA31
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -14,17 +14,17 @@ using Microsoft.Purchases.Vendor;
 table 12152 "Subcontractor Prices"
 {
     Caption = 'Subcontractor Prices';
-#if not CLEAN27
+#if not CLEAN28
     LookupPageID = "Subcontracting Prices";
 #endif
     DataClassification = CustomerContent;
     ObsoleteReason = 'Preparation for replacement by Subcontracting app';
-#if not CLEAN27
+#if not CLEAN28
     ObsoleteState = Pending;
     ObsoleteTag = '27.0';
 #else
     ObsoleteState = Removed;
-    ObsoleteTag = '30.0';
+    ObsoleteTag = '31.0';
 #endif
 
     fields
@@ -39,7 +39,7 @@ table 12152 "Subcontractor Prices"
             Caption = 'Vendor No.';
             TableRelation = Vendor;
             ValidateTableRelation = true;
-#if not CLEAN27
+#if not CLEAN28
             trigger OnValidate()
             begin
                 if Vendor.Get("Vendor No.") then
@@ -51,7 +51,7 @@ table 12152 "Subcontractor Prices"
         {
             Caption = 'Item No.';
             TableRelation = Item;
-#if not CLEAN27
+#if not CLEAN28
             trigger OnValidate()
             begin
                 if "Item No." <> xRec."Item No." then begin
@@ -74,7 +74,7 @@ table 12152 "Subcontractor Prices"
         field(6; "Start Date"; Date)
         {
             Caption = 'Start Date';
-#if not CLEAN27
+#if not CLEAN28
             trigger OnValidate()
             begin
                 if ("Start Date" > "End Date") and ("End Date" <> 0D) then
@@ -85,7 +85,7 @@ table 12152 "Subcontractor Prices"
         field(7; "End Date"; Date)
         {
             Caption = 'End Date';
-#if not CLEAN27
+#if not CLEAN28
             trigger OnValidate()
             begin
                 Validate("Start Date");
@@ -136,7 +136,7 @@ table 12152 "Subcontractor Prices"
     fieldgroups
     {
     }
-#if not CLEAN27
+#if not CLEAN28
     var
         Vendor: Record Vendor;
         InvalidStartDateErr: Label 'The Start Date cannot be after the End Date.';

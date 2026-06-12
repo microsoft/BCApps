@@ -70,8 +70,9 @@ codeunit 144004 "Bank Payments - SEPA V2"
         CompanyInfo.FindFirst();
         RefFileSetup.Get(BankAccountNo);
         VerifyValue(LibraryXPathXMLReader, 'GrpHdr/InitgPty/Nm[1]', CompanyInfo.Name);
-        VerifyValue(LibraryXPathXMLReader, 'GrpHdr/InitgPty/PstlAdr/AdrLine[1]', CompanyInfo.Address + ' ' + CompanyInfo."Address 2");
-        VerifyValue(LibraryXPathXMLReader, 'GrpHdr/InitgPty/PstlAdr/AdrLine[2]', CompanyInfo."Post Code" + ' ' + CompanyInfo.City);
+        VerifyValue(LibraryXPathXMLReader, 'GrpHdr/InitgPty/PstlAdr/StrtNm[1]', CompanyInfo.Address + ' ' + CompanyInfo."Address 2");
+        VerifyValue(LibraryXPathXMLReader, 'GrpHdr/InitgPty/PstlAdr/PstCd[1]', CompanyInfo."Post Code");
+        VerifyValue(LibraryXPathXMLReader, 'GrpHdr/InitgPty/PstlAdr/TwnNm[1]', CompanyInfo.City);
         VerifyValue(LibraryXPathXMLReader, 'GrpHdr/InitgPty/PstlAdr/Ctry[1]', CompanyInfo."Country/Region Code");
         VerifyValue(LibraryXPathXMLReader, 'GrpHdr/InitgPty/Id/OrgId/BkPtyId[1]', RefFileSetup."Bank Party ID");
 
@@ -81,8 +82,9 @@ codeunit 144004 "Bank Payments - SEPA V2"
 
         // Verify Debitor info
         VerifyValue(LibraryXPathXMLReader, 'PmtInf/Dbtr/Nm[1]', CompanyInfo.Name);
-        VerifyValue(LibraryXPathXMLReader, 'PmtInf/Dbtr/PstlAdr/AdrLine[1]', CompanyInfo.Address + ' ' + CompanyInfo."Address 2");
-        VerifyValue(LibraryXPathXMLReader, 'PmtInf/Dbtr/PstlAdr/AdrLine[2]', CompanyInfo."Post Code" + ' ' + CompanyInfo.City);
+        VerifyValue(LibraryXPathXMLReader, 'PmtInf/Dbtr/PstlAdr/StrtNm[1]', CompanyInfo.Address + ' ' + CompanyInfo."Address 2");
+        VerifyValue(LibraryXPathXMLReader, 'PmtInf/Dbtr/PstlAdr/PstCd[1]', CompanyInfo."Post Code");
+        VerifyValue(LibraryXPathXMLReader, 'PmtInf/Dbtr/PstlAdr/TwnNm[1]', CompanyInfo.City);
         VerifyValue(LibraryXPathXMLReader, 'PmtInf/Dbtr/PstlAdr/Ctry[1]', CompanyInfo."Country/Region Code");
         VerifyValue(LibraryXPathXMLReader, 'PmtInf/Dbtr/Id/OrgId/BkPtyId[1]', RefFileSetup."Bank Party ID");
         BankAccount.Get(BankAccountNo);
@@ -105,8 +107,9 @@ codeunit 144004 "Bank Payments - SEPA V2"
 
         // Verify Creditor information
         VerifyValue(LibraryXPathXMLReader, 'PmtInf/CdtTrfTxInf/Cdtr/Nm[1]', RefPmtExported."Description 2");
-        VerifyValue(LibraryXPathXMLReader, 'PmtInf/CdtTrfTxInf/Cdtr/PstlAdr/AdrLine[1]', Vendor.Address + ' ' + Vendor."Address 2");
-        VerifyValue(LibraryXPathXMLReader, 'PmtInf/CdtTrfTxInf/Cdtr/PstlAdr/AdrLine[2]', Vendor."Post Code" + ' ' + Vendor.City);
+        VerifyValue(LibraryXPathXMLReader, 'PmtInf/CdtTrfTxInf/Cdtr/PstlAdr/StrtNm[1]', Vendor.Address + ' ' + Vendor."Address 2");
+        VerifyValue(LibraryXPathXMLReader, 'PmtInf/CdtTrfTxInf/Cdtr/PstlAdr/PstCd[1]', Vendor."Post Code");
+        VerifyValue(LibraryXPathXMLReader, 'PmtInf/CdtTrfTxInf/Cdtr/PstlAdr/TwnNm[1]', Vendor.City);
         VerifyValue(LibraryXPathXMLReader, 'PmtInf/CdtTrfTxInf/Cdtr/PstlAdr/Ctry[1]', Vendor."Country/Region Code");
         VerifyValue(LibraryXPathXMLReader, 'PmtInf/CdtTrfTxInf/CdtrAcct/Id/IBAN[1]', VendorBankAccount.IBAN);
 
@@ -468,12 +471,16 @@ codeunit 144004 "Bank Payments - SEPA V2"
         VerifyValue(LibraryXPathXMLReader, 'PmtInf/CdtTrfTxInf/CdtrAgt/FinInstnId/CmbndId/Nm[1]', VendorBankAccount.Name);
         VerifyValue(
             LibraryXPathXMLReader,
-            'PmtInf/CdtTrfTxInf/CdtrAgt/FinInstnId/CmbndId/PstlAdr/AdrLine[1]',
+            'PmtInf/CdtTrfTxInf/CdtrAgt/FinInstnId/CmbndId/PstlAdr/StrtNm[1]',
             VendorBankAccount.Address + ' ' + VendorBankAccount."Address 2");
         VerifyValue(
             LibraryXPathXMLReader,
-            'PmtInf/CdtTrfTxInf/CdtrAgt/FinInstnId/CmbndId/PstlAdr/AdrLine[2]',
-            VendorBankAccount."Post Code" + ' ' + VendorBankAccount.City);
+            'PmtInf/CdtTrfTxInf/CdtrAgt/FinInstnId/CmbndId/PstlAdr/PstCd[1]',
+            VendorBankAccount."Post Code");
+        VerifyValue(
+            LibraryXPathXMLReader,
+            'PmtInf/CdtTrfTxInf/CdtrAgt/FinInstnId/CmbndId/PstlAdr/TwnNm[1]',
+            VendorBankAccount.City);
         VerifyValue(LibraryXPathXMLReader,
           'PmtInf/CdtTrfTxInf/CdtrAgt/FinInstnId/CmbndId/PstlAdr/Ctry[1]', VendorBankAccount."Country/Region Code");
     end;
@@ -679,6 +686,48 @@ codeunit 144004 "Bank Payments - SEPA V2"
         // [THEN] The Invoice Message was set to "10000003".
         PurchaseHeader.Get(PurchaseHeader."Document Type", PurchaseHeader."No.");
         PurchaseHeader.TestField("Invoice Message", InvoiceMessage);
+    end;
+
+    [Test]
+    [HandlerFunctions('RPHSuggestBankPayments,MessageHandler')]
+    [Scope('OnPrem')]
+    procedure SEPAExportV02HasStructuredInitgPtyAddress()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        CompanyInfo: Record "Company Information";
+        LibraryXPathXMLReader: Codeunit "Library - XPath XML Reader";
+        BankAccountNo: Code[20];
+        VendorNo: Code[20];
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 636945] SEPA V02 export uses structured address elements StrtNm, PstCd, TwnNm for InitgPty
+        Initialize();
+
+        // [GIVEN] Company Information "C" with address fields filled
+        CompanyInfo.Get();
+        CompanyInfo.Address := 'Test Street 1';
+        CompanyInfo."Address 2" := 'Floor 2';
+        CompanyInfo."Post Code" := '00100';
+        CompanyInfo.City := 'Helsinki';
+        CompanyInfo.Modify();
+
+        // [GIVEN] Bank Account and Vendor "V" with SEPA payment setup
+        BankAccountNo := CreateBankAccount();
+        VendorNo := CreateVendor(CountryRegion.Code, true);
+
+        // [GIVEN] Ref. Payment Export lines created
+        CreateRefPaymentExportLines(BankAccountNo, VendorNo, PurchaseHeader, PurchaseHeader."Message Type"::Message);
+
+        // [WHEN] Export is run
+        RunExport(BankAccountNo);
+
+        // [THEN] InitgPty postal address uses structured elements instead of AdrLine
+        LibraryXPathXMLReader.Initialize(GetSEPAFile(BankAccountNo), 'urn:iso:std:iso:20022:tech:xsd:pain.001.001.02');
+        VerifyValue(LibraryXPathXMLReader, 'GrpHdr/InitgPty/PstlAdr/StrtNm[1]', 'Test Street 1 Floor 2');
+        VerifyValue(LibraryXPathXMLReader, 'GrpHdr/InitgPty/PstlAdr/PstCd[1]', '00100');
+        VerifyValue(LibraryXPathXMLReader, 'GrpHdr/InitgPty/PstlAdr/TwnNm[1]', 'Helsinki');
+        VerifyValue(LibraryXPathXMLReader, 'GrpHdr/InitgPty/PstlAdr/Ctry[1]', CompanyInfo."Country/Region Code");
+        VerifyCount(LibraryXPathXMLReader, 'GrpHdr/InitgPty/PstlAdr/AdrLine', 0);
     end;
 
     local procedure Initialize()

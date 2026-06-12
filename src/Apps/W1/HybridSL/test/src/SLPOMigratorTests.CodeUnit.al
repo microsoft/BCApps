@@ -4,8 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.DataMigration.SL;
 
-using Microsoft.Finance.GeneralLedger.Account;
-using Microsoft.Inventory.Item;
 using Microsoft.Purchases.Document;
 using System.TestLibraries.Utilities;
 
@@ -13,6 +11,7 @@ codeunit 147605 "SL PO Migrator Tests"
 {
     EventSubscriberInstance = Manual;
     Subtype = Test;
+    TestType = IntegrationTest;
     TestPermissions = Disabled;
 
     var
@@ -28,7 +27,7 @@ codeunit 147605 "SL PO Migrator Tests"
         TempExpectedPurchaseLine: Record "Purchase Line" temporary;
         SLPurchOrdBuffer: Record "SL PurchOrd Buffer";
         SLPOMigrator: Codeunit "SL PO Migrator";
-        ExpectedPurchaseHeaderData: XmlPort "SL BC Purch. Header Data Temp";
+        ExpectedPurchaseHeaderData: XmlPort "SL BC Purch. Header Data";
         ExpectedPurchaseLineData: XmlPort "SL BC Purchase Line Data";
         PurchaseHeaderInstream: InStream;
         PurchaseLineInstream: InStream;
@@ -128,14 +127,10 @@ codeunit 147605 "SL PO Migrator Tests"
 
     local procedure Initialize()
     var
-        GLAccount: Record "G/L Account";
-        Item: Record Item;
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         SLPurchOrder: Record "SL PurchOrd Buffer";
         SLPurOrdDet: Record "SL PurOrdDet Buffer";
-        SLVendor: Record "SL Vendor";
-        SLVendClass: Record "SL VendClass";
     begin
         // Delete/empty SL tables
         SLPurchOrder.DeleteAll();

@@ -430,6 +430,12 @@ table 18205 "GST Payment Buffer"
             DataClassification = SystemMetadata;
             TableRelation = "Dimension Set Entry";
         }
+        field(52; "Sequence No."; Integer)
+        {
+            Caption = 'Sequence No.';
+            DataClassification = SystemMetadata;
+            Editable = false;
+        }
     }
 
     keys
@@ -437,6 +443,9 @@ table 18205 "GST Payment Buffer"
         key(Key1; "GST Registration No.", "Document No.", "GST Component Code")
         {
             Clustered = true;
+        }
+        key(Sequence; "GST Registration No.", "Document No.", "Sequence No.")
+        {
         }
     }
 

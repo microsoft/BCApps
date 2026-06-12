@@ -677,13 +677,13 @@ codeunit 139052 "Office Addin Initiate Tasks"
         BindSubscription(LibraryOfficeHostProvider);
         InitializeOfficeHostProvider(OfficeHostType.OutlookItemRead);
         OfficeAttachmentManager.Done();
+        AddinManifestManagement.CreateDefaultAddins(OfficeAddin);
 
         if IsInitialized then
             exit;
 
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Office Addin Initiate Tasks");
 
-        AddinManifestManagement.CreateDefaultAddins(OfficeAddin);
         LibraryERMCountryData.SetupReportSelections();
         LibraryERMCountryData.CreateVATData();
         LibraryERMCountryData.UpdateGeneralLedgerSetup();
@@ -741,6 +741,7 @@ codeunit 139052 "Office Addin Initiate Tasks"
         OfficeAddinSetup.Get();
         OfficeAddinSetup."Office Host Codeunit ID" := ProviderId;
         OfficeAddinSetup.Modify();
+        Commit();
     end;
 
     local procedure RandomEmail(): Text[80]

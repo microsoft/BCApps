@@ -6,7 +6,7 @@ namespace Microsoft.DataMigration.SL;
 
 using Microsoft.Purchases.Vendor;
 
-xmlport 147659 "SL Vendor Posting Group Data"
+xmlport 147679 "SL Vendor Posting Group Data"
 {
     Caption = 'Vendor Posting Group data for import/export';
     Direction = Both;
@@ -106,6 +106,6 @@ xmlport 147659 "SL Vendor Posting Group Data"
     end;
 
     var
-        CaptionRow: Boolean;
         VendorPostingGroup: Record "Vendor Posting Group";
+        CaptionRow: Boolean;
 }

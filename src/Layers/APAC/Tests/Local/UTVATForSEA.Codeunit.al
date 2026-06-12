@@ -870,21 +870,21 @@ codeunit 141036 "UT VAT For SEA"
 
     local procedure GetAmountLangFromPurchaseLine(AmountIncludingVAT: Decimal; CurrencyCode: Code[10]): Text[80]
     var
-        PurchaseLine: Record "Purchase Line";
+        ReportManagementAPAC: Codeunit "Report Management APAC";
         AmountLangB: array[2] of Text[80];
     begin
-        PurchaseLine.InitTextVariableTH();
-        PurchaseLine.FormatNoTextTH(AmountLangB, AmountIncludingVAT, CurrencyCode);
+        ReportManagementAPAC.InitTextVariableTH();
+        ReportManagementAPAC.FormatNoTextTH(AmountLangB, AmountIncludingVAT, CurrencyCode);
         exit(AmountLangB[1]);
     end;
 
     local procedure GetAmountLangFromSalesLine(AmountIncludingVAT: Decimal; CurrencyCode: Code[10]): Text[80]
     var
-        SalesLine: Record "Sales Line";
+        ReportManagementAPAC: Codeunit "Report Management APAC";
         AmountLangB: array[2] of Text[80];
     begin
-        SalesLine.InitTextVariableTH();
-        SalesLine.FormatNoTextTH(AmountLangB, AmountIncludingVAT, CurrencyCode);
+        ReportManagementAPAC.InitTextVariableTH();
+        ReportManagementAPAC.FormatNoTextTH(AmountLangB, AmountIncludingVAT, CurrencyCode);
         exit(AmountLangB[1]);
     end;
 

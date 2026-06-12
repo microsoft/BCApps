@@ -178,11 +178,11 @@ codeunit 6501 "Item Tracking Data Collection"
 
         case LookupMode of
             LookupMode::"Serial No.":
-                TempGlobalEntrySummary.SetFilter("Serial No.", BarcodeResult);
+                TempGlobalEntrySummary.SetRange("Serial No.", BarcodeResult);
             LookupMode::"Lot No.":
-                TempGlobalEntrySummary.SetFilter("Lot No.", BarcodeResult);
+                TempGlobalEntrySummary.SetRange("Lot No.", BarcodeResult);
             LookupMode::"Package No.":
-                TempGlobalEntrySummary.SetFilter("Package No.", BarcodeResult);
+                TempGlobalEntrySummary.SetRange("Package No.", BarcodeResult);
             else
                 Error('There is no such LookupMode for the outbound scanning!');
         end;

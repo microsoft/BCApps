@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.DataMigration.SL;
 
-xmlport 147652 "SL Company Migration Settings"
+xmlport 147672 "SL Company Migration Settings"
 {
     Caption = 'Company Migration Settings data for import/export';
     Direction = Both;
@@ -76,6 +76,6 @@ xmlport 147652 "SL Company Migration Settings"
     end;
 
     var
-        CaptionRow: Boolean;
         SLCompanyMigrationSettings: Record "SL Company Migration Settings";
+        CaptionRow: Boolean;
 }

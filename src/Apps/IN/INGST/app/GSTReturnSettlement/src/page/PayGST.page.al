@@ -14,7 +14,7 @@ page 18322 "Pay GST"
     ApplicationArea = Basic, Suite;
     PageType = List;
     SourceTable = "GST Payment Buffer";
-    SourceTableView = sorting("GST Registration No.", "Document No.", "GST Component Code") ORDER(ascending);
+    SourceTableView = sorting("GST Registration No.", "Document No.", "Sequence No.") order(ascending);
     DeleteAllowed = false;
     InsertAllowed = false;
     UsageCategory = Lists;

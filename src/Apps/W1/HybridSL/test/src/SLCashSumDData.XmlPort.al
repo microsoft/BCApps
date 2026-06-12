@@ -60,7 +60,7 @@ xmlport 147638 "SL CashSumD Data"
                         currXMLport.Skip();
                     end;
 
-                    SLCashSumD.CpnyID := CpnyID;
+                    SLCashSumD.CpnyID := CopyStr(CompanyName(), 1, MaxStrLen(SLCashSumD.CpnyID));
                     SLCashSumD.BankAcct := BankAcct;
                     SLCashSumD.BankSub := BankSub;
                     SLCashSumD.PerNbr := PerNbr;
@@ -80,6 +80,6 @@ xmlport 147638 "SL CashSumD Data"
     end;
 
     var
-        CaptionRow: Boolean;
         SLCashSumD: Record "SL CashSumD";
+        CaptionRow: Boolean;
 }

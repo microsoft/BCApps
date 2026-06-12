@@ -274,7 +274,13 @@ report 5801 "Invt. Valuation - Cost Spec."
     local procedure CalcRemainingQty(ItemLedgerEntry: Record "Item Ledger Entry")
     var
         ItemApplnEntry: Record "Item Application Entry";
+        IsHandled: Boolean;
     begin
+        IsHandled := false;
+        OnBeforeCalcRemainingQty(ItemLedgerEntry, RemainingQty, PosQty, IsPositive, ValuationDate, IsHandled);
+        if IsHandled then
+            exit;
+
         RemainingQty := ItemLedgerEntry.Quantity;
         if IsPositive then
             PosQty := ItemLedgerEntry.Quantity;
@@ -308,11 +314,13 @@ report 5801 "Invt. Valuation - Cost Spec."
     local procedure SumQty(var RemainingQty: Decimal; var PosQty: Decimal; EntryNo: Integer; AppliedQty: Decimal)
     var
         ItemLedgEntry: Record "Item Ledger Entry";
+        ShouldExit: Boolean;
     begin
         ItemLedgEntry.Get(EntryNo);
-        if (ItemLedgEntry.Quantity * AppliedQty < 0) or
-           (ItemLedgEntry."Posting Date" > ValuationDate)
-        then
+        ShouldExit := (ItemLedgEntry.Quantity * AppliedQty < 0) or (ItemLedgEntry."Posting Date" > ValuationDate);
+
+        OnSumQtyOnAfterCheckExitCondition(ItemLedgEntry, AppliedQty, ValuationDate, ShouldExit);
+        if ShouldExit then
             exit;
 
         RemainingQty := RemainingQty + AppliedQty;
@@ -413,6 +421,16 @@ report 5801 "Invt. Valuation - Cost Spec."
         ResultForTotalRemAvg += TotalRemAvg;
         ResultForTotalCost += TotalCost;
         ResultForRemainingQty += RemainingQty;
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeCalcRemainingQty(ItemLedgerEntry: Record "Item Ledger Entry"; var RemainingQty: Decimal; var PosQty: Decimal; IsPositive: Boolean; ValuationDate: Date; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnSumQtyOnAfterCheckExitCondition(ItemLedgerEntry: Record "Item Ledger Entry"; AppliedQuantity: Decimal; ValuationDate: Date; var ShouldExit: Boolean)
+    begin
     end;
 }
 

@@ -1470,6 +1470,7 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
         ValueEntry: Record "Value Entry";
         RoundingError: Decimal;
         RoundingErrorACY: Decimal;
+        CanCalcAvgCost: Boolean;
     begin
         if OutbndValueEntry."Entry No." >= AvgCostBuf."Last Valid Value Entry No" then begin
             ValueEntry.SumCostsTillValuationDate(OutbndValueEntry);
@@ -1492,7 +1493,11 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
         end else
             CostElementBuf.UpdateCostElementBuffer(AvgCostBuf);
 
-        if CostElementBuf."Remaining Quantity" > 0 then begin
+        CanCalcAvgCost :=
+            (CostElementBuf."Remaining Quantity" > 0) and
+            (CostElementBuf."Actual Cost" >= 0) and (CostElementBuf."Actual Cost (ACY)" >= 0);
+
+        if CanCalcAvgCost then begin
             AvgCostBuf."Rounding Residual" := RoundingError;
             AvgCostBuf."Rounding Residual (ACY)" := RoundingErrorACY;
             RoundCost(
@@ -1507,7 +1512,7 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
             AvgCostBuf.DeductOutbndValueEntryFromBuf(OutbndValueEntry, CostElementBuf, IsAvgCostCalcTypeItem);
         end;
 
-        exit(CostElementBuf."Remaining Quantity" > 0);
+        exit(CanCalcAvgCost);
     end;
 
     local procedure ExcludeAvgCostOnValuationDate(var CostElementBuf: Record "Cost Element Buffer"; OutbndValueEntry: Record "Value Entry"; var ExcludedValueEntry: Record "Value Entry")

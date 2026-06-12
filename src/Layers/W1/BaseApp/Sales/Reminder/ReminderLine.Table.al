@@ -346,6 +346,11 @@ table 296 "Reminder Line"
                             else
                                 "VAT %" := 0;
                         end;
+                    "VAT Calculation Type"::"No Taxable VAT":
+                        begin
+                            "VAT Amount" := 0;
+                            "VAT %" := 0;
+                        end;
                 end;
                 "VAT Amount" := Round("VAT Amount", Currency."Amount Rounding Precision");
             end;

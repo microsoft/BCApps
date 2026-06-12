@@ -8,7 +8,7 @@ using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Costing;
 using Microsoft.Inventory.Item;
-#if not CLEAN27
+#if not CLEAN28
 using Microsoft.Manufacturing.Document;
 #endif
 using Microsoft.Manufacturing.ProductionBOM;
@@ -139,7 +139,7 @@ report 99000756 "Detailed Calculation"
                 trigger OnAfterGetRecord()
                 var
                     WorkCenter: Record "Work Center";
-#if not CLEAN27
+#if not CLEAN28
                     SubcPrices: Record "Subcontractor Prices";
                     SubcontractingPriceMgt: Codeunit SubcontractingPricesMgt;
 #endif
@@ -149,7 +149,7 @@ report 99000756 "Detailed Calculation"
 
                     if "Routing Line".Type = "Routing Line".Type::"Work Center" then
                         WorkCenter.Get("Routing Line"."Work Center No.");
-#if not CLEAN27
+#if not CLEAN28
                     if ("Routing Line".Type = "Routing Line".Type::"Work Center") and
                        (WorkCenter."Subcontractor No." <> '')
                     then begin

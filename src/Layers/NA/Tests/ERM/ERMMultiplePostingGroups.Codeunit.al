@@ -809,6 +809,52 @@ codeunit 134195 "ERM Multiple Posting Groups"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure PostForeignCurrencySalesInvoiceWithAlternativeCustomerPostingGroupAndBlankReceivablesOnCustomer()
+    var
+        Customer: Record Customer;
+        CustomerPostingGroup: Record "Customer Posting Group";
+        CustomerPostingGroupNoPost: Record "Customer Posting Group";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        CurrencyCode: Code[10];
+    begin
+        // [SCENARIO 636918] Foreign-currency sales invoice posts with the document customer posting group
+        // even when the customer card's default posting group has a blank receivables account.
+        Initialize();
+
+        // [GIVEN] Allow multiple posting groups in Sales & Receivables Setup.
+        SetSalesAllowMultiplePostingGroups(true);
+
+        // [GIVEN] Customer with Allow Multiple Posting Groups and default posting group with blank receivables account.
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Validate("Allow Multiple Posting Groups", true);
+        Customer.Modify(true);
+        CustomerPostingGroupNoPost.Get(Customer."Customer Posting Group");
+        CustomerPostingGroupNoPost."Receivables Account" := '';
+        CustomerPostingGroupNoPost.Modify(true);
+
+        // [GIVEN] Alternative customer posting group with receivables account linked both ways.
+        LibrarySales.CreateCustomerPostingGroup(CustomerPostingGroup);
+        LibrarySales.CreateAltCustomerPostingGroup(CustomerPostingGroupNoPost.Code, CustomerPostingGroup.Code);
+        LibrarySales.CreateAltCustomerPostingGroup(CustomerPostingGroup.Code, CustomerPostingGroupNoPost.Code);
+
+        // [GIVEN] Sales invoice in foreign currency using the alternative customer posting group.
+        LibrarySales.CreateSalesDocumentWithItem(SalesHeader, SalesLine, "Sales Document Type"::Invoice, Customer."No.", '', 1, '', 0D);
+        CurrencyCode := LibraryERM.CreateCurrencyWithRandomExchRates();
+        SalesHeader.Validate("Currency Code", CurrencyCode);
+        SalesHeader.Validate("Customer Posting Group", CustomerPostingGroup.Code);
+        SalesHeader.Modify(true);
+
+        // [WHEN] Post sales invoice.
+        LibrarySales.PostSalesDocument(SalesHeader, true, true);
+        SetSalesAllowMultiplePostingGroups(false);
+
+        // [THEN] Posted document and entries use the alternative customer posting group.
+        VerifySalesInvoiceCustPostingGroup(GetSalesInvoiceHeaderNo(SalesHeader."No."), CustomerPostingGroup);
+    end;
+
+    [Test]
     [Scope('OnPrem')]
     procedure CheckGeneralJournalPostingGroupIsEditableIfAllowedForCustomer()
     var
@@ -1391,5 +1437,12 @@ codeunit 134195 "ERM Multiple Posting Groups"
         LibraryVariableStorage.Dequeue(VoidTypeVariant);
         ConfirmFinancialVoid.InitializeRequest(WorkDate(), VoidTypeVariant);
         Response := ACTION::Yes
+    end;
+
+    [ConfirmHandler]
+    [Scope('OnPrem')]
+    procedure ConfirmHandler(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Reply := true;
     end;
 }

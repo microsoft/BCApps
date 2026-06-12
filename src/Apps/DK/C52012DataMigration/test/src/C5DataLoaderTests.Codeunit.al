@@ -501,9 +501,13 @@ codeunit 148006 "C5 Data Loader Tests"
     var
         NavRootPath: Text;
         NavRootPosition: Integer;
+        ResourcePath: Text;
     begin
         NavRootPosition := STRPOS(ApplicationPath(), '\Run\NST\');
         NavRootPath := DELSTR(ApplicationPath(), NavRootPosition);
+        ResourcePath := NavRootPath + '\App\BCApps\src\Apps\DK\C52012DataMigration\test\resources\';
+        if File.Exists(ResourcePath + 'Data.zip') then
+            exit(ResourcePath);
         exit(NavRootPath + '\App\Apps\DK\C52012DataMigration\test\resources\');
     end;
 }

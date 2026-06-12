@@ -55,6 +55,12 @@ table 18012 "Retrun & Reco. Components"
             Editable = false;
             DataClassification = CustomerContent;
         }
+        field(3; "Sequence No."; Integer)
+        {
+            Caption = 'Sequence No.';
+            DataClassification = CustomerContent;
+            MinValue = 0;
+        }
     }
 
     keys
@@ -63,5 +69,22 @@ table 18012 "Retrun & Reco. Components"
         {
             Clustered = true;
         }
+        key(Sequence; "Sequence No.")
+        {
+        }
     }
+
+    trigger OnInsert()
+    var
+        RetrunRecoComponents: Record "Retrun & Reco. Components";
+    begin
+        if "Sequence No." = 0 then begin
+            RetrunRecoComponents.Reset();
+            RetrunRecoComponents.SetCurrentKey("Sequence No.");
+            if RetrunRecoComponents.FindLast() then
+                "Sequence No." := RetrunRecoComponents."Sequence No." + 1
+            else
+                "Sequence No." := 1;
+        end;
+    end;
 }

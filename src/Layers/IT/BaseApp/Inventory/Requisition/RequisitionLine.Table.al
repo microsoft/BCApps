@@ -3453,6 +3453,7 @@ table 246 "Requisition Line"
 
     local procedure UpdateSalesOrderDetailForDropShipment()
     var
+        SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
     begin
         if Rec."Demand Type" <> Database::"Sales Line" then
@@ -3468,6 +3469,10 @@ table 246 "Requisition Line"
         Rec."Sales Order No." := SalesLine."Document No.";
         Rec."Sales Order Line No." := SalesLine."Line No.";
         Rec."Sell-to Customer No." := SalesLine."Sell-to Customer No.";
+
+        SalesHeader.SetLoadFields("Ship-to Code");
+        if SalesHeader.Get(SalesLine."Document Type", SalesLine."Document No.") then
+            Rec."Ship-to Code" := SalesHeader."Ship-to Code";
     end;
 
     procedure ReserveBindingOrder(TrackingSpecification: Record "Tracking Specification"; SourceDescription: Text[100]; ExpectedDate: Date; ReservQty: Decimal; ReservQtyBase: Decimal; UpdateReserve: Boolean)

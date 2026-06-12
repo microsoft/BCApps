@@ -81,15 +81,14 @@ xmlport 147610 "SL BC Accounting Period Data"
 
     procedure GetExpectedAccountingPeriods(var NewTempAccountingPeriod: Record "Accounting Period" temporary)
     begin
-        if TempAccountingPeriod.FindSet() then begin
+        if TempAccountingPeriod.FindSet() then
             repeat
                 NewTempAccountingPeriod.Copy(TempAccountingPeriod);
                 NewTempAccountingPeriod.Insert();
             until TempAccountingPeriod.Next() = 0;
-        end;
     end;
 
     var
-        CaptionRow: Boolean;
         TempAccountingPeriod: Record "Accounting Period" temporary;
+        CaptionRow: Boolean;
 }

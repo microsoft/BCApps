@@ -1817,6 +1817,7 @@ page 41 "Sales Quote"
     begin
         xRec.Init();
         Rec."Responsibility Center" := UserMgt.GetSalesFilter();
+        OnOnNewRecordOnAfterSetResponsibilityCenter(Rec);
         if (not DocNoVisible) and (Rec."No." = '') then
             Rec.SetSellToCustomerFromFilter();
 
@@ -2000,6 +2001,11 @@ page 41 "Sales Quote"
     begin
     end;
  
+    [IntegrationEvent(false, false)]
+    local procedure OnOnNewRecordOnAfterSetResponsibilityCenter(var SalesHeader: Record "Sales Header")
+    begin
+    end;
+
    [IntegrationEvent(true, false)]
     local procedure OnAfterOnAfterGetRecord(var SalesHeader: Record "Sales Header")
     begin

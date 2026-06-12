@@ -1847,6 +1847,72 @@ codeunit 134379 "ERM Sales Quotes"
         Assert.AreEqual(DocNoOccurrence, SalesHeader."Doc. No. Occurrence", DocNoOccurrencePreservedErr);
     end;
 
+    [Test]
+    [HandlerFunctions('DeleteOverdueSalesQuotesRequestPageHandler,ConfirmHandlerYes,MessageHandler')]
+    procedure DeleteExpiredQuotesViaJobQueueHonorsSavedValidToDate()
+    var
+        SalesHeaderToDelete: Record "Sales Header";
+        SalesHeaderToKeep: Record "Sales Header";
+        JobQueueEntry: Record "Job Queue Entry";
+        ValidToDate: Date;
+        QuoteNoToDelete: Code[20];
+        QuoteNoToKeep: Code[20];
+        XmlParameters: Text;
+    begin
+        // [SCENARIO 637024] When Delete Expired Sales Quotes runs via Job Queue, it must honor the saved "Valid to date"
+        // and NOT use WorkDate() as a default (which would delete quotes that shouldn't be deleted).
+        Initialize();
+        LibraryERM.SetEnableDataCheck(false);
+        DeleteSalesQuotes();
+
+        // [GIVEN] A "Valid to date" that is earlier than WorkDate (to expose the bug where WorkDate was used instead)
+        ValidToDate := WorkDate() - 10;
+
+        // [GIVEN] Quote A with "Quote Valid Until Date" BEFORE the "Valid to date" -> must be deleted
+        LibrarySales.CreateSalesHeader(SalesHeaderToDelete, SalesHeaderToDelete."Document Type"::Quote, LibrarySales.CreateCustomerNo());
+        SalesHeaderToDelete."Quote Valid Until Date" := ValidToDate - 1;
+        SalesHeaderToDelete.Modify();
+        QuoteNoToDelete := SalesHeaderToDelete."No.";
+
+        // [GIVEN] Quote B with "Quote Valid Until Date" AFTER the "Valid to date" but still before WorkDate
+        LibrarySales.CreateSalesHeader(SalesHeaderToKeep, SalesHeaderToKeep."Document Type"::Quote, LibrarySales.CreateCustomerNo());
+        SalesHeaderToKeep."Quote Valid Until Date" := ValidToDate + 1;
+        SalesHeaderToKeep.Modify();
+        QuoteNoToKeep := SalesHeaderToKeep."No.";
+        Commit();
+
+        // [GIVEN] Capture the request page XML with the specific ValidToDate (simulating what Schedule does)
+        LibraryVariableStorage.Enqueue(ValidToDate);
+        XmlParameters := Report.RunRequestPage(Report::"Delete Expired Sales Quotes", '');
+
+        // [GIVEN] Create a Job Queue Entry to run the report with saved parameters
+        JobQueueEntry.Init();
+        JobQueueEntry.Validate("Object Type to Run", JobQueueEntry."Object Type to Run"::Report);
+        JobQueueEntry.Validate("Object ID to Run", Report::"Delete Expired Sales Quotes");
+        JobQueueEntry.Status := JobQueueEntry.Status::Ready;
+        JobQueueEntry."Earliest Start Date/Time" := CurrentDateTime;
+        JobQueueEntry.Insert(true);
+        JobQueueEntry.SetReportParameters(XmlParameters);
+        JobQueueEntry.Modify();
+        Commit();
+
+        // [WHEN] Run the Job Queue Entry via Job Queue Dispatcher (exactly like production)
+        Codeunit.Run(Codeunit::"Job Queue Dispatcher", JobQueueEntry);
+
+        // [THEN] Quote A (before the saved "Valid to date") is deleted
+        Assert.IsFalse(
+            SalesHeaderToDelete.Get(SalesHeaderToDelete."Document Type"::Quote, QuoteNoToDelete),
+            'Quote before the Valid to date should be deleted');
+
+        // [THEN] Quote B (on/after the saved "Valid to date") must NOT be deleted
+        Assert.IsTrue(
+            SalesHeaderToKeep.Get(SalesHeaderToKeep."Document Type"::Quote, QuoteNoToKeep),
+            'Quote after the saved Valid to date must NOT be deleted by the Job Queue run');
+
+        LibraryERM.SetEnableDataCheck(true);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";

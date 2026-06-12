@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -8,6 +8,7 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Period;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Receivables;
+using System.Telemetry;
 
 report 11003 "Customer Total-Balance"
 {
@@ -172,7 +173,7 @@ report 11003 "Customer Total-Balance"
                 StartBalance := "Net Change (LCY)";
 
                 SetRange("Date Filter", StartDate, EndDate);
-                CalcFields("Debit Amount (LCY)", "Credit Amount (LCY)");
+                SetDebitCreditFromCache(Customer, PeriodDebitTotals, PeriodCreditTotals);
                 OnAfterGetRecordCustomerPeriodOnAfterCalcFieldsDebitCreditAmountLCY(Customer);
                 PeriodDebitAmount := "Debit Amount (LCY)";
                 PeriodCreditAmount := "Credit Amount (LCY)";
@@ -240,7 +241,7 @@ report 11003 "Customer Total-Balance"
                 PeriodEndBalance := "Net Change (LCY)";
 
                 SetRange("Date Filter", YearStartDate, EndDate);
-                CalcFields("Debit Amount (LCY)", "Credit Amount (LCY)");
+                SetDebitCreditFromCache(Customer, YearDebitTotals, YearCreditTotals);
                 OnAfterGetRecordCustomerYearOnAfterCalcFieldsDebitCreditAmountLCY(Customer);
                 YearDebitAmount := "Debit Amount (LCY)";
                 YearCreditAmount := "Credit Amount (LCY)";
@@ -310,6 +311,10 @@ report 11003 "Customer Total-Balance"
             end;
 
             trigger OnPreDataItem()
+            var
+                Telemetry: Codeunit Telemetry;
+                CustomDimensions: Dictionary of [Text, Text];
+                StartTime: DateTime;
             begin
                 Clear(StartBalance);
                 Clear(PeriodDebitAmount);
@@ -318,6 +323,14 @@ report 11003 "Customer Total-Balance"
                 Clear(YearDebitAmount);
                 Clear(YearCreditAmount);
                 Clear(EndBalance);
+
+                StartTime := CurrentDateTime();
+
+                GetDebitCreditTotals(StartDate, EndDate, PeriodDebitTotals, PeriodCreditTotals);
+                GetDebitCreditTotals(YearStartDate, EndDate, YearDebitTotals, YearCreditTotals);
+
+                CustomDimensions.Add('DurationSec', Format(Round((CurrentDateTime() - StartTime) / 1000, 1)));
+                Telemetry.LogMessage('0000TZH', DebitCreditTotalsLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, CustomDimensions);
             end;
         }
     }
@@ -395,6 +408,10 @@ report 11003 "Customer Total-Balance"
         CustomerLedgEntry2: Record "Cust. Ledger Entry";
         DetailedCustomerLedgEntry: Record "Detailed Cust. Ledg. Entry";
         DetailedCustomerLedgEntry2: Record "Detailed Cust. Ledg. Entry";
+        PeriodDebitTotals: Dictionary of [Code[20], Decimal];
+        PeriodCreditTotals: Dictionary of [Code[20], Decimal];
+        YearDebitTotals: Dictionary of [Code[20], Decimal];
+        YearCreditTotals: Dictionary of [Code[20], Decimal];
         CustFilter: Text;
         PeriodText: Text;
         YearText: Text[30];
@@ -423,12 +440,60 @@ report 11003 "Customer Total-Balance"
         PeriodEndingBalanceCaptionLbl: Label 'Period Ending Balance';
         YearEndingBalanceCaptionLbl: Label 'Year Ending Balance';
         TotalCaptionLbl: Label 'Total';
+        DebitCreditTotalsLbl: Label 'Debit/Credit totals received for Customer Total-Balance', Locked = true;
 
     protected var
         EndBalance: Decimal;
         EndBalanceType: Option " ",Debit,Credit;
         PeriodEndBalance: Decimal;
         PeriodEndBalanceType: Option " ",Debit,Credit;
+
+    local procedure SetDebitCreditFromCache(var CustomerRec: Record Customer; var DebitTotals: Dictionary of [Code[20], Decimal]; var CreditTotals: Dictionary of [Code[20], Decimal])
+    var
+        DebitAmt: Decimal;
+        CreditAmt: Decimal;
+    begin
+        if not DebitTotals.Get(CustomerRec."No.", DebitAmt) then
+            DebitAmt := 0;
+        if not CreditTotals.Get(CustomerRec."No.", CreditAmt) then
+            CreditAmt := 0;
+        CustomerRec."Debit Amount (LCY)" := DebitAmt;
+        CustomerRec."Credit Amount (LCY)" := CreditAmt;
+    end;
+
+    local procedure GetDebitCreditTotals(DateFrom: Date; DateTo: Date; var DebitTotals: Dictionary of [Code[20], Decimal]; var CreditTotals: Dictionary of [Code[20], Decimal])
+    var
+        DetailedCustLedgEntry3: Record "Detailed Cust. Ledg. Entry";
+        CustomerDebitCreditAmount: Query "Customer Debit Credit Amount";
+        FilterText: Text;
+    begin
+        Clear(DebitTotals);
+        Clear(CreditTotals);
+
+        FilterText := Customer.GetFilter("No.");
+        if FilterText <> '' then
+            CustomerDebitCreditAmount.SetFilter(Customer_No, FilterText);
+
+        CustomerDebitCreditAmount.SetFilter(Entry_Type, '<>%1', DetailedCustLedgEntry3."Entry Type"::Application);
+        CustomerDebitCreditAmount.SetRange(Posting_Date, DateFrom, DateTo);
+
+        FilterText := Customer.GetFilter("Global Dimension 1 Filter");
+        if FilterText <> '' then
+            CustomerDebitCreditAmount.SetFilter(Initial_Entry_Global_Dim_1, FilterText);
+        FilterText := Customer.GetFilter("Global Dimension 2 Filter");
+        if FilterText <> '' then
+            CustomerDebitCreditAmount.SetFilter(Initial_Entry_Global_Dim_2, FilterText);
+        FilterText := Customer.GetFilter("Currency Filter");
+        if FilterText <> '' then
+            CustomerDebitCreditAmount.SetFilter(Currency_Code, FilterText);
+
+        CustomerDebitCreditAmount.Open();
+        while CustomerDebitCreditAmount.Read() do begin
+            DebitTotals.Set(CustomerDebitCreditAmount.Customer_No, CustomerDebitCreditAmount.Sum_Debit_Amount_LCY);
+            CreditTotals.Set(CustomerDebitCreditAmount.Customer_No, CustomerDebitCreditAmount.Sum_Credit_Amount_LCY);
+        end;
+        CustomerDebitCreditAmount.Close();
+    end;
 
     [Scope('OnPrem')]
     procedure GetAdjAmount(CustomerLedgEntryEntryNo: Integer): Decimal

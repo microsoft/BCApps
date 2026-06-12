@@ -224,6 +224,9 @@ codeunit 4591 "SOA Item Search"
                     if SelectBestItem(ItemFilter, BuildSearchQueryText(SearchKeyWordsTrimmed), CandidateArray, SelectedMatchingItemFilter, SelectedAlternativeItemFilter) then begin
                         ItemSelectorUsed := true;
                         TelemetryCustomDimension.Add('ItemSelectorUsed', 'true');
+                        TelemetryCustomDimension.Add('ItemSelectorMatchingCount', Format(CountFilterItems(SelectedMatchingItemFilter)));
+                        TelemetryCustomDimension.Add('ItemSelectorAlternativeCount', Format(CountFilterItems(SelectedAlternativeItemFilter)));
+                        TelemetryCustomDimension.Add('ItemSelectorNoMatchCount', Format(CountBeforeAvailabilityCheck - CountFilterItems(SelectedMatchingItemFilter) - CountFilterItems(SelectedAlternativeItemFilter)));
                     end else begin
                         ItemSelectorUsed := false;
                         TelemetryCustomDimension.Add('ItemSelectorUsed', 'false');
@@ -262,7 +265,10 @@ codeunit 4591 "SOA Item Search"
         // Prepare Custom Dimensions for Telemetry
         TelemetryCustomDimension.Add('SearchType', SearchType);
         TelemetryCustomDimension.Add('ResultCount', Format(ItemFilter.Split('|').Count()));
-        TelemetryCustomDimension.Add('CountBeforeAvailabilityCheck', Format(CountBeforeAvailabilityCheck));
+        if SearchType = 'broader_item_search' then
+            TelemetryCustomDimension.Add('BroaderSearchCandidateCount', Format(CountBeforeAvailabilityCheck))
+        else
+            TelemetryCustomDimension.Add('Tier1CandidateCount', Format(CountBeforeAvailabilityCheck));
 
         IsHandled := true;
         OnAfterFindRecordItem(ItemFilter, Which, CrossColumnSearchFilter, Found, RequiredQuantity, InUOMCode);
@@ -380,6 +386,13 @@ codeunit 4591 "SOA Item Search"
                     end;
                 end;
             end;
+    end;
+
+    local procedure CountFilterItems(ItemFilter: Text): Integer
+    begin
+        if ItemFilter = '' then
+            exit(0);
+        exit(ItemFilter.Split('|').Count());
     end;
 
     local procedure BuildSearchQueryText(SearchKeyWordsTrimmed: List of [Text]): Text

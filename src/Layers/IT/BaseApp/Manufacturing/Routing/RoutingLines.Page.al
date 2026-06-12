@@ -5,7 +5,7 @@
 namespace Microsoft.Manufacturing.Routing;
 
 using Microsoft.Manufacturing.Capacity;
-#if not CLEAN27
+#if not CLEAN28
 using Microsoft.Manufacturing.Document;
 #endif
 
@@ -140,7 +140,7 @@ page 99000765 "Routing Lines"
                     ApplicationArea = Manufacturing;
                     Visible = false;
                 }
-#if not CLEAN27
+#if not CLEAN28
                 field("WIP Item"; Rec."WIP Item")
                 {
                     ApplicationArea = Manufacturing;
@@ -213,7 +213,7 @@ page 99000765 "Routing Lines"
                         ShowQualityMeasures();
                     end;
                 }
-#if not CLEAN27
+#if not CLEAN28
                 action("Subcontracting Prices")
                 {
                     ApplicationArea = Manufacturing;
@@ -292,7 +292,7 @@ page 99000765 "Routing Lines"
         PAGE.Run(PAGE::"Routing Quality Measures", RtngQltyMeasure);
     end;
 
-#if not CLEAN27
+#if not CLEAN28
     [Obsolete('Preparation for replacement by Subcontracting app', '27.0')]
     [Scope('OnPrem')]
     procedure ShowSubcPrices()

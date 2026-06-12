@@ -356,10 +356,17 @@ codeunit 6452 "Serv. Availability Mgt."
 
     [EventSubscriber(ObjectType::Table, Database::"Order Promising Line", 'OnValidateEarliestDeliveryDate', '', true, false)]
     local procedure OnValidateEarliestDeliveryDate(var OrderPromisingLine: Record "Order Promising Line")
+    var
+        ServiceLine: Record "Service Line";
     begin
         if OrderPromisingLine."Source Type" = OrderPromisingLine."Source Type"::"Service Order" then
-            if OrderPromisingLine."Earliest Shipment Date" <> 0D then
+            if OrderPromisingLine."Earliest Shipment Date" <> 0D then begin
                 OrderPromisingLine."Planned Delivery Date" := OrderPromisingLine."Earliest Shipment Date";
+                ServiceLine.SetLoadFields("Shipping Time");
+                if ServiceLine.Get(OrderPromisingLine."Source Subtype", OrderPromisingLine."Source ID", OrderPromisingLine."Source Line No.") then
+                    if Format(ServiceLine."Shipping Time") <> '' then
+                        OrderPromisingLine."Planned Delivery Date" := CalcDate(ServiceLine."Shipping Time", OrderPromisingLine."Earliest Shipment Date");
+            end;
     end;
 
     // Page "Order Promising Lines"

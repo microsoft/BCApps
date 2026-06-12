@@ -9,9 +9,10 @@ using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Vendor;
 using System.TestLibraries.Utilities;
 
-codeunit 147650 "SL Migration Vendor 1099 Tests"
+codeunit 147670 "SL Migration Vendor 1099 Tests"
 {
     EventSubscriberInstance = Manual;
+    TestType = IntegrationTest;
     Subtype = Test;
     TestPermissions = Disabled;
     Permissions = tabledata "Detailed Vendor Ledg. Entry" = rimd,

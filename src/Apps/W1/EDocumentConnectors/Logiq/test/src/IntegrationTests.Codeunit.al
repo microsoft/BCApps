@@ -317,6 +317,31 @@ codeunit 139780 "Integration Tests"
     end;
 
     [Test]
+    [HandlerFunctions('DownloadNoDocumentsHandler')]
+    procedure DownloadNoDocumentsReturns204()
+    var
+        EDocument: Record "E-Document";
+        EDocServicePage: TestPage "E-Document Service";
+    begin
+        // Bug 623004: Logiq's /listfiles endpoint returns 204 No Content with
+        // an empty body when there are no files. The connector must treat that
+        // as "no documents" rather than failing while parsing an empty JSON.
+        this.Initialize(true);
+
+        //[Then] Open E-Doc page and invoke Receive against an empty response
+        EDocServicePage.OpenView();
+        EDocServicePage.GoToRecord(this.EDocumentService);
+        EDocServicePage.Receive.Invoke();
+        EDocServicePage.Close();
+
+        //[Then] No E-Document is created and no error is raised
+        EDocument.SetRange(Direction, EDocument.Direction::Incoming);
+        this.Assert.RecordIsEmpty(EDocument);
+
+        this.TearDown();
+    end;
+
+    [Test]
     [HandlerFunctions('DownloadMultipleDocumentsHandler')]
     procedure DownloadMultipleDocuments()
     var
@@ -553,6 +578,17 @@ codeunit 139780 "Integration Tests"
 
             Regex.IsMatch(Request.Path, 'https?://.+/logiq/1.0/getfile/testfile1.xml'):
                 LoadResourceIntoHttpResponse(TestFile1Tok, Response);
+        end;
+    end;
+
+    [HttpClientHandler]
+    internal procedure DownloadNoDocumentsHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    var
+        Regex: Codeunit Regex;
+    begin
+        case true of
+            Regex.IsMatch(Request.Path, 'https?://.+/edi/connect/1.0/listfiles'):
+                Response.HttpStatusCode := 204;
         end;
     end;
 

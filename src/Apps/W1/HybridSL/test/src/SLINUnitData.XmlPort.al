@@ -80,6 +80,6 @@ xmlport 147647 "SL INUnit Data"
     end;
 
     var
-        CaptionRow: Boolean;
         SLINUnit: Record "SL INUnit";
+        CaptionRow: Boolean;
 }

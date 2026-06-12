@@ -100,7 +100,7 @@ pageextension 99000802 "Mfg. Capacity Ledger Entries" extends "Capacity Ledger E
                 ApplicationArea = Manufacturing;
                 ToolTip = 'Specifies the scrap quantity, in base units of measure.';
             }
-#if not CLEAN27
+#if not CLEAN28
             field("WIP Item Qty."; Rec."WIP Item Qty.")
             {
                 ApplicationArea = Manufacturing;

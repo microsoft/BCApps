@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -269,7 +269,7 @@ page 99000831 "Released Production Order"
                         ShortCutKey = 'Ctrl+F7';
                         ToolTip = 'View the item ledger entries of the item on the document or journal line.';
                     }
-#if not CLEAN27
+#if not CLEAN28
                     action("Subcontracting Transfer Entries")
                     {
                         ApplicationArea = Manufacturing;

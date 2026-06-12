@@ -20,6 +20,7 @@ codeunit 4589 "SOA Upgrade"
 
     var
         SOAImpl: Codeunit "SOA Impl";
+        FailedToUpdateSOAInstructionsTxt: Label 'Failed to update SOA agent instructions during upgrade.', Locked = true;
 
     trigger OnUpgradePerDatabase()
     begin
@@ -29,9 +30,47 @@ codeunit 4589 "SOA Upgrade"
 
     trigger OnUpgradePerCompany()
     begin
+        AlwaysUpdateAgentInstructionsOnUpgrade();
         AddDailyEmailLimit();
         UpgradeUserSecurityIDField();
         SetMarkEmailAsRead();
+    end;
+
+    // This procedure intentionally runs on every upgrade without an upgrade tag.
+    // Agent instructions are embedded in the extension's resource files and may change with each version.
+    // Re-applying them on every upgrade ensures the agent always uses the instructions shipped with the current extension.
+    local procedure AlwaysUpdateAgentInstructionsOnUpgrade()
+    var
+        SOASetupRec: Record "SOA Setup";
+        TempSOASetup: Record "SOA Setup" temporary;
+        EnvironmentInformation: Codeunit "Environment Information";
+    begin
+        if not EnvironmentInformation.IsSaaSInfrastructure() then
+            exit;
+
+        if not SOASetupRec.FindSet() then
+            exit;
+
+        repeat
+            TempSOASetup := SOASetupRec;
+            TempSOASetup.Insert();
+            if not TryUpdateAgentInstructions(SOASetupRec, TempSOASetup) then
+                Session.LogMessage('0000U1P', FailedToUpdateSOAInstructionsTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'SOA Upgrade', 'ErrorCallStack', GetLastErrorCallStack());
+            TempSOASetup.DeleteAll();
+        until SOASetupRec.Next() = 0;
+    end;
+
+    [TryFunction]
+    local procedure TryUpdateAgentInstructions(var SOASetupRec: Record "SOA Setup"; var TempSOASetup: Record "SOA Setup" temporary)
+    var
+        SOASetupCU: Codeunit "SOA Setup";
+    begin
+        SOASetupCU.UpdateInstructions(TempSOASetup);
+
+        if SOASetupRec."Instructions Last Sync At" <> TempSOASetup."Instructions Last Sync At" then begin
+            SOASetupRec."Instructions Last Sync At" := TempSOASetup."Instructions Last Sync At";
+            SOASetupRec.Modify();
+        end;
     end;
 
     local procedure RegisterCapability()

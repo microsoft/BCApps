@@ -63,7 +63,7 @@ xmlport 147654 "SL SOLine Buffer Data"
                         currXMLport.Skip();
                     end;
 
-                    SLSOLineBuffer.CpnyID := CopyStr(CpnyID, 1, MaxStrLen(SLSOLineBuffer.CpnyID));
+                    SLSOLineBuffer.CpnyID := CopyStr(CompanyName(), 1, MaxStrLen(SLSOLineBuffer.CpnyID));
                     SLSOLineBuffer.OrdNbr := OrdNbr;
                     SLSOLineBuffer.LineRef := LineRef;
                     SLSOLineBuffer.InvtID := InvtID;
@@ -84,6 +84,6 @@ xmlport 147654 "SL SOLine Buffer Data"
     end;
 
     var
-        CaptionRow: Boolean;
         SLSOLineBuffer: Record "SL SOLine Buffer";
+        CaptionRow: Boolean;
 }

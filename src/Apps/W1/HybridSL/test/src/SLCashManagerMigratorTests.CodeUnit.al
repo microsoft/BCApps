@@ -13,6 +13,7 @@ codeunit 147604 "SL Cash Manager Migrator Tests"
 {
     EventSubscriberInstance = Manual;
     Subtype = Test;
+    TestType = IntegrationTest;
     TestPermissions = Disabled;
 
     var
@@ -25,10 +26,10 @@ codeunit 147604 "SL Cash Manager Migrator Tests"
     procedure TestSLCreateBankAccount()
     var
         SLCashAcct: Record "SL CashAcct";
-        SLCashManagerMigrator: Codeunit "SL Cash Manager Migrator";
-        BankAccountInstream: InStream;
-        ExpectedBankAccountData: XmlPort "SL BC Bank Account Data";
         TempBankAccount: Record "Bank Account" temporary;
+        SLCashManagerMigrator: Codeunit "SL Cash Manager Migrator";
+        ExpectedBankAccountData: XmlPort "SL BC Bank Account Data";
+        BankAccountInstream: InStream;
     begin
         // [Scenario] Cash Account to Bank Account migration
         Initialize();
@@ -46,7 +47,9 @@ codeunit 147604 "SL Cash Manager Migrator Tests"
 
         // [When] Cash Account exist, create Bank Account
         SLCashAcct.SetRange(CpnyID, CompanyName());
+#pragma warning disable AA0210
         SLCashAcct.SetRange(Active, 1);
+#pragma warning restore AA0210
         SLCashAcct.FindSet();
         repeat
             // Run Create Bank Account procedure
@@ -65,13 +68,12 @@ codeunit 147604 "SL Cash Manager Migrator Tests"
     procedure TestSLCreateBankTransactions()
     var
         SLCashAcct: Record "SL CashAcct";
+        TempGenJournalLine: Record "Gen. Journal Line" temporary;
         SLCashManagerMigrator: Codeunit "SL Cash Manager Migrator";
         SLFiscalPeriods: Codeunit "SL Fiscal Periods";
         SLPopulateFiscalPeriods: Codeunit "SL Populate Fiscal Periods";
-        BankTransactionInstream: InStream;
         SLExpectedBCGenJournalLineData: XmlPort "SL BC Gen. Journal Line Data";
-        TempBankAccount: Record "Bank Account" temporary;
-        TempGenJournalLine: Record "Gen. Journal Line" temporary;
+        BankTransactionInstream: InStream;
     begin
         // [Scenario] Cash Account to Bank Account migration
         Initialize();
@@ -106,7 +108,9 @@ codeunit 147604 "SL Cash Manager Migrator Tests"
 
         // [When] Cash Account exist, create Bank Account
         SLCashAcct.SetRange(CpnyID, CompanyName());
+#pragma warning disable AA0210
         SLCashAcct.SetRange(Active, 1);
+#pragma warning restore AA0210
         SLCashAcct.FindSet();
         repeat
             // Run Create Bank Account procedure
@@ -173,7 +177,6 @@ codeunit 147604 "SL Cash Manager Migrator Tests"
         SLCASetup: Record "SL CASetup";
         SLCashAcct: Record "SL CashAcct";
         SLCashSumD: Record "SL CashSumD";
-        SLPeriodListWorkTable: Record "SL Period List Work Table";
     begin
         // Delete/empty buffer tables        
         SLCashAcct.DeleteAll();

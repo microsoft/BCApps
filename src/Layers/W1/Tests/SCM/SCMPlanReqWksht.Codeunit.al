@@ -67,6 +67,7 @@
         ProdOrderComponentCommentErr: Label 'Production Order Component comment should exist';
         ExpectedCommentErr: Label 'Comment should match expected value';
         ReservationEntryNotTransferredErr: Label 'Reservation entry should not be transferred to a new line.';
+        PurchaseLineDropShipmentErr: Label 'Purchase Line must be marked as Drop Shipment';
 
     [Test]
     [HandlerFunctions('MessageHandler')]
@@ -5511,6 +5512,101 @@
         Assert.AreEqual(ReservationEntry."Transferred from Entry No.", ReservationEntry2."Transferred from Entry No.", ReservationEntryNotTransferredErr);
     end;
 
+    [Test]
+    procedure OrderPlanningCarryOutDropShipmentWithAlternateShipToCode()
+    var
+        Customer: Record Customer;
+        Item: Record Item;
+        PurchaseLine: Record "Purchase Line";
+        Purchasing: Record Purchasing;
+        RequisitionLine: Record "Requisition Line";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        ShipToAddress: Record "Ship-to Address";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 635884] Ship-to Code from alternate shipping address is transferred to Requisition Line via Order Planning for drop shipment
+        Initialize();
+
+        // [GIVEN] Item "I" with default vendor "V"
+        LibraryInventory.CreateItem(Item);
+        UpdateItemVendorNo(Item, LibraryPurchase.CreateVendorNo());
+
+        // [GIVEN] Customer "C" with alternate Ship-to Address "SA"
+        LibrarySales.CreateCustomer(Customer);
+        LibrarySales.CreateShipToAddress(ShipToAddress, Customer."No.");
+
+        // [GIVEN] Sales Order for "C" with Ship-to Code = "SA" and drop shipment purchasing code
+        LibraryPurchase.CreateDropShipmentPurchasingCode(Purchasing);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, Customer."No.");
+        SalesHeader.Validate("Ship-to Code", ShipToAddress.Code);
+        SalesHeader.Modify(true);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", LibraryRandom.RandInt(10));
+        UpdateSalesLinePurchasingCode(SalesLine, Purchasing.Code);
+
+        // [WHEN] Calculate Order Plan for Sales Demand
+        CalculateOrderPlan(RequisitionLine, "Demand Order Source Type"::"Sales Demand");
+        FindRequisitionLineForItem(RequisitionLine, Item."No.");
+
+        // [WHEN] Set vendor and carry out action to create Purchase Order
+        SetSupplyFromVendorOnRequisitionLine(RequisitionLine);
+        CarryOutActionPlan(RequisitionLine);
+
+        // [THEN] Purchase Order is created with drop shipment line linked to the Sales Order
+        PurchaseLine.SetRange("Sales Order No.", SalesLine."Document No.");
+        PurchaseLine.SetRange("Sales Order Line No.", SalesLine."Line No.");
+        PurchaseLine.FindFirst();
+        Assert.IsTrue(PurchaseLine."Drop Shipment", PurchaseLineDropShipmentErr);
+    end;
+
+    [Test]
+    [HandlerFunctions('PurchOrderFromSalesOrderModalPageHandler,PurchaseOrderPageHandler')]
+    procedure CreatePurchOrderFromSalesOrderDropShipmentWithAlternateShipToCode()
+    var
+        Customer: Record Customer;
+        Item: Record Item;
+        PurchaseLine: Record "Purchase Line";
+        Purchasing: Record Purchasing;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        ShipToAddress: Record "Ship-to Address";
+        SalesOrderPage: TestPage "Sales Order";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] Ship-to Code from alternate shipping address is transferred to Purchase Order when using Create Purchase Order action from Sales Order for drop shipment
+        Initialize();
+
+        // [GIVEN] Item "I" with default vendor "V"
+        LibraryInventory.CreateItem(Item);
+        UpdateItemVendorNo(Item, LibraryPurchase.CreateVendorNo());
+
+        // [GIVEN] Customer "C" with alternate Ship-to Address "SA"
+        LibrarySales.CreateCustomer(Customer);
+        LibrarySales.CreateShipToAddress(ShipToAddress, Customer."No.");
+
+        // [GIVEN] Sales Order for "C" with Ship-to Code = "SA" and drop shipment purchasing code
+        LibraryPurchase.CreateDropShipmentPurchasingCode(Purchasing);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, Customer."No.");
+        SalesHeader.Validate("Ship-to Code", ShipToAddress.Code);
+        SalesHeader.Modify(true);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", LibraryRandom.RandInt(10));
+        UpdateSalesLinePurchasingCode(SalesLine, Purchasing.Code);
+
+        // [WHEN] Create Purchase Order from Sales Order page action
+        LibraryVariableStorage.Enqueue(Item."Vendor No.");
+        SalesOrderPage.OpenEdit();
+        SalesOrderPage.GotoRecord(SalesHeader);
+        SalesOrderPage.CreatePurchaseOrder.Invoke();
+
+        // [THEN] Purchase Order is created with drop shipment line linked to the Sales Order
+        PurchaseLine.SetRange("Sales Order No.", SalesLine."Document No.");
+        PurchaseLine.SetRange("Sales Order Line No.", SalesLine."Line No.");
+        PurchaseLine.FindFirst();
+        Assert.IsTrue(PurchaseLine."Drop Shipment", PurchaseLineDropShipmentErr);
+
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
     local procedure Initialize()
     var
         AllProfile: Record "All Profile";
@@ -7580,5 +7676,18 @@ ItemJournalLine, ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name
         ReservationEntry.SetRange("Item No.", ItemNo);
         ReservationEntry.SetRange("Location Code", ProdOrderLine."Location Code");
         ReservationEntry.FindFirst();
+    end;
+
+    [ModalPageHandler]
+    procedure PurchOrderFromSalesOrderModalPageHandler(var PurchOrderFromSalesOrder: TestPage "Purch. Order From Sales Order")
+    begin
+        PurchOrderFromSalesOrder.Vendor.SetValue(LibraryVariableStorage.DequeueText());
+        PurchOrderFromSalesOrder.OK().Invoke();
+    end;
+
+    [PageHandler]
+    procedure PurchaseOrderPageHandler(var PurchaseOrder: TestPage "Purchase Order")
+    begin
+        PurchaseOrder.Close();
     end;
 }

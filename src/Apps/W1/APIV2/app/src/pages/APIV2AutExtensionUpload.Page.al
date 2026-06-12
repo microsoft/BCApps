@@ -70,6 +70,7 @@ page 30006 "APIV2 - Aut. Extension Upload"
         FileInStream: InStream;
     begin
         if Rec.Content.HasValue() then begin
+            Rec.CalcFields(Content);
             Rec.Content.CreateInStream(FileInStream);
             ExtensionManagement.UploadExtensionToVersion(FileInStream, GlobalLanguage(), Rec.Schedule, Rec."Schema Sync Mode");
             Rec.Delete();

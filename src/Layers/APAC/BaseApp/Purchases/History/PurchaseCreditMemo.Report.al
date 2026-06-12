@@ -14,8 +14,8 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
+using Microsoft.Foundation.Reporting;
 using Microsoft.Inventory.Location;
-using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Utilities;
 using System.Email;
@@ -347,7 +347,7 @@ report 407 "Purchase - Credit Memo"
                         column(PricesIncludingVAT; PricesIncludingVAT)
                         {
                         }
-                        column(Type_PurchCrMemoLine; Format("Purch. Cr. Memo Line".Type, 0, 2))
+                        column(Type_PurchCrMemoLine; Format(Type, 0, 2))
                         {
                         }
                         column(VATBasDisc_PurchCrMemoHeader; "Purch. Cr. Memo Hdr."."VAT Base Discount %")
@@ -358,7 +358,7 @@ report 407 "Purchase - Credit Memo"
                         }
                         column(LineAmount_PurchCrMemoLine; "Line Amount")
                         {
-                            AutoFormatExpression = "Purch. Cr. Memo Line".GetCurrencyCode();
+                            AutoFormatExpression = GetCurrencyCode();
                             AutoFormatType = 1;
                         }
                         column(Desc_PurchCrMemoLine; Description)
@@ -387,7 +387,7 @@ report 407 "Purchase - Credit Memo"
                         }
                         column(DirectUnitCost_PurchCrMemoLine; "Direct Unit Cost")
                         {
-                            AutoFormatExpression = "Purch. Cr. Memo Line".GetCurrencyCode();
+                            AutoFormatExpression = GetCurrencyCode();
                             AutoFormatType = 2;
                         }
                         column(LineDisc_PurchCrMemoLine; "Line Discount %")
@@ -405,7 +405,7 @@ report 407 "Purchase - Credit Memo"
                         }
                         column(InvDisctAmt_PurchCrMemoLine; -"Inv. Discount Amount")
                         {
-                            AutoFormatExpression = "Purch. Cr. Memo Line".GetCurrencyCode();
+                            AutoFormatExpression = GetCurrencyCode();
                             AutoFormatType = 1;
                         }
                         column(TotalText; TotalText)
@@ -413,7 +413,7 @@ report 407 "Purchase - Credit Memo"
                         }
                         column(Amount_PurchCrMemoLine; Amount)
                         {
-                            AutoFormatExpression = "Purch. Cr. Memo Line".GetCurrencyCode();
+                            AutoFormatExpression = GetCurrencyCode();
                             AutoFormatType = 1;
                         }
                         column(TotalExclVATText; TotalExclVATText)
@@ -424,12 +424,12 @@ report 407 "Purchase - Credit Memo"
                         }
                         column(AmtInclVAT_PurchCrMemoLine; "Amount Including VAT")
                         {
-                            AutoFormatExpression = "Purch. Cr. Memo Line".GetCurrencyCode();
+                            AutoFormatExpression = GetCurrencyCode();
                             AutoFormatType = 1;
                         }
                         column(AmountIncludingVATAmount; "Amount Including VAT" - Amount)
                         {
-                            AutoFormatExpression = "Purch. Cr. Memo Line".GetCurrencyCode();
+                            AutoFormatExpression = GetCurrencyCode();
                             AutoFormatType = 1;
                         }
                         column(VATAmtLineVATAmtText; TempVATAmountLine.VATAmountText())
@@ -437,7 +437,7 @@ report 407 "Purchase - Credit Memo"
                         }
                         column(AmountIncLCY; AmountIncLCY)
                         {
-                            AutoFormatExpression = "Purch. Cr. Memo Line".GetCurrencyCode();
+                            AutoFormatExpression = GetCurrencyCode();
                             AutoFormatType = 1;
                         }
                         column(CurrFactor_PurchCrMemoHeader; "Purch. Cr. Memo Hdr."."Currency Factor")
@@ -451,12 +451,12 @@ report 407 "Purchase - Credit Memo"
                         }
                         column(AmountIncLCYAmountLCY; AmountIncLCY - AmountLCY)
                         {
-                            AutoFormatExpression = "Purch. Cr. Memo Line".GetCurrencyCode();
+                            AutoFormatExpression = GetCurrencyCode();
                             AutoFormatType = 1;
                         }
                         column(AmountLCY; AmountLCY)
                         {
-                            AutoFormatExpression = "Purch. Cr. Memo Line".GetCurrencyCode();
+                            AutoFormatExpression = GetCurrencyCode();
                             AutoFormatType = 1;
                         }
                         column(CurrencyLCY; CurrencyLCY)
@@ -583,7 +583,7 @@ report 407 "Purchase - Credit Memo"
                                 "No." := '';
 
                             TempVATAmountLine.Init();
-                            TempVATAmountLine."VAT Identifier" := "Purch. Cr. Memo Line"."VAT Identifier";
+                            TempVATAmountLine."VAT Identifier" := "VAT Identifier";
                             TempVATAmountLine."VAT Calculation Type" := "VAT Calculation Type";
                             TempVATAmountLine."Tax Group Code" := "Tax Group Code";
                             TempVATAmountLine."Use Tax" := "Use Tax";
@@ -597,7 +597,7 @@ report 407 "Purchase - Credit Memo"
                             TempVATAmountLine."Invoice Discount Amount" := "Inv. Discount Amount";
                             TempVATAmountLine.InsertLine();
 
-                            AllowInvDiscount := Format("Purch. Cr. Memo Line"."Allow Invoice Disc.");
+                            AllowInvDiscount := Format("Allow Invoice Disc.");
 
                             TotalSubTotal += "Line Amount";
                             TotalInvoiceDiscountAmount -= "Inv. Discount Amount";
@@ -635,7 +635,7 @@ report 407 "Purchase - Credit Memo"
                                         VATAmountText := Text013;
                                 until PurchCrMemoLine.Next() = 0;
                             end;
-                            AllowInvDiscount := Format("Purch. Cr. Memo Line"."Allow Invoice Disc.");
+                            AllowInvDiscount := Format("Allow Invoice Disc.");
                             FirstLineHasBeenOutput := false;
                             DummyCompanyInfo.Picture := CompanyInfo.Picture;
                         end;
@@ -895,17 +895,17 @@ report 407 "Purchase - Credit Memo"
                   Round(
                     CurrExchRate.ExchangeAmtFCYToLCY(
                       WorkDate(), "Currency Code", "Amount Including VAT", "Currency Factor"));
-                PurchaseLine.InitTextVariable();
-                PurchaseLine.FormatNoText(AmountLangA, "Amount Including VAT", "Currency Code");
+                ReportManagementAPAC.InitTextVariable();
+                ReportManagementAPAC.FormatNoText(AmountLangA, "Amount Including VAT", "Currency Code");
                 if ShowTHFormatting then begin
-                    PurchaseLine.InitTextVariableTH();
-                    PurchaseLine.FormatNoTextTH(AmountLangB, "Amount Including VAT", "Currency Code");
+                    ReportManagementAPAC.InitTextVariableTH();
+                    ReportManagementAPAC.FormatNoTextTH(AmountLangB, "Amount Including VAT", "Currency Code");
                 end else begin
                     AmountLangB[1] := '';
                     AmountLangB[2] := '';
                 end;
 
-                PricesIncludingVAT := Format("Purch. Cr. Memo Hdr."."Prices Including VAT");
+                PricesIncludingVAT := Format("Prices Including VAT");
             end;
 
             trigger OnPreDataItem()
@@ -1034,6 +1034,7 @@ report 407 "Purchase - Credit Memo"
         FormatAddr: Codeunit "Format Address";
         FormatDocument: Codeunit "Format Document";
         SegManagement: Codeunit SegManagement;
+        ReportManagementAPAC: Codeunit "Report Management APAC";
         VendAddr: array[8] of Text[100];
         ReturnOrderNoText: Text[80];
         PurchaserText: Text[50];
@@ -1076,7 +1077,6 @@ report 407 "Purchase - Credit Memo"
         AmountLangB: array[2] of Text[80];
         CurrencyLCY: Boolean;
         AmountInWords: Boolean;
-        PurchaseLine: Record "Purchase Line";
         ShowTHFormatting: Boolean;
         OriginalInvDate: Date;
         PurchInvHeader: Record "Purch. Inv. Header";

@@ -94,16 +94,20 @@ table 20402 "Qlty. Inspection Template Hdr."
         end;
     end;
 
+#if not CLEAN29
     /// <summary>
     /// Adds the supplied test to the template if it does not already exist.
     /// If it already exists then it will not add the test.
     /// </summary>
     /// <param name="TestCode"></param>
+    [Obsolete('Replaced by SelectMultipleTests() / AddSelectedTests() on "Qlty. Inspection Template Line".', '29.0')]
     procedure AddTestToTemplate(TestCode: Code[20]): Boolean
     var
         DummyQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
     begin
+#pragma warning disable AL0432
         exit(AddTestToTemplate(TestCode, DummyQltyInspectionTemplateLine));
+#pragma warning restore AL0432
     end;
 
     /// <summary>
@@ -112,6 +116,7 @@ table 20402 "Qlty. Inspection Template Hdr."
     /// </summary>
     /// <param name="TestCode"></param>
     /// <param name="QltyInspectionTemplateLine">the template line</param>
+    [Obsolete('Replaced by SelectMultipleTests() / AddSelectedTests() on "Qlty. Inspection Template Line".', '29.0')]
     procedure AddTestToTemplate(TestCode: Code[20]; var QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line"): Boolean
     begin
         QltyInspectionTemplateLine.Reset();
@@ -131,4 +136,5 @@ table 20402 "Qlty. Inspection Template Hdr."
 
         exit(false);
     end;
+#endif
 }

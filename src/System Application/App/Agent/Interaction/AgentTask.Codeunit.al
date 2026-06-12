@@ -270,6 +270,31 @@ codeunit 4303 "Agent Task"
     end;
 
     /// <summary>
+    /// Gets the number of steps done for the specified agent task.
+    /// </summary>
+    /// <param name="AgentTaskID">The ID of the agent task.</param>
+    /// <returns>The number of steps done.</returns>
+    procedure GetStepsDoneCount(AgentTaskID: BigInteger): Integer
+    var
+        AgentTaskImpl: Codeunit "Agent Task Impl.";
+    begin
+        FeatureAccessManagement.AgentManagementAllowed(true);
+        exit(AgentTaskImpl.GetStepsDoneCount(AgentTaskID));
+    end;
+
+    /// <summary>
+    /// Opens the agent task log entries page for the specified agent task.
+    /// </summary>
+    /// <param name="AgentTaskID">The ID of the agent task to show log entries for.</param>
+    procedure OpenAgentTaskLogEntries(AgentTaskID: BigInteger)
+    var
+        AgentTaskImpl: Codeunit "Agent Task Impl.";
+    begin
+        FeatureAccessManagement.AgentManagementAllowed(true);
+        AgentTaskImpl.ShowTaskLogEntries(AgentTaskID);
+    end;
+
+    /// <summary>
     /// Archives the agent task.
     /// </summary>
     /// <param name="AgentTaskID">The ID of the agent task to archive.</param>

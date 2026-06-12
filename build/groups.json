@@ -3874,7 +3874,49 @@
     ]
   },
   {
+    "name": "Business Central 14 Historical Data",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      }
+    ]
+  },
+  {
+    "name": "Business Central 14 Reimplementation Tool",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      }
+    ]
+  },
+  {
     "name": "Business Central Cloud Migration - Previous Release Tests",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      }
+    ]
+  },
+  {
+    "name": "BC14 Reimplementation Tool Tests",
     "groups": [
       {
         "name": "AllExtensions"
@@ -5318,6 +5360,12 @@
       {
         "name": "OnPremExtensions",
         "doNotInstall": true
+      },
+      {
+        "name": "ContosoDemoData"
+      },
+      {
+        "name": "Internal"
       }
     ]
   },
@@ -7332,6 +7380,34 @@
     ]
   },
   {
+    "name": "Dynamics SL Migration - Tests",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      }
+    ]
+  },
+  {
+    "name": "Dynamics SL Migration - US Tests",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      }
+    ]
+  },
+  {
     "name": "Bank Account Reconciliation With AI",
     "groups": [
       {
@@ -8462,7 +8538,7 @@
       }
     ]
   },
-   {
+  {
     "name": "Document Registration in Spain",
     "groups": [
       {
@@ -9064,7 +9140,7 @@
         "name": "OnPremExtensions",
         "doNotInstall": true
       }
-    ] 
+    ]
   },
   {
     "name": "Subscription Billing Tests",
@@ -9215,7 +9291,7 @@
   {
     "name": "Agent Test Internal Library",
     "groups": [
-        {
+      {
         "name": "AllExtensions",
         "doNotInstall": true
       },
@@ -9289,7 +9365,7 @@
       }
     ]
   },
-    {
+  {
     "name": "AI Development Toolkit",
     "groups": [
       {
@@ -9424,7 +9500,7 @@
       }
     ]
   },
- {
+  {
     "name": "Sales Validation Agent Sample",
     "groups": [
       {
@@ -9447,7 +9523,31 @@
         "name": "Internal"
       }
     ]
-  },  
+  },
+  {
+    "name": "Sales Return Agent Sample",
+    "groups": [
+      {
+        "name": "AllExtensions",
+        "doNotInstall": true
+      },
+      {
+        "name": "Internal"
+      }
+    ]
+  },
+  {
+    "name": "Sales Return Agent Sample Test",
+    "groups": [
+      {
+        "name": "AllExtensions",
+        "doNotInstall": true
+      },
+      {
+        "name": "Internal"
+      }
+    ]
+  },
   {
     "name": "VAT Audit Reports GB",
     "groups": [
@@ -9604,7 +9704,7 @@
       }
     ]
   },
-   {
+  {
     "name": "Payment Management FR",
     "groups": [
       {

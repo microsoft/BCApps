@@ -91,7 +91,7 @@ xmlport 147641 "SL PurchOrd Buffer Data"
                     end;
 
                     SLPurchOrdBuffer.PONbr := PONbr;
-                    SLPurchOrdBuffer.CpnyID := CopyStr(CpnyID, 1, MaxStrLen(SLPurchOrdBuffer.CpnyID));
+                    SLPurchOrdBuffer.CpnyID := CopyStr(CompanyName(), 1, MaxStrLen(SLPurchOrdBuffer.CpnyID));
                     Evaluate(SLPurchOrdBuffer.POAmt, POAmt);
                     Evaluate(SLPurchOrdBuffer.PODate, PODate);
                     SLPurchOrdBuffer.POType := POType;
@@ -120,6 +120,6 @@ xmlport 147641 "SL PurchOrd Buffer Data"
     end;
 
     var
-        CaptionRow: Boolean;
         SLPurchOrdBuffer: Record "SL PurchOrd Buffer";
+        CaptionRow: Boolean;
 }

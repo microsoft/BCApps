@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -130,7 +130,7 @@ page 99000799 "Standard Tasks"
         exit(SelectionFilterManagement.GetSelectionFilter(RecRef, StandardTask.FieldNo(Code)));
     end;    
 
-#if not CLEAN27
+#if not CLEAN28
     [Scope('OnPrem')]
     procedure GetSelectionFilter(): Code[80]
     var

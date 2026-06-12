@@ -245,6 +245,10 @@ codeunit 18434 "GST Application Session Mgt."
         TempGenJournalLine.Description := CopyStr(GetGLAccountDescription(GLAccountNo), 1, MaxStrLen(TempGenJournalLine.Description));
         TempGenJournalLine."Bal. Account Type" := TempGenJournalLine."Bal. Account Type"::"G/L Account";
         TempGenJournalLine."Bal. Account No." := '';
+        TempGenJournalLine."Currency Code" := '';
+        TempGenJournalLine."Currency Factor" := 0;
+        TempGenJournalLine."Source Currency Code" := '';
+        TempGenJournalLine."Source Currency Amount" := 0;
         TempGenJournalLine.Amount := Amount;
         TempGenJournalLine."Amount (LCY)" := Amount;
         if Amount > 0 then begin

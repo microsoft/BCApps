@@ -174,7 +174,12 @@ tableextension 18716 "Purchase Line" extends "Purchase Line"
         PreviousTransactionValue: Record "Tax Transaction Value";
         CurrentTransactionValue: Record "Tax Transaction Value";
         CalculateTax: Codeunit "Calculate Tax";
+        IsHandled: Boolean;
     begin
+        OnBeforeUpdateTaxAmountOnCurrentDocument(Rec, xRec, CurrFieldNo, IsHandled);
+        if IsHandled then
+            exit;
+
         PurchaseLine.SetRange("Document Type", "Document Type");
         PurchaseLine.SetRange("Document No.", "Document No.");
         PurchaseLine.SetRange("Line No.", "Line No.");
@@ -219,6 +224,11 @@ tableextension 18716 "Purchase Line" extends "Purchase Line"
     local procedure IsFieldValueModified(FieldNo: Integer): Boolean
     begin
         exit(CurrFieldNo = fieldNo);
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeUpdateTaxAmountOnCurrentDocument(var PurchaseLine: Record "Purchase Line"; var xPurchaseLine: Record "Purchase Line"; CallerFieldNo: Integer; var IsHandled: Boolean)
+    begin
     end;
 
     var

@@ -32,21 +32,21 @@ tableextension 99000860 "Mfg. Requisition Line" extends "Requisition Line"
                 Validate("Unit of Measure Code");
             end;
         }
-#if not CLEANSCHEMA30
+#if not CLEANSCHEMA31
         field(12180; "Standard Task Code"; Code[10])
         {
             Caption = 'Standard Task Code';
             DataClassification = CustomerContent;
             TableRelation = "Standard Task";
             ObsoleteReason = 'Preparation for replacement by Subcontracting app';
-#if not CLEAN27
+#if not CLEAN28
             ObsoleteState = Pending;
             ObsoleteTag = '27.0';
 #else
             ObsoleteState = Removed;
-            ObsoleteTag = '30.0';
+            ObsoleteTag = '31.0';
 #endif
-#if not CLEAN27
+#if not CLEAN28
             trigger OnValidate()
             begin
                 if (Type = Type::Item) and
@@ -67,12 +67,12 @@ tableextension 99000860 "Mfg. Requisition Line" extends "Requisition Line"
             Editable = false;
             InitValue = 1;
             ObsoleteReason = 'Preparation for replacement by Subcontracting app';
-#if not CLEAN27
+#if not CLEAN28
             ObsoleteState = Pending;
             ObsoleteTag = '27.0';
 #else
             ObsoleteState = Removed;
-            ObsoleteTag = '30.0';
+            ObsoleteTag = '31.0';
 #endif
         }
         field(12182; "Pricelist UM Qty/Base UM Qty"; Decimal)
@@ -82,14 +82,14 @@ tableextension 99000860 "Mfg. Requisition Line" extends "Requisition Line"
             DataClassification = CustomerContent;
             DecimalPlaces = 0 : 5;
             ObsoleteReason = 'Preparation for replacement by Subcontracting app';
-#if not CLEAN27
+#if not CLEAN28
             ObsoleteState = Pending;
             ObsoleteTag = '27.0';
 #else
             ObsoleteState = Removed;
-            ObsoleteTag = '30.0';
+            ObsoleteTag = '31.0';
 #endif
-#if not CLEAN27
+#if not CLEAN28
             trigger OnValidate()
             begin
                 if (CurrFieldNo = FieldNo("Pricelist UM Qty/Base UM Qty")) and
@@ -108,12 +108,12 @@ tableextension 99000860 "Mfg. Requisition Line" extends "Requisition Line"
             Caption = 'WIP Item';
             DataClassification = CustomerContent;
             ObsoleteReason = 'Preparation for replacement by Subcontracting app';
-#if not CLEAN27
+#if not CLEAN28
             ObsoleteState = Pending;
             ObsoleteTag = '27.0';
 #else
             ObsoleteState = Removed;
-            ObsoleteTag = '30.0';
+            ObsoleteTag = '31.0';
 #endif
         }
         field(12184; "UoM for Pricelist"; Code[10])
@@ -122,14 +122,14 @@ tableextension 99000860 "Mfg. Requisition Line" extends "Requisition Line"
             DataClassification = CustomerContent;
             TableRelation = Microsoft.Foundation.UOM."Unit of Measure";
             ObsoleteReason = 'Preparation for replacement by Subcontracting app';
-#if not CLEAN27
+#if not CLEAN28
             ObsoleteState = Pending;
             ObsoleteTag = '27.0';
 #else
             ObsoleteState = Removed;
-            ObsoleteTag = '30.0';
+            ObsoleteTag = '31.0';
 #endif
-#if not CLEAN27
+#if not CLEAN28
             trigger OnValidate()
             var
             begin
@@ -148,14 +148,14 @@ tableextension 99000860 "Mfg. Requisition Line" extends "Requisition Line"
             Caption = 'Pricelist Cost';
             DataClassification = CustomerContent;
             ObsoleteReason = 'Preparation for replacement by Subcontracting app';
-#if not CLEAN27
+#if not CLEAN28
             ObsoleteState = Pending;
             ObsoleteTag = '27.0';
 #else
             ObsoleteState = Removed;
-            ObsoleteTag = '30.0';
+            ObsoleteTag = '31.0';
 #endif
-#if not CLEAN27
+#if not CLEAN28
             trigger OnValidate()
             var
                 GLSetup: Record Microsoft.Finance.GeneralLedger.Setup."General Ledger Setup";
@@ -258,13 +258,13 @@ tableextension 99000860 "Mfg. Requisition Line" extends "Requisition Line"
             TableRelation = "Work Center";
 
             trigger OnValidate()
-#if not CLEAN27
+#if not CLEAN28
             var
                 ProdOrderRoutingLine: Record "Prod. Order Routing Line";
 #endif
             begin
                 GetWorkCenter();
-#if not CLEAN27
+#if not CLEAN28
                 if ProdOrderRoutingLine.Get(ProdOrderRoutingLine.Status::Released, "Prod. Order No.",
                                             "Routing Reference No.", "Routing No.", "Operation No.") then begin
                     ProdOrderRoutingLine.Validate("No.", "Work Center No.");
@@ -633,7 +633,7 @@ tableextension 99000860 "Mfg. Requisition Line" extends "Requisition Line"
         exit(true);
     end;
 
-#if not CLEAN27
+#if not CLEAN28
     [Scope('OnPrem')]
     [Obsolete('Replaced by Subcontracting app', '27.0')]
     procedure GetSubcontractorPrice()

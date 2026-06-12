@@ -173,7 +173,7 @@ codeunit 31395 "Dimension Auto.Update Mgt. CZA"
         if RecRef.Number = Database::"Default Dimension" then
             exit;
         CheckChangeSetupRead();
-        if not TempChangeLogSetupTable.Get(RecRef.Number) then
+        if not TempAutoCreateDimAllObjWithCaption.Get(TempAutoCreateDimAllObjWithCaption."Object Type"::Table, RecRef.Number) then
             exit;
 
         OldPKFieldRef := xRecRef.KeyIndex(1).FieldIndex(1);

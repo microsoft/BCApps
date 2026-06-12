@@ -6,7 +6,7 @@ namespace Microsoft.DataMigration.SL;
 
 using Microsoft.Purchases.Vendor;
 
-xmlport 147616 "SL BC Vendor Data Expected"
+xmlport 147616 "SL BC Vendor Data"
 {
     Caption = 'Vendor data for import/export';
     Direction = Both;
@@ -137,15 +137,14 @@ xmlport 147616 "SL BC Vendor Data Expected"
 
     procedure GetExpectedVendors(var NewTempVendor: Record Vendor temporary)
     begin
-        if TempVendor.FindSet() then begin
+        if TempVendor.FindSet() then
             repeat
                 NewTempVendor.Copy(TempVendor);
                 NewTempVendor.Insert();
             until TempVendor.Next() = 0;
-        end;
     end;
 
     var
-        CaptionRow: Boolean;
         TempVendor: Record Vendor temporary;
+        CaptionRow: Boolean;
 }

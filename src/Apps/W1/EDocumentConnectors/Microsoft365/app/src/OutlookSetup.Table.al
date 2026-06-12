@@ -59,8 +59,11 @@ table 6383 "Outlook Setup"
 
             trigger OnValidate()
             begin
-                if xRec."Email Account ID" <> Rec."Email Account ID" then
+                if xRec."Email Account ID" <> Rec."Email Account ID" then begin
                     "Last Sync At" := 0DT;
+                    Clear(Rec."Email Folder");
+                    Clear(Rec."Email Folder Id");
+                end;
             end;
         }
         field(4; "Email Connector"; Enum "Email Connector")
@@ -101,6 +104,18 @@ table 6383 "Outlook Setup"
         {
             Caption = 'Last Sync At';
             ToolTip = 'Specifies the date and time the emails were processed last time.';
+            DataClassification = SystemMetadata;
+        }
+        field(19; "Email Folder"; Text[2048])
+        {
+            Caption = 'Email Folder';
+            ToolTip = 'Specifies the email folder that the connector monitors.';
+            DataClassification = CustomerContent;
+        }
+        field(20; "Email Folder Id"; Text[2048])
+        {
+            Caption = 'Email Folder Id';
+            ToolTip = 'Specifies the unique identifier of the email folder that the connector monitors.';
             DataClassification = SystemMetadata;
         }
     }

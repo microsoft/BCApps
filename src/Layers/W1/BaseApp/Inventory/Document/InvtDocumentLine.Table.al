@@ -205,6 +205,15 @@ table 5851 "Invt. Document Line"
                           Round(
                             "Unit Amount" * (1 + "Indirect Cost %" / 100), GLSetup."Unit-Amount Rounding Precision");
                         Validate("Unit Cost");
+                    end else
+                        if CurrFieldNo in [FieldNo("Unit Amount"), FieldNo(Amount)] then begin
+                            "Unit Cost" := "Unit Amount";
+                            Validate("Unit Cost");
+                        end;
+                if ("Item No." <> '') and ("Document Type" = "Document Type"::Shipment) then
+                    if CurrFieldNo in [FieldNo("Unit Amount"), FieldNo(Amount)] then begin
+                        "Unit Cost" := "Unit Amount";
+                        Validate("Unit Cost");
                     end;
             end;
         }
@@ -224,6 +233,18 @@ table 5851 "Invt. Document Line"
                         "Unit Cost" := Round(UnitCost * "Qty. per Unit of Measure", GLSetup."Unit-Amount Rounding Precision")
                     else
                         Error(CannotChangeCostErr, FieldCaption("Unit Cost"), Item."Costing Method");
+
+                if CurrFieldNo = FieldNo("Unit Cost") then begin
+                    if "Document Type" = "Document Type"::Receipt then begin
+                        ReadGLSetup();
+                        "Unit Amount" :=
+                          Round(
+                            "Unit Cost" / (1 + "Indirect Cost %" / 100), GLSetup."Unit-Amount Rounding Precision");
+                    end;
+                    if "Document Type" = "Document Type"::Shipment then
+                        "Unit Amount" := "Unit Cost";
+                    UpdateAmount();
+                end;
             end;
         }
         field(18; Amount; Decimal)

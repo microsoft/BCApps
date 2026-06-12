@@ -355,6 +355,11 @@ table 296 "Reminder Line"
                             else
                                 "VAT %" := 0;
                         end;
+                    "VAT Calculation Type"::"No Taxable VAT":
+                        begin
+                            "VAT Amount" := 0;
+                            "VAT %" := 0;
+                        end;
                 end;
                 "VAT Amount" := Round("VAT Amount", Currency."Amount Rounding Precision");
             end;
@@ -993,7 +998,7 @@ table 296 "Reminder Line"
         IssuedReminderLine.SetRange(Type, IssuedReminderLine.Type::"Line Fee");
         IssuedReminderLine.SetRange("No. of Reminders", IssuedNoOfReminders);
         IssuedReminderLine.SetRange(Canceled, false);
-        exit(IssuedReminderLine.FindFirst())
+        exit(IssuedReminderLine.FindFirst());
     end;
 
     local procedure GetReminderLevel(var ReminderLevel: Record "Reminder Level"; LevelStart: Integer; LevelEnd: Integer)

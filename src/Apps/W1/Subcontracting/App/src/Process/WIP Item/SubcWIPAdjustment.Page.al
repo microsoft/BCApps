@@ -248,7 +248,7 @@ page 99001561 "Subc. WIP Adjustment"
 
     var
         Item: Record Item;
-        NewQuantities: Dictionary of [BigInteger, Decimal];
+        NewQuantities: Dictionary of [Integer, Decimal];
         PostingDate: Date;
         DocumentType: Enum "WIP Document Type";
         DocumentNo: Code[20];
@@ -266,7 +266,7 @@ page 99001561 "Subc. WIP Adjustment"
     /// </summary>
     procedure SetWIPLedgerEntry(var WIPLedgerEntry: Record "Subcontractor WIP Ledger Entry")
     var
-        EntrySeq: BigInteger;
+        EntrySeq: Integer;
     begin
         EntrySeq := 1;
 

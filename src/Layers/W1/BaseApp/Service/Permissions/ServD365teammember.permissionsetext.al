@@ -14,6 +14,10 @@ using Microsoft.Service.Setup;
 permissionsetextension 5913 "SERV D365 TEAM MEMBER" extends "D365 TEAM MEMBER"
 {
     Permissions =
+                  tabledata "Service Header" = Rm,
+                  tabledata "Service Invoice Header" = Rm,
+                  tabledata "Service Shipment Header" = Rm,
+                  tabledata "Service Cr.Memo Header" = Rm,
                   tabledata "Contract Change Log" = RM,
                   tabledata "Contract Gain/Loss Entry" = RM,
                   tabledata "Contract Group" = RM,

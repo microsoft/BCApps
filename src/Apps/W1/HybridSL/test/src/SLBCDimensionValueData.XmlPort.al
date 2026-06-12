@@ -74,6 +74,6 @@ xmlport 147629 "SL BC Dimension Value Data"
     end;
 
     var
-        CaptionRow: Boolean;
         DimensionValue: Record "Dimension Value";
+        CaptionRow: Boolean;
 }

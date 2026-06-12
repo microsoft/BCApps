@@ -74,9 +74,13 @@ codeunit 6385 "Outlook Processing"
         BuildDocumentsList(RetrievedEmailInbox, Documents);
 
         LatestReceivedDateTime := GetLatestReceivedDateTime();
-        if LatestReceivedDateTime > OutlookSetup."Last Sync At" then begin
+        // When a specific folder is monitored, emails can be moved into it after their
+        // receivedDateTime; advancing the sync floor would filter them out on the next run.
+        // Dedup is still bounded by the category-exclude filter set in RetrieveEmailsWithRecovery.
+        if (LatestReceivedDateTime >= OutlookSetup."Last Sync At") and (OutlookSetup."Email Folder Id" = '') then begin
             OutlookSetup.Get();
-            OutlookSetup."Last Sync At" := LatestReceivedDateTime;
+            // +10 ms so the next run's 'receivedDateTime ge' filter strictly excludes the email we just processed. See bug 637266 for the proper fix.
+            OutlookSetup."Last Sync At" := LatestReceivedDateTime + 10;
             OutlookSetup.Modify();
         end;
     end;
@@ -85,25 +89,39 @@ codeunit 6385 "Outlook Processing"
     var
         TempFilters: Record "Email Retrieval Filters" temporary;
         OutlookProcessing: Codeunit "Outlook Processing";
+        FolderConfigured: Boolean;
     begin
+        FolderConfigured := OutlookSetup."Email Folder Id" <> '';
+
         TempFilters."Load Attachments" := true;
         TempFilters."Max No. of Emails" := GetMaxNoOfEmails();
-        TempFilters."Earliest Email" := OutlookSetup."Last Sync At";
+        // In folder mode, dedup is enforced server-side by the category-exclude filter only.
+        // Applying "Earliest Email" would drop emails moved into the folder after that floor.
+        if not FolderConfigured then
+            TempFilters."Earliest Email" := OutlookSetup."Last Sync At";
+        // When the user has not configured a folder, default to Inbox so that Sent Items,
+        // Junk, and other non-Inbox folders are excluded from monitoring. 
+        if FolderConfigured then
+            TempFilters."Folder Id" := OutlookSetup."Email Folder Id"
+        else
+            TempFilters."Folder Id" := InboxFolderTok;
         TempFilters."Category Filter Type" := TempFilters."Category Filter Type"::Exclude;
         TempFilters.AddCategoryFilter(GetOutlookCategoryDescription(EDocumentService));
         OutlookProcessing.ConfigureForEmailRetrieval(TempFilters);
         Commit();
         if not OutlookProcessing.Run() then begin
-            // If email retrieval fails, the problem may be triggered by a specific email,
-            // so we attempt to recover by pushing the sync date forward to skip it.
-            // Side-effect: we may skip some valid emails, but we avoid getting completely stuck.
-            if EDocumentService."Batch Minutes between runs" = 0 then
-                OutlookSetup."Last Sync At" := CurrentDateTime()
-            else
-                OutlookSetup."Last Sync At" := OutlookSetup."Last Sync At" + (EDocumentService."Batch Minutes between runs" * 60 * 1000);
-            if OutlookSetup."Last Sync At" > CurrentDateTime() then
-                OutlookSetup."Last Sync At" := CurrentDateTime();
-            OutlookSetup.Modify();
+            // In whole-mailbox mode, the failure may be triggered by a specific email; push the
+            // sync floor forward so the next run skips it. In folder mode the floor is not used
+            // as a filter, so advancing it cannot recover — just propagate the error.
+            if not FolderConfigured then begin
+                if EDocumentService."Batch Minutes between runs" = 0 then
+                    OutlookSetup."Last Sync At" := CurrentDateTime()
+                else
+                    OutlookSetup."Last Sync At" := OutlookSetup."Last Sync At" + (EDocumentService."Batch Minutes between runs" * 60 * 1000);
+                if OutlookSetup."Last Sync At" > CurrentDateTime() then
+                    OutlookSetup."Last Sync At" := CurrentDateTime();
+                OutlookSetup.Modify();
+            end;
             Commit();
             Error(RetrieveEmailsErr);
         end;
@@ -452,4 +470,5 @@ codeunit 6385 "Outlook Processing"
         PageCountExceededTelemetryTxt: label 'PDF Attachment ignored because it exceeds page count of %1.', Locked = true;
         PageCountCallFailedTelemetryTxt: label 'Unable to calculate page count for PDF Attachment.', Locked = true;
         OutlookCategoryTok: Label 'Processed by Business Central', Locked = true;
+        InboxFolderTok: Label 'inbox', Locked = true;
 }

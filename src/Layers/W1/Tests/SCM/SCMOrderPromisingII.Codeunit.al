@@ -38,6 +38,7 @@ codeunit 137157 "SCM Order Promising II"
         QuantityErr: Label 'Incorrect Quantity on Order Promising Line.';
         NoAvailWarningErr: Label 'Expected availability warning was not shown';
         EarliestAvailDateErr: Label 'Incorrect earliest availability date';
+        PlannedDeliveryDateShippingTimeErr: Label 'Planned Delivery Date must include shipping time from service order';
 
     [Test]
     [Scope('OnPrem')]
@@ -1647,6 +1648,46 @@ codeunit 137157 "SCM Order Promising II"
         // [THEN] Availibility field value is equal 0 in Order Promising page. // OrderPromisingLinesModalPageHandler
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure ATPPlannedDeliveryDateConsidersShippingTimeOnServiceOrder()
+    var
+        OrderPromisingLine: Record "Order Promising Line";
+        PurchaseHeader: Record "Purchase Header";
+        ServiceHeader: Record "Service Header";
+        ServiceLine: Record "Service Line";
+        AvailabilityManagement: Codeunit AvailabilityManagement;
+        ShippingTime: DateFormula;
+        ItemNo: Code[20];
+        LocationCode: Code[10];
+        Qty: Integer;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 636220] ATP Planned Delivery Date includes Shipping Time from Service Order.
+        Initialize();
+
+        // [GIVEN] Create Item, Location and Service Order with Shipping Time = 7D.
+        ItemNo := LibraryInventory.CreateItemNo();
+        LocationCode := CreateLocationCode();
+        Qty := LibraryRandom.RandInt(10);
+        Evaluate(ShippingTime, '<7D>');
+
+        // [GIVEN] Purchase Order with Expected Receipt Date = WorkDate + 2D and sufficient supply.
+        CreatePurchaseOrder(PurchaseHeader, CalcDate('<2D>', WorkDate()), ItemNo, LocationCode, Qty * 5);
+
+        // [GIVEN] Service Order with Shipping Time = 7D.
+        CreateServiceOrderWithShippingTime(ServiceHeader, ServiceLine, CalcDate('<1W>', WorkDate()), ItemNo, LocationCode, Qty, ShippingTime);
+        AvailabilityManagement.SetSourceRecord(OrderPromisingLine, ServiceHeader);
+
+        // [WHEN] Calculate Available to Promise.
+        AvailabilityManagement.CalcAvailableToPromise(OrderPromisingLine);
+
+        // [THEN] Planned Delivery Date = Earliest Shipment Date + Shipping Time (7D).
+        OrderPromisingLine.FindFirst();
+        Assert.AreEqual(CalcDate(ShippingTime, OrderPromisingLine."Earliest Shipment Date"),
+            OrderPromisingLine."Planned Delivery Date", PlannedDeliveryDateShippingTimeErr);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -2222,6 +2263,24 @@ codeunit 137157 "SCM Order Promising II"
         LibraryVariableStorage.DequeueDate();
         Assert.AreEqual(EarliestShipmentDate, LibraryVariableStorage.DequeueDate(), EarliestShipmentDateErr);
         LibraryVariableStorage.DequeueDecimal();
+    end;
+
+    local procedure CreateServiceOrderWithShippingTime(var ServiceHeader: Record "Service Header"; var ServiceLine: Record "Service Line"; RequestedDeliveryDate: Date; ItemNo: Code[20]; LocationCode: Code[10]; Qty: Decimal; ShippingTime: DateFormula)
+    var
+        ServiceItemLine: Record "Service Item Line";
+    begin
+        Clear(ServiceHeader);
+        Clear(ServiceLine);
+        LibraryService.CreateServiceHeader(ServiceHeader, ServiceHeader."Document Type"::Order, LibrarySales.CreateCustomerNo());
+        ServiceHeader.Validate("Shipping Time", ShippingTime);
+        ServiceHeader.Modify(true);
+        LibraryService.CreateServiceLine(ServiceLine, ServiceHeader, ServiceLine.Type::Item, ItemNo);
+        LibraryService.CreateServiceItemLine(ServiceItemLine, ServiceHeader, '');
+        ServiceLine.Validate("Service Item Line No.", ServiceItemLine."Line No.");
+        ServiceLine.Validate(Quantity, Qty);
+        ServiceLine.Validate("Location Code", LocationCode);
+        ServiceLine.Validate("Requested Delivery Date", RequestedDeliveryDate);
+        ServiceLine.Modify(true);
     end;
 
     [ModalPageHandler]

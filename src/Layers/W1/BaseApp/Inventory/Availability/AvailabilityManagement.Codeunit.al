@@ -240,7 +240,14 @@ codeunit 99000889 AvailabilityManagement
     end;
 
     procedure UpdateSource(var OrderPromisingLine: Record "Order Promising Line")
+    var
+        IsHandled: Boolean;
     begin
+        IsHandled := false;
+        OnBeforeUpdateSource(OrderPromisingLine, IsHandled);
+        if IsHandled then
+            exit;
+
         if OrderPromisingLine.Find('-') then
             repeat
                 UpdateSourceLine(OrderPromisingLine);
@@ -385,6 +392,11 @@ codeunit 99000889 AvailabilityManagement
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterCalcCapableToPromise(OrderPromisingID: Code[20]);
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeUpdateSource(var OrderPromisingLine: Record "Order Promising Line"; var IsHandled: Boolean)
     begin
     end;
 }
