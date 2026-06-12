@@ -12,7 +12,9 @@ using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.Setup;
+#if not CLEAN29
 using Microsoft.Manufacturing.Subcontracting;
+#endif
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
 

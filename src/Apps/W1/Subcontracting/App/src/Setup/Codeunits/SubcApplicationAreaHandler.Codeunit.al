@@ -4,7 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
+#if not CLEAN29
 using Microsoft.Manufacturing.Setup;
+#endif
 using System.Environment.Configuration;
 
 codeunit 99001568 "Subc. Application Area Handler"
