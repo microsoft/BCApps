@@ -238,6 +238,8 @@ codeunit 139983 "Subc. Management Library"
     end;
 
     procedure CreateWIPLedgerEntry(var WIPLedgerEntry: Record "Subcontractor WIP Ledger Entry"; ItemNo: Code[20]; LocationCode: Code[10]; ProductionOrder: Record "Production Order"; ProdOrderLine: Record "Prod. Order Line"; ProdOrderRoutingLine: Record "Prod. Order Routing Line"; WorkCenterNo: Code[20]; QuantityBase: Decimal; InTransit: Boolean)
+    var
+        Item: Record Item;
     begin
         if WIPLedgerEntry.FindLast() then;
         WIPLedgerEntry.Init();
@@ -253,7 +255,9 @@ codeunit 139983 "Subc. Management Library"
         WIPLedgerEntry."Work Center No." := WorkCenterNo;
         WIPLedgerEntry."Quantity (Base)" := QuantityBase;
         WIPLedgerEntry."In Transit" := InTransit;
-        WIPLedgerEntry."Unit of Measure Code" := ProdOrderLine."Unit of Measure Code";
+        Item.SetLoadFields("Base Unit of Measure");
+        if Item.Get(ItemNo) then
+            WIPLedgerEntry."Base Unit of Measure" := Item."Base Unit of Measure";
         WIPLedgerEntry.Insert();
     end;
 }
