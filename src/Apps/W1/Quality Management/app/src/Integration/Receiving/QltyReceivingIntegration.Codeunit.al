@@ -172,14 +172,14 @@ codeunit 20411 "Qlty. Receiving Integration"
                     if QltyInspectionCreate.CreateInspectionWithMultiVariants(SalesLine, TempTrackingSpecification, DummyVariant, DummyVariant, false, QltyInspectionGenRule) then begin
                         HasInspection := true;
                         QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
-                        QltyBatchNotifHelper.TrackCreatedInspection(QltyInspectionHeader."No.");
+                        QltyBatchNotifHelper.TrackCreatedInspection(QltyInspectionHeader."No.", QltyInspectionCreate.IsLastInspectionNewlyCreated());
                     end;
                 until TempTrackingSpecification.Next() = 0
             else
                 if QltyInspectionCreate.CreateInspectionWithMultiVariants(SalesLine, DummyVariant, DummyVariant, DummyVariant, false, QltyInspectionGenRule) then begin
                     HasInspection := true;
                     QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
-                    QltyBatchNotifHelper.TrackCreatedInspection(QltyInspectionHeader."No.");
+                    QltyBatchNotifHelper.TrackCreatedInspection(QltyInspectionHeader."No.", QltyInspectionCreate.IsLastInspectionNewlyCreated());
                 end;
             QltyBatchNotifHelper.EndBatch();
         end;
@@ -304,7 +304,7 @@ codeunit 20411 "Qlty. Receiving Integration"
                 if QltyInspectionCreate.CreateInspectionWithMultiVariants(WarehouseReceiptLine, OptionalSourceLineVariant, WarehouseReceiptHeader, TempTrackingSpecification, false, TempQltyInspectionGenRule) then begin
                     HasInspection := true;
                     QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
-                    QltyBatchNotifHelper.TrackCreatedInspection(QltyInspectionHeader."No.");
+                    QltyBatchNotifHelper.TrackCreatedInspection(QltyInspectionHeader."No.", QltyInspectionCreate.IsLastInspectionNewlyCreated());
                 end;
             until TempTrackingSpecification.Next() = 0
         else begin
@@ -312,7 +312,7 @@ codeunit 20411 "Qlty. Receiving Integration"
             if QltyInspectionCreate.CreateInspectionWithMultiVariants(WarehouseReceiptLine, OptionalSourceLineVariant, WarehouseReceiptHeader, DummyVariant, false, TempQltyInspectionGenRule) then begin
                 HasInspection := true;
                 QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
-                QltyBatchNotifHelper.TrackCreatedInspection(QltyInspectionHeader."No.");
+                QltyBatchNotifHelper.TrackCreatedInspection(QltyInspectionHeader."No.", QltyInspectionCreate.IsLastInspectionNewlyCreated());
             end;
         end;
 
@@ -348,7 +348,7 @@ codeunit 20411 "Qlty. Receiving Integration"
                 if QltyInspectionCreate.CreateInspectionWithMultiVariants(WarehouseJournalLine, OptionalSourceRecordVariant, PostedWhseReceiptHeader, TempTrackingSpecification, false, TempQltyInspectionGenRule) then begin
                     HasInspection := true;
                     QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
-                    QltyBatchNotifHelper.TrackCreatedInspection(QltyInspectionHeader."No.");
+                    QltyBatchNotifHelper.TrackCreatedInspection(QltyInspectionHeader."No.", QltyInspectionCreate.IsLastInspectionNewlyCreated());
                 end;
             until TempTrackingSpecification.Next() = 0
         else begin
@@ -356,7 +356,7 @@ codeunit 20411 "Qlty. Receiving Integration"
             if QltyInspectionCreate.CreateInspectionWithMultiVariants(WarehouseJournalLine, OptionalSourceRecordVariant, PostedWhseReceiptHeader, DummyVariant, false, TempQltyInspectionGenRule) then begin
                 HasInspection := true;
                 QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
-                QltyBatchNotifHelper.TrackCreatedInspection(QltyInspectionHeader."No.");
+                QltyBatchNotifHelper.TrackCreatedInspection(QltyInspectionHeader."No.", QltyInspectionCreate.IsLastInspectionNewlyCreated());
             end;
         end;
 
@@ -382,7 +382,7 @@ codeunit 20411 "Qlty. Receiving Integration"
         HasInspection := QltyInspectionCreate.CreateInspectionWithMultiVariants(PurchaseLine, PurchaseHeader, TempTrackingSpecification, DummyVariant, false, TempQltyInspectionGenRule);
         if HasInspection then begin
             QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
-            QltyBatchNotifHelper.TrackCreatedInspection(QltyInspectionHeader."No.");
+            QltyBatchNotifHelper.TrackCreatedInspection(QltyInspectionHeader."No.", QltyInspectionCreate.IsLastInspectionNewlyCreated());
         end;
 
         OnAfterPurchaseAttemptCreateInspectionWithPurchaseLine(HasInspection, QltyInspectionHeader, PurchaseLine, PurchaseHeader, TempTrackingSpecification);
@@ -421,7 +421,7 @@ codeunit 20411 "Qlty. Receiving Integration"
 
                 if HasInspection then begin
                     QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
-                    QltyBatchNotifHelper.TrackCreatedInspection(QltyInspectionHeader."No.");
+                    QltyBatchNotifHelper.TrackCreatedInspection(QltyInspectionHeader."No.", QltyInspectionCreate.IsLastInspectionNewlyCreated());
                 end;
             until TempTrackingSpecification.Next() = 0
         else begin
@@ -434,7 +434,7 @@ codeunit 20411 "Qlty. Receiving Integration"
 
             if HasInspection then begin
                 QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
-                QltyBatchNotifHelper.TrackCreatedInspection(QltyInspectionHeader."No.");
+                QltyBatchNotifHelper.TrackCreatedInspection(QltyInspectionHeader."No.", QltyInspectionCreate.IsLastInspectionNewlyCreated());
             end;
         end;
         OnAfterTransferAttemptCreateInspectionWithInboundTransferLine(TransTransferLine, OptionalTransferReceiptHeader, OptionalDirectTransHeader, TempTrackingSpecification, QltyInspectionHeader, HasInspection);

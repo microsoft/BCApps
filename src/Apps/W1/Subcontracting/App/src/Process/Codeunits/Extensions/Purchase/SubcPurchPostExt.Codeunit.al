@@ -12,11 +12,28 @@ using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Posting;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Manufacturing.Capacity;
+using Microsoft.Manufacturing.Document;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Posting;
 codeunit 99001535 "Subc. Purch. Post Ext"
 {
+    var
+        CancelNotSupportedErr: Label 'You cannot cancel or correct posted purchase invoice %1 because it contains item charges assigned to a subcontracting order receipt.\Create a purchase credit memo manually and assign the item charge to the posted subcontracting receipt line.', Comment = '%1 = Posted Purchase Invoice No.';
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Correct Posted Purch. Invoice", OnAfterTestCorrectInvoiceIsAllowed, '', false, false)]
+    local procedure BlockCancelIfHasSubcontractingItemChargeValueEntry(var PurchInvHeader: Record "Purch. Inv. Header"; Cancelling: Boolean)
+    var
+        ValueEntry: Record "Value Entry";
+    begin
+        ValueEntry.SetRange("Document Type", ValueEntry."Document Type"::"Purchase Invoice");
+        ValueEntry.SetRange("Document No.", PurchInvHeader."No.");
+        ValueEntry.SetFilter("Item Charge No.", '<>%1', '');
+        ValueEntry.SetFilter("Capacity Ledger Entry No.", '<>%1', 0);
+        if not ValueEntry.IsEmpty() then
+            Error(CancelNotSupportedErr, PurchInvHeader."No.");
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnBeforeItemJnlPostLine, '', false, false)]
     local procedure "Purch.-Post_OnBeforeItemJnlPostLine"(var ItemJournalLine: Record "Item Journal Line"; TempItemChargeAssignmentPurch: Record "Item Charge Assignment (Purch)" temporary)
     begin
@@ -74,6 +91,15 @@ codeunit 99001535 "Subc. Purch. Post Ext"
         Item: Record Item;
     begin
         ItemJournalLine.Subcontracting := true;
+        ItemJournalLine."Order Type" := "Inventory Order Type"::Production;
+        ItemJournalLine."Order No." := PurchRcptLine."Prod. Order No.";
+        ItemJournalLine."Order Line No." := PurchRcptLine."Prod. Order Line No.";
+        Item.SetLoadFields("Inventory Posting Group");
+        Item.Get(ItemJournalLine."Item No.");
+        ItemJournalLine."Inventory Posting Group" := Item."Inventory Posting Group";
+        ItemJournalLine."Subc. Item Charge Assign." := true;
+        if PurchRcptLineIsLastOperation(PurchRcptLine) then
+            exit;
         ItemJournalLine."Entry Type" := "Item Ledger Entry Type"::Output;
         ItemJournalLine.Type := "Capacity Type Journal"::"Work Center";
         ItemJournalLine."No." := PurchRcptLine."Subc. Work Center No.";
@@ -82,13 +108,18 @@ codeunit 99001535 "Subc. Purch. Post Ext"
         ItemJournalLine."Operation No." := PurchRcptLine."Operation No.";
         ItemJournalLine."Work Center No." := PurchRcptLine."Work Center No.";
         ItemJournalLine."Unit Cost Calculation" := ItemJournalLine."Unit Cost Calculation"::Units;
-        ItemJournalLine."Order Type" := "Inventory Order Type"::Production;
-        ItemJournalLine."Order No." := PurchRcptLine."Prod. Order No.";
-        ItemJournalLine."Order Line No." := PurchRcptLine."Prod. Order Line No.";
-        Item.SetLoadFields("Inventory Posting Group");
-        Item.Get(ItemJournalLine."Item No.");
-        ItemJournalLine."Inventory Posting Group" := Item."Inventory Posting Group";
-        ItemJournalLine."Subc. Item Charge Assign." := true;
+    end;
+
+    local procedure PurchRcptLineIsLastOperation(PurchRcptLine: Record "Purch. Rcpt. Line"): Boolean
+    var
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+    begin
+        ProdOrderRoutingLine.SetLoadFields("Next Operation No.");
+        if ProdOrderRoutingLine.Get("Production Order Status"::Released, PurchRcptLine."Prod. Order No.", PurchRcptLine."Routing Reference No.", PurchRcptLine."Routing No.", PurchRcptLine."Operation No.") then
+            exit(ProdOrderRoutingLine."Next Operation No." = '');
+        if ProdOrderRoutingLine.Get("Production Order Status"::Finished, PurchRcptLine."Prod. Order No.", PurchRcptLine."Routing Reference No.", PurchRcptLine."Routing No.", PurchRcptLine."Operation No.") then
+            exit(ProdOrderRoutingLine."Next Operation No." = '');
+        exit(false);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnPostItemJnlLineOnAfterPostItemJnlLineJobConsumption, '', false, false)]

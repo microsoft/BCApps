@@ -400,7 +400,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
                                 if MadeInspection then begin
                                     QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
                                     ListOfInspectionIds.Add(QltyInspectionHeader.RecordId());
-                                    QltyBatchNotifHelper.TrackCreatedInspection(QltyInspectionHeader."No.");
+                                    QltyBatchNotifHelper.TrackCreatedInspection(QltyInspectionHeader."No.", QltyInspectionCreate.IsLastInspectionNewlyCreated());
                                     CreatedAtLeastOneInspectionForRoutingLine := true;
                                 end;
                             until ReservationEntry.Next() = 0;
@@ -410,7 +410,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
                             if MadeInspection then begin
                                 QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
                                 ListOfInspectionIds.Add(QltyInspectionHeader.RecordId());
-                                QltyBatchNotifHelper.TrackCreatedInspection(QltyInspectionHeader."No.");
+                                QltyBatchNotifHelper.TrackCreatedInspection(QltyInspectionHeader."No.", QltyInspectionCreate.IsLastInspectionNewlyCreated());
                                 CreatedAtLeastOneInspectionForRoutingLine := true;
                             end;
                         end;
@@ -431,7 +431,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
                             if MadeInspection then begin
                                 QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
                                 ListOfInspectionIds.Add(QltyInspectionHeader.RecordId());
-                                QltyBatchNotifHelper.TrackCreatedInspection(QltyInspectionHeader."No.");
+                                QltyBatchNotifHelper.TrackCreatedInspection(QltyInspectionHeader."No.", QltyInspectionCreate.IsLastInspectionNewlyCreated());
                                 CreatedAtLeastOneInspectionForOrderLine := true;
                             end;
 
@@ -441,7 +441,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
                         if MadeInspection then begin
                             QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
                             ListOfInspectionIds.Add(QltyInspectionHeader.RecordId());
-                            QltyBatchNotifHelper.TrackCreatedInspection(QltyInspectionHeader."No.");
+                            QltyBatchNotifHelper.TrackCreatedInspection(QltyInspectionHeader."No.", QltyInspectionCreate.IsLastInspectionNewlyCreated());
                             CreatedAtLeastOneInspectionForOrderLine := true;
                         end;
                     end;
@@ -452,7 +452,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
             if MadeInspection then begin
                 QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
                 ListOfInspectionIds.Add(QltyInspectionHeader.RecordId());
-                QltyBatchNotifHelper.TrackCreatedInspection(QltyInspectionHeader."No.");
+                QltyBatchNotifHelper.TrackCreatedInspection(QltyInspectionHeader."No.", QltyInspectionCreate.IsLastInspectionNewlyCreated());
                 CreatedInspectionForProdOrder := MadeInspection;
             end;
         end;
@@ -529,7 +529,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
     /// <param name="ProdOrderRoutingLine">Typically the 'main' record the inspections are associated against.</param>
     /// <param name="ItemLedgerEntry">The item ledger entry related to this sequence of events</param>
     /// <param name="ProdOrderLine">The production order line involved in this sequence of events</param>
-    /// <param name="ItemJournalLine">The item journal line record involved in this transaction.  Important: this record may no longer exist, and should not be altered.</param>
+    /// <param name="ItemJournalLine">The item journal line record involved in this transaction. Important: this record may no longer exist, and should not be altered.</param>
     /// <param name="IsHandled">Set to true to replace the default behavior</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeProductionAttemptCreatePostAutomaticInspection(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var ItemLedgerEntry: Record "Item Ledger Entry"; var ProdOrderLine: Record "Prod. Order Line"; var ItemJournalLine: Record "Item Journal Line"; var IsHandled: Boolean)
@@ -542,7 +542,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
     /// <param name="ProdOrderRoutingLine">Typically the 'main' record the inspections are associated against.</param>
     /// <param name="ItemLedgerEntry">The item ledger entry related to this sequence of events</param>
     /// <param name="ProdOrderLine">The production order line involved in this sequence of events</param>
-    /// <param name="ItemJournalLine">The item journal line record involved in this transaction.  Important: this record may no longer exist, and should not be altered.</param>
+    /// <param name="ItemJournalLine">The item journal line record involved in this transaction. Important: this record may no longer exist, and should not be altered.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterProductionAttemptCreateAutomaticInspection(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var ItemLedgerEntry: Record "Item Ledger Entry"; var ProdOrderLine: Record "Prod. Order Line"; var ItemJournalLine: Record "Item Journal Line")
     begin
@@ -578,7 +578,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
     /// </summary>
     /// <param name="ItemLedgerEntry">The item ledger entry related to this sequence of events</param>
     /// <param name="ProdOrderLine">The production order line involved in this sequence of events</param>
-    /// <param name="ItemJournalLine">The item journal line record involved in this transaction.  Important: this record may no longer exist, and should not be altered.</param>
+    /// <param name="ItemJournalLine">The item journal line record involved in this transaction. Important: this record may no longer exist, and should not be altered.</param>
     /// <param name="IsHandled">Set to true to replace the default behavior</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeProductionHandleOnAfterPostOutput(var ItemLedgerEntry: Record "Item Ledger Entry"; var ProdOrderLine: Record "Prod. Order Line"; var ItemJournalLine: Record "Item Journal Line"; var IsHandled: Boolean)
