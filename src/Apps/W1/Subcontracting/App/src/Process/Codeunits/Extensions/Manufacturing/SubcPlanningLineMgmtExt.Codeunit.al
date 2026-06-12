@@ -28,6 +28,12 @@ codeunit 99001518 "Subc. Planning Line Mgmt Ext."
         SubcPriceManagement.ApplySubcontractorPricingToPlanningRouting(ReqLine, RoutingLine, PlanningRoutingLine);
     end;
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Mfg. Planning Line Management", OnCreatePlanningComponentFromProdBOMOnBeforeGetPlanningParameters, '', false, false)]
+    local procedure TransferComponentSupplyMethod_OnCreatePlanningComponentFromProdBOMOnBeforeGetPlanningParameters(var PlanningComponent: Record "Planning Component"; ProductionBOMLine: Record "Production BOM Line")
+    begin
+        PlanningComponent."Component Supply Method" := ProductionBOMLine."Component Supply Method";
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Mfg. Planning Line Management", OnTransferBOMOnBeforeUpdatePlanningComp, '', false, false)]
     local procedure IgnorePurchaseComponentsFromSubcontracting_OnTransferBOMOnBeforeUpdatePlanningComp(var ProductionBOMLine: Record "Production BOM Line"; var UpdateCondition: Boolean; var IsHandled: Boolean; var ReqQty: Decimal)
     begin
