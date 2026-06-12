@@ -80,7 +80,7 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// This will evaluate expressions!
     /// </summary>
     /// <param name="QltyTest"></param>
-    /// <param name="OptionalContextQltyInspectionHeader">Optional. Leave empty if you do not want search/replace fields.  Supply an inspection context if you want the lookup table filter to have square bracket [FIELDNAME] replacements </param>
+    /// <param name="OptionalContextQltyInspectionHeader">Optional. Leave empty if you do not want search/replace fields. Supply an inspection context if you want the lookup table filter to have square bracket [FIELDNAME] replacements </param>
     /// <param name="TempBufferQltyTestLookupValue"></param>
     internal procedure GetRecordsForTableField(var QltyTest: Record "Qlty. Test"; var OptionalContextQltyInspectionHeader: Record "Qlty. Inspection Header"; var TempBufferQltyTestLookupValue: Record "Qlty. Test Lookup Value" temporary)
     var
