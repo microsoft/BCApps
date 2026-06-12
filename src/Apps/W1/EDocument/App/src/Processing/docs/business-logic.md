@@ -53,9 +53,9 @@ The flow:
 1. During Prepare Draft, `PreparePurchaseEDocDraft` calls `IPurchaseOrderProvider.GetPurchaseOrder()` to look up a PO by order number from the e-document header.
 2. If found, `EDocPOMatching.MatchPOLinesToEDocumentLine()` matches e-document purchase lines to PO lines.
 3. After matching, `CalculatePOMatchWarnings()` generates warnings for over-receipt, under-receipt, quantity mismatches, etc.
-4. During Finish Draft, `SuggestReceiptsForMatchedOrderLines()` proposes receipt lines, and `TransferPOMatchesFromEDocumentToInvoice()` writes matches to the created purchase invoice.
+4. During Finish Draft, `SuggestReceiptsForMatchedOrderLines()` proposes receipt lines, and `TransferPOMatchesFromEDocumentToInvoice()` transfers the matches onto the created purchase invoice as BaseApp `"Matched Order Line"` (table 5817) records via `"Matched Order Line Mgmt.".CreateMatchedOrderLine()`.
 
-**Key data:** Matches are stored in `"E-Doc. Purchase Line PO Match"` (table 6114) -- a junction table linking e-document lines to PO lines and receipt lines via SystemIds. Warnings go in `"E-Doc. PO Match Warning"` (table 6115). Receipt behavior is configurable per vendor in `"E-Doc. PO Matching Setup"` (Always Ask / Always Receive / Never Receive).
+**Key data:** Matches are staged in `"E-Doc. Purchase Line PO Match"` (table 6114) -- a junction table linking e-document lines to PO lines and receipt lines via SystemIds -- and transferred to BaseApp's `"Matched Order Line"` table when the invoice is created. Warnings go in `"E-Doc. PO Match Warning"` (table 6115). Receipt-on-invoice behavior is driven by the BaseApp vendor field `"Receipt on Invoice Policy"` (Never / Always), which is inherited onto the purchase order header and lines and can be overridden per order line; matching a not-yet-received line is allowed and only surfaced as a warning.
 
 **Main codeunit:** `EDocPOMatching.Codeunit.al` (codeunit 6196) in `Import/Purchase/PurchaseOrderMatching/`.
 

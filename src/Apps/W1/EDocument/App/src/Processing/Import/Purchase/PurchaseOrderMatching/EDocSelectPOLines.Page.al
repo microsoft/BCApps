@@ -37,7 +37,12 @@ page 6116 "E-Doc. Select PO Lines"
                     Caption = 'Quantity';
                     ToolTip = 'Specifies the quantity of the e-document line.';
                 }
-
+                field(EDocumentPurchaseLineSubTotal; EDocumentPurchaseLine."Sub Total")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Amount';
+                    ToolTip = 'Specified the amount of the e-document line.';
+                }
             }
             repeater(Lines)
             {
@@ -83,6 +88,17 @@ page 6116 "E-Doc. Select PO Lines"
                     ApplicationArea = All;
                     ToolTip = 'Specifies the quantity that has already been invoiced.';
                     AutoFormatType = 0;
+                }
+                field("Amount"; Rec.Amount)
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the amount on the purchase order line.';
+                    // AutoFormatType?
+                }
+                field("Expected Receipt Date"; Rec."Expected Receipt Date")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the expected receipt date.';
                 }
             }
         }

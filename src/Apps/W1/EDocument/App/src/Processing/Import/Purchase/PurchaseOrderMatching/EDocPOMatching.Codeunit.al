@@ -6,6 +6,7 @@ namespace Microsoft.eServices.EDocument.Processing.Import.Purchase;
 
 using Microsoft.eServices.EDocument;
 using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Tracking;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Vendor;
@@ -431,13 +432,10 @@ codeunit 6196 "E-Doc. PO Matching"
         PurchaseLine: Record "Purchase Line";
         Vendor: Record Vendor;
         EDocPurchaseLinePOMatch: Record "E-Doc. Purchase Line PO Match";
-        TempMatchWarnings: Record "E-Doc PO Match Warning" temporary;
-        MatchesToMultiplePOLinesNotSupportedErr: Label 'Matching an e-document line to multiple purchase order lines is not currently supported.';
         NotLinkedToVendorErr: Label 'The selected purchase order line is not linked to the same vendor as the e-document line.';
         AlreadyMatchedErr: Label 'A selected purchase order line is already matched to another e-document line. E-Document: %1, Purchase document: %2 %3.', Comment = '%1 - E-Document No., %2 - Purchase Document Type, %3 - Purchase Document No.';
         OrderLineAndEDocFromDifferentVendorsErr: Label 'All selected purchase order lines must belong to orders for the same vendor as the e-document line.';
         OrderLinesMustBeOfSameTypeAndNoErr: Label 'All selected purchase order lines must be of the same type and number.';
-        NotYetReceivedErr: Label 'The selected purchase order lines are not yet received with the quantity of the invoice. You must first receive them before matching them.';
         OrderLinesMustHaveSameUoMErr: Label 'All selected purchase order lines must have the same unit of measure.';
         MatchedPOLineType: Enum "Purchase Line Type";
         MatchedPOLineVendorNo, MatchedPOLineTypeNo, MatchedUnitOfMeasure : Code[20];
@@ -445,8 +443,6 @@ codeunit 6196 "E-Doc. PO Matching"
     begin
         if SelectedPOLines.IsEmpty() then
             exit;
-        if SelectedPOLines.Count() > 1 then
-            Error(MatchesToMultiplePOLinesNotSupportedErr);
         RemoveAllMatchesForEDocumentLine(EDocumentPurchaseLine);
         FirstOfLinesBeingMatched := true;
         MatchedPOLineVendorNo := '';
@@ -498,10 +494,6 @@ codeunit 6196 "E-Doc. PO Matching"
         EDocumentPurchaseLine."[BC] Purchase Type No." := MatchedPOLineTypeNo;
         EDocumentPurchaseLine."[BC] Unit of Measure" := MatchedUnitOfMeasure;
         EDocumentPurchaseLine.Modify();
-        AppendPOMatchWarnings(EDocumentPurchaseLine, TempMatchWarnings);
-        TempMatchWarnings.SetRange("Warning Type", "E-Doc PO Match Warning"::ExceedsInvoiceableQty);
-        if (not TempMatchWarnings.IsEmpty) and (not CanMatchInvoiceLineToPOLineWithoutReceipt(EDocumentPurchaseLine, PurchaseLine)) then
-            Error(NotYetReceivedErr);
     end;
 
     /// <summary>
@@ -519,13 +511,10 @@ codeunit 6196 "E-Doc. PO Matching"
         NullGuid: Guid;
         ReceiptLineNotMatchedErr: Label 'A selected receipt line is not matched to any of the purchase order lines matched to the e-document line.';
         ReceiptLinesDontCoverErr: Label 'The selected receipt lines do not cover the full quantity of the e-document line.';
-        MatchesToMultipleReceiptLinesNotSupportedErr: Label 'Matching an e-document line to multiple receipt lines is not currently supported.';
         QuantityCovered: Decimal;
     begin
         if SelectedReceiptLines.IsEmpty() then
             exit;
-        if SelectedReceiptLines.Count() > 1 then
-            Error(MatchesToMultipleReceiptLinesNotSupportedErr);
 
         // Remove existing receipt line matches
         EDocPurchaseLinePOMatch.SetRange("E-Doc. Purchase Line SystemId", EDocumentPurchaseLine.SystemId);
@@ -549,66 +538,6 @@ codeunit 6196 "E-Doc. PO Matching"
         until SelectedReceiptLines.Next() = 0;
         if QuantityCovered < EDocumentPurchaseLine.Quantity then
             Error(ReceiptLinesDontCoverErr);
-    end;
-
-    procedure ConfigureDefaultPOMatchingSettings()
-    var
-        DefaultSetup: Record "E-Doc. PO Matching Setup";
-        DefaultConfiguration: Enum "E-Doc. PO M. Configuration";
-        VendorNos: List of [Code[20]];
-    begin
-        DefaultSetup."PO Matching Config. Receipt" := Enum::"E-Doc. PO M. Config. Receipt"::"Always ask";
-        DefaultSetup."Receive G/L Account Lines" := false;
-        DefaultConfiguration := Enum::"E-Doc. PO M. Configuration"::"Always ask";
-        ConfigurePOMatchingSettings(DefaultSetup, DefaultConfiguration, VendorNos);
-    end;
-
-    /// <summary>
-    /// Stores the configuration selected by the user.
-    /// </summary>
-    /// <param name="DesiredGlobalSetup">The global setup, applicable if no vendor specific override has been configured.</param>
-    /// <param name="Configuration">The configuration selected by the user.</param>
-    /// <param name="VendorNos">If the configuration is vendor specific, this will contain the vendor numbers affected by such.</param>
-    procedure ConfigurePOMatchingSettings(DesiredGlobalSetup: Record "E-Doc. PO Matching Setup"; Configuration: Enum "E-Doc. PO M. Configuration"; VendorNos: List of [Code[20]])
-    var
-        GlobalSetup: Record "E-Doc. PO Matching Setup";
-        EDocPOMatchingSetup: Record "E-Doc. PO Matching Setup";
-        VendorNo: Code[20];
-    begin
-        // We delete all existing settings and recreate them based on the desired global setup, configuration and vendor list
-        EDocPOMatchingSetup.DeleteAll();
-        // We first prepare the global setup record, used as fallback if there's no vendor-specific setting
-        EDocPOMatchingSetup.Copy(DesiredGlobalSetup);
-        Clear(EDocPOMatchingSetup.Id);
-        EDocPOMatchingSetup."Vendor No." := '';
-        case Configuration of
-            Configuration::"Always ask":
-                EDocPOMatchingSetup."PO Matching Config. Receipt" := "E-Doc. PO M. Config. Receipt"::"Always ask";
-            Configuration::"Never receive at posting":
-                EDocPOMatchingSetup."PO Matching Config. Receipt" := "E-Doc. PO M. Config. Receipt"::"Never receive at posting";
-            Configuration::"Always receive at posting":
-                EDocPOMatchingSetup."PO Matching Config. Receipt" := "E-Doc. PO M. Config. Receipt"::"Always receive at posting";
-            Configuration::"Receive at posting except for certain vendors": // The default for a vendor that is not specified is to always receive at posting
-                EDocPOMatchingSetup."PO Matching Config. Receipt" := "E-Doc. PO M. Config. Receipt"::"Always receive at posting";
-            Configuration::"Receive at posting only for certain vendors": // The default for a vendor that is not specified is to always ask
-                EDocPOMatchingSetup."PO Matching Config. Receipt" := "E-Doc. PO M. Config. Receipt"::"Always ask";
-        end;
-        EDocPOMatchingSetup.Insert();
-        // Now we create vendor-specific settings, if any
-        // By default, we copy the global setup values to each vendor-specific setting, and then we adjust only the receipt configuration
-        if not (Configuration in [Configuration::"Receive at posting except for certain vendors", Configuration::"Receive at posting only for certain vendors"]) then
-            exit;
-        GlobalSetup.Copy(EDocPOMatchingSetup);
-        foreach VendorNo in VendorNos do begin
-            EDocPOMatchingSetup.Copy(GlobalSetup);
-            Clear(EDocPOMatchingSetup.Id);
-            EDocPOMatchingSetup."Vendor No." := VendorNo;
-            if Configuration = Configuration::"Receive at posting only for certain vendors" then
-                EDocPOMatchingSetup."PO Matching Config. Receipt" := "E-Doc. PO M. Config. Receipt"::"Always receive at posting"
-            else
-                EDocPOMatchingSetup."PO Matching Config. Receipt" := "E-Doc. PO M. Config. Receipt"::"Never receive at posting";
-            EDocPOMatchingSetup.Insert();
-        end;
     end;
 
     /// <summary>
@@ -688,21 +617,54 @@ codeunit 6196 "E-Doc. PO Matching"
     procedure TransferPOMatchesFromEDocumentToInvoice(EDocument: Record "E-Document")
     var
         EDocumentPurchaseLine: Record "E-Document Purchase Line";
-        PurchaseLine: Record "Purchase Line";
-        TempPurchaseReceiptLine: Record "Purch. Rcpt. Line" temporary;
+        EDocPurchaseLinePOMatch: Record "E-Doc. Purchase Line PO Match";
+        InvoicePurchaseLine: Record "Purchase Line";
+        OrderPurchaseLine: Record "Purchase Line";
+        PurchaseReceiptLine: Record "Purch. Rcpt. Line";
+        MatchedOrderLineMgmt: Codeunit "Matched Order Line Mgmt.";
+        QtyToInvoice, QtyToInvoiceBase, EDocLineBaseQty : Decimal;
+        HasReceiptMatch: Boolean;
+        NullGuid: Guid;
     begin
         EDocumentPurchaseLine.SetRange("E-Document Entry No.", EDocument."Entry No");
         if EDocumentPurchaseLine.FindSet() then
             repeat
-                LoadReceiptLinesMatchedToEDocumentLine(EDocumentPurchaseLine, TempPurchaseReceiptLine);
-                if not TempPurchaseReceiptLine.FindFirst() then // We only support a single receipt line match in BaseApp
-                    continue;
-                PurchaseLine := EDocumentPurchaseLine.GetLinkedPurchaseLine();
-                if IsNullGuid(PurchaseLine.SystemId) then
-                    continue;
-                PurchaseLine."Receipt No." := TempPurchaseReceiptLine."Document No.";
-                PurchaseLine."Receipt Line No." := TempPurchaseReceiptLine."Line No.";
-                PurchaseLine.Modify();
+                InvoicePurchaseLine := EDocumentPurchaseLine.GetLinkedPurchaseLine();
+                if not IsNullGuid(InvoicePurchaseLine.SystemId) then begin
+                    EDocPurchaseLinePOMatch.SetRange("E-Doc. Purchase Line SystemId", EDocumentPurchaseLine.SystemId);
+
+                    EDocPurchaseLinePOMatch.SetFilter("Receipt Line SystemId", '<>%1', NullGuid);
+                    HasReceiptMatch := not EDocPurchaseLinePOMatch.IsEmpty();
+                    EDocPurchaseLinePOMatch.SetRange("Receipt Line SystemId");
+
+                    if not GetEDocumentLineQuantityInBaseUoM(EDocumentPurchaseLine, EDocLineBaseQty) then
+                        EDocLineBaseQty := EDocumentPurchaseLine.Quantity;
+
+                    if EDocPurchaseLinePOMatch.FindSet() then
+                        repeat
+                            if OrderPurchaseLine.GetBySystemId(EDocPurchaseLinePOMatch."Purchase Line SystemId") then
+                                if not IsNullGuid(EDocPurchaseLinePOMatch."Receipt Line SystemId") then begin
+                                    // Matched to a posted receipt line: the quantity comes from that receipt line.
+                                    if PurchaseReceiptLine.GetBySystemId(EDocPurchaseLinePOMatch."Receipt Line SystemId") then begin
+                                        QtyToInvoice := PurchaseReceiptLine."Qty. Rcd. Not Invoiced";
+                                        QtyToInvoiceBase := OrderPurchaseLine.CalcBaseQty(QtyToInvoice, OrderPurchaseLine.FieldCaption("Qty. to Invoice"), OrderPurchaseLine.FieldCaption("Qty. to Invoice (Base)"));
+                                        MatchedOrderLineMgmt.CreateMatchedOrderLine(InvoicePurchaseLine.SystemId, OrderPurchaseLine.SystemId, PurchaseReceiptLine.SystemId, QtyToInvoice, QtyToInvoiceBase, false);
+                                    end;
+                                end else begin
+                                    // Order-only row. If the order line is already received we mirror BaseApp's remaining quantity;
+                                    // otherwise this is a receive-on-invoice row and the quantity to receive is what we are invoicing.
+                                    // TODO: when a single draft line is matched to several not-yet-received order lines, each row currently carries the full invoiced quantity.
+                                    if HasReceiptMatch or (OrderPurchaseLine."Qty. Rcd. Not Invoiced" <> 0) then begin
+                                        QtyToInvoice := OrderPurchaseLine."Qty. Rcd. Not Invoiced";
+                                        QtyToInvoiceBase := OrderPurchaseLine."Qty. Rcd. Not Invoiced (Base)";
+                                    end else begin
+                                        QtyToInvoice := EDocumentPurchaseLine.Quantity;
+                                        QtyToInvoiceBase := EDocLineBaseQty;
+                                    end;
+                                    MatchedOrderLineMgmt.CreateMatchedOrderLine(InvoicePurchaseLine.SystemId, OrderPurchaseLine.SystemId, NullGuid, QtyToInvoice, QtyToInvoiceBase, OrderPurchaseLine."Receipt on Invoice");
+                                end;
+                        until EDocPurchaseLinePOMatch.Next() = 0;
+                end;
                 RemoveAllMatchesForEDocumentLine(EDocumentPurchaseLine);
             until EDocumentPurchaseLine.Next() = 0;
     end;
@@ -714,139 +676,63 @@ codeunit 6196 "E-Doc. PO Matching"
     procedure TransferPOMatchesFromInvoiceToEDocument(PurchaseHeader: Record "Purchase Header")
     var
         EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        MatchedOrderLine: Record "Matched Order Line";
         PurchaseInvoiceLine: Record "Purchase Line";
         PurchaseOrderLine: Record "Purchase Line";
         PurchaseReceiptLine: Record "Purch. Rcpt. Line";
-        TempPOLineToMatch: Record "Purchase Line" temporary;
-        TempReceiptLineToMatch: Record "Purch. Rcpt. Line" temporary;
+        TempPOLinesToMatch: Record "Purchase Line" temporary;
+        TempReceiptLinesToMatch: Record "Purch. Rcpt. Line" temporary;
     begin
+        // TODO: consider also the old "Receipt No." for this restoring
         PurchaseInvoiceLine.SetRange("Document Type", PurchaseHeader."Document Type");
         PurchaseInvoiceLine.SetRange("Document No.", PurchaseHeader."No.");
-        PurchaseInvoiceLine.SetFilter("Receipt No.", '<>%1', '');
-        PurchaseInvoiceLine.SetFilter("Receipt Line No.", '<>%1', 0);
-        if PurchaseInvoiceLine.IsEmpty() then
+        if not PurchaseInvoiceLine.FindSet() then
             exit;
-        PurchaseInvoiceLine.FindSet();
         repeat
-            if not EDocumentPurchaseLine.GetFromLinkedPurchaseLine(PurchaseInvoiceLine) then
-                continue;
-            if not PurchaseReceiptLine.Get(PurchaseInvoiceLine."Receipt No.", PurchaseInvoiceLine."Receipt Line No.") then
-                continue;
-            if not PurchaseOrderLine.Get(Enum::"Purchase Document Type"::Order, PurchaseReceiptLine."Order No.", PurchaseReceiptLine."Order Line No.") then
-                continue;
-            TempPOLineToMatch.DeleteAll();
-            TempPOLineToMatch.Copy(PurchaseOrderLine);
-            TempPOLineToMatch.Insert();
-            MatchPOLinesToEDocumentLine(TempPOLineToMatch, EDocumentPurchaseLine);
+            if EDocumentPurchaseLine.GetFromLinkedPurchaseLine(PurchaseInvoiceLine) then begin
+                MatchedOrderLine.SetRange("Document Line SystemId", PurchaseInvoiceLine.SystemId);
+                if not MatchedOrderLine.IsEmpty() then begin
+                    TempPOLinesToMatch.Reset();
+                    TempPOLinesToMatch.DeleteAll();
+                    TempReceiptLinesToMatch.Reset();
+                    TempReceiptLinesToMatch.DeleteAll();
 
-            TempReceiptLineToMatch.DeleteAll();
-            TempReceiptLineToMatch.Copy(PurchaseReceiptLine);
-            TempReceiptLineToMatch.Insert();
-            MatchReceiptLinesToEDocumentLine(TempReceiptLineToMatch, EDocumentPurchaseLine);
+                    MatchedOrderLine.FindSet();
+                    repeat
+                        if PurchaseOrderLine.GetBySystemId(MatchedOrderLine."Matched Order Line SystemId") then
+                            if not TempPOLinesToMatch.Get(PurchaseOrderLine."Document Type", PurchaseOrderLine."Document No.", PurchaseOrderLine."Line No.") then begin
+                                TempPOLinesToMatch := PurchaseOrderLine;
+                                TempPOLinesToMatch.Insert();
+                            end;
+                        if not IsNullGuid(MatchedOrderLine."Matched Rcpt./Shpt. Line SysId") then
+                            if PurchaseReceiptLine.GetBySystemId(MatchedOrderLine."Matched Rcpt./Shpt. Line SysId") then
+                                if not TempReceiptLinesToMatch.Get(PurchaseReceiptLine."Document No.", PurchaseReceiptLine."Line No.") then begin
+                                    TempReceiptLinesToMatch := PurchaseReceiptLine;
+                                    TempReceiptLinesToMatch.Insert();
+                                end;
+                    until MatchedOrderLine.Next() = 0;
+
+                    if not TempPOLinesToMatch.IsEmpty() then
+                        MatchPOLinesToEDocumentLine(TempPOLinesToMatch, EDocumentPurchaseLine);
+                    if not TempReceiptLinesToMatch.IsEmpty() then
+                        MatchReceiptLinesToEDocumentLine(TempReceiptLinesToMatch, EDocumentPurchaseLine);
+                end;
+            end;
         until PurchaseInvoiceLine.Next() = 0;
-        PurchaseInvoiceLine.SetRange("Receipt No.");
-        PurchaseInvoiceLine.SetRange("Receipt Line No.");
-        PurchaseInvoiceLine.ModifyAll("Receipt No.", '');
-        PurchaseInvoiceLine.ModifyAll("Receipt Line No.", 0);
     end;
 
     /// <summary>
-    /// Loads the settings for purchase order matching.
-    /// </summary>
-    /// <param name="GlobalSetup">The global setup, applicable if no vendor specific override has been configured.</param>
-    /// <param name="Configuration">The configuration selected by the user.</param>
-    /// <param name="VendorNos">If the configuration is vendor specific, this will contain the vendor numbers affected by such.</param>
-    procedure GetPOMatchingSettings(var GlobalSetup: Record "E-Doc. PO Matching Setup"; var Configuration: Enum "E-Doc. PO M. Configuration"; var VendorNos: List of [Code[20]])
-    var
-        EDocPOMatchingSetup: Record "E-Doc. PO Matching Setup";
-    begin
-        GlobalSetup.GetSetup();
-        Configuration := Enum::"E-Doc. PO M. Configuration".FromInteger(GlobalSetup."PO Matching Config. Receipt".AsInteger());
-        EDocPOMatchingSetup.SetFilter("Vendor No.", '<> %1', '');
-        if EDocPOMatchingSetup.FindSet() then begin
-            // If there are vendor-specific settings, we need to adjust the configuration value
-            if Configuration = Configuration::"Always ask" then // Always ask is the default for non specified vendors when "Receive at posting only for certain vendors" is selected
-                Configuration := Configuration::"Receive at posting only for certain vendors";
-            if Configuration = Configuration::"Always receive at posting" then // Always receive at posting is the default for non specified vendors when "Receive at posting except for certain vendors" is selected
-                Configuration := Configuration::"Receive at posting except for certain vendors";
-            repeat
-                VendorNos.Add(EDocPOMatchingSetup."Vendor No.");
-            until EDocPOMatchingSetup.Next() = 0;
-        end;
-    end;
-
-    /// <summary>
-    /// Verifies that all E-Document lines that have a Not Yet Received warning can be validly matched without receipt.
-    /// </summary>
-    /// <param name="EDocumentPurchaseHeader"></param>
-    /// <returns></returns>
-    procedure VerifyEDocumentMatchedLinesAreValidMatches(EDocumentPurchaseHeader: Record "E-Document Purchase Header"): Boolean
-    var
-        EDocumentPurchaseLine: Record "E-Document Purchase Line";
-        TempPurchaseLine: Record "Purchase Line" temporary;
-        TempPOMatchWarnings: Record "E-Doc PO Match Warning" temporary;
-    begin
-        CalculatePOMatchWarnings(EDocumentPurchaseHeader, TempPOMatchWarnings);
-        TempPOMatchWarnings.SetRange("Warning Type", "E-Doc PO Match Warning"::ExceedsInvoiceableQty);
-        // For each line that exceeds invoiceable qty, we check if it can be matched without receipt
-        if TempPOMatchWarnings.FindSet() then
-            repeat
-                EDocumentPurchaseLine.GetBySystemId(TempPOMatchWarnings."E-Doc. Purchase Line SystemId");
-                LoadPOLinesMatchedToEDocumentLine(EDocumentPurchaseLine, TempPurchaseLine);
-                if not TempPurchaseLine.FindFirst() then
-                    continue;
-                if not CanMatchInvoiceLineToPOLineWithoutReceipt(EDocumentPurchaseLine, TempPurchaseLine) then
-                    exit(false);
-            until TempPOMatchWarnings.Next() = 0;
-        exit(true);
-    end;
-
-    /// <summary>
-    /// Returns whether an invoice line can be matched against a PO line provided that the PO line has not yet been received. If it can be matched it does not imply that we will not warn the user, but if it cannot be matched we will warn the user.
-    /// </summary>
-    /// <param name="EDocumentPurchaseLine"></param>
-    /// <param name="PurchaseLine"></param>
-    /// <returns></returns>
-    local procedure CanMatchInvoiceLineToPOLineWithoutReceipt(EDocumentPurchaseLine: Record "E-Document Purchase Line"; PurchaseLine: Record "Purchase Line"): Boolean
-    var
-        EDocPOMatchingSetup: Record "E-Doc. PO Matching Setup";
-        Vendor: Record Vendor;
-    begin
-        // Lines without a vendor assigned can't be matched in general
-        Vendor := EDocumentPurchaseLine.GetBCVendor();
-        if Vendor."No." = '' then
-            exit(false);
-
-        EDocPOMatchingSetup.GetSetup(Vendor."No.");
-        if EDocPOMatchingSetup."Receive G/L Account Lines" and (PurchaseLine.Type = "Purchase Line Type"::"G/L Account") then
-            exit(true);
-
-        case EDocPOMatchingSetup."PO Matching Config. Receipt" of
-            "E-Doc. PO M. Config. Receipt"::"Always receive at posting",
-            "E-Doc. PO M. Config. Receipt"::"Always ask":
-                exit(true);
-            "E-Doc. PO M. Config. Receipt"::"Never receive at posting":
-                exit(false);
-        end;
-    end;
-
-    /// <summary>
-    /// Returns whether we should warn the user if the specified vendor's purchase order lines are not yet received and they are matched to an invoice line.
+    /// Returns whether we should warn the user that the specified vendor's purchase order lines are not yet received when they are matched to an invoice line.
     /// </summary>
     /// <param name="VendorNo"></param>
     /// <returns></returns>
     procedure ShouldWarnIfNotYetReceived(VendorNo: Code[20]): Boolean
     var
-        EDocPOMatchingSetup: Record "E-Doc. PO Matching Setup";
+        Vendor: Record Vendor;
     begin
-        EDocPOMatchingSetup.GetSetup(VendorNo);
-        case EDocPOMatchingSetup."PO Matching Config. Receipt" of
-            "E-Doc. PO M. Config. Receipt"::"Always receive at posting":
-                exit(false);
-            "E-Doc. PO M. Config. Receipt"::"Always ask",
-            "E-Doc. PO M. Config. Receipt"::"Never receive at posting":
-                exit(true);
-        end;
+        if not Vendor.Get(VendorNo) then
+            exit(true);
+        exit(Vendor."Receipt on Invoice Policy" <> Vendor."Receipt on Invoice Policy"::Always);
     end;
 
 }

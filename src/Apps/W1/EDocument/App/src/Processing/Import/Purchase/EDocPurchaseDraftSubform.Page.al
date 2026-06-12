@@ -51,7 +51,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
                 field(MatchWarnings; MatchWarningsCaption)
                 {
                     ApplicationArea = All;
-                    Caption = 'Order match warnings';
+                    Caption = 'Warnings';
                     Editable = false;
                     Visible = HasEDocumentOrderMatchWarnings;
                     StyleExpr = MatchWarningsStyleExpr;
@@ -188,9 +188,9 @@ page 6183 "E-Doc. Purchase Draft Subform"
                     action(MatchToOrderLine)
                     {
                         ApplicationArea = All;
-                        Caption = 'Match to order line';
+                        Caption = 'Match to order lines';
                         Image = LinkWithExisting;
-                        ToolTip = 'Match this incoming invoice line to a purchase order line.';
+                        ToolTip = 'Match this incoming invoice line to purchase order lines.';
                         Scope = Repeater;
 
                         trigger OnAction()
@@ -211,9 +211,9 @@ page 6183 "E-Doc. Purchase Draft Subform"
                     action(SpecifyReceiptLines)
                     {
                         ApplicationArea = All;
-                        Caption = 'Specify receipt line';
+                        Caption = 'Specify receipt lines';
                         Image = ReceiptLines;
-                        ToolTip = 'Specify the corresponding receipt line to the matched order line.';
+                        ToolTip = 'Specify the corresponding receipt lines to the matched order lines.';
                         Scope = Repeater;
                         Enabled = IsLineMatchedToOrderLine;
 
@@ -235,9 +235,9 @@ page 6183 "E-Doc. Purchase Draft Subform"
                     action(OpenMatchedOrder)
                     {
                         ApplicationArea = All;
-                        Caption = 'Open matched order';
+                        Caption = 'Open matched orders';
                         Image = ViewOrder;
-                        ToolTip = 'Opens the matched purchase order.';
+                        ToolTip = 'Opens the matched purchase orders.';
                         Scope = Repeater;
                         Enabled = IsLineMatchedToOrderLine;
 
@@ -249,9 +249,9 @@ page 6183 "E-Doc. Purchase Draft Subform"
                     action(OpenMatchedReceipt)
                     {
                         ApplicationArea = All;
-                        Caption = 'Open matched receipt';
+                        Caption = 'Open matched receipts';
                         Image = PostedReceipt;
-                        ToolTip = 'Opens the matched purchase receipt.';
+                        ToolTip = 'Opens the matched purchase receipts.';
                         Scope = Repeater;
                         Enabled = IsLineMatchedToReceiptLine;
 
