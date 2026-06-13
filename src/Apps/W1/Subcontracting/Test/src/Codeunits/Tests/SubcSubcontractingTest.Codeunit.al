@@ -309,10 +309,14 @@ codeunit 139989 "Subc. Subcontracting Test"
         MachineCenter: array[2] of Record "Machine Center";
         PlanningComponent: Record "Planning Component";
         ProductionBOMLine: Record "Production BOM Line";
+        RequisitionLine: Record "Requisition Line";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
         Vendor: Record Vendor;
         WorkCenter: array[2] of Record "Work Center";
+        ReqWkshTemplateName: Code[10];
+        Direction: Option Forward,Backward;
     begin
         // [SCENARIO] Create Sales Order and test Planning Component
 
@@ -351,9 +355,32 @@ codeunit 139989 "Subc. Subcontracting Test"
         PlanningComponent.FindFirst();
 
         // [THEN]
-        Assert.Equal(ProductionBOMLine."Component Supply Method", PlanningComponent."Component Supply Method");
+        PlanningComponent.TestField("Component Supply Method", "Component Supply Method"::"Consignment at Vendor");
         Vendor.Get(WorkCenter[2]."Subcontractor No.");
-        Assert.Equal(Vendor."Subc. Location Code", PlanningComponent."Location Code");
+        PlanningComponent.TestField("Location Code", Vendor."Subc. Location Code");
+
+        // [WHEN] A Planning Worksheet line is added manually for the same item and Refresh Planning Line is run (bug 637499 repro)
+        ReqWkshTemplateName := LibraryPlanning.SelectRequisitionTemplateName();
+        LibraryPlanning.CreateRequisitionWkshName(RequisitionWkshName, ReqWkshTemplateName);
+        LibraryPlanning.CreateRequisitionLine(RequisitionLine, ReqWkshTemplateName, RequisitionWkshName.Name);
+        RequisitionLine.Validate(Type, RequisitionLine.Type::Item);
+        RequisitionLine.Validate("No.", Item."No.");
+        RequisitionLine.Validate(Quantity, LibraryRandom.RandInt(10) + 5);
+        RequisitionLine.Validate("Location Code", Location.Code);
+        RequisitionLine.Validate("Ending Date", WorkDate());
+        RequisitionLine.Modify(true);
+        LibraryPlanning.RefreshPlanningLine(RequisitionLine, Direction::Backward, true, true);
+
+        // [THEN] The Subcontracting Type (Component Supply Method) is copied from the Production BOM Line to the Planning Component
+        Clear(PlanningComponent);
+        PlanningComponent.SetRange("Worksheet Template Name", RequisitionLine."Worksheet Template Name");
+        PlanningComponent.SetRange("Worksheet Batch Name", RequisitionLine."Journal Batch Name");
+        PlanningComponent.SetRange("Worksheet Line No.", RequisitionLine."Line No.");
+        PlanningComponent.SetRange("Item No.", ProductionBOMLine."No.");
+        PlanningComponent.FindFirst();
+        PlanningComponent.TestField("Component Supply Method", "Component Supply Method"::"Consignment at Vendor");
+        // [THEN] and the component is relocated to the subcontractor location, matching the Production Order behavior
+        PlanningComponent.TestField("Location Code", Vendor."Subc. Location Code");
     end;
 
     [Test]
