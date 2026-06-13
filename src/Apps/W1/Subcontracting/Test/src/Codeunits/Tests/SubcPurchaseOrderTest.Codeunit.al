@@ -75,7 +75,7 @@ codeunit 139994 "Subc. Purchase Order Test"
         PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
         PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
         PurchaseLine.SetRange("Work Center No.", WorkCenter[2]."No.");
-        Assert.AreEqual(false, PurchaseLine.IsEmpty(), '');
+        Assert.IsFalse(PurchaseLine.IsEmpty(), 'Purchase line should be created for the released production order and subcontracting work center.');
     end;
 
     [Test]
@@ -1379,7 +1379,7 @@ codeunit 139994 "Subc. Purchase Order Test"
         Vendor.Modify();
     end;
 
-    procedure CreateWorkCenter(var WorkCenterNo: Code[20]; ShopCalendarCode: Code[10]; FlushingMethod: Enum "Flushing Method"; Subcontract: Boolean;
+    local procedure CreateWorkCenter(var WorkCenterNo: Code[20]; ShopCalendarCode: Code[10]; FlushingMethod: Enum "Flushing Method"; Subcontract: Boolean;
                                                                                                            UnitCostCalc: Option;
                                                                                                            CurrencyCode: Code[10])
     var

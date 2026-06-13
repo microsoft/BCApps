@@ -122,7 +122,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         ProdOrderComp.Modify();
 
         // [THEN] Check if Component Location differs from Origin Location Code ==> Vendor Subcontracting Location Code
-        Assert.AreNotEqual(ActualLocationCode, ProdOrderComp."Location Code", '');
+        Assert.AreNotEqual(ActualLocationCode, ProdOrderComp."Location Code", 'Changing the component supply method should recalculate the component location.');
     end;
 
     [Test]

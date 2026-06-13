@@ -754,7 +754,7 @@ codeunit 139993 "Subc. Transfer Order Test"
 
         ExpectedDate := CalcDate(ManufacturingSetup."Subc. Comp. Transfer Lead Time", TransferLine."Receipt Date");
 
-        Assert.AreEqual(ExpectedDate, ProdOrderComp."Due Date", '');
+        Assert.AreEqual(ExpectedDate, ProdOrderComp."Due Date", 'Prod. Order Component due date should be recalculated from the transfer receipt date and subcontracting lead time.');
 
     end;
 
@@ -1491,7 +1491,7 @@ codeunit 139993 "Subc. Transfer Order Test"
         Vendor.Modify();
     end;
 
-    procedure CreateWorkCenter(var WorkCenterNo: Code[20]; ShopCalendarCode: Code[10]; FlushingMethod: Enum "Flushing Method"; Subcontract: Boolean;
+    local procedure CreateWorkCenter(var WorkCenterNo: Code[20]; ShopCalendarCode: Code[10]; FlushingMethod: Enum "Flushing Method"; Subcontract: Boolean;
                                                                                                            UnitCostCalc: Option;
                                                                                                            CurrencyCode: Code[10])
     var
