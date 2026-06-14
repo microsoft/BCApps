@@ -257,7 +257,7 @@ codeunit 4410 "Trial Balance"
         EXRTrialBalanceQuery.Close();
 
         // And now we get the balances at the starting date and modify the ones we have already inserted
-        EXRTrialBalanceQuery.SetFilter(EXRTrialBalanceQuery.PostingDate, '..%1', ClosingDate(StartDate - 1));
+        EXRTrialBalanceQuery.SetFilter(EXRTrialBalanceQuery.PostingDate, '..%1', GetOpeningBalanceCutoff(StartDate));
         EXRTrialBalanceQuery.Open();
         while EXRTrialBalanceQuery.Read() do begin
             TrialBalanceData.SetRange("G/L Account No.", EXRTrialBalanceQuery.AccountNumber);
@@ -325,7 +325,7 @@ codeunit 4410 "Trial Balance"
         EXRTrialBalanceBUQuery.Close();
 
         // And now we get the balances at the starting date and modify the ones we have already inserted
-        EXRTrialBalanceBUQuery.SetFilter(EXRTrialBalanceBUQuery.PostingDate, '..%1', ClosingDate(StartDate - 1));
+        EXRTrialBalanceBUQuery.SetFilter(EXRTrialBalanceBUQuery.PostingDate, '..%1', GetOpeningBalanceCutoff(StartDate));
         EXRTrialBalanceBUQuery.Open();
         while EXRTrialBalanceBUQuery.Read() do begin
             TrialBalanceData.SetRange("G/L Account No.", EXRTrialBalanceBUQuery.AccountNumber);
@@ -538,6 +538,14 @@ codeunit 4410 "Trial Balance"
             StartDate := WorkDate();
         if EndDate = 0D then
             EndDate := StartDate;
+    end;
+
+    local procedure GetOpeningBalanceCutoff(StartDate: Date): Date
+    begin
+        // We return the date immediately before the starting date, considering BC's date ordering and the presence of closing dates
+        if StartDate = ClosingDate(StartDate) then
+            exit(NormalDate(StartDate));
+        exit(ClosingDate(StartDate - 1));
     end;
     #endregion
 
