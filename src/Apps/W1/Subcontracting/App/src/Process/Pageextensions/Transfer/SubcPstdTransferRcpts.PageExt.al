@@ -4,23 +4,19 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
-enum 99001500 "Subcontracting Type"
+using Microsoft.Inventory.Transfer;
+
+pageextension 99001553 "Subc. Pstd. Transfer Rcpts." extends "Posted Transfer Receipts"
 {
-    Extensible = true;
-    value(0; Empty)
+    views
     {
-        Caption = ' ', Locked = true;
-    }
-    value(1; Purchase)
-    {
-        Caption = 'Purchase with Service';
-    }
-    value(2; InventoryByVendor)
-    {
-        Caption = 'Inventory by Vendor';
-    }
-    value(3; Transfer)
-    {
-        Caption = 'Transfer';
+        addlast
+        {
+            view(SubcontractingReceipts)
+            {
+                Caption = 'Subcontracting Receipts';
+                Filters = where("Subc. Source Type" = const(Subcontracting));
+            }
+        }
     }
 }

@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
+using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Transfer;
 
 codeunit 99001544 "Subc. Transfer Line Ext."
@@ -17,7 +18,7 @@ codeunit 99001544 "Subc. Transfer Line Ext."
     [EventSubscriber(ObjectType::Table, Database::"Transfer Line", OnAfterDeleteEvent, '', false, false)]
     local procedure OnAfterDeleteEvent(var Rec: Record "Transfer Line"; RunTrigger: Boolean)
     var
-        SubcontractingManagement: Codeunit "Subcontracting Management";
+        SubcTransferManagement: Codeunit "Subc. Transfer Management";
     begin
         if Rec.IsTemporary then
             exit;
@@ -25,13 +26,71 @@ codeunit 99001544 "Subc. Transfer Line Ext."
         if not RunTrigger then
             exit;
 
-        SubcontractingManagement.UpdateLocationCodeInProdOrderCompAfterDeleteTransferLine(Rec);
+        SubcTransferManagement.UpdateLocationCodeInProdOrderCompAfterDeleteTransferLine(Rec);
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Transfer Line", OnBeforeValidateEvent, "Item No.", false, false)]
+    local procedure OnBeforeValidateItemNo(var Rec: Record "Transfer Line"; var xRec: Record "Transfer Line"; CurrFieldNo: Integer)
+    var
+        SubcTransferManagement: Codeunit "Subc. Transfer Management";
+    begin
+        if Rec.IsTemporary() then
+            exit;
+
+        if CurrFieldNo <> Rec.FieldNo("Item No.") then
+            exit;
+
+        if Rec."Item No." = xRec."Item No." then
+            exit;
+
+        SubcTransferManagement.CheckSubcTransferLineCanBeModified(Rec, Rec.FieldCaption("Item No."));
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Transfer Line", OnBeforeValidateEvent, "Variant Code", false, false)]
+    local procedure OnBeforeValidateVariantCode(var Rec: Record "Transfer Line"; var xRec: Record "Transfer Line"; CurrFieldNo: Integer)
+    var
+        SubcTransferManagement: Codeunit "Subc. Transfer Management";
+    begin
+        if Rec.IsTemporary() then
+            exit;
+
+        if CurrFieldNo <> Rec.FieldNo("Variant Code") then
+            exit;
+
+        if Rec."Variant Code" = xRec."Variant Code" then
+            exit;
+
+        SubcTransferManagement.CheckSubcTransferLineCanBeModified(Rec, Rec.FieldCaption("Variant Code"));
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Transfer Line", OnBeforeValidateEvent, Quantity, false, false)]
+    local procedure OnBeforeValidateQuantity(var Rec: Record "Transfer Line"; var xRec: Record "Transfer Line"; CurrFieldNo: Integer)
+    var
+        SubcTransferManagement: Codeunit "Subc. Transfer Management";
+    begin
+        if Rec.IsTemporary() then
+            exit;
+
+        if CurrFieldNo <> Rec.FieldNo(Quantity) then
+            exit;
+
+        if Rec.Quantity = xRec.Quantity then
+            exit;
+
+        SubcTransferManagement.CheckSubcTransferLineCanBeModified(Rec, Rec.FieldCaption(Quantity));
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Transfer Line", OnValidateItemNoOnCopyFromTempTransLine, '', false, false)]
     local procedure OnValidateItemNoOnCopyFromTempTransLine_TransferLine(var TransferLine: Record "Transfer Line"; TempTransferLine: Record "Transfer Line")
     begin
         CopySubFieldsFromTempTransferLineToTransferLine(TransferLine, TempTransferLine);
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Transfer Line", OnValidateUnitofMeasureCodeOnBeforeValidateQuantity, '', false, false)]
+    local procedure OnValidateUnitofMeasureCodeOnBeforeValidateQuantity(var TransferLine: Record "Transfer Line"; Item: Record Item; xTransferLine: Record "Transfer Line")
+    begin
+        if TransferLine."Transfer WIP Item" then
+            TransferLine."Qty. per Unit of Measure" := 0;
     end;
 
     local procedure CopySubFieldsFromTempTransferLineToTransferLine(var TransferLine: Record "Transfer Line"; TempTransferLine: Record "Transfer Line")

@@ -1,0 +1,43 @@
+name: 'Label PRs Awaiting Workflow Approval'
+
+on:
+  schedule:
+    - cron: '*/15 * * * *' # Every 15 minutes
+  workflow_dispatch:
+    inputs:
+      whatIf:
+        description: 'Dry-run mode - log changes without applying them'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  actions: read
+  contents: read
+  issues: write
+  pull-requests: write
+
+defaults:
+  run:
+    shell: pwsh
+
+concurrency:
+  group: label-prs-awaiting-approval
+  cancel-in-progress: false
+
+jobs:
+  SyncLabel:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    name: Sync 'needs-approval' label
+    if: github.repository_owner == 'microsoft'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+
+      - name: Sync 'needs-approval' label
+        uses: ./.github/actions/LabelPRsAwaitingApproval
+        with:
+          token: ${{ github.token }}
+          label: 'needs-approval'
+          whatIf: ${{ inputs.whatIf == true }}

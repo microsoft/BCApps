@@ -15,6 +15,7 @@ using Microsoft.QualityManagement.Dispositions.Move;
 using Microsoft.QualityManagement.Dispositions.Purchase;
 using Microsoft.QualityManagement.Dispositions.PutAway;
 using Microsoft.QualityManagement.Dispositions.Transfer;
+using Microsoft.QualityManagement.Telemetry;
 using Microsoft.QualityManagement.Utilities;
 using Microsoft.Warehouse.Structure;
 
@@ -707,6 +708,13 @@ page 20408 "Qlty. Inspection List"
         CanReopen: Boolean;
         RowActionsAreEnabled: Boolean;
         StatusStyleExpr: Text;
+
+    trigger OnOpenPage()
+    var
+        QltyMgmtFeatureTelemetry: Codeunit "Qlty. Mgmt. Feature Telemetry";
+    begin
+        QltyMgmtFeatureTelemetry.LogFeatureUptakeDiscovered(ObjectType::Page, Page::"Qlty. Inspection List");
+    end;
 
     trigger OnAfterGetRecord()
     begin
