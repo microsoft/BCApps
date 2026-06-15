@@ -359,10 +359,7 @@ codeunit 99001541 "Subc. Transfer WIP Posting"
 
     local procedure InitWIPItemLedgerEntry(var SubcontractorWIPLedgerEntry: Record "Subcontractor WIP Ledger Entry"; PostingDate: Date)
     begin
-        WIPLedgEntryNo := SubcontractorWIPLedgerEntry.GetNextEntryNo();
-
         SubcontractorWIPLedgerEntry.Init();
-        SubcontractorWIPLedgerEntry."Entry No." := WIPLedgEntryNo;
         SubcontractorWIPLedgerEntry."Posting Date" := PostingDate;
     end;
 
@@ -396,11 +393,15 @@ codeunit 99001541 "Subc. Transfer WIP Posting"
     var
         xWIPLedgEntryNo: Integer;
     begin
+        if SubcontractorWIPLedgerEntry."Quantity (Base)" = 0 then
+            exit;
+
+        WIPLedgEntryNo := SubcontractorWIPLedgerEntry.GetNextEntryNo();
+        SubcontractorWIPLedgerEntry."Entry No." := WIPLedgEntryNo;
+
         xWIPLedgEntryNo := WIPLedgEntryNo;
         OnBeforeInsertWIPLedgerEntry(SubcontractorWIPLedgerEntry, WIPLedgEntryNo);
         ValidateSequenceNo(WIPLedgEntryNo, xWIPLedgEntryNo, Database::"Subcontractor WIP Ledger Entry");
-        if SubcontractorWIPLedgerEntry."Quantity (Base)" = 0 then
-            exit;
         SubcontractorWIPLedgerEntry.Insert();
     end;
 

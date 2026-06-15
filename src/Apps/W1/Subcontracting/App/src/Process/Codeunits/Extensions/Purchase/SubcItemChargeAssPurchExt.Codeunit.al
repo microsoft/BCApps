@@ -12,6 +12,9 @@ codeunit 99001536 "Subc. ItemChargeAssPurchExt"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Charge Assgnt. (Purch.)", OnBeforeCreateRcptChargeAssgnt, '', false, false)]
     local procedure "Item Charge Assgnt. (Purch.)_OnBeforeCreateRcptChargeAssgnt"(var FromPurchRcptLine: Record "Purch. Rcpt. Line"; ItemChargeAssignmentPurch: Record "Item Charge Assignment (Purch)"; var IsHandled: Boolean)
     begin
+        if FromPurchRcptLine."Subc. Prod. Order No." = '' then
+            exit;
+
         IsHandled := true;
         CreateRcptChargeAssgnt(FromPurchRcptLine, ItemChargeAssignmentPurch);
     end;

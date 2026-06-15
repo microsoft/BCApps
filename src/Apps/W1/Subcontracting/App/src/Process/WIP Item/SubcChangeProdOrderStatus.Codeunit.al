@@ -41,7 +41,8 @@ codeunit 99001549 "Subc. Change Prod.Order Status"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Prod. Order Status Management", OnBeforeChangeStatusOnProdOrder, '', false, false)]
     local procedure CheckForOpenTransferOrdersOnBeforeChangeStatusOnProdOrder(var ProductionOrder: Record "Production Order"; NewStatus: Option; var IsHandled: Boolean; NewPostingDate: Date; NewUpdateUnitCost: Boolean)
     begin
-        CheckForOpenTransferOrders(ProductionOrder);
+        if NewStatus = "Production Order Status"::Finished.AsInteger() then
+            CheckForOpenTransferOrders(ProductionOrder);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Prod. Order Status Management", OnAfterChangeStatusOnProdOrder, '', false, false)]

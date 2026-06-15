@@ -19,7 +19,7 @@ tableextension 99001512 "Subc. Purchase Line" extends "Purchase Line"
     {
         modify("Operation No.")
         {
-            trigger OnBeforeValidate()
+            trigger OnAfterValidate()
             begin
                 SetSubcontractingLineType();
             end;
