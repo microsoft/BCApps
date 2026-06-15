@@ -9,12 +9,12 @@ using Microsoft.QualityManagement.Document;
 codeunit 20456 "Qlty. Batch Notif. Helper"
 {
     var
-        BatchCreatedInspectionIds: List of [Code[20]];
+        BatchCreatedQltyInspectionIds: List of [Code[20]];
         IsBatchActive: Boolean;
 
     internal procedure BeginBatch()
     begin
-        Clear(BatchCreatedInspectionIds);
+        Clear(BatchCreatedQltyInspectionIds);
         IsBatchActive := true;
     end;
 
@@ -26,23 +26,26 @@ codeunit 20456 "Qlty. Batch Notif. Helper"
             exit;
 
         IsBatchActive := false;
-        if BatchCreatedInspectionIds.Count() = 0 then
+        if BatchCreatedQltyInspectionIds.Count() = 0 then
             exit;
 
-        QltyInspectionCreate.DisplayInspectionsIfConfigured(false, BatchCreatedInspectionIds);
-        Clear(BatchCreatedInspectionIds);
+        QltyInspectionCreate.DisplayInspectionsIfConfigured(false, BatchCreatedQltyInspectionIds);
+        Clear(BatchCreatedQltyInspectionIds);
     end;
 
-    internal procedure TrackCreatedInspection(InspectionNo: Code[20])
+    internal procedure TrackCreatedInspection(InspectionNo: Code[20]; IsNewlyCreated: Boolean)
     begin
         if not IsBatchActive then
+            exit;
+
+        if not IsNewlyCreated then
             exit;
 
         if InspectionNo = '' then
             exit;
 
-        if not BatchCreatedInspectionIds.Contains(InspectionNo) then
-            BatchCreatedInspectionIds.Add(InspectionNo);
+        if not BatchCreatedQltyInspectionIds.Contains(InspectionNo) then
+            BatchCreatedQltyInspectionIds.Add(InspectionNo);
     end;
 
     internal procedure ConfigureForBatch(var QltyInspectionCreate: Codeunit "Qlty. Inspection - Create")
