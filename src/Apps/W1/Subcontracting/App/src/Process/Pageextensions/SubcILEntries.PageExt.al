@@ -49,6 +49,7 @@ pageextension 99001501 "Subc. ILEntries" extends "Item Ledger Entries"
                 {
                     ApplicationArea = Manufacturing;
                     Caption = 'Production Order';
+                    Enabled = Rec."Subc. Prod. Order No." <> '';
                     Image = Production;
                     ToolTip = 'View the related production order.';
                     trigger OnAction()
@@ -60,6 +61,7 @@ pageextension 99001501 "Subc. ILEntries" extends "Item Ledger Entries"
                 {
                     ApplicationArea = Manufacturing;
                     Caption = 'Production Order Routing';
+                    Enabled = Rec."Subc. Prod. Order No." <> '';
                     Image = Route;
                     ToolTip = 'View the related production order routing.';
                     trigger OnAction()
@@ -71,6 +73,7 @@ pageextension 99001501 "Subc. ILEntries" extends "Item Ledger Entries"
                 {
                     ApplicationArea = Manufacturing;
                     Caption = 'Production Order Components';
+                    Enabled = Rec."Subc. Prod. Order No." <> '';
                     Image = Components;
                     ToolTip = 'View the related production order components.';
                     trigger OnAction()
@@ -82,6 +85,7 @@ pageextension 99001501 "Subc. ILEntries" extends "Item Ledger Entries"
                 {
                     ApplicationArea = Manufacturing;
                     Caption = 'Subcontracting Purchase Order';
+                    Enabled = Rec."Subc. Purch. Order No." <> '';
                     Image = Order;
                     ToolTip = 'View the related subcontracting purchase order.';
                     trigger OnAction()
