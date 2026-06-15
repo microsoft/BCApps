@@ -447,7 +447,7 @@ codeunit 130458 "Test Inputs Management"
         SuiteSetupInputCodeTok: Label 'SUITE-SETUP', Locked = true;
         ChooseFileLbl: Label 'Choose a file to import';
         TestInputNameTok: Label 'INPUT-', Locked = true;
-        CouldNotParseYamlInputErr: Label 'The data does not represent valid YAML. \%1', Comment = '%1 = Underlying YAML parser error message and position';
+        CouldNotParseYamlInputErr: Label 'The data does not represent valid YAML.\%1', Comment = '%1 = Underlying YAML parser error message and position';
         CouldNotParseInputErr: Label 'Could not parse input dataset.';
         CouldNotParseJsonlInputErr: Label 'Could not parse JSONL input line: %1', Comment = '%1 = JSON Line Content';
         SuiteSetupOnlyOneRowErr: Label 'Suite setup datasets can only contain a single entry per language.';
