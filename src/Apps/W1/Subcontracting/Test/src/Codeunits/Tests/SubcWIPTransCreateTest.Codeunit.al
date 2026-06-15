@@ -1523,4 +1523,4 @@ PurchaseLine.Modify(true);
         SubSetupLibrary: Codeunit "Subc. Setup Library";
         SubcWarehouseLibrary: Codeunit "Subc. Warehouse Library";
         IsInitialized: Boolean;
-}        
+}
