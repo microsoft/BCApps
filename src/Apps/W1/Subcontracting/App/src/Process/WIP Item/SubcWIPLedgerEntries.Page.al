@@ -110,7 +110,6 @@ page 99001560 "Subc. WIP Ledger Entries"
         {
             action("WIP Adjustment")
             {
-                ApplicationArea = Subcontracting;
                 Caption = 'WIP Adjustment';
                 Image = AdjustEntries;
                 ToolTip = 'Manually adjust the WIP quantity for the selected WIP ledger entry.';
