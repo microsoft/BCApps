@@ -77,7 +77,7 @@ tableextension 99001517 "Subc. Transfer Line" extends "Transfer Line"
         }
         field(99001538; "Subc. Operation No."; Code[10])
         {
-            Caption = 'Subc.Operation No.';
+            Caption = 'Subc. Operation No.';
             DataClassification = CustomerContent;
             TableRelation = "Prod. Order Routing Line"."Operation No." where(Status = const(Released),
                                                                               "Prod. Order No." = field("Subc. Prod. Order No."),

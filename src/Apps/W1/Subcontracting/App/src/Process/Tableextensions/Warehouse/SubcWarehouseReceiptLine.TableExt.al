@@ -16,6 +16,7 @@ tableextension 99001525 "Subc. Warehouse Receipt Line" extends "Warehouse Receip
             Caption = 'Subcontracting Line Type';
             DataClassification = CustomerContent;
             Editable = false;
+            ToolTip = 'Specifies the subcontracting purchase line type associated with the warehouse receipt line.';
         }
         field(99001560; "Transfer WIP Item"; Boolean)
         {

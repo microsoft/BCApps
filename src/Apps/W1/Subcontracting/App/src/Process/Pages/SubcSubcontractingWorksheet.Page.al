@@ -242,6 +242,7 @@ page 99001504 "Subc. Subcontracting Worksheet"
                 field("Subc. Standard Task Code"; Rec."Subc. Standard Task Code")
                 {
                     ApplicationArea = Manufacturing;
+                    ToolTip = 'Specifies the standard task code associated with the subcontracting operation.';
                 }
                 field("Subc. Pricelist Cost"; Rec."Subc. Pricelist Cost")
                 {

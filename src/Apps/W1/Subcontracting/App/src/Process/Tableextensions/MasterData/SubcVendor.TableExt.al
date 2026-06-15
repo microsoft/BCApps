@@ -58,7 +58,7 @@ tableextension 99001507 "Subc. Vendor" extends Vendor
     }
 
     var
-        CannotUseLocationLbl: Label 'Cannot user the location for subcontracting';
+        CannotUseLocationLbl: Label 'Cannot use the location for subcontracting';
         ShowLocationCardLbl: Label 'Show Location Card';
         BinWarehouseEnabledOnLocationErr: Label 'Location %1 cannot be used as a subcontracting location because Bin Mandatory or warehouse handling is enabled on the location.', Comment = '%1 = Location Code';
 }

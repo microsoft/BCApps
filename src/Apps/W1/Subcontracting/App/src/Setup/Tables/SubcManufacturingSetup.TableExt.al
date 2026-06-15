@@ -19,7 +19,7 @@ tableextension 99001501 "Subc. Manufacturing Setup" extends "Manufacturing Setup
         }
         field(99001501; "Subcontracting Template Name"; Code[10])
         {
-            Caption = 'Subcontracting Journal Template Name';
+            Caption = 'Subcontracting Worksheet Template Name';
             DataClassification = CustomerContent;
 #pragma warning disable AL0432
 #pragma warning disable AL0520
@@ -29,7 +29,7 @@ tableextension 99001501 "Subc. Manufacturing Setup" extends "Manufacturing Setup
         }
         field(99001502; "Subcontracting Batch Name"; Code[10])
         {
-            Caption = 'Subcontracting Journal Batch Name';
+            Caption = 'Subcontracting Worksheet Batch Name';
             DataClassification = CustomerContent;
 #pragma warning disable AL0432
 #pragma warning disable AL0520
