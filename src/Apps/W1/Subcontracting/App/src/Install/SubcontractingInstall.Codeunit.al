@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
+using Microsoft.QualityManagement.Setup.ApplicationAreas;
 using System.Upgrade;
 
 codeunit 99001501 "Subcontracting Install"
@@ -60,13 +61,13 @@ codeunit 99001501 "Subcontracting Install"
     local procedure SetSubcontractingFeatureOnInstall()
     var
         UpgradeTag: Codeunit "Upgrade Tag";
-        SubcApplicationAreaHandler: Codeunit "Subc. Application Area Handler";
+        SubcApplicationAreaMgmt: Codeunit "Subc. Application Area Mgmt.";
         SubcUpgradeTagDefExt: Codeunit "Subc. Upgrade Tag Def. Ext.";
     begin
         if UpgradeTag.HasUpgradeTag(SubcUpgradeTagDefExt.GetSubcontractingUpgradeTag()) then
             exit;
 
-        SubcApplicationAreaHandler.UpdateApplicationArea();
+        SubcApplicationAreaMgmt.RefreshExperienceTierCurrentCompany();
 
         UpgradeTag.SetUpgradeTag(SubcUpgradeTagDefExt.GetSubcontractingUpgradeTag());
     end;

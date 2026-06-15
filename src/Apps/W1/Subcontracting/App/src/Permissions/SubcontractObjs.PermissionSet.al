@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Manufacturing.Planning;
+using Microsoft.QualityManagement.Setup.ApplicationAreas;
 
 permissionset 99001501 "Subcontract. - Objs"
 {
@@ -69,7 +70,7 @@ permissionset 99001501 "Subcontract. - Objs"
         codeunit "Subc. Transfer WIP Posting" = X,
         codeunit "Subc. WhsePostShipment Ext" = X,
         codeunit "Subc. WIP Item Ledg Find Entry" = X,
-        codeunit "Subc. Application Area Handler" = X,
+        codeunit "Subc. Application Area Mgmt." = X,
 #if not CLEAN29
 #pragma warning disable AL0432
         codeunit "Subc. Feature Flag Handler" = X,

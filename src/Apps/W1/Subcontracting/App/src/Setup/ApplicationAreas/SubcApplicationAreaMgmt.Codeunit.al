@@ -4,8 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.QualityManagement.Setup.ApplicationAreas;
 
-using System.Environment.Configuration;
+#if not CLEAN29
 using Microsoft.Manufacturing.Setup;
+#endif
+using System.Environment.Configuration;
 
 codeunit 99001571 "Subc. Application Area Mgmt."
 {
