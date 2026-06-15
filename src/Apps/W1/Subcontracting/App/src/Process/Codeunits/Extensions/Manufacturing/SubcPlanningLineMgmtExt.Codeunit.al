@@ -43,6 +43,12 @@ codeunit 99001518 "Subc. Planning Line Mgmt Ext."
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Mfg. Planning Line Management", OnCreatePlanningComponentFromProdBOMOnBeforeGetPlanningParameters, '', false, false)]
     local procedure TransferComponentSupplyMethod_OnCreatePlanningComponentFromProdBOMOnBeforeGetPlanningParameters(var PlanningComponent: Record "Planning Component"; ProductionBOMLine: Record "Production BOM Line")
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         PlanningComponent."Component Supply Method" := ProductionBOMLine."Component Supply Method";
     end;
 
