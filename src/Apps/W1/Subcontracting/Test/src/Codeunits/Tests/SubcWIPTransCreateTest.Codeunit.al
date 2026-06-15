@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting.Test;
 
+using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Requisition;
@@ -1070,6 +1071,326 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         until TransferLine.Next() = 0;
     end;
 
+    [Test]
+    [HandlerFunctions('DoNotConfirmShowCreatedPurchOrderForSubcontracting,HandleTransferOrder')]
+    procedure WIPTransferQuantityFollowsChangedPurchaseLineQuantity()
+    var
+        Item: Record Item;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        TransferLine: Record "Transfer Line";
+        WorkCenter: array[2] of Record "Work Center";
+        PurchaseHeaderPage: TestPage "Purchase Order";
+        OriginalQty: Decimal;
+        ChangedQty: Decimal;
+    begin
+        // [SCENARIO] When the purchase line quantity is changed from the original production order
+        // quantity, the WIP transfer line must use the updated purchase line quantity, not the
+        // original production order quantity.
+
+        // [GIVEN] Complete setup with Transfer WIP Item = true on the subcontracting routing line
+        Initialize();
+
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, true);
+        SubcWarehouseLibrary.CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        SetTransferWIPItemOnRoutingLine(Item."Routing No.", WorkCenter[2]."No.", true);
+
+        // [GIVEN] Set up component transfer infrastructure (needed so TransferRoute can be created)
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Transfer to Vendor");
+        SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+
+        // [GIVEN] Create and refresh production order with the original quantity
+        OriginalQty := LibraryRandom.RandInt(5) + 2;
+        LibraryManufacturing.CreateProductionOrder(
+            ProductionOrder, "Production Order Status"::Released,
+            ProductionOrder."Source Type"::Item, Item."No.", OriginalQty);
+        SetProdOrderLocationToCompSetupLocationAndRefresh(ProductionOrder);
+        SubcontractingMgmtLibrary.CreateTransferRoute(WorkCenter[2], ProductionOrder);
+
+        // [GIVEN] Create Subcontracting Purchase Order (purchase line qty = OriginalQty initially)
+        SubcontractingMgmtLibrary.CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
+
+        // [GIVEN] Change the purchase line quantity to a larger value
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+#pragma warning disable AA0210
+        PurchaseLine.SetRange("Work Center No.", WorkCenter[2]."No.");
+#pragma warning restore AA0210
+        PurchaseLine.FindFirst();
+        ChangedQty := OriginalQty + LibraryRandom.RandInt(5) + 1;
+        PurchaseLine.Validate(Quantity, ChangedQty);
+        PurchaseLine.Modify(true);
+
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+
+        // [WHEN] Create Transfer Order to Subcontractor
+        PurchaseHeaderPage.OpenView();
+        PurchaseHeaderPage.GoToRecord(PurchaseHeader);
+        PurchaseHeaderPage.CreateTransfOrdToSubcontractor.Invoke();
+
+        // [THEN] WIP Transfer Line quantity equals the changed purchase line quantity (not the original prod. order qty)
+        TransferLine.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
+        TransferLine.SetRange("Subc. Return Order", false);
+#pragma warning disable AA0210
+        TransferLine.SetRange("Transfer WIP Item", true);
+#pragma warning restore AA0210
+        Assert.RecordCount(TransferLine, 1);
+        TransferLine.FindFirst();
+        Assert.AreEqual(ChangedQty, TransferLine.Quantity,
+            'WIP Transfer Line quantity must follow the changed purchase line quantity, not the original production order quantity.');
+        Assert.AreNotEqual(OriginalQty, TransferLine.Quantity,
+            'WIP Transfer Line quantity must not equal the original production order quantity when the purchase line was changed.');
+    end;
+
+    [Test]
+    [HandlerFunctions('DoNotConfirmShowCreatedPurchOrderForSubcontracting,HandleTransferOrder')]
+    procedure WIPTransferUsesUnitOfMeasureFromPurchaseLine()
+    var
+        Item: Record Item;
+        ItemUnitOfMeasure: Record "Item Unit of Measure";
+        MachineCenter: array[2] of Record "Machine Center";
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        TransferLine: Record "Transfer Line";
+        UnitOfMeasure: Record "Unit of Measure";
+        WorkCenter: array[2] of Record "Work Center";
+        PurchaseHeaderPage: TestPage "Purchase Order";
+        BoxQtyPerPCS: Decimal;
+        ProdOrderQty: Decimal;
+    begin
+        // [SCENARIO] When the item has a non-base Purchase Unit of Measure (e.g. BOX = 10 PCS),
+        // the WIP Transfer Order line must use the purchase line UOM (BOX) and quantity,
+        // not the base UOM (PCS) from the production order line.
+        Initialize();
+
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, true);
+        SubcWarehouseLibrary.CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        SetTransferWIPItemOnRoutingLine(Item."Routing No.", WorkCenter[2]."No.", true);
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Transfer to Vendor");
+        SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+
+        // [GIVEN] Add a non-base UOM BOX (= 10 PCS) to the item and set it as the Purchase UOM
+        BoxQtyPerPCS := 10;
+        LibraryInventory.CreateUnitOfMeasureCode(UnitOfMeasure);
+        LibraryInventory.CreateItemUnitOfMeasure(ItemUnitOfMeasure, Item."No.", UnitOfMeasure.Code, BoxQtyPerPCS);
+        Item.Validate("Purch. Unit of Measure", UnitOfMeasure.Code);
+        Item.Modify(true);
+
+        // [GIVEN] Create and refresh production order with a quantity that is a whole multiple of BoxQtyPerPCS
+        ProdOrderQty := BoxQtyPerPCS * (LibraryRandom.RandInt(5) + 1);
+        LibraryManufacturing.CreateProductionOrder(
+            ProductionOrder, "Production Order Status"::Released,
+            ProductionOrder."Source Type"::Item, Item."No.", ProdOrderQty);
+        SetProdOrderLocationToCompSetupLocationAndRefresh(ProductionOrder);
+        SubcontractingMgmtLibrary.CreateTransferRoute(WorkCenter[2], ProductionOrder);
+
+        // [GIVEN] Create Subcontracting Purchase Order — the purchase line will carry UOM = BOX
+        SubcontractingMgmtLibrary.CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
+
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+#pragma warning disable AA0210
+        PurchaseLine.SetRange("Work Center No.", WorkCenter[2]."No.");
+#pragma warning restore AA0210
+        PurchaseLine.FindFirst();
+
+        // [GIVEN] Verify the purchase line received the item's Purch. Unit of Measure (BOX)
+        PurchaseLine.Validate("Unit of Measure Code", UnitOfMeasure.Code);
+        PurchaseLine.Validate(Quantity, ProdOrderQty / BoxQtyPerPCS);
+PurchaseLine.Modify(true);
+
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+
+        // [WHEN] Create Transfer Order to Subcontractor
+        PurchaseHeaderPage.OpenView();
+        PurchaseHeaderPage.GoToRecord(PurchaseHeader);
+        PurchaseHeaderPage.CreateTransfOrdToSubcontractor.Invoke();
+        
+                // [THEN] The WIP Transfer Line uses the purchase line UOM (BOX), not the base UOM (PCS)
+                TransferLine.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
+                TransferLine.SetRange("Subc. Return Order", false);
+        #pragma warning disable AA0210
+                TransferLine.SetRange("Transfer WIP Item", true);
+        #pragma warning restore AA0210
+                Assert.RecordCount(TransferLine, 1);
+                TransferLine.FindFirst();
+                Assert.AreEqual(UnitOfMeasure.Code, TransferLine."Unit of Measure Code",
+                    'WIP Transfer Line Unit of Measure must match the purchase line UOM (BOX), not the base UOM (PCS).');
+                Assert.AreEqual(PurchaseLine.Quantity, TransferLine.Quantity,
+                    'WIP Transfer Line quantity must equal the purchase line quantity (in BOX).');
+            end;
+        
+    [Test]
+            [HandlerFunctions('DoNotConfirmShowCreatedPurchOrderForSubcontracting,HandleTransferOrder')]
+    procedure WIPTransferPartiallyPostedTransfersRemainingQuantity()
+    var
+        Item: Record Item;
+            MachineCenter: array[2] of Record "Machine Center";
+            ProdOrderLine: Record "Prod. Order Line";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        WIPLedgerEntry: Record "Subcontractor WIP Ledger Entry";
+        TransferLine: Record "Transfer Line";
+        Vendor: Record Vendor;
+        WorkCenter: array[2] of Record "Work Center";
+        FullQty: Decimal;
+        AlreadyPostedQty: Decimal;
+        PurchaseHeaderPage: TestPage "Purchase Order";
+    begin
+        // [SCENARIO] When part of the WIP has already been posted at the vendor location,
+        // creating a Transfer Order to Subcontractor must only transfer the remaining
+        // quantity (FullQty - AlreadyPostedQty), not the full purchase line quantity.
+
+        // [GIVEN] Complete setup with Transfer WIP Item = true on the subcontracting routing line
+        Initialize();
+
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, true);
+        SubcWarehouseLibrary.CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        SetTransferWIPItemOnRoutingLine(Item."Routing No.", WorkCenter[2]."No.", true);
+
+        // [GIVEN] Create and refresh production order with a quantity that allows a partial remainder
+        FullQty := LibraryRandom.RandIntInRange(6, 10);
+        LibraryManufacturing.CreateProductionOrder(
+            ProductionOrder, "Production Order Status"::Released,
+            ProductionOrder."Source Type"::Item, Item."No.", FullQty);
+        SetProdOrderLocationToCompSetupLocationAndRefresh(ProductionOrder);
+
+        // [GIVEN] Locate the Prod. Order line and the routing line
+        ProdOrderLine.SetRange(Status, "Production Order Status"::Released);
+        ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderLine.FindFirst();
+
+        ProdOrderRoutingLine.SetRange(Status, "Production Order Status"::Released);
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderRoutingLine.SetRange("Work Center No.", WorkCenter[2]."No.");
+        ProdOrderRoutingLine.FindFirst();
+
+        // [GIVEN] Create Subcontracting Purchase Order
+        SubcontractingMgmtLibrary.CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
+
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        PurchaseLine.FindFirst();
+
+        // [GIVEN] Simulate that a partial quantity has already been transferred and posted at the vendor location
+        AlreadyPostedQty := LibraryRandom.RandIntInRange(1, FullQty - 1);
+        Vendor.Get(WorkCenter[2]."Subcontractor No.");
+        SubcontractingMgmtLibrary.CreateWIPLedgerEntry(
+            WIPLedgerEntry, Item."No.", Vendor."Subc. Location Code",
+            ProductionOrder, ProdOrderLine, ProdOrderRoutingLine,
+            WorkCenter[2]."No.", AlreadyPostedQty, false);
+
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+
+        // [WHEN] Create Transfer Order to Subcontractor
+        PurchaseHeaderPage.OpenView();
+        PurchaseHeaderPage.GoToRecord(PurchaseHeader);
+        PurchaseHeaderPage.CreateTransfOrdToSubcontractor.Invoke();
+
+        // [THEN] Transfer line quantity equals only the remaining quantity
+        TransferLine.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
+        TransferLine.SetRange("Subc. Return Order", false);
+#pragma warning disable AA0210
+        TransferLine.SetRange("Transfer WIP Item", true);
+#pragma warning restore AA0210
+        Assert.RecordCount(TransferLine, 1);
+        TransferLine.FindFirst();
+        Assert.AreEqual(FullQty - AlreadyPostedQty, TransferLine.Quantity,
+            'WIP Transfer Line quantity must equal the remaining quantity (full qty minus already posted), not the full quantity.');
+    end;
+
+    [Test]
+    [HandlerFunctions('DoNotConfirmShowCreatedPurchOrderForSubcontracting,HandleTransferOrder')]
+    procedure WIPTransferAfterQuantityIncreaseTransfersOnlyAdditionalQuantity()
+    var
+        Item: Record Item;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProdOrderLine: Record "Prod. Order Line";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        WIPLedgerEntry: Record "Subcontractor WIP Ledger Entry";
+        TransferLine: Record "Transfer Line";
+        Vendor: Record Vendor;
+        WorkCenter: array[2] of Record "Work Center";
+        OriginalQty: Decimal;
+        ChangedQty: Decimal;
+        PurchaseHeaderPage: TestPage "Purchase Order";
+    begin
+        // [SCENARIO] When the purchase line quantity is increased after the original quantity
+        // has already been fully posted at the vendor location, creating a Transfer Order must
+        // only transfer the additional quantity (ChangedQty - OriginalQty), not the full new quantity.
+
+        // [GIVEN] Complete setup with Transfer WIP Item = true on the subcontracting routing line
+        Initialize();
+
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, true);
+        SubcWarehouseLibrary.CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        SetTransferWIPItemOnRoutingLine(Item."Routing No.", WorkCenter[2]."No.", true);
+
+        // [GIVEN] Create and refresh production order with the original quantity
+        OriginalQty := LibraryRandom.RandIntInRange(3, 7);
+        LibraryManufacturing.CreateProductionOrder(
+            ProductionOrder, "Production Order Status"::Released,
+            ProductionOrder."Source Type"::Item, Item."No.", OriginalQty);
+        SetProdOrderLocationToCompSetupLocationAndRefresh(ProductionOrder);
+
+        // [GIVEN] Locate the Prod. Order line and routing line
+        ProdOrderLine.SetRange(Status, "Production Order Status"::Released);
+        ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderLine.FindFirst();
+
+        ProdOrderRoutingLine.SetRange(Status, "Production Order Status"::Released);
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderRoutingLine.SetRange("Work Center No.", WorkCenter[2]."No.");
+        ProdOrderRoutingLine.FindFirst();
+
+        // [GIVEN] Create Subcontracting Purchase Order
+        SubcontractingMgmtLibrary.CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
+
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        PurchaseLine.FindFirst();
+
+        // [GIVEN] Simulate that the original quantity has been fully posted at the vendor location
+        Vendor.Get(WorkCenter[2]."Subcontractor No.");
+        SubcontractingMgmtLibrary.CreateWIPLedgerEntry(
+            WIPLedgerEntry, Item."No.", Vendor."Subc. Location Code",
+            ProductionOrder, ProdOrderLine, ProdOrderRoutingLine,
+            WorkCenter[2]."No.", OriginalQty, false);
+
+        // [GIVEN] Increase the purchase line quantity beyond the already-posted amount
+        ChangedQty := OriginalQty + LibraryRandom.RandIntInRange(1, 5);
+        PurchaseLine.Validate(Quantity, ChangedQty);
+        PurchaseLine.Modify(true);
+
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+
+        // [WHEN] Create Transfer Order to Subcontractor
+        PurchaseHeaderPage.OpenView();
+        PurchaseHeaderPage.GoToRecord(PurchaseHeader);
+        PurchaseHeaderPage.CreateTransfOrdToSubcontractor.Invoke();
+
+        // [THEN] Transfer line quantity equals only the additional quantity (ChangedQty - OriginalQty)
+        TransferLine.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
+        TransferLine.SetRange("Subc. Return Order", false);
+#pragma warning disable AA0210
+        TransferLine.SetRange("Transfer WIP Item", true);
+#pragma warning restore AA0210
+        Assert.RecordCount(TransferLine, 1);
+        TransferLine.FindFirst();
+        Assert.AreEqual(ChangedQty - OriginalQty, TransferLine.Quantity,
+            'WIP Transfer Line quantity must equal only the additional quantity after the purchase line increase, not the full changed quantity.');
+    end;
+
     [PageHandler]
     procedure HandleTransferOrder(var TransfOrderPage: TestPage "Transfer Order")
     begin
@@ -1202,4 +1523,4 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         SubSetupLibrary: Codeunit "Subc. Setup Library";
         SubcWarehouseLibrary: Codeunit "Subc. Warehouse Library";
         IsInitialized: Boolean;
-}
+}        

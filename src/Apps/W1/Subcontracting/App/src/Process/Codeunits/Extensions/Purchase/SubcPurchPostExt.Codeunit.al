@@ -12,6 +12,7 @@ using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Posting;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Manufacturing.Capacity;
+using Microsoft.Manufacturing.Document;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Posting;
@@ -119,6 +120,15 @@ codeunit 99001535 "Subc. Purch. Post Ext"
         Item: Record Item;
     begin
         ItemJournalLine.Subcontracting := true;
+        ItemJournalLine."Order Type" := "Inventory Order Type"::Production;
+        ItemJournalLine."Order No." := PurchRcptLine."Prod. Order No.";
+        ItemJournalLine."Order Line No." := PurchRcptLine."Prod. Order Line No.";
+        Item.SetLoadFields("Inventory Posting Group");
+        Item.Get(ItemJournalLine."Item No.");
+        ItemJournalLine."Inventory Posting Group" := Item."Inventory Posting Group";
+        ItemJournalLine."Subc. Item Charge Assign." := true;
+        if PurchRcptLineIsLastOperation(PurchRcptLine) then
+            exit;
         ItemJournalLine."Entry Type" := "Item Ledger Entry Type"::Output;
         ItemJournalLine.Type := "Capacity Type Journal"::"Work Center";
         ItemJournalLine."No." := PurchRcptLine."Subc. Work Center No.";
@@ -127,13 +137,18 @@ codeunit 99001535 "Subc. Purch. Post Ext"
         ItemJournalLine."Operation No." := PurchRcptLine."Operation No.";
         ItemJournalLine."Work Center No." := PurchRcptLine."Work Center No.";
         ItemJournalLine."Unit Cost Calculation" := ItemJournalLine."Unit Cost Calculation"::Units;
-        ItemJournalLine."Order Type" := "Inventory Order Type"::Production;
-        ItemJournalLine."Order No." := PurchRcptLine."Prod. Order No.";
-        ItemJournalLine."Order Line No." := PurchRcptLine."Prod. Order Line No.";
-        Item.SetLoadFields("Inventory Posting Group");
-        Item.Get(ItemJournalLine."Item No.");
-        ItemJournalLine."Inventory Posting Group" := Item."Inventory Posting Group";
-        ItemJournalLine."Subc. Item Charge Assign." := true;
+    end;
+
+    local procedure PurchRcptLineIsLastOperation(PurchRcptLine: Record "Purch. Rcpt. Line"): Boolean
+    var
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+    begin
+        ProdOrderRoutingLine.SetLoadFields("Next Operation No.");
+        if ProdOrderRoutingLine.Get("Production Order Status"::Released, PurchRcptLine."Prod. Order No.", PurchRcptLine."Routing Reference No.", PurchRcptLine."Routing No.", PurchRcptLine."Operation No.") then
+            exit(ProdOrderRoutingLine."Next Operation No." = '');
+        if ProdOrderRoutingLine.Get("Production Order Status"::Finished, PurchRcptLine."Prod. Order No.", PurchRcptLine."Routing Reference No.", PurchRcptLine."Routing No.", PurchRcptLine."Operation No.") then
+            exit(ProdOrderRoutingLine."Next Operation No." = '');
+        exit(false);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnPostItemJnlLineOnAfterPostItemJnlLineJobConsumption, '', false, false)]
