@@ -46,6 +46,7 @@ permissionset 99001501 "Subcontract. - Objs"
         codeunit "Subcontracting Comp. Init." = X,
         codeunit "Subcontracting Management" = X,
         codeunit "Subc. Synchronize Management" = X,
+        codeunit "Subc. Transfer Header Ext." = X,
         codeunit "Subc. Transfer Line Ext." = X,
         codeunit "Subc. Transfer Management" = X,
         codeunit "Subc. Transfer Rcpt Line Ext." = X,
@@ -68,9 +69,11 @@ permissionset 99001501 "Subcontract. - Objs"
         codeunit "Subc. Transfer WIP Posting" = X,
         codeunit "Subc. WhsePostShipment Ext" = X,
         codeunit "Subc. WIP Item Ledg Find Entry" = X,
+        codeunit "Subc. Worksheet Handler" = X,
 
         // Pages
         page "Subc. Prod. Order Components" = X,
+        page "Subc. Subcontracting Worksheet" = X,
         page "Subc. Purchase Line Factbox" = X,
         page "Subc. Routing Info Factbox" = X,
         page "Subc. Transfer Line Factbox" = X,
@@ -79,6 +82,7 @@ permissionset 99001501 "Subcontract. - Objs"
         page "Subc. WIP Ledger Entries" = X,
 
         // Reports
+        report "Subc. Calculate Subcontracts" = X,
         report "Subc. Create Transf. Order" = X,
         report "Subc. Create SubCReturnOrder" = X,
         report "Subc. Detailed Calculation" = X,
