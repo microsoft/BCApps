@@ -9,6 +9,7 @@ using Microsoft.Finance.ExcelReports;
 using Microsoft.FixedAssets.Depreciation;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.FixedAssets.Journal;
+using Microsoft.FixedAssets.Ledger;
 using Microsoft.FixedAssets.Posting;
 using Microsoft.FixedAssets.Setup;
 using Microsoft.Foundation.Period;
@@ -194,13 +195,25 @@ codeunit 139545 "Fixed Asset Excel Reports"
         LibraryReportDataset.SetXmlNodeList('DataItem[@name="FixedAssetLedgerEntries"]');
         LibraryReportDataset.GetNextRow();
         LibraryReportDataset.FindCurrentRowValue('Amount', Variant);
-        ReportAmount := Variant;
+        ReportAmount := EvaluateDecimal(Variant);
         ReportAmount := Round(ReportAmount, 1);
         RestoreAccountingPeriods(TempSavedAccountingPeriod);
         LibrarySetupStorage.Restore();
         Commit();
 
         Assert.AreEqual(ExpectedProjectedDepr, ReportAmount, ProjectedDeprMismatchLbl);
+    end;
+
+    local procedure EvaluateDecimal(Value: Variant): Decimal
+    var
+        ValueText: Text;
+        Result: Decimal;
+    begin
+        ValueText := Format(Value);
+        if ValueText = '' then
+            exit(0);
+        Evaluate(Result, ValueText);
+        exit(Result);
     end;
 
     local procedure Initialize()
@@ -219,9 +232,13 @@ codeunit 139545 "Fixed Asset Excel Reports"
 
     local procedure CleanupFixedAssetData()
     var
+        FALedgerEntry: Record "FA Ledger Entry";
+        FADepreciationBook: Record "FA Depreciation Book";
         FAPostingType: Record "FA Posting Type";
         FixedAsset: Record "Fixed Asset";
     begin
+        FALedgerEntry.DeleteAll();
+        FADepreciationBook.DeleteAll();
         FAPostingType.DeleteAll();
         FixedAsset.DeleteAll();
     end;
