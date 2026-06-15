@@ -422,3 +422,4 @@ codeunit 99001541 "Subc. Transfer WIP Posting"
     local procedure OnBeforeInsertWIPLedgerEntry(var SubcontractorWIPLedgerEntry: Record "Subcontractor WIP Ledger Entry"; var WIPLedgEntryNo: Integer)
     begin
     end;
+}
