@@ -8,6 +8,7 @@ using Microsoft.Inventory.Planning;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.ProductionBOM;
+using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
@@ -559,6 +560,52 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         // Cleanup
         CapacityLedgerEntry.Delete();
         PurchaseHeader.Delete();
+    end;
+
+    [Test]
+    procedure CheckCustCtrl_PageRoutingVersionLinesTransferWIPItem()
+    var
+        PageControl: Record "Page Control Field";
+        RoutingLine: Record "Routing Line";
+        ControlExist: Boolean;
+    begin
+        // [FEATURE] Subcontracting Management
+        // [SCENARIO 638530] Check if Transfer WIP Item control exists on Page "Routing Version Lines"
+
+        // [GIVEN]
+        Initialize();
+
+        // [WHEN] Find Control on Page
+        PageControl.SetRange(TableNo, Database::"Routing Line");
+        PageControl.SetRange(PageNo, Page::"Routing Version Lines");
+        PageControl.SetRange(FieldNo, RoutingLine.FieldNo("Transfer WIP Item"));
+        ControlExist := not PageControl.IsEmpty();
+
+        // [THEN]
+        Assert.AreEqual(true, ControlExist, StrSubstNo(ControlNotExistMsg, RoutingLine.FieldCaption("Transfer WIP Item")));
+    end;
+
+    [Test]
+    procedure CheckCustCtrl_PageRoutingVersionLinesTransferDescription()
+    var
+        PageControl: Record "Page Control Field";
+        RoutingLine: Record "Routing Line";
+        ControlExist: Boolean;
+    begin
+        // [FEATURE] Subcontracting Management
+        // [SCENARIO 638530] Check if Transfer Description control exists on Page "Routing Version Lines"
+
+        // [GIVEN]
+        Initialize();
+
+        // [WHEN] Find Control on Page
+        PageControl.SetRange(TableNo, Database::"Routing Line");
+        PageControl.SetRange(PageNo, Page::"Routing Version Lines");
+        PageControl.SetRange(FieldNo, RoutingLine.FieldNo("Transfer Description"));
+        ControlExist := not PageControl.IsEmpty();
+
+        // [THEN]
+        Assert.AreEqual(true, ControlExist, StrSubstNo(ControlNotExistMsg, RoutingLine.FieldCaption("Transfer Description")));
     end;
 
     local procedure GetNextCapLedgerEntryNo(): Integer
