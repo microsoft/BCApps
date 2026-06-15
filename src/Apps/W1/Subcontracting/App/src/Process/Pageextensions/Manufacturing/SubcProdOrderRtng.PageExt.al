@@ -76,6 +76,7 @@ pageextension 99001503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
                 ApplicationArea = Manufacturing;
                 Caption = 'Subcontracting Purchase Order Lines';
                 Image = SubcontractingWorksheet;
+                Enabled = SubcontractingActionsEnabled;
                 RunObject = page "Purchase Lines";
                 RunPageLink = "Document Type" = const(Order), "Prod. Order No." = field("Prod. Order No."), "Routing No." = field("Routing No."), "Routing Reference No." = field("Routing Reference No."), "Operation No." = field("Operation No.");
                 ToolTip = 'Show purchase order lines for subcontracting.';
@@ -85,6 +86,7 @@ pageextension 99001503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
                 ApplicationArea = Manufacturing;
                 Caption = 'WIP Ledger Entries';
                 Image = LedgerEntries;
+                Enabled = SubcontractingActionsEnabled;
                 RunObject = page "Subc. WIP Ledger Entries";
                 RunPageLink = "Prod. Order Status" = field(Status),
                               "Prod. Order No." = field("Prod. Order No."),
@@ -96,30 +98,12 @@ pageextension 99001503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
         }
         addlast("F&unctions")
         {
-            action("WIP Adjustment")
-            {
-                ApplicationArea = Manufacturing;
-                Caption = 'WIP Adjustment';
-                Image = AdjustEntries;
-                ToolTip = 'Manually adjust the WIP quantity for the selected prod. order routing line.';
-
-                trigger OnAction()
-                var
-                    WIPLedgerEntry: Record "Subcontractor WIP Ledger Entry";
-                    WIPAdjustmentPage: Page "Subc. WIP Adjustment";
-                begin
-                    WIPLedgerEntry.SetProductionOrderRoutingFilter(Rec, true);
-                    WIPAdjustmentPage.SetWIPLedgerEntry(WIPLedgerEntry);
-                    WIPAdjustmentPage.SetDocumentNo(Rec."Prod. Order No.");
-                    WIPAdjustmentPage.RunModal();
-                end;
-            }
             action(CreateSubcontracting)
             {
                 ApplicationArea = Manufacturing;
                 Caption = 'Create Subcontracting Order';
                 Image = CreateDocument;
-                Enabled = CreateSubcontractingEnabled;
+                Enabled = SubcontractingActionsEnabled;
                 Visible = CreateSubcontractingVisible;
                 ToolTip = 'Create Purchase Orders for Subcontracting directly from the Production Routing Line.';
                 trigger OnAction()
@@ -157,11 +141,30 @@ pageextension 99001503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
                     end;
                 end;
             }
+            action("WIP Adjustment")
+            {
+                ApplicationArea = Manufacturing;
+                Caption = 'WIP Adjustment';
+                Image = AdjustEntries;
+                Enabled = SubcontractingActionsEnabled;
+                ToolTip = 'Manually adjust the WIP quantity for the selected prod. order routing line.';
+
+                trigger OnAction()
+                var
+                    WIPLedgerEntry: Record "Subcontractor WIP Ledger Entry";
+                    WIPAdjustmentPage: Page "Subc. WIP Adjustment";
+                begin
+                    WIPLedgerEntry.SetProductionOrderRoutingFilter(Rec, true);
+                    WIPAdjustmentPage.SetWIPLedgerEntry(WIPLedgerEntry);
+                    WIPAdjustmentPage.SetDocumentNo(Rec."Prod. Order No.");
+                    WIPAdjustmentPage.RunModal();
+                end;
+            }
         }
     }
     var
         TransferWIPItemEnabled: Boolean;
-        CreateSubcontractingEnabled: Boolean;
+        SubcontractingActionsEnabled: Boolean;
         CreateSubcontractingVisible: Boolean;
         NoPurchOrderCreatedMsg: Label 'No subcontracting order was created for the selected operations in production order %1. Please check whether the operation or operations have already been completed.', Comment = '%1=Production Order No.';
 
@@ -184,7 +187,7 @@ pageextension 99001503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
     trigger OnAfterGetCurrRecord()
     begin
         UpdateWIPEnabled();
-        CreateSubcontractingEnabled := Rec.Subcontracting and (Rec.Status = "Production Order Status"::Released);
+        SubcontractingActionsEnabled := Rec.Subcontracting and (Rec.Status = "Production Order Status"::Released);
     end;
 
     local procedure UpdateWIPEnabled()
