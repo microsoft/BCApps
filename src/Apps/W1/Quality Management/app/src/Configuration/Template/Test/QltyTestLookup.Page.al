@@ -41,9 +41,6 @@ page 20445 "Qlty. Test Lookup"
                 }
                 field("Test Value Type"; Rec."Test Value Type")
                 {
-                    AboutTitle = 'Test Value Type';
-                    AboutText = 'Specifies the data type of the values you can enter or select for this test. Use Decimal for numerical measurements. Use Choice to give a list of options to choose from. If you want to choose options from an existing table, use Table Lookup.';
-
                     trigger OnValidate()
                     begin
                         UpdateRowData();
@@ -53,7 +50,7 @@ page 20445 "Qlty. Test Lookup"
                 {
                     Editable = IsAllowableValuesEditable;
                     AboutTitle = 'Allowable Values';
-                    AboutText = 'What the staff inspector can enter and the range of information they can put in. For example if you want a measurement such as a percentage that collects between 0 and 100 you would enter 0..100. This is not the pass or acceptable condition, these are just the technically possible values that the inspector can enter. You would then enter a passing condition in your result conditions. If you had a result of Pass being 80 to 100, you would then configure 80..100 for that result.';
+                    AboutText = 'What the quality inspector can enter and the range of information they can put in. For example if you want a measurement such as a percentage that collects between 0 and 100 you would enter 0..100. This is not the pass or acceptable condition, these are just the technically possible values that the inspector can enter. You would then enter a passing condition in your result conditions. If you had a result of Pass being 80 to 100, you would then configure 80..100 for that result.';
 
                     trigger OnAssistEdit()
                     begin

@@ -41,6 +41,7 @@ codeunit 99001515 "Subc. ItemJnlPostLine Ext"
     local procedure "Item Jnl.-Post Line_OnBeforeInsertCapValueEntry"(var ValueEntry: Record "Value Entry"; ItemJnlLine: Record "Item Journal Line")
     begin
         ClearInvoicedQuantityForItemChargeSubAssign(ValueEntry, ItemJnlLine);
+        CopyItemChargeNoForItemChargeSubAssign(ValueEntry, ItemJnlLine);
     end;
 
     local procedure UpdateProdOrderRoutingLine(var ProdOrderLine: Record "Prod. Order Line"; var ItemJournalLine: Record "Item Journal Line")
@@ -49,20 +50,24 @@ codeunit 99001515 "Subc. ItemJnlPostLine Ext"
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         ProductionOrder: Record "Production Order";
     begin
-        if ItemJournalLine.Subcontracting then begin
-            ProductionOrder.SetLoadFields("Created from Purch. Order");
-            if ProductionOrder.Get(ProdOrderLine.Status, ProdOrderLine."Prod. Order No.") then
-                if ProdOrderRoutingLine.Get(ProdOrderLine.Status, ProdOrderLine."Prod. Order No.", ProdOrderLine."Line No.", ProdOrderLine."Routing No.", ItemJournalLine."Operation No.") then begin
-                    CapacityLedgerEntry.SetRange("Routing No.", ProdOrderRoutingLine."Routing No.");
-                    CapacityLedgerEntry.SetRange("Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.");
-                    CapacityLedgerEntry.SetRange("Operation No.", ProdOrderRoutingLine."Operation No.");
-                    CapacityLedgerEntry.SetRange("Order No.", ProdOrderRoutingLine."Prod. Order No.");
-                    CapacityLedgerEntry.CalcSums("Output Quantity");
-                    if CapacityLedgerEntry."Output Quantity" >= ProdOrderLine."Quantity (Base)" then
-                        ProdOrderRoutingLine."Routing Status" := "Prod. Order Routing Status"::Finished;
-                    ProdOrderRoutingLine.Modify();
-                end;
-        end;
+        if not ItemJournalLine.Subcontracting then
+            exit;
+
+        if not ProductionOrder.Get(ProdOrderLine.Status, ProdOrderLine."Prod. Order No.") then
+            exit;
+
+        if not ProdOrderRoutingLine.Get(ProdOrderLine.Status, ProdOrderLine."Prod. Order No.", ProdOrderLine."Line No.", ProdOrderLine."Routing No.", ItemJournalLine."Operation No.") then
+            exit;
+
+        CapacityLedgerEntry.SetRange("Routing No.", ProdOrderRoutingLine."Routing No.");
+        CapacityLedgerEntry.SetRange("Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.");
+        CapacityLedgerEntry.SetRange("Operation No.", ProdOrderRoutingLine."Operation No.");
+        CapacityLedgerEntry.SetRange("Order No.", ProdOrderRoutingLine."Prod. Order No.");
+        CapacityLedgerEntry.CalcSums("Output Quantity");
+
+        if CapacityLedgerEntry."Output Quantity" >= ProdOrderLine."Quantity (Base)" then
+            ProdOrderRoutingLine."Routing Status" := "Prod. Order Routing Status"::Finished;
+        ProdOrderRoutingLine.Modify();
     end;
 
     local procedure UpdateNewItemLedgerEntry(var NewItemLedgerEntry: Record "Item Ledger Entry"; var ItemJournalLine: Record "Item Journal Line")
@@ -85,5 +90,11 @@ codeunit 99001515 "Subc. ItemJnlPostLine Ext"
     begin
         if ItemJournalLine."Subc. Item Charge Assign." and (ValueEntry."Entry Type" = "Cost Entry Type"::"Direct Cost") then
             ValueEntry."Invoiced Quantity" := 0;
+    end;
+
+    local procedure CopyItemChargeNoForItemChargeSubAssign(var ValueEntry: Record "Value Entry"; ItemJournalLine: Record "Item Journal Line")
+    begin
+        if ItemJournalLine."Subc. Item Charge Assign." and (ItemJournalLine."Item Charge No." <> '') then
+            ValueEntry."Item Charge No." := ItemJournalLine."Item Charge No.";
     end;
 }

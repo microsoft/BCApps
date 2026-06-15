@@ -4,10 +4,12 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
+using Microsoft.Manufacturing.Document;
+
 page 99001560 "Subc. WIP Ledger Entries"
 {
     ApplicationArea = Manufacturing;
-    Caption = 'WIP Ledger Entries';
+    Caption = 'Subcontracting WIP Entries';
     Editable = false;
     PageType = List;
     SourceTable = "Subcontractor WIP Ledger Entry";
@@ -113,7 +115,7 @@ page 99001560 "Subc. WIP Ledger Entries"
                 Image = AdjustEntries;
                 ToolTip = 'Manually adjust the WIP quantity for the selected WIP ledger entry.';
                 Enabled = WIPAdjustmentEnabled;
-                Visible = WIPAdjustmentEnabled;
+                Visible = WIPAdjustmentVisible;
 
                 trigger OnAction()
                 var
@@ -135,10 +137,18 @@ page 99001560 "Subc. WIP Ledger Entries"
     }
 
     var
-        WIPAdjustmentEnabled: Boolean;
+        WIPAdjustmentEnabled, WIPAdjustmentVisible : Boolean;
 
     trigger OnOpenPage()
     begin
-        WIPAdjustmentEnabled := not Rec.IsTemporary();
+        WIPAdjustmentVisible := not Rec.IsTemporary();
+    end;
+
+    trigger OnAfterGetCurrRecord()
+    var
+        ProductionOrder: Record "Production Order";
+    begin
+        ProductionOrder.SetLoadFields(SystemId);
+        WIPAdjustmentEnabled := ProductionOrder.Get(Rec."Prod. Order Status", Rec."Prod. Order No.");
     end;
 }

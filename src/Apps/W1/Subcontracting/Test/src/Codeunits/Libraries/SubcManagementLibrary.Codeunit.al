@@ -74,7 +74,7 @@ codeunit 139983 "Subc. Management Library"
         end;
     end;
 
-    procedure UpdateProdBomWithSubcontractingType(Item: Record Item; SubcontractingType: Enum "Subcontracting Type")
+    procedure UpdateProdBomWithComponentSupplyMethod(Item: Record Item; ComponentSupplyMethod: Enum "Component Supply Method")
     var
         ProductionBOMHeader: Record "Production BOM Header";
         ProductionBOMLine: Record "Production BOM Line";
@@ -85,7 +85,7 @@ codeunit 139983 "Subc. Management Library"
 
         ProductionBOMLine.SetRange("Production BOM No.", ProductionBOMHeader."No.");
         ProductionBOMLine.FindLast();
-        ProductionBOMLine."Subcontracting Type" := SubcontractingType;
+        ProductionBOMLine."Component Supply Method" := ComponentSupplyMethod;
         ProductionBOMLine.Modify(true);
 
         ProductionBOMHeader.Validate(Status, ProductionBOMHeader.Status::Certified);
@@ -100,7 +100,7 @@ codeunit 139983 "Subc. Management Library"
     begin
         ProdOrderComp.SetRange("Prod. Order No.", ProdOrderNo);
 #pragma warning disable AA0210
-        ProdOrderComp.SetRange("Subcontracting Type", ProdOrderComp."Subcontracting Type"::Transfer);
+        ProdOrderComp.SetRange("Component Supply Method", ProdOrderComp."Component Supply Method"::"Transfer to Vendor");
 #pragma warning restore AA0210
         ProdOrderComp.FindFirst();
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
@@ -127,6 +127,17 @@ codeunit 139983 "Subc. Management Library"
         LibraryManufacturing: Codeunit "Library - Manufacturing";
     begin
         LibraryManufacturing.CreateAndRefreshProductionOrder(ProductionOrder, ProdOrderStatus, ProdOrderSourceType, SourceNo, Quantity);
+    end;
+
+    procedure CreateAndRefreshProductionOrder(var ProductionOrder: Record "Production Order"; ProdOrderStatus: Enum "Production Order Status"; ProdOrderSourceType: Enum "Prod. Order Source Type"; SourceNo: Code[20]; Quantity: Decimal; LocationCode: Code[20])
+    var
+        LibraryManufacturing: Codeunit "Library - Manufacturing";
+    begin
+        LibraryManufacturing.CreateProductionOrder(ProductionOrder, ProdOrderStatus, ProdOrderSourceType, SourceNo, Quantity);
+        ProductionOrder.Validate("Location Code", LocationCode);
+        ProductionOrder.Modify();
+
+        LibraryManufacturing.RefreshProdOrder(ProductionOrder, false, true, true, true, false);
     end;
 
     procedure UpdateSubMgmtSetup_ComponentAtLocation(CompAtLocation: Enum "Components at Location")
@@ -181,7 +192,7 @@ codeunit 139983 "Subc. Management Library"
         ProdOrderComp.SetRange(Status, ProductionOrder.Status);
         ProdOrderComp.SetRange("Prod. Order No.", ProductionOrder."No.");
 #pragma warning disable AA0210
-        ProdOrderComp.SetRange("Subcontracting Type", ProdOrderComp."Subcontracting Type"::Transfer);
+        ProdOrderComp.SetRange("Component Supply Method", ProdOrderComp."Component Supply Method"::"Transfer to Vendor");
 #pragma warning restore AA0210
         ProdOrderComp.FindFirst();
         LibraryWarehouse.CreateInTransitLocation(TransitLocation);
