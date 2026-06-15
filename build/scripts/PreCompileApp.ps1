@@ -10,14 +10,98 @@ Param(
 Import-Module $PSScriptRoot\EnlistmentHelperFunctions.psm1
 Import-Module $PSScriptRoot\AppExtensionsHelper.psm1
 
-# Clean the package cache on the first invocation, keeping only System.app
-$cache = $parameters.Value["PackageCachePath"]
-$cacheCleanedMarker = Join-Path $cache ".cache_cleaned"
-if (-not (Test-Path $cacheCleanedMarker)) {
-    Write-Host "First invocation: cleaning package cache at $cache (keeping System.app)"
-    Get-ChildItem -Path $cache -File | Where-Object { $_.Name -ne 'System.app' } | Remove-Item -Force
+function Get-IncrementalBuildBaselineAppNames {
+    <#
+    .SYNOPSIS
+        Returns the file names of baseline .app files staged by AL-Go for incremental builds.
+    .DESCRIPTION
+        When incremental builds are active in 'modifiedApps' mode, AL-Go places baseline
+        apps in <BuildArtifactsFolder>\Apps and <BuildArtifactsFolder>\TestApps before
+        the per-app compile step. Returns the .app file names (not full paths) found in
+        those folders, or an empty array if neither folder exists or contains .app files.
+    #>
+    param(
+        [Parameter(Mandatory)]
+        [string] $BuildArtifactsFolder
+    )
+
+    Write-Host "PreCompileApp: looking for baseline apps under '$BuildArtifactsFolder'"
+
+    $names = @()
+    foreach ($sub in @('Apps', 'TestApps')) {
+        $baselineFolder = Join-Path $BuildArtifactsFolder $sub
+        if (-not (Test-Path $baselineFolder)) {
+            Write-Host "PreCompileApp: baseline folder '$baselineFolder' does not exist; skipping"
+            continue
+        }
+        $baselineApps = @(Get-ChildItem -Path $baselineFolder -Filter '*.app' -File -ErrorAction SilentlyContinue | ForEach-Object { $_.Name })
+        if ($baselineApps.Count -eq 0) {
+            Write-Host "PreCompileApp: baseline folder '$baselineFolder' exists but contains no .app files"
+        }
+        else {
+            Write-Host "PreCompileApp: found $($baselineApps.Count) baseline app(s) in '$baselineFolder':"
+            $baselineApps | ForEach-Object { Write-Host "  - $_" }
+            $names += $baselineApps
+        }
+    }
+
+    return $names
+}
+
+function Reset-AlPackageCache {
+    <#
+    .SYNOPSIS
+        Removes all files from the AL package cache except a given preserve list, once per cache.
+    .DESCRIPTION
+        Writes a marker file inside the cache after cleaning so subsequent invocations for the
+        same cache become no-ops. Preserves the files whose names are listed in PreserveNames
+        (compared by file name only).
+    #>
+    param(
+        [Parameter(Mandatory)]
+        [string] $PackageCachePath,
+        [string[]] $PreserveNames = @('System.app')
+    )
+
+    $cacheCleanedMarker = Join-Path $PackageCachePath ".cache_cleaned"
+    if (Test-Path $cacheCleanedMarker) {
+        return
+    }
+
+    $PreserveNames = @($PreserveNames | Sort-Object -Unique)
+
+    Write-Host "PreCompileApp: cleaning package cache at $PackageCachePath. Preserving $($PreserveNames.Count) file(s):"
+    $PreserveNames | ForEach-Object { Write-Host "  - $_" }
+
+    $filesToRemove = @(Get-ChildItem -Path $PackageCachePath -File | Where-Object { $PreserveNames -notcontains $_.Name })
+    if ($filesToRemove.Count -eq 0) {
+        Write-Host "PreCompileApp: no files to remove from package cache"
+    }
+    else {
+        Write-Host "PreCompileApp: removing $($filesToRemove.Count) file(s) from package cache:"
+        $filesToRemove | ForEach-Object { Write-Host "  - $($_.Name)" }
+        $filesToRemove | Remove-Item -Force
+    }
+
     New-Item -ItemType File -Path $cacheCleanedMarker | Out-Null
 }
+
+# Clean the package cache on the first invocation, keeping only System.app and any
+# baseline apps that AL-Go downloaded for incremental builds. When incremental builds
+# are active, AL-Go populates <projectFolder>\.buildartifacts\Apps and \TestApps with
+# baseline apps before invoking this script and then copies them into the package cache.
+# Those files must be preserved so the workspace compile can resolve dependencies that
+# are not in the modified-apps workspace.
+$preserveNames = @('System.app')
+$outFolder = $parameters.Value["OutFolder"]
+if (-not $outFolder) {
+    Write-Host "::Warning::PreCompileApp: OutFolder is not set in compilation parameters; cannot locate baseline apps from .buildartifacts. Only System.app will be preserved."
+}
+else {
+    $preserveNames += Get-IncrementalBuildBaselineAppNames -BuildArtifactsFolder (Split-Path -Path $outFolder -Parent)
+}
+
+Reset-AlPackageCache -PackageCachePath $parameters.Value["PackageCachePath"] -PreserveNames $preserveNames
 
 if($GDLDevelopment) {
     Import-Module $PSScriptRoot\GDLDevelopment\GDLDevelopment.psm1
