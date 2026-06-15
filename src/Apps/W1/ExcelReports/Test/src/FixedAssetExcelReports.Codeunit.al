@@ -6,7 +6,6 @@
 namespace Microsoft.Finance.ExcelReports.Test;
 
 using Microsoft.Finance.ExcelReports;
-using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.FixedAssets.Depreciation;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.FixedAssets.Journal;
@@ -27,7 +26,7 @@ codeunit 139545 "Fixed Asset Excel Reports"
     end;
 
     var
-        LibraryERM: Codeunit "Library - ERM";
+        //LibraryERM: Codeunit "Library - ERM";
         LibraryFixedAsset: Codeunit "Library - Fixed Asset";
         LibraryRandom: Codeunit "Library - Random";
         LibraryReportDataset: Codeunit "Library - Report Dataset";
@@ -127,7 +126,6 @@ codeunit 139545 "Fixed Asset Excel Reports"
         // using the last posted month's book value when crossing a fiscal year boundary with Declining-Balance 1.
         // Previously it incorrectly used the penultimate month's book value.
         Initialize();
-        EnsureGeneralPostingSetup();
 
         // [GIVEN] Create Accounting periods with fiscal year.
         CleanupFixedAssetData();
@@ -203,9 +201,6 @@ codeunit 139545 "Fixed Asset Excel Reports"
         Commit();
 
         Assert.AreEqual(ExpectedProjectedDepr, ReportAmount, ProjectedDeprMismatchLbl);
-
-        // Restore accounting periods to avoid affecting other test apps.
-        RestoreAccountingPeriods(TempSavedAccountingPeriod);
     end;
 
     local procedure Initialize()
@@ -326,18 +321,6 @@ codeunit 139545 "Fixed Asset Excel Reports"
         LibraryVariableStorage.Enqueue(UseAccountingPeriod);
         RequestPageXml := Report.RunRequestPage(Report::"EXR Fixed Asset Projected", RequestPageXml);
         LibraryReportDataset.RunReportAndLoad(Report::"EXR Fixed Asset Projected", Variant, RequestPageXml);
-    end;
-
-    local procedure EnsureGeneralPostingSetup()
-    var
-        GeneralPostingSetup: Record "General Posting Setup";
-    begin
-        GeneralPostingSetup.SetFilter("Gen. Bus. Posting Group", '<>%1', '');
-        GeneralPostingSetup.SetFilter("Gen. Prod. Posting Group", '<>%1', '');
-        if not GeneralPostingSetup.IsEmpty() then
-            exit;
-
-        LibraryERM.CreateGeneralPostingSetupInvt(GeneralPostingSetup);
     end;
 
     local procedure ModifyDepreciationBook(var DepreciationBook: Record "Depreciation Book")
