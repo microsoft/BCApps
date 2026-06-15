@@ -4,14 +4,38 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
+using Microsoft.Inventory.Ledger;
 using Microsoft.Manufacturing.Document;
+using Microsoft.Purchases.Document;
 
 pageextension 99001543 "Subc. Finished Prod. Orders" extends "Finished Production Orders"
 {
     actions
     {
+        addafter("E&ntries")
+        {
+            action("Subcontracting Purchase Lines")
+            {
+                ApplicationArea = Manufacturing;
+                Caption = 'Subcontracting Order Lines';
+                Image = SubcontractingWorksheet;
+                RunObject = page "Purchase Lines";
+                RunPageLink = "Document Type" = const(Order), "Prod. Order No." = field("No.");
+                ToolTip = 'Show purchase order lines for subcontracting.';
+            }
+        }
         addafter("&Warehouse Entries")
         {
+            action("Subc. Transfer Entries")
+            {
+                ApplicationArea = Manufacturing;
+                Caption = 'Subcontracting Transfer Entries';
+                Image = ItemLedger;
+                RunObject = page "Item Ledger Entries";
+                RunPageLink = "Entry Type" = const(Transfer), "Subc. Prod. Order No." = field("No.");
+                RunPageView = sorting("Order Type", "Order No.");
+                ToolTip = 'View the list of subcontracting transfers.';
+            }
             action("WIP Ledger Entries")
             {
                 ApplicationArea = Manufacturing;
