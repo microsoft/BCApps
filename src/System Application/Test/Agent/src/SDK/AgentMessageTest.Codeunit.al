@@ -1329,5 +1329,115 @@ codeunit 133963 "Agent Message Test"
         Assert.AreEqual('last-file.txt', LastAttachment."File Name", 'Last attachment file name should match');
     end;
 
+    [Test]
+    procedure ContentTypeFromFilenameForKnownExtensions()
+    var
+        AgentTaskMsgBuilderImpl: Codeunit "Agent Task Msg. Builder Impl.";
+    begin
+        // [SCENARIO] MIME type derivation used by the FileUpload AddAttachment overload
+        // returns the expected content type for common file extensions.
+        Assert.AreEqual('application/pdf', AgentTaskMsgBuilderImpl.GetContentTypeFromFilename('invoice.pdf'), 'pdf MIME type');
+        Assert.AreEqual('text/plain', AgentTaskMsgBuilderImpl.GetContentTypeFromFilename('notes.txt'), 'txt MIME type');
+        Assert.AreEqual('application/json', AgentTaskMsgBuilderImpl.GetContentTypeFromFilename('payload.json'), 'json MIME type');
+        Assert.AreEqual(
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document(.docx)',
+            AgentTaskMsgBuilderImpl.GetContentTypeFromFilename('report.docx'),
+            'docx MIME type');
+        Assert.AreEqual(
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet(.xlsx)',
+            AgentTaskMsgBuilderImpl.GetContentTypeFromFilename('budget.xlsx'),
+            'xlsx MIME type');
+        Assert.AreEqual('application/png', AgentTaskMsgBuilderImpl.GetContentTypeFromFilename('logo.png'), 'png MIME type');
+        Assert.AreEqual('text/csv', AgentTaskMsgBuilderImpl.GetContentTypeFromFilename('export.csv'), 'csv MIME type');
+    end;
+
+    [Test]
+    procedure ContentTypeFromFilenameIsCaseInsensitive()
+    var
+        AgentTaskMsgBuilderImpl: Codeunit "Agent Task Msg. Builder Impl.";
+    begin
+        // [SCENARIO] FileUpload supplies file names as the user picked them, so extension
+        // matching must be case-insensitive.
+        Assert.AreEqual('application/pdf', AgentTaskMsgBuilderImpl.GetContentTypeFromFilename('REPORT.PDF'), 'uppercase pdf MIME type');
+        Assert.AreEqual('text/plain', AgentTaskMsgBuilderImpl.GetContentTypeFromFilename('Notes.TxT'), 'mixed case txt MIME type');
+        Assert.AreEqual('application/png', AgentTaskMsgBuilderImpl.GetContentTypeFromFilename('Logo.Png'), 'mixed case png MIME type');
+    end;
+
+    [Test]
+    procedure ContentTypeFromFilenameForUnknownExtensionReturnsEmpty()
+    var
+        AgentTaskMsgBuilderImpl: Codeunit "Agent Task Msg. Builder Impl.";
+    begin
+        // [SCENARIO] Unknown extensions return empty so the platform can fall back without
+        // the FileUpload overload throwing.
+        Assert.AreEqual('', AgentTaskMsgBuilderImpl.GetContentTypeFromFilename('binary.xyz'), 'unknown extension');
+        Assert.AreEqual('', AgentTaskMsgBuilderImpl.GetContentTypeFromFilename('no-extension'), 'missing extension');
+        Assert.AreEqual('', AgentTaskMsgBuilderImpl.GetContentTypeFromFilename(''), 'empty filename');
+    end;
+
+    [Test]
+    procedure AddAttachmentChainedMultipleTimesAddsAllFiles()
+    var
+        AgentRecord: Record Agent;
+        AgentTaskRecord: Record "Agent Task";
+        AgentTaskMessageRecord: Record "Agent Task Message";
+        TempAgentTaskFile: Record "Agent Task File" temporary;
+        AgentTaskBuilder: Codeunit "Agent Task Builder";
+        AgentTaskMessageBuilder: Codeunit "Agent Task Message Builder";
+        TempBlob1: Codeunit "Temp Blob";
+        TempBlob2: Codeunit "Temp Blob";
+        AgentUserId: Guid;
+        InStream1: InStream;
+        InStream2: InStream;
+        OutStream1: OutStream;
+        OutStream2: OutStream;
+        ExternalIdTok: Label 'MSGBLD-TEST-018', Locked = true;
+    begin
+        Initialize();
+
+        // [SCENARIO] Repeated AddAttachment calls (as a fileuploadaction trigger would issue,
+        // looping over List of [FileUpload]) accumulate independent files on one message.
+
+        // [GIVEN] A test agent with a task
+        AgentUserId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            'MSGBLDAGENT18',
+            'Message Builder Test Agent 18',
+            'You are a test agent for chained AddAttachment testing.');
+
+        AgentTaskBuilder
+            .Initialize(AgentUserId, 'Chained AddAttachment Test Task')
+            .SetExternalId(ExternalIdTok);
+
+        AgentTaskRecord := AgentTaskBuilder.Create(false, false);
+
+        // [GIVEN] Two distinct payloads, mimicking two files from a single multi-select picker
+        TempBlob1.CreateOutStream(OutStream1, TextEncoding::UTF8);
+        OutStream1.WriteText('first-payload');
+        TempBlob1.CreateInStream(InStream1, TextEncoding::UTF8);
+
+        TempBlob2.CreateOutStream(OutStream2, TextEncoding::UTF8);
+        OutStream2.WriteText('second-payload');
+        TempBlob2.CreateInStream(InStream2, TextEncoding::UTF8);
+
+        // [WHEN] AddAttachment is called twice in a fluent chain
+        AgentTaskMessageBuilder
+            .Initialize('Sender', 'Two files attached')
+            .SetAgentTask(AgentTaskRecord)
+            .AddAttachment('first.txt', 'text/plain', InStream1)
+            .AddAttachment('second.pdf', 'application/pdf', InStream2);
+
+        AgentTaskMessageRecord := AgentTaskMessageBuilder.Create(false);
+
+        // [THEN] Both files are stored on the message
+        AgentMessage.GetAttachments(AgentTaskRecord.Id, AgentTaskMessageRecord.Id, TempAgentTaskFile);
+        Assert.AreEqual(2, TempAgentTaskFile.Count(), 'Both attachments should be stored');
+
+        TempAgentTaskFile.SetRange("File Name", 'first.txt');
+        Assert.IsFalse(TempAgentTaskFile.IsEmpty(), 'First attachment should exist');
+        TempAgentTaskFile.SetRange("File Name", 'second.pdf');
+        Assert.IsFalse(TempAgentTaskFile.IsEmpty(), 'Second attachment should exist');
+    end;
+
     #endregion
 }

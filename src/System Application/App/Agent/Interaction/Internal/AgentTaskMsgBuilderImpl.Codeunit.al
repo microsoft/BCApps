@@ -175,6 +175,33 @@ codeunit 4311 "Agent Task Msg. Builder Impl."
     end;
 
     [Scope('OnPrem')]
+    procedure AddAttachment(File: FileUpload): codeunit "Agent Task Msg. Builder Impl."
+    begin
+        // Default to MS-DOS encoding to keep binary attachments (PDF, PNG, XLSX, ...) byte-safe,
+        // consistent with how Email SDK adapts FileUpload streams.
+        exit(AddAttachment(File, TextEncoding::MSDos));
+    end;
+
+    [Scope('OnPrem')]
+    procedure AddAttachment(File: FileUpload; EncodeType: TextEncoding): codeunit "Agent Task Msg. Builder Impl."
+    var
+        FileInStream: InStream;
+        FileName: Text;
+    begin
+        // Adapter for fileuploadaction triggers; callers loop over List of [FileUpload]
+        // to support multi-file selection from the browser file picker.
+        FileName := File.FileName;
+        if FileName = '' then
+            exit(this);
+        File.CreateInStream(FileInStream, EncodeType);
+        AddAttachment(
+            CopyStr(FileName, 1, 250),
+            CopyStr(GetContentTypeFromFilename(FileName), 1, 100),
+            FileInStream);
+        exit(this);
+    end;
+
+    [Scope('OnPrem')]
     procedure UploadAttachment(): Boolean
     var
         SelectAttachmentLbl: Label 'Select a file to upload';
