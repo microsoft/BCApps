@@ -57,7 +57,7 @@ codeunit 6427 "E-Doc. Sales Doc. Helper"
         SalesLine.Validate("Dimension Set ID", DimensionManagement.GetCombinedDimensionSetID(SalesLineCombinedDimensions, GlobalDim1, GlobalDim2));
         SalesLine.Validate("Shortcut Dimension 1 Code", EDocSalesLine."[BC] Shortcut Dimension 1 Code");
         SalesLine.Validate("Shortcut Dimension 2 Code", EDocSalesLine."[BC] Shortcut Dimension 2 Code");
-        SalesLine.Insert();
+        SalesLine.Insert(true);
         EDocRecordLink.InsertEDocumentSalesLineLink(EDocSalesLine, SalesLine);
     end;
 
