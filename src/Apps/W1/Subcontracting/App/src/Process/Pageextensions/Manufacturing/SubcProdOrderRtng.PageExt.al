@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -15,6 +15,10 @@ pageextension 99001503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
         {
             trigger OnAfterValidate()
             begin
+#if not CLEAN29
+                if not SubcontractingEnabled then
+                    exit;
+#endif
                 UpdateWIPEnabled();
             end;
         }
@@ -22,6 +26,10 @@ pageextension 99001503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
         {
             trigger OnAfterValidate()
             begin
+#if not CLEAN29
+                if not SubcontractingEnabled then
+                    exit;
+#endif
                 UpdateWIPEnabled();
             end;
         }
@@ -29,32 +37,32 @@ pageextension 99001503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
         {
             field(Subcontracting; Rec.Subcontracting)
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
             }
             field("Transfer WIP Item"; Rec."Transfer WIP Item")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Enabled = TransferWIPItemEnabled;
             }
             field("Transfer Description"; Rec."Transfer Description")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Enabled = Rec."Transfer WIP Item";
             }
             field("Transfer Description 2"; Rec."Transfer Description 2")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Enabled = Rec."Transfer WIP Item";
                 Visible = false;
             }
             field("WIP Qty. (Base) at Subc."; Rec."WIP Qty. (Base) at Subc.")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Visible = false;
             }
             field("WIP Qty. (Base) in Transit"; Rec."WIP Qty. (Base) in Transit")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Visible = false;
             }
         }
@@ -62,7 +70,7 @@ pageextension 99001503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
         {
             part("Subc. Routing Info Factbox"; "Subc. Routing Info Factbox")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 SubPageLink = "Prod. Order No." = field("Prod. Order No."), "Routing No." = field("Routing No."), "Routing Reference No." = field("Routing Reference No."), "Operation No." = field("Operation No.");
             }
         }
@@ -73,7 +81,7 @@ pageextension 99001503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
         {
             action("Subcontracting Purchase Lines")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Caption = 'Subcontracting Purchase Order Lines';
                 Image = SubcontractingWorksheet;
                 RunObject = page "Purchase Lines";
@@ -82,7 +90,7 @@ pageextension 99001503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
             }
             action("WIP Ledger Entries")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Caption = 'Subcontracting WIP Entries';
                 Image = LedgerEntries;
                 RunObject = page "Subc. WIP Ledger Entries";
@@ -98,7 +106,7 @@ pageextension 99001503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
         {
             action(CreateSubcontracting)
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Caption = 'Create Subcontracting Order';
                 Image = CreateDocument;
                 Enabled = CreateSubcontractingEnabled;
@@ -141,7 +149,7 @@ pageextension 99001503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
             }
             action("WIP Adjustment")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Caption = 'WIP Adjustment';
                 Image = AdjustEntries;
                 ToolTip = 'Manually adjust the WIP quantity for the selected prod. order routing line.';
@@ -160,6 +168,12 @@ pageextension 99001503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
         }
     }
     var
+#if not CLEAN29
+#pragma warning disable AL0432
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
+        SubcontractingEnabled: Boolean;
+#endif
         TransferWIPItemEnabled: Boolean;
         CreateSubcontractingEnabled: Boolean;
         CreateSubcontractingVisible: Boolean;
@@ -169,6 +183,13 @@ pageextension 99001503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
     var
         StatusFilter: Text;
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        SubcontractingEnabled := SubcFeatureFlagHandler.IsSubcontractingEnabled();
+#pragma warning restore AL0432
+        if not SubcontractingEnabled then
+            exit;
+#endif
         StatusFilter := Rec.GetFilter(Rec.Status);
         if StatusFilter.Contains(Format("Production Order Status"::Released)) then
             CreateSubcontractingVisible := true
@@ -178,11 +199,19 @@ pageextension 99001503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
 
     trigger OnAfterGetRecord()
     begin
+#if not CLEAN29
+        if not SubcontractingEnabled then
+            exit;
+#endif
         UpdateWIPEnabled();
     end;
 
     trigger OnAfterGetCurrRecord()
     begin
+#if not CLEAN29
+        if not SubcontractingEnabled then
+            exit;
+#endif
         UpdateWIPEnabled();
         CreateSubcontractingEnabled := Rec.Subcontracting and (Rec.Status = "Production Order Status"::Released);
     end;
@@ -191,5 +220,5 @@ pageextension 99001503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
     begin
         Rec.Calcfields(Subcontracting);
         TransferWIPItemEnabled := Rec.Subcontracting;
-    end; 
+    end;
 }

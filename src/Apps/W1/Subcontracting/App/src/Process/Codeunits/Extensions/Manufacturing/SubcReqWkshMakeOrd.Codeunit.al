@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -10,9 +10,22 @@ using Microsoft.Purchases.Document;
 
 codeunit 99001516 "Subc. Req. Wksh. Make Ord."
 {
+#if not CLEAN29
+    var
+#pragma warning disable AL0432
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
+
+#endif
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Req. Wksh.-Make Order", OnAfterInsertPurchOrderLine, '', false, false)]
     local procedure OnAfterInsertPurchOrderLine(var PurchOrderLine: Record "Purchase Line"; var NextLineNo: Integer; var RequisitionLine: Record "Requisition Line")
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         HandleSubcontractingAfterPurchOrderLineInsert(PurchOrderLine, RequisitionLine);
     end;
 
@@ -22,6 +35,12 @@ codeunit 99001516 "Subc. Req. Wksh. Make Ord."
         PurchaseLineWithService: Record "Purchase Line";
         SubcPurchaseOrderCreator: Codeunit "Subc. Purchase Order Creator";
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if RequisitionLine."Prod. Order No." = '' then
             exit;
         PurchaseLineWithService."Document Type" := PurchaseHeader."Document Type";
@@ -32,6 +51,12 @@ codeunit 99001516 "Subc. Req. Wksh. Make Ord."
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Carry Out Action", OnPurchOrderChgAndResheduleOnAfterGetPurchHeader, '', false, false)]
     local procedure OnPurchOrderChgAndResheduleOnAfterGetPurchHeader(var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; var RequisitionLine: Record "Requisition Line")
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         UpdateSubcontractingComponentPurchLines(PurchaseLine, RequisitionLine);
     end;
 
