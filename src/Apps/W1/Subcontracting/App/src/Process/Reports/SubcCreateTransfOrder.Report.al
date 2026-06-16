@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -15,7 +15,7 @@ using Microsoft.Purchases.Vendor;
 
 report 99001501 "Subc. Create Transf. Order"
 {
-    ApplicationArea = Manufacturing;
+    ApplicationArea = Subcontracting;
     Caption = 'Create Subcontracting Transfer Order';
     ProcessingOnly = true;
     UsageCategory = Tasks;
@@ -59,6 +59,19 @@ report 99001501 "Subc. Create Transf. Order"
             end;
         }
     }
+#if not CLEAN29
+    trigger OnInitReport()
+    var
+#pragma warning disable AL0432
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
+    begin
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            CurrReport.Quit();
+    end;
+#endif
 
     var
         TransferHeader: Record "Transfer Header";
@@ -301,7 +314,11 @@ report 99001501 "Subc. Create Transf. Order"
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         UOMManagement: Codeunit "Unit of Measure Management";
         TransferFromLoc: Code[10];
+        TransferToLocCode: Code[10];
         WIPPreviousOperationNo: Code[10];
+        PostedWIPQtyBase: Decimal;
+        PurchLineQtyBase: Decimal;
+        QtyPerPurchUom: Decimal;
         WIPQtyBase: Decimal;
         WIPQtyInUOM: Decimal;
         WIPPreviousOperationNoDict: Dictionary of [Code[10], Code[10]];
@@ -320,7 +337,9 @@ report 99001501 "Subc. Create Transf. Order"
         if not CheckCreateWIPTransfer(PurchaseLine) then
             exit(false);
 
-        GetWIPTransferFromLocations(ProdOrderLine, ProdOrderRoutingLine, WIPSourceLocationList, WIPSourceQtyDict, WIPPreviousOperationNoDict);
+        PurchLineQtyBase := CalcPurchLineQtyBase(PurchaseLine, ProdOrderLine);
+
+        GetWIPTransferFromLocations(ProdOrderLine, ProdOrderRoutingLine, WIPSourceLocationList, WIPSourceQtyDict, WIPPreviousOperationNoDict, PurchLineQtyBase);
 
         if WIPSourceLocationList.Count() = 0 then
             exit(false);
@@ -328,14 +347,23 @@ report 99001501 "Subc. Create Transf. Order"
         if not InsertLine then
             exit(true);
 
-        Item.SetLoadFields("Base Unit of Measure", "Rounding Precision", Description, "Description 2");
+        if WIPSourceLocationList.Count() = 1 then begin
+            GetTransferToLocationCodeForPurchaseHeader("Purchase Header", Vendor, TransferToLocCode);
+            PostedWIPQtyBase := GetWIPQtyBase(PurchaseLine, TransferToLocCode);
+        end;
+
+        Item.SetLoadFields("Base Unit of Measure");
         Item.Get(ProdOrderLine."Item No.");
+        QtyPerPurchUom := UOMManagement.GetQtyPerUnitOfMeasure(Item, PurchaseLine."Unit of Measure Code");
 
         foreach TransferFromLoc in WIPSourceLocationList do begin
             WIPQtyBase := WIPSourceQtyDict.Get(TransferFromLoc);
             WIPPreviousOperationNoDict.Get(TransferFromLoc, WIPPreviousOperationNo);
-            if ProdOrderLine."Qty. per Unit of Measure" <> 0 then
-                WIPQtyInUOM := Round(WIPQtyBase / ProdOrderLine."Qty. per Unit of Measure", UOMManagement.QtyRndPrecision())
+            if WIPSourceLocationList.Count() = 1 then
+                if WIPQtyBase > PurchLineQtyBase - PostedWIPQtyBase then
+                    WIPQtyBase := PurchLineQtyBase - PostedWIPQtyBase;
+            if QtyPerPurchUom <> 0 then
+                WIPQtyInUOM := Round(WIPQtyBase / QtyPerPurchUom, UOMManagement.QtyRndPrecision())
             else
                 WIPQtyInUOM := Round(WIPQtyBase, UOMManagement.QtyRndPrecision());
             if WIPQtyInUOM > 0 then begin
@@ -359,7 +387,7 @@ report 99001501 "Subc. Create Transf. Order"
         TransferLine.Validate("Item No.", ProdOrderLine."Item No.");
         if ProdOrderLine."Variant Code" <> '' then
             TransferLine.Validate("Variant Code", ProdOrderLine."Variant Code");
-        TransferLine.Validate("Unit of Measure Code", ProdOrderLine."Unit of Measure Code");
+        TransferLine.Validate("Unit of Measure Code", PurchaseLine."Unit of Measure Code");
         TransferLine.Validate("Transfer WIP Item", true);
         TransferLine.Validate(Quantity, WIPQty);
 
@@ -382,7 +410,7 @@ report 99001501 "Subc. Create Transf. Order"
         TransferLine.Modify();
     end;
 
-    local procedure GetWIPTransferFromLocations(ProdOrderLine: Record "Prod. Order Line"; ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var WIPSourceLocationList: List of [Code[10]]; var WIPSourceQtyDict: Dictionary of [Code[10], Decimal]; var WIPPreviousOperationNoDict: Dictionary of [Code[10], Code[10]])
+    local procedure GetWIPTransferFromLocations(ProdOrderLine: Record "Prod. Order Line"; ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var WIPSourceLocationList: List of [Code[10]]; var WIPSourceQtyDict: Dictionary of [Code[10], Decimal]; var WIPPreviousOperationNoDict: Dictionary of [Code[10], Code[10]]; PurchLineQtyBase: Decimal)
     var
         PrevProdOrderRoutingLine: Record "Prod. Order Routing Line";
         LocCode: Code[10];
@@ -395,7 +423,7 @@ report 99001501 "Subc. Create Transf. Order"
             LocCode := ProdOrderLine."Location Code";
             if LocCode <> '' then begin
                 WIPSourceLocationList.Add(LocCode);
-                WIPSourceQtyDict.Add(LocCode, ProdOrderLine."Quantity (Base)");
+                WIPSourceQtyDict.Add(LocCode, PurchLineQtyBase);
                 WIPPreviousOperationNoDict.Add(LocCode, '');
             end;
             exit;
@@ -420,7 +448,7 @@ report 99001501 "Subc. Create Transf. Order"
                         Error(WIPItemTransferDifferentErr, PrevProdOrderRoutingLine.FieldCaption("Transfer WIP Item"));
 
                 GetWIPLocationAndQtyForPreviousOp(
-                    ProdOrderLine, PrevProdOrderRoutingLine, IsSerial, LocCode, WIPQtyBase);
+                    ProdOrderLine, PrevProdOrderRoutingLine, IsSerial, PurchLineQtyBase, LocCode, WIPQtyBase);
 
                 if (LocCode <> '') and (WIPQtyBase > 0) and (not WIPSourceQtyDict.ContainsKey(LocCode)) then begin
                     WIPSourceLocationList.Add(LocCode);
@@ -433,20 +461,20 @@ report 99001501 "Subc. Create Transf. Order"
             LocCode := ProdOrderLine."Location Code";
             if LocCode <> '' then begin
                 WIPSourceLocationList.Add(LocCode);
-                WIPSourceQtyDict.Add(LocCode, ProdOrderLine."Quantity (Base)");
+                WIPSourceQtyDict.Add(LocCode, PurchLineQtyBase);
                 WIPPreviousOperationNoDict.Add(LocCode, '');
             end;
         end;
     end;
 
-    local procedure GetWIPLocationAndQtyForPreviousOp(ProdOrderLine: Record "Prod. Order Line"; PrevProdOrderRoutingLine: Record "Prod. Order Routing Line"; IsSerial: Boolean; var LocationCode: Code[10]; var WIPQtyBase: Decimal)
+    local procedure GetWIPLocationAndQtyForPreviousOp(ProdOrderLine: Record "Prod. Order Line"; PrevProdOrderRoutingLine: Record "Prod. Order Routing Line"; IsSerial: Boolean; PurchLineQtyBase: Decimal; var LocationCode: Code[10]; var WIPQtyBase: Decimal)
     var
         WIPLedgerEntry: Record "Subcontractor WIP Ledger Entry";
         PrevVendor: Record Vendor;
         PrevWorkCenter: Record "Work Center";
     begin
         LocationCode := ProdOrderLine."Location Code";
-        WIPQtyBase := ProdOrderLine."Quantity (Base)";
+        WIPQtyBase := PurchLineQtyBase;
 
         if PrevProdOrderRoutingLine."Transfer WIP Item" then begin
             // Previous op has a subcontracting WIP transfer
@@ -482,10 +510,10 @@ report 99001501 "Subc. Create Transf. Order"
         ProdOrderLine: Record "Prod. Order Line";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         PurchaseHeader: Record "Purchase Header";
-        SubcontractorWIPLedgerEntry: Record "Subcontractor WIP Ledger Entry";
-        TransferLineToCheck: Record "Transfer Line";
         VendorFromPurchOrder: Record Vendor;
+        TransferLineToCheck: Record "Transfer Line";
         LocCode: Code[10];
+        PurchLineQtyBase: Decimal;
         TransferToLocationCode: Code[10];
         ExpectedQtyBase: Decimal;
         PostedWIPQtyBase: Decimal;
@@ -512,7 +540,9 @@ report 99001501 "Subc. Create Transf. Order"
         if not ProdOrderRoutingLine."Transfer WIP Item" then
             exit(false);
 
-        GetWIPTransferFromLocations(ProdOrderLine, ProdOrderRoutingLine, WIPSourceLocationList, WIPSourceQtyDict, WIPPreviousOperationNoDict);
+        PurchLineQtyBase := CalcPurchLineQtyBase(PurchaseLine, ProdOrderLine);
+
+        GetWIPTransferFromLocations(ProdOrderLine, ProdOrderRoutingLine, WIPSourceLocationList, WIPSourceQtyDict, WIPPreviousOperationNoDict, PurchLineQtyBase);
 
         ExpectedQtyBase := 0;
         foreach LocCode in WIPSourceLocationList do
@@ -532,16 +562,7 @@ report 99001501 "Subc. Create Transf. Order"
         if TransferToLocationCode = '' then
             exit(false);
 
-        SubcontractorWIPLedgerEntry.SetRange("Prod. Order Status", "Production Order Status"::Released);
-        SubcontractorWIPLedgerEntry.SetRange("Prod. Order No.", PurchaseLine."Prod. Order No.");
-        SubcontractorWIPLedgerEntry.SetRange("Prod. Order Line No.", PurchaseLine."Prod. Order Line No.");
-        SubcontractorWIPLedgerEntry.SetRange("Routing No.", PurchaseLine."Routing No.");
-        SubcontractorWIPLedgerEntry.SetRange("Routing Reference No.", PurchaseLine."Routing Reference No.");
-        SubcontractorWIPLedgerEntry.SetRange("Operation No.", PurchaseLine."Operation No.");
-        SubcontractorWIPLedgerEntry.SetRange("Location Code", TransferToLocationCode);
-        SubcontractorWIPLedgerEntry.SetRange("In Transit", false);
-        SubcontractorWIPLedgerEntry.CalcSums("Quantity (Base)");
-        PostedWIPQtyBase := SubcontractorWIPLedgerEntry."Quantity (Base)";
+        PostedWIPQtyBase := GetWIPQtyBase(PurchaseLine, TransferToLocationCode);
 
         if WIPPreviousOperationNoDict.Keys().Count() > 1 then
             foreach LocCode in WIPPreviousOperationNoDict.Keys() do
@@ -549,5 +570,33 @@ report 99001501 "Subc. Create Transf. Order"
                     exit(ExpectedQtyBase > 0);
 
         exit(PostedWIPQtyBase < ExpectedQtyBase);
+    end;
+
+    local procedure CalcPurchLineQtyBase(PurchaseLine: Record "Purchase Line"; ProdOrderLine: Record "Prod. Order Line"): Decimal
+    var
+        Item: Record Item;
+        UOMManagement: Codeunit "Unit of Measure Management";
+        QtyPerUom: Decimal;
+    begin
+        Item.SetLoadFields("Base Unit of Measure");
+        Item.Get(ProdOrderLine."Item No.");
+        QtyPerUom := UOMManagement.GetQtyPerUnitOfMeasure(Item, PurchaseLine."Unit of Measure Code");
+        exit(UOMManagement.CalcBaseQty(PurchaseLine.Quantity, QtyPerUom));
+    end;
+
+    local procedure GetWIPQtyBase(PurchaseLine: Record "Purchase Line"; LocationCode: Code[10]): Decimal
+    var
+        SubcontractorWIPLedgerEntry: Record "Subcontractor WIP Ledger Entry";
+    begin
+        SubcontractorWIPLedgerEntry.SetRange("Prod. Order Status", "Production Order Status"::Released);
+        SubcontractorWIPLedgerEntry.SetRange("Prod. Order No.", PurchaseLine."Prod. Order No.");
+        SubcontractorWIPLedgerEntry.SetRange("Prod. Order Line No.", PurchaseLine."Prod. Order Line No.");
+        SubcontractorWIPLedgerEntry.SetRange("Routing No.", PurchaseLine."Routing No.");
+        SubcontractorWIPLedgerEntry.SetRange("Routing Reference No.", PurchaseLine."Routing Reference No.");
+        SubcontractorWIPLedgerEntry.SetRange("Operation No.", PurchaseLine."Operation No.");
+        SubcontractorWIPLedgerEntry.SetRange("Location Code", LocationCode);
+        SubcontractorWIPLedgerEntry.SetRange("In Transit", false);
+        SubcontractorWIPLedgerEntry.CalcSums("Quantity (Base)");
+        exit(SubcontractorWIPLedgerEntry."Quantity (Base)");
     end;
 }
