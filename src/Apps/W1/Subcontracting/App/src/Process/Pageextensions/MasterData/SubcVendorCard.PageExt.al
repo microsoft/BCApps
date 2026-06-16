@@ -14,17 +14,17 @@ pageextension 99001516 "Subc. Vendor Card" extends "Vendor Card"
         {
             field("Subcr. Location Code"; Rec."Subc. Location Code")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 ToolTip = 'Specifies the subcontracting location where items from the vendor must be received by default after having performed an outside work.';
             }
             field("Subc. Linked to Work Center"; Rec."Subc. Linked to Work Center")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 ToolTip = 'Specifies if a work center is related to the vendor.';
             }
             field("Subc. Work Center No."; Rec."Subc. Work Center No.")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 ToolTip = 'Specifies the work center for purchase provision related to the vendor.';
             }
         }
@@ -35,7 +35,7 @@ pageextension 99001516 "Subc. Vendor Card" extends "Vendor Card"
         {
             action("Subcontractor Prices")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Caption = 'Subcontractor Prices';
                 Image = Price;
                 RunObject = page "Subcontractor Prices";

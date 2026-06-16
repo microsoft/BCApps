@@ -14,7 +14,7 @@ pageextension 99001505 "Subc. Rel. Prod. Orders" extends "Released Production Or
         {
             action("Subcontracting Purchase Lines")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Caption = 'Subcontracting Order Lines';
                 Image = SubcontractingWorksheet;
                 RunObject = page "Purchase Lines";
@@ -26,7 +26,7 @@ pageextension 99001505 "Subc. Rel. Prod. Orders" extends "Released Production Or
         {
             action("WIP Ledger Entries")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Caption = 'Subcontracting WIP Entries';
                 Image = LedgerEntries;
                 RunObject = page "Subc. WIP Ledger Entries";
