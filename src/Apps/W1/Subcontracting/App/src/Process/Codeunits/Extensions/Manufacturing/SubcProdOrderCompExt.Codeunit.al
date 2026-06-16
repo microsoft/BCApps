@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -16,6 +16,11 @@ using System.Utilities;
 codeunit 99001524 "Subc. Prod. Order Comp. Ext."
 {
     var
+#if not CLEAN29
+#pragma warning disable AL0432
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
+#endif
         ExistingPostedTransferLineQst: Label 'The component has already been assigned to the posted subcontracting transfer order %1.\\Do you want to continue?', Comment = '%1=Transfer Order No';
         ExistingPurchLineErr: Label 'You cannot change this field because the component is already assigned to subcontracting purchase order %1.\\Updating the quantity is only allowed through the purchase order.', Comment = '%1=Document No';
         ExistingTransferLineQst: Label 'The component has already been assigned to the subcontracting transfer order %1.\\The quantity may only be updated via the purchase order and processing of the stock transfer.', Comment = '%1=Transfer Order No';
@@ -24,12 +29,24 @@ codeunit 99001524 "Subc. Prod. Order Comp. Ext."
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Prod. Order Comp.-Reserve", OnAfterInitFromProdOrderComp, '', false, false)]
     local procedure OnAfterInitFromProdOrderComp(ProdOrderComponent: Record "Prod. Order Component")
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         ValidateSubcontractingReservationConstraints(ProdOrderComponent);
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Prod. Order Component", OnAfterValidateEvent, "Bin Code", false, false)]
     local procedure OnAfterValidateBinCode(var Rec: Record "Prod. Order Component"; var xRec: Record "Prod. Order Component"; CurrFieldNo: Integer)
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if Rec.IsTemporary then
             exit;
         SetOriginalBinCode(Rec, xRec);
@@ -38,6 +55,12 @@ codeunit 99001524 "Subc. Prod. Order Comp. Ext."
     [EventSubscriber(ObjectType::Table, Database::"Prod. Order Component", OnAfterValidateEvent, "Location Code", false, false)]
     local procedure OnAfterValidateLocationCode(var Rec: Record "Prod. Order Component"; var xRec: Record "Prod. Order Component"; CurrFieldNo: Integer)
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if Rec.IsTemporary then
             exit;
         SetOriginalLocationCode(Rec, xRec);
@@ -46,6 +69,12 @@ codeunit 99001524 "Subc. Prod. Order Comp. Ext."
     [EventSubscriber(ObjectType::Table, Database::"Prod. Order Component", OnAfterValidateEvent, "Routing Link Code", false, false)]
     local procedure OnAfterValidateRoutingLinkCode(var Rec: Record "Prod. Order Component"; var xRec: Record "Prod. Order Component"; CurrFieldNo: Integer)
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if Rec.IsTemporary then
             exit;
         HandleRoutingLinkCodeValidation(Rec, xRec);
@@ -54,6 +83,12 @@ codeunit 99001524 "Subc. Prod. Order Comp. Ext."
     [EventSubscriber(ObjectType::Table, Database::"Prod. Order Component", OnBeforeValidateEvent, "Location Code", false, false)]
     local procedure OnBeforeValidateLocationCode(var Rec: Record "Prod. Order Component"; var xRec: Record "Prod. Order Component"; CurrFieldNo: Integer)
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if Rec.IsTemporary then
             exit;
         CheckExistingSubcontractingTransferOrder(Rec, xRec, CurrFieldNo);
@@ -62,6 +97,12 @@ codeunit 99001524 "Subc. Prod. Order Comp. Ext."
     [EventSubscriber(ObjectType::Table, Database::"Prod. Order Component", OnBeforeValidateEvent, "Quantity per", false, false)]
     local procedure OnBeforeValidateQuantityPer(var Rec: Record "Prod. Order Component"; var xRec: Record "Prod. Order Component"; CurrFieldNo: Integer)
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if Rec.IsTemporary then
             exit;
         CheckExistingDocumentsForSubcontracting(Rec, xRec, CurrFieldNo);
