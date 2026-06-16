@@ -11,12 +11,15 @@ using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
 
 codeunit 99001520 "Subc. Prod. Order Rtng. Ext."
+codeunit 99001520 "Subc. Prod. Order Rtng. Ext."
 {
-#if not CLEAN29
     var
+#if not CLEAN29
 #pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
 #pragma warning restore AL0432
+        CannotModifyRtngLineTransferExistsErr: Label 'You cannot change this routing line because transfer orders exist for the linked production order %1, purchase order %2.', Comment = '%1=Production Order No., %2=Purchase Order No.';
+        CannotModifyRtngLineStockAtSubcErr: Label 'You cannot change this routing line because there are remaining components or WIP items transferred to the subcontractor for production order %1, purchase order %2.', Comment = '%1=Production Order No., %2=Purchase Order No.';
 #endif
 
     [EventSubscriber(ObjectType::Table, Database::"Prod. Order Routing Line", OnBeforeDeleteEvent, '', false, false)]
