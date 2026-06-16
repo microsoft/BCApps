@@ -5,8 +5,8 @@
 namespace Microsoft.eServices.EDocument.Test;
 
 using Microsoft.eServices.EDocument.Processing.Import;
-using Microsoft.eServices.EDocument.Processing.Interfaces;
 using Microsoft.eServices.EDocument.Processing.Import.Sales;
+using Microsoft.eServices.EDocument.Processing.Interfaces;
 
 enumextension 133501 "E-Doc. Mock Customizations" extends "E-Doc. Proc. Customizations"
 {

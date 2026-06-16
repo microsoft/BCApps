@@ -1241,8 +1241,8 @@ codeunit 139883 "E-Doc Process Test"
     var
         EDocument: Record "E-Document";
         TempEDocImportParameters: Record "E-Doc. Import Parameters";
-        EDocImport: Codeunit "E-Doc. Import";
         SalesHeader: Record "Sales Header";
+        EDocImport: Codeunit "E-Doc. Import";
     begin
         // [SCENARIO] After a PEPPOL Order XML is imported and a Sales Header created, requesting an earlier step undoes the FinishDraft and clears the Sales Header link.
         Initialize(Enum::"Service Integration"::"Mock");
@@ -1271,10 +1271,10 @@ codeunit 139883 "E-Doc Process Test"
         EDocSalesHeader: Record "E-Document Sales Header";
         EDocSalesLine: Record "E-Document Sales Line";
         TempEDocImportParameters: Record "E-Doc. Import Parameters";
-        EDocImport: Codeunit "E-Doc. Import";
-        EDocumentProcessing: Codeunit "E-Document Processing";
         SalesHeader: Record "Sales Header";
         Item: Record Item;
+        EDocImport: Codeunit "E-Doc. Import";
+        EDocumentProcessing: Codeunit "E-Document Processing";
     begin
         // [SCENARIO] A PEPPOL Order XML with OrderTypeCode=221 is imported. FinishDraft always produces a Sales Order regardless of OrderTypeCode.
         Initialize(Enum::"Service Integration"::"Mock");
@@ -1321,10 +1321,10 @@ codeunit 139883 "E-Doc Process Test"
         EDocSalesHeader: Record "E-Document Sales Header";
         EDocSalesLine: Record "E-Document Sales Line";
         TempEDocImportParameters: Record "E-Doc. Import Parameters";
-        EDocImport: Codeunit "E-Doc. Import";
-        EDocumentProcessing: Codeunit "E-Document Processing";
         ExistingSalesHeader: Record "Sales Header";
         Item: Record Item;
+        EDocImport: Codeunit "E-Doc. Import";
+        EDocumentProcessing: Codeunit "E-Document Processing";
     begin
         // [SCENARIO] A PEPPOL Order XML is imported. A Sales Order with the same customer and External Document No. already exists. FinishDraft detects the duplicate and logs an error.
         Initialize(Enum::"Service Integration"::"Mock");
