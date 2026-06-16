@@ -3036,7 +3036,7 @@ codeunit 139989 "Subc. Subcontracting Test"
     [PageHandler]
     procedure HandleSubcTransferOrdersList(var TransferOrders: TestPage "Transfer Orders")
     begin
-        TransferOrders.First();
+        Assert.IsTrue(TransferOrders.First(), 'Expected at least one subcontracting transfer order in the list.');
         OpenedTransferOrderListNo := CopyStr(TransferOrders."No.".Value(), 1, MaxStrLen(OpenedTransferOrderListNo));
         Assert.IsFalse(TransferOrders.Next(), 'Expected exactly one subcontracting transfer order in the list.');
         TransferOrders.OK().Invoke();
