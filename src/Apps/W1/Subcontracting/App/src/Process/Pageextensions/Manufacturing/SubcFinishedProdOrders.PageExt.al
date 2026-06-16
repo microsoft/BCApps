@@ -16,7 +16,7 @@ pageextension 99001543 "Subc. Finished Prod. Orders" extends "Finished Productio
         {
             action("Subcontracting Purchase Lines")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Caption = 'Subcontracting Order Lines';
                 Image = SubcontractingWorksheet;
                 RunObject = page "Purchase Lines";
@@ -28,7 +28,7 @@ pageextension 99001543 "Subc. Finished Prod. Orders" extends "Finished Productio
         {
             action("Subc. Transfer Entries")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Caption = 'Subcontracting Transfer Entries';
                 Image = ItemLedger;
                 RunObject = page "Item Ledger Entries";
