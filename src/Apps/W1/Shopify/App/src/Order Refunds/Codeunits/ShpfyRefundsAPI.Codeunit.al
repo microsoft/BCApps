@@ -146,10 +146,8 @@ codeunit 30228 "Shpfy Refunds API"
         JExchangeLineItem: JsonToken;
         JLineItems: JsonArray;
         JLineItem: JsonToken;
-        ExchangeLineItemId: BigInteger;
         ExchangeQuantity: Integer;
         LineItemId: BigInteger;
-        Index: Integer;
     begin
         Parameters.Add('RefundId', Format(RefundId));
         GraphQLType := "Shpfy GraphQL Type"::Refunds_GetRefundExchangeLines;
@@ -164,15 +162,12 @@ codeunit 30228 "Shpfy Refunds API"
                 Parameters.Add('After', JsonHelper.GetValueAsText(JResponse, 'data.refund.return.exchangeLineItems.pageInfo.endCursor'));
 
             foreach JExchangeLineItem in JExchangeLineItems do begin
-                ExchangeLineItemId := CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JExchangeLineItem, 'id'));
                 ExchangeQuantity := JsonHelper.GetValueAsInteger(JExchangeLineItem, 'quantity');
                 JLineItems := JsonHelper.GetJsonArray(JExchangeLineItem, 'lineItems');
-                Index := 0;
                 foreach JLineItem in JLineItems do begin
-                    Index += 1;
                     LineItemId := CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JLineItem, 'id'));
                     if LineItemId <> 0 then
-                        FillInExchangeRefundLine(RefundHeader, ExchangeLineItemId, Index, LineItemId, ExchangeQuantity, JLineItem.AsObject());
+                        FillInExchangeRefundLine(RefundHeader, LineItemId, ExchangeQuantity, JLineItem.AsObject());
                 end;
             end;
         until not JsonHelper.GetValueAsBoolean(JResponse, 'data.refund.return.exchangeLineItems.pageInfo.hasNextPage');
@@ -266,7 +261,7 @@ codeunit 30228 "Shpfy Refunds API"
         exit((RefundHeader."Return Id" > 0) or (RefundHeader."Total Refunded Amount" > 0));
     end;
 
-    internal procedure FillInExchangeRefundLine(RefundHeader: Record "Shpfy Refund Header"; ExchangeLineItemId: BigInteger; LineItemIndex: Integer; OrderLineId: BigInteger; ExchangeQuantity: Integer; JLineItem: JsonObject)
+    internal procedure FillInExchangeRefundLine(RefundHeader: Record "Shpfy Refund Header"; OrderLineId: BigInteger; ExchangeQuantity: Integer; JLineItem: JsonObject)
     var
         DataCapture: Record "Shpfy Data Capture";
         RefundLine: Record "Shpfy Refund Line";
@@ -285,7 +280,9 @@ codeunit 30228 "Shpfy Refunds API"
         if ExchangeQuantity <= 0 then
             exit;
 
-        SyntheticRefundLineId := SyntheticExchangeRefundLineId(ExchangeLineItemId, LineItemIndex);
+        // A Shopify line item id is globally unique, so negating it yields a synthetic refund-line id
+        // that cannot collide with Shopify's positive refund-line ids or with another exchange line.
+        SyntheticRefundLineId := -OrderLineId;
 
         UnitPriceShop := JsonHelper.GetValueAsDecimal(JLineItem, 'originalUnitPriceSet.shopMoney.amount');
         UnitPricePresentment := JsonHelper.GetValueAsDecimal(JLineItem, 'originalUnitPriceSet.presentmentMoney.amount');
@@ -322,14 +319,6 @@ codeunit 30228 "Shpfy Refunds API"
         RefundLine.Modify();
 
         DataCapture.Add(Database::"Shpfy Refund Line", RefundLine.SystemId, JLineItem);
-    end;
-
-    local procedure SyntheticExchangeRefundLineId(ExchangeLineItemId: BigInteger; LineItemIndex: Integer): BigInteger
-    begin
-        // Negative synthetic ids never collide with Shopify's positive refund-line ids.
-        // Up to 1000 line items per ExchangeLineItem are supported before collision risk;
-        // ExchangeLineItem.lineItems is typically a single-element list.
-        exit(-((ExchangeLineItemId * 1000) + LineItemIndex));
     end;
 
     local procedure UpdateTransactions(JRefund: JsonObject; RefundHeader: Record "Shpfy Refund Header")

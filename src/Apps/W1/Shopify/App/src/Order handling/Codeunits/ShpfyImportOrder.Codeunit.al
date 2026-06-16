@@ -262,6 +262,10 @@ codeunit 30161 "Shpfy Import Order"
         if not IReturnRefundProcess.IsImportNeededFor("Shpfy Source Document Type"::Refund) then
             exit;
 
+        // Exchange line items only exist on orders that have a return. Skip the API call for the common case of no return.
+        if OrderHeader."Return Status" in [OrderHeader."Return Status"::" ", OrderHeader."Return Status"::"No Return"] then
+            exit;
+
         Parameters.Add('OrderId', Format(OrderHeader."Shopify Order Id"));
         GraphQLType := "Shpfy GraphQL Type"::Orders_GetOrderExchangeLineItems;
         repeat
@@ -290,6 +294,7 @@ codeunit 30161 "Shpfy Import Order"
             exit;
 
         OrderLine.SetRange("Shopify Order Id", OrderHeader."Shopify Order Id");
+        OrderLine.SetLoadFields("Line Id", "Is Exchange Item");
         if OrderLine.FindSet() then
             repeat
                 if ExchangeLineIds.Contains(OrderLine."Line Id") and (not OrderLine."Is Exchange Item") then begin

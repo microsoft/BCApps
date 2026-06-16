@@ -102,6 +102,7 @@ page 30146 "Shpfy Refund Lines"
                 field("Is Exchange Item"; Rec."Is Exchange Item")
                 {
                     ApplicationArea = All;
+                    Visible = false;
                     ToolTip = 'Specifies that this refund line was synthesized from a Return.exchangeLineItems entry. Exchange-item refund lines carry a negative quantity so that the credit memo total matches the Shopify refund total.';
                 }
             }
