@@ -5,8 +5,8 @@
 namespace Microsoft.eServices.EDocument.Processing.Import;
 
 using Microsoft.eServices.EDocument;
-using Microsoft.eServices.EDocument.Processing.Interfaces;
 using Microsoft.Purchases.Vendor;
+using System.Config;
 
 codeunit 6125 "Prepare Purchase E-Doc. Draft" implements IProcessStructuredData
 {
@@ -17,10 +17,9 @@ codeunit 6125 "Prepare Purchase E-Doc. Draft" implements IProcessStructuredData
 
     procedure PrepareDraft(EDocument: Record "E-Document"; EDocImportParameters: Record "E-Doc. Import Parameters"): Enum "E-Document Type"
     var
-        IPrepareDraftGuard: Interface IPrepareDraftGuard;
+        FeatureConfiguration: Codeunit "Feature Configuration";
     begin
-        IPrepareDraftGuard := EDocImportParameters."Processing Customizations";
-        if IPrepareDraftGuard.SkipPrepareDraft() then
+        if FeatureConfiguration.GetConfiguration(AgentDrivenLinematchingTok) = AgentDrivenTreatmentTok then
             exit("E-Document Type"::"Purchase Invoice");
 
         PrepareDraftHelper.PrepareDraft(EDocument, EDocImportParameters);
@@ -41,4 +40,8 @@ codeunit 6125 "Prepare Purchase E-Doc. Draft" implements IProcessStructuredData
     begin
         Vendor := PrepareDraftHelper.GetVendor(EDocument, Customizations);
     end;
+
+    var
+        AgentDrivenLinematchingTok: Label 'PAAgentDrivenLineMatching', Locked = true;
+        AgentDrivenTreatmentTok: Label 'agent_driven', Locked = true;
 }
