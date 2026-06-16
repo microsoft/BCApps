@@ -185,10 +185,10 @@ codeunit 149915 "Subc. TransOrd. Reserv. Test"
 
         // [WHEN] The posted transfer receipt line is reserved against the production order component
         BuildTransferReceiptLineForComponent(TransferReceiptLine, ProdOrderComponent, ItemLedgerEntry);
-        SubcontractingManagement.TransferReservationEntryFromPstTransferLineToProdOrderComp(TransferReceiptLine);
+        SubcTransferManagement.TransferReservationEntryFromPstTransferLineToProdOrderComp(TransferReceiptLine);
 
         // [THEN] Only the component need (10) is reserved in a single capped reservation; the 5 excess units stay as free inventory
-        Assert.AreEqual(10, SubcontractingManagement.GetComponentReservedQtyBase(ProdOrderComponent), 'Only the component need must be reserved');
+        Assert.AreEqual(10, SubcTransferManagement.GetComponentReservedQtyBase(ProdOrderComponent), 'Only the component need must be reserved');
         Assert.AreEqual(1, CountProdOrderComponentReservations(ProdOrderComponent), 'A single capped lot reservation must be created on the component');
     end;
 
@@ -215,10 +215,10 @@ codeunit 149915 "Subc. TransOrd. Reserv. Test"
 
         // [WHEN] The posted transfer receipt line is reserved against the production order component
         BuildTransferReceiptLineForComponent(TransferReceiptLine, ProdOrderComponent, ItemLedgerEntry);
-        SubcontractingManagement.TransferReservationEntryFromPstTransferLineToProdOrderComp(TransferReceiptLine);
+        SubcTransferManagement.TransferReservationEntryFromPstTransferLineToProdOrderComp(TransferReceiptLine);
 
         // [THEN] Exactly three serials are reserved and the two excess serials stay as free inventory
-        Assert.AreEqual(3, SubcontractingManagement.GetComponentReservedQtyBase(ProdOrderComponent), 'Only the needed serials must be reserved');
+        Assert.AreEqual(3, SubcTransferManagement.GetComponentReservedQtyBase(ProdOrderComponent), 'Only the needed serials must be reserved');
         Assert.AreEqual(3, CountProdOrderComponentReservations(ProdOrderComponent), 'Exactly three serial reservations must be created on the component');
     end;
 
@@ -246,11 +246,99 @@ codeunit 149915 "Subc. TransOrd. Reserv. Test"
 
         // [WHEN] The posted transfer receipt line is reserved against the production order component
         BuildTransferReceiptLineForComponent(TransferReceiptLine, ProdOrderComponent, ItemLedgerEntry);
-        SubcontractingManagement.TransferReservationEntryFromPstTransferLineToProdOrderComp(TransferReceiptLine);
+        SubcTransferManagement.TransferReservationEntryFromPstTransferLineToProdOrderComp(TransferReceiptLine);
 
         // [THEN] Only the component need (10) is reserved in a single capped reservation; the 5 excess units stay as free inventory
-        Assert.AreEqual(10, SubcontractingManagement.GetComponentReservedQtyBase(ProdOrderComponent), 'Only the component need must be reserved');
+        Assert.AreEqual(10, SubcTransferManagement.GetComponentReservedQtyBase(ProdOrderComponent), 'Only the component need must be reserved');
         Assert.AreEqual(1, CountProdOrderComponentReservations(ProdOrderComponent), 'A single capped package reservation must be created on the component');
+    end;
+
+    [Test]
+    [HandlerFunctions('DoNotConfirmShowCreatedPurchOrderForSubcontracting,HandleTransferOrder')]
+    procedure CannotModifySubcTransferLineAndHeaderWhenLinkedToProdOrder()
+    var
+        Item: Record Item;
+        ProdOrderComponent: Record "Prod. Order Component";
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        WorkCenter: array[2] of Record "Work Center";
+        MachineCenter: array[2] of Record "Machine Center";
+    begin
+        // [SCENARIO] Modifying key fields on subcontracting transfer lines and headers must be blocked
+        // when they are linked to a production order.
+        Initialize();
+
+        // [GIVEN] A subcontracting transfer order linked to a production order
+        SetupTransferReservationScenario(Item, WorkCenter, MachineCenter, ProductionOrder, ProdOrderComponent, 10, 3, false);
+        CreateSubcontractingPurchaseOrderAndReduceQuantity(Item, WorkCenter[2], ProductionOrder, PurchaseHeader, PurchaseLine, 0);
+        CreateTransferOrder(PurchaseHeader);
+        FindTransferLine(TransferLine, ProductionOrder, ProdOrderComponent);
+        TransferHeader.Get(TransferLine."Document No.");
+
+        // [THEN] CheckSubcTransferLineCanBeModified blocks modification of Item No.
+        asserterror SubcTransferManagement.CheckSubcTransferLineCanBeModified(TransferLine, TransferLine.FieldCaption("Item No."));
+        Assert.ExpectedError('You cannot change Item No. on the subcontracting transfer line');
+
+        // [THEN] CheckSubcTransferLineCanBeModified blocks modification of Quantity
+        asserterror SubcTransferManagement.CheckSubcTransferLineCanBeModified(TransferLine, TransferLine.FieldCaption(Quantity));
+        Assert.ExpectedError('You cannot change Quantity on the subcontracting transfer line');
+
+        // [THEN] CheckSubcTransferLineCanBeModified blocks modification of Variant Code
+        asserterror SubcTransferManagement.CheckSubcTransferLineCanBeModified(TransferLine, TransferLine.FieldCaption("Variant Code"));
+        Assert.ExpectedError('You cannot change Variant Code on the subcontracting transfer line');
+
+        // [THEN] CheckSubcTransferHeaderCanBeModified blocks modification of Transfer-from Code
+        asserterror SubcTransferManagement.CheckSubcTransferHeaderCanBeModified(TransferHeader, TransferHeader.FieldCaption("Transfer-from Code"));
+        Assert.ExpectedError('You cannot change Transfer-from Code on the subcontracting transfer order');
+
+        // [THEN] CheckSubcTransferHeaderCanBeModified blocks modification of Transfer-to Code
+        asserterror SubcTransferManagement.CheckSubcTransferHeaderCanBeModified(TransferHeader, TransferHeader.FieldCaption("Transfer-to Code"));
+        Assert.ExpectedError('You cannot change Transfer-to Code on the subcontracting transfer order');
+    end;
+
+    [Test]
+    [HandlerFunctions('DoNotConfirmShowCreatedPurchOrderForSubcontracting,HandleTransferOrder')]
+    procedure DeleteTransferOrderAndRecreateSucceeds()
+    var
+        Item: Record Item;
+        ProdOrderComponent: Record "Prod. Order Component";
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        WorkCenter: array[2] of Record "Work Center";
+        MachineCenter: array[2] of Record "Machine Center";
+    begin
+        // [SCENARIO] After creating a subcontracting transfer order and deleting it,
+        // the user must be able to re-create it from the same purchase order.
+        Initialize();
+
+        // [GIVEN] A subcontracting transfer order created from a purchase order
+        SetupTransferReservationScenario(Item, WorkCenter, MachineCenter, ProductionOrder, ProdOrderComponent, 10, 3, false);
+        CreateSubcontractingPurchaseOrderAndReduceQuantity(Item, WorkCenter[2], ProductionOrder, PurchaseHeader, PurchaseLine, 0);
+        CreateTransferOrder(PurchaseHeader);
+        FindTransferLine(TransferLine, ProductionOrder, ProdOrderComponent);
+
+        // [WHEN] The transfer order is deleted
+        TransferHeader.Get(TransferLine."Document No.");
+        TransferHeader.Delete(true);
+
+        // [VERIFY] Transfer line no longer exists
+#pragma warning disable AA0210
+        TransferLine.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
+#pragma warning restore AA0210
+        Assert.RecordIsEmpty(TransferLine);
+
+        // [WHEN] The transfer order is created again from the same purchase order
+        CreateTransferOrder(PurchaseHeader);
+
+        // [THEN] A new transfer line is created successfully
+        FindTransferLine(TransferLine, ProductionOrder, ProdOrderComponent);
+        Assert.AreEqual(30, TransferLine."Quantity (Base)", 'Recreated transfer line must have the full component quantity');
     end;
 
     local procedure Initialize()
@@ -584,7 +672,7 @@ codeunit 149915 "Subc. TransOrd. Reserv. Test"
         LibraryUtility: Codeunit "Library - Utility";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         SubcontractingMgmtLibrary: Codeunit "Subc. Management Library";
-        SubcontractingManagement: Codeunit "Subcontracting Management";
+        SubcTransferManagement: Codeunit "Subc. Transfer Management";
         SubSetupLibrary: Codeunit "Subc. Setup Library";
         SubcWarehouseLibrary: Codeunit "Subc. Warehouse Library";
         IsInitialized: Boolean;
