@@ -11,11 +11,22 @@ codeunit 99001567 "Subc. Pst. Prev. Event Handler"
 
     var
         TempSubcontractorWIPLedgerEntry: Record "Subcontractor WIP Ledger Entry" temporary;
+#if not CLEAN29
+#pragma warning disable AL0432
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
+#endif
         DocumentMaskTok: Label '***', Locked = true;
 
     [EventSubscriber(ObjectType::Table, Database::"Subcontractor WIP Ledger Entry", OnAfterInsertEvent, '', false, false)]
     local procedure OnInsertWIPEntry(var Rec: Record "Subcontractor WIP Ledger Entry")
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if Rec.IsTemporary() then
             exit;
 
@@ -29,12 +40,24 @@ codeunit 99001567 "Subc. Pst. Prev. Event Handler"
 
     procedure DeleteAll()
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         TempSubcontractorWIPLedgerEntry.Reset();
         TempSubcontractorWIPLedgerEntry.DeleteAll();
     end;
 
     procedure GetTempSubcontractorWIPLedgerEntry(var OutTempSubcontractorWIPLedgerEntry: Record "Subcontractor WIP Ledger Entry" temporary)
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         OutTempSubcontractorWIPLedgerEntry.Copy(TempSubcontractorWIPLedgerEntry, true);
     end;
 }

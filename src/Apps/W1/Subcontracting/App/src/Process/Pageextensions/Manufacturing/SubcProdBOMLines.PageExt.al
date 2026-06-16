@@ -14,7 +14,7 @@ pageextension 99001510 "Subc. Prod BOM Lines" extends "Production BOM Lines"
         {
             field("Component Supply Method"; Rec."Component Supply Method")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
             }
         }
     }
