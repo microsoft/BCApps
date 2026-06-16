@@ -338,17 +338,18 @@ report 20404 "Qlty. Move Inventory"
             DestinationLocation: Record Location;
         begin
             QltyInspectionHeader.CopyFilters(CurrentInspection);
-            if QltyInspectionHeader.Count() <> 1 then
+            if not QltyInspectionHeader.FindFirst() then
+                exit;
+            if QltyInspectionHeader.Next() <> 0 then
                 exit;
 
-            QltyInspectionHeader.FindFirst();
             if QltyInspectionHeader."Location Code" = '' then
                 exit;
 
             DestinationLocationCode := QltyInspectionHeader."Location Code";
             IsDestinationLocationEditable := false;
 
-            ShowBinCode := true;
+            ShowBinCode := false;
             if DestinationLocation.Get(DestinationLocationCode) then
                 ShowBinCode := DestinationLocation."Bin Mandatory";
         end;
