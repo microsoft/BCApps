@@ -11,7 +11,6 @@ using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
 
 codeunit 99001520 "Subc. Prod. Order Rtng. Ext."
-codeunit 99001520 "Subc. Prod. Order Rtng. Ext."
 {
     var
 #if not CLEAN29
@@ -84,6 +83,12 @@ codeunit 99001520 "Subc. Prod. Order Rtng. Ext."
     [EventSubscriber(ObjectType::Table, Database::"Prod. Order Routing Line", OnBeforeValidateEvent, "Operation No.", false, false)]
     local procedure OnBeforeValidateOperationNo(var Rec: Record "Prod. Order Routing Line"; var xRec: Record "Prod. Order Routing Line"; CurrFieldNo: Integer)
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if Rec.IsTemporary then
             exit;
 
@@ -95,6 +100,12 @@ codeunit 99001520 "Subc. Prod. Order Rtng. Ext."
     [EventSubscriber(ObjectType::Table, Database::"Prod. Order Routing Line", OnBeforeValidateEvent, "Routing Link Code", false, false)]
     local procedure OnBeforeValidateRoutingLinkCode(var Rec: Record "Prod. Order Routing Line"; var xRec: Record "Prod. Order Routing Line"; CurrFieldNo: Integer)
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if Rec.IsTemporary then
             exit;
 
@@ -106,6 +117,12 @@ codeunit 99001520 "Subc. Prod. Order Rtng. Ext."
     [EventSubscriber(ObjectType::Table, Database::"Prod. Order Routing Line", OnBeforeValidateEvent, "Type", false, false)]
     local procedure OnBeforeValidateType(var Rec: Record "Prod. Order Routing Line"; var xRec: Record "Prod. Order Routing Line"; CurrFieldNo: Integer)
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if Rec.IsTemporary then
             exit;
 
@@ -117,6 +134,12 @@ codeunit 99001520 "Subc. Prod. Order Rtng. Ext."
     [EventSubscriber(ObjectType::Table, Database::"Prod. Order Routing Line", OnBeforeValidateEvent, "Transfer WIP Item", false, false)]
     local procedure OnBeforeValidateTransferWIPItem(var Rec: Record "Prod. Order Routing Line"; var xRec: Record "Prod. Order Routing Line"; CurrFieldNo: Integer)
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if Rec.IsTemporary then
             exit;
 

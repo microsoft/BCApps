@@ -104,6 +104,12 @@ codeunit 99001524 "Subc. Prod. Order Comp. Ext."
     [EventSubscriber(ObjectType::Table, Database::"Prod. Order Component", OnBeforeValidateEvent, "Bin Code", false, false)]
     local procedure OnBeforeValidateBinCode(var Rec: Record "Prod. Order Component"; var xRec: Record "Prod. Order Component"; CurrFieldNo: Integer)
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if Rec.IsTemporary then
             exit;
 
@@ -116,6 +122,12 @@ codeunit 99001524 "Subc. Prod. Order Comp. Ext."
     [EventSubscriber(ObjectType::Table, Database::"Prod. Order Component", OnBeforeValidateEvent, "Item No.", false, false)]
     local procedure OnBeforeValidateItemNo(var Rec: Record "Prod. Order Component"; var xRec: Record "Prod. Order Component"; CurrFieldNo: Integer)
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if Rec.IsTemporary then
             exit;
 
@@ -128,6 +140,12 @@ codeunit 99001524 "Subc. Prod. Order Comp. Ext."
     [EventSubscriber(ObjectType::Table, Database::"Prod. Order Component", OnBeforeValidateEvent, "Variant Code", false, false)]
     local procedure OnBeforeValidateVariantCode(var Rec: Record "Prod. Order Component"; var xRec: Record "Prod. Order Component"; CurrFieldNo: Integer)
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if Rec.IsTemporary then
             exit;
 
@@ -159,6 +177,12 @@ codeunit 99001524 "Subc. Prod. Order Comp. Ext."
     [EventSubscriber(ObjectType::Table, Database::"Prod. Order Component", OnBeforeValidateEvent, "Expected Quantity", false, false)]
     local procedure OnBeforeValidateExpectedQuantity(var Rec: Record "Prod. Order Component"; var xRec: Record "Prod. Order Component"; CurrFieldNo: Integer)
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if Rec.IsTemporary then
             exit;
 
@@ -171,6 +195,12 @@ codeunit 99001524 "Subc. Prod. Order Comp. Ext."
     [EventSubscriber(ObjectType::Table, Database::"Prod. Order Component", OnBeforeValidateEvent, "Component Supply Method", false, false)]
     local procedure OnBeforeValidateComponentSupplyMethod(var Rec: Record "Prod. Order Component"; var xRec: Record "Prod. Order Component"; CurrFieldNo: Integer)
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if Rec.IsTemporary then
             exit;
 
@@ -183,6 +213,12 @@ codeunit 99001524 "Subc. Prod. Order Comp. Ext."
     [EventSubscriber(ObjectType::Table, Database::"Prod. Order Component", OnBeforeDeleteEvent, '', false, false)]
     local procedure OnBeforeDeleteProdOrderComponent(var Rec: Record "Prod. Order Component"; RunTrigger: Boolean)
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if Rec.IsTemporary then
             exit;
         if not RunTrigger then
