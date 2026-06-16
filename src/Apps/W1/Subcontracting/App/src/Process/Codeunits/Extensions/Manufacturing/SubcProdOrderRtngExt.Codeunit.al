@@ -18,9 +18,9 @@ codeunit 99001520 "Subc. Prod. Order Rtng. Ext."
 #pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
 #pragma warning restore AL0432
+#endif
         CannotModifyRtngLineTransferExistsErr: Label 'You cannot change this routing line because transfer orders exist for the linked production order %1, purchase order %2.', Comment = '%1=Production Order No., %2=Purchase Order No.';
         CannotModifyRtngLineStockAtSubcErr: Label 'You cannot change this routing line because there are remaining components or WIP items transferred to the subcontractor for production order %1, purchase order %2.', Comment = '%1=Production Order No., %2=Purchase Order No.';
-#endif
 
     [EventSubscriber(ObjectType::Table, Database::"Prod. Order Routing Line", OnBeforeDeleteEvent, '', false, false)]
     local procedure OnBeforeDeleteProdOrderRtngLine(var Rec: Record "Prod. Order Routing Line"; RunTrigger: Boolean)
