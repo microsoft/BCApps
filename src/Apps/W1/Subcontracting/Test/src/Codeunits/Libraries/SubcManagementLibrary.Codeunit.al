@@ -256,8 +256,8 @@ codeunit 139983 "Subc. Management Library"
         WIPLedgerEntry."Quantity (Base)" := QuantityBase;
         WIPLedgerEntry."In Transit" := InTransit;
         Item.SetLoadFields("Base Unit of Measure");
-        if Item.Get(ItemNo) then
-            WIPLedgerEntry."Base Unit of Measure" := Item."Base Unit of Measure";
+        Item.Get(ItemNo);
+        WIPLedgerEntry."Base Unit of Measure" := Item."Base Unit of Measure";
         WIPLedgerEntry.Insert();
     end;
 }
