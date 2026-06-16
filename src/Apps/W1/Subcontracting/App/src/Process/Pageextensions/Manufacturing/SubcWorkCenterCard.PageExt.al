@@ -8,6 +8,16 @@ using Microsoft.Manufacturing.WorkCenter;
 
 pageextension 99001506 "Subc. Work Center Card" extends "Work Center Card"
 {
+    layout
+    {
+        modify("Subcontractor No.")
+        {
+            trigger OnAfterValidate()
+            begin
+                CurrPage.Update(false);
+            end;
+        }
+    }
     actions
     {
         addafter("Pla&nning")
@@ -28,18 +38,16 @@ pageextension 99001506 "Subc. Work Center Card" extends "Work Center Card"
                     RunPageView = sorting("Vendor No.", "Item No.", "Standard Task Code", "Work Center No.", "Variant Code", "Starting Date", "Unit of Measure Code", "Minimum Quantity", "Currency Code");
                     ToolTip = 'Set up different prices for the work center and vendor in subcontracting.';
                 }
-            }
-        }
-        addafter(Subcontracting)
-        {
-            action("WIP Ledger Entries")
-            {
-                ApplicationArea = Manufacturing;
-                Caption = 'Subcontracting WIP Entries';
-                Image = LedgerEntries;
-                RunObject = page "Subc. WIP Ledger Entries";
-                RunPageLink = "Work Center No." = field("No.");
-                ToolTip = 'View the Subcontracting WIP Entries that track work-in-progress quantities at this work center''s subcontracting location.';
+                action("WIP Ledger Entries")
+                {
+                    ApplicationArea = Manufacturing;
+                    Caption = 'Subcontracting WIP Entries';
+                    Enabled = IsSubcontractingWorkCenter;
+                    Image = LedgerEntries;
+                    RunObject = page "Subc. WIP Ledger Entries";
+                    RunPageLink = "Work Center No." = field("No.");
+                    ToolTip = 'View the Subcontracting WIP Entries that track work-in-progress quantities at this work center''s subcontracting location.';
+                }
             }
         }
         modify("Subcontractor - Dispatch List")
