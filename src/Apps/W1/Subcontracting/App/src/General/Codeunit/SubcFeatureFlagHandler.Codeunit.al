@@ -11,9 +11,9 @@ codeunit 99001569 "Subc. Feature Flag Handler"
 {
     ObsoleteState = Pending;
     ObsoleteTag = '29.0';
-    ObsoleteReason = 'Legacy Subcontracting will be discontinued, environments should move to the Subcontracting App so this codeunit will be removed in a future release.';
+    ObsoleteReason = 'This codeunit is a temporary transition guard for the migration from Legacy Subcontracting to the Subcontracting App. It will be removed in 29.0 once the Legacy Subcontracting field and all related conditional compilation blocks are cleaned up.';
 
-    [Obsolete('Legacy Subcontracting will be discontinued, environments should move to the Subcontracting App so this codeunit will be removed in a future release.', '29.0')]
+    [Obsolete('This codeunit is a temporary transition guard for the migration from Legacy Subcontracting to the Subcontracting App. It will be removed in 29.0 once the Legacy Subcontracting field and all related conditional compilation blocks are cleaned up.', '29.0')]
     procedure IsSubcontractingEnabled(): Boolean
     var
         ManufacturingSetup: Record "Manufacturing Setup";
