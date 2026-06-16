@@ -8,6 +8,12 @@ using Microsoft.Finance.GeneralLedger.Preview;
 
 codeunit 99001565 "Subc. Posting Preview Binding"
 {
+#if not CLEAN29
+    var
+#pragma warning disable AL0432
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
+#endif
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Preview", OnAfterBindSubscription, '', true, false)]
     local procedure BindPostPrevEventHandlerOnAfterBindSubscription()
@@ -25,6 +31,12 @@ codeunit 99001565 "Subc. Posting Preview Binding"
     var
         SubcPostingPreviewHandler: Codeunit "Subc. Pst. Prev. Event Handler";
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         SubcPostingPreviewHandler.DeleteAll();
         exit(BindSubscription(SubcPostingPreviewHandler));
     end;
@@ -33,6 +45,12 @@ codeunit 99001565 "Subc. Posting Preview Binding"
     var
         SubcPostingPreviewHandler: Codeunit "Subc. Pst. Prev. Event Handler";
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         exit(UnbindSubscription(SubcPostingPreviewHandler));
     end;
 }
