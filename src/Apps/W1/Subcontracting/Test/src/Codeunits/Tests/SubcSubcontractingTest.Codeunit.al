@@ -178,7 +178,8 @@ codeunit 139989 "Subc. Subcontracting Test"
     begin
         // [SCENARIO 638532] The Released Production Order card provides a navigation action to view only its related subcontracting transfer orders.
 
-        // [GIVEN] Subcontracting setup with two released production orders, each with its own subcontracting purchase order and transfer order
+        // [GIVEN] Subcontracting setup with two released production orders, each ending up with its own subcontracting purchase order and transfer order.
+        // The transfer route is location-based (component location -> subcontractor location), so it is created only for the first order and reused by the second.
         SetupSubcontractingForTransferOrderTests(Item, WorkCenter, ProductionLocation);
         ExpectedTransferOrderNo := CreateProductionOrderWithSubcTransferOrder(Item, WorkCenter, ProductionLocation.Code, true, ProductionOrder);
         CreateProductionOrderWithSubcTransferOrder(Item, WorkCenter, ProductionLocation.Code, false, UnrelatedProductionOrder);
@@ -210,7 +211,8 @@ codeunit 139989 "Subc. Subcontracting Test"
     begin
         // [SCENARIO 638532] The Released Production Orders list provides a navigation action to view only the related subcontracting transfer orders.
 
-        // [GIVEN] Subcontracting setup with two released production orders, each with its own subcontracting purchase order and transfer order
+        // [GIVEN] Subcontracting setup with two released production orders, each ending up with its own subcontracting purchase order and transfer order.
+        // The transfer route is location-based (component location -> subcontractor location), so it is created only for the first order and reused by the second.
         SetupSubcontractingForTransferOrderTests(Item, WorkCenter, ProductionLocation);
         ExpectedTransferOrderNo := CreateProductionOrderWithSubcTransferOrder(Item, WorkCenter, ProductionLocation.Code, true, ProductionOrder);
         CreateProductionOrderWithSubcTransferOrder(Item, WorkCenter, ProductionLocation.Code, false, UnrelatedProductionOrder);
@@ -3191,6 +3193,8 @@ codeunit 139989 "Subc. Subcontracting Test"
         SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
             ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
         SetAllProdOrderTransferComponentLocations(ProductionOrder."No.", ProductionLocationCode);
+        // The transfer route is keyed by from/to location, so it must be created only once for a given location pair.
+        // Callers that reuse the same locations pass false for subsequent orders to reuse the existing route.
         if CreateTransferRouteForOrder then
             SubcontractingMgmtLibrary.CreateTransferRoute(WorkCenter[2], ProductionOrder);
 
