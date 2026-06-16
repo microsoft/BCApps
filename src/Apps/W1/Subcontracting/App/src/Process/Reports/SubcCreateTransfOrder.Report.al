@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -15,7 +15,7 @@ using Microsoft.Purchases.Vendor;
 
 report 99001501 "Subc. Create Transf. Order"
 {
-    ApplicationArea = Manufacturing;
+    ApplicationArea = Subcontracting;
     Caption = 'Create Subcontracting Transfer Order';
     ProcessingOnly = true;
     UsageCategory = Tasks;
@@ -59,6 +59,19 @@ report 99001501 "Subc. Create Transf. Order"
             end;
         }
     }
+#if not CLEAN29
+    trigger OnInitReport()
+    var
+#pragma warning disable AL0432
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
+    begin
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            CurrReport.Quit();
+    end;
+#endif
 
     var
         TransferHeader: Record "Transfer Header";

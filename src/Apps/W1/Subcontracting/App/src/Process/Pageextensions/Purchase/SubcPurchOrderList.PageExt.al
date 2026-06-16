@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -14,7 +14,7 @@ pageextension 99001525 "Subc. PurchOrderList" extends "Purchase Order List"
         {
             field("Subc. Location Code"; Rec."Subc. Location Code")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Editable = false;
             }
         }
@@ -25,7 +25,7 @@ pageextension 99001525 "Subc. PurchOrderList" extends "Purchase Order List"
         {
             action(CreateTransfOrdToSubcontractor)
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Caption = 'Create Transf. Ord. to Subcontractor';
                 Image = NewDocument;
                 ToolTip = 'Create a transfer order to send to the subcontractor.';
@@ -41,7 +41,7 @@ pageextension 99001525 "Subc. PurchOrderList" extends "Purchase Order List"
             }
             action(CreateReturnFromSubcontractor)
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Caption = 'Create Return from Subcontractor';
                 Image = ReturnRelated;
                 ToolTip = 'Create a return document from the subcontractor.';
@@ -57,7 +57,7 @@ pageextension 99001525 "Subc. PurchOrderList" extends "Purchase Order List"
             }
             action(PrintSubcDispatchingList)
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Caption = 'Print Subcontractor Dispatching List';
                 Image = Print;
                 ToolTip = 'Print the dispatching list for the subcontractor.';

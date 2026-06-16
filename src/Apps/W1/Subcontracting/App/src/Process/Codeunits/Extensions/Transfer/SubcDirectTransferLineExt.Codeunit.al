@@ -10,7 +10,19 @@ codeunit 99001548 "Subc. DirectTransferLine Ext."
 {
     [EventSubscriber(ObjectType::Table, Database::"Direct Trans. Line", OnAfterCopyFromTransferLine, '', false, false)]
     local procedure OnAfterCopyFromTransferLine_T5745(var DirectTransLine: Record "Direct Trans. Line"; TransferLine: Record "Transfer Line")
+#if not CLEAN29
+    var
+#pragma warning disable AL0432
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
+#endif
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         DirectTransLine."Subcontr. Purch. Order No." := TransferLine."Subc. Purch. Order No.";
         DirectTransLine."Subcontr. PO Line No." := TransferLine."Subc. Purch. Order Line No.";
         DirectTransLine."Prod. Order No." := TransferLine."Subc. Prod. Order No.";
