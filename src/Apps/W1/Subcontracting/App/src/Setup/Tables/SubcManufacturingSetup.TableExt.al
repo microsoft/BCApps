@@ -59,7 +59,18 @@ tableextension 99001501 "Subc. Manufacturing Setup" extends "Manufacturing Setup
             var
                 CompanyInformation: Record "Company Information";
                 ManufacturingSetup: Record "Manufacturing Setup";
+#if not CLEAN29
+#pragma warning disable AL0432
+                SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
+#endif
             begin
+#if not CLEAN29
+#pragma warning disable AL0432
+                if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+                    exit;
+#endif
                 case "Subc. Default Comp. Location" of
                     "Subc. Default Comp. Location"::Company:
                         begin

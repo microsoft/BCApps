@@ -13,11 +13,24 @@ using Microsoft.Warehouse.Request;
 
 codeunit 99001563 "Subc. WhsePostShipment Ext"
 {
+#if not CLEAN29
+    var
+#pragma warning disable AL0432
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
+#endif
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Transfer Warehouse Mgt.", OnBeforeCheckIfTransLine2ShipmentLine, '', false, false)]
     local procedure HandleWipTransferOnBeforeCheckIfTransLine2ShipmentLine(var TransferLine: Record "Transfer Line"; var IsHandled: Boolean; var ReturnValue: Boolean)
     var
         Location: Record Location;
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if TransferLine."Transfer WIP Item" then begin
             if Location.GetLocationSetup(TransferLine."Transfer-from Code", Location) then
                 if Location."Use As In-Transit" then
@@ -32,6 +45,12 @@ codeunit 99001563 "Subc. WhsePostShipment Ext"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Create Source Document", OnBeforeSetQtysOnShptLine, '', false, false)]
     local procedure HandleWipTransferOnBeforeSetQtysOnShptLine(var WarehouseShipmentLine: Record "Warehouse Shipment Line"; var Qty: Decimal; var QtyBase: Decimal; var IsHandled: Boolean)
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if WarehouseShipmentLine."Transfer WIP Item" then
             WarehouseShipmentLine.Validate("Qty. Picked", Qty);
     end;
@@ -39,12 +58,24 @@ codeunit 99001563 "Subc. WhsePostShipment Ext"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Transfer Warehouse Mgt.", OnFromTransLine2ShptLineOnAfterInitNewLine, '', false, false)]
     local procedure HandleWipTransferOnFromTransLine2ShptLineOnAfterInitNewLine(var WarehouseShipmentLine: Record "Warehouse Shipment Line"; WarehouseShipmentHeader: Record "Warehouse Shipment Header"; TransferLine: Record "Transfer Line"; var IsHandled: Boolean)
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         WarehouseShipmentLine."Transfer WIP Item" := TransferLine."Transfer WIP Item";
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Warehouse Shipment Line", OnBeforeValidateQuantityIsBalanced, '', false, false)]
     local procedure HandleWipTransferOnBeforeValidateQuantityIsBalanced(var WarehouseShipmentLine: Record "Warehouse Shipment Line"; var IsHandled: Boolean; xWarehouseShipmentLine: Record "Warehouse Shipment Line")
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if WarehouseShipmentLine."Transfer WIP Item" then
             IsHandled := true;
     end;
@@ -54,6 +85,12 @@ codeunit 99001563 "Subc. WhsePostShipment Ext"
     var
         NoWIPItemTrackingAllowedErr: Label 'Item tracking is not supported for WIP item transfers.';
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if WarehouseShipmentLine."Transfer WIP Item" then
             Error(NoWIPItemTrackingAllowedErr);
     end;
@@ -61,6 +98,12 @@ codeunit 99001563 "Subc. WhsePostShipment Ext"
     [EventSubscriber(ObjectType::Table, Database::"Warehouse Shipment Line", OnBeforeCalcBaseQty, '', false, false)]
     local procedure HandleWipTransferOnBeforeCalcBaseQty(var WarehouseShipmentLine: Record "Warehouse Shipment Line"; var Qty: Decimal; FromFieldName: Text; ToFieldName: Text; var SuppressQtyPerUoMTestfield: Boolean)
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if WarehouseShipmentLine."Transfer WIP Item" then
             SuppressQtyPerUoMTestfield := true;
     end;
@@ -68,6 +111,12 @@ codeunit 99001563 "Subc. WhsePostShipment Ext"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Post Shipment", OnBeforePostWhseJnlLine, '', false, false)]
     local procedure HandleWipTransferOnBeforePostWhseJnlLine(var PostedWhseShipmentLine: Record "Posted Whse. Shipment Line"; var TempTrackingSpecification: Record "Tracking Specification" temporary; var IsHandled: Boolean)
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if PostedWhseShipmentLine."Transfer WIP Item" then
             IsHandled := true;
     end;
@@ -77,6 +126,12 @@ codeunit 99001563 "Subc. WhsePostShipment Ext"
     var
         Location: Record Location;
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if not WarehouseShipmentLine."Transfer WIP Item" then
             exit;
         Location.SetLoadFields("Require Pick");

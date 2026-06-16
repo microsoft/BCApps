@@ -12,10 +12,21 @@ codeunit 99001566 "Subc. Posting Preview Subscr."
     var
         TempSubcontractorWIPLedgerEntry: Record "Subcontractor WIP Ledger Entry" temporary;
         PostingPreviewEventHandler: Codeunit "Posting Preview Event Handler";
+#if not CLEAN29
+#pragma warning disable AL0432
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
+#endif
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Posting Preview Event Handler", OnGetEntries, '', true, false)]
     local procedure GetEntriesOnGetEntries(TableNo: Integer; var RecRef: RecordRef)
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         GetAllTables();
         case TableNo of
             Database::"Subcontractor WIP Ledger Entry":
@@ -26,6 +37,12 @@ codeunit 99001566 "Subc. Posting Preview Subscr."
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Posting Preview Event Handler", OnAfterShowEntries, '', true, false)]
     local procedure ShowEntriesOnAfterShowEntries(TableNo: Integer)
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         GetAllTables();
         case TableNo of
             Database::"Subcontractor WIP Ledger Entry":
@@ -36,6 +53,12 @@ codeunit 99001566 "Subc. Posting Preview Subscr."
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Posting Preview Event Handler", OnAfterFillDocumentEntry, '', true, false)]
     local procedure FillDocumentEntryOnAfterFillDocumentEntry(var DocumentEntry: Record "Document Entry")
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         GetAllTables();
         PostingPreviewEventHandler.InsertDocumentEntry(TempSubcontractorWIPLedgerEntry, DocumentEntry);
     end;
