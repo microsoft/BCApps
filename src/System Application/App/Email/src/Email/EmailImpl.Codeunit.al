@@ -746,7 +746,12 @@ codeunit 8900 "Email Impl"
     var
         AllObj: Record AllObj;
         SourceRecordRef: RecordRef;
+        Handled: Boolean;
     begin
+        OnBeforeFilterRemovedSourceRecords(EmailRelatedRecord, Handled);
+        if Handled then
+            exit;
+
         repeat
             if AllObj.Get(AllObj."Object Type"::Table, EmailRelatedRecord."Table Id") then begin
                 SourceRecordRef.Open(EmailRelatedRecord."Table Id");
@@ -1113,4 +1118,9 @@ codeunit 8900 "Email Impl"
         GlobalLanguage(CurrentLanguage);
     end;
     #endregion
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeFilterRemovedSourceRecords(var EmailRelatedRecord: Record "Email Related Record"; var Handled: Boolean)
+    begin
+    end;
 }
