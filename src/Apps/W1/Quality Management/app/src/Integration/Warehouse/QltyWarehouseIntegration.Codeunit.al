@@ -70,14 +70,14 @@ codeunit 20438 "Qlty. Warehouse Integration"
                 if QltyInspectionCreate.CreateInspectionWithMultiVariants(WarehouseEntry, WarehouseJournalLine, TempTrackingSpecification, DummyVariant, false, QltyInspectionGenRule) then begin
                     HasInspection := true;
                     QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
-                    QltyBatchNotifHelper.TrackCreatedInspection(QltyInspectionHeader."No.");
+                    QltyBatchNotifHelper.TrackCreatedInspection(QltyInspectionHeader."No.", QltyInspectionCreate.IsLastInspectionNewlyCreated());
                 end;
             until TempTrackingSpecification.Next() = 0
         else
             if QltyInspectionCreate.CreateInspectionWithMultiVariants(WarehouseEntry, WarehouseJournalLine, DummyVariant, DummyVariant, false, QltyInspectionGenRule) then begin
                 HasInspection := true;
                 QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
-                QltyBatchNotifHelper.TrackCreatedInspection(QltyInspectionHeader."No.");
+                QltyBatchNotifHelper.TrackCreatedInspection(QltyInspectionHeader."No.", QltyInspectionCreate.IsLastInspectionNewlyCreated());
             end;
         QltyBatchNotifHelper.EndBatch();
 

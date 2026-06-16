@@ -43,7 +43,7 @@ codeunit 20445 "Qlty. Inventory Availability"
     /// If multiple locations/bins are determined then those multiple locations/bins are supplied in TempBinContent
     /// </summary>
     /// <param name="QltyInspectionHeader">Record "Qlty. Inspection Header".</param>
-    /// <param name="TempBinContent">Temporary var Record "Bin Content".   Multiple bin locations could be available.</param>
+    /// <param name="TempBinContent">Temporary var Record "Bin Content". Multiple bin locations could be available.</param>
     /// <returns>Return variable of type Boolean.</returns>
     internal procedure GetCurrentLocationOfTrackedInventory(QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempBinContent: Record "Bin Content" temporary): Boolean
     begin
