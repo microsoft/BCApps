@@ -1092,8 +1092,20 @@ codeunit 149922 "Subc SCM Supply Planning"
     begin
         LibraryDimension.FindDimension(Dimension);
         Dimension.Next();
-        LibraryDimension.FindDimensionValue(DimensionValue, Dimension.Code);
+        GetOrFindDimensionValue(Dimension.Code, DimensionValue);
         exit(LibraryDimension.CreateDimSet(OldDimSetID, Dimension.Code, DimensionValue.Code));
+    end;
+
+    local procedure GetOrFindDimensionValue(DimensionCode: Code[10]; var DimensionValue: Record "Dimension Value")
+    begin
+        DimensionValue.Reset();
+        DimensionValue.SetRange("Dimension Code", DimensionCode);
+        DimensionValue.SetRange(Blocked, false);
+        DimensionValue.SetRange("Dimension Value Type", DimensionValue."Dimension Value Type"::Standard);
+        if not DimensionValue.FindFirst() then begin
+            Clear(DimensionValue);
+            LibraryDimension.CreateDimensionValue(DimensionValue, DimensionCode);
+        end;
     end;
 
     local procedure VerifyRequisitionLine(RequisitionLine: Record "Requisition Line"; ProductionOrder: Record "Production Order"; WorkCenter: Record "Work Center")
