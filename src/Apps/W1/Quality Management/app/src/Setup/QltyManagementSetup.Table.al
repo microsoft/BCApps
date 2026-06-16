@@ -43,7 +43,7 @@ table 20400 "Qlty. Management Setup"
         field(4; "Inspection Creation Option"; Enum "Qlty. Inspect. Creation Option")
         {
             Caption = 'Inspection Creation Option';
-            ToolTip = 'Specifies how the system handles inspection creation when existing inspections exist.';
+            ToolTip = 'Specifies handling of inspection creation when existing inspections are found.';
             InitValue = "Use existing open inspection if available";
         }
         field(5; "Inspection Search Criteria"; Enum "Qlty. Inspect. Search Criteria")
