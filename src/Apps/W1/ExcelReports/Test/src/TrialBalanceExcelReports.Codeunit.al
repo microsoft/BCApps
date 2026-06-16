@@ -474,7 +474,7 @@ codeunit 139544 "Trial Balance Excel Reports"
     var
         GLAccount: Record "G/L Account";
         TempDimension1Values, TempDimension2Values : Record "Dimension Value" temporary;
-        TrialBalanceData: Record "EXR Trial Balance Buffer";
+        TempTrialBalanceData: Record "EXR Trial Balance Buffer";
         TrialBalance: Codeunit "Trial Balance";
         PostingAccountNo, ChildTotalNo, ParentTotalNo : Code[20];
         EntryAmount: Decimal;
@@ -495,20 +495,20 @@ codeunit 139544 "Trial Balance Excel Reports"
         // [WHEN] Running the query-based trial balance for the current year
         GLAccount.SetRange("Date Filter", DMY2Date(1, 1, Date2DMY(WorkDate(), 3)), DMY2Date(31, 12, Date2DMY(WorkDate(), 3)));
         TrialBalance.ConfigureTrialBalance(false, false);
-        TrialBalance.InsertTrialBalanceReportData(GLAccount, TempDimension1Values, TempDimension2Values, TrialBalanceData);
+        TrialBalance.InsertTrialBalanceReportData(GLAccount, TempDimension1Values, TempDimension2Values, TempTrialBalanceData);
 
         // [THEN] The child End-Total equals the entry amount (the posting account counted once)
-        TrialBalanceData.Reset();
-        TrialBalanceData.SetRange("G/L Account No.", ChildTotalNo);
-        TrialBalanceData.FindFirst();
-        Assert.AreEqual(EntryAmount, TrialBalanceData.Balance, 'Child End-Total should sum the posting account once');
+        TempTrialBalanceData.Reset();
+        TempTrialBalanceData.SetRange("G/L Account No.", ChildTotalNo);
+        TempTrialBalanceData.FindFirst();
+        Assert.AreEqual(EntryAmount, TempTrialBalanceData.Balance, 'Child End-Total should sum the posting account once');
 
         // [THEN] The parent End-Total ALSO equals the entry amount, not twice:
         // its Totaling range includes the child End-Total's already-inserted buffer row, which must not be re-summed.
-        TrialBalanceData.Reset();
-        TrialBalanceData.SetRange("G/L Account No.", ParentTotalNo);
-        TrialBalanceData.FindFirst();
-        Assert.AreEqual(EntryAmount, TrialBalanceData.Balance, 'Parent End-Total must not double-count the nested child End-Total');
+        TempTrialBalanceData.Reset();
+        TempTrialBalanceData.SetRange("G/L Account No.", ParentTotalNo);
+        TempTrialBalanceData.FindFirst();
+        Assert.AreEqual(EntryAmount, TempTrialBalanceData.Balance, 'Parent End-Total must not double-count the nested child End-Total');
     end;
 
     [Test]
