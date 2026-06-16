@@ -3179,7 +3179,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         UpdateSubMgmtSetupWithReqWkshTemplate();
     end;
 
-    local procedure CreateProductionOrderWithSubcTransferOrder(Item: Record Item; var WorkCenter: array[2] of Record "Work Center"; ProductionLocationCode: Code[10]; CreateTransferRouteForOrder: Boolean; var ProductionOrder: Record "Production Order") TransferOrderNo: Code[20]
+    local procedure CreateProductionOrderWithSubcTransferOrder(Item: Record Item; var WorkCenter: array[2] of Record "Work Center"; ProductionLocationCode: Code[10]; CreateTransferRouteForOrder: Boolean; var ProductionOrder: Record "Production Order"): Code[20]
     var
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         PurchaseHeader: Record "Purchase Header";
