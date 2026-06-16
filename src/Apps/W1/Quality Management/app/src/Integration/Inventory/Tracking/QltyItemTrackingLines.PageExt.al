@@ -42,7 +42,7 @@ pageextension 20418 "Qlty. Item Tracking Lines" extends "Item Tracking Lines"
                     AccessByPermission = tabledata "Qlty. Inspection Header" = R;
                     Image = CheckList;
                     Caption = 'Show Quality Inspections for Item with tracking specification';
-                    ToolTip = 'Shows Quality Inspections for Item with tracking specification';
+                    ToolTip = 'Shows quality inspections for item with tracking specification';
                     AboutTitle = 'Show Quality Inspections';
                     AboutText = 'Shows quality inspections for this item with tracking specification.';
 

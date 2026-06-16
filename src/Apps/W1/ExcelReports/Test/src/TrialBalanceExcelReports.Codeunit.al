@@ -710,6 +710,47 @@ codeunit 139544 "Trial Balance Excel Reports"
     end;
 
     [Test]
+    procedure QueryPathSupportsClosingDateAsStartingDate()
+    var
+        GLAccount: Record "G/L Account";
+        TempDimensionValue: Record "Dimension Value" temporary;
+        TempTrialBalanceData: Record "EXR Trial Balance Buffer";
+        TrialBalance: Codeunit "Trial Balance";
+        PostingAccount: Code[20];
+        PriorYearActivity, ClosingAmount, CurrentYearActivity : Decimal;
+        PriorYear, CurrentYear : Integer;
+    begin
+        // [SCENARIO 638353] The query path supports a closing date as the starting date instead of crashing,
+        // and includes that day's closing entries in the period rather than the opening balance.
+        // [GIVEN] A posting account with prior-year activity, a year-end closing entry, and current-year activity
+        Initialize();
+        CreateGLAccount(GLAccount);
+        PostingAccount := GLAccount."No.";
+        CurrentYear := Date2DMY(WorkDate(), 3);
+        PriorYear := CurrentYear - 1;
+        PriorYearActivity := 5000;
+        ClosingAmount := -2000;
+        CurrentYearActivity := 300;
+        CreateGLEntryWithAmount(PostingAccount, '', '', '', DMY2Date(15, 6, PriorYear), PriorYearActivity);
+        CreateGLEntryWithAmount(PostingAccount, '', '', '', ClosingDate(DMY2Date(31, 12, PriorYear)), ClosingAmount);
+        CreateGLEntryWithAmount(PostingAccount, '', '', '', DMY2Date(15, 6, CurrentYear), CurrentYearActivity);
+
+        // [WHEN] Running the trial balance with the starting date set to the prior year's closing date
+        GLAccount.SetRange("No.", PostingAccount);
+        GLAccount.SetRange("Date Filter", ClosingDate(DMY2Date(31, 12, PriorYear)), DMY2Date(31, 12, CurrentYear));
+        TrialBalance.ConfigureTrialBalance(false, false);
+        TrialBalance.InsertTrialBalanceReportData(GLAccount, TempDimensionValue, TempDimensionValue, TempTrialBalanceData);
+
+        // [THEN] The opening balance holds only the activity strictly before the closing date
+        TempTrialBalanceData.SetRange("G/L Account No.", PostingAccount);
+        Assert.IsTrue(TempTrialBalanceData.FindFirst(), 'Buffer record should exist for the posting account');
+        Assert.AreEqual(PriorYearActivity, TempTrialBalanceData."Starting Balance", 'Starting Balance should exclude the closing-date entry');
+        // [THEN] The closing-date entry falls inside the reported period together with current-year activity
+        Assert.AreEqual(ClosingAmount + CurrentYearActivity, TempTrialBalanceData."Net Change", 'Net Change should include the closing-date entry');
+        Assert.AreEqual(PriorYearActivity + ClosingAmount + CurrentYearActivity, TempTrialBalanceData.Balance, 'Balance should equal Starting Balance + Net Change');
+    end;
+
+    [Test]
     [HandlerFunctions('EXRAgedAccPayableExcelHandler')]
     procedure AgedAccountsPayableExportsDocumentTypeAndNo()
     var

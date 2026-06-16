@@ -25,12 +25,11 @@ codeunit 139983 "Subc. Management Library"
 
     procedure CreateSubcontractingManagementSetup()
     var
-        SubcontractingManagementSetup: Record "Subc. Management Setup";
+        ManufacturingSetup: Record "Manufacturing Setup";
     begin
-        SubcontractingManagementSetup.Reset();
-        if not SubcontractingManagementSetup.Get() then begin
-            SubcontractingManagementSetup.Init();
-            SubcontractingManagementSetup.Insert(true);
+        if not ManufacturingSetup.Get() then begin
+            ManufacturingSetup.Init();
+            ManufacturingSetup.Insert(true);
         end;
     end;
 
@@ -75,7 +74,7 @@ codeunit 139983 "Subc. Management Library"
         end;
     end;
 
-    procedure UpdateProdBomWithSubcontractingType(Item: Record Item; SubcontractingType: Enum "Subcontracting Type")
+    procedure UpdateProdBomWithComponentSupplyMethod(Item: Record Item; ComponentSupplyMethod: Enum "Component Supply Method")
     var
         ProductionBOMHeader: Record "Production BOM Header";
         ProductionBOMLine: Record "Production BOM Line";
@@ -86,7 +85,7 @@ codeunit 139983 "Subc. Management Library"
 
         ProductionBOMLine.SetRange("Production BOM No.", ProductionBOMHeader."No.");
         ProductionBOMLine.FindLast();
-        ProductionBOMLine."Subcontracting Type" := SubcontractingType;
+        ProductionBOMLine."Component Supply Method" := ComponentSupplyMethod;
         ProductionBOMLine.Modify(true);
 
         ProductionBOMHeader.Validate(Status, ProductionBOMHeader.Status::Certified);
@@ -101,7 +100,7 @@ codeunit 139983 "Subc. Management Library"
     begin
         ProdOrderComp.SetRange("Prod. Order No.", ProdOrderNo);
 #pragma warning disable AA0210
-        ProdOrderComp.SetRange("Subcontracting Type", ProdOrderComp."Subcontracting Type"::Transfer);
+        ProdOrderComp.SetRange("Component Supply Method", ProdOrderComp."Component Supply Method"::"Transfer to Vendor");
 #pragma warning restore AA0210
         ProdOrderComp.FindFirst();
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
@@ -182,7 +181,7 @@ codeunit 139983 "Subc. Management Library"
         ProdOrderComp.SetRange(Status, ProductionOrder.Status);
         ProdOrderComp.SetRange("Prod. Order No.", ProductionOrder."No.");
 #pragma warning disable AA0210
-        ProdOrderComp.SetRange("Subcontracting Type", ProdOrderComp."Subcontracting Type"::Transfer);
+        ProdOrderComp.SetRange("Component Supply Method", ProdOrderComp."Component Supply Method"::"Transfer to Vendor");
 #pragma warning restore AA0210
         ProdOrderComp.FindFirst();
         LibraryWarehouse.CreateInTransitLocation(TransitLocation);

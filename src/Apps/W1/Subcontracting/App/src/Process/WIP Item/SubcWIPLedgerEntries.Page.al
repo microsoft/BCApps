@@ -7,7 +7,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 page 99001560 "Subc. WIP Ledger Entries"
 {
     ApplicationArea = Manufacturing;
-    Caption = 'WIP Ledger Entries';
+    Caption = 'Subcontracting WIP Entries';
     Editable = false;
     PageType = List;
     SourceTable = "Subcontractor WIP Ledger Entry";

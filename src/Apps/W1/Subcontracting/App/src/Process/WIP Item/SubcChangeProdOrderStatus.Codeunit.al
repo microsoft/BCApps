@@ -9,6 +9,8 @@ using Microsoft.Manufacturing.Document;
 
 codeunit 99001549 "Subc. Change Prod.Order Status"
 {
+    Permissions = TableData "Subcontractor WIP Ledger Entry" = RIMD;
+
     [EventSubscriber(ObjectType::Page, Page::"Change Status on Prod. Order", OnAfterSet, '', false, false)]
     local procedure SetSubcontractingProductionOrderOnAfterSetSubcontractingWIPEntriesAffected(var Sender: Page "Change Status on Prod. Order"; ProdOrder: Record "Production Order"; var PostingDate: Date; var ReqUpdUnitCost: Boolean; var ProductionOrderStatus: Record "Production Order"; var FirmPlannedStatusEditable: Boolean; var ReleasedStatusEditable: Boolean; var FinishedStatusEditable: Boolean)
     begin
