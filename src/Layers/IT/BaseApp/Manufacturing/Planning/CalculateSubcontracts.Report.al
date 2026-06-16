@@ -21,6 +21,7 @@ using Microsoft.Purchases.Vendor;
 
 report 99001015 "Calculate Subcontracts"
 {
+    ApplicationArea = LegacySubcontracting;
     Caption = 'Calculate Subcontracts (Obsolete)';
     ProcessingOnly = true;
     ObsoleteReason = 'Will be replaced by Report "Subc. Calculate Subcontracts" in the Subcontracting App.';
@@ -111,7 +112,11 @@ report 99001015 "Calculate Subcontracts"
     end;
 
     trigger OnPreReport()
+    var
+        LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
     begin
+        if not LegacySubcFeatureHandler.IsLegacySubcontractingEnabled() then
+            CurrReport.Quit();
         ReqWkshTmpl.Get(ReqLine."Worksheet Template Name");
         ReqWkShName.Get(ReqLine."Worksheet Template Name", ReqLine."Journal Batch Name");
         ReqLine.SetRange("Worksheet Template Name", ReqLine."Worksheet Template Name");

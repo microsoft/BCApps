@@ -10,7 +10,7 @@ using Microsoft.Inventory.Transfer;
 
 page 35491 "Subcontracting Transfer List"
 {
-    ApplicationArea = Basic, Suite;
+    ApplicationArea = LegacySubcontracting;
     Caption = 'Subcontracting Transfer Orders';
     CardPageID = "Subcontr. Transfer Order";
     Editable = false;
@@ -32,27 +32,22 @@ page 35491 "Subcontracting Transfer List"
                 ShowCaption = false;
                 field("No."; Rec."No.")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the document number.';
                 }
                 field("Transfer-from Code"; Rec."Transfer-from Code")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the code of the location that you are transferring items from.';
                 }
                 field("Transfer-to Code"; Rec."Transfer-to Code")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the code of the location that you are transferring items to.';
                 }
                 field("In-Transit Code"; Rec."In-Transit Code")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the transfer route for transferring items between locations.';
                 }
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = false;
 
@@ -63,7 +58,6 @@ page 35491 "Subcontracting Transfer List"
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = false;
 
@@ -74,7 +68,6 @@ page 35491 "Subcontracting Transfer List"
                 }
                 field("Assigned User ID"; Rec."Assigned User ID")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the user that the document is assigned to.';
                 }
             }
@@ -91,7 +84,6 @@ page 35491 "Subcontracting Transfer List"
                 Image = "Action";
                 action("Re&lease")
                 {
-                    ApplicationArea = Manufacturing;
                     Caption = 'Re&lease';
                     Image = ReleaseDoc;
                     ShortCutKey = 'Ctrl+F9';

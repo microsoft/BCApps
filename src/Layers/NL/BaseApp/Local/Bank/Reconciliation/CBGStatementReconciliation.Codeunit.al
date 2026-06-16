@@ -182,6 +182,7 @@ codeunit 11000006 "CBG Statement Reconciliation"
                                 CustLedgerEntry.Get(EntryNo);
                                 CBGStatementLine."Applies-to Doc. Type" := CustLedgerEntry."Document Type";
                                 CBGStatementLine."Applies-to Doc. No." := CustLedgerEntry."Document No.";
+                                OnMatchCBGStatementLineOnAfterFillAppliesToFieldsCustomer(CBGStatementLine);
                                 CBGStatementLine."Reconciliation Status" := CBGStatementLine."Reconciliation Status"::Applied;
                                 NumberOfLinesApplied := NumberOfLinesApplied + 1;
                                 if RecChanged then
@@ -214,6 +215,7 @@ codeunit 11000006 "CBG Statement Reconciliation"
                                 VendorLedgerEntry.Get(EntryNo);
                                 CBGStatementLine."Applies-to Doc. Type" := VendorLedgerEntry."Document Type";
                                 CBGStatementLine."Applies-to Doc. No." := VendorLedgerEntry."Document No.";
+                                OnMatchCBGStatementLineOnAfterFillAppliesToFieldsVendor(CBGStatementLine);
                                 CBGStatementLine."Reconciliation Status" := CBGStatementLine."Reconciliation Status"::Applied;
                                 NumberOfLinesApplied := NumberOfLinesApplied + 1;
                                 if RecChanged then
@@ -266,9 +268,13 @@ codeunit 11000006 "CBG Statement Reconciliation"
     procedure SplitAccountNumber(strBuf: Text[250])
     var
         AccNo: Text[30];
+        IsHandled: Boolean;
     begin
-        if LocalFunctionalityMgt.CheckBankAccNo(CopyStr(strBuf, 1, 30), '', AccNo) then
-            AddPossibleBankAccount(AccNo);
+        IsHandled := false;
+        OnBeforeSplitAccountNumber(strBuf, IsHandled);
+        if not IsHandled then
+            if LocalFunctionalityMgt.CheckBankAccNo(CopyStr(strBuf, 1, 30), '', AccNo) then
+                AddPossibleBankAccount(AccNo);
     end;
 
     [Scope('OnPrem')]
@@ -349,6 +355,7 @@ codeunit 11000006 "CBG Statement Reconciliation"
     var
         NumberRec: Integer;
         RecNumerator: Integer;
+        IsHandled: Boolean;
     begin
         BankAccountCharsToKeep := 'ABCDEFGHIJKLMNOPQRSTUVWYXZ0123456789';
         TempReconciliationBuffer.Reset();
@@ -406,10 +413,13 @@ codeunit 11000006 "CBG Statement Reconciliation"
                     RecNumerator := RecNumerator + 1;
                     StatusWindowUpdate(1, Round(RecNumerator / NumberRec * 10000, 1));
 
-                    InsertTempfileRecord(
-                      LocalFunctionalityMgt.CharacterFilter(CustomerBankAccount."Bank Account No.", BankAccountCharsToKeep),
-                      TempReconciliationBuffer."Source Type"::Customer, CustomerBankAccount."Customer No.",
-                      TempReconciliationBuffer."Data Type"::Bankaccount);
+                    IsHandled := false;
+                    OnMakeTempfileOnBeforeInsertCustomerBankAccountNo(CustomerBankAccount, IsHandled);
+                    if not IsHandled then
+                        InsertTempfileRecord(
+                          LocalFunctionalityMgt.CharacterFilter(CustomerBankAccount."Bank Account No.", BankAccountCharsToKeep),
+                          TempReconciliationBuffer."Source Type"::Customer, CustomerBankAccount."Customer No.",
+                          TempReconciliationBuffer."Data Type"::Bankaccount);
                     InsertTempfileRecord(
                       LocalFunctionalityMgt.CharacterFilter(CustomerBankAccount.IBAN, BankAccountCharsToKeep),
                       TempReconciliationBuffer."Source Type"::Customer, CustomerBankAccount."Customer No.",
@@ -421,16 +431,21 @@ codeunit 11000006 "CBG Statement Reconciliation"
                     RecNumerator := RecNumerator + 1;
                     StatusWindowUpdate(1, Round(RecNumerator / NumberRec * 10000, 1));
 
-                    InsertTempfileRecord(
-                      LocalFunctionalityMgt.CharacterFilter(VendorBankAccount."Bank Account No.", BankAccountCharsToKeep),
-                      TempReconciliationBuffer."Source Type"::Vendor, VendorBankAccount."Vendor No.",
-                      TempReconciliationBuffer."Data Type"::Bankaccount);
+                    IsHandled := false;
+                    OnMakeTempfileOnBeforeInsertVendorBankAccountNo(VendorBankAccount, IsHandled);
+                    if not IsHandled then
+                        InsertTempfileRecord(
+                          LocalFunctionalityMgt.CharacterFilter(VendorBankAccount."Bank Account No.", BankAccountCharsToKeep),
+                          TempReconciliationBuffer."Source Type"::Vendor, VendorBankAccount."Vendor No.",
+                          TempReconciliationBuffer."Data Type"::Bankaccount);
                     InsertTempfileRecord(
                       LocalFunctionalityMgt.CharacterFilter(VendorBankAccount.IBAN, BankAccountCharsToKeep),
                       TempReconciliationBuffer."Source Type"::Vendor, VendorBankAccount."Vendor No.",
                       TempReconciliationBuffer."Data Type"::Bankaccount);
                 until VendorBankAccount.Next() = 0;
         end;
+
+        OnAfterMakeTempfile(TempReconciliationBuffer);
     end;
 
     local procedure InsertTempfileRecord(Word: Code[250]; "Source Type": Integer; Sourcenumber: Code[20]; SortData: Integer)
@@ -535,7 +550,14 @@ codeunit 11000006 "CBG Statement Reconciliation"
     end;
 
     local procedure AddPossibleBankAccount(AccountNumber: Text[80])
+    var
+        IsHandled: Boolean;
     begin
+        IsHandled := false;
+        OnBeforeAddPossibleBankAccount(AccountNumber, IsHandled);
+        if IsHandled then
+            exit;
+
         TempBankAccount.Init();
         TempBankAccount.Validate(TempBankAccount."No.", Format(TempBankAccount.Count + 1));
         TempBankAccount.IBAN := LocalFunctionalityMgt.CharacterFilter(AccountNumber, BankAccountCharsToKeep);
@@ -576,6 +598,8 @@ codeunit 11000006 "CBG Statement Reconciliation"
                         OnProcessPostDesRecDescriptionCaseElse(CBGStatementLineAddInfo)
                 end;
             until CBGStatementLineAddInfo.Next() = 0;
+
+        OnAfterProcessPostDesRecDescription(Name, Address, City);
     end;
 
     local procedure UpdateAccount(var CBGStatementLine: Record "CBG Statement Line"; var NumberOfLinesChanged: Integer; var RecChanged: Boolean)
@@ -697,6 +721,46 @@ codeunit 11000006 "CBG Statement Reconciliation"
 
     [IntegrationEvent(false, false)]
     local procedure OnProcessPostDesRecDescriptionCaseElse(CBGStatementLineAddInfo: Record "CBG Statement Line Add. Info.")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnMatchCBGStatementLineOnAfterFillAppliesToFieldsCustomer(var CBGStatementLine: Record "CBG Statement Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnMatchCBGStatementLineOnAfterFillAppliesToFieldsVendor(var CBGStatementLine: Record "CBG Statement Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeSplitAccountNumber(strBuf: Text[250]; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnMakeTempfileOnBeforeInsertCustomerBankAccountNo(CustomerBankAccount: Record "Customer Bank Account"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnMakeTempfileOnBeforeInsertVendorBankAccountNo(VendorBankAccount: Record "Vendor Bank Account"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterMakeTempfile(var TempReconciliationBuffer: Record "Reconciliation Buffer" temporary)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeAddPossibleBankAccount(AccountNumber: Text[80]; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterProcessPostDesRecDescription(CBGStatementLineName: Code[80]; CBGStatementLineAddress: Code[80]; CBGStatementLineCity: Code[80])
     begin
     end;
 }

@@ -50,7 +50,8 @@ table 5896 "Inventory Adjmt. Entry (Order)"
         }
         field(22; "Overhead Rate"; Decimal)
         {
-            AutoFormatType = 0;
+            AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Overhead Rate';
         }
         field(29; "Cost is Adjusted"; Boolean)

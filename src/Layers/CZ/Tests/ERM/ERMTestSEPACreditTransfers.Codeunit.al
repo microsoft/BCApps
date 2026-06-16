@@ -805,7 +805,7 @@
         LibraryXPathXMLReader.InitializeWithBlob(TempBlob, NamespaceTxt);
         LibraryXPathXMLReader.VerifyNodeCountByXPath('//Ustrd', 1);
         Assert.AreEqual(
-          CopyStr(StrSubstNo('%1 %2; %3', GenJnlLine."Applies-to Doc. Type", GenJnlLine."Applies-to Ext. Doc. No.", GenJnlLine."Message to Recipient"), 1, 140),
+          CopyStr(StrSubstNo('%1 %2, %3', GenJnlLine."Applies-to Doc. Type", GenJnlLine."Applies-to Ext. Doc. No.", GenJnlLine."Message to Recipient"), 1, 140),
           LibraryXPathXMLReader.GetNodeInnerTextByXPathWithIndex('//Ustrd', 0),
           MessageToRecipientNotFoundErr);
     end;
@@ -837,7 +837,7 @@
         LibraryXPathXMLReader.InitializeWithBlob(TempBlob, NamespaceTxt);
         LibraryXPathXMLReader.VerifyNodeCountByXPath('//Ustrd', 1);
         Assert.AreEqual(
-          CopyStr(StrSubstNo('%1; %2', GenJnlLine.Description, GenJnlLine."Message to Recipient"), 1, 140),
+          CopyStr(StrSubstNo('%1, %2', GenJnlLine.Description, GenJnlLine."Message to Recipient"), 1, 140),
           LibraryXPathXMLReader.GetNodeInnerTextByXPathWithIndex('//Ustrd', 0),
           MessageToRecipientNotFoundErr);
     end;

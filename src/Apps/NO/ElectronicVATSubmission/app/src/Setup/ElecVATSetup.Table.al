@@ -45,6 +45,11 @@ table 10686 "Elec. VAT Setup"
             trigger OnValidate()
             begin
                 CheckUrl(Rec."Validate VAT Return Url");
+                if Rec."Validate VAT Return Url" <> xRec."Validate VAT Return Url" then
+                    Session.LogSecurityAudit(
+                        ElecVATServiceNameTxt, SecurityOperationResult::Success,
+                        StrSubstNo(SecurityAuditUrlChangedTxt, Rec.FieldCaption("Validate VAT Return Url"), xRec."Validate VAT Return Url", Rec."Validate VAT Return Url"),
+                        AuditCategory::ApplicationManagement);
             end;
         }
         field(4; "Authentication URL"; Text[250])
@@ -57,6 +62,11 @@ table 10686 "Elec. VAT Setup"
             begin
                 CheckUrl(Rec."Authentication URL");
                 ElecVATOAuthMgt.UpdateElecVATOAuthSetupRecordsWithAuthenticationURL(Rec."Authentication URL");
+                if Rec."Authentication URL" <> xRec."Authentication URL" then
+                    Session.LogSecurityAudit(
+                        ElecVATServiceNameTxt, SecurityOperationResult::Success,
+                        StrSubstNo(SecurityAuditUrlChangedTxt, Rec.FieldCaption("Authentication URL"), xRec."Authentication URL", Rec."Authentication URL"),
+                        AuditCategory::ApplicationManagement);
             end;
         }
         field(6; "Exchange ID-Porten Token Url"; Text[250])
@@ -66,6 +76,11 @@ table 10686 "Elec. VAT Setup"
             trigger OnValidate()
             begin
                 CheckUrl(Rec."Exchange ID-Porten Token Url");
+                if Rec."Exchange ID-Porten Token Url" <> xRec."Exchange ID-Porten Token Url" then
+                    Session.LogSecurityAudit(
+                        ElecVATServiceNameTxt, SecurityOperationResult::Success,
+                        StrSubstNo(SecurityAuditUrlChangedTxt, Rec.FieldCaption("Exchange ID-Porten Token Url"), xRec."Exchange ID-Porten Token Url", Rec."Exchange ID-Porten Token Url"),
+                        AuditCategory::ApplicationManagement);
             end;
         }
         field(7; "Submission Environment URL"; Text[250])
@@ -75,6 +90,11 @@ table 10686 "Elec. VAT Setup"
             trigger OnValidate()
             begin
                 CheckUrl(Rec."Submission Environment URL");
+                if Rec."Submission Environment URL" <> xRec."Submission Environment URL" then
+                    Session.LogSecurityAudit(
+                        ElecVATServiceNameTxt, SecurityOperationResult::Success,
+                        StrSubstNo(SecurityAuditUrlChangedTxt, Rec.FieldCaption("Submission Environment URL"), xRec."Submission Environment URL", Rec."Submission Environment URL"),
+                        AuditCategory::ApplicationManagement);
             end;
         }
         field(8; "Submission App URL"; Text[250])
@@ -96,11 +116,29 @@ table 10686 "Elec. VAT Setup"
         {
             Caption = 'Client ID';
             DataClassification = EndUserIdentifiableInformation;
+
+            trigger OnValidate()
+            begin
+                if Rec."Client ID" <> xRec."Client ID" then
+                    Session.LogSecurityAudit(
+                        ElecVATServiceNameTxt, SecurityOperationResult::Success,
+                        SecurityAuditClientIdChangedTxt,
+                        AuditCategory::UserManagement);
+            end;
         }
         field(11; "Client Secret"; Guid)
         {
             Caption = 'Client Secret';
             DataClassification = EndUserIdentifiableInformation;
+
+            trigger OnValidate()
+            begin
+                if Rec."Client Secret" <> xRec."Client Secret" then
+                    Session.LogSecurityAudit(
+                        ElecVATServiceNameTxt, SecurityOperationResult::Success,
+                        SecurityAuditClientSecretChangedTxt,
+                        AuditCategory::UserManagement);
+            end;
         }
         field(12; "Disable Checks On Release"; Boolean)
         {
@@ -121,6 +159,10 @@ table 10686 "Elec. VAT Setup"
 
     var
         RecordHasBeenRead: Boolean;
+        ElecVATServiceNameTxt: Label 'Electronic VAT Submission NO', Locked = true;
+        SecurityAuditUrlChangedTxt: Label '%1 was changed from %2 to %3.', Locked = true, Comment = '%1 - field caption, %2 - old URL, %3 - new URL';
+        SecurityAuditClientIdChangedTxt: Label 'Electronic VAT OAuth Client ID was changed.', Locked = true;
+        SecurityAuditClientSecretChangedTxt: Label 'Electronic VAT OAuth Client Secret was changed.', Locked = true;
 
     procedure GetRecordOnce(): Boolean
     begin

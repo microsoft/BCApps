@@ -225,7 +225,7 @@ table 753 "Standard Item Journal Line"
         }
         field(16; "Unit Amount"; Decimal)
         {
-            AutoFormatType = 0;
+            AutoFormatType = 2;
             AutoFormatExpression = '';
             Caption = 'Unit Amount';
             ToolTip = 'Specifies the amount of the unit in the line of the journal line.';

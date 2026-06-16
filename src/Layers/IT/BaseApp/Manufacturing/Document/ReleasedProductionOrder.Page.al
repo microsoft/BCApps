@@ -272,7 +272,7 @@ page 99000831 "Released Production Order"
 #if not CLEAN28
                     action("Subcontracting Transfer Entries")
                     {
-                        ApplicationArea = Manufacturing;
+                        ApplicationArea = LegacySubcontracting;
                         Caption = 'Subcontracting Transfer Entries';
                         Image = ItemLedger;
                         RunObject = Page "Item Ledger Entries";

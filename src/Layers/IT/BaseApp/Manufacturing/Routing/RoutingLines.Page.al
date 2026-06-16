@@ -143,7 +143,7 @@ page 99000765 "Routing Lines"
 #if not CLEAN28
                 field("WIP Item"; Rec."WIP Item")
                 {
-                    ApplicationArea = Manufacturing;
+                    ApplicationArea = LegacySubcontracting;
                     ToolTip = 'Specifies if the item is a work in process (WIP) item.';
                     ObsoleteReason = 'Preparation for replacement by Subcontracting app';
                     ObsoleteState = Pending;
@@ -216,7 +216,7 @@ page 99000765 "Routing Lines"
 #if not CLEAN28
                 action("Subcontracting Prices")
                 {
-                    ApplicationArea = Manufacturing;
+                    ApplicationArea = LegacySubcontracting;
                     Caption = 'Subcontracting Prices';
                     Image = Price;
                     ToolTip = 'View the related subcontracting prices.';

@@ -46,6 +46,8 @@ page 10068 "Setup IRIS User ID"
                             ExtendedDatatype = Masked;
 
                             trigger OnValidate()
+                            var
+                                AuditLog: Codeunit "Audit Log";
                             begin
                                 UserParamsIRIS.LockTable();
                                 UserParamsIRIS.GetRecord();
@@ -53,6 +55,13 @@ page 10068 "Setup IRIS User ID"
                                 UserParamsIRIS.Modify();
 
                                 FeatureTelemetry.LogUsage('0000PSO', Helper.GetIRISFeatureName(), UpdateUserIDEventTxt);
+
+                                if IRISUserID = '' then
+                                    Session.LogSecurityAudit(Helper.GetIRISFeatureName(), SecurityOperationResult::Success, SecurityAuditUserIDClearedTxt, AuditCategory::UserManagement)
+                                else begin
+                                    Session.LogSecurityAudit(Helper.GetIRISFeatureName(), SecurityOperationResult::Success, SecurityAuditUserIDSetTxt, AuditCategory::UserManagement);
+                                    AuditLog.LogAuditMessage(StrSubstNo(IRISUserIDConfiguredLbl, UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 4, 0);
+                                end;
                             end;
                         }
                         field(GetIRISUserIDInstructions; GetIRISUserID)
@@ -128,4 +137,7 @@ page 10068 "Setup IRIS User ID"
         UpdateUserIDEventTxt: Label 'UpdateUserID', Locked = true;
         ConsentAppURLTxt: Label 'https://la.www4.irs.gov/esrv/consent/', Locked = true;
         GetIRISUserIDInstructionsTxt: Label 'To get IRIS User ID:\\  1. Copy IRIS API Client ID to clipboard\  2. Login to IRS Consent App: %1\  3. Select Setup on the API Authorization Management page.\  4. Enter IRIS API Client ID on the A2A Authorization page, grant access to PROD.\ 5. Grant access to TEST if you also want to test sending 1099 forms on sandbox.\ 6. Copy your Full IRIS UserID from the A2A Setup Complete page.\     Example of User ID: "dasmith-345870".\  7. Paste it to the IRIS User ID field on this page.', Comment = '%1 - IRS Consent App URL';
+        SecurityAuditUserIDSetTxt: Label 'IRIS User ID credential was set or replaced in isolated storage for the current user.', Locked = true;
+        SecurityAuditUserIDClearedTxt: Label 'IRIS User ID credential was cleared from isolated storage for the current user.', Locked = true;
+        IRISUserIDConfiguredLbl: Label 'IRIS User ID has been configured by UserSecurityId %1.', Locked = true;
 }

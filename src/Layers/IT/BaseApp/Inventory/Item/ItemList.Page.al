@@ -1932,7 +1932,7 @@ page 31 "Item List"
 #if not CLEAN28
                 action("Subcontracting Prices")
                 {
-                    ApplicationArea = Manufacturing;
+                    ApplicationArea = LegacySubcontracting;
                     Caption = 'Subcontracting Prices';
                     Image = Price;
                     RunObject = Page Microsoft.Manufacturing.Document."Subcontracting Prices";

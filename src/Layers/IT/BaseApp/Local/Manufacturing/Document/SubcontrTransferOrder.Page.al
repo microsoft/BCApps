@@ -13,6 +13,7 @@ using Microsoft.Warehouse.Request;
 
 page 12154 "Subcontr. Transfer Order"
 {
+    ApplicationArea = LegacySubcontracting;
     Caption = 'Subcontr. Transfer Order';
     InsertAllowed = false;
     PageType = Document;
@@ -33,7 +34,6 @@ page 12154 "Subcontr. Transfer Order"
                 Caption = 'General';
                 field("No."; Rec."No.")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the document number.';
 
                     trigger OnAssistEdit()
@@ -44,36 +44,30 @@ page 12154 "Subcontr. Transfer Order"
                 }
                 field("Transfer-from Code"; Rec."Transfer-from Code")
                 {
-                    ApplicationArea = Manufacturing;
                     Importance = Promoted;
                     ToolTip = 'Specifies the code of the location that you are transferring items from.';
                 }
                 field("Transfer-to Code"; Rec."Transfer-to Code")
                 {
-                    ApplicationArea = Manufacturing;
                     Importance = Promoted;
                     ToolTip = 'Specifies the code of the location that you are transferring items to.';
                 }
                 field("In-Transit Code"; Rec."In-Transit Code")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the transfer route for transferring items between locations.';
                 }
                 field("Source Type"; Rec."Source Type")
                 {
-                    ApplicationArea = Manufacturing;
                     Editable = false;
                     ToolTip = 'Specifies the type of transaction that is the source of the transfer entry.';
                 }
                 field("Source No."; Rec."Source No.")
                 {
-                    ApplicationArea = Manufacturing;
                     Editable = false;
                     ToolTip = 'Specifies the number of the source document from which the transfer entry originates.';
                 }
                 field("Posting Date"; Rec."Posting Date")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the posting date of the document.';
 
                     trigger OnValidate()
@@ -83,34 +77,28 @@ page 12154 "Subcontr. Transfer Order"
                 }
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                 }
                 field(Status; Rec.Status)
                 {
-                    ApplicationArea = Manufacturing;
                     Importance = Promoted;
                     ToolTip = 'Specifies the status of the document.';
                 }
                 field("Completely Shipped"; Rec."Completely Shipped")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies if the transfer order is fully shipped.';
                 }
                 field("Return Order"; Rec."Return Order")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies if a component of the subcontracting transfer order is a return.';
                 }
             }
             part(TransferLines; "Subcontr.Transfer Ord. Subform")
             {
-                ApplicationArea = Manufacturing;
                 SubPageLink = "Document No." = field("No."),
                               "Derived From Line No." = const(0);
             }
@@ -119,42 +107,34 @@ page 12154 "Subcontr. Transfer Order"
                 Caption = 'Transfer-from';
                 field("Transfer-from Name"; Rec."Transfer-from Name")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the name of the location that items are transferred from.';
                 }
                 field("Transfer-from Name 2"; Rec."Transfer-from Name 2")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies an additional part of the name of the location from which items are transferred.';
                 }
                 field("Transfer-from Address"; Rec."Transfer-from Address")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the address.';
                 }
                 field("Transfer-from Address 2"; Rec."Transfer-from Address 2")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the address.';
                 }
                 field("Transfer-from Post Code"; Rec."Transfer-from Post Code")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the post code of the location that items are transferred from.';
                 }
                 field("Transfer-from City"; Rec."Transfer-from City")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the city.';
                 }
                 field("Transfer-from Contact"; Rec."Transfer-from Contact")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the name of the contact person at the transfer-from location.';
                 }
                 field("Shipment Date"; Rec."Shipment Date")
                 {
-                    ApplicationArea = Manufacturing;
                     Importance = Promoted;
                     ToolTip = 'Specifies the date when the items were shipped.';
 
@@ -165,12 +145,10 @@ page 12154 "Subcontr. Transfer Order"
                 }
                 field("Shipping Time"; Rec."Shipping Time")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the time it takes from when the order is shipped from the warehouse to when the order is delivered to the customer''s address.';
                 }
                 field("Outbound Whse. Handling Time"; Rec."Outbound Whse. Handling Time")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies a date formula for the outbound warehouse handling time for the location. The program uses it to calculate date fields on the sales order line.';
 
                     trigger OnValidate()
@@ -180,7 +158,6 @@ page 12154 "Subcontr. Transfer Order"
                 }
                 field("Shipping Advice"; Rec."Shipping Advice")
                 {
-                    ApplicationArea = Manufacturing;
                     Importance = Promoted;
                     ToolTip = 'Specifies if the partial shipment is accepted.';
                 }
@@ -190,42 +167,34 @@ page 12154 "Subcontr. Transfer Order"
                 Caption = 'Transfer-to';
                 field("Transfer-to Name"; Rec."Transfer-to Name")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the name of the location that items are transferred to.';
                 }
                 field("Transfer-to Name 2"; Rec."Transfer-to Name 2")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the name of the location that items are transferred to.';
                 }
                 field("Transfer-to Address"; Rec."Transfer-to Address")
                 {
-                    ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the address of the location that items are transferred from.';
+                    ToolTip = 'Specifies the address of the location that items are transferred to.';
                 }
                 field("Transfer-to Address 2"; Rec."Transfer-to Address 2")
                 {
-                    ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the address of the location that items are transferred from.';
+                    ToolTip = 'Specifies the address of the location that items are transferred to.';
                 }
                 field("Transfer-to Post Code"; Rec."Transfer-to Post Code")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the post code of the location that items are transferred to.';
                 }
                 field("Transfer-to City"; Rec."Transfer-to City")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the city of the location that items are transferred from.';
                 }
                 field("Transfer-to Contact"; Rec."Transfer-to Contact")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the name of the contact person at the transfer-to location.';
                 }
                 field("Receipt Date"; Rec."Receipt Date")
                 {
-                    ApplicationArea = Manufacturing;
                     Importance = Promoted;
                     ToolTip = 'Specifies the date of receipt.';
 
@@ -236,7 +205,6 @@ page 12154 "Subcontr. Transfer Order"
                 }
                 field("Inbound Whse. Handling Time"; Rec."Inbound Whse. Handling Time")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies a date formula for the inbound warehouse handling time for the location.';
 
                     trigger OnValidate()
@@ -250,62 +218,50 @@ page 12154 "Subcontr. Transfer Order"
                 Caption = 'Reporting';
                 field("Transport Reason Code"; Rec."Transport Reason Code")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the transport reason codes in the Transfer Header table.';
                 }
                 field("Goods Appearance"; Rec."Goods Appearance")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies a goods appearance code.';
                 }
                 field("Gross Weight"; Rec."Gross Weight")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the gross weight of an item in the Transfer Header table.';
                 }
                 field("Net Weight"; Rec."Net Weight")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the net weight of the item.';
                 }
                 field("Parcel Units"; Rec."Parcel Units")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the number of packages on a subcontractor order.';
                 }
                 field(Volume; Rec.Volume)
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the volume of one unit of the item.';
                 }
                 field("Shipping Notes"; Rec."Shipping Notes")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the product''s shipping notes on a subcontractor order.';
                 }
                 field("Shipping Starting Date"; Rec."Shipping Starting Date")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the date that the order is expected to ship.';
                 }
                 field("Shipping Starting Time"; Rec."Shipping Starting Time")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the time that the order is expected to ship.';
                 }
                 field("Freight Type"; Rec."Freight Type")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the freight type that is associated with the documents in the Transfer Header table.';
                 }
                 field("Shipment Method Code"; Rec."Shipment Method Code")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the shipment method.';
                 }
                 field("Shipping Agent Code"; Rec."Shipping Agent Code")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the company that handles the shipment.';
 
                     trigger OnValidate()
@@ -315,7 +271,6 @@ page 12154 "Subcontr. Transfer Order"
                 }
                 field("Shipping Agent Service Code"; Rec."Shipping Agent Service Code")
                 {
-                    ApplicationArea = Manufacturing;
                     Importance = Promoted;
                     ToolTip = 'Specifies the company that handles the shipment.';
 
@@ -346,7 +301,6 @@ page 12154 "Subcontr. Transfer Order"
                 Image = "Order";
                 action(List)
                 {
-                    ApplicationArea = Manufacturing;
                     Caption = 'List';
                     Image = OpportunitiesList;
                     RunObject = Page "Subcontracting Transfer List";
@@ -355,7 +309,6 @@ page 12154 "Subcontr. Transfer Order"
                 }
                 action(Statistics)
                 {
-                    ApplicationArea = Manufacturing;
                     Caption = 'Statistics';
                     Image = Statistics;
                     RunObject = Page "Transfer Statistics";
@@ -365,7 +318,6 @@ page 12154 "Subcontr. Transfer Order"
                 }
                 action("Co&mments")
                 {
-                    ApplicationArea = Manufacturing;
                     Caption = 'Co&mments';
                     Image = ViewComments;
                     RunObject = Page "Inventory Comment Sheet";
@@ -375,7 +327,6 @@ page 12154 "Subcontr. Transfer Order"
                 }
                 action("S&hipments")
                 {
-                    ApplicationArea = Manufacturing;
                     Caption = 'S&hipments';
                     Image = Shipment;
                     RunObject = Page "Posted Transfer Shipments";
@@ -384,7 +335,6 @@ page 12154 "Subcontr. Transfer Order"
                 }
                 action("Re&ceipts")
                 {
-                    ApplicationArea = Manufacturing;
                     Caption = 'Re&ceipts';
                     Image = PostedReceipts;
                     RunObject = Page "Posted Transfer Receipts";
@@ -405,7 +355,6 @@ page 12154 "Subcontr. Transfer Order"
                     Image = Warehouse;
                     action("Receipt Lines")
                     {
-                        ApplicationArea = Manufacturing;
                         Caption = 'Receipt Lines';
                         RunObject = Page "Whse. Receipt Lines";
                         RunPageLink = "Source Type" = const(5741),
@@ -416,7 +365,6 @@ page 12154 "Subcontr. Transfer Order"
                     }
                     action("Shipment Lines")
                     {
-                        ApplicationArea = Manufacturing;
                         Caption = 'Shipment Lines';
                         RunObject = Page "Whse. Shipment Lines";
                         RunPageLink = "Source Type" = const(5741),
@@ -427,7 +375,6 @@ page 12154 "Subcontr. Transfer Order"
                     }
                     action("Create Receipt")
                     {
-                        ApplicationArea = Manufacturing;
                         Caption = 'Create Receipt';
                         ToolTip = 'Create a receipt for the order.';
 
@@ -440,7 +387,6 @@ page 12154 "Subcontr. Transfer Order"
                     }
                     action("Create S&hipment")
                     {
-                        ApplicationArea = Manufacturing;
                         Caption = 'Create S&hipment';
                         ToolTip = 'Create a shipment for the order.';
 
@@ -454,7 +400,6 @@ page 12154 "Subcontr. Transfer Order"
                 }
                 action("Re&lease")
                 {
-                    ApplicationArea = Manufacturing;
                     Caption = 'Re&lease';
                     Image = ReleaseDoc;
                     RunObject = Codeunit "Release Transfer Document";
@@ -463,7 +408,6 @@ page 12154 "Subcontr. Transfer Order"
                 }
                 action("Reo&pen")
                 {
-                    ApplicationArea = Manufacturing;
                     Caption = 'Reo&pen';
                     Image = ReOpen;
                     ToolTip = 'Reopen the document.';
@@ -480,7 +424,6 @@ page 12154 "Subcontr. Transfer Order"
                 }
                 action("Calculate Data For Shipping")
                 {
-                    ApplicationArea = Manufacturing;
                     Caption = 'Calculate Data For Shipping';
                     ShortCutKey = 'Shift+F11';
                     ToolTip = 'Calculate data for shipping the order.';
@@ -501,7 +444,6 @@ page 12154 "Subcontr. Transfer Order"
                 Image = Post;
                 action("P&ost")
                 {
-                    ApplicationArea = Manufacturing;
                     Caption = 'P&ost';
                     Image = Post;
                     RunObject = Codeunit "TransferOrder-Post (Yes/No)";
@@ -510,7 +452,6 @@ page 12154 "Subcontr. Transfer Order"
                 }
                 action("Post and &Print")
                 {
-                    ApplicationArea = Manufacturing;
                     Caption = 'Post and &Print';
                     Image = PostPrint;
                     RunObject = Codeunit "TransferOrder-Post + Print";
@@ -520,7 +461,6 @@ page 12154 "Subcontr. Transfer Order"
             }
             action("&Print")
             {
-                ApplicationArea = Manufacturing;
                 Caption = '&Print';
                 Ellipsis = true;
                 Image = Print;

@@ -1,4 +1,4 @@
-codeunit 101023 "Create Vendor"
+﻿codeunit 101023 "Create Vendor"
 {
 
     trigger OnRun()
@@ -197,7 +197,9 @@ codeunit 101023 "Create Vendor"
         XRaymondHillard: Label 'Raymond Hillard', Comment = 'CELA approved translation: Dino Lucchese';
         X5Porfidia: Label 'Via della Porfidia, 5';
         X57100: Label '57100';
+#if not CLEAN28        
         XGOLD: Label 'GOLD';
+#endif
         XxBANKTRANSF: Label 'BANKTRANSF';
 
     procedure InsertData("No.": Code[20]; Name: Text[30]; Address: Text[30]; "Post Code": Text[30]; Title: Text[30]; "Contact Name": Text[30]; "Currency Code": Code[10]; "Country Code": Code[10]; "VAT Registration No.": Text[20]; "Territory Code": Code[10]; "Location Code": Code[10]; "Address 2": Text[30]; GLN: Text[13])
@@ -266,11 +268,13 @@ codeunit 101023 "Create Vendor"
             Evaluate(Vendor."Lead Time Calculation", '<3D>');
             Vendor.Validate("Lead Time Calculation");
         end;
+#if not CLEAN28
         if Vendor."No." = '70000' then begin
             Vendor.Subcontractor := true;
             Vendor."Subcontracting Location Code" := XGOLD;
             Vendor."Subcontractor Procurement" := true;
         end;
+#endif
         Vendor.Insert(true);
 
         Vendor.Validate(Contact, CreateContact.FormatContact(Title, "Contact Name"));

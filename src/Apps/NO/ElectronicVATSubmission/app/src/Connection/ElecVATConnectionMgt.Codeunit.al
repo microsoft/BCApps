@@ -60,6 +60,9 @@ codeunit 10687 "Elec. VAT Connection Mgt."
         ConnectionErr: Label 'Could not connect to the remote service %1.', Comment = '%1 - url, e.g. https://microsoft.com';
         HttpErrorCodeAndReasonTxt: Label 'HTTP error %1 (%2)', Comment = '%1 = code, %2 = reason';
         BearerTxt: Label 'Bearer %1', Comment = '%1 = text value', Locked = true;
+        ElecVATServiceNameTxt: Label 'Electronic VAT Submission NO', Locked = true;
+        SecurityAuditVATReturnAcceptedTxt: Label 'VAT Return %1 was accepted by Skatteetaten (Instance %2).', Locked = true, Comment = '%1 - VAT Report No., %2 - Altinn instance URL';
+        SecurityAuditVATReturnRejectedTxt: Label 'VAT Return %1 was rejected by Skatteetaten (Instance %2).', Locked = true, Comment = '%1 - VAT Report No., %2 - Altinn instance URL';
 
     procedure SubmitVATReturn(var VATReportHeader: Record "VAT Report Header")
     var
@@ -202,6 +205,16 @@ codeunit 10687 "Elec. VAT Connection Mgt."
                     Accepted := ParseValidationResponse(Response, '', VATReportHeader, false);
             end;
         end;
+        if Accepted then
+            Session.LogSecurityAudit(
+                ElecVATServiceNameTxt, SecurityOperationResult::Success,
+                StrSubstNo(SecurityAuditVATReturnAcceptedTxt, VATReportHeader."No.", VATReportHeader."Message Id"),
+                AuditCategory::CustomerFacing)
+        else
+            Session.LogSecurityAudit(
+                ElecVATServiceNameTxt, SecurityOperationResult::Failure,
+                StrSubstNo(SecurityAuditVATReturnRejectedTxt, VATReportHeader."No.", VATReportHeader."Message Id"),
+                AuditCategory::CustomerFacing);
         exit(Accepted);
     end;
 

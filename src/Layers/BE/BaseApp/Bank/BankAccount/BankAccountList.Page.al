@@ -318,6 +318,7 @@ page 371 "Bank Account List"
                         Caption = 'CODA S&tatements';
                         Image = "Report";
                         RunObject = Page "CODA Statement List";
+                        RunPageLink = "Bank Account No." = field("No.");
                         RunPageView = sorting("Bank Account No.", "Statement No.");
                         ToolTip = 'View the coded bank account statement information that has been imported in accordance with the CODA standard.';
                     }

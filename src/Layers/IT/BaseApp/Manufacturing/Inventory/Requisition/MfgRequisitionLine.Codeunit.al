@@ -278,7 +278,10 @@ codeunit 99000866 "Mfg. Requisition Line"
     local procedure OnValidateVendorNoOnBeforeLookupVendor(var RequisitionLine: Record "Requisition Line"; var IsHandled: Boolean)
     var
         SubcontrPrices: Record "Subcontractor Prices";
+        LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
     begin
+        if not LegacySubcFeatureHandler.IsLegacySubcontractingEnabled() then
+            exit;
         if (RequisitionLine.Type = RequisitionLine.Type::Item) and (RequisitionLine."Prod. Order No." <> '') then begin
             RequisitionLine.TestField("Work Center No.");
             RequisitionLine.TestField("No.");
@@ -296,7 +299,10 @@ codeunit 99000866 "Mfg. Requisition Line"
     local procedure OnValidateVendorNoOnAfterCheckVendor(var RequisitionLine: Record "Requisition Line"; Vend: Record Vendor; CurrentFieldNo: Integer)
     var
         SubcontractingManagement: Codeunit SubcontractingManagement;
+        LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
     begin
+        if not LegacySubcFeatureHandler.IsLegacySubcontractingEnabled() then
+            exit;
         if (RequisitionLine."Planning Line Origin" = RequisitionLine."Planning Line Origin"::" ") and
             (RequisitionLine."Prod. Order No." <> '')
         then begin
@@ -308,7 +314,11 @@ codeunit 99000866 "Mfg. Requisition Line"
 
     [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnValidateVendorNoOnAfterSetSupplyFrom', '', true, false)]
     local procedure OnValidateVendorNoOnAfterSetSupplyFrom(var RequisitionLine: Record "Requisition Line")
+    var
+        LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
     begin
+        if not LegacySubcFeatureHandler.IsLegacySubcontractingEnabled() then
+            exit;
         if (RequisitionLine.Type = RequisitionLine.Type::Item) and (RequisitionLine."No." <> '') and RequisitionLine.IsProdOrder() then
             RequisitionLine.GetSubcontractorPrice();
     end;

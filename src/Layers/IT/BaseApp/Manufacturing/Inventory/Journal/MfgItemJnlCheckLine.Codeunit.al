@@ -219,22 +219,37 @@ codeunit 99000760 "Mfg. Item Jnl. Check Line"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Check Line", 'OnCheckEmptyQuantity', '', true, true)]
-    local procedure OnCheckEmptyQuantity(ItemJournalLine: Record "Item Journal Line");
+    local procedure OnCheckEmptyQuantity(ItemJournalLine: Record "Item Journal Line")
+#if not CLEAN29
+    var
+        LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
+#endif
     begin
 #if not CLEAN28
-        if (ItemJournalLine."Quantity (Base)" = 0) and (ItemJournalLine."Invoiced Qty. (Base)" = 0) and
-           ((ItemJournalLine."Entry Type" = ItemJournalLine."Entry Type"::Output) and
-           (ItemJournalLine."Output Quantity (Base)" = 0) and (ItemJournalLine."Scrap Quantity (Base)" = 0) and
-           (not ItemJournalLine."WIP Item") and ItemJournalLine.TimeIsEmpty())
-        then
-            Error(ErrorInfo.Create(CannotPostTheseLinesErr, true));
+        if LegacySubcFeatureHandler.IsLegacySubcontractingEnabled() then begin
+            if (ItemJournalLine."Quantity (Base)" = 0) and (ItemJournalLine."Invoiced Qty. (Base)" = 0) and
+               ((ItemJournalLine."Entry Type" = ItemJournalLine."Entry Type"::Output) and
+               (ItemJournalLine."Output Quantity (Base)" = 0) and (ItemJournalLine."Scrap Quantity (Base)" = 0) and
+               (not ItemJournalLine."WIP Item") and ItemJournalLine.TimeIsEmpty())
+            then
+                Error(ErrorInfo.Create(CannotPostTheseLinesErr, true));
 
-        if (ItemJournalLine."Entry Type" = ItemJournalLine."Entry Type"::Output) and
-           (ItemJournalLine."WIP Quantity" <> 0) and
-           (not ItemJournalLine."WIP Item") and
-           ItemJournalLine.TimeIsEmpty()
-        then
-            Error(ErrorInfo.Create(CannotPostTheseLinesWIPErr, true));
+            if (ItemJournalLine."Entry Type" = ItemJournalLine."Entry Type"::Output) and
+               (ItemJournalLine."WIP Quantity" <> 0) and
+               (not ItemJournalLine."WIP Item") and
+               ItemJournalLine.TimeIsEmpty()
+            then
+                Error(ErrorInfo.Create(CannotPostTheseLinesWIPErr, true));
+            exit;
+        end else
+            if ItemJournalLine."Entry Type" = ItemJournalLine."Entry Type"::Output then begin
+                if (ItemJournalLine."Output Quantity (Base)" = 0) and (ItemJournalLine."Scrap Quantity (Base)" = 0) and
+                   ItemJournalLine.TimeIsEmpty() and (ItemJournalLine."Invoiced Qty. (Base)" = 0)
+                then
+                    Error(ErrorInfo.Create(CannotPostTheseLinesErr, true))
+            end else
+                if (ItemJournalLine."Quantity (Base)" = 0) and (ItemJournalLine."Invoiced Qty. (Base)" = 0) then
+                    Error(ErrorInfo.Create(CannotPostTheseLinesErr, true));
 #else
         if ItemJournalLine."Entry Type" = ItemJournalLine."Entry Type"::Output then begin
             if (ItemJournalLine."Output Quantity (Base)" = 0) and (ItemJournalLine."Scrap Quantity (Base)" = 0) and

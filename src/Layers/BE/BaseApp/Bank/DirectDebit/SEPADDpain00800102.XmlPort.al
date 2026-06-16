@@ -347,7 +347,7 @@ xmlport 1010 "SEPA DD pain.008.001.02"
                                     if PaymentExportData."Message to Recipient 2" <> '' then
                                         RemittanceText := PaymentExportData."Message to Recipient 2"
                                     else
-                                        RemittanceText := PaymentExportData."Message to Recipient 1" + ' ;' + PaymentExportData."Document No.";
+                                        RemittanceText := PaymentExportData."Message to Recipient 1" + ', ' + PaymentExportData."Document No.";
                                 end;
                             }
 

@@ -102,6 +102,7 @@ table 7154 "Item Analysis View Entry"
         field(21; "Invoiced Quantity"; Decimal)
         {
             AutoFormatType = 0;
+            DecimalPlaces = 0 : 5;
             Caption = 'Invoiced Quantity';
             ToolTip = 'Specifies the sum of the quantity invoiced for the item ledger entries included in the analysis view entry.';
         }

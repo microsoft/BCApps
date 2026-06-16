@@ -49,7 +49,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
-        ReUsedLibraryItemTracking: Codeunit "Library - Item Tracking";
+        LibraryItemTracking: Codeunit "Library - Item Tracking";
         NoPurchRcptLineErr: Label 'Could not find a related purchase receipt line with sufficient quantity for %1 from Quality Inspection %2,%3. Confirm the inspection source is a Purchase Line and that it has been received prior to creating a return.', Comment = '%1=item,%2=inspection,%3=re-inspection';
         WriteOffEntireItemTrackingErr: Label 'Reducing inventory using the item tracked quantity for inspection %1 was requested, however the item associated with this inspection does not require tracking.', Comment = '%1=the inspection';
         MissingAdjBatchErr: Label 'There is missing setup on the Quality Management Setup Card defining the adjustment batch.';
@@ -304,7 +304,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         ReclassWarehouseJournalLine."New Lot No." := ReclassWarehouseJournalLine."Lot No.";
         ReclassWarehouseJournalLine.Modify();
         // [GIVEN] Item tracking is created for the reclassification journal line
-        ReUsedLibraryItemTracking.CreateWhseJournalLineItemTracking(ReclassWarehouseJournalWhseItemTrackingLine, ReclassWarehouseJournalLine, '', PurOrdReservationEntry."Lot No.", 50);
+        LibraryItemTracking.CreateWhseJournalLineItemTracking(ReclassWarehouseJournalWhseItemTrackingLine, ReclassWarehouseJournalLine, '', PurOrdReservationEntry."Lot No.", 50);
         ReclassWarehouseJournalWhseItemTrackingLine."New Lot No." := ReclassWarehouseJournalWhseItemTrackingLine."Lot No.";
         ReclassWarehouseJournalWhseItemTrackingLine.Modify();
         // [GIVEN] The warehouse journal is registered to complete the movement
@@ -765,7 +765,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         LibraryAssert.AreEqual(1, NegativeAdjustmentItemJournalLine.Count(), 'test setup failed, should be only 1 line after a modify');
 
         // [GIVEN] Item tracking with lot number is assigned to the journal line
-        ReUsedLibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, InitialInspectionInventoryJnlItemJournalLine, '', OriginalLotNo, InitialInspectionInventoryJnlItemJournalLine.Quantity);
+        LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, InitialInspectionInventoryJnlItemJournalLine, '', OriginalLotNo, InitialInspectionInventoryJnlItemJournalLine.Quantity);
 
         // [GIVEN] Item ledger entry filters are set up for validation
         ItemLedgerEntry.SetRange("Item No.", InitialInspectionInventoryJnlItemJournalLine."Item No.");
@@ -888,7 +888,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         LibraryUtility.CreateNoSeries(LotNoSeries, true, true, false);
         LibraryUtility.CreateNoSeriesLine(LotNoSeriesLine, LotNoSeries.Code, PadStr(Format(CurrentDateTime(), 0, 'A<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '0'), PadStr(Format(CurrentDateTime(), 0, 'A<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '9'));
 
-        ReUsedLibraryItemTracking.CreateItemTrackingCode(LotItemTrackingCode, false, true, false);
+        LibraryItemTracking.CreateItemTrackingCode(LotItemTrackingCode, false, true, false);
         LibraryInventory.CreateTrackedItem(Item, LotNoSeries.Code, '', LotItemTrackingCode.Code);
 
         // [GIVEN] Bin contents are created for all bins in the location
@@ -1218,7 +1218,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         ReclassWarehouseJournalLine."New Lot No." := ReclassWarehouseJournalLine."Lot No.";
         ReclassWarehouseJournalLine.Modify();
 
-        ReUsedLibraryItemTracking.CreateWhseJournalLineItemTracking(ReclassWarehouseJournalWhseItemTrackingLine, ReclassWarehouseJournalLine, '', PurOrdReservationEntry."Lot No.", 50);
+        LibraryItemTracking.CreateWhseJournalLineItemTracking(ReclassWarehouseJournalWhseItemTrackingLine, ReclassWarehouseJournalLine, '', PurOrdReservationEntry."Lot No.", 50);
         ReclassWarehouseJournalWhseItemTrackingLine."New Lot No." := ReclassWarehouseJournalWhseItemTrackingLine."Lot No.";
         ReclassWarehouseJournalWhseItemTrackingLine.Modify();
 
@@ -1822,7 +1822,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         LibraryUtility.CreateNoSeries(LotNoSeries, true, true, false);
         LibraryUtility.CreateNoSeriesLine(LotNoSeriesLine, LotNoSeries.Code, PadStr(Format(CurrentDateTime(), 0, 'A<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '0'), PadStr(Format(CurrentDateTime(), 0, 'A<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '9'));
 
-        ReUsedLibraryItemTracking.CreateItemTrackingCode(LotItemTrackingCode, false, true, false);
+        LibraryItemTracking.CreateItemTrackingCode(LotItemTrackingCode, false, true, false);
         LibraryInventory.CreateTrackedItem(Item, LotNoSeries.Code, '', LotItemTrackingCode.Code);
 
         // [GIVEN] Non-directed pick location with bins is created
@@ -1857,7 +1857,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         LibraryAssert.AreEqual(1, InitialInventoryItemJournalLine.Count(), 'test setup failed, should be only 1 line after a modify');
 
         // [GIVEN] Item tracking with original lot number is assigned to the journal line
-        ReUsedLibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, InitialInspectionInventoryJnlItemJournalLine, '', OriginalLotNo, InitialInspectionInventoryJnlItemJournalLine.Quantity);
+        LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, InitialInspectionInventoryJnlItemJournalLine, '', OriginalLotNo, InitialInspectionInventoryJnlItemJournalLine.Quantity);
 
         // [GIVEN] Item ledger entry filters are set up and journal is posted
         ItemLedgerEntry.SetRange("Item No.", InitialInspectionInventoryJnlItemJournalLine."Item No.");
@@ -1973,7 +1973,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         LibraryUtility.CreateNoSeries(LotNoSeries, true, true, false);
         LibraryUtility.CreateNoSeriesLine(LotNoSeriesLine, LotNoSeries.Code, PadStr(Format(CurrentDateTime(), 0, 'A<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '0'), PadStr(Format(CurrentDateTime(), 0, 'A<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '9'));
 
-        ReUsedLibraryItemTracking.CreateItemTrackingCode(LotItemTrackingCode, false, true, false);
+        LibraryItemTracking.CreateItemTrackingCode(LotItemTrackingCode, false, true, false);
         LibraryInventory.CreateTrackedItem(Item, LotNoSeries.Code, '', LotItemTrackingCode.Code);
 
         // [GIVEN] Full WMS location is created with bins and bin content for the item
@@ -2136,7 +2136,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         LibraryUtility.CreateNoSeries(SerialNoSeries, true, true, false);
         LibraryUtility.CreateNoSeriesLine(SerialNoSeriesLine, SerialNoSeries.Code, PadStr(Format(CurrentDateTime(), 0, 'A<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '0'), PadStr(Format(CurrentDateTime(), 0, 'A<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '9'));
 
-        ReUsedLibraryItemTracking.CreateItemTrackingCode(SerialItemTrackingCode, true, false, false);
+        LibraryItemTracking.CreateItemTrackingCode(SerialItemTrackingCode, true, false, false);
         LibraryInventory.CreateTrackedItem(Item, '', SerialNoSeries.Code, SerialItemTrackingCode.Code);
 
         // [GIVEN] Non-directed pick location with bins is created
@@ -2172,7 +2172,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         LibraryAssert.AreEqual(1, InitialInventoryItemJournalLine.Count(), 'test setup failed, should be only 1 line after a modify');
 
         // [GIVEN] Item tracking with original serial number is assigned to the journal line
-        ReUsedLibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, InitialInspectionInventoryJnlItemJournalLine, OriginalSerialNo, '', InitialInspectionInventoryJnlItemJournalLine.Quantity);
+        LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, InitialInspectionInventoryJnlItemJournalLine, OriginalSerialNo, '', InitialInspectionInventoryJnlItemJournalLine.Quantity);
 
         // [GIVEN] Item ledger entry filters are set up and journal is posted
         ItemLedgerEntry.SetRange("Item No.", InitialInspectionInventoryJnlItemJournalLine."Item No.");
@@ -2292,7 +2292,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         LibraryUtility.CreateNoSeriesLine(SerialNoSeriesLine, SerialNoSeries.Code, PadStr(Format(CurrentDateTime(), 0, 'A<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '0'), PadStr(Format(CurrentDateTime(), 0, 'A<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '9'));
 
         // [GIVEN] Item tracking code is created for serial tracking
-        ReUsedLibraryItemTracking.CreateItemTrackingCode(SerialItemTrackingCode, true, false, false);
+        LibraryItemTracking.CreateItemTrackingCode(SerialItemTrackingCode, true, false, false);
 
         // [GIVEN] Serial-tracked item is created with item tracking code
         LibraryInventory.CreateTrackedItem(Item, '', SerialNoSeries.Code, SerialItemTrackingCode.Code);
@@ -2484,7 +2484,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         LibraryUtility.CreateNoSeries(PackageNoSeries, true, true, false);
         LibraryUtility.CreateNoSeriesLine(PackageNoSeriesLine, PackageNoSeries.Code, PadStr(Format(CurrentDateTime(), 0, 'A<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '0'), PadStr(Format(CurrentDateTime(), 0, 'A<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '9'));
 
-        ReUsedLibraryItemTracking.CreateItemTrackingCode(PackageItemTrackingCode, false, false, true);
+        LibraryItemTracking.CreateItemTrackingCode(PackageItemTrackingCode, false, false, true);
         InventorySetup.Get();
         InventorySetup.Validate("Package Nos.", PackageNoSeries.Code);
         InventorySetup.Modify(true);
@@ -2523,7 +2523,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         LibraryAssert.AreEqual(1, InitialInventoryItemJournalLine.Count(), 'test setup failed, should be only 1 line after a modify');
 
         // [GIVEN] Item tracking with original package number is assigned to the journal line
-        ReUsedLibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, InitialInspectionInventoryJnlItemJournalLine, '', '', InitialInspectionInventoryJnlItemJournalLine.Quantity);
+        LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, InitialInspectionInventoryJnlItemJournalLine, '', '', InitialInspectionInventoryJnlItemJournalLine.Quantity);
         ReservationEntry.Validate("Package No.", OriginalPackageNo);
         ReservationEntry.Validate("New Package No.", OriginalPackageNo);
         ReservationEntry.Modify();
@@ -2638,7 +2638,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         LibraryUtility.CreateNoSeries(PackageNoSeries, true, true, false);
         LibraryUtility.CreateNoSeriesLine(PackageNoSeriesLine, PackageNoSeries.Code, PadStr(Format(CurrentDateTime(), 0, 'A<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '0'), PadStr(Format(CurrentDateTime(), 0, 'A<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '9'));
 
-        ReUsedLibraryItemTracking.CreateItemTrackingCode(PackageItemTrackingCode, false, false, true);
+        LibraryItemTracking.CreateItemTrackingCode(PackageItemTrackingCode, false, false, true);
         InventorySetup.Get();
         InventorySetup.Validate("Package Nos.", PackageNoSeries.Code);
         InventorySetup.Modify(true);
@@ -2814,7 +2814,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         LibraryUtility.CreateNoSeriesLine(LotNoSeriesLine, LotNoSeries.Code, PadStr(Format(CurrentDateTime(), 0, 'A<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '0'), PadStr(Format(CurrentDateTime(), 0, 'A<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '9'));
 
         // [GIVEN] Item tracking code is created for lot tracking
-        ReUsedLibraryItemTracking.CreateItemTrackingCode(LotItemTrackingCode, false, true, false);
+        LibraryItemTracking.CreateItemTrackingCode(LotItemTrackingCode, false, true, false);
 
         // [GIVEN] Item tracking code is configured to use expiration dates
         LotItemTrackingCode."Use Expiration Dates" := true;
@@ -2868,7 +2868,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         LibraryAssert.AreEqual(1, InitialInventoryItemJournalLine.Count(), 'test setup failed, should be only 1 line after a modify');
 
         // [GIVEN] Item tracking with lot number is assigned to the journal line
-        ReUsedLibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, InitialInspectionInventoryJnlItemJournalLine, '', OriginalLotNo, InitialInspectionInventoryJnlItemJournalLine.Quantity);
+        LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, InitialInspectionInventoryJnlItemJournalLine, '', OriginalLotNo, InitialInspectionInventoryJnlItemJournalLine.Quantity);
 
         // [GIVEN] Expiration date is set to work date for the reservation entry
         ReservationEntry."Expiration Date" := WorkDate();
@@ -3012,7 +3012,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         LibraryUtility.CreateNoSeries(LotNoSeries, true, true, false);
         LibraryUtility.CreateNoSeriesLine(LotNoSeriesLine, LotNoSeries.Code, PadStr(Format(CurrentDateTime(), 0, 'A<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '0'), PadStr(Format(CurrentDateTime(), 0, 'A<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '9'));
 
-        ReUsedLibraryItemTracking.CreateItemTrackingCode(LotItemTrackingCode, false, true, false);
+        LibraryItemTracking.CreateItemTrackingCode(LotItemTrackingCode, false, true, false);
         LotItemTrackingCode."Use Expiration Dates" := true;
         LotItemTrackingCode.Modify();
 
@@ -3168,7 +3168,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         LibraryUtility.CreateNoSeriesLine(LotNoSeriesLine, LotNoSeries.Code, PadStr(Format(CurrentDateTime(), 0, 'A<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '0'), PadStr(Format(CurrentDateTime(), 0, 'A<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '9'));
 
         // [GIVEN] Lot-tracked item tracking code and item are created
-        ReUsedLibraryItemTracking.CreateItemTrackingCode(LotItemTrackingCode, false, true, false);
+        LibraryItemTracking.CreateItemTrackingCode(LotItemTrackingCode, false, true, false);
         LibraryInventory.CreateTrackedItem(Item, LotNoSeries.Code, '', LotItemTrackingCode.Code);
 
         // [GIVEN] A full WMS location with bins and bin content is created
@@ -3373,7 +3373,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         ReclassWarehouseJournalLine.Modify();
 
         // [GIVEN] Warehouse item tracking line is created with lot and expiration information
-        ReUsedLibraryItemTracking.CreateWhseJournalLineItemTracking(ReclassWarehouseJournalWhseItemTrackingLine, ReclassWarehouseJournalLine, '', ReservationEntry."Lot No.", 50);
+        LibraryItemTracking.CreateWhseJournalLineItemTracking(ReclassWarehouseJournalWhseItemTrackingLine, ReclassWarehouseJournalLine, '', ReservationEntry."Lot No.", 50);
         ReclassWarehouseJournalWhseItemTrackingLine."New Lot No." := ReclassWarehouseJournalWhseItemTrackingLine."Lot No.";
         ReclassWarehouseJournalWhseItemTrackingLine."Expiration Date" := ReservationEntry."Expiration Date";
         ReclassWarehouseJournalWhseItemTrackingLine."New Expiration Date" := ReservationEntry."Expiration Date";
@@ -3489,7 +3489,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         LibraryUtility.CreateNoSeries(PackageNoSeries, true, true, false);
         LibraryUtility.CreateNoSeriesLine(PackageNoSeriesLine, PackageNoSeries.Code, PadStr(Format(CurrentDateTime(), 0, 'A<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '0'), PadStr(Format(CurrentDateTime(), 0, 'A<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '9'));
 
-        ReUsedLibraryItemTracking.CreateItemTrackingCode(PackageItemTrackingCode, false, false, true);
+        LibraryItemTracking.CreateItemTrackingCode(PackageItemTrackingCode, false, false, true);
         InventorySetup.Get();
         InventorySetup.Validate("Package Nos.", PackageNoSeries.Code);
         InventorySetup.Modify(true);
@@ -3530,7 +3530,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         LibraryAssert.AreEqual(1, InitialInventoryItemJournalLine.Count(), 'test setup failed, should be only 1 line after a modify');
 
         // [GIVEN] Item tracking with original package number is assigned to the journal line
-        ReUsedLibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, InitialInspectionInventoryJnlItemJournalLine, '', '', InitialInspectionInventoryJnlItemJournalLine.Quantity);
+        LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, InitialInspectionInventoryJnlItemJournalLine, '', '', InitialInspectionInventoryJnlItemJournalLine.Quantity);
         ReservationEntry.Validate("Package No.", OriginalPackageNo);
         ReservationEntry.Validate("New Package No.", OriginalPackageNo);
         ReservationEntry.Modify();
@@ -4304,7 +4304,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         ReclassWarehouseJournalLine."Lot No." := ReservationEntry."Lot No.";
         ReclassWarehouseJournalLine."New Lot No." := ReclassWarehouseJournalLine."Lot No.";
         ReclassWarehouseJournalLine.Modify();
-        ReUsedLibraryItemTracking.CreateWhseJournalLineItemTracking(ReclassWarehouseJournalWhseItemTrackingLine, ReclassWarehouseJournalLine, '', ReservationEntry."Lot No.", 50);
+        LibraryItemTracking.CreateWhseJournalLineItemTracking(ReclassWarehouseJournalWhseItemTrackingLine, ReclassWarehouseJournalLine, '', ReservationEntry."Lot No.", 50);
         ReclassWarehouseJournalWhseItemTrackingLine."New Lot No." := ReclassWarehouseJournalWhseItemTrackingLine."Lot No.";
         ReclassWarehouseJournalWhseItemTrackingLine.Modify();
         LibraryWarehouse.RegisterWhseJournalLine(ReclassWhseItemWarehouseJournalTemplate.Name, ReclassWarehouseJournalBatch.Name, Location.Code, true);
@@ -4909,7 +4909,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         ReclassWarehouseJournalLine."Lot No." := ReservationEntry."Lot No.";
         ReclassWarehouseJournalLine."New Lot No." := ReclassWarehouseJournalLine."Lot No.";
         ReclassWarehouseJournalLine.Modify();
-        ReUsedLibraryItemTracking.CreateWhseJournalLineItemTracking(ReclassWarehouseJournalWhseItemTrackingLine, ReclassWarehouseJournalLine, '', ReservationEntry."Lot No.", 50);
+        LibraryItemTracking.CreateWhseJournalLineItemTracking(ReclassWarehouseJournalWhseItemTrackingLine, ReclassWarehouseJournalLine, '', ReservationEntry."Lot No.", 50);
         ReclassWarehouseJournalWhseItemTrackingLine."New Lot No." := ReclassWarehouseJournalWhseItemTrackingLine."Lot No.";
         ReclassWarehouseJournalWhseItemTrackingLine.Modify();
         LibraryWarehouse.RegisterWhseJournalLine(ReclassWhseItemWarehouseJournalTemplate.Name, ReclassWarehouseJournalBatch.Name, Location.Code, true);
@@ -5521,7 +5521,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         ReclassItemJournalLine."New Bin Code" := InitialChangeBin;
         ReclassItemJournalLine.Modify();
 
-        ReUsedLibraryItemTracking.CreateItemReclassJnLineItemTracking(ReclassReservationEntry, ReclassItemJournalLine, '', ReservationEntry."Lot No.", 50);
+        LibraryItemTracking.CreateItemReclassJnLineItemTracking(ReclassReservationEntry, ReclassItemJournalLine, '', ReservationEntry."Lot No.", 50);
         ReclassReservationEntry."New Lot No." := ReclassReservationEntry."Lot No.";
         ReclassReservationEntry.Modify();
         LibraryInventory.PostItemJournalBatch(ReclassItemJournalBatch);
@@ -6043,7 +6043,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         ReclassWarehouseJournalLine."Lot No." := ReservationEntry."Lot No.";
         ReclassWarehouseJournalLine."New Lot No." := ReclassWarehouseJournalLine."Lot No.";
         ReclassWarehouseJournalLine.Modify();
-        ReUsedLibraryItemTracking.CreateWhseJournalLineItemTracking(ReclassWarehouseJournalWhseItemTrackingLine, ReclassWarehouseJournalLine, '', ReservationEntry."Lot No.", 50);
+        LibraryItemTracking.CreateWhseJournalLineItemTracking(ReclassWarehouseJournalWhseItemTrackingLine, ReclassWarehouseJournalLine, '', ReservationEntry."Lot No.", 50);
         ReclassWarehouseJournalWhseItemTrackingLine."New Lot No." := ReclassWarehouseJournalWhseItemTrackingLine."Lot No.";
         ReclassWarehouseJournalWhseItemTrackingLine.Modify();
         LibraryWarehouse.RegisterWhseJournalLine(ReclassWhseItemWarehouseJournalTemplate.Name, ReclassWarehouseJournalBatch.Name, Location.Code, true);
@@ -6316,7 +6316,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         ReclassItemJournalLine."New Bin Code" := InitialChangeBin;
         ReclassItemJournalLine.Modify();
 
-        ReUsedLibraryItemTracking.CreateItemReclassJnLineItemTracking(ReclassReservationEntry, ReclassItemJournalLine, '', ReservationEntry."Lot No.", 50);
+        LibraryItemTracking.CreateItemReclassJnLineItemTracking(ReclassReservationEntry, ReclassItemJournalLine, '', ReservationEntry."Lot No.", 50);
         ReclassReservationEntry."New Lot No." := ReclassReservationEntry."Lot No.";
         ReclassReservationEntry.Modify();
         LibraryInventory.PostItemJournalBatch(ReclassItemJournalBatch);

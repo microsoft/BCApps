@@ -153,6 +153,7 @@ table 1304 "Sales Price and Line Disc Buff"
         field(5; "Line Discount %"; Decimal)
         {
             AutoFormatType = 0;
+            DecimalPlaces = 0 : 5;
             Caption = 'Line Discount %';
             ToolTip = 'Specifies the discount percentage that is granted for the item on the line.';
             DataClassification = SystemMetadata;

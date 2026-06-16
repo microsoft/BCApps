@@ -8,6 +8,7 @@ using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.VAT.Reporting;
 using System.Environment;
+using System.Telemetry;
 
 tableextension 4701 "VAT Report Setup Extension" extends "VAT Report Setup"
 {
@@ -17,6 +18,21 @@ tableextension 4701 "VAT Report Setup Extension" extends "VAT Report Setup"
         {
             DataClassification = SystemMetadata;
             Caption = 'VAT Group Role';
+
+            trigger OnValidate()
+            var
+                AuditLog: Codeunit "Audit Log";
+            begin
+                if "VAT Group Role" <> xRec."VAT Group Role" then
+                    Session.LogSecurityAudit(
+                        VATGroupServiceNameTxt, SecurityOperationResult::Success,
+                        StrSubstNo(SecurityAuditRoleChangedTxt, xRec."VAT Group Role", "VAT Group Role"),
+                        AuditCategory::ApplicationManagement);
+                if (xRec."VAT Group Role" = xRec."VAT Group Role"::" ") and ("VAT Group Role" <> "VAT Group Role"::" ") then
+                    AuditLog.LogAuditMessage(
+                        StrSubstNo(VATGroupConfiguredLbl, UserSecurityId()),
+                        SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 4, 0);
+            end;
         }
         field(4701; "Approved Members"; Integer)
         {
@@ -43,6 +59,11 @@ tableextension 4701 "VAT Report Setup Extension" extends "VAT Report Setup"
                 if EnvironmentInformation.IsSaaSInfrastructure() then
                     if not ValidateGroupRepresentativeAPIURL() then
                         Error(InvalidURLErr);
+                if "Group Representative API URL" <> xRec."Group Representative API URL" then
+                    Session.LogSecurityAudit(
+                        VATGroupServiceNameTxt, SecurityOperationResult::Success,
+                        StrSubstNo(SecurityAuditApiUrlChangedTxt, xRec."Group Representative API URL", "Group Representative API URL"),
+                        AuditCategory::ApplicationManagement);
             end;
         }
 #if not CLEANSCHEMA25
@@ -69,12 +90,30 @@ tableextension 4701 "VAT Report Setup Extension" extends "VAT Report Setup"
             DataClassification = CustomerContent;
             Caption = 'User Name Key';
             ExtendedDatatype = Masked;
+
+            trigger OnValidate()
+            begin
+                if "User Name Key" <> xRec."User Name Key" then
+                    Session.LogSecurityAudit(
+                        VATGroupServiceNameTxt, SecurityOperationResult::Success,
+                        SecurityAuditUserNameChangedTxt,
+                        AuditCategory::UserManagement);
+            end;
         }
         field(4706; "Web Service Access Key Key"; Guid)
         {
             DataClassification = CustomerContent;
             Caption = 'Web Service Access Key Key';
             ExtendedDatatype = Masked;
+
+            trigger OnValidate()
+            begin
+                if "Web Service Access Key Key" <> xRec."Web Service Access Key Key" then
+                    Session.LogSecurityAudit(
+                        VATGroupServiceNameTxt, SecurityOperationResult::Success,
+                        SecurityAuditWebSvcKeyChangedTxt,
+                        AuditCategory::UserManagement);
+            end;
         }
         field(4707; "Group Representative Company"; Text[30])
         {
@@ -86,12 +125,30 @@ tableextension 4701 "VAT Report Setup Extension" extends "VAT Report Setup"
             DataClassification = OrganizationIdentifiableInformation;
             Caption = 'Client ID Key';
             ExtendedDatatype = Masked;
+
+            trigger OnValidate()
+            begin
+                if "Client ID Key" <> xRec."Client ID Key" then
+                    Session.LogSecurityAudit(
+                        VATGroupServiceNameTxt, SecurityOperationResult::Success,
+                        SecurityAuditClientIdChangedTxt,
+                        AuditCategory::UserManagement);
+            end;
         }
         field(4709; "Client Secret Key"; Guid)
         {
             DataClassification = SystemMetadata;
             Caption = 'Client Secret Key';
             ExtendedDatatype = Masked;
+
+            trigger OnValidate()
+            begin
+                if "Client Secret Key" <> xRec."Client Secret Key" then
+                    Session.LogSecurityAudit(
+                        VATGroupServiceNameTxt, SecurityOperationResult::Success,
+                        SecurityAuditClientSecretChangedTxt,
+                        AuditCategory::UserManagement);
+            end;
         }
         field(4710; "Authority URL"; Text[250])
         {
@@ -212,4 +269,12 @@ tableextension 4701 "VAT Report Setup Extension" extends "VAT Report Setup"
 
     var
         InvalidURLErr: Label 'The Group Representative API URL must start with https://api.businesscentral.dynamics.com or https://api.businesscentral.dynamics-tie.com';
+        VATGroupServiceNameTxt: Label 'VAT Group Management', Locked = true;
+        SecurityAuditRoleChangedTxt: Label 'VAT Group Role was changed from %1 to %2.', Locked = true, Comment = '%1 - old role, %2 - new role';
+        SecurityAuditApiUrlChangedTxt: Label 'Group Representative API URL was changed from %1 to %2.', Locked = true, Comment = '%1 - old URL, %2 - new URL';
+        SecurityAuditUserNameChangedTxt: Label 'VAT Group representative User Name was changed.', Locked = true;
+        SecurityAuditWebSvcKeyChangedTxt: Label 'VAT Group representative Web Service Access Key was changed.', Locked = true;
+        SecurityAuditClientIdChangedTxt: Label 'VAT Group OAuth Client ID was changed.', Locked = true;
+        SecurityAuditClientSecretChangedTxt: Label 'VAT Group OAuth Client Secret was changed.', Locked = true;
+        VATGroupConfiguredLbl: Label 'VAT Group Management has been set up by UserSecurityId %1.', Locked = true;
 }

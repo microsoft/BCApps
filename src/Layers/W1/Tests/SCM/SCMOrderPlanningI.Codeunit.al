@@ -36,6 +36,10 @@ codeunit 137046 "SCM Order Planning - I"
         CostIsAdjustedErr: Label '"Cost Is Adjusted" in Inventory Adjmt. Entry (Order) should be TRUE if Item was deleted';
         UnitOfMeasureErr: Label 'Unit of Measure Code on Requisition Line doesn''t equal to the Purch. Unit of Measure of Item';
         RequisitionLineQtyErr: Label 'Requisition quantity not qual to expected quantity of %1', Comment = '%1 - Requisition Line Expected Quantity';
+        SalesDemandSetupErr: Label 'Setup error: expected Sales demand requisition lines.';
+        ProductionDemandSetupErr: Label 'Setup error: expected Production demand requisition lines.';
+        ProdDemandStillVisibleErr: Label 'Production Order %1 is still visible on Order Planning when "Show Demand as" = "Sales Demand". The Sales Line-Planning subscriber is not filtering by Demand Type = Sales Line.', Comment = '%1 = Production Order No.';
+        SalesDemandNotVisibleErr: Label 'Sales Order %1 must be visible on Order Planning when "Show Demand as" = "Sales Demand".', Comment = '%1 = Sales Order No.';
 
     [Test]
     [Scope('OnPrem')]
@@ -1173,6 +1177,44 @@ codeunit 137046 "SCM Order Planning - I"
         Assert.AreEqual(SecondQuantity, RequisitionLine.Quantity, StrSubstNo(RequisitionLineQtyErr, SecondQuantity));
     end;
 
+    [Test]
+    procedure SalesDemandFilterOnOrderPlanningShowsOnlySalesDemandRows()
+    var
+        TempSalesReceivablesSetup: Record "Sales & Receivables Setup" temporary;
+        SalesHeader: Record "Sales Header";
+        ProductionOrder: Record "Production Order";
+        RequisitionLine: Record "Requisition Line";
+        OrderPlanning: TestPage "Order Planning";
+    begin
+        // [FEATURE] [Order Planning] [Sales]
+        // [SCENARIO 637417] Setting "Show Demand as" = "Sales Demand" on the Order Planning page (Page 5522)
+        // filters the worksheet to only Sales demand rows.
+        Initialize();
+        UpdateSalesReceivablesSetup(TempSalesReceivablesSetup);
+
+        // [GIVEN] A released Sales Order with quantity greater than the available inventory creates Sales demand.
+        CreateSalesDemand(SalesHeader);
+
+        // [GIVEN] A Firm Planned Production Order with components without inventory creates Production demand.
+        CreateProductionDemand(ProductionOrder);
+
+        // [GIVEN] Order Planning is calculated for all demand types so both Sales and Production demand rows exist.
+        CalculateOrderPlanForAllDemands(RequisitionLine);
+        VerifyBothSalesAndProductionDemandLinesExist();
+
+        // [WHEN] User opens the Order Planning page and sets "Show Demand as" to "Sales Demand".
+        OrderPlanning.OpenView();
+        OrderPlanning.DemandOrderFilterCtrl.SetValue("Demand Order Source Type"::"Sales Demand");
+
+        // [THEN] The Sales Order demand row is visible and the Production Order demand row is hidden.
+        VerifyOnlySalesDemandRowsVisible(OrderPlanning, SalesHeader."No.", ProductionOrder."No.");
+
+        OrderPlanning.Close();
+
+        // Tear Down.
+        RestoreSalesReceivableSetup(TempSalesReceivablesSetup);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -2040,6 +2082,65 @@ codeunit 137046 "SCM Order Planning - I"
         Evaluate(ItemVendor."Lead Time Calculation", StrSubstNo('<%1D>', LibraryRandom.RandIntInRange(10, 10)));
         ItemVendor."Vendor Item No." := LibraryUtility.GenerateGUID();
         ItemVendor.Insert(true);
+    end;
+
+    local procedure CreateSalesDemand(var SalesHeader: Record "Sales Header")
+    var
+        Item: Record Item;
+        PurchaseHeader: Record "Purchase Header";
+        Quantity: Decimal;
+    begin
+        CreateItem(Item, Item."Replenishment System"::Purchase, '', '', '');
+        Quantity := LibraryRandom.RandDec(100, 2);
+        CreateAndReleasePurchaseOrder(PurchaseHeader, Item."No.", Quantity);
+        CreateSalesOrder(SalesHeader, Item."No.", '', Quantity + LibraryRandom.RandDec(10, 2), Quantity);
+        LibrarySales.PostSalesDocument(SalesHeader, true, true);
+    end;
+
+    local procedure CreateProductionDemand(var ProductionOrder: Record "Production Order")
+    var
+        ParentItem: Record Item;
+        ChildItem: Record Item;
+    begin
+        CreateManufacturingSetup(ParentItem, ChildItem, LibraryRandom.RandDec(10, 2), false);
+        CreateAndRefreshProdOrder(
+          ProductionOrder, ProductionOrder.Status::"Firm Planned", ParentItem."No.", '',
+          LibraryRandom.RandDec(5, 2) + 1, WorkDate());
+    end;
+
+    local procedure CalculateOrderPlanForAllDemands(var RequisitionLine: Record "Requisition Line")
+    var
+        OrderPlanningMgt: Codeunit "Order Planning Mgt.";
+    begin
+        OrderPlanningMgt.SetDemandType("Demand Order Source Type"::"All Demands");
+        OrderPlanningMgt.GetOrdersToPlan(RequisitionLine);
+    end;
+
+    local procedure VerifyBothSalesAndProductionDemandLinesExist()
+    var
+        RequisitionLine: Record "Requisition Line";
+    begin
+        RequisitionLine.SetRange("User ID", UserId());
+        RequisitionLine.SetRange("Worksheet Template Name", '');
+        RequisitionLine.SetRange("Demand Type", Database::"Sales Line");
+        Assert.IsFalse(RequisitionLine.IsEmpty(), SalesDemandSetupErr);
+        RequisitionLine.SetRange("Demand Type", Database::"Prod. Order Component");
+        Assert.IsFalse(RequisitionLine.IsEmpty(), ProductionDemandSetupErr);
+    end;
+
+    local procedure VerifyOnlySalesDemandRowsVisible(var OrderPlanning: TestPage "Order Planning"; SalesOrderNo: Code[20]; ProductionOrderNo: Code[20])
+    var
+        VisibleDemandOrderNo: Code[20];
+        SalesOrderVisible: Boolean;
+    begin
+        if OrderPlanning.First() then
+            repeat
+                VisibleDemandOrderNo := CopyStr(Format(OrderPlanning."Demand Order No.".Value), 1, MaxStrLen(VisibleDemandOrderNo));
+                Assert.AreNotEqual(ProductionOrderNo, VisibleDemandOrderNo, StrSubstNo(ProdDemandStillVisibleErr, ProductionOrderNo));
+                if VisibleDemandOrderNo = SalesOrderNo then
+                    SalesOrderVisible := true;
+            until not OrderPlanning.Next();
+        Assert.IsTrue(SalesOrderVisible, StrSubstNo(SalesDemandNotVisibleErr, SalesOrderNo));
     end;
 
     [ModalPageHandler]

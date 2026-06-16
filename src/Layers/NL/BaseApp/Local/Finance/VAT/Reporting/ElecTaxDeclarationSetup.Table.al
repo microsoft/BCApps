@@ -7,6 +7,7 @@ namespace Microsoft.Finance.VAT.Reporting;
 using Microsoft.Foundation.NoSeries;
 using System.Environment;
 using System.Security.Encryption;
+using System.Telemetry;
 
 table 11408 "Elec. Tax Declaration Setup"
 {
@@ -139,24 +140,75 @@ table 11408 "Elec. Tax Declaration Setup"
         field(252; "Digipoort Delivery URL"; Text[250])
         {
             Caption = 'Digipoort Delivery URL';
+
+            trigger OnValidate()
+            var
+                AuditLog: Codeunit "Audit Log";
+            begin
+                if "Digipoort Delivery URL" <> xRec."Digipoort Delivery URL" then
+                    Session.LogSecurityAudit(
+                        DigipoortServiceNameTxt, SecurityOperationResult::Success,
+                        StrSubstNo(SecurityAuditDeliveryUrlChangedTxt, xRec."Digipoort Delivery URL", "Digipoort Delivery URL"),
+                        AuditCategory::ApplicationManagement);
+                if (xRec."Digipoort Delivery URL" = '') and ("Digipoort Delivery URL" <> '') then
+                    AuditLog.LogAuditMessage(
+                        StrSubstNo(DigipoortConfiguredLbl, UserSecurityId()),
+                        SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 4, 0);
+            end;
         }
         field(253; "Digipoort Status URL"; Text[250])
         {
             Caption = 'Digipoort Status URL';
+
+            trigger OnValidate()
+            begin
+                if "Digipoort Status URL" <> xRec."Digipoort Status URL" then
+                    Session.LogSecurityAudit(
+                        DigipoortServiceNameTxt, SecurityOperationResult::Success,
+                        StrSubstNo(SecurityAuditStatusUrlChangedTxt, xRec."Digipoort Status URL", "Digipoort Status URL"),
+                        AuditCategory::ApplicationManagement);
+            end;
         }
         field(300; "Use Certificate Setup"; Boolean)
         {
             Caption = 'Use Certificate Setup';
+
+            trigger OnValidate()
+            begin
+                if "Use Certificate Setup" <> xRec."Use Certificate Setup" then
+                    Session.LogSecurityAudit(
+                        DigipoortServiceNameTxt, SecurityOperationResult::Success,
+                        StrSubstNo(SecurityAuditUseCertSetupChangedTxt, xRec."Use Certificate Setup", "Use Certificate Setup"),
+                        AuditCategory::ApplicationManagement);
+            end;
         }
         field(301; "Client Certificate Code"; Code[20])
         {
             TableRelation = "Isolated Certificate";
             Caption = 'Client Certificate Code';
+
+            trigger OnValidate()
+            begin
+                if "Client Certificate Code" <> xRec."Client Certificate Code" then
+                    Session.LogSecurityAudit(
+                        DigipoortServiceNameTxt, SecurityOperationResult::Success,
+                        StrSubstNo(SecurityAuditClientCertChangedTxt, xRec."Client Certificate Code", "Client Certificate Code"),
+                        AuditCategory::UserManagement);
+            end;
         }
         field(302; "Service Certificate Code"; Code[20])
         {
             TableRelation = "Isolated Certificate";
             Caption = 'Service Certificate Code';
+
+            trigger OnValidate()
+            begin
+                if "Service Certificate Code" <> xRec."Service Certificate Code" then
+                    Session.LogSecurityAudit(
+                        DigipoortServiceNameTxt, SecurityOperationResult::Success,
+                        StrSubstNo(SecurityAuditServiceCertChangedTxt, xRec."Service Certificate Code", "Service Certificate Code"),
+                        AuditCategory::UserManagement);
+            end;
         }
         field(350; "Tax Decl. Schema Version"; Text[10])
         {
@@ -198,6 +250,13 @@ table 11408 "Elec. Tax Declaration Setup"
         Text002: Label '%1 is not a valid BECON ID.';
         ElecTaxDeclarationHeader: Record "Elec. Tax Declaration Header";
         Text003: Label 'You cannot change %1 when you have %2 with %3 %4.';
+        DigipoortServiceNameTxt: Label 'Digipoort', Locked = true;
+        SecurityAuditDeliveryUrlChangedTxt: Label 'Digipoort Delivery URL was changed from %1 to %2.', Locked = true, Comment = '%1 - old URL, %2 - new URL';
+        SecurityAuditStatusUrlChangedTxt: Label 'Digipoort Status URL was changed from %1 to %2.', Locked = true, Comment = '%1 - old URL, %2 - new URL';
+        SecurityAuditUseCertSetupChangedTxt: Label 'Use Certificate Setup was changed from %1 to %2.', Locked = true, Comment = '%1 - old value, %2 - new value';
+        SecurityAuditClientCertChangedTxt: Label 'Digipoort Client Certificate Code was changed from %1 to %2.', Locked = true, Comment = '%1 - old certificate code, %2 - new certificate code';
+        SecurityAuditServiceCertChangedTxt: Label 'Digipoort Service Certificate Code was changed from %1 to %2.', Locked = true, Comment = '%1 - old certificate code, %2 - new certificate code';
+        DigipoortConfiguredLbl: Label 'Digipoort connection has been set up by UserSecurityId %1.', Locked = true;
 
     local procedure CheckBECONID(BECONID: Code[6]): Boolean
     var

@@ -558,7 +558,7 @@ page 27 "Vendor List"
 #if not CLEAN27
                 action("Subcontracting Prices")
                 {
-                    ApplicationArea = Manufacturing;
+                    ApplicationArea = LegacySubcontracting;
                     Caption = 'Subcontracting Prices';
                     Image = Price;
                     RunObject = Page "Subcontracting Prices";

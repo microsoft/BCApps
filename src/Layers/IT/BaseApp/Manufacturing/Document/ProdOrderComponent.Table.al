@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -183,6 +183,7 @@ table 5407 "Prod. Order Component"
                 SKU: Record "Stockkeeping Unit";
                 GetPlanningParameters: Codeunit "Planning-Get Parameters";
                 SubcontractingManagement: Codeunit SubcontractingManagement;
+                LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
                 ShouldUpdateLocation: Boolean;
 #endif
                 IsHandled: Boolean;
@@ -206,26 +207,28 @@ table 5407 "Prod. Order Component"
                             "Due Date" := ProdOrderRoutingLine."Starting Date";
                             "Due Time" := ProdOrderRoutingLine."Starting Time";
 #if not CLEAN28
-                            if SubcontractorPrices.ReadPermission then
-                                if (ProdOrderRoutingLine.Type = ProdOrderRoutingLine.Type::"Work Center") then
-                                    if SubcontractingManagement.GetSubcontractor(ProdOrderRoutingLine."No.", Vendor) then begin
-                                        IsHandled := false;
-                                        OnValidateRoutingLinkCodeOnBeforeSubcontractorProcurementCheck(Rec, Vendor, IsHandled);
-                                        if not IsHandled then
-                                            if Vendor."Subcontractor Procurement" then
-                                                Validate("Location Code", Vendor."Subcontracting Location Code");
-                                    end;
+                            if LegacySubcFeatureHandler.IsLegacySubcontractingEnabled() then
+                                if SubcontractorPrices.ReadPermission then
+                                    if (ProdOrderRoutingLine.Type = ProdOrderRoutingLine.Type::"Work Center") then
+                                        if SubcontractingManagement.GetSubcontractor(ProdOrderRoutingLine."No.", Vendor) then begin
+                                            IsHandled := false;
+                                            OnValidateRoutingLinkCodeOnBeforeSubcontractorProcurementCheck(Rec, Vendor, IsHandled);
+                                            if not IsHandled then
+                                                if Vendor."Subcontractor Procurement" then
+                                                    Validate("Location Code", Vendor."Subcontracting Location Code");
+                                        end;
                         end;
-                    end else begin
-                        ShouldUpdateLocation := xRec."Routing Link Code" <> '';
-                        OnValidateRoutingLinkCodeOnAfterShouldUpdateLocation(Rec, GetPlanningParameters, SKU, ProdOrderLine, ShouldUpdateLocation);
-                        if ShouldUpdateLocation then begin
-                            GetPlanningParameters.AtSKU(
-                            SKU,
-                            ProdOrderLine."Item No.",
-                            ProdOrderLine."Variant Code",
-                            ProdOrderLine."Location Code");
-                            Validate("Location Code", SKU."Components at Location");
+                    end else
+                        if LegacySubcFeatureHandler.IsLegacySubcontractingEnabled() then begin
+                            ShouldUpdateLocation := xRec."Routing Link Code" <> '';
+                            OnValidateRoutingLinkCodeOnAfterShouldUpdateLocation(Rec, GetPlanningParameters, SKU, ProdOrderLine, ShouldUpdateLocation);
+                            if ShouldUpdateLocation then begin
+                                GetPlanningParameters.AtSKU(
+                                SKU,
+                                ProdOrderLine."Item No.",
+                                ProdOrderLine."Variant Code",
+                                ProdOrderLine."Location Code");
+                                Validate("Location Code", SKU."Components at Location");
 #endif
                         end;
                     end;
@@ -1119,6 +1122,9 @@ table 5407 "Prod. Order Component"
         ItemLedgEntry: Record "Item Ledger Entry";
         ItemTrackingMgt: Codeunit "Item Tracking Management";
         NewQuantity: Decimal;
+#if not CLEAN29
+        LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
+#endif
         IsHandled: Boolean;
     begin
         if Status = Status::Finished then
@@ -1134,10 +1140,12 @@ table 5407 "Prod. Order Component"
                 Error(Text99000000, "Item No.", "Line No.");
 
 #if not CLEAN28
-            CalcFields("Qty. transf. to Subcontractor", "Qty. on Transfer Order (Base)", "Qty. in Transit (Base)");
-            TestField("Qty. transf. to Subcontractor", 0);
-            TestField("Qty. in Transit (Base)", 0);
-            TestField("Qty. on Transfer Order (Base)", 0);
+            if LegacySubcFeatureHandler.IsLegacySubcontractingEnabled() then begin
+                CalcFields("Qty. transf. to Subcontractor", "Qty. on Transfer Order (Base)", "Qty. in Transit (Base)");
+                TestField("Qty. transf. to Subcontractor", 0);
+                TestField("Qty. in Transit (Base)", 0);
+                TestField("Qty. on Transfer Order (Base)", 0);
+            end;
 #endif
             ConfirmDeletion();
         end;

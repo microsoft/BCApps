@@ -198,7 +198,8 @@ table 5870 "BOM Buffer"
         }
         field(54; "Overhead Rate"; Decimal)
         {
-            AutoFormatType = 0;
+            AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Overhead Rate';
             ToolTip = 'Specifies the item''s overhead rate.';
         }

@@ -967,6 +967,7 @@ codeunit 5812 "Calculate Standard Cost"
 #if not CLEAN27
         SubContPrices: Record "Subcontractor Prices";
         SubContPriceMgt: Codeunit SubcontractingPricesMgt;
+        LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
 #endif
         IsHandled: Boolean;
     begin
@@ -984,7 +985,8 @@ codeunit 5812 "Calculate Standard Cost"
 
 #if not CLEAN27
         if (Type = Type::"Work Center") and
-           (WorkCenter."Subcontractor No." <> '')
+           (WorkCenter."Subcontractor No." <> '') and
+           LegacySubcFeatureHandler.IsLegacySubcontractingEnabled()
         then begin
             SubContPrices."Vendor No." := WorkCenter."Subcontractor No.";
             SubContPrices."Item No." := Item."No.";

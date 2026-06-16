@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -216,13 +216,35 @@ tableextension 99000801 "Mfg. Capacity Ledger Entry" extends "Capacity Ledger En
         key(Key4; "Work Center No.", "Work Shift Code")
         {
         }
-#if not CLEAN28
+#if not CLEANSCHEMA31
         key(Key12180; "Subcontr. Purch. Order No.", "Subcontr. Purch. Order Line")
         {
+#if not CLEAN28
             SumIndexFields = "WIP Item Qty.";
+#endif
+            ObsoleteReason = 'Preparation for replacement by Subcontracting app';
+#if not CLEAN28
+            ObsoleteState = Pending;
+#pragma warning disable AS0072
+            ObsoleteTag = '27.0';
+#pragma warning restore AS0072
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '31.0';
+#endif
         }
         key(Key12182; "Item No.", "Order Type", "Order No.", "Posting Date", Subcontracting)
         {
+            ObsoleteReason = 'Preparation for replacement by Subcontracting app';
+#if not CLEAN28
+            ObsoleteState = Pending;
+#pragma warning disable AS0072
+            ObsoleteTag = '27.0';
+#pragma warning restore AS0072
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '31.0';
+#endif
         }
 #endif
     }

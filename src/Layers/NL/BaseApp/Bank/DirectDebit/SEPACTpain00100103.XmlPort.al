@@ -372,7 +372,7 @@ xmlport 1000 "SEPA CT pain.001.001.03"
                                 if TempPaymentExportRemittanceText.Next() = 0 then
                                     exit;
 
-                                SeparatorText := '; ';
+                                SeparatorText := ', ';
                                 OnSpecifyRemittanceTextSeparatorText(SeparatorText);
 
                                 RemittanceText := CopyStr(

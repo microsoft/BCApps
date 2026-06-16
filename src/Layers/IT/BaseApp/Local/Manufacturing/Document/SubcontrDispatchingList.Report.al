@@ -6,6 +6,7 @@
 namespace Microsoft.Manufacturing.Document;
 
 using Microsoft.Inventory.Item;
+using Microsoft.Manufacturing.Setup;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
 
@@ -13,7 +14,7 @@ report 12155 "Subcontr. Dispatching List"
 {
     DefaultLayout = RDLC;
     RDLCLayout = './Local/Manufacturing/Document/SubcontrDispatchingList.rdlc';
-    ApplicationArea = Basic, Suite;
+    ApplicationArea = LegacySubcontracting;
     Caption = 'Subcontractor - Dispatch List IT';
     UsageCategory = ReportsAndAnalysis;
     ObsoleteReason = 'Preparation for replacement by Subcontracting app';
@@ -341,6 +342,14 @@ report 12155 "Subcontr. Dispatching List"
     labels
     {
     }
+
+    trigger OnPreReport()
+    var
+        LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
+    begin
+        if not LegacySubcFeatureHandler.IsLegacySubcontractingEnabled() then
+            CurrReport.Quit();
+    end;
 
     var
         Item: Record Item;

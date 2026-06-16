@@ -98,6 +98,9 @@ codeunit 10145 "E-Invoice Mgt."
         NumeroPedimentoFormatTxt: Label '%1  %2  %3  %4', Comment = '%1 year; %2 - customs office; %3 patent number; %4 progressive number.';
         // fault model labels
         MXElectronicInvoicingTok: Label 'MXElectronicInvoicingTelemetryCategoryTok', Locked = true;
+        CFDIServiceNameTxt: Label 'CFDI', Locked = true;
+        SecurityAuditPACRejectedTxt: Label 'PAC rejected %1 request: %2', Locked = true, Comment = '%1 - document type, %2 - PAC error description';
+        SecurityAuditCFDICancelRequestedTxt: Label 'CFDI cancellation request submitted to PAC for %1 (Cancellation ID %2).', Locked = true, Comment = '%1 - document type, %2 - CFDI Cancellation ID';
         SATCertificateNotValidErr: Label 'The SAT certificate is not valid: %1', Comment = '%1 - last error.', Locked = true;
         StampReqMsg: Label 'Sending stamp request for document: %1', Locked = true;
         StampReqSuccessMsg: Label 'Stamp request successful for document: %1', Locked = true;
@@ -1604,6 +1607,7 @@ codeunit 10145 "E-Invoice Mgt."
 
             Session.LogMessage(
                 '0000C7M', StrSubstNo(ProcessResponseErr, GetDocTypeTextFromDatabaseId(Database::"Sales Invoice Header"), TelemetryError), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MXElectronicInvoicingTok);
+            LogPACRejectionAudit(GetDocTypeTextFromDatabaseId(Database::"Sales Invoice Header"), TelemetryError);
 
             exit;
         end;
@@ -1614,6 +1618,7 @@ codeunit 10145 "E-Invoice Mgt."
             if Action = EDocAction::Cancel then begin
                 SalesInvoiceHeader."Electronic Document Status" := SalesInvoiceHeader."Electronic Document Status"::"Cancel In Progress";
                 SalesInvoiceHeader."CFDI Cancellation ID" := GetResponseValueCancellationID(XMLCurrNode, XMLDOMNamedNodeMap);
+                LogCFDICancelRequestedAudit(GetDocTypeTextFromDatabaseId(Database::"Sales Invoice Header"), SalesInvoiceHeader."CFDI Cancellation ID");
                 exit;
             end;
             if Action = EDocAction::CancelRequest then begin
@@ -1777,6 +1782,7 @@ codeunit 10145 "E-Invoice Mgt."
 
             Session.LogMessage(
                 '0000C7M', StrSubstNo(ProcessResponseErr, GetDocTypeTextFromDatabaseId(Database::"Sales Cr.Memo Header"), TelemetryError), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MXElectronicInvoicingTok);
+            LogPACRejectionAudit(GetDocTypeTextFromDatabaseId(Database::"Sales Cr.Memo Header"), TelemetryError);
 
             exit;
         end;
@@ -1786,6 +1792,7 @@ codeunit 10145 "E-Invoice Mgt."
         if Action = EDocAction::Cancel then begin
             SalesCrMemoHeader."Electronic Document Status" := SalesCrMemoHeader."Electronic Document Status"::"Cancel In Progress";
             SalesCrMemoHeader."CFDI Cancellation ID" := GetResponseValueCancellationID(XMLCurrNode, XMLDOMNamedNodeMap);
+            LogCFDICancelRequestedAudit(GetDocTypeTextFromDatabaseId(Database::"Sales Cr.Memo Header"), SalesCrMemoHeader."CFDI Cancellation ID");
             exit;
         end;
         if Action = EDocAction::CancelRequest then begin
@@ -1913,6 +1920,7 @@ codeunit 10145 "E-Invoice Mgt."
 
             Session.LogMessage(
                 '0000C7M', StrSubstNo(ProcessResponseErr, GetDocTypeTextFromDatabaseId(Database::"Service Invoice Header"), TelemetryError), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MXElectronicInvoicingTok);
+            LogPACRejectionAudit(GetDocTypeTextFromDatabaseId(Database::"Service Invoice Header"), TelemetryError);
 
             exit;
         end;
@@ -1922,6 +1930,7 @@ codeunit 10145 "E-Invoice Mgt."
         if Action = EDocAction::Cancel then begin
             ServInvoiceHeader."Electronic Document Status" := ServInvoiceHeader."Electronic Document Status"::"Cancel In Progress";
             ServInvoiceHeader."CFDI Cancellation ID" := GetResponseValueCancellationID(XMLCurrNode, XMLDOMNamedNodeMap);
+            LogCFDICancelRequestedAudit(GetDocTypeTextFromDatabaseId(Database::"Service Invoice Header"), ServInvoiceHeader."CFDI Cancellation ID");
             exit;
         end;
         if Action = EDocAction::CancelRequest then begin
@@ -2048,6 +2057,7 @@ codeunit 10145 "E-Invoice Mgt."
 
             Session.LogMessage(
                 '0000C7M', StrSubstNo(ProcessResponseErr, GetDocTypeTextFromDatabaseId(Database::"Service Cr.Memo Header"), TelemetryError), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MXElectronicInvoicingTok);
+            LogPACRejectionAudit(GetDocTypeTextFromDatabaseId(Database::"Service Cr.Memo Header"), TelemetryError);
 
             exit;
         end;
@@ -2057,6 +2067,7 @@ codeunit 10145 "E-Invoice Mgt."
         if Action = EDocAction::Cancel then begin
             ServCrMemoHeader."Electronic Document Status" := ServCrMemoHeader."Electronic Document Status"::"Cancel In Progress";
             ServCrMemoHeader."CFDI Cancellation ID" := GetResponseValueCancellationID(XMLCurrNode, XMLDOMNamedNodeMap);
+            LogCFDICancelRequestedAudit(GetDocTypeTextFromDatabaseId(Database::"Service Cr.Memo Header"), ServCrMemoHeader."CFDI Cancellation ID");
             exit;
         end;
         if Action = EDocAction::CancelRequest then begin
@@ -2182,6 +2193,7 @@ codeunit 10145 "E-Invoice Mgt."
 
             Session.LogMessage(
                 '0000MF2', StrSubstNo(ProcessResponseErr, GetDocTypeTextFromDatabaseId(Database::"Sales Shipment Header"), TelemetryError), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MXElectronicInvoicingTok);
+            LogPACRejectionAudit(GetDocTypeTextFromDatabaseId(Database::"Sales Shipment Header"), TelemetryError);
 
             exit;
         end;
@@ -2191,6 +2203,7 @@ codeunit 10145 "E-Invoice Mgt."
         if Action = EDocAction::Cancel then begin
             SalesShipmentHeader."Electronic Document Status" := SalesShipmentHeader."Electronic Document Status"::"Cancel In Progress";
             SalesShipmentHeader."CFDI Cancellation ID" := GetResponseValueCancellationID(XMLCurrNode, XMLDOMNamedNodeMap);
+            LogCFDICancelRequestedAudit(GetDocTypeTextFromDatabaseId(Database::"Sales Shipment Header"), SalesShipmentHeader."CFDI Cancellation ID");
             exit;
         end;
         if Action = EDocAction::CancelRequest then begin
@@ -2315,6 +2328,7 @@ codeunit 10145 "E-Invoice Mgt."
 
             Session.LogMessage(
                 '0000MF3', StrSubstNo(ProcessResponseErr, GetDocTypeTextFromDatabaseId(Database::"Transfer Shipment Header"), TelemetryError), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MXElectronicInvoicingTok);
+            LogPACRejectionAudit(GetDocTypeTextFromDatabaseId(Database::"Transfer Shipment Header"), TelemetryError);
 
             exit;
         end;
@@ -2325,6 +2339,7 @@ codeunit 10145 "E-Invoice Mgt."
             TransferShipmentHeader."Electronic Document Status" :=
               TransferShipmentHeader."Electronic Document Status"::"Cancel In Progress";
             TransferShipmentHeader."CFDI Cancellation ID" := GetResponseValueCancellationID(XMLCurrNode, XMLDOMNamedNodeMap);
+            LogCFDICancelRequestedAudit(GetDocTypeTextFromDatabaseId(Database::"Transfer Shipment Header"), TransferShipmentHeader."CFDI Cancellation ID");
             exit;
         end;
         if Action = EDocAction::CancelRequest then begin
@@ -2425,6 +2440,22 @@ codeunit 10145 "E-Invoice Mgt."
     begin
         XMLCurrNode := XMLDOMNamedNodeMap.GetNamedItem('ConsultaCancelacionId');
         exit(XMLCurrNode.Value);
+    end;
+
+    local procedure LogPACRejectionAudit(DocTypeText: Text; ErrorDescription: Text)
+    begin
+        Session.LogSecurityAudit(
+            CFDIServiceNameTxt, SecurityOperationResult::Failure,
+            StrSubstNo(SecurityAuditPACRejectedTxt, DocTypeText, ErrorDescription),
+            AuditCategory::CustomerFacing);
+    end;
+
+    local procedure LogCFDICancelRequestedAudit(DocTypeText: Text; CancellationID: Text)
+    begin
+        Session.LogSecurityAudit(
+            CFDIServiceNameTxt, SecurityOperationResult::Success,
+            StrSubstNo(SecurityAuditCFDICancelRequestedTxt, DocTypeText, CancellationID),
+            AuditCategory::CustomerFacing);
     end;
 
     local procedure GetFieldIDElectronicDocumentStatus(): Integer
@@ -5324,6 +5355,7 @@ codeunit 10145 "E-Invoice Mgt."
             end;
 
             Session.LogMessage('0000C82', StrSubstNo(ProcessPaymentErr, TelemetryError), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MXElectronicInvoicingTok);
+            LogPACRejectionAudit(GetDocTypeTextFromDatabaseId(Database::"Cust. Ledger Entry"), TelemetryError);
 
             exit;
         end;
@@ -5333,6 +5365,7 @@ codeunit 10145 "E-Invoice Mgt."
         if Action = EDocAction::Cancel then begin
             CustLedgerEntry."Electronic Document Status" := CustLedgerEntry."Electronic Document Status"::"Cancel In Progress";
             CustLedgerEntry."CFDI Cancellation ID" := GetResponseValueCancellationID(XMLCurrNode, XMLDOMNamedNodeMap);
+            LogCFDICancelRequestedAudit(GetDocTypeTextFromDatabaseId(Database::"Cust. Ledger Entry"), CustLedgerEntry."CFDI Cancellation ID");
             exit;
         end;
         if Action = EDocAction::CancelRequest then begin

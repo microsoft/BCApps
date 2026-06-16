@@ -31,10 +31,14 @@ codeunit 10519 "EC Sales List Submit GB"
 
             GovTalkMessageManagement.SubmitECSLGovTalkRequest(Rec, GovTalkRequestXMLNode, GovTalkMessageParts."Part Id");
         until GovTalkMessageParts.Next() = 0;
+
+        Session.LogSecurityAudit(GovTalkServiceNameTxt, SecurityOperationResult::Success, StrSubstNo(SecurityAuditECSLSubmittedTxt, Rec."No."), AuditCategory::CustomerFacing);
     end;
 
     var
         DefaltPartMaxLines: Integer;
+        GovTalkServiceNameTxt: Label 'GovTalk', Locked = true;
+        SecurityAuditECSLSubmittedTxt: Label 'EC Sales List %1 was submitted to HMRC via the GovTalk service.', Locked = true, Comment = '%1 - VAT Report No.';
 
     local procedure SplitLines(VATReportHeader: Record "VAT Report Header")
     var

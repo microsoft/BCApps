@@ -111,6 +111,7 @@ codeunit 99000819 "Mfg. Planning Line Management"
         WorkCenter: Record Microsoft.Manufacturing.WorkCenter."Work Center";
         SubcontractorPrices: Record "Subcontractor Prices";
         SubcontractingPricesMgt: Codeunit SubcontractingPricesMgt;
+        LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
 #endif
         IsHandled: Boolean;
     begin
@@ -131,22 +132,24 @@ codeunit 99000819 "Mfg. Planning Line Management"
 #endif
 
 #if not CLEAN28
-        if RoutingLine.Type = RoutingLine.Type::"Work Center" then
+        if LegacySubcFeatureHandler.IsLegacySubcontractingEnabled() and (RoutingLine.Type = RoutingLine.Type::"Work Center") then begin
             WorkCenter.Get(RoutingLine."Work Center No.");
-
-        if (RoutingLine.Type = RoutingLine.Type::"Work Center") and (WorkCenter."Subcontractor No." <> '') then begin
-            SubcontractorPrices."Vendor No." := WorkCenter."Subcontractor No.";
-            SubcontractorPrices."Item No." := ReqLine."No.";
-            SubcontractorPrices."Standard Task Code" := PlanningRoutingLine."Standard Task Code";
-            SubcontractorPrices."Work Center No." := WorkCenter."No.";
-            SubcontractorPrices."Variant Code" := ReqLine."Variant Code";
-            SubcontractorPrices."Unit of Measure Code" := ReqLine."Unit of Measure Code";
-            SubcontractorPrices."Start Date" := ReqLine."Order Date";
-            SubcontractorPrices."Currency Code" := '';
-            SubcontractingPricesMgt.GetRoutingPricelistCost(
-              SubcontractorPrices, WorkCenter,
-              PlanningRoutingLine."Direct Unit Cost", PlanningRoutingLine."Indirect Cost %", PlanningRoutingLine."Overhead Rate", PlanningRoutingLine."Unit Cost per", PlanningRoutingLine."Unit Cost Calculation",
-              ReqLine.Quantity, ReqLine."Qty. per Unit of Measure", ReqLine."Quantity (Base)");
+            if (WorkCenter."Subcontractor No." <> '') then begin
+                SubcontractorPrices."Vendor No." := WorkCenter."Subcontractor No.";
+                SubcontractorPrices."Item No." := ReqLine."No.";
+                SubcontractorPrices."Standard Task Code" := PlanningRoutingLine."Standard Task Code";
+                SubcontractorPrices."Work Center No." := WorkCenter."No.";
+                SubcontractorPrices."Variant Code" := ReqLine."Variant Code";
+                SubcontractorPrices."Unit of Measure Code" := ReqLine."Unit of Measure Code";
+                SubcontractorPrices."Start Date" := ReqLine."Order Date";
+                SubcontractorPrices."Currency Code" := '';
+                SubcontractingPricesMgt.GetRoutingPricelistCost(
+                  SubcontractorPrices, WorkCenter,
+                  PlanningRoutingLine."Direct Unit Cost", PlanningRoutingLine."Indirect Cost %", PlanningRoutingLine."Overhead Rate", PlanningRoutingLine."Unit Cost per", PlanningRoutingLine."Unit Cost Calculation",
+                  ReqLine.Quantity, ReqLine."Qty. per Unit of Measure", ReqLine."Quantity (Base)");
+            end else
+                MfgCostCalcMgt.CalcRoutingCostPerUnit(
+                PlanningRoutingLine.Type, PlanningRoutingLine."No.", PlanningRoutingLine."Direct Unit Cost", PlanningRoutingLine."Indirect Cost %", PlanningRoutingLine."Overhead Rate", PlanningRoutingLine."Unit Cost per", PlanningRoutingLine."Unit Cost Calculation");
         end else
 #endif
             MfgCostCalcMgt.CalcRoutingCostPerUnit(

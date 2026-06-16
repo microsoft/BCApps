@@ -354,9 +354,9 @@ report 11504 "Import Bank Directory"
         Text005: Label 'Clearingnumber %1 not found in %2.';
         Text006: Label 'The system has not automatically adjusted the following data. This has to be done manually.';
         Text007: Label 'The Entry %1 %2 cannot be updated.';
-        Text008: Label 'All Files (*.*)|*.*';
+        Text008: Label 'All Files (*.*)|*.*|CSV Files (*.csv)|*.csv';
         Text009: Label 'Open Bank Directory file';
-        Text19057439: Label 'The latest Bank Directory file can be downloaded from www.sic.ch.';
+        Text19057439: Label 'The latest Bank Directory file can be downloaded from www.six-group.com.';
         PageCaptionLbl: Label 'Page';
         ImportBankDirectoryCaptionLbl: Label 'Import Bank Directory';
         OldBankBranchNoCaptionLbl: Label 'Old Bank Branch No.';

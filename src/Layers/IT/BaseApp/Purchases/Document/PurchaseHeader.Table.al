@@ -41,6 +41,9 @@ using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Setup;
 using Microsoft.Inventory.Tracking;
+#if not CLEAN29
+using Microsoft.Manufacturing.Setup;
+#endif
 using Microsoft.Pricing.Calculation;
 using Microsoft.Projects.Project.Job;
 using Microsoft.Projects.Resources.Resource;
@@ -86,6 +89,9 @@ table 38 "Purchase Header"
 
             trigger OnValidate()
             var
+#if not CLEAN29
+                LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
+#endif
                 IsHandled: Boolean;
             begin
                 IsHandled := false;
@@ -143,7 +149,10 @@ table 38 "Purchase Header"
                 if not IsHandled then
                     "Responsibility Center" := UserSetupMgt.GetRespCenter(1, Vend."Responsibility Center");
                 ValidateEmptySellToCustomerAndLocation();
-                "Subcontracting Location Code" := Vend."Subcontracting Location Code";
+#if not CLEAN28
+                if LegacySubcFeatureHandler.IsLegacySubcontractingEnabled() then
+                    "Subcontracting Location Code" := Vend."Subcontracting Location Code";
+#endif
                 OnAfterCopyBuyFromVendorFieldsFromVendor(Rec, Vend, xRec);
 
                 if "Buy-from Vendor No." = xRec."Pay-to Vendor No." then
@@ -3191,6 +3200,7 @@ table 38 "Purchase Header"
             Caption = 'TDD Prepared By';
             DataClassification = EndUserIdentifiableInformation;
         }
+#if not CLEANSCHEMA31
         field(12180; "Subcontracting Order"; Boolean)
         {
             CalcFormula = exist("Purchase Line" where("Document Type" = const(Order),
@@ -3200,12 +3210,33 @@ table 38 "Purchase Header"
             Caption = 'Subcontracting Order';
             Editable = false;
             FieldClass = FlowField;
+            ObsoleteReason = 'Preparation for replacement by Subcontracting app';
+#if not CLEAN28
+            ObsoleteState = Pending;
+#pragma warning disable AS0072
+            ObsoleteTag = '27.0';
+#pragma warning restore AS0072
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '31.0';
+#endif
         }
         field(12181; "Subcontracting Location Code"; Code[10])
         {
             Caption = 'Subcontracting Location Code';
             TableRelation = Location;
+            ObsoleteReason = 'Preparation for replacement by Subcontracting app';
+#if not CLEAN28
+            ObsoleteState = Pending;
+#pragma warning disable AS0072
+            ObsoleteTag = '27.0';
+#pragma warning restore AS0072
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '31.0';
+#endif
         }
+#endif
     }
 
     keys

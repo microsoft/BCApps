@@ -21,6 +21,7 @@ using System.Security.User;
 
 page 12152 "Subcontracting Order"
 {
+    ApplicationArea = LegacySubcontracting;
     Caption = 'Subcontracting Order';
     InsertAllowed = false;
     PageType = Document;
@@ -41,7 +42,6 @@ page 12152 "Subcontracting Order"
                 Caption = 'General';
                 field("No."; Rec."No.")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the document number.';
 
                     trigger OnAssistEdit()
@@ -52,7 +52,6 @@ page 12152 "Subcontracting Order"
                 }
                 field("Buy-from Vendor No."; Rec."Buy-from Vendor No.")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the vendor.';
 
                     trigger OnValidate()
@@ -62,124 +61,100 @@ page 12152 "Subcontracting Order"
                 }
                 field("Buy-from Contact No."; Rec."Buy-from Contact No.")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies your contact person.';
                 }
                 field("Buy-from Vendor Name"; Rec."Buy-from Vendor Name")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the company name of the vendor.';
                 }
                 field("Buy-from Address"; Rec."Buy-from Address")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the address of the vendor''s residence.';
                 }
                 field("Buy-from Address 2"; Rec."Buy-from Address 2")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the address of the vendor''s residence.';
                 }
                 field("Buy-from Post Code"; Rec."Buy-from Post Code")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the post code of the vendor.';
                 }
                 field("Buy-from City"; Rec."Buy-from City")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the city of the vendor.';
                 }
                 field("Buy-from Contact"; Rec."Buy-from Contact")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies your contact person.';
                 }
                 field("Purchaser Code"; Rec."Purchaser Code")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the purchaser.';
                 }
                 field("Responsibility Center"; Rec."Responsibility Center")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the responsibility center.';
                 }
                 field("Order Address Code"; Rec."Order Address Code")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the address.';
                 }
                 field("No. of Archived Versions"; Rec."No. of Archived Versions")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the number of archived versions.';
                 }
                 field("Posting Date"; Rec."Posting Date")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the posting date of the document.';
                 }
                 field("Order Date"; Rec."Order Date")
                 {
-                    ApplicationArea = Manufacturing;
                     Importance = Promoted;
                     ToolTip = 'Specifies the date when the order was registered.';
                 }
                 field("Document Date"; Rec."Document Date")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the transaction date of the document.';
                 }
                 field("Operation Occurred Date"; Rec."Operation Occurred Date")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the date when the VAT operation occurred on the transaction.';
                 }
                 field("Vendor Order No."; Rec."Vendor Order No.")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the external order number.';
                 }
                 field("Vendor Shipment No."; Rec."Vendor Shipment No.")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the external shipment number.';
                 }
                 field("Vendor Invoice No."; Rec."Vendor Invoice No.")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the external invoice number.';
                 }
                 field("Operation Type"; Rec."Operation Type")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the operation type that is assigned to the purchase invoice.';
                 }
                 field("Activity Code"; Rec."Activity Code")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the code for the company''s primary activity.';
                 }
                 field("Check Total"; Rec."Check Total")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the total amount including VAT on the purchase document from the vendor.';
                 }
                 field(Status; Rec.Status)
                 {
-                    ApplicationArea = Manufacturing;
                     Importance = Promoted;
                     ToolTip = 'Specifies the status of the document.';
                 }
                 field("Subcontracting Order"; Rec."Subcontracting Order")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the subcontracting orders that have been created.';
                 }
                 field("Subcontracting Location Code"; Rec."Subcontracting Location Code")
                 {
-                    ApplicationArea = Manufacturing;
                     Editable = false;
                     Importance = Promoted;
                     ToolTip = 'Specifies the code for the location where the subcontracted items are stored for pickup and delivery.';
@@ -187,7 +162,6 @@ page 12152 "Subcontracting Order"
             }
             part(PurchLines; "Subcontracting Order Subform")
             {
-                ApplicationArea = Manufacturing;
                 SubPageLink = "Document No." = field("No.");
             }
             group(Invoicing)
@@ -195,7 +169,6 @@ page 12152 "Subcontracting Order"
                 Caption = 'Invoicing';
                 field("Pay-to Vendor No."; Rec."Pay-to Vendor No.")
                 {
-                    ApplicationArea = Manufacturing;
                     Importance = Promoted;
                     ToolTip = 'Specifies the vendor.';
 
@@ -206,42 +179,34 @@ page 12152 "Subcontracting Order"
                 }
                 field("Pay-to Contact No."; Rec."Pay-to Contact No.")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies your contact person.';
                 }
                 field("Pay-to Name"; Rec."Pay-to Name")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the company name of the vendor.';
                 }
                 field("Pay-to Address"; Rec."Pay-to Address")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the address of the vendor''s residence.';
                 }
                 field("Pay-to Address 2"; Rec."Pay-to Address 2")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the address of the vendor''s residence.';
                 }
                 field("Pay-to Post Code"; Rec."Pay-to Post Code")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the post code of the vendor.';
                 }
                 field("Pay-to City"; Rec."Pay-to City")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the city of the vendor.';
                 }
                 field("Pay-to Contact"; Rec."Pay-to Contact")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies your contact person.';
                 }
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
 
                     trigger OnValidate()
@@ -251,7 +216,6 @@ page 12152 "Subcontracting Order"
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
 
                     trigger OnValidate()
@@ -261,23 +225,19 @@ page 12152 "Subcontracting Order"
                 }
                 field("Payment Terms Code"; Rec."Payment Terms Code")
                 {
-                    ApplicationArea = Manufacturing;
                     Importance = Promoted;
                     ToolTip = 'Specifies the payment terms for the document.';
                 }
                 field("Payment Method Code"; Rec."Payment Method Code")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the payment method code for the document.';
                 }
                 field("Bank Account"; Rec."Bank Account")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the vendor''s bank account that is associated with the purchase invoice.';
                 }
                 field("On Hold"; Rec."On Hold")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies if the order is on hold.';
                 }
             }
@@ -286,79 +246,64 @@ page 12152 "Subcontracting Order"
                 Caption = 'Shipping';
                 field("Ship-to Name"; Rec."Ship-to Name")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the name of the company.';
                 }
                 field("Ship-to Address"; Rec."Ship-to Address")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the address.';
                 }
                 field("Ship-to Address 2"; Rec."Ship-to Address 2")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the address.';
                 }
                 field("Ship-to Post Code"; Rec."Ship-to Post Code")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the post code.';
                 }
                 field("Ship-to City"; Rec."Ship-to City")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the city.';
                 }
                 field("Ship-to Contact"; Rec."Ship-to Contact")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the contact person.';
                 }
                 field("Location Code"; Rec."Location Code")
                 {
-                    ApplicationArea = Manufacturing;
                     Importance = Promoted;
                     ToolTip = 'Specifies the warehouse location.';
                 }
                 field("Inbound Whse. Handling Time"; Rec."Inbound Whse. Handling Time")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies a date formula for the inbound warehouse handling time for the location.';
                 }
                 field("Shipment Method Code"; Rec."Shipment Method Code")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the shipment method.';
                 }
                 field("Lead Time Calculation"; Rec."Lead Time Calculation")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies a date formula for the amount of time that it takes to replenish the item. This field is used to calculate the date fields on order and order proposal lines.';
                 }
                 field("Requested Receipt Date"; Rec."Requested Receipt Date")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the wanted date of receipt.';
                 }
                 field("Promised Receipt Date"; Rec."Promised Receipt Date")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the date of receipt that the vendor has promised.';
                 }
                 field("Expected Receipt Date"; Rec."Expected Receipt Date")
                 {
-                    ApplicationArea = Manufacturing;
                     Importance = Promoted;
                     ToolTip = 'Specifies the expected date of receipt.';
                 }
                 field("Sell-to Customer No."; Rec."Sell-to Customer No.")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the customer.';
                 }
                 field("Ship-to Code"; Rec."Ship-to Code")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the company.';
                 }
             }
@@ -367,7 +312,6 @@ page 12152 "Subcontracting Order"
                 Caption = 'Foreign Trade';
                 field("Currency Code"; Rec."Currency Code")
                 {
-                    ApplicationArea = Manufacturing;
                     Importance = Promoted;
                     ToolTip = 'Specifies the currency that is associated with the document.';
 
@@ -383,27 +327,22 @@ page 12152 "Subcontracting Order"
                 }
                 field("Transaction Type"; Rec."Transaction Type")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the type of transaction that is the source of the entry.';
                 }
                 field("Transaction Specification"; Rec."Transaction Specification")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies a code for the document''s transaction specification.';
                 }
                 field("Transport Method"; Rec."Transport Method")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the code for the transport method used for the item on this line.';
                 }
                 field("Entry Point"; Rec."Entry Point")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the point of entry.';
                 }
                 field("Area"; Rec.Area)
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the area that the transaction takes place in.';
                 }
             }
@@ -428,7 +367,6 @@ page 12152 "Subcontracting Order"
                 Image = "Order";
                 action(Statistics)
                 {
-                    ApplicationArea = Manufacturing;
                     Caption = 'Statistics';
                     Image = Statistics;
                     ShortCutKey = 'F7';
@@ -443,7 +381,6 @@ page 12152 "Subcontracting Order"
                 }
                 action(Card)
                 {
-                    ApplicationArea = Manufacturing;
                     Caption = 'Card';
                     Image = EditLines;
                     RunObject = Page "Vendor Card";
@@ -453,7 +390,6 @@ page 12152 "Subcontracting Order"
                 }
                 action("Co&mments")
                 {
-                    ApplicationArea = Manufacturing;
                     Caption = 'Co&mments';
                     Image = ViewComments;
                     RunObject = Page "Purch. Comment Sheet";
@@ -463,7 +399,6 @@ page 12152 "Subcontracting Order"
                 }
                 action(Receipts)
                 {
-                    ApplicationArea = Manufacturing;
                     Caption = 'Receipts';
                     Image = PostedReceipts;
                     RunObject = Page "Posted Purchase Receipts";
@@ -473,7 +408,6 @@ page 12152 "Subcontracting Order"
                 }
                 action(Invoices)
                 {
-                    ApplicationArea = Manufacturing;
                     Caption = 'Invoices';
                     Image = Invoice;
                     RunObject = Page "Posted Purchase Invoices";
@@ -491,7 +425,6 @@ page 12152 "Subcontracting Order"
                 Image = "Action";
                 action("Pa&yments")
                 {
-                    ApplicationArea = Manufacturing;
                     Caption = 'Pa&yments';
                     RunObject = Page "Payment Date Lines";
                     RunPageLink = "Sales/Purchase" = const(Purchase),
@@ -501,7 +434,6 @@ page 12152 "Subcontracting Order"
                 }
                 action("Copy Document")
                 {
-                    ApplicationArea = Manufacturing;
                     Caption = 'Copy Document';
                     Ellipsis = true;
                     Image = CopyDocument;
@@ -516,7 +448,6 @@ page 12152 "Subcontracting Order"
                 }
                 action("Archi&ve Document")
                 {
-                    ApplicationArea = Manufacturing;
                     Caption = 'Archi&ve Document';
                     Image = Archive;
                     ToolTip = 'Specifies if the document is archived after you print it.';
@@ -529,7 +460,6 @@ page 12152 "Subcontracting Order"
                 }
                 action("Move Negative Lines")
                 {
-                    ApplicationArea = Manufacturing;
                     Caption = 'Move Negative Lines';
                     Ellipsis = true;
                     Image = MoveNegativeLines;
@@ -549,7 +479,6 @@ page 12152 "Subcontracting Order"
                     Image = Delivery;
                     action("Get &Sales Order")
                     {
-                        ApplicationArea = Manufacturing;
                         Caption = 'Get &Sales Order';
                         Ellipsis = true;
                         Image = "Order";
@@ -563,7 +492,6 @@ page 12152 "Subcontracting Order"
                     Image = SpecialOrder;
                     action(Action1130163)
                     {
-                        ApplicationArea = Manufacturing;
                         Caption = 'Get &Sales Order';
                         Image = "Order";
                         ToolTip = 'View the related sales order.';
@@ -585,7 +513,6 @@ page 12152 "Subcontracting Order"
                     Image = Warehouse;
                     action("Receipt Lines")
                     {
-                        ApplicationArea = Manufacturing;
                         Caption = 'Receipt Lines';
                         RunObject = Page "Whse. Receipt Lines";
                         RunPageLink = "Source Type" = const(39),
@@ -598,7 +525,6 @@ page 12152 "Subcontracting Order"
                     }
                     action("Create Receipt")
                     {
-                        ApplicationArea = Manufacturing;
                         Caption = 'Create Receipt';
                         ToolTip = 'Create a receipt for the order.';
 
@@ -612,7 +538,6 @@ page 12152 "Subcontracting Order"
                 }
                 action("Re&lease")
                 {
-                    ApplicationArea = Manufacturing;
                     Caption = 'Re&lease';
                     Image = ReleaseDoc;
                     RunObject = Codeunit "Release Purchase Document";
@@ -621,7 +546,6 @@ page 12152 "Subcontracting Order"
                 }
                 action("Re&open")
                 {
-                    ApplicationArea = Manufacturing;
                     Caption = 'Re&open';
                     Image = ReOpen;
                     ToolTip = 'Reopen the document.';
@@ -638,7 +562,6 @@ page 12152 "Subcontracting Order"
                 }
                 action(CreateTransfOrdToSubcontractor)
                 {
-                    ApplicationArea = Manufacturing;
                     Caption = 'Create Trans&f. Ord. to Subcontractor';
                     Image = NewDocument;
                     ToolTip = 'Create a transfer order to send to the subcontractor.';
@@ -654,7 +577,6 @@ page 12152 "Subcontracting Order"
                 }
                 action(CreateReturnFromSubcontractor)
                 {
-                    ApplicationArea = Manufacturing;
                     Caption = 'Create Return from Su&bcontractor';
                     Image = ReturnRelated;
                     ToolTip = 'Create a return document from the subcontractor.';
@@ -675,7 +597,6 @@ page 12152 "Subcontracting Order"
                 Image = Post;
                 action("Test Report")
                 {
-                    ApplicationArea = Manufacturing;
                     Caption = 'Test Report';
                     Ellipsis = true;
                     Image = TestReport;
@@ -688,7 +609,6 @@ page 12152 "Subcontracting Order"
                 }
                 action("P&ost")
                 {
-                    ApplicationArea = Manufacturing;
                     Caption = 'P&ost';
                     Ellipsis = true;
                     Image = Post;
@@ -698,7 +618,6 @@ page 12152 "Subcontracting Order"
                 }
                 action("Post and &Print")
                 {
-                    ApplicationArea = Manufacturing;
                     Caption = 'Post and &Print';
                     Ellipsis = true;
                     Image = PostPrint;
@@ -708,7 +627,6 @@ page 12152 "Subcontracting Order"
                 }
                 action("Post &Batch")
                 {
-                    ApplicationArea = Manufacturing;
                     Caption = 'Post &Batch';
                     Ellipsis = true;
                     Image = PostBatch;
@@ -723,7 +641,6 @@ page 12152 "Subcontracting Order"
             }
             action("&Print")
             {
-                ApplicationArea = Manufacturing;
                 Caption = '&Print';
                 Ellipsis = true;
                 Image = Print;
@@ -736,7 +653,6 @@ page 12152 "Subcontracting Order"
             }
             action("New Subcontr. Transfer Order")
             {
-                ApplicationArea = Manufacturing;
                 Caption = 'New Subcontr. Transfer Order';
                 RunObject = Page "Subcontr. Transfer Order";
                 ToolTip = 'Create a new subcontracting transfer order.';

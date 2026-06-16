@@ -6,6 +6,7 @@ namespace Microsoft.Finance.VAT.GovTalk;
 
 using Microsoft.Foundation.Company;
 using System.Environment;
+using System.Telemetry;
 
 page 10504 "Gov Talk Setup"
 {
@@ -98,6 +99,7 @@ page 10504 "Gov Talk Setup"
     trigger OnQueryClosePage(CloseAction: Action): Boolean
     var
         CompanyInformation: Record "Company Information";
+        AuditLog: Codeunit "Audit Log";
     begin
         if CloseAction = ACTION::Cancel then
             exit;
@@ -109,6 +111,12 @@ page 10504 "Gov Talk Setup"
         if PasswordModified then begin
             Rec.SavePassword(ClearTextPassword);
             Rec.Modify();
+            if ClearTextPassword = '' then
+                Session.LogSecurityAudit(GovTalkServiceNameTxt, SecurityOperationResult::Success, SecurityAuditPasswordClearedTxt, AuditCategory::UserManagement)
+            else begin
+                Session.LogSecurityAudit(GovTalkServiceNameTxt, SecurityOperationResult::Success, SecurityAuditPasswordSetTxt, AuditCategory::UserManagement);
+                AuditLog.LogAuditMessage(StrSubstNo(GovTalkConfiguredLbl, UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 4, 0);
+            end;
         end;
 
         Message(ThirdPartyNoticeMsg);
@@ -126,5 +134,9 @@ page 10504 "Gov Talk Setup"
         PasswordModified: Boolean;
         CrownCopyright2008Lbl: Label 'Contains public sector information licensed under the Open Government Licence v3.0.';
         CrownCopyright2008UrlTok: Label 'https://go.microsoft.com/fwlink/?linkid=851743', Locked = true;
+        GovTalkServiceNameTxt: Label 'GovTalk', Locked = true;
+        SecurityAuditPasswordSetTxt: Label 'GovTalk service password was set or changed in isolated storage.', Locked = true;
+        SecurityAuditPasswordClearedTxt: Label 'GovTalk service password was cleared from isolated storage.', Locked = true;
+        GovTalkConfiguredLbl: Label 'GovTalk service has been set up by UserSecurityId %1.', Locked = true;
 }
 

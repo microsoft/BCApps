@@ -33,11 +33,28 @@ page 99000830 "Firm Planned Prod. Order Lines"
                 field("Item No."; Rec."Item No.")
                 {
                     ApplicationArea = Manufacturing;
+
+                    trigger OnValidate()
+                    var
+                        Item: Record "Item";
+                    begin
+                        if Rec."Variant Code" = '' then
+                            VariantCodeMandatory := Item.IsVariantMandatory(true, Rec."Item No.");
+                    end;
                 }
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Planning;
                     Visible = false;
+                    ShowMandatory = VariantCodeMandatory;
+
+                    trigger OnValidate()
+                    var
+                        Item: Record "Item";
+                    begin
+                        if Rec."Variant Code" = '' then
+                            VariantCodeMandatory := Item.IsVariantMandatory(true, Rec."Item No.");
+                    end;
                 }
                 field("Due Date"; Rec."Due Date")
                 {
@@ -503,11 +520,15 @@ page 99000830 "Firm Planned Prod. Order Lines"
     }
 
     trigger OnAfterGetRecord()
+    var
+        Item: Record Item;
     begin
         DescriptionIndent := 0;
         Rec.ShowShortcutDimCode(ShortcutDimCode);
         DescriptionOnFormat();
         Rec.GetStartingEndingDateAndTime(StartingTime, StartingDate, EndingTime, EndingDate);
+        if Rec."Variant Code" = '' then
+            VariantCodeMandatory := Item.IsVariantMandatory(true, Rec."Item No.");
     end;
 
     trigger OnDeleteRecord(): Boolean
@@ -542,6 +563,7 @@ page 99000830 "Firm Planned Prod. Order Lines"
         StartingDate: Date;
         EndingDate: Date;
         DateAndTimeFieldVisible: Boolean;
+        VariantCodeMandatory: Boolean;
 
     protected var
         ShortcutDimCode: array[8] of Code[20];

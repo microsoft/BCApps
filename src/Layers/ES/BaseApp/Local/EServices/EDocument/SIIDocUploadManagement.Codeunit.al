@@ -40,6 +40,9 @@ codeunit 10752 "SII Doc. Upload Management"
         GeneratingXmlSuccMsg: Label 'Xml successfully generated for document type %1', Locked = true;
         GeneratingXmlErrMsg: Label 'Cannot generate xml: %1', Locked = true;
         CannotDownloadRequestXmlErr: Label 'Not possible to download request XML for selected documents because of the following error: %1.', Comment = '%1 = error message';
+        SIIServiceNameTxt: Label 'SII', Locked = true;
+        SecurityAuditBatchSubmittedTxt: Label 'SII batch of type %1 was submitted to AEAT.', Locked = true, Comment = '%1 - request type';
+        SecurityAuditBatchSubmitFailedTxt: Label 'SII batch of type %1 submission to AEAT failed: %2.', Locked = true, Comment = '%1 - request type, %2 - failure reason';
 
     local procedure InvokeBatchSoapRequest(SIISession: Record "SII Session"; var TempSIIHistoryBuffer: Record "SII History" temporary; RequestText: Text; RequestType: Option InvoiceIssuedRegistration,InvoiceReceivedRegistration,PaymentSentRegistration,PaymentReceivedRegistration,CollectionInCashRegistration; var ResponseText: Text): Boolean
     var
@@ -61,6 +64,7 @@ codeunit 10752 "SII Doc. Upload Management"
         CertificateEnabled := GetIsolatedCertificate(Cert);
         if not CertificateEnabled then begin
             Session.LogMessage('0000CNP', NoCertificateErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', VATSIITok);
+            LogSubmissionFailureAudit(RequestType, NoCertificateErr);
             ProcessBatchResponseCommunicationError(TempSIIHistoryBuffer, NoCertificateErr);
             exit(false);
         end;
@@ -94,6 +98,7 @@ codeunit 10752 "SII Doc. Upload Management"
         HttpWebRequest.ContentLength := ByteArray.Length;
         if not TryCreateRequestStream(HttpWebRequest, RequestStream) then begin
             Session.LogMessage('0000CNQ', NoConnectionErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', VATSIITok);
+            LogSubmissionFailureAudit(RequestType, NoConnectionErr);
             ProcessBatchResponseCommunicationError(TempSIIHistoryBuffer, NoConnectionErr);
             exit(false);
         end;
@@ -102,6 +107,7 @@ codeunit 10752 "SII Doc. Upload Management"
 
         if not TryGetWebResponse(HttpWebRequest, HttpWebResponse) then begin
             Session.LogMessage('0000CNR', NoResponseErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', VATSIITok);
+            LogSubmissionFailureAudit(RequestType, NoResponseErr);
             ProcessBatchResponseCommunicationError(TempSIIHistoryBuffer, NoResponseErr);
             exit(false);
         end;
@@ -114,13 +120,26 @@ codeunit 10752 "SII Doc. Upload Management"
         OnInvokeBatchSoapRequestOnAfterStoreResponseXML(ResponseText);
         if not StatusCode.Equals(StatusCode.Accepted) and not StatusCode.Equals(StatusCode.OK) then begin
             Session.LogMessage('0000CNS', StrSubstNo(CommunicationErr, StatusDescription), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', VATSIITok);
+            LogSubmissionFailureAudit(RequestType, StrSubstNo(CommunicationErr, StatusDescription));
             ProcessBatchResponseCommunicationError(
               TempSIIHistoryBuffer, StrSubstNo(CommunicationErr, StatusDescription));
             exit(false);
         end;
 
         Session.LogMessage('0000CNT', StrSubstNo(BatchSoapRequestSuccMsg, RequestType), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', VATSIITok);
+        Session.LogSecurityAudit(
+            SIIServiceNameTxt, SecurityOperationResult::Success,
+            StrSubstNo(SecurityAuditBatchSubmittedTxt, RequestType),
+            AuditCategory::CustomerFacing);
         exit(true);
+    end;
+
+    local procedure LogSubmissionFailureAudit(RequestType: Option InvoiceIssuedRegistration,InvoiceReceivedRegistration,PaymentSentRegistration,PaymentReceivedRegistration,CollectionInCashRegistration; FailureReason: Text)
+    begin
+        Session.LogSecurityAudit(
+            SIIServiceNameTxt, SecurityOperationResult::Failure,
+            StrSubstNo(SecurityAuditBatchSubmitFailedTxt, RequestType, FailureReason),
+            AuditCategory::CustomerFacing);
     end;
 
     [TryFunction]

@@ -33,6 +33,12 @@ codeunit 10538 "MTD OAuth 2.0 Mgt"
         AccessTokenURLPathTxt: Label '/oauth/token', Locked = true;
         RefreshTokenURLPathTxt: Label '/oauth/token', Locked = true;
         AuthorizationResponseTypeTxt: Label 'code', Locked = true;
+        UKMakingTaxTok: Label 'UK Making Tax Digital', Locked = true;
+        SecurityAuditCredentialsDeletedTxt: Label 'HMRC OAuth client credentials and tokens were deleted from isolated storage for setup %1.', Locked = true, Comment = '%1 - OAuth setup code';
+        SecurityAuditAuthorizationFailedTxt: Label 'HMRC interactive authorization failed for setup %1.', Locked = true, Comment = '%1 - OAuth setup code';
+        SecurityAuditAccessTokenFailedTxt: Label 'HMRC access token request failed for setup %1.', Locked = true, Comment = '%1 - OAuth setup code';
+        SecurityAuditAccessTokenIssuedTxt: Label 'HMRC issued access and refresh tokens for setup %1.', Locked = true, Comment = '%1 - OAuth setup code';
+        SecurityAuditClientCredRotatedTxt: Label 'HMRC OAuth %1 was rotated from Azure Key Vault for setup %2.', Locked = true, Comment = '%1 - credential name (Client ID or Client Secret); %2 - OAuth setup code';
 
     internal procedure GetOAuthPRODSetupCode() Result: Code[20]
     begin
@@ -88,6 +94,8 @@ codeunit 10538 "MTD OAuth 2.0 Mgt"
 
     [EventSubscriber(ObjectType::Table, Database::"OAuth 2.0 Setup", 'OnBeforeDeleteEvent', '', true, true)]
     local procedure OnBeforeDeleteEvent(var Rec: Record "OAuth 2.0 Setup")
+    var
+        AnyDeleted: Boolean;
     begin
         if Rec.IsTemporary() then
             exit;
@@ -95,14 +103,25 @@ codeunit 10538 "MTD OAuth 2.0 Mgt"
         if not IsMTDOAuthSetup(Rec) then
             exit;
 
-        if IsolatedStorage.Contains(Rec."Client ID", Rec.GetTokenDataScope()) then
+        if IsolatedStorage.Contains(Rec."Client ID", Rec.GetTokenDataScope()) then begin
             IsolatedStorage.Delete(Rec."Client ID", Rec.GetTokenDataScope());
-        if IsolatedStorage.Contains(Rec."Client Secret", Rec.GetTokenDataScope()) then
+            AnyDeleted := true;
+        end;
+        if IsolatedStorage.Contains(Rec."Client Secret", Rec.GetTokenDataScope()) then begin
             IsolatedStorage.Delete(Rec."Client Secret", Rec.GetTokenDataScope());
-        if IsolatedStorage.Contains(Rec."Access Token", Rec.GetTokenDataScope()) then
+            AnyDeleted := true;
+        end;
+        if IsolatedStorage.Contains(Rec."Access Token", Rec.GetTokenDataScope()) then begin
             IsolatedStorage.Delete(Rec."Access Token", Rec.GetTokenDataScope());
-        if IsolatedStorage.Contains(Rec."Refresh Token", Rec.GetTokenDataScope()) then
+            AnyDeleted := true;
+        end;
+        if IsolatedStorage.Contains(Rec."Refresh Token", Rec.GetTokenDataScope()) then begin
             IsolatedStorage.Delete(Rec."Refresh Token", Rec.GetTokenDataScope());
+            AnyDeleted := true;
+        end;
+
+        if AnyDeleted then
+            Session.LogSecurityAudit(UKMakingTaxTok, SecurityOperationResult::Success, StrSubstNo(SecurityAuditCredentialsDeletedTxt, Rec.Code), AuditCategory::UserManagement);
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Service Connection", 'OnRegisterServiceConnection', '', true, true)]
@@ -161,8 +180,10 @@ codeunit 10538 "MTD OAuth 2.0 Mgt"
         OAuth2ControlAddIn.RunModal();
 
         auth_error := OAuth2ControlAddIn.GetAuthError();
-        if auth_error <> '' then
+        if auth_error <> '' then begin
+            Session.LogSecurityAudit(UKMakingTaxTok, SecurityOperationResult::Failure, StrSubstNo(SecurityAuditAuthorizationFailedTxt, OAuth20Setup.Code), AuditCategory::Authentication);
             Error(auth_error);
+        end;
 
         AuthorizationCode := OAuth2ControlAddIn.GetAuthCode();
         if AuthorizationCode <> '' then begin
@@ -211,8 +232,11 @@ codeunit 10538 "MTD OAuth 2.0 Mgt"
                 GetToken(OAuth20Setup."Client Secret", TokenDataScope),
                 AccessToken, RefreshToken);
 
-        if Result then
+        if Result then begin
             SaveTokens(OAuth20Setup, TokenDataScope, AccessToken, RefreshToken);
+            Session.LogSecurityAudit(UKMakingTaxTok, SecurityOperationResult::Success, StrSubstNo(SecurityAuditAccessTokenIssuedTxt, OAuth20Setup.Code), AuditCategory::Authentication);
+        end else
+            Session.LogSecurityAudit(UKMakingTaxTok, SecurityOperationResult::Failure, StrSubstNo(SecurityAuditAccessTokenFailedTxt, OAuth20Setup.Code), AuditCategory::Authentication);
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"OAuth 2.0 Setup", 'OnAfterRequestAccessToken', '', true, true)]
@@ -338,12 +362,16 @@ codeunit 10538 "MTD OAuth 2.0 Mgt"
         TokenDataScope := OAuth20Setup.GetTokenDataScope();
         if AzureKeyVault.GetAzureKeyVaultSecret(AzureClientIDTxt, KeyValue) then
             if not KeyValue.IsEmpty() then
-                if KeyValue.Unwrap() <> GetToken(OAuth20Setup."Client ID", TokenDataScope).Unwrap() then
+                if KeyValue.Unwrap() <> GetToken(OAuth20Setup."Client ID", TokenDataScope).Unwrap() then begin
                     IsModify := SetToken(OAuth20Setup."Client ID", KeyValue, TokenDataScope);
+                    Session.LogSecurityAudit(UKMakingTaxTok, SecurityOperationResult::Success, StrSubstNo(SecurityAuditClientCredRotatedTxt, 'Client ID', OAuth20Setup.Code), AuditCategory::ApplicationManagement);
+                end;
         if AzureKeyVault.GetAzureKeyVaultSecret(AzureClientSecretTxt, KeyValue) then
             if not KeyValue.IsEmpty() then
-                if KeyValue.Unwrap() <> GetToken(OAuth20Setup."Client Secret", TokenDataScope).Unwrap() then
+                if KeyValue.Unwrap() <> GetToken(OAuth20Setup."Client Secret", TokenDataScope).Unwrap() then begin
                     IsModify := SetToken(OAuth20Setup."Client Secret", KeyValue, TokenDataScope);
+                    Session.LogSecurityAudit(UKMakingTaxTok, SecurityOperationResult::Success, StrSubstNo(SecurityAuditClientCredRotatedTxt, 'Client Secret', OAuth20Setup.Code), AuditCategory::ApplicationManagement);
+                end;
         if IsModify then
             OAuth20Setup.Modify();
     end;

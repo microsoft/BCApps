@@ -283,11 +283,11 @@ page 99000755 "Work Center List"
 #if not CLEAN27
             action("Subcontr. &Prices")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = LegacySubcontracting;
                 Caption = 'Subcontr. &Prices';
                 Image = Price;
                 ToolTip = 'View the subcontracting prices.';
-                ObsoleteReason = 'Preparation for replacement by Suncontracting app ';
+                ObsoleteReason = 'Preparation for replacement by Subcontracting app';
                 ObsoleteState = Pending;
                 ObsoleteTag = '27.0';
 

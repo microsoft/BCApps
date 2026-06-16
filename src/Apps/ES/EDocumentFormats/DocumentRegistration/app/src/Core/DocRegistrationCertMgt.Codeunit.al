@@ -24,6 +24,13 @@ codeunit 10771 "Doc. Registration Cert. Mgt."
         SavingPasswordErr: Label 'Could not save the password.';
         SavingCertErr: Label 'Could not save the certificate.';
         CertFileNotValidErr: Label 'This is not a valid certificate file.';
+        VerifactuServiceNameTxt: Label 'Verifactu Document Registration', Locked = true;
+        SecurityAuditCertSavedTxt: Label 'Verifactu certificate saved to isolated storage.', Locked = true;
+        SecurityAuditCertSaveFailedTxt: Label 'Failed to save Verifactu certificate to isolated storage.', Locked = true;
+        SecurityAuditCertPasswordSavedTxt: Label 'Verifactu certificate password saved to isolated storage.', Locked = true;
+        SecurityAuditCertPasswordSaveFailedTxt: Label 'Failed to save Verifactu certificate password to isolated storage.', Locked = true;
+        SecurityAuditCertDeletedTxt: Label 'Verifactu certificate and password deleted from isolated storage.', Locked = true;
+        SecurityAuditSetupCleanedTxt: Label 'Verifactu setup deleted during environment cleanup.', Locked = true;
 
     internal procedure GetIsolatedCertificate(CertCode: Code[20]; var CertText: SecretText; var CertPassword: SecretText): Boolean
     var
@@ -66,12 +73,19 @@ codeunit 10771 "Doc. Registration Cert. Mgt."
     var
         CertificateManagement: Codeunit "Certificate Management";
         CertDataScope: DataScope;
+        DeletedAny: Boolean;
     begin
         CertDataScope := CertificateManagement.GetCertDataScope(IsolatedCertificate);
-        if IsolatedStorage.Contains(IsolatedCertificate.Code, CertDataScope) then
+        if IsolatedStorage.Contains(IsolatedCertificate.Code, CertDataScope) then begin
             IsolatedStorage.Delete(IsolatedCertificate.Code, CertDataScope);
-        if IsolatedStorage.Contains(IsolatedCertificate.Code + PasswordSuffixTxt, CertDataScope) then
+            DeletedAny := true;
+        end;
+        if IsolatedStorage.Contains(IsolatedCertificate.Code + PasswordSuffixTxt, CertDataScope) then begin
             IsolatedStorage.Delete(IsolatedCertificate.Code + PasswordSuffixTxt, CertDataScope);
+            DeletedAny := true;
+        end;
+        if DeletedAny then
+            Session.LogSecurityAudit(VerifactuServiceNameTxt, SecurityOperationResult::Success, SecurityAuditCertDeletedTxt, AuditCategory::UserManagement);
     end;
 
     [NonDebuggable]
@@ -87,8 +101,11 @@ codeunit 10771 "Doc. Registration Cert. Mgt."
 
         TempBlob.CreateInStream(InStream);
         CertString := Base64Convert.ToBase64(InStream);
-        if not IsolatedStorage.Set(IsolatedCertificate.Code, CertString, CertificateManagement.GetCertDataScope(IsolatedCertificate)) then
+        if not IsolatedStorage.Set(IsolatedCertificate.Code, CertString, CertificateManagement.GetCertDataScope(IsolatedCertificate)) then begin
+            Session.LogSecurityAudit(VerifactuServiceNameTxt, SecurityOperationResult::Failure, SecurityAuditCertSaveFailedTxt, AuditCategory::UserManagement);
             Error(SavingCertErr);
+        end;
+        Session.LogSecurityAudit(VerifactuServiceNameTxt, SecurityOperationResult::Success, SecurityAuditCertSavedTxt, AuditCategory::UserManagement);
     end;
 
     [NonDebuggable]
@@ -98,13 +115,19 @@ codeunit 10771 "Doc. Registration Cert. Mgt."
         CertificateManagement: Codeunit "Certificate Management";
         CryptographyManagement: Codeunit "Cryptography Management";
     begin
-        if not SecretCertPassword.IsEmpty() then
-            if CryptographyManagement.IsEncryptionEnabled() then begin
-                if not IsolatedStorage.SetEncrypted(IsolatedCertificate.Code + PasswordSuffixTxt, SecretCertPassword, CertificateManagement.GetCertDataScope(IsolatedCertificate)) then
-                    Error(SavingPasswordErr);
-            end else
-                if not IsolatedStorage.Set(IsolatedCertificate.Code + PasswordSuffixTxt, SecretCertPassword, CertificateManagement.GetCertDataScope(IsolatedCertificate)) then
-                    Error(SavingPasswordErr);
+        if SecretCertPassword.IsEmpty() then
+            exit;
+        if CryptographyManagement.IsEncryptionEnabled() then begin
+            if not IsolatedStorage.SetEncrypted(IsolatedCertificate.Code + PasswordSuffixTxt, SecretCertPassword, CertificateManagement.GetCertDataScope(IsolatedCertificate)) then begin
+                Session.LogSecurityAudit(VerifactuServiceNameTxt, SecurityOperationResult::Failure, SecurityAuditCertPasswordSaveFailedTxt, AuditCategory::UserManagement);
+                Error(SavingPasswordErr);
+            end;
+        end else
+            if not IsolatedStorage.Set(IsolatedCertificate.Code + PasswordSuffixTxt, SecretCertPassword, CertificateManagement.GetCertDataScope(IsolatedCertificate)) then begin
+                Session.LogSecurityAudit(VerifactuServiceNameTxt, SecurityOperationResult::Failure, SecurityAuditCertPasswordSaveFailedTxt, AuditCategory::UserManagement);
+                Error(SavingPasswordErr);
+            end;
+        Session.LogSecurityAudit(VerifactuServiceNameTxt, SecurityOperationResult::Success, SecurityAuditCertPasswordSavedTxt, AuditCategory::UserManagement);
     end;
 
     [Scope('OnPrem')]
@@ -186,6 +209,10 @@ codeunit 10771 "Doc. Registration Cert. Mgt."
         if SetupCompanyName <> CompanyName() then
             VerifactuSetup.ChangeCompany(SetupCompanyName);
 
+        if VerifactuSetup.IsEmpty() then
+            exit;
+
         VerifactuSetup.DeleteAll();
+        Session.LogSecurityAudit(VerifactuServiceNameTxt, SecurityOperationResult::Success, SecurityAuditSetupCleanedTxt, AuditCategory::ApplicationManagement);
     end;
 }

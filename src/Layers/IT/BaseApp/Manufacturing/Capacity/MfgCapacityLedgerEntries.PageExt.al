@@ -103,7 +103,7 @@ pageextension 99000802 "Mfg. Capacity Ledger Entries" extends "Capacity Ledger E
 #if not CLEAN28
             field("WIP Item Qty."; Rec."WIP Item Qty.")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = LegacySubcontracting;
                 ToolTip = 'Specifies the number of work in process (WIP) items on a subcontractor order.';
                 ObsoleteReason = 'Preparation for replacement by Subcontracting app';
                 ObsoleteState = Pending;

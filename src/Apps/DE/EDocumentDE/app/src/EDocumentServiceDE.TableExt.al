@@ -10,12 +10,25 @@ tableextension 13915 "E-Document Service DE" extends "E-Document Service"
     fields
     {
 #pragma warning disable AS0125
+#if not CLEANSCHEMA29
+#pragma warning disable AL0432
+#pragma warning disable AS0105
         field(13914; "Buyer Reference"; Enum "E-Document Buyer Reference")
         {
             Caption = 'Buyer Reference';
             DataClassification = SystemMetadata;
             ToolTip = 'Specifies the buyer reference for the document export.';
+#if CLEAN29
+            ObsoleteState = Removed;
+#else
+            ObsoleteState = Pending;
+#endif
+            ObsoleteReason = 'Buyer Reference is resolved automatically via priority chain: Document field > Customer E-Invoice Routing No. > Your Reference.';
+            ObsoleteTag = '29.0';
         }
+#pragma warning restore AL0432
+#pragma warning restore AS0105
+#endif
         field(13915; "Buyer Reference Mandatory"; Boolean)
         {
             Caption = 'Buyer Reference Mandatory';

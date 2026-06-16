@@ -434,7 +434,7 @@ table 156 Resource
         }
         field(45; "Usage (Cost)"; Decimal)
         {
-            AutoFormatType = 1;
+            AutoFormatType = 2;
             AutoFormatExpression = '';
             CalcFormula = sum("Res. Ledger Entry"."Total Cost" where("Entry Type" = const(Usage),
                                                                       Chargeable = field("Chargeable Filter"),
@@ -472,7 +472,7 @@ table 156 Resource
         }
         field(48; "Sales (Cost)"; Decimal)
         {
-            AutoFormatType = 1;
+            AutoFormatType = 2;
             AutoFormatExpression = '';
             CalcFormula = - sum("Res. Ledger Entry"."Total Cost" where("Entry Type" = const(Sale),
                                                                        "Unit of Measure Code" = field("Unit of Measure Filter"),

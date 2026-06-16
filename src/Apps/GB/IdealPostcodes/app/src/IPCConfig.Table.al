@@ -37,6 +37,8 @@ table 9402 "IPC Config"
 
     var
         EndpointBaseUrlTxt: Label 'https://api.ideal-postcodes.co.uk/v1', Locked = true;
+        SecurityAuditAPIKeySetTxt: Label 'IdealPostcodes API key was set.', Locked = true;
+        SecurityAuditAPIKeyClearedTxt: Label 'IdealPostcodes API key was cleared.', Locked = true;
 
     internal procedure GetAPIPasswordAsSecret(APIKeyGUID: Guid): SecretText
     var
@@ -51,11 +53,13 @@ table 9402 "IPC Config"
     internal procedure SaveAPIKeyAsSecret(var APIKeyGUID: Guid; APIKeyValue: SecretText)
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
+        AuditLog: Codeunit "Audit Log";
     begin
         if not IsNullGuid(APIKeyGUID) and (APIKeyValue.IsEmpty()) then begin
             if IsolatedStorage.Contains(APIKeyGUID, Datascope::Company) then
                 IsolatedStorage.Delete(APIKeyGUID, Datascope::Company);
             Clear(Rec."API Key");
+            AuditLog.LogAuditMessage(SecurityAuditAPIKeyClearedTxt, SecurityOperationResult::Success, AuditCategory::UserManagement, 4, 0);
         end else begin
             if IsNullGuid(Rec."API Key") or not IsolatedStorage.Contains(APIKeyGUID, Datascope::Company) then begin
                 APIKeyGuid := Format(CreateGuid());
@@ -68,6 +72,7 @@ table 9402 "IPC Config"
 
             FeatureTelemetry.LogUptake('0000RFC', 'IdealPostcodes', Enum::"Feature Uptake Status"::"Set up");
             FeatureTelemetry.LogUptake('0000RFD', 'IdealPostcodes', Enum::"Feature Uptake Status"::Used);
+            AuditLog.LogAuditMessage(SecurityAuditAPIKeySetTxt, SecurityOperationResult::Success, AuditCategory::UserManagement, 4, 0);
         end;
         Modify();
     end;

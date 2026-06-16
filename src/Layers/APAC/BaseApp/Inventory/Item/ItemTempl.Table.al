@@ -1115,7 +1115,8 @@ table 1382 "Item Templ."
         }
         field(99000757; "Overhead Rate"; Decimal)
         {
-            AutoFormatType = 0;
+            AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Overhead Rate';
 
             trigger OnValidate()

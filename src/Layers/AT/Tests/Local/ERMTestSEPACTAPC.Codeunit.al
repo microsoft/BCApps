@@ -62,7 +62,7 @@ codeunit 144060 "ERM Test SEPA CT APC"
         LibraryXPathXMLReader.GetNodeList('//Ustrd', NodeList);
         Assert.AreEqual(1, NodeList.Count, InvalidLengthTxt);
         Assert.AreEqual(
-          CopyStr(StrSubstNo('%1; %2', GenJnlLine.Description, GenJnlLine."Message to Recipient"), 1, 140),
+          CopyStr(StrSubstNo('%1, %2', GenJnlLine.Description, GenJnlLine."Message to Recipient"), 1, 140),
           NodeList.Item(0).InnerText, MessageToRecipientNotIdenticalErr);
     end;
 

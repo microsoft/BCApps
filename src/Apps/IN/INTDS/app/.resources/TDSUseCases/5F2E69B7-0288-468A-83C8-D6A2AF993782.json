@@ -2,7 +2,7 @@
   {
     "CaseID": "{5F2E69B7-0288-468A-83C8-D6A2AF993782}",
     "Description": "Calculation of Tax Deduction at Source through General Journal for Vendor where PAN No. is specified along with Concessional Codes With Certificate Value\n",
-    "Version": 1,
+    "Version": 2,
     "MinorVersion": 0,
     "TaxType": "TDS",
     "ChangedBy": "Microsoft",
@@ -10,7 +10,7 @@
     "TaxEntity": "Gen. Journal Line",
     "ParentUseCase": "Calculation of Tax Deduction at Source through General Journal for Vendors.\n",
     "ParentCaseId": "{D0CED206-BE26-47A3-A370-D064D8AFCE44}",
-    "PresentationOrder": 944,
+    "PresentationOrder": 947,
     "Indent": 1,
     "PostingTableName": "TDS Posting Setup",
     "PostingTableFilters": [
@@ -40,33 +40,6 @@
       }
     ],
     "Attributes": [
-      {
-        "Name": "PAN No.",
-        "When": [
-          {
-            "ValueType": "Relation",
-            "Sequence": 0,
-            "Relation": {
-              "IsCurrentRecord": false,
-              "TableName": "Vendor",
-              "TableFilters": [
-                {
-                  "FiterFieldName": "No.",
-                  "FilterType": "Equals",
-                  "FilterValue": {
-                    "Type": "Lookup",
-                    "Lookup": {
-                      "SourceType": "Current Record",
-                      "TableName": "Gen. Journal Line",
-                      "FieldName": "Account No."
-                    }
-                  }
-                }
-              ]
-            }
-          }
-        ]
-      },
       {
         "Name": "Concessional Code",
         "When": [
@@ -98,6 +71,57 @@
                       "SourceType": "Current Record",
                       "TableName": "Gen. Journal Line",
                       "FieldName": "TDS Section Code"
+                    }
+                  }
+                },
+                {
+                  "FiterFieldName": "Start Date",
+                  "FilterType": "Is Less Than Or Equals To",
+                  "FilterValue": {
+                    "Type": "Lookup",
+                    "Lookup": {
+                      "SourceType": "Current Record",
+                      "TableName": "Gen. Journal Line",
+                      "FieldName": "Posting Date"
+                    }
+                  }
+                },
+                {
+                  "FiterFieldName": "End Date",
+                  "FilterType": "Is Greater Than Or Equals To",
+                  "FilterValue": {
+                    "Type": "Lookup",
+                    "Lookup": {
+                      "SourceType": "Current Record",
+                      "TableName": "Gen. Journal Line",
+                      "FieldName": "Posting Date"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "Name": "PAN No.",
+        "When": [
+          {
+            "ValueType": "Relation",
+            "Sequence": 0,
+            "Relation": {
+              "IsCurrentRecord": false,
+              "TableName": "Vendor",
+              "TableFilters": [
+                {
+                  "FiterFieldName": "No.",
+                  "FilterType": "Equals",
+                  "FilterValue": {
+                    "Type": "Lookup",
+                    "Lookup": {
+                      "SourceType": "Current Record",
+                      "TableName": "Gen. Journal Line",
+                      "FieldName": "Account No."
                     }
                   }
                 }
@@ -4408,6 +4432,66 @@
     ],
     "Components": [
       {
+        "ComponentName": "TDS",
+        "Sequence": 1,
+        "Formula": {
+          "VariableName": "TDS",
+          "Expression": "TDSTaxableAmount*TDSPer/100",
+          "Tokens": [
+            {
+              "TokenName": "TDSPer",
+              "TokenValue": {
+                "Type": "Lookup",
+                "Lookup": {
+                  "SourceType": "Component Percent",
+                  "ComponentName": "TDS"
+                }
+              }
+            },
+            {
+              "TokenName": "TDSTaxableAmount",
+              "TokenValue": {
+                "Type": "Lookup",
+                "Lookup": {
+                  "SourceType": "Variable",
+                  "VariableName": "TDSTaxableAmount"
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
+        "ComponentName": "Surcharge",
+        "Sequence": 2,
+        "Formula": {
+          "VariableName": "Surcharge",
+          "Expression": "{TDSAmt}*{SurchargePer}/100",
+          "Tokens": [
+            {
+              "TokenName": "{SurchargePer}",
+              "TokenValue": {
+                "Type": "Lookup",
+                "Lookup": {
+                  "SourceType": "Component Percent",
+                  "ComponentName": "Surcharge"
+                }
+              }
+            },
+            {
+              "TokenName": "{TDSAmt}",
+              "TokenValue": {
+                "Type": "Lookup",
+                "Lookup": {
+                  "SourceType": "Variable",
+                  "VariableName": "SurchargeBaseAmt"
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
         "ComponentName": "SHE Cess ",
         "Sequence": 4,
         "Formula": {
@@ -4421,6 +4505,66 @@
                 "Lookup": {
                   "SourceType": "Component Percent",
                   "ComponentName": "SHE Cess "
+                }
+              }
+            },
+            {
+              "TokenName": "{SurchargeAmt}",
+              "TokenValue": {
+                "Type": "Lookup",
+                "Lookup": {
+                  "SourceType": "Component",
+                  "ComponentName": "Surcharge"
+                }
+              }
+            },
+            {
+              "TokenName": "{TDSAmt}",
+              "TokenValue": {
+                "Type": "Lookup",
+                "Lookup": {
+                  "SourceType": "Component",
+                  "ComponentName": "TDS"
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
+        "ComponentName": "TDS Base Amount",
+        "Sequence": 6,
+        "Formula": {
+          "VariableName": "TDS Base Amount",
+          "Expression": "{TDSBaseAmt}",
+          "Tokens": [
+            {
+              "TokenName": "{TDSBaseAmt}",
+              "TokenValue": {
+                "Type": "Lookup",
+                "Lookup": {
+                  "SourceType": "Variable",
+                  "VariableName": "TDSBaseAmt"
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
+        "ComponentName": "eCESS",
+        "Sequence": 3,
+        "Formula": {
+          "VariableName": "eCESS",
+          "Expression": "({TDSAmt}+{SurchargeAmt})*{EcessPer}/100",
+          "Tokens": [
+            {
+              "TokenName": "{EcessPer}",
+              "TokenValue": {
+                "Type": "Lookup",
+                "Lookup": {
+                  "SourceType": "Component Percent",
+                  "ComponentName": "eCESS"
                 }
               }
             },
@@ -4491,126 +4635,6 @@
                 "Lookup": {
                   "SourceType": "Component",
                   "ComponentName": "TDS"
-                }
-              }
-            }
-          ]
-        }
-      },
-      {
-        "ComponentName": "Surcharge",
-        "Sequence": 2,
-        "Formula": {
-          "VariableName": "Surcharge",
-          "Expression": "{TDSAmt}*{SurchargePer}/100",
-          "Tokens": [
-            {
-              "TokenName": "{SurchargePer}",
-              "TokenValue": {
-                "Type": "Lookup",
-                "Lookup": {
-                  "SourceType": "Component Percent",
-                  "ComponentName": "Surcharge"
-                }
-              }
-            },
-            {
-              "TokenName": "{TDSAmt}",
-              "TokenValue": {
-                "Type": "Lookup",
-                "Lookup": {
-                  "SourceType": "Variable",
-                  "VariableName": "SurchargeBaseAmt"
-                }
-              }
-            }
-          ]
-        }
-      },
-      {
-        "ComponentName": "TDS Base Amount",
-        "Sequence": 6,
-        "Formula": {
-          "VariableName": "TDS Base Amount",
-          "Expression": "{TDSBaseAmt}",
-          "Tokens": [
-            {
-              "TokenName": "{TDSBaseAmt}",
-              "TokenValue": {
-                "Type": "Lookup",
-                "Lookup": {
-                  "SourceType": "Variable",
-                  "VariableName": "TDSBaseAmt"
-                }
-              }
-            }
-          ]
-        }
-      },
-      {
-        "ComponentName": "eCESS",
-        "Sequence": 3,
-        "Formula": {
-          "VariableName": "eCESS",
-          "Expression": "({TDSAmt}+{SurchargeAmt})*{EcessPer}/100",
-          "Tokens": [
-            {
-              "TokenName": "{EcessPer}",
-              "TokenValue": {
-                "Type": "Lookup",
-                "Lookup": {
-                  "SourceType": "Component Percent",
-                  "ComponentName": "eCESS"
-                }
-              }
-            },
-            {
-              "TokenName": "{SurchargeAmt}",
-              "TokenValue": {
-                "Type": "Lookup",
-                "Lookup": {
-                  "SourceType": "Component",
-                  "ComponentName": "Surcharge"
-                }
-              }
-            },
-            {
-              "TokenName": "{TDSAmt}",
-              "TokenValue": {
-                "Type": "Lookup",
-                "Lookup": {
-                  "SourceType": "Component",
-                  "ComponentName": "TDS"
-                }
-              }
-            }
-          ]
-        }
-      },
-      {
-        "ComponentName": "TDS",
-        "Sequence": 1,
-        "Formula": {
-          "VariableName": "TDS",
-          "Expression": "TDSTaxableAmount*TDSPer/100",
-          "Tokens": [
-            {
-              "TokenName": "TDSPer",
-              "TokenValue": {
-                "Type": "Lookup",
-                "Lookup": {
-                  "SourceType": "Component Percent",
-                  "ComponentName": "TDS"
-                }
-              }
-            },
-            {
-              "TokenName": "TDSTaxableAmount",
-              "TokenValue": {
-                "Type": "Lookup",
-                "Lookup": {
-                  "SourceType": "Variable",
-                  "VariableName": "TDSTaxableAmount"
                 }
               }
             }
@@ -4741,6 +4765,30 @@
                       "SourceType": "Current Record",
                       "TableName": "Gen. Journal Line",
                       "FieldName": "TDS Section Code"
+                    }
+                  }
+                },
+                {
+                  "FiterFieldName": "Start Date",
+                  "FilterType": "Is Less Than Or Equals To",
+                  "FilterValue": {
+                    "Type": "Lookup",
+                    "Lookup": {
+                      "SourceType": "Current Record",
+                      "TableName": "Gen. Journal Line",
+                      "FieldName": "Posting Date"
+                    }
+                  }
+                },
+                {
+                  "FiterFieldName": "End Date",
+                  "FilterType": "Is Greater Than Or Equals To",
+                  "FilterValue": {
+                    "Type": "Lookup",
+                    "Lookup": {
+                      "SourceType": "Current Record",
+                      "TableName": "Gen. Journal Line",
+                      "FieldName": "Posting Date"
                     }
                   }
                 }
@@ -4887,6 +4935,30 @@
                       "FieldName": "TDS Section Code"
                     }
                   }
+                },
+                {
+                  "FiterFieldName": "Start Date",
+                  "FilterType": "Is Less Than Or Equals To",
+                  "FilterValue": {
+                    "Type": "Lookup",
+                    "Lookup": {
+                      "SourceType": "Current Record",
+                      "TableName": "Gen. Journal Line",
+                      "FieldName": "Posting Date"
+                    }
+                  }
+                },
+                {
+                  "FiterFieldName": "End Date",
+                  "FilterType": "Is Greater Than Or Equals To",
+                  "FilterValue": {
+                    "Type": "Lookup",
+                    "Lookup": {
+                      "SourceType": "Current Record",
+                      "TableName": "Gen. Journal Line",
+                      "FieldName": "Posting Date"
+                    }
+                  }
                 }
               ]
             }
@@ -4920,6 +4992,30 @@
                       "SourceType": "Current Record",
                       "TableName": "Gen. Journal Line",
                       "FieldName": "TDS Section Code"
+                    }
+                  }
+                },
+                {
+                  "FiterFieldName": "Start Date",
+                  "FilterType": "Is Less Than Or Equals To",
+                  "FilterValue": {
+                    "Type": "Lookup",
+                    "Lookup": {
+                      "SourceType": "Current Record",
+                      "TableName": "Gen. Journal Line",
+                      "FieldName": "Posting Date"
+                    }
+                  }
+                },
+                {
+                  "FiterFieldName": "End Date",
+                  "FilterType": "Is Greater Than Or Equals To",
+                  "FilterValue": {
+                    "Type": "Lookup",
+                    "Lookup": {
+                      "SourceType": "Current Record",
+                      "TableName": "Gen. Journal Line",
+                      "FieldName": "Posting Date"
                     }
                   }
                 }
@@ -4966,6 +5062,30 @@
                       "SourceType": "Current Record",
                       "TableName": "Gen. Journal Line",
                       "FieldName": "TDS Section Code"
+                    }
+                  }
+                },
+                {
+                  "FiterFieldName": "Start Date",
+                  "FilterType": "Is Less Than Or Equals To",
+                  "FilterValue": {
+                    "Type": "Lookup",
+                    "Lookup": {
+                      "SourceType": "Current Record",
+                      "TableName": "Gen. Journal Line",
+                      "FieldName": "Posting Date"
+                    }
+                  }
+                },
+                {
+                  "FiterFieldName": "End Date",
+                  "FilterType": "Is Greater Than Or Equals To",
+                  "FilterValue": {
+                    "Type": "Lookup",
+                    "Lookup": {
+                      "SourceType": "Current Record",
+                      "TableName": "Gen. Journal Line",
+                      "FieldName": "Posting Date"
                     }
                   }
                 }
@@ -5215,6 +5335,30 @@
                               "SourceType": "Current Record",
                               "TableName": "Gen. Journal Line",
                               "FieldName": "TDS Section Code"
+                            }
+                          }
+                        },
+                        {
+                          "FiterFieldName": "Start Date",
+                          "FilterType": "Is Less Than Or Equals To",
+                          "FilterValue": {
+                            "Type": "Lookup",
+                            "Lookup": {
+                              "SourceType": "Current Record",
+                              "TableName": "Gen. Journal Line",
+                              "FieldName": "Posting Date"
+                            }
+                          }
+                        },
+                        {
+                          "FiterFieldName": "End Date",
+                          "FilterType": "Is Greater Than Or Equals To",
+                          "FilterValue": {
+                            "Type": "Lookup",
+                            "Lookup": {
+                              "SourceType": "Current Record",
+                              "TableName": "Gen. Journal Line",
+                              "FieldName": "Posting Date"
                             }
                           }
                         }

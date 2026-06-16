@@ -10,6 +10,7 @@ using Microsoft.Finance.Dimension;
 using Microsoft.Inventory.Item;
 #if not CLEAN27
 using Microsoft.Manufacturing.Document;
+using Microsoft.Manufacturing.Setup;
 #endif
 using Microsoft.Utilities;
 
@@ -264,11 +265,14 @@ page 518 "Purchase Lines"
                     trigger OnAction()
                     var
                         PageManagement: Codeunit "Page Management";
+#if not CLEAN27
+                        LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
+#endif
                     begin
                         PurchHeader.Get(Rec."Document Type", Rec."Document No.");
 #if not CLEAN27
                         if Rec."Document Type" = Rec."Document Type"::Order then begin
-                            if Rec."Prod. Order No." <> '' then
+                            if LegacySubcFeatureHandler.IsLegacySubcontractingEnabled() and (Rec."Prod. Order No." <> '') then
                                 PAGE.Run(PAGE::"Subcontracting Order", PurchHeader)
                             else
                                 PAGE.Run(PAGE::"Purchase Order", PurchHeader);

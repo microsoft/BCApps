@@ -26,6 +26,7 @@ codeunit 10586 "Submit VAT Declaration Req."
             InsertVATDeclarationRequestDetails(GovTalkMessage, GovTalkRequestXMLNode, IRMarkXMLNode);
             if not GovTalkMessageManagement.SubmitGovTalkRequest(Rec, GovTalkMessageXMLNode) then
                 Error(SubmissionFailedErr);
+            Session.LogSecurityAudit(GovTalkServiceNameTxt, SecurityOperationResult::Success, StrSubstNo(SecurityAuditVATSubmittedTxt, Rec."No."), AuditCategory::CustomerFacing);
         end;
     end;
 
@@ -36,6 +37,8 @@ codeunit 10586 "Submit VAT Declaration Req."
         GovTalkMessageXMLNode: DotNet XmlNode;
         GovTalkNameSpaceTxt: Label 'http://www.govtalk.gov.uk/CM/envelope', Locked = true;
         SubmissionFailedErr: Label 'Could not submit the report to the GovTalk service. This might be because the URL to the service is incorrect, or the service is unavailable right now.';
+        GovTalkServiceNameTxt: Label 'GovTalk', Locked = true;
+        SecurityAuditVATSubmittedTxt: Label 'VAT Declaration %1 was submitted to HMRC via the GovTalk service.', Locked = true, Comment = '%1 - VAT Report No.';
 
     local procedure InsertVATDeclarationRequestIRHeader(GovTalkMessage: Record "GovTalk Message"; var BodyXMLNode: DotNet XmlNode; var GovTalkRequestXMLNode: DotNet XmlNode; var IRmarkXMLNode: DotNet XmlNode)
     var

@@ -15,11 +15,12 @@ using Microsoft.Purchases.Vendor;
 
 report 12153 "Create Subcontr. Return Order"
 {
+    ApplicationArea = LegacySubcontracting;
     Caption = 'Create Subcontr. Return Order';
     ProcessingOnly = true;
-            ObsoleteReason = 'Preparation for replacement by Subcontracting app';
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
+    ObsoleteReason = 'Preparation for replacement by Subcontracting app';
+    ObsoleteState = Pending;
+    ObsoleteTag = '27.0';
 
     dataset
     {
@@ -107,6 +108,14 @@ report 12153 "Create Subcontr. Return Order"
     {
     }
 
+    trigger OnPreReport()
+    var
+        LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
+    begin
+        if not LegacySubcFeatureHandler.IsLegacySubcontractingEnabled() then
+            CurrReport.Quit();
+    end;
+
     var
         Text1130000: Label 'Warning. Specify a Purchase Order No. for the Subcontractor work.';
         Text1130001: Label 'Order %1 is not a Subcontractor work.';
@@ -122,7 +131,11 @@ report 12153 "Create Subcontr. Return Order"
 
     [Scope('OnPrem')]
     procedure InsertTransferHeader(ToLocationCode: Code[10])
+    var
+        LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
     begin
+        if not LegacySubcFeatureHandler.IsLegacySubcontractingEnabled() then
+            exit;
         TransferHeader.Reset();
         TransferHeader.SetRange("Source Type", TransferHeader."Source Type"::Vendor);
         TransferHeader.SetRange("Source No.", "Purchase Header"."Buy-from Vendor No.");
@@ -168,8 +181,11 @@ report 12153 "Create Subcontr. Return Order"
     procedure CheckExistComponent(): Boolean
     var
         PurchLine: Record "Purchase Line";
+        LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
         QtyToPost: Decimal;
     begin
+        if not LegacySubcFeatureHandler.IsLegacySubcontractingEnabled() then
+            exit(false);
         PurchLine.SetCurrentKey("Document Type", Type, "Prod. Order No.", "Prod. Order Line No.", "Routing No.", "Operation No.");
         PurchLine.SetRange("Document No.", PurchOrderNo);
         PurchLine.SetFilter("Prod. Order No.", '<>''''');
@@ -191,11 +207,14 @@ report 12153 "Create Subcontr. Return Order"
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         ProdOrderComponent: Record "Prod. Order Component";
         Item: Record Item;
+        LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
         MfgCostCalcMgt: Codeunit "Mfg. Cost Calculation Mgt.";
         UOMMgt: Codeunit "Unit of Measure Management";
         SubcontractingMgt: Codeunit SubcontractingManagement;
         QtyPerUom: Decimal;
     begin
+        if not LegacySubcFeatureHandler.IsLegacySubcontractingEnabled() then
+            exit(false);
         if not ProdOrderLine.Get(ProdOrderLine.Status::Released, PurchLine."Prod. Order No.", PurchLine."Prod. Order Line No.") then
             exit(false);
         if not ProdOrderRoutingLine.Get(ProdOrderRoutingLine.Status::Released, PurchLine."Prod. Order No.",
@@ -271,8 +290,11 @@ report 12153 "Create Subcontr. Return Order"
     [Scope('OnPrem')]
     procedure ShowDocument()
     var
+        LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
         TransfOrderForm: Page "Subcontr. Transfer Order";
     begin
+        if not LegacySubcFeatureHandler.IsLegacySubcontractingEnabled() then
+            exit;
         Commit();
         TransferHeader.Reset();
         TransferHeader.SetRecFilter();
@@ -285,7 +307,10 @@ report 12153 "Create Subcontr. Return Order"
     procedure CheckTransferLineExists()
     var
         TransferLine2: Record "Transfer Line";
+        LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
     begin
+        if not LegacySubcFeatureHandler.IsLegacySubcontractingEnabled() then
+            exit;
         if "Purchase Line"."Document No." = '' then
             exit;
         TransferLine2.SetRange("Subcontr. Purch. Order No.", "Purchase Line"."Document No.");

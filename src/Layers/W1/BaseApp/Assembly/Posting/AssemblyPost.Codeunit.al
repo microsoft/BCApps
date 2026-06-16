@@ -129,6 +129,7 @@ codeunit 900 "Assembly-Post"
         Text010: Label 'Undoing %1';
 #pragma warning restore AA0470
         Text011: Label 'Posted assembly order %1 cannot be restored because the number of lines in assembly order %2 has changed.', Comment = '%1=Posted Assembly Order No. field value,%2=Assembly Header Document No field value';
+        ItemTrackingQtyToHandleErr: Label 'Qty. to Handle (Base) in the item tracking for item %1 in assembly document %2, line %3 is currently %4. It must be %5.', Comment = '%1=Item No.,%2=Document No.,%3=Line No.,%4=Sum of Qty. to Handle,%5=Line Quantity';
 #pragma warning restore AA0074
         SuppressCommit: Boolean;
         PreviewMode: Boolean;
@@ -464,6 +465,56 @@ codeunit 900 "Assembly-Post"
         exit(Round(Qty, QtyRoundingPrecision))
     end;
 
+    local procedure CheckItemTrackingQuantityForAssemblyLine(AssemblyLine: Record "Assembly Line"; QtyToConsumeBase: Decimal)
+    var
+        ReservationEntry: Record "Reservation Entry";
+        Item: Record Item;
+        ItemTrackingCode: Record "Item Tracking Code";
+        Location: Record Location;
+        TotalQtyToHandleBase: Decimal;
+    begin
+        if QtyToConsumeBase = 0 then
+            exit;
+
+        if AssemblyLine.Type <> AssemblyLine.Type::Item then
+            exit;
+
+        // Skip validation for WMS locations - existing consumption validation handles it
+        if AssemblyLine."Location Code" <> '' then
+            if Location.Get(AssemblyLine."Location Code") then
+                if Location."Require Pick" then
+                    exit;
+
+        if not Item.Get(AssemblyLine."No.") then
+            exit;
+
+        if Item."Item Tracking Code" = '' then
+            exit;
+
+        if not ItemTrackingCode.Get(Item."Item Tracking Code") then
+            exit;
+
+        if not ItemTrackingCode.IsSpecific() then
+            exit;
+
+        AssemblyLine.SetReservationFilters(ReservationEntry);
+        if ReservationEntry.IsEmpty() then
+            exit; // No tracking assigned - let existing validation produce specific error
+
+        ReservationEntry.SetFilter("Qty. to Handle (Base)", '<>%1', 0);
+        ReservationEntry.CalcSums("Qty. to Handle (Base)");
+        TotalQtyToHandleBase := ReservationEntry."Qty. to Handle (Base)";
+
+        if Abs(TotalQtyToHandleBase) < QtyToConsumeBase then
+            Error(
+                ItemTrackingQtyToHandleErr,
+                AssemblyLine."No.",
+                AssemblyLine."Document No.",
+                AssemblyLine."Line No.",
+                Abs(TotalQtyToHandleBase),
+                QtyToConsumeBase);
+    end;
+
     local procedure PostLines(AssemblyHeader: Record "Assembly Header"; var AssemblyLine: Record "Assembly Line"; PostedAssemblyHeader: Record "Posted Assembly Header"; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line"; var ResJnlPostLine: Codeunit "Res. Jnl.-Post Line"; var WhseJnlRegisterLine: Codeunit "Whse. Jnl.-Register Line")
     var
         PostedAssemblyLine: Record "Posted Assembly Line";
@@ -497,13 +548,16 @@ codeunit 900 "Assembly-Post"
                 if QtyToConsumeBase <> 0 then begin
                     case AssemblyLine.Type of
                         AssemblyLine.Type::Item:
-                            ItemLedgEntryNo :=
-                                PostItemConsumption(
-                                AssemblyHeader,
-                                AssemblyLine,
-                                AssemblyHeader."Posting No. Series",
-                                QtyToConsume,
-                                QtyToConsumeBase, ItemJnlPostLine, WhseJnlRegisterLine, AssemblyHeader."Posting No.", false, 0);
+                            begin
+                                CheckItemTrackingQuantityForAssemblyLine(AssemblyLine, QtyToConsumeBase);
+                                ItemLedgEntryNo :=
+                                    PostItemConsumption(
+                                    AssemblyHeader,
+                                    AssemblyLine,
+                                    AssemblyHeader."Posting No. Series",
+                                    QtyToConsume,
+                                    QtyToConsumeBase, ItemJnlPostLine, WhseJnlRegisterLine, AssemblyHeader."Posting No.", false, 0);
+                            end;
                         AssemblyLine.Type::Resource:
                             PostResourceConsumption(
                                 AssemblyHeader,

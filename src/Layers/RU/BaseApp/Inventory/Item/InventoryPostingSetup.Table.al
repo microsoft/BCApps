@@ -264,7 +264,7 @@ table 5813 "Inventory Posting Setup"
         RecRef.GetTable(Rec);
         if "Inventory Account" = '' then
             SuggestAccount(RecRef, FieldNo("Inventory Account"));
-        if "Inventory Account" = '' then
+        if "Inventory Account (Interim)" = '' then
             SuggestAccount(RecRef, FieldNo("Inventory Account (Interim)"));
         OnAfterSuggestSetupAccount(Rec, RecRef);
         if AccountSuggested then

@@ -142,6 +142,7 @@ report 99000756 "Detailed Calculation"
 #if not CLEAN28
                     SubcPrices: Record "Subcontractor Prices";
                     SubcontractingPriceMgt: Codeunit SubcontractingPricesMgt;
+                    LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
 #endif
                     UnitCostCalculation: Enum "Unit Cost Calculation Type";
                 begin
@@ -151,7 +152,8 @@ report 99000756 "Detailed Calculation"
                         WorkCenter.Get("Routing Line"."Work Center No.");
 #if not CLEAN28
                     if ("Routing Line".Type = "Routing Line".Type::"Work Center") and
-                       (WorkCenter."Subcontractor No." <> '')
+                       (WorkCenter."Subcontractor No." <> '') and
+                       LegacySubcFeatureHandler.IsLegacySubcontractingEnabled()
                     then begin
                         SubcPrices."Vendor No." := WorkCenter."Subcontractor No.";
                         SubcPrices."Item No." := Item."No.";

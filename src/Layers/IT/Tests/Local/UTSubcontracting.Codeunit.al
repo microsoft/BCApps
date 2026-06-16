@@ -1,4 +1,4 @@
-#if not CLEAN27
+﻿#if not CLEAN27
 #pragma warning disable AL0801
 codeunit 144082 "UT Subcontracting"
 {
@@ -180,6 +180,7 @@ codeunit 144082 "UT Subcontracting"
     local procedure Initialize()
     begin
         LibraryVariableStorage.Clear();
+        ActivateLegacySubcontracting();
     end;
 
     local procedure CreateItem(var Item: Record Item)
@@ -278,8 +279,10 @@ codeunit 144082 "UT Subcontracting"
         TransferShipmentLine: Record "Transfer Shipment Line";
     begin
         TransferShipmentLine."Document No." := CreateTransferShipmentHeader(SourceType);
+#if not CLEAN28
         TransferShipmentLine."Subcontr. Purch. Order No." := SubcontrPurchOrderNo;
         TransferShipmentLine."Prod. Order No." := ProdOrderNo;
+#endif
         TransferShipmentLine.Quantity := LibraryRandom.RandDec(10, 2);
         TransferShipmentLine.Insert();
         exit(TransferShipmentLine."Document No.");
@@ -369,6 +372,22 @@ codeunit 144082 "UT Subcontracting"
         LibraryVariableStorage.Dequeue(No);
         SubcontractTransferShipment."Transfer Shipment Header".SetFilter("No.", No);
         SubcontractTransferShipment.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
+    end;
+
+    local procedure ActivateLegacySubcontracting()
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+        ApplicationAreaMgmtFacade: Codeunit "Application Area Mgmt. Facade";
+        LibraryApplicationArea: Codeunit "Library - Application Area";
+    begin
+        if not ManufacturingSetup.Get() then begin
+            ManufacturingSetup.Init();
+            ManufacturingSetup.Insert();
+        end;
+        ManufacturingSetup."Legacy Subcontracting" := true;
+        ManufacturingSetup.Modify();
+        LibraryApplicationArea.EnablePremiumSetup();
+        ApplicationAreaMgmtFacade.RefreshExperienceTierCurrentCompany();
     end;
 }
 #endif

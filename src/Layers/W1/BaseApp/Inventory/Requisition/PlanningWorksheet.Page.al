@@ -311,7 +311,6 @@ page 99000852 "Planning Worksheet"
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
-                    Visible = false;
                 }
                 field("Original Quantity"; Rec."Original Quantity")
                 {

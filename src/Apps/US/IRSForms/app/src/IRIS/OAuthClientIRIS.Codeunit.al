@@ -46,6 +46,10 @@ codeunit 10046 "OAuth Client IRIS"
         EmptyTransmContentUserErr: Label 'The transmission content is empty. Make sure that the transmission contains IRS 1099 form documents to report.';
         UserIDGetInstructionsMsg: Label 'Use the action Setup IRIS User ID on the IRS Forms Setup page to see instructions for getting your IRIS User ID.';
         CustomDimKeyValueTxt: Label '%1: %2\', Locked = true;
+        SecurityAuditTokensClearedTxt: Label 'IRIS OAuth access and refresh tokens were cleared from isolated storage.', Locked = true;
+        SecurityAuditTokenRequestSucceededTxt: Label 'IRIS OAuth token request succeeded; access and refresh tokens were issued.', Locked = true;
+        SecurityAuditTokenRequestFailedTxt: Label 'IRIS OAuth token request failed.', Locked = true;
+        SecurityAuditAccessTokenRejectedTxt: Label 'IRIS rejected the access token with HTTP 401 Unauthorized.', Locked = true;
 
     [NonDebuggable]
     procedure GetToken(TokenKey: Guid) TokenValue: SecretText
@@ -186,15 +190,26 @@ codeunit 10046 "OAuth Client IRIS"
 
         RequestBody := StrSubstNo(JWTAccessTokenRequestBodyTxt, GrantTypeTxt, UserJWT, ClientAssertionTypeTxt, ClientJWT);
 
-        if not SendPOSTHttpRequestUrlEncoded(RequestBody, KeyVaultClient.GetAuthURL(), HttpResponseMessage) then
+        if not SendPOSTHttpRequestUrlEncoded(RequestBody, KeyVaultClient.GetAuthURL(), HttpResponseMessage) then begin
             ShowRequestSendError(HttpResponseMessage.IsBlockedByEnvironment());
+            LogSecurityAuditEvent(SecurityAuditTokenRequestFailedTxt, SecurityOperationResult::Failure, AuditCategory::Authentication);
+            exit;
+        end;
         HttpResponseMessage.Content().ReadAs(ResponseText);
 
-        if not HttpResponseMessage.IsSuccessStatusCode() then
+        if not HttpResponseMessage.IsSuccessStatusCode() then begin
             ShowResponseError(HttpResponseMessage.HttpStatusCode(), HttpResponseMessage.ReasonPhrase(), ResponseText.Unwrap());
+            LogSecurityAuditEvent(SecurityAuditTokenRequestFailedTxt, SecurityOperationResult::Failure, AuditCategory::Authentication);
+            exit;
+        end;
 
-        if not GetTokensFromResponse(ResponseText, AccessToken, RefreshToken, AccessTokenExpiresIn) then
+        if not GetTokensFromResponse(ResponseText, AccessToken, RefreshToken, AccessTokenExpiresIn) then begin
             ShowGetAccessTokenError(AccessToken.IsEmpty(), RefreshToken.IsEmpty(), AccessTokenExpiresIn = 0);
+            LogSecurityAuditEvent(SecurityAuditTokenRequestFailedTxt, SecurityOperationResult::Failure, AuditCategory::Authentication);
+            exit;
+        end;
+
+        LogSecurityAuditEvent(SecurityAuditTokenRequestSucceededTxt, SecurityOperationResult::Success, AuditCategory::Authentication);
     end;
 
     [NonDebuggable]
@@ -264,6 +279,7 @@ codeunit 10046 "OAuth Client IRIS"
         UserParamsIRIS."Access Token Expires At" := 0DT;
         UserParamsIRIS."Refresh Token Expires At" := 0DT;
         UserParamsIRIS.Modify();
+        LogSecurityAuditEvent(SecurityAuditTokensClearedTxt, SecurityOperationResult::Success, AuditCategory::UserManagement);
     end;
 
     local procedure GetAccessToken() AccessToken: SecretText
@@ -327,6 +343,7 @@ codeunit 10046 "OAuth Client IRIS"
         // check if 401 Unauthorized was returned
         if HttpStatusCode = 401 then begin
             FeatureTelemetry.LogError('0000PSH', Helper.GetIRISFeatureName(), GetTokensEventTxt, AccessTokenExpiredErr, GetLastErrorCallStack());
+            LogSecurityAuditEvent(SecurityAuditAccessTokenRejectedTxt, SecurityOperationResult::Failure, AuditCategory::Authentication);
             exit(false);
         end;
 
@@ -558,5 +575,10 @@ codeunit 10046 "OAuth Client IRIS"
         FullErrorText := BaseErrorText + '\';
         foreach CustomDimKey in CustomDimensions.Keys() do
             FullErrorText += StrSubstNo(CustomDimKeyValueTxt, CustomDimKey, CustomDimensions.Get(CustomDimKey));
+    end;
+
+    local procedure LogSecurityAuditEvent(Description: Text; OperationResult: SecurityOperationResult; Category: AuditCategory)
+    begin
+        Session.LogSecurityAudit(Helper.GetIRISFeatureName(), OperationResult, Description, Category);
     end;
 }

@@ -151,7 +151,7 @@ page 5407 "Prod. Order Comp. Line List"
 #if not CLEAN28
                 field("Qty. on Transfer Order (Base)"; Rec."Qty. on Transfer Order (Base)")
                 {
-                    ApplicationArea = Manufacturing;
+                    ApplicationArea = LegacySubcontracting;
                     ToolTip = 'Specifies the item amount that is on the transfer order.';
                     ObsoleteReason = 'Preparation for replacement by Subcontracting app';
                     ObsoleteState = Pending;
@@ -159,7 +159,7 @@ page 5407 "Prod. Order Comp. Line List"
                 }
                 field("Qty. in Transit (Base)"; Rec."Qty. in Transit (Base)")
                 {
-                    ApplicationArea = Manufacturing;
+                    ApplicationArea = LegacySubcontracting;
                     ToolTip = 'Specifies the items that are in transit.';
                     ObsoleteReason = 'Preparation for replacement by Subcontracting app';
                     ObsoleteState = Pending;
@@ -167,7 +167,7 @@ page 5407 "Prod. Order Comp. Line List"
                 }
                 field("Qty. transf. to Subcontractor"; Rec."Qty. transf. to Subcontractor")
                 {
-                    ApplicationArea = Manufacturing;
+                    ApplicationArea = LegacySubcontracting;
                     ToolTip = 'Specifies the item amount that will be transferred to the subcontractor.';
                     ObsoleteReason = 'Preparation for replacement by Subcontracting app';
                     ObsoleteState = Pending;

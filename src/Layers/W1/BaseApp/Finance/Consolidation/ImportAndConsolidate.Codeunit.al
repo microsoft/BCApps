@@ -34,6 +34,9 @@ codeunit 107 "Import and Consolidate"
 
     var
         ConsolidationSetup: Record "Consolidation Setup";
+        FinancialConsolidationServiceNameTxt: Label 'Financial Consolidation', Locked = true;
+        SecurityAuditConsolidationStartedTxt: Label 'Consolidation process %1 started for period %2 to %3 across %4 business unit(s).', Locked = true, Comment = '%1 - Consolidation Process Id, %2 - Starting Date, %3 - Ending Date, %4 - Business Unit count';
+        SecurityAuditConsolidationCompletedTxt: Label 'Consolidation process %1 completed.', Locked = true, Comment = '%1 - Consolidation Process Id';
 
     internal procedure ImportAndConsolidate(var ConsolidationProcess: Record "Consolidation Process")
     var
@@ -47,14 +50,12 @@ codeunit 107 "Import and Consolidate"
         NoSeries: Codeunit "No. Series";
         ConsolidationMethod: Interface "Consolidation Method";
         ImportConsolidationData: Interface "Import Consolidation Data";
-        ImportingConsolidationDataTxt: Label 'Importing Consolidation Data';
     begin
         if ConsolidationProcess.Status <> ConsolidationProcess.Status::NotStarted then
             exit;
-        Session.LogSecurityAudit(ImportingConsolidationDataTxt, SecurityOperationResult::Success, UserId(), AuditCategory::Euii);
-        GeneralLedgerSetup.Get();
         BusUnitInConsProcess.SetRange("Consolidation Process Id", ConsolidationProcess.Id);
         BusUnitInConsProcess.SetAutoCalcFields("Default Data Import Method");
+        GeneralLedgerSetup.Get();
 
         ConsolidationProcess.Status := ConsolidationProcess.Status::InProgress;
         if GeneralLedgerSetup."Journal Templ. Name Mandatory" then begin
@@ -64,6 +65,11 @@ codeunit 107 "Import and Consolidate"
         end;
         ConsolidationProcess.Modify();
         Commit();
+
+        Session.LogSecurityAudit(
+            FinancialConsolidationServiceNameTxt, SecurityOperationResult::Success,
+            StrSubstNo(SecurityAuditConsolidationStartedTxt, ConsolidationProcess.Id, ConsolidationProcess."Starting Date", ConsolidationProcess."Ending Date", BusUnitInConsProcess.Count()),
+            AuditCategory::CustomerFacing);
         if BusUnitInConsProcess.FindSet() then begin
             FeatureTelemetry.LogUptake('0000KOJ', ImportConsolidationFromAPI.GetFeatureTelemetryName(), Enum::"Feature Uptake Status"::"Set up");
             FeatureTelemetry.LogUptake('0000KOG', ImportConsolidationFromAPI.GetFeatureTelemetryName(), Enum::"Feature Uptake Status"::Used);
@@ -87,6 +93,10 @@ codeunit 107 "Import and Consolidate"
         end;
         ConsolidationProcess.Status := ConsolidationProcess.Status::Completed;
         ConsolidationProcess.Modify();
+        Session.LogSecurityAudit(
+            FinancialConsolidationServiceNameTxt, SecurityOperationResult::Success,
+            StrSubstNo(SecurityAuditConsolidationCompletedTxt, ConsolidationProcess.Id),
+            AuditCategory::CustomerFacing);
     end;
 
     local procedure GetBusinessUnitConsolidationImplementations(BusinessUnit: Record "Business Unit"; BusUnitInConsProcess: Record "Bus. Unit In Cons. Process"; var ImportConsolidationDataImplementation: Interface "Import Consolidation Data"; var ConsolidationMethodImplementation: Interface "Consolidation Method")

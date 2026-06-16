@@ -1,3 +1,4 @@
+#if not CLEAN29
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -11,6 +12,9 @@ using System.Upgrade;
 codeunit 1081 "Fin. Report Default Upgrade"
 {
     Subtype = Upgrade;
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
+    ObsoleteReason = 'This upgrade code will be removed in a future release.';
 
     var
         HybridDeployment: Codeunit System.Environment."Hybrid Deployment";
@@ -19,13 +23,26 @@ codeunit 1081 "Fin. Report Default Upgrade"
 
     trigger OnUpgradePerCompany()
     var
-        CurrentModuleInfo: ModuleInfo;
+        FinancialReport: Record "Financial Report";
+        FinancialReportUserFilters: Record "Financial Report User Filters";
     begin
         if not HybridDeployment.VerifyCanStartUpgrade(CompanyName()) then
             exit;
 
-        NavApp.GetCurrentModuleInfo(CurrentModuleInfo);
-        if CurrentModuleInfo.AppVersion().Major() < 29 then
+        FinancialReport.SetFilter(PeriodTypeDefault, '<>%1', FinancialReport.PeriodTypeDefault::Default);
+        if not FinancialReport.IsEmpty() then
+            exit;
+        FinancialReport.SetRange(PeriodTypeDefault);
+        FinancialReport.SetFilter(NegativeAmountFormatDefault, '<>%1', FinancialReport.NegativeAmountFormatDefault::Default);
+        if not FinancialReport.IsEmpty() then
+            exit;
+
+        FinancialReportUserFilters.SetFilter(PeriodTypeDefault, '<>%1', FinancialReportUserFilters.PeriodTypeDefault::Default);
+        if not FinancialReportUserFilters.IsEmpty() then
+            exit;
+        FinancialReportUserFilters.SetRange(PeriodTypeDefault);
+        FinancialReportUserFilters.SetFilter(NegativeAmountFormatDefault, '<>%1', FinancialReportUserFilters.NegativeAmountFormatDefault::Default);
+        if not FinancialReportUserFilters.IsEmpty() then
             exit;
 
         UpdateData();
@@ -68,3 +85,4 @@ codeunit 1081 "Fin. Report Default Upgrade"
             UpgradeTag.SetSkippedUpgrade(UpgradeTagDefinitions.GetFinancialReportDefaultsUpgradeTag(), true);
     end;
 }
+#endif

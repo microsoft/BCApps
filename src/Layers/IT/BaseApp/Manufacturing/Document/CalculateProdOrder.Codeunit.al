@@ -121,6 +121,7 @@ codeunit 99000773 "Calculate Prod. Order"
         SubcPrices: Record "Subcontractor Prices";
         SubcontractingPriceMgt: Codeunit SubcontractingPricesMgt;
         SubcontractingManagement: Codeunit SubcontractingManagement;
+        LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
 #endif
     begin
         ProdOrderRoutingLine.Init();
@@ -148,7 +149,8 @@ codeunit 99000773 "Calculate Prod. Order"
         OnTransferRoutingOnBeforeCalcRoutingCostPerUnit(ProdOrderRoutingLine, ProdOrderLine, RoutingLine);
 #if not CLEAN28
         if (ProdOrderRoutingLine.Type = ProdOrderRoutingLine.Type::"Work Center") and
-           (WorkCenter."Subcontractor No." <> '')
+           (WorkCenter."Subcontractor No." <> '') and
+           LegacySubcFeatureHandler.IsLegacySubcontractingEnabled()
         then begin
             SubcPrices."Vendor No." := WorkCenter."Subcontractor No.";
             SubcPrices."Item No." := ProdOrderLine."Item No.";
@@ -173,11 +175,13 @@ codeunit 99000773 "Calculate Prod. Order"
         OnTransferRoutingOnbeforeValidateDirectUnitCost(ProdOrderRoutingLine, ProdOrderLine, RoutingLine);
 
 #if not CLEAN28
-        ProdOrderRoutingLine."WIP Item" := RoutingLine."WIP Item";
-        if (ProdOrderRoutingLine."Routing Link Code" <> '') and
-           (WorkCenter."Subcontractor No." <> '')
-        then
-            SubcontractingManagement.UpdLinkedComponents(ProdOrderRoutingLine, false);
+        if LegacySubcFeatureHandler.IsLegacySubcontractingEnabled() then begin
+            ProdOrderRoutingLine."WIP Item" := RoutingLine."WIP Item";
+            if (ProdOrderRoutingLine."Routing Link Code" <> '') and
+               (WorkCenter."Subcontractor No." <> '')
+            then
+                SubcontractingManagement.UpdLinkedComponents(ProdOrderRoutingLine, false);
+        end;
 #endif
         ProdOrderRoutingLine.Validate("Direct Unit Cost");
         ProdOrderRoutingLine."Starting Time" := ProdOrderLine."Starting Time";

@@ -208,6 +208,7 @@ report 5405 "Calc. Consumption"
         Location: Record Location;
 #if not CLEAN28
         SubcontractingMgt: Codeunit SubcontractingManagement;
+        LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
         WorkCenter: Record "Work Center";
         ProdOrdRoutLine: Record "Prod. Order Routing Line";
 #endif
@@ -256,17 +257,19 @@ report 5405 "Calc. Consumption"
             ItemJnlLine."Variant Code" := "Prod. Order Component"."Variant Code";
             ItemJnlLine.Validate("Location Code", LocationCode);
 #if not CLEAN28
-            Clear(WorkCenter);
-            ProdOrdRoutLine.SetRange(Status, ProdOrderLine.Status);
-            ProdOrdRoutLine.SetRange("Prod. Order No.", ProdOrderLine."Prod. Order No.");
-            ProdOrdRoutLine.SetRange("Routing Reference No.", ProdOrderLine."Routing Reference No.");
-            ProdOrdRoutLine.SetRange("Routing No.", ProdOrderLine."Routing No.");
-            ProdOrdRoutLine.SetRange("Routing Link Code", "Prod. Order Component"."Routing Link Code");
-            ProdOrdRoutLine.SetRange(Type, ProdOrdRoutLine.Type::"Work Center");
-            if ProdOrdRoutLine.Find('-') then
-                WorkCenter.Get(ProdOrdRoutLine."Work Center No.");
-            if ("Prod. Order Component"."Routing Link Code" <> '') and (WorkCenter."Subcontractor No." <> '') then
-                ItemJnlLine."Location Code" := SubcontractingMgt.GetConsLocation("Prod. Order Component", ItemJnlLine."Location Code");
+            if LegacySubcFeatureHandler.IsLegacySubcontractingEnabled() then begin
+                Clear(WorkCenter);
+                ProdOrdRoutLine.SetRange(Status, ProdOrderLine.Status);
+                ProdOrdRoutLine.SetRange("Prod. Order No.", ProdOrderLine."Prod. Order No.");
+                ProdOrdRoutLine.SetRange("Routing Reference No.", ProdOrderLine."Routing Reference No.");
+                ProdOrdRoutLine.SetRange("Routing No.", ProdOrderLine."Routing No.");
+                ProdOrdRoutLine.SetRange("Routing Link Code", "Prod. Order Component"."Routing Link Code");
+                ProdOrdRoutLine.SetRange(Type, ProdOrdRoutLine.Type::"Work Center");
+                if ProdOrdRoutLine.Find('-') then
+                    WorkCenter.Get(ProdOrdRoutLine."Work Center No.");
+                if ("Prod. Order Component"."Routing Link Code" <> '') and (WorkCenter."Subcontractor No." <> '') then
+                    ItemJnlLine."Location Code" := SubcontractingMgt.GetConsLocation("Prod. Order Component", ItemJnlLine."Location Code");
+            end;
 #endif
             if BinCode <> '' then
                 ItemJnlLine."Bin Code" := BinCode;

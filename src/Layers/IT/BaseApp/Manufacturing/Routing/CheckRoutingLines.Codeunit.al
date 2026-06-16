@@ -6,6 +6,9 @@ namespace Microsoft.Manufacturing.Routing;
 
 using Microsoft.Foundation.UOM;
 using Microsoft.Manufacturing.MachineCenter;
+#if not CLEAN29
+using Microsoft.Manufacturing.Setup;
+#endif
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Utilities;
 
@@ -390,6 +393,9 @@ codeunit 99000752 "Check Routing Lines"
         RtngLine2: Record "Routing Line";
         WorkCenter: Record "Work Center";
         MachineCenter: Record "Machine Center";
+#if not CLEAN29
+        LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
+#endif
         IsHandled: Boolean;
         NoOfProcesses: Integer;
     begin
@@ -422,12 +428,14 @@ codeunit 99000752 "Check Routing Lines"
             until RtngLine.Next() = 0;
 
 #if not CLEAN28
-        RtngLine.SetRange("WIP Item", true);
-        if RtngLine.Find('-') then
-            repeat
-                CheckRoutingLineWorkCenterFields(RtngLine);
-            until RtngLine.Next() = 0;
-        RtngLine.SetRange("WIP Item");
+        if LegacySubcFeatureHandler.IsLegacySubcontractingEnabled() then begin
+            RtngLine.SetRange("WIP Item", true);
+            if RtngLine.Find('-') then
+                repeat
+                    CheckRoutingLineWorkCenterFields(RtngLine);
+                until RtngLine.Next() = 0;
+            RtngLine.SetRange("WIP Item");
+        end;
 #endif
 
         RtngLine.SetFilter("Next Operation No.", '%1', '');

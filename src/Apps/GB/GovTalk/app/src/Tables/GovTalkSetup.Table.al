@@ -31,6 +31,12 @@ table 10525 "Gov Talk Setup"
         field(4; Endpoint; Text[250])
         {
             Caption = 'Endpoint';
+
+            trigger OnValidate()
+            begin
+                if Endpoint <> xRec.Endpoint then
+                    Session.LogSecurityAudit(GovTalkServiceNameTxt, SecurityOperationResult::Success, StrSubstNo(SecurityAuditEndpointChangedTxt, xRec.Endpoint, Endpoint), AuditCategory::ApplicationManagement);
+            end;
         }
         field(5; "Vendor ID"; Guid)
         {
@@ -58,6 +64,8 @@ table 10525 "Gov Talk Setup"
         IsolatedStorageManagement: Codeunit "Isolated Storage Management";
         AzureKeyVaultErr: Label 'Error while retrieving key from Azure Key Vault: %1.', Comment = '%1 = Error string retrieved from the system.';
         AzureKeyVaultGovTalkVendorIdTok: Label 'govtalk-vendorid', Locked = true;
+        GovTalkServiceNameTxt: Label 'GovTalk', Locked = true;
+        SecurityAuditEndpointChangedTxt: Label 'GovTalk service endpoint was changed from %1 to %2.', Locked = true, Comment = '%1 - previous endpoint; %2 - new endpoint';
 
     [NonDebuggable]
     [Scope('OnPrem')]

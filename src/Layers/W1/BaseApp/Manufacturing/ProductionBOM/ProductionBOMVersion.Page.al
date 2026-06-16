@@ -112,7 +112,7 @@ page 99000809 "Production BOM Version"
                     ApplicationArea = Manufacturing;
                     Caption = 'Copy &BOM';
                     Image = CopyBOMHeader;
-                    ToolTip = 'Copy an existing production BOM to quickly create a similar BOM.';
+                    ToolTip = 'Copy lines from the parent production BOM into this version. Existing lines will be replaced.';
 
                     trigger OnAction()
                     var
@@ -132,7 +132,7 @@ page 99000809 "Production BOM Version"
                     Caption = 'Copy BOM &Version';
                     Ellipsis = true;
                     Image = CopyBOMVersion;
-                    ToolTip = 'Copy an existing production BOM version to quickly create a similar BOM.';
+                    ToolTip = 'Copy lines from another version of this production BOM into the current version.';
 
                     trigger OnAction()
                     var

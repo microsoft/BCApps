@@ -8,6 +8,9 @@ using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.Routing;
+#if not CLEAN29
+using Microsoft.Manufacturing.Setup;
+#endif
 #if not CLEAN28
 using Microsoft.Purchases.Vendor;
 using System.Security.AccessControl;
@@ -32,6 +35,7 @@ tableextension 99000829 "Mfg. Planning Component" extends "Planning Component"
                 SubcontractingManagement: Codeunit SubcontractingManagement;
                 GetPlanningParameters: Codeunit "Planning-Get Parameters";
                 LicensePermission: Record "License Permission";
+                LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
                 IsHandled: Boolean;
 #endif
             begin
@@ -62,7 +66,7 @@ tableextension 99000829 "Mfg. Planning Component" extends "Planning Component"
                     if PlanningRtngLine.FindFirst() then begin
                         "Due Date" := PlanningRtngLine."Starting Date";
                         "Due Time" := PlanningRtngLine."Starting Time";
-                        if (PlanningRtngLine.Type = PlanningRtngLine.Type::"Work Center") then
+                        if (PlanningRtngLine.Type = PlanningRtngLine.Type::"Work Center") and LegacySubcFeatureHandler.IsLegacySubcontractingEnabled() then
                             if LicensePermission.Get(LicensePermission."Object Type"::Codeunit, CODEUNIT::SubcontractingManagement) then
                                 if LicensePermission."Execute Permission" <> LicensePermission."Execute Permission"::" " then
                                     if SubcontractingManagement.GetSubcontractor(PlanningRtngLine."No.", Vendor) then begin

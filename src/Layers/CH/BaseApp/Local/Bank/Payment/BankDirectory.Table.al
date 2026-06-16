@@ -157,11 +157,35 @@ table 11500 "Bank Directory"
     procedure ImportBankDirectoryDirect(Filename: Text[1024]; var NoOfRecsRead: Integer; var NoOfRecsWritten: Integer)
     var
         f: File;
+        FileInStream: InStream;
+        FirstLine: Text;
         Byte: Char;
         i: Integer;
     begin
         InitImport();
 
+        // Peek at first line with Windows encoding so Windows-1252 legacy files do not
+        // fail decoding before we get a chance to fall back to the legacy format path.
+        // The 'IID' header is ASCII, so detection works identically in either encoding.
+        f.TextMode(true);
+        if not f.Open(Filename, TEXTENCODING::Windows) then
+            Error(Text006, Filename);
+        f.Read(FirstLine);
+        f.Close();
+
+        if StrPos(FirstLine, 'IID') = 1 then begin
+            f.TextMode(false);
+            if not f.Open(Filename, TEXTENCODING::UTF8) then
+                Error(Text006, Filename);
+            f.CreateInStream(FileInStream);
+            // Skip header line
+            FileInStream.ReadText(FirstLine);
+            ImportBankDirectoryCsvFromStream(FileInStream, NoOfRecsRead, NoOfRecsWritten);
+            f.Close();
+            exit;
+        end;
+
+        // Legacy fixed-width format
         f.TextMode(false);
         if not f.Open(Filename, TEXTENCODING::Windows) then
             Error(Text006, Filename);
@@ -181,11 +205,25 @@ table 11500 "Bank Directory"
     procedure ImportBankDirectoryFromTempBlob(TempBlob: Codeunit "Temp Blob"; var NoOfRecsRead: Integer; var NoOfRecsWritten: Integer)
     var
         FileInStream: InStream;
+        FirstLine: Text;
         Byte: Char;
         i: Integer;
     begin
         InitImport();
 
+        // Peek at first line to detect CSV V3 format (semicolon-delimited, starts with "IID")
+        // Use Windows encoding for peek since legacy files contain Windows-1252 characters that are invalid UTF-8
+        TempBlob.CreateInStream(FileInStream, TEXTENCODING::Windows);
+        FileInStream.ReadText(FirstLine);
+        if StrPos(FirstLine, 'IID') = 1 then begin
+            // Re-open as UTF-8 for proper CSV V3 parsing (header already consumed by peek)
+            TempBlob.CreateInStream(FileInStream, TEXTENCODING::UTF8);
+            FileInStream.ReadText(FirstLine); // skip header
+            ImportBankDirectoryCsvFromStream(FileInStream, NoOfRecsRead, NoOfRecsWritten);
+            exit;
+        end;
+
+        // Legacy fixed-width format - re-open stream from beginning
         TempBlob.CreateInStream(FileInStream, TEXTENCODING::Windows);
 
         Window.Open(
@@ -335,6 +373,135 @@ table 11500 "Bank Directory"
             BankDirectory2."No of Outlets" := BankDirectory2."No of Outlets" + 1;
             BankDirectory2.Modify();
         end;
+    end;
+
+    local procedure ImportBankDirectoryCsvFromStream(var FileInStream: InStream; var NoOfRecsRead: Integer; var NoOfRecsWritten: Integer)
+    var
+        Line: Text;
+        Fields: List of [Text];
+        FieldValue: Text;
+        IIDType: Text;
+        SICParticipation: Text;
+        EuroSICParticipation: Text;
+    begin
+        // Header line was already consumed by the caller for format detection.
+        Window.Open(
+          Text007 +
+          Text008 +
+          Text009);
+
+        while not FileInStream.EOS() do begin
+            FileInStream.ReadText(Line);
+            // Skip empty and malformed lines (missing expected 19+ columns) to avoid inserting
+            // stale/incorrect bank routing data carried over from the previous loop iteration.
+            if (Line <> '') and (Line.Split(';').Count() >= 19) then begin
+                // Reset record so fields not assigned by the CSV branch (Group, Language Code,
+                // Short Name, Phone No., Sight Deposit Account, No of Outlets, ...) do not leak
+                // values from the previous loop iteration into the row being processed.
+                Init();
+                Fields := Line.Split(';');
+
+                // Column 1: IID/QR-IID
+                Fields.Get(1, FieldValue);
+                "Clearing No." := CopyStr(DelChr(FieldValue, '>'), 1, MaxStrLen("Clearing No."));
+
+                // Column 2: Valid on (YYYY-MM-DD) - parse with XML/ISO format (9) so the
+                // result is independent of the session's regional date format.
+                Fields.Get(2, FieldValue);
+                if not Evaluate("Valid from", FieldValue, 9) then
+                    "Valid from" := 0D;
+
+                // Column 4: New IID/QR-IID
+                Fields.Get(4, FieldValue);
+                "New Clearing No." := CopyStr(DelChr(FieldValue, '>'), 1, MaxStrLen("New Clearing No."));
+
+                // Column 5: SIC IID
+                Fields.Get(5, FieldValue);
+                "SIC No." := CopyStr(DelChr(FieldValue, '>'), 1, MaxStrLen("SIC No."));
+
+                // Column 6: Headquarters
+                Fields.Get(6, FieldValue);
+                "Clearing Main Office" := CopyStr(DelChr(FieldValue, '>'), 1, MaxStrLen("Clearing Main Office"));
+
+                // Column 7: IID type (1=Main Office, 2=Head Office, 3=Outlet)
+                Fields.Get(7, IIDType);
+                case IIDType of
+                    '1':
+                        "Bank Type" := "Bank Type"::"Main Office";
+                    '2':
+                        "Bank Type" := "Bank Type"::"Head Office";
+                    '3':
+                        "Bank Type" := "Bank Type"::Outlet;
+                    else
+                        "Bank Type" := "Bank Type"::" ";
+                end;
+
+                // Column 9: Name of bank/institution
+                Fields.Get(9, FieldValue);
+                Name := CopyStr(FieldValue, 1, MaxStrLen(Name));
+
+                // Column 10: Street Name → Address
+                Fields.Get(10, FieldValue);
+                Address := CopyStr(FieldValue, 1, MaxStrLen(Address));
+
+                // Column 11: Building Number → Address 2
+                Fields.Get(11, FieldValue);
+                "Address 2" := CopyStr(FieldValue, 1, MaxStrLen("Address 2"));
+
+                // Column 12: Post Code
+                Fields.Get(12, FieldValue);
+                "Post Code" := CopyStr(FieldValue, 1, MaxStrLen("Post Code"));
+
+                // Column 13: Town Name
+                Fields.Get(13, FieldValue);
+                City := CopyStr(FieldValue, 1, MaxStrLen(City));
+
+                // Column 14: Country
+                Fields.Get(14, FieldValue);
+                Country := CopyStr(DelChr(FieldValue, '>'), 1, MaxStrLen(Country));
+
+                // Column 15: BIC
+                Fields.Get(15, FieldValue);
+                "SWIFT Address" := CopyStr(DelChr(FieldValue, '>'), 1, MaxStrLen("SWIFT Address"));
+
+                // Column 16: SIC participation (Y/N)
+                Fields.Get(16, SICParticipation);
+                case SICParticipation of
+                    'Y':
+                        "SIC Member" := "SIC Member"::Yes;
+                    'N':
+                        "SIC Member" := "SIC Member"::No;
+                end;
+
+                // Column 19: euroSIC participation (Y/N)
+                Fields.Get(19, EuroSICParticipation);
+                case EuroSICParticipation of
+                    'Y':
+                        "euroSIC Member" := "euroSIC Member"::Yes;
+                    'N':
+                        "euroSIC Member" := "euroSIC Member"::No;
+                end;
+
+                "Import from File" := true;
+
+                NoOfRecsRead := NoOfRecsRead + 1;
+
+                if Insert() then
+                    NoOfRecsWritten := NoOfRecsWritten + 1
+                else begin
+                    BankDirectory2.Get("Clearing No.");
+                    BankDirectory2."No of Outlets" := BankDirectory2."No of Outlets" + 1;
+                    BankDirectory2.Modify();
+                end;
+
+                if (NoOfRecsRead mod 100) = 0 then begin
+                    Window.Update(1, "Clearing No.");
+                    Window.Update(2, NoOfRecsRead);
+                end;
+            end;
+        end;
+
+        Window.Close();
     end;
 
     local procedure InitImport()

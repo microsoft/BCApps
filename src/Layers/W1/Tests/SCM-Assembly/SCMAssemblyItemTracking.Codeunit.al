@@ -55,11 +55,70 @@ codeunit 137926 "SCM Assembly Item Tracking"
 
         SNMissingErr: Label 'You must assign a serial number for item', Comment = '%1 - Item No.';
         LNMissingErr: Label 'You must assign a lot number for item', Comment = '%1 - Item No.';
+        QtyToHandleErr: Label 'Qty. to Handle (Base) in the item tracking';
         WrongSNErr: Label 'SN different from what expected';
         WrongLNErr: Label 'LN different from what expected';
         MessageInvtMvmtCreatedMsg: Label 'Number of Invt. Movement activities created: 1 out of a total of 1.';
         WrongNoOfT337RecordsErr: Label 'Wrong no of T337 records';
         MessageWhsePickCreatedMsg: Label 'has been created';
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure PostFailsWhenSecondLineHasPartialQtyToHandle()
+    var
+        ItemTrackingCodeLN: Record "Item Tracking Code";
+        ItemParent: Record Item;
+        ItemChild: Record Item;
+        AssemblyHeader: Record "Assembly Header";
+        AssemblyLine: Record "Assembly Line";
+        AssemblyLine2: Record "Assembly Line";
+        ReservEntry: Record "Reservation Entry";
+        ReservEntryToModify: Record "Reservation Entry";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 636675] Assembly posting validates Qty. to Handle (Base) on each tracked line individually
+
+        Initialize();
+
+        // [GIVEN] Item with lot-specific tracking
+        CreateItemTrackingCode(ItemTrackingCodeLN, false, true);
+        ItemTrackingCodeLN."Lot Specific Tracking" := true;
+        ItemTrackingCodeLN.Modify(true);
+        MockItem(ItemParent);
+        MockItem(ItemChild);
+        ItemChild."Item Tracking Code" := ItemTrackingCodeLN.Code;
+        ItemChild.Modify(true);
+
+        // [GIVEN] Post inventory with lot tracking
+        AddItemToInventory(ItemChild, 10, '', 'LOT0001');
+
+        // [GIVEN] Assembly order with 2 lines for the same lot-tracked component
+        LibraryAssembly.CreateAssemblyHeader(AssemblyHeader, WorkDate2, ItemParent."No.", '', 2, '');
+        // Line 1: Qty to Consume = 2
+        LibraryAssembly.CreateAssemblyLine(AssemblyHeader, AssemblyLine, "BOM Component Type"::Item, ItemChild."No.", ItemChild."Base Unit of Measure", 2, 1, '');
+        // Line 2: Qty to Consume = 2
+        LibraryAssembly.CreateAssemblyLine(AssemblyHeader, AssemblyLine2, "BOM Component Type"::Item, ItemChild."No.", ItemChild."Base Unit of Measure", 2, 1, '');
+
+        // [GIVEN] Line 1 has tracking with Qty. to Handle = 2 
+        LibraryItemTracking.CreateAssemblyLineItemTracking(ReservEntry, AssemblyLine, '', 'LOT0001', 2);
+        // [GIVEN] Line 2 has tracking assigned with Qty. to Handle = 2
+        LibraryItemTracking.CreateAssemblyLineItemTracking(ReservEntry, AssemblyLine2, '', 'LOT0001', 1);
+
+        // [GIVEN] Manually reduce Line 2's Qty. to Handle to 1 (simulating partial/incorrect tracking)
+        ReservEntryToModify.SetRange("Source Type", DATABASE::"Assembly Line");
+        ReservEntryToModify.SetRange("Source Subtype", AssemblyLine2."Document Type".AsInteger());
+        ReservEntryToModify.SetRange("Source ID", AssemblyLine2."Document No.");
+        ReservEntryToModify.SetRange("Source Ref. No.", AssemblyLine2."Line No.");
+        ReservEntryToModify.FindFirst();
+        ReservEntryToModify."Qty. to Handle (Base)" := 1; // Only 1 instead of required 2
+        ReservEntryToModify.Modify();
+
+        // [WHEN] Posting assembly order
+        // [THEN] Error is raised because Line 2 has insufficient Qty. to Handle (1 vs required 2)
+        asserterror LibraryAssembly.PostAssemblyHeader(AssemblyHeader, '');
+        Assert.IsTrue(StrPos(GetLastErrorText, QtyToHandleErr) > 0, 'Wrong error: ' + GetLastErrorText + '; Expected: ' + QtyToHandleErr);
+        ClearLastError();
+    end;
 
     [Normal]
     local procedure Initialize()

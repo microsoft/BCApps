@@ -664,7 +664,7 @@ xmlport 1000 "SEPA CT pain.001.001.03"
                                 if TempPaymentExportRemittanceText.Next() <> 0 then
                                     RemittanceText2 := TempPaymentExportRemittanceText.Text;
                                 if not SwissExport then begin
-                                    SeparatorText := '; ';
+                                    SeparatorText := ', ';
                                     OnSpecifyRemittanceTextSeparatorText(SeparatorText);
 
                                     RemittanceText1 := CopyStr(

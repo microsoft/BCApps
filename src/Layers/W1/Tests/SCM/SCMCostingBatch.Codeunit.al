@@ -990,6 +990,134 @@ codeunit 137402 "SCM Costing Batch"
     end;
 
     [Test]
+    [HandlerFunctions('AdjustCostItemEntriesHandler')]
+    [Scope('OnPrem')]
+    procedure ProductionOrderPostingDoesNotPropagateACYToSourceCurrency()
+    var
+        WorkCenter: Record "Work Center";
+        RoutingHeader: Record "Routing Header";
+        Item: Record Item;
+        ProductionOrder: Record "Production Order";
+        ItemJournalTemplate: Record "Item Journal Template";
+        ItemJournalBatch: Record "Item Journal Batch";
+        ItemJournalLine: Record "Item Journal Line";
+        ValueEntry: Record "Value Entry";
+        GLEntry: Record "G/L Entry";
+        InvtPostToGL: Codeunit "Inventory Posting To G/L";
+        CurrencyCode: Code[10];
+        LastGLEntryNo: Integer;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [FEATURE] [Post Inventory Cost to G/L] [Manufacturing] [Source Currency]
+        // [SCENARIO 633109] G/L Entries posted from a production order must not carry a Source Currency Code/Amount, even when an Additional Reporting Currency is set.
+        Initialize();
+        DisableAutomaticCostPosting();
+
+        // [GIVEN] Additional Reporting Currency is set on General Ledger Setup
+        CurrencyCode := LibraryERM.CreateCurrencyWithGLAccountSetup();
+        LibraryERM.CreateRandomExchangeRate(CurrencyCode);
+        LibraryERM.SetAddReportingCurrency(CurrencyCode);
+
+        // [GIVEN] Released production order with routing and posted capacity output
+        LibraryManufacturing.CreateWorkCenterWithCalendar(WorkCenter);
+        WorkCenter.Validate("Unit Cost", LibraryRandom.RandDec(100, 2));
+        WorkCenter.Modify(true);
+        CreateRouting(RoutingHeader, WorkCenter."No.");
+        CreateItemWithRouting(Item, RoutingHeader."No.");
+        LibraryManufacturing.CreateProductionOrder(
+          ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item,
+          Item."No.", LibraryRandom.RandInt(10));
+        LibraryManufacturing.RefreshProdOrder(ProductionOrder, false, true, true, true, false);
+
+        LibraryInventory.SelectItemJournalTemplateName(ItemJournalTemplate, ItemJournalTemplate.Type::Output);
+        LibraryInventory.SelectItemJournalBatchName(ItemJournalBatch, ItemJournalTemplate.Type, ItemJournalTemplate.Name);
+        CreateOutputJournalLine(ItemJournalTemplate, ItemJournalBatch, Item."No.", ProductionOrder."No.");
+
+        ItemJournalLine.SetRange("Order Type", ItemJournalLine."Order Type"::Production);
+        ItemJournalLine.SetRange("Order No.", ProductionOrder."No.");
+        ItemJournalLine.FindSet();
+        repeat
+            ItemJournalLine.Validate("Run Time", 1);
+            ItemJournalLine.Validate("Output Quantity", 0);
+            ItemJournalLine.Modify(true);
+        until ItemJournalLine.Next() = 0;
+
+        LibraryInventory.PostItemJournalLine(ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name);
+
+        LastGLEntryNo := 0;
+        if GLEntry.FindLast() then
+            LastGLEntryNo := GLEntry."Entry No.";
+
+        // [WHEN] Each Value Entry from the production posting is posted to G/L by invoking
+        //  codeunit "Inventory Posting To G/L" directly (bypasses report 1002's buffer summarization).
+        ValueEntry.SetCurrentKey("Order Type", "Order No.");
+        ValueEntry.SetRange("Order Type", ValueEntry."Order Type"::Production);
+        ValueEntry.SetRange("Order No.", ProductionOrder."No.");
+        Assert.RecordIsNotEmpty(ValueEntry);
+        Commit();
+        InvtPostToGL.Initialize(false);
+        ValueEntry.FindSet();
+        repeat
+            if InvtPostToGL.BufferInvtPosting(ValueEntry) then
+                InvtPostToGL.PostInvtPostBufPerEntry(ValueEntry);
+        until ValueEntry.Next() = 0;
+
+        // [THEN] G/L Entries created by the production posting have no Source Currency Code or Source Currency Amount
+        GLEntry.Reset();
+        GLEntry.SetRange("Prod. Order No.", ProductionOrder."No.");
+        GLEntry.SetFilter("Entry No.", '>%1', LastGLEntryNo);
+        Assert.RecordIsNotEmpty(GLEntry);
+        GLEntry.FindSet();
+        repeat
+            Assert.AreEqual('', GLEntry."Source Currency Code", 'Source Currency Code must be blank on production-related G/L Entries');
+            Assert.AreEqual(0, GLEntry."Source Currency Amount", 'Source Currency Amount must be zero on production-related G/L Entries');
+        until GLEntry.Next() = 0;
+    end;
+
+    [Test]
+    [HandlerFunctions('StatisticsMessageHandler')]
+    [Scope('OnPrem')]
+    procedure PurchasePostingDoesNotPropagateACYToSourceCurrencyOnGLEntry()
+    var
+        Item: Record Item;
+        PurchaseLine: Record "Purchase Line";
+        GLEntry: Record "G/L Entry";
+        CurrencyCode: Code[10];
+        LastGLEntryNo: Integer;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [FEATURE] [Post Inventory Cost to G/L] [Purchase] [Source Currency]
+        // [SCENARIO 633109] G/L Entries posted from a purchase value entry must not carry a Source Currency Code/Amount, even when an Additional Reporting Currency is set. Source-currency suppression is uniform across all inventory-cost postings.
+
+        // [GIVEN] Additional Reporting Currency is set on General Ledger Setup
+        CurrencyCode := LibraryERM.CreateCurrencyWithGLAccountSetup();
+        LibraryERM.CreateRandomExchangeRate(CurrencyCode);
+        LibraryERM.SetAddReportingCurrency(CurrencyCode);
+
+        // [GIVEN] Item with a posted purchase invoice
+        CreateAndModifyItem(Item, Item."Costing Method"::FIFO, 0, 0);
+        CreateAndPostPurchaseDocument(PurchaseLine, Item."No.");
+
+        LastGLEntryNo := 0;
+        if GLEntry.FindLast() then
+            LastGLEntryNo := GLEntry."Entry No.";
+
+        // [WHEN] Post inventory cost to G/L
+        PostInvtCostToGL();
+
+        // [THEN] G/L Entries created by the purchase posting have no Source Currency Code or Source Currency Amount
+        GLEntry.Reset();
+        GLEntry.SetFilter("Entry No.", '>%1', LastGLEntryNo);
+        GLEntry.SetFilter("Source Type", '%1|%2', GLEntry."Source Type"::Vendor, GLEntry."Source Type"::" ");
+        Assert.RecordIsNotEmpty(GLEntry);
+        GLEntry.FindSet();
+        repeat
+            Assert.AreEqual('', GLEntry."Source Currency Code", 'Source Currency Code must be blank on purchase-related inventory G/L Entries');
+            Assert.AreEqual(0, GLEntry."Source Currency Amount", 'Source Currency Amount must be zero on purchase-related inventory G/L Entries');
+        until GLEntry.Next() = 0;
+    end;
+
+    [Test]
     [Scope('OnPrem')]
     [HandlerFunctions('SuggestCapacityStandardCostPageHandler')]
     procedure SuggestCapacityStdCostRprtCreatesWorkCenterStdCostWorksheetsWhenWorkCenterFilterIsApplied()

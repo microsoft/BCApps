@@ -58,6 +58,8 @@ codeunit 10532 "MTD Submit Return"
             VATReportMediator.Submit(Rec);
             Commit(); // prevent rollback to save Submit status
 
+            Session.LogSecurityAudit(UKMakingTaxTok, SecurityOperationResult::Success, StrSubstNo(SecurityAuditVATReturnSubmittedTxt, "No."), AuditCategory::CustomerFacing);
+
             // Perform GET request for VAT Return submission. Write Response Json into Response Archive
             if VATReturnPeriod.GET("Return Period No.") then
                 if MTDMgt.RetrieveVATReturns(VATReturnPeriod, ResponseJson, TotalCount, NewCount, ModifiedCount, false, false) then
@@ -67,6 +69,8 @@ codeunit 10532 "MTD Submit Return"
 
     var
         ConfirmSubmitQst: Label 'When you submit this VAT information you are making a legal declaration that the information is true and complete. A false declaration can result in prosecution. Do you want to continue?';
+        UKMakingTaxTok: Label 'UK Making Tax Digital', Locked = true;
+        SecurityAuditVATReturnSubmittedTxt: Label 'VAT Return %1 was submitted to HMRC.', Locked = true, Comment = '%1 - VAT Report No.';
 
     local procedure CombineSubmissionRequestResponse(RequestJson: Text; ResponseJson: Text) Result: Text
     var

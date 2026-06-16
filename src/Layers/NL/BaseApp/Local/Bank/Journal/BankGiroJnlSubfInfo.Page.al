@@ -81,10 +81,12 @@ page 35001 "Bank/Giro Jnl. Subf. Info"
     end;
 
     var
-        CBGStatement: Record "CBG Statement";
-        Text1000001: Label 'NCI';
         Text1000002: Label 'CI';
         Text1000003: Label 'DI';
+
+    protected var
+        CBGStatement: Record "CBG Statement";
+        Text1000001: Label 'NCI';
 
     [Scope('OnPrem')]
     procedure GetHeader()

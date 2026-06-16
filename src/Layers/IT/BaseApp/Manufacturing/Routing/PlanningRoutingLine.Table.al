@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -12,6 +12,9 @@ using Microsoft.Inventory.Requisition;
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.MachineCenter;
+#if not CLEAN29
+using Microsoft.Manufacturing.Setup;
+#endif
 using Microsoft.Manufacturing.WorkCenter;
 
 table 99000830 "Planning Routing Line"
@@ -980,6 +983,10 @@ table 99000830 "Planning Routing Line"
 
     [Scope('OnPrem')]
     procedure TransferFromRoutingLine(RoutingLine: Record "Routing Line")
+#if not CLEAN29
+    var
+        LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
+#endif
     begin
         "Operation No." := RoutingLine."Operation No.";
         "Next Operation No." := RoutingLine."Next Operation No.";
@@ -1015,7 +1022,8 @@ table 99000830 "Planning Routing Line"
         "Fixed Scrap Qty. (Accum.)" := RoutingLine."Fixed Scrap Qty. (Accum.)";
         "Scrap Factor % (Accumulated)" := RoutingLine."Scrap Factor % (Accumulated)";
 #if not CLEAN28
-        "WIP Item" := RoutingLine."WIP Item";
+        if LegacySubcFeatureHandler.IsLegacySubcontractingEnabled() then
+            "WIP Item" := RoutingLine."WIP Item";
 #endif
 
         OnAfterTransferFromRoutingLine(Rec, RoutingLine);

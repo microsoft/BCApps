@@ -8,12 +8,15 @@ using Microsoft.Finance.Dimension;
 using Microsoft.Foundation.ExtendedText;
 using Microsoft.Foundation.Navigate;
 using Microsoft.Inventory.Availability;
+#if not CLEAN28
 using Microsoft.Inventory.Transfer;
+#endif
 using Microsoft.Purchases.Document;
 using Microsoft.Sales.Document;
 
 page 12153 "Subcontracting Order Subform"
 {
+    ApplicationArea = LegacySubcontracting;
     AutoSplitKey = true;
     Caption = 'Lines';
     DelayedInsert = true;
@@ -31,12 +34,10 @@ page 12153 "Subcontracting Order Subform"
                 ShowCaption = false;
                 field(Type; Rec.Type)
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the line type.';
                 }
                 field("No."; Rec."No.")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the document number.';
 
                     trigger OnValidate()
@@ -47,84 +48,70 @@ page 12153 "Subcontracting Order Subform"
                 }
                 field("Variant Code"; Rec."Variant Code")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the code of the variant for which another variant can serve as a substitute.';
                     Visible = false;
                 }
                 field("VAT Prod. Posting Group"; Rec."VAT Prod. Posting Group")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the VAT product posting group for the line.';
                     Visible = false;
                 }
                 field(Description; Rec.Description)
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies a description.';
                 }
                 field("Return Reason Code"; Rec."Return Reason Code")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the reason for returning the item.';
                     Visible = false;
                 }
                 field("Prod. Order No."; Rec."Prod. Order No.")
                 {
-                    ApplicationArea = Manufacturing;
                     Editable = false;
                     ToolTip = 'Specifies the document number.';
                 }
                 field("Prod. Order Line No."; Rec."Prod. Order Line No.")
                 {
-                    ApplicationArea = Manufacturing;
                     Editable = false;
                     ToolTip = 'Specifies the line number.';
                     Visible = false;
                 }
                 field("Operation No."; Rec."Operation No.")
                 {
-                    ApplicationArea = Manufacturing;
                     Editable = false;
                     ToolTip = 'Specifies the number.';
                 }
                 field("Work Center No."; Rec."Work Center No.")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the work center that is assigned the work.';
                     Visible = false;
                 }
                 field("Location Code"; Rec."Location Code")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the warehouse location.';
                 }
                 field(Quantity; Rec.Quantity)
                 {
-                    ApplicationArea = Manufacturing;
                     BlankZero = true;
                     ToolTip = 'Specifies the quantity.';
                 }
                 field("Reserved Quantity"; Rec."Reserved Quantity")
                 {
-                    ApplicationArea = Manufacturing;
                     BlankZero = true;
                     ToolTip = 'Specifies the number of items that are reserved.';
                 }
                 field("Unit of Measure Code"; Rec."Unit of Measure Code")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the unit of measure for the item.';
                 }
                 field("Unit of Measure"; Rec."Unit of Measure")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the unit of measure for the item.';
                     Visible = false;
                 }
 #if not CLEAN28
                 field("WIP Item"; Rec."WIP Item")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies if the item is a work in process (WIP) item.';
                     ObsoleteReason = 'Preparation for replacement by Subcontracting app';
                     ObsoleteState = Pending;
@@ -132,7 +119,6 @@ page 12153 "Subcontracting Order Subform"
                 }
                 field("WIP Qty at Subc.Loc. (Base)"; Rec."WIP Qty at Subc.Loc. (Base)")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the number of work in process (WIP) items that are at the subcontracting location.';
                     ObsoleteReason = 'Preparation for replacement by Subcontracting app';
                     ObsoleteState = Pending;
@@ -141,74 +127,62 @@ page 12153 "Subcontracting Order Subform"
 #endif
                 field("Direct Unit Cost"; Rec."Direct Unit Cost")
                 {
-                    ApplicationArea = Manufacturing;
                     BlankZero = true;
                     ToolTip = 'Specifies the direct unit cost that is associated with the document.';
                 }
                 field("Indirect Cost %"; Rec."Indirect Cost %")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the indirect cost percent.';
                     Visible = false;
                 }
                 field("Unit Cost (LCY)"; Rec."Unit Cost (LCY)")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the unit cost in your currency.';
                     Visible = false;
                 }
                 field("Unit Price (LCY)"; Rec."Unit Price (LCY)")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the unit price in your currency.';
                     Visible = false;
                 }
                 field("Line Amount"; Rec."Line Amount")
                 {
-                    ApplicationArea = Manufacturing;
                     BlankZero = true;
                     ToolTip = 'Specifies the total amount for the document line.';
                 }
                 field("Line Discount %"; Rec."Line Discount %")
                 {
-                    ApplicationArea = Manufacturing;
                     BlankZero = true;
                     ToolTip = 'Specifies the discount percent for the document line.';
                 }
                 field("Line Discount Amount"; Rec."Line Discount Amount")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the discount amount for the document line.';
                     Visible = false;
                 }
                 field("Allow Invoice Disc."; Rec."Allow Invoice Disc.")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies if you can add an invoice discount.';
                     Visible = false;
                 }
                 field("Inv. Discount Amount"; Rec."Inv. Discount Amount")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the invoice discount amount.';
                     Visible = false;
                 }
                 field("Qty. to Receive"; Rec."Qty. to Receive")
                 {
-                    ApplicationArea = Manufacturing;
                     BlankZero = true;
                     ToolTip = 'Specifies the number of items that will be received.';
                 }
                 field("Quantity Received"; Rec."Quantity Received")
                 {
-                    ApplicationArea = Manufacturing;
                     BlankZero = true;
                     ToolTip = 'Specifies the number of items that have been received.';
                 }
 #if not CLEAN28
                 field("Not Proc. WIP Qty to Receive"; Rec."Not Proc. WIP Qty to Receive")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the number of the non-processed portion of work in process (WIP) items that are still at the subcontracting location.';
                     ObsoleteReason = 'Preparation for replacement by Subcontracting app';
                     ObsoleteState = Pending;
@@ -217,25 +191,21 @@ page 12153 "Subcontracting Order Subform"
 #endif
                 field("Qty. to Invoice"; Rec."Qty. to Invoice")
                 {
-                    ApplicationArea = Manufacturing;
                     BlankZero = true;
                     ToolTip = 'Specifies the number of items that can be invoiced.';
                 }
                 field("Quantity Invoiced"; Rec."Quantity Invoiced")
                 {
-                    ApplicationArea = Manufacturing;
                     BlankZero = true;
                     ToolTip = 'Specifies the number of items that have been invoiced.';
                 }
                 field("Allow Item Charge Assignment"; Rec."Allow Item Charge Assignment")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies if you can assign item charges.';
                     Visible = false;
                 }
                 field("Qty. to Assign"; Rec."Qty. to Assign")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the number of items that can be assigned.';
 
                     trigger OnDrillDown()
@@ -247,7 +217,6 @@ page 12153 "Subcontracting Order Subform"
                 }
                 field("Qty. Assigned"; Rec."Qty. Assigned")
                 {
-                    ApplicationArea = Manufacturing;
                     BlankZero = true;
                     ToolTip = 'Specifies the number of items that have been assigned.';
 
@@ -260,40 +229,33 @@ page 12153 "Subcontracting Order Subform"
                 }
                 field("Requested Receipt Date"; Rec."Requested Receipt Date")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the wanted date of receipt.';
                     Visible = false;
                 }
                 field("Promised Receipt Date"; Rec."Promised Receipt Date")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the date of receipt that the vendor has promised.';
                     Visible = false;
                 }
                 field("Planned Receipt Date"; Rec."Planned Receipt Date")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the date when the items are planned to be received.';
                 }
                 field("Expected Receipt Date"; Rec."Expected Receipt Date")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the expected date of receipt.';
                 }
                 field("Order Date"; Rec."Order Date")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the date when the order was registered.';
                 }
                 field("Lead Time Calculation"; Rec."Lead Time Calculation")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies a date formula for the amount of time that it takes to replenish the item. This field is used to calculate the date fields on order and order proposal lines.';
                     Visible = false;
                 }
                 field("Job No."; Rec."Job No.")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the item number that is assigned to the job.';
                     Visible = false;
 
@@ -304,61 +266,51 @@ page 12153 "Subcontracting Order Subform"
                 }
                 field("Planning Flexibility"; Rec."Planning Flexibility")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies if flexibility is allowed or not.';
                     Visible = false;
                 }
                 field(Finished; Rec.Finished)
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies if the document is finished';
                     Visible = false;
                 }
                 field("Whse. Outstanding Qty. (Base)"; Rec."Whse. Outstanding Qty. (Base)")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the remaining quantity of the item on stock.';
                     Visible = false;
                 }
                 field("Inbound Whse. Handling Time"; Rec."Inbound Whse. Handling Time")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies a date formula for the inbound warehouse handling time for the location.';
                     Visible = false;
                 }
                 field("Blanket Order No."; Rec."Blanket Order No.")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the document number.';
                     Visible = false;
                 }
                 field("Blanket Order Line No."; Rec."Blanket Order Line No.")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the line number.';
                     Visible = false;
                 }
                 field("Appl.-to Item Entry"; Rec."Appl.-to Item Entry")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the item ledger entry that applies to the transaction.';
                     Visible = false;
                 }
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = false;
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = false;
                 }
                 field("ShortcutDimCode[3]"; ShortcutDimCode[3])
                 {
-                    ApplicationArea = Manufacturing;
                     CaptionClass = '1,2,3';
                     TableRelation = "Dimension Value".Code where("Global Dimension No." = const(3),
                                                                   "Dimension Value Type" = const(Standard),
@@ -373,7 +325,6 @@ page 12153 "Subcontracting Order Subform"
                 }
                 field("ShortcutDimCode[4]"; ShortcutDimCode[4])
                 {
-                    ApplicationArea = Manufacturing;
                     CaptionClass = '1,2,4';
                     TableRelation = "Dimension Value".Code where("Global Dimension No." = const(4),
                                                                   "Dimension Value Type" = const(Standard),
@@ -388,7 +339,6 @@ page 12153 "Subcontracting Order Subform"
                 }
                 field("ShortcutDimCode[5]"; ShortcutDimCode[5])
                 {
-                    ApplicationArea = Manufacturing;
                     CaptionClass = '1,2,5';
                     TableRelation = "Dimension Value".Code where("Global Dimension No." = const(5),
                                                                   "Dimension Value Type" = const(Standard),
@@ -403,7 +353,6 @@ page 12153 "Subcontracting Order Subform"
                 }
                 field("ShortcutDimCode[6]"; ShortcutDimCode[6])
                 {
-                    ApplicationArea = Manufacturing;
                     CaptionClass = '1,2,6';
                     TableRelation = "Dimension Value".Code where("Global Dimension No." = const(6),
                                                                   "Dimension Value Type" = const(Standard),
@@ -418,7 +367,6 @@ page 12153 "Subcontracting Order Subform"
                 }
                 field("ShortcutDimCode[7]"; ShortcutDimCode[7])
                 {
-                    ApplicationArea = Manufacturing;
                     CaptionClass = '1,2,7';
                     TableRelation = "Dimension Value".Code where("Global Dimension No." = const(7),
                                                                   "Dimension Value Type" = const(Standard),
@@ -433,7 +381,6 @@ page 12153 "Subcontracting Order Subform"
                 }
                 field("ShortcutDimCode[8]"; ShortcutDimCode[8])
                 {
-                    ApplicationArea = Manufacturing;
                     CaptionClass = '1,2,8';
                     TableRelation = "Dimension Value".Code where("Global Dimension No." = const(8),
                                                                   "Dimension Value Type" = const(Standard),
@@ -449,7 +396,6 @@ page 12153 "Subcontracting Order Subform"
 #if not CLEAN28
                 field("UoM for Pricelist"; Rec."UoM for Pricelist")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the unit of measure for the pricelist.';
                     ObsoleteReason = 'Preparation for replacement by Subcontracting app';
                     ObsoleteState = Pending;
@@ -457,7 +403,6 @@ page 12153 "Subcontracting Order Subform"
                 }
                 field("Base UM Qty/Pricelist UM Qty"; Rec."Base UM Qty/Pricelist UM Qty")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the quantity of the base unit of measure or the pricelist unit of measure.';
                     ObsoleteReason = 'Preparation for replacement by Subcontracting app';
                     ObsoleteState = Pending;
@@ -465,7 +410,6 @@ page 12153 "Subcontracting Order Subform"
                 }
                 field("Pricelist UM Qty/Base UM Qty"; Rec."Pricelist UM Qty/Base UM Qty")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the quantity of the pricelist unit of measure or the base unit of measure.';
                     ObsoleteReason = 'Preparation for replacement by Subcontracting app';
                     ObsoleteState = Pending;
@@ -473,7 +417,6 @@ page 12153 "Subcontracting Order Subform"
                 }
                 field("Pricelist Cost"; Rec."Pricelist Cost")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the cost of the pricelist.';
                     ObsoleteReason = 'Preparation for replacement by Subcontracting app';
                     ObsoleteState = Pending;
@@ -494,7 +437,6 @@ page 12153 "Subcontracting Order Subform"
                 Image = "Action";
                 action("Calculate &Invoice Discount")
                 {
-                    ApplicationArea = Manufacturing;
                     Caption = 'Calculate &Invoice Discount';
                     Image = CalculateInvoiceDiscount;
                     ToolTip = 'Calculate the invoice discount for the document.';
@@ -506,7 +448,6 @@ page 12153 "Subcontracting Order Subform"
                 }
                 action("E&xplode BOM")
                 {
-                    ApplicationArea = Manufacturing;
                     Caption = 'E&xplode BOM';
                     Image = ExplodeBOM;
                     ToolTip = 'View the items that are part of the bill of materials.';
@@ -518,7 +459,6 @@ page 12153 "Subcontracting Order Subform"
                 }
                 action("Insert &Ext. Texts")
                 {
-                    ApplicationArea = Manufacturing;
                     Caption = 'Insert &Ext. Texts';
                     Image = Text;
                     ToolTip = 'Add external text.';
@@ -534,7 +474,6 @@ page 12153 "Subcontracting Order Subform"
                     Image = Delivery;
                     action("Sales &Order")
                     {
-                        ApplicationArea = Manufacturing;
                         Caption = 'Sales &Order';
                         Image = Document;
                         ToolTip = 'View the related sales order.';
@@ -551,7 +490,6 @@ page 12153 "Subcontracting Order Subform"
                     Image = SpecialOrder;
                     action(Action1905579504)
                     {
-                        ApplicationArea = Manufacturing;
                         Caption = 'Sales &Order';
                         Image = Document;
                         ToolTip = 'View the related sales order.';
@@ -564,7 +502,6 @@ page 12153 "Subcontracting Order Subform"
                 }
                 action(Reserve)
                 {
-                    ApplicationArea = Manufacturing;
                     Caption = 'Reserve';
                     Ellipsis = true;
                     Image = Reserve;
@@ -578,7 +515,6 @@ page 12153 "Subcontracting Order Subform"
                 }
                 action("Order &Tracking")
                 {
-                    ApplicationArea = Manufacturing;
                     Caption = 'Order &Tracking';
                     Image = OrderTracking;
                     ToolTip = 'View the order tracking.';
@@ -599,7 +535,6 @@ page 12153 "Subcontracting Order Subform"
                     Image = ItemAvailability;
                     action(Period)
                     {
-                        ApplicationArea = Manufacturing;
                         Caption = 'Period';
                         Image = Period;
                         ToolTip = 'View the related period.';
@@ -611,7 +546,6 @@ page 12153 "Subcontracting Order Subform"
                     }
                     action(Variant)
                     {
-                        ApplicationArea = Manufacturing;
                         Caption = 'Variant';
                         Image = ItemVariant;
                         ToolTip = 'View the related variant.';
@@ -623,7 +557,6 @@ page 12153 "Subcontracting Order Subform"
                     }
                     action(Location)
                     {
-                        ApplicationArea = Manufacturing;
                         Caption = 'Location';
                         Image = Warehouse;
                         ToolTip = 'View the related location.';
@@ -636,7 +569,6 @@ page 12153 "Subcontracting Order Subform"
                 }
                 action("Reservation Entries")
                 {
-                    ApplicationArea = Manufacturing;
                     Caption = 'Reservation Entries';
                     Image = ReservationLedger;
                     ToolTip = 'View the related reservation entries.';
@@ -648,7 +580,6 @@ page 12153 "Subcontracting Order Subform"
                 }
                 action(Dimensions)
                 {
-                    ApplicationArea = Manufacturing;
                     Caption = 'Dimensions';
                     Image = Dimensions;
                     ShortCutKey = 'Shift+Ctrl+D';
@@ -661,7 +592,6 @@ page 12153 "Subcontracting Order Subform"
                 }
                 action("Item Charge &Assignment")
                 {
-                    ApplicationArea = Manufacturing;
                     Caption = 'Item Charge &Assignment';
                     ToolTip = 'View or edit item charge assignment for the document.';
 
@@ -672,7 +602,6 @@ page 12153 "Subcontracting Order Subform"
                 }
                 action("Item Tracking &Lines")
                 {
-                    ApplicationArea = Manufacturing;
                     Caption = 'Item Tracking &Lines';
                     Image = ItemTrackingLines;
                     ToolTip = 'View the item tracking lines.';
@@ -684,7 +613,6 @@ page 12153 "Subcontracting Order Subform"
                 }
                 action("Production Order")
                 {
-                    ApplicationArea = Manufacturing;
                     Caption = 'Production Order';
                     Image = "Order";
                     ToolTip = 'View the related production order.';
@@ -696,7 +624,6 @@ page 12153 "Subcontracting Order Subform"
                 }
                 action("Production &Order Routing")
                 {
-                    ApplicationArea = Manufacturing;
                     Caption = 'Production &Order Routing';
                     ToolTip = 'View the related production order routing.';
 
@@ -707,7 +634,6 @@ page 12153 "Subcontracting Order Subform"
                 }
                 action("Production Order &Components")
                 {
-                    ApplicationArea = Manufacturing;
                     Caption = 'Production Order &Components';
                     ToolTip = 'View the related production order components.';
 
@@ -716,17 +642,23 @@ page 12153 "Subcontracting Order Subform"
                         ShowProdOrdComponents();
                     end;
                 }
+#if not CLEAN28
                 action("Transfer Order Lines")
                 {
-                    ApplicationArea = Manufacturing;
                     Caption = 'Transfer Order Lines';
                     ToolTip = 'View the related transfer order lines.';
+                    ObsoleteReason = 'Preparation for replacement by Subcontracting app';
+                    ObsoleteState = Pending;
+#pragma warning disable AS0072
+                    ObsoleteTag = '27.0';
+#pragma warning restore AS0072
 
                     trigger OnAction()
                     begin
                         ShowTransferOrder();
                     end;
                 }
+#endif
             }
         }
     }
@@ -864,7 +796,11 @@ page 12153 "Subcontracting Order Subform"
         end;
     end;
 
+#if not CLEAN28
     [Scope('OnPrem')]
+#pragma warning disable AS0072
+    [Obsolete('Preparation for replacement by Subcontracting app', '27.0')]
+#pragma warning restore AS0072
     procedure ShowTransferOrder()
     var
         TransferLine: Record "Transfer Line";
@@ -874,7 +810,7 @@ page 12153 "Subcontracting Order Subform"
         TransferLine.SetRange("Derived From Line No.", 0);
         PAGE.Run(0, TransferLine);
     end;
-
+#endif
     local procedure NoOnAfterValidate()
     begin
         InsertExtendedText(false);

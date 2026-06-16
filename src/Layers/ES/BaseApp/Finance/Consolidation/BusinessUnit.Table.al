@@ -353,6 +353,15 @@ table 220 "Business Unit"
             ToolTip = 'Specifies the URL for the API of the Business Central company from which data will be imported. You can get this value from the page "Consolidation Setup" in the Business Central company for this business unit.';
             Caption = 'BC API URL', Comment = 'URL of the API of the external Business Central instance';
             DataClassification = OrganizationIdentifiableInformation;
+
+            trigger OnValidate()
+            begin
+                if "BC API URL" <> xRec."BC API URL" then
+                    Session.LogSecurityAudit(
+                        FinancialConsolidationServiceNameTxt, SecurityOperationResult::Success,
+                        StrSubstNo(SecurityAuditBCApiUrlChangedTxt, Rec.Code, xRec."BC API URL", "BC API URL"),
+                        AuditCategory::ApplicationManagement);
+            end;
         }
         /// <summary>
         /// Microsoft Entra tenant identifier for authenticating API connections to external Business Central.
@@ -361,6 +370,15 @@ table 220 "Business Unit"
         {
             Caption = 'Microsoft Entra tenant';
             DataClassification = OrganizationIdentifiableInformation;
+
+            trigger OnValidate()
+            begin
+                if "AAD Tenant ID" <> xRec."AAD Tenant ID" then
+                    Session.LogSecurityAudit(
+                        FinancialConsolidationServiceNameTxt, SecurityOperationResult::Success,
+                        StrSubstNo(SecurityAuditAadTenantIdChangedTxt, Rec.Code, xRec."AAD Tenant ID", "AAD Tenant ID"),
+                        AuditCategory::ApplicationManagement);
+            end;
         }
         /// <summary>
         /// Unique identifier of the external company when using API-based consolidation import.
@@ -417,6 +435,9 @@ table 220 "Business Unit"
         CurrExchRate: Record "Currency Exchange Rate";
         UnsupportedDataImportMethodErr: Label 'Unsupported data import method.';
         DifferentCurrenciesHaveBeenUsedInPreviousConsolidationsForBusinessUnitsErr: Label 'Different currencies have been used in previous consolidations for this business unit. Changing it may have an impact in currency adjustments. Do you want to continue?';
+        FinancialConsolidationServiceNameTxt: Label 'Financial Consolidation', Locked = true;
+        SecurityAuditBCApiUrlChangedTxt: Label 'Business Unit %1 BC API URL was changed from %2 to %3.', Locked = true, Comment = '%1 - Business Unit Code, %2 - old URL, %3 - new URL';
+        SecurityAuditAadTenantIdChangedTxt: Label 'Business Unit %1 Microsoft Entra tenant ID was changed from %2 to %3.', Locked = true, Comment = '%1 - Business Unit Code, %2 - old tenant ID, %3 - new tenant ID';
 
     /// <summary>
     /// Validates that the specified G/L Account exists and is properly configured for consolidation use.

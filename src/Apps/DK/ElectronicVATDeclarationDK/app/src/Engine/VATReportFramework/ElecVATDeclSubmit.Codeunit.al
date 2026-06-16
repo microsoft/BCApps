@@ -14,6 +14,7 @@ codeunit 13613 "Elec. VAT Decl. Submit"
         FeatureNameTxt: Label 'Electronic VAT Declaration DK', Locked = true;
         VATReturnSubmittedTxt: Label 'VAT Return Created', Locked = true;
         SubmitVATReturnOnRunTxt: Label 'Submit VAT Return OnRun', Locked = true;
+        SecurityAuditVATReturnSubmittedTxt: Label 'VAT Return %1 was submitted to SKAT via Electronic VAT Declaration.', Locked = true, Comment = '%1 - VAT Report No.';
 
     trigger OnRun()
     var
@@ -26,6 +27,7 @@ codeunit 13613 "Elec. VAT Decl. Submit"
         GetDeeplink(HttpResponse);
         ElecVATDeclArchiving.ArchiveSubmissionMessageBlob(SubmissionTempBlob, Rec);
         FeatureTelemetry.LogUsage('0000LRB', FeatureNameTxt, VATReturnSubmittedTxt);
+        Session.LogSecurityAudit(FeatureNameTxt, SecurityOperationResult::Success, StrSubstNo(SecurityAuditVATReturnSubmittedTxt, Rec."No."), AuditCategory::CustomerFacing);
     end;
 
     local procedure GetDeeplink(HttpResponse: Interface "Elec. VAT Decl. Response")

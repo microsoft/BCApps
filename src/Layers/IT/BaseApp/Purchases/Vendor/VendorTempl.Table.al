@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -610,19 +610,51 @@ table 1383 "Vendor Templ."
             Caption = 'Apply Company Payment days';
             InitValue = true;
         }
+#if not CLEANSCHEMA31
         field(12180; "Subcontracting Location Code"; Code[10])
         {
             Caption = 'Subcontracting Location Code';
             TableRelation = Location;
+            ObsoleteReason = 'Preparation for replacement by Subcontracting app';
+#if not CLEAN28
+            ObsoleteState = Pending;
+#pragma warning disable AS0072
+            ObsoleteTag = '27.0';
+#pragma warning restore AS0072
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '31.0';
+#endif
         }
         field(12181; "Subcontractor Procurement"; Boolean)
         {
             Caption = 'Subcontractor Procurement';
+            ObsoleteReason = 'Preparation for replacement by Subcontracting app';
+#if not CLEAN28
+            ObsoleteState = Pending;
+#pragma warning disable AS0072
+            ObsoleteTag = '27.0';
+#pragma warning restore AS0072
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '31.0';
+#endif
         }
         field(12183; Subcontractor; Boolean)
         {
             Caption = 'Subcontractor';
+            ObsoleteReason = 'Preparation for replacement by Subcontracting app';
+#if not CLEAN28
+            ObsoleteState = Pending;
+#pragma warning disable AS0072
+            ObsoleteTag = '27.0';
+#pragma warning restore AS0072
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '31.0';
+#endif
         }
+#endif
         field(12184; "First Name"; Text[30])
         {
             Caption = 'First Name';

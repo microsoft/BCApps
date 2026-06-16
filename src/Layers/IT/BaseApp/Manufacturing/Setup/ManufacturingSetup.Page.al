@@ -222,7 +222,7 @@ page 99000768 "Manufacturing Setup"
                 Caption = 'Subcontracting';
                 field("Subcontr. Ship. Reason Code"; Rec."Subcontr. Ship. Reason Code")
                 {
-                    ApplicationArea = Basic, Suite;
+                    ApplicationArea = LegacySubcontracting;
                     ToolTip = 'Specifies the reason code for the subcontracting shipment.';
                     ObsoleteReason = 'Preparation for replacement by Subcontracting app';
                     ObsoleteState = Pending;
@@ -230,11 +230,18 @@ page 99000768 "Manufacturing Setup"
                 }
                 field("Subcontr. Return Reason Code"; Rec."Subcontr. Return Reason Code")
                 {
-                    ApplicationArea = Basic, Suite;
+                    ApplicationArea = LegacySubcontracting;
                     ToolTip = 'Specifies the reason code for the subcontracting return.';
                     ObsoleteReason = 'Preparation for replacement by Subcontracting app';
                     ObsoleteState = Pending;
                     ObsoleteTag = '27.0';
+                }
+                field("Legacy Subcontracting"; Rec."Legacy Subcontracting")
+                {
+                    ApplicationArea = LegacySubcontracting;
+                    ObsoleteReason = 'Preparation for replacement by Subcontracting app';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
                 }
             }
 #endif
@@ -253,10 +260,58 @@ page 99000768 "Manufacturing Setup"
             }
         }
     }
-
+#if not CLEAN29
     actions
     {
+        area(processing)
+        {
+            group(LegacySubcontracting)
+            {
+                Caption = 'Legacy Subcontracting';
+                ObsoleteReason = 'Preparation for replacement by Subcontracting app';
+                ObsoleteState = Pending;
+                ObsoleteTag = '29.0';
+                action("Disable Legacy Subcontracting")
+                {
+                    ApplicationArea = Manufacturing;
+                    Caption = 'Disable Legacy Subcontracting';
+                    ToolTip = 'Disables the Legacy Subcontracting application area and enables the Subcontracting application area. A session restart is required for the change to take effect.';
+                    Image = Change;
+                    Visible = Rec."Legacy Subcontracting";
+                    ObsoleteReason = 'Legacy Subcontracting will be discontinued, environments should move to the Subcontracting App.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
+
+                    trigger OnAction()
+                    var
+                        LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
+                    begin
+                        LegacySubcFeatureHandler.SetLegacySubcontracting(Rec, false);
+                    end;
+                }
+                action("Pre Check Disable Legacy Subcontracting")
+                {
+                    ApplicationArea = LegacySubcontracting;
+                    Caption = 'Pre-Check Disable Legacy Subcontracting';
+                    ToolTip = 'Performs a pre-check to ensure that the legacy subcontracting feature can be safely disabled. This action does not actually disable the feature or trigger migration.';
+                    Image = CheckList;
+                    ObsoleteReason = 'Subcontracting app will be enabled by default, so this pre-check is no longer necessary';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
+
+                    trigger OnAction()
+                    var
+                        LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
+                        PreChecksPassedMsg: Label 'Pre-checks passed. You can now disable Legacy Subcontracting using the action "Disable Legacy Subcontracting".';
+                    begin
+                        LegacySubcFeatureHandler.CheckCanDisableLegacySubcontracting();
+                        Message(PreChecksPassedMsg);
+                    end;
+                }
+            }
+        }
     }
+#endif
 
     trigger OnOpenPage()
     var
@@ -270,6 +325,4 @@ page 99000768 "Manufacturing Setup"
 
         ManufacturingSetupNotif.ShowPlanningFieldsMoveNotification();
     end;
-
 }
-

@@ -223,7 +223,8 @@ page 54 "Purchase Order Subform"
                     trigger OnValidate()
                     begin
                         Rec.RestoreLookupSelection();
-                        NoOnAfterValidate();
+                        if Rec."No." <> xRec."No." then
+                            NoOnAfterValidate();
 
                         if Rec."No." = xRec."No." then
                             exit;

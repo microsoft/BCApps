@@ -71,6 +71,7 @@ table 99000771 "Production BOM Header"
         {
             Caption = 'Low-Level Code';
             Editable = false;
+            ToolTip = 'Specifies how many levels of components are below this production BOM in the BOM hierarchy. The lowest level has the highest code.';
         }
         field(25; Comment; Boolean)
         {
@@ -79,11 +80,13 @@ table 99000771 "Production BOM Header"
             Caption = 'Comment';
             Editable = false;
             FieldClass = FlowField;
+            ToolTip = 'Specifies that a comment has been entered for this production BOM.';
         }
         field(40; "Creation Date"; Date)
         {
             Caption = 'Creation Date';
             Editable = false;
+            ToolTip = 'Specifies the date when the production BOM was created.';
         }
         field(43; "Last Date Modified"; Date)
         {

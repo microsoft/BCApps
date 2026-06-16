@@ -20,6 +20,9 @@ using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Posting;
 using Microsoft.Inventory.Setup;
 using Microsoft.Inventory.Tracking;
+#if not CLEAN29
+using Microsoft.Manufacturing.Setup;
+#endif
 #if not CLEAN28
 using Microsoft.Purchases.Document;
 #endif
@@ -270,6 +273,9 @@ codeunit 5705 "TransferOrder-Post Receipt"
         WhseEntry: Record "Warehouse Entry";
         TempItemEntryRelation2: Record "Item Entry Relation" temporary;
         ItemJnlPostLine: Codeunit "Item Jnl.-Post Line";
+#if not CLEAN29
+        LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
+#endif
         DimMgt: Codeunit DimensionManagement;
         WhseTransferRelease: Codeunit "Whse.-Transfer Release";
         ReserveTransLine: Codeunit "Transfer Line-Reserve";
@@ -308,8 +314,10 @@ codeunit 5705 "TransferOrder-Post Receipt"
         ItemJnlLine."Order No." := TransRcptHeader2."Transfer Order No.";
         ItemJnlLine."Order Line No." := TransLine3."Line No.";
 #if not CLEAN28
-        ItemJnlLine."Prod. Order No." := TransRcptLine2."Prod. Order No.";
-        ItemJnlLine."Prod. Order Line No." := TransRcptLine2."Prod. Order Line No.";
+        if LegacySubcFeatureHandler.IsLegacySubcontractingEnabled() then begin
+            ItemJnlLine."Prod. Order No." := TransRcptLine2."Prod. Order No.";
+            ItemJnlLine."Prod. Order Line No." := TransRcptLine2."Prod. Order Line No.";
+        end;
 #endif
         ItemJnlLine."External Document No." := TransRcptHeader2."External Document No.";
         ItemJnlLine."Entry Type" := ItemJnlLine."Entry Type"::Transfer;
@@ -351,9 +359,11 @@ codeunit 5705 "TransferOrder-Post Receipt"
         ItemJnlLine."Source No." := TransRcptHeader2."Source No.";
         ItemJnlLine."Source Type" := TransRcptHeader2."Source Type";
 #if not CLEAN28
-        ItemJnlLine."Prod. Order Comp. Line No." := TransRcptLine2."Prod. Order Comp. Line No.";
-        ItemJnlLine."Subcontr. Purch. Order No." := TransRcptLine."Subcontr. Purch. Order No.";
-        ItemJnlLine."Subcontr. Purch. Order Line" := TransRcptLine."Subcontr. Purch. Order Line";
+        if LegacySubcFeatureHandler.IsLegacySubcontractingEnabled() then begin
+            ItemJnlLine."Prod. Order Comp. Line No." := TransRcptLine2."Prod. Order Comp. Line No.";
+            ItemJnlLine."Subcontr. Purch. Order No." := TransRcptLine."Subcontr. Purch. Order No.";
+            ItemJnlLine."Subcontr. Purch. Order Line" := TransRcptLine."Subcontr. Purch. Order Line";
+        end;
 #endif
         OnPostItemJnlLineOnBeforeWriteDownDerivedLines(ItemJnlLine, TransLine3, TransRcptHeader2, TransRcptLine2);
         WriteDownDerivedLines(TransLine3);
@@ -616,25 +626,27 @@ codeunit 5705 "TransferOrder-Post Receipt"
         TransRcptLine."Document No." := TransferReceiptHeader."No.";
         TransRcptLine.CopyFromTransferLine(TransLine);
 #if not CLEAN28
-        TransRcptLine."Subcontr. Purch. Order No." := TransLine."Subcontr. Purch. Order No.";
-        TransRcptLine."Subcontr. Purch. Order Line" := TransLine."Subcontr. Purch. Order Line";
-        TransRcptLine."Prod. Order No." := TransLine."Prod. Order No.";
-        TransRcptLine."Prod. Order Line No." := TransLine."Prod. Order Line No.";
-        TransRcptLine."Prod. Order Comp. Line No." := TransLine."Prod. Order Comp. Line No.";
+        if LegacySubcFeatureHandler.IsLegacySubcontractingEnabled() then begin
+            TransRcptLine."Subcontr. Purch. Order No." := TransLine."Subcontr. Purch. Order No.";
+            TransRcptLine."Subcontr. Purch. Order Line" := TransLine."Subcontr. Purch. Order Line";
+            TransRcptLine."Prod. Order No." := TransLine."Prod. Order No.";
+            TransRcptLine."Prod. Order Line No." := TransLine."Prod. Order Line No.";
+            TransRcptLine."Prod. Order Comp. Line No." := TransLine."Prod. Order Comp. Line No.";
 
-        IsHandled := false;
-        OnInsertTransRcptLineOnBeforeUpdateSubcontractPurchOrderLine(TransferReceiptHeader, TransRcptLine, TransLine, IsHandled);
-        if not IsHandled then
-            if TransRcptLine.Quantity = 0 then
-                if PurchOrderLine.Get(PurchOrderLine."Document Type"::Order,
-                     TransRcptLine."Subcontr. Purch. Order No.",
-                     TransRcptLine."Subcontr. Purch. Order Line")
-                then begin
-                    PurchOrderLine."Not Proc. WIP Qty to Receive" -= TransLine."WIP Quantity";
-                    PurchOrderLine.Modify();
-                end;
+            IsHandled := false;
+            OnInsertTransRcptLineOnBeforeUpdateSubcontractPurchOrderLine(TransferReceiptHeader, TransRcptLine, TransLine, IsHandled);
+            if not IsHandled then
+                if TransRcptLine.Quantity = 0 then
+                    if PurchOrderLine.Get(PurchOrderLine."Document Type"::Order,
+                         TransRcptLine."Subcontr. Purch. Order No.",
+                         TransRcptLine."Subcontr. Purch. Order Line")
+                    then begin
+                        PurchOrderLine."Not Proc. WIP Qty to Receive" -= TransLine."WIP Quantity";
+                        PurchOrderLine.Modify();
+                    end;
 
-        TransRcptLine."Return Order" := TransLine."Return Order";
+            TransRcptLine."Return Order" := TransLine."Return Order";
+        end;
 #endif
         IsHandled := false;
         OnBeforeInsertTransRcptLine(TransRcptLine, TransLine, SuppressCommit, PreviewMode, IsHandled, TransferReceiptHeader);

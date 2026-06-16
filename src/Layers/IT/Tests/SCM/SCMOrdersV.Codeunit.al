@@ -4085,6 +4085,9 @@ codeunit 137158 "SCM Orders V"
         LibraryERMCountryData.UpdatePrepaymentAccounts();
         LibraryERMCountryData.UpdateSalesReceivablesSetup();
         LibraryERMCountryData.UpdateJournalTemplMandatory(false);
+#if not CLEAN29
+        EnableLegacySubcontracting();
+#endif
 
         LibrarySetupStorage.Save(DATABASE::"Sales & Receivables Setup");
         LibrarySetupStorage.Save(DATABASE::"Inventory Setup");
@@ -4095,6 +4098,18 @@ codeunit 137158 "SCM Orders V"
         LibraryTestInitialize.OnAfterTestSuiteInitialize(CODEUNIT::"SCM Orders V");
     end;
 
+#if not CLEAN29
+    local procedure EnableLegacySubcontracting()
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+    begin
+        if ManufacturingSetup.Get() then
+            if not ManufacturingSetup."Legacy Subcontracting" then begin
+                ManufacturingSetup."Legacy Subcontracting" := true;
+                ManufacturingSetup.Modify(true);
+            end;
+    end;
+#endif
     local procedure ItemJournalSetup(var ItemJournalTemplate2: Record "Item Journal Template"; var ItemJournalBatch2: Record "Item Journal Batch"; ItemJournalTemplateType: Enum "Item Journal Template Type")
     begin
         ItemJournalTemplate.SetRange(Recurring, false);

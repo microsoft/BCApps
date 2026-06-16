@@ -59,6 +59,9 @@ codeunit 4700 "VAT Group Communication"
         AttemptingAuthCodeTokenWithCertTxt: Label 'Attempting to acquire a bearer token via authorization code flow, with a SNI certificate', Locked = true;
         AttemptingAuthCodeTokenWithClientSecretTxt: Label 'Attempting to acquire a bearer token via authorization code flow, with a client secret', Locked = true;
         AttemptingAuthCodeTokenFromCacheWithClientSecretTxt: Label 'Attempting to acquire a bearer token via authorization code flow from cache, with a client secret', Locked = true;
+        VATGroupServiceNameTxt: Label 'VAT Group Management', Locked = true;
+        SecurityAuditOAuthTokenAcquiredTxt: Label 'OAuth bearer token acquired for VAT Group representative tenant at %1.', Locked = true, Comment = '%1 - authority URL';
+        SecurityAuditOAuthTokenFailedTxt: Label 'OAuth bearer token acquisition failed for VAT Group representative tenant at %1: %2.', Locked = true, Comment = '%1 - authority URL, %2 - failure reason';
 
     [TryFunction]
     internal procedure Send(Method: Text; Endpoint: Text; Content: Text; var HttpResponseBodyText: Text; IsBatch: Boolean)
@@ -154,15 +157,27 @@ codeunit 4700 "VAT Group Communication"
         end;
 
         if not BearerToken.IsEmpty() then begin
+            Session.LogSecurityAudit(
+                VATGroupServiceNameTxt, SecurityOperationResult::Success,
+                StrSubstNo(SecurityAuditOAuthTokenAcquiredTxt, AuthorityURL),
+                AuditCategory::Authentication);
             Message(BearerTokenSuccessMsg);
             exit;
         end;
 
         if AuthError = '' then begin
             Session.LogMessage('0000DJK', AuthTokenOrCodeNotReceivedErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', VATGroupTok);
+            Session.LogSecurityAudit(
+                VATGroupServiceNameTxt, SecurityOperationResult::Failure,
+                StrSubstNo(SecurityAuditOAuthTokenFailedTxt, AuthorityURL, AuthTokenOrCodeNotReceivedErr),
+                AuditCategory::Authentication);
             Error(OAuthFailedNoErr);
         end else begin
             Session.LogMessage('0000DJL', AuthError, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', VATGroupTok);
+            Session.LogSecurityAudit(
+                VATGroupServiceNameTxt, SecurityOperationResult::Failure,
+                StrSubstNo(SecurityAuditOAuthTokenFailedTxt, AuthorityURL, AuthError),
+                AuditCategory::Authentication);
             Error((StrSubstNo(OAuthFailedErr, AuthError)));
         end;
     end;

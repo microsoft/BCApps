@@ -111,7 +111,7 @@ page 8909 "Warehouse Manager Role Center"
 #if not CLEAN27
                 action("Subcontracting Orders")
                 {
-                    ApplicationArea = Manufacturing;
+                    ApplicationArea = LegacySubcontracting;
                     Caption = 'Subcontracting Orders';
                     RunObject = page "Subcontracting Order List";
                     ObsoleteReason = 'Preparation for replacement by Subcontracting app';
@@ -120,7 +120,7 @@ page 8909 "Warehouse Manager Role Center"
                 }
                 action("Subcontracting Transfer Orders")
                 {
-                    ApplicationArea = Basic, Suite;
+                    ApplicationArea = LegacySubcontracting;
                     Caption = 'Subcontracting Transfer Orders';
                     RunObject = page "Subcontracting Transfer List";
                     ObsoleteReason = 'Preparation for replacement by Subcontracting app';

@@ -394,68 +394,73 @@ page 9660 "Report Layouts"
                 end;
             }
 
+            action(SetApproved)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Set Approved';
+                ToolTip = 'Mark the selected user-defined layouts as approved. Only approved layouts are available for selection on report request pages.';
+                Image = Approve;
+                Enabled = CanModifyStatus;
+                AccessByPermission = tabledata "Tenant Report Layout" = M;
+
+                trigger OnAction()
+                begin
+                    SetLayoutStatusAction(Enum::"Report Layout Status"::Approved);
+                end;
+            }
+            action(SetDraft)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Set Draft';
+                ToolTip = 'Mark the selected user-defined layouts as draft. Draft layouts are not available for selection on report request pages.';
+                Image = OpenWorksheet;
+                Enabled = CanModifyStatus;
+                AccessByPermission = tabledata "Tenant Report Layout" = M;
+
+                trigger OnAction()
+                begin
+                    SetLayoutStatusAction(Enum::"Report Layout Status"::Draft);
+                end;
+            }
+            action(SetPendingApproval)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Set Pending Approval';
+                ToolTip = 'Mark the selected user-defined layouts as pending approval. Pending layouts are not available for selection on report request pages.';
+                Image = AddWatch;
+                Enabled = CanModifyStatus;
+                AccessByPermission = tabledata "Tenant Report Layout" = M;
+
+                trigger OnAction()
+                begin
+                    SetLayoutStatusAction(Enum::"Report Layout Status"::"Pending Approval");
+                end;
+            }
+            action(SetRetired)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Set Retired';
+                ToolTip = 'Mark the selected user-defined layouts as retired. Retired layouts are not available for selection on report request pages.';
+                Image = Archive;
+                Enabled = CanModifyStatus;
+                AccessByPermission = tabledata "Tenant Report Layout" = M;
+
+                trigger OnAction()
+                begin
+                    SetLayoutStatusAction(Enum::"Report Layout Status"::Retired);
+                end;
+            }
+
+#if not CLEAN29
             group(StatusActions)
             {
                 Caption = 'Layout Status';
                 Image = Status;
-
-                action(SetApproved)
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Set Approved';
-                    ToolTip = 'Mark the selected user-defined layouts as approved. Only approved layouts are available for selection on report request pages.';
-                    Image = Approve;
-                    Enabled = CanModifyStatus;
-                    AccessByPermission = tabledata "Tenant Report Layout" = M;
-
-                    trigger OnAction()
-                    begin
-                        SetLayoutStatusAction(Enum::"Report Layout Status"::Approved);
-                    end;
-                }
-                action(SetDraft)
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Set Draft';
-                    ToolTip = 'Mark the selected user-defined layouts as draft. Draft layouts are not available for selection on report request pages.';
-                    Image = OpenWorksheet;
-                    Enabled = CanModifyStatus;
-                    AccessByPermission = tabledata "Tenant Report Layout" = M;
-
-                    trigger OnAction()
-                    begin
-                        SetLayoutStatusAction(Enum::"Report Layout Status"::Draft);
-                    end;
-                }
-                action(SetPendingApproval)
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Set Pending Approval';
-                    ToolTip = 'Mark the selected user-defined layouts as pending approval. Pending layouts are not available for selection on report request pages.';
-                    Image = AddWatch;
-                    Enabled = CanModifyStatus;
-                    AccessByPermission = tabledata "Tenant Report Layout" = M;
-
-                    trigger OnAction()
-                    begin
-                        SetLayoutStatusAction(Enum::"Report Layout Status"::"Pending Approval");
-                    end;
-                }
-                action(SetRetired)
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Set Retired';
-                    ToolTip = 'Mark the selected user-defined layouts as retired. Retired layouts are not available for selection on report request pages.';
-                    Image = Archive;
-                    Enabled = CanModifyStatus;
-                    AccessByPermission = tabledata "Tenant Report Layout" = M;
-
-                    trigger OnAction()
-                    begin
-                        SetLayoutStatusAction(Enum::"Report Layout Status"::Retired);
-                    end;
-                }
+                ObsoleteState = Pending;
+                ObsoleteReason = 'The Layout Status actions have been moved under the Layout action group in the promoted area. This empty group is kept for backward compatibility and will be removed in a future version.';
+                ObsoleteTag = '29.0';
             }
+#endif
         }
 
         area(Promoted)
@@ -502,6 +507,28 @@ page 9660 "Report Layouts"
 
                 actionref(ShowInfoDialog_Promoted; ShowInfoDialog)
                 {
+                }
+
+                group(LayoutStatus)
+                {
+                    Caption = 'Layout Status';
+                    Image = Status;
+
+                    actionref(SetApproved_Promoted; SetApproved)
+                    {
+                    }
+
+                    actionref(SetDraft_Promoted; SetDraft)
+                    {
+                    }
+
+                    actionref(SetPendingApproval_Promoted; SetPendingApproval)
+                    {
+                    }
+
+                    actionref(SetRetired_Promoted; SetRetired)
+                    {
+                    }
                 }
             }
         }

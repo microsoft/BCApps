@@ -17,6 +17,7 @@ codeunit 9400 "IPC Management"
         ApiKeyConfigErr: Label 'API Key is not configured.';
         ResponseDetailsTxt: Label 'Received response %1 %2.', Comment = '%1 - Status code, %2 - Reason phrase.';
         UnsuccessfulAddressSearchTxt: Label 'Unsuccessful address search. Response %1 %2.', Comment = '%1 - Status code, %2 - Reason phrase.', Locked = true;
+        SecurityAuditAuthFailedTxt: Label 'IdealPostcodes API rejected the request with status %1 %2.', Locked = true, Comment = '%1 - Status code, %2 - Reason phrase.';
 
     [NonDebuggable]
     procedure SearchAddress(SearchText: Text; var TempIPCAddressLookup: Record "IPC Address Lookup" temporary; var StatusCode: Integer; var ReasonPhrase: Text): Boolean
@@ -24,6 +25,7 @@ codeunit 9400 "IPC Management"
         Config: Record "IPC Config";
         TypeHelper: Codeunit "Type Helper";
         FeatureTelemetry: Codeunit "Feature Telemetry";
+        AuditLog: Codeunit "Audit Log";
         HttpClient: HttpClient;
         HttpResponse: HttpResponseMessage;
         ResponseText: Text;
@@ -49,6 +51,8 @@ codeunit 9400 "IPC Management"
                 ParseAddressResponse(ResponseText, TempIPCAddressLookup);
                 exit(not TempIPCAddressLookup.IsEmpty());
             end;
+            if StatusCode in [401, 403] then
+                AuditLog.LogAuditMessage(StrSubstNo(SecurityAuditAuthFailedTxt, StatusCode, ReasonPhrase), SecurityOperationResult::Failure, AuditCategory::Authentication, 4, 0);
         end;
         exit(false);
     end;
@@ -59,6 +63,7 @@ codeunit 9400 "IPC Management"
         Config: Record "IPC Config";
         TypeHelper: Codeunit "Type Helper";
         FeatureTelemetry: Codeunit "Feature Telemetry";
+        AuditLog: Codeunit "Audit Log";
         HttpClient: HttpClient;
         HttpResponse: HttpResponseMessage;
         ResponseText: Text;
@@ -80,7 +85,9 @@ codeunit 9400 "IPC Management"
             if HttpResponse.IsSuccessStatusCode then begin
                 HttpResponse.Content.ReadAs(ResponseText);
                 ParseAddressDetail(ResponseText, TempIPCAddressLookup);
-            end;
+            end else
+                if ReasonCode in [401, 403] then
+                    AuditLog.LogAuditMessage(StrSubstNo(SecurityAuditAuthFailedTxt, ReasonCode, ReasonPhrase), SecurityOperationResult::Failure, AuditCategory::Authentication, 4, 0);
         end;
     end;
 

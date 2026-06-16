@@ -185,7 +185,8 @@ page 97 "Purchase Quote Subform"
                         Rec.RestoreLookupSelection();
                         Rec.ShowShortcutDimCode(ShortcutDimCode);
                         DeltaUpdateTotals();
-                        NoOnAfterValidate();
+                        if Rec."No." <> xRec."No." then
+                            NoOnAfterValidate();
                     end;
 
                     trigger OnAfterLookup(Selected: RecordRef)

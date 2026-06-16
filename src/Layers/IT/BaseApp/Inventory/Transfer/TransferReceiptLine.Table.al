@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -206,24 +206,65 @@ table 5747 "Transfer Receipt Line"
                                             "Item Filter" = field("Item No."),
                                             "Variant Filter" = field("Variant Code"));
         }
+#if not CLEANSCHEMA31
         field(12180; "Subcontr. Purch. Order No."; Code[20])
         {
             Caption = 'Subcontr. Purch. Order No.';
+            ObsoleteReason = 'Preparation for replacement by Subcontracting app';
+#if not CLEAN28
+            ObsoleteState = Pending;
+#pragma warning disable AS0072
+            ObsoleteTag = '27.0';
+#pragma warning restore AS0072
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '31.0';
+#endif
         }
         field(12181; "Subcontr. Purch. Order Line"; Integer)
         {
             Caption = 'Subcontr. Purch. Order Line';
+            ObsoleteReason = 'Preparation for replacement by Subcontracting app';
+#if not CLEAN28
+            ObsoleteState = Pending;
+#pragma warning disable AS0072
+            ObsoleteTag = '27.0';
+#pragma warning restore AS0072
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '31.0';
+#endif
         }
         field(12182; "Prod. Order No."; Code[20])
         {
             Caption = 'Prod. Order No.';
             TableRelation = "Production Order"."No." where(Status = const(Released));
+            ObsoleteReason = 'Preparation for replacement by Subcontracting app';
+#if not CLEAN28
+            ObsoleteState = Pending;
+#pragma warning disable AS0072
+            ObsoleteTag = '27.0';
+#pragma warning restore AS0072
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '31.0';
+#endif
         }
         field(12183; "Prod. Order Line No."; Integer)
         {
             Caption = 'Prod. Order Line No.';
             TableRelation = "Prod. Order Line"."Line No." where(Status = const(Released),
                                                                  "Prod. Order No." = field("Prod. Order No."));
+            ObsoleteReason = 'Preparation for replacement by Subcontracting app';
+#if not CLEAN28
+            ObsoleteState = Pending;
+#pragma warning disable AS0072
+            ObsoleteTag = '27.0';
+#pragma warning restore AS0072
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '31.0';
+#endif
         }
         field(12184; "Prod. Order Comp. Line No."; Integer)
         {
@@ -231,7 +272,18 @@ table 5747 "Transfer Receipt Line"
             TableRelation = "Prod. Order Component"."Line No." where(Status = const(Released),
                                                                       "Prod. Order No." = field("Prod. Order No."),
                                                                       "Prod. Order Line No." = field("Prod. Order Line No."));
+            ObsoleteReason = 'Preparation for replacement by Subcontracting app';
+#if not CLEAN28
+            ObsoleteState = Pending;
+#pragma warning disable AS0072
+            ObsoleteTag = '27.0';
+#pragma warning restore AS0072
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '31.0';
+#endif
         }
+#endif
         field(12185; "Return Order"; Boolean)
         {
             Caption = 'Return Order';

@@ -686,5 +686,25 @@
     "codeunitId": 139235,
     "codeunitName": "PEPPOL30 Management Tests",
     "method": "*"
+  },
+  {
+    "codeunitId": 139790,
+    "codeunitName": "E-Doc. Purch. Order Exp. Test",
+    "method": "ReleaseOfPurchaseOrderCreatesEDocument"
+  },
+  {
+    "codeunitId": 139790,
+    "codeunitName": "E-Doc. Purch. Order Exp. Test",
+    "method": "CannotDeletePurchaseOrderWithActiveEDocument"
+  },
+  {
+    "codeunitId": 139790,
+    "codeunitName": "E-Doc. Purch. Order Exp. Test",
+    "method": "CanDeletePurchaseOrderWithCanceledEDocument"
+  },
+  {
+    "codeunitId": 139617,
+    "codeunitName": "E-Doc. Mapping Test",
+    "method": "MappingTableAndFieldRuleSuccess"
   }
 ]

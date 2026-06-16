@@ -8331,6 +8331,9 @@ codeunit 137079 "SCM Production Order III"
         ItemJournalSetup();
         ConsumptionJournalSetup();
         OutputJournalSetup();
+#if not CLEAN29
+        EnableLegacySubcontracting();
+#endif
         ShopCalendarMgt.ClearInternals(); // clear single instance codeunit vars to avoid influence of other test codeunits
 
         IsInitialized := true;
@@ -8338,6 +8341,18 @@ codeunit 137079 "SCM Production Order III"
         LibraryTestInitialize.OnAfterTestSuiteInitialize(CODEUNIT::"SCM Production Order III");
     end;
 
+#if not CLEAN29
+    local procedure EnableLegacySubcontracting()
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+    begin
+        if ManufacturingSetup.Get() then
+            if not ManufacturingSetup."Legacy Subcontracting" then begin
+                ManufacturingSetup."Legacy Subcontracting" := true;
+                ManufacturingSetup.Modify(true);
+            end;
+    end;
+#endif
     local procedure InitSetupForProdBOMWithMultipleUOM(var Item: Record Item; var ChildItem: Record Item; var QuantityPer: Decimal; var QtyPerUnitOfMeasure: Decimal; var AvailableQty: Decimal)
     var
         ItemUnitOfMeasure: Record "Item Unit of Measure";
@@ -8932,7 +8947,9 @@ codeunit 137079 "SCM Production Order III"
     local procedure CreateWorkCenter(var WorkCenter: Record "Work Center"; IsSubcontracted: Boolean)
     var
         GeneralPostingSetup: Record "General Posting Setup";
+#if not CLEAN28
         SubcontractLocation: Record Location;
+#endif
         SubcontractVendor: Record Vendor;
     begin
         LibraryERM.FindGenPostingSetupWithDefVAT(GeneralPostingSetup);
@@ -8940,8 +8957,10 @@ codeunit 137079 "SCM Production Order III"
         if IsSubcontracted then begin
             WorkCenter.Validate("Subcontractor No.", LibraryPurchase.CreateVendorNo());
             SubcontractVendor.Get(WorkCenter."Subcontractor No.");
+#if not CLEAN28
             SubcontractVendor.Validate(Subcontractor, true);
             SubcontractVendor.Validate("Subcontracting Location Code", LibraryWarehouse.CreateLocation(SubcontractLocation));
+#endif
             SubcontractVendor.Modify(true);
         end;
         WorkCenter.Validate("Gen. Prod. Posting Group", GeneralPostingSetup."Gen. Prod. Posting Group");

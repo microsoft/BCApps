@@ -339,6 +339,7 @@ codeunit 926 "Assembly Line-Reserve"
         ReservationEntry.SetRange("Source Type", Database::"Assembly Line");
         ReservationEntry.SetRange("Source Subtype", AssemblyLine."Document Type");
         ReservationEntry.SetRange("Source ID", AssemblyLine."Document No.");
+        ReservationEntry.SetRange("Source Ref. No.", AssemblyLine."Line No.");
         ReservationEntry.SetRange("Source Batch Name", '');
         ReservationEntry.SetRange("Source Prod. Order Line", 0);
         CreateReservEntry.UpdateItemTrackingAfterPosting(ReservationEntry);

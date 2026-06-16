@@ -164,7 +164,7 @@ codeunit 12170 "Recall Customer Bill"
         GenJnlLine."Document Type to Close" := CustLedgEntry."Document Type to Close";
         GenJnlLine."Document No. to Close" := CustLedgEntry."Document No. to Close";
         GenJnlLine."Document Occurrence to Close" := CustLedgEntry."Document Occurrence to Close";
-        OnAfterInitGenJnlLine(GenJnlLine, CustLedgEntry, AccountNo);
+        OnAfterInitGenJnlLine(GenJnlLine, CustLedgEntry, AccountNo, CustomerBillLine);
     end;
 
     [Scope('OnPrem')]
@@ -290,7 +290,7 @@ codeunit 12170 "Recall Customer Bill"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterInitGenJnlLine(var GenJournalLine: Record "Gen. Journal Line"; var CustLedgerEntry: Record "Cust. Ledger Entry"; var AccountNo: Code[20])
+    local procedure OnAfterInitGenJnlLine(var GenJournalLine: Record "Gen. Journal Line"; var CustLedgerEntry: Record "Cust. Ledger Entry"; var AccountNo: Code[20]; CustomerBillLine: Record "Customer Bill Line")
     begin
     end;
 

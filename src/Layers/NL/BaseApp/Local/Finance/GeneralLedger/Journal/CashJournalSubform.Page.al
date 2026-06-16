@@ -381,6 +381,7 @@ page 11404 "Cash Journal Subform"
         GetHeader();
         if CBGStatement."No." <> 0 then
             Rec.InitRecord(xRec);
+        OnOnNewRecordOnAfterInitRecord(CBGStatement, Rec, xRec);
         AfterGetCurrentRecord();
     end;
 
@@ -456,6 +457,11 @@ page 11404 "Cash Journal Subform"
         xRec := Rec;
         VATStatusEnable := Rec."Account Type" = Rec."Account Type"::"G/L Account";
         StatusVATAmountEnable := Rec."Account Type" = Rec."Account Type"::"G/L Account";
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnOnNewRecordOnAfterInitRecord(CBGStatement: Record "CBG Statement"; var CBGStatementLine: Record "CBG Statement Line"; xCBGStatementLine: Record "CBG Statement Line")
+    begin
     end;
 }
 

@@ -511,7 +511,8 @@ table 99000754 "Work Center"
         }
         field(81; "Overhead Rate"; Decimal)
         {
-            AutoFormatType = 0;
+            AutoFormatType = 2;
+            AutoFormatExpression = '';
             Caption = 'Overhead Rate';
             ToolTip = 'Specifies the overhead rate of this work center.';
 
@@ -544,7 +545,7 @@ table 99000754 "Work Center"
         field(7300; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
-            ToolTip = 'Specifies the location where the work center operates by default.';
+            ToolTip = 'Specifies the location for which the bin codes on this work center apply. The bin codes are used on production order routing lines and components only when the production order''s location matches this value.';
             TableRelation = Location.Code where("Use As In-Transit" = const(false),
                                                  "Bin Mandatory" = const(true));
 
@@ -604,7 +605,7 @@ table 99000754 "Work Center"
         field(7301; "Open Shop Floor Bin Code"; Code[20])
         {
             Caption = 'Open Shop Floor Bin Code';
-            ToolTip = 'Specifies the bin that functions as the default open shop floor bin at the work center.';
+            ToolTip = 'Specifies the default bin for production order components with manual, forward, or backward flushing method. Copied to the production order routing line when the location code matches, then used as the component''s bin code based on the flushing method.';
             TableRelation = Bin.Code where("Location Code" = field("Location Code"));
 
             trigger OnValidate()
@@ -615,7 +616,7 @@ table 99000754 "Work Center"
         field(7302; "To-Production Bin Code"; Code[20])
         {
             Caption = 'To-Production Bin Code';
-            ToolTip = 'Specifies the bin in the production area where components that are picked for production are placed by default before they can be consumed.';
+            ToolTip = 'Specifies the default bin for production order components with pick-based flushing methods (Pick + Forward, Pick + Backward, Pick + Manual). Copied to the production order routing line when the location code matches, then used as the component''s bin code based on the flushing method.';
             TableRelation = Bin.Code where("Location Code" = field("Location Code"));
 
             trigger OnValidate()
@@ -626,7 +627,7 @@ table 99000754 "Work Center"
         field(7303; "From-Production Bin Code"; Code[20])
         {
             Caption = 'From-Production Bin Code';
-            ToolTip = 'Specifies the bin in the production area where finished end items are taken by default when the process involves warehouse activity.';
+            ToolTip = 'Specifies the default bin for finished output. Copied to the production order routing line when the location code matches. At the last routing operation, this bin code flows to the production order line''s bin code.';
             TableRelation = Bin.Code where("Location Code" = field("Location Code"));
 
             trigger OnValidate()

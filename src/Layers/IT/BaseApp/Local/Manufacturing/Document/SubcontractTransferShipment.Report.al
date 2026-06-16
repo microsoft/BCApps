@@ -1,4 +1,5 @@
-﻿// ------------------------------------------------------------------------------------------------
+﻿#if not CLEAN28
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -10,6 +11,7 @@ using Microsoft.Foundation.Company;
 using Microsoft.Foundation.Shipping;
 using Microsoft.Inventory.Setup;
 using Microsoft.Inventory.Transfer;
+using Microsoft.Manufacturing.Setup;
 using Microsoft.Purchases.Vendor;
 using System.Utilities;
 
@@ -17,9 +19,14 @@ report 12154 "Subcontract. Transfer Shipment"
 {
     DefaultLayout = RDLC;
     RDLCLayout = './Local/Manufacturing/Document/SubcontractTransferShipment.rdlc';
-    ApplicationArea = Basic, Suite;
+    ApplicationArea = LegacySubcontracting;
     Caption = 'Subcontracting Transfer Shipment';
     UsageCategory = ReportsAndAnalysis;
+    ObsoleteReason = 'Preparation for replacement by Subcontracting app';
+    ObsoleteState = Pending;
+#pragma warning disable AS0072
+    ObsoleteTag = '27.0';
+#pragma warning restore AS0072
 
     dataset
     {
@@ -439,7 +446,7 @@ report 12154 "Subcontract. Transfer Shipment"
                                     CurrReport.Break();
                             end;
                         }
-
+#if not CLEAN28
                         trigger OnAfterGetRecord()
                         begin
                             if ("Subcontr. Purch. Order No." <> PrevSubcOrd) and ("Subcontr. Purch. Order No." <> '') then begin
@@ -454,7 +461,7 @@ report 12154 "Subcontract. Transfer Shipment"
                             end else
                                 RefProdOrd := '';
                         end;
-
+#endif
                         trigger OnPreDataItem()
                         begin
                             MoreLines := Find('+');
@@ -597,6 +604,14 @@ report 12154 "Subcontract. Transfer Shipment"
     {
     }
 
+    trigger OnPreReport()
+    var
+        LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
+    begin
+        if not LegacySubcFeatureHandler.IsLegacySubcontractingEnabled() then
+            CurrReport.Quit();
+    end;
+
     var
         Text1130000: Label 'COPY';
         Text1130002: Label 'Page %1';
@@ -617,8 +632,10 @@ report 12154 "Subcontract. Transfer Shipment"
         OldDimText: Text[75];
         RefSubcOrd: Text[50];
         RefProdOrd: Text[50];
+#if not CLEAN28
         PrevSubcOrd: Code[20];
         PrevProdOrd: Code[20];
+#endif
         MoreLines: Boolean;
         NoOfCopies: Integer;
         NoOfLoops: Integer;
@@ -663,4 +680,4 @@ report 12154 "Subcontract. Transfer Shipment"
             end;
     end;
 }
-
+#endif

@@ -1547,8 +1547,12 @@ codeunit 5802 "Inventory Posting To G/L"
     end;
 
     procedure PostGenJnlLine(var GenJnlLine: Record "Gen. Journal Line")
+    var
+        InvtPostGLSrcCurrSub: Codeunit "Invt. Post G/L Src. Curr. Sub.";
     begin
+        BindSubscription(InvtPostGLSrcCurrSub);
         GenJnlPostLine.RunWithCheck(GenJnlLine);
+        UnbindSubscription(InvtPostGLSrcCurrSub);
     end;
 
     [IntegrationEvent(true, false)]

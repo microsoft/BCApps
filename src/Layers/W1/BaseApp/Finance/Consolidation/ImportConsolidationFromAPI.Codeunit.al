@@ -49,6 +49,8 @@ codeunit 102 "Import Consolidation from API" implements "Import Consolidation Da
         SelectOnlyOneCompanyErr: Label 'You can only select one company per business unit.';
         PrivacyConsentNoGUIErr: Label 'Getting privacy consent requires user interaction.';
         BusinessUnitConsentErr: Label 'The business unit %1 needs to consent for their data to be transferred to the consolidation company. Open the page Consolidation Setup in that company and enable the company as subsidiary.', Comment = '%1 - Business unit code';
+        FinancialConsolidationServiceNameTxt: Label 'Financial Consolidation', Locked = true;
+        SecurityAuditConsentMissingTxt: Label 'Cross-tenant consolidation data access was denied: subsidiary business unit %1 has not enabled itself as a subsidiary.', Locked = true, Comment = '%1 - Business Unit Code';
         ExchangeRateNotDefinedInBusinessUnitErr: Label 'Exchange rate for %1 is not defined in Business Unit.', Comment = '%1 - Currency Code';
         PostingDateFilterTok: Label 'postingDate ge %1 and postingDate le %2', Locked = true, Comment = '%1 - Starting date, %2 - Ending date';
         PostingClosingDateFilterTok: Label 'postingDate gt %1 and postingDate lt %2', Locked = true, Comment = '%1 - Starting date, %2 - Ending date';
@@ -197,8 +199,13 @@ codeunit 102 "Import Consolidation from API" implements "Import Consolidation Da
         BusinessUnit."External Company Id" := TempCompany.Id;
         BusinessUnit.Validate("External Company Name", TempCompany.Name);
         SetBusinessUnitAPIBaseUrl(BusinessUnit);
-        if not VerifySubsidiaryConsent() then
+        if not VerifySubsidiaryConsent() then begin
+            Session.LogSecurityAudit(
+                FinancialConsolidationServiceNameTxt, SecurityOperationResult::Failure,
+                StrSubstNo(SecurityAuditConsentMissingTxt, BusinessUnit.Code),
+                AuditCategory::CustomerFacing);
             Error(BusinessUnitConsentErr, BusinessUnit.Code);
+        end;
         FeatureTelemetry.LogUptake('0000KOL', GetFeatureTelemetryName(), Enum::"Feature Uptake Status"::"Set up");
         Session.LogMessage('0000KTR', 'Configured new external BC company:' + UserSecurityId() + ', ' + BusinessUnit.Code, Verbosity::Normal, DataClassification::EndUserPseudonymousIdentifiers, TelemetryScope::All, 'Category', ConsolidationSetup.GetTelemetryCategory());
     end;
@@ -454,8 +461,13 @@ codeunit 102 "Import Consolidation from API" implements "Import Consolidation Da
         Consolidate.SetSelectedDim(SelectedDimension);
 
         ValidateNoPostingsAtClosingDates := ConsolidationProcess."Starting Date" = NormalDate(ConsolidationProcess."Starting Date");
-        if not VerifySubsidiaryConsent(GLSetupJsonObject) then
+        if not VerifySubsidiaryConsent(GLSetupJsonObject) then begin
+            Session.LogSecurityAudit(
+                FinancialConsolidationServiceNameTxt, SecurityOperationResult::Failure,
+                StrSubstNo(SecurityAuditConsentMissingTxt, BusinessUnit.Code),
+                AuditCategory::CustomerFacing);
             Error(BusinessUnitConsentErr, BusinessUnit.Code);
+        end;
         GetAndSetPostingGLAccounts(ValidateNoPostingsAtClosingDates, ConsolidationProcess."Starting Date", ConsolidationProcess."Ending Date", Consolidate);
         GetAndSetGLEntriesForGLAccountsToConsolidate(ConsolidationProcess."Starting Date", ConsolidationProcess."Ending Date", ConsolidationProcess."Dimensions to Transfer", Consolidate);
         if (BusinessUnit."Currency Code" <> '') and (BusinessUnit."Currency Exchange Rate Table" = BusinessUnit."Currency Exchange Rate Table"::"Business Unit") then

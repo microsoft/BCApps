@@ -144,6 +144,7 @@ table 1021 "Job WIP Total"
         field(30; "Cost Completion %"; Decimal)
         {
             AutoFormatType = 0;
+            DecimalPlaces = 0 : 5;
             BlankZero = true;
             Caption = 'Cost Completion %';
             ToolTip = 'Specifies the cost completion percentage for project tasks that have been budgeted in the current WIP calculation.';
@@ -152,6 +153,7 @@ table 1021 "Job WIP Total"
         field(31; "Invoiced %"; Decimal)
         {
             AutoFormatType = 0;
+            DecimalPlaces = 0 : 5;
             BlankZero = true;
             Caption = 'Invoiced %';
             ToolTip = 'Specifies the percentage of contracted project tasks that have been invoiced in the current WIP calculation.';

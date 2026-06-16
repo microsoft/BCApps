@@ -21,11 +21,21 @@ codeunit 137410 "Extended Text Documents"
         LibraryRandom: Codeunit "Library - Random";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryResource: Codeunit "Library - Resource";
+        LibraryApplicationArea: Codeunit "Library - Application Area";
         Assert: Codeunit Assert;
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         TransferExtendedText: Codeunit "Transfer Extended Text";
         NotFoundErr: Label 'Could not find an order line with the Extended Text.';
         ExtendedTxt: Label 'Test Extended Text';
+        ExtTextDeletedOnSalesQuoteErr: Label 'Extended text lines were deleted after editing description on the sales quote line.';
+        ExtTextDeletedOnPurchaseQuoteErr: Label 'Extended text lines were deleted after editing description on the purchase quote line.';
+        ExtTextDeletedOnSalesReturnOrderErr: Label 'Extended text lines were deleted after editing description on the sales return order line.';
+        ExtTextDeletedOnPurchaseOrderErr: Label 'Extended text lines were deleted after editing description on the purchase order line.';
+        ExtTextDeletedOnPurchaseInvoiceErr: Label 'Extended text lines were deleted after editing description on the purchase invoice line.';
+        ExtTextDeletedOnPurchaseCreditMemoErr: Label 'Extended text lines were deleted after editing description on the purchase credit memo line.';
+        ExtTextDeletedOnSalesOrderErr: Label 'Extended text lines were deleted after editing description on the sales order line.';
+        ExtTextDeletedOnSalesInvoiceErr: Label 'Extended text lines were deleted after editing description on the sales invoice line.';
+        ExtTextDeletedOnSalesCreditMemoErr: Label 'Extended text lines were deleted after editing description on the sales credit memo line.';
         IsInitialzied: Boolean;
 
     local procedure Initialize()
@@ -500,6 +510,511 @@ codeunit 137410 "Extended Text Documents"
         VerifyInsertedJobPlanningLines(ExtendedTextHeader, JobPlanningLine);
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure EditingDescriptionOnSalesQuoteLineDoesNotDeleteInsertedExtText()
+    var
+        Customer: Record Customer;
+        ExtendedTextHeader: Record "Extended Text Header";
+        ExtendedTextLine: Record "Extended Text Line";
+        Item: Record Item;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesQuote: TestPage "Sales Quote";
+        AttachedCountBefore: Integer;
+        AttachedCountAfter: Integer;
+        NewDescription: Text[100];
+    begin
+        // [FEATURE] [Sales] [Sales Quote] [AI test]
+        // [SCENARIO 634184] Editing Description on a Sales Quote item line must preserve previously
+        // inserted Extended Text lines.
+        Initialize();
+
+        // [GIVEN] An item with a (manual, non-automatic) Extended Text valid for Sales Quote.
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Automatic Ext. Texts", false);
+        Item.Modify(true);
+        LibraryInventory.CreateExtendedTextHeaderItem(ExtendedTextHeader, Item."No.");
+        ExtendedTextHeader.Validate("Sales Quote", true);
+        ExtendedTextHeader.Modify(true);
+        LibraryInventory.CreateExtendedTextLineItem(ExtendedTextLine, ExtendedTextHeader);
+        ExtendedTextLine.Validate(Text, LibraryUtility.GenerateRandomText(50));
+        ExtendedTextLine.Modify(true);
+
+        // [GIVEN] A Sales Quote with one item line and Insert Ext. Texts run on it.
+        LibrarySales.CreateCustomer(Customer);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Quote, Customer."No.");
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", LibraryRandom.RandIntInRange(1, 10));
+        SalesQuote.OpenEdit();
+        SalesQuote.GotoRecord(SalesHeader);
+        SalesQuote.SalesLines.GotoRecord(SalesLine);
+        SalesQuote.SalesLines.InsertExtTexts.Invoke();
+        SalesQuote.Close();
+        AttachedCountBefore := CountAttachedSalesLines(SalesHeader, SalesLine."Line No.");
+
+        // [WHEN] User edits Description on the parent item line via the Sales Quote subform.
+        NewDescription := CopyStr(SalesLine.Description + '2', 1, MaxStrLen(SalesLine.Description));
+        SalesQuote.OpenEdit();
+        SalesQuote.GotoRecord(SalesHeader);
+        SalesQuote.SalesLines.GotoRecord(SalesLine);
+        SalesQuote.SalesLines.Description.SetValue(NewDescription);
+        SalesQuote.SalesLines.Next();
+        SalesQuote.Close();
+
+        // [THEN] Inserted extended text lines must still be present.
+        AttachedCountAfter := CountAttachedSalesLines(SalesHeader, SalesLine."Line No.");
+        Assert.AreEqual(AttachedCountBefore, AttachedCountAfter, ExtTextDeletedOnSalesQuoteErr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure EditingDescriptionOnPurchaseQuoteLineDoesNotDeleteInsertedExtText()
+    var
+        ExtendedTextHeader: Record "Extended Text Header";
+        ExtendedTextLine: Record "Extended Text Line";
+        Item: Record Item;
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Vendor: Record Vendor;
+        PurchaseQuote: TestPage "Purchase Quote";
+        AttachedCountBefore: Integer;
+        AttachedCountAfter: Integer;
+        NewDescription: Text[100];
+    begin
+        // [FEATURE] [Purchase] [Purchase Quote] [AI test]
+        // [SCENARIO 634184] Editing Description on a Purchase Quote item line must preserve previously
+        // inserted Extended Text lines.
+        Initialize();
+
+        // [GIVEN] An item with a Extended Text valid for Purchase Quote.
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Automatic Ext. Texts", false);
+        Item.Modify(true);
+        LibraryInventory.CreateExtendedTextHeaderItem(ExtendedTextHeader, Item."No.");
+        ExtendedTextHeader.Validate("Purchase Quote", true);
+        ExtendedTextHeader.Modify(true);
+        LibraryInventory.CreateExtendedTextLineItem(ExtendedTextLine, ExtendedTextHeader);
+        ExtendedTextLine.Validate(Text, LibraryUtility.GenerateRandomText(50));
+        ExtendedTextLine.Modify(true);
+
+        // [GIVEN] A Purchase Quote with one item line and Insert Ext. Texts run on it.
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Quote, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", LibraryRandom.RandIntInRange(1, 10));
+        PurchaseQuote.OpenEdit();
+        PurchaseQuote.GotoRecord(PurchaseHeader);
+        PurchaseQuote.PurchLines.GotoRecord(PurchaseLine);
+        PurchaseQuote.PurchLines."Insert &Ext. Texts".Invoke();
+        PurchaseQuote.Close();
+        AttachedCountBefore := CountAttachedPurchaseLines(PurchaseHeader, PurchaseLine."Line No.");
+
+        // [WHEN] User edits Description on the parent item line via the Purchase Quote subform.
+        NewDescription := CopyStr(PurchaseLine.Description + '2', 1, MaxStrLen(PurchaseLine.Description));
+        PurchaseQuote.OpenEdit();
+        PurchaseQuote.GotoRecord(PurchaseHeader);
+        PurchaseQuote.PurchLines.GotoRecord(PurchaseLine);
+        PurchaseQuote.PurchLines.Description.SetValue(NewDescription);
+        PurchaseQuote.PurchLines.Next();
+        PurchaseQuote.Close();
+
+        // [THEN] Inserted extended text lines must still be present.
+        AttachedCountAfter := CountAttachedPurchaseLines(PurchaseHeader, PurchaseLine."Line No.");
+        Assert.AreEqual(AttachedCountBefore, AttachedCountAfter, ExtTextDeletedOnPurchaseQuoteErr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure EditingDescriptionOnPurchaseOrderLineDoesNotDeleteInsertedExtText()
+    var
+        ExtendedTextHeader: Record "Extended Text Header";
+        ExtendedTextLine: Record "Extended Text Line";
+        Item: Record Item;
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Vendor: Record Vendor;
+        PurchaseOrder: TestPage "Purchase Order";
+        AttachedCountBefore: Integer;
+        AttachedCountAfter: Integer;
+        NewDescription: Text[100];
+    begin
+        // [FEATURE] [Purchase] [Purchase Order] [AI test]
+        // [SCENARIO 634184] Editing Description on a Purchase Order item line must preserve previously
+        // inserted Extended Text lines.
+        Initialize();
+
+        // [GIVEN] An item with a Extended Text valid for Purchase Order.
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Automatic Ext. Texts", false);
+        Item.Modify(true);
+        LibraryInventory.CreateExtendedTextHeaderItem(ExtendedTextHeader, Item."No.");
+        ExtendedTextHeader.Validate("Purchase Order", true);
+        ExtendedTextHeader.Modify(true);
+        LibraryInventory.CreateExtendedTextLineItem(ExtendedTextLine, ExtendedTextHeader);
+        ExtendedTextLine.Validate(Text, LibraryUtility.GenerateRandomText(50));
+        ExtendedTextLine.Modify(true);
+
+        // [GIVEN] A Purchase Order with one item line and Insert Ext. Texts run on it.
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", LibraryRandom.RandIntInRange(1, 10));
+        PurchaseOrder.OpenEdit();
+        PurchaseOrder.GotoRecord(PurchaseHeader);
+        PurchaseOrder.PurchLines.GotoRecord(PurchaseLine);
+        PurchaseOrder.PurchLines."Insert Ext. Texts".Invoke();
+        PurchaseOrder.Close();
+        AttachedCountBefore := CountAttachedPurchaseLines(PurchaseHeader, PurchaseLine."Line No.");
+
+        // [WHEN] User edits Description on the parent item line via the Purchase Order subform.
+        NewDescription := CopyStr(PurchaseLine.Description + '2', 1, MaxStrLen(PurchaseLine.Description));
+        PurchaseOrder.OpenEdit();
+        PurchaseOrder.GotoRecord(PurchaseHeader);
+        PurchaseOrder.PurchLines.GotoRecord(PurchaseLine);
+        PurchaseOrder.PurchLines.Description.SetValue(NewDescription);
+        PurchaseOrder.PurchLines.Next();
+        PurchaseOrder.Close();
+
+        // [THEN] Inserted extended text lines must still be present.
+        AttachedCountAfter := CountAttachedPurchaseLines(PurchaseHeader, PurchaseLine."Line No.");
+        Assert.AreEqual(AttachedCountBefore, AttachedCountAfter, ExtTextDeletedOnPurchaseOrderErr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure EditingDescriptionOnPurchaseInvoiceLineDoesNotDeleteInsertedExtText()
+    var
+        ExtendedTextHeader: Record "Extended Text Header";
+        ExtendedTextLine: Record "Extended Text Line";
+        Item: Record Item;
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Vendor: Record Vendor;
+        PurchaseInvoice: TestPage "Purchase Invoice";
+        AttachedCountBefore: Integer;
+        AttachedCountAfter: Integer;
+        NewDescription: Text[100];
+    begin
+        // [FEATURE] [Purchase] [Purchase Invoice] [AI test]
+        // [SCENARIO 634184] Editing Description on a Purchase Invoice item line must preserve previously
+        // inserted Extended Text lines.
+        Initialize();
+
+        // [GIVEN] An item with a Extended Text valid for Purchase Invoice.
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Automatic Ext. Texts", false);
+        Item.Modify(true);
+        LibraryInventory.CreateExtendedTextHeaderItem(ExtendedTextHeader, Item."No.");
+        ExtendedTextHeader.Validate("Purchase Invoice", true);
+        ExtendedTextHeader.Modify(true);
+        LibraryInventory.CreateExtendedTextLineItem(ExtendedTextLine, ExtendedTextHeader);
+        ExtendedTextLine.Validate(Text, LibraryUtility.GenerateRandomText(50));
+        ExtendedTextLine.Modify(true);
+
+        // [GIVEN] A Purchase Invoice with one item line and Insert Ext. Texts run on it.
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", LibraryRandom.RandIntInRange(1, 10));
+        PurchaseInvoice.OpenEdit();
+        PurchaseInvoice.GotoRecord(PurchaseHeader);
+        PurchaseInvoice.PurchLines.GotoRecord(PurchaseLine);
+        PurchaseInvoice.PurchLines.InsertExtTexts.Invoke();
+        PurchaseInvoice.Close();
+        AttachedCountBefore := CountAttachedPurchaseLines(PurchaseHeader, PurchaseLine."Line No.");
+
+        // [WHEN] User edits Description on the parent item line via the Purchase Invoice subform.
+        NewDescription := CopyStr(PurchaseLine.Description + '2', 1, MaxStrLen(PurchaseLine.Description));
+        PurchaseInvoice.OpenEdit();
+        PurchaseInvoice.GotoRecord(PurchaseHeader);
+        PurchaseInvoice.PurchLines.GotoRecord(PurchaseLine);
+        PurchaseInvoice.PurchLines.Description.SetValue(NewDescription);
+        PurchaseInvoice.PurchLines.Next();
+        PurchaseInvoice.Close();
+
+        // [THEN] Inserted extended text lines must still be present.
+        AttachedCountAfter := CountAttachedPurchaseLines(PurchaseHeader, PurchaseLine."Line No.");
+        Assert.AreEqual(AttachedCountBefore, AttachedCountAfter, ExtTextDeletedOnPurchaseInvoiceErr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure EditingDescriptionOnPurchaseCrMemoLineDoesNotDeleteInsertedExtText()
+    var
+        ExtendedTextHeader: Record "Extended Text Header";
+        ExtendedTextLine: Record "Extended Text Line";
+        Item: Record Item;
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Vendor: Record Vendor;
+        PurchaseCrMemo: TestPage "Purchase Credit Memo";
+        AttachedCountBefore: Integer;
+        AttachedCountAfter: Integer;
+        NewDescription: Text[100];
+    begin
+        // [FEATURE] [Purchase] [Purchase Credit Memo] [AI test]
+        // [SCENARIO 634184] Editing Description on a Purchase Credit Memo item line must preserve previously
+        // inserted Extended Text lines.
+        Initialize();
+
+        // [GIVEN] An item with a Extended Text valid for Purchase Credit Memo.
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Automatic Ext. Texts", false);
+        Item.Modify(true);
+        LibraryInventory.CreateExtendedTextHeaderItem(ExtendedTextHeader, Item."No.");
+        ExtendedTextHeader.Validate("Purchase Credit Memo", true);
+        ExtendedTextHeader.Modify(true);
+        LibraryInventory.CreateExtendedTextLineItem(ExtendedTextLine, ExtendedTextHeader);
+        ExtendedTextLine.Validate(Text, LibraryUtility.GenerateRandomText(50));
+        ExtendedTextLine.Modify(true);
+
+        // [GIVEN] A Purchase Credit Memo with one item line and Insert Ext. Texts run on it.
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::"Credit Memo", Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", LibraryRandom.RandIntInRange(1, 10));
+        PurchaseCrMemo.OpenEdit();
+        PurchaseCrMemo.GotoRecord(PurchaseHeader);
+        PurchaseCrMemo.PurchLines.GotoRecord(PurchaseLine);
+        PurchaseCrMemo.PurchLines.InsertExtTexts.Invoke();
+        PurchaseCrMemo.Close();
+        AttachedCountBefore := CountAttachedPurchaseLines(PurchaseHeader, PurchaseLine."Line No.");
+
+        // [WHEN] User edits Description on the parent item line via the Purchase Credit Memo subform.
+        NewDescription := CopyStr(PurchaseLine.Description + '2', 1, MaxStrLen(PurchaseLine.Description));
+        PurchaseCrMemo.OpenEdit();
+        PurchaseCrMemo.GotoRecord(PurchaseHeader);
+        PurchaseCrMemo.PurchLines.GotoRecord(PurchaseLine);
+        PurchaseCrMemo.PurchLines.Description.SetValue(NewDescription);
+        PurchaseCrMemo.PurchLines.Next();
+        PurchaseCrMemo.Close();
+
+        // [THEN] Inserted extended text lines must still be present.
+        AttachedCountAfter := CountAttachedPurchaseLines(PurchaseHeader, PurchaseLine."Line No.");
+        Assert.AreEqual(AttachedCountBefore, AttachedCountAfter, ExtTextDeletedOnPurchaseCreditMemoErr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure EditingDescriptionOnSalesOrderLineDoesNotDeleteInsertedExtText()
+    var
+        Customer: Record Customer;
+        ExtendedTextHeader: Record "Extended Text Header";
+        ExtendedTextLine: Record "Extended Text Line";
+        Item: Record Item;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesOrder: TestPage "Sales Order";
+        AttachedCountBefore: Integer;
+        AttachedCountAfter: Integer;
+        NewDescription: Text[100];
+    begin
+        // [FEATURE] [Sales] [Sales Order] [AI test]
+        // [SCENARIO 634184] Editing Description on a Sales Order item line must preserve previously
+        // inserted Extended Text lines.
+        Initialize();
+
+        // [GIVEN] An item with a (manual, non-automatic) Extended Text valid for Sales Order.
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Automatic Ext. Texts", false);
+        Item.Modify(true);
+        LibraryInventory.CreateExtendedTextHeaderItem(ExtendedTextHeader, Item."No.");
+        ExtendedTextHeader.Validate("Sales Order", true);
+        ExtendedTextHeader.Modify(true);
+        LibraryInventory.CreateExtendedTextLineItem(ExtendedTextLine, ExtendedTextHeader);
+        ExtendedTextLine.Validate(Text, LibraryUtility.GenerateRandomText(50));
+        ExtendedTextLine.Modify(true);
+
+        // [GIVEN] A Sales Order with one item line and Insert Ext. Texts run on it.
+        LibrarySales.CreateCustomer(Customer);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, Customer."No.");
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", LibraryRandom.RandIntInRange(1, 10));
+        SalesOrder.OpenEdit();
+        SalesOrder.GotoRecord(SalesHeader);
+        SalesOrder.SalesLines.GotoRecord(SalesLine);
+        SalesOrder.SalesLines."Insert Ext. Texts".Invoke();
+        SalesOrder.Close();
+        AttachedCountBefore := CountAttachedSalesLines(SalesHeader, SalesLine."Line No.");
+
+        // [WHEN] User edits Description on the parent item line via the Sales Order subform.
+        NewDescription := CopyStr(SalesLine.Description + '2', 1, MaxStrLen(SalesLine.Description));
+        SalesOrder.OpenEdit();
+        SalesOrder.GotoRecord(SalesHeader);
+        SalesOrder.SalesLines.GotoRecord(SalesLine);
+        SalesOrder.SalesLines.Description.SetValue(NewDescription);
+        SalesOrder.SalesLines.Next();
+        SalesOrder.Close();
+
+        // [THEN] Inserted extended text lines must still be present.
+        AttachedCountAfter := CountAttachedSalesLines(SalesHeader, SalesLine."Line No.");
+        Assert.AreEqual(AttachedCountBefore, AttachedCountAfter, ExtTextDeletedOnSalesOrderErr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure EditingDescriptionOnSalesInvoiceLineDoesNotDeleteInsertedExtText()
+    var
+        Customer: Record Customer;
+        ExtendedTextHeader: Record "Extended Text Header";
+        ExtendedTextLine: Record "Extended Text Line";
+        Item: Record Item;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesInvoice: TestPage "Sales Invoice";
+        AttachedCountBefore: Integer;
+        AttachedCountAfter: Integer;
+        NewDescription: Text[100];
+    begin
+        // [FEATURE] [Sales] [Sales Invoice] [AI test]
+        // [SCENARIO 634184] Editing Description on a Sales Invoice item line must preserve previously
+        // inserted Extended Text lines.
+        Initialize();
+
+        // [GIVEN] An item with a (manual, non-automatic) Extended Text valid for Sales Invoice.
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Automatic Ext. Texts", false);
+        Item.Modify(true);
+        LibraryInventory.CreateExtendedTextHeaderItem(ExtendedTextHeader, Item."No.");
+        ExtendedTextHeader.Validate("Sales Invoice", true);
+        ExtendedTextHeader.Modify(true);
+        LibraryInventory.CreateExtendedTextLineItem(ExtendedTextLine, ExtendedTextHeader);
+        ExtendedTextLine.Validate(Text, LibraryUtility.GenerateRandomText(50));
+        ExtendedTextLine.Modify(true);
+
+        // [GIVEN] A Sales Invoice with one item line and Insert Ext. Texts run on it.
+        LibrarySales.CreateCustomer(Customer);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, Customer."No.");
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", LibraryRandom.RandIntInRange(1, 10));
+        SalesInvoice.OpenEdit();
+        SalesInvoice.GotoRecord(SalesHeader);
+        SalesInvoice.SalesLines.GotoRecord(SalesLine);
+        SalesInvoice.SalesLines.InsertExtTexts.Invoke();
+        SalesInvoice.Close();
+        AttachedCountBefore := CountAttachedSalesLines(SalesHeader, SalesLine."Line No.");
+
+        // [WHEN] User edits Description on the parent item line via the Sales Invoice subform.
+        NewDescription := CopyStr(SalesLine.Description + '2', 1, MaxStrLen(SalesLine.Description));
+        SalesInvoice.OpenEdit();
+        SalesInvoice.GotoRecord(SalesHeader);
+        SalesInvoice.SalesLines.GotoRecord(SalesLine);
+        SalesInvoice.SalesLines.Description.SetValue(NewDescription);
+        SalesInvoice.SalesLines.Next();
+        SalesInvoice.Close();
+
+        // [THEN] Inserted extended text lines must still be present.
+        AttachedCountAfter := CountAttachedSalesLines(SalesHeader, SalesLine."Line No.");
+        Assert.AreEqual(AttachedCountBefore, AttachedCountAfter, ExtTextDeletedOnSalesInvoiceErr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure EditingDescriptionOnSalesCrMemoLineDoesNotDeleteInsertedExtText()
+    var
+        Customer: Record Customer;
+        ExtendedTextHeader: Record "Extended Text Header";
+        ExtendedTextLine: Record "Extended Text Line";
+        Item: Record Item;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesCrMemo: TestPage "Sales Credit Memo";
+        AttachedCountBefore: Integer;
+        AttachedCountAfter: Integer;
+        NewDescription: Text[100];
+    begin
+        // [FEATURE] [Sales] [Sales Credit Memo] [AI test]
+        // [SCENARIO 634184] Editing Description on a Sales Credit Memo item line must preserve previously
+        // inserted Extended Text lines.
+        Initialize();
+
+        // [GIVEN] An item with a (manual, non-automatic) Extended Text valid for Sales Credit Memo.
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Automatic Ext. Texts", false);
+        Item.Modify(true);
+        LibraryInventory.CreateExtendedTextHeaderItem(ExtendedTextHeader, Item."No.");
+        ExtendedTextHeader.Validate("Sales Credit Memo", true);
+        ExtendedTextHeader.Modify(true);
+        LibraryInventory.CreateExtendedTextLineItem(ExtendedTextLine, ExtendedTextHeader);
+        ExtendedTextLine.Validate(Text, LibraryUtility.GenerateRandomText(50));
+        ExtendedTextLine.Modify(true);
+
+        // [GIVEN] A Sales Credit Memo with one item line and Insert Ext. Texts run on it.
+        LibrarySales.CreateCustomer(Customer);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::"Credit Memo", Customer."No.");
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", LibraryRandom.RandIntInRange(1, 10));
+        SalesCrMemo.OpenEdit();
+        SalesCrMemo.GotoRecord(SalesHeader);
+        SalesCrMemo.SalesLines.GotoRecord(SalesLine);
+        SalesCrMemo.SalesLines.InsertExtTexts.Invoke();
+        SalesCrMemo.Close();
+        AttachedCountBefore := CountAttachedSalesLines(SalesHeader, SalesLine."Line No.");
+
+        // [WHEN] User edits Description on the parent item line via the Sales Credit Memo subform.
+        NewDescription := CopyStr(SalesLine.Description + '2', 1, MaxStrLen(SalesLine.Description));
+        SalesCrMemo.OpenEdit();
+        SalesCrMemo.GotoRecord(SalesHeader);
+        SalesCrMemo.SalesLines.GotoRecord(SalesLine);
+        SalesCrMemo.SalesLines.Description.SetValue(NewDescription);
+        SalesCrMemo.SalesLines.Next();
+        SalesCrMemo.Close();
+
+        // [THEN] Inserted extended text lines must still be present.
+        AttachedCountAfter := CountAttachedSalesLines(SalesHeader, SalesLine."Line No.");
+        Assert.AreEqual(AttachedCountBefore, AttachedCountAfter, ExtTextDeletedOnSalesCreditMemoErr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure EditingDescriptionOnSalesReturnOrderLineDoesNotDeleteInsertedExtText()
+    var
+        Customer: Record Customer;
+        ExtendedTextHeader: Record "Extended Text Header";
+        ExtendedTextLine: Record "Extended Text Line";
+        Item: Record Item;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesReturnOrder: TestPage "Sales Return Order";
+        AttachedCountBefore: Integer;
+        AttachedCountAfter: Integer;
+        NewDescription: Text[100];
+    begin
+        // [FEATURE] [Sales] [Sales Return Order] [AI test]
+        // [SCENARIO 634184] Editing Description on a Sales Return Order item line must preserve previously
+        // inserted Extended Text lines.
+        Initialize();
+        LibraryApplicationArea.DisableApplicationAreaSetup();
+
+        // [GIVEN] An item with a (manual, non-automatic) Extended Text valid for Sales Return Order.
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Automatic Ext. Texts", false);
+        Item.Modify(true);
+        LibraryInventory.CreateExtendedTextHeaderItem(ExtendedTextHeader, Item."No.");
+        ExtendedTextHeader.Validate("Sales Return Order", true);
+        ExtendedTextHeader.Modify(true);
+        LibraryInventory.CreateExtendedTextLineItem(ExtendedTextLine, ExtendedTextHeader);
+        ExtendedTextLine.Validate(Text, LibraryUtility.GenerateRandomText(50));
+        ExtendedTextLine.Modify(true);
+
+        // [GIVEN] A Sales Return Order with one item line and Insert Ext. Texts run on it.
+        LibrarySales.CreateCustomer(Customer);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::"Return Order", Customer."No.");
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", LibraryRandom.RandIntInRange(1, 10));
+        SalesReturnOrder.OpenEdit();
+        SalesReturnOrder.GotoRecord(SalesHeader);
+        SalesReturnOrder.SalesLines.GotoRecord(SalesLine);
+        SalesReturnOrder.SalesLines."Insert &Ext. Texts".Invoke();
+        SalesReturnOrder.Close();
+        AttachedCountBefore := CountAttachedSalesLines(SalesHeader, SalesLine."Line No.");
+
+        // [WHEN] User edits Description on the parent item line via the Sales Return Order subform.
+        NewDescription := CopyStr(SalesLine.Description + '2', 1, MaxStrLen(SalesLine.Description));
+        SalesReturnOrder.OpenEdit();
+        SalesReturnOrder.GotoRecord(SalesHeader);
+        SalesReturnOrder.SalesLines.GotoRecord(SalesLine);
+        SalesReturnOrder.SalesLines.Description.SetValue(NewDescription);
+        SalesReturnOrder.SalesLines.Next();
+        SalesReturnOrder.Close();
+
+        // [THEN] Inserted extended text lines must still be present.
+        AttachedCountAfter := CountAttachedSalesLines(SalesHeader, SalesLine."Line No.");
+        Assert.AreEqual(AttachedCountBefore, AttachedCountAfter, ExtTextDeletedOnSalesReturnOrderErr);
+    end;
+
     local procedure CreateJobPlanningLine(LineType: Enum "Job Planning Line Line Type"; Type: Enum "Job Planning Line Type"; No: Code[20]; JobTask: Record "Job Task"; var JobPlanningLine: Record "Job Planning Line")
     begin
         JobPlanningLine.Init();
@@ -638,6 +1153,26 @@ codeunit 137410 "Extended Text Documents"
         ExtTextJobPlanningLine.FindFirst();
         Assert.IsTrue(ExtTextJobPlanningLine."Contract Line" = true, 'Contract Line expected.');
         Assert.IsTrue(ExtTextJobPlanningLine."Job Contract Entry No." <> 0, 'Job Contract Entry No. expected.');
+    end;
+
+    local procedure CountAttachedSalesLines(SalesHeader: Record "Sales Header"; ParentLineNo: Integer): Integer
+    var
+        SalesLine: Record "Sales Line";
+    begin
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        SalesLine.SetRange("Attached to Line No.", ParentLineNo);
+        exit(SalesLine.Count());
+    end;
+
+    local procedure CountAttachedPurchaseLines(PurchaseHeader: Record "Purchase Header"; ParentLineNo: Integer): Integer
+    var
+        PurchaseLine: Record "Purchase Line";
+    begin
+        PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
+        PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+        PurchaseLine.SetRange("Attached to Line No.", ParentLineNo);
+        exit(PurchaseLine.Count());
     end;
 }
 

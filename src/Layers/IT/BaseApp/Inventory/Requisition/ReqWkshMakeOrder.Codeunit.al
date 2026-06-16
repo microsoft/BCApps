@@ -16,6 +16,9 @@ using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Setup;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Inventory.Transfer;
+#if not CLEAN29
+using Microsoft.Manufacturing.Setup;
+#endif
 using Microsoft.Projects.Project.Planning;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Setup;
@@ -642,6 +645,9 @@ codeunit 333 "Req. Wksh.-Make Order"
     var
         PurchOrderLine2: Record "Purchase Line";
         DimensionSetIDArr: array[10] of Integer;
+#if not CLEAN29
+        LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
+#endif
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -700,7 +706,7 @@ codeunit 333 "Req. Wksh.-Make Order"
             end;
 
 #if not CLEAN28
-        if ReqLine2."Prod. Order No." <> '' then begin
+        if LegacySubcFeatureHandler.IsLegacySubcontractingEnabled() and (ReqLine2."Prod. Order No." <> '') then begin
             PurchOrderLine."Base UM Qty/Pricelist UM Qty" := ReqLine2."Base UM Qty/Pricelist UM Qty";
             PurchOrderLine."UoM for Pricelist" := ReqLine2."UoM for Pricelist";
             PurchOrderLine."Pricelist UM Qty/Base UM Qty" := ReqLine2."Pricelist UM Qty/Base UM Qty";

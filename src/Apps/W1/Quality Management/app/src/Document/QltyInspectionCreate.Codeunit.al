@@ -36,6 +36,7 @@ codeunit 20404 "Qlty. Inspection - Create"
         LastQltyInspectionCreateStatus: Enum "Qlty. Inspection Create Status";
         PreventShowingGeneratedInspectionEvenIfConfigured: Boolean;
         AvoidThrowingErrorWhenPossible: Boolean;
+        LastInspectionIsNewlyCreated: Boolean;
         ProgrammerErrNotARecordRefErr: Label 'Cannot find inspections with %1. Please supply a "Record" or "RecordRef".', Comment = '%1=the variant being supplied that is not a RecordRef. Your system might have an extension or customization that needs to be re-configured.';
         CannotFindTemplateErr: Label 'Cannot find a Quality Inspection Template or Quality Inspection Generation Rule to match %1. Ensure there is a Quality Inspection Generation Rule that will match this record.', Comment = '%1=The record identifier';
         UnableToCreateInspectionForErr: Label 'Unable to create an inspection for the record [%1], please review the Quality Inspection Source Configuration and also the Quality Inspection Generation Rules, you likely need additional configuration to work with this record.', Comment = '%1=the record id of what is being attempted to have an inspection created for.';
@@ -43,9 +44,10 @@ codeunit 20404 "Qlty. Inspection - Create"
         MultiRecordInspectionSourceFieldErr: Label 'Inspection %1 has been created, however neither %2 nor %4 had applicable source fields to map to the inspection. Navigate to the Quality Source Configuration for table %3 and apply source field mapping.', Comment = '%1=the inspection, %2=target record,  %3=the number to set configuration for,%4=triggering record';
         RegisteredLogEventIDTok: Label 'QMERR0001', Locked = true;
         DetailRecordTok: Label 'Target', Locked = true;
-        UnableToCreateInspectionForParentOrChildErr: Label 'Cannot find enough details to make an inspection for your record(s).  Try making sure that there is a source configuration for your record, and then also make sure there is sufficient information in your inspection generation rules.  Two tables involved are %1 and %2.', Comment = '%1=the parent table, %2=the child and original table.';
-        UnableToCreateInspectionForRecordErr: Label 'Cannot find enough details to make an inspection for your record(s).  Try making sure that there is a source configuration for your record, and then also make sure there is sufficient information in your inspection generation rules.  The table involved is %1.', Comment = '%1=the table involved.';
+        UnableToCreateInspectionForParentOrChildErr: Label 'Cannot find enough details to make an inspection for your record(s). Try making sure that there is a source configuration for your record, and then also make sure there is sufficient information in your inspection generation rules. Two tables involved are %1 and %2.', Comment = '%1=the parent table, %2=the child and original table.';
+        UnableToCreateInspectionForRecordErr: Label 'Cannot find enough details to make an inspection for your record(s). Try making sure that there is a source configuration for your record, and then also make sure there is sufficient information in your inspection generation rules. The table involved is %1.', Comment = '%1=the table involved.';
         RecordShouldBeTemporaryErr: Label 'This code is only intended to run in a temporary fashion. This error is likely occurring from an integration issue.';
+        SomeInspectionsMatchedQst: Label 'No new inspections were created, but %1 existing inspections matched. Do you want to see them?', Comment = '%1=the count of existing inspections that were matched (reused).';
         UnknownRecordTok: Label 'Unknown record', Locked = true;
 
     /// <summary>
@@ -280,6 +282,8 @@ codeunit 20404 "Qlty. Inspection - Create"
         OriginalRecordTableNo: Integer;
         IsNewlyCreatedInspection: Boolean;
     begin
+        LastInspectionIsNewlyCreated := false;
+
         case true of
             TargetRecordRef.Number() = 0,
             not QltyManagementSetup.GetSetupRecord():
@@ -354,17 +358,22 @@ codeunit 20404 "Qlty. Inspection - Create"
 
             QltyInspectionHeader.SetIsCreating(false);
             LastCreatedQltyInspectionHeader := QltyInspectionHeader;
+            LastInspectionIsNewlyCreated := IsNewlyCreatedInspection;
 
             if IsNewlyCreatedInspection then
                 QltyStartWorkflow.StartWorkflowInspectionCreated(QltyInspectionHeader);
 
-            if GuiAllowed() and not PreventShowingGeneratedInspectionEvenIfConfigured
-                and (QltyInspectionHeader."No." <> '') then
+            if GuiAllowed() and
+               not PreventShowingGeneratedInspectionEvenIfConfigured and
+               (QltyInspectionHeader."No." <> '')
+            then
                 if IsManualCreation then
                     Page.Run(Page::"Qlty. Inspection", QltyInspectionHeader)
                 else
-                    QltyNotificationMgmt.NotifyInspectionCreated(QltyInspectionHeader);
+                    if IsNewlyCreatedInspection then
+                        QltyNotificationMgmt.NotifyInspectionCreated(QltyInspectionHeader);
         end else begin
+            LastInspectionIsNewlyCreated := false;
             LogCreateInspectionProblem(TargetRecordRef, UnableToCreateInspectionForErr, Format(OriginalRecordId));
             if IsManualCreation and (not AvoidThrowingErrorWhenPossible) then
                 Error(UnableToCreateInspectionForErr, Format(OriginalRecordId));
@@ -776,6 +785,21 @@ codeunit 20404 "Qlty. Inspection - Create"
     end;
 
     /// <summary>
+    /// Indicates whether the inspection returned by the last create call was newly inserted
+    /// or whether an existing matching inspection was reused (e.g. when the Inspection Creation
+    /// Option is configured to use an existing inspection if available).
+    /// Only valid immediately after a successful CreateInspection* call on this instance.
+    /// </summary>
+    /// <returns>True when the last inspection was newly created; false when it was reused, no inspection was returned.</returns>
+    internal procedure IsLastInspectionNewlyCreated(): Boolean
+    begin
+        if LastCreatedQltyInspectionHeader."No." = '' then
+            exit(false);
+
+        exit(LastInspectionIsNewlyCreated);
+    end;
+
+    /// <summary>
     /// Use this to log QMERR0001
     /// </summary>
     /// <param name="ContextRecordRef"></param>
@@ -835,15 +859,25 @@ codeunit 20404 "Qlty. Inspection - Create"
 
     internal procedure CreateMultipleInspectionsForMultipleRecords(var SetOfRecordsRecordRef: RecordRef; IsManualCreation: Boolean; var TempFiltersQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary)
     var
-        CreatedQltyInspectionIds: List of [Code[20]];
+        NewlyCreatedQltyInspectionIds, AllResolvedQltyInspectionIds : List of [Code[20]];
+        NewlyCreatedCount, ExistingMatchedCount : Integer;
     begin
-        CreateMultipleInspectionsWithoutDisplaying(SetOfRecordsRecordRef, IsManualCreation, TempFiltersQltyInspectionGenRule, CreatedQltyInspectionIds);
+        CreateMultipleInspectionsWithoutDisplaying(SetOfRecordsRecordRef, IsManualCreation, TempFiltersQltyInspectionGenRule, NewlyCreatedQltyInspectionIds, AllResolvedQltyInspectionIds);
 
-        if IsManualCreation and GuiAllowed() then
-            DisplayInspectionsIfConfigured(IsManualCreation, CreatedQltyInspectionIds);
+        if IsManualCreation and GuiAllowed() then begin
+            NewlyCreatedCount := NewlyCreatedQltyInspectionIds.Count();
+            if NewlyCreatedCount > 0 then
+                DisplayInspectionsIfConfigured(IsManualCreation, NewlyCreatedQltyInspectionIds)
+            else begin
+                ExistingMatchedCount := AllResolvedQltyInspectionIds.Count();
+                if ExistingMatchedCount > 0 then
+                    if Confirm(StrSubstNo(SomeInspectionsMatchedQst, ExistingMatchedCount), true) then
+                        DisplayInspectionsIfConfigured(IsManualCreation, AllResolvedQltyInspectionIds);
+            end;
+        end;
     end;
 
-    internal procedure DisplayInspectionsIfConfigured(IsManualCreation: Boolean; var CreatedQltyInspectionIds: List of [Code[20]])
+    internal procedure DisplayInspectionsIfConfigured(IsManualCreation: Boolean; var ToDisplayQltyInspectionIds: List of [Code[20]])
     var
         CreatedQltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyNotificationMgmt: Codeunit "Qlty. Notification Mgmt.";
@@ -856,7 +890,7 @@ codeunit 20404 "Qlty. Inspection - Create"
         MaxSafeFilterLength := 1024;
 
         if GuiAllowed() then begin
-            foreach InspectionNo in CreatedQltyInspectionIds do
+            foreach InspectionNo in ToDisplayQltyInspectionIds do
                 if InspectionNo <> '' then begin
                     if StrLen(PipeSeparatedFilter) > 1 then
                         PipeSeparatedFilter += '|';
@@ -868,12 +902,12 @@ codeunit 20404 "Qlty. Inspection - Create"
                 end;
 
             if FilterExceedsMaxLength then begin
-                QltyNotificationMgmt.NotifyMultipleInspectionsCreatedByCount(CreatedQltyInspectionIds.Count());
+                QltyNotificationMgmt.NotifyMultipleInspectionsCreatedByCount(ToDisplayQltyInspectionIds.Count());
                 exit;
             end;
 
             CreatedQltyInspectionHeader.SetFilter("No.", PipeSeparatedFilter);
-            if CreatedQltyInspectionIds.Count() = 1 then begin
+            if ToDisplayQltyInspectionIds.Count() = 1 then begin
                 CreatedQltyInspectionHeader.SetCurrentKey("No.", "Re-inspection No.");
                 CreatedQltyInspectionHeader.FindLast();
                 if IsManualCreation then
@@ -892,17 +926,18 @@ codeunit 20404 "Qlty. Inspection - Create"
 
     /// <summary>
     /// Use this if you need to keep track of multiple inspections without displaying the results.
+    /// Distinguishes inspections that were newly inserted from inspections that were reused
+    /// (matched an existing open inspection).
     /// </summary>
     /// <param name="SetOfRecordsRecordRef"></param>
     /// <param name="IsManualCreation"></param>
-    /// <param name="ptrecOptionalFiltersGenerationRule"></param>
-    /// <param name="CreatedQltyInspectionIds"></param>
-    internal procedure CreateMultipleInspectionsWithoutDisplaying(var SetOfRecordsRecordRef: RecordRef; IsManualCreation: Boolean; var TempFiltersQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary; var CreatedQltyInspectionIds: List of [Code[20]])
+    /// <param name="TempFiltersQltyInspectionGenRule"></param>
+    /// <param name="NewlyCreatedQltyInspectionIds">Receives only inspections that were newly inserted by this call.</param>
+    /// <param name="AllResolvedQltyInspectionIds">Receives every inspection that was either newly inserted or reused (matched an existing open inspection).</param>
+    internal procedure CreateMultipleInspectionsWithoutDisplaying(var SetOfRecordsRecordRef: RecordRef; IsManualCreation: Boolean; var TempFiltersQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary; var NewlyCreatedQltyInspectionIds: List of [Code[20]]; var AllResolvedQltyInspectionIds: List of [Code[20]])
     var
         TempCopyOfSingleRecordRecordRef: RecordRef;
         ParentRecordRef: RecordRef;
-        FailedInspectionIds: List of [Text];
-        CountOfInspectionsCreatedForLine: Integer;
     begin
         QltyManagementSetup.Get();
 
@@ -915,18 +950,18 @@ codeunit 20404 "Qlty. Inspection - Create"
 
                 TempCopyOfSingleRecordRecordRef.Copy(SetOfRecordsRecordRef, false);
                 TempCopyOfSingleRecordRecordRef.Insert(false);
-                CountOfInspectionsCreatedForLine := CreateInspectionForSelfOrDirectParent(
+                CreateInspectionForSelfOrDirectParent(
                     TempCopyOfSingleRecordRecordRef,
                     TempFiltersQltyInspectionGenRule,
                     ParentRecordRef,
-                    CreatedQltyInspectionIds,
+                    NewlyCreatedQltyInspectionIds,
+                    AllResolvedQltyInspectionIds,
                     true,
                     IsManualCreation);
-                if CountOfInspectionsCreatedForLine = 0 then
-                    FailedInspectionIds.Add(Format(SetOfRecordsRecordRef.RecordId()));
             until SetOfRecordsRecordRef.Next() = 0;
 
-        if CreatedQltyInspectionIds.Count() = 0 then begin
+        // Error only when no inspection was resolved at all (neither newly created nor matching ones reused).
+        if AllResolvedQltyInspectionIds.Count() = 0 then begin
             if AvoidThrowingErrorWhenPossible then
                 exit;
 
@@ -937,9 +972,8 @@ codeunit 20404 "Qlty. Inspection - Create"
         end;
     end;
 
-    local procedure CreateInspectionForSelfOrDirectParent(var TempSelfRecordRef: RecordRef; var TempFiltersQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary; var FoundParentRecordRef: RecordRef; var CreatedQltyInspectionIds: List of [Code[20]]; PreventInspectionFromDisplayingEvenIfConfigured: Boolean; IsManualCreation: Boolean) InspectionCreatedCount: Integer
+    local procedure CreateInspectionForSelfOrDirectParent(var TempSelfRecordRef: RecordRef; var TempFiltersQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary; var FoundParentRecordRef: RecordRef; var NewlyCreatedQltyInspectionIds: List of [Code[20]]; var AllResolvedQltyInspectionIds: List of [Code[20]]; PreventInspectionFromDisplayingEvenIfConfigured: Boolean; IsManualCreation: Boolean)
     var
-        LastCreatedQltyInspectionHeader2: Record "Qlty. Inspection Header";
         Item: Record Item;
         TempTrackingSpecification: Record "Tracking Specification" temporary;
         LocalQltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
@@ -949,8 +983,6 @@ codeunit 20404 "Qlty. Inspection - Create"
         VariantEmptyOrTrackingSpecification: Variant;
         Dummy4Variant: Variant;
     begin
-        InspectionCreatedCount := 0;
-
         LocalQltyInspectionCreate.SetPreventDisplayingInspectionEvenIfConfigured(PreventInspectionFromDisplayingEvenIfConfigured);
 
         Clear(FoundParentRecordRef);
@@ -1013,11 +1045,7 @@ codeunit 20404 "Qlty. Inspection - Create"
                 end;
 
                 if LocalQltyInspectionCreate.CreateInspectionWithMultiVariants(ParentRecordRef, TempSelfRecordRef, VariantEmptyOrTrackingSpecification, Dummy4Variant, IsManualCreation, TempFiltersQltyInspectionGenRule) then
-                    if LocalQltyInspectionCreate.GetCreatedInspection(LastCreatedQltyInspectionHeader2) then begin
-                        InspectionCreatedCount += 1;
-                        if not CreatedQltyInspectionIds.Contains(LastCreatedQltyInspectionHeader2."No.") then
-                            CreatedQltyInspectionIds.Add(LastCreatedQltyInspectionHeader2."No.");
-                    end;
+                    TrackResolvedInspection(LocalQltyInspectionCreate, NewlyCreatedQltyInspectionIds, AllResolvedQltyInspectionIds);
             until RelatedReservFilterReservationEntry.Next() = 0;
         end else begin
             if TempFiltersQltyInspectionGenRule."Item Filter" <> '' then begin
@@ -1027,12 +1055,29 @@ codeunit 20404 "Qlty. Inspection - Create"
             end;
 
             if LocalQltyInspectionCreate.CreateInspectionWithMultiVariants(TempSelfRecordRef, ParentRecordRef, Dummy4Variant, Dummy4Variant, IsManualCreation, TempFiltersQltyInspectionGenRule) then
-                if LocalQltyInspectionCreate.GetCreatedInspection(LastCreatedQltyInspectionHeader2) then begin
-                    InspectionCreatedCount += 1;
-                    if not CreatedQltyInspectionIds.Contains(LastCreatedQltyInspectionHeader2."No.") then
-                        CreatedQltyInspectionIds.Add(LastCreatedQltyInspectionHeader2."No.");
-                end;
+                TrackResolvedInspection(LocalQltyInspectionCreate, NewlyCreatedQltyInspectionIds, AllResolvedQltyInspectionIds);
         end;
+    end;
+
+    /// <summary>
+    /// Records the inspection returned by the last create call on <paramref name="LocalQltyInspectionCreate"/> in the
+    /// supplied tracking lists, deduplicating by inspection "No.". The all-resolved list captures both newly created
+    /// and reused matching inspections so callers can detect reuse; the newly-created list only captures inspections that were
+    /// actually inserted and is used to drive "created inspections" notifications and display.
+    /// </summary>
+    local procedure TrackResolvedInspection(var LocalQltyInspectionCreate: Codeunit "Qlty. Inspection - Create"; var NewlyCreatedQltyInspectionIds: List of [Code[20]]; var AllResolvedQltyInspectionIds: List of [Code[20]])
+    var
+        LastResolvedQltyInspectionHeader: Record "Qlty. Inspection Header";
+    begin
+        if not LocalQltyInspectionCreate.GetCreatedInspection(LastResolvedQltyInspectionHeader) then
+            exit;
+
+        if not AllResolvedQltyInspectionIds.Contains(LastResolvedQltyInspectionHeader."No.") then
+            AllResolvedQltyInspectionIds.Add(LastResolvedQltyInspectionHeader."No.");
+
+        if LocalQltyInspectionCreate.IsLastInspectionNewlyCreated() then
+            if not NewlyCreatedQltyInspectionIds.Contains(LastResolvedQltyInspectionHeader."No.") then
+                NewlyCreatedQltyInspectionIds.Add(LastResolvedQltyInspectionHeader."No.");
     end;
 
     internal procedure SetPreventDisplayingInspectionEvenIfConfigured(PreventDisplayingInspectionEvenIfConfigured: Boolean)
@@ -1041,7 +1086,7 @@ codeunit 20404 "Qlty. Inspection - Create"
     end;
 
     /// <summary>
-    /// Stubs in and filles the source config fields.
+    /// Stubs in and fills the source config fields.
     /// </summary>
     /// <param name="InspectionStubToFillQualityOrder"></param>
     /// <param name="MandatoryPrimaryRecordRef"></param>
@@ -1189,9 +1234,9 @@ codeunit 20404 "Qlty. Inspection - Create"
     /// OnBeforeFindExistingInspection provides an opportunity to override how an existing inspection is found.
     /// </summary>
     /// <param name="TargetRecordRef">The main target record that the inspection will be created against</param>
-    /// <param name="Optional2RecordRef">Optional.  Some events, typically automatic events, will have multiple records to assist with setting source details.</param>
-    /// <param name="Optional3RecordRef">Optional.  Some events, typically automatic events, will have multiple records to assist with setting source details.</param>
-    /// <param name="Optional4RecordRef">Optional.  Some events, typically automatic events, will have multiple records to assist with setting source details.</param>
+    /// <param name="Optional2RecordRef">Optional. Some events, typically automatic events, will have multiple records to assist with setting source details.</param>
+    /// <param name="Optional3RecordRef">Optional. Some events, typically automatic events, will have multiple records to assist with setting source details.</param>
+    /// <param name="Optional4RecordRef">Optional. Some events, typically automatic events, will have multiple records to assist with setting source details.</param>
     /// <param name="QltyInspectionHeader">The found inspection</param>
     /// <param name="Result">Set to true if you found the record. If you set to true you must also supply QltyInspectionHeader</param>
     /// <param name="IsHandled">Set to true to replace the default behavior</param>

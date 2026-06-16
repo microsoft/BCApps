@@ -24,6 +24,7 @@ codeunit 13605 "Elec. VAT Decl. Http Comm." implements "Elec. VAT Decl. Communic
         RequestSuccessfulTxt: Label 'Request was successful.', Locked = true;
         ResponsePreparedTxt: Label 'Response was prepared.', Locked = true;
         ResponseReceivedTxt: Label 'Response was received.', Locked = true;
+        SecurityAuditCertRejectedTxt: Label 'SKAT rejected the client certificate (wsse:FailedAuthentication).', Locked = true;
 
     procedure SendMessage(EnvelopeInStream: InStream; Endpoint: Text) Response: Interface "Elec. VAT Decl. Response";
     var
@@ -70,6 +71,7 @@ codeunit 13605 "Elec. VAT Decl. Http Comm." implements "Elec. VAT Decl. Communic
         Response.Content.ReadAs(ResponseText);
         if StrPos(ResponseText, 'wsse:FailedAuthentication') > 0 then begin
             FeatureTelemetry.LogError('0000LQY', FeatureNameTxt, CertificateErr, '');
+            Session.LogSecurityAudit(FeatureNameTxt, SecurityOperationResult::Failure, SecurityAuditCertRejectedTxt, AuditCategory::Authentication);
             Error(CertificateErr);
         end;
         if StrPos(ResponseText, 'BEA-382505: OSB Validate action failed validation') > 0 then begin

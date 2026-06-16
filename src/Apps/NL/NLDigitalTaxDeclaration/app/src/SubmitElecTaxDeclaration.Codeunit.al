@@ -12,6 +12,8 @@ codeunit 11422 "Submit Elec. Tax Declaration"
 
     var
         ContentNotAvailableErr: Label 'A content for submission is not available. Make sure you specified the correct value in the Content Codeunit ID field on the VAT Reports Configuration page.';
+        DigipoortServiceNameTxt: Label 'Digipoort', Locked = true;
+        SecurityAuditVATReturnSubmittedTxt: Label 'VAT Return %1 was submitted to the Dutch tax authority via Digipoort (Message Id %2).', Locked = true, Comment = '%1 - VAT Report No., %2 - Digipoort Message Id';
 
     trigger OnRun()
     var
@@ -31,6 +33,10 @@ codeunit 11422 "Submit Elec. Tax Declaration"
           CopyStr(SubmitDeclarationLocal(Rec, VATReportArchive), 1, MaxStrLen("Message Id"));
         Status := Status::Submitted;
         Modify(true);
+        Session.LogSecurityAudit(
+            DigipoortServiceNameTxt, SecurityOperationResult::Success,
+            StrSubstNo(SecurityAuditVATReturnSubmittedTxt, Rec."No.", "Message Id"),
+            AuditCategory::CustomerFacing);
     end;
 
     [NonDebuggable]

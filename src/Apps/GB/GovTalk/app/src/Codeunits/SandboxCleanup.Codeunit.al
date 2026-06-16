@@ -24,6 +24,11 @@ codeunit 10585 "Sandbox Cleanup"
             GovTalkSetup.ChangeCompany(CompanyName);
 
         GovTalkSetup.ModifyAll(Password, nullGUID);
+        Session.LogSecurityAudit(GovTalkServiceNameTxt, SecurityOperationResult::Success, StrSubstNo(SecurityAuditSandboxWipedTxt, CompanyName), AuditCategory::UserManagement);
     end;
+
+    var
+        GovTalkServiceNameTxt: Label 'GovTalk', Locked = true;
+        SecurityAuditSandboxWipedTxt: Label 'GovTalk service passwords were cleared for all users in company %1 as part of environment cleanup.', Locked = true, Comment = '%1 - company name';
 }
 

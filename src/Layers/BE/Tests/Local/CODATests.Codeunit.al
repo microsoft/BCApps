@@ -1169,6 +1169,43 @@ codeunit 144006 "CODA Tests"
         Assert.AreEqual(GenJnlLine.Amount, GenJnlLine."Source Currency Amount", 'Source Currency Amount should equal Amount');
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure CODAStatementsActionOnBankAccountListFiltersByBankAccountNo()
+    var
+        BankAccount: Record "Bank Account";
+        CODAStatement: Record "CODA Statement";
+        TransactionCoding: Record "Transaction Coding";
+        BankAccountList: TestPage "Bank Account List";
+        CODAStatementListPage: TestPage "CODA Statement List";
+    begin
+        // [FEATURE] [CODA] [UI] [AI test]
+        // [SCENARIO 636256] Opening CODA Statements from Bank Account List page filters by selected Bank Account No.
+        Initialize();
+
+        // [GIVEN] A Bank Account "BA" with CODA Protocol setup
+        CreateBankAccounInformation(BankAccount);
+
+        // [GIVEN] A CODA Statement exists for Bank Account "BA"
+        CreateCODAStament(CODAStatement, BankAccount, TransactionCoding);
+
+        // [WHEN] Open Bank Account List, select "BA", and invoke "CODA Statements" action
+        BankAccountList.OpenView();
+        BankAccountList.FILTER.SetFilter("No.", BankAccount."No.");
+        BankAccountList.First();
+        CODAStatementListPage.Trap();
+        BankAccountList."CODA S&tatements".Invoke();
+
+        // [THEN] CODA Statement List page opens filtered to Bank Account "BA"
+        CODAStatementListPage.First();
+        Assert.AreEqual(
+            BankAccount."No.",
+            CODAStatementListPage."Bank Account No.".Value,
+            'CODA Statement List must be filtered by Bank Account No. from the Bank Account List page.');
+        CODAStatementListPage.Close();
+        BankAccountList.Close();
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"CODA Tests");

@@ -11,6 +11,7 @@ using Microsoft.Inventory.Planning;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Inventory.Transfer;
+using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
@@ -34,7 +35,11 @@ codeunit 12152 SubcontractingManagement
     procedure GetSubcontractor(WorkCenterNo: Code[20]; var Vendor: Record Vendor): Boolean
     var
         WorkCenter: Record "Work Center";
+        LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
     begin
+        if not LegacySubcFeatureHandler.IsLegacySubcontractingEnabled() then
+            exit(false);
+
         WorkCenter.Get(WorkCenterNo);
         if WorkCenter."Subcontractor No." <> '' then begin
             if not Vendor.Get(WorkCenter."Subcontractor No.") then
@@ -53,8 +58,12 @@ codeunit 12152 SubcontractingManagement
         Vendor: Record Vendor;
         PurchLine: Record "Purchase Line";
         PurchHeader: Record "Purchase Header";
+        LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
         IsHandled: Boolean;
     begin
+        if not LegacySubcFeatureHandler.IsLegacySubcontractingEnabled() then
+            exit('');
+
         ProdOrdComponent.CalcFields("Qty. on Transfer Order (Base)");
         if ProdOrdComponent."Qty. on Transfer Order (Base)" <> 0 then
             exit(ProdOrdComponent."Location Code");
@@ -87,7 +96,12 @@ codeunit 12152 SubcontractingManagement
     end;
 
     procedure FindSubcOrder(ProdOrdRoutLine: Record "Prod. Order Routing Line"; var PurchLine: Record "Purchase Line"; var PurchHeader: Record "Purchase Header"): Boolean
+    var
+        LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
     begin
+        if not LegacySubcFeatureHandler.IsLegacySubcontractingEnabled() then
+            exit(false);
+
         PurchLine.SetCurrentKey("Document Type", Type, "Prod. Order No.", "Prod. Order Line No.",
           "Routing No.", "Operation No.");
         PurchLine.SetRange("Document Type", PurchLine."Document Type"::Order);
@@ -110,9 +124,13 @@ codeunit 12152 SubcontractingManagement
         Vendor: Record Vendor;
         SKU: Record "Stockkeeping Unit";
         GetPlanningParameters: Codeunit "Planning-Get Parameters";
+        LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
         Subcontracting: Boolean;
         IsHandled: Boolean;
     begin
+        if not LegacySubcFeatureHandler.IsLegacySubcontractingEnabled() then
+            exit;
+
         Subcontracting := false;
 
         if ProdOrdRoutingLine.Type = ProdOrdRoutingLine.Type::"Work Center" then
@@ -156,8 +174,12 @@ codeunit 12152 SubcontractingManagement
         ProdOrdLine: Record "Prod. Order Line";
         SKU: Record "Stockkeeping Unit";
         GetPlanningParameters: Codeunit "Planning-Get Parameters";
+        LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
         IsHandled: Boolean;
     begin
+        if not LegacySubcFeatureHandler.IsLegacySubcontractingEnabled() then
+            exit;
+
         ProdOrdComponent.SetRange(Status, ProdOrdRoutingLine.Status);
         ProdOrdComponent.SetRange("Prod. Order No.", ProdOrdRoutingLine."Prod. Order No.");
         ProdOrdComponent.SetRange("Prod. Order Line No.", ProdOrdRoutingLine."Routing Reference No.");
@@ -191,8 +213,12 @@ codeunit 12152 SubcontractingManagement
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         SKU: Record "Stockkeeping Unit";
         GetPlanningParameters: Codeunit "Planning-Get Parameters";
+        LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
         IsHandled: Boolean;
     begin
+        if not LegacySubcFeatureHandler.IsLegacySubcontractingEnabled() then
+            exit;
+
         ProdOrderRoutingLine.Get(
             ProdOrderRoutingLine.Status::Released, ReqLine."Prod. Order No.",
             ReqLine."Routing Reference No.", ReqLine."Routing No.", ReqLine."Operation No.");
@@ -229,11 +255,15 @@ codeunit 12152 SubcontractingManagement
     procedure CalculateHeaderValue(var TransHeader: Record "Transfer Header")
     var
         TransLine: Record "Transfer Line";
+        LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
         GrossWeight: Decimal;
         NetWeight: Decimal;
         ParcelUnit: Decimal;
         TotVolume: Decimal;
     begin
+        if not LegacySubcFeatureHandler.IsLegacySubcontractingEnabled() then
+            exit;
+
         GrossWeight := 0;
         NetWeight := 0;
         ParcelUnit := 0;
@@ -283,8 +313,12 @@ codeunit 12152 SubcontractingManagement
         ProdOrderCompReserve: Codeunit "Prod. Order Comp.-Reserve";
         ReservMgt: Codeunit "Reservation Management";
         CreateReservEntry: Codeunit "Create Reserv. Entry";
+        LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
         TotalQty: Decimal;
     begin
+        if not LegacySubcFeatureHandler.IsLegacySubcontractingEnabled() then
+            exit;
+
         ProdOrderCompReserve.FindReservEntry(ProdOrderComponent, ReservEntry);
 
         if ReservEntry.FindSet() then

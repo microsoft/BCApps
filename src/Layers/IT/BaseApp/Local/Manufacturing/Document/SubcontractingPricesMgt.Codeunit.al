@@ -11,6 +11,7 @@ using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Requisition;
+using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.WorkCenter;
 
 codeunit 12153 SubcontractingPricesMgt
@@ -34,7 +35,12 @@ codeunit 12153 SubcontractingPricesMgt
 
 
     procedure GetRoutingPricelistCost(var InSubcPrices: Record "Subcontractor Prices"; WorkCenter: Record "Work Center"; var DirUnitCost: Decimal; var IndirCostPct: Decimal; var OvhdRate: Decimal; var UnitCost: Decimal; var UnitCostCalculation: Enum "Unit Cost Calculation Type"; QtyUoM: Decimal; ProdQtyPerUom: Decimal; QtyBase: Decimal)
+    var
+        LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
     begin
+        if not LegacySubcFeatureHandler.IsLegacySubcontractingEnabled() then
+            exit;
+
         PricelistQtyPerUOM := 0;
         PricelistQty := 0;
         PricelistCost := 0;
@@ -88,7 +94,11 @@ codeunit 12153 SubcontractingPricesMgt
     var
         Item: Record Item;
         UOMMgt: Codeunit "Unit of Measure Management";
+        LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
     begin
+        if not LegacySubcFeatureHandler.IsLegacySubcontractingEnabled() then
+            exit;
+
         Item.Get(ItemNo);
         PricelistQtyPerUOM := UOMMgt.GetQtyPerUnitOfMeasure(Item, SubcontractorPrices."Unit of Measure Code");
 
@@ -102,7 +112,12 @@ codeunit 12153 SubcontractingPricesMgt
 
     [Scope('OnPrem')]
     procedure GetPriceByUOM()
+    var
+        LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
     begin
+        if not LegacySubcFeatureHandler.IsLegacySubcontractingEnabled() then
+            exit;
+
         SubcontractorPrices.SetRange("Minimum Quantity", 0, PricelistQty);
         SubcontractorPrices.SetRange("Unit of Measure Code", SubcontractorPrices."Unit of Measure Code");
         if SubcontractorPrices.FindLast() then begin
@@ -115,7 +130,12 @@ codeunit 12153 SubcontractingPricesMgt
 
     [Scope('OnPrem')]
     procedure ConvertPriceToUOM(ProdUOM: Code[10]; ProdQtyPerUoM: Decimal)
+    var
+        LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
     begin
+        if not LegacySubcFeatureHandler.IsLegacySubcontractingEnabled() then
+            exit;
+
         if ProdUOM <> PricelistUOM then begin
             DirectCost := PricelistCost / PricelistQtyPerUOM;
             DirectCost := DirectCost * ProdQtyPerUoM;
@@ -128,7 +148,11 @@ codeunit 12153 SubcontractingPricesMgt
     var
         Currency: Record Currency;
         CurrExchRate: Record "Currency Exchange Rate";
+        LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
     begin
+        if not LegacySubcFeatureHandler.IsLegacySubcontractingEnabled() then
+            exit;
+
         Currency.Get(CurrencyCode);
         DirectCost := CurrExchRate.ExchangeAmtLCYToFCY(
             WorkDate(), CurrencyCode, DirectCost,
@@ -142,7 +166,11 @@ codeunit 12153 SubcontractingPricesMgt
     var
         Currency: Record Currency;
         CurrExchRate: Record "Currency Exchange Rate";
+        LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
     begin
+        if not LegacySubcFeatureHandler.IsLegacySubcontractingEnabled() then
+            exit;
+
         Currency.Get(CurrencyCode);
         DirectCost := CurrExchRate.ExchangeAmtFCYToLCY(
             OrderDate, CurrencyCode, DirectCost,
@@ -152,8 +180,12 @@ codeunit 12153 SubcontractingPricesMgt
     procedure GetSubcPriceForReqLine(var ReqLine: Record "Requisition Line"; FixedUOM: Code[10])
     var
         ProdOrderRtngLine: Record "Prod. Order Routing Line";
+        LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
         OrderDate: Date;
     begin
+        if not LegacySubcFeatureHandler.IsLegacySubcontractingEnabled() then
+            exit;
+
         PricelistQtyPerUOM := 0;
         PricelistQty := 0;
         PricelistCost := 0;

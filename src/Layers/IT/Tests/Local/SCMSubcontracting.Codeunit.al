@@ -95,6 +95,7 @@ codeunit 144081 "SCM Subcontracting"
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryRandom: Codeunit "Library - Random";
+        LibraryApplicationArea: Codeunit "Library - Application Area";
         ChangeStatusErr: Label 'Production Order %1 cannot be finished as the associated subcontract order %2 has not been fully delivered.';
         ProdOrderErr: Label 'You cannot update the order line because the order line is associated with production order';
         RefOrderTypeTxt: Label 'Purchase';
@@ -1135,6 +1136,7 @@ codeunit 144081 "SCM Subcontracting"
         PurchaseHeader.DontNotifyCurrentUserAgain(PurchaseHeader.GetModifyVendorAddressNotificationId());
         PurchaseHeader.DontNotifyCurrentUserAgain(PurchaseHeader.GetModifyPayToVendorAddressNotificationId());
         CreateVATPostingSetup();
+        ActivateLegacySubcontracting();
     end;
 
     local procedure AddTempRoutingLine(var TempRoutingLine: Record "Routing Line" temporary; OperationNo: Integer; WorkCenterNo: Code[20]; RoutingLinkCode: Code[10]; IsWIPItem: Boolean)
@@ -2196,6 +2198,22 @@ codeunit 144081 "SCM Subcontracting"
     procedure PostProductionJournalHandler(var ProductionJournal: TestPage "Production Journal")
     begin
         ProductionJournal.Post.Invoke();
+    end;
+
+    local procedure ActivateLegacySubcontracting()
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+        ApplicationAreaMgmtFacade: Codeunit "Application Area Mgmt. Facade";
+    begin
+        if not ManufacturingSetup.Get() then begin
+            ManufacturingSetup.Init();
+            ManufacturingSetup.Insert();
+        end;
+        ManufacturingSetup."Legacy Subcontracting" := true;
+        ManufacturingSetup.Modify();
+        LibraryApplicationArea.EnablePremiumSetup();
+        ApplicationAreaMgmtFacade.RefreshExperienceTierCurrentCompany();
+        Commit();
     end;
 }
 #endif

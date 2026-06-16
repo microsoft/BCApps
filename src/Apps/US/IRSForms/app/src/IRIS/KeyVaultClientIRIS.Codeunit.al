@@ -36,6 +36,7 @@ codeunit 10057 "Key Vault Client IRIS" implements "IRS 1099 IRIS Configuration"
         ValueFromKeyVaultIsEmptyErr: Label '%1 value from Azure Key Vault is empty. Key: %2', Comment = '%1 - parameter name, ex. Client ID; %2 - secret name', Locked = true;
         ValueIsEmptyUserErr: Label '%1 value from Azure Key Vault is empty. Try the operation again later. If the issue persists, open a Business Central support request.', Comment = '%1 - parameter name, ex. Client ID';
         ContactInfoIncorrectJSONErr: Label 'Cannot create JSON object from Contact Info string.';
+        SecurityAuditKVValueMissingTxt: Label 'IRIS configuration value %1 could not be retrieved from Azure Key Vault.', Locked = true, Comment = '%1 - parameter name';
 
     #region Interface Methods
     procedure GetTCC() TCC: Text
@@ -181,6 +182,7 @@ codeunit 10057 "Key Vault Client IRIS" implements "IRS 1099 IRIS Configuration"
     local procedure LogKeyVaultError(EventId: Text; ParameterName: Text; KeyName: Text)
     begin
         FeatureTelemetry.LogError(EventId, Helper.GetIRISFeatureName(), '', StrSubstNo(CannotGetValueFromKeyVaultErr, ParameterName, KeyName));
+        Session.LogSecurityAudit(Helper.GetIRISFeatureName(), SecurityOperationResult::Failure, StrSubstNo(SecurityAuditKVValueMissingTxt, ParameterName), AuditCategory::ApplicationManagement);
         if GuiAllowed() then
             Error(CannotGetValueUserErr, ParameterName);
     end;
@@ -188,6 +190,7 @@ codeunit 10057 "Key Vault Client IRIS" implements "IRS 1099 IRIS Configuration"
     local procedure LogEmptyValueError(EventId: Text; ParameterName: Text; KeyName: Text)
     begin
         FeatureTelemetry.LogError(EventId, Helper.GetIRISFeatureName(), '', StrSubstNo(ValueFromKeyVaultIsEmptyErr, ParameterName, KeyName));
+        Session.LogSecurityAudit(Helper.GetIRISFeatureName(), SecurityOperationResult::Failure, StrSubstNo(SecurityAuditKVValueMissingTxt, ParameterName), AuditCategory::ApplicationManagement);
         if GuiAllowed() then
             Error(ValueIsEmptyUserErr, ParameterName);
     end;

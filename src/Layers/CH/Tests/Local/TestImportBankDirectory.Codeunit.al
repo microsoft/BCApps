@@ -144,6 +144,392 @@ codeunit 144016 "Test Import Bank Directory"
         BankDirectory.TestField(Address, 'ÄäÜüöÖß');
     end;
 
+    [Test]
+    [HandlerFunctions('ImportHandler')]
+    [Scope('OnPrem')]
+    procedure ImportBankDirectoryCsvV3()
+    var
+        BankDirectory: Record "Bank Directory";
+        TestImportBankDirectory: Codeunit "Test Import Bank Directory";
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] Importing a SIX V3 CSV bank master file maps all fields correctly
+        Initialize();
+
+        // [GIVEN] A CSV V3 bank master file with header and a single bank record
+        LibraryVariableStorage.Enqueue(false);
+        CreateBankDirectoryCsvV3File();
+        BindSubscription(TestImportBankDirectory);
+        TestImportBankDirectory.SetFileName(FileNameForHandler);
+
+        // [WHEN] Report "Import Bank Directory" runs
+        Report.Run(Report::"Import Bank Directory", true, false);
+
+        // [THEN] Bank Directory record exists with all CSV columns mapped
+        Assert.IsTrue(BankDirectory.Get('100'), 'Clearing No. should be imported from column 1.');
+        Assert.AreEqual(DMY2Date(12, 6, 2026), BankDirectory."Valid from", 'Valid from should be parsed from column 2.');
+        Assert.AreEqual('001008', BankDirectory."SIC No.", 'SIC No. should come from column 5.');
+        Assert.AreEqual('100', BankDirectory."Clearing Main Office", 'Clearing Main Office should come from column 6.');
+        Assert.AreEqual(BankDirectory."Bank Type"::"Main Office", BankDirectory."Bank Type", 'Bank Type should be Main Office for IID type 1.');
+        Assert.AreEqual('Schweizerische Nationalbank', BankDirectory.Name, 'Name should come from column 9.');
+        Assert.AreEqual('Börsenstrasse', BankDirectory.Address, 'Street Name should be mapped to Address.');
+        Assert.AreEqual('15', BankDirectory."Address 2", 'Building Number should be mapped to Address 2.');
+        Assert.AreEqual('8022', BankDirectory."Post Code", 'Post Code should come from column 12.');
+        Assert.AreEqual('Zürich', BankDirectory.City, 'Town Name should come from column 13.');
+        Assert.AreEqual('CH', BankDirectory.Country, 'Country should come from column 14.');
+        Assert.AreEqual('SNBZCHZZXXX', BankDirectory."SWIFT Address", 'BIC should be mapped to SWIFT Address.');
+        Assert.AreEqual(BankDirectory."SIC Member"::Yes, BankDirectory."SIC Member", 'SIC Member should be Yes for "Y".');
+        Assert.AreEqual(BankDirectory."euroSIC Member"::Yes, BankDirectory."euroSIC Member", 'euroSIC Member should be Yes for "Y".');
+        Assert.IsTrue(BankDirectory."Import from File", 'Import from File should be set.');
+
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('ImportHandler')]
+    [Scope('OnPrem')]
+    procedure ImportBankDirectoryCsvV3WithNewClearingNo()
+    var
+        BankDirectory: Record "Bank Directory";
+        TestImportBankDirectory: Codeunit "Test Import Bank Directory";
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] Importing a CSV V3 row where column "New IID/QR-IID" is populated fills the New Clearing No. field
+        Initialize();
+
+        // [GIVEN] A CSV V3 file containing a bank "B1" with a non-empty New IID pointing to "99999"
+        LibraryVariableStorage.Enqueue(false);
+        CreateBankDirectoryCsvV3FileWithNewClearing();
+        BindSubscription(TestImportBankDirectory);
+        TestImportBankDirectory.SetFileName(FileNameForHandler);
+
+        // [WHEN] Report "Import Bank Directory" runs
+        Report.Run(Report::"Import Bank Directory", true, false);
+
+        // [THEN] The Bank Directory record holds the new clearing number
+        Assert.IsTrue(BankDirectory.Get('11111'), 'Source IID should be imported.');
+        Assert.AreEqual('99999', BankDirectory."New Clearing No.", 'New Clearing No. should be mapped from column 4.');
+    end;
+
+    [Test]
+    [HandlerFunctions('ImportHandler')]
+    [Scope('OnPrem')]
+    procedure ImportBankDirectoryCsvV3UpdatesCustomerBankAccount()
+    var
+        CustomerBankAccount: Record "Customer Bank Account";
+        TestImportBankDirectory: Codeunit "Test Import Bank Directory";
+        OldClearing: Code[5];
+        NewClearing: Code[5];
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] When AutoUpdate is enabled, importing a CSV V3 with a successor IID updates customer bank accounts
+        Initialize();
+
+        OldClearing := '11111';
+        NewClearing := '99999';
+
+        // [GIVEN] A customer bank account "C1" using Bank Branch No. "OldClearing"
+        CreateCustomerBankAccountWithClearing(CustomerBankAccount, OldClearing);
+
+        // [GIVEN] A CSV V3 file mapping "OldClearing" to "NewClearing"
+        LibraryVariableStorage.Enqueue(true);
+        CreateBankDirectoryCsvV3FileWithMapping(OldClearing, NewClearing);
+        BindSubscription(TestImportBankDirectory);
+        TestImportBankDirectory.SetFileName(FileNameForHandler);
+
+        // [WHEN] Report "Import Bank Directory" runs with AutoUpdate
+        Report.Run(Report::"Import Bank Directory", true, false);
+
+        // [THEN] Customer bank account "C1" now uses "NewClearing"
+        CustomerBankAccount.Find();
+        Assert.AreEqual(NewClearing, CustomerBankAccount."Bank Branch No.", 'Customer Bank Branch No. should be updated.');
+
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('ImportHandler')]
+    [Scope('OnPrem')]
+    procedure ImportBankDirectoryCsvV3UpdatesVendorBankAccount()
+    var
+        VendorBankAccount: Record "Vendor Bank Account";
+        NewVendorBankAccount: Record "Vendor Bank Account";
+        TestImportBankDirectory: Codeunit "Test Import Bank Directory";
+        OldClearing: Code[5];
+        NewClearing: Code[5];
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] When AutoUpdate is enabled, importing a CSV V3 with a successor IID creates a new vendor bank account with the new clearing
+        Initialize();
+
+        OldClearing := '11111';
+        NewClearing := '99999';
+
+        // [GIVEN] A vendor bank account "V1" using Clearing No. "OldClearing"
+        CreateVendorBankAccountWithClearing(VendorBankAccount, OldClearing);
+
+        // [GIVEN] A CSV V3 file mapping "OldClearing" to "NewClearing"
+        LibraryVariableStorage.Enqueue(true);
+        CreateBankDirectoryCsvV3FileWithMapping(OldClearing, NewClearing);
+        BindSubscription(TestImportBankDirectory);
+        TestImportBankDirectory.SetFileName(FileNameForHandler);
+
+        // [WHEN] Report "Import Bank Directory" runs with AutoUpdate
+        Report.Run(Report::"Import Bank Directory", true, false);
+
+        // [THEN] Original "V1" is kept, a new vendor bank account exists for the same vendor with "NewClearing"
+        VendorBankAccount.Find();
+        Assert.AreEqual(OldClearing, VendorBankAccount."Clearing No.", 'Original Vendor Clearing No. should be unchanged.');
+        NewVendorBankAccount.SetRange("Vendor No.", VendorBankAccount."Vendor No.");
+        NewVendorBankAccount.SetRange("Clearing No.", NewClearing);
+        Assert.IsFalse(NewVendorBankAccount.IsEmpty(), 'A new vendor bank account with the new clearing should exist.');
+
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('ImportHandler')]
+    [Scope('OnPrem')]
+    procedure ImportBankDirectoryCsvV3LegacyTxtStillWorks()
+    var
+        BankDirectory: Record "Bank Directory";
+        TestImportBankDirectory: Codeunit "Test Import Bank Directory";
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] After adding CSV V3 support, the legacy fixed-width TXT format still imports correctly
+        Initialize();
+
+        // [GIVEN] A legacy fixed-width TXT bank directory file
+        LibraryVariableStorage.Enqueue(false);
+        CreateBankDirectoryImportFile();
+        BindSubscription(TestImportBankDirectory);
+        TestImportBankDirectory.SetFileName(FileNameForHandler);
+
+        // [WHEN] Report "Import Bank Directory" runs
+        Report.Run(Report::"Import Bank Directory", true, false);
+
+        // [THEN] Records from the legacy file are imported (12 records, sample check)
+        Assert.IsTrue(BankDirectory.Get('100'), 'Legacy TXT clearing "100" should be imported.');
+        Assert.AreEqual('8022', BankDirectory."Post Code", 'Legacy TXT Post Code should match.');
+        Assert.RecordCount(BankDirectory, 12);
+
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('ImportHandler')]
+    [Scope('OnPrem')]
+    procedure ImportBankDirectoryCsvV3MultipleRecords()
+    var
+        BankDirectory: Record "Bank Directory";
+        TestImportBankDirectory: Codeunit "Test Import Bank Directory";
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] Importing a CSV V3 file with multiple records creates one Bank Directory entry per unique IID, with duplicates incrementing No of Outlets
+        Initialize();
+
+        // [GIVEN] A CSV V3 file with 3 distinct IIDs and 1 duplicate IID "200" (4 data rows total)
+        LibraryVariableStorage.Enqueue(false);
+        CreateBankDirectoryCsvV3MultiRowFile();
+        BindSubscription(TestImportBankDirectory);
+        TestImportBankDirectory.SetFileName(FileNameForHandler);
+
+        // [WHEN] Report "Import Bank Directory" runs
+        Report.Run(Report::"Import Bank Directory", true, false);
+
+        // [THEN] Three unique Bank Directory records exist; the duplicated IID has No of Outlets = 1
+        Assert.RecordCount(BankDirectory, 3);
+        Assert.IsTrue(BankDirectory.Get('100'), 'IID "100" should be imported.');
+        Assert.IsTrue(BankDirectory.Get('200'), 'IID "200" should be imported.');
+        Assert.AreEqual(1, BankDirectory."No of Outlets", 'Duplicate row should increment No of Outlets for "200".');
+        Assert.IsTrue(BankDirectory.Get('300'), 'IID "300" should be imported.');
+
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('ImportHandler')]
+    [Scope('OnPrem')]
+    procedure ImportBankDirectoryCsvV3DoesNotLeakFieldsBetweenRows()
+    var
+        BankDirectory: Record "Bank Directory";
+        TestImportBankDirectory: Codeunit "Test Import Bank Directory";
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] Importing multiple CSV V3 rows must Init() the record between iterations so that
+        // fields whose case-mapping has no else branch (SIC Member, euroSIC Member) do not retain the
+        // value assigned by the previous row when the current row carries an unrecognized value.
+        Initialize();
+
+        // [GIVEN] A CSV V3 file with two rows: row 1 sets SIC=Y / euroSIC=Y, row 2 has SIC='' / euroSIC=''
+        LibraryVariableStorage.Enqueue(false);
+        CreateBankDirectoryCsvV3FileWithLeakyParticipation();
+        BindSubscription(TestImportBankDirectory);
+        TestImportBankDirectory.SetFileName(FileNameForHandler);
+
+        // [WHEN] Report "Import Bank Directory" runs
+        Report.Run(Report::"Import Bank Directory", true, false);
+
+        // [THEN] Row 1 keeps its Yes values, row 2 ends up with the default (No) for both fields
+        Assert.IsTrue(BankDirectory.Get('500'), 'IID "500" should be imported.');
+        Assert.AreEqual(BankDirectory."SIC Member"::Yes, BankDirectory."SIC Member", 'Row 1 SIC Member should be Yes.');
+        Assert.AreEqual(BankDirectory."euroSIC Member"::Yes, BankDirectory."euroSIC Member", 'Row 1 euroSIC Member should be Yes.');
+
+        Assert.IsTrue(BankDirectory.Get('501'), 'IID "501" should be imported.');
+        Assert.AreEqual(BankDirectory."SIC Member"::No, BankDirectory."SIC Member", 'Row 2 SIC Member must not leak Yes from previous row.');
+        Assert.AreEqual(BankDirectory."euroSIC Member"::No, BankDirectory."euroSIC Member", 'Row 2 euroSIC Member must not leak Yes from previous row.');
+
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('ImportHandler')]
+    [Scope('OnPrem')]
+    procedure ImportBankDirectoryCsvV3BankTypeOutlet()
+    var
+        BankDirectory: Record "Bank Directory";
+        TestImportBankDirectory: Codeunit "Test Import Bank Directory";
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] Importing a CSV V3 row with IID type "3" maps to Bank Type Outlet
+        Initialize();
+
+        // [GIVEN] A CSV V3 file with one row having IID type = 3
+        LibraryVariableStorage.Enqueue(false);
+        CreateBankDirectoryCsvV3FileWithBankType('3');
+        BindSubscription(TestImportBankDirectory);
+        TestImportBankDirectory.SetFileName(FileNameForHandler);
+
+        // [WHEN] Report "Import Bank Directory" runs
+        Report.Run(Report::"Import Bank Directory", true, false);
+
+        // [THEN] The imported Bank Directory record has Bank Type = Outlet
+        Assert.IsTrue(BankDirectory.Get('400'), 'IID "400" should be imported.');
+        Assert.AreEqual(BankDirectory."Bank Type"::Outlet, BankDirectory."Bank Type", 'Bank Type should be Outlet for IID type 3.');
+
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('ImportHandler')]
+    [Scope('OnPrem')]
+    procedure ImportBankDirectoryCsvV3SICMemberNo()
+    var
+        BankDirectory: Record "Bank Directory";
+        TestImportBankDirectory: Codeunit "Test Import Bank Directory";
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] Importing a CSV V3 row with SIC participation "N" and euroSIC "N" maps to Member = No
+        Initialize();
+
+        // [GIVEN] A CSV V3 file with SIC participation = N and euroSIC participation = N
+        LibraryVariableStorage.Enqueue(false);
+        CreateBankDirectoryCsvV3FileWithSICNo();
+        BindSubscription(TestImportBankDirectory);
+        TestImportBankDirectory.SetFileName(FileNameForHandler);
+
+        // [WHEN] Report "Import Bank Directory" runs
+        Report.Run(Report::"Import Bank Directory", true, false);
+
+        // [THEN] SIC Member and euroSIC Member are set to No
+        Assert.IsTrue(BankDirectory.Get('500'), 'IID "500" should be imported.');
+        Assert.AreEqual(BankDirectory."SIC Member"::No, BankDirectory."SIC Member", 'SIC Member should be No.');
+        Assert.AreEqual(BankDirectory."euroSIC Member"::No, BankDirectory."euroSIC Member", 'euroSIC Member should be No.');
+
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('ImportHandler')]
+    [Scope('OnPrem')]
+    procedure ImportBankDirectoryCsvV3EmptyOptionalFields()
+    var
+        BankDirectory: Record "Bank Directory";
+        TestImportBankDirectory: Codeunit "Test Import Bank Directory";
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] Importing a CSV V3 row with empty optional fields (BIC, Street, Building No.) does not error
+        Initialize();
+
+        // [GIVEN] A CSV V3 file with empty BIC, empty Street Name, and empty Building Number
+        LibraryVariableStorage.Enqueue(false);
+        CreateBankDirectoryCsvV3FileWithEmptyFields();
+        BindSubscription(TestImportBankDirectory);
+        TestImportBankDirectory.SetFileName(FileNameForHandler);
+
+        // [WHEN] Report "Import Bank Directory" runs
+        Report.Run(Report::"Import Bank Directory", true, false);
+
+        // [THEN] Record is imported with empty Address, Address 2, and SWIFT Address
+        Assert.IsTrue(BankDirectory.Get('600'), 'IID "600" should be imported.');
+        Assert.AreEqual('', BankDirectory.Address, 'Address should be empty when Street Name is empty.');
+        Assert.AreEqual('', BankDirectory."Address 2", 'Address 2 should be empty when Building Number is empty.');
+        Assert.AreEqual('', BankDirectory."SWIFT Address", 'SWIFT Address should be empty when BIC is empty.');
+        Assert.AreEqual('Test Bank Minimal', BankDirectory.Name, 'Name should still be imported.');
+        Assert.AreEqual('8000', BankDirectory."Post Code", 'Post Code should still be imported.');
+
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('ImportHandler')]
+    [Scope('OnPrem')]
+    procedure ImportBankDirectoryCsvV3Utf8Encoding()
+    var
+        BankDirectory: Record "Bank Directory";
+        TestImportBankDirectory: Codeunit "Test Import Bank Directory";
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] Importing a CSV V3 file with UTF-8 special characters preserves them correctly
+        Initialize();
+
+        // [GIVEN] A CSV V3 file containing names and addresses with German umlauts and French accents
+        LibraryVariableStorage.Enqueue(false);
+        CreateBankDirectoryCsvV3FileWithUtf8();
+        BindSubscription(TestImportBankDirectory);
+        TestImportBankDirectory.SetFileName(FileNameForHandler);
+
+        // [WHEN] Report "Import Bank Directory" runs
+        Report.Run(Report::"Import Bank Directory", true, false);
+
+        // [THEN] Special characters are preserved in imported fields
+        Assert.IsTrue(BankDirectory.Get('700'), 'IID "700" should be imported.');
+        Assert.AreEqual('Bänk Zürich Höfe', BankDirectory.Name, 'UTF-8 name with umlauts should be preserved.');
+        Assert.AreEqual('Überlandstrasse', BankDirectory.Address, 'UTF-8 street with umlauts should be preserved.');
+        Assert.AreEqual('Genève', BankDirectory.City, 'UTF-8 city with accents should be preserved.');
+
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('ImportHandler')]
+    [Scope('OnPrem')]
+    procedure ImportBankDirectoryCsvV3FieldTruncation()
+    var
+        BankDirectory: Record "Bank Directory";
+        TestImportBankDirectory: Codeunit "Test Import Bank Directory";
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] Importing a CSV V3 file with values exceeding field max length truncates without error
+        Initialize();
+
+        // [GIVEN] A CSV V3 file with Name exceeding 30 characters and Post Code exceeding 20 characters
+        LibraryVariableStorage.Enqueue(false);
+        CreateBankDirectoryCsvV3FileWithLongFields();
+        BindSubscription(TestImportBankDirectory);
+        TestImportBankDirectory.SetFileName(FileNameForHandler);
+
+        // [WHEN] Report "Import Bank Directory" runs
+        Report.Run(Report::"Import Bank Directory", true, false);
+
+        // [THEN] Fields are truncated to their maximum length without error
+        Assert.IsTrue(BankDirectory.Get('800'), 'IID "800" should be imported.');
+        Assert.AreEqual(30, StrLen(BankDirectory.Name), 'Name should be truncated to 30 characters.');
+        Assert.AreEqual('This Very Long Bank Name That ', BankDirectory.Name, 'Name should be truncated at MaxStrLen.');
+
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
     local procedure Initialize()
     var
         BankDirectory: Record "Bank Directory";
@@ -410,6 +796,157 @@ codeunit 144016 "Test Import Bank Directory"
         RecordCount := 3;
     end;
 
+    local procedure CreateBankDirectoryCsvV3File()
+    var
+        TmpStream: OutStream;
+        FileHdl: File;
+    begin
+        FileNameForHandler := FileManagement.ServerTempFileName('csv');
+        FileHdl.Create(FileNameForHandler, TEXTENCODING::UTF8);
+        FileHdl.CreateOutStream(TmpStream);
+        WriteCsvHeader(TmpStream);
+        WriteLine(TmpStream, '100;2026-06-12;N;;001008;100;1;;Schweizerische Nationalbank;Börsenstrasse;15;8022;Zürich;CH;SNBZCHZZXXX;Y;Y;Y;Y;Y;N');
+        FileHdl.Close();
+    end;
+
+    local procedure CreateBankDirectoryCsvV3FileWithNewClearing()
+    var
+        TmpStream: OutStream;
+        FileHdl: File;
+    begin
+        FileNameForHandler := FileManagement.ServerTempFileName('csv');
+        FileHdl.Create(FileNameForHandler, TEXTENCODING::UTF8);
+        FileHdl.CreateOutStream(TmpStream);
+        WriteCsvHeader(TmpStream);
+        WriteLine(TmpStream, '11111;2026-06-12;Y;99999;111110;11111;2;;Test Bank;Teststreet;1;8000;Zürich;CH;TESTCHZZXXX;Y;Y;N;Y;N;N');
+        FileHdl.Close();
+    end;
+
+    local procedure CreateBankDirectoryCsvV3FileWithMapping(OldClearing: Code[5]; NewClearing: Code[5])
+    var
+        TmpStream: OutStream;
+        FileHdl: File;
+    begin
+        FileNameForHandler := FileManagement.ServerTempFileName('csv');
+        FileHdl.Create(FileNameForHandler, TEXTENCODING::UTF8);
+        FileHdl.CreateOutStream(TmpStream);
+        WriteCsvHeader(TmpStream);
+        // Old IID has Concatenation=Y and a successor IID
+        WriteLine(TmpStream, OldClearing + ';2026-06-12;Y;' + NewClearing + ';111110;' + OldClearing + ';2;;Test Bank Old;Teststreet;1;8000;Zürich;CH;TESTCHZZXXX;Y;Y;N;Y;N;N');
+        // Successor IID
+        WriteLine(TmpStream, NewClearing + ';2026-06-12;N;;999990;' + NewClearing + ';1;;Test Bank New;Teststreet;1;8000;Zürich;CH;TESTCHZZNEW;Y;Y;N;Y;N;N');
+        FileHdl.Close();
+    end;
+
+    local procedure CreateBankDirectoryCsvV3MultiRowFile()
+    var
+        TmpStream: OutStream;
+        FileHdl: File;
+    begin
+        FileNameForHandler := FileManagement.ServerTempFileName('csv');
+        FileHdl.Create(FileNameForHandler, TEXTENCODING::UTF8);
+        FileHdl.CreateOutStream(TmpStream);
+        WriteCsvHeader(TmpStream);
+        WriteLine(TmpStream, '100;2026-06-12;N;;001008;100;1;;Bank A;Streetname;1;8000;Zürich;CH;BANKACHZZXXX;Y;Y;Y;Y;Y;N');
+        WriteLine(TmpStream, '200;2026-06-12;N;;002000;200;1;;Bank B;Streetname;2;8001;Zürich;CH;BANKBCHZZXXX;Y;Y;Y;Y;Y;N');
+        // Duplicate IID 200 to test "No of Outlets" increment
+        WriteLine(TmpStream, '200;2026-06-12;N;;002000;200;2;;Bank B Branch;Streetname;3;8002;Zürich;CH;BANKBCHZZBRA;Y;Y;Y;Y;Y;N');
+        WriteLine(TmpStream, '300;2026-06-12;N;;003000;300;1;;Bank C;Streetname;4;8003;Zürich;CH;BANKCCHZZXXX;Y;Y;Y;Y;Y;N');
+        FileHdl.Close();
+    end;
+
+    local procedure CreateBankDirectoryCsvV3FileWithLeakyParticipation()
+    var
+        TmpStream: OutStream;
+        FileHdl: File;
+    begin
+        // Row 1 sets SIC participation (col 16) and euroSIC participation (col 19) to 'Y'.
+        // Row 2 leaves both blank, which is not matched by the Y/N case statements. Without
+        // Init() between iterations, row 2 would inherit row 1's Yes values for these fields.
+        FileNameForHandler := FileManagement.ServerTempFileName('csv');
+        FileHdl.Create(FileNameForHandler, TEXTENCODING::UTF8);
+        FileHdl.CreateOutStream(TmpStream);
+        WriteCsvHeader(TmpStream);
+        WriteLine(TmpStream, '500;2026-06-12;N;;005000;500;1;;Bank D;Streetname;5;8005;Zürich;CH;BANKDCHZZXXX;Y;Y;Y;Y;Y;N');
+        WriteLine(TmpStream, '501;2026-06-12;N;;005010;501;1;;Bank E;Streetname;6;8006;Zürich;CH;BANKECHZZXXX;;;;;;');
+        FileHdl.Close();
+    end;
+
+    local procedure WriteCsvHeader(TmpStream: OutStream)
+    begin
+        WriteLine(TmpStream,
+          'IID/QR-IID;Valid on;Concatenation;New IID/QR-IID;SIC IID;Headquarters;IID type;QR-IID allocation;' +
+          'Name of bank/institution;Street Name;Building Number;Post Code;Town Name;Country;BIC;' +
+          'SIC participation;RTGS customer payments, CHF;IP customer payments, CHF;euroSIC participation;LSV+/BDD, CHF;LSV+/BDD, EUR');
+    end;
+
+    local procedure CreateBankDirectoryCsvV3FileWithBankType(IIDType: Text)
+    var
+        TmpStream: OutStream;
+        FileHdl: File;
+    begin
+        FileNameForHandler := FileManagement.ServerTempFileName('csv');
+        FileHdl.Create(FileNameForHandler, TEXTENCODING::UTF8);
+        FileHdl.CreateOutStream(TmpStream);
+        WriteCsvHeader(TmpStream);
+        WriteLine(TmpStream, '400;2026-06-12;N;;004000;400;' + IIDType + ';;Test Bank Outlet;Teststrasse;10;8000;Zürich;CH;TESTCHZZXXX;Y;Y;Y;Y;Y;N');
+        FileHdl.Close();
+    end;
+
+    local procedure CreateBankDirectoryCsvV3FileWithSICNo()
+    var
+        TmpStream: OutStream;
+        FileHdl: File;
+    begin
+        FileNameForHandler := FileManagement.ServerTempFileName('csv');
+        FileHdl.Create(FileNameForHandler, TEXTENCODING::UTF8);
+        FileHdl.CreateOutStream(TmpStream);
+        WriteCsvHeader(TmpStream);
+        WriteLine(TmpStream, '500;2026-06-12;N;;005000;500;1;;Non-SIC Bank;Hauptstrasse;5;3000;Bern;CH;NONSICCHZXXX;N;N;N;N;N;N');
+        FileHdl.Close();
+    end;
+
+    local procedure CreateBankDirectoryCsvV3FileWithEmptyFields()
+    var
+        TmpStream: OutStream;
+        FileHdl: File;
+    begin
+        FileNameForHandler := FileManagement.ServerTempFileName('csv');
+        FileHdl.Create(FileNameForHandler, TEXTENCODING::UTF8);
+        FileHdl.CreateOutStream(TmpStream);
+        WriteCsvHeader(TmpStream);
+        // Empty Street Name (col 10), Building Number (col 11), and BIC (col 15)
+        WriteLine(TmpStream, '600;2026-06-12;N;;006000;600;1;;Test Bank Minimal;;;8000;Zürich;CH;;Y;Y;Y;Y;Y;N');
+        FileHdl.Close();
+    end;
+
+    local procedure CreateBankDirectoryCsvV3FileWithUtf8()
+    var
+        TmpStream: OutStream;
+        FileHdl: File;
+    begin
+        FileNameForHandler := FileManagement.ServerTempFileName('csv');
+        FileHdl.Create(FileNameForHandler, TEXTENCODING::UTF8);
+        FileHdl.CreateOutStream(TmpStream);
+        WriteCsvHeader(TmpStream);
+        WriteLine(TmpStream, '700;2026-06-12;N;;007000;700;1;;Bänk Zürich Höfe;Überlandstrasse;42;1211;Genève;CH;BANKCHZZXXX;Y;Y;Y;Y;Y;N');
+        FileHdl.Close();
+    end;
+
+    local procedure CreateBankDirectoryCsvV3FileWithLongFields()
+    var
+        TmpStream: OutStream;
+        FileHdl: File;
+    begin
+        FileNameForHandler := FileManagement.ServerTempFileName('csv');
+        FileHdl.Create(FileNameForHandler, TEXTENCODING::UTF8);
+        FileHdl.CreateOutStream(TmpStream);
+        WriteCsvHeader(TmpStream);
+        // Name exceeds 30 chars: "This Very Long Bank Name That Exceeds The Maximum" = 50 chars
+        WriteLine(TmpStream, '800;2026-06-12;N;;008000;800;1;;This Very Long Bank Name That Exceeds The Maximum;Strasse;1;8000;Zürich;CH;LONGCHZZXXX;Y;Y;Y;Y;Y;N');
+        FileHdl.Close();
+    end;
+
     [RequestPageHandler]
     [Scope('OnPrem')]
     procedure ImportHandler(var ImportBankDirectory: TestRequestPage "Import Bank Directory")
@@ -452,6 +989,31 @@ codeunit 144016 "Test Import Bank Directory"
         VendorBankAccount.Validate("Vendor No.", Vendor."No.");
         VendorBankAccount.Validate(Code, CopyStr(LibraryUtility.GenerateRandomCode(VendorBankAccount.FieldNo(Code), DATABASE::"Vendor Bank Account"), 1, 5));
         VendorBankAccount."Clearing No." := Format(LibraryRandom.RandIntInRange(11111, 99999));
+        VendorBankAccount."Payment Form" := VendorBankAccount."Payment Form"::"Bank Payment Domestic";
+        VendorBankAccount.Insert(true);
+        Commit();
+    end;
+
+    local procedure CreateCustomerBankAccountWithClearing(var CustomerBankAccount: Record "Customer Bank Account"; ClearingNo: Code[5])
+    var
+        Customer: Record Customer;
+    begin
+        LibrarySales.CreateCustomer(Customer);
+        LibrarySales.CreateCustomerBankAccount(CustomerBankAccount, Customer."No.");
+        CustomerBankAccount."Bank Branch No." := ClearingNo;
+        CustomerBankAccount.Modify(true);
+        Commit();
+    end;
+
+    local procedure CreateVendorBankAccountWithClearing(var VendorBankAccount: Record "Vendor Bank Account"; ClearingNo: Code[5])
+    var
+        Vendor: Record Vendor;
+    begin
+        LibraryPurchase.CreateVendor(Vendor);
+        VendorBankAccount.Init();
+        VendorBankAccount.Validate("Vendor No.", Vendor."No.");
+        VendorBankAccount.Validate(Code, CopyStr(LibraryUtility.GenerateRandomCode(VendorBankAccount.FieldNo(Code), Database::"Vendor Bank Account"), 1, 5));
+        VendorBankAccount."Clearing No." := ClearingNo;
         VendorBankAccount."Payment Form" := VendorBankAccount."Payment Form"::"Bank Payment Domestic";
         VendorBankAccount.Insert(true);
         Commit();

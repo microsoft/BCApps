@@ -719,7 +719,7 @@ codeunit 144077 "SEPA.02 DD Functional Test"
 
     local procedure GetMessageToRecipient(CustLedgerEntry: Record "Cust. Ledger Entry"): Text
     begin
-        exit(CustLedgerEntry.Description + ' ;' + CustLedgerEntry."Document No.");
+        exit(CustLedgerEntry.Description + ', ' + CustLedgerEntry."Document No.");
     end;
 
     local procedure VerifySEPADDXmlFile(PaymentHeader: Record "Payment Header"; PaymentLine: Record "Payment Line"; MsgToRecipient: Text)

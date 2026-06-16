@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -20,6 +20,9 @@ using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Setup;
 using Microsoft.Inventory.Tracking;
+#if not CLEAN29
+using Microsoft.Manufacturing.Setup;
+#endif
 using Microsoft.Projects.Project.Planning;
 using Microsoft.Purchases.Document;
 using Microsoft.Sales.Document;
@@ -524,6 +527,9 @@ codeunit 22 "Item Jnl.-Post Line"
 
     internal procedure InsertCapLedgEntry(var ItemJnlLine: Record "Item Journal Line"; var CapLedgEntry: Record Microsoft.Manufacturing.Capacity."Capacity Ledger Entry"; Qty: Decimal; InvdQty: Decimal)
     var
+#if not CLEAN29
+        LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
+#endif
         IsHandled: Boolean;
     begin
         OnBeforeProcedureInsertCapLedgEntry(ItemJnlLine, CapLedgEntry, IsHandled);
@@ -574,12 +580,13 @@ codeunit 22 "Item Jnl.-Post Line"
         CapLedgEntry."Dimension Set ID" := ItemJnlLine."Dimension Set ID";
 
 #if not CLEAN28
-        if ItemJnlLine."WIP Item" then begin
-            CapLedgEntry."WIP Item Qty." := ItemJnlLine."WIP Quantity";
-            CapLedgEntry."Subcontractor No." := ItemJnlLine."Source No.";
-            CapLedgEntry."Subcontr. Purch. Order No." := ItemJnlLine."Subcontr. Purch. Order No.";
-            CapLedgEntry."Subcontr. Purch. Order Line" := ItemJnlLine."Subcontr. Purch. Order Line";
-        end;
+        if LegacySubcFeatureHandler.IsLegacySubcontractingEnabled() then
+            if ItemJnlLine."WIP Item" then begin
+                CapLedgEntry."WIP Item Qty." := ItemJnlLine."WIP Quantity";
+                CapLedgEntry."Subcontractor No." := ItemJnlLine."Source No.";
+                CapLedgEntry."Subcontr. Purch. Order No." := ItemJnlLine."Subcontr. Purch. Order No.";
+                CapLedgEntry."Subcontr. Purch. Order Line" := ItemJnlLine."Subcontr. Purch. Order Line";
+            end;
 #endif
         OnBeforeInsertCapLedgEntry(CapLedgEntry, ItemJnlLine, LastOperation);
 
@@ -1621,7 +1628,7 @@ codeunit 22 "Item Jnl.-Post Line"
     end;
 
     local procedure AssemblyReservationEntryMismatchWithItemJnlLine(var ReservEntry: Record "Reservation Entry"): Boolean
-   var
+    var
         ReservEntry2: Record "Reservation Entry";
         ItemRec: Record Item;
     begin
@@ -1633,7 +1640,7 @@ codeunit 22 "Item Jnl.-Post Line"
                       and (not ItemJnlLine."Assemble to Order") then
                     exit(true);
     end;
-    
+
     local procedure UpdateReservationEntryForNonInventoriableItem()
     var
         ReservationEntry: Record "Reservation Entry";
@@ -1946,6 +1953,9 @@ codeunit 22 "Item Jnl.-Post Line"
     /// <param name="ItemLedgEntry">Return value: Initialized item ledger entry.</param>
     procedure InitItemLedgEntry(var ItemLedgEntry: Record "Item Ledger Entry")
     var
+#if not CLEAN29
+        LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
+#endif
         xItemLedgEntryNo: Integer;
     begin
         ItemLedgEntryNo := GetNextItemLedgerEntryNo(ItemLedgEntryNo);
@@ -1966,8 +1976,10 @@ codeunit 22 "Item Jnl.-Post Line"
         ItemLedgEntry."Order No." := ItemJnlLine."Order No.";
         ItemLedgEntry."Order Line No." := ItemJnlLine."Order Line No.";
 #if not CLEAN28
-        ItemLedgEntry."Prod. Order No." := ItemJnlLine."Prod. Order No.";
-        ItemLedgEntry."Prod. Order Line No." := ItemJnlLine."Prod. Order Line No.";
+        if LegacySubcFeatureHandler.IsLegacySubcontractingEnabled() then begin
+            ItemLedgEntry."Prod. Order No." := ItemJnlLine."Prod. Order No.";
+            ItemLedgEntry."Prod. Order Line No." := ItemJnlLine."Prod. Order Line No.";
+        end;
 #endif
         ItemLedgEntry."External Document No." := ItemJnlLine."External Document No.";
         ItemLedgEntry.Description := ItemJnlLine.Description;
@@ -2031,8 +2043,10 @@ codeunit 22 "Item Jnl.-Post Line"
 
 #if not CLEAN28
         ItemLedgEntry."Prod. Order Comp. Line No." := ItemJnlLine."Prod. Order Comp. Line No.";
-        ItemLedgEntry."Subcontr. Purch. Order No." := ItemJnlLine."Subcontr. Purch. Order No.";
-        ItemLedgEntry."Subcontr. Purch. Order Line" := ItemJnlLine."Subcontr. Purch. Order Line";
+        if LegacySubcFeatureHandler.IsLegacySubcontractingEnabled() then begin
+            ItemLedgEntry."Subcontr. Purch. Order No." := ItemJnlLine."Subcontr. Purch. Order No.";
+            ItemLedgEntry."Subcontr. Purch. Order Line" := ItemJnlLine."Subcontr. Purch. Order Line";
+        end;
 #endif
         xItemLedgEntryNo := ItemLedgEntryNo;
         OnAfterInitItemLedgEntry(ItemLedgEntry, ItemJnlLine, ItemLedgEntryNo);

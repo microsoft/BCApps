@@ -2373,4 +2373,3 @@ codeunit 134403 "ERM Test SEPA Credit Transfers"
         end;
     end;
 }
-

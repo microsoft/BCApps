@@ -13,6 +13,7 @@ using System.Globalization;
 
 page 12156 "Subcontracting Prices"
 {
+    ApplicationArea = LegacySubcontracting;
     Caption = 'Subcontracting Prices';
     DataCaptionExpression = GetCaption();
     DelayedInsert = true;
@@ -31,7 +32,6 @@ page 12156 "Subcontracting Prices"
                 Caption = 'General';
                 field(VendNoFilterCtrl; VendNoFilter)
                 {
-                    ApplicationArea = Manufacturing;
                     Caption = 'Vendor No. Filter';
                     ToolTip = 'Specifies the filter for finding the vendor.';
 
@@ -58,7 +58,6 @@ page 12156 "Subcontracting Prices"
                 }
                 field(WorkCenterFilterCtrl; WorkCenterFilter)
                 {
-                    ApplicationArea = Manufacturing;
                     Caption = 'Work Center Filter';
                     ToolTip = 'Specifies the work center filter.';
 
@@ -85,7 +84,6 @@ page 12156 "Subcontracting Prices"
                 }
                 field(TaskCodeFilterCtrl; TaskCodeFilter)
                 {
-                    ApplicationArea = Manufacturing;
                     Caption = 'Task Code Filter';
                     ToolTip = 'Specifies the task code filter.';
 
@@ -110,7 +108,6 @@ page 12156 "Subcontracting Prices"
                 }
                 field(ItemNoFIlterCtrl; ItemNoFilter)
                 {
-                    ApplicationArea = Manufacturing;
                     Caption = 'Item No. Filter';
                     ToolTip = 'Specifies the item filter.';
 
@@ -137,7 +134,6 @@ page 12156 "Subcontracting Prices"
                 }
                 field(StartingDateFilter; StartingDateFilter)
                 {
-                    ApplicationArea = Manufacturing;
                     Caption = 'Starting Date Filter';
                     ToolTip = 'Specifies the starting date filter.';
 
@@ -152,64 +148,52 @@ page 12156 "Subcontracting Prices"
                 ShowCaption = false;
                 field("Work Center No."; Rec."Work Center No.")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the code that is assigned to the work center and that is associated with the subcontracting price.';
                 }
                 field("Vendor No."; Rec."Vendor No.")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the code assigned to the vendor that is associated with the subcontracting price.';
                 }
                 field("Standard Task Code"; Rec."Standard Task Code")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the code assigned to the standard task that is associated with the subcontracting price.';
                 }
                 field("Item No."; Rec."Item No.")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the code assigned to the item that is associated with the subcontracting price.';
                 }
                 field("Variant Code"; Rec."Variant Code")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the variant code assigned to the item that is associated with the subcontracting price.';
                     Visible = false;
                 }
                 field("Start Date"; Rec."Start Date")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the start date that is associated with the subcontracting price.';
                 }
                 field("End Date"; Rec."End Date")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the end date that is associated with the subcontracting price.';
                 }
                 field("Unit of Measure Code"; Rec."Unit of Measure Code")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the code assigned to the unit of measure that is associated with the subcontracting price.';
                 }
                 field("Minimum Quantity"; Rec."Minimum Quantity")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the minimum quantity that your order must total for the subcontracting order to be granted the subcontracting price.';
                 }
                 field("Currency Code"; Rec."Currency Code")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the currency that is associated with the document.';
                     Visible = false;
                 }
                 field("Direct Unit Cost"; Rec."Direct Unit Cost")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the direct unit cost that is associated with the subcontracting price.';
                 }
                 field("Minimum Amount"; Rec."Minimum Amount")
                 {
-                    ApplicationArea = Manufacturing;
                     ToolTip = 'Specifies the minimum amount that your order must total for the subcontracting order to be granted the subcontracting price.';
                 }
             }

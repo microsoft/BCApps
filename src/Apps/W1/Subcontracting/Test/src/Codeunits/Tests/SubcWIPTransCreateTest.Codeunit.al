@@ -844,6 +844,111 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
     end;
 
     [Test]
+    [HandlerFunctions('DoNotConfirmShowCreatedPurchOrderForSubcontracting,HandleTransferOrder')]
+    procedure DeleteReturnTransferOrderAndRecreateSucceeds()
+    var
+        Item: Record Item;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProdOrderLine: Record "Prod. Order Line";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        WIPLedgerEntry: Record "Subcontractor WIP Ledger Entry";
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        Vendor: Record Vendor;
+        WorkCenter: array[2] of Record "Work Center";
+        SubcLocationCode: Code[10];
+        WIPQty: Decimal;
+        PurchaseHeaderPage: TestPage "Purchase Order";
+    begin
+        // [SCENARIO] After creating a WIP return transfer order and deleting it,
+        // the user must be able to re-create it from the same purchase order.
+        Initialize();
+
+        // [GIVEN] A subcontracting setup with WIP Transfer enabled
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, true);
+        SubcWarehouseLibrary.CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        SetTransferWIPItemOnRoutingLine(Item."Routing No.", WorkCenter[2]."No.", true);
+
+        LibraryManufacturing.CreateProductionOrder(
+            ProductionOrder, "Production Order Status"::Released,
+            ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
+
+        SetProdOrderLocationToCompSetupLocationAndRefresh(ProductionOrder);
+
+        SubcontractingMgmtLibrary.CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
+
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        PurchaseLine.FindFirst();
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+
+        // [GIVEN] Mock WIP Ledger Entry at subcontractor location (simulates posted WIP transfer)
+        Vendor.Get(WorkCenter[2]."Subcontractor No.");
+        SubcLocationCode := Vendor."Subc. Location Code";
+
+        ProdOrderLine.SetRange(Status, "Production Order Status"::Released);
+        ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderLine.FindFirst();
+
+        ProdOrderRoutingLine.SetRange(Status, "Production Order Status"::Released);
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderRoutingLine.SetRange("Work Center No.", WorkCenter[2]."No.");
+        ProdOrderRoutingLine.FindFirst();
+
+        WIPQty := LibraryRandom.RandInt(10) + 1;
+        SubcontractingMgmtLibrary.CreateWIPLedgerEntry(
+            WIPLedgerEntry, Item."No.", SubcLocationCode,
+            ProductionOrder, ProdOrderLine, ProdOrderRoutingLine,
+            '', WIPQty, false);
+
+        // [GIVEN] Create the first return transfer order
+        PurchaseHeaderPage.OpenView();
+        PurchaseHeaderPage.GoToRecord(PurchaseHeader);
+        PurchaseHeaderPage.CreateReturnFromSubcontractor.Invoke();
+
+        TransferLine.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
+#pragma warning disable AA0210
+        TransferLine.SetRange("Transfer WIP Item", true);
+#pragma warning restore AA0210
+        TransferLine.SetRange("Subc. Return Order", true);
+        Assert.RecordIsNotEmpty(TransferLine);
+        TransferLine.FindFirst();
+
+        // [WHEN] The return transfer order is deleted
+        TransferHeader.Get(TransferLine."Document No.");
+        TransferHeader.Delete(true);
+
+        // [VERIFY] Return transfer line no longer exists
+        TransferLine.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
+#pragma warning disable AA0210
+        TransferLine.SetRange("Transfer WIP Item", true);
+#pragma warning restore AA0210
+        TransferLine.SetRange("Subc. Return Order", true);
+        Assert.RecordIsEmpty(TransferLine);
+
+        // [WHEN] The return transfer order is created again
+        PurchaseHeaderPage.GoToRecord(PurchaseHeader);
+        PurchaseHeaderPage.CreateReturnFromSubcontractor.Invoke();
+
+        // [THEN] A new return transfer line is created successfully
+        TransferLine.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
+#pragma warning disable AA0210
+        TransferLine.SetRange("Transfer WIP Item", true);
+#pragma warning restore AA0210
+        TransferLine.SetRange("Subc. Return Order", true);
+        Assert.RecordIsNotEmpty(TransferLine);
+        TransferLine.FindFirst();
+        Assert.AreEqual(WIPQty, TransferLine.Quantity,
+            'Recreated WIP return transfer line must have the same quantity as the WIP Ledger Entry.');
+
+        // [TEARDOWN]
+        WIPLedgerEntry.DeleteAll();
+    end;
+
+    [Test]
     [HandlerFunctions('HandleTransferOrder')]
     procedure WIPTransferCreatedPerProdOrderLineInFamilyProductionOrder()
     var

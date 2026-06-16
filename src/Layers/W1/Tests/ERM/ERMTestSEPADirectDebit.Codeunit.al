@@ -1923,7 +1923,7 @@ codeunit 134404 "ERM Test SEPA Direct Debit"
     begin
         DirectDebitCollectionEntry.CalcFields("Applies-to Entry Description", "Applies-to Entry Document No.");
         UstrdText :=
-          DirectDebitCollectionEntry."Applies-to Entry Description" + ' ;' + DirectDebitCollectionEntry."Applies-to Entry Document No.";
+          DirectDebitCollectionEntry."Applies-to Entry Description" + ', ' + DirectDebitCollectionEntry."Applies-to Entry Document No.";
     end;
 
     local procedure ValidateGrpHdr(var XMLParentNode: DotNet XmlNode; var DirectDebitCollection: Record "Direct Debit Collection"; var DirectDebitCollectionEntry: Record "Direct Debit Collection Entry")

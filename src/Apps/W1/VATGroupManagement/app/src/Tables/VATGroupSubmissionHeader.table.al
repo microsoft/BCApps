@@ -93,6 +93,10 @@ table 4702 "VAT Group Submission Header"
         Rec.ID := CreateGuid();
         Rec."Submitted On" := CurrentDateTime();
         Rec.TestField("Group Member ID");
+        Session.LogSecurityAudit(
+            VATGroupServiceNameTxt, SecurityOperationResult::Success,
+            StrSubstNo(SecurityAuditVATReturnReceivedTxt, Rec."No.", Rec."Group Member ID", Rec."Start Date", Rec."End Date"),
+            AuditCategory::CustomerFacing);
     end;
 
     trigger OnDelete()
@@ -112,4 +116,8 @@ table 4702 "VAT Group Submission Header"
         if SetVATGroupReturnNoFilter then
             Rec.SetRange("VAT Group Return No.", VATGroupReturnNo);
     end;
+
+    var
+        VATGroupServiceNameTxt: Label 'VAT Group Management', Locked = true;
+        SecurityAuditVATReturnReceivedTxt: Label 'VAT Return %1 was received from group member %2 for period %3 to %4.', Locked = true, Comment = '%1 - VAT submission No., %2 - Group Member ID, %3 - Start Date, %4 - End Date';
 }

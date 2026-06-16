@@ -932,6 +932,9 @@ codeunit 9178 "Application Area Mgmt."
         GetEssentialExperienceAppAreas(TempApplicationAreaSetup);
         TempApplicationAreaSetup.Service := true;
         TempApplicationAreaSetup.Manufacturing := true;
+#if not CLEAN29
+        TempApplicationAreaSetup."Legacy Subcontracting" := true;
+#endif
 
         OnGetPremiumExperienceAppAreas(TempApplicationAreaSetup);
     end;

@@ -1,4 +1,7 @@
 ﻿namespace System.Environment.Configuration;
+#if not CLEAN29
+using Microsoft.Manufacturing.Setup;
+#endif
 
 codeunit 9181 "Application Area Localization"
 {
@@ -12,5 +15,21 @@ codeunit 9181 "Application Area Localization"
         TempApplicationAreaSetup."Basic EU" := true;
         TempApplicationAreaSetup."Basic IT" := true;
     end;
-}
 
+#if not CLEAN29
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Application Area Mgmt.", 'OnGetPremiumExperienceAppAreas', '', false, false)]
+    local procedure OnGetPremiumExperienceAppAreas(var TempApplicationAreaSetup: Record "Application Area Setup" temporary)
+    begin
+        SetLegacySubcontractingApplicationArea(TempApplicationAreaSetup);
+    end;
+
+    local procedure SetLegacySubcontractingApplicationArea(var TempApplicationAreaSetup: Record "Application Area Setup" temporary)
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+    begin
+        ManufacturingSetup.SetLoadFields("Legacy Subcontracting");
+        if ManufacturingSetup.Get() then
+            TempApplicationAreaSetup."Legacy Subcontracting" := ManufacturingSetup."Legacy Subcontracting";
+    end;
+#endif
+}

@@ -1266,7 +1266,22 @@ table 98 "General Ledger Setup"
             trigger OnValidate()
             var
                 ImportConsolidationFromApi: Codeunit "Import Consolidation From API";
+                AuditLog: Codeunit "Audit Log";
             begin
+                if Rec."Allow Query From Consolid." <> xRec."Allow Query From Consolid." then
+                    if Rec."Allow Query From Consolid." then begin
+                        Session.LogSecurityAudit(
+                            FinancialConsolidationServiceNameTxt, SecurityOperationResult::Success,
+                            SecurityAuditAllowQueryEnabledTxt,
+                            AuditCategory::ApplicationManagement);
+                        AuditLog.LogAuditMessage(
+                            StrSubstNo(FinConsolidConfiguredLbl, UserSecurityId()),
+                            SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 4, 0);
+                    end else
+                        Session.LogSecurityAudit(
+                            FinancialConsolidationServiceNameTxt, SecurityOperationResult::Success,
+                            SecurityAuditAllowQueryDisabledTxt,
+                            AuditCategory::ApplicationManagement);
                 if not Rec."Allow Query From Consolid." then
                     exit;
                 if not GuiAllowed() then
@@ -1512,6 +1527,10 @@ table 98 "General Ledger Setup"
         VATDateFeatureUsageMsg: Label 'VAT Reporting Date Usage is changed', Locked = true;
         PrivacyStatementAckErr: Label 'Enabling requires privacy statement acknowledgement.';
         CannotUpdateLCYCodeErr: Label 'You cannot update the local currency code because there are posted general ledger entries.';
+        FinancialConsolidationServiceNameTxt: Label 'Financial Consolidation', Locked = true;
+        SecurityAuditAllowQueryEnabledTxt: Label 'Company was enabled as a subsidiary for cross-tenant Financial Consolidation queries.', Locked = true;
+        SecurityAuditAllowQueryDisabledTxt: Label 'Company was disabled as a subsidiary for cross-tenant Financial Consolidation queries.', Locked = true;
+        FinConsolidConfiguredLbl: Label 'Financial Consolidation cross-tenant query has been enabled by UserSecurityId %1.', Locked = true;
 
     /// <summary>
     /// Validates and corrects the format of decimal places configuration for currency and amount display.

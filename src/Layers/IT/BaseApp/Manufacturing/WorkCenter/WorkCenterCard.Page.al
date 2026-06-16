@@ -320,7 +320,7 @@ page 99000754 "Work Center Card"
         {
             action("Subcontr. &Prices")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = LegacySubcontracting;
                 Caption = 'Subcontr. &Prices';
                 Enabled = "Subcontr. &PricesEnable";
                 Image = Price;

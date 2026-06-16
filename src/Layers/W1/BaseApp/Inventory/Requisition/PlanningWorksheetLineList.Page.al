@@ -53,7 +53,6 @@ page 99000860 "Planning Worksheet Line List"
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
-                    Visible = false;
                 }
                 field(Quantity; Rec.Quantity)
                 {

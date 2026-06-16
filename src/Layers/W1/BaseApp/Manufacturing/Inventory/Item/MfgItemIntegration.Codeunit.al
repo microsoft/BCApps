@@ -164,6 +164,8 @@ codeunit 99000795 "Mfg. Item Integration"
             InventoryPostingSetup.SuggestAccount(RecRef, InventoryPostingSetup.FieldNo("Cap. Overhead Variance Account"));
         if InventoryPostingSetup."Subcontracted Variance Account" = '' then
             InventoryPostingSetup.SuggestAccount(RecRef, InventoryPostingSetup.FieldNo("Subcontracted Variance Account"));
+        if InventoryPostingSetup."Mat. Non-Inv. Variance Acc." = '' then
+            InventoryPostingSetup.SuggestAccount(RecRef, InventoryPostingSetup.FieldNo("Mat. Non-Inv. Variance Acc."));
     end;
 
     // Item Variant

@@ -16,6 +16,8 @@ codeunit 4706 "VAT Group Submit To Represent."
         VATGroupSubmissionEndPoint2017Txt: Label '/vatGroupSubmissions?$format=json', Locked = true;
         NoVATReportSetupErr: Label 'The VAT report setup was not found. You can create one on the VAT Report Setup page.';
         SubmitMembersOnlyErr: Label 'You must be configured as a VAT Group member in order to submit VAT returns to the group representative.';
+        VATGroupServiceNameTxt: Label 'VAT Group Management', Locked = true;
+        SecurityAuditVATReturnSubmittedTxt: Label 'VAT Return %1 was submitted to the VAT group representative at %2.', Locked = true, Comment = '%1 - VAT Report No., %2 - representative API URL';
 
     trigger OnRun()
     var
@@ -60,5 +62,9 @@ codeunit 4706 "VAT Group Submit To Represent."
 
         Rec.Validate(Status, Rec.Status::Submitted);
         Rec.Modify(true);
+        Session.LogSecurityAudit(
+            VATGroupServiceNameTxt, SecurityOperationResult::Success,
+            StrSubstNo(SecurityAuditVATReturnSubmittedTxt, Rec."No.", VATReportSetup."Group Representative API URL"),
+            AuditCategory::CustomerFacing);
     end;
 }

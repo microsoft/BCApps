@@ -76,6 +76,12 @@ table 13605 "Elec. VAT Decl. Setup"
         field(10; "Use Azure Key Vault"; Boolean)
         {
             InitValue = true;
+
+            trigger OnValidate()
+            begin
+                if Rec."Use Azure Key Vault" <> xRec."Use Azure Key Vault" then
+                    Session.LogSecurityAudit(FeatureNameTxt, SecurityOperationResult::Success, StrSubstNo(SecurityAuditUseAKVChangedTxt, xRec."Use Azure Key Vault", Rec."Use Azure Key Vault"), AuditCategory::ApplicationManagement);
+            end;
         }
     }
     keys
@@ -89,6 +95,8 @@ table 13605 "Elec. VAT Decl. Setup"
     var
         ConsentNotGivenErr: Label 'You must agree to the terms and conditions before you can use the VAT Return Electronic Submission functionality.';
         FeatureNameTxt: Label 'Electronic VAT Declaration DK', Locked = true;
+        SecurityAuditUseAKVChangedTxt: Label 'Use Azure Key Vault was changed from %1 to %2.', Locked = true, Comment = '%1 - old value, %2 - new value.';
+        ElecVATDeclConsentProvidedLbl: Label 'Electronic VAT Declaration DK - consent has been provided by UserSecurityId %1.', Locked = true;
 
     internal procedure GetSeeNumber(): Text[250]
     begin
@@ -128,11 +136,13 @@ table 13605 "Elec. VAT Decl. Setup"
     var
         CustomerConsentMgt: Codeunit "Customer Consent Mgt.";
         FeatureTelemetry: Codeunit "Feature Telemetry";
+        AuditLog: Codeunit "Audit Log";
     begin
         Rec.Validate("Consent Given", CustomerConsentMgt.ConfirmUserConsent());
         if Rec."Consent Given" then begin
             Rec.Validate("Consent User ID", CopyStr(UserId(), 1, 250));
             FeatureTelemetry.LogUptake('0000LRD', FeatureNameTxt, "Feature Uptake Status"::"Set up");
+            AuditLog.LogAuditMessage(StrSubstNo(ElecVATDeclConsentProvidedLbl, UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 4, 0);
         end;
         Rec.Modify();
         exit(Rec."Consent Given");

@@ -40,6 +40,9 @@ using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Setup;
 using Microsoft.Inventory.Tracking;
+#if not CLEAN29
+using Microsoft.Manufacturing.Setup;
+#endif
 using Microsoft.Pricing.Calculation;
 using Microsoft.Pricing.PriceList;
 using Microsoft.Projects.Project.Job;
@@ -4042,7 +4045,11 @@ table 39 "Purchase Line"
 #endif
 #if not CLEAN27
             trigger OnValidate()
+            var
+                LegacySubcFeatureHandler: codeunit "Legacy Subc. Feature Handler";
             begin
+                if not LegacySubcFeatureHandler.IsLegacySubcontractingEnabled() then
+                    exit;
                 CalcFields("WIP Qty at Subc.Loc. (Base)");
                 TestField("WIP Item");
                 if "Not Proc. WIP Qty to Receive" > "WIP Qty at Subc.Loc. (Base)" then
@@ -5919,6 +5926,7 @@ table 39 "Purchase Line"
                             Amount := 0;
                             "VAT Base Amount" := 0;
                             "Amount Including VAT" := ROUND(CalcLineAmount(), Currency."Amount Rounding Precision");
+                            NonDeductibleVAT.Update(Rec, Currency);
                         end;
                     "VAT Calculation Type"::"Sales Tax":
                         begin
@@ -5968,6 +5976,7 @@ table 39 "Purchase Line"
                             Amount := 0;
                             "VAT Base Amount" := 0;
                             "Amount Including VAT" := CalcLineAmount();
+                            NonDeductibleVAT.Update(Rec, Currency);
                         end;
                     "VAT Calculation Type"::"Sales Tax":
                         begin

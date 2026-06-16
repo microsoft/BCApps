@@ -20,7 +20,6 @@ codeunit 10838 "PaymentMgt Subscribers FR"
 {
     InherentEntitlements = X;
     InherentPermissions = X;
-    Access = Internal;
 
     var
         UnrealCVLedgEntryBuffer: Record "Unreal. CV Ledg. Entry Buffer";

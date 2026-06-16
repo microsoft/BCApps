@@ -12,6 +12,7 @@
 
     var
         Assert: Codeunit Assert;
+        LibraryDimension: Codeunit "Library - Dimension";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryJournals: Codeunit "Library - Journals";
         LibraryUtility: Codeunit "Library - Utility";
@@ -22,6 +23,7 @@
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         isInitialized: Boolean;
         CrMemoCorrInvNoQst: Label 'The Credit Memo doesn''t have a Corrected Invoice No. Do you want to continue?';
+        SumOfRealizedVATAmountErr: Label 'Sum of realized VAT amounts must be zero';
 
     [Test]
     [Scope('OnPrem')]
@@ -1028,6 +1030,121 @@
             end;
     end;
 
+    [Test]
+    [HandlerFunctions('PurchaseCreditMemoPageHandler')]
+    procedure FCYCrMemoWithDeferralAndDimensionsCreatesCorrectVATEntries()
+    var
+        CreditMemoPurchaseHeader: Record "Purchase Header";
+        CurrencyExchRate: Record "Currency Exchange Rate";
+        DeferralTemplate: Record "Deferral Template";
+        Dimension: Record Dimension;
+        DimensionValue: array[3] of Record "Dimension Value";
+        GenJournalLine: Record "Gen. Journal Line";
+        GLAccount: Record "G/L Account";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchInvHeader: Record "Purch. Inv. Header";
+        VATEntry: Record "VAT Entry";
+        VATPostingSetup: Record "VAT Posting Setup";
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        PostedPurchaseInvoice: TestPage "Posted Purchase Invoice";
+        CrMemoNo: Code[20];
+        GLAccountNo: Code[20];
+        InvoiceNo: Code[20];
+        PaymentNo: Code[20];
+        VendorNo: Code[20];
+        LineAmount: Decimal;
+        i: Integer;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 616762] Posting corrective purchase credit memo with FCY, unrealized VAT (Percentage),
+        // deferral, and distinct dimensions per line produces 9 VAT entries when all lines have equal amounts
+        Initialize();
+
+        // [GIVEN] Unrealized VAT Setup with "Unrealized VAT Type" = Percentage, "VAT %" = 27
+        EnableUnrealVATSetupWithGivenPct(VATPostingSetup, VATPostingSetup."Unrealized VAT Type"::Percentage, 27);
+
+        // [GIVEN] A deferral template with 1 period
+        LibraryERM.CreateDeferralTemplate(
+            DeferralTemplate, DeferralTemplate."Calc. Method"::"Equal per Period",
+            DeferralTemplate."Start Date"::"Beginning of Next Period", 1);
+
+        // [GIVEN] Create Currency with Exchange Rate 
+        CreateCurrencyWithExchangeRate(CurrencyExchRate);
+
+        // [GIVEN] Vendor "V" with the VAT Bus. Posting Group and FCY
+        VendorNo := CreateVendorWithCurrency(VATPostingSetup."VAT Bus. Posting Group", CurrencyExchRate."Currency Code");
+
+        // [GIVEN] G/L Account "A" with VAT setup and deferral code
+        GLAccountNo := LibraryERM.CreateGLAccountWithVATPostingSetup(VATPostingSetup, GLAccount."Gen. Posting Type"::Purchase);
+        GLAccount.Get(GLAccountNo);
+        GLAccount."Default Deferral Template Code" := DeferralTemplate."Deferral Code";
+        GLAccount.Modify(true);
+
+        // [GIVEN] A dimension "D" with 3 distinct values
+        LibraryDimension.CreateDimension(Dimension);
+        for i := 1 to 3 do
+            LibraryDimension.CreateDimensionValue(DimensionValue[i], Dimension.Code);
+
+        // [GIVEN] Purchase Invoice with 3 lines, same G/L Account, same amount 31623, different dimensions to replicate the scenario where due to rounding, 
+        // all the unrealized VAT on the lines gets fully realized when the credit memo is posted, causing all 3 unrealized VAT entries to be realized with the same amount.
+        LineAmount := 31623;
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, VendorNo);
+        PurchaseHeader.Validate("Currency Code", CurrencyExchRate."Currency Code");
+        PurchaseHeader.Validate("Prices Including VAT", true);
+        PurchaseHeader.Modify(true);
+
+        for i := 1 to 3 do begin
+            LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::"G/L Account", GLAccountNo, 1);
+            PurchaseLine.Validate("Direct Unit Cost", LineAmount);
+            PurchaseLine.Validate(
+                "Dimension Set ID", LibraryDimension.CreateDimSet(PurchaseLine."Dimension Set ID", Dimension.Code, DimensionValue[i].Code));
+            PurchaseLine.Modify(true);
+        end;
+
+        // [GIVEN] Posted purchase invoice
+        InvoiceNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        // [GIVEN] Payment applied to the invoice
+        LibraryERM.FindVendorLedgerEntry(VendorLedgerEntry, VendorLedgerEntry."Document Type"::Invoice, InvoiceNo);
+        VendorLedgerEntry.CalcFields("Remaining Amount");
+        CreateAndPostGeneralJournaLine(
+            GenJournalLine, GenJournalLine."Document Type"::Payment, VendorNo,
+            -VendorLedgerEntry."Remaining Amount", 0, CurrencyExchRate."Currency Code");
+        PaymentNo := GenJournalLine."Document No.";
+        ApplyAndPostVendorEntry(InvoiceNo, PaymentNo, GenJournalLine."Document Type"::Payment);
+
+        // [GIVEN] Payment unapplied from the invoice
+        LibraryERM.FindVendorLedgerEntry(VendorLedgerEntry, VendorLedgerEntry."Document Type"::Payment, PaymentNo);
+        LibraryERM.UnapplyVendorLedgerEntry(VendorLedgerEntry);
+
+        // [GIVEN] Corrective credit memo created from Posted Purchase Invoice page action
+        PurchInvHeader.SetRange("Buy-from Vendor No.", VendorNo);
+        PurchInvHeader.FindLast();
+        PostedPurchaseInvoice.OpenEdit();
+        PostedPurchaseInvoice.GoToRecord(PurchInvHeader);
+        PostedPurchaseInvoice.CreateCreditMemo.Invoke();
+
+        CreditMemoPurchaseHeader.SetRange("Document Type", CreditMemoPurchaseHeader."Document Type"::"Credit Memo");
+        CreditMemoPurchaseHeader.SetRange("Buy-from Vendor No.", VendorNo);
+        CreditMemoPurchaseHeader.FindLast();
+        CreditMemoPurchaseHeader."Vendor Cr. Memo No." := CreditMemoPurchaseHeader."No.";
+        CreditMemoPurchaseHeader.Modify();
+
+        // [WHEN] Posting the corrective credit memo
+        CrMemoNo := LibraryPurchase.PostPurchaseDocument(CreditMemoPurchaseHeader, true, true);
+
+        // [THEN] 9 VAT entries exist for the credit memo (3 unrealized + 3 old-side realizations + 3 new-side realizations)
+        VATEntry.SetRange("Document No.", CrMemoNo);
+        VATEntry.SetRange("Document Type", VATEntry."Document Type"::"Credit Memo");
+        Assert.RecordCount(VATEntry, 9);
+
+        // [THEN] The sum of realized VAT amounts is zero (balanced)
+        VATEntry.SetFilter("Unrealized VAT Entry No.", '<>%1', 0);
+        VATEntry.CalcSums(Amount);
+        Assert.AreEqual(0, VATEntry.Amount, SumOfRealizedVATAmountErr);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -1810,6 +1927,30 @@
         GLEntry.TestField(Amount, -GainLossAmt);
     end;
 
+    local procedure CreateCurrencyWithExchangeRate(var CurrencyExchangeRate: Record "Currency Exchange Rate")
+    var
+        Currency: Record Currency;
+    begin
+        LibraryERM.CreateCurrency(Currency);
+        CreateExchangeRate(CurrencyExchangeRate, Currency.Code, WorkDate());
+    end;
+
+    local procedure CreateExchangeRate(var CurrencyExchangeRate: Record "Currency Exchange Rate"; CurrencyCode: Code[10]; StartingDate: Date)
+    begin
+        LibraryERM.CreateExchRate(CurrencyExchangeRate, CurrencyCode, StartingDate);
+
+        // Using Random Exchange Rate Amount and Adjustment Exchange Rate.
+        CurrencyExchangeRate.Validate("Exchange Rate Amount", LibraryRandom.RandDec(100, 2));
+        CurrencyExchangeRate.Validate("Adjustment Exch. Rate Amount", CurrencyExchangeRate."Exchange Rate Amount");
+
+        // Relational Exchange Rate Amount and Relational Adjmt Exchange Rate Amount always greater than Exchange Rate Amount.
+        CurrencyExchangeRate.Validate(
+          "Relational Exch. Rate Amount", LibraryRandom.RandDec(100, 2) + CurrencyExchangeRate."Exchange Rate Amount");
+
+        CurrencyExchangeRate.Validate("Relational Adjmt Exch Rate Amt", CurrencyExchangeRate."Relational Exch. Rate Amount");
+        CurrencyExchangeRate.Modify(true);
+    end;
+
     [ModalPageHandler]
     [Scope('OnPrem')]
     procedure ApplyVendorEntriesHandler(var ApplyVendorEntries: TestPage "Apply Vendor Entries")
@@ -1843,6 +1984,12 @@
     procedure ConfirmHandler(Question: Text[1024]; var Reply: Boolean)
     begin
         Reply := true;
+    end;
+
+    [PageHandler]
+    procedure PurchaseCreditMemoPageHandler(var PurchaseCreditMemo: TestPage "Purchase Credit Memo")
+    begin
+        PurchaseCreditMemo.Close();
     end;
 }
 

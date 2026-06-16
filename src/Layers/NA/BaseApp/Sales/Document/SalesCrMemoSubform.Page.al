@@ -216,7 +216,8 @@ page 96 "Sales Cr. Memo Subform"
                         UpdateEditableOnRow();
 
                         Rec.RestoreLookupSelection();
-                        NoOnAfterValidate();
+                        if Rec."No." <> xRec."No." then
+                            NoOnAfterValidate();
 
                         if Rec."No." = xRec."No." then
                             exit;

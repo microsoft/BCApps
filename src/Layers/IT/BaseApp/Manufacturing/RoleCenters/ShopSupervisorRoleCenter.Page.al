@@ -271,7 +271,7 @@ page 9012 "Shop Supervisor Role Center"
 #if not CLEAN28
             action("Subcontracting Orders")
             {
-                ApplicationArea = Basic, Suite;
+                ApplicationArea = LegacySubcontracting;
                 Caption = 'Subcontracting Orders';
                 RunObject = Page "Subcontracting Order List";
                 ToolTip = 'View the list of subcontracting orders.';
@@ -281,7 +281,7 @@ page 9012 "Shop Supervisor Role Center"
             }
             action("Subcontracting Transfers")
             {
-                ApplicationArea = Basic, Suite;
+                ApplicationArea = LegacySubcontracting;
                 Caption = 'Subcontracting Transfers';
                 RunObject = Page "Subcontracting Transfer List";
                 ToolTip = 'View the list of subcontracting transfers.';
@@ -330,7 +330,7 @@ page 9012 "Shop Supervisor Role Center"
 #if not CLEAN29
             action(SubcontractingWorksheets)
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = LegacySubcontracting;
                 Caption = 'Subcontracting Worksheets (Obsolete)';
                 RunObject = Page "Req. Wksh. Names";
 #pragma warning disable AL0432

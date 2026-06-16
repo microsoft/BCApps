@@ -118,6 +118,7 @@ table 10003 "Document Line"
         field(10002; "Retention VAT %"; Decimal)
         {
             AutoFormatType = 0;
+            DecimalPlaces = 0 : 5;
             Caption = 'Retention VAT %';
         }
         field(10003; "Custom Transit Number"; Text[30])

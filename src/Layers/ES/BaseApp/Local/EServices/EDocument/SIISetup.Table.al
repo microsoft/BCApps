@@ -184,6 +184,11 @@ table 10751 "SII Setup"
 
             trigger OnValidate()
             begin
+                if "Certificate Code" <> xRec."Certificate Code" then
+                    Session.LogSecurityAudit(
+                        SIIFeatureNameTok, SecurityOperationResult::Success,
+                        StrSubstNo(SecurityAuditCertificateCodeChangedTxt, xRec."Certificate Code", "Certificate Code"),
+                        AuditCategory::UserManagement);
                 Validate(Enabled, "Certificate Code" <> '');
             end;
         }
@@ -229,7 +234,8 @@ table 10751 "SII Setup"
         FeatureTelemetry: Codeunit "Feature Telemetry";
         CannotEnableWithoutCertificateErr: Label 'The setup cannot be enabled without a valid certificate.';
         InvalidEndpointUrlErr: Label 'The endpoint URL %1 is not on the allow-list for this feature.', Comment = '%1 = the URL entered by the user';
-        EndpointFieldChangedTxt: Label 'SII Setup - endpoint field "%1" changed by UserSecurityId %2.', Locked = true;
+        EndpointFieldChangedTxt: Label 'SII endpoint field "%1" was changed.', Locked = true, Comment = '%1 - endpoint field caption';
+        SecurityAuditCertificateCodeChangedTxt: Label 'SII Certificate Code was changed from %1 to %2.', Locked = true, Comment = '%1 - old certificate code, %2 - new certificate code';
         SiiTxt: Label 'https://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/ssii/fact/ws/SuministroInformacion.xsd', Locked = true;
         SiiLRTxt: Label 'https://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/ssii/fact/ws/SuministroLR.xsd', Locked = true;
         SIIFeatureNameTok: Label 'SII', Locked = true;
@@ -301,9 +307,10 @@ table 10751 "SII Setup"
         if NewUrl = OldUrl then
             exit;
 
-        Session.LogAuditMessage(
-            StrSubstNo(EndpointFieldChangedTxt, EndpointFieldCaption, UserSecurityId()),
-            SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 4, 0);
+        Session.LogSecurityAudit(
+            SIIFeatureNameTok, SecurityOperationResult::Success,
+            StrSubstNo(EndpointFieldChangedTxt, EndpointFieldCaption),
+            AuditCategory::ApplicationManagement);
     end;
 
     [IntegrationEvent(false, false)]

@@ -176,10 +176,6 @@ table 9178 "Application Area Setup"
         {
             Caption = 'Item References';
         }
-        field(3700; "Subcontracting"; Boolean)
-        {
-            Caption = 'Subcontracting';
-        }
 #if not CLEANSCHEMA32
         field(3800; "Legacy Subcontracting"; Boolean)
         {

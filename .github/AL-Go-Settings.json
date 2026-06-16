@@ -8,7 +8,7 @@
   "UsePsSession": false,
   "gitHubRunner": "windows-latest",
   "githubRunnerShell": "pwsh",
-  "artifact": "bcinsider/Sandbox/29.0.51314.0//latest",
+  "artifact": "bcinsider/Sandbox/29.0.51369.0//latest",
   "country": "base",
   "useProjectDependencies": true,
   "incrementalBuilds": {

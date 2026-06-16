@@ -1104,7 +1104,7 @@ codeunit 10837 "Payment Management FR"
         GenJnlLine."Shortcut Dimension 2 Code" := InvPostingBuffer[1]."Global Dimension 2 Code";
         GenJnlLine."Dimension Set ID" := InvPostingBuffer[1]."Dimension Set ID";
 
-        OnPostInvPostingBufferOnBeforeGenJnlPostLineRunWithCheck(GenJnlLine, PaymentHeader, PaymentClass, PaymentLine);
+        OnPostInvPostingBufferOnBeforeGenJnlPostLineRunWithCheck(GenJnlLine, PaymentHeader, PaymentClass, PaymentLine, InvPostingBuffer[1]);
         GenJnlPostLine.RunWithCheck(GenJnlLine);
         GLEntry.SetRange("Document Type", GenJnlLine."Document Type");
         GLEntry.SetRange("Document No.", GenJnlLine."Document No.");
@@ -1169,7 +1169,7 @@ codeunit 10837 "Payment Management FR"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnPostInvPostingBufferOnBeforeGenJnlPostLineRunWithCheck(var GenJnlLine: Record "Gen. Journal Line"; var PaymentHeader: Record "Payment Header FR"; var PaymentClass: Record "Payment Class FR"; PaymentLine: Record "Payment Line FR")
+    local procedure OnPostInvPostingBufferOnBeforeGenJnlPostLineRunWithCheck(var GenJnlLine: Record "Gen. Journal Line"; var PaymentHeader: Record "Payment Header FR"; var PaymentClass: Record "Payment Class FR"; PaymentLine: Record "Payment Line FR"; InvPostingBuffer: Record "Payment Post. Buffer FR" temporary)
     begin
     end;
 

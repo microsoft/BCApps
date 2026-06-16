@@ -36,6 +36,19 @@ table 10000 "PAC Web Service"
         {
             Caption = 'Certificate';
             TableRelation = "Isolated Certificate";
+
+            trigger OnValidate()
+            var
+                OldCertificate: Code[20];
+            begin
+                OldCertificate := xRec.Certificate;
+                if Certificate = OldCertificate then
+                    exit;
+                Session.LogSecurityAudit(
+                    CFDIServiceNameTxt, SecurityOperationResult::Success,
+                    StrSubstNo(SecurityAuditPACCertificateChangedTxt, Code, OldCertificate, Certificate),
+                    AuditCategory::UserManagement);
+            end;
         }
     }
 
@@ -60,6 +73,8 @@ table 10000 "PAC Web Service"
     var
         Text000: Label 'You cannot delete the code %1 because it is used in the %2 window.';
         PACWebServiceDetail: Record "PAC Web Service Detail";
+        CFDIServiceNameTxt: Label 'CFDI', Locked = true;
+        SecurityAuditPACCertificateChangedTxt: Label 'PAC Web Service %1 certificate was changed from %2 to %3.', Locked = true, Comment = '%1 - PAC Code, %2 - old Certificate code, %3 - new Certificate code';
 
     procedure ValidateUsage()
     var

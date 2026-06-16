@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -21,7 +21,9 @@ using Microsoft.Inventory.Reports;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Inventory.Transfer;
+#if not CLEAN28
 using Microsoft.Manufacturing.Document;
+#endif
 using Microsoft.Purchases.Archive;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
@@ -47,6 +49,7 @@ using System.Email;
 using System.Integration.PowerBI;
 using System.Threading;
 using System.Visualization;
+
 
 page 9008 "Whse. Basic Role Center"
 {
@@ -147,17 +150,27 @@ page 9008 "Whse. Basic Role Center"
                 RunObject = Report "Customer - Labels";
                 ToolTip = 'View, save, or print mailing labels with the customers'' names and addresses. The report can be used to send sales letters, for example.';
             }
+#if not CLEAN28
             separator(Action1130001)
             {
+                ObsoleteReason = 'Preparation for replacement by Subcontracting app';
+                ObsoleteState = Pending;
+                ObsoleteTag = '29.0';
             }
             action("Subcontract. Transfer Shipment")
             {
-                ApplicationArea = Basic, Suite;
+                ApplicationArea = LegacySubcontracting;
                 Caption = 'Subcontract. Transfer Shipment';
                 Image = "Report";
                 RunObject = Report "Subcontract. Transfer Shipment";
                 ToolTip = 'Create a subcontracting transfer shipment.';
+                ObsoleteReason = 'Preparation for replacement by Subcontracting app';
+                ObsoleteState = Pending;
+#pragma warning disable AS0072
+                ObsoleteTag = '27.0';
+#pragma warning restore AS0072
             }
+#endif
         }
         area(embedding)
         {
@@ -172,7 +185,7 @@ page 9008 "Whse. Basic Role Center"
 #if not CLEAN27
             action("Subcontracting Transfers")
             {
-                ApplicationArea = Basic, Suite;
+                ApplicationArea = LegacySubcontracting;
                 Caption = 'Subcontracting Transfers';
                 RunObject = Page "Subcontracting Transfer List";
                 ToolTip = 'View the list of subcontracting transfers.';

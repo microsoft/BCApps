@@ -33,6 +33,8 @@ codeunit 10777 "Verifactu Doc. Upload Mgt."
         DocRegistrationErr: Label 'AEAT response contains an error. %1.', Comment = 'AEAT is the abbreviation of Agencia Tributaria, Spanish Tax Authority, %1 is the error message from AEAT.';
         DisableVerifactuQst: Label 'Verifactu setup will be disabled. Do you want to proceed?';
         EmptyRequestLbl: Label 'The request is empty.';
+        SecurityAuditCertLoadFailedTxt: Label 'Failed to load Verifactu certificate %1 when sending request to AEAT.', Comment = '%1 = certificate code', Locked = true;
+        SecurityAuditAEATUnauthorizedTxt: Label 'AEAT responded with HTTP %1 to a Verifactu request of type %2.', Comment = '%1 = HTTP status code, %2 = request type', Locked = true;
 
     internal procedure InvokeSoapRequest(var EDocument: Record "E-Document"; RequestText: Text; RequestType: Enum "Verifactu Request Type"; var ErrorText: Text; var SendContext: Codeunit SendContext): Boolean
     var
@@ -56,6 +58,7 @@ codeunit 10777 "Verifactu Doc. Upload Mgt."
         CertificateEnabled := DocRegistrationCertMgt.GetIsolatedCertificate(VerifactuSetup."Certificate Code", CertText, CertPassword);
         if not CertificateEnabled then begin
             Session.LogMessage('0000QWX', NoCertificateTelemetryErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
+            Session.LogSecurityAudit(FeatureNameTxt, SecurityOperationResult::Failure, StrSubstNo(SecurityAuditCertLoadFailedTxt, VerifactuSetup."Certificate Code"), AuditCategory::Authentication);
             ErrorText := NoCertificateErr;
             exit(false);
         end;
@@ -99,6 +102,8 @@ codeunit 10777 "Verifactu Doc. Upload Mgt."
         StatusDescription := HttpResponse.ReasonPhrase;
         if not (StatusCode in [200, 202]) then begin
             Session.LogMessage('0000QWZ', StrSubstNo(CommunicationTelemetryErr, Format(StatusCode) + ' ' + StatusDescription), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
+            if StatusCode in [401, 403] then
+                Session.LogSecurityAudit(FeatureNameTxt, SecurityOperationResult::Failure, StrSubstNo(SecurityAuditAEATUnauthorizedTxt, StatusCode, RequestType), AuditCategory::Authentication);
             ErrorText := StrSubstNo(CommunicationErr, Format(StatusCode) + ' ' + StatusDescription);
             exit(false);
         end;

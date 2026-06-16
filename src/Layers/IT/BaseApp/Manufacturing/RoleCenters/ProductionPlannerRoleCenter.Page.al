@@ -255,7 +255,7 @@ page 9010 "Production Planner Role Center"
 #if not CLEAN28
             action("Subcontracting Orders")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = LegacySubcontracting;
                 Caption = 'Subcontracting Orders';
                 RunObject = Page "Subcontracting Order List";
                 ToolTip = 'View the list of subcontracting orders.';
@@ -265,7 +265,7 @@ page 9010 "Production Planner Role Center"
             }
             action("Subcontracting Transfers")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = LegacySubcontracting;
                 Caption = 'Subcontracting Transfers';
                 RunObject = Page "Subcontracting Transfer List";
                 ToolTip = 'View the list of subcontracting transfers.';
@@ -462,7 +462,7 @@ page 9010 "Production Planner Role Center"
 #if not CLEAN29
                 action(SubcontractingWorksheets)
                 {
-                    ApplicationArea = Manufacturing;
+                    ApplicationArea = LegacySubcontracting;
                     Caption = 'Subcontracting Worksheets (Obsolete)';
                     RunObject = Page "Req. Wksh. Names";
 #pragma warning disable AL0432
@@ -763,7 +763,7 @@ page 9010 "Production Planner Role Center"
 #if not CLEAN29
                 action("Subcontracting &Worksheet")
                 {
-                    ApplicationArea = Manufacturing;
+                    ApplicationArea = LegacySubcontracting;
                     Caption = 'Subcontracting &Worksheet (Obsolete)';
                     Image = SubcontractingWorksheet;
 #pragma warning disable AL0432
