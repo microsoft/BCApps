@@ -17,22 +17,22 @@ tableextension 99001502 "Subc. Prod Order Comp Ext." extends "Prod. Order Compon
     AllowInCustomizations = AsReadOnly;
     fields
     {
-        field(99001522; "Subcontracting Type"; Enum "Subcontracting Type")
+        field(99001522; "Component Supply Method"; Enum "Component Supply Method")
         {
-            Caption = 'Subcontracting Type';
+            Caption = 'Component Supply Method';
             DataClassification = CustomerContent;
-            ToolTip = 'Specifies the Type of Subcontracting that is assigned to the Production Order Component.';
+            ToolTip = 'Specifies how components are supplied to the subcontractor for the production order component. Vendor-supplied - components are provided by the subcontractor. Consignment at Vendor - components are owned by your company but stored at the subcontractor location. Transfer to Vendor - components are sent to the subcontractor through a transfer order.';
             trigger OnValidate()
             var
                 Item: Record Item;
                 SubcontractingManagement: Codeunit "Subcontracting Management";
             begin
-                if "Subcontracting Type" = "Subcontracting Type"::Transfer then
+                if "Component Supply Method" = "Component Supply Method"::"Transfer to Vendor" then
                     if "Item No." <> '' then begin
                         Item.Get("Item No.");
                         Item.TestField(Type, Item.Type::Inventory);
                     end;
-                SubcontractingManagement.UpdateSubcontractingTypeForProdOrderComponent(Rec);
+                SubcontractingManagement.UpdateComponentSupplyMethodForProdOrderComponent(Rec);
             end;
         }
         field(99001523; "Subc. Original Location Code"; Code[10])
@@ -49,9 +49,8 @@ tableextension 99001502 "Subc. Prod Order Comp Ext." extends "Prod. Order Compon
                                                                   "Subc. Prod. Order Line No." = field("Prod. Order Line No."),
                                                                   "Prod. Order Comp. Line No." = field("Line No."),
                                                                   "Subc. Purch. Order No." = field("Subc. Purchase Order Filter"),
-                                                                  "Location Code" = field("Location Code"),
-                                                                  Open = const(true)
-                                                                  )
+                                                                  "Location Code" = field("Location Code"))
+
                                 );
             Caption = 'Qty. transf. to Subcontractor';
             DecimalPlaces = 0 : 5;
