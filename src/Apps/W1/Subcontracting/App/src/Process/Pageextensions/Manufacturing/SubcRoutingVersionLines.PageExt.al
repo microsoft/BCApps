@@ -32,7 +32,24 @@ pageextension 99001509 "Subc. Routing Version Lines" extends "Routing Version Li
                 Enabled = TransferWIPItemEnabled;
             }
             field("Transfer Description"; Rec."Transfer Description")
+            field("Transfer WIP Item"; Rec."Transfer WIP Item")
             {
+                ApplicationArea = Manufacturing;
+                Enabled = TransferWIPItemEnabled;
+                ToolTip = 'Specifies whether a WIP item should be transferred for this subcontracting routing line.';
+            }
+            field("Transfer Description"; Rec."Transfer Description")
+            {
+                ApplicationArea = Manufacturing;
+                Enabled = Rec."Transfer WIP Item";
+                ToolTip = 'Specifies the description of the WIP item to transfer.';
+            }
+            field("Transfer Description 2"; Rec."Transfer Description 2")
+            {
+                ApplicationArea = Manufacturing;
+                Enabled = Rec."Transfer WIP Item";
+                ToolTip = 'Specifies an additional description of the WIP item to transfer.';
+            }
                 ApplicationArea = Manufacturing;
                 Enabled = Rec."Transfer WIP Item";
             }
