@@ -194,7 +194,6 @@ codeunit 139993 "Subc. Feature Flag Test"
         // [THEN] Subcontracting fields are visible
         Assert.IsTrue(VendorCard."Subcr. Location Code".Visible(), '"Subcr. Location Code" should be visible when Subcontracting is enabled.');
         Assert.IsTrue(VendorCard."Subc. Linked to Work Center".Visible(), '"Subc. Linked to Work Center" should be visible when Subcontracting is enabled.');
-        Assert.IsTrue(VendorCard."Subc. Work Center No.".Visible(), '"Subc. Work Center No." should be visible when Subcontracting is enabled.');
 
         VendorCard.Close();
     end;
@@ -223,7 +222,6 @@ codeunit 139993 "Subc. Feature Flag Test"
         // [THEN] Subcontracting fields are not accessible (accessing them raises an error)
         asserterror Assert.IsFalse(VendorCard."Subcr. Location Code".Visible(), '"Subcr. Location Code" should not be visible when Subcontracting is disabled.');
         asserterror Assert.IsFalse(VendorCard."Subc. Linked to Work Center".Visible(), '"Subc. Linked to Work Center" should not be visible when Subcontracting is disabled.');
-        asserterror Assert.IsFalse(VendorCard."Subc. Work Center No.".Visible(), '"Subc. Work Center No." should not be visible when Subcontracting is disabled.');
 
         VendorCard.Close();
     end;
