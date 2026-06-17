@@ -40,7 +40,7 @@ pageextension 99001506 "Subc. Work Center Card" extends "Work Center Card"
                 }
                 action("WIP Ledger Entries")
                 {
-                    ApplicationArea = Manufacturing;
+                    ApplicationArea = Subcontracting;
                     Caption = 'Subcontracting WIP Entries';
                     Enabled = IsSubcontractingWorkCenter;
                     Image = LedgerEntries;
