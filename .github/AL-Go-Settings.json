@@ -11,11 +11,6 @@
   "artifact": "bcinsider/Sandbox/29.0.51369.0//latest",
   "country": "base",
   "useProjectDependencies": true,
-  "incrementalBuilds": {
-    "onPush": false,
-    "onPull_Request": false,
-    "onSchedule": false
-  },
   "repoVersion": "29.0",
   "numberOfTenantsForTesting": 3,
   "workspaceCompilation": {
