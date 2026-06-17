@@ -14,7 +14,7 @@ pageextension 99001547 "Subc. Whse Shipm. Subform Ext." extends "Whse. Shipment 
         {
             field("Transfer WIP Item"; Rec."Transfer WIP Item")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Visible = false;
             }
         }
