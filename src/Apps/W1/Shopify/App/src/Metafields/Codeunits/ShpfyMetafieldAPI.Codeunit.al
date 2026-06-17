@@ -146,7 +146,7 @@ codeunit 30316 "Shpfy Metafield API"
         Parameters: Dictionary of [Text, Text];
     begin
         Parameters.Add('Metafields', MetafieldsQuery);
-        JResponse := CommunicationMgt.ExecuteGraphQL(Enum::"Shpfy GraphQL Type"::MetafieldSet, Parameters);
+        JResponse := CommunicationMgt.ExecuteGraphQL(Enum::"Shpfy GraphQL Type"::Metafields_MetafieldSet, Parameters);
     end;
 
     /// <summary>
@@ -239,7 +239,7 @@ codeunit 30316 "Shpfy Metafield API"
     begin
         OwnerType := Metafield.GetOwnerType(ParentTableNo);
         Parameters.Add('OwnerType', UpperCase(OwnerType.Names().Get(OwnerType.Ordinals.IndexOf(OwnerType.AsInteger()))));
-        JResponse := CommunicationMgt.ExecuteGraphQL(Enum::"Shpfy GraphQL Type"::GetMetafieldDefinitions, Parameters);
+        JResponse := CommunicationMgt.ExecuteGraphQL(Enum::"Shpfy GraphQL Type"::Metafields_GetMetafieldDefinitions, Parameters);
 
         if JsonHelper.GetJsonArray(JResponse, JMetafields, 'data.metafieldDefinitions.edges') then
             foreach JMetafield in JMetafields do begin

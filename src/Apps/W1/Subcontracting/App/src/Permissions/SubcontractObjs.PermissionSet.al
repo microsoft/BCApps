@@ -3,6 +3,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
+using Microsoft.Manufacturing.Planning;
+using Microsoft.QualityManagement.Setup.ApplicationAreas;
 
 permissionset 99001501 "Subcontract. - Objs"
 {
@@ -11,25 +13,24 @@ permissionset 99001501 "Subcontract. - Objs"
     Access = Internal;
     Permissions =
         // Tables
-        table "Subc. Management Setup" = X,
         table "Subcontractor Price" = X,
+        table "Subcontractor WIP Ledger Entry" = X,
 
         // Codeunits
-        codeunit "Single Instance Dictionary" = X,
+        codeunit "Subc. Session State" = X,
         codeunit "Subc. Business Setup Ext." = X,
         codeunit "Subc. Calc. Prod. Order Ext." = X,
         codeunit "Subc. Calc.StandardCost Ext." = X,
         codeunit "Subc. Calc BOM Tree Ext." = X,
         codeunit "Subc. Calc Subcontracts Ext." = X,
         codeunit "Subc. Carry Out Action Ext." = X,
-        codeunit "Subc. Create Prod. Ord. Opt." = X,
-        codeunit "Subc. Create Prod. Rtng. Ext." = X,
-        codeunit "Subc. CrPurchSubcon(Yes/No)" = X,
         codeunit "Subc. DirectTransferLine Ext." = X,
-        codeunit "Subc. Factbox Mgmt." = X,
+        codeunit "Subc. Comp. Factbox Mgmt." = X,
+        codeunit "Subc. ProdO. Factbox Mgmt." = X,
+        codeunit "Subc. Purch. Factbox Mgmt." = X,
+        codeunit "Subc. Routing Factbox Mgmt." = X,
         codeunit "Subc. ItemChargeAssPurchExt" = X,
         codeunit "Subc. Item Extension" = X,
-        codeunit "Subc. ItemJnlCheckExt" = X,
         codeunit "Subc. ItemJnlPostLine Ext" = X,
         codeunit "Subc. Notification Mgmt." = X,
         codeunit "Subc. Planning Comp. Ext." = X,
@@ -38,7 +39,6 @@ permissionset 99001501 "Subcontract. - Objs"
         codeunit "Subc. Prod. Order Comp. Ext." = X,
         codeunit "Subc. Prod. Order Rtng. Ext." = X,
         codeunit "Subc. Prod. Ord. Comp. Res." = X,
-        codeunit "Subc. ProdOrderCreateBind" = X,
         codeunit "Subc. Purch. Post Ext" = X,
         codeunit "Subc. Purchase Header Ext" = X,
         codeunit "Subc. Purchase Line Ext" = X,
@@ -47,12 +47,9 @@ permissionset 99001501 "Subcontract. - Objs"
         codeunit "Subc. Req. Wksh. Make Ord." = X,
         codeunit "Subcontracting Comp. Init." = X,
         codeunit "Subcontracting Management" = X,
-        codeunit "Subcontracting Management Ext." = X,
         codeunit "Subc. Synchronize Management" = X,
-        codeunit "Subc. Temp Data Initializer" = X,
-        codeunit "Subc. TempProdOrdBind" = X,
         codeunit "Subc. Transfer Line Ext." = X,
-        codeunit "Subc. TransferPost Ext" = X,
+        codeunit "Subc. Transfer Management" = X,
         codeunit "Subc. Transfer Rcpt Line Ext." = X,
         codeunit "Subc. Transfer Shpt Line Ext." = X,
         codeunit "Subc. TransOrderPostRcpt Ext" = X,
@@ -61,30 +58,41 @@ permissionset 99001501 "Subcontract. - Objs"
         codeunit "Subc. Trans Rcpt Header Ext" = X,
         codeunit "Subc. Trans Shpt Header Ext" = X,
         codeunit "Subc. Vendor Extension" = X,
-        codeunit "Subc. Version Mgmt." = X,
-        codeunit "Subc. Whse Direct Posting" = X,
         codeunit "Subc. WhsePostReceipt Ext" = X,
         codeunit "Subc. WhsePurchRelease Ext" = X,
         codeunit "Subc. Work Center Extension" = X,
         codeunit "Subcontracting Install" = X,
+        codeunit "Subc. Change Prod.Order Status" = X,
+        codeunit "Subc. Posting Preview Binding" = X,
+        codeunit "Subc. Posting Preview Subscr." = X,
+        codeunit "Subc. Pst. Prev. Event Handler" = X,
+        codeunit "Subc. Purchase Order Creator" = X,
+        codeunit "Subc. Transfer WIP Posting" = X,
+        codeunit "Subc. WhsePostShipment Ext" = X,
+        codeunit "Subc. WIP Item Ledg Find Entry" = X,
+        codeunit "Subc. Application Area Mgmt." = X,
+#if not CLEAN29
+#pragma warning disable AL0432
+        codeunit "Subc. Feature Flag Handler" = X,
+#pragma warning restore AL0432
+#endif
+        codeunit "Subc. Upgrade Tag Def. Ext." = X,
+        codeunit "Subc. Worksheet Handler" = X,
 
         // Pages
-        page "Subc. Management Setup" = X,
         page "Subc. Prod. Order Components" = X,
         page "Subc. Purchase Line Factbox" = X,
-        page "Subc. PurchProvisionWizard" = X,
         page "Subc. Routing Info Factbox" = X,
-        page "Subc. Temp BOM Lines" = X,
-        page "Subc. Temp Prod Order Comp" = X,
-        page "Subc. TempProdOrdRtngLines" = X,
-        page "Subc. Temp Routing Lines" = X,
         page "Subc. Transfer Line Factbox" = X,
         page "Subcontractor Prices" = X,
+        page "Subc. WIP Adjustment" = X,
+        page "Subc. WIP Ledger Entries" = X,
+        page "Subc. Subcontracting Worksheet" = X,
 
         // Reports
-        report "Subc. Create Prod. Routing" = X,
         report "Subc. Create Transf. Order" = X,
         report "Subc. Create SubCReturnOrder" = X,
         report "Subc. Detailed Calculation" = X,
-        report "Subc. Dispatching List" = X;
+        report "Subc. Dispatching List" = X,
+        report "Subc. Calculate Subcontracts" = X;
 }

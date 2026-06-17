@@ -12,16 +12,24 @@ codeunit 99001531 "Subc. Vendor Extension"
     local procedure OnAfterDeleteVendor(var Rec: Record Vendor; RunTrigger: Boolean)
     var
         SubcontractorPrice: Record "Subcontractor Price";
+#if not CLEAN29
+#pragma warning disable AL0432
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
+#endif
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if Rec.IsTemporary() then
             exit;
 
         if not RunTrigger then
             exit;
 
-        SubcontractorPrice.SetCurrentKey("Vendor No.");
-        SubcontractorPrice.SetRange("Vendor No.", Rec."No.");
-        if not SubcontractorPrice.IsEmpty() then
-            SubcontractorPrice.DeleteAll(true);
+        SubcontractorPrice.DeletePricesForVendor(Rec."No.");
     end;
 }

@@ -238,11 +238,11 @@ page 2650 "Email Printer Settings"
 
     trigger OnAfterGetCurrRecord()
     var
-        EmailAccount: Record "Email Account";
+        TempEmailAccount: Record "Email Account";
         EmailScenario: Codeunit "Email Scenario";
     begin
         IsSizeCustom := SetupPrinters.IsPaperSizeCustom(Rec."Paper Size");
-        HasEmailAccountPermission := EmailAccount.WritePermission();
-        IsEmailAccountDefined := EmailScenario.GetEmailAccount(Enum::"Email Scenario"::"Email Printer", EmailAccount);
+        HasEmailAccountPermission := TempEmailAccount.WritePermission();
+        IsEmailAccountDefined := EmailScenario.GetEmailAccount(Enum::"Email Scenario"::"Email Printer", TempEmailAccount);
     end;
 }

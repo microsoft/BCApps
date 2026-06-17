@@ -1,0 +1,2 @@
+# cost: 12
+{"query":"{companies(first:200, after:\"{{After}}\", query: \"updated_at:>'{{LastSync}}'\"){pageInfo{hasNextPage} edges{cursor node{id updatedAt}}}}"}

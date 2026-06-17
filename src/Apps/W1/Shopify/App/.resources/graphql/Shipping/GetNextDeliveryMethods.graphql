@@ -1,0 +1,2 @@
+# cost: 54
+{"query":"{ deliveryProfile(id: \"gid://shopify/DeliveryProfile/{{DeliveryProfileId}}\") { profileLocationGroups(locationGroupId: \"gid://shopify/DeliveryLocationGroup/{{DeliveryLocationGroupId}}\") { locationGroupZones(first: 20, after:\"{{After}}\") { pageInfo { hasNextPage } edges { cursor node { methodDefinitions(first: 50) { edges { node { active name } } } } } } } } }"}

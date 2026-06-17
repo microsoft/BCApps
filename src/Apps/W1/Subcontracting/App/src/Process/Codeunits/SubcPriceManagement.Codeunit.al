@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -21,14 +21,25 @@ using Microsoft.Purchases.Document;
 codeunit 99001508 "Subc. Price Management"
 {
     var
-        SubcManagementSetup: Record "Subc. Management Setup";
+        ManufacturingSetup: Record "Manufacturing Setup";
+#if not CLEAN29
+#pragma warning disable AL0432
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
+#endif
 
     procedure ApplySubcontractorPricingToProdOrderRouting(var ProdOrderLine: Record "Prod. Order Line"; var RoutingLine: Record "Routing Line"; var ProdOrderRoutingLine: Record "Prod. Order Routing Line")
     var
         SubcontractorPrice: Record "Subcontractor Price";
         WorkCenter: Record "Work Center";
     begin
-        if not SubcManagementSetup.Get() then
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        if not ManufacturingSetup.Get() then
             exit;
 
         if ProdOrderRoutingLine.Type <> "Capacity Type Routing"::"Work Center" then
@@ -67,7 +78,13 @@ codeunit 99001508 "Subc. Price Management"
         SubcontractorPrice: Record "Subcontractor Price";
         WorkCenter: Record "Work Center";
     begin
-        if not SubcManagementSetup.Get() then
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        if not ManufacturingSetup.Get() then
             exit;
 
         if RoutingLine.Type <> "Capacity Type Routing"::"Work Center" then
@@ -108,10 +125,9 @@ codeunit 99001508 "Subc. Price Management"
     procedure CalcStandardCostOnAfterCalcRtngLineCost(RoutingLine: Record "Routing Line"; MfgItemQtyBase: Decimal; var SLSub: Decimal)
     var
         Item: Record Item;
-        ManufacturingSetup: Record "Manufacturing Setup";
         WorkCenter: Record "Work Center";
         MfgCostCalculationMgt: Codeunit "Mfg. Cost Calculation Mgt.";
-        SingleInstanceDictionary: Codeunit "Single Instance Dictionary";
+        SubcSessionState: Codeunit "Subc. Session State";
         ItemRecordID: RecordId;
         RecRef: RecordRef;
         CalculationDate: Date;
@@ -122,9 +138,12 @@ codeunit 99001508 "Subc. Price Management"
         UnitCost: Decimal;
         UnitCostCalculationType: Enum "Unit Cost Calculation Type";
     begin
-        if not SubcManagementSetup.Get() then
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
+#endif
         if RoutingLine.Type <> "Capacity Type Routing"::"Work Center" then
             exit;
 
@@ -138,18 +157,18 @@ codeunit 99001508 "Subc. Price Management"
         if WorkCenter."Subcontractor No." = '' then
             exit;
 
-        SingleInstanceDictionary.GetRecordID('OnBeforeCalcRoutingLineCosts', ItemRecordID);
+        SubcSessionState.GetRecordID('OnBeforeCalcRoutingLineCosts', ItemRecordID);
         if ItemRecordID.TableNo() <> 0 then
             RecRef := ItemRecordID.GetRecord()
         else begin
-            SingleInstanceDictionary.GetRecordID('OnCalcMfgItemOnBeforeCalcRtngCost', ItemRecordID);
+            SubcSessionState.GetRecordID('OnCalcMfgItemOnBeforeCalcRtngCost', ItemRecordID);
             if ItemRecordID.TableNo() = 0 then
                 exit;
             RecRef := ItemRecordID.GetRecord()
         end;
 
         RecRef.SetTable(Item);
-        CalculationDate := SingleInstanceDictionary.GetDate('OnAfterSetProperties');
+        CalculationDate := SubcSessionState.GetDate('OnAfterSetProperties');
         if CalculationDate = 0D then
             CalculationDate := WorkDate();
 
@@ -169,8 +188,8 @@ codeunit 99001508 "Subc. Price Management"
             RoutingLine."Concurrent Capacities");
         SLSub := (CostTime * DirectUnitCost);
 
-        SingleInstanceDictionary.ClearAllDictionariesForKey('OnBeforeCalcRoutingLineCosts');
-        SingleInstanceDictionary.ClearAllDictionariesForKey('OnCalcMfgItemOnBeforeCalcRtngCost');
+        SubcSessionState.ClearAllDictionariesForKey('OnBeforeCalcRoutingLineCosts');
+        SubcSessionState.ClearAllDictionariesForKey('OnCalcMfgItemOnBeforeCalcRtngCost');
     end;
 
     local procedure CalcRtngCostPerUnit(No: Code[20]; var DirUnitCost: Decimal; var IndirCostPct: Decimal; var OvhdRate: Decimal; var UnitCost: Decimal; var UnitCostCalculationType: Enum "Unit Cost Calculation Type"; Item: Record Item; StandardTaskCode: Code[10]; CalculationDate: Date)
@@ -210,6 +229,12 @@ codeunit 99001508 "Subc. Price Management"
         WorkCenter: Record "Work Center";
         VendorNo: Code[20];
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if (ProdOrderRoutingLine.Type <> "Capacity Type"::"Work Center") then
             exit;
 
@@ -266,6 +291,12 @@ codeunit 99001508 "Subc. Price Management"
         PriceListQty: Decimal;
         PriceListQtyPerUOM: Decimal;
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         PriceListQtyPerUOM := 0;
         PriceListQty := 0;
         PriceListCost := 0;
@@ -291,6 +322,7 @@ codeunit 99001508 "Subc. Price Management"
         SubcontractorPrice.SetRange("Standard Task Code", InSubcontractorPrice."Standard Task Code");
         SubcontractorPrice.SetFilter("Item No.", '%1|%2', InSubcontractorPrice."Item No.", '');
         SubcontractorPrice.SetFilter("Variant Code", '%1|%2', InSubcontractorPrice."Variant Code", '');
+        SubcontractorPrice.SetFilter("Unit of Measure Code", '%1|%2', InSubcontractorPrice."Unit of Measure Code", '');
         SubcontractorPrice.SetRange("Starting Date", 0D, InSubcontractorPrice."Starting Date");
         SubcontractorPrice.SetFilter("Ending Date", '>=%1|%2', InSubcontractorPrice."Starting Date", 0D);
         if SubcontractorPrice.FindLast() then begin
@@ -345,6 +377,12 @@ codeunit 99001508 "Subc. Price Management"
 
     procedure ConvertPriceToUOM(ProdUOM: Code[10]; ProdQtyPerUoM: Decimal; PriceListUOM: Code[10]; PriceListQtyPerUOM: Decimal; PriceListCost: Decimal; var DirectCost: Decimal)
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if ProdUOM <> PriceListUOM then begin
             DirectCost := PriceListCost / PriceListQtyPerUOM;
             DirectCost := DirectCost * ProdQtyPerUoM;
@@ -410,13 +448,19 @@ codeunit 99001508 "Subc. Price Management"
         PriceListQty: Decimal;
         PriceListQtyPerUOM: Decimal;
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         OrderDate := RequisitionLine."Order Date";
         if OrderDate = 0D then
             OrderDate := WorkDate();
 
         SubcontractorPrice.SetRange("Vendor No.", RequisitionLine."Vendor No.");
         SubcontractorPrice.SetFilter("Work Center No.", '%1|%2', RequisitionLine."Work Center No.", '');
-        SubcontractorPrice.SetRange("Standard Task Code", RequisitionLine."Standard Task Code");
+        SubcontractorPrice.SetRange("Standard Task Code", RequisitionLine."Subc. Standard Task Code");
         SubcontractorPrice.SetRange("Variant Code", RequisitionLine."Variant Code");
         SubcontractorPrice.SetFilter("Item No.", '%1|%2', RequisitionLine."No.", '');
         SubcontractorPrice.SetRange("Starting Date", 0D, OrderDate);
@@ -424,7 +468,10 @@ codeunit 99001508 "Subc. Price Management"
         SubcontractorPrice.SetFilter("Currency Code", '%1|%2', RequisitionLine."Currency Code", '');
 
         if FixedUOM <> '' then
-            SubcontractorPrice.SetRange("Unit of Measure Code", FixedUOM);
+            SubcontractorPrice.SetRange("Unit of Measure Code", FixedUOM)
+        else
+            if RequisitionLine."Unit of Measure Code" <> '' then
+                SubcontractorPrice.SetFilter("Unit of Measure Code", '%1|%2', RequisitionLine."Unit of Measure Code", '');
 
         if SubcontractorPrice.FindLast() then begin
             if SubcontractorPrice."Unit of Measure Code" = RequisitionLine."Unit of Measure Code" then begin
@@ -436,16 +483,16 @@ codeunit 99001508 "Subc. Price Management"
 
             GetPriceByUOM(SubcontractorPrice, PriceListQty, PriceListCost);
             if PriceListCost <> 0 then begin
-                ConvertPriceToUOM(RequisitionLine."Unit of Measure Code", RequisitionLine.GetQuantityBase(), PriceListUOM, PriceListQtyPerUOM, PriceListCost, DirectCost);
+                ConvertPriceToUOM(RequisitionLine."Unit of Measure Code", RequisitionLine.GetQuantityForUOM(), PriceListUOM, PriceListQtyPerUOM, PriceListCost, DirectCost);
                 ConvertPriceToCurrency(RequisitionLine."Currency Code", SubcontractorPrice."Currency Code", PriceListCost, DirectCost);
             end;
             RequisitionLine."Direct Unit Cost" := DirectCost;
-            RequisitionLine."Pricelist Cost" := PriceListCost;
-            RequisitionLine."UoM for Pricelist" := PriceListUOM;
+            RequisitionLine."Subc. Pricelist Cost" := PriceListCost;
+            RequisitionLine."Subc. UoM for Pricelist" := PriceListUOM;
             RequisitionLine."Base UM Qty/PL UM Qty" := PriceListQtyPerUOM;
             if RequisitionLine."Base UM Qty/PL UM Qty" = 0 then
                 RequisitionLine."Base UM Qty/PL UM Qty" := 1;
-            if RequisitionLine."Unit of Measure Code" = RequisitionLine."UoM for Pricelist" then
+            if RequisitionLine."Unit of Measure Code" = RequisitionLine."Subc. UoM for Pricelist" then
                 RequisitionLine."PL UM Qty/Base UM Qty" := RequisitionLine.Quantity
             else
                 RequisitionLine."PL UM Qty/Base UM Qty" := RequisitionLine.GetQuantityBase() / RequisitionLine."Base UM Qty/PL UM Qty";
@@ -462,6 +509,12 @@ codeunit 99001508 "Subc. Price Management"
         OrderDate: Date;
         DirectCost, PriceListCost, PriceListQty, PriceListQtyPerUOM : Decimal;
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         OrderDate := PurchaseLine."Order Date";
         if OrderDate = 0D then
             OrderDate := WorkDate();

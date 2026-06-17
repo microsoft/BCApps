@@ -1,0 +1,2 @@
+# cost: 10
+{"query": "mutation { companyContactAssignRole(companyContactId: \"gid://shopify/CompanyContact/{{ContactId}}\", companyContactRoleId: \"gid://shopify/CompanyContactRole/{{ContactRoleId}}\", companyLocationId: \"gid://shopify/CompanyLocation/{{LocationId}}\") { companyContactRoleAssignment {id}, userErrors {field, message}}}"}

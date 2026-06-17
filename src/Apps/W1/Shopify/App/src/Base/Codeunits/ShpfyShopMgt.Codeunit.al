@@ -6,6 +6,7 @@
 namespace Microsoft.Integration.Shopify;
 
 using System.Environment.Configuration;
+using System.Feedback;
 
 codeunit 30211 "Shpfy Shop Mgt."
 {
@@ -90,6 +91,13 @@ codeunit 30211 "Shpfy Shop Mgt."
         if MyNotifications.WritePermission() then
             if not MyNotifications.Disable(GetBlockedNotificationId()) then
                 MyNotifications.InsertDefault(GetBlockedNotificationId(), BlockedNotificationNameTok, BlockedNotificationDescTok, false);
+    end;
+
+    internal procedure RequestFeedback()
+    var
+        Feedback: Codeunit "Microsoft User Feedback";
+    begin
+        Feedback.RequestFeedback('Shopify Connector', 'ShopifyConnector', 'Shopify Connector');
     end;
 
     procedure DisableNoItemNotification(Notification: Notification)

@@ -12,16 +12,24 @@ codeunit 99001519 "Subc. Work Center Extension"
     local procedure OnAfterDeleteWorkCenter(var Rec: Record "Work Center"; RunTrigger: Boolean)
     var
         SubcontractorPrice: Record "Subcontractor Price";
+#if not CLEAN29
+#pragma warning disable AL0432
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
+#endif
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if Rec.IsTemporary() then
             exit;
 
         if not RunTrigger then
             exit;
 
-        SubcontractorPrice.SetCurrentKey("Work Center No.");
-        SubcontractorPrice.SetRange("Work Center No.", Rec."No.");
-        if not SubcontractorPrice.IsEmpty() then
-            SubcontractorPrice.DeleteAll(true);
+        SubcontractorPrice.DeletePricesForWorkCenter(Rec."No.");
     end;
 }

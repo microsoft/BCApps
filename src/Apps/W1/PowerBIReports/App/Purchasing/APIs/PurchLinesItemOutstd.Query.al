@@ -10,6 +10,7 @@ query 36998 "Purch. Lines - Item Outstd."
 {
     Access = Internal;
     QueryType = API;
+    AboutText = 'Provides access to outstanding purchase order lines for items including quantities not yet received and outstanding amounts. Enables Power BI reports to analyze purchase order backlog, expected inventory receipts, and vendor delivery performance.';
     Caption = 'Power BI Outstanding PO';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';

@@ -14,6 +14,7 @@ codeunit 134245 "Shpfy Company Mapping Test"
     Subtype = Test;
     TestType = IntegrationTest;
     TestPermissions = Disabled;
+    TestHttpRequestPolicy = BlockOutboundRequests;
 
     var
         Shop: Record "Shpfy Shop";
@@ -21,6 +22,7 @@ codeunit 134245 "Shpfy Company Mapping Test"
         Any: Codeunit Any;
         ShopifyInitializeTest: Codeunit "Shpfy Initialize Test";
         IsInitialized: Boolean;
+        CompanyImportExecuted: Boolean;
 
     trigger OnRun()
     begin
@@ -400,11 +402,11 @@ codeunit 134245 "Shpfy Company Mapping Test"
     end;
 
     [Test]
+    [HandlerFunctions('CompanyMappingHttpHandler')]
     procedure UnitTestDoMappingByTaxIdWithEmptyGuid()
     var
         Customer: Record Customer;
         ShopifyCompany: Record "Shpfy Company";
-        CompanyMappingSubs: Codeunit "Shpfy Company Mapping Subs.";
         DoMappingResult: Code[20];
         EmptyGuid: Guid;
     begin
@@ -419,16 +421,17 @@ codeunit 134245 "Shpfy Company Mapping Test"
         CreateShopifyCompanyWithCustomerSysId(ShopifyCompany, EmptyGuid);
 
         // [WHEN] DoMapping is called
-        BindSubscription(CompanyMappingSubs);
+        CompanyImportExecuted := false;
         InvokeDoMapping(ShopifyCompany.Id, DoMappingResult);
-        UnbindSubscription(CompanyMappingSubs);
 
         // [THEN] Company Import codeunit is executed
-        LibraryAssert.IsTrue(CompanyMappingSubs.GetCompanyImportExecuted(), 'Company Import codeunit was not executed.');
+        LibraryAssert.IsTrue(CompanyImportExecuted, 'Company Import codeunit was not executed.');
     end;
 
 
     local procedure Initialize()
+    var
+        AccessToken: SecretText;
     begin
         Any.SetDefaultSeed();
 
@@ -436,6 +439,8 @@ codeunit 134245 "Shpfy Company Mapping Test"
             exit;
 
         Shop := ShopifyInitializeTest.CreateShop();
+        AccessToken := Any.AlphanumericText(20);
+        ShopifyInitializeTest.RegisterAccessTokenForShop(Shop.GetStoreName(), AccessToken);
 
         IsInitialized := true;
         Commit();
@@ -547,4 +552,14 @@ codeunit 134245 "Shpfy Company Mapping Test"
         Shop.Modify(false);
     end;
 
+    [HttpClientHandler]
+    internal procedure CompanyMappingHttpHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        if not ShopifyInitializeTest.VerifyRequestUrl(Request.Path, Shop."Shopify URL") then
+            exit(true);
+
+        Response.Content.WriteFrom('{}');
+        CompanyImportExecuted := true;
+        exit(false);
+    end;
 }

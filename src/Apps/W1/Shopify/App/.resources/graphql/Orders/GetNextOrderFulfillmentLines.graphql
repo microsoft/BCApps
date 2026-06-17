@@ -1,0 +1,2 @@
+# cost: 11
+{"query": "{ fulfillment(id: \"gid://shopify/Fulfillment/{{FulfillmentId}}\") {fulfillmentLineItems(first: 10, after:\"{{After}}\") { pageInfo { endCursor hasNextPage } nodes { id quantity originalTotalSet { presentmentMoney { amount } shopMoney { amount } } lineItem { id }}}}}"}

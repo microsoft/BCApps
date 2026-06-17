@@ -20,16 +20,25 @@ This pattern is essential for performance. A store with thousands of products wo
 
 ## GraphQL query builder pattern
 
-All 145 codeunits in `src/GraphQL/Codeunits/` implement the `IGraphQL` interface, which requires two methods:
+*Updated: 2026-03-24 -- GraphQL resource file refactoring*
 
-- `GetGraphQL()` -- returns the GraphQL query text with parameter placeholders
-- `GetExpectedCost()` -- returns the estimated query cost for rate limiting
+Queries are stored as `.graphql` resource files under `.resources/graphql/{Area}/{QueryName}.graphql`. Each file has two parts:
 
-The `ShpfyGraphQLQueries.Codeunit.al` acts as the dispatcher. It receives a `"Shpfy GraphQL Type"` enum value and a `Dictionary of [Text, Text]` of parameters, looks up the corresponding `IGraphQL` implementation, calls `GetGraphQL()`, substitutes parameters into the query string, and returns the final query along with the expected cost.
+- Line 1: `# cost: N` -- the estimated query cost for rate limiting (replaces the old `GetExpectedCost()` method)
+- Line 2+: the JSON query body with parameter placeholders
 
-The `ShpfyCommunicationMgt.Codeunit.al` is the single entry point for all API calls. Its `ExecuteGraphQL()` overloads accept either a `"Shpfy GraphQL Type"` (type-safe) or a raw query string (for ad-hoc queries). Before executing, it calls `WaitForRequestAvailable()` on the rate limiter with the expected cost.
+The `ShpfyGraphQLQueries.Codeunit.al` dispatcher receives a `"Shpfy GraphQL Type"` enum value and a `Dictionary of [Text, Text]` of parameters, loads the query via `NavApp.GetResourceAsText()`, substitutes parameters into the query string, and returns the final query along with the expected cost.
 
-The naming convention for GraphQL codeunits follows a pattern: `ShpfyGQL` + verb/noun describing the query. For example, `ShpfyGQLCustomerIds` fetches customer IDs, `ShpfyGQLNextCustomerIds` fetches the next page, `ShpfyGQLFindCustByEMail` searches by email. The `Next*` prefix indicates a pagination continuation query.
+The `"Shpfy GraphQL Type"` enum is `Extensible = false` and uses `{Area}_{QueryName}` naming for its values (e.g., `Products_GetProductById`, `Customers_NextCustomerIds`). There are 143 resource files covering all query types.
+
+Adding a new query requires two steps:
+
+1. Create a `.graphql` file in the appropriate `.resources/graphql/{Area}/` folder
+2. Add a corresponding enum value to `"Shpfy GraphQL Type"`
+
+The `ShpfyCommunicationMgt.Codeunit.al` is the single entry point for all API calls. Its `ExecuteGraphQL()` overloads accept either a `"Shpfy GraphQL Type"` (type-safe) or a raw query string (for ad-hoc queries). Before executing, it calls `WaitForRequestAvailable()` on the rate limiter with the expected cost. This layer and the rate limiter are unchanged.
+
+The old `IGraphQL` interface pattern (where each query was a codeunit implementing `GetGraphQL()` and `GetExpectedCost()`) was removed in this refactoring. 14 obsolete stub codeunits remain with `ObsoleteState = Pending; ObsoleteTag = '29.0'` for backward compatibility and will be cleaned up in the CLEAN29 cycle.
 
 ## SystemId-based linking
 

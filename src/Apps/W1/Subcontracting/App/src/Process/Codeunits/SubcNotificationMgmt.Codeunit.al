@@ -8,29 +8,70 @@ using System.Environment.Configuration;
 
 codeunit 99001506 "Subc. Notification Mgmt."
 {
+    var
+#if not CLEAN29
+#pragma warning disable AL0432
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
+#endif
+        ProdOrdNotificationDescriptionTxt: Label 'Show a notification if Production Orders were created for Subcontracting.';
+        ProdOrdNotificationNameLbl: Label 'Show Created Production Orders';
+        SubcOrdNotificationDescriptionTxt: Label 'Show a notification if Subcontracting Orders were created for Subcontracting.';
+        SubcOrdNotificationNameLbl: Label 'Show Created Subcontracting Orders';
+
     procedure ShowCreatedProductionOrderConfirmationMessageCode(): Code[50]
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit('');
+#endif
         exit(UpperCase(GetShowCreatedProductionOrderCode()));
     end;
 
     procedure ShowCreatedSubcontractingOrderConfirmationMessageCode(): Code[50]
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit('');
+#endif
         exit(UpperCase(GetShowCreatedSubContPurchOrderCode()));
     end;
 
     procedure GetShowCreatedProductionOrderCode(): Code[50]
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit('');
+#endif
         exit('Show Created Production Orders');
     end;
 
     procedure GetShowCreatedSubContPurchOrderCode(): Code[50]
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit('');
+#endif
         exit('Show Created Subcontracting Orders');
     end;
 
     [EventSubscriber(ObjectType::Page, Page::"My Notifications", OnInitializingNotificationWithDefaultState, '', false, false)]
     local procedure InitializeSubcontractingNotifications()
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         RegisterSubcontrProductionOrderCreatedNotification();
         RegisterSubcontrPurchOrderCreatedNotification();
     end;
@@ -38,19 +79,15 @@ codeunit 99001506 "Subc. Notification Mgmt."
     local procedure RegisterSubcontrProductionOrderCreatedNotification()
     var
         MyNotifications: Record "My Notifications";
-        MyNotificationsDescriptionTxt: Label 'Show a notification if Production Orders were created for Subcontracting.';
-        MyNotificationsNameLbl: Label 'Show Created Production Orders';
     begin
-        MyNotifications.InsertDefault(GetGuidProductionOrderCreatedNotification(), MyNotificationsNameLbl, MyNotificationsDescriptionTxt, true);
+        MyNotifications.InsertDefault(GetGuidProductionOrderCreatedNotification(), ProdOrdNotificationNameLbl, ProdOrdNotificationDescriptionTxt, true);
     end;
 
     local procedure RegisterSubcontrPurchOrderCreatedNotification()
     var
         MyNotifications: Record "My Notifications";
-        MyNotificationsDescriptionTxt: Label 'Show a notification if Subcontracting Orders were created for Subcontracting.';
-        MyNotificationsNameLbl: Label 'Show Created Subcontracting Orders';
     begin
-        MyNotifications.InsertDefault(GetGuidSubcontractingPOCreatedNotification(), MyNotificationsNameLbl, MyNotificationsDescriptionTxt, true);
+        MyNotifications.InsertDefault(GetGuidSubcontractingPOCreatedNotification(), SubcOrdNotificationNameLbl, SubcOrdNotificationDescriptionTxt, true);
     end;
 
     procedure DisableNotification(var NotificationVar: Notification)
@@ -58,6 +95,12 @@ codeunit 99001506 "Subc. Notification Mgmt."
         MyNotifications: Record "My Notifications";
         PageMyNotifications: Page "My Notifications";
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         PageMyNotifications.InitializeNotificationsWithDefaultState();
         MyNotifications.Disable(NotificationVar.Id());
     end;

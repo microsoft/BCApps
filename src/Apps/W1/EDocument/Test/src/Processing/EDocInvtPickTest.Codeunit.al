@@ -21,7 +21,7 @@ using Microsoft.Warehouse.Setup;
 using Microsoft.Warehouse.Structure;
 using System.TestLibraries.Utilities;
 
-codeunit 139896 "E-Doc. Invt. Pick Test"
+codeunit 139863 "E-Doc. Invt. Pick Test"
 {
     Subtype = Test;
     TestType = IntegrationTest;

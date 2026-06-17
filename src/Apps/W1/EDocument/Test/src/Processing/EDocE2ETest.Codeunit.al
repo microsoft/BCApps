@@ -1725,7 +1725,7 @@ codeunit 139624 "E-Doc E2E Test"
     var
         EDocument: Record "E-Document";
         PurchaseHeader: Record "Purchase Header";
-        EDocImportParams: Record "E-Doc. Import Parameters";
+        TempEDocImportParams: Record "E-Doc. Import Parameters";
     begin
         // [FEATURE] [E-Document] [Processing]
         // [SCENARIO]
@@ -1735,8 +1735,8 @@ codeunit 139624 "E-Doc E2E Test"
         EDocumentService.Modify();
 
         // [GIVEN] An inbound e-document is received and fully processed
-        EDocImportParams."Step to Run" := "Import E-Document Steps"::"Finish draft";
-        Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-invoice-0.xml', EDocImportParams), 'The e-document should be processed');
+        TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Finish draft";
+        Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-invoice-0.xml', TempEDocImportParams), 'The e-document should be processed');
         EDocument.SetRecFilter();
         EDocument.FindLast();
         Assert.AreEqual(Enum::"E-Document Status"::Processed, EDocument.Status, 'E-Document should be in Processed status.');
@@ -1748,6 +1748,59 @@ codeunit 139624 "E-Doc E2E Test"
         EDocument.SetRecFilter();
         EDocument.FindLast();
         Assert.AreEqual(Enum::"E-Document Status"::"In Progress", EDocument.Status, 'E-Document should be in In Progress status.');
+    end;
+
+    [Test]
+    procedure ImportPEPPOLInvoiceWithTextOnlyDocumentReferences()
+    var
+        EDocument: Record "E-Document";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        TempEDocImportParams: Record "E-Doc. Import Parameters";
+    begin
+        // [SCENARIO] Import a PEPPOL invoice with AdditionalDocumentReference elements
+        // that have no <cac:Attachment> child (text-only references).
+        // Previously this caused "Please choose a file to attach" error.
+        Initialize(Enum::"Service Integration"::"Mock");
+
+        TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Finish draft";
+        WorkDate(DMY2Date(1, 1, 2027));
+        Assert.IsTrue(
+            LibraryEDoc.CreateInboundPEPPOLDocumentToState(
+                EDocument, EDocumentService, 'peppol/peppol-invoice-textonly-docref.xml', TempEDocImportParams),
+            'The e-document should be processed');
+
+        EDocument.Get(EDocument."Entry No");
+        PurchaseHeader.Get(EDocument."Document Record ID");
+        PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
+        PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+        Assert.AreEqual(2, PurchaseLine.Count(), 'Expected 2 purchase lines to be imported.');
+    end;
+
+    [Test]
+    procedure ImportPEPPOLInvoiceWithHierarchicalLineIds()
+    var
+        EDocument: Record "E-Document";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        TempEDocImportParams: Record "E-Doc. Import Parameters";
+    begin
+        // [SCENARIO] Import a PEPPOL invoice with non-integer line IDs (e.g., "1.1", "1.2").
+        // Previously this caused "The value '1.1' can't be evaluated into type Integer" error.
+        Initialize(Enum::"Service Integration"::"Mock");
+
+        TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Finish draft";
+        WorkDate(DMY2Date(1, 1, 2027));
+        Assert.IsTrue(
+            LibraryEDoc.CreateInboundPEPPOLDocumentToState(
+                EDocument, EDocumentService, 'peppol/peppol-invoice-hierarchical-lineids.xml', TempEDocImportParams),
+            'The e-document should be processed');
+
+        EDocument.Get(EDocument."Entry No");
+        PurchaseHeader.Get(EDocument."Document Record ID");
+        PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
+        PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+        Assert.AreEqual(2, PurchaseLine.Count(), 'Expected 2 purchase lines to be imported.');
     end;
 
     local procedure CheckPDFEmbedToXML(TempBlob: Codeunit "Temp Blob")
@@ -1864,7 +1917,7 @@ codeunit 139624 "E-Doc E2E Test"
     internal procedure PurchaseDocumentsCreatedFromEDocumentsUseDocumentTotalsValidation()
     var
         EDocument: Record "E-Document";
-        EDocImportParameters: Record "E-Doc. Import Parameters";
+        TempEDocImportParameters: Record "E-Doc. Import Parameters";
         PurchaseHeader: Record "Purchase Header";
         PurchasesPayablesSetup: Record "Purchases & Payables Setup";
         EDocImport: Codeunit "E-Doc. Import";
@@ -1880,8 +1933,8 @@ codeunit 139624 "E-Doc E2E Test"
         LibraryEDoc.CreateInboundEDocument(EDocument, EDocumentService);
         LibraryEDoc.MockPurchaseDraftPrepared(EDocument);
         // [WHEN] Processing into a purchase invoice
-        EDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
-        EDocImport.ProcessIncomingEDocument(EDocument, EDocImportParameters);
+        TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
+        EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParameters);
         // [THEN] The purchase invoice should have the totals from the E-Document
         PurchaseHeader.SetRange("E-Document Link", EDocument.SystemId);
         PurchaseHeader.FindFirst();
@@ -1895,7 +1948,7 @@ codeunit 139624 "E-Doc E2E Test"
     internal procedure PurchaseDocumentsCreatedFromStructuredEDocumentCantEditTotals()
     var
         EDocument: Record "E-Document";
-        EDocImportParameters: Record "E-Doc. Import Parameters";
+        TempEDocImportParameters: Record "E-Doc. Import Parameters";
         PurchaseHeader: Record "Purchase Header";
         EDocImport: Codeunit "E-Doc. Import";
         PurchaseInvoice: TestPage "Purchase Invoice";
@@ -1907,8 +1960,8 @@ codeunit 139624 "E-Doc E2E Test"
         LibraryEDoc.CreateInboundEDocument(EDocument, EDocumentService);
         LibraryEDoc.MockPurchaseDraftPrepared(EDocument);
         // [WHEN] Processing into a purchase invoice
-        EDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
-        EDocImport.ProcessIncomingEDocument(EDocument, EDocImportParameters);
+        TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
+        EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParameters);
         PurchaseHeader.SetRange("E-Document Link", EDocument.SystemId);
         PurchaseHeader.FindFirst();
         // [THEN] The purchase invoice page should not allow editing of the totals
@@ -1989,6 +2042,201 @@ codeunit 139624 "E-Doc E2E Test"
         // [THEN] Check that xml file was created
         this.LibraryJobQueue.FindAndRunJobQueueEntryByRecordId(EDocument.RecordId);
         this.CheckXmlCreated(EDocument);
+    end;
+
+    [Test]
+    procedure PurchaseOrderReleaseCreatesEDocumentSuccess()
+    var
+        EDocument: Record "E-Document";
+        EDocumentServiceStatus: Record "E-Document Service Status";
+        Vendor: Record Vendor;
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+    begin
+        // [FEATURE] [E-Document] [Purchase Order]
+        // [SCENARIO] Releasing a purchase order with an E-Document service creates an E-Document with the correct status and fields.
+        this.IsInitialized := false;
+        this.InitializePurchaseOrderScenario(Vendor);
+
+        // [GIVEN] A purchase order with "Your Reference" and a line with Quantity = 5
+        this.LibraryJobQueue.SetDoNotHandleCodeunitJobQueueEnqueueEvent(true);
+        this.LibraryEDoc.CreatePurchaseOrderWithLine(Vendor, PurchaseHeader, PurchaseLine, 5);
+        PurchaseHeader.Validate("Your Reference", 'REF-PO-001');
+        PurchaseHeader.Modify(true);
+
+        // [WHEN] The purchase order is released
+        this.LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
+
+        // [THEN] Exactly one E-Document exists for the purchase order
+        EDocument.SetRange("Document Record ID", PurchaseHeader.RecordId);
+        Assert.RecordCount(EDocument, 1);
+        EDocument.FindFirst();
+
+        // [THEN] The E-Document has the correct type, direction, document number, and status
+        Assert.AreEqual(Enum::"E-Document Type"::"Purchase Order", EDocument."Document Type", this.IncorrectValueErr);
+        Assert.AreEqual(EDocument.Direction::Outgoing, EDocument.Direction, this.IncorrectValueErr);
+        Assert.AreEqual(PurchaseHeader."No.", EDocument."Document No.", this.IncorrectValueErr);
+        Assert.AreEqual(EDocument.Status::Processed, EDocument.Status, this.IncorrectValueErr);
+
+        // [THEN] The service exports the document synchronously on release; service status is Exported
+        EDocumentServiceStatus.SetRange("E-Document Entry No", EDocument."Entry No");
+        EDocumentServiceStatus.SetRange("E-Document Service Code", this.EDocumentService.Code);
+        Assert.RecordCount(EDocumentServiceStatus, 1);
+        EDocumentServiceStatus.FindFirst();
+        Assert.AreEqual(Enum::"E-Document Service Status"::Exported, EDocumentServiceStatus.Status, this.IncorrectValueErr);
+    end;
+
+    [Test]
+    procedure PurchaseOrderReReleaseUpdatesSameEDocumentSuccess()
+    var
+        EDocument: Record "E-Document";
+        EDocumentServiceStatus: Record "E-Document Service Status";
+        Vendor: Record Vendor;
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        OriginalEntryNo: Integer;
+    begin
+        // [FEATURE] [E-Document] [Purchase Order]
+        // [SCENARIO] Re-releasing an edited purchase order updates the existing E-Document rather than creating a new record.
+        this.IsInitialized := false;
+        this.InitializePurchaseOrderScenario(Vendor);
+
+        // [GIVEN] A released purchase order with an E-Document
+        this.LibraryJobQueue.SetDoNotHandleCodeunitJobQueueEnqueueEvent(true);
+        this.LibraryEDoc.CreatePurchaseOrderWithLine(Vendor, PurchaseHeader, PurchaseLine, 5);
+        PurchaseHeader.Validate("Your Reference", 'REF-PO-001');
+        PurchaseHeader.Modify(true);
+        this.LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
+
+        EDocument.SetRange("Document Record ID", PurchaseHeader.RecordId);
+        EDocument.FindFirst();
+        OriginalEntryNo := EDocument."Entry No";
+
+        // [WHEN] The purchase order is reopened, edited, and re-released
+        this.LibraryPurchase.ReopenPurchaseDocument(PurchaseHeader);
+        PurchaseLine.Find();
+        PurchaseLine.Validate(Quantity, 10);
+        PurchaseLine.Modify(true);
+        PurchaseHeader.Find();
+        PurchaseHeader.Validate("Your Reference", 'REF-PO-002');
+        PurchaseHeader.Modify(true);
+        this.LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
+
+        // [THEN] Still exactly one E-Document exists for the purchase order
+        EDocument.SetRange("Document Record ID", PurchaseHeader.RecordId);
+        Assert.RecordCount(EDocument, 1);
+        EDocument.FindFirst();
+
+        // [THEN] It is the same E-Document record (Entry No unchanged) - re-release updates in place
+        Assert.AreEqual(OriginalEntryNo, EDocument."Entry No", 'Re-release must update the existing E-Document, not create a new one.');
+        Assert.AreEqual(EDocument.Status::Processed, EDocument.Status, this.IncorrectValueErr);
+
+        // [THEN] Service status is Exported after the re-export
+        EDocumentServiceStatus.SetRange("E-Document Entry No", EDocument."Entry No");
+        EDocumentServiceStatus.SetRange("E-Document Service Code", this.EDocumentService.Code);
+        EDocumentServiceStatus.FindFirst();
+        Assert.AreEqual(Enum::"E-Document Service Status"::Exported, EDocumentServiceStatus.Status, this.IncorrectValueErr);
+    end;
+
+    [Test]
+    procedure PurchaseOrderEditReflectedInPEPPOLXmlSuccess()
+    var
+        EDocument: Record "E-Document";
+        Vendor: Record Vendor;
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        TempBlob: Codeunit "Temp Blob";
+        EDocumentLog: Codeunit "E-Document Log";
+    begin
+        // [FEATURE] [E-Document] [Purchase Order] [PEPPOL]
+        // [SCENARIO] The exported PEPPOL XML is updated when the purchase order is edited and re-released.
+        this.IsInitialized := false;
+        this.InitializePurchaseOrderScenario(Vendor);
+
+        // [GIVEN] A released purchase order with "Your Reference" = 'REF-PO-001' and Quantity = 5
+        this.LibraryJobQueue.SetDoNotHandleCodeunitJobQueueEnqueueEvent(true);
+        this.LibraryEDoc.CreatePurchaseOrderWithLine(Vendor, PurchaseHeader, PurchaseLine, 5);
+        PurchaseHeader.Validate("Your Reference", 'REF-PO-001');
+        PurchaseHeader.Modify(true);
+        this.LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
+
+        EDocument.SetRange("Document Record ID", PurchaseHeader.RecordId);
+        EDocument.FindFirst();
+
+        // [THEN] The exported XML contains the initial values
+        EDocumentLog.GetDocumentBlobFromLog(EDocument, this.EDocumentService, TempBlob, Enum::"E-Document Service Status"::Exported);
+        Assert.IsTrue(TempBlob.HasValue(), StrSubstNo(this.FailedToGetBlobErr, EDocument."Entry No"));
+        this.AssertPEPPOLOrderCustomerReference(TempBlob, 'REF-PO-001');
+        this.AssertPEPPOLOrderLineQuantity(TempBlob, '5');
+
+        // [WHEN] The purchase order is reopened, edited, and re-released
+        this.LibraryPurchase.ReopenPurchaseDocument(PurchaseHeader);
+        PurchaseLine.Find();
+        PurchaseLine.Validate(Quantity, 10);
+        PurchaseLine.Modify(true);
+        PurchaseHeader.Find();
+        PurchaseHeader.Validate("Your Reference", 'REF-PO-002');
+        PurchaseHeader.Modify(true);
+        this.LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
+        EDocument.Find();
+
+        // [THEN] The latest exported XML reflects the edited values
+        Clear(TempBlob);
+        EDocumentLog.GetDocumentBlobFromLog(EDocument, this.EDocumentService, TempBlob, Enum::"E-Document Service Status"::Exported);
+        Assert.IsTrue(TempBlob.HasValue(), StrSubstNo(this.FailedToGetBlobErr, EDocument."Entry No"));
+        this.AssertPEPPOLOrderCustomerReference(TempBlob, 'REF-PO-002');
+        this.AssertPEPPOLOrderLineQuantity(TempBlob, '10');
+    end;
+
+    local procedure InitializePurchaseOrderScenario(var Vendor: Record Vendor)
+    begin
+        Initialize(Enum::"Service Integration"::"Mock");
+
+        // Override service to use PEPPOL BIS 3.0 so the real PO XML serializer runs
+        this.EDocumentService."Document Format" := Enum::"E-Document Format"::"PEPPOL BIS 3.0";
+        this.EDocumentService.Modify(false);
+
+        // Ensure the service supports outbound Purchase Orders
+        this.LibraryEDoc.AddEDocServiceSupportedType(this.EDocumentService, Enum::"E-Document Type"::"Purchase Order");
+
+        // Create a vendor with PEPPOL-required fields and link to the same Document Sending Profile as Customer
+        this.LibraryEDoc.SetupStandardPurchaseScenario(Vendor, this.EDocumentService);
+        Vendor."Document Sending Profile" := this.Customer."Document Sending Profile";
+        Vendor.Modify(true);
+    end;
+
+    local procedure AssertPEPPOLOrderCustomerReference(var TempBlob: Codeunit "Temp Blob"; ExpectedValue: Text)
+    var
+        XmlDoc: XmlDocument;
+        XmlNsManager: XmlNamespaceManager;
+        XmlNode: XmlNode;
+        InStream: InStream;
+        CbcNsLbl: Label 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2', Locked = true;
+    begin
+        TempBlob.CreateInStream(InStream, TextEncoding::UTF8);
+        XmlDocument.ReadFrom(InStream, XmlDoc);
+        XmlNsManager.NameTable(XmlDoc.NameTable);
+        XmlNsManager.AddNamespace('cbc', CbcNsLbl);
+        Assert.IsTrue(XmlDoc.SelectSingleNode('//cbc:CustomerReference', XmlNsManager, XmlNode), 'cbc:CustomerReference element not found in PEPPOL XML.');
+        Assert.AreEqual(ExpectedValue, XmlNode.AsXmlElement().InnerText(), 'cbc:CustomerReference value mismatch.');
+    end;
+
+    local procedure AssertPEPPOLOrderLineQuantity(var TempBlob: Codeunit "Temp Blob"; ExpectedValue: Text)
+    var
+        XmlDoc: XmlDocument;
+        XmlNsManager: XmlNamespaceManager;
+        XmlNode: XmlNode;
+        InStream: InStream;
+        CbcNsLbl: Label 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2', Locked = true;
+        CacNsLbl: Label 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2', Locked = true;
+    begin
+        TempBlob.CreateInStream(InStream, TextEncoding::UTF8);
+        XmlDocument.ReadFrom(InStream, XmlDoc);
+        XmlNsManager.NameTable(XmlDoc.NameTable);
+        XmlNsManager.AddNamespace('cbc', CbcNsLbl);
+        XmlNsManager.AddNamespace('cac', CacNsLbl);
+        Assert.IsTrue(XmlDoc.SelectSingleNode('//cac:OrderLine/cac:LineItem/cbc:Quantity', XmlNsManager, XmlNode), 'cbc:Quantity element not found in PEPPOL XML.');
+        Assert.AreEqual(ExpectedValue, XmlNode.AsXmlElement().InnerText(), 'cbc:Quantity value mismatch.');
     end;
 
     local procedure CreateIncomingEDocument(VendorNo: Code[20]; Status: Enum "E-Document Status")
@@ -2890,7 +3138,7 @@ codeunit 139624 "E-Doc E2E Test"
     var
         EDocument: Record "E-Document";
         PurchaseHeader: Record "Purchase Header";
-        EDocImportParams: Record "E-Doc. Import Parameters";
+        TempEDocImportParams: Record "E-Doc. Import Parameters";
     begin
         // [FEATURE] [E-Document] [Processing]
         // [SCENARIO]
@@ -2900,8 +3148,8 @@ codeunit 139624 "E-Doc E2E Test"
         EDocumentService.Modify();
 
         // [GIVEN] An inbound e-document is received and fully processed
-        EDocImportParams."Step to Run" := "Import E-Document Steps"::"Finish draft";
-        Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-invoice-0.xml', EDocImportParams), 'The e-document should be processed');
+        TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Finish draft";
+        Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-invoice-0.xml', TempEDocImportParams), 'The e-document should be processed');
         EDocument.SetRecFilter();
         EDocument.FindLast();
         Assert.AreEqual(Enum::"E-Document Status"::Processed, EDocument.Status, 'E-Document should be in Processed status.');

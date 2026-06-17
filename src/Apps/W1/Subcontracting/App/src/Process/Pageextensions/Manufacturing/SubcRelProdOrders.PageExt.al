@@ -14,12 +14,24 @@ pageextension 99001505 "Subc. Rel. Prod. Orders" extends "Released Production Or
         {
             action("Subcontracting Purchase Lines")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Caption = 'Subcontracting Order Lines';
                 Image = SubcontractingWorksheet;
                 RunObject = page "Purchase Lines";
                 RunPageLink = "Document Type" = const(Order), "Prod. Order No." = field("No.");
-                ToolTip = 'Shows Purchase Order Lines for Subcontracting.';
+                ToolTip = 'Show purchase order lines for subcontracting.';
+            }
+        }
+        addafter("Item Ledger E&ntries")
+        {
+            action("WIP Ledger Entries")
+            {
+                ApplicationArea = Subcontracting;
+                Caption = 'Subcontracting WIP Entries';
+                Image = LedgerEntries;
+                RunObject = page "Subc. WIP Ledger Entries";
+                RunPageLink = "Prod. Order Status" = field(Status), "Prod. Order No." = field("No.");
+                ToolTip = 'View the Subcontracting WIP Entries for this production order.';
             }
         }
     }

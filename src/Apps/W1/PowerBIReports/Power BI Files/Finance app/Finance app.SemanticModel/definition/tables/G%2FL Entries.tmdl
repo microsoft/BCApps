@@ -296,7 +296,7 @@ table 'G/L Entries'
 		source =
 				let
 				    #"Combine Queries" =
-				        if CheckUpgradeQuery("closeIncomeStmtSourceCodes") then
+				        if IsCloseIncomeStmtUpgraded then
 				            Table.Combine(
 				                {
 				                    #"Balance Sheet G/L Entries",

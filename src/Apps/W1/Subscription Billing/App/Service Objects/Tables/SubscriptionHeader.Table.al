@@ -1914,7 +1914,10 @@ table 8057 "Subscription Header"
                         ServiceCommitment.Description := ServiceCommPackageLine.Description;
                         ServiceCommitment."Invoicing via" := ServiceCommPackageLine."Invoicing via";
                         ServiceCommitment."Invoicing Item No." := ServiceCommPackageLine.GetInvoicingItemNo(Item);
-                        ServiceCommitment."Customer Price Group" := ServiceCommitmentPackage."Price Group";
+                        if ServiceCommitmentPackage."Price Group" <> '' then
+                            ServiceCommitment."Customer Price Group" := ServiceCommitmentPackage."Price Group"
+                        else
+                            ServiceCommitment."Customer Price Group" := Rec."Customer Price Group";
 
                         if ServiceAndCalculationStartDate <> 0D then
                             ServiceCommitment.Validate("Subscription Line Start Date", ServiceAndCalculationStartDate)
@@ -2219,7 +2222,7 @@ table 8057 "Subscription Header"
         SetRange("Source No.", ItemNo);
     end;
 
-    internal procedure InsertFromItemNoAndCustomerContract(var ServiceObject: Record "Subscription Header"; ItemNo: Code[20]; VariantCode: Code[10]; SourceQuantity: Decimal; ProvisionStartDate: Date; CustomerContract: Record "Customer Subscription Contract")
+    procedure InsertFromItemNoAndCustomerContract(var ServiceObject: Record "Subscription Header"; ItemNo: Code[20]; VariantCode: Code[10]; SourceQuantity: Decimal; ProvisionStartDate: Date; CustomerContract: Record "Customer Subscription Contract")
     var
         Item: Record Item;
     begin

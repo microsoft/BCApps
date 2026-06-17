@@ -174,7 +174,7 @@ codeunit 30176 "Shpfy Product API"
         Parameters.Add('MimeType', MimeType);
         Parameters.Add('Resource', 'IMAGE');
         Parameters.Add('HttpMethod', 'PUT');
-        JResponse := CommunicationMgt.ExecuteGraphQL("Shpfy GraphQL Type"::CreateUploadUrl, Parameters);
+        JResponse := CommunicationMgt.ExecuteGraphQL("Shpfy GraphQL Type"::Products_CreateUploadUrl, Parameters);
         JArray := JsonHelper.GetJsonArray(JResponse, 'data.stagedUploadsCreate.stagedTargets');
         if JArray.Count() = 1 then
             if JArray.Get(0, JResponse) then begin
@@ -192,12 +192,7 @@ codeunit 30176 "Shpfy Product API"
         Headers: HttpHeaders;
         Response: HttpResponseMessage;
         InStream: InStream;
-        IsTestInProgress: Boolean;
     begin
-        OnBeforeUploadImage(TenantMedia, Url, IsTestInProgress);
-        if IsTestInProgress then
-            exit;
-
         Content.GetHeaders(Headers);
         if Headers.Contains('Content-Type') then
             Headers.Remove('Content-Type');
@@ -218,7 +213,7 @@ codeunit 30176 "Shpfy Product API"
     begin
         Parameters.Add('ProductId', Format(Product.Id));
         Parameters.Add('ResourceUrl', ResourceUrl);
-        JResponse := CommunicationMgt.ExecuteGraphQL("Shpfy GraphQL Type"::AddProductImage, Parameters);
+        JResponse := CommunicationMgt.ExecuteGraphQL("Shpfy GraphQL Type"::Products_AddProductImage, Parameters);
         JArray := JsonHelper.GetJsonArray(JResponse, 'data.productCreateMedia.media');
         if JArray.Count = 1 then
             if JArray.Get(0, JResponse) then
@@ -232,14 +227,14 @@ codeunit 30176 "Shpfy Product API"
         Parameters.Add('ProductId', Format(ProductId));
         Parameters.Add('ResourceUrl', ResourceUrl);
         Parameters.Add('ImageId', Format(ImageId));
-        CommunicationMgt.ExecuteGraphQL("Shpfy GraphQL Type"::UpdateProductImage, Parameters);
+        CommunicationMgt.ExecuteGraphQL("Shpfy GraphQL Type"::Products_UpdateProductImage, Parameters);
         exit(ImageId);
     end;
 
     [TryFunction]
     internal procedure UpdateProductImage(Parameters: Dictionary of [Text, Text])
     begin
-        CommunicationMgt.ExecuteGraphQL("Shpfy GraphQL Type"::UpdateProductImage, Parameters);
+        CommunicationMgt.ExecuteGraphQL("Shpfy GraphQL Type"::Products_UpdateProductImage, Parameters);
     end;
 
     /// <summary> 
@@ -357,7 +352,7 @@ codeunit 30176 "Shpfy Product API"
     begin
         Parameters.Add('ProductId', Format(ShopifyProduct.Id));
         Parameters.add('MaxLengthDescription', Format(MaxStrLen(ShopifyProduct.Description)));
-        JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType::GetProductById, Parameters);
+        JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType::Products_GetProductById, Parameters);
         if JsonHelper.GetJsonObject(JResponse, JProduct, 'data.product') then
             exit(UpdateShopifyProductFields(ShopifyProduct, JProduct));
     end;
@@ -382,7 +377,7 @@ codeunit 30176 "Shpfy Product API"
         Cursor: Text;
     begin
         Clear(ProductIds);
-        GraphQLType := GraphQLType::GetProductIds;
+        GraphQLType := GraphQLType::Products_GetProductIds;
         LastSyncTime := Shop.GetLastSyncTime("Shpfy Synchronization Type"::Products);
         Parameters.Add('Time', Format(LastSyncTime, 0, 9));
         repeat
@@ -402,7 +397,7 @@ codeunit 30176 "Shpfy Product API"
                         if ProductIds.Count >= NumberOfRecords then
                             exit;
                 end;
-                GraphQLType := GraphQLType::GetNextProductIds;
+                GraphQLType := GraphQLType::Products_GetNextProductIds;
                 if Parameters.ContainsKey('After') then
                     Parameters.Set('After', Cursor)
                 else
@@ -431,7 +426,7 @@ codeunit 30176 "Shpfy Product API"
         MediaContentType: Text;
     begin
         Clear(ProductImages);
-        GraphQLType := GraphQLType::GetProductImages;
+        GraphQLType := GraphQLType::Products_GetProductImages;
         repeat
             JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
             if JsonHelper.GetJsonArray(JResponse, JProducts, 'data.products.edges') then begin
@@ -455,7 +450,7 @@ codeunit 30176 "Shpfy Product API"
                 else
                     Parameters.Add('After', Cursor);
             end;
-            GraphQLType := GraphQLType::GetNextProductImages;
+            GraphQLType := GraphQLType::Products_GetNextProductImages;
         until not JsonHelper.GetValueAsBoolean(JResponse, 'data.products.pageInfo.hasNextPage');
     end;
 
@@ -468,7 +463,7 @@ codeunit 30176 "Shpfy Product API"
     begin
         Parameters.Add('ProductId', Format(ProductId));
         Parameters.add('ImageId', Format(ImageId));
-        JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType::GetProductImage, Parameters);
+        JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType::Products_GetProductImage, Parameters);
         if JsonHelper.GetJsonArray(JResponse, JMedias, 'data.product.media.edges') then
             if JMedias.Count = 1 then
                 exit(true);
@@ -654,7 +649,7 @@ codeunit 30176 "Shpfy Product API"
         JOption: JsonToken;
     begin
         Parameters.Add('ProductId', Format(ShopifyProductId));
-        JResponse := CommunicationMgt.ExecuteGraphQL(Enum::"Shpfy GraphQL Type"::GetProductOptions, Parameters);
+        JResponse := CommunicationMgt.ExecuteGraphQL(Enum::"Shpfy GraphQL Type"::Products_GetProductOptions, Parameters);
 
         JsonHelper.GetJsonArray(JResponse, JOptions, 'data.product.options');
         foreach JOption in JOptions do
@@ -726,7 +721,7 @@ codeunit 30176 "Shpfy Product API"
         Parameters.Add('ProductId', Format(ProductId));
         Parameters.Add('OptionId', Format(OptionId));
         Parameters.Add('OptionName', NewOptionName);
-        CommunicationMgt.ExecuteGraphQL("Shpfy GraphQL Type"::UpdateProductOption, Parameters);
+        CommunicationMgt.ExecuteGraphQL("Shpfy GraphQL Type"::Products_UpdateProductOption, Parameters);
     end;
 
     /// <summary>
@@ -743,7 +738,7 @@ codeunit 30176 "Shpfy Product API"
     begin
         Parameters.Add('ProductId', Format(ProductId));
         Parameters.Add('ResourceUrl', ResourceUrl);
-        JResponse := CommunicationMgt.ExecuteGraphQL("Shpfy GraphQL Type"::UpdateProdWithImage, Parameters);
+        JResponse := CommunicationMgt.ExecuteGraphQL("Shpfy GraphQL Type"::Products_UpdateProdWithImage, Parameters);
 
         if JsonHelper.GetJsonArray(JResponse, JMedias, 'data.productUpdate.product.media.nodes') then
             if JMedias.Count() = 1 then
@@ -751,8 +746,4 @@ codeunit 30176 "Shpfy Product API"
                     exit(CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JMedia, 'id')));
     end;
 
-    [InternalEvent(false, false)]
-    procedure OnBeforeUploadImage(var TenantMedia: Record "Tenant Media"; var ResourceUrl: Text; var IsTestInProgress: Boolean)
-    begin
-    end;
 }

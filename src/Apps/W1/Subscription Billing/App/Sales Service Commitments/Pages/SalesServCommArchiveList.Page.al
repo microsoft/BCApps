@@ -100,6 +100,9 @@ page 8083 "Sales Serv. Comm. Archive List"
                 {
                     ToolTip = 'Specifies a code to identify this Subscription Package.';
                 }
+                field(UsageBasedBilling; Rec."Usage Based Billing") { }
+                field(UsageBasedPricing; Rec."Usage Based Pricing") { }
+                field(PricingUnitCostSurcharPerc; Rec."Pricing Unit Cost Surcharge %") { }
             }
         }
     }
