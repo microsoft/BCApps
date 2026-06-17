@@ -5,6 +5,7 @@
 namespace Microsoft.eServices.EDocument.Processing.Import;
 
 using Microsoft.eServices.EDocument.Processing.Interfaces;
+using Microsoft.eServices.EDocument.Processing.Message;
 
 /// <summary>
 /// Enum for E-Document Processing
@@ -32,5 +33,15 @@ enum 6107 "E-Doc. Process Draft" implements IProcessStructuredData
     {
         Caption = 'Purchase Credit Memo';
         Implementation = IProcessStructuredData = "EDoc Prepare Cr. Memo Draft";
+    }
+    value(3; "Sales Order")
+    {
+        Caption = 'Sales Order';
+        Implementation = IProcessStructuredData = "Prepare Sales E-Doc. Draft";
+    }
+    value(4; "E-Document Message")
+    {
+        Caption = 'E-Document Message';
+        Implementation = IProcessStructuredData = "E-Doc. Message Draft Handler";
     }
 }

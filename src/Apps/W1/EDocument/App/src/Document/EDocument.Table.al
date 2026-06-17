@@ -8,6 +8,7 @@ using Microsoft.eServices.EDocument.Integration;
 using Microsoft.eServices.EDocument.OrderMatch;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
+using Microsoft.eServices.EDocument.Processing.Message;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
 using Microsoft.Finance.Currency;
 using Microsoft.Foundation.Attachment;
@@ -416,6 +417,7 @@ table 6121 "E-Document"
         EDocumentIntegrationLog: Record "E-Document Integration Log";
         EDocumentLog: Record "E-Document Log";
         EDocImportedLine: Record "E-Doc. Imported Line";
+        EDocumentMessage: Record "E-Document Message";
         EDocumentServiceStatus: Record "E-Document Service Status";
 #if not CLEAN27
         PurchaseHeader: Record "Purchase Header";
@@ -452,6 +454,10 @@ table 6121 "E-Document"
         EDocImportedLine.SetRange("E-Document Entry No.", Rec."Entry No");
         if not EDocImportedLine.IsEmpty() then
             EDocImportedLine.DeleteAll(true);
+
+        EDocumentMessage.SetRange("E-Document Entry No.", Rec."Entry No");
+        if not EDocumentMessage.IsEmpty() then
+            EDocumentMessage.DeleteAll(true);
 
 #if not CLEAN27
         // Version 1 processing cleanup

@@ -6,6 +6,7 @@ namespace Microsoft.eServices.EDocument.Processing.Interfaces;
 
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing.Import;
+using Microsoft.Peppol.Response;
 using System.Utilities;
 
 /// <summary>
@@ -25,10 +26,26 @@ interface IStructuredFormatReader
 
 
     /// <summary>
-    /// Presents a view of the data 
+    /// Presents a view of the data
     /// </summary>
     /// <param name="EDocument">The E-Document record.</param>
     /// <param name="TempBlob">The temporary blob that contains the data to read</param>
     procedure View(EDocument: Record "E-Document"; TempBlob: Codeunit "Temp Blob");
+
+    /// <summary>
+    /// Returns whether this format reader expects an order response to be sent back to the sender for the given E-Document.
+    /// Format apps that generate outbound response messages (e.g. PEPPOL Order Response) implement this to signal eligibility.
+    /// EDocument."Process Draft Impl." is already set when this is called, so implementations can inspect the draft type.
+    /// </summary>
+    /// <param name="EDocument">The E-Document record with "Process Draft Impl." populated.</param>
+    /// <returns>True if an order response should be generated; false otherwise.</returns>
+    procedure SupportsOrderResponse(EDocument: Record "E-Document"): Boolean;
+
+    /// <summary>
+    /// Builds a format-specific order response XML blob into TempBlob.
+    /// Called by the framework after ReadIntoDraft (for AB) and after Sales Order release (for AC).
+    /// Implementations that return false from SupportsOrderResponse may leave TempBlob empty.
+    /// </summary>
+    procedure BuildOrderResponse(EDocument: Record "E-Document"; ResponseType: Enum "E-Doc. Response Type"; var TempBlob: Codeunit "Temp Blob");
 
 }

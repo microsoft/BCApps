@@ -196,20 +196,25 @@ codeunit 6140 "E-Doc. Import"
         InStr: InStream;
         FileName: Text;
         EDocumentServiceStatus: Enum "E-Document Service Status";
+        Handled: Boolean;
     begin
-        if Page.RunModal(Page::"E-Document Services", EDocumentService) <> Action::LookupOK then
+        if not UploadIntoStream('', '', '', FileName, InStr) then
             exit;
 
-        if not UploadIntoStream('', '', '', FileName, InStr) then
+        OutStr := TempBlob.CreateOutStream();
+        CopyStream(OutStr, InStr);
+
+        OnAfterUploadFile(TempBlob, FileName, EDocument, Handled);
+        if Handled then
+            exit;
+
+        if Page.RunModal(Page::"E-Document Services", EDocumentService) <> Action::LookupOK then
             exit;
 
         EDocument.Direction := EDocument.Direction::Incoming;
         EDocument."Document Type" := Enum::"E-Document Type"::None;
         EDocument.Service := EDocumentService.Code;
         EDocumentServiceStatus := "E-Document Service Status"::Imported;
-
-        OutStr := TempBlob.CreateOutStream();
-        CopyStream(OutStr, InStr);
 
         EDocument."File Name" := CopyStr(FileName, 1, 256);
 
@@ -224,6 +229,11 @@ codeunit 6140 "E-Doc. Import"
         EDocLog := EDocumentLog.InsertLog(EDocument, EDocumentService, TempBlob, EDocumentServiceStatus);
         EDocument."Unstructured Data Entry No." := EDocLog."E-Doc. Data Storage Entry No.";
         EDocument.Modify();
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterUploadFile(var TempBlob: Codeunit "Temp Blob"; FileName: Text; var EDocument: Record "E-Document"; var Handled: Boolean)
+    begin
     end;
 
     internal procedure V1_GetBasicInfo(var EDocument: Record "E-Document")

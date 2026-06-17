@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument;
 
+using Microsoft.eServices.EDocument.Processing.Message;
+using Microsoft.eServices.EDocument.Service;
+using Microsoft.Foundation.Attachment;
+
 page 6122 "E-Documents"
 {
     ApplicationArea = Basic, Suite;
@@ -59,6 +63,39 @@ page 6122 "E-Documents"
                 {
                     ToolTip = 'Specifies the status of the electronic document.';
                 }
+            }
+        }
+        area(FactBoxes)
+        {
+            part("Attached Documents List"; "Doc. Attachment List Factbox")
+            {
+                ApplicationArea = All;
+                Caption = 'Documents';
+                UpdatePropagation = Both;
+                SubPageLink = "E-Document Entry No." = field("Entry No"),
+                              "E-Document Attachment" = const(true);
+            }
+            part(InboundEDocFactbox; "Inbound E-Doc. Factbox")
+            {
+                Caption = 'Details';
+                SubPageLink = "E-Document Entry No" = field("Entry No");
+                ShowFilter = false;
+                Enabled = Rec.Direction = Rec.Direction::Incoming;
+                Visible = Rec.Direction = Rec.Direction::Incoming;
+            }
+            part("Outbound E-Doc. Factbox"; "Outbound E-Doc. Factbox")
+            {
+                Caption = 'Details';
+                SubPageLink = "E-Document Entry No" = field("Entry No");
+                ShowFilter = false;
+                Enabled = Rec.Direction = Rec.Direction::Outgoing;
+                Visible = Rec.Direction = Rec.Direction::Outgoing;
+            }
+            part(EDocMessages; "E-Document Messages Part")
+            {
+                Caption = 'Messages';
+                SubPageLink = "E-Document Entry No." = field("Entry No");
+                ShowFilter = false;
             }
         }
     }
@@ -138,9 +175,14 @@ page 6122 "E-Documents"
         EDocImport: Codeunit "E-Doc. Import";
     begin
         EDocImport.UploadDocument(EDocument);
-        if EDocument."Entry No" <> 0 then begin
-            EDocImport.ProcessIncomingEDocument(EDocument, EDocument.GetEDocumentService().GetDefaultImportParameters());
+        if EDocument."Entry No" = 0 then
+            exit;
+        if EDocument.Direction = EDocument.Direction::Outgoing then begin
+            // File was classified as a message (e.g. OrderResponse) linked to this outbound document.
             Page.Run(Page::"E-Document", EDocument);
+            exit;
         end;
+        EDocImport.ProcessIncomingEDocument(EDocument, EDocument.GetEDocumentService().GetDefaultImportParameters());
+        Page.Run(Page::"E-Document", EDocument);
     end;
 }

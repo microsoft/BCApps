@@ -7,6 +7,8 @@ namespace Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
+using Microsoft.eServices.EDocument.Processing.Message;
+using Microsoft.Peppol.Response;
 using Microsoft.Purchases.Vendor;
 using System.IO;
 using System.Utilities;
@@ -118,7 +120,9 @@ codeunit 6104 "Import E-Document Process"
     local procedure ReadIntoDraft(EDocument: Record "E-Document")
     var
         EDocumentDataStorage: Record "E-Doc. Data Storage";
+        EDocMessageMgt: Codeunit "E-Doc. Message Mgt.";
         FromBlob: Codeunit "Temp Blob";
+        ResponseBlob: Codeunit "Temp Blob";
         IStructuredFormatReader: Interface IStructuredFormatReader;
     begin
         if EDocumentDataStorage.Get(EDocument."Structured Data Entry No.") then
@@ -131,6 +135,11 @@ codeunit 6104 "Import E-Document Process"
 
         EDocument."Process Draft Impl." := IStructuredFormatReader.ReadIntoDraft(EDocument, FromBlob);
         EDocument.Modify();
+
+        if IStructuredFormatReader.SupportsOrderResponse(EDocument) then begin
+            IStructuredFormatReader.BuildOrderResponse(EDocument, "E-Doc. Response Type"::Acknowledged, ResponseBlob);
+            EDocMessageMgt.CreateMessage(EDocument, "E-Document Message Type"::"PEPPOL Order Response", "E-Document Direction"::Outgoing, "E-Doc. Response Type"::Acknowledged, ResponseBlob);
+        end;
     end;
 
     local procedure PrepareDraft(EDocument: Record "E-Document"; EDocImportParameters: Record "E-Doc. Import Parameters")
@@ -164,6 +173,9 @@ codeunit 6104 "Import E-Document Process"
     var
         IEDocumentFinishDraft: Interface IEDocumentFinishDraft;
     begin
+        if EDocument."Document Type" = "E-Document Type"::None then
+            exit;
+
         IEDocumentFinishDraft := EDocument."Document Type";
 
         // Clean up / reset E-Document fields

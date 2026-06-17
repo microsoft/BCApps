@@ -7,6 +7,7 @@ namespace Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
+using Microsoft.Peppol.Response;
 using System.Utilities;
 
 codeunit 6193 "E-Doc. Empty Draft" implements IStructureReceivedEDocument, IStructuredDataType, IStructuredFormatReader
@@ -50,5 +51,14 @@ codeunit 6193 "E-Doc. Empty Draft" implements IStructureReceivedEDocument, IStru
         NoDataErr: Label 'There is no data to view.';
     begin
         Error(NoDataErr);
+    end;
+
+    procedure SupportsOrderResponse(EDocument: Record "E-Document"): Boolean
+    begin
+        exit(false);
+    end;
+
+    procedure BuildOrderResponse(EDocument: Record "E-Document"; ResponseType: Enum "E-Doc. Response Type"; var TempBlob: Codeunit "Temp Blob")
+    begin
     end;
 }

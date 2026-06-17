@@ -9,6 +9,7 @@ using Microsoft.eServices.EDocument.IO.Peppol;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Peppol.Response;
 using Microsoft.Foundation.Attachment;
 using System.IO;
 using System.Text;
@@ -33,6 +34,15 @@ codeunit 6407 "E-Doc. DataExch. Purch Handler" implements IStructuredFormatReade
     procedure View(EDocument: Record "E-Document"; TempBlob: Codeunit "Temp Blob")
     begin
         Error(ViewNotImplementedErr);
+    end;
+
+    procedure SupportsOrderResponse(EDocument: Record "E-Document"): Boolean
+    begin
+        exit(false);
+    end;
+
+    procedure BuildOrderResponse(EDocument: Record "E-Document"; ResponseType: Enum "E-Doc. Response Type"; var TempBlob: Codeunit "Temp Blob")
+    begin
     end;
 
     #region Auto-Detection
