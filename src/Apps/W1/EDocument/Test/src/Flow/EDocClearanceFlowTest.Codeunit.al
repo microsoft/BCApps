@@ -278,6 +278,48 @@ codeunit 133529 "E-Doc. Clearance Flow Test"
         UnbindSubscription(EDocImplState);
     end;
 
+    [Test]
+    procedure RecreateAfterExportProducesNewExportLog()
+    var
+        EDocument: Record "E-Document";
+        EDocumentLog: Record "E-Document Log";
+        EDocExport: Codeunit "E-Doc. Export";
+    begin
+        // [FEATURE] [E-Document] [Clearance] [Flow]
+        // [SCENARIO] After a document is already Exported by the clearance flow, the manual
+        // "Recreate Document" action must still re-export it (e.g. the user edited an editable
+        // field on the posted document and wants that change reflected in the e-document).
+        // The workflow Export guard that prevents duplicate logs during posting must NOT block
+        // this separate re-export path.
+
+        // [GIVEN] A clearance workflow with async send
+        Initialize();
+        BindSubscription(EDocImplState);
+        EDocImplState.SetIsAsync();
+        EDocImplState.SetOnGetResponseSuccess();
+
+        // [GIVEN] Team member posts sales invoice and the E-Document Created Flow runs
+        LibraryLowerPermission.SetTeamMember();
+        LibraryEDoc.PostInvoice(Customer);
+        EDocument.FindLast();
+        LibraryJobQueue.FindAndRunJobQueueEntryByRecordId(EDocument.RecordId);
+
+        // [GIVEN] Exactly ONE Exported log exists after posting (workflow did not double-export)
+        EDocumentLog.SetRange("E-Doc. Entry No", EDocument."Entry No");
+        EDocumentLog.SetRange("Service Code", ClearanceService.Code);
+        EDocumentLog.SetRange(Status, Enum::"E-Document Service Status"::Exported);
+        Assert.AreEqual(1, EDocumentLog.Count(), 'Expected exactly 1 Exported log after posting');
+
+        // [WHEN] The user triggers the "Recreate Document" action for the clearance service
+        LibraryLowerPermission.SetOutsideO365Scope();
+        EDocExport.Recreate(EDocument, ClearanceService);
+
+        // [THEN] A second Exported log is created - re-export is not blocked by the workflow guard
+        Assert.AreEqual(2, EDocumentLog.Count(), 'Recreate should produce a new Exported log even when the document was already Exported');
+
+        UnbindSubscription(EDocImplState);
+    end;
+
     // Helper procedures 
 
     local procedure Initialize()
