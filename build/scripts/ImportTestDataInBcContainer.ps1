@@ -78,43 +78,53 @@ function New-AdditionalTenants {
 
     Write-Host "Container is multitenant. Creating $($NumberOfTenants - 1) additional tenant(s) for a total of $NumberOfTenants..."
 
-    Invoke-ScriptInBcContainer -containerName $ContainerName -scriptblock { Param($numberOfTenants)
-        $sourceDatabaseName = "default"
-
-        Write-Host "Stopping server to copy tenant database..."
+    Write-Host "Stopping server to copy tenant database..."
+    Invoke-ScriptInBcContainer -containerName $ContainerName -scriptblock {
         Stop-NAVServerInstance -ServerInstance $ServerInstance
+    }
 
-        $copiedDatabases = @()
+    $copiedDatabases = Invoke-ScriptInBcContainer -containerName $ContainerName -scriptblock { Param($numberOfTenants)
+        $sourceDatabaseName = "default"
+        $maxAttempts = 3
+        $retryDelaySeconds = 5
+        $copied = @()
         for ($i = 2; $i -le $numberOfTenants; $i++) {
             $newDatabaseName = "tenant$i"
-            try {
-                Write-Host "Copying database '$sourceDatabaseName' to '$newDatabaseName'..."
-                Copy-NAVDatabase -SourceDatabaseName $sourceDatabaseName -DestinationDatabaseName $newDatabaseName -DatabaseServer "."
-                $copiedDatabases += $newDatabaseName
-            }
-            catch {
-                Write-Host "WARNING: Failed to copy database for '$newDatabaseName': $($_.Exception.Message). Continuing without this tenant."
-            }
-        }
 
+            for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
+                try {
+                    Write-Host "Copying database '$sourceDatabaseName' to '$newDatabaseName' (attempt $attempt/$maxAttempts)..."
+                    Copy-NAVDatabase -SourceDatabaseName $sourceDatabaseName -DestinationDatabaseName $newDatabaseName -DatabaseServer "." | Out-Null
+                    break
+                } catch {
+                    Write-Host "WARNING: Copy of '$newDatabaseName' failed on attempt $attempt/${maxAttempts}: $($_.Exception.Message)"
+                    if ($attempt -eq $maxAttempts) {
+                        throw "Failed to copy database '$sourceDatabaseName' to '$newDatabaseName' after $maxAttempts attempts. Last error: $($_.Exception.Message)"
+                    }
+                    Write-Host "Retrying in $retryDelaySeconds seconds..."
+                    Start-Sleep -Seconds $retryDelaySeconds
+                }
+            }
+
+            $copied += $newDatabaseName
+        }
+        $copied
+    } -argumentList $NumberOfTenants
+
+    Invoke-ScriptInBcContainer -containerName $ContainerName -scriptblock { Param($copiedDatabases)
         Write-Host "Starting server..."
         Start-NAVServerInstance -ServerInstance $ServerInstance
 
         foreach ($newDatabaseName in $copiedDatabases) {
-            try {
-                Write-Host "Mounting tenant '$newDatabaseName'..."
-                Mount-NAVTenant -ServerInstance $ServerInstance -Id $newDatabaseName -DatabaseServer "." -DatabaseName $newDatabaseName -OverwriteTenantIdInDatabase -Force
-            }
-            catch {
-                Write-Host "WARNING: Failed to mount tenant '$newDatabaseName': $($_.Exception.Message). Continuing without this tenant."
-            }
+            Write-Host "Mounting tenant '$newDatabaseName'..."
+            Mount-NAVTenant -ServerInstance $ServerInstance -Id $newDatabaseName -DatabaseServer "." -DatabaseName $newDatabaseName -OverwriteTenantIdInDatabase -Force
         }
 
         Write-Host "All tenants:"
         Get-NAVTenant -ServerInstance $ServerInstance | ForEach-Object {
             Write-Host "  Tenant: $($_.Id) - State: $($_.State)"
         }
-    } -argumentList $NumberOfTenants
+    } -argumentList (,$copiedDatabases)
 
     # Wait for the newly mounted tenants to reach Operational state before returning
     Wait-ForTenantReady -ContainerName $ContainerName

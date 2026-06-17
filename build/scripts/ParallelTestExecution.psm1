@@ -205,6 +205,134 @@ function Merge-TestResultFiles {
 
 <#
 .SYNOPSIS
+    Returns $true if the output matches the known BC platform race signature.
+.DESCRIPTION
+    Race lives in InteractionManager.InvokeInteractions
+    (Prod.ClientFwk\Interactions\InteractionManager.cs, around line 203 at time of writing).
+    Any of these fingerprints is sufficient evidence: "Cannot open page 130455",
+    "InvokeInteractions failed with status code 500", or a stack frame referencing
+    "InteractionManager.cs:line N" (line number not pinned, so platform refactors do not
+    silently invalidate the match).
+.PARAMETER Output
+    The combined output (stdout + stderr + verbose) captured from a finished background
+    job. Null or empty returns $false.
+#>
+function Test-TransientTestFailure {
+    param(
+        [string]$Output
+    )
+
+    if ([string]::IsNullOrEmpty($Output)) { return $false }
+    return [bool]($Output -match 'Cannot open page 130455|InvokeInteractions failed with status code 500|InteractionManager\.cs:line \d+')
+}
+
+<#
+.SYNOPSIS
+    Receives a finished job's output, classifies the outcome, and removes the job.
+.DESCRIPTION
+    Outcome is 'Passed', 'Transient' (platform race + first failure), or 'Failed'. Output
+    is captured into a StringBuilder inside the pipeline so it survives any terminating
+    exception that Receive-Job rethrows from the background job.
+.PARAMETER Entry
+    Job descriptor from $state.jobs with .appName and .tenant.
+.PARAMETER Job
+    The PowerShell background job in a terminal state (Completed/Failed/Stopped).
+.PARAMETER Retried
+    Set of app names already retried once; matching apps that fail again classify as
+    Failed instead of Transient, enforcing the one-retry cap. Membership is checked via
+    ContainsKey; values are ignored.
+.OUTPUTS
+    [PSCustomObject] with Outcome, AppName, Tenant, JobState properties.
+#>
+function Receive-TestJobResult {
+    param(
+        $Entry,
+        $Job,
+        [Hashtable]$Retried
+    )
+
+    $sb = New-Object System.Text.StringBuilder
+    try {
+        Receive-Job -Job $Job *>&1 | ForEach-Object { Write-Host $_; [void]$sb.AppendLine("$_") }
+    } catch {
+        Write-Host "  (job emitted terminating error: $($_.Exception.Message))"
+        # Capture the full ErrorRecord text (message + script stack trace + position info)
+        # so the classifier can still match a transient signature that only appears outside
+        # Exception.Message. Fall back to the bare message if Out-String yields nothing.
+        $errText = ($_ | Out-String).TrimEnd()
+        if ([string]::IsNullOrWhiteSpace($errText)) { $errText = $_.Exception.Message }
+        [void]$sb.AppendLine($errText)
+    }
+    $output = $sb.ToString()
+
+    $outcome = 'Passed'
+    if ($Job.State -eq 'Failed' -or $Job.State -eq 'Stopped') {
+        if ((Test-TransientTestFailure $output) -and -not $Retried.ContainsKey($Entry.appName)) {
+            $outcome = 'Transient'
+        } else {
+            $outcome = 'Failed'
+        }
+    }
+
+    Remove-Job -Job $Job -Force
+
+    return [PSCustomObject]@{
+        Outcome  = $outcome
+        AppName  = $Entry.appName
+        Tenant   = $Entry.tenant
+        JobState = $Job.State
+    }
+}
+
+<#
+.SYNOPSIS
+    Dispatches a single test app on a tenant and records the job. Sleeps 5s after to space
+    consecutive OpenForm(130455) calls and avoid the platform race.
+.PARAMETER Parameters
+    The Run-AlPipeline parameters hashtable. Cloned per dispatch and mutated with
+    appName/extensionId.
+.PARAMETER AppName
+    The test app name (e.g. 'Tests-SCM-Service'); used for logging and result file naming.
+.PARAMETER AppId
+    The app's extensionId GUID; selects which app's tests Run-TestsInBcContainer runs.
+.PARAMETER Tenant
+    The tenant id to dispatch onto.
+.PARAMETER ScriptPath
+    Path to the RunTestsInBcContainer.ps1 script invoked by the background job.
+.PARAMETER TestType
+    The test type (Legacy, UnitTest, etc.) forwarded to the background job.
+.PARAMETER State
+    The parallel execution state object; the new job descriptor is appended to State.jobs.
+.PARAMETER Verb
+    Log verb, 'Dispatching' for the initial run or 'Re-dispatching' for a retry.
+#>
+function Start-TestAppDispatch {
+    param(
+        [Hashtable]$Parameters,
+        [string]$AppName,
+        [string]$AppId,
+        [string]$Tenant,
+        [string]$ScriptPath,
+        [string]$TestType,
+        $State,
+        [string]$Verb = 'Dispatching'
+    )
+
+    Write-Host "$Verb '$AppName' (extensionId $AppId) on tenant '$Tenant' in background"
+
+    $appParams = $Parameters.Clone()
+    $appParams['appName'] = $AppName
+    $appParams['extensionId'] = $AppId
+    $appParams.Remove('ReRun') | Out-Null
+
+    $job = Start-TestJob -parameters $appParams -tenant $Tenant -scriptPath $ScriptPath -testType $TestType
+    $State.jobs = @($State.jobs) + @([PSCustomObject]@{ jobId = $job.Id; tenant = $Tenant; appName = $AppName })
+
+    Start-Sleep -Seconds 5
+}
+
+<#
+.SYNOPSIS
     Collects finished jobs and returns tenants that are not currently busy.
 .PARAMETER state
     The parallel execution state object containing the jobs array.
@@ -230,19 +358,17 @@ function Get-FreeTenants {
             $busyTenants += $entry.tenant
             $remainingJobs += $entry
         } else {
-            # Terminal state — collect output (all streams) and clean up. Wrap in try/catch
-            # because Receive-Job rethrows any unhandled exception from the job (e.g. our
-            # "Test execution failed" throw); we want to record the failure and keep dispatching.
-            try {
-                Receive-Job -Job $job *>&1 | ForEach-Object { Write-Host $_ }
-            } catch {
-                Write-Host "  (job emitted terminating error: $($_.Exception.Message))"
+            $result = Receive-TestJobResult -Entry $entry -Job $job -Retried $state.retried
+            switch ($result.Outcome) {
+                'Transient' {
+                    Write-Host "Transient platform race for '$($result.AppName)' on '$($result.Tenant)'. Queued for one retry."
+                    $state.transient = @($state.transient) + @($result.AppName)
+                }
+                'Failed' {
+                    Write-Host "Tests FAILED for $($result.AppName) on $($result.Tenant) (job state: $($result.JobState))"
+                    $state.hasFailures = $true
+                }
             }
-            if ($job.State -eq "Failed" -or $job.State -eq "Stopped") {
-                Write-Host "Tests FAILED for $($entry.appName) on $($entry.tenant) (job state: $($job.State))"
-                $state.hasFailures = $true
-            }
-            Remove-Job -Job $job -Force
         }
     }
     $state.jobs = @($remainingJobs)
@@ -344,28 +470,28 @@ function Wait-ForAllTestJobs {
     param($state)
 
     $allPassed = $true
-    foreach ($entry in $state.jobs) {
+    foreach ($entry in @($state.jobs)) {
         $pendingJob = Get-Job -Id $entry.jobId -ErrorAction SilentlyContinue
         if ($pendingJob) {
             Write-Host "Waiting for '$($entry.appName)' on '$($entry.tenant)'..."
             Wait-Job -Job $pendingJob | Out-Null
 
-            # Capture and display job output (all streams, including errors). Wrap because
-            # Receive-Job rethrows terminating errors from the job; we want to keep waiting
-            # for the rest.
-            try {
-                Receive-Job -Job $pendingJob *>&1 | ForEach-Object { Write-Host $_ }
-            } catch {
-                Write-Host "  (job emitted terminating error: $($_.Exception.Message))"
+            $result = Receive-TestJobResult -Entry $entry -Job $pendingJob -Retried $state.retried
+            switch ($result.Outcome) {
+                'Transient' {
+                    Write-Host "Transient platform race for '$($result.AppName)' on '$($result.Tenant)'. Queued for one retry."
+                    $state.transient = @($state.transient) + @($result.AppName)
+                }
+                'Failed' {
+                    Write-Host "Tests FAILED for $($result.AppName) on $($result.Tenant) (job state: $($result.JobState))"
+                    $allPassed = $false
+                }
             }
-
-            if ($pendingJob.State -eq "Failed" -or $pendingJob.State -eq "Stopped") {
-                Write-Host "Tests FAILED for $($entry.appName) on $($entry.tenant) (job state: $($pendingJob.State))"
-                $allPassed = $false
-            }
-            Remove-Job -Job $pendingJob -Force
         }
     }
+    # All jobs in $state.jobs have been received and removed; clear the list so any later
+    # dispatch starts from a clean slate (otherwise stale descriptors confuse Get-FreeTenants).
+    $state.jobs = @()
     return $allPassed
 }
 
@@ -465,35 +591,50 @@ function Invoke-ParallelTestExecution {
 
     # dispatched=true marks "we started the foreach" - lets concurrent reads notice an in-flight
     # run. completed=false stays false until wait+merge finish; only then is finalResult valid.
-    $state = [PSCustomObject]@{ jobs = @(); dispatched = $true; completed = $false; finalResult = $false; hasFailures = $false }
+    $state = [PSCustomObject]@{ jobs = @(); dispatched = $true; completed = $false; finalResult = $false; hasFailures = $false; transient = @(); retried = @{} }
     $state | ConvertTo-Json -Depth 5 | Set-Content $stateFile -Force
 
-    foreach ($appName in $appNamesToTest) {
-        $appId = $appIdByName[$appName]
-        if (-not $appId) {
-            Write-Host "WARNING: Could not resolve appId for '$appName'; skipping"
-            $state.hasFailures = $true
-            continue
+    # Single dispatch loop. $pending is processed FIFO; transient platform-race failures
+    # are re-queued onto the back of $pending so the retry runs as part of the normal flow.
+    # The retry cap lives in Receive-TestJobResult: an app already in $state.retried gets
+    # classified as Failed (not Transient) on a second failure.
+    $pending = @($appNamesToTest)
+
+    while ($pending.Count -gt 0 -or $state.jobs.Count -gt 0 -or $state.transient.Count -gt 0) {
+        # Promote any transient failures back into the dispatch queue.
+        if ($state.transient.Count -gt 0) {
+            $toRetry = @($state.transient)
+            $state.transient = @()
+            Write-Host "Re-queueing $($toRetry.Count) app(s) after transient platform race: $($toRetry -join ', ')"
+            foreach ($appName in $toRetry) {
+                $state.retried[$appName] = $true
+                $pending += $appName
+            }
         }
 
-        $tenant = Wait-ForFreeTenant -state $state -tenants $tenants
-        Write-Host "Dispatching '$appName' (extensionId $appId) on tenant '$tenant' in background"
+        if ($pending.Count -gt 0) {
+            $appName = $pending[0]
+            $pending = @($pending | Select-Object -Skip 1)
+            $appId = $appIdByName[$appName]
+            if (-not $appId) {
+                Write-Host "WARNING: Could not resolve appId for '$appName'; skipping"
+                $state.hasFailures = $true
+                continue
+            }
 
-        $appParams = $parameters.Clone()
-        $appParams["appName"] = $appName
-        $appParams["extensionId"] = $appId
-        $appParams.Remove("ReRun") | Out-Null
-
-        $job = Start-TestJob -parameters $appParams -tenant $tenant -scriptPath $scriptPath -testType $testType
-        $state.jobs = @($state.jobs) + @([PSCustomObject]@{ jobId = $job.Id; tenant = $tenant; appName = $appName })
+            $verb = if ($state.retried.ContainsKey($appName)) { 'Re-dispatching' } else { 'Dispatching' }
+            $tenant = Wait-ForFreeTenant -state $state -tenants $tenants
+            Start-TestAppDispatch -Parameters $parameters -AppName $appName -AppId $appId -Tenant $tenant `
+                -ScriptPath $scriptPath -TestType $testType -State $state -Verb $verb
+        } else {
+            # Nothing left to dispatch; drain any still-running jobs. New transient failures
+            # discovered here will be re-queued at the top of the next loop iteration.
+            Write-Host "All apps dispatched. Waiting for in-flight jobs to complete..."
+            if (-not (Wait-ForAllTestJobs -state $state)) { $state.hasFailures = $true }
+        }
     }
 
-    Write-Host "All $($appNamesToTest.Count) apps dispatched. Waiting for completion..."
-    $allPassed = Wait-ForAllTestJobs -state $state
-
-    if ($state.hasFailures) {
-        $allPassed = $false
-    }
+    $allPassed = -not $state.hasFailures
 
     Merge-TenantTestResults -parameters $parameters -tenants $tenants
 
