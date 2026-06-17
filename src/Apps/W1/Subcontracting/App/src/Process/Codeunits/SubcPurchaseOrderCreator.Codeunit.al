@@ -27,6 +27,11 @@ codeunit 99001557 "Subc. Purchase Order Creator"
         ManufacturingSetup: Record "Manufacturing Setup";
         PageManagement: Codeunit "Page Management";
         UnitofMeasureManagement: Codeunit "Unit of Measure Management";
+#if not CLEAN29
+#pragma warning disable AL0432
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
+#endif
         HasManufacturingSetup: Boolean;
         OperationNo: Code[10];
         RoutingReferenceNo: Integer;
@@ -45,6 +50,13 @@ codeunit 99001557 "Subc. Purchase Order Creator"
         BaseQtyToPurch: Decimal;
         QtyToPurch: Decimal;
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit(0);
+
+#endif
         GetManufacturingSetup();
         ManufacturingSetup.TestField("Subcontracting Template Name");
         ManufacturingSetup.TestField("Subcontracting Batch Name");
@@ -74,6 +86,12 @@ codeunit 99001557 "Subc. Purchase Order Creator"
         ProdOrderLine: Record "Prod. Order Line";
         PurchaseLine: Record "Purchase Line";
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         GetManufacturingSetup();
 
         if not HasManufacturingSetup then
@@ -113,6 +131,12 @@ codeunit 99001557 "Subc. Purchase Order Creator"
         SubContractorWorkCenterNo: Code[20];
         DimensionSetIDArr: array[10] of Integer;
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         GetManufacturingSetup();
         ProdOrderRoutingLine.SetLoadFields("Work Center No.", Status, "Prod. Order No.", "Routing Link Code");
         if ProdOrderRoutingLine.Get("Production Order Status"::Released, RequisitionLine."Prod. Order No.", RequisitionLine."Routing Reference No.", RequisitionLine."Routing No.", RequisitionLine."Operation No.") then begin
@@ -173,6 +197,12 @@ codeunit 99001557 "Subc. Purchase Order Creator"
         SubcNotificationMgmt: Codeunit "Subc. Notification Mgmt.";
         IsHandled: Boolean;
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         OnBeforeShowCreatedPurchaseOrder(ProdOrderNo, NoOfCreatedPurchOrder, IsHandled);
         if IsHandled then
             exit;

@@ -8,7 +8,7 @@ using Microsoft.Manufacturing.Document;
 
 page 99001560 "Subc. WIP Ledger Entries"
 {
-    ApplicationArea = Manufacturing;
+    ApplicationArea = Subcontracting;
     Caption = 'Subcontracting WIP Entries';
     Editable = false;
     PageType = List;
@@ -110,7 +110,6 @@ page 99001560 "Subc. WIP Ledger Entries"
         {
             action("WIP Adjustment")
             {
-                ApplicationArea = Manufacturing;
                 Caption = 'WIP Adjustment';
                 Image = AdjustEntries;
                 ToolTip = 'Manually adjust the WIP quantity for the selected WIP ledger entry.';
