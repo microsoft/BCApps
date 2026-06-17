@@ -28,6 +28,7 @@ using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Archive;
 using Microsoft.Purchases.Comment;
 using Microsoft.Purchases.Document;
+using Microsoft.Purchases.History;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
@@ -3527,6 +3528,143 @@ codeunit 139989 "Subc. Subcontracting Test"
             'GetSubcPriceForReqLine must pick the price row matching the line''s Unit of Measure when FixedUOM is empty.');
     end;
 
+    [Test]
+    procedure VendorSuppliedCompQtyUpdatedOnPurchOrderReschedule()
+    var
+        Item: Record Item;
+        ComponentItem: Record Item;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProductionBOMLine: Record "Production BOM Line";
+        ProductionOrder: Record "Production Order";
+        ProdOrderLine: Record "Prod. Order Line";
+        ProdOrderComponent: Record "Prod. Order Component";
+        PurchaseLine: Record "Purchase Line";
+        PurchaseLineComp: Record "Purchase Line";
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        RequisitionLine: Record "Requisition Line";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        WorkCenter: array[2] of Record "Work Center";
+        InitialQty: Decimal;
+        NewQty: Decimal;
+    begin
+        // [SCENARIO 637496] When a production order quantity changes and the subcontracting purchase order
+        // is rescheduled via the requisition worksheet, the Vendor-Supplied component purchase lines
+        // should be updated to reflect the new quantity.
+
+        // [GIVEN] A subcontracting setup with a Vendor-Supplied component
+        Initialize();
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+
+        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Vendor-Supplied");
+        SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+
+        // [GIVEN] A released production order
+        InitialQty := LibraryRandom.RandIntInRange(5, 10);
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", InitialQty);
+
+        // [GIVEN] A subcontracting purchase order created via the requisition worksheet
+        SubcontractingMgmtLibrary.CreateReqWkshTemplateAndName(ReqWkshTemplate, RequisitionWkshName);
+        CalculateSubcontractsAndFindReqLine(RequisitionWkshName, ProductionOrder."No.", RequisitionLine);
+        CarryOutSubcontractingAction(RequisitionLine);
+
+        // [GIVEN] The vendor-supplied component purchase line exists
+        ProductionBOMLine.SetRange("Production BOM No.", Item."Production BOM No.");
+#pragma warning disable AA0210        
+        ProductionBOMLine.SetRange("Component Supply Method", "Component Supply Method"::"Vendor-Supplied");
+#pragma warning restore AA0210
+        ProductionBOMLine.FindFirst();
+        ComponentItem.Get(ProductionBOMLine."No.");
+
+        FindSubcPurchLineForProdOrder(PurchaseLine, Item."No.", ProductionOrder."No.");
+        FindComponentPurchLine(PurchaseLineComp, PurchaseLine."Document No.", ComponentItem."No.");
+        Assert.IsTrue(PurchaseLineComp.FindFirst(), 'Vendor-Supplied component purchase line should exist after initial PO creation.');
+
+        // [WHEN] The production order quantity is increased and refreshed
+        NewQty := InitialQty + LibraryRandom.RandIntInRange(3, 7);
+        ProdOrderLine.SetRange(Status, "Production Order Status"::Released);
+        ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderLine.FindFirst();
+        ProdOrderLine.Validate(Quantity, NewQty);
+        ProdOrderLine.Modify(true);
+
+        // [WHEN] CalculateSubcontracts is run again and carried out (reschedule path)
+        CalculateSubcontractsAndFindReqLine(RequisitionWkshName, ProductionOrder."No.", RequisitionLine);
+
+        Assert.IsTrue(
+            RequisitionLine."Action Message" in
+                [RequisitionLine."Action Message"::"Change Qty.",
+                 RequisitionLine."Action Message"::"Resched. & Chg. Qty."],
+            'Requisition line should have a Change Qty or Reschedule action message.');
+
+        CarryOutSubcontractingAction(RequisitionLine);
+
+        // [THEN] The component purchase line quantity matches the updated component remaining quantity
+        ProdOrderComponent.SetRange(Status, "Production Order Status"::Released);
+        ProdOrderComponent.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderComponent.SetRange("Item No.", ComponentItem."No.");
+#pragma warning disable AA0210        
+        ProdOrderComponent.SetRange("Component Supply Method", "Component Supply Method"::"Vendor-Supplied");
+#pragma warning restore AA0210
+        ProdOrderComponent.FindFirst();
+
+        PurchaseLineComp.FindFirst();
+        Assert.AreEqual(
+            ProdOrderComponent."Remaining Quantity",
+            PurchaseLineComp.Quantity,
+            'Vendor-Supplied component purchase line quantity should match the updated production order component remaining quantity.');
+    end;
+
+    local procedure CalculateSubcontractsAndFindReqLine(RequisitionWkshName: Record "Requisition Wksh. Name"; ProdOrderNo: Code[20]; var RequisitionLine: Record "Requisition Line")
+    var
+        SubcCalculateSubContract: Report "Subc. Calculate Subcontracts";
+    begin
+        Clear(RequisitionLine);
+        RequisitionLine."Worksheet Template Name" := RequisitionWkshName."Worksheet Template Name";
+        RequisitionLine."Journal Batch Name" := RequisitionWkshName.Name;
+
+        SubcCalculateSubContract.SetWkShLine(RequisitionLine);
+        SubcCalculateSubContract.UseRequestPage(false);
+        SubcCalculateSubContract.RunModal();
+
+        RequisitionLine.SetRange("Worksheet Template Name", RequisitionWkshName."Worksheet Template Name");
+        RequisitionLine.SetRange("Journal Batch Name", RequisitionWkshName.Name);
+#pragma warning disable AA0210
+        RequisitionLine.SetRange("Prod. Order No.", ProdOrderNo);
+#pragma warning restore AA0210
+        RequisitionLine.FindFirst();
+    end;
+
+    local procedure CarryOutSubcontractingAction(var RequisitionLine: Record "Requisition Line")
+    var
+        CarryOutActionMsgReq: Report "Carry Out Action Msg. - Req.";
+    begin
+        CarryOutActionMsgReq.SetReqWkshLine(RequisitionLine);
+        CarryOutActionMsgReq.UseRequestPage(false);
+        CarryOutActionMsgReq.RunModal();
+    end;
+
+    local procedure FindSubcPurchLineForProdOrder(var PurchaseLine: Record "Purchase Line"; ItemNo: Code[20]; ProdOrderNo: Code[20])
+    begin
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange(Type, "Purchase Line Type"::Item);
+        PurchaseLine.SetRange("No.", ItemNo);
+        PurchaseLine.SetRange("Prod. Order No.", ProdOrderNo);
+        PurchaseLine.FindFirst();
+    end;
+
+    local procedure FindComponentPurchLine(var PurchaseLineComp: Record "Purchase Line"; DocumentNo: Code[20]; ComponentItemNo: Code[20])
+    begin
+        PurchaseLineComp.SetRange("Document Type", PurchaseLineComp."Document Type"::Order);
+        PurchaseLineComp.SetRange("Document No.", DocumentNo);
+        PurchaseLineComp.SetRange(Type, "Purchase Line Type"::Item);
+        PurchaseLineComp.SetRange("No.", ComponentItemNo);
+    end;
+
     local procedure CreateUOMCodeSortingAfter(BaseUOMCode: Code[10]): Code[10]
     var
         UnitOfMeasure: Record "Unit of Measure";
@@ -3546,6 +3684,99 @@ codeunit 139989 "Subc. Subcontracting Test"
         if UnitOfMeasure.Code <= BaseUOMCode then
             Error('Test setup: generated UoM code %1 must sort after base UoM code %2.', UnitOfMeasure.Code, BaseUOMCode);
         exit(UnitOfMeasure.Code);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure CancelInvoiceWithSubcontractingItemChargeIsBlocked()
+    var
+        Item: Record Item;
+        RegularItem: Record Item;
+        ProductionOrder: Record "Production Order";
+        SubcWorkCenter: Record "Work Center";
+        SubcPurchaseHeader: Record "Purchase Header";
+        SubcPurchaseLine: Record "Purchase Line";
+        RegularPurchaseHeader: Record "Purchase Header";
+        RegularPurchaseLine: Record "Purchase Line";
+        SubcPurchRcptLine: Record "Purch. Rcpt. Line";
+        RegPurchRcptLine: Record "Purch. Rcpt. Line";
+        ItemCharge: Record "Item Charge";
+        ItemChargeInvHeader: Record "Purchase Header";
+        ItemChargeInvLine: Record "Purchase Line";
+        PurchInvHeader: Record "Purch. Inv. Header";
+        CorrectPostedPurchInvoice: Codeunit "Correct Posted Purch. Invoice";
+        PostedInvoiceNo: Code[20];
+        SubcVendorNo: Code[20];
+    begin
+        // [SCENARIO 637502] Cancelling a Posted Purchase Invoice whose Item Charge is split between a regular item receipt
+        // line and a subcontracting service receipt line must be blocked. Letting the cancel run today silently skips the
+        // capacity portion (Value Entry has Item Ledger Entry No. = 0) and redistributes it to inventory, corrupting cost.
+        // Until a proper reversal path exists, the Subcontracting App blocks the cancel with a clear error so the user
+        // creates a corrective credit memo manually.
+
+        // [GIVEN] Subcontracting setup with a single-operation subcontracting routing on Item
+        Initialize();
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+        CreateItemWithSingleSubcontractingOperation(Item, SubcWorkCenter);
+        SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(SubcWorkCenter);
+
+        // [GIVEN] Released production order and a subcontracting purchase order received in full
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandIntInRange(5, 10));
+        UpdateSubMgmtSetupWithReqWkshTemplate();
+        SubcontractingMgmtLibrary.CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", SubcWorkCenter."No.");
+
+        SubcPurchaseLine.SetRange("Document Type", SubcPurchaseLine."Document Type"::Order);
+        SubcPurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+#pragma warning disable AA0210
+        SubcPurchaseLine.SetRange("Work Center No.", SubcWorkCenter."No.");
+#pragma warning restore AA0210
+        SubcPurchaseLine.FindFirst();
+        SubcPurchaseHeader.Get(SubcPurchaseLine."Document Type", SubcPurchaseLine."Document No.");
+        EnsureGeneralPostingSetupIsValid(SubcPurchaseLine."Gen. Bus. Posting Group", SubcPurchaseLine."Gen. Prod. Posting Group");
+        SubcVendorNo := SubcPurchaseHeader."Buy-from Vendor No.";
+
+        LibraryPurchase.PostPurchaseDocument(SubcPurchaseHeader, true, false);
+
+        SubcPurchRcptLine.SetRange("Order No.", SubcPurchaseHeader."No.");
+        SubcPurchRcptLine.SetRange("Order Line No.", SubcPurchaseLine."Line No.");
+        SubcPurchRcptLine.FindFirst();
+
+        // [GIVEN] A separate regular purchase order for the same vendor that receives a normal inventory item
+        LibraryInventory.CreateItem(RegularItem);
+        LibraryPurchase.CreatePurchHeader(RegularPurchaseHeader, RegularPurchaseHeader."Document Type"::Order, SubcVendorNo);
+        LibraryPurchase.CreatePurchaseLineWithUnitCost(
+            RegularPurchaseLine, RegularPurchaseHeader, RegularItem."No.",
+            LibraryRandom.RandDecInRange(50, 100, 2), LibraryRandom.RandIntInRange(2, 5));
+        EnsureGeneralPostingSetupIsValid(RegularPurchaseLine."Gen. Bus. Posting Group", RegularPurchaseLine."Gen. Prod. Posting Group");
+        LibraryPurchase.PostPurchaseDocument(RegularPurchaseHeader, true, false);
+
+        RegPurchRcptLine.SetRange("Order No.", RegularPurchaseHeader."No.");
+        RegPurchRcptLine.SetRange("Order Line No.", RegularPurchaseLine."Line No.");
+        RegPurchRcptLine.FindFirst();
+
+        // [GIVEN] A purchase invoice with a single Item Charge line of quantity 2 allocated 1:1 across both receipt lines
+        LibraryInventory.CreateItemCharge(ItemCharge);
+        LibraryPurchase.CreatePurchHeader(ItemChargeInvHeader, ItemChargeInvHeader."Document Type"::Invoice, SubcVendorNo);
+        LibraryPurchase.CreatePurchaseLine(ItemChargeInvLine, ItemChargeInvHeader, ItemChargeInvLine.Type::"Charge (Item)", ItemCharge."No.", 2);
+        ItemChargeInvLine.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(100, 200, 2));
+        ItemChargeInvLine.Modify(true);
+        EnsureGeneralPostingSetupIsValid(ItemChargeInvLine."Gen. Bus. Posting Group", ItemChargeInvLine."Gen. Prod. Posting Group");
+
+        AssignItemChargeToReceiptLine(ItemChargeInvLine, RegPurchRcptLine, 1);
+        AssignItemChargeToReceiptLine(ItemChargeInvLine, SubcPurchRcptLine, 1);
+
+        // [GIVEN] The invoice is posted
+        PostedInvoiceNo := LibraryPurchase.PostPurchaseDocument(ItemChargeInvHeader, false, true);
+        PurchInvHeader.Get(PostedInvoiceNo);
+        Commit();
+
+        // [WHEN] The user tries to cancel the posted invoice
+        asserterror CorrectPostedPurchInvoice.CancelPostedInvoice(PurchInvHeader);
+
+        // [THEN] The Subcontracting App blocks the cancel with the dedicated error
+        Assert.ExpectedError('contains item charges assigned to a subcontracting order receipt');
     end;
 
     local procedure Initialize()
@@ -3638,6 +3869,18 @@ codeunit 139989 "Subc. Subcontracting Test"
             ReqWkshTemplate.Modify(true);
         end;
         exit(ReqWkshTemplate.Name);
+    end;
+
+    local procedure AssignItemChargeToReceiptLine(ItemChargeInvLine: Record "Purchase Line"; PurchRcptLine: Record "Purch. Rcpt. Line"; QtyToAssign: Decimal)
+    var
+        ItemChargeAssignmentPurch: Record "Item Charge Assignment (Purch)";
+    begin
+        LibraryInventory.CreateItemChargeAssignPurchase(
+            ItemChargeAssignmentPurch, ItemChargeInvLine,
+            ItemChargeAssignmentPurch."Applies-to Doc. Type"::Receipt,
+            PurchRcptLine."Document No.", PurchRcptLine."Line No.", PurchRcptLine."No.");
+        ItemChargeAssignmentPurch.Validate("Qty. to Assign", QtyToAssign);
+        ItemChargeAssignmentPurch.Modify(true);
     end;
 
     procedure UpdateProdOrderComponentWithComponentSupplyMethod(ProductionOrder: Record "Production Order"; ComponentSupplyMethod: Enum "Component Supply Method")

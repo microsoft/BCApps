@@ -24,7 +24,7 @@ pageextension 99001508 "Subc. Routing Lines" extends "Routing Lines"
                 UpdateWIPEnabled();
             end;
         }
-        addafter("Routing Link Code")
+        addafter(Description)
         {
             field("Transfer WIP Item"; Rec."Transfer WIP Item")
             {
