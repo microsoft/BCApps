@@ -688,7 +688,7 @@ table 30102 "Shpfy Shop"
         }
         field(120; "Auto Create Catalog"; Boolean)
         {
-            Caption = 'Auto Create Catalog';
+            Caption = 'Auto Create B2B Catalog';
             DataClassification = CustomerContent;
 
             trigger OnValidate()

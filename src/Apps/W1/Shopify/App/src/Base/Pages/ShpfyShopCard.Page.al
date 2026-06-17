@@ -445,7 +445,7 @@ page 30101 "Shpfy Shop Card"
                 field("Auto Create Catalog"; Rec."Auto Create Catalog")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies whether a catalog is automatically created for new companies.';
+                    ToolTip = 'Specifies whether a B2B catalog is automatically created for new companies.';
                 }
                 field("Company Metafields To Shopify"; Rec."Company Metafields To Shopify")
                 {
