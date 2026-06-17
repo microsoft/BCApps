@@ -292,7 +292,9 @@ codeunit 37201 "PEPPOL30 Impl."
                 SupplierEndpointID := DelChr(SupplierEndpointID);
 
                 if UseVATSchemeID(CompanyInfo."Country/Region Code") then
-                    SupplierEndpointID := CompanyInfo.FormatVATRegistrationNo(SupplierEndpointID, CompanyInfo."Country/Region Code");
+                    SupplierEndpointID := CompanyInfo.FormatVATRegistrationNo(SupplierEndpointID, CompanyInfo."Country/Region Code")
+                else if GetVATScheme(CompanyInfo."Country/Region Code") = GetSwedishOrgNoSchemeID() then
+                    SupplierEndpointID := GetSwedishOrgNo(SupplierEndpointID);
             end;
             SupplierSchemeID := GetVATScheme(CompanyInfo."Country/Region Code");
         end;
@@ -376,7 +378,9 @@ codeunit 37201 "PEPPOL30 Impl."
                 PartyLegalEntityCompanyID := DelChr(PartyLegalEntityCompanyID);
 
                 if UseVATSchemeID(CompanyInfo."Country/Region Code") then
-                    PartyLegalEntityCompanyID := CompanyInfo.FormatVATRegistrationNo(PartyLegalEntityCompanyID, CompanyInfo."Country/Region Code");
+                    PartyLegalEntityCompanyID := CompanyInfo.FormatVATRegistrationNo(PartyLegalEntityCompanyID, CompanyInfo."Country/Region Code")
+                else if GetVATScheme(CompanyInfo."Country/Region Code") = GetSwedishOrgNoSchemeID() then
+                    PartyLegalEntityCompanyID := GetSwedishOrgNo(PartyLegalEntityCompanyID);
             end;
             PartyLegalEntitySchemeID := GetVATSchemeByFormat(CompanyInfo."Country/Region Code", IsBISBilling);
         end;
@@ -433,7 +437,9 @@ codeunit 37201 "PEPPOL30 Impl."
                 CustomerEndpointID := DelChr(CustomerEndpointID);
 
                 if UseVATSchemeID(SalesHeader."Bill-to Country/Region Code") then
-                    CustomerEndpointID := Cust.FormatVATRegistrationNo(CustomerEndpointID, SalesHeader."Bill-to Country/Region Code");
+                    CustomerEndpointID := Cust.FormatVATRegistrationNo(CustomerEndpointID, SalesHeader."Bill-to Country/Region Code")
+                else if GetVATScheme(SalesHeader."Bill-to Country/Region Code") = GetSwedishOrgNoSchemeID() then
+                    CustomerEndpointID := GetSwedishOrgNo(CustomerEndpointID);
             end;
             CustomerSchemeID := GetVATScheme(SalesHeader."Bill-to Country/Region Code");
         end;
@@ -524,7 +530,9 @@ codeunit 37201 "PEPPOL30 Impl."
                     CustPartyLegalEntityCompanyID := DelChr(CustPartyLegalEntityCompanyID);
 
                     if UseVATSchemeID(SalesHeader."Bill-to Country/Region Code") then
-                        CustPartyLegalEntityCompanyID := Customer.FormatVATRegistrationNo(CustPartyLegalEntityCompanyID, SalesHeader."Bill-to Country/Region Code");
+                        CustPartyLegalEntityCompanyID := Customer.FormatVATRegistrationNo(CustPartyLegalEntityCompanyID, SalesHeader."Bill-to Country/Region Code")
+                    else if GetVATScheme(SalesHeader."Bill-to Country/Region Code") = GetSwedishOrgNoSchemeID() then
+                        CustPartyLegalEntityCompanyID := GetSwedishOrgNo(CustPartyLegalEntityCompanyID);
                 end;
                 CustPartyLegalEntityIDSchemeID := GetVATSchemeByFormat(SalesHeader."Bill-to Country/Region Code", IsBISBilling);
             end;
@@ -1441,6 +1449,21 @@ codeunit 37201 "PEPPOL30 Impl."
         end else
             CountryRegion.Get(CountryRegionCode);
         exit(CountryRegion."VAT Scheme");
+    end;
+
+    local procedure GetSwedishOrgNoSchemeID(): Text
+    begin
+        exit('0007');
+    end;
+
+    local procedure GetSwedishOrgNo(VATRegistrationNo: Text): Text
+    var
+        DigitsOnly: Text;
+    begin
+        DigitsOnly := DelChr(VATRegistrationNo, '=', DelChr(VATRegistrationNo, '=', '0123456789'));
+        if StrLen(DigitsOnly) >= 10 then
+            exit(CopyStr(DigitsOnly, 1, 10));
+        exit(VATRegistrationNo);
     end;
 
     /// <summary>

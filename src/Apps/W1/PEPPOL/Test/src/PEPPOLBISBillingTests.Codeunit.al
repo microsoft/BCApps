@@ -1482,6 +1482,214 @@ codeunit 139236 "PEPPOL BIS BillingTests"
     end;
 
     [Test]
+    [Scope('OnPrem')]
+    procedure GetAccountingSupplierPartyInfo_VATRegNo_SE()
+    var
+        PEPPOLMgt: Codeunit PEPPOL30;
+        SupplierEndpointID: Text;
+        SupplierSchemeID: Text;
+        SupplierName: Text;
+    begin
+        // [FEATURE] [UT]
+        // [SCENARIO 7723] SE supplier EndpointID must carry the 10-digit organisation number under scheme 0007, not the full VAT.
+        Initialize();
+
+        // [GIVEN] Company Information in SE (VAT Scheme '0007') with "VAT Registration No." = 'SE733078715601'
+        SetupSECompany(SetupSECountryRegion(GetSEOrgNoSchemeID()));
+
+        // [WHEN] Get Accounting Supplier Party Info (BIS)
+        PEPPOLMgt.GetAccountingSupplierPartyInfoBIS(SupplierEndpointID, SupplierSchemeID, SupplierName);
+
+        // [THEN] EndpointID is the 10-digit organisation number under schemeID '0007'
+        Assert.AreEqual(GetExpectedSEOrgNo(), SupplierEndpointID, '');
+        Assert.AreEqual(GetSEOrgNoSchemeID(), SupplierSchemeID, '');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure GetAccountingCustomerPartyInfo_VATRegNo_SE()
+    var
+        SalesHeader: Record "Sales Header";
+        Customer: Record Customer;
+        PEPPOLMgt: Codeunit PEPPOL30;
+        CustomerEndpointID: Text;
+        CustomerSchemeID: Text;
+        CustomerPartyIdentificationID: Text;
+        CustomerPartyIDSchemeID: Text;
+        CustomerName: Text;
+    begin
+        // [FEATURE] [UT]
+        // [SCENARIO 7723] SE customer EndpointID must carry the 10-digit organisation number under scheme 0007, not the full VAT.
+        Initialize();
+
+        // [GIVEN] Customer in SE (VAT Scheme '0007') with "VAT Registration No." = 'SE733078715601'
+        LibrarySales.CreateCustomer(Customer);
+        Customer."Country/Region Code" := SetupSECountryRegion(GetSEOrgNoSchemeID());
+        Customer."VAT Registration No." := GetSETestVATRegNo();
+        Customer.GLN := '';
+        Customer."Use GLN in Electronic Document" := true;
+        Customer.Modify();
+
+        SalesHeader.Validate("Bill-to Customer No.", Customer."No.");
+        SalesHeader.Validate("VAT Registration No.", Customer."VAT Registration No.");
+
+        // [WHEN] Get Accounting Customer Party Info (BIS)
+        PEPPOLMgt.GetAccountingCustomerPartyInfoBIS(
+          SalesHeader, CustomerEndpointID, CustomerSchemeID, CustomerPartyIdentificationID, CustomerPartyIDSchemeID, CustomerName);
+
+        // [THEN] EndpointID is the 10-digit organisation number under schemeID '0007'
+        Assert.AreEqual(GetExpectedSEOrgNo(), CustomerEndpointID, '');
+        Assert.AreEqual(GetSEOrgNoSchemeID(), CustomerSchemeID, '');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure GetAccountingSupplierPartyLegalEntity_VATRegNo_SE()
+    var
+        CompanyInfo: Record "Company Information";
+        PEPPOLMgt: Codeunit PEPPOL30;
+        PartyLegalEntityRegName: Text;
+        PartyLegalEntityCompanyID: Text;
+        PartyLegalEntitySchemeID: Text;
+        SupplierRegAddrCityName: Text;
+        SupplierRegAddrCountryIdCode: Text;
+        SupplRegAddrCountryIdListId: Text;
+    begin
+        // [FEATURE] [UT]
+        // [SCENARIO 7723] SE supplier PartyLegalEntity CompanyID must be the 10-digit organisation number.
+        Initialize();
+
+        // [GIVEN] Company Information in SE (VAT Scheme '0007') with "VAT Registration No." = 'SE733078715601'
+        SetupSECompany(SetupSECountryRegion(GetSEOrgNoSchemeID()));
+        CompanyInfo.Get();
+
+        // [WHEN] Get Accounting Supplier Party Legal Entity (BIS)
+        PEPPOLMgt.GetAccountingSupplierPartyLegalEntityBIS(
+          PartyLegalEntityRegName, PartyLegalEntityCompanyID, PartyLegalEntitySchemeID, SupplierRegAddrCityName,
+          SupplierRegAddrCountryIdCode, SupplRegAddrCountryIdListId);
+
+        // [THEN] CompanyID is the 10-digit organisation number; schemeID stays empty (non-DK BIS legal entity, unchanged)
+        Assert.AreEqual(CompanyInfo.Name, PartyLegalEntityRegName, '');
+        Assert.AreEqual(GetExpectedSEOrgNo(), PartyLegalEntityCompanyID, '');
+        Assert.AreEqual('', PartyLegalEntitySchemeID, '');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure GetAccountingCustomerPartyLegalEntity_VATRegNo_SE()
+    var
+        SalesHeader: Record "Sales Header";
+        Customer: Record Customer;
+        PEPPOLMgt: Codeunit PEPPOL30;
+        CustPartyLegalEntityRegName: Text;
+        CustPartyLegalEntityCompanyID: Text;
+        CustPartyLegalEntityIDSchemeID: Text;
+    begin
+        // [FEATURE] [UT]
+        // [SCENARIO 7723] SE customer PartyLegalEntity CompanyID must be the 10-digit organisation number.
+        Initialize();
+
+        // [GIVEN] Customer in SE (VAT Scheme '0007') with "VAT Registration No." = 'SE733078715601'
+        LibrarySales.CreateCustomer(Customer);
+        Customer."Country/Region Code" := SetupSECountryRegion(GetSEOrgNoSchemeID());
+        Customer."VAT Registration No." := GetSETestVATRegNo();
+        Customer.GLN := '';
+        Customer."Use GLN in Electronic Document" := true;
+        Customer.Modify();
+
+        SalesHeader.Validate("Bill-to Customer No.", Customer."No.");
+        SalesHeader.Validate("VAT Registration No.", Customer."VAT Registration No.");
+
+        // [WHEN] Get Accounting Customer Party Legal Entity (BIS)
+        PEPPOLMgt.GetAccountingCustomerPartyLegalEntityBIS(
+          SalesHeader, CustPartyLegalEntityRegName, CustPartyLegalEntityCompanyID, CustPartyLegalEntityIDSchemeID);
+
+        // [THEN] CompanyID is the 10-digit organisation number; schemeID stays empty (non-DK BIS legal entity, unchanged)
+        Assert.AreEqual(Customer.Name, CustPartyLegalEntityRegName, '');
+        Assert.AreEqual(GetExpectedSEOrgNo(), CustPartyLegalEntityCompanyID, '');
+        Assert.AreEqual('', CustPartyLegalEntityIDSchemeID, '');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure GetAccountingSupplierPartyInfo_VATScheme9955_SE()
+    var
+        PEPPOLMgt: Codeunit PEPPOL30;
+        SupplierEndpointID: Text;
+        SupplierSchemeID: Text;
+        SupplierName: Text;
+    begin
+        // [FEATURE] [UT]
+        // [SCENARIO 7723] An SE party registered under EAS 9955 (SE:VAT) must keep the full VAT in EndpointID, not be stripped to the org number.
+        Initialize();
+
+        // [GIVEN] Company Information in SE but VAT Scheme '9955' (SE:VAT) with "VAT Registration No." = 'SE733078715601'
+        SetupSECompany(SetupSECountryRegion(GetSEVATSchemeID()));
+
+        // [WHEN] Get Accounting Supplier Party Info (BIS)
+        PEPPOLMgt.GetAccountingSupplierPartyInfoBIS(SupplierEndpointID, SupplierSchemeID, SupplierName);
+
+        // [THEN] EndpointID keeps the full VAT (scheme 9955 expects the VAT, not the organisation number)
+        Assert.AreEqual(GetSEVATSchemeID(), SupplierSchemeID, '');
+        Assert.AreNotEqual(GetExpectedSEOrgNo(), SupplierEndpointID, 'VAT must not be stripped to the organisation number when the scheme is 9955.');
+        Assert.IsTrue(StrPos(SupplierEndpointID, '733078715601') > 0, 'EndpointID must retain the full Swedish VAT digits under scheme 9955.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure GetAccountingSupplierPartyTaxScheme_VATRegNo_SE()
+    var
+        PEPPOLMgt: Codeunit PEPPOL30;
+        CompanyID: Text;
+        CompanyIDSchemeID: Text;
+        TaxSchemeID: Text;
+    begin
+        // [FEATURE] [UT]
+        // [SCENARIO 7723] SE PartyTaxScheme CompanyID must keep the full VAT (BT-31), not be stripped to the organisation number.
+        Initialize();
+
+        // [GIVEN] Company Information in SE (VAT Scheme '0007') with "VAT Registration No." = 'SE733078715601'
+        SetupSECompany(SetupSECountryRegion(GetSEOrgNoSchemeID()));
+
+        // [WHEN] Get Accounting Supplier Party Tax Scheme
+        PEPPOLMgt.GetAccountingSupplierPartyTaxScheme(CompanyID, CompanyIDSchemeID, TaxSchemeID);
+
+        // [THEN] CompanyID keeps the full VAT, not the stripped organisation number
+        Assert.AreNotEqual(GetExpectedSEOrgNo(), CompanyID, 'PartyTaxScheme CompanyID must not be the stripped organisation number.');
+        Assert.IsTrue(StrPos(CompanyID, '733078715601') > 0, 'PartyTaxScheme CompanyID must retain the full Swedish VAT digits.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ExportXml_PEPPOL_BIS3_SalesInvoice_SEOrgNo()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempBlob: Codeunit "Temp Blob";
+        SECountryCode: Code[10];
+    begin
+        // [FEATURE] [Invoice]
+        // [SCENARIO 7723] PEPPOL BIS3 export for SE: supplier and customer EndpointID carry the 10-digit organisation number under scheme 0007.
+        Initialize();
+
+        // [GIVEN] Company and customer in SE (VAT Scheme '0007') with "VAT Registration No." = 'SE733078715601', no GLN
+        SECountryCode := SetupSECountryRegion(GetSEOrgNoSchemeID());
+        SetupSECompany(SECountryCode);
+
+        // [GIVEN] Posted Sales Invoice to an SE customer
+        SalesInvoiceHeader.Get(CreatePostSalesDoc(CreateSECustomer(SECountryCode), SalesHeader."Document Type"::Invoice));
+
+        // [WHEN] Export Sales Invoice with PEPPOL BIS3
+        SalesInvoiceHeader.SetRecFilter();
+        PEPPOLXMLExportToBlob(SalesInvoiceHeader, CreateBISElectronicDocumentFormatSalesInvoice(), TempBlob);
+
+        // [THEN] Supplier and customer EndpointID = '7330787156' under schemeID '0007'
+        InitXPathXMLReaderForInvoice(TempBlob);
+        VerifySupplierEndpoint(GetExpectedSEOrgNo(), GetSEOrgNoSchemeID());
+        VerifyCustomerEndpoint(GetExpectedSEOrgNo(), GetSEOrgNoSchemeID());
+    end;
+
+    [Test]
     procedure ExportXml_PEPPOL_BIS3_SalesInvoiceDocumentAttachment()
     var
         SalesHeader: Record "Sales Header";
@@ -1877,6 +2085,66 @@ codeunit 139236 "PEPPOL BIS BillingTests"
     local procedure GetISOCountryCodeDK(): Code[10]
     begin
         exit('DK');
+    end;
+
+    local procedure GetSETestVATRegNo(): Text
+    begin
+        exit('SE733078715601');
+    end;
+
+    local procedure GetExpectedSEOrgNo(): Text
+    begin
+        exit('7330787156');
+    end;
+
+    local procedure GetSEOrgNoSchemeID(): Text
+    begin
+        exit('0007');
+    end;
+
+    local procedure GetSEVATSchemeID(): Text
+    begin
+        exit('9955');
+    end;
+
+    local procedure SetupSECountryRegion(VATScheme: Code[10]): Code[10]
+    var
+        CountryRegion: Record "Country/Region";
+    begin
+        if not CountryRegion.Get('SE') then begin
+            CountryRegion.Init();
+            CountryRegion.Code := 'SE';
+            CountryRegion.Insert();
+        end;
+        CountryRegion."ISO Code" := 'SE';
+        CountryRegion."VAT Scheme" := VATScheme;
+        CountryRegion.Modify();
+        exit(CountryRegion.Code);
+    end;
+
+    local procedure SetupSECompany(SECountryCode: Code[10])
+    var
+        CompanyInformation: Record "Company Information";
+    begin
+        CompanyInformation.Get();
+        CompanyInformation.GLN := '';
+        CompanyInformation."Use GLN in Electronic Document" := true;
+        CompanyInformation.Validate("Country/Region Code", SECountryCode);
+        CompanyInformation."VAT Registration No." := GetSETestVATRegNo();
+        CompanyInformation.Modify();
+    end;
+
+    local procedure CreateSECustomer(SECountryCode: Code[10]): Code[20]
+    var
+        Customer: Record Customer;
+    begin
+        Customer.Get(CreateCustomerWithAddressAndVATRegNo());
+        Customer."Country/Region Code" := SECountryCode;
+        Customer."VAT Registration No." := GetSETestVATRegNo();
+        Customer.GLN := '';
+        Customer."Use GLN in Electronic Document" := true;
+        Customer.Modify();
+        exit(Customer."No.");
     end;
 
     local procedure GetCompanyVATRegNo(CompanyInformation: Record "Company Information"): Text
