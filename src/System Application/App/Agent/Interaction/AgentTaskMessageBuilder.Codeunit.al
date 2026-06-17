@@ -245,8 +245,7 @@ codeunit 4316 "Agent Task Message Builder"
     /// </summary>
     /// <remarks>
     /// The file stream is read using MS-DOS encoding so that binary attachments (PDF, PNG,
-    /// XLSX, ...) round-trip byte-for-byte. Use the overload with the EncodeType parameter
-    /// for known text uploads where a different text encoding is required.
+    /// XLSX, ...) round-trip byte-for-byte.
     /// </remarks>
     /// <param name="File">The file to attach, as supplied by a fileuploadaction trigger.</param>
     /// <returns>This instance of the Agent Task Message Builder.</returns>
@@ -254,21 +253,6 @@ codeunit 4316 "Agent Task Message Builder"
     begin
         FeatureAccessManagement.AgentManagementAllowed(true);
         AgentTaskMsgBuilderImpl.AddAttachment(File);
-        exit(this);
-    end;
-
-    /// <summary>
-    /// Attach a file received from a page-level fileuploadaction trigger to the task message,
-    /// reading the file stream with the specified text encoding. The MIME type is derived
-    /// from the file name extension. The file is attached when the message is created.
-    /// </summary>
-    /// <param name="File">The file to attach, as supplied by a fileuploadaction trigger.</param>
-    /// <param name="EncodeType">The text encoding to use when wrapping the file's bytes.</param>
-    /// <returns>This instance of the Agent Task Message Builder.</returns>
-    procedure AddAttachment(File: FileUpload; EncodeType: TextEncoding): codeunit "Agent Task Message Builder"
-    begin
-        FeatureAccessManagement.AgentManagementAllowed(true);
-        AgentTaskMsgBuilderImpl.AddAttachment(File, EncodeType);
         exit(this);
     end;
 
