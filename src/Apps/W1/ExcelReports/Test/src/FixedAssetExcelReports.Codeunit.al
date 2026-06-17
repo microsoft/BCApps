@@ -6,6 +6,7 @@
 namespace Microsoft.Finance.ExcelReports.Test;
 
 using Microsoft.Finance.ExcelReports;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.FixedAssets.Depreciation;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.FixedAssets.Journal;
@@ -27,7 +28,7 @@ codeunit 139545 "Fixed Asset Excel Reports"
     end;
 
     var
-        //LibraryERM: Codeunit "Library - ERM";
+        LibraryERM: Codeunit "Library - ERM";
         LibraryFixedAsset: Codeunit "Library - Fixed Asset";
         LibraryRandom: Codeunit "Library - Random";
         LibraryReportDataset: Codeunit "Library - Report Dataset";
@@ -127,6 +128,7 @@ codeunit 139545 "Fixed Asset Excel Reports"
         // using the last posted month's book value when crossing a fiscal year boundary with Declining-Balance 1.
         // Previously it incorrectly used the penultimate month's book value.
         Initialize();
+        EnsureGeneralPostingSetup();
 
         // [GIVEN] Create Accounting periods with fiscal year.
         CleanupFixedAssetData();
@@ -345,6 +347,18 @@ codeunit 139545 "Fixed Asset Excel Reports"
         DepreciationBook.Validate("G/L Integration - Acq. Cost", false);
         DepreciationBook.Validate("G/L Integration - Depreciation", false);
         DepreciationBook.Modify(true);
+    end;
+
+    local procedure EnsureGeneralPostingSetup()
+    var
+        GeneralPostingSetup: Record "General Posting Setup";
+    begin
+        GeneralPostingSetup.SetFilter("Gen. Bus. Posting Group", '<>%1', '');
+        GeneralPostingSetup.SetFilter("Gen. Prod. Posting Group", '<>%1', '');
+        if not GeneralPostingSetup.IsEmpty() then
+            exit;
+
+        LibraryERM.CreateGeneralPostingSetupInvt(GeneralPostingSetup);
     end;
 
     [RequestPageHandler]
