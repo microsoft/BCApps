@@ -2,20 +2,18 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace Microsoft.Manufacturing.Subcontracting;
+namespace Microsoft.QualityManagement.Setup.ApplicationAreas;
 
-using Microsoft.Inventory.Planning;
+using System.Environment.Configuration;
 
-pageextension 99001511 "Subc. Planning Comp" extends "Planning Components"
+tableextension 99001571 "Subc. Application Area Setup" extends "Application Area Setup"
 {
-    layout
+    fields
     {
-        addlast(Control1)
+        field(99001500; Subcontracting; Boolean)
         {
-            field("Component Supply Method"; Rec."Component Supply Method")
-            {
-                ApplicationArea = Subcontracting;
-            }
+            Caption = 'Subcontracting';
+            DataClassification = CustomerContent;
         }
     }
 }
