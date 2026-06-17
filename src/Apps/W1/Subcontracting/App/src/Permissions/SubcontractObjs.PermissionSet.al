@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Manufacturing.Planning;
-using Microsoft.QualityManagement.Setup.ApplicationAreas;
 
 permissionset 99001501 "Subcontract. - Objs"
 {
