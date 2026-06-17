@@ -227,6 +227,7 @@ codeunit 139545 "Fixed Asset Excel Reports"
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Fixed Asset Excel Reports");
 
         LibrarySetupStorage.Save(Database::"FA Setup");
+        LibrarySetupStorage.Save(Database::"General Posting Setup");
         isInitialized := true;
         Commit();
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Fixed Asset Excel Reports");
