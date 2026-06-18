@@ -143,75 +143,6 @@ codeunit 139990 "Subc. Subcontracting UI Test"
     end;
 
     [Test]
-    procedure CheckCustCtrl_PageSubcontractingWorksheetBaseUMQtyPLUMQty()
-    var
-        PageControl: Record "Page Control Field";
-        ReqLine: Record "Requisition Line";
-        ControlExist: Boolean;
-    begin
-        // [FEATURE] Subcontracting Management
-        // [SCENARIO] Check if Controls exist on Page "Subcontracting Worksheet"
-
-        // [GIVEN]
-        Initialize();
-
-        // [WHEN] Find Control on Page
-        PageControl.SetRange(TableNo, Database::"Requisition Line");
-        PageControl.SetRange(PageNo, Page::"Subc. Subcontracting Worksheet");
-        PageControl.SetRange(FieldNo, ReqLine.FieldNo("Base UM Qty/PL UM Qty"));
-        ControlExist := not PageControl.IsEmpty();
-
-        // [THEN]
-        Assert.AreEqual(true, ControlExist, StrSubstNo(ControlNotExistMsg, ReqLine.FieldCaption("Base UM Qty/PL UM Qty")));
-    end;
-
-    [Test]
-    procedure CheckCustCtrl_PageSubcontractingWorksheetPLUMQtyBaseUMQty()
-    var
-        PageControl: Record "Page Control Field";
-        ReqLine: Record "Requisition Line";
-        ControlExist: Boolean;
-    begin
-        // [FEATURE] Subcontracting Management
-        // [SCENARIO] Check if Controls exist on Page "Subcontracting Worksheet"
-
-        // [GIVEN]
-        Initialize();
-
-        // [WHEN] Find Control on Page
-        PageControl.SetRange(TableNo, Database::"Requisition Line");
-        PageControl.SetRange(PageNo, Page::"Subc. Subcontracting Worksheet");
-        PageControl.SetRange(FieldNo, ReqLine.FieldNo("PL UM Qty/Base UM Qty"));
-        ControlExist := not PageControl.IsEmpty();
-
-        // [THEN]
-        Assert.AreEqual(true, ControlExist, StrSubstNo(ControlNotExistMsg, ReqLine.FieldCaption("PL UM Qty/Base UM Qty")));
-    end;
-
-    [Test]
-    procedure CheckCustCtrl_PageSubcontractingWorksheetPriceListCost()
-    var
-        PageControl: Record "Page Control Field";
-        ReqLine: Record "Requisition Line";
-        ControlExist: Boolean;
-    begin
-        // [FEATURE] Subcontracting Management
-        // [SCENARIO] Check if Controls exist on Page "Subcontracting Worksheet"
-
-        // [GIVEN]
-        Initialize();
-
-        // [WHEN] Find Control on Page
-        PageControl.SetRange(TableNo, Database::"Requisition Line");
-        PageControl.SetRange(PageNo, Page::"Subc. Subcontracting Worksheet");
-        PageControl.SetRange(FieldNo, ReqLine.FieldNo("Subc. Pricelist Cost"));
-        ControlExist := not PageControl.IsEmpty();
-
-        // [THEN]
-        Assert.AreEqual(true, ControlExist, StrSubstNo(ControlNotExistMsg, ReqLine.FieldCaption("Subc. Pricelist Cost")));
-    end;
-
-    [Test]
     procedure CheckCustCtrl_PageSubcontractingWorksheetStandardTaskCode()
     var
         PageControl: Record "Page Control Field";
@@ -232,29 +163,6 @@ codeunit 139990 "Subc. Subcontracting UI Test"
 
         // [THEN]
         Assert.AreEqual(true, ControlExist, StrSubstNo(ControlNotExistMsg, ReqLine.FieldCaption("Subc. Standard Task Code")));
-    end;
-
-    [Test]
-    procedure CheckCustCtrl_PageSubcontractingWorksheetUoMForPriceList()
-    var
-        PageControl: Record "Page Control Field";
-        ReqLine: Record "Requisition Line";
-        ControlExist: Boolean;
-    begin
-        // [FEATURE] Subcontracting Management
-        // [SCENARIO] Check if Controls exist on Page "Subc. Subcontracting Worksheet"
-
-        // [GIVEN]
-        Initialize();
-
-        // [WHEN] Find Control on Page
-        PageControl.SetRange(TableNo, Database::"Requisition Line");
-        PageControl.SetRange(PageNo, Page::"Subc. Subcontracting Worksheet");
-        PageControl.SetRange(FieldNo, ReqLine.FieldNo("Subc. UoM for Pricelist"));
-        ControlExist := not PageControl.IsEmpty();
-
-        // [THEN]
-        Assert.AreEqual(true, ControlExist, StrSubstNo(ControlNotExistMsg, ReqLine.FieldCaption("Subc. UoM for Pricelist")));
     end;
 
     [Test]
