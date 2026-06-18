@@ -15,11 +15,13 @@ pageextension 99001523 "Subc. Purch. Order" extends "Purchase Order"
             field("Subc. Order"; Rec."Subc. Order")
             {
                 ApplicationArea = Subcontracting;
+                Importance = Additional;
             }
             field("Subc. Location Code"; Rec."Subc. Location Code")
             {
                 ApplicationArea = Subcontracting;
                 Editable = false;
+                Importance = Additional;
             }
         }
         addafter(WorkflowStatus)
