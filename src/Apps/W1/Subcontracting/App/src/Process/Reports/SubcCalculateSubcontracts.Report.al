@@ -12,11 +12,15 @@ using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.Setup;
+#if not CLEAN29
+using Microsoft.Manufacturing.Subcontracting;
+#endif
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
 
 report 99001505 "Subc. Calculate Subcontracts"
 {
+    ApplicationArea = Subcontracting;
     Caption = 'Calculate Subcontracts';
     ProcessingOnly = true;
 
@@ -81,6 +85,12 @@ report 99001505 "Subc. Calculate Subcontracts"
 
     trigger OnInitReport()
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            CurrReport.Quit();
+#endif
         MfgSetup.Get();
     end;
 
@@ -110,6 +120,11 @@ report 99001505 "Subc. Calculate Subcontracts"
         ItemVariant: Record "Item Variant";
         TempProdOrderRoutingLine: Record "Prod. Order Routing Line" temporary;
         MfgCostCalcMgt: Codeunit "Mfg. Cost Calculation Mgt.";
+#if not CLEAN29
+#pragma warning disable AL0432
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
+#endif
         UOMMgt: Codeunit "Unit of Measure Management";
         Window: Dialog;
         BaseQtyToPurch: Decimal;
@@ -123,6 +138,12 @@ report 99001505 "Subc. Calculate Subcontracts"
 
     procedure SetWkShLine(NewReqLine: Record "Requisition Line")
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         ReqLine := NewReqLine;
     end;
 
@@ -194,13 +215,13 @@ report 99001505 "Subc. Calculate Subcontracts"
         OnAfterTransferProdOrderRoutingLine(ReqLine, ProdOrderRoutingLine);
         // If purchase order already exist we will change this if possible
         PurchLine.Reset();
-        PurchLine.SetCurrentKey("Document Type", Type, "Prod. Order No.", "Prod. Order Line No.", "Routing No.", "Operation No.");
-        PurchLine.SetRange("Document Type", PurchLine."Document Type"::Order);
-        PurchLine.SetRange(Type, PurchLine.Type::Item);
+        PurchLine.SetCurrentKey("Prod. Order No.", "Prod. Order Line No.", "Routing No.", "Operation No.");
         PurchLine.SetRange("Prod. Order No.", ProdOrderLine."Prod. Order No.");
         PurchLine.SetRange("Prod. Order Line No.", ProdOrderLine."Line No.");
         PurchLine.SetRange("Routing No.", ProdOrderRoutingLine."Routing No.");
         PurchLine.SetRange("Operation No.", ProdOrderRoutingLine."Operation No.");
+        PurchLine.SetRange("Document Type", PurchLine."Document Type"::Order);
+        PurchLine.SetRange(Type, PurchLine.Type::Item);
         PurchLine.SetRange("Planning Flexibility", PurchLine."Planning Flexibility"::Unlimited);
         PurchLine.SetRange("Quantity Received", 0);
         if PurchLine.FindFirst() then begin

@@ -506,6 +506,9 @@ codeunit 130561 "Library - Agent Impl."
         AgentTaskBuilder: Codeunit "Agent Task Builder";
         AgentTaskMessageBuilder: Codeunit "Agent Task Message Builder";
         AttachmentsInput: Codeunit "Test Input Json";
+        AttachmentElement: Codeunit "Test Input Json";
+        AttachmentFileElement: Codeunit "Test Input Json";
+        ActionTypeElement: Codeunit "Test Input Json";
         TitleInput, FromInput, MessageInput, TimeoutInput : Codeunit "Test Input Json";
         Assert: Codeunit "Library Assert";
         ResourceInStream: InStream;
@@ -513,8 +516,7 @@ codeunit 130561 "Library - Agent Impl."
         MessageValue: Text;
         FileName: Text[250];
         MIMEType: Text[100];
-        Timeout: Duration;
-        HasTitle, HasFrom, HasMessage, HasAttachments, HasTimeout : Boolean;
+        HasTitle, HasFrom, HasMessage, HasAttachments, HasFile, HasActionType, HasTimeout : Boolean;
         I: Integer;
     begin
         TimeoutInput := QueryInput.ElementExists(TimeoutTok, HasTimeout);
@@ -548,9 +550,26 @@ codeunit 130561 "Library - Agent Impl."
             AttachmentsInput := QueryInput.ElementExists(AttachmentsTok, HasAttachments);
             if HasAttachments then
                 for I := 0 to AttachmentsInput.GetElementCount() - 1 do begin
-                    AgentTestResourceProvider.GetResource(
-                        AttachmentsInput.ElementAt(I).Element(FileTok).ValueAsText(),
-                        ResourceInStream, FileName, MIMEType);
+                    Clear(FileName);
+                    Clear(MIMEType);
+
+                    AttachmentElement := AttachmentsInput.ElementAt(I);
+                    AttachmentFileElement := AttachmentElement.ElementExists(FileTok, HasFile);
+
+                    if not HasFile then
+                        continue;
+
+                    ActionTypeElement := AttachmentFileElement.ElementExists(ActionTypeTok, HasActionType);
+                    if HasActionType then
+                        AgentTestResourceProvider.GenerateResource(
+                            ActionTypeElement.ValueAsText(),
+                            AttachmentFileElement.Element(ActionDataTok),
+                            ResourceInStream, FileName, MIMEType)
+                    else
+                        AgentTestResourceProvider.GetResource(
+                            AttachmentFileElement.ValueAsText(),
+                            ResourceInStream, FileName, MIMEType);
+
                     AgentTaskMessageBuilder.AddAttachment(FileName, MIMEType, ResourceInStream);
                 end;
         end;
@@ -718,6 +737,8 @@ codeunit 130561 "Library - Agent Impl."
         AttachmentsTok: Label 'attachments', Locked = true;
         FileTok: Label 'file', Locked = true;
         TimeoutTok: Label 'timeout', Locked = true;
+        ActionTypeTok: Label 'action_type', Locked = true;
+        ActionDataTok: Label 'action_data', Locked = true;
         InterventionRequestTok: Label 'intervention_request', Locked = true;
         SuggestionsTok: Label 'suggestions', Locked = true;
         InvalidQueryBothErr: Label 'Query cannot contain both ''title'' and ''intervention'' elements.';

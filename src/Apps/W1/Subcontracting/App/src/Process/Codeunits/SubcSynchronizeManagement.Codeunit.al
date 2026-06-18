@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -16,6 +16,11 @@ using Microsoft.Purchases.Document;
 codeunit 99001511 "Subc. Synchronize Management"
 {
     var
+#if not CLEAN29
+#pragma warning disable AL0432
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
+#endif
         CannotDeleteSubcOrderTitleLbl: Label 'Transfer Order Exists';
         CannotDeleteSubcOrderWithTransferOrderErr: Label 'You cannot delete Subcontracting Order %1 because Transfer Order %2 is associated with it. Delete or receive the Transfer Order first.', Comment = '%1=Subcontracting Order No., %2=Transfer Order No.';
         CannotDeleteSubcOrderWithTransferOrdersErr: Label 'You cannot delete Subcontracting Order %1 because Transfer Orders are associated with it. Delete or receive all Transfer Orders first.', Comment = '%1=Subcontracting Order No.';
@@ -25,6 +30,12 @@ codeunit 99001511 "Subc. Synchronize Management"
     var
         ProductionOrder: Record "Production Order";
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if not IsSubcontractingLine(PurchaseLine) then
             exit;
 
@@ -33,14 +44,16 @@ codeunit 99001511 "Subc. Synchronize Management"
         if PurchaseLine."Qty. Received (Base)" <> 0 then
             exit;
 
-        if ProductionOrder.Get("Production Order Status"::Released, PurchaseLine."Prod. Order No.") then begin
-            if not ProductionOrder."Created from Purch. Order" then
-                exit;
-            if ProductionOrder."Due Date" <> PurchaseLine."Expected Receipt Date" then begin
-                ProductionOrder.SetUpdateEndDate();
-                ProductionOrder.Validate("Due Date", PurchaseLine."Expected Receipt Date");
-                ProductionOrder.Modify();
-            end;
+        if not ProductionOrder.Get("Production Order Status"::Released, PurchaseLine."Prod. Order No.") then
+            exit;
+
+        if not ProductionOrder."Created from Purch. Order" then
+            exit;
+
+        if ProductionOrder."Due Date" <> PurchaseLine."Expected Receipt Date" then begin
+            ProductionOrder.SetUpdateEndDate();
+            ProductionOrder.Validate("Due Date", PurchaseLine."Expected Receipt Date");
+            ProductionOrder.Modify();
         end;
     end;
 
@@ -53,6 +66,12 @@ codeunit 99001511 "Subc. Synchronize Management"
         UnitofMeasureManagement: Codeunit "Unit of Measure Management";
         PurchLineBaseQuantity: Decimal;
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if not IsSubcontractingLine(PurchaseLine) then
             exit;
 
@@ -62,35 +81,41 @@ codeunit 99001511 "Subc. Synchronize Management"
         if PurchaseLine."Qty. Received (Base)" <> 0 then
             exit;
 
-        if ProductionOrder.Get("Production Order Status"::Released, PurchaseLine."Prod. Order No.") then begin
-            if not ProductionOrder."Created from Purch. Order" then
-                exit;
+        if not ProductionOrder.Get("Production Order Status"::Released, PurchaseLine."Prod. Order No.") then
+            exit;
 
-            ItemUnitofMeasure.Get(PurchaseLine."No.", PurchaseLine."Unit of Measure Code");
-            PurchLineBaseQuantity :=
-                UnitofMeasureManagement.CalcBaseQty(PurchaseLine."No.", PurchaseLine."Variant Code", PurchaseLine."Unit of Measure Code", PurchaseLine.Quantity, ItemUnitofMeasure."Qty. per Unit of Measure", ItemUnitofMeasure."Qty. Rounding Precision", PurchaseLine.FieldCaption("Qty. Rounding Precision"), PurchaseLine.FieldCaption(Quantity), PurchaseLine.FieldCaption("Quantity (Base)"));
+        if not ProductionOrder."Created from Purch. Order" then
+            exit;
 
-            if ProductionOrder.Quantity <> PurchLineBaseQuantity then begin
-                ProductionOrder.Quantity := PurchLineBaseQuantity;
-                ProductionOrder.Modify();
-            end;
+        ItemUnitofMeasure.Get(PurchaseLine."No.", PurchaseLine."Unit of Measure Code");
+        PurchLineBaseQuantity :=
+            UnitofMeasureManagement.CalcBaseQty(PurchaseLine."No.", PurchaseLine."Variant Code", PurchaseLine."Unit of Measure Code", PurchaseLine.Quantity, ItemUnitofMeasure."Qty. per Unit of Measure", ItemUnitofMeasure."Qty. Rounding Precision", PurchaseLine.FieldCaption("Qty. Rounding Precision"), PurchaseLine.FieldCaption(Quantity), PurchaseLine.FieldCaption("Quantity (Base)"));
 
-            if ProdOrderLine.Get("Production Order Status"::Released, PurchaseLine."Prod. Order No.", PurchaseLine."Prod. Order Line No.") then
-                if ProdOrderLine.Quantity <> PurchLineBaseQuantity then begin
-                    ProdOrderLine.Validate(Quantity, PurchLineBaseQuantity);
-                    ProdOrderLine.Modify();
-                    ProdOrderComponent.SetRange(Status, "Production Order Status"::Released);
-                    ProdOrderComponent.SetRange("Prod. Order No.", PurchaseLine."Prod. Order No.");
-                    ProdOrderComponent.SetRange("Prod. Order Line No.", ProdOrderLine."Line No.");
-                    if not ProdOrderComponent.IsEmpty() then begin
-                        ProdOrderComponent.FindSet();
-                        repeat
-                            ProdOrderComponent.Validate("Quantity per");
-                            ProdOrderComponent.Modify();
-                        until ProdOrderComponent.Next() = 0;
-                    end;
-                end;
+        if ProductionOrder.Quantity <> PurchLineBaseQuantity then begin
+            ProductionOrder.Quantity := PurchLineBaseQuantity;
+            ProductionOrder.Modify();
         end;
+
+        if not ProdOrderLine.Get("Production Order Status"::Released, PurchaseLine."Prod. Order No.", PurchaseLine."Prod. Order Line No.") then
+            exit;
+
+        if ProdOrderLine.Quantity = PurchLineBaseQuantity then
+            exit;
+
+        ProdOrderLine.Validate(Quantity, PurchLineBaseQuantity);
+        ProdOrderLine.Modify();
+
+        ProdOrderComponent.SetRange("Prod. Order No.", PurchaseLine."Prod. Order No.");
+        ProdOrderComponent.SetRange("Prod. Order Line No.", ProdOrderLine."Line No.");
+        ProdOrderComponent.SetRange(Status, "Production Order Status"::Released);
+        if ProdOrderComponent.IsEmpty() then
+            exit;
+
+        ProdOrderComponent.FindSet();
+        repeat
+            ProdOrderComponent.Validate("Quantity per");
+            ProdOrderComponent.Modify();
+        until ProdOrderComponent.Next() = 0;
     end;
 
     procedure DeleteEnhancedDocumentsByChangeOfVendorNo(var PurchaseHeader: Record "Purchase Header"; var xPurchaseHeader: Record "Purchase Header")
@@ -101,6 +126,12 @@ codeunit 99001511 "Subc. Synchronize Management"
         PurchaseLine, PurchaseLine2, PurchaseLineModify : Record "Purchase Line";
         TransferHeader: Record "Transfer Header";
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
         PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
         PurchaseLine.SetRange(Type, "Purchase Line Type"::Item);
@@ -148,7 +179,7 @@ codeunit 99001511 "Subc. Synchronize Management"
                                     PurchaseLine2.DeleteAll(true);
 
                                 TransferHeader.SetCurrentKey("Source ID", "Subc. Source Type", "Source Subtype");
-                                TransferHeader.SetRange("Source ID", PurchaseHeader."Buy-from Vendor No.");
+                                TransferHeader.SetRange("Source ID", xPurchaseHeader."Buy-from Vendor No.");
                                 TransferHeader.SetRange("Subc. Source Type", "Transfer Source Type"::Subcontracting);
                                 TransferHeader.SetRange("Source Subtype", TransferHeader."Source Subtype"::"2");
                                 TransferHeader.SetRange("Subcontr. Purch. Order No.", PurchaseHeader."No.");
@@ -156,7 +187,7 @@ codeunit 99001511 "Subc. Synchronize Management"
                                     TransferHeader.FindFirst();
                                     ItemLedgerEntry2.SetRange("Order Type", "Inventory Order Type"::Production);
                                     ItemLedgerEntry2.SetRange("Order No.", ProductionOrder."No.");
-                                    if ItemLedgerEntry.IsEmpty() then
+                                    if ItemLedgerEntry2.IsEmpty() then
                                         TransferHeader.Delete(true);
                                 end;
                                 ProductionOrder.Delete();
@@ -172,6 +203,12 @@ codeunit 99001511 "Subc. Synchronize Management"
         TransferHeader: Record "Transfer Header";
         TransferOrderErrorInfo: ErrorInfo;
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         TransferHeader.SetRange("Subcontr. Purch. Order No.", PurchaseHeader."No.");
         if TransferHeader.IsEmpty() then
             exit;
@@ -194,6 +231,12 @@ codeunit 99001511 "Subc. Synchronize Management"
         ProductionOrder: Record "Production Order";
         PurchaseLine2: Record "Purchase Line";
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if not IsSubcontractingLine(PurchaseLine) then
             exit;
 
