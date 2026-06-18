@@ -22,11 +22,6 @@ pageextension 99001516 "Subc. Vendor Card" extends "Vendor Card"
                 ApplicationArea = Subcontracting;
                 ToolTip = 'Specifies if a work center is related to the vendor.';
             }
-            field("Subc. Work Center No."; Rec."Subc. Work Center No.")
-            {
-                ApplicationArea = Subcontracting;
-                ToolTip = 'Specifies the work center for purchase provision related to the vendor.';
-            }
         }
     }
     actions
