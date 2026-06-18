@@ -2332,6 +2332,9 @@ codeunit 139964 "Qlty. Tests - Misc."
         QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
         Commit();
 
+        // [GIVEN] Sleep to ensure modified timestamp is different
+        Sleep(1001);
+
         // [GIVEN] Quality Management setup with "Only the most recently modified finished inspection" inspection selection criteria
         QltyManagementSetup.Get();
 
@@ -2441,6 +2444,8 @@ codeunit 139964 "Qlty. Tests - Misc."
         ReQltyInspectionHeader.Status := QltyInspectionHeader.Status::Finished;
         ReQltyInspectionHeader.Modify();
         Commit();
+
+        // [GIVEN] Sleep to ensure modified timestamp is different
         Sleep(1001);
 
         // [GIVEN] Quality Management setup with "Only the newest inspection/re-inspection" inspection selection criteria

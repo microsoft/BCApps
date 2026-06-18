@@ -4,20 +4,16 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
-using Microsoft.Manufacturing.Document;
-pagecustomization "Subc. ReleasedProdOrderLines" customizes "Released Prod. Order Lines"
+using System.Environment.Configuration;
+
+tableextension 99001571 "Subc. Application Area Setup" extends "Application Area Setup"
 {
-    layout
+    fields
     {
-        moveafter("Finished Quantity"; "Routing No.")
-        modify("Routing No.")
+        field(99001500; Subcontracting; Boolean)
         {
-            Visible = true;
-        }
-        moveafter("Routing No."; "Production BOM No.")
-        modify("Production BOM No.")
-        {
-            Visible = true;
+            Caption = 'Subcontracting';
+            DataClassification = CustomerContent;
         }
     }
 }

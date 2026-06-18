@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -14,7 +14,7 @@ using Microsoft.Purchases.Vendor;
 
 report 99001502 "Subc. Create SubCReturnOrder"
 {
-    ApplicationArea = Manufacturing;
+    ApplicationArea = Subcontracting;
     Caption = 'Create Subcontracting Return Order';
     ProcessingOnly = true;
     UsageCategory = Tasks;
@@ -61,7 +61,20 @@ report 99001502 "Subc. Create SubCReturnOrder"
         }
     }
 
+#if not CLEAN29
+    trigger OnInitReport()
+    var
+#pragma warning disable AL0432
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
+    begin
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            CurrReport.Quit();
+    end;
 
+#endif
     var
         TransferHeader: Record "Transfer Header";
         TransferLine: Record "Transfer Line";
@@ -71,12 +84,13 @@ report 99001502 "Subc. Create SubCReturnOrder"
         NothingToCreateErr: Label 'Nothing to create. No components or WIP items to return for the specified subcontracting order.';
         OrderNoDoesNotExistInProdOrderErr: Label 'Operation %1 in the subcontracting order %2 does not exist in the routing %3 of the production order %4.', Comment = '%1=Operation No., %2=Purchase Order No., %3=Routing No., %4=Production Order No.';
         OrderNoIsNotSubcontractorErr: Label 'Order %1 is not a Subcontractor work.', Comment = '%1=Purchase Order No.';
+        SubcLocationCodeMissingErr: Label 'The Subc. Location Code must be specified on Vendor %1 or the Subcontracting Purchase Order to create return orders.', Comment = '%1=Vendor No.';
         WarningToSpecifyPurchOrderErr: Label 'Warning. Specify a Purchase Order No. for the Subcontractor work.';
 
     local procedure InsertTransferHeader(TransferFromLocationCode: Code[10]; TransferToLocationCode: Code[10])
     var
         TransferRoute: Record "Transfer Route";
-        SubcontractingManagement: Codeunit "Subcontracting Management";
+        SubcTransferManagement: Codeunit "Subc. Transfer Management";
     begin
         TransferHeader.Reset();
         TransferHeader.SetRange("Source Subtype", TransferHeader."Source Subtype"::"2");
@@ -95,7 +109,7 @@ report 99001502 "Subc. Create SubCReturnOrder"
             TransferHeader.Validate("Transfer-to Code", TransferToLocationCode);
 
             if not TransferRoute.Get(TransferFromLocationCode, TransferToLocationCode) or (TransferRoute."In-Transit Code" = '') then begin
-                SubcontractingManagement.CheckDirectTransferIsAllowedForTransferHeader(TransferHeader);
+                SubcTransferManagement.CheckDirectTransferIsAllowedForTransferHeader(TransferHeader);
                 TransferHeader.Validate("Direct Transfer", true);
             end;
 
@@ -153,7 +167,7 @@ report 99001502 "Subc. Create SubCReturnOrder"
         ProdOrderLine: Record "Prod. Order Line";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         MfgCostCalculationMgt: Codeunit "Mfg. Cost Calculation Mgt.";
-        SubcontractingManagement: Codeunit "Subcontracting Management";
+        SubcTransferManagement: Codeunit "Subc. Transfer Management";
         UnitofMeasureManagement: Codeunit "Unit of Measure Management";
         SubcFromLocationCode: Code[10];
         AvailableToReturn: Decimal;
@@ -190,8 +204,10 @@ report 99001502 "Subc. Create SubCReturnOrder"
                 ProdOrderComponent.CalcFields(
                     "Subc. Qty. in Transit (Base)", "Subc. Qty. transf. to Subcontr",
                     "RetQtyOnTransOrder (Base)", "RetQtyInTransit (Base)");
+
                 AvailableToReturn :=
                     Abs(ProdOrderComponent."Subc. Qty. in Transit (Base)") + Abs(ProdOrderComponent."Subc. Qty. transf. to Subcontr")
+                    - SubcTransferManagement.CalcConsumedQtyAtSubcLocation(ProdOrderComponent)
                     - Abs(ProdOrderComponent."RetQtyOnTransOrder (Base)") - Abs(ProdOrderComponent."RetQtyInTransit (Base)");
                 if QtyToPost > AvailableToReturn then
                     QtyToPost := AvailableToReturn;
@@ -226,7 +242,7 @@ report 99001502 "Subc. Create SubCReturnOrder"
 
                         TransferLine.Insert();
 
-                        SubcontractingManagement.TransferReservationEntryFromProdOrderCompToTransferOrder(TransferLine, ProdOrderComponent);
+                        SubcTransferManagement.TransferReservationEntryFromProdOrderCompToTransferOrder(TransferLine, ProdOrderComponent);
 
                         if ProdOrderComponent."Subc. Original Location Code" = '' then
                             ProdOrderComponent."Subc. Original Location Code" := ProdOrderComponent."Location Code";
@@ -238,7 +254,7 @@ report 99001502 "Subc. Create SubCReturnOrder"
                         end;
                         ProdOrderComponent.Modify();
 
-                        SubcontractingManagement.CreateReservEntryForTransferReceiptToProdOrderComp(TransferLine, ProdOrderComponent);
+                        SubcTransferManagement.CreateReservEntryForTransferReceiptToProdOrderComp(TransferLine, ProdOrderComponent);
                     end else
                         exit(true);
             until ProdOrderComponent.Next() = 0;
@@ -260,23 +276,22 @@ report 99001502 "Subc. Create SubCReturnOrder"
         TransferLine2: Record "Transfer Line";
     begin
         if PurchaseLine."Document No." = '' then
-            exit;
+            exit(false);
         TransferLine2.SetRange("Subc. Purch. Order No.", PurchaseLine."Document No.");
         TransferLine2.SetRange("Subc. Purch. Order Line No.", PurchaseLine."Line No.");
         TransferLine2.SetRange("Subc. Prod. Order No.", PurchaseLine."Prod. Order No.");
         TransferLine2.SetRange("Subc. Prod. Order Line No.", PurchaseLine."Prod. Order Line No.");
         TransferLine2.SetRange("Subc. Return Order", true);
-        if not TransferLine2.IsEmpty() then
-            exit(false);
+        exit(not TransferLine2.IsEmpty());
     end;
 
-    local procedure GetTransferFromLocationCode(var TransferToLocationCode: Code[10])
+    local procedure GetTransferFromLocationCode(var SubcLocationCode: Code[10])
     begin
-        TransferToLocationCode := "Purchase Header"."Subc. Location Code";
-        if TransferToLocationCode = '' then begin
-            TransferToLocationCode := Vendor."Subc. Location Code";
-            if TransferToLocationCode = '' then
-                Vendor.TestField("Subc. Location Code");
+        SubcLocationCode := "Purchase Header"."Subc. Location Code";
+        if SubcLocationCode = '' then begin
+            SubcLocationCode := Vendor."Subc. Location Code";
+            if SubcLocationCode = '' then
+                Error(SubcLocationCodeMissingErr, Vendor."No.");
         end;
     end;
 

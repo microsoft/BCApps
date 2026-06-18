@@ -14,7 +14,7 @@ pageextension 99001517 "Subc. Vendor List" extends "Vendor List"
         {
             action("Subcontractor Prices")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Caption = 'Subcontractor Prices';
                 Image = Price;
                 RunObject = page "Subcontractor Prices";
