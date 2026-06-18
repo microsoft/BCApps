@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -15,7 +15,7 @@ pageextension 99001533 "Subc. Whse Rcpt Subform Ext." extends "Whse. Receipt Sub
         {
             field("Transfer WIP Item"; Rec."Transfer WIP Item")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Visible = false;
             }
         }
@@ -33,7 +33,7 @@ pageextension 99001533 "Subc. Whse Rcpt Subform Ext." extends "Whse. Receipt Sub
                 Caption = 'Production';
                 action("Production Order")
                 {
-                    ApplicationArea = Manufacturing;
+                    ApplicationArea = Subcontracting;
                     Caption = 'Production Order';
                     Image = Production;
                     ToolTip = 'View the related production order.';
@@ -45,7 +45,7 @@ pageextension 99001533 "Subc. Whse Rcpt Subform Ext." extends "Whse. Receipt Sub
                 }
                 action("Production Order Routing")
                 {
-                    ApplicationArea = Manufacturing;
+                    ApplicationArea = Subcontracting;
                     Caption = 'Production Order Routing';
                     Image = Route;
                     ToolTip = 'View the related production order routing.';
@@ -57,7 +57,7 @@ pageextension 99001533 "Subc. Whse Rcpt Subform Ext." extends "Whse. Receipt Sub
                 }
                 action("Production Order Components")
                 {
-                    ApplicationArea = Manufacturing;
+                    ApplicationArea = Subcontracting;
                     Caption = 'Production Order Components';
                     Image = Components;
                     ToolTip = 'View the related production order components.';
@@ -69,7 +69,7 @@ pageextension 99001533 "Subc. Whse Rcpt Subform Ext." extends "Whse. Receipt Sub
                 }
                 action("Transfer Order")
                 {
-                    ApplicationArea = Manufacturing;
+                    ApplicationArea = Subcontracting;
                     Caption = 'Subcontracting Transfer Order';
                     Image = TransferOrder;
                     ToolTip = 'View the related transfer order.';
@@ -81,7 +81,7 @@ pageextension 99001533 "Subc. Whse Rcpt Subform Ext." extends "Whse. Receipt Sub
                 }
                 action("Return Transfer Order")
                 {
-                    ApplicationArea = Manufacturing;
+                    ApplicationArea = Subcontracting;
                     Caption = 'Subcontracting Return Transfer Order';
                     Image = ReturnRelated;
                     ToolTip = 'View the related return transfer order.';

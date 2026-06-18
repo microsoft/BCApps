@@ -14,26 +14,55 @@ using System.Reflection;
 
 codeunit 99001559 "Subc. ProdO. Factbox Mgmt."
 {
+#if not CLEAN29
+    var
+#pragma warning disable AL0432
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
+
+#endif
     /// <summary>
-    /// Opens the Released Production Order page for the production order linked to the given variant record.
+    /// Opens the appropriate Production Order page (Released or Finished) for the production order linked to the given variant record.
     /// </summary>
     /// <param name="RecRelatedVariant">A record variant of a purchase or transfer document line.</param>
     procedure ShowProductionOrder(RecRelatedVariant: Variant)
     var
         ProductionOrder: Record "Production Order";
+        FinishedProductionOrder: Page "Finished Production Order";
         ReleasedProductionOrder: Page "Released Production Order";
         OperationNo: Code[10];
         ProdOrderNo: Code[20];
         RoutingNo: Code[20];
         ProdOrderLineNo: Integer;
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if not SetProdOrderInformationByVariant(RecRelatedVariant, ProdOrderNo, ProdOrderLineNo, RoutingNo, OperationNo) then
             exit;
-        ProductionOrder.SetRange(Status, ProductionOrder.Status::Released);
+        ProductionOrder.SetFilter(Status, '>=%1', ProductionOrder.Status::Released);
         ProductionOrder.SetRange("No.", ProdOrderNo);
-        ReleasedProductionOrder.SetTableView(ProductionOrder);
-        ReleasedProductionOrder.Editable := false;
-        ReleasedProductionOrder.Run();
+        if not ProductionOrder.FindFirst() then
+            exit;
+        case ProductionOrder.Status of
+            ProductionOrder.Status::Released:
+                begin
+                    ProductionOrder.SetRange(Status, ProductionOrder.Status::Released);
+                    ReleasedProductionOrder.SetTableView(ProductionOrder);
+                    ReleasedProductionOrder.Editable := false;
+                    ReleasedProductionOrder.Run();
+                end;
+            ProductionOrder.Status::Finished:
+                begin
+                    ProductionOrder.SetRange(Status, ProductionOrder.Status::Finished);
+                    FinishedProductionOrder.SetTableView(ProductionOrder);
+                    FinishedProductionOrder.Editable := false;
+                    FinishedProductionOrder.Run();
+                end;
+        end;
     end;
 
     /// <summary>
@@ -49,6 +78,12 @@ codeunit 99001559 "Subc. ProdO. Factbox Mgmt."
         RoutingNo: Code[20];
         ProdOrderLineNo: Integer;
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if not SetProdOrderInformationByVariant(RecRelatedVariant, ProdOrderNo, ProdOrderLineNo, RoutingNo, OperationNo) then
             exit;
         SetFilterProductionOrderRouting(ProdOrderRoutingLine, ProdOrderNo, ProdOrderLineNo, RoutingNo, OperationNo);
@@ -71,15 +106,22 @@ codeunit 99001559 "Subc. ProdO. Factbox Mgmt."
         RoutingNo: Code[20];
         ProdOrderLineNo: Integer;
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit(0);
+
+#endif
         if not SetProdOrderInformationByVariant(RecRelatedVariant, ProdOrderNo, ProdOrderLineNo, RoutingNo, OperationNo) then
             exit;
         SetFilterProductionOrderRouting(ProdOrderRoutingLine, ProdOrderNo, ProdOrderLineNo, RoutingNo, OperationNo);
         exit(ProdOrderRoutingLine.Count());
     end;
 
-local procedure SetFilterProductionOrderRouting(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; ProdOrderNo: Code[20]; ProdOrderLineNo: Integer; RoutingNo: Code[20]; OperationNo: Code[10])
+    local procedure SetFilterProductionOrderRouting(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; ProdOrderNo: Code[20]; ProdOrderLineNo: Integer; RoutingNo: Code[20]; OperationNo: Code[10])
     begin
-        ProdOrderRoutingLine.SetRange(Status, ProdOrderRoutingLine.Status::Released);
+        ProdOrderRoutingLine.SetFilter(Status, '>=%1', ProdOrderRoutingLine.Status::Released);
         ProdOrderRoutingLine.SetRange("Prod. Order No.", ProdOrderNo);
         ProdOrderRoutingLine.SetRange("Routing Reference No.", ProdOrderLineNo);
         ProdOrderRoutingLine.SetRange("Routing No.", RoutingNo);
@@ -99,6 +141,12 @@ local procedure SetFilterProductionOrderRouting(var ProdOrderRoutingLine: Record
         RoutingNo: Code[20];
         ProdOrderLineNo: Integer;
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if not SetProdOrderInformationByVariant(RecRelatedVariant, ProdOrderNo, ProdOrderLineNo, RoutingNo, OperationNo) then
             exit;
         SetFilterProductionOrderComponents(ProdOrderComponent, ProdOrderNo, ProdOrderLineNo, RoutingNo, OperationNo);
@@ -118,6 +166,13 @@ local procedure SetFilterProductionOrderRouting(var ProdOrderRoutingLine: Record
         RoutingNo: Code[20];
         ProdOrderLineNo: Integer;
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit(0);
+
+#endif
         if not SetProdOrderInformationByVariant(RecRelatedVariant, ProdOrderNo, ProdOrderLineNo, RoutingNo, OperationNo) then
             exit(0);
 
@@ -130,7 +185,7 @@ local procedure SetFilterProductionOrderRouting(var ProdOrderRoutingLine: Record
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
     begin
         ProdOrderRoutingLine.SetLoadFields("Routing Link Code");
-        ProdOrderRoutingLine.SetRange(Status, ProdOrderRoutingLine.Status::Released);
+        ProdOrderRoutingLine.SetFilter(Status, '>=%1', ProdOrderRoutingLine.Status::Released);
         ProdOrderRoutingLine.SetRange("Prod. Order No.", ProdOrderNo);
         ProdOrderRoutingLine.SetRange("Routing Reference No.", ProdOrderLineNo);
         ProdOrderRoutingLine.SetRange("Routing No.", RoutingNo);
@@ -138,7 +193,7 @@ local procedure SetFilterProductionOrderRouting(var ProdOrderRoutingLine: Record
         if ProdOrderRoutingLine.FindFirst() then
             ProdOrderComponent.SetRange("Routing Link Code", ProdOrderRoutingLine."Routing Link Code");
 
-        ProdOrderComponent.SetRange(Status, ProdOrderComponent.Status::Released);
+        ProdOrderComponent.SetFilter(Status, '>=%1', ProdOrderComponent.Status::Released);
         ProdOrderComponent.SetRange("Prod. Order No.", ProdOrderNo);
         ProdOrderComponent.SetRange("Prod. Order Line No.", ProdOrderLineNo);
     end;

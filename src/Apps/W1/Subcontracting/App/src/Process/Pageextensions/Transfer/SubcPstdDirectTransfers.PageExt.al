@@ -4,20 +4,19 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
-using Microsoft.Manufacturing.Document;
-pagecustomization "Subc. ReleasedProdOrderLines" customizes "Released Prod. Order Lines"
+using Microsoft.Inventory.Transfer;
+
+pageextension 99001554 "Subc. Pstd. Direct Transfers" extends "Posted Direct Transfers"
 {
-    layout
+    views
     {
-        moveafter("Finished Quantity"; "Routing No.")
-        modify("Routing No.")
+        addlast
         {
-            Visible = true;
-        }
-        moveafter("Routing No."; "Production BOM No.")
-        modify("Production BOM No.")
-        {
-            Visible = true;
+            view(SubcontractingDirectTransfers)
+            {
+                Caption = 'Subcontracting Direct Transfers';
+                Filters = where("Source Type" = const(Subcontracting));
+            }
         }
     }
 }

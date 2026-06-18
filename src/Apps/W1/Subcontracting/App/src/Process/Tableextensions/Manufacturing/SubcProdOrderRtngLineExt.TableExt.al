@@ -19,7 +19,19 @@ tableextension 99001506 "Subc. ProdOrderRtngLine Ext." extends "Prod. Order Rout
         modify(Type)
         {
             trigger OnAfterValidate()
+#if not CLEAN29
+            var
+#pragma warning disable AL0432
+                SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
+#endif
             begin
+#if not CLEAN29
+#pragma warning disable AL0432
+                if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+                    exit;
+#endif
                 if Type = xRec.Type then
                     exit;
 
@@ -32,7 +44,18 @@ tableextension 99001506 "Subc. ProdOrderRtngLine Ext." extends "Prod. Order Rout
             trigger OnAfterValidate()
             var
                 WorkCenter: Record "Work Center";
+#if not CLEAN29
+#pragma warning disable AL0432
+                SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
+#endif
             begin
+#if not CLEAN29
+#pragma warning disable AL0432
+                if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+                    exit;
+#endif
                 if "No." = xRec."No." then
                     exit;
                 if Type <> "Capacity Type"::"Work Center" then begin
@@ -110,7 +133,7 @@ tableextension 99001506 "Subc. ProdOrderRtngLine Ext." extends "Prod. Order Rout
             DecimalPlaces = 0 : 5;
             Editable = false;
             FieldClass = FlowField;
-            ToolTip = 'Specifies the total work-in-progress quantity (base) of the production order parent item currently held at the subcontractor location for this operation, as tracked by Subcontractor WIP Ledger Entries.';
+            ToolTip = 'Specifies the total work-in-progress quantity (base) of the production order parent item currently held at the subcontractor location for this operation, as tracked by Subcontracting WIP Entries.';
         }
         field(99001564; "WIP Qty. (Base) in Transit"; Decimal)
         {
@@ -163,7 +186,18 @@ tableextension 99001506 "Subc. ProdOrderRtngLine Ext." extends "Prod. Order Rout
     var
         ProdOrderLine: Record "Prod. Order Line";
         PurchLine: Record "Purchase Line";
+#if not CLEAN29
+#pragma warning disable AL0432
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
+#endif
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if Status <> "Production Order Status"::Released then
             exit;
 
@@ -175,13 +209,12 @@ tableextension 99001506 "Subc. ProdOrderRtngLine Ext." extends "Prod. Order Rout
         if ProdOrderLine.Find('-') then
             repeat
                 PurchLine.SetLoadFields(SystemId);
-                PurchLine.SetCurrentKey(
-                  "Document Type", Type, "Prod. Order No.", "Prod. Order Line No.", "Routing No.", "Operation No.");
-                PurchLine.SetRange("Document Type", PurchLine."Document Type"::Order);
-                PurchLine.SetRange(Type, PurchLine.Type::Item);
+                PurchLine.SetCurrentKey("Prod. Order No.", "Prod. Order Line No.", "Routing No.", "Operation No.");
                 PurchLine.SetRange("Prod. Order No.", "Prod. Order No.");
                 PurchLine.SetRange("Prod. Order Line No.", ProdOrderLine."Line No.");
                 PurchLine.SetRange("Operation No.", "Operation No.");
+                PurchLine.SetRange("Document Type", PurchLine."Document Type"::Order);
+                PurchLine.SetRange(Type, PurchLine.Type::Item);
                 if "Next Operation No." <> '' then begin
                     PurchLine.SetRange("Subc. Purchase Line Type", "Subc. Purchase Line Type"::LastOperation);
                     if PurchLine.FindFirst() then
@@ -199,7 +232,18 @@ tableextension 99001506 "Subc. ProdOrderRtngLine Ext." extends "Prod. Order Rout
         ProdOrderLine: Record "Prod. Order Line";
         PurchLine: Record "Purchase Line";
         PrevProdOrderRoutingLine: Record "Prod. Order Routing Line";
+#if not CLEAN29
+#pragma warning disable AL0432
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
+#endif
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if Status <> "Production Order Status"::Released then
             exit;
         ProdOrderLine.SetLoadFields(SystemId);
@@ -210,12 +254,11 @@ tableextension 99001506 "Subc. ProdOrderRtngLine Ext." extends "Prod. Order Rout
         if ProdOrderLine.Find('-') then
             repeat
                 PurchLine.SetLoadFields(SystemId);
-                PurchLine.SetCurrentKey(
-                  "Document Type", Type, "Prod. Order No.", "Prod. Order Line No.", "Routing No.", "Operation No.");
-                PurchLine.SetRange("Document Type", PurchLine."Document Type"::Order);
-                PurchLine.SetRange(Type, PurchLine.Type::Item);
+                PurchLine.SetCurrentKey("Prod. Order No.", "Prod. Order Line No.", "Routing No.", "Operation No.");
                 PurchLine.SetRange("Prod. Order No.", "Prod. Order No.");
                 PurchLine.SetRange("Prod. Order Line No.", ProdOrderLine."Line No.");
+                PurchLine.SetRange("Document Type", PurchLine."Document Type"::Order);
+                PurchLine.SetRange(Type, PurchLine.Type::Item);
                 if "Next Operation No." = '' then begin
                     PrevProdOrderRoutingLine := Rec;
                     PrevProdOrderRoutingLine.SetRecFilter();

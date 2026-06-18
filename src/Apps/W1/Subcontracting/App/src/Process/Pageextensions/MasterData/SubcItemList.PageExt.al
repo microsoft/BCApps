@@ -14,7 +14,7 @@ pageextension 99001519 "Subc. Item List" extends "Item List"
         {
             action("Subcontractor Prices")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Caption = 'Subcontractor Prices';
                 Image = Price;
                 RunObject = page "Subcontractor Prices";
@@ -27,12 +27,12 @@ pageextension 99001519 "Subc. Item List" extends "Item List"
         {
             action("WIP Ledger Entries")
             {
-                ApplicationArea = Manufacturing;
-                Caption = 'WIP Ledger Entries';
+                ApplicationArea = Subcontracting;
+                Caption = 'Subcontracting WIP Entries';
                 Image = LedgerEntries;
                 RunObject = page "Subc. WIP Ledger Entries";
                 RunPageLink = "Item No." = field("No.");
-                ToolTip = 'View the Subcontractor WIP Ledger Entries that track work-in-progress quantities for this item across subcontracting locations.';
+                ToolTip = 'View the Subcontracting WIP Entries that track work-in-progress quantities for this item across subcontracting locations.';
             }
         }
     }

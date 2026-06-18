@@ -1337,6 +1337,47 @@ codeunit 139940 "Qlty. Inspection Utility"
     end;
 
     /// <summary>
+    /// Wrapper for QltyInspectionCreate.CreateInspection that also reports whether the returned inspection was newly created or reused.
+    /// Use this in tests that verify the "newly created vs reused" distinction (e.g., to assert the inspection-created notification
+    /// is only raised for newly created inspections).
+    /// </summary>
+    /// <param name="TargetRecordRef">The source record to create an inspection from.</param>
+    /// <param name="IsManualCreation">True when user manually creates inspection; False for automatic/triggered creation.</param>
+    /// <param name="OutQltyInspectionHeader">Output: the created or reused inspection header.</param>
+    /// <param name="OutIsNewlyCreated">Output: true when the inspection was newly inserted; false when an existing inspection was reused.</param>
+    /// <returns>True if an inspection was created or found/reused.</returns>
+    internal procedure CreateInspectionAndReportIfNewlyCreated(TargetRecordRef: RecordRef; IsManualCreation: Boolean; var OutQltyInspectionHeader: Record "Qlty. Inspection Header"; var OutIsNewlyCreated: Boolean): Boolean
+    var
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
+        Result: Boolean;
+    begin
+        Result := QltyInspectionCreate.CreateInspection(TargetRecordRef, IsManualCreation);
+        OutIsNewlyCreated := false;
+        if Result then begin
+            QltyInspectionCreate.GetCreatedInspection(OutQltyInspectionHeader);
+            OutIsNewlyCreated := QltyInspectionCreate.IsLastInspectionNewlyCreated();
+        end;
+        exit(Result);
+    end;
+
+    /// <summary>
+    /// Wrapper for internal QltyInspectionCreate.CreateMultipleInspectionsWithoutDisplaying.
+    /// Returns both the inspections that were newly created and the full set of inspections that were resolved
+    /// (new + reused).
+    /// </summary>
+    /// <param name="SetOfRecordsRecordRef">RecordRef containing the records to create inspections for.</param>
+    /// <param name="IsManualCreation">Whether this is a manual creation (affects display behavior).</param>
+    /// <param name="TempFiltersQltyInspectionGenRule">Temporary record with filters that constrain which generation rules apply.</param>
+    /// <param name="OutNewlyCreatedQltyInspectionIds">Output: list of inspection "No." values for inspections that were newly inserted.</param>
+    /// <param name="OutAllResolvedQltyInspectionIds">Output: list of inspection "No." values for every inspection that was newly inserted or reused.</param>
+    internal procedure CreateMultipleInspectionsWithoutDisplaying(var SetOfRecordsRecordRef: RecordRef; IsManualCreation: Boolean; var TempFiltersQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary; var OutNewlyCreatedQltyInspectionIds: List of [Code[20]]; var OutAllResolvedQltyInspectionIds: List of [Code[20]])
+    var
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
+    begin
+        QltyInspectionCreate.CreateMultipleInspectionsWithoutDisplaying(SetOfRecordsRecordRef, IsManualCreation, TempFiltersQltyInspectionGenRule, OutNewlyCreatedQltyInspectionIds, OutAllResolvedQltyInspectionIds);
+    end;
+
+    /// <summary>
     /// Wrapper for QltyInspectionCreate.CreateInspectionWithVariant.
     /// Creates a quality inspection from a variant using generation rule configuration.
     /// </summary>
@@ -1527,7 +1568,7 @@ codeunit 139940 "Qlty. Inspection Utility"
         exit(QltyInspectionCreate.FindExistingInspectionWithVariant(TargetRecordRef, OptionalVariant2, OptionalVariant3, OptionalVariant4, TempQltyInspectionGenRule, OutQltyInspectionHeader, FindAll));
     end;
 
-    #endregion Qlty. Inspection - Create Wrappers
+    #endregion Qlty. Inspection - Create Wrappers         
 
     #region Qlty. Disposition Wrappers
 
@@ -1536,10 +1577,10 @@ codeunit 139940 "Qlty. Inspection Utility"
     /// Performs disposition and returns the created purchase return buffer.
     /// </summary>
     internal procedure PerformPurchaseReturnDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; QltyQuantityBehavior: Enum "Qlty. Quantity Behavior"; OptionalSpecificQuantity: Decimal;
-                                                                                                                                     OptionalSourceLocationFilter: Text;
-                                                                                                                                     OptionalSourceBinFilter: Text;
-                                                                                                                                     ReasonCode: Code[10];
-                                                                                                                                     ExternalDocumentNo: Code[35]; var TempCreatedBufferPurchaseHeader: Record "Purchase Header" temporary): Boolean
+                                                                                                                                              OptionalSourceLocationFilter: Text;
+                                                                                                                                              OptionalSourceBinFilter: Text;
+                                                                                                                                              ReasonCode: Code[10];
+                                                                                                                                              ExternalDocumentNo: Code[35]; var TempCreatedBufferPurchaseHeader: Record "Purchase Header" temporary): Boolean
     var
         QltyDispPurchaseReturn: Codeunit "Qlty. Disp. Purchase Return";
         Result: Boolean;
@@ -1553,9 +1594,9 @@ codeunit 139940 "Qlty. Inspection Utility"
     /// Wrapper for internal QltyDispNegAdjustInv.PerformDisposition (7-argument version).
     /// </summary>
     internal procedure PerformNegAdjustInvDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; OptionalSpecificQuantity: Decimal; QltyQuantityBehavior: Enum "Qlty. Quantity Behavior"; OptionalSourceLocationFilter: Text;
-                                                                                                                                                                      OptionalSourceBinFilter: Text;
-                                                                                                                                                                      PostingBehavior: Enum "Qlty. Item Adj. Post Behavior";
-                                                                                                                                                                      Reason: Code[10]): Boolean
+                                                                                                                                                                               OptionalSourceBinFilter: Text;
+                                                                                                                                                                               PostingBehavior: Enum "Qlty. Item Adj. Post Behavior";
+                                                                                                                                                                               Reason: Code[10]): Boolean
     var
         QltyDispNegAdjustInv: Codeunit "Qlty. Disp. Neg. Adjust Inv.";
     begin
@@ -1566,9 +1607,9 @@ codeunit 139940 "Qlty. Inspection Utility"
     /// Wrapper for internal QltyDispTransfer.PerformDisposition (7-argument version).
     /// </summary>
     internal procedure PerformTransferDisposition(QltyInspectionHeader: Record "Qlty. Inspection Header"; OptionalSpecificQuantity: Decimal; QltyQuantityBehavior: Enum "Qlty. Quantity Behavior"; OptionalSourceLocationFilter: Text;
-                                                                                                                                                              OptionalSourceBinFilter: Text;
-                                                                                                                                                              DestinationLocationCode: Code[10];
-                                                                                                                                                              OptionalInTransitLocationCode: Code[10]): Boolean
+                                                                                                                                                                       OptionalSourceBinFilter: Text;
+                                                                                                                                                                       DestinationLocationCode: Code[10];
+                                                                                                                                                                       OptionalInTransitLocationCode: Code[10]): Boolean
     var
         QltyDispTransfer: Codeunit "Qlty. Disp. Transfer";
     begin
@@ -3102,7 +3143,8 @@ codeunit 139940 "Qlty. Inspection Utility"
     /// <summary>
     /// Wrapper for QltyResultEvaluation.EvaluateResult
     /// </summary>
-    internal procedure EvaluateResult(var OptionalQltyInspectionHeader: Record "Qlty. Inspection Header"; var OptionalQltyInspectionLine: Record "Qlty. Inspection Line"; var QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf."; QltyTestValueType: Enum "Qlty. Test Value Type"; TestValue: Text; QltyCaseSensitivity: Enum "Qlty. Case Sensitivity"): Code[20]
+    internal procedure EvaluateResult(var OptionalQltyInspectionHeader: Record "Qlty. Inspection Header"; var OptionalQltyInspectionLine: Record "Qlty. Inspection Line"; var QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf."; QltyTestValueType: Enum "Qlty. Test Value Type"; TestValue: Text;
+                                                                                                                                                                                                                                                                    QltyCaseSensitivity: Enum "Qlty. Case Sensitivity"): Code[20]
     var
         QltyResultEvaluation: Codeunit "Qlty. Result Evaluation";
     begin
@@ -3451,4 +3493,19 @@ codeunit 139940 "Qlty. Inspection Utility"
     end;
 
     #endregion Qlty. Misc Helpers Wrappers
+
+    /// <summary>
+    /// Wrapper for Qlty. Inspection Template Line.AddSelectedTests()
+    /// Adds the tests matching the provided selection filter to the given template, bypassing the Qlty. Tests lookup page.
+    /// Intended for unit tests of the "Add multiple tests" feature where TestPage cannot multi-select rows.
+    /// </summary>
+    /// <param name="QltyInspectionTemplateHdr">The template into which the selected tests will be inserted.</param>
+    /// <param name="SelectionFilter">A filter string (e.g. 'CODE1|CODE2') matching Qlty. Test codes to add.</param>
+    internal procedure AddSelectedTestsToTemplate(QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr."; SelectionFilter: Text)
+    var
+        QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
+    begin
+        QltyInspectionTemplateLine."Template Code" := QltyInspectionTemplateHdr.Code;
+        QltyInspectionTemplateLine.AddSelectedTests(QltyInspectionTemplateLine."Template Code", SelectionFilter);
+    end;
 }

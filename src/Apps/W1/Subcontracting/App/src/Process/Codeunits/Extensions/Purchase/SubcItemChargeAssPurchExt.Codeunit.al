@@ -1,24 +1,29 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
-using Microsoft.Manufacturing.Setup;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 
 codeunit 99001536 "Subc. ItemChargeAssPurchExt"
 {
-    var
-        ManufacturingSetup: Record "Manufacturing Setup";
-
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Charge Assgnt. (Purch.)", OnBeforeCreateRcptChargeAssgnt, '', false, false)]
     local procedure "Item Charge Assgnt. (Purch.)_OnBeforeCreateRcptChargeAssgnt"(var FromPurchRcptLine: Record "Purch. Rcpt. Line"; ItemChargeAssignmentPurch: Record "Item Charge Assignment (Purch)"; var IsHandled: Boolean)
+#if not CLEAN29
+    var
+#pragma warning disable AL0432
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
+#endif
     begin
-        if not ManufacturingSetup.ItemChargeToRcptSubReferenceEnabled() then
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
             exit;
-
+#endif
         IsHandled := true;
         CreateRcptChargeAssgnt(FromPurchRcptLine, ItemChargeAssignmentPurch);
     end;
