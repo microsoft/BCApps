@@ -14,6 +14,7 @@ codeunit 139993 "Subc. Feature Flag Test"
 {
     Subtype = Test;
     TestPermissions = Disabled;
+    TestType = IntegrationTest;
 
     trigger OnRun()
     begin
