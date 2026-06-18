@@ -41,7 +41,7 @@ pageextension 99001504 "Subc. Rel. Prod. Order" extends "Released Production Ord
             }
             action("Subc. Transfer Entries")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Caption = 'Subcontracting Transfer Entries';
                 Image = ItemLedger;
                 RunObject = page "Item Ledger Entries";
