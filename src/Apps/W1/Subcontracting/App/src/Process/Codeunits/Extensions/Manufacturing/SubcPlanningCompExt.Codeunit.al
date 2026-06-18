@@ -85,6 +85,9 @@ codeunit 99001522 "Subc. Planning Comp. Ext."
         PlanningGetParameters: Codeunit "Planning-Get Parameters";
         SubcontractingManagement: Codeunit "Subcontracting Management";
     begin
+        if PlanningComponent."Component Supply Method" = PlanningComponent."Component Supply Method"::"Transfer to Vendor" then
+            exit;
+
         if PlanningComponent."Routing Link Code" <> '' then begin
             PlanningRoutingLine.SetRange("Worksheet Template Name", PlanningComponent."Worksheet Template Name");
             PlanningRoutingLine.SetRange("Worksheet Batch Name", PlanningComponent."Worksheet Batch Name");

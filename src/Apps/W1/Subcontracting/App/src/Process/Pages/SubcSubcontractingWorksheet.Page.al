@@ -216,6 +216,7 @@ page 99001504 "Subc. Subcontracting Worksheet"
                 field("Subc. Standard Task Code"; Rec."Subc. Standard Task Code")
                 {
                     Editable = false;
+                    ToolTip = 'Specifies the standard task code associated with the subcontracting operation.';
                 }
             }
             group(Control20)
