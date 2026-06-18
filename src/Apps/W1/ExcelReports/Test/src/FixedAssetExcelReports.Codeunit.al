@@ -99,7 +99,7 @@ codeunit 139545 "Fixed Asset Excel Reports"
     [HandlerFunctions('EXRFixedAssetProjectedHandler')]
     procedure ProjectedValueDeclBalShouldUseCorrectBookValueAcrossFiscalYear()
     var
-        AccountingPeriod: Record "Accounting Period";
+        TempInsertedAccountingPeriod: Record "Accounting Period" temporary;
         DepreciationBook: Record "Depreciation Book";
         FADepreciationBook: Record "FA Depreciation Book";
         FAJournalSetup: Record "FA Journal Setup";
@@ -124,14 +124,12 @@ codeunit 139545 "Fixed Asset Excel Reports"
     begin
         // [SCENARIO 631253] Report 4413 "Fixed Asset Projected Value (Excel)" should calculate depreciation
         // using the last posted month's book value when crossing a fiscal year boundary with Declining-Balance 1.
-        // Previously it incorrectly used the penultimate month's book value.
         Initialize();
 
-        // [GIVEN] Create Accounting periods with fiscal year.
+        // [GIVEN] A fiscal year , so the test inserts only the rows it needs and removes exactly those in teardown, never touching the shared "Accounting Period" data.
         CleanupFixedAssetData();
-        AccountingPeriod.DeleteAll();
-        FiscalYearStartDate := DMY2Date(1, 9, 2025);
-        CreateMonthlyAccountingPeriods(FiscalYearStartDate, 24);
+        FiscalYearStartDate := CalcDate('<+50Y>', DMY2Date(1, 9, Date2DMY(WorkDate(), 3)));
+        EnsureMonthlyAccountingPeriods(TempInsertedAccountingPeriod, FiscalYearStartDate, 24);
 
         // [GIVEN] Create a depreciation book.
         LibraryFixedAsset.CreateDepreciationBook(DepreciationBook);
@@ -145,7 +143,7 @@ codeunit 139545 "Fixed Asset Excel Reports"
         SetupFAJournalSetup(FAJournalSetup);
 
         // [GIVEN] Create a fixed asset with Declining-Balance 1 and randomized amount/% values.
-        AcquisitionDate := DMY2Date(1, 1, 2025);
+        AcquisitionDate := DMY2Date(1, 1, Date2DMY(FiscalYearStartDate, 3));
         DeprStartDate := AcquisitionDate;
         AcquisitionAmount := 10000 + Round(LibraryRandom.RandDec(90000, 0), 1);
         DecliningBalancePct := 10 + Round(LibraryRandom.RandDec(20, 0), 1);
@@ -195,6 +193,13 @@ codeunit 139545 "Fixed Asset Excel Reports"
         LibraryReportDataset.FindCurrentRowValue('Amount', Variant);
         ReportAmount := Variant;
         ReportAmount := Round(ReportAmount, 1);
+
+        // Tear down everything this test committed (the FA data and the accounting periods it inserted) and
+        // commit the cleanup BEFORE asserting. Doing it before the assert guarantees that even a value mismatch
+        // cannot leave committed state behind to pollute later tests in the shared partition.
+        TeardownProjectedValueTest(TempInsertedAccountingPeriod);
+        Commit();
+
         Assert.AreEqual(ExpectedProjectedDepr, ReportAmount, ProjectedDeprMismatchLbl);
     end;
 
@@ -222,35 +227,55 @@ codeunit 139545 "Fixed Asset Excel Reports"
         FixedAsset.DeleteAll();
     end;
 
-    local procedure CreateMonthlyAccountingPeriods(FiscalYearStart: Date; NumberOfMonths: Integer)
+    local procedure EnsureMonthlyAccountingPeriods(var TempInsertedAccountingPeriod: Record "Accounting Period" temporary; FiscalYearStart: Date; NumberOfMonths: Integer)
     var
-        AccountingPeriod: Record "Accounting Period";
         PeriodStart: Date;
-        I: Integer;
+        i: Integer;
     begin
-        // Create a fiscal year starting at FiscalYearStart with monthly periods
-        // Also create the prior fiscal year.
         PeriodStart := CalcDate('<-1Y>', FiscalYearStart);
-        AccountingPeriod.Init();
-        AccountingPeriod."Starting Date" := PeriodStart;
-        AccountingPeriod."New Fiscal Year" := true;
-        AccountingPeriod.Insert();
-        for I := 1 to 11 do begin
+        InsertAccountingPeriodIfMissing(TempInsertedAccountingPeriod, PeriodStart, true);
+        for i := 1 to 11 do begin
             PeriodStart := CalcDate('<1M>', PeriodStart);
-            AccountingPeriod.Init();
-            AccountingPeriod."Starting Date" := PeriodStart;
-            AccountingPeriod."New Fiscal Year" := false;
-            AccountingPeriod.Insert();
+            InsertAccountingPeriodIfMissing(TempInsertedAccountingPeriod, PeriodStart, false);
         end;
 
-        // Create the target fiscal year and its periods.
         for I := 0 to NumberOfMonths - 1 do begin
             PeriodStart := CalcDate('<' + Format(I) + 'M>', FiscalYearStart);
-            AccountingPeriod.Init();
-            AccountingPeriod."Starting Date" := PeriodStart;
-            AccountingPeriod."New Fiscal Year" := (I = 0);
-            AccountingPeriod.Insert();
+            InsertAccountingPeriodIfMissing(TempInsertedAccountingPeriod, PeriodStart, (I = 0));
         end;
+    end;
+
+    local procedure InsertAccountingPeriodIfMissing(var TempInsertedAccountingPeriod: Record "Accounting Period" temporary; StartingDate: Date; NewFiscalYear: Boolean)
+    var
+        AccountingPeriod: Record "Accounting Period";
+    begin
+        // Non-destructive: never overwrite an existing (shared) row; only add what is missing.
+        if AccountingPeriod.Get(StartingDate) then
+            exit;
+        AccountingPeriod.Init();
+        AccountingPeriod."Starting Date" := StartingDate;
+        AccountingPeriod."New Fiscal Year" := NewFiscalYear;
+        AccountingPeriod.Insert();
+
+        // Track exactly what we inserted so teardown can remove only these rows.
+        TempInsertedAccountingPeriod := AccountingPeriod;
+        TempInsertedAccountingPeriod.Insert();
+    end;
+
+    local procedure TeardownProjectedValueTest(var TempInsertedAccountingPeriod: Record "Accounting Period" temporary)
+    var
+        AccountingPeriod: Record "Accounting Period";
+    begin
+        // Remove the FA master data this test created.
+        CleanupFixedAssetData();
+
+        // Remove ONLY the accounting periods this test inserted, leaving any pre-existing shared rows intact.
+        TempInsertedAccountingPeriod.Reset();
+        if TempInsertedAccountingPeriod.FindSet() then
+            repeat
+                if AccountingPeriod.Get(TempInsertedAccountingPeriod."Starting Date") then
+                    AccountingPeriod.Delete();
+            until TempInsertedAccountingPeriod.Next() = 0;
     end;
 
     local procedure SetupFAJournalSetup(var FAJournalSetup: Record "FA Journal Setup")
