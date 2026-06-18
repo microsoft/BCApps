@@ -47,7 +47,7 @@ tableextension 99001519 "Subc. Transfer Shpt. Line Ext" extends "Transfer Shipme
         }
         field(99001535; "Subc. Routing No."; Code[20])
         {
-            Caption = 'Routing No.';
+            Caption = 'Subc. Routing No.';
             DataClassification = CustomerContent;
             TableRelation = "Routing Header";
         }

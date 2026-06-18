@@ -12,7 +12,7 @@ pageextension 99001516 "Subc. Vendor Card" extends "Vendor Card"
     {
         addafter("Location Code")
         {
-            field("Subcr. Location Code"; Rec."Subc. Location Code")
+            field("Subc. Location Code"; Rec."Subc. Location Code")
             {
                 ApplicationArea = Subcontracting;
                 ToolTip = 'Specifies the subcontracting location where items from the vendor must be received by default after having performed an outside work.';

@@ -23,7 +23,7 @@ codeunit 99001524 "Subc. Prod. Order Comp. Ext."
 #endif
         ExistingPostedTransferLineQst: Label 'The component has already been assigned to the posted subcontracting transfer order %1.\\Do you want to continue?', Comment = '%1=Transfer Order No';
         ExistingPurchLineErr: Label 'You cannot change this field because the component is already assigned to subcontracting purchase order %1.\\Updating the quantity is only allowed through the purchase order.', Comment = '%1=Document No';
-        ExistingTransferLineQst: Label 'The component has already been assigned to the subcontracting transfer order %1.\\The quantity may only be updated via the purchase order and processing of the stock transfer.', Comment = '%1=Transfer Order No';
+        LocationCodeChangeNotAllowedErr: Label 'The component has already been assigned to the subcontracting transfer order %1.\\The location code may only be updated via the purchase order and processing of the stock transfer.', Comment = '%1=Transfer Order No';
         ExistingTransferLineErr: Label 'You cannot open Tracking Specification because this component is already specified in Transfer Order %1.', Comment = '%1=Document No.';
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Prod. Order Comp.-Reserve", OnAfterInitFromProdOrderComp, '', false, false)]
@@ -198,7 +198,7 @@ codeunit 99001524 "Subc. Prod. Order Comp. Ext."
         TransferLine.SetRange("Item No.", ProdOrderComponent."Item No.");
         TransferLine.SetLoadFields(SystemId);
         if TransferLine.FindFirst() then
-            Error(ExistingTransferLineQst, TransferLine."Document No.");
+            Error(LocationCodeChangeNotAllowedErr, TransferLine."Document No.");
     end;
 
     local procedure CheckIfProdOrderCompIsInSubcontractingOrder(ProdOrderComponent: Record "Prod. Order Component") Result: Boolean
