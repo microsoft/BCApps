@@ -32,7 +32,7 @@ pageextension 99001508 "Subc. Routing Lines" extends "Routing Lines"
                 UpdateWIPEnabled();
             end;
         }
-        addafter(Description)
+        addafter("Send-Ahead Quantity")
         {
             field("Transfer WIP Item"; Rec."Transfer WIP Item")
             {
@@ -48,6 +48,7 @@ pageextension 99001508 "Subc. Routing Lines" extends "Routing Lines"
             {
                 ApplicationArea = Subcontracting;
                 Enabled = Rec."Transfer WIP Item";
+                Visible = false;
             }
         }
     }
