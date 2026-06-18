@@ -149,7 +149,7 @@ codeunit 37203 "PEPPOL30 Sales Validation Impl"
     local procedure CheckAllocationAccountExpandedLines(SalesLine: Record "Sales Line")
     var
         AllocationAccount: Record "Allocation Account";
-        AllocationLine: Record "Allocation Line";
+        TempAllocationLine: Record "Allocation Line";
         ExpandedSalesLine: Record "Sales Line";
         AllocationAccountMgt: Codeunit "Allocation Account Mgt.";
     begin
@@ -157,18 +157,18 @@ codeunit 37203 "PEPPOL30 Sales Validation Impl"
             exit;
 
         AllocationAccountMgt.GenerateAllocationLines(
-            AllocationAccount, AllocationLine, SalesLine.Amount,
+            AllocationAccount, TempAllocationLine, SalesLine.Amount,
             SalesLine.GetSalesHeader()."Posting Date", SalesLine."Dimension Set ID", SalesLine."Currency Code");
 
-        if AllocationLine.FindSet() then
+        if TempAllocationLine.FindSet() then
             repeat
-                if AllocationLine."Destination Account Type" = AllocationLine."Destination Account Type"::"G/L Account" then begin
+                if TempAllocationLine."Destination Account Type" = TempAllocationLine."Destination Account Type"::"G/L Account" then begin
                     ExpandedSalesLine := SalesLine;
                     ExpandedSalesLine.Type := ExpandedSalesLine.Type::"G/L Account";
-                    ExpandedSalesLine."No." := AllocationLine."Destination Account Number";
+                    ExpandedSalesLine."No." := TempAllocationLine."Destination Account Number";
                     this.CheckSalesDocumentLine(ExpandedSalesLine);
                 end;
-            until AllocationLine.Next() = 0;
+            until TempAllocationLine.Next() = 0;
     end;
 
     procedure CheckPostedDocument(PostedDocumentVariant: Variant)
