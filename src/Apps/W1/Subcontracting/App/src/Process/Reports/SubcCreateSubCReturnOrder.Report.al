@@ -17,7 +17,6 @@ report 99001502 "Subc. Create SubCReturnOrder"
     ApplicationArea = Subcontracting;
     Caption = 'Create Subcontracting Return Order';
     ProcessingOnly = true;
-    UsageCategory = Tasks;
     dataset
     {
         dataitem("Purchase Header"; "Purchase Header")
