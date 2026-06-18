@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Peppol;
 
+using Microsoft.Finance.AllocationAccount;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Setup;
@@ -118,10 +119,13 @@ codeunit 37203 "PEPPOL30 Sales Validation Impl"
         unitCode: Text;
         unitCodeListID: Text;
     begin
-        // Allocation account lines are placeholder lines that are expanded into their underlying
-        // distribution lines during posting and are never exported in the electronic document.
-        if SalesLine.Type = SalesLine.Type::"Allocation Account" then
+        // Allocation account lines are placeholder lines that are expanded into their underlying G/L
+        // distribution lines during posting and are never themselves exported in the electronic
+        // document. Validate the G/L accounts they will be expanded into instead.
+        if SalesLine.Type = SalesLine.Type::"Allocation Account" then begin
+            this.CheckAllocationAccountExpandedLines(SalesLine);
             exit;
+        end;
 
         PEPPOL30Management.GetLineUnitCodeInfo(SalesLine, unitCode, unitCodeListID);
         if (SalesLine.Type <> SalesLine.Type::" ") and (SalesLine."No." <> '') and (unitCode = '') then
@@ -140,6 +144,31 @@ codeunit 37203 "PEPPOL30 Sales Validation Impl"
                 if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(NegativeUnitPriceErr, SalesLine.RecordId), false) then
                     Error('');
         end;
+    end;
+
+    local procedure CheckAllocationAccountExpandedLines(SalesLine: Record "Sales Line")
+    var
+        AllocationAccount: Record "Allocation Account";
+        AllocationLine: Record "Allocation Line";
+        ExpandedSalesLine: Record "Sales Line";
+        AllocationAccountMgt: Codeunit "Allocation Account Mgt.";
+    begin
+        if not AllocationAccount.Get(SalesLine."No.") then
+            exit;
+
+        AllocationAccountMgt.GenerateAllocationLines(
+            AllocationAccount, AllocationLine, SalesLine.Amount,
+            SalesLine.GetSalesHeader()."Posting Date", SalesLine."Dimension Set ID", SalesLine."Currency Code");
+
+        if AllocationLine.FindSet() then
+            repeat
+                if AllocationLine."Destination Account Type" = AllocationLine."Destination Account Type"::"G/L Account" then begin
+                    ExpandedSalesLine := SalesLine;
+                    ExpandedSalesLine.Type := ExpandedSalesLine.Type::"G/L Account";
+                    ExpandedSalesLine."No." := AllocationLine."Destination Account Number";
+                    this.CheckSalesDocumentLine(ExpandedSalesLine);
+                end;
+            until AllocationLine.Next() = 0;
     end;
 
     procedure CheckPostedDocument(PostedDocumentVariant: Variant)
