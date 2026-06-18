@@ -341,6 +341,58 @@ codeunit 149915 "Subc. TransOrd. Reserv. Test"
         Assert.AreEqual(30, TransferLine."Quantity (Base)", 'Recreated transfer line must have the full component quantity');
     end;
 
+    [Test]
+    [HandlerFunctions('DoNotConfirmShowCreatedPurchOrderForSubcontracting,HandleTransferOrder')]
+    procedure CannotModifyOrDeleteProdOrderComponentWhenTransferOrderExists()
+    var
+        Item: Record Item;
+        NewItem: Record Item;
+        ProdOrderComponent: Record "Prod. Order Component";
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        WorkCenter: array[2] of Record "Work Center";
+        MachineCenter: array[2] of Record "Machine Center";
+        ProdOrderCompPage: TestPage "Prod. Order Components";
+    begin
+        // [SCENARIO] Modifying key fields or deleting a Prod. Order Component with Component Supply Method = Transfer to Vendor
+        // must be blocked when a subcontracting transfer order exists.
+        Initialize();
+
+        // [GIVEN] A subcontracting transfer order linked to a production order with Transfer to Vendor components
+        SetupTransferReservationScenario(Item, WorkCenter, MachineCenter, ProductionOrder, ProdOrderComponent, 10, 3, false);
+        CreateSubcontractingPurchaseOrderAndReduceQuantity(Item, WorkCenter[2], ProductionOrder, PurchaseHeader, PurchaseLine, 0);
+        CreateTransferOrder(PurchaseHeader);
+
+        // [GIVEN] Create another item to use for Item No. change
+        LibraryInventory.CreateItem(NewItem);
+
+        // [THEN] Changing Item No. is blocked
+        ProdOrderCompPage.OpenEdit();
+        ProdOrderCompPage.GoToRecord(ProdOrderComponent);
+        asserterror ProdOrderCompPage."Item No.".SetValue(NewItem."No.");
+        Assert.ExpectedError('You cannot change this component because transfer orders exist');
+        ProdOrderCompPage.Close();
+
+        // [THEN] Changing Quantity per is blocked
+        ProdOrderCompPage.OpenEdit();
+        ProdOrderCompPage.GoToRecord(ProdOrderComponent);
+        asserterror ProdOrderCompPage."Quantity per".SetValue(ProdOrderComponent."Quantity per" + 1);
+        Assert.ExpectedError('You cannot change this component because transfer orders exist');
+        ProdOrderCompPage.Close();
+
+        // [THEN] Changing Component Supply Method is blocked
+        ProdOrderCompPage.OpenEdit();
+        ProdOrderCompPage.GoToRecord(ProdOrderComponent);
+        asserterror ProdOrderCompPage."Component Supply Method".SetValue("Component Supply Method"::Empty);
+        Assert.ExpectedError('You cannot change this component because transfer orders exist');
+        ProdOrderCompPage.Close();
+
+        // [THEN] Deleting the component is blocked
+        asserterror ProdOrderComponent.Delete(true);
+        Assert.ExpectedError('You cannot change this component because transfer orders exist');
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Subc. TransOrd. Reserv. Test");
