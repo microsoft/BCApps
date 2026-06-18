@@ -15,7 +15,7 @@ pageextension 99001504 "Subc. Rel. Prod. Order" extends "Released Production Ord
         {
             action("Subcontracting Purchase Lines")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Caption = 'Subcontracting Order Lines';
                 Image = SubcontractingWorksheet;
                 RunObject = page "Purchase Lines";
@@ -52,7 +52,7 @@ pageextension 99001504 "Subc. Rel. Prod. Order" extends "Released Production Ord
             }
             action("WIP Ledger Entries")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Caption = 'Subcontracting WIP Entries';
                 Image = LedgerEntries;
                 RunObject = page "Subc. WIP Ledger Entries";
@@ -64,7 +64,7 @@ pageextension 99001504 "Subc. Rel. Prod. Order" extends "Released Production Ord
         {
             action("WIP Adjustment")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Caption = 'WIP Adjustment';
                 Image = AdjustEntries;
                 ToolTip = 'Manually adjust the WIP quantities for all routing operations of this production order.';

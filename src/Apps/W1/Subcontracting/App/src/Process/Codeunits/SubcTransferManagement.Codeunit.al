@@ -18,6 +18,11 @@ codeunit 99001504 "Subc. Transfer Management"
     var
         ManufacturingSetup: Record "Manufacturing Setup";
         TempGlobalReservationEntry: Record "Reservation Entry" temporary;
+#if not CLEAN29
+#pragma warning disable AL0432
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
+#endif
         CannotModifySubcPurchLineErr: Label 'You cannot change %1 on the subcontracting purchase line because transfer orders exist for the linked production order %2.', Comment = '%1=Field Caption, %2=Production Order No.';
         CannotModifyStockAtSubcErr: Label 'You cannot change %1 on the subcontracting purchase line because there are remaining components or WIP items transferred to the subcontractor for production order %2.', Comment = '%1=Field Caption, %2=Production Order No.';
         CannotModifySubcTransferLineErr: Label 'You cannot change %1 on the subcontracting transfer line because it is linked to production order %2.', Comment = '%1=Field Caption, %2=Production Order No.';
@@ -29,6 +34,12 @@ codeunit 99001504 "Subc. Transfer Management"
 
     procedure CalcReceiptDateFromProdCompDueDateWithCompTransferLeadTime(ProdOrderComponent: Record "Prod. Order Component") ReceiptDate: Date
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         GetManufacturingSetup();
         if not HasManufacturingSetup or (Format(ManufacturingSetup."Subc. Comp. Transfer Lead Time") = '') then
             exit(ProdOrderComponent."Due Date");
@@ -40,6 +51,12 @@ codeunit 99001504 "Subc. Transfer Management"
 
     procedure CheckDirectTransferIsAllowedForTransferHeader(TransferHeader: Record "Transfer Header")
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         TransferHeader.CheckDirectTransferPosting();
     end;
 
@@ -48,6 +65,12 @@ codeunit 99001504 "Subc. Transfer Management"
         ReservationEntry: Record "Reservation Entry";
         ProdOrderCompReserve: Codeunit "Prod. Order Comp.-Reserve";
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         TempGlobalReservationEntry.Reset();
         TempGlobalReservationEntry.DeleteAll();
 
@@ -78,6 +101,12 @@ codeunit 99001504 "Subc. Transfer Management"
 
     procedure ComponentHasExcessReservations(ProdOrderComponent: Record "Prod. Order Component"; MaxQtyBase: Decimal): Boolean
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         exit(GetComponentReservedQtyBase(ProdOrderComponent) > MaxQtyBase);
     end;
 
@@ -87,6 +116,12 @@ codeunit 99001504 "Subc. Transfer Management"
         ProdOrderCompReserve: Codeunit "Prod. Order Comp.-Reserve";
         TotalReservedQtyBase: Decimal;
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if not ProdOrderCompReserve.FindReservEntry(ProdOrderComponent, ReservationEntry) then
             exit(0);
 
@@ -106,6 +141,12 @@ codeunit 99001504 "Subc. Transfer Management"
         TempTrackingSpecification: Record "Tracking Specification" temporary;
         CreateReservEntry: Codeunit "Create Reserv. Entry";
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         TempGlobalReservationEntry.SetRange("Reservation Status", TempGlobalReservationEntry."Reservation Status"::Reservation);
         if not TempGlobalReservationEntry.FindSet() then
             exit;
@@ -164,6 +205,12 @@ codeunit 99001504 "Subc. Transfer Management"
         QtyToReserveBase: Decimal;
         AvailableToReserveBase: Decimal;
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if (TransferReceiptLine."Subc. Prod. Order No." = '') or (TransferReceiptLine."Subc. Operation No." = '') then
             exit;
         if not ProdOrderComponent.Get("Production Order Status"::Released, TransferReceiptLine."Subc. Prod. Order No.", TransferReceiptLine."Subc. Prod. Order Line No.", TransferReceiptLine."Subc. Prod. Ord. Comp Line No.") then
@@ -238,6 +285,12 @@ codeunit 99001504 "Subc. Transfer Management"
         ProdOrderComponent: Record "Prod. Order Component";
         SubcontractingManagement: Codeunit "Subcontracting Management";
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if TransferLine."Quantity Shipped" <> 0 then
             exit;
 
