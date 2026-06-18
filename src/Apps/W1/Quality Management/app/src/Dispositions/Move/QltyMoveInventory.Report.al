@@ -338,7 +338,7 @@ report 20404 "Qlty. Move Inventory"
             DestinationLocation: Record Location;
         begin
             QltyInspectionHeader.CopyFilters(CurrentInspection);
-            if not QltyInspectionHeader.FindFirst() then
+            if not QltyInspectionHeader.FindSet() then
                 exit;
             if QltyInspectionHeader.Next() <> 0 then
                 exit;
