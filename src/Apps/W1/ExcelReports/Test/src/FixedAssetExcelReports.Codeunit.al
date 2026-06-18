@@ -10,7 +10,6 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.FixedAssets.Depreciation;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.FixedAssets.Journal;
-using Microsoft.FixedAssets.Ledger;
 using Microsoft.FixedAssets.Posting;
 using Microsoft.FixedAssets.Setup;
 using Microsoft.Foundation.Period;
@@ -101,7 +100,6 @@ codeunit 139545 "Fixed Asset Excel Reports"
     procedure ProjectedValueDeclBalShouldUseCorrectBookValueAcrossFiscalYear()
     var
         AccountingPeriod: Record "Accounting Period";
-        TempSavedAccountingPeriod: Record "Accounting Period" temporary;
         DepreciationBook: Record "Depreciation Book";
         FADepreciationBook: Record "FA Depreciation Book";
         FAJournalSetup: Record "FA Journal Setup";
@@ -128,11 +126,9 @@ codeunit 139545 "Fixed Asset Excel Reports"
         // using the last posted month's book value when crossing a fiscal year boundary with Declining-Balance 1.
         // Previously it incorrectly used the penultimate month's book value.
         Initialize();
-        EnsureGeneralPostingSetup();
 
         // [GIVEN] Create Accounting periods with fiscal year.
         CleanupFixedAssetData();
-        SaveAccountingPeriods(TempSavedAccountingPeriod);
         AccountingPeriod.DeleteAll();
         FiscalYearStartDate := DMY2Date(1, 9, 2025);
         CreateMonthlyAccountingPeriods(FiscalYearStartDate, 24);
@@ -197,25 +193,9 @@ codeunit 139545 "Fixed Asset Excel Reports"
         LibraryReportDataset.SetXmlNodeList('DataItem[@name="FixedAssetLedgerEntries"]');
         LibraryReportDataset.GetNextRow();
         LibraryReportDataset.FindCurrentRowValue('Amount', Variant);
-        ReportAmount := EvaluateDecimal(Variant);
+        ReportAmount := Variant;
         ReportAmount := Round(ReportAmount, 1);
-        RestoreAccountingPeriods(TempSavedAccountingPeriod);
-        LibrarySetupStorage.Restore();
-        Commit();
-
         Assert.AreEqual(ExpectedProjectedDepr, ReportAmount, ProjectedDeprMismatchLbl);
-    end;
-
-    local procedure EvaluateDecimal(Value: Variant): Decimal
-    var
-        ValueText: Text;
-        Result: Decimal;
-    begin
-        ValueText := Format(Value);
-        if ValueText = '' then
-            exit(0);
-        Evaluate(Result, ValueText);
-        exit(Result);
     end;
 
     local procedure Initialize()
@@ -226,6 +206,7 @@ codeunit 139545 "Fixed Asset Excel Reports"
             exit;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Fixed Asset Excel Reports");
 
+        EnsureGeneralPostingSetup();
         LibrarySetupStorage.Save(Database::"FA Setup");
         isInitialized := true;
         Commit();
@@ -234,39 +215,11 @@ codeunit 139545 "Fixed Asset Excel Reports"
 
     local procedure CleanupFixedAssetData()
     var
-        FALedgerEntry: Record "FA Ledger Entry";
-        FADepreciationBook: Record "FA Depreciation Book";
         FAPostingType: Record "FA Posting Type";
         FixedAsset: Record "Fixed Asset";
     begin
-        FALedgerEntry.DeleteAll();
-        FADepreciationBook.DeleteAll();
         FAPostingType.DeleteAll();
         FixedAsset.DeleteAll();
-    end;
-
-    local procedure SaveAccountingPeriods(var TempAccountingPeriod: Record "Accounting Period" temporary)
-    var
-        AccountingPeriod: Record "Accounting Period";
-    begin
-        TempAccountingPeriod.DeleteAll();
-        if AccountingPeriod.FindSet() then
-            repeat
-                TempAccountingPeriod.TransferFields(AccountingPeriod);
-                TempAccountingPeriod.Insert();
-            until AccountingPeriod.Next() = 0;
-    end;
-
-    local procedure RestoreAccountingPeriods(var TempAccountingPeriod: Record "Accounting Period" temporary)
-    var
-        AccountingPeriod: Record "Accounting Period";
-    begin
-        AccountingPeriod.DeleteAll();
-        if TempAccountingPeriod.FindSet() then
-            repeat
-                AccountingPeriod.TransferFields(TempAccountingPeriod);
-                AccountingPeriod.Insert();
-            until TempAccountingPeriod.Next() = 0;
     end;
 
     local procedure CreateMonthlyAccountingPeriods(FiscalYearStart: Date; NumberOfMonths: Integer)
@@ -342,13 +295,6 @@ codeunit 139545 "Fixed Asset Excel Reports"
         LibraryReportDataset.RunReportAndLoad(Report::"EXR Fixed Asset Projected", Variant, RequestPageXml);
     end;
 
-    local procedure ModifyDepreciationBook(var DepreciationBook: Record "Depreciation Book")
-    begin
-        DepreciationBook.Validate("G/L Integration - Acq. Cost", false);
-        DepreciationBook.Validate("G/L Integration - Depreciation", false);
-        DepreciationBook.Modify(true);
-    end;
-
     local procedure EnsureGeneralPostingSetup()
     var
         GeneralPostingSetup: Record "General Posting Setup";
@@ -373,6 +319,13 @@ codeunit 139545 "Fixed Asset Excel Reports"
         EXRFixedAssetAnalysisExcel.OK().Invoke();
     end;
 
+    local procedure ModifyDepreciationBook(var DepreciationBook: Record "Depreciation Book")
+    begin
+        DepreciationBook.Validate("G/L Integration - Acq. Cost", false);
+        DepreciationBook.Validate("G/L Integration - Depreciation", false);
+        DepreciationBook.Modify(true);
+    end;
+
     [RequestPageHandler]
     procedure EXRFixedAssetProjectedHandler(var EXRFixedAssetProjected: TestRequestPage "EXR Fixed Asset Projected")
     var
@@ -392,5 +345,4 @@ codeunit 139545 "Fixed Asset Excel Reports"
         EXRFixedAssetProjected.UseAccountingPeriodField.SetValue(UseAccountingPeriod);
         EXRFixedAssetProjected.OK().Invoke();
     end;
-
 }
