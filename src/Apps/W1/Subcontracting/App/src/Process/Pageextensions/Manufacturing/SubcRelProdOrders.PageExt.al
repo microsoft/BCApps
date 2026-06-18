@@ -26,7 +26,7 @@ pageextension 99001505 "Subc. Rel. Prod. Orders" extends "Released Production Or
         {
             action("Subc. Transfer Orders")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Caption = 'Subcontracting Transfer Orders';
                 Image = TransferOrder;
                 ToolTip = 'View the subcontracting transfer orders related to this production order.';
