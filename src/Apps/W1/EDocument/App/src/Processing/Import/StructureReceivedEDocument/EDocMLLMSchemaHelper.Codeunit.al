@@ -231,7 +231,7 @@ codeunit 6232 "E-Doc. MLLM Schema Helper"
         if Evaluate(DecimalValue, JsonToken.AsValue().AsText(), 9) then
             FieldValue := DecimalValue
         else
-            Session.LogMessage('0000SNK', StrSubstNo(DecimalParseFailedLbl, PropertyName), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', 'E-Document');
+            Session.LogMessage('0000UAR', StrSubstNo(DecimalParseFailedLbl, PropertyName), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', 'E-Document');
     end;
 
     local procedure GetNestedObject(JsonObj: JsonObject; PropertyName: Text; var NestedObj: JsonObject): Boolean
