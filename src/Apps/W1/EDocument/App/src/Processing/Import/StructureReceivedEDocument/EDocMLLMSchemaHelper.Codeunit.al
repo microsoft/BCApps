@@ -136,8 +136,11 @@ codeunit 6232 "E-Doc. MLLM Schema Helper"
         NestedObj2: JsonObject;
         LineNumber: Integer;
         DiscountPct: Decimal;
+        RoundingPrecision: Decimal;
     begin
         TempLine.DeleteAll();
+
+        RoundingPrecision := EDocumentImportHelper.GetCurrencyRoundingPrecision(CurrencyCode);
 
         for LineNumber := 0 to LinesArray.Count() - 1 do
             if LinesArray.Get(LineNumber, LineToken) then begin
@@ -174,7 +177,7 @@ codeunit 6232 "E-Doc. MLLM Schema Helper"
                         DiscountPct := 0;
                         GetDecimal(NestedObj, 'percent', DiscountPct);
                         if DiscountPct <> 0 then
-                            TempLine."Total Discount" := Round(TempLine."Unit Price" * TempLine.Quantity * DiscountPct / 100, EDocumentImportHelper.GetCurrencyRoundingPrecision(CurrencyCode));
+                            TempLine."Total Discount" := Round(TempLine."Unit Price" * TempLine.Quantity * DiscountPct / 100, RoundingPrecision);
                     end;
                 end;
 
@@ -219,13 +222,16 @@ codeunit 6232 "E-Doc. MLLM Schema Helper"
     var
         JsonToken: JsonToken;
         DecimalValue: Decimal;
+        DecimalParseFailedLbl: Label 'Could not parse decimal value returned by the model for property %1.', Comment = '%1 = JSON property name';
     begin
         if not JsonObj.Get(PropertyName, JsonToken) then
             exit;
         if JsonToken.AsValue().IsNull() then
             exit;
         if Evaluate(DecimalValue, JsonToken.AsValue().AsText(), 9) then
-            FieldValue := DecimalValue;
+            FieldValue := DecimalValue
+        else
+            Session.LogMessage('0000SNK', StrSubstNo(DecimalParseFailedLbl, PropertyName), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', 'E-Document');
     end;
 
     local procedure GetNestedObject(JsonObj: JsonObject; PropertyName: Text; var NestedObj: JsonObject): Boolean
