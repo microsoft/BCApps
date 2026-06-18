@@ -16,6 +16,7 @@ tableextension 99001526 "Subc. Posted Whse Receipt Line" extends "Posted Whse. R
             Caption = 'Subcontracting Line Type';
             DataClassification = CustomerContent;
             Editable = false;
+            ToolTip = 'Specifies the subcontracting purchase line type associated with the warehouse receipt line.';
         }
         field(99001560; "Transfer WIP Item"; Boolean)
         {

@@ -40,6 +40,7 @@ tableextension 99001510 "Subc. RequisitionLine" extends "Requisition Line"
         }
         field(99001517; "Base UM Qty/PL UM Qty"; Decimal)
         {
+            Access = Internal;
             AutoFormatType = 0;
             Caption = 'Base UM Qty/Price list UM Qty';
             DataClassification = CustomerContent;
@@ -50,6 +51,7 @@ tableextension 99001510 "Subc. RequisitionLine" extends "Requisition Line"
         }
         field(99001518; "PL UM Qty/Base UM Qty"; Decimal)
         {
+            Access = Internal;
             AutoFormatType = 0;
             Caption = 'Price list UM Qty/Base UM Qty';
             DataClassification = CustomerContent;
@@ -75,6 +77,7 @@ tableextension 99001510 "Subc. RequisitionLine" extends "Requisition Line"
         }
         field(99001519; "Subc. UoM for Pricelist"; Code[10])
         {
+            Access = Internal;
             Caption = 'UoM for Price list';
             DataClassification = CustomerContent;
             TableRelation = "Unit of Measure";
@@ -96,6 +99,7 @@ tableextension 99001510 "Subc. RequisitionLine" extends "Requisition Line"
         }
         field(99001520; "Subc. Pricelist Cost"; Decimal)
         {
+            Access = Internal;
             AutoFormatExpression = "Currency Code";
             AutoFormatType = 2;
             Caption = 'Price list Cost';

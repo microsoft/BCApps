@@ -3,6 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
+
 using Microsoft.Manufacturing.Planning;
 
 permissionset 99001501 "Subcontract. - Objs"

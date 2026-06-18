@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,6 +24,9 @@ codeunit 99001536 "Subc. ItemChargeAssPurchExt"
 #pragma warning restore AL0432
             exit;
 #endif
+        if FromPurchRcptLine."Subc. Prod. Order No." = '' then
+            exit;
+
         IsHandled := true;
         CreateRcptChargeAssgnt(FromPurchRcptLine, ItemChargeAssignmentPurch);
     end;
