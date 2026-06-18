@@ -474,8 +474,8 @@ codeunit 99001541 "Subc. Transfer WIP Posting"
     begin
         SubcontractorWIPLedgerEntry."Item No." := TransferLine."Item No.";
         Item.SetLoadFields("Base Unit of Measure");
-        if Item.Get(TransferLine."Item No.") then
-            SubcontractorWIPLedgerEntry."Base Unit of Measure" := Item."Base Unit of Measure";
+        Item.Get(TransferLine."Item No.");
+        SubcontractorWIPLedgerEntry."Base Unit of Measure" := Item."Base Unit of Measure";
         SubcontractorWIPLedgerEntry."Prod. Order Status" := "Production Order Status"::Released;
         SubcontractorWIPLedgerEntry."Variant Code" := TransferLine."Variant Code";
         SubcontractorWIPLedgerEntry."Prod. Order No." := TransferLine."Subc. Prod. Order No.";
