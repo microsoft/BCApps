@@ -12,6 +12,20 @@ pageextension 99001543 "Subc. Finished Prod. Orders" extends "Finished Productio
     {
         addafter("&Warehouse Entries")
         {
+            action("Subc. Transfer Orders")
+            {
+                ApplicationArea = Subcontracting;
+                Caption = 'Subcontracting Transfer Orders';
+                Image = TransferOrder;
+                ToolTip = 'View the subcontracting transfer orders related to this production order.';
+
+                trigger OnAction()
+                var
+                    SubcPurchFactboxMgmt: Codeunit "Subc. Purch. Factbox Mgmt.";
+                begin
+                    SubcPurchFactboxMgmt.ShowTransferOrdersFromProductionOrder(Rec);
+                end;
+            }
             action("WIP Ledger Entries")
             {
                 ApplicationArea = Subcontracting;

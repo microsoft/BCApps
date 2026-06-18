@@ -388,6 +388,12 @@ codeunit 99001560 "Subc. Purch. Factbox Mgmt."
         PageManagement: Codeunit "Page Management";
         SelectionFilterMgt: Codeunit SelectionFilterManagement;
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         TransferLine.SetCurrentKey("Subc. Prod. Order No.", "Subc. Prod. Order Line No.", "Subc. Routing Reference No.", "Subc. Routing No.", "Subc. Operation No.");
         TransferLine.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
         TransferLine.SetRange("Derived From Line No.", 0);
