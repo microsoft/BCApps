@@ -62,6 +62,7 @@ codeunit 139566 "Shpfy Payments Test"
     var
         Payout: Record "Shpfy Payout";
         PaymentsAPI: Codeunit "Shpfy Payments API";
+        PaymentsAPINoShop: Codeunit "Shpfy Payments API";
         Id: BigInteger;
         JPayout: JsonObject;
     begin
@@ -70,14 +71,17 @@ codeunit 139566 "Shpfy Payments Test"
 
         // [GIVEN] An existing payout record imported without a shop context (blank Shop Code)
         Id := Any.IntegerInRange(10000, 99999);
+        // Ensure no stale record exists from a previous run
+        if Payout.Get(Id) then
+            Payout.Delete();
+
         JPayout := GetRandomPayout(Id, Any.AlphanumericText(50));
-        Clear(PaymentsAPI);
-        PaymentsAPI.ImportPayout(JPayout);
+        // Use a fresh codeunit instance with no shop set to guarantee blank Shop Code on insert
+        PaymentsAPINoShop.ImportPayout(JPayout);
         LibraryAssert.IsTrue(Payout.Get(Id), 'Payout should be created');
         LibraryAssert.AreEqual('', Payout."Shop Code", 'Shop Code should initially be blank');
 
         // [WHEN] The payout is re-imported with a shop context
-        Clear(PaymentsAPI);
         PaymentsAPI.SetShop(Shop);
         PaymentsAPI.ImportPayout(JPayout);
 
