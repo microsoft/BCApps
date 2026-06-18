@@ -11,7 +11,7 @@ pageextension 99001504 "Subc. Rel. Prod. Order" extends "Released Production Ord
 {
     actions
     {
-        addafter("Registered Invt. Movement Lines")
+        addafter("Registered Put-away Lines")
         {
             action("Subcontracting Purchase Lines")
             {
@@ -23,7 +23,7 @@ pageextension 99001504 "Subc. Rel. Prod. Order" extends "Released Production Ord
                 ToolTip = 'Show purchase order lines for subcontracting.';
             }
         }
-        addafter("Item Ledger E&ntries")
+        addafter("&Warehouse Entries")
         {
             action("Subc. Transfer Entries")
             {

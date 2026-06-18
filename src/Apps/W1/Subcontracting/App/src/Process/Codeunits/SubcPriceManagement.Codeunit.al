@@ -318,11 +318,12 @@ codeunit 99001508 "Subc. Price Management"
 
         SubcontractorPrice.Reset();
         SubcontractorPrice.SetRange("Vendor No.", InSubcontractorPrice."Vendor No.");
-        SubcontractorPrice.SetFilter("Work Center No.", '%1|%2', InSubcontractorPrice."Work Center No.", '');
-        SubcontractorPrice.SetRange("Standard Task Code", InSubcontractorPrice."Standard Task Code");
-        SubcontractorPrice.SetFilter("Item No.", '%1|%2', InSubcontractorPrice."Item No.", '');
+        SubcontractorPrice.SetRange("Work Center No.", InSubcontractorPrice."Work Center No.");
+        SubcontractorPrice.SetRange("Item No.", InSubcontractorPrice."Item No.");
         SubcontractorPrice.SetFilter("Variant Code", '%1|%2', InSubcontractorPrice."Variant Code", '');
         SubcontractorPrice.SetFilter("Unit of Measure Code", '%1|%2', InSubcontractorPrice."Unit of Measure Code", '');
+        SubcontractorPrice.SetFilter("Standard Task Code", '%1|%2', InSubcontractorPrice."Standard Task Code", '');
+        SubcontractorPrice.SetFilter("Currency Code", '%1|%2', InSubcontractorPrice."Currency Code", '');
         SubcontractorPrice.SetRange("Starting Date", 0D, InSubcontractorPrice."Starting Date");
         SubcontractorPrice.SetFilter("Ending Date", '>=%1|%2', InSubcontractorPrice."Starting Date", 0D);
         if SubcontractorPrice.FindLast() then begin
@@ -459,19 +460,19 @@ codeunit 99001508 "Subc. Price Management"
             OrderDate := WorkDate();
 
         SubcontractorPrice.SetRange("Vendor No.", RequisitionLine."Vendor No.");
-        SubcontractorPrice.SetFilter("Work Center No.", '%1|%2', RequisitionLine."Work Center No.", '');
-        SubcontractorPrice.SetRange("Standard Task Code", RequisitionLine."Subc. Standard Task Code");
-        SubcontractorPrice.SetRange("Variant Code", RequisitionLine."Variant Code");
-        SubcontractorPrice.SetFilter("Item No.", '%1|%2', RequisitionLine."No.", '');
-        SubcontractorPrice.SetRange("Starting Date", 0D, OrderDate);
-        SubcontractorPrice.SetFilter("Ending Date", '>=%1|%2', OrderDate, 0D);
-        SubcontractorPrice.SetFilter("Currency Code", '%1|%2', RequisitionLine."Currency Code", '');
-
+        SubcontractorPrice.SetRange("Work Center No.", RequisitionLine."Work Center No.");
+        SubcontractorPrice.SetRange("Item No.", RequisitionLine."No.");
+        SubcontractorPrice.SetFilter("Variant Code", '%1|%2', RequisitionLine."Variant Code", '');
         if FixedUOM <> '' then
             SubcontractorPrice.SetRange("Unit of Measure Code", FixedUOM)
         else
             if RequisitionLine."Unit of Measure Code" <> '' then
                 SubcontractorPrice.SetFilter("Unit of Measure Code", '%1|%2', RequisitionLine."Unit of Measure Code", '');
+        SubcontractorPrice.SetFilter("Standard Task Code", '%1|%2', RequisitionLine."Subc. Standard Task Code", '');
+        SubcontractorPrice.SetFilter("Currency Code", '%1|%2', RequisitionLine."Currency Code", '');
+        SubcontractorPrice.SetRange("Starting Date", 0D, OrderDate);
+        SubcontractorPrice.SetFilter("Ending Date", '>=%1|%2', OrderDate, 0D);
+
 
         if SubcontractorPrice.FindLast() then begin
             if SubcontractorPrice."Unit of Measure Code" = RequisitionLine."Unit of Measure Code" then begin
@@ -520,17 +521,17 @@ codeunit 99001508 "Subc. Price Management"
             OrderDate := WorkDate();
 
         SubcontractorPrice.SetRange("Vendor No.", PurchaseLine."Buy-from Vendor No.");
-        SubcontractorPrice.SetFilter("Work Center No.", '%1|%2', PurchaseLine."Work Center No.", '');
-        SubcontractorPrice.SetRange("Variant Code", PurchaseLine."Variant Code");
-        SubcontractorPrice.SetFilter("Item No.", '%1|%2', PurchaseLine."No.", '');
+        SubcontractorPrice.SetRange("Work Center No.", PurchaseLine."Work Center No.");
+        SubcontractorPrice.SetRange("Item No.", PurchaseLine."No.");
+        SubcontractorPrice.SetFilter("Variant Code", '%1|%2', PurchaseLine."Variant Code", '');
+        SubcontractorPrice.SetFilter("Unit of Measure Code", '%1|%2', PurchaseLine."Unit of Measure Code", '');
 
         GetProdOrderRtngLine(PurchaseLine."Prod. Order No.", PurchaseLine."Routing Reference No.", PurchaseLine."Routing No.", PurchaseLine."Operation No.", ProdOrderRoutingLine);
 
         SubcontractorPrice.SetFilter("Standard Task Code", '%1|%2', ProdOrderRoutingLine."Standard Task Code", '');
+        SubcontractorPrice.SetFilter("Currency Code", '%1|%2', PurchaseLine."Currency Code", '');
         SubcontractorPrice.SetRange("Starting Date", 0D, OrderDate);
         SubcontractorPrice.SetFilter("Ending Date", '>=%1|%2', OrderDate, 0D);
-        SubcontractorPrice.SetFilter("Currency Code", '%1|%2', PurchaseLine."Currency Code", '');
-        SubcontractorPrice.SetFilter("Unit of Measure Code", '%1|%2', PurchaseLine."Unit of Measure Code", '');
 
         if SubcontractorPrice.FindLast() then begin
             if SubcontractorPrice."Unit of Measure Code" = PurchaseLine."Unit of Measure Code" then
