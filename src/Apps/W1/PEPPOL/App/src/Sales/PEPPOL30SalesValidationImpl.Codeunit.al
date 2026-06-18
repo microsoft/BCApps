@@ -118,6 +118,11 @@ codeunit 37203 "PEPPOL30 Sales Validation Impl"
         unitCode: Text;
         unitCodeListID: Text;
     begin
+        // Allocation account lines are placeholder lines that are expanded into their underlying
+        // distribution lines during posting and are never exported in the electronic document.
+        if SalesLine.Type = SalesLine.Type::"Allocation Account" then
+            exit;
+
         PEPPOL30Management.GetLineUnitCodeInfo(SalesLine, unitCode, unitCodeListID);
         if (SalesLine.Type <> SalesLine.Type::" ") and (SalesLine."No." <> '') and (unitCode = '') then
             Error(EmptyUnitOfMeasureErr, SalesLine."Unit of Measure Code");
