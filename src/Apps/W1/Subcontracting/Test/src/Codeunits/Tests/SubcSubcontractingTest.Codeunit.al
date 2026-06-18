@@ -3008,6 +3008,13 @@ codeunit 139989 "Subc. Subcontracting Test"
         end;
     end;
 
+    [ModalPageHandler]
+    procedure GetOrderLinesPurchaseLinesPageHandler(var PurchaseLines: TestPage "Purchase Lines")
+    begin
+        Assert.IsFalse(PurchaseLines.First(), 'Subcontracting purchase order lines must be excluded from the Get Order Lines selection.');
+        PurchaseLines.Cancel().Invoke();
+    end;
+
     [ConfirmHandler]
     procedure RoutingLinkCodeDuplicateConfirmHandler(Question: Text[1024]; var Reply: Boolean)
     begin
@@ -3777,6 +3784,116 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         // [THEN] The Subcontracting App blocks the cancel with the dedicated error
         Assert.ExpectedError('contains item charges assigned to a subcontracting order receipt');
+    end;
+
+    [Test]
+    procedure GetReceiptLinesBlocksSubcontractingReceiptLine()
+    var
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        InvoiceHeader: Record "Purchase Header";
+        Vendor: Record Vendor;
+        PurchGetReceipt: Codeunit "Purch.-Get Receipt";
+    begin
+        // [SCENARIO 632785] Copying a subcontracting service receipt line into a separate purchase document is not
+        // supported (Direct Unit Cost, Gen. Prod. Posting Group, etc. are not transferred) and must be blocked.
+
+        // [GIVEN] A purchase invoice and a posted subcontracting receipt line linked to a production order
+        Initialize();
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryPurchase.CreatePurchHeader(InvoiceHeader, InvoiceHeader."Document Type"::Invoice, Vendor."No.");
+        MockSubcontractingPurchRcptLine(PurchRcptLine, false);
+
+        // [WHEN] Getting the subcontracting receipt line into the invoice
+        PurchRcptLine.SetRecFilter();
+        PurchGetReceipt.SetPurchHeader(InvoiceHeader);
+        asserterror PurchGetReceipt.CreateInvLines(PurchRcptLine);
+
+        // [THEN] It is blocked
+        Assert.ExpectedError('subcontracting receipt lines');
+    end;
+
+    [Test]
+    [HandlerFunctions('GetOrderLinesPurchaseLinesPageHandler')]
+    procedure GetOrderLinesExcludesSubcontractingPurchaseOrderLines()
+    var
+        OrderHeader: Record "Purchase Header";
+        OrderLine: Record "Purchase Line";
+        InvoiceHeader: Record "Purchase Header";
+        InvoiceLine: Record "Purchase Line";
+        Item: Record Item;
+        Vendor: Record Vendor;
+        MatchedOrderLineMgmt: Codeunit "Matched Order Line Mgmt.";
+        LibraryUtility: Codeunit "Library - Utility";
+    begin
+        // [SCENARIO 632785] Subcontracting purchase order lines must not appear in the Get Order Lines selection on a
+        // separate purchase invoice, because invoicing them there is not supported.
+
+        // [GIVEN] A purchase order line linked to a production order, received but not invoiced
+        Initialize();
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryInventory.CreateItem(Item);
+        LibraryPurchase.CreatePurchHeader(OrderHeader, OrderHeader."Document Type"::Order, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(OrderLine, OrderHeader, OrderLine.Type::Item, Item."No.", LibraryRandom.RandIntInRange(5, 10));
+        OrderLine."Qty. Rcd. Not Invoiced" := OrderLine.Quantity;
+        OrderLine."Prod. Order No." := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(OrderLine."Prod. Order No."));
+        OrderLine.Modify();
+
+        // [GIVEN] A separate purchase invoice for the same vendor
+        LibraryPurchase.CreatePurchHeader(InvoiceHeader, InvoiceHeader."Document Type"::Invoice, Vendor."No.");
+        InvoiceLine."Document Type" := InvoiceHeader."Document Type";
+        InvoiceLine."Document No." := InvoiceHeader."No.";
+
+        // [WHEN] Running Get Order Lines [THEN] the page handler verifies the subcontracting order line is not offered
+        MatchedOrderLineMgmt.GetPurchaseOrderLines(InvoiceLine);
+    end;
+
+    [Test]
+    procedure AssignItemChargeToUndoneSubcontractingReceiptIsBlocked()
+    var
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        ItemChargeAssignmentPurch: Record "Item Charge Assignment (Purch)";
+        ItemChargeAssgntPurch: Codeunit "Item Charge Assgnt. (Purch.)";
+        LibraryUtility: Codeunit "Library - Utility";
+    begin
+        // [SCENARIO 637503] Assigning an item charge to a subcontracting receipt line that has been undone must be blocked,
+        // otherwise posting it would book the capacity cost onto the original entry while the undo entry stays at 0.
+
+        // [GIVEN] An undone subcontracting receipt line
+        Initialize();
+        MockSubcontractingPurchRcptLine(PurchRcptLine, true);
+
+        // [GIVEN] An item charge assignment context on a purchase invoice line
+        ItemChargeAssignmentPurch."Document Type" := ItemChargeAssignmentPurch."Document Type"::Invoice;
+        ItemChargeAssignmentPurch."Document No." := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(ItemChargeAssignmentPurch."Document No."));
+        ItemChargeAssignmentPurch."Document Line No." := 10000;
+        ItemChargeAssignmentPurch."Line No." := 10000;
+
+        // [WHEN] Assigning the item charge to the undone receipt line
+        PurchRcptLine.SetRecFilter();
+        asserterror ItemChargeAssgntPurch.CreateRcptChargeAssgnt(PurchRcptLine, ItemChargeAssignmentPurch);
+
+        // [THEN] It is blocked
+        Assert.ExpectedError('has been undone');
+    end;
+
+    local procedure MockSubcontractingPurchRcptLine(var PurchRcptLine: Record "Purch. Rcpt. Line"; Undone: Boolean)
+    var
+        Item: Record Item;
+        LibraryUtility: Codeunit "Library - Utility";
+    begin
+        LibraryInventory.CreateItem(Item);
+        PurchRcptLine.Init();
+        PurchRcptLine."Document No." := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(PurchRcptLine."Document No."));
+        PurchRcptLine."Line No." := 10000;
+        PurchRcptLine.Type := PurchRcptLine.Type::Item;
+        PurchRcptLine."No." := Item."No.";
+        PurchRcptLine."Prod. Order No." := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(PurchRcptLine."Prod. Order No."));
+        PurchRcptLine."Routing No." := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(PurchRcptLine."Routing No."));
+        PurchRcptLine."Operation No." := '10';
+        PurchRcptLine.Quantity := LibraryRandom.RandIntInRange(5, 10);
+        PurchRcptLine."Qty. Rcd. Not Invoiced" := PurchRcptLine.Quantity;
+        PurchRcptLine.Correction := Undone;
+        PurchRcptLine.Insert();
     end;
 
     local procedure Initialize()
