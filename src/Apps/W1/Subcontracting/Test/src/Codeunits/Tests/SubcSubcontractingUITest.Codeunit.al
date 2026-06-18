@@ -4,10 +4,12 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting.Test;
 
+using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Planning;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.ProductionBOM;
+using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
@@ -561,6 +563,52 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         PurchaseHeader.Delete();
     end;
 
+    [Test]
+    procedure CheckCustCtrl_PageRoutingVersionLinesTransferWIPItem()
+    var
+        PageControl: Record "Page Control Field";
+        RoutingLine: Record "Routing Line";
+        ControlExist: Boolean;
+    begin
+        // [FEATURE] Subcontracting Management
+        // [SCENARIO 638530] Check if Transfer WIP Item control exists on Page "Routing Version Lines"
+
+        // [GIVEN]
+        Initialize();
+
+        // [WHEN] Find Control on Page
+        PageControl.SetRange(TableNo, Database::"Routing Line");
+        PageControl.SetRange(PageNo, Page::"Routing Version Lines");
+        PageControl.SetRange(FieldNo, RoutingLine.FieldNo("Transfer WIP Item"));
+        ControlExist := not PageControl.IsEmpty();
+
+        // [THEN]
+        Assert.AreEqual(true, ControlExist, StrSubstNo(ControlNotExistMsg, RoutingLine.FieldCaption("Transfer WIP Item")));
+    end;
+
+    [Test]
+    procedure CheckCustCtrl_PageRoutingVersionLinesTransferDescription()
+    var
+        PageControl: Record "Page Control Field";
+        RoutingLine: Record "Routing Line";
+        ControlExist: Boolean;
+    begin
+        // [FEATURE] Subcontracting Management
+        // [SCENARIO 638530] Check if Transfer Description control exists on Page "Routing Version Lines"
+
+        // [GIVEN]
+        Initialize();
+
+        // [WHEN] Find Control on Page
+        PageControl.SetRange(TableNo, Database::"Routing Line");
+        PageControl.SetRange(PageNo, Page::"Routing Version Lines");
+        PageControl.SetRange(FieldNo, RoutingLine.FieldNo("Transfer Description"));
+        ControlExist := not PageControl.IsEmpty();
+
+        // [THEN]
+        Assert.AreEqual(true, ControlExist, StrSubstNo(ControlNotExistMsg, RoutingLine.FieldCaption("Transfer Description")));
+    end;
+
     local procedure GetNextCapLedgerEntryNo(): Integer
     var
         CapacityLedgerEntry: Record "Capacity Ledger Entry";
@@ -588,6 +636,91 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         PurchaseOrder.Close();
     end;
 
+    [Test]
+    procedure ItemLedgerEntriesSubcActionsDisabledWhenNotSubcontracting()
+    var
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        ItemLedgerEntries: TestPage "Item Ledger Entries";
+    begin
+        // [SCENARIO 638458] Subcontracting actions on Item Ledger Entries are disabled when the entry has no subcontracting production order or purchase order.
+        Initialize();
+
+        // [GIVEN] An Item Ledger Entry that is NOT related to subcontracting (no Subc. Prod. Order No. or Subc. Purch. Order No.)
+        ItemLedgerEntry.Init();
+        ItemLedgerEntry."Entry No." := GetNextItemLedgerEntryNo();
+        ItemLedgerEntry."Item No." := 'TEST-ITEM';
+        ItemLedgerEntry."Entry Type" := ItemLedgerEntry."Entry Type"::Purchase;
+        ItemLedgerEntry."Subc. Prod. Order No." := '';
+        ItemLedgerEntry."Subc. Purch. Order No." := '';
+        ItemLedgerEntry.Insert();
+
+        // [WHEN] The Item Ledger Entries page is opened for that entry
+        ItemLedgerEntries.OpenView();
+        ItemLedgerEntries.GoToRecord(ItemLedgerEntry);
+
+        // [THEN] The Production Order action is disabled
+        Assert.IsFalse(ItemLedgerEntries."Production Order".Enabled(), ILEProdActionsEnabledErr);
+        // [THEN] The Production Order Routing action is disabled
+        Assert.IsFalse(ItemLedgerEntries."Production Order Routing".Enabled(), ILEProdActionsEnabledErr);
+        // [THEN] The Production Order Components action is disabled
+        Assert.IsFalse(ItemLedgerEntries."Production Order Components".Enabled(), ILEProdActionsEnabledErr);
+        // [THEN] The Purchase Order action is disabled
+        Assert.IsFalse(ItemLedgerEntries."Purchase Order".Enabled(), ILEPurchActionsEnabledErr);
+
+        ItemLedgerEntries.Close();
+
+        // Cleanup
+        ItemLedgerEntry.Delete();
+    end;
+
+    [Test]
+    procedure ItemLedgerEntriesSubcActionsEnabledWhenSubcontracting()
+    var
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        ItemLedgerEntries: TestPage "Item Ledger Entries";
+    begin
+        // [SCENARIO 638458] Subcontracting actions on Item Ledger Entries are enabled when the entry is related to a subcontracting production order and purchase order.
+        Initialize();
+
+        // [GIVEN] An Item Ledger Entry that IS related to subcontracting
+        ItemLedgerEntry.Init();
+        ItemLedgerEntry."Entry No." := GetNextItemLedgerEntryNo();
+        ItemLedgerEntry."Item No." := 'TEST-ITEM';
+        ItemLedgerEntry."Entry Type" := ItemLedgerEntry."Entry Type"::Purchase;
+        ItemLedgerEntry."Subc. Prod. Order No." := 'PO-SUBC-001';
+        ItemLedgerEntry."Subc. Prod. Order Line No." := 10000;
+        ItemLedgerEntry."Subc. Purch. Order No." := 'PURCH-SUBC-001';
+        ItemLedgerEntry."Subc. Purch. Order Line No." := 10000;
+        ItemLedgerEntry.Insert();
+
+        // [WHEN] The Item Ledger Entries page is opened for that entry
+        ItemLedgerEntries.OpenView();
+        ItemLedgerEntries.GoToRecord(ItemLedgerEntry);
+
+        // [THEN] The Production Order action is enabled
+        Assert.IsTrue(ItemLedgerEntries."Production Order".Enabled(), ILEProdActionsNotEnabledErr);
+        // [THEN] The Production Order Routing action is enabled
+        Assert.IsTrue(ItemLedgerEntries."Production Order Routing".Enabled(), ILEProdActionsNotEnabledErr);
+        // [THEN] The Production Order Components action is enabled
+        Assert.IsTrue(ItemLedgerEntries."Production Order Components".Enabled(), ILEProdActionsNotEnabledErr);
+        // [THEN] The Purchase Order action is enabled
+        Assert.IsTrue(ItemLedgerEntries."Purchase Order".Enabled(), ILEPurchActionsNotEnabledErr);
+
+        ItemLedgerEntries.Close();
+
+        // Cleanup
+        ItemLedgerEntry.Delete();
+    end;
+
+    local procedure GetNextItemLedgerEntryNo(): Integer
+    var
+        ItemLedgerEntry: Record "Item Ledger Entry";
+    begin
+        if ItemLedgerEntry.FindLast() then
+            exit(ItemLedgerEntry."Entry No." + 1);
+        exit(1);
+    end;
+
     var
         Assert: Codeunit Assert;
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -602,4 +735,8 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         SubcontractingActionsEnabledErr: Label 'Subcontractor Prices action should not be enabled for a non-subcontracting Work Center.';
         SubcontractingActionsNotVisibleErr: Label 'Subcontractor Prices action should be visible for a subcontracting Work Center.';
         SubcontractingActionsNotEnabledErr: Label 'Subcontractor Prices action should be enabled for a subcontracting Work Center.';
+        ILEProdActionsEnabledErr: Label 'Production actions should not be enabled for a non-subcontracting Item Ledger Entry.';
+        ILEProdActionsNotEnabledErr: Label 'Production actions should be enabled for a subcontracting Item Ledger Entry.';
+        ILEPurchActionsEnabledErr: Label 'Purchase Order action should not be enabled for a non-subcontracting Item Ledger Entry.';
+        ILEPurchActionsNotEnabledErr: Label 'Purchase Order action should be enabled for a subcontracting Item Ledger Entry.';
 }

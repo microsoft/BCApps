@@ -2841,6 +2841,50 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmYesShowSubcontractingPurchOrders,HandlePurchaseOrderPage,HandlePurchaseLinesPage')]
+    procedure ShowExistingPurchOrdersAfterReceiptDoesNotError()
+    var
+        Item: Record Item;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        WorkCenter: array[2] of Record "Work Center";
+    begin
+        // [SCENARIO 637777] Re-running Create Subcontracting Order after fully receiving the existing subcontracting purchase order should offer to view the existing order instead of raising "No Prod. Order Line with Remaining Quantity."
+
+        // [GIVEN] Manufacturing setup with subcontracting work center, item with routing/BOM, released production order, and a created subcontracting purchase order
+        Initialize();
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
+        UpdateSubMgmtSetupWithReqWkshTemplate();
+        SubcontractingMgmtLibrary.CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
+
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+#pragma warning disable AA0210
+        PurchaseLine.SetRange("Work Center No.", WorkCenter[2]."No.");
+#pragma warning restore AA0210
+        PurchaseLine.FindFirst();
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+        EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
+
+        // [GIVEN] The existing subcontracting purchase order is fully received
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+
+        // [WHEN] Create Subcontracting Order is invoked again from the same routing line
+        PurchaseLinesPageOpened := false;
+        SubcontractingMgmtLibrary.CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
+
+        // [THEN] The existing purchase lines are shown and no raw remaining-quantity error is raised
+        Assert.IsTrue(PurchaseLinesPageOpened, 'Purchase Lines list should open when the subcontracting purchase order already exists after full receipt.');
+    end;
+
+    [Test]
     procedure StandardTaskCodePropagatedAndDrivesSubcPriceLookup()
     var
         Item: Record Item;

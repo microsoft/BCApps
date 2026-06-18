@@ -4,13 +4,14 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
+using Microsoft.Inventory.Ledger;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Purchases.Document;
 pageextension 99001505 "Subc. Rel. Prod. Orders" extends "Released Production Orders"
 {
     actions
     {
-        addafter(Statistics)
+        addafter("E&ntries")
         {
             action("Subcontracting Purchase Lines")
             {
@@ -22,7 +23,7 @@ pageextension 99001505 "Subc. Rel. Prod. Orders" extends "Released Production Or
                 ToolTip = 'Show purchase order lines for subcontracting.';
             }
         }
-        addafter("Item Ledger E&ntries")
+        addafter("&Warehouse Entries")
         {
             action("Subc. Transfer Orders")
             {
@@ -37,6 +38,16 @@ pageextension 99001505 "Subc. Rel. Prod. Orders" extends "Released Production Or
                 begin
                     SubcPurchFactboxMgmt.ShowTransferOrdersFromProductionOrder(Rec);
                 end;
+            }
+            action("Subc. Transfer Entries")
+            {
+                ApplicationArea = Subcontracting;
+                Caption = 'Subcontracting Transfer Entries';
+                Image = ItemLedger;
+                RunObject = page "Item Ledger Entries";
+                RunPageLink = "Entry Type" = const(Transfer), "Subc. Prod. Order No." = field("No.");
+                RunPageView = sorting("Order Type", "Order No.");
+                ToolTip = 'View the list of subcontracting transfers.';
             }
             action("WIP Ledger Entries")
             {
