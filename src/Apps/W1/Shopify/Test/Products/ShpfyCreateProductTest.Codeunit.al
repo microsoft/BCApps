@@ -3033,10 +3033,15 @@ codeunit 139601 "Shpfy Create Product Test"
 
     local procedure InitializeProductExport()
     var
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
         AccessToken: SecretText;
     begin
         Any.SetDefaultSeed();
         OutboundHttpRequests.Clear();
+        // CreateShop() sets IsTestInProgress = true on the singleton CommunicationMgt,
+        // which redirects HTTP calls through event mocking instead of HttpClient.Send().
+        // Disable that so [HttpClientHandler] can intercept the requests instead.
+        CommunicationMgt.SetTestInProgress(false);
         if ExportIsInitialized then
             exit;
 
