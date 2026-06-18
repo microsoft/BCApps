@@ -186,12 +186,24 @@ table 99001560 "Subcontractor WIP Ledger Entry"
         key(Key5; "Document No.", "Posting Date") { }
     }
 
+#if not CLEAN29
+    var
+#pragma warning disable AL0432
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
+#endif
     /// <summary>
     /// Filters the record set to WIP entries for the given production order.
     /// When SetKey is true, the sort key is aligned to Key3 before applying the filters.
     /// </summary>
     procedure SetProductionOrderFilter(ProductionOrder: Record "Production Order"; SetKey: Boolean)
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if SetKey then
             SetCurrentKey("Prod. Order No.", "Prod. Order Status", "Prod. Order Line No.", "Routing Reference No.", "Routing No.", "Operation No.", "Location Code");
         SetRange("Prod. Order No.", ProductionOrder."No.");
@@ -204,6 +216,12 @@ table 99001560 "Subcontractor WIP Ledger Entry"
     /// </summary>
     procedure SetProductionOrderRoutingFilter(ProdOrderRoutingLine: Record "Prod. Order Routing Line"; SetKey: Boolean)
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if SetKey then
             SetCurrentKey("Prod. Order No.", "Prod. Order Status", "Prod. Order Line No.", "Routing Reference No.", "Routing No.", "Operation No.", "Location Code");
         SetRange("Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
@@ -220,6 +238,12 @@ table 99001560 "Subcontractor WIP Ledger Entry"
     var
         SequenceNoMgt: Codeunit "Sequence No. Mgt.";
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit(0);
+#endif
         exit(SequenceNoMgt.GetNextSeqNo(DATABASE::"Subcontractor WIP Ledger Entry"));
     end;
 }

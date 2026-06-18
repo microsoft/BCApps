@@ -14,7 +14,7 @@ pageextension 99001543 "Subc. Finished Prod. Orders" extends "Finished Productio
         {
             action("WIP Ledger Entries")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Caption = 'Subcontracting WIP Entries';
                 Image = LedgerEntries;
                 RunObject = page "Subc. WIP Ledger Entries";

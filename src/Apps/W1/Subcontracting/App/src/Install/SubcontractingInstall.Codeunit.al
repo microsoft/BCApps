@@ -1,8 +1,11 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
+
+using Microsoft.QualityManagement.Setup.ApplicationAreas;
+using System.Upgrade;
 
 codeunit 99001501 "Subcontracting Install"
 {
@@ -36,6 +39,7 @@ codeunit 99001501 "Subcontracting Install"
         SubcontractingCompInit: Codeunit "Subcontracting Comp. Init.";
     begin
         SubcontractingCompInit.CreateBasicSubcontractingMgtSetup();
+        SetSubcontractingFeatureOnInstall();
     end;
 
     local procedure HandleReinstallPerCompany()
@@ -43,6 +47,7 @@ codeunit 99001501 "Subcontracting Install"
         SubcontractingCompInit: Codeunit "Subcontracting Comp. Init.";
     begin
         SubcontractingCompInit.CreateBasicSubcontractingMgtSetup();
+        SetSubcontractingFeatureOnInstall();
     end;
 
     local procedure HandleFreshInstallPerDatabase()
@@ -51,5 +56,19 @@ codeunit 99001501 "Subcontracting Install"
 
     local procedure HandleReinstallPerDatabase()
     begin
+    end;
+
+    local procedure SetSubcontractingFeatureOnInstall()
+    var
+        UpgradeTag: Codeunit "Upgrade Tag";
+        SubcApplicationAreaMgmt: Codeunit "Subc. Application Area Mgmt.";
+        SubcUpgradeTagDefExt: Codeunit "Subc. Upgrade Tag Def. Ext.";
+    begin
+        if UpgradeTag.HasUpgradeTag(SubcUpgradeTagDefExt.GetSubcontractingUpgradeTag()) then
+            exit;
+
+        SubcApplicationAreaMgmt.RefreshExperienceTierCurrentCompany();
+
+        UpgradeTag.SetUpgradeTag(SubcUpgradeTagDefExt.GetSubcontractingUpgradeTag());
     end;
 }

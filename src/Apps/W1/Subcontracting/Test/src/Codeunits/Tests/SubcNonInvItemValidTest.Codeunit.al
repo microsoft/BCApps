@@ -14,6 +14,7 @@ codeunit 149916 "Subc. Non-Inv Item Valid. Test"
     // [FEATURE] Component Supply Method Transfer validation for Non-Inventory items
     Subtype = Test;
     TestPermissions = Disabled;
+    TestType = IntegrationTest;
 
     [Test]
     procedure NonInventoryItemCannotBeSetToTransferOnProdBOMLine()
