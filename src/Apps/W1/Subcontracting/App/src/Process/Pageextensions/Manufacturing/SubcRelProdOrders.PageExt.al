@@ -4,17 +4,18 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
+using Microsoft.Inventory.Ledger;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Purchases.Document;
 pageextension 99001505 "Subc. Rel. Prod. Orders" extends "Released Production Orders"
 {
     actions
     {
-        addafter(Statistics)
+        addafter("E&ntries")
         {
             action("Subcontracting Purchase Lines")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Caption = 'Subcontracting Order Lines';
                 Image = SubcontractingWorksheet;
                 RunObject = page "Purchase Lines";
@@ -22,16 +23,26 @@ pageextension 99001505 "Subc. Rel. Prod. Orders" extends "Released Production Or
                 ToolTip = 'Show purchase order lines for subcontracting.';
             }
         }
-        addafter("Item Ledger E&ntries")
+        addafter("&Warehouse Entries")
         {
+            action("Subc. Transfer Entries")
+            {
+                ApplicationArea = Subcontracting;
+                Caption = 'Subcontracting Transfer Entries';
+                Image = ItemLedger;
+                RunObject = page "Item Ledger Entries";
+                RunPageLink = "Entry Type" = const(Transfer), "Subc. Prod. Order No." = field("No.");
+                RunPageView = sorting("Order Type", "Order No.");
+                ToolTip = 'View the list of subcontracting transfers.';
+            }
             action("WIP Ledger Entries")
             {
-                ApplicationArea = Manufacturing;
-                Caption = 'WIP Ledger Entries';
+                ApplicationArea = Subcontracting;
+                Caption = 'Subcontracting WIP Entries';
                 Image = LedgerEntries;
                 RunObject = page "Subc. WIP Ledger Entries";
                 RunPageLink = "Prod. Order Status" = field(Status), "Prod. Order No." = field("No.");
-                ToolTip = 'View the Subcontractor WIP Ledger Entries for this production order.';
+                ToolTip = 'View the Subcontracting WIP Entries for this production order.';
             }
         }
     }

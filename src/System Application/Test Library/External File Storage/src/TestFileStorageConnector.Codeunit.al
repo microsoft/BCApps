@@ -9,6 +9,8 @@ using System.ExternalFileStorage;
 
 codeunit 135814 "Test File Storage Connector" implements "External File Storage Connector"
 {
+    SingleInstance = true;
+
     procedure ListFiles(AccountId: Guid; Path: Text; FilePaginationData: Codeunit "File Pagination Data"; var TempFileAccountContent: Record "File Account Content" temporary);
     begin
         TempFileAccountContent.Init();
@@ -44,6 +46,19 @@ codeunit 135814 "Test File Storage Connector" implements "External File Storage 
 
     procedure DeleteFile(AccountId: Guid; Path: Text);
     begin
+        // The platform invokes connector callbacks inside a TryFunction, so we cannot
+        // Modify() a table from here. Stash the path in a SingleInstance global instead.
+        LastDeletedFilePath := Path;
+    end;
+
+    internal procedure GetLastDeletedPath(): Text
+    begin
+        exit(LastDeletedFilePath);
+    end;
+
+    internal procedure ResetLastDeletedPath()
+    begin
+        Clear(LastDeletedFilePath);
     end;
 
     procedure ListDirectories(AccountId: Guid; Path: Text; FilePaginationData: Codeunit "File Pagination Data"; var TempFileAccountContent: Record "File Account Content" temporary);
@@ -107,4 +122,5 @@ codeunit 135814 "Test File Storage Connector" implements "External File Storage 
 
     var
         FileConnectorMock: Codeunit "File Connector Mock";
+        LastDeletedFilePath: Text;
 }

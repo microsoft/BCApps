@@ -10,6 +10,13 @@ using Microsoft.Purchases.Document;
 
 codeunit 99001562 "Subc. Comp. Factbox Mgmt."
 {
+#if not CLEAN29
+    var
+#pragma warning disable AL0432
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
+#endif
+
     /// <summary>
     /// Returns the total consumption quantity posted for the given production order component via its linked routing operation.
     /// </summary>
@@ -20,6 +27,13 @@ codeunit 99001562 "Subc. Comp. Factbox Mgmt."
         ItemLedgerEntry: Record "Item Ledger Entry";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit(0);
+
+#endif
         GetProdOrderRtngLineFromProdOrderComp(ProdOrderRoutingLine, ProdOrderComponent);
 
         ItemLedgerEntry.SetCurrentKey(ItemLedgerEntry."Order Type", ItemLedgerEntry."Order No.", ItemLedgerEntry."Order Line No.", ItemLedgerEntry."Entry Type", ItemLedgerEntry."Prod. Order Comp. Line No.");
@@ -43,6 +57,12 @@ codeunit 99001562 "Subc. Comp. Factbox Mgmt."
         ItemLedgerEntry: Record "Item Ledger Entry";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         GetProdOrderRtngLineFromProdOrderComp(ProdOrderRoutingLine, ProdOrderComponent);
 
         ItemLedgerEntry.SetCurrentKey(ItemLedgerEntry."Order Type", ItemLedgerEntry."Order No.", ItemLedgerEntry."Order Line No.", ItemLedgerEntry."Entry Type", ItemLedgerEntry."Prod. Order Comp. Line No.");
@@ -65,9 +85,16 @@ codeunit 99001562 "Subc. Comp. Factbox Mgmt."
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         PurchaseLine: Record "Purchase Line";
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit(0);
+
+#endif
         if ProdOrderComponent."Routing Link Code" = '' then
             exit(0);
-        if ProdOrderComponent."Subcontracting Type" <> ProdOrderComponent."Subcontracting Type"::Purchase then
+        if ProdOrderComponent."Component Supply Method" <> ProdOrderComponent."Component Supply Method"::"Vendor-Supplied" then
             exit(0);
 
         GetProdOrderRtngLineFromProdOrderComp(ProdOrderRoutingLine, ProdOrderComponent);
@@ -92,9 +119,15 @@ codeunit 99001562 "Subc. Comp. Factbox Mgmt."
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         PurchaseLine: Record "Purchase Line";
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if ProdOrderComponent."Routing Link Code" = '' then
             exit;
-        if ProdOrderComponent."Subcontracting Type" <> ProdOrderComponent."Subcontracting Type"::Purchase then
+        if ProdOrderComponent."Component Supply Method" <> ProdOrderComponent."Component Supply Method"::"Vendor-Supplied" then
             exit;
 
         GetProdOrderRtngLineFromProdOrderComp(ProdOrderRoutingLine, ProdOrderComponent);
@@ -119,9 +152,16 @@ codeunit 99001562 "Subc. Comp. Factbox Mgmt."
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         PurchaseLine: Record "Purchase Line";
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit(0);
+
+#endif
         if ProdOrderComponent."Routing Link Code" = '' then
             exit(0);
-        if ProdOrderComponent."Subcontracting Type" <> ProdOrderComponent."Subcontracting Type"::Purchase then
+        if ProdOrderComponent."Component Supply Method" <> ProdOrderComponent."Component Supply Method"::"Vendor-Supplied" then
             exit(0);
 
         GetProdOrderRtngLineFromProdOrderComp(ProdOrderRoutingLine, ProdOrderComponent);
@@ -146,9 +186,15 @@ codeunit 99001562 "Subc. Comp. Factbox Mgmt."
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         PurchaseLine: Record "Purchase Line";
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if ProdOrderComponent."Routing Link Code" = '' then
             exit;
-        if ProdOrderComponent."Subcontracting Type" <> ProdOrderComponent."Subcontracting Type"::Purchase then
+        if ProdOrderComponent."Component Supply Method" <> ProdOrderComponent."Component Supply Method"::"Vendor-Supplied" then
             exit;
         GetProdOrderRtngLineFromProdOrderComp(ProdOrderRoutingLine, ProdOrderComponent);
 

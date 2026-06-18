@@ -20,7 +20,7 @@ pageextension 99001538 "Subc. Prod. Planner RoleCenter" extends "Production Plan
                 Caption = 'Subcontracting';
                 action("Subc. Subcontracting Worksheets")
                 {
-                    ApplicationArea = Manufacturing;
+                    ApplicationArea = Subcontracting;
                     Caption = 'Subcontracting Worksheets';
                     RunObject = Page "Req. Wksh. Names";
                     RunPageView = where("Template Type" = const(Subcontracting),
@@ -29,7 +29,7 @@ pageextension 99001538 "Subc. Prod. Planner RoleCenter" extends "Production Plan
                 }
                 action("Subc. Subcontracting Purch. Orders")
                 {
-                    ApplicationArea = Manufacturing;
+                    ApplicationArea = Subcontracting;
                     Caption = 'Subcontracting Purchase Orders';
                     RunObject = Page "Purchase Order List";
                     RunPageView = where("Document Type" = const(Order),
@@ -38,7 +38,7 @@ pageextension 99001538 "Subc. Prod. Planner RoleCenter" extends "Production Plan
                 }
                 action("Subc. Subcontracting Transfers")
                 {
-                    ApplicationArea = Manufacturing;
+                    ApplicationArea = Subcontracting;
                     Caption = 'Subcontracting Transfers';
                     RunObject = Page "Transfer Orders";
                     RunPageView = where("Subc. Source Type" = const(Subcontracting),
@@ -51,7 +51,7 @@ pageextension 99001538 "Subc. Prod. Planner RoleCenter" extends "Production Plan
         {
             action("Subc. Subcontracting Worksheet")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Caption = 'Subcontracting Worksheet';
                 Image = SubcontractingWorksheet;
                 RunObject = Page "Subc. Subcontracting Worksheet";

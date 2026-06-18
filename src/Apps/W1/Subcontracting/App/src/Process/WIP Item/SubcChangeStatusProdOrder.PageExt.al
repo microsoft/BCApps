@@ -13,7 +13,7 @@ pageextension 99001544 "Subc.Change Status Prod. Order" extends "Change Status o
         {
             field("WIP Quantity Clean Up"; WIPQuantityCleanUp)
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Enabled = WIPQuantityCleanUpEnabled;
                 Visible = WIPQuantityCleanUpVisible;
                 Caption = 'WIP Quantity Clean Up';
@@ -24,11 +24,23 @@ pageextension 99001544 "Subc.Change Status Prod. Order" extends "Change Status o
 
     trigger OnOpenPage()
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         WIPQuantityCleanUp := true;
     end;
 
     trigger OnAfterGetCurrRecord()
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         SetControlProperties();
     end;
 
@@ -37,21 +49,44 @@ pageextension 99001544 "Subc.Change Status Prod. Order" extends "Change Status o
 
     var
         ProductionOrder: Record "Production Order";
+#if not CLEAN29
+#pragma warning disable AL0432
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
+#endif
         WIPQuantityCleanUpEnabled, WIPQuantityCleanUpVisible : Boolean;
 
     procedure ReturnSubWIPQuantityCleanUp(): Boolean
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit(false);
+#endif
         exit(WIPQuantityCleanUp);
     end;
 
     procedure SubcSetOrder(var ProductionOrderForStatusChange: Record "Production Order")
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         ProductionOrder := ProductionOrderForStatusChange;
         SetControlProperties();
     end;
 
     procedure SubcGetOrder() ProductionOrderForStatusChange: Record "Production Order"
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit(ProductionOrder);
+#endif
         ProductionOrderForStatusChange := ProductionOrder;
     end;
 

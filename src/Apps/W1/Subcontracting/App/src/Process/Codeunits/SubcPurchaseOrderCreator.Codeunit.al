@@ -27,6 +27,11 @@ codeunit 99001557 "Subc. Purchase Order Creator"
         ManufacturingSetup: Record "Manufacturing Setup";
         PageManagement: Codeunit "Page Management";
         UnitofMeasureManagement: Codeunit "Unit of Measure Management";
+#if not CLEAN29
+#pragma warning disable AL0432
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
+#endif
         HasManufacturingSetup: Boolean;
         OperationNo: Code[10];
         RoutingReferenceNo: Integer;
@@ -34,9 +39,8 @@ codeunit 99001557 "Subc. Purchase Order Creator"
         PurchOrderCreatedPluralTxt: Label '%1 purchase orders were created.\\Do you want to view them?', Comment = '%1 = number of purchase orders created';
         PurchOrderAlreadyCreatedQst: Label 'Purchase orders have already been created.\\Do you want to view them?';
         CreationOfSubcontractingOrderIsNotAllowedErr: Label 'You cannot create Subcontracting Order, because the Production Order %1 is not released.', Comment = '%1=Production Order No.';
-        NoProdOrderLineWithRemQtyErr: Label 'No Prod. Order Line with Remaining Quantity.';
-        BlankLocationConfirmQst: Label 'One or more Prod. Order Components with Subcontracting Type Transfer have a blank Location Code. Without a Location Code, you will not be able to create a transfer order to send the components to the subcontractor.\\Do you want to create the Subcontracting Order anyway?';
-        SameAsSubcLocConfirmQst: Label 'One or more Prod. Order Components with Subcontracting Type Transfer have Location Code %1, which is the same as the Subcontracting Location Code of vendor %2. A transfer order cannot be created from and to the same location.\\Do you want to create the Subcontracting Order anyway?', Comment = '%1=Component Location Code, %2=Vendor No.';
+        BlankLocationConfirmQst: Label 'One or more Prod. Order Components with Component Supply Method Transfer to Vendor have a blank Location Code. Without a Location Code, you will not be able to create a transfer order to send the components to the subcontractor.\\Do you want to create the Subcontracting Order anyway?';
+        SameAsSubcLocConfirmQst: Label 'One or more Prod. Order Components with Component Supply Method Transfer to Vendor have Location Code %1, which is the same as the Subcontracting Location Code of vendor %2. A transfer order cannot be created from and to the same location.\\Do you want to create the Subcontracting Order anyway?', Comment = '%1=Component Location Code, %2=Vendor No.';
         NotEnoughSpaceErr: Label 'There is not enough space to insert the subcontracting info line.';
 
     procedure CreateSubcontractingPurchaseOrderFromRoutingLine(ProdOrderRoutingLine: Record "Prod. Order Routing Line") NoOfCreatedPurchOrder: Integer
@@ -45,11 +49,19 @@ codeunit 99001557 "Subc. Purchase Order Creator"
         BaseQtyToPurch: Decimal;
         QtyToPurch: Decimal;
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit(0);
+
+#endif
         GetManufacturingSetup();
         ManufacturingSetup.TestField("Subcontracting Template Name");
         ManufacturingSetup.TestField("Subcontracting Batch Name");
 
-        CheckProdOrderRtngLine(ProdOrderRoutingLine, ProdOrderLine);
+        if not CheckProdOrderRtngLine(ProdOrderRoutingLine, ProdOrderLine) then
+            exit(0);
 
         if not CheckProdOrderComponentLines(ProdOrderRoutingLine) then
             exit;
@@ -74,6 +86,12 @@ codeunit 99001557 "Subc. Purchase Order Creator"
         ProdOrderLine: Record "Prod. Order Line";
         PurchaseLine: Record "Purchase Line";
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         GetManufacturingSetup();
 
         if not HasManufacturingSetup then
@@ -113,6 +131,12 @@ codeunit 99001557 "Subc. Purchase Order Creator"
         SubContractorWorkCenterNo: Code[20];
         DimensionSetIDArr: array[10] of Integer;
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         GetManufacturingSetup();
         ProdOrderRoutingLine.SetLoadFields("Work Center No.", Status, "Prod. Order No.", "Routing Link Code");
         if ProdOrderRoutingLine.Get("Production Order Status"::Released, RequisitionLine."Prod. Order No.", RequisitionLine."Routing Reference No.", RequisitionLine."Routing No.", RequisitionLine."Operation No.") then begin
@@ -125,7 +149,7 @@ codeunit 99001557 "Subc. Purchase Order Creator"
                     ProdOrderComponent.SetRange(Status, ProdOrderRoutingLine.Status);
                     ProdOrderComponent.SetRange("Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
                     ProdOrderComponent.SetRange("Prod. Order Line No.", RequisitionLine."Prod. Order Line No.");
-                    ProdOrderComponent.SetRange("Subcontracting Type", "Subcontracting Type"::Purchase);
+                    ProdOrderComponent.SetRange("Component Supply Method", "Component Supply Method"::"Vendor-Supplied");
                     ProdOrderComponent.SetRange("Routing Link Code", ProdOrderRoutingLine."Routing Link Code");
                     if ProdOrderComponent.FindSet() then
                         repeat
@@ -173,6 +197,12 @@ codeunit 99001557 "Subc. Purchase Order Creator"
         SubcNotificationMgmt: Codeunit "Subc. Notification Mgmt.";
         IsHandled: Boolean;
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         OnBeforeShowCreatedPurchaseOrder(ProdOrderNo, NoOfCreatedPurchOrder, IsHandled);
         if IsHandled then
             exit;
@@ -229,7 +259,7 @@ codeunit 99001557 "Subc. Purchase Order Creator"
         Clear(RoutingReferenceNo);
     end;
 
-    local procedure CheckProdOrderRtngLine(ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var ProdOrderLine: Record "Prod. Order Line")
+    local procedure CheckProdOrderRtngLine(ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var ProdOrderLine: Record "Prod. Order Line"): Boolean
     var
         WorkCenter: Record "Work Center";
     begin
@@ -243,12 +273,13 @@ codeunit 99001557 "Subc. Purchase Order Creator"
         ProdOrderLine.SetRange("Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.");
         ProdOrderLine.SetFilter("Remaining Quantity", '<>%1', 0);
         if ProdOrderLine.IsEmpty() then
-            Error(NoProdOrderLineWithRemQtyErr);
+            exit(false);
 
         WorkCenter.SetLoadFields("Gen. Prod. Posting Group", "Subcontractor No.");
         WorkCenter.Get(ProdOrderRoutingLine."Work Center No.");
         WorkCenter.TestField("Subcontractor No.");
         WorkCenter.TestField("Gen. Prod. Posting Group");
+        exit(true);
     end;
 
     internal procedure ShowExistingPurchaseOrdersForRoutingLines(var ProdOrderRoutingLine: Record "Prod. Order Routing Line")
@@ -305,7 +336,7 @@ codeunit 99001557 "Subc. Purchase Order Creator"
         ProdOrderComponent.SetRange(Status, ProdOrderRoutingLine.Status);
         ProdOrderComponent.SetRange("Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
         ProdOrderComponent.SetRange("Routing Link Code", ProdOrderRoutingLine."Routing Link Code");
-        ProdOrderComponent.SetRange("Subcontracting Type", "Subcontracting Type"::Transfer);
+        ProdOrderComponent.SetRange("Component Supply Method", "Component Supply Method"::"Transfer to Vendor");
 
         ProdOrderComponent.SetRange("Location Code", '');
         if not ProdOrderComponent.IsEmpty() then
@@ -605,13 +636,13 @@ codeunit 99001557 "Subc. Purchase Order Creator"
 
     local procedure PurchLineExists(var PurchaseLine: Record "Purchase Line"; ProdOrderLine: Record "Prod. Order Line"; ProdOrderRoutingLine: Record "Prod. Order Routing Line"): Boolean
     begin
-        PurchaseLine.SetCurrentKey("Document Type", Type, "Prod. Order No.", "Prod. Order Line No.", "Routing No.", "Operation No.");
-        PurchaseLine.SetRange("Document Type", "Purchase Document Type"::Order);
-        PurchaseLine.SetRange(Type, "Purchase Line Type"::Item);
+        PurchaseLine.SetCurrentKey("Prod. Order No.", "Prod. Order Line No.", "Routing No.", "Operation No.");
         PurchaseLine.SetRange("Prod. Order No.", ProdOrderLine."Prod. Order No.");
         PurchaseLine.SetRange("Prod. Order Line No.", ProdOrderLine."Line No.");
         PurchaseLine.SetRange("Routing No.", ProdOrderRoutingLine."Routing No.");
         PurchaseLine.SetRange("Operation No.", ProdOrderRoutingLine."Operation No.");
+        PurchaseLine.SetRange("Document Type", "Purchase Document Type"::Order);
+        PurchaseLine.SetRange(Type, "Purchase Line Type"::Item);
         PurchaseLine.SetRange("Planning Flexibility", "Reservation Planning Flexibility"::Unlimited);
         PurchaseLine.SetRange("Quantity Received", 0);
         exit(PurchaseLine.FindFirst());

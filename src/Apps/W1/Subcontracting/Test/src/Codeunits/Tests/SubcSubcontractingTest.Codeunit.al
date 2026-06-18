@@ -28,6 +28,7 @@ using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Archive;
 using Microsoft.Purchases.Comment;
 using Microsoft.Purchases.Document;
+using Microsoft.Purchases.History;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
@@ -81,7 +82,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
         CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
         UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
-        SubcontractingMgmtLibrary.UpdateProdBomWithSubcontractingType(Item, "Subcontracting Type"::Transfer);
+        SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Transfer to Vendor");
         UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(ProductionLocation);
@@ -189,7 +190,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
         CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
         UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
-        SubcontractingMgmtLibrary.UpdateProdBomWithSubcontractingType(Item, "Subcontracting Type"::Transfer);
+        SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Transfer to Vendor");
         UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
         // [GIVEN] A Released Production Order (not created from a Purchase Order)
@@ -364,7 +365,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
 
-        SubcontractingMgmtLibrary.UpdateProdBomWithSubcontractingType(Item, "Subcontracting Type"::Purchase);
+        SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Vendor-Supplied");
 
         SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
@@ -376,10 +377,10 @@ codeunit 139989 "Subc. Subcontracting Test"
         // [WHEN] Create Subcontracting Purchase Order from Prod. Order Routing
         SubcontractingMgmtLibrary.CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
 
-        // [THEN] Check if Purchase Line with additional Component for Subcontracting Type exists
+        // [THEN] Check if Purchase Line with additional Component for Component Supply Method exists
         ProductionBOMLine.SetRange("Production BOM No.", Item."Production BOM No.");
 #pragma warning disable AA0210
-        ProductionBOMLine.SetRange("Subcontracting Type", ProductionBOMLine."Subcontracting Type"::Purchase);
+        ProductionBOMLine.SetRange("Component Supply Method", ProductionBOMLine."Component Supply Method"::"Vendor-Supplied");
 #pragma warning restore AA0210
         ProductionBOMLine.FindFirst();
 
@@ -447,7 +448,7 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     [Test]
-    procedure TestTransferOfSubcontractingTypeProdBOMLineToProdOrderComp()
+    procedure TestTransferOfComponentSupplyMethodProdBOMLineToProdOrderComp()
     var
         Item: Record Item;
         MachineCenter: array[2] of Record "Machine Center";
@@ -455,7 +456,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         ProductionOrder: Record "Production Order";
         WorkCenter: array[2] of Record "Work Center";
     begin
-        // [SCENARIO] Check Transfer of Subcontracting Type from Production BOM Line to Prod Order Component
+        // [SCENARIO] Check Transfer of Component Supply Method from Production BOM Line to Prod Order Component
 
         // [GIVEN] Complete Setup of Manufacturing, include Work- and Machine Centers, Item
         Initialize();
@@ -472,7 +473,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
 
-        SubcontractingMgmtLibrary.UpdateProdBomWithSubcontractingType(Item, "Subcontracting Type"::Purchase);
+        SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Vendor-Supplied");
 
         SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
@@ -480,9 +481,9 @@ codeunit 139989 "Subc. Subcontracting Test"
         SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
           ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
 
-        // [THEN] Check if Production BOM Line with additional Component for Subcontracting Type exists
+        // [THEN] Check if Production BOM Line with additional Component for Component Supply Method exists
         ProductionBOMLine.SetRange("Production BOM No.", Item."Production BOM No.");
-        ProductionBOMLine.SetRange("Subcontracting Type", ProductionBOMLine."Subcontracting Type"::Purchase);
+        ProductionBOMLine.SetRange("Component Supply Method", ProductionBOMLine."Component Supply Method"::"Vendor-Supplied");
         Assert.RecordIsNotEmpty(ProductionBOMLine);
     end;
 
@@ -520,7 +521,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
 
-        SubcontractingMgmtLibrary.UpdateProdBomWithSubcontractingType(Item, "Subcontracting Type"::Transfer);
+        SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Transfer to Vendor");
 
         SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
@@ -547,10 +548,10 @@ codeunit 139989 "Subc. Subcontracting Test"
         PurchaseHeaderPage.GoToRecord(PurchaseHeader);
         PurchaseHeaderPage.CreateTransfOrdToSubcontractor.Invoke();
 
-        // [THEN] Check if Purchase Line with additional Component for Subcontracting Type exists
+        // [THEN] Check if Purchase Line with additional Component for Component Supply Method exists
         ProdOrderComp.SetRange("Prod. Order No.", ProductionOrder."No.");
 #pragma warning disable AA0210
-        ProdOrderComp.SetRange("Subcontracting Type", ProdOrderComp."Subcontracting Type"::Transfer);
+        ProdOrderComp.SetRange("Component Supply Method", ProdOrderComp."Component Supply Method"::"Transfer to Vendor");
 #pragma warning restore AA0210
         ProdOrderComp.FindFirst();
 
@@ -596,7 +597,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
 
-        SubcontractingMgmtLibrary.UpdateProdBomWithSubcontractingType(Item, "Subcontracting Type"::Transfer);
+        SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Transfer to Vendor");
 
         SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
@@ -613,7 +614,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         ProdOrderComp.SetRange("Prod. Order No.", ProductionOrder."No.");
 #pragma warning disable AA0210
-        ProdOrderComp.SetRange("Subcontracting Type", "Subcontracting Type"::Transfer);
+        ProdOrderComp.SetRange("Component Supply Method", "Component Supply Method"::"Transfer to Vendor");
 #pragma warning restore AA0210
         ProdOrderComp.FindFirst();
 
@@ -682,7 +683,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
 
-        SubcontractingMgmtLibrary.UpdateProdBomWithSubcontractingType(Item, "Subcontracting Type"::Transfer);
+        SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Transfer to Vendor");
 
         SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
@@ -700,7 +701,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
         ProdOrderComp.SetRange("Prod. Order No.", ProductionOrder."No.");
 #pragma warning disable AA0210
-        ProdOrderComp.SetRange("Subcontracting Type", "Subcontracting Type"::Transfer);
+        ProdOrderComp.SetRange("Component Supply Method", "Component Supply Method"::"Transfer to Vendor");
 #pragma warning restore AA0210
         ProdOrderComp.FindFirst();
         ProdOrderComp."Location Code" := Location.Code;
@@ -775,7 +776,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
 
-        SubcontractingMgmtLibrary.UpdateProdBomWithSubcontractingType(Item, "Subcontracting Type"::Transfer);
+        SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Transfer to Vendor");
 
         SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
@@ -804,10 +805,10 @@ codeunit 139989 "Subc. Subcontracting Test"
         PurchaseHeaderPage.GoToRecord(PurchaseHeader);
         PurchaseHeaderPage.CreateTransfOrdToSubcontractor.Invoke();
 
-        // [THEN] Check if Purchase Line with additional Component for Subcontracting Type exists
+        // [THEN] Check if Purchase Line with additional Component for Component Supply Method exists
         ProdOrderComp.SetRange("Prod. Order No.", ProductionOrder."No.");
 #pragma warning disable AA0210
-        ProdOrderComp.SetRange("Subcontracting Type", ProdOrderComp."Subcontracting Type"::Transfer);
+        ProdOrderComp.SetRange("Component Supply Method", ProdOrderComp."Component Supply Method"::"Transfer to Vendor");
 #pragma warning restore AA0210
         ProdOrderComp.FindFirst();
 
@@ -843,7 +844,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         ProdOrderComp.SetRange("Prod. Order No.", ProductionOrder."No.");
 #pragma warning disable AA0210
-        ProdOrderComp.SetRange("Subcontracting Type", ProdOrderComp."Subcontracting Type"::Transfer);
+        ProdOrderComp.SetRange("Component Supply Method", ProdOrderComp."Component Supply Method"::"Transfer to Vendor");
 #pragma warning restore AA0210
         ProdOrderComp.FindFirst();
 
@@ -865,7 +866,7 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     [Test]
-    procedure TestChangeLocationOnProdOrderCompWithSubcontractingTypePurchase()
+    procedure TestChangeLocationOnProdOrderCompWithComponentSupplyMethodPurchase()
     var
         Item: Record Item;
         MachineCenter: array[2] of Record "Machine Center";
@@ -874,7 +875,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         WorkCenter: array[2] of Record "Work Center";
         ActualLocationCode: Code[10];
     begin
-        // [SCENARIO] Check change Location Code by change Subcontracting Type in Prod Order Component
+        // [SCENARIO] Check change Location Code by change Component Supply Method in Prod Order Component
 
         // [GIVEN] Complete Setup of Manufacturing, include Work- and Machine Centers, Item
         Initialize();
@@ -896,12 +897,12 @@ codeunit 139989 "Subc. Subcontracting Test"
         SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
           ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
 
-        // [WHEN] Get actual Location Code and Change Subcontracting Type
+        // [WHEN] Get actual Location Code and Change Component Supply Method
         ProdOrderComp.SetRange("Prod. Order No.", ProductionOrder."No.");
         ProdOrderComp.SetFilter("Routing Link Code", '<>%1', '');
         ProdOrderComp.FindFirst();
         ActualLocationCode := ProdOrderComp."Location Code";
-        ProdOrderComp.Validate("Subcontracting Type", ProdOrderComp."Subcontracting Type"::Purchase);
+        ProdOrderComp.Validate("Component Supply Method", ProdOrderComp."Component Supply Method"::"Vendor-Supplied");
         ProdOrderComp.Modify();
 
         // [THEN] Check if Component Location differs from Origin Location Code ==> Vendor Subcontracting Location Code
@@ -1070,7 +1071,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
 
-        SubcontractingMgmtLibrary.UpdateProdBomWithSubcontractingType(Item, "Subcontracting Type"::Transfer);
+        SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Transfer to Vendor");
 
         SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
@@ -1146,7 +1147,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
 
-        SubcontractingMgmtLibrary.UpdateProdBomWithSubcontractingType(Item, "Subcontracting Type"::Transfer);
+        SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Transfer to Vendor");
 
         SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
@@ -1174,10 +1175,10 @@ codeunit 139989 "Subc. Subcontracting Test"
         PurchaseHeaderPage.GoToRecord(PurchaseHeader);
         PurchaseHeaderPage.CreateTransfOrdToSubcontractor.Invoke();
 
-        // [THEN] Check if Purchase Line with additional Component for Subcontracting Type exists
+        // [THEN] Check if Purchase Line with additional Component for Component Supply Method exists
         ProdOrderComp.SetRange("Prod. Order No.", ProductionOrder."No.");
 #pragma warning disable AA0210
-        ProdOrderComp.SetRange("Subcontracting Type", ProdOrderComp."Subcontracting Type"::Transfer);
+        ProdOrderComp.SetRange("Component Supply Method", ProdOrderComp."Component Supply Method"::"Transfer to Vendor");
 #pragma warning restore AA0210
         ProdOrderComp.FindFirst();
 
@@ -1231,7 +1232,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
 
-        SubcontractingMgmtLibrary.UpdateProdBomWithSubcontractingType(Item, "Subcontracting Type"::Transfer);
+        SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Transfer to Vendor");
 
         SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
@@ -1264,7 +1265,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         // [THEN] Compare Due Date from Prod Order Comp with Receipt Date from Subc. Transfer Line
         ProdOrderComp.SetRange("Prod. Order No.", ProductionOrder."No.");
 #pragma warning disable AA0210
-        ProdOrderComp.SetRange("Subcontracting Type", ProdOrderComp."Subcontracting Type"::Transfer);
+        ProdOrderComp.SetRange("Component Supply Method", ProdOrderComp."Component Supply Method"::"Transfer to Vendor");
 #pragma warning restore AA0210
         ProdOrderComp.FindFirst();
 
@@ -1319,7 +1320,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
 
-        SubcontractingMgmtLibrary.UpdateProdBomWithSubcontractingType(Item, "Subcontracting Type"::Transfer);
+        SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Transfer to Vendor");
 
         SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
@@ -1347,10 +1348,10 @@ codeunit 139989 "Subc. Subcontracting Test"
         PurchaseHeaderPage.GoToRecord(PurchaseHeader);
         PurchaseHeaderPage.CreateTransfOrdToSubcontractor.Invoke();
 
-        // [THEN] Check if Purchase Line with additional Component for Subcontracting Type exists
+        // [THEN] Check if Purchase Line with additional Component for Component Supply Method exists
         ProdOrderComp.SetRange("Prod. Order No.", ProductionOrder."No.");
 #pragma warning disable AA0210
-        ProdOrderComp.SetRange("Subcontracting Type", ProdOrderComp."Subcontracting Type"::Transfer);
+        ProdOrderComp.SetRange("Component Supply Method", ProdOrderComp."Component Supply Method"::"Transfer to Vendor");
 #pragma warning restore AA0210
         ProdOrderComp.FindFirst();
 
@@ -1364,7 +1365,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         ProdOrderComp.SetRange("Prod. Order No.", ProductionOrder."No.");
 #pragma warning disable AA0210
-        ProdOrderComp.SetRange("Subcontracting Type", ProdOrderComp."Subcontracting Type"::Transfer);
+        ProdOrderComp.SetRange("Component Supply Method", ProdOrderComp."Component Supply Method"::"Transfer to Vendor");
 #pragma warning restore AA0210
         ProdOrderComp.FindFirst();
 
@@ -1410,7 +1411,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
 
-        SubcontractingMgmtLibrary.UpdateProdBomWithSubcontractingType(Item, "Subcontracting Type"::Transfer);
+        SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Transfer to Vendor");
 
         SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
@@ -1438,10 +1439,10 @@ codeunit 139989 "Subc. Subcontracting Test"
         PurchaseHeaderPage.GoToRecord(PurchaseHeader);
         PurchaseHeaderPage.CreateTransfOrdToSubcontractor.Invoke();
 
-        // [THEN] Check if Purchase Line with additional Component for Subcontracting Type exists, Mock Reservation Entries on TransferLine and try to open Item Tracking Lines from Prod order Comp. Page
+        // [THEN] Check if Purchase Line with additional Component for Component Supply Method exists, Mock Reservation Entries on TransferLine and try to open Item Tracking Lines from Prod order Comp. Page
         ProdOrderComp.SetRange("Prod. Order No.", ProductionOrder."No.");
 #pragma warning disable AA0210
-        ProdOrderComp.SetRange("Subcontracting Type", ProdOrderComp."Subcontracting Type"::Transfer);
+        ProdOrderComp.SetRange("Component Supply Method", ProdOrderComp."Component Supply Method"::"Transfer to Vendor");
 #pragma warning restore AA0210
         ProdOrderComp.FindFirst();
 
@@ -1600,7 +1601,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
 
-        SubcontractingMgmtLibrary.UpdateProdBomWithSubcontractingType(Item, "Subcontracting Type"::Transfer);
+        SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Transfer to Vendor");
 
         SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
@@ -1635,7 +1636,7 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     [Test]
-    procedure TestTransferSubcontractingTypeAndVendorLocationIntoPlanningComponent()
+    procedure TestTransferComponentSupplyMethodAndVendorLocationIntoPlanningComponent()
     var
         Customer: Record Customer;
         Item: Record Item;
@@ -1643,10 +1644,14 @@ codeunit 139989 "Subc. Subcontracting Test"
         MachineCenter: array[2] of Record "Machine Center";
         PlanningComponent: Record "Planning Component";
         ProductionBOMLine: Record "Production BOM Line";
+        RequisitionLine: Record "Requisition Line";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
         Vendor: Record Vendor;
         WorkCenter: array[2] of Record "Work Center";
+        ReqWkshTemplateName: Code[10];
+        Direction: Option Forward,Backward;
     begin
         // [SCENARIO] Create Sales Order and test Planning Component
 
@@ -1668,7 +1673,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
 
-        SubcontractingMgmtLibrary.UpdateProdBomWithSubcontractingType(Item, "Subcontracting Type"::InventoryByVendor);
+        SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Consignment at Vendor");
 
         SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
@@ -1685,9 +1690,32 @@ codeunit 139989 "Subc. Subcontracting Test"
         PlanningComponent.FindFirst();
 
         // [THEN]
-        Assert.Equal(ProductionBOMLine."Subcontracting Type", PlanningComponent."Subcontracting Type");
+        PlanningComponent.TestField("Component Supply Method", "Component Supply Method"::"Consignment at Vendor");
         Vendor.Get(WorkCenter[2]."Subcontractor No.");
-        Assert.Equal(Vendor."Subc. Location Code", PlanningComponent."Location Code");
+        PlanningComponent.TestField("Location Code", Vendor."Subc. Location Code");
+
+        // [WHEN] A Planning Worksheet line is added manually for the same item and Refresh Planning Line is run (bug 637499 repro)
+        ReqWkshTemplateName := LibraryPlanning.SelectRequisitionTemplateName();
+        LibraryPlanning.CreateRequisitionWkshName(RequisitionWkshName, ReqWkshTemplateName);
+        LibraryPlanning.CreateRequisitionLine(RequisitionLine, ReqWkshTemplateName, RequisitionWkshName.Name);
+        RequisitionLine.Validate(Type, RequisitionLine.Type::Item);
+        RequisitionLine.Validate("No.", Item."No.");
+        RequisitionLine.Validate(Quantity, LibraryRandom.RandInt(10) + 5);
+        RequisitionLine.Validate("Location Code", Location.Code);
+        RequisitionLine.Validate("Ending Date", WorkDate());
+        RequisitionLine.Modify(true);
+        LibraryPlanning.RefreshPlanningLine(RequisitionLine, Direction::Backward, true, true);
+
+        // [THEN] The Subcontracting Type (Component Supply Method) is copied from the Production BOM Line to the Planning Component
+        Clear(PlanningComponent);
+        PlanningComponent.SetRange("Worksheet Template Name", RequisitionLine."Worksheet Template Name");
+        PlanningComponent.SetRange("Worksheet Batch Name", RequisitionLine."Journal Batch Name");
+        PlanningComponent.SetRange("Worksheet Line No.", RequisitionLine."Line No.");
+        PlanningComponent.SetRange("Item No.", ProductionBOMLine."No.");
+        PlanningComponent.FindFirst();
+        PlanningComponent.TestField("Component Supply Method", "Component Supply Method"::"Consignment at Vendor");
+        // [THEN] and the component is relocated to the subcontractor location, matching the Production Order behavior
+        PlanningComponent.TestField("Location Code", Vendor."Subc. Location Code");
     end;
 
 
@@ -1704,7 +1732,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         RequisitionLine: Record "Requisition Line";
         WorkCenter: array[2] of Record "Work Center";
     begin
-        // [SCENARIO 630597] Prod. Order Components with Subcontracting Type "Purchase" should be
+        // [SCENARIO 630597] Prod. Order Components with Component Supply Method "Purchase" should be
         // excluded from planning engines because they will be purchased later via the subcontracting
         // purchase order.
 
@@ -1725,8 +1753,8 @@ codeunit 139989 "Subc. Subcontracting Test"
         // [GIVEN] Assign Routing Link Code between subcontracting routing line and last BOM line
         UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
 
-        // [GIVEN] Set Subcontracting Type = Purchase on the linked BOM line
-        SubcontractingMgmtLibrary.UpdateProdBomWithSubcontractingType(Item, "Subcontracting Type"::Purchase);
+        // [GIVEN] Set Component Supply Method = Vendor-Supplied on the linked BOM line
+        SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Vendor-Supplied");
 
         // [GIVEN] Set up vendor with subcontracting location
         SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
@@ -1742,25 +1770,25 @@ codeunit 139989 "Subc. Subcontracting Test"
         SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
             ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
 
-        // [GIVEN] Verify prod. order component with Purchase subcontracting type exists
+        // [GIVEN] Verify prod. order component with Purchase Component Supply Method exists
         ProdOrderComp.SetRange("Prod. Order No.", ProductionOrder."No.");
         ProdOrderComp.SetRange("Item No.", ComponentItem."No.");
-        ProdOrderComp.SetRange("Subcontracting Type", "Subcontracting Type"::Purchase);
+        ProdOrderComp.SetRange("Component Supply Method", "Component Supply Method"::"Vendor-Supplied");
         Assert.RecordIsNotEmpty(ProdOrderComp);
 
         // [WHEN] Run Regenerative Plan for the component item
         ComponentItem.SetRecFilter();
         LibraryPlanning.CalcRegenPlanForPlanWksh(ComponentItem, CalcDate('<-1M>', WorkDate()), CalcDate('<+1M>', WorkDate()));
 
-        // [THEN] No requisition line is suggested for the component with Purchase subcontracting type
+        // [THEN] No requisition line is suggested for the component with Vendor-Supplied component supply method
         RequisitionLine.SetRange("No.", ComponentItem."No.");
         Assert.RecordIsEmpty(RequisitionLine);
 
-        // [WHEN] Changing the Subcontracting Type to None and run planning again
-        UpdateProdOrderComponentWithSubcontractingType(ProductionOrder, "Subcontracting Type"::Empty);
+        // [WHEN] Changing the Component Supply Method to None and run planning again
+        UpdateProdOrderComponentWithComponentSupplyMethod(ProductionOrder, "Component Supply Method"::Empty);
         LibraryPlanning.CalcRegenPlanForPlanWksh(ComponentItem, CalcDate('<-1M>', WorkDate()), CalcDate('<+1M>', WorkDate()));
 
-        // [THEN] Requisition line is suggested for the component with None subcontracting type
+        // [THEN] Requisition line is suggested for the component with None component supply method
         RequisitionLine.SetRange("No.", ComponentItem."No.");
         Assert.RecordIsNotEmpty(RequisitionLine);
     end;
@@ -2016,7 +2044,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
         CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
         UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
-        SubcontractingMgmtLibrary.UpdateProdBomWithSubcontractingType(Item, "Subcontracting Type"::Transfer);
+        SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Transfer to Vendor");
         UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(ProductionLocation);
@@ -2083,7 +2111,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
         CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
         UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
-        SubcontractingMgmtLibrary.UpdateProdBomWithSubcontractingType(Item, "Subcontracting Type"::Purchase);
+        SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Vendor-Supplied");
         SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
         SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
@@ -2091,11 +2119,11 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         UpdateSubMgmtSetupWithReqWkshTemplate();
 
-        // [GIVEN] A Description 2 value is set on the Prod. Order Component with Subcontracting Type = Purchase
+        // [GIVEN] A Description 2 value is set on the Prod. Order Component with Component Supply Method = Purchase
         ProdOrderComp.SetRange(Status, ProdOrderComp.Status::Released);
         ProdOrderComp.SetRange("Prod. Order No.", ProductionOrder."No.");
 #pragma warning disable AA0210
-        ProdOrderComp.SetRange("Subcontracting Type", ProdOrderComp."Subcontracting Type"::Purchase);
+        ProdOrderComp.SetRange("Component Supply Method", ProdOrderComp."Component Supply Method"::"Vendor-Supplied");
 #pragma warning restore AA0210
         ProdOrderComp.FindFirst();
         ExpectedDescription2 := 'TestDescription2_Comp';
@@ -2310,7 +2338,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
         CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
         UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
-        SubcontractingMgmtLibrary.UpdateProdBomWithSubcontractingType(Item, "Subcontracting Type"::Transfer);
+        SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Transfer to Vendor");
         UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
         SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
@@ -2333,7 +2361,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         ProdOrderComp.SetRange("Prod. Order No.", ProductionOrder."No.");
 #pragma warning disable AA0210
-        ProdOrderComp.SetRange("Subcontracting Type", ProdOrderComp."Subcontracting Type"::Transfer);
+        ProdOrderComp.SetRange("Component Supply Method", ProdOrderComp."Component Supply Method"::"Transfer to Vendor");
 #pragma warning restore AA0210
         ProdOrderComp.FindFirst();
 
@@ -2392,7 +2420,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
         CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
         UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
-        SubcontractingMgmtLibrary.UpdateProdBomWithSubcontractingType(Item, "Subcontracting Type"::Transfer);
+        SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Transfer to Vendor");
         UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
         SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
             ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
@@ -2415,7 +2443,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         ProdOrderComp.SetRange("Prod. Order No.", ProductionOrder."No.");
 #pragma warning disable AA0210
-        ProdOrderComp.SetRange("Subcontracting Type", ProdOrderComp."Subcontracting Type"::Transfer);
+        ProdOrderComp.SetRange("Component Supply Method", ProdOrderComp."Component Supply Method"::"Transfer to Vendor");
 #pragma warning restore AA0210
         ProdOrderComp.FindFirst();
 
@@ -2492,7 +2520,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
         CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
         UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
-        SubcontractingMgmtLibrary.UpdateProdBomWithSubcontractingType(Item, "Subcontracting Type"::Transfer);
+        SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Transfer to Vendor");
         UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
         SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
             ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
@@ -2514,7 +2542,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         ProdOrderComp.SetRange("Prod. Order No.", ProductionOrder."No.");
 #pragma warning disable AA0210
-        ProdOrderComp.SetRange("Subcontracting Type", ProdOrderComp."Subcontracting Type"::Transfer);
+        ProdOrderComp.SetRange("Component Supply Method", ProdOrderComp."Component Supply Method"::"Transfer to Vendor");
 #pragma warning restore AA0210
         ProdOrderComp.FindFirst();
 
@@ -2744,6 +2772,50 @@ codeunit 139989 "Subc. Subcontracting Test"
         // [THEN] The Purchase Lines list is shown instead of individual Purchase Order cards
         Assert.IsTrue(PurchaseLinesPageOpened, 'Purchase Lines list should open when purchase orders already exist.');
         Assert.IsFalse(PurchaseOrderPageOpened, 'Purchase Order card should not open when purchase orders already exist.');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmYesShowSubcontractingPurchOrders,HandlePurchaseOrderPage,HandlePurchaseLinesPage')]
+    procedure ShowExistingPurchOrdersAfterReceiptDoesNotError()
+    var
+        Item: Record Item;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        WorkCenter: array[2] of Record "Work Center";
+    begin
+        // [SCENARIO 637777] Re-running Create Subcontracting Order after fully receiving the existing subcontracting purchase order should offer to view the existing order instead of raising "No Prod. Order Line with Remaining Quantity."
+
+        // [GIVEN] Manufacturing setup with subcontracting work center, item with routing/BOM, released production order, and a created subcontracting purchase order
+        Initialize();
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
+        UpdateSubMgmtSetupWithReqWkshTemplate();
+        SubcontractingMgmtLibrary.CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
+
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+#pragma warning disable AA0210
+        PurchaseLine.SetRange("Work Center No.", WorkCenter[2]."No.");
+#pragma warning restore AA0210
+        PurchaseLine.FindFirst();
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+        EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
+
+        // [GIVEN] The existing subcontracting purchase order is fully received
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+
+        // [WHEN] Create Subcontracting Order is invoked again from the same routing line
+        PurchaseLinesPageOpened := false;
+        SubcontractingMgmtLibrary.CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
+
+        // [THEN] The existing purchase lines are shown and no raw remaining-quantity error is raised
+        Assert.IsTrue(PurchaseLinesPageOpened, 'Purchase Lines list should open when the subcontracting purchase order already exists after full receipt.');
     end;
 
     [Test]
@@ -3128,7 +3200,7 @@ codeunit 139989 "Subc. Subcontracting Test"
     begin
         ProdOrderComp.SetRange("Prod. Order No.", ProdOrderNo);
 #pragma warning disable AA0210
-        ProdOrderComp.SetRange("Subcontracting Type", ProdOrderComp."Subcontracting Type"::Transfer);
+        ProdOrderComp.SetRange("Component Supply Method", ProdOrderComp."Component Supply Method"::"Transfer to Vendor");
 #pragma warning restore AA0210
         if ProdOrderComp.FindSet() then
             repeat
@@ -3184,7 +3256,7 @@ codeunit 139989 "Subc. Subcontracting Test"
     begin
         ProdOrderComp.SetRange("Prod. Order No.", ProdOrderNo);
 #pragma warning disable AA0210
-        ProdOrderComp.SetRange("Subcontracting Type", ProdOrderComp."Subcontracting Type"::Transfer);
+        ProdOrderComp.SetRange("Component Supply Method", ProdOrderComp."Component Supply Method"::"Transfer to Vendor");
 #pragma warning restore AA0210
         ProdOrderComp.FindFirst();
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
@@ -3205,7 +3277,7 @@ codeunit 139989 "Subc. Subcontracting Test"
     begin
         ProdOrderComp.SetRange("Prod. Order No.", ProdOrderNo);
 #pragma warning disable AA0210
-        ProdOrderComp.SetRange("Subcontracting Type", ProdOrderComp."Subcontracting Type"::Transfer);
+        ProdOrderComp.SetRange("Component Supply Method", ProdOrderComp."Component Supply Method"::"Transfer to Vendor");
 #pragma warning restore AA0210
         ProdOrderComp.FindFirst();
         ProdOrderComp."Due Date" := CalcDate('<+10D>', WorkDate());
@@ -3528,6 +3600,143 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     [Test]
+    procedure VendorSuppliedCompQtyUpdatedOnPurchOrderReschedule()
+    var
+        Item: Record Item;
+        ComponentItem: Record Item;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProductionBOMLine: Record "Production BOM Line";
+        ProductionOrder: Record "Production Order";
+        ProdOrderLine: Record "Prod. Order Line";
+        ProdOrderComponent: Record "Prod. Order Component";
+        PurchaseLine: Record "Purchase Line";
+        PurchaseLineComp: Record "Purchase Line";
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        RequisitionLine: Record "Requisition Line";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        WorkCenter: array[2] of Record "Work Center";
+        InitialQty: Decimal;
+        NewQty: Decimal;
+    begin
+        // [SCENARIO 637496] When a production order quantity changes and the subcontracting purchase order
+        // is rescheduled via the requisition worksheet, the Vendor-Supplied component purchase lines
+        // should be updated to reflect the new quantity.
+
+        // [GIVEN] A subcontracting setup with a Vendor-Supplied component
+        Initialize();
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+
+        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Vendor-Supplied");
+        SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+
+        // [GIVEN] A released production order
+        InitialQty := LibraryRandom.RandIntInRange(5, 10);
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", InitialQty);
+
+        // [GIVEN] A subcontracting purchase order created via the requisition worksheet
+        SubcontractingMgmtLibrary.CreateReqWkshTemplateAndName(ReqWkshTemplate, RequisitionWkshName);
+        CalculateSubcontractsAndFindReqLine(RequisitionWkshName, ProductionOrder."No.", RequisitionLine);
+        CarryOutSubcontractingAction(RequisitionLine);
+
+        // [GIVEN] The vendor-supplied component purchase line exists
+        ProductionBOMLine.SetRange("Production BOM No.", Item."Production BOM No.");
+#pragma warning disable AA0210        
+        ProductionBOMLine.SetRange("Component Supply Method", "Component Supply Method"::"Vendor-Supplied");
+#pragma warning restore AA0210
+        ProductionBOMLine.FindFirst();
+        ComponentItem.Get(ProductionBOMLine."No.");
+
+        FindSubcPurchLineForProdOrder(PurchaseLine, Item."No.", ProductionOrder."No.");
+        FindComponentPurchLine(PurchaseLineComp, PurchaseLine."Document No.", ComponentItem."No.");
+        Assert.IsTrue(PurchaseLineComp.FindFirst(), 'Vendor-Supplied component purchase line should exist after initial PO creation.');
+
+        // [WHEN] The production order quantity is increased and refreshed
+        NewQty := InitialQty + LibraryRandom.RandIntInRange(3, 7);
+        ProdOrderLine.SetRange(Status, "Production Order Status"::Released);
+        ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderLine.FindFirst();
+        ProdOrderLine.Validate(Quantity, NewQty);
+        ProdOrderLine.Modify(true);
+
+        // [WHEN] CalculateSubcontracts is run again and carried out (reschedule path)
+        CalculateSubcontractsAndFindReqLine(RequisitionWkshName, ProductionOrder."No.", RequisitionLine);
+
+        Assert.IsTrue(
+            RequisitionLine."Action Message" in
+                [RequisitionLine."Action Message"::"Change Qty.",
+                 RequisitionLine."Action Message"::"Resched. & Chg. Qty."],
+            'Requisition line should have a Change Qty or Reschedule action message.');
+
+        CarryOutSubcontractingAction(RequisitionLine);
+
+        // [THEN] The component purchase line quantity matches the updated component remaining quantity
+        ProdOrderComponent.SetRange(Status, "Production Order Status"::Released);
+        ProdOrderComponent.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderComponent.SetRange("Item No.", ComponentItem."No.");
+#pragma warning disable AA0210        
+        ProdOrderComponent.SetRange("Component Supply Method", "Component Supply Method"::"Vendor-Supplied");
+#pragma warning restore AA0210
+        ProdOrderComponent.FindFirst();
+
+        PurchaseLineComp.FindFirst();
+        Assert.AreEqual(
+            ProdOrderComponent."Remaining Quantity",
+            PurchaseLineComp.Quantity,
+            'Vendor-Supplied component purchase line quantity should match the updated production order component remaining quantity.');
+    end;
+
+    local procedure CalculateSubcontractsAndFindReqLine(RequisitionWkshName: Record "Requisition Wksh. Name"; ProdOrderNo: Code[20]; var RequisitionLine: Record "Requisition Line")
+    var
+        SubcCalculateSubContract: Report "Subc. Calculate Subcontracts";
+    begin
+        Clear(RequisitionLine);
+        RequisitionLine."Worksheet Template Name" := RequisitionWkshName."Worksheet Template Name";
+        RequisitionLine."Journal Batch Name" := RequisitionWkshName.Name;
+
+        SubcCalculateSubContract.SetWkShLine(RequisitionLine);
+        SubcCalculateSubContract.UseRequestPage(false);
+        SubcCalculateSubContract.RunModal();
+
+        RequisitionLine.SetRange("Worksheet Template Name", RequisitionWkshName."Worksheet Template Name");
+        RequisitionLine.SetRange("Journal Batch Name", RequisitionWkshName.Name);
+#pragma warning disable AA0210
+        RequisitionLine.SetRange("Prod. Order No.", ProdOrderNo);
+#pragma warning restore AA0210
+        RequisitionLine.FindFirst();
+    end;
+
+    local procedure CarryOutSubcontractingAction(var RequisitionLine: Record "Requisition Line")
+    var
+        CarryOutActionMsgReq: Report "Carry Out Action Msg. - Req.";
+    begin
+        CarryOutActionMsgReq.SetReqWkshLine(RequisitionLine);
+        CarryOutActionMsgReq.UseRequestPage(false);
+        CarryOutActionMsgReq.RunModal();
+    end;
+
+    local procedure FindSubcPurchLineForProdOrder(var PurchaseLine: Record "Purchase Line"; ItemNo: Code[20]; ProdOrderNo: Code[20])
+    begin
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange(Type, "Purchase Line Type"::Item);
+        PurchaseLine.SetRange("No.", ItemNo);
+        PurchaseLine.SetRange("Prod. Order No.", ProdOrderNo);
+        PurchaseLine.FindFirst();
+    end;
+
+    local procedure FindComponentPurchLine(var PurchaseLineComp: Record "Purchase Line"; DocumentNo: Code[20]; ComponentItemNo: Code[20])
+    begin
+        PurchaseLineComp.SetRange("Document Type", PurchaseLineComp."Document Type"::Order);
+        PurchaseLineComp.SetRange("Document No.", DocumentNo);
+        PurchaseLineComp.SetRange(Type, "Purchase Line Type"::Item);
+        PurchaseLineComp.SetRange("No.", ComponentItemNo);
+    end;
+
+    [Test]
     [HandlerFunctions('ConfirmHandler,HandleTransferOrder,HandleCreateTransferOrderMsg')]
     procedure DirectTransferPostingWithWIPItemDoesNotErrorOnQuantity()
     var
@@ -3624,6 +3833,99 @@ codeunit 139989 "Subc. Subcontracting Test"
         exit(UnitOfMeasure.Code);
     end;
 
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure CancelInvoiceWithSubcontractingItemChargeIsBlocked()
+    var
+        Item: Record Item;
+        RegularItem: Record Item;
+        ProductionOrder: Record "Production Order";
+        SubcWorkCenter: Record "Work Center";
+        SubcPurchaseHeader: Record "Purchase Header";
+        SubcPurchaseLine: Record "Purchase Line";
+        RegularPurchaseHeader: Record "Purchase Header";
+        RegularPurchaseLine: Record "Purchase Line";
+        SubcPurchRcptLine: Record "Purch. Rcpt. Line";
+        RegPurchRcptLine: Record "Purch. Rcpt. Line";
+        ItemCharge: Record "Item Charge";
+        ItemChargeInvHeader: Record "Purchase Header";
+        ItemChargeInvLine: Record "Purchase Line";
+        PurchInvHeader: Record "Purch. Inv. Header";
+        CorrectPostedPurchInvoice: Codeunit "Correct Posted Purch. Invoice";
+        PostedInvoiceNo: Code[20];
+        SubcVendorNo: Code[20];
+    begin
+        // [SCENARIO 637502] Cancelling a Posted Purchase Invoice whose Item Charge is split between a regular item receipt
+        // line and a subcontracting service receipt line must be blocked. Letting the cancel run today silently skips the
+        // capacity portion (Value Entry has Item Ledger Entry No. = 0) and redistributes it to inventory, corrupting cost.
+        // Until a proper reversal path exists, the Subcontracting App blocks the cancel with a clear error so the user
+        // creates a corrective credit memo manually.
+
+        // [GIVEN] Subcontracting setup with a single-operation subcontracting routing on Item
+        Initialize();
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+        CreateItemWithSingleSubcontractingOperation(Item, SubcWorkCenter);
+        SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(SubcWorkCenter);
+
+        // [GIVEN] Released production order and a subcontracting purchase order received in full
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandIntInRange(5, 10));
+        UpdateSubMgmtSetupWithReqWkshTemplate();
+        SubcontractingMgmtLibrary.CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", SubcWorkCenter."No.");
+
+        SubcPurchaseLine.SetRange("Document Type", SubcPurchaseLine."Document Type"::Order);
+        SubcPurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+#pragma warning disable AA0210
+        SubcPurchaseLine.SetRange("Work Center No.", SubcWorkCenter."No.");
+#pragma warning restore AA0210
+        SubcPurchaseLine.FindFirst();
+        SubcPurchaseHeader.Get(SubcPurchaseLine."Document Type", SubcPurchaseLine."Document No.");
+        EnsureGeneralPostingSetupIsValid(SubcPurchaseLine."Gen. Bus. Posting Group", SubcPurchaseLine."Gen. Prod. Posting Group");
+        SubcVendorNo := SubcPurchaseHeader."Buy-from Vendor No.";
+
+        LibraryPurchase.PostPurchaseDocument(SubcPurchaseHeader, true, false);
+
+        SubcPurchRcptLine.SetRange("Order No.", SubcPurchaseHeader."No.");
+        SubcPurchRcptLine.SetRange("Order Line No.", SubcPurchaseLine."Line No.");
+        SubcPurchRcptLine.FindFirst();
+
+        // [GIVEN] A separate regular purchase order for the same vendor that receives a normal inventory item
+        LibraryInventory.CreateItem(RegularItem);
+        LibraryPurchase.CreatePurchHeader(RegularPurchaseHeader, RegularPurchaseHeader."Document Type"::Order, SubcVendorNo);
+        LibraryPurchase.CreatePurchaseLineWithUnitCost(
+            RegularPurchaseLine, RegularPurchaseHeader, RegularItem."No.",
+            LibraryRandom.RandDecInRange(50, 100, 2), LibraryRandom.RandIntInRange(2, 5));
+        EnsureGeneralPostingSetupIsValid(RegularPurchaseLine."Gen. Bus. Posting Group", RegularPurchaseLine."Gen. Prod. Posting Group");
+        LibraryPurchase.PostPurchaseDocument(RegularPurchaseHeader, true, false);
+
+        RegPurchRcptLine.SetRange("Order No.", RegularPurchaseHeader."No.");
+        RegPurchRcptLine.SetRange("Order Line No.", RegularPurchaseLine."Line No.");
+        RegPurchRcptLine.FindFirst();
+
+        // [GIVEN] A purchase invoice with a single Item Charge line of quantity 2 allocated 1:1 across both receipt lines
+        LibraryInventory.CreateItemCharge(ItemCharge);
+        LibraryPurchase.CreatePurchHeader(ItemChargeInvHeader, ItemChargeInvHeader."Document Type"::Invoice, SubcVendorNo);
+        LibraryPurchase.CreatePurchaseLine(ItemChargeInvLine, ItemChargeInvHeader, ItemChargeInvLine.Type::"Charge (Item)", ItemCharge."No.", 2);
+        ItemChargeInvLine.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(100, 200, 2));
+        ItemChargeInvLine.Modify(true);
+        EnsureGeneralPostingSetupIsValid(ItemChargeInvLine."Gen. Bus. Posting Group", ItemChargeInvLine."Gen. Prod. Posting Group");
+
+        AssignItemChargeToReceiptLine(ItemChargeInvLine, RegPurchRcptLine, 1);
+        AssignItemChargeToReceiptLine(ItemChargeInvLine, SubcPurchRcptLine, 1);
+
+        // [GIVEN] The invoice is posted
+        PostedInvoiceNo := LibraryPurchase.PostPurchaseDocument(ItemChargeInvHeader, false, true);
+        PurchInvHeader.Get(PostedInvoiceNo);
+        Commit();
+
+        // [WHEN] The user tries to cancel the posted invoice
+        asserterror CorrectPostedPurchInvoice.CancelPostedInvoice(PurchInvHeader);
+
+        // [THEN] The Subcontracting App blocks the cancel with the dedicated error
+        Assert.ExpectedError('contains item charges assigned to a subcontracting order receipt');
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Subc. Subcontracting Test");
@@ -3716,12 +4018,24 @@ codeunit 139989 "Subc. Subcontracting Test"
         exit(ReqWkshTemplate.Name);
     end;
 
-    procedure UpdateProdOrderComponentWithSubcontractingType(ProductionOrder: Record "Production Order"; SubcontractingType: Enum "Subcontracting Type")
+    local procedure AssignItemChargeToReceiptLine(ItemChargeInvLine: Record "Purchase Line"; PurchRcptLine: Record "Purch. Rcpt. Line"; QtyToAssign: Decimal)
+    var
+        ItemChargeAssignmentPurch: Record "Item Charge Assignment (Purch)";
+    begin
+        LibraryInventory.CreateItemChargeAssignPurchase(
+            ItemChargeAssignmentPurch, ItemChargeInvLine,
+            ItemChargeAssignmentPurch."Applies-to Doc. Type"::Receipt,
+            PurchRcptLine."Document No.", PurchRcptLine."Line No.", PurchRcptLine."No.");
+        ItemChargeAssignmentPurch.Validate("Qty. to Assign", QtyToAssign);
+        ItemChargeAssignmentPurch.Modify(true);
+    end;
+
+    procedure UpdateProdOrderComponentWithComponentSupplyMethod(ProductionOrder: Record "Production Order"; ComponentSupplyMethod: Enum "Component Supply Method")
     var
         ProdOrderComp: Record "Prod. Order Component";
     begin
         ProdOrderComp.SetRange("Prod. Order No.", ProductionOrder."No.");
-        ProdOrderComp.ModifyAll("Subcontracting Type", SubcontractingType);
+        ProdOrderComp.ModifyAll("Component Supply Method", ComponentSupplyMethod);
     end;
 
     var
