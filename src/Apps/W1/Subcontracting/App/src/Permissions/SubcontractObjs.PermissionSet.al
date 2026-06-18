@@ -81,6 +81,5 @@ permissionset 99001501 "Subcontract. - Objs"
         // Reports
         report "Subc. Create Transf. Order" = X,
         report "Subc. Create SubCReturnOrder" = X,
-        report "Subc. Detailed Calculation" = X,
         report "Subc. Dispatching List" = X;
 }
