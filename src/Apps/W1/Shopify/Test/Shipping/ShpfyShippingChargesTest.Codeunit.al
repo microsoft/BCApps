@@ -5,7 +5,9 @@
 
 namespace Microsoft.Integration.Shopify.Test;
 
+using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.Shipping;
@@ -353,6 +355,47 @@ codeunit 139546 "Shpfy Shipping Charges Test"
             ShpfyShipmentMethodMapping."Shipping Charges No."
         );
     end;
+
+    [Test]
+    [HandlerFunctions('ShippingChargesHttpHandler')]
+    procedure UnitTestTransactionCurrencyIsSetFromOrderImport()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        OrderTransaction: Record "Shpfy Order Transaction";
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        ImportOrder: Codeunit "Shpfy Import Order";
+    begin
+        // [SCENARIO] When importing a Shopify order, the transaction currency is correctly populated from the JSON response.
+        Initialize();
+
+        // [GIVEN] Shopify Shop
+        Shop := CommunicationMgt.GetShopRecord();
+
+        // [GIVEN] Register Expected Outbound API Requests.
+        OutboundHttpRequests.Clear();
+        OutboundHttpRequests.Enqueue('Transactions');
+
+        // [GIVEN] Shopify order is imported
+        ImportOrder.SetShop(Shop.Code);
+        ImportShopifyOrder(Shop, OrderHeader, ImportOrder, false);
+
+        // [THEN] Transaction is created with the correct currency from shopMoney.currencyCode (DKK from resource file)
+        OrderTransaction.SetRange("Shopify Order Id", OrderHeader."Shopify Order Id");
+        OrderTransaction.SetRange(Status, "Shpfy Transaction Status"::Success);
+        LibraryAssert.IsTrue(OrderTransaction.FindFirst(), 'Transaction should be created');
+
+        GeneralLedgerSetup.Get();
+        if 'DKK' = GeneralLedgerSetup."LCY Code" then
+            LibraryAssert.AreEqual('', OrderTransaction.Currency, 'Currency should be empty when DKK is LCY')
+        else
+            LibraryAssert.AreEqual('DKK', OrderTransaction.Currency, 'Currency should be DKK from shopMoney.currencyCode');
+
+        // [THEN] Presentment currency is also set correctly
+        if 'DKK' = GeneralLedgerSetup."LCY Code" then
+            LibraryAssert.AreEqual('', OrderTransaction."Presentment Currency", 'Presentment Currency should be empty when DKK is LCY')
+        else
+            LibraryAssert.AreEqual('DKK', OrderTransaction."Presentment Currency", 'Presentment Currency should be DKK from presentmentMoney.currencyCode');
+    end;
     #endregion
 
     [HttpClientHandler]
@@ -386,6 +429,7 @@ codeunit 139546 "Shpfy Shipping Charges Test"
     #region Local Procedures
     local procedure Initialize()
     var
+        Currency: Record Currency;
         ShippingTime: DateFormula;
         AccessToken: SecretText;
     begin
@@ -402,6 +446,17 @@ codeunit 139546 "Shpfy Shipping Charges Test"
         CreateShipmentMethod(ShipmentMethod);
         LibraryInventory.CreateShippingAgent(ShippingAgent);
         LibraryInventory.CreateShippingAgentService(ShippingAgentServices, ShippingAgent.Code, ShippingTime);
+
+        if not Currency.Get('DKK') then begin
+            Currency.Init();
+            Currency.Code := 'DKK';
+            Currency."ISO Code" := 'DKK';
+            Currency.Insert(true);
+        end else
+            if Currency."ISO Code" <> 'DKK' then begin
+                Currency."ISO Code" := 'DKK';
+                Currency.Modify();
+            end;
 
         Commit();
 
