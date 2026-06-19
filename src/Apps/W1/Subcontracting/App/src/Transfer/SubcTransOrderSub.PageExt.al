@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -10,59 +10,67 @@ pageextension 99001529 "Subc. Trans. Order Sub." extends "Transfer Order Subform
 {
     layout
     {
+        addafter(Description)
+        {
+            field("Transfer WIP Item"; Rec."Transfer WIP Item")
+            {
+                ApplicationArea = Subcontracting;
+                Visible = HasSubcontractingContext;
+            }
+        }
         addafter("Receipt Date")
         {
-            field("Subcontr. Purch. Order No."; Rec."Subcontr. Purch. Order No.")
+            field("Subc. Purch. Order No."; Rec."Subc. Purch. Order No.")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Editable = false;
                 Visible = false;
             }
-            field("Subcontr. PO Line No."; Rec."Subcontr. PO Line No.")
+            field("Subc. Purch. Order Line No."; Rec."Subc. Purch. Order Line No.")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Editable = false;
                 Visible = false;
             }
-            field("Prod. Order No."; Rec."Prod. Order No.")
+            field("Prod. Order No."; Rec."Subc. Prod. Order No.")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Editable = false;
                 Visible = false;
             }
-            field("Prod. Order Line No."; Rec."Prod. Order Line No.")
+            field("Subc. Prod. Order Line No."; Rec."Subc. Prod. Order Line No.")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Editable = false;
                 Visible = false;
             }
-            field("Prod. Order. Comp. Line No."; Rec."Prod. Order Comp. Line No.")
+            field("Subc. Prod. Ord. Comp. Line No."; Rec."Subc. Prod. Ord. Comp Line No.")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Editable = false;
                 Visible = false;
             }
-            field("Routing No."; Rec."Routing No.")
+            field("Subc. Routing No."; Rec."Subc. Routing No.")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Editable = false;
                 Visible = false;
             }
-            field("Routing Reference No."; Rec."Routing Reference No.")
+            field("Subc. Routing Reference No."; Rec."Subc. Routing Reference No.")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Editable = false;
                 Visible = false;
             }
-            field("WorkCenter No."; Rec."Work Center No.")
+            field("Subc. WorkCenter No."; Rec."Subc. Work Center No.")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Editable = false;
                 Visible = false;
             }
-            field("Operation No."; Rec."Operation No.")
+            field("Subc. Operation No."; Rec."Subc. Operation No.")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Editable = false;
                 Visible = false;
             }
@@ -70,14 +78,35 @@ pageextension 99001529 "Subc. Trans. Order Sub." extends "Transfer Order Subform
     }
     actions
     {
+        modify(Reserve)
+        {
+            Enabled = not Rec."Transfer WIP Item";
+        }
+        modify(ReserveFromInventory)
+        {
+            Enabled = not Rec."Transfer WIP Item";
+        }
+        modify("Item &Tracking Lines")
+        {
+            Enabled = not Rec."Transfer WIP Item";
+        }
+        modify(Shipment)
+        {
+            Enabled = not Rec."Transfer WIP Item";
+        }
+        modify(Receipt)
+        {
+            Enabled = not Rec."Transfer WIP Item";
+        }
         addafter("F&unctions")
         {
             group(Production)
             {
                 Caption = 'Production';
+                Visible = HasSubcontractingContext;
                 action("Production Order")
                 {
-                    ApplicationArea = Manufacturing;
+                    ApplicationArea = Subcontracting;
                     Caption = 'Production Order';
                     Image = Production;
                     ToolTip = 'View the related production order.';
@@ -88,7 +117,7 @@ pageextension 99001529 "Subc. Trans. Order Sub." extends "Transfer Order Subform
                 }
                 action("Production Order Routing")
                 {
-                    ApplicationArea = Manufacturing;
+                    ApplicationArea = Subcontracting;
                     Caption = 'Production Order Routing';
                     Image = Route;
                     ToolTip = 'View the related production order routing.';
@@ -99,7 +128,7 @@ pageextension 99001529 "Subc. Trans. Order Sub." extends "Transfer Order Subform
                 }
                 action("Production Order Components")
                 {
-                    ApplicationArea = Manufacturing;
+                    ApplicationArea = Subcontracting;
                     Caption = 'Production Order Components';
                     Image = Components;
                     ToolTip = 'View the related production order components.';
@@ -110,7 +139,7 @@ pageextension 99001529 "Subc. Trans. Order Sub." extends "Transfer Order Subform
                 }
                 action("Purchase Order")
                 {
-                    ApplicationArea = Manufacturing;
+                    ApplicationArea = Subcontracting;
                     Caption = 'Subcontracting Purchase Order';
                     Image = Order;
                     ToolTip = 'View the related subcontracting purchase order.';
@@ -125,6 +154,13 @@ pageextension 99001529 "Subc. Trans. Order Sub." extends "Transfer Order Subform
     var
         SubcProdOrderFactboxMgmt: Codeunit "Subc. ProdO. Factbox Mgmt.";
         SubcPurchFactboxMgmt: Codeunit "Subc. Purch. Factbox Mgmt.";
+        HasSubcontractingContext: Boolean;
+
+    internal procedure SetIsSubcontracting(IsSubcontractingRelated: Boolean)
+    begin
+        HasSubcontractingContext := IsSubcontractingRelated;
+        CurrPage.Update();
+    end;
 
     local procedure ShowProductionOrder(RecRelatedVariant: Variant)
     begin

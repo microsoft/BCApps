@@ -212,8 +212,10 @@ codeunit 6120 "E-Doc. Purchase Hist. Mapping"
     var
         EDocPurchLineFieldSetup: Record "ED Purchase Line Field Setup";
         EDocPurchLineField: Record "E-Document Line - Field";
+        EDocImportErrorContext: Codeunit "E-Doc. Import Error Context";
         NewPurchLineRecordRef: RecordRef;
         NewPurchLineFieldRef: FieldRef;
+        FieldValue: Variant;
     begin
         if not EDocPurchLineFieldSetup.FindSet() then
             exit;
@@ -223,7 +225,10 @@ codeunit 6120 "E-Doc. Purchase Hist. Mapping"
                 continue;
             EDocPurchLineField.Get(EDocumentPurchaseLine, EDocPurchLineFieldSetup);
             NewPurchLineFieldRef := NewPurchLineRecordRef.Field(EDocPurchLineFieldSetup."Field No.");
-            NewPurchLineFieldRef.Validate(EDocPurchLineField.GetValue());
+            FieldValue := EDocPurchLineField.GetValue();
+            EDocImportErrorContext.OnSetAdditionalFieldContext(NewPurchLineFieldRef.Name(), EDocPurchLineFieldSetup."Field No.", EDocPurchLineField.GetValueAsText());
+            NewPurchLineFieldRef.Validate(FieldValue);
+            EDocImportErrorContext.ClearAdditionalFieldContext();
         until EDocPurchLineFieldSetup.Next() = 0;
         NewPurchLineRecordRef.SetTable(PurchaseLine);
     end;

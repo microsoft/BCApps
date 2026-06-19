@@ -4,7 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
+using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.RoleCenters;
+using Microsoft.Purchases.Document;
 
 pageextension 99001537 "Subc. Prod. Planner Activities" extends "Production Planner Activities"
 {
@@ -14,12 +16,47 @@ pageextension 99001537 "Subc. Prod. Planner Activities" extends "Production Plan
         {
             cuegroup(SubcontractingCuegroup)
             {
+                Caption = 'Subcontracting';
+                field("Subcontracting Purchase Orders"; Rec."Subcontracting Purchase Orders")
+                {
+                    ApplicationArea = Subcontracting;
+                    DrillDownPageId = "Purchase Order List";
+                    ToolTip = 'Specifies the number of open purchase orders that are subcontracting orders.';
+                }
+                field("Subc. Purch. Lines Outstd."; Rec."Subc. Purch. Lines Outstd.")
+                {
+                    ApplicationArea = Subcontracting;
+                    ToolTip = 'Specifies the number of outstanding subcontracting purchase order lines that have not yet been fully received.';
+                    Visible = false;
+                }
+                field("Subc. Purch. Lines Total"; Rec."Subc. Purch. Lines Total")
+                {
+                    ApplicationArea = Subcontracting;
+                    ToolTip = 'Specifies the total number of subcontracting purchase order lines.';
+                    Visible = false;
+                }
+                field("Transfers to Subcontractor"; Rec."Transfers to Subcontractor")
+                {
+                    ApplicationArea = Subcontracting;
+                    DrillDownPageId = "Transfer Orders";
+                    ToolTip = 'Specifies the number of transfer orders to subcontractors.';
+                }
+                field("Returns from Subcontractor"; Rec."Returns from Subcontractor")
+                {
+                    ApplicationArea = Subcontracting;
+                    DrillDownPageId = "Transfer Orders";
+                    ToolTip = 'Specifies the number of transfer orders that are returns from subcontractors.';
+                }
+            }
+            cuegroup(SubcontractingActionsCuegroup)
+            {
                 Caption = 'Subcontracting - Operations';
+
                 actions
                 {
                     action("Subc. Edit Subcontracting Worksheet")
                     {
-                        ApplicationArea = Manufacturing;
+                        ApplicationArea = Subcontracting;
                         Caption = 'Edit Subcontracting Worksheet';
                         RunObject = Page "Subc. Subcontracting Worksheet";
                         ToolTip = 'Plan outsourcing of operation on released production orders.';

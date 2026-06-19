@@ -10,9 +10,21 @@ codeunit 99001550 "Subc. WhsePurchRelease Ext"
 {
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Purch. Release", OnAfterReleaseSetFilters, '', false, false)]
     local procedure OnAfterReleaseSetFilters(var PurchaseLine: Record "Purchase Line"; PurchaseHeader: Record "Purchase Header")
+#if not CLEAN29
+    var
+#pragma warning disable AL0432
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
+#endif
     begin
-        PurchaseHeader.CalcFields("Subcontracting Order");
-        if PurchaseHeader."Subcontracting Order" then
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        PurchaseHeader.CalcFields("Subc. Order");
+        if PurchaseHeader."Subc. Order" then
             PurchaseLine.SetRange("Work Center No.");
     end;
 }

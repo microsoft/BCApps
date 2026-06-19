@@ -12,45 +12,45 @@ pageextension 99001527 "Subc. Pstd. Transfer Shpt" extends "Posted Transfer Ship
     {
         addlast(General)
         {
-            field(SourceType; Rec."Source Type")
+            field("Subc. Source Type"; Rec."Subc. Source Type")
             {
-                ApplicationArea = Location;
+                ApplicationArea = Subcontracting;
                 Editable = false;
                 Visible = false;
             }
             field(SourceSubtype; Rec."Source Subtype")
             {
-                ApplicationArea = Location;
+                ApplicationArea = Subcontracting;
                 Editable = false;
                 Visible = false;
             }
             field(SourceID; Rec."Source ID")
             {
-                ApplicationArea = Location;
+                ApplicationArea = Subcontracting;
                 Editable = false;
                 Visible = false;
             }
             field(SourceRefNo; Rec."Source Ref. No.")
             {
-                ApplicationArea = Location;
+                ApplicationArea = Subcontracting;
                 Editable = false;
                 Visible = false;
             }
-            field("Return Order"; Rec."Return Order")
+            field("Subc. Return Order"; Rec."Subc. Return Order")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Editable = false;
                 Visible = false;
             }
             field("Subcontr. Purch. Order No."; Rec."Subcontr. Purch. Order No.")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Editable = false;
                 Visible = false;
             }
             field("Subcontr. PO Line No."; Rec."Subcontr. PO Line No.")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Editable = false;
                 Visible = false;
             }

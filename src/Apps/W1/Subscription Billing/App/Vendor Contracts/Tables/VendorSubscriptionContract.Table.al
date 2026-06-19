@@ -1643,7 +1643,7 @@ table 8063 "Vendor Subscription Contract"
         ServiceCommitment.ResetServiceCommitmentCurrencyLCYFromContract(Enum::"Service Partner"::Vendor, Rec."No.");
     end;
 
-    internal procedure SetHideValidationDialog(NewHideValidationDialog: Boolean)
+    procedure SetHideValidationDialog(NewHideValidationDialog: Boolean)
     begin
         HideValidationDialog := NewHideValidationDialog;
     end;

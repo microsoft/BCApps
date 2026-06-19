@@ -12,9 +12,19 @@ using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Utilities;
 using System.Reflection;
+using System.Text;
 
 codeunit 99001560 "Subc. Purch. Factbox Mgmt."
 {
+    var
+#if not CLEAN29
+#pragma warning disable AL0432
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
+#endif
+        MultipleLbl: Label 'Multiple', MaxLength = 20;
+        NoTransferExistsMsg: Label 'No transfer order exists for this purchase order.';
+
     /// <summary>
     /// Opens the Purchase Order page for the subcontracting purchase order linked to the given variant record.
     /// </summary>
@@ -26,6 +36,12 @@ codeunit 99001560 "Subc. Purch. Factbox Mgmt."
         PurchOrderNo: Code[20];
         PurchOrderLineNo: Integer;
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if not GetPurchaseOrderNoByVariant(RecRelatedVariant, PurchOrderNo, PurchOrderLineNo) then
             exit;
         PurchaseHeader.Reset();
@@ -45,12 +61,19 @@ codeunit 99001560 "Subc. Purch. Factbox Mgmt."
         PurchOrderNo: Code[20];
         PurchOrderLineNo: Integer;
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit(0);
+
+#endif
         if not GetPurchaseOrderNoByVariant(RecRelatedVariant, PurchOrderNo, PurchOrderLineNo) then
             exit(0);
 
-        TransferLine.SetCurrentKey("Subcontr. Purch. Order No.");
-        TransferLine.SetRange("Subcontr. Purch. Order No.", PurchOrderNo);
-        TransferLine.SetRange("Subcontr. PO Line No.", PurchOrderLineNo);
+        TransferLine.SetCurrentKey("Subc. Purch. Order No.");
+        TransferLine.SetRange("Subc. Purch. Order No.", PurchOrderNo);
+        TransferLine.SetRange("Subc. Purch. Order Line No.", PurchOrderLineNo);
         exit(TransferLine.Count());
     end;
 
@@ -65,8 +88,14 @@ codeunit 99001560 "Subc. Purch. Factbox Mgmt."
         PurchOrderNo: Code[20];
         NoOfTransferOrders: Integer;
         PurchOrderLineNo: Integer;
-        MultipleLbl: Label 'Multiple', MaxLength = 20;
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit('');
+
+#endif
         if not GetPurchaseOrderNoByVariant(RecRelatedVariant, PurchOrderNo, PurchOrderLineNo) then
             exit('');
 
@@ -97,14 +126,21 @@ codeunit 99001560 "Subc. Purch. Factbox Mgmt."
         PurchOrderNo: Code[20];
         PurchOrderLineNo: Integer;
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit('');
+
+#endif
         if not GetPurchaseOrderNoByVariant(RecRelatedVariant, PurchOrderNo, PurchOrderLineNo) then
             exit('');
 
-        TransferLine.SetCurrentKey("Subcontr. Purch. Order No.");
-        TransferLine.SetRange("Subcontr. Purch. Order No.", PurchOrderNo);
-        TransferLine.SetRange("Subcontr. PO Line No.", PurchOrderLineNo);
-        TransferLine.SetFilter("Operation No.", '%1', '');
-        TransferLine.SetFilter("Routing No.", '%1', '');
+        TransferLine.SetCurrentKey("Subc. Purch. Order No.");
+        TransferLine.SetRange("Subc. Purch. Order No.", PurchOrderNo);
+        TransferLine.SetRange("Subc. Purch. Order Line No.", PurchOrderLineNo);
+        TransferLine.SetFilter("Subc. Operation No.", '%1', '');
+        TransferLine.SetFilter("Subc. Routing No.", '%1', '');
         TransferLine.SetLoadFields(SystemId);
         if TransferLine.IsEmpty() then
             exit('');
@@ -124,6 +160,13 @@ codeunit 99001560 "Subc. Purch. Factbox Mgmt."
         PurchOrderNo: Code[20];
         PurchOrderLineNo: Integer;
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit(0);
+
+#endif
         if not GetPurchaseOrderNoByVariant(RecRelatedVariant, PurchOrderNo, PurchOrderLineNo) then
             exit(0);
 
@@ -160,6 +203,13 @@ codeunit 99001560 "Subc. Purch. Factbox Mgmt."
         PurchOrderNo: Code[20];
         ProdOrderLineNo: Integer;
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit(false);
+
+#endif
         if not RecRelatedVariant.IsRecord() then
             exit(false);
 
@@ -196,11 +246,11 @@ codeunit 99001560 "Subc. Purch. Factbox Mgmt."
                 end;
         end;
 
-        TransferLine.SetCurrentKey("Subcontr. Purch. Order No.", "Prod. Order No.", "Prod. Order Line No.", "Operation No.");
-        TransferLine.SetRange("Subcontr. Purch. Order No.", PurchOrderNo);
-        TransferLine.SetRange("Prod. Order No.", ProdOrderNo);
-        TransferLine.SetRange("Prod. Order Line No.", ProdOrderLineNo);
-        TransferLine.SetRange("Operation No.", ProdOperation);
+        TransferLine.SetCurrentKey("Subc. Purch. Order No.", "Subc. Prod. Order No.", "Subc. Prod. Order Line No.", "Subc. Operation No.");
+        TransferLine.SetRange("Subc. Purch. Order No.", PurchOrderNo);
+        TransferLine.SetRange("Subc. Prod. Order No.", ProdOrderNo);
+        TransferLine.SetRange("Subc. Prod. Order Line No.", ProdOrderLineNo);
+        TransferLine.SetRange("Subc. Operation No.", ProdOperation);
 
         if not TransferLine.IsEmpty() then begin
             TransferLine.SetLoadFields(SystemId);
@@ -217,84 +267,113 @@ codeunit 99001560 "Subc. Purch. Factbox Mgmt."
     /// <param name="RecRelatedVariant">A record variant of a Prod. Order Component, Purchase Line, or Prod. Order Routing Line.</param>
     /// <param name="LookUpPage">When true, opens the transfer order page; when false, only populates the temp table.</param>
     /// <param name="IsReturn">When true, filters to return transfer orders; when false, filters to outbound transfer orders.</param>
-    procedure ShowTransferOrdersAndReturnOrder(RecRelatedVariant: Variant; LookUpPage: Boolean; IsReturn: Boolean)
+    /// <returns>The number of transfer lines linked to the given record.</returns>
+    procedure ShowTransferOrdersAndReturnOrder(RecRelatedVariant: Variant; LookUpPage: Boolean; IsReturn: Boolean): Integer
     var
         ProdOrderComponent: Record "Prod. Order Component";
         ProdOrderLine: Record "Prod. Order Line";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        ProductionOrder: Record "Production Order";
         PurchaseLine: Record "Purchase Line";
-        TempTransferHeader: Record "Transfer Header" temporary;
         TransferHeader: Record "Transfer Header";
+        TransferHeaderToOpen: Record "Transfer Header";
         TransferLine: Record "Transfer Line";
         DataTypeManagement: Codeunit "Data Type Management";
+        PageManagement: Codeunit "Page Management";
+        SelectionFilterMgt: Codeunit SelectionFilterManagement;
         RecRef: RecordRef;
-        NoTransferExistsMsg: Label 'No transfer order exists for this purchase order.';
+        NoOfTransferHeaders: Integer;
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit(0);
+
+#endif
         if not RecRelatedVariant.IsRecord() then
-            exit;
+            exit(0);
 
         DataTypeManagement.GetRecordRef(RecRelatedVariant, RecRef);
+        ProductionOrder.SetLoadFields("No.", "Source Type");
 
         case RecRef.Number() of
             Database::"Prod. Order Component":
                 begin
                     RecRef.SetTable(ProdOrderComponent);
+                    if not ProductionOrder.Get(ProdOrderComponent.Status, ProdOrderComponent."Prod. Order No.") then
+                        exit(0);
                     if not ProdOrderLine.Get(ProdOrderComponent.Status, ProdOrderComponent."Prod. Order No.", ProdOrderComponent."Prod. Order Line No.") then
-                        exit;
+                        exit(0);
 
                     GetProdOrderRtngLineFromProdOrderComp(ProdOrderRoutingLine, ProdOrderComponent);
                 end;
             Database::"Purchase Line":
                 begin
                     RecRef.SetTable(PurchaseLine);
+                    if not ProductionOrder.Get("Production Order Status"::Released, PurchaseLine."Prod. Order No.") then
+                        exit(0);
                     GetProdOrderRtngLineFromPurchaseLine(ProdOrderRoutingLine, PurchaseLine);
-                    if not ProdOrderLine.Get(ProdOrderRoutingLine.Status, PurchaseLine."Prod. Order No.", PurchaseLine."Prod. Order Line No.") then
-                        exit;
+                    if ProductionOrder."Source Type" <> "Prod. Order Source Type"::Family then
+                        if not ProdOrderLine.Get(ProdOrderRoutingLine.Status, PurchaseLine."Prod. Order No.", PurchaseLine."Prod. Order Line No.") then
+                            exit(0);
                 end;
             Database::"Prod. Order Routing Line":
                 begin
                     RecRef.SetTable(ProdOrderRoutingLine);
-                    if not ProdOrderLine.Get(ProdOrderRoutingLine.Status, ProdOrderRoutingLine."Prod. Order No.", ProdOrderRoutingLine."Routing Reference No.") then
-                        exit;
+                    if not ProductionOrder.Get(ProdOrderRoutingLine.Status, ProdOrderRoutingLine."Prod. Order No.") then
+                        exit(0);
+                    if ProductionOrder."Source Type" <> "Prod. Order Source Type"::Family then
+                        if not ProdOrderLine.Get(ProdOrderRoutingLine.Status, ProdOrderRoutingLine."Prod. Order No.", ProdOrderRoutingLine."Routing Reference No.") then
+                            exit(0);
                 end;
             else
-                exit;
+                exit(0);
         end;
 
-        TransferLine.SetCurrentKey("Prod. Order No.", "Prod. Order Line No.", "Routing Reference No.", "Routing No.", "Operation No.");
-        TransferLine.SetRange("Prod. Order No.", ProdOrderLine."Prod. Order No.");
-        TransferLine.SetRange("Prod. Order Line No.", ProdOrderLine."Line No.");
-        if IsReturn then begin
-            TransferLine.SetRange("Routing Reference No.", 0);
-            TransferLine.SetRange("Routing No.", '');
-            TransferLine.SetRange("Operation No.", '');
+        TransferLine.SetCurrentKey("Subc. Prod. Order No.", "Subc. Prod. Order Line No.", "Subc. Routing Reference No.", "Subc. Routing No.", "Subc. Operation No.");
+        TransferLine.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
+        if ProductionOrder."Source Type" <> "Prod. Order Source Type"::Family then begin
+            TransferLine.SetRange("Subc. Prod. Order Line No.", ProdOrderLine."Line No.");
+            TransferLine.SetRange("Subc. Routing Reference No.", ProdOrderLine."Routing Reference No.");
         end else begin
-            TransferLine.SetRange("Routing Reference No.", ProdOrderLine."Routing Reference No.");
-            TransferLine.SetRange("Routing No.", ProdOrderRoutingLine."Routing No.");
-            TransferLine.SetRange("Operation No.", ProdOrderRoutingLine."Operation No.");
+            TransferLine.SetRange("Subc. Prod. Order Line No.");
+            TransferLine.SetRange("Subc. Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.");
         end;
+        TransferLine.SetRange("Subc. Return Order", IsReturn);
+        TransferLine.SetRange("Subc. Routing No.", ProdOrderRoutingLine."Routing No.");
+        TransferLine.SetRange("Subc. Operation No.", ProdOrderRoutingLine."Operation No.");
+        TransferLine.SetRange("Derived From Line No.", 0);
+        if not LookUpPage then
+            exit(TransferLine.Count());
 
         if not TransferLine.IsEmpty() then
-            if TransferLine.FindSet() then begin
-                if not TempTransferHeader.IsEmpty() then
-                    TempTransferHeader.DeleteAll();
+            if TransferLine.FindSet() then
                 repeat
-                    if TransferHeader.Get(TransferLine."Document No.") then begin
-                        TempTransferHeader.Init();
-                        TempTransferHeader.TransferFields(TransferHeader);
-                        if TempTransferHeader.Insert() then;
-                    end;
+                    if TransferHeader.Get(TransferLine."Document No.") then
+                        TransferHeader.Mark(true);
                 until TransferLine.Next() = 0;
-            end;
+        TransferHeader.MarkedOnly(true);
 
-        if LookUpPage then
-            if TempTransferHeader.Count() > 1 then
-                Page.Run(Page::"Transfer Orders", TempTransferHeader)
-            else
-                if TempTransferHeader.FindSet() then
-                    Page.Run(Page::"Transfer Order", TempTransferHeader)
-                else
+        if LookUpPage then begin
+            NoOfTransferHeaders := TransferHeader.Count();
+            case true of
+                NoOfTransferHeaders = 0:
                     Message(NoTransferExistsMsg);
+                NoOfTransferHeaders = 1:
+                    if TransferHeader.FindFirst() then begin
+                        TransferHeaderToOpen.Get(TransferHeader."No.");
+                        PageManagement.PageRun(TransferHeaderToOpen);
+                    end;
+                NoOfTransferHeaders > 1:
+                    begin
+                        // As we do not expect more than a handful tranfer orders linked to the purchase order, there is no need to 
+                        // add extra processing if the number of records linked are more than allowed.
+                        TransferHeaderToOpen.SetFilter("No.", SelectionFilterMgt.GetSelectionFilterForTransferHeader(TransferHeader));
+                        PageManagement.PageRunList(TransferHeaderToOpen);
+                    end;
+            end;
+        end;
     end;
 
     /// <summary>
@@ -304,6 +383,13 @@ codeunit 99001560 "Subc. Purch. Factbox Mgmt."
     /// <returns>The count of matching subcontractor price entries, or 0 if the line is not an item line.</returns>
     procedure CalcNoOfPurchasePrices(var PurchaseLine: Record "Purchase Line"): Integer
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit(0);
+
+#endif
         if IsItemLine(PurchaseLine) then
             exit(CountPriceOnPurchItemLine(PurchaseLine));
     end;
@@ -316,6 +402,12 @@ codeunit 99001560 "Subc. Purch. Factbox Mgmt."
     var
         SubcontractorPrice: Record "Subcontractor Price";
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         FilterSubContractorPriceForPurchLine(SubcontractorPrice, PurchaseLine);
 
         Page.Run(Page::"Subcontractor Prices", SubcontractorPrice);
@@ -368,32 +460,32 @@ codeunit 99001560 "Subc. Purch. Factbox Mgmt."
             Database::"Transfer Line":
                 begin
                     ResultRecordRef.SetTable(TransferLine);
-                    PurchOrderNo := TransferLine."Subcontr. Purch. Order No.";
-                    PurchOrderLineNo := TransferLine."Subcontr. PO Line No.";
+                    PurchOrderNo := TransferLine."Subc. Purch. Order No.";
+                    PurchOrderLineNo := TransferLine."Subc. Purch. Order Line No.";
                 end;
             Database::"Transfer Shipment Line":
                 begin
                     ResultRecordRef.SetTable(TransferShipmentLine);
-                    PurchOrderNo := TransferShipmentLine."Subcontr. Purch. Order No.";
-                    PurchOrderLineNo := TransferShipmentLine."Subcontr. PO Line No.";
+                    PurchOrderNo := TransferShipmentLine."Subc. Purch. Order No.";
+                    PurchOrderLineNo := TransferShipmentLine."Subc. Purch. Order Line No.";
                 end;
             Database::"Transfer Receipt Line":
                 begin
                     ResultRecordRef.SetTable(TransferReceiptLine);
-                    PurchOrderNo := TransferReceiptLine."Subcontr. Purch. Order No.";
-                    PurchOrderLineNo := TransferReceiptLine."Subcontr. PO Line No.";
+                    PurchOrderNo := TransferReceiptLine."Subc. Purch. Order No.";
+                    PurchOrderLineNo := TransferReceiptLine."Subc. Purch. Order Line No.";
                 end;
             Database::"Item Ledger Entry":
                 begin
                     ResultRecordRef.SetTable(ItemLedgerEntry);
-                    PurchOrderNo := ItemLedgerEntry."Subcontr. Purch. Order No.";
-                    PurchOrderLineNo := ItemLedgerEntry."Subcontr. PO Line No.";
+                    PurchOrderNo := ItemLedgerEntry."Subc. Purch. Order No.";
+                    PurchOrderLineNo := ItemLedgerEntry."Subc. Purch. Order Line No.";
                 end;
             Database::"Capacity Ledger Entry":
                 begin
                     ResultRecordRef.SetTable(CapacityLedgerEntry);
-                    PurchOrderNo := CapacityLedgerEntry."Subcontr. Purch. Order No.";
-                    PurchOrderLineNo := CapacityLedgerEntry."Subcontr. PO Line No.";
+                    PurchOrderNo := CapacityLedgerEntry."Subc. Purch. Order No.";
+                    PurchOrderLineNo := CapacityLedgerEntry."Subc. Purch. Order Line No.";
                 end;
             Database::"Prod. Order Routing Line":
                 begin
@@ -505,10 +597,10 @@ codeunit 99001560 "Subc. Purch. Factbox Mgmt."
 
     local procedure FilterTransferLineToSubcontractorPurchaseOrder(PurchOrderNo: Code[20]; PurchOrderLineNo: Integer; var TransferLine: Record "Transfer Line")
     begin
-        TransferLine.SetCurrentKey("Subcontr. Purch. Order No.");
-        TransferLine.SetRange("Subcontr. Purch. Order No.", PurchOrderNo);
-        TransferLine.SetRange("Subcontr. PO Line No.", PurchOrderLineNo);
-        TransferLine.SetFilter("Operation No.", '<>%1', '');
-        TransferLine.SetFilter("Routing No.", '<>%1', '');
+        TransferLine.SetCurrentKey("Subc. Purch. Order No.");
+        TransferLine.SetRange("Subc. Purch. Order No.", PurchOrderNo);
+        TransferLine.SetRange("Subc. Purch. Order Line No.", PurchOrderLineNo);
+        TransferLine.SetFilter("Subc. Operation No.", '<>%1', '');
+        TransferLine.SetFilter("Subc. Routing No.", '<>%1', '');
     end;
 }

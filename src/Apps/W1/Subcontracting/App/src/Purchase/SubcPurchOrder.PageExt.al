@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -12,13 +12,13 @@ pageextension 99001523 "Subc. Purch. Order" extends "Purchase Order"
     {
         addafter(Status)
         {
-            field("Subcontracting Order"; Rec."Subcontracting Order")
+            field("Subc. Order"; Rec."Subc. Order")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
             }
             field("Subc. Location Code"; Rec."Subc. Location Code")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Editable = false;
             }
         }
@@ -26,10 +26,10 @@ pageextension 99001523 "Subc. Purch. Order" extends "Purchase Order"
         {
             part(" Sub Purchase Line Factbox"; "Subc. Purchase Line Factbox")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Provider = PurchLines;
                 SubPageLink = "Document Type" = field("Document Type"), "Document No." = field("Document No."), "Line No." = field("Line No.");
-                Visible = ShowSubcontractingFactBox;
+                Visible = HasSubcontractingContext;
             }
         }
     }
@@ -37,76 +37,92 @@ pageextension 99001523 "Subc. Purch. Order" extends "Purchase Order"
     {
         addafter(IncomingDocument)
         {
-            action(CreateTransfOrdToSubcontractor)
+            group(Subcontracting)
             {
-                ApplicationArea = Manufacturing;
-                Caption = 'Create Transf. Ord. to Subcontractor';
-                Image = NewDocument;
-                ToolTip = 'Create a transfer order to send to the subcontractor.';
+                Caption = 'Subcontracting';
+                Visible = HasSubcontractingContext;
+                action(CreateTransfOrdToSubcontractor)
+                {
+                    ApplicationArea = Subcontracting;
+                    Caption = 'Create Transf. Ord. to Subcontractor';
+                    Image = NewDocument;
+                    ToolTip = 'Create a transfer order to send to the subcontractor.';
 
-                trigger OnAction()
-                var
-                    PurchaseHeader: Record "Purchase Header";
-                begin
-                    PurchaseHeader := Rec;
-                    PurchaseHeader.SetRecFilter();
-                    Report.Run(Report::"Subc. Create Transf. Order", false, false, PurchaseHeader);
-                end;
-            }
-            action(CreateReturnFromSubcontractor)
-            {
-                ApplicationArea = Manufacturing;
-                Caption = 'Create Return from Subcontractor';
-                Image = ReturnRelated;
-                ToolTip = 'Create a return document from the subcontractor.';
+                    trigger OnAction()
+                    var
+                        PurchaseHeader: Record "Purchase Header";
+                    begin
+                        PurchaseHeader := Rec;
+                        PurchaseHeader.SetRecFilter();
+                        Report.Run(Report::"Subc. Create Transf. Order", false, false, PurchaseHeader);
+                    end;
+                }
+                action(CreateReturnFromSubcontractor)
+                {
+                    ApplicationArea = Subcontracting;
+                    Caption = 'Create Return from Subcontractor';
+                    Image = ReturnRelated;
+                    ToolTip = 'Create a return document from the subcontractor.';
 
-                trigger OnAction()
-                var
-                    PurchaseHeader: Record "Purchase Header";
-                begin
-                    PurchaseHeader := Rec;
-                    PurchaseHeader.SetRecFilter();
-                    Report.Run(Report::"Subc. Create SubCReturnOrder", false, false, PurchaseHeader);
-                end;
-            }
-            action(PrintSubcDispatchingList)
-            {
-                ApplicationArea = Manufacturing;
-                Caption = 'Print Subcontractor Dispatching List';
-                Image = Print;
-                ToolTip = 'Print the dispatching list for the subcontractor.';
+                    trigger OnAction()
+                    var
+                        PurchaseHeader: Record "Purchase Header";
+                    begin
+                        PurchaseHeader := Rec;
+                        PurchaseHeader.SetRecFilter();
+                        Report.Run(Report::"Subc. Create SubCReturnOrder", false, false, PurchaseHeader);
+                    end;
+                }
+                action(PrintSubcDispatchingList)
+                {
+                    ApplicationArea = Subcontracting;
+                    Caption = 'Print Subcontractor Dispatching List';
+                    Image = Print;
+                    ToolTip = 'Print the dispatching list for the subcontractor.';
 
-                trigger OnAction()
-                var
-                    PurchaseHeader: Record "Purchase Header";
-                begin
-                    PurchaseHeader := Rec;
-                    PurchaseHeader.SetRecFilter();
-                    Report.Run(Report::"Subc. Dispatching List", true, false, PurchaseHeader);
-                end;
+                    trigger OnAction()
+                    var
+                        PurchaseHeader: Record "Purchase Header";
+                    begin
+                        PurchaseHeader := Rec;
+                        PurchaseHeader.SetRecFilter();
+                        Report.Run(Report::"Subc. Dispatching List", true, false, PurchaseHeader);
+                    end;
+                }
             }
         }
     }
     var
-        ShowSubcontractingFactBox: Boolean;
+        SubcontractingManagement: Codeunit "Subcontracting Management";
+#if not CLEAN29
+#pragma warning disable AL0432
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
+        SubcontractingEnabled: Boolean;
+#endif
+        HasSubcontractingContext: Boolean;
 
     trigger OnOpenPage()
     begin
-        ShowSubcontractingFactBox := SubcontractingInLines();
+#if not CLEAN29
+#pragma warning disable AL0432
+        SubcontractingEnabled := SubcFeatureFlagHandler.IsSubcontractingEnabled();
+#pragma warning restore AL0432
+        if not SubcontractingEnabled then
+            exit;
+#endif
+        HasSubcontractingContext := SubcontractingManagement.IsSubcontractingPurchaseDocument(Rec);
+        CurrPage.PurchLines.Page.SetIsSubcontracting(HasSubcontractingContext);
     end;
 
     trigger OnAfterGetCurrRecord()
     begin
-        ShowSubcontractingFactBox := SubcontractingInLines();
-    end;
+#if not CLEAN29
+        if not SubcontractingEnabled then
+            exit;
 
-    local procedure SubcontractingInLines(): Boolean
-    var
-        PurchaseLine: Record "Purchase Line";
-    begin
-        PurchaseLine.SetRange("Document Type", Rec."Document Type");
-        PurchaseLine.SetRange("Document No.", Rec."No.");
-        PurchaseLine.SetFilter("Work Center No.", '<>%1', '');
-        exit(not PurchaseLine.IsEmpty());
+#endif
+        HasSubcontractingContext := SubcontractingManagement.IsSubcontractingPurchaseDocument(Rec);
+        CurrPage.PurchLines.Page.SetIsSubcontracting(HasSubcontractingContext);
     end;
 }

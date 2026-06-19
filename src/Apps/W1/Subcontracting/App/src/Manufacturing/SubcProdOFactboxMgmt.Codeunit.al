@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
+using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Purchases.Document;
@@ -13,26 +14,55 @@ using System.Reflection;
 
 codeunit 99001559 "Subc. ProdO. Factbox Mgmt."
 {
+#if not CLEAN29
+    var
+#pragma warning disable AL0432
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
+
+#endif
     /// <summary>
-    /// Opens the Released Production Order page for the production order linked to the given variant record.
+    /// Opens the appropriate Production Order page (Released or Finished) for the production order linked to the given variant record.
     /// </summary>
     /// <param name="RecRelatedVariant">A record variant of a purchase or transfer document line.</param>
     procedure ShowProductionOrder(RecRelatedVariant: Variant)
     var
         ProductionOrder: Record "Production Order";
+        FinishedProductionOrder: Page "Finished Production Order";
         ReleasedProductionOrder: Page "Released Production Order";
         OperationNo: Code[10];
         ProdOrderNo: Code[20];
         RoutingNo: Code[20];
         ProdOrderLineNo: Integer;
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if not SetProdOrderInformationByVariant(RecRelatedVariant, ProdOrderNo, ProdOrderLineNo, RoutingNo, OperationNo) then
             exit;
-        ProductionOrder.SetRange(Status, ProductionOrder.Status::Released);
+        ProductionOrder.SetFilter(Status, '>=%1', ProductionOrder.Status::Released);
         ProductionOrder.SetRange("No.", ProdOrderNo);
-        ReleasedProductionOrder.SetTableView(ProductionOrder);
-        ReleasedProductionOrder.Editable := false;
-        ReleasedProductionOrder.Run();
+        if not ProductionOrder.FindFirst() then
+            exit;
+        case ProductionOrder.Status of
+            ProductionOrder.Status::Released:
+                begin
+                    ProductionOrder.SetRange(Status, ProductionOrder.Status::Released);
+                    ReleasedProductionOrder.SetTableView(ProductionOrder);
+                    ReleasedProductionOrder.Editable := false;
+                    ReleasedProductionOrder.Run();
+                end;
+            ProductionOrder.Status::Finished:
+                begin
+                    ProductionOrder.SetRange(Status, ProductionOrder.Status::Finished);
+                    FinishedProductionOrder.SetTableView(ProductionOrder);
+                    FinishedProductionOrder.Editable := false;
+                    FinishedProductionOrder.Run();
+                end;
+        end;
     end;
 
     /// <summary>
@@ -48,13 +78,15 @@ codeunit 99001559 "Subc. ProdO. Factbox Mgmt."
         RoutingNo: Code[20];
         ProdOrderLineNo: Integer;
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if not SetProdOrderInformationByVariant(RecRelatedVariant, ProdOrderNo, ProdOrderLineNo, RoutingNo, OperationNo) then
             exit;
-        ProdOrderRoutingLine.SetRange(Status, ProdOrderRoutingLine.Status::Released);
-        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProdOrderNo);
-        ProdOrderRoutingLine.SetRange("Routing Reference No.", ProdOrderLineNo);
-        ProdOrderRoutingLine.SetRange("Routing No.", RoutingNo);
-        ProdOrderRoutingLine.SetRange("Operation No.", OperationNo);
+        SetFilterProductionOrderRouting(ProdOrderRoutingLine, ProdOrderNo, ProdOrderLineNo, RoutingNo, OperationNo);
         ProdOrderRoutingLine.FindFirst();
         ProdOrderRouting.SetTableView(ProdOrderRoutingLine);
         ProdOrderRouting.Editable := false;
@@ -74,12 +106,26 @@ codeunit 99001559 "Subc. ProdO. Factbox Mgmt."
         RoutingNo: Code[20];
         ProdOrderLineNo: Integer;
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit(0);
+
+#endif
         if not SetProdOrderInformationByVariant(RecRelatedVariant, ProdOrderNo, ProdOrderLineNo, RoutingNo, OperationNo) then
             exit;
-        ProdOrderRoutingLine.SetRange(Status, ProdOrderRoutingLine.Status::Released);
+        SetFilterProductionOrderRouting(ProdOrderRoutingLine, ProdOrderNo, ProdOrderLineNo, RoutingNo, OperationNo);
+        exit(ProdOrderRoutingLine.Count());
+    end;
+
+    local procedure SetFilterProductionOrderRouting(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; ProdOrderNo: Code[20]; ProdOrderLineNo: Integer; RoutingNo: Code[20]; OperationNo: Code[10])
+    begin
+        ProdOrderRoutingLine.SetFilter(Status, '>=%1', ProdOrderRoutingLine.Status::Released);
         ProdOrderRoutingLine.SetRange("Prod. Order No.", ProdOrderNo);
         ProdOrderRoutingLine.SetRange("Routing Reference No.", ProdOrderLineNo);
-        exit(ProdOrderRoutingLine.Count());
+        ProdOrderRoutingLine.SetRange("Routing No.", RoutingNo);
+        ProdOrderRoutingLine.SetRange("Operation No.", OperationNo);
     end;
 
     /// <summary>
@@ -89,26 +135,21 @@ codeunit 99001559 "Subc. ProdO. Factbox Mgmt."
     procedure ShowProductionOrderComponents(RecRelatedVariant: Variant)
     var
         ProdOrderComponent: Record "Prod. Order Component";
-        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         PageManagement: Codeunit "Page Management";
         OperationNo: Code[10];
         ProdOrderNo: Code[20];
         RoutingNo: Code[20];
         ProdOrderLineNo: Integer;
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if not SetProdOrderInformationByVariant(RecRelatedVariant, ProdOrderNo, ProdOrderLineNo, RoutingNo, OperationNo) then
             exit;
-        ProdOrderRoutingLine.SetRange(Status, ProdOrderRoutingLine.Status::Released);
-        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProdOrderNo);
-        ProdOrderRoutingLine.SetRange("Routing Reference No.", ProdOrderLineNo);
-        ProdOrderRoutingLine.SetRange("Routing No.", RoutingNo);
-        ProdOrderRoutingLine.SetRange("Operation No.", OperationNo);
-        if ProdOrderRoutingLine.FindFirst() then
-            ProdOrderComponent.SetRange("Routing Link Code", ProdOrderRoutingLine."Routing Link Code");
-
-        ProdOrderComponent.SetRange(Status, ProdOrderComponent.Status::Released);
-        ProdOrderComponent.SetRange("Prod. Order No.", ProdOrderNo);
-        ProdOrderComponent.SetRange("Prod. Order Line No.", ProdOrderLineNo);
+        SetFilterProductionOrderComponents(ProdOrderComponent, ProdOrderNo, ProdOrderLineNo, RoutingNo, OperationNo);
         PageManagement.PageRun(ProdOrderComponent);
     end;
 
@@ -125,17 +166,41 @@ codeunit 99001559 "Subc. ProdO. Factbox Mgmt."
         RoutingNo: Code[20];
         ProdOrderLineNo: Integer;
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit(0);
+
+#endif
         if not SetProdOrderInformationByVariant(RecRelatedVariant, ProdOrderNo, ProdOrderLineNo, RoutingNo, OperationNo) then
             exit(0);
 
-        ProdOrderComponent.SetRange(Status, ProdOrderComponent.Status::Released);
+        SetFilterProductionOrderComponents(ProdOrderComponent, ProdOrderNo, ProdOrderLineNo, RoutingNo, OperationNo);
+        exit(ProdOrderComponent.Count());
+    end;
+
+    local procedure SetFilterProductionOrderComponents(var ProdOrderComponent: Record "Prod. Order Component"; ProdOrderNo: Code[20]; ProdOrderLineNo: Integer; RoutingNo: Code[20]; OperationNo: Code[10])
+    var
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+    begin
+        ProdOrderRoutingLine.SetLoadFields("Routing Link Code");
+        ProdOrderRoutingLine.SetFilter(Status, '>=%1', ProdOrderRoutingLine.Status::Released);
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProdOrderNo);
+        ProdOrderRoutingLine.SetRange("Routing Reference No.", ProdOrderLineNo);
+        ProdOrderRoutingLine.SetRange("Routing No.", RoutingNo);
+        ProdOrderRoutingLine.SetRange("Operation No.", OperationNo);
+        if ProdOrderRoutingLine.FindFirst() then
+            ProdOrderComponent.SetRange("Routing Link Code", ProdOrderRoutingLine."Routing Link Code");
+
+        ProdOrderComponent.SetFilter(Status, '>=%1', ProdOrderComponent.Status::Released);
         ProdOrderComponent.SetRange("Prod. Order No.", ProdOrderNo);
         ProdOrderComponent.SetRange("Prod. Order Line No.", ProdOrderLineNo);
-        exit(ProdOrderComponent.Count());
     end;
 
     local procedure SetProdOrderInformationByVariant(RecRelatedVariant: Variant; var ProdOrderNo: Code[20]; var ProdOrderLineNo: Integer; var RoutingNo: Code[20]; var OperationNo: Code[10]): Boolean
     var
+        ItemLedgerEntry: Record "Item Ledger Entry";
         PurchaseLine: Record "Purchase Line";
         PurchInvLine: Record "Purch. Inv. Line";
         PurchRcptLine: Record "Purch. Rcpt. Line";
@@ -184,28 +249,47 @@ codeunit 99001559 "Subc. ProdO. Factbox Mgmt."
             Database::"Transfer Line":
                 begin
                     ResultRecordRef.SetTable(TransferLine);
-                    ProdOrderNo := TransferLine."Prod. Order No.";
-                    ProdOrderLineNo := TransferLine."Prod. Order Line No.";
-                    RoutingNo := TransferLine."Routing No.";
-                    OperationNo := TransferLine."Operation No.";
+                    ProdOrderNo := TransferLine."Subc. Prod. Order No.";
+                    ProdOrderLineNo := TransferLine."Subc. Prod. Order Line No.";
+                    RoutingNo := TransferLine."Subc. Routing No.";
+                    OperationNo := TransferLine."Subc. Operation No.";
                 end;
             Database::"Transfer Shipment Line":
                 begin
                     ResultRecordRef.SetTable(TransferShipmentLine);
-                    ProdOrderNo := TransferShipmentLine."Prod. Order No.";
-                    ProdOrderLineNo := TransferShipmentLine."Prod. Order Line No.";
-                    RoutingNo := TransferShipmentLine."Routing No.";
-                    OperationNo := TransferShipmentLine."Operation No.";
+                    ProdOrderNo := TransferShipmentLine."Subc. Prod. Order No.";
+                    ProdOrderLineNo := TransferShipmentLine."Subc. Prod. Order Line No.";
+                    RoutingNo := TransferShipmentLine."Subc. Routing No.";
+                    OperationNo := TransferShipmentLine."Subc. Operation No.";
                 end;
             Database::"Transfer Receipt Line":
                 begin
                     ResultRecordRef.SetTable(TransferReceiptLine);
-                    ProdOrderNo := TransferReceiptLine."Prod. Order No.";
-                    ProdOrderLineNo := TransferReceiptLine."Prod. Order Line No.";
-                    RoutingNo := TransferReceiptLine."Routing No.";
-                    OperationNo := TransferReceiptLine."Operation No.";
+                    ProdOrderNo := TransferReceiptLine."Subc. Prod. Order No.";
+                    ProdOrderLineNo := TransferReceiptLine."Subc. Prod. Order Line No.";
+                    RoutingNo := TransferReceiptLine."Subc. Routing No.";
+                    OperationNo := TransferReceiptLine."Subc. Operation No.";
+                end;
+            Database::"Item Ledger Entry":
+                begin
+                    ResultRecordRef.SetTable(ItemLedgerEntry);
+                    ProdOrderNo := ItemLedgerEntry."Order No.";
+                    ProdOrderLineNo := ItemLedgerEntry."Order Line No.";
+                    OperationNo := ItemLedgerEntry."Subc. Operation No.";
+                    RoutingNo := GetRoutingNoFromProdOrderRoutingLine(ProdOrderNo, ProdOrderLineNo, OperationNo);
                 end;
         end;
         exit((ProdOrderNo <> '') and (ProdOrderLineNo <> 0));
+    end;
+
+    local procedure GetRoutingNoFromProdOrderRoutingLine(ProdOrderNo: Code[20]; ProdOrderLineNo: Integer; OperationNo: Code[10]): Code[20]
+    var
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+    begin
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProdOrderNo);
+        ProdOrderRoutingLine.SetRange("Routing Reference No.", ProdOrderLineNo);
+        ProdOrderRoutingLine.SetRange("Operation No.", OperationNo);
+        if ProdOrderRoutingLine.FindFirst() then
+            exit(ProdOrderRoutingLine."Routing No.");
     end;
 }

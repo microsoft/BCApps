@@ -12,14 +12,14 @@ pageextension 99001513 "Subc. ProdOrderCompLine" extends "Prod. Order Comp. Line
     {
         addlast(Control1)
         {
-            field("Subcontracting Type"; Rec."Subcontracting Type")
+            field("Component Supply Method"; Rec."Component Supply Method")
             {
-                ApplicationArea = Manufacturing;
-                ToolTip = 'Specifies the Type of Subcontracting that is assigned to the Production Component.';
+                ApplicationArea = Subcontracting;
+                ToolTip = 'Specifies how components are supplied to the subcontractor for the production component.';
             }
-            field("Routing Link Code"; Rec."Routing Link Code")
+            field("Subc. Routing Link Code"; Rec."Routing Link Code")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 ToolTip = 'Specifies the routing link code when you calculate the production order.';
             }
         }

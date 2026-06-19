@@ -15,7 +15,7 @@ pageextension 99001504 "Subc. Rel. Prod. Order" extends "Released Production Ord
         {
             action("Subcontracting Purchase Lines")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Caption = 'Subcontracting Order Lines';
                 Image = SubcontractingWorksheet;
                 RunObject = page "Purchase Lines";
@@ -25,16 +25,46 @@ pageextension 99001504 "Subc. Rel. Prod. Order" extends "Released Production Ord
         }
         addafter("Item Ledger E&ntries")
         {
-            action("Subcontracting Transfer Entries")
+            action("Subc. Transfer Entries")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Caption = 'Subcontracting Transfer Entries';
                 Image = ItemLedger;
                 RunObject = page "Item Ledger Entries";
                 RunPageLink = "Entry Type" = const(Transfer),
-                                      "Prod. Order No." = field("No.");
+                                      "Subc. Prod. Order No." = field("No.");
                 RunPageView = sorting("Order Type", "Order No.");
                 ToolTip = 'View the list of subcontracting transfers.';
+            }
+            action("WIP Ledger Entries")
+            {
+                ApplicationArea = Subcontracting;
+                Caption = 'Subcontracting WIP Entries';
+                Image = LedgerEntries;
+                RunObject = page "Subc. WIP Ledger Entries";
+                RunPageLink = "Prod. Order Status" = field(Status), "Prod. Order No." = field("No.");
+                ToolTip = 'View the Subcontracting WIP Entries for this production order.';
+            }
+        }
+        addlast("F&unctions")
+        {
+            action("WIP Adjustment")
+            {
+                ApplicationArea = Subcontracting;
+                Caption = 'WIP Adjustment';
+                Image = AdjustEntries;
+                ToolTip = 'Manually adjust the WIP quantities for all routing operations of this production order.';
+
+                trigger OnAction()
+                var
+                    WIPLedgerEntry: Record "Subcontractor WIP Ledger Entry";
+                    WIPAdjustmentPage: Page "Subc. WIP Adjustment";
+                begin
+                    WIPLedgerEntry.SetProductionOrderFilter(Rec, true);
+                    WIPAdjustmentPage.SetWIPLedgerEntry(WIPLedgerEntry);
+                    WIPAdjustmentPage.SetDocumentNo(Rec."No.");
+                    WIPAdjustmentPage.RunModal();
+                end;
             }
         }
     }

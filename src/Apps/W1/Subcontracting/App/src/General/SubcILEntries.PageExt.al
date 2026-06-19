@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -12,27 +12,27 @@ pageextension 99001501 "Subc. ILEntries" extends "Item Ledger Entries"
     {
         addlast(Control1)
         {
-            field("Subcontr. Purch. Order No."; Rec."Subcontr. Purch. Order No.")
+            field("Subc. Purch. Order No."; Rec."Subc. Purch. Order Line No.")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 ToolTip = 'Specifies the number of the related purchase order.';
                 Visible = false;
             }
-            field("Subcontr. PO Line No."; Rec."Subcontr. PO Line No.")
+            field("Subc. Purch. Order Line No."; Rec."Subc. Purch. Order Line No.")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 ToolTip = 'Specifies the number of the related purchase order line.';
                 Visible = false;
             }
-            field("Prod. Order No."; Rec."Prod. Order No.")
+            field("Prod. Order No."; Rec."Subc. Prod. Order No.")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 ToolTip = 'Specifies the number of the related production order.';
                 Visible = false;
             }
-            field("Prod. Order Line No."; Rec."Prod. Order Line No.")
+            field("Prod. Order Line No."; Rec."Subc. Prod. Order Line No.")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 ToolTip = 'Specifies the number of the related production order line.';
                 Visible = false;
             }
@@ -47,7 +47,7 @@ pageextension 99001501 "Subc. ILEntries" extends "Item Ledger Entries"
                 Caption = 'Production';
                 action("Production Order")
                 {
-                    ApplicationArea = Manufacturing;
+                    ApplicationArea = Subcontracting;
                     Caption = 'Production Order';
                     Image = Production;
                     ToolTip = 'View the related production order.';
@@ -58,7 +58,7 @@ pageextension 99001501 "Subc. ILEntries" extends "Item Ledger Entries"
                 }
                 action("Production Order Routing")
                 {
-                    ApplicationArea = Manufacturing;
+                    ApplicationArea = Subcontracting;
                     Caption = 'Production Order Routing';
                     Image = Route;
                     ToolTip = 'View the related production order routing.';
@@ -69,7 +69,7 @@ pageextension 99001501 "Subc. ILEntries" extends "Item Ledger Entries"
                 }
                 action("Production Order Components")
                 {
-                    ApplicationArea = Manufacturing;
+                    ApplicationArea = Subcontracting;
                     Caption = 'Production Order Components';
                     Image = Components;
                     ToolTip = 'View the related production order components.';
@@ -80,7 +80,7 @@ pageextension 99001501 "Subc. ILEntries" extends "Item Ledger Entries"
                 }
                 action("Purchase Order")
                 {
-                    ApplicationArea = Manufacturing;
+                    ApplicationArea = Subcontracting;
                     Caption = 'Subcontracting Purchase Order';
                     Image = Order;
                     ToolTip = 'View the related subcontracting purchase order.';

@@ -38,7 +38,19 @@ tableextension 99001520 "Subc. Transfer Header" extends "Transfer Header"
             Caption = 'Source ID';
             DataClassification = CustomerContent;
             trigger OnLookup()
+#if not CLEAN29
+            var
+#pragma warning disable AL0432
+                SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
+#endif
             begin
+#if not CLEAN29
+#pragma warning disable AL0432
+                if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+                    exit;
+#endif
                 HandleSubcontractingSourceLookup(Rec);
             end;
         }
@@ -47,12 +59,12 @@ tableextension 99001520 "Subc. Transfer Header" extends "Transfer Header"
             Caption = 'Source Ref. No.';
             DataClassification = CustomerContent;
         }
-        field(99001540; "Source Type"; Enum "Transfer Source Type")
+        field(99001540; "Subc. Source Type"; Enum "Transfer Source Type")
         {
             Caption = 'Source Type';
             DataClassification = CustomerContent;
         }
-        field(99001541; "Return Order"; Boolean)
+        field(99001541; "Subc. Return Order"; Boolean)
         {
             Caption = 'Return Order';
             DataClassification = CustomerContent;
@@ -61,7 +73,7 @@ tableextension 99001520 "Subc. Transfer Header" extends "Transfer Header"
     keys
     {
         key(Key99001500; "Subcontr. Purch. Order No.") { }
-        key(Key99001501; "Source ID", "Source Type", "Source Subtype") { }
+        key(Key99001501; "Source ID", "Subc. Source Type", "Source Subtype") { }
     }
 
     local procedure HandleSubcontractingSourceLookup(var TransferHeader: Record "Transfer Header")
@@ -70,7 +82,7 @@ tableextension 99001520 "Subc. Transfer Header" extends "Transfer Header"
         Item: Record Item;
         Vendor: Record Vendor;
     begin
-        if TransferHeader."Source Type" = TransferHeader."Source Type"::Subcontracting then
+        if TransferHeader."Subc. Source Type" = TransferHeader."Subc. Source Type"::Subcontracting then
             case TransferHeader."Source Subtype" of
                 TransferHeader."Source Subtype"::"1":
                     begin
@@ -91,7 +103,19 @@ tableextension 99001520 "Subc. Transfer Header" extends "Transfer Header"
     end;
 
     procedure CheckDirectTransferPosting()
+#if not CLEAN29
+    var
+#pragma warning disable AL0432
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
+#endif
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         TestField("Transfer-to Code");
     end;
 }

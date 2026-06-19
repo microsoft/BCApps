@@ -5,6 +5,8 @@
 namespace Microsoft.Manufacturing.Subcontracting.Test;
 
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Requisition;
 #if CLEAN27
 using Microsoft.Inventory.Setup;
@@ -22,6 +24,7 @@ codeunit 139984 "Subc. Library Mfg. Management"
 {
     var
         LibraryERM: Codeunit "Library - ERM";
+        LibraryInventory: Codeunit "Library - Inventory";
         LibraryManufacturing: Codeunit "Library - Manufacturing";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryRandom: Codeunit "Library - Random";
@@ -202,18 +205,18 @@ codeunit 139984 "Subc. Library Mfg. Management"
         exit(ProdOrderRoutingLine."Routing Reference No.");
     end;
 
-    procedure CreateLaborReqWkshTemplateAndNameAndUpdateSetup()
+    procedure CreateSubcontractingReqWkshTemplateAndNameAndUpdateSetup()
     var
         ReqWkshTemplate: Record "Req. Wksh. Template";
         RequisitionWkshName: Record "Requisition Wksh. Name";
-        SubMgmtSetup: Record "Subc. Management Setup";
+        ManufacturingSetup: Record "Manufacturing Setup";
     begin
         CreateReqWkshTemplate(ReqWkshTemplate, false);
         CreateRequisitionWkshName(RequisitionWkshName, ReqWkshTemplate.Name);
-        SubMgmtSetup.Get();
-        SubMgmtSetup."Subcontracting Template Name" := ReqWkshTemplate.Name;
-        SubMgmtSetup."Subcontracting Batch Name" := RequisitionWkshName.Name;
-        SubMgmtSetup.Modify();
+        ManufacturingSetup.Get();
+        ManufacturingSetup."Subcontracting Template Name" := ReqWkshTemplate.Name;
+        ManufacturingSetup."Subcontracting Batch Name" := RequisitionWkshName.Name;
+        ManufacturingSetup.Modify();
     end;
 
     procedure CreateReqWkshTemplate(var ReqWkshTemplate: Record "Req. Wksh. Template"; Recurring: Boolean)
@@ -242,6 +245,40 @@ codeunit 139984 "Subc. Library Mfg. Management"
             LibraryUtility.GenerateRandomCode(RequisitionWkshName.FieldNo(Name), Database::"Requisition Wksh. Name"),
             1, LibraryUtility.GetFieldLength(Database::"Requisition Wksh. Name", RequisitionWkshName.FieldNo(Name))));
         RequisitionWkshName.Insert(true);
+    end;
+
+    procedure PostConsumptionForComponent(ProdOrderLine: Record "Prod. Order Line"; ProdOrderComponent: Record "Prod. Order Component"; ComponentItem: Record Item; Qty: Decimal)
+    var
+        ItemJournalBatch: Record "Item Journal Batch";
+        ItemJournalLine: Record "Item Journal Line";
+    begin
+        LibraryManufacturing.CreateConsumptionJournalLine(
+            ItemJournalBatch, ProdOrderLine, ComponentItem, WorkDate(),
+            ProdOrderComponent."Location Code", '', Qty, 0);
+        ItemJournalLine.SetRange("Journal Template Name", ItemJournalBatch."Journal Template Name");
+        ItemJournalLine.SetRange("Journal Batch Name", ItemJournalBatch.Name);
+        ItemJournalLine.FindFirst();
+        ItemJournalLine.Validate("Prod. Order Comp. Line No.", ProdOrderComponent."Line No.");
+        ItemJournalLine.Modify(true);
+        LibraryInventory.PostItemJournalBatch(ItemJournalBatch);
+    end;
+
+    procedure PostConsumptionForAllComponents(var ProdOrderComponent: Record "Prod. Order Component")
+    var
+        ComponentItem: Record Item;
+        ProdOrderLine: Record "Prod. Order Line";
+    begin
+        if ProdOrderComponent.FindSet() then
+            repeat
+                ComponentItem.Get(ProdOrderComponent."Item No.");
+                ProdOrderLine.Get(ProdOrderComponent.Status, ProdOrderComponent."Prod. Order No.", ProdOrderComponent."Prod. Order Line No.");
+                PostConsumptionForComponent(ProdOrderLine, ProdOrderComponent, ComponentItem, ProdOrderComponent."Expected Quantity");
+            until ProdOrderComponent.Next() = 0;
+    end;
+
+    procedure PostOutputForProdOrderLine(ProdOrderLine: Record "Prod. Order Line"; Qty: Decimal)
+    begin
+        LibraryManufacturing.PostOutput(ProdOrderLine, Qty, WorkDate(), 0);
     end;
 
     procedure CreateProdOrderRtngCommentLine(Stat: Enum "Production Order Status"; ProdOrderNo: Code[20]; RoutingRefNo: Integer; RoutingNo: Code[20]; OperationNo: Code[10])

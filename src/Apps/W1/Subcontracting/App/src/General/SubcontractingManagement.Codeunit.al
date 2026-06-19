@@ -1,18 +1,13 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Foundation.Company;
-using Microsoft.Inventory.Item;
-using Microsoft.Inventory.Journal;
-using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Planning;
 using Microsoft.Inventory.Requisition;
-using Microsoft.Inventory.Tracking;
-using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.Routing;
@@ -25,54 +20,65 @@ using System.Utilities;
 codeunit 99001505 "Subcontracting Management"
 {
     var
-        SubcManagementSetup: Record "Subc. Management Setup";
-        TempGlobalReservationEntry: Record "Reservation Entry" temporary;
-        HasSubManagementSetup: Boolean;
+        ManufacturingSetup: Record "Manufacturing Setup";
+#if not CLEAN29
+#pragma warning disable AL0432
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
+#endif
+        RoutingLinkUpdConfQst: Label 'If you change the Work Center, you will also change the default location for components with Routing Link Code=%1.\Do you want to continue anyway?', Comment = '%1=Routing Link Code';
+        SuccessfullyUpdatedMsg: Label 'Successfully updated.';
+        UpdateIsCancelledErr: Label 'Update cancelled.';
+        UpdateIsCanceledErr: Label 'The update is canceled.';
+        WorkCenterVendorDoesntExistErr: Label 'Subcontractor %1 on Work Center %2 does not exist.', Comment = 'Parameter %1 - subcontractor/vendor number, %2 - work center number.';
+        PurchOrderExistErr: Label 'The currently selected component %1 is already used in Purchase Order %2. Therefore, it is not permitted to change the %3 field.', Comment = '%1=Item No, %2=Purchase Order No, %3=Field Caption';
+        HasManufacturingSetup: Boolean;
 
-    procedure CalcReceiptDateFromProdCompDueDateWithInbWhseHandlingTime(ProdOrderComponent: Record "Prod. Order Component") ReceiptDate: Date
+    procedure ChangeLocationOnProdOrderComponent(var ProdOrderComponent: Record "Prod. Order Component"; VendorSubcontrLocation: Code[10]; OriginalLocationCode: Code[10]; OriginalBinCode: Code[20])
     begin
-        GetSubmanagementSetup();
-        if not HasSubManagementSetup or (Format(SubcManagementSetup."Subc. Inb. Whse. Handling Time") = '') then
-            exit(ProdOrderComponent."Due Date");
-
-        ReceiptDate := CalcDate('-' + Format(SubcManagementSetup."Subc. Inb. Whse. Handling Time"), ProdOrderComponent."Due Date");
-
-        exit(ReceiptDate);
-    end;
-
-    procedure ChangeLocation_OnProdOrderComponent(var ProdOrderComponent: Record "Prod. Order Component"; VendorSubcontrLocation: Code[10]; OriginalLocationCode: Code[10]; OriginalBinCode: Code[20])
-    begin
-        case ProdOrderComponent."Subcontracting Type" of
-            "Subcontracting Type"::InventoryByVendor,
-            "Subcontracting Type"::Purchase:
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        case ProdOrderComponent."Component Supply Method" of
+            "Component Supply Method"::"Consignment at Vendor",
+            "Component Supply Method"::"Vendor-Supplied":
                 if (VendorSubcontrLocation <> '') and (ProdOrderComponent."Location Code" <> VendorSubcontrLocation) then
                     ProdOrderComponent.Validate("Location Code", VendorSubcontrLocation);
 
-            "Subcontracting Type"::Transfer,
-            "Subcontracting Type"::Empty:
+            "Component Supply Method"::"Transfer to Vendor",
+            "Component Supply Method"::Empty:
                 begin
                     if (ProdOrderComponent."Location Code" <> OriginalLocationCode) and (OriginalLocationCode <> '') then begin
                         ProdOrderComponent.Validate("Location Code", OriginalLocationCode);
-                        ProdOrderComponent."Orig. Location Code" := '';
+                        ProdOrderComponent."Subc. Original Location Code" := '';
                     end;
                     if (ProdOrderComponent."Bin Code" <> OriginalBinCode) and (OriginalBinCode <> '') then begin
                         ProdOrderComponent.Validate("Bin Code", OriginalBinCode);
-                        ProdOrderComponent."Orig. Bin Code" := '';
+                        ProdOrderComponent."Subc. Orig. Bin Code" := '';
                     end;
                 end;
         end;
     end;
 
-    procedure ChangeLocation_OnPlanningComponent(var PlanningComponent: Record "Planning Component"; VendorSubcontrLocation: Code[10]; OriginalLocationCode: Code[10]; OriginalBinCode: Code[20])
+    procedure ChangeLocationOnPlanningComponent(var PlanningComponent: Record "Planning Component"; VendorSubcontrLocation: Code[10]; OriginalLocationCode: Code[10]; OriginalBinCode: Code[20])
     begin
-        case PlanningComponent."Subcontracting Type" of
-            "Subcontracting Type"::InventoryByVendor,
-            "Subcontracting Type"::Purchase:
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        case PlanningComponent."Component Supply Method" of
+            "Component Supply Method"::"Consignment at Vendor",
+            "Component Supply Method"::"Vendor-Supplied":
                 if (VendorSubcontrLocation <> '') and (PlanningComponent."Location Code" <> VendorSubcontrLocation) then
                     PlanningComponent.Validate("Location Code", VendorSubcontrLocation);
 
-            "Subcontracting Type"::Transfer,
-            "Subcontracting Type"::Empty:
+            "Component Supply Method"::"Transfer to Vendor",
+            "Component Supply Method"::Empty:
                 begin
                     if (PlanningComponent."Location Code" <> OriginalLocationCode) and (OriginalLocationCode <> '') then begin
                         PlanningComponent.Validate("Location Code", OriginalLocationCode);
@@ -86,44 +92,6 @@ codeunit 99001505 "Subcontracting Management"
         end;
     end;
 
-    procedure CheckDirectTransferIsAllowedForTransferHeader(TransferHeader: Record "Transfer Header")
-    begin
-        TransferHeader.CheckDirectTransferPosting();
-    end;
-
-    procedure CreatePurchProvisionRoutingLine(RoutingHeader: Record "Routing Header")
-    var
-        RoutingLine: Record "Routing Line";
-        Vendor: Record Vendor;
-        SubcSessionState: Codeunit "Subc. Session State";
-        RoutingLinkCode: Code[10];
-        WorkCenterNo: Code[20];
-    begin
-        GetSubmanagementSetup();
-        if HasSubManagementSetup then
-            RoutingLinkCode := SubcManagementSetup."Rtng. Link Code Purch. Prov.";
-
-        Vendor.SetLoadFields("Work Center No.");
-        if Vendor.Get(SubcSessionState.GetCode(GetKeyCreateProdOrderProcess())) then
-            WorkCenterNo := Vendor."Work Center No.";
-
-        if WorkCenterNo = '' then
-            WorkCenterNo := SubcManagementSetup."Common Work Center No.";
-
-        if WorkCenterNo = '' then
-            exit;
-
-        RoutingLine.Init();
-        RoutingLine."Routing No." := RoutingHeader."No.";
-        RoutingLine."Operation No." := '01';
-        RoutingLine.Type := "Capacity Type Routing"::"Work Center";
-        RoutingLine.Validate("No.", WorkCenterNo);
-        if RoutingLinkCode <> '' then
-            RoutingLine."Routing Link Code" := RoutingLinkCode;
-
-        RoutingLine.Insert();
-    end;
-
     procedure DelLocationLinkedComponents(ProdOrderRoutingLine: Record "Prod. Order Routing Line"; ShowMsg: Boolean)
     var
         ProdOrderComponent: Record "Prod. Order Component";
@@ -131,11 +99,13 @@ codeunit 99001505 "Subcontracting Management"
         StockkeepingUnit: Record "Stockkeeping Unit";
         ConfirmManagement: Codeunit "Confirm Management";
         PlanningGetParameters: Codeunit "Planning-Get Parameters";
-        RoutingLinkUpdConfQst: Label 'If you change the Work Center, you will also change the default location for components with Routing Link Code=%1.\Do you want to continue anyway?', Comment = '%1=Routing Link Code';
-        SuccessfullyUpdatedMsg: Label 'Successfully updated.';
-        UpdateIsCancelledErr: Label 'Update cancelled.';
     begin
-
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         ProdOrderComponent.SetRange(Status, ProdOrderRoutingLine.Status);
         ProdOrderComponent.SetRange("Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
         ProdOrderComponent.SetRange("Prod. Order Line No.", ProdOrderRoutingLine."Routing Reference No.");
@@ -163,18 +133,18 @@ codeunit 99001505 "Subcontracting Management"
         end;
     end;
 
-    procedure GetKeyCreateProdOrderProcess(): Text
-    begin
-        exit('Sub_CreateProdOrderProcess');
-    end;
-
     procedure GetSubcontractor(WorkCenterNo: Code[20]; var Vendor: Record Vendor): Boolean
     var
         WorkCenter: Record "Work Center";
         HasSubcontractor, IsHandled : Boolean;
-        WorkCenterVendorDoesntExistErr: Label 'Subcontractor %1 on Work Center %2 does not exist.',
-            Comment = 'Parameter %1 - subcontractor/vendor number, %2 - work center number.';
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit(false);
+
+#endif
         OnBeforeGetSubcontractor(WorkCenterNo, Vendor, HasSubcontractor, IsHandled);//DO NOT DELETE
         if IsHandled then
             exit(HasSubcontractor);
@@ -182,28 +152,23 @@ codeunit 99001505 "Subcontracting Management"
         WorkCenter.SetLoadFields("Subcontractor No.");
         WorkCenter.Get(WorkCenterNo);
         if WorkCenter."Subcontractor No." <> '' then begin
-            Vendor.SetLoadFields("Subcontr. Location Code");
+            Vendor.SetLoadFields("Subc. Location Code");
             if not Vendor.Get(WorkCenter."Subcontractor No.") then
                 Error(WorkCenterVendorDoesntExistErr, WorkCenter."Subcontractor No.", WorkCenter."No.");
-            Vendor.TestField("Subcontr. Location Code");
+            Vendor.TestField("Subc. Location Code");
             exit(true);
         end;
         exit(false);
     end;
 
-    procedure HandleCommonWorkCenter(ItemJournalLine: Record "Item Journal Line"): Boolean
-    begin
-        if ItemJournalLine."Work Center No." = '' then
-            exit(false);
-        GetSubmanagementSetup();
-        if SubcManagementSetup."Common Work Center No." = ItemJournalLine."Work Center No." then
-            exit(true);
-
-        exit(false);
-    end;
-
     procedure UpdateSubcontractorPriceForRequisitionLine(var RequisitionLine: Record "Requisition Line")
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if IsSubcontracting(RequisitionLine."Work Center No.") then
             RequisitionLine.UpdateSubcontractorPrice();
     end;
@@ -212,6 +177,12 @@ codeunit 99001505 "Subcontracting Management"
     var
         WorkCenter: Record "Work Center";
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if ProdOrderRoutingLine.Type <> "Capacity Type"::"Work Center" then
             exit;
 
@@ -226,171 +197,19 @@ codeunit 99001505 "Subcontracting Management"
         UpdLinkedComponents(ProdOrderRoutingLine, false);
     end;
 
-    procedure TransferReservationEntryFromProdOrderCompToTransferOrder(TransferLine: Record "Transfer Line"; ProdOrderComponent: Record "Prod. Order Component")
-    var
-        ReservationEntry: Record "Reservation Entry";
-        TempReservationEntry: Record "Reservation Entry" temporary;
-        ProdOrderCompReserve: Codeunit "Prod. Order Comp.-Reserve";
-    begin
-        TempGlobalReservationEntry.Reset();
-        TempGlobalReservationEntry.DeleteAll();
-
-        if not ProdOrderCompReserve.FindReservEntry(ProdOrderComponent, ReservationEntry) then
-            exit;
-
-        if ReservationEntry.FindSet() then
-            repeat
-                TempGlobalReservationEntry := ReservationEntry;
-                TempGlobalReservationEntry.Insert();
-            until ReservationEntry.Next() = 0;
-
-        TempReservationEntry.Copy(TempGlobalReservationEntry, true);
-
-        ReservationEntry.TransferReservations(
-         ReservationEntry,
-         TransferLine."Item No.",
-         TransferLine."Variant Code",
-         TransferLine."Transfer-from Code",
-         true,
-         0,
-         TransferLine."Qty. per Unit of Measure",
-         Database::"Transfer Line",
-         0,  // Direction::Outbound
-         TransferLine."Document No.",
-         '',
-         0,
-         TransferLine."Line No.");
-    end;
-
-    procedure CreateReservEntryForTransferReceiptToProdOrderComp(
-     TransferLine: Record "Transfer Line";
-     ProdOrderComponent: Record "Prod. Order Component")
-    var
-        Item: Record Item;
-        TempTrackingSpecification: Record "Tracking Specification" temporary;
-        CreateReservEntry: Codeunit "Create Reserv. Entry";
-    begin
-        TempGlobalReservationEntry.SetRange("Reservation Status", TempGlobalReservationEntry."Reservation Status"::Reservation);
-        if not TempGlobalReservationEntry.FindSet() then
-            exit;
-
-        repeat
-            if TempGlobalReservationEntry.GetItemTrackingEntryType() <> "Item Tracking Entry Type"::None then
-                if Item.Get(TempGlobalReservationEntry."Item No.") then begin
-                    TempGlobalReservationEntry."Location Code" := ProdOrderComponent."Location Code";
-                    CreateReservEntry.CreateReservEntryFor(
-                        Database::"Transfer Line",
-                        1,  // Direction::Inbound
-                        TransferLine."Document No.",
-                        '',
-                        TransferLine."Derived From Line No.",
-                        TransferLine."Line No.",
-                        TransferLine."Qty. per Unit of Measure",
-                        Abs(TempGlobalReservationEntry.Quantity),
-                        Abs(TempGlobalReservationEntry."Quantity (Base)"),
-                        TempGlobalReservationEntry);
-
-                    TempTrackingSpecification.Init();
-                    TempTrackingSpecification.SetSource(
-                        Database::"Prod. Order Component",
-                        ProdOrderComponent.Status.AsInteger(),
-                        ProdOrderComponent."Prod. Order No.",
-                        ProdOrderComponent."Line No.",
-                        '',
-                        ProdOrderComponent."Prod. Order Line No.");
-                    TempTrackingSpecification."Qty. per Unit of Measure" := ProdOrderComponent."Qty. per Unit of Measure";
-                    TempTrackingSpecification.CopyTrackingFromReservEntry(TempGlobalReservationEntry);
-
-                    CreateReservEntry.CreateReservEntryFrom(TempTrackingSpecification);
-
-                    CreateReservEntry.CreateEntry(
-                        TempGlobalReservationEntry."Item No.",
-                        TempGlobalReservationEntry."Variant Code",
-                        TransferLine."Transfer-to Code",
-                        TempGlobalReservationEntry.Description,
-                        TransferLine."Receipt Date",
-                        ProdOrderComponent."Due Date",
-                        0,
-                        TempGlobalReservationEntry."Reservation Status");
-                end;
-        until TempGlobalReservationEntry.Next() = 0;
-    end;
-
-    procedure TransferReservationEntryFromPstTransferLineToProdOrderComp(var TransferReceiptLine: Record "Transfer Receipt Line")
-    var
-        ItemLedgerEntry: Record "Item Ledger Entry";
-        ProdOrderComponent: Record "Prod. Order Component";
-        TempForReservationEntry: Record "Reservation Entry" temporary;
-        TempTrackingSpecification: Record "Tracking Specification" temporary;
-        ProdOrderCompReserve: Codeunit "Prod. Order Comp.-Reserve";
-    begin
-        if (TransferReceiptLine."Prod. Order No." = '') or (TransferReceiptLine."Operation No." = '') then
-            exit;
-        if not ProdOrderComponent.Get("Production Order Status"::Released, TransferReceiptLine."Prod. Order No.", TransferReceiptLine."Prod. Order Line No.", TransferReceiptLine."Prod. Order Comp. Line No.") then
-            exit;
-        ItemLedgerEntry.SetCurrentKey("Item No.", Open, "Variant Code", Positive, "Expiration Date", "Lot No.", "Serial No.");
-        ItemLedgerEntry.SetRange("Item No.", TransferReceiptLine."Item No.");
-        ItemLedgerEntry.SetRange(Open, true);
-        ItemLedgerEntry.SetRange(Positive, true);
-        ItemLedgerEntry.SetRange("Document No.", TransferReceiptLine."Document No.");
-        ItemLedgerEntry.SetRange("Document Line No.", TransferReceiptLine."Line No.");
-        ItemLedgerEntry.SetRange("Location Code", TransferReceiptLine."Transfer-to Code");
-        ItemLedgerEntry.SetLoadFields("Serial No.", "Lot No.", "Package No.", "Variant Code", "Location Code", "Qty. per Unit of Measure", Quantity);
-        if not ItemLedgerEntry.IsEmpty() then begin
-            ItemLedgerEntry.FindSet();
-            repeat
-                if (ItemLedgerEntry."Lot No." <> '') or (ItemLedgerEntry."Serial No." <> '') or (ItemLedgerEntry."Package No." <> '') then begin
-                    if not TempTrackingSpecification.IsEmpty() then
-                        TempTrackingSpecification.DeleteAll();
-                    TempTrackingSpecification."Source Type" := Database::"Item Ledger Entry";
-                    TempTrackingSpecification."Source Subtype" := 0;
-                    TempTrackingSpecification."Source ID" := '';
-                    TempTrackingSpecification."Source Batch Name" := '';
-                    TempTrackingSpecification."Source Prod. Order Line" := 0;
-                    TempTrackingSpecification."Source Ref. No." := ItemLedgerEntry."Entry No.";
-                    TempTrackingSpecification."Variant Code" := ItemLedgerEntry."Variant Code";
-                    TempTrackingSpecification."Location Code" := ItemLedgerEntry."Location Code";
-                    TempTrackingSpecification."Serial No." := ItemLedgerEntry."Serial No.";
-                    TempTrackingSpecification."Lot No." := ItemLedgerEntry."Lot No.";
-                    TempTrackingSpecification."Package No." := ItemLedgerEntry."Package No.";
-                    TempTrackingSpecification."Qty. per Unit of Measure" := ItemLedgerEntry."Qty. per Unit of Measure";
-                    TempTrackingSpecification.Insert();
-
-                    ProdOrderCompReserve.CreateReservationSetFrom(TempTrackingSpecification);
-                    TempForReservationEntry.CopyTrackingFromSpec(TempTrackingSpecification);
-                    ProdOrderCompReserve.CreateReservation(
-                      ProdOrderComponent,
-                      ProdOrderComponent.Description,
-                      ProdOrderComponent."Due Date",
-                      ItemLedgerEntry.Quantity,
-                      ItemLedgerEntry.Quantity * ItemLedgerEntry."Qty. per Unit of Measure",
-                      TempForReservationEntry);
-                end;
-            until ItemLedgerEntry.Next() = 0;
-        end;
-    end;
-
-    procedure UpdateLocationCodeInProdOrderCompAfterDeleteTransferLine(var TransferLine: Record "Transfer Line")
-    var
-        ProdOrderComponent: Record "Prod. Order Component";
-    begin
-        if ProdOrderComponent.Get("Production Order Status"::Released, TransferLine."Prod. Order No.", TransferLine."Prod. Order Line No.", TransferLine."Prod. Order Comp. Line No.") then
-            if ProdOrderComponent."Orig. Location Code" <> '' then begin
-                ChangeLocation_OnProdOrderComponent(ProdOrderComponent, '', ProdOrderComponent."Orig. Location Code", ProdOrderComponent."Orig. Bin Code");
-                ProdOrderComponent."Orig. Location Code" := '';
-                ProdOrderComponent."Orig. Bin Code" := '';
-
-                ProdOrderComponent.Modify();
-            end;
-    end;
-
-    procedure UpdateSubcontractingTypeForPlanningComponent(var PlanningComponent: Record "Planning Component")
+    procedure UpdateComponentSupplyMethodForPlanningComponent(var PlanningComponent: Record "Planning Component")
     var
         PlanningRoutingLine: Record "Planning Routing Line";
         Vendor: Record Vendor;
         OrigLocationCode, VendorSubcontractingLocationCode : Code[10];
         OrigBinCode: Code[20];
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if PlanningComponent."Routing Link Code" = '' then
             exit;
 
@@ -405,18 +224,18 @@ codeunit 99001505 "Subcontracting Management"
 
             if not GetSubcontractor(PlanningRoutingLine."No.", Vendor) then
                 Clear(Vendor);
-            if PlanningComponent."Subcontracting Type" in ["Subcontracting Type"::InventoryByVendor, "Subcontracting Type"::Purchase] then
-                VendorSubcontractingLocationCode := Vendor."Subcontr. Location Code";
+            if PlanningComponent."Component Supply Method" in ["Component Supply Method"::"Consignment at Vendor", "Component Supply Method"::"Vendor-Supplied"] then
+                VendorSubcontractingLocationCode := Vendor."Subc. Location Code";
             OrigLocationCode := PlanningComponent."Orig. Location Code";
             OrigBinCode := PlanningComponent."Orig. Bin Code";
 
-            ChangeLocation_OnPlanningComponent(PlanningComponent, VendorSubcontractingLocationCode, OrigLocationCode, OrigBinCode);
+            ChangeLocationOnPlanningComponent(PlanningComponent, VendorSubcontractingLocationCode, OrigLocationCode, OrigBinCode);
 
             PlanningComponent.Modify();
         end;
     end;
 
-    procedure UpdateSubcontractingTypeForProdOrderComponent(var ProdOrderComponent: Record "Prod. Order Component")
+    procedure UpdateComponentSupplyMethodForProdOrderComponent(var ProdOrderComponent: Record "Prod. Order Component")
     var
         ProdOrderLine: Record "Prod. Order Line";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
@@ -427,8 +246,13 @@ codeunit 99001505 "Subcontracting Management"
         OrigLocationCode, VendorSubcontractingLocationCode : Code[10];
         OrigBinCode: Code[20];
         PurchOrderNo: Code[20];
-        PurchOrderExistErr: Label 'The currently selected component %1 is already used in Purchase Order %2. Therefore, it is not permitted to change the %3 field.', Comment = '%1=Item No, %2=Purchase Order No, %3=Field Caption';
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if ProdOrderComponent."Routing Link Code" = '' then
             exit;
 
@@ -457,19 +281,19 @@ codeunit 99001505 "Subcontracting Management"
                     end;
                 until (PurchaseLine.Next() = 0) or ProdOrderCompFound;
             if ProdOrderCompFound then
-                Error(PurchOrderExistErr, ProdOrderComponent."Item No.", PurchOrderNo, ProdOrderComponent.FieldCaption(ProdOrderComponent."Subcontracting Type"));
+                Error(PurchOrderExistErr, ProdOrderComponent."Item No.", PurchOrderNo, ProdOrderComponent.FieldCaption(ProdOrderComponent."Component Supply Method"));
 
             if ProdOrderRoutingLine.Type = "Capacity Type"::"Work Center" then begin
                 if not GetSubcontractor(ProdOrderRoutingLine."No.", Vendor) then
                     Clear(Vendor);
 
-                VendorSubcontractingLocationCode := Vendor."Subcontr. Location Code";
-                if not (ProdOrderComponent."Subcontracting Type" in ["Subcontracting Type"::InventoryByVendor, "Subcontracting Type"::Purchase]) then
+                VendorSubcontractingLocationCode := Vendor."Subc. Location Code";
+                if not (ProdOrderComponent."Component Supply Method" in ["Component Supply Method"::"Consignment at Vendor", "Component Supply Method"::"Vendor-Supplied"]) then
                     Clear(VendorSubcontractingLocationCode);
-                OrigLocationCode := ProdOrderComponent."Orig. Location Code";
-                OrigBinCode := ProdOrderComponent."Orig. Bin Code";
+                OrigLocationCode := ProdOrderComponent."Subc. Original Location Code";
+                OrigBinCode := ProdOrderComponent."Subc. Orig. Bin Code";
 
-                ChangeLocation_OnProdOrderComponent(ProdOrderComponent, VendorSubcontractingLocationCode, OrigLocationCode, OrigBinCode);
+                ChangeLocationOnProdOrderComponent(ProdOrderComponent, VendorSubcontractingLocationCode, OrigLocationCode, OrigBinCode);
 
                 ProdOrderComponent.Modify();
             end;
@@ -484,10 +308,13 @@ codeunit 99001505 "Subcontracting Management"
         Subcontracting: Boolean;
         OrigLocationCode, VendorSubcontractingLocationCode : Code[10];
         OrigBinCode: Code[20];
-        RoutingLinkUpdConfQst: Label 'If you change the Work Center, you will also change the default location for components with Routing Link Code=%1.\Do you want to continue anyway?', Comment = '%1=Routing Link Code';
-        SuccessfullyUpdatedMsg: Label 'Successfully updated.';
-        UpdateIsCancelledErr: Label 'The update is canceled.';
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         ProdOrderComponent.SetRange(Status, ProdOrderRoutingLine.Status);
         ProdOrderComponent.SetRange("Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
         ProdOrderComponent.SetRange("Prod. Order Line No.", ProdOrderRoutingLine."Routing Reference No.");
@@ -497,17 +324,17 @@ codeunit 99001505 "Subcontracting Management"
                 Subcontracting := GetSubcontractor(ProdOrderRoutingLine."No.", Vendor);
 
             if Subcontracting then begin
-                VendorSubcontractingLocationCode := Vendor."Subcontr. Location Code";
+                VendorSubcontractingLocationCode := Vendor."Subc. Location Code";
                 if ShowMsg then
                     if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(RoutingLinkUpdConfQst, ProdOrderRoutingLine."Routing Link Code"), true) then
-                        Error(UpdateIsCancelledErr);
+                        Error(UpdateIsCanceledErr);
                 repeat
-                    if not (ProdOrderComponent."Subcontracting Type" in ["Subcontracting Type"::InventoryByVendor, "Subcontracting Type"::Purchase]) then
+                    if not (ProdOrderComponent."Component Supply Method" in ["Component Supply Method"::"Consignment at Vendor", "Component Supply Method"::"Vendor-Supplied"]) then
                         Clear(VendorSubcontractingLocationCode);
-                    OrigLocationCode := ProdOrderComponent."Orig. Location Code";
-                    OrigBinCode := ProdOrderComponent."Orig. Bin Code";
+                    OrigLocationCode := ProdOrderComponent."Subc. Original Location Code";
+                    OrigBinCode := ProdOrderComponent."Subc. Orig. Bin Code";
 
-                    ChangeLocation_OnProdOrderComponent(ProdOrderComponent, VendorSubcontractingLocationCode, OrigLocationCode, OrigBinCode);
+                    ChangeLocationOnProdOrderComponent(ProdOrderComponent, VendorSubcontractingLocationCode, OrigLocationCode, OrigBinCode);
 
                     ProdOrderComponent.Modify();
                 until ProdOrderComponent.Next() = 0;
@@ -519,20 +346,26 @@ codeunit 99001505 "Subcontracting Management"
     end;
 
     /// <summary>
-    /// Gets the transfer-from location code based on the setup field "Component at Location".
+    /// Gets the location code for production order components based on the setup field "Subc. Default Comp. Location".
     /// The location code is retrieved from the purchase line, company information, or manufacturing setup.
     /// </summary>
-    /// <returns>The transfer-from location code.</returns>
+    /// <returns>The components location code.</returns>
     procedure GetComponentsLocationCode(PurchaseLine: Record "Purchase Line"): Code[10]
     var
         CompanyInformation: Record "Company Information";
-        ManufacturingSetup: Record "Manufacturing Setup";
         ComponentsLocationCode: Code[10];
     begin
-        GetSubmanagementSetup();
-        SubcManagementSetup.TestField("Component at Location");
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit('');
 
-        case SubcManagementSetup."Component at Location" of
+#endif
+        GetManufacturingSetup();
+        ManufacturingSetup.TestField("Subc. Default Comp. Location");
+
+        case ManufacturingSetup."Subc. Default Comp. Location" of
             "Components at Location"::Purchase:
                 begin
                     PurchaseLine.TestField("Location Code");
@@ -557,12 +390,27 @@ codeunit 99001505 "Subcontracting Management"
         exit(ComponentsLocationCode);
     end;
 
-    local procedure GetSubmanagementSetup()
+    internal procedure IsSubcontractingPurchaseDocument(PurchaseHeader: Record "Purchase Header"): Boolean
+    var
+        PurchaseLine: Record "Purchase Line";
     begin
-        if HasSubManagementSetup then
+        PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
+        PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+        PurchaseLine.SetFilter("Prod. Order No.", '<>%1', '');
+        PurchaseLine.SetFilter("Prod. Order Line No.", '<>%1', 0);
+        exit(not PurchaseLine.IsEmpty());
+    end;
+
+    internal procedure IsSubcontractingPurchaseLine(PurchaseLine: Record "Purchase Line"): Boolean
+    begin
+        exit((PurchaseLine."Prod. Order No." <> '') and (PurchaseLine."Prod. Order Line No." <> 0));
+    end;
+
+    local procedure GetManufacturingSetup()
+    begin
+        if HasManufacturingSetup then
             exit;
-        if SubcManagementSetup.Get() then
-            HasSubManagementSetup := true;
+        HasManufacturingSetup := ManufacturingSetup.Get();
     end;
 
     local procedure IsSubcontracting(WorkCenterNo: Code[20]): Boolean

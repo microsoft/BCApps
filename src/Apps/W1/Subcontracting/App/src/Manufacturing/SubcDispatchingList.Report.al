@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -32,19 +32,19 @@ using System.Utilities;
 
 report 99001504 "Subc. Dispatching List"
 {
-    ApplicationArea = Manufacturing;
+    ApplicationArea = Subcontracting;
     Caption = 'Subcontractor - Dispatch List';
     DefaultLayout = Word;
     PreviewMode = PrintLayout;
     UsageCategory = Administration;
-    WordLayout = './src/Manufacturing/SubcDispatchingList.docx';
+    WordLayout = '.\src\Manufacturing\SubcDispatchingList.docx';
     WordMergeDataItem = "Purchase Header";
 
     dataset
     {
         dataitem("Purchase Header"; "Purchase Header")
         {
-            DataItemTableView = sorting("Document Type", "Buy-from Vendor No.", "No.") where("Subcontracting Order" = const(true));
+            DataItemTableView = sorting("Document Type", "Buy-from Vendor No.", "No.") where("Subc. Order" = const(true));
             RequestFilterFields = "No.", "Buy-from Vendor No.", "No. Printed";
             RequestFilterHeading = 'Subcontractor - Dispatch List';
             column(AllowInvoiceDisc_Lbl; AllowInvoiceDiscCaptionLbl)
@@ -727,10 +727,10 @@ report 99001504 "Subc. Dispatching List"
             column(VendNo_Lbl; VendNoCaptionLbl)
             {
             }
-            column(Vendor__Subcontracting_Location_Code_; Vendor."Subcontr. Location Code")
+            column(Vendor__Subcontracting_Location_Code_; Vendor."Subc. Location Code")
             {
             }
-            column(Vendor__Subcontracting_Location_Code_Caption; Vendor.FieldCaption("Subcontr. Location Code"))
+            column(Vendor__Subcontracting_Location_Code_Caption; Vendor.FieldCaption("Subc. Location Code"))
             {
             }
             column(VendorIDCaption_Lbl; VendorIDCaptionLbl)
@@ -1024,7 +1024,7 @@ report 99001504 "Subc. Dispatching List"
                     {
                         DataItemLink = Status = field(Status), "Prod. Order No." = field("Prod. Order No."), "Prod. Order Line No." = field("Routing Reference No."), "Routing Link Code" = field("Routing Link Code");
                         DataItemTableView = sorting(Status, "Prod. Order No.", "Prod. Order Line No.", "Line No.");
-                        column(Expected_Qty___Base______Qty__transf__to_Subcontractor______Qty__in_Transit__Base__; "Expected Qty. (Base)" - "Qty. transf. to Subcontr" - "Qty. in Transit (Base)")
+                        column(Expected_Qty___Base______Qty__transf__to_Subcontractor______Qty__in_Transit__Base__; "Expected Qty. (Base)" - "Subc. Qty. transf. to Subcontr" - "Subc. Qty. in Transit (Base)")
                         {
                             DecimalPlaces = 0 : 5;
                         }
@@ -1037,16 +1037,16 @@ report 99001504 "Subc. Dispatching List"
                         column(Prod__Order_Component__Item_No__; "Item No.")
                         {
                         }
-                        column(Prod__Order_Component__Qty__in_Transit__Base__; "Qty. in Transit (Base)")
+                        column(Prod__Order_Component__Qty__in_Transit__Base__; "Subc. Qty. in Transit (Base)")
                         {
                         }
-                        column(Prod__Order_Component__Qty__in_Transit__Base__Caption; FieldCaption("Qty. in Transit (Base)"))
+                        column(Prod__Order_Component__Qty__in_Transit__Base__Caption; FieldCaption("Subc. Qty. in Transit (Base)"))
                         {
                         }
-                        column(Prod__Order_Component__Qty__transf__to_Subcontractor_; "Qty. transf. to Subcontr")
+                        column(Prod__Order_Component__Qty__transf__to_Subcontractor_; "Subc. Qty. transf. to Subcontr")
                         {
                         }
-                        column(Prod__Order_Component__Qty__transf__to_Subcontractor_Caption; FieldCaption("Qty. transf. to Subcontr"))
+                        column(Prod__Order_Component__Qty__transf__to_Subcontractor_Caption; FieldCaption("Subc. Qty. transf. to Subcontr"))
                         {
                         }
                         column(Prod__Order_Component_Description; Description)
@@ -1069,7 +1069,7 @@ report 99001504 "Subc. Dispatching List"
                         }
                         trigger OnPreDataItem()
                         begin
-                            SetRange("Purchase Order Filter", "Purchase Header"."No.");
+                            SetRange("Subc. Purchase Order Filter", "Purchase Header"."No.");
                         end;
                     }
                 }
@@ -1570,33 +1570,33 @@ report 99001504 "Subc. Dispatching List"
                     Caption = 'Options';
                     field(ArchiveDocument; ShouldArchiveDocument)
                     {
-                        ApplicationArea = Manufacturing;
+                        ApplicationArea = Subcontracting;
                         Caption = 'Archive Document';
                         ToolTip = 'Specifies whether to archive the order.';
                         Visible = false;
                     }
                     field(LogInteraction; ShouldLogInteraction)
                     {
-                        ApplicationArea = Manufacturing;
+                        ApplicationArea = Subcontracting;
                         Caption = 'Log Interaction';
                         Enabled = LogInteractionEnable;
                         ToolTip = 'Specifies if you want to log this interaction.';
                     }
                     field(SubcPrintAddressLine; PrintAddressLine)
                     {
-                        ApplicationArea = Manufacturing;
+                        ApplicationArea = Subcontracting;
                         Caption = 'Show Address Line';
                         ToolTip = 'Specifies if the address line is shown.';
                     }
                     field(SubcPrintFooterLine; PrintFooterLine)
                     {
-                        ApplicationArea = Manufacturing;
+                        ApplicationArea = Subcontracting;
                         Caption = 'Show Footer Line';
                         ToolTip = 'Specifies if the footer line is shown.';
                     }
                     field(SubcPrintBarCode; PrintBarCode)
                     {
-                        ApplicationArea = Manufacturing;
+                        ApplicationArea = Subcontracting;
                         Caption = 'Show Bar Code';
                         ToolTip = 'Specifies if the Barcode is shown.';
                     }
@@ -1615,7 +1615,19 @@ report 99001504 "Subc. Dispatching List"
         end;
     }
     trigger OnInitReport()
+#if not CLEAN29
+    var
+#pragma warning disable AL0432
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
+#endif
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            CurrReport.Quit();
+#endif
         GLSetup.Get();
         CompanyInformation.Get();
         PurchasesPayablesSetup.Get();
@@ -1823,6 +1835,9 @@ report 99001504 "Subc. Dispatching List"
         VendorIDCaptionLbl: Label 'Vendor ID';
         VendorInvoiceNoLbl: Label 'Vendor Invoice No.';
         VendorOrderNoLbl: Label 'Vendor Order No.';
+        LineDiscountPctPlaceholderLbl: Label '%1%', Locked = true;
+        InvDiscAmtCapLbl: Label 'Invoice Discount Amount %1', Comment = '%1=Currency Code';
+        TotalTxt: Label 'Net Amount %1', Comment = '%1=Currency Code';
         CustomGiroLbl, CustomGiroTxt, LegalOfficeLbl, LegalOfficeTxt : Text;
         FormattedDirectUnitCost: Text;
         FormattedLineAmount: Text;
@@ -1915,9 +1930,6 @@ report 99001504 "Subc. Dispatching List"
     end;
 
     local procedure BlankZero(PurchaseLine: Record "Purchase Line")
-    var
-        LineDiscountPctPlaceholderLbl: Label '%1%',
-            Locked = true;
     begin
         if PurchaseLine."Line Discount %" = 0 then
             LineDiscountPctText := ''
@@ -1970,7 +1982,6 @@ report 99001504 "Subc. Dispatching List"
     local procedure SetInvDisAmountLbl(CurrencyCode: Code[10]; var SubInvDiscAmtCaptionLbl: Text[50])
     var
         GeneralLedgerSetup: Record "General Ledger Setup";
-        InvDiscAmtCapLbl: Label 'Invoice Discount Amount %1', Comment = '%1=Currency Code';
     begin
         if CurrencyCode = '' then begin
             GeneralLedgerSetup.Get();
@@ -1983,7 +1994,6 @@ report 99001504 "Subc. Dispatching List"
     local procedure SetTotalLabels(CurrencyCode: Code[10]; var TotalAsText: Text[50])
     var
         GeneralLedgerSetup: Record "General Ledger Setup";
-        TotalTxt: Label 'Net Amount %1', Comment = '%1=Currency Code';
     begin
         if CurrencyCode = '' then begin
             GeneralLedgerSetup.Get();
