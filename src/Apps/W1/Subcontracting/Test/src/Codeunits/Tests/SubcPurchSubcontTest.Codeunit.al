@@ -622,6 +622,91 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         Assert.ExpectedError('You cannot change this routing line because transfer orders exist');
     end;
 
+    [Test]
+    procedure WorkCenterRoutingLinesExcludedFromMultiSelectionWhenMachineCenterPresent()
+    var
+        CapacityUnitOfMeasure: Record "Capacity Unit of Measure";
+        Item, Item2 : Record Item;
+        MachineCenter: Record "Machine Center";
+        ProductionOrder: Record "Production Order";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        PurchaseLine: Record "Purchase Line";
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+        WorkCenter: Record "Work Center";
+        SubcPurchaseOrderCreator: Codeunit "Subc. Purchase Order Creator";
+        MachineCenterNo: Code[20];
+        NoOfCreatedOrders: Integer;
+    begin
+        // [SCENARIO] When CreateSubcontractingOrdersForRoutingLineSelection is called with a mixed
+        // selection containing both Work Center and Machine Center routing lines, only the
+        // Machine Center lines result in a subcontracting purchase order.
+        // This verifies that the Machine Center type filter is applied correctly when simulating
+        // multi-record selection (CurrPage.SetSelectionFilter cannot be used in test framework).
+        Initialize();
+
+        // [GIVEN] A subcontracting Work Center with a vendor
+        CreateAndCalculateNeededWorkCenter(WorkCenter, true);
+
+        // [GIVEN] A Machine Center belonging to the subcontracting Work Center
+        LibraryMfgManagement.CreateMachineCenter(MachineCenterNo, WorkCenter."No.", "Flushing Method"::"Pick + Manual".AsInteger());
+        MachineCenter.Get(MachineCenterNo);
+        LibraryManufacturing.CalculateMachCenterCalendar(MachineCenter, CalcDate('<-CY-1Y>', WorkDate()), CalcDate('<CM>', WorkDate()));
+
+        // [GIVEN] A routing with a Work Center line (Op 010) and a Machine Center line (Op 020),
+        // both referencing the same subcontracting Work Center
+        LibraryManufacturing.CreateCapacityUnitOfMeasure(CapacityUnitOfMeasure, "Capacity Unit of Measure"::Minutes);
+        LibraryManufacturing.CreateRoutingHeader(RoutingHeader, RoutingHeader.Type::Serial);
+
+        LibraryManufacturing.CreateRoutingLineSetup(RoutingLine, RoutingHeader, WorkCenter."No.", '010', 1, 1);
+        RoutingLine.Validate("Run Time Unit of Meas. Code", CapacityUnitOfMeasure.Code);
+        RoutingLine.Validate("Setup Time Unit of Meas. Code", CapacityUnitOfMeasure.Code);
+        RoutingLine.Modify(true);
+
+        RoutingLine.Type := RoutingLine.Type::"Machine Center";
+        LibraryManufacturing.CreateRoutingLineSetup(RoutingLine, RoutingHeader, MachineCenter."No.", '020', 1, 1);
+        RoutingLine.Validate("Run Time Unit of Meas. Code", CapacityUnitOfMeasure.Code);
+        RoutingLine.Validate("Setup Time Unit of Meas. Code", CapacityUnitOfMeasure.Code);
+        RoutingLine.Modify(true);
+
+        RoutingHeader.Validate(Status, RoutingHeader.Status::Certified);
+        RoutingHeader.Modify(true);
+
+        LibraryInventory.CreateItem(Item2);
+        LibraryManufacturing.CreateProductionBOM(Item2, 2);
+
+        // [GIVEN] An item with the routing and a released production order
+        LibraryManufacturing.CreateItemManufacturing(
+            Item, "Costing Method"::FIFO, LibraryRandom.RandInt(10),
+            "Reordering Policy"::"Lot-for-Lot", "Flushing Method"::"Pick + Manual",
+            RoutingHeader."No.", Item2."Production BOM No.");
+
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released,
+            ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 1);
+
+        LibraryMfgManagement.CreateSubcontractingReqWkshTemplateAndNameAndUpdateSetup();
+
+        // [WHEN] All routing lines (Work Center Op 010 + Machine Center Op 020) are passed to
+        // CreateSubcontractingOrdersForRoutingLineSelection, simulating a multi-record selection
+        ProdOrderRoutingLine.SetRange(Status, "Production Order Status"::Released);
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        NoOfCreatedOrders := SubcPurchaseOrderCreator.CreateSubcontractingOrdersForRoutingLineSelection(ProdOrderRoutingLine);
+
+        // [THEN] Exactly one purchase order is created (Work Center line is filtered out)
+        Assert.AreEqual(1, NoOfCreatedOrders, 'Exactly one subcontracting purchase order must be created.');
+
+        // [THEN] The purchase order is linked to the Machine Center operation (Op 020)
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        PurchaseLine.SetRange("Operation No.", '010');
+        Assert.RecordCount(PurchaseLine, 1);
+
+        // [THEN] No purchase order is created for the Work Center operation (Op 010)
+        PurchaseLine.SetRange("Operation No.", '020');
+        Assert.RecordIsEmpty(PurchaseLine);
+    end;
+
     [ModalPageHandler]
     procedure ItemTrackingLinesSimpleHandler(var ItemTrackingLines: TestPage "Item Tracking Lines")
     begin
