@@ -640,8 +640,8 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
     begin
         // [SCENARIO] When CreateSubcontractingOrdersForRoutingLineSelection is called with a mixed
         // selection containing both Work Center and Machine Center routing lines, only the
-        // Machine Center lines result in a subcontracting purchase order.
-        // This verifies that the Machine Center type filter is applied correctly when simulating
+        // Work Center lines result in a subcontracting purchase order.
+        // This verifies that the Work Center type filter is applied correctly when simulating
         // multi-record selection (CurrPage.SetSelectionFilter cannot be used in test framework).
         Initialize();
 
@@ -696,13 +696,13 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         // [THEN] Exactly one purchase order is created (Work Center line is filtered out)
         Assert.AreEqual(1, NoOfCreatedOrders, 'Exactly one subcontracting purchase order must be created.');
 
-        // [THEN] The purchase order is linked to the Machine Center operation (Op 020)
+        // [THEN] The purchase order is linked to the Work Center operation (Op 010)
         PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
         PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
         PurchaseLine.SetRange("Operation No.", '010');
         Assert.RecordCount(PurchaseLine, 1);
 
-        // [THEN] No purchase order is created for the Work Center operation (Op 010)
+        // [THEN] No purchase order is created for the Machine Center operation (Op 020)
         PurchaseLine.SetRange("Operation No.", '020');
         Assert.RecordIsEmpty(PurchaseLine);
     end;
