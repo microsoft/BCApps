@@ -112,6 +112,11 @@ table 30125 "Shpfy Payout"
             AutoFormatType = 1;
             AutoFormatExpression = Currency;
         }
+        field(16; "External Trace Id"; Text[250])
+        {
+            Caption = 'External Trace Id';
+            DataClassification = CustomerContent;
+        }
     }
     keys
     {
