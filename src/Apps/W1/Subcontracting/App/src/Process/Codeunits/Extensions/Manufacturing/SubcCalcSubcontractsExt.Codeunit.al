@@ -6,7 +6,6 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Inventory.Requisition;
 using Microsoft.Manufacturing.Document;
-using Microsoft.Manufacturing.Planning;
 using Microsoft.Manufacturing.WorkCenter;
 
 codeunit 99001529 "Subc. Calc Subcontracts Ext."
@@ -15,7 +14,18 @@ codeunit 99001529 "Subc. Calc Subcontracts Ext."
     local procedure OnAfterTransferProdOrderRoutingLine(var RequisitionLine: Record "Requisition Line"; ProdOrderRoutingLine: Record "Prod. Order Routing Line")
     var
         WorkCenter: Record "Work Center";
+#if not CLEAN29
+#pragma warning disable AL0432
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
+#endif
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if RequisitionLine."Description 2" = '' then begin
             WorkCenter.SetLoadFields("Name 2");
             if WorkCenter.Get(ProdOrderRoutingLine."Work Center No.") then

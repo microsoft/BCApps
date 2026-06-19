@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace Microsoft.Manufacturing.Planning;
+namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.UOM;
@@ -17,6 +17,7 @@ using Microsoft.Purchases.Document;
 
 report 99001505 "Subc. Calculate Subcontracts"
 {
+    ApplicationArea = Subcontracting;
     Caption = 'Calculate Subcontracts';
     ProcessingOnly = true;
 
@@ -81,6 +82,12 @@ report 99001505 "Subc. Calculate Subcontracts"
 
     trigger OnInitReport()
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            CurrReport.Quit();
+#endif
         MfgSetup.Get();
     end;
 
@@ -110,6 +117,11 @@ report 99001505 "Subc. Calculate Subcontracts"
         ItemVariant: Record "Item Variant";
         TempProdOrderRoutingLine: Record "Prod. Order Routing Line" temporary;
         MfgCostCalcMgt: Codeunit "Mfg. Cost Calculation Mgt.";
+#if not CLEAN29
+#pragma warning disable AL0432
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
+#endif
         UOMMgt: Codeunit "Unit of Measure Management";
         Window: Dialog;
         BaseQtyToPurch: Decimal;
@@ -123,6 +135,12 @@ report 99001505 "Subc. Calculate Subcontracts"
 
     procedure SetWkShLine(NewReqLine: Record "Requisition Line")
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         ReqLine := NewReqLine;
     end;
 
