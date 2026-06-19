@@ -42,11 +42,6 @@ codeunit 30194 "Shpfy Transactions"
             UpdateTransactionInfos(OrderHeader);
     end;
 
-    internal procedure ExtractShopifyOrderTransactionFromMock(JOrderTransaction: JsonToken; OrderHeader: Record "Shpfy Order Header")
-    begin
-        ExtractShopifyOrderTransaction(JOrderTransaction, OrderHeader);
-    end;
-
     internal procedure UpdateTransactionInfos(OrderHeader: Record "Shpfy Order Header")
     var
         GraphQLType: Enum "Shpfy GraphQL Type";
