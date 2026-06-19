@@ -1096,7 +1096,7 @@ codeunit 149922 "Subc SCM Supply Planning"
         exit(LibraryDimension.CreateDimSet(OldDimSetID, Dimension.Code, DimensionValue.Code));
     end;
 
-    local procedure GetOrFindDimensionValue(DimensionCode: Code[10]; var DimensionValue: Record "Dimension Value")
+    local procedure GetOrFindDimensionValue(DimensionCode: Code[20]; var DimensionValue: Record "Dimension Value")
     begin
         DimensionValue.Reset();
         DimensionValue.SetRange("Dimension Code", DimensionCode);
