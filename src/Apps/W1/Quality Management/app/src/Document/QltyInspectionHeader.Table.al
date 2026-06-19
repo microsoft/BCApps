@@ -20,6 +20,7 @@ using Microsoft.QualityManagement.Integration.Inventory;
 using Microsoft.QualityManagement.Integration.Inventory.Transfer;
 using Microsoft.QualityManagement.Reports;
 using Microsoft.QualityManagement.Setup;
+using Microsoft.QualityManagement.Telemetry;
 using Microsoft.QualityManagement.Utilities;
 using Microsoft.QualityManagement.Workflow;
 using System.Device;
@@ -34,7 +35,8 @@ table 20405 "Qlty. Inspection Header"
     DrillDownPageId = "Qlty. Inspection List";
     LookupPageId = "Qlty. Inspection List";
     DataClassification = CustomerContent;
-    Permissions = tabledata "Qlty. Inspection Line" = d;
+    Permissions = tabledata "Qlty. Inspection Line" = d,
+                  tabledata "Qlty. I. Result Condit. Conf." = d;
 
     fields
     {
@@ -208,7 +210,7 @@ table 20405 "Qlty. Inspection Header"
             Editable = false;
             TableRelation = "Qlty. Inspection Result".Code;
             Caption = 'Result Code';
-            ToolTip = 'Specifies the result is automatically determined based on the test value and result configuration.';
+            ToolTip = 'Specifies the result automatically calculated from inspection test lines based on their evaluation sequence. The calculation prioritizes lines that failed the acceptable quality level and then lines that have the lowest evaluation sequence.';
 
             trigger OnValidate()
             var
@@ -227,7 +229,7 @@ table 20405 "Qlty. Inspection Header"
         {
             Caption = 'Result';
             Editable = false;
-            ToolTip = 'Specifies the result description for this test result. The result is automatically determined based on the test value and result configuration.';
+            ToolTip = 'Specifies the description of the inspection result. This value is automatically retrieved from the result definition based on the Result Code field.';
             FieldClass = FlowField;
             CalcFormula = lookup("Qlty. Inspection Result"."Description" where("Code" = field("Result Code")));
         }
@@ -235,7 +237,7 @@ table 20405 "Qlty. Inspection Header"
         {
             Caption = 'Evaluation Sequence';
             Editable = false;
-            ToolTip = 'Specifies the associated evaluation sequence for this test result. The result is automatically determined based on the test value and result configuration.';
+            ToolTip = 'Specifies the associated evaluation sequence of the inspection result. The value is automatically determined from the result definition based on the Result Code field.';
         }
         field(35; "Location Code"; Code[10])
         {
@@ -500,34 +502,34 @@ table 20405 "Qlty. Inspection Header"
         {
             Clustered = true;
         }
-        key(bySource; "Template Code", "Source Table No.", "Source Type", "Source Sub Type", "Source Document No.", "Source Document Line No.", "Source Item No.", "Source Variant Code", "Source Lot No.", "Source Serial No.", "Source Package No.", "Source Task No.")
+        key(Key2; "Template Code", "Source Table No.", "Source Type", "Source Sub Type", "Source Document No.", "Source Document Line No.", "Source Item No.", "Source Variant Code", "Source Lot No.", "Source Serial No.", "Source Package No.", "Source Task No.")
         {
         }
-        key(byCustomSource; "Template Code", "Source Custom 1", "Source Custom 2", "Source Custom 3", "Source Custom 4", "Source Custom 5", "Source Custom 6", "Source Item No.", "Source Variant Code", "Source Lot No.", "Source Serial No.", "Source Package No.")
+        key(Key3; "Template Code", "Source Custom 1", "Source Custom 2", "Source Custom 3", "Source Custom 4", "Source Custom 5", "Source Custom 6", "Source Item No.", "Source Variant Code", "Source Lot No.", "Source Serial No.", "Source Package No.")
         {
         }
-        key(byAllSource; "Template Code", "Source Table No.", "Source Type", "Source Sub Type", "Source Document No.", "Source Document Line No.", "Source Item No.", "Source Variant Code", "Source Lot No.", "Source Serial No.", "Source Package No.", "Source Task No.", "Source Custom 1", "Source Custom 2", "Source Custom 3", "Source Custom 4", "Source Custom 5", "Source Custom 6")
+        key(Key4; "Template Code", "Source Table No.", "Source Type", "Source Sub Type", "Source Document No.", "Source Document Line No.", "Source Item No.", "Source Variant Code", "Source Lot No.", "Source Serial No.", "Source Package No.", "Source Task No.", "Source Custom 1", "Source Custom 2", "Source Custom 3", "Source Custom 4", "Source Custom 5", "Source Custom 6")
         {
         }
-        key(byItemTracking; "Source Item No.", "Source Variant Code", "Source Lot No.", "Source Serial No.", "Source Package No.", "Template Code")
+        key(Key5; "Source Item No.", "Source Variant Code", "Source Lot No.", "Source Serial No.", "Source Package No.", "Template Code")
         {
         }
-        key(byRecord; "Source Record Table No.", "Source RecordId", "Trigger Record Table No.", "Trigger RecordId")
+        key(Key6; "Source Record Table No.", "Source RecordId", "Trigger Record Table No.", "Trigger RecordId")
         {
         }
-        key(byTemplateAndRecord; "Template Code", "Source RecordId", "Source Record Table No.")
+        key(Key7; "Template Code", "Source RecordId", "Source Record Table No.")
         {
         }
-        key(byUser; SystemCreatedBy, SystemCreatedAt, "Template Code")
+        key(Key8; SystemCreatedBy, SystemCreatedAt, "Template Code")
         {
         }
-        key(byDocumentAndItemNo; "Source Document No.", "Source Document Line No.", "Source Item No.", "Source Variant Code")
+        key(Key9; "Source Document No.", "Source Document Line No.", "Source Item No.", "Source Variant Code")
         {
         }
-        key(byDateAndTracking; SystemModifiedAt, SystemCreatedAt, SystemModifiedBy, SystemCreatedBy, "Source Item No.", "Source Variant Code", "Source Lot No.", "Source Serial No.", "Source Package No.")
+        key(Key10; SystemModifiedAt, SystemCreatedAt, SystemModifiedBy, SystemCreatedBy, "Source Item No.", "Source Variant Code", "Source Lot No.", "Source Serial No.", "Source Package No.")
         {
         }
-        key(StatusKey; Status, "Assigned User ID", "Planned Start Date")
+        key(Key11; Status, "Assigned User ID", "Planned Start Date")
         {
         }
     }
@@ -722,7 +724,7 @@ table 20405 "Qlty. Inspection Header"
     end;
 
     /// <summary>
-    /// This will upresult the result on the test based on the results from the line.
+    /// This will update the result on the inspection based on the results from the line.
     /// </summary>
     procedure UpdateResultFromLines()
     var
@@ -838,7 +840,11 @@ table 20405 "Qlty. Inspection Header"
     /// Finishes the inspection.
     /// </summary>
     procedure FinishInspection()
+    var
+        QltyMgmtFeatureTelemetry: Codeunit "Qlty. Mgmt. Feature Telemetry";
     begin
+        QltyMgmtFeatureTelemetry.LogFeatureUsage(ObjectType::Table, Database::"Qlty. Inspection Header", 'FinishInspection');
+
         FinishInspectionAndPrompt(true);
     end;
 
@@ -990,6 +996,16 @@ table 20405 "Qlty. Inspection Header"
     procedure CreateReinspection()
     var
         NewlyCreatedReQltyInspectionHeader: Record "Qlty. Inspection Header";
+    begin
+        CreateReinspection(NewlyCreatedReQltyInspectionHeader);
+    end;
+
+    /// <summary>
+    /// Creates a Re-inspection and returns the created record.
+    /// </summary>
+    /// <param name="ReinspectionQltyInspectionHeader">The newly created re-inspection header.</param>
+    procedure CreateReinspection(var ReinspectionQltyInspectionHeader: Record "Qlty. Inspection Header")
+    var
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         Proceed: Boolean;
     begin
@@ -1006,7 +1022,7 @@ table 20405 "Qlty. Inspection Header"
         else
             Proceed := true;
         if Proceed then
-            QltyInspectionCreate.CreateReinspection(Rec, NewlyCreatedReQltyInspectionHeader);
+            QltyInspectionCreate.CreateReinspection(Rec, ReinspectionQltyInspectionHeader);
     end;
 
     /// <summary>
@@ -1574,6 +1590,18 @@ table 20405 "Qlty. Inspection Header"
         exit((Rec."Re-inspection No." = 0) ? Rec."No." : StrSubstNo(InspectionLbl, Rec."No.", Rec."Re-inspection No."));
     end;
 
+    procedure GetStatusStyleExpression(): Text
+    begin
+        case Rec.Status of
+            Rec.Status::Open:
+                exit('Favorable');
+            Rec.Status::Finished:
+                exit('Strong');
+            else
+                exit('None');
+        end;
+    end;
+
     local procedure VerifyPassAndFailQuantities()
     var
         DifferenceInPassFailQuantity: Decimal;
@@ -1582,6 +1610,21 @@ table 20405 "Qlty. Inspection Header"
             DifferenceInPassFailQuantity := Rec."Pass Quantity" + Rec."Fail Quantity" - Rec."Source Quantity (Base)";
             Error(PassFailQuantityInvalidErr, Rec.FieldCaption("Pass Quantity"), Rec.FieldCaption("Fail Quantity"), Rec.FieldCaption("Source Quantity (Base)"), DifferenceInPassFailQuantity);
         end;
+    end;
+
+    /// <summary>
+    /// Gets the preferred result style to use.
+    /// </summary>
+    internal procedure GetResultStyle(): Text
+    var
+        QltyInspectionResult: Record "Qlty. Inspection Result";
+    begin
+        if Rec."Result Code" = '' then
+            exit('');
+
+        QltyInspectionResult.SetLoadFields("Override Style", "Result Category");
+        if QltyInspectionResult.Get(Rec."Result Code") then
+            exit(QltyInspectionResult.GetResultStyle());
     end;
 
     #region Most Recent Picture Management

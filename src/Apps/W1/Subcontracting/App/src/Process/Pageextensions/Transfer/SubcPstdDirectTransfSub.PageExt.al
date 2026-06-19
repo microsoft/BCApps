@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -14,56 +14,61 @@ pageextension 99001532 "Subc. PstdDirectTransfSub" extends "Posted Direct Transf
         {
             field("Subcontr. Purch. Order No."; Rec."Subcontr. Purch. Order No.")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 ToolTip = 'Specifies the number of the related purchase order.';
                 Visible = false;
             }
             field("Subcontr. PO Line No."; Rec."Subcontr. PO Line No.")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 ToolTip = 'Specifies the number of the related purchase order line.';
                 Visible = false;
             }
             field("Prod. Order No."; Rec."Prod. Order No.")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 ToolTip = 'Specifies the number of the related production order.';
                 Visible = false;
             }
             field("Prod. Order Line No."; Rec."Prod. Order Line No.")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 ToolTip = 'Specifies the number of the related production order line.';
                 Visible = false;
             }
             field("Prod. Order. Comp. Line No."; Rec."Prod. Order Comp. Line No.")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 ToolTip = 'Specifies the line number of the related production order component line.';
                 Visible = false;
             }
             field("Routing No."; Rec."Routing No.")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 ToolTip = 'Specifies the number of the related production routing.';
                 Visible = false;
             }
             field("Routing Reference No."; Rec."Routing Reference No.")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 ToolTip = 'Specifies the number of the related production routing reference no.';
                 Visible = false;
             }
             field("WorkCenter No."; Rec."Work Center No.")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 ToolTip = 'Specifies the number of the related production work center.';
                 Visible = false;
             }
             field("Operation No."; Rec."Operation No.")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 ToolTip = 'Specifies the number of the related production operation no.';
+                Visible = false;
+            }
+            field("Transfer WIP Item"; Rec."Transfer WIP Item")
+            {
+                ApplicationArea = Subcontracting;
                 Visible = false;
             }
         }
@@ -77,10 +82,10 @@ pageextension 99001532 "Subc. PstdDirectTransfSub" extends "Posted Direct Transf
                 Caption = 'Production';
                 action("Production Order")
                 {
-                    ApplicationArea = Manufacturing;
+                    ApplicationArea = Subcontracting;
                     Caption = 'Production Order';
                     Image = Production;
-                    ToolTip = 'Specifies the depended Production Order of this Subcontracting Transfer Order.';
+                    ToolTip = 'View the related production order.';
                     trigger OnAction()
                     begin
                         ShowProductionOrder(Rec);
@@ -88,10 +93,10 @@ pageextension 99001532 "Subc. PstdDirectTransfSub" extends "Posted Direct Transf
                 }
                 action("Production Order Routing")
                 {
-                    ApplicationArea = Manufacturing;
+                    ApplicationArea = Subcontracting;
                     Caption = 'Production Order Routing';
                     Image = Route;
-                    ToolTip = 'Specifies the depended Production Routing of this Subcontracting Purchase Order.';
+                    ToolTip = 'View the related production order routing.';
                     trigger OnAction()
                     begin
                         ShowProductionOrderRouting(Rec);
@@ -99,10 +104,10 @@ pageextension 99001532 "Subc. PstdDirectTransfSub" extends "Posted Direct Transf
                 }
                 action("Production Order Components")
                 {
-                    ApplicationArea = Manufacturing;
+                    ApplicationArea = Subcontracting;
                     Caption = 'Production Order Components';
                     Image = Components;
-                    ToolTip = 'Specifies the depended Production Components of this Subcontracting Purchase Order.';
+                    ToolTip = 'View the related production order components.';
                     trigger OnAction()
                     begin
                         ShowProductionOrderComponents(Rec);
@@ -110,10 +115,10 @@ pageextension 99001532 "Subc. PstdDirectTransfSub" extends "Posted Direct Transf
                 }
                 action("Purchase Order")
                 {
-                    ApplicationArea = Manufacturing;
+                    ApplicationArea = Subcontracting;
                     Caption = 'Subcontracting Purchase Order';
                     Image = Order;
-                    ToolTip = 'Specifies the Subcontracting Purchase Order associated with the Transfer Order.';
+                    ToolTip = 'View the related subcontracting purchase order.';
                     trigger OnAction()
                     begin
                         ShowPurchaseOrder(Rec);
@@ -123,25 +128,26 @@ pageextension 99001532 "Subc. PstdDirectTransfSub" extends "Posted Direct Transf
         }
     }
     var
-        SubcFactboxMgmt: Codeunit "Subc. Factbox Mgmt.";
+        SubcProdOrderFactboxMgmt: Codeunit "Subc. ProdO. Factbox Mgmt.";
+        SubcPurchFactboxMgmt: Codeunit "Subc. Purch. Factbox Mgmt.";
 
     local procedure ShowProductionOrder(RecRelatedVariant: Variant)
     begin
-        SubcFactboxMgmt.ShowProductionOrder(RecRelatedVariant);
+        SubcProdOrderFactboxMgmt.ShowProductionOrder(RecRelatedVariant);
     end;
 
     local procedure ShowProductionOrderRouting(RecRelatedVariant: Variant)
     begin
-        SubcFactboxMgmt.ShowProductionOrderRouting(RecRelatedVariant);
+        SubcProdOrderFactboxMgmt.ShowProductionOrderRouting(RecRelatedVariant);
     end;
 
     local procedure ShowProductionOrderComponents(RecRelatedVariant: Variant)
     begin
-        SubcFactboxMgmt.ShowProductionOrderComponents(RecRelatedVariant);
+        SubcProdOrderFactboxMgmt.ShowProductionOrderComponents(RecRelatedVariant);
     end;
 
     local procedure ShowPurchaseOrder(RecRelatedVariant: Variant)
     begin
-        SubcFactboxMgmt.ShowPurchaseOrder(RecRelatedVariant);
+        SubcPurchFactboxMgmt.ShowPurchaseOrder(RecRelatedVariant);
     end;
 }

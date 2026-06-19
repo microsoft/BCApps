@@ -56,11 +56,15 @@
     }
   ],
   "screenshots": [],
-  "platform": "28.0.0.0",
+  "platform": "29.0.0.0",
   "idRanges": [
     {
       "from": 148191,
-      "to": 148192
+      "to": 148225
+    },
+    {
+      "from": 133624,
+      "to": 133635
     }
   ],
   "resourceExposurePolicy": {
@@ -74,6 +78,6 @@
     "TranslationFile"
   ],
   "resourceFolders": [
-    "HttpResponseFiles"
+    ".resources"
   ]
 }

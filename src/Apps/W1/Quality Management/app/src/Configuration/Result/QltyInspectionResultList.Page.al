@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.QualityManagement.Configuration.Result;
 
+using Microsoft.QualityManagement.Telemetry;
+
 /// <summary>
 /// Results are effectively the incomplete/pass/fail state of an inspection. It is typical to have three results (incomplete, fail, pass), however you can configure as many results as you want, and in what circumstances. The results with a lower number for the priority test are evaluated first.
 /// </summary>
@@ -12,6 +14,7 @@ page 20416 "Qlty. Inspection Result List"
     Caption = 'Quality Inspection Results';
     SourceTable = "Qlty. Inspection Result";
     SourceTableView = sorting("Evaluation Sequence");
+    CardPageId = "Qlty. Inspection Result Card";
     PageType = List;
     ApplicationArea = QualityManagement;
     UsageCategory = Lists;
@@ -26,9 +29,11 @@ page 20416 "Qlty. Inspection Result List"
             {
                 field(Code; Rec.Code)
                 {
+                    ShowMandatory = true;
                 }
                 field(Description; Rec.Description)
                 {
+                    ShowMandatory = true;
                 }
                 field("Evaluation Sequence"; Rec."Evaluation Sequence")
                 {
@@ -37,11 +42,12 @@ page 20416 "Qlty. Inspection Result List"
 
                     trigger OnValidate()
                     begin
-                        ValidateEvaluationSequenceNotUsedElsewhere();
+                        Rec.ValidateEvaluationSequenceNotUsedElsewhere();
                     end;
                 }
                 field("Copy Behavior"; Rec."Copy Behavior")
                 {
+                    Visible = false;
                 }
                 field("Result Visibility"; Rec."Result Visibility")
                 {
@@ -130,53 +136,37 @@ page 20416 "Qlty. Inspection Result List"
             action(CopyResultsToAllTemplates)
             {
                 ApplicationArea = QualityManagement;
-                Caption = 'Copy Results to Existing Templates';
-                ToolTip = 'Use this to add newly created results configured to Automatically Copy on to existing tests and existing templates.';
-                Image = Copy;
+                Caption = 'Update Tests, Templates, and Inspections';
+                ToolTip = 'Adds newly created results to existing quality tests and templates, adjusts evaluation sequences, and updates promoted results. Inspections based on these templates are also updated.';
+                Image = CopyToTask;
 
                 trigger OnAction()
-                var
-                    QltyResultConditionMgmt: Codeunit "Qlty. Result Condition Mgmt.";
                 begin
-                    QltyResultConditionMgmt.CopyGradeConditionsFromDefaultToAllTemplates();
+                    Rec.UpdateTestsTemplatesAndInspections();
                 end;
             }
         }
     }
 
+    trigger OnOpenPage()
     var
-        MustChangePriorityErr: Label 'Evaluation Sequence must be unique, you cannot have two results with the same evaluation sequence. Result [%1/%2] already has the same evaluation sequence.', Comment = '%1=The result code, %2=the result condition';
+        QltyMgmtFeatureTelemetry: Codeunit "Qlty. Mgmt. Feature Telemetry";
+    begin
+        QltyMgmtFeatureTelemetry.LogFeatureUptakeDiscovered(ObjectType::Page, Page::"Qlty. Inspection Result List");
+    end;
 
     trigger OnNewRecord(BelowxRec: Boolean)
-    var
-        ExistingQltyInspectionResult: Record "Qlty. Inspection Result";
     begin
-        ExistingQltyInspectionResult.SetCurrentKey("Evaluation Sequence");
-        ExistingQltyInspectionResult.Ascending(false);
-        if not ExistingQltyInspectionResult.FindFirst() then
-            Rec."Evaluation Sequence" := 0
-        else
-            Rec."Evaluation Sequence" := ExistingQltyInspectionResult."Evaluation Sequence" + 1;
+        Rec.SetDefaultEvaluationSequence();
     end;
 
     trigger OnInsertRecord(BelowxRec: Boolean): Boolean
     begin
-        ValidateEvaluationSequenceNotUsedElsewhere();
+        Rec.ValidateEvaluationSequenceNotUsedElsewhere();
     end;
 
     trigger OnModifyRecord(): Boolean
     begin
-        ValidateEvaluationSequenceNotUsedElsewhere();
-    end;
-
-    local procedure ValidateEvaluationSequenceNotUsedElsewhere()
-    var
-        ExistingQltyInspectionResult: Record "Qlty. Inspection Result";
-    begin
-        ExistingQltyInspectionResult.SetFilter(Code, '<>%1', Rec.Code);
-        ExistingQltyInspectionResult.SetRange("Evaluation Sequence", Rec."Evaluation Sequence");
-        ExistingQltyInspectionResult.SetLoadFields(Description);
-        if ExistingQltyInspectionResult.FindFirst() then
-            Error(MustChangePriorityErr, ExistingQltyInspectionResult.Code, ExistingQltyInspectionResult.Description);
+        Rec.ValidateEvaluationSequenceNotUsedElsewhere();
     end;
 }

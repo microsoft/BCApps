@@ -49,9 +49,9 @@ codeunit 30165 "Shpfy Orders API"
         LastSyncTime := ShopifyShop.GetLastSyncTime("Shpfy Synchronization Type"::Orders);
         Parameters.Add('Time', Format(LastSyncTime, 0, 9));
         if LastSyncTime = Shop.GetEmptySyncTime() then
-            GraphQLType := "Shpfy GraphQL Type"::GetOpenOrdersToImport
+            GraphQLType := "Shpfy GraphQL Type"::Orders_GetOpenOrdersToImport
         else
-            GraphQLType := "Shpfy GraphQL Type"::GetOrdersToImport;
+            GraphQLType := "Shpfy GraphQL Type"::Orders_GetOrdersToImport;
         NewSyncTime := CurrentDateTime;
         repeat
             JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
@@ -62,9 +62,9 @@ codeunit 30165 "Shpfy Orders API"
                     else
                         Parameters.Add('After', Cursor);
                     if LastSyncTime = Shop.GetEmptySyncTime() then
-                        GraphQLType := "Shpfy GraphQL Type"::GetNextOpenOrdersToImport
+                        GraphQLType := "Shpfy GraphQL Type"::Orders_GetNextOpenOrdersToImport
                     else
-                        GraphQLType := "Shpfy GraphQL Type"::GetNextOrdersToImport;
+                        GraphQLType := "Shpfy GraphQL Type"::Orders_GetNextOrdersToImport;
                 end else
                     break;
         until not JsonHelper.GetValueAsBoolean(JResponse, 'data.orders.pageInfo.hasNextPage');
@@ -114,14 +114,16 @@ codeunit 30165 "Shpfy Orders API"
         JAttrib: JsonObject;
     begin
         CommunicationMgt.SetShop(ShopifyShop);
-        if CommunicationMgt.GetTestInProgress() then
-            exit;
         Clear(OrderAttribute);
         OrderAttribute."Order Id" := OrderHeader."Shopify Order Id";
         OrderAttribute."Key" := CopyStr(KeyName, 1, MaxStrLen(OrderAttribute."Key"));
-        OrderAttribute."Attribute Value" := CopyStr(Value, 1, MaxStrLen(OrderAttribute."Attribute Value"));
-        if not OrderAttribute.Insert() then
+        if OrderAttribute.Get(OrderAttribute."Order Id", OrderAttribute."Key") then begin
+            OrderAttribute."Attribute Value" := CopyStr(Value, 1, MaxStrLen(OrderAttribute."Attribute Value"));
             OrderAttribute.Modify();
+        end else begin
+            OrderAttribute."Attribute Value" := CopyStr(Value, 1, MaxStrLen(OrderAttribute."Attribute Value"));
+            OrderAttribute.Insert();
+        end;
 
         Clear(OrderAttribute);
         OrderAttribute.SetRange("Order Id", OrderHeader."Shopify Order Id");
@@ -135,7 +137,7 @@ codeunit 30165 "Shpfy Orders API"
 
         Parameters.Add('OrderId', Format(OrderHeader."Shopify Order Id"));
         Parameters.Add('CustomAttributes', Format(JAttributes).Replace('"key"', 'key').Replace('"value"', 'value').Replace('\', '\\').Replace('"', '\"'));
-        CommunicationMgt.ExecuteGraphQL(GraphQLType::UpdateOrderAttributes, Parameters);
+        CommunicationMgt.ExecuteGraphQL(GraphQLType::Orders_UpdateOrderAttributes, Parameters);
     end;
 
     /// <summary> 
@@ -268,7 +270,7 @@ codeunit 30165 "Shpfy Orders API"
     begin
         ShopifyShop.Get(ShopCode);
         CommunicationMgt.SetShop(ShopifyShop);
-        GraphQLType := "Shpfy GraphQL Type"::MarkOrderAsPaid;
+        GraphQLType := "Shpfy GraphQL Type"::Orders_MarkOrderAsPaid;
         Parameters.Add('OrderId', Format(OrderId));
         JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
         exit(JsonHelper.GetValueAsBoolean(JResponse, 'data.orderMarkAsPaid.order.fullyPaid'));
@@ -282,7 +284,7 @@ codeunit 30165 "Shpfy Orders API"
     begin
         ShopifyShop.Get(ShopCode);
         CommunicationMgt.SetShop(ShopifyShop);
-        GraphQLType := "Shpfy GraphQL Type"::OrderCancel;
+        GraphQLType := "Shpfy GraphQL Type"::Orders_OrderCancel;
         Parameters.Add('OrderId', Format(OrderId));
         if CancelReason in [CancelReason::" ", CancelReason::Unknown] then
             CancelReason := CancelReason::Other;

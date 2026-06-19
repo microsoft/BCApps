@@ -18,45 +18,45 @@ codeunit 135068 "Regex Performance Tests"
     [Test]
     procedure RegexPerformanceStaticCalls()
     var
-        RegexOptions: Record "Regex Options";
+        TempRegexOptions: Record "Regex Options";
         Regex: Codeunit Regex;
     begin
-        RegexOptions.Compiled := true;
-        RegexOptions.IgnoreCase := true;
+        TempRegexOptions.Compiled := true;
+        TempRegexOptions.IgnoreCase := true;
 
-        RegexPerformanceCall(Regex, RegexOptions, false);
+        RegexPerformanceCall(Regex, TempRegexOptions, false);
     end;
 
     [Test]
     procedure RegexPerformanceInstanceCalls()
     var
-        RegexOptions: Record "Regex Options";
+        TempRegexOptions: Record "Regex Options";
         Regex: Codeunit Regex;
     begin
-        RegexOptions.Compiled := true;
-        RegexOptions.IgnoreCase := true;
-        Regex.Regex(RegexPerformanceUrlMatchTxt, RegexOptions);
+        TempRegexOptions.Compiled := true;
+        TempRegexOptions.IgnoreCase := true;
+        Regex.Regex(RegexPerformanceUrlMatchTxt, TempRegexOptions);
 
-        RegexPerformanceCall(Regex, RegexOptions, true);
+        RegexPerformanceCall(Regex, TempRegexOptions, true);
     end;
 
-    local procedure RegexPerformanceCall(var ThisRegex: Codeunit Regex; RegexOptions: Record "Regex Options"; RunOnInstance: Boolean)
+    local procedure RegexPerformanceCall(var ThisRegex: Codeunit Regex; TempRegexOptions: Record "Regex Options"; RunOnInstance: Boolean)
     var
-        Matches: Record Matches;
-        Groups: Record Groups;
+        TempMatches: Record Matches;
+        TempGroups: Record Groups;
         Counter: Integer;
         UrlTxt: Label 'https://bcartifacts.azureedge.net/onprem/18.3.27240.27480/de', Locked = true;
     begin
         for counter := 0 to 100 do begin
             case RunOnInstance of
                 true:
-                    ThisRegex.Match(UrlTxt, Matches);
+                    ThisRegex.Match(UrlTxt, TempMatches);
                 false:
-                    ThisRegex.Match(UrlTxt, RegexPerformanceUrlMatchTxt, RegexOptions, Matches);
+                    ThisRegex.Match(UrlTxt, RegexPerformanceUrlMatchTxt, TempRegexOptions, TempMatches);
             end;
 
-            if Matches.Success then
-                ThisRegex.Groups(Matches, Groups);
+            if TempMatches.Success then
+                ThisRegex.Groups(TempMatches, TempGroups);
         end;
     end;
 

@@ -30,7 +30,7 @@ queryGroup 'Date Table'
 
 annotation __PBI_TimeIntelligenceEnabled = 0
 
-annotation PBI_QueryOrder = ["Project Planning Line","Project Ledger Entry","Project","Customer","Tasks","Dimension Sets","Purchases","ENVIRONMENT","COMPANY","Dimensions","DimensionSets_DataSource","DimensionSet_Blank","Purchase Lines Outstanding","Purchase Lines Received Not Invoiced","API_ENDPOINT","Date Table Setup","Working Days","ConvertUTC","Items","G/L Accounts","Resources","Type"]
+annotation PBI_QueryOrder = ["Project Planning Line","Project Ledger Entry","Project","Customer","Tasks","Dimension Sets","Purchases","ENVIRONMENT","COMPANY","Dimensions","DimensionSets_DataSource","DimensionSet_Blank","Company Encoding","Purchase Lines Outstanding","Purchase Lines Received Not Invoiced","API_ENDPOINT","Date Table Setup","Working Days","ConvertUTC","Items","G/L Accounts","Resources","Type"]
 
 annotation __TEdtr = 1
 
@@ -57,6 +57,7 @@ ref table Items
 ref table 'G/L Accounts'
 ref table Resources
 ref table Type
+ref table 'Company Encoding'
 
 ref cultureInfo en-US
 ref cultureInfo cs-CZ

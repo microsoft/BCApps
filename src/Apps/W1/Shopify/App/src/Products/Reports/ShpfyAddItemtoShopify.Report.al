@@ -50,6 +50,7 @@ report 30106 "Shpfy Add Item to Shopify"
 
                 Clear(ShopifyCreateProduct);
                 ShopifyCreateProduct.SetShop(ShopCode);
+                ProductExport.SetShop(ShopifyShop);
 
                 if GuiAllowed then begin
                     CurrItemNo := Item."No.";
@@ -59,18 +60,9 @@ report 30106 "Shpfy Add Item to Shopify"
             end;
 
             trigger OnAfterGetRecord()
-            var
-                SkippedRecord: Codeunit "Shpfy Skipped Record";
             begin
-                if Item.Blocked or Item."Sales Blocked" then begin
-                    SkippedRecord.LogSkippedRecord(Item.RecordId, ItemIsBlockedLbl, ShopifyShop);
+                if not ProductExport.CheckItemCanBeExported(Item) then
                     exit;
-                end;
-
-                if Item.Description = '' then begin
-                    SkippedRecord.LogSkippedRecord(Item.RecordId, ItemDescriptionIsEmptyLbl, ShopifyShop);
-                    exit;
-                end;
 
                 if GuiAllowed then begin
                     CurrItemNo := Item."No.";
@@ -187,6 +179,7 @@ report 30106 "Shpfy Add Item to Shopify"
     var
         ShopifyShop: Record "Shpfy Shop";
         ShopifyCreateProduct: Codeunit "Shpfy Create Product";
+        ProductExport: Codeunit "Shpfy Product Export";
         ShopCode: Code[20];
         CurrItemNo: Code[20];
         SyncImages: Boolean;
@@ -200,8 +193,6 @@ report 30106 "Shpfy Add Item to Shopify"
         MissingSKUMappingErr: Label 'You selected Business Central Fullment Services as default location. Inventory is stocked at Business Central Fulfilment Services for created products. This setting requires SKU field in the products.';
         ChangeDefaultLocationLbl: Label 'Change default location';
         ChangeSKUMappingLbl: Label 'Change SKU mapping';
-        ItemIsBlockedLbl: Label 'Item is blocked or sales blocked.';
-        ItemDescriptionIsEmptyLbl: Label 'Item description is empty.';
 
     /// <summary> 
     /// Set Shop.

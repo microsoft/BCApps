@@ -11,31 +11,17 @@ codeunit 8025 "Import And Process Usage Data"
         UsageDataProcessing: Interface "Usage Data Processing";
 
     trigger OnRun()
+    var
+        UsageDataSupplier: Record "Usage Data Supplier";
     begin
+        UsageDataSupplier.Get(Rec."Supplier No.");
+        UsageDataProcessing := UsageDataSupplier.Type;
         case Rec."Processing Step" of
             Enum::"Processing Step"::"Create Imported Lines":
-                ImportUsageData(Rec);
+                UsageDataProcessing.ImportUsageData(Rec);
             Enum::"Processing Step"::"Process Imported Lines":
-                ProcessUsageData(Rec);
+                UsageDataProcessing.ProcessUsageData(Rec);
         end;
-    end;
-
-    local procedure ImportUsageData(var UsageDataImport: Record "Usage Data Import")
-    var
-        UsageDataSupplier: Record "Usage Data Supplier";
-    begin
-        UsageDataSupplier.Get(UsageDataImport."Supplier No.");
-        UsageDataProcessing := UsageDataSupplier.Type;
-        UsageDataProcessing.ImportUsageData(UsageDataImport);
-    end;
-
-    local procedure ProcessUsageData(var UsageDataImport: Record "Usage Data Import")
-    var
-        UsageDataSupplier: Record "Usage Data Supplier";
-    begin
-        UsageDataSupplier.Get(UsageDataImport."Supplier No.");
-        UsageDataProcessing := UsageDataSupplier.Type;
-        UsageDataProcessing.ProcessUsageData(UsageDataImport);
     end;
 
     procedure CreateUsageDataCustomer(CustomerId: Text[80]; UsageDataSupplierReference: Record "Usage Data Supplier Reference"; SupplierNo: Code[20])

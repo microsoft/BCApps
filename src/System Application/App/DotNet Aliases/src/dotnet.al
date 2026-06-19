@@ -1203,8 +1203,6 @@ dotnet
 
     assembly("MailKit")
     {
-        Version = '2.15.0.0';
-        Culture = 'neutral';
         PublicKeyToken = '4e064fe7c44a8f1b';
 
         type("MailKit.Net.Smtp.SmtpClient"; "SmtpClient")
@@ -1238,8 +1236,6 @@ dotnet
 
     assembly("MimeKit")
     {
-        Version = '2.15.0.0';
-        Culture = 'neutral';
         PublicKeyToken = 'bede1c8a46c66814';
 
         type("MimeKit.BodyBuilder"; "MimeBodyBuilder")
@@ -1278,7 +1274,7 @@ dotnet
         {
         }
 
-        type("MimeKit.ContentObject"; "MimeContentObject")
+        type("MimeKit.EncodingConstraint"; "EncodingConstraint")
         {
         }
     }

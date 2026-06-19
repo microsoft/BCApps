@@ -28,7 +28,7 @@ codeunit 135136 "Record Selection Test"
     [TransactionModel(TransactionModel::AutoRollback)]
     procedure RecordSelectionTest()
     var
-        RecordSelectionBuffer: Record "Record Selection Buffer";
+        TempRecordSelectionBuffer: Record "Record Selection Buffer";
         RecordSelection: Codeunit "Record Selection";
         RecordSelected: Boolean;
     begin
@@ -38,14 +38,14 @@ codeunit 135136 "Record Selection Test"
         PermissionsMock.Set('Rec. Selection Read');
 
         // [WHEN] Open function is called and a record is selected.
-        RecordSelected := RecordSelection.Open(Database::"Record Selection Test Table", 1000, RecordSelectionBuffer);
+        RecordSelected := RecordSelection.Open(Database::"Record Selection Test Table", 1000, TempRecordSelectionBuffer);
 
         // [THEN] The third record is picked
         Assert.IsTrue(RecordSelected, 'No record was selected.');
-        Assert.AreEqual('3', RecordSelectionBuffer."Field 1", 'The third record should have been picked.');
-        Assert.AreEqual('C', RecordSelectionBuffer."Field 2", 'The third record should have been picked.');
-        Assert.AreEqual('The third', RecordSelectionBuffer."Field 3", 'The third record should have been picked.');
-        Assert.AreEqual(SystemId, RecordSelectionBuffer."Record System Id", 'The third record should have been picked.');
+        Assert.AreEqual('3', TempRecordSelectionBuffer."Field 1", 'The third record should have been picked.');
+        Assert.AreEqual('C', TempRecordSelectionBuffer."Field 2", 'The third record should have been picked.');
+        Assert.AreEqual('The third', TempRecordSelectionBuffer."Field 3", 'The third record should have been picked.');
+        Assert.AreEqual(SystemId, TempRecordSelectionBuffer."Record System Id", 'The third record should have been picked.');
     end;
 
     [Test]
@@ -53,7 +53,7 @@ codeunit 135136 "Record Selection Test"
     [TransactionModel(TransactionModel::AutoRollback)]
     procedure RecordSelectionSingleRecordTest()
     var
-        RecordSelectionBuffer: Record "Record Selection Buffer";
+        TempRecordSelectionBuffer: Record "Record Selection Buffer";
         RecordSelection: Codeunit "Record Selection";
         RecordSelected: Boolean;
     begin
@@ -63,11 +63,11 @@ codeunit 135136 "Record Selection Test"
         PermissionsMock.Set('Rec. Selection Read');
 
         // [WHEN] Open function is called and a record is auto selected.
-        RecordSelected := RecordSelection.Open(Database::"Record Selection Test Table", 1000, RecordSelectionBuffer);
+        RecordSelected := RecordSelection.Open(Database::"Record Selection Test Table", 1000, TempRecordSelectionBuffer);
 
         // [THEN] The only record is picked
         Assert.IsTrue(RecordSelected, 'No record was selected.');
-        Assert.AreEqual(SystemId, RecordSelectionBuffer."Record System Id", 'The first record should have been picked.');
+        Assert.AreEqual(SystemId, TempRecordSelectionBuffer."Record System Id", 'The first record should have been picked.');
     end;
 
     [Test]
@@ -75,7 +75,7 @@ codeunit 135136 "Record Selection Test"
     [TransactionModel(TransactionModel::AutoRollback)]
     procedure RecordSelectionCancel()
     var
-        RecordSelectionBuffer: Record "Record Selection Buffer";
+        TempRecordSelectionBuffer: Record "Record Selection Buffer";
         RecordSelection: Codeunit "Record Selection";
         RecordSelected: Boolean;
     begin
@@ -85,7 +85,7 @@ codeunit 135136 "Record Selection Test"
         PermissionsMock.Set('Rec. Selection Read');
         // [GIVEN] User selects Cancel
         // [THEN] Open function returns false
-        RecordSelected := RecordSelection.Open(Database::"Record Selection Test Table", 1000, RecordSelectionBuffer);
+        RecordSelected := RecordSelection.Open(Database::"Record Selection Test Table", 1000, TempRecordSelectionBuffer);
 
         Assert.IsFalse(RecordSelected, 'The open function returned true');
     end;
@@ -94,7 +94,7 @@ codeunit 135136 "Record Selection Test"
     [TransactionModel(TransactionModel::AutoRollback)]
     procedure RecordSelectionTooManyRecordsErrTest()
     var
-        RecordSelectionBuffer: Record "Record Selection Buffer";
+        TempRecordSelectionBuffer: Record "Record Selection Buffer";
         RecordSelection: Codeunit "Record Selection";
     begin
         // [SCENARIO] The record selection page is opened but contains too many records so an error is thrown.
@@ -103,7 +103,7 @@ codeunit 135136 "Record Selection Test"
         PermissionsMock.Set('Rec. Selection Read');
 
         // [WHEN] Open function is called and errors
-        asserterror RecordSelection.Open(Database::"Record Selection Test Table", 2, RecordSelectionBuffer);
+        asserterror RecordSelection.Open(Database::"Record Selection Test Table", 2, TempRecordSelectionBuffer);
 
         // [THEN] An error is thrown that the table contains too many records
         Assert.ExpectedError(TooManyRecordsErr);
@@ -113,7 +113,7 @@ codeunit 135136 "Record Selection Test"
     [TransactionModel(TransactionModel::AutoRollback)]
     procedure RecordSelectionNoRecordsErrTest()
     var
-        RecordSelectionBuffer: Record "Record Selection Buffer";
+        TempRecordSelectionBuffer: Record "Record Selection Buffer";
         RecordSelection: Codeunit "Record Selection";
     begin
         // [SCENARIO] The record selection page is opened but contains no records so an error is thrown.
@@ -121,7 +121,7 @@ codeunit 135136 "Record Selection Test"
         PermissionsMock.Set('Rec. Selection Read');
 
         // [WHEN] Open function is called and errors
-        asserterror RecordSelection.Open(Database::"Record Selection Test Table", 1000, RecordSelectionBuffer);
+        asserterror RecordSelection.Open(Database::"Record Selection Test Table", 1000, TempRecordSelectionBuffer);
 
         // [THEN] An error is thrown that the table contains no records
         Assert.ExpectedError(NoRecordsErr);

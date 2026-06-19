@@ -13,6 +13,11 @@ codeunit 37204 "PEPPOL30 Initialize"
     InherentPermissions = X;
     Access = Internal;
 
+    trigger OnInstallAppPerCompany()
+    begin
+        CreateElectronicDocumentFormats();
+    end;
+
     internal procedure CreateElectronicDocumentFormats()
     var
         ElectronicDocumentFormat: Record "Electronic Document Format";

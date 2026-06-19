@@ -205,9 +205,9 @@ page 8075 "Customer Contract Lines"
 
     trigger OnAfterGetRecord()
     begin
-        InitializePageVariables();
-        SetNextBillingDateStyle();
+        Rec.GetServiceObject(ServiceObject);
         Rec.LoadServiceCommitmentForContractLine(ServiceCommitment);
+        SetNextBillingDateStyle();
         LoadQuantityForContractLine();
     end;
 
@@ -223,13 +223,6 @@ page 8075 "Customer Contract Lines"
         NextBillingDateStyleExpr: Text;
         ContractLineQty: Decimal;
         VariantCode: Code[10];
-
-    local procedure InitializePageVariables()
-    var
-    begin
-        Rec.GetServiceCommitment(ServiceCommitment);
-        Rec.GetServiceObject(ServiceObject);
-    end;
 
     local procedure SetNextBillingDateStyle()
     begin

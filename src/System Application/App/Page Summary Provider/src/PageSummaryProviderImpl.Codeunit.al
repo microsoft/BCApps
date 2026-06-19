@@ -24,10 +24,10 @@ codeunit 2717 "Page Summary Provider Impl."
 
     procedure GetPageSummary(Parameters: Text): Text
     var
-        PageSummaryParameters: Record "Page Summary Parameters";
+        TempPageSummaryParameters: Record "Page Summary Parameters";
     begin
-        PageSummaryParameters.FromJson(Parameters);
-        exit(GetPageSummary(PageSummaryParameters));
+        TempPageSummaryParameters.FromJson(Parameters);
+        exit(GetPageSummary(TempPageSummaryParameters));
     end;
 
     procedure GetPageSummary(PageSummaryParameters: Record "Page Summary Parameters"): Text

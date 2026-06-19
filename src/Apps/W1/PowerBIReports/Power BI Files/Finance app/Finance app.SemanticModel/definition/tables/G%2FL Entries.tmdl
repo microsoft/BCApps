@@ -155,7 +155,7 @@ table 'G/L Entries'
 			VAR BusinessCentral = "https://businesscentral.dynamics.com/"
 			VAR TenantID = VALUES('Date Table Setup'[tenantID])
 			VAR Environment = VALUES(ENVIRONMENT[ENVIRONMENT])
-			VAR Company = "?company=" & VALUES(COMPANY[COMPANY])
+			VAR Company = "?company=" & VALUES('Company Encoding'[Encoded Company Name])
 			RETURN BusinessCentral & TenantID & "/" & Environment & "/" & Company
 		displayFolder: _G/L Entry Measures\_G/L Entry Back Links
 		lineageTag: b08bfde7-4752-45b9-b9ce-53d9c0ce7665
@@ -296,7 +296,7 @@ table 'G/L Entries'
 		source =
 				let
 				    #"Combine Queries" =
-				        if CheckUpgradeQuery("closeIncomeStmtSourceCodes") then
+				        if IsCloseIncomeStmtUpgraded then
 				            Table.Combine(
 				                {
 				                    #"Balance Sheet G/L Entries",

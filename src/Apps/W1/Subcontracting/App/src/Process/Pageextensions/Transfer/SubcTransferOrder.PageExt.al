@@ -13,67 +13,53 @@ pageextension 99001526 "Subc. Transfer Order" extends "Transfer Order"
         modify("Direct Transfer")
         {
             Enabled = EsEnableTransferFields;
-            Visible = false;
-        }
-        addafter("Direct Transfer")
-        {
-            field("Direct Transfer Posting"; Rec."Direct Transfer Posting")
-            {
-                ApplicationArea = Location;
-                Editable = (Rec.Status = Rec.Status::Open) and EsEnableTransferFields;
-                ToolTip = 'Specifies whether the incoming posting of the transfer order is posted directly with the outgoing posting, or whether the posting is done in 2 steps. Note: If "Direct transfer" is selected, no transit code will be used and no posted documents will be created.';
-                trigger OnValidate()
-                begin
-                    CurrPage.Update();
-                end;
-            }
         }
         addlast(General)
         {
-            field(SourceType; Rec."Source Type")
+            field("Subc. Source Type"; Rec."Subc. Source Type")
             {
-                ApplicationArea = Location;
+                ApplicationArea = Subcontracting;
                 Editable = false;
                 ToolTip = 'Specifies for which source type the transfer order is related to.';
                 Visible = false;
             }
             field(SourceSubtype; Rec."Source Subtype")
             {
-                ApplicationArea = Location;
+                ApplicationArea = Subcontracting;
                 Editable = false;
                 ToolTip = 'Specifies which source subtype the transfer order is related to.';
                 Visible = false;
             }
             field(SourceID; Rec."Source ID")
             {
-                ApplicationArea = Location;
+                ApplicationArea = Subcontracting;
                 Editable = false;
                 ToolTip = 'Specifies which source ID the transfer order is related to.';
                 Visible = false;
             }
             field(SourceRefNo; Rec."Source Ref. No.")
             {
-                ApplicationArea = Location;
+                ApplicationArea = Subcontracting;
                 Editable = false;
                 ToolTip = 'Specifies a reference number for the line, which the transfer order is related to.';
                 Visible = false;
             }
-            field("Return Order"; Rec."Return Order")
+            field("Subc. Return Order"; Rec."Subc. Return Order")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Editable = false;
                 ToolTip = 'Specifies whether the existing transfer order is a return of the subcontractor.';
                 Visible = false;
             }
             field("Subcontr. Purch. Order No."; Rec."Subcontr. Purch. Order No.")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 ToolTip = 'Specifies the number of the related purchase order.';
                 Visible = false;
             }
             field("Subcontr. PO Line No."; Rec."Subcontr. PO Line No.")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 ToolTip = 'Specifies the number of the related purchase order line.';
                 Visible = false;
             }
@@ -82,7 +68,7 @@ pageextension 99001526 "Subc. Transfer Order" extends "Transfer Order"
         {
             part("Subc. Transfer Line Factbox"; "Subc. Transfer Line Factbox")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Provider = TransferLines;
                 SubPageLink = "Document No." = field("Document No."), "Line No." = field("Line No.");
                 Visible = ShowSubcontractingFactBox;
@@ -93,21 +79,47 @@ pageextension 99001526 "Subc. Transfer Order" extends "Transfer Order"
         EsEnableTransferFields: Boolean;
 
     var
+        SubcTransferManagement: Codeunit "Subc. Transfer Management";
+#if not CLEAN29
+#pragma warning disable AL0432
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
+        SubcontractingEnabled: Boolean;
+#endif
         ShowSubcontractingFactBox: Boolean;
 
     trigger OnOpenPage()
     begin
-        ShowSubcontractingFactBox := Rec."Source Type" = Rec."Source Type"::Subcontracting;
+#if not CLEAN29
+#pragma warning disable AL0432
+        SubcontractingEnabled := SubcFeatureFlagHandler.IsSubcontractingEnabled();
+#pragma warning restore AL0432
+        if not SubcontractingEnabled then
+            exit;
+#endif
+        ShowSubcontractingFactBox := SubcTransferManagement.IsSubcontractingTransferDocument(Rec);
+        CurrPage.TransferLines.Page.SetIsSubcontracting(ShowSubcontractingFactBox);
         EsEnableTransferFields := not IsPartiallyShipped();
     end;
 
     trigger OnAfterGetCurrRecord()
     begin
-        ShowSubcontractingFactBox := Rec."Source Type" = Rec."Source Type"::Subcontracting;
+#if not CLEAN29
+        if not SubcontractingEnabled then
+            exit;
+
+#endif
+        ShowSubcontractingFactBox := SubcTransferManagement.IsSubcontractingTransferDocument(Rec);
+        CurrPage.TransferLines.Page.SetIsSubcontracting(ShowSubcontractingFactBox);
     end;
 
     trigger OnAfterGetRecord()
     begin
+#if not CLEAN29
+        if not SubcontractingEnabled then
+            exit;
+
+#endif
         EsEnableTransferFields := not IsPartiallyShipped();
     end;
 

@@ -21,6 +21,7 @@ codeunit 30106 "Shpfy Upgrade Mgt."
     Access = Internal;
     Subtype = Upgrade;
     Permissions = tabledata "Shpfy Shop" = RM,
+                  tabledata "Shpfy Tax Area" = rimd,
                   tabledata "Webhook Subscription" = rimd;
 
     trigger OnUpgradePerDatabase()
@@ -42,6 +43,8 @@ codeunit 30106 "Shpfy Upgrade Mgt."
         SetShopifyCatalogsType();
         CreateInvoicesFromOrdersUpgrade();
         OrderTransactionShopCodeUpgrade();
+        HasAdvancedShopifyPlanUpgrade();
+        ItalianSardinianProvinceRenameUpgrade();
     end;
 
     internal procedure UpgradeTemplatesData()
@@ -248,11 +251,29 @@ codeunit 30106 "Shpfy Upgrade Mgt."
         Shop.SetRange("Customer Posting Group", '');
         if Shop.FindSet(true) then
             repeat
-                Shop.CopyPriceCalculationFieldsFromCustomerTempl(Shop."Customer Templ. Code");
-                Shop.Modify();
+                CopyPriceCalculationFieldsFromCustomerTempl(Shop, Shop."Customer Templ. Code");
             until Shop.Next() = 0;
 
         UpgradeTag.SetUpgradeTag(GetPriceCalculationUpgradeTag());
+    end;
+
+    local procedure CopyPriceCalculationFieldsFromCustomerTempl(var Shop: Record "Shpfy Shop"; TemplateCode: Code[20])
+    var
+        CustomerTempl: Record "Customer Templ.";
+    begin
+        if TemplateCode = '' then
+            exit;
+        if not CustomerTempl.Get(TemplateCode) then
+            exit;
+        Shop."Gen. Bus. Posting Group" := CustomerTempl."Gen. Bus. Posting Group";
+        Shop."VAT Bus. Posting Group" := CustomerTempl."VAT Bus. Posting Group";
+        Shop."Tax Area Code" := CustomerTempl."Tax Area Code";
+        Shop."Tax Liable" := CustomerTempl."Tax Liable";
+        Shop."VAT Country/Region Code" := CustomerTempl."Country/Region Code";
+        Shop."Customer Posting Group" := CustomerTempl."Customer Posting Group";
+        Shop."Prices Including VAT" := CustomerTempl."Prices Including VAT";
+        Shop."Allow Line Disc." := CustomerTempl."Allow Line Disc.";
+        Shop.Modify();
     end;
 
     local procedure LoggingModeUpgrade()
@@ -496,6 +517,24 @@ codeunit 30106 "Shpfy Upgrade Mgt."
         UpgradeTag.SetUpgradeTag(GetOrderTransactionShopCodeUpgradeTag());
     end;
 
+    local procedure HasAdvancedShopifyPlanUpgrade()
+    var
+        Shop: Record "Shpfy Shop";
+        UpgradeTag: Codeunit "Upgrade Tag";
+        ShopDataTransfer: DataTransfer;
+    begin
+        if UpgradeTag.HasUpgradeTag(GetHasAdvancedShopifyPlanUpgradeTag()) then
+            exit;
+
+        ShopDataTransfer.SetTables(Database::"Shpfy Shop", Database::"Shpfy Shop");
+        ShopDataTransfer.AddSourceFilter(Shop.FieldNo("B2B Enabled"), '=%1', true);
+        ShopDataTransfer.AddConstantValue(true, Shop.FieldNo("Advanced Shopify Plan"));
+        ShopDataTransfer.UpdateAuditFields := false;
+        ShopDataTransfer.CopyFields();
+
+        UpgradeTag.SetUpgradeTag(GetHasAdvancedShopifyPlanUpgradeTag());
+    end;
+
     internal procedure GetAllowOutgoingRequestseUpgradeTag(): Code[250]
     begin
         exit('MS-445989-AllowOutgoingRequestseUpgradeTag-20220816');
@@ -571,6 +610,49 @@ codeunit 30106 "Shpfy Upgrade Mgt."
         exit('MS-610671-OrderTransactionShopCodeUpgrade-20251022');
     end;
 
+    local procedure GetHasAdvancedShopifyPlanUpgradeTag(): Code[250]
+    begin
+        exit('MS-630316-HasAdvancedShopifyPlanUpgrade-20260408');
+    end;
+
+    local procedure ItalianSardinianProvinceRenameUpgrade()
+    var
+        UpgradeTag: Codeunit "Upgrade Tag";
+    begin
+        if UpgradeTag.HasUpgradeTag(GetItalianSardinianProvinceRenameUpgradeTag()) then
+            exit;
+
+        RenameItalianProvince('IT', 'Olbia-Tempio', 'Gallura Nord-Est Sardegna');
+        RenameItalianProvince('IT', 'Carbonia-Iglesias', 'Sulcis Iglesiente');
+
+        UpgradeTag.SetUpgradeTag(GetItalianSardinianProvinceRenameUpgradeTag());
+    end;
+
+    local procedure RenameItalianProvince(CountryRegionCode: Code[20]; OldName: Text[50]; NewName: Text[50])
+    var
+        OldShpfyTaxArea: Record "Shpfy Tax Area";
+        NewShpfyTaxArea: Record "Shpfy Tax Area";
+    begin
+        if not OldShpfyTaxArea.Get(CountryRegionCode, OldName) then
+            exit;
+
+        // If the new name already exists (e.g. a tenant manually pre-seeded it before this
+        // upgrade ran), leave both rows in place: the new row carries the user's intended
+        // configuration, and the old row is harmless because Shopify no longer sends the
+        // pre-2026-05-14 name -- no lookup will match it. Admins can clean up the stale row
+        // from the Shopify Tax Areas page if desired. Auto-deleting would risk discarding
+        // user-configured Tax Area Code / VAT Bus. Posting Group values on the old row.
+        if NewShpfyTaxArea.Get(CountryRegionCode, NewName) then
+            exit;
+
+        OldShpfyTaxArea.Rename(CountryRegionCode, NewName);
+    end;
+
+    local procedure GetItalianSardinianProvinceRenameUpgradeTag(): Code[250]
+    begin
+        exit('MS-638035-ItalianSardinianProvinceRenameUpgrade-20260609');
+    end;
+
     local procedure GetDateBeforeFeature(): DateTime
     begin
         exit(CreateDateTime(DMY2Date(1, 8, 2022), 0T));
@@ -590,5 +672,7 @@ codeunit 30106 "Shpfy Upgrade Mgt."
         PerCompanyUpgradeTags.Add(GetShopifyCatalogsTypeUpgradeTag());
         PerCompanyUpgradeTags.Add(GetCreateInvoicesFromOrdersUpgradeTag());
         PerCompanyUpgradeTags.Add(GetOrderTransactionShopCodeUpgradeTag());
+        PerCompanyUpgradeTags.Add(GetHasAdvancedShopifyPlanUpgradeTag());
+        PerCompanyUpgradeTags.Add(GetItalianSardinianProvinceRenameUpgradeTag());
     end;
 }

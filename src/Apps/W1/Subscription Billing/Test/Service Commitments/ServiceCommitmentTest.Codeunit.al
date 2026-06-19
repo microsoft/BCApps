@@ -483,7 +483,7 @@ codeunit 148156 "Service Commitment Test"
     [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler')]
     procedure TestOverdueServiceCommitments()
     var
-        OverdueServiceCommitments: Record "Overdue Subscription Line";
+        TempOverdueServiceCommitments: Record "Overdue Subscription Line";
         ServiceContractSetup: Record "Subscription Contract Setup";
         i: Integer;
         InsertCounter: Integer;
@@ -508,7 +508,7 @@ codeunit 148156 "Service Commitment Test"
                 InsertServiceCommitment(ServiceCommitment.Partner::Vendor, InsertCounter);
         end;
 
-        Assert.AreEqual(InsertCounter, OverdueServiceCommitments.CountOverdueServiceCommitments(), 'Only service commitments that are open and within the correct date range should be counted.');
+        Assert.AreEqual(InsertCounter, TempOverdueServiceCommitments.CountOverdueServiceCommitments(), 'Only service commitments that are open and within the correct date range should be counted.');
     end;
 
     [Test]

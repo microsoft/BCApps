@@ -15,13 +15,14 @@ using Microsoft.Warehouse.Structure;
 report 20409 "Qlty. Change Item Tracking"
 {
     Caption = 'Quality Management - Change Item Tracking';
-    ApplicationArea = QualityManagement;
-    ProcessingOnly = true;
-    UsageCategory = Tasks;
-    AllowScheduling = false;
-    Extensible = true;
     AdditionalSearchTerms = 'Change lot number, Change serial number, Change package number, Change Expiration Date';
     ToolTip = 'Use this to update item tracking information.';
+    ProcessingOnly = true;
+    AccessByPermission = tabledata "Qlty. Inspection Header" = R;
+    UsageCategory = Tasks;
+    ApplicationArea = QualityManagement;
+    AllowScheduling = false;
+    Extensible = true;
 
     dataset
     {

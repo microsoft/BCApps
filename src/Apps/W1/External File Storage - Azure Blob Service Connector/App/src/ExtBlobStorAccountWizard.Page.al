@@ -127,7 +127,7 @@ page 4561 "Ext. Blob Stor. Account Wizard"
 
                 trigger OnAction()
                 begin
-                    BlobStorageConnectorImpl.CreateAccount(Rec, Secret, BlobStorageAccount);
+                    BlobStorageConnectorImpl.CreateAccount(Rec, Secret, TempBlobStorageAccount);
                     CurrPage.Close();
                 end;
             }
@@ -135,7 +135,7 @@ page 4561 "Ext. Blob Stor. Account Wizard"
     }
 
     var
-        BlobStorageAccount: Record "File Account";
+        TempBlobStorageAccount: Record "File Account";
         MediaResources: Record "Media Resources";
         BlobStorageConnectorImpl: Codeunit "Ext. Blob Sto. Connector Impl.";
         [NonDebuggable]
@@ -156,10 +156,10 @@ page 4561 "Ext. Blob Stor. Account Wizard"
 
     internal procedure GetAccount(var FileAccount: Record "File Account"): Boolean
     begin
-        if IsNullGuid(BlobStorageAccount."Account Id") then
+        if IsNullGuid(TempBlobStorageAccount."Account Id") then
             exit(false);
 
-        FileAccount := BlobStorageAccount;
+        FileAccount := TempBlobStorageAccount;
 
         exit(true);
     end;

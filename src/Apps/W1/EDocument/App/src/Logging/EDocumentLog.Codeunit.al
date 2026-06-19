@@ -293,7 +293,7 @@ codeunit 6132 "E-Document Log"
             until Changes.Next() = 0;
     end;
 
-    internal procedure GetDocumentBlobFromLog(EDocument: Record "E-Document"; EDocumentService: Record "E-Document Service"; var TempBlob: Codeunit "Temp Blob"; EDocumentServiceStatus: Enum "E-Document Service Status"; var EDocumentLog: Record "E-Document Log"): Boolean
+    procedure GetDocumentBlobFromLog(EDocument: Record "E-Document"; EDocumentService: Record "E-Document Service"; var TempBlob: Codeunit "Temp Blob"; EDocumentServiceStatus: Enum "E-Document Service Status"; var EDocumentLog: Record "E-Document Log"): Boolean
     var
         EDocDataStorage: Record "E-Doc. Data Storage";
         EDocumentHelper: Codeunit "E-Document Processing";

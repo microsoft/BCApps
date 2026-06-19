@@ -466,13 +466,17 @@ table 8068 "Sales Subscription Line"
             if Amount > MaxServiceAmount then
                 Error(ServiceAmountIncreaseErr, FieldCaption(Amount), Format(MaxServiceAmount));
             "Discount Amount" := Round(MaxServiceAmount - Amount, Currency."Amount Rounding Precision");
-            "Discount %" := Round(100 - (Amount / MaxServiceAmount * 100), 0.00001);
+            if MaxServiceAmount <> 0 then
+                "Discount %" := Round(100 - (Amount / MaxServiceAmount * 100), 0.00001);
         end else begin
             Amount := Round((Price * SalesLine.Quantity), Currency."Amount Rounding Precision");
             if CalledByFieldNo = FieldNo("Discount %") then
                 "Discount Amount" := Round(Amount * "Discount %" / 100, Currency."Amount Rounding Precision");
             if CalledByFieldNo = FieldNo("Discount Amount") then
-                "Discount %" := Round("Discount Amount" / Amount * 100, 0.00001);
+                if Amount <> 0 then
+                    "Discount %" := Round("Discount Amount" / Amount * 100, 0.00001)
+                else
+                    "Discount %" := 0;
             Amount := Round((Price * SalesLine.Quantity) - "Discount Amount", Currency."Amount Rounding Precision");
             if Amount > MaxServiceAmount then
                 Error(ServiceAmountIncreaseErr, FieldCaption(Amount), Format(MaxServiceAmount));

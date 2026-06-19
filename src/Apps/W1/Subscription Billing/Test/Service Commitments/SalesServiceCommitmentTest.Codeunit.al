@@ -1,11 +1,13 @@
 namespace Microsoft.SubscriptionBilling;
 
+using Microsoft.CRM.Team;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Catalog;
+using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Inventory.Setup;
@@ -197,20 +199,24 @@ codeunit 139915 "Sales Service Commitment Test"
         RequisitionLine: Record "Requisition Line";
         Vendor: Record Vendor;
     begin
+        // [SCENARIO] Subscriptions with serial numbers are created when posting a purchase order for a drop shipment sales order.
         Initialize();
 
+        // [GIVEN] A released sales order with serial no. tracked subscription item set up for drop shipment
         CreateAndReleaseSalesDocumentWithSerialNoForDropShipment();
 
         LibraryPurchase.CreateVendor(Vendor);
         Item."Vendor No." := Vendor."No.";
         Item.Modify(false);
 
+        // [WHEN] A purchase order is created from the sales order via requisition worksheet and received
         RunGetSalesOrders(RequisitionLine, SalesHeader);
         ReqWkshCarryOutActionMessage(RequisitionLine);
         PurchaseHeader.SetRange("Buy-from Vendor No.", Vendor."No.");
         PurchaseHeader.FindLast();
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
 
+        // [THEN] One Subscription per serial number is created with the correct serial number and quantity of 1
         TestServiceObjectWithSerialNoExpectedCount();
         TestServiceObjectWithSerialNoExists();
     end;
@@ -421,15 +427,15 @@ codeunit 139915 "Sales Service Commitment Test"
     begin
         Initialize();
         LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, '');
-        SetupSalesLineForTotalAndVatCalculation(Item, true, 19);
+        SetupSalesLineForTotalAndVatCalculation(Item, true);
         SalesLine.Validate("Unit Price", 100);
         SalesLine.Validate(Quantity, 1);
         SalesLine.Modify(false);
-        SetupSalesLineForTotalAndVatCalculation(Item2, false, 19);
+        SetupSalesLineForTotalAndVatCalculation(Item2, false);
         SalesLine.Validate("Unit Price", 100);
         SalesLine.Validate(Quantity, 1);
         SalesLine.Modify(false);
-        SetupSalesLineForTotalAndVatCalculation(Item3, false, 19);
+        SetupSalesLineForTotalAndVatCalculation(Item3, false);
         SalesLine.Validate("Unit Price", 100);
         SalesLine.Validate(Quantity, 1);
         SalesLine.Validate("Line Discount %", 50);
@@ -598,6 +604,43 @@ codeunit 139915 "Sales Service Commitment Test"
     end;
 
     [Test]
+    procedure CheckSalesLineQtyToInvoiceAfterPartialShipment()
+    var
+        ReleaseSalesDoc: Codeunit "Release Sales Document";
+    begin
+        // [SCENARIO] After posting a partial (ship-only) shipment for a subscription item, "Qty. to Invoice" must stay 0.
+        //            A subsequent Ship+Invoice posting of the remaining quantity must succeed without error
+        Initialize();
+        SetupAdditionalServiceCommPackageLine(Enum::"Service Partner"::Vendor);
+        ContractTestLibrary.SetupSalesServiceCommitmentItemAndAssignToServiceCommitmentPackage(
+            Item, Enum::"Item Service Commitment Type"::"Service Commitment Item", ServiceCommitmentPackage.Code);
+
+        // [GIVEN] Sales order for a subscription item with quantity 2; first shipment covers 1 piece
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, '');
+        LibrarySales.CreateSalesLineWithShipmentDate(SalesLine, SalesHeader, Enum::"Sales Line Type"::Item, Item."No.", WorkDate(), 2);
+        SalesLine.Validate("Qty. to Ship", 1);
+        SalesLine.Modify(false);
+
+        // [WHEN] Post ship-only for the first piece
+        LibrarySales.PostSalesDocument(SalesHeader, true, false);
+
+        // [THEN] "Qty. to Invoice" on the remaining order line must be 0
+        SalesLine.Get(SalesLine."Document Type", SalesLine."Document No.", SalesLine."Line No.");
+        Assert.AreEqual(0, SalesLine."Qty. to Invoice", '"Qty. to Invoice" must be 0 for subscription item after partial shipment.');
+
+        // [WHEN] Post ship+invoice for the remaining piece - must succeed without error
+        ReleaseSalesDoc.PerformManualReopen(SalesHeader);
+        SalesLine.Validate("Qty. to Ship", 1);
+        SalesLine.Modify(false);
+        LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [THEN] All quantity has been shipped and "Qty. to Invoice" is still 0
+        SalesLine.Get(SalesLine."Document Type", SalesLine."Document No.", SalesLine."Line No.");
+        Assert.AreEqual(2, SalesLine."Quantity Shipped", '"Quantity Shipped" must equal the full quantity after complete shipment.');
+        Assert.AreEqual(0, SalesLine."Qty. to Invoice", '"Qty. to Invoice" must remain 0 for subscription item after full shipment.');
+    end;
+
+    [Test]
     procedure CheckSalesLineQtyToInvoiceAfterSalesQuoteToOrder()
     var
         SalesOrder: Record "Sales Header";
@@ -661,11 +704,19 @@ codeunit 139915 "Sales Service Commitment Test"
     begin
         Initialize();
         SetupAdditionalServiceCommPackageLine(Enum::"Service Partner"::Vendor);
+
+        ServiceCommPackageLine.SetRange("Subscription Package Code", ServiceCommitmentPackage.Code);
+        ServiceCommPackageLine.FindSet(true);
+        repeat
+            ServiceCommPackageLine."Usage Based Billing" := true;
+            ServiceCommPackageLine."Usage Based Pricing" := Enum::"Usage Based Pricing"::"Usage Quantity";
+            ServiceCommPackageLine."Pricing Unit Cost Surcharge %" := LibraryRandom.RandDec(50, 2);
+            ServiceCommPackageLine.Modify(false);
+        until ServiceCommPackageLine.Next() = 0;
+
         ContractTestLibrary.SetupSalesServiceCommitmentItemAndAssignToServiceCommitmentPackage(Item, Enum::"Item Service Commitment Type"::"Sales with Service Commitment", ServiceCommitmentPackage.Code);
         LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Quote, '');
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, Enum::"Sales Line Type"::Item, Item."No.", LibraryRandom.RandIntInRange(1, 100));
-        SalesServiceCommitment.FilterOnSalesLine(SalesLine);
-        SalesServiceCommitment.FindSet();
 
         ArchiveManagement.ArchSalesDocumentNoConfirm(SalesHeader);
 
@@ -703,6 +754,9 @@ codeunit 139915 "Sales Service Commitment Test"
                 SalesServiceCommArchive.TestField("Customer Price Group", SalesServiceCommitment."Customer Price Group");
                 SalesServiceCommArchive.TestField("Unit Cost", SalesServiceCommitment."Unit Cost");
                 SalesServiceCommArchive.TestField("Unit Cost (LCY)", SalesServiceCommitment."Unit Cost (LCY)");
+                SalesServiceCommArchive.TestField("Usage Based Billing", SalesServiceCommitment."Usage Based Billing");
+                SalesServiceCommArchive.TestField("Usage Based Pricing", SalesServiceCommitment."Usage Based Pricing");
+                SalesServiceCommArchive.TestField("Pricing Unit Cost Surcharge %", SalesServiceCommitment."Pricing Unit Cost Surcharge %");
             until SalesServiceCommitment.Next() = 0;
         until SalesLine.Next() = 0;
     end;
@@ -828,6 +882,150 @@ codeunit 139915 "Sales Service Commitment Test"
         SalesServiceCommitment.SetRange("Calculation Base Type", Enum::"Calculation Base Type"::"Document Price");
         SalesServiceCommitment.FindFirst();
         Assert.AreEqual(ExpectedCalculationBaseAmount, SalesServiceCommitment."Calculation Base Amount", StrSubstNo(UnexpectedValueTok, SalesServiceCommitment.FieldCaption("Calculation Base Amount"), SalesServiceCommitment.TableCaption(), SalesServiceCommitment.Partner, SalesServiceCommitment."Calculation Base Type"));
+    end;
+
+    [Test]
+    procedure CheckCalculationBaseAmountEqualsSalesLineUnitPriceIncludingVAT()
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+        CalcBaseAmtMustEqualUnitPriceWithVATErr: Label 'Calculation Base Amount must equal the unit price when Prices Including VAT is enabled.', Locked = true;
+    begin
+        // [SCENARIO] When Prices Including VAT is enabled on the Sales Header, the Calculation Base Amount
+        // on the Sales Subscription Line stores the VAT-inclusive unit price as-is (same as Sales Line Unit Price).
+
+        // [GIVEN] A subscription item with a non-zero VAT%, and a Sales Order with Prices Including VAT = true
+        Initialize();
+        SetupAdditionalServiceCommPackageLine(Enum::"Service Partner"::Customer, Enum::"Calculation Base Type"::"Document Price");
+        SetupItemCustomerAndSalesHeaderWithVAT(VATPostingSetup);
+        SalesHeader.Validate("Prices Including VAT", true);
+        SalesHeader.Modify(true);
+
+        // [WHEN] A sales line is created with the subscription item
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, Enum::"Sales Line Type"::Item, Item."No.", 1);
+
+        // [THEN] Calculation Base Amount equals the unit price as stored on the sales line (VAT-inclusive)
+        FindCustomerDocumentPriceSalesServiceCommitment();
+        Assert.AreEqual(
+            SalesLine."Unit Price",
+            SalesServiceCommitment."Calculation Base Amount",
+            CalcBaseAmtMustEqualUnitPriceWithVATErr);
+    end;
+
+    [Test]
+    procedure CheckCalculationBaseAmountEqualsSalesLineUnitPriceExcludingVAT()
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+        CalcBaseAmtMustEqualUnitPriceNoVATErr: Label 'Calculation Base Amount must equal unit price when Prices Including VAT is disabled.', Locked = true;
+    begin
+        // [SCENARIO] When Prices Including VAT is disabled (default), the Calculation Base Amount on the
+        // Sales Subscription Line equals the unit price directly, with no VAT adjustment.
+
+        // [GIVEN] A subscription item with a non-zero VAT%, and a Sales Order with Prices Including VAT = false
+        Initialize();
+        SetupAdditionalServiceCommPackageLine(Enum::"Service Partner"::Customer, Enum::"Calculation Base Type"::"Document Price");
+        SetupItemCustomerAndSalesHeaderWithVAT(VATPostingSetup);
+
+        // [WHEN] A sales line is created with the subscription item (Prices Including VAT = false by default)
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, Enum::"Sales Line Type"::Item, Item."No.", 1);
+
+        // [THEN] Calculation Base Amount equals the unit price without any VAT adjustment
+        FindCustomerDocumentPriceSalesServiceCommitment();
+        Assert.AreEqual(
+            SalesLine."Unit Price",
+            SalesServiceCommitment."Calculation Base Amount",
+            CalcBaseAmtMustEqualUnitPriceNoVATErr);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandlerYes')]
+    procedure CheckCalculationBaseAmountRecalculatedOnPricesIncludingVATChange()
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+        InitCalcBaseAmtMustEqualUnitPriceErr: Label 'Initial Calculation Base Amount must equal unit price when Prices Including VAT is disabled.', Locked = true;
+        CalcBaseAmtMustEqualUpdatedUnitPriceErr: Label 'Calculation Base Amount must equal the updated unit price when Prices Including VAT is toggled on.', Locked = true;
+        CalcBaseAmtMustRevertToUnitPriceErr: Label 'Calculation Base Amount must revert to unit price when Prices Including VAT is toggled off.', Locked = true;
+    begin
+        // [SCENARIO] Toggling Prices Including VAT on a Sales Header triggers recalculation of the
+        // Calculation Base Amount on all existing Sales Subscription Lines using the VAT factor,
+        // preserving any manual edits rather than recalculating from scratch.
+
+        // [GIVEN] A Sales Order with Prices Including VAT = false and an existing subscription line
+        Initialize();
+        SetupAdditionalServiceCommPackageLine(Enum::"Service Partner"::Customer, Enum::"Calculation Base Type"::"Document Price");
+        SetupItemCustomerAndSalesHeaderWithVAT(VATPostingSetup);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, Enum::"Sales Line Type"::Item, Item."No.", 1);
+        FindCustomerDocumentPriceSalesServiceCommitment();
+        Assert.AreEqual(
+            SalesLine."Unit Price",
+            SalesServiceCommitment."Calculation Base Amount",
+            InitCalcBaseAmtMustEqualUnitPriceErr);
+
+        // [WHEN] Prices Including VAT is toggled to true on the Sales Header
+        SalesHeader.Validate("Prices Including VAT", true);
+        SalesHeader.Modify(true);
+
+        // [THEN] Calculation Base Amount is updated to match the new VAT-inclusive unit price
+        SalesLine.Find();
+        SalesServiceCommitment.Find();
+        Assert.AreEqual(
+            SalesLine."Unit Price",
+            SalesServiceCommitment."Calculation Base Amount",
+            CalcBaseAmtMustEqualUpdatedUnitPriceErr);
+
+        // [WHEN] Prices Including VAT is toggled back to false
+        SalesHeader.Validate("Prices Including VAT", false);
+        SalesHeader.Modify(true);
+
+        // [THEN] Calculation Base Amount reverts to the VAT-exclusive unit price
+        SalesLine.Find();
+        SalesServiceCommitment.Find();
+        Assert.AreEqual(
+            SalesLine."Unit Price",
+            SalesServiceCommitment."Calculation Base Amount",
+            CalcBaseAmtMustRevertToUnitPriceErr);
+    end;
+
+    [Test]
+    procedure CheckSubscriptionLineCalculationBaseAmountExcludesVATAfterPosting()
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+        ExpectedNetBaseAmount: Decimal;
+        PostedSubLineCalcBaseAmtMustBeNetErr: Label 'Posted Subscription Line Calculation Base Amount must be the net (VAT-exclusive) amount when Prices Including VAT was enabled.', Locked = true;
+    begin
+        // [SCENARIO] When a Sales Order with Prices Including VAT is posted, the resulting Subscription Line
+        // Calculation Base Amount must be the VAT-exclusive (net) amount.
+
+        // [GIVEN] A subscription item with a non-zero VAT%, and a Sales Order with Prices Including VAT = true
+        Initialize();
+        // Use the single package line from Initialize: set Calculation Base Type = Document Price and Calculation Base % = 100
+        // so that Calculation Base Amount exactly equals the Sales Line Unit Price (no scaling).
+        ServiceCommPackageLine."Calculation Base Type" := Enum::"Calculation Base Type"::"Document Price";
+        ServiceCommPackageLine."Calculation Base %" := 100;
+        ServiceCommPackageLine.Modify(false);
+        SetupItemCustomerAndSalesHeaderWithVAT(VATPostingSetup);
+        SalesHeader.Validate("Prices Including VAT", true);
+        SalesHeader.Modify(true);
+
+        // [WHEN] A sales line is created, the unit price is set, and the order is posted (shipped)
+        LibrarySales.CreateSalesLineWithShipmentDate(SalesLine, SalesHeader, Enum::"Sales Line Type"::Item, Item."No.", WorkDate(), 1);
+        SalesLine.Validate("Unit Price", LibraryRandom.RandDecInRange(100, 200, 2));
+        SalesLine.Modify(true);
+        Currency.InitRoundingPrecision();
+        ExpectedNetBaseAmount := Round(
+            SalesLine."Unit Price" / (1 + VATPostingSetup."VAT %" / 100),
+            Currency."Unit-Amount Rounding Precision");
+        LibrarySales.PostSalesDocument(SalesHeader, true, false);
+
+        // [THEN] The posted Subscription Line Calculation Base Amount is the net (VAT-exclusive) amount
+        ServiceObject.FilterOnItemNo(Item."No.");
+        ServiceObject.FindFirst();
+        ServiceCommitment.SetRange("Subscription Header No.", ServiceObject."No.");
+        ServiceCommitment.SetRange(Partner, Enum::"Service Partner"::Customer);
+        ServiceCommitment.FindFirst();
+        Assert.AreEqual(
+            ExpectedNetBaseAmount,
+            ServiceCommitment."Calculation Base Amount",
+            PostedSubLineCalcBaseAmtMustBeNetErr);
     end;
 
     [Test]
@@ -1059,8 +1257,19 @@ codeunit 139915 "Sales Service Commitment Test"
         Item4: Record Item;
         TempSalesServiceCommitmentBuff: Record "Sales Service Commitment Buff." temporary;
         ExpectedVATAmount: Decimal;
+        ItemVATPercent: Decimal;
         UniqueRhythmDictionary: Dictionary of [Code[20], Text];
     begin
+        // [SCENARIO] CalcVATAmountLines correctly prorates subscription amounts by billing rhythm/period
+        // and groups buffer rows by (rhythm + base period + VAT rate). The expected VAT is calculated
+        // manually using the proration formula: Amount / (BasePeriodMonths / RhythmMonths) * VAT%.
+
+        // [GIVEN] A Sales Order with four subscription lines covering three rhythm/period combinations:
+        //   - Item  (VAT rate A): Billing Rhythm <1M>, Billing Base Period <12M>  → prorated as Amount/12*1
+        //   - Item4 (VAT rate B): Billing Rhythm <1M>, Billing Base Period <12M>  → same rhythm, different VAT rate
+        //                         (produces a second buffer row for the same rhythm combination)
+        //   - Item2 (VAT rate A): Billing Rhythm <3M>, Billing Base Period <12M>  → prorated as Amount/12*3
+        //   - Item3 (VAT rate A): Billing Rhythm <3M>, Billing Base Period <2Y>   → prorated as Amount/24*3
         Initialize();
         LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, '');
         if SalesHeader."Currency Code" = '' then
@@ -1069,28 +1278,30 @@ codeunit 139915 "Sales Service Commitment Test"
             Currency.Get(SalesHeader."Currency Code");
         ExpectedVATAmount := 0;
 
-        // "Billing Rhythm" = '<1M>', "Billing Base Period" = '<12M>'
-        SetupSalesLineForTotalAndVatCalculation(Item, true, 0);
+        // Item — Billing Rhythm <1M>, Billing Base Period <12M>, VAT rate A
+        SetupSalesLineForTotalAndVatCalculation(Item, true);
         SalesServiceCommitment.FilterOnSalesLine(SalesLine);
         SalesServiceCommitment.FindFirst();
         ExpectedVATAmount += Round((SalesServiceCommitment.Amount / 12 * 1) * SalesLine."VAT %" / 100, Currency."Amount Rounding Precision", Currency.VATRoundingDirection());
 
-        // Item with different VAT for same Billing Rhythm
-        SetupSalesLineForTotalAndVatCalculation(Item4, true, SalesLine."VAT %");
+        // Item4 — same rhythm <1M>/<12M> but a different VAT rate (B), so it lands in a separate buffer row
+        ItemVATPercent := SalesLine."VAT %";
+        SetupSalesLineForTotalAndVatCalculation(Item4, true);
+        ReassignSalesLineToDifferentVATGroup(ItemVATPercent);
         SalesServiceCommitment.FilterOnSalesLine(SalesLine);
         SalesServiceCommitment.FindFirst();
         ExpectedVATAmount += Round((SalesServiceCommitment.Amount / 12 * 1) * SalesLine."VAT %" / 100, Currency."Amount Rounding Precision", Currency.VATRoundingDirection());
 
-        // "Billing Rhythm" = '<3M>', "Billing Base Period" = '<12M>'
-        SetupSalesLineForTotalAndVatCalculation(Item2, true, 0);
+        // Item2 — Billing Rhythm <3M>, Billing Base Period <12M>
+        SetupSalesLineForTotalAndVatCalculation(Item2, true);
         SalesServiceCommitment.FilterOnSalesLine(SalesLine);
         SalesServiceCommitment.FindFirst();
         Evaluate(SalesServiceCommitment."Billing Rhythm", '3M');
         SalesServiceCommitment.Modify(false);
         ExpectedVATAmount += (SalesServiceCommitment.Amount / 12 * 3) * SalesLine."VAT %" / 100;
 
-        // "Billing Rhythm" = '<3M>', "Billing Base Period" = '<2Y>'
-        SetupSalesLineForTotalAndVatCalculation(Item3, true, 0);
+        // Item3 — Billing Rhythm <3M>, Billing Base Period <2Y>
+        SetupSalesLineForTotalAndVatCalculation(Item3, true);
         SalesServiceCommitment.FilterOnSalesLine(SalesLine);
         SalesServiceCommitment.FindFirst();
         Evaluate(SalesServiceCommitment."Billing Base Period", '<2Y>');
@@ -1099,9 +1310,14 @@ codeunit 139915 "Sales Service Commitment Test"
         ExpectedVATAmount += (SalesServiceCommitment.Amount / 24 * 3) * SalesLine."VAT %" / 100;
         ExpectedVATAmount := Round(ExpectedVATAmount, Currency."Amount Rounding Precision", Currency.VATRoundingDirection());
 
+        // [WHEN] VAT amount lines are calculated for the Sales Order
         SalesServiceCommitment.CalcVATAmountLines(SalesHeader, TempSalesServiceCommitmentBuff, UniqueRhythmDictionary);
 
+        // [THEN] The buffer contains one row per unique (rhythm + base period + VAT rate) combination.
+        // There are 3 unique rhythm/period combinations (UniqueRhythmDictionary.Count), but the <1M>/<12M>
+        // combination has two VAT rates (A and B), producing one extra row → Count + 1 rows in total.
         Assert.RecordCount(TempSalesServiceCommitmentBuff, UniqueRhythmDictionary.Count + 1);
+        // [THEN] The summed VAT amount across all buffer rows matches the manually prorated expected amount.
         TempSalesServiceCommitmentBuff.CalcSums("VAT Amount");
         Assert.AreEqual(ExpectedVATAmount, TempSalesServiceCommitmentBuff."VAT Amount", 'Service Items VAT Amount not calculated properly.');
     end;
@@ -1128,10 +1344,10 @@ codeunit 139915 "Sales Service Commitment Test"
         CustomerPriceGroup: Record "Customer Price Group";
         CustomerReference: Text;
     begin
-        // Create Item as Sales with Subscription
-        // Assign negative value to Quantity
-        // Ship Item -  Subscription should not be created
+        // [SCENARIO] No Subscription is created when shipping a sales order with a negative quantity for a subscription item.
         Initialize();
+
+        // [GIVEN] A sales order with a subscription item that has a negative quantity
         ContractTestLibrary.CreateItemWithServiceCommitmentOption(Item, Enum::"Item Service Commitment Type"::"Sales with Service Commitment");
         LibrarySales.CreateCustomer(Customer);
         LibrarySales.CreateCustomerPriceGroup(CustomerPriceGroup);
@@ -1143,8 +1359,11 @@ codeunit 139915 "Sales Service Commitment Test"
         SalesHeader.Modify(false);
 
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, Enum::"Sales Line Type"::Item, Item."No.", -LibraryRandom.RandInt(100));
+
+        // [WHEN] The sales order is shipped
         LibrarySales.PostSalesDocument(SalesHeader, true, false);
 
+        // [THEN] No Subscription is created for the item
         ServiceObject.FilterOnItemNo(Item."No.");
         ServiceObject.SetRange("Customer Reference", CustomerReference);
         Assert.RecordIsEmpty(ServiceObject);
@@ -1154,14 +1373,19 @@ codeunit 139915 "Sales Service Commitment Test"
     [HandlerFunctions('MessageHandler')]
     procedure DoNotCreateServiceObjectWithSerialNoOnShipSalesOrderWithNegativeQuantity()
     begin
+        // [SCENARIO] Shipping a sales order with a negative quantity for a serial no. tracked subscription item does not create duplicate Subscriptions.
         Initialize();
+
+        // [GIVEN] Subscriptions with serial numbers exist from a previously shipped sales order
         CreateAndPostSalesDocumentWithSerialNo(true, true);
         CheckThatOnlyOneServiceObjectWithSerialNoExists();
 
+        // [WHEN] A new sales order with the same item and negative quantity is shipped with serial no. tracking
         LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, Customer."No.");
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, Enum::"Sales Line Type"::Item, Item."No.", -NoOfServiceObjects);
         CreateSalesLineItemTrackingAndPostSalesDocument(-1, true, false);
 
+        // [THEN] No additional Subscriptions are created; only the original ones still exist
         CheckThatOnlyOneServiceObjectWithSerialNoExists();
     end;
 
@@ -1737,6 +1961,154 @@ codeunit 139915 "Sales Service Commitment Test"
         SalesLine.Delete(true);
     end;
 
+    [Test]
+    procedure SubscriptionHeaderCreatedFromSalesOrderHasTraceabilityFieldsValues()
+    var
+        Vendor: Record Vendor;
+        Manufacturer: Record Manufacturer;
+        SalespersonPurchaser: Record "Salesperson/Purchaser";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        SubscriptionHeader: Record "Subscription Header";
+        TestItems: array[2] of Record Item;
+        ItemServiceCommitmentTypes: array[2] of Enum "Item Service Commitment Type";
+        SalesOrderNo: Code[20];
+        i: Integer;
+    begin
+        // [SCENARIO] Subscription Header created from Sales Order inherits Vendor, Manufacturer, Salesperson, Sales Order No., Item Ledger Entry No. and Last Sales Invoice No.
+        // [SCENARIO] Last Sales Invoice No. is only populated for "Sales with Service Commitment" items, not for "Service Commitment Item" items
+        Initialize();
+
+        // [GIVEN] Vendor and Manufacturer
+        LibraryPurchase.CreateVendor(Vendor);
+        CreateManufacturer(Manufacturer);
+
+        // [GIVEN] Sales Order with Salesperson
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, LibrarySales.CreateCustomerNo());
+        LibrarySales.CreateSalesperson(SalespersonPurchaser);
+        SalesHeader.Validate("Salesperson Code", SalespersonPurchaser.Code);
+        SalesHeader.Modify(true);
+        SalesOrderNo := SalesHeader."No.";
+
+        // [GIVEN] Items with different Service Commitment Types
+        ItemServiceCommitmentTypes[1] := Enum::"Item Service Commitment Type"::"Sales with Service Commitment";
+        ItemServiceCommitmentTypes[2] := Enum::"Item Service Commitment Type"::"Service Commitment Item";
+        for i := 1 to ArrayLen(ItemServiceCommitmentTypes) do begin
+            ContractTestLibrary.CreateItemWithServiceCommitmentOption(TestItems[i], ItemServiceCommitmentTypes[i]);
+            TestItems[i].Validate("Vendor No.", Vendor."No.");
+            TestItems[i].Validate("Vendor Item No.", LibraryUtility.GenerateRandomCode(TestItems[i].FieldNo("Vendor Item No."), Database::Item));
+            TestItems[i].Validate("Manufacturer Code", Manufacturer.Code);
+            TestItems[i].Modify(true);
+            LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, TestItems[i]."No.", LibraryRandom.RandIntInRange(1, 10));
+        end;
+
+        // [WHEN] Sales Order is posted (Ship and Invoice)
+        LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [THEN] Subscription Headers are created with correct traceability fields
+        SalesInvoiceHeader.SetRange("Order No.", SalesOrderNo);
+        SalesInvoiceHeader.FindFirst();
+
+        for i := 1 to ArrayLen(TestItems) do begin
+            SubscriptionHeader.Reset();
+            SubscriptionHeader.SetRange("Sales Order No.", SalesOrderNo);
+            SubscriptionHeader.SetRange("Source No.", TestItems[i]."No.");
+            Assert.RecordIsNotEmpty(SubscriptionHeader);
+            SubscriptionHeader.FindFirst();
+
+            Assert.AreEqual(Vendor."No.", SubscriptionHeader."Vendor No.", 'Vendor No. should match Item Vendor No.');
+            Assert.AreEqual(Vendor.Name, SubscriptionHeader."Vendor Name", 'Vendor Name should match Vendor Name');
+            Assert.AreEqual(TestItems[i]."Vendor Item No.", SubscriptionHeader."Vendor Item No.", 'Vendor Item No. should match Item Vendor Item No.');
+            Assert.AreEqual(Manufacturer.Code, SubscriptionHeader."Manufacturer Code", 'Manufacturer Code should match Item Manufacturer Code');
+            Assert.AreEqual(Manufacturer.Name, SubscriptionHeader."Manufacturer Name", 'Manufacturer Name should match Manufacturer Name');
+            Assert.AreEqual(SalespersonPurchaser.Code, SubscriptionHeader."Salesperson Code", 'Salesperson Code should match Sales Header Salesperson Code');
+            Assert.AreEqual(SalesOrderNo, SubscriptionHeader."Sales Order No.", 'Sales Order No. should match Sales Header No.');
+
+            ItemLedgerEntry.Reset();
+            ItemLedgerEntry.SetRange("Item No.", TestItems[i]."No.");
+            ItemLedgerEntry.FindLast();
+            Assert.AreEqual(ItemLedgerEntry."Entry No.", SubscriptionHeader."Item Ledger Entry No.", 'Item Ledger Entry No. should be populated');
+
+            if ItemServiceCommitmentTypes[i] = Enum::"Item Service Commitment Type"::"Sales with Service Commitment" then
+                Assert.AreEqual(SalesInvoiceHeader."No.", SubscriptionHeader."Last Sales Invoice No.", 'Last Sales Invoice No. should be populated for Sales with Service Commitment')
+            else
+                Assert.AreEqual('', SubscriptionHeader."Last Sales Invoice No.", 'Last Sales Invoice No. should be empty for Service Commitment Item');
+        end;
+    end;
+
+    [Test]
+    procedure ManualCreationOfSubscriptionHeaderPopulatesVendorManufacturerAndSalespersonFromCustomer()
+    var
+        Vendor: Record Vendor;
+        Manufacturer: Record Manufacturer;
+        SalespersonPurchaser: Record "Salesperson/Purchaser";
+    begin
+        // [SCENARIO] Manually validating Source No. on Subscription Header populates Vendor and Manufacturer fields from Item
+        // [SCENARIO] Validating End-User Customer No. populates Salesperson Code from Customer
+        Initialize();
+
+        // [GIVEN] Vendor and Manufacturer
+        LibraryPurchase.CreateVendor(Vendor);
+        CreateManufacturer(Manufacturer);
+
+        // [GIVEN] Item with Vendor and Manufacturer
+        ContractTestLibrary.CreateItemWithServiceCommitmentOption(Item, Enum::"Item Service Commitment Type"::"Service Commitment Item");
+        Item.Validate("Vendor No.", Vendor."No.");
+        Item.Validate("Vendor Item No.", LibraryUtility.GenerateRandomCode(Item.FieldNo("Vendor Item No."), Database::Item));
+        Item.Validate("Manufacturer Code", Manufacturer.Code);
+        Item.Modify(true);
+
+        // [GIVEN] Customer with Salesperson
+        LibrarySales.CreateSalesperson(SalespersonPurchaser);
+        Customer.Get(LibrarySales.CreateCustomerNo());
+        Customer.Validate("Salesperson Code", SalespersonPurchaser.Code);
+        Customer.Modify(true);
+
+        // [WHEN] New Subscription Header is created and Source No. and Customer are validated
+        ServiceObject.Init();
+        ServiceObject.Insert(true);
+        ServiceObject.Validate(Type, ServiceObject.Type::Item);
+        ServiceObject.Validate("Source No.", Item."No.");
+        ServiceObject.Validate("End-User Customer No.", Customer."No.");
+        ServiceObject.Modify(true);
+
+        // [THEN] Vendor and Manufacturer fields are populated from Item
+        Assert.AreEqual(Vendor."No.", ServiceObject."Vendor No.", 'Vendor No. should be populated from Item');
+        Assert.AreEqual(Vendor.Name, ServiceObject."Vendor Name", 'Vendor Name should be populated from Vendor');
+        Assert.AreEqual(Item."Vendor Item No.", ServiceObject."Vendor Item No.", 'Vendor Item No. should be populated from Item');
+        Assert.AreEqual(Manufacturer.Code, ServiceObject."Manufacturer Code", 'Manufacturer Code should be populated from Item');
+        Assert.AreEqual(Manufacturer.Name, ServiceObject."Manufacturer Name", 'Manufacturer Name should be populated from Manufacturer');
+
+        // [THEN] Salesperson Code is populated from Customer
+        Assert.AreEqual(SalespersonPurchaser.Code, ServiceObject."Salesperson Code", 'Salesperson Code should be populated from Customer');
+    end;
+
+    [Test]
+    procedure CheckSubscriptionLineEndDateNotSetWhenSubsequentTermIsUsed()
+    begin
+        // [SCENARIO] When posting a Sales Order for an item with both Initial Term and Subsequent Term,
+        // the resulting Subscription Line End Date must remain empty (contract auto-renews indefinitely)
+        Initialize();
+
+        // [GIVEN] A Sales Service Commitment Item with a package having Initial Term <12M> and Subsequent Term <12M>
+        // Note: InitServiceCommitmentPackageLineFields (called in Initialize) already sets both terms
+        ContractTestLibrary.SetupSalesServiceCommitmentItemAndAssignToServiceCommitmentPackage(Item, Enum::"Item Service Commitment Type"::"Sales with Service Commitment", ServiceCommitmentPackage.Code);
+
+        // [GIVEN] A Sales Order for the item
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, '');
+        LibrarySales.CreateSalesLineWithShipmentDate(SalesLine, SalesHeader, Enum::"Sales Line Type"::Item, Item."No.", WorkDate(), 1);
+
+        // [WHEN] The Sales Order is posted
+        LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [THEN] The resulting Subscription Line End Date is empty because a Subsequent Term is defined
+        ServiceObject.FilterOnItemNo(Item."No.");
+        ServiceObject.FindFirst();
+        ServiceCommitment.SetRange("Subscription Header No.", ServiceObject."No.");
+        ServiceCommitment.FindFirst();
+        ServiceCommitment.TestField("Subscription Line End Date", 0D);
+    end;
+
     #endregion Tests
 
     #region Procedures
@@ -1856,6 +2228,14 @@ codeunit 139915 "Sales Service Commitment Test"
         NewCustomer.Modify(true);
     end;
 
+    local procedure CreateManufacturer(var Manufacturer: Record Manufacturer)
+    begin
+        Manufacturer.Init();
+        Manufacturer.Code := LibraryUtility.GenerateRandomCode(Manufacturer.FieldNo(Code), Database::Manufacturer);
+        Manufacturer.Name := CopyStr(LibraryUtility.GenerateRandomText(MaxStrLen(Manufacturer.Name)), 1, MaxStrLen(Manufacturer.Name));
+        Manufacturer.Insert(true);
+    end;
+
     local procedure CreateNoSeriesWithLine(): Code[20]
     var
         NoSeries: Record "No. Series";
@@ -1932,6 +2312,34 @@ codeunit 139915 "Sales Service Commitment Test"
         SalesHeaderArchive.SetRange("Document Type", SourceSalesHeader."Document Type");
         SalesHeaderArchive.SetRange("No.", SourceSalesHeader."No.");
         SalesHeaderArchive.FindFirst();
+    end;
+
+    local procedure FindCustomerDocumentPriceSalesServiceCommitment()
+    begin
+        SalesServiceCommitment.FilterOnSalesLine(SalesLine);
+        SalesServiceCommitment.SetRange(Partner, Enum::"Service Partner"::Customer);
+        SalesServiceCommitment.SetRange("Calculation Base Type", Enum::"Calculation Base Type"::"Document Price");
+        SalesServiceCommitment.FindFirst();
+    end;
+
+    local procedure FindNonZeroVATPostingSetup(var VATPostingSetup: Record "VAT Posting Setup")
+    begin
+        LibraryERM.FindVATPostingSetupInvt(VATPostingSetup);
+        if VATPostingSetup."VAT %" = 0 then begin
+            VATPostingSetup."VAT %" := LibraryRandom.RandDecInRange(10, 25, 0);
+            VATPostingSetup.Modify(false);
+        end;
+    end;
+
+    local procedure ReassignSalesLineToDifferentVATGroup(ExcludeVATPct: Decimal)
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+    begin
+        LibraryERM.FindVATPostingSetupInvt(VATPostingSetup);
+        VATPostingSetup.SetFilter("VAT %", '<>%1', ExcludeVATPct);
+        VATPostingSetup.FindFirst();
+        SalesLine.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        SalesLine.Modify(true);
     end;
 
     local procedure FindWarehouseActivityLine(var WarehouseActivityLine: Record "Warehouse Activity Line"; SourceType: Integer; SourceNo: Code[20]; ActivityType: Enum "Warehouse Activity Type")
@@ -2029,6 +2437,19 @@ codeunit 139915 "Sales Service Commitment Test"
         ServiceCommPackageLine.Modify(false);
     end;
 
+    local procedure SetupItemCustomerAndSalesHeaderWithVAT(var VATPostingSetup: Record "VAT Posting Setup")
+    begin
+        FindNonZeroVATPostingSetup(VATPostingSetup);
+        ContractTestLibrary.SetupSalesServiceCommitmentItemAndAssignToServiceCommitmentPackage(
+            Item, Enum::"Item Service Commitment Type"::"Sales with Service Commitment", ServiceCommitmentPackage.Code);
+        Item.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        Item.Modify(true);
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+        Customer.Modify(true);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, Customer."No.");
+    end;
+
     local procedure SetupForInventoryPick()
     begin
         SetupInventorySetupForInventoryPick();
@@ -2079,22 +2500,16 @@ codeunit 139915 "Sales Service Commitment Test"
         Location.Modify(true);
     end;
 
-    local procedure SetupSalesLineForTotalAndVatCalculation(var NewItem: Record Item; SetupServiceItemWithPackage: Boolean; ReferentVatPercent: Decimal)
+    local procedure SetupSalesLineForTotalAndVatCalculation(var NewItem: Record Item; SetupServiceItemWithPackage: Boolean)
     var
         VATPostingSetup: Record "VAT Posting Setup";
-
     begin
         if SetupServiceItemWithPackage then
             ContractTestLibrary.SetupSalesServiceCommitmentItemAndAssignToServiceCommitmentPackage(NewItem, Enum::"Item Service Commitment Type"::"Service Commitment Item", ServiceCommitmentPackage.Code)
         else
             ContractTestLibrary.CreateInventoryItem(NewItem);
-        if ReferentVatPercent <> 0 then begin
-            LibraryERM.FindVATPostingSetupInvt(VATPostingSetup);
-            VATPostingSetup.SetFilter("VAT Prod. Posting Group", '<>%1', NewItem."VAT Prod. Posting Group");
-            VATPostingSetup.SetFilter("VAT %", '<>%1', ReferentVatPercent);
-            VATPostingSetup.FindFirst();
-            NewItem.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
-        end;
+        FindNonZeroVATPostingSetup(VATPostingSetup);
+        NewItem.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
         ContractTestLibrary.UpdateItemUnitCostAndPrice(NewItem, LibraryRandom.RandDec(10000, 2), LibraryRandom.RandDec(10000, 2), false);
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, Enum::"Sales Line Type"::Item, NewItem."No.", LibraryRandom.RandInt(100));
     end;

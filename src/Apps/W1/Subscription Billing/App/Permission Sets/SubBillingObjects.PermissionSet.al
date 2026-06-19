@@ -23,6 +23,9 @@ permissionset 8001 "Sub. Billing Objects"
         codeunit "Customer Management" = X,
         codeunit "Date Formula Management" = X,
         codeunit "Date Time Management" = X,
+        codeunit "Deferral Post. Preview Binding" = X,
+        codeunit "Deferral Post. Preview Handler" = X,
+        codeunit "Deferral Post. Preview Subscr." = X,
         codeunit "Dimension Mgt." = X,
         codeunit "Document Change Management" = X,
         codeunit "Extend Sub. Contract Mgt." = X,
@@ -56,7 +59,6 @@ permissionset 8001 "Sub. Billing Objects"
 #if not CLEAN26
         codeunit "Upgrade Subscription Billing" = X,
 #endif
-        codeunit "Usage Based Billing Inst." = X,
         codeunit "Usage Based Billing Mgmt." = X,
         codeunit "Usage Based Contr. Subscribers" = X,
         codeunit "Usage Based Doc. Type Conv." = X,

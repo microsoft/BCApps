@@ -51,7 +51,7 @@ codeunit 30194 "Shpfy Transactions"
         Parameters: Dictionary of [Text, Text];
     begin
         CommunicationMgt.SetShop(OrderHeader."Shop Code");
-        GraphQLType := "Shpfy GraphQL Type"::GetOrderTransactions;
+        GraphQLType := "Shpfy GraphQL Type"::Payments_GetOrderTransactions;
         Parameters.Add('OrderId', Format(OrderHeader."Shopify Order Id"));
         JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
         if JsonHelper.GetJsonArray(JResponse, JOrderTransactions, 'data.order.transactions') then

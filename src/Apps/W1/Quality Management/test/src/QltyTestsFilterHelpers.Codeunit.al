@@ -16,7 +16,6 @@ using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Vendor;
 using Microsoft.QualityManagement.Configuration.Template;
-using Microsoft.QualityManagement.Integration.Manufacturing.Routing;
 using Microsoft.QualityManagement.Setup;
 using Microsoft.Sales.Customer;
 using Microsoft.Test.QualityManagement.TestLibraries;
@@ -2337,13 +2336,13 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
     end;
 
     /// <summary>
-    /// Handles the Qlty. Routing Line Lookup TestPage, returning the first record
+    /// Handles the Routing Line List TestPage, returning the first record
     /// </summary>
-    /// <param name="QltyRoutingLineLookup"></param>
+    /// <param name="RoutingLineList"></param>
     [ModalPageHandler]
-    procedure LookupQltyRoutingLineHandler(var QltyRoutingLineLookup: TestPage "Qlty. Routing Line Lookup")
+    procedure LookupQltyRoutingLineHandler(var RoutingLineList: TestPage "Routing Line List")
     begin
-        QltyRoutingLineLookup.OK().Invoke();
+        RoutingLineList.OK().Invoke();
     end;
 
     /// <summary>

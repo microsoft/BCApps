@@ -117,9 +117,9 @@ page 30147 "Shpfy Refunds"
         {
             action(CreateCreditMemo)
             {
-                Caption = 'Create Credit Memo';
-                Image = CreateCreditMemo;
-                ToolTip = 'Create a credit memo for this refund.';
+                Caption = 'Create Sales Document';
+                Image = CreateDocument;
+                ToolTip = 'Create a sales document for this refund. The document type (Credit Memo or Return Order) is determined by the shop setting.';
                 Enabled = CanCreateDocument and not MultipleSelected;
 
                 trigger OnAction()

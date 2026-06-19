@@ -1,0 +1,2 @@
+# cost: 32
+{"query" : "{publications(first: 25, after:\"{{After}}\", catalogType: APP) { pageInfo{ hasNextPage } edges { cursor node { id catalog { id ... on AppCatalog { apps(first: 1) { edges { node { id handle title } } } } } } } } }"}

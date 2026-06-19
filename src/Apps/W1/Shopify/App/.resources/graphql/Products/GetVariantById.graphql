@@ -1,0 +1,2 @@
+# cost: 13
+{"query":"{productVariant(id: \"gid://shopify/ProductVariant/{{VariantId}}\") {createdAt updatedAt availableForSale barcode compareAtPrice displayName inventoryPolicy position price sku taxable title product{id}selectedOptions{name value} inventoryItem{countryCodeOfOrigin createdAt id inventoryHistoryUrl legacyResourceId measurement { weight { value }} provinceCodeOfOrigin requiresShipping sku tracked updatedAt unitCost { amount currencyCode }} metafields(first: 50) {edges {node {id namespace type legacyResourceId key value}}}}}"}

@@ -307,13 +307,14 @@ table 8016 "Usage Data Supp. Subscription"
         exit(Rec.FindFirst());
     end;
 
-    internal procedure UpdateServiceObjectNoForUsageDataGenericImport()
+    internal procedure UpdateSubscriptionHeaderNoInImportedData()
     var
-        UsageDataGenericImport: Record "Usage Data Generic Import";
+        UsageDataSupplier: Record "Usage Data Supplier";
+        UsageDataProcessing: Interface "Usage Data Processing";
     begin
-        UsageDataGenericImport.SetFilter("Processing Status", '<>%1', "Processing Status"::Ok);
-        UsageDataGenericImport.SetRange("Supp. Subscription ID", Rec."Supplier Reference");
-        UsageDataGenericImport.ModifyAll("Subscription Header No.", Rec."Subscription Header No.");
-        UsageDataGenericImport.ModifyAll("Service Object Availability", UsageDataGenericImport."Service Object Availability"::Connected);
+        if not UsageDataSupplier.Get(Rec."Supplier No.") then
+            exit;
+        UsageDataProcessing := UsageDataSupplier.Type;
+        UsageDataProcessing.UpdateSubscriptionHeaderNo(Rec."Supplier Reference", Rec."Subscription Header No.");
     end;
 }

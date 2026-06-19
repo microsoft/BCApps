@@ -13,6 +13,7 @@ page 20425 "Qlty. Inspection Activities"
     RefreshOnActivate = true;
     SourceTable = "Qlty. Mgmt. Role Center Cue";
     ApplicationArea = QualityManagement;
+    Permissions = TableData "Qlty. Mgmt. Role Center Cue" = i;
 
     layout
     {

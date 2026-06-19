@@ -10,20 +10,26 @@ codeunit 99001532 "Subc. Item Extension"
 {
     [EventSubscriber(ObjectType::Table, Database::Item, OnAfterDeleteEvent, '', false, false)]
     local procedure OnAfterDeleteItem(var Rec: Record Item; RunTrigger: Boolean)
-    begin
-        DeleteRelatedSubcontractorPrices(Rec, RunTrigger);
-    end;
-
-    local procedure DeleteRelatedSubcontractorPrices(var Item: Record Item; RunTrigger: Boolean)
     var
         SubcontractorPrice: Record "Subcontractor Price";
+#if not CLEAN29
+#pragma warning disable AL0432
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
+#endif
     begin
-        if not Item.IsTemporary() then
-            if RunTrigger then begin
-                SubcontractorPrice.SetCurrentKey("Item No.");
-                SubcontractorPrice.SetRange("Item No.", Item."No.");
-                if not SubcontractorPrice.IsEmpty() then
-                    SubcontractorPrice.DeleteAll(true);
-            end;
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        if Rec.IsTemporary() then
+            exit;
+
+        if not RunTrigger then
+            exit;
+
+        SubcontractorPrice.DeletePricesForItem(Rec."No.");
     end;
 }

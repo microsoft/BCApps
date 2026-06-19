@@ -387,6 +387,16 @@
             "width": 234
           },
           "zIndex": 0
+        },
+        {
+          "location": {},
+          "nodeIndex": "Company Encoding",
+          "nodeLineageTag": "595fb95c-0edb-4fa6-9999-90c4cc77fb92",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 0
         }
       ],
       "name": "All tables",
@@ -949,7 +959,7 @@
       "ordinal": 6,
       "scrollPosition": {
         "x": 0,
-        "y": 59.072749691738586
+        "y": 16.019728729963006
       },
       "nodes": [
         {

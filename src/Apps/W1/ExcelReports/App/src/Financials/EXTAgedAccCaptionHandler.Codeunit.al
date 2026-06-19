@@ -13,14 +13,14 @@ codeunit 4406 "EXT Aged Acc. Caption Handler"
     [EventSubscriber(ObjectType::Table, Database::"EXR Aging Report Buffer", 'OnOverrideAgedBy', '', false, false)]
     local procedure HandleOverrideAgedBy(var EXRAgingReportBuffer: Record "EXR Aging Report Buffer" temporary)
     begin
-        EXRAgingReportBuffer."Aged By" := GlobalEXRAgingReportBuffer."Aged By";
+        EXRAgingReportBuffer."Aged By" := TempGlobalEXRAgingReportBuffer."Aged By";
     end;
 
     internal procedure SetGlobalEXRAgingReportBuffer(var EXRAgingReportBuffer: Record "EXR Aging Report Buffer" temporary)
     begin
-        GlobalEXRAgingReportBuffer.Copy(EXRAgingReportBuffer);
+        TempGlobalEXRAgingReportBuffer.Copy(EXRAgingReportBuffer);
     end;
 
     var
-        GlobalEXRAgingReportBuffer: Record "EXR Aging Report Buffer";
+        TempGlobalEXRAgingReportBuffer: Record "EXR Aging Report Buffer";
 }

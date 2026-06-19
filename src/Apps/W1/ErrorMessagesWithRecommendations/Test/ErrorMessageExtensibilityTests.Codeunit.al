@@ -407,12 +407,12 @@ codeunit 139621 ErrorMessageExtensibilityTests
 
     local procedure MockFullBatchCheck(TemplateName: Code[10]; BatchName: Code[10]; var TempErrorMessage: Record "Error Message" temporary)
     var
-        ErrorHandlingParameters: Record "Error Handling Parameters";
+        TempErrorHandlingParameters: Record "Error Handling Parameters";
         CheckGenJnlLineBackgr: Codeunit "Check Gen. Jnl. Line. Backgr.";
         Params: Dictionary of [Text, Text];
     begin
-        SetErrorHandlingParameters(ErrorHandlingParameters, TemplateName, BatchName, '', 0D, '', 0D, true, false);
-        ErrorHandlingParameters.ToArgs(Params);
+        SetErrorHandlingParameters(TempErrorHandlingParameters, TemplateName, BatchName, '', 0D, '', 0D, true, false);
+        TempErrorHandlingParameters.ToArgs(Params);
         Commit();
         CheckGenJnlLineBackgr.RunCheck(Params, TempErrorMessage);
     end;
