@@ -5,12 +5,14 @@
 namespace Microsoft.Manufacturing.Subcontracting.Test;
 
 using Microsoft.Finance.Currency;
+using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.Vat.Setup;
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Ledger;
+using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Inventory.Setup;
 using Microsoft.Manufacturing.Capacity;
@@ -99,8 +101,10 @@ codeunit 149912 "Subc SCM Inventory Misc."
         FindCurrencyExchangeRate(CurrencyExchangeRate, PurchaseLine."Currency Code");
         PurchaseLine.TestField(
           "Unit Cost (LCY)",
-          PurchaseLine."Direct Unit Cost" *
-          CurrencyExchangeRate."Relational Exch. Rate Amount" / CurrencyExchangeRate."Exchange Rate Amount");
+          Round(
+            PurchaseLine."Unit Cost" *
+            CurrencyExchangeRate."Relational Exch. Rate Amount" / CurrencyExchangeRate."Exchange Rate Amount",
+            LibraryERM.GetUnitAmountRoundingPrecision()));
     end;
 
     [Test]
@@ -110,7 +114,6 @@ codeunit 149912 "Subc SCM Inventory Misc."
         Item: Record Item;
         ProductionOrder: Record "Production Order";
         PurchaseLine: Record "Purchase Line";
-        CurrencyExchangeRate: Record "Currency Exchange Rate";
         CapacityLedgerEntry: Record "Capacity Ledger Entry";
         WorkCenter: Record "Work Center";
     begin
@@ -127,14 +130,13 @@ codeunit 149912 "Subc SCM Inventory Misc."
         FindPurchLineAndPostPurchOrder(PurchaseLine, Item."No.");
 
         // Verify: Verify Capacity Ledger Entries when Subcontracting Purchase Order is posted with Foreign Currency.
-        FindCurrencyExchangeRate(CurrencyExchangeRate, PurchaseLine."Currency Code");
         FindCapacityLedgerEntry(CapacityLedgerEntry, ProductionOrder."No.");
         CapacityLedgerEntry.CalcFields("Direct Cost");
         CapacityLedgerEntry.TestField(
           "Direct Cost",
           Round(
-            PurchaseLine."Direct Unit Cost" *
-            PurchaseLine.Quantity * CurrencyExchangeRate."Relational Exch. Rate Amount" / CurrencyExchangeRate."Exchange Rate Amount"));
+            PurchaseLine."Unit Cost (LCY)" * PurchaseLine.Quantity,
+            LibraryERM.GetAmountRoundingPrecision()));
     end;
 
     [Test]
@@ -270,11 +272,11 @@ codeunit 149912 "Subc SCM Inventory Misc."
         VATPostingSetup: Record "VAT Posting Setup";
         Vendor: Record Vendor;
     begin
-        LibraryERM.FindGeneralPostingSetupInvtFull(GeneralPostingSetup);
         WorkCenter.SetRange("No.", No);
         SubcManagementLibrary.CalculateSubcontractOrder(WorkCenter);
         RequisitionLine.SetRange("No.", ItemNo);
         RequisitionLine.FindFirst();
+        CreateSubcontractPurchasePostingSetup(RequisitionLine."Gen. Prod. Posting Group", GeneralPostingSetup);
         RequisitionLine.Validate("Direct Unit Cost", LibraryRandom.RandDec(10, 2));  // take random Direct Cost.
         RequisitionLine.Validate("Gen. Business Posting Group", GeneralPostingSetup."Gen. Bus. Posting Group");
         RequisitionLine.Modify(true);
@@ -304,9 +306,12 @@ codeunit 149912 "Subc SCM Inventory Misc."
         PurchaseHeader.Get(PurchaseLine."Document Type"::Order, PurchaseLine."Document No.");
         PurchaseHeader.Validate("Vendor Invoice No.", LibraryUtility.GenerateGUID());
         PurchaseHeader.Modify(true);
-        if not GeneralPostingSetup.Get(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group") then
+        if not GeneralPostingSetup.Get(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group") then begin
             LibraryERM.CreateGeneralPostingSetup(
               GeneralPostingSetup, PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
+            UpdateGeneralPostingSetupWithPostingAccounts(GeneralPostingSetup);
+        end else
+            UpdateGeneralPostingSetupWithPostingAccounts(GeneralPostingSetup);
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
     end;
 
@@ -359,8 +364,12 @@ codeunit 149912 "Subc SCM Inventory Misc."
     local procedure CreateItem(): Code[20]
     var
         Item: Record Item;
+        InventoryPostingGroup: Record "Inventory Posting Group";
     begin
         LibraryInventory.CreateItem(Item);
+        LibraryInventory.CreateInventoryPostingGroup(InventoryPostingGroup);
+        Item.Validate("Inventory Posting Group", InventoryPostingGroup.Code);
+        EnsureInventoryPostingSetup('', InventoryPostingGroup.Code);
         Item.Validate("Last Direct Cost", LibraryRandom.RandInt(10));
         Item.Validate("Unit Cost", LibraryRandom.RandInt(10));
         Item.Modify(true);
@@ -378,6 +387,49 @@ codeunit 149912 "Subc SCM Inventory Misc."
         Item.Validate("Flushing Method", FlushingMethod);
         Item.Modify(true);
         exit(Item."No.");
+    end;
+
+    local procedure CreateSubcontractPurchasePostingSetup(GenProdPostingGroupCode: Code[20]; var GeneralPostingSetup: Record "General Posting Setup")
+    var
+        GenBusinessPostingGroup: Record "Gen. Business Posting Group";
+    begin
+        LibraryERM.CreateGenBusPostingGroup(GenBusinessPostingGroup);
+        LibraryERM.CreateGeneralPostingSetup(GeneralPostingSetup, GenBusinessPostingGroup.Code, GenProdPostingGroupCode);
+        UpdateGeneralPostingSetupWithPostingAccounts(GeneralPostingSetup);
+    end;
+
+    local procedure UpdateGeneralPostingSetupWithPostingAccounts(var GeneralPostingSetup: Record "General Posting Setup")
+    begin
+        GeneralPostingSetup.Validate("Purch. Account", GetPostingGLAccountNo(GeneralPostingSetup."Purch. Account"));
+        GeneralPostingSetup.Validate("COGS Account", GetPostingGLAccountNo(GeneralPostingSetup."COGS Account"));
+        GeneralPostingSetup.Validate("COGS Account (Interim)", GetPostingGLAccountNo(GeneralPostingSetup."COGS Account (Interim)"));
+        GeneralPostingSetup.Validate("Inventory Adjmt. Account", GetPostingGLAccountNo(GeneralPostingSetup."Inventory Adjmt. Account"));
+        GeneralPostingSetup.Validate("Direct Cost Applied Account", GetPostingGLAccountNo(GeneralPostingSetup."Direct Cost Applied Account"));
+        GeneralPostingSetup.Validate("Overhead Applied Account", GetPostingGLAccountNo(GeneralPostingSetup."Overhead Applied Account"));
+        GeneralPostingSetup.Validate("Purchase Variance Account", GetPostingGLAccountNo(GeneralPostingSetup."Purchase Variance Account"));
+        GeneralPostingSetup.Modify(true);
+    end;
+
+    local procedure GetPostingGLAccountNo(AccountNo: Code[20]): Code[20]
+    var
+        GLAccount: Record "G/L Account";
+    begin
+        if (AccountNo <> '') and GLAccount.Get(AccountNo) and (GLAccount."Account Type" = GLAccount."Account Type"::Posting) then
+            exit(AccountNo);
+
+        exit(LibraryERM.CreateGLAccountNo());
+    end;
+
+    local procedure EnsureInventoryPostingSetup(LocationCode: Code[10]; InventoryPostingGroupCode: Code[20])
+    var
+        Location: Record Location;
+    begin
+        if LocationCode <> '' then
+            Location.Get(LocationCode)
+        else
+            Clear(Location);
+
+        LibraryInventory.UpdateInventoryPostingSetup(Location, InventoryPostingGroupCode);
     end;
 
     local procedure CreateRoutingLine(var RoutingLine: Record "Routing Line"; RoutingHeader: Record "Routing Header"; CenterNo: Code[20])

@@ -395,6 +395,7 @@ codeunit 149918 "Subc SCM WIP Costing Prod."
         end;
 
         // Create and Refresh Production Order.
+        EnsurePurchasePostingSetup(PurchaseHeader);
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
         LibraryManufacturing.CreateAndRefreshProductionOrder(
           ProductionOrder, ProductionOrderStatus, ProductionOrder."Source Type"::Item, ParentItemNo, LibraryRandom.RandInt(10) + 5);
@@ -796,6 +797,7 @@ codeunit 149918 "Subc SCM WIP Costing Prod."
           "Vendor Invoice No.", LibraryUtility.GenerateRandomCode(PurchaseHeader.FieldNo("Vendor Invoice No."),
             DATABASE::"Purchase Header"));
         PurchaseHeader.Modify(true);
+        EnsurePurchasePostingSetup(PurchaseHeader);
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
     end;
 
@@ -828,6 +830,45 @@ codeunit 149918 "Subc SCM WIP Costing Prod."
             ItemJournalLine.Validate(Quantity, ItemJournalLine.Quantity + 1);
             ItemJournalLine.Modify(true);
         until ItemJournalLine.Next() = 0;
+    end;
+
+    local procedure EnsurePurchasePostingSetup(PurchaseHeader: Record "Purchase Header")
+    var
+        PurchaseLine: Record "Purchase Line";
+        GeneralPostingSetup: Record "General Posting Setup";
+    begin
+        PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
+        PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+        PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
+        if PurchaseLine.FindSet() then
+            repeat
+                if not GeneralPostingSetup.Get(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group") then
+                    LibraryERM.CreateGeneralPostingSetup(
+                      GeneralPostingSetup, PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
+                UpdateGeneralPostingSetupWithPostingAccounts(GeneralPostingSetup);
+            until PurchaseLine.Next() = 0;
+    end;
+
+    local procedure UpdateGeneralPostingSetupWithPostingAccounts(var GeneralPostingSetup: Record "General Posting Setup")
+    begin
+        GeneralPostingSetup.Validate("Purch. Account", GetPostingGLAccountNo(GeneralPostingSetup."Purch. Account"));
+        GeneralPostingSetup.Validate("COGS Account", GetPostingGLAccountNo(GeneralPostingSetup."COGS Account"));
+        GeneralPostingSetup.Validate("COGS Account (Interim)", GetPostingGLAccountNo(GeneralPostingSetup."COGS Account (Interim)"));
+        GeneralPostingSetup.Validate("Inventory Adjmt. Account", GetPostingGLAccountNo(GeneralPostingSetup."Inventory Adjmt. Account"));
+        GeneralPostingSetup.Validate("Direct Cost Applied Account", GetPostingGLAccountNo(GeneralPostingSetup."Direct Cost Applied Account"));
+        GeneralPostingSetup.Validate("Overhead Applied Account", GetPostingGLAccountNo(GeneralPostingSetup."Overhead Applied Account"));
+        GeneralPostingSetup.Validate("Purchase Variance Account", GetPostingGLAccountNo(GeneralPostingSetup."Purchase Variance Account"));
+        GeneralPostingSetup.Modify(true);
+    end;
+
+    local procedure GetPostingGLAccountNo(AccountNo: Code[20]): Code[20]
+    var
+        GLAccount: Record "G/L Account";
+    begin
+        if (AccountNo <> '') and GLAccount.Get(AccountNo) and (GLAccount."Account Type" = GLAccount."Account Type"::Posting) then
+            exit(AccountNo);
+
+        exit(LibraryERM.CreateGLAccountNo());
     end;
 
     [Normal]

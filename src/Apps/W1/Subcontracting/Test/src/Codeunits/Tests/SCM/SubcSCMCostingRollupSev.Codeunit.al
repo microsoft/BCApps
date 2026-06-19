@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting.Test;
 
+using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Enums;
 using Microsoft.Inventory.Costing;
@@ -105,13 +106,10 @@ codeunit 149915 "Subc SCM Costing Rollup Sev"
           ProductionBOMHeader, ParentItem, ChildItem, NonBaseItemUOM.Code, RoutingLink.Code, LibraryRandom.RandDec(20, 2), 0);
         UpdateItemRoutingNo(ParentItem, RoutingLine."Routing No.");
 
-        // Supply child item
-        LibraryInventory.PostPositiveAdjustment(ChildItem, Location.Code, '', '',
-          LibraryRandom.RandDec(125, 2), WorkDate(), LibraryRandom.RandDec(225, 2));
-
         // Create and refresh Released Production Order. Update new Unit Of Measure on Production Order Line.
         CreateAndRefreshReleasedProductionOrder(ProductionOrder, ParentItem."No.", Location.Code);
         UpdateProdOrderLineUnitOfMeasureCode(ParentItem."No.", NonBaseItemUOM.Code);
+        SupplyRequiredComponentInventory(ProductionOrder, ChildItem, Location.Code);
 
         // Calculate subcontracts from subcontracting worksheet and create subcontracted purchase order
         CalculateSubcontractOrder(WorkCenter);
@@ -330,8 +328,12 @@ codeunit 149915 "Subc SCM Costing Rollup Sev"
     end;
 
     local procedure AcceptActionMessage(var RequisitionLine: Record "Requisition Line"; ItemNo: Code[20])
+    var
+        GeneralPostingSetup: Record "General Posting Setup";
     begin
         SelectRequisitionLine(RequisitionLine, ItemNo);
+        CreateSubcontractPurchasePostingSetup(RequisitionLine."Gen. Prod. Posting Group", GeneralPostingSetup);
+        RequisitionLine.Validate("Gen. Business Posting Group", GeneralPostingSetup."Gen. Bus. Posting Group");
         RequisitionLine.Validate("Accept Action Message", true);
         RequisitionLine.Modify(true);
     end;
@@ -589,12 +591,20 @@ codeunit 149915 "Subc SCM Costing Rollup Sev"
     var
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
+        GeneralPostingSetup: Record "General Posting Setup";
     begin
         FindPurchaseOrderLine(PurchaseLine, ItemNo);
         PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
 
         if Invoice and (PurchaseHeader."Vendor Invoice No." = '') then
             PurchaseHeader."Vendor Invoice No." := LibraryUtility.GenerateGUID();
+
+        if not GeneralPostingSetup.Get(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group") then begin
+            LibraryERM.CreateGeneralPostingSetup(
+              GeneralPostingSetup, PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
+            UpdateGeneralPostingSetupWithPostingAccounts(GeneralPostingSetup);
+        end else
+            UpdateGeneralPostingSetupWithPostingAccounts(GeneralPostingSetup);
 
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, ShipReceive, Invoice);
     end;
@@ -671,6 +681,54 @@ codeunit 149915 "Subc SCM Costing Rollup Sev"
     begin
         CreateItemJournalLineWithUnitCost(ItemJournalBatch, ItemJournalLine, ItemNo, Quantity, BinCode, LocationCode, LibraryRandom.RandInt(10));
         LibraryInventory.PostItemJournalLine(ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name);
+    end;
+
+    local procedure SupplyRequiredComponentInventory(ProductionOrder: Record "Production Order"; ChildItem: Record Item; LocationCode: Code[10])
+    var
+        ProdOrderComponent: Record "Prod. Order Component";
+        RequiredQuantityBase: Decimal;
+    begin
+        ProdOrderComponent.SetRange(Status, ProductionOrder.Status);
+        ProdOrderComponent.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderComponent.SetRange("Item No.", ChildItem."No.");
+        if ProdOrderComponent.FindSet() then
+            repeat
+                RequiredQuantityBase += ProdOrderComponent."Expected Qty. (Base)";
+            until ProdOrderComponent.Next() = 0;
+
+        LibraryInventory.PostPositiveAdjustment(
+          ChildItem, LocationCode, '', '', Round(RequiredQuantityBase + 1, 0.00001, '>'), WorkDate(), LibraryRandom.RandDec(225, 2));
+    end;
+
+    local procedure CreateSubcontractPurchasePostingSetup(GenProdPostingGroupCode: Code[20]; var GeneralPostingSetup: Record "General Posting Setup")
+    var
+        GenBusinessPostingGroup: Record "Gen. Business Posting Group";
+    begin
+        LibraryERM.CreateGenBusPostingGroup(GenBusinessPostingGroup);
+        LibraryERM.CreateGeneralPostingSetup(GeneralPostingSetup, GenBusinessPostingGroup.Code, GenProdPostingGroupCode);
+        UpdateGeneralPostingSetupWithPostingAccounts(GeneralPostingSetup);
+    end;
+
+    local procedure UpdateGeneralPostingSetupWithPostingAccounts(var GeneralPostingSetup: Record "General Posting Setup")
+    begin
+        GeneralPostingSetup.Validate("Purch. Account", GetPostingGLAccountNo(GeneralPostingSetup."Purch. Account"));
+        GeneralPostingSetup.Validate("COGS Account", GetPostingGLAccountNo(GeneralPostingSetup."COGS Account"));
+        GeneralPostingSetup.Validate("COGS Account (Interim)", GetPostingGLAccountNo(GeneralPostingSetup."COGS Account (Interim)"));
+        GeneralPostingSetup.Validate("Inventory Adjmt. Account", GetPostingGLAccountNo(GeneralPostingSetup."Inventory Adjmt. Account"));
+        GeneralPostingSetup.Validate("Direct Cost Applied Account", GetPostingGLAccountNo(GeneralPostingSetup."Direct Cost Applied Account"));
+        GeneralPostingSetup.Validate("Overhead Applied Account", GetPostingGLAccountNo(GeneralPostingSetup."Overhead Applied Account"));
+        GeneralPostingSetup.Validate("Purchase Variance Account", GetPostingGLAccountNo(GeneralPostingSetup."Purchase Variance Account"));
+        GeneralPostingSetup.Modify(true);
+    end;
+
+    local procedure GetPostingGLAccountNo(AccountNo: Code[20]): Code[20]
+    var
+        GLAccount: Record "G/L Account";
+    begin
+        if (AccountNo <> '') and GLAccount.Get(AccountNo) and (GLAccount."Account Type" = GLAccount."Account Type"::Posting) then
+            exit(AccountNo);
+
+        exit(LibraryERM.CreateGLAccountNo());
     end;
 
     local procedure CreateItemJournalLineWithUnitCost(var ItemJournalBatch: Record "Item Journal Batch"; var ItemJournalLine: Record "Item Journal Line"; ItemNo: Code[20]; Quantity: Decimal; BinCode: Code[20]; LocationCode: Code[10]; UnitCost: Decimal)
