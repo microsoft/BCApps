@@ -306,6 +306,8 @@ report 4 "Detail Trial Balance"
     trigger OnPreReport()
     begin
         StartDateTime := CurrentDateTime();
+        "G/L Account".SecurityFiltering(SecurityFilter::Filtered);
+        "G/L Entry".SecurityFiltering(SecurityFilter::Filtered);
         GLFilter := "G/L Account".GetFilters();
         GLDateFilter := "G/L Account".GetFilter("Date Filter");
 

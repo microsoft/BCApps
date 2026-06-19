@@ -13,6 +13,7 @@ codeunit 134983 "ERM Purchase Reports"
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryERM: Codeunit "Library - ERM";
         LibraryPurchase: Codeunit "Library - Purchase";
+        LibrarySales: Codeunit "Library - Sales";
         LibraryUtility: Codeunit "Library - Utility";
         LibraryReportDataset: Codeunit "Library - Report Dataset";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
@@ -30,6 +31,45 @@ codeunit 134983 "ERM Purchase Reports"
         RowNotFoundErr: Label 'There is no dataset row corresponding to Element Name %1 with value %2.', Comment = '%1=Field Caption,%2=Field Value;';
         RepCaptionErrorTxt: Label 'ErrorText_Number_';
         PurchDocAlreadyExistTxt: Label 'Purchase %1 %2 already exists for this vendor.', Comment = '%1 = Document Type, %2 = Document No.';
+
+    [Test]
+    [HandlerFunctions('ReportHandlerPurchaseInvoice')]
+    [Scope('OnPrem')]
+    procedure PurchInvoiceWithPurchaserCode()
+    var
+        SalespersonPurchaser: Record "Salesperson/Purchaser";
+        Vendor: Record Vendor;
+        PurchaseHeader: Record "Purchase Header";
+        DocumentNo: Code[20];
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 638186] Purchase Invoice report shows purchaser name when Purchaser Code is set on posted purchase invoice.
+        Initialize();
+
+        // [GIVEN] Create a Salesperson/Purchaser with name.
+        LibrarySales.CreateSalesperson(SalespersonPurchaser);
+
+        // [GIVEN] Create a Vendor with Purchaser Code set to the created purchaser.
+        LibraryPurchase.CreateVendor(Vendor);
+        Vendor.Validate("Purchaser Code", SalespersonPurchaser.Code);
+        Vendor.Modify(true);
+
+        // [GIVEN] Create and post a Purchase Invoice for the vendor.
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, Vendor."No.");
+        PurchaseHeader.Validate("Purchaser Code", SalespersonPurchaser.Code);
+        PurchaseHeader.Validate("Vendor Invoice No.", PurchaseHeader."No.");
+        PurchaseHeader.Modify(true);
+        CreatePurchaseLine(PurchaseHeader, CreateItem());
+        DocumentNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        // [WHEN] Run "Purchase - Invoice" report.
+        SavePurchaseInvoiceReport(DocumentNo, false, false);
+
+        // [THEN] Report dataset contains the purchaser name (not blank).
+        LibraryReportDataset.LoadDataSetFile();
+        LibraryReportDataset.AssertElementWithValueExists('SalesPurchPersonName', SalespersonPurchaser.Name);
+        LibraryReportDataset.AssertElementWithValueExists('PurchaserText', 'Purchaser');
+    end;
 
     [Test]
     [HandlerFunctions('RHPurchaseDocumentTest')]

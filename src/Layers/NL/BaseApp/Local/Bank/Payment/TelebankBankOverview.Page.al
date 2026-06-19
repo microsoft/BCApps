@@ -445,6 +445,7 @@ page 11000000 "Telebank - Bank Overview"
         PaymHist.FilterGroup(10);
         PaymHist.SetRange("Our Bank", Rec."No.");
         PaymHist.FilterGroup(0);
+        OnOpenPaymentOnAfterPaymHistSetFilters(PaymHist, Rec);
         PaymentHistory.SetTableView(PaymHist);
         PaymentHistory.Run();
     end;
@@ -459,6 +460,11 @@ page 11000000 "Telebank - Bank Overview"
         ProposalWindow.SetTableView(Prop);
         ProposalWindow.SetRecord(Prop);
         ProposalWindow.Run();
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnOpenPaymentOnAfterPaymHistSetFilters(var PaymentHistory: Record "Payment History"; BankAccount: Record "Bank Account")
+    begin
     end;
 }
 

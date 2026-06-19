@@ -5607,6 +5607,64 @@
         LibraryVariableStorage.AssertEmpty();
     end;
 
+    [Test]
+    procedure CalcRegenPlanWithAssemblyBOMFractionalQtyAndQtyRoundingPrecision()
+    var
+        AssemblyItem: Record Item;
+        ComponentItem: Record Item;
+        ItemUnitOfMeasure: Record "Item Unit of Measure";
+        BOMComponent: Record "BOM Component";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        PlanningComponent: Record "Planning Component";
+        PlanningFilterItem: Record Item;
+        QtyPer: Decimal;
+        SalesQty: Decimal;
+        ExpectedQty: Decimal;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 636316] Calc. Regen. Plan succeeds for assembly item "A" with fractional component "C" having Qty. Rounding Precision = 1
+
+        Initialize();
+
+        // [GIVEN] Random fractional Quantity per and Sales Quantity
+        QtyPer := LibraryRandom.RandDecInRange(1, 9, 0) / 10;
+        SalesQty := LibraryRandom.RandIntInRange(2, 20);
+        ExpectedQty := Round(QtyPer * SalesQty, 1);
+
+        // [GIVEN] Component item "C" with Rounding Precision = 1 and Qty. Rounding Precision = 1 on base UOM
+        LibraryInventory.CreateItem(ComponentItem);
+        ComponentItem.Validate("Replenishment System", ComponentItem."Replenishment System"::Purchase);
+        ComponentItem.Validate("Reordering Policy", ComponentItem."Reordering Policy"::"Lot-for-Lot");
+        ComponentItem.Validate("Rounding Precision", 1);
+        ComponentItem.Modify(true);
+        ItemUnitOfMeasure.Get(ComponentItem."No.", ComponentItem."Base Unit of Measure");
+        ItemUnitOfMeasure."Qty. Rounding Precision" := 1;
+        ItemUnitOfMeasure.Modify();
+
+        // [GIVEN] Assembly item "A" with Reordering Policy = Lot-for-Lot and BOM component "C" with fractional Quantity per
+        LibraryInventory.CreateItem(AssemblyItem);
+        AssemblyItem.Validate("Replenishment System", AssemblyItem."Replenishment System"::Assembly);
+        AssemblyItem.Validate("Reordering Policy", AssemblyItem."Reordering Policy"::"Lot-for-Lot");
+        AssemblyItem.Modify(true);
+        LibraryInventory.CreateBOMComponent(
+            BOMComponent, AssemblyItem."No.", BOMComponent.Type::Item,
+            ComponentItem."No.", QtyPer, ComponentItem."Base Unit of Measure");
+
+        // [GIVEN] Sales Order for random qty of assembly item "A"
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, '');
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, AssemblyItem."No.", SalesQty);
+
+        // [WHEN] Calculate Regenerative Plan for both items
+        PlanningFilterItem.SetFilter("No.", '%1|%2', AssemblyItem."No.", ComponentItem."No.");
+        LibraryPlanning.CalcRegenPlanForPlanWksh(PlanningFilterItem, WorkDate(), CalcDate('<+30D>', WorkDate()));
+
+        // [THEN] Planning Component for "C" exists with Expected Quantity rounded up by Qty. Rounding Precision
+        PlanningComponent.SetRange("Item No.", ComponentItem."No.");
+        PlanningComponent.FindFirst();
+        Assert.AreEqual(ExpectedQty, PlanningComponent."Expected Quantity", 'Expected Quantity should be rounded up by Qty. Rounding Precision');
+    end;
+
     local procedure Initialize()
     var
         AllProfile: Record "All Profile";
@@ -7690,4 +7748,5 @@ ItemJournalLine, ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name
     begin
         PurchaseOrder.Close();
     end;
+
 }

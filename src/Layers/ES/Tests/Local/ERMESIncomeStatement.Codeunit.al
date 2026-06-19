@@ -361,7 +361,9 @@ codeunit 144054 "ERM ES Income Statement"
     begin
         GLRegister.FindLast();
         GLRegister.TestField("Journal Batch Name", GenJournalBatchName);
-        GLEntry.Get(GLRegister."From Entry No.");
+        GLEntry.SetRange("Entry No.", GLRegister."From Entry No.", GLRegister."To Entry No.");
+        GLEntry.SetRange(Amount, Amount);
+        GLEntry.FindFirst();
         GLEntry.TestField("Document No.", GenJournalBatchName);
         GLEntry.TestField(Amount, Amount);
     end;

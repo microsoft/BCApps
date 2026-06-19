@@ -114,7 +114,7 @@ report 31025 "Purch. Advance Letters VAT CZZ"
                 trigger OnAfterGetRecord()
                 begin
                     NonDeductVATAmountLCY := CalcNonDeductVATAmountLCY("Purch. Adv. Letter Entry CZZ");
-                    if NonDeductVATAmountLCY <> 0 then
+                    if "Non-Deductible VAT %" <> 0 then
                         "VAT Amount (LCY)" := 0;
                 end;
             }

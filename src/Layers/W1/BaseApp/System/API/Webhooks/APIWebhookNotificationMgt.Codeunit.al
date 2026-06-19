@@ -674,7 +674,7 @@ codeunit 6153 "API Webhook Notification Mgt."
         JobQueueEntry.SetRange("Earliest Start Date/Time");
         if JobQueueEntry.Count() >= GetMaxNumberOfJobs() then
             if not DeleteHangingJob() then begin
-                Session.LogMessage('000070P', StrSubstNo(TooManyJobsMsg, GetMaxNumberOfJobs()), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', APIWebhookCategoryLbl);
+                Session.LogMessage('000070P', StrSubstNo(TooManyJobsMsg, GetMaxNumberOfJobs()), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', APIWebhookCategoryLbl);
                 exit;
             end;
 

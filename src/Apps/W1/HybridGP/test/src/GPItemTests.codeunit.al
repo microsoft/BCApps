@@ -26,7 +26,6 @@ codeunit 139662 "GP Item Tests"
         PostingGroupGPTok: Label 'GP', Locked = true;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestGPItemMigration()
     var
         GPItem: Record "GP Item";
@@ -124,7 +123,6 @@ codeunit 139662 "GP Item Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestInventoryDisabled()
     var
         GPItem: Record "GP Item";
@@ -161,7 +159,6 @@ codeunit 139662 "GP Item Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestGPItemClassesConfiguredToNotImport()
     var
         GPItem: Record "GP Item";
@@ -194,7 +191,6 @@ codeunit 139662 "GP Item Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestGPItemClassesImport()
     var
         GPItem: Record "GP Item";
@@ -262,7 +258,6 @@ codeunit 139662 "GP Item Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestInactiveItemsDisabled()
     var
         GPItem: Record "GP Item";
@@ -306,7 +301,6 @@ codeunit 139662 "GP Item Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestDiscontinuedItemsDisabled()
     var
         GPItem: Record "GP Item";
@@ -353,7 +347,6 @@ codeunit 139662 "GP Item Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestGPKitItemMigration()
     var
         GPItem: Record "GP Item";
@@ -427,10 +420,14 @@ codeunit 139662 "GP Item Tests"
         Item: Record Item;
         GenBusPostingGroup: Record "Gen. Business Posting Group";
         GPIV00101: Record "GP IV00101";
+        GPIV00104: Record "GP IV00104";
         GPIV40400: Record "GP IV40400";
         InventorySetup: Record "Inventory Setup";
         ItemCategory: Record "Item Category";
+        InventoryPostingGroup: Record "Inventory Posting Group";
         GPPostingAccounts: Record "GP Posting Accounts";
+        GLAccount: Record "G/L Account";
+        GPAccount: Record "GP Account";
     begin
         Clear(ItemDataMigrationFacade);
         Clear(GPItemMigrator);
@@ -439,8 +436,12 @@ codeunit 139662 "GP Item Tests"
         Item.DeleteAll();
         ItemCategory.DeleteAll();
         GPIV00101.DeleteAll();
+        GPIV00104.DeleteAll();
         GPIV40400.DeleteAll();
+        InventoryPostingGroup.DeleteAll();
         DataMigrationEntity.DeleteAll();
+        GLAccount.DeleteAll();
+        GPAccount.DeleteAll();
 
         if not GenBusPostingGroup.Get(PostingGroupGPTok) then begin
             GenBusPostingGroup.Validate(GenBusPostingGroup.Code, PostingGroupGPTok);

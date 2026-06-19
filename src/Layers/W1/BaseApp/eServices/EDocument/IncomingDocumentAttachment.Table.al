@@ -5,6 +5,7 @@
 namespace Microsoft.EServices.EDocument;
 
 using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.Foundation.Attachment;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Sales.Document;
@@ -695,6 +696,8 @@ table 133 "Incoming Document Attachment"
     end;
 
     internal procedure SupportedByFileViewer(): Boolean
+    var
+        DocumentAttachmentMgmt: Codeunit "Document Attachment Mgmt";
     begin
         case Type of
             Type::PDF:
@@ -702,9 +705,9 @@ table 133 "Incoming Document Attachment"
             Type::" ":
                 begin
                     if Rec."File Extension" <> '' then
-                        exit(LowerCase(Rec."File Extension") = 'pdf');
+                        exit(DocumentAttachmentMgmt.IsSupportedByFileViewerExtension(Rec."File Extension", false));
 
-                    exit(Lowercase(Rec.Name).EndsWith('pdf'))
+                    exit(DocumentAttachmentMgmt.IsSupportedByFileViewerFileName(Rec.Name, false))
                 end;
             else
                 exit(false);

@@ -105,7 +105,6 @@ codeunit 139664 "GP Data Migration Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestGPCustomerImport()
     var
         Customer: Record "Customer";
@@ -315,7 +314,6 @@ codeunit 139664 "GP Data Migration Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestReceivablesMasterDataOnly()
     var
         Customer: Record "Customer";
@@ -422,7 +420,6 @@ codeunit 139664 "GP Data Migration Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestReceivablesSkipPosting()
     var
         Customer: Record "Customer";
@@ -469,7 +466,6 @@ codeunit 139664 "GP Data Migration Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestReceivablesDisabled()
     var
         Customer: Record "Customer";
@@ -508,7 +504,6 @@ codeunit 139664 "GP Data Migration Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestGPVendorImport()
     var
         Vendor: Record Vendor;
@@ -780,7 +775,6 @@ codeunit 139664 "GP Data Migration Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestDisableTemporaryVendors()
     var
         Vendor: Record Vendor;
@@ -1002,7 +996,6 @@ codeunit 139664 "GP Data Migration Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestGPVendorImportWithName2()
     var
         Vendor: Record Vendor;
@@ -1079,7 +1072,6 @@ codeunit 139664 "GP Data Migration Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestPayablesMasterDataOnly()
     var
         Vendor: Record Vendor;
@@ -1129,7 +1121,6 @@ codeunit 139664 "GP Data Migration Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestPayablesSkipPosting()
     var
         Vendor: Record Vendor;
@@ -1179,7 +1170,6 @@ codeunit 139664 "GP Data Migration Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestPayablesDisabled()
     var
         Vendor: Record Vendor;
@@ -1219,7 +1209,6 @@ codeunit 139664 "GP Data Migration Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestGPPaymentTerms()
     var
         PaymentTerms: Record "Payment Terms";
@@ -2460,7 +2449,6 @@ codeunit 139664 "GP Data Migration Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestGPVendorBankAccountImport()
     var
         Vendor: Record Vendor;
@@ -2636,7 +2624,6 @@ codeunit 139664 "GP Data Migration Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestGPVendorClassesConfiguredToNotImport()
     var
         VendorPostingGroup: Record "Vendor Posting Group";
@@ -2668,7 +2655,6 @@ codeunit 139664 "GP Data Migration Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestGPVendorClassesImport()
     var
         Vendor: Record Vendor;
@@ -2728,7 +2714,6 @@ codeunit 139664 "GP Data Migration Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestGPCustomerClassesConfiguredToNotImport()
     var
         CustomerPostingGroup: Record "Customer Posting Group";
@@ -2755,7 +2740,6 @@ codeunit 139664 "GP Data Migration Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestGPCustomerClassesImport()
     var
         Customer: Record Customer;
@@ -2818,7 +2802,6 @@ codeunit 139664 "GP Data Migration Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestOpenPOSettingDisabled()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -2878,6 +2861,8 @@ codeunit 139664 "GP Data Migration Tests"
         VendorPostingGroup: Record "Vendor Posting Group";
         GPConfiguration: Record "GP Configuration";
         GPPostingAccounts: Record "GP Posting Accounts";
+        ItemTrackingCode: Record "Item Tracking Code";
+        Location: Record Location;
         PurchaseHeader: Record "Purchase Header";
         GenProductPostingGroup: Record "Gen. Product Posting Group";
         InventoryPostingGroup: Record "Inventory Posting Group";
@@ -2888,25 +2873,48 @@ codeunit 139664 "GP Data Migration Tests"
         StandardPurchaseCode: Record "Standard Purchase Code";
         StandardPurchaseLine: Record "Standard Purchase Line";
         StandardVendorPurchaseCode: Record "Standard Vendor Purchase Code";
+        CustomerPostingGroup: Record "Customer Posting Group";
+        GPCustomerTransactions: Record "GP Customer Transactions";
+        GPVendorTransactions: Record "GP Vendor Transactions";
+        GLAccount: Record "G/L Account";
+        GPAccount: Record "GP Account";
     begin
-        if not BindSubscription(GPDataMigrationTests) then
-            exit;
+        if UnbindSubscription(GPDataMigrationTests) then;
+        BindSubscription(GPDataMigrationTests);
 
         DataMigrationEntity.DeleteAll();
         PurchaseHeader.DeleteAll();
         GPConfiguration.DeleteAll();
+        ItemTrackingCode.DeleteAll();
+        Location.DeleteAll();
         GPTestHelperFunctions.DeleteAllSettings();
+        Clear(GPCustomer);
         GPCustomer.DeleteAll();
+        Clear(GPCustomerAddress);
         GPCustomerAddress.DeleteAll();
+        Clear(GPVendorAddress);
         GPVendorAddress.DeleteAll();
+        Clear(GPVendor);
         GPVendor.DeleteAll();
+        Clear(GPPM00100);
         GPPM00100.DeleteAll();
+        Clear(GPPM00200);
         GPPM00200.DeleteAll();
+        Clear(GPRM00101);
         GPRM00101.DeleteAll();
+        Clear(GPRM00201);
         GPRM00201.DeleteAll();
+        Clear(GPPOP10100);
         GPPOP10100.DeleteAll();
+        Clear(GPPOP10110);
         GPPOP10110.DeleteAll();
+        Clear(GPSY01200);
         GPSY01200.DeleteAll();
+        GPCustomerTransactions.DeleteAll();
+        GPVendorTransactions.DeleteAll();
+        CustomerPostingGroup.DeleteAll();
+        GLAccount.DeleteAll();
+        GPAccount.DeleteAll();
 
         if not GLSetup.Get() then
             GLSetup.Insert();
@@ -2916,6 +2924,7 @@ codeunit 139664 "GP Data Migration Tests"
             GenBusPostingGroup.Insert(true);
         end;
 
+        VendorPostingGroup.DeleteAll();
         if not VendorPostingGroup.Get(PostingGroupCodeTxt) then begin
             VendorPostingGroup.Validate("Code", PostingGroupCodeTxt);
             VendorPostingGroup.Insert(true);
@@ -2959,8 +2968,7 @@ codeunit 139664 "GP Data Migration Tests"
         CreateDimensions();
         CreateAccounts();
 
-        if UnbindSubscription(GPDataMigrationTests) then
-            exit;
+        if UnbindSubscription(GPDataMigrationTests) then;
     end;
 
     local procedure CreateDimensions()
@@ -2990,19 +2998,19 @@ codeunit 139664 "GP Data Migration Tests"
             Dimension.Code := DimDepartment;
             Dimension.Name := DimDepartment;
             Dimension.Insert(true);
-
-            CreateDimVal(DimDepartment, '00', '');
-            CreateDimVal(DimDepartment, '01', 'One');
         end;
+
+        CreateDimVal(DimDepartment, '00', '');
+        CreateDimVal(DimDepartment, '01', 'One');
 
         if not Dimension.Get(DimDivision) then begin
             Dimension.Code := DimDivision;
             Dimension.Name := DimDivision;
             Dimension.Insert(true);
-
-            CreateDimVal(DimDivision, '000', '');
-            CreateDimVal(DimDivision, '100', 'Administration');
         end;
+
+        CreateDimVal(DimDivision, '000', '');
+        CreateDimVal(DimDivision, '100', 'Administration');
 
         GLSetup.Get();
         GLSetup."Global Dimension 1 Code" := DimDepartment;
@@ -3014,10 +3022,17 @@ codeunit 139664 "GP Data Migration Tests"
     var
         DimensionValue: Record "Dimension Value";
     begin
-        DimensionValue."Dimension Code" := DimCode;
-        DimensionValue.Code := DimValCode;
-        DimensionValue.Name := DimValName;
-        DimensionValue.Insert(true);
+        if DimensionValue.Get(DimCode, DimValCode) then begin
+            if DimensionValue.Name <> DimValName then begin
+                DimensionValue.Name := DimValName;
+                DimensionValue.Modify(true);
+            end;
+        end else begin
+            DimensionValue."Dimension Code" := DimCode;
+            DimensionValue.Code := DimValCode;
+            DimensionValue.Name := DimValName;
+            DimensionValue.Insert(true);
+        end;
     end;
 
     local procedure CreateAccounts()

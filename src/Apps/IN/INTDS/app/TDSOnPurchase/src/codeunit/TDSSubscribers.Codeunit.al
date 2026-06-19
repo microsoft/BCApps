@@ -4,9 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.TDS.TDSOnPurchase;
 
+using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.Finance.GeneralLedger.Posting;
+using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Finance.TaxBase;
+using Microsoft.Finance.TaxEngine.TaxTypeHandler;
+using Microsoft.Finance.TaxEngine.UseCaseBuilder;
 using Microsoft.Finance.TDS.TDSBase;
+using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Company;
 using Microsoft.Inventory.Location;
 using Microsoft.Purchases.Document;
@@ -521,6 +527,31 @@ codeunit 18716 "TDS Subscribers"
     begin
         if not RecalculateLines then
             CalculateTax.CallTaxEngineOnPurchaseLine(ToPurchLine, ToPurchLine);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", OnBeforeCalcAplication, '', false, false)]
+    local procedure OnBeforeCalcAplication(var NewCVLedgEntryBuf: Record "CV Ledger Entry Buffer"; var OldCVLedgEntryBuf: Record "CV Ledger Entry Buffer"; var AppliedAmountLCY: Decimal)
+    var
+        Currency: Record "Currency";
+        SourceCodeSetup: Record "Source Code Setup";
+        TaxComponent: Record "Tax Component";
+        TaxRateComputation: Codeunit "Tax Rate Computation";
+    begin
+        SourceCodeSetup.Get();
+
+        if (NewCVLedgEntryBuf."Source Code" <> SourceCodeSetup."TDS Adjustment Journal") and (OldCVLedgEntryBuf."Source Code" <> SourceCodeSetup."TDS Adjustment Journal") then
+            exit;
+
+        if (NewCVLedgEntryBuf."Currency Code" = '') or (OldCVLedgEntryBuf."Currency Code" = '') then
+            exit;
+
+        TaxComponent.SetRange("Tax Type", 'TDS');
+        TaxComponent.FindFirst();
+
+        AppliedAmountLCY := TaxRateComputation.RoundAmount(AppliedAmountLCY, TaxComponent."Rounding Precision", TaxComponent."Direction");
+        Currency.Get(OldCVLedgEntryBuf."Currency Code");
+        OldCVLedgEntryBuf."Remaining Amount" := Round(OldCVLedgEntryBuf."Remaining Amount", Currency."Amount Rounding Precision", Currency.InvoiceRoundingDirection());
+        NewCVLedgEntryBuf."Remaining Amount" := Round(NewCVLedgEntryBuf."Remaining Amount", Currency."Amount Rounding Precision", Currency.InvoiceRoundingDirection());
     end;
 
     [IntegrationEvent(false, false)]

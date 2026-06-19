@@ -615,9 +615,12 @@ table 11401 "CBG Statement Line"
                     else
                         Validate(Date, CBGStatementLine.Date);
 
-                    if CBGStatement.Currency <> PaymentHistLine."Currency Code" then
-                        Error(Text1000006,
-                          CBGStatement.Currency, PaymentHistLine."Currency Code");
+                    IsHandled := false;
+                    OnValidateIdentificationOnBeforeCheckCurrency(Rec, CBGStatementLine, PaymentHistLine, CBGStatement, IsHandled);
+                    if not IsHandled then
+                        if CBGStatement.Currency <> PaymentHistLine."Currency Code" then
+                            Error(Text1000006,
+                              CBGStatement.Currency, PaymentHistLine."Currency Code");
                     "Amount Settled" := PaymentHistLine.Amount;
                     "Applies-to ID" := "New Applies-to ID"();
                     SetApplyCVLedgerEntries(PaymentHistLine);
@@ -1510,7 +1513,13 @@ table 11401 "CBG Statement Line"
     var
         VATPostingSetup: Record "VAT Posting Setup";
         GLAccount: Record "G/L Account";
+        IsHandled: Boolean;
     begin
+        IsHandled := false;
+        OnBeforeCalculateVAT(Rec, IsHandled);
+        if IsHandled then
+            exit;
+
         "VAT %" := 0;
         "Debit Incl. VAT" := Debit;
         "Debit VAT" := 0;
@@ -2029,6 +2038,11 @@ table 11401 "CBG Statement Line"
     end;
 
     [IntegrationEvent(false, false)]
+    local procedure OnBeforeCalculateVAT(var CBGStatementLine: Record "CBG Statement Line"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
     local procedure OnCreateGenJournalLineOnAfterSetDocumentTypeForCorrection(CBGStatementLine: Record "CBG Statement Line"; var GenJournalLine: Record "Gen. Journal Line")
     begin
     end;
@@ -2070,6 +2084,11 @@ table 11401 "CBG Statement Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnValidateIdentificationOnBeforeCheck(var CBGStatementLine: Record "CBG Statement Line"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnValidateIdentificationOnBeforeCheckCurrency(var CBGStatementLine: Record "CBG Statement Line"; ParentCBGStatementLine: Record "CBG Statement Line"; PaymentHistLine: Record "Payment History Line"; CBGStatement: Record "CBG Statement"; var IsHandled: Boolean)
     begin
     end;
 

@@ -172,6 +172,11 @@
   {
     "codeunitId": 134408,
     "codeunitName": "Incom. Doc. Attach. FactBox",
+    "method": "CashReceiptJournalUploadMainAndSupportAttachmentThenInsertNewLine"
+  },
+  {
+    "codeunitId": 134408,
+    "codeunitName": "Incom. Doc. Attach. FactBox",
     "method": "GeneralJournal_Multiline_Attach_Prev_Next"
   },
   {

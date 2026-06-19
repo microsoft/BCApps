@@ -201,17 +201,20 @@ table 99000829 "Planning Component"
                 UnroundedExpectedQuantity: Decimal;
                 ItemPrecRoundedExpectedQuantity: Decimal;
                 BaseUOMPrecRoundedExpectedQuantity: Decimal;
+                ItemRoundingApplied: Boolean;
             begin
                 UnroundedExpectedQuantity := "Expected Quantity";
 
                 if Item.Get("Item No.") and ("Ref. Order Type" <> "Ref. Order Type"::Assembly) then
-                    if Item."Rounding Precision" > 0 then
+                    if Item."Rounding Precision" > 0 then begin
                         "Expected Quantity" := UOMMgt.RoundToItemRndPrecision("Expected Quantity", Item."Rounding Precision");
+                        ItemRoundingApplied := true;
+                    end;
 
                 ItemPrecRoundedExpectedQuantity := "Expected Quantity";
                 BaseUOMPrecRoundedExpectedQuantity := UOMMgt.RoundQty("Expected Quantity", "Qty. Rounding Precision");
 
-                if ("Qty. Rounding Precision" > 0) and (BaseUOMPrecRoundedExpectedQuantity <> ItemPrecRoundedExpectedQuantity) then
+                if ItemRoundingApplied and ("Qty. Rounding Precision" > 0) and (BaseUOMPrecRoundedExpectedQuantity <> ItemPrecRoundedExpectedQuantity) then
                     if UnroundedExpectedQuantity <> ItemPrecRoundedExpectedQuantity then
                         Error(WrongPrecisionItemAndUOMExpectedQtyErr, Item.FieldCaption("Rounding Precision"), Item.TableCaption(), ItemUnitOfMeasure.FieldCaption("Qty. Rounding Precision"), ItemUnitOfMeasure.TableCaption(), Rec.FieldCaption("Expected Quantity"))
                     else

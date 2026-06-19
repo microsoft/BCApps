@@ -30,7 +30,7 @@ codeunit 20453 "Qlty. Disp. Warehouse Put-away" implements "Qlty. Disposition"
     /// You must be in a directed pick and put location, and you must be using lot warehouse tracking to use this feature.
     /// </summary>
     /// <param name="QltyInspectionHeader">The inspection to create the internal put-away from</param>
-    /// <param name="OptionalSpecificQuantity">Optional quantity.  Leave blank to use the entire lot or the quantity from the inspection.</param>
+    /// <param name="OptionalSpecificQuantity">Optional quantity. Leave blank to use the entire lot or the quantity from the inspection.</param>
     /// <param name="OptionalSourceLocationFilter">Optional limitations on the source location.</param>
     /// <param name="OptionalSourceBinFilter">Optional limitations on the source bin.</param>
     /// <param name="QltyQuantityBehavior">The quantity behavior</param>

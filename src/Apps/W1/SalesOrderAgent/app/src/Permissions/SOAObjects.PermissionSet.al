@@ -18,6 +18,9 @@ permissionset 4406 "SOA - Objects"
     Assignable = false;
 
     Permissions =
+        tabledata "Contact" = R,
+        tabledata "SOA Email" = RIM,
+        tabledata "SOA Task Contact Override" = RIM,
         page "Contact Card" = X,
         page "Contact List" = X,
         page "Customer Card" = X,
@@ -27,5 +30,7 @@ permissionset 4406 "SOA - Objects"
         page "Sales Quote" = X,
         page "Sales Quotes" = X,
         page "Sales Quote Subform" = X,
+        page "SOA Create Task" = X,
+        page "SOA Create Task Attachments" = X,
         page "SOA Multi Items Availability" = X;
 }

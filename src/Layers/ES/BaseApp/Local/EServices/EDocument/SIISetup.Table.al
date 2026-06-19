@@ -267,7 +267,6 @@ table 10751 "SII Setup"
     procedure IsAllowedEndpointUrl(Url: Text): Boolean
     var
         Uri: Codeunit Uri;
-        LowerUrl: Text;
         Host: Text;
         AllowedHostSuffixes: List of [Text];
         Suffix: Text;
@@ -278,17 +277,9 @@ table 10751 "SII Setup"
         if LowerCase(Uri.GetScheme()) <> 'https' then
             exit(false);
 
-        LowerUrl := LowerCase(Url);
-        if StrPos(LowerUrl, 'https://www1.agenciatributaria.gob.es/') = 1 then
-            exit(true);
-        if StrPos(LowerUrl, 'https://www2.agenciatributaria.gob.es/') = 1 then
-            exit(true);
-        if StrPos(LowerUrl, 'https://prewww1.aeat.es/') = 1 then
-            exit(true);
-        if StrPos(LowerUrl, 'https://prewww2.aeat.es/') = 1 then
-            exit(true);
-
         Host := LowerCase(Uri.GetHost());
+        AllowedHostSuffixes.Add('agenciatributaria.gob.es');
+        AllowedHostSuffixes.Add('aeat.es');
         AllowedHostSuffixes.Add('gobiernodecanarias.org');
         AllowedHostSuffixes.Add('navarra.es');
         AllowedHostSuffixes.Add('gipuzkoa.eus');

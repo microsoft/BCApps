@@ -112,20 +112,12 @@ codeunit 90 "Purch.-Post"
     internal procedure RunWithCheck(var PurchaseHeader2: Record "Purchase Header")
     var
         PurchHeader: Record "Purchase Header";
-        TempVATAmountLine: Record "VAT Amount Line" temporary;
-        TempVATAmountLineRemainder: Record "VAT Amount Line" temporary;
         TempDropShptPostBuffer: Record "Drop Shpt. Post. Buffer" temporary;
-        InventorySetup: Record "Inventory Setup";
-        ErrorContextElementProcessLines: Codeunit "Error Context Element";
-        ErrorContextElementPostLine: Codeunit "Error Context Element";
         SequenceNoMgt: Codeunit "Sequence No. Mgt.";
-        ZeroPurchLineRecID: RecordId;
         EverythingInvoiced: Boolean;
         SavedPreviewMode: Boolean;
         SavedSuppressCommit: Boolean;
         SavedCalledBy: Integer;
-        BiggestLineNo: Integer;
-        ICGenJnlLineNo: Integer;
         SavedHideProgressWindow: Boolean;
         IsHandled: Boolean;
     begin
@@ -165,6 +157,85 @@ codeunit 90 "Purch.-Post"
         // Header
         CheckAndUpdate(PurchHeader);
 
+        ProcessPosting(PurchHeader, TempDropShptPostBuffer, EverythingInvoiced);
+
+        UpdateLastPostingNos(PurchHeader);
+
+        OnRunOnBeforeFinalizePosting(
+          PurchHeader, PurchRcptHeader, PurchInvHeader, PurchCrMemoHeader, ReturnShptHeader, GenJnlPostLine, SuppressCommit);
+        FinalizePosting(PurchHeader, TempDropShptPostBuffer, EverythingInvoiced);
+
+        PurchaseHeader2 := PurchHeader;
+
+        CommitAndUpdateAnalysisVeiw();
+
+        OnAfterPostPurchaseDoc(
+          PurchaseHeader2, GenJnlPostLine, PurchRcptHeader."No.", ReturnShptHeader."No.", PurchInvHeader."No.", PurchCrMemoHeader."No.",
+          SuppressCommit);
+
+        OnAfterPostPurchaseDocDropShipment(SalesShptHeader."No.", SuppressCommit, PreviewMode);
+    end;
+
+    /// <summary>
+    /// A wrapper procedure to delegate to either a procedure that allows commit or a procedure that ignores commit.
+    /// By default, commits are suppressed during the critical posting window to prevent duplicate-key races
+    /// on G/L Entry (table 17). Subscribers can opt out by setting IgnoreCommit to false via OnSetCommitBehavior.
+    /// </summary>
+    /// <param name="PurchHeader">The purchase header of the document that is being posted.</param>
+    /// <param name="TempDropShptPostBuffer">Accumulates drop-shipment buffer records during posting.</param>
+    /// <param name="EverythingInvoiced">Set to false during posting if any line is partially invoiced.</param>
+    local procedure ProcessPosting(var PurchHeader: Record "Purchase Header"; var TempDropShptPostBuffer: Record "Drop Shpt. Post. Buffer" temporary; var EverythingInvoiced: Boolean)
+    var
+        IgnoreCommit: Boolean;
+    begin
+        IgnoreCommit := true;
+        OnSetCommitBehavior(IgnoreCommit);
+
+        if IgnoreCommit then
+            ProcessPostingLinesCommitBehaviorIgnore(PurchHeader, TempDropShptPostBuffer, EverythingInvoiced)
+        else
+            ProcessPostingLines(PurchHeader, TempDropShptPostBuffer, EverythingInvoiced);
+    end;
+
+    /// <summary>
+    /// A wrapper procedure to delegate to ProcessPostingLines in order to ignore commits.
+    /// While this procedure is on the call stack, the platform turns every Commit() into a no-op,
+    /// preventing intermittent duplicate-key errors on G/L Entry (table 17).
+    /// </summary>
+    /// <param name="PurchHeader">The purchase header of the document that is being posted.</param>
+    /// <param name="TempDropShptPostBuffer">Accumulates drop-shipment buffer records during posting.</param>
+    /// <param name="EverythingInvoiced">Set to false during posting if any line is partially invoiced.</param>
+    [CommitBehavior(CommitBehavior::Ignore)]
+    local procedure ProcessPostingLinesCommitBehaviorIgnore(
+        var PurchHeader: Record "Purchase Header";
+        var TempDropShptPostBuffer: Record "Drop Shpt. Post. Buffer" temporary;
+        var EverythingInvoiced: Boolean)
+    begin
+        ProcessPostingLines(PurchHeader, TempDropShptPostBuffer, EverythingInvoiced);
+    end;
+
+    /// <summary>
+    /// The main procedure that processes the purchase document lines.
+    /// Will update inventory, finance, resources, jobs, etc., dependent on what lines are in the document.
+    /// Also covers PostInvoice, PostICGenJnl, and MakeInventoryAdjustment.
+    /// </summary>
+    /// <param name="PurchHeader">The purchase header of the document that is being posted.</param>
+    /// <param name="TempDropShptPostBuffer">Accumulates drop-shipment buffer records during posting.</param>
+    /// <param name="EverythingInvoiced">Set to false during posting if any line is partially invoiced.</param>
+    local procedure ProcessPostingLines(
+        var PurchHeader: Record "Purchase Header";
+        var TempDropShptPostBuffer: Record "Drop Shpt. Post. Buffer" temporary;
+        var EverythingInvoiced: Boolean)
+    var
+        TempVATAmountLine: Record "VAT Amount Line" temporary;
+        TempVATAmountLineRemainder: Record "VAT Amount Line" temporary;
+        ErrorContextElementProcessLines: Codeunit "Error Context Element";
+        ErrorContextElementPostLine: Codeunit "Error Context Element";
+        ZeroPurchLineRecID: RecordId;
+        ICGenJnlLineNo: Integer;
+        BiggestLineNo: Integer;
+        IsHandled: Boolean;
+    begin
         InvoicePostingInterface.ClearBuffers();
 
         TempDropShptPostBuffer.DeleteAll();
@@ -254,21 +325,6 @@ codeunit 90 "Purch.-Post"
         OnRunOnBeforeMakeInventoryAdjustment(PurchHeader, GenJnlPostLine, ItemJnlPostLine, PreviewMode, PurchRcptHeader, PurchInvHeader, IsHandled);
         if not IsHandled then
             MakeInventoryAdjustment();
-        UpdateLastPostingNos(PurchHeader);
-
-        OnRunOnBeforeFinalizePosting(
-          PurchHeader, PurchRcptHeader, PurchInvHeader, PurchCrMemoHeader, ReturnShptHeader, GenJnlPostLine, SuppressCommit);
-        FinalizePosting(PurchHeader, TempDropShptPostBuffer, EverythingInvoiced);
-
-        PurchaseHeader2 := PurchHeader;
-
-        CommitAndUpdateAnalysisVeiw();
-
-        OnAfterPostPurchaseDoc(
-          PurchaseHeader2, GenJnlPostLine, PurchRcptHeader."No.", ReturnShptHeader."No.", PurchInvHeader."No.", PurchCrMemoHeader."No.",
-          SuppressCommit);
-
-        OnAfterPostPurchaseDocDropShipment(SalesShptHeader."No.", SuppressCommit, PreviewMode);
     end;
 
     var
@@ -677,7 +733,7 @@ codeunit 90 "Purch.-Post"
     /// <remarks>
     /// Transaction is committed after updating the document header if posting is not in PreviewMode
     /// Several related tables are locked for update after this procedure.
-    /// DocumentIsReadyToBeChecked is set to true, so that PrepareCheckDocument() is not called again in CheckPurchDocument(). Preparation already happened in RunWithCheck() (parent function).
+    /// DocumentIsReadyToBeChecked is set to true, so that PrepareCheckDocument() is not called again in CheckPurchDocument(). Preparation already happened in RunWithCheck() (parent procedure).
     /// </remarks>    
     /// <param name="PurchHeader">Return Value: The purchase header of the document that is being posted, returned with updated values.</param>
     local procedure CheckAndUpdate(var PurchHeader: Record "Purchase Header")
@@ -756,7 +812,7 @@ codeunit 90 "Purch.-Post"
     end;
 
     /// <summary>
-    /// Wrapper function for archiving purchase document
+    /// Wrapper procedure for archiving purchase document
     /// </summary>
     /// <param name="PurchHeader">The purchase header of the document that is being posted.</param>
     local procedure HandleArchiveUnpostedOrder(var PurchHeader: Record "Purchase Header")
@@ -775,7 +831,7 @@ codeunit 90 "Purch.-Post"
     end;
 
     /// <summary>
-    /// Main function for checking if document header and lines are valid for posting.
+    /// Main procedure for checking if document header and lines are valid for posting.
     /// Checks for mandatory fields, posting dates, VAT dates, linked documents, posting restrictions, etc.
     /// </summary>
     /// <param name="PurchHeader">The purchase header of the document that is being posted.</param>
@@ -868,7 +924,7 @@ codeunit 90 "Purch.-Post"
     end;
 
     /// <summary>
-    /// Wrapper function for checking all purchase lines of the document if they are valid for posting.
+    /// Wrapper procedure for checking all purchase lines of the document if they are valid for posting.
     /// </summary>
     /// <param name="PurchHeader">The purchase header of the document that is being posted.</param>
     local procedure CheckPurchLines(var PurchHeader: Record "Purchase Header")
@@ -11455,6 +11511,11 @@ codeunit 90 "Purch.-Post"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateReceiptInvoicingQuantities(PurchLine: Record "Purchase Line"; var SkipQuantityUpdate: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnSetCommitBehavior(var IgnoreCommit: Boolean)
     begin
     end;
 }

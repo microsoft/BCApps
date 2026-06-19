@@ -52,6 +52,7 @@ codeunit 11000002 "CBG Journal Telebank Interface"
             PaymentHistLine.SetFilter(Status, '%1|%2',
               PaymentHistLine.Status::Transmitted,
               PaymentHistLine.Status::"Request for Cancellation");
+            OnAfterSetPaymentHistLineFilters(PaymentHistLine, PaymHist, CBGStatement);
             if PaymentHistLine.Find('-') then begin
                 CBGStatementLine.SetRange("Journal Template Name", CBGStatement."Journal Template Name");
                 CBGStatementLine.SetRange("No.", CBGStatement."No.");
@@ -177,6 +178,11 @@ codeunit 11000002 "CBG Journal Telebank Interface"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertPaymentHistory(CBGStatement: Record "CBG Statement")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterSetPaymentHistLineFilters(var PaymentHistoryLine: Record "Payment History Line"; PaymentHistory: Record "Payment History"; CBGStatement: Record "CBG Statement")
     begin
     end;
 

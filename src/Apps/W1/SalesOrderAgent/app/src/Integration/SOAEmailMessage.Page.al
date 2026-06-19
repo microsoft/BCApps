@@ -76,7 +76,7 @@ page 4404 "SOA Email Message"
                         {
                             ShowCaption = false;
                             Visible = ((not ContactVisible) and (not CustomerVisible));
-                            field(UnknownContactEmail; UnknownContactLbl)
+                            field(SelectOrCreateContact; SelectContactOrCreateLbl)
                             {
                                 Caption = 'Contact';
                                 ToolTip = 'Specifies the contact name.';
@@ -85,7 +85,7 @@ page 4404 "SOA Email Message"
 
                                 trigger OnDrillDown()
                                 begin
-                                    CreateContact();
+                                    InvokeContactLinkFlow();
                                 end;
                             }
                         }
@@ -331,7 +331,7 @@ page 4404 "SOA Email Message"
                 ContactVisible := false;
 
         if (not ContactVisible) and (not CustomerVisible) then
-            SOAFiltersImpl.ShowMissingContactNotification(EmailAddress, SOAEmail."Sender Name")
+            SOAFiltersImpl.ShowMissingContactNotification(EmailAddress, SOAEmail."Sender Name", Rec."Task ID", Rec.ID)
         else
             SOAFiltersImpl.RecallMissingContactNotification();
 
@@ -343,8 +343,16 @@ page 4404 "SOA Email Message"
 
     local procedure FindContact(var Contact: Record Contact; EmailAddress: Text; var ContactCount: Integer): Boolean
     var
+        SOATaskContactOverride: Record "SOA Task Contact Override";
         SOAFiltersImpl: Codeunit "SOA Filters Impl.";
     begin
+        if SOATaskContactOverride.Get(Rec."Task ID", Rec.ID) then
+            if SOATaskContactOverride."Contact No." <> '' then
+                if Contact.Get(SOATaskContactOverride."Contact No.") then begin
+                    ContactCount := 1;
+                    exit(true);
+                end;
+
         Contact.SetFilter("E-Mail", SOAFiltersImpl.GetSafeFromEmailFilter(EmailAddress));
         ContactCount := Contact.Count();
         if not Contact.FindFirst() then
@@ -360,13 +368,13 @@ page 4404 "SOA Email Message"
         exit(SOAEmail.FindFirst());
     end;
 
-    local procedure CreateContact()
+    local procedure InvokeContactLinkFlow()
     var
         SOAFiltersImpl: Codeunit "SOA Filters Impl.";
-        ContactEmail: Text;
     begin
-        ContactEmail := GetContactEmail();
-        SOAFiltersImpl.CreateContact(ContactEmail, SOAEmail."Sender Name");
+        Commit();
+        SOAFiltersImpl.InvokeContactLinkFlow(GetContactEmail(), SOAEmail."Sender Name", Rec."Task ID", Rec.ID);
+        CurrPage.Update(false);
     end;
 
     local procedure GetContactEmail(): Text
@@ -405,6 +413,6 @@ page 4404 "SOA Email Message"
         BlockedStatusVisible: Boolean;
         OutgoingMessageTxt: Label 'Outgoing email';
         IncomingMessageTxt: Label 'Incoming email';
-        UnknownContactLbl: Label 'Unknown contact. Register the sender as a new contact.';
+        SelectContactOrCreateLbl: Label 'Select an existing contact, or create a new one';
         ShowAttachmentLbl: Label 'Show attachments (%1)', Comment = '%1 = Attachment count';
 }

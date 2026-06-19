@@ -28,7 +28,6 @@ codeunit 139678 "GP Checkbook Tests"
         MyBankStr5Txt: Label 'MyBank05', Comment = 'Bank name', Locked = true;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoCommit)]
     procedure TestGPCheckbookMigrationIncludeInactive()
     var
         BankAccount: Record "Bank Account";
@@ -88,7 +87,6 @@ codeunit 139678 "GP Checkbook Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoCommit)]
     procedure TestGPCheckbookMigrationExcludeInactive()
     var
         BankAccount: Record "Bank Account";
@@ -164,7 +162,6 @@ codeunit 139678 "GP Checkbook Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoCommit)]
     procedure TestGPCheckbookMigrationVerifySkipReconciled()
     var
         BankAccount: Record "Bank Account";
@@ -238,7 +235,6 @@ codeunit 139678 "GP Checkbook Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoCommit)]
     procedure TestBankMasterDataOnly()
     var
         BankAccount: Record "Bank Account";
@@ -276,7 +272,6 @@ codeunit 139678 "GP Checkbook Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoCommit)]
     procedure TestBankSkipPosting()
     var
         BankAccount: Record "Bank Account";
@@ -317,7 +312,6 @@ codeunit 139678 "GP Checkbook Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoCommit)]
     procedure TestGPCheckbookMigrationBankTransfers()
     var
         BankAccount: Record "Bank Account";
@@ -409,7 +403,6 @@ codeunit 139678 "GP Checkbook Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoCommit)]
     procedure TestBankModuleDisabled()
     var
         BankAccount: Record "Bank Account";

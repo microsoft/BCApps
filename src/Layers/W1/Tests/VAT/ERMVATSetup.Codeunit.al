@@ -981,6 +981,95 @@ codeunit 134047 "ERM VAT Setup"
         Assert.ExpectedError(StrSubstNo(VATPostingSetupHasVATEntriesErr, VATPostingSetup."VAT Bus. Posting Group", VATPostingSetup."VAT Prod. Posting Group"));
     end;
 
+
+    [Test]
+    [HandlerFunctions('InvalidCharConfirmHandler')]
+    procedure PurchaseReverseChargeVATAmountFCYNoLossyRounding()
+    var
+        Currency: Record Currency;
+        CurrencyExchangeRate: Record "Currency Exchange Rate";
+        GLAccount: Record "G/L Account";
+        GeneralPostingSetup: Record "General Posting Setup";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        VATEntry: Record "VAT Entry";
+        VATPostingSetup: Record "VAT Posting Setup";
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        CurrencyCode: Code[10];
+        PostedDocNo: Code[20];
+        ExchRateAmt: Decimal;
+        RelExchRateAmt: Decimal;
+        DirectUnitCost: Decimal;
+        ExpectedVATAmountLCY: Decimal;
+    begin
+        // [SCENARIO 635744] Posting Purchase Invoice with Reverse Charge VAT in FCY must not round VAT in FCY precision before converting to LCY.
+        Initialize();
+
+        // [GIVEN] Disable VAT Period control to avoid country-specific confirm dialogs
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup."Control VAT Period" := GeneralLedgerSetup."Control VAT Period"::Disabled;
+        GeneralLedgerSetup.Modify();
+
+        // [GIVEN] Currency with random exchange rate (multiplier > 1 amplifies rounding error)
+        CurrencyCode := LibraryERM.CreateCurrencyWithGLAccountSetup();
+        Currency.Get(CurrencyCode);
+        Currency.Validate("Amount Rounding Precision", 0.01);
+        Currency.Modify(true);
+
+        // [GIVEN] Exchange Rate with multiplier to amplify rounding issues.
+        ExchRateAmt := LibraryRandom.RandInt(5);
+        RelExchRateAmt := ExchRateAmt * LibraryRandom.RandIntInRange(5, 15);
+        LibraryERM.CreateExchRate(CurrencyExchangeRate, CurrencyCode, DMY2Date(1, 1, 2000));
+        CurrencyExchangeRate.Validate("Exchange Rate Amount", ExchRateAmt);
+        CurrencyExchangeRate.Validate("Adjustment Exch. Rate Amount", ExchRateAmt);
+        CurrencyExchangeRate.Validate("Relational Exch. Rate Amount", RelExchRateAmt);
+        CurrencyExchangeRate.Validate("Relational Adjmt Exch Rate Amt", RelExchRateAmt);
+        CurrencyExchangeRate.Modify(true);
+
+        // [GIVEN] VAT Posting Setup with Reverse Charge VAT.
+        LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Reverse Charge VAT", LibraryRandom.RandIntInRange(20, 20));
+        VATPostingSetup.Validate("Reverse Chrg. VAT Acc.", LibraryERM.CreateGLAccountNo());
+        VATPostingSetup.Modify(true);
+
+        // [GIVEN] G/L Account with matching posting groups
+        LibraryERM.FindGeneralPostingSetup(GeneralPostingSetup);
+        LibraryERM.CreateGLAccount(GLAccount);
+        GLAccount.Validate("Gen. Prod. Posting Group", GeneralPostingSetup."Gen. Prod. Posting Group");
+        GLAccount.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        GLAccount.Modify(true);
+
+        // [GIVEN] Purchase Invoice with random Direct Unit Cost
+        DirectUnitCost := LibraryRandom.RandDecInRange(10, 200, 2);
+        LibraryPurchase.CreatePurchHeader(
+            PurchaseHeader, PurchaseHeader."Document Type"::Invoice,
+            LibraryPurchase.CreateVendorWithBusPostingGroups(
+                GeneralPostingSetup."Gen. Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group"));
+        PurchaseHeader.Validate("Currency Code", CurrencyCode);
+        PurchaseHeader.Modify(true);
+
+        // [GIVEN] Purchase Line with Reverse Charge VAT and Direct Unit Cost in FCY that can cause rounding issue in VAT calculation.
+        CreatePurchaseLineWithUnitPriceAndVATProdPstGroup(
+            PurchaseLine, PurchaseHeader,
+            VATPostingSetup."VAT Prod. Posting Group",
+            PurchaseLine.Type::"G/L Account", GLAccount."No.", 1, DirectUnitCost);
+
+        // [WHEN] Post the purchase invoice.
+        PostedDocNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        // [THEN] VAT Entry Amount equals correct LCY conversion (unrounded FCY VAT converted, then rounded in LCY).
+        ExpectedVATAmountLCY := Round(DirectUnitCost * 20 / 100 * RelExchRateAmt / ExchRateAmt);
+        VATEntry.SetRange("Document No.", PostedDocNo);
+        VATEntry.SetRange("VAT Calculation Type", VATEntry."VAT Calculation Type"::"Reverse Charge VAT");
+        VATEntry.FindFirst();
+        Assert.AreEqual(
+            ExpectedVATAmountLCY,
+            VATEntry.Amount,
+            StrSubstNo(
+                VATError,
+                VATEntry.FieldActive(Amount),
+                ExpectedVATAmountLCY, VATEntry.TableName()));
+    end;
+
     local procedure CreateSalesDocWithPartQtyToShip(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; NoOfLine: Integer; DocumentType: Enum "Sales Document Type") TotalAmount: Decimal
     var
         VATPostingSetup: Record "VAT Posting Setup";
@@ -1340,6 +1429,14 @@ codeunit 134047 "ERM VAT Setup"
     begin
         Assert.ExpectedMessage(ExpectedMessage, ActualMessage);
         Assert.AreEqual('...', CopyStr(ActualMessage, StrLen(ActualMessage) - 2, 3), '');
+    end;
+
+    local procedure CreatePurchaseLineWithUnitPriceAndVATProdPstGroup(var PurchaseLine: Record "Purchase Line"; PurchaseHeader: Record "Purchase Header"; VATProdPstGroupCode: Code[20]; Type: Enum "Purchase Line Type"; No: Code[20]; Quantity: Decimal; DirectUnitCost: Decimal)
+    begin
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, Type, No, Quantity);
+        PurchaseLine.Validate("VAT Prod. Posting Group", VATProdPstGroupCode);
+        PurchaseLine.Validate("Direct Unit Cost", DirectUnitCost);
+        PurchaseLine.Modify(true);
     end;
 
     [ConfirmHandler]

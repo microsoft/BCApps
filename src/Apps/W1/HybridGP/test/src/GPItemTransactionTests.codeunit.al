@@ -20,7 +20,6 @@ codeunit 139665 "GP Item Transaction Tests"
         AverageSerialItemNoLbl: Label 'AVERAGE SERIAL Item', MaxLength = 50, Locked = true;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoCommit)]
     procedure TestGPItemTransactionMigration()
     var
         GPItem: Record "GP Item";
@@ -160,7 +159,6 @@ codeunit 139665 "GP Item Transaction Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoCommit)]
     procedure TestInventoryMasterDataOnly()
     var
         GPItem: Record "GP Item";

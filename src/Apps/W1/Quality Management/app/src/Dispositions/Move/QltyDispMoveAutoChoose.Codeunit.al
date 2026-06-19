@@ -84,7 +84,7 @@ codeunit 20442 "Qlty. Disp. Move Auto Choose" implements "Qlty. Disposition"
     end;
 
     /// <summary>
-    /// Do not use directly for net new code.  This method is an interim shim to help with obsoletions and refactoring for dispositions.
+    /// Do not use directly for net new code. This method is an interim shim to help with obsoletions and refactoring for dispositions.
     /// Instead use the new dispositions directly.
     /// </summary>
     /// <param name="QltyInspectionHeader"></param>

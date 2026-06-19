@@ -2520,6 +2520,11 @@
     "method": "CheckItemStatistics_SalesGrowth"
   },
   {
+    "codeunitId": 137280,
+    "codeunitName": "SCM Inventory Basic",
+    "method": "CheckVATBusPostingGrPriceAvailableOnItemCardWithAdvAppArea"
+  },
+  {
     "codeunitId": 137293,
     "codeunitName": "SCM Inventory Miscellaneous",
     "method": "CalcOrderPlanRecalculateReqPlanWithFrozenZone"
@@ -2913,6 +2918,11 @@
     "codeunitId": 137402,
     "codeunitName": "SCM Costing Batch",
     "method": "AverageCostCalculationWithAverageCostingMethod"
+  },
+  {
+    "codeunitId": 137402,
+    "codeunitName": "SCM Costing Batch",
+    "method": "ProductionOrderPostingDoesNotPropagateACYToSourceCurrency"
   },
   {
     "codeunitId": 137402,

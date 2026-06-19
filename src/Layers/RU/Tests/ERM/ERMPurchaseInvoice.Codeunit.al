@@ -34,6 +34,9 @@
         LibraryNonDeductibleVAT: Codeunit "Library - NonDeductible VAT";
         LibraryFiscalYear: Codeunit "Library - Fiscal Year";
         isInitialized: Boolean;
+        SetIgnoreCommitToFalse: Boolean;
+        RaiseErrorAfterCommit: Boolean;
+        CommitTestMarkerID: Guid;
         VATAmountErr: Label 'VAT Amount must be %1 in VAT Amount Line.', Comment = '%1 = Amount';
         FieldErr: Label 'Number of Lines for Purchase Line and Purchase Receipt Line must be Equal.';
         AmountErr: Label '%1 must be Equal in %2.', Comment = '%1 = Field Name, %2 = Field Value';
@@ -63,6 +66,7 @@
         DocumentNoErr: Label 'Document No. are not equal.';
         AmountZeroErr: Label 'Amount must be zero';
         AmountMustSameErr: Label 'Amount must be same';
+        TestRollbackAfterCommitErr: Label 'Test error to trigger rollback after Commit() call.';
         ChangeExtendedTextErr: Label 'You cannot change %1 for Extended Text Line.', Comment = '%1= Field Caption';
         PayToVendorNoShouldBeSameErr: Label 'Pay-to Vendor No. should be set to the selected vendor.';
         DeleteVendorPurchaseDocExistsErr: Label 'The salesperson/purchaser %1 cannot be deleted because vendor ledger entries exist.', Comment = '%1 = Salesperson/Purchaser code.';
@@ -224,7 +228,6 @@
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         PurchInvLine: Record "Purch. Inv. Line";
-        ERMPurchaseInvoice: codeunit "ERM Purchase Invoice";
         PostedDocumentNo: Code[20];
     begin
         // [SCENARIO 315920] Line is getting refreshed inside posting of a Purchase Invoice.
@@ -240,8 +243,9 @@
         PurchaseLine.Modify(true);
 
         // [GIVEN] Subscribe to COD90.OnBeforePostUpdateOrderLineModifyTempLine to set Description to 'X'
-        BindSubscription(ERMPurchaseInvoice);
+        BindSubscription(this);
         PostedDocumentNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+        UnbindSubscription(this);
 
         // [THEN] Description is still 'A', not changed
         PurchInvLine.Get(PostedDocumentNo, PurchaseLine."Line No.");
@@ -3312,6 +3316,82 @@
         until PurchLine.Next() = 0;
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure PostPurchInvoiceCommitBySubscriberIsSuppressed()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ActivityLog: Record "Activity Log";
+        PurchPost: Codeunit "Purch.-Post";
+    begin
+        // [FEATURE] [Purchase] [Posting] [CommitBehavior]
+        // [SCENARIO 637261] A Commit() called by a posting subscriber is suppressed during Purch.-Post.
+        Initialize();
+
+        // [GIVEN] Purchase invoice "PI" with a line.
+        CreatePurchaseInvoice(PurchaseHeader, PurchaseLine, CreateVendor(''));
+        PurchaseHeader.Validate("Vendor Invoice No.", PurchaseHeader."No.");
+        PurchaseHeader.Modify(true);
+        Commit();
+
+        // [GIVEN] Subscriber inserts a marker record, calls Commit(), and raises an error inside the posting scope.
+        CommitTestMarkerID := CreateGuid();
+        RaiseErrorAfterCommit := true;
+        BindSubscription(this);
+
+        // [WHEN] Post the purchase invoice (posting fails because subscriber raises an error).
+        PurchaseHeader.Receive := true;
+        PurchaseHeader.Invoice := true;
+        asserterror PurchPost.Run(PurchaseHeader);
+        UnbindSubscription(this);
+
+        // [THEN] The marker record does not exist because Commit() was suppressed and the error rolled back all changes.
+        ActivityLog.SetRange("Activity Message", Format(CommitTestMarkerID));
+        Assert.RecordIsEmpty(ActivityLog);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure PostPurchInvoiceCommitBehaviorOptOutRestoresCommit()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ActivityLog: Record "Activity Log";
+        PurchPost: Codeunit "Purch.-Post";
+    begin
+        // [FEATURE] [Purchase] [Posting] [CommitBehavior]
+        // [SCENARIO 637261] Setting IgnoreCommit := false via OnSetCommitBehavior restores old commit behavior.
+        Initialize();
+
+        // [GIVEN] Purchase invoice "PI" with a line.
+        CreatePurchaseInvoice(PurchaseHeader, PurchaseLine, CreateVendor(''));
+        PurchaseHeader.Validate("Vendor Invoice No.", PurchaseHeader."No.");
+        PurchaseHeader.Modify(true);
+        Commit();
+
+        // [GIVEN] Subscriber sets IgnoreCommit := false to opt out of commit suppression.
+        SetIgnoreCommitToFalse := true;
+
+        // [GIVEN] Subscriber inserts a marker record, calls Commit(), and raises an error inside the posting scope.
+        CommitTestMarkerID := CreateGuid();
+        RaiseErrorAfterCommit := true;
+        BindSubscription(this);
+
+        // [WHEN] Post the purchase invoice (posting fails because subscriber raises an error).
+        PurchaseHeader.Receive := true;
+        PurchaseHeader.Invoice := true;
+        asserterror PurchPost.Run(PurchaseHeader);
+        UnbindSubscription(this);
+
+        // [THEN] The marker record exists because Commit() was not suppressed and persisted before the error.
+        ActivityLog.SetRange("Activity Message", Format(CommitTestMarkerID));
+        Assert.RecordIsNotEmpty(ActivityLog);
+
+        // Cleanup: Remove test marker.
+        ActivityLog.DeleteAll();
+    end;
+
     local procedure Initialize()
     var
         ICSetup: Record "IC Setup";
@@ -3321,6 +3401,9 @@
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"ERM Purchase Invoice");
+        SetIgnoreCommitToFalse := false;
+        RaiseErrorAfterCommit := false;
+        Clear(CommitTestMarkerID);
         if not ICSetup.Get() then begin
             ICSetup.Init();
             ICSetup.Insert();
@@ -4740,5 +4823,37 @@
     procedure PurchaseDocumentTestRequestPageHandler(var PurchaseDocumentTest: TestRequestPage "Purchase Document - Test")
     begin
         // Close handler
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnSetCommitBehavior, '', false, false)]
+    local procedure OnSetCommitBehaviorHandler(var IgnoreCommit: Boolean)
+    begin
+        if SetIgnoreCommitToFalse then
+            IgnoreCommit := false;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnRunOnBeforeMakeInventoryAdjustment, '', false, false)]
+    local procedure OnRunOnBeforeMakeInventoryAdjustmentHandler(var PurchaseHeader: Record "Purchase Header"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line"; PreviewMode: Boolean; PurchRcptHeader: Record "Purch. Rcpt. Header"; PurchInvHeader: Record "Purch. Inv. Header"; var IsHandled: Boolean)
+    var
+        ActivityLog: Record "Activity Log";
+    begin
+        if not RaiseErrorAfterCommit then
+            exit;
+        if IsNullGuid(CommitTestMarkerID) then
+            exit;
+
+        // Insert a marker record
+        ActivityLog.Init();
+        ActivityLog."Activity Date" := CurrentDateTime();
+        ActivityLog."User ID" := CopyStr(UserId(), 1, MaxStrLen(ActivityLog."User ID"));
+        ActivityLog."Activity Message" := Format(CommitTestMarkerID);
+        ActivityLog.Status := ActivityLog.Status::Success;
+        ActivityLog.Insert(true);
+
+        // Call Commit() - this should be suppressed by CommitBehavior::Ignore
+        Commit();
+
+        // Raise an error to abort the transaction
+        Error(TestRollbackAfterCommitErr);
     end;
 }

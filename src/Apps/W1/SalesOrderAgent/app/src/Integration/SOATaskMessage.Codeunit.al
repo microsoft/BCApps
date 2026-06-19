@@ -88,6 +88,8 @@ codeunit 4398 "SOA Task Message"
     internal procedure GetSentMessageToAddress(var OutputAgentTaskMessage: Record "Agent Task Message"; var ToAddress: Text): Boolean
     var
         SentAgentTaskMessage: Record "Agent Task Message";
+        SOATaskContactOverride: Record "SOA Task Contact Override";
+        OverrideContact: Record Contact;
     begin
         Clear(ToAddress);
         if OutputAgentTaskMessage.Type <> OutputAgentTaskMessage.Type::Output then
@@ -97,6 +99,16 @@ codeunit 4398 "SOA Task Message"
             exit(false);
         if SentAgentTaskMessage.From = '' then
             exit(false);
+
+        if SOATaskContactOverride.Get(OutputAgentTaskMessage."Task ID", OutputAgentTaskMessage."Input Message ID") then
+            if SOATaskContactOverride."Contact No." <> '' then begin
+                OverrideContact.SetLoadFields("E-Mail");
+                if OverrideContact.Get(SOATaskContactOverride."Contact No.") then
+                    if OverrideContact."E-Mail" <> '' then begin
+                        ToAddress := OverrideContact."E-Mail";
+                        exit(true);
+                    end;
+            end;
 
         ToAddress := SentAgentTaskMessage.From;
         exit(true);

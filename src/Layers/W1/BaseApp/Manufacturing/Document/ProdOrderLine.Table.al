@@ -446,6 +446,7 @@ table 5406 "Prod. Order Line"
             trigger OnValidate()
             var
                 ProdBOMHeader: Record "Production BOM Header";
+                ProdBOMStatusErrorInfo: ErrorInfo;
                 IsHandled: Boolean;
             begin
                 "Production BOM Version Code" := '';
@@ -457,8 +458,13 @@ table 5406 "Prod. Order Line"
                     ProdBOMHeader.Get("Production BOM No.");
                     IsHandled := false;
                     OnValidateProductionBOMNoOnBeforeTestStatus(Rec, IsHandled);
-                    if not IsHandled then
-                        ProdBOMHeader.TestField(Status, ProdBOMHeader.Status::Certified);
+                    if not IsHandled then begin
+                        ProdBOMStatusErrorInfo.RecordId := ProdBOMHeader.RecordId;
+                        ProdBOMStatusErrorInfo.FieldNo := ProdBOMHeader.FieldNo(Status);
+                        ProdBOMStatusErrorInfo.PageNo := Page::"Production BOM";
+                        ProdBOMStatusErrorInfo.AddNavigationAction(StrSubstNo(ShowProductionBOMLbl, ProdBOMHeader."No."));
+                        ProdBOMHeader.TestField(Status, ProdBOMHeader.Status::Certified, ProdBOMStatusErrorInfo);
+                    end;
                     Validate("Unit of Measure Code", ProdBOMHeader."Unit of Measure Code");
                 end;
             end;
@@ -475,6 +481,7 @@ table 5406 "Prod. Order Line"
                 ProdOrderRoutingLine: Record "Prod. Order Routing Line";
                 CapLedgEntry: Record "Capacity Ledger Entry";
                 PurchLine: Record "Purchase Line";
+                RoutingStatusErrorInfo: ErrorInfo;
                 ModifyRecord: Boolean;
                 IsHandled: Boolean;
             begin
@@ -518,7 +525,11 @@ table 5406 "Prod. Order Line"
                 Validate("Routing Version Code", VersionMgt.GetRtngVersion("Routing No.", "Due Date", true));
                 if "Routing Version Code" = '' then begin
                     RoutingHeader.Get("Routing No.");
-                    RoutingHeader.TestField(Status, RoutingHeader.Status::Certified);
+                    RoutingStatusErrorInfo.RecordId := RoutingHeader.RecordId;
+                    RoutingStatusErrorInfo.FieldNo := RoutingHeader.FieldNo(Status);
+                    RoutingStatusErrorInfo.PageNo := Page::Routing;
+                    RoutingStatusErrorInfo.AddNavigationAction(StrSubstNo(ShowRoutingLbl, RoutingHeader."No."));
+                    RoutingHeader.TestField(Status, RoutingHeader.Status::Certified, RoutingStatusErrorInfo);
                     "Routing Type" := RoutingHeader.Type;
                 end;
 
@@ -1109,6 +1120,8 @@ table 5406 "Prod. Order Line"
 #pragma warning restore AA0470
 #pragma warning restore AA0074
         Text99000004Err: Label 'You cannot modify %1 %2 because there is at least one %3 associated with it.', Comment = '%1 = Field Caption; %2 = Field Value; %3 = Table Caption';
+        ShowProductionBOMLbl: Label 'Show Production BOM %1', Comment = '%1 = Production BOM No.';
+        ShowRoutingLbl: Label 'Show Routing %1', Comment = '%1 = Routing No.';
         Item: Record Item;
         SKU: Record "Stockkeeping Unit";
         ProdOrder: Record "Production Order";

@@ -136,8 +136,35 @@ codeunit 4350 "Custom Agent Setup"
     var
         AgentEditInstructionsPage: Page "Agent Instruction Editor";
     begin
+        if not ConfirmOpenEditInstructionsPageForInactiveAgent(AgentSecurityId) then
+            exit;
+
         AgentEditInstructionsPage.SetUserSecurityId(AgentSecurityId);
         AgentEditInstructionsPage.Run();
+    end;
+
+    local procedure ConfirmOpenEditInstructionsPageForInactiveAgent(AgentSecurityId: Guid): Boolean
+    begin
+        if not GuiAllowed() then
+            exit(false);
+
+        if not IsAgentInactive(AgentSecurityId) then
+            exit(true);
+
+        exit(Confirm(OpenEditInstructionsPageForInactiveAgentQst, false));
+    end;
+
+    local procedure IsAgentInactive(AgentSecurityId: Guid): Boolean
+    var
+        Agent: Record Agent;
+    begin
+        if IsNullGuid(AgentSecurityId) then
+            exit(false);
+
+        if not Agent.Get(AgentSecurityId) then
+            exit(false);
+
+        exit(Agent.State = Agent.State::Disabled);
     end;
 
     procedure GenerateInitialsFromName(AgentName: Text[50]) Initials: Code[4]
@@ -219,4 +246,5 @@ codeunit 4350 "Custom Agent Setup"
         SystemApplicationAppIdLbl: Label '63ca2fa4-4f03-4f2b-a480-172fef340d3f', Locked = true;
         DefaultAgentInstructionsLbl: Label '', Locked = true;
         DefaultAgentDescriptionLbl: Label '', Locked = true;
+        OpenEditInstructionsPageForInactiveAgentQst: Label 'This agent is inactive. Changes will not take effect until the agent is activated.\\Do you want to continue?';
 }

@@ -103,6 +103,53 @@ page 4400 "SOA Setup"
                         Visible = ShowLastSync;
                     }
                 }
+                group(QuickTryAgentTask)
+                {
+                    Caption = 'Try it out';
+                    InstructionalText = 'Create a task to see the agent in action. You choose the sender, message, and attachments; the agent responds.';
+                    field(SOACreateTask; SOACreateTaskLbl)
+                    {
+                        ShowCaption = false;
+                        StyleExpr = true;
+                        Style = StandardAccent;
+                        Editable = false;
+                        ToolTip = 'Create a new task for the Sales Order Agent by entering the sender, message text, and any attachments.';
+
+                        trigger OnDrillDown()
+                        var
+                            SOACreateTask: Page "SOA Create Task";
+                        begin
+                            CurrPage.AgentSetupPart.Page.GetAgentSetupBuffer(TempAgentSetupBuffer);
+                            if (TempAgentSetupBuffer.State <> TempAgentSetupBuffer.State::Enabled) and (Rec."Email Monitoring" or (Rec."Email Address" <> '')) then begin
+                                if not Confirm(EnableAgentForTaskQst) then
+                                    exit;
+                                TempAgentSetupBuffer.Validate(State, TempAgentSetupBuffer.State::Enabled);
+                                TempAgentSetupBuffer.Modify();
+                                CurrPage.AgentSetupPart.Page.SetAgentSetupBuffer(TempAgentSetupBuffer);
+                                CurrPage.AgentSetupPart.Page.Update();
+                                Rec."Email Monitoring" := false;
+                                Rec."Incoming Monitoring" := false;
+                                Rec.Modify();
+                            end;
+
+                            if not ApplySetup(true) then
+                                exit;
+
+                            CurrPage.AgentSetupPart.Page.GetAgentSetupBuffer(TempAgentSetupBuffer);
+                            if IsNullGuid(TempAgentSetupBuffer."User Security ID") then begin
+                                TempAgentSetupBuffer.Rename(Rec."User Security ID");
+                                CurrPage.AgentSetupPart.Page.SetAgentSetupBuffer(TempAgentSetupBuffer);
+                            end;
+
+                            Commit();
+
+                            SOACreateTask.SetAgentUserSecurityID(Rec."User Security ID");
+                            SOACreateTask.LookupMode(true);
+                            SOACreateTask.RunModal();
+                            CurrPage.Update(false);
+                        end;
+                    }
+                }
                 group(BillingInformationFirstSetup)
                 {
                     Visible = FirstConfig;
@@ -419,6 +466,14 @@ page 4400 "SOA Setup"
     end;
 
     trigger OnQueryClosePage(CloseAction: Action): Boolean
+    begin
+        if CloseAction = CloseAction::Cancel then
+            exit(true);
+
+        exit(ApplySetup(false));
+    end;
+
+    local procedure ApplySetup(CreateTrialTask: Boolean): Boolean
     var
         SOASetupCU: Codeunit "SOA Setup";
         SOASessionEvents: Codeunit "SOA Session Events";
@@ -429,9 +484,6 @@ page 4400 "SOA Setup"
         ActivateWithoutMonitoringLbl: Label 'The monitoring of email is not enabled. Are you sure you want to continue?';
         DeactivateWarningLbl: Label 'If you deactivate the agent, you won''t be able to reactivate it because you don''t have permission to the current mail account (activated by %1). Are you sure you want continue?', Comment = '%1=Username of user who activated the agent.';
     begin
-        if CloseAction = CloseAction::Cancel then
-            exit(true);
-
         if EnabledAgentFirstConfig() then
             if Confirm(ReadyToActivateLbl) then
                 Rec.State := Rec.State::Enabled;
@@ -454,7 +506,7 @@ page 4400 "SOA Setup"
                     if not Confirm(ActivateWithoutMailboxLbl) then
                         exit(false);
 
-                if not Rec."Incoming Monitoring" then
+                if not CreateTrialTask and not Rec."Incoming Monitoring" then
                     if not Confirm(ActivateWithoutMonitoringLbl) then
                         exit(false);
             end;
@@ -666,5 +718,7 @@ page 4400 "SOA Setup"
         EmailSignatureModifyLbl: Label 'Edit signature';
         SelectMailboxFirstMsg: Label 'Please select an email account first.';
         ConfiguredBy: Text[80];
+        SOACreateTaskLbl: Label 'Create task for the agent';
+        EnableAgentForTaskQst: Label 'Trying out the agent will activate it and turn off incoming email monitoring immediately.\\Do you want to continue?';
         IsConfigUpdated: Boolean;
 }

@@ -76,7 +76,7 @@ table 1173 "Document Attachment"
             trigger OnValidate()
             begin
                 case LowerCase("File Extension") of
-                    'jpg', 'jpeg', 'bmp', 'png', 'tiff', 'tif', 'gif':
+                    'jpg', 'jpeg', 'bmp', 'png', 'tiff', 'tif', 'gif', 'svg', 'webp', 'avif', 'ico':
                         "File Type" := "File Type"::Image;
                     'pdf':
                         "File Type" := "File Type"::PDF;
@@ -301,16 +301,20 @@ table 1173 "Document Attachment"
     end;
 
     procedure SupportedByFileViewer(): Boolean
+    var
+        DocumentAttachmentMgmt: Codeunit "Document Attachment Mgmt";
     begin
         case Rec."File Type" of
             Rec."File Type"::PDF:
                 exit(true);
+            Rec."File Type"::Image:
+                exit(true);
             Rec."File Type"::" ":
                 begin
                     if Rec."File Extension" <> '' then
-                        exit(LowerCase(Rec."File Extension") = 'pdf');
+                        exit(DocumentAttachmentMgmt.IsSupportedByFileViewerExtension(Rec."File Extension", true));
 
-                    exit(Lowercase(Rec."File Name").EndsWith('pdf'))
+                    exit(DocumentAttachmentMgmt.IsSupportedByFileViewerFileName(Rec."File Name", true));
                 end;
             else
                 exit(false);

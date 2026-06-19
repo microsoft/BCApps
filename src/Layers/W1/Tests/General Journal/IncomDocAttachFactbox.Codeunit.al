@@ -529,6 +529,51 @@ codeunit 134408 "Incom. Doc. Attach. FactBox"
         PurchaseJournalPage.Next();
     end;
 
+    [Test]
+    procedure CashReceiptJournalUploadMainAndSupportAttachmentThenInsertNewLine()
+    var
+        GenJournalTemplate: Record "Gen. Journal Template";
+        GenJournalLine: Record "Gen. Journal Line";
+        CashReceiptJournalPage: TestPage "Cash Receipt Journal";
+    begin
+        // [SCENARIO 625422] No error when inserting new line after uploading main and supporting attachments on Cash Receipt Journal
+
+        // [GIVEN] Cash Receipt Journal batch is created
+        CreateGeneralJournalBatch(GenJournalLine, GenJournalTemplate.Type::"Cash Receipts");
+        CashReceiptJournalPage.Trap();
+        Page.Run(Page::"Cash Receipt Journal", GenJournalLine);
+
+        // [GIVEN] Line 1 with Account Type = G/L Account and main attachment uploaded
+        CashReceiptJournalPage."Account Type".SetValue(GenJournalLine."Account Type"::"G/L Account");
+        CashReceiptJournalPage."Account No.".SetValue(LibraryERM.CreateGLAccountNoWithDirectPosting());
+        PrepareAttachmentRecordForGenJournalLine(GenJournalLine);
+        CashReceiptJournalPage.IncomingDocAttachFactBox.UploadMainAttachment.Invoke();
+
+        // [GIVEN] Supporting attachment uploaded for Line 1
+        PrepareSupportingAttachmentForGenJournalLine(GenJournalLine);
+
+        // [GIVEN] Line 2 with Account Type = G/L Account and main attachment uploaded
+        CashReceiptJournalPage.New();
+        CashReceiptJournalPage."Account Type".SetValue(GenJournalLine."Account Type"::"G/L Account");
+        CashReceiptJournalPage."Account No.".SetValue(LibraryERM.CreateGLAccountNoWithDirectPosting());
+        PrepareAttachmentRecordForGenJournalLine(GenJournalLine);
+        CashReceiptJournalPage.IncomingDocAttachFactBox.UploadMainAttachment.Invoke();
+
+        // [GIVEN] Supporting attachment uploaded for Line 2
+        PrepareSupportingAttachmentForGenJournalLine(GenJournalLine);
+
+        // [WHEN] Insert Line 3
+        CashReceiptJournalPage.New();
+        CashReceiptJournalPage."Account Type".SetValue(GenJournalLine."Account Type"::"G/L Account");
+        CashReceiptJournalPage."Account No.".SetValue(LibraryERM.CreateGLAccountNoWithDirectPosting());
+
+        // [THEN] No error occurs when inserting the new line
+        CashReceiptJournalPage."Account No.".AssertEquals(CashReceiptJournalPage."Account No.".Value());
+
+        // Clear Queue in Library - Variable Storage.
+         LibraryVariableStorage.Clear();
+    end;
+
     local procedure GetGlobalDimensionCodeValue(DimNo: Integer): Code[20]
     var
         DimensionValue: Record "Dimension Value";
@@ -576,6 +621,35 @@ codeunit 134408 "Incom. Doc. Attach. FactBox"
         ImportAttachmentIncDoc.ImportAttachment(IncomingDocumentAttachment, FileName);
 
         LibraryVariableStorage.Enqueue(FileManagement.GetFileNameWithoutExtension(FileName));
+        Commit();
+    end;
+
+    local procedure PrepareSupportingAttachmentForGenJournalLine(var GenJournalLine: Record "Gen. Journal Line")
+    var
+        IncomingDocumentAttachment: Record "Incoming Document Attachment";
+        TempBlob: Codeunit "Temp Blob";
+        ImportAttachmentIncDoc: Codeunit "Import Attachment - Inc. Doc.";
+        FileManagement: Codeunit "File Management";
+        ContentOutStream: OutStream;
+        BlobInStream: InStream;
+        RecRef: RecordRef;
+        FileName: Text;
+    begin
+        RecRef.GetTable(GenJournalLine);
+        RecRef.FindLast();
+
+        IncomingDocumentAttachment.SetFiltersFromMainRecord(RecRef, IncomingDocumentAttachment);
+
+        FileName := LibraryPlainTextFile.Create('txt');
+        LibraryPlainTextFile.AddLine(LibraryUtility.GenerateGUID());
+        LibraryPlainTextFile.Close();
+
+        FileManagement.BLOBImportFromServerFile(TempBlob, FileName);
+
+        TempBlob.CreateInStream(BlobInStream);
+        IncomingDocumentAttachment.Content.CreateOutStream(ContentOutStream);
+        CopyStream(ContentOutStream, BlobInStream);
+        ImportAttachmentIncDoc.ImportAttachment(IncomingDocumentAttachment, FileName);
         Commit();
     end;
 

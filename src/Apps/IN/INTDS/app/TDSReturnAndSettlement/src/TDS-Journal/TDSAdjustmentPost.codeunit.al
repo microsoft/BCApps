@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.TDS.TDSReturnAndSettlement;
 
+using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Posting;
 using Microsoft.Finance.TDS.TDSBase;
@@ -79,6 +80,8 @@ codeunit 18748 "TDS Adjustment Post"
 
     procedure InitGenJnlLine(var TDSJournalLine: Record "TDS Journal Line")
     var
+        Currency: Record Currency;
+        CurrExchRate: Record "Currency Exchange Rate";
         GenJournalLine: Record "Gen. Journal Line";
     begin
         GenJournalLine."Journal Batch Name" := TDSJournalLine."Journal Batch Name";
@@ -95,7 +98,18 @@ codeunit 18748 "TDS Adjustment Post"
         GenJournalLine.Description := TDSJournalLine.Description;
         GenJournalLine."TDS Adjustment" := true;
         GenJournalLine."System-Created Entry" := true;
-        GenJournalLine.Validate(Amount, TDSJournalLine.Amount);
+        if TDSJournalLine."Currency Code" <> '' then begin
+            Currency.Get(TDSJournalLine."Currency Code");
+            GenJournalLine."Currency Code" := TDSJournalLine."Currency Code";
+            GenJournalLine."Currency Factor" := TDSJournalLine."Currency Factor";
+            GenJournalLine."Amount (LCY)" := TDSJournalLine.Amount;
+            GenJournalLine.Amount := Round(
+                            CurrExchRate.ExchangeAmtLCYToFCY(
+                              GenJournalLine."Posting Date", TDSJournalLine."Currency Code",
+                              GenJournalLine."Amount (LCY)", TDSJournalLine."Currency Factor"),
+                            Currency."Amount Rounding Precision")
+        end else
+            GenJournalLine.Validate(Amount, TDSJournalLine.Amount);
         GenJournalLine."Bal. Account Type" := TDSJournalLine."Bal. Account Type";
         GenJournalLine."Bal. Account No." := TDSJournalLine."Bal. Account No.";
         GenJournalLine."Shortcut Dimension 1 Code" := TDSJournalLine."Shortcut Dimension 1 Code";
@@ -165,9 +179,9 @@ codeunit 18748 "TDS Adjustment Post"
                 if Vendor.Get(TDSJournalLine."Account No.") then
                     TDSEntry."Deductee PAN No." := Vendor."P.A.N. No.";
 
-                TDSEntry."TDS Base Amount" := TDSJournalLine."TDS Base Amount";
-                TDSEntry."Invoice Amount" := Abs(TDSJournalLine."TDS Base Amount");
-                TDSEntry."Surcharge Base Amount" := Abs(TDSJournalLine."Surcharge Base Amount");
+                TDSEntry."TDS Base Amount" := -TDSJournalLine."TDS Base Amount";
+                TDSEntry."Invoice Amount" := -TDSJournalLine."TDS Base Amount";
+                TDSEntry."Surcharge Base Amount" := -TDSJournalLine."Surcharge Base Amount";
                 TDSEntry."TDS Line Amount" := TDSJournalLine.Amount;
                 TDSEntry."User ID" := CopyStr(UserId, 1, 50);
                 TDSEntry."Concessional Code" := TDSJournalLine."Concessional Code";

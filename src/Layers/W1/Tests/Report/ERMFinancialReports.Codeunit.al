@@ -56,6 +56,8 @@ codeunit 134982 "ERM Financial Reports"
         G_L_Entry_Posting_DateLbl: Label 'G_L_Entry_Posting_Date';
         G_L_Entry_Document_DateLbl: Label 'G_L_Entry_Document_Date';
         PostingGroupDetailsLedEntryErr: Label 'Posting group should be populated from customer ledger entry';
+        MissingGLEntryErr: Label 'No %1 exists for account %2 and source currency %3.', Comment = '%1 = Table Caption, %2 = G/L Account No., %3 = Source Currency Code';
+        CloseIncomeAmountMismatchErr: Label 'Close Income Statement %1 mismatch for source currency %2. Expected %3, actual %4.', Comment = '%1 = Field Caption, %2 = Source Currency Code, %3 = Expected Amount, %4 = Actual Amount';
 
     [Test]
     [HandlerFunctions('RHDetailTrialBalance')]
@@ -1424,6 +1426,87 @@ codeunit 134982 "ERM Financial Reports"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmHandler,MessageHandler')]
+    procedure CloseIncomeStatementWithARCAndMixedInvoiceCurrencies2()
+    var
+        AccountingPeriod: Record "Accounting Period";
+        Currency: array[3] of Record Currency;
+        Customer: Record Customer;
+        GLAccount: Record "G/L Account";
+        GenJournalLine: Record "Gen. Journal Line";
+        GeneralPostingSetup: Record "General Posting Setup";
+        Item: Record Item;
+        CloseIncomeStatement: Report "Close Income Statement";
+        AdditionalReportingCurrency: Code[10];
+        InvoiceNoLCY: Code[20];
+        InvoiceNoEUR: Code[20];
+        InvoiceNoUSD: Code[20];
+        SalesGLAccountNo: Code[20];
+        InvoiceFilter: Text;
+    begin
+        // [SCENARIO 625803] Close Income Statement with Additional Reporting Currency and mixed invoice currencies keeps separate source-currency totals.
+        Initialize();
+
+        // [GIVEN] Create three Currencies with Exchange Rates.
+        Currency[1].Get(LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), LibraryRandom.RandDecInDecimalRange(0.85, 0.85, 2), LibraryRandom.RandDecInDecimalRange(0.85, 0.85, 2)));
+        Currency[2].Get(LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), LibraryRandom.RandDecInDecimalRange(0.75, 0.75, 2), LibraryRandom.RandDecInDecimalRange(0.75, 0.75, 2)));
+        Currency[3].Get(LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), LibraryRandom.RandDecInDecimalRange(0.95, 0.95, 2), LibraryRandom.RandDecInDecimalRange(0.95, 0.95, 2)));
+
+        // [GIVEN] Create LCY Code.
+        LibraryERM.SetLCYCode(Currency[1].Code);
+
+        // [GIVEN] Additional Reporting Currency is set in General Ledger Setup.
+        AdditionalReportingCurrency := UpdateCurOnGeneralLedgerSetup(Currency[2].Code);
+
+        // [GIVEN] Create a Customer.
+        LibrarySales.CreateCustomer(Customer);
+
+        // [GIVEN] Create an Item with Unit Price.]
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Unit Price", LibraryRandom.RandDecInRange(1000, 2000, 2));
+        Item.Modify(true);
+
+        // [GIVEN] Create and Post Sales Invoices for Customer in different Currencies.
+        InvoiceNoLCY := CreateAndPostSalesInvoice(Customer."No.", Item."No.", Currency[1].Code);
+        InvoiceNoEUR := CreateAndPostSalesInvoice(Customer."No.", Item."No.", Currency[2].Code);
+        InvoiceNoUSD := CreateAndPostSalesInvoice(Customer."No.", Item."No.", Currency[3].Code);
+
+        // [GIVEN] Find General Posting Setup for Customer and Item.
+        GeneralPostingSetup.Get(Customer."Gen. Bus. Posting Group", Item."Gen. Prod. Posting Group");
+        SalesGLAccountNo := GeneralPostingSetup."Sales Account";
+
+        // [GIVEN] Close Fiscal Year.
+        LibraryFiscalYear.CloseFiscalYear();
+
+        // [GIVEN] Create a G/L Account for Income Statement.
+        LibraryCostAccounting.CreateIncomeStmtGLAccount(GLAccount);
+
+        // [GIVEN] Create General Journal Line for G/L Account.
+        CreateGeneralJournalLine(
+            GenJournalLine,
+            GenJournalLine."Account Type"::"G/L Account",
+            GLAccount."No.",
+            LibraryRandom.RandDec(100, 2));
+        GenJournalLine.Validate("Posting Date", WorkDate());
+        GenJournalLine.Modify(true);
+
+        // [GIVEN] Run "Close Income Statement" for G/L Account.
+        LibraryERM.FindGLAccount(GLAccount);
+        CloseIncomeStatement.InitializeRequestTest(AccountingPeriod.GetFiscalYearEndDate(WorkDate()), GenJournalLine, GLAccount, true);
+        CloseIncomeStatement.UseRequestPage(false);
+        CloseIncomeStatement.Run();
+
+        // [GIVEN] Find the Last GL Register Entry and reverse it.
+        InvoiceFilter := StrSubstNo('%1|%2|%3', InvoiceNoLCY, InvoiceNoEUR, InvoiceNoUSD);
+        AssertCloseIncomeTotalsMatchPostedTotals(SalesGLAccountNo, InvoiceFilter, GenJournalLine."Document No.", Currency[1].Code);
+        AssertCloseIncomeTotalsMatchPostedTotals(SalesGLAccountNo, InvoiceFilter, GenJournalLine."Document No.", Currency[2].Code);
+        AssertCloseIncomeTotalsMatchPostedTotals(SalesGLAccountNo, InvoiceFilter, GenJournalLine."Document No.", Currency[3].Code);
+
+        // Cleanup: restore General Ledger Setup.
+        UpdateCurOnGeneralLedgerSetup(AdditionalReportingCurrency);
+    end;
+
+    [Test]
     [HandlerFunctions('ConfirmHandler,RHReconcileCustandVendAccs')]
     procedure ReconcileCustVendAccounts_AfterExchRateAdjustment()
     var
@@ -2304,7 +2387,7 @@ codeunit 134982 "ERM Financial Reports"
         Message(JournalLineCreatedMsg);
     end;
 
-    local procedure CreateAndPostSalesInvoice(CustomerNo: Code[20]; ItemNo: Code[20]; CurrencyCode: Code[10])
+    local procedure CreateAndPostSalesInvoice(CustomerNo: Code[20]; ItemNo: Code[20]; CurrencyCode: Code[10]): Code[20]
     var
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
@@ -2316,7 +2399,7 @@ codeunit 134982 "ERM Financial Reports"
 
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, ItemNo, LibraryRandom.RandInt(1));
 
-        LibrarySales.PostSalesDocument(SalesHeader, true, true);
+        exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
     end;
 
     local procedure RunAuditTrailReport(RegisterNo: Integer)
@@ -2354,6 +2437,51 @@ codeunit 134982 "ERM Financial Reports"
             LibraryReportDataset.AssertCurrentRowValueEquals(G_L_Entry_Document_DateLbl, Format(GLEntry."Document Date"));
         end else
             Error(ReportErr, GenJournalLine.FieldCaption("Document No."), GenJournalLine."Document No.");
+    end;
+
+    local procedure UpdateCurOnGeneralLedgerSetup(CurrencyCode: Code[10]) OldAdditionalReportingCurrency: Code[10]
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+    begin
+        // Update Additional Reporting Currency.
+        GeneralLedgerSetup.Get();
+        OldAdditionalReportingCurrency := GeneralLedgerSetup."Additional Reporting Currency";
+        GeneralLedgerSetup."Additional Reporting Currency" := CurrencyCode;
+        GeneralLedgerSetup.Modify(true);
+        Commit();  // Required to run the Test Case on RTC because Modal Form Pops Up after modifying General Ledger Setup.
+    end;
+
+    local procedure AssertCloseIncomeTotalsMatchPostedTotals(GLAccountFilter: Text; InvoiceFilter: Text; CloseIncomeDocumentNo: Code[20]; SourceCurrencyCode: Code[10])
+    var
+        PostedGLEntry: Record "G/L Entry";
+        CloseIncomeGLEntry: Record "G/L Entry";
+    begin
+        PostedGLEntry.SetFilter("G/L Account No.", GLAccountFilter);
+        PostedGLEntry.SetFilter("Document No.", InvoiceFilter);
+        PostedGLEntry.SetRange("Source Currency Code", SourceCurrencyCode);
+        Assert.RecordIsNotEmpty(PostedGLEntry);
+        PostedGLEntry.CalcSums(Amount, "Additional-Currency Amount", "Source Currency Amount");
+
+        CloseIncomeGLEntry.SetRange("Document No.", CloseIncomeDocumentNo);
+        CloseIncomeGLEntry.SetFilter("G/L Account No.", GLAccountFilter);
+        CloseIncomeGLEntry.SetRange("Source Currency Code", SourceCurrencyCode);
+        if CloseIncomeGLEntry.IsEmpty() then
+            Error(MissingGLEntryErr, CloseIncomeGLEntry.TableCaption(), GLAccountFilter, SourceCurrencyCode);
+        CloseIncomeGLEntry.CalcSums(Amount, "Additional-Currency Amount", "Source Currency Amount");
+
+        Assert.AreEqual(
+          -PostedGLEntry.Amount, CloseIncomeGLEntry.Amount,
+          StrSubstNo(CloseIncomeAmountMismatchErr, PostedGLEntry.FieldCaption(Amount), SourceCurrencyCode, -PostedGLEntry.Amount, CloseIncomeGLEntry.Amount));
+        Assert.AreEqual(
+          -PostedGLEntry."Additional-Currency Amount", CloseIncomeGLEntry."Additional-Currency Amount",
+          StrSubstNo(CloseIncomeAmountMismatchErr,
+            PostedGLEntry.FieldCaption("Additional-Currency Amount"), SourceCurrencyCode,
+            -PostedGLEntry."Additional-Currency Amount", CloseIncomeGLEntry."Additional-Currency Amount"));
+        Assert.AreEqual(
+          -PostedGLEntry."Source Currency Amount", CloseIncomeGLEntry."Source Currency Amount",
+          StrSubstNo(CloseIncomeAmountMismatchErr,
+            PostedGLEntry.FieldCaption("Source Currency Amount"), SourceCurrencyCode,
+            -PostedGLEntry."Source Currency Amount", CloseIncomeGLEntry."Source Currency Amount"));
     end;
 
     [ConfirmHandler]

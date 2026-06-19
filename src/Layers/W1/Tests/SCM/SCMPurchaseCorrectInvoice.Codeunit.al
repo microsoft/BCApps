@@ -34,6 +34,8 @@ codeunit 137025 "SCM Purchase Correct Invoice"
         TransportMethodErr: Label 'Transport Method are not equal';
         CommentCountErr: Label 'Wrong Purchase Line Count';
         ConfirmDialogErr: Label 'Expected confirm dialog was not shown';
+        QuantityMustBeRevertedErr: Label 'Quantity Received and Invoiced must be reverted to 0';
+        QuantityMustBeRestoredErr: Label 'Qty. to Receive and Invoice must be restored to original values';
 
     [Test]
     [Scope('OnPrem')]
@@ -1106,6 +1108,86 @@ codeunit 137025 "SCM Purchase Correct Invoice"
         Assert.IsTrue(WasConfirmShown, ConfirmDialogErr);
     end;
 
+    [Test]
+    procedure CancelInvoiceFromGetReceiptLinesWithPrepaymentRevertsOrderLine()
+    var
+        GeneralPostingSetup: Record "General Posting Setup";
+        Item: Record Item;
+        PurchaseHeaderInvoice: Record "Purchase Header";
+        PurchaseHeaderOrder: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchInvHeader: Record "Purch. Inv. Header";
+        PurchRcptHeader: Record "Purch. Rcpt. Header";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        VATPostingSetup: Record "VAT Posting Setup";
+        Vendor: Record Vendor;
+        CorrectPostedPurchInvoice: Codeunit "Correct Posted Purch. Invoice";
+        PurchGetReceipt: Codeunit "Purch.-Get Receipt";
+        Quantity: Decimal;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 635874] Cancelling a posted purchase invoice created via Get Receipt Lines from a PO with prepayment fully reverts the PO line quantities
+        Initialize();
+
+        // [GIVEN] General and VAT Posting Setup with Purch. Prepayments Account configured
+        LibraryERM.CreateGeneralPostingSetupInvt(GeneralPostingSetup);
+        LibraryERM.SetGeneralPostingSetupPrepAccounts(GeneralPostingSetup);
+        GeneralPostingSetup."Direct Cost Applied Account" := LibraryERM.CreateGLAccountNo();
+        GeneralPostingSetup."Purch. Credit Memo Account" := LibraryERM.CreateGLAccountNo();
+        GeneralPostingSetup.Modify(true);
+        LibraryERM.CreateVATPostingSetupWithAccounts(
+            VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", LibraryRandom.RandIntInRange(10, 20));
+        SetupPrepmtGLAccountPostingGroups(GeneralPostingSetup, VATPostingSetup);
+
+        // [GIVEN] Item "I" with matching posting groups
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Gen. Prod. Posting Group", GeneralPostingSetup."Gen. Prod. Posting Group");
+        Item.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        Item.Modify(true);
+
+        // [GIVEN] Vendor "V" with matching posting groups
+        LibraryPurchase.CreateVendor(Vendor);
+        Vendor.Validate("Gen. Bus. Posting Group", GeneralPostingSetup."Gen. Bus. Posting Group");
+        Vendor.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+        Vendor.Modify(true);
+
+        // [GIVEN] Purchase Order with Prepayment % and one line for Item "I"
+        Quantity := LibraryRandom.RandIntInRange(1, 10);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeaderOrder, PurchaseHeaderOrder."Document Type"::Order, Vendor."No.");
+        PurchaseHeaderOrder.Validate("Prepayment %", LibraryRandom.RandIntInRange(10, 50));
+        PurchaseHeaderOrder.Modify(true);
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeaderOrder, PurchaseLine.Type::Item, Item."No.", Quantity);
+        PurchaseLine.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(100, 500, 2));
+        PurchaseLine.Modify(true);
+
+        // [GIVEN] Posted prepayment invoice
+        LibraryPurchase.PostPurchasePrepaymentInvoice(PurchaseHeaderOrder);
+
+        // [GIVEN] Purchase Order posted with Receive only
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeaderOrder, true, false);
+
+        // [GIVEN] Purchase Invoice created via Get Receipt Lines from the receipt
+        PurchRcptHeader.SetRange("Order No.", PurchaseHeaderOrder."No.");
+        PurchRcptHeader.FindFirst();
+        PurchRcptLine.SetRange("Document No.", PurchRcptHeader."No.");
+        LibraryPurchase.CreatePurchHeader(PurchaseHeaderInvoice, PurchaseHeaderInvoice."Document Type"::Invoice, Vendor."No.");
+        PurchGetReceipt.SetPurchHeader(PurchaseHeaderInvoice);
+        PurchGetReceipt.CreateInvLines(PurchRcptLine);
+
+        // [GIVEN] Purchase Invoice posted
+        PurchInvHeader.Get(LibraryPurchase.PostPurchaseDocument(PurchaseHeaderInvoice, true, true));
+
+        // [WHEN] Cancel the Posted Purchase Invoice
+        CorrectPostedPurchInvoice.CancelPostedInvoice(PurchInvHeader);
+
+        // [THEN] Purchase Order line is fully reverted: Qty. Received = 0, Qty. Invoiced = 0
+        PurchaseLine.Find();
+        Assert.AreEqual(0, PurchaseLine."Quantity Received", QuantityMustBeRevertedErr);
+        Assert.AreEqual(0, PurchaseLine."Quantity Invoiced", QuantityMustBeRevertedErr);
+        Assert.AreEqual(Quantity, PurchaseLine."Qty. to Receive", QuantityMustBeRestoredErr);
+        Assert.AreEqual(Quantity, PurchaseLine."Qty. to Invoice", QuantityMustBeRestoredErr);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -1448,6 +1530,18 @@ codeunit 137025 "SCM Purchase Correct Invoice"
     begin
         PurchInvHeader.SetRange("Order No.", PurchaseHeaderOrder."No.");
         PurchInvHeader.FindFirst();
+    end;
+
+    local procedure SetupPrepmtGLAccountPostingGroups(GeneralPostingSetup: Record "General Posting Setup"; VATPostingSetup: Record "VAT Posting Setup")
+    var
+        GLAccount: Record "G/L Account";
+    begin
+        GLAccount.Get(GeneralPostingSetup."Purch. Prepayments Account");
+        GLAccount.Validate("Gen. Bus. Posting Group", GeneralPostingSetup."Gen. Bus. Posting Group");
+        GLAccount.Validate("Gen. Prod. Posting Group", GeneralPostingSetup."Gen. Prod. Posting Group");
+        GLAccount.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+        GLAccount.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        GLAccount.Modify(true);
     end;
 
     [ConfirmHandler]

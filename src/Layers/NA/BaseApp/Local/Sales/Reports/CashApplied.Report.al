@@ -14,6 +14,7 @@ report 10041 "Cash Applied"
 {
     DefaultLayout = RDLC;
     RDLCLayout = './Local/Sales/Reports/CashApplied.rdlc';
+    ApplicationArea = Basic, Suite;
     Caption = 'Cash Applied';
     UsageCategory = ReportsAndAnalysis;
 

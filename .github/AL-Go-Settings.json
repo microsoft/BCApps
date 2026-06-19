@@ -138,7 +138,7 @@
   "runNumberOffset": 60000,
   "incrementalBuilds": {
     "onPush": false,
-    "onPull_Request": true,
+    "onPull_Request": false,
     "onSchedule": false,
     "mode": "modifiedApps"
   }

@@ -13,7 +13,6 @@ codeunit 139663 "GP Transaction Tests"
         Assert: Codeunit Assert;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoCommit)]
     procedure TestGPCustomerTrxImport()
     var
         Customer: Record "Customer";
@@ -99,7 +98,6 @@ codeunit 139663 "GP Transaction Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoCommit)]
     procedure TestGPVendorTrxImport()
     var
         VendorTrans: Record "GP Vendor Transactions";

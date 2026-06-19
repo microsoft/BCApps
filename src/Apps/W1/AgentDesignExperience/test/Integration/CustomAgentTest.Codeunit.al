@@ -20,6 +20,7 @@ codeunit 133754 "Custom Agent Test"
         AgentDesignerTestLib: Codeunit "Agent Designer Test Lib.";
         Any: Codeunit Any;
         Assert: Codeunit "Library Assert";
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
         TestAgentUserName1: Code[50];
         TestAgentUserName2: Code[50];
         TestAgentId1: Guid;
@@ -74,6 +75,28 @@ codeunit 133754 "Custom Agent Test"
 
         Commit();
         Initialized := true;
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure TestOpenEditInstructionsPageForInactiveAgentShowsConfirmation()
+    var
+        Agent: Codeunit Agent;
+        CustomAgentSetup: Codeunit "Custom Agent Setup";
+    begin
+        // [GIVEN] An inactive custom agent
+        Initialize();
+        Agent.Deactivate(TestAgentId1);
+        LibraryVariableStorage.Enqueue('inactive'); // expected confirmation message
+        LibraryVariableStorage.Enqueue(false); // decline the confirmation
+
+        // [WHEN] Opening the edit instructions page for the inactive agent
+        CustomAgentSetup.OpenEditInstructionsPage(TestAgentId1);
+
+        // [THEN] Exactly one confirmation was shown
+        LibraryVariableStorage.AssertEmpty();
+
+        Agent.Activate(TestAgentId1);
     end;
 
     [Test]
@@ -286,5 +309,12 @@ codeunit 133754 "Custom Agent Test"
 
         // [THEN] Empty result is returned
         Assert.IsTrue(TempAgentInfo.IsEmpty(), 'Should return empty when no agents exist');
+    end;
+
+    [ConfirmHandler]
+    procedure ConfirmHandler(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Assert.ExpectedMessage(LibraryVariableStorage.DequeueText(), Question);
+        Reply := LibraryVariableStorage.DequeueBoolean();
     end;
 }

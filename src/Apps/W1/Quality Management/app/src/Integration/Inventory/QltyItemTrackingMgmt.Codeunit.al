@@ -465,7 +465,7 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
     end;
 
     /// <summary>
-    /// Adds/Removes Purchase Return Line item tracking entries.  When used with serial numbers only one serial number can be created at a time.
+    /// Adds/Removes Purchase Return Line item tracking entries. When used with serial numbers only one serial number can be created at a time.
     /// </summary>
     /// <param name="PurchPurchaseLine"></param>
     /// <param name="SerialNo"></param>

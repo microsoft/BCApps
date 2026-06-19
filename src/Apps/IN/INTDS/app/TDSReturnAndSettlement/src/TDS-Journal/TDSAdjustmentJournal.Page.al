@@ -416,6 +416,8 @@ page 18747 "TDS Adjustment Journal"
         TDSJournalLine."Posting Date" := WorkDate();
         TDSJournalLine."Account Type" := TDSJournalLine."Account Type"::Vendor;
         TDSJournalLine."Account No." := TDSEntry."Vendor No.";
+        TDSJournalLine."Currency Code" := TDSEntry."Currency Code";
+        TDSJournalLine."Currency Factor" := TDSEntry."Currency Factor";
         TDSJournalLine."TDS Section Code" := TDSEntry.Section;
         TDSJournalLine."Document Type" := TDSEntry."Document Type";
         TDSJournalLine."Concessional Code" := TDSEntry."Concessional Code";

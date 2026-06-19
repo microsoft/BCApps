@@ -40,6 +40,7 @@ codeunit 136108 "Service Posting - Invoice"
 {
     Subtype = Test;
     TestPermissions = Disabled;
+    EventSubscriberInstance = Manual;
 
     trigger OnRun()
     begin
@@ -73,6 +74,10 @@ codeunit 136108 "Service Posting - Invoice"
         ConfirmCreateEmptyPostedInvMsg: Label 'Deleting this document will cause a gap in the number series for posted invoices. An empty posted invoice %1 will be created', Comment = '%1 - Invoice No.';
         ReservationEntryNotFoundErr: Label 'Reservation Entry should be deleted.';
         AmountInclVATNotRecalculatedErr: Label 'Amount Including VAT should be recalculated after applying Line Discount';
+        TestRollbackAfterCommitErr: Label 'Test error to trigger rollback after Commit() call.', Locked = true;
+        SetIgnoreCommitToFalse: Boolean;
+        RaiseErrorAfterCommit: Boolean;
+        CommitTestMarkerID: Guid;
 
     [Test]
     [HandlerFunctions('ExpectedCostConfirmHandler,ExpectedCostMsgHandler')]
@@ -3096,12 +3101,110 @@ codeunit 136108 "Service Posting - Invoice"
         Assert.AreNotEqual(Quantity * UnitPrice, ServiceLine."Amount Including VAT", AmountInclVATNotRecalculatedErr);
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure PostServiceOrderCommitBySubscriberIsSuppressed()
+    var
+        ServiceHeader: Record "Service Header";
+        ServiceItemLine: Record "Service Item Line";
+        ServiceLine: Record "Service Line";
+        ServiceItem: Record "Service Item";
+        ActivityLog: Record "Activity Log";
+        Type: Option " ",Item,Resource,Both;
+    begin
+        // [FEATURE] [Service] [Posting] [CommitBehavior]
+        // [SCENARIO] When posting a service order, Commit() inside the guard is suppressed by default,
+        // so an error after the Commit() call rolls back all changes including the ActivityLog marker.
+
+        // [GIVEN] A service order with an item line.
+        Initialize();
+        CreateServiceOrder(ServiceHeader, ServiceItemLine, ServiceLine, ServiceItem, Type::Item);
+        ServiceLine.Validate("Qty. to Invoice", ServiceLine.Quantity);
+        ServiceLine.Modify(true);
+
+        // [GIVEN] The test hook is armed to insert a marker, call Commit(), then raise an error.
+        CommitTestMarkerID := CreateGuid();
+        RaiseErrorAfterCommit := true;
+
+        // [WHEN] Post the service order (Ship=true to allow posting a fresh order) — the error raised inside the guard triggers a rollback.
+        BindSubscription(this);
+        asserterror LibraryService.PostServiceOrder(ServiceHeader, true, false, true);
+        UnbindSubscription(this);
+
+        // [THEN] The ActivityLog marker was rolled back (Commit was suppressed inside the guard).
+        ActivityLog.SetRange(Context, CopyStr(Format(CommitTestMarkerID), 1, MaxStrLen(ActivityLog.Context)));
+        Assert.RecordIsEmpty(ActivityLog);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure PostServiceOrderCommitBehaviorOptOutRestoresCommit()
+    var
+        ServiceHeader: Record "Service Header";
+        ServiceItemLine: Record "Service Item Line";
+        ServiceLine: Record "Service Line";
+        ServiceItem: Record "Service Item";
+        ActivityLog: Record "Activity Log";
+        Type: Option " ",Item,Resource,Both;
+    begin
+        // [FEATURE] [Service] [Posting] [CommitBehavior]
+        // [SCENARIO] When a subscriber sets IgnoreCommit to false, Commit() inside the guard fires,
+        // so the ActivityLog marker persists even after the error triggers a rollback.
+
+        // [GIVEN] A service order with an item line.
+        Initialize();
+        CreateServiceOrder(ServiceHeader, ServiceItemLine, ServiceLine, ServiceItem, Type::Item);
+        ServiceLine.Validate("Qty. to Invoice", ServiceLine.Quantity);
+        ServiceLine.Modify(true);
+
+        // [GIVEN] The subscriber opts out of commit suppression, and the hook is armed.
+        CommitTestMarkerID := CreateGuid();
+        RaiseErrorAfterCommit := true;
+        SetIgnoreCommitToFalse := true;
+
+        // [WHEN] Post the service order (Ship=true to allow posting a fresh order) — the error raised inside the guard triggers a rollback.
+        BindSubscription(this);
+        asserterror LibraryService.PostServiceOrder(ServiceHeader, true, false, true);
+        UnbindSubscription(this);
+
+        // [THEN] The ActivityLog marker was NOT rolled back (Commit fired before the error).
+        ActivityLog.SetRange(Context, CopyStr(Format(CommitTestMarkerID), 1, MaxStrLen(ActivityLog.Context)));
+        Assert.RecordIsNotEmpty(ActivityLog);
+
+        // Cleanup
+        ActivityLog.DeleteAll();
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Service-Post", OnSetCommitBehavior, '', false, false)]
+    local procedure OnSetCommitBehaviorHandler(var IgnoreCommit: Boolean)
+    begin
+        if SetIgnoreCommitToFalse then
+            IgnoreCommit := false;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Service-Post", OnAfterFinalizePostingOnBeforeCommit, '', false, false)]
+    local procedure OnAfterFinalizePostingOnBeforeCommitHandler(var ServiceHeader: Record "Service Header"; var ServiceLine: Record "Service Line"; var ServDocumentsMgt: Codeunit "Serv-Documents Mgt."; var PassedShip: Boolean; var PassedConsume: Boolean; var PassedInvoice: Boolean; ServInvoiceNo: Code[20]; ServCrMemoNo: Code[20]; ServShipmentNo: Code[20])
+    var
+        ActivityLog: Record "Activity Log";
+    begin
+        if not RaiseErrorAfterCommit then
+            exit;
+        ActivityLog.Init();
+        ActivityLog.Context := CopyStr(Format(CommitTestMarkerID), 1, MaxStrLen(ActivityLog.Context));
+        ActivityLog.Insert();
+        Commit();
+        Error(TestRollbackAfterCommitErr);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"Service Posting - Invoice");
         LibrarySetupStorage.Restore();
+        SetIgnoreCommitToFalse := false;
+        RaiseErrorAfterCommit := false;
+        Clear(CommitTestMarkerID);
         if isInitialized then
             exit;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(CODEUNIT::"Service Posting - Invoice");

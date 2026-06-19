@@ -88,22 +88,9 @@ codeunit 5980 "Service-Post"
     procedure PostWithLines(var PassedServHeader: Record "Service Header"; var PassedServLine: Record "Service Line"; var PassedShip: Boolean; var PassedConsume: Boolean; var PassedInvoice: Boolean)
     var
         ServiceHeader: Record "Service Header";
-        ServiceLine: Record "Service Line";
-        [SecurityFiltering(SecurityFilter::Ignored)]
-        GLEntry: Record "G/L Entry";
-        ServDocReg: Record "Service Document Register";
-        WarehouseShipmentLine: Record "Warehouse Shipment Line";
-        PostedWhseShipmentHeader: Record "Posted Whse. Shipment Header";
-        PostedWhseShipmentLine: Record "Posted Whse. Shipment Line";
-        WarehouseShipmentHeaderLocal: Record "Warehouse Shipment Header";
-        TempTrackingSpecification: Record "Tracking Specification" temporary;
         UpdateAnalysisView: Codeunit "Update Analysis View";
         UpdateItemAnalysisView: Codeunit "Update Item Analysis View";
         WhseServiceRelease: Codeunit "Whse.-Service Release";
-        GenJnlPostPreview: Codeunit "Gen. Jnl.-Post Preview";
-        ServiceDocumentArchiveMgmt: Codeunit "Service Document Archive Mgmt.";
-        ServDocNo: Code[20];
-        ServDocType: Integer;
         ServInvoiceNo: Code[20];
         ServCrMemoNo: Code[20];
         ServShipmentNo: Code[20];
@@ -143,70 +130,11 @@ codeunit 5980 "Service-Post"
 
             CollectWhseShipmentInformation(PassedServHeader);
 
-            LockTables(ServiceLine, GLEntry);
-            // fetch related document (if any), for testing invoices and credit memos fields.
-            Clear(ServDocReg);
-            ServDocReg.ServiceDocument(ServiceHeader."Document Type".AsInteger(), ServiceHeader."No.", ServDocType, ServDocNo);
-            // update quantites upon posting options and test related fields.
-            ServDocumentsMgt.CheckAndBlankQtys(ServDocType);
-            // create posted documents (both header and lines).
-            WhseShip := false;
-            if Ship then begin
-                ServShipmentNo := ServDocumentsMgt.PrepareShipmentHeader();
-                WhseShip := not TempWarehouseShipmentHeader.IsEmpty();
-            end;
-            if Invoice then
-                if ServiceHeader."Document Type" in [ServiceHeader."Document Type"::Order, ServiceHeader."Document Type"::Invoice] then begin
-                    ServInvoiceNo := ServDocumentsMgt.PrepareInvoiceHeader(Window);
-                    ServDocumentsMgt.UpdateIncomingDocument(ServiceHeader."Incoming Document Entry No.", ServiceHeader."Posting Date", ServInvoiceNo);
-                end else begin
-                    ServCrMemoNo := ServDocumentsMgt.PrepareCrMemoHeader(Window);
-                    ServDocumentsMgt.UpdateIncomingDocument(ServiceHeader."Incoming Document Entry No.", ServiceHeader."Posting Date", ServCrMemoNo);
-                end;
-
-            if WhseShip then begin
-                WarehouseShipmentHeader.Get(TempWarehouseShipmentHeader."No.");
-                OnBeforeCreatePostedWhseShptHeader(PostedWhseShipmentHeader, WarehouseShipmentHeader, ServiceHeader);
-                WhsePostShpt.CreatePostedShptHeader(PostedWhseShipmentHeader, WarehouseShipmentHeader, ServiceHeader."Shipping No.", ServiceHeader."Posting Date");
-            end;
-            // main lines posting routine via Journals
-            ServDocumentsMgt.PostDocumentLines(Window);
-            ServDocumentsMgt.CollectTrackingSpecification(TempTrackingSpecification);
-
-            ServDocumentsMgt.SetLastNos(ServiceHeader);
-            ServiceHeader.Modify();
-
-            if not OrderArchived then begin
-                ServiceDocumentArchiveMgmt.AutoArchiveServiceDocument(ServiceHeader);
-                OrderArchived := true;
-            end;
-
-            // handling afterposting modification/deletion of documents
-            ServDocumentsMgt.UpdateDocumentLines();
-
-            ServDocumentsMgt.InsertValueEntryRelation();
-
-            if WhseShip then begin
-                if TempWarehouseShipmentLine.FindSet() then
-                    repeat
-                        WarehouseShipmentLine.Get(TempWarehouseShipmentLine."No.", TempWarehouseShipmentLine."Line No.");
-                        WhsePostShpt.CreatePostedShptLine(WarehouseShipmentLine, PostedWhseShipmentHeader,
-                          PostedWhseShipmentLine, TempTrackingSpecification);
-                    until TempWarehouseShipmentLine.Next() = 0;
-                if WarehouseShipmentHeaderLocal.Get(WarehouseShipmentHeader."No.") then
-                    UpdateWhseDocuments();
-            end;
-
-            if PreviewMode then begin
-                if GuiAllowed() then
-                    Window.Close();
-                GenJnlPostPreview.ThrowError();
-            end;
-
-            Finalize(ServiceHeader);
-
-            OnAfterFinalizePostingOnBeforeCommit(
-              PassedServHeader, PassedServLine, ServDocumentsMgt, PassedShip, PassedConsume, PassedInvoice, ServInvoiceNo, ServCrMemoNo, ServShipmentNo);
+            ProcessPosting(
+                ServiceHeader,
+                PassedServHeader, PassedServLine,
+                PassedShip, PassedConsume, PassedInvoice,
+                ServShipmentNo, ServInvoiceNo, ServCrMemoNo);
 
             if WhseShip then
                 WhseServiceRelease.Release(ServiceHeader);
@@ -226,6 +154,192 @@ codeunit 5980 "Service-Post"
         end;
 
         OnAfterPostWithLines(PassedServHeader, IsHandled);
+    end;
+
+    /// <summary>
+    /// A wrapper procedure to delegate to either a procedure that allows commit or a procedure that ignores commit.
+    /// By default, commits are suppressed during the critical posting window to prevent duplicate-key races
+    /// on G/L Entry (table 17). Subscribers can opt out by setting IgnoreCommit to false via OnSetCommitBehavior.
+    /// </summary>
+    /// <param name="ServiceHeader">The service header of the document that is being posted.</param>
+    /// <param name="PassedServHeader">The original service header passed to PostWithLines.</param>
+    /// <param name="PassedServLine">The service line passed to PostWithLines.</param>
+    /// <param name="PassedShip">Indicates whether the document is being shipped.</param>
+    /// <param name="PassedConsume">Indicates whether the document is being consumed.</param>
+    /// <param name="PassedInvoice">Indicates whether the document is being invoiced.</param>
+    /// <param name="ServShipmentNo">Set to the posted shipment number during posting.</param>
+    /// <param name="ServInvoiceNo">Set to the posted invoice number during posting.</param>
+    /// <param name="ServCrMemoNo">Set to the posted credit memo number during posting.</param>
+    local procedure ProcessPosting(
+        var ServiceHeader: Record "Service Header";
+        var PassedServHeader: Record "Service Header";
+        var PassedServLine: Record "Service Line";
+        var PassedShip: Boolean;
+        var PassedConsume: Boolean;
+        var PassedInvoice: Boolean;
+        var ServShipmentNo: Code[20];
+        var ServInvoiceNo: Code[20];
+        var ServCrMemoNo: Code[20])
+    var
+        IgnoreCommit: Boolean;
+    begin
+        IgnoreCommit := true;
+        OnSetCommitBehavior(IgnoreCommit);
+
+        if IgnoreCommit then
+            PostDocumentLinesCommitBehaviorIgnore(
+                ServiceHeader,
+                PassedServHeader, PassedServLine,
+                PassedShip, PassedConsume, PassedInvoice,
+                ServShipmentNo, ServInvoiceNo, ServCrMemoNo)
+        else
+            PostDocumentLines(
+                ServiceHeader,
+                PassedServHeader, PassedServLine,
+                PassedShip, PassedConsume, PassedInvoice,
+                ServShipmentNo, ServInvoiceNo, ServCrMemoNo);
+    end;
+
+    /// <summary>
+    /// A wrapper procedure to delegate to PostDocumentLines in order to ignore commits.
+    /// While this procedure is on the call stack, the platform turns every Commit() into a no-op,
+    /// preventing intermittent duplicate-key errors on G/L Entry (table 17).
+    /// </summary>
+    /// <param name="ServiceHeader">The service header of the document that is being posted.</param>
+    /// <param name="PassedServHeader">The original service header passed to PostWithLines.</param>
+    /// <param name="PassedServLine">The service line passed to PostWithLines.</param>
+    /// <param name="PassedShip">Indicates whether the document is being shipped.</param>
+    /// <param name="PassedConsume">Indicates whether the document is being consumed.</param>
+    /// <param name="PassedInvoice">Indicates whether the document is being invoiced.</param>
+    /// <param name="ServShipmentNo">Set to the posted shipment number during posting.</param>
+    /// <param name="ServInvoiceNo">Set to the posted invoice number during posting.</param>
+    /// <param name="ServCrMemoNo">Set to the posted credit memo number during posting.</param>
+    [CommitBehavior(CommitBehavior::Ignore)]
+    local procedure PostDocumentLinesCommitBehaviorIgnore(
+        var ServiceHeader: Record "Service Header";
+        var PassedServHeader: Record "Service Header";
+        var PassedServLine: Record "Service Line";
+        PassedShip: Boolean;
+        PassedConsume: Boolean;
+        PassedInvoice: Boolean;
+        var ServShipmentNo: Code[20];
+        var ServInvoiceNo: Code[20];
+        var ServCrMemoNo: Code[20])
+    begin
+        PostDocumentLines(
+            ServiceHeader,
+            PassedServHeader, PassedServLine,
+            PassedShip, PassedConsume, PassedInvoice,
+            ServShipmentNo, ServInvoiceNo, ServCrMemoNo);
+    end;
+
+    /// <summary>
+    /// The main procedure that processes the service document lines.
+    /// Covers line posting via ServDocumentsMgt, warehouse shipments, finalization, and the
+    /// OnAfterFinalizePostingOnBeforeCommit integration event. Also covers MakeInventoryAdjustment
+    /// called transitively through ServDocumentsMgt.PostDocumentLines.
+    /// </summary>
+    /// <param name="ServiceHeader">The service header of the document that is being posted.</param>
+    /// <param name="PassedServHeader">The original service header passed to PostWithLines.</param>
+    /// <param name="PassedServLine">The service line passed to PostWithLines.</param>
+    /// <param name="PassedShip">Indicates whether the document is being shipped.</param>
+    /// <param name="PassedConsume">Indicates whether the document is being consumed.</param>
+    /// <param name="PassedInvoice">Indicates whether the document is being invoiced.</param>
+    /// <param name="ServShipmentNo">Set to the posted shipment number during posting.</param>
+    /// <param name="ServInvoiceNo">Set to the posted invoice number during posting.</param>
+    /// <param name="ServCrMemoNo">Set to the posted credit memo number during posting.</param>
+    local procedure PostDocumentLines(
+        var ServiceHeader: Record "Service Header";
+        var PassedServHeader: Record "Service Header";
+        var PassedServLine: Record "Service Line";
+        PassedShip: Boolean;
+        PassedConsume: Boolean;
+        PassedInvoice: Boolean;
+        var ServShipmentNo: Code[20];
+        var ServInvoiceNo: Code[20];
+        var ServCrMemoNo: Code[20])
+    var
+        ServiceLine: Record "Service Line";
+        [SecurityFiltering(SecurityFilter::Ignored)]
+        GLEntry: Record "G/L Entry";
+        WarehouseShipmentLine: Record "Warehouse Shipment Line";
+        PostedWhseShipmentHeader: Record "Posted Whse. Shipment Header";
+        PostedWhseShipmentLine: Record "Posted Whse. Shipment Line";
+        TempTrackingSpecification: Record "Tracking Specification" temporary;
+        GenJnlPostPreview: Codeunit "Gen. Jnl.-Post Preview";
+        ServiceDocumentArchiveMgmt: Codeunit "Service Document Archive Mgmt.";
+    begin
+        LockTables(ServiceLine, GLEntry);
+        // update quantities upon posting options and test related fields.
+        ServDocumentsMgt.CheckAndBlankQtys(GetServDocType(ServiceHeader));
+        // create posted documents (both header and lines).
+        WhseShip := false;
+        if Ship then begin
+            ServShipmentNo := ServDocumentsMgt.PrepareShipmentHeader();
+            WhseShip := not TempWarehouseShipmentHeader.IsEmpty();
+        end;
+        if Invoice then
+            if ServiceHeader."Document Type" in [ServiceHeader."Document Type"::Order, ServiceHeader."Document Type"::Invoice] then begin
+                ServInvoiceNo := ServDocumentsMgt.PrepareInvoiceHeader(Window);
+                ServDocumentsMgt.UpdateIncomingDocument(ServiceHeader."Incoming Document Entry No.", ServiceHeader."Posting Date", ServInvoiceNo);
+            end else begin
+                ServCrMemoNo := ServDocumentsMgt.PrepareCrMemoHeader(Window);
+                ServDocumentsMgt.UpdateIncomingDocument(ServiceHeader."Incoming Document Entry No.", ServiceHeader."Posting Date", ServCrMemoNo);
+            end;
+
+        if WhseShip then begin
+            WarehouseShipmentHeader.Get(TempWarehouseShipmentHeader."No.");
+            OnBeforeCreatePostedWhseShptHeader(PostedWhseShipmentHeader, WarehouseShipmentHeader, ServiceHeader);
+            WhsePostShpt.CreatePostedShptHeader(PostedWhseShipmentHeader, WarehouseShipmentHeader, ServiceHeader."Shipping No.", ServiceHeader."Posting Date");
+        end;
+        // main lines posting routine via Journals
+        ServDocumentsMgt.PostDocumentLines(Window);
+        ServDocumentsMgt.CollectTrackingSpecification(TempTrackingSpecification);
+
+        ServDocumentsMgt.SetLastNos(ServiceHeader);
+        ServiceHeader.Modify();
+
+        if not OrderArchived then begin
+            ServiceDocumentArchiveMgmt.AutoArchiveServiceDocument(ServiceHeader);
+            OrderArchived := true;
+        end;
+
+        // handling afterposting modification/deletion of documents
+        ServDocumentsMgt.UpdateDocumentLines();
+
+        ServDocumentsMgt.InsertValueEntryRelation();
+
+        if WhseShip then begin
+            if TempWarehouseShipmentLine.FindSet() then
+                repeat
+                    WarehouseShipmentLine.Get(TempWarehouseShipmentLine."No.", TempWarehouseShipmentLine."Line No.");
+                    WhsePostShpt.CreatePostedShptLine(WarehouseShipmentLine, PostedWhseShipmentHeader,
+                      PostedWhseShipmentLine, TempTrackingSpecification);
+                until TempWarehouseShipmentLine.Next() = 0;
+            if WarehouseShipmentHeader.Get(WarehouseShipmentHeader."No.") then
+                UpdateWhseDocuments();
+        end;
+
+        if PreviewMode then begin
+            if GuiAllowed() then
+                Window.Close();
+            GenJnlPostPreview.ThrowError();
+        end;
+
+        Finalize(ServiceHeader);
+
+        OnAfterFinalizePostingOnBeforeCommit(
+          PassedServHeader, PassedServLine, ServDocumentsMgt, PassedShip, PassedConsume, PassedInvoice, ServInvoiceNo, ServCrMemoNo, ServShipmentNo);
+    end;
+
+    local procedure GetServDocType(var ServiceHeader: Record "Service Header"): Integer
+    var
+        ServDocReg: Record "Service Document Register";
+        ServDocType: Integer;
+        ServDocNo: Code[20]; // required by ServiceDocument signature, not used here
+    begin
+        ServDocReg.ServiceDocument(ServiceHeader."Document Type".AsInteger(), ServiceHeader."No.", ServDocType, ServDocNo);
+        exit(ServDocType);
     end;
 
     local procedure UpdateWhseDocuments()
@@ -796,6 +910,11 @@ codeunit 5980 "Service-Post"
 
     [IntegrationEvent(false, false)]
     local procedure OnCheckAndSetConstantsOnBeforeSetPostingOptions(var ServiceHeader: Record "Service Header"; Invoice: Boolean; Ship: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnSetCommitBehavior(var IgnoreCommit: Boolean)
     begin
     end;
 }

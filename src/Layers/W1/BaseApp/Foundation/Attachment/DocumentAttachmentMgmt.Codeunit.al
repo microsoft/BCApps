@@ -454,6 +454,49 @@ codeunit 1173 "Document Attachment Mgmt"
         OnAfterTransformAttachmentDocumentTypeValue(TableNo, AttachmentDocumentType);
     end;
 
+    internal procedure IsSupportedByFileViewerExtension(FileExtension: Text; IncludeImages: Boolean): Boolean
+    begin
+        if FileExtension = '' then
+            exit(false);
+
+        case LowerCase(FileExtension) of
+            'pdf':
+                exit(true);
+            'jpg', 'jpeg', 'bmp', 'png', 'tiff', 'tif', 'gif', 'svg', 'webp', 'avif', 'ico':
+                exit(IncludeImages);
+            else
+                exit(false);
+        end;
+    end;
+
+    internal procedure IsSupportedByFileViewerFileName(FileName: Text; IncludeImages: Boolean): Boolean
+    var
+        LowerFileName: Text;
+    begin
+        if FileName = '' then
+            exit(false);
+
+        LowerFileName := LowerCase(FileName);
+        if LowerFileName.EndsWith('.pdf') then
+            exit(true);
+
+        if not IncludeImages then
+            exit(false);
+
+        exit(
+            LowerFileName.EndsWith('.jpg') or
+            LowerFileName.EndsWith('.jpeg') or
+            LowerFileName.EndsWith('.bmp') or
+            LowerFileName.EndsWith('.png') or
+            LowerFileName.EndsWith('.tiff') or
+            LowerFileName.EndsWith('.tif') or
+            LowerFileName.EndsWith('.gif') or
+            LowerFileName.EndsWith('.svg') or
+            LowerFileName.EndsWith('.webp') or
+            LowerFileName.EndsWith('.avif') or
+            LowerFileName.EndsWith('.ico'));
+    end;
+
     [EventSubscriber(ObjectType::Table, Database::"Customer", 'OnAfterDeleteEvent', '', false, false)]
     local procedure DeleteAttachedDocumentsOnAfterDeleteCustomer(var Rec: Record Customer; RunTrigger: Boolean)
     var

@@ -33,6 +33,7 @@ codeunit 137019 "SCM Correct Invoice"
         CannotAssignNumbersAutoErr: Label 'It is not possible to assign numbers automatically. If you want the program to assign numbers automatically, please activate Default Nos.';
         CommentCountErr: Label 'Wrong Sales Line Count';
         ConfirmDialogErr: Label 'Expected confirm dialog was not shown';
+        SalesOrderLineReducedErr: Label 'Sales Order Line "%1" should be reduced by credit memo quantity.';
 
     [Test]
     [Scope('OnPrem')]
@@ -1260,6 +1261,76 @@ codeunit 137019 "SCM Correct Invoice"
         SalesCrMemoHeader.SetRange("Sell-to Customer No.", SalesInvoiceHeader."Sell-to Customer No.");
         SalesCrMemoHeader.SetRange(Corrective, true);
         Assert.RecordIsNotEmpty(SalesCrMemoHeader);
+    end;
+
+    [Test]
+    procedure PostCrMemoCopyDocWithModifiedQtyUpdatesCorrectSalesOrderLine()
+    var
+        Item: Record Item;
+        Customer: Record Customer;
+        SalesHeader: Record "Sales Header";
+        SalesLine: array[2] of Record "Sales Line";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        CreditMemoHeader: Record "Sales Header";
+        CreditMemoLine: Record "Sales Line";
+        CopyDocMgt: Codeunit "Copy Document Mgt.";
+        OriginalQty: array[2] of Decimal;
+    begin
+        // [SCENARIO 626470] Quantities on Sales Order lines remain consistent after posting a Credit Memo
+        // created via Copy Document from Posted Invoice when lines are modified (quantity reduced).
+        Initialize();
+
+        // [GIVEN] Create an Item with a Price.
+        CreateItemWithPrice(Item, LibraryRandom.RandDecInRange(10, 50, 2));
+
+        // [GIVEN] Post positive adjustment for the Item to have stock.
+        PostItemJournalPositiveAdj(Item."No.", '', 100);
+
+        // [GIVEN] Create a Customer.
+        LibrarySales.CreateCustomer(Customer);
+
+        // [GIVEN] Create a Sales Order with two lines for the same item with different quantities.
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, Customer."No.");
+        OriginalQty[1] := LibraryRandom.RandIntInRange(5, 10);
+        OriginalQty[2] := LibraryRandom.RandIntInRange(11, 20);
+        LibrarySales.CreateSalesLine(SalesLine[1], SalesHeader, SalesLine[1].Type::Item, Item."No.", OriginalQty[1]);
+        LibrarySales.CreateSalesLine(SalesLine[2], SalesHeader, SalesLine[2].Type::Item, Item."No.", OriginalQty[2]);
+
+        Salesline[2].Validate(SalesLine[2]."Qty. to Ship", OriginalQty[2] - 1);
+        SalesLine[2].Modify(true);
+
+        // [GIVEN] Ship and Invoice the Sales Order.
+        SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+
+        // [GIVEN] Create a Credit Memo via Copy Document from the Posted Invoice.
+        CreditMemoHeader.Init();
+        CreditMemoHeader.Validate("Document Type", CreditMemoHeader."Document Type"::"Credit Memo");
+        CreditMemoHeader.Insert(true);
+        CopyDocMgt.SetProperties(true, false, false, false, false, false, false);
+        CopyDocMgt.CopySalesDoc("Sales Document Type From"::"Posted Invoice", SalesInvoiceHeader."No.", CreditMemoHeader);
+
+        // [GIVEN] Modify the Credit Memo: reduce the quantity of the first line to 1.
+        CreditMemoLine.SetRange("Document Type", CreditMemoHeader."Document Type");
+        CreditMemoLine.SetRange("Document No.", CreditMemoHeader."No.");
+        CreditMemoLine.SetRange(Type, CreditMemoLine.Type::Item);
+        CreditMemoLine.FindFirst();
+        CreditMemoLine.Validate(Quantity, OriginalQty[2]);
+        CreditMemoLine.Modify(true);
+
+        // [GIVEN] Delete the second item line from the Credit Memo.
+        CreditMemoLine.Next();
+        CreditMemoLine.Delete(true);
+
+        // [WHEN] Post the Credit Memo.
+        SalesCrMemoHeader.Get(LibrarySales.PostSalesDocument(CreditMemoHeader, true, true));
+
+        // [THEN] The Sales Order line quantities are correctly updated.
+        // The first line should have Quantity Shipped and Quantity Invoiced reduced by 1 (credit memo qty).
+        SalesLine[1].Find();
+        Assert.AreEqual(
+            OriginalQty[1], SalesLine[1]."Quantity Shipped",
+            StrSubstNo(SalesOrderLineReducedErr, SalesLine[1].FieldCaption("Quantity Shipped")));
     end;
 
     local procedure Initialize()

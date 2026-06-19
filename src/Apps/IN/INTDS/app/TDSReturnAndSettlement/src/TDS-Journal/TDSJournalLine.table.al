@@ -7,6 +7,7 @@ namespace Microsoft.Finance.TDS.TDSReturnAndSettlement;
 using Microsoft.Bank.BankAccount;
 using Microsoft.CRM.Campaign;
 using Microsoft.CRM.Team;
+using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Journal;
@@ -823,6 +824,21 @@ table 18747 "TDS Journal Line"
             AutoFormatExpression = '';
             DataClassification = CustomerContent;
             Caption = 'TDS Line Amount';
+        }
+        field(90; "Currency Code"; Code[10])
+        {
+            Caption = 'Currency Code';
+            DataClassification = CustomerContent;
+            TableRelation = Currency;
+        }
+        field(91; "Currency Factor"; Decimal)
+        {
+            AutoFormatType = 0;
+            Caption = 'Currency Factor';
+            DataClassification = CustomerContent;
+            DecimalPlaces = 0 : 15;
+            Editable = false;
+            MinValue = 0;
         }
     }
 

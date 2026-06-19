@@ -118,6 +118,8 @@ report 10710 "Make 349 Declaration"
 
             trigger OnPreDataItem()
             begin
+                CustVendWarning349.Reset();
+                CustVendWarning349.DeleteAll();
                 PreVATRegNo := '';
             end;
         }

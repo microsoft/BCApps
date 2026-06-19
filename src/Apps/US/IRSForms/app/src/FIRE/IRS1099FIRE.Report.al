@@ -697,9 +697,11 @@ report 10039 "IRS 1099 FIRE"
         PeriodNo := IRSReportingPeriod.GetReportingPeriod(StartEndDate[1], StartEndDate[2]);
         EntryAppMgt.GetAppliedVendorEntries(TempApplVendorLedgerEntry, VendorNo, StartEndDate, true);
         for FormTypeIndex := 1 to FormTypeCount do begin
+            TempApplVendorLedgerEntry.Reset();
             TempApplVendorLedgerEntry.SetFilter("Document Type", '%1|%2', Enum::"Gen. Journal Document Type"::Invoice, Enum::"Gen. Journal Document Type"::"Credit Memo");
             TempApplVendorLedgerEntry.SetFilter("IRS 1099 Reporting Amount", '<>0');
             TempApplVendorLedgerEntry.SetFilter("IRS 1099 Form Box No.", IRS1099CodeFilter[FormTypeIndex]);
+            OnAfterSetAppliedVendorEntryFilters(TempApplVendorLedgerEntry, VendorNo, StartEndDate, FormTypeIndex);
             if TempApplVendorLedgerEntry.FindSet() then
                 repeat
                     Calculate1099Amount(TempApplVendorLedgerEntry, FormTypeIndex);
@@ -1521,6 +1523,11 @@ report 10039 "IRS 1099 FIRE"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeDownloadFile(var TempBlob: Codeunit "Temp Blob")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterSetAppliedVendorEntryFilters(var TempAppliedVendorLedgerEntry: Record "Vendor Ledger Entry" temporary; VendorNo: Code[20]; StartEndDate: array[2] of Date; FormTypeIndex: Integer)
     begin
     end;
 }

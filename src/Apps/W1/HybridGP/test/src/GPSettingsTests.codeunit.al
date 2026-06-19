@@ -11,7 +11,6 @@ codeunit 139681 "GP Settings Tests"
         GPTestHelperFunctions: Codeunit "GP Test Helper Functions";
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestInitialSettings()
     var
         GPCompanyAdditionalSettings: Record "GP Company Additional Settings";
@@ -44,7 +43,6 @@ codeunit 139681 "GP Settings Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestAllSettingsEnabled()
     var
         GPCompanyAdditionalSettings: Record "GP Company Additional Settings";
@@ -78,7 +76,6 @@ codeunit 139681 "GP Settings Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestBankModuleAutoSettings()
     var
         GPCompanyAdditionalSettings: Record "GP Company Additional Settings";
@@ -138,7 +135,6 @@ codeunit 139681 "GP Settings Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestPayablesModuleAutoSettings()
     var
         GPCompanyAdditionalSettings: Record "GP Company Additional Settings";
@@ -255,7 +251,6 @@ codeunit 139681 "GP Settings Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestReceivablesModuleAutoSettings()
     var
         GPCompanyAdditionalSettings: Record "GP Company Additional Settings";
@@ -364,7 +359,6 @@ codeunit 139681 "GP Settings Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestInventoryModuleAutoSettings()
     var
         GPCompanyAdditionalSettings: Record "GP Company Additional Settings";
@@ -464,7 +458,6 @@ codeunit 139681 "GP Settings Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestPostMigrationChecks()
     var
         GPCompanyAdditionalSettings: Record "GP Company Additional Settings";
@@ -514,7 +507,6 @@ codeunit 139681 "GP Settings Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestGLModuleAutoSettings()
     var
         GPCompanyAdditionalSettings: Record "GP Company Additional Settings";
@@ -605,7 +597,6 @@ codeunit 139681 "GP Settings Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestPopulateCombineStagingLogicNotMasterGLOnly()
     var
         GPCompanyAdditionalSettings: Record "GP Company Additional Settings";
@@ -629,7 +620,6 @@ codeunit 139681 "GP Settings Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestPopulateCombineStagingLogicMasterGLOnly()
     var
         GPCompanyAdditionalSettings: Record "GP Company Additional Settings";
@@ -653,7 +643,6 @@ codeunit 139681 "GP Settings Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestPopulateCombineStagingLogicReceivablesModuleEnabledMasterDataOnlyDisabled()
     var
         GPCompanyAdditionalSettings: Record "GP Company Additional Settings";
@@ -680,7 +669,6 @@ codeunit 139681 "GP Settings Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestPopulateCombineStagingLogicReceivablesModuleEnabledMasterDataOnlyEnabled()
     var
         GPCompanyAdditionalSettings: Record "GP Company Additional Settings";
@@ -707,7 +695,6 @@ codeunit 139681 "GP Settings Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestPopulateCombineStagingLogicReceivablesModuleDisabled()
     var
         GPCompanyAdditionalSettings: Record "GP Company Additional Settings";
@@ -733,7 +720,6 @@ codeunit 139681 "GP Settings Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestPopulateCombineStagingLogicPayablesModuleEnabledMasterDataOnlyDisabled()
     var
         GPCompanyAdditionalSettings: Record "GP Company Additional Settings";
@@ -760,7 +746,6 @@ codeunit 139681 "GP Settings Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestPopulateCombineStagingLogicPayablesModuleEnabledMasterDataOnlyEnabled()
     var
         GPCompanyAdditionalSettings: Record "GP Company Additional Settings";
@@ -787,7 +772,6 @@ codeunit 139681 "GP Settings Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestPopulateCombineStagingLogicPayablesModuleDisabled()
     var
         GPCompanyAdditionalSettings: Record "GP Company Additional Settings";
@@ -813,7 +797,6 @@ codeunit 139681 "GP Settings Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestPopulateCombineStagingLogicInventoryModuleEnabledMasterDataOnlyDisabled()
     var
         GPCompanyAdditionalSettings: Record "GP Company Additional Settings";
@@ -840,7 +823,6 @@ codeunit 139681 "GP Settings Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestPopulateCombineStagingLogicInventoryModuleEnabledMasterDataOnlyEnabled()
     var
         GPCompanyAdditionalSettings: Record "GP Company Additional Settings";
@@ -867,7 +849,6 @@ codeunit 139681 "GP Settings Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestPopulateCombineStagingLogicInventoryModuleDisabled()
     var
         GPCompanyAdditionalSettings: Record "GP Company Additional Settings";
@@ -907,45 +888,64 @@ codeunit 139681 "GP Settings Tests"
         GPPM20000: Record "GP PM20000";
         GPIV00101: Record "GP IV00101";
         GPIV10200: Record "GP IV10200";
+        GPPostingAccounts: Record "GP Posting Accounts";
+        GPCustomer: Record "GP Customer";
+        GPCustomerTransactions: Record "GP Customer Transactions";
+        GPVendor: Record "GP Vendor";
+        GPVendorTransactions: Record "GP Vendor Transactions";
+        GPItem: Record "GP Item";
+        GPItemTransactions: Record "GP Item Transactions";
+        GPGLTransactions: Record "GP GLTransactions";
+        GPAccount: Record "GP Account";
     begin
+        GPPostingAccounts.Truncate();
+        GPAccount.Truncate();
+        GPCustomer.Truncate();
+        GPCustomerTransactions.Truncate();
+        GPVendor.Truncate();
+        GPVendorTransactions.Truncate();
+        GPItem.Truncate();
+        GPItemTransactions.Truncate();
+        GPGLTransactions.Truncate();
+
         if not GPSY00300.IsEmpty() then
-            GPSY00300.DeleteAll();
+            GPSY00300.Truncate();
 
         if not GPGL10110.IsEmpty() then
-            GPGL10110.DeleteAll();
+            GPGL10110.Truncate();
 
         if not GPGL10111.IsEmpty() then
-            GPGL10111.DeleteAll();
+            GPGL10111.Truncate();
 
         if not GPGL00100.IsEmpty() then
-            GPGL00100.DeleteAll();
+            GPGL00100.Truncate();
 
         if not GPSY40100.IsEmpty() then
-            GPSY40100.DeleteAll();
+            GPSY40100.Truncate();
 
         if not GPSY40101.IsEmpty() then
-            GPSY40101.DeleteAll();
+            GPSY40101.Truncate();
 
         if not GPGL40200.IsEmpty() then
-            GPGL40200.DeleteAll();
+            GPGL40200.Truncate();
 
         if not GPRM00101.IsEmpty() then
-            GPRM00101.DeleteAll();
+            GPRM00101.Truncate();
 
         if not GPRM20101.IsEmpty() then
-            GPRM20101.DeleteAll();
+            GPRM20101.Truncate();
 
         if not GPPM00200.IsEmpty() then
-            GPPM00200.DeleteAll();
+            GPPM00200.Truncate();
 
         if not GPPM20000.IsEmpty() then
-            GPPM20000.DeleteAll();
+            GPPM20000.Truncate();
 
         if not GPIV00101.IsEmpty() then
-            GPIV00101.DeleteAll();
+            GPIV00101.Truncate();
 
         if not GPIV10200.IsEmpty() then
-            GPIV10200.DeleteAll();
+            GPIV10200.Truncate();
 
         // GL
         GPSY00300.MNSEGIND := true;
@@ -1054,6 +1054,11 @@ codeunit 139681 "GP Settings Tests"
         GPCompanyAdditionalSettings: Record "GP Company Additional Settings";
         CompanyNameText: Text[30];
     begin
+        // Clear any settings left over from a previous test so the inserts below do not fail
+        // with duplicate 'Company 1'/'Company 2'/'Company 3' errors.
+        GPCompanyMigrationSettings.DeleteAll();
+        GPCompanyAdditionalSettings.DeleteAll();
+
         CompanyNameText := 'Company 1';
         GPCompanyAdditionalSettings.Name := CompanyNameText;
         GPCompanyAdditionalSettings.Insert();

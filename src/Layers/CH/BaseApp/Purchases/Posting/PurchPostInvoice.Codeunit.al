@@ -890,6 +890,7 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
         VATAmountACY: Decimal;
         VATAmountRemainder: Decimal;
         VATAmountACYRemainder: Decimal;
+        IsFCYAmount: Boolean;
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -920,6 +921,7 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
 
                             VATAmount := VATBaseAmount * VATPostingSetup."VAT %" / 100;
                             VATAmountACY := VATBaseAmountACY * VATPostingSetup."VAT %" / 100;
+                            IsFCYAmount := PurchHeader."Currency Code" <> '';
 
                             PurchPostInvoiceEvents.RunOnCalculateVATAmountInBufferOnBeforeTempInvoicePostingBufferAssign(VATAmount, VATAmountACY, TempInvoicePostingBuffer);
                             TempInvoicePostingBufferReverseCharge := InvoicePostingBuffer;
@@ -929,14 +931,14 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
                                     VATAmountACYRemainder := VATAmountACY;
                                 end;
 
-                                VATAmountRemainder += VATAmount;
-                                InvoicePostingBuffer."VAT Amount" := Round(VATAmountRemainder, CurrencyDocument."Amount Rounding Precision");
-                                VATAmountRemainder -= InvoicePostingBuffer."VAT Amount";
+                                if IsFCYAmount then
+                                    VATAmount := CurrExchRate.ExchangeAmtFCYToLCY(
+                                        PurchHeader.GetUseDate(), PurchHeader."Currency Code",
+                                        VATAmount, PurchHeader."Currency Factor");
 
-                                if PurchHeader."Currency Code" <> '' then
-                                    InvoicePostingBuffer."VAT Amount" := Round(CurrExchRate.ExchangeAmtFCYToLCY(
-                                            PurchHeader.GetUseDate(), PurchHeader."Currency Code",
-                                            InvoicePostingBuffer."VAT Amount", PurchHeader."Currency Factor"));
+                                VATAmountRemainder += VATAmount;
+                                InvoicePostingBuffer."VAT Amount" := Round(VATAmountRemainder);
+                                VATAmountRemainder -= InvoicePostingBuffer."VAT Amount";
 
                                 VATAmountACYRemainder += VATAmountACY;
                                 InvoicePostingBuffer."VAT Amount (ACY)" := Round(VATAmountACYRemainder, Currency."Amount Rounding Precision");
@@ -945,9 +947,11 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
                                 InvoicePostingBuffer."VAT Base Amount" := Round(InvoicePostingBuffer."VAT Base Amount" * (1 - PurchHeader."VAT Base Discount %" / 100));
                                 InvoicePostingBuffer."VAT Base Amount (ACY)" := Round(InvoicePostingBuffer."VAT Base Amount (ACY)" * (1 - PurchHeader."VAT Base Discount %" / 100));
                             end else begin
-                                if PurchHeader."Currency Code" <> '' then
+                                if IsFCYAmount then
                                     VATAmount := Round(
-                                        CurrExchRate.ExchangeAmtFCYToLCY(PurchHeader.GetUseDate(), PurchHeader."Currency Code", VATAmount, PurchHeader."Currency Factor"))
+                                        CurrExchRate.ExchangeAmtFCYToLCY(
+                                            PurchHeader.GetUseDate(), PurchHeader."Currency Code",
+                                            VATAmount, PurchHeader."Currency Factor"))
                                 else
                                     VATAmount := Round(VATAmount);
 

@@ -414,6 +414,9 @@ codeunit 31102 "VAT Ctrl. Report Mgt. CZL"
 
     local procedure InsertVATCtrlReportBufferGroup(var TempVATCtrlReportBufferCZL: Record "VAT Ctrl. Report Buffer CZL" temporary; var TempVATCtrlReportEntLinkCZL: Record "VAT Ctrl. Report Ent. Link CZL" temporary; VATEntry: Record "VAT Entry"; VATPostingSetup: Record "VAT Posting Setup"; SectionCode: Code[20]; CommodityCode: Code[20])
     begin
+        if (SectionCode = 'A2') and (VATEntry."VAT Registration No." = '') then
+            VATEntry."VAT Registration No." := VATEntry."Country/Region Code";
+
         TempVATCtrlReportBufferCZL.SetRange(TempVATCtrlReportBufferCZL."VAT Ctrl. Report Section Code", SectionCode);
         TempVATCtrlReportBufferCZL.SetRange(TempVATCtrlReportBufferCZL."VAT Rate", VATPostingSetup."VAT Rate CZL");
         TempVATCtrlReportBufferCZL.SetRange(TempVATCtrlReportBufferCZL."Commodity Code", CommodityCode);

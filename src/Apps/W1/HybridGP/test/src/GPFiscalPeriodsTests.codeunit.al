@@ -11,7 +11,6 @@ codeunit 139680 "GP Fiscal Periods Tests"
         Assert: Codeunit Assert;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestGPFiscalPeriodsCalanderYears()
     var
         AccountingPeriod: Record "Accounting Period";
@@ -49,7 +48,6 @@ codeunit 139680 "GP Fiscal Periods Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestGPFiscalPeriodsNonCalendarYears()
     var
         AccountingPeriod: Record "Accounting Period";
@@ -88,7 +86,6 @@ codeunit 139680 "GP Fiscal Periods Tests"
 
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestGPFiscalPeriodsNonTypicalYears()
     var
         AccountingPeriod: Record "Accounting Period";
@@ -126,7 +123,6 @@ codeunit 139680 "GP Fiscal Periods Tests"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestGPLimitFiscalPeriods()
     var
         AccountingPeriod: Record "Accounting Period";

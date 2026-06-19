@@ -607,10 +607,17 @@ page 11401 "Bank/Giro Journal Subform"
                         end;
                 end;
         end;
+
+        OnAfterSetAccountName(Rec, xRec, AccName);
     end;
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeStartApplieFunction(var CBGStatementLine: Record "CBG Statement Line"; var CBGStatement: Record "CBG Statement"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterSetAccountName(var CBGStatementLine: Record "CBG Statement Line"; xCBGStatementLine: Record "CBG Statement Line"; var AccName: Text[100])
     begin
     end;
 }

@@ -41,7 +41,6 @@ using System.Environment.Configuration;
 using System.TestLibraries.Utilities;
 using System.Utilities;
 
-
 codeunit 137069 "SCM Production Orders"
 {
     EventSubscriberInstance = Manual;
@@ -55,82 +54,82 @@ codeunit 137069 "SCM Production Orders"
     end;
 
     var
-        ConsumptionItemJournalTemplate: Record "Item Journal Template";
         ConsumptionItemJournalBatch: Record "Item Journal Batch";
-        ItemJournalTemplate: Record "Item Journal Template";
+        ConsumptionItemJournalTemplate: Record "Item Journal Template";
         ItemJournalBatch: Record "Item Journal Batch";
-        LocationSilver: Record Location;
-        LocationGreen: Record Location;
+        ItemJournalTemplate: Record "Item Journal Template";
         LocationBlue: Record Location;
+        LocationGreen: Record Location;
+        LocationSilver: Record Location;
         LocationWhite: Record Location;
+        Assert: Codeunit Assert;
+        LibraryDimension: Codeunit "Library - Dimension";
         LibraryERM: Codeunit "Library - ERM";
-        LibraryVariableStorage: Codeunit "Library - Variable Storage";
-        LibraryPurchase: Codeunit "Library - Purchase";
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryItemTracking: Codeunit "Library - Item Tracking";
         LibraryManufacturing: Codeunit "Library - Manufacturing";
         LibraryPlanning: Codeunit "Library - Planning";
-        LibraryDimension: Codeunit "Library - Dimension";
-        LibrarySales: Codeunit "Library - Sales";
-        LibraryUtility: Codeunit "Library - Utility";
-        LibraryWarehouse: Codeunit "Library - Warehouse";
+        LibraryPurchase: Codeunit "Library - Purchase";
         LibraryRandom: Codeunit "Library - Random";
-        Assert: Codeunit Assert;
+        LibrarySales: Codeunit "Library - Sales";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        LibraryUtility: Codeunit "Library - Utility";
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
+        LibraryWarehouse: Codeunit "Library - Warehouse";
         ProductionJournalMgt: Codeunit "Production Journal Mgt";
         Initialized: Boolean;
         UpdateDimensionMethod: Option ByProductionOrderLine,ByShowDimensionsOnLine,ByProductionOrder;
         AvailabilityWarningsMsg: Label 'You do not have enough inventory to meet the demand for items in one or more lines';
-        CaptionErr: Label 'Caption must be the same.';
-        SummaryTypeItemLedgerEntryTxt: Label 'Item Ledger Entry';
-        SummaryTypePurchaseLineOrderTxt: Label 'Purchase Line, Order';
-        FirmPlannedProdOrderCreatedTxt: Label 'Firm Planned Prod. Order';
-        SerialNoErr: Label 'Serial No does not exist.';
-        NumberOfLineEqualErr: Label 'Number of Lines must be same.';
-        QtyToHandleErr: Label 'Qty. to Handle (Base) in the item tracking assigned to the document line for item';
-        LotNoErr: Label 'You must assign a lot number for item %1.', Comment = '%1 - Item No.';
-        ProductionOrderFinishedStatusMsg: Label '\\  * Some consumption is still missing.\\ Do you still want to finish the order?';
-        ProductionOrderNotExistErr: Label 'There is no Production Order within the filter';
-        NothingToPlanMsg: Label 'There is nothing to plan';
-        JournalLinePostedMsg: Label 'The journal lines were successfully posted.';
-        ValuedQtyErr: Label 'Valued Quantity in posted Value Entry is incorrect.';
-        LedgEntryNotPostedErr: Label 'Production Journal  posting must create %1.';
-        ProdOrderLineExistsErr: Label 'There is no Prod. Order Line within the filter.';
-        FromProductionBinCodeErr: Label 'When creating PO from SO Bin Code should be taken from Location."From-Production Bin Code" filed';
-        WrongFieldValueErr: Label '%1 in %2 must be copied from %3';
-        ItemTrackingMode: Option " ","Assign Lot No.","Select Entries","Verify Entries","Set Lot No.","Set Quantity & Lot No.","Get Lot Quantity";
-        PostingQst: Label 'Do you want to post the journal lines?';
-        JournalPostedMsg: Label 'successfully posted';
-        WillNotAffectExistingEntriesTxt: Label 'The change will not affect existing entries.';
-        RoutingHeaderExistErr: Label 'Routing No. must have a value in Prod. Order Routing Line';
-        ItemMustNotBeShownErr: Label 'Only filtered item must be displayed in the page.', Comment = '%1 = item no.';
-        CannotDeleteRecProdOrderErr: Label 'You cannot delete the Quality Measure because it is being used on one or more active Production Orders.';
         CannotDeleteRecActRoutingErr: Label 'You cannot delete the Quality Measure because it is being used on one or more active Routings.';
-        MalformedRecLinkErr: Label 'Wrong data in record link found';
-        WrongLotQtyOnItemJnlErr: Label 'Wrong lot quantity in item tracking on item journal line.';
-        ItemFilterTextErr: Label 'Item filter text is not displayed correctly on the Demand Forecast.';
+        CannotDeleteRecProdOrderErr: Label 'You cannot delete the Quality Measure because it is being used on one or more active Production Orders.';
+        CaptionErr: Label 'Caption must be the same.';
+        CompletelyPickedErr: Label 'Production order is not completely picked after pick processing.';
+        DateFilterErrMsg: Label 'The current format of date filter %1 is not valid. Do you want to remove it?', Comment = '%1 = Date Filter';
+        EditableErr: Label 'The value must not be editable.';
+        FirmPlannedProdOrderCreatedTxt: Label 'Firm Planned Prod. Order';
+        FlowFieldErr: Label 'Quantities are not correctly calculated from the flow fields in demand forecast matrix.';
+        ForecastByLocErr: Label 'Locations ares not added correctly in demand forecast matrix';
+        ForecastByLocVarErr: Label 'Locations and Variants ares not added correctly in demand forecast matrix';
+        ForecastByVariantErr: Label 'Variants ares not added correctly in demand forecast matrix';
+        FromProductionBinCodeErr: Label 'When creating PO from SO Bin Code should be taken from Location."From-Production Bin Code" filed';
+        InvalidDateFilterTxt: Label '100-100-2026..101-101-2026', Locked = true;
         ItemFilterBlobErr: Label 'Item filter is not stored correctly in the ItemFilterBlob';
         ItemFilterErr: Label 'Items are not correctly filtered in the demand forecast matrix.';
+        ItemFilterTextErr: Label 'Item filter text is not displayed correctly on the Demand Forecast.';
+        ItemLocVarFilterErr: Label 'Items, variants and locations are not correctly filtered in the demand forecast matrix.';
+        ItemMustNotBeShownErr: Label 'Only filtered item must be displayed in the page.', Comment = '%1 = item no.';
+        ItemShouldExistErr: Label 'Item %1 should exist in Production Forecast Matrix';
+        ItemTrackingMode: Option " ","Assign Lot No.","Select Entries","Verify Entries","Set Lot No.","Set Quantity & Lot No.","Get Lot Quantity";
+        JournalLinePostedMsg: Label 'The journal lines were successfully posted.';
+        JournalPostedMsg: Label 'successfully posted';
+        LedgEntryNotPostedErr: Label 'Production Journal  posting must create %1.';
         LocFilterBlobErr: Label 'Location filter is not stored correctly in the LocationFilterBlob';
         LocFilterErr: Label 'Locations are not correctly filtered in the demand forecast matrix.';
+        LocFilterNotInitErr: Label 'Location filter is not initialized';
         LocFilterOnLookUpErr: Label 'OnLookUp is not working on the location filter for demand forecast card.';
+        LotNoErr: Label 'You must assign a lot number for item %1.', Comment = '%1 - Item No.';
+        MalformedRecLinkErr: Label 'Wrong data in record link found';
+        MatrixRowLimitMsg: Label 'Maximum number of rows to be loaded';
+        NonEditableErr: Label 'The value must be editable.';
+        NothingToPlanMsg: Label 'There is nothing to plan';
+        NumberOfLineEqualErr: Label 'Number of Lines must be same.';
+        PostingQst: Label 'Do you want to post the journal lines?';
+        ProdOrderLineExistsErr: Label 'There is no Prod. Order Line within the filter.';
+        ProductionOrderFinishedStatusMsg: Label '\\  * Some consumption is still missing.\\ Do you still want to finish the order?';
+        ProductionOrderNotExistErr: Label 'There is no Production Order within the filter';
+        QtyToHandleErr: Label 'Qty. to Handle (Base) in the item tracking assigned to the document line for item';
+        RoutingHeaderExistErr: Label 'Routing No. must have a value in Prod. Order Routing Line';
+        SerialNoErr: Label 'Serial No does not exist.';
+        SummaryTypeItemLedgerEntryTxt: Label 'Item Ledger Entry';
+        SummaryTypePurchaseLineOrderTxt: Label 'Purchase Line, Order';
+        ValuedQtyErr: Label 'Valued Quantity in posted Value Entry is incorrect.';
+        VarFilterNotInitErr: Label 'Variant filter is not initialized';
         VarFilterOnLookUpErr: Label 'OnLookUp is not working on the variant filter for demand forecast card.';
         VariantFilterBlobErr: Label 'Variant filter is not stored correctly in the VariantFilterBlob';
         VariantFilterErr: Label 'Variant are not correctly filtered in the demand forecast matrix.';
-        LocFilterNotInitErr: Label 'Location filter is not initialized';
-        VarFilterNotInitErr: Label 'Variant filter is not initialized';
-        ForecastByLocErr: Label 'Locations ares not added correctly in demand forecast matrix';
-        ForecastByVariantErr: Label 'Variants ares not added correctly in demand forecast matrix';
-        ForecastByLocVarErr: Label 'Locations and Variants ares not added correctly in demand forecast matrix';
-        ItemLocVarFilterErr: Label 'Items, variants and locations are not correctly filtered in the demand forecast matrix.';
-        MatrixRowLimitMsg: Label 'Maximum number of rows to be loaded';
-        EditableErr: Label 'The value must not be editable.';
-        FlowFieldErr: Label 'Quantities are not correctly calculated from the flow fields in demand forecast matrix.';
-        ItemShouldExistErr: Label 'Item %1 should exist in Production Forecast Matrix';
-        NonEditableErr: Label 'The value must be editable.';
-        InvalidDateFilterTxt: Label '100-100-2026..101-101-2026', Locked = true;
-        DateFilterErrMsg: Label 'The current format of date filter %1 is not valid. Do you want to remove it?', Comment = '%1 = Date Filter';
-        CompletelyPickedErr: Label 'Production order is not completely picked after pick processing.';
+        WillNotAffectExistingEntriesTxt: Label 'The change will not affect existing entries.';
+        WrongFieldValueErr: Label '%1 in %2 must be copied from %3';
+        WrongLotQtyOnItemJnlErr: Label 'Wrong lot quantity in item tracking on item journal line.';
 
     [Test]
     [HandlerFunctions('MessageHandlerSimple')]
@@ -5102,6 +5101,65 @@ codeunit 137069 "SCM Production Orders"
         ProdOrderRoutingLine.FindFirst();
         Assert.AreEqual('21;22', ProdOrderRoutingLine."Next Operation No.",
             'Operation 10 should still link to both 21 and 22');
+    end;
+
+    [Test]
+    procedure ProdBOMNotCertifiedAndRefreshReleasedProdOrderError()
+    var
+        Item: Record Item;
+        ChildItem: Record Item;
+        ProductionOrder: Record "Production Order";
+        ProductionBOMHeader: Record "Production BOM Header";
+        ProductionBOMLine: Record "Production BOM Line";
+    begin
+        // [SCENARIO 638315] Refreshing a Released Production Order for an Item with a non-certified Production BOM throws an actionable Status TestField error.
+        Initialize();
+
+        // [GIVEN] Create Item and Child Item with Replenishment System = "Prod. Order" and "Purchase" respectively.
+        CreateItem(ChildItem, ChildItem."Replenishment System"::Purchase);
+        CreateItem(Item, Item."Replenishment System"::"Prod. Order");
+
+        // [GIVEN] Create Production BOM for the Item with Child Item as component.
+        CreateProductionBOM(ProductionBOMHeader, ProductionBOMLine, Item."Base Unit of Measure", ProductionBOMLine.Type::Item, ChildItem."No.");
+
+        // [GIVEN] Update Routing and BOM on Item.
+        UpdateRoutingAndBOMOnItem(Item, ProductionBOMHeader."No.", '');
+
+        // [WHEN] Create and Refresh Released Production Order.
+        asserterror CreateAndRefreshReleasedProductionOrder(ProductionOrder, Item."No.", LibraryRandom.RandDec(10, 2));
+
+        // [THEN] Verify Production BOM Status error message when Refresh Production Order.
+        Assert.ExpectedTestFieldError(ProductionBOMHeader.FieldCaption(Status), Format(ProductionBOMHeader.Status::Certified));
+    end;
+
+    [Test]
+    procedure RoutingNotCertifiedAndRefreshReleasedProdOrderError()
+    var
+        Item: Record Item;
+        ProductionOrder: Record "Production Order";
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+        WorkCenter: Record "Work Center";
+    begin
+        // [SCENARIO 638315] Refreshing a Released Production Order for an Item with a non-certified Routing throws an actionable Status TestField error.
+        Initialize();
+
+        // [GIVEN] Create a new Routing Header. 
+        LibraryManufacturing.CreateRoutingHeader(RoutingHeader, RoutingHeader.Type::Serial);
+
+        // [GIVEN] Create a new Work Center and Routing Line.
+        CreateWorkCenter(WorkCenter, 080000T, 160000T);
+        CreateWorkCenterRoutingLine(RoutingLine, RoutingHeader, WorkCenter."No.", 0, LibraryRandom.RandInt(10), 0, 0);
+
+        // [GIVEN] Create Item with Replenishment System = "Prod. Order" and assign the Routing Header to it.
+        CreateItem(Item, Item."Replenishment System"::"Prod. Order");
+        UpdateRoutingAndBOMOnItem(Item, '', RoutingHeader."No.");
+
+        // [WHEN] Create and Refresh Released Production Order.
+        asserterror CreateAndRefreshReleasedProductionOrder(ProductionOrder, Item."No.", LibraryRandom.RandDec(10, 2));
+
+        // [THEN] Verify Routing Status error message when Refresh Production Order.
+        Assert.ExpectedTestFieldError(RoutingHeader.FieldCaption(Status), Format(RoutingHeader.Status::Certified));
     end;
 
     local procedure Initialize()

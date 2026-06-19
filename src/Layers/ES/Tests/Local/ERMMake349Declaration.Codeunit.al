@@ -6387,6 +6387,52 @@ codeunit 144117 "ERM Make 349 Declaration"
         LibraryVariableStorage.AssertEmpty();
     end;
 
+    [Test]
+    [HandlerFunctions('ConfirmHandler,MessageHandler,Make349DeclarationRequestPageHandler,CustVendWarnings349CountEntriesModalPageHandler')]
+    procedure Make349DeclarationNoDuplicateWarningEntriesOnRerun()
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        Customer: Record Customer;
+        PostingDate: Date;
+        FileName: Text;
+        FirstRunCount: Integer;
+        SecondRunCount: Integer;
+    begin
+        // [FEATURE] [Make 349 Declaration]
+        // [SCENARIO 637829] Running Make 349 Declaration report multiple times should not duplicate Customer/Vendor Warning 349 entries.
+        Initialize();
+
+        // [GIVEN] Create VAT Posting Setup with EU Service = FALSE.
+        CreateVATPostingSetup(VATPostingSetup, false);
+
+        // [GIVEN] Create Posted Sales Invoice for EU Customer.
+        PostingDate := GetFirstDateInEmptyFY();
+        CreateAndPostSalesInvoiceWithVATSetup(SalesInvoiceHeader, VATPostingSetup, false, PostingDate);
+        Customer.Get(SalesInvoiceHeader."Sell-to Customer No.");
+
+        // [GIVEN] Create Posted corrective Sales Credit Memo referencing the above Sales Invoice.
+        CreateAndPostSalesCreditMemoWithVATSetup(
+            SalesCrMemoHeader, VATPostingSetup, Customer."No.", SalesInvoiceHeader."No.", false, PostingDate);
+        Commit();
+
+        // [WHEN] Run Make 349 Declaration report first time.
+        FileName := RunMake349DeclarationWithDate(PostingDate);
+
+        // [THEN] Verify Customer/Vendor Warnings 349 page has entries.
+        FirstRunCount := LibraryVariableStorage.DequeueInteger();
+        Assert.IsTrue(FirstRunCount > 0, 'Expected at least one warning entry on first run');
+
+        // [WHEN] Run Make 349 Declaration report second time with same parameters.
+        FileName := RunMake349DeclarationWithDate(PostingDate);
+
+        // [THEN] Verify Customer/Vendor Warnings 349 page has the same number of entries (no duplicates).
+        SecondRunCount := LibraryVariableStorage.DequeueInteger();
+        Assert.AreEqual(FirstRunCount, SecondRunCount,
+            'Customer/Vendor Warning 349 entries should not be duplicated when report is run again');
+    end;
+
     local procedure Initialize()
     var
         InventorySetup: Record "Inventory Setup";
@@ -7816,6 +7862,21 @@ codeunit 144117 "ERM Make 349 Declaration"
     [Scope('OnPrem')]
     procedure CustomerVendorWarnings349ModalPageHandler(var CustomerVendorWarnings349: TestPage "Customer/Vendor Warnings 349")
     begin
+        CustomerVendorWarnings349.Process.Invoke();
+    end;
+
+    [ModalPageHandler]
+    [Scope('OnPrem')]
+    procedure CustVendWarnings349CountEntriesModalPageHandler(var CustomerVendorWarnings349: TestPage "Customer/Vendor Warnings 349")
+    var
+        EntryCount: Integer;
+    begin
+        EntryCount := 0;
+        if CustomerVendorWarnings349.First() then
+            repeat
+                EntryCount += 1;
+            until not CustomerVendorWarnings349.Next();
+        LibraryVariableStorage.Enqueue(EntryCount);
         CustomerVendorWarnings349.Process.Invoke();
     end;
 

@@ -834,6 +834,7 @@ codeunit 1313 "Correct Posted Purch. Invoice"
         UndoPostingManagement: Codeunit "Undo Posting Management";
     begin
         PurchInvLine.SetRange("Document No.", PurchInvHeaderNo);
+        PurchInvLine.SetRange("Prepayment Line", false);
         if PurchInvLine.FindSet() then
             repeat
                 TempItemLedgerEntry.Reset();

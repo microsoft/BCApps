@@ -292,7 +292,7 @@ codeunit 411 "Dimension Buffer Management"
         DimBuf.Reset();
         DimBuf.DeleteAll();
 
-        if DimId = 0 then
+        if DimId <= 0 then
             exit;
 
         TempDimensionIDBuffer.SetCurrentKey(ID);

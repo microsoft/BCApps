@@ -21,6 +21,7 @@ codeunit 10553 "Feature - Reverse Charge VAT" implements "Feature Data Update"
     Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
+    Permissions = tabledata "Feature Data Update Status" = rm;
     ObsoleteReason = 'Feature Reverse Charge VAT will be enabled by default in version 30.0.';
     ObsoleteState = Pending;
     ObsoleteTag = '27.0';

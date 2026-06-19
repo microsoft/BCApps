@@ -515,6 +515,7 @@ table 11000003 "Detail Line"
                     "Detail line".CalcSums(Amount);
 
                     Prop.Get("Our Bank", "Connect Lines");
+                    OnUpdateConnectionOnAfterGetProposalLine(Rec, Prop, "Detail line");
                     Prop.Validate(Amount, "Detail line".Amount + Amount);
                     if Prop."Foreign Currency" <> '' then
                         Prop.Validate("Foreign Amount", GetAmountInDocumentCurrency(Prop));
@@ -525,6 +526,7 @@ table 11000003 "Detail Line"
                             Prop."Transaction Date" := "Detail line".Date;
                     end else
                         Prop."Transaction Date" := Date;
+                    OnUpdateConnectionOnBeforeModifyProposalLine(Rec, Prop, "Detail line");
                     Prop.Modify();
                 end;
         end;
@@ -738,6 +740,16 @@ table 11000003 "Detail Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnValidateSerialNoEntryOnBeforeValidateAmountFromEmplLedgEntry(var DetailLineRec: Record "Detail Line"; TrMode: Record "Transaction Mode"; EmplLedgEntry: Record "Employee Ledger Entry"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnUpdateConnectionOnAfterGetProposalLine(var DetailLine: Record "Detail Line"; var ProposalLine: Record "Proposal Line"; ConnectedDetailLine: Record "Detail Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnUpdateConnectionOnBeforeModifyProposalLine(var DetailLine: Record "Detail Line"; var ProposalLine: Record "Proposal Line"; ConnectedDetailLine: Record "Detail Line")
     begin
     end;
 }
