@@ -221,7 +221,7 @@ page 6121 "E-Document"
                 Enabled = Rec.Direction = Rec.Direction::Outgoing;
                 Visible = Rec.Direction = Rec.Direction::Outgoing;
             }
-            part(EDocMessages; "E-Document Messages Part")
+            part(EDocMessages; "E-Document Messages FactBox")
             {
                 Caption = 'Messages';
                 SubPageLink = "E-Document Entry No." = field("Entry No");

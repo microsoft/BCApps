@@ -8,11 +8,11 @@ namespace Microsoft.Peppol.Response;
 /// Identifies the type of an E-Document message (e.g. a PEPPOL Order Response).
 /// Extend this enum in a format-specific app to declare new message types.
 /// </summary>
-enum 50000 "E-Document Message Type"
+enum 37207 "E-Document Message Type"
 {
     Extensible = true;
 
-    value(50100; "PEPPOL Order Response")
+    value(37210; "PEPPOL Order Response")
     {
         Caption = 'PEPPOL Order Response';
     }

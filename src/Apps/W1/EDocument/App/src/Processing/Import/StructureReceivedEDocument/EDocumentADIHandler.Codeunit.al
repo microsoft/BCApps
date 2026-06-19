@@ -9,7 +9,6 @@ using Microsoft.eServices.EDocument.Helpers;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
-using Microsoft.Peppol.Response;
 using System.AI;
 using System.AI.DocumentIntelligence;
 using System.Text;
@@ -240,12 +239,4 @@ codeunit 6174 "E-Document ADI Handler" implements IStructureReceivedEDocument, I
     end;
 #pragma warning restore AA0139
 
-    procedure SupportsOrderResponse(EDocument: Record "E-Document"): Boolean
-    begin
-        exit(false);
-    end;
-
-    procedure BuildOrderResponse(EDocument: Record "E-Document"; ResponseType: Enum "E-Doc. Response Type"; var TempBlob: Codeunit "Temp Blob")
-    begin
-    end;
 }

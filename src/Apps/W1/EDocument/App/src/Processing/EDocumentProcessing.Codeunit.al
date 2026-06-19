@@ -8,12 +8,12 @@ using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
 using Microsoft.eServices.EDocument.Processing.Message;
-using Microsoft.Peppol.Response;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Transfer;
+using Microsoft.Peppol.Response;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Vendor;
@@ -750,14 +750,14 @@ codeunit 6108 "E-Document Processing"
     procedure SendOrderRejection(EDocument: Record "E-Document")
     var
         EDocMessageMgt: Codeunit "E-Doc. Message Mgt.";
-        IReader: Interface IStructuredFormatReader;
         ResponseBlob: Codeunit "Temp Blob";
+        IResponseBuilder: Interface IOrderResponseBuilder;
     begin
         EDocument.TestField(Direction, EDocument.Direction::Incoming);
-        IReader := EDocument."Read into Draft Impl.";
-        if not IReader.SupportsOrderResponse(EDocument) then
+        IResponseBuilder := EDocument."Read into Draft Impl.";
+        if not IResponseBuilder.SupportsOrderResponse(EDocument) then
             exit;
-        IReader.BuildOrderResponse(EDocument, "E-Doc. Response Type"::Rejected, ResponseBlob);
+        IResponseBuilder.BuildOrderResponse(EDocument, "E-Doc. Response Type"::Rejected, ResponseBlob);
         EDocMessageMgt.CreateMessage(EDocument, "E-Document Message Type"::"PEPPOL Order Response", "E-Document Direction"::Outgoing, "E-Doc. Response Type"::Rejected, ResponseBlob);
     end;
 

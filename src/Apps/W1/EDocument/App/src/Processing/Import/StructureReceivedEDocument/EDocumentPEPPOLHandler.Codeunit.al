@@ -19,7 +19,7 @@ using System.Utilities;
 /// Spec reference: https://docs.peppol.eu/poacc/billing/3.0/syntax/ubl-invoice/tree/
 ///                 https://docs.peppol.eu/poacc/billing/3.0/syntax/ubl-creditnote/tree/
 /// </summary>
-codeunit 6173 "E-Document PEPPOL Handler" implements IStructuredFormatReader
+codeunit 6173 "E-Document PEPPOL Handler" implements IStructuredFormatReader, IOrderResponseBuilder
 {
     Access = Internal;
     InherentEntitlements = X;
@@ -28,7 +28,6 @@ codeunit 6173 "E-Document PEPPOL Handler" implements IStructuredFormatReader
     var
         PeppolUtility: Codeunit "E-Document PEPPOL Utility";
         BillingReferenceEmptyTelemetryTxt: Label 'CreditNote BillingReference is empty - no originating invoice reference found.', Locked = true;
-        UnsupportedRootElementErr: Label 'Unsupported XML root element: %1. Only Invoice, CreditNote, Order, and OrderResponse are supported.', Comment = '%1 = XML root element name';
 
     procedure ReadIntoDraft(EDocument: Record "E-Document"; TempBlob: Codeunit "Temp Blob"): Enum "E-Doc. Process Draft"
     var
@@ -280,5 +279,4 @@ codeunit 6173 "E-Document PEPPOL Handler" implements IStructuredFormatReader
                 exit("E-Doc. Response Type"::None);
         end;
     end;
-
 }

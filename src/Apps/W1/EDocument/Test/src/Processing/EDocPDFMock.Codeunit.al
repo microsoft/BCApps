@@ -5,7 +5,6 @@
 namespace Microsoft.eServices.EDocument.Test;
 
 using Microsoft.eServices.EDocument;
-using Microsoft.Peppol.Response;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
@@ -51,12 +50,4 @@ codeunit 139782 "E-Doc PDF Mock" implements IStructureReceivedEDocument, IStruct
         exit("E-Doc. Read into Draft"::Unspecified);
     end;
 
-    procedure SupportsOrderResponse(EDocument: Record "E-Document"): Boolean
-    begin
-        exit(false);
-    end;
-
-    procedure BuildOrderResponse(EDocument: Record "E-Document"; ResponseType: Enum "E-Doc. Response Type"; var TempBlob: Codeunit "Temp Blob")
-    begin
-    end;
 }

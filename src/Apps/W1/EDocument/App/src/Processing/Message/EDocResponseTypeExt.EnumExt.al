@@ -6,7 +6,7 @@ namespace Microsoft.eServices.EDocument.Processing.Message;
 
 using Microsoft.Peppol.Response;
 
-enumextension 50005 "E-Doc. Response Type Core Ext" extends "E-Doc. Response Type"
+enumextension 6410 "E-Doc. Response Type Core Ext" extends "E-Doc. Response Type"
 {
     value(0; None)
     {

@@ -12,7 +12,7 @@ using System.Utilities;
 /// Public API for creating and reading E-Document messages.
 /// Format apps call CreateMessage to store a response/message blob linked to an E-Document.
 /// </summary>
-codeunit 50003 "E-Doc. Message Mgt."
+codeunit 6433 "E-Doc. Message Mgt."
 {
     Access = Public;
     InherentEntitlements = X;
@@ -65,12 +65,15 @@ codeunit 50003 "E-Doc. Message Mgt."
     end;
 
     /// <summary>
-    /// Loads the payload blob for the given message into TempBlob.
+    /// Loads the payload blob for the given message entry number into TempBlob.
     /// </summary>
-    procedure GetMessageBlob(EDocMessage: Record "E-Document Message"; var TempBlob: Codeunit "Temp Blob")
+    procedure GetMessageBlob(MessageEntryNo: Integer; var TempBlob: Codeunit "Temp Blob")
     var
+        EDocMessage: Record "E-Document Message";
         EDocDataStorage: Record "E-Doc. Data Storage";
     begin
+        if not EDocMessage.Get(MessageEntryNo) then
+            exit;
         if not EDocDataStorage.Get(EDocMessage."Data Storage Entry No.") then
             exit;
         TempBlob := EDocDataStorage.GetTempBlob();

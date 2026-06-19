@@ -12,7 +12,7 @@ using System.Utilities;
 /// <summary>
 /// Default implementations for E-Document interfaces.
 /// </summary>
-codeunit 6116 "E-Doc. Unspecified Impl." implements IStructureReceivedEDocument, IEDocumentFinishDraft, IStructuredFormatReader, IEDocFileFormat
+codeunit 6116 "E-Doc. Unspecified Impl." implements IStructureReceivedEDocument, IEDocumentFinishDraft, IStructuredFormatReader, IOrderResponseBuilder, IEDocFileFormat
 {
     Access = Internal;
     InherentEntitlements = X;

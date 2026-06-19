@@ -14,7 +14,7 @@ using Microsoft.Purchases.Vendor;
 /// When ReadIntoDraft returns "E-Document Message", the pipeline calls PrepareDraft which returns None
 /// so that FinishDraft exits early without creating a BC document.
 /// </summary>
-codeunit 50005 "E-Doc. Message Draft Handler" implements IProcessStructuredData
+codeunit 6435 "E-Doc. Message Draft Handler" implements IProcessStructuredData
 {
     Access = Internal;
     InherentEntitlements = X;

@@ -10,7 +10,7 @@ using System.Utilities;
 /// Factbox listpart showing all messages related to an E-Document.
 /// Surfaced on the E-Document card page via SubPageLink on "E-Document Entry No.".
 /// </summary>
-page 50004 "E-Document Messages Part"
+page 6434 "E-Document Messages FactBox"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Messages';
@@ -70,7 +70,7 @@ page 50004 "E-Document Messages Part"
                     InStr: InStream;
                     FileName: Text;
                 begin
-                    EDocMessageMgt.GetMessageBlob(Rec, TempBlob);
+                    EDocMessageMgt.GetMessageBlob(Rec."Entry No.", TempBlob);
                     if not TempBlob.HasValue() then
                         exit;
                     TempBlob.CreateInStream(InStr);

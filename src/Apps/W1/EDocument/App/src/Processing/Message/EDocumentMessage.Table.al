@@ -11,7 +11,7 @@ using Microsoft.Peppol.Response;
 /// Stores a message (e.g. a PEPPOL Order Response) that relates to an existing E-Document.
 /// A message does not produce a BC document; it updates the lifecycle state of the parent E-Document.
 /// </summary>
-table 50002 "E-Document Message"
+table 6432 "E-Document Message"
 {
     Access = Internal;
     Caption = 'E-Document Message';

@@ -10,10 +10,11 @@ using Microsoft.eServices.EDocument.Processing.Interfaces;
 /// <summary>
 /// Specifies how a structured data type should be interpreted and read into a draft.
 /// </summary>
-enum 6109 "E-Doc. Read into Draft" implements IStructuredFormatReader
+enum 6109 "E-Doc. Read into Draft" implements IStructuredFormatReader, IOrderResponseBuilder
 {
     Extensible = true;
-    DefaultImplementation = IStructuredFormatReader = "E-Doc. Unspecified Impl.";
+    DefaultImplementation = IStructuredFormatReader = "E-Doc. Unspecified Impl.",
+                            IOrderResponseBuilder = "E-Doc. Unspecified Impl.";
 
     value(0; "Unspecified")
     {
@@ -33,7 +34,8 @@ enum 6109 "E-Doc. Read into Draft" implements IStructuredFormatReader
     value(3; "PEPPOL")
     {
         Caption = 'PEPPOL';
-        Implementation = IStructuredFormatReader = "E-Document PEPPOL Handler";
+        Implementation = IStructuredFormatReader = "E-Document PEPPOL Handler",
+                         IOrderResponseBuilder = "E-Document PEPPOL Handler";
     }
     value(4; "MLLM")
     {

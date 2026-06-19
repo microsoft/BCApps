@@ -5,13 +5,12 @@
 namespace Microsoft.Peppol.Response;
 
 using System.Utilities;
-using System.Xml;
 
 /// <summary>
 /// Builds a minimal, well-formed PEPPOL BIS 28 Order Response (code AB = Acknowledged)
 /// for an inbound Sales Order that was read into draft.
 /// </summary>
-codeunit 50102 "PEPPOL Order Resp. Builder"
+codeunit 37209 "PEPPOL Order Resp. Builder"
 {
     Access = Public;
     InherentEntitlements = X;

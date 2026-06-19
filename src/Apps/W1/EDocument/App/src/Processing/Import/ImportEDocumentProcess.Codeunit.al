@@ -124,6 +124,7 @@ codeunit 6104 "Import E-Document Process"
         FromBlob: Codeunit "Temp Blob";
         ResponseBlob: Codeunit "Temp Blob";
         IStructuredFormatReader: Interface IStructuredFormatReader;
+        IResponseBuilder: Interface IOrderResponseBuilder;
     begin
         if EDocumentDataStorage.Get(EDocument."Structured Data Entry No.") then
             FromBlob := EDocumentDataStorage.GetTempBlob();
@@ -136,8 +137,9 @@ codeunit 6104 "Import E-Document Process"
         EDocument."Process Draft Impl." := IStructuredFormatReader.ReadIntoDraft(EDocument, FromBlob);
         EDocument.Modify();
 
-        if IStructuredFormatReader.SupportsOrderResponse(EDocument) then begin
-            IStructuredFormatReader.BuildOrderResponse(EDocument, "E-Doc. Response Type"::Acknowledged, ResponseBlob);
+        IResponseBuilder := EDocument."Read into Draft Impl.";
+        if IResponseBuilder.SupportsOrderResponse(EDocument) then begin
+            IResponseBuilder.BuildOrderResponse(EDocument, "E-Doc. Response Type"::Acknowledged, ResponseBlob);
             EDocMessageMgt.CreateMessage(EDocument, "E-Document Message Type"::"PEPPOL Order Response", "E-Document Direction"::Outgoing, "E-Doc. Response Type"::Acknowledged, ResponseBlob);
         end;
     end;

@@ -5,14 +5,13 @@
 namespace Microsoft.eServices.EDocument.Test;
 
 using Microsoft.eServices.EDocument;
+using Microsoft.eServices.EDocument.Integration;
 using Microsoft.eServices.EDocument.Processing.Message;
 using Microsoft.Peppol.Response;
-using Microsoft.eServices.EDocument.Integration;
 using Microsoft.Sales.Customer;
-using System.TestLibraries.Utilities;
 using System.Utilities;
 
-codeunit 50200 "E-Doc. Message Response Tests"
+codeunit 139898 "E-Doc. Message Response Tests"
 {
     Subtype = Test;
     TestType = IntegrationTest;

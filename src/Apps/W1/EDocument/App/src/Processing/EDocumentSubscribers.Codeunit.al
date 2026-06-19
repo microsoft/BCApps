@@ -12,7 +12,6 @@ using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
 using Microsoft.eServices.EDocument.Processing.Message;
-using Microsoft.Peppol.Response;
 using Microsoft.eServices.EDocument.Service.Participant;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
@@ -20,6 +19,7 @@ using Microsoft.Finance.GeneralLedger.Posting;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Inventory.Transfer;
+using Microsoft.Peppol.Response;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Posting;
@@ -753,9 +753,9 @@ codeunit 6103 "E-Document Subscribers"
     var
         EDocument: Record "E-Document";
         EDocMessageMgt: Codeunit "E-Doc. Message Mgt.";
-        IReader: Interface IStructuredFormatReader;
         ResponseBlob: Codeunit "Temp Blob";
         SalesHeaderRef: RecordRef;
+        IResponseBuilder: Interface IOrderResponseBuilder;
     begin
         if PreviewMode then
             exit;
@@ -764,10 +764,10 @@ codeunit 6103 "E-Document Subscribers"
         EDocument.SetRange(Direction, EDocument.Direction::Incoming);
         if not EDocument.FindLast() then
             exit;
-        IReader := EDocument."Read into Draft Impl.";
-        if not IReader.SupportsOrderResponse(EDocument) then
+        IResponseBuilder := EDocument."Read into Draft Impl.";
+        if not IResponseBuilder.SupportsOrderResponse(EDocument) then
             exit;
-        IReader.BuildOrderResponse(EDocument, "E-Doc. Response Type"::Accepted, ResponseBlob);
+        IResponseBuilder.BuildOrderResponse(EDocument, "E-Doc. Response Type"::Accepted, ResponseBlob);
         EDocMessageMgt.CreateMessage(EDocument, "E-Document Message Type"::"PEPPOL Order Response", "E-Document Direction"::Outgoing, "E-Doc. Response Type"::Accepted, ResponseBlob);
     end;
 }

@@ -72,11 +72,7 @@ page 6133 "E-Document Service"
                 field("Import Process"; Rec."Import Process")
                 {
                     ToolTip = 'Specifies the version of the import process to use for incoming e-documents.';
-                    // Visible = false;
-                }
-                field("Read into Draft Impl.";"Read into Draft Impl.")
-                {
-                    ToolTip = 'Specifies whether incoming purchase invoice e-documents are read into purchase invoice drafts.';
+                    Visible = false;
                 }
                 group(PurchaseDraft)
                 {
