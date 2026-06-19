@@ -11,6 +11,14 @@ using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Inventory.Transfer;
+using Microsoft.Manufacturing.Document;
+using Microsoft.Manufacturing.MachineCenter;
+using Microsoft.Manufacturing.Routing;
+using Microsoft.Manufacturing.Setup;
+using Microsoft.Manufacturing.Subcontracting;
+using Microsoft.Manufacturing.WorkCenter;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Warehouse.Activity;
@@ -600,6 +608,91 @@ codeunit 149910 "Subc. WIP Transfer Post Test"
         Assert.RecordIsEmpty(RequisitionLine);
     end;
 
+    [Test]
+    [HandlerFunctions('DoNotConfirmShowCreatedPurchOrderForSubcontracting,HandleTransferOrder')]
+    procedure PostWIPTransfer_WhenTransferLineHasAlternativeUOM_WIPLedgerEntryHasBaseUOM()
+    var
+        Item: Record Item;
+        ItemUOM: Record "Item Unit of Measure";
+        MachineCenter: array[2] of Record "Machine Center";
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        Vendor: Record Vendor;
+        WIPLedgerEntry: Record "Subcontractor WIP Ledger Entry";
+        WorkCenter: array[2] of Record "Work Center";
+        PurchaseHeaderPage: TestPage "Purchase Order";
+    begin
+        // [SCENARIO] WIP Ledger Entries use the item's base unit of measure even when the
+        // subcontracting purchase order line carries a different (alternative) unit of measure.
+        Initialize();
+
+        // [GIVEN] Work centers, machine centers, item with subcontracting routing and Transfer WIP Item flag
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, true);
+        SubcWarehouseLibrary.CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        SetTransferWIPItemOnRoutingLine(Item."Routing No.", WorkCenter[2]."No.", true);
+        SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+
+        // [GIVEN] Item has an additional alternative UOM (6 base units each) — different from the base UOM
+        LibraryInventory.CreateItemUnitOfMeasureCode(ItemUOM, Item."No.", 6);
+
+        // [GIVEN] Released Production Order refreshed at the manufacturing components location
+        LibraryManufacturing.CreateProductionOrder(
+            ProductionOrder, "Production Order Status"::Released,
+            ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
+        SetProdOrderLocationToCompSetupLocationAndRefresh(ProductionOrder);
+
+        // [GIVEN] Subcontracting Purchase Order created via the Prod. Order Routing page
+        SubcontractingMgmtLibrary.CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
+
+        // [GIVEN] Change the purchase line UOM to the alternative UOM to simulate a non-base-UOM document
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        PurchaseLine.FindFirst();
+        PurchaseLine.Validate("Unit of Measure Code", ItemUOM.Code);
+        PurchaseLine.Modify(true);
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+
+        // [GIVEN] Create Transfer Route from production order location to subcontractor location
+        Vendor.Get(WorkCenter[2]."Subcontractor No.");
+        CreateAndUpdateTransferRoute(ProductionOrder."Location Code", Vendor."Subc. Location Code");
+
+        // [WHEN] Create WIP Transfer Order to Subcontractor and post the shipment
+        PurchaseHeaderPage.OpenView();
+        PurchaseHeaderPage.GoToRecord(PurchaseHeader);
+        PurchaseHeaderPage.CreateTransfOrdToSubcontractor.Invoke();
+
+        TransferLine.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
+#pragma warning disable AA0210
+        TransferLine.SetRange("Transfer WIP Item", true);
+#pragma warning restore AA0210
+        TransferLine.FindFirst();
+        TransferHeader.Get(TransferLine."Document No.");
+        LibraryWarehouse.PostTransferOrder(TransferHeader, true, false);
+
+        // [THEN] WIP Ledger Entries carry the item base unit of measure, not the document UOM
+        WIPLedgerEntry.SetRange("Item No.", Item."No.");
+        Assert.IsTrue(WIPLedgerEntry.FindSet(), 'WIP Ledger Entries must be created after posting the WIP transfer shipment.');
+        repeat
+            Assert.AreEqual(Item."Base Unit of Measure", WIPLedgerEntry."Base Unit of Measure",
+                'WIP Ledger Entry Base Unit of Measure must equal the item base UOM, not the document UOM.');
+        until WIPLedgerEntry.Next() = 0;
+    end;
+
+    [ConfirmHandler]
+    procedure DoNotConfirmShowCreatedPurchOrderForSubcontracting(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Reply := false;
+    end;
+
+    [PageHandler]
+    procedure HandleTransferOrder(var TransfOrderPage: TestPage "Transfer Order")
+    begin
+        TransfOrderPage.OK().Invoke();
+    end;
+
     [ConfirmHandler]
     procedure DeleteWhseReceiptConfimHandler(Question: Text[1024]; var Reply: Boolean)
     begin
@@ -624,6 +717,8 @@ codeunit 149910 "Subc. WIP Transfer Post Test"
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryItemTracking: Codeunit "Library - Item Tracking";
         LibraryMfgManagement: Codeunit "Subc. Library Mfg. Management";
+        LibraryManufacturing: Codeunit "Library - Manufacturing";
+        LibraryRandom: Codeunit "Library - Random";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryUtility: Codeunit "Library - Utility";
@@ -650,6 +745,9 @@ codeunit 149910 "Subc. WIP Transfer Post Test"
         SubSetupLibrary.InitSetupFields();
         LibraryERMCountryData.CreateVATData();
         SubSetupLibrary.InitialSetupForGenProdPostingGroup();
+        SubcontractingMgmtLibrary.UpdateManufacturingSetupWithSubcontractingLocation();
+        SubcontractingMgmtLibrary.SetupInventorySetup();
+        SubcWarehouseLibrary.UpdateSubMgmtSetupWithReqWkshTemplate();
 
         IsInitialized := true;
         Commit();
@@ -668,5 +766,45 @@ codeunit 149910 "Subc. WIP Transfer Post Test"
         if LotNo <> '' then
             LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, ItemJournalLine, '', LotNo, '', Quantity);
         LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+    end;
+
+    local procedure SetTransferWIPItemOnRoutingLine(RoutingNo: Code[20]; WorkCenterNo: Code[20]; TransferWIPItem: Boolean)
+    var
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+    begin
+        RoutingHeader.Get(RoutingNo);
+        RoutingHeader.Validate(Status, RoutingHeader.Status::New);
+        RoutingHeader.Modify(true);
+
+        RoutingLine.SetRange("Routing No.", RoutingHeader."No.");
+        RoutingLine.SetRange(Type, RoutingLine.Type::"Work Center");
+        RoutingLine.SetRange("No.", WorkCenterNo);
+        RoutingLine.FindFirst();
+        RoutingLine."Transfer WIP Item" := TransferWIPItem;
+        RoutingLine.Modify(true);
+
+        RoutingHeader.Validate(Status, RoutingHeader.Status::Certified);
+        RoutingHeader.Modify(true);
+    end;
+
+    local procedure SetProdOrderLocationToCompSetupLocationAndRefresh(var ProductionOrder: Record "Production Order")
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+    begin
+        ManufacturingSetup.Get();
+        ProductionOrder.Validate("Location Code", ManufacturingSetup."Components at Location");
+        ProductionOrder.Modify();
+        LibraryManufacturing.RefreshProdOrder(ProductionOrder, false, true, true, true, false);
+    end;
+
+    local procedure CreateAndUpdateTransferRoute(FromLocationCode: Code[10]; ToLocationCode: Code[10])
+    var
+        Location: Record Location;
+        TransferRoute: Record "Transfer Route";
+    begin
+        LibraryWarehouse.CreateInTransitLocation(Location);
+        LibraryWarehouse.CreateAndUpdateTransferRoute(
+            TransferRoute, FromLocationCode, ToLocationCode, Location.Code, '', '');
     end;
 }

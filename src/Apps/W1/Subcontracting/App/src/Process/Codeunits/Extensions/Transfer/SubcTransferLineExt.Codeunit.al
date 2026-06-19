@@ -62,7 +62,7 @@ codeunit 99001544 "Subc. Transfer Line Ext."
         if Rec.IsTemporary() then
             exit;
 
-        if CurrFieldNo <> Rec.FieldNo("Item No.") then
+        if CurrFieldNo = 0 then
             exit;
 
         if Rec."Item No." = xRec."Item No." then
@@ -85,7 +85,7 @@ codeunit 99001544 "Subc. Transfer Line Ext."
         if Rec.IsTemporary() then
             exit;
 
-        if CurrFieldNo <> Rec.FieldNo("Variant Code") then
+        if CurrFieldNo = 0 then
             exit;
 
         if Rec."Variant Code" = xRec."Variant Code" then
@@ -108,7 +108,7 @@ codeunit 99001544 "Subc. Transfer Line Ext."
         if Rec.IsTemporary() then
             exit;
 
-        if CurrFieldNo <> Rec.FieldNo(Quantity) then
+        if CurrFieldNo = 0 then
             exit;
 
         if Rec.Quantity = xRec.Quantity then

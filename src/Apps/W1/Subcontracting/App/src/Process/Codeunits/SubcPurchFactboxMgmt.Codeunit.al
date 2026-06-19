@@ -377,6 +377,41 @@ codeunit 99001560 "Subc. Purch. Factbox Mgmt."
     end;
 
     /// <summary>
+    /// Opens the subcontracting transfer order(s) linked to the given production order.
+    /// </summary>
+    /// <param name="ProductionOrder">The production order to show the related subcontracting transfer orders for.</param>
+    procedure ShowTransferOrdersFromProductionOrder(ProductionOrder: Record "Production Order")
+    var
+        TransferHeader: Record "Transfer Header";
+        TransferHeaderToOpen: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        PageManagement: Codeunit "Page Management";
+        SelectionFilterMgt: Codeunit SelectionFilterManagement;
+    begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        TransferLine.SetCurrentKey("Subc. Prod. Order No.", "Subc. Prod. Order Line No.", "Subc. Routing Reference No.", "Subc. Routing No.", "Subc. Operation No.");
+        TransferLine.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
+        TransferLine.SetRange("Derived From Line No.", 0);
+        if TransferLine.FindSet() then
+            repeat
+                if TransferHeader.Get(TransferLine."Document No.") then
+                    TransferHeader.Mark(true);
+            until TransferLine.Next() = 0;
+        TransferHeader.MarkedOnly(true);
+
+        if TransferHeader.IsEmpty() then
+            TransferHeaderToOpen.SetRange("No.", '')
+        else
+            TransferHeaderToOpen.SetFilter("No.", SelectionFilterMgt.GetSelectionFilterForTransferHeader(TransferHeader));
+        PageManagement.PageRunList(TransferHeaderToOpen);
+    end;
+
+    /// <summary>
     /// Returns the number of subcontractor prices matching the given purchase line.
     /// </summary>
     /// <param name="PurchaseLine">The purchase line to match subcontractor prices against.</param>

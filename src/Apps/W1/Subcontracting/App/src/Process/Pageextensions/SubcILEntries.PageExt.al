@@ -12,7 +12,7 @@ pageextension 99001501 "Subc. ILEntries" extends "Item Ledger Entries"
     {
         addlast(Control1)
         {
-            field("Subc. Purch. Order No."; Rec."Subc. Purch. Order Line No.")
+            field("Subc. Purch. Order No."; Rec."Subc. Purch. Order No.")
             {
                 ApplicationArea = Subcontracting;
                 ToolTip = 'Specifies the number of the related purchase order.';

@@ -8,7 +8,6 @@ using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Requisition;
-using Microsoft.Manufacturing.Planning;
 using System.Security.User;
 
 page 99001504 "Subc. Subcontracting Worksheet"
@@ -217,6 +216,7 @@ page 99001504 "Subc. Subcontracting Worksheet"
                 field("Subc. Standard Task Code"; Rec."Subc. Standard Task Code")
                 {
                     Editable = false;
+                    ToolTip = 'Specifies the standard task code associated with the subcontracting operation.';
                 }
             }
             group(Control20)

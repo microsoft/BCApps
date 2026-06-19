@@ -134,7 +134,7 @@ codeunit 99001534 "Subc. Purchase Line Ext"
         if Rec."Prod. Order No." = '' then
             exit;
 
-        if CurrFieldNo <> Rec.FieldNo(Quantity) then
+        if CurrFieldNo = 0 then
             exit;
 
         if Rec.Quantity = xRec.Quantity then
@@ -160,7 +160,7 @@ codeunit 99001534 "Subc. Purchase Line Ext"
         if Rec."Prod. Order No." = '' then
             exit;
 
-        if CurrFieldNo <> Rec.FieldNo("No.") then
+        if CurrFieldNo = 0 then
             exit;
 
         if Rec."No." = xRec."No." then
@@ -186,7 +186,7 @@ codeunit 99001534 "Subc. Purchase Line Ext"
         if Rec."Prod. Order No." = '' then
             exit;
 
-        if CurrFieldNo <> Rec.FieldNo("Location Code") then
+        if CurrFieldNo = 0 then
             exit;
 
         if Rec."Location Code" = xRec."Location Code" then
@@ -212,7 +212,7 @@ codeunit 99001534 "Subc. Purchase Line Ext"
         if Rec."Prod. Order No." = '' then
             exit;
 
-        if CurrFieldNo <> Rec.FieldNo("Bin Code") then
+        if CurrFieldNo = 0 then
             exit;
 
         if Rec."Bin Code" = xRec."Bin Code" then
@@ -238,7 +238,7 @@ codeunit 99001534 "Subc. Purchase Line Ext"
         if Rec."Prod. Order No." = '' then
             exit;
 
-        if CurrFieldNo <> Rec.FieldNo("Variant Code") then
+        if CurrFieldNo = 0 then
             exit;
 
         if Rec."Variant Code" = xRec."Variant Code" then
@@ -264,7 +264,7 @@ codeunit 99001534 "Subc. Purchase Line Ext"
         if Rec."Prod. Order No." = '' then
             exit;
 
-        if CurrFieldNo <> Rec.FieldNo("Unit of Measure Code") then
+        if CurrFieldNo = 0 then
             exit;
 
         if Rec."Unit of Measure Code" = xRec."Unit of Measure Code" then

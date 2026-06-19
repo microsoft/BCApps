@@ -133,7 +133,7 @@ page 99001561 "Subc. WIP Adjustment"
                     StyleExpr = QuantityStyle;
                     ToolTip = 'Specifies the quantity that will be adjusted (New Quantity (Base) minus Current Quantity (Base)).';
                 }
-                field("Unit of Measure Code"; Rec."Unit of Measure Code")
+                field("Base Unit of Measure"; Rec."Base Unit of Measure")
                 {
                     Editable = false;
                     Caption = 'Base Unit of Measure';
@@ -209,14 +209,15 @@ page 99001561 "Subc. WIP Adjustment"
                     ToolTip = 'Specifies the new target WIP quantity after adjustment.';
 
                     trigger OnValidate()
-                    begin;
+                    begin
+                        ;
 #if not CLEAN29
 #pragma warning disable AL0432
                         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
                             exit;
 #endif
-                    ValidateNewQuantity(NewQuantityBase);
+                        ValidateNewQuantity(NewQuantityBase);
                         NewQuantities.Set(Rec."Entry No.", NewQuantityBase);
                         UpdateQuantityStyle();
                     end;
@@ -230,7 +231,7 @@ page 99001561 "Subc. WIP Adjustment"
                     StyleExpr = QuantityStyle;
                     ToolTip = 'Specifies the quantity that will be adjusted (New Quantity minus Current Quantity).';
                 }
-                field("Unit of Measure Code Line"; Rec."Unit of Measure Code")
+                field("Base Unit of Measure Line"; Rec."Base Unit of Measure")
                 {
                     Caption = 'Base Unit of Measure';
                     Editable = false;
@@ -344,7 +345,7 @@ page 99001561 "Subc. WIP Adjustment"
                 Rec."Document Line No." := 0;
                 Rec."In Transit" := WIPLedgerEntry."In Transit";
                 Rec."Quantity (Base)" := WIPLedgerEntry."Quantity (Base)";
-                Rec."Unit of Measure Code" := GetItemBaseUnitOfMeasure(WIPLedgerEntry."Item No.");
+                Rec."Base Unit of Measure" := GetItemBaseUnitOfMeasure(WIPLedgerEntry."Item No.");
                 Rec.Insert();
                 NewQuantities.Add(Rec."Entry No.", Rec."Quantity (Base)");
                 EntrySeq += 1;
