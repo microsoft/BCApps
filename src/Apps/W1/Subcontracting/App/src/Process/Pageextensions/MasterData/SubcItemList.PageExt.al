@@ -14,7 +14,7 @@ pageextension 99001519 "Subc. Item List" extends "Item List"
         {
             action("Subcontractor Prices")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Caption = 'Subcontractor Prices';
                 Image = Price;
                 RunObject = page "Subcontractor Prices";
@@ -27,7 +27,7 @@ pageextension 99001519 "Subc. Item List" extends "Item List"
         {
             action("WIP Ledger Entries")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Caption = 'Subcontracting WIP Entries';
                 Image = LedgerEntries;
                 RunObject = page "Subc. WIP Ledger Entries";

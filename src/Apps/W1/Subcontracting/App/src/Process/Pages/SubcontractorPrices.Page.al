@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -13,7 +13,7 @@ using System.Text;
 
 page 99001500 "Subcontractor Prices"
 {
-    ApplicationArea = Manufacturing;
+    ApplicationArea = Subcontracting;
     Caption = 'Subcontractor Prices';
     DataCaptionExpression = GetCaption();
     DelayedInsert = true;
@@ -105,7 +105,7 @@ page 99001500 "Subcontractor Prices"
                 field(ItemNoFilterCtrl; ItemNoFilter)
                 {
                     Caption = 'Item No. Filter';
-                    ToolTip = 'Specifies a filter for which purchase prices to display.';
+                    ToolTip = 'Specifies a filter for which subcontractor prices to display.';
 
                     trigger OnLookup(var Text: Text): Boolean
                     var
@@ -194,7 +194,7 @@ page 99001500 "Subcontractor Prices"
                 }
                 field("Minimum Amount"; Rec."Minimum Amount")
                 {
-                    ToolTip = 'Specifies the minimum amount of the item that you must buy from the vendor in order to get the subcontractor price.';
+                    ToolTip = 'Specifies the minimum amount, in money, of the item that you must buy from the vendor in order to get the subcontractor price.';
                 }
             }
         }

@@ -9,7 +9,7 @@ using Microsoft.Manufacturing.Document;
 
 page 99001561 "Subc. WIP Adjustment"
 {
-    ApplicationArea = Manufacturing;
+    ApplicationArea = Subcontracting;
     Caption = 'WIP Adjustment';
     PageType = StandardDialog;
     SourceTable = "Subcontractor WIP Ledger Entry";
@@ -113,6 +113,12 @@ page 99001561 "Subc. WIP Adjustment"
 
                     trigger OnValidate()
                     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+                        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+                            exit;
+#endif
                         ValidateNewQuantity(NewQuantityBase);
                         NewQuantities.Set(Rec."Entry No.", NewQuantityBase);
                         UpdateQuantityStyle();
@@ -127,7 +133,7 @@ page 99001561 "Subc. WIP Adjustment"
                     StyleExpr = QuantityStyle;
                     ToolTip = 'Specifies the quantity that will be adjusted (New Quantity (Base) minus Current Quantity (Base)).';
                 }
-                field("Unit of Measure Code"; Rec."Unit of Measure Code")
+                field("Base Unit of Measure"; Rec."Base Unit of Measure")
                 {
                     Editable = false;
                     Caption = 'Base Unit of Measure';
@@ -204,6 +210,13 @@ page 99001561 "Subc. WIP Adjustment"
 
                     trigger OnValidate()
                     begin
+                        ;
+#if not CLEAN29
+#pragma warning disable AL0432
+                        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+                            exit;
+#endif
                         ValidateNewQuantity(NewQuantityBase);
                         NewQuantities.Set(Rec."Entry No.", NewQuantityBase);
                         UpdateQuantityStyle();
@@ -218,7 +231,7 @@ page 99001561 "Subc. WIP Adjustment"
                     StyleExpr = QuantityStyle;
                     ToolTip = 'Specifies the quantity that will be adjusted (New Quantity minus Current Quantity).';
                 }
-                field("Unit of Measure Code Line"; Rec."Unit of Measure Code")
+                field("Base Unit of Measure Line"; Rec."Base Unit of Measure")
                 {
                     Caption = 'Base Unit of Measure';
                     Editable = false;
@@ -229,12 +242,24 @@ page 99001561 "Subc. WIP Adjustment"
 
     trigger OnAfterGetRecord()
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         NewQuantities.Get(Rec."Entry No.", NewQuantityBase);
         UpdateQuantityStyle();
     end;
 
     trigger OnOpenPage()
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         PostingDate := WorkDate();
         DocumentType := DocumentType::"Adjustment (Manual)";
 
@@ -244,6 +269,12 @@ page 99001561 "Subc. WIP Adjustment"
 
     trigger OnQueryClosePage(CloseAction: Action): Boolean
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit(true);
+#endif
         if CloseAction in [ACTION::OK, ACTION::LookupOK] then
             CreateAdjustmentEntries();
         exit(true);
@@ -251,6 +282,11 @@ page 99001561 "Subc. WIP Adjustment"
 
     var
         Item: Record Item;
+#if not CLEAN29
+#pragma warning disable AL0432
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
+#endif
         NewQuantities: Dictionary of [Integer, Decimal];
         PostingDate: Date;
         DocumentType: Enum "WIP Document Type";
@@ -273,6 +309,12 @@ page 99001561 "Subc. WIP Adjustment"
     var
         EntrySeq: Integer;
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         EntrySeq := 1;
 
         if not Rec.IsEmpty() then
@@ -303,7 +345,7 @@ page 99001561 "Subc. WIP Adjustment"
                 Rec."Document Line No." := 0;
                 Rec."In Transit" := WIPLedgerEntry."In Transit";
                 Rec."Quantity (Base)" := WIPLedgerEntry."Quantity (Base)";
-                Rec."Unit of Measure Code" := GetItemBaseUnitOfMeasure(WIPLedgerEntry."Item No.");
+                Rec."Base Unit of Measure" := GetItemBaseUnitOfMeasure(WIPLedgerEntry."Item No.");
                 Rec.Insert();
                 NewQuantities.Add(Rec."Entry No.", Rec."Quantity (Base)");
                 EntrySeq += 1;
@@ -322,6 +364,12 @@ page 99001561 "Subc. WIP Adjustment"
 
     procedure SetDocumentNo(DocNo: Code[20])
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         DocumentNo := DocNo;
     end;
 

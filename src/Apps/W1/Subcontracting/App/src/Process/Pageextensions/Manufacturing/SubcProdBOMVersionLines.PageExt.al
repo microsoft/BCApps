@@ -14,7 +14,7 @@ pageextension 99001514 "Subc. ProdBOMVersionLines" extends "Production BOM Versi
         {
             field("Component Supply Method"; Rec."Component Supply Method")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 ToolTip = 'Specifies how components are supplied to the subcontractor for the production BOM line.';
             }
         }

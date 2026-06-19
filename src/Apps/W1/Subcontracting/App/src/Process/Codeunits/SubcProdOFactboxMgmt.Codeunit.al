@@ -14,6 +14,13 @@ using System.Reflection;
 
 codeunit 99001559 "Subc. ProdO. Factbox Mgmt."
 {
+#if not CLEAN29
+    var
+#pragma warning disable AL0432
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
+
+#endif
     /// <summary>
     /// Opens the appropriate Production Order page (Released or Finished) for the production order linked to the given variant record.
     /// </summary>
@@ -28,6 +35,12 @@ codeunit 99001559 "Subc. ProdO. Factbox Mgmt."
         RoutingNo: Code[20];
         ProdOrderLineNo: Integer;
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if not SetProdOrderInformationByVariant(RecRelatedVariant, ProdOrderNo, ProdOrderLineNo, RoutingNo, OperationNo) then
             exit;
         ProductionOrder.SetFilter(Status, '>=%1', ProductionOrder.Status::Released);
@@ -65,6 +78,12 @@ codeunit 99001559 "Subc. ProdO. Factbox Mgmt."
         RoutingNo: Code[20];
         ProdOrderLineNo: Integer;
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if not SetProdOrderInformationByVariant(RecRelatedVariant, ProdOrderNo, ProdOrderLineNo, RoutingNo, OperationNo) then
             exit;
         SetFilterProductionOrderRouting(ProdOrderRoutingLine, ProdOrderNo, ProdOrderLineNo, RoutingNo, OperationNo);
@@ -87,6 +106,13 @@ codeunit 99001559 "Subc. ProdO. Factbox Mgmt."
         RoutingNo: Code[20];
         ProdOrderLineNo: Integer;
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit(0);
+
+#endif
         if not SetProdOrderInformationByVariant(RecRelatedVariant, ProdOrderNo, ProdOrderLineNo, RoutingNo, OperationNo) then
             exit;
         SetFilterProductionOrderRouting(ProdOrderRoutingLine, ProdOrderNo, ProdOrderLineNo, RoutingNo, OperationNo);
@@ -115,6 +141,12 @@ codeunit 99001559 "Subc. ProdO. Factbox Mgmt."
         RoutingNo: Code[20];
         ProdOrderLineNo: Integer;
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if not SetProdOrderInformationByVariant(RecRelatedVariant, ProdOrderNo, ProdOrderLineNo, RoutingNo, OperationNo) then
             exit;
         SetFilterProductionOrderComponents(ProdOrderComponent, ProdOrderNo, ProdOrderLineNo, RoutingNo, OperationNo);
@@ -134,6 +166,13 @@ codeunit 99001559 "Subc. ProdO. Factbox Mgmt."
         RoutingNo: Code[20];
         ProdOrderLineNo: Integer;
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit(0);
+
+#endif
         if not SetProdOrderInformationByVariant(RecRelatedVariant, ProdOrderNo, ProdOrderLineNo, RoutingNo, OperationNo) then
             exit(0);
 
