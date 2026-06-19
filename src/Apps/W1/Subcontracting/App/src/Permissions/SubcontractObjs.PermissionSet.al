@@ -4,8 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
-using Microsoft.Manufacturing.Planning;
-
 permissionset 99001501 "Subcontract. - Objs"
 {
     Caption = 'Subcontracting - Objects';
@@ -48,6 +46,7 @@ permissionset 99001501 "Subcontract. - Objs"
         codeunit "Subcontracting Comp. Init." = X,
         codeunit "Subcontracting Management" = X,
         codeunit "Subc. Synchronize Management" = X,
+        codeunit "Subc. Transfer Header Ext." = X,
         codeunit "Subc. Transfer Line Ext." = X,
         codeunit "Subc. Transfer Management" = X,
         codeunit "Subc. Transfer Rcpt Line Ext." = X,
@@ -81,18 +80,18 @@ permissionset 99001501 "Subcontract. - Objs"
 
         // Pages
         page "Subc. Prod. Order Components" = X,
+        page "Subc. Subcontracting Worksheet" = X,
         page "Subc. Purchase Line Factbox" = X,
         page "Subc. Routing Info Factbox" = X,
         page "Subc. Transfer Line Factbox" = X,
         page "Subcontractor Prices" = X,
         page "Subc. WIP Adjustment" = X,
         page "Subc. WIP Ledger Entries" = X,
-        page "Subc. Subcontracting Worksheet" = X,
 
         // Reports
+        report "Subc. Calculate Subcontracts" = X,
         report "Subc. Create Transf. Order" = X,
         report "Subc. Create SubCReturnOrder" = X,
         report "Subc. Detailed Calculation" = X,
-        report "Subc. Dispatching List" = X,
-        report "Subc. Calculate Subcontracts" = X;
+        report "Subc. Dispatching List" = X;
 }
