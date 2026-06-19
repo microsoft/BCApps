@@ -18,7 +18,6 @@ report 99001501 "Subc. Create Transf. Order"
     ApplicationArea = Subcontracting;
     Caption = 'Create Subcontracting Transfer Order';
     ProcessingOnly = true;
-    UsageCategory = Tasks;
     dataset
     {
         dataitem("Purchase Header"; "Purchase Header")

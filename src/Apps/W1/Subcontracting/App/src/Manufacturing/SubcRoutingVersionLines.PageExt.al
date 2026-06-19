@@ -6,7 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Manufacturing.Routing;
 
-pageextension 99001508 "Subc. Routing Lines" extends "Routing Lines"
+pageextension 99001509 "Subc. Routing Version Lines" extends "Routing Version Lines"
 {
     layout
     {
@@ -14,10 +14,6 @@ pageextension 99001508 "Subc. Routing Lines" extends "Routing Lines"
         {
             trigger OnAfterValidate()
             begin
-#if not CLEAN29
-                if not SubcontractingEnabled then
-                    exit;
-#endif
                 UpdateWIPEnabled();
             end;
         }
@@ -25,36 +21,34 @@ pageextension 99001508 "Subc. Routing Lines" extends "Routing Lines"
         {
             trigger OnAfterValidate()
             begin
-#if not CLEAN29
-                if not SubcontractingEnabled then
-                    exit;
-#endif
                 UpdateWIPEnabled();
             end;
         }
-        addafter("Send-Ahead Quantity")
+        addafter(Description)
         {
             field("Transfer WIP Item"; Rec."Transfer WIP Item")
             {
                 ApplicationArea = Subcontracting;
                 Enabled = TransferWIPItemEnabled;
+                ToolTip = 'Specifies whether a WIP item should be transferred for this subcontracting routing line.';
             }
             field("Transfer Description"; Rec."Transfer Description")
             {
                 ApplicationArea = Subcontracting;
                 Enabled = Rec."Transfer WIP Item";
+                ToolTip = 'Specifies the description of the WIP item to transfer.';
             }
             field("Transfer Description 2"; Rec."Transfer Description 2")
             {
                 ApplicationArea = Subcontracting;
                 Enabled = Rec."Transfer WIP Item";
-                Visible = false;
+                ToolTip = 'Specifies an additional description of the WIP item to transfer.';
             }
         }
     }
     actions
     {
-        addafter("&Quality Measures")
+        addafter("Quality Measures")
         {
             action("Subc. Prices")
             {
@@ -77,6 +71,8 @@ pageextension 99001508 "Subc. Routing Lines" extends "Routing Lines"
 #pragma warning disable AL0432
         SubcontractingEnabled := SubcFeatureFlagHandler.IsSubcontractingEnabled();
 #pragma warning restore AL0432
+        if not SubcontractingEnabled then
+            exit;
     end;
 #endif
 
@@ -85,7 +81,6 @@ pageextension 99001508 "Subc. Routing Lines" extends "Routing Lines"
 #if not CLEAN29
         if not SubcontractingEnabled then
             exit;
-
 #endif
         UpdateWIPEnabled();
     end;
@@ -95,7 +90,6 @@ pageextension 99001508 "Subc. Routing Lines" extends "Routing Lines"
 #if not CLEAN29
         if not SubcontractingEnabled then
             exit;
-
 #endif
         UpdateWIPEnabled();
     end;
@@ -122,7 +116,6 @@ pageextension 99001508 "Subc. Routing Lines" extends "Routing Lines"
 #if not CLEAN29
         if not SubcontractingEnabled then
             exit;
-
 #endif
         Rec.TestField(Type, Rec.Type::"Work Center");
         SubcontractorPrice.SetRange("Work Center No.", Rec."No.");

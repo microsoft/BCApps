@@ -8,7 +8,6 @@ using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Requisition;
-using Microsoft.Manufacturing.Planning;
 using System.Security.User;
 
 page 99001504 "Subc. Subcontracting Worksheet"
@@ -216,24 +215,8 @@ page 99001504 "Subc. Subcontracting Worksheet"
                 }
                 field("Subc. Standard Task Code"; Rec."Subc. Standard Task Code")
                 {
-                }
-                field("Subc. Pricelist Cost"; Rec."Subc. Pricelist Cost")
-                {
-                    Visible = false;
-                }
-                field("Subc. UoM for Pricelist"; Rec."Subc. UoM for Pricelist")
-                {
-                    Visible = false;
-                }
-                field("PL UM Qty/Base UM Qty"; Rec."PL UM Qty/Base UM Qty")
-                {
-                    AutoFormatType = 0;
-                    Visible = false;
-                }
-                field("Base UM Qty/PL UM Qty"; Rec."Base UM Qty/PL UM Qty")
-                {
-                    AutoFormatType = 0;
-                    Visible = false;
+                    Editable = false;
+                    ToolTip = 'Specifies the standard task code associated with the subcontracting operation.';
                 }
             }
             group(Control20)

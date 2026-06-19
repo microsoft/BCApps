@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace Microsoft.Manufacturing.Planning;
+namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.UOM;
@@ -12,9 +12,6 @@ using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.Setup;
-#if not CLEAN29
-using Microsoft.Manufacturing.Subcontracting;
-#endif
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
 

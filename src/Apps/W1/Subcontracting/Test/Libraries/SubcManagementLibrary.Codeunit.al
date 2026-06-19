@@ -129,7 +129,7 @@ codeunit 139983 "Subc. Management Library"
         LibraryManufacturing.CreateAndRefreshProductionOrder(ProductionOrder, ProdOrderStatus, ProdOrderSourceType, SourceNo, Quantity);
     end;
 
-    procedure CreateAndRefreshProductionOrder(var ProductionOrder: Record "Production Order"; ProdOrderStatus: Enum "Production Order Status"; ProdOrderSourceType: Enum "Prod. Order Source Type"; SourceNo: Code[20]; Quantity: Decimal; LocationCode: Code[20])
+    procedure CreateAndRefreshProductionOrder(var ProductionOrder: Record "Production Order"; ProdOrderStatus: Enum "Production Order Status"; ProdOrderSourceType: Enum "Prod. Order Source Type"; SourceNo: Code[20]; Quantity: Decimal; LocationCode: Code[10])
     var
         LibraryManufacturing: Codeunit "Library - Manufacturing";
     begin
@@ -238,6 +238,8 @@ codeunit 139983 "Subc. Management Library"
     end;
 
     procedure CreateWIPLedgerEntry(var WIPLedgerEntry: Record "Subcontractor WIP Ledger Entry"; ItemNo: Code[20]; LocationCode: Code[10]; ProductionOrder: Record "Production Order"; ProdOrderLine: Record "Prod. Order Line"; ProdOrderRoutingLine: Record "Prod. Order Routing Line"; WorkCenterNo: Code[20]; QuantityBase: Decimal; InTransit: Boolean)
+    var
+        Item: Record Item;
     begin
         if WIPLedgerEntry.FindLast() then;
         WIPLedgerEntry.Init();
@@ -253,7 +255,9 @@ codeunit 139983 "Subc. Management Library"
         WIPLedgerEntry."Work Center No." := WorkCenterNo;
         WIPLedgerEntry."Quantity (Base)" := QuantityBase;
         WIPLedgerEntry."In Transit" := InTransit;
-        WIPLedgerEntry."Unit of Measure Code" := ProdOrderLine."Unit of Measure Code";
+        Item.SetLoadFields("Base Unit of Measure");
+        Item.Get(ItemNo);
+        WIPLedgerEntry."Base Unit of Measure" := Item."Base Unit of Measure";
         WIPLedgerEntry.Insert();
     end;
 }
