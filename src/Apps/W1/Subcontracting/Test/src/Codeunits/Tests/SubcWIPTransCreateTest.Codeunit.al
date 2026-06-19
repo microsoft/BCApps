@@ -1209,28 +1209,28 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         PurchaseHeaderPage.OpenView();
         PurchaseHeaderPage.GoToRecord(PurchaseHeader);
         PurchaseHeaderPage.CreateTransfOrdToSubcontractor.Invoke();
-        
-                // [THEN] The WIP Transfer Line uses the purchase line UOM (BOX), not the base UOM (PCS)
-                TransferLine.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
-                TransferLine.SetRange("Subc. Return Order", false);
-        #pragma warning disable AA0210
-                TransferLine.SetRange("Transfer WIP Item", true);
-        #pragma warning restore AA0210
-                Assert.RecordCount(TransferLine, 1);
-                TransferLine.FindFirst();
-                Assert.AreEqual(UnitOfMeasure.Code, TransferLine."Unit of Measure Code",
-                    'WIP Transfer Line Unit of Measure must match the purchase line UOM (BOX), not the base UOM (PCS).');
-                Assert.AreEqual(PurchaseLine.Quantity, TransferLine.Quantity,
-                    'WIP Transfer Line quantity must equal the purchase line quantity (in BOX).');
-            end;
-        
+
+        // [THEN] The WIP Transfer Line uses the purchase line UOM (BOX), not the base UOM (PCS)
+        TransferLine.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
+        TransferLine.SetRange("Subc. Return Order", false);
+#pragma warning disable AA0210
+        TransferLine.SetRange("Transfer WIP Item", true);
+#pragma warning restore AA0210
+        Assert.RecordCount(TransferLine, 1);
+        TransferLine.FindFirst();
+        Assert.AreEqual(UnitOfMeasure.Code, TransferLine."Unit of Measure Code",
+            'WIP Transfer Line Unit of Measure must match the purchase line UOM (BOX), not the base UOM (PCS).');
+        Assert.AreEqual(PurchaseLine.Quantity, TransferLine.Quantity,
+            'WIP Transfer Line quantity must equal the purchase line quantity (in BOX).');
+    end;
+
     [Test]
-            [HandlerFunctions('DoNotConfirmShowCreatedPurchOrderForSubcontracting,HandleTransferOrder')]
+    [HandlerFunctions('DoNotConfirmShowCreatedPurchOrderForSubcontracting,HandleTransferOrder')]
     procedure WIPTransferPartiallyPostedTransfersRemainingQuantity()
     var
         Item: Record Item;
-            MachineCenter: array[2] of Record "Machine Center";
-            ProdOrderLine: Record "Prod. Order Line";
+        MachineCenter: array[2] of Record "Machine Center";
+        ProdOrderLine: Record "Prod. Order Line";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         ProductionOrder: Record "Production Order";
         PurchaseHeader: Record "Purchase Header";
@@ -1406,7 +1406,7 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         PurchaseHeaderPage: TestPage "Purchase Order";
         ItemDescription: Text[100];
     begin
-        // [SCENARIO 38] A WIP Transfer Line created without a Transfer Description on the routing line
+        // A WIP Transfer Line created without a Transfer Description on the routing line
         // gets its description from the item. When Direct Transfer is enabled on the Transfer Header
         // afterwards, the description must not be cleared.
         Initialize();
@@ -1462,7 +1462,7 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         TransferHeader.Modify(true);
 
         // [THEN] WIP Transfer Line description is preserved and not cleared
-        TransferLine.Find();
+        TransferLine.FindFirst();
         Assert.AreEqual(ItemDescription, TransferLine.Description,
             'WIP Transfer Line description must not be cleared when Direct Transfer is enabled on the header.');
     end;
