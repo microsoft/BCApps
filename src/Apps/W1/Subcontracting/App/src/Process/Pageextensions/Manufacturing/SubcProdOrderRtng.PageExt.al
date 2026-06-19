@@ -117,36 +117,9 @@ pageextension 99001503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
                 trigger OnAction()
                 var
                     ProdOrderRoutingLine: Record "Prod. Order Routing Line";
-                    PurchaseLine: Record "Purchase Line";
-                    SubcPurchaseOrderCreator: Codeunit "Subc. Purchase Order Creator";
-                    NoOfCreatedPurchOrder: Integer;
                 begin
                     CurrPage.SetSelectionFilter(ProdOrderRoutingLine);
-                    SubcPurchaseOrderCreator.ShowExistingPurchaseOrdersForRoutingLines(ProdOrderRoutingLine);
-                    ProdOrderRoutingLine.FindSet();
-                    repeat
-                        NoOfCreatedPurchOrder += SubcPurchaseOrderCreator.CreateSubcontractingPurchaseOrderFromRoutingLine(ProdOrderRoutingLine);
-                    until ProdOrderRoutingLine.Next() = 0;
-
-                    if NoOfCreatedPurchOrder = 0 then begin
-                        PurchaseLine.SetCurrentKey("Document Type", Type, "Prod. Order No.");
-                        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
-                        PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
-                        PurchaseLine.SetRange("Prod. Order No.", Rec."Prod. Order No.");
-                        PurchaseLine.SetRange("Routing No.", Rec."Routing No.");
-                        PurchaseLine.SetRange("Routing Reference No.", Rec."Routing Reference No.");
-                        PurchaseLine.SetRange("Operation No.", Rec."Operation No.");
-                        if PurchaseLine.IsEmpty() then
-                            Message(NoPurchOrderCreatedMsg, ProdOrderRoutingLine."Prod. Order No.")
-                    end else begin
-                        if NoOfCreatedPurchOrder = 1 then begin
-                            SubcPurchaseOrderCreator.ClearOperationNoForCreatedPurchaseOrder();
-                            SubcPurchaseOrderCreator.SetOperationNoForCreatedPurchaseOrder(Rec."Operation No.");
-                            SubcPurchaseOrderCreator.ClearRoutingReferenceNoForCreatedPurchaseOrder();
-                            SubcPurchaseOrderCreator.SetRoutingReferenceNoForCreatedPurchaseOrder(Rec."Routing Reference No.");
-                        end;
-                        SubcPurchaseOrderCreator.ShowCreatedPurchaseOrder(Rec."Prod. Order No.", NoOfCreatedPurchOrder);
-                    end;
+                    CreateSubcontractingOrders(ProdOrderRoutingLine);
                 end;
             }
             action("WIP Adjustment")
@@ -223,5 +196,34 @@ pageextension 99001503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
     begin
         Rec.Calcfields(Subcontracting);
         TransferWIPItemEnabled := Rec.Subcontracting;
+    end;
+
+    internal procedure CreateSubcontractingOrders(var ProdOrderRoutingLine: Record "Prod. Order Routing Line")
+    var
+        PurchaseLine: Record "Purchase Line";
+        SubcPurchaseOrderCreator: Codeunit "Subc. Purchase Order Creator";
+        NoOfCreatedPurchOrder: Integer;
+    begin
+        NoOfCreatedPurchOrder := SubcPurchaseOrderCreator.CreateSubcontractingOrdersForRoutingLineSelection(ProdOrderRoutingLine);
+
+        if NoOfCreatedPurchOrder = 0 then begin
+            PurchaseLine.SetCurrentKey("Document Type", Type, "Prod. Order No.");
+            PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+            PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
+            PurchaseLine.SetRange("Prod. Order No.", Rec."Prod. Order No.");
+            PurchaseLine.SetRange("Routing No.", Rec."Routing No.");
+            PurchaseLine.SetRange("Routing Reference No.", Rec."Routing Reference No.");
+            PurchaseLine.SetRange("Operation No.", Rec."Operation No.");
+            if PurchaseLine.IsEmpty() then
+                Message(NoPurchOrderCreatedMsg, ProdOrderRoutingLine."Prod. Order No.")
+        end else begin
+            if NoOfCreatedPurchOrder = 1 then begin
+                SubcPurchaseOrderCreator.ClearOperationNoForCreatedPurchaseOrder();
+                SubcPurchaseOrderCreator.SetOperationNoForCreatedPurchaseOrder(Rec."Operation No.");
+                SubcPurchaseOrderCreator.ClearRoutingReferenceNoForCreatedPurchaseOrder();
+                SubcPurchaseOrderCreator.SetRoutingReferenceNoForCreatedPurchaseOrder(Rec."Routing Reference No.");
+            end;
+            SubcPurchaseOrderCreator.ShowCreatedPurchaseOrder(Rec."Prod. Order No.", NoOfCreatedPurchOrder);
+        end;
     end;
 }
