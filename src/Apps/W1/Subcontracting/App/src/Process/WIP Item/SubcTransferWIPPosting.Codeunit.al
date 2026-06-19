@@ -6,6 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.NoSeries;
+using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Planning;
@@ -421,7 +422,7 @@ codeunit 99001541 "Subc. Transfer WIP Posting"
         InitWIPItemLedgerEntry(AdjustmentEntry, PostingDate);
         AdjustmentEntry."Item No." := TemplateWIPEntry."Item No.";
         AdjustmentEntry."Variant Code" := TemplateWIPEntry."Variant Code";
-        AdjustmentEntry."Unit of Measure Code" := TemplateWIPEntry."Unit of Measure Code";
+        AdjustmentEntry."Base Unit of Measure" := TemplateWIPEntry."Base Unit of Measure";
         AdjustmentEntry."Location Code" := TemplateWIPEntry."Location Code";
         AdjustmentEntry."Prod. Order Status" := TemplateWIPEntry."Prod. Order Status";
         AdjustmentEntry."Prod. Order No." := TemplateWIPEntry."Prod. Order No.";
@@ -460,9 +461,13 @@ codeunit 99001541 "Subc. Transfer WIP Posting"
     end;
 
     local procedure AssignFieldsFromTransferLine(var SubcontractorWIPLedgerEntry: Record "Subcontractor WIP Ledger Entry"; var TransferLine: Record "Transfer Line"; IsShipment: Boolean)
+    var
+        Item: Record Item;
     begin
         SubcontractorWIPLedgerEntry."Item No." := TransferLine."Item No.";
-        SubcontractorWIPLedgerEntry."Unit of Measure Code" := TransferLine."Unit of Measure Code";
+        Item.SetLoadFields("Base Unit of Measure");
+        Item.Get(TransferLine."Item No.");
+        SubcontractorWIPLedgerEntry."Base Unit of Measure" := Item."Base Unit of Measure";
         SubcontractorWIPLedgerEntry."Prod. Order Status" := "Production Order Status"::Released;
         SubcontractorWIPLedgerEntry."Variant Code" := TransferLine."Variant Code";
         SubcontractorWIPLedgerEntry."Prod. Order No." := TransferLine."Subc. Prod. Order No.";
