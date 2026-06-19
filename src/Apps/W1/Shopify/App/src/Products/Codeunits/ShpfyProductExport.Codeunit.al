@@ -359,7 +359,6 @@ codeunit 30178 "Shpfy Product Export"
                 Shop."SKU Mapping"::"Vendor Item No.":
                     ShopifyVariant.SKU := Item."Vendor Item No.";
             end;
-            ShopifyVariant."Tax Code" := Item."Tax Group Code";
             ShopifyVariant.Taxable := true;
             ShopifyVariant.Weight := Item."Gross Weight";
             ShopifyVariant."Option 1 Name" := Shop."Option Name for UoM";
@@ -416,7 +415,6 @@ codeunit 30178 "Shpfy Product Export"
                 Shop."SKU Mapping"::"Vendor Item No.":
                     ShopifyVariant.SKU := Item."Vendor Item No.";
             end;
-            ShopifyVariant."Tax Code" := Item."Tax Group Code";
             ShopifyVariant.Taxable := true;
             ShopifyVariant.Weight := Item."Gross Weight";
             if ShopifyVariant."Option 1 Name" = '' then
@@ -470,7 +468,6 @@ codeunit 30178 "Shpfy Product Export"
                 Shop."SKU Mapping"::"Vendor Item No.":
                     ShopifyVariant.SKU := Item."Vendor Item No.";
             end;
-            ShopifyVariant."Tax Code" := Item."Tax Group Code";
             ShopifyVariant.Taxable := true;
             ShopifyVariant.Weight := Item."Gross Weight";
             ShopifyVariant."Option 1 Name" := 'Variant';
