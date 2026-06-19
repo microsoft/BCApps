@@ -100,9 +100,10 @@ codeunit 99001515 "Subc. ItemJnlPostLine Ext"
         CapacityLedgerEntry.SetRange("Order No.", ProdOrderRoutingLine."Prod. Order No.");
         CapacityLedgerEntry.CalcSums("Output Quantity");
 
-        if CapacityLedgerEntry."Output Quantity" >= ProdOrderLine."Quantity (Base)" then
+        if CapacityLedgerEntry."Output Quantity" >= ProdOrderLine."Quantity (Base)" then begin
             ProdOrderRoutingLine."Routing Status" := "Prod. Order Routing Status"::Finished;
-        ProdOrderRoutingLine.Modify();
+            ProdOrderRoutingLine.Modify();
+        end;
     end;
 
     local procedure UpdateNewItemLedgerEntry(var NewItemLedgerEntry: Record "Item Ledger Entry"; var ItemJournalLine: Record "Item Journal Line")

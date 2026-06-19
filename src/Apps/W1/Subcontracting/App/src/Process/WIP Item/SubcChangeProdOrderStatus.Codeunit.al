@@ -72,7 +72,8 @@ codeunit 99001549 "Subc. Change Prod.Order Status"
 #pragma warning restore AL0432
             exit;
 #endif
-        CheckForOpenTransferOrders(ProductionOrder);
+        if NewStatus = "Production Order Status"::Finished.AsInteger() then
+            CheckForOpenTransferOrders(ProductionOrder);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Prod. Order Status Management", OnAfterChangeStatusOnProdOrder, '', false, false)]

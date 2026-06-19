@@ -104,6 +104,7 @@ codeunit 99001516 "Subc. Req. Wksh. Make Ord."
         ProdOrderComponent.SetRange("Prod. Order Line No.", RequisitionLine."Prod. Order Line No.");
         ProdOrderComponent.SetRange("Routing Link Code", ProdOrderRoutingLine."Routing Link Code");
         ProdOrderComponent.SetRange("Component Supply Method", "Component Supply Method"::"Vendor-Supplied");
+        ProdOrderComponent.SetLoadFields("Item No.", "Variant Code", "Remaining Quantity");
         if ProdOrderComponent.FindSet() then
             repeat
                 PurchaseLineComp.SetRange("Document Type", PurchaseLine."Document Type");

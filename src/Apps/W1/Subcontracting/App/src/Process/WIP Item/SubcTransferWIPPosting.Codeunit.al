@@ -8,7 +8,6 @@ using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
-using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Planning;
 using Microsoft.Inventory.Requisition;
@@ -107,7 +106,6 @@ codeunit 99001541 "Subc. Transfer WIP Posting"
     local procedure HandleWipTransferOnBeforeCheckEmptyQuantity(ItemJnlLine: Record "Item Journal Line"; var IsHandled: Boolean)
     var
         TransferLine: Record "Transfer Line";
-        CannotPostTheseLinesErr: Label 'You cannot post these lines because you have not entered a quantity on one or more of the lines. ';
     begin
 #if not CLEAN29
 #pragma warning disable AL0432
@@ -122,9 +120,6 @@ codeunit 99001541 "Subc. Transfer WIP Posting"
             exit;
         if not TransferLine."Transfer WIP Item" then
             exit;
-        if ItemJnlLine."Document Type" = "Item Ledger Document Type"::"Direct Transfer" then
-            if (ItemJnlLine."Quantity" = 0) and (ItemJnlLine."Invoiced Quantity" = 0) then
-                Error(ErrorInfo.Create(CannotPostTheseLinesErr, true));
         IsHandled := true;
     end;
 
@@ -461,10 +456,7 @@ codeunit 99001541 "Subc. Transfer WIP Posting"
 
     local procedure InitWIPItemLedgerEntry(var SubcontractorWIPLedgerEntry: Record "Subcontractor WIP Ledger Entry"; PostingDate: Date)
     begin
-        WIPLedgEntryNo := SubcontractorWIPLedgerEntry.GetNextEntryNo();
-
         SubcontractorWIPLedgerEntry.Init();
-        SubcontractorWIPLedgerEntry."Entry No." := WIPLedgEntryNo;
         SubcontractorWIPLedgerEntry."Posting Date" := PostingDate;
     end;
 
@@ -502,11 +494,15 @@ codeunit 99001541 "Subc. Transfer WIP Posting"
     var
         xWIPLedgEntryNo: Integer;
     begin
+        if SubcontractorWIPLedgerEntry."Quantity (Base)" = 0 then
+            exit;
+
+        WIPLedgEntryNo := SubcontractorWIPLedgerEntry.GetNextEntryNo();
+        SubcontractorWIPLedgerEntry."Entry No." := WIPLedgEntryNo;
+
         xWIPLedgEntryNo := WIPLedgEntryNo;
         OnBeforeInsertWIPLedgerEntry(SubcontractorWIPLedgerEntry, WIPLedgEntryNo);
         ValidateSequenceNo(WIPLedgEntryNo, xWIPLedgEntryNo, Database::"Subcontractor WIP Ledger Entry");
-        if SubcontractorWIPLedgerEntry."Quantity (Base)" = 0 then
-            exit;
         SubcontractorWIPLedgerEntry.Insert();
     end;
 
