@@ -261,6 +261,20 @@ function Get-PackageLatestVersion() {
 
             return $latestVersion
         }
+        'BCPlatform' {
+            Import-Module $PSScriptRoot\PlatformHelper.psm1 -DisableNameChecking
+
+            # Use the major.minor of the currently configured platform version, not repoVersion
+            [System.Version] $currentPlatformVersion = $package.Version
+            $majorMinor = "$($currentPlatformVersion.Major).$($currentPlatformVersion.Minor)"
+            $latestVersion = Get-LatestPlatformVersion -MajorMinor $majorMinor
+
+            if (-not $latestVersion) {
+                throw "Could not find platform version (for major.minor: $majorMinor)"
+            }
+
+            return $latestVersion
+        }
         default {
             throw "Unknown package source: $($package.Source)"
         }
@@ -397,6 +411,12 @@ function Update-PackageVersion
 
     $currentVersion = $currentPackage.Version
     Write-Host "Current $PackageName version: $currentVersion"
+
+    # If the current version is a major.minor pattern (e.g. "28.0"), it is intentionally pinned and should not be overwritten with a full version
+    if ($currentVersion.Split('.').Count -eq 2) {
+        Write-Host "$PackageName is pinned to the major.minor pattern '$currentVersion'. Skipping update."
+        return $null
+    }
 
     $latestVersion = Get-PackageLatestVersion -PackageName $PackageName
     Write-Host "Latest $PackageName version found: $latestVersion"

@@ -7,5 +7,10 @@
     "Version": "28.3.51300.0",
     "Source": "BCArtifacts",
     "_comment": "Used to fetch app baselines from BC artifacts"
+  },
+  "BCPlatform": {
+    "Version": "29.0.51074.0",
+    "Source": "BCPlatform",
+    "_comment": "The BC platform version, fetched from the platform CDN"
   }
 }
