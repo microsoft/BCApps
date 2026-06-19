@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
+using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Purchases.Document;
 
@@ -122,6 +123,7 @@ pageextension 99001503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
                     NoOfCreatedPurchOrder: Integer;
                 begin
                     CurrPage.SetSelectionFilter(ProdOrderRoutingLine);
+                    ProdOrderRoutingLine.SetRange(Type, "Capacity Type"::"Machine Center");
                     SubcPurchaseOrderCreator.ShowExistingPurchaseOrdersForRoutingLines(ProdOrderRoutingLine);
                     ProdOrderRoutingLine.FindSet();
                     repeat
