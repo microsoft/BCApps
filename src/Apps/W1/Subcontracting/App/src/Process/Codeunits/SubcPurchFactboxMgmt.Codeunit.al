@@ -139,8 +139,7 @@ codeunit 99001560 "Subc. Purch. Factbox Mgmt."
         TransferLine.SetCurrentKey("Subc. Purch. Order No.");
         TransferLine.SetRange("Subc. Purch. Order No.", PurchOrderNo);
         TransferLine.SetRange("Subc. Purch. Order Line No.", PurchOrderLineNo);
-        TransferLine.SetFilter("Subc. Operation No.", '%1', '');
-        TransferLine.SetFilter("Subc. Routing No.", '%1', '');
+        TransferLine.SetRange("Subc. Return Order", true);
         TransferLine.SetLoadFields(SystemId);
         if TransferLine.IsEmpty() then
             exit('');
@@ -635,7 +634,6 @@ codeunit 99001560 "Subc. Purch. Factbox Mgmt."
         TransferLine.SetCurrentKey("Subc. Purch. Order No.");
         TransferLine.SetRange("Subc. Purch. Order No.", PurchOrderNo);
         TransferLine.SetRange("Subc. Purch. Order Line No.", PurchOrderLineNo);
-        TransferLine.SetFilter("Subc. Operation No.", '<>%1', '');
-        TransferLine.SetFilter("Subc. Routing No.", '<>%1', '');
+        TransferLine.SetRange("Subc. Return Order", false);
     end;
 }
