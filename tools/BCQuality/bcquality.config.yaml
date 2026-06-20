@@ -17,10 +17,10 @@ bcquality:
   # private fork or mirror should change this.
   repo: https://github.com/microsoft/BCQuality
 
-  # Git ref (branch, tag, or SHA) to clone. Pin to a release tag once
-  # BCQuality cuts releases; `main` is acceptable while the corpus is
-  # forming.
-  ref: main
+  # Git ref (branch, tag, or SHA) to clone. Pinned to a specific BCQuality
+  # main commit for reproducible reviews; bump deliberately as BCQuality
+  # advances (or switch to a release tag once BCQuality cuts releases).
+  ref: 822cae1b2771ac25f665f73369f69093bd4fd630
 
 # Which BCQuality layers an agent may consume during this review.
 # Allowed values: microsoft, community, custom.

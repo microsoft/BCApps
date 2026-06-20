@@ -19,6 +19,7 @@ permissions:
   contents: read
   issues: write
   pull-requests: write
+  copilot-requests: write  # allows Copilot CLI to bill inference to the org using the built-in GITHUB_TOKEN
 
 jobs:
   review:
@@ -123,9 +124,16 @@ jobs:
           $ref  = $cfg.bcquality.ref
           $root = "${{ github.workspace }}/bcquality"
 
-          Write-Host "Cloning BCQuality from $repo@$ref into $root"
-          git clone --depth=1 --branch $ref $repo $root
-          if ($LASTEXITCODE -ne 0) { throw "git clone of BCQuality failed (exit $LASTEXITCODE)" }
+          Write-Host "Fetching BCQuality from $repo@$ref into $root"
+          # Use init + fetch + checkout so the ref may be a branch, tag, or a pinned commit SHA
+          # (`git clone --branch` does not accept raw commit SHAs).
+          New-Item -ItemType Directory -Force -Path $root | Out-Null
+          git -C $root init -q
+          git -C $root remote add origin $repo
+          git -C $root fetch --depth=1 origin $ref
+          if ($LASTEXITCODE -ne 0) { throw "git fetch of BCQuality ref '$ref' failed (exit $LASTEXITCODE)" }
+          git -C $root checkout -q FETCH_HEAD
+          if ($LASTEXITCODE -ne 0) { throw "git checkout of BCQuality ref '$ref' failed (exit $LASTEXITCODE)" }
 
           $resolvedSha = (& git -C $root rev-parse HEAD).Trim()
           Write-Host "BCQuality resolved SHA: $resolvedSha"
@@ -140,7 +148,7 @@ jobs:
       - name: Run Copilot PR review
         env:
           GITHUB_TOKEN: ${{ github.token }}
-          GH_TOKEN: ${{ secrets.COPILOT_GH_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           REVIEW_WORKSPACE: ${{ github.workspace }}/trusted
           REVIEW_OUTPUT_DIR: ${{ github.workspace }}/review-output

@@ -1,3 +1,0 @@
-# Regression fixtures are captured runner stdout. Preserve bytes exactly
-# (no EOL conversion) so the parser sees the same input on every platform.
-*.txt -text
