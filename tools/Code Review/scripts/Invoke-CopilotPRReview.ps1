@@ -176,19 +176,11 @@ function Initialize-ReviewRunner {
     # Copy the trusted BCQuality knowledge base + skills into the runner workspace so the
     # Copilot CLI agent can consume them from its sandboxed working directory. The PR
     # (untrusted) code lives separately under the detached analysis worktree.
+    #
+    # The knowledge index is intentionally NOT built here: BCQuality owns index generation,
+    # and the agent builds it as part of skills/entry.md's preparation step (and falls back
+    # to path-based discovery when absent).
     Copy-Item -Path $BcQualityPath -Destination $runnerBcQualityDir -Recurse -Force
-
-    # Build the knowledge index over the copied clone so the review skills' Source step is
-    # fast and exact. This is optional (skills fall back to path-based discovery), so a
-    # failure here is non-fatal.
-    $indexBuilder = Join-Path $runnerBcQualityDir 'tools/Build-KnowledgeIndex.ps1'
-    if (Test-Path $indexBuilder) {
-        try {
-            & pwsh -NoProfile -File $indexBuilder | Out-Null
-        } catch {
-            Write-Warning "Failed to build BCQuality knowledge index: $($_.Exception.Message)"
-        }
-    }
 }
 
 function Checkout-PrBranch {
