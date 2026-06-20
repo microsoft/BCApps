@@ -98,7 +98,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           repository: microsoft/BCQuality
-          ref: refs/heads/main
+          ref: 822cae1b2771ac25f665f73369f69093bd4fd630 # main
           path: bcquality
           persist-credentials: false
 
