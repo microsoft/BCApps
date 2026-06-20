@@ -175,7 +175,7 @@ codeunit 139983 "Subc. Management Library"
 
         LibraryInventory.NoSeriesSetup(InventorySetup);
         InventorySetup."Inventory Put-away Nos." := LibraryUtility.GetGlobalNoSeriesCode();
-        InventorySetup."Direct Transfer Posting Type" := InventorySetup."Direct Transfer Posting Type"::"Direct Transfer";
+        InventorySetup."Direct Transfer Posting" := InventorySetup."Direct Transfer Posting"::"Direct Transfer";
         InventorySetup.Modify();
         LibraryInventory.UpdateInventoryPostingSetup(Location);
     end;
