@@ -1,0 +1,549 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+namespace Microsoft.Manufacturing.Subcontracting;
+
+using Microsoft.Inventory.Location;
+using Microsoft.Inventory.Planning;
+using Microsoft.Inventory.Tracking;
+using Microsoft.Inventory.Transfer;
+using Microsoft.Manufacturing.Document;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Vendor;
+using System.Utilities;
+
+codeunit 99001524 "Subc. Prod. Order Comp. Ext."
+{
+    var
+#if not CLEAN28
+#pragma warning disable AL0432
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
+#endif
+        ExistingPostedTransferLineQst: Label 'The component has already been assigned to the posted subcontracting transfer order %1.\\Do you want to continue?', Comment = '%1=Transfer Order No';
+        ExistingPurchLineErr: Label 'You cannot change this field because the component is already assigned to subcontracting purchase order %1.\\Updating the quantity is only allowed through the purchase order.', Comment = '%1=Document No';
+        LocationCodeChangeNotAllowedErr: Label 'The component has already been assigned to the subcontracting transfer order %1.\\The location code may only be updated via the purchase order and processing of the stock transfer.', Comment = '%1=Transfer Order No';
+        ExistingTransferLineErr: Label 'You cannot open Tracking Specification because this component is already specified in Transfer Order %1.', Comment = '%1=Document No.';
+        CannotModifyCompTransferExistsErr: Label 'You cannot change this component because transfer orders exist for the linked production order %1, purchase order %2.', Comment = '%1=Production Order No., %2=Purchase Order No.';
+        CannotModifyCompStockAtSubcErr: Label 'You cannot change this component because there are remaining components or WIP items transferred to the subcontractor for production order %1, purchase order %2.', Comment = '%1=Production Order No., %2=Purchase Order No.';
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Prod. Order Comp.-Reserve", OnAfterInitFromProdOrderComp, '', false, false)]
+    local procedure OnAfterInitFromProdOrderComp(ProdOrderComponent: Record "Prod. Order Component")
+    begin
+#if not CLEAN28
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        ValidateSubcontractingReservationConstraints(ProdOrderComponent);
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Prod. Order Component", OnAfterValidateEvent, "Bin Code", false, false)]
+    local procedure OnAfterValidateBinCode(var Rec: Record "Prod. Order Component"; var xRec: Record "Prod. Order Component"; CurrFieldNo: Integer)
+    begin
+#if not CLEAN28
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        if Rec.IsTemporary then
+            exit;
+        SetOriginalBinCode(Rec, xRec);
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Prod. Order Component", OnAfterValidateEvent, "Location Code", false, false)]
+    local procedure OnAfterValidateLocationCode(var Rec: Record "Prod. Order Component"; var xRec: Record "Prod. Order Component"; CurrFieldNo: Integer)
+    begin
+#if not CLEAN28
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        if Rec.IsTemporary then
+            exit;
+        SetOriginalLocationCode(Rec, xRec);
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Prod. Order Component", OnAfterValidateEvent, "Routing Link Code", false, false)]
+    local procedure OnAfterValidateRoutingLinkCode(var Rec: Record "Prod. Order Component"; var xRec: Record "Prod. Order Component"; CurrFieldNo: Integer)
+    begin
+#if not CLEAN28
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        if Rec.IsTemporary then
+            exit;
+        HandleRoutingLinkCodeValidation(Rec, xRec);
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Prod. Order Component", OnBeforeValidateEvent, "Location Code", false, false)]
+    local procedure OnBeforeValidateLocationCode(var Rec: Record "Prod. Order Component"; var xRec: Record "Prod. Order Component"; CurrFieldNo: Integer)
+    begin
+#if not CLEAN28
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        if Rec.IsTemporary then
+            exit;
+        CheckExistingSubcontractingTransferOrder(Rec, xRec, CurrFieldNo);
+
+        if CurrFieldNo <> 0 then
+            if Rec."Location Code" <> xRec."Location Code" then
+                if xRec."Component Supply Method" = Rec."Component Supply Method"::"Transfer to Vendor" then
+                    CheckUncompletedSubcontractingDocumentsExist(xRec);
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Prod. Order Component", OnBeforeValidateEvent, "Bin Code", false, false)]
+    local procedure OnBeforeValidateBinCode(var Rec: Record "Prod. Order Component"; var xRec: Record "Prod. Order Component"; CurrFieldNo: Integer)
+    begin
+#if not CLEAN28
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        if Rec.IsTemporary then
+            exit;
+
+        if CurrFieldNo <> 0 then
+            if Rec."Bin Code" <> xRec."Bin Code" then
+                if xRec."Component Supply Method" = Rec."Component Supply Method"::"Transfer to Vendor" then
+                    CheckUncompletedSubcontractingDocumentsExist(xRec);
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Prod. Order Component", OnBeforeValidateEvent, "Item No.", false, false)]
+    local procedure OnBeforeValidateItemNo(var Rec: Record "Prod. Order Component"; var xRec: Record "Prod. Order Component"; CurrFieldNo: Integer)
+    begin
+#if not CLEAN28
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        if Rec.IsTemporary then
+            exit;
+
+        if CurrFieldNo <> 0 then
+            if Rec."Item No." <> xRec."Item No." then
+                if xRec."Component Supply Method" = Rec."Component Supply Method"::"Transfer to Vendor" then
+                    CheckUncompletedSubcontractingDocumentsExist(xRec);
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Prod. Order Component", OnBeforeValidateEvent, "Variant Code", false, false)]
+    local procedure OnBeforeValidateVariantCode(var Rec: Record "Prod. Order Component"; var xRec: Record "Prod. Order Component"; CurrFieldNo: Integer)
+    begin
+#if not CLEAN28
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        if Rec.IsTemporary then
+            exit;
+
+        if CurrFieldNo <> 0 then
+            if Rec."Variant Code" <> xRec."Variant Code" then
+                if xRec."Component Supply Method" = Rec."Component Supply Method"::"Transfer to Vendor" then
+                    CheckUncompletedSubcontractingDocumentsExist(xRec);
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Prod. Order Component", OnBeforeValidateEvent, "Quantity per", false, false)]
+    local procedure OnBeforeValidateQuantityPer(var Rec: Record "Prod. Order Component"; var xRec: Record "Prod. Order Component"; CurrFieldNo: Integer)
+    begin
+#if not CLEAN28
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        if Rec.IsTemporary then
+            exit;
+        CheckExistingDocumentsForSubcontracting(Rec, xRec, CurrFieldNo);
+
+        if CurrFieldNo <> 0 then
+            if Rec."Quantity per" <> xRec."Quantity per" then
+                if xRec."Component Supply Method" = Rec."Component Supply Method"::"Transfer to Vendor" then
+                    CheckUncompletedSubcontractingDocumentsExist(xRec);
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Prod. Order Component", OnBeforeValidateEvent, "Expected Quantity", false, false)]
+    local procedure OnBeforeValidateExpectedQuantity(var Rec: Record "Prod. Order Component"; var xRec: Record "Prod. Order Component"; CurrFieldNo: Integer)
+    begin
+#if not CLEAN28
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        if Rec.IsTemporary then
+            exit;
+
+        if CurrFieldNo <> 0 then
+            if Rec."Expected Quantity" <> xRec."Expected Quantity" then
+                if xRec."Component Supply Method" = Rec."Component Supply Method"::"Transfer to Vendor" then
+                    CheckUncompletedSubcontractingDocumentsExist(xRec);
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Prod. Order Component", OnBeforeValidateEvent, "Component Supply Method", false, false)]
+    local procedure OnBeforeValidateComponentSupplyMethod(var Rec: Record "Prod. Order Component"; var xRec: Record "Prod. Order Component"; CurrFieldNo: Integer)
+    begin
+#if not CLEAN28
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        if Rec.IsTemporary then
+            exit;
+
+        if CurrFieldNo <> 0 then
+            if Rec."Component Supply Method" <> xRec."Component Supply Method" then
+                if xRec."Component Supply Method" = Rec."Component Supply Method"::"Transfer to Vendor" then
+                    CheckUncompletedSubcontractingDocumentsExist(xRec);
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Prod. Order Component", OnBeforeDeleteEvent, '', false, false)]
+    local procedure OnBeforeDeleteProdOrderComponent(var Rec: Record "Prod. Order Component"; RunTrigger: Boolean)
+    begin
+#if not CLEAN28
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        if Rec.IsTemporary then
+            exit;
+        if not RunTrigger then
+            exit;
+
+        if Rec."Component Supply Method" = Rec."Component Supply Method"::"Transfer to Vendor" then
+            CheckUncompletedSubcontractingDocumentsExist(Rec);
+    end;
+
+    local procedure CheckExistingPostedSubcontractingTransferOrder(ProdOrderComponent: Record "Prod. Order Component"): Boolean
+    var
+        TransferShipmentLine: Record "Transfer Shipment Line";
+        ConfirmManagement: Codeunit "Confirm Management";
+    begin
+        if ProdOrderComponent."Component Supply Method" <> "Component Supply Method"::"Transfer to Vendor" then
+            exit;
+
+        TransferShipmentLine.SetRange("Subc. Prod. Order No.", ProdOrderComponent."Prod. Order No.");
+        TransferShipmentLine.SetRange("Subc. Prod. Order Line No.", ProdOrderComponent."Prod. Order Line No.");
+        TransferShipmentLine.SetRange("Subc. Prod. Ord. Comp Line No.", ProdOrderComponent."Line No.");
+        TransferShipmentLine.SetRange("Item No.", ProdOrderComponent."Item No.");
+        TransferShipmentLine.SetLoadFields(SystemId);
+        if not TransferShipmentLine.IsEmpty() then begin
+            TransferShipmentLine.FindFirst();
+            if not ConfirmManagement.GetResponse(StrSubstNo(ExistingPostedTransferLineQst, TransferShipmentLine."Document No.")) then
+                Error('');
+        end;
+    end;
+
+    local procedure CheckExistingReservationOnTransferLine(ProdOrderComponent: Record "Prod. Order Component"; TransferLine: Record "Transfer Line") Result: Boolean
+    var
+        ReservationEntry: Record "Reservation Entry";
+    begin
+        ReservationEntry.SetCurrentKey("Source Type", "Source Subtype", "Source ID", "Source Ref. No.", "Reservation Status");
+        ReservationEntry.SetRange("Source Type", Database::"Transfer Line");
+        ReservationEntry.SetRange("Source ID", TransferLine."Document No.");
+        ReservationEntry.SetRange("Source Ref. No.", TransferLine."Line No.");
+        ReservationEntry.SetRange("Item No.", ProdOrderComponent."Item No.");
+        ReservationEntry.SetRange("Variant Code", ProdOrderComponent."Variant Code");
+
+        Result := not ReservationEntry.IsEmpty();
+        exit(Result);
+    end;
+
+    local procedure CheckExistingSubcontractingPurchaseOrder(ProdOrderComponent: Record "Prod. Order Component"): Boolean
+    var
+        PurchaseLine: Record "Purchase Line";
+        TempPurchaseLine: Record "Purchase Line" temporary;
+    begin
+        if ProdOrderComponent."Component Supply Method" <> ProdOrderComponent."Component Supply Method"::"Vendor-Supplied" then
+            exit;
+
+        PurchaseLine.SetCurrentKey("Prod. Order No.", "Prod. Order Line No.", "Routing No.", "Operation No.");
+        PurchaseLine.SetRange("Prod. Order No.", ProdOrderComponent."Prod. Order No.");
+        PurchaseLine.SetRange("Prod. Order Line No.", ProdOrderComponent."Prod. Order Line No.");
+        PurchaseLine.SetLoadFields("Document Type", "Document No.", "Line No.");
+        if PurchaseLine.FindSet() then
+            repeat
+                TempPurchaseLine.Init();
+                TempPurchaseLine."Document Type" := PurchaseLine."Document Type";
+                TempPurchaseLine."Document No." := PurchaseLine."Document No.";
+                TempPurchaseLine."Line No." := PurchaseLine."Line No.";
+                TempPurchaseLine.Insert();
+            until PurchaseLine.Next() = 0;
+
+        if TempPurchaseLine.FindSet() then
+            repeat
+                PurchaseLine.Reset();
+                PurchaseLine.SetRange("Document Type", TempPurchaseLine."Document Type");
+                PurchaseLine.SetRange("Document No.", TempPurchaseLine."Document No.");
+                PurchaseLine.SetRange(Type, "Purchase Line Type"::Item);
+                PurchaseLine.SetRange("No.", ProdOrderComponent."Item No.");
+                PurchaseLine.SetRange("Prod. Order No.", '');
+                PurchaseLine.SetLoadFields("Document No.");
+                if PurchaseLine.FindFirst() then
+                    Error(ExistingPurchLineErr, PurchaseLine."Document No.");
+            until TempPurchaseLine.Next() = 0;
+    end;
+
+    local procedure CheckExistingSubcontractingTransferOrder(var ProdOrderComponent: Record "Prod. Order Component"; var xProdOrderComponent: Record "Prod. Order Component"; CurrFieldNo: Integer)
+    var
+        TransferLine: Record "Transfer Line";
+    begin
+        if CurrFieldNo = 0 then
+            exit;
+
+        if ProdOrderComponent."Location Code" = xProdOrderComponent."Location Code" then
+            exit;
+
+        if ProdOrderComponent."Component Supply Method" <> "Component Supply Method"::"Transfer to Vendor" then
+            exit;
+
+        TransferLine.SetCurrentKey("Subc. Prod. Order No.", "Subc. Routing No.", "Subc. Routing Reference No.", "Subc. Operation No.", "Subc. Purch. Order No.");
+        TransferLine.SetRange("Subc. Prod. Order No.", ProdOrderComponent."Prod. Order No.");
+        TransferLine.SetRange("Subc. Prod. Order Line No.", ProdOrderComponent."Prod. Order Line No.");
+        TransferLine.SetRange("Subc. Prod. Ord. Comp Line No.", ProdOrderComponent."Line No.");
+        TransferLine.SetRange("Item No.", ProdOrderComponent."Item No.");
+        TransferLine.SetLoadFields(SystemId);
+        if TransferLine.FindFirst() then
+            Error(LocationCodeChangeNotAllowedErr, TransferLine."Document No.");
+    end;
+
+    local procedure CheckIfProdOrderCompIsInSubcontractingOrder(ProdOrderComponent: Record "Prod. Order Component") Result: Boolean
+    var
+        PurchOrderNo: Code[20];
+        PurchOrderLineNo: Integer;
+    begin
+        GetPurchOrderFromProdOrderComp(ProdOrderComponent, PurchOrderNo, PurchOrderLineNo);
+
+        Result := PurchOrderNo <> '';
+        exit(Result);
+    end;
+
+    local procedure CheckIfTransferLineOnProdOrderCompLineExists(ProdOrderComponent: Record "Prod. Order Component"; var TransferLine: Record "Transfer Line"): Boolean
+    var
+        ProdOrderLine: Record "Prod. Order Line";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+    begin
+        ProdOrderLine.SetLoadFields("Routing Reference No.");
+        if not ProdOrderLine.Get(ProdOrderComponent.Status, ProdOrderComponent."Prod. Order No.", ProdOrderComponent."Prod. Order Line No.") then
+            exit(false);
+
+        GetProdOrderRtngLineFromProdOrderComp(ProdOrderRoutingLine, ProdOrderComponent);
+
+        TransferLine.SetCurrentKey("Subc. Prod. Order No.", "Subc. Prod. Order Line No.", "Subc. Routing Reference No.", "Subc. Routing No.", "Subc. Operation No.");
+        TransferLine.SetRange("Subc. Prod. Order No.", ProdOrderLine."Prod. Order No.");
+        TransferLine.SetRange("Subc. Prod. Order Line No.", ProdOrderLine."Line No.");
+        TransferLine.SetRange("Subc. Routing Reference No.", ProdOrderLine."Routing Reference No.");
+        TransferLine.SetRange("Subc. Routing No.", ProdOrderRoutingLine."Routing No.");
+        TransferLine.SetRange("Subc. Operation No.", ProdOrderRoutingLine."Operation No.");
+        TransferLine.SetRange("Item No.", ProdOrderComponent."Item No.");
+        TransferLine.SetRange("Variant Code", ProdOrderComponent."Variant Code");
+        if TransferLine.IsEmpty() then
+            exit(false);
+
+        TransferLine.SetLoadFields(SystemId);
+        TransferLine.FindFirst();
+        exit(true);
+    end;
+
+    local procedure GetProdOrderRtngLineFromProdOrderComp(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; ProdOrderComponent: Record "Prod. Order Component")
+    var
+        ProdOrderLine: Record "Prod. Order Line";
+    begin
+        ProdOrderLine.SetLoadFields("Routing Reference No.");
+        if not ProdOrderLine.Get(ProdOrderComponent.Status, ProdOrderComponent."Prod. Order No.", ProdOrderComponent."Prod. Order Line No.") then
+            exit;
+
+        ProdOrderRoutingLine.SetRange(Status, ProdOrderLine.Status);
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProdOrderLine."Prod. Order No.");
+        ProdOrderRoutingLine.SetRange("Routing Reference No.", ProdOrderLine."Routing Reference No.");
+        ProdOrderRoutingLine.SetRange("Routing Link Code", ProdOrderComponent."Routing Link Code");
+        if ProdOrderRoutingLine.IsEmpty() then
+            exit;
+
+        ProdOrderRoutingLine.SetLoadFields(SystemId);
+        ProdOrderRoutingLine.FindFirst();
+    end;
+
+    local procedure GetPurchOrderFromProdOrderComp(ProdOrderComponent: Record "Prod. Order Component"; var PurchOrderNo: Code[20]; var PurchOrderLineNo: Integer)
+    var
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        PurchaseLine: Record "Purchase Line";
+    begin
+        GetProdOrderRtngLineFromProdOrderComp(ProdOrderRoutingLine, ProdOrderComponent);
+
+        PurchaseLine.SetCurrentKey("Document Type", Type, "Prod. Order No.", "Prod. Order Line No.");
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Prod. Order No.", ProdOrderComponent."Prod. Order No.");
+        PurchaseLine.SetRange("Prod. Order Line No.", ProdOrderComponent."Prod. Order Line No.");
+        PurchaseLine.SetRange("Operation No.", ProdOrderRoutingLine."Operation No.");
+        if PurchaseLine.IsEmpty() then
+            exit;
+
+        PurchaseLine.FindFirst();
+        PurchOrderNo := PurchaseLine."Document No.";
+        PurchOrderLineNo := PurchaseLine."Line No.";
+    end;
+
+    local procedure ValidateSubcontractingReservationConstraints(var ProdOrderComponent: Record "Prod. Order Component")
+    var
+        TransferLine: Record "Transfer Line";
+    begin
+        if not CheckIfProdOrderCompIsInSubcontractingOrder(ProdOrderComponent) then
+            exit;
+
+        if not CheckIfTransferLineOnProdOrderCompLineExists(ProdOrderComponent, TransferLine) then
+            exit;
+
+        if not CheckExistingReservationOnTransferLine(ProdOrderComponent, TransferLine) then
+            exit;
+
+        Error(ExistingTransferLineErr, TransferLine."Document No.");
+    end;
+
+    local procedure HandleRoutingLinkCodeValidation(var ProdOrderComponent: Record "Prod. Order Component"; var xProdOrderComponent: Record "Prod. Order Component")
+    var
+        ProdOrderLine: Record "Prod. Order Line";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        StockkeepingUnit: Record "Stockkeeping Unit";
+        Vendor: Record Vendor;
+        PlanningGetParameters: Codeunit "Planning-Get Parameters";
+        SubcontractingManagement: Codeunit "Subcontracting Management";
+    begin
+        if ProdOrderComponent."Component Supply Method" = ProdOrderComponent."Component Supply Method"::"Transfer to Vendor" then
+            exit;
+
+        ProdOrderLine.SetLoadFields("Routing No.", "Routing Reference No.", "Item No.", "Variant Code", "Location Code");
+        ProdOrderLine.Get(ProdOrderComponent.Status, ProdOrderComponent."Prod. Order No.", ProdOrderComponent."Prod. Order Line No.");
+        if ProdOrderComponent."Routing Link Code" <> '' then begin
+            ProdOrderRoutingLine.SetRange(Status, ProdOrderComponent.Status);
+            ProdOrderRoutingLine.SetRange("Prod. Order No.", ProdOrderComponent."Prod. Order No.");
+            ProdOrderRoutingLine.SetRange("Routing No.", ProdOrderLine."Routing No.");
+            ProdOrderRoutingLine.SetRange("Routing Reference No.", ProdOrderLine."Routing Reference No.");
+            ProdOrderRoutingLine.SetRange("Routing Link Code", ProdOrderComponent."Routing Link Code");
+            ProdOrderRoutingLine.SetLoadFields("Starting Date", "Starting Time", Type, "No.");
+            if ProdOrderRoutingLine.FindFirst() then begin
+                ProdOrderComponent."Due Date" := ProdOrderRoutingLine."Starting Date";
+                ProdOrderComponent."Due Time" := ProdOrderRoutingLine."Starting Time";
+                if (ProdOrderRoutingLine.Type = ProdOrderRoutingLine.Type::"Work Center") then
+                    if SubcontractingManagement.GetSubcontractor(ProdOrderRoutingLine."No.", Vendor) then
+                        SubcontractingManagement.ChangeLocationOnProdOrderComponent(ProdOrderComponent, Vendor."Subc. Location Code", ProdOrderComponent."Subc. Original Location Code", ProdOrderComponent."Subc. Orig. Bin Code");
+            end;
+        end else
+            if xProdOrderComponent."Routing Link Code" <> '' then
+                if ProdOrderComponent."Subc. Original Location Code" <> '' then begin
+                    ProdOrderComponent.Validate("Location Code", ProdOrderComponent."Subc. Original Location Code");
+                    ProdOrderComponent."Subc. Original Location Code" := '';
+                    if ProdOrderComponent."Subc. Orig. Bin Code" <> '' then begin
+                        ProdOrderComponent.Validate("Bin Code", ProdOrderComponent."Subc. Orig. Bin Code");
+                        ProdOrderComponent."Subc. Orig. Bin Code" := '';
+                    end;
+                end else begin
+                    PlanningGetParameters.AtSKU(
+                      StockkeepingUnit,
+                      ProdOrderLine."Item No.",
+                      ProdOrderLine."Variant Code",
+                      ProdOrderLine."Location Code");
+                    ProdOrderComponent.Validate("Location Code", StockkeepingUnit."Components at Location");
+                end;
+    end;
+
+    local procedure SetOriginalBinCode(var ProdOrderComponent: Record "Prod. Order Component"; var xProdOrderComponent: Record "Prod. Order Component")
+    begin
+        if ProdOrderComponent."Bin Code" <> xProdOrderComponent."Bin Code" then
+            ProdOrderComponent."Subc. Orig. Bin Code" := xProdOrderComponent."Bin Code";
+    end;
+
+    local procedure SetOriginalLocationCode(var ProdOrderComponent: Record "Prod. Order Component"; var xProdOrderComponent: Record "Prod. Order Component")
+    begin
+        if (ProdOrderComponent."Location Code" <> xProdOrderComponent."Location Code") then
+            ProdOrderComponent."Subc. Original Location Code" := xProdOrderComponent."Location Code";
+    end;
+
+    local procedure CheckExistingDocumentsForSubcontracting(var ProdOrderComponent: Record "Prod. Order Component"; var xProdOrderComponent: Record "Prod. Order Component"; CurrFieldNo: Integer)
+    begin
+        if CurrFieldNo = 0 then
+            exit;
+
+        if ProdOrderComponent."Quantity per" <> xProdOrderComponent."Quantity per" then begin
+            CheckExistingSubcontractingTransferOrder(ProdOrderComponent, xProdOrderComponent, CurrFieldNo);
+            CheckExistingPostedSubcontractingTransferOrder(ProdOrderComponent);
+            CheckExistingSubcontractingPurchaseOrder(ProdOrderComponent);
+        end;
+    end;
+
+    local procedure CheckUncompletedSubcontractingDocumentsExist(ProdOrderComponent: Record "Prod. Order Component")
+    var
+        ProdOrderLine: Record "Prod. Order Line";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        PurchaseLine: Record "Purchase Line";
+    begin
+        ProdOrderLine.SetLoadFields("Routing Reference No.", "Routing No.");
+        if not ProdOrderLine.Get(ProdOrderComponent.Status, ProdOrderComponent."Prod. Order No.", ProdOrderComponent."Prod. Order Line No.") then
+            exit;
+
+        PurchaseLine.SetCurrentKey("Document Type", Type, "Prod. Order No.", "Prod. Order Line No.");
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Prod. Order No.", ProdOrderComponent."Prod. Order No.");
+        PurchaseLine.SetRange("Prod. Order Line No.", ProdOrderComponent."Prod. Order Line No.");
+
+        if ProdOrderComponent."Routing Link Code" <> '' then begin
+            ProdOrderRoutingLine.SetRange(Status, ProdOrderLine.Status);
+            ProdOrderRoutingLine.SetRange("Prod. Order No.", ProdOrderLine."Prod. Order No.");
+            ProdOrderRoutingLine.SetRange("Routing Reference No.", ProdOrderLine."Routing Reference No.");
+            ProdOrderRoutingLine.SetRange("Routing Link Code", ProdOrderComponent."Routing Link Code");
+            ProdOrderRoutingLine.SetLoadFields("Operation No.");
+            if ProdOrderRoutingLine.FindFirst() then
+                PurchaseLine.SetRange("Operation No.", ProdOrderRoutingLine."Operation No.");
+        end;
+
+        if PurchaseLine.FindSet() then
+            repeat
+                if HasSubcTransferForPurchLine(PurchaseLine, ProdOrderComponent) then
+                    Error(CannotModifyCompTransferExistsErr, PurchaseLine."Prod. Order No.", PurchaseLine."Document No.");
+
+                ProdOrderComponent.SetRange("Subc. Purchase Order Filter", PurchaseLine."Document No.");
+                if HasStockAtSubcLocationForComponentForPurchLine(ProdOrderComponent) then
+                    Error(CannotModifyCompStockAtSubcErr, PurchaseLine."Prod. Order No.", PurchaseLine."Document No.");
+            until PurchaseLine.Next() = 0;
+    end;
+
+    local procedure HasSubcTransferForPurchLine(PurchaseLine: Record "Purchase Line"; ProdOrderComponent: Record "Prod. Order Component"): Boolean
+    var
+        TransferLine: Record "Transfer Line";
+    begin
+        TransferLine.SetCurrentKey("Subc. Purch. Order No.", "Subc. Prod. Order No.", "Subc. Prod. Order Line No.", "Subc. Operation No.");
+        TransferLine.SetRange("Subc. Purch. Order No.", PurchaseLine."Document No.");
+        TransferLine.SetRange("Subc. Prod. Order No.", ProdOrderComponent."Prod. Order No.");
+        TransferLine.SetRange("Subc. Prod. Order Line No.", ProdOrderComponent."Prod. Order Line No.");
+        TransferLine.SetRange("Subc. Prod. Ord. Comp Line No.", ProdOrderComponent."Line No.");
+        exit(not TransferLine.IsEmpty());
+    end;
+
+    local procedure HasStockAtSubcLocationForComponentForPurchLine(ProdOrderComponent: Record "Prod. Order Component"): Boolean
+    var
+        SubcTransferManagement: Codeunit "Subc. Transfer Management";
+        NetStockAtSubcLocation: Decimal;
+    begin
+        ProdOrderComponent.CalcFields("Subc. Qty. transf. to Subcontr");
+        if ProdOrderComponent."Subc. Qty. transf. to Subcontr" = 0 then
+            exit(false);
+
+        NetStockAtSubcLocation := ProdOrderComponent."Subc. Qty. transf. to Subcontr";
+        NetStockAtSubcLocation -= SubcTransferManagement.CalcConsumedQtyAtSubcLocation(ProdOrderComponent);
+        exit(NetStockAtSubcLocation > 0);
+    end;
+}
