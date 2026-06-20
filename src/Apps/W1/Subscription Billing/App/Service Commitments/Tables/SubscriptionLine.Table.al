@@ -752,6 +752,8 @@ table 8059 "Subscription Line"
     begin
         if IsInitialTermEmpty() then
             exit;
+        if not IsExtensionTermEmpty() then
+            exit;
 
         TestField("Subscription Line Start Date");
         "Subscription Line End Date" := CalcDate("Initial Term", "Subscription Line Start Date");
@@ -764,10 +766,16 @@ table 8059 "Subscription Line"
         if "Subscription Line End Date" <> 0D then
             "Term Until" := "Subscription Line End Date"
         else
-            if not IsNoticePeriodEmpty() then begin
+            if not IsExtensionTermEmpty() then begin
                 TestField("Subscription Line Start Date");
-                "Term Until" := CalcDate("Notice Period", "Subscription Line Start Date");
-                "Term Until" := CalcDate('<-1D>', "Term Until");
+                if not IsInitialTermEmpty() then begin
+                    "Term Until" := CalcDate("Initial Term", "Subscription Line Start Date");
+                    "Term Until" := CalcDate('<-1D>', "Term Until");
+                end else
+                    if not IsNoticePeriodEmpty() then begin
+                        "Term Until" := CalcDate("Notice Period", "Subscription Line Start Date");
+                        "Term Until" := CalcDate('<-1D>', "Term Until");
+                    end;
             end;
         CalculateCancellationPossibleUntil();
     end;
