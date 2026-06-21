@@ -62,6 +62,12 @@ tableextension 99001506 "Subc. ProdOrderRtngLine Ext." extends "Prod. Order Rout
                     "Transfer WIP Item" := false;
                     exit;
                 end;
+
+                if "No." = '' then begin
+                    "Transfer WIP Item" := false;
+                    exit;
+                end;
+
                 WorkCenter.SetLoadFields("Subcontractor No.");
                 WorkCenter.Get("No.");
                 if WorkCenter."Subcontractor No." = '' then
