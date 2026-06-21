@@ -58,7 +58,7 @@ table 8015 "Usage Data Supplier Reference"
         }
     }
 
-    internal procedure CreateSupplierReference(SupplierNo: Code[20]; SupplierReference: Text[80]; ReferenceType: Enum "Usage Data Reference Type")
+    procedure CreateSupplierReference(SupplierNo: Code[20]; SupplierReference: Text[80]; ReferenceType: Enum "Usage Data Reference Type")
     begin
         if Rec.FindSupplierReference(SupplierNo, SupplierReference, ReferenceType) then begin
             Rec.Reset();
@@ -73,13 +73,13 @@ table 8015 "Usage Data Supplier Reference"
         Rec.Reset();
     end;
 
-    internal procedure FindSupplierReference(SupplierNo: Code[20]; SupplierReference: Text[80]; ReferenceType: Enum "Usage Data Reference Type"): Boolean
+    procedure FindSupplierReference(SupplierNo: Code[20]; SupplierReference: Text[80]; ReferenceType: Enum "Usage Data Reference Type"): Boolean
     begin
         Rec.FilterUsageDataSupplierReference(SupplierNo, SupplierReference, ReferenceType);
         exit(Rec.FindFirst());
     end;
 
-    internal procedure FilterUsageDataSupplierReference(SupplierNo: Code[20]; SupplierReference: Text[80]; ReferenceType: Enum "Usage Data Reference Type")
+    procedure FilterUsageDataSupplierReference(SupplierNo: Code[20]; SupplierReference: Text[80]; ReferenceType: Enum "Usage Data Reference Type")
     begin
         Rec.SetCurrentKey("Supplier No.", "Supplier Reference", Type);
         Rec.SetRange("Supplier No.", SupplierNo);

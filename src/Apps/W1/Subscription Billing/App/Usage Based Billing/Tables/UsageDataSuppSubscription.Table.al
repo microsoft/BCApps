@@ -250,13 +250,13 @@ table 8016 "Usage Data Supp. Subscription"
             Error(SubscriptionCannotBeConnectedErr);
     end;
 
-    internal procedure SetErrorReason(ErrorText: Text)
+    procedure SetErrorReason(ErrorText: Text)
     begin
         Rec.Validate("Processing Status", Enum::"Processing Status"::Error);
         Rec.SetReason(ErrorText);
     end;
 
-    internal procedure ShowReason()
+    procedure ShowReason()
     var
         TextManagement: Codeunit "Text Management";
         RRef: RecordRef;
@@ -266,7 +266,7 @@ table 8016 "Usage Data Supp. Subscription"
         TextManagement.ShowFieldText(RRef, FieldNo(Reason));
     end;
 
-    internal procedure SetReason(ReasonText: Text)
+    procedure SetReason(ReasonText: Text)
     var
         TextManagement: Codeunit "Text Management";
         RRef: RecordRef;
@@ -282,7 +282,7 @@ table 8016 "Usage Data Supp. Subscription"
         end;
     end;
 
-    internal procedure ResetProcessingStatus(var UsageDataSubscription: Record "Usage Data Supp. Subscription")
+    procedure ResetProcessingStatus(var UsageDataSubscription: Record "Usage Data Supp. Subscription")
     begin
         if UsageDataSubscription.FindSet(true) then
             repeat
@@ -291,7 +291,7 @@ table 8016 "Usage Data Supp. Subscription"
             until UsageDataSubscription.Next() = 0;
     end;
 
-    internal procedure ResetServiceObjectAndServiceCommitment()
+    procedure ResetServiceObjectAndServiceCommitment()
     begin
         if Rec."Entry No." = 0 then
             exit;
@@ -300,14 +300,14 @@ table 8016 "Usage Data Supp. Subscription"
         Rec.Modify(true);
     end;
 
-    internal procedure FindForSupplierReference(SupplierNo: Code[20]; SupplierReference: Text[80]): Boolean
+    procedure FindForSupplierReference(SupplierNo: Code[20]; SupplierReference: Text[80]): Boolean
     begin
         Rec.SetRange("Supplier No.", SupplierNo);
         Rec.SetRange("Supplier Reference", SupplierReference);
         exit(Rec.FindFirst());
     end;
 
-    internal procedure UpdateSubscriptionHeaderNoInImportedData()
+    procedure UpdateSubscriptionHeaderNoInImportedData()
     var
         UsageDataSupplier: Record "Usage Data Supplier";
         UsageDataProcessing: Interface "Usage Data Processing";

@@ -151,13 +151,13 @@ table 8013 "Usage Data Import"
         UsageDataBlob.DeleteAll(false);
     end;
 
-    internal procedure SetStatus(ProcessingStatus: Enum Microsoft.SubscriptionBilling."Processing Status")
+    procedure SetStatus(ProcessingStatus: Enum Microsoft.SubscriptionBilling."Processing Status")
     begin
         Rec.Validate("Processing Status", ProcessingStatus);
         Rec.Modify(true);
     end;
 
-    internal procedure SetReason(ReasonText: Text)
+    procedure SetReason(ReasonText: Text)
     var
         TextManagement: Codeunit "Text Management";
         RRef: RecordRef;
@@ -173,7 +173,7 @@ table 8013 "Usage Data Import"
         end;
     end;
 
-    internal procedure DeleteUsageDataBillingLines()
+    procedure DeleteUsageDataBillingLines()
     var
         UsageDataSupplier: Record "Usage Data Supplier";
         UsageDataProcessing: Interface "Usage Data Processing";
@@ -206,13 +206,13 @@ table 8013 "Usage Data Import"
             UsageDataBilling.DeleteAll(true);
     end;
 
-    internal procedure SetErrorReason(ErrorText: Text)
+    procedure SetErrorReason(ErrorText: Text)
     begin
         Rec.Validate("Processing Status", Enum::"Processing Status"::Error);
         Rec.SetReason(ErrorText);
     end;
 
-    internal procedure ShowReason()
+    procedure ShowReason()
     var
         TextManagement: Codeunit "Text Management";
         RRef: RecordRef;
@@ -255,7 +255,7 @@ table 8013 "Usage Data Import"
         end;
     end;
 
-    internal procedure ProcessUsageDataImport(var UsageDataImport: Record "Usage Data Import"; ProcessingStep: Enum "Processing Step")
+    procedure ProcessUsageDataImport(var UsageDataImport: Record "Usage Data Import"; ProcessingStep: Enum "Processing Step")
     var
         UsageDataImport2: Record "Usage Data Import";
     begin
@@ -282,7 +282,7 @@ table 8013 "Usage Data Import"
             until UsageDataImport.Next() = 0;
     end;
 
-    internal procedure CollectCustomerContractsAndCreateInvoices(var UsageDataImport: Record "Usage Data Import")
+    procedure CollectCustomerContractsAndCreateInvoices(var UsageDataImport: Record "Usage Data Import")
     var
         CustomerContractFilter: Text;
         CustomerContractLineFilter: Text;
@@ -295,7 +295,7 @@ table 8013 "Usage Data Import"
         CreateCustomerInvoices(CustomerContractFilter, CustomerContractLineFilter);
     end;
 
-    internal procedure CollectVendorContractsAndCreateInvoices(var UsageDataImport: Record "Usage Data Import")
+    procedure CollectVendorContractsAndCreateInvoices(var UsageDataImport: Record "Usage Data Import")
     var
         VendorContractFilter: Text;
         VendorContractLineFilter: Text;
@@ -358,7 +358,7 @@ table 8013 "Usage Data Import"
         UsageBasedContrSubscribers.CreateContractInvoicesFromUsageDataImport(Enum::"Service Partner"::Vendor, VendorContractFilter, VendorContractLineFilter, '');
     end;
 
-    internal procedure ShowRelatedDocuments(var UsageDataImport: Record "Usage Data Import"; ServicePartner: Enum "Service Partner"; DocumentType: Option Contract,"Contract Invoices","Posted Contract Invoices")
+    procedure ShowRelatedDocuments(var UsageDataImport: Record "Usage Data Import"; ServicePartner: Enum "Service Partner"; DocumentType: Option Contract,"Contract Invoices","Posted Contract Invoices")
     var
         UsageBasedBilling: Record "Usage Data Billing";
     begin

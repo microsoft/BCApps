@@ -55,7 +55,7 @@ page 8072 "Create Customer Billing Docs"
         PostDocuments: Boolean;
         Grouping: Enum "Customer Rec. Billing Grouping";
 
-    internal procedure GetData(var NewDocumentDate: Date; var NewPostingDate: Date; var NewGroupingType: Enum "Customer Rec. Billing Grouping"; var NewPostDocuments: Boolean)
+    procedure GetData(var NewDocumentDate: Date; var NewPostingDate: Date; var NewGroupingType: Enum "Customer Rec. Billing Grouping"; var NewPostDocuments: Boolean)
     begin
         NewDocumentDate := DocumentDate;
         NewPostingDate := PostingDate;
@@ -63,7 +63,7 @@ page 8072 "Create Customer Billing Docs"
         NewPostDocuments := PostDocuments;
     end;
 
-    internal procedure SetData(NewDocumentDate: Date; NewPostingDate: Date; NewGroupingType: Enum "Customer Rec. Billing Grouping"; NewPostDocuments: Boolean)
+    procedure SetData(NewDocumentDate: Date; NewPostingDate: Date; NewGroupingType: Enum "Customer Rec. Billing Grouping"; NewPostDocuments: Boolean)
     begin
         DocumentDate := NewDocumentDate;
         PostingDate := NewPostingDate;

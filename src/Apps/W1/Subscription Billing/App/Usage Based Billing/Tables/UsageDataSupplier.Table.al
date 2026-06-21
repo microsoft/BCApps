@@ -100,7 +100,7 @@ table 8014 "Usage Data Supplier"
         UsageDataProcessing.DeleteSupplierData(Rec);
     end;
 
-    internal procedure OpenSupplierSettings()
+    procedure OpenSupplierSettings()
     var
         UsageDataProcessing: Interface "Usage Data Processing";
     begin

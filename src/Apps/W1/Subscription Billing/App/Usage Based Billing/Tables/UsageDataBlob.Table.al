@@ -93,7 +93,7 @@ table 8011 "Usage Data Blob"
         Rec.Insert(false);
     end;
 
-    internal procedure ImportFromFile(InStream: InStream; FileName: Text)
+    procedure ImportFromFile(InStream: InStream; FileName: Text)
     var
         OutStream: OutStream;
     begin
@@ -106,7 +106,7 @@ table 8011 "Usage Data Blob"
         Rec.Modify(false);
     end;
 
-    internal procedure ShowReason()
+    procedure ShowReason()
     var
         TextManagement: Codeunit "Text Management";
         RRef: RecordRef;
@@ -116,7 +116,7 @@ table 8011 "Usage Data Blob"
         TextManagement.ShowFieldText(RRef, FieldNo(Reason));
     end;
 
-    internal procedure ExportData()
+    procedure ExportData()
     var
         InStream: InStream;
         FileName: Text;

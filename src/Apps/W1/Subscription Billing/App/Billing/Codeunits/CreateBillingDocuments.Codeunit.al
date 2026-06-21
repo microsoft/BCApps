@@ -34,18 +34,15 @@ codeunit 8060 "Create Billing Documents"
             if not RequestPageSelectionConfirmed() then
                 exit;
 
-        Window.Open(ProgressTxt);
-        Window.Update();
         if AutomatedBilling then
             BillingLine.SetRange("Billing Error Log Entry No.", 0)
         else
             BillingLine.ModifyAll("Billing Error Log Entry No.", 0);
 
         ProcessBillingLines(BillingLine);
-        Window.Close();
         if PostDocuments then
             PostCreatedDocuments();
-        if not HideProcessingFinishedMessage then
+        if (not HideProcessingFinishedMessage) and GuiAllowed() then
             ProcessingFinishedMessage();
     end;
 
@@ -53,6 +50,9 @@ codeunit 8060 "Create Billing Documents"
     begin
         OnBeforeProcessBillingLines(BillingLine, DocumentDate, PostingDate, CustomerRecurringBillingGrouping, VendorRecurringBillingGrouping, PostDocuments);
         CreateTempBillingLines(BillingLine);
+        TotalBillingLineCount := TempBillingLine.Count();
+        ProcessedBillingLineCount := 0;
+        this.ProgressTracker.StartActivity(CreatingDocumentsLbl, TotalBillingLineCount);
         case BillingLine.Partner of
             BillingLine.Partner::Customer:
                 case CustomerRecurringBillingGrouping of
@@ -71,6 +71,7 @@ codeunit 8060 "Create Billing Documents"
                         CreatePurchaseDocumentsPerVendor();
                 end;
         end;
+        this.ProgressTracker.Finish();
         OnAfterProcessBillingLines(BillingLine);
     end;
 
@@ -89,17 +90,21 @@ codeunit 8060 "Create Billing Documents"
             repeat
                 if IsNewHeaderNeededPerContract(PreviousContractNo) then begin
                     TestPreviousDocumentTotalInvoiceAmount(true, DiscountLineExists, PreviousContractNo);
+                    CommitCreatedDocumentCheckpoint();
+                    TrimTempBillingLinesForContract(PreviousContractNo);
                     CustomerContract.Get(TempBillingLine."Subscription Contract No.");
                     CreateSalesHeaderFromContract(CustomerContract);
                     InsertContractDescriptionSalesLines(TempBillingLine);
                     PreviousContractNo := TempBillingLine."Subscription Contract No.";
                     ContractsProcessedCount += 1;
-                    Window.Update(1, CustomerContract."Sell-to Customer No.");
-                    Window.Update(2, PreviousContractNo);
+                    SetProgressPartner(CustomerContract."Sell-to Customer No.");
+                    SetProgressContract(PreviousContractNo);
                 end;
                 InsertSalesLineFromTempBillingLine();
+                UpdateBillingProgress();
             until TempBillingLine.Next() = 0;
         TestPreviousDocumentTotalInvoiceAmount(true, DiscountLineExists, PreviousContractNo);
+        CommitCreatedDocumentCheckpoint();
     end;
 
     local procedure CreatePurchaseDocumentsPerContract()
@@ -117,17 +122,21 @@ codeunit 8060 "Create Billing Documents"
             repeat
                 if IsNewHeaderNeededPerContract(PreviousContractNo) then begin
                     TestPreviousDocumentTotalInvoiceAmount(false, DiscountLineExists, PreviousContractNo);
+                    CommitCreatedDocumentCheckpoint();
+                    TrimTempBillingLinesForContract(PreviousContractNo);
                     VendorContract.Get(TempBillingLine."Subscription Contract No.");
                     CreatePurchaseHeaderFromContract(VendorContract);
                     InsertContractDescriptionPurchaseLines(TempBillingLine);
                     PreviousContractNo := TempBillingLine."Subscription Contract No.";
                     ContractsProcessedCount += 1;
-                    Window.Update(1, VendorContract."Pay-to Vendor No.");
-                    Window.Update(2, PreviousContractNo);
+                    SetProgressPartner(VendorContract."Pay-to Vendor No.");
+                    SetProgressContract(PreviousContractNo);
                 end;
                 InsertPurchaseLineFromTempBillingLine();
+                UpdateBillingProgress();
             until TempBillingLine.Next() = 0;
         TestPreviousDocumentTotalInvoiceAmount(false, DiscountLineExists, PreviousContractNo);
+        CommitCreatedDocumentCheckpoint();
     end;
 
     local procedure CreateSalesDocumentsPerCustomer()
@@ -149,13 +158,14 @@ codeunit 8060 "Create Billing Documents"
             repeat
                 if IsNewSalesHeaderNeeded(PreviousCustomerNo, LastDetailOverview, PreviousCurrencyCode, PreviousContractNo) then begin
                     TestPreviousDocumentTotalInvoiceAmount(true, DiscountLineExists, PreviousContractNo);
+                    CommitCreatedDocumentCheckpoint();
                     CreateSalesHeaderForCustomerNo(TempBillingLine."Partner No.");
                     SalesHeader."Sub. Contract Detail Overview" := TempBillingLine."Detail Overview";
                     SalesHeader.Modify(false);
                     PreviousCustomerNo := TempBillingLine."Partner No.";
                     LastDetailOverview := TempBillingLine."Detail Overview";
                     PreviousCurrencyCode := TempBillingLine."Currency Code";
-                    Window.Update(1, PreviousCustomerNo);
+                    SetProgressPartner(PreviousCustomerNo);
                     FirstContractDescriptionLineInserted := false;
                 end;
                 if TempBillingLine."Subscription Contract No." <> PreviousContractNo then begin
@@ -166,13 +176,16 @@ codeunit 8060 "Create Billing Documents"
                         TranslationHelper.RestoreGlobalLanguage();
                         SalesHeader.Modify(false);
                     end;
+                    TrimTempBillingLinesForContract(PreviousContractNo);
                     PreviousContractNo := TempBillingLine."Subscription Contract No.";
                     ContractsProcessedCount += 1;
-                    Window.Update(2, PreviousContractNo);
+                    SetProgressContract(PreviousContractNo);
                 end;
                 InsertSalesLineFromTempBillingLine();
+                UpdateBillingProgress();
             until TempBillingLine.Next() = 0;
         TestPreviousDocumentTotalInvoiceAmount(true, DiscountLineExists, PreviousContractNo);
+        CommitCreatedDocumentCheckpoint();
     end;
 
     local procedure CreatePurchaseDocumentsPerVendor()
@@ -195,10 +208,11 @@ codeunit 8060 "Create Billing Documents"
                     (TempBillingLine."Currency Code" <> PreviousCurrencyCode)
                 then begin
                     TestPreviousDocumentTotalInvoiceAmount(false, DiscountLineExists, PreviousContractNo);
+                    CommitCreatedDocumentCheckpoint();
                     CreatePurchaseHeaderForVendorNo(TempBillingLine."Partner No.");
                     PreviousVendorNo := TempBillingLine."Partner No.";
                     PreviousCurrencyCode := TempBillingLine."Currency Code";
-                    Window.Update(1, PreviousVendorNo);
+                    SetProgressPartner(PreviousVendorNo);
                     FirstContractDescriptionLineInserted := false;
                 end;
                 if TempBillingLine."Subscription Contract No." <> PreviousContractNo then begin
@@ -209,13 +223,16 @@ codeunit 8060 "Create Billing Documents"
                         TranslationHelper.RestoreGlobalLanguage();
                         PurchaseHeader.Modify(false);
                     end;
+                    TrimTempBillingLinesForContract(PreviousContractNo);
                     PreviousContractNo := TempBillingLine."Subscription Contract No.";
                     ContractsProcessedCount += 1;
-                    Window.Update(2, PreviousContractNo);
+                    SetProgressContract(PreviousContractNo);
                 end;
                 InsertPurchaseLineFromTempBillingLine();
+                UpdateBillingProgress();
             until TempBillingLine.Next() = 0;
         TestPreviousDocumentTotalInvoiceAmount(false, DiscountLineExists, PreviousContractNo);
+        CommitCreatedDocumentCheckpoint();
     end;
 
     local procedure InsertSalesLineFromTempBillingLine()
@@ -237,6 +254,9 @@ codeunit 8060 "Create Billing Documents"
         CustomerContractLine.Get(TempBillingLine."Subscription Contract No.", TempBillingLine."Subscription Contract Line No.");
         OnAfterCustomerContractLineGetInInsertSalesLineFromTempBillingLine(CustomerContractLine, SalesHeader, TempBillingLine);
 
+        // Skip the redundant unit price/cost engine while validating the line - the values are taken from
+        // the Billing Line and assigned explicitly below. All other validation side effects still run.
+        BindSubscription(BillingPriceCalcSkip);
         SalesLine.InitFromSalesHeader(SalesHeader);
         SubContractsItemManagement.SetAllowInsertOfInvoicingItem(true);
         if (ServiceCommitment."Invoicing Item No." <> '') and
@@ -247,15 +267,18 @@ codeunit 8060 "Create Billing Documents"
         end else begin
             SalesLine.Validate(Type, ServiceObject.GetSalesLineType());
             SalesLine.Validate("No.", ServiceObject."Source No.");
-            SalesLine.Validate("Variant Code", ServiceObject."Variant Code");
             if Item.Get(ServiceObject."Source No.") then
                 if Item.IsVariantMandatory() then
                     ServiceObject.TestField("Variant Code");
+            if ServiceObject."Variant Code" <> '' then
+                SalesLine.Validate("Variant Code", ServiceObject."Variant Code");
         end;
         SubContractsItemManagement.SetAllowInsertOfInvoicingItem(false);
-        SalesLine.Validate("Unit of Measure Code", ServiceObject."Unit of Measure");
+        if SalesLine."Unit of Measure Code" <> ServiceObject."Unit of Measure" then
+            SalesLine.Validate("Unit of Measure Code", ServiceObject."Unit of Measure");
         SalesLine.Validate(Quantity, TempBillingLine.GetSign() * ServiceObject.Quantity);
-        SalesLine.Validate("Unit Price", SalesLine.GetSalesDocumentSign() * TempBillingLine."Unit Price");
+        // Unit Price is assigned directly; the following Validate("Line Discount %") recalculates the line amount.
+        SalesLine."Unit Price" := SalesLine.GetSalesDocumentSign() * TempBillingLine."Unit Price";
         SalesLine.Validate("Line Discount %", TempBillingLine."Discount %");
         SalesLine.Validate("Unit Cost (LCY)", TempBillingLine."Unit Cost (LCY)");
         SalesLine."Recurring Billing from" := TempBillingLine."Billing from";
@@ -272,6 +295,7 @@ codeunit 8060 "Create Billing Documents"
         SalesLine."Description 2" := '';
 
         SetInvoicePriceFromUsageDataBilling(SalesLine, TempBillingLine);
+        UnbindSubscription(BillingPriceCalcSkip);
         OnBeforeInsertSalesLineFromContractLine(SalesLine, TempBillingLine);
         SalesLine.Insert(false);
 
@@ -302,13 +326,16 @@ codeunit 8060 "Create Billing Documents"
             UsageDataBilling.SetRange("Subscription Contract Line No.", CustomerContractLine."Line No.");
             UsageDataBilling.SetRange("Document Type", Enum::"Usage Based Billing Doc. Type"::None);
             UsageDataBilling.SetRange("Document No.", '');
-            if UsageDataBilling.FindSet() then
+            if UsageDataBilling.FindSet() then begin
+                // TempBillingLine.Indent holds the source Billing Line "Entry No." captured during aggregation
+                // in CreateTempBillingLines; reused here as the Billing Line link for Usage Data Billing
+                // instead of re-querying Billing Line.
+                BillingLineNo := TempBillingLine.Indent;
                 repeat
-                    BillingLineNo := GetBillingLineNo(BillingLine.GetBillingDocumentTypeFromSalesDocumentType(SalesLine."Document Type"),
-                                                        "Service Partner"::Customer, SalesLine."Document No.", CustomerContractLine."Subscription Contract No.", CustomerContractLine."Line No.");
                     UsageDataBilling.SaveDocumentValues(UsageBasedDocTypeConv.ConvertSalesDocTypeToUsageBasedBillingDocType(SalesLine."Document Type"), SalesLine."Document No.",
                                                                                SalesLine."Line No.", BillingLineNo);
                 until UsageDataBilling.Next() = 0;
+            end;
         end;
 
         OnAfterInsertSalesLineFromBillingLine(CustomerContractLine, SalesLine);
@@ -360,6 +387,9 @@ codeunit 8060 "Create Billing Documents"
         ServiceObject.Get(TempBillingLine."Subscription Header No.");
         ServiceCommitment.Get(TempBillingLine."Subscription Line Entry No.");
 
+        // Skip the redundant unit price/cost engine while validating the line - the values are taken from
+        // the Billing Line and assigned explicitly below. All other validation side effects still run.
+        BindSubscription(BillingPriceCalcSkip);
         InitPurchaseLine(PurchaseLine);
         SubContractsItemManagement.SetAllowInsertOfInvoicingItem(true);
         if (ServiceCommitment."Invoicing Item No." <> '') and
@@ -370,12 +400,15 @@ codeunit 8060 "Create Billing Documents"
         end else begin
             PurchaseLine.Validate(Type, ServiceObject.GetPurchaseLineType());
             PurchaseLine.Validate("No.", ServiceObject."Source No.");
-            PurchaseLine.Validate("Variant Code", ServiceObject."Variant Code");
+            if ServiceObject."Variant Code" <> '' then
+                PurchaseLine.Validate("Variant Code", ServiceObject."Variant Code");
         end;
         SubContractsItemManagement.SetAllowInsertOfInvoicingItem(false);
-        PurchaseLine.Validate("Unit of Measure Code", ServiceObject."Unit of Measure");
+        if PurchaseLine."Unit of Measure Code" <> ServiceObject."Unit of Measure" then
+            PurchaseLine.Validate("Unit of Measure Code", ServiceObject."Unit of Measure");
         PurchaseLine.Validate(Quantity, TempBillingLine.GetSign() * ServiceObject.Quantity);
-        PurchaseLine.Validate("Direct Unit Cost", PurchaseLine.GetPurchaseDocumentSign() * TempBillingLine."Unit Price");
+        // Direct Unit Cost is assigned directly; the following Validate("Line Discount %") recalculates the line amount.
+        PurchaseLine."Direct Unit Cost" := PurchaseLine.GetPurchaseDocumentSign() * TempBillingLine."Unit Price";
         PurchaseLine.Validate("Line Discount %", TempBillingLine."Discount %");
         PurchaseLine."Recurring Billing from" := TempBillingLine."Billing from";
         PurchaseLine."Recurring Billing to" := TempBillingLine."Billing to";
@@ -384,6 +417,7 @@ codeunit 8060 "Create Billing Documents"
         PurchaseLine.Description := ServiceCommitment.Description;
         PurchaseLine."Description 2" := CopyStr(ServiceObject.Description, 1, MaxStrLen(PurchaseLine."Description 2"));
         SetInvoicePriceFromUsageDataBilling(PurchaseLine, TempBillingLine);
+        UnbindSubscription(BillingPriceCalcSkip);
 
         OnBeforeInsertPurchaseLineFromContractLine(PurchaseLine, TempBillingLine);
         PurchaseLine.Insert(false);
@@ -411,13 +445,16 @@ codeunit 8060 "Create Billing Documents"
         UsageDataBilling.SetRange("Subscription Contract Line No.", ServiceCommitment."Subscription Contract Line No.");
         UsageDataBilling.SetRange("Document Type", Enum::"Usage Based Billing Doc. Type"::None);
         UsageDataBilling.SetRange("Document No.", '');
-        if UsageDataBilling.FindSet() then
+        if UsageDataBilling.FindSet() then begin
+            // TempBillingLine.Indent holds the source Billing Line "Entry No." captured during aggregation
+            // in CreateTempBillingLines; reused here as the Billing Line link for Usage Data Billing
+            // instead of re-querying Billing Line.
+            BillingLineNo := TempBillingLine.Indent;
             repeat
-                BillingLineNo := GetBillingLineNo(BillingLine.GetBillingDocumentTypeFromPurchaseDocumentType(PurchaseLine."Document Type"),
-                                                    "Service Partner"::Vendor, PurchaseLine."Document No.", ServiceCommitment."Subscription Contract No.", ServiceCommitment."Subscription Contract Line No.");
                 UsageDataBilling.SaveDocumentValues(UsageBasedDocTypeConv.ConvertPurchaseDocTypeToUsageBasedBillingDocType(PurchaseLine."Document Type"), PurchaseLine."Document No.",
                                            PurchaseLine."Line No.", BillingLineNo);
             until UsageDataBilling.Next() = 0;
+        end;
 
         OnAfterInsertPurchaseLineFromBillingLine(ServiceCommitment, PurchaseLine);
     end;
@@ -451,19 +488,6 @@ codeunit 8060 "Create Billing Documents"
         else
             PurchLine.Validate("Direct Unit Cost", 0);
         PurchLine.Validate("Line Discount %", ServiceCommitment."Discount %");
-    end;
-
-    local procedure GetBillingLineNo(BillingDocumentType: Enum "Rec. Billing Document Type"; ServicePartner: Enum "Service Partner"; DocumentNo: Code[20]; ContractNo: Code[20]; ContractLineNo: Integer): Integer
-    var
-        BillingLine: Record "Billing Line";
-    begin
-        BillingLine.FilterBillingLineOnContractLine(ServicePartner, ContractNo, ContractLineNo);
-        BillingLine.SetRange("Document Type", BillingDocumentType);
-        BillingLine.SetRange("Document No.", DocumentNo);
-        if BillingLine.FindLast() then
-            exit(BillingLine."Entry No.")
-        else
-            exit(0);
     end;
 
     local procedure InitPurchaseLine(var PurchaseLine: Record "Purchase Line")
@@ -724,16 +748,20 @@ codeunit 8060 "Create Billing Documents"
     var
         CustomerContract: Record "Customer Subscription Contract";
         VendorContract: Record "Vendor Subscription Contract";
+        AggregatedLineByKey: Dictionary of [Text, Integer];
         CurrencyCode: Code[20];
         PartnerNo: Code[20];
+        LookupKey: Text;
         LineNo: Integer;
+        ExistingEntryNo: Integer;
     begin
         if BillingLine.FindSet() then
             repeat
                 case BillingLine.Partner of
                     BillingLine.Partner::Customer:
                         begin
-                            CustomerContract.Get(BillingLine."Subscription Contract No.");
+                            if CustomerContract."No." <> BillingLine."Subscription Contract No." then
+                                CustomerContract.Get(BillingLine."Subscription Contract No.");
                             case CustomerRecurringBillingGrouping of
                                 CustomerRecurringBillingGrouping::"Sell-to Customer No.":
                                     PartnerNo := CustomerContract."Sell-to Customer No.";
@@ -744,7 +772,8 @@ codeunit 8060 "Create Billing Documents"
                         end;
                     BillingLine.Partner::Vendor:
                         begin
-                            VendorContract.Get(BillingLine."Subscription Contract No.");
+                            if VendorContract."No." <> BillingLine."Subscription Contract No." then
+                                VendorContract.Get(BillingLine."Subscription Contract No.");
                             case VendorRecurringBillingGrouping of
                                 VendorRecurringBillingGrouping::"Pay-to Vendor No.":
                                     PartnerNo := VendorContract."Pay-to Vendor No.";
@@ -755,11 +784,13 @@ codeunit 8060 "Create Billing Documents"
                         end;
                 end;
 
-                TempBillingLine.SetRange("Subscription Contract No.", BillingLine."Subscription Contract No.");
-                TempBillingLine.SetRange("Subscription Header No.", BillingLine."Subscription Header No.");
-                TempBillingLine.SetRange("Subscription Line Entry No.", BillingLine."Subscription Line Entry No.");
-                TempBillingLine.SetRange(Rebilling, BillingLine.Rebilling);
-                if not TempBillingLine.FindFirst() then begin
+                // Aggregate by Subscription Line + Rebilling. The Subscription Line (Entry No.) already determines
+                // its Contract and Subscription, so those are not part of the key. Regular and rebilling charges
+                // for the same line stay separate because they carry different document/sign semantics. The
+                // in-memory index maps each group key to its temp Entry No., so the matching aggregated line is
+                // fetched by primary key (Get) - fast even when the temp table holds millions of rows.
+                LookupKey := Format(BillingLine."Subscription Line Entry No.") + '|' + Format(BillingLine.Rebilling);
+                if not AggregatedLineByKey.Get(LookupKey, ExistingEntryNo) then begin
                     TempBillingLine.Init();
                     LineNo += 1;
                     TempBillingLine."Entry No." := LineNo;
@@ -777,7 +808,9 @@ codeunit 8060 "Create Billing Documents"
                     TempBillingLine.Rebilling := BillingLine.Rebilling;
                     OnBeforeInsertTempBillingLine(TempBillingLine, BillingLine);
                     TempBillingLine.Insert(false);
-                end;
+                    AggregatedLineByKey.Add(LookupKey, LineNo);
+                end else
+                    TempBillingLine.Get(ExistingEntryNo);
                 TempBillingLine."Unit Price" += BillingLine."Unit Price";
                 TempBillingLine.Amount += BillingLine.Amount;
                 TempBillingLine.Discount := BillingLine.Discount;
@@ -789,6 +822,10 @@ codeunit 8060 "Create Billing Documents"
                 OnCreateTempBillingLinesBeforeSaveTempBillingLine(TempBillingLine, BillingLine);
                 TempBillingLine."Unit Cost" += BillingLine."Unit Cost";
                 TempBillingLine."Unit Cost (LCY)" += BillingLine."Unit Cost (LCY)";
+                // Carry the (last) source Billing Line "Entry No." on the aggregated temp line via the unused
+                // Indent field, so the usage data billing link can be stamped without re-querying Billing Line
+                // (replaces a per-line GetBillingLineNo FindLast).
+                TempBillingLine.Indent := BillingLine."Entry No.";
                 TempBillingLine.Modify(false);
             until BillingLine.Next() = 0;
     end;
@@ -829,27 +866,35 @@ codeunit 8060 "Create Billing Documents"
     end;
 
     local procedure CheckBillingLines(var BillingLine: Record "Billing Line"): Boolean
+    var
+        ShouldCheckDataConsistency: Boolean;
+        ShouldCheckItemUnitOfMeasures: Boolean;
     begin
         if not CheckOnlyOneServicePartnerType(BillingLine) then
             exit(false);
         if not CheckNoUpdateRequired(BillingLine) then
             exit(false);
-        CheckServiceCommitmentDataConsistency(BillingLine);
-        CheckItemUnitOfMeasureForInvoicingItems(BillingLine);
+        ShouldCheckDataConsistency := true;
+        ShouldCheckItemUnitOfMeasures := true;
+        OnCheckBillingLinesOnBeforeDataChecks(BillingLine, ShouldCheckDataConsistency, ShouldCheckItemUnitOfMeasures);
+        if ShouldCheckDataConsistency or ShouldCheckItemUnitOfMeasures then begin
+            this.ProgressTracker.StartActivity(CheckingBillingLinesLbl, BillingLine.Count());
+            CheckBillingLineData(BillingLine, ShouldCheckDataConsistency, ShouldCheckItemUnitOfMeasures);
+            this.ProgressTracker.Finish();
+        end;
         exit(true);
     end;
 
     local procedure CheckOnlyOneServicePartnerType(var BillingLine: Record "Billing Line"): Boolean
+    var
+        PartnerBillingLine: Record "Billing Line";
     begin
-        if BillingLine.FindSet() then
-            repeat
-                case BillingLine.Partner of
-                    BillingLine.Partner::Customer:
-                        CustomerBillingLinesFound := true;
-                    BillingLine.Partner::Vendor:
-                        VendorBillingLinesFound := true;
-                end;
-            until BillingLine.Next() = 0;
+        PartnerBillingLine.CopyFilters(BillingLine);
+        PartnerBillingLine.SetRange(Partner, Enum::"Service Partner"::Customer);
+        CustomerBillingLinesFound := not PartnerBillingLine.IsEmpty();
+
+        PartnerBillingLine.SetRange(Partner, Enum::"Service Partner"::Vendor);
+        VendorBillingLinesFound := not PartnerBillingLine.IsEmpty();
 
         if (CustomerBillingLinesFound and VendorBillingLinesFound) then begin
             DisplayOrLogUnspecificError(OnlyOneServicePartnerErr);
@@ -870,22 +915,49 @@ codeunit 8060 "Create Billing Documents"
         exit(true);
     end;
 
-    local procedure CheckServiceCommitmentDataConsistency(var BillingLine: Record "Billing Line")
+    local procedure CheckBillingLineData(var BillingLine: Record "Billing Line"; CheckDataConsistency: Boolean; CheckItemUnitOfMeasures: Boolean)
     var
-        CheckedServiceCommitments: List of [Text];
+        LoopBillingLine: Record "Billing Line";
+        SubscriptionHeader: Record "Subscription Header";
+        SubscriptionLine: Record "Subscription Line";
+        CheckedItemUnitsOfMeasure: Dictionary of [Text, Boolean];
+        InvoicingItemNo: Code[20];
+        ItemUnitOfMeasureKey: Text;
+        PreviousSubscriptionLineEntryNo: Integer;
+        Counter: Integer;
     begin
-        if BillingLine.FindSet() then
+        PreviousSubscriptionLineEntryNo := 0;
+        LoopBillingLine.CopyFilters(BillingLine);
+        LoopBillingLine.SetCurrentKey("Subscription Header No.", "Subscription Line Entry No.", "Billing to");
+        LoopBillingLine.SetLoadFields("Subscription Header No.", "Subscription Line Entry No.");
+        SubscriptionLine.SetLoadFields("Invoicing Item No.");
+        if LoopBillingLine.FindSet() then
             repeat
-                ValidateServiceCommitmentConsistency(BillingLine, CheckedServiceCommitments);
-            until BillingLine.Next() = 0;
-    end;
-
-    local procedure ValidateServiceCommitmentConsistency(var BillingLine: Record "Billing Line"; var CheckedServiceCommitments: List of [Text])
-    begin
-        if not CheckedServiceCommitments.Contains(Format(BillingLine."Subscription Line Entry No.")) then begin
-            CheckedServiceCommitments.Add(Format(BillingLine."Subscription Line Entry No."));
-            ValidateFilteredVsTotalBillingLineCount(BillingLine);
-        end;
+                Counter += 1;
+                this.ProgressTracker.UpdateProgress(Counter, '');
+                if LoopBillingLine."Subscription Line Entry No." <> PreviousSubscriptionLineEntryNo then begin
+                    PreviousSubscriptionLineEntryNo := LoopBillingLine."Subscription Line Entry No.";
+                    if CheckDataConsistency then
+                        ValidateFilteredVsTotalBillingLineCount(LoopBillingLine);
+                    if CheckItemUnitOfMeasures then begin
+                        if SubscriptionHeader."No." <> LoopBillingLine."Subscription Header No." then
+                            SubscriptionHeader.Get(LoopBillingLine."Subscription Header No.");
+                        if SubscriptionHeader.Type = SubscriptionHeader.Type::Item then begin
+                            SubscriptionLine.Get(LoopBillingLine."Subscription Line Entry No.");
+                            if SubscriptionLine."Invoicing Item No." = '' then
+                                InvoicingItemNo := SubscriptionHeader."Source No."
+                            else
+                                InvoicingItemNo := SubscriptionLine."Invoicing Item No.";
+                            ItemUnitOfMeasureKey := InvoicingItemNo + '|' + SubscriptionHeader."Unit of Measure";
+                            if not CheckedItemUnitsOfMeasure.ContainsKey(ItemUnitOfMeasureKey) then begin
+                                CheckedItemUnitsOfMeasure.Add(ItemUnitOfMeasureKey, true);
+                                ErrorIfItemUnitOfMeasureCodeDoesNotExist(LoopBillingLine, InvoicingItemNo, SubscriptionHeader);
+                            end;
+                        end;
+                    end;
+                end;
+                OnCheckBillingLineDataOnBeforeNextBillingLine(LoopBillingLine);
+            until LoopBillingLine.Next() = 0;
     end;
 
     local procedure ValidateFilteredVsTotalBillingLineCount(var BillingLine: Record "Billing Line")
@@ -927,30 +999,6 @@ codeunit 8060 "Create Billing Documents"
         ConsistencyErr: Label 'The number of filtered billing lines for Subscription Line %1 %2 (%3) does not match the total number of billing lines for this Subscription Line (%4). Adjust the page filters so that there are no gaps in the billing period.', Comment = '%1 = Subscription Header No., %2 = Subscription Line Entry No., %3 = Filtered Count, %4 = Total Count';
     begin
         DisplayOrLogErrorFromBillingLine(BillingLine, StrSubstNo(ConsistencyErr, BillingLine."Subscription Header No.", BillingLine."Subscription Line Entry No.", FilteredCount, TotalCount));
-    end;
-
-    local procedure CheckItemUnitOfMeasureForInvoicingItems(var BillingLine: Record "Billing Line")
-    var
-        SubscriptionHeader: Record "Subscription Header";
-        SubscriptionLine: Record "Subscription Line";
-        CheckedServiceCommitments: List of [Text];
-        InvoicingItemNo: Code[20];
-    begin
-        if BillingLine.FindSet() then
-            repeat
-                if not CheckedServiceCommitments.Contains(Format(BillingLine."Subscription Line Entry No.")) then begin
-                    CheckedServiceCommitments.Add(Format(BillingLine."Subscription Line Entry No."));
-                    SubscriptionHeader.Get(BillingLine."Subscription Header No.");
-                    if SubscriptionHeader.Type = SubscriptionHeader.Type::Item then begin
-                        SubscriptionLine.Get(BillingLine."Subscription Line Entry No.");
-                        if SubscriptionLine."Invoicing Item No." = '' then
-                            InvoicingItemNo := SubscriptionHeader."Source No."
-                        else
-                            InvoicingItemNo := SubscriptionLine."Invoicing Item No.";
-                        ErrorIfItemUnitOfMeasureCodeDoesNotExist(BillingLine, InvoicingItemNo, SubscriptionHeader);
-                    end;
-                end;
-            until BillingLine.Next() = 0;
     end;
 
     internal procedure ErrorIfItemUnitOfMeasureCodeDoesNotExist(BillingLine: Record "Billing Line"; InvoicingItemNo: Code[20]; SubscriptionHeader: Record "Subscription Header")
@@ -1249,6 +1297,55 @@ codeunit 8060 "Create Billing Documents"
         OnAfterIsNewHeaderNeededPerContract(CreateNewHeader, TempBillingLine, PreviousSubContractNo);
     end;
 
+    local procedure UpdateBillingProgress()
+    begin
+        ProcessedBillingLineCount += 1;
+        this.ProgressTracker.UpdateProgress(ProcessedBillingLineCount, CurrentDetailText);
+    end;
+
+    local procedure SetProgressPartner(PartnerNo: Code[20])
+    begin
+        CurrentPartnerNo := PartnerNo;
+        RefreshProgressDetail();
+    end;
+
+    local procedure SetProgressContract(ContractNo: Code[20])
+    begin
+        CurrentContractNo := ContractNo;
+        RefreshProgressDetail();
+    end;
+
+    local procedure RefreshProgressDetail()
+    begin
+        CurrentDetailText := StrSubstNo(ProgressDetailLbl, CurrentPartnerNo, CurrentContractNo);
+    end;
+
+    local procedure CommitCreatedDocumentCheckpoint()
+    begin
+        // Per-document checkpoint: makes each completed document durable on the non-posting path
+        // (incl. automated/background billing) without committing inside the per-line loop.
+        // When posting follows, creation and posting are kept atomic and PostCreatedDocuments
+        // manages its own commit/rollback.
+        if not PostDocuments then
+            Commit();
+    end;
+
+    local procedure TrimTempBillingLinesForContract(ContractNo: Code[20])
+    var
+        TempBillingLineToDelete: Record "Billing Line" temporary;
+    begin
+        // Release a processed contract's aggregated temp lines so the temporary table stays small; otherwise it
+        // spills to a per-session SQL temp table and every Get/Modify becomes a round-trip. The delete runs on a
+        // shared-table copy, so the caller's iteration cursor (position, key, filters) is left untouched - only
+        // lines of an already-processed contract (behind the cursor) are removed.
+        if ContractNo = '' then
+            exit;
+        TempBillingLineToDelete.Copy(TempBillingLine, true);
+        TempBillingLineToDelete.Reset();
+        TempBillingLineToDelete.SetRange("Subscription Contract No.", ContractNo);
+        TempBillingLineToDelete.DeleteAll(false);
+    end;
+
     [IntegrationEvent(false, false)]
     local procedure OnAfterCreateSalesHeaderFromContract(CustomerSubscriptionContract: Record "Customer Subscription Contract"; var SalesHeader: Record "Sales Header")
     begin
@@ -1335,6 +1432,16 @@ codeunit 8060 "Create Billing Documents"
     end;
 
     [IntegrationEvent(false, false)]
+    local procedure OnCheckBillingLinesOnBeforeDataChecks(var BillingLine: Record "Billing Line"; var ShouldCheckDataConsistency: Boolean; var ShouldCheckItemUnitOfMeasures: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCheckBillingLineDataOnBeforeNextBillingLine(var BillingLine: Record "Billing Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
     local procedure OnAfterIsNewSalesHeaderNeeded(var CreateNewSalesHeader: Boolean; TempBillingLine: Record "Billing Line" temporary; PreviousCustomerNo: Code[20]; LastDetailOverview: Enum "Contract Detail Overview"; PreviousCurrencyCode: Code[20]; PreviousContractNo: Code[20])
     begin
     end;
@@ -1393,19 +1500,27 @@ codeunit 8060 "Create Billing Documents"
         TranslationHelper: Codeunit "Translation Helper";
         DocumentChangeManagement: Codeunit "Document Change Management";
         Language: Codeunit Language;
+        ProgressTracker: Codeunit "Progress Tracker";
+        BillingPriceCalcSkip: Codeunit "Billing Price Calc. Skip";
         DocumentDate: Date;
         PostingDate: Date;
         CustomerRecurringBillingGrouping: Enum "Customer Rec. Billing Grouping";
         VendorRecurringBillingGrouping: Enum "Vendor Rec. Billing Grouping";
         DocumentsCreatedCount: Integer;
         ContractsProcessedCount: Integer;
+        TotalBillingLineCount: Integer;
+        ProcessedBillingLineCount: Integer;
+        CurrentPartnerNo: Code[20];
+        CurrentContractNo: Code[20];
+        CurrentDetailText: Text;
         CustomerBillingLinesFound: Boolean;
         VendorBillingLinesFound: Boolean;
         FirstContractDescriptionLineInserted: Boolean;
         PostDocuments: Boolean;
         HideProcessingFinishedMessage: Boolean;
-        Window: Dialog;
-        ProgressTxt: Label 'Creating documents...\Partner No. #1#################################\Contract No. #2#################################', Comment = '%1=Partner No., %2=Contract No.';
+        CreatingDocumentsLbl: Label 'Creating billing documents...';
+        ProgressDetailLbl: Label 'Partner %1 | Contract %2', Comment = '%1 = Partner No., %2 = Contract No.';
+        CheckingBillingLinesLbl: Label 'Checking billing lines...';
         OnlyOneServicePartnerErr: Label 'You can create documents only for one type of partner at a time (Customer or Vendor). Please check your filters.';
         UpdateRequiredErr: Label 'At least one Subscription Line was changed after billing proposal was created. Please check the lines marked with "Update Required" field and update the billing proposal before the billing documents can be created.';
         BillingPeriodDescriptionTxt: Label 'Billing period: %1 to %2', Comment = '%1=Recurring Billing from, %2=Recurring Billing to';

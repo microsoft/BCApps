@@ -306,6 +306,9 @@ table 8018 "Usage Data Generic Import"
         {
             Clustered = true;
         }
+        key(Key2; "Usage Data Import Entry No.", "Processing Status")
+        {
+        }
     }
 
     trigger OnInsert()
@@ -349,7 +352,7 @@ table 8018 "Usage Data Generic Import"
                 end;
     end;
 
-    internal procedure SetReason(ReasonText: Text)
+    procedure SetReason(ReasonText: Text)
     var
         TextManagement: Codeunit "Text Management";
         RRef: RecordRef;
@@ -365,7 +368,7 @@ table 8018 "Usage Data Generic Import"
         end;
     end;
 
-    internal procedure ShowReason()
+    procedure ShowReason()
     var
         TextManagement: Codeunit "Text Management";
         RRef: RecordRef;
@@ -375,7 +378,7 @@ table 8018 "Usage Data Generic Import"
         TextManagement.ShowFieldText(RRef, FieldNo(Reason));
     end;
 
-    internal procedure GetCurrencyCode(): Code[10]
+    procedure GetCurrencyCode(): Code[10]
     var
         GLSetup: Record "General Ledger Setup";
     begin
