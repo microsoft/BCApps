@@ -25,6 +25,20 @@ pageextension 99001505 "Subc. Rel. Prod. Orders" extends "Released Production Or
         }
         addafter("&Warehouse Entries")
         {
+            action("Subc. Transfer Orders")
+            {
+                ApplicationArea = Subcontracting;
+                Caption = 'Subcontracting Transfer Orders';
+                Image = TransferOrder;
+                ToolTip = 'View the subcontracting transfer orders related to this production order.';
+
+                trigger OnAction()
+                var
+                    SubcPurchFactboxMgmt: Codeunit "Subc. Purch. Factbox Mgmt.";
+                begin
+                    SubcPurchFactboxMgmt.ShowTransferOrdersFromProductionOrder(Rec);
+                end;
+            }
             action("Subc. Transfer Entries")
             {
                 ApplicationArea = Subcontracting;
