@@ -746,18 +746,12 @@ codeunit 8900 "Email Impl"
     var
         AllObj: Record AllObj;
         SourceRecordRef: RecordRef;
-        Handled: Boolean;
     begin
-        OnBeforeFilterRemovedSourceRecords(EmailRelatedRecord, Handled);
-        if Handled then
-            exit;
-
         repeat
             if AllObj.Get(AllObj."Object Type"::Table, EmailRelatedRecord."Table Id") then begin
                 SourceRecordRef.Open(EmailRelatedRecord."Table Id");
-                if SourceRecordRef.ReadPermission() then
-                    if SourceRecordRef.GetBySystemId(EmailRelatedRecord."System Id") then
-                        EmailRelatedRecord.Mark(true);
+                if SourceRecordRef.GetBySystemId(EmailRelatedRecord."System Id") then
+                    EmailRelatedRecord.Mark(true);
                 SourceRecordRef.Close();
             end;
         until EmailRelatedRecord.Next() = 0;
