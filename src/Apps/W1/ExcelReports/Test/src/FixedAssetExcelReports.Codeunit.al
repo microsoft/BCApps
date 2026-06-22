@@ -10,6 +10,7 @@ using Microsoft.FixedAssets.Depreciation;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.FixedAssets.Journal;
 using Microsoft.FixedAssets.Posting;
+using Microsoft.FixedAssets.Reports;
 using Microsoft.FixedAssets.Setup;
 using Microsoft.Foundation.Period;
 using System.TestLibraries.Utilities;
@@ -26,7 +27,8 @@ codeunit 139545 "Fixed Asset Excel Reports"
         LibraryReportDataset: Codeunit "Library - Report Dataset";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         Assert: Codeunit Assert;
-        ProjectedDeprErr: Label 'Projected depreciation must use the last posted month''s book value.';
+        ProjectedDeprErr: Label 'The Excel report and the base report must project the same depreciation amount.';
+        FAPostingGroupCodeTok: Label 'EXRPROJ', Locked = true;
 
     [Test]
     [HandlerFunctions('EXRFixedAssetAnalysisExcelHandler')]
@@ -86,8 +88,8 @@ codeunit 139545 "Fixed Asset Excel Reports"
     end;
 
     [Test]
-    [HandlerFunctions('FixedAssetProjectedRequestPageHandler')]
-    procedure ProjectedValueAcrossFiscalYearUsesLastPostedBookValue()
+    [HandlerFunctions('FixedAssetProjectedRequestPageHandler,FixedAssetProjectedValueRequestPageHandler')]
+    procedure ProjectedValueAcrossFiscalYearMatchesBaseReport()
     var
         DepreciationBook: Record "Depreciation Book";
         FADepreciationBook: Record "FA Depreciation Book";
@@ -99,12 +101,11 @@ codeunit 139545 "Fixed Asset Excel Reports"
         BookValue: Decimal;
         DepreciationPct: Decimal;
         MonthlyDepreciation: Decimal;
-        ReportAmount: Decimal;
+        BaseProjectedDepr: Decimal;
+        ExcelProjectedDepr: Decimal;
         Month: Integer;
-        Variant: Variant;
-        RequestPageXml: Text;
     begin
-        // [SCENARIO 636726] Report 4413 must project the new fiscal year's first month from the last posted month's book value (Declining-Balance 1).
+        // [SCENARIO 636726] The Excel report (4413) must project the same depreciation across a fiscal year boundary as the base report (5607) (Declining-Balance 1).
         CleanupFixedAssetData();
         CreateMonthlyFiscalYears(20240901D, 2);
 
@@ -123,7 +124,7 @@ codeunit 139545 "Fixed Asset Excel Reports"
         // [GIVEN] Create a Declining-Balance 1 fixed asset acquired at the start of the fiscal year.
         Acquisition := 10000 + Round(LibraryRandom.RandDec(90000, 0), 1);
         DepreciationPct := 10 + Round(LibraryRandom.RandDec(20, 0), 1);
-        LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset);
+        CreateFixedAssetForProjection(FixedAsset);
         LibraryFixedAsset.CreateFADepreciationBook(FADepreciationBook, FixedAsset."No.", DepreciationBook.Code);
         FADepreciationBook.Validate("FA Posting Group", FixedAsset."FA Posting Group");
         FADepreciationBook.Validate("Depreciation Starting Date", 20240901D);
@@ -143,19 +144,12 @@ codeunit 139545 "Fixed Asset Excel Reports"
         end;
         Commit();
 
-        // [WHEN] Projecting the first month of the next fiscal year, using end-of-month dates for a full period.
-        LibraryVariableStorage.Enqueue(DepreciationBook.Code);
-        LibraryVariableStorage.Enqueue(20250930D);
-        LibraryVariableStorage.Enqueue(20250930D);
-        RequestPageXml := Report.RunRequestPage(Report::"EXR Fixed Asset Projected", RequestPageXml);
-        LibraryReportDataset.RunReportAndLoad(Report::"EXR Fixed Asset Projected", Variant, RequestPageXml);
+        // [WHEN] Projecting the first month of the next fiscal year with both reports, using end-of-month dates for a full period.
+        BaseProjectedDepr := RunBaseProjectedReport(DepreciationBook.Code, 20250930D, 20250930D);
+        ExcelProjectedDepr := RunExcelProjectedReport(DepreciationBook.Code, 20250930D, 20250930D);
 
-        // [THEN] The projected depreciation is based on the last posted book value, not the penultimate month's.
-        LibraryReportDataset.SetXmlNodeList('DataItem[@name="FixedAssetLedgerEntries"]');
-        LibraryReportDataset.GetNextRow();
-        LibraryReportDataset.FindCurrentRowValue('Amount', Variant);
-        ReportAmount := Variant;
-        Assert.AreEqual(-Round(BookValue * DepreciationPct / 100 / 12, 0.01), Round(ReportAmount, 0.01), ProjectedDeprErr);
+        // [THEN] Verify both reports project the same depreciation amount.
+        Assert.AreEqual(Round(BaseProjectedDepr, 0.01), Round(ExcelProjectedDepr, 0.01), ProjectedDeprErr);
     end;
 
     local procedure CleanupFixedAssetData()
@@ -165,6 +159,23 @@ codeunit 139545 "Fixed Asset Excel Reports"
     begin
         FAPostingType.DeleteAll();
         FixedAsset.DeleteAll();
+    end;
+
+    local procedure CreateFixedAssetForProjection(var FixedAsset: Record "Fixed Asset")
+    var
+        FAPostingGroup: Record "FA Posting Group";
+    begin
+        // The depreciation book has G/L integration disabled, so the FA posting group's G/L
+        // accounts are never used. Attaching a bare posting group avoids the General Posting
+        // Setup dependency in LibraryFixedAsset.CreateFAWithPostingGroup.
+        if not FAPostingGroup.Get(FAPostingGroupCodeTok) then begin
+            FAPostingGroup.Init();
+            FAPostingGroup.Code := FAPostingGroupCodeTok;
+            FAPostingGroup.Insert();
+        end;
+        LibraryFixedAsset.CreateFixedAsset(FixedAsset);
+        FixedAsset.Validate("FA Posting Group", FAPostingGroup.Code);
+        FixedAsset.Modify(true);
     end;
 
     local procedure CreateMonthlyFiscalYears(FirstFiscalYearStart: Date; NumberOfYears: Integer)
@@ -209,6 +220,41 @@ codeunit 139545 "Fixed Asset Excel Reports"
         LibraryFixedAsset.PostFAJournalLine(FAJournalLine);
     end;
 
+    local procedure RunBaseProjectedReport(DepreciationBookCode: Code[10]; FirstDepreciationDate: Date; LastDepreciationDate: Date) ProjectedDepreciation: Decimal
+    var
+        Variant: Variant;
+        RequestPageXml: Text;
+    begin
+        LibraryVariableStorage.Enqueue(DepreciationBookCode);
+        LibraryVariableStorage.Enqueue(FirstDepreciationDate);
+        LibraryVariableStorage.Enqueue(LastDepreciationDate);
+#pragma warning disable AL0432 // The base report is obsolete pending; it is used here as the oracle the Excel report must match.
+        RequestPageXml := Report.RunRequestPage(Report::"Fixed Asset - Projected Value", RequestPageXml);
+        LibraryReportDataset.RunReportAndLoad(Report::"Fixed Asset - Projected Value", Variant, RequestPageXml);
+#pragma warning restore AL0432
+        LibraryReportDataset.SetXmlNodeList('DataItem[@name="ProjectionTotal"]');
+        LibraryReportDataset.GetNextRow();
+        LibraryReportDataset.FindCurrentRowValue('TotalAmounts1', Variant);
+        ProjectedDepreciation := Variant;
+    end;
+
+    local procedure RunExcelProjectedReport(DepreciationBookCode: Code[10]; FirstDepreciationDate: Date; LastDepreciationDate: Date) ProjectedDepreciation: Decimal
+    var
+        Variant: Variant;
+        RequestPageXml: Text;
+    begin
+        LibraryVariableStorage.Enqueue(DepreciationBookCode);
+        LibraryVariableStorage.Enqueue(FirstDepreciationDate);
+        LibraryVariableStorage.Enqueue(LastDepreciationDate);
+        RequestPageXml := Report.RunRequestPage(Report::"EXR Fixed Asset Projected", RequestPageXml);
+        LibraryReportDataset.RunReportAndLoad(Report::"EXR Fixed Asset Projected", Variant, RequestPageXml);
+        // The projected entry is the last row (highest entry number) after the posted entries.
+        LibraryReportDataset.SetXmlNodeList('DataItem[@name="FixedAssetLedgerEntries"]');
+        while LibraryReportDataset.GetNextRow() do
+            LibraryReportDataset.FindCurrentRowValue('Amount', Variant);
+        ProjectedDepreciation := Variant;
+    end;
+
     [RequestPageHandler]
     procedure EXRFixedAssetAnalysisExcelHandler(var EXRFixedAssetAnalysisExcel: TestRequestPage "EXR Fixed Asset Analysis Excel")
     var
@@ -230,5 +276,17 @@ codeunit 139545 "Fixed Asset Excel Reports"
         EXRFixedAssetProjected.UseAccountingPeriodField.SetValue(true);
         EXRFixedAssetProjected.OK().Invoke();
     end;
+
+    [RequestPageHandler]
+#pragma warning disable AL0432 // The base report is obsolete pending; the handler is required to compare it with the Excel report.
+    procedure FixedAssetProjectedValueRequestPageHandler(var FixedAssetProjectedValue: TestRequestPage "Fixed Asset - Projected Value")
+    begin
+        FixedAssetProjectedValue.DepreciationBook.SetValue(LibraryVariableStorage.DequeueText());
+        FixedAssetProjectedValue.FirstDeprDate.SetValue(LibraryVariableStorage.DequeueDate());
+        FixedAssetProjectedValue.LastDeprDate.SetValue(LibraryVariableStorage.DequeueDate());
+        FixedAssetProjectedValue.UseAccountingPeriod.SetValue(true);
+        FixedAssetProjectedValue.OK().Invoke();
+    end;
+#pragma warning restore AL0432
 
 }
