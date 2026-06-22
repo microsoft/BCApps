@@ -10,6 +10,7 @@ using System.Utilities;
 report 6002 "Delete Service Document Log"
 {
     Caption = 'Delete Service Document Log';
+    ToolTip = 'Delete Service Document Log';
     ProcessingOnly = true;
 
     dataset

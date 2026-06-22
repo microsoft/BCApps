@@ -1111,7 +1111,6 @@ page 9027 "Accountant Role Center"
                     Caption = 'P&ost Inventory Cost to G/L';
                     Image = PostInventoryToGL;
                     RunObject = Report "Post Inventory Cost to G/L";
-                    ToolTip = 'Record the quantity and value changes to the inventory in the item ledger entries and the value entries when you post inventory transactions, such as sales shipments or purchase receipts.';
                 }
                 action("Calc. and Pos&t VAT Settlement")
                 {
@@ -1132,7 +1131,6 @@ page 9027 "Accountant Role Center"
                     Ellipsis = true;
                     Image = CreateReminders;
                     RunObject = Report "Create Reminders";
-                    ToolTip = 'Create reminders for one or more customers with overdue payments.';
                 }
                 action("Create Finance Charge &Memos")
                 {
@@ -1141,7 +1139,6 @@ page 9027 "Accountant Role Center"
                     Ellipsis = true;
                     Image = CreateFinanceChargememo;
                     RunObject = Report "Create Finance Charge Memos";
-                    ToolTip = 'Create finance charge memos for one or more customers with overdue payments.';
                 }
             }
             group(Reports)

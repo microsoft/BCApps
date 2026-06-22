@@ -10,6 +10,7 @@ report 7313 "Whse. Shipment Status"
 {
     ApplicationArea = Warehouse;
     Caption = 'Warehouse Shipment Status';
+    ToolTip = 'View warehouse shipments by status.';
     UsageCategory = ReportsAndAnalysis;
     WordMergeDataItem = "Warehouse Shipment Header";
     DefaultRenderingLayout = RDLCLayout;

@@ -283,7 +283,6 @@ page 7382 "Inventory Movement"
                 //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                 //PromotedCategory = "Report";
                 RunObject = Report "Movement List";
-                ToolTip = 'View the list of ongoing movements between bins according to a basic warehouse configuration.';
             }
         }
         area(Promoted)

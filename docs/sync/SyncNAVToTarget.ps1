@@ -212,6 +212,70 @@ if (Test-Path $navBuild) {
 
 #endregion
 
+#region Step 7b: Update BCPlatform version
+
+Write-Host "=== Step 7b: Updating BCPlatform version ==="
+$corextConfig = Join-Path $NAVRepoPath ".corext\corext.config"
+$packagesJsonPath = Join-Path $buildRoot "Packages.json"
+if ((Test-Path $corextConfig) -and (Test-Path $packagesJsonPath)) {
+    $corextContent = Get-Content $corextConfig -Raw
+    if ($corextContent -match 'id="microsoft\.nav\.platform\.main\.universal"\s+version="([^"]+)"') {
+        # corext uses e.g. 29.0.51074-0; Packages.json uses dotted form 29.0.51074.0
+        $platformVersion = $Matches[1] -replace '-', '.'
+        $packagesContent = Get-Content $packagesJsonPath -Raw
+        $oldVersion = $null
+        if ($packagesContent -match '(?s)"BCPlatform"\s*:\s*\{\s*"Version"\s*:\s*"([^"]+)"') {
+            $oldVersion = $Matches[1]
+        }
+        $packagesContent = $packagesContent -replace '(?s)("BCPlatform"\s*:\s*\{\s*"Version"\s*:\s*")[^"]+(")', "`${1}$platformVersion`${2}"
+        Set-Content $packagesJsonPath $packagesContent -NoNewline
+        if ($oldVersion -eq $platformVersion) {
+            Write-Host "  BCPlatform version already up to date ($platformVersion)"
+        } else {
+            Write-Host "  Updated BCPlatform version $oldVersion -> $platformVersion"
+        }
+    } else {
+        Write-Warning "  Could not find 'microsoft.nav.platform.main.universal' in $corextConfig"
+    }
+} else {
+    Write-Warning "  Skipped BCPlatform version update (corext.config or Packages.json not found)"
+}
+
+#endregion
+
+#region Step 7c: Update AppSourceCop baseline version
+
+Write-Host "=== Step 7c: Updating AppBaselines-BCArtifacts version ==="
+$referenceV2PackageInfo = Join-Path $NAVRepoPath ".corext\lazyComponents\ReferenceV2Extensions\PackageInfo.json"
+if ((Test-Path $referenceV2PackageInfo) -and (Test-Path $packagesJsonPath)) {
+    $baselineVersionRaw = (Get-Content $referenceV2PackageInfo -Raw | ConvertFrom-Json).Identity.Version
+    if ($baselineVersionRaw) {
+        # PackageInfo.json uses 3-part form e.g. 28.2.50950; Packages.json uses 4-part 28.2.50950.0
+        $baselineVersion = $baselineVersionRaw
+        if (($baselineVersion -split '\.').Count -eq 3) {
+            $baselineVersion = "$baselineVersion.0"
+        }
+        $packagesContent = Get-Content $packagesJsonPath -Raw
+        $oldVersion = $null
+        if ($packagesContent -match '(?s)"AppBaselines-BCArtifacts"\s*:\s*\{\s*"Version"\s*:\s*"([^"]+)"') {
+            $oldVersion = $Matches[1]
+        }
+        $packagesContent = $packagesContent -replace '(?s)("AppBaselines-BCArtifacts"\s*:\s*\{\s*"Version"\s*:\s*")[^"]+(")', "`${1}$baselineVersion`${2}"
+        Set-Content $packagesJsonPath $packagesContent -NoNewline
+        if ($oldVersion -eq $baselineVersion) {
+            Write-Host "  AppBaselines-BCArtifacts version already up to date ($baselineVersion)"
+        } else {
+            Write-Host "  Updated AppBaselines-BCArtifacts version $oldVersion -> $baselineVersion"
+        }
+    } else {
+        Write-Warning "  Could not read Identity.Version from $referenceV2PackageInfo"
+    }
+} else {
+    Write-Warning "  Skipped AppBaselines version update (PackageInfo.json or Packages.json not found)"
+}
+
+#endregion
+
 #region Step 8: Merge DisabledTests
 
 Write-Host "`n=== Step 8: Merging DisabledTests ==="

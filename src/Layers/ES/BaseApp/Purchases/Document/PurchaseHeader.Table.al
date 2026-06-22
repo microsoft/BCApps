@@ -227,7 +227,6 @@ table 38 "Purchase Header"
 
             trigger OnValidate()
             var
-                SIIManagement: Codeunit "SII Management";
                 IsHandled: Boolean;
             begin
                 IsHandled := false;
@@ -323,9 +322,6 @@ table 38 "Purchase Header"
                 OnValidatePayToVendorNoOnBeforeRecallModifyAddressNotification(Rec, xRec, Vend);
                 if (xRec."Pay-to Vendor No." <> '') and (xRec."Pay-to Vendor No." <> "Pay-to Vendor No.") then
                     Rec.RecallModifyAddressNotification(GetModifyPayToVendorAddressNotificationId());
-
-                Validate("ID Type", SIIManagement.GetPurchIDType("Pay-to Vendor No.", "Correction Type", "Corrected Invoice No."));
-                SIIManagement.UpdateSIIInfoInPurchDoc(Rec);
             end;
         }
         field(5; "Pay-to Name"; Text[100])
@@ -2952,55 +2948,6 @@ table 38 "Purchase Header"
             Caption = 'Due Date Modified';
             Editable = false;
         }
-        field(10707; "Invoice Type"; Enum "SII Purch. Invoice Type")
-        {
-            Caption = 'Invoice Type';
-        }
-        field(10708; "Cr. Memo Type"; Enum "SII Purch. Credit Memo Type")
-        {
-            Caption = 'Cr. Memo Type';
-        }
-        field(10709; "Special Scheme Code"; Enum "SII Purch. Special Scheme Code")
-        {
-            Caption = 'Special Scheme Code';
-
-            trigger OnValidate()
-            var
-                SIISchemeCodeMgt: Codeunit "SII Scheme Code Mgt.";
-            begin
-                SIISchemeCodeMgt.UpdatePurchaseSpecialSchemeCodeInPurchaseHeader(Rec, xRec);
-            end;
-        }
-        field(10710; "Operation Description"; Text[250])
-        {
-            Caption = 'Operation Description';
-        }
-        field(10711; "Correction Type"; Option)
-        {
-            Caption = 'Correction Type';
-            OptionCaption = ' ,Replacement,Difference,Removal';
-            OptionMembers = " ",Replacement,Difference,Removal;
-        }
-        field(10712; "Operation Description 2"; Text[250])
-        {
-            Caption = 'Operation Description 2';
-        }
-        field(10720; "Succeeded Company Name"; Text[250])
-        {
-            Caption = 'Succeeded Company Name';
-        }
-        field(10721; "Succeeded VAT Registration No."; Text[20])
-        {
-            Caption = 'Succeeded VAT Registration No.';
-        }
-        field(10722; "ID Type"; Enum "SII ID Type")
-        {
-            Caption = 'ID Type';
-        }
-        field(10724; "Do Not Send To SII"; Boolean)
-        {
-            Caption = 'Do Not Send To SII';
-        }
         field(7000000; "Applies-to Bill No."; Code[20])
         {
             Caption = 'Applies-to Bill No.';
@@ -3348,7 +3295,6 @@ table 38 "Purchase Header"
     /// </summary>
     procedure InitRecord()
     var
-        SIIManagement: Codeunit "SII Management";
         IsHandled, SkipInitialization : Boolean;
     begin
         GetPurchSetup();
@@ -3393,7 +3339,6 @@ table 38 "Purchase Header"
         if not IsHandled then
             "Responsibility Center" := UserSetupMgt.GetRespCenter(1, "Responsibility Center");
         GetNextArchiveDocOccurrenceNo();
-        SIIManagement.UpdateSIIInfoInPurchDoc(Rec);
 
         OnAfterInitRecord(Rec);
     end;

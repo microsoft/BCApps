@@ -12,6 +12,7 @@ report 99000794 "Compare Production Cost Shares"
 {
     ApplicationArea = Manufacturing;
     Caption = 'Compare Production Cost Shares';
+    ToolTip = 'View a comparison of components for two items. The printout compares the components, their unit cost, cost share and cost per component.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = CompareProductionCostSharesExcel;
 

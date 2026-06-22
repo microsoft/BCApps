@@ -1,10 +1,9 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.History;
 
-using Microsoft.EServices.EDocument;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.Deferral;
 using Microsoft.Finance.Dimension;
@@ -739,10 +738,6 @@ table 125 "Purch. Cr. Memo Line"
             AutoFormatExpression = GetCurrencyCode();
             AutoFormatType = 1;
             Caption = 'EC Difference';
-        }
-        field(10709; "Special Scheme Code"; Enum "SII Purch. Special Scheme Code")
-        {
-            Caption = 'Special Scheme Code';
         }
     }
 

@@ -149,7 +149,7 @@ codeunit 144026 "UT COD Required Description"
         CreateAndPostCashJournal(CBGStatementLine."Account Type"::"Bank Account", CreateBankAccount());
     end;
 
-    local procedure CreateAndPostCashJournal(AccountType: Option; AccountNo: Code[20])
+    local procedure CreateAndPostCashJournal(AccountType: Enum "CBG Statement Line Account Type"; AccountNo: Code[20])
     var
         CBGStatement: Record "CBG Statement";
     begin
@@ -181,7 +181,7 @@ codeunit 144026 "UT COD Required Description"
         exit(Customer."No.");
     end;
 
-    local procedure CreateCGBStatement(var CBGStatement: Record "CBG Statement"; AccountType: Option; AccountNo: Code[20])
+    local procedure CreateCGBStatement(var CBGStatement: Record "CBG Statement"; AccountType: Enum "CBG Statement Line Account Type"; AccountNo: Code[20])
     var
         CBGStatementLine: Record "CBG Statement Line";
     begin

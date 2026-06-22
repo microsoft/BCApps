@@ -18,6 +18,7 @@ report 104 "Customer - Detail Trial Bal."
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Customer - Detail Trial Bal.';
+    ToolTip = 'View the balance for customers with balances on a specified date. The report can be used at the close of an accounting period, for example, or for an audit.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

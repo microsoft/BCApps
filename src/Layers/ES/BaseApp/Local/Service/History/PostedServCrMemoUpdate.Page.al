@@ -132,8 +132,8 @@ page 10769 "Posted Serv. Cr. Memo - Update"
 
     trigger OnAfterGetRecord()
     begin
-        SIIFirstSummaryDocNo := Copystr(Rec.GetSIIFirstSummaryDocNo(), 1, 35);
-        SIILastSummaryDocNo := Copystr(Rec.GetSIILastSummaryDocNo(), 1, 35);
+        SIIFirstSummaryDocNo := CopyStr(Rec.GetSIIFirstSummaryDocNo(), 1, 35);
+        SIILastSummaryDocNo := CopyStr(Rec.GetSIILastSummaryDocNo(), 1, 35);
     end;
 
     var

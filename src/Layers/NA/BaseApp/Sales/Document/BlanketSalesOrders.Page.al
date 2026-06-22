@@ -325,7 +325,6 @@ page 9303 "Blanket Sales Orders"
                     Caption = 'Delete Invoiced Blanket Sales Orders';
                     Image = Delete;
                     RunObject = Report "Delete Invd Blnkt Sales Orders";
-                    ToolTip = 'Delete orders that were not automatically deleted after completion. For example, when several sales orders were completed by a single invoice.';
                 }
             }
             action("Make &Order")

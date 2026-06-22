@@ -147,7 +147,6 @@ page 9007 "Purchasing Agent Role Center"
                 Caption = 'Inventory - &Availability Plan (Excel)';
                 Image = ItemAvailability;
                 RunObject = Report "Inv. Availability Plan";
-                ToolTip = 'View a list of the quantity of each item in customer, purchase, and transfer orders and the quantity available in inventory. The list is divided into columns that cover six periods with starting and ending dates as well as the periods before and after those periods. The list is useful when you are planning your inventory purchases.';
             }
             action("Inventory &Purchase Orders")
             {
@@ -171,7 +170,6 @@ page 9007 "Purchasing Agent Role Center"
                 Caption = 'Inventory &Cost and Price List';
                 Image = "Report";
                 RunObject = Report "Inventory Cost and Price List";
-                ToolTip = 'View price information for your items or stockkeeping units, such as direct unit cost, last direct cost, unit price, profit percentage, and profit.';
             }
         }
         area(embedding)

@@ -4213,7 +4213,7 @@ codeunit 144009 "ERM Cash Bank Giro Journal"
           Date, CBGStatementLine.Date, StrSubstNo(AssertFailMsg, CBGStatementLine.FieldCaption(Date), Date, CBGStatementLine.TableCaption()));
     end;
 
-    local procedure ApplyAndPostBankGiroJournal(var GenJournalLine: Record "Gen. Journal Line"; AccountType: Enum "Gen. Journal Account Type"; BankGiroJournalAccountType: Option;
+    local procedure ApplyAndPostBankGiroJournal(var GenJournalLine: Record "Gen. Journal Line"; AccountType: Enum "Gen. Journal Account Type"; BankGiroJournalAccountType: Enum "CBG Statement Line Account Type";
                                                                                                                  AccountNo: Code[20];
                                                                                                                  Amount: Decimal;
                                                                                                                  Amount2: Decimal;
@@ -4450,7 +4450,7 @@ codeunit 144009 "ERM Cash Bank Giro Journal"
         LibraryNLLocalization.CreateCBGStatement(CBGStatement, GenJournalTemplate.Name);
     end;
 
-    local procedure CreateCBGLine(var CBGStatementLine: Record "CBG Statement Line"; var CBGStatement: Record "CBG Statement"; AppliesToDocNo: Code[20]; AccountType: Option; AccountNo: Code[20]; DocumentType: Option; AmountIncludingVAT: Decimal)
+    local procedure CreateCBGLine(var CBGStatementLine: Record "CBG Statement Line"; var CBGStatement: Record "CBG Statement"; AppliesToDocNo: Code[20]; AccountType: Enum "CBG Statement Line Account Type"; AccountNo: Code[20]; DocumentType: Option; AmountIncludingVAT: Decimal)
     begin
         LibraryNLLocalization.CreateCBGStatementLine(
           CBGStatementLine, CBGStatement."Journal Template Name", CBGStatement."No.",
@@ -4473,7 +4473,7 @@ codeunit 144009 "ERM Cash Bank Giro Journal"
         CBGStatementLineAddInfo.Insert();
     end;
 
-    local procedure CreateCBGStatementLineWithApplyToDoc(CBGStatement: Record "CBG Statement"; AccountType: Option; AccountNo: Code[20]; ApplyToDocType: Enum "Gen. Journal Document Type"; ApplyToDocNo: Code[20]; PayAmount: Decimal): Integer
+    local procedure CreateCBGStatementLineWithApplyToDoc(CBGStatement: Record "CBG Statement"; AccountType: Enum "CBG Statement Line Account Type"; AccountNo: Code[20]; ApplyToDocType: Enum "Gen. Journal Document Type"; ApplyToDocNo: Code[20]; PayAmount: Decimal): Integer
     var
         CBGStatementLine: Record "CBG Statement Line";
         RecRef: RecordRef;
@@ -4767,7 +4767,7 @@ codeunit 144009 "ERM Cash Bank Giro Journal"
         exit(BankAccount."No.");
     end;
 
-    local procedure CreateBankJournalLine(var CBGStatementLine: Record "CBG Statement Line"; AccountType: Option; AccountNo: Code[20])
+    local procedure CreateBankJournalLine(var CBGStatementLine: Record "CBG Statement Line"; AccountType: Enum "CBG Statement Line Account Type"; AccountNo: Code[20])
     var
         CBGStatement: Record "CBG Statement";
         GenJournalTemplate: Record "Gen. Journal Template";
@@ -5471,7 +5471,7 @@ codeunit 144009 "ERM Cash Bank Giro Journal"
         exit(GenJournalTemplate."Bal. Account No.");
     end;
 
-    local procedure OpenBankGiroJournalPage(var BankGiroJournal: TestPage "Bank/Giro Journal"; AccountType: Option; AccountNo: Code[20]; Amount: Decimal; Debit: Boolean)
+    local procedure OpenBankGiroJournalPage(var BankGiroJournal: TestPage "Bank/Giro Journal"; AccountType: Enum "CBG Statement Line Account Type"; AccountNo: Code[20]; Amount: Decimal; Debit: Boolean)
     begin
         BankGiroJournal.OpenEdit();
         BankGiroJournal.Subform."Account Type".SetValue(AccountType);
@@ -5482,7 +5482,7 @@ codeunit 144009 "ERM Cash Bank Giro Journal"
             BankGiroJournal.Subform.Credit.SetValue(Amount);
     end;
 
-    local procedure OpenBankGiroJournalPageLookupAppliesTo(var CBGStatement: Record "CBG Statement"; var BankGiroJournal: TestPage "Bank/Giro Journal"; AccountType: Option; AccountNo: Code[20]; Amount: Decimal)
+    local procedure OpenBankGiroJournalPageLookupAppliesTo(var CBGStatement: Record "CBG Statement"; var BankGiroJournal: TestPage "Bank/Giro Journal"; AccountType: Enum "CBG Statement Line Account Type"; AccountNo: Code[20]; Amount: Decimal)
     begin
         BankGiroJournal.OpenEdit();
         BankGiroJournal.GotoRecord(CBGStatement);
@@ -5847,7 +5847,7 @@ codeunit 144009 "ERM Cash Bank Giro Journal"
         CustLedgerEntry.TestField("Remaining Amount", RemainingAmount);
     end;
 
-    local procedure VerifyDimSetIDOnCBGStatementLine(AccountType: Option; AccountNo: Code[20]; DimSetID: Integer)
+    local procedure VerifyDimSetIDOnCBGStatementLine(AccountType: Enum "CBG Statement Line Account Type"; AccountNo: Code[20]; DimSetID: Integer)
     var
         CBGStatementLine: Record "CBG Statement Line";
     begin

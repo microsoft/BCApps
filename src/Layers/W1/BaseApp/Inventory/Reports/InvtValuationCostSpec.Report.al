@@ -13,6 +13,7 @@ report 5801 "Invt. Valuation - Cost Spec."
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Invt. Valuation - Cost Spec.';
+    ToolTip = 'View an overview of the current inventory value of selected items and specifies the cost of these items as of the date specified in the Valuation Date field. The report includes all costs, both those posted as invoiced and those posted as expected. For each of the items that you specify when setting up the report, the printed report shows quantity on stock, the cost per unit and the total amount. For each of these columns, the report specifies the cost as the various value entry types.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

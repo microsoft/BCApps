@@ -9,6 +9,7 @@ using Microsoft.Finance.TaxBase;
 using Microsoft.Finance.TaxEngine.TaxTypeHandler;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
+using Microsoft.Purchases.Payables;
 using Microsoft.Utilities;
 
 codeunit 18153 "GST Canc Corr Purch Inv Credit"
@@ -56,6 +57,7 @@ codeunit 18153 "GST Canc Corr Purch Inv Credit"
     local procedure TestGSTTDSTCSPurchaseInvoiceIsPaid(var PurchInvHeader: Record "Purch. Inv. Header"; var IsHandled: Boolean)
     var
         PurchInvLine: Record "Purch. Inv. Line";
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
         TaxTransactionValue: Decimal;
         IsPaid: Boolean;
     begin
@@ -78,13 +80,23 @@ codeunit 18153 "GST Canc Corr Purch Inv Credit"
         PurchInvHeader.CalcFields("Remaining Amount");
 
         onBeforeCheckPostedPurchaseAmountonCancellation(PurchInvHeader, PurchInvLine, TaxTransactionValue, IsPaid);
-        if not IsPaid then
-            if not PurchInvLine."GST Reverse Charge" then begin
-                if (PurchInvHeader."Amount Including VAT" + TaxTransactionValue) <> PurchInvHeader."Remaining Amount" then
+        if IsPaid then
+            exit;
+
+        if PurchInvHeader."Vendor Ledger Entry No." <> 0 then
+            if VendorLedgerEntry.Get(PurchInvHeader."Vendor Ledger Entry No.") then begin
+                VendorLedgerEntry.CalcFields("Original Amount", "Remaining Amount");
+                if VendorLedgerEntry."Original Amount" <> VendorLedgerEntry."Remaining Amount" then
                     Error(PostedInvoiceIsPaidCancelErr);
-            end else
-                if (PurchInvHeader."Amount Including VAT") <> PurchInvHeader."Remaining Amount" then
-                    Error(PostedInvoiceIsPaidCancelErr);
+                exit;
+            end;
+
+        if not PurchInvLine."GST Reverse Charge" then begin
+            if (PurchInvHeader."Amount Including VAT" + TaxTransactionValue) <> PurchInvHeader."Remaining Amount" then
+                Error(PostedInvoiceIsPaidCancelErr);
+        end else
+            if (PurchInvHeader."Amount Including VAT") <> PurchInvHeader."Remaining Amount" then
+                Error(PostedInvoiceIsPaidCancelErr);
     end;
 
 

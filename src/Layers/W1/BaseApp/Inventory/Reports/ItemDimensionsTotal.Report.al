@@ -16,6 +16,7 @@ report 7151 "Item Dimensions - Total"
 {
     ApplicationArea = Dimensions;
     Caption = 'Item Dimensions - Total';
+    ToolTip = 'Run the Item Dimensions - Total report.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

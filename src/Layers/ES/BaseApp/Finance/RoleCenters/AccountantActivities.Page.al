@@ -135,14 +135,12 @@ page 9037 "Accountant Activities"
                         ApplicationArea = Suite;
                         Caption = 'Create Reminders...';
                         RunObject = Report "Create Reminders";
-                        ToolTip = 'Remind your customers of late payments.';
                     }
                     action("Create Finance Charge Memos...")
                     {
                         ApplicationArea = Suite;
                         Caption = 'Create Finance Charge Memos...';
                         RunObject = Report "Create Finance Charge Memos";
-                        ToolTip = 'Issue finance charge memos to your customers as a consequence of late payment.';
                     }
                 }
             }
@@ -199,31 +197,6 @@ page 9037 "Accountant Activities"
                         ToolTip = 'Process new incoming electronic documents that have been created by the OCR service and that you can convert to, for example, purchase invoices in Dynamics 365.';
                         Visible = ShowCheckForOCR;
                     }
-                }
-            }
-            cuegroup(MissingSIIEntries)
-            {
-                Caption = 'Missing SII Entries';
-                field("Missing SII Entries"; Rec."Missing SII Entries")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Missing SII Entries';
-                    DrillDownPageID = "Recreate Missing SII Entries";
-                    ToolTip = 'Specifies that some posted documents were not transferred to SII.';
-
-                    trigger OnDrillDown()
-                    var
-                        SIIRecreateMissingEntries: Codeunit "SII Recreate Missing Entries";
-                    begin
-                        SIIRecreateMissingEntries.ShowRecreateMissingEntriesPage();
-                    end;
-                }
-                field("Days Since Last SII Check"; Rec."Days Since Last SII Check")
-                {
-                    ApplicationArea = Basic, Suite;
-                    DrillDownPageID = "Recreate Missing SII Entries";
-                    Image = Calendar;
-                    ToolTip = 'Specifies the number of days since the last check for missing SII entries.';
                 }
             }
             cuegroup("Product Videos")
@@ -390,14 +363,9 @@ page 9037 "Accountant Activities"
     local procedure CalculateCueFieldValues()
     var
         ActivitiesMgt: Codeunit "Activities Mgt.";
-        SIIRecreateMissingEntries: Codeunit "SII Recreate Missing Entries";
     begin
         if Rec.FieldActive("Cash Accounts Balance") then
             Rec."Cash Accounts Balance" := ActivitiesMgt.CalcCashAccountsBalances();
-        if Rec.FieldActive("Missing SII Entries") then
-            Rec."Missing SII Entries" := SIIRecreateMissingEntries.GetMissingEntriesCount();
-        if Rec.FieldActive("Days Since Last SII Check") then
-            Rec."Days Since Last SII Check" := SIIRecreateMissingEntries.GetDaysSinceLastCheck();
     end;
 
     local procedure StartWhatIsNewTour(hasTourCompleted: Boolean): Boolean

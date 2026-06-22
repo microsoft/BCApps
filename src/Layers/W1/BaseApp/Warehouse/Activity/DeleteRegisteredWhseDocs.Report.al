@@ -9,6 +9,7 @@ using Microsoft.Warehouse.Activity.History;
 report 5755 "Delete Registered Whse. Docs."
 {
     Caption = 'Delete Registered Whse. Docs.';
+    ToolTip = 'Delete Registered Warehouse Documents';
     ProcessingOnly = true;
     Permissions = TableData "Registered Whse. Activity Hdr." = rimd;
 

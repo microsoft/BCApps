@@ -129,8 +129,8 @@ pageextension 10736 "Posted Service Inv. Update ES" extends "Posted Service Inv.
 
     trigger OnAfterGetRecord()
     begin
-        SIIFirstSummaryDocNo := Copystr(Rec.GetSIIFirstSummaryDocNo(), 1, 35);
-        SIILastSummaryDocNo := Copystr(Rec.GetSIILastSummaryDocNo(), 1, 35);
+        SIIFirstSummaryDocNo := CopyStr(Rec.GetSIIFirstSummaryDocNo(), 1, 35);
+        SIILastSummaryDocNo := CopyStr(Rec.GetSIILastSummaryDocNo(), 1, 35);
     end;
 
     var

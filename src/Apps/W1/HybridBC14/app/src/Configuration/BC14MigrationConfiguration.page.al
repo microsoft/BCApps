@@ -12,7 +12,7 @@ page 46860 "BC14 Migration Configuration"
     PageType = Card;
     SourceTable = BC14CompanyMigrationInfo;
     SourceTableView = where(Name = filter(= ''));
-    Caption = 'BC14 Migration Configuration';
+    Caption = 'BC14 Re-implementation Configuration';
     ApplicationArea = All;
     InsertAllowed = false;
     DeleteAllowed = false;
@@ -25,7 +25,7 @@ page 46860 "BC14 Migration Configuration"
             label(Intro)
             {
                 ApplicationArea = All;
-                Caption = 'Use this page to configure the default migration settings applied to all companies. Per-company overrides can be set from the Company Migration Settings worksheet.';
+                Caption = 'Use this page to configure the default re-implementation settings applied to all companies. Per-company overrides can be set from the Company Re-implementation Settings worksheet.';
             }
 
             group(Modules)
@@ -119,11 +119,23 @@ page 46860 "BC14 Migration Configuration"
                 Caption = 'Historical';
                 InstructionalText = 'Configure how historical G/L entries are split between the live ledger and the read-only archive.';
 
+                field("Migrate Historical Records"; Rec."Migrate Historical Records")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Migrate Historical Records';
+                    ToolTip = 'Specifies whether to migrate historical records (Posted Sales Invoice, Old G/L Entry archive) for all companies. Disable to skip the Historical phase entirely.';
+
+                    trigger OnValidate()
+                    begin
+                        FanOutField(Rec.FieldNo("Migrate Historical Records"), Rec."Migrate Historical Records");
+                    end;
+                }
                 field("Historical Cutoff Date"; Rec."Historical Cutoff Date")
                 {
                     ApplicationArea = All;
                     Caption = 'Historical cutoff date';
                     ToolTip = 'Specifies the cutoff date for G/L entries between the live ledger and the read-only historical archive. Entries on or after this date are re-posted into the live G/L Entry table; entries before it are moved only to the BC14 Old G/L Entry archive and cannot be edited. Leave blank to re-post all entries into the live ledger (no archive is produced).';
+                    Enabled = Rec."Migrate Historical Records";
                 }
             }
 
@@ -199,16 +211,9 @@ page 46860 "BC14 Migration Configuration"
     local procedure FanOutField(FieldId: Integer; NewValue: Variant)
     var
         CompanyRow: Record BC14CompanyMigrationInfo;
-        TemplateRecRef: RecordRef;
         TargetRecRef: RecordRef;
-        TemplateFieldRef: FieldRef;
         TargetFieldRef: FieldRef;
     begin
-        TemplateRecRef.GetTable(Rec);
-        TemplateFieldRef := TemplateRecRef.Field(FieldId);
-        TemplateFieldRef.Value(NewValue);
-        TemplateRecRef.Modify();
-
         CompanyRow.SetFilter(Name, '<>%1', '');
         if not CompanyRow.FindSet(true) then
             exit;

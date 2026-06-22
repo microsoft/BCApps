@@ -204,14 +204,6 @@ table 1313 "Activities Cue"
         {
             Caption = 'Last Date/Time Modified';
         }
-        field(10700; "Missing SII Entries"; Integer)
-        {
-            Caption = 'Missing SII Entries';
-        }
-        field(10701; "Days Since Last SII Check"; Integer)
-        {
-            Caption = 'Days Since Last SII Check';
-        }
     }
 
     keys

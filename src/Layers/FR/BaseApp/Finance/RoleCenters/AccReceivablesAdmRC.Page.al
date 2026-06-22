@@ -96,7 +96,6 @@ page 9003 "Acc. Receivables Adm. RC"
                 Caption = 'Customer - &Balance to Date';
                 Image = "Report";
                 RunObject = Report "Customer - Balance to Date";
-                ToolTip = 'View a list with customers'' payment history up until a certain date. You can use the report to extract your total sales income at the close of an accounting period or fiscal year.';
             }
 #if not CLEAN28
             action("Aged &Accounts Receivable")
@@ -117,7 +116,6 @@ page 9003 "Acc. Receivables Adm. RC"
                 Caption = 'Customer - &Summary Aging Simp.';
                 Image = "Report";
                 RunObject = Report "Customer - Summary Aging Simp.";
-                ToolTip = 'View, print, or save a summary of each customer''s total payments due, divided into three time periods. The report can be used to decide when to issue reminders, to evaluate a customer''s creditworthiness, or to prepare liquidity analyses.';
             }
             action("Customer Trial Balan&ce")
             {
@@ -568,7 +566,6 @@ page 9003 "Acc. Receivables Adm. RC"
                 Ellipsis = true;
                 Image = "Action";
                 RunObject = Report "Combine Shipments";
-                ToolTip = 'Gather all non-invoiced shipments to the same customer on one sales invoice.';
             }
             action("Combine Return S&hipments")
             {
@@ -577,7 +574,6 @@ page 9003 "Acc. Receivables Adm. RC"
                 Ellipsis = true;
                 Image = "Action";
                 RunObject = Report "Combine Return Receipts";
-                ToolTip = 'Return items covered by different purchase return orders to the same vendor on one shipment. When you ship the items, you post the related purchase return orders as shipped and this creates posted purchase return shipments. When you are ready to invoice these items, you can create one purchase credit memo that automatically includes the posted purchase return shipment lines so that you invoice all the open purchase return orders at the same time.';
             }
             action("Create Recurring Invoices")
             {
@@ -586,7 +582,6 @@ page 9003 "Acc. Receivables Adm. RC"
                 Ellipsis = true;
                 Image = CreateDocument;
                 RunObject = Report "Create Recurring Sales Inv.";
-                ToolTip = 'Create sales invoices according to standard sales lines that are assigned to the customers and with posting dates within the valid-from and valid-to dates that you specify on the standard sales code. Can also be used for SEPA direct debit. ';
             }
             separator(Administration)
             {

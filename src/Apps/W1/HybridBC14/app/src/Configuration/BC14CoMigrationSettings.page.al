@@ -70,6 +70,13 @@ page 46868 "BC14 Co. Migration Settings"
                     ToolTip = 'Specifies whether to migrate Item data for this company. Locked after migration has started.';
                     Editable = RowEditable;
                 }
+                field("Migrate Historical Records"; Rec."Migrate Historical Records")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Historical';
+                    ToolTip = 'Specifies whether to migrate historical records (Posted Sales Invoice, Old G/L Entry archive) for this company. Locked after migration has started.';
+                    Editable = RowEditable;
+                }
                 field("Skip Posting Journal Batches"; Rec."Skip Posting Journal Batches")
                 {
                     ApplicationArea = All;

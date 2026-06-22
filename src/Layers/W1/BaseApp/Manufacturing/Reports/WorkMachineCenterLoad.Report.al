@@ -12,6 +12,7 @@ report 99000792 "Work/Machine Center Load"
 {
     ApplicationArea = Manufacturing;
     Caption = 'Work/Machine Center Load';
+    ToolTip = 'Get an overview of availability at the work center and machine center, such as the capacity, the allocated quantity, availability after order, and the load in percent.';
     DefaultRenderingLayout = WorkMachineCenterLoadWord;
     UsageCategory = ReportsAndAnalysis;
 

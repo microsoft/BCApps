@@ -527,7 +527,6 @@ page 8905 "Purchasing Manager Role Center"
                             ApplicationArea = Basic, Suite;
                             Caption = 'Inventory - Availability Plan (Excel)';
                             RunObject = report "Inv. Availability Plan";
-                            ToolTip = 'View a list of the quantity of each item in customer, purchase, and transfer orders and the quantity available in inventory. The list is divided into columns that cover six periods with starting and ending dates as well as the periods before and after those periods. The list is useful when you are planning your inventory purchases.';
                         }
                         action("Inventory Purchase Orders1")
                         {

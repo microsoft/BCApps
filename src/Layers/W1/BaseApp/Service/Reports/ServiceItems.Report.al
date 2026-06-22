@@ -12,6 +12,7 @@ report 5935 "Service Items"
     RDLCLayout = './Service/Reports/ServiceItems.rdlc';
     ApplicationArea = Service;
     Caption = 'Service Items';
+    ToolTip = 'Create a new service item.';
     UsageCategory = ReportsAndAnalysis;
 
     dataset

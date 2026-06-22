@@ -84,7 +84,7 @@ codeunit 392 "Reminder-Make"
             OnBeforeCustLedgerEntryFind(GlobalCustLedgEntry, GlobalReminderHeaderReq, GlobalCustomer);
             if GlobalCustLedgEntry.FindSet() then
                 repeat
-                    if GlobalCustLedgEntry."On Hold" = '' then begin
+                    if (GlobalCustLedgEntry."On Hold" = '') or IncludeEntriesOnHold then begin
                         TempCurrencyGlobal.Code := GlobalCustLedgEntry."Currency Code";
                         if TempCurrencyGlobal.Insert() then;
                     end;
@@ -365,11 +365,12 @@ codeunit 392 "Reminder-Make"
                     OnFindAndMarkReminderCandidatesOnBeforeCustLedgEntryLoop(CustLedgEntry, GlobalReminderHeaderReq, IsHandled);
                     if not IsHandled then
                         if CustLedgEntry."On Hold" = '' then
-                            MarkReminderCandidate(CustLedgEntry, ReminderLevel, CustAmount, MakeDoc, MaxReminderLevel, MaxLineLevel)
+                            MarkReminderCandidate(CustLedgEntry, ReminderLevel, CustAmount, MakeDoc, MaxReminderLevel, MaxLineLevel, false)
                         else // The customer ledger entry is on hold
                             if IncludeEntriesOnHold then begin
                                 TempCustLedgerEntryOnHold := CustLedgEntry;
-                                TempCustLedgerEntryOnHold.Insert();
+                                if TempCustLedgerEntryOnHold.Insert() then;
+                                MarkReminderCandidate(CustLedgEntry, ReminderLevel, CustAmount, MakeDoc, MaxReminderLevel, MaxLineLevel, true);
                             end;
                 until CustLedgEntry.Next() = 0;
         until ReminderLevel.Next(-1) = 0;
@@ -382,7 +383,7 @@ codeunit 392 "Reminder-Make"
         exit(true);
     end;
 
-    local procedure MarkReminderCandidate(var CustLedgEntry: Record "Cust. Ledger Entry"; var ReminderLevel: Record "Reminder Level"; var CustAmount: Decimal; var MakeDoc: Boolean; var MaxReminderLevel: Integer; var MaxLineLevel: Integer)
+    local procedure MarkReminderCandidate(var CustLedgEntry: Record "Cust. Ledger Entry"; var ReminderLevel: Record "Reminder Level"; var CustAmount: Decimal; var MakeDoc: Boolean; var MaxReminderLevel: Integer; var MaxLineLevel: Integer; EntryOnHold: Boolean)
     var
         ReminderDueDate: Date;
         LineLevel: Integer;
@@ -419,7 +420,8 @@ codeunit 392 "Reminder-Make"
                 MarkEntry := true;
 
         if MarkEntry then begin
-            CustLedgEntry.Mark(true);
+            if not EntryOnHold then
+                CustLedgEntry.Mark(true);
             ReminderLevel.Mark(true);
             if (ReminderLevel."No." > MaxReminderLevel) and
                (CustLedgEntry."Document Type" <> CustLedgEntry."Document Type"::"Credit Memo") and

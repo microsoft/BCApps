@@ -430,7 +430,6 @@ page 5981 "Service Item List"
                 Caption = 'Service Item';
                 Image = "Report";
                 RunObject = Report "Service Items";
-                ToolTip = 'Create a new service item.';
             }
             action("Service Item Label")
             {
@@ -440,7 +439,6 @@ page 5981 "Service Item List"
                 //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                 //PromotedCategory = "Report";
                 RunObject = Report "Service Item Line Labels";
-                ToolTip = 'View the list of service items on service orders. The report shows the order number, service item number, serial number, and the name of the item.';
             }
             action("Service Item Resource usage")
             {
@@ -448,7 +446,6 @@ page 5981 "Service Item List"
                 Caption = 'Service Item Resource usage';
                 Image = "Report";
                 RunObject = Report "Service Item - Resource Usage";
-                ToolTip = 'View details about the total use of service items, both cost and amount, profit amount, and profit percentage.';
             }
             action("Service Item Out of Warranty")
             {
@@ -456,7 +453,6 @@ page 5981 "Service Item List"
                 Caption = 'Service Item Out of Warranty';
                 Image = "Report";
                 RunObject = Report "Service Items Out of Warranty";
-                ToolTip = 'View information about warranty end dates, serial numbers, number of active contracts, items description, and names of customers. You can print a list of service items that are out of warranty.';
             }
         }
         area(Promoted)

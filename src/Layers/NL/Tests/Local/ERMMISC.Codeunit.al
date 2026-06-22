@@ -395,7 +395,7 @@ codeunit 144018 "ERM MISC"
         exit(GenJournalTemplate.Name);
     end;
 
-    local procedure CreateAndPostBankGiroJournalAndVerifyGLEntry(AccountType: Option; AccountNo: Code[20]; AppliesToDocNo: Code[20]; Amount: Decimal)
+    local procedure CreateAndPostBankGiroJournalAndVerifyGLEntry(AccountType: Enum "CBG Statement Line Account Type"; AccountNo: Code[20]; AppliesToDocNo: Code[20]; Amount: Decimal)
     var
         CBGStatement: Record "CBG Statement";
     begin
@@ -410,7 +410,7 @@ codeunit 144018 "ERM MISC"
         VerifyGLEntry(CBGStatement."Document No.", -Amount);
     end;
 
-    local procedure CreateBankGiroJournal(var CBGStatement: Record "CBG Statement"; AccountType: Option; AccountNo: Code[20]; AppliesToDocNo: Code[20]; Amount: Decimal)
+    local procedure CreateBankGiroJournal(var CBGStatement: Record "CBG Statement"; AccountType: Enum "CBG Statement Line Account Type"; AccountNo: Code[20]; AppliesToDocNo: Code[20]; Amount: Decimal)
     var
         CBGStatementLine: Record "CBG Statement Line";
     begin

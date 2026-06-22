@@ -89,16 +89,10 @@ codeunit 46911 "BC14 VAT Post. Setup Migrator" implements "BC14 Migrator"
         VATPostingSetup."VAT Bus. Posting Group" := BC14VATPostingSetup."VAT Bus. Posting Group";
         VATPostingSetup."VAT Prod. Posting Group" := BC14VATPostingSetup."VAT Prod. Posting Group";
 
-        // Use Validate so any OnValidate business logic runs.
-        VATPostingSetup.Validate("VAT %", BC14VATPostingSetup."VAT %");
-        // The following three fields all trigger the same Tax Jurisdiction cross-check on Validate
-        // (\"... must be entered on the tax jurisdiction line when VAT Calculation Type is Sales
-        // Tax\"). We do not migrate Tax Jurisdiction rows in this app, so direct-assign them; the
-        // configuration is verified at posting time. Explicit Option->Enum mapping for the first.
+        VATPostingSetup."VAT %" := BC14VATPostingSetup."VAT %";
         VATPostingSetup."VAT Calculation Type" := Enum::Microsoft.Foundation.Enums."Tax Calculation Type".FromInteger(BC14VATPostingSetup."VAT Calculation Type");
         VATPostingSetup."Unrealized VAT Type" := BC14VATPostingSetup."Unrealized VAT Type";
         VATPostingSetup."Adjust for Payment Discount" := BC14VATPostingSetup."Adjust for Payment Discount";
-        // G/L Account FK fields: direct assignment (G/L Account migrates in Master phase).
         VATPostingSetup."Sales VAT Account" := BC14VATPostingSetup."Sales VAT Account";
         VATPostingSetup."Sales VAT Unreal. Account" := BC14VATPostingSetup."Sales VAT Unreal. Account";
         VATPostingSetup."Purchase VAT Account" := BC14VATPostingSetup."Purchase VAT Account";
@@ -109,7 +103,6 @@ codeunit 46911 "BC14 VAT Post. Setup Migrator" implements "BC14 Migrator"
         VATPostingSetup.Validate("EU Service", BC14VATPostingSetup."EU Service");
         VATPostingSetup.Validate("VAT Clause Code", BC14VATPostingSetup."VAT Clause Code");
         VATPostingSetup.Validate(Description, BC14VATPostingSetup.Description);
-        // "Description 2" and "Tax Group Code" are not part of the modern VAT Posting Setup table.
         VATPostingSetup.Validate("Tax Category", BC14VATPostingSetup."Tax Category");
         VATPostingSetup.Validate("Certificate of Supply Required", BC14VATPostingSetup."Certificate of Supply Required");
 

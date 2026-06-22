@@ -88,7 +88,6 @@ codeunit 46864 "BC14 Historical Task Worker"
         Session.LogMessage('0000TTX', StrSubstNo(HistoricalAsyncCompletedLbl, AllSuccess), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14Telemetry.GetCategory());
     end;
 
-
     local procedure HandleHistoricalFailure(WorkerRunId: Guid): Boolean
     var
         BC14CompanySettings: Record BC14CompanyMigrationInfo;

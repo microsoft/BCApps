@@ -13,6 +13,7 @@ report 5987 "Expired Contract Lines - Test"
     DefaultLayout = RDLC;
     RDLCLayout = './Service/Reports/ExpiredContractLinesTest.rdlc';
     Caption = 'Expired Contract Lines - Test';
+    ToolTip = 'View the service contract, the service items to be removed, the contract expiration dates, and the line amounts.';
 
     dataset
     {

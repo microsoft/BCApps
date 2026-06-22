@@ -52,6 +52,11 @@ table 4585 "SOA Email"
         field(102; "Attachment Transferred"; Boolean)
         {
         }
+        field(103; "Agent User Security ID"; Guid)
+        {
+            Editable = false;
+            DataClassification = EndUserPseudonymousIdentifiers;
+        }
         field(120; "Agent Task Message Exist"; Boolean)
         {
             FieldClass = FlowField;
@@ -65,11 +70,20 @@ table 4585 "SOA Email"
         {
             Clustered = true;
         }
+        key(Key2; "Agent User Security ID", Processed)
+        {
+        }
     }
 
     internal procedure SetAgentMessageFields(var AgentTaskMessage: Record "Agent Task Message")
+    var
+        AgentTask: Record "Agent Task";
     begin
         Rec."Task ID" := AgentTaskMessage."Task ID";
         Rec."Task Message ID" := AgentTaskMessage.ID;
+
+        // Populate Agent User Security ID from the related Agent Task
+        if AgentTask.Get(AgentTaskMessage."Task ID") then
+            Rec."Agent User Security ID" := AgentTask."Agent User Security ID";
     end;
 }

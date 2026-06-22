@@ -154,7 +154,6 @@ page 117 "Item Registers"
                 Caption = 'Delete Empty Registers';
                 Image = Delete;
                 RunObject = Report "Delete Empty Item Registers";
-                ToolTip = 'Find and delete empty item registers.';
             }
         }
         area(Promoted)

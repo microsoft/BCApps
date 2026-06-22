@@ -123,7 +123,6 @@ page 99000866 "Capacity Constrained Resources"
                 Caption = 'Work/Machine Center Load';
                 Image = "Report";
                 RunObject = Report "Work/Machine Center Load";
-                ToolTip = 'Get an overview of availability at the work center and machine center, such as the capacity, the allocated quantity, availability after order, and the load in percent.';
             }
         }
         area(Promoted)

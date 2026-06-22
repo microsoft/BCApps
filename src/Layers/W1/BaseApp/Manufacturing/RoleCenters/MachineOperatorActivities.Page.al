@@ -77,21 +77,18 @@ page 9047 "Machine Operator Activities"
                         ApplicationArea = Manufacturing;
                         Caption = 'Register Absence - Machine Center';
                         RunObject = Report "Reg. Abs. (from Machine Ctr.)";
-                        ToolTip = 'Register planned absences at a machine center. The planned absence can be registered for both human and machine resources. You can register changes in the available resources in the Registered Absence table. When the batch job has been completed, you can see the result in the Registered Absences window.';
                     }
                     action("Register Absence - Work Center")
                     {
                         ApplicationArea = Manufacturing;
                         Caption = 'Register Absence - Work Center';
                         RunObject = Report "Reg. Abs. (from Work Center)";
-                        ToolTip = 'Register planned absences at a machine center. The planned absence can be registered for both human and machine resources. You can register changes in the available resources in the Registered Absence table. When the batch job has been completed, you can see the result in the Registered Absences window.';
                     }
                     action("Prod. Order - Job Card")
                     {
                         ApplicationArea = Manufacturing;
                         Caption = 'Prod. Order - Job Card';
                         RunObject = Report "Prod. Order - Job Card";
-                        ToolTip = 'View a list of the work in progress of a production order. Output, Scrapped Quantity and Production Lead Time are shown or printed depending on the operation.';
                     }
                 }
             }

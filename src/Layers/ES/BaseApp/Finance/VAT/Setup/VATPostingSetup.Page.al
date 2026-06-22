@@ -160,26 +160,6 @@ page 472 "VAT Posting Setup"
                     ApplicationArea = VAT;
                     ToolTip = 'Specifies the VAT calculation type for non-taxable goods.';
                 }
-                field("Sales Special Scheme Code"; Rec."Sales Special Scheme Code")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the special scheme codes that are used for VAT reporting for sales.';
-                }
-                field("Purch. Special Scheme Code"; Rec."Purch. Special Scheme Code")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the special scheme codes that are used for VAT reporting for purchasing.';
-                }
-                field("Ignore In SII"; Rec."Ignore In SII")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies if this VAT Posting Setup should be ignored in the SII report.';
-                }
-                field("One Stop Shop Reporting"; Rec."One Stop Shop Reporting")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies if this VAT Posting Setup is aligned with the One Stop Shop system. If this option is enabled then the VAT posting has no changes, but is repoted under the ImporteTAIReglasLocalizacion xml node for the SII reporting. This is only applied to sales.';
-                }
             }
         }
         area(factboxes)

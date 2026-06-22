@@ -341,7 +341,6 @@ page 450 "Issued Finance Charge Memo"
                 Caption = 'Finance Charge Memo';
                 Image = FinChargeMemo;
                 RunObject = Report "Finance Charge Memo";
-                ToolTip = 'Create a new finance charge memo.';
             }
             action("Customer Account Detail")
             {

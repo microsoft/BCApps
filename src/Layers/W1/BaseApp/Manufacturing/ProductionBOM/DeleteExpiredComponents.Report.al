@@ -7,6 +7,7 @@ namespace Microsoft.Manufacturing.ProductionBOM;
 report 99001041 "Delete Expired Components"
 {
     Caption = 'Delete Expired Components';
+    ToolTip = 'Remove BOM lines that have expired ending dates. The BOM header will not be changed.';
     ProcessingOnly = true;
 
     dataset

@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -1549,7 +1549,6 @@ table 39 "Purchase Line"
 
             trigger OnValidate()
             var
-                SIISchemeCodeMgt: Codeunit "SII Scheme Code Mgt.";
                 IsHandled: Boolean;
                 ShouldUpdateUnitCost: Boolean;
             begin
@@ -1591,7 +1590,6 @@ table 39 "Purchase Line"
                             "Direct Unit Cost" * (100 + GetVATPct()) / (100 + xRec.GetVATPct()),
                             Currency."Unit-Amount Rounding Precision"));
                     UpdateAmounts();
-                    SIISchemeCodeMgt.UpdatePurchSpecialSchemeCodeInPurchLine(Rec);
                 end;
             end;
         }
@@ -3861,10 +3859,6 @@ table 39 "Purchase Line"
             DecimalPlaces = 0 : 5;
             Editable = false;
             MinValue = 0;
-        }
-        field(10709; "Special Scheme Code"; Enum "SII Purch. Special Scheme Code")
-        {
-            Caption = 'Special Scheme Code';
         }
         field(12100; "No. of Fixed Asset Cards"; Integer)
         {

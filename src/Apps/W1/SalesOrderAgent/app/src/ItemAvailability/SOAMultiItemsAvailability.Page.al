@@ -732,6 +732,8 @@ page 4410 "SOA Multi Items Availability"
         Found: Boolean;
         IsHandled: Boolean;
     begin
+        PriceCalcNotificationSent := false;
+
         IsHandled := false;
         OnBeforeFindRecord(Rec, Which, CrossColumnSearchFilter, Found, QuantityFilter, InUOMCode, IsHandled, MatchingItem);
         if IsHandled then
@@ -744,7 +746,9 @@ page 4410 "SOA Multi Items Availability"
     var
         ItemTranslation: Record "Item Translation";
         Location: Record Location;
+        SOAPriceCalcNotification: Codeunit "SOA Price Calc. Notification";
         SOAShipmentDateMgt: Codeunit "SOA Shipment Date Mgt.";
+        PriceCalcErrorNotification: Notification;
         LocationCode: Code[10];
     begin
         UnitCost := 0;
@@ -754,7 +758,17 @@ page 4410 "SOA Multi Items Availability"
         EarliestShipmentDate := 0D;
 
         CalcAvailQuantities(GrossRequirement, PlannedOrderRcpt, ScheduledRcpt, PlannedOrderReleases, ProjAvailableBalance, ProjAvailableBalanceInUOM, ExpectedInventory, QtyAvailable);
-        if CalcPrice() then;
+        if not CalcPrice() then
+            if not PriceCalcNotificationSent then
+                if SOAPriceCalcNotification.IsEnabled() then begin
+                    PriceCalcErrorNotification.Id := SOAPriceCalcNotification.GetNotificationId();
+                    PriceCalcErrorNotification.Message := StrSubstNo(PriceCalcErrorMsg, CustomerNo, Rec."No.", GetLastErrorText());
+                    PriceCalcErrorNotification.SetData('CallStack', GetLastErrorCallStack());
+                    PriceCalcErrorNotification.AddAction(CallStackActionLbl, Codeunit::"SOA Price Calc. Notification", 'ShowCallStack');
+                    PriceCalcErrorNotification.AddAction(DisableActionLbl, Codeunit::"SOA Price Calc. Notification", 'DisableNotification');
+                    PriceCalcErrorNotification.Send();
+                    PriceCalcNotificationSent := true;
+                end;
 
         if Location.Get(LocationFilter) then
             LocationCode := Location.Code;
@@ -801,9 +815,13 @@ page 4410 "SOA Multi Items Availability"
         TranslatedDescription2: Text[50];
         EarliestShipmentDate: Date;
         Available, CalculateEarliestShipmentDate, OptionsVisible, IsAgentSession, IncludeCapableToPromiseItems, MatchingItem : Boolean;
+        PriceCalcNotificationSent: Boolean;
         PreviewDisclaimerLbl: Label 'Item Availability page (preview). Learn more';
         PreviewDisclaimerURLLbl: Label 'https://go.microsoft.com/fwlink/?linkid=2303848', Locked = true;
         PriceCheckDocNoLbl: Label 'SOA-PRICECHECK', Locked = true;
+        PriceCalcErrorMsg: Label 'Price calculation for customer %1 item %2 failed with error: %3', Comment = '%1 - Customer number, %2 - Item number, %3 - Error message';
+        CallStackActionLbl: Label 'Call Stack';
+        DisableActionLbl: Label 'Disable';
 
     local procedure ShowItemAvailLineList(What: Integer)
     var

@@ -283,14 +283,6 @@ table 9054 "Finance Cue"
             Caption = 'Reminder Automation Failures';
             ToolTip = 'Specifies the number of failures that occured for the existing reminder automations.';
         }
-        field(10700; "Missing SII Entries"; Integer)
-        {
-            Caption = 'Missing SII Entries';
-        }
-        field(10701; "Days Since Last SII Check"; Integer)
-        {
-            Caption = 'Days Since Last SII Check';
-        }
         field(7000000; "Receivable Documents"; Integer)
         {
             CalcFormula = count("Cartera Doc." where(Type = const(Receivable),

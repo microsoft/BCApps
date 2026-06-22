@@ -823,7 +823,6 @@ page 5740 "Transfer Order"
                 Caption = 'Inventory - Inbound Transfer';
                 Image = "Report";
                 RunObject = Report "Inventory - Inbound Transfer";
-                ToolTip = 'View which items are currently on inbound transfer orders.';
             }
         }
         area(Promoted)

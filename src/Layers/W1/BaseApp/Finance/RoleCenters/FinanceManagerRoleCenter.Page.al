@@ -214,7 +214,6 @@ page 8901 "Finance Manager Role Center"
                             ApplicationArea = Basic, Suite;
                             Caption = 'Day Book Cust. Ledger Entry';
                             RunObject = report "Day Book Cust. Ledger Entry";
-                            Tooltip = 'Run the Day Book Cust. Ledger Entry report.';
                         }
                         action("Day Book Vendor Ledger Entry")
                         {
@@ -1086,7 +1085,6 @@ page 8901 "Finance Manager Role Center"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Create Recurring Sales Invoices';
                     RunObject = report "Create Recurring Sales Inv.";
-                    Tooltip = 'Run the Create Recurring Sales Invoices report.';
                 }
                 action("Register Customer Payments")
                 {
@@ -1103,14 +1101,12 @@ page 8901 "Finance Manager Role Center"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Combine Shipments...';
                         RunObject = report "Combine Shipments";
-                        Tooltip = 'Run the Combine Shipments report.';
                     }
                     action("Combined Return Receipts")
                     {
                         ApplicationArea = SalesReturnOrder, PurchReturnOrder;
                         Caption = 'Combine Return Receipts...';
                         RunObject = report "Combine Return Receipts";
-                        Tooltip = 'Run the Combine Return Receipts report.';
                     }
                 }
                 group("Group30")
@@ -1235,7 +1231,6 @@ page 8901 "Finance Manager Role Center"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Customer Detailed Aging';
                         RunObject = report "Customer Detailed Aging";
-                        Tooltip = 'Run the Customer Detailed Aging report.';
                     }
                     action("Customer Statement")
                     {
@@ -1249,21 +1244,18 @@ page 8901 "Finance Manager Role Center"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Customer Register';
                         RunObject = report "Customer Register";
-                        Tooltip = 'Run the Customer Register report.';
                     }
                     action("Customer - Balance to Date")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Customer - Balance to Date';
                         RunObject = report "Customer - Balance to Date";
-                        Tooltip = 'Run the Customer - Balance to Date report.';
                     }
                     action("Customer - Detail Trial Bal.")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Customer - Detail Trial Bal.';
                         RunObject = report "Customer - Detail Trial Bal.";
-                        Tooltip = 'Run the Customer - Detail Trial Bal. report.';
                     }
 #if not CLEAN28
                     action("Customer - List")
@@ -1282,14 +1274,12 @@ page 8901 "Finance Manager Role Center"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Customer - Summary Aging';
                         RunObject = report "Customer - Summary Aging";
-                        Tooltip = 'Run the Customer - Summary Aging report.';
                     }
                     action("Customer - Summary Aging Simp.")
                     {
                         ApplicationArea = Suite;
                         Caption = 'Customer - Summary Aging Simp.';
                         RunObject = report "Customer - Summary Aging Simp.";
-                        Tooltip = 'Run the Customer - Summary Aging Simp. report.';
                     }
                     action("Customer - Order Summary")
                     {
@@ -1310,7 +1300,6 @@ page 8901 "Finance Manager Role Center"
                         ApplicationArea = Suite;
                         Caption = 'Customer Labels';
                         RunObject = report "Customer - Labels";
-                        Tooltip = 'Run the Customer Labels report.';
                     }
 #if not CLEAN28
                     action("Customer - Top 10 List")
@@ -1386,7 +1375,6 @@ page 8901 "Finance Manager Role Center"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Customer Trial Balance';
                         RunObject = report "Customer - Trial Balance";
-                        Tooltip = 'Run the Customer Trial Balance report.';
                     }
                     action("EC Sales List")
                     {
@@ -2128,21 +2116,18 @@ page 8901 "Finance Manager Role Center"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Adjust Item Costs/Prices';
                         RunObject = report "Adjust Item Costs/Prices";
-                        Tooltip = 'Run the Adjust Item Costs/Prices report.';
                     }
                     action("Adjust Cost - Item Entries")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Adjust Cost - Item Entries...';
                         RunObject = report "Adjust Cost - Item Entries";
-                        Tooltip = 'Run the Adjust Cost - Item Entries report.';
                     }
                     action("Post Inventory Cost to G/L")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Post Inventory Cost to G/L';
                         RunObject = report "Post Inventory Cost to G/L";
-                        Tooltip = 'Run the Post Inventory Cost to G/L report.';
                     }
                 }
                 group("Group52")
@@ -2192,21 +2177,18 @@ page 8901 "Finance Manager Role Center"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Inventory Valuation';
                         RunObject = report "Inventory Valuation";
-                        Tooltip = 'Run the Inventory Valuation report.';
                     }
                     action("Inventory - List")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Inventory - List';
                         RunObject = report "Inventory - List";
-                        Tooltip = 'Run the Inventory - List report.';
                     }
                     action("Invt. Valuation - Cost Spec.")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Invt. Valuation - Cost Spec.';
                         RunObject = report "Invt. Valuation - Cost Spec.";
-                        Tooltip = 'Run the Invt. Valuation - Cost Spec. report.';
                     }
                     action("Item Age Composition - Value")
                     {
@@ -2220,14 +2202,12 @@ page 8901 "Finance Manager Role Center"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Item Register - Value';
                         RunObject = report "Item Register - Value";
-                        Tooltip = 'Run the Item Register - Value report.';
                     }
                     action("Physical Inventory List")
                     {
                         ApplicationArea = Warehouse;
                         Caption = 'Physical Inventory List';
                         RunObject = report "Phys. Inventory List";
-                        Tooltip = 'Run the Physical Inventory List report.';
                     }
                     action("Status")
                     {
@@ -2241,21 +2221,18 @@ page 8901 "Finance Manager Role Center"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Item Register - Quantity';
                         RunObject = report "Item Register - Quantity";
-                        Tooltip = 'Run the Item Register - Quantity report.';
                     }
                     action("Item Dimensions - Detail")
                     {
                         ApplicationArea = Dimensions;
                         Caption = 'Item Dimensions - Detail';
                         RunObject = report "Item Dimensions - Detail";
-                        Tooltip = 'Run the Item Dimensions - Detail report.';
                     }
                     action("Item Dimensions - Total")
                     {
                         ApplicationArea = Dimensions;
                         Caption = 'Item Dimensions - Total';
                         RunObject = report "Item Dimensions - Total";
-                        Tooltip = 'Run the Item Dimensions - Total report.';
                     }
                     action("Inventory - G/L Reconciliation")
                     {
@@ -2330,14 +2307,12 @@ page 8901 "Finance Manager Role Center"
                         ApplicationArea = InventoryAnalysis;
                         Caption = 'Invt. Analysis Column Templates';
                         RunObject = report "Run Invt. Analysis Col. Temp.";
-                        Tooltip = 'Run the Invt. Analysis Column Templates report.';
                     }
                     action("Analysis Line Templates")
                     {
                         ApplicationArea = InventoryAnalysis;
                         Caption = 'Invt. Analysis Line Templates';
                         RunObject = report "Run Invt. Analysis Line Temp.";
-                        Tooltip = 'Run the Invt. Analysis Line Templates report.';
                     }
                 }
             }

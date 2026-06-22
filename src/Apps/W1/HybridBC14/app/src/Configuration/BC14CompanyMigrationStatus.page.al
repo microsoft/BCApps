@@ -82,6 +82,13 @@ page 46869 "BC14 Company Migration Status"
                     ToolTip = 'Specifies whether to migrate Item data. Locked after migration has started.';
                     Editable = SettingsEditable;
                 }
+
+                field("Migrate Historical Records"; Rec."Migrate Historical Records")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies whether to migrate historical records (Posted Sales Invoice, Old G/L Entry archive) for this company. Disable to skip the Historical phase entirely. Locked after migration has started.';
+                    Editable = SettingsEditable;
+                }
             }
 
             group(Transactions)
@@ -193,7 +200,7 @@ page 46869 "BC14 Company Migration Status"
         HistoricalFailedLbl: Label 'Failed: %1', Comment = '%1 = failure reason';
         HistoricalFailedNoReasonLbl: Label 'Failed';
         PhaseProgressLbl: Label '%1 / %2 (%3%)', Comment = '%1 = completed migrators, %2 = total migrators, %3 = percentage';
-        DirectOpenNotAllowedErr: Label 'This page cannot be opened directly. Open it from the BC14 Migration Configuration page.';
+        DirectOpenNotAllowedErr: Label 'This page cannot be opened directly. Open it from the BC14 Re-implementation Configuration page.';
 
     trigger OnOpenPage()
     begin

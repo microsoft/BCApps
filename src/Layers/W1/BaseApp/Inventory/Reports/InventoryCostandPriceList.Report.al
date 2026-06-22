@@ -13,6 +13,7 @@ report 716 "Inventory Cost and Price List"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Inventory Cost and Price List';
+    ToolTip = 'View, print, or save a list of your items and their price and cost information. The report specifies direct unit cost, last direct cost, unit price, profit percentage, and profit.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

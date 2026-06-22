@@ -12,6 +12,7 @@ using System.Utilities;
 report 5751 "Put-away List"
 {
     Caption = 'Put-away List';
+    ToolTip = 'View or print a detailed list of items that must be put away.';
     WordMergeDataItem = "Warehouse Activity Header";
     DefaultRenderingLayout = RDLCLayout;
 

@@ -21,6 +21,7 @@ report 1003 "Post Invt. Cost to G/L - Test"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Post Invt. Cost to G/L - Test';
+    ToolTip = 'Run a test of the Post Inventory to G/L.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

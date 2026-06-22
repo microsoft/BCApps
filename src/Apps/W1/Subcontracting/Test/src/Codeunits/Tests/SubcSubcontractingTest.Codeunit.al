@@ -50,6 +50,81 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmHandler,HandleTransferOrder,HandleCreateTransferOrderMsg')]
+    procedure DirectTransferPostingWithWIPItemDoesNotErrorOnQuantity()
+    var
+        Bin: Record Bin;
+        DirectTransHeader: Record "Direct Trans. Header";
+        Item: Record Item;
+        Location: Record Location;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProdOrderComp: Record "Prod. Order Component";
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        WorkCenter: array[2] of Record "Work Center";
+        PurchaseHeaderPage: TestPage "Purchase Order";
+    begin
+        // [SCENARIO 636823] Direct Transfer posting with WIP items should not fail with "quantity not entered" error
+        // when Inventory Setup has Direct Transfer Posting = Direct Transfer.
+        Initialize();
+
+        // [GIVEN] Inventory Setup with Direct Transfer Posting = Direct Transfer
+        SubcontractingMgmtLibrary.SetupInventorySetup();
+        SubcontractingMgmtLibrary.UpdateManufacturingSetupWithSubcontractingLocation();
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+
+        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Transfer to Vendor");
+        UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
+
+        UpdateSubMgmtSetupWithReqWkshTemplate();
+        SubcontractingMgmtLibrary.UpdateProdOrderCompWithLocationCode(ProductionOrder."No.");
+
+        // [GIVEN] Subcontracting purchase order and transfer order to vendor (no in-transit route = direct transfer)
+        SubcontractingMgmtLibrary.CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
+
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        PurchaseLine.FindFirst();
+
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+        PurchaseHeaderPage.OpenView();
+        PurchaseHeaderPage.GoToRecord(PurchaseHeader);
+        PurchaseHeaderPage.CreateTransfOrdToSubcontractor.Invoke();
+
+        ProdOrderComp.SetRange("Prod. Order No.", ProductionOrder."No.");
+#pragma warning disable AA0210
+        ProdOrderComp.SetRange("Component Supply Method", ProdOrderComp."Component Supply Method"::"Transfer to Vendor");
+#pragma warning restore AA0210
+        ProdOrderComp.FindFirst();
+
+        TransferLine.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
+        TransferLine.SetRange("Item No.", ProdOrderComp."Item No.");
+        TransferLine.FindFirst();
+        TransferHeader.Get(TransferLine."Document No.");
+
+        Item.Get(ProdOrderComp."Item No.");
+        Location.Get(TransferHeader."Transfer-from Code");
+        CreateInventory(Item, Location, Bin, ProdOrderComp."Expected Qty. (Base)");
+
+        // [WHEN] Post the direct transfer (transfer order includes both component and WIP lines)
+        Codeunit.Run(Codeunit::"TransferOrder-Post Transfer", TransferHeader);
+
+        // [THEN] Direct Trans. Header is created without error (posting succeeds)
+        DirectTransHeader.SetRange("Subcontr. Purch. Order No.", PurchaseHeader."No.");
+        Assert.RecordIsNotEmpty(DirectTransHeader);
+    end;
+
+    [Test]
     [HandlerFunctions('ConfirmHandler,HandleTransferOrder')]
     procedure CreateTransferOrderFromSecondSubcontractingOrderOpensReusedTransferOrder()
     var
@@ -1644,10 +1719,14 @@ codeunit 139989 "Subc. Subcontracting Test"
         MachineCenter: array[2] of Record "Machine Center";
         PlanningComponent: Record "Planning Component";
         ProductionBOMLine: Record "Production BOM Line";
+        RequisitionLine: Record "Requisition Line";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
         Vendor: Record Vendor;
         WorkCenter: array[2] of Record "Work Center";
+        ReqWkshTemplateName: Code[10];
+        Direction: Option Forward,Backward;
     begin
         // [SCENARIO] Create Sales Order and test Planning Component
 
@@ -1686,9 +1765,32 @@ codeunit 139989 "Subc. Subcontracting Test"
         PlanningComponent.FindFirst();
 
         // [THEN]
-        Assert.Equal(ProductionBOMLine."Component Supply Method", PlanningComponent."Component Supply Method");
+        PlanningComponent.TestField("Component Supply Method", "Component Supply Method"::"Consignment at Vendor");
         Vendor.Get(WorkCenter[2]."Subcontractor No.");
-        Assert.Equal(Vendor."Subc. Location Code", PlanningComponent."Location Code");
+        PlanningComponent.TestField("Location Code", Vendor."Subc. Location Code");
+
+        // [WHEN] A Planning Worksheet line is added manually for the same item and Refresh Planning Line is run (bug 637499 repro)
+        ReqWkshTemplateName := LibraryPlanning.SelectRequisitionTemplateName();
+        LibraryPlanning.CreateRequisitionWkshName(RequisitionWkshName, ReqWkshTemplateName);
+        LibraryPlanning.CreateRequisitionLine(RequisitionLine, ReqWkshTemplateName, RequisitionWkshName.Name);
+        RequisitionLine.Validate(Type, RequisitionLine.Type::Item);
+        RequisitionLine.Validate("No.", Item."No.");
+        RequisitionLine.Validate(Quantity, LibraryRandom.RandInt(10) + 5);
+        RequisitionLine.Validate("Location Code", Location.Code);
+        RequisitionLine.Validate("Ending Date", WorkDate());
+        RequisitionLine.Modify(true);
+        LibraryPlanning.RefreshPlanningLine(RequisitionLine, Direction::Backward, true, true);
+
+        // [THEN] The Subcontracting Type (Component Supply Method) is copied from the Production BOM Line to the Planning Component
+        Clear(PlanningComponent);
+        PlanningComponent.SetRange("Worksheet Template Name", RequisitionLine."Worksheet Template Name");
+        PlanningComponent.SetRange("Worksheet Batch Name", RequisitionLine."Journal Batch Name");
+        PlanningComponent.SetRange("Worksheet Line No.", RequisitionLine."Line No.");
+        PlanningComponent.SetRange("Item No.", ProductionBOMLine."No.");
+        PlanningComponent.FindFirst();
+        PlanningComponent.TestField("Component Supply Method", "Component Supply Method"::"Consignment at Vendor");
+        // [THEN] and the component is relocated to the subcontractor location, matching the Production Order behavior
+        PlanningComponent.TestField("Location Code", Vendor."Subc. Location Code");
     end;
 
 
@@ -2745,6 +2847,50 @@ codeunit 139989 "Subc. Subcontracting Test"
         // [THEN] The Purchase Lines list is shown instead of individual Purchase Order cards
         Assert.IsTrue(PurchaseLinesPageOpened, 'Purchase Lines list should open when purchase orders already exist.');
         Assert.IsFalse(PurchaseOrderPageOpened, 'Purchase Order card should not open when purchase orders already exist.');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmYesShowSubcontractingPurchOrders,HandlePurchaseOrderPage,HandlePurchaseLinesPage')]
+    procedure ShowExistingPurchOrdersAfterReceiptDoesNotError()
+    var
+        Item: Record Item;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        WorkCenter: array[2] of Record "Work Center";
+    begin
+        // [SCENARIO 637777] Re-running Create Subcontracting Order after fully receiving the existing subcontracting purchase order should offer to view the existing order instead of raising "No Prod. Order Line with Remaining Quantity."
+
+        // [GIVEN] Manufacturing setup with subcontracting work center, item with routing/BOM, released production order, and a created subcontracting purchase order
+        Initialize();
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
+        UpdateSubMgmtSetupWithReqWkshTemplate();
+        SubcontractingMgmtLibrary.CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
+
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+#pragma warning disable AA0210
+        PurchaseLine.SetRange("Work Center No.", WorkCenter[2]."No.");
+#pragma warning restore AA0210
+        PurchaseLine.FindFirst();
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+        EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
+
+        // [GIVEN] The existing subcontracting purchase order is fully received
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+
+        // [WHEN] Create Subcontracting Order is invoked again from the same routing line
+        PurchaseLinesPageOpened := false;
+        SubcontractingMgmtLibrary.CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
+
+        // [THEN] The existing purchase lines are shown and no raw remaining-quantity error is raised
+        Assert.IsTrue(PurchaseLinesPageOpened, 'Purchase Lines list should open when the subcontracting purchase order already exists after full receipt.');
     end;
 
     [Test]

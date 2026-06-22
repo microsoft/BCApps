@@ -59,7 +59,7 @@ codeunit 46850 "BC14 Migration Provider" implements "Custom Migration Provider",
     end;
 
     var
-        DisplayNameLbl: Label 'Business Central 14 Re-implementation';
+        DisplayNameLbl: Label 'Dynamics 365 Business Central Re-implementation (v.14)';
         DescriptionLbl: Label 'Moves the data from Business Central 14 on-premises to Business Central online. This is a re-implementation migration, a subset of the data will be migrated.';
         AppIdLbl: Label '2363a2b7-1018-4976-a32a-c77338dc9f16', Locked = true;
 
@@ -86,6 +86,6 @@ codeunit 46850 "BC14 Migration Provider" implements "Custom Migration Provider",
 
     procedure ShowConfigureMigrationTablesMappingStep(): Boolean
     begin
-        exit(false);
+        exit(true);
     end;
 }

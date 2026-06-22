@@ -21,8 +21,19 @@ tableextension 99001507 "Subc. Vendor" extends Vendor
             trigger OnValidate()
             var
                 Location: Record Location;
+#if not CLEAN29
+#pragma warning disable AL0432
+                SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
+#endif
                 ErrorInfo: ErrorInfo;
             begin
+#if not CLEAN29
+#pragma warning disable AL0432
+                if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+                    exit;
+#endif
                 if "Subc. Location Code" = '' then
                     exit;
                 Location.Get("Subc. Location Code");
@@ -58,7 +69,7 @@ tableextension 99001507 "Subc. Vendor" extends Vendor
     }
 
     var
-        CannotUseLocationLbl: Label 'Cannot user the location for subcontracting';
+        CannotUseLocationLbl: Label 'Cannot use the location for subcontracting';
         ShowLocationCardLbl: Label 'Show Location Card';
         BinWarehouseEnabledOnLocationErr: Label 'Location %1 cannot be used as a subcontracting location because Bin Mandatory or warehouse handling is enabled on the location.', Comment = '%1 = Location Code';
 }

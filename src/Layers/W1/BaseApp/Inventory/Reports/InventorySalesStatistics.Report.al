@@ -12,6 +12,7 @@ report 712 "Inventory - Sales Statistics"
 {
     ApplicationArea = Suite;
     Caption = 'Inventory Sales Statistics';
+    ToolTip = 'View, print, or save a summary of selected items'' sales per customer, for example, to analyze the profit on individual items or trends in revenues and profit. The report specifies direct unit cost, unit price, sales quantity, sales in LCY, profit percentage, and profit.';
     UsageCategory = ReportsAndAnalysis;
     DataAccessIntent = ReadOnly;
     DefaultRenderingLayout = RDLCLayout;

@@ -24,7 +24,7 @@ codeunit 4401 "SOA Metadata Provider" implements IAgentMetadata, IAgentFactory
 
     procedure GetInitials(AgentUserId: Guid): Text[4]
     begin
-        exit(SOASetupCU.GetInitials());
+        exit(SOASetupCU.GetInitials(AgentUserId));
     end;
 
     procedure GetFirstTimeSetupPageId(): Integer

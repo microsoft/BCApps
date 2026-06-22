@@ -1,6 +1,5 @@
 ﻿namespace Microsoft.AccountantPortal;
 
-using Microsoft.EServices.EDocument;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Company;
 using Microsoft.RoleCenters;
@@ -329,31 +328,6 @@ page 1314 "AccountantPortal Activity Cues"
                     ToolTip = 'Specifies the name of the contact person in your company.';
                 }
             }
-            cuegroup(MissingSIIEntries)
-            {
-                Caption = 'Missing SII Entries';
-                field("Missing SII Entries"; Rec."Missing SII Entries")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Missing SII Entries';
-                    DrillDownPageID = "Recreate Missing SII Entries";
-                    ToolTip = 'Specifies that some posted documents were not transferred to SII.';
-
-                    trigger OnDrillDown()
-                    var
-                        SIIRecreateMissingEntries: Codeunit "SII Recreate Missing Entries";
-                    begin
-                        SIIRecreateMissingEntries.ShowRecreateMissingEntriesPage();
-                    end;
-                }
-                field("Days Since Last SII Check"; Rec."Days Since Last SII Check")
-                {
-                    ApplicationArea = Basic, Suite;
-                    DrillDownPageID = "Recreate Missing SII Entries";
-                    Image = Calendar;
-                    ToolTip = 'Specifies the number of days since the last check for missing SII entries.';
-                }
-            }
         }
     }
 
@@ -434,7 +408,6 @@ page 1314 "AccountantPortal Activity Cues"
         AcctWebServicesMgt: Codeunit "Acct. WebServices Mgt.";
         CuesAndKpis: Codeunit "Cues And KPIs";
         StringConversionManagement: Codeunit StringConversionManagement;
-        SIIRecreateMissingEntries: Codeunit "SII Recreate Missing Entries";
         Justification: Option Right,Left;
         TempString: Text[250];
         UnlimitedTempString: Text;
@@ -533,11 +506,6 @@ page 1314 "AccountantPortal Activity Cues"
         TempString := Format(Rec."Inc. Doc. Awaiting Verfication");
         IncDocAwaitingVerifAmount := StringConversionManagement.GetPaddedString(TempString, 30, ' ', Justification::Right);
         CuesAndKpis.SetCueStyle(Database::"Activities Cue", ActivitiesCue.FieldNo("Inc. Doc. Awaiting Verfication"), Rec."Inc. Doc. Awaiting Verfication", IncDocAwaitingVerifStyle);
-
-        if Rec.FieldActive("Missing SII Entries") then
-            Rec."Missing SII Entries" := SIIRecreateMissingEntries.GetMissingEntriesCount();
-        if Rec.FieldActive("Days Since Last SII Check") then
-            Rec."Days Since Last SII Check" := SIIRecreateMissingEntries.GetDaysSinceLastCheck();
 
         ApprovalActivitiesCue.SetRange("User ID Filter", UserId);
         ApprovalActivitiesCue.CalcFields("Requests to Approve");

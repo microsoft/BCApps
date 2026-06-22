@@ -446,7 +446,6 @@ page 9300 "Sales Quotes"
                     Caption = 'Delete Expired Quotes';
                     Image = Delete;
                     RunObject = Report "Delete Expired Sales Quotes";
-                    ToolTip = 'Delete quotes where the valid-to date is exceeded.';
                 }
             }
             group(Create)

@@ -12,6 +12,7 @@ report 5805 "Item Register - Value"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Item Register Value';
+    ToolTip = 'View one or more selected item registers showing value. The report can be used to document the contents of a register for internal or external audits.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

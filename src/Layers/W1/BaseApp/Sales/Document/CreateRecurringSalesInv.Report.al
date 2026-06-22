@@ -12,6 +12,7 @@ report 172 "Create Recurring Sales Inv."
     AdditionalSearchTerms = 'repeat sales';
     ApplicationArea = Basic, Suite;
     Caption = 'Create Recurring Sales Invoices';
+    ToolTip = 'Create sales invoices according to standard sales lines that are assigned to the customers and with posting dates within the valid-from and valid-to dates that you specify on the standard sales code. Can also be used for SEPA direct debit.';
     ProcessingOnly = true;
     UsageCategory = Tasks;
 

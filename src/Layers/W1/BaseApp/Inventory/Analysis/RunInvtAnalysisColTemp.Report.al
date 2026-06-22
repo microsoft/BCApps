@@ -8,6 +8,7 @@ report 7119 "Run Invt. Analysis Col. Temp."
 {
     ApplicationArea = InventoryAnalysis;
     Caption = 'Inventory Analysis Column Templates';
+    ToolTip = 'Run the Invt. Analysis Column Templates report.';
     ProcessingOnly = true;
     UsageCategory = Administration;
     UseRequestPage = false;

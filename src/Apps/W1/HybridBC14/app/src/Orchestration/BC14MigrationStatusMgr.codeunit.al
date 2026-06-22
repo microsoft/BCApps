@@ -117,11 +117,35 @@ codeunit 46858 "BC14 Migration Status Mgr."
             until HybridCompanyStatus.Next() = 0;
     end;
 
+    /// <summary>
+    /// Flips every Failed company back to Pending so the operator can retry them after fixing
+    /// the underlying data. Clears the per-row failure message — the durable error history lives
+    /// in the BC14 Migration Error table, not on Hybrid Company Status. Returns the number of
+    /// rows reset.
+    /// </summary>
+    procedure ResetFailedCompaniesToPending(): Integer
+    var
+        HybridCompanyStatus: Record "Hybrid Company Status";
+        ResetCount: Integer;
+    begin
+        HybridCompanyStatus.ReadIsolation := IsolationLevel::UpdLock;
+        HybridCompanyStatus.SetFilter(Name, '<>''''');
+        HybridCompanyStatus.SetRange("Upgrade Status", HybridCompanyStatus."Upgrade Status"::Failed);
+        if HybridCompanyStatus.FindSet() then
+            repeat
+                WriteCompanyStatus(HybridCompanyStatus, HybridCompanyStatus."Upgrade Status"::Pending, '');
+                ResetCount += 1;
+            until HybridCompanyStatus.Next() = 0;
+        exit(ResetCount);
+    end;
+
     #endregion
 
     #region Summary Status — Public API
 
     procedure SetSummaryInProgress(var HybridReplicationSummary: Record "Hybrid Replication Summary")
+    var
+        OutStr: OutStream;
     begin
         if not ReloadSummary(HybridReplicationSummary) then
             exit;
@@ -133,6 +157,8 @@ codeunit 46858 "BC14 Migration Status Mgr."
             HybridReplicationSummary."Start Time" := CurrentDateTime();
         HybridReplicationSummary."End Time" := 0DT;
         Clear(HybridReplicationSummary.Details);
+        HybridReplicationSummary.Details.CreateOutStream(OutStr, TextEncoding::UTF8);
+        OutStr.WriteText(UpgradeInProgressLbl);
         WriteSummaryStatus(HybridReplicationSummary, HybridReplicationSummary.Status::UpgradeInProgress);
     end;
 
@@ -145,25 +171,6 @@ codeunit 46858 "BC14 Migration Status Mgr."
 
         HybridReplicationSummary."End Time" := CurrentDateTime();
         WriteSummaryStatus(HybridReplicationSummary, HybridReplicationSummary.Status::UpgradeFailed);
-    end;
-
-    /// <summary>
-    /// Overwrites the summary Details blob with the given message and commits, so the text
-    /// persists across the subsequent Error() rollback and shows up on the Cloud Migration
-    /// Management page. No-ops if the summary row no longer exists.
-    /// </summary>
-    procedure WriteSummaryDetailMessage(var HybridReplicationSummary: Record "Hybrid Replication Summary"; MessageText: Text)
-    var
-        OutStr: OutStream;
-    begin
-        if not ReloadSummary(HybridReplicationSummary) then
-            exit;
-
-        Clear(HybridReplicationSummary.Details);
-        HybridReplicationSummary.Details.CreateOutStream(OutStr, TextEncoding::UTF8);
-        OutStr.WriteText(MessageText);
-        HybridReplicationSummary.Modify();
-        Commit();
     end;
 
     procedure EvaluateAndSetFinalSummaryStatus(var HybridReplicationSummary: Record "Hybrid Replication Summary")
@@ -195,30 +202,39 @@ codeunit 46858 "BC14 Migration Status Mgr."
 
     /// <summary>
     /// Unified post-company decision used by both the initial run and rerun paths.
-    ///   Failure                      -> Company Failed, Summary UpgradeFailed, stop.
-    ///   Success + Historical done    -> Company Completed, then chain or finalize.
-    ///   Success + Historical pending -> leave Company Started (Historical Worker will complete it),
-    ///                                   chain anyway — Historical runs in parallel and must not block.
+    ///   Failure + Stop On First Error -> Company Failed, Summary UpgradeFailed, stop.
+    ///   Failure + Continue On Error   -> Company Failed, chain to next pending company;
+    ///                                    Summary failure is decided at TryFinalizeOverallStatus.
+    ///   Success + Historical done     -> Company Completed, then chain or finalize.
+    ///   Success + Historical pending  -> leave Company Started (Historical Worker will complete it),
+    ///                                    chain anyway — Historical runs in parallel and must not block.
     /// </summary>
     procedure AfterCompanyMigrationCompleted(CompanyName: Text[30]; HasErrors: Boolean; HistoricalCompleted: Boolean; var HybridReplicationSummary: Record "Hybrid Replication Summary")
     var
+        BC14CompanySettings: Record BC14CompanyMigrationInfo;
         BC14MigrationOrchestrator: Codeunit "BC14 Migration Orchestrator";
     begin
         if HasErrors then begin
-            // Fail = stop. SetFinalCompanyStatus respects an existing Failed, so this is idempotent.
+            // SetFinalCompanyStatus respects an existing Failed, so this is idempotent.
             SetFinalCompanyStatus(CompanyName, true);
             Commit();
-            SetSummaryFailed(HybridReplicationSummary);
-            exit;
-        end;
 
-        // Success: only mark Completed when Historical has also finished. Otherwise leave
-        // Started so Summary counts reflect ongoing background work — the Historical Worker
-        // calls FinalizeMigration -> SetFinalCompanyStatus when it's done.
-        if HistoricalCompleted then begin
-            SetFinalCompanyStatus(CompanyName, false);
-            Commit();
-        end;
+            BC14CompanySettings.GetSingleInstance();
+            if BC14CompanySettings.GetStopOnFirstTransformationError() then begin
+                SetSummaryFailed(HybridReplicationSummary);
+                exit;
+            end;
+            // Continue-on-error: fall through to dispatch the next pending company. The overall
+            // Summary status is reconciled in TryFinalizeOverallStatus once every company is
+            // processed; AnyCompanyHasFailedUpgrade() will then flip Summary to UpgradeFailed.
+        end else
+            // Success: only mark Completed when Historical has also finished. Otherwise leave
+            // Started so Summary counts reflect ongoing background work — the Historical Worker
+            // calls FinalizeMigration -> SetFinalCompanyStatus when it's done.
+            if HistoricalCompleted then begin
+                SetFinalCompanyStatus(CompanyName, false);
+                Commit();
+            end;
 
         BC14MigrationOrchestrator.DispatchNextReadyCompany(HybridReplicationSummary);
     end;
@@ -369,6 +385,13 @@ codeunit 46858 "BC14 Migration Status Mgr."
         HybridCompanyStatus.SetRange("Upgrade Status", HybridCompanyStatus."Upgrade Status"::Pending);
     end;
 
+    procedure FilterFailedCompanies(var HybridCompanyStatus: Record "Hybrid Company Status")
+    begin
+        HybridCompanyStatus.Reset();
+        HybridCompanyStatus.SetFilter(Name, '<>''''');
+        HybridCompanyStatus.SetRange("Upgrade Status", HybridCompanyStatus."Upgrade Status"::Failed);
+    end;
+
     procedure GetFirstPendingCompanyName(): Text[30]
     var
         HybridCompanyStatus: Record "Hybrid Company Status";
@@ -481,4 +504,5 @@ codeunit 46858 "BC14 Migration Status Mgr."
         MigrationAlreadyRunningErr: Label 'Migration is already running for company %1. Please wait for it to complete before retrying.', Comment = '%1 = Company Name';
         CompanyStatusMissingErr: Label 'No upgrade status row exists for company %1. Run replication first.', Comment = '%1 = Company Name';
         UnexpectedStartStateErr: Label 'Cannot start upgrade for company %1: company is already in state %2. Reset the company state before retrying.', Comment = '%1 = Company Name, %2 = current Upgrade Status';
+        UpgradeInProgressLbl: Label 'Upgrade in Progress';
 }

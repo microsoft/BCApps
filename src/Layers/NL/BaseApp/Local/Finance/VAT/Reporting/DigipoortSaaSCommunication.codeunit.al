@@ -28,6 +28,9 @@ codeunit 11000053 "Digipoort SaaS Communication" implements "DigiPoort Communica
         SecretsMissingMsg: label 'Digiport Az Function secrets are  missing', Locked = true;
         ElectronicInvoicingCertificateNameLbl: Label 'ElectronicInvoicingCertificateName', Locked = true;
         MissingCertificateErr: Label 'The certificate can not be retrieved.', Locked = true;
+        DigipoortServiceNameTxt: Label 'Digipoort', Locked = true;
+        SecurityAuditInvalidHostTxt: Label 'Blocked Digipoort request to a host that does not end with %2: %1.', Locked = true, Comment = '%1 - host, %2 - required host suffix';
+        InvalidDigipoortHostErr: Label 'The Digipoort URL host must end with %1.', Comment = '%1 - required host suffix';
 
     [NonDebuggable]
     procedure Deliver(Request: DotNet aanleverRequest; var Response: DotNet aanleverResponse; RequestUrl: Text; ClientCertificateBase64: Text; DotNetSecureString: Codeunit DotNet_SecureString; ServiceCertificateBase64: Text; Timeout: Integer; UseCertificateSetup: boolean)
@@ -35,6 +38,7 @@ codeunit 11000053 "Digipoort SaaS Communication" implements "DigiPoort Communica
         DigipoortServices: DotNet DigipoortServices;
         RequestBody, TxtResponse : Text;
     begin
+        ValidateRequestHost(RequestUrl);
         RequestBody := DigipoortServices.SerializeDeliverRequest(Request,
             RequestUrl,
             ClientCertificateBase64,
@@ -52,6 +56,7 @@ codeunit 11000053 "Digipoort SaaS Communication" implements "DigiPoort Communica
         DigipoortServices: DotNet DigipoortServices;
         RequestBody, TxtResponse : Text;
     begin
+        ValidateRequestHost(ResponseUrl);
         RequestBody := DigipoortServices.SerializeGetStatusRequest(Request,
             ResponseUrl,
             ClientCertificateBase64,
@@ -137,5 +142,18 @@ codeunit 11000053 "Digipoort SaaS Communication" implements "DigiPoort Communica
         URIBuilder.SetPath(Path);
         URIBuilder.GetUri(URI);
         exit(URI.GetAbsoluteUri());
+    end;
+
+    local procedure ValidateRequestHost(Url: Text)
+    var
+        ElecTaxDeclarationSetup: Record "Elec. Tax Declaration Setup";
+    begin
+        if ElecTaxDeclarationSetup.IsValidDigipoortHost(Url) then
+            exit;
+        Session.LogSecurityAudit(
+            DigipoortServiceNameTxt, SecurityOperationResult::Failure,
+            StrSubstNo(SecurityAuditInvalidHostTxt, ElecTaxDeclarationSetup.GetDigipoortUrlHost(Url), ElecTaxDeclarationSetup.GetDigipoortHostSuffix()),
+            AuditCategory::ApplicationManagement);
+        Error(InvalidDigipoortHostErr, ElecTaxDeclarationSetup.GetDigipoortHostSuffix());
     end;
 }

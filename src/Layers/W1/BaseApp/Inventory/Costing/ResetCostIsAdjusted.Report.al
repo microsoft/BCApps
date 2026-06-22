@@ -13,6 +13,7 @@ using System.Utilities;
 report 5803 "Reset Cost Is Adjusted"
 {
     Caption = 'Reset Cost is Adjusted';
+    ToolTip = 'Mark that the cost of the item must be adjusted.';
     ApplicationArea = Basic, Suite;
     ProcessingOnly = true;
     Permissions = tabledata Item = rm,

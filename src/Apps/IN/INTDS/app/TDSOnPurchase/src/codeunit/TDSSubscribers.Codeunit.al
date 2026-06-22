@@ -16,6 +16,7 @@ using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Company;
 using Microsoft.Inventory.Location;
 using Microsoft.Purchases.Document;
+using Microsoft.Purchases.History;
 using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Posting;
 using Microsoft.Purchases.Vendor;
@@ -552,6 +553,34 @@ codeunit 18716 "TDS Subscribers"
         Currency.Get(OldCVLedgEntryBuf."Currency Code");
         OldCVLedgEntryBuf."Remaining Amount" := Round(OldCVLedgEntryBuf."Remaining Amount", Currency."Amount Rounding Precision", Currency.InvoiceRoundingDirection());
         NewCVLedgEntryBuf."Remaining Amount" := Round(NewCVLedgEntryBuf."Remaining Amount", Currency."Amount Rounding Precision", Currency.InvoiceRoundingDirection());
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Correct Posted Purch. Invoice", 'OnBeforeTestIfInvoiceIsPaid', '', false, false)]
+    local procedure OnBeforeTestTDSPurchaseInvoiceIsPaid(var PurchInvHeader: Record "Purch. Inv. Header"; var IsHandled: Boolean)
+    var
+        TDSEntry: Record "TDS Entry";
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+    begin
+        if IsHandled then
+            exit;
+
+        TDSEntry.SetRange("Document Type", TDSEntry."Document Type"::Invoice);
+        TDSEntry.SetRange("Document No.", PurchInvHeader."No.");
+        TDSEntry.SetRange(Reversed, false);
+        if TDSEntry.IsEmpty() then
+            exit;
+
+        if PurchInvHeader."Vendor Ledger Entry No." = 0 then
+            exit;
+
+        if not VendorLedgerEntry.Get(PurchInvHeader."Vendor Ledger Entry No.") then
+            exit;
+
+        VendorLedgerEntry.CalcFields("Original Amount", "Remaining Amount");
+        if VendorLedgerEntry."Original Amount" <> VendorLedgerEntry."Remaining Amount" then
+            exit;
+
+        IsHandled := true;
     end;
 
     [IntegrationEvent(false, false)]

@@ -712,6 +712,7 @@ table 11000000 "Proposal Line"
         if "Transaction Date" = 0D then
             "Transaction Date" := WorkDate() + 1;
 
+        OnInitRecordOnBeforeFindProposalLine(ProposalLine, Rec);
         if ProposalLine.FindFirst() then
             "Header Dimension Set ID" := ProposalLine."Header Dimension Set ID";
     end;
@@ -795,6 +796,20 @@ table 11000000 "Proposal Line"
     /// </remarks>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateShortcutDimCode(var ProposalLine: Record "Proposal Line"; var xProposalLine: Record "Proposal Line"; FieldNo: Integer; var ShortcutDimCode: Code[20])
+    begin
+    end;
+
+    /// <summary>
+    /// Integration event raised in InitRecord before searching for an existing proposal line to copy the header dimension set.
+    /// Enables custom filtering on the proposal line lookup before the FindFirst call.
+    /// </summary>
+    /// <param name="ProposalLine">Proposal line record used to look up an existing proposal line; filters can be adjusted before the lookup.</param>
+    /// <param name="ProposalLineRec">Current proposal line record being initialized.</param>
+    /// <remarks>
+    /// Raised from InitRecord procedure before the ProposalLine.FindFirst call.
+    /// </remarks>
+    [IntegrationEvent(false, false)]
+    local procedure OnInitRecordOnBeforeFindProposalLine(var ProposalLine: Record "Proposal Line"; ProposalLineRec: Record "Proposal Line")
     begin
     end;
 

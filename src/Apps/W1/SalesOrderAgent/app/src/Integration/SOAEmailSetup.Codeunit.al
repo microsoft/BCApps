@@ -29,6 +29,22 @@ codeunit 4396 "SOA Email Setup"
         exit(SOAEmail.Count());
     end;
 
+    internal procedure GetEmailCountProcessedWithin24hrs(AgentUserSecurityID: Guid): Integer
+    var
+        SOAEmail: Record "SOA Email";
+        StartFromDT: DateTime;
+    begin
+        if IsNullGuid(AgentUserSecurityID) then
+            exit(GetEmailCountProcessedWithin24hrs());
+
+        StartFromDT := CreateDateTime(CalcDate('<-1D>', CurrentDateTime().Date), 0T);
+
+        SOAEmail.SetRange(Processed, true);
+        SOAEmail.SetRange("Agent User Security ID", AgentUserSecurityID);
+        SOAEmail.SetFilter(SystemModifiedAt, '>=%1', StartFromDT);
+        exit(SOAEmail.Count());
+    end;
+
     internal procedure GetNumberOfAttachments(var AgentTaskMessage: Record "Agent Task Message"): Integer
     var
         AgentTaskMessageAttachment: Record "Agent Task Message Attachment";

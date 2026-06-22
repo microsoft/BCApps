@@ -14,23 +14,23 @@ pageextension 99001512 "Subc. Prod Order Comp" extends "Prod. Order Components"
         {
             field("Subc. Qty.on TransOrder (Base)"; Rec."Subc. Qty.on TransOrder (Base)")
             {
-                ApplicationArea = Location;
+                ApplicationArea = Subcontracting;
             }
             field("Subc. Qty. in Transit (Base)"; Rec."Subc. Qty. in Transit (Base)")
             {
-                ApplicationArea = Location;
+                ApplicationArea = Subcontracting;
                 Visible = false;
             }
             field("Subc. Qty. transf. to Subcontractor"; Rec."Subc. Qty. transf. to Subcontr")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
             }
         }
         addlast(Control1)
         {
             field("Component Supply Method"; Rec."Component Supply Method")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 ToolTip = 'Specifies how components are supplied to the subcontractor for the production component.';
             }
         }

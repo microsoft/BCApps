@@ -3204,7 +3204,7 @@ codeunit 134984 "ERM Sales Report III"
         CompanyInformation.Validate("Address 2", LibraryUtility.GenerateGUID());
         CompanyInformation.Validate("Post Code", LibraryUtility.GenerateGUID());
         CompanyInformation.Validate(City, LibraryUtility.GenerateGUID());
-        CompanyInformation.Validate("E-Mail", LibraryUtility.GenerateGUID() + '@' + LibraryUtility.GenerateGUID());
+        CompanyInformation.Validate("E-Mail", LibraryUtility.GenerateGUID() + '@' + LibraryUtility.GenerateGUID() + '.com');
         CompanyInformation.Validate("Home Page", LibraryUtility.GenerateGUID());
         CompanyInformation.Validate("Phone No.", LibraryUtility.GenerateGUID());
         CompanyInformation."Country/Region Code" := ''; // Force to use address format from G/L setup, not from company info country.

@@ -10,6 +10,7 @@ using System.Utilities;
 report 799 "Delete Empty Item Registers"
 {
     Caption = 'Delete Empty Item Registers';
+    ToolTip = 'Find and delete empty item registers.';
     Permissions = TableData "Item Register" = rimd;
     ProcessingOnly = true;
 

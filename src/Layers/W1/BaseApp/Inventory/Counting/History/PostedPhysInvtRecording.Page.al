@@ -145,7 +145,6 @@ page 5887 "Posted Phys. Invt. Recording"
                 //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                 //PromotedCategory = "Report";
                 RunObject = Report "Posted Phys. Invt. Recording";
-                ToolTip = 'Print Posted Phys. Invt. Recording.';
             }
         }
         area(Promoted)

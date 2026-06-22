@@ -12,6 +12,7 @@ report 5974 "Contract Quotes to Be Signed"
     RDLCLayout = './Service/Reports/ContractQuotestoBeSigned.rdlc';
     ApplicationArea = Service;
     Caption = 'Contract Quotes to Be Signed';
+    ToolTip = 'View the contract number, customer name and address, salesperson code, starting date, probability, quoted amount, and forecast. You can print all your information about contract quotes to be signed.';
     UsageCategory = ReportsAndAnalysis;
 
     dataset

@@ -16,6 +16,7 @@ report 103 "Customer Register"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Customer Register';
+    ToolTip = 'View posted customer ledger entries divided into, and sorted according to, registers. By using a filter, you can select exactly the entries in the registers that you need to see. If you have created many entries and you do not set a filter, the report will print a large amount of information.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

@@ -12,6 +12,7 @@ report 5977 "Service Contract - Customer"
     RDLCLayout = './Service/Reports/ServiceContractCustomer.rdlc';
     ApplicationArea = Service;
     Caption = 'Service Contract - Customer';
+    ToolTip = 'View information about status, next invoice date, invoice period, amount per period, and annual amount. You can print a list of service contracts for each customer in a selected time period.';
     UsageCategory = ReportsAndAnalysis;
 
     dataset

@@ -16,6 +16,7 @@ report 5914 "Delete Invoiced Service Orders"
     AccessByPermission = TableData "Service Header" = RD;
     ApplicationArea = Service;
     Caption = 'Delete Invoiced Service Orders';
+    ToolTip = 'Delete orders that were not automatically deleted after completion. For example, when several service orders were completed by a single invoice.';
     ProcessingOnly = true;
     UsageCategory = Tasks;
 

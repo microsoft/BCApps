@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -10,7 +10,6 @@ using Microsoft.CRM.Campaign;
 using Microsoft.CRM.Contact;
 using Microsoft.CRM.Opportunity;
 using Microsoft.CRM.Team;
-using Microsoft.EServices.EDocument;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.Deferral;
 using Microsoft.Finance.Dimension;
@@ -1157,100 +1156,6 @@ table 114 "Sales Cr.Memo Header"
                     Validate("Corrected Invoice No.", SalesInvoiceHeader."No.");
             end;
         }
-        field(10706; "SII Status"; Enum "SII Document Status")
-        {
-            CalcFormula = lookup("SII Doc. Upload State".Status where("Document Source" = const("Customer Ledger"),
-                                                                       "Document Type" = const("Credit Memo"),
-                                                                       "Document No." = field("No.")));
-            Caption = 'SII Status';
-            FieldClass = FlowField;
-
-            trigger OnLookup()
-            var
-                SIIDocUploadState: Record "SII Doc. Upload State";
-                SIIHistory: Record "SII History";
-            begin
-                SIIDocUploadState.SetRange("Document Source", SIIDocUploadState."Document Source"::"Customer Ledger");
-                SIIDocUploadState.SetRange("Document Type", SIIDocUploadState."Document Type"::"Credit Memo");
-                SIIDocUploadState.SetRange("Document No.", "No.");
-                if SIIDocUploadState.FindFirst() then begin
-                    SIIHistory.SetRange("Document State Id", SIIDocUploadState.Id);
-                    PAGE.Run(PAGE::"SII History", SIIHistory);
-                end;
-            end;
-        }
-        field(10707; "Invoice Type"; Enum "SII Sales Invoice Type")
-        {
-            Caption = 'Invoice Type';
-            trigger OnValidate()
-            begin
-                SetSIIFirstSummaryDocNo('');
-                SetSIILastSummaryDocNo('');
-            end;
-        }
-        field(10708; "Cr. Memo Type"; Enum "SII Sales Credit Memo Type")
-        {
-            Caption = 'Cr. Memo Type';
-            trigger OnValidate()
-            begin
-                SetSIIFirstSummaryDocNo('');
-                SetSIILastSummaryDocNo('');
-            end;
-        }
-        field(10709; "Special Scheme Code"; Enum "SII Sales Special Scheme Code")
-        {
-            Caption = 'Special Scheme Code';
-        }
-        field(10710; "Operation Description"; Text[250])
-        {
-            Caption = 'Operation Description';
-        }
-        field(10711; "Correction Type"; Option)
-        {
-            Caption = 'Correction Type';
-            OptionCaption = ' ,Replacement,Difference,Removal';
-            OptionMembers = " ",Replacement,Difference,Removal;
-        }
-        field(10712; "Operation Description 2"; Text[250])
-        {
-            Caption = 'Operation Description 2';
-        }
-        field(10720; "Succeeded Company Name"; Text[250])
-        {
-            Caption = 'Succeeded Company Name';
-        }
-        field(10721; "Succeeded VAT Registration No."; Text[20])
-        {
-            Caption = 'Succeeded VAT Registration No.';
-        }
-        field(10722; "ID Type"; Enum "SII ID Type")
-        {
-            Caption = 'ID Type';
-        }
-        field(10723; "Sent to SII"; Boolean)
-        {
-            CalcFormula = exist("SII Doc. Upload State" where("Document Source" = const("Customer Ledger"),
-                                                               "Document Type" = const("Credit Memo"),
-                                                               "Document No." = field("No.")));
-            Editable = false;
-            FieldClass = FlowField;
-        }
-        field(10724; "Do Not Send To SII"; Boolean)
-        {
-            Caption = 'Do Not Send To SII';
-        }
-        field(10725; "Issued By Third Party"; Boolean)
-        {
-            Caption = 'Issued By Third Party';
-        }
-        field(10726; "SII First Summary Doc. No."; Blob)
-        {
-            Caption = 'First Summary Doc. No.';
-        }
-        field(10727; "SII Last Summary Doc. No."; Blob)
-        {
-            Caption = 'Last Summary Doc. No.';
-        }
         field(7000000; "Applies-to Bill No."; Code[20])
         {
             Caption = 'Applies-to Bill No.';
@@ -1340,51 +1245,9 @@ table 114 "Sales Cr.Memo Header"
         DimMgt: Codeunit DimensionManagement;
         UserSetupMgt: Codeunit "User Setup Management";
 
-    procedure GetSIIFirstSummaryDocNo(): Text
-    var
-        InStreamObj: InStream;
-        SIISummaryDocNoText: Text;
-    begin
-        CalcFields("SII First Summary Doc. No.");
-        "SII First Summary Doc. No.".CreateInStream(InStreamObj, TextEncoding::UTF8);
-        InStreamObj.ReadText(SIISummaryDocNoText);
-        exit(SIISummaryDocNoText);
-    end;
 
-    procedure GetSIILastSummaryDocNo(): Text
-    var
-        InStreamObj: InStream;
-        SIISummaryDocNoText: Text;
-    begin
-        CalcFields("SII Last Summary Doc. No.");
-        "SII Last Summary Doc. No.".CreateInStream(InStreamObj, TextEncoding::UTF8);
-        InStreamObj.ReadText(SIISummaryDocNoText);
-        exit(SIISummaryDocNoText);
-    end;
 
-    procedure SetSIIFirstSummaryDocNo(SIISummaryDocNoText: Text)
-    var
-        OutStreamObj: OutStream;
-    begin
-        if SIISummaryDocNoText <> '' then
-            TestField("Cr. Memo Type", "Cr. Memo Type"::"F4 Invoice summary entry");
 
-        Clear("SII First Summary Doc. No.");
-        "SII First Summary Doc. No.".CreateOutStream(OutStreamObj, TextEncoding::UTF8);
-        OutStreamObj.WriteText(SIISummaryDocNoText);
-    end;
-
-    procedure SetSIILastSummaryDocNo(SIISummaryDocNoText: Text)
-    var
-        OutStreamObj: OutStream;
-    begin
-        if SIISummaryDocNoText <> '' then
-            TestField("Cr. Memo Type", "Cr. Memo Type"::"F4 Invoice summary entry");
-
-        Clear("SII Last Summary Doc. No.");
-        "SII Last Summary Doc. No.".CreateOutStream(OutStreamObj, TextEncoding::UTF8);
-        OutStreamObj.WriteText(SIISummaryDocNoText);
-    end;
 
     /// <summary>
     /// Sends the credit memo records using the customer's document sending profile.

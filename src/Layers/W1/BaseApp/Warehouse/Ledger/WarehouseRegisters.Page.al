@@ -116,7 +116,6 @@ page 7325 "Warehouse Registers"
                 Caption = 'Delete Empty Registers';
                 Image = Delete;
                 RunObject = Report "Delete Empty Whse. Registers";
-                ToolTip = 'Find and delete empty warehouse registers.';
             }
         }
     }

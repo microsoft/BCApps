@@ -119,7 +119,6 @@ page 5774 "Warehouse Activity List"
                 //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                 //PromotedCategory = "Report";
                 RunObject = Report "Put-away List";
-                ToolTip = 'View or print a detailed list of items that must be put away.';
             }
             action("Picking List")
             {
@@ -129,7 +128,6 @@ page 5774 "Warehouse Activity List"
                 //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                 //PromotedCategory = "Report";
                 RunObject = Report "Picking List";
-                ToolTip = 'View or print a detailed list of items that must be picked.';
             }
             action("Warehouse Movement List")
             {
@@ -139,7 +137,6 @@ page 5774 "Warehouse Activity List"
                 //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                 //PromotedCategory = "Report";
                 RunObject = Report "Movement List";
-                ToolTip = 'View or print a detailed list of items that must be moved within the warehouse.';
             }
         }
         area(Promoted)

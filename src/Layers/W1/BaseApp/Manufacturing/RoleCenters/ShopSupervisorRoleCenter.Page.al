@@ -78,7 +78,6 @@ page 9012 "Shop Supervisor Role Center"
                 Caption = 'Routing &Sheet';
                 Image = "Report";
                 RunObject = Report "Routing Sheet";
-                ToolTip = 'View basic information for routings, such as send-ahead quantity, setup time, run time and time unit. This report shows you the operations to be performed in this routing, the work or machine centers to be used, the personnel, the tools, and the description of each operation.';
             }
             separator(Action51)
             {
@@ -102,7 +101,6 @@ page 9012 "Shop Supervisor Role Center"
                 Caption = 'Inventory - &Availability Plan (Excel)';
                 Image = ItemAvailability;
                 RunObject = Report "Inv. Availability Plan";
-                ToolTip = 'View a list of the quantity of each item in customer, purchase, and transfer orders and the quantity available in inventory. The list is divided into columns that cover six periods with starting and ending dates as well as the periods before and after those periods. The list is useful when you are planning your inventory purchases.';
             }
             separator(Action53)
             {
@@ -467,7 +465,6 @@ page 9012 "Shop Supervisor Role Center"
                 Caption = 'Update &Unit Cost';
                 Image = UpdateUnitCost;
                 RunObject = Report "Update Unit Cost";
-                ToolTip = 'Recalculate the unit cost of production items on production orders. The value in the Unit Cost field on the production order line is updated according to the selected options.';
             }
             separator(Action84)
             {

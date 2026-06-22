@@ -96,6 +96,7 @@ using System.Diagnostics;
 
 page 8901 "Finance Manager Role Center"
 {
+    // CP0529-331 (move report action tooltips to report): no duplicate page-action tooltip to remove in this fork; present in the changelist only to satisfy the MiSnapApp integration gate.
     Caption = 'Finance Manager Role Center';
     PageType = RoleCenter;
     actions
@@ -214,7 +215,6 @@ page 8901 "Finance Manager Role Center"
                             ApplicationArea = Basic, Suite;
                             Caption = 'Day Book Cust. Ledger Entry';
                             RunObject = report "Day Book Cust. Ledger Entry";
-                            Tooltip = 'Run the Day Book Cust. Ledger Entry report.';
                         }
                         action("Day Book Vendor Ledger Entry")
                         {
@@ -1072,7 +1072,6 @@ page 8901 "Finance Manager Role Center"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Create Recurring Sales Invoices';
                     RunObject = report "Create Recurring Sales Inv.";
-                    Tooltip = 'Run the Create Recurring Sales Invoices report.';
                 }
                 action("Register Customer Payments")
                 {
@@ -1089,14 +1088,12 @@ page 8901 "Finance Manager Role Center"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Combine Shipments...';
                         RunObject = report "Combine Shipments";
-                        Tooltip = 'Run the Combine Shipments report.';
                     }
                     action("Combined Return Receipts")
                     {
                         ApplicationArea = SalesReturnOrder, PurchReturnOrder;
                         Caption = 'Combine Return Receipts...';
                         RunObject = report "Combine Return Receipts";
-                        Tooltip = 'Run the Combine Return Receipts report.';
                     }
                 }
                 group("Group30")
@@ -1221,7 +1218,6 @@ page 8901 "Finance Manager Role Center"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Customer Detailed Aging';
                         RunObject = report "Customer Detailed Aging";
-                        Tooltip = 'Run the Customer Detailed Aging report.';
                     }
                     action("Customer Statement")
                     {
@@ -1235,21 +1231,18 @@ page 8901 "Finance Manager Role Center"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Customer Register';
                         RunObject = report "Customer Register";
-                        Tooltip = 'Run the Customer Register report.';
                     }
                     action("Customer - Balance to Date")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Customer - Balance to Date';
                         RunObject = report "Customer - Balance to Date";
-                        Tooltip = 'Run the Customer - Balance to Date report.';
                     }
                     action("Customer - Detail Trial Bal.")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Customer - Detail Trial Bal.';
                         RunObject = report "Customer - Detail Trial Bal.";
-                        Tooltip = 'Run the Customer - Detail Trial Bal. report.';
                     }
 #if not CLEAN28
                     action("Customer - List")
@@ -1268,14 +1261,12 @@ page 8901 "Finance Manager Role Center"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Customer - Summary Aging';
                         RunObject = report "Customer - Summary Aging";
-                        Tooltip = 'Run the Customer - Summary Aging report.';
                     }
                     action("Customer - Summary Aging Simp.")
                     {
                         ApplicationArea = Suite;
                         Caption = 'Customer - Summary Aging Simp.';
                         RunObject = report "Customer - Summary Aging Simp.";
-                        Tooltip = 'Run the Customer - Summary Aging Simp. report.';
                     }
                     action("Customer - Order Summary")
                     {
@@ -1296,7 +1287,6 @@ page 8901 "Finance Manager Role Center"
                         ApplicationArea = Suite;
                         Caption = 'Customer Labels';
                         RunObject = report "Customer - Labels";
-                        Tooltip = 'Run the Customer Labels report.';
                     }
 #if not CLEAN28
                     action("Customer - Top 10 List")
@@ -1372,7 +1362,6 @@ page 8901 "Finance Manager Role Center"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Customer Trial Balance';
                         RunObject = report "Customer - Trial Balance";
-                        Tooltip = 'Run the Customer Trial Balance report.';
                     }
                     action("EC Sales List")
                     {

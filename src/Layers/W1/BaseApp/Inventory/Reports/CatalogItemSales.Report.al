@@ -12,6 +12,7 @@ report 5700 "Catalog Item Sales"
     AdditionalSearchTerms = 'non-inventoriable sale,special sales order';
     ApplicationArea = Basic, Suite;
     Caption = 'Catalog Item Sales';
+    ToolTip = 'View a list of item sales for each catalog item during a selected time period. It can be used to review a company''s sale of catalog items.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

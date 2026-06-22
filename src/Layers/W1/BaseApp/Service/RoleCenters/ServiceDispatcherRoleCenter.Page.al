@@ -107,7 +107,6 @@ page 9016 "Service Dispatcher Role Center"
                     Caption = 'Service Ta&sks';
                     Image = ServiceTasks;
                     RunObject = Report "Service Tasks";
-                    ToolTip = 'View or edit service task information, such as service order number, service item description, repair status, and service item. You can print a list of the service tasks that have been entered.';
                 }
                 action("Service &Load Level")
                 {
@@ -115,7 +114,6 @@ page 9016 "Service Dispatcher Role Center"
                     Caption = 'Service &Load Level';
                     Image = "Report";
                     RunObject = Report "Service Load Level";
-                    ToolTip = 'View the capacity, usage, unused, unused percentage, sales, and sales percentage of the resource. You can test what the service load is of your resources.';
                 }
                 action("Resource &Usage")
                 {
@@ -123,7 +121,6 @@ page 9016 "Service Dispatcher Role Center"
                     Caption = 'Resource &Usage';
                     Image = "Report";
                     RunObject = Report "Service Item - Resource Usage";
-                    ToolTip = 'View details about the total use of service items, both cost and amount, profit amount, and profit percentage.';
                 }
                 action("Service I&tems Out of Warranty")
                 {
@@ -131,7 +128,6 @@ page 9016 "Service Dispatcher Role Center"
                     Caption = 'Service I&tems Out of Warranty';
                     Image = "Report";
                     RunObject = Report "Service Items Out of Warranty";
-                    ToolTip = 'View information about warranty end dates, serial numbers, number of active contracts, items description, and names of customers. You can print a list of service items that are out of warranty.';
                 }
             }
             group(Profit)
@@ -143,7 +139,6 @@ page 9016 "Service Dispatcher Role Center"
                     Caption = 'Profit Service &Contracts';
                     Image = "Report";
                     RunObject = Report "Service Profit (Contracts)";
-                    ToolTip = 'View details about service amount, contract discount amount, service discount amount, service cost amount, profit amount, and profit. You can print information about service profit for service contracts, based on the difference between the service amount and service cost.';
                 }
                 action("Profit Service &Orders")
                 {
@@ -151,7 +146,6 @@ page 9016 "Service Dispatcher Role Center"
                     Caption = 'Profit Service &Orders';
                     Image = "Report";
                     RunObject = Report "Service Profit (Serv. Orders)";
-                    ToolTip = 'View the customer number, serial number, description, item number, contract number, and contract amount. You can print information about service profit for service orders, based on the difference between service amount and service cost.';
                 }
                 action("Profit Service &Items")
                 {
@@ -159,7 +153,6 @@ page 9016 "Service Dispatcher Role Center"
                     Caption = 'Profit Service &Items';
                     Image = "Report";
                     RunObject = Report "Service Profit (Service Items)";
-                    ToolTip = 'View details about service amount, contract discount amount, service discount amount, service cost amount, profit amount, and profit. You can print information about service profit for service items.';
                 }
             }
         }
@@ -382,7 +375,6 @@ page 9016 "Service Dispatcher Role Center"
                     Caption = 'C&reate Contract Service Orders';
                     Image = "Report";
                     RunObject = Report "Create Contract Service Orders";
-                    ToolTip = 'Copy information from an existing production order record to a new one. This can be done regardless of the status type of the production order. You can, for example, copy from a released production order to a new planned production order. Note that before you start to copy, you have to create the new record.';
                 }
                 action("Create Contract In&voices")
                 {
@@ -390,7 +382,6 @@ page 9016 "Service Dispatcher Role Center"
                     Caption = 'Create Contract In&voices';
                     Image = "Report";
                     RunObject = Report "Create Contract Invoices";
-                    ToolTip = 'Create service invoices for service contracts that are due for invoicing. ';
                 }
                 action("Post &Prepaid Contract Entries")
                 {
@@ -398,7 +389,6 @@ page 9016 "Service Dispatcher Role Center"
                     Caption = 'Post &Prepaid Contract Entries';
                     Image = "Report";
                     RunObject = Report "Post Prepaid Contract Entries";
-                    ToolTip = 'Transfers prepaid service contract ledger entries amounts from prepaid accounts to income accounts.';
                 }
                 action("Order Pla&nning")
                 {

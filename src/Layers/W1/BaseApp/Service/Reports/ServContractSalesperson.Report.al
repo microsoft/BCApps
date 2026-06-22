@@ -12,6 +12,7 @@ report 5978 "Serv. Contract - Salesperson"
     RDLCLayout = './Service/Reports/ServContractSalesperson.rdlc';
     ApplicationArea = Service;
     Caption = 'Serv. Contract - Salesperson';
+    ToolTip = 'View customer number, name, description, starting date and the annual amount for each service contract. You can use the report to calculate and document sales commission. You can print a list of service contracts for each salesperson for a selected period.';
     UsageCategory = ReportsAndAnalysis;
 
     dataset

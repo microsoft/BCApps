@@ -372,7 +372,6 @@ page 446 "Finance Charge Memo"
                 //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                 //PromotedCategory = "Report";
                 RunObject = Report "Finance Charge Memo";
-                ToolTip = 'Create a new finance charge memo.';
             }
             action("Customer - Balance to Date")
             {
@@ -380,7 +379,6 @@ page 446 "Finance Charge Memo"
                 Caption = 'Customer - Balance to Date';
                 Image = "Report";
                 RunObject = Report "Customer - Balance to Date";
-                ToolTip = 'View a list with customers'' payment history up until a certain date. You can use the report to extract your total sales income at the close of an accounting period or fiscal year.';
             }
             action("Customer - Detail Trial Bal.")
             {
@@ -390,7 +388,6 @@ page 446 "Finance Charge Memo"
                 //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                 //PromotedCategory = "Report";
                 RunObject = Report "Customer - Detail Trial Bal.";
-                ToolTip = 'View the balance for customers with balances on a specified date. The report can be used at the close of an accounting period, for example, or for an audit.';
             }
         }
         area(Promoted)

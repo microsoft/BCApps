@@ -90,7 +90,7 @@ page 4405 "SOA Email Attachments"
         AgentTaskMessageAttachment.SetRange("Task ID", Rec."Task ID");
         AgentTaskMessageAttachment.SetRange("File ID", Rec.ID);
         if not AgentTaskMessageAttachment.FindFirst() then
-            exit('');
+            exit(Format(Enum::"SOA Email Attachment Status"::Reviewed));
 
         if not AgentTaskMessageAttachment.Ignored then
             exit(Format(Enum::"SOA Email Attachment Status"::Reviewed));

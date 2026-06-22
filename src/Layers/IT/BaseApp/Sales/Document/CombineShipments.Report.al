@@ -22,6 +22,7 @@ report 295 "Combine Shipments"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Combine Sales Shipments';
+    ToolTip = 'Gather all non-invoiced shipments to the same customer on one sales invoice.';
     ProcessingOnly = true;
     UsageCategory = Tasks;
 

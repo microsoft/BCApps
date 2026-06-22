@@ -18,6 +18,7 @@ report 6651 "Delete Invd Sales Ret. Orders"
     AccessByPermission = TableData "Sales Header" = RD;
     ApplicationArea = SalesReturnOrder;
     Caption = 'Delete Invoiced Sales Return Orders';
+    ToolTip = 'Delete orders that were not automatically deleted after completion. For example, when several sales orders were completed by a single invoice.';
     ProcessingOnly = true;
     UsageCategory = Tasks;
 

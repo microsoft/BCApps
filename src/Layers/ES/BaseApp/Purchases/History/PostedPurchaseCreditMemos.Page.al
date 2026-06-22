@@ -215,35 +215,6 @@ page 147 "Posted Purchase Credit Memos"
                 {
                     ApplicationArea = Basic, Suite;
                 }
-                field("SII Status"; Rec."SII Status")
-                {
-                    ApplicationArea = Basic, Suite;
-                    StyleExpr = StyleText;
-                    ToolTip = 'Specifies the document''s status with regard to tax declaration, the Immediate Information Supply requirement. ';
-                    Visible = SIIStateVisible;
-
-                    trigger OnDrillDown()
-                    var
-                        SIIDocUploadState: Record "SII Doc. Upload State";
-                        SIIManagement: Codeunit "SII Management";
-                    begin
-                        SIIDocUploadState.SetRange("Document Source", SIIDocUploadState."Document Source"::"Vendor Ledger");
-                        SIIDocUploadState.SetRange("Document Type", SIIDocUploadState."Document Type"::"Credit Memo");
-                        SIIDocUploadState.SetRange("Document No.", Rec."No.");
-                        SIIManagement.SIIStateDrilldown(SIIDocUploadState);
-                    end;
-                }
-                field("Do Not Send To SII"; Rec."Do Not Send To SII")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies if the document must not be sent to SII.';
-                }
-                field("Sent to SII"; Rec."Sent to SII")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies that the document has been sent to the Immediate Information Supply system.';
-                    Visible = SIIStateVisible;
-                }
                 field("Document Date"; Rec."Document Date")
                 {
                     ApplicationArea = Basic, Suite;
@@ -517,15 +488,11 @@ page 147 "Posted Purchase Credit Memos"
     end;
 
     trigger OnAfterGetRecord()
-    var
-        SIIManagement: Codeunit "SII Management";
     begin
-        StyleText := SIIManagement.GetSIIStyle(Rec."SII Status".AsInteger());
     end;
 
     trigger OnOpenPage()
     var
-        SIISetup: Record "SII Setup";
         OfficeMgt: Codeunit "Office Management";
         HasFilters: Boolean;
     begin
@@ -534,8 +501,6 @@ page 147 "Posted Purchase Credit Memos"
         if HasFilters and not Rec.Find() then
             if Rec.FindFirst() then;
         IsOfficeAddin := OfficeMgt.IsAvailable();
-
-        SIIStateVisible := SIISetup.IsEnabled();
     end;
 
     local procedure DoDrillDown()
@@ -549,8 +514,6 @@ page 147 "Posted Purchase Credit Memos"
 
     var
         IsOfficeAddin: Boolean;
-        StyleText: Text;
-        SIIStateVisible: Boolean;
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforePrintRecords(var PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr.")

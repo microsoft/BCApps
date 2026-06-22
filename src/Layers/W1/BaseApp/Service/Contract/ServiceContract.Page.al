@@ -1167,7 +1167,6 @@ page 6050 "Service Contract"
                 Caption = 'Contract Details';
                 Image = "Report";
                 RunObject = Report "Service Contract-Detail";
-                ToolTip = 'Specifies billable prices for the project task that are related to items.';
             }
             action("Contract Gain/Loss Entries")
             {
@@ -1175,7 +1174,6 @@ page 6050 "Service Contract"
                 Caption = 'Contract Gain/Loss Entries';
                 Image = "Report";
                 RunObject = Report "Contract Gain/Loss Entries";
-                ToolTip = 'Specifies billable prices for the project task that are related to G/L accounts, expressed in the local currency.';
             }
             action("Contract Invoicing")
             {
@@ -1183,7 +1181,6 @@ page 6050 "Service Contract"
                 Caption = 'Contract Invoicing';
                 Image = "Report";
                 RunObject = Report "Contract Invoicing";
-                ToolTip = 'Specifies all billable profits for the project task.';
             }
             action("Contract Price Update - Test")
             {
@@ -1193,7 +1190,6 @@ page 6050 "Service Contract"
                 //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                 //PromotedCategory = "Report";
                 RunObject = Report "Contract Price Update - Test";
-                ToolTip = 'View the contracts numbers, customer numbers, contract amounts, price update percentages, and any errors that occur. You can test which service contracts need price updates up to the date that you have specified.';
             }
             action("Prepaid Contract")
             {
@@ -1203,7 +1199,6 @@ page 6050 "Service Contract"
                 //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                 //PromotedCategory = "Report";
                 RunObject = Report "Prepaid Contr. Entries - Test";
-                ToolTip = 'View the prepaid service contract.';
             }
             action("Expired Contract Lines")
             {
@@ -1211,7 +1206,6 @@ page 6050 "Service Contract"
                 Caption = 'Expired Contract Lines';
                 Image = "Report";
                 RunObject = Report "Expired Contract Lines - Test";
-                ToolTip = 'View the service contract, the service items to be removed, the contract expiration dates, and the line amounts.';
             }
         }
         area(Promoted)

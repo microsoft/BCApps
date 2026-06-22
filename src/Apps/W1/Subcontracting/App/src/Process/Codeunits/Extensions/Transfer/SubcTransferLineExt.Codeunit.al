@@ -1,16 +1,30 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
+using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Transfer;
 
 codeunit 99001544 "Subc. Transfer Line Ext."
 {
+#if not CLEAN29
+    var
+#pragma warning disable AL0432
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
+
+#endif
     [EventSubscriber(ObjectType::Table, Database::"Transfer Line", OnAfterGetTransHeader, '', false, false)]
     local procedure OnAfterGetTransHeader(var TransferLine: Record "Transfer Line"; TransferHeader: Record "Transfer Header")
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         TransferLine."Subc. Return Order" := TransferHeader."Subc. Return Order";
     end;
 
@@ -19,6 +33,12 @@ codeunit 99001544 "Subc. Transfer Line Ext."
     var
         SubcTransferManagement: Codeunit "Subc. Transfer Management";
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if Rec.IsTemporary then
             exit;
 
@@ -33,10 +53,16 @@ codeunit 99001544 "Subc. Transfer Line Ext."
     var
         SubcTransferManagement: Codeunit "Subc. Transfer Management";
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if Rec.IsTemporary() then
             exit;
 
-        if CurrFieldNo <> Rec.FieldNo("Item No.") then
+        if CurrFieldNo = 0 then
             exit;
 
         if Rec."Item No." = xRec."Item No." then
@@ -50,10 +76,16 @@ codeunit 99001544 "Subc. Transfer Line Ext."
     var
         SubcTransferManagement: Codeunit "Subc. Transfer Management";
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if Rec.IsTemporary() then
             exit;
 
-        if CurrFieldNo <> Rec.FieldNo("Variant Code") then
+        if CurrFieldNo = 0 then
             exit;
 
         if Rec."Variant Code" = xRec."Variant Code" then
@@ -67,10 +99,16 @@ codeunit 99001544 "Subc. Transfer Line Ext."
     var
         SubcTransferManagement: Codeunit "Subc. Transfer Management";
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if Rec.IsTemporary() then
             exit;
 
-        if CurrFieldNo <> Rec.FieldNo(Quantity) then
+        if CurrFieldNo = 0 then
             exit;
 
         if Rec.Quantity = xRec.Quantity then
@@ -82,7 +120,26 @@ codeunit 99001544 "Subc. Transfer Line Ext."
     [EventSubscriber(ObjectType::Table, Database::"Transfer Line", OnValidateItemNoOnCopyFromTempTransLine, '', false, false)]
     local procedure OnValidateItemNoOnCopyFromTempTransLine_TransferLine(var TransferLine: Record "Transfer Line"; TempTransferLine: Record "Transfer Line")
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         CopySubFieldsFromTempTransferLineToTransferLine(TransferLine, TempTransferLine);
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Transfer Line", OnValidateUnitofMeasureCodeOnBeforeValidateQuantity, '', false, false)]
+    local procedure OnValidateUnitofMeasureCodeOnBeforeValidateQuantity(var TransferLine: Record "Transfer Line"; Item: Record Item; xTransferLine: Record "Transfer Line")
+    begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        if TransferLine."Transfer WIP Item" then
+            TransferLine."Qty. per Unit of Measure" := 0;
     end;
 
     local procedure CopySubFieldsFromTempTransferLineToTransferLine(var TransferLine: Record "Transfer Line"; TempTransferLine: Record "Transfer Line")

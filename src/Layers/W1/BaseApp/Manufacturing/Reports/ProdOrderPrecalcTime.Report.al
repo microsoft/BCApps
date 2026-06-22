@@ -12,6 +12,7 @@ report 99000764 "Prod. Order - Precalc. Time"
 {
     ApplicationArea = Manufacturing;
     Caption = 'Prod. Order - Precalc. Time';
+    ToolTip = 'View a list of information about capacity requirement, starting and ending time, etc. per operation, per production order, or per production order line.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

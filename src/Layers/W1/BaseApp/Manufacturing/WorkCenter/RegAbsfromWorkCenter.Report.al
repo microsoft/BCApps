@@ -10,6 +10,7 @@ report 99003805 "Reg. Abs. (from Work Center)"
 {
     ApplicationArea = Manufacturing;
     Caption = 'Reg. Abs. (from Work Center)';
+    ToolTip = 'Register planned absences at a work center. The planned absence can be registered for both human and machine resources. You can register changes in the available resources in the Registered Absence table. When the batch job has been completed, you can see the result in the Registered Absences window.';
     ProcessingOnly = true;
     UsageCategory = Tasks;
 

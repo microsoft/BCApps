@@ -4,8 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.RoleCenters;
 
-using Microsoft.EServices.EDocument;
-
 /// <summary>
 /// Calculates sales order activity metrics for the Sales Cue in background tasks.
 /// </summary>
@@ -87,8 +85,6 @@ codeunit 906 "SO Activities Calculate"
     end;
 
     local procedure CalculateCueFieldValues(var SalesCue: Record "Sales Cue")
-    var
-        SIIRecreateMissingEntries: Codeunit "SII Recreate Missing Entries";
     begin
         if SalesCue."Avg. Days Delayed Updated On" < CurrentDateTime - 5 * 60000 then begin
             SalesCue."Average Days Delayed" := SalesCue.CalculateAverageDaysDelayed();
@@ -98,7 +94,13 @@ codeunit 906 "SO Activities Calculate"
         SalesCue."Partially Shipped" := SalesCue.CountOrders(SalesCue.FieldNo("Partially Shipped"));
         SalesCue.Delayed := SalesCue.CountOrders(SalesCue.FieldNo(Delayed));
         SalesCue."S. Ord. - Reserved From Stock" := SalesCue.CalcNoOfReservedFromStockSalesOrders();
-        SalesCue."Missing SII Entries" := SIIRecreateMissingEntries.GetMissingEntriesCount();
-        SalesCue."Days Since Last SII Check" := SIIRecreateMissingEntries.GetDaysSinceLastCheck();
+
+        OnAfterCalculateCueFieldValues(SalesCue);
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterCalculateCueFieldValues(var SalesCue: Record "Sales Cue")
+    begin
     end;
 }
+

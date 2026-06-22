@@ -17,6 +17,7 @@ report 795 "Adjust Cost - Item Entries"
     AdditionalSearchTerms = 'cost forwarding';
     ApplicationArea = Basic, Suite;
     Caption = 'Adjust Cost - Item Entries';
+    ToolTip = 'Adjust inventory values in value entries so that you use the correct adjusted cost for updating the general ledger and so that sales and profit statistics are up to date.';
     Permissions = TableData "Item Ledger Entry" = rimd,
                   TableData "Item Application Entry" = r,
                   TableData "Value Entry" = rimd,

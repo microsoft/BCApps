@@ -105,7 +105,6 @@ codeunit 46853 "BC14 Company Upgrade Task"
         Success := not BC14MigrationErrorHandler.GetErrorOccurred();
     end;
 
-
     local procedure RunBC14Migration()
     var
         BC14CompanySettings: Record BC14CompanyMigrationInfo;

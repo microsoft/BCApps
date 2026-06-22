@@ -14,6 +14,7 @@ using System.Utilities;
 report 191 "Create Finance Charge Memos"
 {
     Caption = 'Create Finance Charge Memos';
+    ToolTip = 'Issue finance charge memos to your customers as a consequence of late payment.';
     ProcessingOnly = true;
 
     dataset

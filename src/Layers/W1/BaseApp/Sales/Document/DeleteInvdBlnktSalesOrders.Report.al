@@ -18,6 +18,7 @@ report 291 "Delete Invd Blnkt Sales Orders"
     AccessByPermission = TableData "Sales Header" = RD;
     ApplicationArea = Suite;
     Caption = 'Delete Invoiced Blanket Sales Orders';
+    ToolTip = 'Delete orders that were not automatically deleted after completion. For example, when several sales orders were completed by a single invoice.';
     ProcessingOnly = true;
     UsageCategory = Tasks;
 

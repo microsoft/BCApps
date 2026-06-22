@@ -13,6 +13,7 @@ report 5976 "Service Profit (Contracts)"
     RDLCLayout = './Service/Reports/ServiceProfitContracts.rdlc';
     ApplicationArea = Service;
     Caption = 'Service Profit (Contracts)';
+    ToolTip = 'View profit information for the service contract.';
     UsageCategory = ReportsAndAnalysis;
     WordMergeDataItem = "Service Contract Header";
 

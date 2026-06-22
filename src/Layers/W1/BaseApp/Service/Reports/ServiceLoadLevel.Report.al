@@ -12,6 +12,7 @@ report 5956 "Service Load Level"
     RDLCLayout = './Service/Reports/ServiceLoadLevel.rdlc';
     ApplicationArea = Service;
     Caption = 'Service Load Level';
+    ToolTip = 'View the capacity, usage, unused, unused percentage, sales, and sales percentage of the resource. You can test what the service load is of your resources.';
     UsageCategory = ReportsAndAnalysis;
 
     dataset

@@ -9,6 +9,7 @@ using System.Utilities;
 report 6010 "Delete Service Item Log"
 {
     Caption = 'Delete Service Item Log';
+    ToolTip = 'Delete Service Item Log';
     ProcessingOnly = true;
 
     dataset

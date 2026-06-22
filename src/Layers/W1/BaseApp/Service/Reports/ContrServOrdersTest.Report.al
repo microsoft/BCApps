@@ -14,6 +14,7 @@ report 5988 "Contr. Serv. Orders - Test"
     DefaultLayout = RDLC;
     RDLCLayout = './Service/Reports/ContrServOrdersTest.rdlc';
     Caption = 'Contr. Serv. Orders - Test';
+    ToolTip = 'View the numbers of contracts, the numbers and the names of customers, as well as some other information relating to the service orders that are created for the period that you have specified. You can test which service contracts include service items that are due for service within the specified period.';
 
     dataset
     {

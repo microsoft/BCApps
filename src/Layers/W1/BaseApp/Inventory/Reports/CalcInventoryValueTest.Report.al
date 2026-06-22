@@ -14,6 +14,7 @@ using System.Utilities;
 report 5811 "Calc. Inventory Value - Test"
 {
     Caption = 'Calc. Inventory Value - Test';
+    ToolTip = 'View a test report so that you can find and correct any errors before you perform the actual posting of the journal or document.';
     DefaultRenderingLayout = RDLCLayout;
 
     dataset

@@ -431,7 +431,7 @@ codeunit 144012 "UT TAB Cash Bank Giro"
           VATPostingSetup."VAT Bus. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
     end;
 
-    local procedure VATOnCBGStatement(AccountType: Option; AccountNo: Code[20]; VATType: Option; VATBusPostingGroup: Code[20]; VATProdPostingGroup: Code[20])
+    local procedure VATOnCBGStatement(AccountType: Enum "CBG Statement Line Account Type"; AccountNo: Code[20]; VATType: Option; VATBusPostingGroup: Code[20]; VATProdPostingGroup: Code[20])
     var
         CBGStatement: Record "CBG Statement";
         CBGStatementLine: Record "CBG Statement Line";
@@ -538,7 +538,7 @@ codeunit 144012 "UT TAB Cash Bank Giro"
         Vendor.Insert();
     end;
 
-    local procedure CreateCBGStatement(var CBGStatement: Record "CBG Statement"; var CBGStatementLine: Record "CBG Statement Line"; Type: Option; AccountType: Option; AccountNo: Code[20]; Currency: Code[10])
+    local procedure CreateCBGStatement(var CBGStatement: Record "CBG Statement"; var CBGStatementLine: Record "CBG Statement Line"; Type: Option; AccountType: Enum "CBG Statement Line Account Type"; AccountNo: Code[20]; Currency: Code[10])
     begin
         CBGStatement."Journal Template Name" := CreateJournalTemplate(CreateGLAccount());
         CBGStatement."No." := LibraryRandom.RandInt(10);
@@ -566,7 +566,7 @@ codeunit 144012 "UT TAB Cash Bank Giro"
         CBGStatementLine.Insert();
     end;
 
-    local procedure CreateCBGStatementLine(var CBGStatementLine: Record "CBG Statement Line"; AccountType: Option; AccountNo: Code[20]; JournalTemplateName: Code[20]; No: Integer)
+    local procedure CreateCBGStatementLine(var CBGStatementLine: Record "CBG Statement Line"; AccountType: Enum "CBG Statement Line Account Type"; AccountNo: Code[20]; JournalTemplateName: Code[20]; No: Integer)
     begin
         CBGStatementLine."Journal Template Name" := JournalTemplateName;
         CBGStatementLine."No." := No;

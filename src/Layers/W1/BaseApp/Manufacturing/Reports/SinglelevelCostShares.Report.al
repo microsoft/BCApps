@@ -11,6 +11,7 @@ report 99000755 "Single-level Cost Shares"
     AdditionalSearchTerms = 'rolled-up cost,cost breakdown';
     ApplicationArea = Manufacturing;
     Caption = 'Single-level Cost Shares';
+    ToolTip = 'View the cost shares of all items in the item''s product structure, their quantity and their cost shares specified in material, capacity, overhead, and total cost. Material cost is calculated as the cost of all items in the parent item''s product structure. Capacity and subcontractor costs are calculated as the costs related to produce all of the items in the parent item''s product structure.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

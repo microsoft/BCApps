@@ -54,14 +54,6 @@ permissionset 1001 "LOCAL"
                   tabledata "Selected Gen. Prod. Post. 340" = RIMD,
                   tabledata "Selected Gen. Prod. Post. Gr." = RIMD,
                   tabledata "Selected Rev. Charge Grp. 340" = RIMD,
-                  tabledata "SII Doc. Upload State" = RIMD,
-                  tabledata "SII History" = RIMD,
-                  tabledata "SII Purch. Doc. Scheme Code" = RIMD,
-                  tabledata "SII Sales Document Scheme Code" = RIMD,
-                  tabledata "SII Missing Entries State" = RIMD,
-                  tabledata "SII Session" = RIMD,
-                  tabledata "SII Setup" = RIMD,
-                  tabledata "SII Sending State" = RIMD,
                   tabledata "Statistical Code" = RIMD,
                   tabledata Suffix = RIMD;
 }

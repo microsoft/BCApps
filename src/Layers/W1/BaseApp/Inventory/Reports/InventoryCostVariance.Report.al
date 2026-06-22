@@ -11,6 +11,7 @@ report 721 "Inventory - Cost Variance"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Inventory - Cost Variance';
+    ToolTip = 'View information about selected items, unit of measure, standard cost, and costing method, as well as additional information about item entries: unit amount, direct unit cost, unit cost variance (the difference between the unit amount and unit cost), invoiced quantity, and total variance amount (quantity * unit cost variance). The report can be used primarily if you have chosen the Standard costing method on the item card.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

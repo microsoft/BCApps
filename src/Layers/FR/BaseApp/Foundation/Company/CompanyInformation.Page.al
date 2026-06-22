@@ -109,6 +109,10 @@ page 1 "Company Information"
                         VATRegistrationLogMgt.AssistEditCompanyInfoVATReg();
                     end;
                 }
+                field("SIRET No."; Rec."SIRET No.")
+                {
+                    ApplicationArea = Basic, Suite;
+                }
                 field(GLN; Rec.GLN)
                 {
                     ApplicationArea = Basic, Suite;

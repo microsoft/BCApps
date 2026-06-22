@@ -13,6 +13,7 @@ report 99000762 "Prod. Order - Job Card"
     AdditionalSearchTerms = 'production order - job card,work order job card';
     ApplicationArea = Manufacturing;
     Caption = 'Prod. Order - Job Card';
+    ToolTip = 'View a list of the work in progress of a production order. Output, Scrapped Quantity and Production Lead Time are shown or printed depending on the operation.';
     UsageCategory = ReportsAndAnalysis;
     WordMergeDataItem = "Production Order";
     DefaultRenderingLayout = RDLCLayout;

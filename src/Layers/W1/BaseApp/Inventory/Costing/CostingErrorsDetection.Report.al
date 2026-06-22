@@ -11,6 +11,7 @@ using System.Utilities;
 report 5810 "Costing Errors Detection"
 {
     Caption = 'Costing Errors Detection';
+    ToolTip = 'Run the diagnostic report to detect issues in item related data that may cause costing calculation errors.';
     PreviewMode = PrintLayout;
     ApplicationArea = Basic, Suite;
     DefaultRenderingLayout = RDLCLayout;

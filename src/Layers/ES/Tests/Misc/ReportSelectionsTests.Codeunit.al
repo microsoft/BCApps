@@ -3226,7 +3226,7 @@ codeunit 134421 "Report Selections Tests"
         for i := 1 to MaxLength DIV 10 - 1 do
             Email += LibraryUtility.GenerateGUID();
 
-        exit(CopyStr(Email, 1, MaxLength));
+        exit(CopyStr(Email, 1, MaxLength - 4) + '.com');
     end;
 
     local procedure FillCustomReportSelectionContactsFilter(var CustomReportSelection: Record "Custom Report Selection"; CompanyContactNo: Code[20])

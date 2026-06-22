@@ -36,7 +36,7 @@ codeunit 148908 "BC14 Wizard & Setup Tests"
         // [SCENARIO] GetMigrationProviderId returns the expected provider ID.
 
         // [THEN] The provider ID is correct
-        Assert.AreEqual('46850-BusinessCentral14Re-Implementation', BC14Wizard.GetMigrationProviderId(), 'Migration Provider ID is incorrect');
+        Assert.AreEqual('46850-Dynamics365BusinessCentralRe-implementation(v.14)', BC14Wizard.GetMigrationProviderId(), 'Migration Provider ID is incorrect');
     end;
 
     [Test]

@@ -211,7 +211,6 @@ page 2901 "Demand Forecast Card"
                     Ellipsis = true;
                     Image = CopyForecast;
                     RunObject = Report "Copy Production Forecast";
-                    ToolTip = 'Copy an existing demand forecast to quickly create a similar forecast.';
                 }
             }
             action("Previous Set")

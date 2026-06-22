@@ -19,6 +19,7 @@ report 106 "Customer Detailed Aging"
     AdditionalSearchTerms = 'customer balance,payment due';
     ApplicationArea = Basic, Suite;
     Caption = 'Customer Detailed Aging';
+    ToolTip = 'View, print, or save a detailed list of each customer''s total payments due, divided into three time periods. The report can be used to decide when to issue reminders, to evaluate a customer''s creditworthiness, or to prepare liquidity analyses.';
     EnableHyperlinks = true;
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;

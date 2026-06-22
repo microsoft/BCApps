@@ -1894,17 +1894,6 @@
       "ruleSetPath": "$ENV:INETROOT\\App\\Rulesets\\app.ruleset.json",
       "ruleSetPathMinorRelease": "$ENV:INETROOT\\App\\Rulesets\\MinorRelease\\app.ruleset.json"
     },
-    "_Exclude_ReportLayouts": {
-      "projectPath": "$env:INETROOT\\App\\Apps\\W1\\ReportLayouts\\app",
-      "dvdFolder": "Applications\\ReportLayouts\\Source",
-      "hasTranslations": false,
-      "installOnEnvironmentUpdate": true,
-      "supportedCountries": "All",
-      "runStaticCodeAnalysis": false,
-      "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\Apps\\W1\\ReportLayouts\\ReportLayouts.ruleset.json",
-      "ruleSetPathMinorRelease": "$env:INETROOT\\App\\Apps\\W1\\ReportLayouts\\ReportLayouts.ruleset.json"
-    },
     "API Reports - Finance": {
       "projectPath": "$env:INETROOT\\App\\BCApps\\src\\Apps\\W1\\APIReportsFinance\\App",
       "dvdFolder": "Applications\\APIReportsFinance\\Source",
@@ -1948,16 +1937,6 @@
       "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "owningteam": "\\AI Business Solutions\\Finance"
-    },
-    "Report Layouts Tests": {
-      "projectPath": "$env:INETROOT\\App\\Apps\\W1\\ReportLayouts\\test",
-      "dvdFolder": "Applications\\ReportLayouts\\Test",
-      "supportedCountries": "All",
-      "isTest": true,
-      "runStaticCodeAnalysis": false,
-      "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\Apps\\W1\\ReportLayouts\\ReportLayouts.ruleset.json",
-      "ruleSetPathMinorRelease": "$env:INETROOT\\App\\Apps\\W1\\ReportLayouts\\ReportLayouts.ruleset.json"
     },
     "ELSTER VAT Localization for Germany": {
       "projectPath": "$env:INETROOT\\App\\Apps\\DE\\Elster\\app",
@@ -2262,7 +2241,7 @@
       "ruleSetPath": "$ENV:INETROOT\\App\\Rulesets\\app.ruleset.json",
       "ruleSetPathMinorRelease": "$ENV:INETROOT\\App\\Rulesets\\MinorRelease\\app.ruleset.json"
     },
-    "Business Central 14 Reimplementation Tool": {
+    "Dynamics 365 Business Central v14 Reimplementation": {
       "projectPath": "$env:INETROOT\\App\\Apps\\W1\\HybridBC14\\app",
       "dvdFolder": "Applications\\CloudMigration\\HybridBC14\\Source",
       "skipInstallOnPrem": true,

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -465,57 +465,6 @@ page 6640 "Purchase Return Order"
                     begin
                         CurrPage.PurchLines.PAGE.RedistributeTotalsOnAfterValidate();
                     end;
-                }
-                group("SII Information")
-                {
-                    Caption = 'SII Information';
-                    field(OperationDescription; OperationDescription)
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Caption = 'Operation Description';
-                        MultiLine = true;
-                        ToolTip = 'Specifies the Operation Description.';
-
-                        trigger OnValidate()
-                        var
-                            SIIManagement: Codeunit "SII Management";
-                        begin
-                            SIIManagement.SplitOperationDescription(OperationDescription, Rec."Operation Description", Rec."Operation Description 2");
-                            Rec.Validate("Operation Description");
-                            Rec.Validate("Operation Description 2");
-                            Rec.Modify(true);
-                        end;
-                    }
-                    field("Special Scheme Code"; Rec."Special Scheme Code")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        ToolTip = 'Specifies the Special Scheme Code.';
-                    }
-                    field("Invoice Type"; Rec."Invoice Type")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        ToolTip = 'Specifies the Invoice Type.';
-                    }
-                    field("Correction Type"; Rec."Correction Type")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        ToolTip = 'Specifies the Correction Type.';
-                    }
-                    field("ID Type"; Rec."ID Type")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        ToolTip = 'Specifies the ID Type.';
-                    }
-                    field("Succeeded Company Name"; Rec."Succeeded Company Name")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        ToolTip = 'Specifies the name of the company successor in connection with corporate restructuring.';
-                    }
-                    field("Succeeded VAT Registration No."; Rec."Succeeded VAT Registration No.")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        ToolTip = 'Specifies the VAT registration number of the company successor in connection with corporate restructuring.';
-                    }
                 }
             }
             group("Shipping and Payment")
@@ -1778,14 +1727,11 @@ page 6640 "Purchase Return Order"
     }
 
     trigger OnAfterGetCurrRecord()
-    var
-        SIIManagement: Codeunit "SII Management";
     begin
         SetControlAppearance();
         CurrPage.IncomingDocAttachFactBox.PAGE.LoadDataFromRecord(Rec);
         CurrPage.ApprovalFactBox.PAGE.UpdateApprovalEntriesFromSourceRecord(Rec.RecordId);
         ShowWorkflowStatus := CurrPage.WorkflowStatus.PAGE.SetFilterOnWorkflowRecord(Rec.RecordId);
-        SIIManagement.CombineOperationDescription(Rec."Operation Description", Rec."Operation Description 2", OperationDescription);
         StatusStyleTxt := Rec.GetStatusStyleText();
     end;
 
@@ -1819,7 +1765,6 @@ page 6640 "Purchase Return Order"
 
     trigger OnOpenPage()
     var
-        SIIManagement: Codeunit "SII Management";
         VATReportingDateMgt: Codeunit "VAT Reporting Date Mgt";
     begin
         SetDocNoVisible();
@@ -1828,8 +1773,6 @@ page 6640 "Purchase Return Order"
 
         if (Rec."No." <> '') and (Rec."Buy-from Vendor No." = '') then
             DocumentIsPosted := (not Rec.Get(Rec."Document Type", Rec."No."));
-
-        SIIManagement.CombineOperationDescription(Rec."Operation Description", Rec."Operation Description 2", OperationDescription);
 
         ActivateFields();
 
@@ -1878,7 +1821,6 @@ page 6640 "Purchase Return Order"
         IsPaymentMethodCodeVisible: Boolean;
         IsPurchaseLinesEditable: Boolean;
         VATDateEnabled: Boolean;
-        OperationDescription: Text[500];
         HasIncomingDocument: Boolean;
 
     protected var

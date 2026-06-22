@@ -54,13 +54,6 @@ permissionset 1002 "LOCAL READ"
                   tabledata "Selected Gen. Prod. Post. 340" = R,
                   tabledata "Selected Gen. Prod. Post. Gr." = R,
                   tabledata "Selected Rev. Charge Grp. 340" = R,
-                  tabledata "SII Doc. Upload State" = R,
-                  tabledata "SII History" = R,
-                  tabledata "SII Purch. Doc. Scheme Code" = R,
-                  tabledata "SII Sales Document Scheme Code" = R,
-                  tabledata "SII Missing Entries State" = R,
-                  tabledata "SII Session" = R,
-                  tabledata "SII Setup" = R,
                   tabledata "Statistical Code" = R,
                   tabledata Suffix = R;
 }

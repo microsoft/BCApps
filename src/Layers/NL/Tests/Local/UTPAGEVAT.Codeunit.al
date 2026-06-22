@@ -205,8 +205,8 @@ codeunit 144048 "UT PAG EVAT"
 
         ElecTaxDeclSetup."Digipoort Client Cert. Name" := 'abcde';
         ElecTaxDeclSetup."Digipoort Service Cert. Name" := 'fghij';
-        ElecTaxDeclSetup."Digipoort Delivery URL" := 'http://url.com';
-        ElecTaxDeclSetup."Digipoort Status URL" := 'http://url.com';
+        ElecTaxDeclSetup."Digipoort Delivery URL" := 'https://aanlevering.digipoort.logius.nl';
+        ElecTaxDeclSetup."Digipoort Status URL" := 'https://status.digipoort.logius.nl';
         ElecTaxDeclSetup.Modify(true);
     end;
 

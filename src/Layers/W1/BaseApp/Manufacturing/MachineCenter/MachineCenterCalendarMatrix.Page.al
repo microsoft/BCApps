@@ -516,7 +516,6 @@ page 9293 "Machine Center Calendar Matrix"
                     Ellipsis = true;
                     Image = Calculate;
                     RunObject = Report "Calc. Machine Center Calendar";
-                    ToolTip = 'Update the window with any new capacity ledger entries.';
                 }
                 action(Recalculate)
                 {

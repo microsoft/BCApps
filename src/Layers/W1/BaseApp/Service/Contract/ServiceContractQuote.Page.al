@@ -824,7 +824,6 @@ page 6053 "Service Contract Quote"
                 Caption = 'Service Quote Details';
                 Image = "Report";
                 RunObject = Report "Service Contract Quote-Detail";
-                ToolTip = 'View details information for the quote.';
             }
             action("Contract Quotes to be Signed")
             {
@@ -832,7 +831,6 @@ page 6053 "Service Contract Quote"
                 Caption = 'Contract Quotes to be Signed';
                 Image = "Report";
                 RunObject = Report "Contract Quotes to Be Signed";
-                ToolTip = 'View the contract number, customer name and address, salesperson code, starting date, probability, quoted amount, and forecast. You can print all your information about contract quotes to be signed.';
             }
         }
         area(Promoted)

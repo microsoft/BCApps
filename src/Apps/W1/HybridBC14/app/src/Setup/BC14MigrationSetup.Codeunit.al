@@ -109,7 +109,6 @@ codeunit 46851 "BC14 Migration Setup"
         ReplicationMapping.Insert(true);
     end;
 
-
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetupReplicationTableMapping()
     begin

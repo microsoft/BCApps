@@ -351,7 +351,6 @@ page 9004 "Bookkeeper Role Center"
                 Caption = 'Inventory Valuation';
                 Image = "Report";
                 RunObject = Report "Inventory Valuation";
-                ToolTip = 'View information to the customs and tax authorities for sales to other EU countries/regions. If the information must be printed to a file, you can use the VAT- VIES Declaration Disk report.';
             }
         }
         area(embedding)
@@ -834,7 +833,6 @@ page 9004 "Bookkeeper Role Center"
                 Ellipsis = true;
                 Image = PostInventoryToGL;
                 RunObject = Report "Post Inventory Cost to G/L";
-                ToolTip = 'Post the quantity and value changes to the inventory in the item ledger entries and the value entries when you post inventory transactions, such as sales shipments or purchase receipts.';
             }
             action("Calc. and Pos&t VAT Settlement")
             {

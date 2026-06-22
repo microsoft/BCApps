@@ -179,7 +179,6 @@ page 5883 "Posted Phys. Invt. Order"
                 //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                 //PromotedCategory = "Report";
                 RunObject = Report "Posted Phys. Invt. Order Diff.";
-                ToolTip = 'View or print the list of differences after counting.';
             }
         }
         area(Promoted)

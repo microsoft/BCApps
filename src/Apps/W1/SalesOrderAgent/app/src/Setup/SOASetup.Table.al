@@ -138,7 +138,7 @@ table 4325 "SOA Setup"
             Caption = 'Registered Sender Input Message Review';
             ToolTip = 'Specifies the type of input message review for messages from registered senders.';
             DataClassification = SystemMetadata;
-            InitValue = "All Messages";
+            InitValue = "First Message";
         }
         field(21; "Unknown Sender In. Msg. Review"; Enum "SOA Input Message Review")
         {
@@ -203,6 +203,24 @@ table 4325 "SOA Setup"
         {
             Caption = 'Mark email as read';
             ToolTip = 'Specifies whether the agent marks emails as read after processing them.';
+            DataClassification = SystemMetadata;
+        }
+        field(33; "Owner User Security ID"; Guid)
+        {
+            Caption = 'Owner User Security ID';
+            ToolTip = 'Specifies the BC user who owns this agent instance.';
+            DataClassification = EndUserPseudonymousIdentifiers;
+        }
+        field(34; "Agent Name"; Text[50])
+        {
+            Caption = 'Display name';
+            ToolTip = 'Specifies the unique display name of the sales order agent instance.';
+            DataClassification = SystemMetadata;
+        }
+        field(35; "Agent Initials"; Text[4])
+        {
+            Caption = 'Initials';
+            ToolTip = 'Specifies the initials for the sales order agent instance.';
             DataClassification = SystemMetadata;
         }
         field(50; "User Security ID"; Guid)

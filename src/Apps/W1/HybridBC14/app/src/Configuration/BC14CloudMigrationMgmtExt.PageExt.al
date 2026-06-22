@@ -48,13 +48,18 @@ pageextension 46870 "BC14 Cloud Migration Mgmt Ext" extends "Cloud Migration Man
 
     actions
     {
+        modify(RunDataUpgrade)
+        {
+            Visible = not BC14MigrationEnabled or not BC14UpgradeStarted;
+        }
+
         addlast(Processing)
         {
             action(BC14MigrationSettings)
             {
                 ApplicationArea = All;
-                Caption = 'Configure Business Central 14 Migration';
-                ToolTip = 'Configure default migration settings (modules, posting, error handling). Per-company overrides, upgrade timing, and migration errors are reachable from inside.';
+                Caption = 'Configure BC14 Re-implementation';
+                ToolTip = 'Configure default re-implementation settings (modules, posting, error handling). Per-company overrides, upgrade timing, and re-implementation errors are reachable from inside.';
                 Image = Setup;
                 Enabled = BC14MigrationEnabled;
 
@@ -72,6 +77,20 @@ pageextension 46870 "BC14 Cloud Migration Mgmt Ext" extends "Cloud Migration Man
                 Enabled = BC14MigrationEnabled;
                 RunObject = page "BC14 Migration Error Overview";
             }
+            action(ResumeBC14Upgrade)
+            {
+                ApplicationArea = All;
+                Caption = 'Resume Business Central 14 Upgrade';
+                ToolTip = 'Continue the Business Central 14 upgrade after a failure or interruption. If any company is Pending, the next one is dispatched. If only Failed companies remain, you are prompted to reset them to Pending and retry.';
+                Image = Continue;
+                Visible = BC14MigrationEnabled and BC14UpgradeStarted;
+                Enabled = BC14HasPendingUpgradeWork or BC14HasFailedUpgradeWork;
+
+                trigger OnAction()
+                begin
+                    ResumeBC14UpgradeAction();
+                end;
+            }
         }
 
         addlast(Category_Process)
@@ -82,6 +101,9 @@ pageextension 46870 "BC14 Cloud Migration Mgmt Ext" extends "Cloud Migration Man
             actionref(BC14MigrationErrors_Promoted; BC14MigrationErrors)
             {
             }
+            actionref(ResumeBC14Upgrade_Promoted; ResumeBC14Upgrade)
+            {
+            }
         }
     }
 
@@ -90,8 +112,10 @@ pageextension 46870 "BC14 Cloud Migration Mgmt Ext" extends "Cloud Migration Man
         BC14Wizard: Codeunit "BC14 Wizard";
     begin
         BC14MigrationEnabled := BC14Wizard.GetBC14MigrationEnabled();
-        if BC14MigrationEnabled then
+        if BC14MigrationEnabled then begin
             UpdateCompanyUpgradeStatus();
+            UpdateUpgradeProgressFlags();
+        end;
     end;
 
     trigger OnAfterGetCurrRecord()
@@ -99,6 +123,7 @@ pageextension 46870 "BC14 Cloud Migration Mgmt Ext" extends "Cloud Migration Man
         if BC14MigrationEnabled then begin
             UpdateCompanyUpgradeStatus();
             UpdateUpgradeErrorDetails();
+            UpdateUpgradeProgressFlags();
         end;
     end;
 
@@ -127,6 +152,83 @@ pageextension 46870 "BC14 Cloud Migration Mgmt Ext" extends "Cloud Migration Man
         CompanyUpgradeStatusText := JoinText(Parts, ', ');
         if CompanyUpgradeStatusText = '' then
             CompanyUpgradeStatusText := NoCompaniesLbl;
+    end;
+
+    local procedure UpdateUpgradeProgressFlags()
+    var
+        BC14GlobalSettings: Record "BC14 Global Migration Settings";
+        BC14StatusMgr: Codeunit "BC14 Migration Status Mgr.";
+        PendingCount: Integer;
+        StartedCount: Integer;
+        CompletedCount: Integer;
+        FailedCount: Integer;
+    begin
+        BC14UpgradeStarted := false;
+        BC14HasPendingUpgradeWork := false;
+        BC14HasFailedUpgradeWork := false;
+
+        if BC14GlobalSettings.Get() then
+            BC14UpgradeStarted := BC14GlobalSettings."Data Upgrade Started" <> 0DT;
+
+        BC14StatusMgr.GetCompanyStatusCounts(PendingCount, StartedCount, CompletedCount, FailedCount);
+        BC14HasPendingUpgradeWork := PendingCount > 0;
+        BC14HasFailedUpgradeWork := FailedCount > 0;
+    end;
+
+    local procedure ResumeBC14UpgradeAction()
+    var
+        HybridReplicationSummary: Record "Hybrid Replication Summary";
+        BC14MigrationOrchestrator: Codeunit "BC14 Migration Orchestrator";
+        BC14StatusMgr: Codeunit "BC14 Migration Status Mgr.";
+        PendingCount: Integer;
+        StartedCount: Integer;
+        CompletedCount: Integer;
+        FailedCount: Integer;
+    begin
+        if not BC14MigrationOrchestrator.FindLatestReplicationSummary(HybridReplicationSummary) then
+            Error(NoReplicationSummaryToResumeErr);
+
+        BC14StatusMgr.GetCompanyStatusCounts(PendingCount, StartedCount, CompletedCount, FailedCount);
+
+        if (PendingCount = 0) and (FailedCount = 0) then
+            Error(NothingToResumeErr);
+
+        if FailedCount > 0 then begin
+            if not Confirm(StrSubstNo(ResetFailedQst, FailedCount), false) then
+                exit;
+            RerunFailedCompanies();
+        end;
+
+        if PendingCount > 0 then begin
+            if (FailedCount = 0) and (not Confirm(ResumeUpgradeQst, false)) then
+                exit;
+            BC14MigrationOrchestrator.DispatchNextReadyCompany(HybridReplicationSummary);
+        end;
+
+        UpdateCompanyUpgradeStatus();
+        UpdateUpgradeProgressFlags();
+        UpdateUpgradeErrorDetails();
+        CurrPage.Update(false);
+
+        Message(ResumeUpgradeScheduledMsg);
+    end;
+
+    local procedure RerunFailedCompanies()
+    var
+        HybridCompanyStatus: Record "Hybrid Company Status";
+        BC14StatusMgr: Codeunit "BC14 Migration Status Mgr.";
+        BC14MigrationRunner: Codeunit "BC14 Migration Runner";
+        FailedCompanyNames: List of [Text[30]];
+        CompanyNameText: Text[30];
+    begin
+        BC14StatusMgr.FilterFailedCompanies(HybridCompanyStatus);
+        if HybridCompanyStatus.FindSet() then
+            repeat
+                FailedCompanyNames.Add(CopyStr(HybridCompanyStatus.Name, 1, 30));
+            until HybridCompanyStatus.Next() = 0;
+
+        foreach CompanyNameText in FailedCompanyNames do
+            BC14MigrationRunner.ContinueMigrationForCompany(CompanyNameText);
     end;
 
     local procedure JoinText(Parts: List of [Text]; Separator: Text): Text
@@ -172,6 +274,9 @@ pageextension 46870 "BC14 Cloud Migration Mgmt Ext" extends "Cloud Migration Man
 
     var
         BC14MigrationEnabled: Boolean;
+        BC14UpgradeStarted: Boolean;
+        BC14HasPendingUpgradeWork: Boolean;
+        BC14HasFailedUpgradeWork: Boolean;
         HasFailedCompanies: Boolean;
         HasUpgradeErrorDetails: Boolean;
         CompanyUpgradeStatusText: Text;
@@ -181,4 +286,9 @@ pageextension 46870 "BC14 Cloud Migration Mgmt Ext" extends "Cloud Migration Man
         CompletedLbl: Label 'Completed: %1', Comment = '%1 = Count';
         FailedLbl: Label 'Failed: %1', Comment = '%1 = Count';
         NoCompaniesLbl: Label 'No companies';
+        NoReplicationSummaryToResumeErr: Label 'No replication summary was found to resume the upgrade from.';
+        NothingToResumeErr: Label 'There are no Pending or Failed companies to resume.';
+        ResumeUpgradeQst: Label 'Resume the Business Central 14 upgrade and dispatch the next Pending company?';
+        ResetFailedQst: Label 'No Pending companies remain. Reset %1 Failed companies to Pending and resume the upgrade?', Comment = '%1 = Count';
+        ResumeUpgradeScheduledMsg: Label 'The Business Central 14 upgrade has been resumed. The next Pending company will start shortly.';
 }

@@ -19,6 +19,7 @@ report 6653 "Combine Return Receipts"
 {
     ApplicationArea = SalesReturnOrder, PurchReturnOrder;
     Caption = 'Combine Return Receipts';
+    ToolTip = 'Return items covered by different purchase return orders to the same vendor on one shipment. When you ship the items, you post the related purchase return orders as shipped and this creates posted purchase return shipments. When you are ready to invoice these items, you can create one purchase credit memo that automatically includes the posted purchase return shipment lines so that you invoice all the open purchase return orders at the same time.';
     ProcessingOnly = true;
     UsageCategory = Tasks;
 

@@ -12,6 +12,7 @@ report 5806 "Item Charges - Specification"
     AdditionalSearchTerms = 'fee transportation freight handling landed cost specification';
     ApplicationArea = Basic, Suite;
     Caption = 'Item Charges - Specification';
+    ToolTip = 'View a specification of the direct costs that your company has assigned and posted as item charges. The report shows the various value entries that have been posted as item charges. It includes all costs, both those posted as invoiced and those posted as expected.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

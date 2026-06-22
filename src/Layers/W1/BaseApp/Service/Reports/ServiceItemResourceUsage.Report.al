@@ -12,6 +12,7 @@ report 5939 "Service Item - Resource Usage"
     RDLCLayout = './Service/Reports/ServiceItemResourceUsage.rdlc';
     ApplicationArea = Service;
     Caption = 'Service Item - Resource Usage';
+    ToolTip = 'View details about the total use of service items, both cost and amount, profit amount, and profit percentage.';
     UsageCategory = ReportsAndAnalysis;
 
     dataset

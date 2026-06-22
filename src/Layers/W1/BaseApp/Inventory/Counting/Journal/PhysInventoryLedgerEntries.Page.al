@@ -241,7 +241,6 @@ page 390 "Phys. Inventory Ledger Entries"
                 Caption = 'Delete Entries';
                 Image = Delete;
                 RunObject = Report "Delete Phys. Inventory Ledger";
-                ToolTip = 'Find and delete physical inventory ledger entries.';
             }
         }
         area(Promoted)

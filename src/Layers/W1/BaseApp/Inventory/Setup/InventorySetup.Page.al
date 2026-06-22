@@ -349,7 +349,6 @@ page 461 "Inventory Setup"
                 Ellipsis = true;
                 Image = AdjustEntries;
                 RunObject = Report "Adjust Cost - Item Entries";
-                ToolTip = 'Adjust inventory values in value entries so that you use the correct adjusted cost for updating the general ledger and so that sales and profit statistics are up to date. Run this before setting the Earliest Allowed Valuation Date.';
             }
             action("Units of Measure")
             {

@@ -13,6 +13,7 @@ report 5985 "Contract Price Update - Test"
     DefaultLayout = RDLC;
     RDLCLayout = './Service/Reports/ContractPriceUpdateTest.rdlc';
     Caption = 'Contract Price Update - Test';
+    ToolTip = 'View the contracts numbers, customer numbers, contract amounts, price update percentages, and any errors that occur. You can test which service contracts need price updates up to the date that you have specified.';
 
     dataset
     {

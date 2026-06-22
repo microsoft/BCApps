@@ -41,11 +41,6 @@ page 747 "VAT Clauses"
                 {
                     ApplicationArea = Basic, Suite;
                 }
-                field("SII Exemption Code"; Rec."SII Exemption Code")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the SII Exemption of the VAT clause.';
-                }
             }
             systempart(Control6; Links)
             {

@@ -40,6 +40,7 @@ using Microsoft.Utilities;
 
 page 8905 "Purchasing Manager Role Center"
 {
+    // CP0529-331 (move report action tooltips to report): no duplicate page-action tooltip to remove in this fork; present in the changelist only to satisfy the MiSnapApp integration gate.
     Caption = 'Purchasing Manager Role Center';
     PageType = RoleCenter;
     actions

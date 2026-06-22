@@ -18,7 +18,7 @@ pageextension 99001507 "Subc. Work Center List" extends "Work Center List"
                 Image = SubcontractingWorksheet;
                 action("Subcontractor Prices")
                 {
-                    ApplicationArea = Manufacturing;
+                    ApplicationArea = Subcontracting;
                     Caption = 'Subcontractor Prices';
                     Enabled = IsSubcontractingWorkCenter;
                     Image = Price;
@@ -35,7 +35,7 @@ pageextension 99001507 "Subc. Work Center List" extends "Work Center List"
                 }
                 action("WIP Ledger Entries")
                 {
-                    ApplicationArea = Manufacturing;
+                    ApplicationArea = Subcontracting;
                     Caption = 'Subcontracting WIP Entries';
                     Image = LedgerEntries;
                     RunObject = page "Subc. WIP Ledger Entries";
@@ -46,11 +46,31 @@ pageextension 99001507 "Subc. Work Center List" extends "Work Center List"
         }
     }
 
+    trigger OnOpenPage()
+    begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        SubcontractingEnabled := SubcFeatureFlagHandler.IsSubcontractingEnabled();
+#pragma warning restore AL0432
+#endif
+    end;
+
     trigger OnAfterGetCurrRecord()
     begin
+#if not CLEAN29
+        if not SubcontractingEnabled then
+            exit;
+
+#endif
         IsSubcontractingWorkCenter := Rec."Subcontractor No." <> '';
     end;
 
     var
+#if not CLEAN29
+#pragma warning disable AL0432
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
+        SubcontractingEnabled: Boolean;
+#endif
         IsSubcontractingWorkCenter: Boolean;
 }

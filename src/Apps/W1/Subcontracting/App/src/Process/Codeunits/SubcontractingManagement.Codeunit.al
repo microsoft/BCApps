@@ -21,16 +21,26 @@ codeunit 99001505 "Subcontracting Management"
 {
     var
         ManufacturingSetup: Record "Manufacturing Setup";
+#if not CLEAN29
+#pragma warning disable AL0432
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
+#endif
         RoutingLinkUpdConfQst: Label 'If you change the Work Center, you will also change the default location for components with Routing Link Code=%1.\Do you want to continue anyway?', Comment = '%1=Routing Link Code';
         SuccessfullyUpdatedMsg: Label 'Successfully updated.';
-        UpdateIsCancelledErr: Label 'Update cancelled.';
-        UpdateIsCanceledErr: Label 'The update is canceled.';
+        UpdateIsCancelledErr: Label 'The update is cancelled.';
         WorkCenterVendorDoesntExistErr: Label 'Subcontractor %1 on Work Center %2 does not exist.', Comment = 'Parameter %1 - subcontractor/vendor number, %2 - work center number.';
         PurchOrderExistErr: Label 'The currently selected component %1 is already used in Purchase Order %2. Therefore, it is not permitted to change the %3 field.', Comment = '%1=Item No, %2=Purchase Order No, %3=Field Caption';
         HasManufacturingSetup: Boolean;
 
     procedure ChangeLocationOnProdOrderComponent(var ProdOrderComponent: Record "Prod. Order Component"; VendorSubcontrLocation: Code[10]; OriginalLocationCode: Code[10]; OriginalBinCode: Code[20])
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         case ProdOrderComponent."Component Supply Method" of
             "Component Supply Method"::"Consignment at Vendor",
             "Component Supply Method"::"Vendor-Supplied":
@@ -54,6 +64,12 @@ codeunit 99001505 "Subcontracting Management"
 
     procedure ChangeLocationOnPlanningComponent(var PlanningComponent: Record "Planning Component"; VendorSubcontrLocation: Code[10]; OriginalLocationCode: Code[10]; OriginalBinCode: Code[20])
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         case PlanningComponent."Component Supply Method" of
             "Component Supply Method"::"Consignment at Vendor",
             "Component Supply Method"::"Vendor-Supplied":
@@ -83,7 +99,12 @@ codeunit 99001505 "Subcontracting Management"
         ConfirmManagement: Codeunit "Confirm Management";
         PlanningGetParameters: Codeunit "Planning-Get Parameters";
     begin
-
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         ProdOrderComponent.SetRange(Status, ProdOrderRoutingLine.Status);
         ProdOrderComponent.SetRange("Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
         ProdOrderComponent.SetRange("Prod. Order Line No.", ProdOrderRoutingLine."Routing Reference No.");
@@ -116,6 +137,13 @@ codeunit 99001505 "Subcontracting Management"
         WorkCenter: Record "Work Center";
         HasSubcontractor, IsHandled : Boolean;
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit(false);
+
+#endif
         OnBeforeGetSubcontractor(WorkCenterNo, Vendor, HasSubcontractor, IsHandled);//DO NOT DELETE
         if IsHandled then
             exit(HasSubcontractor);
@@ -134,6 +162,12 @@ codeunit 99001505 "Subcontracting Management"
 
     procedure UpdateSubcontractorPriceForRequisitionLine(var RequisitionLine: Record "Requisition Line")
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if IsSubcontracting(RequisitionLine."Work Center No.") then
             RequisitionLine.UpdateSubcontractorPrice();
     end;
@@ -142,6 +176,12 @@ codeunit 99001505 "Subcontracting Management"
     var
         WorkCenter: Record "Work Center";
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if ProdOrderRoutingLine.Type <> "Capacity Type"::"Work Center" then
             exit;
 
@@ -163,6 +203,12 @@ codeunit 99001505 "Subcontracting Management"
         OrigLocationCode, VendorSubcontractingLocationCode : Code[10];
         OrigBinCode: Code[20];
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if PlanningComponent."Routing Link Code" = '' then
             exit;
 
@@ -200,6 +246,12 @@ codeunit 99001505 "Subcontracting Management"
         OrigBinCode: Code[20];
         PurchOrderNo: Code[20];
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         if ProdOrderComponent."Routing Link Code" = '' then
             exit;
 
@@ -256,6 +308,12 @@ codeunit 99001505 "Subcontracting Management"
         OrigLocationCode, VendorSubcontractingLocationCode : Code[10];
         OrigBinCode: Code[20];
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
         ProdOrderComponent.SetRange(Status, ProdOrderRoutingLine.Status);
         ProdOrderComponent.SetRange("Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
         ProdOrderComponent.SetRange("Prod. Order Line No.", ProdOrderRoutingLine."Routing Reference No.");
@@ -268,7 +326,7 @@ codeunit 99001505 "Subcontracting Management"
                 VendorSubcontractingLocationCode := Vendor."Subc. Location Code";
                 if ShowMsg then
                     if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(RoutingLinkUpdConfQst, ProdOrderRoutingLine."Routing Link Code"), true) then
-                        Error(UpdateIsCanceledErr);
+                        Error(UpdateIsCancelledErr);
                 repeat
                     if not (ProdOrderComponent."Component Supply Method" in ["Component Supply Method"::"Consignment at Vendor", "Component Supply Method"::"Vendor-Supplied"]) then
                         Clear(VendorSubcontractingLocationCode);
@@ -296,6 +354,13 @@ codeunit 99001505 "Subcontracting Management"
         CompanyInformation: Record "Company Information";
         ComponentsLocationCode: Code[10];
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit('');
+
+#endif
         GetManufacturingSetup();
         ManufacturingSetup.TestField("Subc. Default Comp. Location");
 

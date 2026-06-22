@@ -11,6 +11,7 @@ report 5879 "Posted Phys. Invt. Recording"
 {
     ApplicationArea = Warehouse;
     Caption = 'Posted Phys. Invt. Recording';
+    ToolTip = 'Print Posted Phys. Invt. Recording.';
     UsageCategory = ReportsAndAnalysis;
     WordMergeDataItem = "Posted Phys. Invt. Record Hdr";
     DefaultRenderingLayout = RDLCLayout;

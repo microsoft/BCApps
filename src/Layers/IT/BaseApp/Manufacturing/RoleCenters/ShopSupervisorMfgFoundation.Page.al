@@ -132,7 +132,6 @@ page 9011 "Shop Supervisor Mfg Foundation"
                 Caption = '&Item Registers - Quantity';
                 Image = "Report";
                 RunObject = Report "Item Register - Quantity";
-                ToolTip = 'View all item ledger entries.';
             }
             action("Inventory Valuation &WIP")
             {

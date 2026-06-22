@@ -217,7 +217,6 @@ page 99000761 "Machine Center List"
                 Caption = 'Calculate Machine Center Calendar';
                 Image = CalcWorkCenterCalendar;
                 RunObject = Report "Calc. Machine Center Calendar";
-                ToolTip = 'Create new calendar entries for the machine center to define the available daily capacity.';
             }
         }
         area(reporting)
@@ -254,7 +253,6 @@ page 99000761 "Machine Center List"
                 Caption = 'Work/Machine Center Load';
                 Image = "Report";
                 RunObject = Report "Work/Machine Center Load";
-                ToolTip = 'Get an overview of availability at the work center and machine center, such as the capacity, the allocated quantity, availability after order, and the load in percent.';
             }
         }
         area(Promoted)

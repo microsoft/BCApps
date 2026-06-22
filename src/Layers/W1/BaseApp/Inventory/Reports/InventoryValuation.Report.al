@@ -12,6 +12,7 @@ report 1001 "Inventory Valuation"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Inventory Valuation';
+    ToolTip = 'View, print, or save a list of the values of the on-hand quantity of each inventory item.';
     EnableHyperlinks = true;
     UsageCategory = ReportsAndAnalysis;
     DataAccessIntent = ReadOnly;

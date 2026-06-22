@@ -903,6 +903,7 @@ codeunit 5826 "Matched Order Line Mgmt."
         PurchaseLineOrder.SetRange("Buy-from Vendor No.", PurchaseHeaderInvoice."Buy-from Vendor No.");
         PurchaseLineOrder.SetRange("Pay-to Vendor No.", PurchaseHeaderInvoice."Pay-to Vendor No.");
         PurchaseLineOrder.SetRange("Currency Code", PurchaseHeaderInvoice."Currency Code");
+        OnGetPurchaseOrderLinesOnAfterSetPurchaseLineOrderFilters(PurchaseLineOrder, PurchaseHeaderInvoice);
         if PurchaseLineOrder.FindSet() then
             repeat
                 PurchaseLineOrder.Mark(true);
@@ -1146,6 +1147,11 @@ codeunit 5826 "Matched Order Line Mgmt."
 
     [IntegrationEvent(false, false)]
     local procedure OnGetPurchaseOrderLinesOnBeforeInsertPurchaseLineInvoice(var PurchaseLineInvoice: Record "Purchase Line"; PurchaseLineOrder: Record "Purchase Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnGetPurchaseOrderLinesOnAfterSetPurchaseLineOrderFilters(var PurchaseLineOrder: Record "Purchase Line"; PurchaseHeaderInvoice: Record "Purchase Header")
     begin
     end;
 

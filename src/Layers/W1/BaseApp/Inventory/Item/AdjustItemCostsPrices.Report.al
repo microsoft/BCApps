@@ -12,6 +12,7 @@ report 794 "Adjust Item Costs/Prices"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Adjust Item Costs/Prices';
+    ToolTip = 'Adjusts the Last Direct Cost, Standard Cost, Unit Price, Profit %, and Indirect Cost % fields on the item or stockkeeping unit cards. For example, you can change Last Direct Cost by 5% on all items from a specific vendor. The changes are processed immediately when the batch job is started. The fields on the item card that are dependent on the adjusted field are also changed.';
     ProcessingOnly = true;
     UsageCategory = Tasks;
 

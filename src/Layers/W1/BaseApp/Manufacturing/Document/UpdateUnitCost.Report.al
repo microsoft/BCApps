@@ -10,6 +10,7 @@ report 99001014 "Update Unit Cost"
 {
     ApplicationArea = Manufacturing;
     Caption = 'Update Unit Costs';
+    ToolTip = 'Recalculate the unit cost of production items on production orders. The value in the Unit Cost field on the production order line is updated according to the selected options.';
     ProcessingOnly = true;
     UsageCategory = Tasks;
 

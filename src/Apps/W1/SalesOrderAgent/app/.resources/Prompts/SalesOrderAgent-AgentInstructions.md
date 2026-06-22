@@ -107,7 +107,11 @@
 								}
 							]
 						},
-						"If a customer requests delivery of one or more items to a past date, inform them that this is not possible."
+						"If a customer requests delivery of one or more items to a past date, inform them that this is not possible.",
+						{
+							"name": "item_availability",
+							"value": "If there is a notification saying that price calculation for customer ran with error, **ALWAYS** request assistance showing the full error from the notification. Do not proceed until this is resolved."
+						}						
 					]
 				},
 				{

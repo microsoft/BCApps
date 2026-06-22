@@ -184,18 +184,6 @@ codeunit 46862 "BC14 Migration Orchestrator"
         end;
     end;
 
-    local procedure LogValidationFailure(var HybridReplicationSummary: Record "Hybrid Replication Summary"; MessageText: Text; ThrowError: Boolean)
-    var
-        BC14StatusMgr: Codeunit "BC14 Migration Status Mgr.";
-    begin
-        Session.LogMessage('0000TU4', MessageText, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14Telemetry.GetCategory());
-
-        BC14StatusMgr.WriteSummaryDetailMessage(HybridReplicationSummary, MessageText);
-
-        if ThrowError then
-            Error(MessageText);
-    end;
-
     #endregion
 
     #region Management
@@ -447,7 +435,7 @@ codeunit 46862 "BC14 Migration Orchestrator"
         BC14Wizard: Codeunit "BC14 Wizard";
     begin
         if HybridReplicationSummary."Run ID" = '' then begin
-            LogValidationFailure(HybridReplicationSummary, NoReplicationCompletedErr, ThrowError);
+            ReportValidationFailure(NoReplicationCompletedErr, ThrowError);
             exit(false);
         end;
 
@@ -457,7 +445,7 @@ codeunit 46862 "BC14 Migration Orchestrator"
             CompletedReplicationSummary.Status::UpgradePending,
             CompletedReplicationSummary.Status::UpgradeInProgress);
         if CompletedReplicationSummary.IsEmpty() then begin
-            LogValidationFailure(HybridReplicationSummary, NoReplicationCompletedErr, ThrowError);
+            ReportValidationFailure(NoReplicationCompletedErr, ThrowError);
             exit(false);
         end;
 
@@ -465,18 +453,32 @@ codeunit 46862 "BC14 Migration Orchestrator"
             HybridReplicationSummary.Status::UpgradePending,
             HybridReplicationSummary.Status::Completed,
             HybridReplicationSummary.Status::UpgradeFailed]) then begin
-            LogValidationFailure(HybridReplicationSummary, StrSubstNo(ReplicationNotInValidStateErr, Format(HybridReplicationSummary.Status)), ThrowError);
+            ReportValidationFailure(StrSubstNo(ReplicationNotInValidStateErr, Format(HybridReplicationSummary.Status)), ThrowError);
             exit(false);
         end;
 
         HybridReplicationDetail.SetRange("Run ID", HybridReplicationSummary."Run ID");
         HybridReplicationDetail.SetRange(Status, HybridReplicationDetail.Status::Failed);
         if not HybridReplicationDetail.IsEmpty() then begin
-            LogValidationFailure(HybridReplicationSummary, StrSubstNo(ReplicationTablesFailedErr, HybridReplicationDetail.Count()), ThrowError);
+            ReportValidationFailure(StrSubstNo(ReplicationTablesFailedErr, HybridReplicationDetail.Count()), ThrowError);
             exit(false);
         end;
 
         exit(true);
+    end;
+
+    /// <summary>
+    /// Emits a warning to telemetry and, when invoked from an interactive path, raises it as
+    /// an AL error. The background one-step trigger calls ValidateReplicationBeforeUpgrade
+    /// with ThrowError=false and simply retries on the next replication completion, so we must
+    /// not write to any user-visible field here.
+    /// </summary>
+    local procedure ReportValidationFailure(MessageText: Text; ThrowError: Boolean)
+    begin
+        Session.LogMessage('0000TU4', MessageText, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14Telemetry.GetCategory());
+
+        if ThrowError then
+            Error(MessageText);
     end;
 
     local procedure GetMinimalDelayDuration(): Duration
@@ -507,7 +509,6 @@ codeunit 46862 "BC14 Migration Orchestrator"
         SetupStatus := AssistedCompanySetupStatus.GetCompanySetupStatusValue(CopyStr(CompanyNameToCheck, 1, 30));
         exit(SetupStatus = SetupStatus::Completed);
     end;
-
 
     /// <summary>
     /// Called by Historical Task Workers after they finish.

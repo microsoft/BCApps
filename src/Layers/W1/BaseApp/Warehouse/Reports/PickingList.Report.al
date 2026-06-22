@@ -12,6 +12,7 @@ using System.Utilities;
 report 5752 "Picking List"
 {
     Caption = 'Picking List';
+    ToolTip = 'View or print a detailed list of items that must be picked.';
     WordMergeDataItem = "Warehouse Activity Header";
     DefaultRenderingLayout = RDLCLayout;
 

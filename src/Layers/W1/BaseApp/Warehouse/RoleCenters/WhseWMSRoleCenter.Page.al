@@ -114,7 +114,6 @@ page 9000 "Whse. WMS Role Center"
                 Caption = '&Picking List';
                 Image = "Report";
                 RunObject = Report "Picking List";
-                ToolTip = 'View or print a detailed list of items that must be picked.';
             }
             action("P&ut-away List")
             {
@@ -122,7 +121,6 @@ page 9000 "Whse. WMS Role Center"
                 Caption = 'P&ut-away List';
                 Image = "Report";
                 RunObject = Report "Put-away List";
-                ToolTip = 'View the list of ongoing put-aways.';
             }
             action("M&ovement List")
             {
@@ -130,7 +128,6 @@ page 9000 "Whse. WMS Role Center"
                 Caption = 'M&ovement List';
                 Image = "Report";
                 RunObject = Report "Movement List";
-                ToolTip = 'View the list of ongoing movements between bins.';
             }
             action("Whse. &Shipment Status")
             {
@@ -138,7 +135,6 @@ page 9000 "Whse. WMS Role Center"
                 Caption = 'Whse. &Shipment Status';
                 Image = "Report";
                 RunObject = Report "Whse. Shipment Status";
-                ToolTip = 'View warehouse shipments by status.';
             }
             action("Warehouse &Bin List")
             {
@@ -146,7 +142,6 @@ page 9000 "Whse. WMS Role Center"
                 Caption = 'Warehouse &Bin List';
                 Image = "Report";
                 RunObject = Report "Warehouse Bin List";
-                ToolTip = 'Get an overview of warehouse bins, their setup, and the quantity of items within the bins.';
             }
             action("Whse. &Adjustment Bin")
             {
@@ -154,7 +149,6 @@ page 9000 "Whse. WMS Role Center"
                 Caption = 'Whse. &Adjustment Bin';
                 Image = "Report";
                 RunObject = Report "Whse. Adjustment Bin";
-                ToolTip = 'Adjust the quantity of an item in a particular bin or bins. For instance, you might find some items in a bin that are not registered in the system, or you might not be able to pick the quantity needed because there are fewer items in a bin than was calculated by the program. The bin is then updated to correspond to the actual quantity in the bin. In addition, it creates a balancing quantity in the adjustment bin, for synchronization with item ledger entries, which you can then post with an item journal.';
             }
             action("Warehouse Physical Inventory &List")
             {
@@ -162,7 +156,6 @@ page 9000 "Whse. WMS Role Center"
                 Caption = 'Warehouse Physical Inventory &List';
                 Image = "Report";
                 RunObject = Report "Whse. Phys. Inventory List";
-                ToolTip = 'View or print the list of the lines that you have calculated in the Warehouse Physical Inventory Journal window. You can use this report during the physical inventory count to mark down actual quantities on hand in the warehouse and compare them to what is recorded in the program.';
             }
             action("P&hys. Inventory List")
             {
@@ -170,7 +163,6 @@ page 9000 "Whse. WMS Role Center"
                 Caption = 'P&hys. Inventory List';
                 Image = "Report";
                 RunObject = Report "Phys. Inventory List";
-                ToolTip = 'View a list of the lines that you have calculated in the Phys. Inventory Journal window. You can use this report during the physical inventory count to mark down actual quantities on hand in the warehouse and compare them to what is recorded in the program.';
             }
             action("&Customer - Labels")
             {
@@ -178,7 +170,6 @@ page 9000 "Whse. WMS Role Center"
                 Caption = '&Customer - Labels';
                 Image = "Report";
                 RunObject = Report "Customer - Labels";
-                ToolTip = 'View, save, or print mailing labels with the customers'' names and addresses. The report can be used to send sales letters, for example.';
             }
         }
         area(embedding)

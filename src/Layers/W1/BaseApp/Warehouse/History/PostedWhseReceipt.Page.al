@@ -203,7 +203,6 @@ page 7330 "Posted Whse. Receipt"
                 Caption = 'Put-away List';
                 Image = "Report";
                 RunObject = Report "Put-away List";
-                ToolTip = 'View or print a detailed list of items that must be put away.';
             }
         }
         area(Promoted)

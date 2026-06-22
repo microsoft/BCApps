@@ -579,7 +579,7 @@ codeunit 144010 "UT REP Cash Bank Giro"
         LibraryVariableStorage.AssertEmpty();
     end;
 
-    local procedure CBGPostingTestFromCBGStatement(AccountType: Option; Type: Option; AccountNo: Code[20]; DocumentNo: Code[20]; AppliesToDocNo: Code[20]; AppliesToID: Code[50]; Identification: Code[20]; VATPercent: Integer; AmountInclVAT: Boolean)
+    local procedure CBGPostingTestFromCBGStatement(AccountType: Enum "CBG Statement Line Account Type"; Type: Option; AccountNo: Code[20]; DocumentNo: Code[20]; AppliesToDocNo: Code[20]; AppliesToID: Code[50]; Identification: Code[20]; VATPercent: Integer; AmountInclVAT: Boolean)
     var
         CBGStatement: Record "CBG Statement";
         CBGStatementLine: Record "CBG Statement Line";
@@ -728,7 +728,7 @@ codeunit 144010 "UT REP Cash Bank Giro"
         CBGStatement.Insert();
     end;
 
-    local procedure MockCBGStatementLine(var CBGStatementLine: Record "CBG Statement Line"; JnlTemplateName: Code[10]; No: Integer; AccountType: Option; AccountNo: Code[20]; AppliesToDocNo: Code[20]; AppliesToID: Code[50]; Identification: Code[20]; VATPercent: Integer; AmountInclVAT: Boolean)
+    local procedure MockCBGStatementLine(var CBGStatementLine: Record "CBG Statement Line"; JnlTemplateName: Code[10]; No: Integer; AccountType: Enum "CBG Statement Line Account Type"; AccountNo: Code[20]; AppliesToDocNo: Code[20]; AppliesToID: Code[50]; Identification: Code[20]; VATPercent: Integer; AmountInclVAT: Boolean)
     begin
         CBGStatementLine.Init();
         CBGStatementLine."Journal Template Name" := JnlTemplateName;

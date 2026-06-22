@@ -165,8 +165,8 @@ pageextension 10735 "Service Credit Memo ES" extends "Service Credit Memo"
     trigger OnAfterGetRecord()
     begin
         UpdateDocHasRegimeCode();
-        SIIFirstSummaryDocNo := Copystr(Rec.GetSIIFirstSummaryDocNo(), 1, 35);
-        SIILastSummaryDocNo := Copystr(Rec.GetSIILastSummaryDocNo(), 1, 35);
+        SIIFirstSummaryDocNo := CopyStr(Rec.GetSIIFirstSummaryDocNo(), 1, 35);
+        SIILastSummaryDocNo := CopyStr(Rec.GetSIILastSummaryDocNo(), 1, 35);
     end;
 
     trigger OnAfterGetCurrRecord()

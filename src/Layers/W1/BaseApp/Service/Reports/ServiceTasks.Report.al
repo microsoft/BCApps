@@ -12,6 +12,7 @@ report 5904 "Service Tasks"
     RDLCLayout = './Service/Reports/ServiceTasks.rdlc';
     ApplicationArea = Service;
     Caption = 'Service Tasks';
+    ToolTip = 'View or edit service task information, such as service order number, service item description, repair status, and service item. You can print a list of the service tasks that have been entered.';
     UsageCategory = ReportsAndAnalysis;
 
     dataset

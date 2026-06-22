@@ -11,6 +11,7 @@ report 99001043 "Exchange Production BOM Item"
 {
     ApplicationArea = Manufacturing;
     Caption = 'Exchange Production BOM Item';
+    ToolTip = 'Replace items that are no longer used in production BOMs. You can exchange an item, for example, with a new item or a new production BOM. You can create new versions while exchanging an item in the production BOMs.';
     ProcessingOnly = true;
     UsageCategory = Tasks;
 

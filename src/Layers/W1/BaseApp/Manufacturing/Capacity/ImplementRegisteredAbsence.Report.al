@@ -8,6 +8,7 @@ report 99003801 "Implement Registered Absence"
 {
     ApplicationArea = Manufacturing;
     Caption = 'Implement Registered Absence';
+    ToolTip = 'Implement the absence entries that you have made in the Reg. Abs. (from Machine Ctr.), Reg. Abs. (from Work Center), and Capacity Absence windows.';
     ProcessingOnly = true;
     UsageCategory = Tasks;
 

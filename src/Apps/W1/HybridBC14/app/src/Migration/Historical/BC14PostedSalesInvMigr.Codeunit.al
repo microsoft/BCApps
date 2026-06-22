@@ -5,6 +5,7 @@
 
 namespace Microsoft.DataMigration.BC14Reimplementation;
 
+using Microsoft.DataMigration;
 using Microsoft.DataMigration.BC14Reimplementation.HistoricalData;
 using Microsoft.Sales.History;
 
@@ -22,6 +23,10 @@ codeunit 46880 "BC14 Posted Sales Inv Migr." implements "BC14 Migrator"
         TransferFailedLbl: Label 'Posted Sales Invoice archive transfer failed. Error: %1. CallStack: %2', Locked = true, Comment = '%1 = Error text, %2 = Call stack';
         HeaderTransferOverriddenLbl: Label 'Posted Sales Invoice header transfer was overridden by an extension.', Locked = true;
         LineTransferOverriddenLbl: Label 'Posted Sales Invoice line transfer was overridden by an extension.', Locked = true;
+        HeaderTransferResumedLbl: Label 'Posted Sales Invoice header archive transfer resuming after no. %1.', Locked = true, Comment = '%1 = Last archived invoice number';
+        LineTransferResumedLbl: Label 'Posted Sales Invoice line archive transfer resuming after document %1 line %2.', Locked = true, Comment = '%1 = Last archived document number, %2 = Last archived line number';
+        CommitIntervalMs: Integer;
+        MaxBatchSize: Integer;
 
     procedure GetDisplayName(): Text[250]
     begin
@@ -63,8 +68,6 @@ codeunit 46880 "BC14 Posted Sales Inv Migr." implements "BC14 Migrator"
     var
         BC14PostedSalesInvHeader: Record "BC14 Posted Sales Inv Header";
         BC14PostedSalesInvLine: Record "BC14 Posted Sales Inv Line";
-        BC14ArchSalesInvHeader: Record "BC14 Arch. Sales Inv. Header";
-        BC14ArchSalesInvLine: Record "BC14 Arch. Sales Inv. Line";
         BC14MigrationErrorHandler: Codeunit "BC14 Migration Error Handler";
         EmptyRecId: RecordId;
         HeaderCount: Integer;
@@ -81,8 +84,10 @@ codeunit 46880 "BC14 Posted Sales Inv Migr." implements "BC14 Migrator"
         HeaderCount := BC14PostedSalesInvHeader.Count();
         LineCount := BC14PostedSalesInvLine.Count();
 
-        BC14ArchSalesInvLine.Truncate();
-        BC14ArchSalesInvHeader.Truncate();
+        // Note: the archive is NOT truncated here. The transfer is resumable — headers and lines
+        // pick up from the last archived row (see TransferData) so a rerun after a failure or
+        // timeout continues instead of re-copying everything. A clean wipe is the responsibility
+        // of the migration reset path, not of every Migrate() pass.
         // Must commit before Codeunit.Run() with return value - write transactions are not allowed
         Commit();
 
@@ -112,9 +117,15 @@ codeunit 46880 "BC14 Posted Sales Inv Migr." implements "BC14 Migrator"
 
     local procedure TransferHeaderData()
     var
+        BC14PostedSalesInvHeader: Record "BC14 Posted Sales Inv Header";
         BC14ArchSalesInvHeader: Record "BC14 Arch. Sales Inv. Header";
         BC14HistoricalTransfer: Codeunit "BC14 Historical Transfer";
+        HybridCloudManagement: Codeunit "Hybrid Cloud Management";
         HeaderDataTransfer: DataTransfer;
+        MigratedOn: DateTime;
+        LastCommitAt: DateTime;
+        LastArchivedNo: Code[20];
+        RowsSinceCommit: Integer;
         IsConfigured: Boolean;
     begin
         OnConfigureHeaderDataTransfer(HeaderDataTransfer, IsConfigured);
@@ -124,21 +135,69 @@ codeunit 46880 "BC14 Posted Sales Inv Migr." implements "BC14 Migrator"
             exit;
         end;
 
-        HeaderDataTransfer.SetTables(Database::"BC14 Posted Sales Inv Header", Database::"BC14 Arch. Sales Inv. Header");
-        // Explicitly enumerate business fields instead of relying on CopyRows' auto-mapping. Auto-
-        // mapping also copies system fields like $systemId, which then collide with the destination
-        // table's unique constraint on $systemId during the bulk INSERT pre-flight. By listing only
-        // Normal-class fields with id < 2000000000 we leave the system columns untouched, and the
-        // platform generates fresh SystemId / SystemCreatedAt / SystemModifiedAt on each new row.
-        BC14HistoricalTransfer.AddMatchingFieldMappings(HeaderDataTransfer, Database::"BC14 Posted Sales Inv Header", Database::"BC14 Arch. Sales Inv. Header");
-        HeaderDataTransfer.AddConstantValue(CurrentDateTime(), BC14ArchSalesInvHeader.FieldNo("Migrated On"));
-        HeaderDataTransfer.CopyRows();
+        LastArchivedNo := GetLastArchivedHeaderNo();
+        if LastArchivedNo <> '' then
+            Session.LogMessage('0000TX9', StrSubstNo(HeaderTransferResumedLbl, LastArchivedNo), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14Telemetry.GetCategory());
+
+        // Fast path: inside Intelligent Cloud migration scope the platform permits cross-extension
+        // DataTransfer (destination lives in the BC14 Historical Data extension). Outside that
+        // scope (e.g., a background rerun) DataTransfer would be rejected, so fall back to a
+        // per-record AL copy via TransferFields.
+        if HybridCloudManagement.IsIntelligentCloudEnabled() then begin
+            HeaderDataTransfer.SetTables(Database::"BC14 Posted Sales Inv Header", Database::"BC14 Arch. Sales Inv. Header");
+            // Explicitly enumerate business fields instead of relying on CopyRows' auto-mapping.
+            // Auto-mapping also copies system fields like $systemId, which collide with the
+            // destination table's unique constraint on $systemId during the bulk INSERT pre-flight.
+            BC14HistoricalTransfer.AddMatchingFieldMappings(HeaderDataTransfer, Database::"BC14 Posted Sales Inv Header", Database::"BC14 Arch. Sales Inv. Header");
+            HeaderDataTransfer.AddConstantValue(CurrentDateTime(), BC14ArchSalesInvHeader.FieldNo("Migrated On"));
+            if LastArchivedNo <> '' then
+                HeaderDataTransfer.AddSourceFilter(BC14PostedSalesInvHeader.FieldNo("No."), '>%1', LastArchivedNo);
+            HeaderDataTransfer.CopyRows();
+            exit;
+        end;
+
+        if CommitIntervalMs = 0 then
+            CommitIntervalMs := 90000; // 1.5 minutes
+        if MaxBatchSize = 0 then
+            MaxBatchSize := 10000;
+
+        MigratedOn := CurrentDateTime();
+        LastCommitAt := CurrentDateTime();
+
+        BC14PostedSalesInvHeader.SetCurrentKey("No.");
+        if LastArchivedNo <> '' then
+            BC14PostedSalesInvHeader.SetFilter("No.", '>%1', LastArchivedNo);
+        if not BC14PostedSalesInvHeader.FindSet() then
+            exit;
+        repeat
+            BC14ArchSalesInvHeader.Init();
+            BC14ArchSalesInvHeader.TransferFields(BC14PostedSalesInvHeader, true);
+            BC14ArchSalesInvHeader."Migrated On" := MigratedOn;
+            BC14ArchSalesInvHeader.Insert(false);
+            RowsSinceCommit += 1;
+
+            if (RowsSinceCommit >= MaxBatchSize) or ((CurrentDateTime() - LastCommitAt) >= CommitIntervalMs) then begin
+                Commit();
+                RowsSinceCommit := 0;
+                LastCommitAt := CurrentDateTime();
+            end;
+        until BC14PostedSalesInvHeader.Next() = 0;
+
+        if RowsSinceCommit > 0 then
+            Commit();
     end;
 
     local procedure TransferLineData()
     var
+        BC14PostedSalesInvLine: Record "BC14 Posted Sales Inv Line";
+        BC14ArchSalesInvLine: Record "BC14 Arch. Sales Inv. Line";
         BC14HistoricalTransfer: Codeunit "BC14 Historical Transfer";
+        HybridCloudManagement: Codeunit "Hybrid Cloud Management";
         LineDataTransfer: DataTransfer;
+        LastCommitAt: DateTime;
+        LastArchivedDocNo: Code[20];
+        LastArchivedLineNo: Integer;
+        RowsSinceCommit: Integer;
         IsConfigured: Boolean;
     begin
         OnConfigureLineDataTransfer(LineDataTransfer, IsConfigured);
@@ -148,9 +207,72 @@ codeunit 46880 "BC14 Posted Sales Inv Migr." implements "BC14 Migrator"
             exit;
         end;
 
-        LineDataTransfer.SetTables(Database::"BC14 Posted Sales Inv Line", Database::"BC14 Arch. Sales Inv. Line");
-        BC14HistoricalTransfer.AddMatchingFieldMappings(LineDataTransfer, Database::"BC14 Posted Sales Inv Line", Database::"BC14 Arch. Sales Inv. Line");
-        LineDataTransfer.CopyRows();
+        GetLastArchivedLine(LastArchivedDocNo, LastArchivedLineNo);
+        if LastArchivedDocNo <> '' then
+            Session.LogMessage('0000TX8', StrSubstNo(LineTransferResumedLbl, LastArchivedDocNo, LastArchivedLineNo), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14Telemetry.GetCategory());
+
+        if HybridCloudManagement.IsIntelligentCloudEnabled() then begin
+            LineDataTransfer.SetTables(Database::"BC14 Posted Sales Inv Line", Database::"BC14 Arch. Sales Inv. Line");
+            BC14HistoricalTransfer.AddMatchingFieldMappings(LineDataTransfer, Database::"BC14 Posted Sales Inv Line", Database::"BC14 Arch. Sales Inv. Line");
+            // CopyRows is atomic, so the line archive is all-or-nothing in the IC path; filtering
+            // strictly past the last archived document keeps a rerun-after-success idempotent.
+            if LastArchivedDocNo <> '' then
+                LineDataTransfer.AddSourceFilter(BC14PostedSalesInvLine.FieldNo("Document No."), '>%1', LastArchivedDocNo);
+            LineDataTransfer.CopyRows();
+            exit;
+        end;
+
+        if CommitIntervalMs = 0 then
+            CommitIntervalMs := 90000; // 1.5 minutes
+        if MaxBatchSize = 0 then
+            MaxBatchSize := 10000;
+
+        LastCommitAt := CurrentDateTime();
+
+        BC14PostedSalesInvLine.SetCurrentKey("Document No.", "Line No.");
+        // Start at the boundary document and skip the lines of it that are already archived. The
+        // batched fallback can commit mid-document, so the boundary document may be only partially
+        // copied; '>=' on Document No. plus the in-loop skip re-copies exactly the missing lines.
+        if LastArchivedDocNo <> '' then
+            BC14PostedSalesInvLine.SetFilter("Document No.", '>=%1', LastArchivedDocNo);
+        if not BC14PostedSalesInvLine.FindSet() then
+            exit;
+        repeat
+            if not ((BC14PostedSalesInvLine."Document No." = LastArchivedDocNo) and (BC14PostedSalesInvLine."Line No." <= LastArchivedLineNo)) then begin
+                BC14ArchSalesInvLine.Init();
+                BC14ArchSalesInvLine.TransferFields(BC14PostedSalesInvLine, true);
+                BC14ArchSalesInvLine.Insert(false);
+                RowsSinceCommit += 1;
+
+                if (RowsSinceCommit >= MaxBatchSize) or ((CurrentDateTime() - LastCommitAt) >= CommitIntervalMs) then begin
+                    Commit();
+                    RowsSinceCommit := 0;
+                    LastCommitAt := CurrentDateTime();
+                end;
+            end;
+        until BC14PostedSalesInvLine.Next() = 0;
+
+        if RowsSinceCommit > 0 then
+            Commit();
+    end;
+
+    local procedure GetLastArchivedHeaderNo(): Code[20]
+    var
+        BC14ArchSalesInvHeader: Record "BC14 Arch. Sales Inv. Header";
+    begin
+        if BC14ArchSalesInvHeader.FindLast() then
+            exit(BC14ArchSalesInvHeader."No.");
+        exit('');
+    end;
+
+    local procedure GetLastArchivedLine(var LastArchivedDocNo: Code[20]; var LastArchivedLineNo: Integer)
+    var
+        BC14ArchSalesInvLine: Record "BC14 Arch. Sales Inv. Line";
+    begin
+        if BC14ArchSalesInvLine.FindLast() then begin
+            LastArchivedDocNo := BC14ArchSalesInvLine."Document No.";
+            LastArchivedLineNo := BC14ArchSalesInvLine."Line No.";
+        end;
     end;
 
     [IntegrationEvent(false, false)]

@@ -581,7 +581,7 @@ codeunit 131900 "Library - Marketing"
         Contact.Validate(City, LibraryUtility.GenerateGUID());
         Contact.Validate("Phone No.", LibraryUtility.GenerateRandomPhoneNo());
         Contact.Validate("Fax No.", LibraryUtility.GenerateGUID());
-        Contact.Validate("E-Mail", LibraryUtility.GenerateGUID() + '@' + LibraryUtility.GenerateGUID());
+        Contact.Validate("E-Mail", LibraryUtility.GenerateGUID() + '@' + LibraryUtility.GenerateGUID() + '.com');
         Contact.Modify(true);
         exit(Contact."No.");
     end;

@@ -548,7 +548,6 @@ page 9291 "Work Center Calendar Matrix"
                     Ellipsis = true;
                     Image = Calculate;
                     RunObject = Report "Calculate Work Center Calendar";
-                    ToolTip = 'Update the window with any new capacity ledger entries.';
                 }
                 action(Recalculate)
                 {

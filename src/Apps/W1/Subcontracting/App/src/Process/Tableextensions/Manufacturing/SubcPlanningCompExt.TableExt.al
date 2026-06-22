@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -22,8 +22,19 @@ tableextension 99001503 "Subc. Planning Comp Ext." extends "Planning Component"
             trigger OnValidate()
             var
                 Item: Record Item;
+#if not CLEAN29
+#pragma warning disable AL0432
+                SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
+#endif
                 SubcontractingManagement: Codeunit "Subcontracting Management";
             begin
+#if not CLEAN29
+#pragma warning disable AL0432
+                if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+                    exit;
+#endif
                 if "Component Supply Method" = "Component Supply Method"::"Transfer to Vendor" then
                     if "Item No." <> '' then begin
                         Item.Get("Item No.");

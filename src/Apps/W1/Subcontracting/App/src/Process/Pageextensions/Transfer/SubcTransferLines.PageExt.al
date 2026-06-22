@@ -14,13 +14,13 @@ pageextension 99001530 "Subc. Transfer Lines" extends "Transfer Lines"
         {
             field("Subc. Return Order"; Rec."Subc. Return Order")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Editable = false;
                 Visible = false;
             }
             field("Transfer WIP Item"; Rec."Transfer WIP Item")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Editable = false;
             }
         }

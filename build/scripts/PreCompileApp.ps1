@@ -126,7 +126,11 @@ if($appType -eq 'app')
 {
     # Restore the baseline app and generate the AppSourceCop.json file
     $analyzersEnabled = $parameters.Value.ContainsKey("Analyzers") -and @($parameters.Value["Analyzers"]).Count -gt 0
-    if($ENV:CI) {
+
+    # TODO: Re-enable the breaking changes check once the AppSourceCop baseline (AppBaselines-BCArtifacts in build/Packages.json) is available in BC artifacts.
+    $skipBreakingChangesCheck = $true
+
+    if($ENV:CI -and -not $skipBreakingChangesCheck) {
         if ($analyzersEnabled) {
             Write-Host "Analyzers are enabled. Setting up the baseline app and analyzers for breaking changes check."
             Import-Module $PSScriptRoot\GuardingV2ExtensionsHelper.psm1

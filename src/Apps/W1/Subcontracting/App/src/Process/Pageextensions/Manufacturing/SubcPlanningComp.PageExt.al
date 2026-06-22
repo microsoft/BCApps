@@ -14,7 +14,7 @@ pageextension 99001511 "Subc. Planning Comp" extends "Planning Components"
         {
             field("Component Supply Method"; Rec."Component Supply Method")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
             }
         }
     }

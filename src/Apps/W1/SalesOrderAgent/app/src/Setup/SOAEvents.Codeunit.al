@@ -21,7 +21,7 @@ codeunit 4592 "SOA Events"
     var
         SOASetup: Record "SOA Setup";
         SOAKPIEntry: Record "SOA KPI Entry";
-        SOAKPI: Record "SOA KPI";
+        SOAKPISummary: Record "SOA KPI Summary";
         SOAEmail: Record "SOA Email";
     begin
         SOASetup.ChangeCompany(NewCompanyName);
@@ -30,8 +30,8 @@ codeunit 4592 "SOA Events"
         SOAKPIEntry.ChangeCompany(NewCompanyName);
         SOAKPIEntry.DeleteAll();
 
-        SOAKPI.ChangeCompany(NewCompanyName);
-        SOAKPI.DeleteAll();
+        SOAKPISummary.ChangeCompany(NewCompanyName);
+        SOAKPISummary.DeleteAll();
 
         SOAEmail.ChangeCompany(NewCompanyName);
         SOAEmail.DeleteAll();
@@ -43,6 +43,8 @@ codeunit 4592 "SOA Events"
         DataClassificationEvalData: Codeunit "Data Classification Eval. Data";
     begin
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"SOA Setup");
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"SOA KPI Entry");
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"SOA KPI Summary");
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Guided Experience", 'OnRegisterAssistedSetup', '', false, false)]

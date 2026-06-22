@@ -2720,6 +2720,16 @@
     "method": "MultilevelPhantomBOMWithDifferentUOM"
   },
   {
+    "codeunitId": 137302,
+    "codeunitName": "SCM Inventory Reports - II",
+    "method": "DetailedCalculationReport"
+  },
+  {
+    "codeunitId": 137302,
+    "codeunitName": "SCM Inventory Reports - II",
+    "method": "DetailedCalculationReportIncludesPhantomBOMComponents"
+  },
+  {
     "codeunitId": 137308,
     "codeunitName": "SCM Planning Reports",
     "method": "CalcNetChangePlanWithReorderPolicyFRQAndProduction"
@@ -2773,6 +2783,41 @@
     "codeunitId": 137309,
     "codeunitName": "SCM Reports",
     "method": "InvValuationWIPReportForForCostPostedtoGLOnEndingPeriod"
+  },
+  {
+    "codeunitId": 137309,
+    "codeunitName": "SCM Reports",
+    "method": "DetailedCalculationWithTypeItemAndVersion"
+  },
+  {
+    "codeunitId": 137309,
+    "codeunitName": "SCM Reports",
+    "method": "DetailedCalculationWithTypeProdBomAndVersion"
+  },
+  {
+    "codeunitId": 137309,
+    "codeunitName": "SCM Reports",
+    "method": "DetailedCalculationWithStatusCertifiedAndGreaterThanWorkDate"
+  },
+  {
+    "codeunitId": 137309,
+    "codeunitName": "SCM Reports",
+    "method": "DetailedCalculationWithStatusCertifiedAndLessThanWorkDate"
+  },
+  {
+    "codeunitId": 137309,
+    "codeunitName": "SCM Reports",
+    "method": "DetailedCalculationWithStatusClosedAndGreaterThanWorkDate"
+  },
+  {
+    "codeunitId": 137309,
+    "codeunitName": "SCM Reports",
+    "method": "DetailedCalculationWithStatusClosedAndLessThanWorkDate"
+  },
+  {
+    "codeunitId": 137309,
+    "codeunitName": "SCM Reports",
+    "method": "DetailedCalculationWithProdBOMBelowItemLines"
   },
   {
     "codeunitId": 137350,

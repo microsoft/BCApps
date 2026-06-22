@@ -10,6 +10,7 @@ report 152 "Calculate Low Level Code"
 {
     ApplicationArea = Planning;
     Caption = 'Calculate Low Level Code';
+    ToolTip = 'Calculate the low-level codes for items in production BOMs. Low-level codes determine the sequence in which materials are planned during MRP runs. Top level items have code 0.';
     ProcessingOnly = true;
     UsageCategory = Tasks;
     UseRequestPage = false;

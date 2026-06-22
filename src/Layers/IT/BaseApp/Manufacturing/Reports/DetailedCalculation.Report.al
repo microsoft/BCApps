@@ -21,6 +21,7 @@ report 99000756 "Detailed Calculation"
 {
     ApplicationArea = Manufacturing;
     Caption = 'Detailed Calculation';
+    ToolTip = 'View the list of all costs for the item taking into account any scrap during production.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

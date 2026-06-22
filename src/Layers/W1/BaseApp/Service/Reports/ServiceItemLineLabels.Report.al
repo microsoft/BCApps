@@ -12,6 +12,7 @@ report 5901 "Service Item Line Labels"
     RDLCLayout = './Service/Reports/ServiceItemLineLabels.rdlc';
     ApplicationArea = Service;
     Caption = 'Service Item Line Labels';
+    ToolTip = 'View the list of service items on service orders. The report shows the order number, service item number, serial number, and the name of the item.';
     UsageCategory = ReportsAndAnalysis;
 
     dataset

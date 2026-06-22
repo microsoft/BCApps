@@ -11,6 +11,7 @@ report 7319 "Warehouse Bin List"
 {
     ApplicationArea = Warehouse;
     Caption = 'Warehouse Bin List';
+    ToolTip = 'Get an overview of warehouse bins, their setup, and the quantity of items within the bins.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

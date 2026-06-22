@@ -13,6 +13,7 @@ report 5938 "Service Profit (Service Items)"
     RDLCLayout = './Service/Reports/ServiceProfitServiceItems.rdlc';
     ApplicationArea = Service;
     Caption = 'Service Profit (Service Items)';
+    ToolTip = 'View details about service amount, contract discount amount, service discount amount, service cost amount, profit amount, and profit. You can print information about service profit for service items.';
     UsageCategory = ReportsAndAnalysis;
 
     dataset

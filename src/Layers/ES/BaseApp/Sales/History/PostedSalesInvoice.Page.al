@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -364,102 +364,6 @@ page 132 "Posted Sales Invoice"
                     ApplicationArea = Basic, Suite;
                     Editable = false;
                     Importance = Promoted;
-                }
-                group("SII Information")
-                {
-                    Caption = 'SII Information';
-                    field(OperationDescription; OperationDescription)
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Caption = 'Operation Description';
-                        Editable = false;
-                        MultiLine = true;
-                        ToolTip = 'Specifies the Operation Description.';
-
-                        trigger OnValidate()
-                        var
-                            SIIManagement: Codeunit "SII Management";
-                        begin
-                            SIIManagement.SplitOperationDescription(OperationDescription, Rec."Operation Description", Rec."Operation Description 2");
-                            Rec.Validate("Operation Description");
-                            Rec.Validate("Operation Description 2");
-                            Rec.Modify(true);
-                        end;
-                    }
-                    group(Control1100012)
-                    {
-                        ShowCaption = false;
-                        Visible = DocHasMultipleRegimeCode;
-                        field(MultipleSchemeCodesControl; MultipleSchemeCodesLbl)
-                        {
-                            ApplicationArea = Basic, Suite;
-                            Editable = false;
-                            ShowCaption = false;
-                            Style = StandardAccent;
-                            StyleExpr = true;
-
-                            trigger OnDrillDown()
-                            var
-                                SIISchemeCodeMgt: Codeunit "SII Scheme Code Mgt.";
-                            begin
-                                SIISchemeCodeMgt.SalesDrillDownRegimeCodes(Rec);
-                            end;
-                        }
-                    }
-                    field("Special Scheme Code"; Rec."Special Scheme Code")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Editable = false;
-                        ToolTip = 'Specifies the Special Scheme Code.';
-                    }
-                    field("Invoice Type"; Rec."Invoice Type")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Editable = false;
-                        ToolTip = 'Specifies the Invoice Type.';
-                    }
-                    field("ID Type"; Rec."ID Type")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Editable = false;
-                        ToolTip = 'Specifies the ID Type.';
-                    }
-                    field("Succeeded Company Name"; Rec."Succeeded Company Name")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Editable = false;
-                        ToolTip = 'Specifies the name of the company successor in connection with corporate restructuring.';
-                    }
-                    field("Succeeded VAT Registration No."; Rec."Succeeded VAT Registration No.")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Editable = false;
-                        ToolTip = 'Specifies the VAT registration number of the company successor in connection with corporate restructuring.';
-                    }
-                    field("Issued By Third Party"; Rec."Issued By Third Party")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        ToolTip = 'Specifies that the credit memo was issued by a third party.';
-                    }
-                    field("SII First Summary Doc. No."; Rec.GetSIIFirstSummaryDocNo())
-                    {
-                        Caption = 'First Summary Doc. No.';
-                        ApplicationArea = Basic, Suite;
-                        Editable = false;
-                        ToolTip = 'Specifies the first number in the series of the summary entry. This field applies to F4-type invoices only.';
-                    }
-                    field("SII Last Summary Doc. No."; Rec.GetSIILastSummaryDocNo())
-                    {
-                        Caption = 'Last Summary Doc. No.';
-                        ApplicationArea = Basic, Suite;
-                        Editable = false;
-                        ToolTip = 'Specifies the last number in the series of the summary entry. This field applies to F4-type invoices only.';
-                    }
-                    field("Do Not Send To SII"; Rec."Do Not Send To SII")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        ToolTip = 'Specifies if the document must not be sent to SII.';
-                    }
                 }
             }
             group(Payment)
@@ -905,21 +809,6 @@ page 132 "Posted Sales Invoice"
                         DocumentAttachmentDetails.RunModal();
                     end;
                 }
-                action(SpecialSchemeCodes)
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Special Scheme Codes';
-                    Image = Allocations;
-                    ToolTip = 'View or edit the list of special scheme codes that related to the current document for VAT reporting.';
-
-                    trigger OnAction()
-                    var
-                        SIISchemeCodeMgt: Codeunit "SII Scheme Code Mgt.";
-                    begin
-                        SIISchemeCodeMgt.SalesDrillDownRegimeCodes(Rec);
-                        CurrPage.Update(false);
-                    end;
-                }
                 separator(Action171)
                 {
                 }
@@ -1348,9 +1237,6 @@ page 132 "Posted Sales Invoice"
                 actionref(ActivityLog_Promoted; ActivityLog)
                 {
                 }
-                actionref(SpecialSchemeCodes_Promoted; SpecialSchemeCodes)
-                {
-                }
                 separator(Navigate_Separator)
                 {
                 }
@@ -1402,7 +1288,6 @@ page 132 "Posted Sales Invoice"
     var
         IncomingDocument: Record "Incoming Document";
         CRMCouplingManagement: Codeunit "CRM Coupling Management";
-        SIIManagement: Codeunit "SII Management";
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -1421,9 +1306,6 @@ page 132 "Posted Sales Invoice"
         end;
         UpdatePaymentService();
         DocExcStatusVisible := Rec.DocExchangeStatusIsSent();
-
-        SIIManagement.CombineOperationDescription(Rec."Operation Description", Rec."Operation Description 2", OperationDescription);
-        UpdateDocHasRegimeCode();
     end;
 
     trigger OnAfterGetRecord()
@@ -1431,7 +1313,6 @@ page 132 "Posted Sales Invoice"
         DocExchStatusStyle := Rec.GetDocExchStatusStyle();
         SellToContact.GetOrClear(Rec."Sell-to Contact No.");
         BillToContact.GetOrClear(Rec."Bill-to Contact No.");
-        UpdateDocHasRegimeCode();
     end;
 
     trigger OnInit()
@@ -1443,7 +1324,6 @@ page 132 "Posted Sales Invoice"
     var
         PaymentServiceSetup: Record "Payment Service Setup";
         OfficeMgt: Codeunit "Office Management";
-        SIIManagement: Codeunit "SII Management";
         VATReportingDateMgt: Codeunit "VAT Reporting Date Mgt";
     begin
         Rec.SetSecurityFilterOnRespCenter();
@@ -1451,8 +1331,6 @@ page 132 "Posted Sales Invoice"
 
         IsOfficeAddin := OfficeMgt.IsAvailable();
 
-        SIIManagement.CombineOperationDescription(Rec."Operation Description", Rec."Operation Description 2", OperationDescription);
-        UpdateDocHasRegimeCode();
         ActivateFields();
         PaymentServiceVisible := PaymentServiceSetup.IsPaymentServiceVisible();
         VATDateEnabled := VATReportingDateMgt.IsVATDateEnabled();
@@ -1474,9 +1352,6 @@ page 132 "Posted Sales Invoice"
         IsBillToCountyVisible: Boolean;
         IsSellToCountyVisible: Boolean;
         IsShipToCountyVisible: Boolean;
-        DocHasMultipleRegimeCode: Boolean;
-        OperationDescription: Text[500];
-        MultipleSchemeCodesLbl: Label 'Multiple scheme codes';
         VATDateEnabled: Boolean;
 
     protected var
@@ -1495,13 +1370,6 @@ page 132 "Posted Sales Invoice"
         PaymentServiceSetup: Record "Payment Service Setup";
     begin
         PaymentServiceEnabled := PaymentServiceSetup.CanChangePaymentService(Rec);
-    end;
-
-    local procedure UpdateDocHasRegimeCode()
-    var
-        SIISchemeCodeMgt: Codeunit "SII Scheme Code Mgt.";
-    begin
-        DocHasMultipleRegimeCode := SIISchemeCodeMgt.SalesDocHasRegimeCodes(Rec);
     end;
 
     [IntegrationEvent(false, false)]

@@ -18,7 +18,6 @@ pageextension 6461 "Serv. Data Administration" extends "Data Administration"
             {
                 ApplicationArea = Service;
                 Caption = 'Delete Service Orders';
-                ToolTip = 'Delete Service Orders';
                 RunObject = Report "Delete Invoiced Service Orders";
                 Ellipsis = true;
             }
@@ -29,7 +28,6 @@ pageextension 6461 "Serv. Data Administration" extends "Data Administration"
             {
                 ApplicationArea = Service;
                 Caption = 'Delete Service Email Queue';
-                ToolTip = 'Delete Service Email Queue';
 
                 RunObject = report "Delete Service Email Queue";
                 Ellipsis = true;
@@ -38,7 +36,6 @@ pageextension 6461 "Serv. Data Administration" extends "Data Administration"
             {
                 ApplicationArea = Service;
                 Caption = 'Delete Service Document Log';
-                ToolTip = 'Delete Service Document Log';
 
                 RunObject = report "Delete Service Document Log";
                 Ellipsis = true;
@@ -47,7 +44,6 @@ pageextension 6461 "Serv. Data Administration" extends "Data Administration"
             {
                 ApplicationArea = Service;
                 Caption = 'Delete Service Item Log';
-                ToolTip = 'Delete Service Item Log';
 
                 RunObject = report "Delete Service Item Log";
                 Ellipsis = true;

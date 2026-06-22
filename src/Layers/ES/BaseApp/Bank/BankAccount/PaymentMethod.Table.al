@@ -147,12 +147,6 @@ table 289 "Payment Method"
             Caption = 'Last Modified Date Time';
             Editable = false;
         }
-        field(10700; "SII Payment Method Code"; Option)
-        {
-            Caption = 'SII Payment Method Code';
-            OptionCaption = ' ,01,02,03,04,05';
-            OptionMembers = " ","01","02","03","04","05";
-        }
         field(7000000; "Create Bills"; Boolean)
         {
             Caption = 'Create Bills';

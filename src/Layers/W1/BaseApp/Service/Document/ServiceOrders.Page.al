@@ -629,7 +629,6 @@ page 9318 "Service Orders"
                 Caption = 'Delete Invoiced Orders';
                 Image = Delete;
                 RunObject = Report "Delete Invoiced Service Orders";
-                ToolTip = 'Delete orders that were not automatically deleted after completion. For example, when several service orders were completed by a single invoice.';
             }
         }
         area(Promoted)

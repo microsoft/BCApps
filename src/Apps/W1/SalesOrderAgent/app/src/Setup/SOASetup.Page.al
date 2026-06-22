@@ -38,15 +38,28 @@ page 4400 "SOA Setup"
                 ApplicationArea = All;
                 UpdatePropagation = Both;
             }
-            group(MonitorIncomingCard)
+            group(GeneralCard)
             {
-                Caption = 'Monitor incoming information';
-                InstructionalText = 'The agent will read messages in these channels:';
+                Caption = 'Identity and monitoring';
+                InstructionalText = 'Name the agent and choose initials to distinguish it.';
 
-                field("Monitor incoming inquiries"; Rec."Incoming Monitoring")
+                field(AgentName; Rec."Agent Name")
                 {
-                    ShowCaption = false;
-                    ToolTip = 'Specifies if the sales order agent should monitor incoming inquiries.';
+                    ApplicationArea = All;
+                    Caption = 'Display name';
+                    ToolTip = 'Specifies the unique display name for this Sales Order Agent instance.';
+
+                    trigger OnValidate()
+                    begin
+                        ConfigUpdated();
+                    end;
+                }
+                field(AgentInitials; Rec."Agent Initials")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Initials';
+                    ToolTip = 'Specifies the initials for this Sales Order Agent instance. Maximum 4 characters.';
+
                     trigger OnValidate()
                     begin
                         ConfigUpdated();
@@ -54,11 +67,11 @@ page 4400 "SOA Setup"
                 }
                 group(MailboxGroup)
                 {
-                    Caption = 'Mailbox';
+                    Caption = 'Monitor and process emails';
                     field(MailEnabled; Rec."Email Monitoring")
                     {
                         ShowCaption = false;
-                        ToolTip = 'Specifies if the sales order agent should monitor incoming mail.';
+                        ToolTip = 'Specifies if the agent should monitor incoming emails and process them.';
 
                         trigger OnValidate()
                         begin
@@ -87,20 +100,12 @@ page 4400 "SOA Setup"
                         Caption = 'Folder';
                         ToolTip = 'Specifies the email folder that the agent monitors. You need permission to the mailbox to activate the agent.';
                         Editable = false;
-                        ShowMandatory = true;
 
                         trigger OnAssistEdit()
                         begin
                             OnAssistEditMailboxFolder();
                         end;
 
-                    }
-                    field(LastSync; LastSync)
-                    {
-                        Caption = 'Last sync';
-                        ToolTip = 'Specifies the date and time of the last sync with the mailbox.';
-                        Editable = false;
-                        Visible = ShowLastSync;
                     }
                 }
                 group(QuickTryAgentTask)
@@ -153,7 +158,7 @@ page 4400 "SOA Setup"
                 group(BillingInformationFirstSetup)
                 {
                     Visible = FirstConfig;
-                    InstructionalText = 'By enabling the Sales Order Agent, you understand your organization may be billed for its use.';
+                    InstructionalText = 'By activating the agent, you understand your organization may be billed for its use.';
                     Caption = 'Important';
                     field(LearnMoreBilling; LearnMoreTxt)
                     {
@@ -168,7 +173,7 @@ page 4400 "SOA Setup"
                 group(BillingInformationSecondSetup)
                 {
                     Visible = not FirstConfig;
-                    InstructionalText = 'Your organization may be billed for use of the Sales Order Agent';
+                    InstructionalText = 'Your organization may be billed for use of the agent';
                     Caption = 'Important';
 
                     field(LearnMoreBillingSecondSetup; LearnMoreTxt)
@@ -337,7 +342,7 @@ page 4400 "SOA Setup"
                             end;
                         }
                     }
-                    group(MarkAsReadGrp)
+                    group(MarkEmailAsReadGrp)
                     {
                         Caption = 'Mark email as read';
                         InstructionalText = 'Mark emails as read after the agent processes them.';
@@ -354,11 +359,20 @@ page 4400 "SOA Setup"
                             end;
                         }
                     }
+
+                    field(LastSync; LastSync)
+                    {
+                        Caption = 'Last sync';
+                        ToolTip = 'Specifies the date and time of the last sync with the mailbox.';
+                        Editable = false;
+                        Visible = ShowLastSync;
+                    }
                 }
+
                 group(ProcessingLimits)
                 {
-                    Caption = 'Processing Limits';
-                    InstructionalText = 'Process up to this many incoming emails per day. Display an alert when the limit is reached.';
+                    Caption = 'Processing limits';
+                    InstructionalText = 'Display an alert when the incoming email limit is reached.';
 
                     field(DailyEmailLimit; DailyEmailLimit)
                     {
@@ -433,24 +447,41 @@ page 4400 "SOA Setup"
 
     trigger OnOpenPage()
     var
+        AgentRec: Record Agent;
+        SOASetupRec: Record "SOA Setup";
         FeatureTelemetry: Codeunit "Feature Telemetry";
         SOASetupCU: Codeunit "SOA Setup";
         UserSecurityIDFilter: Text;
+        UserName: Text[50];
         UserSecurityID: Guid;
     begin
         if not AzureOpenAI.IsEnabled(Enum::"Copilot Capability"::"Sales Order Agent") then
             Error('');
 
+        NoFolderInboxWarningThreshold := 5;
         IsConfigUpdated := false;
         FirstConfig := IsFirstConfig();
         UserSecurityIDFilter := Rec.GetFilter("User Security ID");
         if not Evaluate(UserSecurityID, UserSecurityIDFilter) then
             Clear(UserSecurityID);
 
+        if not IsNullGuid(UserSecurityID) then
+            if SOASetupRec.GetBasedOnAgentUserSecurityID(UserSecurityID, false) then begin
+                Rec."Agent Name" := SOASetupRec."Agent Name";
+                Rec."Agent Initials" := SOASetupRec."Agent Initials";
+            end;
+
+        if not IsNullGuid(UserSecurityID) then
+            if AgentRec.Get(UserSecurityID) then
+                UserName := AgentRec."User Name";
+
+        if UserName = '' then
+            UserName := SOASetupCU.GetSOAUsername();
+
         CurrPage.AgentSetupPart.Page.Initialize(UserSecurityID,
            "Agent Metadata Provider"::"SO Agent",
-           SOASetupCU.GetSOAUsername(),
-           SOASetupCU.GetSOAUserDisplayName(),
+           UserName,
+           SOASetupCU.GetSOAUserDisplayName(Rec."Agent Name"),
            SOASetupCU.GetAgentSummary());
         UpdateAgentSetupBuffer();
 
@@ -477,10 +508,10 @@ page 4400 "SOA Setup"
     var
         SOASetupCU: Codeunit "SOA Setup";
         SOASessionEvents: Codeunit "SOA Session Events";
+        InboxCount: Integer;
+        StartDate: Date;
         ReadyToActivateLbl: Label 'Ready to activate the sales order agent?\\The Copilot agent will run now and until you deactivate it.';
-        ActivateWithoutMailboxLbl: Label 'There is no mailbox selected for the agent to monitor. Are you sure you want to continue? ';
         ActivateWithoutMailboxNameErr: Label 'To activate the agent with the current settings, a mailbox must be selected first.';
-        ActivateWithoutMailboxFolderErr: Label 'To activate the agent with the current settings, a mailbox folder must be selected first.';
         ActivateWithoutMonitoringLbl: Label 'The monitoring of email is not enabled. Are you sure you want to continue?';
         DeactivateWarningLbl: Label 'If you deactivate the agent, you won''t be able to reactivate it because you don''t have permission to the current mail account (activated by %1). Are you sure you want continue?', Comment = '%1=Username of user who activated the agent.';
     begin
@@ -493,20 +524,22 @@ page 4400 "SOA Setup"
             if CheckIsValidConfig() then begin
                 SOASessionEvents.BindUserEvents();
                 SOASetupCU.ValidateEmailConnection(StateChanged(), Rec);
+
+                if Rec."Email Monitoring" and (MailboxName <> '') and (MailboxFolder = '') and (Rec."Activated At" = 0DT) then begin
+                    InboxCount := SOASetupCU.GetInboxEmailCount(Rec);
+                    if InboxCount > NoFolderInboxWarningThreshold then begin
+                        StartDate := Today();
+                        if not Confirm(NoFolderSelectedInboxWarningQst, true, Format(InboxCount), Format(StartDate)) then
+                            exit(false);
+                    end;
+                end;
             end
             else begin
                 SOASessionEvents.BindUserEvents();
-                if Rec."Incoming Monitoring" and Rec."Email Monitoring" and (MailboxName = '') then
+                if Rec."Email Monitoring" and (MailboxName = '') then
                     Error(ActivateWithoutMailboxNameErr);
 
-                if Rec."Incoming Monitoring" and Rec."Email Monitoring" and (MailboxName <> '') and (MailboxFolder = '') then
-                    Error(ActivateWithoutMailboxFolderErr);
-
-                if Rec."Incoming Monitoring" and not Rec."Email Monitoring" then
-                    if not Confirm(ActivateWithoutMailboxLbl) then
-                        exit(false);
-
-                if not CreateTrialTask and not Rec."Incoming Monitoring" then
+                if not CreateTrialTask and not Rec."Email Monitoring" then
                     if not Confirm(ActivateWithoutMonitoringLbl) then
                         exit(false);
             end;
@@ -520,6 +553,8 @@ page 4400 "SOA Setup"
 
         if StateChanged() then
             SOASetupCU.UpdateSOASetupActivationDT(Rec);
+
+        SOASetupCU.ValidateAgentIdentity(Rec);
 
         SOASetupCU.UpdateAgent(TempAgentSetupBuffer, Rec, ShouldScheduleTask());
         exit(true);
@@ -599,7 +634,7 @@ page 4400 "SOA Setup"
 
     local procedure CheckIsValidConfig(): Boolean
     begin
-        exit(Rec."Incoming Monitoring" and Rec."Email Monitoring" and (MailboxName <> '') and (MailboxFolder <> ''));
+        exit(Rec."Email Monitoring" and (MailboxName <> ''));
     end;
 
     local procedure IsFirstConfig(): Boolean
@@ -641,6 +676,7 @@ page 4400 "SOA Setup"
         end;
 
         EmailFolders.LookupMode(true);
+
         EmailFolders.SetEmailAccount(Rec."Email Account ID", Rec."Email Connector");
         if EmailFolders.RunModal() = Action::LookupOK then begin
             EmailFolders.GetRecord(TempEmailFolder);
@@ -653,6 +689,7 @@ page 4400 "SOA Setup"
 
     local procedure OnAssistEditMailbox()
     var
+        SOASetupCU: Codeunit "SOA Setup";
         EmailAccounts: Page "Email Accounts";
     begin
         if not CheckMailboxExists() then
@@ -669,6 +706,7 @@ page 4400 "SOA Setup"
             Rec."Email Account ID" := TempEmailAccount."Account Id";
             Rec."Email Connector" := TempEmailAccount.Connector;
             Rec."Email Address" := TempEmailAccount."Email Address";
+            SOASetupCU.CheckMailboxUnique(Rec);
         end;
 
         if MailboxName <> Rec."Email Address" then begin
@@ -712,6 +750,7 @@ page 4400 "SOA Setup"
         OnlyAvailableItemsActive: Boolean;
         MailboxChanged: Boolean;
         DailyEmailLimit: Integer;
+        NoFolderInboxWarningThreshold: Integer;
         LearnMoreTxt: Label 'Learn more';
         LearnMoreBillingDocumentationLinkTxt: Label 'https://go.microsoft.com/fwlink/?linkid=2333517';
         DailyEmailLimitErr: Label 'The daily email limit must be greater than zero.';
@@ -721,4 +760,5 @@ page 4400 "SOA Setup"
         SOACreateTaskLbl: Label 'Create task for the agent';
         EnableAgentForTaskQst: Label 'Trying out the agent will activate it and turn off incoming email monitoring immediately.\\Do you want to continue?';
         IsConfigUpdated: Boolean;
+        NoFolderSelectedInboxWarningQst: Label 'There is no mail folder selected, so the agent will process emails from the inbox (%1 emails since %2). Do you want to continue?', Comment = '%1=email count, %2=start date';
 }

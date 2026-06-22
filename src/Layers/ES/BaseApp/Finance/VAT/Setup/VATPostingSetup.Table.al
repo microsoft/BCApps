@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.VAT.Setup;
 
-using Microsoft.EServices.EDocument;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Setup;
@@ -64,7 +63,6 @@ table 325 "VAT Posting Setup"
                 CheckZeroVATRateForNoTaxableVAT("VAT+EC %", FieldCaption("VAT+EC %"));
                 if "VAT Calculation Type" <> "VAT Calculation Type"::"No Taxable VAT" then
                     "No Taxable Type" := "No Taxable Type"::" ";
-                "One Stop Shop Reporting" := false;
             end;
         }
         /// <summary>
@@ -258,11 +256,6 @@ table 325 "VAT Posting Setup"
             Caption = 'VAT Clause Code';
             ToolTip = 'Specifies the VAT Clause Code that is associated with the VAT Posting Setup.';
             TableRelation = "VAT Clause";
-
-            trigger OnValidate()
-            begin
-                CheckSalesSpecialSchemeCode();
-            end;
         }
         /// <summary>
         /// Indicates whether a Certificate of Supply is required for this VAT posting setup combination.
@@ -420,33 +413,6 @@ table 325 "VAT Posting Setup"
                     TestField("VAT Calculation Type", "VAT Calculation Type"::"No Taxable VAT");
             end;
         }
-        field(10707; "Sales Special Scheme Code"; Enum "SII Sales Upload Scheme Code")
-        {
-            Caption = 'Sales Special Scheme Code';
-            trigger OnValidate()
-            begin
-                CheckSalesSpecialSchemeCode();
-                "One Stop Shop Reporting" := false;
-            end;
-        }
-        field(10708; "Purch. Special Scheme Code"; Enum "SII Purch. Upload Scheme Code")
-        {
-            Caption = 'Purch. Special Scheme Code';
-        }
-        field(10709; "Ignore In SII"; Boolean)
-        {
-            Caption = 'Ignore In SII';
-        }
-        field(10780; "One Stop Shop Reporting"; Boolean)
-        {
-            Caption = 'One Stop Shop Reporting';
-
-            trigger OnValidate()
-            begin
-                TestField("VAT Calculation Type", "VAT Calculation Type"::"Normal VAT");
-                TestField("Sales Special Scheme Code", "Sales Special Scheme Code"::"17 Operations Under The One-Stop-Shop Regime");
-            end;
-        }
     }
 
     keys
@@ -496,7 +462,6 @@ table 325 "VAT Posting Setup"
 #pragma warning restore AA0074
         YouCannotDeleteOrModifyErr: Label 'You cannot modify or delete VAT posting setup %1 %2 as it has been used to generate GL entries. Changing the setup now can cause inconsistencies in your financial data.', Comment = '%1 = "VAT Bus. Posting Group"; %2 = "VAT Prod. Posting Group"';
         VATPostingSetupHasVATEntriesErr: Label 'You cannot change the VAT posting setup because it has been used to generate VAT entries. Changing the setup now can cause inconsistencies in your financial data.';
-        InconsitencyOfRegimeCodeAndVATClauseErr: Label 'If the sales special scheme code is 01 General, the SII exemption code of the VAT clause must not be equal to E2 or E3.';
         NoTaxableSetupErr: Label 'The %1 for VAT Calculation Type = No Taxable VAT must be 0.', Comment = '%1 = VAT or EC percent.';
         NoAccountSuggestedMsg: Label 'Cannot suggest G/L accounts as there is nothing to base suggestion on.';
 
@@ -771,25 +736,6 @@ table 325 "VAT Posting Setup"
         exit(
           ("VAT Calculation Type" = "VAT Calculation Type"::"Normal VAT") and
           ("No Taxable Type" <> "No Taxable Type"::" "));
-    end;
-
-    local procedure CheckSalesSpecialSchemeCode()
-    var
-        VATClause: Record "VAT Clause";
-    begin
-        if "Sales Special Scheme Code" = "Sales Special Scheme Code"::" " then
-            exit;
-
-        if "VAT Clause Code" = '' then
-            exit;
-
-        VATClause.Get("VAT Clause Code");
-        if (VATClause."SII Exemption Code" in
-            [VATClause."SII Exemption Code"::"E2 Exempt on account of Article 21",
-             VATClause."SII Exemption Code"::"E3 Exempt on account of Article 22"]) and
-           ("Sales Special Scheme Code" = "Sales Special Scheme Code"::"01 General")
-        then
-            Error(InconsitencyOfRegimeCodeAndVATClauseErr);
     end;
 
     local procedure CheckZeroVATRateForNoTaxableVAT(VATPct: Decimal; FromFieldName: Text)

@@ -143,7 +143,6 @@ page 9020 "Small Business Owner RC"
                 Caption = 'S&tatement';
                 Image = "Report";
                 RunObject = Report "Customer Statement";
-                ToolTip = 'View all entries for selected customers for a selected period. You can choose to have all overdue balances displayed, regardless of the period specified. You can also choose to include an aging band. For each currency, the report displays open entries and, if specified in the report, overdue entries. The statement can be sent to customers, for example, at the close of an accounting period or as a reminder of overdue balances.';
             }
             separator(Action61)
             {
@@ -1110,7 +1109,6 @@ page 9020 "Small Business Owner RC"
                 Caption = 'Adjust &Item Costs/Prices';
                 Image = AdjustItemCost;
                 RunObject = Report "Adjust Item Costs/Prices";
-                ToolTip = 'Adjusts the Last Direct Cost, Standard Cost, Unit Price, Profit %, and Indirect Cost % fields on the item or stockkeeping unit cards. For example, you can change Last Direct Cost by 5% on all items from a specific vendor. The changes are processed immediately when the batch job is started. The fields on the item card that are dependent on the adjusted field are also changed.';
             }
             action("Adjust &Cost - Item Entries")
             {
@@ -1118,7 +1116,6 @@ page 9020 "Small Business Owner RC"
                 Caption = 'Adjust &Cost - Item Entries';
                 Image = AdjustEntries;
                 RunObject = Report "Adjust Cost - Item Entries";
-                ToolTip = 'Adjust inventory values in value entries so that you use the correct adjusted cost for updating the general ledger and so that sales and profit statistics are up to date.';
             }
             action("Post Inve&ntory Cost to G/L")
             {
@@ -1127,7 +1124,6 @@ page 9020 "Small Business Owner RC"
                 Ellipsis = true;
                 Image = PostInventoryToGL;
                 RunObject = Report "Post Inventory Cost to G/L";
-                ToolTip = 'Post the quantity and value changes to the inventory in the item ledger entries and the value entries when you post inventory transactions, such as sales shipments or purchase receipts.';
             }
             action("Calc. and Post VAT Settlem&ent")
             {

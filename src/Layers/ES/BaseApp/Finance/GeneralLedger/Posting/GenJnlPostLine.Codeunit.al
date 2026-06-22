@@ -842,8 +842,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
                 VATEntry."Delivery Operation Code" := VATProductPostingGroup."Delivery Operation Code";
         GetSellToBuyFrom(GenJnlLine, VATEntry);
         VATEntry."No Taxable Type" := VATPostingSetup."No Taxable Type";
-        VATEntry."Ignore In SII" := VATPostingSetup."Ignore In SII";
-        VATEntry."One Stop Shop Reporting" := VATPostingSetup."One Stop Shop Reporting";
+        OnInsertVATOnAfterCopyVATPostingSetupFields(VATPostingSetup, VATEntry);
 
         if GenJnlLine."VAT Difference" = 0 then
             VATDifferenceLCY := 0
@@ -11381,6 +11380,11 @@ codeunit 12 "Gen. Jnl.-Post Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnInsertVATOnAfterAssignVATEntryFields(GenJnlLine: Record "Gen. Journal Line"; var VATEntry: Record "VAT Entry"; CurrExchRate: Record "Currency Exchange Rate")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnInsertVATOnAfterCopyVATPostingSetupFields(var VATPostingSetup: Record "VAT Posting Setup"; var VATEntry: Record "VAT Entry")
     begin
     end;
 

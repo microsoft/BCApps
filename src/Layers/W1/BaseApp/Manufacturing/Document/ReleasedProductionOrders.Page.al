@@ -339,7 +339,6 @@ page 9326 "Released Production Orders"
                 //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                 //PromotedCategory = "Report";
                 RunObject = Report "Prod. Order - Detailed Calc.";
-                ToolTip = 'View a list of the production orders. This list contains the expected costs and the quantity per production order or per operation of a production order.';
             }
             action("Prod. Order - Precalc. Time")
             {
@@ -349,7 +348,6 @@ page 9326 "Released Production Orders"
                 //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                 //PromotedCategory = "Report";
                 RunObject = Report "Prod. Order - Precalc. Time";
-                ToolTip = 'View a list of information about capacity requirement, starting and ending time, etc. per operation, per production order, or per production order line.';
             }
             action("Production Order - Comp. and Routing")
             {
@@ -388,7 +386,6 @@ page 9326 "Released Production Orders"
                 //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                 //PromotedCategory = "Report";
                 RunObject = Report "Prod. Order - Picking List";
-                ToolTip = 'View a detailed list of items that must be picked for a particular production order, from which location (and bin, if the location uses bins) they must be picked, and when the items are due for production.';
             }
             action(ProdOrderMaterialRequisition)
             {
@@ -408,7 +405,6 @@ page 9326 "Released Production Orders"
                 Caption = 'Production Order - List';
                 Image = "Report";
                 RunObject = Report "Prod. Order - List";
-                ToolTip = 'View a list of the production orders contained in the system. Information such as order number, number of the item to be produced, starting/ending date and other data are shown or printed.';
             }
             action(ProdOrderShortageList)
             {

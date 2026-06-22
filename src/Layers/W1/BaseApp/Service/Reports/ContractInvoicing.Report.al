@@ -14,6 +14,7 @@ report 5984 "Contract Invoicing"
     DefaultLayout = RDLC;
     RDLCLayout = './Service/Reports/ContractInvoicing.rdlc';
     Caption = 'Contract Invoicing - Test';
+    ToolTip = 'Specifies billable profits for the project task that are related to G/L accounts.';
 
     dataset
     {

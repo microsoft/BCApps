@@ -1,6 +1,6 @@
 {
   "id": "2363a2b7-1018-4976-a32a-c77338dc9f16",
-  "name": "Business Central 14 Reimplementation Tool",
+  "name": "Dynamics 365 Business Central v14 Reimplementation",
   "publisher": "Microsoft",
   "version": "29.0.0.0",
   "brief": "Migrate data from Business Central 14 on-premises to Business Central online",

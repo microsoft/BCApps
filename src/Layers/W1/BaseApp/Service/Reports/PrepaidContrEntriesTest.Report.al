@@ -13,6 +13,7 @@ report 5986 "Prepaid Contr. Entries - Test"
     DefaultLayout = RDLC;
     RDLCLayout = './Service/Reports/PrepaidContrEntriesTest.rdlc';
     Caption = 'Prepaid Contr. Entries - Test';
+    ToolTip = 'View the prepaid service contract.';
 
     dataset
     {

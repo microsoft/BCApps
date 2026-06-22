@@ -55,7 +55,6 @@ page 36603 "Credit & Collections Mgr. RC"
             {
                 Caption = 'Customer Balance to Date';
                 RunObject = Report "Customer - Balance to Date";
-                ToolTip = 'View a detailed balance for selected customers. The report can, for example, be used at the close of an accounting period or fiscal year.';
             }
             action("Aged Accounts Receivable")
             {

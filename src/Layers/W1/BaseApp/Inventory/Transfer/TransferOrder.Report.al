@@ -12,6 +12,7 @@ using System.Utilities;
 report 5703 "Transfer Order"
 {
     Caption = 'Transfer Order';
+    ToolTip = 'Prepare to transfer items to another location.';
     WordMergeDataItem = "Transfer Header";
     DefaultRenderingLayout = RDLCLayout;
 

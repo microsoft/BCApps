@@ -201,10 +201,6 @@ table 10740 "No Taxable Entry"
         {
             Caption = 'VAT Date';
         }
-        field(10708; "Ignore In SII"; Boolean)
-        {
-            Caption = 'Ignore In SII';
-        }
     }
 
     keys
@@ -403,11 +399,11 @@ table 10740 "No Taxable Entry"
         SetRange("VAT Calculation Type", NoTaxableEntry."VAT Calculation Type");
         SetRange("EU Service", NoTaxableEntry."EU Service");
         SetRange("Not In 347", NoTaxableEntry."Not In 347");
-        SetRange("Ignore In SII", NoTaxableEntry."Ignore In SII");
         SetRange("No Taxable Type", NoTaxableEntry."No Taxable Type");
         SetRange("Delivery Operation Code", NoTaxableEntry."Delivery Operation Code");
         SetRange("VAT Bus. Posting Group", NoTaxableEntry."VAT Bus. Posting Group");
         SetRange("VAT Prod. Posting Group", NoTaxableEntry."VAT Prod. Posting Group");
+        OnUpdateOnAfterSetFilters(Rec, NoTaxableEntry);
         if FindFirst() then begin
             Base += NoTaxableEntry.Base;
             "Base (LCY)" += NoTaxableEntry."Base (LCY)";
@@ -463,6 +459,11 @@ table 10740 "No Taxable Entry"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterInitFromVendorEntry(var NoTaxableEntry: Record "No Taxable Entry"; VendorLedgerEntry: Record "Vendor Ledger Entry")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnUpdateOnAfterSetFilters(var Rec: Record "No Taxable Entry"; NoTaxableEntry: Record "No Taxable Entry")
     begin
     end;
 }

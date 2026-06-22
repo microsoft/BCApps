@@ -88,7 +88,6 @@ page 99000920 "Registered Absences"
                 Caption = 'Implement Registered Absence';
                 Image = ImplementRegAbsence;
                 RunObject = Report "Implement Registered Absence";
-                ToolTip = 'Implement the absence entries that you have made in the Reg. Abs. (from Machine Ctr.), Reg. Abs. (from Work Center), and Capacity Absence windows.';
             }
             action("Reg. Abs. (from Machine Ctr.)")
             {
@@ -96,7 +95,6 @@ page 99000920 "Registered Absences"
                 Caption = 'Reg. Abs. (from Machine Ctr.)';
                 Image = CalendarMachine;
                 RunObject = Report "Reg. Abs. (from Machine Ctr.)";
-                ToolTip = 'Register planned absences at a machine center. The planned absence can be registered for both human and machine resources. You can register changes in the available resources in the Registered Absence table. When the batch job has been completed, you can see the result in the Registered Absences window.';
             }
             action("Reg. Abs. (from Work Ctr.)")
             {
@@ -104,7 +102,6 @@ page 99000920 "Registered Absences"
                 Caption = 'Reg. Abs. (from Work Ctr.)';
                 Image = CalendarWorkcenter;
                 RunObject = Report "Reg. Abs. (from Work Center)";
-                ToolTip = 'Register planned absences at a machine center. The planned absence can be registered for both human and machine resources. You can register changes in the available resources in the Registered Absence table. When the batch job has been completed, you can see the result in the Registered Absences window.';
             }
         }
         area(Promoted)

@@ -9,6 +9,7 @@ using System.Utilities;
 report 7399 "Delete Empty Whse. Registers"
 {
     Caption = 'Delete Empty Whse. Registers';
+    ToolTip = 'Find and delete empty warehouse registers.';
     Permissions = TableData "Warehouse Register" = rimd;
     ProcessingOnly = true;
 

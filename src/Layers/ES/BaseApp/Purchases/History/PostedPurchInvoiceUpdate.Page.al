@@ -155,8 +155,8 @@ page 1351 "Posted Purch. Invoice - Update"
 
     var
         xPurchInvHeader: Record "Purch. Inv. Header";
-        OperationDescription: Text[500];
         GLSetup: Record "General Ledger Setup";
+        OperationDescription: Text[500];
         IsPaymentMethodCodeVisible: Boolean;
 
     local procedure RecordChanged() IsChanged: Boolean

@@ -12,6 +12,7 @@ report 5937 "Service Items Out of Warranty"
     RDLCLayout = './Service/Reports/ServiceItemsOutofWarranty.rdlc';
     ApplicationArea = Service;
     Caption = 'Service Items Out of Warranty';
+    ToolTip = 'View information about warranty end dates, serial numbers, number of active contracts, items description, and names of customers. You can print a list of service items that are out of warranty.';
     UsageCategory = ReportsAndAnalysis;
 
     dataset

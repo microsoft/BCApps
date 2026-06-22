@@ -16,6 +16,7 @@ report 5971 "Service Contract-Detail"
     DefaultLayout = RDLC;
     RDLCLayout = './Service/Reports/ServiceContractDetail.rdlc';
     Caption = 'Service Contract-Detail';
+    ToolTip = 'View detailed information for the service contract.';
     WordMergeDataItem = "Service Contract Header";
 
     dataset

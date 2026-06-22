@@ -325,7 +325,6 @@ page 7377 "Inventory Pick"
                 //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                 //PromotedCategory = "Report";
                 RunObject = Report "Picking List";
-                ToolTip = 'View or print a detailed list of items that must be picked.';
             }
         }
         area(Promoted)

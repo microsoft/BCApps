@@ -20,6 +20,7 @@ report 299 "Delete Invoiced Sales Orders"
     AccessByPermission = TableData "Sales Header" = RD;
     ApplicationArea = Basic, Suite;
     Caption = 'Delete Invoiced Sales Orders';
+    ToolTip = 'Delete orders that were not automatically deleted after completion. For example, when several sales orders were completed by a single invoice.';
     ProcessingOnly = true;
     UsageCategory = Tasks;
 

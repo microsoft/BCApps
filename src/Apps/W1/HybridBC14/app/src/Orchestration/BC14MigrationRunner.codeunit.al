@@ -86,6 +86,7 @@ codeunit 46875 "BC14 Migration Runner"
         HistoricalAsyncDispatchedLbl: Label 'Historical migration dispatched to background task.', Locked = true;
         HistoricalAlreadyCompletedLbl: Label 'Historical migration already completed. Skipping dispatch.', Locked = true;
         HistoricalAlreadyDispatchedLbl: Label 'Historical migration already dispatched and still running. Skipping duplicate dispatch.', Locked = true;
+        HistoricalDisabledLbl: Label 'Historical record migration is disabled for this company. Marking Historical phase complete without dispatching.', Locked = true;
         UnexpectedPhaseLbl: Label 'Unexpected migration phase encountered: %1', Locked = true, Comment = '%1 = Phase';
         MigrationAlreadyCompletedLbl: Label 'RunMigrationFromPhase called with Completed phase. Migration already completed, skipping.', Locked = true;
         MigrationFinalizedLbl: Label 'Both Posting and Historical done. Migration finalized as Completed.', Locked = true;
@@ -189,7 +190,6 @@ codeunit 46875 "BC14 Migration Runner"
         BC14StatusMgr.AcquireRerunSlot(TargetCompanyName);
         BC14CompanySettings.PrepareMainForRerun(TargetCompanyName);
         BC14CompanySettings.PrepareHistoricalForRerun(TargetCompanyName);
-
 
         // Refuse to schedule a rerun without a Summary — the FailureHandler would otherwise
         // be unable to set Summary=UpgradeFailed if the rerun task crashes. Pulling the
@@ -391,12 +391,10 @@ codeunit 46875 "BC14 Migration Runner"
         Success: Boolean;
         MigratorSuccess: Boolean;
         SkipMigrator: Boolean;
-        StopOnFirstError: Boolean;
         EnabledMigratorCount: Integer;
     begin
         Success := true;
         BC14CompanySettings.GetSingleInstance();
-        StopOnFirstError := BC14CompanySettings.GetStopOnFirstTransformationError();
         EnabledMigratorCount := CountEnabledMigrators(Migrators);
         BC14CompanySettings.InitCurrentPhaseProgress(EnabledMigratorCount);
         foreach Migrator in Migrators do
@@ -422,12 +420,7 @@ codeunit 46875 "BC14 Migration Runner"
 
                 if not MigratorSuccess then begin
                     Success := false;
-                    // Honor Stop-On-First-Error at the migrator boundary. The per-record loop
-                    // (BC14MigrationLoop) already breaks inside a single migrator when this flag
-                    // is set; without this check the next migrator in the phase would still run,
-                    // contradicting the user's setting and producing partial data.
-                    if StopOnFirstError then
-                        break;
+                    break;
                 end;
             end;
 
@@ -618,6 +611,17 @@ codeunit 46875 "BC14 Migration Runner"
         BC14CompanySettings.GetSingleInstance();
         if BC14CompanySettings."Historical Completed" then begin
             Session.LogMessage('0000TUZ', HistoricalAlreadyCompletedLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14Telemetry.GetCategory());
+            exit;
+        end;
+
+        if not BC14CompanySettings."Migrate Historical Records" then begin
+            // Historical migration is opted out for this company. Mark it completed so the
+            // IsReadyToFinalize gate can advance the company to Completed without spinning
+            // up the worker.
+            BC14CompanySettings.SetHistoricalCompleted();
+            Commit();
+            Session.LogMessage('0000TV2', HistoricalDisabledLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14Telemetry.GetCategory());
+            TryFinalizeCompanyMigration();
             exit;
         end;
 

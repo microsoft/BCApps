@@ -560,7 +560,6 @@ page 9304 "Sales Return Order List"
                     Caption = 'Delete Invoiced Orders';
                     Image = Delete;
                     RunObject = Report "Delete Invd Sales Ret. Orders";
-                    ToolTip = 'Delete orders that were not automatically deleted after completion. For example, when several sales orders were completed by a single invoice.';
                 }
             }
             group("Request Approval")

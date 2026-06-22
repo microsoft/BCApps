@@ -6,8 +6,6 @@
 #pragma warning disable AS0007
 namespace Microsoft.Agent.SalesOrderAgent;
 
-using System.Agents;
-
 table 4593 "SOA KPI"
 {
     DataClassification = CustomerContent;
@@ -16,14 +14,21 @@ table 4593 "SOA KPI"
     InherentPermissions = RIMDX;
     ReplicateData = false;
     Caption = 'Sales Order Agent';
-    Permissions = tabledata "SOA Setup" = r, tabledata "Agent Task" = r, tabledata "Agent Task Message" = r;
+#if not CLEAN29
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Replaced by table SOA KPI Summary for multi-agent KPI tracking.';
+    ObsoleteTag = '29.0';
+#else
+    ObsoleteState = Removed;
+    ObsoleteReason = 'Replaced by table SOA KPI Summary for multi-agent KPI tracking.';
+    ObsoleteTag = '29.0';
+#endif
 
     fields
     {
         field(1; "Primary Key"; Code[10])
         {
             Caption = 'Primary Key';
-            ToolTip = 'Specifies the primary key. This value should be a blank code as the table is a singleton table.';
         }
         field(2; "Received Emails"; Integer)
         {
@@ -71,110 +76,4 @@ table 4593 "SOA KPI"
             Clustered = true;
         }
     }
-
-    internal procedure GetSafe()
-    var
-        UserSecurityIDFilter: Text;
-    begin
-        Rec.ReadIsolation := IsolationLevel::ReadCommitted;
-        if not Rec.Get() then
-            Rec.Insert();
-
-        if IsNullGuid(Rec."User Security ID") then begin
-            UserSecurityIDFilter := Rec.GetFilter("User Security ID");
-            if Evaluate(Rec."User Security ID", UserSecurityIDFilter) then
-                Rec.Modify(false);
-        end;
-    end;
-
-    internal procedure UpdateEntryKPIs(var SOAKPIEntry: Record "SOA KPI Entry"; PreviousAmount: Decimal; InsertedRecord: Boolean)
-    begin
-        Rec.GetSafe();
-        case SOAKPIEntry."Record Type" of
-            SOAKPIEntry."Record Type"::"Sales Order":
-                begin
-                    if InsertedRecord then begin
-                        Rec."Total Orders Created" += 1;
-                        Rec."Total Amount Orders" += SOAKPIEntry."Amount Including Tax";
-                        Rec.Modify();
-                        exit;
-                    end;
-
-                    if SOAKPIEntry."Amount Including Tax" > PreviousAmount then begin
-                        Rec."Total Amount Orders" += SOAKPIEntry."Amount Including Tax" - PreviousAmount;
-                        Rec.Modify();
-                    end;
-                    exit;
-                end;
-            SOAKPIEntry."Record Type"::"Sales Quote":
-                if InsertedRecord then begin
-                    Rec."Total Quotes Created" += 1;
-                    Rec.Modify();
-                    exit;
-                end;
-        end;
-    end;
-
-    internal procedure UpdateEmailKPIs(var AgentSecurityID: Guid)
-    begin
-        UpdateEmailKPIs(AgentSecurityID, true);
-    end;
-
-    internal procedure UpdateEmailKPIs(var AgentSecurityID: Guid; UseRefreshInterval: Boolean)
-    var
-        SOASetup: Record "SOA Setup";
-        AgentTask: Record "Agent Task";
-        AgentTaskMessage: Record "Agent Task Message";
-        BlankUpdatedDateTime: DateTime;
-        UpdateDateTime: DateTime;
-    begin
-        if IsNullGuid(AgentSecurityID) then
-            exit;
-
-        SOASetup.SetRange("User Security ID", AgentSecurityID);
-        if SOASetup.IsEmpty() then
-            exit;
-
-        Clear(BlankUpdatedDateTime);
-        Rec.GetSafe();
-
-        if UseRefreshInterval then
-            if Rec."Last Updated DateTime" <> BlankUpdatedDateTime then
-                if CurrentDateTime() - Rec."Last Updated DateTime" < RefreshKPIsInterval() then
-                    exit;
-
-        UpdateDateTime := CurrentDateTime;
-
-        AgentTask.SetRange("Agent User Security ID", AgentSecurityID);
-        AgentTask.ReadIsolation := IsolationLevel::ReadCommitted;
-        AgentTaskMessage.ReadIsolation := IsolationLevel::ReadCommitted;
-        if AgentTask.FindSet() then
-            repeat
-                AgentTaskMessage.SetRange("Task ID", AgentTask.ID);
-                AgentTaskMessage.SetRange(Type);
-                if Rec."Last Updated DateTime" <> BlankUpdatedDateTime then
-                    AgentTaskMessage.SetFilter(SystemCreatedAt, '>=%1', Rec."Last Updated DateTime");
-
-                Rec."Total Emails" += AgentTaskMessage.Count;
-                AgentTaskMessage.SetRange(Type, AgentTaskMessage.Type::Input);
-                Rec."Received Emails" += AgentTaskMessage.Count;
-            until AgentTask.Next() = 0;
-
-        Rec."Last Updated DateTime" := UpdateDateTime;
-        Rec.Modify();
-    end;
-
-    local procedure RefreshKPIsInterval(): Integer
-    begin
-        if not Rec.Get() then
-            exit(1000); // 1 seconds
-
-        if Rec."Received Emails" < 50 then
-            exit(1000); // 1 seconds
-
-        if Rec."Received Emails" < 100 then
-            exit(60000); // 1 minute
-
-        exit(300000); // 5 minutes
-    end;
 }

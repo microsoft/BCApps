@@ -442,7 +442,7 @@ codeunit 136213 "Marketing Segment"
         LibraryMarketing.CreatePersonContact(Contact);
         Contact.Validate("Phone No.", LibraryUtility.GenerateRandomPhoneNo());
         Contact.Validate("Mobile Phone No.", LibraryUtility.GenerateRandomPhoneNo());
-        Contact.Validate("E-Mail", StrSubstNo('%1@%1', LibraryUtility.GenerateGUID()));
+        Contact.Validate("E-Mail", StrSubstNo('%1@%1.com', LibraryUtility.GenerateGUID()));
         Contact.Modify(true);
 
         // [GIVEN] Segment Line with "Contact No." = "C1"
@@ -482,7 +482,7 @@ codeunit 136213 "Marketing Segment"
         LibraryMarketing.CreateCompanyContact(Contact);
         Contact.Validate("Phone No.", LibraryUtility.GenerateRandomPhoneNo());
         Contact.Validate("Mobile Phone No.", LibraryUtility.GenerateRandomPhoneNo());
-        Contact.Validate("E-Mail", StrSubstNo('%1@%1', LibraryUtility.GenerateGUID()));
+        Contact.Validate("E-Mail", StrSubstNo('%1@%1.com', LibraryUtility.GenerateGUID()));
         Contact.Modify(true);
 
         // [GIVEN] Segment Line with "Contact No." = "C1"

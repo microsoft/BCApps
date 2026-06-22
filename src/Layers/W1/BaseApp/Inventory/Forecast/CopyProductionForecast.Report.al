@@ -10,6 +10,7 @@ using Microsoft.Inventory.Location;
 report 99003803 "Copy Production Forecast"
 {
     Caption = 'Copy Demand Forecast Entries';
+    ToolTip = 'Copy an existing demand forecast to quickly create a similar forecast.';
     ProcessingOnly = true;
 
     dataset

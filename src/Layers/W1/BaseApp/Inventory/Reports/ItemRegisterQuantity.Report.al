@@ -11,6 +11,7 @@ report 703 "Item Register - Quantity"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Item Register - Quantity';
+    ToolTip = 'View one or more selected item registers showing quantity. The report can be used to document a register''s contents for internal or external audits.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

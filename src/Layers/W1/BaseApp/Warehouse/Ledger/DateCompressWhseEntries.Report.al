@@ -13,6 +13,7 @@ using System.Utilities;
 report 7398 "Date Compress Whse. Entries"
 {
     Caption = 'Date Compress Whse. Entries';
+    ToolTip = 'Save database space by combining related entries in one new entry. You can compress entries from closed fiscal years only.';
     Permissions = TableData "Date Compr. Register" = rimd,
                   TableData "Warehouse Entry" = rimd,
                   TableData "Warehouse Register" = rimd;

@@ -15,6 +15,7 @@ report 110 "Customer - Labels"
 {
     ApplicationArea = Suite;
     Caption = 'Customer - Labels';
+    ToolTip = 'View, save, or print mailing labels with the customers'' names and addresses. The report can be used to send sales letters, for example.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

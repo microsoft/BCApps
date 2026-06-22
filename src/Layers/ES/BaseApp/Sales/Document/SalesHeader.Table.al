@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -273,7 +273,6 @@ table 36 "Sales Header"
 
             trigger OnValidate()
             var
-                SIIManagement: Codeunit "SII Management";
                 IsHandled: Boolean;
                 IsHandledDoExist: Boolean;
             begin
@@ -350,8 +349,7 @@ table 36 "Sales Header"
                 if (xRec."Bill-to Customer No." <> '') and (xRec."Bill-to Customer No." <> "Bill-to Customer No.") then
                     Rec.RecallModifyAddressNotification(Rec.GetModifyBillToCustomerAddressNotificationId());
 
-                Validate("ID Type", SIIManagement.GetSalesIDType("Bill-to Customer No.", "Correction Type", "Corrected Invoice No."));
-                SIIManagement.UpdateSIIInfoInSalesDoc(Rec);
+                OnAfterValidateBillToCustomerNoOnSII(Rec);
 
                 if xRec."Bill-to Customer No." <> "Bill-to Customer No." then
                     if not IsNullGuid(Rec.SystemId) then
@@ -3714,96 +3712,17 @@ table 36 "Sales Header"
             trigger OnValidate()
             var
                 SalesInvoiceHeader: Record "Sales Invoice Header";
-                SIIManagement: Codeunit "SII Management";
             begin
                 if "Corrected Invoice No." <> '' then
                     SalesInvoiceHeader.CheckCorrectedDocumentExist("Bill-to Customer No.", "Corrected Invoice No.");
 
-                Validate("ID Type", SIIManagement.GetSalesIDType("Bill-to Customer No.", "Correction Type", "Corrected Invoice No."));
+                OnAfterValidateCorrectedInvoiceNoOnSII(Rec);
             end;
         }
         field(10706; "Due Date Modified"; Boolean)
         {
             Caption = 'Due Date Modified';
             Editable = false;
-        }
-        field(10707; "Invoice Type"; Enum "SII Sales Invoice Type")
-        {
-            Caption = 'Invoice Type';
-            trigger OnValidate()
-            begin
-                SetSIIFirstSummaryDocNo('');
-                SetSIILastSummaryDocNo('');
-            end;
-        }
-        field(10708; "Cr. Memo Type"; Enum "SII Sales Credit Memo Type")
-        {
-            Caption = 'Cr. Memo Type';
-            trigger OnValidate()
-            begin
-                SetSIIFirstSummaryDocNo('');
-                SetSIILastSummaryDocNo('');
-            end;
-        }
-        field(10709; "Special Scheme Code"; Enum "SII Sales Special Scheme Code")
-        {
-            Caption = 'Special Scheme Code';
-
-            trigger OnValidate()
-            var
-                SIISchemeCodeMgt: Codeunit "SII Scheme Code Mgt.";
-            begin
-                SIISchemeCodeMgt.UpdateSalesSpecialSchemeCodeInSalesHeader(Rec, xRec);
-            end;
-        }
-        field(10710; "Operation Description"; Text[250])
-        {
-            Caption = 'Operation Description';
-        }
-        field(10711; "Correction Type"; Option)
-        {
-            Caption = 'Correction Type';
-            OptionCaption = ' ,Replacement,Difference,Removal';
-            OptionMembers = " ",Replacement,Difference,Removal;
-
-            trigger OnValidate()
-            var
-                SIIManagement: Codeunit "SII Management";
-            begin
-                Validate("ID Type", SIIManagement.GetSalesIDType("Bill-to Customer No.", "Correction Type", "Corrected Invoice No."));
-            end;
-        }
-        field(10712; "Operation Description 2"; Text[250])
-        {
-            Caption = 'Operation Description 2';
-        }
-        field(10720; "Succeeded Company Name"; Text[250])
-        {
-            Caption = 'Succeeded Company Name';
-        }
-        field(10721; "Succeeded VAT Registration No."; Text[20])
-        {
-            Caption = 'Succeeded VAT Registration No.';
-        }
-        field(10722; "ID Type"; Enum "SII ID Type")
-        {
-            Caption = 'ID Type';
-        }
-        field(10724; "Do Not Send To SII"; Boolean)
-        {
-            Caption = 'Do Not Send To SII';
-        }
-        field(10725; "Issued By Third Party"; Boolean)
-        {
-            Caption = 'Issued By Third Party';
-        }
-        field(10726; "SII First Summary Doc. No."; Blob)
-        {
-            Caption = 'First Summary Doc. No.';
-        }
-        field(10727; "SII Last Summary Doc. No."; Blob)
-        {
-            Caption = 'Last Summary Doc. No.';
         }
         field(7000000; "Applies-to Bill No."; Code[20])
         {
@@ -4170,58 +4089,9 @@ table 36 "Sales Header"
         InitRecord();
     end;
 
-    procedure GetSIIFirstSummaryDocNo(): Text
-    var
-        InStreamObj: InStream;
-        SIISummaryDocNoText: Text;
-    begin
-        CalcFields("SII First Summary Doc. No.");
-        "SII First Summary Doc. No.".CreateInStream(InStreamObj, TextEncoding::UTF8);
-        InStreamObj.ReadText(SIISummaryDocNoText);
-        exit(SIISummaryDocNoText);
-    end;
-
-    procedure GetSIILastSummaryDocNo(): Text
-    var
-        InStreamObj: InStream;
-        SIISummaryDocNoText: Text;
-    begin
-        CalcFields("SII Last Summary Doc. No.");
-        "SII Last Summary Doc. No.".CreateInStream(InStreamObj, TextEncoding::UTF8);
-        InStreamObj.ReadText(SIISummaryDocNoText);
-        exit(SIISummaryDocNoText);
-    end;
-
-    procedure SetSIIFirstSummaryDocNo(SIISummaryDocNoText: Text)
-    var
-        OutStreamObj: OutStream;
-    begin
-        if SIISummaryDocNoText <> '' then
-            if "Document Type" in ["Document Type"::Invoice, "Document Type"::Order] then
-                TestField("Invoice Type", "Invoice Type"::"F4 Invoice summary entry")
-            else
-                TestField("Cr. Memo Type", "Cr. Memo Type"::"F4 Invoice summary entry");
-
-        Clear("SII First Summary Doc. No.");
-        "SII First Summary Doc. No.".CreateOutStream(OutStreamObj, TextEncoding::UTF8);
-        OutStreamObj.WriteText(SIISummaryDocNoText);
-    end;
-
-    procedure SetSIILastSummaryDocNo(SIISummaryDocNoText: Text)
-    var
-        OutStreamObj: OutStream;
-    begin
-        if SIISummaryDocNoText <> '' then
-            if "Document Type" in ["Document Type"::Invoice, "Document Type"::Order] then
-                TestField("Invoice Type", "Invoice Type"::"F4 Invoice summary entry")
-            else
-                TestField("Cr. Memo Type", "Cr. Memo Type"::"F4 Invoice summary entry");
 
 
-        Clear("SII Last Summary Doc. No.");
-        "SII Last Summary Doc. No.".CreateOutStream(OutStreamObj, TextEncoding::UTF8);
-        OutStreamObj.WriteText(SIISummaryDocNoText);
-    end;
+
 
     /// <summary>
     /// Initializes a new sales header with default values.
@@ -4230,7 +4100,6 @@ table 36 "Sales Header"
     var
         ShipToAddress: Record "Ship-to Address";
         ArchiveManagement: Codeunit ArchiveManagement;
-        SIIManagement: Codeunit "SII Management";
         LocationCode: Code[10];
         IsHandled: Boolean;
         NewOrderDate: Date;
@@ -4288,7 +4157,6 @@ table 36 "Sales Header"
         if (not IsHandled) and (not SkipDocNoOccurrenceReset) then
             "Doc. No. Occurrence" := ArchiveManagement.GetNextOccurrenceNo(DATABASE::"Sales Header", Rec."Document Type".AsInteger(), Rec."No.");
         SkipDocNoOccurrenceReset := false;
-        SIIManagement.UpdateSIIInfoInSalesDoc(Rec);
 
         OnAfterInitRecord(Rec);
     end;
@@ -10103,6 +9971,16 @@ table 36 "Sales Header"
     /// <param name="SalesHeader">The sales header record that was initialized.</param>
     [IntegrationEvent(true, false)]
     local procedure OnAfterInitRecord(var SalesHeader: Record "Sales Header")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterValidateBillToCustomerNoOnSII(var SalesHeader: Record "Sales Header")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterValidateCorrectedInvoiceNoOnSII(var SalesHeader: Record "Sales Header")
     begin
     end;
 

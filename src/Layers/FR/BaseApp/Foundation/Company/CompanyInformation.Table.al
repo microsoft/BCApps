@@ -511,6 +511,25 @@ table 79 "Company Information"
         {
             Caption = 'Stock Capital';
         }
+        field(10805; "SIRET No."; Code[14])
+        {
+            Caption = 'SIRET No.';
+            DataClassification = CustomerContent;
+            Numeric = true;
+            ToolTip = 'Specifies the establishment''s SIRET number (Système d''Identification du Répertoire des Établissements). This 14-digit number consists of the SIREN plus a 5-digit NIC code and is required for French e-invoicing.';
+
+            trigger OnValidate()
+            var
+                IsHandled: Boolean;
+            begin
+                IsHandled := false;
+                OnBeforeValidateSIRETNo(Rec, IsHandled);
+                if not IsHandled then begin
+                    ValidateSIRET(Rec."SIRET No.");
+                    CheckSIRETConsistency(Rec."Registration No.", Rec."SIRET No.");
+                end;
+            end;
+        }
         field(10810; "Default Bank Account No."; Code[20])
         {
             Caption = 'Default Bank Account No.';
@@ -573,7 +592,9 @@ table 79 "Company Information"
         ContactUsShortTxt: Label 'Questions? Contact us at %1.', Comment = '%1 = phone number or email';
         AlTelemetryCategoryTxt: Label 'AL CompanyInfo', Locked = true;
         EmptyCountryRegionErr: Label 'Country/Region code is not set, falling back to application default: %1.', Locked = true;
-
+        SIRETLengthErr: Label 'SIRET No. must be exactly 14 digits.';
+        SIRETNumericErr: Label 'SIRET No. must contain only numeric characters.';
+        SIRETSIRENMismatchMsg: Label 'The first 9 digits of the SIRET No. do not match the Registration No. Please verify the values.';
     procedure CheckIBAN(IBANCode: Code[100])
     var
         OriginalIBANCode: Code[100];
@@ -849,6 +870,35 @@ table 79 "Company Information"
         exit(VATRegistrationNo);
     end;
 
+    local procedure ValidateSIRET(SIRETNo: Code[14])
+    begin
+        if SIRETNo = '' then
+            exit;
+
+        if StrLen(SIRETNo) <> 14 then
+            Error(SIRETLengthErr);
+
+        CheckNumericOnly(SIRETNo, SIRETNumericErr);
+    end;
+
+    local procedure CheckSIRETConsistency(RegistrationNo: Text[20]; SIRETNo: Code[14])
+    begin
+        if (RegistrationNo = '') or (SIRETNo = '') then
+            exit;
+
+        if CopyStr(SIRETNo, 1, 9) <> CopyStr(RegistrationNo, 1, 9) then
+            Message(SIRETSIRENMismatchMsg);
+    end;
+
+    local procedure CheckNumericOnly(Value: Code[20]; ErrorMsg: Text)
+    var
+        i: Integer;
+    begin
+        for i := 1 to StrLen(Value) do
+            if not (Value[i] in ['0' .. '9']) then
+                Error(ErrorMsg);
+    end;
+
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetSystemIndicator(var Text: Text[250]; var Style: Option Standard,Accent1,Accent2,Accent3,Accent4,Accent5,Accent6,Accent7,Accent8,Accent9)
     begin
@@ -912,6 +962,11 @@ table 79 "Company Information"
 #endif
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateShipToPostCode(var CompanyInformation: Record "Company Information"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeValidateSIRETNo(var CompanyInformation: Record "Company Information"; var IsHandled: Boolean)
     begin
     end;
 

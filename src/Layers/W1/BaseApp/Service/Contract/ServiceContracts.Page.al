@@ -424,7 +424,6 @@ page 9321 "Service Contracts"
                 Caption = 'Contract, Service Order Test';
                 Image = "Report";
                 RunObject = Report "Contr. Serv. Orders - Test";
-                ToolTip = 'View the numbers of contracts, the numbers and the names of customers, as well as some other information relating to the service orders that are created for the period that you have specified. You can test which service contracts include service items that are due for service within the specified period.';
             }
             action("Maintenance Visit - Planning")
             {
@@ -432,7 +431,6 @@ page 9321 "Service Contracts"
                 Caption = 'Maintenance Visit - Planning';
                 Image = "Report";
                 RunObject = Report "Maintenance Visit - Planning";
-                ToolTip = 'View the service zone code, group code, contract number, customer number, service period, as well as the service date. You can select the schedule for one or more responsibility centers. The report shows the service dates of all the maintenance visits for the chosen responsibility centers. You can print all your schedules for maintenance visits.';
             }
             action("Service Contract Details")
             {
@@ -442,7 +440,6 @@ page 9321 "Service Contracts"
                 //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                 //PromotedCategory = "Report";
                 RunObject = Report "Service Contract-Detail";
-                ToolTip = 'View detailed information for the service contract.';
             }
             action("Service Contract Profit")
             {
@@ -450,7 +447,6 @@ page 9321 "Service Contracts"
                 Caption = 'Service Contract Profit';
                 Image = "Report";
                 RunObject = Report "Service Profit (Contracts)";
-                ToolTip = 'View profit information for the service contract.';
             }
             action("Contract Invoice Test")
             {
@@ -460,7 +456,6 @@ page 9321 "Service Contracts"
                 //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                 //PromotedCategory = "Report";
                 RunObject = Report "Contract Invoicing";
-                ToolTip = 'Specifies billable profits for the project task that are related to items.';
             }
             action("Service Contract-Customer")
             {
@@ -468,7 +463,6 @@ page 9321 "Service Contracts"
                 Caption = 'Service Contract-Customer';
                 Image = "Report";
                 RunObject = Report "Service Contract - Customer";
-                ToolTip = 'View information about status, next invoice date, invoice period, amount per period, and annual amount. You can print a list of service contracts for each customer in a selected time period.';
             }
             action("Service Contract-Salesperson")
             {
@@ -478,7 +472,6 @@ page 9321 "Service Contracts"
                 //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                 //PromotedCategory = "Report";
                 RunObject = Report "Serv. Contract - Salesperson";
-                ToolTip = 'View customer number, name, description, starting date and the annual amount for each service contract. You can use the report to calculate and document sales commission. You can print a list of service contracts for each salesperson for a selected period.';
             }
             action("Contract Price Update - Test")
             {
@@ -488,7 +481,6 @@ page 9321 "Service Contracts"
                 //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                 //PromotedCategory = "Report";
                 RunObject = Report "Contract Price Update - Test";
-                ToolTip = 'View the contracts numbers, customer numbers, contract amounts, price update percentages, and any errors that occur. You can test which service contracts need price updates up to the date that you have specified.';
             }
             action("Service Items Out of Warranty")
             {
@@ -498,7 +490,6 @@ page 9321 "Service Contracts"
                 //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                 //PromotedCategory = "Report";
                 RunObject = Report "Service Items Out of Warranty";
-                ToolTip = 'View information about warranty end dates, serial numbers, number of active contracts, items description, and names of customers. You can print a list of service items that are out of warranty.';
             }
         }
         area(Promoted)

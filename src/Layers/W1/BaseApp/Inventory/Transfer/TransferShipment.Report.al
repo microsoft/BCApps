@@ -12,6 +12,7 @@ using System.Utilities;
 report 5704 "Transfer Shipment"
 {
     Caption = 'Transfer Shipment';
+    ToolTip = 'View the list of posted outbound transfers from the location.';
     WordMergeDataItem = "Transfer Shipment Header";
     DefaultRenderingLayout = RDLCLayout;
 

@@ -139,7 +139,6 @@ page 5828 "Inventory Periods"
                     Ellipsis = true;
                     Image = AdjustEntries;
                     RunObject = Report "Adjust Cost - Item Entries";
-                    ToolTip = 'Adjust inventory values in value entries so that you use the correct adjusted cost for updating the general ledger and so that sales and profit statistics are up to date.';
                 }
                 action("&Post Inventory to G/L")
                 {
@@ -148,7 +147,6 @@ page 5828 "Inventory Periods"
                     Ellipsis = true;
                     Image = PostInventoryToGL;
                     RunObject = Report "Post Inventory Cost to G/L";
-                    ToolTip = 'Record the quantity and value changes to the inventory in the item ledger entries and the value entries when you post inventory transactions, such as sales shipments or purchase receipts.';
                 }
                 action("Post &Inventory to G/L - Test")
                 {
@@ -157,7 +155,6 @@ page 5828 "Inventory Periods"
                     Ellipsis = true;
                     Image = PostInventoryToGLTest;
                     RunObject = Report "Post Invt. Cost to G/L - Test";
-                    ToolTip = 'Run a test of the Post Inventory to G/L.';
                 }
             }
         }

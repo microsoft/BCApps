@@ -7029,6 +7029,317 @@ codeunit 134332 "ERM Copy Purch/Sales Doc"
         VerifySalesLineQtyToShip(SalesHeader);
     end;
 
+    [Test]
+    procedure CopyPostedSalesInvWithSpecialOrderToQuote()
+    var
+        DestinationSalesHeader: Record "Sales Header";
+        SalesHeader: Record "Sales Header";
+        SalesInvHeader: Record "Sales Invoice Header";
+        PurchasingCode: Code[10];
+        DropShipment: Boolean;
+        SpecialOrder: Boolean;
+    begin
+        // [SCENARIO 638022] Copy Posted Sales Invoice with Special Order Purchasing Code to Sales Quote preserves Purchasing Code and Special Order.
+        Initialize();
+        SpecialOrder := true;
+        DropShipment := not SpecialOrder;
+
+        // [GIVEN] Create a Purchasing Code with Special Order = True.
+        PurchasingCode := CreatePurchasingCode(DropShipment, SpecialOrder);
+
+        // [GIVEN] Create a Sales Order with Sales Line having Purchasing Code and Special Order = True, posted as Invoice.
+        CreateOneItemSalesDoc(SalesHeader, SalesHeader."Document Type"::Order);
+        UpdateSalesLinePurchasingCodeDropShipmentSpecialOrder(SalesHeader, PurchasingCode, DropShipment, SpecialOrder);
+        SalesInvHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+
+        // [GIVEN] Create a New Sales Quote.
+        LibrarySales.CreateSalesHeader(
+          DestinationSalesHeader, DestinationSalesHeader."Document Type"::Quote, SalesHeader."Sell-to Customer No.");
+
+        // [WHEN] Copy Posted Sales Invoice to Sales Quote with Recalculate Lines = True.
+        RunCopySalesDoc(
+          SalesInvHeader."No.", DestinationSalesHeader, "Sales Document Type From"::"Posted Invoice", true, true);
+
+        // [THEN] Sales Quote line has Purchasing Code and Special Order = True.
+        VerifySalesLinePurchasingCodeDropShipmentSpecialOrderWhenCopyDocumentUsed(DestinationSalesHeader, PurchasingCode, DropShipment, SpecialOrder);
+    end;
+
+    [Test]
+    procedure CopyPostedSalesInvWithSpecialOrderToBlanketOrder()
+    var
+        DestinationSalesHeader: Record "Sales Header";
+        SalesHeader: Record "Sales Header";
+        SalesInvHeader: Record "Sales Invoice Header";
+        PurchasingCode: Code[10];
+        DropShipment: Boolean;
+        SpecialOrder: Boolean;
+    begin
+        // [SCENARIO 638022] Copy Posted Sales Invoice with Special Order Purchasing Code to Sales Blanket Order preserves Purchasing Code and Special Order
+        Initialize();
+        SpecialOrder := true;
+        DropShipment := not SpecialOrder;
+
+        // [GIVEN] Create a Purchasing Code with Special Order = True.
+        PurchasingCode := CreatePurchasingCode(DropShipment, SpecialOrder);
+
+        // [GIVEN] Create a Sales Order with Sales Line having Purchasing Code and Special Order = True, posted as Invoice.
+        CreateOneItemSalesDoc(SalesHeader, SalesHeader."Document Type"::Order);
+        UpdateSalesLinePurchasingCodeDropShipmentSpecialOrder(SalesHeader, PurchasingCode, DropShipment, SpecialOrder);
+        SalesInvHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+
+        // [GIVEN] Create a New Sales Blanket Order.
+        LibrarySales.CreateSalesHeader(
+          DestinationSalesHeader, DestinationSalesHeader."Document Type"::"Blanket Order", SalesHeader."Sell-to Customer No.");
+
+        // [WHEN] Copy Posted Sales Invoice to Sales Blanket Order with Recalculate Lines = True.
+        RunCopySalesDoc(
+          SalesInvHeader."No.", DestinationSalesHeader, "Sales Document Type From"::"Posted Invoice", true, true);
+
+        // [THEN] Sales Blanket Order line has Purchasing Code and Special Order = True.
+        VerifySalesLinePurchasingCodeDropShipmentSpecialOrderWhenCopyDocumentUsed(DestinationSalesHeader, PurchasingCode, DropShipment, SpecialOrder);
+    end;
+
+    [Test]
+    procedure CopyPostedSalesInvWithSpecialOrderToOrder()
+    var
+        DestinationSalesHeader: Record "Sales Header";
+        SalesHeader: Record "Sales Header";
+        SalesInvHeader: Record "Sales Invoice Header";
+        PurchasingCode: Code[10];
+        DropShipment: Boolean;
+        SpecialOrder: Boolean;
+    begin
+        // [SCENARIO 638022] Copy Posted Sales Invoice with Special Order Purchasing Code to Sales Order preserves Purchasing Code and Special Order
+        Initialize();
+        SpecialOrder := true;
+        DropShipment := not SpecialOrder;
+
+        // [GIVEN] Create a Purchasing Code with Special Order = True
+        PurchasingCode := CreatePurchasingCode(DropShipment, SpecialOrder);
+
+        // [GIVEN] Create a Sales Order with Sales Line having Purchasing Code and Special Order = True, posted as Invoice
+        CreateOneItemSalesDoc(SalesHeader, SalesHeader."Document Type"::Order);
+        UpdateSalesLinePurchasingCodeDropShipmentSpecialOrder(SalesHeader, PurchasingCode, DropShipment, SpecialOrder);
+        SalesInvHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+
+        // [GIVEN] Create a New Sales Order.
+        LibrarySales.CreateSalesHeader(
+          DestinationSalesHeader, DestinationSalesHeader."Document Type"::Order, SalesHeader."Sell-to Customer No.");
+
+        // [WHEN] Copy Posted Sales Invoice to Sales Order with Recalculate Lines = True
+        RunCopySalesDoc(
+          SalesInvHeader."No.", DestinationSalesHeader, "Sales Document Type From"::"Posted Invoice", true, true);
+
+        // [THEN] Sales Order line has Purchasing Code and Special Order = True
+        VerifySalesLinePurchasingCodeDropShipmentSpecialOrderWhenCopyDocumentUsed(DestinationSalesHeader, PurchasingCode, DropShipment, SpecialOrder);
+    end;
+
+    [Test]
+    procedure CopyPostedSalesInvWithDropShipmentToQuote()
+    var
+        DestinationSalesHeader: Record "Sales Header";
+        SalesHeader: Record "Sales Header";
+        SalesInvHeader: Record "Sales Invoice Header";
+        PurchasingCode: Code[10];
+        DropShipment: Boolean;
+        SpecialOrder: Boolean;
+    begin
+        // [SCENARIO 638022] Copy Posted Sales Invoice with Drop Shipment Purchasing Code to Sales Quote preserves Purchasing Code and Drop Shipment
+        Initialize();
+        DropShipment := true;
+        SpecialOrder := false;
+
+        // [GIVEN] Create a Purchasing Code with Drop Shipment = True.
+        PurchasingCode := CreatePurchasingCode(DropShipment, SpecialOrder);
+
+        // [GIVEN] Create a Sales Order with Sales Line having Purchasing Code and Drop Shipment = True, posted as Invoice
+        CreateOneItemSalesDoc(SalesHeader, SalesHeader."Document Type"::Order);
+        UpdateSalesLinePurchasingCodeDropShipmentSpecialOrder(SalesHeader, PurchasingCode, DropShipment, SpecialOrder);
+        SalesInvHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+
+        // [GIVEN] Create a new Sales Quote.
+        LibrarySales.CreateSalesHeader(
+          DestinationSalesHeader, DestinationSalesHeader."Document Type"::Quote, SalesHeader."Sell-to Customer No.");
+
+        // [WHEN] Copy Posted Sales Invoice to Sales Quote with Recalculate Lines = true.
+        RunCopySalesDoc(
+          SalesInvHeader."No.", DestinationSalesHeader, "Sales Document Type From"::"Posted Invoice", true, true);
+
+        // [THEN] Sales Quote line has Purchasing Code and Drop Shipment = true.
+        VerifySalesLinePurchasingCodeDropShipmentSpecialOrderWhenCopyDocumentUsed(DestinationSalesHeader, PurchasingCode, DropShipment, SpecialOrder);
+    end;
+
+    [Test]
+    procedure CopyPostedSalesInvWithDropShipmentToBlanketOrder()
+    var
+        DestinationSalesHeader: Record "Sales Header";
+        SalesHeader: Record "Sales Header";
+        SalesInvHeader: Record "Sales Invoice Header";
+        PurchasingCode: Code[10];
+        DropShipment: Boolean;
+        SpecialOrder: Boolean;
+    begin
+        // [SCENARIO 638022] Copy Posted Sales Invoice with Drop Shipment Purchasing Code to Sales Blanket Order preserves Purchasing Code and Drop Shipment
+        Initialize();
+        DropShipment := true;
+        SpecialOrder := false;
+
+        // [GIVEN] Create a Purchasing Code with Drop Shipment = True.
+        PurchasingCode := CreatePurchasingCode(DropShipment, SpecialOrder);
+
+        // [GIVEN] Create a Sales Order with Sales Line having Purchasing Code and Drop Shipment = TRUE, posted as Invoice
+        CreateOneItemSalesDoc(SalesHeader, SalesHeader."Document Type"::Order);
+        UpdateSalesLinePurchasingCodeDropShipmentSpecialOrder(SalesHeader, PurchasingCode, DropShipment, SpecialOrder);
+        SalesInvHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+
+        // [GIVEN] Create a New Sales Blanket Order.
+        LibrarySales.CreateSalesHeader(
+          DestinationSalesHeader, DestinationSalesHeader."Document Type"::"Blanket Order", SalesHeader."Sell-to Customer No.");
+
+        // [WHEN] Copy Posted Sales Invoice to Sales Blanket Order with Recalculate Lines = True.
+        RunCopySalesDoc(
+          SalesInvHeader."No.", DestinationSalesHeader, "Sales Document Type From"::"Posted Invoice", true, true);
+
+        // [THEN] Sales Blanket Order line has Purchasing Code and Drop Shipment = True.
+        VerifySalesLinePurchasingCodeDropShipmentSpecialOrderWhenCopyDocumentUsed(DestinationSalesHeader, PurchasingCode, DropShipment, SpecialOrder);
+    end;
+
+    [Test]
+    procedure CopySalesQuoteWithSpecialOrder()
+    var
+        SalesHeader: Record "Sales Header";
+        OldSalesHeaderNo: Code[20];
+        PurchasingCode: Code[10];
+        DropShipment: Boolean;
+        SpecialOrder: Boolean;
+    begin
+        // [SCENARIO 638022] Purchasing Code and Special Order are copied to Sales Quote when Recalculate Lines is False.
+        Initialize();
+        SpecialOrder := true;
+        DropShipment := not SpecialOrder;
+
+        // [GIVEN] Create a new Purchasing Code with Special Order = True.
+        PurchasingCode := CreatePurchasingCode(DropShipment, SpecialOrder);
+
+        // [GIVEN] Create Sales Quote with Sales Line, having Purchasing Code and Special Order = True.
+        CreateOneItemSalesDoc(SalesHeader, SalesHeader."Document Type"::Quote);
+        UpdateSalesLinePurchasingCodeDropShipmentSpecialOrder(SalesHeader, PurchasingCode, DropShipment, SpecialOrder);
+        OldSalesHeaderNo := SalesHeader."No.";
+
+        // [GIVEN] Create a new Sales Quote.
+        LibrarySales.CreateSalesHeader(
+          SalesHeader, SalesHeader."Document Type"::Quote, SalesHeader."Sell-to Customer No.");
+
+        // [WHEN] Copy Sales Quote to New Sales Quote with Recalculate Lines = False.
+        RunCopySalesDoc(OldSalesHeaderNo, SalesHeader, "Sales Document Type From"::Quote, true, false);
+
+        // [THEN] New Sales Quote has Purchasing Code and Special Order = True in the line.
+        VerifySalesLinePurchasingCodeDropShipmentSpecialOrderWhenCopyDocumentUsed(SalesHeader, PurchasingCode, DropShipment, SpecialOrder);
+    end;
+
+    [Test]
+    procedure CopySalesBlanketOrderWithSpecialOrder()
+    var
+        SalesHeader: Record "Sales Header";
+        OldSalesHeaderNo: Code[20];
+        PurchasingCode: Code[10];
+        DropShipment: Boolean;
+        SpecialOrder: Boolean;
+    begin
+        // [SCENARIO 638022] Purchasing Code and Special Order are copied to Sales Blanket Order when Recalculate Lines is False
+        Initialize();
+        SpecialOrder := true;
+        DropShipment := not SpecialOrder;
+
+        // [GIVEN] Purchasing Code with Special Order = True.
+        PurchasingCode := CreatePurchasingCode(DropShipment, SpecialOrder);
+
+        // [GIVEN] Create a Sales Blanket Order with Sales Line, having Purchasing Code and Special Order = True.
+        CreateOneItemSalesDoc(SalesHeader, SalesHeader."Document Type"::"Blanket Order");
+        UpdateSalesLinePurchasingCodeDropShipmentSpecialOrder(SalesHeader, PurchasingCode, DropShipment, SpecialOrder);
+        OldSalesHeaderNo := SalesHeader."No.";
+
+        // [GIVEN] Create a new Sales Blanket Order.
+        LibrarySales.CreateSalesHeader(
+          SalesHeader, SalesHeader."Document Type"::"Blanket Order", SalesHeader."Sell-to Customer No.");
+
+        // [WHEN] Copy Sales Blanket Order to New Sales Blanket Order with Recalculate Lines = False.
+        RunCopySalesDoc(OldSalesHeaderNo, SalesHeader, "Sales Document Type From"::"Blanket Order", true, false);
+
+        // [THEN] New Sales Blanket Order has Purchasing Code and Special Order = True in the line.
+        VerifySalesLinePurchasingCodeDropShipmentSpecialOrderWhenCopyDocumentUsed(SalesHeader, PurchasingCode, DropShipment, SpecialOrder);
+    end;
+
+    [Test]
+    procedure CopyPostedSalesInvWithSpecialOrderToQuoteNoRecalc()
+    var
+        DestinationSalesHeader: Record "Sales Header";
+        SalesHeader: Record "Sales Header";
+        SalesInvHeader: Record "Sales Invoice Header";
+        PurchasingCode: Code[10];
+        DropShipment: Boolean;
+        SpecialOrder: Boolean;
+    begin
+        // [SCENARIO 638022] Copy Posted Sales Invoice with Special Order Purchasing Code to Sales Quote with Recalculate Lines = False preserves Purchasing Code and Special Order.
+        Initialize();
+        SpecialOrder := true;
+        DropShipment := not SpecialOrder;
+
+        // [GIVEN] Create a Purchasing Code with Special Order = True.
+        PurchasingCode := CreatePurchasingCode(DropShipment, SpecialOrder);
+
+        // [GIVEN] Create a Sales Order with Sales Line having Purchasing Code and Special Order = True, posted as Invoice
+        CreateOneItemSalesDoc(SalesHeader, SalesHeader."Document Type"::Order);
+        UpdateSalesLinePurchasingCodeDropShipmentSpecialOrder(SalesHeader, PurchasingCode, DropShipment, SpecialOrder);
+        SalesInvHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+
+        // [GIVEN] Create a new Sales Quote.
+        LibrarySales.CreateSalesHeader(
+          DestinationSalesHeader, DestinationSalesHeader."Document Type"::Quote, SalesHeader."Sell-to Customer No.");
+
+        // [WHEN] Copy Posted Sales Invoice to Sales Quote with Recalculate Lines = False.
+        RunCopySalesDoc(
+          SalesInvHeader."No.", DestinationSalesHeader, "Sales Document Type From"::"Posted Invoice", true, false);
+
+        // [THEN] Sales Quote line has Purchasing Code and Special Order = True
+        VerifySalesLinePurchasingCodeDropShipmentSpecialOrderWhenCopyDocumentUsed(DestinationSalesHeader, PurchasingCode, DropShipment, SpecialOrder);
+    end;
+
+    [Test]
+    procedure CopyPostedSalesInvWithSpecialOrderToBlanketOrderNoRecalc()
+    var
+        DestinationSalesHeader: Record "Sales Header";
+        SalesHeader: Record "Sales Header";
+        SalesInvHeader: Record "Sales Invoice Header";
+        PurchasingCode: Code[10];
+        DropShipment: Boolean;
+        SpecialOrder: Boolean;
+    begin
+        // [SCENARIO 638022] Copy Posted Sales Invoice with Special Order Purchasing Code to Sales Blanket Order with Recalculate Lines = False preserves Purchasing Code and Special Order
+        Initialize();
+        SpecialOrder := true;
+        DropShipment := not SpecialOrder;
+
+        // [GIVEN] Create a Purchasing Code with Special Order = True.
+        PurchasingCode := CreatePurchasingCode(DropShipment, SpecialOrder);
+
+        // [GIVEN] Create a Sales Order with Sales Line having Purchasing Code and Special Order = True, posted as Invoice.
+        CreateOneItemSalesDoc(SalesHeader, SalesHeader."Document Type"::Order);
+        UpdateSalesLinePurchasingCodeDropShipmentSpecialOrder(SalesHeader, PurchasingCode, DropShipment, SpecialOrder);
+        SalesInvHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+
+        // [GIVEN] Create a new Sales Blanket Order.
+        LibrarySales.CreateSalesHeader(
+          DestinationSalesHeader, DestinationSalesHeader."Document Type"::"Blanket Order", SalesHeader."Sell-to Customer No.");
+
+        // [WHEN] Copy Posted Sales Invoice to Sales Blanket Order with Recalculate Lines = False.
+        RunCopySalesDoc(
+          SalesInvHeader."No.", DestinationSalesHeader, "Sales Document Type From"::"Posted Invoice", true, false);
+
+        // [THEN] Sales Blanket Order line has Purchasing Code and Special Order = True.
+        VerifySalesLinePurchasingCodeDropShipmentSpecialOrderWhenCopyDocumentUsed(DestinationSalesHeader, PurchasingCode, DropShipment, SpecialOrder);
+    end;
+
     local procedure Initialize()
     var
         PriceListLine: Record "Price List Line";
@@ -7742,8 +8053,10 @@ codeunit 134332 "ERM Copy Purch/Sales Doc"
     begin
         FindFirstLineOfSalesDocument(SalesHeader, SalesLine);
         SalesLine.Validate("Purchasing Code", PurchasingCode);
-        SalesLine.Validate("Drop Shipment", DropShipment);
-        SalesLine.Validate("Special Order", SpecialOrder);
+        if DropShipment then
+            SalesLine.Validate("Drop Shipment", DropShipment);
+        if SpecialOrder then
+            SalesLine.Validate("Special Order", SpecialOrder);
         SalesLine.Modify(true);
     end;
 
@@ -8741,6 +9054,16 @@ codeunit 134332 "ERM Copy Purch/Sales Doc"
         CopySalesDocument.SetParameters(DocumentType, DocumentNo, true, false);
         CopySalesDocument.UseRequestPage(false);
         CopySalesDocument.Run();
+    end;
+
+    local procedure VerifySalesLinePurchasingCodeDropShipmentSpecialOrderWhenCopyDocumentUsed(SalesHeader: Record "Sales Header"; PurchasingCode: Code[10]; DropShipment: Boolean; SpecialOrder: Boolean)
+    var
+        SalesLine: Record "Sales Line";
+    begin
+        FindLastLineOfSalesDocument(SalesHeader, SalesLine);
+        SalesLine.TestField("Purchasing Code", PurchasingCode);
+        SalesLine.TestField("Drop Shipment", DropShipment);
+        SalesLine.TestField("Special Order", SpecialOrder);
     end;
 
     [RequestPageHandler]

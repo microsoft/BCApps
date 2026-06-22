@@ -16,6 +16,7 @@ report 10139 "Inventory Valuation"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Inventory Valuation';
+    ToolTip = 'View, print, or save a list of the values of the on-hand quantity of each inventory item.';
     UsageCategory = ReportsAndAnalysis;
     DataAccessIntent = ReadOnly;
     DefaultRenderingLayout = RDLCLayout;

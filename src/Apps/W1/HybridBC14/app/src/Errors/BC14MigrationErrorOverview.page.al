@@ -29,8 +29,14 @@ page 46863 "BC14 Migration Error Overview"
                 field("Company Name"; Rec."Company Name")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the company where the error occurred.';
+                    ToolTip = 'Specifies the company where the error occurred. Drill down to open that company in a new browser tab so the current session is preserved.';
                     Editable = false;
+                    DrillDown = true;
+
+                    trigger OnDrillDown()
+                    begin
+                        OpenCompanyInNewTab(Rec."Company Name");
+                    end;
                 }
 
                 field("Source Table Name"; Rec."Source Table Name")
@@ -184,6 +190,35 @@ page 46863 "BC14 Migration Error Overview"
                     CurrPage.Update(false);
                 end;
             }
+
+            action(ShowResolved)
+            {
+                ApplicationArea = All;
+                Caption = 'Show Resolved';
+                ToolTip = 'Include resolved errors in the list alongside unresolved ones.';
+                Image = ShowList;
+                Visible = not ShowResolvedErrors;
+                trigger OnAction()
+                begin
+                    ShowResolvedErrors := true;
+                    LoadErrorsFromAllCompanies();
+                    CurrPage.Update(false);
+                end;
+            }
+            action(HideResolved)
+            {
+                ApplicationArea = All;
+                Caption = 'Hide Resolved';
+                ToolTip = 'Hide resolved errors so the list focuses on what still needs attention.';
+                Image = ShowList;
+                Visible = ShowResolvedErrors;
+                trigger OnAction()
+                begin
+                    ShowResolvedErrors := false;
+                    LoadErrorsFromAllCompanies();
+                    CurrPage.Update(false);
+                end;
+            }
         }
         area(Promoted)
         {
@@ -200,6 +235,12 @@ page 46863 "BC14 Migration Error Overview"
                 actionref(Refresh_Promoted; Refresh)
                 {
                 }
+                actionref(ShowResolved_Promoted; ShowResolved)
+                {
+                }
+                actionref(HideResolved_Promoted; HideResolved)
+                {
+                }
             }
         }
     }
@@ -207,6 +248,13 @@ page 46863 "BC14 Migration Error Overview"
     trigger OnOpenPage()
     begin
         LoadErrorsFromAllCompanies();
+    end;
+
+    local procedure OpenCompanyInNewTab(TargetCompany: Text[30])
+    begin
+        if TargetCompany = '' then
+            exit;
+        Hyperlink(GetUrl(ClientType::Web, TargetCompany, ObjectType::Page, Page::"Cloud Migration Management"));
     end;
 
     local procedure LoadErrorsFromAllCompanies()
@@ -227,6 +275,8 @@ page 46863 "BC14 Migration Error Overview"
             SourceCompanyName := CopyStr(HybridCompany.Name, 1, MaxStrLen(SourceCompanyName));
             SourceError.Reset();
             SourceError.ChangeCompany(SourceCompanyName);
+            if not ShowResolvedErrors then
+                SourceError.SetRange("Error Dismissed", false);
             if SourceError.FindSet() then
                 repeat
                     Rec.Init();
@@ -242,6 +292,7 @@ page 46863 "BC14 Migration Error Overview"
     end;
 
     var
+        ShowResolvedErrors: Boolean;
         ContinueMigrationQst: Label 'Continue migration for company %1?', Comment = '%1 = Company Name';
         UnresolvedErrorsWarningQst: Label 'There are still %1 unresolved errors for company %2. Continue migration anyway?', Comment = '%1 = Number of unresolved errors, %2 = Company Name';
         NoCompanySelectedMsg: Label 'Please select an error record first.';

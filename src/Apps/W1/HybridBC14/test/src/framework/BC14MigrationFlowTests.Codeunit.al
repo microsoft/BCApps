@@ -282,10 +282,21 @@ codeunit 148906 "BC14 Migration Flow Tests"
         HybridCompanyStatus: Record "Hybrid Company Status";
         HybridCompany: Record "Hybrid Company";
         HybridReplicationSummary: Record "Hybrid Replication Summary";
+        BC14CompanySettings: Record BC14CompanyMigrationInfo;
     begin
         HybridCompanyStatus.DeleteAll();
         HybridCompany.DeleteAll();
         HybridReplicationSummary.DeleteAll();
+        BC14CompanySettings.DeleteAll();
+    end;
+
+    local procedure SetStopOnFirstError_StatusMgr(StopOnFirstError: Boolean)
+    var
+        BC14CompanySettings: Record BC14CompanyMigrationInfo;
+    begin
+        BC14CompanySettings.GetSingleInstance();
+        BC14CompanySettings."Stop On First Error" := StopOnFirstError;
+        BC14CompanySettings.Modify();
     end;
 
     local procedure InsertCompanyStatus_StatusMgr(CompanyName: Text[30]; UpgradeStatus: Option)
@@ -936,8 +947,8 @@ codeunit 148906 "BC14 Migration Flow Tests"
     begin
         // [SCENARIO] The migration provider returns the correct display name.
 
-        // [THEN] The display name should be 'Business Central 14 Re-implementation'
-        Assert.AreEqual('Business Central 14 Re-implementation', BC14MigrationProvider.GetDisplayName(), 'Display name should match the expected value');
+        // [THEN] The display name should be 'Dynamics 365 Business Central Re-implementation (v.14)'
+        Assert.AreEqual('Dynamics 365 Business Central Re-implementation (v.14)', BC14MigrationProvider.GetDisplayName(), 'Display name should match the expected value');
     end;
 
     [Test]
@@ -979,10 +990,11 @@ codeunit 148906 "BC14 Migration Flow Tests"
     var
         BC14MigrationProvider: Codeunit "BC14 Migration Provider";
     begin
-        // [SCENARIO] ShowConfigureMigrationTablesMappingStep returns false for BC14.
+        // [SCENARIO] ShowConfigureMigrationTablesMappingStep returns true for BC14
+        // so the configuration package step is shown in the wizard page.
 
-        // [THEN] The step should not be shown
-        Assert.IsFalse(BC14MigrationProvider.ShowConfigureMigrationTablesMappingStep(), 'Should not show configure migration tables mapping step');
+        // [THEN] The step should be shown
+        Assert.IsTrue(BC14MigrationProvider.ShowConfigureMigrationTablesMappingStep(), 'Should show configure migration tables mapping step');
     end;
 
     // ============================================================
@@ -1756,8 +1768,10 @@ codeunit 148906 "BC14 Migration Flow Tests"
         HybridReplicationSummary: Record "Hybrid Replication Summary";
         BC14StatusMgr: Codeunit "BC14 Migration Status Mgr.";
     begin
-        // [SCENARIO] HasErrors=true is the stop branch.
+        // [SCENARIO] HasErrors=true with Stop-On-First-Error enabled fails the company
+        // and immediately flips the summary to UpgradeFailed.
         Initialize_StatusMgr();
+        SetStopOnFirstError_StatusMgr(true);
         InsertCompanyStatus_StatusMgr('COMP-A', HybridCompanyStatus."Upgrade Status"::Started);
         InsertReplicationSummary(HybridReplicationSummary, HybridReplicationSummary.Status::UpgradeInProgress);
 
@@ -1768,6 +1782,32 @@ codeunit 148906 "BC14 Migration Flow Tests"
 
         HybridReplicationSummary.Get(HybridReplicationSummary."Run ID");
         Assert.AreEqual(HybridReplicationSummary.Status::UpgradeFailed, HybridReplicationSummary.Status, 'Summary should be UpgradeFailed');
+    end;
+
+    [Test]
+    procedure TestAfterCompanyMigrationCompleted_Failure_ContinueOnError_FinalizesAsFailedWhenLastCompany()
+    var
+        HybridCompanyStatus: Record "Hybrid Company Status";
+        HybridReplicationSummary: Record "Hybrid Replication Summary";
+        BC14StatusMgr: Codeunit "BC14 Migration Status Mgr.";
+    begin
+        // [SCENARIO] HasErrors=true with Stop-On-First-Error disabled fails the company but
+        // does not immediately fail the summary; the summary is reconciled by
+        // TryFinalizeOverallStatus once all companies are processed. When the failing company
+        // is the only/last one, the summary is finalized as UpgradeFailed.
+        Initialize_StatusMgr();
+        SetStopOnFirstError_StatusMgr(false);
+        InsertHybridCompany('COMP-A', true);
+        InsertCompanyStatus_StatusMgr('COMP-A', HybridCompanyStatus."Upgrade Status"::Started);
+        InsertReplicationSummary(HybridReplicationSummary, HybridReplicationSummary.Status::UpgradeInProgress);
+
+        BC14StatusMgr.AfterCompanyMigrationCompleted('COMP-A', true, true, HybridReplicationSummary);
+
+        Assert.IsTrue(HybridCompanyStatus.Get('COMP-A'), 'Company status row should still exist');
+        Assert.AreEqual(HybridCompanyStatus."Upgrade Status"::Failed, HybridCompanyStatus."Upgrade Status", 'Company should be Failed');
+
+        HybridReplicationSummary.Get(HybridReplicationSummary."Run ID");
+        Assert.AreEqual(HybridReplicationSummary.Status::UpgradeFailed, HybridReplicationSummary.Status, 'Summary should be UpgradeFailed after final reconciliation');
     end;
 
     [Test]

@@ -1,10 +1,9 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.History;
 
-using Microsoft.EServices.EDocument;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.Deferral;
 using Microsoft.Finance.Dimension;
@@ -917,10 +916,6 @@ table 115 "Sales Cr.Memo Line"
             AutoFormatType = 1;
             Caption = 'EC Difference';
         }
-        field(10704; "Special Scheme Code"; Enum "SII Sales Special Scheme Code")
-        {
-            Caption = 'Special Scheme Code';
-        }
     }
 
     keys
@@ -1390,7 +1385,7 @@ table 115 "Sales Cr.Memo Line"
         TempItemLedEntry.FindFirst();
         if ItemApplicationEntry.AppliedFromEntryExists(TempItemLedEntry."Entry No.") then
             ItemLedgerEntry.Get(ItemApplicationEntry."Outbound Item Entry No.");
-    end; 
+    end;
 
     internal procedure GetVATPct() VATPct: Decimal
     begin

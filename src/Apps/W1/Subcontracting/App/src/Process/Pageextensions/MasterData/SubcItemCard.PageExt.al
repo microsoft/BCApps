@@ -14,7 +14,7 @@ pageextension 99001518 "Subc. Item Card" extends "Item Card"
         {
             action("Subcontractor Prices")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Caption = 'Subcontractor Prices';
                 Image = Price;
                 RunObject = page "Subcontractor Prices";

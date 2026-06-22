@@ -161,7 +161,6 @@ codeunit 46860 "BC14 Migration Failure Handler"
         HybridReplicationSummary.Modify();
     end;
 
-
     local procedure NewLine(): Text
     var
         TypeHelper: Codeunit "Type Helper";

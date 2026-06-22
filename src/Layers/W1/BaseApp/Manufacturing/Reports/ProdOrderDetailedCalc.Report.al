@@ -11,6 +11,7 @@ report 99000768 "Prod. Order - Detailed Calc."
 {
     ApplicationArea = Manufacturing;
     Caption = 'Prod. Order - Detailed Calc.';
+    ToolTip = 'View a list of the production orders. This list contains the expected costs and the quantity per production order or per operation of a production order.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

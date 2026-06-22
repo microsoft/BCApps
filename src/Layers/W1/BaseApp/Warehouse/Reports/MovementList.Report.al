@@ -14,6 +14,7 @@ report 7301 "Movement List"
     AccessByPermission = TableData Location = R;
     ApplicationArea = Warehouse;
     Caption = 'Warehouse Movement';
+    ToolTip = 'View the list of ongoing movements between bins according to a basic warehouse configuration.';
     UsageCategory = Documents;
     WordMergeDataItem = "Warehouse Activity Header";
     DefaultRenderingLayout = RDLCLayout;

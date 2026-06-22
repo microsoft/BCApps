@@ -972,7 +972,7 @@ codeunit 80 "Sales-Post"
             repeat
                 ErrorMessageMgt.PushContext(ErrorContextElement, TempSalesLineGlobal.RecordId(), 0, CheckSalesLineMsg);
                 TestSalesLine(SalesHeader, TempSalesLineGlobal);
-                if (SalesHeader.Ship or SalesHeader.Receive or SalesHeader.Invoice) and (TempSalesLineGlobal.Type = TempSalesLineGlobal.Type::Item) and (TempSalesLineGlobal."Qty. to Ship" <> 0) then 
+                if (SalesHeader.Ship or SalesHeader.Receive or SalesHeader.Invoice) and (TempSalesLineGlobal.Type = TempSalesLineGlobal.Type::Item) and (TempSalesLineGlobal."Qty. to Ship" <> 0) then
                     NoOfItemLines += 1;
             until TempSalesLineGlobal.Next() = 0;
         ErrorMessageMgt.PopContext(ErrorContextElement);
@@ -7324,8 +7324,6 @@ codeunit 80 "Sales-Post"
         SalesInvHeader."Source Code" := SrcCode;
         SalesInvHeader."User ID" := CopyStr(UserId(), 1, MaxStrLen(SalesInvHeader."User ID"));
         SalesInvHeader."No. Printed" := 0;
-        SalesInvHeader.SetSIIFirstSummaryDocNo(SalesHeader.GetSIIFirstSummaryDocNo());
-        SalesInvHeader.SetSIILastSummaryDocNo(SalesHeader.GetSIILastSummaryDocNo());
 
         if SalesHeader."Document Type" = SalesHeader."Document Type"::Invoice then
             SalesInvHeader."Draft Invoice SystemId" := SalesHeader.SystemId;
@@ -7383,8 +7381,6 @@ codeunit 80 "Sales-Post"
         SalesCrMemoHeader."User ID" := CopyStr(UserId(), 1, MaxStrLen(SalesCrMemoHeader."User ID"));
         SalesCrMemoHeader."No. Printed" := 0;
         SalesCrMemoHeader."Draft Cr. Memo SystemId" := SalesCrMemoHeader.SystemId;
-        SalesCrMemoHeader.SetSIIFirstSummaryDocNo(SalesHeader.GetSIIFirstSummaryDocNo());
-        SalesCrMemoHeader.SetSIILastSummaryDocNo(SalesHeader.GetSIILastSummaryDocNo());
         SalesCrMemoHeaderInsert(SalesCrMemoHeader, SalesHeader);
 
         ApprovalsMgmt.PostApprovalEntries(SalesHeader.RecordId, SalesCrMemoHeader.RecordId, SalesCrMemoHeader."No.");
@@ -11757,7 +11753,7 @@ codeunit 80 "Sales-Post"
                 DimensionMgt.GetCombinedDimensionSetID(DimSetID, ItemJnlLine2."Shortcut Dimension 1 Code", ItemJnlLine2."Shortcut Dimension 2 Code");
         end;
     end;
-    
+
     local procedure UpdateSalesLineDimSetIDFromAppliedEntry(var SalesLineToPost: Record "Sales Line"; SalesLine: Record "Sales Line")
     var
         ItemLedgEntry: Record "Item Ledger Entry";

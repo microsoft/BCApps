@@ -45,7 +45,7 @@ codeunit 4587 "SOA Impl"
         SOASetup.GetBySystemId(SOASetup.SystemId);
         RemoveScheduledTask(SOASetup);
 
-        ScheduledTaskId := TaskScheduler.CreateTask(Codeunit::"SOA Dispatcher", Codeunit::"SOA Error Handler", true, CompanyName(), CurrentDateTime() + ScheduleDelay(), SOASetup.RecordId);
+        ScheduledTaskId := TaskScheduler.CreateTask(Codeunit::"SOA Dispatcher", Codeunit::"SOA Error Handler", true, CompanyName(), CurrentDateTime() + ScheduleDelay(SOASetupCU, SOASetup), SOASetup.RecordId);
         SOASetup."Agent Scheduled Task ID" := ScheduledTaskId;
         ScheduleSOARecovery(SOASetup);
 
@@ -110,9 +110,34 @@ codeunit 4587 "SOA Impl"
         SOASetup."Recovery Scheduled Task ID" := NullGuid;
     end;
 
-    local procedure ScheduleDelay(): Integer
+    local procedure ScheduleDelay(SOASetupCU: Codeunit "SOA Setup"; var SOASetup: Record "SOA Setup"): Integer
+    var
+        InstanceOffset: Integer;
+        BaseDelaySeconds: Integer;
+        IncrementSeconds: Integer;
     begin
-        exit(20 * 1000) // 20 seconds
+        InstanceOffset := GetInstanceOffset(SOASetup);
+
+        BaseDelaySeconds := SOASetupCU.GetDispatcherBaseDelaySeconds();
+        IncrementSeconds := SOASetupCU.GetDispatcherDelayIncrementSeconds();
+        exit((BaseDelaySeconds + (InstanceOffset * IncrementSeconds)) * 1000);
+    end;
+
+    local procedure GetInstanceOffset(var SOASetup: Record "SOA Setup"): Integer
+    var
+        OtherSOASetup: Record "SOA Setup";
+        OwnerUserSecurityID: Guid;
+    begin
+        // Give each instance a distinct ordinal (0-based) based on its position among the same owner user's
+        // instances, so dispatcher staggering aligns with per-user task scheduling limits.
+        OwnerUserSecurityID := SOASetup."Owner User Security ID";
+        if IsNullGuid(OwnerUserSecurityID) then
+            OwnerUserSecurityID := SOASetup."User Security ID";
+
+        OtherSOASetup.ReadIsolation := IsolationLevel::ReadUncommitted;
+        OtherSOASetup.SetRange("Owner User Security ID", OwnerUserSecurityID);
+        OtherSOASetup.SetFilter(ID, '<%1', SOASetup.ID);
+        exit(OtherSOASetup.Count());
     end;
 
     local procedure ScheduleRecoveryDelay(): Integer

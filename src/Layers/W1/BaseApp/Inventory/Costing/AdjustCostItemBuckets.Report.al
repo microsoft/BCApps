@@ -16,6 +16,7 @@ report 5804 "Adjust Cost - Item Buckets"
                   TableData "Value Entry" = rimd,
                   TableData "Avg. Cost Adjmt. Entry Point" = rimd;
     Caption = 'Adjust Cost - Item Buckets';
+    ToolTip = 'Run the cost adjustment for all not started item batches.';
 
     dataset
     {

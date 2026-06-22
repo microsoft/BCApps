@@ -16,8 +16,7 @@ codeunit 144070 Digipoort
         DigipoortStatusURLSetupErr: Label 'Digipoort Status URL must have a value in Elec. Tax Declaration Setup: ';
         DigipoortClientCertNameSetupErr: Label 'Digipoort Client Cert. Name must have a value in Elec. Tax Declaration Setup';
         DigipoortServiceCertNameSetupErr: Label 'Digipoort Service Cert. Name must have a value in Elec. Tax Declaration Setup';
-        InvalidDeliverUriFormatErr: Label 'Invalid URI: The format of the URI could not be determined.';
-        InvalidGetStatusUriFormatErr: Label 'Invalid URI: The format of the URI could not be determined.';
+        InvalidDigipoortHostErr: Label 'The Digipoort URL host must end with .digipoort.logius.nl.';
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
@@ -157,7 +156,7 @@ codeunit 144070 Digipoort
         ElecTaxDeclarationCard.OpenEdit();
         ElecTaxDeclarationCard.GotoRecord(ElecTaxDeclarationHeader);
         asserterror ElecTaxDeclarationCard.SubmitElectronicTaxDeclaration.Invoke();
-        Assert.ExpectedError(InvalidDeliverUriFormatErr);
+        Assert.ExpectedError(InvalidDigipoortHostErr);
     end;
 
     [Test]
@@ -204,7 +203,7 @@ codeunit 144070 Digipoort
         ElecTaxDeclResponseMsgs.OpenEdit();
         ElecTaxDeclResponseMsgs.GotoRecord(ElecTaxDeclResponseMsg);
         asserterror ElecTaxDeclResponseMsgs.ReceiveResponseMessages.Invoke();
-        Assert.ExpectedError(InvalidGetStatusUriFormatErr);
+        Assert.ExpectedError(InvalidDigipoortHostErr);
     end;
 
     local procedure MockElecTaxDeclarationSetupSaaS()

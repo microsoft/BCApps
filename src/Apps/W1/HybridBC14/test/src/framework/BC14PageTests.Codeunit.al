@@ -866,13 +866,30 @@ codeunit 148909 "BC14 Page Tests"
         Found1: Boolean;
         Found2: Boolean;
     begin
-        // [SCENARIO] All non-deleted error records are shown on the page.
+        // [SCENARIO] All error records (including resolved ones) are shown on the page
+        // once the "Show Resolved" toggle is enabled.
         ClearErrors();
         InsertError(Database::"BC14 G/L Account", 'No.=1200', false);
         InsertError(Database::"BC14 G/L Account", 'No.=1300', true);
 
-        // [WHEN] The page is opened
+        // [WHEN] The page is opened, only the unresolved error is shown
         ErrorOverview.OpenView();
+
+        // [THEN] The resolved error is hidden by default
+        Assert.IsTrue(ErrorOverview.First(), 'Page should have at least one row by default.');
+        Assert.AreEqual('No.=1200', ErrorOverview."Source Record Key".Value(), 'Only the unresolved error should be visible by default.');
+        Assert.IsFalse(ErrorOverview.Next(), 'Resolved error must be hidden until Show Resolved is toggled on.');
+
+        // [THEN] Only "Show Resolved" is offered, so assistive tech can tell the filter is off
+        Assert.IsTrue(ErrorOverview.ShowResolved.Visible(), 'Show Resolved should be visible while resolved errors are hidden.');
+        Assert.IsFalse(ErrorOverview.HideResolved.Visible(), 'Hide Resolved should be hidden while resolved errors are hidden.');
+
+        // [WHEN] Resolved errors are made visible
+        ErrorOverview.ShowResolved.Invoke();
+
+        // [THEN] The action set flips to "Hide Resolved" to reflect the new state
+        Assert.IsFalse(ErrorOverview.ShowResolved.Visible(), 'Show Resolved should hide once resolved errors are shown.');
+        Assert.IsTrue(ErrorOverview.HideResolved.Visible(), 'Hide Resolved should be visible once resolved errors are shown.');
 
         // [THEN] Both records appear in the repeater
         if ErrorOverview.First() then
@@ -885,6 +902,16 @@ codeunit 148909 "BC14 Page Tests"
 
         Assert.IsTrue(Found1, 'Error 1 should be visible on the page.');
         Assert.IsTrue(Found2, 'Error 2 should be visible on the page.');
+
+        // [WHEN] Resolved errors are hidden again
+        ErrorOverview.HideResolved.Invoke();
+
+        // [THEN] The action set returns to "Show Resolved" and the resolved error drops off
+        Assert.IsTrue(ErrorOverview.ShowResolved.Visible(), 'Show Resolved should be visible again after hiding resolved errors.');
+        Assert.IsFalse(ErrorOverview.HideResolved.Visible(), 'Hide Resolved should be hidden again after hiding resolved errors.');
+        Assert.IsTrue(ErrorOverview.First(), 'Unresolved error should remain after hiding resolved errors.');
+        Assert.AreEqual('No.=1200', ErrorOverview."Source Record Key".Value(), 'Only the unresolved error should remain after Hide Resolved.');
+        Assert.IsFalse(ErrorOverview.Next(), 'Resolved error must be hidden again after Hide Resolved.');
 
         ErrorOverview.Close();
     end;
@@ -978,6 +1005,13 @@ codeunit 148909 "BC14 Page Tests"
 
         // [WHEN] The user invokes Continue migration and declines the confirm
         ErrorOverview.OpenView();
+
+        // [THEN] The dismissed error is hidden by default (no rows visible)
+        Assert.IsFalse(ErrorOverview.First(), 'Resolved error must be hidden by default before Show Resolved is toggled.');
+
+        // Toggle resolved errors visible so the only (dismissed) row becomes selectable
+        // as the source for the action.
+        ErrorOverview.ShowResolved.Invoke();
         ErrorOverview.First();
         ErrorOverview.ContinueMigration.Invoke();
 

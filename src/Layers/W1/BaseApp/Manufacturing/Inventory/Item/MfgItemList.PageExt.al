@@ -131,7 +131,6 @@ pageextension 99000751 "Mfg. Item List" extends "Item List"
                     Caption = 'Cost Shares Breakdown';
                     Image = "Report";
                     RunObject = Report "Cost Shares Breakdown";
-                    ToolTip = 'View the item''s cost broken down in inventory, WIP, or COGS, according to purchase and material cost, capacity cost, capacity overhead cost, manufacturing overhead cost, subcontracted cost, variance, indirect cost, revaluation, and rounding. The report breaks down cost at a single BOM level and does not roll up the costs from lower BOM levels. The report does not calculate the cost share from items that use the Average costing method.';
                 }
                 action("Detailed Calculation")
                 {
@@ -139,7 +138,6 @@ pageextension 99000751 "Mfg. Item List" extends "Item List"
                     Caption = 'Detailed Calculation';
                     Image = "Report";
                     RunObject = Report "Detailed Calculation";
-                    ToolTip = 'View the list of all costs for the item taking into account any scrap during production.';
                 }
                 action("Rolled-up Cost Shares")
                 {
@@ -147,7 +145,6 @@ pageextension 99000751 "Mfg. Item List" extends "Item List"
                     Caption = 'Rolled-up Cost Shares';
                     Image = "Report";
                     RunObject = Report "Rolled-up Cost Shares";
-                    ToolTip = 'View the cost shares of all items in the parent item''s product structure, their quantity and their cost shares specified in material, capacity, overhead, and total cost. Material cost is calculated as the cost of all items in the parent item''s product structure. Capacity and subcontractor costs are calculated as the costs related to produce all of the items in the parent item''s product structure. Material cost is calculated as the cost of all items in the item''s product structure. Capacity and subcontractor costs are the cost related to the parent item only.';
                 }
                 action("Single-Level Cost Shares")
                 {
@@ -155,7 +152,6 @@ pageextension 99000751 "Mfg. Item List" extends "Item List"
                     Caption = 'Single-Level Cost Shares';
                     Image = "Report";
                     RunObject = Report "Single-level Cost Shares";
-                    ToolTip = 'View the cost shares of all items in the item''s product structure, their quantity and their cost shares specified in material, capacity, overhead, and total cost. Material cost is calculated as the cost of all items in the parent item''s product structure. Capacity and subcontractor costs are calculated as the costs related to produce all of the items in the parent item''s product structure.';
                 }
             }
         }
@@ -180,7 +176,6 @@ pageextension 99000751 "Mfg. Item List" extends "Item List"
                 Caption = 'Compare Production Cost Shares';
                 Image = "Report";
                 RunObject = Report "Compare Production Cost Shares";
-                ToolTip = 'View a comparison of components for two items. The printout compares the components, their unit cost, cost share and cost per component.';
             }
         }
     }

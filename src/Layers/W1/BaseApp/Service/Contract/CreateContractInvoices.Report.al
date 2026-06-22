@@ -13,6 +13,7 @@ report 6030 "Create Contract Invoices"
 {
     ApplicationArea = Service;
     Caption = 'Create Service Contract Invoices';
+    ToolTip = 'Create service invoices for service contracts that are due for invoicing.';
     ProcessingOnly = true;
     UsageCategory = Tasks;
 

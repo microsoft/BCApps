@@ -61,6 +61,17 @@ All scripts create a branch in the target repo and commit changes to it.
 7. **Copy build metadata** — copy `NAV\Eng\Core\Build\projects.json` and `groups.json`
    to `target\build\`.
 
+7b. **Update BCPlatform version** — read the `microsoft.nav.platform.main.universal`
+    package version from `NAV\.corext\corext.config` (e.g. `29.0.51074-0`), convert it
+    to the dotted form (`29.0.51074.0`), and write it to `BCPlatform.Version` in
+    `target\build\Packages.json`. Idempotent — no-op if already up to date.
+
+7c. **Update AppBaselines-BCArtifacts version** — read `Identity.Version` from
+    `NAV\.corext\lazyComponents\ReferenceV2Extensions\PackageInfo.json` (e.g. `28.2.50950`),
+    pad to the 4-part dotted form (`28.2.50950.0`), and write it to
+    `AppBaselines-BCArtifacts.Version` in `target\build\Packages.json`. This is the
+    AppSourceCop breaking-change baseline. Idempotent — no-op if already up to date.
+
 8. **Merge DisabledTests** — for each `*.DisabledTest.json` in `NAV\App\DisabledTests`:
    - If file does not exist in target `src\DisabledTests\`: copy it.
    - If file exists: additive merge (add new entries, preserve existing).

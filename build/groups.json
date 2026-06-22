@@ -3888,7 +3888,7 @@
     ]
   },
   {
-    "name": "Business Central 14 Reimplementation Tool",
+    "name": "Dynamics 365 Business Central v14 Reimplementation",
     "groups": [
       {
         "name": "AllExtensions"
@@ -4748,46 +4748,6 @@
       },
       {
         "name": "System Solution"
-      }
-    ]
-  },
-  {
-    "name": "_Exclude_ReportLayouts",
-    "groups": [
-      {
-        "name": "AllExtensions"
-      },
-      {
-        "name": "Financials"
-      },
-      {
-        "name": "FinancialsExtensions"
-      },
-      {
-        "name": "OnPrem"
-      },
-      {
-        "name": "OnPremExtensions"
-      }
-    ]
-  },
-  {
-    "name": "Report Layouts Tests",
-    "groups": [
-      {
-        "name": "AllExtensions"
-      },
-      {
-        "name": "Financials"
-      },
-      {
-        "name": "FinancialsExtensions"
-      },
-      {
-        "name": "OnPrem"
-      },
-      {
-        "name": "OnPremExtensions"
       }
     ]
   },

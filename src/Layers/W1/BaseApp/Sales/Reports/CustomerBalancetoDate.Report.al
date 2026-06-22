@@ -19,6 +19,7 @@ report 121 "Customer - Balance to Date"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Customer Balance to Date';
+    ToolTip = 'View a list with customers'' payment history up until a certain date. You can use the report to extract your total sales income at the close of an accounting period or fiscal year.';
     UsageCategory = ReportsAndAnalysis;
     DataAccessIntent = ReadOnly;
     DefaultRenderingLayout = RDLCLayout;

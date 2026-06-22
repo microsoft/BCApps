@@ -7,6 +7,7 @@ namespace Microsoft.Service.Email;
 report 6006 "Delete Service Email Queue"
 {
     Caption = 'Delete Service Email Queue';
+    ToolTip = 'Delete Service Email Queue';
     ProcessingOnly = true;
 
     dataset

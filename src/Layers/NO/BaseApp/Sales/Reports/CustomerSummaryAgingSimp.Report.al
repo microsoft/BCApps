@@ -17,6 +17,7 @@ report 109 "Customer - Summary Aging Simp."
     AdditionalSearchTerms = 'customer balance simplify,payment due simplify';
     ApplicationArea = Suite;
     Caption = 'Customer - Summary Aging Simp.';
+    ToolTip = 'View, print, or save a summary of each customer''s total payments due, divided into three time periods. The report can be used to decide when to issue reminders, to evaluate a customer''s creditworthiness, or to prepare liquidity analyses.';
     UsageCategory = ReportsAndAnalysis;
     DataAccessIntent = ReadOnly;
     DefaultRenderingLayout = RDLCLayout;

@@ -346,7 +346,7 @@ permissionset 7931 "D365 TEAM MEMBER"
                   tabledata "Account Use Buffer" = RM,
                   tabledata "Accounting Period" = RM,
                   tabledata "Accounting Services Cue" = RM,
-                  tabledata "Action Message Entry" = RM,
+                  tabledata "Action Message Entry" = RIMD,
                   tabledata "Activities Cue" = RIMD,
                   tabledata "Account Payable Cue" = RIMD,
                   tabledata Activity = RM,

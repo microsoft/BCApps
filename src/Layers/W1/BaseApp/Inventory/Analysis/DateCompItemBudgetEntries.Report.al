@@ -15,6 +15,7 @@ using System.Utilities;
 report 7139 "Date Comp. Item Budget Entries"
 {
     Caption = 'Date Compr. Item Budget Entries';
+    ToolTip = 'Save database space by combining related entries in one new entry. You can compress entries from closed fiscal years only.';
     ProcessingOnly = true;
 
     dataset

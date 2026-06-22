@@ -21,6 +21,9 @@ codeunit 4589 "SOA Upgrade"
     var
         SOAImpl: Codeunit "SOA Impl";
         FailedToUpdateSOAInstructionsTxt: Label 'Failed to update SOA agent instructions during upgrade.', Locked = true;
+#if not CLEAN29
+        SkippedKPIRecordsTxt: Label 'SOA KPI upgrade: %1 legacy records could not be attributed to an agent and were discarded.', Locked = true;
+#endif
 
     trigger OnUpgradePerDatabase()
     begin
@@ -34,6 +37,11 @@ codeunit 4589 "SOA Upgrade"
         AddDailyEmailLimit();
         UpgradeUserSecurityIDField();
         SetMarkEmailAsRead();
+        UpgradeOwnerUserSecurityID();
+        UpgradeAgentIdentity();
+#if not CLEAN29
+        UpgradeSOAKPIToPerAgent();
+#endif
     end;
 
     // This procedure intentionally runs on every upgrade without an upgrade tag.
@@ -145,6 +153,116 @@ codeunit 4589 "SOA Upgrade"
         end;
     end;
 
+    local procedure UpgradeAgentIdentity()
+    var
+        SOASetup: Record "SOA Setup";
+        SOASetupCU: Codeunit "SOA Setup";
+        UpgradeTag: Codeunit "Upgrade Tag";
+        IsModified: Boolean;
+    begin
+        if UpgradeTag.HasUpgradeTag(GetAgentIdentityTag()) then
+            exit;
+
+        if SOASetup.FindSet() then
+            repeat
+                IsModified := false;
+
+                if SOASetup."Agent Name" = '' then begin
+                    SOASetup."Agent Name" := CopyStr(SOASetupCU.GetSOAUserDisplayName(), 1, MaxStrLen(SOASetup."Agent Name"));
+                    IsModified := true;
+                end;
+
+                if SOASetup."Agent Initials" = '' then begin
+                    SOASetup."Agent Initials" := SOASetupCU.GetInitials();
+                    IsModified := true;
+                end;
+
+                if IsModified then
+                    SOASetup.Modify();
+            until SOASetup.Next() = 0;
+
+        UpgradeTag.SetUpgradeTag(GetAgentIdentityTag());
+    end;
+
+    local procedure UpgradeOwnerUserSecurityID()
+    var
+        SOASetup: Record "SOA Setup";
+        UpgradeTag: Codeunit "Upgrade Tag";
+        IsModified: Boolean;
+    begin
+        if UpgradeTag.HasUpgradeTag(GetOwnerUserSecurityIDTag()) then
+            exit;
+
+        if SOASetup.FindSet() then
+            repeat
+                IsModified := false;
+                if IsNullGuid(SOASetup."Owner User Security ID") and (not IsNullGuid(SOASetup."User Security ID")) then begin
+                    SOASetup."Owner User Security ID" := SOASetup."User Security ID";
+                    IsModified := true;
+                end;
+
+                if IsModified then
+                    SOASetup.Modify();
+            until SOASetup.Next() = 0;
+
+        UpgradeTag.SetUpgradeTag(GetOwnerUserSecurityIDTag());
+    end;
+
+#if not CLEAN29
+    local procedure UpgradeSOAKPIToPerAgent()
+    var
+        SOASetup: Record "SOA Setup";
+        LegacySOAKPI: Record "SOA KPI";
+        SOAKPISummary: Record "SOA KPI Summary";
+        UpgradeTag: Codeunit "Upgrade Tag";
+        TargetAgentSecurityID: Guid;
+        SkippedRecords: Integer;
+    begin
+        if UpgradeTag.HasUpgradeTag(GetSOAKPIPerAgentTag()) then
+            exit;
+
+        if not LegacySOAKPI.FindSet() then begin
+            UpgradeTag.SetUpgradeTag(GetSOAKPIPerAgentTag());
+            exit;
+        end;
+
+        if SOASetup.FindFirst() and (not IsNullGuid(SOASetup."User Security ID")) then
+            TargetAgentSecurityID := SOASetup."User Security ID";
+
+        repeat
+            if IsNullGuid(LegacySOAKPI."User Security ID") then begin
+                if not IsNullGuid(TargetAgentSecurityID) then
+                    MergeSOAKPIIntoSummary(SOAKPISummary, LegacySOAKPI, TargetAgentSecurityID)
+                else
+                    SkippedRecords += 1;
+            end else
+                MergeSOAKPIIntoSummary(SOAKPISummary, LegacySOAKPI, LegacySOAKPI."User Security ID");
+        until LegacySOAKPI.Next() = 0;
+
+        if SkippedRecords > 0 then
+            Session.LogMessage('0000UAO', StrSubstNo(SkippedKPIRecordsTxt, SkippedRecords), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'SOA Upgrade');
+
+        LegacySOAKPI.DeleteAll();
+
+        UpgradeTag.SetUpgradeTag(GetSOAKPIPerAgentTag());
+    end;
+
+    local procedure MergeSOAKPIIntoSummary(var SOAKPISummary: Record "SOA KPI Summary"; LegacySOAKPI: Record "SOA KPI"; TargetAgentSecurityID: Guid)
+    begin
+        SOAKPISummary.GetSafe(TargetAgentSecurityID);
+
+        SOAKPISummary."Received Emails" += LegacySOAKPI."Received Emails";
+        SOAKPISummary."Total Emails" += LegacySOAKPI."Total Emails";
+        SOAKPISummary."Total Quotes Created" += LegacySOAKPI."Total Quotes Created";
+        SOAKPISummary."Total Orders Created" += LegacySOAKPI."Total Orders Created";
+        SOAKPISummary."Total Amount Orders" += LegacySOAKPI."Total Amount Orders";
+        if LegacySOAKPI."Last Updated DateTime" > SOAKPISummary."Last Updated DateTime" then
+            SOAKPISummary."Last Updated DateTime" := LegacySOAKPI."Last Updated DateTime";
+
+        SOAKPISummary.Modify();
+    end;
+#endif
+
     internal procedure GetRegisterSalesOrderAgentCapabilityTag(): Code[250]
     begin
         exit('MS-539550-SalesOrderAgentCapability-20240802');
@@ -170,6 +288,23 @@ codeunit 4589 "SOA Upgrade"
         exit('MS-621547-MarkEmailAsRead-20260521');
     end;
 
+    internal procedure GetAgentIdentityTag(): Code[250]
+    begin
+        exit('MS-635120-AgentIdentity-20260615');
+    end;
+
+#if not CLEAN29
+    internal procedure GetSOAKPIPerAgentTag(): Code[250]
+    begin
+        exit('MS-635420-SOAKPI-PerAgent-20260616');
+    end;
+#endif
+
+    internal procedure GetOwnerUserSecurityIDTag(): Code[250]
+    begin
+        exit('MS-635860-OwnerUserSecurityID-20260617');
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", OnGetPerDatabaseUpgradeTags, '', false, false)]
     local procedure RegisterPerDatabaseUpgradeTags(var PerDatabaseUpgradeTags: List of [Code[250]])
     begin
@@ -181,5 +316,10 @@ codeunit 4589 "SOA Upgrade"
     begin
         PerCompanyUpgradeTags.Add(GetSetDailyEmailLimitTag());
         PerCompanyUpgradeTags.Add(GetSetMarkEmailAsReadTag());
+        PerCompanyUpgradeTags.Add(GetOwnerUserSecurityIDTag());
+        PerCompanyUpgradeTags.Add(GetAgentIdentityTag());
+#if not CLEAN29
+        PerCompanyUpgradeTags.Add(GetSOAKPIPerAgentTag());
+#endif
     end;
 }

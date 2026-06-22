@@ -10,6 +10,7 @@ report 701 "Inventory - List"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Inventory - List';
+    ToolTip = 'View various information about the item, such as name, unit of measure, posting group, shelf number, vendor''s item number, lead time calculation, minimum inventory, and alternate item number. You can also see if the item is blocked.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

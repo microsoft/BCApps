@@ -19,6 +19,7 @@ using System.Utilities;
 report 211 "Customer - Payment Receipt"
 {
     Caption = 'Customer - Payment Receipt';
+    ToolTip = 'View a document showing which customer ledger entries that a payment has been applied to. This report can be used as a payment receipt that you send to the customer.';
     WordMergeDataItem = "Cust. Ledger Entry";
     DefaultRenderingLayout = RDLCLayout;
 

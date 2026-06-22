@@ -16,7 +16,6 @@ pageextension 99000861 "Mfg. Data Administration" extends "Data Administration"
             {
                 ApplicationArea = Manufacturing;
                 Caption = 'Delete Expired Components';
-                ToolTip = 'Delete Expired Components';
                 RunObject = report "Delete Expired Components";
                 Ellipsis = true;
             }

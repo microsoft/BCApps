@@ -95,14 +95,12 @@ page 9030 "Account Manager Activities"
                         ApplicationArea = Suite;
                         Caption = 'Create Reminders...';
                         RunObject = Report "Create Reminders";
-                        ToolTip = 'Remind your customers of late payments.';
                     }
                     action("Create Finance Charge Memos...")
                     {
                         ApplicationArea = Suite;
                         Caption = 'Create Finance Charge Memos...';
                         RunObject = Report "Create Finance Charge Memos";
-                        ToolTip = 'Issue finance charge memos to your customers as a consequence of late payment.';
                     }
                 }
             }

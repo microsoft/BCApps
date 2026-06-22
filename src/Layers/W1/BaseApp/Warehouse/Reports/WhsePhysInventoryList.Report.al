@@ -12,6 +12,7 @@ report 7307 "Whse. Phys. Inventory List"
     AdditionalSearchTerms = 'physical count';
     ApplicationArea = Warehouse;
     Caption = 'Warehouse Physical Inventory List';
+    ToolTip = 'View or print the list of the lines that you have calculated in the Warehouse Physical Inventory Journal window. You can use this report during the physical inventory count to mark down actual quantities on hand in the warehouse and compare them to what is recorded in the program.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

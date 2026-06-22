@@ -14,6 +14,7 @@ using Microsoft.Sales.Customer;
 report 110 "Customer - Labels"
 {
     Caption = 'Customer - Labels';
+    ToolTip = 'View, save, or print mailing labels with the customers'' names and addresses. The report can be used to send sales letters, for example.';
     DefaultRenderingLayout = RDLCLayout;
 
     dataset

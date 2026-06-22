@@ -18,6 +18,7 @@ report 5756 "Create Warehouse Location"
 {
     ApplicationArea = Warehouse;
     Caption = 'Create Warehouse Location';
+    ToolTip = 'Enable an existing inventory location to use zones and bins to operate as a warehouse location. The batch job creates initial warehouse entries for the warehouse adjustment bin for all items that have inventory in the location. It is necessary to perform a physical inventory after this batch job is finished so that these initial entries can be balanced by posting warehouse physical inventory entries.';
     ProcessingOnly = true;
     UsageCategory = Tasks;
 

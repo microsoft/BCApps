@@ -725,7 +725,6 @@ page 9004 "Bookkeeper Role Center"
                 Ellipsis = true;
                 Image = PostInventoryToGL;
                 RunObject = Report "Post Inventory Cost to G/L";
-                ToolTip = 'Post the quantity and value changes to the inventory in the item ledger entries and the value entries when you post inventory transactions, such as sales shipments or purchase receipts.';
             }
             action("Calc. and Pos&t VAT Settlement")
             {

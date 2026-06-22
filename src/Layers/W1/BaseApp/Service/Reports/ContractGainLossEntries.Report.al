@@ -13,6 +13,7 @@ report 5983 "Contract Gain/Loss Entries"
     RDLCLayout = './Service/Reports/ContractGainLossEntries.rdlc';
     ApplicationArea = Service;
     Caption = 'Contract Gain/Loss Entries';
+    ToolTip = 'Specifies billable prices for the project task that are related to G/L accounts, expressed in the local currency.';
     UsageCategory = ReportsAndAnalysis;
 
     dataset

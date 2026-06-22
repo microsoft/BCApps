@@ -52,12 +52,6 @@ codeunit 1752 "Data Class. Eval. Data Country"
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Selected Rev. Charge Grp. 340");
         DataClassificationEvalData.SetTableFieldsToNormal(10744); // 340 Declaration Line
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Operation Code");
-        DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"SII History");
-        DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"SII Setup");
-        DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"SII Doc. Upload State");
-        DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"SII Session");
-        DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"SII Sales Document Scheme Code");
-        DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"SII Purch. Doc. Scheme Code");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Cartera Doc.");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Posted Cartera Doc.");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Closed Cartera Doc.");
@@ -76,7 +70,6 @@ codeunit 1752 "Data Class. Eval. Data Country"
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Closed Payment Order");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Customer Rating");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::Suffix);
-        DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"SII Missing Entries State");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"No Taxable Entry");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Sales Header Archive");
         OnAfterClassifyCountrySpecificTables();

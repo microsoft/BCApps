@@ -105,14 +105,6 @@ table 9055 "Purchase Cue"
             Caption = 'User ID Filter';
             FieldClass = FlowFilter;
         }
-        field(10700; "Missing SII Entries"; Integer)
-        {
-            Caption = 'Missing SII Entries';
-        }
-        field(10701; "Days Since Last SII Check"; Integer)
-        {
-            Caption = 'Days Since Last SII Check';
-        }
     }
 
     keys

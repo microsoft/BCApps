@@ -66,7 +66,6 @@ page 9017 "Service Technician Role Center"
                 Caption = 'Service &Order';
                 Image = Document;
                 RunObject = Report "Service Order";
-                ToolTip = 'Create a new service order to perform service on a customer''s item.';
             }
             action("Service Items Out of &Warranty")
             {
@@ -74,7 +73,6 @@ page 9017 "Service Technician Role Center"
                 Caption = 'Service Items Out of &Warranty';
                 Image = "Report";
                 RunObject = Report "Service Items Out of Warranty";
-                ToolTip = 'View information about warranty end dates, serial numbers, number of active contracts, items description, and names of customers. You can print a list of service items that are out of warranty.';
             }
             action("Service Item &Line Labels")
             {
@@ -82,7 +80,6 @@ page 9017 "Service Technician Role Center"
                 Caption = 'Service Item &Line Labels';
                 Image = "Report";
                 RunObject = Report "Service Item Line Labels";
-                ToolTip = 'View the list of service items on service orders. The report shows the order number, service item number, serial number, and the name of the item.';
             }
             action("Service &Item Worksheet")
             {
@@ -90,7 +87,6 @@ page 9017 "Service Technician Role Center"
                 Caption = 'Service &Item Worksheet';
                 Image = ServiceItemWorksheet;
                 RunObject = Report "Service Item Worksheet";
-                ToolTip = 'View or edit information about service items, such as repair status, fault comments and codes, and cost. In this window, you can update information on the items such as repair status and fault and resolution codes. You can also enter new service lines for resource hours, for the use of spare parts and for specific service costs.';
             }
         }
         area(embedding)

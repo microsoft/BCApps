@@ -196,35 +196,6 @@ page 143 "Posted Sales Invoices"
                 {
                     ApplicationArea = Basic, Suite;
                 }
-                field("SII Status"; Rec."SII Status")
-                {
-                    ApplicationArea = Basic, Suite;
-                    StyleExpr = StyleText;
-                    ToolTip = 'Specifies the document''s status with regard to tax declaration, the Immediate Information Supply requirement. ';
-                    Visible = SIIStateVisible;
-
-                    trigger OnDrillDown()
-                    var
-                        SIIDocUploadState: Record "SII Doc. Upload State";
-                        SIIManagement: Codeunit "SII Management";
-                    begin
-                        SIIDocUploadState.SetRange("Document Source", SIIDocUploadState."Document Source"::"Customer Ledger");
-                        SIIDocUploadState.SetRange("Document Type", SIIDocUploadState."Document Type"::Invoice);
-                        SIIDocUploadState.SetRange("Document No.", Rec."No.");
-                        SIIManagement.SIIStateDrilldown(SIIDocUploadState);
-                    end;
-                }
-                field("Do Not Send To SII"; Rec."Do Not Send To SII")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies if the document must not be sent to SII.';
-                }
-                field("Sent to SII"; Rec."Sent to SII")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies that the document has been sent to the Immediate Information Supply system.';
-                    Visible = SIIStateVisible;
-                }
                 field("Document Date"; Rec."Document Date")
                 {
                     ApplicationArea = Basic, Suite;
@@ -808,17 +779,13 @@ page 143 "Posted Sales Invoices"
     end;
 
     trigger OnAfterGetRecord()
-    var
-        SIIManagement: Codeunit "SII Management";
     begin
         if DocExchStatusVisible then
             DocExchStatusStyle := Rec.GetDocExchStatusStyle();
-        StyleText := SIIManagement.GetSIIStyle(Rec."SII Status".AsInteger());
     end;
 
     trigger OnOpenPage()
     var
-        SIISetup: Record "SII Setup";
         SalesInvoiceHeader: Record "Sales Invoice Header";
         CRMIntegrationManagement: Codeunit "CRM Integration Management";
         OfficeMgt: Codeunit "Office Management";
@@ -832,7 +799,6 @@ page 143 "Posted Sales Invoices"
             if Rec.FindFirst() then;
         IsOfficeAddin := OfficeMgt.IsAvailable();
 
-        SIIStateVisible := SIISetup.IsEnabled();
         SalesInvoiceHeader.CopyFilters(Rec);
         SalesInvoiceHeader.SetFilter("Document Exchange Status", '<>%1', Rec."Document Exchange Status"::"Not Sent");
         DocExchStatusVisible := not SalesInvoiceHeader.IsEmpty();
@@ -855,8 +821,6 @@ page 143 "Posted Sales Invoices"
         DocExchStatusVisible: Boolean;
         IsOfficeAddin: Boolean;
         HasPostedSalesInvoices: Boolean;
-        StyleText: Text;
-        SIIStateVisible: Boolean;
 
     [IntegrationEvent(true, false)]
     local procedure OnOpenPageOnAfterSetFilters(var SalesInvoiceHeader: Record "Sales Invoice Header")

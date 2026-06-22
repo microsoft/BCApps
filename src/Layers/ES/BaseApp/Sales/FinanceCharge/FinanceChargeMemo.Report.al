@@ -30,6 +30,7 @@ using System.Utilities;
 report 118 "Finance Charge Memo"
 {
     Caption = 'Finance Charge Memo';
+    ToolTip = 'Create a new finance charge memo.';
     WordMergeDataItem = "Issued Fin. Charge Memo Header";
     DefaultRenderingLayout = RDLCLayout;
 

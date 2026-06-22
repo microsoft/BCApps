@@ -15,6 +15,7 @@ using System.Utilities;
 report 188 "Create Reminders"
 {
     Caption = 'Create Reminders';
+    ToolTip = 'Create reminders for one or more customers with overdue payments.';
     ProcessingOnly = true;
 
     dataset

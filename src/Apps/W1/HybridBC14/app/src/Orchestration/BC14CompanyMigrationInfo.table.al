@@ -129,6 +129,12 @@ table 46855 BC14CompanyMigrationInfo
             DataClassification = CustomerContent;
             Caption = 'Historical cutoff date';
         }
+        field(91; "Migrate Historical Records"; Boolean)
+        {
+            InitValue = true;
+            DataClassification = SystemMetadata;
+            Caption = 'Migrate Historical Records';
+        }
     }
 
     keys
@@ -189,6 +195,12 @@ table 46855 BC14CompanyMigrationInfo
     begin
         GetSingleInstance();
         exit(Rec."Migrate Inventory Module");
+    end;
+
+    procedure GetHistoricalRecordsMigrationEnabled(): Boolean
+    begin
+        GetSingleInstance();
+        exit(Rec."Migrate Historical Records");
     end;
 
     procedure IsDataMigrationStarted(): Boolean

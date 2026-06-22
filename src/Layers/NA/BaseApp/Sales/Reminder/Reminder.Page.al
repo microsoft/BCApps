@@ -395,7 +395,6 @@ page 434 Reminder
                     //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                     //PromotedCategory = "Report";
                     RunObject = Report "Customer - Detail Trial Bal.";
-                    ToolTip = 'View the balance for customers with balances on a specified date. The report can be used at the close of an accounting period, for example, or for an audit.';
                     Visible = false;
                 }
                 action("Customer Account Detail")
@@ -411,7 +410,6 @@ page 434 Reminder
                     Caption = 'Statement';
                     Image = "Report";
                     RunObject = Report "Customer Statement";
-                    ToolTip = 'View a list of a customer''s transactions for a selected period, for example, to send to the customer at the close of an accounting period. You can choose to have all overdue balances displayed regardless of the period specified, or you can choose to include an aging band.';
                 }
                 action("Aged Accounts Receivable")
                 {
@@ -431,7 +429,6 @@ page 434 Reminder
                     //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                     //PromotedCategory = "Report";
                     RunObject = Report "Customer - Payment Receipt";
-                    ToolTip = 'View a document showing which customer ledger entries that a payment has been applied to. This report can be used as a payment receipt that you send to the customer.';
                 }
                 action("Open Customer Entries")
                 {

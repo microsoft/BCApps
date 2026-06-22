@@ -20,6 +20,7 @@ report 2501 "Day Book Cust. Ledger Entry"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Day Book Customer Ledger Entry';
+    ToolTip = 'View a summary of customer ledger entries for the specified date. The report shows entries grouped by document type and sorted by entry number.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

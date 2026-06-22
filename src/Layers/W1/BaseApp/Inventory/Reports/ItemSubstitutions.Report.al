@@ -12,6 +12,7 @@ report 5701 "Item Substitutions"
 {
     ApplicationArea = Suite;
     Caption = 'Item Substitutions';
+    ToolTip = 'View substitute items that are set up to be sold instead of the items in the filter. A detailed overview also includes description, unit cost, quantity on hand, base unit of measure, information about interchangeability and additional conditions.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

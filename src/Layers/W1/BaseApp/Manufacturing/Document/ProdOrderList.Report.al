@@ -9,6 +9,7 @@ report 99000763 "Prod. Order - List"
     DefaultRenderingLayout = ProdOrderListExcel;
     ApplicationArea = Manufacturing;
     Caption = 'Production Order - List';
+    ToolTip = 'View a list of the production orders contained in the system. Information such as order number, number of the item to be produced, starting/ending date and other data are shown or printed.';
     UsageCategory = ReportsAndAnalysis;
     AdditionalSearchTerms = 'Prod. Order - List';
 

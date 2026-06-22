@@ -82,11 +82,6 @@ page 427 "Payment Methods"
                 {
                     ApplicationArea = Basic, Suite;
                 }
-                field("SII Payment Method Code"; Rec."SII Payment Method Code")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the code for the sii:Medio node in the SII XML file.';
-                }
             }
         }
         area(factboxes)

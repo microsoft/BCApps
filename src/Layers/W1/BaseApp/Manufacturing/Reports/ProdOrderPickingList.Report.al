@@ -11,6 +11,7 @@ report 99000766 "Prod. Order - Picking List"
 {
     ApplicationArea = Manufacturing;
     Caption = 'Prod. Order - Picking List';
+    ToolTip = 'View a detailed list of items that must be picked for a particular production order, from which location (and bin, if the location uses bins) they must be picked, and when the items are due for production.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

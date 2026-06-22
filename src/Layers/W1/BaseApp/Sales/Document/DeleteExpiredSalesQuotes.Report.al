@@ -10,6 +10,7 @@ namespace Microsoft.Sales.Document;
 report 5172 "Delete Expired Sales Quotes"
 {
     Caption = 'Delete Expired Sales Quotes';
+    ToolTip = 'Delete quotes where the valid-to date is exceeded.';
     ProcessingOnly = true;
 
     dataset

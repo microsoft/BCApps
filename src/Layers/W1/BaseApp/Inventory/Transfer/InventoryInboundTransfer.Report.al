@@ -11,6 +11,7 @@ report 5702 "Inventory - Inbound Transfer"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Inventory - Inbound Transfer';
+    ToolTip = 'View which items are currently on inbound transfer orders.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

@@ -13,6 +13,7 @@ report 5980 "Maintenance Visit - Planning"
     RDLCLayout = './Service/Reports/MaintenanceVisitPlanning.rdlc';
     ApplicationArea = Service;
     Caption = 'Maintenance Visit - Planning';
+    ToolTip = 'View the service zone code, group code, contract number, customer number, service period, as well as the service date. You can select the schedule for one or more responsibility centers. The report shows the service dates of all the maintenance visits for the chosen responsibility centers. You can print all your schedules for maintenance visits.';
     UsageCategory = ReportsAndAnalysis;
 
     dataset

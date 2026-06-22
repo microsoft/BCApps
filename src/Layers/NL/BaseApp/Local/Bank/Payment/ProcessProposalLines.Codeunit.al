@@ -301,7 +301,10 @@ codeunit 11000000 "Process Proposal Lines"
             if CheckRecord."Account Holder City" = '' then begin
                 Errortext := StrSubstNo(Text1000027,
                     CheckRecord.FieldCaption("Account Holder City"));
-                exit(false);
+                res := false;
+                OnCheckAProposalLineOnAfterCheckAccountHolderCity(CheckRecord, Warningstext, Errortext, res);
+                if not res then
+                    exit(false);
             end;
         end;
 
@@ -679,6 +682,11 @@ codeunit 11000000 "Process Proposal Lines"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterCheckOurBank(ProposalLine: Record "Proposal Line"; BankAccount: Record "Bank Account"; var ErrorText: Text[125]; var WarningsText: Text[125]; var Result: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCheckAProposalLineOnAfterCheckAccountHolderCity(ProposalLine: Record "Proposal Line"; var WarningsText: Text[125]; var ErrorText: Text[125]; var Result: Boolean)
     begin
     end;
 

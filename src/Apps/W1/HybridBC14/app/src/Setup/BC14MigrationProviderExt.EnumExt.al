@@ -11,7 +11,7 @@ enumextension 46850 "BC14 Migration Provider Ext" extends "Custom Migration Prov
 {
     value(46850; "BC14 Re-Implementation")
     {
-        Caption = 'Business Central 14 Re-Implementation';
+        Caption = 'Dynamics 365 Business Central Re-implementation (v.14)';
         Implementation = "Custom Migration Provider" = "BC14 Migration Provider", "Custom Migration Table Mapping" = "BC14 Migration Provider";
     }
 }

@@ -8,6 +8,7 @@ report 7116 "Run Invt. Analysis Line Temp."
 {
     ApplicationArea = InventoryAnalysis;
     Caption = 'Inventory Analysis Line Templates';
+    ToolTip = 'Run the Invt. Analysis Line Templates report.';
     ProcessingOnly = true;
     UsageCategory = Administration;
     UseRequestPage = false;

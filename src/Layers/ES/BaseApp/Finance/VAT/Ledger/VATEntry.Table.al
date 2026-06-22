@@ -887,18 +887,6 @@ table 254 "VAT Entry"
             OptionCaption = ' ,Non Taxable Art 7-14 and others,Non Taxable Due To Localization Rules';
             OptionMembers = " ","Non Taxable Art 7-14 and others","Non Taxable Due To Localization Rules";
         }
-        field(10724; "Do Not Send To SII"; Boolean)
-        {
-            Caption = 'Do Not Send To SII';
-        }
-        field(10725; "Ignore In SII"; Boolean)
-        {
-            Caption = 'Ignore In SII';
-        }
-        field(10726; "One Stop Shop Reporting"; Boolean)
-        {
-            Caption = 'One Stop Shop Reporting';
-        }
     }
 
     keys
@@ -1195,7 +1183,6 @@ table 254 "VAT Entry"
         "VAT Registration No." := GenJnlLine."VAT Registration No.";
         NonDeductibleVAT.Copy(Rec, GenJnlLine);
         "Generated Autodocument" := GenJnlLine."Generate AutoInvoices";
-        "Do Not Send To SII" := GenJnlLine."Do Not Send To SII";
 
         OnAfterCopyFromGenJnlLine(Rec, GenJnlLine);
     end;

@@ -112,7 +112,6 @@ page 5811 "Cost Adjustment Runners"
             action(Run)
             {
                 Caption = 'Run';
-                ToolTip = 'Run the cost adjustment for all not started item batches.';
                 Image = Start;
                 Enabled = not IsRunning;
 

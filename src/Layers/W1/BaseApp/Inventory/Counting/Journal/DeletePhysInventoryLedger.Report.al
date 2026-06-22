@@ -11,6 +11,7 @@ using System.Utilities;
 report 789 "Delete Phys. Inventory Ledger"
 {
     Caption = 'Delete Phys. Inventory Ledger';
+    ToolTip = 'Find and delete physical inventory ledger entries.';
     Permissions = TableData "Date Compr. Register" = rimd,
                   TableData "Phys. Inventory Ledger Entry" = rimd,
                   TableData "Inventory Period Entry" = rimd;

@@ -302,6 +302,48 @@ codeunit 135404 "Sales Document Plan-based E2E"
         NotificationLifecycleMgt.RecallAllNotifications();
     end;
 
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure QuantityOnSalesQuoteWithATOItemAndTrackingTeamMember()
+    var
+        Item: array[2] of Record Item;
+        BOMComponent: Record "BOM Component";
+        Customer: Record Customer;
+        SalesHeader: Record "Sales Header";
+        SalesQuote: TestPage "Sales Quote";
+    begin
+        // [SCENARIO 637018] Team Member can change the quantity on a sales quote line for an Assemble-to-Order item
+        // when a BOM component uses the "Tracking & Action Msg." order tracking policy.
+        Initialize();
+
+        // [GIVEN] An Assemble-to-Order item whose BOM components require action message tracking
+        LibraryE2EPlanPermissions.SetBusinessManagerPlan();
+        LibrarySales.CreateCustomer(Customer);
+        CreateAssemblyItem(Item[1]);
+        BOMComponent.SetRange("Parent Item No.", Item[1]."No.");
+        BOMComponent.SetRange(Type, BOMComponent.Type::Item);
+        BOMComponent.FindSet();
+        repeat
+            Item[2].Get(BOMComponent."No.");
+            Item[2].Validate("Order Tracking Policy", Item[2]."Order Tracking Policy"::"Tracking & Action Msg.");
+            Item[2].Modify(true);
+        until BOMComponent.Next() = 0;
+
+        // [GIVEN] A sales quote for the ATO item.
+        CreateSalesQuote(SalesQuote, Customer, Item[1]);
+        SalesHeader.Get(SalesHeader."Document Type"::Quote, SalesQuote."No.".Value);
+        SalesQuote.Close();
+
+        // [WHEN] A user with the Team Member plan changes the quantity
+        LibraryE2EPlanPermissions.SetTeamMemberPlan();
+        SalesQuote.OpenEdit();
+        SalesQuote.GoToRecord(SalesHeader);
+        SalesQuote.SalesLines.Quantity.SetValue(LibraryRandom.RandIntInRange(2, 100));
+
+        // [THEN] No "license does not grant. Action Message Entry: IndirectInsert" error is thrown
+        SalesQuote.Close();
+    end;
+
     local procedure Initialize()
     var
         ExperienceTierSetup: Record "Experience Tier Setup";
@@ -529,6 +571,11 @@ codeunit 135404 "Sales Document Plan-based E2E"
     procedure ConfirmHandlerYes(Question: Text[1024]; var Reply: Boolean)
     begin
         Reply := true;
+    end;
+
+    [MessageHandler]
+    procedure MessageHandler(Message: Text[1024])
+    begin
     end;
 }
 

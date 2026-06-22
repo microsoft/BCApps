@@ -1,10 +1,9 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.History;
 
-using Microsoft.EServices.EDocument;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.Deferral;
 using Microsoft.Finance.Dimension;
@@ -951,10 +950,6 @@ table 113 "Sales Invoice Line"
             AutoFormatType = 1;
             Caption = 'EC Difference';
             Editable = true;
-        }
-        field(10704; "Special Scheme Code"; Enum "SII Sales Special Scheme Code")
-        {
-            Caption = 'Special Scheme Code';
         }
     }
 

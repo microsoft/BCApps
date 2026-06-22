@@ -307,7 +307,6 @@ page 7375 "Inventory Put-away"
                 //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                 //PromotedCategory = "Report";
                 RunObject = Report "Put-away List";
-                ToolTip = 'View or print a detailed list of items that must be put away.';
             }
         }
         area(Promoted)

@@ -53,7 +53,6 @@ page 9041 "Shop Supervisor Activities"
                         ApplicationArea = Manufacturing;
                         Caption = 'Update Unit Cost';
                         RunObject = Report "Update Unit Cost";
-                        ToolTip = 'Recalculate the unit cost of production items on production orders. The value in the Unit Cost field on the production order line is updated according to the selected options.';
                     }
                     action(Navigate)
                     {

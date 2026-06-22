@@ -5,7 +5,6 @@
 
 namespace Microsoft.DataMigration.BC14Reimplementation;
 
-
 enum 46882 "BC14 Migration Step"
 {
     Extensible = false;

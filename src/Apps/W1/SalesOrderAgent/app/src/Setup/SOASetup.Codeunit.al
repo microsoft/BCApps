@@ -64,6 +64,11 @@ codeunit 4400 "SOA Setup"
     var
         AgentSetup: Codeunit "Agent Setup";
     begin
+        EnsureAgentIdentityDefaults(TempSOASetup);
+        ValidateAgentIdentity(TempSOASetup);
+        CheckMailboxUnique(TempSOASetup);
+        AgentSetupBuffer."Display Name" := GetSOAUserDisplayName(TempSOASetup."Agent Name");
+        AgentSetupBuffer."User Name" := GetSOAUsername();
         TempSOASetup."User Security ID" := AgentSetup.SaveChanges(AgentSetupBuffer);
         UpdateInstructions(TempSOASetup);
 
@@ -73,14 +78,26 @@ codeunit 4400 "SOA Setup"
 
         if AgentSetupBuffer.State = AgentSetupBuffer.State::Enabled then begin
             EnableItemSearch();
-            if TempSOASetup."Email Monitoring" and TempSOASetup."Incoming Monitoring" and not IsNullGuid(TempSOASetup."Email Account ID") then
+            if TempSOASetup."Email Monitoring" and not IsNullGuid(TempSOASetup."Email Account ID") then
                 SOAImpl.ScheduleSOAgent(TempSOASetup)
         end;
     end;
 
     internal procedure GetInitials(): Text[4]
     begin
-        exit(SalesOrderAgentInitialLbl);
+        exit(GetDefaultSOAInitials());
+    end;
+
+    internal procedure GetInitials(AgentUserSecurityID: Guid): Text[4]
+    var
+        SOASetup: Record "SOA Setup";
+    begin
+        if not IsNullGuid(AgentUserSecurityID) then
+            if SOASetup.GetBasedOnAgentUserSecurityID(AgentUserSecurityID, false) then
+                if SOASetup."Agent Initials" <> '' then
+                    exit(SOASetup."Agent Initials");
+
+        exit(GetDefaultSOAInitials());
     end;
 
     internal procedure GetAgentType(): Text
@@ -97,25 +114,61 @@ codeunit 4400 "SOA Setup"
     var
         SOASetup: Record "SOA Setup";
         AgentSystemPermissions: Codeunit "Agent System Permissions";
+        CurrentOwnerUserSecurityID: Guid;
     begin
         if not AgentSystemPermissions.CurrentUserHasCanManageAllAgentsPermission() then
             // Limit agent creation to agent admins.
             exit(false);
 
-        exit(SOASetup.IsEmpty());
+        CurrentOwnerUserSecurityID := UserSecurityId();
+        SOASetup.SetRange("Owner User Security ID", CurrentOwnerUserSecurityID);
+
+        exit(SOASetup.Count() < MaxSOAInstances());
+    end;
+
+    internal procedure MaxSOAInstances(): Integer
+    begin
+        exit(5);
+    end;
+
+    internal procedure GetDispatcherBaseDelaySeconds(): Integer
+    begin
+        exit(30);
+    end;
+
+    internal procedure GetDispatcherDelayIncrementSeconds(): Integer
+    begin
+        exit(15);
     end;
 
     internal procedure UpdateAgent(var AgentSetupBuffer: Record "Agent Setup Buffer"; var TempSOASetup: Record "SOA Setup" temporary; Schedule: Boolean)
     var
+        ExistingSOASetup: Record "SOA Setup";
         AzureADGraphUser: Codeunit "Azure AD Graph User";
         AgentSetup: Codeunit "Agent Setup";
     begin
         if AzureADGraphUser.IsUserDelegatedAdmin() or AzureADGraphUser.IsUserDelegatedHelpdesk() then
             Error(DelegateAdminErr);
 
+        // Keep setup and agent buffer identities aligned to avoid drifting updates.
+        if IsNullGuid(TempSOASetup."User Security ID") then
+            TempSOASetup."User Security ID" := AgentSetupBuffer."User Security ID";
+        if IsNullGuid(AgentSetupBuffer."User Security ID") then
+            AgentSetupBuffer."User Security ID" := TempSOASetup."User Security ID";
+
+        EnsureAgentIdentityDefaults(TempSOASetup);
+
         if IsNullGuid(AgentSetupBuffer."User Security ID") then
             CreateAgent(AgentSetupBuffer, TempSOASetup)
         else begin
+            if ExistingSOASetup.GetBasedOnAgentUserSecurityID(TempSOASetup."User Security ID", false) then
+                // Preserve persisted ID for uniqueness validation while keeping user-edited values.
+                if TempSOASetup.ID = 0 then
+                    TempSOASetup.ID := ExistingSOASetup.ID;
+
+            ValidateAgentIdentity(TempSOASetup);
+            CheckMailboxUnique(TempSOASetup);
+            AgentSetupBuffer."Display Name" := GetSOAUserDisplayName(TempSOASetup."Agent Name");
             AgentSetup.SaveChanges(AgentSetupBuffer);
             if AgentSetupBuffer.State = AgentSetupBuffer.State::Enabled then begin
                 UpdateSOASetupActivationDT(TempSOASetup);
@@ -124,7 +177,7 @@ codeunit 4400 "SOA Setup"
 
             if AgentSetupBuffer.State = AgentSetupBuffer.State::Enabled then begin
                 EnableItemSearch();
-                if TempSOASetup."Email Monitoring" and TempSOASetup."Incoming Monitoring" and not IsNullGuid(TempSOASetup."Email Account ID") and Schedule then
+                if TempSOASetup."Email Monitoring" and not IsNullGuid(TempSOASetup."Email Account ID") and Schedule then
                     SOAImpl.ScheduleSOAgent(TempSOASetup);
             end
             else
@@ -133,8 +186,34 @@ codeunit 4400 "SOA Setup"
             UpdateSOASetup(TempSOASetup);
         end;
 
+        SyncAgentIdentity(AgentSetupBuffer, TempSOASetup);
+
         // Log SOA setup telemetry
         LogTelemetry(AgentSetupBuffer, TempSOASetup);
+    end;
+
+    local procedure SyncAgentIdentity(var AgentSetupBuffer: Record "Agent Setup Buffer"; var TempSOASetup: Record "SOA Setup" temporary)
+    var
+        AgentRec: Record Agent;
+        AgentUserSecurityID: Guid;
+        AgentDisplayName: Text[80];
+        AgentInitials: Text[4];
+    begin
+        AgentUserSecurityID := TempSOASetup."User Security ID";
+        if IsNullGuid(AgentUserSecurityID) then
+            AgentUserSecurityID := AgentSetupBuffer."User Security ID";
+
+        if IsNullGuid(AgentUserSecurityID) then
+            exit;
+
+        AgentDisplayName := GetSOAUserDisplayName(TempSOASetup."Agent Name");
+        AgentInitials := TempSOASetup."Agent Initials";
+        if AgentRec.Get(AgentUserSecurityID) then
+            if (AgentRec."Display Name" <> AgentDisplayName) or (AgentRec.Initials <> AgentInitials) then begin
+                AgentRec."Display Name" := AgentDisplayName;
+                AgentRec.Initials := AgentInitials;
+                AgentRec.Modify();
+            end;
     end;
 
     local procedure UpdateSOASetup(var TempSOASetup: Record "SOA Setup" temporary)
@@ -171,11 +250,15 @@ codeunit 4400 "SOA Setup"
             CopyMailSignatureField(TempSOASetup, SOASetup);
             SOASetup."Message Limit" := TempSOASetup."Message Limit";
             SOASetup."Send Sales Quote" := TempSOASetup."Send Sales Quote";
+            SOASetup."Agent Name" := TempSOASetup."Agent Name";
+            SOASetup."Agent Initials" := TempSOASetup."Agent Initials";
 
             SOASetup.Modify();
         end
         else begin
             SOASetup.Copy(TempSOASetup);
+            if IsNullGuid(SOASetup."Owner User Security ID") then
+                SOASetup."Owner User Security ID" := UserSecurityId();
             SOASetup.Insert();
             TempSOASetup := SOASetup;
             TempSOASetup.Insert();
@@ -350,30 +433,35 @@ codeunit 4400 "SOA Setup"
     end;
 
     internal procedure GetAgent(var TempSOAgent: Record Agent temporary)
+    begin
+        GetAgent(TempSOAgent, GetDefaultSOAAgentName());
+    end;
+
+    internal procedure GetAgent(var TempSOAgent: Record Agent temporary; AgentName: Text[50])
     var
         Agents: Record Agent;
     begin
         if IsNullGuid(TempSOAgent."User Security ID") then begin
             Agents.SetRange("User Name", GetSOAUsername());
-            Agents.SetRange("Display Name", SalesOrderAgentDisplayNameLbl);
+            Agents.SetRange("Display Name", GetSOAUserDisplayName(AgentName));
             if Agents.FindFirst() then begin
                 TempSOAgent := Agents;
                 TempSOAgent.Insert();
                 exit;
             end
             else
-                SetAgentDefaults(TempSOAgent);
+                SetAgentDefaults(TempSOAgent, AgentName);
         end else begin
             Agents.Get(TempSOAgent."User Security ID");
             TempSOAgent.TransferFields(Agents, true);
         end;
     end;
 
-    local procedure SetAgentDefaults(var TempSOAgent: Record Agent temporary)
+    local procedure SetAgentDefaults(var TempSOAgent: Record Agent temporary; AgentName: Text[50])
     begin
         TempSOAgent.Init();
         TempSOAgent."User Name" := GetSOAUsername();
-        TempSOAgent."Display Name" := SalesOrderAgentDisplayNameLbl;
+        TempSOAgent."Display Name" := GetSOAUserDisplayName(AgentName);
         TempSOAgent.Insert();
     end;
 
@@ -423,6 +511,47 @@ codeunit 4400 "SOA Setup"
             exit(false);
 
         exit(true);
+    end;
+
+    internal procedure ValidateAgentIdentity(SOASetup: Record "SOA Setup")
+    var
+        OtherSOASetup: Record "SOA Setup";
+        AgentNameRequiredErr: Label 'A display name is required for the Sales Order Agent instance.';
+        AgentNameConflictErr: Label 'This display name is already used by another Sales Order Agent instance.';
+        AgentInitialsRequiredErr: Label 'Initials are required for the Sales Order Agent instance.';
+        AgentInitialsConflictErr: Label 'These initials are already used by another Sales Order Agent instance.';
+    begin
+        if SOASetup."Agent Name" = '' then
+            Error(AgentNameRequiredErr);
+
+        if SOASetup."Agent Initials" = '' then
+            Error(AgentInitialsRequiredErr);
+
+        OtherSOASetup.SetRange("Agent Name", SOASetup."Agent Name");
+        OtherSOASetup.SetFilter(ID, '<>%1', SOASetup.ID);
+        if not OtherSOASetup.IsEmpty() then
+            Error(AgentNameConflictErr);
+
+        OtherSOASetup.Reset();
+        OtherSOASetup.SetRange("Agent Initials", SOASetup."Agent Initials");
+        OtherSOASetup.SetFilter(ID, '<>%1', SOASetup.ID);
+        if not OtherSOASetup.IsEmpty() then
+            Error(AgentInitialsConflictErr);
+    end;
+
+    internal procedure CheckMailboxUnique(SOASetup: Record "SOA Setup")
+    var
+        OtherSOASetup: Record "SOA Setup";
+        MailboxAlreadyUsedErr: Label 'This email account is already used by another Sales Order Agent instance.';
+    begin
+        if IsNullGuid(SOASetup."Email Account ID") then
+            exit;
+
+        OtherSOASetup.SetRange("Email Account ID", SOASetup."Email Account ID");
+        OtherSOASetup.SetRange("Email Connector", SOASetup."Email Connector");
+        OtherSOASetup.SetFilter(ID, '<>%1', SOASetup.ID);
+        if not OtherSOASetup.IsEmpty() then
+            Error(MailboxAlreadyUsedErr);
     end;
 
     internal procedure GetEmailAccount(var SOASetup: Record "SOA Setup"; var TempEmailAccount: Record "Email Account" temporary)
@@ -622,18 +751,143 @@ codeunit 4400 "SOA Setup"
         TempSOASetup."Analyze Attachments" := true;
         TempSOASetup."Mark Email As Read" := true;
         TempSOASetup."User Security ID" := AgentUserSecurityID;
+        TempSOASetup."Owner User Security ID" := UserSecurityId();
+        TempSOASetup."Agent Name" := GetDefaultSOAAgentName();
+        TempSOASetup."Agent Initials" := GetDefaultSOAInitials();
         SetDefaultEmailSignature(TempSOASetup);
         TempSOASetup.Insert();
     end;
 
     internal procedure GetSOAUserDisplayName(): Text[80]
     begin
-        exit(SalesOrderAgentDisplayNameLbl);
+        exit(GetSOAUserDisplayName(GetDefaultSOAAgentName()));
+    end;
+
+    internal procedure GetSOAUserDisplayName(AgentName: Text[50]): Text[80]
+    begin
+        if AgentName = '' then
+            exit(SalesOrderAgentDisplayNameLbl);
+
+        exit(CopyStr(AgentName, 1, 80));
     end;
 
     internal procedure GetSOAUsername(): Text[50]
+    var
+        CandidateUserName: Text[50];
+        Token: Text;
+        Index: Integer;
     begin
-        exit(SalesOrderAgentNameLbl + ' - ' + CompanyName());
+        Index := 1;
+        repeat
+            CandidateUserName := BuildSOAUserName(Index);
+            if not UserNameExists(CandidateUserName) then
+                exit(CandidateUserName);
+            Index += 1;
+        until Index > MaxSOAInstances() + 10;
+
+        // Best-effort fallback to avoid blocking setup on exhausted default candidates.
+        Token := DelChr(Format(CreateGuid()), '=', '{}-');
+        exit(CopyStr(StrSubstNo('%1 %2', CopyStr(SalesOrderAgentNameLbl, 1, 40), CopyStr(Token, 1, 8)), 1, 50));
+    end;
+
+    local procedure EnsureAgentIdentityDefaults(var TempSOASetup: Record "SOA Setup" temporary)
+    begin
+        if TempSOASetup."Agent Name" = '' then
+            TempSOASetup."Agent Name" := GetDefaultSOAAgentName();
+
+        if TempSOASetup."Agent Initials" = '' then
+            TempSOASetup."Agent Initials" := GetDefaultSOAInitials();
+    end;
+
+    local procedure AgentNameExists(AgentName: Text[50]): Boolean
+    var
+        SOASetup: Record "SOA Setup";
+    begin
+        SOASetup.SetRange("Agent Name", AgentName);
+        exit(not SOASetup.IsEmpty());
+    end;
+
+    local procedure UserNameExists(UserName: Text[50]): Boolean
+    var
+        AgentRec: Record Agent;
+    begin
+        AgentRec.SetRange("User Name", UserName);
+        exit(not AgentRec.IsEmpty());
+    end;
+
+    local procedure InitialsExists(AgentInitials: Text[4]): Boolean
+    var
+        SOASetup: Record "SOA Setup";
+    begin
+        SOASetup.SetRange("Agent Initials", AgentInitials);
+        exit(not SOASetup.IsEmpty());
+    end;
+
+    local procedure GetNextAvailableAgentName(): Text[50]
+    var
+        CandidateName: Text[50];
+        Index: Integer;
+    begin
+        CandidateName := CopyStr(SalesOrderAgentDisplayNameLbl, 1, 50);
+        if not AgentNameExists(CandidateName) then
+            exit(CandidateName);
+
+        Index := 2;
+        repeat
+            CandidateName := CopyStr(StrSubstNo('%1 %2', SalesOrderAgentDisplayNameLbl, Format(Index)), 1, 50);
+            if not AgentNameExists(CandidateName) then
+                exit(CandidateName);
+            Index += 1;
+        until Index > MaxSOAInstances() + 10;
+
+        // Fall back to base value and let validation/page edits handle conflicts explicitly.
+        exit(CopyStr(SalesOrderAgentDisplayNameLbl, 1, 50));
+    end;
+
+    local procedure GetDefaultSOAAgentName(): Text[50]
+    begin
+        exit(GetNextAvailableAgentName());
+    end;
+
+    local procedure BuildSOAUserName(Index: Integer): Text[50]
+    var
+        BaseUserName: Text[250];
+        Suffix: Text[30];
+        MaxBaseLength: Integer;
+    begin
+        BaseUserName := SalesOrderAgentNameLbl + ' - ' + CompanyName();
+        if Index <= 1 then
+            Suffix := ''
+        else
+            Suffix := ' ' + Format(Index);
+
+        MaxBaseLength := 50 - StrLen(Suffix);
+
+        if MaxBaseLength < 1 then
+            MaxBaseLength := 1;
+
+        exit(CopyStr(BaseUserName, 1, MaxBaseLength) + Suffix);
+    end;
+
+    local procedure GetDefaultSOAInitials(): Text[4]
+    var
+        CandidateInitials: Text[4];
+        Index: Integer;
+    begin
+        CandidateInitials := CopyStr(SalesOrderAgentInitialLbl, 1, 4);
+        if not InitialsExists(CandidateInitials) then
+            exit(CandidateInitials);
+
+        Index := 2;
+        repeat
+            CandidateInitials := CopyStr(SalesOrderAgentInitialLbl + Format(Index), 1, 4);
+            if not InitialsExists(CandidateInitials) then
+                exit(CandidateInitials);
+            Index += 1;
+        until Index > MaxSOAInstances();
+
+        // Fall back to base initials and let validation/page edits handle conflicts explicitly.
+        exit(CopyStr(SalesOrderAgentInitialLbl, 1, 4));
     end;
 
     internal procedure ValidateEmailConnectionStatus(var TempSOASetup: Record "SOA Setup" temporary) ConnectionSuccess: Boolean
@@ -651,7 +905,7 @@ codeunit 4400 "SOA Setup"
         CurrentModuleInfo: ModuleInfo;
         GeneralError: Boolean;
     begin
-        if TempSOASetup."Incoming Monitoring" and TempSOASetup."Email Monitoring" and not IsNullGuid(TempSOASetup."Email Account ID") then begin
+        if TempSOASetup."Email Monitoring" and not IsNullGuid(TempSOASetup."Email Account ID") then begin
             if StateChanged then
                 UpdateSyncDateTime(TempSOASetup);
 
@@ -717,6 +971,14 @@ codeunit 4400 "SOA Setup"
         SOATestSetup.SetTestEmailCount(true);
         if SOATestSetup.Run(TempSOASetup) then;
         EmailsCount := SOATestSetup.GetEmailCount();
+    end;
+
+    internal procedure GetInboxEmailCount(var SOASetup: Record "SOA Setup") InboxCount: Integer
+    var
+        TempSOASetup: Record "SOA Setup" temporary;
+    begin
+        TempSOASetup := SOASetup;
+        InboxCount := GetEmailsCount(TempSOASetup);
     end;
 
     procedure SupportedAttachmentContentType(FileMIMEType: Text): Boolean

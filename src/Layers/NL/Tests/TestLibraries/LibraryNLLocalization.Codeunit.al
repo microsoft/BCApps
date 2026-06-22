@@ -17,7 +17,7 @@ codeunit 143000 "Library - NL Localization"
         CBGStatement.Insert(true);
     end;
 
-    procedure CreateCBGStatementLine(var CBGStatementLine: Record "CBG Statement Line"; JournalTemplateName: Code[10]; No: Integer; StatementType: Option; StatementNo: Code[20]; AccountType: Option; AccountNo: Code[20]; Debit: Decimal; Credit: Decimal)
+    procedure CreateCBGStatementLine(var CBGStatementLine: Record "CBG Statement Line"; JournalTemplateName: Code[10]; No: Integer; StatementType: Option; StatementNo: Code[20]; AccountType: Enum "CBG Statement Line Account Type"; AccountNo: Code[20]; Debit: Decimal; Credit: Decimal)
     var
         RecRef: RecordRef;
     begin

@@ -17,6 +17,7 @@ report 7150 "Item Dimensions - Detail"
 {
     ApplicationArea = Dimensions;
     Caption = 'Item Dimensions - Detail';
+    ToolTip = 'Run the Item Dimensions - Detail report.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

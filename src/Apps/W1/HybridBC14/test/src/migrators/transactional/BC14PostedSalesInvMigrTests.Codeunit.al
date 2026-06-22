@@ -6,6 +6,7 @@
 namespace Microsoft.DataMigration.BC14Reimplementation.Test;
 
 using Microsoft.DataMigration.BC14Reimplementation;
+using Microsoft.DataMigration.BC14Reimplementation.HistoricalData;
 
 codeunit 148910 "BC14 PostedSalesInvMigr Tests"
 {
@@ -125,6 +126,39 @@ codeunit 148910 "BC14 PostedSalesInvMigr Tests"
         UnbindSubscription(this);
     end;
 
+    [Test]
+    procedure TestMigrate_FallbackPath_CopiesHeadersAndLinesIntoArchive()
+    var
+        BC14PostedSalesInvHeader: Record "BC14 Posted Sales Inv Header";
+        BC14PostedSalesInvLine: Record "BC14 Posted Sales Inv Line";
+        BC14ArchSalesInvHeader: Record "BC14 Arch. Sales Inv. Header";
+        BC14ArchSalesInvLine: Record "BC14 Arch. Sales Inv. Line";
+        BC14PostedSalesInvMigr: Codeunit "BC14 Posted Sales Inv Migr.";
+    begin
+        // [SCENARIO] Outside Intelligent Cloud migration scope DataTransfer is rejected, so the
+        // migrator must fall back to a per-record TransferFields copy. The test session has IC
+        // disabled by default, so calling Migrate exercises that fallback path end-to-end.
+        Initialize();
+        InsertSalesInvHeader('INV-FB-1');
+        InsertSalesInvHeader('INV-FB-2');
+        InsertSalesInvLine('INV-FB-1', 10000);
+        InsertSalesInvLine('INV-FB-1', 20000);
+        InsertSalesInvLine('INV-FB-2', 10000);
+
+        Assert.IsTrue(BC14PostedSalesInvMigr.Migrate(), 'Migrate should succeed via the AL fallback path when IC is disabled.');
+
+        Assert.AreEqual(2, BC14ArchSalesInvHeader.Count(), 'Both source headers should be present in the archive.');
+        Assert.AreEqual(3, BC14ArchSalesInvLine.Count(), 'All source lines should be present in the archive.');
+
+        BC14ArchSalesInvHeader.FindFirst();
+        Assert.AreNotEqual(0DT, BC14ArchSalesInvHeader."Migrated On", 'Migrated On should be stamped by the fallback path.');
+
+        BC14PostedSalesInvHeader.DeleteAll();
+        BC14PostedSalesInvLine.DeleteAll();
+        BC14ArchSalesInvHeader.DeleteAll();
+        BC14ArchSalesInvLine.DeleteAll();
+    end;
+
     local procedure Initialize()
     var
         BC14CompanySettings: Record BC14CompanyMigrationInfo;
@@ -158,6 +192,16 @@ codeunit 148910 "BC14 PostedSalesInvMigr Tests"
         BC14PostedSalesInvHeader.Init();
         BC14PostedSalesInvHeader."No." := DocNo;
         BC14PostedSalesInvHeader.Insert();
+    end;
+
+    local procedure InsertSalesInvLine(DocNo: Code[20]; LineNo: Integer)
+    var
+        BC14PostedSalesInvLine: Record "BC14 Posted Sales Inv Line";
+    begin
+        BC14PostedSalesInvLine.Init();
+        BC14PostedSalesInvLine."Document No." := DocNo;
+        BC14PostedSalesInvLine."Line No." := LineNo;
+        BC14PostedSalesInvLine.Insert();
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"BC14 Posted Sales Inv Migr.", 'OnMigratePostedSalesInvoices', '', false, false)]

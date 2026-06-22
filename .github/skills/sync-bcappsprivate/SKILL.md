@@ -113,6 +113,15 @@ explains why files land where they do are in
 - **Version tokens replaced** in every `src\**\app.json`:
   `$(app_currentVersion)`, `$(app_minimumVersion)`, `$(app_platformVersion)` →
   `<repoVersion>.0.0.0` (repoVersion read from target's `.github\AL-Go-Settings.json`).
+- **BCPlatform version updated** in `build\Packages.json`: the `BCPlatform.Version`
+  is set from the `microsoft.nav.platform.main.universal` package version in NAV's
+  `.corext\corext.config`, converting the corext form (e.g. `29.0.51074-0`) to the
+  dotted form used by `Packages.json` (e.g. `29.0.51074.0`).
+- **AppBaselines-BCArtifacts version updated** in `build\Packages.json`: the
+  `AppBaselines-BCArtifacts.Version` (AppSourceCop breaking-change baseline) is set
+  from `Identity.Version` in NAV's
+  `.corext\lazyComponents\ReferenceV2Extensions\PackageInfo.json` (e.g. `28.2.50950`),
+  padded to the 4-part dotted form (e.g. `28.2.50950.0`).
 
 ## Branch & commit behavior
 

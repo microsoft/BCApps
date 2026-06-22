@@ -16,6 +16,7 @@ report 6036 "Create Contract Service Orders"
 {
     ApplicationArea = Service;
     Caption = 'Create Contract Service Orders';
+    ToolTip = 'Copy information from an existing production order record to a new one. This can be done regardless of the status type of the production order. You can, for example, copy from a released production order to a new planned production order. Note that before you start to copy, you have to create the new record.';
     ProcessingOnly = true;
     UsageCategory = Tasks;
 

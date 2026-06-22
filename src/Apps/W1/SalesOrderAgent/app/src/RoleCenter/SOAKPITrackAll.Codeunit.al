@@ -62,7 +62,9 @@ codeunit 4595 "SOA - KPI Track All"
 
         AgentQuoteKPIEntry.Status := AgentQuoteKPIEntry.Status::"Converted to Order";
         AgentQuoteKPIEntry.Modify(true);
-        SOAKPITrackAll.UpdateSalesOrderBuffer(Rec, BlankSOAKPIEntry.Status::Active, false);
+        // Attribute the order (and its KPI summary) to the agent that created the quote, even when a
+        // regular user performs the quote-to-order conversion.
+        SOAKPITrackAll.UpdateSalesOrderBuffer(Rec, BlankSOAKPIEntry.Status::Active, false, AgentQuoteKPIEntry."Created by User ID");
 
         AgentOrderKPIEntry.Get(AgentQuoteKPIEntry."Record Type"::"Sales Order", Rec."No.");
         AgentOrderKPIEntry."Quote No." := AgentQuoteKPIEntry."No.";
@@ -71,13 +73,22 @@ codeunit 4595 "SOA - KPI Track All"
     end;
 
     internal procedure UpdateSalesQuoteBuffer(var SalesQuoteEntityBuffer: Record "Sales Quote Entity Buffer"; EntryStatus: Option; UpdateOnly: Boolean)
+    var
+        EmptyCreatedByUserID: Guid;
     begin
-        UpdateEntry(BlankSOAKPIEntry."Record Type"::"Sales Quote", SalesQuoteEntityBuffer."No.", SalesQuoteEntityBuffer."Amount Including VAT", EntryStatus, SalesQuoteEntityBuffer."Sell-to Customer No.", SalesQuoteEntityBuffer."Sell-To Contact No.", UpdateOnly, SalesQuoteEntityBuffer."Currency Code", SalesQuoteEntityBuffer."Posting Date");
+        UpdateEntry(BlankSOAKPIEntry."Record Type"::"Sales Quote", SalesQuoteEntityBuffer."No.", SalesQuoteEntityBuffer."Amount Including VAT", EntryStatus, SalesQuoteEntityBuffer."Sell-to Customer No.", SalesQuoteEntityBuffer."Sell-To Contact No.", UpdateOnly, SalesQuoteEntityBuffer."Currency Code", SalesQuoteEntityBuffer."Posting Date", EmptyCreatedByUserID);
     end;
 
     internal procedure UpdateSalesOrderBuffer(var SalesOrderEntityBuffer: Record "Sales Order Entity Buffer"; EntryStatus: Option; UpdateOnly: Boolean)
+    var
+        EmptyCreatedByUserID: Guid;
     begin
-        UpdateEntry(BlankSOAKPIEntry."Record Type"::"Sales Order", SalesOrderEntityBuffer."No.", SalesOrderEntityBuffer."Amount Including VAT", EntryStatus, SalesOrderEntityBuffer."Sell-to Customer No.", SalesOrderEntityBuffer."Sell-To Contact No.", UpdateOnly, SalesOrderEntityBuffer."Currency Code", SalesOrderEntityBuffer."Posting Date");
+        UpdateSalesOrderBuffer(SalesOrderEntityBuffer, EntryStatus, UpdateOnly, EmptyCreatedByUserID);
+    end;
+
+    internal procedure UpdateSalesOrderBuffer(var SalesOrderEntityBuffer: Record "Sales Order Entity Buffer"; EntryStatus: Option; UpdateOnly: Boolean; CreatedByUserID: Guid)
+    begin
+        UpdateEntry(BlankSOAKPIEntry."Record Type"::"Sales Order", SalesOrderEntityBuffer."No.", SalesOrderEntityBuffer."Amount Including VAT", EntryStatus, SalesOrderEntityBuffer."Sell-to Customer No.", SalesOrderEntityBuffer."Sell-To Contact No.", UpdateOnly, SalesOrderEntityBuffer."Currency Code", SalesOrderEntityBuffer."Posting Date", CreatedByUserID);
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"SOA KPI Entry", 'R')]
@@ -97,10 +108,10 @@ codeunit 4595 "SOA - KPI Track All"
         exit(AgentQuoteKPIEntry.Get(AgentQuoteKPIEntry."Record Type"::"Sales Quote", SalesHeader."Quote No."));
     end;
 
-    local procedure UpdateEntry(TableType: Option; "No.": Code[20]; EntryAmount: Decimal; EntryStatus: Option; CustomerNo: Code[20]; ContactNo: Code[20]; UpdateOnly: Boolean; CurrencyCode: Code[10]; DocumentDate: Date)
+    local procedure UpdateEntry(TableType: Option; "No.": Code[20]; EntryAmount: Decimal; EntryStatus: Option; CustomerNo: Code[20]; ContactNo: Code[20]; UpdateOnly: Boolean; CurrencyCode: Code[10]; DocumentDate: Date; CreatedByUserID: Guid)
     var
         SOAKPIEntry: Record "SOA KPI Entry";
-        SOAgentKPI: Record "SOA KPI";
+        SOAKPISummary: Record "SOA KPI Summary";
         Currency: Record "Currency";
         SalesHeader: Record "Sales Header";
         CurrencyExchangeRate: Record "Currency Exchange Rate";
@@ -144,13 +155,16 @@ codeunit 4595 "SOA - KPI Track All"
         SOAKPIEntry."Customer No." := CustomerNo;
 
         if not SOAKPIEntryExist then begin
-            SOAKPIEntry."Created by User ID" := UserSecurityId();
+            if not IsNullGuid(CreatedByUserID) then
+                SOAKPIEntry."Created by User ID" := CreatedByUserID
+            else
+                SOAKPIEntry."Created by User ID" := UserSecurityId();
             SOAKPIEntry."Task ID" := AgentSession.GetCurrentSessionAgentTaskId();
             SOAKPIEntry.Insert(true);
-            SOAgentKPI.UpdateEntryKPIs(SOAKPIEntry, PreviousAmount, true);
+            SOAKPISummary.UpdateEntryKPIs(SOAKPIEntry, PreviousAmount, true, SOAKPIEntry."Created by User ID");
         end else begin
             SOAKPIEntry.Modify(true);
-            SOAgentKPI.UpdateEntryKPIs(SOAKPIEntry, PreviousAmount, false);
+            SOAKPISummary.UpdateEntryKPIs(SOAKPIEntry, PreviousAmount, false, SOAKPIEntry."Created by User ID");
         end;
     end;
 

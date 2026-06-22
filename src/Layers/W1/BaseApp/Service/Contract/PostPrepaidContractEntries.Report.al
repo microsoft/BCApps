@@ -19,6 +19,7 @@ report 6032 "Post Prepaid Contract Entries"
 {
     ApplicationArea = Service;
     Caption = 'Post Prepaid Service Contract Entries';
+    ToolTip = 'Transfers prepaid service contract ledger entries amounts from prepaid accounts to income accounts.';
     Permissions = TableData "Service Ledger Entry" = rm;
     ProcessingOnly = true;
     UsageCategory = Tasks;

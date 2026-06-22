@@ -297,89 +297,6 @@ page 140 "Posted Purchase Credit Memo"
                     Editable = false;
                     Visible = false;
                 }
-                group("SII Information")
-                {
-                    Caption = 'SII Information';
-                    field(OperationDescription; OperationDescription)
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Caption = 'Operation Description';
-                        Editable = false;
-                        MultiLine = true;
-                        ToolTip = 'Specifies the Operation Description.';
-
-                        trigger OnValidate()
-                        var
-                            SIIManagement: Codeunit "SII Management";
-                        begin
-                            SIIManagement.SplitOperationDescription(OperationDescription, Rec."Operation Description", Rec."Operation Description 2");
-                            Rec.Validate("Operation Description");
-                            Rec.Validate("Operation Description 2");
-                            Rec.Modify(true);
-                        end;
-                    }
-                    group(Control1100010)
-                    {
-                        ShowCaption = false;
-                        Visible = DocHasMultipleRegimeCode;
-                        field(MultipleSchemeCodesControl; MultipleSchemeCodesLbl)
-                        {
-                            ApplicationArea = Basic, Suite;
-                            Editable = false;
-                            ShowCaption = false;
-                            Style = StandardAccent;
-                            StyleExpr = true;
-
-                            trigger OnDrillDown()
-                            var
-                                SIISchemeCodeMgt: Codeunit "SII Scheme Code Mgt.";
-                            begin
-                                SIISchemeCodeMgt.PurchDrillDownRegimeCodes(Rec);
-                            end;
-                        }
-                    }
-                    field("Special Scheme Code"; Rec."Special Scheme Code")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Editable = false;
-                        ToolTip = 'Specifies the Special Scheme Code.';
-                    }
-                    field("Cr. Memo Type"; Rec."Cr. Memo Type")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Editable = false;
-                        ToolTip = 'Specifies the Credit Memo Type.';
-                    }
-                    field("Correction Type"; Rec."Correction Type")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Editable = false;
-                        ToolTip = 'Specifies the Correction Type.';
-                    }
-                    field("ID Type"; Rec."ID Type")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Editable = false;
-                        ToolTip = 'Specifies the ID Type.';
-                    }
-                    field("Succeeded Company Name"; Rec."Succeeded Company Name")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Editable = false;
-                        ToolTip = 'Specifies the name of the company successor in connection with corporate restructuring.';
-                    }
-                    field("Succeeded VAT Registration No."; Rec."Succeeded VAT Registration No.")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Editable = false;
-                        ToolTip = 'Specifies the VAT registration number of the company successor in connection with corporate restructuring.';
-                    }
-                    field("Do Not Send To SII"; Rec."Do Not Send To SII")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        ToolTip = 'Specifies if the document must not be sent to SII.';
-                    }
-                }
             }
             group(Payment)
             {
@@ -686,21 +603,6 @@ page 140 "Posted Purchase Credit Memo"
                         DocumentAttachmentDetails.RunModal();
                     end;
                 }
-                action(SpecialSchemeCodes)
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Special Scheme Codes';
-                    Image = Allocations;
-                    ToolTip = 'View or edit the list of special scheme codes that related to the current document for VAT reporting.';
-
-                    trigger OnAction()
-                    var
-                        SIISchemeCodeMgt: Codeunit "SII Scheme Code Mgt.";
-                    begin
-                        SIISchemeCodeMgt.PurchDrillDownRegimeCodes(Rec);
-                        CurrPage.Update(false);
-                    end;
-                }
             }
         }
         area(processing)
@@ -917,9 +819,6 @@ page 140 "Posted Purchase Credit Memo"
             {
                 Caption = 'Credit Memo', Comment = 'Generated from the PromotedActionCategories property index 6.';
 
-                actionref(SpecialSchemeCodes_Promoted; SpecialSchemeCodes)
-                {
-                }
                 actionref(Dimensions_Promoted; Dimensions)
                 {
                 }
@@ -968,33 +867,25 @@ page 140 "Posted Purchase Credit Memo"
     trigger OnAfterGetCurrRecord()
     var
         IncomingDocument: Record "Incoming Document";
-        SIIManagement: Codeunit "SII Management";
     begin
         HasIncomingDocument := IncomingDocument.PostedDocExists(Rec."No.", Rec."Posting Date");
         CurrPage.IncomingDocAttachFactBox.PAGE.LoadDataFromRecord(Rec);
-
-        SIIManagement.CombineOperationDescription(Rec."Operation Description", Rec."Operation Description 2", OperationDescription);
-        UpdateDocHasRegimeCode();
     end;
 
     trigger OnAfterGetRecord()
     begin
         BuyFromContact.GetOrClear(Rec."Buy-from Contact No.");
         PayToContact.GetOrClear(Rec."Pay-to Contact No.");
-        UpdateDocHasRegimeCode();
     end;
 
     trigger OnOpenPage()
     var
         OfficeMgt: Codeunit "Office Management";
         VATReportingDateMgt: Codeunit "VAT Reporting Date Mgt";
-        SIIManagement: Codeunit "SII Management";
     begin
         Rec.SetSecurityFilterOnRespCenter();
         IsOfficeAddin := OfficeMgt.IsAvailable();
 
-        SIIManagement.CombineOperationDescription(Rec."Operation Description", Rec."Operation Description 2", OperationDescription);
-        UpdateDocHasRegimeCode();
         ActivateFields();
         VATDateEnabled := VATReportingDateMgt.IsVATDateEnabled();
     end;
@@ -1011,22 +902,12 @@ page 140 "Posted Purchase Credit Memo"
         IsPayToCountyVisible: Boolean;
         IsShipToCountyVisible: Boolean;
         VATDateEnabled: Boolean;
-        OperationDescription: Text[500];
-        DocHasMultipleRegimeCode: Boolean;
-        MultipleSchemeCodesLbl: Label 'Multiple scheme codes';
 
     local procedure ActivateFields()
     begin
         IsBuyFromCountyVisible := FormatAddress.UseCounty(Rec."Buy-from Country/Region Code");
         IsPayToCountyVisible := FormatAddress.UseCounty(Rec."Pay-to Country/Region Code");
         IsShipToCountyVisible := FormatAddress.UseCounty(Rec."Ship-to Country/Region Code");
-    end;
-
-    local procedure UpdateDocHasRegimeCode()
-    var
-        SIISchemeCodeMgt: Codeunit "SII Scheme Code Mgt.";
-    begin
-        DocHasMultipleRegimeCode := SIISchemeCodeMgt.PurchDocHasRegimeCodes(Rec);
     end;
 
 }

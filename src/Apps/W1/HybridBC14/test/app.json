@@ -17,7 +17,13 @@
   "dependencies": [
     {
       "id": "2363a2b7-1018-4976-a32a-c77338dc9f16",
-      "name": "Business Central 14 Reimplementation Tool",
+      "name": "Dynamics 365 Business Central v14 Reimplementation",
+      "publisher": "Microsoft",
+      "version": "29.0.0.0"
+    },
+    {
+      "id": "f4e3d2c1-b0a9-4867-8765-432109876543",
+      "name": "Business Central 14 Historical Data",
       "publisher": "Microsoft",
       "version": "29.0.0.0"
     },

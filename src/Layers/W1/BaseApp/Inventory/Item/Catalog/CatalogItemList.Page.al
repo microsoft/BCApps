@@ -141,7 +141,6 @@ page 5726 "Catalog Item List"
                 Caption = 'Catalog Item Sales';
                 Image = "Report";
                 RunObject = Report "Catalog Item Sales";
-                ToolTip = 'View a list of item sales for each catalog item during a selected time period. It can be used to review a company''s sale of catalog items.';
             }
             action("Item Substitutions")
             {
@@ -151,7 +150,6 @@ page 5726 "Catalog Item List"
                 //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                 //PromotedCategory = "Report";
                 RunObject = Report "Item Substitutions";
-                ToolTip = 'View substitute items that are set up to be sold instead of the items in the filter. A detailed overview also includes description, unit cost, quantity on hand, base unit of measure, information about interchangeability and additional conditions.';
             }
         }
         area(Promoted)

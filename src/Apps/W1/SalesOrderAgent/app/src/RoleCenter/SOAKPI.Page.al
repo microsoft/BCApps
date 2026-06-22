@@ -14,7 +14,9 @@ page 4402 "SOA KPI"
 {
     PageType = CardPart;
     ApplicationArea = All;
-    SourceTable = "SOA KPI";
+#pragma warning disable AS0035 // SourceTable changed from obsoleted singleton "SOA KPI" (ObsoleteTag 29.0) to "SOA KPI Summary" for per-agent KPI tracking.
+    SourceTable = "SOA KPI Summary";
+#pragma warning restore AS0035
     Permissions = tabledata "General Ledger Setup" = R;
     Caption = 'Sales Order Agent';
     InherentEntitlements = X;
@@ -94,7 +96,12 @@ page 4402 "SOA KPI"
 
     trigger OnOpenPage()
     begin
-        Rec.GetSafe();
+        CurrentAgentSecurityID := GetAgentSecurityIDFromFilter();
+        if IsNullGuid(CurrentAgentSecurityID) then
+            CurrentAgentSecurityID := GetCurrentUserAgentSecurityID();
+
+        Rec.GetSafe(CurrentAgentSecurityID);
+
         VerifyUserHasAccessToAgent();
     end;
 
@@ -106,7 +113,7 @@ page 4402 "SOA KPI"
     local procedure CalculateTotals()
     begin
         VerifyUserHasAccessToAgent();
-        Rec.UpdateEmailKPIs(Rec."User Security ID");
+        Rec.UpdateEmailKPIs(CurrentAgentSecurityID);
         GetAmount(Rec."Total Amount Orders", TotalAmountOrders, TotalAmountOrdersFormat);
         TimeSavedEmails := GetTimeSavedEmails(EmailTimeAutoFormatExpression);
         TimeSavedQuotes := GetTimeSavedQuotes(QuoteTimeAutoFormatExpression);
@@ -117,7 +124,37 @@ page 4402 "SOA KPI"
         Agent: Record Agent;
     begin
         // Verify user has access to the agent
-        Agent.Get(Rec."User Security ID");
+        if IsNullGuid(CurrentAgentSecurityID) then
+            exit;
+        Agent.Get(CurrentAgentSecurityID);
+    end;
+
+    local procedure GetAgentSecurityIDFromFilter(): Guid
+    var
+        AgentSecurityID: Guid;
+        UserSecurityIDFilter: Text;
+    begin
+        UserSecurityIDFilter := Rec.GetFilter("User Security ID");
+        if Evaluate(AgentSecurityID, UserSecurityIDFilter) then
+            exit(AgentSecurityID);
+
+        Clear(AgentSecurityID);
+        exit(AgentSecurityID);
+    end;
+
+    local procedure GetCurrentUserAgentSecurityID(): Guid
+    var
+        SOASetup: Record "SOA Setup";
+    begin
+        SOASetup.SetRange("Owner User Security ID", UserSecurityId());
+        if SOASetup.FindFirst() then
+            exit(SOASetup."User Security ID");
+
+        // Backward compatibility for setups created before Owner User Security ID existed.
+        SOASetup.Reset();
+        SOASetup.SetRange("User Security ID", UserSecurityId());
+        if SOASetup.FindFirst() then
+            exit(SOASetup."User Security ID");
     end;
 
     local procedure GetAmount(CurrentAmount: Decimal; var NewAmount: Decimal; var NewAmountFormat: Text)
@@ -244,6 +281,7 @@ page 4402 "SOA KPI"
         QuoteTimeAutoFormatExpression: Text;
         TotalAmountOrdersFormat: Text;
         TotalAmountOrders: Decimal;
+        CurrentAgentSecurityID: Guid;
         AmountIncludingTaxLbl: Label 'Amount incl. Tax';
         AmountIncludingCurrencyLbl: Label '%1 (%2)', Comment = '%1 - is the title e.g. Amount incl. Tax, %2 - is the currency symbol. Example of full title Amount incl. Tax ($) or Amount incl. Tax (DKK)';
         AutoFormatExpressionLbl: Label '<Precision,0:1><Standard Format,0> %1', Locked = true, Comment = '%1 - is the unit hr or min';

@@ -511,8 +511,8 @@ codeunit 144051 "ERM EVAT"
         ElecTaxDeclSetup.Get();
         ElecTaxDeclSetup."Digipoort Client Cert. Name" := 'abcdefg';
         ElecTaxDeclSetup."Digipoort Service Cert. Name" := 'qwerty';
-        ElecTaxDeclSetup."Digipoort Delivery URL" := 'http://testurl';
-        ElecTaxDeclSetup."Digipoort Status URL" := 'http://testurl';
+        ElecTaxDeclSetup."Digipoort Delivery URL" := 'https://aanlevering.digipoort.logius.nl';
+        ElecTaxDeclSetup."Digipoort Status URL" := 'https://status.digipoort.logius.nl';
         ElecTaxDeclSetup.Modify();
 
         VATStatementName.FindFirst();
@@ -1057,8 +1057,8 @@ codeunit 144051 "ERM EVAT"
         ElecTaxDeclarationSetup.Validate("Client Certificate Code", MockIsolatedCertificate());
         ElecTaxDeclarationSetup.Validate("Service Certificate Code", MockIsolatedCertificate());
         ElecTaxDeclarationSetup.Validate("Use Certificate Setup", true);
-        ElecTaxDeclarationSetup.Validate("Digipoort Delivery URL", LibraryUtility.GenerateGUID());
-        ElecTaxDeclarationSetup.Validate("Digipoort Status URL", LibraryUtility.GenerateGUID());
+        ElecTaxDeclarationSetup.Validate("Digipoort Delivery URL", 'https://aanlevering.digipoort.logius.nl');
+        ElecTaxDeclarationSetup.Validate("Digipoort Status URL", 'https://status.digipoort.logius.nl');
         ElecTaxDeclarationSetup.Modify(true);
         Commit();
         // We do not actually run the report but only check the OnInitReport trigger, then cancel the report by CancelSubmitElecTaxDeclarationReportRequestPageHandler
@@ -1257,8 +1257,8 @@ codeunit 144051 "ERM EVAT"
         end;
         ElecTaxDeclSetup."Digipoort Client Cert. Name" := 'abcde';
         ElecTaxDeclSetup."Digipoort Service Cert. Name" := 'abcde';
-        ElecTaxDeclSetup."Digipoort Delivery URL" := 'http://url.com';
-        ElecTaxDeclSetup."Digipoort Status URL" := 'http://url.com';
+        ElecTaxDeclSetup."Digipoort Delivery URL" := 'https://aanlevering.digipoort.logius.nl';
+        ElecTaxDeclSetup."Digipoort Status URL" := 'https://status.digipoort.logius.nl';
         ElecTaxDeclSetup.Modify(true);
 
         CompanyInfo.Get();

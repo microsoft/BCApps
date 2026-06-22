@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -581,73 +581,6 @@ page 42 "Sales Order"
                 field("Direct Debit Mandate ID"; Rec."Direct Debit Mandate ID")
                 {
                     ApplicationArea = Basic, Suite;
-                }
-                group("SII Information")
-                {
-                    Caption = 'SII Information';
-                    field(OperationDescription; OperationDescription)
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Caption = 'Operation Description';
-                        MultiLine = true;
-                        ToolTip = 'Specifies the Operation Description.';
-
-                        trigger OnValidate()
-                        var
-                            SIIManagement: Codeunit "SII Management";
-                        begin
-                            SIIManagement.SplitOperationDescription(OperationDescription, Rec."Operation Description", Rec."Operation Description 2");
-                            Rec.Validate("Operation Description");
-                            Rec.Validate("Operation Description 2");
-                            Rec.Modify(true);
-                        end;
-                    }
-                    group(Control1100004)
-                    {
-                        ShowCaption = false;
-                        Visible = DocHasMultipleRegimeCode;
-                        field(MultipleSchemeCodesControl; MultipleSchemeCodesLbl)
-                        {
-                            ApplicationArea = Basic, Suite;
-                            Editable = false;
-                            ShowCaption = false;
-                            Style = StandardAccent;
-                            StyleExpr = true;
-
-                            trigger OnDrillDown()
-                            var
-                                SIISchemeCodeMgt: Codeunit "SII Scheme Code Mgt.";
-                            begin
-                                SIISchemeCodeMgt.SalesDrillDownRegimeCodes(Rec);
-                            end;
-                        }
-                    }
-                    field("Special Scheme Code"; Rec."Special Scheme Code")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Editable = not DocHasMultipleRegimeCode;
-                        ToolTip = 'Specifies the Special Scheme Code.';
-                    }
-                    field("Invoice Type"; Rec."Invoice Type")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        ToolTip = 'Specifies the Invoice Type.';
-                    }
-                    field("ID Type"; Rec."ID Type")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        ToolTip = 'Specifies the ID Type.';
-                    }
-                    field("Succeeded Company Name"; Rec."Succeeded Company Name")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        ToolTip = 'Specifies the name of the company successor in connection with corporate restructuring.';
-                    }
-                    field("Succeeded VAT Registration No."; Rec."Succeeded VAT Registration No.")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        ToolTip = 'Specifies the VAT registration number of the company successor in connection with corporate restructuring.';
-                    }
                 }
             }
             group(Payment)
@@ -1389,21 +1322,6 @@ page 42 "Sales Order"
                         RecRef.GetTable(Rec);
                         DocumentAttachmentDetails.OpenForRecRef(RecRef);
                         DocumentAttachmentDetails.RunModal();
-                    end;
-                }
-                action(SpecialSchemeCodes)
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Special Scheme Codes';
-                    Image = Allocations;
-                    ToolTip = 'View or edit the list of special scheme codes that related to the current document for VAT reporting.';
-
-                    trigger OnAction()
-                    var
-                        SIISchemeCodeMgt: Codeunit "SII Scheme Code Mgt.";
-                    begin
-                        SIISchemeCodeMgt.SalesDrillDownRegimeCodes(Rec);
-                        CurrPage.Update(false);
                     end;
                 }
             }
@@ -2539,9 +2457,6 @@ page 42 "Sales Order"
                 actionref(Approvals_Promoted; Approvals)
                 {
                 }
-                actionref(SpecialSchemeCodes_Promoted; SpecialSchemeCodes)
-                {
-                }
                 separator(Navigate_Separator)
                 {
                 }
@@ -2602,7 +2517,6 @@ page 42 "Sales Order"
         SalesHeader: Record "Sales Header";
         CRMCouplingManagement: Codeunit "CRM Coupling Management";
         CustCheckCrLimit: Codeunit "Cust-Check Cr. Limit";
-        SIIManagement: Codeunit "SII Management";
         IsHandled: Boolean;
     begin
         if GuiAllowed() then begin
@@ -2630,8 +2544,6 @@ page 42 "Sales Order"
             StatusStyleTxt := Rec.GetStatusStyleText();
             SetControlVisibility();
         end;
-        SIIManagement.CombineOperationDescription(Rec."Operation Description", Rec."Operation Description 2", OperationDescription);
-        UpdateDocHasRegimeCode();
     end;
 
     trigger OnAfterGetRecord()
@@ -2645,7 +2557,6 @@ page 42 "Sales Order"
             UpdateShipToBillToGroupVisibility();
             BillToContact.GetOrClear(Rec."Bill-to Contact No.");
             SellToContact.GetOrClear(Rec."Sell-to Contact No.");
-            UpdateDocHasRegimeCode();
             CurrPage.IncomingDocAttachFactBox.Page.SetCurrentRecordID(Rec.RecordId);
         end;
         OnAfterOnAfterGetRecord(Rec);
@@ -2691,7 +2602,6 @@ page 42 "Sales Order"
         CRMIntegrationManagement: Codeunit "CRM Integration Management";
         OfficeMgt: Codeunit "Office Management";
         EnvironmentInfo: Codeunit "Environment Information";
-        SIIManagement: Codeunit "SII Management";
         ICInboxOutboxMgt: Codeunit ICInboxOutboxMgt;
         VATReportingDateMgt: Codeunit "VAT Reporting Date Mgt";
         ApplicationAreaMgmtFacade: Codeunit "Application Area Mgmt. Facade";
@@ -2713,9 +2623,7 @@ page 42 "Sales Order"
         if (Rec."No." <> '') and (Rec."Sell-to Customer No." = '') then
             DocumentIsPosted := (not Rec.Get(Rec."Document Type", Rec."No."));
 
-        SIIManagement.CombineOperationDescription(Rec."Operation Description", Rec."Operation Description 2", OperationDescription);
         PaymentServiceVisible := PaymentServiceSetup.IsPaymentServiceVisible();
-        UpdateDocHasRegimeCode();
 
         if GuiAllowed() then
             CheckShowBackgrValidationNotification();
@@ -2794,7 +2702,6 @@ page 42 "Sales Order"
         IsCustomerOrContactNotEmpty: Boolean;
         SalesDocCheckFactboxVisible: Boolean;
         WorkDescription: Text;
-        OperationDescription: Text[500];
         StatusStyleTxt: Text;
         IsSaas: Boolean;
         IsBillToCountyVisible: Boolean;
@@ -2805,8 +2712,6 @@ page 42 "Sales Order"
         IsSalesLinesEditable: Boolean;
         ShouldSearchForCustByName: Boolean;
         IsBidirectionalSyncEnabled: Boolean;
-        DocHasMultipleRegimeCode: Boolean;
-        MultipleSchemeCodesLbl: Label 'Multiple scheme codes';
         RejectICSalesOrderEnabled: Boolean;
         VATDateEnabled: Boolean;
         BasicEUEnabled: Boolean;
@@ -3015,13 +2920,6 @@ page 42 "Sales Order"
     procedure UpdateShipToBillToGroupVisibility()
     begin
         CustomerMgt.CalculateShipBillToOptions(ShipToOptions, BillToOptions, Rec);
-    end;
-
-    local procedure UpdateDocHasRegimeCode()
-    var
-        SIISchemeCodeMgt: Codeunit "SII Scheme Code Mgt.";
-    begin
-        DocHasMultipleRegimeCode := SIISchemeCodeMgt.SalesDocHasRegimeCodes(Rec);
     end;
 
     /// <summary>

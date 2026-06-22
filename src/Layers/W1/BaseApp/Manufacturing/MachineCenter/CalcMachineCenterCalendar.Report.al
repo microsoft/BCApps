@@ -9,6 +9,7 @@ using Microsoft.Manufacturing.Capacity;
 report 99001045 "Calc. Machine Center Calendar"
 {
     Caption = 'Calc. Machine Center Calendar';
+    ToolTip = 'Create new calendar entries for the machine center to define the available daily capacity.';
     ProcessingOnly = true;
 
     dataset

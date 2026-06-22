@@ -14,6 +14,7 @@ report 5876 "Posted Phys. Invt. Order Diff."
 {
     ApplicationArea = Warehouse;
     Caption = 'Posted Phys. Invt. Order Diff.';
+    ToolTip = 'View or print the list of differences after counting.';
     UsageCategory = ReportsAndAnalysis;
     WordMergeDataItem = "Posted Phys. Invt. Order Hdr";
     DefaultRenderingLayout = RDLCLayout;

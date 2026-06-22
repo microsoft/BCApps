@@ -73,8 +73,8 @@ pageextension 10733 "Service Invoice ES" extends "Service Invoice"
 
                     trigger OnValidate()
                     begin
-                        SIIFirstSummaryDocNo := Copystr(Rec.GetSIIFirstSummaryDocNo(), 1, 35);
-                        SIILastSummaryDocNo := Copystr(Rec.GetSIILastSummaryDocNo(), 1, 35);
+                        SIIFirstSummaryDocNo := CopyStr(Rec.GetSIIFirstSummaryDocNo(), 1, 35);
+                        SIILastSummaryDocNo := CopyStr(Rec.GetSIILastSummaryDocNo(), 1, 35);
                     end;
                 }
                 field("ID Type"; Rec."ID Type")
@@ -182,8 +182,8 @@ pageextension 10733 "Service Invoice ES" extends "Service Invoice"
     trigger OnAfterGetRecord()
     begin
         UpdateDocHasRegimeCode();
-        SIIFirstSummaryDocNo := Copystr(Rec.GetSIIFirstSummaryDocNo(), 1, 35);
-        SIILastSummaryDocNo := Copystr(Rec.GetSIILastSummaryDocNo(), 1, 35);
+        SIIFirstSummaryDocNo := CopyStr(Rec.GetSIIFirstSummaryDocNo(), 1, 35);
+        SIILastSummaryDocNo := CopyStr(Rec.GetSIILastSummaryDocNo(), 1, 35);
     end;
 
     trigger OnAfterGetCurrRecord()

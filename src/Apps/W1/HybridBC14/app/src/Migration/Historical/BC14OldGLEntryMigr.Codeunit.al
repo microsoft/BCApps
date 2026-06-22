@@ -5,6 +5,7 @@
 
 namespace Microsoft.DataMigration.BC14Reimplementation;
 
+using Microsoft.DataMigration;
 using Microsoft.DataMigration.BC14Reimplementation.HistoricalData;
 using Microsoft.Finance.GeneralLedger.Ledger;
 
@@ -21,6 +22,9 @@ codeunit 46881 "BC14 Old G/L Entry Migr." implements "BC14 Migrator"
         TransferCompletedLbl: Label 'Old G/L Entry archive transfer completed. Entries: %1', Locked = true, Comment = '%1 = Entry count';
         TransferFailedLbl: Label 'Old G/L Entry archive transfer failed. Error: %1. CallStack: %2', Locked = true, Comment = '%1 = Error text, %2 = Call stack';
         EntryTransferOverriddenLbl: Label 'Old G/L Entry transfer was overridden by an extension.', Locked = true;
+        TransferResumedLbl: Label 'Old G/L Entry archive transfer resuming after entry no. %1.', Locked = true, Comment = '%1 = Last archived entry number';
+        CommitIntervalMs: Integer;
+        MaxBatchSize: Integer;
 
     procedure GetDisplayName(): Text[250]
     begin
@@ -49,7 +53,7 @@ codeunit 46881 "BC14 Old G/L Entry Migr." implements "BC14 Migrator"
         // No cutoff configured => the transaction phase re-posts every entry into the live
         // ledger and there is nothing for the read-only archive to add. Skipping keeps the
         // legacy single-ledger experience intact.
-        if GetCutoffDate() = 0D then
+        if BC14CompanySettings.GetHistoricalCutoffDate() = 0D then
             exit(false);
 
         exit(not BC14GLEntry.IsEmpty());
@@ -71,7 +75,6 @@ codeunit 46881 "BC14 Old G/L Entry Migr." implements "BC14 Migrator"
     procedure Migrate(): Boolean
     var
         BC14GLEntry: Record "BC14 G/L Entry";
-        BC14OldGLEntry: Record "BC14 Old G/L Entry";
         BC14MigrationErrorHandler: Codeunit "BC14 Migration Error Handler";
         EmptyRecId: RecordId;
         EntryCount: Integer;
@@ -87,8 +90,6 @@ codeunit 46881 "BC14 Old G/L Entry Migr." implements "BC14 Migrator"
         ApplyCutoffFilter(BC14GLEntry);
         EntryCount := BC14GLEntry.Count();
 
-        BC14OldGLEntry.Truncate();
-        // Must commit before Codeunit.Run() with return value - write transactions are not allowed
         Commit();
 
         if not Codeunit.Run(Codeunit::"BC14 Old G/L Entry Migr.") then begin
@@ -113,9 +114,12 @@ codeunit 46881 "BC14 Old G/L Entry Migr." implements "BC14 Migrator"
     var
         BC14GLEntry: Record "BC14 G/L Entry";
         BC14OldGLEntry: Record "BC14 Old G/L Entry";
+        BC14CompanyInfo: Record BC14CompanyMigrationInfo;
         BC14HistoricalTransfer: Codeunit "BC14 Historical Transfer";
+        HybridCloudManagement: Codeunit "Hybrid Cloud Management";
         EntryDataTransfer: DataTransfer;
         CutoffDate: Date;
+        LastArchivedEntryNo: Integer;
         IsConfigured: Boolean;
     begin
         OnConfigureEntryDataTransfer(EntryDataTransfer, IsConfigured);
@@ -125,18 +129,72 @@ codeunit 46881 "BC14 Old G/L Entry Migr." implements "BC14 Migrator"
             exit;
         end;
 
-        EntryDataTransfer.SetTables(Database::"BC14 G/L Entry", Database::"BC14 Old G/L Entry");
+        CutoffDate := BC14CompanyInfo.GetHistoricalCutoffDate();
 
-        BC14HistoricalTransfer.AddMatchingFieldMappings(EntryDataTransfer, Database::"BC14 G/L Entry", Database::"BC14 Old G/L Entry");
-        EntryDataTransfer.AddConstantValue(CurrentDateTime(), BC14OldGLEntry.FieldNo("Migrated On"));
+        LastArchivedEntryNo := GetLastArchivedEntryNo();
+        if LastArchivedEntryNo > 0 then
+            Session.LogMessage('0000TX7', StrSubstNo(TransferResumedLbl, LastArchivedEntryNo), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14Telemetry.GetCategory());
 
-        // Strictly before the cutoff. The transaction-phase migrator owns entries on or after it
-        // (re-posted into the live ledger), so the partitioning is exact and disjoint — nothing
-        // ends up in both the live ledger and the read-only archive.
-        CutoffDate := GetCutoffDate();
-        EntryDataTransfer.AddSourceFilter(BC14GLEntry.FieldNo("Posting Date"), '<%1', CutoffDate);
+        if HybridCloudManagement.IsIntelligentCloudEnabled() then begin
+            EntryDataTransfer.SetTables(Database::"BC14 G/L Entry", Database::"BC14 Old G/L Entry");
+            BC14HistoricalTransfer.AddMatchingFieldMappings(EntryDataTransfer, Database::"BC14 G/L Entry", Database::"BC14 Old G/L Entry");
+            EntryDataTransfer.AddConstantValue(CurrentDateTime(), BC14OldGLEntry.FieldNo("Migrated On"));
+            EntryDataTransfer.AddSourceFilter(BC14GLEntry.FieldNo("Posting Date"), '<%1', CutoffDate);
+            if LastArchivedEntryNo > 0 then
+                EntryDataTransfer.AddSourceFilter(BC14GLEntry.FieldNo("Entry No."), '>%1', LastArchivedEntryNo);
+            EntryDataTransfer.CopyRows();
+        end else
+            TransferDataInBatches(CutoffDate, LastArchivedEntryNo);
+    end;
 
-        EntryDataTransfer.CopyRows();
+    local procedure TransferDataInBatches(CutoffDate: Date; LastArchivedEntryNo: Integer)
+    var
+        BC14GLEntry: Record "BC14 G/L Entry";
+        BC14OldGLEntry: Record "BC14 Old G/L Entry";
+        MigratedOn: DateTime;
+        LastCommitAt: DateTime;
+        RowsSinceCommit: Integer;
+    begin
+        if CommitIntervalMs = 0 then
+            CommitIntervalMs := 90000; // 1.5 minutes
+        if MaxBatchSize = 0 then
+            MaxBatchSize := 10000;
+
+        MigratedOn := CurrentDateTime();
+        LastCommitAt := CurrentDateTime();
+
+        BC14GLEntry.SetCurrentKey("Entry No.");
+        BC14GLEntry.SetFilter("Posting Date", '<%1', CutoffDate);
+        if LastArchivedEntryNo > 0 then
+            BC14GLEntry.SetFilter("Entry No.", '>%1', LastArchivedEntryNo);
+        if not BC14GLEntry.FindSet() then
+            exit;
+        repeat
+            BC14OldGLEntry.Init();
+            BC14OldGLEntry.TransferFields(BC14GLEntry, true);
+            BC14OldGLEntry."Migrated On" := MigratedOn;
+            BC14OldGLEntry.Insert(false);
+            RowsSinceCommit += 1;
+
+            if (RowsSinceCommit >= MaxBatchSize) or ((CurrentDateTime() - LastCommitAt) >= CommitIntervalMs) then begin
+                Commit();
+                RowsSinceCommit := 0;
+                LastCommitAt := CurrentDateTime();
+            end;
+        until BC14GLEntry.Next() = 0;
+
+        if RowsSinceCommit > 0 then
+            Commit();
+    end;
+
+    local procedure GetLastArchivedEntryNo(): Integer
+    var
+        BC14OldGLEntry: Record "BC14 Old G/L Entry";
+    begin
+        BC14OldGLEntry.SetCurrentKey("Entry No.");
+        if BC14OldGLEntry.FindLast() then
+            exit(BC14OldGLEntry."Entry No.");
+        exit(0);
     end;
 
     /// <summary>
@@ -145,19 +203,13 @@ codeunit 46881 "BC14 Old G/L Entry Migr." implements "BC14 Migrator"
     /// </summary>
     local procedure ApplyCutoffFilter(var BC14GLEntry: Record "BC14 G/L Entry")
     var
+        BC14CompanyInfo: Record BC14CompanyMigrationInfo;
         CutoffDate: Date;
     begin
-        CutoffDate := GetCutoffDate();
+        CutoffDate := BC14CompanyInfo.GetHistoricalCutoffDate();
         if CutoffDate = 0D then
             exit;
         BC14GLEntry.SetFilter("Posting Date", '<%1', CutoffDate);
-    end;
-
-    local procedure GetCutoffDate(): Date
-    var
-        BC14CompanyInfo: Record BC14CompanyMigrationInfo;
-    begin
-        exit(BC14CompanyInfo.GetHistoricalCutoffDate());
     end;
 
     [IntegrationEvent(false, false)]

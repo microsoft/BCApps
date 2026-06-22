@@ -14,6 +14,7 @@ report 5910 "Service Profit (Serv. Orders)"
     RDLCLayout = './Service/Reports/ServiceProfitServOrders.rdlc';
     ApplicationArea = Service;
     Caption = 'Service Profit (Serv. Orders)';
+    ToolTip = 'View the customer number, serial number, description, item number, contract number, and contract amount. You can print information about service profit for service orders, based on the difference between service amount and service cost.';
     UsageCategory = ReportsAndAnalysis;
 
     dataset

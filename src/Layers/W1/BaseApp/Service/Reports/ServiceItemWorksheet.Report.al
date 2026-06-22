@@ -18,6 +18,7 @@ report 5936 "Service Item Worksheet"
     RDLCLayout = './Service/Reports/ServiceItemWorksheet.rdlc';
     ApplicationArea = Service;
     Caption = 'Service Item Worksheet';
+    ToolTip = 'View or edit a worksheet where you record information about service items, such as repair status, fault comments and codes, and cost. In this window, you can update information on the items such as repair status and fault and resolution codes. You can also enter new service lines for resource hours, for the use of spare parts and for specific service costs.';
     UsageCategory = Documents;
 
     dataset

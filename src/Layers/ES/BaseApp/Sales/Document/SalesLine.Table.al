@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -6,7 +6,6 @@ namespace Microsoft.Sales.Document;
 
 using Microsoft.Assembly.Document;
 using Microsoft.Assembly.History;
-using Microsoft.EServices.EDocument;
 using Microsoft.Finance.AllocationAccount;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.Deferral;
@@ -1799,7 +1798,6 @@ table 37 "Sales Line"
 
             trigger OnValidate()
             var
-                SIISchemeCodeMgt: Codeunit "SII Scheme Code Mgt.";
                 IsHandled: Boolean;
             begin
                 IsHandled := false;
@@ -1844,7 +1842,6 @@ table 37 "Sales Line"
 
                 OnValidateVATProdPostingGroupOnBeforeUpdateAmounts(Rec, xRec, SalesHeader, Currency);
                 UpdateAmounts();
-                SIISchemeCodeMgt.UpdateSalesSpecialSchemeCodeInSalesLine(Rec);
             end;
         }
         /// <summary>
@@ -4143,10 +4140,6 @@ table 37 "Sales Line"
             DecimalPlaces = 0 : 5;
             Editable = false;
             MinValue = 0;
-        }
-        field(10704; "Special Scheme Code"; Enum "SII Sales Special Scheme Code")
-        {
-            Caption = 'Special Scheme Code';
         }
     }
 

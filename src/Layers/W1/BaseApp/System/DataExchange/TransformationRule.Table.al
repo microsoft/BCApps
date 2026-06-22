@@ -429,8 +429,9 @@ table 1237 "Transformation Rule"
 
         if "Next Transformation Rule" <> '' then
             if NextTransformationRule.Get("Next Transformation Rule") then
-                exit(NextTransformationRule.TransformText(NewValue));
+                NewValue := NextTransformationRule.TransformText(NewValue);
 
+        OnAfterTransformText(Rec, OldValue, NewValue);
         exit(NewValue);
     end;
 
@@ -546,6 +547,11 @@ table 1237 "Transformation Rule"
 
     [IntegrationEvent(false, false)]
     procedure OnValidateLengthOnBeforeTestTransformationType(var TransformationRule: Record "Transformation Rule"; xTransformationRule: Record "Transformation Rule"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterTransformText(var TransformationRule: Record "Transformation Rule"; OldValue: Text; var NewValue: Text)
     begin
     end;
 }

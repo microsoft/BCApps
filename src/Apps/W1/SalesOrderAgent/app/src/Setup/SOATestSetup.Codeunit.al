@@ -60,8 +60,11 @@ codeunit 4397 "SOA Test Setup"
         Email: Codeunit "Email";
         SOAEmailSetup: Codeunit "SOA Email Setup";
     begin
-        TempFilters."Unread Emails" := true;
-        TempFilters."Earliest Email" := TempSOASetup."Last Sync At";
+        TempFilters."Last Message Only" := true;
+        TempFilters."Folder Id" := TempSOASetup."Email Folder Id";
+        TempFilters."Category Filter Type" := TempFilters."Category Filter Type"::Exclude;
+        TempFilters.AddCategoryFilter(ProcessedCategoryTok);
+        TempFilters."Earliest Email" := TempSOASetup."Earliest Sync At";
         TempFilters."Max No. of Emails" := SOAEmailSetup.GetMaxNoOfEmails();
 
         Email.RetrieveEmails(TempSOASetup."Email Account ID", TempSOASetup."Email Connector", EmailInbox, TempFilters);
@@ -82,5 +85,6 @@ codeunit 4397 "SOA Test Setup"
         TestEmailConnection: Boolean;
         TestEmailCount: Boolean;
         EmailCount: Integer;
+        ProcessedCategoryTok: Label 'Processed by Sales Order Agent', Locked = true;
 
 }

@@ -20,6 +20,7 @@ report 1002 "Post Inventory Cost to G/L"
     AdditionalSearchTerms = 'reconcile inventory';
     ApplicationArea = Basic, Suite;
     Caption = 'Post Inventory Cost to G/L';
+    ToolTip = 'Post the quantity and value changes to the inventory in the item ledger entries and the value entries when you post inventory transactions, such as sales shipments or purchase receipts.';
     Permissions = TableData "Item Ledger Entry" = r,
                   TableData "Invt. Posting Buffer" = r,
 #if not CLEAN28

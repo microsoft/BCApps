@@ -11,6 +11,7 @@ using System.Utilities;
 report 5705 "Transfer Receipt"
 {
     Caption = 'Transfer Receipt';
+    ToolTip = 'View the list of posted inbound transfers to the location.';
     WordMergeDataItem = "Transfer Receipt Header";
     DefaultRenderingLayout = RDLCLayout;
 

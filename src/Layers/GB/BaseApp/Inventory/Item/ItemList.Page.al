@@ -672,7 +672,6 @@ page 31 "Item List"
                     //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                     //PromotedCategory = Category8;
                     RunObject = Report "Adjust Cost - Item Entries";
-                    ToolTip = 'Adjust inventory values in value entries so that you use the correct adjusted cost for updating the general ledger and so that sales and profit statistics are up to date.';
                 }
                 action("Post Inventory Cost to G/L")
                 {
@@ -682,7 +681,6 @@ page 31 "Item List"
                     //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                     //PromotedCategory = Category8;
                     RunObject = Report "Post Inventory Cost to G/L";
-                    ToolTip = 'Post the quantity and value changes to the inventory in the item ledger entries and the value entries when you post inventory transactions, such as sales shipments or purchase receipts.';
                 }
                 action("Physical Inventory Journal")
                 {
@@ -961,7 +959,6 @@ page 31 "Item List"
                 Caption = 'Adjust Item Cost/Price';
                 Image = AdjustItemCost;
                 RunObject = Report "Adjust Item Costs/Prices";
-                ToolTip = 'Adjusts the Last Direct Cost, Standard Cost, Unit Price, Profit %, or Indirect Cost % fields on selected item or stockkeeping unit cards and for selected filters. For example, you can change the last direct cost by 5% on all items from a specific vendor.';
             }
             action(ApplyTemplate)
             {
@@ -1018,7 +1015,6 @@ page 31 "Item List"
                     Caption = 'Inventory - List';
                     Image = "Report";
                     RunObject = Report "Inventory - List";
-                    ToolTip = 'View various information about the item, such as name, unit of measure, posting group, shelf number, vendor''s item number, lead time calculation, minimum inventory, and alternate item number. You can also see if the item is blocked.';
                 }
 #if not CLEAN28
                 action("Inventory - Availability Plan")
@@ -1039,7 +1035,6 @@ page 31 "Item List"
                     Caption = 'Inventory - Availability Plan (Excel)';
                     Image = ItemAvailability;
                     RunObject = Report "Inv. Availability Plan";
-                    ToolTip = 'View a list of the quantity of each item in customer, purchase, and transfer orders and the quantity available in inventory. The list is divided into columns that cover six periods with starting and ending dates as well as the periods before and after those periods. The list is useful when you are planning your inventory purchases.';
                 }
                 action("Item/Vendor Catalog")
                 {
@@ -1055,7 +1050,6 @@ page 31 "Item List"
                     Caption = 'Phys. Inventory List';
                     Image = "Report";
                     RunObject = Report "Phys. Inventory List";
-                    ToolTip = 'View a list of the lines that you have calculated in the Phys. Inventory Journal window. You can use this report during the physical inventory count to mark down actual quantities on hand in the warehouse and compare them to what is recorded in the program.';
                 }
                 action("Catalog Item Sales")
                 {
@@ -1063,7 +1057,6 @@ page 31 "Item List"
                     Caption = 'Catalog Item Sales';
                     Image = "Report";
                     RunObject = Report "Catalog Item Sales";
-                    ToolTip = 'View a list of item sales for each catalog item during a selected time period. It can be used to review a company''s sale of catalog items.';
                 }
                 action("Item Substitutions")
                 {
@@ -1071,7 +1064,6 @@ page 31 "Item List"
                     Caption = 'Item Substitutions';
                     Image = "Report";
                     RunObject = Report "Item Substitutions";
-                    ToolTip = 'View substitute items that are set up to be sold instead of the items in the filter. A detailed overview also includes description, unit cost, quantity on hand, base unit of measure, information about interchangeability and additional conditions.';
                 }
                 action("Price List")
                 {
@@ -1080,7 +1072,6 @@ page 31 "Item List"
                     Image = "Report";
                     Visible = not ExtendedPriceEnabled;
                     RunObject = Report "Price List";
-                    ToolTip = 'View, print, or save a list of your items and their prices, for example, to send to customers. You can create the list for specific customers, campaigns, currencies, or other criteria.';
                 }
                 action("Item Price List")
                 {
@@ -1097,7 +1088,6 @@ page 31 "Item List"
                     Caption = 'Inventory Cost and Price List';
                     Image = "Report";
                     RunObject = Report "Inventory Cost and Price List";
-                    ToolTip = 'View, print, or save a list of your items and their price and cost information. The report specifies direct unit cost, last direct cost, unit price, profit percentage, and profit.';
                 }
                 action("Inventory Availability")
                 {
@@ -1117,7 +1107,6 @@ page 31 "Item List"
                         Caption = 'Item Register - Quantity';
                         Image = "Report";
                         RunObject = Report "Item Register - Quantity";
-                        ToolTip = 'View one or more selected item registers showing quantity. The report can be used to document a register''s contents for internal or external audits.';
                     }
                     action("Item Register - Value")
                     {
@@ -1125,7 +1114,6 @@ page 31 "Item List"
                         Caption = 'Item Register - Value';
                         Image = "Report";
                         RunObject = Report "Item Register - Value";
-                        ToolTip = 'View one or more selected item registers showing value. The report can be used to document the contents of a register for internal or external audits.';
                     }
                 }
                 group(Action130)
@@ -1138,7 +1126,6 @@ page 31 "Item List"
                         Caption = 'Inventory - Cost Variance';
                         Image = ItemCosts;
                         RunObject = Report "Inventory - Cost Variance";
-                        ToolTip = 'View information about selected items, unit of measure, standard cost, and costing method, as well as additional information about item entries: unit amount, direct unit cost, unit cost variance (the difference between the unit amount and unit cost), invoiced quantity, and total variance amount (quantity * unit cost variance). The report can be used primarily if you have chosen the Standard costing method on the item card.';
                     }
                     action("Invt. Valuation - Cost Spec.")
                     {
@@ -1146,7 +1133,6 @@ page 31 "Item List"
                         Caption = 'Invt. Valuation - Cost Spec.';
                         Image = "Report";
                         RunObject = Report "Invt. Valuation - Cost Spec.";
-                        ToolTip = 'View an overview of the current inventory value of selected items and specifies the cost of these items as of the date specified in the Valuation Date field. The report includes all costs, both those posted as invoiced and those posted as expected. For each of the items that you specify when setting up the report, the printed report shows quantity on stock, the cost per unit and the total amount. For each of these columns, the report specifies the cost as the various value entry types.';
                     }
                 }
                 group("Inventory Details")
@@ -1167,7 +1153,6 @@ page 31 "Item List"
                         Caption = 'Item Charges - Specification';
                         Image = "Report";
                         RunObject = Report "Item Charges - Specification";
-                        ToolTip = 'View a specification of the direct costs that your company has assigned and posted as item charges. The report shows the various value entries that have been posted as item charges. It includes all costs, both those posted as invoiced and those posted as expected.';
                     }
 #if not CLEAN28
                     action("Item Age Composition - Quantity")
@@ -1201,7 +1186,6 @@ page 31 "Item List"
                         Caption = 'Inventory - Sales Statistics';
                         Image = "Report";
                         RunObject = Report "Inventory - Sales Statistics";
-                        ToolTip = 'View, print, or save a summary of selected items'' sales per customer, for example, to analyze the profit on individual items or trends in revenues and profit. The report specifies direct unit cost, unit price, sales quantity, sales in LCY, profit percentage, and profit.';
                     }
                     action("Inventory - Customer Sales")
                     {
@@ -1230,7 +1214,6 @@ page 31 "Item List"
                         Caption = 'Inventory Valuation';
                         Image = "Report";
                         RunObject = Report "Inventory Valuation";
-                        ToolTip = 'View, print, or save a list of the values of the on-hand quantity of each inventory item.';
                     }
                     action(Status)
                     {
@@ -1283,7 +1266,6 @@ page 31 "Item List"
                     Caption = 'Inventory - Reorders';
                     Image = "Report";
                     RunObject = Report "Inventory - Reorders";
-                    ToolTip = 'View a list of items with negative inventory that is sorted by vendor. You can use this report to help decide which items have to be reordered. The report shows how many items are inbound on purchase orders or transfer orders and how many items are in inventory. Based on this information and any defined reorder quantity for the item, a suggested value is inserted in the Qty. to Order field.';
                 }
                 action("Inventory - Sales Back Orders")
                 {
