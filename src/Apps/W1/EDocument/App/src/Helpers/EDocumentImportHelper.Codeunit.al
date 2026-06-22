@@ -566,9 +566,11 @@ codeunit 6109 "E-Document Import Helper"
         Vendor: Record Vendor;
         RecordMatchMgt: Codeunit "Record Match Mgt.";
         EDocumentNotification: Codeunit "E-Document Notification";
+        EDocImpSessionTelemetry: Codeunit "E-Doc. Imp. Session Telemetry";
         NameNearness: Integer;
         AddressNearness: Integer;
         MatchedByAddress: Boolean;
+        NameOnlyCandidateFound: Boolean;
     begin
         Vendor.SetCurrentKey(Blocked);
         Vendor.SetLoadFields(Name, Address);
@@ -583,10 +585,14 @@ codeunit 6109 "E-Document Import Helper"
                     MatchedByAddress := AddressNearness >= RequiredNearness();
                     if MatchedByAddress then
                         exit(Vendor."No.");
+                    NameOnlyCandidateFound := true;
                     if EDocEntryNoForNotification <> 0 then
                         EDocumentNotification.AddVendorMatchedByNameNotAddressNotification(EDocEntryNoForNotification);
                 end;
             until Vendor.Next() = 0;
+
+        if NameOnlyCandidateFound then
+            EDocImpSessionTelemetry.SetBool('Vendor Matched By Name Not Address', true);
     end;
 
     /// <summary>
