@@ -2532,7 +2532,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 
     [Test]
     [HandlerFunctions('ConfirmHandler,HandleTransferOrder')]
-    procedure PostingSubcontractingTransferShipmentSetsSourceFieldsOnPostedHeader()
+    procedure PostingSubcontractingTransferSetsSourceFieldsOnPostedHeaders()
     var
         Bin: Record Bin;
         Item: Record Item;
@@ -2544,11 +2544,12 @@ codeunit 139989 "Subc. Subcontracting Test"
         TransferHeader: Record "Transfer Header";
         TransferLine: Record "Transfer Line";
         TransferShipmentHeader: Record "Transfer Shipment Header";
+        TransferReceiptHeader: Record "Transfer Receipt Header";
         Vendor: Record Vendor;
         WorkCenter: array[2] of Record "Work Center";
         PurchaseHeaderPage: TestPage "Purchase Order";
     begin
-        // [SCENARIO 638466] Posting a non-direct subcontracting transfer shipment propagates Source Type and Source ID to the Transfer Shipment Header
+        // [SCENARIO 638466] Posting a non-direct subcontracting transfer (ship + receive) propagates Source Type and Source ID to both the Transfer Shipment Header and the Transfer Receipt Header
 
         // [GIVEN] Standard subcontracting setup with an in-transit transfer route (non-direct)
         Initialize();
@@ -2607,6 +2608,21 @@ codeunit 139989 "Subc. Subcontracting Test"
         Assert.AreEqual(
             Vendor."No.", TransferShipmentHeader."Source ID",
             'Source ID must be the Vendor No. on Transfer Shipment Header');
+
+        // [WHEN] Posting the inbound transfer receipt
+        TransferHeader.Get(TransferHeader."No.");
+        LibraryWarehouse.PostTransferOrder(TransferHeader, false, true);
+
+        // [THEN] The Transfer Receipt Header has Source Type = Subcontracting and Source ID = Vendor No.
+        TransferReceiptHeader.SetRange("Subcontr. Purch. Order No.", PurchaseLine."Document No.");
+        Assert.RecordIsNotEmpty(TransferReceiptHeader);
+        TransferReceiptHeader.FindFirst();
+        Assert.AreEqual(
+            "Transfer Source Type"::Subcontracting, TransferReceiptHeader."Subc. Source Type",
+            'Subc. Source Type must be Subcontracting on Transfer Receipt Header');
+        Assert.AreEqual(
+            Vendor."No.", TransferReceiptHeader."Source ID",
+            'Source ID must be the Vendor No. on Transfer Receipt Header');
     end;
 
     [Test]
