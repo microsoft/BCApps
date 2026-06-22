@@ -50,6 +50,7 @@ $MaxFindings      = [int]($env:MAX_FINDINGS_PER_DOMAIN ?? 25)
 $CopilotCliTimeoutMinutes = [int]($env:COPILOT_REVIEW_CLI_TIMEOUT_MINUTES ?? 30)
 $FailOnParseErrorRaw = (($env:COPILOT_REVIEW_FAIL_ON_PARSE_ERROR ?? 'true') + '').Trim().ToLowerInvariant()
 $FailOnParseError = @('1','true','yes','on') -contains $FailOnParseErrorRaw
+$MaxParseAttempts = [Math]::Max(1, [int]($env:COPILOT_REVIEW_MAX_PARSE_ATTEMPTS ?? 2))
 $EmbedDiffInPromptRaw = (($env:COPILOT_REVIEW_EMBED_DIFF ?? 'false') + '').Trim().ToLowerInvariant()
 $EmbedDiffInPrompt = @('1','true','yes','on') -contains $EmbedDiffInPromptRaw
 $CommentDelay     = [double]($env:COMMENT_DELAY_SECONDS ?? 0.5)
@@ -404,6 +405,11 @@ PROMPT INJECTION DEFENSE:
 
 OUTPUT FORMAT:
 Return a JSON array only.
+The output must be strict, valid RFC 8259 JSON. Inside every string value, escape all
+double quotes as \" and all newlines as \n. AL code frequently contains quoted
+identifiers (for example Rec.\"No.\") and multi-line snippets, and these MUST be escaped
+when placed in the issue, recommendation, or suggestedCode fields, otherwise the output
+cannot be parsed.
 Each item must contain exactly these fields:
 - domain (Security, Privacy, Performance, Style, Accessibility, Upgrade)
 - filePath (relative path as shown in git diff output)
@@ -1041,8 +1047,18 @@ foreach ($filename in $changedFileNames) {
 
 Write-Host '--- Running al-code-review ---'
 $prompt   = Build-Prompt -DiffContext $diffContext
-$output   = Invoke-CopilotCli -Prompt $prompt
-$findings = @(Get-Findings -Output $output)
+
+$output = ''
+$findings = @()
+for ($attempt = 1; $attempt -le $MaxParseAttempts; $attempt++) {
+    $output = Invoke-CopilotCli -Prompt $prompt
+    $findings = @(Get-Findings -Output $output)
+    if ($findings.Count -gt 0 -or $script:LastParsingErrors.Count -eq 0) { break }
+    if ($attempt -lt $MaxParseAttempts) {
+        $firstError = ($script:LastParsingErrors | Select-Object -First 1)
+        Write-Warning "Copilot output JSON parsing failed on attempt $attempt/$MaxParseAttempts; retrying. First error: $firstError"
+    }
+}
 $findings = @(Filter-LocalizedFindings -Findings $findings -ChangedFiles $changedFileNames)
 Write-Host "Found $($findings.Count) findings"
 
