@@ -140,6 +140,7 @@ codeunit 99001560 "Subc. Purch. Factbox Mgmt."
         TransferLine.SetRange("Subc. Purch. Order No.", PurchOrderNo);
         TransferLine.SetRange("Subc. Purch. Order Line No.", PurchOrderLineNo);
         TransferLine.SetRange("Subc. Return Order", true);
+        TransferLine.SetRange("Derived From Line No.", 0);
         TransferLine.SetLoadFields(SystemId);
         if TransferLine.IsEmpty() then
             exit('');
@@ -635,5 +636,6 @@ codeunit 99001560 "Subc. Purch. Factbox Mgmt."
         TransferLine.SetRange("Subc. Purch. Order No.", PurchOrderNo);
         TransferLine.SetRange("Subc. Purch. Order Line No.", PurchOrderLineNo);
         TransferLine.SetRange("Subc. Return Order", false);
+        TransferLine.SetRange("Derived From Line No.", 0);
     end;
 }
