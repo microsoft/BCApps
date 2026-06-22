@@ -965,4 +965,120 @@ codeunit 133961 "Agent Test"
     end;
 
     #endregion
+
+    #region Archive Tests
+
+    [Test]
+    procedure ArchiveDisabledAgentSetsArchived()
+    var
+        AgentRecord: Record Agent;
+        Any: Codeunit Any;
+        AgentId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] Archiving an inactive agent sets its substate to Archived
+
+        // [GIVEN] An inactive (deactivated) agent
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        Agent.Deactivate(AgentId);
+        Assert.IsFalse(Agent.IsArchived(AgentId), 'Agent should not be archived initially');
+
+        // [WHEN] Archiving the agent
+        Agent.Archive(AgentId);
+
+        // [THEN] The agent should be reported as archived
+        Assert.IsTrue(Agent.IsArchived(AgentId), 'Agent should be archived');
+
+        // [THEN] The agent record substate should be Archived
+        AgentRecord.Get(AgentId);
+        Assert.AreEqual(AgentRecord.Substate::Archived, AgentRecord.Substate, 'Agent substate should be Archived');
+    end;
+
+    [Test]
+    procedure ArchiveActiveAgentErrors()
+    var
+        AgentRecord: Record Agent;
+        Any: Codeunit Any;
+        AgentId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] Archiving an active agent is rejected
+
+        // [GIVEN] An active agent
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        Assert.IsTrue(Agent.IsActive(AgentId), 'Agent should be active initially');
+
+        // [WHEN] Archiving the active agent
+        // [THEN] An error is raised asking to deactivate first
+        asserterror Agent.Archive(AgentId);
+        Assert.ExpectedError('Deactivate the agent before archiving it.');
+    end;
+
+    [Test]
+    procedure IsArchivedFalseForNewAgent()
+    var
+        AgentRecord: Record Agent;
+        Any: Codeunit Any;
+        AgentId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] A newly created and deactivated agent is not archived
+
+        // [GIVEN] A deactivated agent that has not been archived
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        Agent.Deactivate(AgentId);
+
+        // [WHEN] Checking the archived state
+        // [THEN] The agent is not archived
+        Assert.IsFalse(Agent.IsArchived(AgentId), 'Agent should not be archived');
+    end;
+
+    [Test]
+    procedure ReArchiveArchivedAgentIsNoOp()
+    var
+        AgentRecord: Record Agent;
+        Any: Codeunit Any;
+        AgentId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] Archiving an already-archived agent is an idempotent no-op (no error)
+
+        // [GIVEN] A deactivated, archived agent
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        Agent.Deactivate(AgentId);
+        Agent.Archive(AgentId);
+        Assert.IsTrue(Agent.IsArchived(AgentId), 'Agent should be archived after the first archive');
+
+        // [WHEN] Agent.Archive is called a second time
+        Agent.Archive(AgentId);
+
+        // [THEN] No error is raised and the agent remains archived
+        Assert.IsTrue(Agent.IsArchived(AgentId), 'Agent should remain archived after re-archive');
+    end;
+
+    #endregion
 }

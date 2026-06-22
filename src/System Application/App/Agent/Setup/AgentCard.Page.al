@@ -104,12 +104,20 @@ page 4315 "Agent Card"
                     Importance = Standard;
                     Caption = 'State';
                     ToolTip = 'Specifies if the agent is active or inactive.';
+                    Editable = StateEditable;
 
                     trigger OnValidate()
                     begin
                         ChangeState();
                         UpdateControls();
                     end;
+                }
+                field(Substate; Rec.Substate)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Substate';
+                    ToolTip = 'Specifies whether the agent is archived.';
+                    Editable = false;
                 }
             }
             part(Permissions; "View Agent Permissions")
@@ -128,6 +136,33 @@ page 4315 "Agent Card"
     }
     actions
     {
+        area(Processing)
+        {
+            action(ArchiveAgent)
+            {
+                ApplicationArea = All;
+                Caption = 'Archive';
+                ToolTip = 'Archive the agent. Archiving removes the agent from active use and cannot be undone.';
+                Image = Archive;
+                Enabled = ArchiveActionEnabled;
+
+                trigger OnAction()
+                var
+                    Agent: Codeunit Agent;
+                    ArchiveConfirmation: Page "Agent Archive Confirmation";
+                begin
+                    Rec.TestField("Display Name");
+                    ArchiveConfirmation.SetAgentDisplayName(Rec."Display Name");
+                    ArchiveConfirmation.RunModal();
+                    if not ArchiveConfirmation.IsConfirmed() then
+                        exit;
+
+                    Agent.Archive(Rec."User Security ID");
+                    Message(AgentArchivedMsg);
+                    CurrPage.Update(false);
+                end;
+            }
+        }
         area(Navigation)
         {
             action(AgentSetup)
@@ -136,7 +171,7 @@ page 4315 "Agent Card"
                 Caption = 'Configure';
                 ToolTip = 'Configure agent';
                 Image = SetupLines;
-                Enabled = Rec."Can Curr. User Configure Agent";
+                Enabled = Rec."Can Curr. User Configure Agent" and not AgentIsArchived;
 
                 trigger OnAction()
                 begin
@@ -183,6 +218,9 @@ page 4315 "Agent Card"
                 actionref(AgentSetup_Promoted; AgentSetup)
                 {
                 }
+                actionref(ArchiveAgent_Promoted; ArchiveAgent)
+                {
+                }
                 actionref(UserSettings_Promoted; UserSettingsAction)
                 {
                 }
@@ -215,6 +253,9 @@ page 4315 "Agent Card"
         end;
 
         CopilotAvailabilityTxt := AgentImpl.GetCopilotAvailabilityDisplayText(Rec);
+        AgentIsArchived := Rec.Substate = Rec.Substate::Archived;
+        ArchiveActionEnabled := (Rec.State = Rec.State::Disabled) and (not AgentIsArchived);
+        StateEditable := not AgentIsArchived;
     end;
 
     local procedure ChangeState()
@@ -256,8 +297,10 @@ page 4315 "Agent Card"
         TempUserSettingsRecord: Record "User Settings";
         Language: Codeunit Language;
         ProfileDisplayName, CopilotAvailabilityTxt : Text;
+        ArchiveActionEnabled, AgentIsArchived, StateEditable : Boolean;
         ProfileChangedQst: Label 'Changing the agent''s profile may affect its accuracy and performance. It could also grant access to unexpected fields and actions.\\Do you want to continue?';
         OpenConfigurationPageQst: Label 'To activate the agent, use the configuration page. Would you like to open this page now?';
         YouCannotEnableAgentWithoutUsingConfigurationPageErr: Label 'You can''t activate the agent from this page. Use the action to configure and activate the agent.';
         YouDoNotHavePermissionToModifyThisAgentErr: Label 'You do not have permission to modify this agent. Contact your system administrator to update your permissions or to mark you as one of the administrators for the agent.';
+        AgentArchivedMsg: Label 'The agent has been archived.';
 }

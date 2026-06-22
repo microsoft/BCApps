@@ -56,6 +56,31 @@ codeunit 4301 "Agent Impl."
         ChangeAgentState(AgentUserSecurityID, false);
     end;
 
+    procedure Archive(AgentUserSecurityID: Guid)
+    var
+        Agent: Record Agent;
+    begin
+        GetAgent(Agent, AgentUserSecurityID);
+
+        if Agent.Substate = Agent.Substate::Archived then
+            exit; // Archiving is terminal; idempotent no-op avoids the platform "archived agent cannot be modified" error on re-archive.
+
+        if Agent.State <> Agent.State::Disabled then
+            Error(DeactivateBeforeArchivingErr);
+
+        Agent.Substate := Agent.Substate::Archived;
+        Agent.Modify(true);
+    end;
+
+    procedure IsArchived(AgentUserSecurityID: Guid): Boolean
+    var
+        Agent: Record Agent;
+    begin
+        GetAgent(Agent, AgentUserSecurityID);
+
+        exit(Agent.Substate = Agent.Substate::Archived);
+    end;
+
     procedure GetUserAccess(AgentUserSecurityID: Guid; var TempAgentAccessControl: Record "Agent Access Control" temporary)
     var
         Agent: Record Agent;
@@ -582,6 +607,7 @@ codeunit 4301 "Agent Impl."
 
     var
         AgentDoesNotExistErr: Label 'Agent does not exist.';
+        DeactivateBeforeArchivingErr: Label 'Deactivate the agent before archiving it.';
         AutoLbl: Label 'Auto';
         NoActiveAgentsErr: Label 'There are no active agents setup on the system.';
         NoAgentsAvailableNotificationLbl: Label 'Business Central agents are currently not available in your country.';

@@ -47,6 +47,12 @@ page 4316 "Agent List"
                 {
                     Caption = 'State';
                 }
+                field(Substate; Rec.Substate)
+                {
+                    Caption = 'Substate';
+                    ToolTip = 'Specifies whether the agent is archived.';
+                    Editable = false;
+                }
                 field("Can Access Current Company"; Rec."Can Access Current Company")
                 {
                     Caption = 'Can Access Current Company';
@@ -65,7 +71,7 @@ page 4316 "Agent List"
                 Caption = 'Configure';
                 ToolTip = 'Configure the agent';
                 Image = SetupLines;
-                Enabled = Rec."Can Curr. User Configure Agent";
+                Enabled = Rec."Can Curr. User Configure Agent" and not AgentIsArchived;
 
                 trigger OnAction()
                 var
@@ -75,6 +81,32 @@ page 4316 "Agent List"
                         Error(NoAgentSetupErr);
 
                     Agent.OpenSetupPageId(Rec."Agent Metadata Provider", Rec."User Security ID");
+                    CurrPage.Update(false);
+                end;
+            }
+            action(ArchiveAgent)
+            {
+                ApplicationArea = All;
+                Caption = 'Archive';
+                ToolTip = 'Archive the agent. Archiving removes the agent from active use and cannot be undone.';
+                Image = Archive;
+                Enabled = ArchiveActionEnabled;
+
+                trigger OnAction()
+                var
+                    Agent: Codeunit Agent;
+                    ArchiveConfirmation: Page "Agent Archive Confirmation";
+                begin
+                    if Rec.IsEmpty() then
+                        Error(NoAgentSetupErr);
+
+                    Rec.TestField("Display Name");
+                    ArchiveConfirmation.SetAgentDisplayName(Rec."Display Name");
+                    ArchiveConfirmation.RunModal();
+                    if not ArchiveConfirmation.IsConfirmed() then
+                        exit;
+
+                    Agent.Archive(Rec."User Security ID");
                     CurrPage.Update(false);
                 end;
             }
@@ -167,6 +199,9 @@ page 4316 "Agent List"
                 actionref(AgentSetup_Promoted; AgentSetup)
                 {
                 }
+                actionref(ArchiveAgent_Promoted; ArchiveAgent)
+                {
+                }
                 actionref(AgentTasks_Promoted; AgentTasks)
                 {
                 }
@@ -204,6 +239,8 @@ page 4316 "Agent List"
         AgentImpl: Codeunit "Agent Impl.";
     begin
         CopilotAvailabilityTxt := AgentImpl.GetCopilotAvailabilityDisplayText(Rec);
+        AgentIsArchived := Rec.Substate = Rec.Substate::Archived;
+        ArchiveActionEnabled := (Rec.State = Rec.State::Disabled) and (not AgentIsArchived);
     end;
 
     local procedure SetCompanyFilter()
@@ -218,5 +255,7 @@ page 4316 "Agent List"
     var
         CopilotAvailabilityTxt: Text;
         ShouldShowAllCompanies: Boolean;
+        ArchiveActionEnabled: Boolean;
+        AgentIsArchived: Boolean;
         NoAgentSetupErr: Label 'No agents have been setup. You must set up an agent first.';
 }
