@@ -6,7 +6,6 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Foundation.Enums;
 using Microsoft.Manufacturing.Reports;
-using Microsoft.Manufacturing.Reports;
 using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.WorkCenter;
 
@@ -22,6 +21,7 @@ codeunit 99001512 "Subc. Reporting Triggers Ext"
 #pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
 #pragma warning restore AL0432
+#endif
     begin
 #if not CLEAN28
 #pragma warning disable AL0432
