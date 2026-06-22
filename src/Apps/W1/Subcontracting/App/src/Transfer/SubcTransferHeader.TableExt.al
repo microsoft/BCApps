@@ -4,10 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
-using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Purchases.Vendor;
-using Microsoft.Sales.Customer;
 
 tableextension 99001520 "Subc. Transfer Header" extends "Transfer Header"
 {
@@ -25,13 +23,6 @@ tableextension 99001520 "Subc. Transfer Header" extends "Transfer Header"
             Caption = 'Subcontr. Purch. Order Line No.';
             DataClassification = CustomerContent;
             Editable = false;
-        }
-        field(99001535; "Source Subtype"; Option)
-        {
-            Caption = 'Source Subtype';
-            DataClassification = CustomerContent;
-            OptionCaption = '0,1,2,3,4,5,6,7,8,9,10';
-            OptionMembers = "0","1","2","3","4","5","6","7","8","9","10";
         }
         field(99001536; "Source ID"; Code[20])
         {
@@ -73,33 +64,17 @@ tableextension 99001520 "Subc. Transfer Header" extends "Transfer Header"
     keys
     {
         key(Key99001500; "Subcontr. Purch. Order No.") { }
-        key(Key99001501; "Source ID", "Subc. Source Type", "Source Subtype") { }
+        key(Key99001501; "Source ID", "Subc. Source Type") { }
     }
 
     local procedure HandleSubcontractingSourceLookup(var TransferHeader: Record "Transfer Header")
     var
-        Customer: Record Customer;
-        Item: Record Item;
         Vendor: Record Vendor;
     begin
-        if TransferHeader."Subc. Source Type" = TransferHeader."Subc. Source Type"::Subcontracting then
-            case TransferHeader."Source Subtype" of
-                TransferHeader."Source Subtype"::"1":
-                    begin
-                        Customer.SetRange("No.", TransferHeader."Source ID");
-                        Page.RunModal(0, Customer);
-                    end;
-                TransferHeader."Source Subtype"::"2":
-                    begin
-                        Vendor.SetRange("No.", TransferHeader."Source ID");
-                        Page.RunModal(0, Vendor);
-                    end;
-                TransferHeader."Source Subtype"::"3":
-                    begin
-                        Item.SetRange("No.", TransferHeader."Source ID");
-                        Page.RunModal(0, Item);
-                    end;
-            end;
+        if TransferHeader."Subc. Source Type" = TransferHeader."Subc. Source Type"::Subcontracting then begin
+            Vendor.SetRange("No.", TransferHeader."Source ID");
+            Page.RunModal(0, Vendor);
+        end;
     end;
 
     procedure CheckDirectTransferPosting()
