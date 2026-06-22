@@ -1080,5 +1080,95 @@ codeunit 133961 "Agent Test"
         Assert.IsTrue(Agent.IsArchived(AgentId), 'Agent should remain archived after re-archive');
     end;
 
+    [Test]
+    procedure ArchivedAgentHiddenFromAgentList()
+    var
+        AgentRecord: Record Agent;
+        Any: Codeunit Any;
+        AgentListTestPage: TestPage "Agent List";
+        AgentId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] An archived agent is not shown in the Agent List page
+
+        // [GIVEN] A deactivated, archived agent
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        Agent.Deactivate(AgentId);
+        Agent.Archive(AgentId);
+
+        // [WHEN] Opening the Agent List page
+        AgentListTestPage.OpenView();
+
+        // [THEN] The archived agent is not reachable in the Agent List
+        Assert.IsFalse(AgentListTestPage.GoToKey(AgentId), 'Archived agent should not appear in the Agent List');
+        AgentListTestPage.Close();
+    end;
+
+    [Test]
+    procedure ArchivedAgentShownInArchivedAgentsPage()
+    var
+        AgentRecord: Record Agent;
+        Any: Codeunit Any;
+        ArchivedAgentsTestPage: TestPage "Archived Agents";
+        AgentId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] An archived agent is shown in the Archived Agents page
+
+        // [GIVEN] A deactivated, archived agent
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        Agent.Deactivate(AgentId);
+        Agent.Archive(AgentId);
+
+        // [WHEN] Opening the Archived Agents page
+        ArchivedAgentsTestPage.OpenView();
+
+        // [THEN] The archived agent is reachable in the Archived Agents page
+        Assert.IsTrue(ArchivedAgentsTestPage.GoToKey(AgentId), 'Archived agent should appear in the Archived Agents page');
+        ArchivedAgentsTestPage.Close();
+    end;
+
+    [Test]
+    procedure NonArchivedAgentShownInAgentList()
+    var
+        AgentRecord: Record Agent;
+        Any: Codeunit Any;
+        AgentListTestPage: TestPage "Agent List";
+        AgentId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] A deactivated, non-archived agent is still shown in the Agent List page
+
+        // [GIVEN] A deactivated agent that has not been archived
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        Agent.Deactivate(AgentId);
+
+        // [WHEN] Opening the Agent List page and showing agents for all companies
+        AgentListTestPage.OpenView();
+        AgentListTestPage.ShowAllCompanies.Invoke();
+
+        // [THEN] The non-archived agent is reachable in the Agent List
+        Assert.IsTrue(AgentListTestPage.GoToKey(AgentId), 'Non-archived agent should appear in the Agent List');
+        AgentListTestPage.Close();
+    end;
+
     #endregion
 }

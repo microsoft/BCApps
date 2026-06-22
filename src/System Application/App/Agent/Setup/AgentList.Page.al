@@ -191,6 +191,14 @@ page 4316 "Agent List"
                 Image = ViewPage;
                 RunObject = Page "Agent Model List";
             }
+            action(ArchivedAgents)
+            {
+                ApplicationArea = All;
+                Caption = 'Archived Agents';
+                ToolTip = 'View agents that have been archived.';
+                Image = Archive;
+                RunObject = Page "Archived Agents";
+            }
         }
         area(Promoted)
         {
@@ -221,6 +229,8 @@ page 4316 "Agent List"
             AgentImpl.ShowNoAgentsAvailableNotification();
 
         ShouldShowAllCompanies := false;
+        // Hide archived agents from the default list; the Archived Agents page surfaces them instead.
+        Rec.SetRange(Substate, Rec.Substate::None);
         SetCompanyFilter();
     end;
 
