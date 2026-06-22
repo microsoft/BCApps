@@ -58,10 +58,11 @@ tableextension 99001506 "Subc. ProdOrderRtngLine Ext." extends "Prod. Order Rout
 #endif
                 if "No." = xRec."No." then
                     exit;
-                if Type <> "Capacity Type"::"Work Center" then begin
+                if (Type <> "Capacity Type"::"Work Center") or ("No." = '') then begin
                     "Transfer WIP Item" := false;
                     exit;
                 end;
+
                 WorkCenter.SetLoadFields("Subcontractor No.");
                 WorkCenter.Get("No.");
                 if WorkCenter."Subcontractor No." = '' then
