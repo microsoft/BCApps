@@ -627,4 +627,100 @@ codeunit 133962 "Agent Task Management Test"
     end;
 
     #endregion
+
+    #region Agent Task List Archived Agent Tests
+
+    [Test]
+    procedure ArchivedAgentTaskHiddenByDefaultOnTaskList()
+    var
+        ArchivedTask: Record "Agent Task";
+        ActiveTask: Record "Agent Task";
+        AgentTaskListPage: TestPage "Agent Task List";
+        ArchivedAgentUserId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] Tasks that belong to archived agents are hidden by default on the Agent Task List page
+
+        // [GIVEN] An archived agent that owns a stopped task
+        ArchivedAgentUserId := CreateAgentWithStoppedTask(ArchivedTask, 'Task of Archived Agent');
+        DeactivateAndArchiveAgent(ArchivedAgentUserId);
+
+        // [GIVEN] An active agent that owns a stopped task
+        CreateAgentWithStoppedTask(ActiveTask, 'Task of Active Agent');
+
+        // [WHEN] Opening the Agent Task List page with the default filters
+        AgentTaskListPage.OpenView();
+
+        // [THEN] The active agent's task is reachable and the archived agent's task is hidden
+        Assert.IsTrue(AgentTaskListPage.GoToKey(ActiveTask.Id), 'Task of active agent should be visible by default');
+        Assert.IsFalse(AgentTaskListPage.GoToKey(ArchivedTask.Id), 'Task of archived agent should be hidden by default');
+
+        AgentTaskListPage.Close();
+    end;
+
+    [Test]
+    procedure ArchivedAgentTaskVisibleAfterShowAllToggle()
+    var
+        ArchivedTask: Record "Agent Task";
+        AgentTaskListPage: TestPage "Agent Task List";
+        ArchivedAgentUserId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] Tasks of archived agents become visible after invoking the Show all agents toggle
+
+        // [GIVEN] An archived agent that owns a stopped task
+        ArchivedAgentUserId := CreateAgentWithStoppedTask(ArchivedTask, 'Task of Archived Agent');
+        DeactivateAndArchiveAgent(ArchivedAgentUserId);
+
+        // [GIVEN] The Agent Task List page hides the archived agent's task by default
+        AgentTaskListPage.OpenView();
+        Assert.IsFalse(AgentTaskListPage.GoToKey(ArchivedTask.Id), 'Task of archived agent should be hidden before toggling');
+
+        // [WHEN] Showing tasks from all agents, including archived ones
+        AgentTaskListPage.ShowAllAgents.Invoke();
+
+        // [THEN] The archived agent's task becomes reachable
+        Assert.IsTrue(AgentTaskListPage.GoToKey(ArchivedTask.Id), 'Task of archived agent should be visible after showing all agents');
+
+        // [WHEN] Switching back to active agents only
+        AgentTaskListPage.ShowActiveAgents.Invoke();
+
+        // [THEN] The archived agent's task is hidden again
+        Assert.IsFalse(AgentTaskListPage.GoToKey(ArchivedTask.Id), 'Task of archived agent should be hidden again after showing active agents');
+
+        AgentTaskListPage.Close();
+    end;
+
+    local procedure CreateAgentWithStoppedTask(var AgentTaskRecord: Record "Agent Task"; TaskTitle: Text[150]) AgentUserId: Guid
+    var
+        AgentRecord: Record Agent;
+        AgentTaskBuilder: Codeunit "Agent Task Builder";
+        Any: Codeunit Any;
+    begin
+        AgentUserId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        AgentTaskBuilder.Initialize(AgentUserId, TaskTitle);
+        AgentTaskRecord := AgentTaskBuilder.Create(true, false); // Allow for tasks without message.
+
+        // Stop the task so the owning agent can later be deactivated and archived without lifecycle errors.
+        AgentTask.StopTask(AgentTaskRecord.Id, false);
+        AgentTaskRecord.Get(AgentTaskRecord.Id);
+    end;
+
+    local procedure DeactivateAndArchiveAgent(AgentUserId: Guid)
+    var
+        Agent: Codeunit Agent;
+    begin
+        // An agent must be deactivated before it can be archived.
+        Agent.Deactivate(AgentUserId);
+        Agent.Archive(AgentUserId);
+    end;
+
+    #endregion
 }

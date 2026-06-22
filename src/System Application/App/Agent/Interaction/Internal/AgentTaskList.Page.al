@@ -97,6 +97,13 @@ page 4300 "Agent Task List"
                         TaskPane.ShowAgent(Rec."Agent User Security ID");
                     end;
                 }
+                field(AgentSubstate; Rec."Agent Substate")
+                {
+                    Caption = 'Agent Substate';
+                    ToolTip = 'Specifies whether the agent that owns the task is archived.';
+                    Editable = false;
+                    Visible = ShouldShowAllAgents;
+                }
                 field(TaskArchived; Rec.Archived)
                 {
                     Caption = 'Archived';
@@ -211,6 +218,34 @@ page 4300 "Agent Task List"
                     CurrPage.Update(false);
                 end;
             }
+            action(ShowAllAgents)
+            {
+                ApplicationArea = All;
+                Caption = 'Show all agents';
+                ToolTip = 'Show tasks from all agents, including agents that have been archived.';
+                Image = RemoveFilterLines;
+                Visible = not ShouldShowAllAgents;
+
+                trigger OnAction()
+                begin
+                    ShouldShowAllAgents := true;
+                    SetAgentSubstateFilter();
+                end;
+            }
+            action(ShowActiveAgents)
+            {
+                ApplicationArea = All;
+                Caption = 'Show active agents';
+                ToolTip = 'Show only tasks from active agents that have not been archived.';
+                Image = FilterLines;
+                Visible = ShouldShowAllAgents;
+
+                trigger OnAction()
+                begin
+                    ShouldShowAllAgents := false;
+                    SetAgentSubstateFilter();
+                end;
+            }
         }
 
         area(Navigation)
@@ -253,6 +288,8 @@ page 4300 "Agent Task List"
     trigger OnOpenPage()
     begin
         Rec.SetRange(Archived, false);
+        ShouldShowAllAgents := false;
+        SetAgentSubstateFilter();
     end;
 
     trigger OnAfterGetRecord()
@@ -290,9 +327,20 @@ page 4300 "Agent Task List"
         Page.Run(Page::"Agent Task Message List", AgentTaskMessage);
     end;
 
+    local procedure SetAgentSubstateFilter()
+    begin
+        if ShouldShowAllAgents then
+            Rec.SetRange("Agent Substate")
+        else
+            // "Agent Substate" is a FlowField of the agent, filtered in-memory to hide archived tasks by default.
+            Rec.SetRange("Agent Substate", Rec."Agent Substate"::None);
+        CurrPage.Update(false);
+    end;
+
     var
         NumberOfStepsDone: Integer;
         TaskSelected: Boolean;
         ConsumedCredits: Decimal;
+        ShouldShowAllAgents: Boolean;
         AreYouSureThatYouWantToArchiveTheTasksQst: Label 'Are you sure that you want to archive the %1 selected tasks?', Comment = '%1 = number of selected tasks';
 }
