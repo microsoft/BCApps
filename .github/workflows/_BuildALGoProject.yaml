@@ -249,6 +249,8 @@ jobs:
 
       - name: Publish artifacts - apps
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        env:
+          ACTIONS_RUNNER_DISABLE_NODE_MAGLEV: 1
         if: inputs.artifactsRetentionDays >= 0 && (hashFiles(format('{0}/.buildartifacts/Apps/*',inputs.project)) != '')
         with:
           name: ${{ steps.calculateArtifactsNames.outputs.AppsArtifactsName }}
@@ -258,6 +260,8 @@ jobs:
 
       - name: Publish artifacts - dependencies
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        env:
+          ACTIONS_RUNNER_DISABLE_NODE_MAGLEV: 1
         if: inputs.artifactsRetentionDays >= 0 && env.generateDependencyArtifact == 'True' && (hashFiles(format('{0}/.buildartifacts/Dependencies/*',inputs.project)) != '')
         with:
           name: ${{ steps.calculateArtifactsNames.outputs.DependenciesArtifactsName }}
@@ -267,6 +271,8 @@ jobs:
 
       - name: Publish artifacts - test apps
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        env:
+          ACTIONS_RUNNER_DISABLE_NODE_MAGLEV: 1
         if: inputs.artifactsRetentionDays >= 0 && (hashFiles(format('{0}/.buildartifacts/TestApps/*',inputs.project)) != '')
         with:
           name: ${{ steps.calculateArtifactsNames.outputs.TestAppsArtifactsName }}
@@ -276,6 +282,8 @@ jobs:
 
       - name: Publish artifacts - build output
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        env:
+          ACTIONS_RUNNER_DISABLE_NODE_MAGLEV: 1
         if: (success() || failure()) && (hashFiles(format('{0}/BuildOutput.txt',inputs.project)) != '')
         with:
           name: ${{ steps.calculateArtifactsNames.outputs.BuildOutputArtifactsName }}
@@ -284,6 +292,8 @@ jobs:
 
       - name: Publish artifacts - container event log
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        env:
+          ACTIONS_RUNNER_DISABLE_NODE_MAGLEV: 1
         if: (failure()) && (hashFiles(format('{0}/ContainerEventLog.evtx',inputs.project)) != '')
         with:
           name: ${{ steps.calculateArtifactsNames.outputs.ContainerEventLogArtifactsName }}
@@ -292,6 +302,8 @@ jobs:
 
       - name: Publish artifacts - test results
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        env:
+          ACTIONS_RUNNER_DISABLE_NODE_MAGLEV: 1
         if: (success() || failure()) && (hashFiles(format('{0}/.buildartifacts/TestResults.xml',inputs.project)) != '')
         with:
           name: ${{ steps.calculateArtifactsNames.outputs.TestResultsArtifactsName }}
@@ -300,6 +312,8 @@ jobs:
 
       - name: Publish artifacts - bcpt test results
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        env:
+          ACTIONS_RUNNER_DISABLE_NODE_MAGLEV: 1
         if: (success() || failure()) && (hashFiles(format('{0}/.buildartifacts/bcptTestResults.json',inputs.project)) != '')
         with:
           name: ${{ steps.calculateArtifactsNames.outputs.BcptTestResultsArtifactsName }}
@@ -308,6 +322,8 @@ jobs:
 
       - name: Publish artifacts - page scripting test results
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        env:
+          ACTIONS_RUNNER_DISABLE_NODE_MAGLEV: 1
         if: (success() || failure()) && (hashFiles(format('{0}/.buildartifacts/PageScriptingTestResults.xml',inputs.project)) != '')
         with:
           name: ${{ steps.calculateArtifactsNames.outputs.PageScriptingTestResultsArtifactsName }}
@@ -316,6 +332,8 @@ jobs:
 
       - name: Publish artifacts - page scripting test result details
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        env:
+          ACTIONS_RUNNER_DISABLE_NODE_MAGLEV: 1
         if: (success() || failure()) && (hashFiles(format('{0}/.buildartifacts/PageScriptingTestResultDetails/*',inputs.project)) != '')
         with:
           name: ${{ steps.calculateArtifactsNames.outputs.PageScriptingTestResultDetailsArtifactsName }}
@@ -324,6 +342,8 @@ jobs:
 
       - name: Publish artifacts - ErrorLogs
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        env:
+          ACTIONS_RUNNER_DISABLE_NODE_MAGLEV: 1
         if: (success() || failure()) && inputs.artifactsRetentionDays >= 0 && (hashFiles(format('{0}/.buildartifacts/ErrorLogs/*',inputs.project)) != '') && env.trackALAlertsInGitHub == 'True'
         with:
           name: ${{ steps.calculateArtifactsNames.outputs.ErrorLogsArtifactsName }}
