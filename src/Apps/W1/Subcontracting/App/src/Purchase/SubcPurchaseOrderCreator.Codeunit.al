@@ -13,6 +13,7 @@ using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Inventory.Tracking;
+using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.WorkCenter;
@@ -317,6 +318,19 @@ codeunit 99001557 "Subc. Purchase Order Creator"
         PurchaseLine.SetRange(Type, "Purchase Line Type"::Item);
         PurchaseLine.SetRange("Prod. Order No.", ProdOrderNo);
         PageManagement.PageRun(PurchaseLine);
+    end;
+
+    internal procedure CreateSubcontractingOrdersForRoutingLineSelection(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"): Integer
+    var
+        NoOfCreatedPurchOrder: Integer;
+    begin
+        ProdOrderRoutingLine.SetRange(Type, "Capacity Type"::"Work Center");
+        ShowExistingPurchaseOrdersForRoutingLines(ProdOrderRoutingLine);
+        if ProdOrderRoutingLine.FindSet() then
+            repeat
+                NoOfCreatedPurchOrder += CreateSubcontractingPurchaseOrderFromRoutingLine(ProdOrderRoutingLine);
+            until ProdOrderRoutingLine.Next() = 0;
+        exit(NoOfCreatedPurchOrder);
     end;
 
     local procedure CheckProdOrderComponentLines(ProdOrderRoutingLine: Record "Prod. Order Routing Line"): Boolean
