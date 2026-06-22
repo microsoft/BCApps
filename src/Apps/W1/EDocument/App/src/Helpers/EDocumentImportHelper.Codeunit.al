@@ -433,19 +433,26 @@ codeunit 6109 "E-Document Import Helper"
     /// <returns>Vendor number if exists or empty string.</returns>
     procedure FindVendor(VendorNoText: Code[20]; GLN: Code[13]; VATRegistrationNo: Text[20]): Code[20]
     var
+        EDocImpSessionTelemetry: Codeunit "E-Doc. Imp. Session Telemetry";
         VendorNo: Code[20];
     begin
         VendorNo := FindVendorByNo(VendorNoText);
-        if VendorNo <> '' then
+        if VendorNo <> '' then begin
+            EDocImpSessionTelemetry.SetText('Vendor Match Method', 'No');
             exit(VendorNo);
+        end;
 
         VendorNo := FindVendorByGLN(GLN);
-        if VendorNo <> '' then
+        if VendorNo <> '' then begin
+            EDocImpSessionTelemetry.SetText('Vendor Match Method', 'GLN');
             exit(VendorNo);
+        end;
 
         VendorNo := FindVendorByVATRegistrationNo(VATRegistrationNo);
-        if VendorNo <> '' then
+        if VendorNo <> '' then begin
+            EDocImpSessionTelemetry.SetText('Vendor Match Method', 'VAT Id');
             exit(VendorNo);
+        end;
     end;
 
     /// <summary>

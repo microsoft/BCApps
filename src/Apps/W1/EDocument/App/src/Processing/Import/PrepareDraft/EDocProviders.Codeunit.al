@@ -50,15 +50,8 @@ codeunit 6124 "E-Doc. Providers" implements IPurchaseLineProvider, IUnitOfMeasur
             exit;
         end;
 
-        if Vendor.Get(EDocumentImportHelper.FindVendorByGLN(EDocumentPurchaseHeader."Vendor GLN")) then begin
-            EDocImpSessionTelemetry.SetText('Vendor Match Method', 'GLN');
+        if Vendor.Get(EDocumentImportHelper.FindVendor('', EDocumentPurchaseHeader."Vendor GLN", CopyStr(EDocumentPurchaseHeader."Vendor VAT Id", 1, 20))) then
             exit;
-        end;
-
-        if Vendor.Get(EDocumentImportHelper.FindVendorByVATRegistrationNo(CopyStr(EDocumentPurchaseHeader."Vendor VAT Id", 1, 20))) then begin
-            EDocImpSessionTelemetry.SetText('Vendor Match Method', 'VAT Id');
-            exit;
-        end;
 
         ServiceParticipant.SetRange("Participant Type", ServiceParticipant."Participant Type"::Vendor);
         ServiceParticipant.SetRange("Participant Identifier", EDocumentPurchaseHeader."Vendor External Id");
