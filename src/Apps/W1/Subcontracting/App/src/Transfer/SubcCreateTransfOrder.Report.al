@@ -92,7 +92,6 @@ report 99001501 "Subc. Create Transf. Order"
         GetTransferToLocationCode(TransferToLocationCode);
 
         TransferHeader.Reset();
-        TransferHeader.SetRange("Source Subtype", TransferHeader."Source Subtype"::"2");
         TransferHeader.SetRange("Source ID", "Purchase Header"."Buy-from Vendor No.");
         TransferHeader.SetRange(Status, TransferHeader.Status::Open);
         TransferHeader.SetRange("Completely Shipped", false);
@@ -110,7 +109,6 @@ report 99001501 "Subc. Create Transf. Order"
                 TransferHeader.Validate("Direct Transfer", true);
 
             TransferHeader."Subc. Source Type" := TransferHeader."Subc. Source Type"::Subcontracting;
-            TransferHeader."Source Subtype" := TransferHeader."Source Subtype"::"2";
             TransferHeader."Source ID" := "Purchase Header"."Buy-from Vendor No.";
             TransferHeader."Subcontr. Purch. Order No." := "Purchase Header"."No.";
             TransferHeader."Subcontr. PO Line No." := "Purchase Line"."Line No.";

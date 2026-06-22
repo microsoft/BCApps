@@ -2532,6 +2532,85 @@ codeunit 139989 "Subc. Subcontracting Test"
 
     [Test]
     [HandlerFunctions('ConfirmHandler,HandleTransferOrder')]
+    procedure PostingSubcontractingTransferShipmentSetsSourceFieldsOnPostedHeader()
+    var
+        Bin: Record Bin;
+        Item: Record Item;
+        Location: Record Location;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProdOrderComp: Record "Prod. Order Component";
+        ProductionOrder: Record "Production Order";
+        PurchaseLine: Record "Purchase Line";
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        TransferShipmentHeader: Record "Transfer Shipment Header";
+        Vendor: Record Vendor;
+        WorkCenter: array[2] of Record "Work Center";
+        PurchaseHeaderPage: TestPage "Purchase Order";
+    begin
+        // [SCENARIO 638466] Posting a non-direct subcontracting transfer shipment propagates Source Type and Source ID to the Transfer Shipment Header
+
+        // [GIVEN] Standard subcontracting setup with an in-transit transfer route (non-direct)
+        Initialize();
+        SubcontractingMgmtLibrary.UpdateManufacturingSetupWithSubcontractingLocation();
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Transfer to Vendor");
+        UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
+        UpdateSubMgmtSetupWithReqWkshTemplate();
+        SubcontractingMgmtLibrary.UpdateProdOrderCompWithLocationCode(ProductionOrder."No.");
+        SubcontractingMgmtLibrary.CreateTransferRoute(WorkCenter[2], ProductionOrder);
+
+        // [GIVEN] Subcontracting purchase order and outbound transfer order to vendor
+        SubcontractingMgmtLibrary.CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
+
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        PurchaseLine.FindFirst();
+
+        PurchaseHeaderPage.OpenView();
+        PurchaseHeaderPage.GotoKey("Purchase Document Type"::Order, PurchaseLine."Document No.");
+        PurchaseHeaderPage.CreateTransfOrdToSubcontractor.Invoke();
+
+        ProdOrderComp.SetRange("Prod. Order No.", ProductionOrder."No.");
+#pragma warning disable AA0210
+        ProdOrderComp.SetRange("Component Supply Method", ProdOrderComp."Component Supply Method"::"Transfer to Vendor");
+#pragma warning restore AA0210
+        ProdOrderComp.FindFirst();
+
+        TransferLine.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
+        TransferLine.SetRange("Item No.", ProdOrderComp."Item No.");
+        TransferLine.FindFirst();
+        TransferHeader.Get(TransferLine."Document No.");
+
+        // [GIVEN] Inventory at the source location
+        Location.Get(TransferHeader."Transfer-from Code");
+        Item.Get(ProdOrderComp."Item No.");
+        CreateInventory(Item, Location, Bin, ProdOrderComp."Expected Qty. (Base)");
+        Vendor.Get(WorkCenter[2]."Subcontractor No.");
+
+        // [WHEN] Posting the outbound transfer shipment
+        LibraryWarehouse.PostTransferOrder(TransferHeader, true, false);
+
+        // [THEN] The Transfer Shipment Header has Source Type = Subcontracting and Source ID = Vendor No.
+        TransferShipmentHeader.SetRange("Subcontr. Purch. Order No.", PurchaseLine."Document No.");
+        Assert.RecordIsNotEmpty(TransferShipmentHeader);
+        TransferShipmentHeader.FindFirst();
+        Assert.AreEqual(
+            "Transfer Source Type"::Subcontracting, TransferShipmentHeader."Subc. Source Type",
+            'Subc. Source Type must be Subcontracting on Transfer Shipment Header');
+        Assert.AreEqual(
+            Vendor."No.", TransferShipmentHeader."Source ID",
+            'Source ID must be the Vendor No. on Transfer Shipment Header');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler,HandleTransferOrder')]
     procedure CreateReturnTransferOrderAfterPartialShipOfOutbound()
     var
         Bin: Record Bin;

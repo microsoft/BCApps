@@ -18,12 +18,6 @@ pageextension 99001527 "Subc. Pstd. Transfer Shpt" extends "Posted Transfer Ship
                 Editable = false;
                 Visible = false;
             }
-            field(SourceSubtype; Rec."Source Subtype")
-            {
-                ApplicationArea = Subcontracting;
-                Editable = false;
-                Visible = false;
-            }
             field(SourceID; Rec."Source ID")
             {
                 ApplicationArea = Subcontracting;
