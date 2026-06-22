@@ -1112,9 +1112,4 @@ codeunit 8900 "Email Impl"
         GlobalLanguage(CurrentLanguage);
     end;
     #endregion
-
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeFilterRemovedSourceRecords(var EmailRelatedRecord: Record "Email Related Record"; var Handled: Boolean)
-    begin
-    end;
 }
