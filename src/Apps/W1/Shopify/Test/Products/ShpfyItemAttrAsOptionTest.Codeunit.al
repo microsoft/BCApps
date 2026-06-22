@@ -366,6 +366,32 @@ codeunit 139596 "Shpfy Item Attr As Option Test"
     end;
     #endregion
 
+    #region Product facade
+    [Test]
+    procedure UnitTestCheckItemAttributesCompatibleForProductOptionsFromFacade()
+    var
+        Item: Record Item;
+        ShopifyProductMgt: Codeunit "Shpfy Product";
+        CompatibilityCheckResult: Boolean;
+        ExpFailureMessageErr: Label 'maximum of 3 product options';
+    begin
+        // [SCENARIO] The "Shpfy Product" facade checks item attribute compatibility and primes the shop itself.
+
+        // [GIVEN] Shopify Shop is created
+        Initialize();
+
+        // [GIVEN] Item is created without Item variants but with 4 'As Option' Item Attributes (exceeds Shopify limit of 3)
+        Item := CreateItemWithAsOptionAttributes(4);
+
+        // [WHEN] Check item attributes compatible for product options through the facade (the facade sets the shop)
+        CompatibilityCheckResult := ShopifyProductMgt.CheckItemAttributesCompatibleForProductOptions(Item, Shop);
+
+        // [THEN] Returns false and skipped entry is logged about too many attributes
+        VerifyResultOfCompatibilityCheck(CompatibilityCheckResult);
+        VerifySkippedEntryExists(Item.RecordId, ExpFailureMessageErr);
+    end;
+    #endregion
+
     #region Helper Procedures
     local procedure Initialize()
     var
