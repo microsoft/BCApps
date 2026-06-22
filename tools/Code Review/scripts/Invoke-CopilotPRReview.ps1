@@ -50,7 +50,7 @@ $MaxFindings      = [int]($env:MAX_FINDINGS_PER_DOMAIN ?? 25)
 $CopilotCliTimeoutMinutes = [int]($env:COPILOT_REVIEW_CLI_TIMEOUT_MINUTES ?? 30)
 $FailOnParseErrorRaw = (($env:COPILOT_REVIEW_FAIL_ON_PARSE_ERROR ?? 'true') + '').Trim().ToLowerInvariant()
 $FailOnParseError = @('1','true','yes','on') -contains $FailOnParseErrorRaw
-$MaxParseAttempts = [Math]::Max(1, [int]($env:COPILOT_REVIEW_MAX_PARSE_ATTEMPTS ?? 2))
+$MaxParseAttempts = [Math]::Min(5, [Math]::Max(1, [int]($env:COPILOT_REVIEW_MAX_PARSE_ATTEMPTS ?? 2)))
 $EmbedDiffInPromptRaw = (($env:COPILOT_REVIEW_EMBED_DIFF ?? 'false') + '').Trim().ToLowerInvariant()
 $EmbedDiffInPrompt = @('1','true','yes','on') -contains $EmbedDiffInPromptRaw
 $CommentDelay     = [double]($env:COMMENT_DELAY_SECONDS ?? 0.5)
@@ -1051,7 +1051,14 @@ $prompt   = Build-Prompt -DiffContext $diffContext
 $output = ''
 $findings = @()
 for ($attempt = 1; $attempt -le $MaxParseAttempts; $attempt++) {
-    $output = Invoke-CopilotCli -Prompt $prompt
+    $retryPrompt = if ($attempt -gt 1 -and $script:LastParsingErrors.Count -gt 0) {
+        $firstError = ($script:LastParsingErrors | Select-Object -First 1)
+        "$prompt`n`nIMPORTANT: Your previous response failed JSON parsing with this error: $firstError`nReturn ONLY a valid JSON array with all string values properly escaped."
+    }
+    else {
+        $prompt
+    }
+    $output = Invoke-CopilotCli -Prompt $retryPrompt
     $findings = @(Get-Findings -Output $output)
     if ($findings.Count -gt 0 -or $script:LastParsingErrors.Count -eq 0) { break }
     if ($attempt -lt $MaxParseAttempts) {
