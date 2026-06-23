@@ -746,13 +746,15 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         RoutingHeader.Modify(true);
 
         // [GIVEN] A finished good item with the routing
-        LibraryManufacturing.CreateProductionBOMHeader(ProductionBOMHeader, WorkCenter."Unit of Measure Code");
-        ProductionBOMHeader.Validate(Status, ProductionBOMHeader.Status::Certified);
-        ProductionBOMHeader.Modify(true);
         LibraryManufacturing.CreateItemManufacturing(
             FinishedItem, "Costing Method"::FIFO, LibraryRandom.RandInt(10),
             "Reordering Policy"::"Lot-for-Lot", "Flushing Method"::"Pick + Manual",
-            RoutingHeader."No.", ProductionBOMHeader."No.");
+            RoutingHeader."No.", '');
+        LibraryManufacturing.CreateProductionBOMHeader(ProductionBOMHeader, FinishedItem."Base Unit of Measure");
+        ProductionBOMHeader.Validate(Status, ProductionBOMHeader.Status::Certified);
+        ProductionBOMHeader.Modify(true);
+        FinishedItem.Validate("Production BOM No.", ProductionBOMHeader."No.");
+        FinishedItem.Modify(true);
 
         // [GIVEN] A released production order
         SubcWarehouseLibrary.CreateAndRefreshProductionOrder(
