@@ -1414,6 +1414,8 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         SubcWarehouseLibrary.CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
         SetTransferWIPItemOnRoutingLine(Item."Routing No.", WorkCenter[2]."No.", true);
 
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Transfer to Vendor");
         SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
         // [GIVEN] Create and refresh released production order
@@ -1422,7 +1424,7 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
             ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
         SetProdOrderLocationToCompSetupLocationAndRefresh(ProductionOrder);
 
-        // [GIVEN] No in-transit transfer route exists (ensures Direct Transfer = Yes)
+        // [GIVEN] Transfer route with in-transit location (ensures Direct Transfer = Yes initially)
         SubcontractingMgmtLibrary.CreateTransferRoute(WorkCenter[2], ProductionOrder);
 
         // [GIVEN] Create subcontracting purchase order and WIP Transfer Order
