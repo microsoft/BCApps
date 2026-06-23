@@ -626,7 +626,7 @@ codeunit 99001560 "Subc. Purch. Factbox Mgmt."
         SubcontractorPrice.SetRange("Item No.", PurchaseLine."No.");
         SubcontractorPrice.SetRange("Work Center No.", PurchaseLine."Work Center No.");
         SubcontractorPrice.SetRange("Variant Code", PurchaseLine."Variant Code");
-        SubcontractorPrice.SetRange("Unit of Measure Code", PurchaseLine."Unit of Measure Code");
+        SubcontractorPrice.SetFilter("Unit of Measure Code", '%1|%2', PurchaseLine."Unit of Measure Code", '');
         SubcontractorPrice.SetRange("Currency Code", PurchaseLine."Currency Code");
     end;
 
