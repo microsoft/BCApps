@@ -1460,6 +1460,8 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         TransferLine.FindFirst();
         Assert.IsTrue(TransferLine."Transfer WIP Item",
             'WIP Transfer Line must still have Transfer WIP Item = true after Direct Transfer toggle.');
+        Assert.AreEqual(ProductionOrder.Quantity, TransferLine.Quantity,
+            'WIP Transfer Line quantity must be preserved after toggling Direct Transfer.');
     end;
     [PageHandler]
     procedure HandleTransferOrder(var TransfOrderPage: TestPage "Transfer Order")
