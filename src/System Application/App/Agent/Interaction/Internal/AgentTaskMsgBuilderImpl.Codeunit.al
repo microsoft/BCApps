@@ -188,7 +188,12 @@ codeunit 4311 "Agent Task Msg. Builder Impl."
             exit(this);
         File.CreateInStream(FileInStream, TextEncoding::MSDos);
         AddAttachment(
-            CopyStr(FileName, 1, 250),
+if StrLen(FileName) > 250 then
+    Error('File name ''%1'' exceeds the maximum allowed length of 250 characters.', FileName);
+AddAttachment(
+    CopyStr(FileName, 1, 250),
+    CopyStr(GetContentTypeFromFilename(FileName), 1, 100),
+    FileInStream);
             CopyStr(GetContentTypeFromFilename(FileName), 1, 100),
             FileInStream);
         exit(this);
