@@ -2002,6 +2002,13 @@ codeunit 139989 "Subc. Subcontracting Test"
         // [THEN] The component is relocated to the subcontractor location for consumption registration
         Vendor.Get(WorkCenter[2]."Subcontractor No.");
         PlanningComponent.TestField("Location Code", Vendor."Subc. Location Code");
+
+        // [THEN] No separate replenishment Requisition Line is generated for the vendor-supplied component item
+        RequisitionLine.Reset();
+        RequisitionLine.SetRange("Worksheet Template Name", ReqWkshTemplateName);
+        RequisitionLine.SetRange("Journal Batch Name", RequisitionWkshName.Name);
+        RequisitionLine.SetRange("No.", ProductionBOMLine."No.");
+        Assert.RecordIsEmpty(RequisitionLine);
     end;
 
     [Test]
