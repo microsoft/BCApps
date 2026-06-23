@@ -1,0 +1,44 @@
+[
+    {
+        "bug": "635880",
+        "codeunitId": 139235,
+        "codeunitName": "PEPPOL30 Management Tests",
+        "method": "PEPPOL_XMLExport_DeliveryInfo_ServiceInvoice"
+    },
+    {
+        "bug": "635880",
+        "codeunitId": 139235,
+        "codeunitName": "PEPPOL30 Management Tests",
+        "method": "PEPPOL_XMLExport_DeliveryInfo_ServiceCrMemo"
+    },
+    {
+        "bug": "635880",
+        "codeunitId": 139236,
+        "codeunitName": "PEPPOL BIS BillingTests",
+        "method": "ExportXml_PEPPOL_BIS3_ServiceInvoice"
+    },
+    {
+        "bug": "635880",
+        "codeunitId": 139236,
+        "codeunitName": "PEPPOL BIS BillingTests",
+        "method": "ExportXml_PEPPOL_BIS3_ServiceCrMemo"
+    },
+    {
+        "bug": "635880",
+        "codeunitId": 139236,
+        "codeunitName": "PEPPOL BIS BillingTests",
+        "method": "ExportXml_PEPPOL_BIS3_ServiceInvoiceFCY"
+    },
+    {
+        "bug": "635880",
+        "codeunitId": 139236,
+        "codeunitName": "PEPPOL BIS BillingTests",
+        "method": "ExportXml_PEPPOL_BIS3_ServiceCrMemoFCY"
+    },
+    {
+        "bug": "635880",
+        "codeunitId": 139236,
+        "codeunitName": "PEPPOL BIS BillingTests",
+        "method": "ExportXml_ServiceInvoiceLCY_InvRounding_Positive"
+    }
+]

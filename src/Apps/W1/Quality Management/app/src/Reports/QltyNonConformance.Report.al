@@ -4,14 +4,13 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.QualityManagement.Reports;
 
-using Microsoft.CRM.Team;
 using Microsoft.Foundation.Company;
 using Microsoft.Inventory.Item;
-using Microsoft.QualityManagement.Configuration.Result;
+#if not CLEAN29
 using Microsoft.QualityManagement.Configuration.Template;
+#endif
 using Microsoft.QualityManagement.Document;
-using Microsoft.QualityManagement.Utilities;
-using System.Security.User;
+using Microsoft.QualityManagement.Telemetry;
 
 report 20403 "Qlty. Non-Conformance"
 {
@@ -29,7 +28,14 @@ report 20403 "Qlty. Non-Conformance"
         dataitem(CurrentInspection; "Qlty. Inspection Header")
         {
             RequestFilterFields = "Source Item No.", "Source Variant Code", "Source Lot No.", "Source Serial No.", "Source Package No.", "Source Document No.", "No.", "Re-inspection No.", "Template Code";
-            column(QltyInspectionTemplate_Description; QltyInspectionTemplateHdr.Description) { } // CLEAN
+#if not CLEAN29
+            column(QltyInspectionTemplate_Description; QltyInspectionTemplateHdr.Description)
+            {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'RDLC-only layout column. To be removed along with the RDLC layout.';
+                ObsoleteTag = '29.0';
+            }
+#endif
             column(QltyInspection_Description; Description) { }
             column(QltyInspection_Status; Status) { }
             column(QltyInspection_Result_Code; "Result Code") { }
@@ -86,9 +92,9 @@ report 20403 "Qlty. Non-Conformance"
 
             // Pre-calculated columns for Word Layout
             column(ReinspectionSequenceInformation; QltyReportMgmt.BuildReinspectionSequenceInformationText(CurrentInspection."Re-inspection No.")) { }
-            column(InspectionInformation; QltyReportMgmt.BuildInspectionInformationText(Format(CurrentInspection.Status), CurrentInspection."Result Description")) { }
-            column(ItemDescription; ItemDescriptionText) { }
-            column(ItemTrackingDescription; ItemTrackingText) { }
+            column(ItemIdentifier; QltyReportMgmt.BuildItemIdentifierText(CurrentInspection."Source Item No.", CurrentInspection."Source Variant Code")) { }
+            column(ItemDescription; Item.Description) { }
+            column(ItemTrackingIdentifier; ItemTrackingText) { }
 
             // Pre-calculated label columns for Word Layout
             column(CompanyLogo; CompanyInformation.Picture) { }
@@ -177,82 +183,18 @@ report 20403 "Qlty. Non-Conformance"
                 column(ConditionLabel_2; ConditionLabelText2) { }
 
                 trigger OnAfterGetRecord()
-                var
-                    QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
-                    QltyInspectionResult: Record "Qlty. Inspection Result";
-                    QltyResultConditionMgmt: Codeunit "Qlty. Result Condition Mgmt.";
-                    DummyRecordId: RecordId;
-                    CombinedText: TextBuilder;
-                    Caption: array[2] of Text;
-                    Iterator: Integer;
                 begin
-                    Clear(MatrixSourceRecordId);
-                    Clear(MatrixArrayConditionCellData);
-                    Clear(MatrixArrayConditionDescriptionCellData);
-                    Clear(MatrixArrayCaptionSet);
-                    Clear(MatrixVisibleState);
-                    ResultDescription := '';
+                    QltyReportMgmt.ClearPromotedResultMatrix(MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, MatrixArrayCaptionSet, MatrixVisibleState);
+                    QltyReportMgmt.ResolveModifiedByUser(CurrentInspectionLine, InspectionLinePreviousModifiedByUserId, InspectionLineModifiedByUserId, InspectionLineModifiedByUserName, InspectionLineModifiedByJobTitle, InspectionLineModifiedByEmail, InspectionLineModifiedByPhone);
+                    QltyReportMgmt.ResolveLinePersonDetails(CurrentInspectionLine, IsPersonField, OptionalNameIfPerson, OptionalTitleIfPerson, OptionalEmailIfPerson, OptionalPhoneIfPerson);
+                    QltyReportMgmt.ResolveLineFieldTypeFlags(CurrentInspectionLine, FieldIsLabel, FieldIsText, HasEnteredValue);
+                    QltyReportMgmt.ResolveLineResultAndMatrix(CurrentInspectionLine, ResultDescription, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, MatrixArrayCaptionSet, MatrixVisibleState);
+                    QltyReportMgmt.ResolveLineLabelFieldDescription(CurrentInspectionLine, FieldIsLabel, LabelFieldDescription);
 
-                    InspectionLineModifiedByUserId := QltyMiscHelpers.GetUserNameByUserSecurityID(CurrentInspectionLine.SystemModifiedBy);
-                    if InspectionLinePreviousModifiedByUserId <> InspectionLineModifiedByUserId then
-                        QltyPersonLookup.GetBasicPersonDetails(InspectionLineModifiedByUserId, InspectionLineModifiedByUserName, InspectionLineModifiedByJobTitle, InspectionLineModifiedByEmail, InspectionLineModifiedByPhone, DummyRecordId);
-                    InspectionLinePreviousModifiedByUserId := InspectionLineModifiedByUserId;
-
-                    IsPersonField := QltyPersonLookup.GetBasicPersonDetailsFromInspectionLine(CurrentInspectionLine, OptionalNameIfPerson, OptionalTitleIfPerson, OptionalEmailIfPerson, OptionalPhoneIfPerson, DummyRecordId);
-
-                    FieldIsLabel := CurrentInspectionLine."Test Value Type" in [CurrentInspectionLine."Test Value Type"::"Value Type Label"];
-                    FieldIsText := CurrentInspectionLine."Test Value Type" in [CurrentInspectionLine."Test Value Type"::"Value Type Text"];
-
-                    HasEnteredValue := not FieldIsLabel and
-                        ((CurrentInspectionLine."Test Value" <> '') and (CurrentInspectionLine.SystemCreatedAt <> CurrentInspectionLine.SystemModifiedAt));
-
-                    if HasEnteredValue then
-                        EnteredByNameAndTimestamp := StrSubstNo(EnteredByNameAndTimestampLbl, InspectionLinePreviousModifiedByUserId, CurrentInspectionLine.SystemModifiedAt)
-                    else
-                        Clear(EnteredByNameAndTimestamp);
-
-                    ResultDescription := CurrentInspectionLine."Result Description";
-                    if ResultDescription = '' then
-                        ResultDescription := CurrentInspectionLine."Result Code";
-                    QltyResultConditionMgmt.GetPromotedResultsForInspectionLine(CurrentInspectionLine, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, MatrixArrayCaptionSet, MatrixVisibleState);
-
-                    if FieldIsLabel then
-                        LabelFieldDescription := CurrentInspectionLine.Description
-                    else
-                        LabelFieldDescription := '';
+                    EnteredByNameAndTimestamp := QltyReportMgmt.BuildEnteredByNameAndTimestamp(InspectionLinePreviousModifiedByUserId, CurrentInspectionLine.SystemModifiedAt, HasEnteredValue);
 
                     // Resolve pre-calculated condition label columns for Word Layout
-                    Clear(Caption);
-                    QltyIResultConditConf.SetRange("Condition Type", QltyIResultConditConf."Condition Type"::Inspection);
-                    QltyIResultConditConf.SetRange("Target Code", CurrentInspectionLine."Inspection No.");
-                    QltyIResultConditConf.SetRange("Target Re-inspection No.", CurrentInspectionLine."Re-inspection No.");
-                    QltyIResultConditConf.SetRange("Target Line No.", CurrentInspectionLine."Line No.");
-                    QltyIResultConditConf.SetRange("Test Code", CurrentInspectionLine."Test Code");
-                    QltyIResultConditConf.SetRange("Result Visibility", QltyIResultConditConf."Result Visibility"::Promoted);
-                    QltyIResultConditConf.SetCurrentKey("Condition Type", "Result Visibility", Priority, "Target Code", "Target Re-inspection No.", "Target Line No.");
-                    QltyIResultConditConf.Ascending(false);
-                    Iterator := 0;
-                    if QltyIResultConditConf.FindSet() then
-                        repeat
-                            if QltyInspectionResult.Get(QltyIResultConditConf."Result Code") then begin
-                                Iterator += 1;
-                                if Iterator <= 2 then
-                                    if QltyInspectionResult.Description <> '' then
-                                        Caption[Iterator] := QltyInspectionResult.Description
-                                    else
-                                        Caption[Iterator] := QltyInspectionResult.Code;
-                            end;
-                        until (QltyIResultConditConf.Next() = 0) or (Iterator >= 2);
-
-                    if Caption[1] <> '' then
-                        ConditionLabelText1 := Caption[1] + ' ' + ConditionSuffixLbl
-                    else
-                        ConditionLabelText1 := '';
-
-                    if Caption[2] <> '' then
-                        ConditionLabelText2 := Caption[2] + ' ' + ConditionSuffixLbl
-                    else
-                        ConditionLabelText2 := '';
+                    QltyReportMgmt.ResolveConditionLabels(CurrentInspectionLine, ConditionLabelText1, ConditionLabelText2);
 
                     // Word layout columns: empty for labels, populated for normal and person fields
                     if not FieldIsLabel then begin
@@ -267,17 +209,7 @@ report 20403 "Qlty. Non-Conformance"
 
                     // WordTestValue: person details for person fields, normal value otherwise
                     if IsPersonField then begin
-                        Clear(CombinedText);
-                        CarriageReturnPersonFieldDetails := '';
-                        if OptionalTitleIfPerson <> '' then
-                            CombinedText.AppendLine(TitleLbl + ': ' + OptionalTitleIfPerson);
-                        if OptionalNameIfPerson <> '' then
-                            CombinedText.AppendLine(NameLbl + ': ' + OptionalNameIfPerson);
-                        if OptionalPhoneIfPerson <> '' then
-                            CombinedText.AppendLine(OptionalPhoneIfPerson);
-                        if OptionalEmailIfPerson <> '' then
-                            CombinedText.AppendLine(OptionalEmailIfPerson);
-                        CarriageReturnPersonFieldDetails := CombinedText.ToText();
+                        CarriageReturnPersonFieldDetails := QltyReportMgmt.BuildPersonFieldDetailsLabeled(OptionalTitleIfPerson, OptionalNameIfPerson, OptionalPhoneIfPerson, OptionalEmailIfPerson);
                         TestValueText := CarriageReturnPersonFieldDetails;
                         WordTestValue := CarriageReturnPersonFieldDetails;
                     end else
@@ -301,53 +233,19 @@ report 20403 "Qlty. Non-Conformance"
             end;
 
             trigger OnAfterGetRecord()
-            var
-                UserSetup: Record "User Setup";
-                SalespersonPurchaser: Record "Salesperson/Purchaser";
-                DummyRecordId: RecordId;
             begin
-                if CurrentInspection."Source Item No." = '' then
-                    Item.Reset()
-                else
-                    Item.Get(CurrentInspection."Source Item No.");
+                QltyReportMgmt.ResolveSourceItem(CurrentInspection, Item);
+#if not CLEAN29
+#pragma warning disable AL0432
+                QltyReportMgmt.ResolveInspectionTemplateCache(CurrentInspection."Template Code", QltyInspectionTemplateHdr);
+#pragma warning restore AL0432
+#endif
+                QltyReportMgmt.ResolveFinishedByPerson(CurrentInspection."Finished By User ID", FinishedByUserName, FinishedByTitle, FinishedByEmail, FinishedByPhone);
 
-                // CLEAN
-                if QltyInspectionTemplateHdr.Code <> CurrentInspection."Template Code" then begin
-                    Clear(QltyInspectionTemplateHdr);
-                    if QltyInspectionTemplateHdr.Get(CurrentInspection."Template Code") then;
-                end;
+                ItemTrackingText := QltyReportMgmt.BuildItemTrackingIdentifierText(CurrentInspection."Source Lot No.", CurrentInspection."Source Serial No.", CurrentInspection."Source Package No.");
 
-                FinishedByUserName := CurrentInspection."Finished By User ID";
-                QltyPersonLookup.GetBasicPersonDetails(CurrentInspection."Finished By User ID", FinishedByUserName, FinishedByTitle, FinishedByEmail, FinishedByPhone, DummyRecordId);
-                if (FinishedByTitle = '') and (FinishedByUserName <> '') then
-                    FinishedByTitle := DefaultQualityInspectorTitleLbl;
-
-                // Pre-calculated columns for Word Layout
-                // Resolve Item Text
-                ItemDescriptionText := QltyReportMgmt.BuildItemDescriptionText(CurrentInspection."Source Item No.", CurrentInspection."Source Variant Code", Item.Description);
-
-                // Resolve Item Tracking
-                ItemTrackingText := QltyReportMgmt.BuildItemTrackingText(CurrentInspection."Source Lot No.", CurrentInspection."Source Serial No.", CurrentInspection."Source Package No.");
-
-                // Enhance job title for Finished By user via Salesperson/Purchaser (if not already resolved by Person Lookup)
-                if (FinishedByTitle = '') and (CurrentInspection."Finished By User ID" <> '') then begin
-                    if UserSetup.Get(CurrentInspection."Finished By User ID") then
-                        if UserSetup."Salespers./Purch. Code" <> '' then
-                            if SalespersonPurchaser.Get(UserSetup."Salespers./Purch. Code") then
-                                FinishedByTitle := SalespersonPurchaser."Job Title";
-
-                    if FinishedByTitle = '' then
-                        FinishedByTitle := DefaultQualityInspectorTitleLbl;
-                end;
-
-                // Resolve Finished By Signature Label
-                FinishedBySignatureLbl := FinishedByTitle + ' ' + SignatureSuffixLbl;
-                // Resolve Finished By Name
-                FinishedByNameLbl := FinishedByTitle + ' ' + NameSuffixLbl;
-                // Resolve Approver Signature Label
-                ApproverSignatureLbl := ApproverTitle + ' ' + SignatureSuffixLbl;
-                // Resolve Approver Name Label
-                ApproverNameLbl := ApproverTitle + ' ' + NameSuffixLbl;
+                QltyReportMgmt.BuildSignatureAndNameLabels(FinishedByTitle, FinishedBySignatureLbl, FinishedByNameLbl);
+                QltyReportMgmt.BuildSignatureAndNameLabels(ApproverTitle, ApproverSignatureLbl, ApproverNameLbl);
             end;
         }
     }
@@ -357,17 +255,22 @@ report 20403 "Qlty. Non-Conformance"
         layout(QualityInspection_NonConformance_Default)
         {
             Type = Word;
-            Caption = 'Word Layout';
-            Summary = 'Word layout for the non-conformance Report.';
+            Caption = 'Non-Conformance Report (Word)';
+            Summary = 'Built in layout for the Non-Conformance Report.';
             LayoutFile = './src/Reports/QltyNonConformance.docx';
         }
+#if not CLEAN29
         layout(QltyNonConformanceDefault)
         {
             Type = RDLC;
-            Caption = 'Default Layout';
-            Summary = 'The default layout for the non-conformance Report.';
+            Caption = 'Non-Conformance Report (RDLC)';
+            Summary = 'Built in layout for the Non-Conformance Report.';
             LayoutFile = './src/Reports/QltyNonConformanceAlternate.rdl';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'The RDLC layout has been replaced by the Word layout and will be removed in a future release.';
+            ObsoleteTag = '29.0';
         }
+#endif
     }
 
     labels
@@ -375,6 +278,7 @@ report 20403 "Qlty. Non-Conformance"
         PageLabel = 'Page';
         ReportTitleLabel = 'Non-Conformance Report';
         ItemLabel = 'Item';
+        ItemDescriptionLabel = 'Item Description';
         ItemTrackingLabel = 'Item Tracking';
         FinishedByLabel = 'Finished by';
         FinishedOnLabel = 'Finished on';
@@ -383,16 +287,25 @@ report 20403 "Qlty. Non-Conformance"
         ResultLabel = 'Result';
         ConditionLabel = 'Condition';
         InspectionLabel = 'Inspection';
+        InspectionDescriptionLabel = 'Inspection Description';
+        StatusLabel = 'Status';
         DateLabel = 'Date';
-        EnteredByLabel = 'Entered by';
+        LastModifiedByLabel = 'Last modified by';
     }
+
+    trigger OnPreReport()
+    var
+        QltyMgmtFeatureTelemetry: Codeunit "Qlty. Mgmt. Feature Telemetry";
+    begin
+        QltyMgmtFeatureTelemetry.LogFeatureUsage(ObjectType::Report, Report::"Qlty. Non-Conformance", 'Print report Non-Conformance');
+    end;
 
     var
         Item: Record Item;
         CompanyInformation: Record "Company Information";
+#if not CLEAN29
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
-        QltyPersonLookup: Codeunit "Qlty. Person Lookup";
+#endif
         QltyReportMgmt: Codeunit "Qlty. Report Mgmt.";
         MatrixSourceRecordId: array[10] of RecordId;
         CompanyInformationArray: array[8] of Text[100];
@@ -432,7 +345,6 @@ report 20403 "Qlty. Non-Conformance"
         WordModifiedDateTime: Text;
         WordModifiedByUserName: Text;
         TestValueText: Text;
-        ItemDescriptionText: Text;
         ItemTrackingText: Text;
         FinishedBySignatureLbl: Text;
         FinishedByNameLbl: Text;
@@ -446,15 +358,8 @@ report 20403 "Qlty. Non-Conformance"
         PhoneNoValueText: Text;
         ConditionLabelText1: Text;
         ConditionLabelText2: Text;
-        TitleLbl: Label 'Title';
-        NameLbl: Label 'Name';
-        NameSuffixLbl: Label 'Name';
-        SignatureSuffixLbl: Label 'Signature';
         HomePageLbl: Label 'Home Page';
         EmailLbl: Label 'E-Mail';
         PhoneNoLbl: Label 'Phone No.';
-        ConditionSuffixLbl: Label 'Condition';
         DefaultApproverTitleLbl: Label 'Approver';
-        DefaultQualityInspectorTitleLbl: Label 'Quality Inspector';
-        EnteredByNameAndTimestampLbl: Label '%1 %2', Locked = true;
 }
