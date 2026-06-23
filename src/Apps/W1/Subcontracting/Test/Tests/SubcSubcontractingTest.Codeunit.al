@@ -1934,6 +1934,77 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     [Test]
+    procedure VendorSuppliedComponentVisibleInPlanningWorksheetAfterRefresh()
+    var
+        Item: Record Item;
+        Location: Record Location;
+        MachineCenter: array[2] of Record "Machine Center";
+        PlanningComponent: Record "Planning Component";
+        ProductionBOMLine: Record "Production BOM Line";
+        RequisitionLine: Record "Requisition Line";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        Vendor: Record Vendor;
+        WorkCenter: array[2] of Record "Work Center";
+        ReqWkshTemplateName: Code[10];
+        Direction: Option Forward,Backward;
+    begin
+        // [SCENARIO 640113] Lines with Subcontracting Type = Vendor Supplied should appear in Planning
+        // Worksheet components when refreshing from Production BOM so consumption can be registered.
+
+        // [GIVEN] Complete Setup of Manufacturing, include Work- and Machine Centers, Item
+        Initialize();
+        SubcontractingMgmtLibrary.SetupInventorySetup();
+
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+
+        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+
+        // [GIVEN] Create Item for Production include Routing and Prod. BOM
+        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+
+        // [GIVEN] Assign Routing Link Code between subcontracting routing line and last BOM line
+        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+
+        // [GIVEN] Set Component Supply Method = Vendor-Supplied on the linked BOM line
+        SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Vendor-Supplied");
+
+        // [GIVEN] Set up vendor with subcontracting location
+        SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+
+        // [GIVEN] A Planning Worksheet line is added manually for the item
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+        ReqWkshTemplateName := LibraryPlanning.SelectRequisitionTemplateName();
+        LibraryPlanning.CreateRequisitionWkshName(RequisitionWkshName, ReqWkshTemplateName);
+        LibraryPlanning.CreateRequisitionLine(RequisitionLine, ReqWkshTemplateName, RequisitionWkshName.Name);
+        RequisitionLine.Validate(Type, RequisitionLine.Type::Item);
+        RequisitionLine.Validate("No.", Item."No.");
+        RequisitionLine.Validate(Quantity, LibraryRandom.RandInt(10) + 5);
+        RequisitionLine.Validate("Location Code", Location.Code);
+        RequisitionLine.Validate("Ending Date", WorkDate());
+        RequisitionLine.Modify(true);
+
+        // [WHEN] Refresh Planning Line is run
+        LibraryPlanning.RefreshPlanningLine(RequisitionLine, Direction::Backward, true, true);
+
+        // [THEN] The component with Vendor-Supplied type is present in Planning Components
+        ProductionBOMLine.SetRange("Production BOM No.", Item."Production BOM No.");
+        ProductionBOMLine.FindLast();
+        PlanningComponent.SetRange("Worksheet Template Name", RequisitionLine."Worksheet Template Name");
+        PlanningComponent.SetRange("Worksheet Batch Name", RequisitionLine."Journal Batch Name");
+        PlanningComponent.SetRange("Worksheet Line No.", RequisitionLine."Line No.");
+        PlanningComponent.SetRange("Item No.", ProductionBOMLine."No.");
+        Assert.RecordIsNotEmpty(PlanningComponent);
+
+        // [THEN] The Component Supply Method is correctly transferred
+        PlanningComponent.FindFirst();
+        PlanningComponent.TestField("Component Supply Method", "Component Supply Method"::"Vendor-Supplied");
+        // [THEN] The component is relocated to the subcontractor location for consumption registration
+        Vendor.Get(WorkCenter[2]."Subcontractor No.");
+        PlanningComponent.TestField("Location Code", Vendor."Subc. Location Code");
+    end;
+
+    [Test]
     [HandlerFunctions('ConfirmHandler')]
     procedure SubcontractingFieldsPopulatedOnIleAfterSubcontractingPurchaseReceipt()
     var
