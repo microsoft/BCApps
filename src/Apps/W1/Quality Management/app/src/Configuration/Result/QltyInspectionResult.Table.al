@@ -214,6 +214,7 @@ table 20411 "Qlty. Inspection Result"
         PromptFirstExistingInspectionQst: Label 'This result, although not set on an inspection, is available to previous inspections. Are you sure you want to remove this result? This cannot be undone.';
         PromptFirstExistingTemplateQst: Label 'This result is currently defined on some Quality Inspection Templates. Are you sure you want to remove this result? This cannot be undone.';
         PromptFirstExistingTestQst: Label 'This result is currently defined on some tests. Are you sure you want to remove this result? This cannot be undone.';
+        EvaluationSequencePriorityMustBeUniqueErr: Label 'Evaluation Sequence priority must be unique, you cannot have two results with the same evaluation sequence. Result %1 %2 already has the same evaluation sequence %3.', Comment = '%1=Result Code, %2=Result description, %3=Evaluation Sequence';
         DefaultResultInProgressCodeLbl: Label 'INPROGRESS', Locked = true, MaxLength = 20;
         ResultCodePassLbl: Label 'PASS', MaxLength = 20;
         ResultCodeGoodLbl: Label 'GOOD', MaxLength = 20;
@@ -334,5 +335,45 @@ table 20411 "Qlty. Inspection Result"
             else
                 exit(Format(RowStyle::None));
         end;
+    end;
+
+    /// <summary>
+    /// Sets the default evaluation sequence for a new record.
+    /// </summary>
+    internal procedure SetDefaultEvaluationSequence()
+    var
+        ExistingQltyInspectionResult: Record "Qlty. Inspection Result";
+    begin
+        ExistingQltyInspectionResult.SetCurrentKey("Evaluation Sequence");
+        ExistingQltyInspectionResult.Ascending(false);
+        if not ExistingQltyInspectionResult.FindFirst() then
+            Rec."Evaluation Sequence" := 0
+        else
+            Rec."Evaluation Sequence" := ExistingQltyInspectionResult."Evaluation Sequence" + 1;
+    end;
+
+    /// <summary>
+    /// Validates that the evaluation sequence is not used by another result.
+    /// </summary>
+    internal procedure ValidateEvaluationSequenceNotUsedElsewhere()
+    var
+        ExistingQltyInspectionResult: Record "Qlty. Inspection Result";
+    begin
+        ExistingQltyInspectionResult.SetFilter(Code, '<>%1', Rec.Code);
+        ExistingQltyInspectionResult.SetRange("Evaluation Sequence", Rec."Evaluation Sequence");
+        ExistingQltyInspectionResult.SetLoadFields(Description);
+        if ExistingQltyInspectionResult.FindFirst() then
+            Error(EvaluationSequencePriorityMustBeUniqueErr, ExistingQltyInspectionResult.Code, ExistingQltyInspectionResult.Description, Rec."Evaluation Sequence");
+    end;
+
+    /// <summary>
+    /// Updates tests, templates, and inspections with result changes.
+    /// Adds newly created results to existing quality tests and templates, adjusts evaluation sequences, and updates promoted results.
+    /// </summary>
+    internal procedure UpdateTestsTemplatesAndInspections()
+    var
+        QltyResultConditionMgmt2: Codeunit "Qlty. Result Condition Mgmt.";
+    begin
+        QltyResultConditionMgmt2.CopyGradeConditionsFromDefaultToAllTemplates();
     end;
 }
