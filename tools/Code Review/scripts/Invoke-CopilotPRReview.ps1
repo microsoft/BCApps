@@ -415,19 +415,32 @@ function Test-GlobMatch {
     param([string] $Filename, [string] $Pattern)
     $f = $Filename -replace '\\', '/'
     $p = $Pattern -replace '\\', '/'
-    $likePattern = $p -replace '\*\*/', '*'
+    # Collapse both `**/` and a bare trailing `**` (e.g. `src/**`) to `*`.
+    $likePattern = $p -replace '\*\*/?', '*'
     return $f -like $likePattern
 }
 
 # ---------------------------------------------------------------------------
 # BCQuality task-context (passed verbatim to entry.md)
 # ---------------------------------------------------------------------------
-function Build-TaskContext {
-    $configScript = Join-Path $TrustedWorkspace 'tools/BCQuality/scripts/Get-BCQualityConfig.ps1'
-    if (-not (Test-Path $configScript)) {
-        throw "Get-BCQualityConfig.ps1 not found at $configScript"
+$script:BCQualityConfigCache = $null
+function Get-BCQualityConfigCached {
+    # Resolve the BCQuality config once per process. Build-TaskContext and
+    # Get-BCQualityRepoUrl both need it; re-running the script each time would
+    # re-read the YAML and re-apply env overrides, which can diverge silently
+    # if the environment changes between calls.
+    if ($null -eq $script:BCQualityConfigCache) {
+        $configScript = Join-Path $TrustedWorkspace 'tools/BCQuality/scripts/Get-BCQualityConfig.ps1'
+        if (-not (Test-Path $configScript)) {
+            throw "Get-BCQualityConfig.ps1 not found at $configScript"
+        }
+        $script:BCQualityConfigCache = & $configScript
     }
-    $cfg = & $configScript
+    return $script:BCQualityConfigCache
+}
+
+function Build-TaskContext {
+    $cfg = Get-BCQualityConfigCached
 
     $taskCtx = $cfg['task-context']
     $context = [ordered]@{
@@ -1477,20 +1490,17 @@ function Resolve-ReviewIteration {
 function Get-BCQualityRepoUrl {
     if (-not $script:BCQualityWebRepoUrl) {
         $script:BCQualityWebRepoUrl = $null
-        $configScript = Join-Path $TrustedWorkspace 'tools/BCQuality/scripts/Get-BCQualityConfig.ps1'
-        if (Test-Path $configScript) {
-            try {
-                $cfg = & $configScript
-                $repo = [string]$cfg.bcquality.repo
-                if ($repo) {
-                    $script:BCQualityWebRepoUrl = $repo.TrimEnd('/')
-                    if ($script:BCQualityWebRepoUrl.EndsWith('.git')) {
-                        $script:BCQualityWebRepoUrl = $script:BCQualityWebRepoUrl.Substring(0, $script:BCQualityWebRepoUrl.Length - 4)
-                    }
+        try {
+            $cfg = Get-BCQualityConfigCached
+            $repo = [string]$cfg.bcquality.repo
+            if ($repo) {
+                $script:BCQualityWebRepoUrl = $repo.TrimEnd('/')
+                if ($script:BCQualityWebRepoUrl.EndsWith('.git')) {
+                    $script:BCQualityWebRepoUrl = $script:BCQualityWebRepoUrl.Substring(0, $script:BCQualityWebRepoUrl.Length - 4)
                 }
-            } catch {
-                Write-Warning "Could not resolve BCQuality repo URL for references: $($_.Exception.Message)"
             }
+        } catch {
+            Write-Warning "Could not resolve BCQuality repo URL for references: $($_.Exception.Message)"
         }
     }
     return $script:BCQualityWebRepoUrl

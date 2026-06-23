@@ -11,6 +11,13 @@ telemetry-audit, and other agents follow the same pattern.
 > partner fork). This directory is the boundary that every agent crosses to
 > reach BCQuality.
 
+> **Security:** the runner clones the configured `bcquality.repo` and makes it
+> the Copilot CLI's working directory, so its skill and knowledge files are
+> read by the agent *before* it sees the PR diff. Point `repo` (and the
+> `BCQUALITY_REPO` override) **only** at a trusted source: a malicious or
+> compromised fork can embed prompt-injection payloads that manipulate review
+> output. Pin `ref` to a reviewed commit SHA rather than a moving branch.
+
 ## What's here
 
 | File | Purpose |

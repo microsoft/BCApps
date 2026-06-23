@@ -15,6 +15,12 @@
 bcquality:
   # HTTPS URL of the BCQuality repository to consume. Partners pointing at a
   # private fork or mirror should change this.
+  #
+  # SECURITY: the runner clones this repo and makes it the Copilot CLI working
+  # directory, so its skill/knowledge files are read by the agent before it
+  # sees the PR diff. Point `repo` (and the `BCQUALITY_REPO` override) ONLY at
+  # a trusted source — a compromised fork can embed prompt-injection payloads
+  # that manipulate review output. Pin `ref` below to a reviewed commit SHA.
   repo: https://github.com/microsoft/BCQuality
 
   # Git ref (branch, tag, or SHA) to clone. Pinned to a specific BCQuality

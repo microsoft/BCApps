@@ -139,7 +139,7 @@ jobs:
           New-Item -ItemType Directory -Force -Path $root | Out-Null
           git -C $root init -q
           git -C $root remote add origin $repo
-          git -C $root fetch --depth=1 origin $ref
+          git -C $root fetch --depth=1 origin "$ref"
           if ($LASTEXITCODE -ne 0) { throw "git fetch of BCQuality ref '$ref' failed (exit $LASTEXITCODE)" }
           git -C $root checkout -q FETCH_HEAD
           if ($LASTEXITCODE -ne 0) { throw "git checkout of BCQuality ref '$ref' failed (exit $LASTEXITCODE)" }
