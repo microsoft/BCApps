@@ -170,8 +170,17 @@ foreach ($layerDir in @('microsoft', 'community', 'custom')) {
         if (-not $normalized) { continue }
         if (-not $normalized.StartsWith("$layerDir/")) { continue }
         $full = Join-Path $BCQualityRoot $normalized
-        if (Test-Path $full) {
-            Remove-Item -LiteralPath $full -Force
+        # Guard against path traversal: a value like 'microsoft/../../x' passes
+        # the prefix check but resolves outside the clone. Only delete files that
+        # canonically remain under $BCQualityRoot.
+        $resolvedRoot = [System.IO.Path]::GetFullPath($BCQualityRoot)
+        $resolvedFull = [System.IO.Path]::GetFullPath($full)
+        if (-not $resolvedFull.StartsWith($resolvedRoot + [System.IO.Path]::DirectorySeparatorChar)) {
+            Write-Warning "Skipping unsafe disabled-skill path '$normalized' (escapes BCQuality root)."
+            continue
+        }
+        if (Test-Path $resolvedFull) {
+            Remove-Item -LiteralPath $resolvedFull -Force
             $removed.Add([pscustomobject]@{ path = $normalized; kind = 'skill'; reason = 'configuration' }) | Out-Null
         }
     }
