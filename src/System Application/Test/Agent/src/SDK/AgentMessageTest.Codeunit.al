@@ -1395,8 +1395,9 @@ codeunit 133963 "Agent Message Test"
     begin
         Initialize();
 
-        // [SCENARIO] Repeated AddAttachment calls (as a fileuploadaction trigger would issue,
-        // looping over List of [FileUpload]) accumulate independent files on one message.
+        // [SCENARIO] Chained stream-based AddAttachment calls accumulate independent files on one
+        // message - the same accumulation the FileUpload overload relies on. The FileUpload overload
+        // itself is a thin adapter that is not unit-testable (FileUpload is populated only by the runtime).
 
         // [GIVEN] A test agent with a task
         AgentUserId := LibraryTestAgent.GetOrCreateDefaultAgent(
@@ -1411,7 +1412,7 @@ codeunit 133963 "Agent Message Test"
 
         AgentTaskRecord := AgentTaskBuilder.Create(false, false);
 
-        // [GIVEN] Two distinct payloads, mimicking two files from a single multi-select picker
+        // [GIVEN] Two distinct payloads representing two separate attachments
         TempBlob1.CreateOutStream(OutStream1, TextEncoding::UTF8);
         OutStream1.WriteText('first-payload');
         TempBlob1.CreateInStream(InStream1, TextEncoding::UTF8);
@@ -1437,6 +1438,68 @@ codeunit 133963 "Agent Message Test"
         Assert.IsFalse(TempAgentTaskFile.IsEmpty(), 'First attachment should exist');
         TempAgentTaskFile.SetRange("File Name", 'second.pdf');
         Assert.IsFalse(TempAgentTaskFile.IsEmpty(), 'Second attachment should exist');
+    end;
+
+    [Test]
+    procedure AddAttachmentInLoopAddsAllFiles()
+    var
+        AgentRecord: Record Agent;
+        AgentTaskRecord: Record "Agent Task";
+        AgentTaskMessageRecord: Record "Agent Task Message";
+        TempAgentTaskFile: Record "Agent Task File" temporary;
+        AgentTaskBuilder: Codeunit "Agent Task Builder";
+        AgentTaskMessageBuilder: Codeunit "Agent Task Message Builder";
+        TempBlob: Codeunit "Temp Blob";
+        AgentUserId: Guid;
+        FileInStream: InStream;
+        FileOutStream: OutStream;
+        ExternalIdTok: Label 'MSGBLD-TEST-019', Locked = true;
+        FileCount: Integer;
+        i: Integer;
+    begin
+        Initialize();
+
+        // [SCENARIO] Adding attachments in a loop - mirroring the page fileuploadaction that loops over
+        // a List of [FileUpload] - accumulates every file on the message. FileUpload is runtime-only, so
+        // the loop is driven through the stream-based overload the FileUpload overload delegates to.
+        FileCount := 4;
+
+        // [GIVEN] A test agent with a task
+        AgentUserId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            'MSGBLDAGENT19',
+            'Message Builder Test Agent 19',
+            'You are a test agent for looped AddAttachment testing.');
+
+        AgentTaskBuilder
+            .Initialize(AgentUserId, 'Looped AddAttachment Test Task')
+            .SetExternalId(ExternalIdTok);
+
+        AgentTaskRecord := AgentTaskBuilder.Create(false, false);
+
+        AgentTaskMessageBuilder
+            .Initialize('Sender', 'Looped files attached')
+            .SetAgentTask(AgentTaskRecord);
+
+        // [WHEN] AddAttachment is called once per file in a loop
+        for i := 1 to FileCount do begin
+            Clear(TempBlob);
+            TempBlob.CreateOutStream(FileOutStream, TextEncoding::UTF8);
+            FileOutStream.WriteText('payload-' + Format(i));
+            TempBlob.CreateInStream(FileInStream, TextEncoding::UTF8);
+            AgentTaskMessageBuilder.AddAttachment(CopyStr('file' + Format(i) + '.txt', 1, 250), 'text/plain', FileInStream);
+        end;
+
+        AgentTaskMessageRecord := AgentTaskMessageBuilder.Create(false);
+
+        // [THEN] Every looped file is stored on the message
+        AgentMessage.GetAttachments(AgentTaskRecord.Id, AgentTaskMessageRecord.Id, TempAgentTaskFile);
+        Assert.AreEqual(FileCount, TempAgentTaskFile.Count(), 'All looped attachments should be stored');
+
+        for i := 1 to FileCount do begin
+            TempAgentTaskFile.SetRange("File Name", 'file' + Format(i) + '.txt');
+            Assert.IsFalse(TempAgentTaskFile.IsEmpty(), StrSubstNo('Attachment file%1.txt should exist', i));
+        end;
     end;
 
     #endregion
