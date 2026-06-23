@@ -558,7 +558,7 @@ report 99001501 "Subc. Create Transf. Order"
         GetTransferToLocationCodeForPurchaseHeader(PurchaseHeader, VendorFromPurchOrder, TransferToLocationCode);
 
         if TransferToLocationCode = '' then
-            exit(false);
+            VendorFromPurchOrder.TestField("Subc. Location Code");
 
         PostedWIPQtyBase := GetWIPQtyBase(PurchaseLine, TransferToLocationCode);
 
