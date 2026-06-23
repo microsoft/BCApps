@@ -109,11 +109,11 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
         PurchaseHeader.SetRange("Buy-from Vendor No.", EDocumentPurchaseHeader."[BC] Vendor No."); // Setting the filter, so that the insert trigger assigns the right vendor to the purchase header
         PurchaseHeader."Document Type" := "Purchase Document Type"::Invoice;
         PurchaseHeader."Pay-to Vendor No." := EDocumentPurchaseHeader."[BC] Vendor No.";
+        PurchaseHeader.Insert(true);
         if EDocumentPurchaseHeader."Document Date" <> 0D then
             EDocPurchaseDocumentHelper.ValidateFieldWithContext(PurchaseHeader, PurchaseHeader.FieldNo("Document Date"), EDocumentPurchaseHeader."Document Date");
         if EDocumentPurchaseHeader."Due Date" <> 0D then
             EDocPurchaseDocumentHelper.ValidateFieldWithContext(PurchaseHeader, PurchaseHeader.FieldNo("Due Date"), EDocumentPurchaseHeader."Due Date");
-        PurchaseHeader.Insert(true);
 
         VendorInvoiceNo := CopyStr(EDocumentPurchaseHeader."Sales Invoice No.", 1, MaxStrLen(PurchaseHeader."Vendor Invoice No."));
         VendorLedgerEntry.SetLoadFields("Entry No.");
