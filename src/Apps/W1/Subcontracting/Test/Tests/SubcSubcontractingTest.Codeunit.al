@@ -4227,6 +4227,74 @@ codeunit 139989 "Subc. Subcontracting Test"
             'Return Transfer Order No. must match the created return transfer order');
     end;
 
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure TransferOrderActionDisabledOnNonSubcontractingPurchaseLine()
+    var
+        Item: Record Item;
+        MachineCenter: array[2] of Record "Machine Center";
+        NonSubcItem: Record Item;
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        SubcPurchaseLine: Record "Purchase Line";
+        NonSubcPurchaseLine: Record "Purchase Line";
+        WorkCenter: array[2] of Record "Work Center";
+        PurchaseOrderPage: TestPage "Purchase Order";
+    begin
+        // [FEATURE] [Subcontracting]
+        // [SCENARIO 638531] The "Transfer Order" action on the Purchase Order Subform must be disabled
+        // for a non-subcontracting line (no Prod. Order No.) and enabled for a subcontracting line.
+        Initialize();
+        SubcontractingMgmtLibrary.SetupInventorySetup();
+        SubcontractingMgmtLibrary.UpdateManufacturingSetupWithSubcontractingLocation();
+
+        // [GIVEN] Work and Machine Centers, an Item with Routing and Prod. BOM configured for Transfer subcontracting
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Transfer to Vendor");
+        UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+
+        // [GIVEN] A released production order with its transfer components located
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
+        UpdateSubMgmtSetupWithReqWkshTemplate();
+        SubcontractingMgmtLibrary.UpdateProdOrderCompWithLocationCode(ProductionOrder."No.");
+
+        // [GIVEN] A subcontracting purchase order is created from the routing (with Prod. Order No. set on the subc. line)
+        SubcontractingMgmtLibrary.CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
+
+        SubcPurchaseLine.SetRange("Document Type", SubcPurchaseLine."Document Type"::Order);
+        SubcPurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        SubcPurchaseLine.FindFirst();
+        PurchaseHeader.Get(SubcPurchaseLine."Document Type", SubcPurchaseLine."Document No.");
+
+        // [GIVEN] A second non-subcontracting line is added to the same purchase order (no Prod. Order No.)
+        LibraryInventory.CreateItem(NonSubcItem);
+        LibraryPurchase.CreatePurchaseLine(
+            NonSubcPurchaseLine, PurchaseHeader, NonSubcPurchaseLine.Type::Item, NonSubcItem."No.", 1);
+
+        // [WHEN] Opening the Purchase Order page
+        PurchaseOrderPage.OpenView();
+        PurchaseOrderPage.GoToRecord(PurchaseHeader);
+
+        // [THEN] "Transfer Order" action is enabled on the subcontracting line (Prod. Order No. is set)
+        PurchaseOrderPage.PurchLines.GoToRecord(SubcPurchaseLine);
+        Assert.IsTrue(
+            PurchaseOrderPage.PurchLines."Transfer Order".Enabled(),
+            'Transfer Order action must be enabled for a subcontracting purchase line (Prod. Order No. is set).');
+
+        // [THEN] "Transfer Order" action is disabled on the non-subcontracting line (no Prod. Order No.)
+        PurchaseOrderPage.PurchLines.GoToRecord(NonSubcPurchaseLine);
+        Assert.IsFalse(
+            PurchaseOrderPage.PurchLines."Transfer Order".Enabled(),
+            'Transfer Order action must be disabled for a non-subcontracting purchase line (no Prod. Order No.).');
+
+        PurchaseOrderPage.Close();
+    end;
+
     local procedure CreateUOMCodeSortingAfter(BaseUOMCode: Code[10]): Code[10]
     var
         UnitOfMeasure: Record "Unit of Measure";
