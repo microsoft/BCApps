@@ -1424,7 +1424,7 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
             ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
         SetProdOrderLocationToCompSetupLocationAndRefresh(ProductionOrder);
 
-        // [GIVEN] Transfer route with in-transit location (ensures Direct Transfer = Yes initially)
+        // [GIVEN] No in-transit transfer route exists for the WIP path (ensures Direct Transfer = Yes)
         SubcontractingMgmtLibrary.CreateTransferRoute(WorkCenter[2], ProductionOrder);
 
         // [GIVEN] Create subcontracting purchase order and WIP Transfer Order
