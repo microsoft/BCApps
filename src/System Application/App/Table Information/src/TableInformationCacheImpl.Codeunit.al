@@ -25,6 +25,7 @@ codeunit 8700 "Table Information Cache Impl."
     var
         TableInformation: Record "Table Information";
         TableInformationCache: Record "Table Information Cache";
+        ExistingTableInformationCache: Record "Table Information Cache";
         ProgressDialog: Dialog;
         Total: Integer;
         Counter: Integer;
@@ -40,7 +41,18 @@ codeunit 8700 "Table Information Cache Impl."
                 TableInformationCache.TransferFields(TableInformation);
                 if TableInformationCache."Company Name" = '' then
                     TableInformationCache."Company Name" := CrossCompanyDataLbl;
-                TableInformationCache.Insert();
+                // The platform's "Table Information" virtual table is keyed on Company Name, Table No. and Table Name,
+                // so it can return several rows for the same company and table number (e.g. orphaned/renamed SQL tables).
+                // The cache is keyed only on Company Name and Table No., so aggregate the sizes for such rows instead of
+                // failing the whole refresh with a duplicate primary key error.
+                if ExistingTableInformationCache.Get(TableInformationCache."Company Name", TableInformationCache."Table No.") then begin
+                    ExistingTableInformationCache."No. of Records" += TableInformationCache."No. of Records";
+                    ExistingTableInformationCache."Size (KB)" += TableInformationCache."Size (KB)";
+                    ExistingTableInformationCache."Data Size (KB)" += TableInformationCache."Data Size (KB)";
+                    ExistingTableInformationCache."Index Size (KB)" += TableInformationCache."Index Size (KB)";
+                    ExistingTableInformationCache.Modify();
+                end else
+                    TableInformationCache.Insert();
                 Counter += 1;
                 if GuiAllowed() then
                     ProgressDialog.Update(1, Round(Counter / Total) * 10000)
