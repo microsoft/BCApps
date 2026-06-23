@@ -179,6 +179,7 @@ codeunit 4311 "Agent Task Msg. Builder Impl."
     var
         FileInStream: InStream;
         FileName: Text;
+        FileNameTooLongErr: Label 'File name ''%1'' exceeds the maximum allowed length of 250 characters.', Comment = '%1 = the uploaded file name';
     begin
         // Adapter for fileuploadaction triggers; callers loop over List of [FileUpload]
         // to support multi-file selection from the browser file picker. MS-DOS encoding keeps
@@ -187,13 +188,10 @@ codeunit 4311 "Agent Task Msg. Builder Impl."
         if FileName = '' then
             exit(this);
         File.CreateInStream(FileInStream, TextEncoding::MSDos);
+        if StrLen(FileName) > 250 then
+            Error(FileNameTooLongErr, FileName);
         AddAttachment(
-if StrLen(FileName) > 250 then
-    Error('File name ''%1'' exceeds the maximum allowed length of 250 characters.', FileName);
-AddAttachment(
-    CopyStr(FileName, 1, 250),
-    CopyStr(GetContentTypeFromFilename(FileName), 1, 100),
-    FileInStream);
+            CopyStr(FileName, 1, 250),
             CopyStr(GetContentTypeFromFilename(FileName), 1, 100),
             FileInStream);
         exit(this);
