@@ -5,6 +5,7 @@
 namespace Microsoft.eServices.EDocument.Processing.Import.Purchase;
 
 using Microsoft.eServices.EDocument;
+using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Purchases.Document;
@@ -246,7 +247,7 @@ codeunit 6196 "E-Doc. PO Matching"
 
         // I > J: Invoice exceeds what has been received and not yet invoiced 
         if EDocLineQuantity > InvoiceableQty then
-            if ShouldWarnIfNotYetReceived(EDocumentPurchaseLine.GetBCVendor()."No.") then begin
+            if ShouldWarnIfNotYetReceived(TempPurchaseLine) then begin
                 POMatchWarnings."E-Doc. Purchase Line SystemId" := EDocumentPurchaseLine.SystemId;
                 POMatchWarnings."Warning Type" := "E-Doc PO Match Warning"::ExceedsInvoiceableQty;
                 POMatchWarnings."Warning Message" := CopyStr(StrSubstNo(ExceedsInvoiceableQtyLbl, EDocLineQuantity, InvoiceableQty, EDocLineQuantity - InvoiceableQty), 1, MaxStrLen(POMatchWarnings."Warning Message"));
@@ -617,52 +618,61 @@ codeunit 6196 "E-Doc. PO Matching"
     procedure TransferPOMatchesFromEDocumentToInvoice(EDocument: Record "E-Document")
     var
         EDocumentPurchaseLine: Record "E-Document Purchase Line";
-        EDocPurchaseLinePOMatch: Record "E-Doc. Purchase Line PO Match";
+        EDocPurchaseLinePOMatch, ReceiptPOMatches : Record "E-Doc. Purchase Line PO Match";
         InvoicePurchaseLine: Record "Purchase Line";
         OrderPurchaseLine: Record "Purchase Line";
         PurchaseReceiptLine: Record "Purch. Rcpt. Line";
         MatchedOrderLineMgmt: Codeunit "Matched Order Line Mgmt.";
-        QtyToInvoice, QtyToInvoiceBase, EDocLineBaseQty : Decimal;
-        HasReceiptMatch: Boolean;
+        UnitOfMeasureMgt: Codeunit "Unit of Measure Management";
+        QtyToInvoice, QtyToInvoiceBase, RemainingBaseToDistribute, AutoReceive, AutoReceiveBase, QtyPerUoM : Decimal;
         NullGuid: Guid;
+        CantDetermineEDocLineBaseQtyErr: Label 'Could not determine the quantity in base unit of measure for line %1.', Comment = '%1 = E-Document Line No.';
     begin
         EDocumentPurchaseLine.SetRange("E-Document Entry No.", EDocument."Entry No");
         if EDocumentPurchaseLine.FindSet() then
             repeat
                 InvoicePurchaseLine := EDocumentPurchaseLine.GetLinkedPurchaseLine();
                 if not IsNullGuid(InvoicePurchaseLine.SystemId) then begin
+                    // The e-document line quantity is the total to invoice; we distribute it (in base UoM) across the matched order lines.
+                    if not GetEDocumentLineQuantityInBaseUoM(EDocumentPurchaseLine, RemainingBaseToDistribute) then
+                        Error(CantDetermineEDocLineBaseQtyErr, EDocumentPurchaseLine."Line No.");
+
+                    // The matches without a receipt are the per-order-line rows: one for each purchase order line matched to the e-document line.
                     EDocPurchaseLinePOMatch.SetRange("E-Doc. Purchase Line SystemId", EDocumentPurchaseLine.SystemId);
-
-                    EDocPurchaseLinePOMatch.SetFilter("Receipt Line SystemId", '<>%1', NullGuid);
-                    HasReceiptMatch := not EDocPurchaseLinePOMatch.IsEmpty();
-                    EDocPurchaseLinePOMatch.SetRange("Receipt Line SystemId");
-
-                    if not GetEDocumentLineQuantityInBaseUoM(EDocumentPurchaseLine, EDocLineBaseQty) then
-                        EDocLineBaseQty := EDocumentPurchaseLine.Quantity;
-
+                    EDocPurchaseLinePOMatch.SetRange("Receipt Line SystemId", NullGuid);
                     if EDocPurchaseLinePOMatch.FindSet() then
                         repeat
-                            if OrderPurchaseLine.GetBySystemId(EDocPurchaseLinePOMatch."Purchase Line SystemId") then
-                                if not IsNullGuid(EDocPurchaseLinePOMatch."Receipt Line SystemId") then begin
-                                    // Matched to a posted receipt line: the quantity comes from that receipt line.
-                                    if PurchaseReceiptLine.GetBySystemId(EDocPurchaseLinePOMatch."Receipt Line SystemId") then begin
-                                        QtyToInvoice := PurchaseReceiptLine."Qty. Rcd. Not Invoiced";
-                                        QtyToInvoiceBase := OrderPurchaseLine.CalcBaseQty(QtyToInvoice, OrderPurchaseLine.FieldCaption("Qty. to Invoice"), OrderPurchaseLine.FieldCaption("Qty. to Invoice (Base)"));
-                                        MatchedOrderLineMgmt.CreateMatchedOrderLine(InvoicePurchaseLine.SystemId, OrderPurchaseLine.SystemId, PurchaseReceiptLine.SystemId, QtyToInvoice, QtyToInvoiceBase, false);
-                                    end;
-                                end else begin
-                                    // Order-only row. If the order line is already received we mirror BaseApp's remaining quantity;
-                                    // otherwise this is a receive-on-invoice row and the quantity to receive is what we are invoicing.
-                                    // TODO: when a single draft line is matched to several not-yet-received order lines, each row currently carries the full invoiced quantity.
-                                    if HasReceiptMatch or (OrderPurchaseLine."Qty. Rcd. Not Invoiced" <> 0) then begin
-                                        QtyToInvoice := OrderPurchaseLine."Qty. Rcd. Not Invoiced";
-                                        QtyToInvoiceBase := OrderPurchaseLine."Qty. Rcd. Not Invoiced (Base)";
-                                    end else begin
-                                        QtyToInvoice := EDocumentPurchaseLine.Quantity;
-                                        QtyToInvoiceBase := EDocLineBaseQty;
-                                    end;
-                                    MatchedOrderLineMgmt.CreateMatchedOrderLine(InvoicePurchaseLine.SystemId, OrderPurchaseLine.SystemId, NullGuid, QtyToInvoice, QtyToInvoiceBase, OrderPurchaseLine."Receipt on Invoice");
-                                end;
+                            if OrderPurchaseLine.GetBySystemId(EDocPurchaseLinePOMatch."Purchase Line SystemId") then begin
+                                // First we transfer the receipts specified for this order line: each one invoices its received-not-invoiced quantity, which we take out of what is left to distribute.
+                                ReceiptPOMatches.SetRange("E-Doc. Purchase Line SystemId", EDocumentPurchaseLine.SystemId);
+                                ReceiptPOMatches.SetRange("Purchase Line SystemId", OrderPurchaseLine.SystemId);
+                                ReceiptPOMatches.SetFilter("Receipt Line SystemId", '<>%1', NullGuid);
+                                if ReceiptPOMatches.FindSet() then
+                                    repeat
+                                        if PurchaseReceiptLine.GetBySystemId(ReceiptPOMatches."Receipt Line SystemId") then begin
+                                            // For each matched receipt, we assign the received-not-invoice quantity to be assigned as quantity to invoice
+                                            QtyToInvoice := PurchaseReceiptLine."Qty. Rcd. Not Invoiced";
+                                            QtyToInvoiceBase := OrderPurchaseLine.CalcBaseQty(QtyToInvoice, OrderPurchaseLine.FieldCaption("Qty. to Invoice"), OrderPurchaseLine.FieldCaption("Qty. to Invoice (Base)"));
+                                            MatchedOrderLineMgmt.CreateMatchedOrderLine(InvoicePurchaseLine.SystemId, OrderPurchaseLine.SystemId, PurchaseReceiptLine.SystemId, QtyToInvoice, QtyToInvoiceBase, false);
+                                            // From the remaining quantity to distribute, we take out the quantity that is now assigned to be invoiced for this order line
+                                            RemainingBaseToDistribute -= QtyToInvoiceBase;
+                                        end;
+                                    until ReceiptPOMatches.Next() = 0;
+
+                                // What is left of the e-document quantity is received on invoice for this order line, capped at what is still outstanding on it.
+                                AutoReceiveBase := RemainingBaseToDistribute;
+                                if AutoReceiveBase > OrderPurchaseLine."Outstanding Qty. (Base)" then
+                                    AutoReceiveBase := OrderPurchaseLine."Outstanding Qty. (Base)";
+                                if AutoReceiveBase < 0 then
+                                    AutoReceiveBase := 0;
+                                RemainingBaseToDistribute -= AutoReceiveBase;
+
+                                QtyPerUoM := OrderPurchaseLine."Qty. per Unit of Measure";
+                                if QtyPerUoM = 0 then
+                                    QtyPerUoM := 1;
+                                AutoReceive := UnitOfMeasureMgt.CalcQtyFromBase(AutoReceiveBase, QtyPerUoM);
+                                MatchedOrderLineMgmt.CreateMatchedOrderLine(InvoicePurchaseLine.SystemId, OrderPurchaseLine.SystemId, NullGuid, AutoReceive, AutoReceiveBase, OrderPurchaseLine."Receipt on Invoice");
+                            end;
                         until EDocPurchaseLinePOMatch.Next() = 0;
                 end;
                 RemoveAllMatchesForEDocumentLine(EDocumentPurchaseLine);
@@ -724,15 +734,18 @@ codeunit 6196 "E-Doc. PO Matching"
     /// <summary>
     /// Returns whether we should warn the user that the specified vendor's purchase order lines are not yet received when they are matched to an invoice line.
     /// </summary>
-    /// <param name="VendorNo"></param>
+    /// <param name="TempPurchaseLine">Purchase order lines matched to a single e-document invoice draft line.</param>
     /// <returns></returns>
-    procedure ShouldWarnIfNotYetReceived(VendorNo: Code[20]): Boolean
-    var
-        Vendor: Record Vendor;
+    procedure ShouldWarnIfNotYetReceived(var TempPurchaseLine: Record "Purchase Line" temporary): Boolean
     begin
-        if not Vendor.Get(VendorNo) then
-            exit(true);
-        exit(Vendor."Receipt on Invoice Policy" <> Vendor."Receipt on Invoice Policy"::Always);
+        if TempPurchaseLine.IsEmpty() then
+            exit(false);
+        TempPurchaseLine.FindSet();
+        repeat
+            if not TempPurchaseLine."Receipt on Invoice" then
+                exit(true);
+        until TempPurchaseLine.Next() = 0;
+        exit(false);
     end;
 
 }
