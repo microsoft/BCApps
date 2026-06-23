@@ -66,6 +66,11 @@ codeunit 133952 "Mock Agent Meta. Prov." implements IAgentMetadata, IAgentFactor
         exit(Page::"Agent Task Message Card");
     end;
 
+    procedure GetCreateAgentTaskPageId(AgentUserId: Guid): Integer
+    begin
+        exit(0);
+    end;
+
     procedure GetDefaultProfile(var TempAllProfile: Record "All Profile" temporary)
     begin
         MockAgentSetup.GetDefaultProfile(TempAllProfile);
