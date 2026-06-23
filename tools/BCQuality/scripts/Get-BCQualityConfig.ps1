@@ -93,15 +93,28 @@ if ($null -eq $cfg -or -not ($cfg -is [hashtable])) {
 }
 
 # Defaults for any missing keys so downstream code never sees them missing.
-if (-not $cfg.ContainsKey('bcquality') -or -not ($cfg['bcquality'] -is [hashtable])) { $cfg['bcquality'] = @{} }
-if (-not $cfg['bcquality'].ContainsKey('repo')) { $cfg['bcquality']['repo'] = 'https://github.com/microsoft/BCQuality' }
-if (-not $cfg['bcquality'].ContainsKey('ref'))  { $cfg['bcquality']['ref']  = 'main' }
-$cfg['enabled-layers']   = Ensure-List ($cfg['enabled-layers']  ?? @('microsoft'))
-$cfg['disabled-skills']  = Ensure-List ($cfg['disabled-skills'] ?? @())
-if (-not $cfg.ContainsKey('knowledge') -or -not ($cfg['knowledge'] -is [hashtable])) { $cfg['knowledge'] = @{} }
+if (-not $cfg.ContainsKey('bcquality') -or -not ($cfg['bcquality'] -is [hashtable])) {
+    $cfg['bcquality'] = @{}
+}
+if (-not $cfg['bcquality'].ContainsKey('repo')) {
+    $cfg['bcquality']['repo'] = 'https://github.com/microsoft/BCQuality'
+}
+if (-not $cfg['bcquality'].ContainsKey('ref')) {
+    $cfg['bcquality']['ref'] = 'main'
+}
+
+$cfg['enabled-layers']  = Ensure-List ($cfg['enabled-layers']  ?? @('microsoft'))
+$cfg['disabled-skills'] = Ensure-List ($cfg['disabled-skills'] ?? @())
+
+if (-not $cfg.ContainsKey('knowledge') -or -not ($cfg['knowledge'] -is [hashtable])) {
+    $cfg['knowledge'] = @{}
+}
 $cfg['knowledge']['allow'] = Ensure-List ($cfg['knowledge']['allow'] ?? @())
 $cfg['knowledge']['deny']  = Ensure-List ($cfg['knowledge']['deny']  ?? @())
-if (-not $cfg.ContainsKey('task-context') -or -not ($cfg['task-context'] -is [hashtable])) { $cfg['task-context'] = @{} }
+
+if (-not $cfg.ContainsKey('task-context') -or -not ($cfg['task-context'] -is [hashtable])) {
+    $cfg['task-context'] = @{}
+}
 
 # Apply env-var overrides (each override wins over the file value when set).
 $repoOverride = [System.Environment]::GetEnvironmentVariable('BCQUALITY_REPO')

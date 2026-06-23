@@ -95,6 +95,14 @@ $AnalysisWorkspace = $env:REVIEW_TARGET_WORKSPACE ?? (Join-Path (Split-Path -Par
 $SummaryMarker    = '<!-- copilot-pr-review-summary -->'
 $BaseUrl          = "https://api.github.com/repos/$Repository"
 
+# Review phase. Splits the privileged single-job runner into a minimal-
+# permission "generate" phase (runs the tool-enabled Copilot CLI with a
+# read-only token) and a write-capable "post" phase (posts comments from the
+# saved agent output). 'all' preserves the original single-process behaviour
+# for local development.
+$ReviewPhase      = (($env:REVIEW_PHASE ?? 'all') + '').Trim().ToLowerInvariant()
+$AgentOutputFile  = 'agent-output.txt'
+
 # Severity taxonomy used by the comment renderer and the MINIMUM_SEVERITY gate.
 # Lower rank = more severe. BCQuality emits blocker/major/minor/info; we map
 # into this taxonomy so the existing comment-format precedent is preserved.
@@ -203,17 +211,33 @@ function Format-Duration {
 # Validation
 # ---------------------------------------------------------------------------
 function Assert-Config {
-    if (-not $GithubToken)     { throw 'GITHUB_TOKEN is required' }
-    if (-not $CopilotToken)    { throw 'GH_TOKEN is required for Copilot CLI authentication' }
+    if ($ReviewPhase -notin @('all', 'generate', 'post')) {
+        throw "Unsupported REVIEW_PHASE: $ReviewPhase (expected all | generate | post)"
+    }
+    $needsCli  = $ReviewPhase -in @('all', 'generate')
+    $needsPost = $ReviewPhase -in @('all', 'post')
+
+    if ($needsPost -and -not $GithubToken)  { throw 'GITHUB_TOKEN is required for posting (REVIEW_PHASE all|post)' }
+    if ($needsCli  -and -not $CopilotToken) { throw 'GH_TOKEN is required for Copilot CLI authentication (REVIEW_PHASE all|generate)' }
     if ($PrNumber -eq 0)       { throw 'PR_NUMBER is required' }
     if (-not $PrHeadSha)       { throw 'PR_HEAD_SHA is required' }
-    if (-not $BCQualityRoot)   { throw 'BCQUALITY_ROOT is required (set by the runner workflow Fetch BCQuality step)' }
-    if (-not (Test-Path $BCQualityRoot)) {
-        throw "BCQUALITY_ROOT does not exist: $BCQualityRoot"
+
+    if ($needsCli) {
+        if (-not $BCQualityRoot)   { throw 'BCQUALITY_ROOT is required (set by the runner workflow Fetch BCQuality step)' }
+        if (-not (Test-Path $BCQualityRoot)) {
+            throw "BCQUALITY_ROOT does not exist: $BCQualityRoot"
+        }
+        if (-not (Test-Path (Join-Path $BCQualityRoot 'skills/entry.md'))) {
+            throw "BCQuality clone at $BCQualityRoot is missing skills/entry.md; check bcquality.config.yaml (repo and ref)."
+        }
+        if (-not (Get-Command copilot -ErrorAction SilentlyContinue)) {
+            throw 'Copilot CLI not found in PATH. Install @github/copilot before running this script.'
+        }
+        if ($CopilotCliTimeoutMinutes -lt 1) {
+            throw "COPILOT_REVIEW_CLI_TIMEOUT_MINUTES must be a positive integer. Actual: $CopilotCliTimeoutMinutes"
+        }
     }
-    if (-not (Test-Path (Join-Path $BCQualityRoot 'skills/entry.md'))) {
-        throw "BCQuality clone at $BCQualityRoot is missing skills/entry.md; check bcquality.config.yaml (repo and ref)."
-    }
+
     if (-not $SeverityOrder.ContainsKey($MinimumSeverity)) {
         throw "Unsupported MINIMUM_SEVERITY: $MinimumSeverity"
     }
@@ -227,14 +251,6 @@ function Assert-Config {
     $null = (& git -C $TrustedWorkspace rev-parse --is-inside-work-tree 2>&1)
     if ($LASTEXITCODE -ne 0) {
         throw "Workspace is not a git repository: $TrustedWorkspace"
-    }
-
-    if (-not (Get-Command copilot -ErrorAction SilentlyContinue)) {
-        throw 'Copilot CLI not found in PATH. Install @github/copilot before running this script.'
-    }
-
-    if ($CopilotCliTimeoutMinutes -lt 1) {
-        throw "COPILOT_REVIEW_CLI_TIMEOUT_MINUTES must be a positive integer. Actual: $CopilotCliTimeoutMinutes"
     }
 }
 
@@ -1709,14 +1725,26 @@ function Post-Findings {
 # Summary comment upsert
 # ---------------------------------------------------------------------------
 function Load-FilterReport {
-    $path = Join-Path $BCQualityRoot '_filter-report.json'
-    if (-not (Test-Path $path)) { return $null }
-    try {
-        return Get-Content -LiteralPath $path -Raw | ConvertFrom-Json
-    } catch {
-        Write-Warning "Could not parse filter report at $path : $($_.Exception.Message)"
-        return $null
+    # The post phase has no BCQuality clone; it reads the report the generate
+    # phase copied into the review-output artifact.
+    $candidates = [System.Collections.Generic.List[string]]::new()
+    if ($ReviewPhase -eq 'post') {
+        if ($ReviewOutputDir) { $candidates.Add((Join-Path $ReviewOutputDir '_filter-report.json')) }
+    } else {
+        if ($BCQualityRoot)   { $candidates.Add((Join-Path $BCQualityRoot '_filter-report.json')) }
+        if ($ReviewOutputDir) { $candidates.Add((Join-Path $ReviewOutputDir '_filter-report.json')) }
     }
+    foreach ($path in $candidates) {
+        if (Test-Path $path) {
+            try {
+                return Get-Content -LiteralPath $path -Raw | ConvertFrom-Json
+            } catch {
+                Write-Warning "Could not parse filter report at $path : $($_.Exception.Message)"
+                return $null
+            }
+        }
+    }
+    return $null
 }
 
 function Build-SummaryBody {
@@ -2006,12 +2034,14 @@ $AgentReleaseVersion = Resolve-AgentReleaseVersion
 $AgentLabel          = Resolve-AgentLabel
 $AgentCommentDocUrl  = Resolve-AgentCommentDocUrl
 $AgentVersion        = "$AgentReleaseDate.v$AgentReleaseVersion"
-$ReviewIteration     = Resolve-ReviewIteration
+# Resolving the iteration reads existing PR comments, for which the generate
+# phase holds no token; only the posting phases need it.
+$ReviewIteration     = if ($ReviewPhase -eq 'generate') { 0 } else { Resolve-ReviewIteration }
 $script:FilterReport = Load-FilterReport
 
 # --- Configuration banner ---------------------------------------------------
 Write-Host ''
-Write-Host "Copilot PR Review — iteration $ReviewIteration"
+Write-Host "Copilot PR Review — phase $ReviewPhase, iteration $ReviewIteration"
 Write-LogPhaseDetail "PR:        $Repository#$PrNumber @ $PrHeadSha"
 Write-LogPhaseDetail "Base:      $BaseBranch"
 $modelDisplay = if ($CopilotModel) {
@@ -2060,27 +2090,67 @@ foreach ($filename in $changedFileNames) {
     if ($normalized) { $changedFileSet[$normalized] = $true }
 }
 
+# Line maps place inline comments; only the posting phases consume them.
 $lineMaps = @{}
-foreach ($filename in $changedFileNames) {
-    $patch = Get-GitFilePatch -FilePath $filename
-    if ($patch) { $lineMaps[$filename] = Build-LineMap -Patch $patch }
+if ($ReviewPhase -ne 'generate') {
+    foreach ($filename in $changedFileNames) {
+        $patch = Get-GitFilePatch -FilePath $filename
+        if ($patch) { $lineMaps[$filename] = Build-LineMap -Patch $patch }
+    }
 }
 
+# Task context feeds the bootstrap prompt (generate) and is also persisted as a
+# review artifact. Save-TaskContext writes into BCQUALITY_ROOT, which only
+# exists in the generate/all phases.
 $taskContext = Build-TaskContext
-$null = Save-TaskContext -TaskContext $taskContext
+if ($ReviewPhase -ne 'post') {
+    $null = Save-TaskContext -TaskContext $taskContext
+}
 Pop-LogGroup
 
-# --- Phase 2: Agent run -----------------------------------------------------
-Write-LogGroup 'Agent run (Copilot CLI, streaming)'
-Write-Host '--- Bootstrapping Copilot agent against BCQuality ---'
-$enabledLayers   = @($taskContext['enabled-layers'])
-$disabledSkills  = @($taskContext['disabled-skills'])
-if ($enabledLayers.Count -gt 0)  { Write-LogPhaseDetail "Enabled layers:  $($enabledLayers -join ', ')" }
-if ($disabledSkills.Count -gt 0) { Write-LogPhaseDetail "Disabled skills: $($disabledSkills -join ', ')" }
-Write-LogPhaseDetail 'Copilot CLI stdout/stderr will be dumped below once it exits (stderr lines prefixed [copilot-err]).'
-$prompt = Build-BootstrapPrompt -TaskContextPath '_task-context.json'
-$output = Invoke-CopilotCli -Prompt $prompt
-Pop-LogGroup
+# --- Phase 2: Agent run (generate) or load saved output (post) ---------------
+if ($ReviewPhase -ne 'post') {
+    Write-LogGroup 'Agent run (Copilot CLI, streaming)'
+    Write-Host '--- Bootstrapping Copilot agent against BCQuality ---'
+    $enabledLayers   = @($taskContext['enabled-layers'])
+    $disabledSkills  = @($taskContext['disabled-skills'])
+    if ($enabledLayers.Count -gt 0)  { Write-LogPhaseDetail "Enabled layers:  $($enabledLayers -join ', ')" }
+    if ($disabledSkills.Count -gt 0) { Write-LogPhaseDetail "Disabled skills: $($disabledSkills -join ', ')" }
+    Write-LogPhaseDetail 'Copilot CLI stdout/stderr will be dumped below once it exits (stderr lines prefixed [copilot-err]).'
+    $prompt = Build-BootstrapPrompt -TaskContextPath '_task-context.json'
+    $output = Invoke-CopilotCli -Prompt $prompt
+    Pop-LogGroup
+
+    # Persist the raw agent output (plus transcript and filter report) so the
+    # separate, write-capable publish phase can post findings without the
+    # tool-enabled model process ever holding a write-scoped token.
+    New-Item -Path $ReviewOutputDir -ItemType Directory -Force | Out-Null
+    Set-Content -LiteralPath (Join-Path $ReviewOutputDir $AgentOutputFile) -Value $output -Encoding UTF8
+    if ($script:AgentTranscript) {
+        Set-Content -LiteralPath (Join-Path $ReviewOutputDir 'agent-transcript.log') -Value $script:AgentTranscript -Encoding UTF8
+    }
+    if ($BCQualityRoot) {
+        $srcFilterReport = Join-Path $BCQualityRoot '_filter-report.json'
+        if (Test-Path $srcFilterReport) {
+            Copy-Item -LiteralPath $srcFilterReport -Destination (Join-Path $ReviewOutputDir '_filter-report.json') -Force
+        }
+    }
+
+    if ($ReviewPhase -eq 'generate') {
+        Write-LogNotice 'Generate phase complete' "Saved agent output to $AgentOutputFile; posting deferred to the publish phase."
+        Write-Host 'Review (generate phase) complete.'
+        return
+    }
+} else {
+    Write-LogGroup 'Load agent output'
+    $outputPath = Join-Path $ReviewOutputDir $AgentOutputFile
+    if (-not (Test-Path $outputPath)) {
+        throw "REVIEW_PHASE=post requires '$outputPath' from the generate phase, but it was not found."
+    }
+    $output = Get-Content -LiteralPath $outputPath -Raw
+    Write-Host "Loaded saved agent output from $outputPath ($($output.Length) chars)."
+    Pop-LogGroup
+}
 
 # --- Phase 3: Parse & filter ------------------------------------------------
 Write-LogGroup 'Parse & filter'

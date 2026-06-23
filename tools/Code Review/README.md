@@ -21,9 +21,12 @@ Copilot agent against BCQuality. All skills and knowledge live in
 The review uses the `pull_request` → `workflow_run` privilege-escalation
 pattern (as in the original BCApps port). The unprivileged intake job
 fires on `pull_request` events from untrusted forks; the runner job fires
-on `workflow_run` events, runs against the **trusted base branch**, and
-only then exposes `COPILOT_GH_TOKEN`. This eliminates the
-`pull_request_target` attack surface entirely.
+on `workflow_run` events, runs against the **trusted base branch**. The
+tool-enabled Copilot CLI runs in a `review` job whose token is read-only
+(`contents: read` + `copilot-requests: write`); a separate `publish` job
+holds the `issues`/`pull-requests: write` token and posts comments from the
+saved agent output, so the model process never holds a write-scoped token.
+This eliminates the `pull_request_target` attack surface entirely.
 
 ## Severity mapping
 
@@ -127,11 +130,14 @@ BCQuality-side configuration (repo URL, ref, layers, allow/deny lists)
 lives in `tools/BCQuality/bcquality.config.yaml`; see that directory's
 README for the partner-fork workflow.
 
-## Required secrets
+## Authentication
 
-| Secret | Purpose |
-|---|---|
-| `COPILOT_GH_TOKEN` | Copilot-enabled PAT scoped to the `copilot-pr-review` environment. Used **only** by the Copilot CLI subprocess for authentication. |
+The Copilot CLI authenticates via `GH_TOKEN`.
+
+- In CI, the runner workflow sets `GH_TOKEN` to the built-in `GITHUB_TOKEN`
+  (requires `copilot-requests: write` to bill inference to the org). No PAT
+  secret is required.
+- For local runs, set `GH_TOKEN` to a Copilot-enabled PAT.
 
 ## Local development
 

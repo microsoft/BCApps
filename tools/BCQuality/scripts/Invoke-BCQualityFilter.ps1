@@ -89,7 +89,7 @@ function Test-GlobMatch {
         elseif ($c -eq '?') {
             $null = $regex.Append('[^/]')
         }
-        elseif ('.\+(){}[]^$|' -contains $c) {
+        elseif (@('.', '\', '+', '(', ')', '{', '}', '[', ']', '^', '$', '|') -contains $c) {
             $null = $regex.Append('\').Append($c)
         }
         else {
