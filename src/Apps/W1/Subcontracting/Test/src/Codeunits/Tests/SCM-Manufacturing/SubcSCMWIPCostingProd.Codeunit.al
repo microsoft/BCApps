@@ -720,7 +720,7 @@ codeunit 149918 "Subc SCM WIP Costing Prod."
           "Operation No.",
           CopyStr(
             LibraryUtility.GenerateRandomCode(ProdOrderRoutingLine.FieldNo("Operation No."), DATABASE::"Prod. Order Routing Line"), 1,
-            MaxStrLen(ProdOrderRoutingLine."Operation No.") - 1));
+            MaxStrLen(ProdOrderRoutingLine."Operation No.")));
         ProdOrderRoutingLine.Insert(true);
         ProdOrderRoutingLine.Validate(Type, CapacityType);
         ProdOrderRoutingLine.Validate("No.", MachineCenterNo);

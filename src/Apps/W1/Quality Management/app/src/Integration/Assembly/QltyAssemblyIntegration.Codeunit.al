@@ -56,7 +56,7 @@ codeunit 20412 "Qlty. Assembly Integration"
                     if QltyInspectionHeader."No." <> '' then begin
                         QltyInspectionHeader."Source Quantity (Base)" := TempSpecTrackingSpecification."Quantity (Base)";
                         QltyInspectionHeader.Modify(false);
-                        QltyBatchNotifHelper.TrackCreatedInspection(QltyInspectionHeader."No.");
+                        QltyBatchNotifHelper.TrackCreatedInspection(QltyInspectionHeader."No.", QltyInspectionCreate.IsLastInspectionNewlyCreated());
                     end;
                 end;
                 OnAfterAttemptCreateInspectionFromPostedAssembly(AssemblyHeader, PostedAssemblyHeader, TempSpecTrackingSpecification, QltyInspectionHeader);
@@ -69,7 +69,7 @@ codeunit 20412 "Qlty. Assembly Integration"
             HasInspection := QltyInspectionCreate.CreateInspectionWithMultiVariants(PostedAssemblyHeader, AssemblyHeader, UnusedVariant1, UnusedVariant2, false, TempQltyInspectionGenRule);
             if HasInspection then begin
                 QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
-                QltyBatchNotifHelper.TrackCreatedInspection(QltyInspectionHeader."No.");
+                QltyBatchNotifHelper.TrackCreatedInspection(QltyInspectionHeader."No.", QltyInspectionCreate.IsLastInspectionNewlyCreated());
             end;
             OnAfterAttemptCreateInspectionFromPostedAssembly(AssemblyHeader, PostedAssemblyHeader, TempSpecTrackingSpecification, QltyInspectionHeader);
         end;

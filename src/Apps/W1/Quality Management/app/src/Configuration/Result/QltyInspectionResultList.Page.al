@@ -14,6 +14,7 @@ page 20416 "Qlty. Inspection Result List"
     Caption = 'Quality Inspection Results';
     SourceTable = "Qlty. Inspection Result";
     SourceTableView = sorting("Evaluation Sequence");
+    CardPageId = "Qlty. Inspection Result Card";
     PageType = List;
     ApplicationArea = QualityManagement;
     UsageCategory = Lists;
@@ -41,7 +42,7 @@ page 20416 "Qlty. Inspection Result List"
 
                     trigger OnValidate()
                     begin
-                        ValidateEvaluationSequenceNotUsedElsewhere();
+                        Rec.ValidateEvaluationSequenceNotUsedElsewhere();
                     end;
                 }
                 field("Copy Behavior"; Rec."Copy Behavior")
@@ -140,17 +141,12 @@ page 20416 "Qlty. Inspection Result List"
                 Image = CopyToTask;
 
                 trigger OnAction()
-                var
-                    QltyResultConditionMgmt: Codeunit "Qlty. Result Condition Mgmt.";
                 begin
-                    QltyResultConditionMgmt.CopyGradeConditionsFromDefaultToAllTemplates();
+                    Rec.UpdateTestsTemplatesAndInspections();
                 end;
             }
         }
     }
-
-    var
-        MustChangePriorityErr: Label 'Evaluation Sequence must be unique, you cannot have two results with the same evaluation sequence. Result [%1/%2] already has the same evaluation sequence.', Comment = '%1=The result code, %2=the result condition';
 
     trigger OnOpenPage()
     var
@@ -160,35 +156,17 @@ page 20416 "Qlty. Inspection Result List"
     end;
 
     trigger OnNewRecord(BelowxRec: Boolean)
-    var
-        ExistingQltyInspectionResult: Record "Qlty. Inspection Result";
     begin
-        ExistingQltyInspectionResult.SetCurrentKey("Evaluation Sequence");
-        ExistingQltyInspectionResult.Ascending(false);
-        if not ExistingQltyInspectionResult.FindFirst() then
-            Rec."Evaluation Sequence" := 0
-        else
-            Rec."Evaluation Sequence" := ExistingQltyInspectionResult."Evaluation Sequence" + 1;
+        Rec.SetDefaultEvaluationSequence();
     end;
 
     trigger OnInsertRecord(BelowxRec: Boolean): Boolean
     begin
-        ValidateEvaluationSequenceNotUsedElsewhere();
+        Rec.ValidateEvaluationSequenceNotUsedElsewhere();
     end;
 
     trigger OnModifyRecord(): Boolean
     begin
-        ValidateEvaluationSequenceNotUsedElsewhere();
-    end;
-
-    local procedure ValidateEvaluationSequenceNotUsedElsewhere()
-    var
-        ExistingQltyInspectionResult: Record "Qlty. Inspection Result";
-    begin
-        ExistingQltyInspectionResult.SetFilter(Code, '<>%1', Rec.Code);
-        ExistingQltyInspectionResult.SetRange("Evaluation Sequence", Rec."Evaluation Sequence");
-        ExistingQltyInspectionResult.SetLoadFields(Description);
-        if ExistingQltyInspectionResult.FindFirst() then
-            Error(MustChangePriorityErr, ExistingQltyInspectionResult.Code, ExistingQltyInspectionResult.Description);
+        Rec.ValidateEvaluationSequenceNotUsedElsewhere();
     end;
 }

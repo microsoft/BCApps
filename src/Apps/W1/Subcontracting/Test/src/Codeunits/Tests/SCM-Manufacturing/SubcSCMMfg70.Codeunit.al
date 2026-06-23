@@ -537,7 +537,7 @@ codeunit 149919 "Subc SCM Mfg. 70"
 
         // [GIVEN] Create a Subcontracting Setup and Validate Name.
         CreateSubcontractingSetup(WorkCenter, RoutingHeader, OperationNo);
-        WorkCenter.Validate("Name 2", WorkCenterName);
+        WorkCenter.Validate("Name 2", CopyStr(WorkCenterName, 1, 50));
         WorkCenter.Modify(true);
 
         // [GIVEN] Create two Items with Routing No.
