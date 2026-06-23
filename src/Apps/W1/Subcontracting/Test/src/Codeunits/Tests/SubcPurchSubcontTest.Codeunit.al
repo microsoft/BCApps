@@ -510,6 +510,80 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         PostDirectTransferOrder(ReturnTransferHeader);
     end;
 
+
+    [Test]
+    [HandlerFunctions('DoConfirmCreateProdOrderForSubcontractingProcess')]
+    procedure SubcOrderFlowFieldIsTrueAfterCreatingSubcontractingPurchaseOrder()
+    var
+        FinishedItem: Record Item;
+        Location: Record Location;
+        ProdOrderRtngLine: Record "Prod. Order Routing Line";
+        ProductionBOMHeader: Record "Production BOM Header";
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+        Vendor: Record Vendor;
+        WorkCenter: Record "Work Center";
+        ReleasedProdOrderRtng: TestPage "Prod. Order Routing";
+    begin
+        // [SCENARIO 640115] After creating a subcontracting purchase order from a Prod. Order Routing Line,
+        // the "Subc. Order" FlowField on the Purchase Header must evaluate to true so the order is visible
+        // in the "Subcontracting Orders" view of the Purchase Order List.
+
+        Initialize();
+
+        // [GIVEN] A subcontracting work center with vendor and location
+        CreateAndCalculateNeededWorkCenter(WorkCenter, true);
+        Vendor.Get(WorkCenter."Subcontractor No.");
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+        Vendor."Subc. Location Code" := Location.Code;
+        Vendor.Modify();
+
+        // [GIVEN] A routing with a single subcontracting operation
+        LibraryManufacturing.CreateRoutingHeader(RoutingHeader, RoutingHeader.Type::Serial);
+        LibraryManufacturing.CreateRoutingLineSetup(
+            RoutingLine, RoutingHeader, WorkCenter."No.", '100',
+            LibraryRandom.RandInt(5), LibraryRandom.RandInt(5));
+        RoutingHeader.Validate(Status, RoutingHeader.Status::Certified);
+        RoutingHeader.Modify(true);
+
+        // [GIVEN] A finished good item with the routing
+        LibraryManufacturing.CreateProductionBOMHeader(ProductionBOMHeader, WorkCenter."Unit of Measure Code");
+        ProductionBOMHeader.Validate(Status, ProductionBOMHeader.Status::Certified);
+        ProductionBOMHeader.Modify(true);
+        LibraryManufacturing.CreateItemManufacturing(
+            FinishedItem, "Costing Method"::FIFO, LibraryRandom.RandInt(10),
+            "Reordering Policy"::"Lot-for-Lot", "Flushing Method"::"Pick + Manual",
+            RoutingHeader."No.", ProductionBOMHeader."No.");
+
+        // [GIVEN] A released production order
+        SubcWarehouseLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released,
+            ProductionOrder."Source Type"::Item, FinishedItem."No.", LibraryRandom.RandInt(10), Location.Code);
+
+        // [GIVEN] Requisition worksheet template for subcontracting
+        LibraryMfgManagement.CreateSubcontractingReqWkshTemplateAndNameAndUpdateSetup();
+
+        // [WHEN] Create subcontracting purchase order from Prod. Order Routing
+        ProdOrderRtngLine.SetRange("Routing No.", RoutingHeader."No.");
+        ProdOrderRtngLine.SetRange("Work Center No.", WorkCenter."No.");
+        ProdOrderRtngLine.FindFirst();
+
+        ReleasedProdOrderRtng.OpenView();
+        ReleasedProdOrderRtng.GoToRecord(ProdOrderRtngLine);
+        ReleasedProdOrderRtng.CreateSubcontracting.Invoke();
+
+        // [THEN] A purchase order was created and the "Subc. Order" FlowField is true
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        PurchaseLine.FindFirst();
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+        PurchaseHeader.CalcFields("Subc. Order");
+        Assert.IsTrue(PurchaseHeader."Subc. Order",
+            'The Subc. Order FlowField must be true for a subcontracting purchase order');
+    end;
     [ModalPageHandler]
     procedure ItemTrackingLinesSimpleHandler(var ItemTrackingLines: TestPage "Item Tracking Lines")
     begin
