@@ -122,7 +122,7 @@ Src/
 ### Review Rules for Localized Code in `Src/Layers`
 
 #### Rule 1: W1 File Changed + Country Files Changed for Same File
-✅ **Review the W1 version only**  
+✅ **Review the W1 version only**
 ❌ **Do NOT comment on country-specific files**
 
 **Reason**: Country files are auto-generated copies. Any fix applied to W1 is automatically propagated to all country versions. Commenting on country files is redundant.
@@ -178,6 +178,7 @@ All review findings must be returned as a JSON array, regardless of domain. The 
     "severity": "High|Medium|Low|Critical",
     "issue": "Brief description of the issue",
     "recommendation": "Specific recommendation to fix",
+    "domain": "security|performance|style|accessibility|upgrade|privacy",
     "suggestedCode": "The corrected code that fixes the issue"
   }
 ]
@@ -189,7 +190,8 @@ All review findings must be returned as a JSON array, regardless of domain. The 
 - Do NOT include explanations, commentary, or extra text outside the JSON code block
 - Wrap JSON in one code block that starts with ```json
 - If no findings, output: `[]`
-- Each finding must have all 5 fields: filePath, lineNumber, severity, issue, recommendation, suggestedCode
+- Each finding must have all 6 fields: filePath, lineNumber, severity, issue, recommendation, domain, suggestedCode
+- domain must equal the active review domain; allowed values: security, performance, style, accessibility, upgrade, privacy
 - suggestedCode must be the exact line(s) to replace (with proper indentation preserved)
 - If exact code fix is unclear, set suggestedCode to empty string `""`
 
@@ -203,6 +205,7 @@ All review findings must be returned as a JSON array, regardless of domain. The 
     "severity": "Critical",
     "issue": "Hardcoded API key in source code",
     "recommendation": "Use IsolatedStorage.SetEncrypted() or Azure Key Vault instead of hardcoded credentials",
+    "domain": "security",
     "suggestedCode": "    ApiKey := GetSecretFromIsolatedStorage('ApiKey');"
   },
   {
@@ -211,6 +214,7 @@ All review findings must be returned as a JSON array, regardless of domain. The 
     "severity": "High",
     "issue": "Missing permission check before modifying customer data",
     "recommendation": "Add InherentPermissions attribute or explicit permission validation before Modify",
+    "domain": "security",
     "suggestedCode": "    [InherentPermissions(PermissionObjectType::TableData, Database::Customer, 'M')]\n    procedure UpdateCustomer(Rec: Record Customer)"
   }
 ]
@@ -226,6 +230,7 @@ All review findings must be returned as a JSON array, regardless of domain. The 
     "severity": "High",
     "issue": "N+1 query pattern: FindSet without filtering, Get inside loop",
     "recommendation": "Use SetRange to filter before FindSet, or restructure query to single batch operation",
+    "domain": "performance",
     "suggestedCode": "    Customer.SetRange(\"Country/Region Code\", 'US');\n    if Customer.FindSet() then\n        repeat\n            // Process customer\n        until Customer.Next() = 0;"
   }
 ]
@@ -241,6 +246,7 @@ All review findings must be returned as a JSON array, regardless of domain. The 
     "severity": "Medium",
     "issue": "Inconsistent variable naming - uses 'CustName' instead of 'CustomerName'",
     "recommendation": "Replace abbreviated variable name with full descriptive name matching codebase conventions",
+    "domain": "style",
     "suggestedCode": "    CustomerName := Record.Name;"
   }
 ]
@@ -262,6 +268,7 @@ Example:
     "severity": "High",
     "issue": "Missing validation trigger",
     "recommendation": "Add OnValidate trigger to prevent invalid values",
+    "domain": "style",
     "suggestedCode": "    trigger OnValidate()\n    begin\n        TestField(Amount, '<>0');\n    end;"
   }
 ]
