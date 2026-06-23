@@ -39,10 +39,11 @@ codeunit 99001541 "Subc. Transfer WIP Posting"
 #pragma warning restore AL0432
             exit;
 #endif
-        if TempTransferLine."Transfer WIP Item" then begin
-            TransferLine.Validate("Transfer WIP Item", TempTransferLine."Transfer WIP Item");
-            TransferLine.UpdateDescriptions();
-        end;
+        if TempTransferLine."Transfer WIP Item" then
+            if not TransferLine."Transfer WIP Item" then begin
+                TransferLine.Validate("Transfer WIP Item", TempTransferLine."Transfer WIP Item");
+                TransferLine.UpdateDescriptions();
+            end;
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Transfer Header", OnBeforeValidateEvent, "Direct Transfer", false, false)]
