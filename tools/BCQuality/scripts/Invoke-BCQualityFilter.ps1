@@ -175,7 +175,7 @@ foreach ($layerDir in @('microsoft', 'community', 'custom')) {
         # canonically remain under $BCQualityRoot.
         $resolvedRoot = [System.IO.Path]::GetFullPath($BCQualityRoot)
         $resolvedFull = [System.IO.Path]::GetFullPath($full)
-        if (-not $resolvedFull.StartsWith($resolvedRoot + [System.IO.Path]::DirectorySeparatorChar)) {
+        if (-not $resolvedFull.StartsWith($resolvedRoot + [System.IO.Path]::DirectorySeparatorChar, [System.StringComparison]::OrdinalIgnoreCase)) {
             Write-Warning "Skipping unsafe disabled-skill path '$normalized' (escapes BCQuality root)."
             continue
         }

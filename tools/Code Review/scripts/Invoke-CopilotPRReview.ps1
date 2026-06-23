@@ -169,7 +169,9 @@ function Format-AnnotationMessage {
     param([string] $Message)
     # GitHub Actions workflow commands treat literal newlines as command
     # terminators; escape them per the spec so multi-line messages survive.
-    return ($Message -replace "`r`n", "`n") -replace "`n", '%0A'
+    # Encode '%' first so agent-supplied literal '%0A'/'%0D' cannot be replayed
+    # as injected command terminators.
+    return (($Message -replace '%', '%25') -replace "`r`n", "`n") -replace "`n", '%0A'
 }
 
 function Write-LogNotice {
@@ -221,6 +223,9 @@ function Assert-Config {
     if ($needsCli  -and -not $CopilotToken) { throw 'GH_TOKEN is required for Copilot CLI authentication (REVIEW_PHASE all|generate)' }
     if ($PrNumber -eq 0)       { throw 'PR_NUMBER is required' }
     if (-not $PrHeadSha)       { throw 'PR_HEAD_SHA is required' }
+    if ($BaseBranch -notmatch '^[A-Za-z0-9._/-]+$') {
+        throw "BASE_BRANCH contains unexpected characters: '$BaseBranch'. Expected a git ref name matching ^[A-Za-z0-9._/-]+`$."
+    }
 
     if ($needsCli) {
         if (-not $BCQualityRoot)   { throw 'BCQUALITY_ROOT is required (set by the runner workflow Fetch BCQuality step)' }
@@ -2110,10 +2115,12 @@ if ($ReviewPhase -ne 'generate') {
 }
 
 # Task context feeds the bootstrap prompt (generate) and is also persisted as a
-# review artifact. Save-TaskContext writes into BCQUALITY_ROOT, which only
-# exists in the generate/all phases.
-$taskContext = Build-TaskContext
+# review artifact. Build-TaskContext re-parses the BCQuality config and
+# Save-TaskContext writes into BCQUALITY_ROOT, both of which are only meaningful
+# in the generate/all phases; skip them entirely in post.
+$taskContext = $null
 if ($ReviewPhase -ne 'post') {
+    $taskContext = Build-TaskContext
     $null = Save-TaskContext -TaskContext $taskContext
 }
 Pop-LogGroup

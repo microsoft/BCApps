@@ -206,7 +206,7 @@ jobs:
 
   publish:
     needs: review
-    if: ${{ needs.review.result == 'success' && needs.review.outputs.pr_number != '' }}
+    if: ${{ needs.review.result == 'success' && needs.review.outputs.pr_number != '' && needs.review.outputs.head_sha != '' }}
     environment: copilot-pr-review
     runs-on: ubuntu-latest
     permissions:
