@@ -147,6 +147,122 @@ function Test-IsMultitenant {
     return ((Get-BcContainerServerConfiguration -ContainerName $ContainerName).Multitenant -eq 'true')
 }
 
+function Backup-TenantDatabaseForDemoDataRetry {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$ContainerName,
+        [Parameter(Mandatory=$true)]
+        [string]$BackupFile
+    )
+
+    Write-Host "Stopping server to snapshot tenant database before demo data generation..."
+    Invoke-ScriptInBcContainer -containerName $ContainerName -scriptblock {
+        Stop-NAVServerInstance -ServerInstance $ServerInstance
+    }
+
+    try {
+        Invoke-ScriptInBcContainer -containerName $ContainerName -scriptblock { Param($backupFile)
+            Import-Module SqlServer -ErrorAction Stop
+
+            if (Test-Path $backupFile) {
+                Remove-Item -Path $backupFile -Force
+            }
+
+            Write-Host "Backing up tenant database 'default' to '$backupFile'..."
+            Backup-SqlDatabase -ServerInstance "." -Database "default" -BackupFile $backupFile -Initialize -ErrorAction Stop | Out-Null
+        } -argumentList $BackupFile
+    } finally {
+        Invoke-ScriptInBcContainer -containerName $ContainerName -scriptblock {
+            Start-NAVServerInstance -ServerInstance $ServerInstance
+        }
+        Wait-ForTenantReady -ContainerName $ContainerName
+    }
+}
+
+function Restore-TenantDatabaseForDemoDataRetry {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$ContainerName,
+        [Parameter(Mandatory=$true)]
+        [string]$BackupFile
+    )
+
+    Write-Host "Restoring tenant database from snapshot before retrying demo data generation..."
+    Invoke-ScriptInBcContainer -containerName $ContainerName -scriptblock {
+        Stop-NAVServerInstance -ServerInstance $ServerInstance
+    }
+
+    try {
+        Invoke-ScriptInBcContainer -containerName $ContainerName -scriptblock { Param($backupFile)
+            Import-Module SqlServer -ErrorAction Stop
+
+            if (-not (Test-Path $backupFile)) {
+                throw "Demo-data retry snapshot file '$backupFile' was not found."
+            }
+
+            Restore-SqlDatabase -ServerInstance "." -Database "default" -BackupFile $backupFile -ReplaceDatabase -ErrorAction Stop | Out-Null
+        } -argumentList $BackupFile
+    } finally {
+        Invoke-ScriptInBcContainer -containerName $ContainerName -scriptblock {
+            Start-NAVServerInstance -ServerInstance $ServerInstance
+        }
+        Wait-ForTenantReady -ContainerName $ContainerName
+    }
+}
+
+function Remove-DemoDataRetryBackup {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$ContainerName,
+        [Parameter(Mandatory=$true)]
+        [string]$BackupFile
+    )
+
+    Invoke-ScriptInBcContainer -containerName $ContainerName -scriptblock { Param($backupFile)
+        if (Test-Path $backupFile) {
+            Remove-Item -Path $backupFile -Force
+        }
+    } -argumentList $BackupFile
+}
+
+function Invoke-ContosoDemoToolWithRetry {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$ContainerName,
+        [Parameter(Mandatory=$true)]
+        [string]$CompanyName,
+        [switch]$SetupData
+    )
+
+    if (-not (Test-IsMultitenant -ContainerName $ContainerName)) {
+        Invoke-ContosoDemoTool -ContainerName $ContainerName -CompanyName $CompanyName -SetupData:$SetupData
+        return
+    }
+
+    $maxAttempts = 2
+    $backupFile = "C:\ProgramData\BcContainerHelper\DemoDataRetry-default.bak"
+
+    try {
+        Backup-TenantDatabaseForDemoDataRetry -ContainerName $ContainerName -BackupFile $backupFile
+
+        for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
+            try {
+                Invoke-ContosoDemoTool -ContainerName $ContainerName -CompanyName $CompanyName -SetupData:$SetupData
+                return
+            } catch {
+                if ($attempt -eq $maxAttempts) {
+                    throw
+                }
+
+                Write-Host "Demo data generation failed on attempt $attempt/$maxAttempts. Restoring tenant database snapshot before retrying."
+                Restore-TenantDatabaseForDemoDataRetry -ContainerName $ContainerName -BackupFile $backupFile
+            }
+        }
+    } finally {
+        Remove-DemoDataRetryBackup -ContainerName $ContainerName -BackupFile $backupFile
+    }
+}
+
 <#
 .SYNOPSIS
     Waits for all tenants in a multitenant BC container to finish mounting.
@@ -606,12 +722,12 @@ function Invoke-DemoDataGeneration
         Install-AllApps -ContainerName $ContainerName
         New-TestCompany -ContainerName $ContainerName -CompanyName (Get-TestCompanyName)
         Write-Host "Proceeding with demo data generation (SetupData) as test type is set to IntegrationTest"
-        Invoke-ContosoDemoTool -ContainerName $ContainerName -SetupData
+        Invoke-ContosoDemoToolWithRetry -ContainerName $ContainerName -CompanyName (Get-TestCompanyName) -SetupData
     } elseif( $TestType -eq "Uncategorized" ) {
         Install-AllApps -ContainerName $ContainerName
         New-TestCompany -ContainerName $ContainerName -CompanyName (Get-TestCompanyName) -EvaluationCompany
         Write-Host "Proceeding with full demo data generation as test type is set to Uncategorized"
-        Invoke-ContosoDemoTool -ContainerName $ContainerName
+        Invoke-ContosoDemoToolWithRetry -ContainerName $ContainerName -CompanyName (Get-TestCompanyName)
     } elseif ( $TestType -eq "Legacy" ) {
         Install-BaseAppsForDemoTool -ContainerName $ContainerName -CountryCode (Get-CountryCodeFromSettings)
         New-TestCompany -ContainerName $ContainerName -CompanyName (Get-TestCompanyName)
