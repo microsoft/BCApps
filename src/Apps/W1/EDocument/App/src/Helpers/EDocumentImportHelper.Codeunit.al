@@ -5,9 +5,7 @@
 namespace Microsoft.eServices.EDocument;
 
 using Microsoft.Bank.Reconciliation;
-#if not CLEAN26
 using Microsoft.eServices.EDocument.Processing.Import;
-#endif
 using Microsoft.eServices.EDocument.Service.Participant;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Journal;
