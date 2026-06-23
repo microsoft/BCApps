@@ -29,6 +29,7 @@ codeunit 99001512 "Subc. Reporting Triggers Ext"
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
             exit;
+#endif
         if RoutingLine.Type <> RoutingLine.Type::"Work Center" then
             exit;
 
