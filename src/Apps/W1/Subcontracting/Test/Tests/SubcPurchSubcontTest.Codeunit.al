@@ -511,6 +511,94 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
     end;
 
     [Test]
+    [HandlerFunctions('DoConfirmCreateProdOrderForSubcontractingProcess,HandleTransferOrder,MessageHandler')]
+    procedure SecondReturnTransferSucceedsAfterPartialReceiptAndReturn()
+    var
+        Item: Record Item;
+        HomeLocation: Record Location;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProdOrderComponent: Record "Prod. Order Component";
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ReturnTransferHeader: Record "Transfer Header";
+        ReturnTransferLine: Record "Transfer Line";
+        TransferHeader: Record "Transfer Header";
+        WorkCenter: array[2] of Record "Work Center";
+        PurchaseOrderPage: TestPage "Purchase Order";
+        ProductionQty: Decimal;
+        FirstReceiptQty: Decimal;
+        SecondReceiptQty: Decimal;
+    begin
+        // [SCENARIO 638694] Creating a second return transfer order after partial receipts must not fail
+        // with "Transfer-to Code must have a value" when Subc. Original Location Code was cleared
+        // by a previous return cycle.
+        Initialize();
+        ProductionQty := 10;
+        FirstReceiptQty := 4;
+        SecondReceiptQty := 3;
+
+        // [GIVEN] A subcontracting purchase order with qty=10 and transfer-to-vendor components
+        SetupSubContractingProdOrder(Item, HomeLocation, WorkCenter, MachineCenter, ProductionOrder, "Component Supply Method"::"Transfer to Vendor", ProductionQty);
+        CreateSubcontractingPurchaseOrderForProdOrder(PurchaseHeader, PurchaseLine, Item, WorkCenter, ProductionOrder);
+
+        // [GIVEN] Outbound transfer order is created and posted (components sent to subcontractor)
+        CreateTransferOrderForPurchaseOrder(PurchaseHeader);
+        FindTransferOrderForPurchaseLine(TransferHeader, PurchaseLine);
+        PostDirectTransferOrder(TransferHeader);
+
+        // [GIVEN] First partial purchase receipt (4 of 10)
+        PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
+        EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
+        PurchaseLine.Validate("Qty. to Receive", FirstReceiptQty);
+        PurchaseLine.Modify(true);
+        PurchaseHeader.Get(PurchaseHeader."Document Type", PurchaseHeader."No.");
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+
+        // [GIVEN] First return transfer order is created and posted (returns remaining components)
+        PurchaseHeader.Get(PurchaseHeader."Document Type", PurchaseHeader."No.");
+        CreateReturnTransferOrderForPurchaseOrder(PurchaseHeader);
+        ReturnTransferLine.SetRange("Subc. Purch. Order No.", PurchaseLine."Document No.");
+        ReturnTransferLine.SetRange("Subc. Purch. Order Line No.", PurchaseLine."Line No.");
+        ReturnTransferLine.SetRange("Subc. Return Order", true);
+        ReturnTransferLine.FindFirst();
+        ReturnTransferHeader.Get(ReturnTransferLine."Document No.");
+        PostDirectTransferOrder(ReturnTransferHeader);
+
+        // [GIVEN] A new outbound transfer for the remaining outstanding qty is created and posted
+        PurchaseHeader.Get(PurchaseHeader."Document Type", PurchaseHeader."No.");
+        CreateTransferOrderForPurchaseOrder(PurchaseHeader);
+        FindTransferOrderForPurchaseLine(TransferHeader, PurchaseLine);
+        PostDirectTransferOrder(TransferHeader);
+
+        // [GIVEN] Second partial purchase receipt (3 of remaining 6)
+        PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
+        PurchaseLine.Validate("Qty. to Receive", SecondReceiptQty);
+        PurchaseLine.Modify(true);
+        PurchaseHeader.Get(PurchaseHeader."Document Type", PurchaseHeader."No.");
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+
+        // [WHEN] Second return transfer order is created
+        PurchaseHeader.Get(PurchaseHeader."Document Type", PurchaseHeader."No.");
+        PurchaseOrderPage.OpenView();
+        PurchaseOrderPage.GoToRecord(PurchaseHeader);
+        PurchaseOrderPage.CreateReturnFromSubcontractor.Invoke();
+        PurchaseOrderPage.Close();
+
+        // [THEN] No error occurs and a return transfer line is created with correct Transfer-to Code
+        ReturnTransferLine.Reset();
+        ReturnTransferLine.SetRange("Subc. Purch. Order No.", PurchaseLine."Document No.");
+        ReturnTransferLine.SetRange("Subc. Purch. Order Line No.", PurchaseLine."Line No.");
+        ReturnTransferLine.SetRange("Subc. Return Order", true);
+        ReturnTransferLine.FindLast();
+        ReturnTransferHeader.Get(ReturnTransferLine."Document No.");
+        Assert.AreNotEqual('', ReturnTransferHeader."Transfer-to Code",
+            'Transfer-to Code must be populated on the second return transfer order.');
+        Assert.AreEqual(HomeLocation.Code, ReturnTransferHeader."Transfer-to Code",
+            'Transfer-to Code should be the original (home) location.');
+    end;
+
+    [Test]
     [HandlerFunctions('DoConfirmCreateProdOrderForSubcontractingProcess,HandleTransferOrder')]
     procedure CannotModifyOrDeleteRoutingLineWhenTransferOrderExistsWithTransferToVendor()
     var
