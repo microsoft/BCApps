@@ -517,7 +517,6 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         Item: Record Item;
         HomeLocation: Record Location;
         MachineCenter: array[2] of Record "Machine Center";
-        ProdOrderComponent: Record "Prod. Order Component";
         ProductionOrder: Record "Production Order";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
