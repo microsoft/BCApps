@@ -177,20 +177,18 @@ report 99001505 "Subc. Calculate Subcontracts"
         if not IsHandled then
             if ReqLine.Quantity <> 0 then begin
                 if WorkCenter."Unit Cost Calculation" = WorkCenter."Unit Cost Calculation"::Units then
-                    ReqLine.Validate(
-                        ReqLine."Direct Unit Cost",
+                    ReqLine.Validate("Direct Unit Cost",
                         Round(
                             ProdOrderRoutingLine."Direct Unit Cost" * ProdOrderLine."Qty. per Unit of Measure",
                             GLSetup."Unit-Amount Rounding Precision"))
                 else
-                    ReqLine.Validate(
-                        ReqLine."Direct Unit Cost",
+                    ReqLine.Validate("Direct Unit Cost",
                         Round(
                             (ProdOrderRoutingLine."Expected Operation Cost Amt." - ProdOrderRoutingLine."Expected Capacity Ovhd. Cost") /
                             ProdOrderLine."Total Exp. Oper. Output (Qty.)",
                             GLSetup."Unit-Amount Rounding Precision"));
             end else
-                ReqLine.Validate(ReqLine."Direct Unit Cost", 0);
+                ReqLine.Validate("Direct Unit Cost", 0);
         ReqLine."Qty. per Unit of Measure" := 0;
         ReqLine."Quantity (Base)" := 0;
         ReqLine."Qty. Rounding Precision" := ProdOrderLine."Qty. Rounding Precision";
@@ -205,7 +203,7 @@ report 99001505 "Subc. Calculate Subcontracts"
         ReqLine."Routing No." := ProdOrderRoutingLine."Routing No.";
         ReqLine."Operation No." := ProdOrderRoutingLine."Operation No.";
         ReqLine."Work Center No." := ProdOrderRoutingLine."Work Center No.";
-        ReqLine.Validate(ReqLine."Vendor No.", WorkCenter."Subcontractor No.");
+        ReqLine.Validate("Vendor No.", WorkCenter."Subcontractor No.");
         ReqLine.Description := ProdOrderRoutingLine.Description;
         ReqLine."Description 2" := ProdOrderRoutingLine."Description 2";
         SetVendorItemNo();
@@ -222,7 +220,7 @@ report 99001505 "Subc. Calculate Subcontracts"
         PurchLine.SetRange("Planning Flexibility", PurchLine."Planning Flexibility"::Unlimited);
         PurchLine.SetRange("Quantity Received", 0);
         if PurchLine.FindFirst() then begin
-            ReqLine.Validate(ReqLine.Quantity, ReqLine.Quantity + PurchLine."Outstanding Quantity");
+            ReqLine.Validate(Quantity, ReqLine.Quantity + PurchLine."Outstanding Quantity");
             ReqLine."Quantity (Base)" := 0;
             ReqLine."Replenishment System" := ReqLine."Replenishment System"::Purchase;
             ReqLine."Ref. Order No." := PurchLine."Document No.";

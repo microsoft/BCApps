@@ -458,8 +458,8 @@ codeunit 99001557 "Subc. Purchase Order Creator"
         RequisitionLine2: Record "Requisition Line";
         NextLineNo: Integer;
     begin
-        RequisitionLine2.SetRange(RequisitionLine2."Worksheet Template Name", RequisitionLine."Worksheet Template Name");
-        RequisitionLine2.SetRange(RequisitionLine2."Journal Batch Name", RequisitionLine."Journal Batch Name");
+        RequisitionLine2.SetRange("Worksheet Template Name", RequisitionLine."Worksheet Template Name");
+        RequisitionLine2.SetRange("Journal Batch Name", RequisitionLine."Journal Batch Name");
         RequisitionLine2.SetLoadFields("Line No.");
         if RequisitionLine2.FindLast() then
             NextLineNo := RequisitionLine2."Line No." + 10000
@@ -553,14 +553,12 @@ codeunit 99001557 "Subc. Purchase Order Creator"
         GeneralLedgerSetup.Get();
         if RequisitionLine.Quantity <> 0 then begin
             if WorkCenter."Unit Cost Calculation" = "Unit Cost Calculation Type"::Units then
-                RequisitionLine.Validate(
-                    RequisitionLine."Direct Unit Cost",
+                RequisitionLine.Validate("Direct Unit Cost",
                     Round(
                         ProdOrderRoutingLine."Direct Unit Cost" * ProdOrderLine."Qty. per Unit of Measure",
                         GeneralLedgerSetup."Unit-Amount Rounding Precision"))
             else
-                RequisitionLine.Validate(
-                    RequisitionLine."Direct Unit Cost",
+                RequisitionLine.Validate("Direct Unit Cost",
                     Round(
                         (ProdOrderRoutingLine."Expected Operation Cost Amt." - ProdOrderRoutingLine."Expected Capacity Ovhd. Cost") /
                         ProdOrderLine."Total Exp. Oper. Output (Qty.)",
