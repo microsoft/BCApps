@@ -620,6 +620,228 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         ItemLedgerEntry.Delete();
     end;
 
+    [Test]
+    procedure RoutingLinesTransferWIPItemDisabledForMachineCenterLine()
+    var
+        WorkCenter: Record "Work Center";
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+        RoutingLines: TestPage "Routing Lines";
+        MachineCenterNo: Code[20];
+    begin
+        // [SCENARIO] Transfer WIP Item field is disabled on Routing Lines page for a Machine Center routing line,
+        // even when the parent Work Center has a Subcontractor No.
+        Initialize();
+
+        // [GIVEN] A Work Center with a Subcontractor No.
+        LibraryMfgManagement.CreateWorkCenterWithCalendar(WorkCenter, 0);
+        WorkCenter.Validate("Subcontractor No.", LibraryMfgManagement.CreateSubcontractorWithCurrency(''));
+        WorkCenter.Modify(true);
+
+        // [GIVEN] A Machine Center belonging to that Work Center
+        LibraryMfgManagement.CreateMachineCenter(MachineCenterNo, WorkCenter."No.", 0);
+
+        // [GIVEN] A Routing with a Machine Center routing line
+        LibraryManufacturing.CreateRoutingHeader(RoutingHeader, RoutingHeader.Type::Serial);
+        LibraryMfgManagement.CreateRoutingLineForMachineCenter(RoutingLine, RoutingHeader, MachineCenterNo);
+
+        // [WHEN] The Routing Lines page is opened for that line
+        RoutingLines.OpenEdit();
+        RoutingLines.GoToRecord(RoutingLine);
+
+        // [THEN] Transfer WIP Item is not enabled (Machine Center type is not eligible for Transfer WIP Item)
+        Assert.IsFalse(RoutingLines."Transfer WIP Item".Enabled(), RoutingLineTransferWIPEnabledErr);
+        RoutingLines.Close();
+    end;
+
+    [Test]
+    procedure RoutingLinesTransferWIPItemEnabledForSubcontractingWorkCenterLine()
+    var
+        WorkCenter: Record "Work Center";
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+        RoutingLines: TestPage "Routing Lines";
+    begin
+        // [SCENARIO] Transfer WIP Item field is enabled on Routing Lines page for a Work Center routing line
+        // when the Work Center has a Subcontractor No.
+        Initialize();
+
+        // [GIVEN] A Work Center with a Subcontractor No.
+        LibraryMfgManagement.CreateWorkCenterWithCalendar(WorkCenter, 0);
+        WorkCenter.Validate("Subcontractor No.", LibraryMfgManagement.CreateSubcontractorWithCurrency(''));
+        WorkCenter.Modify(true);
+
+        // [GIVEN] A Routing with a Work Center routing line
+        LibraryManufacturing.CreateRoutingHeader(RoutingHeader, RoutingHeader.Type::Serial);
+        LibraryMfgManagement.CreateRoutingLine(RoutingLine, RoutingHeader, WorkCenter."No.");
+
+        // [WHEN] The Routing Lines page is opened for that line
+        RoutingLines.OpenEdit();
+        RoutingLines.GoToRecord(RoutingLine);
+
+        // [THEN] Transfer WIP Item is enabled (subcontracting Work Center type)
+        Assert.IsTrue(RoutingLines."Transfer WIP Item".Enabled(), RoutingLineTransferWIPNotEnabledErr);
+        RoutingLines.Close();
+    end;
+
+    [Test]
+    procedure RoutingVersionLinesTransferWIPItemDisabledForMachineCenterLine()
+    var
+        WorkCenter: Record "Work Center";
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+        RoutingVersionLines: TestPage "Routing Version Lines";
+        MachineCenterNo: Code[20];
+        VersionCode: Code[20];
+    begin
+        // [SCENARIO] Transfer WIP Item field is disabled on Routing Version Lines page for a Machine Center
+        // routing line, even when the parent Work Center has a Subcontractor No.
+        Initialize();
+
+        // [GIVEN] A Work Center with a Subcontractor No.
+        LibraryMfgManagement.CreateWorkCenterWithCalendar(WorkCenter, 0);
+        WorkCenter.Validate("Subcontractor No.", LibraryMfgManagement.CreateSubcontractorWithCurrency(''));
+        WorkCenter.Modify(true);
+
+        // [GIVEN] A Machine Center belonging to that Work Center
+        LibraryMfgManagement.CreateMachineCenter(MachineCenterNo, WorkCenter."No.", 0);
+
+        // [GIVEN] A Routing Version with a Machine Center routing line
+        LibraryManufacturing.CreateRoutingHeader(RoutingHeader, RoutingHeader.Type::Serial);
+        VersionCode := '1';
+        CreateRoutingVersionAndMachineCenterLine(RoutingHeader."No.", VersionCode, MachineCenterNo, RoutingLine);
+
+        // [WHEN] The Routing Version Lines page is opened for that line
+        RoutingVersionLines.OpenEdit();
+        RoutingVersionLines.Filter.SetFilter("Routing No.", RoutingHeader."No.");
+        RoutingVersionLines.Filter.SetFilter("Version Code", VersionCode);
+        RoutingVersionLines.GoToRecord(RoutingLine);
+
+        // [THEN] Transfer WIP Item is not enabled (Machine Center type is not eligible for Transfer WIP Item)
+        Assert.IsFalse(RoutingVersionLines."Transfer WIP Item".Enabled(), RoutingLineTransferWIPEnabledErr);
+        RoutingVersionLines.Close();
+    end;
+
+    [Test]
+    procedure RoutingVersionLinesTransferWIPItemEnabledForSubcontractingWorkCenterLine()
+    var
+        WorkCenter: Record "Work Center";
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+        RoutingVersionLines: TestPage "Routing Version Lines";
+        VersionCode: Code[20];
+    begin
+        // [SCENARIO] Transfer WIP Item field is enabled on Routing Version Lines page for a Work Center routing line
+        // when the Work Center has a Subcontractor No.
+        Initialize();
+
+        // [GIVEN] A Work Center with a Subcontractor No.
+        LibraryMfgManagement.CreateWorkCenterWithCalendar(WorkCenter, 0);
+        WorkCenter.Validate("Subcontractor No.", LibraryMfgManagement.CreateSubcontractorWithCurrency(''));
+        WorkCenter.Modify(true);
+
+        // [GIVEN] A Routing Version with a Work Center routing line
+        LibraryManufacturing.CreateRoutingHeader(RoutingHeader, RoutingHeader.Type::Serial);
+        VersionCode := '1';
+        CreateRoutingVersionAndWorkCenterLine(RoutingHeader."No.", VersionCode, WorkCenter."No.", RoutingLine);
+
+        // [WHEN] The Routing Version Lines page is opened for that line
+        RoutingVersionLines.OpenEdit();
+        RoutingVersionLines.Filter.SetFilter("Routing No.", RoutingHeader."No.");
+        RoutingVersionLines.Filter.SetFilter("Version Code", VersionCode);
+        RoutingVersionLines.GoToRecord(RoutingLine);
+
+        // [THEN] Transfer WIP Item is enabled (subcontracting Work Center type)
+        Assert.IsTrue(RoutingVersionLines."Transfer WIP Item".Enabled(), RoutingLineTransferWIPNotEnabledErr);
+        RoutingVersionLines.Close();
+    end;
+
+    [Test]
+    procedure RoutingLineTransferWIPItemValidationFailsForMachineCenterType()
+    var
+        WorkCenter: Record "Work Center";
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+        MachineCenterNo: Code[20];
+    begin
+        // [SCENARIO] Validating Transfer WIP Item = true on a Machine Center routing line fails
+        // with an error because the Type must be Work Center.
+        Initialize();
+
+        // [GIVEN] A Work Center with a Subcontractor No.
+        LibraryMfgManagement.CreateWorkCenterWithCalendar(WorkCenter, 0);
+        WorkCenter.Validate("Subcontractor No.", LibraryMfgManagement.CreateSubcontractorWithCurrency(''));
+        WorkCenter.Modify(true);
+
+        // [GIVEN] A Machine Center belonging to that Work Center
+        LibraryMfgManagement.CreateMachineCenter(MachineCenterNo, WorkCenter."No.", 0);
+
+        // [GIVEN] A Routing with a Machine Center routing line
+        LibraryManufacturing.CreateRoutingHeader(RoutingHeader, RoutingHeader.Type::Serial);
+        LibraryMfgManagement.CreateRoutingLineForMachineCenter(RoutingLine, RoutingHeader, MachineCenterNo);
+
+        // [WHEN] Transfer WIP Item is set to true on the Machine Center routing line
+        // [THEN] An error is raised because the line type must be Work Center
+        asserterror RoutingLine.Validate("Transfer WIP Item", true);
+        Assert.ExpectedTestFieldError(RoutingLine.FieldCaption(Type), Format(RoutingLine.Type::"Work Center"));
+    end;
+
+    local procedure CreateRoutingVersionAndWorkCenterLine(RoutingNo: Code[20]; VersionCode: Code[20]; WorkCenterNo: Code[20]; var RoutingLine: Record "Routing Line")
+    var
+        RoutingVersion: Record "Routing Version";
+        CapacityUoM: Record "Capacity Unit of Measure";
+    begin
+        RoutingVersion.Init();
+        RoutingVersion.Validate("Routing No.", RoutingNo);
+        RoutingVersion."Version Code" := VersionCode;
+        RoutingVersion.Insert(true);
+
+#pragma warning disable AA0210
+        CapacityUoM.SetRange(Type, CapacityUoM.Type::Minutes);
+#pragma warning restore AA0210
+        CapacityUoM.FindFirst();
+
+        RoutingLine.Init();
+        RoutingLine.Validate("Routing No.", RoutingNo);
+        RoutingLine.Validate("Version Code", VersionCode);
+        RoutingLine.Validate("Operation No.", '10');
+        RoutingLine.Validate(Type, RoutingLine.Type::"Work Center");
+        RoutingLine.Validate("No.", WorkCenterNo);
+        RoutingLine.Validate("Setup Time", 1);
+        RoutingLine.Validate("Run Time", 1);
+        RoutingLine.Validate("Run Time Unit of Meas. Code", CapacityUoM.Code);
+        RoutingLine.Validate("Setup Time Unit of Meas. Code", CapacityUoM.Code);
+        RoutingLine.Insert(true);
+    end;
+
+    local procedure CreateRoutingVersionAndMachineCenterLine(RoutingNo: Code[20]; VersionCode: Code[20]; MachineCenterNo: Code[20]; var RoutingLine: Record "Routing Line")
+    var
+        RoutingVersion: Record "Routing Version";
+        CapacityUoM: Record "Capacity Unit of Measure";
+    begin
+        RoutingVersion.Init();
+        RoutingVersion.Validate("Routing No.", RoutingNo);
+        RoutingVersion."Version Code" := VersionCode;
+        RoutingVersion.Insert(true);
+
+#pragma warning disable AA0210
+        CapacityUoM.SetRange(Type, CapacityUoM.Type::Minutes);
+#pragma warning restore AA0210
+        CapacityUoM.FindFirst();
+
+        RoutingLine.Init();
+        RoutingLine.Validate("Routing No.", RoutingNo);
+        RoutingLine.Validate("Version Code", VersionCode);
+        RoutingLine.Validate("Operation No.", '10');
+        RoutingLine.Validate(Type, RoutingLine.Type::"Machine Center");
+        RoutingLine.Validate("No.", MachineCenterNo);
+        RoutingLine.Validate("Setup Time", 1);
+        RoutingLine.Validate("Run Time", 1);
+        RoutingLine.Validate("Run Time Unit of Meas. Code", CapacityUoM.Code);
+        RoutingLine.Validate("Setup Time Unit of Meas. Code", CapacityUoM.Code);
+        RoutingLine.Insert(true);
+    end;
+
     local procedure GetNextItemLedgerEntryNo(): Integer
     var
         ItemLedgerEntry: Record "Item Ledger Entry";
@@ -634,6 +856,7 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        LibraryManufacturing: Codeunit "Library - Manufacturing";
         LibraryMfgManagement: Codeunit "Subc. Library Mfg. Management";
         SubcontractingMgmtLibrary: Codeunit "Subc. Management Library";
         SubSetupLibrary: Codeunit "Subc. Setup Library";
@@ -647,4 +870,6 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         ILEProdActionsNotEnabledErr: Label 'Production actions should be enabled for a subcontracting Item Ledger Entry.';
         ILEPurchActionsEnabledErr: Label 'Purchase Order action should not be enabled for a non-subcontracting Item Ledger Entry.';
         ILEPurchActionsNotEnabledErr: Label 'Purchase Order action should be enabled for a subcontracting Item Ledger Entry.';
+        RoutingLineTransferWIPEnabledErr: Label 'Transfer WIP Item should not be enabled for a Machine Center routing line.';
+        RoutingLineTransferWIPNotEnabledErr: Label 'Transfer WIP Item should be enabled for a subcontracting Work Center routing line.';
 }
