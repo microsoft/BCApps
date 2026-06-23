@@ -330,3 +330,24 @@ TestResults.xml
 
 # Exceptions
 !src/System Application/Test/Extension Management/testArtifacts/*.app
+
+# Personal AI tooling symlinked from bc-agentic-workspace (managed by Sync-AIInstructions)
+# Claude Code
+.claude/skills/
+.claude/rules/
+.claude/agents/
+.claude/commands/
+.claude/hooks/
+# Copilot CLI / VS Code
+.copilot/skills/
+.copilot/agents/
+.copilot/instructions/
+.github/agents/
+!.github/agents/EngSys-VersionChange.agent.md
+.github/prompts/
+.github/instructions/
+.github/copilot-instructions.md
+.copilot/copilot-instructions.md
+# MCP configs (merged, not symlinked)
+.mcp.json
+.vscode/mcp.json
