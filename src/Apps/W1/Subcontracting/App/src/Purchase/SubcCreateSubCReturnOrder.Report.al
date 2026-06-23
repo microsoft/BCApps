@@ -211,6 +211,8 @@ report 99001502 "Subc. Create SubCReturnOrder"
                     QtyToPost := AvailableToReturn;
                 if QtyToPost > 0 then
                     if InsertLine then begin
+                        if ProdOrderComponent."Subc. Original Location Code" = '' then
+                            ProdOrderComponent."Subc. Original Location Code" := ProdOrderComponent."Location Code";
 
                         InsertTransferHeader(SubcFromLocationCode, ProdOrderComponent."Subc. Original Location Code");
 
