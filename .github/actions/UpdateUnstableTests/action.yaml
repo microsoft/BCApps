@@ -1,30 +1,22 @@
 name: Update Unstable Tests
 author: Microsoft Corporation
 description: >
-  Downloads test results from a CI/CD workflow run, applies the unstable-test heuristic,
-  and publishes an updated per-branch unstable-tests artifact.
+  Updates the per-branch unstable-tests artifact from a set of CI/CD runs. By default the list is
+  recomputed from the supplied runs; when additive is set, their failing tests are merged into the
+  existing artifact instead. The runs to read are computed by the calling workflow.
 inputs:
   branch:
     description: Target branch (e.g. 'main', 'releases/26.0')
     required: true
-  run-limit:
-    description: Number of recent CI/CD runs to examine.
-    required: false
-    default: '3'
-  filter-push:
-    description: Include CI/CD runs triggered by push events.
+  run-id:
+    description: Comma-separated CI/CD (or PR Build) run IDs to read failing tests from.
+    required: true
+  additive:
+    description: >
+      When 'true', merge the runs' failing tests into the existing per-branch artifact (preserving
+      every existing entry) instead of recomputing the list from scratch.
     required: false
     default: 'false'
-  filter-workflow-dispatch:
-    description: Include CI/CD runs triggered by workflow_dispatch events.
-    required: false
-    default: 'true'
-  source-repository:
-    description: >
-      Repository to read CI/CD test result artifacts from (owner/repo).
-      Defaults to the current repository when not set.
-    required: false
-    default: ''
 runs:
   using: composite
   steps:
@@ -34,21 +26,16 @@ runs:
       env:
         GH_TOKEN: ${{ github.token }}
         _branch: ${{ inputs.branch }}
-        _runLimit: ${{ inputs.run-limit }}
-        _filterPush: ${{ inputs.filter-push }}
-        _filterWorkflowDispatch: ${{ inputs.filter-workflow-dispatch }}
-        _repository: ${{ github.repository }}
-        _sourceRepository: ${{ inputs.source-repository }}
+        _runId: ${{ inputs.run-id }}
+        _additive: ${{ inputs.additive }}
       run: |
         ${{ github.action_path }}/action.ps1 `
           -branch $env:_branch `
-          -runLimit $env:_runLimit `
-          -filterPush:($env:_filterPush -eq 'true') `
-          -filterWorkflowDispatch:($env:_filterWorkflowDispatch -eq 'true') `
-          -repository $env:_repository `
-          -sourceRepository $env:_sourceRepository
+          -runId $env:_runId `
+          -additive:($env:_additive -eq 'true')
 
     - name: Upload unstable tests artifact
+      if: steps.update.outputs.artifactName != ''
       uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
       env:
         ACTIONS_RUNNER_DISABLE_NODE_MAGLEV: 1

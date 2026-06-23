@@ -2,9 +2,13 @@
 .Synopsis
     Entry point for the Update Unstable Tests action.
 .Description
-    Computes the artifact name, invokes the updater script (which fetches recent
-    test result artifacts matching the branch and repo version and rewrites the
-    unstable-tests list from scratch), and uploads the result.
+    Reads the failing tests from the supplied CI/CD (or PR Build) runs and invokes the shared updater
+    script, which builds the per-branch unstable-tests list and exposes the artifact name for upload.
+
+    By default the list is recomputed from the supplied runs. When -additive is set, the failing tests
+    are merged into the existing artifact instead (every existing entry is preserved).
+
+    The set of runs to read is computed by the calling workflow and passed in as a comma-separated list.
 
     Parameters are passed explicitly by the action.yaml run block.
 #>
@@ -13,15 +17,9 @@ param(
     [Parameter(Mandatory = $true)]
     [string] $branch,
 
-    [int] $runLimit = 3,
+    [string] $runId = '',
 
-    [switch] $filterPush,
-    [switch] $filterWorkflowDispatch,
-
-    [Parameter(Mandatory = $true)]
-    [string] $repository,
-
-    [string] $sourceRepository = ''
+    [switch] $additive
 )
 
 $ErrorActionPreference = 'Stop'
@@ -31,32 +29,23 @@ Set-StrictMode -Version 2.0
 $scriptsRoot = Join-Path $PSScriptRoot '..' '..' '..' 'build' 'scripts' 'TestTolerance'
 Import-Module (Join-Path $scriptsRoot 'TestTolerance.psm1') -Force
 
-$sourceRepo = if ([string]::IsNullOrWhiteSpace($sourceRepository)) { $repository } else { $sourceRepository }
-
-# --- Compute artifact name and output path ---
-$artifactName = Get-UnstableTestsArtifactName -Branch $branch
-Write-Host "Artifact name: $artifactName"
-
-$unstableDir = '.unstable-tests'
-$unstablePath = Join-Path $unstableDir 'unstable-tests.json'
-New-Item -ItemType Directory -Path $unstableDir -Force | Out-Null
-
-# --- Run updater ---
-$env:GITHUB_REPOSITORY = $sourceRepo
-$updaterScript = Join-Path $scriptsRoot 'UpdateUnstableTests.ps1'
-& $updaterScript `
-    -Branch $branch `
-    -OutputPath $unstablePath `
-    -RunLimit $runLimit `
-    -FilterPush:$filterPush `
-    -FilterWorkflowDispatch:$filterWorkflowDispatch
-
-# --- Set output for artifact upload ---
-Add-Content -Encoding UTF8 -Path $env:GITHUB_OUTPUT -Value "artifactName=$artifactName"
-
-if (-not (Test-Path $unstablePath)) {
-    Write-Host "::warning::Unstable tests file was not produced (no CI/CD runs with test results found). Skipping artifact upload."
-    return
+# Parse the comma-separated run ids.
+$runIds = @($runId.Split(',') | ForEach-Object { $_.Trim() } | Where-Object { $_ })
+if ($runIds.Count -eq 0) {
+    throw "No valid run IDs were provided in 'run-id' (value: '$runId'). Provide at least one CI/CD (or PR Build) run ID."
 }
 
-Write-Host "Unstable tests list ready at '$unstablePath'."
+$outputPath = Join-Path '.unstable-tests' 'unstable-tests.json'
+
+& (Join-Path $scriptsRoot 'UpdateUnstableTestsArtifact.ps1') `
+    -Branch $branch `
+    -RunIds $runIds `
+    -OutputPath $outputPath `
+    -Additive:$additive
+
+# Expose the artifact name so the action's upload step can publish it. Only emit it when the artifact
+# was actually produced, so the upload step can be skipped otherwise.
+if ($env:GITHUB_OUTPUT -and (Test-Path $outputPath)) {
+    $artifactName = Get-UnstableTestsArtifactName -Branch $branch
+    Add-Content -Encoding UTF8 -Path $env:GITHUB_OUTPUT -Value "artifactName=$artifactName"
+}

@@ -391,4 +391,74 @@ Describe "TestTolerance" {
             $result['ext-1::300::t1'].FailureDetail | Should -Be 's1'
         }
     }
+
+    Context "Add-FailedTestsToUnstableTests" {
+        It "appends new failed tests to an empty existing list" {
+            $failed = @{
+                'ext-1::300::t1' = [pscustomobject]@{ ExtensionId = 'ext-1'; CodeunitId = 300; CodeunitName = 'A'; TestMethod = 'T1'; FailureMessage = 'm1'; FailureDetail = 's1'; SourceRunId = '999' }
+            }
+
+            $merged = @(Add-FailedTestsToUnstableTests -ExistingTests @() -FailedTests $failed -Repository 'microsoft/BCAppsPrivate')
+            $merged.Count | Should -Be 1
+            $merged[0].extensionId | Should -Be 'ext-1'
+            $merged[0].codeunitId | Should -Be 300
+            $merged[0].testMethod | Should -Be 'T1'
+            $merged[0].reason | Should -Match '999'
+            $merged[0].sourceRunUrl | Should -Be 'https://github.com/microsoft/BCAppsPrivate/actions/runs/999'
+        }
+
+        It "preserves existing entries verbatim and only appends new ones" {
+            $existing = @(
+                [pscustomobject]@{ extensionId = 'ext-1'; codeunitId = 300; codeunitName = 'A'; testMethod = 'T1'; failureMessage = 'old'; failureDetail = 'olddetail'; reason = 'pre-existing'; linkedIssue = 'https://example/1'; sourceRunUrl = 'https://example/run' }
+            )
+            $failed = @{
+                'ext-2::400::t2' = [pscustomobject]@{ ExtensionId = 'ext-2'; CodeunitId = 400; CodeunitName = 'B'; TestMethod = 'T2'; FailureMessage = 'm2'; FailureDetail = 's2'; SourceRunId = '1000' }
+            }
+
+            $merged = @(Add-FailedTestsToUnstableTests -ExistingTests $existing -FailedTests $failed -Repository 'owner/repo')
+            $merged.Count | Should -Be 2
+            $merged[0].reason | Should -Be 'pre-existing'
+            $merged[0].linkedIssue | Should -Be 'https://example/1'
+            $merged[1].testMethod | Should -Be 'T2'
+        }
+
+        It "does not duplicate a failed test that is already in the list" {
+            $existing = @(
+                [pscustomobject]@{ extensionId = 'ext-1'; codeunitId = 300; codeunitName = 'A'; testMethod = 'T1'; reason = 'pre-existing' }
+            )
+            $failed = @{
+                'ext-1::300::t1' = [pscustomobject]@{ ExtensionId = 'ext-1'; CodeunitId = 300; CodeunitName = 'A'; TestMethod = 'T1'; FailureMessage = 'm1'; SourceRunId = '1001' }
+            }
+
+            $merged = @(Add-FailedTestsToUnstableTests -ExistingTests $existing -FailedTests $failed -Repository 'owner/repo')
+            $merged.Count | Should -Be 1
+            $merged[0].reason | Should -Be 'pre-existing'
+        }
+
+        It "returns existing list unchanged when there are no failed tests" {
+            $existing = @(
+                [pscustomobject]@{ extensionId = 'ext-1'; codeunitId = 300; codeunitName = 'A'; testMethod = 'T1'; reason = 'pre-existing' }
+            )
+
+            $merged = @(Add-FailedTestsToUnstableTests -ExistingTests $existing -FailedTests @{} -Repository 'owner/repo')
+            $merged.Count | Should -Be 1
+            $merged[0].testMethod | Should -Be 'T1'
+        }
+
+        It "preserves existing entries with an unexpected/legacy shape (missing testMethod)" {
+            $existing = @(
+                [pscustomobject]@{ codeunit = '300'; testMethod = ''; note = 'legacy' },
+                [pscustomobject]@{ extensionId = 'ext-1'; codeunitId = 300; codeunitName = 'A'; testMethod = 'T1'; reason = 'pre-existing' }
+            )
+            $failed = @{
+                'ext-2::400::t2' = [pscustomobject]@{ ExtensionId = 'ext-2'; CodeunitId = 400; CodeunitName = 'B'; TestMethod = 'T2'; FailureMessage = 'm2'; SourceRunId = '1002' }
+            }
+
+            $merged = @(Add-FailedTestsToUnstableTests -ExistingTests $existing -FailedTests $failed -Repository 'owner/repo')
+            $merged.Count | Should -Be 3
+            $merged[0].note | Should -Be 'legacy'
+            $merged[1].reason | Should -Be 'pre-existing'
+            $merged[2].testMethod | Should -Be 'T2'
+        }
+    }
 }

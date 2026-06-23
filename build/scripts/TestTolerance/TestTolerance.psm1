@@ -653,11 +653,297 @@ function Update-UnstableTestsList {
     return $result
 }
 
+<#
+.Synopsis
+    Finds the most recent completed CI/CD runs on a branch that produced test result artifacts.
+.Description
+    Used by the scheduled sliding-window updater (the UpdateUnstableTests action) to discover which runs
+    to examine. Queries the workflow's completed runs (optionally filtered by trigger event), keeps those
+    that actually have test result artifacts, and returns up to RunLimit run ids (most recent first).
+
+    Returns an empty array when no qualifying runs are found.
+    Requires the GH_TOKEN (or GITHUB_TOKEN) environment variable for 'gh' authentication.
+#>
+function Find-UnstableTestRunIds {
+    [CmdletBinding()]
+    [OutputType([string[]])]
+    param(
+        [Parameter(Mandatory = $true)]
+        [string] $Branch,
+
+        [Parameter(Mandatory = $true)]
+        [string] $Repository,
+
+        [int] $RunLimit = 3,
+
+        [string] $WorkflowFile = 'CICD.yaml',
+
+        [switch] $FilterPush,
+        [switch] $FilterWorkflowDispatch
+    )
+
+    $eventTypes = @()
+    if ($FilterPush) { $eventTypes += 'push' }
+    if ($FilterWorkflowDispatch) { $eventTypes += 'workflow_dispatch' }
+    if ($eventTypes.Count -eq 0) { $eventTypes = @('workflow_dispatch') }  # Default to workflow_dispatch if nothing selected
+    Write-Host "Finding last $RunLimit completed '$WorkflowFile' runs on '$Branch' (events=$($eventTypes -join ', ')) with test result artifacts ..."
+
+    # Fetch candidate runs across all requested event types.
+    $candidateLimit = $RunLimit * 5
+    $candidates = @()
+    foreach ($eventType in $eventTypes) {
+        $candidates += @(gh run list --repo $Repository --workflow $WorkflowFile --branch $Branch --event $eventType --status completed --limit $candidateLimit --json databaseId,conclusion,createdAt | ConvertFrom-Json)
+    }
+    # Sort by creation date descending and deduplicate (in case of overlap).
+    $candidates = @($candidates | Sort-Object -Property createdAt -Descending | Sort-Object -Property databaseId -Unique | Sort-Object -Property createdAt -Descending)
+
+    $runIds = [System.Collections.Generic.List[string]]::new()
+    foreach ($run in $candidates) {
+        if ($runIds.Count -ge $RunLimit) { break }
+        # The API 'name' param requires exact match (no wildcards), so we paginate and filter client-side.
+        $testResultNames = @(gh api "/repos/$Repository/actions/runs/$($run.databaseId)/artifacts" --paginate --jq '.artifacts[].name | select(contains("TestResults"))' 2>$null)
+        if ($testResultNames.Count -eq 0) { continue }
+        $runIds.Add([string]$run.databaseId)
+    }
+
+    if ($runIds.Count -eq 0) {
+        if ($candidates.Count -eq 0) {
+            Write-Host "::warning::No completed '$WorkflowFile' runs found for branch '$Branch' (events=$($eventTypes -join ', '))."
+        } else {
+            Write-Host "::warning::Found $($candidates.Count) completed '$WorkflowFile' run(s) for branch '$Branch' (events=$($eventTypes -join ', ')), but none contained test result artifacts."
+        }
+        return @()
+    }
+
+    Write-Host "Found $($runIds.Count) run(s) with test results: $($runIds -join ', ')"
+    return $runIds.ToArray()
+}
+
+<#
+.Synopsis
+    Downloads the test result artifacts from one or more CI/CD (or PR Build) runs and returns the failed tests.
+.Description
+    For each run id, uses 'gh run download' to fetch every artifact whose name contains 'TestResult',
+    parses each results XML, and merges the failures into a single hashtable of distinct failed tests keyed
+    by 'extensionId::codeunit::testMethod'. Non-test artifacts that happen to contain 'TestResult' in their
+    name (BcptTestResults, PageScriptingTestResult) are skipped. When a test fails in more than one run, the
+    first run that reported it (in the order the run ids are supplied) is kept as its SourceRunId.
+
+    This is the shared "collect failures from a set of runs" step used by the unstable-tests updater
+    script for both modes: the sliding-window recompute (which passes the discovered window of runs)
+    and the additive merge (which passes a single explicit run).
+
+    Returns an empty hashtable when none of the runs produced failed tests.
+    Requires the GH_TOKEN (or GITHUB_TOKEN) environment variable to be set for 'gh' authentication.
+#>
+function Get-FailedTestsFromRuns {
+    [CmdletBinding()]
+    [OutputType([hashtable])]
+    param(
+        [Parameter(Mandatory = $true)]
+        [string[]] $RunIds,
+
+        [Parameter(Mandatory = $true)]
+        [string] $Repository,
+
+        [Parameter(Mandatory = $true)]
+        [string] $WorkDirectory
+    )
+
+    $allFailed = @{}
+    foreach ($runId in $RunIds) {
+        $runDir = Join-Path $WorkDirectory "run-$runId"
+
+        Write-Host "Downloading test result artifacts from run $runId in '$Repository' ..."
+        gh run download $runId --repo $Repository --dir $runDir --pattern '*TestResult*' 2>&1 | ForEach-Object { Write-Host $_ }
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "::warning::gh run download failed for run $runId (exit code $LASTEXITCODE)."
+            continue
+        }
+
+        if (-not (Test-Path $runDir)) {
+            Write-Host "::warning::No test result artifacts were downloaded for run $runId."
+            continue
+        }
+
+        foreach ($artifactDir in @(Get-ChildItem -Path $runDir -Directory)) {
+            # Skip known non-test artifacts that may contain 'TestResult' in their name but don't have AL test result XML files.
+            if ($artifactDir.Name -match 'BcptTestResults|PageScriptingTestResult') { continue }
+
+            foreach ($xml in @(Get-ChildItem -Path $artifactDir.FullName -Filter '*.xml' -Recurse)) {
+                foreach ($ft in @(Get-FailedTestsFromResults -Path $xml.FullName)) {
+                    if (-not $allFailed.ContainsKey($ft.Key)) {
+                        $allFailed[$ft.Key] = [pscustomobject]@{
+                            ExtensionId    = $ft.ExtensionId
+                            CodeunitId     = $ft.CodeunitId
+                            CodeunitName   = $ft.CodeunitName
+                            TestMethod     = $ft.TestMethod
+                            FailureMessage = $ft.FailureMessage
+                            FailureDetail  = $ft.FailureDetail
+                            SourceRunId    = [string]$runId
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    Write-Host "Found $($allFailed.Count) distinct failed test(s) across $($RunIds.Count) run(s)."
+    return $allFailed
+}
+
+<#
+.Synopsis
+    Converts an internal failed/unstable test object into the camelCase artifact entry shape.
+.Description
+    Both the sliding-window updater and the additive updater serialize tests into the same
+    unstable-tests.json entry schema. This helper is the single place that defines that schema so the
+    two paths can't drift apart.
+
+    'Test' is a pscustomobject with PascalCase properties (as produced by Get-FailedTestsFromRuns or
+    Update-UnstableTestsList). 'Reason' overrides the entry reason; when empty, the test's own Reason
+    property (if any) is used. 'Repository' is used to build the sourceRunUrl from the test's SourceRunId.
+#>
+function ConvertTo-UnstableTestEntry {
+    [CmdletBinding()]
+    [OutputType([pscustomobject])]
+    param(
+        [Parameter(Mandatory = $true)]
+        [psobject] $Test,
+
+        [string] $Reason = '',
+
+        [string] $Repository = ''
+    )
+
+    $sourceRunId = if ($Test.PSObject.Properties['SourceRunId']) { [string]$Test.SourceRunId } else { '' }
+    $reasonValue = if ($Reason) { $Reason } elseif ($Test.PSObject.Properties['Reason']) { [string]$Test.Reason } else { '' }
+    $linkedIssue = if ($Test.PSObject.Properties['LinkedIssue']) { [string]$Test.LinkedIssue } else { '' }
+
+    return [pscustomobject][ordered]@{
+        extensionId    = if ($Test.PSObject.Properties['ExtensionId']) { [string]$Test.ExtensionId } else { '' }
+        codeunitId     = if ($Test.PSObject.Properties['CodeunitId']) { [int]$Test.CodeunitId } else { 0 }
+        codeunitName   = if ($Test.PSObject.Properties['CodeunitName']) { [string]$Test.CodeunitName } else { '' }
+        testMethod     = [string]$Test.TestMethod
+        failureMessage = if ($Test.PSObject.Properties['FailureMessage']) { [string]$Test.FailureMessage } else { '' }
+        failureDetail  = if ($Test.PSObject.Properties['FailureDetail']) { [string]$Test.FailureDetail } else { '' }
+        reason         = $reasonValue
+        linkedIssue    = $linkedIssue
+        sourceRunUrl   = if ($Repository -and $sourceRunId) { "https://github.com/$Repository/actions/runs/$sourceRunId" } else { '' }
+    }
+}
+
+<#
+.Synopsis
+    Writes the per-branch unstable tests artifact JSON to disk.
+.Description
+    Builds the standard unstable-tests payload (branch, updatedAt, runIds, tests) and writes it as JSON
+    to the given path, creating the parent directory when needed. Used by the unstable-tests updater
+    script in both modes (sliding-window recompute and additive merge), which differ only in how they
+    produce the 'Tests' entries. Centralizing the write keeps the artifact schema identical.
+
+    'Tests' must already be the final list of artifact entries (camelCase), e.g. from
+    ConvertTo-UnstableTestEntry or Add-FailedTestsToUnstableTests.
+#>
+function Save-UnstableTestsArtifact {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        [string] $Branch,
+
+        [Parameter(Mandatory = $true)]
+        [string[]] $RunIds,
+
+        [System.Collections.IList] $Tests = @(),
+
+        [Parameter(Mandatory = $true)]
+        [string] $OutputPath
+    )
+
+    $outputDir = Split-Path -Parent $OutputPath
+    if ($outputDir -and -not (Test-Path $outputDir)) {
+        New-Item -ItemType Directory -Path $outputDir -Force | Out-Null
+    }
+
+    $tests = @($Tests)
+    $payload = [ordered]@{
+        branch    = $Branch
+        updatedAt = (Get-Date).ToUniversalTime().ToString('o')
+        runIds    = @($RunIds)
+        tests     = $tests
+    }
+
+    $payload | ConvertTo-Json -Depth 10 | Set-Content -Path $OutputPath -Encoding UTF8
+    Write-Host "Unstable tests list written to '$OutputPath' with $($tests.Count) test(s)."
+    Write-Host "::notice::Unstable tests list updated with $($tests.Count) test(s) for branch '$Branch'."
+}
+
+<#
+.Synopsis
+    Merges a set of failed tests into an existing unstable tests list (additive).
+.Description
+    Unlike the sliding-window heuristic (which fully recomputes the list), this function preserves
+    every existing entry verbatim and appends only the failed tests that are not already present.
+    Tests are matched by their normalized 'extensionId::codeunit::testMethod' key.
+
+    'ExistingTests' is the raw 'tests' array parsed from an existing unstable-tests.json (an array of
+    objects with camelCase properties), or an empty array when no artifact exists yet. 'FailedTests'
+    is a hashtable keyed by test key (as produced by Get-FailedTestsFromRuns).
+
+    Returns the merged list ready to be serialized into the artifact: the existing entries unchanged
+    (as parsed) followed by the newly added entries produced by ConvertTo-UnstableTestEntry.
+#>
+function Add-FailedTestsToUnstableTests {
+    [CmdletBinding()]
+    [OutputType([System.Collections.IList])]
+    param(
+        [System.Collections.IList] $ExistingTests = @(),
+
+        [Parameter(Mandatory = $true)]
+        [hashtable] $FailedTests,
+
+        [string] $Repository = ''
+    )
+
+    $merged = New-Object System.Collections.Generic.List[object]
+    $seenKeys = @{}
+
+    # Preserve every existing entry verbatim. Track the key of each entry that has one so that newly
+    # observed failures already present in the list are not appended again; entries with an
+    # unexpected/legacy shape (e.g. missing testMethod) are still kept, just not used for dedup.
+    foreach ($entry in @($ExistingTests)) {
+        if ($null -eq $entry) { continue }
+        $merged.Add($entry) | Out-Null
+        $method = if ($entry.PSObject.Properties['testMethod']) { [string]$entry.testMethod } else { '' }
+        if ([string]::IsNullOrWhiteSpace($method)) { continue }
+        $extId = if ($entry.PSObject.Properties['extensionId']) { [string]$entry.extensionId } else { '' }
+        $cuId = if ($entry.PSObject.Properties['codeunitId']) { [int]$entry.codeunitId } else { 0 }
+        $key = Get-UnstableTestKey -CodeunitId $cuId -TestMethod $method -ExtensionId $extId
+        $seenKeys[$key] = $true
+    }
+
+    $added = 0
+    foreach ($k in @($FailedTests.Keys)) {
+        if ($seenKeys.ContainsKey($k)) {
+            Write-Host "ALREADY UNSTABLE: $k"
+            continue
+        }
+        $ft = $FailedTests[$k]
+        $sourceRunId = if ($ft.PSObject.Properties['SourceRunId']) { [string]$ft.SourceRunId } else { '' }
+        $merged.Add((ConvertTo-UnstableTestEntry -Test $ft -Reason "Manually added from CI/CD run $sourceRunId" -Repository $Repository)) | Out-Null
+        $seenKeys[$k] = $true
+        Write-Host "ADDED UNSTABLE: $k"
+        $added++
+    }
+
+    Write-Host "Merged unstable tests list contains $($merged.Count) test(s) ($added newly added)."
+    return $merged.ToArray()
+}
+
 Export-ModuleMember -Function `
     Get-ToleranceBranch, `
     Test-IsToleranceSupportedBranch, `
     Get-UnstableTestsArtifactName, `
-    Split-CodeunitString, `
     Get-UnstableTestKey, `
     Read-UnstableTestsList, `
     Get-FailedTestsFromResults, `
@@ -665,4 +951,9 @@ Export-ModuleMember -Function `
     Update-TestResultsForTolerance, `
     Test-ShouldTolerateFailures, `
     Receive-UnstableTestsArtifact, `
-    Update-UnstableTestsList
+    Update-UnstableTestsList, `
+    Find-UnstableTestRunIds, `
+    Get-FailedTestsFromRuns, `
+    ConvertTo-UnstableTestEntry, `
+    Save-UnstableTestsArtifact, `
+    Add-FailedTestsToUnstableTests

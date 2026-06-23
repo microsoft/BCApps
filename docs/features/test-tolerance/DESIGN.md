@@ -54,7 +54,23 @@ After each CI/CD run completes, the UpdateUnstableTests workflow examines the la
 
 The artifact records the `runIds` field listing the exact runs examined, for traceability.
 
-The window size (default 3) is a parameter of `UpdateUnstableTests.ps1` and can be changed without modifying the schema.
+The window size (default 3) is a parameter of the workflow's "Calculate run IDs" step (passed through to `Find-UnstableTestRunIds`) and can be changed without modifying the schema.
+
+**Manual additive path (AddUnstableTestsFromRun)**
+
+In addition to the automatic sliding-window heuristic, the **AddUnstableTestsFromRun** workflow provides a manual, additive way to mark tests as unstable from a single run. It is intended for tests that are consistently unstable but do not get picked up by the window (for example, a test that fails in isolation on a specific PR Build or CI/CD run). The workflow:
+
+1. Downloads the existing `unstable-tests-<normalized-branch>` artifact for the target branch (starting from an empty list when none exists).
+2. Downloads the test result artifacts from the run ID you specify and identifies its failing tests.
+3. Merges those failing tests into the existing list — every existing entry is preserved verbatim and only tests that are not already present are appended (matched by the three-part key).
+4. Re-publishes the artifact, resetting the 90-day retention clock.
+
+Unlike the sliding window, this path **never removes** entries; it is purely additive. Entries added this way carry the reason `Manually added from CI/CD run <runId>` and a `sourceRunUrl` for traceability. The next scheduled UpdateUnstableTests run will recompute the list from the window and may drop manually-added entries if they have stopped failing — this is the intended self-healing behavior.
+
+Both modes run the **same** composite action (`UpdateUnstableTests`), which simply takes a comma-separated `run-id` list and an `additive` flag and invokes the shared updater script `UpdateUnstableTestsArtifact.ps1` in `build/scripts/TestTolerance` (which collects failing tests from those runs via `Get-FailedTestsFromRuns`, builds the list, and writes the artifact). The two differences are pushed entirely to the **calling workflow**: **how the run ids are obtained** — the scheduled `UpdateUnstableTests.yaml` workflow has a "Calculate run IDs" step that discovers the sliding window via `Find-UnstableTestRunIds` and passes the result as `run-id`, while `AddUnstableTestsFromRun.yaml` passes the explicit run id from its input — and **how the collected failures are merged** — the additive workflow sets `additive: true` (merge via `Add-FailedTestsToUnstableTests`), whereas the scheduled workflow leaves it at the default (recompute via `Update-UnstableTestsList`).
+
+The additive path is wired through the `AddUnstableTestsFromRun.yaml` workflow (manual `workflow_dispatch` with `branch` and `runId` inputs), which calls the shared `UpdateUnstableTests` action with `additive: true`. The `branch` input is a comma-separated filter (default `main, releases/*`) that is converted to a JSON array and expanded against the official branches via the `GetGitBranches` action; the workflow then fans out over the matching branches with a matrix, applying the run's failing tests to each selected branch's list. The run is always read from the current repository.
+
 
 **Test identity key**
 
@@ -99,6 +115,7 @@ When a test **fails**, it is cross-referenced against the unstable tests artifac
 
 - **Build log**: each tolerated failure is logged as `TOLERATED: <extensionId> :: <codeunit> :: <testMethod> — <reason>` inside a collapsible `::group::` block. Non-tolerated failures are also listed explicitly so engineers can see what will fail the build.
 - **Test report visibility**: tolerated failures appear as passes in the GitHub UI test report because the `<failure>` node is removed. There is no warning-level marker in the report. This is a deliberate trade-off for now; the `TOLERATED:` marker in `<system-out>` is available for tooling that inspects the raw XML.
+- **Telemetry**: not yet implemented (tracked separately).
 - **Build summary**: not yet implemented (tracked separately).
 - **Dashboard / trend report**: not yet implemented (tracked separately).
 
@@ -107,5 +124,5 @@ When a test **fails**, it is cross-referenced against the unstable tests artifac
 | Question | Status |
 |---|---|
 | Should tolerated failures appear as warnings in the GitHub UI test report rather than silently as passes? | Open — current behavior is silent pass via XML rewrite |
-| Should there be a manual override path for adding a test that is consistently unstable but always fails alone? | Deferred — not in initial scope |
+| Should there be a manual override path for adding a test that is consistently unstable but always fails alone? | Implemented — see the AddUnstableTestsFromRun workflow in §6.1 |
 | What is the eviction policy when a test is removed from the codebase entirely? | Accepted for now — stays on list until artifact expires (90 days) |

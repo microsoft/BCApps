@@ -76,10 +76,35 @@ jobs:
         branch: ${{ fromJson(needs.GetBranches.outputs.updateBranches) }}
       fail-fast: false
     steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Calculate run IDs
+        id: calc
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          _branch: ${{ matrix.branch }}
+          _repository: ${{ github.repository }}
+          _runLimit: ${{ inputs.runLimit || 3 }}
+          _filterPush: ${{ inputs.filterPush || false }}
+          _filterWorkflowDispatch: ${{ inputs.filterWorkflowDispatch || true }}
+        run: |
+          # Discover the recent window of completed runs that produced test result artifacts.
+          Import-Module ./build/scripts/TestTolerance/TestTolerance.psm1 -Force
+          $runIds = Find-UnstableTestRunIds `
+            -Branch $env:_branch `
+            -Repository $env:_repository `
+            -RunLimit ([int]$env:_runLimit) `
+            -FilterPush:($env:_filterPush -eq 'true') `
+            -FilterWorkflowDispatch:($env:_filterWorkflowDispatch -eq 'true')
+          $csv = ($runIds -join ',')
+          Write-Host "Run IDs: $csv"
+          Add-Content -Encoding UTF8 -Path $env:GITHUB_OUTPUT -Value "runIds=$csv"
+
       - name: Update unstable tests
+        if: steps.calc.outputs.runIds != ''
         uses: microsoft/BCAppsPrivate/.github/actions/UpdateUnstableTests@main #TODO - point to public repo when action is published
         with:
           branch: ${{ matrix.branch }}
-          run-limit: ${{ inputs.runLimit || 3 }}
-          filter-push: ${{ inputs.filterPush || false }}
-          filter-workflow-dispatch: ${{ inputs.filterWorkflowDispatch || true }}
+          run-id: ${{ steps.calc.outputs.runIds }}
