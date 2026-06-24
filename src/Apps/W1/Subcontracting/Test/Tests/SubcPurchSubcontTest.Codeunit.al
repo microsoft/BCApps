@@ -763,7 +763,7 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         LibraryMfgManagement.CreateSubcontractingReqWkshTemplateAndNameAndUpdateSetup();
 
         // [WHEN] Create subcontracting purchase order from Prod. Order Routing
-        SubcontractingMgmtLibrary.CreateSubcontractingOrderFromProdOrderRouting(
+        SubcWarehouseLibrary.CreateSubcontractingOrderFromProdOrderRouting(
             RoutingHeader."No.", WorkCenter."No.", PurchaseLine);
 
         // [THEN] A purchase order was created and the "Subc. Order" FlowField is true
