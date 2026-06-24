@@ -9,6 +9,9 @@ using Microsoft.Purchases.History;
 
 codeunit 99001536 "Subc. ItemChargeAssPurchExt"
 {
+    var
+        AssignToUndoneRcptErr: Label 'You cannot assign the item charge to subcontracting receipt %1, line %2, because it has been undone.', Comment = '%1 = Posted Receipt No., %2 = Posted Receipt Line No.';
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Charge Assgnt. (Purch.)", OnBeforeCreateRcptChargeAssgnt, '', false, false)]
     local procedure "Item Charge Assgnt. (Purch.)_OnBeforeCreateRcptChargeAssgnt"(var FromPurchRcptLine: Record "Purch. Rcpt. Line"; ItemChargeAssignmentPurch: Record "Item Charge Assignment (Purch)"; var IsHandled: Boolean)
 #if not CLEAN29
@@ -24,7 +27,7 @@ codeunit 99001536 "Subc. ItemChargeAssPurchExt"
 #pragma warning restore AL0432
             exit;
 #endif
-        if FromPurchRcptLine."Subc. Prod. Order No." = '' then
+        if FromPurchRcptLine."Prod. Order No." = '' then
             exit;
 
         IsHandled := true;
@@ -43,6 +46,9 @@ codeunit 99001536 "Subc. ItemChargeAssPurchExt"
         ItemChargeAssignmentPurch2.SetRange("Document Line No.", ItemChargeAssignmentPurch."Document Line No.");
         ItemChargeAssignmentPurch2.SetRange("Applies-to Doc. Type", "Purchase Applies-to Document Type"::Receipt);
         repeat
+            if (FromPurchRcptLine."Prod. Order No." <> '') and FromPurchRcptLine.Correction then
+                Error(AssignToUndoneRcptErr, FromPurchRcptLine."Document No.", FromPurchRcptLine."Line No.");
+
             ItemChargeAssignmentPurch2.SetRange("Applies-to Doc. No.", FromPurchRcptLine."Document No.");
             ItemChargeAssignmentPurch2.SetRange("Applies-to Doc. Line No.", FromPurchRcptLine."Line No.");
             if ItemChargeAssignmentPurch2.IsEmpty() then
