@@ -718,11 +718,11 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         ProductionOrder: Record "Production Order";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
-        ReleasedProdOrderRtng: TestPage "Prod. Order Routing";
         RoutingHeader: Record "Routing Header";
         RoutingLine: Record "Routing Line";
         Vendor: Record Vendor;
         WorkCenter: Record "Work Center";
+        ReleasedProdOrderRtng: TestPage "Prod. Order Routing";
     begin
         // [SCENARIO 640115] After creating a subcontracting purchase order from a Prod. Order Routing Line,
         // the "Subc. Order" FlowField on the Purchase Header must evaluate to true so the order is visible
@@ -754,6 +754,7 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         ProductionBOMHeader.Validate(Status, ProductionBOMHeader.Status::Certified);
         ProductionBOMHeader.Modify(true);
         FinishedItem.Validate("Production BOM No.", ProductionBOMHeader."No.");
+        FinishedITem.Validate("Routing No.", RoutingHeader."No.");
         FinishedItem.Modify(true);
 
         // [GIVEN] A released production order
