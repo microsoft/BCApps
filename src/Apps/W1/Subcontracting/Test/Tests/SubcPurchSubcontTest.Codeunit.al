@@ -713,7 +713,6 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
     var
         FinishedItem: Record Item;
         Location: Record Location;
-        ProdOrderRtngLine: Record "Prod. Order Routing Line";
         ProductionBOMHeader: Record "Production BOM Header";
         ProductionOrder: Record "Production Order";
         PurchaseHeader: Record "Purchase Header";
@@ -722,7 +721,6 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         RoutingLine: Record "Routing Line";
         Vendor: Record Vendor;
         WorkCenter: Record "Work Center";
-        ReleasedProdOrderRtng: TestPage "Prod. Order Routing";
     begin
         // [SCENARIO 640115] After creating a subcontracting purchase order from a Prod. Order Routing Line,
         // the "Subc. Order" FlowField on the Purchase Header must evaluate to true so the order is visible
@@ -765,18 +763,10 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         LibraryMfgManagement.CreateSubcontractingReqWkshTemplateAndNameAndUpdateSetup();
 
         // [WHEN] Create subcontracting purchase order from Prod. Order Routing
-        ProdOrderRtngLine.SetRange("Routing No.", RoutingHeader."No.");
-        ProdOrderRtngLine.SetRange("Work Center No.", WorkCenter."No.");
-        ProdOrderRtngLine.FindFirst();
-
-        ReleasedProdOrderRtng.OpenView();
-        ReleasedProdOrderRtng.GoToRecord(ProdOrderRtngLine);
-        ReleasedProdOrderRtng.CreateSubcontracting.Invoke();
+        SubcontractingMgmtLibrary.CreateSubcontractingOrderFromProdOrderRouting(
+            RoutingHeader."No.", WorkCenter."No.", PurchaseLine);
 
         // [THEN] A purchase order was created and the "Subc. Order" FlowField is true
-        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
-        PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
-        PurchaseLine.FindFirst();
         PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
         PurchaseHeader.CalcFields("Subc. Order");
         Assert.IsTrue(PurchaseHeader."Subc. Order",
