@@ -1459,6 +1459,11 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
             'Transfer Header Direct Transfer must be false after toggling off.');
 
         // [THEN] WIP Transfer Line still exists with correct quantity
+        TransferLine.Reset();
+        TransferLine.SetRange("Document No.", TransferHeader."No.");
+        TransferLine.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
+        TransferLine.SetRange("Transfer WIP Item", true);
+        TransferLine.SetRange("Subc. Return Order", false);
         TransferLine.FindFirst();
         Assert.IsTrue(TransferLine."Transfer WIP Item",
             'WIP Transfer Line must still have Transfer WIP Item = true after Direct Transfer toggle.');
