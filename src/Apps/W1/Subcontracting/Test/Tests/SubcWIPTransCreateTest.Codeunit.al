@@ -1465,7 +1465,9 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         TransferLine.Reset();
         TransferLine.SetRange("Document No.", TransferHeader."No.");
         TransferLine.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
+#pragma warning disable AA0210
         TransferLine.SetRange("Transfer WIP Item", true);
+#pragma warning restore AA0210
         TransferLine.SetRange("Subc. Return Order", false);
         TransferLine.FindFirst();
         Assert.IsTrue(TransferLine."Transfer WIP Item",
