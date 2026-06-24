@@ -1599,4 +1599,5 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         SubSetupLibrary: Codeunit "Subc. Setup Library";
         SubcWarehouseLibrary: Codeunit "Subc. Warehouse Library";
         IsInitialized: Boolean;
+
 }
