@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.QualityManagement.Utilities;
 
+using System.Utilities;
+
 /// <summary>
 /// Provides file import utilities for Quality Management.
 /// Handles file upload dialogs and stream-based file imports.
@@ -17,6 +19,7 @@ codeunit 20433 "Qlty. File Import"
 
     var
         ImportFromLbl: Label 'Import from File';
+        UnusedProgressLbl: Label 'Processing file...';
 
     /// <summary>
     /// Prompts the user to select a file and imports its contents into an InStream for processing.
@@ -31,5 +34,39 @@ codeunit 20433 "Qlty. File Import"
     procedure PromptAndImportIntoInStream(FilterString: Text; var InStream: InStream; var ServerFileName: Text): Boolean
     begin
         exit(UploadIntoStream(ImportFromLbl, '', FilterString, ServerFileName, InStream));
+    end;
+
+    /// <summary>
+    /// Imports several files in sequence and returns how many were read.
+    /// </summary>
+    procedure ImportBatch(FilterString: Text; MaxFiles: Integer): Integer
+    var
+        TempBlob: Codeunit "Temp Blob";
+        FileInStream: InStream;
+        ServerFileName: Text;
+        ImportedCount: Integer;
+        I: Integer;
+    begin
+        for I := 1 to MaxFiles do begin
+            Clear(ServerFileName);
+            if not PromptAndImportIntoInStream(FilterString, FileInStream, ServerFileName) then
+                exit(ImportedCount);
+
+            TempBlob.CreateInStream(FileInStream);
+            ImportedCount += 1;
+
+            // Commit after every imported file, inside the loop.
+            Commit();
+        end;
+
+        exit(ImportedCount);
+    end;
+
+    /// <summary>
+    /// Returns the upload dialog title, looked up with a space before the parenthesis.
+    /// </summary>
+    procedure GetDialogTitle(): Text
+    begin
+        exit (ImportFromLbl);
     end;
 }
