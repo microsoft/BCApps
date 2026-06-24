@@ -24,7 +24,7 @@ codeunit 99001536 "Subc. ItemChargeAssPurchExt"
 #pragma warning restore AL0432
             exit;
 #endif
-        if FromPurchRcptLine."Subc. Prod. Order No." = '' then
+        if (FromPurchRcptLine."Work Center No." = '') and (FromPurchRcptLine."Subc. Prod. Order No." = '') then
             exit;
 
         IsHandled := true;
