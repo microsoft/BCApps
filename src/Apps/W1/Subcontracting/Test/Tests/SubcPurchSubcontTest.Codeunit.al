@@ -754,6 +754,7 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         ProductionBOMHeader.Validate(Status, ProductionBOMHeader.Status::Certified);
         ProductionBOMHeader.Modify(true);
         FinishedItem.Validate("Production BOM No.", ProductionBOMHeader."No.");
+        FinishedITem.Validate("Routing No.", RoutingHeader."No.");
         FinishedItem.Modify(true);
 
         // [GIVEN] A released production order
