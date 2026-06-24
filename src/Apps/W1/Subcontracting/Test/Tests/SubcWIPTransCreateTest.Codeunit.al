@@ -1434,9 +1434,6 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         PurchaseHeaderPage.GoToRecord(PurchaseHeader);
         PurchaseHeaderPage.CreateTransfOrdToSubcontractor.Invoke();
 
-        // [GIVEN] Create the transfer route after the order exists so the toggle-off validation can resolve it
-        SubcontractingMgmtLibrary.CreateTransferRoute(WorkCenter[2], ProductionOrder);
-
         // [GIVEN] Transfer Order created with Direct Transfer = Yes and WIP Transfer Line
         TransferLine.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
 #pragma warning disable AA0210
@@ -1446,6 +1443,12 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         TransferLine.FindFirst();
 
         TransferHeader.Get(TransferLine."Document No.");
+
+        // IMPORTANT: this route must be created only after the transfer order is created.
+        // The missing route at creation time forces Direct Transfer = true on the header.
+        // Creating a matching in-transit route now allows toggling Direct Transfer off.
+        CreateAndUpdateTransferRoute(TransferHeader."Transfer-from Code", TransferHeader."Transfer-to Code");
+
         Assert.IsTrue(TransferHeader."Direct Transfer",
             'Transfer Header must have Direct Transfer = true when no in-transit route exists.');
 
