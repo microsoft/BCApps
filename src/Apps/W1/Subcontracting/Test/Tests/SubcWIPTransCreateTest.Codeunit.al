@@ -1424,8 +1424,6 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
             ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
         SetProdOrderLocationToCompSetupLocationAndRefresh(ProductionOrder);
 
-        // [GIVEN] No transfer route with in-transit exists (ensures Direct Transfer = Yes)
-
         // [GIVEN] Create subcontracting purchase order and WIP Transfer Order
         SubcontractingMgmtLibrary.CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
         PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
@@ -1435,6 +1433,9 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         PurchaseHeaderPage.OpenView();
         PurchaseHeaderPage.GoToRecord(PurchaseHeader);
         PurchaseHeaderPage.CreateTransfOrdToSubcontractor.Invoke();
+
+        // [GIVEN] Create the transfer route after the order exists so the toggle-off validation can resolve it
+        SubcontractingMgmtLibrary.CreateTransferRoute(WorkCenter[2], ProductionOrder);
 
         // [GIVEN] Transfer Order created with Direct Transfer = Yes and WIP Transfer Line
         TransferLine.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
