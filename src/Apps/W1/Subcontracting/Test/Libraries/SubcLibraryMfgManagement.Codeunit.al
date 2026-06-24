@@ -124,6 +124,12 @@ codeunit 139984 "Subc. Library Mfg. Management"
         MachineCenterNo := MachineCenter."No.";
     end;
 
+    procedure CreateRoutingLineForMachineCenter(var RoutingLine: Record "Routing Line"; RoutingHeader: Record "Routing Header"; MachineCenterNo: Code[20])
+    begin
+        RoutingLine.Type := RoutingLine.Type::"Machine Center";
+        CreateRoutingLine(RoutingLine, RoutingHeader, MachineCenterNo);
+    end;
+
     procedure CreateRouting(var RoutingNo: Code[20]; MachineCenterNo: Code[20]; MachineCenterNo2: Code[20]; WorkCenterNo: Code[20]; WorkCenterNo2: Code[20])
     var
         RoutingHeader: Record "Routing Header";
@@ -143,7 +149,7 @@ codeunit 139984 "Subc. Library Mfg. Management"
         RoutingNo := RoutingHeader."No.";
     end;
 
-    local procedure CreateRoutingLine(var RoutingLine: Record "Routing Line"; RoutingHeader: Record "Routing Header"; CenterNo: Code[20])
+    procedure CreateRoutingLine(var RoutingLine: Record "Routing Line"; RoutingHeader: Record "Routing Header"; CenterNo: Code[20])
     var
         CapacityUnitOfMeasure: Record "Capacity Unit of Measure";
         OperationNo: Code[10];
