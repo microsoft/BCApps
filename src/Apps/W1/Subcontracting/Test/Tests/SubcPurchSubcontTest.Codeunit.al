@@ -713,10 +713,12 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
     var
         FinishedItem: Record Item;
         Location: Record Location;
+        ProdOrderRtngLine: Record "Prod. Order Routing Line";
         ProductionBOMHeader: Record "Production BOM Header";
         ProductionOrder: Record "Production Order";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
+        ReleasedProdOrderRtng: TestPage "Prod. Order Routing";
         RoutingHeader: Record "Routing Header";
         RoutingLine: Record "Routing Line";
         Vendor: Record Vendor;
@@ -763,8 +765,18 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         LibraryMfgManagement.CreateSubcontractingReqWkshTemplateAndNameAndUpdateSetup();
 
         // [WHEN] Create subcontracting purchase order from Prod. Order Routing
-        SubcWarehouseLibrary.CreateSubcontractingOrderFromProdOrderRouting(
-            RoutingHeader."No.", WorkCenter."No.", PurchaseLine);
+        ProdOrderRtngLine.SetRange(Status, "Production Order Status"::Released);
+        ProdOrderRtngLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderRtngLine.SetRange(Type, ProdOrderRtngLine.Type::"Work Center");
+        ProdOrderRtngLine.SetRange("Work Center No.", WorkCenter."No.");
+        ProdOrderRtngLine.FindFirst();
+        ReleasedProdOrderRtng.OpenView();
+        ReleasedProdOrderRtng.GoToRecord(ProdOrderRtngLine);
+        ReleasedProdOrderRtng.CreateSubcontracting.Invoke();
+
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        PurchaseLine.FindFirst();
 
         // [THEN] A purchase order was created and the "Subc. Order" FlowField is true
         PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
