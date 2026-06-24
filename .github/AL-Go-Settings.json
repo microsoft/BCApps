@@ -11,7 +11,7 @@
   "useProjectDependencies": true,
   "incrementalBuilds": {
     "onPush": false,
-    "onPull_Request": true,
+    "onPull_Request": false,
     "onSchedule": false,
     "retentionDays": 30,
     "mode": "modifiedApps"
