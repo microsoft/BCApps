@@ -652,6 +652,16 @@ codeunit 8901 Email
     end;
 
     /// <summary>
+    /// Integration event that allows overriding the filtering of related source records before they are shown.
+    /// </summary>
+    /// <param name="EmailRelatedRecord">The related source records to filter. Subscribers can apply their own filtering, for example to ignore security filtering when determining read permission.</param>
+    /// <param name="IsHandled">Out parameter to set if the event was handled. If set to true, the default filtering is skipped.</param>
+    [IntegrationEvent(false, false)]
+    internal procedure OnBeforeFilterRemovedSourceRecords(var EmailRelatedRecord: Record "Email Related Record"; var IsHandled: Boolean)
+    begin
+    end;
+
+    /// <summary>
     /// Integration event to add additional relations based on added relation to emails.
     /// </summary>
     /// <param name="EmailMessageId">The ID of the email.</param>
