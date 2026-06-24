@@ -96,7 +96,7 @@ codeunit 12132 "Withholding Tax Export"
         if WithholdingTax.FindSet() then begin
             repeat
                 if not LinesExistForEntryNo(WithholdingTax."Entry No.") then begin
-                    if (WithholdingTax."Non Taxable Amount By Treaty" <> 0) and (WithholdingTax."Non-Taxable Income Type" = WithholdingTax."Non-Taxable Income Type"::" ") then
+                    if (WithholdingTax."Non Taxable Amount By Treaty" + WithholdingTax."Non Taxable Amount" <> 0) and (WithholdingTax."Non-Taxable Income Type" = WithholdingTax."Non-Taxable Income Type"::" ") then
                         TempErrorMessage.LogIfEmpty(WithholdingTax, WithholdingTax.FieldNo("Non-Taxable Income Type"), TempErrorMessage."Message Type"::Error);
 
                     if WithholdingTax."Base - Excluded Amount" <> 0 then
@@ -447,7 +447,7 @@ codeunit 12132 "Withholding Tax Export"
               CompanyInformation, CompanyInformation.FieldNo("Activity Code"), TempErrorMessage."Message Type"::Error);
             FlatFileManagement.WriteBlockValue('DA001010', ConstFormat::AN, CompanyInformation."Activity Code");
         end;
-        TempErrorMessage.LogIfEmpty(CompanyInformation, CompanyInformation.FieldNo("Office Code"), TempErrorMessage."Message Type"::Error);
+        TempErrorMessage.LogIfEmpty(CompanyInformation, CompanyInformation.FieldNo("Office Code"), TempErrorMessage."Message Type"::Warning);
         FlatFileManagement.WriteBlockValue('DA001011', ConstFormat::AN, CompanyInformation."Office Code");
 
         if VendorWithholdingTax."Fiscal Code" <> '' then
@@ -544,7 +544,7 @@ codeunit 12132 "Withholding Tax Export"
             WriteBlockValueAmount('AU001004', ConstFormat::VP, TempWithholdingTax."Total Amount");
         if VendorWithholdingTax.Resident <> VendorWithholdingTax.Resident::"Non-Resident" then
             WriteBlockValueAmount('AU001005', ConstFormat::VP, TempWithholdingTax."Non Taxable Amount By Treaty");
-        if (TempWithholdingTax."Non Taxable Amount By Treaty" + TempWithholdingTax."Base - Excluded Amount" <> 0) and
+        if (TempWithholdingTax."Non Taxable Amount By Treaty" + TempWithholdingTax."Non Taxable Amount" + TempWithholdingTax."Base - Excluded Amount" <> 0) and
             (TempWithholdingTax."Non-Taxable Income Type" <> TempWithholdingTax."Non-Taxable Income Type"::" ")
         then
             FlatFileManagement.WriteBlockValue('AU001006', ConstFormat::NP, Format(TempWithholdingTax.GetNonTaxableIncomeTypeNumber()));

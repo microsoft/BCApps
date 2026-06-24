@@ -181,6 +181,11 @@ page 5407 "Prod. Order Comp. Line List"
                     ApplicationArea = Manufacturing;
                     Visible = false;
                 }
+                field("Routing Link Code"; Rec."Routing Link Code")
+                {
+                    ApplicationArea = Manufacturing;
+                    ToolTip = 'Specifies the routing link code when you calculate the production order.';
+                }
             }
         }
         area(factboxes)

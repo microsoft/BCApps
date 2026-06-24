@@ -3703,6 +3703,220 @@ codeunit 134976 "ERM Sales Report"
         VerifyCustomerTrialBalanceDCAmounts(CustomerNo, 0, 0);
     end;
 
+    [Test]
+    [HandlerFunctions('CustomerOrderDetailWithShipmentDateRequestPageHandler')]
+    procedure OrderDetailSkipsEmptyOrderHeadersWhenShipmentDateFiltered()
+    var
+        SalesHeader: array[2] of Record "Sales Header";
+        SalesLine: array[2] of Record "Sales Line";
+        CustomerNo: Code[20];
+        ShipmentDate: Date;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] Report skips order headers with no matching lines when Shipment Date filter is applied.
+        Initialize();
+
+        // [GIVEN] Create a Customer with two Sales Orders.
+        ShipmentDate := WorkDate();
+        CustomerNo := CreateCustomer();
+
+        // [GIVEN] Create a new Sales Order with Shipment Date = WorkDate (matching filter).
+        CreateSalesOrder(SalesHeader[1], SalesLine[1], '', CustomerNo);
+        SalesLine[1].Validate("Shipment Date", ShipmentDate);
+        SalesLine[1].Modify(true);
+
+        // [GIVEN] Create a new Sales Order with Shipment Date = WorkDate + 30D (not matching filter).
+        CreateSalesOrder(SalesHeader[2], SalesLine[2], '', CustomerNo);
+        SalesLine[2].Validate("Shipment Date", ShipmentDate + 30);
+        SalesLine[2].Modify(true);
+
+        // [WHEN] Run Customer - Order Detail report filtered to Shipment Date = WorkDate.
+        RunCustomerOrderDetailReportWithShipmentDate(CustomerNo, Format(ShipmentDate));
+
+        // [THEN] Sales Line from first Order (matching shipment date) is shown.
+        VerifyLineAmtCustomerOrderDetailReport(SalesLine[1]."No.", SalesLine[1]."Line Amount");
+
+        // [THEN] Order header for second Order is not shown (no empty header for non-matching order).
+        LibraryReportDataset.Reset();
+        LibraryReportDataset.SetRange('SalesHeaderNo', SalesHeader[2]."No.");
+        Assert.AreEqual(0, LibraryReportDataset.RowCount(), 'Order with non-matching shipment date should not appear in report.');
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('CustomerOrderDetailWithItemNoFilterRequestPageHandler')]
+    procedure OrderDetailSkipsOrderHeaderWhenItemNoFilterExcludesAllLines()
+    var
+        SalesHeader: array[2] of Record "Sales Header";
+        SalesLine: array[2] of Record "Sales Line";
+        CustomerNo: Code[20];
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 638980] Report skips order headers when Item No. filter excludes all lines of an order.
+        Initialize();
+
+        // [GIVEN] Create a Customer with two Sales Orders, each with a different item.
+        CustomerNo := CreateCustomer();
+        CreateSalesOrder(SalesHeader[1], SalesLine[1], '', CustomerNo);
+        CreateSalesOrder(SalesHeader[2], SalesLine[2], '', CustomerNo);
+
+        // [WHEN] Run Customer - Order Detail report with Item No. filter = item from first Order.
+        LibraryVariableStorage.Enqueue(SalesLine[1]."No.");
+        RunCustomerOrderDetailReportWithItemNoFilter(CustomerNo);
+
+        // [THEN] Sales Line from first Order (matching item) is shown.
+        VerifyLineAmtCustomerOrderDetailReport(SalesLine[1]."No.", SalesLine[1]."Line Amount");
+
+        // [THEN] Order header for second Order is not shown (item filter excludes all its lines).
+        LibraryReportDataset.Reset();
+        LibraryReportDataset.SetRange('SalesHeaderNo', SalesHeader[2]."No.");
+        Assert.AreEqual(0, LibraryReportDataset.RowCount(), 'Order with non-matching item should not appear in report.');
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('CustomerOrderDetailWithItemNoFilterRequestPageHandler')]
+    procedure OrderDetailShowsOrderHeaderWhenItemNoFilterMatchesSomeLines()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: array[2] of Record "Sales Line";
+        CustomerNo: Code[20];
+        MatchingItemNo: Code[20];
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 638980] Report shows order header when Item No. filter matches at least one line.
+        Initialize();
+
+        // [GIVEN] Create a Customer with one Sales Order containing two lines with different items.
+        CustomerNo := CreateCustomer();
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, CustomerNo);
+        MatchingItemNo := LibraryInventory.CreateItemNo();
+        LibrarySales.CreateSalesLine(
+          SalesLine[1], SalesHeader, SalesLine[1].Type::Item, MatchingItemNo, LibraryRandom.RandInt(10));
+        SalesLine[1].Validate("Unit Price", LibraryRandom.RandDecInRange(1000, 2000, 2));
+        SalesLine[1].Modify(true);
+        LibrarySales.CreateSalesLine(
+          SalesLine[2], SalesHeader, SalesLine[2].Type::Item, LibraryInventory.CreateItemNo(), LibraryRandom.RandInt(10));
+        SalesLine[2].Validate("Unit Price", LibraryRandom.RandDecInRange(1000, 2000, 2));
+        SalesLine[2].Modify(true);
+
+        // [WHEN] Run Customer - Order Detail report with Item No. filter = matching item.
+        LibraryVariableStorage.Enqueue(MatchingItemNo);
+        RunCustomerOrderDetailReportWithItemNoFilter(CustomerNo);
+
+        // [THEN] Sales Line with matching item is shown.
+        VerifyLineAmtCustomerOrderDetailReport(SalesLine[1]."No.", SalesLine[1]."Line Amount");
+
+        // [THEN] Sales Line with non-matching item is not shown.
+        LibraryReportDataset.Reset();
+        LibraryReportDataset.SetRange('No_SalesLine', SalesLine[2]."No.");
+        Assert.AreEqual(0, LibraryReportDataset.RowCount(), 'Sales line with non-matching item should not appear in report.');
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('CustomerOrderDetailWithItemNoFilterRequestPageHandler')]
+    procedure OrderDetailShowsMultipleOrdersWhenItemNoFilterMatchesBoth()
+    var
+        SalesHeader: array[2] of Record "Sales Header";
+        SalesLine: array[2] of Record "Sales Line";
+        CustomerNo: Code[20];
+        CommonItemNo: Code[20];
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 638980] Report shows both order headers when Item No. filter matches lines in both orders.
+        Initialize();
+
+        // [GIVEN] Create a Customer with two Sales Orders, both containing the same item.
+        CustomerNo := CreateCustomer();
+        CommonItemNo := LibraryInventory.CreateItemNo();
+        LibrarySales.CreateSalesHeader(SalesHeader[1], SalesHeader[1]."Document Type"::Order, CustomerNo);
+        LibrarySales.CreateSalesLine(
+          SalesLine[1], SalesHeader[1], SalesLine[1].Type::Item, CommonItemNo, LibraryRandom.RandInt(10));
+        SalesLine[1].Validate("Unit Price", LibraryRandom.RandDecInRange(1000, 2000, 2));
+        SalesLine[1].Modify(true);
+        LibrarySales.CreateSalesHeader(SalesHeader[2], SalesHeader[2]."Document Type"::Order, CustomerNo);
+        LibrarySales.CreateSalesLine(
+          SalesLine[2], SalesHeader[2], SalesLine[2].Type::Item, CommonItemNo, LibraryRandom.RandInt(10));
+        SalesLine[2].Validate("Unit Price", LibraryRandom.RandDecInRange(1000, 2000, 2));
+        SalesLine[2].Modify(true);
+
+        // [WHEN] Run Customer - Order Detail report with Item No. filter = common item.
+        LibraryVariableStorage.Enqueue(CommonItemNo);
+        RunCustomerOrderDetailReportWithItemNoFilter(CustomerNo);
+
+        // [THEN] Sales Line from Order 1 is shown.
+        VerifyLineAmtCustomerOrderDetailReport(SalesLine[1]."No.", SalesLine[1]."Line Amount");
+
+        // [THEN] Sales Line from Order 2 is also shown.
+        LibraryReportDataset.Reset();
+        LibraryReportDataset.SetRange('SalesHeaderNo', SalesHeader[2]."No.");
+        Assert.AreNotEqual(0, LibraryReportDataset.RowCount(), 'Order 2 with matching item should appear in report.');
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('CustomerOrderDetailWithItemAndShipmentDateRequestPageHandler')]
+    procedure OrderDetailFiltersByItemNoAndShipmentDateAcrossTwoCustomers()
+    var
+        SalesHeader: array[2] of Record "Sales Header";
+        SalesLine: array[4] of Record "Sales Line";
+        CustomerNo: array[2] of Code[20];
+        ItemNo: array[2] of Code[20];
+        ShipmentDate: Date;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 638980] Report filters by both Item No. and Shipment Date across two customers with multiple items.
+        Initialize();
+
+        // [GIVEN] Create Two items.
+        ShipmentDate := WorkDate();
+        ItemNo[1] := LibraryInventory.CreateItemNo();
+        ItemNo[2] := LibraryInventory.CreateItemNo();
+
+        // [GIVEN] Create a new Customer with Sales Order: line for First Item with Shipment Date = WorkDate, line for Second Item with Shipment Date = WorkDate + 30D.
+        CustomerNo[1] := CreateCustomer();
+        LibrarySales.CreateSalesHeader(SalesHeader[1], SalesHeader[1]."Document Type"::Order, CustomerNo[1]);
+        LibrarySales.CreateSalesLine(
+          SalesLine[1], SalesHeader[1], SalesLine[1].Type::Item, ItemNo[1], LibraryRandom.RandInt(10));
+        SalesLine[1].Validate("Unit Price", LibraryRandom.RandDecInRange(1000, 2000, 2));
+        SalesLine[1].Validate("Shipment Date", ShipmentDate);
+        SalesLine[1].Modify(true);
+        LibrarySales.CreateSalesLine(
+          SalesLine[2], SalesHeader[1], SalesLine[2].Type::Item, ItemNo[2], LibraryRandom.RandInt(10));
+        SalesLine[2].Validate("Unit Price", LibraryRandom.RandDecInRange(1000, 2000, 2));
+        SalesLine[2].Validate("Shipment Date", ShipmentDate + 30);
+        SalesLine[2].Modify(true);
+
+        // [GIVEN] Create a new Customer with Sales Order: line for First Item with Shipment Date = WorkDate + 30D, line for Second Item with Shipment Date = WorkDate.
+        CustomerNo[2] := CreateCustomer();
+        LibrarySales.CreateSalesHeader(SalesHeader[2], SalesHeader[2]."Document Type"::Order, CustomerNo[2]);
+        LibrarySales.CreateSalesLine(
+          SalesLine[3], SalesHeader[2], SalesLine[3].Type::Item, ItemNo[1], LibraryRandom.RandInt(10));
+        SalesLine[3].Validate("Unit Price", LibraryRandom.RandDecInRange(1000, 2000, 2));
+        SalesLine[3].Validate("Shipment Date", ShipmentDate + 30);
+        SalesLine[3].Modify(true);
+        LibrarySales.CreateSalesLine(
+          SalesLine[4], SalesHeader[2], SalesLine[4].Type::Item, ItemNo[2], LibraryRandom.RandInt(10));
+        SalesLine[4].Validate("Unit Price", LibraryRandom.RandDecInRange(1000, 2000, 2));
+        SalesLine[4].Validate("Shipment Date", ShipmentDate);
+        SalesLine[4].Modify(true);
+
+        // [WHEN] Run Customer - Order Detail report with First Item No. and Shipment Date = WorkDate.
+        LibraryVariableStorage.Enqueue(ItemNo[1]);
+        LibraryVariableStorage.Enqueue(Format(ShipmentDate));
+        RunCustomerOrderDetailReportWithItemAndShipmentDate(StrSubstNo('%1|%2', CustomerNo[1], CustomerNo[2]));
+
+        // [THEN] C1 line with First Item No. and matching shipment date is shown.
+        VerifyLineAmtCustomerOrderDetailReport(SalesLine[1]."No.", SalesLine[1]."Line Amount");
+
+        // [THEN] Second Sales order header is not shown (First Item line has non-matching shipment date).
+        LibraryReportDataset.Reset();
+        LibraryReportDataset.SetRange('SalesHeaderNo', SalesHeader[2]."No.");
+        Assert.AreEqual(0, LibraryReportDataset.RowCount(), 'C2 order should not appear when item has non-matching shipment date.');
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
     local procedure Initialize()
     begin
         LibraryApplicationArea.DisableApplicationAreaSetup();
@@ -5154,6 +5368,24 @@ codeunit 134976 "ERM Sales Report"
         Report.Run(Report::"Customer - Order Detail", true, false, Customer);
     end;
 
+    local procedure RunCustomerOrderDetailReportWithItemNoFilter(CustomerNoFilter: Text)
+    var
+        Customer: Record Customer;
+    begin
+        Customer.SetFilter("No.", CustomerNoFilter);
+        Commit();
+        Report.Run(Report::"Customer - Order Detail", true, false, Customer);
+    end;
+
+    local procedure RunCustomerOrderDetailReportWithItemAndShipmentDate(CustomerNoFilter: Text)
+    var
+        Customer: Record Customer;
+    begin
+        Customer.SetFilter("No.", CustomerNoFilter);
+        Commit();
+        Report.Run(Report::"Customer - Order Detail", true, false, Customer);
+    end;
+
     [RequestPageHandler]
     [Scope('OnPrem')]
     procedure StandardSalesInvoiceRequestPageHandler(var StandardSalesInvoice: TestRequestPage "Standard Sales - Invoice")
@@ -5280,6 +5512,30 @@ codeunit 134976 "ERM Sales Report"
         ShipmentDateFilter: Text;
     begin
         ShipmentDateFilter := LibraryVariableStorage.DequeueText();
+        if ShipmentDateFilter <> '' then
+            CustomerOrderDetail."Sales Line".SetFilter("Shipment Date", ShipmentDateFilter);
+        CustomerOrderDetail.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
+    end;
+
+    [RequestPageHandler]
+    procedure CustomerOrderDetailWithItemNoFilterRequestPageHandler(var CustomerOrderDetail: TestRequestPage "Customer - Order Detail")
+    var
+        ItemNoFilter: Text;
+    begin
+        ItemNoFilter := LibraryVariableStorage.DequeueText();
+        CustomerOrderDetail."Sales Line".SetFilter("No.", ItemNoFilter);
+        CustomerOrderDetail.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
+    end;
+
+    [RequestPageHandler]
+    procedure CustomerOrderDetailWithItemAndShipmentDateRequestPageHandler(var CustomerOrderDetail: TestRequestPage "Customer - Order Detail")
+    var
+        ItemNoFilter: Text;
+        ShipmentDateFilter: Text;
+    begin
+        ItemNoFilter := LibraryVariableStorage.DequeueText();
+        ShipmentDateFilter := LibraryVariableStorage.DequeueText();
+        CustomerOrderDetail."Sales Line".SetFilter("No.", ItemNoFilter);
         if ShipmentDateFilter <> '' then
             CustomerOrderDetail."Sales Line".SetFilter("Shipment Date", ShipmentDateFilter);
         CustomerOrderDetail.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());

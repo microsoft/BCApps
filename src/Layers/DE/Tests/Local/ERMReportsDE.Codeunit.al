@@ -426,6 +426,95 @@ codeunit 144051 "ERM Reports DE"
         Assert.ExpectedTestFieldError(Customer.FieldCaption("VAT Registration No."), '');
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure PeriodFormulaParser_FiscalYearWithDotDotRange()
+    var
+        PeriodFormulaParser: Codeunit "Period Formula Parser";
+        Steps: Integer;
+        Type: Enum "Period Type";
+        RangeFromType: Enum "Period Formula Range";
+        RangeToType: Enum "Period Formula Range";
+        RangeFromInt: Integer;
+        RangeToInt: Integer;
+        LanguageId: Integer;
+    begin
+        // [SCENARIO 636346] FY[1..LP] parses correctly: Steps=0, FiscalYear, period 1 to LP.
+        // Uses invariant (English source) tokens so the test does not depend on translations being loaded at runtime.
+
+        // [GIVEN] English language (1033) so labels resolve to their invariant source values.
+        LanguageId := 1033;
+
+        // [WHEN] Parsing FY[1..LP].
+        PeriodFormulaParser.ParsePeriodFormula('FY[1..LP]', Steps, Type, RangeFromType, RangeToType, RangeFromInt, RangeToInt, LanguageId);
+
+        // [THEN] The formula is parsed correctly.
+        Assert.AreEqual(0, Steps, 'Steps');
+        Assert.AreEqual(Type::"Fiscal Year", Type, 'Type');
+        Assert.AreEqual(RangeFromType::Int, RangeFromType, 'FromType');
+        Assert.AreEqual(1, RangeFromInt, 'FromInt');
+        Assert.AreEqual(RangeToType::LP, RangeToType, 'ToType');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure PeriodFormulaParser_DashSeparatorWithEP()
+    var
+        PeriodFormulaParser: Codeunit "Period Formula Parser";
+        Steps: Integer;
+        Type: Enum "Period Type";
+        RangeFromType: Enum "Period Formula Range";
+        RangeToType: Enum "Period Formula Range";
+        RangeFromInt: Integer;
+        RangeToInt: Integer;
+        LanguageId: Integer;
+    begin
+        // [SCENARIO 636346] -1FY[1-EP] is accepted: dash is a valid range separator and EP (End Period) maps to LP.
+        // The dash separator and EP token are language-independent, so the test uses invariant tokens.
+
+        // [GIVEN] English language (1033) so labels resolve to their invariant source values.
+        LanguageId := 1033;
+
+        // [WHEN] Parsing -1FY[1-EP].
+        PeriodFormulaParser.ParsePeriodFormula('-1FY[1-EP]', Steps, Type, RangeFromType, RangeToType, RangeFromInt, RangeToInt, LanguageId);
+
+        // [THEN] Steps=-1, FiscalYear, from Int 1 to LP.
+        Assert.AreEqual(-1, Steps, 'Steps');
+        Assert.AreEqual(Type::"Fiscal Year", Type, 'Type');
+        Assert.AreEqual(RangeFromType::Int, RangeFromType, 'FromType');
+        Assert.AreEqual(1, RangeFromInt, 'FromInt');
+        Assert.AreEqual(RangeToType::LP, RangeToType, 'ToType (EP maps to LP)');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure PeriodFormulaParser_CPToEP()
+    var
+        PeriodFormulaParser: Codeunit "Period Formula Parser";
+        Steps: Integer;
+        Type: Enum "Period Type";
+        RangeFromType: Enum "Period Formula Range";
+        RangeToType: Enum "Period Formula Range";
+        RangeFromInt: Integer;
+        RangeToInt: Integer;
+        LanguageId: Integer;
+    begin
+        // [SCENARIO 636346] -1FY[CP..EP] is accepted: CP (Current Period) to EP (End Period, maps to LP).
+        // Uses invariant (English source) tokens so the test does not depend on translations being loaded at runtime.
+
+        // [GIVEN] English language (1033) so labels resolve to their invariant source values.
+        LanguageId := 1033;
+
+        // [WHEN] Parsing -1FY[CP..EP].
+        PeriodFormulaParser.ParsePeriodFormula('-1FY[CP..EP]', Steps, Type, RangeFromType, RangeToType, RangeFromInt, RangeToInt, LanguageId);
+
+        // [THEN] Steps=-1, FiscalYear, from CP to LP (EP maps to LP).
+        Assert.AreEqual(-1, Steps, 'Steps');
+        Assert.AreEqual(Type::"Fiscal Year", Type, 'Type');
+        Assert.AreEqual(RangeFromType::CP, RangeFromType, 'FromType');
+        Assert.AreEqual(RangeToType::LP, RangeToType, 'ToType (EP maps to LP)');
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"ERM Reports DE");

@@ -30,6 +30,18 @@ codeunit 11029 IntrastatReportManagementDE
         CreateDefaultDataExchangeDef();
     end;
 
+    [EventSubscriber(ObjectType::Table, Database::"Intrastat Report Header", 'OnBeforeInsertEvent', '', false, false)]
+    local procedure DefaultSubmissionChannelOnBeforeInsertIntrastatReportHeader(var Rec: Record "Intrastat Report Header"; RunTrigger: Boolean)
+    var
+        IntrastatReportSetup: Record "Intrastat Report Setup";
+    begin
+        if Rec.IsTemporary() then
+            exit;
+        if not IntrastatReportSetup.Get() then
+            exit;
+        Rec."Submission Channel" := IntrastatReportSetup."Default Submission Channel";
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::IntrastatReportManagement, 'OnBeforeInitCheckList', '', true, true)]
     local procedure OnBeforeInitCheckList(var IsHandled: Boolean)
     var
@@ -285,6 +297,7 @@ codeunit 11029 IntrastatReportManagementDE
     var
         CompanyInformation: Record "Company Information";
         RoundedDateTime: DateTime;
+        MaterialNo: Text;
     begin
         IntrastatReportHeader := IntrastatReportHeader2;
         TestIndicator := IntrastatReportHeader."Test Submission";
@@ -297,7 +310,12 @@ codeunit 11029 IntrastatReportManagementDE
         CompanyInformation.TestField("Registration No.");
         CompanyInformation.TestField(Area);
         CompanyInformation.TestField("Agency No.");
-        CompanyInformation.TestField("Company No.");
+        // The Submission Channel determines the message-ID format. IDEV requires the "Company No."
+        // (Material No.) because it is prefixed into the message ID to identify the data provider;
+        // eSTATISTIK.CORE authenticates via the portal and ignores the field, so it is not required.
+        if IntrastatReportHeader."Submission Channel" = IntrastatReportHeader."Submission Channel"::IDEV then
+            if CompanyInformation."Company No." = '' then
+                Error(IDEVRequiresMaterialNoErr);
         CompanyInformation.TestField(Address);
         CompanyInformation.TestField("Post Code");
         CompanyInformation.TestField(City);
@@ -307,8 +325,15 @@ codeunit 11029 IntrastatReportManagementDE
         CreationDate := DT2Date(RoundedDateTime);
         CreationTime := DT2Time(RoundedDateTime);
 
-        MessageID :=
-          GetMaterialNumber() + '-' +
+        // Submission Channel switch: IDEV keeps the material-number prefix (incl. the XGTEST test
+        // marker) in the message ID; eSTATISTIK.CORE uses the clean ID format and ignores any
+        // material number that happens to be set.
+        MessageID := '';
+        if IntrastatReportHeader."Submission Channel" = IntrastatReportHeader."Submission Channel"::IDEV then begin
+            MaterialNo := GetMaterialNumber();
+            MessageID := MaterialNo + '-';
+        end;
+        MessageID +=
           Format(StartDate, 0, '<Year4><Month,2>') + '-' +
           Format(CreationDate, 0, '<Year4><Month,2><Day,2>') + '-' +
           Format(CreationTime, 0, '<Hours2><Minutes>');
@@ -467,6 +492,7 @@ codeunit 11029 IntrastatReportManagementDE
         UnknownCountryVATNoLbl: TextConst ENU = '999999999999';
         FileNameLbl: Label '%1.xml', Locked = true;
         ZipFileNameLbl: Label 'Intrastat-%1.zip', Comment = '%1 - Statistics Period';
+        IDEVRequiresMaterialNoErr: Label 'To export without a Material No., set the Submission Channel to eSTATISTIK.CORE. The IDEV format requires the Material No. (Company No.) in the Company Information.';
         RegNoExcludeCharsTxt: Label 'ABCDEFGHIJKLMNOPQRSTUVWXYZ/-.+', Comment = 'Locked. Do not translate.';
         LocalNamespaceURILbl: Label 'http://www.w3.org/2001/XMLSchema-instance', Locked = true;
         StartDate, CreationDate : Date;

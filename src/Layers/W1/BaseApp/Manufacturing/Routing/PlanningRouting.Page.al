@@ -129,6 +129,12 @@ page 99000863 "Planning Routing"
                     ApplicationArea = Manufacturing;
                     Visible = false;
                 }
+                field("Routing Link Code"; Rec."Routing Link Code")
+                {
+                    ApplicationArea = Manufacturing;
+                    ToolTip = 'Specifies the routing link code.';
+                    Visible = false;
+                }
             }
         }
         area(factboxes)

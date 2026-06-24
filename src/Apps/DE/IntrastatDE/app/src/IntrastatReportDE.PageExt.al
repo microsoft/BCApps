@@ -14,6 +14,12 @@ pageextension 11030 "Intrastat Report DE" extends "Intrastat Report"
             group(ExportParamenters)
             {
                 Caption = 'Export Parameters';
+                field("Submission Channel"; Rec."Submission Channel")
+                {
+                    ApplicationArea = BasicEU;
+                    Caption = 'Submission Channel';
+                    ToolTip = 'Specifies how the Intrastat report is submitted. To choose the default submission channel, open Intrastat Report Setup.';
+                }
                 field("Test Submission"; Rec."Test Submission")
                 {
                     ApplicationArea = BasicEU;

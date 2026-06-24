@@ -2875,19 +2875,24 @@
     "name": "Subcontracting",
     "groups": [
       {
-        "name": "AllExtensions"
+        "name": "AllExtensions",
+        "doNotInstall": true
       },
       {
-        "name": "Financials"
+        "name": "Financials",
+        "doNotInstall": true
       },
       {
-        "name": "FinancialsExtensions"
+        "name": "FinancialsExtensions",
+        "doNotInstall": true
       },
       {
-        "name": "OnPrem"
+        "name": "OnPrem",
+        "doNotInstall": true
       },
       {
-        "name": "OnPremExtensions"
+        "name": "OnPremExtensions",
+        "doNotInstall": true
       }
     ]
   },
@@ -2895,19 +2900,49 @@
     "name": "Subcontracting-Tests",
     "groups": [
       {
-        "name": "AllExtensions"
+        "name": "AllExtensions",
+        "doNotInstall": true
       },
       {
-        "name": "Financials"
+        "name": "Financials",
+        "doNotInstall": true
       },
       {
-        "name": "FinancialsExtensions"
+        "name": "FinancialsExtensions",
+        "doNotInstall": true
       },
       {
-        "name": "OnPrem"
+        "name": "OnPrem",
+        "doNotInstall": true
       },
       {
-        "name": "OnPremExtensions"
+        "name": "OnPremExtensions",
+        "doNotInstall": true
+      }
+    ]
+  },
+  {
+    "name": "Subcontracting Migration for IT",
+    "groups": [
+      {
+        "name": "AllExtensions",
+        "doNotInstall": true
+      },
+      {
+        "name": "Financials",
+        "doNotInstall": true
+      },
+      {
+        "name": "FinancialsExtensions",
+        "doNotInstall": true
+      },
+      {
+        "name": "OnPrem",
+        "doNotInstall": true
+      },
+      {
+        "name": "OnPremExtensions",
+        "doNotInstall": true
       }
     ]
   },
@@ -6473,6 +6508,28 @@
   },
   {
     "name": "Intrastat DE",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      },
+      {
+        "name": "OnPrem",
+        "doNotInstall": true
+      },
+      {
+        "name": "OnPremExtensions",
+        "doNotInstall": true
+      }
+    ]
+  },
+  {
+    "name": "Intrastat DE Tests",
     "groups": [
       {
         "name": "AllExtensions"

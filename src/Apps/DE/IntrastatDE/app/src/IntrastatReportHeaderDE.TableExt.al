@@ -8,9 +8,17 @@ tableextension 11030 "Intrastat Report Header DE" extends "Intrastat Report Head
 {
     fields
     {
+#pragma warning disable PTE0002
         field(11029; "Test Submission"; Boolean)
         {
             Caption = 'Test Submission';
+            DataClassification = CustomerContent;
         }
+        field(11030; "Submission Channel"; Enum "Intrastat Submission Channel DE")
+        {
+            Caption = 'Submission Channel';
+            DataClassification = CustomerContent;
+        }
+#pragma warning restore PTE0002
     }
 }

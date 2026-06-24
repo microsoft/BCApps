@@ -881,6 +881,7 @@ codeunit 144021 "IT - CU 2015 Unit Test"
         WithholdingTax: Record "Withholding Tax";
         VendorNo: Code[20];
         Filename: Text;
+        EntryNo: Integer;
     begin
         // [SCENARIO 416538] Withholding tax export groups empty non-taxable income type entries with the first non-empty one
         Initialize();
@@ -888,14 +889,20 @@ codeunit 144021 "IT - CU 2015 Unit Test"
         // [GIVEN] Vendor
         VendorNo := CreateVendor();
 
-        // [GIVEN] Withholding tax entry 1 with "Non-Taxable Income Type" = " "
-        CreateWithholdingTaxWithAU001006WithEmptyNonTaxable(VendorNo, "Withholding Tax Reason"::A, 0, WorkDate(), WorkDate());
+        // [GIVEN] Withholding tax entry 1 with "Non-Taxable Income Type" = " " and zero non-taxable amounts
+        EntryNo := CreateWithholdingTaxWithAU001006WithEmptyNonTaxable(VendorNo, "Withholding Tax Reason"::A, 0, WorkDate(), WorkDate());
+        WithholdingTax.Get(EntryNo);
+        WithholdingTax."Non Taxable Amount" := 0;
+        WithholdingTax.Modify();
 
         // [GIVEN] Withholding tax entry 2 with "Non-Taxable Income Type" = 2
         CreateWithholdingTaxWithAU001006(VendorNo, "Withholding Tax Reason"::A, 0, WorkDate(), WorkDate(), WithholdingTax."Non-Taxable Income Type"::"2");
 
-        // [GIVEN] Withholding Tax entry 3 with "Non-Taxable Income Type" = " "
-        CreateWithholdingTaxWithAU001006WithEmptyNonTaxable(VendorNo, "Withholding Tax Reason"::A, 0, WorkDate(), WorkDate());
+        // [GIVEN] Withholding Tax entry 3 with "Non-Taxable Income Type" = " " and zero non-taxable amounts
+        EntryNo := CreateWithholdingTaxWithAU001006WithEmptyNonTaxable(VendorNo, "Withholding Tax Reason"::A, 0, WorkDate(), WorkDate());
+        WithholdingTax.Get(EntryNo);
+        WithholdingTax."Non Taxable Amount" := 0;
+        WithholdingTax.Modify();
 
         // [WHEN] Export withholding taxes
         Filename := Export(CreateCompanyOfficial());
@@ -1293,6 +1300,103 @@ codeunit 144021 "IT - CU 2015 Unit Test"
 
         // [THEN] H record for module 2 (line 6) has AU001001 = B
         ValidateBlockValue(6, 'AU001001', 0, Format("Withholding Tax Reason"::B));
+    end;
+
+    [Test]
+    [HandlerFunctions('ErrorPageHandlerSimple')]
+    [Scope('OnPrem')]
+    procedure ExportWithBlankOfficeCodeSucceedsWithWarning()
+    var
+        WithholdingTax: Record "Withholding Tax";
+        VendorNo: Code[20];
+        Filename: Text;
+    begin
+        // [SCENARIO] Export succeeds when Office Code is blank - produces warning, not blocking error
+        Initialize();
+
+        // [GIVEN] Company Information with blank Office Code
+        CompanyInformation.Get();
+        CompanyInformation."Office Code" := '';
+        CompanyInformation.Modify();
+
+        // [GIVEN] Withholding tax entry
+        VendorNo := CreateVendor();
+        CreateWithholdingTaxWithAU001006AndContributionEntry(
+          VendorNo, "Withholding Tax Reason"::A, 0, WorkDate(), WorkDate(), WithholdingTax."Non-Taxable Income Type"::"1");
+
+        // [WHEN] Export withholding taxes
+        Filename := Export(CreateCompanyOfficial());
+
+        // [THEN] Export succeeds (file is created)
+        Assert.IsTrue(FileMgt.ServerFileExists(Filename), 'Export file should be created with blank Office Code');
+
+        // Cleanup
+        CompanyInformation."Office Code" := 'abc';
+        CompanyInformation.Modify();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ExportAU001006WrittenWhenOnlyNonTaxableAmountIsNonZero()
+    var
+        WithholdingTax: Record "Withholding Tax";
+        VendorNo: Code[20];
+        Filename: Text;
+    begin
+        // [SCENARIO] AU001006 is written when "Non Taxable Amount" is nonzero and "Non Taxable Amount By Treaty" is zero
+        Initialize();
+
+        // [GIVEN] Withholding tax entry with "Non Taxable Amount" <> 0, "Non Taxable Amount By Treaty" = 0, "Non-Taxable Income Type" = "2"
+        VendorNo := CreateVendor();
+        WithholdingTax.Get(
+          CreateWithholdingTaxWithAU001006AndContributionEntry(
+            VendorNo, "Withholding Tax Reason"::A, 0, WorkDate(), WorkDate(), WithholdingTax."Non-Taxable Income Type"::"2"));
+        WithholdingTax."Non Taxable Amount By Treaty" := 0;
+        WithholdingTax."Non Taxable Amount" := LibraryRandom.RandDec(100, 2);
+        WithholdingTax.Modify();
+
+        // [WHEN] Export withholding taxes
+        Filename := Export(CreateCompanyOfficial());
+
+        // [THEN] AU001006 is present in the H record with value "2"
+        LoadFile(Filename);
+        ValidateBlockValue(4, 'AU001006', ConstFormat::NP, Format(WithholdingTax."Non-Taxable Income Type"::"2".Names().Get(WithholdingTax."Non-Taxable Income Type"::"2".AsInteger() + 1)));
+
+        // [THEN] AU001007 has the Non Taxable Amount value
+        ValidateBlockValue(4, 'AU001007', ConstFormat::VP, WithholdingTax."Non Taxable Amount");
+    end;
+
+    [Test]
+    [HandlerFunctions('MsgHandler,ErrorPageHandler')]
+    [Scope('OnPrem')]
+    procedure ErrorWhenNonTaxableAmountNonZeroAndIncomeTypeBlank()
+    var
+        WithholdingTax: Record "Withholding Tax";
+        SigningCompanyOfficialNo: Code[20];
+        VendorNo: Code[20];
+        WHTEntryNo: Integer;
+    begin
+        // [SCENARIO] Error when "Non Taxable Amount" is nonzero and "Non-Taxable Income Type" is blank
+        Initialize();
+
+        // [GIVEN] Withholding tax entry with "Non Taxable Amount" <> 0, "Non Taxable Amount By Treaty" = 0, "Non-Taxable Income Type" = " "
+        VendorNo := CreateVendor();
+        WHTEntryNo :=
+          CreateWithholdingTaxWithAU001006AndContributionEntry(
+            VendorNo, "Withholding Tax Reason"::A, 0, WorkDate(), WorkDate(), WithholdingTax."Non-Taxable Income Type"::" ");
+        WithholdingTax.Get(WHTEntryNo);
+        WithholdingTax."Non Taxable Amount By Treaty" := 0;
+        WithholdingTax."Non Taxable Amount" := LibraryRandom.RandDec(100, 2);
+        WithholdingTax.Modify();
+
+        // [WHEN] Export withholding taxes
+        SigningCompanyOfficialNo := CreateCompanyOfficial();
+        LibraryVariableStorage.Enqueue(WHTEntryNo);
+        LibraryVariableStorage.Enqueue(WithholdingTax.FieldCaption("Non-Taxable Income Type"));
+        Export(SigningCompanyOfficialNo);
+
+        // [THEN] Error log shows Error Message for empty Non-Taxable Income Type
+        // Verification is done inside ErrorPageHandler
     end;
 
     local procedure Initialize()
@@ -1814,6 +1918,12 @@ codeunit 144021 "IT - CU 2015 Unit Test"
     begin
         ErrorMessages.Description.AssertEquals(LibraryVariableStorage.DequeueText());
         Assert.IsFalse(ErrorMessages.Next(), WrongRecordFoundErr);
+    end;
+
+    [PageHandler]
+    [Scope('OnPrem')]
+    procedure ErrorPageHandlerSimple(var ErrorMessages: TestPage "Error Messages")
+    begin
     end;
 
     [ModalPageHandler]

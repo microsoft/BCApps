@@ -8,6 +8,7 @@ codeunit 921 "Period Formula Parser"
 {
     var
         CurrentPeriodTok: Label 'CP';
+        EndPeriodTok: Label 'EP';
         FiscalYearTok: Label 'FY';
         LastPeriodTok: Label 'LP';
         PeriodFormulaErr: Label '%1 is not a valid Period Formula.', Comment = '%1 - value of Comparison Period Formula field';
@@ -207,9 +208,7 @@ codeunit 921 "Period Formula Parser"
         if FormulaExpression = '' then
             exit(false);
 
-        if CopyStr(FormulaExpression, 1, 1) = '.' then begin
-            if not ParseToken(FormulaExpression, '..') then
-                exit(false);
+        if ParseRangeSeparator(FormulaExpression) then begin
             if not ParseIndex(FormulaExpression, ToType, ToInt) then
                 exit(false);
         end else begin
@@ -221,6 +220,21 @@ codeunit 921 "Period Formula Parser"
             exit(false);
 
         exit(true);
+    end;
+
+    local procedure ParseRangeSeparator(var FormulaExpression: Code[20]): Boolean
+    begin
+        case CopyStr(FormulaExpression, 1, 1) of
+            '.':
+                exit(ParseToken(FormulaExpression, '..'));
+            '-':
+                begin
+                    FormulaExpression := CopyStr(FormulaExpression, 2);
+                    exit(true);
+                end;
+            else
+                exit(false);
+        end;
     end;
 
     local procedure ParseIndex(var FormulaExpression: Code[20]; var IndexType: Enum "Period Formula Range"; var Index: Integer): Boolean
@@ -235,6 +249,8 @@ codeunit 921 "Period Formula Parser"
                 CurrentPeriodTok:
                     IndexType := IndexType::CP;
                 LastPeriodTok:
+                    IndexType := IndexType::LP;
+                EndPeriodTok:
                     IndexType := IndexType::LP;
                 else
                     exit(false);
@@ -257,7 +273,7 @@ codeunit 921 "Period Formula Parser"
         p: Integer;
     begin
         for p := 1 to StrLen(FormulaExpression) do begin
-            if CopyStr(FormulaExpression, p, 1) in ['[', ']', '.'] then begin
+            if CopyStr(FormulaExpression, p, 1) in ['[', ']', '.', '-'] then begin
                 FormulaExpression := CopyStr(FormulaExpression, StrLen(Token) + 1);
                 exit(Token);
             end;

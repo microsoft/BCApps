@@ -20518,5 +20518,17 @@
     "codeunitId": 144108,
     "codeunitName": "ERM Service Invoice ES",
     "method": "ManualInvoiceDiscountAmountAllowInvoiceDiscountTrue"
+  },
+  {
+    "codeunitId": 144001,
+    "codeunitName": "MX CFDI",
+    "method": "PaymentStampFechaUsesStampDateWhenPostingDateDiffers",
+    "bug": "639636"
+  },
+  {
+    "codeunitId": 144001,
+    "codeunitName": "MX CFDI",
+    "method": "PaymentStampDatesMatchWhenPostingDateIsToday",
+    "bug": "639636"
   }
 ]

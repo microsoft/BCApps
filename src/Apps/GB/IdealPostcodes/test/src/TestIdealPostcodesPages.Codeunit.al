@@ -1730,6 +1730,101 @@ codeunit 148121 "Test IdealPostcodes Pages"
         TearDown();
     end;
 
+    [Test]
+    [HandlerFunctions('PostcodeSearchOrgModalPageHandler,IdealPostCodesHttpClientHandler')]
+    [Scope('OnPrem')]
+    procedure TestRemoveOrganisationNameStripsOrgFromAddress()
+    var
+        CustomerCard: TestPage "Customer Card";
+    begin
+        // [SCENARIO] When "Remove Organisation Name" is enabled and the first address line
+        // equals the organisation name, the organisation name is dropped and the remaining
+        // address lines are shifted up.
+
+        // [GIVEN] service is configured and the "Remove Organisation Name" option is enabled
+        Initialize();
+        SetRemoveOrganisationName(true);
+        LibraryLowerPermissions.SetCustomerEdit();
+
+        // [WHEN] postcode search returns an address whose line_1 equals the organisation name
+        CustomerCard.OpenEdit();
+        CustomerCard."Country/Region Code".Value('');
+        CustomerCard."Post Code".Value('ORGPOSTCODE');
+
+        // [THEN] the organisation name is removed and line_2/line_3 are shifted into Address/Address 2
+        Assert.AreEqual('10 DOWNING STREET', CustomerCard.Address.Value, RetrievedInvalidValueTok);
+        Assert.AreEqual('WESTMINSTER', CustomerCard."Address 2".Value, RetrievedInvalidValueTok);
+        Assert.AreEqual('ORGPOSTCODE', CustomerCard."Post Code".Value, RetrievedInvalidValueTok);
+        Assert.AreEqual('CITY', CustomerCard.City.Value, RetrievedInvalidValueTok);
+        Assert.AreEqual('GB', CustomerCard."Country/Region Code".Value, RetrievedInvalidValueTok);
+
+        LibraryLowerPermissions.SetO365BusFull(); // for cleanup
+        TearDown();
+    end;
+
+    [Test]
+    [HandlerFunctions('PostcodeSearchOrgModalPageHandler,IdealPostCodesHttpClientHandler')]
+    [Scope('OnPrem')]
+    procedure TestRemoveOrganisationNameDisabledKeepsOrgInAddress()
+    var
+        CustomerCard: TestPage "Customer Card";
+    begin
+        // [SCENARIO] When "Remove Organisation Name" is disabled, the organisation name is
+        // kept in the first address line (default behaviour).
+
+        // [GIVEN] service is configured and the "Remove Organisation Name" option is disabled
+        Initialize();
+        SetRemoveOrganisationName(false);
+        LibraryLowerPermissions.SetCustomerEdit();
+
+        // [WHEN] postcode search returns an address whose line_1 equals the organisation name
+        CustomerCard.OpenEdit();
+        CustomerCard."Country/Region Code".Value('');
+        CustomerCard."Post Code".Value('ORGPOSTCODE');
+
+        // [THEN] the organisation name is kept and the address lines are not shifted
+        Assert.AreEqual('ACME LTD', CustomerCard.Address.Value, RetrievedInvalidValueTok);
+        Assert.AreEqual('10 DOWNING STREET', CustomerCard."Address 2".Value, RetrievedInvalidValueTok);
+        Assert.AreEqual('ORGPOSTCODE', CustomerCard."Post Code".Value, RetrievedInvalidValueTok);
+        Assert.AreEqual('CITY', CustomerCard.City.Value, RetrievedInvalidValueTok);
+        Assert.AreEqual('GB', CustomerCard."Country/Region Code".Value, RetrievedInvalidValueTok);
+
+        LibraryLowerPermissions.SetO365BusFull(); // for cleanup
+        TearDown();
+    end;
+
+    [Test]
+    [HandlerFunctions('PostcodeSearchOrgModalPageHandler,IdealPostCodesHttpClientHandler')]
+    [Scope('OnPrem')]
+    procedure TestRemoveOrganisationNameWithEmptyLine2()
+    var
+        CustomerCard: TestPage "Customer Card";
+    begin
+        // [SCENARIO] When "Remove Organisation Name" is enabled, the first address line equals
+        // the organisation name and line_2 is empty, the first non-empty remaining line (line_3)
+        // is shifted into Address so it is never left blank.
+
+        // [GIVEN] service is configured and the "Remove Organisation Name" option is enabled
+        Initialize();
+        SetRemoveOrganisationName(true);
+        LibraryLowerPermissions.SetCustomerEdit();
+
+        // [WHEN] postcode search returns an address with org name in line_1, empty line_2 and a line_3
+        CustomerCard.OpenEdit();
+        CustomerCard."Country/Region Code".Value('');
+        CustomerCard."Post Code".Value('ORGPOSTCODE2');
+
+        // [THEN] line_3 is shifted into Address and Address 2 is left blank
+        Assert.AreEqual('WESTMINSTER', CustomerCard.Address.Value, RetrievedInvalidValueTok);
+        Assert.AreEqual('', CustomerCard."Address 2".Value, RetrievedInvalidValueTok);
+        Assert.AreEqual('ORGPOSTCODE2', CustomerCard."Post Code".Value, RetrievedInvalidValueTok);
+        Assert.AreEqual('CITY', CustomerCard.City.Value, RetrievedInvalidValueTok);
+        Assert.AreEqual('GB', CustomerCard."Country/Region Code".Value, RetrievedInvalidValueTok);
+
+        LibraryLowerPermissions.SetO365BusFull(); // for cleanup
+        TearDown();
+    end;
+
     local procedure Initialize()
     var
         PostcodeServiceConfig: Record "Postcode Service Config";
@@ -1812,6 +1907,16 @@ codeunit 148121 "Test IdealPostcodes Pages"
         Initialized := false;
     end;
 
+    local procedure SetRemoveOrganisationName(NewValue: Boolean)
+    var
+        IPCConfig: Record "IPC Config";
+    begin
+        IPCConfig.Get();
+        IPCConfig."Remove Organisation Name" := NewValue;
+        IPCConfig.Modify();
+        Commit();
+    end;
+
     local procedure ErrorMsgGenerator(Visible: Boolean; FieldName: Text): Text
     var
         ErrorMsg: Text;
@@ -1851,6 +1956,14 @@ codeunit 148121 "Test IdealPostcodes Pages"
         IPCAddressLookup.Cancel().Invoke();
     end;
 
+    [ModalPageHandler]
+    [Scope('OnPrem')]
+    procedure PostcodeSearchOrgModalPageHandler(var IPCAddressLookup: TestPage "IPC Address Lookup")
+    begin
+        // Only a single address is returned for ORGPOSTCODE, so the first (and only) row is selected
+        IPCAddressLookup.OK().Invoke();
+    end;
+
     [HttpClientHandler]
     procedure IdealPostCodesHttpClientHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
     var
@@ -1863,6 +1976,10 @@ codeunit 148121 "Test IdealPostcodes Pages"
         case Request.Path of
             URLTxt + '/postcodes/TESTPOSTCODE':
                 ResourceName := 'SearchAddress_TESTPOSTCODE.json';
+            URLTxt + '/postcodes/ORGPOSTCODE':
+                ResourceName := 'SearchAddress_ORGPOSTCODE.json';
+            URLTxt + '/postcodes/ORGPOSTCODE2':
+                ResourceName := 'SearchAddress_ORGPOSTCODE2.json';
             else
                 exit(true);
         end;

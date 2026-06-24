@@ -3528,10 +3528,8 @@
       "dvdFolder": "Applications\\Subcontracting\\Source",
       "supportedCountries": "All",
       "installOnEnvironmentUpdate": false,
+      "skipInstallOnPrem": true,
       "hasTranslations": true,
-      "unsupportedCountries": [
-        "IT"
-      ],
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
       "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
@@ -3542,14 +3540,23 @@
       "dvdFolder": "Applications\\Subcontracting\\Test",
       "supportedCountries": "All",
       "isTest": true,
-      "unsupportedCountries": [
-        "IT"
-      ],
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
       "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "owningteam": "\\AI Business Solutions\\SCM"
+    },
+    "Subcontracting Migration for IT": {
+      "projectPath": "$env:INETROOT\\App\\Apps\\IT\\SubcontractingMigrationIT\\App",
+      "dvdFolder": "Applications\\SubcontractingMigrationIT\\Source",
+      "supportedCountries": "IT",
+      "installOnEnvironmentUpdate": false,
+      "skipInstallOnPrem": true,
+      "hasTranslations": true,
+      "runStaticCodeAnalysis": true,
+      "logLevel": "warning",
+      "ruleSetPath": "$ENV:INETROOT\\App\\Rulesets\\app.ruleset.json",
+      "ruleSetPathMinorRelease": "$ENV:INETROOT\\App\\Rulesets\\MinorRelease\\app.ruleset.json"
     },
     "Recommended Apps": {
       "projectPath": "$env:INETROOT\\App\\Apps\\W1\\RecommendedApps\\app",
@@ -4789,6 +4796,17 @@
       "logLevel": "warning",
       "ruleSetPath": "$ENV:INETROOT\\App\\Rulesets\\app.ruleset.json",
       "ruleSetPathMinorRelease": "$ENV:INETROOT\\App\\Rulesets\\MinorRelease\\app.ruleset.json"
+    },
+    "Intrastat DE Tests": {
+      "projectPath": "$env:INETROOT\\App\\Apps\\DE\\IntrastatDE\\test",
+      "dvdFolder": "Applications\\IntrastatDE\\Test",
+      "supportedCountries": "DE",
+      "isTest": true,
+      "runStaticCodeAnalysis": true,
+      "logLevel": "warning",
+      "ruleSetPath": "$ENV:INETROOT\\App\\Rulesets\\app.ruleset.json",
+      "ruleSetPathMinorRelease": "$ENV:INETROOT\\App\\Rulesets\\MinorRelease\\app.ruleset.json",
+      "owningteam": "\\AI Business Solutions\\SCM"
     },
     "Intrastat ES": {
       "projectPath": "$env:INETROOT\\App\\Apps\\ES\\IntrastatES\\app",

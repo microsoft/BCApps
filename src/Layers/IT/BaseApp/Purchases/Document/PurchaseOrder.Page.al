@@ -48,12 +48,7 @@ page 50 "Purchase Order"
     PageType = Document;
     RefreshOnActivate = true;
     SourceTable = "Purchase Header";
-#if not CLEAN28
-    SourceTableView = where("Document Type" = filter(Order),
-                            "Subcontracting Order" = const(false));
-#else
     SourceTableView = where("Document Type" = filter(Order));
-#endif
     AdditionalSearchTerms = 'Procurement, Buy Order, Vendor Order, Order Purchase, Acquisition, Supplier Order, Buy List, Purchase, Supply Order, Goods Order';
 
     layout

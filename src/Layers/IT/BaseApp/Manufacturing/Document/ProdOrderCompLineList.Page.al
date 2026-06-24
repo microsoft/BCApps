@@ -212,7 +212,8 @@ page 5407 "Prod. Order Comp. Line List"
                     ApplicationArea = Manufacturing;
                     Visible = false;
                 }
-            }
+
+             }
         }
         area(factboxes)
         {
