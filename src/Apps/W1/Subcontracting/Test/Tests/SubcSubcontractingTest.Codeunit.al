@@ -2532,6 +2532,101 @@ codeunit 139989 "Subc. Subcontracting Test"
 
     [Test]
     [HandlerFunctions('ConfirmHandler,HandleTransferOrder')]
+    procedure PostingSubcontractingTransferSetsSourceFieldsOnPostedHeaders()
+    var
+        Bin: Record Bin;
+        Item: Record Item;
+        Location: Record Location;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProdOrderComp: Record "Prod. Order Component";
+        ProductionOrder: Record "Production Order";
+        PurchaseLine: Record "Purchase Line";
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        TransferShipmentHeader: Record "Transfer Shipment Header";
+        TransferReceiptHeader: Record "Transfer Receipt Header";
+        Vendor: Record Vendor;
+        WorkCenter: array[2] of Record "Work Center";
+        PurchaseHeaderPage: TestPage "Purchase Order";
+    begin
+        // [SCENARIO 638466] Posting a non-direct subcontracting transfer (ship + receive) propagates Source Type and Source ID to both the Transfer Shipment Header and the Transfer Receipt Header
+
+        // [GIVEN] Standard subcontracting setup with an in-transit transfer route (non-direct)
+        Initialize();
+        SubcontractingMgmtLibrary.UpdateManufacturingSetupWithSubcontractingLocation();
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Transfer to Vendor");
+        UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
+        UpdateSubMgmtSetupWithReqWkshTemplate();
+        SubcontractingMgmtLibrary.UpdateProdOrderCompWithLocationCode(ProductionOrder."No.");
+        SubcontractingMgmtLibrary.CreateTransferRoute(WorkCenter[2], ProductionOrder);
+
+        // [GIVEN] Subcontracting purchase order and outbound transfer order to vendor
+        SubcontractingMgmtLibrary.CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
+
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        PurchaseLine.FindFirst();
+
+        PurchaseHeaderPage.OpenView();
+        PurchaseHeaderPage.GotoKey("Purchase Document Type"::Order, PurchaseLine."Document No.");
+        PurchaseHeaderPage.CreateTransfOrdToSubcontractor.Invoke();
+
+        ProdOrderComp.SetRange("Prod. Order No.", ProductionOrder."No.");
+#pragma warning disable AA0210
+        ProdOrderComp.SetRange("Component Supply Method", ProdOrderComp."Component Supply Method"::"Transfer to Vendor");
+#pragma warning restore AA0210
+        ProdOrderComp.FindFirst();
+
+        TransferLine.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
+        TransferLine.SetRange("Item No.", ProdOrderComp."Item No.");
+        TransferLine.FindFirst();
+        TransferHeader.Get(TransferLine."Document No.");
+
+        // [GIVEN] Inventory at the source location
+        Location.Get(TransferHeader."Transfer-from Code");
+        Item.Get(ProdOrderComp."Item No.");
+        CreateInventory(Item, Location, Bin, ProdOrderComp."Expected Qty. (Base)");
+        Vendor.Get(WorkCenter[2]."Subcontractor No.");
+
+        // [WHEN] Posting the outbound transfer shipment
+        LibraryWarehouse.PostTransferOrder(TransferHeader, true, false);
+
+        // [THEN] The Transfer Shipment Header has Source Type = Subcontracting and Source ID = Vendor No.
+        TransferShipmentHeader.SetRange("Subcontr. Purch. Order No.", PurchaseLine."Document No.");
+        Assert.RecordIsNotEmpty(TransferShipmentHeader);
+        TransferShipmentHeader.FindFirst();
+        Assert.AreEqual(
+            "Transfer Source Type"::Subcontracting, TransferShipmentHeader."Subc. Source Type",
+            'Subc. Source Type must be Subcontracting on Transfer Shipment Header');
+        Assert.AreEqual(
+            Vendor."No.", TransferShipmentHeader."Source ID",
+            'Source ID must be the Vendor No. on Transfer Shipment Header');
+
+        // [WHEN] Posting the inbound transfer receipt
+        TransferHeader.Get(TransferHeader."No.");
+        LibraryWarehouse.PostTransferOrder(TransferHeader, false, true);
+
+        // [THEN] The Transfer Receipt Header has Source Type = Subcontracting and Source ID = Vendor No.
+        TransferReceiptHeader.SetRange("Subcontr. Purch. Order No.", PurchaseLine."Document No.");
+        Assert.RecordIsNotEmpty(TransferReceiptHeader);
+        TransferReceiptHeader.FindFirst();
+        Assert.AreEqual(
+            "Transfer Source Type"::Subcontracting, TransferReceiptHeader."Subc. Source Type",
+            'Subc. Source Type must be Subcontracting on Transfer Receipt Header');
+        Assert.AreEqual(
+            Vendor."No.", TransferReceiptHeader."Source ID",
+            'Source ID must be the Vendor No. on Transfer Receipt Header');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler,HandleTransferOrder')]
     procedure CreateReturnTransferOrderAfterPartialShipOfOutbound()
     var
         Bin: Record Bin;
@@ -3942,6 +4037,194 @@ codeunit 139989 "Subc. Subcontracting Test"
         PurchaseLineComp.SetRange("Document No.", DocumentNo);
         PurchaseLineComp.SetRange(Type, "Purchase Line Type"::Item);
         PurchaseLineComp.SetRange("No.", ComponentItemNo);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler,HandleTransferOrder')]
+    procedure PurchLineFactboxTransferOrderCountExcludesReturnOrder()
+    var
+        Bin: Record Bin;
+        Item: Record Item;
+        Location: Record Location;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProdOrderComp: Record "Prod. Order Component";
+        ProductionOrder: Record "Production Order";
+        PurchaseLine: Record "Purchase Line";
+        ReturnTransferHeader: Record "Transfer Header";
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        WorkCenter: array[2] of Record "Work Center";
+        SubcPurchFactboxMgmt: Codeunit "Subc. Purch. Factbox Mgmt.";
+        PurchaseHeaderPage: TestPage "Purchase Order";
+        OutboundFromCode: Code[10];
+        QtyToShip: Decimal;
+    begin
+        // [SCENARIO 39] Purchase Line FactBox: No. of Transfer Orders is inflated by the return transfer
+        // order, and Return Transfer Order field is blank, when a return to subcontractor is created.
+
+        // [GIVEN] Standard subcontracting setup with an in-transit transfer route
+        Initialize();
+        SubcontractingMgmtLibrary.UpdateManufacturingSetupWithSubcontractingLocation();
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Transfer to Vendor");
+        UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
+        UpdateSubMgmtSetupWithReqWkshTemplate();
+        SubcontractingMgmtLibrary.UpdateProdOrderCompWithLocationCode(ProductionOrder."No.");
+        SubcontractingMgmtLibrary.CreateTransferRoute(WorkCenter[2], ProductionOrder);
+
+        SubcontractingMgmtLibrary.CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
+
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("No.", ProductionOrder."Source No.");
+        PurchaseLine.SetRange(Type, "Purchase Line Type"::Item);
+        PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        PurchaseLine.FindFirst();
+
+        // [GIVEN] Outbound Transfer Order created for the subcontracting purchase
+        PurchaseHeaderPage.OpenView();
+        PurchaseHeaderPage.GotoKey("Purchase Document Type"::Order, PurchaseLine."Document No.");
+        PurchaseHeaderPage.CreateTransfOrdToSubcontractor.Invoke();
+
+        ProdOrderComp.SetRange("Prod. Order No.", ProductionOrder."No.");
+#pragma warning disable AA0210
+        ProdOrderComp.SetRange("Component Supply Method", ProdOrderComp."Component Supply Method"::"Transfer to Vendor");
+#pragma warning restore AA0210
+        ProdOrderComp.FindFirst();
+
+        TransferLine.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
+        TransferLine.SetRange("Item No.", ProdOrderComp."Item No.");
+        TransferLine.SetRange("Subc. Prod. Ord. Comp Line No.", ProdOrderComp."Line No.");
+        TransferLine.FindFirst();
+        TransferHeader.Get(TransferLine."Document No.");
+        OutboundFromCode := TransferHeader."Transfer-from Code";
+
+        // [GIVEN] Items are partially shipped to put them in transit (so AvailableToReturn > 0)
+        Location.Get(OutboundFromCode);
+        Item.Get(ProdOrderComp."Item No.");
+        CreateInventory(Item, Location, Bin, ProdOrderComp."Expected Qty. (Base)");
+        QtyToShip := Round(TransferLine.Quantity / 2, 1, '<');
+        TransferLine.Validate("Qty. to Ship", QtyToShip);
+        TransferLine.Modify(true);
+        LibraryWarehouse.PostTransferOrder(TransferHeader, true, false);
+
+        // [WHEN] A Return Transfer Order is created
+        PurchaseHeaderPage.GotoKey("Purchase Document Type"::Order, PurchaseLine."Document No.");
+        PurchaseHeaderPage.CreateReturnFromSubcontractor.Invoke();
+
+        // [THEN] A return transfer order is linked to the purchase
+        ReturnTransferHeader.SetRange("Subcontr. Purch. Order No.", PurchaseLine."Document No.");
+        ReturnTransferHeader.SetRange("Subc. Return Order", true);
+        Assert.IsTrue(ReturnTransferHeader.FindFirst(), 'Return Transfer Order must exist');
+
+        PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
+
+        // [THEN] No. of Transfer Orders in the FactBox equals 1 — only the outbound order is counted
+        Assert.AreEqual(
+            1, SubcPurchFactboxMgmt.GetNoOfTransferOrders(PurchaseLine),
+            'No. of Transfer Orders must be 1 (outbound only); the return transfer order must not be counted');
+
+        // [THEN] Return Transfer Order No. in the FactBox shows the return order number
+        Assert.AreEqual(
+            ReturnTransferHeader."No.", SubcPurchFactboxMgmt.GetReturnTransferOrderNo(PurchaseLine),
+            'Return Transfer Order No. must match the created return transfer order');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler,HandleTransferOrder')]
+    procedure PurchLineFactboxTransferOrderCountIsZeroWhenOnlyReturnExists()
+    var
+        Bin: Record Bin;
+        Item: Record Item;
+        Location: Record Location;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProdOrderComp: Record "Prod. Order Component";
+        ProductionOrder: Record "Production Order";
+        PurchaseLine: Record "Purchase Line";
+        ReturnTransferHeader: Record "Transfer Header";
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        WorkCenter: array[2] of Record "Work Center";
+        SubcPurchFactboxMgmt: Codeunit "Subc. Purch. Factbox Mgmt.";
+        PurchaseHeaderPage: TestPage "Purchase Order";
+        OutboundFromCode: Code[10];
+    begin
+        // [SCENARIO 39] Purchase Line FactBox: when the outbound Transfer Order has been fully posted
+        // (direct transfer) and only the return transfer order remains, No. of Transfer Orders must
+        // be 0 and Return Transfer Order must show the return order number.
+
+        // [GIVEN] Standard subcontracting setup with a direct transfer (no in-transit route)
+        Initialize();
+        SubcontractingMgmtLibrary.UpdateManufacturingSetupWithSubcontractingLocation();
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Transfer to Vendor");
+        UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
+        UpdateSubMgmtSetupWithReqWkshTemplate();
+        SubcontractingMgmtLibrary.UpdateProdOrderCompWithLocationCode(ProductionOrder."No.");
+
+        SubcontractingMgmtLibrary.CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
+
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("No.", ProductionOrder."Source No.");
+        PurchaseLine.SetRange(Type, "Purchase Line Type"::Item);
+        PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        PurchaseLine.FindFirst();
+
+        // [GIVEN] Outbound Transfer Order created for the subcontracting purchase (direct transfer)
+        PurchaseHeaderPage.OpenView();
+        PurchaseHeaderPage.GotoKey("Purchase Document Type"::Order, PurchaseLine."Document No.");
+        PurchaseHeaderPage.CreateTransfOrdToSubcontractor.Invoke();
+
+        ProdOrderComp.SetRange("Prod. Order No.", ProductionOrder."No.");
+#pragma warning disable AA0210
+        ProdOrderComp.SetRange("Component Supply Method", ProdOrderComp."Component Supply Method"::"Transfer to Vendor");
+#pragma warning restore AA0210
+        ProdOrderComp.FindFirst();
+
+        TransferLine.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
+        TransferLine.SetRange("Item No.", ProdOrderComp."Item No.");
+        TransferLine.SetRange("Subc. Prod. Ord. Comp Line No.", ProdOrderComp."Line No.");
+        TransferLine.FindFirst();
+        TransferHeader.Get(TransferLine."Document No.");
+        OutboundFromCode := TransferHeader."Transfer-from Code";
+
+        // [GIVEN] All items are direct-transferred (ship + receive in one step) — outbound lines are consumed
+        Location.Get(OutboundFromCode);
+        Item.Get(ProdOrderComp."Item No.");
+        CreateInventory(Item, Location, Bin, ProdOrderComp."Expected Qty. (Base)");
+        LibraryWarehouse.PostTransferOrder(TransferHeader, true, true);
+
+        // [WHEN] A Return Transfer Order is created (outbound transfer lines no longer exist)
+        PurchaseHeaderPage.GotoKey("Purchase Document Type"::Order, PurchaseLine."Document No.");
+        PurchaseHeaderPage.CreateReturnFromSubcontractor.Invoke();
+
+        // [THEN] A return transfer order is linked to the purchase
+        ReturnTransferHeader.SetRange("Subcontr. Purch. Order No.", PurchaseLine."Document No.");
+        ReturnTransferHeader.SetRange("Subc. Return Order", true);
+        Assert.IsTrue(ReturnTransferHeader.FindFirst(), 'Return Transfer Order must exist');
+
+        PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
+
+        // [THEN] No. of Transfer Orders in the FactBox equals 0 — no outbound transfer lines remain
+        Assert.AreEqual(
+            0, SubcPurchFactboxMgmt.GetNoOfTransferOrders(PurchaseLine),
+            'No. of Transfer Orders must be 0 when only the return transfer order exists');
+
+        // [THEN] Return Transfer Order No. in the FactBox shows the return order number
+        Assert.AreEqual(
+            ReturnTransferHeader."No.", SubcPurchFactboxMgmt.GetReturnTransferOrderNo(PurchaseLine),
+            'Return Transfer Order No. must match the created return transfer order');
     end;
 
     local procedure CreateUOMCodeSortingAfter(BaseUOMCode: Code[10]): Code[10]
