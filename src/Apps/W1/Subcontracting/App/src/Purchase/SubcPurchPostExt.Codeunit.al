@@ -160,16 +160,35 @@ codeunit 99001535 "Subc. Purch. Post Ext"
     var
         Item: Record Item;
     begin
+        Item.SetLoadFields("Inventory Posting Group", "Item Tracking Code");
+        Item.Get(ItemJournalLine."Item No.");
+        ItemJournalLine."Inventory Posting Group" := Item."Inventory Posting Group";
+        ItemJournalLine."Subc. Item Charge Assign." := true;
+        if PurchRcptLineIsLastOperation(PurchRcptLine) then begin
+            if Item."Item Tracking Code" <> '' then begin
+                ItemJournalLine.Subcontracting := false;
+                ItemJournalLine."Entry Type" := "Item Ledger Entry Type"::Purchase;
+            end else begin
+                ItemJournalLine.Subcontracting := true;
+                ItemJournalLine."Order Type" := "Inventory Order Type"::Production;
+                ItemJournalLine."Order No." := PurchRcptLine."Prod. Order No.";
+                ItemJournalLine."Order Line No." := PurchRcptLine."Prod. Order Line No.";
+                ItemJournalLine."Entry Type" := "Item Ledger Entry Type"::Output;
+                ItemJournalLine.Type := "Capacity Type Journal"::"Work Center";
+                ItemJournalLine."No." := PurchRcptLine."Subc. Work Center No.";
+                ItemJournalLine."Routing No." := PurchRcptLine."Routing No.";
+                ItemJournalLine."Routing Reference No." := PurchRcptLine."Routing Reference No.";
+                ItemJournalLine."Operation No." := PurchRcptLine."Operation No.";
+                ItemJournalLine."Work Center No." := PurchRcptLine."Work Center No.";
+                ItemJournalLine."Unit Cost Calculation" := ItemJournalLine."Unit Cost Calculation"::Units;
+            end;
+            exit;
+        end;
+
         ItemJournalLine.Subcontracting := true;
         ItemJournalLine."Order Type" := "Inventory Order Type"::Production;
         ItemJournalLine."Order No." := PurchRcptLine."Prod. Order No.";
         ItemJournalLine."Order Line No." := PurchRcptLine."Prod. Order Line No.";
-        Item.SetLoadFields("Inventory Posting Group");
-        Item.Get(ItemJournalLine."Item No.");
-        ItemJournalLine."Inventory Posting Group" := Item."Inventory Posting Group";
-        ItemJournalLine."Subc. Item Charge Assign." := true;
-        if PurchRcptLineIsLastOperation(PurchRcptLine) then
-            exit;
         ItemJournalLine."Entry Type" := "Item Ledger Entry Type"::Output;
         ItemJournalLine.Type := "Capacity Type Journal"::"Work Center";
         ItemJournalLine."No." := PurchRcptLine."Subc. Work Center No.";
