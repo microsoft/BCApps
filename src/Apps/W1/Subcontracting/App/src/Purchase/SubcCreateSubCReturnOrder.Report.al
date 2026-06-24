@@ -244,8 +244,6 @@ report 99001502 "Subc. Create SubCReturnOrder"
 
                         SubcTransferManagement.TransferReservationEntryFromProdOrderCompToTransferOrder(TransferLine, ProdOrderComponent);
 
-                        if ProdOrderComponent."Subc. Original Location Code" = '' then
-                            ProdOrderComponent."Subc. Original Location Code" := ProdOrderComponent."Location Code";
                         if ProdOrderComponent."Subc. Orig. Bin Code" = '' then
                             ProdOrderComponent."Subc. Orig. Bin Code" := ProdOrderComponent."Bin Code";
                         if TransferHeader."Transfer-to Code" <> ProdOrderComponent."Location Code" then begin
