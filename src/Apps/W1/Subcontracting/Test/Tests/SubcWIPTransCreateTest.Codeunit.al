@@ -1406,7 +1406,7 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         PurchaseHeaderPage: TestPage "Purchase Order";
         ItemDescription: Text[100];
     begin
-        // A WIP Transfer Line created without a Transfer Description on the routing line
+        // [SCENARIO] A WIP Transfer Line created without a Transfer Description on the routing line
         // gets its description from the item. When Direct Transfer is enabled on the Transfer Header
         // afterwards, the description must not be cleared.
         Initialize();
