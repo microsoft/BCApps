@@ -19,6 +19,7 @@ permissions:
   contents: read
   issues: write
   pull-requests: write
+  copilot-requests: write
 
 jobs:
   review:
@@ -105,7 +106,6 @@ jobs:
       - name: Run Copilot PR review
         env:
           GITHUB_TOKEN: ${{ github.token }}
-          GH_TOKEN: ${{ secrets.COPILOT_GH_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           REVIEW_WORKSPACE: ${{ github.workspace }}/trusted
           REVIEW_OUTPUT_DIR: ${{ github.workspace }}/review-output

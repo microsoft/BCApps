@@ -15,8 +15,10 @@
 
 .NOTES
     Required environment variables:
-        GITHUB_TOKEN       – workflow token (write:pull-requests, write:issues)
-        GH_TOKEN           – Copilot-enabled PAT used only for Copilot CLI authentication
+        GITHUB_TOKEN       – GitHub Actions token used for both the GitHub API
+                             (write:pull-requests, write:issues) and Copilot CLI
+                             authentication (granted Copilot access via the
+                             workflow's copilot-requests: write permission).
         GITHUB_REPOSITORY  – owner/repo
         GITHUB_WORKSPACE   – path to the checked-out repository
         PR_NUMBER          – pull request number
@@ -38,7 +40,6 @@ $ErrorActionPreference = 'Stop'
 # Configuration
 # ---------------------------------------------------------------------------
 $GithubToken      = $env:GITHUB_TOKEN
-$CopilotToken     = $env:GH_TOKEN
 $Repository       = $env:GITHUB_REPOSITORY
 $TrustedWorkspace = $env:REVIEW_WORKSPACE ?? $env:GITHUB_WORKSPACE ?? (Get-Location).Path
 $PrNumber         = [int]($env:PR_NUMBER ?? 0)
@@ -73,7 +74,6 @@ $script:LastParsingErrors = [System.Collections.Generic.List[string]]::new()
 # ---------------------------------------------------------------------------
 function Assert-Config {
     if (-not $GithubToken)     { throw 'GITHUB_TOKEN is required' }
-    if (-not $CopilotToken)    { throw 'GH_TOKEN is required for Copilot CLI authentication' }
     if ($PrNumber -eq 0)       { throw 'PR_NUMBER is required' }
     if (-not $PrHeadSha)       { throw 'PR_HEAD_SHA is required' }
     if (-not $SeverityOrder.ContainsKey($MinimumSeverity)) {
@@ -442,7 +442,7 @@ function Invoke-CopilotCli {
         $val = [System.Environment]::GetEnvironmentVariable($key)
         if ($val) { $cleanEnv[$key] = $val }
     }
-    $cleanEnv['GH_TOKEN'] = $CopilotToken
+    $cleanEnv['GH_TOKEN'] = $GithubToken
     $cleanEnv['CI']       = 'true'
 
     # Write prompt to a temp file and use stdin redirect to avoid command-line length limits
