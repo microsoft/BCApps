@@ -176,6 +176,20 @@ codeunit 4311 "Agent Task Msg. Builder Impl."
 
     [Scope('OnPrem')]
     procedure AddAttachment(File: FileUpload): codeunit "Agent Task Msg. Builder Impl."
+    begin
+        AddAttachment(File, false, '');
+        exit(this);
+    end;
+
+    [Scope('OnPrem')]
+    procedure AddAttachment(File: FileUpload; Ignored: Boolean): codeunit "Agent Task Msg. Builder Impl."
+    begin
+        AddAttachment(File, Ignored, '');
+        exit(this);
+    end;
+
+    [Scope('OnPrem')]
+    procedure AddAttachment(File: FileUpload; Ignored: Boolean; IgnoredReason: Text[250]): codeunit "Agent Task Msg. Builder Impl."
     var
         FileInStream: InStream;
         FileName: Text;
@@ -193,7 +207,9 @@ codeunit 4311 "Agent Task Msg. Builder Impl."
         AddAttachment(
             CopyStr(FileName, 1, 250),
             CopyStr(GetContentTypeFromFilename(FileName), 1, 100),
-            FileInStream);
+            FileInStream,
+            Ignored,
+            IgnoredReason);
         exit(this);
     end;
 
