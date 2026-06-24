@@ -25,14 +25,6 @@ tableextension 99001522 "Subc. Trans Shpt Header Ext." extends "Transfer Shipmen
             Editable = false;
             ToolTip = 'Specifies the number of the related purchase order line.';
         }
-        field(99001535; "Source Subtype"; Option)
-        {
-            Caption = 'Source Subtype';
-            DataClassification = CustomerContent;
-            OptionCaption = '0,1,2,3,4,5,6,7,8,9,10';
-            OptionMembers = "0","1","2","3","4","5","6","7","8","9","10";
-            ToolTip = 'Specifies which source subtype the transfer order is related to.';
-        }
         field(99001536; "Source ID"; Code[20])
         {
             Caption = 'Source ID';
@@ -61,6 +53,6 @@ tableextension 99001522 "Subc. Trans Shpt Header Ext." extends "Transfer Shipmen
     keys
     {
         key(Key99001500; "Subcontr. Purch. Order No.") { }
-        key(Key99001501; "Source ID", "Subc. Source Type", "Source Subtype") { }
+        key(Key99001501; "Source ID", "Subc. Source Type") { }
     }
 }
