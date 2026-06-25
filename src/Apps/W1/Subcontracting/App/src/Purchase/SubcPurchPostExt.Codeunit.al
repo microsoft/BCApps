@@ -83,6 +83,58 @@ codeunit 99001535 "Subc. Purch. Post Ext"
         SetQuantityBaseOnSubcontractingServiceLine(PurchLine, PurchRcptLine);
     end;
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnBeforePostItemChargePerRcpt, '', false, false)]
+    local procedure StorePurchRcptLineForItemCharge(PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; var TempItemChargeAssgntPurch: Record "Item Charge Assignment (Purch)" temporary; var IsHandled: Boolean)
+    var
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        SubcSessionState: Codeunit "Subc. Session State";
+    begin
+#if not CLEAN28
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        SubcSessionState.ClearAllDictionariesForKey('PurchRcptLineForItemCharge');
+        if not PurchRcptLine.Get(TempItemChargeAssgntPurch."Applies-to Doc. No.", TempItemChargeAssgntPurch."Applies-to Doc. Line No.") then
+            exit;
+        if not PurchRcptLineHasProdOrder(PurchRcptLine) then
+            exit;
+        if PurchRcptLineIsLastOperation(PurchRcptLine) then
+            exit;
+        SubcSessionState.SetRecordID('PurchRcptLineForItemCharge', PurchRcptLine.RecordId);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnBeforeUpdatePurchLineDimSetIDFromAppliedEntry, '', false, false)]
+    local procedure UpdatePurchLineDimSetIDFromCapLedgEntryForNonLastOperations(var PurchaseLineToPost: Record "Purchase Line"; var PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
+    var
+        CapacityLedgerEntry: Record "Capacity Ledger Entry";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        SubcSessionState: Codeunit "Subc. Session State";
+        StoredRecordID: RecordId;
+    begin
+#if not CLEAN28
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        if PurchaseLineToPost."Appl.-to Item Entry" = 0 then
+            exit;
+        SubcSessionState.GetRecordID('PurchRcptLineForItemCharge', StoredRecordID);
+        SubcSessionState.ClearAllDictionariesForKey('PurchRcptLineForItemCharge');
+        if StoredRecordID.TableNo() = 0 then
+            exit;
+        PurchRcptLine.SetLoadFields("Item Rcpt. Entry No.");
+        PurchRcptLine.Get(StoredRecordID);
+        if PurchRcptLine."Item Rcpt. Entry No." <> PurchaseLineToPost."Appl.-to Item Entry" then
+            exit;
+        CapacityLedgerEntry.SetLoadFields("Dimension Set ID");
+        if CapacityLedgerEntry.Get(PurchaseLineToPost."Appl.-to Item Entry") then
+            PurchaseLineToPost."Dimension Set ID" := CapacityLedgerEntry."Dimension Set ID";
+        IsHandled := true;
+    end;
+
     local procedure FillItemJnlLineForSubcontractingItemCharge(var ItemJournalLine: Record "Item Journal Line"; TempItemChargeAssignmentPurch: Record "Item Charge Assignment (Purch)" temporary)
     var
         PurchRcptLine: Record "Purch. Rcpt. Line";
