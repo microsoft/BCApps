@@ -1039,16 +1039,13 @@ function Remove-StructuralFences {
 }
   
 function Repair-ResumeFenceJson {
-    # The agent sometimes stops in the middle of a value and starts the same
-    # field over on a new line. Between the two it prints a leftover code-fence
-    # line (the literal text: three backticks followed by "json"). Example:
-    #
-    #     "suggested-code": "    ODataKey            (string never closed)
-    #     <leftover code-fence line>
-    #     "suggested-code": "    ODataKey = SystemId;"   (same field, retried)
-    #
-    # The unclosed string makes the whole report fail to parse. This removes the
-    # fence line and the broken half, and keeps the retried line.
+    # The agent sometimes cuts off mid-value and restarts the line after a stray
+    # ```json fence, like:
+    #     "suggested-code": "    ODataKey        <- string never closed
+    #     ```json
+    #     "suggested-code": "    ODataKey = SystemId;"   <- same field, retried
+    # The unclosed string breaks the whole report. This drops the fence and the
+    # broken half, keeping the retried line.
     param([string] $Output)
     if (-not $Output) { return $Output }
 
