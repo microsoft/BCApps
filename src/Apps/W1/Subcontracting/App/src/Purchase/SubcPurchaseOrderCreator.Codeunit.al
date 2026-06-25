@@ -380,12 +380,27 @@ codeunit 99001557 "Subc. Purchase Order Creator"
     local procedure MarkNewlyCreatedSubcPurchaseOrder(ProdOrderLine: Record "Prod. Order Line"; ProdOrderRoutingLine: Record "Prod. Order Routing Line"; ExistingPurchaseOrderNos: List of [Code[20]])
     var
         PurchaseLine: Record "Purchase Line";
+        NewPurchaseOrderMarked: Boolean;
     begin
         FilterSubcPurchaseLineForRoutingLine(PurchaseLine, ProdOrderLine, ProdOrderRoutingLine);
         if PurchaseLine.FindSet() then
             repeat
                 if not ExistingPurchaseOrderNos.Contains(PurchaseLine."Document No.") then
-                    if CreatedPurchaseHeader.Get(CreatedPurchaseHeader."Document Type"::Order, PurchaseLine."Document No.") then
+                    if CreatedPurchaseHeader.Get("Purchase Document Type"::Order, PurchaseLine."Document No.") then begin
+                        CreatedPurchaseHeader.Mark(true);
+                        NewPurchaseOrderMarked := true;
+                    end;
+            until PurchaseLine.Next() = 0;
+
+        if NewPurchaseOrderMarked then
+            exit;
+
+        // Carry Out updated an existing open purchase order instead of creating a new one;
+        // mark it so the confirmation prompt can still open the affected order.
+        if PurchaseLine.FindSet() then
+            repeat
+                if PurchaseLine."Quantity Received" = 0 then
+                    if CreatedPurchaseHeader.Get("Purchase Document Type"::Order, PurchaseLine."Document No.") then
                         CreatedPurchaseHeader.Mark(true);
             until PurchaseLine.Next() = 0;
     end;
@@ -400,7 +415,7 @@ codeunit 99001557 "Subc. Purchase Order Creator"
         PurchaseLine.SetRange("Routing No.", ProdOrderRoutingLine."Routing No.");
         PurchaseLine.SetRange("Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.");
         PurchaseLine.SetRange("Operation No.", ProdOrderRoutingLine."Operation No.");
-        PurchaseLine.SetLoadFields("Document No.");
+        PurchaseLine.SetLoadFields("Document No.", "Quantity Received");
     end;
 
     local procedure FilterReqLineWithProdOrderAndRtngLine(var RequisitionLine: Record "Requisition Line"; ProdOrderLine: Record "Prod. Order Line"; ProdOrderRoutingLine: Record "Prod. Order Routing Line")
