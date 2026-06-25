@@ -1,0 +1,1525 @@
+● Read task context (shell)
+  │ cat /home/runner/work/BCAppsBCQuality/BCAppsBCQuality/bcquality/_task-context.json
+  └ 17 lines…
+
+● Read entry.md skill file (shell)
+  │ cat /home/runner/work/BCAppsBCQuality/BCAppsBCQuality/bcquality/skills/entry.md
+  └ 179 lines…
+
+● List available skills and check for knowledge index (shell)
+  │ find /home/runner/work/BCAppsBCQuality/BCAppsBCQuality/bcquality/microsoft/skills -name "*.md" |
+  │ sort; ls /home/runner/work/BCAppsBCQuality/BCAppsBCQuality/bcquality/
+  └ 25 lines…
+
+● Read al-code-review skill (shell)
+  │ cat /home/runner/work/BCAppsBCQuality/BCAppsBCQuality/bcquality/microsoft/skills/review/al-code-
+  │ review.md
+  └ 313 lines…
+
+● Check for knowledge index (shell)
+  │ ls /home/runner/work/BCAppsBCQuality/BCAppsBCQuality/bcquality/knowledge-index.json 2>/dev/null
+  │ && echo "EXISTS" || echo "MISSING"
+  └ 2 lines…
+
+● List changed files in PR (shell)
+  │ git -C "/home/runner/work/BCAppsBCQuality/BCAppsBCQuality/review-target" diff --name-only
+  │ origin/main
+  └ 36 lines…
+
+● Build knowledge index (shell)
+  │ cd /home/runner/work/BCAppsBCQuality/BCAppsBCQuality/bcquality && pwsh
+  │ ./tools/Build-KnowledgeIndex.ps1 2>&1 | tail -5
+  └ 3 lines…
+
+● Get diff for install/upgrade/member files (shell)
+  │ git -C "/home/runner/work/BCAppsBCQuality/BCAppsBCQuality/review-target" diff origin/main --
+  │ "src/Apps/W1/LoyaltySample/app/src/Loyalty/LoyaltyInstall.Codeunit.al"
+  │ "src/Apps/W1/LoyaltySample/app/src/Loyalty/LoyaltyUpgrade.Codeunit.al"
+  │ "src/Apps/W1/LoyaltySample/app/src/Member/LoyaltyMember.Table.al"
+  │ "src/Apps/W1/LoyaltySample/app/src/Member/LoyaltyMemberAPI.Page.al" …
+  └ 293 lines…
+
+● Get diff for core loyalty codeunits (shell)
+  │ git -C "/home/runner/work/BCAppsBCQuality/BCAppsBCQuality/review-target" diff origin/main --
+  │ "src/Apps/W1/LoyaltySample/app/src/Loyalty/LoyaltyAuditSubscriber.Codeunit.al"
+  │ "src/Apps/W1/LoyaltySample/app/src/Loyalty/LoyaltyEvents.Codeunit.al"
+  │ "src/Apps/W1/LoyaltySample/app/src/Loyalty/LoyaltyManagement.Codeunit.al"
+  │ "src/Apps/W1/LoyaltySample/app/src/Loyalty/LoyaltyPublicApi.Codeunit.al" …
+  └ 373 lines…
+
+● Get diff for tier and badge files (shell)
+  │ git -C "/home/runner/work/BCAppsBCQuality/BCAppsBCQuality/review-target" diff origin/main --
+  │ "src/Apps/W1/LoyaltySample/app/src/Tier/ILoyaltyTierPolicy.Interface.al"
+  │ "src/Apps/W1/LoyaltySample/app/src/Tier/LoyaltyOrderValidator.Codeunit.al"
+  │ "src/Apps/W1/LoyaltySample/app/src/Tier/LoyaltyTierPricing.Codeunit.al"
+  │ "src/Apps/W1/LoyaltySample/app/src/Member/LoyaltyBadge.ControlAddIn.al"
+  └ 88 lines…
+
+● Get diff for member pages, notification files (shell)
+  │ git -C "/home/runner/work/BCAppsBCQuality/BCAppsBCQuality/review-target" diff origin/main --
+  │ "src/Apps/W1/LoyaltySample/app/src/Member/LoyaltyMemberData.Page.al"
+  │ "src/Apps/W1/LoyaltySample/app/src/Member/LoyaltyMemberList.Page.al"
+  │ "src/Apps/W1/LoyaltySample/app/src/Member/LoyaltyPointEntry.Table.al"
+  │ "src/Apps/W1/LoyaltySample/app/src/Member/LoyaltyTier.Enum.al" …
+  └ 281 lines…
+
+Now let me read the sub-skills and knowledge files to execute each sub-skill properly.
+
+● Read the READ skill (shell)
+  │ cat /home/runner/work/BCAppsBCQuality/BCAppsBCQuality/bcquality/skills/read.md
+  └ 150 lines…
+
+● Read the DO skill (shell)
+  │ cat /home/runner/work/BCAppsBCQuality/BCAppsBCQuality/bcquality/skills/do.md
+  └ 17 lines…
+
+● Read DO skill full content (shell)
+  │ cat /tmp/copilot-tool-output-1782389316349-al7bar.txt
+  └ 17 lines…
+
+● Read do.md
+  │ skills/do.md
+  └ 1 line read
+
+● Read do.md
+  │ skills/do.md
+  └ L100:250 (151 lines read)
+
+● Read do.md
+  │ skills/do.md
+  └ L1:100 (100 lines read)
+
+● List knowledge index articles with paths and domains (shell)
+  │ cat /home/runner/work/BCAppsBCQuality/BCAppsBCQuality/bcquality/knowledge-index.json | python3
+  │ -c "import json,sys; data=json.load(sys.stdin);
+  │ [print(a['path']+'|'+a.get('domain','')+'|'+','.join(a.get('keywords',[]))) for a in
+  │ data['articles']]" 2>/dev/null | head -200
+  └ 8 lines…
+
+● Read full knowledge index (shell)
+  │ cat /tmp/copilot-tool-output-1782389330463-zkgemr.txt
+  └ 8 lines…
+
+● List all knowledge index articles (shell)
+  │ python3 -c "
+  │ import json
+  │ with open('/home/runner/work/BCAppsBCQuality/BCAppsBCQuality/bcquality/knowledge-index.json')
+  │ as f:
+  │ data = json.load(f)…
+  └ 11 lines…
+
+● Print knowledge index articles (shell)
+  │ python3 << 'EOF'
+  │ import json
+  │ with open('/home/runner/work/BCAppsBCQuality/BCAppsBCQuality/bcquality/knowledge-index.json')
+  │ as f:
+  │ data = json.load(f)…
+  └ 14 lines…
+
+● List knowledge article paths only (shell)
+  │ python3 -c "
+  │ import json
+  │ with open('/home/runner/work/BCAppsBCQuality/BCAppsBCQuality/bcquality/knowledge-index.json')
+  │ as f:
+  │ data = json.load(f)…
+  └ 180 lines…
+
+Now I'll read all sub-skill files in parallel to execute them.
+
+● Read al-performance-review skill (shell)
+  │ cat /home/runner/work/BCAppsBCQuality/BCAppsBCQuality/bcquality/microsoft/skills/review/al-perfo
+  │ rmance-review.md
+  └ 137 lines…
+
+● Read al-security-review skill (shell)
+  │ cat /home/runner/work/BCAppsBCQuality/BCAppsBCQuality/bcquality/microsoft/skills/review/al-secur
+  │ ity-review.md
+  └ 137 lines…
+
+● Read style and error-handling review skills (shell)
+  │ cat /home/runner/work/BCAppsBCQuality/BCAppsBCQuality/bcquality/microsoft/skills/review/al-style
+  │ -review.md
+  │ cat /home/runner/work/BCAppsBCQuality/BCAppsBCQuality/bcquality/microsoft/skills/review/al-error
+  │ -handling-review.md
+  └ 243 lines…
+
+● Read privacy and upgrade review skills (shell)
+  │ cat /home/runner/work/BCAppsBCQuality/BCAppsBCQuality/bcquality/microsoft/skills/review/al-priva
+  │ cy-review.md
+  │ cat /home/runner/work/BCAppsBCQuality/BCAppsBCQuality/bcquality/microsoft/skills/review/al-upgra
+  │ de-review.md
+  └ 22 lines…
+
+Now I'll read the relevant knowledge articles in parallel for each domain.
+
+● Read performance knowledge articles (shell)
+  │ for f in \
+  │ microsoft/knowledge/performance/avoid-commit-inside-loops.md \
+  │ microsoft/knowledge/performance/apply-filters-before-iterating.md \
+  │ microsoft/knowledge/performance/use-isempty-for-existence-check.md \
+  │ microsoft/knowledge/performance/avoid-user-prompts-inside-transactions.md \…
+  └ 175 lines…
+
+● Read security knowledge articles (shell)
+  │ for f in \
+  │ microsoft/knowledge/security/secrettext-for-credentials.md \
+  │ microsoft/knowledge/security/secrettext-with-httpclient.md \
+  │ microsoft/knowledge/security/nondebuggable-required-when-unwrapping-secrettext.md \
+  │ microsoft/knowledge/security/isolatedstorage-setencrypted-for-sensitive-values.md \…
+  └ 148 lines…
+
+● Read privacy knowledge articles (shell)
+  │ for f in \
+  │ microsoft/knowledge/privacy/data-classification-required-on-pii-fields.md \
+  │ microsoft/knowledge/privacy/featuretelemetry-customdimensions-no-pii.md \
+  │ microsoft/knowledge/privacy/resolve-tobeclassified-before-release.md \
+  │ microsoft/knowledge/privacy/getlasterrortext-customer-content-in-errors.md \…
+  └ 139 lines…
+
+● Read upgrade knowledge articles (shell)
+  │ for f in \
+  │ microsoft/knowledge/upgrade/no-external-calls-in-upgrade.md \
+  │ microsoft/knowledge/upgrade/use-upgrade-tags-not-version-checks.md \
+  │ microsoft/knowledge/upgrade/guard-database-reads.md \
+  │ microsoft/knowledge/upgrade/do-not-block-upgrade-on-data-errors.md \…
+  └ 150 lines…
+
+● Read error-handling knowledge articles (shell)
+  │ for f in \
+  │ microsoft/knowledge/error-handling/prefer-errorinfo-for-actionable-errors.md \
+  │ microsoft/knowledge/error-handling/errortype-internal-vs-client-for-diagnostics.md \
+  │ microsoft/knowledge/error-handling/collect-validation-errors-with-errorbehavior.md; do
+  │ echo "=== $f ==="; cat /home/runner/work/BCAppsBCQuality/BCAppsBCQuality/bcquality/$f; echo…
+  └ 85 lines…
+
+● Read style knowledge articles (shell)
+  │ for f in \
+  │ microsoft/knowledge/style/error-passes-parameters-directly-not-strsubstno.md \
+  │ microsoft/knowledge/style/label-suffix-approved-list.md \
+  │ microsoft/knowledge/style/labels-declared-at-object-scope.md \
+  │ microsoft/knowledge/style/api-page-camelcase-properties.md \…
+  └ 176 lines…
+
+● Read web-services knowledge articles (shell)
+  │ for f in \
+  │ microsoft/knowledge/web-services/expose-systemid-as-the-api-key.md \
+  │ microsoft/knowledge/web-services/set-required-api-page-properties.md \
+  │ microsoft/knowledge/web-services/disable-write-operations-on-read-only-api-pages.md; do
+  │ echo "=== $f ==="; cat /home/runner/work/BCAppsBCQuality/BCAppsBCQuality/bcquality/$f; echo…
+  └ 85 lines…
+
+● Read events knowledge articles (shell)
+  │ for f in \
+  │ microsoft/knowledge/events/do-not-publish-events-inside-loops.md \
+  │ microsoft/knowledge/events/initialize-ishandled-to-false-before-publishing.md \
+  │ microsoft/knowledge/events/do-not-bypass-critical-operations-with-ishandled.md \
+  │ microsoft/knowledge/events/publish-thin-onbefore-onafter-integration-events.md; do…
+  └ 114 lines…
+
+● Read interfaces knowledge articles (shell)
+  │ for f in \
+  │ microsoft/knowledge/interfaces/set-defaultimplementation-on-enum.md \
+  │ microsoft/knowledge/interfaces/prefer-interface-over-case-branching.md; do
+  │ echo "=== $f ==="; cat /home/runner/work/BCAppsBCQuality/BCAppsBCQuality/bcquality/$f; echo
+  │ done
+  └ 56 lines…
+
+● Read breaking-changes knowledge articles (shell)
+  │ for f in \
+  │ microsoft/knowledge/breaking-changes/choose-access-modifiers-deliberately.md \
+  │ microsoft/knowledge/breaking-changes/do-not-expose-sensitive-data-through-public-api.md \
+  │
+  │ microsoft/knowledge/breaking-changes/deprecate-public-members-with-the-obsolete-lifecycle.md; …
+  └ 87 lines…
+
+● Read additional knowledge articles (shell)
+  │ for f in \
+  │ microsoft/knowledge/events/preserve-onafter-execution-when-ishandled-skips-the-body.md \
+  │ microsoft/knowledge/web-services/expose-systemid-as-the-api-key.md; do
+  │ echo "=== $f ==="; cat /home/runner/work/BCAppsBCQuality/BCAppsBCQuality/bcquality/$f; echo
+  │ done
+  └ 56 lines…
+
+● Read UI knowledge articles (shell)
+  │ for f in \
+  │ microsoft/knowledge/ui/show-caption-on-editable-fields.md \
+  │ microsoft/knowledge/ui/style-expr-text-vs-boolean.md \
+  │ microsoft/knowledge/ui/semantic-styles-need-independent-textual-meaning.md \
+  │ microsoft/knowledge/ui/cosmetic-styles-need-no-textual-context.md; do…
+  └ 125 lines…
+
+● Read events review skill briefly (shell)
+  │ cat /home/runner/work/BCAppsBCQuality/BCAppsBCQuality/bcquality/microsoft/skills/review/al-event
+  │ s-review.md | head -60
+  └ 61 lines…
+
+● Get app.json diff (shell)
+  │ git -C "/home/runner/work/BCAppsBCQuality/BCAppsBCQuality/review-target" diff origin/main --
+  │ "src/Apps/W1/LoyaltySample/app/app.json"
+  └ 37 lines…
+
+● Read inherent-permissions knowledge article (shell)
+  │ cat /home/runner/work/BCAppsBCQuality/BCAppsBCQuality/bcquality/microsoft/knowledge/security/inh
+  │ erent-permissions-minimal-grant.md
+  └ 23 lines…
+
+Now I have all the data needed. Let me produce the findings report.
+
+[sub-skill al-performance-review: worklist=2 findings=2]
+[sub-skill al-security-review: worklist=5 findings=6]
+[sub-skill al-privacy-review: worklist=4 findings=5]
+[sub-skill al-upgrade-review: worklist=5 findings=5]
+[sub-skill al-style-review: worklist=4 findings=5]
+[sub-skill al-ui-review: worklist=2 findings=2]
+[sub-skill al-error-handling-review: worklist=3 findings=4]
+[sub-skill al-events-review: worklist=4 findings=4]
+[sub-skill al-interfaces-review: worklist=1 findings=1]
+[sub-skill al-breaking-changes-review: worklist=1 findings=2]
+[sub-skill al-web-services-review: worklist=2 findings=2]
+[self-review: agent-findings=2]
+
+```json
+{
+  "skill": { "id": "al-code-review", "version": 1 },
+  "outcome": "completed",
+  "summary": {
+    "counts": { "blocker": 3, "major": 26, "minor": 13, "info": 0 },
+    "coverage": { "worklist-size": 33, "items-evaluated": 33 }
+  },
+  "findings": [
+    {
+      "id": "microsoft/knowledge/performance/avoid-commit-inside-loops.md",
+      "severity": "major",
+      "message": "Commit() is called inside the repeat\u2026until loop in RecalculateAllBalances. Each iteration opens and commits its own transaction, preventing atomic rollback of the whole batch and imposing per-row transaction overhead. Remove the Commit and let the AL module auto-commit on completion, or restructure into bounded N-row checkpoints each wrapped in Codeunit.Run.",
+      "location": {
+        "file": "src/Apps/W1/LoyaltySample/app/src/Loyalty/LoyaltyManagement.Codeunit.al",
+        "line": 32
+      },
+      "references": [
+        { "path": "microsoft/knowledge/performance/avoid-commit-inside-loops.md" }
+      ],
+      "confidence": "high",
+      "from-sub-skill": "al-performance-review",
+      "suggested-code-omission-reason": "Correct fix requires restructuring the loop into bounded checkpoints; a single-line replacement would be misleading."
+    },
+    {
+      "id": "microsoft/knowledge/performance/avoid-user-prompts-inside-transactions.md",
+      "severity": "major",
+      "message": "ArchiveMember calls Member.Delete() unconditionally and only then shows a Confirm dialog. The delete already committed (or is in an open write transaction) while the dialog holds any acquired locks for as long as the user takes to respond. Move the Confirm before the Delete so locks are acquired only after the user confirms.",
+      "location": {
+        "file": "src/Apps/W1/LoyaltySample/app/src/Loyalty/LoyaltyManagement.Codeunit.al",
+        "line": 39,
+        "range": { "start-line": 38, "end-line": 40 }
+      },
+      "references": [
+        { "path": "microsoft/knowledge/performance/avoid-user-prompts-inside-transactions.md" }
+      ],
+      "confidence": "high",
+      "from-sub-skill": "al-performance-review",
+      "suggested-code-omission-reason": "Fix requires reordering the Delete and Confirm calls, which spans non-contiguous logic."
+    },
+    {
+      "id": "microsoft/knowledge/security/secrettext-for-credentials.md",
+      "severity": "blocker",
+      "message": "GatewayApiKey is a Label (plain Text) holding a live API key 'sk-live-\u2026'. The value is hardcoded in source, visible in the debugger, and returned as Text from GetGatewayToken(). Remove the hardcoded key entirely; retrieve secrets at runtime via IsolatedStorage.Get with a SecretText destination, and never store a credential as a Label or Text variable.",
+      "location": {
+        "file": "src/Apps/W1/LoyaltySample/app/src/Loyalty/LoyaltyManagement.Codeunit.al",
+        "line": 9
+      },
+      "references": [
+        { "path": "microsoft/knowledge/security/secrettext-for-credentials.md" }
+      ],
+      "confidence": "high",
+      "from-sub-skill": "al-security-review",
+      "suggested-code-omission-reason": "Fix requires deleting the Label and updating GetGatewayToken to propagate the IsolatedStorage miss as an error; spans multiple non-contiguous locations."
+    },
+    {
+      "id": "microsoft/knowledge/security/nondebuggable-required-when-unwrapping-secrettext.md",
+      "severity": "major",
+      "message": "UnwrapGatewaySecret calls Secret.Unwrap() but the procedure is not marked [NonDebuggable]. The unwrapped Text value is visible in the debugger, defeating the SecretText protection. Add [NonDebuggable] to the procedure declaration.",
+      "location": {
+        "file": "src/Apps/W1/LoyaltySample/app/src/Loyalty/LoyaltyManagement.Codeunit.al",
+        "line": 57
+      },
+      "references": [
+        { "path": "microsoft/knowledge/security/nondebuggable-required-when-unwrapping-secrettext.md" }
+      ],
+      "confidence": "high",
+      "from-sub-skill": "al-security-review",
+      "suggested-code": "    [NonDebuggable]\n    procedure UnwrapGatewaySecret(Secret: SecretText): Text"
+    },
+    {
+      "id": "microsoft/knowledge/security/nondebuggable-required-when-unwrapping-secrettext.md",
+      "severity": "major",
+      "message": "GetApiToken calls ApiToken.Unwrap() and returns the result as plain Text, but the procedure is not marked [NonDebuggable]. The unwrapped token is visible in the debugger. Add [NonDebuggable] to the procedure declaration.",
+      "location": {
+        "file": "src/Apps/W1/LoyaltySample/app/src/Loyalty/LoyaltyPublicApi.Codeunit.al",
+        "line": 25
+      },
+      "references": [
+        { "path": "microsoft/knowledge/security/nondebuggable-required-when-unwrapping-secrettext.md" }
+      ],
+      "confidence": "high",
+      "from-sub-skill": "al-security-review",
+      "suggested-code": "    [NonDebuggable]\n    procedure GetApiToken(): Text"
+    },
+    {
+      "id": "microsoft/knowledge/security/isolatedstorage-setencrypted-for-sensitive-values.md",
+      "severity": "major",
+      "message": "ConfigureGateway uses IsolatedStorage.Set to store the gateway token. Because the key name indicates a credential, it must be stored with SetEncrypted so the value is protected at rest.",
+      "location": {
+        "file": "src/Apps/W1/LoyaltySample/app/src/Loyalty/LoyaltyManagement.Codeunit.al",
+        "line": 45
+      },
+      "references": [
+        { "path": "microsoft/knowledge/security/isolatedstorage-setencrypted-for-sensitive-values.md" }
+      ],
+      "confidence": "high",
+      "from-sub-skill": "al-security-review",
+      "suggested-code": "        IsolatedStorage.SetEncrypted('GatewayToken', Token, DataScope::Module);"
+    },
+    {
+      "id": "microsoft/knowledge/security/integrationevent-must-not-expose-secrets.md",
+      "severity": "blocker",
+      "message": "OnBeforeChargeMember exposes 'var GatewayToken: SecretText' as an IntegrationEvent parameter. Every subscriber on the tenant receives this var parameter and can read or replace the secret. Even SecretText must not flow through an event surface. Remove the GatewayToken parameter from the event signature; perform authentication before or after the event inside the publisher.",
+      "location": {
+        "file": "src/Apps/W1/LoyaltySample/app/src/Loyalty/LoyaltyManagement.Codeunit.al",
+        "line": 103,
+        "range": { "start-line": 102, "end-line": 105 }
+      },
+      "references": [
+        { "path": "microsoft/knowledge/security/integrationevent-must-not-expose-secrets.md" }
+      ],
+      "confidence": "high",
+      "from-sub-skill": "al-security-review",
+      "suggested-code-omission-reason": "Removing GatewayToken from the event signature is a breaking change to the event contract that requires redesigning the surrounding call site."
+    },
+    {
+      "id": "microsoft/knowledge/security/al-has-no-built-in-htmlencode.md",
+      "severity": "major",
+      "message": "BuildMemberBadgeHtml concatenates Member.\"Member Name\" and Member.\"Email Address\" directly into an HTML string with no encoding. AL has no built-in HtmlEncode; a name containing '<' or '>' will produce malformed HTML or inject markup in the consuming renderer. Encode each user-supplied value before concatenation, replacing '&' with '&amp;', '<' with '&lt;', '>' with '&gt;', and '\"' with '&quot;', or avoid building raw HTML entirely.",
+      "location": {
+        "file": "src/Apps/W1/LoyaltySample/app/src/Loyalty/LoyaltyManagement.Codeunit.al",
+        "line": 99
+      },
+      "references": [
+        { "path": "microsoft/knowledge/security/al-has-no-built-in-htmlencode.md" }
+      ],
+      "confidence": "high",
+      "from-sub-skill": "al-security-review",
+      "suggested-code-omission-reason": "The fix requires a multi-step encoding helper; a single-line replacement would be incomplete."
+    },
+    {
+      "id": "microsoft/knowledge/privacy/data-classification-required-on-pii-fields.md",
+      "severity": "major",
+      "message": "Fields 'Member Name' and 'Email Address' in table 'Loyalty Member' have no DataClassification property and therefore default to SystemMetadata, which misrepresents personal data as system metadata for GDPR exports and telemetry. Both fields store customer PII and must be classified as CustomerContent (or EndUserIdentifiableInformation for Email Address).",
+      "location": {
+        "file": "src/Apps/W1/LoyaltySample/app/src/Member/LoyaltyMember.Table.al",
+        "line": 15,
+        "range": { "start-line": 15, "end-line": 22 }
+      },
+      "references": [
+        { "path": "microsoft/knowledge/privacy/data-classification-required-on-pii-fields.md" }
+      ],
+      "confidence": "high",
+      "from-sub-skill": "al-privacy-review",
+      "suggested-code-omission-reason": "Fix must be applied independently to two separate field declarations at non-contiguous lines."
+    },
+    {
+      "id": "microsoft/knowledge/privacy/data-classification-required-on-pii-fields.md",
+      "severity": "major",
+      "message": "Field 'Customer Email' in table 'Loyalty Point Entry' has no DataClassification property and defaults to SystemMetadata. An email address is customer PII and must be classified as CustomerContent.",
+      "location": {
+        "file": "src/Apps/W1/LoyaltySample/app/src/Member/LoyaltyPointEntry.Table.al",
+        "line": 37,
+        "range": { "start-line": 37, "end-line": 40 }
+      },
+      "references": [
+        { "path": "microsoft/knowledge/privacy/data-classification-required-on-pii-fields.md" }
+      ],
+      "confidence": "high",
+      "from-sub-skill": "al-privacy-review",
+      "suggested-code": "        field(6; \"Customer Email\"; Text[80])\n        {\n            Caption = 'Customer Email';\n            DataClassification = CustomerContent;\n        }"
+    },
+    {
+      "id": "microsoft/knowledge/privacy/resolve-tobeclassified-before-release.md",
+      "severity": "minor",
+      "message": "Fields 'Phone No.' (line 26) and 'Points Balance' (line 35) in table 'Loyalty Member' are declared with DataClassification = ToBeClassified. This sentinel must be resolved to a real classification before release. 'Phone No.' should be CustomerContent; 'Points Balance' is account-level data and should be CustomerContent or AccountData.",
+      "location": {
+        "file": "src/Apps/W1/LoyaltySample/app/src/Member/LoyaltyMember.Table.al",
+        "line": 26
+      },
+      "references": [
+        { "path": "microsoft/knowledge/privacy/resolve-tobeclassified-before-release.md" }
+      ],
+      "confidence": "high",
+      "from-sub-skill": "al-privacy-review",
+      "suggested-code-omission-reason": "Correct classification requires a data-ownership decision; a mechanical replacement would substitute one guess for another."
+    },
+    {
+      "id": "microsoft/knowledge/privacy/featuretelemetry-customdimensions-no-pii.md",
+      "severity": "major",
+      "message": "LogMemberUsage adds 'MemberName' (Member.\"Member Name\") and 'MemberEmail' (Member.\"Email Address\") to the FeatureTelemetry CustomDimensions dictionary. Customer name and email address are PII and must not appear in telemetry. Replace them with non-personal context such as a count, a tier enum, or a stable identifier that does not identify the individual.",
+      "location": {
+        "file": "src/Apps/W1/LoyaltySample/app/src/Loyalty/LoyaltyManagement.Codeunit.al",
+        "line": 79,
+        "range": { "start-line": 79, "end-line": 80 }
+      },
+      "references": [
+        { "path": "microsoft/knowledge/privacy/featuretelemetry-customdimensions-no-pii.md" }
+      ],
+      "confidence": "high",
+      "from-sub-skill": "al-privacy-review",
+      "suggested-code-omission-reason": "Requires choosing non-PII replacement dimensions; the right values depend on the telemetry intent."
+    },
+    {
+      "id": "microsoft/knowledge/privacy/privacy-notice-consent-for-external-data-transfer.md",
+      "severity": "major",
+      "message": "CallPaymentGateway posts member name, email address, and phone number to an external endpoint with no PrivacyNotice.GetPrivacyNoticeApprovalState check anywhere upstream in the code path. The Privacy Notice framework requires admin consent before customer data is sent to external services.",
+      "location": {
+        "file": "src/Apps/W1/LoyaltySample/app/src/Loyalty/LoyaltyManagement.Codeunit.al",
+        "line": 71
+      },
+      "references": [
+        { "path": "microsoft/knowledge/privacy/privacy-notice-consent-for-external-data-transfer.md" }
+      ],
+      "confidence": "high",
+      "from-sub-skill": "al-privacy-review",
+      "suggested-code-omission-reason": "Requires registering a privacy notice and adding a consent check upstream; spans multiple files and non-contiguous code."
+    },
+    {
+      "id": "microsoft/knowledge/privacy/privacy-notice-consent-for-external-data-transfer.md",
+      "severity": "major",
+      "message": "SendExternalAuditEmail posts member data to 'https://audit.contoso.example/loyalty' with no PrivacyNotice.GetPrivacyNoticeApprovalState check. The Privacy Notice framework requires admin consent before any customer data is sent to external services.",
+      "location": {
+        "file": "src/Apps/W1/LoyaltySample/app/src/Loyalty/LoyaltyAuditSubscriber.Codeunit.al",
+        "line": 18
+      },
+      "references": [
+        { "path": "microsoft/knowledge/privacy/privacy-notice-consent-for-external-data-transfer.md" }
+      ],
+      "confidence": "high",
+      "from-sub-skill": "al-privacy-review",
+      "suggested-code-omission-reason": "Requires registering a privacy notice and adding a consent guard; spans multiple files."
+    },
+    {
+      "id": "microsoft/knowledge/upgrade/no-external-calls-in-upgrade.md",
+      "severity": "blocker",
+      "message": "OnUpgradePerCompany calls Client.Get('https://api.contoso-pay.example/migrate', ...). External HTTP calls inside upgrade triggers are forbidden: DNS failure, an expired token, or a temporarily unavailable service will abort the entire upgrade. Defer this call to runtime code (e.g. a job queue entry written during upgrade).",
+      "location": {
+        "file": "src/Apps/W1/LoyaltySample/app/src/Loyalty/LoyaltyUpgrade.Codeunit.al",
+        "line": 20
+      },
+      "references": [
+        { "path": "microsoft/knowledge/upgrade/no-external-calls-in-upgrade.md" }
+      ],
+      "confidence": "high",
+      "from-sub-skill": "al-upgrade-review",
+      "suggested-code-omission-reason": "Fix requires removing the HTTP call and adding a deferred job-queue mechanism; spans multiple non-contiguous locations."
+    },
+    {
+      "id": "microsoft/knowledge/upgrade/use-upgrade-tags-not-version-checks.md",
+      "severity": "major",
+      "message": "Neither OnUpgradePerCompany nor OnValidateUpgradePerCompany uses HasUpgradeTag / SetUpgradeTag to guard execution. Without tags the upgrade logic runs on every upgrade pass for every tenant, regardless of whether the work was already done. Add a unique upgrade tag per feature and guard each procedure with HasUpgradeTag at entry and SetUpgradeTag after successful completion.",
+      "location": {
+        "file": "src/Apps/W1/LoyaltySample/app/src/Loyalty/LoyaltyUpgrade.Codeunit.al",
+        "line": 7
+      },
+      "references": [
+        { "path": "microsoft/knowledge/upgrade/use-upgrade-tags-not-version-checks.md" }
+      ],
+      "confidence": "high",
+      "from-sub-skill": "al-upgrade-review",
+      "suggested-code-omission-reason": "Requires adding tag constants and guard calls in multiple locations across the codeunit."
+    },
+    {
+      "id": "microsoft/knowledge/upgrade/guard-database-reads.md",
+      "severity": "major",
+      "message": "Member.FindSet(true) in OnUpgradePerCompany is unguarded: if no Loyalty Member records exist on a tenant the loop executes on an unpositioned cursor, producing a runtime error that aborts the upgrade. Wrap with 'if Member.FindSet(true) then' so an empty table is handled gracefully.",
+      "location": {
+        "file": "src/Apps/W1/LoyaltySample/app/src/Loyalty/LoyaltyUpgrade.Codeunit.al",
+        "line": 13
+      },
+      "references": [
+        { "path": "microsoft/knowledge/upgrade/guard-database-reads.md" }
+      ],
+      "confidence": "high",
+      "from-sub-skill": "al-upgrade-review",
+      "suggested-code": "        if Member.FindSet(true) then\n            repeat\n                Member.CalcFields(\"Total Points\");\n                Member.\"Points Balance\" := Member.\"Total Points\" * 2;\n                Member.Modify();\n            until Member.Next() = 0;"
+    },
+    {
+      "id": "microsoft/knowledge/upgrade/do-not-block-upgrade-on-data-errors.md",
+      "severity": "major",
+      "message": "OnUpgradePerCompany raises Error('No loyalty members were found during upgrade.') when the table is empty. Raising an Error inside an upgrade trigger aborts the upgrade for the affected company. Log a telemetry warning and exit instead so the upgrade proceeds.",
+      "location": {
+        "file": "src/Apps/W1/LoyaltySample/app/src/Loyalty/LoyaltyUpgrade.Codeunit.al",
+        "line": 23,
+        "range": { "start-line": 22, "end-line": 23 }
+      },
+      "references": [
+        { "path": "microsoft/knowledge/upgrade/do-not-block-upgrade-on-data-errors.md" }
+      ],
+      "confidence": "high",
+      "from-sub-skill": "al-upgrade-review",
+      "suggested-code": "        if Member.IsEmpty() then begin\n            Session.LogMessage('LOY-UPG-001', 'No loyalty members found during upgrade.', Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Upgrade');\n            exit;\n        end;"
+    },
+    {
+      "id": "microsoft/knowledge/upgrade/minimize-onvalidate-upgrade-triggers.md",
+      "severity": "major",
+      "message": "OnValidateUpgradePerCompany calls RecalculateAllBalances(), which performs a full-table scan with per-row Commit. This expensive work runs on every upgrade pass with no upgrade-tag guard to skip it once complete. Add an upgrade tag guard and justify why this validation must run on every upgrade.",
+      "location": {
+        "file": "src/Apps/W1/LoyaltySample/app/src/Loyalty/LoyaltyUpgrade.Codeunit.al",
+        "line": 30
+      },
+      "references": [
+        { "path": "microsoft/knowledge/upgrade/minimize-onvalidate-upgrade-triggers.md" }
+      ],
+      "confidence": "high",
+      "from-sub-skill": "al-upgrade-review",
+      "suggested-code-omission-reason": "Requires adding an upgrade tag constant and guard; spans multiple non-contiguous locations."
+    },
+    {
+      "id": "microsoft/knowledge/style/error-passes-parameters-directly-not-strsubstno.md",
+      "severity": "major",
+      "message": "ThrowMemberError builds the error message with StrSubstNo(Text000, Member.\"Member Name\") and passes the pre-built Text to Error(). This hides the label template from the translation pipeline and prevents analyzers from correlating the call with its label. Replace with Error(Text000, Member.\"Member Name\").",
+      "location": {
+        "file": "src/Apps/W1/LoyaltySample/app/src/Loyalty/LoyaltyManagement.Codeunit.al",
+        "line": 93,
+        "range": { "start-line": 93, "end-line": 94 }
+      },
+      "references": [
+        { "path": "microsoft/knowledge/style/error-passes-parameters-directly-not-strsubstno.md" }
+      ],
+      "confidence": "high",
+      "from-sub-skill": "al-style-review",
+      "suggested-code": "        Error(Text000, Member.\"Member Name\");"
+    },
+    {
+      "id": "microsoft/knowledge/style/label-suffix-approved-list.md",
+      "severity": "minor",
+      "message": "The label 'Text000' has no approved suffix (Msg/Err/Qst/Lbl/Tok/Txt). It is passed to Error(), so it should be renamed with the 'Err' suffix, e.g. 'FailedToProcessMemberErr'. This also applies across all usages of the variable.",
+      "location": {
+        "file": "src/Apps/W1/LoyaltySample/app/src/Loyalty/LoyaltyManagement.Codeunit.al",
+        "line": 8
+      },
+      "references": [
+        { "path": "microsoft/knowledge/style/label-suffix-approved-list.md" }
+      ],
+      "confidence": "high",
+      "from-sub-skill": "al-style-review",
+      "suggested-code-omission-reason": "Rename requires updating the declaration and all usages; spans multiple non-contiguous locations."
+    },
+    {
+      "id": "microsoft/knowledge/style/api-page-camelcase-properties.md",
+      "severity": "minor",
+      "message": "LoyaltyMemberAPI sets EntityName = 'Loyalty_Member' and EntitySetName = 'Loyalty_Members'. The underscore character is not allowed in API page property values; they must be camelCase alphanumeric only. Use EntityName = 'loyaltyMember' and EntitySetName = 'loyaltyMembers'. The field identifier 'Member_Name' also contains an underscore and must be changed to 'memberName'.",
+      "location": {
+        "file": "src/Apps/W1/LoyaltySample/app/src/Member/LoyaltyMemberAPI.Page.al",
+        "line": 9,
+        "range": { "start-line": 9, "end-line": 10 }
+      },
+      "references": [
+        { "path": "microsoft/knowledge/style/api-page-camelcase-properties.md" }
+      ],
+      "confidence": "high",
+      "from-sub-skill": "al-style-review",
+      "suggested-code-omission-reason": "Fix spans EntityName, EntitySetName, and field identifier declarations at non-contiguous lines."
+    },
+    {
+      "id": "microsoft/knowledge/style/api-page-delayedinsert-true.md",
+      "severity": "minor",
+      "message": "LoyaltyMemberAPI explicitly sets DelayedInsert = false. API pages must set DelayedInsert = true so the record insert fires once with all fields populated. With DelayedInsert = false, validation triggers fire on partially populated records and callers receive errors for fields the JSON payload was about to supply.",
+      "location": {
+        "file": "src/Apps/W1/LoyaltySample/app/src/Member/LoyaltyMemberAPI.Page.al",
+        "line": 12
+      },
+      "references": [
+        { "path": "microsoft/knowledge/style/api-page-delayedinsert-true.md" }
+      ],
+      "confidence": "high",
+      "from-sub-skill": "al-style-review",
+      "suggested-code": "    DelayedInsert = true;"
+    },
+    {
+      "id": "microsoft/knowledge/style/api-page-delayedinsert-true.md",
+      "severity": "minor",
+      "message": "LoyaltyMemberData is a PageType = API page with no DelayedInsert property, which defaults to false. API pages must declare DelayedInsert = true.",
+      "location": {
+        "file": "src/Apps/W1/LoyaltySample/app/src/Member/LoyaltyMemberData.Page.al",
+        "line": 5
+      },
+      "references": [
+        { "path": "microsoft/knowledge/style/api-page-delayedinsert-true.md" }
+      ],
+      "confidence": "high",
+      "from-sub-skill": "al-style-review",
+      "suggested-code-omission-reason": "Requires adding a new property line rather than replacing an existing line; insertion point is ambiguous without seeing the full page header."
+    },
+    {
+      "id": "microsoft/knowledge/ui/show-caption-on-editable-fields.md",
+      "severity": "minor",
+      "message": "The 'Member Name' field on LoyaltyMemberCard has Editable = true and ShowCaption = false. Removing the caption from an editable field is an accessibility violation: screen reader users lose the field label. Remove ShowCaption = false or set it to true.",
+      "location": {
+        "file": "src/Apps/W1/LoyaltySample/app/src/Member/LoyaltyMemberCard.Page.al",
+        "line": 26
+      },
+      "references": [
+        { "path": "microsoft/knowledge/ui/show-caption-on-editable-fields.md" }
+      ],
+      "confidence": "high",
+      "from-sub-skill": "al-ui-review",
+      "suggested-code": "                ShowCaption = true;"
+    },
+    {
+      "id": "microsoft/knowledge/ui/semantic-styles-need-independent-textual-meaning.md",
+      "severity": "minor",
+      "message": "The 'Points Balance' field on LoyaltyMemberCard uses StyleExpr = 'Unfavorable' as a static literal, so every member's balance is always rendered in bold red regardless of its value. 'Unfavorable' is a semantic style whose meaning must be independently derivable from the caption, value, or an adjacent field. A positive balance rendered as Unfavorable conveys false negative meaning. Drive the style dynamically from the field value (e.g. apply Unfavorable only when the balance is negative).",
+      "location": {
+        "file": "src/Apps/W1/LoyaltySample/app/src/Member/LoyaltyMemberCard.Page.al",
+        "line": 37
+      },
+      "references": [
+        { "path": "microsoft/knowledge/ui/semantic-styles-need-independent-textual-meaning.md" }
+      ],
+      "confidence": "high",
+      "from-sub-skill": "al-ui-review",
+      "suggested-code-omission-reason": "Fix requires adding a Text variable, assigning it in OnAfterGetRecord, and changing StyleExpr to reference the variable; spans non-contiguous locations."
+    },
+    {
+      "id": "microsoft/knowledge/error-handling/errortype-internal-vs-client-for-diagnostics.md",
+      "severity": "minor",
+      "message": "EnsureBucketInitialized raises Error('Unexpected state: loyalty ledger bucket %1 is not initialized.') as a plain client-visible error. The wording targets a developer, not a user. Use ErrorInfo with ErrorType::Internal so the detail goes to telemetry and the user sees a generic message.",
+      "location": {
+        "file": "src/Apps/W1/LoyaltySample/app/src/Loyalty/LoyaltyValidation.Codeunit.al",
+        "line": 23
+      },
+      "references": [
+        { "path": "microsoft/knowledge/error-handling/errortype-internal-vs-client-for-diagnostics.md" }
+      ],
+      "confidence": "high",
+      "from-sub-skill": "al-error-handling-review",
+      "suggested-code-omission-reason": "Fix requires constructing an ErrorInfo object with ErrorType::Internal and a DetailedMessage; the replacement spans several statements."
+    },
+    {
+      "id": "microsoft/knowledge/error-handling/collect-validation-errors-with-errorbehavior.md",
+      "severity": "major",
+      "message": "ValidateBalances manually accumulates errors into an ErrorText variable using string concatenation and then raises a single Error(ErrorText). This re-implements the platform's collectible-errors feature, loses each error's ErrorInfo structure, and skips telemetry classification. Replace with [ErrorBehavior(ErrorBehavior::Collect)], raise individual errors per row, and inspect HasCollectedErrors / GetCollectedErrors at the end.",
+      "location": {
+        "file": "src/Apps/W1/LoyaltySample/app/src/Loyalty/LoyaltyValidation.Codeunit.al",
+        "line": 46,
+        "range": { "start-line": 41, "end-line": 49 }
+      },
+      "references": [
+        { "path": "microsoft/knowledge/error-handling/collect-validation-errors-with-errorbehavior.md" }
+      ],
+      "confidence": "high",
+      "from-sub-skill": "al-error-handling-review",
+      "suggested-code-omission-reason": "Fix requires refactoring the entire procedure to use ErrorBehavior::Collect and GetCollectedErrors; spans multiple non-contiguous statements."
+    },
+    {
+      "id": "microsoft/knowledge/error-handling/collect-validation-errors-with-errorbehavior.md",
+      "severity": "major",
+      "message": "ValidateAllMembers is marked [ErrorBehavior(ErrorBehavior::Collect)] but never calls HasCollectedErrors or GetCollectedErrors. Errors accumulate silently and spill into the platform's concatenated end-of-procedure dialog, which is hard for users to read. Handle the collected errors explicitly by inspecting HasCollectedErrors and surfacing GetCollectedErrors after the loop.",
+      "location": {
+        "file": "src/Apps/W1/LoyaltySample/app/src/Loyalty/LoyaltyValidation.Codeunit.al",
+        "line": 27,
+        "range": { "start-line": 26, "end-line": 36 }
+      },
+      "references": [
+        { "path": "microsoft/knowledge/error-handling/collect-validation-errors-with-errorbehavior.md" }
+      ],
+      "confidence": "high",
+      "from-sub-skill": "al-error-handling-review",
+      "suggested-code-omission-reason": "Fix requires adding GetCollectedErrors handling after the loop and deciding how to surface the result; context-dependent."
+    },
+    {
+      "id": "microsoft/knowledge/error-handling/prefer-errorinfo-for-actionable-errors.md",
+      "severity": "minor",
+      "message": "ValidateRedemption raises Error('You cannot redeem more than %1 points.', LoyaltyMember.\"Points Balance\") naming the exact maximum but offering no action. Because the code knows the maximum, this is a candidate for an ErrorInfo with a Fix-it AddAction that sets the redemption amount to the allowed maximum, letting the user unblock themselves without leaving their task.",
+      "location": {
+        "file": "src/Apps/W1/LoyaltySample/app/src/Loyalty/LoyaltyValidation.Codeunit.al",
+        "line": 8,
+        "range": { "start-line": 7, "end-line": 8 }
+      },
+      "references": [
+        { "path": "microsoft/knowledge/error-handling/prefer-errorinfo-for-actionable-errors.md" }
+      ],
+      "confidence": "medium",
+      "from-sub-skill": "al-error-handling-review",
+      "suggested-code-omission-reason": "Fix requires an ErrorInfo with AddAction pointing to a handler codeunit that applies the maximum; requires choosing real object names."
+    },
+    {
+      "id": "microsoft/knowledge/events/do-not-publish-events-inside-loops.md",
+      "severity": "major",
+      "message": "NotifyMembers raises OnMemberNotified inside the repeat\u2026until loop, firing once per member record. Every subscriber's cost is multiplied by the row count; on large datasets this can cause timeouts. Move the event outside the loop or publish a single batch event passing the filtered record set.",
+      "location": {
+        "file": "src/Apps/W1/LoyaltySample/app/src/Loyalty/LoyaltyEvents.Codeunit.al",
+        "line": 56
+      },
+      "references": [
+        { "path": "microsoft/knowledge/events/do-not-publish-events-inside-loops.md" }
+      ],
+      "confidence": "high",
+      "from-sub-skill": "al-events-review",
+      "suggested-code-omission-reason": "Fix requires redesigning the event to pass a batch context rather than a single record; the replacement shape depends on what subscribers need."
+    },
+    {
+      "id": "microsoft/knowledge/events/publish-thin-onbefore-onafter-integration-events.md",
+      "severity": "major",
+      "message": "OnBeforeRecalculate is an IntegrationEvent publisher whose body contains business logic: it resets Points Balance and sets it to 100 for Platinum members. An IntegrationEvent body must be empty; placing logic there causes it to run on every raise, bypassing the subscriber override pattern and surprising every reader. Move the logic to the calling routine (RecalculateMember) and leave the event body empty.",
+      "location": {
+        "file": "src/Apps/W1/LoyaltySample/app/src/Loyalty/LoyaltyEvents.Codeunit.al",
+        "line": 71,
+        "range": { "start-line": 68, "end-line": 74 }
+      },
+      "references": [
+        { "path": "microsoft/knowledge/events/publish-thin-onbefore-onafter-integration-events.md" }
+      ],
+      "confidence": "high",
+      "from-sub-skill": "al-events-review",
+      "suggested-code": "    [IntegrationEvent(false, false)]\n    local procedure OnBeforeRecalculate(var LoyaltyMember: Record \"Loyalty Member\"; var IsHandled: Boolean)\n    begin\n    end;"
+    },
+    {
+      "id": "microsoft/knowledge/events/preserve-onafter-execution-when-ishandled-skips-the-body.md",
+      "severity": "minor",
+      "message": "CalculateTotal guards the default body with 'if IsHandled then exit', but this exit skips OnAfterCalculateTotal as well. Subscribers that depend on the after-event will not fire when another subscriber handles the before-event. Wrap only the default work in 'if not IsHandled then begin \u2026 end' and leave the OnAfterCalculateTotal raise after that block so it always fires.",
+      "location": {
+        "file": "src/Apps/W1/LoyaltySample/app/src/Loyalty/LoyaltyEvents.Codeunit.al",
+        "line": 19,
+        "range": { "start-line": 19, "end-line": 20 }
+      },
+      "references": [
+        { "path": "microsoft/knowledge/events/preserve-onafter-execution-when-ishandled-skips-the-body.md" }
+      ],
+      "confidence": "high",
+      "from-sub-skill": "al-events-review",
+      "suggested-code": "        if not IsHandled then\n            DoRecalculate(LoyaltyMember);\n        OnAfterCalculateTotal(LoyaltyMember);"
+    },
+    {
+      "id": "microsoft/knowledge/events/initialize-ishandled-to-false-before-publishing.md",
+      "severity": "minor",
+      "message": "RecalculateMember raises OnBeforeRecalculate(LoyaltyMember, IsHandled) without first assigning IsHandled := false. Although a freshly declared Boolean defaults to false, the explicit assignment makes the control flow self-documenting and stays correct if a second event raise is added to the routine later. Add 'IsHandled := false;' immediately before the raise.",
+      "location": {
+        "file": "src/Apps/W1/LoyaltySample/app/src/Loyalty/LoyaltyEvents.Codeunit.al",
+        "line": 9
+      },
+      "references": [
+        { "path": "microsoft/knowledge/events/initialize-ishandled-to-false-before-publishing.md" }
+      ],
+      "confidence": "high",
+      "from-sub-skill": "al-events-review",
+      "suggested-code": "        IsHandled := false;\n        OnBeforeRecalculate(LoyaltyMember, IsHandled);"
+    },
+    {
+      "id": "microsoft/knowledge/interfaces/set-defaultimplementation-on-enum.md",
+      "severity": "major",
+      "message": "Enum 'Loyalty Channel' implements INotificationSender but value(0; \" \") has no Implementation property and the enum declares no DefaultImplementation. Assigning the blank channel value to an INotificationSender variable and calling Send will fail at runtime. Add a DefaultImplementation at the enum level pointing at a safe no-op implementation, or add an Implementation to value(0).",
+      "location": {
+        "file": "src/Apps/W1/LoyaltySample/app/src/Notification/LoyaltyChannel.Enum.al",
+        "line": 7,
+        "range": { "start-line": 7, "end-line": 10 }
+      },
+      "references": [
+        { "path": "microsoft/knowledge/interfaces/set-defaultimplementation-on-enum.md" }
+      ],
+      "confidence": "high",
+      "from-sub-skill": "al-interfaces-review",
+      "suggested-code-omission-reason": "Requires deciding which codeunit should serve as the default (no-op) implementation; not unambiguous from the diff."
+    },
+    {
+      "id": "microsoft/knowledge/breaking-changes/do-not-expose-sensitive-data-through-public-api.md",
+      "severity": "major",
+      "message": "GetApiToken() is a public procedure that returns ApiToken.Unwrap() as plain Text. This turns a SecretText credential into a permanently public API contract that any dependent extension can consume. Mark the procedure internal or local so the secret stays within the codeunit boundary.",
+      "location": {
+        "file": "src/Apps/W1/LoyaltySample/app/src/Loyalty/LoyaltyPublicApi.Codeunit.al",
+        "line": 25
+      },
+      "references": [
+        { "path": "microsoft/knowledge/breaking-changes/do-not-expose-sensitive-data-through-public-api.md" }
+      ],
+      "confidence": "high",
+      "from-sub-skill": "al-breaking-changes-review",
+      "suggested-code": "    local procedure GetApiToken(): Text"
+    },
+    {
+      "id": "microsoft/knowledge/breaking-changes/do-not-expose-sensitive-data-through-public-api.md",
+      "severity": "major",
+      "message": "GetGatewayToken() is a public procedure that returns the gateway token as plain Text (falling back to the hardcoded Label when IsolatedStorage is empty). Any extension can call this public getter to read the credential. Mark the procedure internal or local and ensure callers consume the token as SecretText.",
+      "location": {
+        "file": "src/Apps/W1/LoyaltySample/app/src/Loyalty/LoyaltyManagement.Codeunit.al",
+        "line": 48
+      },
+      "references": [
+        { "path": "microsoft/knowledge/breaking-changes/do-not-expose-sensitive-data-through-public-api.md" }
+      ],
+      "confidence": "high",
+      "from-sub-skill": "al-breaking-changes-review",
+      "suggested-code": "    local procedure GetGatewayToken(): Text"
+    },
+    {
+      "id": "microsoft/knowledge/web-services/set-required-api-page-properties.md",
+      "severity": "major",
+      "message": "LoyaltyMemberData is declared PageType = API but is missing all six required identifying properties: APIPublisher, APIGroup, APIVersion, EntityName, EntitySetName. Without them the OData route cannot be composed and the endpoint will never be reachable by any integration client.",
+      "location": {
+        "file": "src/Apps/W1/LoyaltySample/app/src/Member/LoyaltyMemberData.Page.al",
+        "line": 5,
+        "range": { "start-line": 5, "end-line": 8 }
+      },
+      "references": [
+        { "path": "microsoft/knowledge/web-services/set-required-api-page-properties.md" }
+      ],
+      "confidence": "high",
+      "from-sub-skill": "al-web-services-review",
+      "suggested-code-omission-reason": "Requires adding six new property declarations; publisher tag, group, version, and entity names must be chosen by the developer."
+    },
+    {
+      "id": "microsoft/knowledge/web-services/expose-systemid-as-the-api-key.md",
+      "severity": "major",
+      "message": "LoyaltyMemberData sets ODataKeyFields = \"No.\", using the business key as the OData key. If a user renames the member number, all existing API references will dangle. Change to ODataKeyFields = SystemId and expose Rec.SystemId as a non-editable 'id' field.",
+      "location": {
+        "file": "src/Apps/W1/LoyaltySample/app/src/Member/LoyaltyMemberData.Page.al",
+        "line": 7
+      },
+      "references": [
+        { "path": "microsoft/knowledge/web-services/expose-systemid-as-the-api-key.md" }
+      ],
+      "confidence": "high",
+      "from-sub-skill": "al-web-services-review",
+      "suggested-code": "    ODataKeyFields = SystemId;"
+    },
+    {
+      "id": "microsoft/knowledge/security/inherent-permissions-minimal-grant.md",
+      "severity": "major",
+      "message": "RecalculateAllBalances declares [InherentPermissions(PermissionObjectType::TableData, Database::\"Loyalty Point Entry\", 'RIMDX')]. The procedure body only reads Loyalty Point Entry records (SetRange, FindSet, PointEntry.Points) and performs no Insert, Modify, Delete, or Execute on that table. The grant must be narrowed to 'R' to match the actual operations performed.",
+      "location": {
+        "file": "src/Apps/W1/LoyaltySample/app/src/Loyalty/LoyaltyManagement.Codeunit.al",
+        "line": 11
+      },
+      "references": [
+        { "path": "microsoft/knowledge/security/inherent-permissions-minimal-grant.md" }
+      ],
+      "confidence": "high",
+      "from-sub-skill": "al-security-review",
+      "suggested-code": "    [InherentPermissions(PermissionObjectType::TableData, Database::\"Loyalty Point Entry\", 'R')]"
+    },
+    {
+      "id": "agent:delete-before-confirm-in-archivemember",
+      "severity": "minor",
+      "message": "ArchiveMember calls Member.Delete() unconditionally before showing the Confirm dialog. The member record is always deleted regardless of whether the user clicks Yes or No; the Confirm only controls whether 'Archived.' is shown. This is a logic error: the delete should be inside 'if Confirm(...) then'. The current ordering leaves the member permanently removed even when the user declines.",
+      "location": {
+        "file": "src/Apps/W1/LoyaltySample/app/src/Loyalty/LoyaltyManagement.Codeunit.al",
+        "line": 38,
+        "range": { "start-line": 37, "end-line": 41 }
+      },
+      "references": [],
+      "confidence": "high",
+      "from-sub-skill": "agent",
+      "suggested-code": "    procedure ArchiveMember(var Member: Record \"Loyalty Member\")\n    begin\n        if Confirm('Do you want to archive member %1?', false, Member.\"Member Name\") then begin\n            Member.Delete();\n            Message('Archived.');\n        end;\n    end;"
+    },
+    {
+      "id": "agent:httpclient-response-unchecked",
+      "severity": "minor",
+      "message": "Both CallPaymentGateway (LoyaltyManagement.Codeunit.al line 71) and SendExternalAuditEmail (LoyaltyAuditSubscriber.Codeunit.al line 18) call HttpClient.Post but never inspect the HttpResponseMessage status. Network failures, 4xx/5xx responses, and server-side errors are silently swallowed. Add a check on Response.IsSuccessStatusCode and either raise a controlled error or log a telemetry warning so failures are observable.",
+      "references": [],
+      "confidence": "medium",
+      "from-sub-skill": "agent",
+      "suggested-code-omission-reason": "Fix must be applied at two separate locations and the appropriate error-handling strategy (retry, log, surface to user) is context-dependent."
+    }
+  ],
+  "suppressed": [],
+  "skipped-sub-skills": [],
+  "sub-results": [
+    {
+      "skill": { "id": "al-performance-review", "version": 1 },
+      "outcome": "completed",
+      "summary": {
+        "counts": { "blocker": 0, "major": 2, "minor": 0, "info": 0 },
+        "coverage": { "worklist-size": 2, "items-evaluated": 2 }
+      },
+      "findings": [
+        {
+          "id": "microsoft/knowledge/performance/avoid-commit-inside-loops.md",
+          "severity": "major",
+          "message": "Commit() is called inside the repeat\u2026until loop in RecalculateAllBalances. Each iteration opens and commits its own transaction, preventing atomic rollback of the whole batch and imposing per-row transaction overhead. Remove the Commit and let the AL module auto-commit on completion, or restructure into bounded N-row checkpoints each wrapped in Codeunit.Run.",
+          "location": {
+            "file": "src/Apps/W1/LoyaltySample/app/src/Loyalty/LoyaltyManagement.Codeunit.al",
+            "line": 32
+          },
+          "references": [
+            { "path": "microsoft/knowledge/performance/avoid-commit-inside-loops.md" }
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "microsoft/knowledge/performance/avoid-user-prompts-inside-transactions.md",
+          "severity": "major",
+          "message": "ArchiveMember calls Member.Delete() unconditionally and only then shows a Confirm dialog. The write transaction holds locks while the dialog waits for user input. Move the Confirm before the Delete so locks are acquired only after the user confirms.",
+          "location": {
+            "file": "src/Apps/W1/LoyaltySample/app/src/Loyalty/LoyaltyManagement.Codeunit.al",
+            "line": 39,
+            "range": { "start-line": 38, "end-line": 40 }
+          },
+          "references": [
+            { "path": "microsoft/knowledge/performance/avoid-user-prompts-inside-transactions.md" }
+          ],
+          "confidence": "high"
+        }
+      ],
+      "suppressed": []
+    },
+    {
+      "skill": { "id": "al-security-review", "version": 1 },
+      "outcome": "completed",
+      "summary": {
+        "counts": { "blocker": 2, "major": 5, "minor": 0, "info": 0 },
+        "coverage": { "worklist-size": 5, "items-evaluated": 5 }
+      },
+      "findings": [
+        {
+          "id": "microsoft/knowledge/security/secrettext-for-credentials.md",
+          "severity": "blocker",
+          "message": "GatewayApiKey is a Label (plain Text) holding a live API key. Remove the hardcoded key; retrieve secrets at runtime via IsolatedStorage with a SecretText destination.",
+          "location": {
+            "file": "src/Apps/W1/LoyaltySample/app/src/Loyalty/LoyaltyManagement.Codeunit.al",
+            "line": 9
+          },
+          "references": [{ "path": "microsoft/knowledge/security/secrettext-for-credentials.md" }],
+          "confidence": "high"
+        },
+        {
+          "id": "microsoft/knowledge/security/nondebuggable-required-when-unwrapping-secrettext.md",
+          "severity": "major",
+          "message": "UnwrapGatewaySecret calls Secret.Unwrap() without [NonDebuggable]. Add [NonDebuggable] to the procedure.",
+          "location": {
+            "file": "src/Apps/W1/LoyaltySample/app/src/Loyalty/LoyaltyManagement.Codeunit.al",
+            "line": 57
+          },
+          "references": [{ "path": "microsoft/knowledge/security/nondebuggable-required-when-unwrapping-secrettext.md" }],
+          "confidence": "high",
+          "suggested-code": "    [NonDebuggable]\n    procedure UnwrapGatewaySecret(Secret: SecretText): Text"
+        },
+        {
+          "id": "microsoft/knowledge/security/nondebuggable-required-when-unwrapping-secrettext.md",
+          "severity": "major",
+          "message": "GetApiToken calls ApiToken.Unwrap() without [NonDebuggable]. Add [NonDebuggable] to the procedure.",
+          "location": {
+            "file": "src/Apps/W1/LoyaltySample/app/src/Loyalty/LoyaltyPublicApi.Codeunit.al",
+            "line": 25
+          },
+          "references": [{ "path": "microsoft/knowledge/security/nondebuggable-required-when-unwrapping-secrettext.md" }],
+          "confidence": "high",
+          "suggested-code": "    [NonDebuggable]\n    procedure GetApiToken(): Text"
+        },
+        {
+          "id": "microsoft/knowledge/security/isolatedstorage-setencrypted-for-sensitive-values.md",
+          "severity": "major",
+          "message": "ConfigureGateway uses IsolatedStorage.Set for a gateway token. Use SetEncrypted to protect the value at rest.",
+          "location": {
+            "file": "src/Apps/W1/LoyaltySample/app/src/Loyalty/LoyaltyManagement.Codeunit.al",
+            "line": 45
+          },
+          "references": [{ "path": "microsoft/knowledge/security/isolatedstorage-setencrypted-for-sensitive-values.md" }],
+          "confidence": "high",
+          "suggested-code": "        IsolatedStorage.SetEncrypted('GatewayToken', Token, DataScope::Module);"
+        },
+        {
+          "id": "microsoft/knowledge/security/integrationevent-must-not-expose-secrets.md",
+          "severity": "blocker",
+          "message": "OnBeforeChargeMember exposes var GatewayToken: SecretText as an event parameter. Every subscriber on the tenant can read or replace the secret. Remove the credential from the event signature.",
+          "location": {
+            "file": "src/Apps/W1/LoyaltySample/app/src/Loyalty/LoyaltyManagement.Codeunit.al",
+            "line": 103,
+            "range": { "start-line": 102, "end-line": 105 }
+          },
+          "references": [{ "path": "microsoft/knowledge/security/integrationevent-must-not-expose-secrets.md" }],
+          "confidence": "high"
+        },
+        {
+          "id": "microsoft/knowledge/security/al-has-no-built-in-htmlencode.md",
+          "severity": "major",
+          "message": "BuildMemberBadgeHtml concatenates Member Name and Email Address directly into HTML without encoding. AL has no built-in HtmlEncode; a name containing HTML metacharacters will inject markup. Encode each value before concatenation.",
+          "location": {
+            "file": "src/Apps/W1/LoyaltySample/app/src/Loyalty/LoyaltyManagement.Codeunit.al",
+            "line": 99
+          },
+          "references": [{ "path": "microsoft/knowledge/security/al-has-no-built-in-htmlencode.md" }],
+          "confidence": "high"
+        },
+        {
+          "id": "microsoft/knowledge/security/inherent-permissions-minimal-grant.md",
+          "severity": "major",
+          "message": "[InherentPermissions(..., 'RIMDX')] on RecalculateAllBalances grants Insert, Modify, Delete, and Execute on Loyalty Point Entry but the body only reads. Narrow to 'R'.",
+          "location": {
+            "file": "src/Apps/W1/LoyaltySample/app/src/Loyalty/LoyaltyManagement.Codeunit.al",
+            "line": 11
+          },
+          "references": [{ "path": "microsoft/knowledge/security/inherent-permissions-minimal-grant.md" }],
+          "confidence": "high",
+          "suggested-code": "    [InherentPermissions(PermissionObjectType::TableData, Database::\"Loyalty Point Entry\", 'R')]"
+        }
+      ],
+      "suppressed": []
+    },
+    {
+      "skill": { "id": "al-privacy-review", "version": 1 },
+      "outcome": "completed",
+      "summary": {
+        "counts": { "blocker": 0, "major": 4, "minor": 1, "info": 0 },
+        "coverage": { "worklist-size": 4, "items-evaluated": 4 }
+      },
+      "findings": [
+        {
+          "id": "microsoft/knowledge/privacy/data-classification-required-on-pii-fields.md",
+          "severity": "major",
+          "message": "Fields 'Member Name' and 'Email Address' in Loyalty Member have no DataClassification and default to SystemMetadata. Both store customer PII and must be classified CustomerContent (or EndUserIdentifiableInformation for Email Address).",
+          "location": {
+            "file": "src/Apps/W1/LoyaltySample/app/src/Member/LoyaltyMember.Table.al",
+            "line": 15,
+            "range": { "start-line": 15, "end-line": 22 }
+          },
+          "references": [{ "path": "microsoft/knowledge/privacy/data-classification-required-on-pii-fields.md" }],
+          "confidence": "high"
+        },
+        {
+          "id": "microsoft/knowledge/privacy/data-classification-required-on-pii-fields.md",
+          "severity": "major",
+          "message": "Field 'Customer Email' in Loyalty Point Entry has no DataClassification and defaults to SystemMetadata. It stores an email address and must be classified CustomerContent.",
+          "location": {
+            "file": "src/Apps/W1/LoyaltySample/app/src/Member/LoyaltyPointEntry.Table.al",
+            "line": 37,
+            "range": { "start-line": 37, "end-line": 40 }
+          },
+          "references": [{ "path": "microsoft/knowledge/privacy/data-classification-required-on-pii-fields.md" }],
+          "confidence": "high",
+          "suggested-code": "        field(6; \"Customer Email\"; Text[80])\n        {\n            Caption = 'Customer Email';\n            DataClassification = CustomerContent;\n        }"
+        },
+        {
+          "id": "microsoft/knowledge/privacy/resolve-tobeclassified-before-release.md",
+          "severity": "minor",
+          "message": "Fields 'Phone No.' and 'Points Balance' in Loyalty Member are DataClassification = ToBeClassified. Resolve before release: Phone No. should be CustomerContent; Points Balance should be CustomerContent or AccountData.",
+          "location": {
+            "file": "src/Apps/W1/LoyaltySample/app/src/Member/LoyaltyMember.Table.al",
+            "line": 26
+          },
+          "references": [{ "path": "microsoft/knowledge/privacy/resolve-tobeclassified-before-release.md" }],
+          "confidence": "high"
+        },
+        {
+          "id": "microsoft/knowledge/privacy/featuretelemetry-customdimensions-no-pii.md",
+          "severity": "major",
+          "message": "LogMemberUsage adds MemberName (customer name) and MemberEmail (email address) to FeatureTelemetry CustomDimensions. Both are PII and must not appear in telemetry. Replace with non-personal context.",
+          "location": {
+            "file": "src/Apps/W1/LoyaltySample/app/src/Loyalty/LoyaltyManagement.Codeunit.al",
+            "line": 79,
+            "range": { "start-line": 79, "end-line": 80 }
+          },
+          "references": [{ "path": "microsoft/knowledge/privacy/featuretelemetry-customdimensions-no-pii.md" }],
+          "confidence": "high"
+        },
+        {
+          "id": "microsoft/knowledge/privacy/privacy-notice-consent-for-external-data-transfer.md",
+          "severity": "major",
+          "message": "CallPaymentGateway posts member name, email, and phone to an external endpoint with no PrivacyNotice.GetPrivacyNoticeApprovalState check. SendExternalAuditEmail also sends member data externally without consent check. Add a privacy notice check upstream in both code paths.",
+          "location": {
+            "file": "src/Apps/W1/LoyaltySample/app/src/Loyalty/LoyaltyManagement.Codeunit.al",
+            "line": 71
+          },
+          "references": [{ "path": "microsoft/knowledge/privacy/privacy-notice-consent-for-external-data-transfer.md" }],
+          "confidence": "high"
+        }
+      ],
+      "suppressed": []
+    },
+    {
+      "skill": { "id": "al-upgrade-review", "version": 1 },
+      "outcome": "completed",
+      "summary": {
+        "counts": { "blocker": 1, "major": 4, "minor": 0, "info": 0 },
+        "coverage": { "worklist-size": 5, "items-evaluated": 5 }
+      },
+      "findings": [
+        {
+          "id": "microsoft/knowledge/upgrade/no-external-calls-in-upgrade.md",
+          "severity": "blocker",
+          "message": "OnUpgradePerCompany calls Client.Get against an external URL. External HTTP calls inside upgrade triggers are forbidden; a service outage will abort the upgrade. Defer this call to runtime.",
+          "location": {
+            "file": "src/Apps/W1/LoyaltySample/app/src/Loyalty/LoyaltyUpgrade.Codeunit.al",
+            "line": 20
+          },
+          "references": [{ "path": "microsoft/knowledge/upgrade/no-external-calls-in-upgrade.md" }],
+          "confidence": "high"
+        },
+        {
+          "id": "microsoft/knowledge/upgrade/use-upgrade-tags-not-version-checks.md",
+          "severity": "major",
+          "message": "Neither OnUpgradePerCompany nor OnValidateUpgradePerCompany uses HasUpgradeTag / SetUpgradeTag. Without tags the upgrade logic runs on every upgrade pass. Add unique upgrade tags.",
+          "location": {
+            "file": "src/Apps/W1/LoyaltySample/app/src/Loyalty/LoyaltyUpgrade.Codeunit.al",
+            "line": 7
+          },
+          "references": [{ "path": "microsoft/knowledge/upgrade/use-upgrade-tags-not-version-checks.md" }],
+          "confidence": "high"
+        },
+        {
+          "id": "microsoft/knowledge/upgrade/guard-database-reads.md",
+          "severity": "major",
+          "message": "Member.FindSet(true) in OnUpgradePerCompany is unguarded; an empty table causes a runtime abort. Wrap with 'if Member.FindSet(true) then'.",
+          "location": {
+            "file": "src/Apps/W1/LoyaltySample/app/src/Loyalty/LoyaltyUpgrade.Codeunit.al",
+            "line": 13
+          },
+          "references": [{ "path": "microsoft/knowledge/upgrade/guard-database-reads.md" }],
+          "confidence": "high",
+          "suggested-code": "        if Member.FindSet(true) then\n            repeat\n                Member.CalcFields(\"Total Points\");\n                Member.\"Points Balance\" := Member.\"Total Points\" * 2;\n                Member.Modify();\n            until Member.Next() = 0;"
+        },
+        {
+          "id": "microsoft/knowledge/upgrade/do-not-block-upgrade-on-data-errors.md",
+          "severity": "major",
+          "message": "OnUpgradePerCompany raises Error() when no members are found, aborting the upgrade. Log telemetry and exit instead.",
+          "location": {
+            "file": "src/Apps/W1/LoyaltySample/app/src/Loyalty/LoyaltyUpgrade.Codeunit.al",
+            "line": 23,
+            "range": { "start-line": 22, "end-line": 23 }
+          },
+          "references": [{ "path": "microsoft/knowledge/upgrade/do-not-block-upgrade-on-data-errors.md" }],
+          "confidence": "high"
+        },
+        {
+          "id": "microsoft/knowledge/upgrade/minimize-onvalidate-upgrade-triggers.md",
+          "severity": "major",
+          "message": "OnValidateUpgradePerCompany calls RecalculateAllBalances() (full-table scan + per-row Commit) on every upgrade pass with no upgrade-tag guard. Add a tag guard and justify why this must run on every upgrade.",
+          "location": {
+            "file": "src/Apps/W1/LoyaltySample/app/src/Loyalty/LoyaltyUpgrade.Codeunit.al",
+            "line": 30
+          },
+          "references": [{ "path": "microsoft/knowledge/upgrade/minimize-onvalidate-upgrade-triggers.md" }],
+          "confidence": "high"
+        }
+      ],
+      "suppressed": []
+    },
+    {
+      "skill": { "id": "al-style-review", "version": 1 },
+      "outcome": "completed",
+      "summary": {
+        "counts": { "blocker": 0, "major": 1, "minor": 4, "info": 0 },
+        "coverage": { "worklist-size": 4, "items-evaluated": 4 }
+      },
+      "findings": [
+        {
+          "id": "microsoft/knowledge/style/error-passes-parameters-directly-not-strsubstno.md",
+          "severity": "major",
+          "message": "ThrowMemberError wraps Text000 with StrSubstNo before passing it to Error(). This defeats the translation pipeline. Use Error(Text000, Member.\"Member Name\") directly.",
+          "location": {
+            "file": "src/Apps/W1/LoyaltySample/app/src/Loyalty/LoyaltyManagement.Codeunit.al",
+            "line": 93,
+            "range": { "start-line": 93, "end-line": 94 }
+          },
+          "references": [{ "path": "microsoft/knowledge/style/error-passes-parameters-directly-not-strsubstno.md" }],
+          "confidence": "high",
+          "suggested-code": "        Error(Text000, Member.\"Member Name\");"
+        },
+        {
+          "id": "microsoft/knowledge/style/label-suffix-approved-list.md",
+          "severity": "minor",
+          "message": "Label 'Text000' has no approved suffix. It is used in Error(), so the correct suffix is 'Err'. Rename to e.g. 'FailedToProcessMemberErr'.",
+          "location": {
+            "file": "src/Apps/W1/LoyaltySample/app/src/Loyalty/LoyaltyManagement.Codeunit.al",
+            "line": 8
+          },
+          "references": [{ "path": "microsoft/knowledge/style/label-suffix-approved-list.md" }],
+          "confidence": "high"
+        },
+        {
+          "id": "microsoft/knowledge/style/api-page-camelcase-properties.md",
+          "severity": "minor",
+          "message": "LoyaltyMemberAPI uses EntityName = 'Loyalty_Member', EntitySetName = 'Loyalty_Members', and field identifier 'Member_Name', all containing underscores. API page property values must be camelCase alphanumeric only. Use 'loyaltyMember', 'loyaltyMembers', and 'memberName'.",
+          "location": {
+            "file": "src/Apps/W1/LoyaltySample/app/src/Member/LoyaltyMemberAPI.Page.al",
+            "line": 9,
+            "range": { "start-line": 9, "end-line": 10 }
+          },
+          "references": [{ "path": "microsoft/knowledge/style/api-page-camelcase-properties.md" }],
+          "confidence": "high"
+        },
+        {
+          "id": "microsoft/knowledge/style/api-page-delayedinsert-true.md",
+          "severity": "minor",
+          "message": "LoyaltyMemberAPI sets DelayedInsert = false. API pages must set DelayedInsert = true.",
+          "location": {
+            "file": "src/Apps/W1/LoyaltySample/app/src/Member/LoyaltyMemberAPI.Page.al",
+            "line": 12
+          },
+          "references": [{ "path": "microsoft/knowledge/style/api-page-delayedinsert-true.md" }],
+          "confidence": "high",
+          "suggested-code": "    DelayedInsert = true;"
+        },
+        {
+          "id": "microsoft/knowledge/style/api-page-delayedinsert-true.md",
+          "severity": "minor",
+          "message": "LoyaltyMemberData (PageType = API) has no DelayedInsert property; it defaults to false. Declare DelayedInsert = true.",
+          "location": {
+            "file": "src/Apps/W1/LoyaltySample/app/src/Member/LoyaltyMemberData.Page.al",
+            "line": 5
+          },
+          "references": [{ "path": "microsoft/knowledge/style/api-page-delayedinsert-true.md" }],
+          "confidence": "high"
+        }
+      ],
+      "suppressed": []
+    },
+    {
+      "skill": { "id": "al-ui-review", "version": 1 },
+      "outcome": "completed",
+      "summary": {
+        "counts": { "blocker": 0, "major": 0, "minor": 2, "info": 0 },
+        "coverage": { "worklist-size": 2, "items-evaluated": 2 }
+      },
+      "findings": [
+        {
+          "id": "microsoft/knowledge/ui/show-caption-on-editable-fields.md",
+          "severity": "minor",
+          "message": "The 'Member Name' field on LoyaltyMemberCard has Editable = true and ShowCaption = false. Removing the caption from an editable field is an accessibility violation. Remove ShowCaption = false.",
+          "location": {
+            "file": "src/Apps/W1/LoyaltySample/app/src/Member/LoyaltyMemberCard.Page.al",
+            "line": 26
+          },
+          "references": [{ "path": "microsoft/knowledge/ui/show-caption-on-editable-fields.md" }],
+          "confidence": "high",
+          "suggested-code": "                ShowCaption = true;"
+        },
+        {
+          "id": "microsoft/knowledge/ui/semantic-styles-need-independent-textual-meaning.md",
+          "severity": "minor",
+          "message": "The 'Points Balance' field on LoyaltyMemberCard uses StyleExpr = 'Unfavorable' as a static literal, rendering all balances as bold red regardless of value. Apply 'Unfavorable' only when the balance is negative; use a Text variable assigned in OnAfterGetRecord.",
+          "location": {
+            "file": "src/Apps/W1/LoyaltySample/app/src/Member/LoyaltyMemberCard.Page.al",
+            "line": 37
+          },
+          "references": [{ "path": "microsoft/knowledge/ui/semantic-styles-need-independent-textual-meaning.md" }],
+          "confidence": "high"
+        }
+      ],
+      "suppressed": []
+    },
+    {
+      "skill": { "id": "al-error-handling-review", "version": 1 },
+      "outcome": "completed",
+      "summary": {
+        "counts": { "blocker": 0, "major": 2, "minor": 2, "info": 0 },
+        "coverage": { "worklist-size": 3, "items-evaluated": 3 }
+      },
+      "findings": [
+        {
+          "id": "microsoft/knowledge/error-handling/errortype-internal-vs-client-for-diagnostics.md",
+          "severity": "minor",
+          "message": "EnsureBucketInitialized raises a developer-facing 'Unexpected state' error with default Client visibility. Use ErrorInfo with ErrorType::Internal so the detail goes to telemetry and the user sees a generic message.",
+          "location": {
+            "file": "src/Apps/W1/LoyaltySample/app/src/Loyalty/LoyaltyValidation.Codeunit.al",
+            "line": 23
+          },
+          "references": [{ "path": "microsoft/knowledge/error-handling/errortype-internal-vs-client-for-diagnostics.md" }],
+          "confidence": "high"
+        },
+        {
+          "id": "microsoft/knowledge/error-handling/collect-validation-errors-with-errorbehavior.md",
+          "severity": "major",
+          "message": "ValidateBalances manually accumulates errors into a Text variable and raises Error(ErrorText). Use [ErrorBehavior(ErrorBehavior::Collect)] and GetCollectedErrors instead.",
+          "location": {
+            "file": "src/Apps/W1/LoyaltySample/app/src/Loyalty/LoyaltyValidation.Codeunit.al",
+            "line": 46,
+            "range": { "start-line": 41, "end-line": 49 }
+          },
+          "references": [{ "path": "microsoft/knowledge/error-handling/collect-validation-errors-with-errorbehavior.md" }],
+          "confidence": "high"
+        },
+        {
+          "id": "microsoft/knowledge/error-handling/collect-validation-errors-with-errorbehavior.md",
+          "severity": "major",
+          "message": "ValidateAllMembers is marked [ErrorBehavior(ErrorBehavior::Collect)] but never calls HasCollectedErrors or GetCollectedErrors. Collected errors spill into the platform's concatenated end-of-procedure dialog. Handle the collected list explicitly.",
+          "location": {
+            "file": "src/Apps/W1/LoyaltySample/app/src/Loyalty/LoyaltyValidation.Codeunit.al",
+            "line": 27,
+            "range": { "start-line": 26, "end-line": 36 }
+          },
+          "references": [{ "path": "microsoft/knowledge/error-handling/collect-validation-errors-with-errorbehavior.md" }],
+          "confidence": "high"
+        },
+        {
+          "id": "microsoft/knowledge/error-handling/prefer-errorinfo-for-actionable-errors.md",
+          "severity": "minor",
+          "message": "ValidateRedemption raises Error('You cannot redeem more than %1 points.') naming the exact maximum. Because the code knows the limit, consider an ErrorInfo with a Fix-it AddAction to set the redemption amount to the allowed maximum.",
+          "location": {
+            "file": "src/Apps/W1/LoyaltySample/app/src/Loyalty/LoyaltyValidation.Codeunit.al",
+            "line": 8,
+            "range": { "start-line": 7, "end-line": 8 }
+          },
+          "references": [{ "path": "microsoft/knowledge/error-handling/prefer-errorinfo-for-actionable-errors.md" }],
+          "confidence": "medium"
+        }
+      ],
+      "suppressed": []
+    },
+    {
+      "skill": { "id": "al-events-review", "version": 1 },
+      "outcome": "completed",
+      "summary": {
+        "counts": { "blocker": 0, "major": 2, "minor": 2, "info": 0 },
+        "coverage": { "worklist-size": 4, "items-evaluated": 4 }
+      },
+      "findings": [
+        {
+          "id": "microsoft/knowledge/events/do-not-publish-events-inside-loops.md",
+          "severity": "major",
+          "message": "NotifyMembers raises OnMemberNotified inside the repeat\u2026until loop. Move the event outside the loop or publish a batch event.",
+          "location": {
+            "file": "src/Apps/W1/LoyaltySample/app/src/Loyalty/LoyaltyEvents.Codeunit.al",
+            "line": 56
+          },
+          "references": [{ "path": "microsoft/knowledge/events/do-not-publish-events-inside-loops.md" }],
+          "confidence": "high"
+        },
+        {
+          "id": "microsoft/knowledge/events/publish-thin-onbefore-onafter-integration-events.md",
+          "severity": "major",
+          "message": "OnBeforeRecalculate is an IntegrationEvent whose body contains business logic (resetting Points Balance). An IntegrationEvent body must be empty. Move the logic to the calling routine.",
+          "location": {
+            "file": "src/Apps/W1/LoyaltySample/app/src/Loyalty/LoyaltyEvents.Codeunit.al",
+            "line": 71,
+            "range": { "start-line": 68, "end-line": 74 }
+          },
+          "references": [{ "path": "microsoft/knowledge/events/publish-thin-onbefore-onafter-integration-events.md" }],
+          "confidence": "high",
+          "suggested-code": "    [IntegrationEvent(false, false)]\n    local procedure OnBeforeRecalculate(var LoyaltyMember: Record \"Loyalty Member\"; var IsHandled: Boolean)\n    begin\n    end;"
+        },
+        {
+          "id": "microsoft/knowledge/events/preserve-onafter-execution-when-ishandled-skips-the-body.md",
+          "severity": "minor",
+          "message": "CalculateTotal uses 'if IsHandled then exit' which also skips OnAfterCalculateTotal. Wrap only the default work in 'if not IsHandled then' and keep the after-event raise unconditional.",
+          "location": {
+            "file": "src/Apps/W1/LoyaltySample/app/src/Loyalty/LoyaltyEvents.Codeunit.al",
+            "line": 19,
+            "range": { "start-line": 19, "end-line": 20 }
+          },
+          "references": [{ "path": "microsoft/knowledge/events/preserve-onafter-execution-when-ishandled-skips-the-body.md" }],
+          "confidence": "high",
+          "suggested-code": "        if not IsHandled then\n            DoRecalculate(LoyaltyMember);\n        OnAfterCalculateTotal(LoyaltyMember);"
+        },
+        {
+          "id": "microsoft/knowledge/events/initialize-ishandled-to-false-before-publishing.md",
+          "severity": "minor",
+          "message": "RecalculateMember raises OnBeforeRecalculate without first assigning IsHandled := false. Add an explicit assignment immediately before the raise.",
+          "location": {
+            "file": "src/Apps/W1/LoyaltySample/app/src/Loyalty/LoyaltyEvents.Codeunit.al",
+            "line": 9
+          },
+          "references": [{ "path": "microsoft/knowledge/events/initialize-ishandled-to-false-before-publishing.md" }],
+          "confidence": "high",
+          "suggested-code": "        IsHandled := false;\n        OnBeforeRecalculate(LoyaltyMember, IsHandled);"
+        }
+      ],
+      "suppressed": []
+    },
+    {
+      "skill": { "id": "al-interfaces-review", "version": 1 },
+      "outcome": "completed",
+      "summary": {
+        "counts": { "blocker": 0, "major": 1, "minor": 0, "info": 0 },
+        "coverage": { "worklist-size": 1, "items-evaluated": 1 }
+      },
+      "findings": [
+        {
+          "id": "microsoft/knowledge/interfaces/set-defaultimplementation-on-enum.md",
+          "severity": "major",
+          "message": "Enum 'Loyalty Channel' implements INotificationSender but value(0; \" \") has no Implementation and the enum has no DefaultImplementation. Calling Send on the blank channel value will fail at runtime. Add a DefaultImplementation pointing at a safe no-op codeunit.",
+          "location": {
+            "file": "src/Apps/W1/LoyaltySample/app/src/Notification/LoyaltyChannel.Enum.al",
+            "line": 7,
+            "range": { "start-line": 7, "end-line": 10 }
+          },
+          "references": [{ "path": "microsoft/knowledge/interfaces/set-defaultimplementation-on-enum.md" }],
+          "confidence": "high"
+        }
+      ],
+      "suppressed": []
+    },
+    {
+      "skill": { "id": "al-breaking-changes-review", "version": 1 },
+      "outcome": "completed",
+      "summary": {
+        "counts": { "blocker": 0, "major": 2, "minor": 0, "info": 0 },
+        "coverage": { "worklist-size": 1, "items-evaluated": 1 }
+      },
+      "findings": [
+        {
+          "id": "microsoft/knowledge/breaking-changes/do-not-expose-sensitive-data-through-public-api.md",
+          "severity": "major",
+          "message": "GetApiToken() is a public procedure returning ApiToken.Unwrap() as Text. This creates a permanent public contract that leaks a credential to all dependents. Mark it local or internal.",
+          "location": {
+            "file": "src/Apps/W1/LoyaltySample/app/src/Loyalty/LoyaltyPublicApi.Codeunit.al",
+            "line": 25
+          },
+          "references": [{ "path": "microsoft/knowledge/breaking-changes/do-not-expose-sensitive-data-through-public-api.md" }],
+          "confidence": "high",
+          "suggested-code": "    local procedure GetApiToken(): Text"
+        },
+        {
+          "id": "microsoft/knowledge/breaking-changes/do-not-expose-sensitive-data-through-public-api.md",
+          "severity": "major",
+          "message": "GetGatewayToken() is a public procedure returning the gateway token as Text. Any extension can call this getter to read the credential. Mark it local or internal.",
+          "location": {
+            "file": "src/Apps/W1/LoyaltySample/app/src/Loyalty/LoyaltyManagement.Codeunit.al",
+            "line": 48
+          },
+          "references": [{ "path": "microsoft/knowledge/breaking-changes/do-not-expose-sensitive-data-through-public-api.md" }],
+          "confidence": "high",
+          "suggested-code": "    local procedure GetGatewayToken(): Text"
+        }
+      ],
+      "suppressed": []
+    },
+    {
+      "skill": { "id": "al-web-services-review", "version": 1 },
+      "outcome": "completed",
+      "summary": {
+        "counts": { "blocker": 0, "major": 2, "minor": 0, "info": 0 },
+        "coverage": { "worklist-size": 2, "items-evaluated": 2 }
+      },
+      "findings": [
+        {
+          "id": "microsoft/knowledge/web-services/set-required-api-page-properties.md",
+          "severity": "major",
+          "message": "LoyaltyMemberData (PageType = API) is missing APIPublisher, APIGroup, APIVersion, EntityName, and EntitySetName. Without all six the OData route cannot be composed and the endpoint is unreachable.",
+          "location": {
+            "file": "src/Apps/W1/LoyaltySample/app/src/Member/LoyaltyMemberData.Page.al",
+            "line": 5,
+            "range": { "start-line": 5, "end-line": 8 }
+          },
+          "references": [{ "path": "microsoft/knowledge/web-services/set-required-api-page-properties.md" }],
+          "confidence": "high"
+        },
+        {
+          "id": "microsoft/knowledge/web-services/expose-systemid-as-the-api-key.md",
+          "severity": "major",
+          "message": "LoyaltyMemberData sets ODataKeyFields = \"No.\". If a member number is renamed, all stored API references break. Change to ODataKeyFields = SystemId and expose Rec.SystemId as a non-editable 'id' field.",
+          "location": {
+            "file": "src/Apps/W1/LoyaltySample/app/src/Member/LoyaltyMemberData.Page.al",
+            "line": 7
+          },
+          "references": [{ "path": "microsoft/knowledge/web-services/expose-systemid-as-the-api-key.md" }],
+          "confidence": "high",
+          "suggested-code": "    ODataKeyFields =
+
+
+
+```json
+          "suggested-code": "    ODataKeyFields = SystemId;"
+        }
+      ],
+      "suppressed": []
+    }
+  ]
+}
+```
+
+
