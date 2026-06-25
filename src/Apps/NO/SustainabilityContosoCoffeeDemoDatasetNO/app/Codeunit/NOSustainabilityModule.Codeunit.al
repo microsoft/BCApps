@@ -35,10 +35,10 @@ codeunit 10761 "NO Sustainability Module"
     var
         GLAccount: Record "G/L Account";
         CreatePostingGrp: Codeunit "Create Posting Groups";
-        CreateSustainabilityAccount: Codeunit "Create Sustainability Account";
+        CreateSustGLAccount: Codeunit "Create Sust. G/L Account";
         CreateVatPostingGrpNO: Codeunit "Create Vat Posting Groups NO";
     begin
-        GLAccount.Get(CreateSustainabilityAccount.UtilitiesExpensePowerPlant());
+        GLAccount.Get(CreateSustGLAccount.FindGLAccountByName(CreateSustGLAccount.UtilitiesExpensePowerPlantAccountName()));
         if GLAccount."VAT Bus. Posting Group" = CreatePostingGrp.DomesticPostingGroup() then
             GLAccount.Validate("VAT Bus. Posting Group", CreateVatPostingGrpNO.VENDHIGH());
 

@@ -265,16 +265,10 @@ tableextension 10790 "Service Header ES" extends "Service Header"
                 "Pmt. Discount Date" := "Document Date";
             end;
         if ("Document Type" = "Document Type"::"Credit Memo") and ("Payment Terms Code" <> '') then begin
-        if ("Document Type" = "Document Type"::"Credit Memo") and ("Payment Terms Code" <> '') then begin
             if PaymentTerms.Code <> "Payment Terms Code" then
                 PaymentTerms.Get("Payment Terms Code");
             if not PaymentTerms."Calc. Pmt. Disc. on Cr. Memos" then
                 "Pmt. Discount Date" := 0D;
         end;
-            if not PaymentTerms."Calc. Pmt. Disc. on Cr. Memos" then
-                "Pmt. Discount Date" := 0D;
-        end;
     end;
-
-
 }

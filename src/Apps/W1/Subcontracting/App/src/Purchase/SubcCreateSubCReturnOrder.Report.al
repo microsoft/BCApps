@@ -92,7 +92,7 @@ report 99001502 "Subc. Create SubCReturnOrder"
         SubcTransferManagement: Codeunit "Subc. Transfer Management";
     begin
         TransferHeader.Reset();
-        TransferHeader.SetRange("Source Subtype", TransferHeader."Source Subtype"::"2");
+        TransferHeader.SetRange("Subc. Source Type", TransferHeader."Subc. Source Type"::Subcontracting);
         TransferHeader.SetRange("Source ID", "Purchase Header"."Buy-from Vendor No.");
         TransferHeader.SetRange(Status, TransferHeader.Status::Open);
         TransferHeader.SetRange("Completely Shipped", false);
@@ -113,7 +113,6 @@ report 99001502 "Subc. Create SubCReturnOrder"
             end;
 
             TransferHeader."Subc. Source Type" := TransferHeader."Subc. Source Type"::Subcontracting;
-            TransferHeader."Source Subtype" := TransferHeader."Source Subtype"::"2";
             TransferHeader."Source ID" := "Purchase Header"."Buy-from Vendor No.";
             TransferHeader."Subcontr. Purch. Order No." := "Purchase Header"."No.";
             TransferHeader."Subcontr. PO Line No." := "Purchase Line"."Line No.";

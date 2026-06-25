@@ -25,6 +25,7 @@ codeunit 5218 "Sustainability Module" implements "Contoso Demo Data Module"
         Codeunit.Run(Codeunit::"Create Sustainability Category");
         Codeunit.Run(Codeunit::"Create Sustain. Subcategory");
         Codeunit.Run(Codeunit::"Create Sustainability Account");
+        Codeunit.Run(Codeunit::"Create Sust. G/L Account");
         Codeunit.Run(Codeunit::"Create Sustain. Jnl. Setup");
         Codeunit.Run(Codeunit::"Create Emission Fee");
         Codeunit.Run(Codeunit::"Create Sust. Scorecard");

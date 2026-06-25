@@ -10,6 +10,7 @@
     "../../../src/Apps/ES/HybridBCLast_ES/app",
     "../../../src/Apps/ES/IntrastatES/app",
     "../../../src/Apps/ES/Onprem Permissions ES/app",
+    "../../../src/Apps/ES/SustainabilityContosoCoffeeDemoDatasetES/app",
     "../../../src/Apps/W1/AMCBanking365Fundamentals/app",
     "../../../src/Apps/W1/APIReportsFinance/App",
     "../../../src/Apps/W1/APIV1/app",

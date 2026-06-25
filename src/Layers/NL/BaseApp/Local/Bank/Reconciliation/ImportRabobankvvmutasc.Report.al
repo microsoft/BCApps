@@ -240,6 +240,7 @@ report 11000022 "Import Rabobank vvmut.asc"
         CBGStatementReconciliation: Codeunit "CBG Statement Reconciliation";
     begin
         CBGStatement."Closing Balance" := CBGStatement."Opening Balance" + TotalNetChange;
+        OnAfterCalculateClosingBalance(CBGStatement, TotalNetChange);
         CBGStatement.Modify(true);
 
         if AutoReconcilation then begin
@@ -302,6 +303,11 @@ report 11000022 "Import Rabobank vvmut.asc"
 
         if NewFileName <> '' then
             FileName := NewFileName;
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterCalculateClosingBalance(var CBGStatement: Record "CBG Statement"; TotalNetChange: Decimal)
+    begin
     end;
 }
 

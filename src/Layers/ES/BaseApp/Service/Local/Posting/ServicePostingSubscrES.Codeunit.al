@@ -60,7 +60,42 @@ codeunit 10789 "Service Posting Subscr. ES"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Service-Post", 'OnValidatePostingAndDocumentDateOnAfterValidateDocumentDate', '', true, true)]
     local procedure OnValidatePostingAndDocumentDateOnAfterValidateDocumentDate(var ServiceHeader: Record "Service Header")
     begin
-        ServiceHeader.ValidatePaymentTerms();
+        ValidatePaymentTermsOnPost(ServiceHeader);
+    end;
+
+#if not CLEAN29
+    procedure ValidatePaymentTermsOnPost(var ServiceHeader: Record "Service Header")
+#else
+    local procedure ValidatePaymentTermsOnPost(var ServiceHeader: Record "Service Header")
+#endif
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        PaymentTerms: Record "Payment Terms";
+        DueDateAdjust: Codeunit "Due Date-Adjust";
+    begin
+        GeneralLedgerSetup.GetRecordOnce();
+        if (ServiceHeader."Document Type" <> ServiceHeader."Document Type"::"Credit Memo") or
+           (GeneralLedgerSetup."Payment Discount Type" = GeneralLedgerSetup."Payment Discount Type"::"Calc. Pmt. Disc. on Lines")
+        then
+            if (ServiceHeader."Payment Terms Code" <> '') and (ServiceHeader."Document Date" <> 0D) then begin
+                PaymentTerms.Get(ServiceHeader."Payment Terms Code");
+                ServiceHeader."Due Date" := CalcDate(PaymentTerms."Due Date Calculation", ServiceHeader."Document Date");
+                DueDateAdjust.SalesAdjustDueDate(
+                  ServiceHeader."Due Date", ServiceHeader."Document Date", PaymentTerms.CalculateMaxDueDate(ServiceHeader."Document Date"), ServiceHeader."Bill-to Customer No.");
+                ServiceHeader."Pmt. Discount Date" := CalcDate(PaymentTerms."Discount Date Calculation", ServiceHeader."Document Date");
+            end else begin
+                ServiceHeader."Due Date" := ServiceHeader."Document Date";
+                DueDateAdjust.SalesAdjustDueDate(ServiceHeader."Due Date", ServiceHeader."Document Date", 99991231D, ServiceHeader."Bill-to Customer No.");
+                ServiceHeader."Pmt. Discount Date" := ServiceHeader."Document Date";
+            end;
+        if (ServiceHeader."Document Type" = ServiceHeader."Document Type"::"Credit Memo") and (ServiceHeader."Payment Terms Code" <> '') then begin
+            PaymentTerms.Get(ServiceHeader."Payment Terms Code");
+            if not PaymentTerms."Calc. Pmt. Disc. on Cr. Memos" then begin
+                ServiceHeader."Due Date" := ServiceHeader."Document Date";
+                ServiceHeader."Payment Discount %" := 0;
+                ServiceHeader."Pmt. Discount Date" := 0D;
+            end;
+        end;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Serv-Documents Mgt.", 'OnPostDocumentLinesOnAfterPostSalesAndVAT', '', true, true)]

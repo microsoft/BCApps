@@ -14,12 +14,12 @@ codeunit 5259 "Create Sust. Purchase"
     var
         PurchHeader: Record "Purchase Header";
         CreateSustVendor: Codeunit "Create Sust. Vendor";
-        CreateSustGLAccount: Codeunit "Create Sustainability Account";
+        CreateSustGLAccount: Codeunit "Create Sust. G/L Account";
         CreatePaymentMethod: Codeunit "Create Payment Method";
         CreateCommonPostingGroup: Codeunit "Create Common Posting Group";
     begin
         PurchHeader := ContosoPurchase.InsertPurchaseHeader(Enum::"Purchase Document Type"::Invoice, CreateSustVendor.SustVendor64000(), SustainabilityYourReference(), '', ContosoUtilities.AdjustDate(19030410D), '', '124GH68', CreatePaymentTerms.PaymentTermsDAYS21(), CreatePaymentMethod.Cash());
-        ContosoPurchase.InsertPurchaseLineWithGL(PurchHeader, CreateSustGLAccount.UtilitiesExpensePowerPlant(), 1, CreateUnitOfMeasure.Piece(), 4600);
+        ContosoPurchase.InsertPurchaseLineWithGL(PurchHeader, CreateSustGLAccount.FindGLAccountByName(CreateSustGLAccount.UtilitiesExpensePowerPlantAccountName()), 1, CreateUnitOfMeasure.Piece(), 4600);
         ConsotoSustainability.UpdateSustainabilityPurchLine(PurchHeader, CreateSustainabilityAccount.PurchasedElectricityWideWorldImporters(), 1253.43, 0, 0, CreateCommonPostingGroup.NonTaxable());
     end;
 

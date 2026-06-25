@@ -18,6 +18,10 @@ using Microsoft.Purchases.Payables;
 
 codeunit 18771 "TDS Check Void Handler"
 {
+    Permissions = tabledata "Bank Account Ledger Entry" = rm,
+                  tabledata "Check Ledger Entry" = rm,
+                  tabledata "Vendor Ledger Entry" = rm;
+
     var
         BankAcc: Record "Bank Account";
         BankAccLedgEntry2: Record "Bank Account Ledger Entry";

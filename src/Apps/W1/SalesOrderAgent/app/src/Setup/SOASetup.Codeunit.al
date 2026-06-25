@@ -74,7 +74,7 @@ codeunit 4400 "SOA Setup"
 
         if AgentSetupBuffer.State = AgentSetupBuffer.State::Enabled then begin
             if TempSOASetup."Email Monitoring" then
-                UpdateSyncDateTime(TempSOASetup);
+                UpdateSyncDateTime(TempSOASetup, false);
             UpdateSOASetupActivationDT(TempSOASetup);
         end;
         UpdateSOASetup(TempSOASetup);
@@ -131,7 +131,7 @@ codeunit 4400 "SOA Setup"
 
     internal procedure MaxSOAInstances(): Integer
     begin
-        exit(5);
+        exit(20);
     end;
 
     internal procedure GetDispatcherBaseDelaySeconds(): Integer
@@ -177,7 +177,7 @@ codeunit 4400 "SOA Setup"
                 UpdateSOASetupActivationDT(TempSOASetup);
                 UpdateInstructions(TempSOASetup);
                 if TempSOASetup."Email Monitoring" and (TempSOASetup."Earliest Sync At" = 0DT) then
-                    UpdateSyncDateTime(TempSOASetup);
+                    UpdateSyncDateTime(TempSOASetup, false);
             end;
 
             if AgentSetupBuffer.State = AgentSetupBuffer.State::Enabled then begin
@@ -750,6 +750,8 @@ codeunit 4400 "SOA Setup"
     local procedure SetSOASetupDefaults(var TempSOASetup: Record "SOA Setup" temporary; AgentUserSecurityID: Guid)
     begin
         TempSOASetup.Init();
+        TempSOASetup."Earliest Sync At" := CreateDateTime(Today(), 0T);
+        TempSOASetup."Last Sync At" := TempSOASetup."Earliest Sync At";
         TempSOASetup."Incoming Monitoring" := true;
         TempSOASetup."Email Monitoring" := true;
         SetDefaultSalesDocConfig(TempSOASetup, true);
@@ -903,7 +905,7 @@ codeunit 4400 "SOA Setup"
         ConnectionSuccess := SOATestSetup.Run(TempSOASetup);
     end;
 
-    internal procedure ValidateEmailConnection(StateChanged: Boolean; var TempSOASetup: Record "SOA Setup" temporary)
+    internal procedure ValidateEmailConnection(StateChanged: Boolean; var TempSOASetup: Record "SOA Setup" temporary; MailboxChanged: Boolean; IsFirstActivation: Boolean)
     var
         NAVAppSettings: Record "NAV App Setting";
         EnvironmentInformation: Codeunit "Environment Information";
@@ -911,8 +913,8 @@ codeunit 4400 "SOA Setup"
         GeneralError: Boolean;
     begin
         if TempSOASetup."Email Monitoring" and not IsNullGuid(TempSOASetup."Email Account ID") then begin
-            if StateChanged then
-                UpdateSyncDateTime(TempSOASetup);
+            if StateChanged or MailboxChanged then
+                UpdateSyncDateTime(TempSOASetup, IsFirstActivation);
 
             if ValidateEmailConnectionStatus(TempSOASetup) then
                 exit;
@@ -936,24 +938,14 @@ codeunit 4400 "SOA Setup"
         end;
     end;
 
-    local procedure UpdateSyncDateTime(var TempSOASetup: Record "SOA Setup" temporary)
+    local procedure UpdateSyncDateTime(var TempSOASetup: Record "SOA Setup" temporary; IsFirstActivation: Boolean)
     var
         SOAEmailSetup: Codeunit "SOA Email Setup";
         EmailsCount: Integer;
         ConfirmMessage: Text;
     begin
-        // First activation (brand new agent)
-        if TempSOASetup."Activated At" = 0DT then begin
-            TempSOASetup."Earliest Sync At" := CreateDateTime(Today(), 0T);
-            TempSOASetup."Last Sync At" := TempSOASetup."Earliest Sync At";
+        if IsFirstActivation or (TempSOASetup."Activated At" = 0DT) then
             exit;
-        end;
-
-        // First time enabling email monitoring (Earliest Sync At not yet initialized)
-        if TempSOASetup."Earliest Sync At" = 0DT then begin
-            TempSOASetup."Earliest Sync At" := CreateDateTime(Today(), 0T);
-            TempSOASetup."Last Sync At" := TempSOASetup."Earliest Sync At";
-        end;
 
         EmailsCount := GetEmailsCount(TempSOASetup);
 

@@ -38,6 +38,7 @@ codeunit 134377 "ERM Sales Blanket Order"
         TotalRecordCountErr: Label 'Total record count must be equal to %1', Comment = '%1 = Record Count.';
         SalesOrderLineDoesNotExistErr: Label 'Sales Order Line does not exist.';
         CannotFindDescErr: Label 'Cannot find %1 with Description %2', Comment = '%1 = Type caption %2 = Description';
+        WrongAttachedExtTextCountErr: Label 'Sales Order must contain 2 extended-text lines attached to item %1 (order line no %2).', Comment = '%1 = Item No.; %2 = Sales Order Line No.';
 
     [Test]
     [Scope('OnPrem')]
@@ -1715,6 +1716,62 @@ codeunit 134377 "ERM Sales Blanket Order"
             GLAccount."No.", SalesLine."No.",
             StrSubstNo(
                 ValueMustBeEqualErr, SalesLine.FieldCaption("No."), GLAccount."No.", SalesLine.TableCaption()));
+    end;
+
+    [Test]
+    procedure ExtendedTextStaysAttachedToParentOnOrderWhenMakingOrderWithMultipleItems()
+    var
+        Customer: Record Customer;
+        Item: array[2] of Record Item;
+        BlanketSalesHeader: Record "Sales Header";
+        OrderItemLine: Record "Sales Line";
+        OrderAttachedLine: Record "Sales Line";
+        NotificationLifecycleMgt: Codeunit "Notification Lifecycle Mgt.";
+        OrderNo: Code[20];
+        i: Integer;
+    begin
+        // [SCENARIO 1370] Each item's extended-text lines on the new sales order must be attached to that
+        //                 item's order line, not to the blanket parent line. Per-parent attachment must hold
+        //                 even when multiple items each have extended texts.
+        Initialize();
+
+        // [GIVEN] Two items, each with two extended texts.
+        CreateItemWithTwoExtendedTexts(Item[1]);
+        CreateItemWithTwoExtendedTexts(Item[2]);
+
+        // [GIVEN] A customer.
+        LibrarySales.CreateCustomer(Customer);
+
+        // [GIVEN] A blanket sales order with both items (auto-inserts the extended texts).
+        CreateBlanketSalesOrder(Customer, Item[1], Item[2]);
+
+        // [GIVEN] Find the blanket sales header.
+        BlanketSalesHeader.SetRange("Document Type", BlanketSalesHeader."Document Type"::"Blanket Order");
+        BlanketSalesHeader.SetRange("Sell-to Customer No.", Customer."No.");
+        BlanketSalesHeader.FindFirst();
+
+        // [WHEN] Make Order is run.
+        OrderNo := LibrarySales.BlanketSalesOrderMakeOrder(BlanketSalesHeader);
+
+        // [THEN] Each item on the new order has two extended-text lines attached to its order line no.
+        for i := 1 to 2 do begin
+            OrderItemLine.Reset();
+            OrderItemLine.SetRange("Document Type", OrderItemLine."Document Type"::Order);
+            OrderItemLine.SetRange("Document No.", OrderNo);
+            OrderItemLine.SetRange("No.", Item[i]."No.");
+            OrderItemLine.FindFirst();
+
+            OrderAttachedLine.Reset();
+            OrderAttachedLine.SetRange("Document Type", OrderAttachedLine."Document Type"::Order);
+            OrderAttachedLine.SetRange("Document No.", OrderNo);
+            OrderAttachedLine.SetRange("Attached to Line No.", OrderItemLine."Line No.");
+            Assert.AreEqual(
+                2,
+                OrderAttachedLine.Count(),
+                StrSubstNo(WrongAttachedExtTextCountErr, Item[i]."No.", OrderItemLine."Line No."));
+        end;
+
+        NotificationLifecycleMgt.RecallAllNotifications();
     end;
 
     local procedure Initialize()

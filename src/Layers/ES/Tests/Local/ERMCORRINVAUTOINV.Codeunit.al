@@ -201,7 +201,7 @@ codeunit 144037 "ERM CORRINV-AUTOINV"
         ServiceInvoiceHeader.Get(FindServiceInvoiceHeader(CustomerNo));
 
         // Exercise.
-        REPORT.Run(REPORT::"Service - Credit Memo");  // Open ServiceCreditMemoRequestPageHandler.
+        REPORT.Run(REPORT::"Service Credit Memo (ES)");  // Open ServiceCreditMemoRequestPageHandler.
 
         // Verify: Verify Service - Credit Memo report title as 'Service - Corrective invoice ' and Corrective Invoice Number.
         VerifyDocumentNoAndCorrectiveInvoice(
@@ -648,7 +648,7 @@ codeunit 144037 "ERM CORRINV-AUTOINV"
 
     [RequestPageHandler]
     [Scope('OnPrem')]
-    procedure ServiceCreditMemoRequestPageHandler(var ServiceCreditMemo: TestRequestPage "Service - Credit Memo")
+    procedure ServiceCreditMemoRequestPageHandler(var ServiceCreditMemo: TestRequestPage "Service Credit Memo (ES)")
     begin
         ServiceCreditMemo.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;

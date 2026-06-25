@@ -508,8 +508,8 @@ page 4400 "SOA Setup"
     var
         SOASetupCU: Codeunit "SOA Setup";
         SOASessionEvents: Codeunit "SOA Session Events";
-        InboxCount: Integer;
-        StartDate: Date;
+        InboxEmailCount: Integer;
+        IsFirstActivation: Boolean;
         ReadyToActivateLbl: Label 'Ready to activate the sales order agent?\\The Copilot agent will run now and until you deactivate it.';
         ActivateWithoutMailboxNameErr: Label 'To activate the agent with the current settings, a mailbox must be selected first.';
         ActivateWithoutMonitoringLbl: Label 'The monitoring of email is not enabled. Are you sure you want to continue?';
@@ -520,22 +520,26 @@ page 4400 "SOA Setup"
                 Rec.State := Rec.State::Enabled;
 
         UpdateAgentSetupBuffer();
-        if (TempAgentSetupBuffer.State = TempAgentSetupBuffer.State::Enabled) and (MailboxChanged or StateChanged()) then
+        if (TempAgentSetupBuffer.State = TempAgentSetupBuffer.State::Enabled) and (MailboxChanged or StateChanged()) then begin
+            SOASessionEvents.BindUserEvents();
+            IsFirstActivation := Rec."Activated At" = 0DT;
             if CheckIsValidConfig() then begin
-                SOASessionEvents.BindUserEvents();
-                SOASetupCU.ValidateEmailConnection(StateChanged(), Rec);
-
-                if Rec."Email Monitoring" and (MailboxName <> '') and (MailboxFolder = '') and (Rec."Activated At" = 0DT) then begin
-                    InboxCount := SOASetupCU.GetInboxEmailCount(Rec);
-                    if InboxCount > NoFolderInboxWarningThreshold then begin
-                        StartDate := Today();
-                        if not Confirm(NoFolderSelectedInboxWarningQst, true, Format(InboxCount), Format(StartDate)) then
+                if Rec."Email Monitoring" and not IsNullGuid(Rec."Email Account ID") and (Rec."Email Folder" = '') and IsFirstActivation then begin
+                    SetDefaultInboxFolder();
+                    InboxEmailCount := SOASetupCU.GetInboxEmailCount(Rec);
+                    if InboxEmailCount > NoFolderInboxWarningThreshold then
+                        if not Confirm(StrSubstNo(NoFolderSelectedInboxWarningQst, InboxEmailCount, Format(Rec."Earliest Sync At"))) then
                             exit(false);
-                    end;
+
+                    SOASetupCU.ValidateEmailConnection(StateChanged(), Rec, MailboxChanged, IsFirstActivation);
+                end
+                else begin
+                    if Rec."Email Monitoring" and not IsNullGuid(Rec."Email Account ID") and (Rec."Email Folder" = '') then
+                        SetDefaultInboxFolder();
+                    SOASetupCU.ValidateEmailConnection(StateChanged(), Rec, MailboxChanged, IsFirstActivation);
                 end;
             end
             else begin
-                SOASessionEvents.BindUserEvents();
                 if Rec."Email Monitoring" and (MailboxName = '') then
                     Error(ActivateWithoutMailboxNameErr);
 
@@ -543,7 +547,7 @@ page 4400 "SOA Setup"
                     if not Confirm(ActivateWithoutMonitoringLbl) then
                         exit(false);
             end;
-
+        end;
         if (Rec."Message Limit" <= 0) then
             Error(DailyEmailLimitErr);
 
@@ -642,6 +646,32 @@ page 4400 "SOA Setup"
         exit(IsNullGuid(Rec."User Security ID"));
     end;
 
+    local procedure SetDefaultInboxFolder()
+    var
+        TempEmailFolders: Record "Email Folders" temporary;
+        Email: Codeunit "Email";
+    begin
+        // Use Outlook's well-known inbox folder id as a safe fallback.
+        Rec."Email Folder" := InboxFolderNameTok;
+        Rec."Email Folder Id" := InboxFolderIdTok;
+
+        if not IsNullGuid(Rec."Email Account ID") then begin
+            Email.GetMailFolders(Rec."Email Account ID", Rec."Email Connector", TempEmailFolders);
+            if TempEmailFolders.FindSet() then
+                repeat
+                    if (LowerCase(TempEmailFolders."Id") = InboxFolderIdTok) or
+                       (LowerCase(TempEmailFolders."Folder Name") = LowerCase(InboxFolderNameTok))
+                    then begin
+                        Rec."Email Folder" := TempEmailFolders."Folder Name";
+                        Rec."Email Folder Id" := TempEmailFolders."Id";
+                        break;
+                    end;
+                until TempEmailFolders.Next() = 0;
+        end;
+
+        MailboxFolder := Rec."Email Folder";
+    end;
+
     local procedure CheckMailboxExists(): Boolean
     var
         TempEmailAccounts: Record "Email Account";
@@ -714,9 +744,9 @@ page 4400 "SOA Setup"
             MailboxName := Rec."Email Address";
             ConfigUpdated();
 
-            MailboxFolder := '';
             Clear(Rec."Email Folder");
             Clear(Rec."Email Folder Id");
+            MailboxFolder := '';
         end;
     end;
 
@@ -760,5 +790,7 @@ page 4400 "SOA Setup"
         SOACreateTaskLbl: Label 'Create task for the agent';
         EnableAgentForTaskQst: Label 'Trying out the agent will activate it and turn off incoming email monitoring immediately.\\Do you want to continue?';
         IsConfigUpdated: Boolean;
+        InboxFolderNameTok: Label 'Inbox', Locked = true;
+        InboxFolderIdTok: Label 'inbox', Locked = true;
         NoFolderSelectedInboxWarningQst: Label 'There is no mail folder selected, so the agent will process emails from the inbox (%1 emails since %2). Do you want to continue?', Comment = '%1=email count, %2=start date';
 }

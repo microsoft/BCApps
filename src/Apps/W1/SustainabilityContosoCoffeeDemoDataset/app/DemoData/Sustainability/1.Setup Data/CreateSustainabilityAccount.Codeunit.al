@@ -10,8 +10,6 @@ codeunit 5215 "Create Sustainability Account"
         SustainSubcategory: Codeunit "Create Sustain. Subcategory";
         ContosoSustainability: Codeunit "Contoso Sustainability";
         SustainabilityAccountMgt: Codeunit "Sustainability Account Mgt.";
-        CreatePostingGroup: Codeunit "Create Posting Groups";
-        ContosoGLAccount: Codeunit "Contoso GL Account";
     begin
         ContosoSustainability.InsertSustainabilityAccount(GasEmissions(), GasEmissionsLbl, '', '', Enum::"Sustainability Account Type"::"Begin-Total", '', false);
         ContosoSustainability.InsertSustainabilityAccount(Scope1(), Scope1BeginTotalLbl, '', '', Enum::"Sustainability Account Type"::"Begin-Total", '', false);
@@ -124,16 +122,15 @@ codeunit 5215 "Create Sustainability Account"
         ContosoSustainability.InsertSustainabilityAccount(TotalOrganicWaste(), TotalOrganicWasteLbl, '', '', Enum::"Sustainability Account Type"::"End-Total", OrganicWaste() + '..' + TotalOrganicWaste(), false);
         ContosoSustainability.InsertSustainabilityAccount(TotalWaste(), TotalWasteLbl, '', '', Enum::"Sustainability Account Type"::"End-Total", Waste() + '..' + TotalWaste(), false);
 
-        ContosoGLAccount.InsertGLAccount(UtilitiesExpensePowerPlant(), UtilitiesExpensePowerPlantLbl, "G/L Account Income/Balance"::"Income Statement", Enum::"G/L Account Category"::Expense, '', Enum::"G/L Account Type"::Posting, CreatePostingGroup.DomesticPostingGroup(), CreatePostingGroup.RetailPostingGroup(), 0, '', Enum::"G/L Account Type"::Posting, '', '', true, false, false);
-
         SustainabilityAccountMgt.IndentChartOfSustainabilityAccounts(true);
     end;
 
+#if not CLEAN29
+    [Obsolete('Unused function.', '29.0')]
     procedure UtilitiesExpensePowerPlant(): Code[20]
     begin
-        exit('60410');
     end;
-
+#endif
     procedure GasEmissions(): Code[20]
     begin
         exit('10000');
@@ -695,7 +692,6 @@ codeunit 5215 "Create Sustainability Account"
         CarbonCreditScope2Lbl: Label 'Carbon Credit - Scope 2', MaxLength = 100;
         CarbonCreditScope3Lbl: Label 'Carbon Credit - Scope 3', MaxLength = 100;
         TotalCarbonCreditsLbl: Label 'TOTAL - CARBON CREDITS', MaxLength = 100;
-        UtilitiesExpensePowerPlantLbl: Label 'Utilities Expense - Power Plant', MaxLength = 100;
         WaterLbl: Label 'Water Management', MaxLength = 100;
         ConsumedWaterLbl: Label 'Consumed Water', MaxLength = 100;
         GreenWaterLbl: Label 'Green Water Footprint - consumed during the production process', MaxLength = 100;

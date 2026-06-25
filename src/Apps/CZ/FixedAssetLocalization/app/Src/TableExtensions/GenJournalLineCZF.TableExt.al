@@ -33,6 +33,7 @@ tableextension 31078 "Gen. Journal Line CZF" extends "Gen. Journal Line"
         FAExtPostGroupNotificationDescTxt: Label 'Show a warning when no FA Extended Posting Group exists for the combination of FA Posting Group, Reason Code, and FA Posting Type Disposal on the journal line.';
         DontShowAgainLbl: Label 'Don''t show again';
         OpenFAExtPostingGroupsLbl: Label 'Open FA Extended Posting Groups';
+        IsFAExtendedPostingGroupSent: Boolean;
 
     local procedure CheckFAExtPostGroup()
     begin
@@ -84,7 +85,7 @@ tableextension 31078 "Gen. Journal Line CZF" extends "Gen. Journal Line"
         FAExtPostGroupNotification.AddAction(DontShowAgainLbl, Codeunit::"FA Ext. Post. Group Notif. CZF", 'DontShowAgainNotification');
         FAExtPostGroupNotification.SetData(FieldName("Posting Group"), "Posting Group");
         FAExtPostGroupNotification.SetData(FieldName("Reason Code"), "Reason Code");
-        FAExtPostGroupNotification.Send();
+        IsFAExtendedPostingGroupSent := FAExtPostGroupNotification.Send();
     end;
 
     local procedure RecallFAExtPostGroupNotification()
@@ -93,6 +94,8 @@ tableextension 31078 "Gen. Journal Line CZF" extends "Gen. Journal Line"
         FAExtPostGroupNotification: Notification;
     begin
         if not MyNotifications.IsEnabled(GetFAExtPostGroupNotificationId()) then
+            exit;
+        if not IsFAExtendedPostingGroupSent then
             exit;
 
         FAExtPostGroupNotification.Id(GetFAExtPostGroupNotificationId());

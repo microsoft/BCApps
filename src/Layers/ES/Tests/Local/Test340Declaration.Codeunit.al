@@ -11,9 +11,6 @@ codeunit 147315 "Test 340 Declaration"
 
     var
         Assert: Codeunit Assert;
-        VATCashRegimeTransferErr: Label 'The VAT Cash Regime flag was not transferred to the VAT Entry table';
-        SetupErr: Label 'The Setup value of %1 is incorrect';
-        VATCashRegimeErr: Label 'You cannot change %1 because %2 is empty.';
         Library340347Declaration: Codeunit "Library - 340 347 Declaration";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibrarySales: Codeunit "Library - Sales";
@@ -23,6 +20,9 @@ codeunit 147315 "Test 340 Declaration"
         LibraryUtility: Codeunit "Library - Utility";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryTextFileValidation: Codeunit "Library - Text File Validation";
+        VATCashRegimeTransferErr: Label 'The VAT Cash Regime flag was not transferred to the VAT Entry table';
+        SetupErr: Label 'The Setup value of %1 is incorrect';
+        VATCashRegimeErr: Label 'You cannot change %1 because %2 is empty.';
         Wrong340FileErr: Label 'Export of %1 contains wrong value in 340 file.';
         Wrong340FileHeaderErr: Label 'Wrong 340 file header''s amounts.';
         Wrong340FileLineCountErr: Label 'Wrong 340 file line''s count.';
@@ -1091,7 +1091,7 @@ codeunit 147315 "Test 340 Declaration"
     procedure VATCashRegimeTextPrintedOnServiceOrder()
     var
         ServiceHeader: Record "Service Header";
-        ServiceOrder: Report "Service Order";
+        ServiceOrderES: Report "Service Order (ES)";
     begin
         Initialize();
         // VAT Cash Regime text is printed
@@ -1101,7 +1101,7 @@ codeunit 147315 "Test 340 Declaration"
         CreateVATServiceHeader(ServiceHeader, true, true);
 
         // [THEN] The text stating that we use CAC is printed on the invoice
-        Assert.IsTrue(ServiceOrder.ShowCashAccountingCriteria(ServiceHeader) <> '', CACPrintedOnReportErr);
+        Assert.IsTrue(ServiceOrderES.ShowCashAccountingCriteria(ServiceHeader) <> '', CACPrintedOnReportErr);
     end;
 
     [Test]
@@ -1110,7 +1110,7 @@ codeunit 147315 "Test 340 Declaration"
     var
         VATEntry: Record "VAT Entry";
         ServiceInvoiceHeader: Record "Service Invoice Header";
-        ServiceInvoice: Report "Service - Invoice";
+        ServiceInvoiceES: Report "Service Invoice (ES)";
     begin
         Initialize();
         // VAT Cash Regime text is printed
@@ -1121,7 +1121,7 @@ codeunit 147315 "Test 340 Declaration"
 
         // [THEN] The text stating that we use CAC is printed on the invoice
         ServiceInvoiceHeader.Get(VATEntry."Document No.");
-        Assert.IsTrue(ServiceInvoice.ShowCashAccountingCriteria(ServiceInvoiceHeader) <> '', CACPrintedOnReportErr);
+        Assert.IsTrue(ServiceInvoiceES.ShowCashAccountingCriteria(ServiceInvoiceHeader) <> '', CACPrintedOnReportErr);
     end;
 
     [Test]
@@ -1130,7 +1130,7 @@ codeunit 147315 "Test 340 Declaration"
     var
         VATEntry: Record "VAT Entry";
         ServiceCrMemoHeader: Record "Service Cr.Memo Header";
-        ServiceCreditMemo: Report "Service - Credit Memo";
+        ServiceCreditMemoES: Report "Service Credit Memo (ES)";
     begin
         Initialize();
         // VAT Cash Regime text is printed
@@ -1141,7 +1141,7 @@ codeunit 147315 "Test 340 Declaration"
 
         // [THEN] The text stating that we use CAC is printed on the invoice
         ServiceCrMemoHeader.Get(VATEntry."Document No.");
-        Assert.IsTrue(ServiceCreditMemo.ShowCashAccountingCriteria(ServiceCrMemoHeader) <> '', CACPrintedOnReportErr);
+        Assert.IsTrue(ServiceCreditMemoES.ShowCashAccountingCriteria(ServiceCrMemoHeader) <> '', CACPrintedOnReportErr);
     end;
 
     [Test]
@@ -1247,7 +1247,7 @@ codeunit 147315 "Test 340 Declaration"
     procedure VATCashRegimeTextWithVATNotPrintedOnServiceOrder()
     var
         ServiceHeader: Record "Service Header";
-        ServiceOrder: Report "Service Order";
+        ServiceOrderES: Report "Service Order (ES)";
     begin
         Initialize();
         // VAT Cash Regime text is not printed
@@ -1257,7 +1257,7 @@ codeunit 147315 "Test 340 Declaration"
         CreateVATServiceHeader(ServiceHeader, false, true);
 
         // [THEN] The text stating that we use CAC is not printed on the invoice
-        Assert.IsTrue(ServiceOrder.ShowCashAccountingCriteria(ServiceHeader) = '', CACPrintedOnReportErr);
+        Assert.IsTrue(ServiceOrderES.ShowCashAccountingCriteria(ServiceHeader) = '', CACPrintedOnReportErr);
     end;
 
     [Test]
@@ -1266,7 +1266,7 @@ codeunit 147315 "Test 340 Declaration"
     var
         VATEntry: Record "VAT Entry";
         ServiceInvoiceHeader: Record "Service Invoice Header";
-        ServiceInvoice: Report "Service - Invoice";
+        ServiceInvoiceES: Report "Service Invoice (ES)";
     begin
         Initialize();
         // VAT Cash Regime text is not printed
@@ -1277,7 +1277,7 @@ codeunit 147315 "Test 340 Declaration"
 
         // [THEN] The text stating that we use CAC is not printed on the invoice
         ServiceInvoiceHeader.Get(VATEntry."Document No.");
-        Assert.IsTrue(ServiceInvoice.ShowCashAccountingCriteria(ServiceInvoiceHeader) = '', CACPrintedOnReportErr);
+        Assert.IsTrue(ServiceInvoiceES.ShowCashAccountingCriteria(ServiceInvoiceHeader) = '', CACPrintedOnReportErr);
     end;
 
     [Test]
@@ -1286,7 +1286,7 @@ codeunit 147315 "Test 340 Declaration"
     var
         VATEntry: Record "VAT Entry";
         ServiceCrMemoHeader: Record "Service Cr.Memo Header";
-        ServiceCreditMemo: Report "Service - Credit Memo";
+        ServiceCreditMemoES: Report "Service Credit Memo (ES)";
     begin
         Initialize();
         // VAT Cash Regime text is not printed
@@ -1297,7 +1297,7 @@ codeunit 147315 "Test 340 Declaration"
 
         // [THEN] The text stating that we use CAC is not printed on the invoice
         ServiceCrMemoHeader.Get(VATEntry."Document No.");
-        Assert.IsTrue(ServiceCreditMemo.ShowCashAccountingCriteria(ServiceCrMemoHeader) = '', CACPrintedOnReportErr);
+        Assert.IsTrue(ServiceCreditMemoES.ShowCashAccountingCriteria(ServiceCrMemoHeader) = '', CACPrintedOnReportErr);
     end;
 
     [Test]
@@ -1403,7 +1403,7 @@ codeunit 147315 "Test 340 Declaration"
     procedure VATCashRegimeTextWithoutVATNotPrintedOnServiceOrder()
     var
         ServiceHeader: Record "Service Header";
-        ServiceOrder: Report "Service Order";
+        ServiceOrderES: Report "Service Order (ES)";
     begin
         Initialize();
         // VAT Cash Regime text is not printed
@@ -1413,7 +1413,7 @@ codeunit 147315 "Test 340 Declaration"
         CreateVATServiceHeader(ServiceHeader, false, false);
 
         // [THEN] The text stating that we use CAC is not printed on the invoice
-        Assert.IsTrue(ServiceOrder.ShowCashAccountingCriteria(ServiceHeader) = '', CACPrintedOnReportErr);
+        Assert.IsTrue(ServiceOrderES.ShowCashAccountingCriteria(ServiceHeader) = '', CACPrintedOnReportErr);
     end;
 
     [Test]
@@ -1422,7 +1422,7 @@ codeunit 147315 "Test 340 Declaration"
     var
         VATEntry: Record "VAT Entry";
         ServiceInvoiceHeader: Record "Service Invoice Header";
-        ServiceInvoice: Report "Service - Invoice";
+        ServiceInvoiceES: Report "Service Invoice (ES)";
     begin
         Initialize();
         // VAT Cash Regime text is not printed
@@ -1433,7 +1433,7 @@ codeunit 147315 "Test 340 Declaration"
 
         // [THEN] The text stating that we use CAC is not printed on the invoice
         ServiceInvoiceHeader.Get(VATEntry."Document No.");
-        Assert.IsTrue(ServiceInvoice.ShowCashAccountingCriteria(ServiceInvoiceHeader) = '', CACPrintedOnReportErr);
+        Assert.IsTrue(ServiceInvoiceES.ShowCashAccountingCriteria(ServiceInvoiceHeader) = '', CACPrintedOnReportErr);
     end;
 
     [Test]
@@ -1442,7 +1442,7 @@ codeunit 147315 "Test 340 Declaration"
     var
         VATEntry: Record "VAT Entry";
         ServiceCrMemoHeader: Record "Service Cr.Memo Header";
-        ServiceCreditMemo: Report "Service - Credit Memo";
+        ServiceCreditMemoES: Report "Service Credit Memo (ES)";
     begin
         Initialize();
         // VAT Cash Regime text is not printed
@@ -1453,7 +1453,7 @@ codeunit 147315 "Test 340 Declaration"
 
         // [THEN] The text stating that we use CAC is not printed on the invoice
         ServiceCrMemoHeader.Get(VATEntry."Document No.");
-        Assert.IsTrue(ServiceCreditMemo.ShowCashAccountingCriteria(ServiceCrMemoHeader) = '', CACPrintedOnReportErr);
+        Assert.IsTrue(ServiceCreditMemoES.ShowCashAccountingCriteria(ServiceCrMemoHeader) = '', CACPrintedOnReportErr);
     end;
 
     [Test]

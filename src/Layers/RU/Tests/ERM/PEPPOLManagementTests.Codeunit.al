@@ -2480,6 +2480,34 @@ codeunit 139155 "PEPPOL Management Tests"
 
     [Test]
     [Scope('OnPrem')]
+    procedure TestPeppolValidationSalesInvoiceAllocationAccountLineSkipped()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        AllocationAccount: Record "Allocation Account";
+    begin
+        // [SCENARIO 632064] PEPPOL validation does not fail on sales lines of type Allocation Account.
+        // Allocation account lines are placeholder lines that are expanded into their underlying
+        // distribution lines during posting and are never exported in the electronic document.
+        Initialize();
+
+        // [GIVEN] An allocation account
+        AllocationAccount."No." := Format(LibraryRandom.RandText(5));
+        AllocationAccount."Account Type" := AllocationAccount."Account Type"::Fixed;
+        AllocationAccount.Name := Format(LibraryRandom.RandText(10));
+        AllocationAccount.Insert();
+
+        // [GIVEN] A sales invoice with a line of type Allocation Account and no Unit of Measure Code
+        CreateGenericSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::"Allocation Account", AllocationAccount."No.", 1);
+
+        // [WHEN] PEPPOL validation runs on the document
+        // [THEN] No error is thrown for the allocation account line
+        CODEUNIT.Run(CODEUNIT::"PEPPOL Validation", SalesHeader);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure TestPeppolValidationSalesInvoiceLineNoItemDescription()
     var
         SalesHeader: Record "Sales Header";

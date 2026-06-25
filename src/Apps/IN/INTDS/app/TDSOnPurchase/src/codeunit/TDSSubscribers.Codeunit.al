@@ -248,6 +248,9 @@ codeunit 18716 "TDS Subscribers"
         TDSEntry.Reset();
         TDSEntry.SetRange("Vendor No.", GenJournalLine."Account No.");
         TDSEntry.SetRange(Section, GenJournalLine."TDS Section Code");
+        TDSEntry.SetRange("Concessional Code", TDSConcessionalCode."Concessional Code");
+        TDSEntry.SetRange("Concessional Form No.", TDSConcessionalCode."Certificate No.");
+        TDSEntry.SetRange("Posting Date", TDSConcessionalCode."Start Date", TDSConcessionalCode."End Date");
         TDSEntry.CalcSums("TDS Base Amount");
         TotalPostedAmount := TDSEntry."TDS Base Amount";
 
@@ -370,6 +373,9 @@ codeunit 18716 "TDS Subscribers"
         TDSEntry.Reset();
         TDSEntry.SetRange("Vendor No.", PurchaseLine."Pay-to Vendor No.");
         TDSEntry.SetRange(Section, PurchaseLine."TDS Section Code");
+        TDSEntry.SetRange("Concessional Code", TDSConcessionalCode."Concessional Code");
+        TDSEntry.SetRange("Concessional Form No.", TDSConcessionalCode."Certificate No.");
+        TDSEntry.SetRange("Posting Date", TDSConcessionalCode."Start Date", TDSConcessionalCode."End Date");
         TDSEntry.CalcSums("TDS Base Amount");
         TotalPostedAmount := TDSEntry."TDS Base Amount";
 

@@ -222,7 +222,7 @@ codeunit 144079 "ERM Payment Terms"
         Commit();  // commit requires to run report.
 
         // Exercise.
-        REPORT.Run(REPORT::"Service - Invoice");  // Opens ServiceInvoiceRequestPageHandler.
+        REPORT.Run(REPORT::"Service Invoice (ES)");  // Opens ServiceInvoiceRequestPageHandler.
 
         // Verify: Verify values on Service Invoice report.
         LibraryReportDataset.LoadDataSetFile();
@@ -269,7 +269,7 @@ codeunit 144079 "ERM Payment Terms"
         Commit();  // commit requires to run report.
 
         // Exercise.
-        REPORT.Run(REPORT::"Service - Credit Memo");  // Opens ServiceCreditMemoRequestPageHandler.
+        REPORT.Run(REPORT::"Service Credit Memo (ES)");  // Opens ServiceCreditMemoRequestPageHandler.
 
         // Verify: Verify values on Service Credit Memo report.
         LibraryReportDataset.LoadDataSetFile();
@@ -387,7 +387,7 @@ codeunit 144079 "ERM Payment Terms"
 
     [RequestPageHandler]
     [Scope('OnPrem')]
-    procedure ServiceCreditMemoRequestPageHandler(var ServiceCreditMemo: TestRequestPage "Service - Credit Memo")
+    procedure ServiceCreditMemoRequestPageHandler(var ServiceCreditMemo: TestRequestPage "Service Credit Memo (ES)")
     var
         CustomerNo: Variant;
     begin
@@ -398,7 +398,7 @@ codeunit 144079 "ERM Payment Terms"
 
     [RequestPageHandler]
     [Scope('OnPrem')]
-    procedure ServiceInvoiceRequestPageHandler(var ServiceInvoice: TestRequestPage "Service - Invoice")
+    procedure ServiceInvoiceRequestPageHandler(var ServiceInvoice: TestRequestPage "Service Invoice (ES)")
     var
         CustomerNo: Variant;
     begin

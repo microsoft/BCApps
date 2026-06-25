@@ -712,5 +712,50 @@
     "codeunitId": 139790,
     "codeunitName": "E-Doc. Purch. Order Exp. Test",
     "method": "*"
+  },
+  {
+    "codeunitId": 139883,
+    "codeunitName": "E-Doc Process Test",
+    "method": "AdditionalFieldsAreConsideredWhenCreatingPurchaseInvoice"
+  },
+  {
+    "codeunitId": 139883,
+    "codeunitName": "E-Doc Process Test",
+    "method": "AdditionalFieldsShouldNotBeConsideredIfNotConfigured"
+  },
+  {
+    "codeunitId": 139883,
+    "codeunitName": "E-Doc Process Test",
+    "method": "AdditionalFieldValueExceedingFieldLengthEnrichesErrorMessage"
+  },
+  {
+    "codeunitId": 139883,
+    "codeunitName": "E-Doc Process Test",
+    "method": "AdditionalFieldWithInvalidValueEnrichesErrorMessage"
+  },
+  {
+    "codeunitId": 139883,
+    "codeunitName": "E-Doc Process Test",
+    "method": "MultipleAdditionalFieldsFailureOnSecondHasCorrectContext"
+  },
+  {
+    "codeunitId": 139883,
+    "codeunitName": "E-Doc Process Test",
+    "method": "PostingInboundDocumentCreatesHistoricalRecords"
+  },
+  {
+    "codeunitId": 139883,
+    "codeunitName": "E-Doc Process Test",
+    "method": "ProcessingInboundDocumentCreatesLinks"
+  },
+  {
+    "codeunitId": 139883,
+    "codeunitName": "E-Doc Process Test",
+    "method": "ProcessingInboundInvoiceStillCreatesCorrectDocumentType"
+  },
+  {
+    "codeunitId": 139883,
+    "codeunitName": "E-Doc Process Test",
+    "method": "SuccessfulImportWithAdditionalFieldsHasNoErrors"
   }
 ]

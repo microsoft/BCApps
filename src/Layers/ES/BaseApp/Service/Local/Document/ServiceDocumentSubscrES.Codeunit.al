@@ -9,8 +9,10 @@ using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Finance.VAT.Setup;
+using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Pricing;
 using Microsoft.Sales.Receivables;
@@ -97,6 +99,55 @@ codeunit 10763 "Service Document Subscr. ES"
     local procedure OnAfterInitRecord(var ServiceHeader: Record "Service Header")
     begin
         ServSIIManagement.UpdateSIIInfoInServiceDoc(ServiceHeader);
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Service Header", 'OnBeforeValidatePaymentTerms', '', true, true)]
+    local procedure OnBeforeValidatePaymentTerms(var ServiceHeader: Record "Service Header"; var IsHandled: Boolean)
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        PaymentTerms: Record "Payment Terms";
+        DueDateAdjust: Codeunit "Due Date-Adjust";
+        IsDueDateValidationHandled: Boolean;
+    begin
+        GeneralLedgerSetup.GetRecordOnce();
+        if (ServiceHeader."Document Type" <> ServiceHeader."Document Type"::"Credit Memo") or
+           (GeneralLedgerSetup."Payment Discount Type" = GeneralLedgerSetup."Payment Discount Type"::"Calc. Pmt. Disc. on Lines")
+        then
+            if (ServiceHeader."Payment Terms Code" <> '') and (ServiceHeader."Document Date" <> 0D) then begin
+                PaymentTerms.Get(ServiceHeader."Payment Terms Code");
+                ServiceHeader."Due Date" := CalcDate(PaymentTerms."Due Date Calculation", ServiceHeader."Document Date");
+                DueDateAdjust.SalesAdjustDueDate(
+                  ServiceHeader."Due Date", ServiceHeader."Document Date", PaymentTerms.CalculateMaxDueDate(ServiceHeader."Document Date"), ServiceHeader."Bill-to Customer No.");
+                ServiceHeader."Pmt. Discount Date" := CalcDate(PaymentTerms."Discount Date Calculation", ServiceHeader."Document Date");
+                ServiceHeader.Validate("Payment Discount %", PaymentTerms."Discount %");
+            end else begin
+                ServiceHeader."Due Date" := ServiceHeader."Document Date";
+                DueDateAdjust.SalesAdjustDueDate(ServiceHeader."Due Date", ServiceHeader."Document Date", 99991231D, ServiceHeader."Bill-to Customer No.");
+                IsHandled := false;
+                ServiceHeader.RunOnValidatePaymentTermsCodeOnBeforeCalcPmtDiscDate(ServiceHeader, IsHandled);
+                if not IsHandled then
+                    ServiceHeader."Pmt. Discount Date" := ServiceHeader."Document Date";
+                ServiceHeader.Validate("Payment Discount %", 0);
+            end
+        else
+            if ServiceHeader."Payment Terms Code" <> '' then begin
+                PaymentTerms.Get(ServiceHeader."Payment Terms Code");
+                ServiceHeader.Validate("Payment Discount %", PaymentTerms."Discount %");
+            end else
+                ServiceHeader.Validate("Payment Discount %", 0);
+
+        if (ServiceHeader."Document Type" = ServiceHeader."Document Type"::"Credit Memo") and
+           not PaymentTerms."Calc. Pmt. Disc. on Cr. Memos"
+        then begin
+            IsDueDateValidationHandled := false;
+            ServiceHeader.RunOnValidatePaymentTermsCodeOnBeforeValidateDueDate(ServiceHeader, IsDueDateValidationHandled);
+            if not IsDueDateValidationHandled then
+                ServiceHeader.Validate("Due Date", ServiceHeader."Document Date");
+            ServiceHeader.Validate("Pmt. Discount Date", 0D);
+            ServiceHeader.Validate("Payment Discount %", 0);
+        end;
+
+        IsHandled := true;
     end;
 
     // Service Line

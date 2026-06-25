@@ -213,6 +213,7 @@ codeunit 87 "Blanket Sales Order to Order"
                     SalesLineOrder."Qty. to Asm. to Order (Base)" := SalesLineOrder."Quantity (Base)";
                 end;
                 SalesLineOrder.DefaultDeferralCode();
+                RemapAttachedToLineNo(SalesLineBlanketOrder, SalesLineOrder);
                 if IsSalesOrderLineToBeInserted(SalesLineOrder) then begin
                     OnBeforeInsertSalesOrderLine(SalesLineOrder, SalesHeaderOrder, SalesLineBlanketOrder, SalesHeaderBlanketOrder);
                     SalesLineOrder.Insert();
@@ -504,6 +505,23 @@ codeunit 87 "Blanket Sales Order to Order"
         exit(
           AttachedToSalesLine.Get(
             SalesOrderLine."Document Type", SalesOrderLine."Document No.", SalesOrderLine."Attached to Line No."));
+    end;
+
+    local procedure RemapAttachedToLineNo(SalesLineBlanketOrder: Record "Sales Line"; var SalesLineOrder: Record "Sales Line")
+    var
+        ParentSalesLine: Record "Sales Line";
+    begin
+        if SalesLineOrder."Attached to Line No." = 0 then
+            exit;
+
+        ParentSalesLine.SetCurrentKey("Document Type", "Blanket Order No.", "Blanket Order Line No.");
+        ParentSalesLine.SetLoadFields("Line No.");
+        ParentSalesLine.SetRange("Document Type", SalesLineOrder."Document Type");
+        ParentSalesLine.SetRange("Document No.", SalesLineOrder."Document No.");
+        ParentSalesLine.SetRange("Blanket Order No.", SalesLineBlanketOrder."Document No.");
+        ParentSalesLine.SetRange("Blanket Order Line No.", SalesLineBlanketOrder."Attached to Line No.");
+        if ParentSalesLine.FindFirst() then
+            SalesLineOrder."Attached to Line No." := ParentSalesLine."Line No.";
     end;
 
     [IntegrationEvent(false, false)]

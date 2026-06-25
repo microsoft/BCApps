@@ -78,6 +78,7 @@ reportextension 6485 "Serv. Suggest Worksheet Lines" extends "Suggest Worksheet 
     local procedure InsertCFLineForServiceLine()
     var
         ServiceLine2: Record "Service Line";
+        SkipInsert: Boolean;
     begin
         ServiceLine2 := "Service Line";
         if Summarized and (ServiceLine2.Next() <> 0) and (ServiceLine2."Customer No." <> '') and
@@ -115,10 +116,15 @@ reportextension 6485 "Serv. Suggest Worksheet Lines" extends "Suggest Worksheet 
                 TotalAmt := 0;
             end;
 
-            CFWorksheetLine2."Payment Terms Code" := ServiceHeader."Payment Terms Code";
+            if "Cash Flow Forecast"."Consider CF Payment Terms" and (Customer."Cash Flow Payment Terms Code" <> '') then
+                CFWorksheetLine2."Payment Terms Code" := Customer."Cash Flow Payment Terms Code"
+            else
+                CFWorksheetLine2."Payment Terms Code" := ServiceHeader."Payment Terms Code";
 
-            OnInsertCFLineForServiceLineOnBeforeInsertTempCFWorksheetLine(CFWorksheetLine2, "Cash Flow Forecast", "Service Line");
-            InsertTempCFWorksheetLine(CFWorksheetLine2, 0);
+            SkipInsert := false;
+            OnInsertCFLineForServiceLineOnBeforeInsertTempCFWorksheetLine(CFWorksheetLine2, "Cash Flow Forecast", "Service Line", SkipInsert);
+            if not SkipInsert then
+                InsertTempCFWorksheetLine(CFWorksheetLine2, 0);
         end;
     end;
 
@@ -133,7 +139,7 @@ reportextension 6485 "Serv. Suggest Worksheet Lines" extends "Suggest Worksheet 
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnInsertCFLineForServiceLineOnBeforeInsertTempCFWorksheetLine(var CashFlowWorksheetLine: Record "Cash Flow Worksheet Line"; CashFlowForecast: Record "Cash Flow Forecast"; ServiceLine: Record "Service Line")
+    local procedure OnInsertCFLineForServiceLineOnBeforeInsertTempCFWorksheetLine(var CashFlowWorksheetLine: Record "Cash Flow Worksheet Line"; CashFlowForecast: Record "Cash Flow Forecast"; ServiceLine: Record "Service Line"; var SkipInsert: Boolean)
     begin
     end;
 }

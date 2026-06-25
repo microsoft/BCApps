@@ -48,8 +48,6 @@ tableextension 11703 "Sales Header CZL" extends "Sales Header"
                     if (xRec."Document Date" <> Rec."Document Date") and (Rec."Document Type" = Rec."Document Type"::Quote) then
                         Rec."VAT Reporting Date" := Rec."Document Date";
 
-                CheckCurrencyExchangeRateCZL("VAT Reporting Date");
-
                 NeedUpdateVATCurrencyFactor := ("Currency Code" <> '') and ("VAT Reporting Date" <> xRec."VAT Reporting Date");
                 OnValidateVATDateOnBeforeCheckNeedUpdateVATCurrencyFactorCZL(Rec, IsConfirmedCZL, NeedUpdateVATCurrencyFactor, xRec);
                 if NeedUpdateVATCurrencyFactor then begin
@@ -301,17 +299,6 @@ tableextension 11703 "Sales Header CZL" extends "Sales Header"
         IsConfirmedCZL: Boolean;
         UpdateExchRateQst: Label 'Do you want to update the exchange rate for VAT?';
         UpdateExchRateForAddCurrencyQst: Label 'Do you want to update the exchange rate for additional currency?';
-
-    local procedure CheckCurrencyExchangeRateCZL(CurrencyDate: Date)
-    var
-        CurrencyExchangeRate: Record "Currency Exchange Rate";
-        CurrExchRateNotExistsErr: Label '%1 does not exist for currency %2 and date %3.', Comment = '%1 = CurrExchRate.TableCaption, %2 = Currency Code, %3 = Date';
-    begin
-        if "Currency Code" = '' then
-            exit;
-        if not CurrencyExchangeRate.CurrencyExchangeRateExist("Currency Code", CurrencyDate) then
-            Error(CurrExchRateNotExistsErr, CurrencyExchangeRate.TableCaption, "Currency Code", CurrencyDate);
-    end;
 
     procedure UpdateVATCurrencyFactorCZLByCurrencyFactorCZL()
     begin

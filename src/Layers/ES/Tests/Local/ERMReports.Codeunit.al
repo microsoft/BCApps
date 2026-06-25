@@ -337,7 +337,7 @@ codeunit 144097 "ERM Reports"
         ServiceInvoiceHeader.SetRange("Customer No.", ServiceHeader."Customer No.");
 
         // [WHEN] Run report "Service - Invoice"
-        REPORT.Run(REPORT::"Service - Invoice", true, false, ServiceInvoiceHeader);
+        REPORT.Run(REPORT::"Service Invoice (ES)", true, false, ServiceInvoiceHeader);
 
         // [THEN] Report Dataset has Payment Method Translation Description under tag '<PaymentMethodDesc>'
         LibraryReportDataset.LoadDataSetFile();
@@ -831,7 +831,7 @@ codeunit 144097 "ERM Reports"
 
     [RequestPageHandler]
     [Scope('OnPrem')]
-    procedure ServiceInvoiceRequestPageHandler(var ServiceInvoice: TestRequestPage "Service - Invoice")
+    procedure ServiceInvoiceRequestPageHandler(var ServiceInvoice: TestRequestPage "Service Invoice (ES)")
     begin
         ServiceInvoice.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;

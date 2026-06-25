@@ -8874,6 +8874,28 @@
     ]
   },
   {
+    "name": "Sustainability Contoso Coffee Demo Dataset (ES)",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "OnPrem",
+        "doNotInstall": true
+      },
+      {
+        "name": "OnPremExtensions",
+        "doNotInstall": true
+      },
+      {
+        "name": "ContosoDemoData"
+      }
+    ]
+  },
+  {
     "name": "Calculate Sustainability Emission with Copilot",
     "groups": [
       {
@@ -9043,6 +9065,91 @@
   },
   {
     "name": "Expense Agent Demo Data (AU)",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      },
+      {
+        "name": "ContosoDemoData"
+      }
+    ]
+  },
+  {
+    "name": "Expense Agent Demo Data (ES)",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      },
+      {
+        "name": "ContosoDemoData"
+      }
+    ]
+  },
+  {
+    "name": "Expense Agent Demo Data (DK)",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      },
+      {
+        "name": "ContosoDemoData"
+      }
+    ]
+  },
+  {
+    "name": "Expense Agent Demo Data (FR)",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      },
+      {
+        "name": "ContosoDemoData"
+      }
+    ]
+  },
+  {
+    "name": "Expense Agent Demo Data (DE)",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      },
+      {
+        "name": "ContosoDemoData"
+      }
+    ]
+  },
+  {
+    "name": "Expense Agent Demo Data (AT)",
     "groups": [
       {
         "name": "AllExtensions"

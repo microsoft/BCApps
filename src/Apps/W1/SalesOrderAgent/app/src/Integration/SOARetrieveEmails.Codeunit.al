@@ -93,10 +93,7 @@ codeunit 4582 "SOA Retrieve Emails"
         end;
 
         AddEmailInboxToSOAEmails(SOASetup, EmailInbox);
-        // Only update sync time if we're not syncing from a specific folder
-        // Specifying a folder means we may miss emails if they are moved into the folder after we sync
-        if TempFilters."Folder Id" = '' then
-            UpdateSOAEarliestSyncAt(SOASetup, EmailInbox.Count());
+        UpdateSOAEarliestSyncAt(SOASetup, EmailInbox.Count());
         Commit();
 
         SOAEmail.SetRange(Processed, false);
