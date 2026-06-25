@@ -1037,55 +1037,22 @@ function Remove-StructuralFences {
 
     return $sb.ToString()
 }
-
+  
 function Repair-ResumeFenceJson {
     <#
-    Repairs the interrupted-emission shape where the agent breaks off
-    mid-string — leaving an UNTERMINATED JSON string — and resumes by
-    re-opening a fresh ```json fence WITHOUT emitting a "Placeholder ..."
-    marker. Observed in production (run 28168894037), inside a
-    `suggested-code` value:
-
-        "confidence": "high",
-        "suggested-code": "    ODataKeyFields =
-                                             <- raw newline(s) inside the string
-        ```json                              <- bare resume fence, no marker
-              "suggested-code": "    ODataKeyFields = SystemId;"
-
-    A raw newline inside a string literal is always invalid JSON, so this
-    shape is unambiguous. A single malformed value like this makes
-    ConvertFrom-Json reject the ENTIRE document, discarding every finding
-    (the run above found 42 issues across 11 sub-skills and posted 0). The
-    broken partial line is discarded and the post-fence resumption spliced in
-    its place; because the agent re-emits the field from its start, the
-    splice de-duplicates naturally.
-
-    This is the third repair path, filling the gap between the other two:
-      - Repair-InterruptedAgentJson keys off the "Placeholder ..." marker,
-        which is absent here.
-      - Remove-StructuralFences removes whole-line fences that sit OUTSIDE a
-        string literal, and deliberately PRESERVES fences inside a string
-        (e.g. a ```al code sample in suggested-code). Here the resume fence
-        sits inside an *unterminated* string, so the conservative
-        fence-stripper must leave it alone — only a string-aware splice keyed
-        off the malformed newline can clear it without harming legitimate
-        in-string fences.
-
-    Conservative by construction: it acts only on a bare ```-fence line that is
-    immediately preceded by a JSON property whose string value was left
-    unterminated (`"key": "...` with an odd count of unescaped quotes) and
-    immediately followed by a re-emission of that SAME `"key":`. That triple
-    signature is what distinguishes the interrupted-emission resume from
-    ordinary CLI transcript noise (shell echoes, tool-call boxes), which also
-    contain stray quotes and fences but never re-emit a matching JSON key
-    across a fence. Callers try the unmodified candidates first, so well-formed
-    output is never altered.
+    Clears a bare ```json resume fence the agent emits mid-string with no
+    "Placeholder" marker, which leaves an unterminated JSON string and makes
+    ConvertFrom-Json reject the whole document. Remove-StructuralFences can't
+    help (it preserves in-string fences) and Repair-InterruptedAgentJson needs
+    the marker that's absent here. Conservative: only acts when a bare fence is
+    preceded by a property left unterminated (odd unescaped quotes) and followed
+    by a re-emission of the same key. Callers try unmodified candidates first,
+    so clean output is never altered.
     #>
     param([string] $Output)
     if (-not $Output) { return $Output }
 
-    # Count quotes that are not backslash-escaped. An odd count on a line that
-    # opens a JSON property means the string value was left unterminated.
+    # Odd count of unescaped quotes => the property's string value was left open.
     $unescapedQuoteCount = {
         param([string] $s)
         $n = 0; $esc = $false
@@ -1106,8 +1073,7 @@ function Repair-ResumeFenceJson {
         for ($li = 0; $li -lt $lines.Count; $li++) {
             if (($lines[$li].Trim()) -notmatch '^```[A-Za-z0-9]*$') { continue }
 
-            # Nearest non-blank line before the fence: must be a JSON property
-            # whose string value was left unterminated (odd unescaped quotes).
+            # Line before the fence must be a property left unterminated.
             $p = $li - 1
             while ($p -ge 0 -and $lines[$p].Trim().Length -eq 0) { $p-- }
             if ($p -lt 0) { continue }
@@ -1116,17 +1082,15 @@ function Repair-ResumeFenceJson {
             $key = $Matches[1]
             if (((& $unescapedQuoteCount $before) % 2) -eq 0) { continue }
 
-            # Nearest non-blank line after the fence: must re-emit the same key,
-            # i.e. the model resumed by restarting the interrupted property.
+            # Line after the fence must re-emit the same key (the resumed property).
             $a = $li + 1
             while ($a -lt $lines.Count -and $lines[$a].Trim().Length -eq 0) { $a++ }
             if ($a -ge $lines.Count) { continue }
             $after = $lines[$a].Trim()
             if ($after -notmatch ('^"' + [regex]::Escape($key) + '"\s*:')) { continue }
 
-            # Discard the broken partial line, the blank lines, and the fence;
-            # keep the re-emission onward. The re-emission re-includes the field
-            # from its start, so the splice de-duplicates naturally.
+            # Drop the broken line and fence; keep the re-emission, which
+            # restarts the field and so de-duplicates naturally.
             $newLines = [System.Collections.Generic.List[string]]::new()
             if ($p -gt 0) { for ($x = 0; $x -lt $p; $x++) { $newLines.Add($lines[$x]) | Out-Null } }
             for ($x = $a; $x -lt $lines.Count; $x++) { $newLines.Add($lines[$x]) | Out-Null }
@@ -1193,13 +1157,9 @@ function Parse-BCQualityReport {
     }
     foreach ($clean in $defenced) { $candidates.Add($clean) | Out-Null }
 
-    # Resume-fence repair: handles the interrupted-emission shape where the
-    # agent breaks off mid-string (leaving an unterminated JSON string) and
-    # resumes by re-opening a bare ```json fence with NO Placeholder marker.
-    # Because the break sits inside an unterminated string, Remove-StructuralFences
-    # (which preserves in-string fences) cannot clear it. Extract candidates from
-    # the repaired text and append them AFTER the originals so clean output is
-    # never disturbed.
+    # Repair the resume-fence shape (bare ```json fence inside an unterminated
+    # string, which Remove-StructuralFences can't clear) and append its
+    # candidates after the originals so clean output is untouched.
     $resumeRepaired = Repair-ResumeFenceJson -Output $stripped
     if ($resumeRepaired -ne $stripped) {
         $resumeCandidates = [System.Collections.Generic.List[string]]::new()
@@ -1212,17 +1172,11 @@ function Parse-BCQualityReport {
         }
     }
 
-    # A candidate can parse cleanly yet be the WRONG fragment. The transcript
-    # echoes every sub-skill's own JSON report inside ```json fences, and the
-    # top-level findings-report's `findings[]` is itself a large balanced JSON
-    # array. When the full document is unparseable (e.g. a corrupt value deep in
-    # sub-results) the scan happily parses one of those fragments first: a bare
-    # sub-skill report has `findings` but no `sub-results`, and a bare array has
-    # neither — either way the real report is silently dropped (observed in run
-    # 28168894037: 42 findings recovered to 0). Prefer the orchestrator report
-    # shape (exposes `sub-results` or a `dispatch`), then a findings-bearing
-    # object, then any parseable candidate, so leniency is preserved while the
-    # correct fragment always wins.
+    # A fragment can parse cleanly yet be the wrong one: the transcript echoes
+    # each sub-skill report and the findings[] array as standalone JSON, so when
+    # the full document is unparseable one of those wins and the real report is
+    # dropped. Prefer the orchestrator shape (sub-results/dispatch), then any
+    # findings-bearing object, then any parseable candidate.
     $report = $null
     $shapedReport = $null
     $fallbackReport = $null
