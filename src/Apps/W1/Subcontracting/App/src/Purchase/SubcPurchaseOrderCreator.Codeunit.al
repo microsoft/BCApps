@@ -293,6 +293,7 @@ codeunit 99001557 "Subc. Purchase Order Creator"
         NoOfCreatedPurchOrder: Integer;
     begin
         CreatedPurchaseHeader.Reset();
+        CreatedPurchaseHeader.MarkedOnly(false);
         CreatedPurchaseHeader.ClearMarks();
         ProdOrderRoutingLine.SetRange(Type, "Capacity Type"::"Work Center");
         ShowExistingPurchaseOrdersForRoutingLines(ProdOrderRoutingLine);
@@ -408,10 +409,11 @@ codeunit 99001557 "Subc. Purchase Order Creator"
     local procedure FilterSubcPurchaseLineForRoutingLine(var PurchaseLine: Record "Purchase Line"; ProdOrderLine: Record "Prod. Order Line"; ProdOrderRoutingLine: Record "Prod. Order Routing Line")
     begin
         PurchaseLine.Reset();
-        PurchaseLine.SetCurrentKey("Document Type", Type, "Prod. Order No.");
+        PurchaseLine.SetCurrentKey("Prod. Order No.", "Prod. Order Line No.", "Routing No.", "Operation No.");
         PurchaseLine.SetRange("Document Type", "Purchase Document Type"::Order);
         PurchaseLine.SetRange(Type, "Purchase Line Type"::Item);
         PurchaseLine.SetRange("Prod. Order No.", ProdOrderLine."Prod. Order No.");
+        PurchaseLine.SetRange("Prod. Order Line No.", ProdOrderLine."Line No.");
         PurchaseLine.SetRange("Routing No.", ProdOrderRoutingLine."Routing No.");
         PurchaseLine.SetRange("Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.");
         PurchaseLine.SetRange("Operation No.", ProdOrderRoutingLine."Operation No.");
