@@ -8,7 +8,6 @@ using Microsoft.Foundation.Enums;
 using Microsoft.Manufacturing.Reports;
 using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.WorkCenter;
-using System.Environment;
 
 codeunit 99001512 "Subc. Reporting Triggers Ext"
 {
