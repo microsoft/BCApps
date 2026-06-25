@@ -2436,6 +2436,150 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     [Test]
+    procedure CalculateSubcontractsErrorsWhenWorkCenterMissingGenProdPostingGroup()
+    var
+        Item: Record Item;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProductionOrder: Record "Production Order";
+        WorkCenter: array[2] of Record "Work Center";
+    begin
+        // [SCENARIO 635775] Calculate Subcontracts must error up front when the subcontracting Work Center has a blank Gen. Prod. Posting Group
+        Initialize();
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+        UpdateSubMgmtSetupWithReqWkshTemplate();
+
+        // [GIVEN] Manufacturing setup with an item, routing and subcontracting work center
+        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+
+        // [GIVEN] A released production order
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
+
+        // [GIVEN] The subcontracting Work Center has a blank Gen. Prod. Posting Group
+        WorkCenter[2].Get(WorkCenter[2]."No.");
+        WorkCenter[2].Validate("Gen. Prod. Posting Group", '');
+        WorkCenter[2].Modify(true);
+
+        // [WHEN] Calculate Subcontracts is run on the worksheet
+        asserterror RunCalculateSubcontracts();
+
+        // [THEN] It errors immediately instead of deferring to posting time
+        Assert.ExpectedError('Gen. Prod. Posting Group must have a value');
+    end;
+
+    [Test]
+    procedure CreateSubcOrderFromRoutingErrorsWhenWorkCenterMissingGenProdPostingGroup()
+    var
+        Item: Record Item;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProductionOrder: Record "Production Order";
+        WorkCenter: array[2] of Record "Work Center";
+    begin
+        // [SCENARIO 635775] Creating a Subcontracting Order from the Prod. Order Routing must error when the Work Center has a blank Gen. Prod. Posting Group
+        Initialize();
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+        UpdateSubMgmtSetupWithReqWkshTemplate();
+
+        // [GIVEN] Manufacturing setup with an item, routing and subcontracting work center
+        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+
+        // [GIVEN] A released production order
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
+
+        // [GIVEN] The subcontracting Work Center has a blank Gen. Prod. Posting Group
+        WorkCenter[2].Get(WorkCenter[2]."No.");
+        WorkCenter[2].Validate("Gen. Prod. Posting Group", '');
+        WorkCenter[2].Modify(true);
+
+        // [WHEN] Create Subcontracting Order is invoked from the Prod. Order Routing
+        asserterror SubcontractingMgmtLibrary.CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
+
+        // [THEN] It errors on the missing Gen. Prod. Posting Group
+        Assert.ExpectedError('Gen. Prod. Posting Group must have a value');
+    end;
+
+    [Test]
+    procedure CalculateSubcontractsErrorsWhenItemBlockedForOutput()
+    var
+        Item: Record Item;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProductionOrder: Record "Production Order";
+        WorkCenter: array[2] of Record "Work Center";
+    begin
+        // [SCENARIO 635775] Calculate Subcontracts must error when the manufactured item is blocked for production output
+        Initialize();
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+        UpdateSubMgmtSetupWithReqWkshTemplate();
+
+        // [GIVEN] Manufacturing setup with an item, routing and subcontracting work center
+        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+
+        // [GIVEN] A released production order
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
+
+        // [GIVEN] The manufactured item is blocked for production output
+        Item.Get(Item."No.");
+        Item.Validate("Production Blocked", Item."Production Blocked"::Output);
+        Item.Modify(true);
+
+        // [WHEN] Calculate Subcontracts is run on the worksheet
+        asserterror RunCalculateSubcontracts();
+
+        // [THEN] It errors because the item is blocked for production output
+        Assert.ExpectedError('You cannot produce');
+    end;
+
+    [Test]
+    procedure CreateSubcOrderFromRoutingErrorsWhenItemBlockedForOutput()
+    var
+        Item: Record Item;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProductionOrder: Record "Production Order";
+        WorkCenter: array[2] of Record "Work Center";
+    begin
+        // [SCENARIO 635775] Creating a Subcontracting Order from the Prod. Order Routing must error when the item is blocked for production output
+        Initialize();
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+        UpdateSubMgmtSetupWithReqWkshTemplate();
+
+        // [GIVEN] Manufacturing setup with an item, routing and subcontracting work center
+        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+
+        // [GIVEN] A released production order
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
+
+        // [GIVEN] The manufactured item is blocked for production output
+        Item.Get(Item."No.");
+        Item.Validate("Production Blocked", Item."Production Blocked"::Output);
+        Item.Modify(true);
+
+        // [WHEN] Create Subcontracting Order is invoked from the Prod. Order Routing
+        asserterror SubcontractingMgmtLibrary.CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
+
+        // [THEN] It errors because the item is blocked for production output
+        Assert.ExpectedError('You cannot produce');
+    end;
+
+    [Test]
     [HandlerFunctions('RoutingLinkCodeDuplicateConfirmHandler')]
     procedure ValidateRoutingLinkCodeOnProdOrderRtngLineShowsConfirmOnce()
     var
@@ -4261,6 +4405,21 @@ codeunit 139989 "Subc. Subcontracting Test"
     local procedure UpdateSubMgmtSetupWithReqWkshTemplate()
     begin
         LibraryMfgManagement.CreateSubcontractingReqWkshTemplateAndNameAndUpdateSetup();
+    end;
+
+    local procedure RunCalculateSubcontracts()
+    var
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        RequisitionLine: Record "Requisition Line";
+        SubcCalculateSubContract: Report "Subc. Calculate Subcontracts";
+    begin
+        SubcontractingMgmtLibrary.CreateReqWkshTemplateAndName(ReqWkshTemplate, RequisitionWkshName);
+        RequisitionLine."Worksheet Template Name" := RequisitionWkshName."Worksheet Template Name";
+        RequisitionLine."Journal Batch Name" := RequisitionWkshName.Name;
+        SubcCalculateSubContract.SetWkShLine(RequisitionLine);
+        SubcCalculateSubContract.UseRequestPage(false);
+        SubcCalculateSubContract.RunModal();
     end;
 
     local procedure UpdateSubMgmtSetupTransferInfoLine(Update: Boolean)
