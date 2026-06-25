@@ -580,7 +580,7 @@ codeunit 139982 "Subc. Pricing Test"
             'A subcontractor price with blank Unit of Measure must appear in the FactBox when the purchase line has a specific UoM.');
     end;
 
- 
+
     local procedure CreateUOMCodeSortingAfter(BaseUOMCode: Code[10]): Code[10]
     var
         UnitOfMeasure: Record "Unit of Measure";
@@ -637,9 +637,9 @@ codeunit 139982 "Subc. Pricing Test"
         RoutingHeader: Record "Routing Header";
         RoutingLine: Record "Routing Line";
         SubcontractorPrice: Record "Subcontractor Price";
-        DetailedCalculation: Report "Detailed Calculation";
         SubcPriceAmount: Decimal;
         WorkCenterDirectCost: Decimal;
+        XmlParameters: Text;
     begin
         // [SCENARIO 638464] Report "Detailed Calculation" must use subcontractor pricing for
         // work centers with a subcontractor when the Subcontracting app is installed, via
@@ -679,8 +679,8 @@ codeunit 139982 "Subc. Pricing Test"
         // [WHEN] Run the "Detailed Calculation" report (BaseApp 99000756) for this item.
         Commit();
         Item.SetRecFilter();
-        DetailedCalculation.SetTableView(Item);
-        DetailedCalculation.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
+        XmlParameters := Report.RunRequestPage(Report::"Detailed Calculation");
+        LibraryReportDataset.RunReportAndLoad(Report::"Detailed Calculation", Item, XmlParameters);
 
         // [THEN] The ProdUnitCost in the report dataset equals the subcontractor price (200),
         // not the Work Center's generic Direct Unit Cost (50).
