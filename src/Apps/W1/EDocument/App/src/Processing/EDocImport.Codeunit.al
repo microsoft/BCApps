@@ -700,11 +700,6 @@ codeunit 6140 "E-Doc. Import"
                     SourceDocumentHeader.Open(Database::"Purchase Header", true);
                     SourceDocumentLine.Open(Database::"Purchase Line", true);
                 end;
-            EDocument."Document Type"::"Sales Order":
-                begin
-                    SourceDocumentHeader.Open(Database::"Sales Header", true);
-                    SourceDocumentLine.Open(Database::"Sales Line", true);
-                end;
             else begin
                 EDocErrorHelper.LogSimpleErrorMessage(EDocument, StrSubstNo(DocTypeIsNotSupportedErr, EDocument."Document Type"));
                 exit;
